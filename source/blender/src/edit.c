@@ -46,6 +46,8 @@
 
 #include "BMF_Api.h"
 
+#include "PIL_time.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -333,7 +335,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 {
 	static short no_mvalo=0;
 
-	if(mval==0 && mvalo==0) {	/* signal */
+	if(mval==NULL && mvalo==NULL) {	/* signal */
 		no_mvalo= 1;
 		return;
 	}
@@ -375,9 +377,12 @@ void circle_selectCB(select_CBfunc callback)
 	if(G.obedit) obj = G.obedit;
 	else obj = OBACT;
 
+	mywinset(curarea->win);
 	
 	getmouseco_areawin(mvalo);
-	draw_sel_circle(mvalo, 0, rad, 0.0, selecting);
+	mval[0]= mvalo[0]; mval[1]= mvalo[1];
+
+	draw_sel_circle(mval, NULL, rad, 0.0, selecting);
 	
 	rado= rad;
 	
@@ -385,10 +390,8 @@ void circle_selectCB(select_CBfunc callback)
 		
 		/* for when another window is open and a mouse cursor activates it */
 
-		mywinset(curarea->win);
+		//mywinset(curarea->win);
 
-		getmouseco_areawin(mval);
-		
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || rado!=rad || firsttime) {
 			firsttime= 0;
 			
@@ -403,11 +406,15 @@ void circle_selectCB(select_CBfunc callback)
 			rado= rad;
 
 		}
+		
 		event= extern_qread(&val);
 		if (event) {
 			int afbreek= 0;
+
+			getmouseco_areawin(mval);	// important to do here, trust events!
 			
 			switch(event) {
+		
 			case LEFTMOUSE:
 			case MIDDLEMOUSE:
 				if(val) selecting= event;
@@ -433,10 +440,11 @@ void circle_selectCB(select_CBfunc callback)
 			
 			if(afbreek) break;
 		}
+		else PIL_sleep_ms(10);
 	}
 	
 	/* clear circle */
-	draw_sel_circle(0, mvalo, 0, rad, 1);
+	draw_sel_circle(NULL, mvalo, 0, rad, 1);
 	BIF_undo_push("Circle Select");
 	countall();
 	allqueue(REDRAWINFO, 0);

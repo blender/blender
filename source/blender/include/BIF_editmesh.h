@@ -91,7 +91,10 @@ extern void vertexnormals(int testflip);
 /* ******************* editmesh_mods.c */
 
 extern void EM_select_face_fgon(struct EditFace *efa, int sel);
+
 extern int EM_zbuffer_visible(float *co, short xs, short ys);
+extern void EM_set_zbufselect_cache(short minx, short miny, short maxx, short maxy);
+extern void EM_free_zbufselect_cache(void);
 
 extern void vertexnoise(void);
 extern void vertexsmooth(void);

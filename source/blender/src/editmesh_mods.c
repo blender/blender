@@ -99,6 +99,48 @@ editmesh_mods.c, UI level access, no geometry changes
 
 /* ****************************** SELECTION ROUTINES **************** */
 
+// caching
+
+static unsigned int *zbuffer= NULL;
+static short zminx, zminy, zmaxx, zmaxy;
+
+void EM_set_zbufselect_cache(short minx, short miny, short maxx, short maxy)
+{
+
+	if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return;
+
+	if(minx<0) minx= 0;
+	if(miny<0) miny= 0;
+	if(maxx>=curarea->winx) maxx= curarea->winx;
+	if(maxy>=curarea->winy) maxy= curarea->winy;
+
+	if(minx<=maxx && miny<=maxy) {
+		zbuffer= MEM_mallocN( (maxx-minx+1)*(maxy-miny+1)*sizeof(int), "zbuffer select");
+		glReadPixels(curarea->winrct.xmin+minx, curarea->winrct.ymin+miny, (maxx-minx+1), (maxy-miny+1), 
+					 GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  zbuffer);
+		zminx= minx; zminy= miny;
+		zmaxx= maxx; zmaxy= maxy;
+	}
+}
+
+void EM_free_zbufselect_cache(void)
+{
+	if(zbuffer) MEM_freeN(zbuffer);
+	zbuffer= NULL;
+}
+
+static void myglReadPixels(short xs, short ys, unsigned int *data)
+{
+
+	if(zbuffer) {
+		if(xs<zminx || xs>zmaxx || ys<zminy || ys>zmaxy) *data= 0xFFFFFFFF;
+		else *data= zbuffer[ (zmaxx-zminx+1)*(ys-zminy) + (xs-zminx) ];
+	}
+	else 
+		glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  data);
+
+}
+
 /* return 1 if visible */
 int EM_zbuffer_visible(float *co, short xs, short ys)
 {
@@ -119,8 +161,7 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 		Mat4MulMat4(persmat, vmat, pmat);	
 		bglPolygonOffset(0.0);			// restores proj matrix 
 
-		myloadmatrix(G.vd->viewmat);
-		
+		myloadmatrix(G.vd->viewmat);		
 		return 0;
 	}
 
@@ -135,7 +176,9 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 
 	if(1) {
 		unsigned int zvali;
-		glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  &zvali);
+		
+		myglReadPixels(xs, ys, &zvali);
+		// glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  &zvali);
 		zval= ((float)zvali)/((float)0xFFFFFFFF);
 		// printf("my proj %f zbuf %x %f mydiff %f\n", vec4[2], zvali, zval, vec4[2]-zval);
 	}

@@ -794,6 +794,7 @@ void borderselect(void)
 				EditFace *efa;
 				
 				EM_zbuffer_visible(NULL, 0, 0);	// init
+				EM_set_zbufselect_cache(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 				
 				if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 					calc_meshverts_ext();	/* clips, drawobject.c */
@@ -854,6 +855,8 @@ void borderselect(void)
 					}
 				}
 				
+				EM_free_zbufselect_cache();
+					
 				EM_selectmode_flush();
 				allqueue(REDRAWVIEW3D, 0);
 				
@@ -1054,8 +1057,10 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 	EditEdge *eed;
 	EditFace *efa;
 	float x, y, r;
+	short rads= (short)(rad+1.0);
 	
 	EM_zbuffer_visible(NULL, 0, 0);	// init
+	EM_set_zbufselect_cache(mval[0]-rads, mval[1]-rads, mval[0]+rads, mval[1]+rads);
 
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		calc_meshverts_ext();	/* drawobject.c */
@@ -1108,7 +1113,8 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 			}
 		}
 	}
-				
+	
+	EM_free_zbufselect_cache();
 	EM_selectmode_flush();
 
 	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
@@ -1226,188 +1232,6 @@ void obedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 		lattice_selectionCB(selecting, editobj, mval, rad);
 		break;
 	}
-}
-
-/** The circle select function - should be replaced by the callback 
-  * version circle_selectCB(). Why ? Because it's not nice as it is!
-  * 
-  */
-
-void circle_select(void)
-{
-	EditMesh *em = G.editMesh;
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	EditVert *eve;
-	static float rad= 40.0;
-	float rado, x, y, trad;
-	int a, firsttime=1;
-	unsigned short event;
-	short mvalo[2], mval[2], val;
-	short selecting=0;
-	
-	if(G.obedit==0) return;
-	
-	getmouseco_areawin(mvalo);
-	draw_sel_circle(mvalo, 0, rad, 0.0, selecting);
-	
-	rado= rad;
-	
-	while(TRUE) {
-		
-		/* when a renderwindow is open and mouse enters it (activates sometimes) */
-
-		mywinset(curarea->win);
-
-		getmouseco_areawin(mval);
-		
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || rado!=rad || firsttime) {
-			firsttime= 0;
-			
-			draw_sel_circle(mval, mvalo, rad, rado, selecting);
-		
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-			rado= rad;
-
-			if(selecting) {
-				
-				if(G.obedit->type==OB_MESH) {
-					
-					calc_meshverts_ext();	/* drawobject.c */
-					eve= em->verts.first;
-					while(eve) {
-						if(eve->h==0) {
-							x= eve->xs-mval[0];
-							y= eve->ys-mval[1];
-							trad= sqrt(x*x+y*y);
-							if(trad<=rad) {
-								if(selecting==LEFTMOUSE) eve->f|= 1;
-								else eve->f&= 254;
-							}
-						}
-						eve= eve->next;
-					}
-					draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-					force_draw();
-				}
-				else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
-					
-					calc_nurbverts_ext();	/* drawobject.c */
-					nu= editNurb.first;
-					while(nu) {
-						if((nu->type & 7)==CU_BEZIER) {
-							bezt= nu->bezt;
-							a= nu->pntsu;
-							while(a--) {
-								if(bezt->hide==0) {
-									x= bezt->s[0][0]-mval[0];
-									y= bezt->s[0][1]-mval[1];
-									trad= sqrt(x*x+y*y);
-									if(trad<=rad) {
-										if(selecting==LEFTMOUSE) bezt->f1|= 1;
-										else bezt->f1 &= ~1;
-									}
-									x= bezt->s[1][0]-mval[0];
-									y= bezt->s[1][1]-mval[1];
-									trad= sqrt(x*x+y*y);
-									if(trad<=rad) {
-										if(selecting==LEFTMOUSE) bezt->f2|= 1;
-										else bezt->f2 &= ~1;
-									}
-									x= bezt->s[2][0]-mval[0];
-									y= bezt->s[2][1]-mval[1];
-									trad= sqrt(x*x+y*y);
-									if(trad<=rad) {
-										if(selecting==LEFTMOUSE) bezt->f3|= 1;
-										else bezt->f3 &= ~1;
-									}
-									
-								}
-								bezt++;
-							}
-						}
-						else {
-							bp= nu->bp;
-							a= nu->pntsu*nu->pntsv;
-							while(a--) {
-								if(bp->hide==0) {
-									x= bp->s[0]-mval[0];
-									y= bp->s[1]-mval[1];
-									trad= sqrt(x*x+y*y);
-									if(trad<=rad) {
-										if(selecting==LEFTMOUSE) bp->f1|= 1;
-										else bp->f1 &= ~1;
-									}
-								}
-								bp++;
-							}
-						}
-						nu= nu->next;
-					}
-					draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-					force_draw();
-				}
-				else if(G.obedit->type==OB_LATTICE) {
-					calc_lattverts_ext();
-					
-					bp= editLatt->def;
-		
-					a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-					while(a--) {
-						if(bp->hide==0) {
-							x= bp->s[0]-mval[0];
-							y= bp->s[1]-mval[1];
-							trad= sqrt(x*x+y*y);
-							if(trad<=rad) {
-								if(selecting==LEFTMOUSE) bp->f1|= 1;
-								else bp->f1 &= ~1;
-							}
-						}
-						bp++;
-					}
-					draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-					force_draw();
-				}
-			}
-		}
-
-		event= extern_qread(&val);
-		if (event) {
-			int afbreek= 0;
-			
-			switch(event) {
-			case LEFTMOUSE:
-			case MIDDLEMOUSE:
-				if(val) selecting= event;
-				else selecting= 0;
-				firsttime= 1;
-				
-				break;
-			case PADPLUSKEY:
-				if(val) if(rad<200.0) rad*= 1.2;
-				break;
-			case PADMINUS:
-				if(val) if(rad>5.0) rad/= 1.2;
-				break;
-			
-			case ESCKEY: case SPACEKEY: case RIGHTMOUSE:
-			case GKEY: case SKEY: case RKEY: case XKEY: case EKEY: case TABKEY:
-				afbreek= 1;
-				break;
-
-			}
-			
-			if(afbreek) break;
-		}
-	}
-	
-	/* clear circle */
-	draw_sel_circle(0, mvalo, 0, rad, 1);
-
-	countall();
-	allqueue(REDRAWINFO, 0);
 }
 
 void set_render_border(void)
