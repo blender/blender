@@ -24,6 +24,8 @@
 
 #include "CCGSubSurf.h"
 
+#define USE_CREASING
+
 typedef struct _SubSurf {
 	CCGSubSurf *subSurf;
 
@@ -102,7 +104,7 @@ static CCGSubSurf *_getSubSurf(SubSurf *ss, int subdivLevels) {
 	CCGAllocatorHDL allocator;
 
 	ifc.vertUserSize = 4;
-	ifc.edgeUserSize = 4;
+	ifc.edgeUserSize = 8;
 	ifc.faceUserSize = 4;
 	ifc.vertDataSize= 12;
 	ifc.vertDataZero= _subsurfNew_meshIFC_vertDataZero;
@@ -525,6 +527,8 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges) {
 }
 
 static void subSurf_sync(SubSurf *ss) {
+	float creaseFactor = (float) ccgSubSurf_getSubdivisionLevels(ss->subSurf);
+
 	ccgSubSurf_initFullSync(ss->subSurf);
 
 	if (ss->controlType==SUBSURF_CONTROLTYPE_MESH) {
@@ -543,6 +547,15 @@ static void subSurf_sync(SubSurf *ss) {
 				MEdge *med = &ss->me->medge[i];
 
 				ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) med->v1, (CCGVertHDL) med->v2);
+
+#ifdef USE_CREASING
+				{
+					CCGEdge *e = ccgSubSurf_getEdge(ss->subSurf, (CCGEdgeHDL) i);
+					float *userData = ccgSubSurf_getEdgeUserData(ss->subSurf, e);
+
+					userData[1] = med->crease*creaseFactor/255.0f;
+				}
+#endif
 			}
 		} else {
 			for (i=0; i<ss->me->totface; i++) {
@@ -567,25 +580,34 @@ static void subSurf_sync(SubSurf *ss) {
 			}
 		}
 	} else {
-		EditVert *v, *fVerts[4];
-		EditEdge *e;
-		EditFace *f;
+		EditVert *ev, *fVerts[4];
+		EditEdge *ee;
+		EditFace *ef;
 
-		for (v=ss->em->verts.first; v; v=v->next) {
-			ccgSubSurf_syncVert(ss->subSurf, v, v->co);
+		for (ev=ss->em->verts.first; ev; ev=ev->next) {
+			ccgSubSurf_syncVert(ss->subSurf, ev, ev->co);
 		}
 
-		for (e=ss->em->edges.first; e; e=e->next) {
-			ccgSubSurf_syncEdge(ss->subSurf, e, e->v1, e->v2);
+		for (ee=ss->em->edges.first; ee; ee=ee->next) {
+			ccgSubSurf_syncEdge(ss->subSurf, ee, ee->v1, ee->v2);
+
+#ifdef USE_CREASING
+			{
+				CCGEdge *e = ccgSubSurf_getEdge(ss->subSurf, ee);
+				float *userData = ccgSubSurf_getEdgeUserData(ss->subSurf, e);
+
+				userData[1] = ee->crease*creaseFactor;
+			}
+#endif
 		}
 
-		for (f=ss->em->faces.first; f; f=f->next) {
-			fVerts[0] = f->v1;
-			fVerts[1] = f->v2;
-			fVerts[2] = f->v3;
-			fVerts[3] = f->v4;
+		for (ef=ss->em->faces.first; ef; ef=ef->next) {
+			fVerts[0] = ef->v1;
+			fVerts[1] = ef->v2;
+			fVerts[2] = ef->v3;
+			fVerts[3] = ef->v4;
 
-			ccgSubSurf_syncFace(ss->subSurf, f, f->v4?4:3, fVerts);
+			ccgSubSurf_syncFace(ss->subSurf, ef, ef->v4?4:3, fVerts);
 		}
 	}
 
