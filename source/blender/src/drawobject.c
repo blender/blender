@@ -443,7 +443,6 @@ static void tekenshadbuflimits(Lamp *la, float mat[][4])
 
 	glPointSize(3.0);
 	bglBegin(GL_POINTS);
-	BIF_ThemeColor(TH_WIRE);
 	bglVertex3fv(sta);
 	bglVertex3fv(end);
 	bglEnd();

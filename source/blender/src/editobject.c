@@ -6678,6 +6678,7 @@ void transform(int mode)
 	if(edge_creases) MEM_freeN(edge_creases);
 	
 	tottrans= 0;
+	set_constline_callback(0, 0, 0, NULL, NULL, NULL, NULL, NULL);	// disable
 
 	/* undo after transform, since it's storing current situations */
 	/* extrude has no own undo-push, so on cancel we still insert it */

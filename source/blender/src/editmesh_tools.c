@@ -1041,7 +1041,7 @@ void fill_mesh(void)
 	if(ok) {
 		efa= fillfacebase.first;
 		while(efa) {
-			efan= addfacelist(efa->v3->vn, efa->v2->vn, efa->v1->vn, 0, efa, NULL); // normals default pointing up
+			efan= addfacelist(efa->v3->vn, efa->v2->vn, efa->v1->vn, 0, NULL, NULL); // normals default pointing up
 			EM_select_face(efan, 1);
 			efa= efa->next;
 		}
