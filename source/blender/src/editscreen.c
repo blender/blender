@@ -2656,7 +2656,7 @@ static void moveareas(ScrEdge *edge)
 			}
 			else {
 				headery= 0;
-				areaminy= EDGEWIDTH;
+				areaminy= AREAMINY; /*areaminy= EDGEWIDTH;*/
 			}
 
 			if(sa->v1->flag && sa->v4->flag) {
