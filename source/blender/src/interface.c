@@ -2119,6 +2119,7 @@ static void do_palette_cb(void *bt1, void *bt2)
 {
 	uiBut *but1= (uiBut *)bt1;
 	uiBut *but2= (uiBut *)bt2;
+	uiBut *but;
 	float col[3], *fp;
 	
 	ui_get_but_vectorf(but2, col);
@@ -2132,8 +2133,9 @@ static void do_palette_cb(void *bt1, void *bt2)
 		ui_set_but_vectorf(but2, col);
 	}
 
-	but1->block->flag |= UI_BLOCK_NOSHADOW;
-	uiDrawBlock(but1->block);
+	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_draw_but(but);
+	}
 	glFlush(); // flush display in subloops
 }
 
@@ -2142,6 +2144,7 @@ static void do_palette1_cb(void *bt1, void *bt2)
 {
 	uiBut *but1= (uiBut *)bt1;
 	uiBut *but2= (uiBut *)bt2;
+	uiBut *but;
 	float *fp= NULL, col[3];
 	
 	if(but1->str[0]=='H') fp= (float *)but1->poin;
@@ -2165,8 +2168,10 @@ static void do_palette1_cb(void *bt1, void *bt2)
 	
 	update_picker_buts(but2->block, col);
 	
-	but1->block->flag |= UI_BLOCK_NOSHADOW;
-	uiDrawBlock(but1->block);
+	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_draw_but(but);
+	}
+
 	glFlush(); // flush display in subloops
 }
 
@@ -2246,6 +2251,7 @@ static int ui_do_but_COL(uiBut *but)
 
 static int ui_do_but_HSVCUBE(uiBut *but)
 {
+	uiBut *bt;
 	float x, y, col[3], h,s,v;
 	short mval[2], mvalo[2];
 	
@@ -2279,9 +2285,10 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			// update button values and strings
 			update_picker_buts(but->block, col);
 
-			/* we redraw the entire block, but without transparent shadow */
-			but->block->flag |= UI_BLOCK_NOSHADOW;
-			uiDrawBlock(but->block);
+			/* we redraw the entire block */
+			for (bt= but->block->buttons.first; bt; bt= bt->next) {
+				ui_draw_but(bt);
+			}
 			glFlush(); // flush display in subloops
 		}
 		else BIF_wait_for_statechange();
