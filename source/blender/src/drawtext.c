@@ -1342,9 +1342,21 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case TABKEY:
-			txt_add_char(text, '\t');
-			st->currtab_set++;
-			printf("currenttab_set is :%d\n", st->currtab_set);
+			if (G.qual & LR_SHIFTKEY) {
+				if (txt_has_sel(text)) {
+					txt_cut_sel(text);
+					unindent(text);
+					
+				}
+			} else {
+				if ( txt_has_sel(text)) {
+					txt_cut_sel(text);
+					indent_paste(text);
+				} else {
+					txt_add_char(text, '\t');
+					st->currtab_set++;
+				}
+			}
 			pop_space_text(st);
 			do_draw= 1;
 			break;
