@@ -374,7 +374,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist);
 
 static void add_main_to_main(Main *mainvar, Main *from)
 {
-	ListBase *lbarray[30], *fromarray[30];
+	ListBase *lbarray[100], *fromarray[100];	// define in library.c too
 	int a;
 	
 	a= set_listbasepointers(mainvar, lbarray);

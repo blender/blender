@@ -107,7 +107,7 @@
 #include "BPI_script.h"
 
 #define MAX_IDPUP		30	/* was 24 */
-#define MAX_LIBARRAY	100 /* was 30 */
+#define MAX_LIBARRAY	100 /* was 30, warning: used it readfile.c too */
 
 /* ************* general ************************ */
 
@@ -836,7 +836,8 @@ void clear_id_newpoins()
 	}
 }
 
-void all_local(void)
+/* if lib!=NULL, only all from lib local */
+void all_local(Library *lib)
 {
 	ListBase *lbarray[MAX_LIBARRAY], tempbase={0, 0};
 	ID *id, *idn;
@@ -847,35 +848,20 @@ void all_local(void)
 		id= lbarray[a]->first;
 		
 		while(id) {
-			id->newid= 0;
-			id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
-			
+			id->newid= NULL;
 			idn= id->next;		/* id is possibly being inserted again */
-			if(id->lib) {
-				id->lib= 0;
-				new_id(lbarray[a], id, 0);	/* new_id only does it with double names */
-				sort_alpha_id(lbarray[a], id);
-			}
-			else {
-				/* patch: check for alphabetic ordering */
-			        /* has been removed... why!? (ton) */
-/*
-				if(idn) {
-					if(strcasecmp(id->name, idn->name)>0) {
-						remlink(lbarray[a], id);
-						addtail(&tempbase, id);
-					}
-					else if(id->prev) {
-						idp= id->prev;
-						if(strcasecmp(idp->name, id->name)>0) {
-							remlink(lbarray[a], id);
-							addtail(&tempbase, id);
-						}
+			
+			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW)) {
+				if(lib==NULL || id->lib==lib) {
+					id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
+
+					if(id->lib) {
+						id->lib= NULL;
+						new_id(lbarray[a], id, 0);	/* new_id only does it with double names */
+						sort_alpha_id(lbarray[a], id);
 					}
 				}
-*/				
 			}
-			
 			id= idn;
 		}
 		

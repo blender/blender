@@ -2231,6 +2231,7 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 
 static void do_library_append(SpaceFile *sfile)
 {
+	Library *lib;
 	char dir[FILE_MAXDIR], group[32];
 	
 	if ( is_a_library(sfile, dir, group)==0 ) {
@@ -2269,7 +2270,14 @@ static void do_library_append(SpaceFile *sfile)
 		/* in sfile->dir is the whole lib name */
 		strcpy(G.lib, sfile->dir);
 		
-		if((sfile->flag & FILE_LINK)==0) all_local();
+		/* and now find the latest append lib file */
+		lib= G.main->library.first;
+		while(lib) {
+			if (BLI_streq(dir, lib->name)) break;
+			lib= lib->id.next;
+		}
+		
+		if((sfile->flag & FILE_LINK)==0) all_local(lib);
 	}
 }
 

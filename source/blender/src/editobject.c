@@ -6466,7 +6466,7 @@ void make_local(void)
 	mode= pupmenu("Make Local%t|Selected %x1|All %x2");
 	
 	if(mode==2) {
-		all_local();
+		all_local(NULL);	// NULL is all libs
 		allqueue(REDRAWALL, 0);
 		return;
 	}

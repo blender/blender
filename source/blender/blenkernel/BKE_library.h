@@ -59,7 +59,7 @@ void free_main(struct Main *mainvar);
 void splitIDname(char *name, char *left, int *nr);
 void rename_id(struct ID *id, char *name);
 void test_idbutton(char *name);
-void all_local(void);
+void all_local(Library *lib);
 struct ID *find_id(char *type, char *name);
 void clear_id_newpoins(void);
 
