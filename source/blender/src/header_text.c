@@ -395,7 +395,7 @@ static uiBlock *text_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find...|Alt Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Export|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert to 3d text|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
