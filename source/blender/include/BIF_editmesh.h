@@ -93,6 +93,8 @@ extern void vertexnormals(int testflip);
 extern void EM_select_face_fgon(struct EditFace *efa, int sel);
 
 extern int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax);
+extern int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
+
 extern int EM_check_backbuf_border(int index);
 extern void EM_free_backbuf_border(void);
 

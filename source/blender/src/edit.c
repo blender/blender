@@ -353,6 +353,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 
 	persp(PERSP_WIN);
 	glDrawBuffer(GL_FRONT);
+	setlinestyle(2);
 
 	/* draw circle */
 	if(mvalo && no_mvalo==0) {
@@ -362,6 +363,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	if(mval) {
 		fdrawXORcirc(mval[0], mval[1], rad);
 	}
+	setlinestyle(0);
 
 	glFlush();
 	persp(PERSP_VIEW);

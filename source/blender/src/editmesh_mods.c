@@ -238,9 +238,12 @@ int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
 	if(em_vertoffs==0) return 0;
 	
-	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
-
 	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	if(buf==NULL) return 0;
+	
+	/* build selection lookup */
+	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
+	
 	a= (xmax-xmin+1)*(ymax-ymin+1);
 	while(a--) {
 		if(*dr>0 && *dr<=em_vertoffs) selbuf[*dr]= 1;
@@ -262,6 +265,57 @@ void EM_free_backbuf_border(void)
 {
 	if(selbuf) MEM_freeN(selbuf);
 	selbuf= NULL;
+}
+
+/* mcords is a polygon mask
+   - grab backbuffer,
+   - draw with black in backbuffer, 
+   - grab again and compare
+   returns 'OK' 
+*/
+int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
+{
+	unsigned int *buf, *bufmask, *dr, *drm;
+	int a;
+	
+	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
+	if(em_vertoffs==0) return 0;
+	
+	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	if(buf==NULL) return 0;
+
+	/* draw the mask */
+#ifdef __APPLE__
+	glDrawBuffer(GL_AUX0);
+#endif
+	glDisable(GL_DEPTH_TEST);
+	
+	persp(PERSP_WIN);
+	glColor3ub(0, 0, 0);
+	glBegin(GL_POLYGON);
+	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
+	glEnd();
+	persp(PERSP_VIEW);
+	glFinish();	// to be sure readpixels sees mask
+	
+	glDrawBuffer(GL_BACK);
+	
+	/* grab mask */
+	drm= bufmask= read_backbuf(xmin, ymin, xmax, ymax);
+	if(bufmask==NULL) return 0; // only when mem alloc fails, go crash somewhere else!
+	
+	/* build selection lookup */
+	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
+	
+	a= (xmax-xmin+1)*(ymax-ymin+1);
+	while(a--) {
+		if(*dr>0 && *dr<=em_vertoffs && *drm==0) selbuf[*dr]= 1;
+		dr++; drm++;
+	}
+	MEM_freeN(buf);
+	MEM_freeN(bufmask);
+	return 1;
+	
 }
 
 static EditVert *findnearestvert_f(short *dist, short sel)

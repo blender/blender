@@ -120,12 +120,315 @@ void arrows_move_cursor(unsigned short event)
 	}
 }
 
-#define MOVES 50
+/* *********************** GESTURE AND LASSO ******************* */
+
+/* helper also for borderselect */
+static int edge_fully_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
+{
+	
+	// check points in rect
+	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) 
+		if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
+	
+	return 0;
+	
+}
+
+static int edge_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
+{
+	int d1, d2, d3, d4;
+	
+	// check points in rect
+	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) return 1;
+	if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
+	
+	/* check points completely out rect */
+	if(x1<rect.xmin && x2<rect.xmin) return 0;
+	if(x1>rect.xmax && x2>rect.xmax) return 0;
+	if(y1<rect.ymin && y2<rect.ymin) return 0;
+	if(y1>rect.ymax && y2>rect.ymax) return 0;
+	
+	// simple check lines intersecting. 
+	d1= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymin );
+	d2= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymax );
+	d3= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymax );
+	d4= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymin );
+	
+	if(d1<0 && d2<0 && d3<0 && d4<0) return 0;
+	if(d1>0 && d2>0 && d3>0 && d4>0) return 0;
+	
+	return 1;
+}
+
+
+#define MOVES_GESTURE 50
+#define MOVES_LASSO 500
+
+static int lasso_inside(short mcords[][2], short moves, short sx, short sy)
+{
+	/* we do the angle rule, define that all added angles should be about zero or 2*PI */
+	float angletot=0.0, len, dot, ang, cross, fp1[2], fp2[2];
+	int a;
+	short *p1, *p2;
+	
+	p1= mcords[moves-1];
+	p2= mcords[0];
+	
+	/* first vector */
+	fp1[0]= (float)(p1[0]-sx);
+	fp1[1]= (float)(p1[1]-sy);
+	len= sqrt(fp1[0]*fp1[0] + fp1[1]*fp1[1]);
+	fp1[0]/= len;
+	fp1[1]/= len;
+	
+	for(a=0; a<moves; a++) {
+		/* second vector */
+		fp2[0]= (float)(p2[0]-sx);
+		fp2[1]= (float)(p2[1]-sy);
+		len= sqrt(fp2[0]*fp2[0] + fp2[1]*fp2[1]);
+		fp2[0]/= len;
+		fp2[1]/= len;
+		
+		/* dot and angle and cross */
+		dot= fp1[0]*fp2[0] + fp1[1]*fp2[1];
+		ang= fabs(saacos(dot));
+
+		cross= (float)((p1[1]-p2[1])*(p1[0]-sx) + (p2[0]-p1[0])*(p1[1]-sy));
+		
+		if(cross<0.0) angletot-= ang;
+		else angletot+= ang;
+		
+		/* circulate */
+		fp1[0]= fp2[0]; fp1[1]= fp2[1];
+		p1= p2;
+		p2= mcords[a+1];
+	}
+	
+	if( fabs(angletot) > 4.0 ) return 1;
+	return 0;
+}
+
+static short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4)  /* intersect Line-Line */
+{
+	/* return:
+	-1: colliniar
+	 0: no intersection of segments
+	 1: exact intersection of segments
+	 2: cross-intersection of segments
+	*/
+	float div, labda, mu;
+	
+	div= (v1[0]-v2[0])*(v3[1]-v4[1])-(v3[0]-v4[0])*(v1[1]-v2[1]);
+	if(div==0.0) return -1;
+	
+	labda= (v1[1]-v3[1])*(v3[0]-v4[0])-(v1[0]-v3[0])*(v3[1]-v4[1]);
+	labda= -(labda/div);
+	
+	div= v3[1]-v4[1];
+	if(div==0) {
+		div=v3[0]-v4[0];
+		mu= -(labda*(v2[0]-v1[0])+v1[0]-v3[0])/div;
+	} else {
+		mu= -(labda*(v2[1]-v1[1])+v1[1]-v3[1])/div;
+	}
+	
+	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
+		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
+		return 2;
+	}
+	return 0;
+}
+
+/* edge version for lasso select. we assume boundbox check was done */
+static int lasso_inside_edge(short mcords[][2], short moves, short *v1, short *v2)
+{
+	int a;
+	
+	// check points in lasso
+	if(lasso_inside(mcords, moves, v1[0], v1[1])) return 1;
+	if(lasso_inside(mcords, moves, v2[0], v2[1])) return 1;
+	
+	/* no points in lasso, so we have to intersect with lasso edge */
+	
+	if( IsectLL2Ds(mcords[0], mcords[moves-1], v1, v2) > 0) return 1;
+	for(a=0; a<moves; a++) {
+		if( IsectLL2Ds(mcords[a], mcords[a+1], v1, v2) > 0) return 1;
+	}
+	
+	return 0;
+}
+
+
+/* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
+   and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
+*/
+static void do_lasso_select_objects(short mcords[][2], short moves, short select)
+{
+	Base *base;
+	
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(base->lay & G.vd->lay) {
+			if(lasso_inside(mcords, moves, base->sx, base->sy)) {
+				
+				if(select) base->flag |= SELECT;
+				else base->flag &= ~SELECT;
+				base->object->flag= base->flag;
+			}
+		}
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
+{
+	short a;
+	
+	rect->xmin= rect->xmax= mcords[0][0];
+	rect->ymin= rect->ymax= mcords[0][1];
+	
+	for(a=1; a<moves; a++) {
+		if(mcords[a][0]<rect->xmin) rect->xmin= mcords[a][0];
+		else if(mcords[a][0]>rect->xmax) rect->xmax= mcords[a][0];
+		if(mcords[a][1]<rect->ymin) rect->ymin= mcords[a][1];
+		else if(mcords[a][1]>rect->ymax) rect->ymax= mcords[a][1];
+	}
+}
+
+static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
+{
+	extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed;
+	EditFace *efa;
+	rcti rect;
+	int index, bbsel=0; // bbsel: no clip needed with screencoords
+	
+	lasso_select_boundbox(&rect, mcords, moves);
+	
+	bbsel= EM_mask_init_backbuf_border(mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		if(bbsel==0) calc_meshverts_ext();	/* clips, drawobject.c */
+		index= em_wireoffs;
+		for(eve= em->verts.first; eve; eve= eve->next, index++) {
+			if(eve->h==0) {
+				if(bbsel) {
+					if(EM_check_backbuf_border(index)) {
+						if(select) eve->f|= 1;
+						else eve->f&= 254;
+					}
+				}
+				else if(eve->xs>rect.xmin && eve->xs<rect.xmax && eve->ys>rect.ymin && eve->ys<rect.ymax) {
+					if(lasso_inside(mcords, moves, eve->xs, eve->ys)) {
+						if(select) eve->f|= 1;
+						else eve->f&= 254;
+					}
+				}
+			}
+		}
+	}
+	if(G.scene->selectmode & SCE_SELECT_EDGE) {
+		short done= 0;
+		
+		if(bbsel==0) calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+		index= em_solidoffs;
+		/* two stages, for nice edge select first do 'both points in rect' 
+			unless bbsel is true */
+		for(eed= em->edges.first; eed; eed= eed->next, index++) {
+			if(eed->h==0) {
+				if(bbsel) {
+					if(EM_check_backbuf_border(index)) {
+						EM_select_edge(eed, select);
+						done= 1;
+					}
+				}
+				else if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+					if(lasso_inside(mcords, moves, eed->v1->xs, eed->v1->ys)) {
+						if(lasso_inside(mcords, moves, eed->v2->xs, eed->v2->ys)) {
+							EM_select_edge(eed, select);
+							done = 1;
+						}
+					}
+				}
+			}
+		}
+		
+		if(bbsel==0 && done==0) {
+			index= em_solidoffs;
+			for(eed= em->edges.first; eed; eed= eed->next, index++) {
+				if(eed->h==0) {
+					if(lasso_inside_edge(mcords, moves, &eed->v1->xs, &eed->v2->xs)) {
+						EM_select_edge(eed, select);
+						done = 1;
+					}
+				}
+			}
+		}
+	}
+	
+	if(G.scene->selectmode & SCE_SELECT_FACE) {
+		if(bbsel==0) calc_mesh_facedots_ext();
+		index= 1;
+		for(efa= em->faces.first; efa; efa= efa->next, index++) {
+			if(efa->h==0) {
+				if(bbsel) {
+					if(EM_check_backbuf_border(index)) {
+						EM_select_face_fgon(efa, select);
+					}
+				}
+				else if(efa->xs>rect.xmin && efa->xs<rect.xmax && efa->ys>rect.ymin && efa->ys<rect.ymax) {
+					if(lasso_inside(mcords, moves, efa->xs, efa->ys)) {
+						EM_select_face_fgon(efa, select);
+					}
+				}
+			}
+		}
+	}
+	
+	EM_free_backbuf_border();
+	EM_selectmode_flush();
+	
+	allqueue(REDRAWVIEW3D, 0);
+				
+}
+
+static void do_lasso_select(short mcords[][2], short moves, short select)
+{
+	/* first simple object centers */
+	if(G.obedit==NULL) 
+		do_lasso_select_objects(mcords, moves, select);
+	else if(G.obedit->type==OB_MESH) 
+		do_lasso_select_mesh(mcords, moves, select);
+}
+
+/* un-draws and draws again */
+static void draw_lasso_select(short mcords[][2], short moves, short end)
+{
+	int a;
+	
+	setlinestyle(2);
+	/* clear draw */
+	if(moves>1) {
+		for(a=1; a<=moves-1; a++) {
+			sdrawXORline(mcords[a-1][0], mcords[a-1][1], mcords[a][0], mcords[a][1]);
+		}
+		sdrawXORline(mcords[moves-1][0], mcords[moves-1][1], mcords[0][0], mcords[0][1]);
+	}
+	if(!end) {
+		/* new draw */
+		for(a=1; a<=moves; a++) {
+			sdrawXORline(mcords[a-1][0], mcords[a-1][1], mcords[a][0], mcords[a][1]);
+		}
+		sdrawXORline(mcords[moves][0], mcords[moves][1], mcords[0][0], mcords[0][1]);
+	}
+	setlinestyle(0);
+}
 
 
 static char interpret_move(short mcord[][2], int count)
 {
-	float x1, x2, y1, y2, d1, d2, inp, sq, mouse[MOVES][2];
+	float x1, x2, y1, y2, d1, d2, inp, sq, mouse[MOVES_GESTURE][2];
 	int i, j, dir = 0;
 	
 	if (count <= 10) return ('g');
@@ -232,15 +535,17 @@ static char interpret_move(short mcord[][2], int count)
 	return (0);
 }
 
+
+/* return 1 to denote gesture did something, also does lasso */
 int gesture(void)
 {
-	short mcords[MOVES][2];
+	short mcords[MOVES_LASSO][2]; // the larger size
 	int i= 1, end= 0, a;
 	unsigned short event=0;
-	short mval[2], val, timer=0, mousebut;
+	short mval[2], val, timer=0, mousebut, lasso=0, maxmoves;
 	
 	glDrawBuffer(GL_FRONT);
-	persp(0);	/*  ortho at pixel level */
+	persp(PERSP_WIN);	/*  ortho at pixel level */
 	
 	getmouseco_areawin(mval);
 	
@@ -249,6 +554,11 @@ int gesture(void)
 	
 	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
 	else mousebut = L_MOUSE;
+	
+	if(G.qual & LR_CTRLKEY) lasso= 1;
+	
+	if(lasso) maxmoves= MOVES_LASSO;
+	else maxmoves= MOVES_GESTURE;
 	
 	while(get_mbut() & mousebut) {
 		
@@ -269,8 +579,10 @@ int gesture(void)
 			if( abs(mval[0]-mcords[i-1][0])>3 || abs(mval[1]-mcords[i-1][1])>3 ) {
 				mcords[i][0] = mval[0];
 				mcords[i][1] = mval[1];
+				
 				if(i) {
-					sdrawXORline(mcords[i-1][0], mcords[i-1][1], mcords[i][0], mcords[i][1]);
+					if(lasso) draw_lasso_select(mcords, i, 0);
+					else sdrawXORline(mcords[i-1][0], mcords[i-1][1], mcords[i][0], mcords[i][1]);
 					glFlush();
 				}
 				i++;
@@ -284,29 +596,33 @@ int gesture(void)
 			if(event) end= 1;	/* blender returns 0 */
 			break;
 		}
-		if (i == MOVES || end == 1) break;
+		if (i == maxmoves || end == 1) break;
 	}
-
-	for(a=1; a<i; a++) {
+	
+	/* clear */
+	if(lasso) draw_lasso_select(mcords, i, 1);
+	else for(a=1; a<i; a++) {
 		sdrawXORline(mcords[a-1][0], mcords[a-1][1], mcords[a][0], mcords[a][1]);
 	}
 	
-	persp(1);
+	persp(PERSP_VIEW);
 	glDrawBuffer(GL_BACK);
 	
 	if (i > 2) {
-		i = interpret_move(mcords, i);
-		
-		if(i) {
-			if(curarea->spacetype==SPACE_IPO) transform_ipo(i);
-			else if(curarea->spacetype==SPACE_IMAGE) transform_tface_uv(i);
-			else if(curarea->spacetype==SPACE_OOPS) transform_oops('g');
-			else transform(i);
+		if(lasso) do_lasso_select(mcords, i, (G.qual & LR_SHIFTKEY)==0);
+		else {
+			i = interpret_move(mcords, i);
+			
+			if(i) {
+				if(curarea->spacetype==SPACE_IPO) transform_ipo(i);
+				else if(curarea->spacetype==SPACE_IMAGE) transform_tface_uv(i);
+				else if(curarea->spacetype==SPACE_OOPS) transform_oops('g');
+				else transform(i);
+			}
 		}
-		
 		return 1;
 	}
-	else return 0;
+	return 0;
 }
 
 void mouse_cursor(void)
@@ -672,43 +988,6 @@ void mouse_select(void)
 
 /* ------------------------------------------------------------------------- */
 
-static int edge_fully_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
-{
-	
-	// check points in rect
-	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) 
-		if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
-	
-	return 0;
-	
-}
-
-static int edge_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
-{
-	int d1, d2, d3, d4;
-	
-	// check points in rect
-	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) return 1;
-	if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
-	
-	/* check points completely out rect */
-	if(x1<rect.xmin && x2<rect.xmin) return 0;
-	if(x1>rect.xmax && x2>rect.xmax) return 0;
-	if(y1<rect.ymin && y2<rect.ymin) return 0;
-	if(y1>rect.ymax && y2>rect.ymax) return 0;
-	
-	// simple check lines intersecting. 
-	d1= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymin );
-	d2= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymax );
-	d3= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymax );
-	d4= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymin );
-	
-	if(d1<0 && d2<0 && d3<0 && d4<0) return 0;
-	if(d1>0 && d2>0 && d3>0 && d4>0) return 0;
-	
-	return 1;
-}
-
 static int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
 {
 	int radsq= rad*rad;
@@ -752,8 +1031,9 @@ void borderselect(void)
 		face_borderselect();
 		return;
 	}
-
+	setlinestyle(2);
 	val= get_border(&rect, 3);
+	setlinestyle(0);
 	if(val) {
 		if (G.obpose){
 			if(G.obpose->type==OB_ARMATURE) {
@@ -816,7 +1096,8 @@ void borderselect(void)
 					
 					if(bbsel==0) calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
 					index= em_solidoffs;
-					/* two stages, for nice edge select first do 'both points in rect' */
+					/* two stages, for nice edge select first do 'both points in rect'
+					   unless bbsel is true */
 					for(eed= em->edges.first; eed; eed= eed->next, index++) {
 						if(eed->h==0) {
 							if(bbsel || edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
@@ -828,15 +1109,13 @@ void borderselect(void)
 						}
 					}
 					
-					if(done==0) {
+					if(bbsel==0 && done==0) {
 						index= em_solidoffs;
 						for(eed= em->edges.first; eed; eed= eed->next, index++) {
 							if(eed->h==0) {
-								if(bbsel || edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-									if(EM_check_backbuf_border(index)) {
-										EM_select_edge(eed, val==LEFTMOUSE);
-										done = 1;
-									}
+								if(edge_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
+									EM_select_edge(eed, val==LEFTMOUSE);
+									done = 1;
 								}
 							}
 						}

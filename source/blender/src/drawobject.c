@@ -3835,7 +3835,12 @@ static void drawWireExtra(Object *ob, ListBase *lb)
 	glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 	
 	if(ob->type==OB_MESH) drawmeshwire(ob);
-	else drawDispListwire(lb);
+	else if(ob->type==OB_CURVE) {
+		draw_index_wire= 0;
+		drawDispListwire(lb);
+		draw_index_wire= 1;
+	}
+	else drawDispListwire(lb); 
 
 	glDepthMask(1);
 	bglPolygonOffset(0.0);
