@@ -317,7 +317,7 @@ void KX_KetsjiEngine::NextFrame()
 	double curtime;
 	double localtime = m_previoustime;
 	if (m_bFixedTime)
-		curtime = m_previoustime + 0.1/m_ticrate;
+		curtime = m_previoustime + 1.0/m_ticrate;
 	else
 		curtime = m_kxsystem->GetTimeInSeconds();
 	m_deltatime += curtime - m_previoustime;
