@@ -1613,20 +1613,22 @@ void fly(void)
 	
 	warp_pointer(cent[0], cent[1]);
 	
-	cent[0]=  (curarea->winx)/2;
-	cent[1]=  (curarea->winy)/2;
+	/* we have to rely on events to give proper mousecoords after a warp_pointer */
+	mval[0]= cent[0]=  (curarea->winx)/2;
+	mval[1]= cent[1]=  (curarea->winy)/2;
 	
 	headerprint("Fly");
 	
 	while(loop) {
-		getmouseco_areawin(mval);
+		
 
 		while(qtest()) {
 			
 			toets= extern_qread(&val);
 			
 			if(val) {
-				if(toets==ESCKEY) {
+				if(toets==MOUSEY) getmouseco_areawin(mval);
+				else if(toets==ESCKEY) {
 					VECCOPY(G.vd->camera->loc, oldvec);
 					VECCOPY(G.vd->camera->rot, oldrot);
 					loop= 0;

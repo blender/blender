@@ -672,8 +672,15 @@ void window_set_title(Window *win, char *title) {
 	GHOST_SetTitle(win->ghostwin, title);
 }
 
-short window_get_qual(Window *win) {
-	return win->lqual;
+short window_get_qual(Window *win) 
+{
+	int qual= 0;
+	
+	if( query_qual('s')) qual |= LR_SHIFTKEY;
+	if( query_qual('a')) qual |= LR_ALTKEY;
+	if( query_qual('c')) qual |= LR_CTRLKEY;
+	return qual;
+//	return win->lqual;
 }
 
 short window_get_mbut(Window *win) {
@@ -721,9 +728,15 @@ void window_toggle_fullscreen(Window *win, int fullscreen) {
 #endif
 
 void window_warp_pointer(Window *win, int x, int y) {
+	int oldx=x, oldy=y;
+	
 	y= win->size[1] - y - 1;
 	GHOST_ClientToScreen(win->ghostwin, x, y, &x, &y);
 	GHOST_SetCursorPosition(g_system, x, y);
+	
+	/* on OSX (for example) the setcursor doesnt create event */
+	win->lmouse[0]= oldx;
+	win->lmouse[1]= oldy;
 }
 
 void window_queue_redraw(Window *win) {
