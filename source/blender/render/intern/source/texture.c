@@ -1690,6 +1690,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 			
 			tex= mtex->tex;
 			if(tex==0) continue;
+			tex->nor= NULL;
 			
 			/* which coords */
 			if(mtex->texco==TEXCO_OBJECT) {
@@ -1771,20 +1772,10 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 			/* texture */
 			if(tex->type==TEX_IMAGE) {
 				do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
-				
-				if(mtex->mapto & MAP_NORM) {
-					/* the pointer defines if bump happens */
-					tex->nor= shi->vn;
-					if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
-					else tex->norfac= mtex->norfac;
-				}
-				else tex->nor= NULL;
 			}
 			
 			rgb= multitex(tex, texvec, dxt, dyt, shi->osatex);
-			
-			
-			
+
 			/* texture output */
 			if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {
 				Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
@@ -1853,7 +1844,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 					la->g= (fact*Tg + la_col->g);
 					la->b= (fact*Tb + la_col->b);
 				}
-				la_col= la; /* Is it just me or is this a useless statement? */
+				la_col= la; /* makes sure first run uses la->org, then la */
 			}
 			
 		}
