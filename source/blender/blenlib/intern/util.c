@@ -676,24 +676,30 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 		if (string[0] == '/' || string[0] == '\\') { 
 			strcpy(dir, string);
 		} else if (string[1] == ':' && string[2] == '\\') {
-			strcpy(dir, string);
-		} else {
-			BLI_getwdN(dir);
-			strcat(dir,"/");
-			strcat(dir,string);
-			strcpy(string,dir);
-		}
-		
-		BLI_make_exist(dir);
-		
-		if (S_ISDIR(BLI_exist(dir))) {
-			strcpy(file,string + strlen(dir));
+            strcpy(dir, string);
+        } else {
+            BLI_getwdN(dir);
+            strcat(dir,"/");
+            strcat(dir,string);
+            strcpy(string,dir);
+        }
 
-			if (strrchr(file,'\\')) strcpy(file,strrchr(file,'\\')+1);
-		
-			if (a = strlen(dir)) {
-				if (dir[a-1] != '\\') strcat(dir,"\\");
-			}
+        BLI_make_exist(dir);
+
+        // BLI_exist doesn't recognize a slashed dirname as a dir
+        //  check if a trailing slash exists, and remove it. Do not do this
+        //  when we are already at root. -jesterKing
+        a = strlen(dir);
+        if(a>=4 && dir[a-1]=='\\') dir[a-1] = 0;
+
+        if (S_ISDIR(BLI_exist(dir))) {
+            strcpy(file,string + strlen(dir));
+
+            if (strrchr(file,'\\')) strcpy(file,strrchr(file,'\\')+1);
+
+            if (a = strlen(dir)) {
+                if (dir[a-1] != '\\') strcat(dir,"\\");
+            }
 		}
 		else {
 			a = strlen(dir) - 1;
