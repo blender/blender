@@ -67,6 +67,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_transform.h"
 
 #include "BDR_editobject.h" 
 
@@ -436,7 +437,7 @@ void adduplicate_mesh(void)
 
 	waitcursor(0);
 	countall(); 
-	transform('d');
+	Transform(TFM_TRANSLATION, CTX_NOPET);
 }
 
 

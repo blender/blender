@@ -205,37 +205,39 @@ static void sort_trans_data(TransInfo *t)
 
 /* distance calculated from not-selected vertex to nearest selected vertex
    warning; this is loops inside loop, has minor N^2 issues, but by sorting list it is OK */
-static void set_prop_dist(TransInfo *t)
+static void set_prop_dist(TransInfo *t, short with_dist)
 {
 	TransData *tob;
 	int a;
 	
 	for(a=0, tob= t->data; a<t->total; a++, tob++) {
 		
-		tob->dist= 0.0f; // init, it was mallocced
+		tob->rdist= 0.0f; // init, it was mallocced
 		
 		if((tob->flag & TD_SELECTED)==0) {
 			TransData *td;
 			int i;
 			float dist, vec[3];
 
-			tob->dist = -1.0f; // signal for next loop
+			tob->rdist = -1.0f; // signal for next loop
 				
 			for (i = 0, td= t->data; i < t->total; i++, td++) {
 				if(td->flag & TD_SELECTED) {
 					VecSubf(vec, tob->center, td->center);
 					Mat3MulVecfl(tob->mtx, vec);
 					dist = Normalise(vec);
-					if (tob->dist == -1.0f) {
-						tob->dist = dist;
+					if (tob->rdist == -1.0f) {
+						tob->rdist = dist;
 					}
-					else if (dist < tob->dist) {
-						tob->dist = dist;
+					else if (dist < tob->rdist) {
+						tob->rdist = dist;
 					}
 				}
 				else break;	// by definition transdata has selected items in beginning
 			}
-			tob->rdist = tob->dist;
+			if (with_dist) {
+				tob->dist = tob->rdist;
+			}
 		}	
 	}
 }
@@ -555,7 +557,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 			}
 		}
 		else {
-			td->dist = 1000000000.0f;
+			td->dist = 10000000.0f;
 		}
 	}
 	td_near = NULL;
@@ -576,9 +578,6 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 				}
 			}
 		}
-		/* TEMPORARY
-		   Eventually, will have to call other code to set REAL distance */
-		td->rdist = td->dist;
 	}
 }
 
@@ -1284,6 +1283,7 @@ static void createTransData(TransInfo *t)
 		createTransPose();
 	}
 	else if (G.obedit) {
+		t->ext = NULL;
 		if (G.obedit->type == OB_MESH) {
 			if(t->mode==TFM_SHRINKFATTEN) vertexnormals(0);
 			createTransEditVerts();	
@@ -1306,11 +1306,13 @@ static void createTransData(TransInfo *t)
 		
 		if(G.f & G_PROPORTIONAL) {
 			if (G.obedit->type==OB_CURVE) {
+				sort_trans_data(t);	// makes selected become first in array
+				set_prop_dist(t, 0);
 				sort_trans_data_dist(t);
 			}
 			else {
 				sort_trans_data(t);	// makes selected become first in array
-				set_prop_dist(t);
+				set_prop_dist(t, 1);
 				sort_trans_data_dist(t);
 			}
 		}
@@ -1334,10 +1336,21 @@ static void createTransData(TransInfo *t)
 void Transform(int mode, int context) 
 {
 	int ret_val = 0;
-	short pmval[2] = {0, 0}, mval[2], val;
+	short pmval[2] = {0, 0}, mval[2], val, oldprop;
 	float mati[3][3];
 	unsigned short event;
 	char cmode = '\0';
+
+	/* STUPID HACK, but this needs fixing right now */
+	if (G.f & G_PROPORTIONAL)
+		oldprop = 1;
+	else
+		oldprop = 0;
+
+	if (context & CTX_NOPET) {
+		G.f &= ~G_PROPORTIONAL;
+	}
+
 
 	/*joeedh -> hopefully may be what makes the old transform() constant*/
 	/* ton: I doubt, but it doesnt harm for now. shouldnt be needed though */
@@ -1650,6 +1663,11 @@ void Transform(int mode, int context)
 			clear_trans_object_base_flags();
 	}
 	
+	if (context & CTX_NOPET) {
+		if (oldprop)
+			G.f |= G_PROPORTIONAL;
+	}
+
 	
 	/* send events out for redraws */
 	allqueue(REDRAWVIEW3D, 0);

@@ -79,6 +79,7 @@
 #include "BIF_poseobject.h"
 #include "BIF_mywindow.h"
 #include "BIF_editdeform.h"
+#include "BIF_transform.h"
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
@@ -1998,7 +1999,7 @@ void extrude_armature(void)
 	
 	/* Transform the endpoints */
 	countall();
-	transform('g');		
+	Transform(TFM_TRANSLATION, CTX_NOPET);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
@@ -2162,7 +2163,7 @@ void adduplicate_armature(void)
 	}
 
 
-	transform('g');
+	Transform(TFM_TRANSLATION, CTX_NOPET);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);

@@ -58,6 +58,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_space.h"
 #include "BIF_editmode_undo.h"
+#include "BIF_transform.h"
 
 #include "BDR_editobject.h"
 #include "BDR_editmball.h"
@@ -302,7 +303,7 @@ void adduplicate_mball()
 		ml= ml->prev;
 	}
 	
-	transform('g');
+	Transform(TFM_TRANSLATION, CTX_NOPET);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 

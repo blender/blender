@@ -99,6 +99,7 @@
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_gl.h"
+#include "BIF_transform.h"
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"
@@ -1279,13 +1280,13 @@ static void do_view3d_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 1:
-		transform('g');
+		Transform(TFM_TRANSLATION, CTX_NONE);
 		break;
 	case 2:
-		transform('r');
+		Transform(TFM_ROTATION, CTX_NONE);
 		break;
 	case 3:
-		transform('s');
+		Transform(TFM_RESIZE, CTX_NONE);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

@@ -79,6 +79,7 @@
 #include "BIF_editkey.h"
 #include "BIF_mywindow.h"
 #include "BIF_interface.h"
+#include "BIF_transform.h"
 
 #include "BSE_view.h"	/* For persp... */
 #include "BSE_edit.h"
@@ -2792,7 +2793,7 @@ void addvert_Nurb(int mode)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	if(mode=='e') transform('d');
+	if(mode=='e') Transform(TFM_TRANSLATION, CTX_NOPET);
 	else while(get_mbut()&R_MOUSE) BIF_wait_for_statechange();
 
 	if(mode!='e') {
@@ -2829,7 +2830,7 @@ void extrude_nurb()
 				makeDispList(G.obedit);
 				BIF_undo_push("Extrude");
 				countall();
-				transform('d');
+				Transform(TFM_TRANSLATION, CTX_NOPET);
 			}
 		}
 	}
@@ -3057,7 +3058,7 @@ void adduplicate_nurb()
 	adduplicateflagNurb(1);
 
 	countall();
-	transform('d');
+	Transform(TFM_TRANSLATION, CTX_NOPET);
 }
 
 void delNurb()

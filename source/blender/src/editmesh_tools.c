@@ -561,7 +561,7 @@ void extrude_mesh(void)
 		
 		/* individual faces? */
 		if(nr==2) {
-			Transform(TFM_SHRINKFATTEN, CTX_NONE);
+			Transform(TFM_SHRINKFATTEN, CTX_NOPET);
 		}
 		else {
 			if(transmode=='n') {
@@ -569,7 +569,7 @@ void extrude_mesh(void)
 				VecSubf(nor, nor, G.obedit->obmat[3]);
 				BIF_setSingleAxisConstraint(nor, NULL);
 			}
-			Transform(TFM_TRANSLATION, CTX_NONE);
+			Transform(TFM_TRANSLATION, CTX_NOPET);
 		}
 	}
 
