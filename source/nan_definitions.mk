@@ -51,7 +51,7 @@ all debug::
     export OS_VERSION := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-//' -e 's/-[^-]*//')
     export CPU := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-[^-]*-//')
     export MAKE_START := $(shell date "+%H:%M:%S %d-%b-%Y")
-    export NAN_LIBDIR ?= $(NANBLENDERHOME)/lib
+    export NAN_LIBDIR ?= $(NANBLENDERHOME)/../lib
     export NAN_OBJDIR ?= $(NANBLENDERHOME)/obj
     # Library Config_Guess DIRectory
     export LCGDIR = $(NAN_LIBDIR)/$(CONFIG_GUESS)
