@@ -343,8 +343,21 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 {
 	/* position block relative to but */
 	uiBut *bt;
-	int xsize, ysize, xof=0, yof=0;
+	rctf butrct;
+	int xsize, ysize, xof=0, yof=0, centre;
+	short dir1= 0, dir2=0;
 	
+	/* first transform to screen coords, assuming matrix is stil OK */
+	/* the UIwinmat is in panelspace */
+
+	butrct.xmin= but->x1; butrct.xmax= but->x2;
+	butrct.ymin= but->y1; butrct.ymax= but->y2;
+
+	ui_graphics_to_window(block->win, &butrct.xmin, &butrct.ymin);
+	ui_graphics_to_window(block->win, &butrct.xmax, &butrct.ymax);
+	block->parentrct= butrct;	// will use that for pulldowns later
+
+	/* calc block rect */
 	block->minx= block->miny= 10000;
 	block->maxx= block->maxy= -10000;
 	
@@ -359,42 +372,37 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		bt= bt->next;
 	}
 	
+	ui_graphics_to_window(block->win, &block->minx, &block->miny);
+	ui_graphics_to_window(block->win, &block->maxx, &block->maxy);
+
 	block->minx-= 2.0; block->miny-= 2.0;
 	block->maxx+= 2.0; block->maxy+= 2.0;
 	
 	xsize= block->maxx - block->minx+4; // 4 for shadow
 	ysize= block->maxy - block->miny+4;
-	
+
 	if(but) {
-		rctf butrct;
 		short left=0, right=0, top=0, down=0;
-		short dir1, dir2 = 0;
 
-		butrct.xmin= but->x1; butrct.xmax= but->x2;
-		butrct.ymin= but->y1; butrct.ymax= but->y2;
-		
-		if(but->block->panel) {
-			butrct.xmin += but->block->panel->ofsx;
-			butrct.ymin += but->block->panel->ofsy;
-			butrct.xmax += but->block->panel->ofsx;
-			butrct.ymax += but->block->panel->ofsy;
-		}
-
-		/* added this for submenu's... */
-		Mat4CpyMat4(UIwinmat, block->winmat);
-
-		ui_graphics_to_window(block->win, &butrct.xmin, &butrct.ymin);
-		ui_graphics_to_window(block->win, &butrct.xmax, &butrct.ymax);
-		block->parentrct= butrct;	// will use that for pulldowns later
+		if(block->direction & UI_CENTRE) centre= ysize/2;
+		else centre= 0;
 
 		if( butrct.xmin-xsize > 0.0) left= 1;
 		if( butrct.xmax+xsize < G.curscreen->sizex) right= 1;
-		if( butrct.ymin-ysize > 0.0) down= 1;
-		if( butrct.ymax+ysize < G.curscreen->sizey) top= 1;
+		if( butrct.ymin-ysize+centre > 0.0) down= 1;
+		if( butrct.ymax+ysize-centre < G.curscreen->sizey) top= 1;
 		
-		dir1= block->direction;
-		if(dir1==UI_LEFT || dir1==UI_RIGHT) dir2= UI_DOWN;
-		if(dir1==UI_TOP || dir1==UI_DOWN) dir2= UI_LEFT;
+		dir1= block->direction & UI_DIRECTION;
+
+		/* secundary directions */
+		if(dir1 & (UI_TOP|UI_DOWN)) {
+			if(dir1 & UI_LEFT) dir2= UI_LEFT;
+			else if(dir1 & UI_RIGHT) dir2= UI_RIGHT;
+			dir1 &= (UI_TOP|UI_DOWN);
+		}
+
+		if(dir2==0) if(dir1==UI_LEFT || dir1==UI_RIGHT) dir2= UI_DOWN;
+		if(dir2==0) if(dir1==UI_TOP || dir1==UI_DOWN) dir2= UI_LEFT;
 		
 		/* no space at all? dont change */
 		if(left || right) {
@@ -412,47 +420,55 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		}
 		
 		if(dir1==UI_LEFT) {
-			xof= but->x1 - block->maxx;
-			if(dir2==UI_TOP) yof= but->y1 - block->miny;
-			else yof= but->y2 - block->maxy;
+			xof= butrct.xmin - block->maxx;
+			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-centre;
+			else yof= butrct.ymax - block->maxy+centre;
 		}
 		else if(dir1==UI_RIGHT) {
-			xof= but->x2 - block->minx;
-			if(dir2==UI_TOP) yof= but->y1 - block->miny;
-			else yof= but->y2 - block->maxy;
+			xof= butrct.xmax - block->minx;
+			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-centre;
+			else yof= butrct.ymax - block->maxy+centre;
 		}
 		else if(dir1==UI_TOP) {
-			yof= but->y2 - block->miny+1;
-			if(dir2==UI_RIGHT) xof= but->x2 - block->maxx;
-			else xof= but->x1 - block->minx;
+			yof= butrct.ymax - block->miny-1;
+			if(dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
+			else xof= butrct.xmin - block->minx;
+			// changed direction? 
+			if((dir1 & block->direction)==0) {
+				if(block->direction & UI_SHIFT_FLIPPED)
+					xof+= dir2==UI_LEFT?25:-25;
+				uiBlockFlipOrder(block);
+			}
 		}
 		else if(dir1==UI_DOWN) {
-			yof= but->y1 - block->maxy-1;
-			if(dir2==UI_RIGHT) xof= but->x2 - block->maxx;
-			else xof= but->x1 - block->minx;
+			yof= butrct.ymin - block->maxy+1;
+			if(dir2==UI_RIGHT) xof= butrct.xmax - block->maxx;
+			else xof= butrct.xmin - block->minx;
+			// changed direction?
+			if((dir1 & block->direction)==0) {
+				if(block->direction & UI_SHIFT_FLIPPED)
+					xof+= dir2==UI_LEFT?25:-25;
+				uiBlockFlipOrder(block);
+			}
 		}
 
 		// apply requested offset in the block
-
-		xof += block->xofs;
-		yof += block->yofs;
+		xof += block->xofs/block->aspect;
+		yof += block->yofs/block->aspect;
 		
-		if(but->block->panel) {
-			xof += but->block->panel->ofsx;
-			yof += but->block->panel->ofsy;
-		}
 	}
 	
 	/* apply */
 	bt= block->buttons.first;
 	while(bt) {
+		
+		ui_graphics_to_window(block->win, &bt->x1, &bt->y1);
+		ui_graphics_to_window(block->win, &bt->x2, &bt->y2);
+
 		bt->x1 += xof;
 		bt->x2 += xof;
 		bt->y1 += yof;
 		bt->y2 += yof;
-		
-		ui_graphics_to_window(block->win, &bt->x1, &bt->y1);
-		ui_graphics_to_window(block->win, &bt->x2, &bt->y2);
 
 		bt->aspect= 1.0;
 		
@@ -464,8 +480,40 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	block->maxx += xof;
 	block->maxy += yof;
 	
-	ui_graphics_to_window(block->win, &block->minx, &block->miny);
-	ui_graphics_to_window(block->win, &block->maxx, &block->maxy);
+	/* safety calculus */
+	if(but) {
+		float midx= (block->parentrct.xmin+block->parentrct.xmax)/2.0;
+		float midy= (block->parentrct.ymin+block->parentrct.ymax)/2.0;
+		
+		/* when you are outside parent button, safety there should be smaller */
+		
+		// parent button to left
+		if( midx < block->minx ) block->safety.xmin= block->minx-3; 
+		else block->safety.xmin= block->minx-40;
+		// parent button to right
+		if( midx > block->maxx ) block->safety.xmax= block->maxx+3; 
+		else block->safety.xmax= block->maxx+40;
+		
+		// parent button on bottom
+		if( midy < block->miny ) block->safety.ymin= block->miny-3; 
+		else block->safety.ymin= block->miny-40;
+		// parent button on top
+		if( midy > block->maxy ) block->safety.ymax= block->maxy+3; 
+		else block->safety.ymax= block->maxy+40;
+		
+		// exception for switched pulldowns...
+		if(dir1 && (dir1 & block->direction)==0) {
+			if(dir2==UI_RIGHT) block->safety.xmax= block->maxx+3; 
+			if(dir2==UI_LEFT) block->safety.xmin= block->minx-3; 
+		}
+	}
+	else {
+		block->safety.xmin= block->minx-40;
+		block->safety.ymin= block->miny-40;
+		block->safety.xmax= block->maxx+40;
+		block->safety.ymax= block->maxy+40;
+	}
+
 }
 
 
@@ -823,22 +871,19 @@ static int ui_do_but_MENU(uiBut *but)
 
 	for(a=0; a<md->nitems; a++) {
 		
-		x1= but->x1 + width*((int)a/rows);
+		x1= but->x1 + width*((int)(md->nitems-a-1)/rows);
 		y1= but->y1 - boxh*(a%rows) + (rows-1)*boxh; 
 
-		if (strcmp(md->items[a].str, "%l")==0) {
+		if (strcmp(md->items[md->nitems-a-1].str, "%l")==0) {
 			uiDefBut(block, SEPR, B_NOP, "", x1, y1,(short)(width-(rows>1)), (short)(boxh-1), NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else {
-			uiBut *bt= uiDefBut(block, BUTM|but->pointype, but->retval, md->items[a].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[a].retval, 0.0, 0, 0, "");
+			uiBut *bt= uiDefBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
 			if(active==a) bt->flag |= UI_ACTIVE;
 		}
 	}
 	
-	/* fix alignment because of the shadow, etc */
-	block->xofs = -2;
-	block->yofs = -2;
-	
+	block->direction= UI_TOP;
 	ui_positionblock(block, but);
 	block->win= G.curscreen->mainwin;
 	event= uiDoBlocks(&listb, 0);
@@ -1690,6 +1735,7 @@ static int ui_do_but_NUMSLI(uiBut *but)
 static int ui_do_but_BLOCK(uiBut *but)
 {
 	uiBlock *block;
+	uiBut *bt;
 	
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);	
@@ -1697,15 +1743,30 @@ static int ui_do_but_BLOCK(uiBut *but)
 	block= but->block_func(but->poin);
 
 	block->xofs = -2;	/* for proper alignment */
+	
+	/* only used for automatic toolbox, so can set the shift flag */
+	if(but->flag & UI_MAKE_TOP) {
+		block->direction= UI_TOP|UI_SHIFT_FLIPPED;
+		uiBlockFlipOrder(block);
+	}
+	if(but->flag & UI_MAKE_DOWN) block->direction= UI_DOWN|UI_SHIFT_FLIPPED;
+	if(but->flag & UI_MAKE_LEFT) block->direction |= UI_LEFT;
+	if(but->flag & UI_MAKE_RIGHT) block->direction |= UI_RIGHT;
+	
 	ui_positionblock(block, but);
 	block->flag |= UI_BLOCK_LOOP;
+	
+	/* blocks can come from a normal window, but we go to screenspace */
 	block->win= G.curscreen->mainwin;
-		
+	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
+	bwin_getsinglematrix(block->win, block->winmat);
+	
 	/* postpone draw, this will cause a new window matrix, first finish all other buttons */
 	block->flag |= UI_BLOCK_REDRAW;
 	
 	but->flag &= ~UI_SELECT;
-
+	uibut_do_func(but);
+	
 	return 0;
 }
 
@@ -2136,7 +2197,7 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 	case BLOCK:
 		if(uevent->val) {
 			retval= ui_do_but_BLOCK(but);
-			block->auto_open= 1;
+			if(block->auto_open==0) block->auto_open= 1;
 		}
 		break;
 
@@ -2288,7 +2349,7 @@ static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
 	short mvalo[2], dx, dy, domx, domy, x1, y1;
 	int disto, dist, counter=0;
 
-	if(block->direction==UI_TOP || block->direction==UI_DOWN) return 0;
+	if((block->direction & UI_TOP) || (block->direction & UI_DOWN)) return 0;
 	if(uevent->event!= MOUSEX && uevent->event!= MOUSEY) return 0;
 	
 	/* calculate dominant direction */
@@ -2576,15 +2637,20 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
 						int time;
 						if(uevent->event!=LEFTMOUSE ) {
-							if(block->auto_open) time= 5*U.menuthreshold2;
+							if(block->auto_open==2) time= 2;	// test for toolbox
+							else if(block->auto_open) time= 5*U.menuthreshold2;
 							else if(U.uiflag & MENUOPENAUTO) time= 5*U.menuthreshold1;
 							else time= -1;
-							
+
 							for (; time>0; time--) {
-								if (anyqtest()) break;
+								if (qtest()) break;
 								else PIL_sleep_ms(20);
 							}
-							if(time==0) ui_do_button(block, but, uevent);
+
+							if(time==0) {
+								uevent->val= 1;	// otherwise buttons dont react
+								ui_do_button(block, but, uevent);
+							}
 						}
 					}
 					if(but->flag & UI_ACTIVE) active= 1;
@@ -2640,8 +2706,10 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	if(block->flag & UI_BLOCK_LOOP) {
 
 		if(inside==0 && uevent->val==1) {
-			if ELEM3(uevent->event, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)
-				return UI_RETURN_OUT;
+			if ELEM3(uevent->event, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) {
+				if(BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1]));
+				else return UI_RETURN_OUT;
+			}
 		}
 
 		if(uevent->event==ESCKEY && uevent->val==1) return UI_RETURN_CANCEL;
@@ -2649,37 +2717,12 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val==1) return UI_RETURN_OK;
 		
 		/* check outside */
-		if(inside==0 && block->parentrct.xmax != 0.0) {
+		if(inside==0) {
 			/* strict check, and include the parent rect */
 			if( BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1]));
 			else if( ui_mouse_motion_towards_block(block, uevent));
-			else {
-				float midx, midy;
-				int safety;
-				
-				midx= (block->parentrct.xmin+block->parentrct.xmax)/2.0;
-				midy= (block->parentrct.ymin+block->parentrct.ymax)/2.0;
-				
-				if( midx < block->minx ) safety = 3; else safety= 40;
-				if(uevent->mval[0]<block->minx-safety) return UI_RETURN_OUT;
-				
-				if( midy < block->miny ) safety = 3; else safety= 40;
-				if(uevent->mval[1]<block->miny-safety) return UI_RETURN_OUT;
-				
-				if( midx > block->maxx ) safety = 3; else safety= 40;
-				if(uevent->mval[0]>block->maxx+safety) return UI_RETURN_OUT;
-				
-				if( midy > block->maxy ) safety = 3; else safety= 40;
-				if(uevent->mval[1]>block->maxy+safety) return UI_RETURN_OUT;
-			}
-		}
-		else {
-			/* for popups without parent button */
-			if(uevent->mval[0]<block->minx-40) return UI_RETURN_OUT;
-			if(uevent->mval[1]<block->miny-40) return UI_RETURN_OUT;
-	
-			if(uevent->mval[0]>block->maxx+40) return UI_RETURN_OUT;
-			if(uevent->mval[1]>block->maxy+40) return UI_RETURN_OUT;
+			else if( BLI_in_rctf(&block->safety, (float)uevent->mval[0], (float)uevent->mval[1]));
+			else return UI_RETURN_OUT;
 		}
 	}
 
@@ -2740,24 +2783,10 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 
 	su= ui_bgnpupdraw((int)(x1-1), (int)(y1-1), (int)(x2+4), (int)(y2+4), 0);
 
-	/* bottom */
-	//glColor3ub(0,0,0);
-	//fdrawline(x1, y1, x2, y1);
-	/* right */
-	//fdrawline(x2, y1, x2, y2);
-	/* top */
-	//glColor3ub(255,255,255);
-	//fdrawline(x1, y2, x2, y2);
-	/* left */
-	//fdrawline(x1, y1, x1, y2);
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
-	/*glColor4ub(0, 0, 0, 100);
-	fdrawline(x1+4, y1, x2+1, y1);
-	fdrawline(x2+1, y1, x2+1, y2-4);
-	*/
 	glColor4ub(0, 0, 0, 60);
 	fdrawline(x1+3, y1-1, x2, y1-1);
 	fdrawline(x2+1, y1, x2+1, y2-3);
@@ -2914,7 +2943,7 @@ int uiDoBlocks(ListBase *lb, int event)
 		if(block==NULL || (block->flag & UI_BLOCK_LOOP)==0) cont= 0;
 		
 		while( (block= lb->first) && (block->flag & UI_BLOCK_LOOP)) {
-			block->auto_open= 1;
+			if(block->auto_open==0) block->auto_open= 1;
 			
 			/* this here, for menu buts */
 			if(block->flag & UI_BLOCK_REDRAW) {
@@ -2946,7 +2975,7 @@ int uiDoBlocks(ListBase *lb, int event)
 					BLI_remlink(lb, block);
 					uiFreeBlock(block);
 				}
-				if(retval==UI_RETURN_OK) {
+				if(retval & (UI_RETURN_OK|UI_RETURN_CANCEL)) {
 					/* free other menus */
 					while( (block= lb->first) && (block->flag & UI_BLOCK_LOOP)) {
 						ui_endpupdraw(block->saveunder);
@@ -3197,6 +3226,7 @@ uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 
 	if (win==G.curscreen->mainwin) {
 		block->aspect= 1.0;
+		block->auto_open= 2;
 	} else {
 		int getsizex, getsizey;
 

@@ -49,6 +49,7 @@
 #include "BLI_editVert.h"
 
 #include "IMB_imbuf.h"
+#include "PIL_time.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_meta_types.h"
@@ -58,6 +59,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -76,6 +78,7 @@
 #include "BIF_editview.h"
 #include "BIF_glutil.h"
 #include "BIF_editarmature.h"
+#include "BIF_toolbox.h"
 
 #include "BDR_editobject.h"	/* For headerprint */
 #include "BDR_vpaint.h"
@@ -231,8 +234,8 @@ int gesture(void)
 {
 	short mcords[MOVES][2];
 	int i= 1, end= 0, a;
-	unsigned short event;
-	short mval[2], val;
+	unsigned short event=0;
+	short mval[2], val, timer=0;
 	
 	glDrawBuffer(GL_FRONT);
 	persp(0);	/*  ortho at pixel level */
@@ -244,8 +247,17 @@ int gesture(void)
 	
 	while(get_mbut()&L_MOUSE) {
 		
-		event= extern_qread(&val);
-	
+		if(qtest()) event= extern_qread(&val);
+		else if(i==1) {
+			/* not drawing yet... check for toolbox */
+			PIL_sleep_ms(10);
+			timer++;
+			if(timer>=10*U.menuthreshold1) {
+				toolbox_n();
+				return 0;
+			}
+		}
+		
 		switch (event) {
 		case MOUSEY:
 			getmouseco_areawin(mval);

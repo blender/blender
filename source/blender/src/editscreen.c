@@ -1079,7 +1079,7 @@ void screenmain(void)
 		else if (event==SPACEKEY) {
 			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT);
 			else {
-				if(val) toolbox();
+				if(val) toolbox_n();
 				towin= 0;
 			}
 		}
@@ -2021,7 +2021,7 @@ static void copy_screen(bScreen *to, bScreen *from)
 {
 	ScrVert *s1, *s2;
 	ScrEdge *se;
-	ScrArea *sa;
+	ScrArea *sa, *saf;
 	ListBase lbase;
 
 	/* free 'to' */
@@ -2048,6 +2048,7 @@ static void copy_screen(bScreen *to, bScreen *from)
 	}
 
 	sa= to->areabase.first;
+	saf= from->areabase.first;
 	while(sa) {
 		sa->v1= sa->v1->newv;
 		sa->v2= sa->v2->newv;
@@ -2056,12 +2057,13 @@ static void copy_screen(bScreen *to, bScreen *from)
 		sa->win= 0;
 		sa->headwin= 0;
 		
+		sa->spacedata.first= sa->spacedata.last= NULL;
 		sa->uiblocks.first= sa->uiblocks.last= NULL;
-		
-		duplicatespacelist(sa, &lbase, &sa->spacedata);
-		sa->spacedata= lbase;
+		sa->panels.first= sa->panels.last= NULL;
+		copy_areadata(sa, saf);
 		
 		sa= sa->next;
+		saf= saf->next;
 	}
 	
 	/* put at zero (needed?) */

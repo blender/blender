@@ -105,4 +105,11 @@ void do_view3d_buttons(short event);
 
 void do_headerbuttons(short event);
 
+/* header_info.c */
+void do_info_add_meshmenu(void *arg, int event);
+void do_info_add_curvemenu(void *arg, int event);
+void do_info_add_surfacemenu(void *arg, int event);
+void do_info_add_metamenu(void *arg, int event);
+void do_info_addmenu(void *arg, int event);
+
 #endif /*  BSE_HEADERBUTTONS_H */

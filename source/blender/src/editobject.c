@@ -5451,6 +5451,7 @@ void std_rmouse_transform(void (*xf_func)(int))
 {
 	short mval[2];
 	short xo, yo;
+	short timer=0;
 	
 	getmouseco_areawin(mval);
 	xo= mval[0]; 
@@ -5463,8 +5464,14 @@ void std_rmouse_transform(void (*xf_func)(int))
 			while(get_mbut()&R_MOUSE) BIF_wait_for_statechange();
 			return;
 		}
-
-		BIF_wait_for_statechange();
+		else {
+			PIL_sleep_ms(10);
+			timer++;
+			if(timer>=10*U.menuthreshold1) {
+				toolbox_n();
+				return;
+			}
+		}
 	}	
 }
 

@@ -46,10 +46,13 @@ struct ScrArea;
 #define UI_EMBOSSX		0	/* for a python file, which i can't change.... duh! */
 
 /* uiBlock->direction */
-#define UI_TOP		0
-#define UI_DOWN		1
-#define UI_LEFT		2
-#define UI_RIGHT	3
+#define UI_TOP		1
+#define UI_DOWN		2
+#define UI_LEFT		4
+#define UI_RIGHT	8
+#define UI_DIRECTION	15
+#define UI_CENTRE		16
+#define UI_SHIFT_FLIPPED	32
 
 /* uiBlock->autofill */
 #define UI_BLOCK_COLLUMNS	1
@@ -85,11 +88,16 @@ struct ScrArea;
 #define UI_PNL_TO_MOUSE	128
 #define UI_PNL_UNSTOW	256
 
-/* definitions for icons (and their alignment) in buttons */
 /* warning the first 4 flags are internal */
+/* but->flag */
 #define UI_TEXT_LEFT	16
 #define UI_ICON_LEFT	32
 #define UI_ICON_RIGHT	64
+	/* control for button type block */
+#define UI_MAKE_TOP		128
+#define UI_MAKE_DOWN	256
+#define UI_MAKE_LEFT	512
+#define UI_MAKE_RIGHT	1024
 
 
 /* Button types */

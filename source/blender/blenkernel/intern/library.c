@@ -568,7 +568,9 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 				
 			BLI_dynstr_append(pupds, buf);
 			BLI_dynstr_append(pupds, id->name+2);
-				
+			sprintf(buf, "%%x%d", i+1);
+			BLI_dynstr_append(pupds, buf);
+			
 			if(id->next)
 				BLI_dynstr_append(pupds, "|");
 		}
@@ -607,6 +609,8 @@ static void IPOnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, sho
 				
 				BLI_dynstr_append(pupds, buf);
 				BLI_dynstr_append(pupds, id->name+2);
+				sprintf(buf, "%%x%d", i+1);
+				BLI_dynstr_append(pupds, buf);
 				
 				if(id->next)
 					BLI_dynstr_append(pupds, "|");
@@ -627,13 +631,13 @@ void IDnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb,
 		BLI_dynstr_append(pupds, "%t|");
 	}
 	
-	IDnames_to_dyn_pupstring(pupds, lb, link, nr);
-	
 	if (extraops) {
+		BLI_dynstr_append(pupds, extraops);
 		if (BLI_dynstr_get_len(pupds))
 			BLI_dynstr_append(pupds, "|");
-		BLI_dynstr_append(pupds, extraops);
 	}
+
+	IDnames_to_dyn_pupstring(pupds, lb, link, nr);
 	
 	*str= BLI_dynstr_get_cstring(pupds);
 	BLI_dynstr_free(pupds);
@@ -649,13 +653,13 @@ void IPOnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 		BLI_dynstr_append(pupds, "%t|");
 	}
 	
-	IPOnames_to_dyn_pupstring(pupds, lb, link, nr, blocktype);
-	
 	if (extraops) {
+		BLI_dynstr_append(pupds, extraops);
 		if (BLI_dynstr_get_len(pupds))
 			BLI_dynstr_append(pupds, "|");
-		BLI_dynstr_append(pupds, extraops);
 	}
+
+	IPOnames_to_dyn_pupstring(pupds, lb, link, nr, blocktype);	
 	
 	*str= BLI_dynstr_get_cstring(pupds);
 	BLI_dynstr_free(pupds);

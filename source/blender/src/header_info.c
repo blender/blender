@@ -880,7 +880,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 /**************************** ADD ******************************/
 
-static void do_info_add_meshmenu(void *arg, int event)
+void do_info_add_meshmenu(void *arg, int event)
 {
 
 	switch(event) {		
@@ -920,6 +920,10 @@ static void do_info_add_meshmenu(void *arg, int event)
 			/* Grid */
 			add_primitiveMesh(10);
 			break;
+		case 9:
+			/* Monkey */
+			add_primitiveMesh(13);
+			break;
 		default:
 			break;
 	}
@@ -945,6 +949,7 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cone|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	160, 6,  NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grid|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Monkey|",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -952,7 +957,7 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	return block;
 }
 
-static void do_info_add_curvemenu(void *arg, int event)
+void do_info_add_curvemenu(void *arg, int event)
 {
 
 	switch(event) {		
@@ -1004,7 +1009,7 @@ static uiBlock *info_add_curvemenu(void *arg_unused)
 }
 
 
-static void do_info_add_surfacemenu(void *arg, int event)
+void do_info_add_surfacemenu(void *arg, int event)
 {
 
 	switch(event) {		
@@ -1059,7 +1064,7 @@ static uiBlock *info_add_surfacemenu(void *arg_unused)
 	return block;
 }
 
-static void do_info_add_metamenu(void *arg, int event)
+void do_info_add_metamenu(void *arg, int event)
 {
 
 	switch(event) {		
@@ -1112,9 +1117,9 @@ static uiBlock *info_add_metamenu(void *arg_unused)
 }
 
 
-static void do_info_addmenu(void *arg, int event)
+void do_info_addmenu(void *arg, int event)
 {
-
+printf("event %d\n", event);
 	switch(event) {		
 		case 0:
 			/* Mesh */

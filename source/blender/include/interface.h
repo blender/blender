@@ -183,6 +183,7 @@ struct uiBlock {
 
 	int themecol;	/* themecolor id */
 	short but_align;	/* aligning buttons, horiz/vertical */
+	
 	short font;	/* indices */
 	int afterval;
 	void *curfont;
@@ -192,6 +193,7 @@ struct uiBlock {
 	
 	float xofs, yofs;  	// offset to parent button
 	rctf parentrct;		// for pulldowns, rect the mouse is allowed outside of menu (parent button)
+	rctf safety;		// pulldowns, to detect outside, can differ per case how it is created
 	
 	int handler;		// for panels in other windows than buttonswin... just event code
 };

@@ -54,10 +54,7 @@
 
 #include "BMF_Api.h"
 #include "BIF_language.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
+#include "BIF_resources.h"
 
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
@@ -65,6 +62,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
@@ -96,6 +97,7 @@
 #include "BSE_editipo.h"
 #include "BSE_buttons.h"
 #include "BSE_filesel.h"
+#include "BSE_headerbuttons.h"
 
 #include "IMB_imbuf.h"
 
@@ -1502,4 +1504,321 @@ void replace_names_but(void)
 	}
 	
 }
+
+
+/* ********************** NEW TOOLBOX ********************** */
+
+ListBase tb_listb= {NULL, NULL};
+
+#define TB_TAB	256
+#define TB_ALT	512
+#define TB_CTRL	1024
+
+typedef struct TBitem {
+	int icon;
+	char *name;
+	int retval;
+	void *poin;
+} TBitem;
+
+static void tb_do_hotkey(void *arg, int event)
+{
+	unsigned short key=0, qual1=0, qual2=0;
+	
+	if(event & TB_CTRL) {
+		qual1= LEFTCTRLKEY;
+		event &= ~TB_CTRL;
+	}
+	if(event & TB_ALT) {
+		qual1= LEFTALTKEY;
+		event &= ~TB_ALT;
+	}
+	
+	if(event & TB_TAB) key= TABKEY;
+	else asciitoraw(event, &key, &qual2);
+
+	if(qual1) mainqenter(qual1, 1);
+	if(qual2) mainqenter(qual2, 1);
+	mainqenter(key, 1);
+	mainqenter(key, 0);
+	mainqenter(EXECUTE, 1);
+	if(qual1) mainqenter(qual1, 0);
+	if(qual2) mainqenter(qual2, 0);
+	
+}
+
+/* *************Select ********** */
+
+
+static TBitem tb_object_select[]= {
+{	0, "Border Select|B", 	'b', NULL},
+{	0, "(De)select All|A", 	'a', NULL},
+{	0, "Linked...|Shift L", 	'L', NULL},
+{	0, "Grouped...|Shift G", 	'G', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+/* *************Edit ********** */
+
+static TBitem tb_object_edit[]= {
+{	0, "Enter Editmode|Tab", 	TB_TAB, NULL},
+{	0, "Insert Keyframe|I", 	'i', NULL},
+{	0, "Boolean...|W", 			'w', NULL},
+{	0, "Join Objects|CTRL J", 	TB_CTRL|'j', NULL},
+{	0, "Convert Object...|Alt C", 'i', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+
+/* *************Object ********** */
+
+static TBitem tb_object[]= {
+{	0, "Duplicate|Shift D", 		'D', 		NULL},
+{	0, "Duplicate Linked|Alt D", 	TB_ALT|'D', NULL},
+{	0, "Delete|X", 					'x', 		NULL},
+{	0, "Copy Links...|Ctrl L", 		TB_CTRL|'l', NULL},
+{	0, "Make Single User...|U", 	'u', 		NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Make Parent|Ctrl P", 		TB_CTRL|'p', NULL},
+{	0, "Clear Parent|Alt P", 		TB_ALT|'p', NULL},
+{	0, "Copy Properties...|Ctrl C", TB_CTRL|'c', NULL},
+{	0, "Move to Layer...|M", 		'm', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+
+/* *************TRANSFORM ********** */
+
+static void tb_do_view_dt(void *arg, int event){
+	G.vd->drawtype= event;
+	addqueue(curarea->win, REDRAW, 1);
+}
+
+static TBitem tb_view_dt[]= {
+{	ICON_BBOX, "Bounding box", 	1, NULL},
+{	ICON_WIRE, "Wireframe", 	2, NULL},
+{	ICON_SOLID, "Solid", 		3, NULL},
+{	ICON_SMOOTH, "Shaded", 		5, NULL},
+{	ICON_POTATO, "Textured", 	5, NULL},
+{  -1, "", 			0, tb_do_view_dt}};
+
+
+/* *************TRANSFORM ********** */
+
+static TBitem tb_transform[]= {
+{	0, "Grabber|g", 'g', NULL},
+{	0, "Rotate|r", 	'r', NULL},
+{	0, "Scale|s", 	's', NULL},
+{	0, "SEPR", 		0, NULL},
+{	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
+{	0, "Snap...|Shift S", 'S', NULL},
+{	0, "SEPR", 		0, NULL},
+{	0, "Clear Location", TB_ALT|'g', NULL},
+{	0, "Clear Rotation", TB_ALT|'r', NULL},
+{	0, "Clear Size", 	TB_ALT|'s', NULL},
+{  -1, "", 			0, tb_do_hotkey}};
+
+/* *************ADD ********** */
+
+static TBitem addmenu_mesh[]= {
+{	0, "Plane", 	0, NULL},
+{	0, "Cube", 		1, NULL},
+{	0, "Circle", 	2, NULL},
+{	0, "UVsphere", 	3, NULL},
+{	0, "Icosphere", 4, NULL},
+{	0, "Cylinder", 	5, NULL},
+{	0, "Tube", 		6, NULL},
+{	0, "Cone", 		7, NULL},
+{	0, "Grid", 		8, NULL},
+{	0, "Monkey", 	9, NULL},
+{  -1, "", 			0, do_info_add_meshmenu}};
+
+static TBitem addmenu_curve[]= {
+{	0, "Bezier Curve", 	0, NULL},
+{	0, "Bezier Circle", 1, NULL},
+{	0, "NURBS Curve", 	2, NULL},
+{	0, "NURBS Circle", 	3, NULL},
+{	0, "Path", 			4, NULL},
+{  -1, "", 			0, do_info_add_curvemenu}};
+
+static TBitem addmenu_surf[]= {
+{	0, "NURBS Curve", 	0, NULL},
+{	0, "NURBS Circle", 	1, NULL},
+{	0, "NURBS Surface", 2, NULL},
+{	0, "NURBS Tube", 	3, NULL},
+{	0, "NURBS Sphere", 	4, NULL},
+{	0, "NURBS Donut", 	5, NULL},
+{  -1, "", 			0, do_info_add_surfacemenu}};
+
+static TBitem addmenu_meta[]= {
+{	0, "Meta Ball", 	0, NULL},
+{	0, "Meta Tube", 	1, NULL},
+{	0, "Meta Plane", 	2, NULL},
+{	0, "Meta Ellipsoid", 3, NULL},
+{	0, "Meta Cube", 	4, NULL},
+{  -1, "", 			0, do_info_add_metamenu}};
+
+
+static TBitem tb_add[]= {
+{	0, "Mesh", 		0, addmenu_mesh},
+{	0, "Curve", 	1, addmenu_curve},
+{	0, "Surface", 	2, addmenu_surf},
+{	0, "MBall", 	3, addmenu_meta},
+{	0, "Text", 		4, NULL},
+{	0, "Empty", 	5, NULL},
+{	0, "Camera", 	6, NULL},
+{	0, "Lamp", 		7, NULL},
+{	0, "SEPR", 		0, NULL},
+{	0, "Armature", 	8, NULL},
+{	0, "Lattice", 	9, NULL},
+{  -1, "", 			0, do_info_addmenu}};
+
+static TBitem tb_test[]= {
+{	0, "test", 	0, NULL},
+{	0, "test", 	1, NULL},
+{	0, "test", 	2, NULL},
+{	0, "test", 3, NULL},
+{	0, "test", 	4, NULL},
+{  -1, "", 		0, NULL}};
+
+
+
+static uiBlock *tb_makemenu(void *arg)
+{
+	static int counter=0;
+	TBitem *item= arg, *itemt;
+	uiBlock *block;
+	int yco= 0;
+	char str[10];
+	
+	if(arg==NULL) return NULL;
+	
+	sprintf(str, "tb %d\n", counter++);
+	block= uiNewBlock(&tb_listb, str, UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetCol(block, TH_MENU_ITEM);
+
+	// last item has do_menu func, has to be stored in each button
+	itemt= item;
+	while(itemt->icon != -1) itemt++;
+	uiBlockSetButmFunc(block, itemt->poin, NULL);
+
+	// now make the buttons
+	while(item->icon != -1) {
+
+		if(strcmp(item->name, "SEPR")==0) {
+			uiDefBut(block, SEPR, 0, "", 0, yco-=6, 50, 6, NULL, 0.0, 0.0, 0, 0, "");
+		}
+		else if(item->icon) {
+			uiDefIconTextBut(block, BUTM, 1, item->icon, item->name, 0, yco-=20, 50, 19, NULL, 0.0, 0.0, 0, item->retval, "");
+		}
+		else if(item->poin) {
+			uiDefIconTextBlockBut(block, tb_makemenu, item->poin, ICON_RIGHTARROW_THIN, item->name, 0, yco-=20, 50, 19, "");
+		}
+		else {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, item->name, 0, yco-=20, 50, 19, NULL, 0.0, 0.0, 0, item->retval, "");
+		}
+		item++;
+	}
+	uiTextBoundsBlock(block, 50);
+	
+	/* direction is also set in the function that calls this */
+	uiBlockSetDirection(block, UI_RIGHT|UI_CENTRE);
+
+	return block;
+}
+
+static int tb_mainx= 0, tb_mainy= -5;
+static void store_main(void *arg1, void *arg2)
+{
+	tb_mainx= (int)arg1;
+	tb_mainy= (int)arg2;
+}
+
+void toolbox_n(void)
+{
+	uiBlock *block;
+	uiBut *but;
+	TBitem *menu1=NULL, *menu2=NULL, *menu3=NULL; 
+	TBitem *menu4=NULL, *menu5=NULL, *menu6=NULL;
+	int dx;
+	short event, mval[2], tot=0;
+	char *str1=NULL, *str2=NULL, *str3=NULL, *str4=NULL, *str5=NULL, *str6=NULL;
+	
+	mywinset(G.curscreen->mainwin); // we go to screenspace
+	
+	block= uiNewBlock(&tb_listb, "toolbox", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	uiBlockSetCol(block, TH_MENU_ITEM);
+	
+	dx= 65;
+	
+	/* select context for main items */
+	if(curarea->spacetype==SPACE_VIEW3D) {
+		/* standard menu */
+		menu1= tb_object; str1= "Object";
+		menu2= tb_add; str2= "Add";
+		menu3= tb_object_select; str3= "Select";
+		menu4= tb_object_edit; str4= "Edit";
+		menu5= tb_transform; str5= "Transform";
+		menu6= tb_view_dt; str6= "View";
+		
+		if(G.obedit) {
+			if(G.obedit->type==OB_MESH) {
+				menu1= tb_test; str1= "Mesh";
+				menu2= addmenu_mesh; str2= "Add";
+			}
+			else if(G.obedit->type==OB_CURVE) {
+				menu1= tb_test; str1= "Curve";
+				menu2= addmenu_curve; str2= "Add";
+			}
+			else if(G.obedit->type==OB_SURF) {
+				menu1= tb_test; str1= "Surface";
+				menu2= addmenu_surf; str2= "Add";
+			}
+			else if(G.obedit->type==OB_MBALL) {
+				menu1= tb_test; str1= "Meta";
+				menu2= addmenu_meta; str2= "Add";
+			}
+			
+		}
+		else {
+		}
+		tot= 6;
+	}
+	
+	getmouseco_sc(mval);
+	
+	/* create the main buttons menu */
+	if(tot==6) {
+		but=uiDefBlockBut(block, tb_makemenu, menu1, str1,	mval[0]-1.5*dx+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)dx, (void *)-5);
+
+		but=uiDefBlockBut(block, tb_makemenu, menu2, str2,	mval[0]-0.5*dx+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_TOP);
+		uiButSetFunc(but, store_main, (void *)0, (void *)-5);
+
+		but=uiDefBlockBut(block, tb_makemenu, menu3, str3,	mval[0]+0.5*dx+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_LEFT);
+		uiButSetFunc(but, store_main, (void *)-dx, (void *)-5);
+
+		but=uiDefBlockBut(block, tb_makemenu, menu4, str4,	mval[0]-1.5*dx+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)dx, (void *)5);
+
+		but=uiDefBlockBut(block, tb_makemenu, menu5, str5,	mval[0]-0.5*dx+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_DOWN);
+		uiButSetFunc(but, store_main, (void *)0, (void *)5);
+
+		but=uiDefBlockBut(block, tb_makemenu, menu6, str6,	mval[0]+0.5*dx+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_LEFT);
+		uiButSetFunc(but, store_main, (void *)-dx, (void *)5);
+	}
+	
+	uiBoundsBlock(block, 2);
+	event= uiDoBlocks(&tb_listb, 0);
+	
+	mywinset(curarea->win);
+}
+
+
 

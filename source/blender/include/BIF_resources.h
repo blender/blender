@@ -344,6 +344,7 @@ void 	BIF_GetThemeColor3fv(int colorid, float *col);
 void 	BIF_GetThemeColor3ubv(int colorid, char *col);
 void 	BIF_GetThemeColor4ubv(int colorid, char *col);
 
+struct ScrArea;
 
 // internal (blender) usage only, for init and set active
 void 	BIF_InitTheme(void);

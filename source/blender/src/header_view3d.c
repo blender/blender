@@ -1018,7 +1018,7 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 		adduplicate(0);
 		G.qual &= ~LR_ALTKEY;
 		break;
-	case 4: /* make links */
+	case 4: /* copy linkss */
 		linkmenu();
 		break;
 	case 5: /* make single user */
@@ -1089,7 +1089,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Links...|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Links...|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Single User...|U",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Properties...|Ctrl C",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	
@@ -2577,7 +2577,7 @@ static char *view3d_modeselect_pup(void)
 }
 
 
-char *drawtype_pup(void)
+static char *drawtype_pup(void)
 {
 	static char string[512];
 
@@ -2589,7 +2589,7 @@ char *drawtype_pup(void)
 	strcat(string, "|Textured %x5");
 	return (string);
 }
-char *around_pup(void)
+static char *around_pup(void)
 {
 	static char string[512];
 

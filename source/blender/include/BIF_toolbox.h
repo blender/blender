@@ -103,6 +103,8 @@ void tbox_getactive (int *x, int *y);
 void drawtoolbox (void);
 void toolbox (void);
 
+void toolbox_n(void);
+
 void notice (char *str, ...);
 void error (char *fmt, ...);
 
