@@ -108,14 +108,18 @@ all debug::
   ifeq ($(OS),darwin)
     ID = $(shell whoami)
     HOST = $(shell hostname -s)
-    # MAART: override libraries locations to use fink installed libraries
+    # Override libraries locations to use fink installed libraries
     export NAN_OPENSSL = /sw
     export NAN_JPEG = /sw
     export NAN_PNG = /sw
-    export NAN_PYTHON = $(LCGDIR)/python
-    export NAN_PYTHON_VERSION = 2.2
     export NAN_ODE = $(LCGDIR)/ode
- endif
+ 	# Override common python settings so that the python that comes with 
+	# OSX 10.2 in /usr/local/ is used.
+    export NAN_PYTHON = /usr/local
+    export NAN_PYTHON_VERSION = 2.2
+    export NAN_PYTHON_BINARY = $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS = $(shell $(NAN_PYTHON_BINARY) -c 'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so 
+  endif
   ifeq ($(OS),freebsd)
     ID = $(shell whoami)
     HOST = $(shell hostname -s)

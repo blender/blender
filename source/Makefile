@@ -296,9 +296,9 @@ ifeq ($(OS),beos)
 endif
 
 ifeq ($(OS),darwin)
-    # Python
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-    # The only target right now...
+	# Next line would enable MxTextTools (for VRML2 import) but results in a link error
+    # PYLIB += $(NAN_MXTEXTTOOLS) 
     BINTARGETS = blendercreator.app
     BINTARGETS += blenderpublisher.app
     BINTARGETS += blenderplayer.app
