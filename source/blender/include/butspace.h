@@ -195,19 +195,20 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 
 #define B_ENV_MAKE		1350
 #define B_ENV_FREE		1351
-#define B_ENV_DELETE	1352
+#define B_ENV_DELETE		1352
 #define B_ENV_SAVE		1353
 #define B_ENV_OB		1354
 
 #define B_PACKIMA		1355
-#define B_TEXSETFRAMES	1356
+#define B_TEXSETFRAMES		1356
 
-#define B_ENV_FREE_ALL	1357
+#define B_ENV_FREE_ALL		1357
+#define B_UNLINKIMA		1358
 
 /* *********************** */
 #define B_ANIMBUTS		1500
 
-#define B_RECALCPATH	1401
+#define B_RECALCPATH		1401
 #define B_TRACKBUTS		1402
 #define B_DEL_HOOK		1403
 #define B_CLR_HOOK		1404
