@@ -962,7 +962,8 @@ def blender_libs(env):
 		'blender_LOD',
 		'blender_BSP',
 		'blender_blenkernel',
-		'blender_IK'])
+		'blender_IK',
+		'blender_ONL'])
 
 def ketsji_libs(env):
 	"""

@@ -81,6 +81,8 @@ endif
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
+    export NAN_OPENNL ?= $(LCGDIR)/opennl
+    export NAN_SUPERLU ?= $(LCGDIR)/superlu
     ifeq ($(FREE_WINDOWS), true)
       export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
     else

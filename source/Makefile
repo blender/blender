@@ -87,6 +87,8 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
     GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
     GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
+    GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
+    GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a
 
     GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 

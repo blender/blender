@@ -28,23 +28,13 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
-# Bounces make to subdirectories. Also installs after succesful all target.
+# opennl intern Makefile
+#
 
-SOURCEDIR = intern
+LIBNAME = superlu
+DIR = $(OCGDIR)/intern/$(LIBNAME)
 
-# include nan_subdirs.mk
+include nan_compile.mk
 
-ALLDIRS = string ghost guardedalloc bmfont moto container memutil
-ALLDIRS += decimation iksolver bsp SoundSystem opennl
-
-all::
-	@for i in $(ALLDIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
-	done
-clean test debug::
-	@for i in $(ALLDIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i $@ || exit 1; \
-	done
+CCFLAGS += $(NAN_LEVEL_2_CPP_WARNINGS)
 
