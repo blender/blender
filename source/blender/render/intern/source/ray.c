@@ -540,7 +540,7 @@ void makeoctree()
 				}
 			}
 			
-			memset(ocvlak, 0, sizeof(ocvlak));
+			memset(ocvlak, 0, 3*ocres2);
 			
 			for(c=0;c<3;c++) {
 				oc1= rts[0][c];
