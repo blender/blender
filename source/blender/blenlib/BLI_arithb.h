@@ -479,6 +479,11 @@ printvecf(
 	char *str,
 	float v[3]
 );
+	void
+printvec4f(
+	char *str,
+	float v[4]
+);
 	float 
 Inpf(
 	float *v1, 

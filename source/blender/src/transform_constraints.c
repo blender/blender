@@ -114,8 +114,36 @@ void recalcData();
 /* ************************** CONSTRAINTS ************************* */
 void getConstraintMatrix(TransInfo *t);
 
-void axisProjection(float axis[3], float in[3], float out[3]) {
-	float n[3], vec[3], factor;
+void getViewVector(TransInfo *t, float coord[3], float vec[3]) {
+	if (G.vd->persp)
+	{
+		float p1[4], p2[4];
+
+		VecAddf(p1, coord, t->con.center);
+		p1[3] = 1.0f;
+		VECCOPY(p2, p1);
+		p2[3] = 1.0f;
+		Mat4MulVec4fl(G.vd->viewmat, p2);
+
+		p2[0] = 2.0f * p2[0];
+		p2[1] = 2.0f * p2[1];
+		p2[2] = 2.0f * p2[2];
+
+		Mat4MulVec4fl(G.vd->viewinv, p2);
+
+		VecSubf(vec, p2, p1);
+		Normalise(vec);
+	}
+	else {
+		VECCOPY(vec, G.vd->viewinv[2]);
+	}
+}
+
+void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
+	float norm[3], n[3], vec[3], factor;
+
+	getViewVector(t, in, norm);
+
 	Normalise(axis);
 
 	VECCOPY(n, axis);
@@ -123,31 +151,33 @@ void axisProjection(float axis[3], float in[3], float out[3]) {
 	n[2] = G.vd->viewmat[3][2];
 	Mat4MulVecfl(G.vd->viewinv, n);
 
-	if (Inpf(axis, G.vd->viewinv[2]) != 1.0f) {
+	if (Inpf(axis, norm) != 1.0f) {
 		Projf(vec, in, n);
 		factor = Normalise(vec);
 		factor /= Inpf(axis, vec);
 
 		VecMulf(axis, factor);
 		VECCOPY(out, axis);
-
 	}
 	else {
 		out[0] = out[1] = out[2] = 0.0f;
 	}
 }
 
-void planeProjection(float in[3], float out[3]) {
-	float vec[3], factor, angle;
+void planeProjection(TransInfo *t, float in[3], float out[3]) {
+	float vec[3], factor, angle, norm[3];
+
+	getViewVector(t, in, norm);
 
 	VecSubf(vec, out, in);
 	factor = Normalise(vec);
-	angle = Inpf(vec, G.vd->viewinv[2]);
+	angle = Inpf(vec, norm);
+
 
 	if (angle * angle >= 0.000001f) {
 		factor /= angle;
 
-		VECCOPY(vec, G.vd->viewinv[2]);
+		VECCOPY(vec, norm);
 		VecMulf(vec, factor);
 
 		VecAddf(out, in, vec);
@@ -161,7 +191,7 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 		Mat3MulVecfl(t->con.imtx, out);
 		if (!(out[0] == out[1] == out[2] == 0.0f)) {
 			if (getConstraintSpaceDimension(t) == 2) {
-				planeProjection(in, out);
+				planeProjection(t, in, out);
 			}
 			else if (getConstraintSpaceDimension(t) == 1) {
 				float c[3];
@@ -175,7 +205,7 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 				else if (t->con.mode & CONAXIS2) {
 					VECCOPY(c, t->con.mtx[2]);
 				}
-				axisProjection(c, in, out);
+				axisProjection(t, c, in, out);
 			}
 		}
 		

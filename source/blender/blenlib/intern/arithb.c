@@ -961,6 +961,14 @@ void printvecf( char *str,  float v[3])
 
 }
 
+void printvec4f( char *str,  float v[4])
+{
+	printf("%s\n", str);
+	printf("%f %f %f %f\n",v[0],v[1],v[2], v[3]);
+	printf("\n");
+
+}
+
 void printmatrix4( char *str,  float m[][4])
 {
 	printf("%s\n", str);

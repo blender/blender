@@ -1285,17 +1285,20 @@ void Transform(int mode)
 					else if (G.qual == LR_CTRLKEY)
 						setConstraint(&Trans, mati, (APPLYCON|CONAXIS1|CONAXIS2));
 					break;
+					Trans.redraw = 1;
 				case YKEY:
 					if (G.qual == 0)
 						setConstraint(&Trans, mati, (APPLYCON|CONAXIS1));
 					else if (G.qual == LR_CTRLKEY)
 						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0|CONAXIS2));
 					break;
+					Trans.redraw = 1;
 				case ZKEY:
 					if (G.qual == 0)
 						setConstraint(&Trans, mati, (APPLYCON|CONAXIS2));
 					else if (G.qual == LR_CTRLKEY)
 						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0|CONAXIS1));
+					Trans.redraw = 1;
 					break;
 				case OKEY:
 					if (G.qual==LR_SHIFTKEY) {
