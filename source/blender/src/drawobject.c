@@ -4433,18 +4433,19 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 		if(dl) dlm= dl->mesh;
 		a= 0; 
 
-		if(dlm) {
+		if(dlm && dlm->editface) {
+			EditFace *prevefa;
 			MFace *mface;
 			efa= NULL;
 			
+			// tuck original indices in efa->prev
+			for(b=1, efa= G.editMesh->faces.first; efa; efa= efa->next, b++) efa->prev= (EditFace *)(b);
+
 			for(b=0, mface= dlm->mface; b<dlm->totface; b++, mface++) {
 				if(mface->v3) {
 					if(facecol) {
-						if( efa != dlm->editface[b] ) {
-							efa= dlm->editface[b];
-							a++;
-						}
-						cpack(index_to_framebuffer(a));
+						efa= dlm->editface[b];
+						cpack(index_to_framebuffer((int)efa->prev));
 					}
 					
 					glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
@@ -4455,7 +4456,10 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 					glEnd();
 				}
 			}
-			a++;	// the weird constructed loop ends with last drawn color...
+			for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)
+				efa->prev= prevefa;
+
+			a= b+1;	
 		}
 		else {
 			a= 1;
