@@ -657,7 +657,7 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 			xmlfile << ostr.str();
 	}
 
-	for (int m2=0;m2<8;m2++) {
+	for (int m2=0;m2<MAX_MTEX;m2++) {
 
 		if (matr->septex & (1<<m2)) continue;// all active channels
 
@@ -807,7 +807,7 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 		Material* matr = blendmat->second;
 
 		// mapper(s)
-		for (int m=0;m<8;m++)
+		for (int m=0;m<MAX_MTEX;m++)
 		{
 
 			if (matr->septex & (1<<m)) continue;// all active channels
@@ -1650,7 +1650,7 @@ bool yafrayFileRender_t::writeWorld()
 
 	if (world==NULL) return false;
 
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<MAX_MTEX;i++) {
 		MTex* wtex = world->mtex[i];
 		if (!wtex) continue;
 		Image* wimg = wtex->tex->ima;

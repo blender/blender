@@ -94,7 +94,7 @@ bool yafrayRender_t::getAllMatTexObs()
 			else
 				used_materials[matr->id.name] = matr;
 			// textures, all active channels
-			for (int m=0;m<8;m++) {
+			for (int m=0;m<MAX_MTEX;m++) {
 				if (matr->septex & (1<<m)) continue;	// only active channels
 				MTex* mx = matr->mtex[m];
 				// if no mtex, ignore

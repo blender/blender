@@ -644,7 +644,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			lparams.push_back(mparams);
 	}
 	
-	for (int m2=0;m2<8;m2++)
+	for (int m2=0;m2<MAX_MTEX;m2++)
 	{
 		if (matr->septex & (1<<m2)) continue;// all active channels
 		// ignore null mtex
@@ -786,7 +786,7 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 	{
 		Material* matr = blendmat->second;
 		// mapper(s)
-		for (int m=0;m<8;m++) 
+		for (int m=0;m<MAX_MTEX;m++) 
 		{
 			if (matr->septex & (1<<m)) continue;// all active channels
 			// ignore null mtex
@@ -1636,7 +1636,7 @@ bool yafrayPluginRender_t::writeWorld()
 	if (world==NULL) return false;
 
 	yafray::paramMap_t params;
-	for (int i=0;i<6;i++) {
+	for (int i=0;i<MAX_MTEX;i++) {
 		MTex* wtex = world->mtex[i];
 		if (!wtex) continue;
 		Image* wimg = wtex->tex->ima;
