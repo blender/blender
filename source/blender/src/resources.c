@@ -461,6 +461,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->face; break;
 			case TH_FACE_SELECT:
 				cp= ts->face_select; break;
+			case TH_NORMAL:
+				cp= ts->normal; break;
 
 			}
 
@@ -535,6 +537,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.edge_facesel, 75, 75, 75, 255);
 	SETCOL(btheme->tv3d.face, 	0, 50, 150, 30);
 	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
+	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
 
 	/* space buttons */
 	/* to have something initialized */
@@ -635,7 +638,7 @@ void BIF_InitTheme(void)
 
 char *BIF_ThemeColorsPup(int spacetype)
 {
-	char *cp= MEM_callocN(20*32, "theme pup");
+	char *cp= MEM_callocN(21*32, "theme pup");
 	char str[32];
 	
 	if(spacetype==0) {
@@ -682,7 +685,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Edge Seam %%x%d|", TH_EDGE_SEAM); strcat(cp, str);
 			sprintf(str, "Edge UV Face Select %%x%d|", TH_EDGE_FACESEL); strcat(cp, str);
 			sprintf(str, "Face %%x%d|", TH_FACE); strcat(cp, str);
-			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
+			sprintf(str, "Face Selected %%x%d|", TH_FACE_SELECT); strcat(cp, str);
+			sprintf(str, "Normal %%x%d", TH_NORMAL); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_IPO) {
 			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);

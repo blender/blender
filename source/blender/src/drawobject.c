@@ -2536,7 +2536,8 @@ static void drawmeshwire(Object *ob)
 		tekenvertices(1);
 
 		if(G.f & G_DRAWNORMALS) {	/* normals */
-			cpack(0xDDDD22);
+			/*cpack(0xDDDD22);*/
+			BIF_ThemeColor(TH_NORMAL);
 
 			glBegin(GL_LINES);
 			

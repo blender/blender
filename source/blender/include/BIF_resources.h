@@ -380,7 +380,8 @@ enum {
 	TH_EDGE_SEAM,
 	TH_EDGE_FACESEL,
 	TH_FACE,
-	TH_FACE_SELECT
+	TH_FACE_SELECT,
+	TH_NORMAL
 };
 
 /* specific defines per space should have higher define values */

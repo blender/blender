@@ -84,9 +84,10 @@ typedef struct ThemeSpace {
 	char edge[4], edge_select[4];
 	char edge_seam[4], edge_facesel[4];
 	char face[4], face_select[4];
+	char normal[4];
 	
 	char vertex_size, pad;
-	short pad1;
+	short pad1[3];
 	
 } ThemeSpace;
 

@@ -1913,7 +1913,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	int spacetype= 0;
 	static short cur=1, curmain=2;
 	short a, tot=0, isbuiltin= 0;
-	char string[20*32], *strp, *col;
+	char string[21*32], *strp, *col;
 	
 	y3= y2+23;	// exception!
 	
