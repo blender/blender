@@ -76,7 +76,7 @@
 #define ABS(x)	((x) < 0 ? -(x) : (x))
 #define FLOOR(x) ((int)(x) - ((x) < 0 && (x) != (int)(x)))
 #define CEIL(x) ((int)(x) + ((x) > 0 && (x) != (int)(x)))
-#define STEP(a,b)	((a)>(b)) (1) : (0))
+#define STEP(a,b)	( (a)>(b) ? (1) : (0) )
 #define CLAMP(val, low, high) ((val>high)?high:((val<low)?low:val))
 #define LERP(t,x0,x1) ((x0) + (t)*((x1)-(x0)))
 #define PULSE(a,b,x) (STEP((a),(x)) - STEP((b),(x)))
