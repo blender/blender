@@ -3,7 +3,43 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "DummySoundSystem"="..\..\SoundSystem\make\msvc_6_0\dummy\DummySoundSystem.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "MoTo"="..\..\moto\make\msvc_6_0\MoTo.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "OpenALSoundSystem"="..\..\SoundSystem\make\msvc_6_0\openal\OpenALSoundSystem.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SoundSystem"="..\..\SoundSystem\make\msvc_6_0\SoundSystem.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -100,6 +136,15 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name blenkey
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name DummySoundSystem
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SoundSystem
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenALSoundSystem
     End Project Dependency
 }}}
 
