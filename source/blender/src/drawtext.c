@@ -836,54 +836,37 @@ void txt_copy_selectbuffer (Text *text)
 
 
 #ifdef _WIN32
-char *unixNewLine(char * buffer) {
-	char * output = NULL;
-	int i = 0, count = 1;
-	int len = strlen(buffer);
-
-	for (i; i<len; i++) {
-		count++;
-		if (buffer[i] == '\r' || buffer[i] == '\0')
-			count--;
-	}
-	output = MEM_callocN(sizeof(char) * count, "output buffer");
-	count = 0;
-	i = 0;
-	for (i; i<len; i++) {
-		if (buffer[i] != '\r' && buffer[i] != '\0') {
-			output[count] = buffer[i];
-			count++;
-		}
-	}
-	output[count] = '\0';
-	return output;
+char *unixNewLine(char *buffer)
+{
+	char *p, *p2, *output;
+	
+	/* we can afford the few extra bytes */
+	output= MEM_callocN(strlen(buffer)+1, "unixnewline");
+	for (p= buffer, p2= output; *p; p++)
+		if (*p != '\r') *(p2++)= *p;
+	
+	*p2= 0;
+	return(output);
 }
 
-char *winNewLine(char * buffer) {
-	char * output = NULL;
-	int i = 0, count = 1;
-	int len = strlen(buffer);
-
-	for (i; i<len; i++, count++) {
-		if (buffer[i] == '\n')
-			count++;
+char *winNewLine(char *buffer)
+{
+	char *p, *p2, *output;
+	int add= 0;
+	
+	for (p= buffer; *p; p++)
+		if (*p == '\n') add++;
+		
+	bufferlength= p-buffer+add+1;
+	output= MEM_callocN(bufferlength, "winnewline");
+	for (p= buffer, p2= output; *p; p++, p2++) {
+		if (*p == '\n') { 
+			*(p2++)= '\r'; *p2= '\n';
+		} else *p2= *p;
 	}
-	output = MEM_callocN(sizeof(char) * count, "input buffer");
-	count = 0;
-	i = 0;
-	for (i; i<len; i++, count++) {
-		if (buffer[i] == '\n') {
-			output[count] = '\r';
-			count++;
-			output[count] = '\n';
-		}
-		else {
-			output[count] = buffer[i];
-		}
-	}
-	output[count] = '\0';
-	bufferlength = count;
-	return output;
+	*p2= 0;
+	
+	return(output);
 }
 #endif
 
