@@ -489,8 +489,11 @@ static void py_slider_update(void *butv, void *data2_unused)
 	/* removed global uiFrontBuf (contact ton when this goes wrong here) */
 	spacescript_do_pywin_buttons(curarea->spacedata.first, uiButGetRetVal(but));
 
-	if (!g_window_redrawn) /*@ if Redraw already called */
+	if (!g_window_redrawn){ /*@ if Redraw already called */
+		disable_where_script(1);
 		M_Window_Redraw(0, Py_BuildValue("(i)", SPACE_VIEW3D));
+		disable_where_script(0);
+	}
 
 	EXPP_disable_force_draw= 0;
 }

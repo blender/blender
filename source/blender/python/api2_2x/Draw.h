@@ -51,6 +51,7 @@
 
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_object.h"
 
 #include "BIF_gl.h"
 #include "BIF_screen.h"
