@@ -52,7 +52,7 @@
 #include "BMF_Api.h"
 #include "BIF_language.h"
 #ifdef INTERNATIONAL
-#include "FTF_api.h"
+#include "FTF_Api.h"
 #endif // INTERNATIONAL
 
 #include "BLI_blenlib.h"
