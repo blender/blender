@@ -1041,7 +1041,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data;
-			float	size[3];
+			float size[3];
 			float *quat;
 			float vec[3];
 			float totmat[3][3];
@@ -1051,20 +1051,21 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			
 			if (data->tar){
 					
+				/* Get size property, since ob->size is only the object's own relative size, not its global one */
 				Mat4ToSize (ob->obmat, size);
 	
 				Mat4CpyMat4 (M_oldmat, ob->obmat);
 
 				// Clear the object's rotation 	
-				ob->obmat[0][0]=ob->size[0];
+				ob->obmat[0][0]=size[0];
 				ob->obmat[0][1]=0;
 				ob->obmat[0][2]=0;
 				ob->obmat[1][0]=0;
-				ob->obmat[1][1]=ob->size[1];
+				ob->obmat[1][1]=size[1];
 				ob->obmat[1][2]=0;
 				ob->obmat[2][0]=0;
 				ob->obmat[2][1]=0;
-				ob->obmat[2][2]=ob->size[2];
+				ob->obmat[2][2]=size[2];
 	
 			
 				VecSubf(vec, ob->obmat[3], targetmat[3]);
@@ -1147,7 +1148,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	case CONSTRAINT_TYPE_LOCKTRACK:
 		{
 			bLockTrackConstraint *data;
-			float	size[3];
 			float vec[3],vec2[3];
 			float totmat[3][3];
 			float tmpmat[3][3];
@@ -1160,8 +1160,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			
 
 			if (data->tar){
-					
-				Mat4ToSize (ob->obmat, size);
 	
 				Mat4CpyMat4 (M_oldmat, ob->obmat);
 
@@ -1492,7 +1490,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			data=(bStretchToConstraint*)constraint->data;			
 			
 			if (data->tar){
-					
+				
 				/* store X orientation before destroying obmat */
 				xx[0] = ob->obmat[0][0];
 				xx[1] = ob->obmat[0][1];
