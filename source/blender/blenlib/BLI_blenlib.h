@@ -329,10 +329,13 @@ void BLI_setScanFillObjectRef(void* ob);
 void BLI_setScanFillColourRef(char* c);
 
 #define PRNTSUB(type,arg)			printf(#arg ": %" #type " ", arg)
+
+#ifndef PRINT
 #define PRINT(t,v)					{PRNTSUB(t,v); printf("\n");}
 #define PRINT2(t1,v1,t2,v2)			{PRNTSUB(t1,v1); PRNTSUB(t2,v2); printf("\n");}
 #define PRINT3(t1,v1,t2,v2,t3,v3)	{PRNTSUB(t1,v1); PRNTSUB(t2,v2); PRNTSUB(t3,v3); printf("\n");}
 #define PRINT4(t1,v1,t2,v2,t3,v3,t4,v4)	{PRNTSUB(t1,v1); PRNTSUB(t2,v2); PRNTSUB(t3,v3); PRNTSUB(t4,v4); printf("\n");}
+#endif
 
 /**
  * @param array The array in question
