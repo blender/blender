@@ -954,12 +954,16 @@ static void render_panel_output()
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_output", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
+	uiBlockBeginAlign(block, 'v');
 	uiDefBut(block, TEX,0,"",							30, 170, 268, 19,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
-	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	8, 170, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
 	uiDefBut(block, TEX,0,"",							30, 148, 268, 19,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
-	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 8, 148, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
 	uiDefBut(block, TEX,0,"",							30, 125, 268, 19,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
+	uiBlockBeginAlign(block, 'v');
+	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	8, 170, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
+	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 8, 148, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
 	uiDefIconBut(block, BUT,B_FS_FTYPE, ICON_FILESEL,	8, 125, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
+	uiBlockEndAlign(block);
+	
 	uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		131, 95, 20, 19, 0, 0, 0, 0, 0, "Remove Set link");
 
 	/* SET BUTTON */
@@ -985,10 +989,12 @@ static void render_panel_output()
 	for(b=0; b<3; b++) 
 		for(a=0; a<3; a++)
 			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(9+18*a),(short)(7+12*b),16,10, &R.winpos, 0, 0, 0, 0, "Render window placement on screen");
-
+	
+	uiBlockBeginAlign(block, 'h');
 	uiDefButS(block, ROW, B_REDR, "DispView",	72, 7, 65, 19, &R.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
 	uiDefButS(block, ROW, B_REDR, "DispWin",	139, 7, 62, 19, &R.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
-
+	uiBlockEndAlign(block);
+	
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	228, 8, 67, 18, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Toon shading buttons */
@@ -1019,34 +1025,41 @@ static void render_panel_render()
 	uiDefButS(block, TOG|BIT|0, 0, "OSA",		369,114,124,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
 	uiDefButF(block, NUM,B_DIFF,"Bf:",							495,90,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 0, "Sets motion blur factor");
 	uiDefButS(block, TOG|BIT|14, 0, "MBLUR",	495,114,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
-	
+
+	uiBlockBeginAlign(block, 'h');
 	uiDefButS(block, ROW,B_DIFF,"5",			369,90,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
 	uiDefButS(block, ROW,B_DIFF,"8",			400,90,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
 	uiDefButS(block, ROW,B_DIFF,"11",			431,90,33,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
 	uiDefButS(block, ROW,B_DIFF,"16",			466,90,28,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
-		
+	
+	uiBlockBeginAlign(block, 'h');
 	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,42,99,31,&G.scene->r.xparts,1.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
 	uiDefButS(block, NUM,B_DIFF,"Yparts:",		472,42,86,31,&G.scene->r.yparts,1.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
 
+	uiBlockBeginAlign(block, 'h');
 	uiDefButS(block, ROW,800,"Sky",		369,11,38,24,&G.scene->r.alphamode,3.0,0.0, 0, 0, "Fill background with sky");
 	uiDefButS(block, ROW,800,"Premul",	410,11,54,24,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
 	uiDefButS(block, ROW,800,"Key",		467,11,44,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
-
+	uiBlockEndAlign(block);
+	
 	uiDefButS(block, TOG|BIT|1,0,"Shadow",	565,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
 	uiDefButS(block, TOG|BIT|4,0,"EnvMap",	626,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
 	uiDefButS(block, TOG|BIT|10,0,"Pano",	565,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
 	uiDefButS(block, TOG|BIT|8,0,"Radio",	626,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	
 	uiDefButS(block, ROW,B_DIFF,"100%",			565,114,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
+	uiBlockBeginAlign(block, 'h');
 	uiDefButS(block, ROW,B_DIFF,"75%",			565,90,36,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
 	uiDefButS(block, ROW,B_DIFF,"50%",			604,90,40,20,&G.scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
 	uiDefButS(block, ROW,B_DIFF,"25%",			647,90,39,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
-
+	uiBlockEndAlign(block);
+	
 	uiDefButS(block, TOG|BIT|6,0,"Fields", 564,42,90,31,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
-
+	uiBlockBeginAlign(block, 'v');
 	uiDefButS(block, TOG|BIT|13,0,"Odd",	655,57,30,16,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
 	uiDefButS(block, TOG|BIT|7,0,"x",		655,42,30,15,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
-
+	uiBlockEndAlign(block);
+	
 	uiDefButS(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	565,11,58,24, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
 	uiDefButS(block, TOG|BIT|2,0, "Gamma",	626,11,58,24, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
 
@@ -1065,16 +1078,19 @@ static void render_panel_anim()
 	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Start rendering a sequence");
 	
 	uiBlockSetCol(block, TH_BUT_SETTING1);
+	uiBlockBeginAlign(block, 'v');
 	uiDefButS(block, TOG|BIT|0, 0, "Do Sequence",	692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
 	uiDefButS(block, TOG|BIT|1, 0, "Render Daemon",	692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
+	uiBlockEndAlign(block);
 	
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",	692,40,94,33, 0, 0, 0, 0, 0, "Play animation of rendered images/avi (searches Pics: field)");
 	uiDefButS(block, NUM, B_RTCHANGED, "rt:",	790,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
-
+	
+	uiBlockBeginAlign(block, 'h');
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	692,10,94,24, &G.scene->r.sfra,1.0,18000.0, 0, 0, "The start frame of the animation");
 	uiDefButS(block, NUM,REDRAWSEQ,"End:",	790,10,95,24, &G.scene->r.efra,1.0,18000.0, 0, 0, "The end  frame of the animation");
-
+	uiBlockEndAlign(block);
 }
 
 static void render_panel_format()
@@ -1088,11 +1104,13 @@ static void render_panel_format()
 
 	uiDefBlockBut(block, framing_render_menu, NULL, "Game framing settings |>> ", 892, 169, 227, 20, "Display game framing settings");
 
+	uiBlockBeginAlign(block, 'v');
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeX:",	892 ,136,112,27, &G.scene->r.xsch, 4.0, 10000.0, 0, 0, "The image width in pixels");
-	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeY:",	1007,136,112,27, &G.scene->r.ysch, 4.0,10000.0, 0, 0, "The image height in scanlines");
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspX:",	892 ,114,112,20, &G.scene->r.xasp, 1.0,200.0, 0, 0, "The horizontal aspect ratio");
+	uiBlockBeginAlign(block, 'v');
+	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeY:",	1007,136,112,27, &G.scene->r.ysch, 4.0,10000.0, 0, 0, "The image height in scanlines");
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspY:",	1007,114,112,20, &G.scene->r.yasp, 1.0,200.0, 0, 0, "The vertical aspect ratio");
-	
+	uiBlockEndAlign(block);
 
 	yofs = 54;
 
@@ -1157,12 +1175,12 @@ static void render_panel_format()
 	uiDefButS(block, NUM,REDRAWALL,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 
 
+	uiBlockBeginAlign(block, 'h');
+	uiDefButS(block, ROW,B_DIFF,"BW",			892, 10,74,19, &G.scene->r.planes, 5.0,(float)R_PLANESBW, 0, 0, "Images are saved with BW (grayscale) data");
+	uiDefButS(block, ROW,B_DIFF,"RGB",		    968, 10,74,19, &G.scene->r.planes, 5.0,(float)R_PLANES24, 0, 0, "Images are saved with RGB (color) data");
+	uiDefButS(block, ROW,B_DIFF,"RGBA",		   1044, 10,75,19, &G.scene->r.planes, 5.0,(float)R_PLANES32, 0, 0, "Images are saved with RGB and Alpha data (if supported)");
 
-	uiDefButS(block, ROW,B_DIFF,"BW",			892, 10,74,20, &G.scene->r.planes, 5.0,(float)R_PLANESBW, 0, 0, "Images are saved with BW (grayscale) data");
-	uiDefButS(block, ROW,B_DIFF,"RGB",		    968, 10,74,20, &G.scene->r.planes, 5.0,(float)R_PLANES24, 0, 0, "Images are saved with RGB (color) data");
-	uiDefButS(block, ROW,B_DIFF,"RGBA",		   1044, 10,75,20, &G.scene->r.planes, 5.0,(float)R_PLANES32, 0, 0, "Images are saved with RGB and Alpha data (if supported)");
-
-
+	uiBlockBeginAlign(block, 'v');
 	uiDefBut(block, BUT,B_PR_PAL, "PAL",		1146,170,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 54x51, 25 fps");
 	uiDefBut(block, BUT,B_PR_NTSC, "NTSC",		1146,150,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x480, Aspect ratio - 10x11, 30 fps");
 	uiDefBut(block, BUT,B_PR_PRESET, "Default",	1146,130,100,18, 0, 0, 0, 0, 0, "Same as PAL, with render settings (OSA, Shadows, Fields)");
@@ -1172,7 +1190,7 @@ static void render_panel_format()
 	uiDefBut(block, BUT,B_PR_PANO, "PANO",		1146,50,100,18, 0, 0, 0, 0, 0, "Standard panorama settings");
 	uiDefBut(block, BUT,B_PR_FULL, "FULL",		1146,30,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1280x1024, Aspect ratio - 1x1");
 	uiDefButS(block, TOG|BIT|15, B_REDR, "Unified Renderer", 1146,10,100,18,  &G.scene->r.mode, 0, 0, 0, 0, "Use the unified renderer.");
-
+	uiBlockEndAlign(block);
 }
 
 

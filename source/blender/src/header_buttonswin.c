@@ -418,7 +418,7 @@ void buts_buttons(void)
 	//	uiButClearFlag(but, UI_ICON_RIGHT); // this type has both flags set, and draws icon right.. uhh
 	//	xco+= 90-XIC+10;
 	//}
-	
+	uiBlockBeginAlign(block, 'h');
 	uiDefIconButS(block, ROW, B_REDR,	ICON_GAME,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
@@ -433,6 +433,7 @@ void buts_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);	// normal
 	switch(G.buts->mainb) {
 	case CONTEXT_SCENE:
+		uiBlockBeginAlign(block, 'h');
 		uiDefIconButC(block, ROW, B_REDR,		ICON_SCENE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");
 		uiDefIconButC(block, ROW, B_REDR,		ICON_ANIM,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_ANIM, 0, 0, "Anim/playback buttons");
 		uiDefIconButC(block, ROW, B_REDR,		ICON_SOUND,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SOUND, 0, 0, "Sound block buttons");
@@ -442,6 +443,7 @@ void buts_buttons(void)
 		
 		break;
 	case CONTEXT_SHADING:
+		uiBlockBeginAlign(block, 'h');
 		uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_LAMP,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_LAMP, 0, 0, "Lamp buttons");
 		uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_MAT, 0, 0, "Material buttons");
 		uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_TEX, 0, 0, "Texture buttons");
@@ -459,6 +461,8 @@ void buts_buttons(void)
 		
 		break;
 	}
+	
+	uiBlockEndAlign(block);
 	
 	xco+=XIC;
 	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Displays Current Frame of animation. Click to change.");

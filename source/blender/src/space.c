@@ -1829,8 +1829,10 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Vertex size ",	465,y3,200,20,  col, 1.0, 10.0, 0, 0, "");
 	}
 	else if(th_curcol==TH_BUT_DRAWTYPE) {
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal",	465,y3,200,20,  col, 2.0, 0.0, 0, 0, "");
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Default",	465,y2,200,20,  col, 2.0, 1.0, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal",	465,y3,100,20,  col, 2.0, 0.0, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Shaded",	565,y3,100,20,  col, 2.0, 1.0, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Rounded",	465,y2,100,20,  col, 2.0, 2.0, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "OldSkool",	565,y2,100,20,  col, 2.0, 3.0, 0, 0, "");
 	
 	}
 	else {

@@ -111,8 +111,9 @@ typedef struct {
 
 struct uiBut {
 	uiBut *next, *prev;
-	short type, pointype, bit, bitnr, retval, flag, strwidth, ofs, pos;
-
+	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos;
+	int flag;
+	
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
 	char drawstr[UI_MAX_DRAW_STR];
@@ -182,13 +183,12 @@ struct uiBlock {
 	void (*drawextra)();
 
 	int themecol;	/* themecolor id */
-	short but_align;	/* aligning buttons, horiz/vertical */
 	
 	short font;	/* indices */
-	int afterval;
+	int afterval, flag;
 	void *curfont;
 	
-	short autofill, flag, win, winq, direction, dt, frontbuf, auto_open;  //frontbuf see below
+	short autofill, win, winq, direction, dt, frontbuf, auto_open;  //frontbuf see below
 	void *saveunder;
 	
 	float xofs, yofs;  	// offset to parent button
@@ -208,6 +208,7 @@ extern void ui_window_to_graphics(int win, float *x, float *y);
 /* interface_panel.c */
 extern void ui_draw_panel(uiBlock *block);
 extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
+extern void gl_round_box(float minx, float miny, float maxx, float maxy, float rad);
 
 /* interface_draw.c */
 extern void ui_set_embossfunc(uiBut *but, int drawtype);

@@ -3460,6 +3460,32 @@ static int ui_auto_themecol(uiBut *but)
 	}
 }
 
+void uiBlockBeginAlign(uiBlock *block, char dir)
+{
+	/* if other align was active, end it */
+	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
+
+	if(dir=='h') block->flag |= UI_BUT_ALIGN_RIGHT;
+	else block->flag |= UI_BUT_ALIGN_DOWN;
+	
+	/* buttons declared after this call will get align flags updated */
+}
+
+void uiBlockEndAlign(uiBlock *block)
+{
+	uiBut *but;
+	
+	/* correct last defined button */
+	but= block->buttons.last;
+	if(but) {
+		if(block->flag & UI_BUT_ALIGN_DOWN)
+			but->flag &= ~UI_BUT_ALIGN_DOWN;
+		else
+			but->flag &= ~UI_BUT_ALIGN_RIGHT;
+	}
+	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
+}
+
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {
 	uiBut *but;
@@ -3546,6 +3572,29 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	
 	if ELEM8(but->type, HSVSLI , NUMSLI, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM) {
 		but->flag |= UI_TEXT_LEFT;
+	}
+	
+	if(block->flag & UI_BUT_ALIGN) {
+		but->flag |= (block->flag & UI_BUT_ALIGN);
+		
+		/* merge edges of buttons to same location */
+		if(but->flag & UI_BUT_ALIGN_LEFT) {
+			uiBut *prev= but->prev;
+			if(prev) {
+				but->x1=prev->x2= (but->x1+prev->x2)/2.0;
+			}
+		}
+		else if(but->flag & UI_BUT_ALIGN_TOP) {
+			uiBut *prev= but->prev;
+			if(prev) {
+				but->y2=prev->y1= (but->y2+prev->y1)/2.0;
+			}
+		}
+		
+		/* after first button, align is both sides */
+		if(block->flag & UI_BUT_ALIGN_RIGHT) block->flag |= UI_BUT_ALIGN_LEFT;
+		else if(block->flag & UI_BUT_ALIGN_DOWN) block->flag |= UI_BUT_ALIGN_TOP;
+
 	}
 	
 	return but;

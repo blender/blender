@@ -1072,6 +1072,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		ve_median_tot= tot;
 		VECCOPY(ve_median, median);
 		
+		uiBlockBeginAlign(block, 'v');
 		if(ve_median_tot==1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 0, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 0, "");
@@ -1082,6 +1083,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 0, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 0, "");
 		}
+		uiBlockEndAlign(block);
 	}
 	else {	// apply
 		
@@ -1159,20 +1161,21 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 
 	if (!bone)
 		return;
-
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatX:",	10, 120, 145, 19, bone->quat, -100.0, 100.0, 10, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatY:",	160, 120, 145, 19, bone->quat+1, -100.0, 100.0, 10, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatZ:",	10, 100, 150, 19, bone->quat+2, -100.0, 100.0, 10, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatW:",	160, 100, 150, 19, bone->quat+3, -100.0, 100.0, 10, 0, "");
-
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	10, 70, 145, 19, bone->loc, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 50, 145, 19, bone->loc+1, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	10, 30, 145, 19, bone->loc+2, -lim, lim, 100, 0, "");
-
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 150, 19, bone->size, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 50, 150, 19, bone->size+1, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 150, 19, bone->size+2, -lim, lim, 100, 0, "");
-
+	uiBlockBeginAlign(block, 'v');
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatX:",	10, 120, 140, 19, bone->quat, -100.0, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatZ:",	10, 100, 140, 19, bone->quat+2, -100.0, 100.0, 10, 0, "");
+	uiBlockBeginAlign(block, 'v');
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatY:",	160, 120, 140, 19, bone->quat+1, -100.0, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatW:",	160, 100, 140, 19, bone->quat+3, -100.0, 100.0, 10, 0, "");
+	uiBlockBeginAlign(block, 'v');
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	10, 70, 140, 19, bone->loc, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 50, 140, 19, bone->loc+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	10, 30, 140, 19, bone->loc+2, -lim, lim, 100, 0, "");
+	uiBlockBeginAlign(block, 'v');
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 140, 19, bone->size, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 50, 140, 19, bone->size+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 140, 19, bone->size+2, -lim, lim, 100, 0, "");
+	uiBlockEndAlign(block);
 }
 
 static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
@@ -1188,17 +1191,17 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 
 	if (!ebone)
 		return;
-
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootX:",	10, 70, 145, 19, ebone->head, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootY:",	10, 50, 145, 19, ebone->head+1, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootZ:",	10, 30, 145, 19, ebone->head+2, -lim, lim, 100, 0, "");
-
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipX:",	160, 70, 150, 19, ebone->tail, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipY:",	160, 50, 150, 19, ebone->tail+1, -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipZ:",	160, 30, 150, 19, ebone->tail+2, -lim, lim, 100, 0, "");
-
+	uiBlockBeginAlign(block, 'v');
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootX:",	10, 70, 140, 19, ebone->head, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootY:",	10, 50, 140, 19, ebone->head+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootZ:",	10, 30, 140, 19, ebone->head+2, -lim, lim, 100, 0, "");
+	uiBlockBeginAlign(block, 'v');
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipX:",	160, 70, 140, 19, ebone->tail, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipY:",	160, 50, 140, 19, ebone->tail+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipZ:",	160, 30, 140, 19, ebone->tail+2, -lim, lim, 100, 0, "");
+	uiBlockEndAlign(block);
 	ob_eul[0]= 180.0*ebone->roll/M_PI;
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 150, 19, ob_eul, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, ob_eul, -lim, lim, 100, 0, "");
 
 }
 
@@ -1350,8 +1353,8 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
 
-	uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,150,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
-	uiDefIDPoinBut(block, test_obpoin_but, B_REDR, "Par:", 160, 180, 150, 20, &ob->parent, "Parent Object"); 
+	uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
+	uiDefIDPoinBut(block, test_obpoin_but, B_REDR, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 
 	lim= 1000.0*MAX2(1.0, G.vd->grid);
 
@@ -1363,21 +1366,24 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		v3d_posearmature_buts(block, ob, lim);
 	}
 	else {
-		uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 150, 19, &(ob->loc[0]), -lim, lim, 100, 0, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 150, 19, &(ob->loc[1]), -lim, lim, 100, 0, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 150, 19, &(ob->loc[2]), -lim, lim, 100, 0, "");
+		uiBlockBeginAlign(block, 'v');
+		uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 140, 19, &(ob->loc[0]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 140, 19, &(ob->loc[1]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 140, 19, &(ob->loc[2]), -lim, lim, 100, 0, "");
 	
 		ob_eul[0]= 180.0*ob->rot[0]/M_PI;
 		ob_eul[1]= 180.0*ob->rot[1]/M_PI;
 		ob_eul[2]= 180.0*ob->rot[2]/M_PI;
 		
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	10, 70, 150, 19, &(ob_eul[0]), -lim, lim, 1000, 0, "");
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 150, 19, &(ob_eul[1]), -lim, lim, 1000, 0, "");
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 150, 19, &(ob_eul[2]), -lim, lim, 1000, 0, "");
-	
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 150, 19, &(ob->size[0]), -lim, lim, 100, 0, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 150, 19, &(ob->size[1]), -lim, lim, 100, 0, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 150, 19, &(ob->size[2]), -lim, lim, 100, 0, "");
+		uiBlockBeginAlign(block, 'v');
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	10, 70, 140, 19, &(ob_eul[0]), -lim, lim, 1000, 0, "");
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 140, 19, &(ob_eul[1]), -lim, lim, 1000, 0, "");
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 140, 19, &(ob_eul[2]), -lim, lim, 1000, 0, "");
+		uiBlockBeginAlign(block, 'v');
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 140, 19, &(ob->size[0]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 140, 19, &(ob->size[1]), -lim, lim, 100, 0, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 140, 19, &(ob->size[2]), -lim, lim, 100, 0, "");
+		uiBlockEndAlign(block);
 	}
 }
 
@@ -1421,8 +1427,8 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		uiDefBut(block, BUT,	    B_LOADBGPIC, "LOAD",	10,120,100,19, 0, 0, 0, 0, 0, "Specify the BackGroundPic");
 		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,120,190,19,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
 		
-		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,100,150,19,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
-		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,100,150,19,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
+		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,100,140,19,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
+		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,100,140,19,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
 
 		/* There is a bug here ... (what bug? where? what is this? - zr) */
 		/* (ton) the use of G.buts->texnr is hackish */
@@ -1454,12 +1460,12 @@ static void view3d_panel_properties(cntrl)	// VIEW3D_HANDLER_SETTINGS
 	if(uiNewPanel(curarea, block, "3D Viewport properties", "View3d", 10, 10, 318, 204)==0) return;
 
 
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Grid:",			10, 50, 150, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between gridlines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "GridLines:",		160, 50, 150, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",			10, 30, 150, 19, &vd->lens, 10.0, 120.0, 100, 0, "Set the lens for the perspective view");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Grid:",			10, 50, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between gridlines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "GridLines:",		160, 50, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",			10, 30, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "Set the lens for the perspective view");
 	
-	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipStart:",		10, 10, 150, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set startvalue in perspective view mode");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipEnd:",			160, 10, 150, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set endvalue in perspective view mode");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipStart:",		10, 10, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set startvalue in perspective view mode");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipEnd:",			160, 10, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set endvalue in perspective view mode");
 
 
 }

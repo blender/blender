@@ -472,6 +472,35 @@ static void ui_default_text(int bc, float asp, float x1, float y1, float x2, flo
 	/* END OUTER OUTLINE */
 }
 
+
+static void ui_default_num_arrows(float x1, float y1, float x2, float y2)
+{
+	glEnable( GL_POLYGON_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	glShadeModel(GL_FLAT);
+	glBegin(GL_TRIANGLES);
+	
+	glVertex2f((short)x1+5,(short)(y2-(y2-y1)/2));
+	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)+4);
+	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)-4);
+	glEnd();
+
+	/* right */
+	glShadeModel(GL_FLAT);
+	glBegin(GL_TRIANGLES);
+
+	glVertex2f((short)x2-5,(short)(y2-(y2-y1)/2));
+	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)-4);
+	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)+4);
+	glEnd();
+	
+	glDisable( GL_BLEND );
+	glDisable( GL_POLYGON_SMOOTH );
+
+}
+
 static void ui_default_num(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 
@@ -571,32 +600,32 @@ static void ui_default_num(int bc, float asp, float x1, float y1, float x2, floa
 		if(flag & UI_ACTIVE) M_GREY;
 		else M_LGREY;
 	}
+	
+	ui_default_num_arrows(x1, y1, x2, y2);
+	/* END SIDE ARROWS */
+}
 
+static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
+{
 	glEnable( GL_POLYGON_SMOOTH );
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	glShadeModel(GL_FLAT);
 	glBegin(GL_TRIANGLES);
-	
-	glVertex2f((short)x1+5,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)+4);
-	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)-4);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)+4);
 	glEnd();
-
-	/* right */
-	glShadeModel(GL_FLAT);
+		
 	glBegin(GL_TRIANGLES);
-
-	glVertex2f((short)x2-5,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)-4);
-	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)+4);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2) -4);
 	glEnd();
 	
 	glDisable( GL_BLEND );
 	glDisable( GL_POLYGON_SMOOTH );
-	/* END SIDE ARROWS */
-
 }
 
 static void ui_default_menu(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -785,28 +814,32 @@ static void ui_default_menu(int bc, float asp, float x1, float y1, float x2, flo
 	
 	/* set antialias line */
 	M_DARK;
-	
+	ui_default_menu_arrows(x1, y1, x2, y2);
+	/* MENU DOUBLE-ARROW */
+
+}
+
+static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
+{
 	glEnable( GL_POLYGON_SMOOTH );
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	glShadeModel(GL_FLAT);
 	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)+4);
+	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+4);
 	glEnd();
 		
 	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2) -4);
+	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -4);
 	glEnd();
 	
 	glDisable( GL_BLEND );
 	glDisable( GL_POLYGON_SMOOTH );
-	/* MENU DOUBLE-ARROW */
-
 }
 
 static void ui_default_iconrow(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -993,29 +1026,10 @@ static void ui_default_iconrow(int bc, float asp, float x1, float y1, float x2, 
 
 	/* MENU DOUBLE-ARROW  */
 	
-	/* set antialias line */
 	M_DARK;
-	
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
-		
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -4);
-	glEnd();
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
-	/* MENU DOUBLE-ARROW */
+	ui_default_iconrow_arrows(x1, y1, x2, y2);
+
+	/* END MENU DOUBLE-ARROW */
 
 }
 
@@ -1120,14 +1134,149 @@ static void ui_draw_default(int type, int colorid, float aspect, float x1, float
 
 }
 
-/* *************** MINIMAL THEME AND STANDARD PULLDOWN ***************** */
 
-// theme can define an embosfunc and sliderfunc, text drawing is standard, no theme.
+/* *************** OLDSKOOL THEME ***************** */
 
-#if 0
-/* super minimal button as used in logic menu */
+static void ui_draw_outlineX(float x1, float y1, float x2, float y2, float asp1)
+{
+	float vec[2];
+	
+	glBegin(GL_LINE_LOOP);
+	vec[0]= x1+asp1; vec[1]= y1-asp1;
+	glVertex2fv(vec);
+	vec[0]= x2-asp1; 
+	glVertex2fv(vec);
+	vec[0]= x2+asp1; vec[1]= y1+asp1;
+	glVertex2fv(vec);
+	vec[1]= y2-asp1;
+	glVertex2fv(vec);
+	vec[0]= x2-asp1; vec[1]= y2+asp1;
+	glVertex2fv(vec);
+	vec[0]= x1+asp1;
+	glVertex2fv(vec);
+	vec[0]= x1-asp1; vec[1]= y2-asp1;
+	glVertex2fv(vec);
+	vec[1]= y1+asp1;
+	glVertex2fv(vec);
+	glEnd();                
+        
+}
+
+
+static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
+{
+ 	/* paper */
+	if(flag & UI_SELECT) {
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, -40);
+		else BIF_ThemeColorShade(colorid, -30);
+	}
+	else {
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, +30);
+		else BIF_ThemeColorShade(colorid, +20);
+	}
+	
+	glRectf(x1+1, y1+1, x2-1, y2-1);
+
+	x1+= asp;
+	x2-= asp;
+	y1+= asp;
+	y2-= asp;
+
+	/* below */
+	if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, 0);
+	else BIF_ThemeColorShade(colorid, -30);
+	fdrawline(x1, y1, x2, y1);
+
+	/* right */
+	fdrawline(x2, y1, x2, y2);
+	
+	/* top */
+	if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, -30);
+	else BIF_ThemeColorShade(colorid, 0);
+	fdrawline(x1, y2, x2, y2);
+
+	/* left */
+	fdrawline(x1, y1, x1, y2);
+	
+	/* outline */
+	glColor3ub(0,0,0);
+	ui_draw_outlineX(x1, y1, x2, y2, asp);
+	
+	
+	/* special type decorations */
+	switch(type) {
+	case NUM:
+		if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, -60);
+		else BIF_ThemeColorShade(colorid, -30);
+		ui_default_num_arrows(x1, y1, x2, y2);
+		break;
+
+	case ICONROW: 
+	case ICONTEXTROW: 
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
+		else BIF_ThemeColorShade(colorid, -10);
+		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
+
+		BIF_ThemeColorShade(colorid, -50);
+		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		break;
+		
+	case MENU: 
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
+		else BIF_ThemeColorShade(colorid, -10);
+		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
+
+		BIF_ThemeColorShade(colorid, -50);
+		ui_default_menu_arrows(x1, y1, x2, y2);
+		break;
+	}
+	
+}
+
+/* *************** BASIC ROUNDED THEME ***************** */
+
+static void round_button(float x1, float y1, float x2, float y2, float asp, int colorid)
+{
+	float rad;
+	
+	rad= (y2-y1)/2.0;
+	if(rad>7.0) rad= 7.0;
+	
+	glBegin(GL_POLYGON);
+	gl_round_box(x1, y1, x2, y2, rad);
+	glEnd();
+	
+	BIF_ThemeColorShade(colorid, -70);
+	
+	glBegin(GL_LINE_LOOP);
+	gl_round_box(x1, y1, x2, y2, rad);
+	glEnd();
+   
+	
+}
+
+/* button in midst of alignment row */
+static void round_button_mid(float x1, float y1, float x2, float y2, float asp, int colorid, int align)
+{
+	glRectf(x1, y1, x2, y2);
+	
+	BIF_ThemeColorShade(colorid, -70);
+	// we draw full outline, its not AA, and it works better button mouse-over hilite
+	
+	// left right
+	fdrawline(x1, y1, x1, y2);
+	fdrawline(x2, y1, x2, y2);
+
+	// top down
+	fdrawline(x1, y2, x2, y2);
+	fdrawline(x1, y1, x2, y1);
+	   
+}
+
+
 static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
+	int align= (flag & UI_BUT_ALIGN);
 	
 	/* paper */
 	if(flag & UI_SELECT) {
@@ -1135,22 +1284,79 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 		else BIF_ThemeColorShade(colorid, -30);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, +10);
-		else BIF_ThemeColor(colorid);
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, +30);
+		else BIF_ThemeColorShade(colorid, +20);
 	}
 	
-	uiSetRoundBox(15);
-	uiRoundBox(x1, y1, x2, y2, 6);
-
-	if(flag & UI_SELECT) {
-		BIF_ThemeColor(TH_TEXT);
-		uiRoundRect(x1, y1, x2, y2, 6);
-	}
+	if(align) {
+		if(align==UI_BUT_ALIGN_TOP) {
+			uiSetRoundBox(12);
+			round_button(x1, y1, x2, y2, asp, colorid);
+		}
+		else if(align==UI_BUT_ALIGN_DOWN) {
+			uiSetRoundBox(3);
+			round_button(x1, y1, x2, y2, asp, colorid);
+		}
+		else if(align==UI_BUT_ALIGN_LEFT) {
+			uiSetRoundBox(6);
+			round_button(x1, y1, x2, y2, asp, colorid);
+		}
+		else if(align==UI_BUT_ALIGN_RIGHT) {
+			uiSetRoundBox(9);
+			round_button(x1, y1, x2, y2, asp, colorid);
+		}
+		else {
+			round_button_mid(x1, y1, x2, y2, asp, colorid, align);
+		}
+	} 
 	else {
+		uiSetRoundBox(15);
+		round_button(x1, y1, x2, y2, asp, colorid);
+	}
+	
+	/* special type decorations */
+	switch(type) {
+	case NUM:
+		if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, -60);
+		else BIF_ThemeColorShade(colorid, -30);
+		ui_default_num_arrows(x1, y1, x2, y2);
+		break;
+
+	case ICONROW: 
+	case ICONTEXTROW: 
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
+		else BIF_ThemeColorShade(colorid, -10);
+		// assuming its not inside alignment...
+		uiSetRoundBox(6);
+		glBegin(GL_POLYGON);
+		gl_round_box(x2-9, y1+asp, x2-asp, y2-asp, 7.0);
+		glEnd();
+
+		BIF_ThemeColorShade(colorid, -60);
+		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		break;
+		
+	case MENU: 
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
+		else BIF_ThemeColorShade(colorid, -10);
+		// assuming its not inside alignment...
+		if(x2-x1 > 24) {
+			uiSetRoundBox(6);
+			glBegin(GL_POLYGON);
+			gl_round_box(x2-16, y1+asp, x2-asp, y2-asp, 7.0);
+			glEnd();
+		}
+		BIF_ThemeColorShade(colorid, -60);
+		ui_default_menu_arrows(x1, y1, x2, y2);
+		break;
 	}
 }
 
-#endif
+/* *************** MINIMAL THEME ***************** */
+
+// theme can define an embosfunc and sliderfunc, text+icon drawing is standard, no theme.
+
+
 
 /* super minimal button as used in logic menu */
 static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -1167,20 +1373,20 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 		else BIF_ThemeColorShade(colorid, -30);
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, +10);
-		else BIF_ThemeColor(colorid);
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, +20);
+		else BIF_ThemeColorShade(colorid, +10);
 	}
 	
 	glRectf(x1, y1, x2, y2);
 
 	if(flag & UI_SELECT) {
-		BIF_ThemeColorShade(colorid, -50);
+		BIF_ThemeColorShade(colorid, -60);
 
 		/* top */
 		fdrawline(x1, y2, x2, y2);
 		/* left */
 		fdrawline(x1, y1, x1, y2);
-		BIF_ThemeColorShade(colorid, +50);
+		BIF_ThemeColorShade(colorid, +40);
 
 		/* below */
 		fdrawline(x1, y1, x2, y1);
@@ -1188,19 +1394,49 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 		fdrawline(x2, y1, x2, y2);
 	}
 	else {
-		BIF_ThemeColorShade(colorid, +50);
+		BIF_ThemeColorShade(colorid, +40);
 
 		/* top */
 		fdrawline(x1, y2, x2, y2);
 		/* left */
 		fdrawline(x1, y1, x1, y2);
 		
-		BIF_ThemeColorShade(colorid, -50);
+		BIF_ThemeColorShade(colorid, -60);
 		/* below */
 		fdrawline(x1, y1, x2, y1);
 		/* right */
 		fdrawline(x2, y1, x2, y2);
 	}
+	
+	/* special type decorations */
+	switch(type) {
+	case NUM:
+		if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, -60);
+		else BIF_ThemeColorShade(colorid, -30);
+		ui_default_num_arrows(x1, y1, x2, y2);
+		break;
+
+	case ICONROW: 
+	case ICONTEXTROW: 
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
+		else BIF_ThemeColorShade(colorid, -10);
+		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
+
+		BIF_ThemeColorShade(colorid, -50);
+		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		break;
+		
+	case MENU: 
+		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
+		else BIF_ThemeColorShade(colorid, -10);
+		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
+
+		BIF_ThemeColorShade(colorid, -50);
+		ui_default_menu_arrows(x1, y1, x2, y2);
+		break;
+	}
+	
+	
 }
 
 
@@ -1419,14 +1655,6 @@ static void ui_draw_but_COL(uiBut *but)
 }
 
 
-/* ************** MAIN CALLBACK FUNCTION ************* */
-
-/*
-void ui_set_embossfunc_old(uiBut *but, int drawtype)
-{
-
-}
-*/
 
 /* nothing! */
 static void ui_draw_nothing(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
@@ -1435,8 +1663,7 @@ static void ui_draw_nothing(int type, int colorid, float asp, float x1, float y1
 
 
 /* ************** EXTERN, called from interface.c ************* */
-
-/* ************** the main drawingtype choice: ************* */
+/* ************** MAIN CALLBACK FUNCTION          ************* */
 
 void ui_set_embossfunc(uiBut *but, int drawtype)
 {
@@ -1456,6 +1683,14 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 		if(theme==1) {
 			but->embossfunc= ui_draw_default;
 			but->sliderfunc= ui_default_slider;
+		}
+		else if(theme==2) {
+			but->embossfunc= ui_draw_round;
+			but->sliderfunc= ui_default_slider;
+		}
+		else if(theme==3) {
+			but->embossfunc= ui_draw_oldskool;
+			but->sliderfunc= ui_default_slider;	// should be oldskool.... later
 		}
 		else {
 			but->embossfunc= ui_draw_minimal;

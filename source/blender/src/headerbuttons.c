@@ -245,6 +245,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	int len, idwasnul=0, idtype, oldcol, add_addbutton=0;
 	char *str=NULL, str1[10];
 
+	uiBlockBeginAlign(block, 'h');
 	oldcol= uiBlockGetCol(block);
 
 	if(id && pin) {
@@ -474,6 +475,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	xco+=XIC;
 	
 	uiBlockSetCol(block, oldcol);
+	uiBlockEndAlign(block);
 
 	return xco;
 }

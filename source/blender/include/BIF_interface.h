@@ -74,6 +74,7 @@ struct ScrArea;
 #define UI_BLOCK_BUSY		8
 #define UI_BLOCK_NUMSELECT	16
 #define UI_BLOCK_ENTER_OK	32
+	/* block->flag bits 12-15 are identical to but->flag bits */
 
 /* block->font, for now: bold = medium+1 */
 #define UI_HELV			0
@@ -100,6 +101,13 @@ struct ScrArea;
 #define UI_MAKE_RIGHT	1024
 	/* dont draw hilite on mouse over */
 #define UI_NO_HILITE	2048
+	/* button align flag, for drawing groups together */
+#define UI_BUT_ALIGN		(15<<12)
+#define UI_BUT_ALIGN_TOP	(1<<12)
+#define UI_BUT_ALIGN_LEFT	(1<<13)
+#define UI_BUT_ALIGN_RIGHT	(1<<14)
+#define UI_BUT_ALIGN_DOWN	(1<<15)
+
 
 /* Button types */
 #define CHA	32
@@ -166,6 +174,10 @@ void uiFreeBlocks(struct ListBase *lb);
 void uiFreeBlocksWin(struct ListBase *lb, int win);
 uiBlock *uiNewBlock(struct ListBase *lb, char *name, short dt, short font, short win);
 uiBlock *uiGetBlock(char *name, struct ScrArea *sa);
+
+void uiBlockBeginAlign(uiBlock *block, char dir);
+void uiBlockEndAlign(uiBlock *block);
+
 uiBut *uiDefBut(uiBlock *block, 
 					   int type, int retval, char *str, 
 					   short x1, short y1, 
