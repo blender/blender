@@ -165,6 +165,7 @@ PYPLAYERLIB ?= $(PYLIB)
     COMLIB += $(NAN_PNG)/lib/libpng.a
 
     BCLIB = $(NAN_IKSOLVER)/lib/libiksolver.a
+    BCLIB += $(NAN_MOTO)/lib/libmoto.a
     BCLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
     BCLIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
     BCLIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
@@ -174,6 +175,7 @@ PYPLAYERLIB ?= $(PYLIB)
     BCLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrccreator.a
 
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
+    PULIB += $(NAN_MOTO)/lib/libmoto.a
     PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
     PULIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
     PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
