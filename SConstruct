@@ -16,7 +16,7 @@ freetype_env = Environment ()
 link_env = Environment ()
 env = Environment ()
 
-if sys.platform == 'linux2':
+if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     use_international = 'false'
     use_gameengine = 'false'
     use_openal = 'false'
@@ -36,7 +36,7 @@ if sys.platform == 'linux2':
     defines = []
     warn_flags = ['-Wall', '-W']
     window_system = 'X11'
-    platform_libs = ['m', 'util']
+    platform_libs = ['m', 'util', 'stdc++']
     platform_libpath = []
     platform_linkflags = []
     extra_includes = []
