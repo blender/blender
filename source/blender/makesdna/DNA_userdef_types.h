@@ -151,6 +151,7 @@ typedef struct UserDef {
 	short curssize;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
+	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
@@ -232,6 +233,9 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_VRML_LAYERS		1
 #define USER_VRML_AUTOSCALE		2
 #define USER_VRML_TWOSIDED		4
+
+/* tw_flag (transform widget) */
+#define U_TW_ABSOLUTE			1
 
 #endif
 

@@ -158,6 +158,13 @@ static void init_userdef_file(void)
 		U.savetime = 1;
 		error(".B.blend is buggy, please consider removing it.\n");
 	}
+	/* transform widget settings */
+	if(U.tw_hotspot==0) {
+		U.tw_hotspot= 14;
+		U.tw_size= 15;			// percentage of window size
+		U.tw_handlesize= 25;	// percentage of widget radius
+	}
+	
 	if (G.main->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
 		strcpy(U.sounddir, "/");

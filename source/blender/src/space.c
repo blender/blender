@@ -2533,6 +2533,24 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"The number of lines scrolled at a time with the mouse wheel");	
 
 
+		uiDefBut(block, LABEL,0,"3D Transform Widget:",
+				 (xpos+(2*edgsp)+(5*mpref)+(5*midsp)),y6label,mpref,buth,
+				 0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_REDRCURW3D, "Size:",
+					 (xpos+edgsp+(5*mpref)+(6*midsp)),y5,(mpref/2),buth,
+					 &(U.tw_size), 2, 40, 0, 0, "Size of widget as percentage of window size");
+		uiDefButS(block, NUM, B_REDRCURW3D, "Handle:",
+					 (xpos+edgsp+(5*mpref)+(6*midsp)+(mpref/2)),y5,(mpref/2),buth,
+					 &(U.tw_handlesize), 2, 40, 0, 0, "Size of widget handles as percentage of widget radius");
+		uiDefButS(block, NUM, B_REDRCURW3D, "Hotspot:",
+				  (xpos+edgsp+(5*mpref)+(6*midsp)),y4,(mpref/2),buth,
+				  &(U.tw_hotspot), 4, 40, 0, 0, "Hotspot in pixels for clicking widget handles");
+		uiDefButBitS(block, TOG, U_TW_ABSOLUTE, B_REDRCURW3D, "Fixed Size",
+				  (xpos+edgsp+(5*mpref)+(6*midsp)+(mpref/2)),y4,(mpref/2),buth,
+				  &(U.tw_flag), 2, 40, 0, 0, "Size of widget based on fixed window size (1000 pixels)");
+		uiBlockEndAlign(block);
+		
 	} else if (U.userpref == 1) { /* edit methods */
 
 

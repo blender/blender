@@ -55,6 +55,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_armature.h"
@@ -81,11 +82,6 @@
 #include "blendef.h"
 #include "transform.h"
 #include "transform_generics.h"
-
-/* drawing defines */
-#define MAN_SIZE	0.15
-#define CYLEN	0.25
-#define CYWID	0.08
 
 /* return codes for select */
 
@@ -413,14 +409,25 @@ static void partial_donut(float radring, float radhole, int start, int end, int 
 	}
 }
 
-
+/* three colors can be set;
+   GL_BLEND: grey for ghosting
+   G.moving: in transform theme color
+   else the red/green/blue
+*/
 static void manipulator_setcolor(char mode)
 {
 	float vec[4];
 	
 	vec[3]= 1.0;
 	
-	if(G.moving) {
+	if(glIsEnabled(GL_BLEND)) {
+		if(mode > 'Z') glColor4ub(0, 0, 0, 70);
+		else {
+			vec[0]= vec[1]= vec[2]= 1.0; vec[3]= 0.3;
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
+		}
+	}
+	else if(G.moving) {
 		if(mode > 'Z') BIF_ThemeColor(TH_TRANSFORM);
 		else {
 			BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
@@ -456,16 +463,109 @@ static void manipulator_setcolor(char mode)
 
 static int Gval= 0xFFFF;	// defines drawmodus while moving...
 
+/* viewmatrix should have been set OK, also no shademode! */
+static void draw_manipulator_axes(int flagx, int flagy, int flagz)
+{
+	
+	/* axes */
+	if(Gval & flagx) {
+		manipulator_setcolor('x');
+		glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(1.0, 0.0, 0.0);
+		glEnd();
+	}		
+	if(Gval & flagy) {
+		manipulator_setcolor('y');
+		glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 1.0, 0.0);
+		glEnd();
+	}		
+	if(Gval & flagz) {
+		manipulator_setcolor('z');
+		glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3f(0.0, 0.0, 1.0);
+		glEnd();
+	}
+}
+
+
+/* only called while G.moving */
+static void draw_manipulator_rotate_ghost(float mat[][4])
+{
+	GLUquadricObj *qobj= gluNewQuadric(); 
+	float phi, vec[3], matt[4][4], cross[3];
+	
+	glDisable(GL_DEPTH_TEST);
+	gluQuadricDrawStyle(qobj, GLU_FILL); 
+	
+	/* we need both [4][4] transforms, Trans.mat seems to be premul, not post for mat[][4] */
+	Mat4CpyMat4(matt, mat); // to copy the parts outside of [3][3]
+	Mat4MulMat34(matt, Trans.mat, mat);
+	
+	mymultmatrix(mat);	// aligns with original widget
+	
+	glColor4ub(0,0,0,64);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
+	/* Z disk */
+	if(Gval & MAN_ROT_Z) {
+		VECCOPY(vec, mat[0]);	// use x axis to detect rotation
+		Normalise(vec);
+		Normalise(matt[0]);
+		phi= saacos( Inpf(vec, matt[0]) );
+		if(phi!=0.0) {
+			Crossf(cross, vec, matt[0]);	// results in z vector
+			if(Inpf(cross, mat[2]) > 0.0) phi= -phi;
+			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 90.0, 180.0*phi/M_PI);
+		}
+	}
+	/* X disk */
+	if(Gval & MAN_ROT_X) {
+		VECCOPY(vec, mat[1]);	// use y axis to detect rotation
+		Normalise(vec);
+		Normalise(matt[1]);
+		phi= saacos( Inpf(vec, matt[1]) );
+		if(phi!=0.0) {
+			Crossf(cross, vec, matt[1]);	// results in x vector
+			if(Inpf(cross, mat[0]) > 0.0) phi= -phi;
+			glRotatef(90.0, 0.0, 1.0, 0.0);
+			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 0.0, 180.0*phi/M_PI);
+			glRotatef(-90.0, 0.0, 1.0, 0.0);
+		}
+	}	
+	/* Y circle */
+	if(Gval & MAN_ROT_Y) {
+		VECCOPY(vec, mat[2]);	// use z axis to detect rotation
+		Normalise(vec);
+		Normalise(matt[2]);
+		phi= saacos( Inpf(vec, matt[2]) );
+		if(phi!=0.0) {
+			Crossf(cross, vec, matt[2]);	// results in y vector
+			if(Inpf(cross, mat[1]) > 0.0) phi= -phi;
+			glRotatef(-90.0, 1.0, 0.0, 0.0);
+			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0, 180.0*phi/M_PI);
+			glRotatef(90.0, 1.0, 0.0, 0.0);
+		}
+	}
+	
+	glDisable(GL_BLEND);
+	myloadmatrix(G.vd->viewmat);
+}
 
 static void draw_manipulator_rotate(float mat[][4])
 {
 	GLUquadricObj *qobj= gluNewQuadric(); 
 	double plane[4];
 	float size, vec[3], unitmat[4][4];
-	float cusize= CYWID*0.75;
+	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;	
+	float cusize= cywid*0.75;
 	int arcs= (G.rt==2);
 	
-	if(G.rt==3) cusize= CYWID*0.25;
+	if(G.rt==3) cusize= cywid*0.25;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((Gval & MAN_ROT_C)==0) return;
@@ -581,7 +681,7 @@ static void draw_manipulator_rotate(float mat[][4])
 		
 		VECCOPY(vec, offset);
 		glTranslatef(vec[0], vec[1], vec[2]);
-		gluSphere(qobj, CYWID, 8, 6);
+		gluSphere(qobj, cywid, 8, 6);
 		
 		/* restore */
 		glTranslatef(-vec[0], -vec[1], -vec[2]);
@@ -726,9 +826,56 @@ static void draw_manipulator_rotate(float mat[][4])
 	
 }
 
+/* only called while G.moving */
+static void draw_manipulator_scale_ghost(float mat[][4])
+{
+	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;	
+	float cusize= cywid*0.75;
+	float vec[4];
+	
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);		// backface removal
+	glEnable(GL_LIGHTING);
+	glShadeModel(GL_SMOOTH);
+	
+	mymultmatrix(mat);	// aligns with original widget
+	
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
+	draw_manipulator_axes(MAN_SCALE_X, MAN_SCALE_Y, MAN_SCALE_Z);
+	
+	vec[0]= vec[1]= vec[2]= 1.0; vec[3]= 0.3;
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
+
+	/* Z cube */
+	glTranslatef(0.0, 0.0, 1.0+cusize/2);
+	if(Gval & MAN_SCALE_Z) {
+		drawsolidcube(cusize);
+	}	
+	/* X cube */
+	glTranslatef(1.0+cusize/2, 0.0, -(1.0+cusize/2));
+	if(Gval & MAN_SCALE_X) {
+		drawsolidcube(cusize);
+	}	
+	/* Y cube */
+	glTranslatef(-(1.0+cusize/2), 1.0+cusize/2, 0.0);
+	if(Gval & MAN_SCALE_Y) {
+		drawsolidcube(cusize);
+	}
+	
+	/* restore */
+	glDisable(GL_BLEND);
+	myloadmatrix(G.vd->viewmat);
+	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+}	
+
 static void draw_manipulator_scale(float mat[][4])
 {
-	float cusize= CYWID*0.75;
+	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;	
+	float cusize= cywid*0.75;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((Gval & MAN_SCALE_C)==0) return;
@@ -757,23 +904,7 @@ static void draw_manipulator_scale(float mat[][4])
 		glDisable(GL_DEPTH_TEST);
 		
 		/* axis */
-		glBegin(GL_LINES);
-		if(Gval & MAN_SCALE_X) {
-			manipulator_setcolor('x');
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(1.0, 0.0, 0.0);
-		}		
-		if(Gval & MAN_SCALE_Y) {
-			manipulator_setcolor('y');
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0.0, 1.0, 0.0);
-		}		
-		if(Gval & MAN_SCALE_Z) {
-			manipulator_setcolor('z');
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0.0, 0.0, 1.0);
-		}
-		glEnd();
+		draw_manipulator_axes(MAN_SCALE_X, MAN_SCALE_Y, MAN_SCALE_Z);
 		
 		/* only has to be set when not in picking */
 		glEnable(GL_CULL_FACE);		// backface removal
@@ -828,9 +959,74 @@ static void draw_manipulator_scale(float mat[][4])
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
 }
 
+static void draw_cone(GLUquadricObj *qobj, float len, float width)
+{
+	gluCylinder(qobj, width, 0.0, len, 8, 1);
+	gluQuadricOrientation(qobj, GLU_INSIDE);
+	gluDisk(qobj, 0.0, width, 8, 1); 
+	gluQuadricOrientation(qobj, GLU_OUTSIDE);
+}
+
+/* only called while G.moving */
+static void draw_manipulator_translate_ghost(float mat[][4])
+{
+	GLUquadricObj *qobj = gluNewQuadric(); 
+	float vec[4];
+	float cylen= 0.01f*(float)U.tw_handlesize;
+	float cywid= 0.33f*cylen;
+	
+	glDisable(GL_DEPTH_TEST);
+	
+	mymultmatrix(mat);	// aligns with original widget
+	
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
+	draw_manipulator_axes(MAN_TRANS_X, MAN_TRANS_Y, MAN_TRANS_Z);
+	
+	glEnable(GL_CULL_FACE);		// backface removal
+	glEnable(GL_LIGHTING);
+	glShadeModel(GL_SMOOTH);
+	vec[0]= vec[1]= vec[2]= 1.0; vec[3]= 0.3;
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
+
+	/* center sphere */
+	gluSphere(qobj, cywid, 8, 6); 
+	
+	/* Z Cone */
+	glTranslatef(0.0, 0.0, 1.0 - cylen);
+	if(Gval & MAN_TRANS_Z) {
+		draw_cone(qobj, cylen, cywid);
+	}	
+	/* X Cone */
+	glTranslatef(1.0 - cylen, 0.0, -(1.0 - cylen));
+	if(Gval & MAN_TRANS_X) {
+		glRotatef(90.0, 0.0, 1.0, 0.0);
+		draw_cone(qobj, cylen, cywid);
+		glRotatef(-90.0, 0.0, 1.0, 0.0);
+	}	
+	/* Y Cone */
+	glTranslatef(-(1.0 - cylen), 1.0 - cylen, 0.0);
+	if(Gval & MAN_TRANS_Y) {
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		draw_cone(qobj, cylen, cywid);
+	}
+	
+	/* restore */
+	glDisable(GL_BLEND);
+	myloadmatrix(G.vd->viewmat);
+	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+}	
+
+
+
 static void draw_manipulator_translate(float mat[][4])
 {
 	GLUquadricObj *qobj = gluNewQuadric(); 
+	float cylen= 0.01f*(float)U.tw_handlesize;
+	float cywid= 0.33f*cylen;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((Gval & MAN_TRANS_C)==0) return;
@@ -854,23 +1050,7 @@ static void draw_manipulator_translate(float mat[][4])
 		glDisable(GL_DEPTH_TEST);
 		
 		/* axis */
-		glBegin(GL_LINES);
-		if(Gval & MAN_TRANS_X) {
-			manipulator_setcolor('x');
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(1.0, 0.0, 0.0);
-		}		
-		if(Gval & MAN_TRANS_Y) {
-			manipulator_setcolor('y');
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0.0, 1.0, 0.0);
-		}		
-		if(Gval & MAN_TRANS_Z) {
-			manipulator_setcolor('z');
-			glVertex3f(0.0, 0.0, 0.0);
-			glVertex3f(0.0, 0.0, 1.0);
-		}
-		glEnd();
+		draw_manipulator_axes(MAN_TRANS_X, MAN_TRANS_Y, MAN_TRANS_Z);
 		
 		/* only has to be set when not in picking */
 		gluQuadricDrawStyle(qobj, GLU_FILL); 
@@ -883,40 +1063,32 @@ static void draw_manipulator_translate(float mat[][4])
 		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
 
-		gluSphere(qobj, CYWID, 8, 6); 
+		gluSphere(qobj, cywid, 8, 6); 
 	}	
 	
 	/* Z Cone */
-	glTranslatef(0.0, 0.0, 1.0 - CYLEN);
+	glTranslatef(0.0, 0.0, 1.0 - cylen);
 	if(Gval & MAN_TRANS_Z) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_Z);
 		manipulator_setcolor('Z');
-		gluCylinder(qobj, CYWID, 0.0, CYLEN, 8, 1);
-		gluQuadricOrientation(qobj, GLU_INSIDE);
-		gluDisk(qobj, 0.0, CYWID, 8, 1); 
-		gluQuadricOrientation(qobj, GLU_OUTSIDE);
+		draw_cone(qobj, cylen, cywid);
 	}	
 	/* X Cone */
-	glTranslatef(1.0 - CYLEN, 0.0, -(1.0 - CYLEN));
+	glTranslatef(1.0 - cylen, 0.0, -(1.0 - cylen));
 	if(Gval & MAN_TRANS_X) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_X);
 		glRotatef(90.0, 0.0, 1.0, 0.0);
 		manipulator_setcolor('X');
-		gluCylinder(qobj, CYWID, 0.0, CYLEN, 8, 1);
-		gluQuadricOrientation(qobj, GLU_INSIDE);
-		gluDisk(qobj, 0.0, CYWID, 8, 1); 
-		gluQuadricOrientation(qobj, GLU_OUTSIDE);
+		draw_cone(qobj, cylen, cywid);
 		glRotatef(-90.0, 0.0, 1.0, 0.0);
 	}	
 	/* Y Cone */
-	glTranslatef(-(1.0 - CYLEN), 1.0 - CYLEN, 0.0);
+	glTranslatef(-(1.0 - cylen), 1.0 - cylen, 0.0);
 	if(Gval & MAN_TRANS_Y) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_TRANS_Y);
 		glRotatef(-90.0, 1.0, 0.0, 0.0);
 		manipulator_setcolor('Y');
-		gluCylinder(qobj, CYWID, 0.0, CYLEN, 8, 1);
-		gluQuadricOrientation(qobj, GLU_INSIDE);
-		gluDisk(qobj, 0.0, CYWID, 8, 1); 
+		draw_cone(qobj, cylen, cywid);
 	}
 	
 	glDisable(GL_CULL_FACE);
@@ -926,7 +1098,7 @@ static void draw_manipulator_translate(float mat[][4])
 	if(G.f & G_PICKSEL) {
 		if(G.qual & LR_SHIFTKEY) {
 			glRotatef(90.0, 1.0, 0.0, 0.0);
-			glTranslatef(0.0, -(1.0 - CYLEN), 0.0);
+			glTranslatef(0.0, -(1.0 - cylen), 0.0);
 			glLoadName(MAN_TRANS_C);
 			glBegin(GL_POINTS);
 			glVertex3f(0.0, 0.0, 0.0);
@@ -983,19 +1155,29 @@ void BIF_draw_manipulator(ScrArea *sa)
 		VECCOPY(vec, G.vd->persinv[1]);
 		len2= Normalise(vec);
 		
-		size*= MAN_SIZE*(len1>len2?len1:len2);
+		size*= (0.01f*(float)U.tw_size)*(len1>len2?len1:len2);
+		if(U.tw_flag & U_TW_ABSOLUTE) {
+			/* correct for relative window size */
+			if(sa->winx > sa->winy) size*= 1000.0f/(float)sa->winx;
+			else size*= 1000.0f/(float)sa->winy;
+		}
 		Mat4MulFloat3((float *)v3d->twmat, size);
 	}
 	
 	if(v3d->twflag & V3D_DRAW_MANIPULATOR) {
 		
-		if(v3d->twtype & V3D_MANIPULATOR_ROTATE)
+		if(v3d->twtype & V3D_MANIPULATOR_ROTATE) {
+			if(G.moving) draw_manipulator_rotate_ghost(v3d->twmat);
 			draw_manipulator_rotate(v3d->twmat);
-		if(v3d->twtype & V3D_MANIPULATOR_SCALE)
+		}
+		if(v3d->twtype & V3D_MANIPULATOR_SCALE) {
+			if(G.moving) draw_manipulator_scale_ghost(v3d->twmat);
 			draw_manipulator_scale(v3d->twmat);
-		if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE)
+		}
+		if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE) {
+			if(G.moving) draw_manipulator_translate_ghost(v3d->twmat);
 			draw_manipulator_translate(v3d->twmat);
-		
+		}
 	}
 }
 
@@ -1065,9 +1247,9 @@ int BIF_do_manipulator(ScrArea *sa)
 	
 	// find the hotspots (Gval is for draw). first test narrow hotspot
 	// warning, Gval is ugly global defining how it draws, don't set it before doing select calls!
-	val= manipulator_selectbuf(sa, 7.0);
+	val= manipulator_selectbuf(sa, 0.5*(float)U.tw_hotspot);
 	if(val) {
-		Gval= manipulator_selectbuf(sa, 3.0);
+		Gval= manipulator_selectbuf(sa, 0.2*(float)U.tw_hotspot);
 		if(Gval) val= Gval;
 		else Gval= val;
 	}
