@@ -204,7 +204,11 @@ int BIF_read_homefile(void)
 				
 			strcpy(U.tempdir, tmp?tmp:"/tmp/");
 		}
-			
+		if (U.savetime <= 0) {
+			U.savetime = 1;
+			error("%s is buggy, please cosider removing it.\n", 
+				tstr);
+		}
 		if (G.main->versionfile <= 191) {
 			strcpy(U.plugtexdir, U.textudir);
 			strcpy(U.sounddir, "/");
