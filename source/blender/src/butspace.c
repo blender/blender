@@ -236,7 +236,7 @@ void test_scenepoin_but(char *name, ID **idpp)
 void do_butspace(unsigned short event)
 {
 	SpaceButs *buts;
-	
+
 	/* redraw windows of the same type? */
 	buts= curarea->spacedata.first;
 	if(buts->mainb==CONTEXT_SCENE) allqueue(REDRAWBUTSSCENE, curarea->win);
@@ -246,7 +246,10 @@ void do_butspace(unsigned short event)
 	if(buts->mainb==CONTEXT_SCRIPT) allqueue(REDRAWBUTSSCRIPT, curarea->win);
 	if(buts->mainb==CONTEXT_LOGIC) allqueue(REDRAWBUTSLOGIC, curarea->win);
 	
-	if(event<=100) {
+	if (event <=50){
+		do_global_buttons2(event);
+	}
+	else if(event<=100) {
 		do_global_buttons(event);
 	}
 	else if(event < 1000) {
