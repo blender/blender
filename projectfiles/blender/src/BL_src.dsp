@@ -107,7 +107,15 @@ SOURCE=..\..\..\source\blender\src\booleanops_mesh.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\butspace.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\buttons.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\buttons_scene.c
 # End Source File
 # Begin Source File
 
@@ -413,6 +421,10 @@ SOURCE=..\..\..\source\blender\src\writemovie.c
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_butspace.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BIF_editfont.h
