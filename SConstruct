@@ -27,11 +27,11 @@ env = Environment ()
 
 if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     use_international = 'false'
-    use_gameengine = 'false'
+    use_gameengine = 'true'
     use_openal = 'false'
     use_fmod = 'false'
     use_quicktime = 'false'
-    use_sumo = 'false'
+    use_sumo = 'true'
     use_ode = 'false'
     use_buildinfo = 'false'
     build_blender_dynamic = 'true'
@@ -638,7 +638,7 @@ else:
     env_dict = env.Dictionary()
     config=open (config_file, 'w')
     config.write ("# Configuration file containing user definable options.\n")
-    config.write ("VERSION = '2.32-cvs'\n")
+    config.write ("VERSION = '2.33-cvs'\n")
     config.write ("BUILD_BINARY = 'release'\n")
     config.write ("USE_BUILDINFO = %r\n"%(use_buildinfo))
     config.write ("BUILD_BLENDER_DYNAMIC = %r\n"%(build_blender_dynamic))
