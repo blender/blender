@@ -829,7 +829,6 @@ int blenderqread(unsigned short event, short val)
 		break;
 				
 	case UKEY:
-	
 		if(textediting==0) {
 			if(G.qual & LR_CTRLKEY) {
 				if(okee("SAVE USER DEFAULTS")) {
@@ -862,13 +861,14 @@ int blenderqread(unsigned short event, short val)
 		break;
 		
 	case XKEY:
-		if(G.qual & LR_CTRLKEY) {
-			if(okee("ERASE ALL")) {
-				if( BIF_read_homefile()==0) error("No file ~/.B.blend");
+		if(textspace==0) {
+			if(G.qual & LR_CTRLKEY) {
+				if(okee("ERASE ALL")) {
+					if( BIF_read_homefile()==0) error("No file ~/.B.blend");
+				}
+				return 0;
 			}
-			return 0;
 		}
-		
 		break;
 	}
 	

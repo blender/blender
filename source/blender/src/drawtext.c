@@ -975,7 +975,7 @@ void winqreadtextspace(unsigned short event, short val, char ascii)
 			break;
 
 		case CKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
 				txt_copy_sel(text);
 				do_draw= 1;	
 			}
@@ -1069,7 +1069,7 @@ void winqreadtextspace(unsigned short event, short val, char ascii)
 			break;
 
 		case VKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
 				txt_paste(text);
 				do_draw= 1;	
 				pop_space_text(st);
@@ -1077,13 +1077,25 @@ void winqreadtextspace(unsigned short event, short val, char ascii)
 			break;
 
 		case XKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
 				txt_cut_sel(text);
 				do_draw= 1;	
 				pop_space_text(st);
 			}
 			break;
 		
+		case ZKEY:
+			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
+				if (G.qual & LR_SHIFTKEY) {
+					txt_do_redo(text);
+					do_draw= 1;
+				} else {
+					txt_do_undo(text);
+					do_draw= 1;
+				}
+			}
+			break;
+
 		case TABKEY:
 			txt_add_char(text, '\t');
 			pop_space_text(st);
