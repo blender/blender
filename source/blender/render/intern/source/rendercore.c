@@ -1643,6 +1643,7 @@ void shade_lamp_loop(int mask, ShadeResult *shr)
 		shr->diff[0]= ma->r;
 		shr->diff[1]= ma->g;
 		shr->diff[2]= ma->b;
+		shr->alpha= ma->alpha;
 		return;
 	}
 
