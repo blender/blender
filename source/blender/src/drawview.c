@@ -549,18 +549,23 @@ static void drawgrid(void)
 	if(dx==0) dx= fabs(y-(wy)*fy/fw);
 	
 	glDepthMask(0);		// disable write in zbuffer
-	
+
 	/* check zoom out */
 	BIF_ThemeColor(TH_GRID);
 	persp(PERSP_WIN);
-
+	
+	G.vd->gridview= G.vd->grid;
+	
 	if(dx<6.0) {
+		G.vd->gridview*= 10.0;
 		dx*= 10.0;
 		
 		if(dx<6.0) {	
+			G.vd->gridview*= 10.0;
 			dx*= 10.0;
 			
 			if(dx<6.0) {
+				G.vd->gridview*= 10.0;
 				dx*=10;
 				if(dx<6.0);
 				else {
@@ -586,8 +591,10 @@ static void drawgrid(void)
 	}
 	else {
 		if(dx>60.0) {		// start blending in
+			G.vd->gridview/= 10.0;
 			dx/= 10.0;			
 			if(dx>60.0) {		// start blending in
+				G.vd->gridview/= 10.0;
 				dx/= 10.0;
 				if(dx>60.0) {
 					BIF_ThemeColor(TH_GRID);

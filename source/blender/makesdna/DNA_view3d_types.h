@@ -97,7 +97,7 @@ typedef struct View3D {
 	int lay, layact;
 	short scenelock, around, camzoom, flag;
 	
-	float lens, grid, near, far;
+	float lens, grid, gridview, pad, near, far;
 	float ofs[3], cursor[3];
 	
 	short mx, my;	/* have to remain together, because used as single pointer */

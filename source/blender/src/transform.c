@@ -1861,7 +1861,7 @@ void initShear(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Shear;
 	t->fac = (float)(t->center2d[0] - t->imval[0]);
@@ -1954,7 +1954,7 @@ void initResize(TransInfo *t)
 	t->idx_max = 2;
 	t->num.idx_max = 2;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Resize;
 }
@@ -2140,7 +2140,7 @@ void initToSphere(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = ToSphere;
 }
@@ -2218,7 +2218,7 @@ void initRotation(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * (float)((5.0/180)*M_PI);
+	t->snap[1] = (5.0/180)*M_PI;
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Rotation;
@@ -2431,7 +2431,7 @@ void initTrackball(TransInfo *t)
 	t->idx_max = 1;
 	t->num.idx_max = 1;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * (float)((5.0/180)*M_PI);
+	t->snap[1] = (5.0/180)*M_PI;
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Trackball;
@@ -2530,7 +2530,7 @@ void initTranslation(TransInfo *t)
 	t->idx_max = 2;
 	t->num.idx_max = 2;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * 1.0f;
+	t->snap[1] = G.vd->gridview * 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Translation;
 	
@@ -2648,7 +2648,7 @@ void initShrinkFatten(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * 1.0f;
+	t->snap[1] = 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = ShrinkFatten;
 }
@@ -2715,7 +2715,7 @@ void initTilt(TransInfo *t)
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = G.vd->grid * (float)((5.0/180)*M_PI);
+	t->snap[1] = ((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Tilt;

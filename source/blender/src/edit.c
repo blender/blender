@@ -733,7 +733,7 @@ void snap_sel_to_grid()
 	float gridf, imat[3][3], bmat[3][3], vec[3];
 	int a;
 
-	gridf= G.vd->grid;
+	gridf= G.vd->gridview;
 
 
 		if(G.obedit) {
@@ -755,9 +755,9 @@ void snap_sel_to_grid()
 				VECCOPY(vec, tv->loc);
 				Mat3MulVecfl(bmat, vec);
 				VecAddf(vec, vec, G.obedit->obmat[3]);
-				vec[0]= G.vd->grid*floor(.5+ vec[0]/gridf);
-				vec[1]= G.vd->grid*floor(.5+ vec[1]/gridf);
-				vec[2]= G.vd->grid*floor(.5+ vec[2]/gridf);
+				vec[0]= G.vd->gridview*floor(.5+ vec[0]/gridf);
+				vec[1]= G.vd->gridview*floor(.5+ vec[1]/gridf);
+				vec[2]= G.vd->gridview*floor(.5+ vec[2]/gridf);
 				VecSubf(vec, vec, G.obedit->obmat[3]);
 
 				Mat3MulVecfl(imat, vec);
@@ -786,9 +786,9 @@ void snap_sel_to_grid()
 			if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
 				ob= base->object;
 
-				vec[0]= -ob->obmat[3][0]+G.vd->grid*floor(.5+ ob->obmat[3][0]/gridf);
-				vec[1]= -ob->obmat[3][1]+G.vd->grid*floor(.5+ ob->obmat[3][1]/gridf);
-				vec[2]= -ob->obmat[3][2]+G.vd->grid*floor(.5+ ob->obmat[3][2]/gridf);
+				vec[0]= -ob->obmat[3][0]+G.vd->gridview*floor(.5+ ob->obmat[3][0]/gridf);
+				vec[1]= -ob->obmat[3][1]+G.vd->gridview*floor(.5+ ob->obmat[3][1]/gridf);
+				vec[2]= -ob->obmat[3][2]+G.vd->gridview*floor(.5+ ob->obmat[3][2]/gridf);
 
 				if(ob->parent) {
 					where_is_object(ob);
@@ -902,12 +902,12 @@ void snap_curs_to_grid()
 {
 	float gridf, *curs;
 
-	gridf= G.vd->grid;
+	gridf= G.vd->gridview;
 	curs= give_cursor();
 
-	curs[0]= G.vd->grid*floor(.5+curs[0]/gridf);
-	curs[1]= G.vd->grid*floor(.5+curs[1]/gridf);
-	curs[2]= G.vd->grid*floor(.5+curs[2]/gridf);
+	curs[0]= G.vd->gridview*floor(.5+curs[0]/gridf);
+	curs[1]= G.vd->gridview*floor(.5+curs[1]/gridf);
+	curs[2]= G.vd->gridview*floor(.5+curs[2]/gridf);
 
 	allqueue(REDRAWVIEW3D, 0);
 
