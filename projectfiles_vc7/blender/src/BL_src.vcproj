@@ -113,6 +113,9 @@
 				RelativePath="..\..\..\source\blender\src\Bfont.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\bfont.ttf.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\blenderbuttons.c">
 			</File>
 			<File
