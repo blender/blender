@@ -48,13 +48,13 @@ ifdef quicky
 else
     ifdef DIR
 	@# Make sure object toplevels are there
-	@[ -d $(NAN_OBJDIR) ] || mkdir $(NAN_OBJDIR)
-	@[ -d $(LCGDIR) ] || mkdir $(LCGDIR)
-	@[ -d $(OCGDIR) ] || mkdir $(OCGDIR)
-	@[ -d $(OCGDIR)/intern ] || mkdir $(OCGDIR)/intern
-	@[ -d $(OCGDIR)/extern ] || mkdir $(OCGDIR)/extern
+	@[ -d $(NAN_OBJDIR) ] || mkdir -p $(NAN_OBJDIR)
+	@[ -d $(LCGDIR) ] || mkdir -p $(LCGDIR)
+	@[ -d $(OCGDIR) ] || mkdir -p $(OCGDIR)
+	@[ -d $(OCGDIR)/intern ] || mkdir -p $(OCGDIR)/intern
+	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
 	@# Create object directory
-	@[ -d $(DIR) ] || mkdir $(DIR)
+	@[ -d $(DIR) ] || mkdir -p $(DIR)
     endif
 	@for i in $(DIRS); do \
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
