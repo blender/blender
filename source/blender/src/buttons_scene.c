@@ -1021,9 +1021,11 @@ static void render_panel_render(void)
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_render", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 192,37, 0, 0, 0, 0, 0, "Start the rendering");
 	/* yafray: on request, render engine menu is back again, and moved to Render panel */
-	uiDefButS(block, MENU, B_REDR, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 369, 142, 192, 22, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
-	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369,166,192,35, 0, 0, 0, 0, 0, "Start the rendering");
+	uiDefButS(block, MENU, B_REDR, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
+												369, 142, 192, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
 
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,110,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
@@ -1046,11 +1048,11 @@ static void render_panel_render(void)
 	uiDefButS(block, ROW,800,"Key",		467,11,44,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,166,61,35, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,166,61,35, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
-	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,41,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButI(block, TOG|BIT|16,0,"Ray",	606,142,35,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
-	uiDefButI(block, TOG|BIT|8,0,"Radio",	641,142,46,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
+	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,41,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButI(block, TOG|BIT|16,0,"Ray",	606,142,35,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
+	uiDefButI(block, TOG|BIT|8,0,"Radio",	641,142,46,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_DIFF,"100%",			565,110,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
