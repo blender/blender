@@ -209,6 +209,53 @@ int get_border(rcti *rect, short col)
 				sdrawXORline4(1, x1, mval[1], mval[0], mval[1]); 
 				sdrawXORline4(2, mval[0], mval[1], mval[0], y1); 
 				sdrawXORline4(3,  mval[0], y1, x1, y1); 
+				
+				/* draw size information in corner */
+				if(curarea->spacetype==SPACE_VIEW3D) {
+					glColor3f(0.4375, 0.4375, 0.4375); 
+					glRecti(0, 10, 250, 20);
+					glColor3f(0.0, 0.0, 0.0); 
+	
+					if(G.vd->persp==0) {
+						window_to_3d(dvec, mvalo[0]-x1, mvalo[1]-y1);
+	
+						glRasterPos2i(10,  10);
+						sprintf(str, "X %.4f  Y %.4f  Z %.4f  Dia %.4f", dvec[0], dvec[1], dvec[2], sqrt(dvec[0]*dvec[0]+dvec[1]*dvec[1]+dvec[2]*dvec[2]));
+						BMF_DrawString(G.fonts, str);
+					}
+					else if(G.vd->persp==2) {
+						rcti vb;
+	
+						calc_viewborder(G.vd, &vb);
+	
+						fac1= (mvalo[0]-x1)/( (float) (vb.xmax-vb.xmin) );
+						fac1*= 0.01*G.scene->r.size*G.scene->r.xsch;
+						
+						fac2= (mvalo[1]-y1)/( (float) (vb.ymax-vb.ymin) );
+						fac2*= 0.01*G.scene->r.size*G.scene->r.ysch;
+						
+						glRasterPos2i(10,  10);
+						sprintf(str, "X %.1f  Y %.1f  Dia %.1f", fabs(fac1), fabs(fac2), sqrt(fac1*fac1 + fac2*fac2) );
+						BMF_DrawString(G.fonts, str);
+					}
+				}
+				else if(curarea->spacetype==SPACE_IPO) {
+					SpaceIpo *sipo= curarea->spacedata.first;
+	
+					glColor3f(.40625, .40625, .40625);
+					glRecti(20, 30, 170, 40);
+					glColor3f(0.0, 0.0, 0.0); 
+								
+					mvalo[2]= x1;
+					mvalo[3]= y1;
+					areamouseco_to_ipoco(&sipo->v2d, mval, dvec, dvec+1);
+					areamouseco_to_ipoco(&sipo->v2d, mvalo+2, dvec+2, dvec+3);
+	
+					glRasterPos2i(30,  30);
+					sprintf(str, "Time: %.4f  Y %.4f", dvec[0]-dvec[2], dvec[1]-dvec[3]);
+					BMF_DrawString(G.fonts, str);
+				}
+
 				glFlush();
 
 				mvalo[0]= mval[0];
@@ -232,50 +279,6 @@ int get_border(rcti *rect, short col)
 				else if(event==RIGHTMOUSE) break;
 			}
 			
-			if(curarea->spacetype==SPACE_VIEW3D) {
-				glColor3f(0.4375, 0.4375, 0.4375); 
-				glRecti(0, 10, 250, 20);
-				glColor3f(0.0, 0.0, 0.0); 
-
-				if(G.vd->persp==0) {
-					window_to_3d(dvec, mvalo[0]-x1, mvalo[1]-y1);
-
-					glRasterPos2i(10,  10);
-					sprintf(str, "X %.4f  Y %.4f  Z %.4f  Dia %.4f", dvec[0], dvec[1], dvec[2], sqrt(dvec[0]*dvec[0]+dvec[1]*dvec[1]+dvec[2]*dvec[2]));
-					BMF_DrawString(G.fonts, str);
-				}
-				else if(G.vd->persp==2) {
-					rcti vb;
-
-					calc_viewborder(G.vd, &vb);
-
-					fac1= (mvalo[0]-x1)/( (float) (vb.xmax-vb.xmin) );
-					fac1*= 0.01*G.scene->r.size*G.scene->r.xsch;
-					
-					fac2= (mvalo[1]-y1)/( (float) (vb.ymax-vb.ymin) );
-					fac2*= 0.01*G.scene->r.size*G.scene->r.ysch;
-					
-					glRasterPos2i(10,  10);
-					sprintf(str, "X %.1f  Y %.1f  Dia %.1f", fabs(fac1), fabs(fac2), sqrt(fac1*fac1 + fac2*fac2) );
-					BMF_DrawString(G.fonts, str);
-				}
-			}
-			else if(curarea->spacetype==SPACE_IPO) {
-				SpaceIpo *sipo= curarea->spacedata.first;
-
-				glColor3f(.40625, .40625, .40625);
-				glRecti(20, 30, 170, 40);
-				glColor3f(0.0, 0.0, 0.0); 
-							
-				mvalo[2]= x1;
-				mvalo[3]= y1;
-				areamouseco_to_ipoco(&sipo->v2d, mval, dvec, dvec+1);
-				areamouseco_to_ipoco(&sipo->v2d, mvalo+2, dvec+2, dvec+3);
-
-				glRasterPos2i(30,  30);
-				sprintf(str, "Time: %.4f  Y %.4f", dvec[0]-dvec[2], dvec[1]-dvec[3]);
-				BMF_DrawString(G.fonts, str);
-			}
 		} /* end while (TRUE) */
 		sdrawXORline4(-1, 0, 0, 0, 0);
 		
