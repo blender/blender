@@ -533,7 +533,7 @@ class Matrix:
 
     """
 
-  def inverse():
+  def invert():
     """
     Set the matrix to it's inverse.
     """
