@@ -2022,15 +2022,6 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 			shi.view[2]= -panosi*u + panoco*v;
 		}
 		
-		fac= Normalise(shi.view);
-		
-		if(shi.osatex) {
-			if( (shi.mat->texco & TEXCO_REFL) ) {
-				shi.dxview= -1.0/fac;
-				shi.dyview= -R.ycor/fac;
-			}
-		}
-		
 		/* wire cannot use normal for calculating shi.co */
 		if(shi.mat->mode & MA_WIRE) {
 			float zco;
@@ -2069,6 +2060,17 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 				shi.dyco[1]= shi.co[1]- (shi.view[1]-1.0*R.ycor)*v;
 				shi.dyco[2]= shi.co[2]- (shi.view[2])*v;
 
+			}
+		}
+		
+		/* cannot normalise earlier, code above needs it at pixel level */
+		fac= Normalise(shi.view);
+		zcor*= fac;
+		
+		if(shi.osatex) {
+			if( (shi.mat->texco & TEXCO_REFL) ) {
+				shi.dxview= -1.0/fac;
+				shi.dyview= -R.ycor/fac;
 			}
 		}
 		
