@@ -454,6 +454,9 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 								/* only basis-ball gets displist */
 								if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= 0;
 								
+								/* to give ipos in object correct offset */
+								where_is_object_time(newob, ctime-pa->time);
+								
 								where_is_particle(paf, pa, ctime, vec);
 								if(paf->stype==PAF_VECT) {
 									where_is_particle(paf, pa, ctime+1.0f, vec1);
