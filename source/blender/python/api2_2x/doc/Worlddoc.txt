@@ -1,11 +1,8 @@
 METABALL Module documentation
 
-
 INTRODUCTION
 The metaball module effect allows you to access all the data of an metaball.
 A metaball consists of several (maybe only one) metaelems, which are spheres, interacting with each other, thus creating soft organic volumes.
-
-
 
 functions of the module :
 New(name) : creates ans returns a metaball object. 
