@@ -3886,7 +3886,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 			if(base->flag & BA_DISP_UPDATE) {
 				if(ob->type==OB_MBALL) {
 					mb= ob->data;
-					if(mb->flag != MB_UPDATE_ALWAYS) makeDispList(ob);
+					if(mb->flag != MB_UPDATE_ALWAYS || G.obedit == NULL) makeDispList(ob);
 				}
 				if( give_parteff(ob) ) build_particle_system(ob);
 			}
