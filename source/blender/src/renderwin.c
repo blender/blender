@@ -29,6 +29,13 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+ 
+#ifdef WIN32
+/* for the multimedia timer */
+#include <windows.h>
+#include <mmsystem.h>
+#endif
+
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
@@ -628,9 +635,6 @@ static void printrenderinfo_cb(double time, int sample)
 
 /* -------------- callback system to allow ESC from rendering ----------------------- */
 
-#ifdef _WIN32
-/* we use the SetTimer here */
-
 /* WIN32: this function is called all the time, and should not use cpu or resources */
 static int test_break()
 {
@@ -653,16 +657,27 @@ static int test_break()
 	else return 0;
 }
 
+#ifdef _WIN32
+/* we use the multimedia time here */
+static UINT uRenderTimerId;
+
+void CALLBACK interruptESC(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
+{
+	if(G.afbreek==0) G.afbreek= 2;	/* code for read queue */
+}
+
 /* WIN32: init SetTimer callback */
 static void init_test_break_callback()
 {
-	;
+	timeBeginPeriod(50);
+	uRenderTimerId = timeSetEvent(250, 1, interruptESC, 0, TIME_PERIODIC);
 }
 
 /* WIN32: stop SetTimer callback */
-sstatic void end_test_break_callback()
+static void end_test_break_callback()
 {
-	;
+	timeEndPeriod(50);
+	timeKillEvent(uRenderTimerId);
 }
 
 #else
