@@ -7,7 +7,6 @@ on irc.freenode.net
 
 Here are some links to external packages you may or may not need:
 
-openssl:     http://www.openssl.org
 python:      http://www.python.org
 mxtexttools: http://www.egenix.com/files/python/mxTextTools.html (python lib)
 libjpeg:     http://www.ijg.org/
@@ -75,7 +74,7 @@ fix the pointer to it I'm still working on automating this)
 
 --------------Basic Makefile TIPS---------------------------------------
 Edit source/nan_definitions.mk to fit your environment, be sure to edit the
-block matching your OS. You will want to change variables like NAN_OPENSSL,
+block matching your OS. You will want to change variables like 
 NAN_JPEG, NAN_PNG etc. to point to where you have those installed.
 
 If you want to integrate the game-engine in Blender, you might want
@@ -187,20 +186,18 @@ your system in a fixed location.
 Step 2:
 You can use the package installer fink (http://fink.sourceforge.net/) for some
 of the external libraries:
-1. openssl (fink install openssl)
-2. openssl-dev (fink install openssl-dev)
-3. jpeg    (fink install libjpeg)
-4. png     (fink install libpng3)
-5. cvs	   (fixes some bugs in the shipped cvs: fink install cvs)
-6. python22 ((addes the static lib for python) fink install python22)
+1. jpeg    (fink install libjpeg)
+2. png     (fink install libpng3)
+3. cvs	   (fixes some bugs in the shipped cvs: fink install cvs)
+4. python22 ((addes the static lib for python) fink install python22)
 	You will probably want to select python-nox when
 	it asks you.
-7. freetype (fink install freetype2)
+5. freetype (fink install freetype2)
 
 After you have done this you should install the mx lib from:
 http://www.egenix.com/files/python/mxTextTools.html
 
-(we are currently in the process removing openssl and mxTextTools from Blender)
+(we are currently in the process removing mxTextTools from Blender)
 
 Step 3:
 The rest of the external libraries are present in CVS in binary format so you

@@ -36,7 +36,7 @@ LIBNAME ?= $(ORGLIBNAME)
 DIR ?= $(OCGDIR)/blender/$(ORGLIBNAME)
 
 CSRCS ?= $(wildcard *.c)
-PUB_CSRCS ?= $(CSRCS) $(wildcard pub/*.c)
+PUB_CSRCS ?= $(CSRCS)
 CRE_CSRCS ?= $(CSRCS) $(wildcard cre/*.c)
 
 OBJS = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
@@ -85,7 +85,6 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_DECIMATION)/include
 CPPFLAGS += -I$(NAN_BSP)/include
 
-CPPFLAGS += -I$(NAN_BLENKEY)/include
 CPPFLAGS += -I../readstreamglue
 CPPFLAGS += -I../include
 

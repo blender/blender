@@ -42,7 +42,6 @@
 
 #include "GEN_messaging.h"
 
-#include "blenkey.h"
 #include "BLO_getPubKey.h"	// real and stub implemented at writestream ...
 
 #include "BLO_readStreamGlue.h"
@@ -134,7 +133,7 @@ BLO_decrypt_process(
 			//static unsigned char rsa_e[] = "\x11";
 			static unsigned char rsa_e[] = "\x01\x00\x01";
 			RSA *rsa = NULL;
-			byte *publisherPubKey;
+			unsigned char *publisherPubKey;
 			int publisherPubKeyLen;
 
 			header = (struct BLO_en_de_cryptHeaderStruct *)

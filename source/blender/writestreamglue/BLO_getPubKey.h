@@ -32,6 +32,6 @@
  * STUB: give back the dataStreamPubKey
  */
 
-int getPubKey(byte *dataStreamPubKey, int dataStreamPubKeyLen,
-		  byte **publisherPubKey, int *publisherPubKeyLen);
+int getPubKey(unsigned char *dataStreamPubKey, int dataStreamPubKeyLen,
+		  unsigned char **publisherPubKey, int *publisherPubKeyLen);
 

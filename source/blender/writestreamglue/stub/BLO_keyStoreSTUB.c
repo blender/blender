@@ -44,7 +44,7 @@ keyStoreConstructor(
 	UserStruct *keyUserStruct,
 	char *privHexKey,
 	char *pubHexKey,
-	byte *ByteChecks,
+	unsigned char *ByteChecks,
 	char *HexPython)
 {
 	keyUserStruct = NULL;

@@ -41,7 +41,6 @@
 #include "BLO_dumpFromMemory.h"
 #include "BLO_writeblenfile.h"
 #include "BLO_deflate.h"
-#include "BLO_encrypt.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -134,12 +133,6 @@ writeStreamGlue(
 							  (*streamGlue)->streamBufferCount,
 							  streamGlueHeader);
 			break;
-		case ENCRYPT:
-			err = BLO_encrypt((*streamGlue)->streamBuffer,
-							  (*streamGlue)->streamBufferCount,
-							  streamGlueHeader);
-			break;
-	        case SIGN:
 		case WRITEBLENFILE:
 			err = BLO_writeblenfile((*streamGlue)->streamBuffer,
 									(*streamGlue)->streamBufferCount,

@@ -191,8 +191,6 @@ endif
     #PULIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
     PULIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
     PULIB += $(OCGDIR)/blender/deflate/$(DEBUG_DIR)libdeflate.a
-    PULIB += $(OCGDIR)/blender/encrypt/$(DEBUG_DIR)libencrypt.a
-    PULIB += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
     PULIB += $(OCGDIR)/blender/writeblenfile/$(DEBUG_DIR)libwriteblenfile.a
     PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
     # toggle 2 writestreamglue libs for the Uber-Publisher :)
@@ -212,24 +210,8 @@ endif
     # but somehow it consistently fails to resolve these symbols... or 
     # can I just not check them? nm claims they aren't...
     SPLIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
-    SPLIB += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
     SPLIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
     SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
-
-    PULIB += $(NAN_BLENKEY)/lib/libblenkey.a
-    SPLIB += $(NAN_BLENKEY)/lib/libblenkey.a
-	ifeq ($(OS),windows)
-		ifeq ($(FREE_WINDOWS),true)
-			PULIB += $(NAN_OPENSSL)/lib/libcrypto.a
-			SPLIB += $(NAN_OPENSSL)/lib/libcrypto.a
-		else
-			PULIB += $(NAN_OPENSSL)/lib/libeay32.lib
-			SPLIB += $(NAN_OPENSSL)/lib/libeay32.lib
-		endif
-	else
-		PULIB += $(NAN_OPENSSL)/lib/libcrypto.a
-		SPLIB += $(NAN_OPENSSL)/lib/libcrypto.a
-	endif
 
     # These three need to be explicitly mentioned on the cl, because 
     # if they are offered as a lib, they are optimized away. (nzc)
@@ -273,11 +255,6 @@ endif
 
     # A bit silly... but needed to resolve symbols.
     PLUGREMLIB = $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
-ifeq ($(OS),windows)
-    PLUGREMLIB += $(NAN_OPENSSL)/lib/libeay32.lib
-else
-    PLUGREMLIB += $(NAN_OPENSSL)/lib/libcrypto.a
-endif
 
 ######################## OS dependencies (alphabetic!) ################
 

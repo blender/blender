@@ -57,12 +57,6 @@ CPPFLAGS += -I../../writeblenfile
 CPPFLAGS += -I../../blenloader
 
 CPPFLAGS += -I../../deflate
-CPPFLAGS += -I../../encrypt
-
-CPPFLAGS += -I$(NAN_OPENSSL)/include
-
-#TODO make keystore this a seperate lib
-CPPFLAGS += -I$(NAN_BLENKEY)/include
 
 ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include

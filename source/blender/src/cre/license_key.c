@@ -35,7 +35,6 @@
 #include "BKE_utildefines.h"
 #include "BIF_screen.h"  // splash
 #include "BIF_toolbox.h"
-#include "blenkey.h"
 #include <stdio.h>
 #include <string.h>
 #include "BLO_readfile.h"

@@ -32,7 +32,6 @@
  * note really a STUB eh ...
  */
 
-#include "blenkey.h" // for byte ... duh this needs change !
 #include "BLO_getPubKey.h" 
 
 #ifdef HAVE_CONFIG_H
@@ -40,9 +39,9 @@
 #endif
 
 	int
-getPubKey(byte *dataStreamPubKey,
+getPubKey(unsigned char *dataStreamPubKey,
 		  int dataStreamPubKeyLen,
-		  byte **publisherPubKey,
+		  unsigned char **publisherPubKey,
 		  int *publisherPubKeyLen)
 {
 	int err = 0;

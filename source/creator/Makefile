@@ -58,7 +58,6 @@ CPPFLAGS += -I../blender/bpython/include
 CPPFLAGS += -I../blender/blenloader
 CPPFLAGS += -I../kernel/gen_system
 CPPFLAGS += -I../kernel/gen_messaging
-CPPFLAGS += -I$(NAN_BLENKEY)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 ifeq ($(WITH_QUICKTIME), true)

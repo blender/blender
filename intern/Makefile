@@ -35,7 +35,7 @@ SOURCEDIR = intern
 # include nan_subdirs.mk
 
 ALLDIRS = string ghost guardedalloc bmfont moto container memutil
-ALLDIRS += decimation iksolver keymaker bsp
+ALLDIRS += decimation iksolver bsp
 
 ifneq ($(EXPYTHON), true)
     ALLDIRS += python/freeze

@@ -37,23 +37,21 @@
 extern "C" {
 #endif
 
-#include "blenkey.h"
-
 // TODO this must be made external in key.h
 #define MAXBYTEDATABLOCK 1000
 
 struct keyStoreStruct {
 	UserStruct keyUserStruct;
 
-	byte *privKey;
+	unsigned char *privKey;
 	int privKeyLen;
 
-	byte *pubKey;
+	unsigned char *pubKey;
 	int pubKeyLen;
 
-	byte ByteChecks[MAXBYTEDATABLOCK];
+	unsigned char ByteChecks[MAXBYTEDATABLOCK];
 
-	byte *PythonCode;
+	unsigned char *PythonCode;
 	int PythonCodeLen;
 };
 

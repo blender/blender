@@ -52,9 +52,6 @@ CPPFLAGS += -I../../readstreamglue
 # ugly hack for decrypt/pubkey
 CPPFLAGS += -I../../writestreamglue
 
-CPPFLAGS += -I$(NAN_OPENSSL)/include
-CPPFLAGS += -I$(NAN_BLENKEY)/include
-
 ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include
 endif

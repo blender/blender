@@ -51,9 +51,6 @@ CPPFLAGS += -I../../writestreamglue
 CPPFLAGS += -I../../readstreamglue
 CPPFLAGS += -I../../decrypt
 
-CPPFLAGS += -I$(NAN_OPENSSL)/include
-CPPFLAGS += -I$(NAN_BLENKEY)/include
-
 ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include
 endif

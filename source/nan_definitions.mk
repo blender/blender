@@ -98,7 +98,6 @@ all debug::
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -140,7 +139,6 @@ all debug::
     export NAN_PNG ?= /sw
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= /sw
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -184,7 +182,6 @@ all debug::
     export NAN_PNG ?= /usr/local
     export NAN_SDL ?= /usr/local
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= /usr
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr
@@ -225,7 +222,6 @@ all debug::
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr/freeware
@@ -266,7 +262,6 @@ all debug::
     export NAN_PNG ?= /usr
     export NAN_SDL ?= /usr
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= /usr
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr
     export NAN_ZLIB ?= /usr
@@ -309,7 +304,6 @@ all debug::
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -350,7 +344,6 @@ all debug::
     export NAN_PNG ?= /usr/local
     export NAN_SDL ?= /usr/local
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= /usr/local/ssl
     export NAN_TERRAPLAY ?=
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr
@@ -385,12 +378,10 @@ all debug::
     export NAN_PYTHON_VERSION ?= 2.2
     ifeq ($(FREE_WINDOWS), true)
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-      export NAN_OPENSSL ?= $(LCGDIR)/gcc/openssl
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
       export NAN_ODE ?= $(LCGDIR)/gcc/ode
     else
       export NAN_PYTHON_BINARY ?= python
-      export NAN_OPENSSL ?= $(LCGDIR)/openssl
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
       export NAN_ODE ?= $(LCGDIR)/ode
     endif
@@ -441,7 +432,6 @@ export NAN_PYTHON_BINARY ?= python
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib

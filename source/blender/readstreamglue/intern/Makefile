@@ -52,12 +52,6 @@ CPPFLAGS += -I..
 CPPFLAGS += -I../../../kernel/gen_messaging
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../inflate
-CPPFLAGS += -I../../decrypt
-
-CPPFLAGS += -I$(NAN_OPENSSL)/include
-
-#TODO make keystore a seperate lib
-CPPFLAGS += -I$(NAN_BLENKEY)/include
 
 ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include

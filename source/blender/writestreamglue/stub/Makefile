@@ -49,9 +49,6 @@ CPPFLAGS += -I..
 CPPFLAGS += -I../../../kernel/gen_messaging
 CPPFLAGS += -I../../readstreamglue
 
-#TODO make this a seperate lib
-CPPFLAGS += -I$(NAN_BLENKEY)/include
-
 ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include
 endif

@@ -48,24 +48,18 @@ TESTLIBS += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
 TESTLIBS += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
 TESTLIBS += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
 TESTLIBS += $(OCGDIR)/blender/deflate/$(DEBUG_DIR)libdeflate.a
-TESTLIBS += $(OCGDIR)/blender/encrypt/$(DEBUG_DIR)libencrypt.a
-TESTLIBS += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
-TESTLIBS += $(OCGDIR)/blender/sign/$(DEBUG_DIR)libsign.a
 TESTLIBS += $(OCGDIR)/blender/writeblenfile/$(DEBUG_DIR)libwriteblenfile.a
 TESTLIBS += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
 TESTLIBS += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
-TESTLIBS += $(NAN_BLENKEY)/lib/libblenkey.a
 TESTLIBS += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 
 ifeq ($(OS),$(findstring $(OS), "linux freebsd"))
     TESTLIBS += -lz
-    TESTLIBS += $(NAN_OPENSSL)/lib/libcrypto.a
 endif
 
 ifeq ($(OS),windows)
     TESTLIBS += ws2_32.lib 
     TESTLIBS += $(NAN_ZLIB)/lib/libz.a
-    TESTLIBS += $(NAN_OPENSSL)/lib/libeay32.lib
     TESTLIBS += kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
     TESTLIBS += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
     TESTLIBS += winmm.lib opengl32.lib glu32.lib largeint.lib dxguid.lib
