@@ -310,12 +310,12 @@ ifeq ($(OS),linux)
     BINTARGETS += blenderplayer
   endif
   ifeq ($(CPU),i386)
-#    BINTARGETS = plugin
+    BINTARGETS = plugin
     # BINTARGETS += ptest
-#    BINTARGETS += xplink
+    BINTARGETS += xplink
     BINTARGETS += blenderdynamic
-#    BINTARGETS += blenderplayer
-#    BINTARGETS += blenderstatic
+    BINTARGETS += blenderplayer
+    BINTARGETS += blenderstatic
   endif
   ifeq ($(CPU),powerpc)
     BINTARGETS = blenderdynamic
