@@ -587,7 +587,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 bitmap[
 }
 
 GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap, 
-					GHOST_TUns8 *mask, int sixeX, int sizeY, int hotX, int hotY, 
+					GHOST_TUns8 *mask, int sizeX, int sizeY, int hotX, int hotY, 
 					int fg_color, int bg_color)
 {
 	GHOST_TUns32 andData[32];
