@@ -99,6 +99,8 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+#include "transform.h"
+
 extern ListBase editNurb; /* originally from exports.h, memory from editcurve.c*/
 /* editmball.c */
 extern ListBase editelems;
@@ -708,7 +710,15 @@ int gesture(void)
 				if(curarea->spacetype==SPACE_IPO) transform_ipo(i);
 				else if(curarea->spacetype==SPACE_IMAGE) transform_tface_uv(i);
 				else if(curarea->spacetype==SPACE_OOPS) transform_oops('g');
-				else transform(i);
+				else {
+#ifdef NEWTRANSFORM
+					if(i=='g') Transform(TRANSLATION);
+					else if(i=='s') Transform(ROTATION);
+					else Transform(RESIZE);
+#else
+					transform(i);
+#endif
+				}
 			}
 		}
 		return 1;

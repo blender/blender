@@ -292,6 +292,7 @@ void drawConstraint() {
 
 }
 
+/* called from drawview.c, as ane xtra per-window draw option */
 void drawPropCircle()
 //void drawPropCircle(TransInfo *t)
 {
@@ -301,11 +302,17 @@ void drawPropCircle()
 		float tmat[4][4], imat[4][4];
 
 		BIF_ThemeColor(TH_GRID);
-
+		
+		/* if editmode we need to go into object space */
+		if(G.obedit) mymultmatrix(G.obedit->obmat);
+		
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
-
+		
  		drawcircball(t->center, t->propsize, imat);
+		
+		/* if editmode we restore */
+		if(G.obedit) myloadmatrix(G.vd->viewmat);
 	}
 }
 

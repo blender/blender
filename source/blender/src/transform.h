@@ -37,6 +37,9 @@
 
 /* ************************** Types ***************************** */
 
+struct TransInfo;
+struct TransData;
+
 typedef struct TransCon {
     char  text[50];      /* Description of the Constraint for header_print                            */
     float mtx[3][3];     /* Matrix of the Constraint space                                            */

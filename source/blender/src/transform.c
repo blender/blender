@@ -121,8 +121,8 @@ int	LastMode = TRANSLATION;
 
 int allocTransData()
 {
-    int count, mode=0;
-    countall();
+	int count, mode=0;
+	countall();
 	
  	if(mode) count= G.totvert;
 	else count= G.totvertsel;
@@ -153,16 +153,16 @@ void createTransArmatureVerts()
 		}
 	}
 
-    if (!trans.total) return;
+	if (!trans.total) return;
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    tv = trans.data = MEM_mallocN(trans.total*sizeof(TransData), "TransEditBone");
+	tv = trans.data = MEM_mallocN(trans.total*sizeof(TransData), "TransEditBone");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
-    
+	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
 			VECCOPY (tv->iloc, ebo->tail);
@@ -176,7 +176,7 @@ void createTransArmatureVerts()
 			tv->rot = NULL;
 
 			tv->dist = 0.0f;
-            
+			
 			tv++;
 		}
 		if (ebo->flag & BONE_ROOTSEL){
@@ -191,7 +191,7 @@ void createTransArmatureVerts()
 			tv->rot = NULL;
 
 			tv->dist = 0.0f;
-        
+		
 			tv++;
 		}
 			
@@ -201,18 +201,18 @@ void createTransArmatureVerts()
 void createTransMBallVerts()
 {
  	MetaElem *ml;
-    TransData *tv;
-    int count;
+	TransData *tv;
+	int count;
 	float mtx[3][3], smtx[3][3];
 
-    count = allocTransData();
-    if (!count) return;
+	count = allocTransData();
+	if (!count) return;
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
-    
+	
 	tv = trans.data;
-    ml= editelems.first;
+	ml= editelems.first;
 	while(ml) {
 		if(ml->flag & SELECT) {
 			tv->loc= &ml->x;
@@ -240,23 +240,23 @@ void createTransMBallVerts()
 
 void createTransCurveVerts()
 {
-    TransData *tv = NULL;
+	TransData *tv = NULL;
 	int count=0;
-    int mode = 0; /*This used for. . .what?*/
+	int mode = 0; /*This used for. . .what?*/
   	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	int a;
-    int proptrans= 0;
+	//int proptrans= 0;
 	float mtx[3][3], smtx[3][3];
 
-    count = allocTransData();
+	count = allocTransData();
 	if (!count) return;
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    tv = trans.data;
+	tv = trans.data;
 	nu= editNurb.first;
 	while(nu) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -276,7 +276,7 @@ void createTransCurveVerts()
 						Mat3CpyMat3(tv->mtx, mtx);
 
 						tv->dist = 0.0f;
-            
+			
 						tv++;
 						count++;
 					}
@@ -292,7 +292,7 @@ void createTransCurveVerts()
 						Mat3CpyMat3(tv->mtx, mtx);
 
 						tv->dist = 0.0f;
-            
+			
 						tv++;
 						count++;
 					}
@@ -308,7 +308,7 @@ void createTransCurveVerts()
 						Mat3CpyMat3(tv->mtx, mtx);
 
 						tv->dist = 0.0f;
-            
+			
 						tv++;
 						count++;
 					}
@@ -333,7 +333,7 @@ void createTransCurveVerts()
 						Mat3CpyMat3(tv->mtx, mtx);
 
 						tv->dist = 0.0f;
-            
+			
 						tv++;
 						count++;
 					}
@@ -347,17 +347,17 @@ void createTransCurveVerts()
 
 void createTransLatticeVerts()
 {
-    TransData *tv = NULL;
-    int count = 0;
+	TransData *tv = NULL;
+	int count = 0;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
+	int mode = 0; /*This used for proportional editing*/
+	/*should find a function that does this. . . what else is this used for? I DONT KNOW!*/
+	int a;
+	//int proptrans= 0;
 
-    int mode = 0; /*This used for proportional editing*/
-    /*should find a function that does this. . . what else is this used for? I DONT KNOW!*/
-    int a;
-    int proptrans= 0;
-    bp= editLatt->def;
-    
+	bp= editLatt->def;
+	
 	
  	count = allocTransData();
 	
@@ -396,24 +396,23 @@ void createTransLatticeVerts()
 void VertsToTransData(TransData *tob, EditVert *eve)
 {
 	tob->flag = 0;
-    tob->loc = eve->co;
+	tob->loc = eve->co;
 	VECCOPY(tob->center, tob->loc);
 	VECCOPY(tob->iloc, tob->loc);
 	tob->rot = NULL; 
-    tob->size = NULL;
-    tob->quat = NULL;
+	tob->size = NULL;
+	tob->quat = NULL;
 }
 
 void createTransEditVerts()
 {
-    TransData *tob = NULL;
-    int totsel = 0;
-    EditMesh *em = G.editMesh;
-    EditVert *eve;
+	TransData *tob = NULL;
+	int totsel = 0;
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
 	float mtx[3][3], smtx[3][3];
-
-    /*should find a function that does this. . .*/
-    int proptrans= 0;
+	/*should find a function that does this. . .*/
+	// int proptrans= 0;
 		
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
@@ -463,20 +462,20 @@ void createTransEditVerts()
 	}
 	
 	/* and now make transverts */
-    
-    if (!trans.total) return;
+	
+	if (!trans.total) return;
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    tob = trans.data = MEM_mallocN(trans.total*sizeof(TransData), "TransEditVert");
+	tob = trans.data = MEM_mallocN(trans.total*sizeof(TransData), "TransEditVert");
 
-    for (eve=em->verts.first; eve; eve=eve->next)
-    {
-        if (eve->f1 == SELECT) {
+	for (eve=em->verts.first; eve; eve=eve->next)
+	{
+		if (eve->f1 == SELECT) {
 			VertsToTransData(tob, eve);
 
-	        tob->flag |= TD_SELECTED;
+			tob->flag |= TD_SELECTED;
 
 			Mat3CpyMat3(tob->smtx, smtx);
 			Mat3CpyMat3(tob->mtx, mtx);
@@ -484,8 +483,8 @@ void createTransEditVerts()
 			tob->dist = 0.0f;
 
 			tob++;
-	    }    
-    }    
+		}	
+	}	
 
 	/* PROPORTIONAL*/
 	if (G.f & G_PROPORTIONAL) {
@@ -500,7 +499,7 @@ void createTransEditVerts()
 
 				Mat3CpyMat3(tob->smtx, smtx);
 				Mat3CpyMat3(tob->mtx, mtx);
-            
+			
 				tob->dist = -1;
 
 				td = trans.data;
@@ -517,8 +516,8 @@ void createTransEditVerts()
 				}
 
 				tob++;
-			}    
-		}    
+			}	
+		}	
 	}
 }
 
@@ -684,17 +683,17 @@ void createTransData() {
 			createTransEditVerts();	
    		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
-     		createTransCurveVerts();
-     	}
+			createTransCurveVerts();
+		}
 		else if (G.obedit->type==OB_LATTICE) {
-     	    createTransLatticeVerts();
+			createTransLatticeVerts();
 		}
 		else if (G.obedit->type==OB_MBALL) {
-		    createTransMBallVerts();
+			createTransMBallVerts();
 		}
 		else if (G.obedit->type==OB_ARMATURE) {
-		    createTransArmatureVerts();
-  		}        	    	  		
+			createTransArmatureVerts();
+  		}					  		
 		else {
 			printf("not done yet! only have mesh surface curve\n");
 		}
@@ -1316,19 +1315,20 @@ int Rotation(TransInfo *t, short mval[2]) {
 /* ************************** TRANSLATION *************************** */
 	
 void initTranslation(TransInfo *t) {
-	int x, y;
+	// int x, y;
 	t->num.idx_max = 2;
 	t->transform = Translation;
-	x = G.vd->area->v1->vec.x;
-	y = G.vd->area->v1->vec.y + (G.vd->area->headwin?28:1);
-	warp_pointer(t->center2d[0] + x, t->center2d[1] + y);
 	
-	t->imval[0] = t->center2d[0];
-	t->imval[1] = t->center2d[1];
+	//x = G.vd->area->v1->vec.x;
+	//y = G.vd->area->v1->vec.y + (G.vd->area->headwin?28:1);
+	//warp_pointer(t->center2d[0] + x, t->center2d[1] + y);
+	
+	//t->imval[0] = t->center2d[0];
+	//t->imval[1] = t->center2d[1];
 }
 
 int Translation(TransInfo *t, short mval[2]) {
-	float vec[3], tvec[3], *smtx = NULL;
+	float vec[3], tvec[3];
 	int i;
 	char str[70];
 	TransData *td = t->data;

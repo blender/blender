@@ -4360,7 +4360,6 @@ void draw_object(Base *base)
 				}
 				dtx |= OB_DRAWWIRE;	// draws edges, transp faces, subsurf optimal, vertices
 			}
-			if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
 		}
 		else {
 			Material *ma= give_current_material(ob, 1);
@@ -4403,7 +4402,6 @@ void draw_object(Base *base)
 		
 		if(ob==G.obedit) {
 			drawnurb(ob, editNurb.first, dt);
-			if((G.f & G_PROPORTIONAL)) draw_prop_circle();
 		}
 		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
 		else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);
@@ -4427,7 +4425,6 @@ void draw_object(Base *base)
 		break;
 	case OB_LATTICE:
 		drawlattice(ob);
-		if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
 		break;
 	case OB_ARMATURE:
 		draw_armature (ob);

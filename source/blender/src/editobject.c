@@ -4140,13 +4140,13 @@ void make_trans_verts(float *min, float *max, int mode)
 	
 }
 
+/* now only in use by drawimage.c */
 void draw_prop_circle()
 {
 	if (G.f & G_PROPORTIONAL) {
 		float tmat[4][4], imat[4][4];
 
 		if(G.moving) {
-
 			BIF_ThemeColor(TH_GRID);
 
 			mygetmatrix(tmat);
