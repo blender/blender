@@ -29,14 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	Jun 17, 2001
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -62,6 +54,3 @@ int MEM_RefCountedDecRef(MEM_TRefCountedObjectPtr shared)
 {
 	return shared ? ((MEM_RefCounted*)shared)->decRef() : 0;
 }
-
-
-

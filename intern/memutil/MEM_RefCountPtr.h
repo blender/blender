@@ -28,16 +28,14 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/**
+ * @file	MEM_RefCountPtr.h
+ * Declaration of MEM_RefCounted and MEM_RefCountable classes.
+ * @author Laurence
+ */
 
 #ifndef NAN_INCLUDED_MEM_RefCountPtr_h
 #define NAN_INCLUDED_MEM_RefCountPtr_h
-
-/**
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- *
- * @author Laurence
- */
 
 #include <stdlib.h> // for NULL !
 
@@ -203,7 +201,7 @@ public :
 	}
 
 	/**
-	 * Defalut constructor
+	 * Default constructor
 	 */
 
 	MEM_RefCountPtr(
@@ -252,6 +250,7 @@ public :
 	) {
 		return *m_val;
 	}
+
 
 	/**
 	 * Destructor - deletes object if it's ref count is zero.

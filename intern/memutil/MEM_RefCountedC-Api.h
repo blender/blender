@@ -28,14 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
+ * @file	MEM_RefCountedC-Api.h
  * Interface for C access to functionality relating to shared objects in the foundation library.
- * @author	Maarten Gribnau
- * @date	June 17, 2001
  */
 
 #ifndef _H_MEM_REF_COUNTED_C_API
@@ -51,14 +46,6 @@ typedef MEM_TObjectPtr MEM_TRefCountedObjectPtr;
 extern "C" {
 #endif
 
-
-/**
- * A shared object in an object with reference counting.
- * When a shared object is ceated, it has reference count == 1.
- * If the the reference count of a shared object reaches zero, the object self-destructs.
- * The default constrcutor and destructor of this object have been made protected on purpose.
- * This disables the creation and disposal of shared objects on the stack.
- */
 
 /** 
  * Returns the reference count of this object.

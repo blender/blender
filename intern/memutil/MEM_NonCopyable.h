@@ -28,6 +28,10 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/**
+ * @file	MEM_NonCopyable.h
+ * Declaration of MEM_NonCopyable class.
+ */
 
 #ifndef NAN_INCLUDED_NonCopyable_h
 #define NAN_INCLUDED_NonCopyable_h

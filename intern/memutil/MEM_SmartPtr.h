@@ -28,18 +28,18 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/**
+ * @file	MEM_SmartPtr.h
+ * Declaration of MEM_RefCounted and MEM_RefCountable classes.
+ * @author Laurence
+ */
 
 #ifndef NAN_INCLUDED_MEM_SmartPtr_h
 #define NAN_INCLUDED_MEM_SmartPtr_h
 
-/**
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- *
- * @author Laurence
- */
 
 #include <stdlib.h> // for NULL !
+
 
 /**
  * @section MEM_SmartPtr 
@@ -86,7 +86,7 @@
  *		MEM_SmartPtr<foo> m_foo;
  *	}
  *			
- * You my also safely construct vectors of MEM_SmartPtrs and 
+ * You may also safely construct vectors of MEM_SmartPtrs and 
  * have the vector own stuff you put into it. 
  *
  * e.g.

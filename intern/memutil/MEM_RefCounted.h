@@ -28,13 +28,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 /**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	March 31, 2001
+ * @file	MEM_RefCounted.h
+ * Declaration of MEM_RefCounted class.
  */
 
 #ifndef _H_MEM_REF_COUNTED
