@@ -90,7 +90,7 @@ void init_render_texture(Tex *tex)
 	Image *ima;
 	int imanr;
 	unsigned short numlen;
-	char name[256], head[FILE_MAXFILE], tail[FILE_MAXFILE];
+	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXDIR+FILE_MAXFILE];
 
 	/* is also used as signal */
 	tex->nor= NULL;
