@@ -57,7 +57,7 @@ void calc_scrollrcts		(struct View2D *v2d, int winx, int winy);
 
 int in_ipo_buttons(void);
 void drawscroll(int disptype);
-void drawipo(void);
+void drawipospace(void);
 
 void center_currframe(void);
 void scroll_ipobuts(void);

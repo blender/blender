@@ -44,7 +44,7 @@ void two_sided(int val);
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
 void backdrawview3d(int test);
-void drawview3d(void);
+void drawview3dspace(void);
 void drawview3d_render(struct View3D *v3d);
 int update_time(void);
 void calc_viewborder(struct View3D *v3d, struct rcti *viewborder_r);

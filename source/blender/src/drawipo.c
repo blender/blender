@@ -1316,7 +1316,7 @@ static void draw_key(SpaceIpo *sipo, int visible)
 	setlinestyle(0);
 }
 
-void drawipo(void)
+void drawipospace(void)
 {
 	SpaceIpo *sipo= curarea->spacedata.first;
 	View2D *v2d= &sipo->v2d;

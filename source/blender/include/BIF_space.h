@@ -77,14 +77,14 @@ extern       void initipo(struct ScrArea *sa);
 extern       void initview3d(struct ScrArea *sa);
 extern       void newspace(struct ScrArea *sa, int type);
 extern       void set_rects_butspace(struct SpaceButs *buts);
-extern       void winqread3d(unsigned short event, short val, char ascii);
+extern       void winqreadview3dspace(unsigned short event, short val, char ascii);
 extern       void winqreadbutspace(unsigned short event, short val, char ascii);
 extern       void winqreadimagespace(unsigned short event, short val, char ascii);
 extern       void winqreadinfospace(unsigned short event, short val, char ascii);
-extern       void winqreadipo(unsigned short event, short val, char ascii);
+extern       void winqreadipospace(unsigned short event, short val, char ascii);
 extern       void winqreadoopsspace(unsigned short event, short val, char ascii);
 extern       void winqreadnlaspace(unsigned short event, short val, char ascii);
-extern       void winqreadsequence(unsigned short event, short val, char ascii);
+extern       void winqreadseqspace(unsigned short event, short val, char ascii);
 extern       void test_butspace(void);
 extern       void start_game(void);
 

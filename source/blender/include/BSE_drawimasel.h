@@ -45,7 +45,7 @@ void move_imadir_sli(struct SpaceImaSel *simasel);
 void move_imafile_sli(struct SpaceImaSel *simasel);
 void ima_select_all(struct SpaceImaSel *simasel);
 void pibplay(struct SpaceImaSel *simasel);
-void drawimasel(void);   
+void drawimaselspace(void);   
 
 /*  void calc_hilite(SpaceImaSel *simasel); */
 /*  void ima_select_all(SpaceImaSel *simasel); */

@@ -2462,8 +2462,8 @@ static void do_info_editmenu(void *arg, int event)
 	case 2:
 		/* Circle Select */
 		/*if(select_area(SPACE_VIEW3D)) {
-			winqread3d(BKEY, 1, 0);
-			winqread3d(BKEY, 1, 0);
+			winqreadview3dspace(BKEY, 1, 0);	// XXX - kill me
+			winqreadview3dspace(BKEY, 1, 0);	// XXX - kill me
 		}*/
 		break;
 	case 3:
@@ -2471,14 +2471,14 @@ static void do_info_editmenu(void *arg, int event)
 		if(select_area(SPACE_VIEW3D)) {
 			oldqual = G.qual;
 			G.qual = LR_SHIFTKEY;
-			winqread3d(DKEY, 1, 0);
+			winqreadview3dspace(DKEY, 1, 0);	// XXX - kill me
 			G.qual = oldqual;
 		}
 		break;
 	case 4:
 		/* Delete */
 		if(select_area(SPACE_VIEW3D)) {
-			winqread3d(XKEY, 1, 0);
+			winqreadview3dspace(XKEY, 1, 0);	// XXX - kill me
 		}
 		break;
 	case 5:
@@ -2534,7 +2534,7 @@ static void do_info_editmenu(void *arg, int event)
 		if(select_area(SPACE_VIEW3D)) {
 			oldqual = G.qual;
 			G.qual = LR_SHIFTKEY;
-			winqread3d(WKEY, 1, 0);
+			winqreadview3dspace(WKEY, 1, 0);	// XXX - kill me
 			G.qual = oldqual;
 		}
 		break;
@@ -2543,7 +2543,7 @@ static void do_info_editmenu(void *arg, int event)
 		if(select_area(SPACE_VIEW3D)) {
 			oldqual = G.qual;
 			G.qual = LR_SHIFTKEY;
-			winqread3d(SKEY, 1, 0);
+			winqreadview3dspace(SKEY, 1, 0);	// XXX - kill me
 			G.qual = oldqual;
 		}
 		break;
@@ -3930,7 +3930,7 @@ void do_ipo_buttons(short event)
 	case B_IPOSHOWKEY:
 		/* waarde omkeren vanwege winqread */
 		G.sipo->showkey= 1-G.sipo->showkey;
-		winqreadipo(KKEY, 1, 0);
+		winqreadipospace(KKEY, 1, 0);		// XXX - kill me
 		break;
 	case B_VIEW2DZOOM:
 		viewmovetemp= 0;

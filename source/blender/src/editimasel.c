@@ -71,10 +71,6 @@
 #include "mydevice.h"
 #include "interface.h"
 
-/* locals */
-void draw_icon_imasel(void);
-void winqreadimasel(unsigned short event, short val, char ascii);
-
 #define XIC 20
 #define YIC 21
 
@@ -82,12 +78,12 @@ void winqreadimasel(unsigned short event, short val, char ascii);
 extern char *fsmenu;
 
 
-void draw_icon_imasel(void)
+static void draw_icon_imasel(void)
 {
 	scrarea_queue_winredraw(curarea);
 }
 
-void winqreadimasel(unsigned short event, short val, char ascii)
+void winqreadimaselspace(unsigned short event, short val, char ascii)
 {
 	SpaceImaSel *simasel;
 	

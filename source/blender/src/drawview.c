@@ -784,7 +784,7 @@ static void draw_view_icon(void)
 	glDisable(GL_BLEND);
 }
 
-void drawview3d(void)
+void drawview3dspace(void)
 {
 	Base *base;
 	Object *ob;
