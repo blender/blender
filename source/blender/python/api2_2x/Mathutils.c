@@ -272,12 +272,14 @@ static PyObject *M_Mathutils_Vector( PyObject * self, PyObject * args )
 		goto bad_args;		// Invalid vector size
 	}
 	for (i=0; i<size; i++) {
-		PyObject *v=PySequence_GetItem(listObject, i);
+		PyObject *v, *f;
+
+		v=PySequence_GetItem(listObject, i);
 		if (v==NULL) {
 			Py_DECREF(listObject);
 			return NULL;	// Failed to read sequence
 		}
-		PyObject *f=PyNumber_Float(v);
+		f=PyNumber_Float(v);
 		if(f==NULL) {
 			Py_DECREF(v);
 			goto bad_args;
