@@ -41,11 +41,13 @@
 #include <DNA_object_types.h>
 #include <DNA_scene_types.h>
 #include <DNA_screen_types.h> /* for SPACE_VIEW3D */
+#include <DNA_space_types.h> /* for SPACE_VIEW3D */
 #include <DNA_userdef_types.h>
 #include <BKE_ipo.h>
 
 #include "gen_utils.h"
 #include "modules.h"
+#include "../BPY_extern.h" /* for bpy_gethome() */
 
 /* From Window.h, used here by Blender_Redraw */
 PyObject *M_Window_Redraw(PyObject *self, PyObject *args);
@@ -80,6 +82,7 @@ static char Blender_Get_doc[] =
 	'staframe'	- Returns the start frame of the animation\n\
 	'endframe'	- Returns the end frame of the animation\n\
 	'filename'	- Returns the name of the last file read or written\n\
+	'datadir' - Returns the dir where scripts can save their data, if available\n\
 	'version'	- Returns the Blender version number";
 
 static char Blender_Redraw_doc[] = "() - Redraw all 3D windows";
@@ -195,6 +198,13 @@ static PyObject *Blender_Get (PyObject *self, PyObject *args)
 		if (StringEqual (str, "filename"))
 		{
 			return ( PyString_FromString (G.sce) );
+		}
+		if (StringEqual (str, "datadir"))
+		{
+			char datadir[FILE_MAXDIR];
+			BLI_make_file_string("/", datadir, bpy_gethome(), "bpydata/");
+			if (BLI_exists(datadir)) return PyString_FromString(datadir);
+			else return EXPP_incr_ret (Py_None);
 		}
 		/* According to the old file (opy_blender.c), the following if
 			 statement is a quick hack and needs some clean up. */

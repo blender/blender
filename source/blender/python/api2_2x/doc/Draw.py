@@ -170,6 +170,70 @@ def PupMenu(name, maxrow = None):
   @return: the chosen entry number or -1 if none was chosen.
   """
 
+def PupIntInput(text, default, min, max):
+  """
+  Create an integer number input pop-up.
+
+  This allows python to use Blender's integer number popup input.
+
+  Example::
+    default = 50
+    min = 0
+    max = 100
+    
+    result = Draw.PupIntInput('Set this value between 0 and 100', default, min, max)
+    if result != None:
+      print result
+    else:
+      print 'no user input'
+    
+  @type text: string
+  @param text: The text that is displayed in the popup.
+  @type default: int
+  @param default: The value that the popup is set to initialy.
+  @type min: int
+  @param min: The lowest value the popup will allow.
+  @type max: int
+  @param max: The highest value the popup will allow.
+  @rtype: int
+  @return: the number chosen or None if none was chosen.
+  """
+
+def PupFloatInput(text, default, min, max, clickStep, floatLen):
+  """
+  Create a floating point number input pop-up.
+  
+  This allows python to use Blender's floating point popup input.
+
+  Example::
+    default = 50
+    min = 0
+    max = 100
+    clickStep = 10
+    floatLen = 3
+    
+    result = Draw.PupIntInput('Set this value between 0 and 100', default, min, max, clickStep, floatLen)
+    if result != None:
+      print result
+    else:
+      print 'no user input'
+    
+  @type text: string
+  @param text: The text that is displayed in the popup.
+  @type default: float
+  @param default: The value that the popup is set to initialy.
+  @type min: float
+  @param min: The lowest value the popup will allow.
+  @type max: float
+  @param max: The highest value the popup will allow.
+  @type clickStep: int
+  @param clickStep: How much is incremented per user click, 100 will increment 1.0, 10 will increment 0.1 etc.
+  @type floatLen: int
+  @param floatLen: The number of decimal places to display, between 2 and 4.
+  @rtype: float
+  @return: the number chosen or None if none was chosen.
+  """
+
 def Menu(name, event, x, y, width, height, default, tooltip = None):
   """
   Create a new Menu Button object.

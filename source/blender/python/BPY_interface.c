@@ -567,7 +567,7 @@ int BPY_menu_do_python(short menutype, int event)
 	if (pym->dir) /* script is in U.pythondir */
 		BLI_make_file_string("/", filestr, U.pythondir, pym->filename);
 	else { /* script is in ~/.blender/scripts/ */
-		BLI_make_file_string("/", dirname, bpymenu_gethome(), "scripts");
+		BLI_make_file_string("/", dirname, bpy_gethome(), "scripts");
 		BLI_make_file_string("/", filestr, dirname,	pym->filename);
 	}
 
@@ -1104,4 +1104,36 @@ void init_ourImport(void)
 	m = PyImport_AddModule("__builtin__");
 	d = PyModule_GetDict(m);
 	PyDict_SetItemString(d, "__import__", import);
+}
+
+/* this makes sure BLI_gethome() returns a path with '.blender' appended
+ * Besides, this function now either returns userhome/.blender (if it exists)
+ * or blenderInstallDir/.blender/ otherwise */
+char *bpy_gethome()
+{
+	static char homedir[FILE_MAXDIR];
+	char bprogdir[FILE_MAXDIR];
+	char *s;
+	int i;
+
+	if (homedir[0] != '\0') return homedir; /* no need to search twice */
+
+	s = BLI_gethome();
+
+	if (strstr(s, ".blender")) PyOS_snprintf(homedir, FILE_MAXDIR, s);
+	else BLI_make_file_string ("/", homedir, s, ".blender/");
+
+	/* if userhome/.blender/ exists, return it */
+	if (BLI_exists(homedir)) return homedir;
+
+	/* otherwise, use argv[0] (bprogname) to get .blender/ in
+	 * Blender's installation dir */
+	s = BLI_last_slash(bprogname);
+
+	i = s - bprogname + 1;
+
+	PyOS_snprintf(bprogdir, i, bprogname);
+	BLI_make_file_string ("/", homedir, bprogdir, ".blender/");
+
+	return homedir;
 }

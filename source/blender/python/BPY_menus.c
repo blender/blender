@@ -73,43 +73,15 @@ static int DEBUG;
 */
 BPyMenu *BPyMenuTable[PYMENU_TOTAL];
 
-/* we can't be sure if BLI_gethome() returned a path
- * with '.blender' appended or not.  Besides, this function now
- * either returns userhome/.blender (if it exists) or
- * blenderInstallDir/.blender/ otherwise */
-char *bpymenu_gethome()
-{
-	static char homedir[FILE_MAXDIR];
-	char bprogdir[FILE_MAXDIR];
-	char *s;
-	int i;
-
-	if (homedir[0] != '\0') return homedir; /* no need to search twice */
-
-	s = BLI_gethome();
-
-	if (strstr(s, ".blender")) PyOS_snprintf(homedir, FILE_MAXDIR, s);
-	else BLI_make_file_string ("/", homedir, s, ".blender/");
-
-	/* if userhome/.blender/ exists, return it */
-	if (BLI_exists(homedir)) return homedir;
-
-	/* otherwise, use argv[0] (bprogname) to get .blender/ in
-	 * Blender's installation dir */
-	s = BLI_last_slash(bprogname);
-
-	i = s - bprogname + 1;
-
-	PyOS_snprintf(bprogdir, i, bprogname);
-	BLI_make_file_string ("/", homedir, bprogdir, ".blender/");
-
-	return homedir;
-}
-
 static int bpymenu_group_atoi (char *str)
 {
 	if (!strcmp(str, "Import")) return PYMENU_IMPORT;
 	else if (!strcmp(str, "Export")) return PYMENU_EXPORT;
+	else if (!strcmp(str, "Generators")) return PYMENU_GENERATORS;
+	else if (!strcmp(str, "Modifiers")) return PYMENU_MODIFIERS;
+	else if (!strcmp(str, "Wizards")) return PYMENU_WIZARDS;
+	else if (!strcmp(str, "Animation")) return PYMENU_ANIMATION;
+	else if (!strcmp(str, "Materials")) return PYMENU_MATERIALS;
 	/* "Misc" or an inexistent group name: use misc */
 	else return PYMENU_MISC;
 }
@@ -122,6 +94,21 @@ char *BPyMenu_group_itoa (short menugroup)
 			break;
 		case PYMENU_EXPORT:
 			return "Export";
+			break;
+		case PYMENU_GENERATORS:
+			return "Generators";
+			break;
+		case PYMENU_MODIFIERS:
+			return "Modifiers";
+			break;
+		case PYMENU_WIZARDS:
+			return "Wizards";
+			break;
+		case PYMENU_ANIMATION:
+			return "Animation";
+			break;
+		case PYMENU_MATERIALS:
+			return "Materials";
 			break;
 		case PYMENU_MISC:
 			return "Misc";
@@ -294,12 +281,26 @@ static BPyMenu *bpymenu_AddEntry (short group, short version, char *name,
 	menu->next = next; /* non-NULL if menu already existed */
 
 	if (nameclash) return menu; /* no need to place it, it's already at the list*/
+	else { /* insert the new entry in its correct position at the table */
+		BPyMenu *prev = NULL;
+		char *s = NULL;
 
-	iter = &BPyMenuTable[group];
-	while (*iter) iter = &((*iter)->next);
+		iter = &BPyMenuTable[group];
+		while (*iter) {
+			s = (*iter)->name;
+			if (s) if (strcmp(menu->name, s) < 0) break; /* sort by names */
+			prev = *iter;
+			iter = &((*iter)->next);
+		}
 
-	*iter = menu;
-	
+		if (*iter) { /* prepend */
+			menu->next = *iter;
+			if (prev) prev->next = menu;
+			else BPyMenuTable[group] = menu; /* is first entry */
+		}
+		else *iter = menu; /* append */
+	}
+
 	return menu;
 }
 
@@ -345,7 +346,7 @@ static int bpymenu_CreateFromFile (void)
 		BPyMenuTable[group] = NULL;
 
 	/* let's try to open the file with bpymenu data */
-	BLI_make_file_string ("/", line, bpymenu_gethome(), BPYMENU_DATAFILE);
+	BLI_make_file_string ("/", line, bpy_gethome(), BPYMENU_DATAFILE);
 
 	fp = fopen(line, "rb");
 
@@ -432,7 +433,7 @@ static void bpymenu_WriteDataFile(void)
 	char fname[FILE_MAXDIR+FILE_MAXFILE];
 	int i;
 
-	BLI_make_file_string("/", fname, bpymenu_gethome(), BPYMENU_DATAFILE);
+	BLI_make_file_string("/", fname, bpy_gethome(), BPYMENU_DATAFILE);
 
 	fp = fopen(fname, "w");
 	if (!fp) {
@@ -680,7 +681,7 @@ int BPyMenu_Init(int usedir)
 
 	if (U.pythondir[0] == '\0') upydir = NULL;
 
-	BLI_make_file_string ("/", dirname, bpymenu_gethome(), "scripts");
+	BLI_make_file_string ("/", dirname, bpy_gethome(), "scripts");
 
 	res1 = bpymenu_GetStatMTime(dirname, 0, &tdir1);
 
@@ -722,7 +723,7 @@ int BPyMenu_Init(int usedir)
 	if (DEBUG) printf("\nRegistering scripts in Blender menus ...\n\n");
 
 	if (!usedir) { /* if we're not forced to use the dir */
-		BLI_make_file_string("/", fname, bpymenu_gethome(), BPYMENU_DATAFILE);
+		BLI_make_file_string("/", fname, bpy_gethome(), BPYMENU_DATAFILE);
 		resf = bpymenu_GetStatMTime(fname, 1, &tfile);
 		if (resf < 0) tfile = 0;
 	}

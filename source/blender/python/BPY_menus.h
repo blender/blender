@@ -36,8 +36,8 @@
  * adds 'dynamic' menus to Blender, letting scripts register themselves in any
  * of a few pre-defined (trivial to upgrade) places in menus.  These places or
  * slots are called groups here (Import, Export, etc).  This is how it works:
- * - scripts at some specific folder (only the user pref U.pythondir, right
- * now) are scanned for registration info.
+ * - scripts at dirs user pref U.pythondir and .blender/scripts/ are scanned
+ * for registration info.
  * - this data is also saved to a .Bpymenus file at the user's home dir and
  * only re-created when the scripts folder gets modified.
  * - on start-up Blender uses this info to fill a table, which is used to
@@ -79,9 +79,14 @@ typedef struct BPyMenu {
  * the new group.
 */ 
 typedef enum {
+	PYMENU_WIZARDS, /* complex 'app' scripts */
+	PYMENU_MODIFIERS, /* modifies existing objs */
+	PYMENU_MISC,
+	PYMENU_MATERIALS,
+	PYMENU_GENERATORS, /* creates new objects */
 	PYMENU_IMPORT,
 	PYMENU_EXPORT,
-	PYMENU_MISC,
+	PYMENU_ANIMATION,
 	PYMENU_TOTAL
 } PYMENUHOOKS;
 
@@ -96,7 +101,6 @@ void BPyMenu_RemoveAllEntries(void);
 void BPyMenu_PrintAllEntries(void);
 char *BPyMenu_CreatePupmenuStr(BPyMenu *pym, short group);
 char *BPyMenu_group_itoa (short group);
-char *bpymenu_gethome();
 struct BPyMenu *BPyMenu_GetEntry (short group, short pos);
 
 #endif /* BPY_MENUS_H */

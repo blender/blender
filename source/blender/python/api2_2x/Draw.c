@@ -546,8 +546,7 @@ static PyObject *Method_Exit (PyObject *self, PyObject *args)
  * and gui button events, so a script can continue executing after the
  * interpreter reached its end and returned control to Blender.  Everytime
  * the SPACE_SCRIPT window with this script is redrawn, the registered
- * callbacks are executed and deleted (a new call to Register re-inserts them
- * or new ones).*/
+ * callbacks are executed. */
 static PyObject *Method_Register (PyObject *self, PyObject *args)
 {
 	PyObject *newdrawc = NULL, *neweventc = NULL, *newbuttonc = NULL;

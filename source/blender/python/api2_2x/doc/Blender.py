@@ -62,8 +62,8 @@ The Blender Python API Reference
  open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.33 or newer.
-@version: 2.33a
+@requires: Blender 2.33+ or newer.
+@version: 2.33a-cvs
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}
@@ -90,6 +90,9 @@ def Get (request):
       - 'staframe': the start frame of the animation
       - 'endframe': the end frame of the animation
       - 'filename': the name of the last file read or written
+      - 'datadir' : the path to the dir where scripts should store and
+            retrieve their data files, including saved configuration (can
+            be None, if not found).
       - 'version' : the Blender version number
   @return: The requested data.
   """
@@ -99,8 +102,25 @@ def Redraw ():
   Redraw all 3D windows.
   """
 
-def ReleaseGlobalDict (bool = None):
+def Load (filename = None):
   """
-  @depreciated: this function doesn't work anymore and will be removed. 
-      Look at the L{Registry} submodule for a better alternative.
+  Load a Blender .blend file.
+  @type filename: string
+  @param filename: the pathname to the desired .blend file.  If 'filename'
+      isn't given or if it contains the substring '.B.blend', the default
+      .B.blend file is loaded.
+
+  @warn: loading a new .blend file removes the current data in Blender.  For
+     safety, this function saves the current data as an autosave file in
+     the temporary dir used by Blender before loading the new file.
+  """
+
+def Quit ():
+  """
+  Exit from Blender immediately.
+  @warn: the use of this function should obviously be avoided, it is available
+     because there are some cases where it can be useful, like in automated
+     tests.  For safety, a "quit.blend" file is saved (normal Blender behavior
+     upon exiting) when this function is called, so the data in Blender isn't
+     lost.
   """
