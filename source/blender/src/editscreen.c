@@ -705,7 +705,8 @@ static void moveareas(ScrEdge *edge);
 static void joinarea(ScrArea *sa, ScrEdge *onedge);
 static void splitarea_interactive(ScrArea *area, ScrEdge *onedge);
 
-static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt, short val) {
+static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt, short val) 
+{
 	if (val) {
 			// don't allow users to edit full screens
 		if (actarea && actarea->full) {
@@ -731,6 +732,7 @@ static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt
 				scrarea_change_headertype(actarea, actarea->headertype?0:HEADERDOWN);
 			}
 		}
+		else blenderqread(evt, val);	// global hotkeys
 	}
 }
 
@@ -1122,6 +1124,23 @@ void screenmain(void)
 		if (!g_activearea) {
 			towin= 0;
 		}
+		else if (event==QKEY) {
+			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
+			else {
+				if(val) {
+					if(okee("Quit Blender")) exit_usiblender();
+				}
+				towin= 0;
+			}
+		}
+		else if(ELEM(event, LEFTARROWKEY, RIGHTARROWKEY)) {
+			if(val && (G.qual & LR_CTRLKEY)) {
+				bScreen *sc= (event==LEFTARROWKEY)?G.curscreen->id.prev:G.curscreen->id.next;
+				if(is_allowed_to_change_screen(sc)) setscreen(sc);
+				g_activearea= NULL;
+				towin= 0;
+			}
+		}
 		else if (!G.curscreen->winakt) {
 			ScrEdge *actedge;
 			short mval[2];
@@ -1135,23 +1154,13 @@ void screenmain(void)
 				} else {
 					set_cursor(CURSOR_X_MOVE);
 				}
-
+				// this does global hotkeys too
 				screen_edge_edit_event(g_activearea, actedge, event, val);
 			} else {
 				set_cursor(CURSOR_STD);
 			}
 			
 			towin= 0;
-		}
-		else if (event==QKEY) {
-			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
-			else {
-				if(val) {
-					if(okee("Quit Blender"))
-						exit_usiblender();
-				}
-				towin= 0;
-			}
 		}
 		else if (event==ZKEY) {
 			if(val && G.qual==(LR_ALTKEY|LR_SHIFTKEY|LR_CTRLKEY)) {
@@ -1182,14 +1191,6 @@ void screenmain(void)
 				towin= 0;
 			}
 		}
-		else if(ELEM(event, LEFTARROWKEY, RIGHTARROWKEY)) {
-			if(val && (G.qual & LR_CTRLKEY)) {
-				bScreen *sc= (event==LEFTARROWKEY)?G.curscreen->id.prev:G.curscreen->id.next;
-				if(is_allowed_to_change_screen(sc)) setscreen(sc);
-				g_activearea= NULL;
-				towin= 0;
-			}
-		}
 		else if(ELEM(event, UPARROWKEY, DOWNARROWKEY)) {
 			if(val && (G.qual & LR_CTRLKEY)) {
 				area_fullscreen();
@@ -1199,7 +1200,7 @@ void screenmain(void)
 		}
 
 		if (towin && event) {
-			if (blenderqread(event, val))
+			if (blenderqread(event, val))	// the global keys
 				addqueue_ext(G.curscreen->winakt, event, val, ascii);
 		}
 
