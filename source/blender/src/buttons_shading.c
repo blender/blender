@@ -1526,13 +1526,13 @@ static void world_panel_mistaph(World *wrld)
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_mistaph", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Mist Stars Physics", "World", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Mist / Stars / Physics", "World", 640, 0, 318, 204)==0) return;
 
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
 
 #if GAMEBLENDER == 1
 	uiDefButI(block, MENU, 1, 
-			  "Physics %t|None %x1|Sumo %x2|ODE %x3 |Dynamo %x4|",	
+			  "Physics %t|None %x0|Sumo %x2",	
 			  10,180,140,19, &wrld->physicsEngine, 0, 0, 0, 0, 
 			  "Physics Engine");
 	
