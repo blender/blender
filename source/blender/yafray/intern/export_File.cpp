@@ -73,6 +73,7 @@ static int createDir(char* name)
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -1003,13 +1004,14 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num)
 	ostr.str("");
 	string md = "off";
 	if (R.r.GIphotons) md = "on";
-	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << lamp->dist << "\" ";
+	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << lamp->energy << "\" ";
 	if (!R.r.GIphotons) {
 		int psm=0, sm = lamp->ray_totsamp;
 		if (sm>=16) psm = sm/4;
 		ostr << "samples=\"" << sm << "\" psamples=\"" << psm << "\" ";
 	}
 	ostr << ">\n";
+
 	ostr << "\t<a x=\""<< a[0] <<"\" y=\""<< a[1] <<"\" z=\"" << a[2] <<"\" />\n";
 	ostr << "\t<b x=\""<< b[0] <<"\" y=\""<< b[1] <<"\" z=\"" << b[2] <<"\" />\n";
 	ostr << "\t<c x=\""<< c[0] <<"\" y=\""<< c[1] <<"\" z=\"" << c[2] <<"\" />\n";
@@ -1230,8 +1232,13 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 	char yfr[8];
 	sprintf(yfr, "%d ", R.r.YF_numprocs);
 	string command = command_path + "yafray -c " + yfr + "\"" + xmlpath + "\"";
-	int ret=system(command.c_str());
 #ifndef WIN32
+	sigset_t yaf,old;
+	sigemptyset(&yaf);
+	sigaddset(&yaf,SIGVTALRM);
+	sigprocmask(SIG_BLOCK,&yaf,&old);
+	int ret=system(command.c_str());
+	sigprocmask(SIG_SETMASK,&old,NULL);
 	if(WIFEXITED(ret))
 	{
 		if(WEXITSTATUS(ret)) cout<<"Executed -"<<command<<"-"<<endl;
@@ -1249,6 +1256,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 		cout<<"Unknown error\n";
 	return false;
 #else
+	int ret=system(command.c_str());
 	return ret==0;
 #endif
 	
