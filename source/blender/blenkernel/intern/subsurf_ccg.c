@@ -148,7 +148,7 @@ static SubSurf *subSurf_fromMesh(Mesh *me, float *extverts, int subdivLevels) {
 	return ss;
 }
 
-void subSurf_free(SubSurf *ss) {
+static void subSurf_free(SubSurf *ss) {
 	ccgSubSurf_free(ss->subSurf);
 	MEM_freeN(ss);
 }
@@ -157,13 +157,6 @@ static void Vec3Cpy(float *t, float *a) {
 	t[0]= a[0];
 	t[1]= a[1];
 	t[2]= a[2];
-}
-
-static void VColAvgT(unsigned char *t, unsigned char *a, unsigned char *b) {
-	t[0]= (a[0]+b[0])>>1;
-	t[1]= (a[1]+b[1])>>1;
-	t[2]= (a[2]+b[2])>>1;
-	t[3]= (a[3]+b[3])>>1;
 }
 
 static int getEdgeIndex(CCGSubSurf *ss, CCGEdge *e, int x, int edgeSize) {

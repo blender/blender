@@ -1102,7 +1102,6 @@ DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLe
 		return displistmesh_from_editmesh(em);
 #ifdef USE_CCGSUBSURFLIB
 	} else if (type==ME_CCG_SUBSURF) {
-		extern DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags);
 		return subsurf_ccg_make_dispListMesh_from_editmesh(em, subdivLevels, flags);
 #endif
 	} else {
@@ -1117,7 +1116,6 @@ DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int
 		return displistmesh_from_mesh(me, extverts);
 #ifdef USE_CCGSUBSURFLIB
 	} else if (me->subsurftype==ME_CCG_SUBSURF) {
-		extern DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int subdivLevels, int flags);
 		return subsurf_ccg_make_dispListMesh_from_mesh(me, extverts, subdivLevels, flags);
 #endif
 	} else {

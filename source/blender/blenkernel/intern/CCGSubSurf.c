@@ -362,20 +362,6 @@ static int _vert_isBoundary(CCGVert *v) {
 			return 1;
 	return 0;
 }
-static int _vert_getEdgeIndex(CCGVert *v, CCGEdge *e) {
-	int i;
-	for (i=0; v->numEdges; i++)
-		if (v->edges[i]==e)
-			return i;
-	return -1;
-}
-static int _vert_getFaceIndex(CCGVert *v, CCGFace *f) {
-	int i;
-	for (i=0; v->numFaces; i++)
-		if (v->faces[i]==f)
-			return i;
-	return -1;
-}
 
 static void *_vert_getCo(CCGVert *v, int lvl, int dataSize) {
 	return &VERT_getLevelData(v)[lvl*dataSize];
@@ -408,7 +394,7 @@ static CCGEdge *_edge_new(CCGEdgeHDL eHDL, CCGVert *v0, CCGVert *v1, int levels,
 
 	return e;
 }
-void _edge_remFace(CCGEdge *e, CCGFace *f, CCGSubSurf *ss) {
+static void _edge_remFace(CCGEdge *e, CCGFace *f, CCGSubSurf *ss) {
 	int i;
 	for (i=0; i<e->numFaces; i++) {
 		if (e->faces[i]==f) {
@@ -417,16 +403,9 @@ void _edge_remFace(CCGEdge *e, CCGFace *f, CCGSubSurf *ss) {
 		}
 	}
 }
-void _edge_addFace(CCGEdge *e, CCGFace *f, CCGSubSurf *ss) {
+static void _edge_addFace(CCGEdge *e, CCGFace *f, CCGSubSurf *ss) {
 	e->faces = CCGSUBSURF_realloc(ss, e->faces, (e->numFaces+1)*sizeof(*e->faces), e->numFaces*sizeof(*e->faces));
 	e->faces[e->numFaces++] = f;
-}
-static int _edge_getFaceIndex(CCGEdge *e, CCGFace *f) {
-	int i;
-	for (i=0; i<e->numFaces; i++)
-		if (e->faces[i]==f)
-			return i;
-	return -1;
 }
 static int _edge_isBoundary(CCGEdge *e) {
 	return e->numFaces<2;
@@ -466,7 +445,7 @@ static void _edge_unlinkMarkAndFree(CCGEdge *e, CCGSubSurf *ss) {
 }
 
 #ifdef USE_CREASING
-float EDGE_getSharpness(CCGEdge *e, int lvl, CCGSubSurf *ss) {
+static float EDGE_getSharpness(CCGEdge *e, int lvl, CCGSubSurf *ss) {
 	float f,sharpness = f=(((float*) ccgSubSurf_getEdgeUserData(ss, e))[1]);
 	while ((sharpness>1.0) && lvl--)
 		sharpness -= 1.0;
@@ -479,7 +458,6 @@ float EDGE_getSharpness(CCGEdge *e, int lvl, CCGSubSurf *ss) {
 static CCGFace *_face_new(CCGFaceHDL fHDL, CCGVert **verts, CCGEdge **edges, int numVerts, int levels, int dataSize, CCGSubSurf *ss) {
 	int maxGridSize = 1 + (1<<(ss->subdivLevels-1));
 	CCGFace *f = CCGSUBSURF_alloc(ss, sizeof(CCGFace) + sizeof(CCGVert*)*numVerts + sizeof(CCGEdge*)*numVerts + ss->meshIFC.vertDataSize *(1 + numVerts*maxGridSize + numVerts*maxGridSize*maxGridSize) + ss->meshIFC.faceUserSize);
-	CCGVert **fVerts = FACE_getVerts(f);
 	byte *userData;
 	int i;
 
@@ -517,13 +495,6 @@ static int _face_getVertIndex(CCGFace *f, CCGVert *v) {
 	int i;
 	for (i=0; i<f->numVerts; i++)
 		if (FACE_getVerts(f)[i]==v)
-			return i;
-	return -1;
-}
-static int _face_getEdgeIndex(CCGFace *f, CCGEdge *e) {
-	int i;
-	for (i=0; i<f->numVerts; i++)
-		if (FACE_getEdges(f)[i]==e)
 			return i;
 	return -1;
 }
@@ -1655,7 +1626,6 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			float sharpness = EDGE_getSharpness(e, curLvl, ss);
 			int sharpCount = 0;
 			float avgSharpness = 0.0;
-			CCGVert *sharpV0 = NULL, *sharpV1 = NULL;
 
 			if (sharpness!=0.0f) {
 				sharpCount = 2;
