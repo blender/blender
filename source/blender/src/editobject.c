@@ -6086,8 +6086,11 @@ void transform(int mode)
 		if(edge_creases) {	// exception case, edges dont fit in Trans structs...
 			EditEdge *ee;
 			int tot;
+			
 			for(tot= 0, ee = G.editMesh->edges.first; ee; ee= ee->next, tot++)
 				ee->crease= edge_creases[tot];
+			
+			makeDispList(G.obedit);
 		}
 		else {
 			
