@@ -260,6 +260,7 @@ typedef struct {
 	float no[3];
 	float uvco[3];
 	int index;
+	char flag; /* see MVert flag in DNA_mesh_types */
 
 } BPy_NMVert; /* an NMesh vertex */
 

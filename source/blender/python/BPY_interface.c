@@ -205,7 +205,7 @@ void init_syspath(void)
   else
     printf ("Warning: could not determine argv[0] path\n");
 
-  if (U.pythondir && strcmp(U.pythondir, "")) {
+  if (U.pythondir && U.pythondir[0] != '\0') {
     p = Py_BuildValue("s", U.pythondir);
     syspath_append(p);  /* append to module search path */
   }
@@ -480,6 +480,7 @@ int BPY_menu_do_python(short menutype, int event)
 	FILE *fp = NULL;
 	char *buffer;
 	char filestr[FILE_MAXDIR+FILE_MAXFILE];
+	char dirname[FILE_MAXDIR];
 	Script *script = G.main->script.first;
 	int len;
 
@@ -494,6 +495,10 @@ int BPY_menu_do_python(short menutype, int event)
 	}
 
 	if (!pym) return 0;
+
+	if (pym->version > G.version)
+		notice ("Version mismatch: script was written for Blender %d. "
+						"It may fail with yours: %d.", pym->version, G.version);
 
 /* if there are submenus, let the user choose one from a pupmenu that we
  * create here.*/
@@ -521,7 +526,13 @@ int BPY_menu_do_python(short menutype, int event)
 		pyarg = Py_None;
 	}
 
-	BLI_make_file_string(NULL, filestr, U.pythondir, pym->filename);
+	if (pym->dir) /* script is in U.pythondir */
+		BLI_make_file_string("/", filestr, U.pythondir, pym->filename);
+	else { /* script is in ~/.blender/scripts/ */
+		BLI_make_file_string("/", dirname, BLI_gethome(), ".blender/scripts");
+		BLI_make_file_string("/", filestr, dirname,	pym->filename);
+	}
+
 	fp = fopen(filestr, "r");
 	if (!fp) { /* later also support userhome/.blender/scripts/ or whatever */
 		printf("Error loading script: couldn't open file %s\n", filestr);

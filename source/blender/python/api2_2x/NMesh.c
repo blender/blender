@@ -449,6 +449,7 @@ static BPy_NMVert *newvert(float *co)
 
 	mv->no[0] = mv->no[1] = mv->no[2] = 0.0;
 	mv->uvco[0] = mv->uvco[1] = mv->uvco[2] = 0.0;
+	mv->flag = 0;
 	
 	return mv;
 }
@@ -476,11 +477,12 @@ static PyObject *NMVert_getattr(PyObject *self, char *name)
 	if (!strcmp(name, "co") || !strcmp(name, "loc"))
 					return newVectorObject(mv->co, 3);
 
-	else if (strcmp(name, "no") == 0)		 return newVectorObject(mv->no, 3);		 
-	else if (strcmp(name, "uvco") == 0)  return newVectorObject(mv->uvco, 3);		 
+	else if (strcmp(name, "no") == 0) return newVectorObject(mv->no, 3);		 
+	else if (strcmp(name, "uvco") == 0) return newVectorObject(mv->uvco, 3);		 
 	else if (strcmp(name, "index") == 0) return PyInt_FromLong(mv->index);
+	else if (strcmp(name, "sel") == 0) return PyInt_FromLong(mv->flag & 1);
 	else if (strcmp(name, "__members__") == 0)
-		return Py_BuildValue("[s,s,s,s]", "co", "no", "uvco", "index");
+		return Py_BuildValue("[s,s,s,s,s]", "co", "no", "uvco", "index", "sel");
 
 	return EXPP_ReturnPyObjError (PyExc_AttributeError, name);
 }
@@ -494,7 +496,13 @@ static int NMVert_setattr(PyObject *self, char *name, PyObject *v)
 		PyArg_Parse(v, "i", &i);
 		mv->index = i;
 		return 0;
-	} else if (strcmp(name, "uvco") == 0) {
+	}
+	else if (strcmp(name, "sel") == 0) {
+		PyArg_Parse(v, "i", &i);
+		mv->flag = i?1:0;
+		return 0;
+	}
+	else if (strcmp(name, "uvco") == 0) {
 
 			if (!PyArg_ParseTuple(v, "ff|f",
 							&(mv->uvco[0]), &(mv->uvco[1]), &(mv->uvco[2])))
@@ -855,7 +863,6 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
 
 	return PyInt_FromLong(1);
 }
-
 
 /** Implementation of the python method getVertexInfluence for an NMesh object.
  * This method returns a list of pairs (string,float) with bone names and
@@ -1322,7 +1329,7 @@ static BPy_NMFace *nmface_from_intdata(BPy_NMesh *mesh,
 }
 
 static BPy_NMVert *nmvert_from_data(BPy_NMesh *me,
-								MVert *vert, MSticky *st, float *co, int idx)
+								MVert *vert, MSticky *st, float *co, int idx, char flag)
 {
 	BPy_NMVert *mv = PyObject_NEW(BPy_NMVert, &NMVert_Type);
 
@@ -1340,6 +1347,7 @@ static BPy_NMVert *nmvert_from_data(BPy_NMesh *me,
 	} else mv->uvco[0] = mv->uvco[1] = mv->uvco[2] = 0.0;
 
 	mv->index = idx;
+	mv->flag = flag & 1;
 
 	return mv;
 }
@@ -1435,7 +1443,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 			float *vco = extverts?&extverts[i*3]:oldmv->co;
 
 			PyList_SetItem(me->verts, i,
-											(PyObject *)nmvert_from_data(me, oldmv, oldst, vco, i));	
+											(PyObject *)nmvert_from_data(me, oldmv, oldst, vco, i, oldmv->flag));	
 		}
 
 		me->faces = PyList_New(totface);
@@ -1550,7 +1558,7 @@ static void mvert_from_data(MVert *mv, MSticky *st, BPy_NMVert *from)
 	mv->no[1] = from->no[1]*32767.0;
 	mv->no[2] = from->no[2]*32767.0;
 		
-	mv->flag = 0;
+	mv->flag = (from->flag & 1);
 	mv->mat_nr = 0;
 
 	if (st) {

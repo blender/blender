@@ -3,8 +3,6 @@
 """
 The Blender.Draw submodule.
 
-B{New}: L{PupMenu}.
-
 Draw
 ====
 

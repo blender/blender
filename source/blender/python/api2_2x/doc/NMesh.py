@@ -3,6 +3,8 @@
 """
 The Blender.NMesh submodule.
 
+B{New}: vertex selection.
+
 Mesh Data
 =========
 
@@ -175,6 +177,8 @@ class NMVert:
   @cvar uvco: The vertex texture "sticky" coordinates.
   @type index: int
   @cvar index: The vertex index, if owned by a mesh.
+  @type sel: int
+  @cvar sel: The selection state (selected:1, unselected:0) of this vertex.
   @warn:  There are two kinds of uv texture coordinates in Blender: per vertex
      ("sticky") and per face vertex (uv in L{NMFace}).  In the first, there's
      only one uv pair of coordinates for each vertex in the mesh.  In the
