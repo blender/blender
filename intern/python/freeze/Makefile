@@ -12,6 +12,9 @@ PYFLAGS = -S -O
 
 default: importer
 
+# fake all and debug targets
+all debug: default
+
 install: importer
 
 importer: 

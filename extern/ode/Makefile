@@ -54,6 +54,9 @@ all:
 	mv $(TEMPSETTINGS) $(USERSETTINGS)
     endif
 
+# fake debug target
+debug:
+
 install: all
     ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
 	[ -d $(LCGDIR) ] || mkdir $(LCGDIR)
