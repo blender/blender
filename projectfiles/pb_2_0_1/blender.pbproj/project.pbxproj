@@ -1752,6 +1752,138 @@
 			settings = {
 			};
 		};
+		FA67B2D703CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_mcf__utils__hier_rx.c;
+			refType = 4;
+		};
+		FA67B2D803CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_mcf__utils__hierobj.c;
+			refType = 4;
+		};
+		FA67B2D903CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_mcf__utils__singletonlist.c;
+			refType = 4;
+		};
+		FA67B2DA03CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_mcf__utils.c;
+			refType = 4;
+		};
+		FA67B2DB03CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_mcf.c;
+			refType = 4;
+		};
+		FA67B2DC03CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_pprint.c;
+			refType = 4;
+		};
+		FA67B2DD03CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_StringIO.c;
+			refType = 4;
+		};
+		FA67B2DE03CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_vrml__utils__collapse.c;
+			refType = 4;
+		};
+		FA67B2DF03CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_vrml__utils__err.c;
+			refType = 4;
+		};
+		FA67B2E003CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_vrml__utils__namespace.c;
+			refType = 4;
+		};
+		FA67B2E103CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_vrml__utils__typeclasses.c;
+			refType = 4;
+		};
+		FA67B2E203CA2D4F03FEB8EC = {
+			isa = PBXFileReference;
+			path = M_vrml__utils.c;
+			refType = 4;
+		};
+		FA67B2E303CA2D4F03FEB8EC = {
+			fileRef = FA67B2D703CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2E403CA2D4F03FEB8EC = {
+			fileRef = FA67B2D803CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2E503CA2D4F03FEB8EC = {
+			fileRef = FA67B2D903CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2E603CA2D4F03FEB8EC = {
+			fileRef = FA67B2DA03CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2E703CA2D4F03FEB8EC = {
+			fileRef = FA67B2DB03CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2E803CA2D4F03FEB8EC = {
+			fileRef = FA67B2DC03CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2E903CA2D4F03FEB8EC = {
+			fileRef = FA67B2DD03CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2EA03CA2D4F03FEB8EC = {
+			fileRef = FA67B2DE03CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2EB03CA2D4F03FEB8EC = {
+			fileRef = FA67B2DF03CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2EC03CA2D4F03FEB8EC = {
+			fileRef = FA67B2E003CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2ED03CA2D4F03FEB8EC = {
+			fileRef = FA67B2E103CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		FA67B2EE03CA2D4F03FEB8EC = {
+			fileRef = FA67B2E203CA2D4F03FEB8EC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		FA975547039C23F0036DFF9B = {
 			children = (
 				FAA69909039D64FA03A8005C,
@@ -2090,10 +2222,8 @@
 				FACC363A03A251FA03FE47F7,
 				FACC363B03A251FA03FE47F7,
 				FACC363C03A251FB03FE47F7,
-				FACC363D03A251FC03FE47F7,
 				FACC363E03A251FC03FE47F7,
 				FACC363F03A251FD03FE47F7,
-				FACC364503A2520103FE47F7,
 				FACC364603A2520103FE47F7,
 				FACC364703A2520103FE47F7,
 				FACC364803A2520203FE47F7,
@@ -2462,6 +2592,18 @@
 				FACC37DA03A25AD003FE47F7,
 				FACC37DB03A25B1C03FE47F7,
 				FACC37DC03A25B3603FE47F7,
+				FA67B2E303CA2D4F03FEB8EC,
+				FA67B2E403CA2D4F03FEB8EC,
+				FA67B2E503CA2D4F03FEB8EC,
+				FA67B2E603CA2D4F03FEB8EC,
+				FA67B2E703CA2D4F03FEB8EC,
+				FA67B2E803CA2D4F03FEB8EC,
+				FA67B2E903CA2D4F03FEB8EC,
+				FA67B2EA03CA2D4F03FEB8EC,
+				FA67B2EB03CA2D4F03FEB8EC,
+				FA67B2EC03CA2D4F03FEB8EC,
+				FA67B2ED03CA2D4F03FEB8EC,
+				FA67B2EE03CA2D4F03FEB8EC,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3177,12 +3319,6 @@
 			settings = {
 			};
 		};
-		FACC363D03A251FC03FE47F7 = {
-			fileRef = FAFFD05E039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		FACC363E03A251FC03FE47F7 = {
 			fileRef = FAFFD060039C0D9C03A6FA84;
 			isa = PBXBuildFile;
@@ -3191,12 +3327,6 @@
 		};
 		FACC363F03A251FD03FE47F7 = {
 			fileRef = FAFFD062039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC364503A2520103FE47F7 = {
-			fileRef = FAFFD06E039C0D9C03A6FA84;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -6773,10 +6903,8 @@
 				FAFFD058039C0D9C03A6FA84,
 				FAFFD05A039C0D9C03A6FA84,
 				FAFFD05C039C0D9C03A6FA84,
-				FAFFD05E039C0D9C03A6FA84,
 				FAFFD060039C0D9C03A6FA84,
 				FAFFD062039C0D9C03A6FA84,
-				FAFFD06E039C0D9C03A6FA84,
 				FAFFD070039C0D9C03A6FA84,
 				FAFFD072039C0D9C03A6FA84,
 				FAFFD074039C0D9C03A6FA84,
@@ -6798,6 +6926,18 @@
 				FAFFD094039C0D9C03A6FA84,
 				FAFFD096039C0D9C03A6FA84,
 				FAFFD0A2039C0D9C03A6FA84,
+				FA67B2D703CA2D4F03FEB8EC,
+				FA67B2D803CA2D4F03FEB8EC,
+				FA67B2D903CA2D4F03FEB8EC,
+				FA67B2DA03CA2D4F03FEB8EC,
+				FA67B2DB03CA2D4F03FEB8EC,
+				FA67B2DC03CA2D4F03FEB8EC,
+				FA67B2DD03CA2D4F03FEB8EC,
+				FA67B2DE03CA2D4F03FEB8EC,
+				FA67B2DF03CA2D4F03FEB8EC,
+				FA67B2E003CA2D4F03FEB8EC,
+				FA67B2E103CA2D4F03FEB8EC,
+				FA67B2E203CA2D4F03FEB8EC,
 			);
 			isa = PBXGroup;
 			path = frozen;
@@ -6938,11 +7078,6 @@
 			path = M_Converter__importloader.c;
 			refType = 4;
 		};
-		FAFFD05E039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_copy.c;
-			refType = 4;
-		};
 		FAFFD060039C0D9C03A6FA84 = {
 			isa = PBXFileReference;
 			path = M_copy_reg.c;
@@ -6951,11 +7086,6 @@
 		FAFFD062039C0D9C03A6FA84 = {
 			isa = PBXFileReference;
 			path = M_gzip.c;
-			refType = 4;
-		};
-		FAFFD06E039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_repr.c;
 			refType = 4;
 		};
 		FAFFD070039C0D9C03A6FA84 = {
@@ -14560,7 +14690,7 @@
 				LIBRARY_SEARCH_PATHS = "/usr/lib/gcc/darwin/3.1 /usr/local/lib/python2.2/config /sw/lib ../../lib/darwin-6.1-powerpc/fmod/lib ../../lib/darwin-6.1-powerpc/ode/lib ../../lib/darwin-6.1-powerpc/blenkey/lib ../../lib/darwin-6.1-powerpc/bmfont/lib ../../lib/darwin-6.1-powerpc/bsp/lib ../../lib/darwin-6.1-powerpc/container/lib ../../lib/darwin-6.1-powerpc/ghost/lib ../../lib/darwin-6.1-powerpc/guardedalloc/lib ../../lib/darwin-6.1-powerpc/iksolver/lib ../../lib/darwin-6.1-powerpc/memutil/lib ../../lib/darwin-6.1-powerpc/moto/lib ../../lib/darwin-6.1-powerpc/string/lib";
 				OPTIMIZATION_CFLAGS = "-O3";
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "-lz";
+				OTHER_LDFLAGS = "-lz -lpython2.2";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = blenderplayer;
 				SECTORDER_FLAGS = "";
