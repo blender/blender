@@ -42,14 +42,14 @@ Poner a distancia fija%x1|Sumar (desp. absoluto)%x2|Multiplicar (desp. relativo)
 ********************
 English
 Exit program
-Utils about:%t|Allign Objects%x1|Create%x2|Edit Meshes%x3|Edit Objects%x4
+Utils about:%t|Align Objects%x1|Create%x2|Edit Meshes%x3|Edit Objects%x4
 11
 Mov
 Sca
 Fit
 Embrace
 Separate
-Allign
+Align
 Rota
 Incr.
 Create new objects

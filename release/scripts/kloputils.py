@@ -2,11 +2,13 @@
 
 """ Registration info for Blender menus:
 Name: 'Kloputils 3'
-Blender: 233
+Blender: 234
 Group: 'Wizards'
-Tip: 'Set of object alligning, modifing tools.'
+Tip: 'Set of object aligning, modifying tools'
 """
 
+# $Id$
+#
 ##################################################
 #                                                #
 #        KLOPUTILES v3.1 para Blender v2.33      #
@@ -24,8 +26,6 @@ Tip: 'Set of object alligning, modifing tools.'
 #	TODO: Elipses
 #
 ##################################################
-#
-# $Id$
 #
 # --------------------------------------------------------------------------
 # Kloputils by Carlos López (klopez)
@@ -64,6 +64,10 @@ from math import *
 #path=dirname(progname)
 #path=[dirname(progname),'.blender','bpydata']
 path=Blender.Get("datadir")
+if not path:
+	errmsg = "\nNo bpydata/ dir found! It should be in Blender's home dir."
+	raise IOError, errmsg
+
 sc=Blender.Scene.GetCurrent()
 MId=Matrix([1,0],[0,1])
 MId.resize4x4()
@@ -110,7 +114,7 @@ angulo=Create(30.0)
 radio=Create(1.0)
 pts=Create(10)
 ctro=Create(0)
-meTx=Create('Arco')
+meTx=Create('Arc')
 
 arcorden=Create(0)
 
@@ -233,7 +237,7 @@ def draw():
 	glClearColor(0.4,0.2,0.2,0.0)
 	glClear(GL_COLOR_BUFFER_BIT)
 
-	pagina=Menu(menu0,98,20,370,170,28,pagina.val,"Selecciona pagina")
+	pagina=Menu(menu0,98,20,370,170,28,pagina.val,"Select page")
 	toBuffer=Menu(menu4,80,200,370,20,15,toBuffer.val,"Copy values to the internal buffer")
 	glColor3f(0.6,0.6,0.2)
 	glRasterPos2i(198,388)
@@ -253,24 +257,24 @@ def draw4():
 
 	rectang(15,38,225,264,0.2,0.,0.)
 
-	moveke=Menu(menu5,98,10,248,200,20,moveke.val,"Modifica la matriz de objetos seleccionados")
+	moveke=Menu(menu5,98,10,248,200,20,moveke.val,"Modify the matrices of selected objects")
 	if moveke.val==2:
-		aliX=Toggle("X",0, 50,160,45,30,aliX.val,"Activa modif en X")
-		aliY=Toggle("Y",0, 95,160,45,30,aliY.val,"Activa modif en Y")
-		aliZ=Toggle("Z",0,140,160,45,30,aliZ.val,"Activa modif en Z")
+		aliX=Toggle("X",0, 50,160,45,30,aliX.val,"Activate modification in X")
+		aliY=Toggle("Y",0, 95,160,45,30,aliY.val,"Activate modification in Y")
+		aliZ=Toggle("Z",0,140,160,45,30,aliZ.val,"Activate modification in Z")
 		menuLRS=Menu("Loc%x1|Rot%x2|Size%x3",98,20,110,50,20,menuLRS.val)
 	if moveke.val==1:
-		movekomo=Menu(menu5a,98,20,225,200,20,movekomo.val,"Tipo de transformacion")
-		m,M,tip= -100,100,"Cantidad"
+		movekomo=Menu(menu5a,98,20,225,200,20,movekomo.val,"Transformation type")
+		m,M,tip= -100,100,"Quantity"
 	else:
 		if menuLRS.val==1:
-			m,M,tip= -1000, 1000, "Distancia"
+			m,M,tip= -1000, 1000, "Distance"
 		elif menuLRS.val==2:
-			m,M,tip= 0, 360, "Angulo"
+			m,M,tip= 0, 360, "Angle"
 		elif menuLRS.val==3:
-			m,M,tip= 0, 100, "Escala"
-	if moveke.val==1 and movekomo.val==3:	tip="Multiplicador de "+tip
-	if moveke.val==2:	tip=tip+" (maximo)"
+			m,M,tip= 0, 100, "Scale"
+	if moveke.val==1 and movekomo.val==3:	tip=tip+"Multiplier "
+	if moveke.val==2:	tip=tip+" (max)"
 
 	numReal=Number("",0,20,140,178,18,numReal.val,m,M,tip)
 	glColor3f(0.6,0.6,0.2)
@@ -290,7 +294,7 @@ def draw3():
 
 	rectang(15,38,225,264,0.3,0.7,0.5)
 
-	editake=Menu(menu3,98,10,248,143,20,editake.val,"Menu de edicion de mayas")
+	editake=Menu(menu3,98,10,248,143,20,editake.val,"Mesh editing menu")
 	if(editake.val==1):
 		ndiv=Number(menu3a,98,20,200,150,18,ndiv.val,2,1000)
 		ok=Button("OK",20,172,200,32,18)
@@ -311,7 +315,7 @@ def draw3():
 		nSizX=Number("SizeX:",98,20, 80,170,19,nSizX.val,-1000.,1000.)
 		nSizY=Number("SizeY:",98,20, 60,170,19,nSizY.val,-1000.,1000.)
 		nSizZ=Number("SizeZ:",98,20, 40,170,19,nSizZ.val,-1000.,1000.)
-		other=Toggle("Actulize others",98,20,222,170,18,other.val)
+		other=Toggle("Refresh others",98,20,222,170,18,other.val)
 		oklocrotsiz=Button("OK",30,192,40,30,179)
 
 def draw2():
@@ -319,24 +323,24 @@ def draw2():
 
 	rectang(15,65,224,257,0.7,0.5,0.65)
 
-	creake=Menu(menu2,98,10,248,143,20,creake.val,"Tipo de objeto")
+	creake=Menu(menu2,98,10,248,143,20,creake.val,"Object type")
 	if(creake.val==1):
 		pts=Number(menu2a[0],98,20,115,80,18,pts.val,2,1000)
-		ctro=Toggle(menu2a[1],98,102,115,50,18,ctro.val,"Cierra el arco con el centro")
-		arcorden=Menu(menu2a[2]+"%t|1-2-3%x1|2-3-1%x2|3-1-2%x3",17,155,115,65,18,arcorden.val,"Orden de los vertices")
-		meTx=String("Objeto: ",98,20,70,200,22,meTx.val,30,"Nombre del objeto a crear")
+		ctro=Toggle(menu2a[1],98,102,115,50,18,ctro.val,"Close the arc with a vertex on its center")
+		arcorden=Menu(menu2a[2]+"%t|1-2-3%x1|2-3-1%x2|3-1-2%x3",17,155,115,65,18,arcorden.val,"Vertices order (arc is created when this is chosen)")
+		meTx=String("Object: ",98,20,70,200,22,meTx.val,30,"New object's name")
 	if(creake.val==2):
-		ang1=Slider(menu2a[4],10,20,220,200,18,ang1.val,-360,360,0,"Angulo inicial en grados")
-		ang2=Slider(menu2a[5],11,20,200,200,18,ang2.val,ang1.val,ang1.val+360,0,"Angulo final en grados")
-		angulo=Slider(menu2a[6],12,20,170,200,18,angulo.val,-360,360,0,"Angulo del arco en grados")
+		ang1=Slider(menu2a[4],10,20,220,200,18,ang1.val,-360,360,0,"Initial angle in degrees")
+		ang2=Slider(menu2a[5],11,20,200,200,18,ang2.val,ang1.val,ang1.val+360,0,"Final angle in degress")
+		angulo=Slider(menu2a[6],12,20,170,200,18,angulo.val,-360,360,0,"Arc's angle in degress")
 		radio=Slider(menu2a[7],13,20,140,200,18,radio.val,0,1,0)
 		pts=Number(menu2a[8],14,20,115,80,18,pts.val,2,1000)
-		ctro=Toggle(menu2a[9],15,102,115,50,18,ctro.val,"Cierra el arco con el centro")
-		meTx=String(menu2a[10],16,20,70,200,22,meTx.val,30,"Nombre de la maya a sustituir")
+		ctro=Toggle(menu2a[9],15,102,115,50,18,ctro.val,"Close the arc with a vertex on its center")
+		meTx=String(menu2a[10],16,20,70,200,22,meTx.val,30,"Name of the mesh to substitute")
 	if(creake.val==3):
 		pts=Number("Pts:",98,20,115,80,18,pts.val,2,1000)
 		ok=Button("OK",18,102,115,120,36)
-		meTx=String("Objeto: ",98,20,70,200,22,meTx.val,30,"Nombre del objeto a crear")
+		meTx=String("Object: ",98,20,70,200,22,meTx.val,30,"New object's name")
 		
 def draw1():
 	global menueqiX,sepX,aliX,menueqiY,sepY,aliY,menueqiZ,sepZ,aliZ
@@ -350,29 +354,29 @@ def draw1():
 	Button("C",81,194,270,25,18,"Copy")
 	Button("P",82,220,270,25,18,"Paste buffer Loc")
 
-	aliX=Toggle("X",0,10,270,30,18,aliX.val,"Activa alineacion X")
-	menueqiX=Menu(menu1b,98,41,270,148,18,menueqiX.val,"Extremos de la separacion")  
-	sepX=Number(menu1a[4],0,10,250,179,18,sepX.val,-1000,1000,"Distancia de separacion X")
+	aliX=Toggle("X",0,10,270,30,18,aliX.val,"Activate X alignment")
+	menueqiX=Menu(menu1b,98,41,270,148,18,menueqiX.val,"Separation extremes")  
+	sepX=Number(menu1a[4],0,10,250,179,18,sepX.val,-1000,1000,"X separation distance")
 
-	aliY=Toggle("Y",0,10,230,30,18,aliY.val,"Activa alineacion Y")
-	menueqiY=Menu(menu1b,98,41,230,148,18,menueqiY.val,"Extremos de la separacion")  
-	sepY=Number(menu1a[4],0,10,210,179,18,sepY.val,-1000,1000,"Distancia de separacion Y")
+	aliY=Toggle("Y",0,10,230,30,18,aliY.val,"Activate Y alignment")
+	menueqiY=Menu(menu1b,98,41,230,148,18,menueqiY.val,"Separation extremes")  
+	sepY=Number(menu1a[4],0,10,210,179,18,sepY.val,-1000,1000,"Y separation distance")
 
-	aliZ=Toggle("Z",0,10,190,30,18,aliZ.val,"Activa alineacion Z")
-	menueqiZ=Menu(menu1b,98,41,190,148,18,menueqiZ.val,"Extremos de la separacion")  
-	sepZ=Number(menu1a[4],0,10,170,179,18,sepZ.val,-1000,1000,"Distancia de separacion Z")
+	aliZ=Toggle("Z",0,10,190,30,18,aliZ.val,"Activate Z alignment")
+	menueqiZ=Menu(menu1b,98,41,190,148,18,menueqiZ.val,"Separation extremes")  
+	sepZ=Number(menu1a[4],0,10,170,179,18,sepZ.val,-1000,1000,"Y separation distance")
 
 ########################## GIROS ##############################
 	rectang(5,97,254,162,0.67,0.54,0.1)
 	Button("C",83,194,140,25,18,"Copy")
 	Button("P",84,220,140,25,18,"Paste buffer Rot")
 
-	girX=Toggle("X",0,10,140,30,18,girX.val,"Incrementa valores RotX")
-	incX=Number("X: ",0,42,140,147,18,incX.val,-180,180,"Incremento en grados")
-	girY=Toggle("Y",0,10,120,30,18,girY.val,"Incrementa valores RotY")
-	incY=Number("Y: ",0,42,120,147,18,incY.val,-180,180,"Incremento en grados")
-	girZ=Toggle("Z",0,10,100,30,18,girZ.val,"Incrementa valores RotZ")
-	incZ=Number("Z: ",0,42,100,147,18,incZ.val,-180,180,"Incremento en grados")
+	girX=Toggle("X",0,10,140,30,18,girX.val,"Increment RotX values")
+	incX=Number("X: ",0,42,140,147,18,incX.val,-180,180,"X increment in degress")
+	girY=Toggle("Y",0,10,120,30,18,girY.val,"Increment RotY values")
+	incY=Number("Y: ",0,42,120,147,18,incY.val,-180,180,"Y increment in degrees")
+	girZ=Toggle("Z",0,10,100,30,18,girZ.val,"Increment RotZ values")
+	incZ=Number("Z: ",0,42,100,147,18,incZ.val,-180,180,"Z increment in degrees")
 
 ######################### ESCALADOS ##########################
 	rectang(5,27,254,92,0.27,0.54,0.4)
@@ -380,31 +384,31 @@ def draw1():
 	Button("P",86,220,70,25,18,"Paste buffer Sca")
 
 	scaX=Toggle("X",0,10,70,30,18,scaX.val)
-	iScaX=Number(menu1a[7],0,42,70,147,18,iScaX.val,-180,180,"Incremento de escala")
+	iScaX=Number(menu1a[7],0,42,70,147,18,iScaX.val,-180,180,"X scale increment")
 	scaY=Toggle("Y",0,10,50,30,18,scaY.val)
-	iScaY=Number(menu1a[7],0,42,50,147,18,iScaY.val,-180,180,"Incremento de escala")
+	iScaY=Number(menu1a[7],0,42,50,147,18,iScaY.val,-180,180,"Y scale increment")
 	scaZ=Toggle("Z",0,10,30,30,18,scaZ.val)
-	iScaZ=Number(menu1a[7],0,42,30,147,18,iScaZ.val,-180,180,"Incremento de escala")
+	iScaZ=Number(menu1a[7],0,42,30,147,18,iScaZ.val,-180,180,"Z scale increment")
 ########################## ENCAJES ##########################
 	rectang(5,317,254,363,0.1,0.5,0.6)
 
-	encX=Toggle(menu1a[0]+"X",0,10,340,43,18,encX.val,"Desplaza el objeto")
-	encY=Toggle(menu1a[0]+"Y",0,55,340,43,18,encY.val,"Desplaza el objeto")
-	encZ=Toggle(menu1a[0]+"Z",0,100,340,43,18,encZ.val,"Desplaza el objeto")
+	encX=Toggle(menu1a[0]+"X",0,10,340,43,18,encX.val,"Move object in X")
+	encY=Toggle(menu1a[0]+"Y",0,55,340,43,18,encY.val,"Move object in Y")
+	encZ=Toggle(menu1a[0]+"Z",0,100,340,43,18,encZ.val,"Move object in Z")
 
-	en2X=Toggle(menu1a[1]+"X",0,10,320,43,18,en2X.val,"Ajusta tamano")
-	en2Y=Toggle(menu1a[1]+"Y",0,55,320,43,18,en2Y.val,"Ajusta tamano")
-	en2Z=Toggle(menu1a[1]+"Z",0,100,320,43,18,en2Z.val,"Ajusta tamano")
+	en2X=Toggle(menu1a[1]+"X",0,10,320,43,18,en2X.val,"Adjust X size")
+	en2Y=Toggle(menu1a[1]+"Y",0,55,320,43,18,en2Y.val,"Adjust Y size")
+	en2Z=Toggle(menu1a[1]+"Z",0,100,320,43,18,en2Z.val,"Adjust Z size")
 ######################################################
-	CreaNew=Toggle(menu1a[8],98,10,295,129,18,CreaNew.val)
+	CreaNew=Toggle(menu1a[8],98,10,295,129,18,CreaNew.val,"Create new objects or just modify selected?")
 	if CreaNew.val:
-		Cuantos=Number('',98,139,295,30,18,Cuantos.val,1,999,"Numero de copias")
-	Button(menu1a[5],1,190,170,60,98)		#Alinea
-	Button(menu1a[6],2,190,100,60,38)		#Gira
-	Button(menu1a[9],3,190,30,29,38)		#Escala+
-	Button(menu1a[10],7,220,30,30,38)		#Escala*
-	Button(menu1a[2],6,147,320,45,38,"Encaja activo en otro u otros 2 (crea nuevo objeto)")		#Encaja
-	Button(menu1a[3],5,195,320,55,38,"Encaja activo en otro u otros 2 (crea nuevo objeto)")		#Abarca
+		Cuantos=Number('',98,139,295,30,18,Cuantos.val,1,999,"Number of copies")
+	Button(menu1a[5],1,190,170,60,98,"Align")		#Alinea
+	Button(menu1a[6],2,190,100,60,38,"Rotate")		#Gira
+	Button(menu1a[9],3,190,30,29,38,"Scale +")		#Escala+
+	Button(menu1a[10],7,220,30,30,38,"Scale *")		#Escala*
+	Button(menu1a[2],6,147,320,45,38,"Fit active in one or two others using max limits (creates new object)")		#Encaja
+	Button(menu1a[3],5,195,320,55,38,"Fit active in one or two others using min limits (creates new object)")		#Abarca
 
 def HaceArco(pts,ang1,angul,ctro,R):
 	me=New()
@@ -468,7 +472,7 @@ def event(evt,val):
 def bevent(evt):
 	global me
 	global BfL,BfR,BfS
-	print "Evento:",evt
+	#print "Event:",evt
 	os=Blender.Object.GetSelected()
 	if os:
 		oa=os[0]
@@ -479,7 +483,7 @@ def bevent(evt):
 		if copi==1:
 			if len(os)==2:
 				for c in range(3): BfL[c]=os[1].loc[c]-os[0].loc[c]
-				print "Copiado al buffer Loc:",BfL
+				print "Copied to Loc buffer:",BfL
 			else:
 				PupMenu('ERROR%t|Selecciona 2 objetos|Just select 2 objects!')
 		if copi==2:
@@ -487,31 +491,31 @@ def bevent(evt):
 				BfL=3*[sqrt((os[1].loc[0]-os[0].loc[0])**2+
 (os[1].loc[1]-oa.loc[1])**2+
 (os[1].loc[2]-oa.loc[2])**2)]
-				print "Copiado al buffer Loc:",BfL
+				print "Copied to Loc buffer:",BfL
 			else:
 				PupMenu('ERROR%t|Selecciona 2 objetos|Just select 2 objects!')
 		if copi==3:
 			if len(os)==2:
 				for c in range(3): BfR[c]=os[1].rot[c]-oa.rot[c]
-				print "Copiado al buffer Rot:",BfR
+				print "Copied to Rot buffer:",BfR
 			else:
 				PupMenu('ERROR%t|Selecciona 2 objetos|Just select 2 objects!')
 		if copi==4 and len(os):
 			lista=[]
 			for o in os: lista.append(o.loc)
 			BfL=Media(lista)
-			print "Copiado al buffer Loc:",BfL
+			print "Copied to Loc buffer:",BfL
 			lista=[]
 			for o in os: lista.append(o.rot)
 			BfR=Media(lista)
 			for c in range(3): BfR[c]*=180/pi
-			print "Copiado al buffer Roc:",BfR
+			print "Copied to Rot buffer:",BfR
 			lista=[]
 			for o in os: lista.append(o.size)
 			BfS=Media(lista)
-			print "Copiado al buffer Siz:",BfS
+			print "Copiado to Size buffer:",BfS
 		if copi==5:
-			print"\n_Contenido del buffer_\n"
+			print"\n_Buffer contents_\n"
 			for c in range(3): print "Loc",coo[c]," :",BfL[c]
 			for c in range(3): print "Rot",coo[c]," :",BfR[c]
 			for c in range(3): print "Size",coo[c],":",BfS[c]
@@ -524,7 +528,7 @@ def bevent(evt):
 		for c in range(3):
 			if ali[c]:
 				BfL[c]=X[c]
-				print"Copiando al buffer Loc",coo[c],"el valor", BfL[c]
+				print"Copying to Loc buffer",coo[c],"value", BfL[c]
 
 	if evt==83:
 		X	=[incX.val,incY.val,incZ.val]
@@ -532,7 +536,7 @@ def bevent(evt):
 		for c in range(3):
 			if ali[c]:
 				BfR[c]=X[c]
-				print"Copiando al buffer Loc",coo[c],"el valor", BfR[c]
+				print"Copying to Rot buffer",coo[c],"value", BfR[c]
 
 	if evt==85:
 		X	=[iScaX.val,iScaY.val,iScaZ.val]
@@ -540,7 +544,7 @@ def bevent(evt):
 		for c in range(3):
 			if ali[c]:
 				BfS[c]=X[c]
-				print"Copiando al buffer Loc",coo[c],"el valor", BfS[c]
+				print"Copying to Size buffer",coo[c],"value", BfS[c]
 
 	##########PASTE
 	if evt==82:
@@ -549,7 +553,7 @@ def bevent(evt):
 		for c in range(3):
 			if ali[c]:
 				X[c]=BfL[c]
-				print"Pegando del buffer Loc",coo[c],"el valor", BfL[c]
+				print"Retrieving from buffer Loc",coo[c],"value", BfL[c]
 		sepX.val,sepY.val,sepZ.val=X
 
 	if evt==84:
@@ -558,7 +562,7 @@ def bevent(evt):
 		for c in range(3):
 			if ali[c]:
 				X[c]=BfR[c]
-				print"Pegando del buffer Rot",coo[c],"el valor", BfR[c]
+				print"Retrieving from buffer Rot",coo[c],"value", BfR[c]
 		incX.val,incY.val,incZ.val=X
 
 	if evt==86:
@@ -567,17 +571,17 @@ def bevent(evt):
 		for c in range(3):
 			if ali[c]:
 				X[c]=BfS[c]
-				print"Pegando del buffer Size",coo[c],"el valor", BfS[c]
+				print"Retrieving from buffer Size",coo[c],"value", BfS[c]
 		iScaX.val,iScaY.val,iScaZ.val=X
 
 	if evt==87:
-		print"Pegando matriz a <AplicLocRotSize>"
+		print"Retrieving <ApplyLocRotSize> matrix"
 		nLocX.val,nLocY.val,nLocZ.val=BfL
 		nRotX.val,nRotY.val,nRotZ.val=BfR
 		nSizX.val,nSizY.val,nSizZ.val=BfS
 
 	if evt==88:
-		print"Pegando num. real a boton"
+		print"Retrieving float number to button"
 		x=[BfL[0],BfL[1],BfL[2],
 sqrt(BfL[0]**2+BfL[1]**2+BfL[2]**2),
 BfR[0],BfR[1],BfR[2],
@@ -652,7 +656,7 @@ aliZ.val * (2*n*random() - n)])
 		if dN[2]==0:
 			PupMenu('Error%t|Operacion no permitida: la direccion esta en el plano%x1|Illegal operation: plane contains direction%x2')
 			return
-		print"Direccion absoluta:",d,"\nNormal al plano:",n,"\nDireccion relativa:",dN
+		print"Absolute direction:",d,"\nPlane normal:",n,"\nRelative direction:",dN
 		for o in filter(mallaScan,os[numObjs:]):
 			me=Blender.NMesh.GetRawFromObject(o.name)
 			M=o.matrix
@@ -692,7 +696,7 @@ aliZ.val * (2*n*random() - n)])
 		p2=GloVrt(p2,M)
 		p3=GloVrt(p3,M)
 
-		print "Puntos:\n ",p1,p2,p3
+		print "Points:\n ",p1,p2,p3
 		
 		p21=p2-p1
 		p31=p3-p1
@@ -723,9 +727,9 @@ aliZ.val * (2*n*random() - n)])
 		if evt==18: angul=2*pi
 		else: angul=AngleBetweenVecs(v2,b3)
 
-		print "Centro:",O
-		print "Radio :",R,"RN:",RN,"R3:",R3
-		print "Angulo:",angul
+		print "Center:",O
+		print "Radius :",R,"RN:",RN,"R3:",R3
+		print "Angle:",angul
 		M2=Matrix([v2[0]/R,v2[1]/R,v2[2]/R],[-v3[0]/R3,-v3[1]/R3,-v3[2]/R3],[vN[0]/RN,vN[1]/RN,vN[2]/RN])
 
 		arco=HaceArco(pts.val,0,angul,ctro.val,1)
@@ -910,12 +914,13 @@ aliZ.val * (2*n*random() - n)])
 
 #file=open(path+dirsep+'KUlang.txt','r')
 #file=open(dirsep.join(path)+dirsep+'KUlang.txt','r')
+
 file=open(join(path,'KUlang.txt'),'r')
 fich=file.readlines()
 print "\n\nKloputils",fich[0]
 for i in range(len(fich)):
 	if fich[i]==Lang+'\012': break
-print "Lenguaje:",fich[i]
+print "Language:",fich[i]
 menuExit=fich[i+1]#Sale prog.
 menu0=fich[i+2]#Pral.
 J=int(fich[i+3])#Alinea:botones
