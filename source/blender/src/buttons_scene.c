@@ -562,7 +562,6 @@ void do_render_panels(unsigned short event)
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
 
-#ifdef WITH_QUICKTIME
 	case B_FILETYPEMENU:
 		allqueue(REDRAWBUTSSCENE, 0);
 #if defined (_WIN32) || defined (__APPLE__)
@@ -575,61 +574,21 @@ void do_render_panels(unsigned short event)
 		} else {
 		  break;
 		}
-#else /* libquicktime */
-		if(G.scene->r.imtype == R_QUICKTIME) {
-			/* i'm not sure if this should be here... */
-			/* set default quicktime codec */
-			if (!G.scene->r.qtcodecdata) {
-				G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData),   "QtCodecData");
-				qtcodec_idx = 1;
-			}
-			
-			qt_init_codecs();
-			if (qtcodec_idx < 1) qtcodec_idx = 1;	
-			
-			G.scene->r.qtcodecdata->fourcc =  qtcodecidx_to_fcc(qtcodec_idx-1);
-			qt_init_codecdata(G.scene->r.qtcodecdata);
-/* I'm not sure if this is really needed, so don't remove it yet */
-#if 0
-			/* get index of codec that can handle a given fourcc */
-			if (qtcodec_idx < 1)
-				qtcodec_idx = get_qtcodec_idx(G.scene->r.qtcodecdata->fourcc)+1;
-
-			/* no suitable codec found, alert user */
-			if (qtcodec_idx < -1) {
-				error("no suitable codec found!");
-				qtcodec_idx = 1;
-			}
-#endif /* 0 */
-		}
 #endif /*_WIN32 || __APPLE__ */
 
 	case B_SELECTCODEC:
 #if defined (_WIN32) || defined (__APPLE__)
 		if ((G.scene->r.imtype == R_QUICKTIME)) { /* || (G.scene->r.qtcodecdata)) */
+#ifdef WITH_QUICKTIME
 			get_qtcodec_settings();
+#endif /* WITH_QUICKTIME */
 		}
 #ifdef _WIN32
 		else
 			get_avicodec_settings();
 #endif /* _WIN32 */
-#else /* libquicktime */
-		if (!G.scene->r.qtcodecdata) {
-			G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData),  "QtCodecData");
-			qtcodec_idx = 1;
-		}
-		if (qtcodec_idx < 1) {
-			qtcodec_idx = 1;
-			qt_init_codecs();
-		}
-
-		G.scene->r.qtcodecdata->fourcc = qtcodecidx_to_fcc(qtcodec_idx-1);
-		/* if the selected codec differs from the previous one, reinit it */
-		qt_init_codecdata(G.scene->r.qtcodecdata);	
-		allqueue(REDRAWBUTSSCENE, 0);
 #endif /* _WIN32 || __APPLE__ */
 		break;
-#endif /* WITH_QUICKTIME */
 
 	case B_PR_FULL:
 		G.scene->r.xsch= 1280;
@@ -1248,21 +1207,7 @@ static void render_panel_format(void)
 			else
 				uiDefBut(block, LABEL, 0, G.scene->r.qtcodecdata->qtcodecname,  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
-#else /* libquicktime */
-			if (!G.scene->r.qtcodecdata) G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData), "QtCodecData");
-			uiDefButI(block, MENU, B_SELECTCODEC, qtcodecs_pup(), 892,yofs, 112, 20, &qtcodec_idx, 0, 0, 0, 0, "Codec");
-			/* make sure the codec stored in G.scene->r.qtcodecdata matches the selected
-			 * one, especially if it's not set.. */
-			if (!G.scene->r.qtcodecdata->fourcc) {
-				G.scene->r.qtcodecdata->fourcc = qtcodecidx_to_fcc(qtcodec_idx-1);
-				qt_init_codecdata(G.scene->r.qtcodecdata);	
-			}
-
-			yofs -= 22;
-			uiDefBlockBut(block, qtcodec_menu, NULL, "Codec Settings", 892,yofs, 227, 20, "Edit Codec settings for QuickTime");
-			yofs +=22;
-
-#endif /* libquicktime */
+#endif
 #endif /* WITH_QUICKTIME */
 		} else {
 #ifdef _WIN32

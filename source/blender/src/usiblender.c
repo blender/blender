@@ -263,7 +263,8 @@ int BIF_read_homefile(void)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
 	int success;
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 	static int screenmode = -1;
 	
 	screenmode = U.uiflag & USER_FLIPFULLSCREEN;
@@ -282,7 +283,8 @@ int BIF_read_homefile(void)
 	}
 	strcpy(G.sce, scestr);
 	
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 	/* choose window startmode */
 	switch (G.windowstate){
 		case G_WINDOWSTATE_USERDEF: /* use the usersetting */

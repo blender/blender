@@ -111,7 +111,8 @@ extern 		void BIF_undo(void);
 extern 		void BIF_redo(void);
 extern 		void BIF_undo_menu(void);
 
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 extern		 void mainwindow_toggle_fullscreen(int fullscreen);
 #endif
 

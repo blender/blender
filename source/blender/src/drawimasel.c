@@ -424,9 +424,6 @@ static void str_image_type(int ftype, char *name)
 #ifdef WITH_QUICKTIME
 	if( ftype & QUICKTIME ) { strcat(name, "quicktime "); }
 #endif
-#ifdef WITH_FREEIMAGE
-	if( ftype & FREEIMAGE ) { strcat(name, "freeimage "); }
-#endif
 }
 
 void draw_sima_area(SpaceImaSel *simasel)

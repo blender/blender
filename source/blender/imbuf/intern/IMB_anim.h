@@ -76,9 +76,6 @@
 #if defined(_WIN32) || defined(__APPLE__)
 #include "quicktime_import.h"
 #endif /* _WIN32 || __APPLE__ */
-#ifdef linux
-#include "quicktime_import_linux.h"
-#endif /* linux */
 #endif /* WITH_QUICKTIME */
 
 #include "IMB_imbuf_types.h"

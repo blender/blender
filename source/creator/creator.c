@@ -402,13 +402,15 @@ int main(int argc, char **argv)
 					 */ 
 					winlay_get_screensize(&sizx, &sizy);
 					setprefsize(0, 0, sizx, sizy);
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 					G.windowstate = G_WINDOWSTATE_BORDER;
 #endif
 					break;
 				case 'W':
 						/* XXX, fixme zr, borderless on win32 */
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
 #endif
 					break;

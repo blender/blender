@@ -45,9 +45,6 @@
 
 #include "BMF_Api.h"
 #include "BIF_language.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "BSE_headerbuttons.h"
 

@@ -682,7 +682,8 @@ int blenderqread(unsigned short event, short val)
 	case DOWNARROWKEY:
 		if(textediting==0 && textspace==0) {
 
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 			if(event==DOWNARROWKEY){
 				if (G.qual==LR_ALTKEY)
 					mainwindow_toggle_fullscreen(0);
@@ -709,7 +710,8 @@ int blenderqread(unsigned short event, short val)
 	case UPARROWKEY:
 		if(textediting==0 && textspace==0) {
 
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 			if(event==UPARROWKEY){ 
 				if(G.qual==LR_ALTKEY)
 					mainwindow_toggle_fullscreen(1);

@@ -1466,7 +1466,8 @@ void do_global_buttons(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		break;
 
-#ifdef _WIN32 // FULLSCREEN
+#if 0
+//#ifdef _WIN32 // FULLSCREEN
 	case B_FLIPFULLSCREEN:
 		if(U.uiflag & USER_FLIPFULLSCREEN)
 			U.uiflag &= ~USER_FLIPFULLSCREEN;

@@ -45,9 +45,6 @@
 
 #include "BMF_Api.h"
 #include "BIF_language.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"

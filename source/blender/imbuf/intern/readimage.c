@@ -55,12 +55,7 @@
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined (__APPLE__)
 #include "quicktime_import.h"
-#elif defined (__linux__)
-#include "quicktime_import_linux.h"
 #endif
-#endif
-#ifdef WITH_FREEIMAGE
-#include "IMB_freeimage.h"
 #endif
 
 /* actually hard coded endianness */
@@ -149,14 +144,6 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 			if (ibuf) return(ibuf);
 		}
 #endif
-#endif	
-#ifdef WITH_FREEIMAGE
-		ibuf = imb_freeimage_decode((uchar *)mem, size, flags);
-		if (ibuf) return(ibuf);
-#endif	
-#ifdef WITH_IMAGEMAGICK
-		ibuf = imb_imagick_decode((uchar *)mem, size, flags);
-		if (ibuf) return(ibuf);
 #endif	
 
 		if (IB_verbose) fprintf(stderr, "Unknown fileformat\n");

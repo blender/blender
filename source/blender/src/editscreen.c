@@ -1253,7 +1253,8 @@ void screenmain(void)
 	}
 }
 
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 void mainwindow_toggle_fullscreen(int fullscreen){
 	if (fullscreen) U.uiflag |= USER_FLIPFULLSCREEN;
 	else U.uiflag &= ~USER_FLIPFULLSCREEN;
@@ -1882,7 +1883,8 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 	sc->scene= G.scene;
 	
   	if (!mainwin) {
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+//#ifdef _WIN32	// FULLSCREEN
 		if (G.windowstate == G_WINDOWSTATE_FULLSCREEN)
 			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, G_WINDOWSTATE_FULLSCREEN);
 		else

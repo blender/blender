@@ -1913,7 +1913,8 @@ BIF_SetScale(block->aspect);
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 
-#ifdef _WIN32	// FULLSCREEN
+#if 0
+// #ifdef _WIN32	// FULLSCREEN
 	if(U.uiflag & USER_FLIPFULLSCREEN) {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
 				(short)(curarea->winx-XIC-5), 0,XIC,YIC,

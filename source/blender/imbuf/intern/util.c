@@ -51,13 +51,6 @@
 #ifdef WITH_QUICKTIME
 #include "quicktime_import.h"
 #endif
-#ifdef WITH_FREEIMAGE
-#include "IMB_freeimage.h"
-#endif
-#ifdef WITH_IMAGEMAGICK
-#include "IMB_imagemagick.h"
-#endif
-
 
 #define UTIL_DEBUG 0
 
@@ -114,14 +107,6 @@ static int IMB_ispic_name(char *name)
 #endif
 #endif
 
-#ifdef WITH_FREEIMAGE
-				if (imb_is_a_freeimage(name)) return(FREEIMAGE);
-#endif
-
-#ifdef WITH_IMAGEMAGICK
-				if (imb_is_imagick(name)) return(IMAGEMAGICK);
-#endif
-
 				return(FALSE);
 			}
 			close(fp);
@@ -152,21 +137,6 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".pict")
 				||	BLI_testextensie(filename, ".pntg") //macpaint
 				||	BLI_testextensie(filename, ".qtif")
-#if defined(WITH_FREEIMAGE) || defined (WITH_IMAGEMAGICK) //nasty for now
-				||	BLI_testextensie(filename, ".jng")
-				||	BLI_testextensie(filename, ".mng")
-				||	BLI_testextensie(filename, ".pbm")
-				||	BLI_testextensie(filename, ".pgm")
-				||	BLI_testextensie(filename, ".ppm")
-				||	BLI_testextensie(filename, ".wbmp")
-				||	BLI_testextensie(filename, ".cut")
-				||	BLI_testextensie(filename, ".ico")
-				||	BLI_testextensie(filename, ".koa")
-				||	BLI_testextensie(filename, ".koala")
-				||	BLI_testextensie(filename, ".pcd")
-				||	BLI_testextensie(filename, ".pcx")
-				||	BLI_testextensie(filename, ".ras")
-#endif
 				||	BLI_testextensie(filename, ".sgi")) {
 				return IMB_ispic_name(filename);
 			} else {
@@ -181,26 +151,7 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".png")
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
-#if defined(WITH_FREEIMAGE) || defined (WITH_IMAGEMAGICK) //nasty for now
-				||	BLI_testextensie(filename, ".jng")
-				||	BLI_testextensie(filename, ".mng")
-				||	BLI_testextensie(filename, ".pbm")
-				||	BLI_testextensie(filename, ".pgm")
-				||	BLI_testextensie(filename, ".ppm")
-				||	BLI_testextensie(filename, ".wbmp")
-				||	BLI_testextensie(filename, ".cut")
-				||	BLI_testextensie(filename, ".ico")
-				||	BLI_testextensie(filename, ".koa")
-				||	BLI_testextensie(filename, ".koala")
-				||	BLI_testextensie(filename, ".pcd")
-				||	BLI_testextensie(filename, ".pcx")
-				||	BLI_testextensie(filename, ".ras")
-				||	BLI_testextensie(filename, ".gif")
-				||	BLI_testextensie(filename, ".psd")
-				||	BLI_testextensie(filename, ".tif")
-				||	BLI_testextensie(filename, ".tiff")
-#endif
-			||	BLI_testextensie(filename, ".sgi")) {
+				||	BLI_testextensie(filename, ".sgi")) {
 				return IMB_ispic_name(filename);
 			}
 			else  {
