@@ -1214,7 +1214,23 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 	char yfr[8];
 	sprintf(yfr, "%d ", R.r.YF_numprocs);
 	string command = command_path + "yafray -c " + yfr + "\"" + xmlpath + "\"";
-	return system(command.c_str())==0;
+	int ret=system(command.c_str());
+	if(WIFEXITED(ret))
+	{
+		if(WEXITSTATUS(ret)) cout<<"Executed -"<<command<<"-"<<endl;
+		switch(WEXITSTATUS(ret))
+		{
+			case 0: cout<<"Yafray completed successfully\n";return true;
+			case 127: cout<<"Yafray not found\n";return false;
+			case 126: cout<<"Yafray: permission denied\n";return false;
+			default: cout<<"Yafray exited with errors\n";return false;
+		}
+	}
+	else if(WIFSIGNALED(ret))
+		cout<<"Yafray crashed\n";
+	else
+		cout<<"Unknown error\n";
+	return false;
 }
 
 
