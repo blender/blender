@@ -1395,8 +1395,6 @@ void separate_mesh(void)
 	
 	BASACT->flag &= ~SELECT;
 	
-	makeDispList(G.obedit);
-	
 	/* we cannot free the original buffer... */
 	emcopy= *G.editMesh;
 	emcopy.allverts= NULL;
@@ -1580,8 +1578,6 @@ void separate_mesh_loose(void)
 			load_editMesh();
 			
 			BASACT->flag &= ~SELECT;
-			
-			makeDispList(G.obedit);
 			
 			/* we cannot free the original buffer... */
 			emcopy= *G.editMesh;

@@ -260,7 +260,7 @@ Mesh *copy_mesh(Mesh *me)
 	men->orco= NULL;
 	men->bb= MEM_dupallocN(men->bb);
 	
-	copy_displist(&men->disp, &me->disp);
+	men->disp.first= men->disp.last= NULL;	// dont copy, editmode version has pointers in it
 	
 	men->key= copy_key(me->key);
 	if(men->key) men->key->from= (ID *)men;

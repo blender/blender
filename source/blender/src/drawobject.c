@@ -2540,7 +2540,7 @@ static void drawmeshwire(Object *ob)
 						if(efa->f & SELECT) glColor4ub(col2[0], col2[1], col2[2], col2[3]); 
 						else glColor4ub(col1[0], col1[1], col1[2], col1[3]);
 						
-						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+						glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
 						glVertex3fv(dlm->mvert[mface->v1].co);
 						glVertex3fv(dlm->mvert[mface->v2].co);
 						glVertex3fv(dlm->mvert[mface->v3].co);
