@@ -19,6 +19,12 @@ The instructions are:
      mkdir bf-blender
      cd bf-blender
 
+   *********WARNING: if the directory path you are in contains a space in
+   it you will get errors in trying to compile the code.  Change directorys
+   to a one that does not contain a space in the path before creating the
+   above directory *********
+
+
 Please note that a backslash at the end of a line in the following 
 means that the command spans two lines. If you wish to type the command as 
 one line, exclude the '\'.
@@ -54,9 +60,15 @@ one line, exclude the '\'.
    'outside' that I am told is nice to go to while waiting for a 
    compile to finish).
 
+9. After it finishes compiling, if you would like to run your freshly compiled
+   blender, type make release.  Then change directorys to obj/233.a/ and move
+   the zip file to where you want to use it, unzip the file, enter the directory
+   and run your brand new blender.
+
+
 Getting Help
 ------------
-If you have problems, come by #blendersauce on irc.freenode.net
+If you have problems, come by #blendercoders on irc.freenode.net
 or post questions to the "Compiling, Libraries, Modules" forum
 at www.blender.org. There is also the very useful bf-committers 
 mailing list, what you can subscribe to here:
