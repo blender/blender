@@ -2050,7 +2050,8 @@ static TBitem tb_transform_clearapply[]= {
 {	0, "Clear Size", 			2, NULL},
 {	0, "SEPR", 					0, NULL},
 {	0, "Apply Size/Rotation|Ctrl A", 3, NULL},
-{	0, "Apply Deform|Shift Ctrl A", 4, NULL},
+{	0, "Apply Deformation|Shift Ctrl A", 4, NULL},
+{	0, "Make Duplicates Real|Shift Ctrl A", 4, NULL},
 {  -1, "", 			0, tb_do_transform_clearapply}};
 
 static TBitem tb_transform_snap[]= {
