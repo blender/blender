@@ -298,11 +298,14 @@ static void read_stl_mesh_binary(char *str)
 			me->totface = totface;
 			me->totvert = totvert;
 
+			mesh_add_normals_flags(me);
+			/*
 			G.obedit= ob;
 			make_editMesh();
 			load_editMesh();
 			free_editMesh();
 			G.obedit= 0;
+			*/
 			tex_space_mesh(me);
 		}
 		waitcursor(1);
@@ -467,11 +470,14 @@ static void read_stl_mesh_ascii(char *str)
 	}
 	free(vertdata);
 
+	mesh_add_normals_flags(me);
+	/*
 	G.obedit= ob;
 	make_editMesh();
 	load_editMesh();
 	free_editMesh();
 	G.obedit= 0;
+	*/
 	tex_space_mesh(me);
 	waitcursor(1);
 }
