@@ -1031,16 +1031,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case OKEY:
 				ob= OBACT;
-				if(G.qual & LR_SHIFTKEY) {
-					if(G.obedit) {
-							flip_subdivison(G.obedit, 0);
-					}
-					else if(ob->type == OB_MESH) {
-						flip_subdivison(ob, 0);
-					}
-				}
-				else if(G.qual & LR_ALTKEY) clear_object('o');
-				else if(G.obedit) {
+				if(G.obedit) {
 					extern int prop_mode;
 
 					if (G.qual & LR_SHIFTKEY) prop_mode= !prop_mode;
@@ -1048,7 +1039,14 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 					allqueue(REDRAWHEADERS, 0);
 				}
+				else if(G.qual & LR_SHIFTKEY) {
+					if(ob->type == OB_MESH) {
+						flip_subdivison(ob, 0);
+					}
+				}
+				else if(G.qual & LR_ALTKEY) clear_object('o');
 				break;
+
 			case PKEY:
 				
 				if(G.obedit) {
