@@ -105,6 +105,12 @@
 #include "GHOST_C-api.h"
 #include "winlay.h"
 
+#ifdef WIN32
+	#ifndef snprintf
+		#define snprintf  _snprintf
+	#endif
+#endif
+
 /****/
 
 static void free_editverts(ListBase *edve);
