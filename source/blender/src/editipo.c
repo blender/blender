@@ -1164,7 +1164,7 @@ void make_editipo()
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
 		
-		if(ei->flag & IPO_VISIBLE) ei->flag |= (1<<IPO_IS_SELECTED);
+		if(ei->flag & IPO_VISIBLE) ei->flag |= IPO_SELECT;
 		
 		if(ei->icu) ei->icu->flag= ei->flag;
 	}
@@ -1311,24 +1311,16 @@ void get_status_editipo()
 	}
 }
 
-
-
 void update_editipo_flags()
 {
 	EditIpo *ei;
 	IpoKey *ik;
-	short flag;/*unsigned int flag;*/
 	int a;
 	
 	ei= G.sipo->editipo;
 	if(ei) {
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			ei->flag &= ~IPO_VISIBLE;
-			flag= (1<<IPO_IS_SELECTED);
-			if( ei->flag & flag ) ei->flag |= IPO_VISIBLE;
-			
 			if(ei->icu) ei->icu->flag= ei->flag;
-			
 		}
 	}
 	if(G.sipo->showkey) {
@@ -1491,7 +1483,7 @@ void swap_visible_editipo()
 		if(totipo_vis==0) {
 			if(ei->icu) {
 				ei->flag |= IPO_VISIBLE;
-				ei->flag |= (1<<IPO_IS_SELECTED);
+				ei->flag |= IPO_SELECT;
 			}
 		}
 		else ei->flag &= ~IPO_VISIBLE;
@@ -1685,16 +1677,19 @@ void move_to_frame()
 
 /* *********************************** */
 
+/* handling of right-hand channel/curve buttons in ipo window */
 void do_ipowin_buts(short event)
 {
 	EditIpo *ei = 0;
 	int a;
+
+	/* without shift, all other channels are made invisible */
 	if((G.qual & LR_SHIFTKEY)==0) {
 		if(event>G.sipo->totipo) return;
 		ei = G.sipo->editipo;
 		for(a=0; a<G.sipo->totipo; a++) {
-			if(a==event) ei->flag |= (1<<IPO_IS_SELECTED);
-			else ei->flag &= ~(1<<IPO_IS_SELECTED);
+			if(a!=event) ei->flag &= ~IPO_VISIBLE;
+			else ei->flag |= IPO_VISIBLE;
 			ei++;
 		}
 	}
@@ -1709,6 +1704,7 @@ void do_ipowin_buts(short event)
 
 }
 
+/* the fake buttons to the left of channel names, for select/deselect curves */
 void do_ipo_selectbuttons()
 {
 	EditIpo *ei, *ei1;
@@ -1733,8 +1729,7 @@ void do_ipo_selectbuttons()
 		
 		if(ei->icu) {
 			if((ei->flag & IPO_VISIBLE)==0) {
-				ei->flag |= IPO_VISIBLE;
-				ei->flag |= (1<<IPO_IS_SELECTED);
+				ei->flag |= IPO_VISIBLE|IPO_SELECT;
 			}
 	
 			if((G.qual & LR_SHIFTKEY)==0) {

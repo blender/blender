@@ -823,11 +823,12 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	ei= sipo->editipo;
 	y= area->winy-30+sipo->butofs;
 	for(a=0; a<sipo->totipo; a++, ei++, y-=IPOBUTY) {
-		
-		but= uiDefButS(block, TOG|BIT|6, a+1, ei->name,  v2d->mask.xmax+18, y, IPOBUTX-15, IPOBUTY-1, &(ei->flag), 0, 0, 0, 0, "");
+		// this button defines visiblity, bit zero of flag (IPO_VISIBLE)
+		but= uiDefButS(block, TOG|BIT|0, a+1, ei->name,  v2d->mask.xmax+18, y, IPOBUTX-15, IPOBUTY-1, &(ei->flag), 0, 0, 0, 0, "");
 		// no hilite, its not visible, but most of all the winmatrix is not correct later on...
 		uiButSetFlag(but, UI_TEXT_LEFT|UI_NO_HILITE);
 		
+		// this fake button defines selection of curves
 		if(ei->icu) {
 			cpack(ei->col);
 			

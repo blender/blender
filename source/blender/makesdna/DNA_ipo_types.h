@@ -364,7 +364,5 @@ typedef short IPO_Channel;
 #define IPO_EDIT		4
 #define IPO_LOCK		8
 
-#define IPO_IS_SELECTED	6 /* note, this is number of bit! */
-
 #endif
 
