@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2002 by Hans Lambermont
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
 # The Original Code is: all of this file.
@@ -28,32 +28,27 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
-# Bounces make to subdirectories. Also installs after succesful all target.
+#
+#
 
-include nan_definitions.mk
+LIBNAME = solid_complex
+DIR = $(OCGDIR)/extern/$(LIBNAME)
 
-SOURCEDIR = extern
-DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid/src ode
+CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-TARGET =
-ifneq ($(OS),irix)
-  TARGET=solid
+CPPFLAGS += -I../../include -I$(NAN_QHULL)/include
+CPPFLAGS += -I../convex
+CPPFLAGS += -DQHULL -DUSE_DOUBLES
+
+include nan_compile.mk 
+
+install: all debug
+	@[ -d $(NAN_SOLID) ] || mkdir $(NAN_SOLID)
+	@[ -d $(NAN_SOLID)/lib ] || mkdir $(NAN_SOLID)/lib
+	@[ -d $(NAN_SOLID)/lib/debug ] || mkdir $(NAN_SOLID)/lib/debug
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/lib$(LIBNAME).a $(NAN_SOLID)/lib/
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/debug/lib$(LIBNAME).a $(NAN_SOLID)/lib/debug/
+ifeq ($(OS),darwin)
+	ranlib $(NAN_SOLID)/lib/lib$(LIBNAME).a
+	ranlib $(NAN_SOLID)/lib/debug/lib$(LIBNAME).a
 endif
-
-# include nan_subdirs.mk
-
-# .PHONY: qhull solid solid_with_qhull
-
-all::
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
-	done
-	
-clean test debug::
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i $@ || exit 1; \
-	done
-

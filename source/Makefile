@@ -109,7 +109,7 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
     COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
-    COMLIB += $(NAN_SOLID)/lib/libsolid.a
+    COMLIB += $(NAN_SOLID)/lib/libsolid.a $(NAN_SOLID)/lib/libsolid_broad.a $(NAN_SOLID)/lib/libsolid_complex.a $(NAN_SOLID)/lib/libsolid_convex.a
     COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/fuzzics/$(DEBUG_DIR)libfuzzics.a
     COMLIB += $(NAN_QHULL)/lib/libqhull.a
@@ -313,12 +313,12 @@ ifeq ($(OS),linux)
     BINTARGETS += blenderplayer
   endif
   ifeq ($(CPU),i386)
-    BINTARGETS = plugin
-    # BINTARGETS += ptest
-    BINTARGETS += xplink
-    BINTARGETS += blenderdynamic
+    BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
     BINTARGETS += blenderstatic
+    ifneq ($(NAN_NO_PLUGIN),true)
+	BINTARGETS += plugin xplink
+    endif
   endif
   ifeq ($(CPU),powerpc)
     BINTARGETS = blenderdynamic
@@ -413,7 +413,7 @@ ifeq ($(OS),windows)
 	ifeq ($(FREE_WINDOWS),true)
 		PYLIB = $(NAN_PYTHON)/lib/freepy.a
     else
-		PYLIB = $(NAN_PYTHON)/lib/python22.lib
+		PYLIB = $(NAN_PYTHON)/lib/python23.lib
     endif
     
     PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
