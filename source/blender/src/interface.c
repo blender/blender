@@ -1677,15 +1677,17 @@ static int ui_do_but_SLI(uiBut *but)
 		if(qual & LR_CTRLKEY) {
 			if(tempf==but->min || tempf==but->max);
 			else if( but->pointype==FLO ) {
-				if(qual & LR_SHIFTKEY) tempf= floor(tempf*100.0)/100.0;
-				else tempf= floor(tempf*10.0)/10.0;
+
+				if(but->max-but->min < 2.10) tempf= 0.1*floor(10*tempf);
+				else if(but->max-but->min < 21.0) tempf= floor(tempf);
+				else tempf= 10.0*floor(tempf/10.0);
 			}
 			else {
 				temp= 10*(temp/10);
 				tempf= temp;
 			}
 		} 
-		
+	
 		value= ui_get_but_val(but);
 		lvalue= (int) value;
 		
