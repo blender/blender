@@ -139,6 +139,10 @@ int BLI_ghash_haskey(GHash *gh, void *key) {
 	return 0;
 }
 
+int BLI_ghash_size(GHash *gh) {
+	return gh->nentries;
+}
+
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp) {
 	int i;
 	
@@ -158,6 +162,53 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 	
 	free(gh->buckets);
 	MEM_freeN(gh);
+}
+
+/***/
+
+struct GHashIterator {
+	GHash *gh;
+	int curBucket;
+	Entry *curEntry;
+};
+
+GHashIterator *BLI_ghashIterator_new(GHash *gh) {
+	GHashIterator *ghi= malloc(sizeof(*ghi));
+	ghi->gh= gh;
+	ghi->curEntry= NULL;
+	ghi->curBucket= -1;
+	while (!ghi->curEntry) {
+		ghi->curBucket++;
+		if (ghi->curBucket==ghi->gh->nbuckets)
+			break;
+		ghi->curEntry= ghi->gh->buckets[ghi->curBucket];
+	}
+	return ghi;
+}
+void BLI_ghashIterator_free(GHashIterator *ghi) {
+	free(ghi);
+}
+
+void *BLI_ghashIterator_getKey(GHashIterator *ghi) {
+	return ghi->curEntry?ghi->curEntry->key:NULL;
+}
+void *BLI_ghashIterator_getValue(GHashIterator *ghi) {
+	return ghi->curEntry?ghi->curEntry->val:NULL;
+}
+
+void BLI_ghashIterator_step(GHashIterator *ghi) {
+	if (ghi->curEntry) {
+        ghi->curEntry= ghi->curEntry->next;
+		while (!ghi->curEntry) {
+			ghi->curBucket++;
+			if (ghi->curBucket==ghi->gh->nbuckets)
+				break;
+			ghi->curEntry= ghi->gh->buckets[ghi->curBucket];
+		}
+	}
+}
+int BLI_ghashIterator_isDone(GHashIterator *ghi) {
+	return !ghi->curEntry;
 }
 
 /***/
