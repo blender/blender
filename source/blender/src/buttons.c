@@ -6577,7 +6577,11 @@ void renderbuts(void)
 		if(G.scene->r.imtype == R_QUICKTIME) {
 #ifdef WITH_QUICKTIME
 #if defined (_WIN32) || defined (__APPLE__)
-			uiDefBut(block, BUT,B_SELECTCODEC, "Codec settings",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime Codec");
+			if(!have_qtcodec)
+				uiDefBut(block, LABEL, 0, "Codec: undefined",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+			else
+				uiDefBut(block, LABEL, 0, qtcdname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
 #else /* libquicktime */
 			if (!G.scene->r.qtcodecdata) G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData), "QtCodecData");
 			uiDefButI(block, MENU, B_SELECTCODEC, qtcodecs_pup(), 892,yofs, 112, 20, &qtcodec_idx, 0, 0, 0, 0, "Codec");
@@ -6595,7 +6599,11 @@ void renderbuts(void)
 #endif /* libquicktime */
 #endif /* WITH_QUICKTIME */
 		} else {
-			uiDefBut(block, BUT,B_SELECTCODEC, "Codec settings",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI Codec");
+			if(!have_avicodec)
+				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+			else
+				uiDefBut(block, LABEL, 0, avicdname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
 	} else {
 		uiDefButS(block, NUM,0, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");

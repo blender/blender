@@ -46,6 +46,7 @@ void free_qtcodecdataExt(void);			//usiblender.c
 void makeqtstring (char *string);		//for playanim.c
 
 extern int have_qtcodec;
+extern char qtcdname[64];
 
 #endif //(_WIN32) || (__APPLE__)
 

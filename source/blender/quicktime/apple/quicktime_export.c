@@ -88,6 +88,7 @@ DONE:
 #include <TextUtils.h> 
 #include <Movies.h>
 #include <QuicktimeComponents.h>
+#include <MoviesFormat.h>
 #endif /* _WIN32 */
 
 #ifdef __APPLE__
@@ -169,7 +170,8 @@ struct _QuicktimeCodecDataExt *qcdx;
 
 static int sframe;
 
-int have_qtcodec;
+int		have_qtcodec;
+char	qtcdname[64];
 
 /************************************************************
 *                                                           *
@@ -566,15 +568,16 @@ static void check_renderbutton_framerate(void) {
 int get_qtcodec_settings(void) 
 {
 	OSErr	err = noErr;
-//	Component c = 0;
-//	ComponentDescription cd;
+	Component c = 0;
+	ComponentDescription cd;
+	CodecInfo ci;
 
-//	cd.componentType = StandardCompressionType;
-//	cd.componentSubType = StandardCompressionSubType;
-//	cd.componentManufacturer = 0;
-//	cd.componentFlags = 0;
-//	cd.componentFlagsMask = 0;
-Handle                     *theText;
+	cd.componentType = StandardCompressionType;
+	cd.componentSubType = StandardCompressionSubType;
+	cd.componentManufacturer = 0;
+	cd.componentFlags = 0;
+	cd.componentFlagsMask = 0;
+
 
 	if(qcdx == NULL) {
 		qcdx = MEM_callocN(sizeof(QuicktimeCodecDataExt), "QuicktimeCodecDataExt");
@@ -584,18 +587,18 @@ Handle                     *theText;
 	// configure the standard image compression dialog box
 
 	if (qcdx->theComponent == NULL) {
-		qcdx->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
-//		c = FindNextComponent(c, &cd);
-//		qcdx->theComponent = OpenComponent(c);
+//		qcdx->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
+		c = FindNextComponent(c, &cd);
+		qcdx->theComponent = OpenComponent(c);
 
-		qcdx->gSpatialSettings.codecType = nil;     
+//		qcdx->gSpatialSettings.codecType = nil;     
 		qcdx->gSpatialSettings.codec = anyCodec;         
 //		qcdx->gSpatialSettings.depth;         
 		qcdx->gSpatialSettings.spatialQuality = codecMaxQuality;
 
 		qcdx->gTemporalSettings.temporalQuality = codecMaxQuality;
 //		qcdx->gTemporalSettings.frameRate;      
-		qcdx->gTemporalSettings.keyFrameRate = 24;   
+		qcdx->gTemporalSettings.keyFrameRate = 25;   
 
 		qcdx->aDataRateSetting.dataRate = 90 * 1024;          
 //		qcdx->aDataRateSetting.frameDuration;     
@@ -612,12 +615,13 @@ Handle                     *theText;
 	}
 
 	check_renderbutton_framerate();
-
+ 
 	// put up the dialog box
 
 	err = SCRequestSequenceSettings(qcdx->theComponent);
 
-	if (err == scUserCancelled) {
+ 
+   if (err == scUserCancelled) {
 		G.afbreek = 1;
 		return 0;
 	}
@@ -630,9 +634,8 @@ Handle                     *theText;
 	SCGetInfo(qcdx->theComponent, scSpatialSettingsType,	&qcdx->gSpatialSettings);
 	SCGetInfo(qcdx->theComponent, scDataRateSettingsType,	&qcdx->aDataRateSetting);
 
-//GraphicsExportGetSettingsAsText (qcdx->theComponent,theText );
-
-//printf("%s\n", theText);
+	GetCodecInfo (&ci, qcdx->gSpatialSettings.codecType, 0);
+	sprintf(qtcdname,"Codec: %s", p2cstr(ci.typeName));
 
 	// framerate jugglin'
 

@@ -83,6 +83,13 @@ uiBut *uiDefIconButI(uiBlock *block, int type, int retval, int icon, short x1, s
 uiBut *uiDefIconButS(uiBlock *block, int type, int retval, int icon, short x1, short y1, short x2, short y2, short *poin, float min, float max, float a1, float a2,  char *tip);
 uiBut *uiDefIconButC(uiBlock *block, int type, int retval, int icon, short x1, short y1, short x2, short y2, char *poin, float min, float max, float a1, float a2,  char *tip);
 
+uiBut *uiDefIconTextBut(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip);
+
+uiBut *uiDefIconTextButF(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, float *poin, float min, float max, float a1, float a2,  char *tip);
+uiBut *uiDefIconTextButI(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, int *poin, float min, float max, float a1, float a2,  char *tip);
+uiBut *uiDefIconTextButS(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, short *poin, float min, float max, float a1, float a2,  char *tip);
+uiBut *uiDefIconTextButC(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, char *poin, float min, float max, float a1, float a2,  char *tip);
+
 typedef void		(*uiIDPoinFuncFP)	(char *str, struct ID **idpp);
 void uiDefIDPoinBut(struct uiBlock *block,
 						uiIDPoinFuncFP func, int retval, char *str,
@@ -92,6 +99,8 @@ void uiDefIDPoinBut(struct uiBlock *block,
 
 typedef uiBlock* (*uiBlockFuncFP)	(void *arg1);
 void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
+
+void uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, int icon, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 

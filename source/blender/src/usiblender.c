@@ -227,16 +227,8 @@ int BIF_read_homefile(void)
 			U.fontsize= 12;
 			U.encoding= 0;
 			sprintf(U.fontname, ".bfont.ttf");
-			if( FTF_SetFont(".bfont.ttf", 12) ) {
-				FTF_SetLanguage("en");
-				FTF_SetEncoding("ASCII");
-				G.ui_international = TRUE;
-			} else {
-				G.ui_international = FALSE;
-			}
 		}
 */
-
 		if(U.transopts & TR_ALL)
 			set_ML_interface_font();
 		else
