@@ -1458,7 +1458,7 @@ void special_editmenu(void)
 	extern short editbutflag;
 	extern float doublimit;
 	float fac;
-	int nr;
+	int nr,ret;
 	short randfac;
 	
 	if(G.obedit==0) {
@@ -1547,10 +1547,12 @@ void special_editmenu(void)
 					if (base_select) {
 						if (get_mesh(base_select->object)) {
 							waitcursor(1);
-
- 							if (!NewBooleanMesh(BASACT,base_select,nr)) {
+							ret = NewBooleanMesh(BASACT,base_select,nr);
+ 							if (ret==0) {
 								error("An internal error occurred -- sorry!");
- 							}
+ 							} else if(ret==-1) {
+								error("Boolean ops with faceless meshes is not allowed");
+							}
 
 							waitcursor(0);
 						} else {

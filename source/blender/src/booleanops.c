@@ -412,9 +412,9 @@ NewBooleanMesh(
 	if (me == NULL || me2 == NULL) return 0;
 
 	success = has_faces(me);
-	if(success==0) return 0;
+	if(success==0) return -1;
 	success = has_faces(me2);
-	if(success==0) return 0;
+	if(success==0) return -1;
 	
 	success = 0;
 
