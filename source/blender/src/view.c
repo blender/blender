@@ -31,6 +31,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -397,9 +398,9 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 void viewmove(int mode)
 {
 	float firstvec[3], newvec[3], dvec[3];
-	float oldquat[4], q1[4], q2[4], si, phi;
+	float oldquat[4], q1[4], si, phi;
 	int firsttime=1;
-	short mval[2], mvalo[2];
+	short mvalball[2], mval[2], mvalo[2];
 	
 	/* sometimes this routine is called from headerbuttons */
 	areawinset(curarea->win);
@@ -408,7 +409,11 @@ void viewmove(int mode)
 	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
 	
 	QUATCOPY(oldquat, G.vd->viewquat);
+	
 	getmouseco_sc(mvalo);		/* work with screen coordinates because of trackball function */
+	mvalball[0]= mvalo[0];			/* needed for turntable to work */
+	mvalball[1]= mvalo[1];
+	
 	calctrackballvec(&curarea->winrct, mvalo, firstvec);
 
 	/* cumultime(0); */
@@ -435,53 +440,46 @@ void viewmove(int mode)
 
 
 			if(mode==0) {	/* view rotate */
-				
-				if(U.flag & TRACKBALL) {
-					calctrackballvec(&curarea->winrct, mval, newvec);
-					
-					VecSubf(dvec, newvec, firstvec);
-					
-					si= sqrt(dvec[0]*dvec[0]+ dvec[1]*dvec[1]+ dvec[2]*dvec[2]);
-					si/= (2.0*TRACKBALLSIZE);
-					
-					if(si<1.0) {
-						Crossf(q1+1, firstvec, newvec);
-	
-						Normalise(q1+1);
 			
-						phi= asin(si);
+				/* if turntable method, we don't change mvalball[0] */
+			
+				if(U.flag & TRACKBALL) mvalball[0]= mval[0];
+				mvalball[1]= mval[1];
+				
+				calctrackballvec(&curarea->winrct, mvalball, newvec);
+				
+				VecSubf(dvec, newvec, firstvec);
+				
+				si= sqrt(dvec[0]*dvec[0]+ dvec[1]*dvec[1]+ dvec[2]*dvec[2]);
+				si/= (2.0*TRACKBALLSIZE);
+				
+				if(si<1.0) {
+					Crossf(q1+1, firstvec, newvec);
+
+					Normalise(q1+1);
 		
-						si= sin(phi);
-						q1[0]= cos(phi);
-						q1[1]*= si;
-						q1[2]*= si;
-						q1[3]*= si;
-						
-						QuatMul(G.vd->viewquat, q1, oldquat);
-					}
-				}
-				else {
-					/* roteren around z-axis (x moves) and horizontal axis (y) */
+					phi= asin(si);
+	
+					si= sin(phi);
+					q1[0]= cos(phi);
+					q1[1]*= si;
+					q1[2]*= si;
+					q1[3]*= si;
 					
-					phi= 2*(mval[0]-mvalo[0]);
+					QuatMul(G.vd->viewquat, q1, oldquat);
+				}
+				
+				if( (U.flag & TRACKBALL)==0 ) {
+				
+					/* rotate around z-axis (mouse x moves)  */
+					
+					phi= 2*(mval[0]-mvalball[0]);
 					phi/= (float)curarea->winx;
 					si= sin(phi);
 					q1[0]= cos(phi);
 					q1[1]= q1[2]= 0.0;
 					q1[3]= si;
 					
-					/* horizontal axis */
-					VECCOPY(q2+1, G.vd->viewinv[0]);
-					Normalise(q2+1);
-					phi= (mvalo[1]-mval[1]);
-					phi/= (float)curarea->winy;
-					si= sin(phi);
-					q2[0]= cos(phi);
-					q2[1]*= si;
-					q2[2]*= si;
-					q2[3]*= si;
-					
-					QuatMul(q1, q1, q2);
 					QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
 				}
 			}
@@ -740,7 +738,7 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	glSelectBuffer( MAXPICKBUF, buffer);
+	glSelectBuffer( MAXPICKBUF, (GLuint *)buffer);
 	glRenderMode(GL_SELECT);
 	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
 	glPushName(-1);
