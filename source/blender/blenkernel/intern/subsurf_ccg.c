@@ -600,7 +600,7 @@ static void subSurf_sync(SubSurf *ss) {
 			fVerts[2] = ef->v3;
 			fVerts[3] = ef->v4;
 
-			ccgSubSurf_syncFace(ss->subSurf, ef, ef->v4?4:3, fVerts);
+			ccgSubSurf_syncFace(ss->subSurf, ef, ef->v4?4:3, (CCGVertHDL*) fVerts);
 		}
 	}
 
