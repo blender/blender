@@ -7,19 +7,19 @@
 CFG=BPY_python - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
-!MESSAGE
+!MESSAGE 
 !MESSAGE NMAKE /f "BPY_python.mak".
-!MESSAGE
+!MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
-!MESSAGE
+!MESSAGE 
 !MESSAGE NMAKE /f "BPY_python.mak" CFG="BPY_python - Win32 Release"
-!MESSAGE
+!MESSAGE 
 !MESSAGE Possible choices for configuration are:
-!MESSAGE
+!MESSAGE 
 !MESSAGE "BPY_python - Win32 Release" (based on "Win32 (x86) Static Library")
 !MESSAGE "BPY_python - Win32 Debug" (based on "Win32 (x86) Static Library")
-!MESSAGE
+!MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
@@ -76,7 +76,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
 
-!ENDIF
+!ENDIF 
 
 # Begin Target
 
@@ -244,6 +244,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\sceneRadio.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\sceneRender.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Sound.c
 # End Source File
 # Begin Source File
 
@@ -436,6 +440,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\sceneRadio.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\sceneRender.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Sound.h
 # End Source File
 # Begin Source File
 
