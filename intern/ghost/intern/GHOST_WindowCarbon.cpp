@@ -42,7 +42,6 @@
 #endif
 
 #include "GHOST_WindowCarbon.h"
-
 #include "GHOST_Debug.h"
 
 AGLContext GHOST_WindowCarbon::s_firstaglCtx = NULL;
@@ -108,7 +107,13 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
             updateDrawingContext();
             activateDrawingContext();
         }
-		if(ugly_hack==NULL) ugly_hack= m_windowRef;
+		if(ugly_hack==NULL) {
+			ugly_hack= m_windowRef;
+			// when started from commandline, window remains in the back... also for play anim
+			ProcessSerialNumber psn;
+			GetCurrentProcess(&psn);
+			SetFrontProcess(&psn);
+		}
     }
     else {
     /*
