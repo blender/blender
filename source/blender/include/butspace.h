@@ -151,6 +151,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_MTEXPASTE		1210
 #define B_MTEXCOPY		1211
 #define B_MATLAY		1212
+#define B_MATHALO		1213
 
 /* *********************** */
 #define B_TEXBUTS		1400
