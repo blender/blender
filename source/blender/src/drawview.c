@@ -1326,7 +1326,8 @@ void do_viewbuts(unsigned short event)
 			bPoseChannel *chan;
 			bArmature *arm;
 			Bone *bone;
-		
+			Base *base;
+
 			arm = get_armature(OBACT);
 			if (!arm) return;
 			bone = get_first_selected_bone();
@@ -1345,6 +1346,12 @@ void do_viewbuts(unsigned short event)
 			strcpy (chan->name, bone->name);
 			
 			set_pose_channel (G.obpose->pose, chan);
+
+			for (base = G.scene->base.first; base; base=base->next){
+				clear_object_constraint_status(base->object);
+				make_displists_by_armature(base->object);
+			}
+
 			allqueue(REDRAWVIEW3D, 1);
 		}
 	}
