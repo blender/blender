@@ -834,6 +834,11 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 								E_NEAR(v2) = E_NEAR(v1);
 								done = 1;
 							}
+							else if (len2 - len1 > 0.00001f && len1 - lenn > 0.00001f) {
+								VECCOPY(vec2, vec1);
+								E_NEAR(v2) = E_NEAR(v1);
+								done = 1;
+							}
 						}
 						/* for v1 if not selected */
 						if (v1->f2 != 2) {
@@ -841,6 +846,11 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 							lenn = VecLength(nvec);
 							if (lenn - len2 > 0.00001f && len1 - lenn > 0.00001f) {
 								VECCOPY(vec1, nvec);
+								E_NEAR(v1) = E_NEAR(v2);
+								done = 1;
+							}
+							else if (len1 - len2 > 0.00001f && len2 - lenn > 0.00001f) {
+								VECCOPY(vec1, vec2);
 								E_NEAR(v1) = E_NEAR(v2);
 								done = 1;
 							}
