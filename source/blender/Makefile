@@ -36,7 +36,7 @@ include nan_definitions.mk
 DIRS = blenloader
 DIRS += deflate inflate encrypt decrypt sign verify
 DIRS += writestreamglue readstreamglue writeblenfile readblenfile
-DIRS += avi imbuf img misc render radiosity blenlib blenkernel blenpluginapi
+DIRS += avi imbuf img render radiosity blenlib blenkernel blenpluginapi
 DIRS += bpython makesdna src renderconverter
 
 DIR = $(OCGDIR)/blender

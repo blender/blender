@@ -74,7 +74,6 @@ PYPLAYERLIB ?= $(PYLIB)
 
     GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
     GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
-    GRPLIB += $(OCGDIR)/blender/misc/$(DEBUG_DIR)libmisc.a
     GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
     GRPLIB += $(NAN_DECIMATION)/lib/libdecimation.a
     GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a

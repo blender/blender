@@ -52,6 +52,5 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../include
-CPPFLAGS += -I../../misc
 CPPFLAGS += -I../../
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

@@ -47,7 +47,6 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I../blender/render/extern/include
 CPPFLAGS += -I../blender/radiosity/extern/include
-CPPFLAGS += -I../blender/misc
 # two needed for the kernel
 CPPFLAGS += -I../blender/imbuf
 CPPFLAGS += -I../blender/makesdna

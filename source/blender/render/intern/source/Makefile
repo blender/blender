@@ -48,7 +48,6 @@ CFLAGS += $(LEVEL_2_C_WARNINGS)
 CPPFLAGS += -I../include 
 CPPFLAGS += -I../../extern/include 
 CPPFLAGS += -I../../../radiosity/extern/include 
-CPPFLAGS += -I../../../misc
 CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../makesdna

@@ -47,8 +47,6 @@ CPPFLAGS += -I$(NAN_FUZZICS)/include
 # because of kernel dependency on makesdna
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/include
-# timer stuff
-CPPFLAGS += -I../../blender/misc
 # because of kernel dependency on imbuf
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/blenlib

@@ -56,5 +56,4 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # first /include is my own includes, second are the external includes
 # third is the external interface. there should be a nicer way to say this 
 CPPFLAGS += -I../include -I../../../include -I../../extern/include
-CPPFLAGS += -I../../../render/extern/include -I../../../misc
 

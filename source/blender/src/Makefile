@@ -77,7 +77,6 @@ CPPFLAGS += -I../img
 CPPFLAGS += -I../blenloader
 CPPFLAGS += -I../verify
 CPPFLAGS += -I..
-CPPFLAGS += -I../misc
 CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../../gameengine/SoundSystem
 
