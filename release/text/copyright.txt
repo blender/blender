@@ -1,5 +1,6 @@
 
   This version of Blender has been originally released at www.blender.org.
+  It is subject to the GPL license, which is part of this download.
   For more information please review the Blender source code distribution, 
   which should be available at the same location as where you obtained 
   this version.
@@ -19,16 +20,17 @@
   1. Grant of License
   
   Subject to the provisions of this License Agreement, BF grants You a
-  limited, non-exclusive, personal, non-sublicenseable, non-transferable,
-  revocable license to use the Software at any computer You own or use. 
-   
+  limited, non-exclusive, personal, non-sublicenseable, non-transferable
+  license to use the Software at any computer You own or use. 
+
   2. Permitted copying and electronic distribution of Software
   
   You are hereby granted permission to copy and distribute the Software
-  without written agreement from BF. This entire License Agreement must 
-  appear in and/or accompany all copies of the Software. The source code
-  distribution, which can be found at the same location where you obtained
-  the Software, has to accompany all copies of the Software as well.
+  without written agreement from BF. This entire License Agreement, and
+  the GPL-license.txt must appear in and/or accompany all copies of the
+  Software. The source code distribution, which can be found at the same
+  location where you obtained the Software, has to accompany all copies
+  of the Software as well.
 
   3. Disclaimer of Warranties
   
