@@ -29,10 +29,14 @@ source/blender/src/buttons_scene.c
 source/blender/src/toets.c
 source/blender/src/writeimage.c
 
-Step 5: 
+Step 5:
+edit blender/source/blender/imbuf/intern/util.c
+and add your extension so that your format gets recognized in the thumbnails.
+
+Step 6: 
 Alter the build process:
-For autoconf you need to edit blender/source/blender/imbuf/Makefile.am
-and add in your additional files.
+For scons you need to edit blender/source/blender/imbuf/SConscript 
+and add in your additional files to source_files.
 For msvp you need to edit blender/projectfiles/blender/imbuf/BL_imbuf.dsp
 and add in your additional files.
 If you have any external library info you will also need to add that 
