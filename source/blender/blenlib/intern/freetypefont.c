@@ -449,7 +449,7 @@ static int check_freetypefont(PackedFile * pf)
 		if ( err ) { return 0; }
 */
 		glyph_index = FT_Get_Char_Index( face, 'A' );
-		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP );
+		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE);
 		if(err) success = 0;
 		else {
 			glyph = face->glyph;
