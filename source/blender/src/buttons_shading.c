@@ -2187,17 +2187,15 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	
-	uiBlockBeginAlign(block);
-	
 	/* in yafray arealights always cast shadows, so ray shadow flag not needed */
-	if (la->type!=LA_AREA)
+	/* ray shadow also not used when halo for spot enabled */
+	if ((la->type!=LA_AREA) && (!((la->type==LA_SPOT) && (la->mode & LA_HALO))))
 		uiDefButS(block, TOG|BIT|13, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
 	
 	/* in yafray the regular lamp can use shadowbuffers (softlight), used by spot with halo as well */
 	/* to prevent clash with blender shadowbuf flag, a special flag is used for yafray */
 	if (la->type==LA_LOCAL)
 		uiDefButS(block, TOG|BIT|14, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets light produce shadows using shadow buffer");
-	uiBlockEndAlign(block);
 	
 	/* shadowbuffers used only for 'softlight' & spotlight with halo */
 	if (((la->type==LA_LOCAL) && (la->mode & LA_YF_SOFT)) || ((la->type==LA_SPOT) && (la->mode & LA_HALO))) {
