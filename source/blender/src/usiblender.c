@@ -444,11 +444,10 @@ void BIF_write_autosave(void)
 
 static void delete_autosave(void)
 {
-	char tstr[FILE_MAXDIR+FILE_MAXFILE], pidstr[FILE_MAXFILE];
+	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	
-	sprintf(pidstr, "%d", abs(getpid()));
-	BLI_make_file_string("/", tstr, U.tempdir, pidstr);
-	
+	get_autosave_location(tstr);
+
 	if (BLI_exists(tstr)) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
 		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
