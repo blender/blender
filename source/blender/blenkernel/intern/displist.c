@@ -385,9 +385,11 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 		inpr= inpg= inpb= inpr1= inpg1= inpb1= ma->emit;
 	}
 	
-	/* col[0]= (255.0*ma->r); */
-	/* col[1]= (255.0*ma->g); */
-	/* col[2]= (255.0*ma->b); */
+	view[0]= 0.0;
+	view[1]= 0.0;
+	view[2]= 1.0;
+	
+	Normalise(view);
 
 	for (fl= fastlamplist; fl; fl= fl->next) {
 		/* if(fl->mode & LA_LAYER) if((fl->lay & ma->lay)==0) continue; */
@@ -446,11 +448,14 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			}
 		}
 
-		inp= nor[0]*lv[0]+ nor[1]*lv[1]+ nor[2]*lv[2];
-
-		if(ma->diff_shader==MA_DIFF_ORENNAYAR) inp= OrenNayar_Diff(nor, lv, view, ma->roughness);
-		else if(ma->diff_shader==MA_DIFF_TOON) inp= Toon_Diff(nor, lv, view, ma->param[0], ma->param[1]);
-
+		if(fl->mode & LA_NO_DIFF) inp= 0.0;
+		else {
+			inp= nor[0]*lv[0]+ nor[1]*lv[1]+ nor[2]*lv[2];
+	
+			if(ma->diff_shader==MA_DIFF_ORENNAYAR) inp= OrenNayar_Diff(nor, lv, view, ma->roughness);
+			else if(ma->diff_shader==MA_DIFF_TOON) inp= Toon_Diff(nor, lv, view, ma->param[0], ma->param[1]);
+		}
+		
 		back= 0;
 		if(inp<0.0) {
 			back= 1;
@@ -467,10 +472,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			inpg1+= inp*fl->g;
 			inpb1+= inp*fl->b;
 		}
-		if(ma->spec) {
-			
-			VECCOPY(view, fl->co);
-			Normalise(view);
+		if(ma->spec && (fl->mode & LA_NO_SPEC)==0) {
 			
 			if(ma->spec_shader==MA_SPEC_PHONG) 
 				t= Phong_Spec(nor, lv, view, ma->har);
