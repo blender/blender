@@ -902,6 +902,11 @@ void backdrawview3d(int test)
 #ifdef __APPLE__
 	glDrawBuffer(GL_BACK); /* we were in aux buffers */
 #endif
+
+	/* it is important to end a view in a transform compatible with buttons */
+	persp(PERSP_WIN);  // set ortho
+	bwin_scalematrix(curarea->win, G.vd->blockscale, G.vd->blockscale, G.vd->blockscale);
+
 }
 
 		
