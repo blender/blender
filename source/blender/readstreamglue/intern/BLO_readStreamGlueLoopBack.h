@@ -31,6 +31,10 @@
  * streamglue loopback. Needed at start of Read stream.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct readStreamGlueLoopBackStruct {
 	struct readStreamGlueStruct *streamGlue;
 	void *endControl;

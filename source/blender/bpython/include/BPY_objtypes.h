@@ -29,6 +29,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"

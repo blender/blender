@@ -34,6 +34,11 @@
 
 #ifndef EDGERENDER_H
 #define EDGERENDER_H 
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 /**

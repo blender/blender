@@ -33,6 +33,10 @@
 #ifndef SHADOWBUFFER_H
 #define SHADOWBUFFER_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" { 
 #endif

@@ -34,6 +34,10 @@
 
 #include "KX_Python.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void BL_ConvertControllers(
 	struct Object* blenderobject,
 	class KX_GameObject* gameobj,

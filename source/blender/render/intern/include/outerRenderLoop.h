@@ -35,6 +35,10 @@
 #ifndef OUTERRENDERLOOP_H
 #define OUTERRENDERLOOP_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * Outer loop for rendering a single picture.
  */

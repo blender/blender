@@ -32,6 +32,10 @@
 #ifndef __PHY_DYNAMIC_TYPES
 #define __PHY_DYNAMIC_TYPES
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /// PHY_ScalarType enumerates possible scalar types.
 /// See the PHY_IMeshInterface for its use
 typedef enum PHY_ScalarType {

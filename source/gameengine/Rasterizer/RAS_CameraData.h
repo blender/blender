@@ -32,6 +32,10 @@
 #ifndef __RAS_CAMERADATA_H
 #define __RAS_CAMERADATA_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct RAS_CameraData
 {
 	float m_lens;

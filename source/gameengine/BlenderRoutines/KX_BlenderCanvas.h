@@ -32,6 +32,10 @@
 #ifndef __KX_BLENDERCANVAS
 #define __KX_BLENDERCANVAS
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #include <windows.h>
 #endif 

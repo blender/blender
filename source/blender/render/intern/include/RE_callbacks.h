@@ -34,6 +34,10 @@
 #ifndef RE_CALLBACKS_H
 #define RE_CALLBACKS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

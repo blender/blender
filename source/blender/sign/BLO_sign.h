@@ -33,6 +33,10 @@
 #ifndef BLO_SIGN_H
 #define BLO_SIGN_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -37,6 +37,10 @@
 
 #include "vanillaRenderPipe_types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * Render pipeline with all kinds of extras.
  *    status-------------------------\/

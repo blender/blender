@@ -33,10 +33,13 @@
 #ifndef __GPU_ENGINE_H
 #define __GPU_ENGINE_H
 
-
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #define Object DNA_Object  // tricky stuff !!! but without it it doesn't compile...
 

@@ -31,6 +31,10 @@
 #ifndef BKE_SUBSURF_H
 #define BKE_SUBSURF_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Mesh;
 struct Object;
 struct Displist;

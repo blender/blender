@@ -32,6 +32,10 @@
 #ifndef __RAS_CHECKVERTEXARRAYS
 #define __RAS_CHECKVERTEXARRAYS
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 bool RAS_SystemSupportsVertexArrays();
 
 #endif //__RAS_CHECKVERTEXARRAYS

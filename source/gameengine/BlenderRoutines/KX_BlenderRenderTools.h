@@ -32,6 +32,10 @@
 #ifndef __KX_BLENDERRENDERTOOLS
 #define __KX_BLENDERRENDERTOOLS
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 // don't show stl-warnings
 #pragma warning (disable:4786)

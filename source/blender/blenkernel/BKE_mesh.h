@@ -34,6 +34,10 @@
 #ifndef BKE_MESH_H
 #define BKE_MESH_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* texflag */
 #define AUTOSPACE               1
 

@@ -35,6 +35,10 @@
 #ifndef _H_IMG_Line
 #define _H_IMG_Line
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "IMG_Types.h"
 #include <math.h>
 

@@ -50,6 +50,9 @@
 #include "SG_Spatial.h"
 #include "SG_ParentRelation.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class KX_NormalParentRelation : public SG_ParentRelation
 {

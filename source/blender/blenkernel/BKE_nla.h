@@ -33,6 +33,10 @@
 #ifndef BKE_NLA_H
 #define BKE_NLA_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct bActionStrip;
 struct ListBase;
 

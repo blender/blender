@@ -33,6 +33,10 @@
 #ifndef BIF_EDITKEY_H
 #define BIF_EDITKEY_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Key;
 struct KeyBlock;
 struct Mesh;

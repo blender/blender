@@ -41,6 +41,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef IMB_IMBUF_TYPES_H
 #define IMB_IMBUF_TYPES_H
 

@@ -35,6 +35,10 @@
 #ifndef _H_IMG_Rect
 #define _H_IMG_Rect
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "IMG_Types.h"
 #include "IMG_Line.h"
 

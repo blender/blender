@@ -34,6 +34,10 @@
 
 #include <vector>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_IInterpolator {	
 public:
 	virtual ~KX_IInterpolator() {}

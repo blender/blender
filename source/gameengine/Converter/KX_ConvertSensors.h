@@ -32,6 +32,10 @@
 #ifndef __KX_CONVERTSENSOR_H
 #define __KX_CONVERTSENSOR_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void BL_ConvertSensors(struct Object* blenderobject,
 	   class KX_GameObject* gameobj,
 	   class SCA_LogicManager* logicmgr,

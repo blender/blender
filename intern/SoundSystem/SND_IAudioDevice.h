@@ -38,6 +38,9 @@
 #include "SND_WaveSlot.h"
 #include "MT_Matrix3x3.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class SND_IAudioDevice
 {

@@ -31,6 +31,10 @@
  */
 /* opy_nmesh.c */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "DNA_mesh_types.h"
 
 #define NMesh_Check(v)       ((v)->ob_type == &NMesh_Type)

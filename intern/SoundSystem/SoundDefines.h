@@ -37,6 +37,10 @@
 #ifndef __SOUNDDEFINES_H
 #define __SOUNDDEFINES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* the types of devices */
 enum
 {

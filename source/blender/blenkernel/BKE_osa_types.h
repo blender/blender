@@ -34,6 +34,11 @@
 #ifndef BKE_OSA_TYPES_H
 #define BKE_OSA_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 /*  typedef struct Osa */
 typedef struct RE_Osa
 {

@@ -31,6 +31,10 @@
  * streamglue loopback adds a streamGlueHeader to start of the write stream
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	int
 BLO_dumpFromMemory(
 	unsigned char *data,

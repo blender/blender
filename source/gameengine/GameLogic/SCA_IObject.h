@@ -39,6 +39,10 @@
 #include "Value.h"
 #include <vector>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SCA_ISensor;
 class SCA_IController;
 class SCA_IActuator;

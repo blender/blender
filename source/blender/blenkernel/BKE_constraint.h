@@ -33,6 +33,10 @@
 #ifndef BKE_CONSTRAINT_H
 #define BKE_CONSTRAINT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct bConstraint;
 struct Object;
 struct ListBase;

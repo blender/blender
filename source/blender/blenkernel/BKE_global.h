@@ -38,6 +38,10 @@
 #ifndef BKE_GLOBAL_H
 #define BKE_GLOBAL_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus

@@ -41,6 +41,10 @@
 #ifndef BKE_MAIN_H
 #define BKE_MAIN_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "DNA_listBase.h"
 
 struct Library;

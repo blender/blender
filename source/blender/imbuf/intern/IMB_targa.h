@@ -35,6 +35,10 @@
 #ifndef IMB_TARGA_H
 #define IMB_TARGA_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ImBuf;
 
 int imb_is_a_targa(void *buf);

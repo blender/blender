@@ -17,6 +17,10 @@
 
 #include "Value.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class CListValue;
 
 class CEmptyValue : public CPropValue  

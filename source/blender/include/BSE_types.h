@@ -32,6 +32,10 @@
 /* forward declarations for some prototype header */
 /* these may wildly occur in other header files, too */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct BGpic;
 struct SpaceText;
 struct Oops;

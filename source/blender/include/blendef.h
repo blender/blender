@@ -31,6 +31,10 @@
 #ifndef BLENDEF_H
 #define BLENDEF_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #else
 #ifndef __BeOS

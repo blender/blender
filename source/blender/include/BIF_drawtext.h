@@ -33,6 +33,10 @@
 #ifndef BIF_DRAWTEXT_H
 #define BIF_DRAWTEXT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ScrArea;
 struct SpaceText;
 struct Text;

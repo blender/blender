@@ -29,6 +29,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "BSE_edit.h" // for getname_<  >_ei()
 #include "BKE_global.h"
 #include "BKE_main.h"

@@ -31,6 +31,10 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "iff.h"
 #include "util.h"
 #include "floatpatch.h"

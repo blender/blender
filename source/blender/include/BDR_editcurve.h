@@ -33,6 +33,10 @@
 #ifndef BDR_EDITCURVE_H
 #define BDR_EDITCURVE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Curve;
 struct Nurb;
 struct BezTriple;

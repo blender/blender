@@ -33,6 +33,9 @@
 #define KX_CONVERTPHYSICSOBJECTS
 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 
 //#define USE_SUMO_SOLID

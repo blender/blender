@@ -34,6 +34,10 @@
 #ifndef DNA_ACTUATOR_TYPES_H
 #define DNA_ACTUATOR_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Object;
 struct Mesh;
 struct Scene;

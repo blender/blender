@@ -35,6 +35,10 @@
 
 #include "SCA_ISensor.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_NetworkEventManager;
 class NG_NetworkScene;
 

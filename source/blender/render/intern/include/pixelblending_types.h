@@ -36,6 +36,10 @@
 #ifndef PIXELBLENDING_TYPES_H
 #define PIXELBLENDING_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*  #include "blender.h" */
 
 /* Threshold for a 'full' pixel: pixels with alpha above this level are      */

@@ -38,7 +38,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* MOUSE : 0x00x */
 

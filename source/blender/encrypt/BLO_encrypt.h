@@ -30,6 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef BLO_ENCRYPT_H
 #define BLO_ENCRYPT_H
 

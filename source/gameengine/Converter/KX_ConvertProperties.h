@@ -32,6 +32,10 @@
 #ifndef __KX_CONVERTPROPERTIES
 #define __KX_CONVERTPROPERTIES
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void BL_ConvertProperties(struct Object* object,
   class KX_GameObject* gameobj,
   class SCA_TimeEventManager* timemgr,

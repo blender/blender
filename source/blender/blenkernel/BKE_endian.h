@@ -34,6 +34,10 @@
 #ifndef BKE_ENDIAN_H
 #define BKE_ENDIAN_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define BKE_ENDIANNESS(a) {  \
 	union {  \
 		long l;  \

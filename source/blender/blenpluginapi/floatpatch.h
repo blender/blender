@@ -31,6 +31,10 @@
 #ifndef FLOATPATCH_H
 #define FLOATPATCH_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* floating point libs differ at systems... with these defines it comilies at all! */
 
 #ifdef MIPS1

@@ -36,6 +36,10 @@
 #ifndef BLI_GSQUEUE_H
 #define BLI_GSQUEUE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef struct _GSQueue GSQueue;
 
 	/**

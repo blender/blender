@@ -32,6 +32,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* rgbyuv is identiek aan rgbbeta */
 
 float rgbyuv[4][4]={				/* afgeleid uit videoframer = Y Cr Cb in kopieen van Francois*/

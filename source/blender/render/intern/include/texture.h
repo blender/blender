@@ -39,6 +39,10 @@
 /* no types!!! */
 /*  #include "texture_types.h" */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Tex;
 struct MTex;
 struct HaloRen;

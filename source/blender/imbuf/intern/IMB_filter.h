@@ -35,6 +35,10 @@
 #ifndef IMB_FILTER_H
 #define IMB_FILTER_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ImBuf;
 
 void imb_filterx(struct ImBuf *ibuf);

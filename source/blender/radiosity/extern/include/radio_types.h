@@ -41,6 +41,10 @@
 #include "DNA_listBase.h" 
 #include "DNA_material_types.h" 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define DTWIRE		0
 #define DTGOUR		2
 #define DTSOLID		1

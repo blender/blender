@@ -33,6 +33,10 @@
 #ifndef BSE_BUTTONS_H
 #define BSE_BUTTONS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ID;
 
 void test_meshpoin_but(char *name, struct ID **idpp);

@@ -40,6 +40,10 @@
 #include <stdio.h>
 #include "AVI_avi.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define AVI_RAW      0
 #define AVI_CHUNK    1
 #define AVI_LIST     2

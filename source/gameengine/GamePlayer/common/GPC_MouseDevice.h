@@ -33,6 +33,10 @@
 #ifndef __GPC_MOUSE_DEVICE_H
 #define __GPC_MOUSE_DEVICE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif // WIN32

@@ -32,6 +32,10 @@
 #ifndef LICENCEKEY_H
 #define LICENCEKEY_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define I_AM_PUBLISHER temp_val2
 #define LICENSE_KEY_VALID temp_val
 #define SHOW_LICENSE_KEY rotop

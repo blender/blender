@@ -34,6 +34,9 @@
 #ifndef TPT_DEPENDKLUDGE_H
 #define TPT_DEPENDKLUDGE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #define NAN_TPT
 //#undef NAN_TPT

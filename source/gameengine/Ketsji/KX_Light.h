@@ -35,6 +35,10 @@
 #include "RAS_LightObject.h"
 #include "KX_GameObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_LightObject : public KX_GameObject
 {
 	RAS_LightObject		m_lightobj;

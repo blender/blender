@@ -30,6 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 /* defines callback structure for toolbox menu */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef struct _TBcallback {
 	char *desc;
 	char *key;

@@ -36,6 +36,10 @@
 /** example: DEFFUNC_GETLIST(text) defines a method for getting a list
  * of text blocks */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // Example: _GETLIST(name) -> get_namelist
 #define _GETLIST(x) get_##x##list 
 

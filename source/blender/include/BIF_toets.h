@@ -33,6 +33,10 @@
 #ifndef BIF_TOETS_H
 #define BIF_TOETS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void BIF_save_rendered_image(void);
 
 int save_image_filesel_str(char *str);

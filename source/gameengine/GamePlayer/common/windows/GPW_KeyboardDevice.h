@@ -36,8 +36,11 @@
 #pragma warning (disable : 4786)
 
 #include <windows.h>
-
 #include "GPC_KeyboardDevice.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
  * Win32 implementation of GPC_KeyboardDevice.

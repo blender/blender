@@ -37,6 +37,10 @@
 #ifndef BKE_PLUGIN_TYPES_H
 #define BKE_PLUGIN_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ImBuf;
 
 typedef	int (*TexDoit)(int, void*, float*, float*, float*);

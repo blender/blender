@@ -35,6 +35,10 @@
 
 #include "STR_HashedString.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class NG_NetworkMessage
 {
 	static int			s_nextID;

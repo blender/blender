@@ -34,6 +34,10 @@
 
 #include "KX_IInterpolator.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class MT_Vector3;
 class KX_IScalarInterpolator;
 

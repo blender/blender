@@ -46,6 +46,10 @@
 
 #include "MT_Vector3.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SCA_IScene;
 
 class KX_SCA_AddObjectActuator : public SCA_IActuator

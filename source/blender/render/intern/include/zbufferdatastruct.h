@@ -37,6 +37,10 @@
 
 #include "zbufferdatastruct_types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * Set memory and counters for a fresh z buffer
  */

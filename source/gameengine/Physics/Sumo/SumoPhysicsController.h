@@ -32,11 +32,13 @@
 #ifndef __SUMO_PHYSICSCONTROLLER_H
 #define __SUMO_PHYSICSCONTROLLER_H
 
-
 #include "PHY_IPhysicsController.h"
 #include "SM_Scene.h"
 #include "SM_Callback.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
 	Sumo Physics Controller, a special kind of a PhysicsController.

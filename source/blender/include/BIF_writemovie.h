@@ -33,6 +33,10 @@
 #ifndef BIF_WRITEMOVIE_H
 #define BIF_WRITEMOVIE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void start_movie(void);
 void append_movie(int fnum);
 void end_movie(void);

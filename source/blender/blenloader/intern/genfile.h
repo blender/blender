@@ -34,6 +34,10 @@
 #ifndef GENFILE_H
 #define GENFILE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct SDNA;
 
 int dna_findstruct_nr(struct SDNA *sdna, char *str);

@@ -38,6 +38,10 @@
 #include "SCA_IActuator.h"
 #include "SCA_IObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_TrackToActuator : public SCA_IActuator
 {
 	Py_Header;

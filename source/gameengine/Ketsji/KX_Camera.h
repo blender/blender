@@ -44,6 +44,10 @@
 #include "IntValue.h"
 #include "RAS_CameraData.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 class KX_Camera : public KX_GameObject
 {

@@ -33,6 +33,11 @@
  */
 #ifndef BKE_GROUP_H
 #define BKE_GROUP_H
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Group;
 struct GroupKey;
 struct GroupObject;

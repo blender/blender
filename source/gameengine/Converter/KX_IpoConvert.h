@@ -32,6 +32,10 @@
 #ifndef __KX_IPOCONVERT_H
 #define __KX_IPOCONVERT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Object;
 
 void BL_ConvertIpos(struct Object* blenderobject,

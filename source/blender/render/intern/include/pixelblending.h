@@ -42,6 +42,11 @@
 /* own include */
 #include "pixelblending_types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 /**
  * Samples pixel, depending on R.osa setting
  */

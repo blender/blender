@@ -33,6 +33,10 @@
 #ifndef BIF_EDITLATTICE_H
 #define BIF_EDITLATTICE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void apply_lattice(void);
 void free_editLatt(void);
 void make_editLatt(void);

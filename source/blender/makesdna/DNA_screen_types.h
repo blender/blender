@@ -34,6 +34,10 @@
 #ifndef DNA_SCREEN_TYPES_H
 #define DNA_SCREEN_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 

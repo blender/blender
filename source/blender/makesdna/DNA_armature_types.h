@@ -30,9 +30,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #ifndef DNA_ARMATURE_TYPES_H
 #define DNA_ARMATURE_TYPES_H
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"

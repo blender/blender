@@ -33,6 +33,10 @@
 #ifndef __GPC_RENDERTOOLS_H
 #define __GPC_RENDERTOOLS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if defined(WIN32) || defined(__APPLE__)
 	#ifdef WIN32
 		#include <windows.h>

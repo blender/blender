@@ -34,10 +34,12 @@
 #define NG_TERRAPLAYNETWORKDEVICEINTERFACE_H
 
 #include <deque>
-
 #include "GASInterface.h"
-
 #include "NG_NetworkDeviceInterface.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class NG_TerraplayNetworkDeviceInterface : public NG_NetworkDeviceInterface
 {

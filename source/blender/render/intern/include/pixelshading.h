@@ -37,6 +37,10 @@
 #ifndef PIXELSHADING_H
 #define PIXELSHADING_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 #include "render.h"

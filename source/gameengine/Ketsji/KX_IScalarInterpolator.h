@@ -32,6 +32,10 @@
 #ifndef KX_ISCALARINTERPOLATOR_H
 #define KX_ISCALARINTERPOLATOR_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_IScalarInterpolator {	
 public:
 	virtual ~KX_IScalarInterpolator() {}

@@ -35,6 +35,10 @@
 #include "RAS_MaterialBucket.h"
 #include "RAS_IRasterizer.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct TFace;
 extern "C" int set_tpage(TFace* tface);		/* Worst hack ever */
 

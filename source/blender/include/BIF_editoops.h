@@ -33,6 +33,10 @@
 #ifndef BIF_EDITOOPS_H
 #define BIF_EDITOOPS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void borderselect_oops(void);
 void deselect_all_area_oops(void);
 void mouse_select_oops(void);

@@ -38,6 +38,10 @@
 #ifndef BLI_EDITVERT_H
 #define BLI_EDITVERT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef struct EditVert
 {
 	struct EditVert *next, *prev, *vn;

@@ -35,6 +35,10 @@
 #ifndef IMB_IFF_H
 #define IMB_IFF_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ImBuf;
 
 unsigned short imb_start_iff(struct ImBuf *ibuf, int file);

@@ -34,6 +34,9 @@
 
 #include "MT_Scalar.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class MT_CmMatrix4x4;
 

@@ -37,6 +37,10 @@
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -34,6 +34,10 @@
 #ifndef BKE_ARMATURE_H
 #define BKE_ARMATURE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Bone;
 struct Main;
 struct bArmature;

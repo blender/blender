@@ -34,6 +34,10 @@
 #ifndef DNA_OOPS_TYPES_H
 #define DNA_OOPS_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define OOPSX	5.0
 #define OOPSY	1.8
 

@@ -33,6 +33,9 @@
 #ifndef _RAS_RECT
 #define _RAS_RECT
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /** 
  * @section interface class.

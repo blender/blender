@@ -35,8 +35,12 @@
 #ifndef __SG_CONTROLLER_H
 #define __SG_CONTROLLER_H
 
-
 #include "SG_IObject.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SG_Controller 
 {
 public:

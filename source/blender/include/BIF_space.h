@@ -30,6 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef BIF_SPACE_H
 #define BIF_SPACE_H
 

@@ -32,9 +32,11 @@
 #ifndef PHY_PYTHON_CONSTRAINTBINDING
 #define PHY_PYTHON_CONSTRAINTBINDING
 
-
 #include <Python.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 PyObject*				initPythonConstraintBinding();
 void	PHY_RemovePythonConstraintBinding();

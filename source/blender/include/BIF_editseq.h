@@ -33,6 +33,10 @@
 #ifndef BIF_EDITSEQ_H
 #define BIF_EDITSEQ_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Sequence;
 
 void				add_duplicate_seq(void);

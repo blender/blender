@@ -34,6 +34,10 @@
 #ifndef BLO_READSTREAMGLUE_H
 #define BLO_READSTREAMGLUE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -34,6 +34,10 @@
 #ifndef DNA_WORLD_TYPES_H
 #define DNA_WORLD_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
 

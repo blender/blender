@@ -53,6 +53,10 @@
 #ifndef NLA_H
 #define NLA_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define __NLA			
 
 #define __NLA_BAKE							//	Not for release: Not yet fully implemented

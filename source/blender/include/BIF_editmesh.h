@@ -33,6 +33,10 @@
 #ifndef BIF_EDITMESH_H
 #define BIF_EDITMESH_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct EditVlak;
 struct EditEdge;
 struct EditVert;

@@ -30,6 +30,10 @@
  * API defined Object types
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 extern PyTypeObject PyIpoCurve_Type, PyBezTriple_Type;
 extern PyTypeObject Button_Type, Buffer_Type;
 extern PyTypeObject NMesh_Type, NMFace_Type, NMVert_Type, NMCol_Type;

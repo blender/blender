@@ -34,6 +34,9 @@
 #ifndef BDR_ISECT_H
 #define BDR_ISECT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 struct EditVert;
 struct EditVlak;

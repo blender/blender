@@ -36,6 +36,10 @@
 #ifndef BKE_BMFONT_TYPES_H
 #define BKE_BMFONT_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define is_power_of_two(N) ((N ^ (N - 1)) == (2 * N - 1))
 /*
 Moved to IMB_imbuf_types.h where it will live close to the ImBuf type.

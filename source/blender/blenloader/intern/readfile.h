@@ -33,6 +33,10 @@
 #ifndef READFILE_H
 #define READFILE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct OldNewMap;
 
 typedef struct FileData {

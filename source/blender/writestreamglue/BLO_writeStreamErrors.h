@@ -36,6 +36,10 @@
 #ifndef BLO_WRITESTREAMERRORS_H
 #define BLO_WRITESTREAMERRORS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

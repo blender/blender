@@ -37,6 +37,9 @@
 #ifndef __KX_RANDOMNUMBERGENERATOR
 #define __KX_RANDOMNUMBERGENERATOR
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class SCA_RandomNumberGenerator {
 

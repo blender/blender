@@ -36,6 +36,11 @@
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 #include <vector>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class NG_NetworkDeviceInterface;
 
 class NG_NetworkScene

@@ -37,6 +37,10 @@
 
 #include "SCA_IActuator.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SCA_PropertyActuator : public SCA_IActuator
 {
 	Py_Header;

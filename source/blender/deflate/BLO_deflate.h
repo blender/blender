@@ -31,6 +31,10 @@
  * zlib deflate compression wrapper library interface
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef BLO_DEFLATE_H
 #define BLO_DEFLATE_H
 

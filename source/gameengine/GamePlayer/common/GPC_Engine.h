@@ -33,6 +33,9 @@
 #ifndef __GPC_ENGINE_H
 #define __GPC_ENGINE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "GPC_Canvas.h"
 #include "GPC_System.h"

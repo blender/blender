@@ -34,6 +34,10 @@
 #ifndef BSE_VIEW_H
 #define BSE_VIEW_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Object;
 struct BoundBox;
 struct View3D;

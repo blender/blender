@@ -29,6 +29,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef struct {
 	PyObject_HEAD
 	PyObject *dict;

@@ -32,6 +32,10 @@
 #ifndef __RAS_IRASTERIZER
 #define __RAS_IRASTERIZER
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #pragma warning (disable:4786)
 #endif

@@ -38,6 +38,10 @@
 #include "SCA_IActuator.h"
 #include "MT_Scalar.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 class KX_ConstraintActuator : public SCA_IActuator
 {

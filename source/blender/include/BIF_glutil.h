@@ -37,6 +37,10 @@
 #ifndef BIF_GLUTIL_H
 #define BIF_GLUTIL_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct rcti;
 struct rctf;
 

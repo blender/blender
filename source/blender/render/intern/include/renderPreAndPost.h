@@ -35,6 +35,10 @@
 #ifndef RENDERPREANDPOST_H
 #define RENDERPREANDPOST_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void prepareScene(void);
 void finalizeScene(void);
 void doClipping( void (*projectfunc)(float *, float *) );

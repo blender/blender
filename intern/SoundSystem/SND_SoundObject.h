@@ -40,6 +40,9 @@
 #include "SND_Object.h"
 #include "STR_String.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
  *  SND_SoundObject is a class for api independent sounddata storage conected to an actuator

@@ -32,6 +32,10 @@
 #ifndef __KX_PHYSICSENGINEENUMS
 #define __KX_PHYSICSENGINEENUMS
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 enum	e_PhysicsEngine
 {
 		UseNone=1,

@@ -33,6 +33,10 @@
 #ifndef BDR_VPAINT_H
 #define BDR_VPAINT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Mesh;
 struct MDeformVert;	/* __NLA */
 unsigned int vpaint_get_current_col(void);

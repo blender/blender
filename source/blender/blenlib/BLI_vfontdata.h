@@ -34,6 +34,10 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
  
 #ifndef BLI_VFONTDATA_H
 #define BLI_VFONTDATA_H

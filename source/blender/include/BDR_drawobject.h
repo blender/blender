@@ -33,6 +33,10 @@
 #ifndef BDR_DRAWOBJECT_H
 #define BDR_DRAWOBJECT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" { 
 #endif

@@ -40,6 +40,11 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 struct Object;
 struct Ipo;
 

@@ -34,6 +34,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef BIF_SCREEN_H
 #define BIF_SCREEN_H
 

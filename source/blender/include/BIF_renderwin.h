@@ -29,6 +29,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ScrArea;
 
 void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[2]);

@@ -34,6 +34,10 @@
 #ifndef BKE_EXOTIC_H
 #define BKE_EXOTIC_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Mesh;
 
 void mcol_to_rgba(unsigned int col, float *r, float *g, float *b, float *a);

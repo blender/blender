@@ -16,9 +16,11 @@
 #if !defined(AFX_OPERATOR1EXPR_H__A1653901_BF41_11D1_A51C_00A02472FC58__INCLUDED_)
 #define AFX_OPERATOR1EXPR_H__A1653901_BF41_11D1_A51C_00A02472FC58__INCLUDED_
 
-
-
 #include "Expression.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class COperator1Expr : public CExpression  
 {

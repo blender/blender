@@ -32,8 +32,11 @@
 #ifndef _DUMMYPHYSICSENVIRONMENT
 #define _DUMMYPHYSICSENVIRONMENT
 
-
 #include "PHY_IPhysicsEnvironment.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
 *	DummyPhysicsEnvironment  is an empty placeholder

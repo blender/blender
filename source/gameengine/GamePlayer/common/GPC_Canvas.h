@@ -36,6 +36,10 @@
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if defined(WIN32) || defined(__APPLE__)
 	#ifdef WIN32
 		#pragma warning (disable:4786) // suppress stl-MSVC debug info warning

@@ -38,6 +38,9 @@
 #include "SCA_IActuator.h"
 #include "MT_Vector3.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 //
 // Bitfield that stores the flags for each CValue derived class

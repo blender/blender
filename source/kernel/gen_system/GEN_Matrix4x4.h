@@ -34,6 +34,10 @@
 
 #include "MT_Point3.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class GEN_Matrix4x4
 {
 public:

@@ -35,6 +35,10 @@
 
 #include "SCA_EventManager.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_NetworkEventManager : public SCA_EventManager
 {
 	class SCA_LogicManager* m_logicmgr;

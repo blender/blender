@@ -38,6 +38,9 @@
 #include "SCA_IActuator.h"
 #include "SND_CDObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class KX_CDActuator : public SCA_IActuator
 {

@@ -33,6 +33,10 @@
  * 
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef _WIN32
 
 void start_avi_codec(void);

@@ -34,6 +34,10 @@
 #ifndef BKE_LATTICE_H
 #define BKE_LATTICE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Lattice;
 struct Object;
 struct BPoint;

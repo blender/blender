@@ -43,6 +43,10 @@
 #include <vector>
 #include <set>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_TimeCategoryLogger;
 
 #define LEFT_EYE  1

@@ -36,6 +36,9 @@
 
 #include <stddef.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 typedef void* IMG_BrushPtr;
 typedef void* IMG_CanvasPtr;

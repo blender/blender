@@ -34,10 +34,12 @@
 #define __KX_NETWORKMESSAGEACTUATOR_H
 
 #include "STR_String.h"
-
 #include "SCA_IActuator.h"
-
 #include "NG_NetworkMessage.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class KX_NetworkMessageActuator : public SCA_IActuator
 {

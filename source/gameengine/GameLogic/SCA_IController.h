@@ -34,6 +34,10 @@
 
 #include "SCA_ILogicBrick.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SCA_IController : public SCA_ILogicBrick
 {
 protected:

@@ -35,6 +35,10 @@
 #ifndef IMB_JPEG_H
 #define IMB_JPEG_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ImBuf;
 struct jpeg_compress_struct;
 

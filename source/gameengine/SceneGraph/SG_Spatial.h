@@ -36,8 +36,11 @@
 #include <MT_Vector3.h>
 #include <MT_Point3.h>
 #include <MT_Matrix3x3.h> // or Quaternion later ?
-
 #include "SG_IObject.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class SG_Node;
 class SG_ParentRelation;

@@ -33,6 +33,10 @@
 #ifndef BDR_DRAWACTION_H
 #define BDR_DRAWACTION_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct BezTriple;
 struct Ipo;
 struct gla2DDrawInfo;

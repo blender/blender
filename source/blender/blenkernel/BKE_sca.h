@@ -34,6 +34,10 @@
 #ifndef BKE_SCA_H
 #define BKE_SCA_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Text;
 struct bSensor;
 struct Object;

@@ -29,6 +29,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Scene;
 void set_scene(struct Scene *sce);
 

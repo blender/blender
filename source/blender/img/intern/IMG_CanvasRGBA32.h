@@ -35,6 +35,10 @@
 #ifndef _H_IMG_CanvasRGBA32
 #define _H_IMG_CanvasRGBA32
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "IMG_PixmapRGBA32.h"
 #include "IMG_BrushRGBA32.h"
 

@@ -36,6 +36,10 @@
 
 /* Hint: use gcc -E file.c  to see what these macros are expanded in */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "api.h"          // temporary defines for API version 
 
 #include "BPY_listbase_macro.h"

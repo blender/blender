@@ -33,6 +33,11 @@
 #define __KX_ALWAYSEVENTMGR
 #include "SCA_EventManager.h"
 #include <vector>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 using namespace std;
 class SCA_AlwaysEventManager : public SCA_EventManager
 {

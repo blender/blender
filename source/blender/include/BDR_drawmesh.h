@@ -33,6 +33,10 @@
 #ifndef BDR_DRAWMESH_H
 #define BDR_DRAWMESH_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Image;
 struct TFace;
 struct Object;

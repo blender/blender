@@ -37,6 +37,10 @@
 
 #include "KX_IInterpolator.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct RAS_CameraData;
 
 class KX_CameraIpoSGController : public SG_Controller

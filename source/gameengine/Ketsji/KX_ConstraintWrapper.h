@@ -35,6 +35,10 @@
 #include "Value.h"
 #include "PHY_DynamicTypes.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class	KX_ConstraintWrapper : public PyObjectPlus
 {
 	Py_Header;

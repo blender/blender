@@ -36,6 +36,9 @@ base object that can be part of the scenegraph.
 */
 #include <vector>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class SG_Controller;
 class SG_IObject;

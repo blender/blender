@@ -33,6 +33,10 @@
 #ifndef BIF_GRAPHICS_H
 #define BIF_GRAPHICS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	/* XXX, should move somewhere else, with collected windowing
 	 * stuff, to be done once the proper windowing stuff has
 	 * been formed.

@@ -33,9 +33,11 @@
 #ifndef __GPW_ENGINE_H
 #define __GPW_ENGINE_H
 
-
 #include "GPC_Engine.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class GPW_Engine : public GPC_Engine
 {

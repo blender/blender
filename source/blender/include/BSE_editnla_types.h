@@ -33,6 +33,10 @@
 #ifndef BSE_EDITNLA_TYPES_H
 #define BSE_EDITNLA_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define NLAWIDTH	196
 #define NLACHANNELHEIGHT	16
 #define NLACHANNELSKIP		1

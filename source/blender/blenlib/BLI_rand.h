@@ -36,6 +36,10 @@
 #ifndef BLI_RAND_H
 #define BLI_RAND_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	/** Seed the random number generator */
 void	BLI_srand		(unsigned int seed);
 

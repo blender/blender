@@ -34,6 +34,10 @@
 #ifndef BKE_SCENE_H
 #define BKE_SCENE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Scene;
 struct Object;
 struct Base;

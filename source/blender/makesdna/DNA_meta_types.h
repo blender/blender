@@ -34,6 +34,11 @@
 #ifndef DNA_META_TYPES_H
 #define DNA_META_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 

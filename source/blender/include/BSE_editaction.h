@@ -33,6 +33,10 @@
 #ifndef BSE_EDITACTION_H
 #define BSE_EDITACTION_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct bAction;
 struct bActionChannel;
 struct bPoseChannel;

@@ -35,10 +35,11 @@
 #include "MT_Matrix3x3.h"
 #include "MT_Point3.h"
 #include "MT_Point2.h"
-
-
-
 #include "RAS_TexVert.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void RAS_CalcTexMatrix(RAS_TexVert p[3],MT_Point3& origin,MT_Vector3& udir,MT_Vector3& vdir);
 

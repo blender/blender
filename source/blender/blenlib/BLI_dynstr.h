@@ -41,6 +41,10 @@
 #ifndef BLI_DYNSTR_H
 #define BLI_DYNSTR_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct DynStr;
 
 	/** The abstract DynStr type */

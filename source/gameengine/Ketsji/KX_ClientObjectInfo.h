@@ -32,6 +32,10 @@
 #ifndef __KX_CLIENTOBJECT_INFO_H
 #define __KX_CLIENTOBJECT_INFO_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * Client Type and Additional Info. This structure can be use instead of a bare void* pointer, for safeness, and additional info for callbacks
  */

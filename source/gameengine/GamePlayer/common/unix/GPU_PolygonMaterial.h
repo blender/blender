@@ -36,6 +36,9 @@
 
 #include "BP_PolygonMaterial.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class GPU_PolygonMaterial : public BP_PolygonMaterial
 {

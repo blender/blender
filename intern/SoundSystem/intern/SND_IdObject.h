@@ -41,6 +41,10 @@
 #include "GEN_List.h"
 #include "SoundDefines.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SND_IdObject : public GEN_Link
 {
 	SND_SoundObject*	m_soundObject;

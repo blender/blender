@@ -34,6 +34,10 @@
 
 #include "CSG_BooleanOps.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * Internal mesh structure.
  * Safe to copy by value... hopefully.

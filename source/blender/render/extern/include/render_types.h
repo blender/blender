@@ -37,6 +37,10 @@
 #include "DNA_world_types.h"
 /* ------------------------------------------------------------------------- */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* Definitely weird: this equals 1<<21... so wtf?*/
 #define MAXVERT (2<<20)
 #define MAXVLAK (2<<20)

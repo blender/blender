@@ -36,6 +36,9 @@
 #define __KX_ALWAYSSENSOR
 #include "SCA_ISensor.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class SCA_AlwaysSensor : public SCA_ISensor
 {

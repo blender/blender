@@ -35,6 +35,10 @@
 #ifndef _H_IMG_Types
 #define _H_IMG_Types
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef	int			TInt32;
 typedef	unsigned char	TUns8;
 typedef	unsigned int	TUns32;

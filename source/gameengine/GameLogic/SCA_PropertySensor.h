@@ -37,6 +37,10 @@
 
 #include "SCA_ISensor.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SCA_PropertySensor : public SCA_ISensor
 {
 	Py_Header;

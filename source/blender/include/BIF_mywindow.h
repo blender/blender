@@ -36,6 +36,10 @@
 #ifndef BIF_MYWINDOW_H
 #define BIF_MYWINDOW_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct rcti;
 
 /*---*/

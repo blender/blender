@@ -35,6 +35,10 @@
 #ifndef VECTOROPS_H
 #define VECTOROPS_H 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 void  MTC_diff3Int(int v1[3], int v2[3], int v3[3]);

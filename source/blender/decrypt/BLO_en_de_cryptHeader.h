@@ -31,6 +31,10 @@
  * 
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef BLO_EN_DE_CRYPT_H
 #define BLO_EN_DE_CRYPT_H
 

@@ -32,6 +32,10 @@
 #ifndef BIF_BUTTONS_H
 #define BIF_BUTTONS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Base;
 
 extern void do_blenderbuttons(unsigned short event);

@@ -35,6 +35,9 @@
 #include "KX_WorldInfo.h"
 #include "KX_BlenderGL.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 class BlenderWorldInfo : public KX_WorldInfo
 {

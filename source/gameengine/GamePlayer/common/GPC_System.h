@@ -33,6 +33,10 @@
 #ifndef __GPC_SYSTEM_H
 #define __GPC_SYSTEM_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if defined(WIN32)
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif /* WIN32 */

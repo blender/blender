@@ -35,6 +35,10 @@
 #ifndef IMB_HAMX_H
 #define IMB_HAMX_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ImBuf;
 
 struct ImBuf *imb_loadanim(int *iffmem, int flags);

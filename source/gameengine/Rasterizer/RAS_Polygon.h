@@ -32,6 +32,10 @@
 #ifndef __RAS_POLYGON
 #define __RAS_POLYGON
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "RAS_TexVert.h"
 //#include "KX_BoundingVolumes.h"
 #include "RAS_MaterialBucket.h"

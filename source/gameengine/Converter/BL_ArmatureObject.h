@@ -37,6 +37,10 @@
 
 #include "SG_IObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class BL_ActionActuator;
 
 class BL_ArmatureObject : public KX_GameObject  

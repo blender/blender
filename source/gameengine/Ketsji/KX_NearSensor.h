@@ -36,6 +36,11 @@
 #define KX_NEARSENSOR_H
 
 #include "KX_TouchSensor.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_Scene;
 
 class KX_NearSensor : public KX_TouchSensor

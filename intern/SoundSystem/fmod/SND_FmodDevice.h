@@ -36,6 +36,10 @@
 #include "SND_AudioDevice.h"
 #include "SoundDefines.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SND_FmodDevice : public SND_AudioDevice
 {
 public:

@@ -34,6 +34,10 @@
 
 #include <MT_Scalar.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // Properties of dynamic objects
 struct PHY_ShapeProps {
 	MT_Scalar  m_mass;                  // Total mass

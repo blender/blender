@@ -34,6 +34,10 @@
 #ifndef OLD_ZBUFFER_TYPES_H
 #define OLD_ZBUFFER_TYPES_H "$Id$"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 typedef struct PixStr

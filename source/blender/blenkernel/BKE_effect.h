@@ -34,6 +34,10 @@
 #ifndef BKE_EFFECT_H
 #define BKE_EFFECT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Effect;
 struct ListBase;
 struct Object;

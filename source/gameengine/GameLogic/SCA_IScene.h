@@ -36,6 +36,10 @@
 
 #include "STR_String.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct SCA_DebugProp
 {
 	class CValue*	m_obj;

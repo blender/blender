@@ -33,6 +33,10 @@
 #ifndef BSE_DRAWOOPS_H
 #define BSE_DRAWOOPS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Oops;
 struct uiBlock;
 

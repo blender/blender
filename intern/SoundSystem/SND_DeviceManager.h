@@ -39,6 +39,10 @@
 
 #include "SND_IAudioDevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class SND_DeviceManager
 {
 public :

@@ -31,6 +31,9 @@
  */
 //   Note: Functions prefixed with BPY_ are called from blenkernel routines */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "Python.h" /* The python includes themselves. */
 #include "compile.h" /* to give us PyCodeObject */

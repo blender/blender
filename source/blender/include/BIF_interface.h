@@ -33,6 +33,10 @@
 #ifndef BIF_INTERFACE_H
 #define BIF_INTERFACE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct ID;
 struct ListBase;
 struct ScrArea;

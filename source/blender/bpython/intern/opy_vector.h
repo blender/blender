@@ -39,6 +39,10 @@
 /*****************************/
 /* temporar hack for typecasts */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef float (*Matrix4Ptr)[4];
 typedef struct {
 	PyObject_VAR_HEAD

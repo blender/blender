@@ -31,6 +31,10 @@
 #ifndef BLI_STORAGE_H
 #define BLI_STORAGE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "BLI_storage_types.h"
 
 void   BLI_adddirstrings(void);

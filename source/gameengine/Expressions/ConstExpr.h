@@ -19,6 +19,10 @@
 #include "Expression.h"
 #include "Value.h"	// Added by ClassView
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class CConstExpr : public CExpression  
 {
 	//PLUGIN_DECLARE_SERIAL_EXPRESSION (CConstExpr,CExpression)

@@ -33,6 +33,10 @@
 #ifndef BSE_DRAWIMASEL_H
 #define BSE_DRAWIMASEL_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct SpaceImaSel;
 
 void viewgate(short sx, short sy, short ex, short ey);

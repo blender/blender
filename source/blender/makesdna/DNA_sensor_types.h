@@ -34,6 +34,10 @@
 #ifndef DNA_SENSOR_TYPES_H
 #define DNA_SENSOR_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct Object;
 struct Material;
 

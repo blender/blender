@@ -33,6 +33,10 @@
 #ifndef BDR_EDITOBJECT_H
 #define BDR_EDITOBJECT_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct TransVert;
 struct Object;
 struct TransOb;

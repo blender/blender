@@ -35,6 +35,10 @@
 #ifndef ERRORHANDLER_H
 #define ERRORHANDLER_H 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* error codes */
 enum RE_RENDER_ERROR {

@@ -35,6 +35,9 @@
 #ifndef GAMMACORRECTIONTABLES_H
 #define GAMMACORRECTIONTABLES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 
 /* Default gamma. For most CRTs, gamma ranges from 2.2 to 2.5 (Foley), so    */

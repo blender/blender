@@ -34,6 +34,10 @@
 #ifndef BKE_PACKEDFILE_H
 #define BKE_PACKEDFILE_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct PackedFile;
 struct VFont;
 struct bSample;

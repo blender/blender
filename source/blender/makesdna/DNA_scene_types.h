@@ -37,6 +37,10 @@
 #ifndef DNA_SCENE_TYPES_H
 #define DNA_SCENE_TYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -34,6 +34,10 @@
 
 #include "KX_BlenderInputDevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 class KX_BlenderMouseDevice : public BL_BlenderInputDevice
 {
 public:

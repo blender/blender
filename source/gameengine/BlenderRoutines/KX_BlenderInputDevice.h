@@ -32,6 +32,10 @@
 #ifndef __KX_BLENDERINPUTDEVICE
 #define __KX_BLENDERINPUTDEVICE
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #pragma warning(disable : 4786)  // shut off 255 char limit debug template warning
 #endif
