@@ -95,14 +95,14 @@ void calc_curvepath(Object *ob)
 	else nu= cu->nurb.first;
 	
 	if(cu->path) free_path(cu->path);
-	cu->path= 0;
+	cu->path= NULL;
 	
 	bl= cu->bev.first;
-	if(bl==0) {
+	if(bl==NULL) {
 		makeDispList(ob);
 		bl= cu->bev.first;
 	}
-	if(bl==0) return;
+	if(bl==NULL) return;
 
 	cu->path=path= MEM_callocN(sizeof(Path), "path");
 	

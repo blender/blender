@@ -481,8 +481,10 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 		index= 2;
 	}
 	/* to be sure */
-	if(cu->path==NULL) calc_curvepath(par);
-
+	if(cu->path==NULL) {
+		calc_curvepath(par);
+		if(cu->path==NULL) return;	// happens on append...
+	}
 	/* options */
 	if(cu->flag & CU_STRETCH)
 		fac= (co[index]-cd->dmin[index])/(cd->dmax[index] - cd->dmin[index]);
