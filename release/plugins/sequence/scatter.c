@@ -184,7 +184,7 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int sx, int sy, ImBuf
 	int x, y, lr;
 	
 	/* fill imbuf 'out' with black */
-	rectop(out, 0,0,0,0,0,32767,32767,rectfill, 0);
+	ibufrectop(out, ibuf1,0,0,0,0,32767,32767,rectfill, 0);
 
 	switch (cast->type) {
 		case 0:
@@ -223,12 +223,12 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int sx, int sy, ImBuf
 				break;
 		}
 		
-		rectop(out, ibuf1, 0, y, x, y, 32767, 1, rectcpy, 0);
+		ibufrectop(out, ibuf1, 0, y, x, y, 32767, 1, rectcpy, 0);
 		if (cast->wrap) {
-			rectop(out, ibuf1, 0, y, x + sx, y, 32767, 1, rectcpy, 0);
-			rectop(out, ibuf1, 0, y, x + sx + sx, y, 32767, 1, rectcpy, 0);
-			rectop(out, ibuf1, 0, y, x - sx, y, 32767, 1, rectcpy, 0);
-			rectop(out, ibuf1, 0, y, x - sx - sx, y, 32767, 1, rectcpy, 0);
+			ibufrectop(out, ibuf1, 0, y, x + sx, y, 32767, 1, rectcpy, 0);
+			ibufrectop(out, ibuf1, 0, y, x + sx + sx, y, 32767, 1, rectcpy, 0);
+			ibufrectop(out, ibuf1, 0, y, x - sx, y, 32767, 1, rectcpy, 0);
+			ibufrectop(out, ibuf1, 0, y, x - sx - sx, y, 32767, 1, rectcpy, 0);
 		}
 	}
 }
