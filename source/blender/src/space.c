@@ -820,7 +820,9 @@ void winqread3d(unsigned short event, short val, char ascii)
 				}
 				break;
 			case MKEY:
-				movetolayer();
+				if((G.obedit) && (G.qual & LR_ALTKEY)) 
+					mergemenu();
+				else movetolayer();
 				break;
 			case NKEY:
 				if(G.obedit) {

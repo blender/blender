@@ -76,6 +76,8 @@
 #include "BIF_space.h"
 #include "BIF_editview.h"
 #include "BIF_glutil.h"
+#include "BIF_toolbox.h"
+#include "BIF_editmesh.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -836,3 +838,57 @@ void snapmenu()
 		allqueue(REDRAWVIEW3D, 0);
 	}
 }
+
+void mergemenu() {
+   extern TransVert *transvmain;
+   extern int tottrans;
+   extern float doublimit;
+   TransVert *tv;
+   float *curs, imat[3][3], bmat[3][3], vec[3];
+   int a;
+   short event;
+
+   event= pupmenu("MERGE %t|At Cursor%x1|Other Options Coming Soon!%x2");
+
+   curs= give_cursor();
+
+   if(event== 1 || event==2) {
+
+#ifdef __NLA
+      if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, 
+          OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+#else
+      if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) 
+          make_trans_verts(bmat[0], bmat[1], 0);
+#endif
+      if(tottrans==0) return;
+
+      Mat3CpyMat4(bmat, G.obedit->obmat);
+      Mat3Inv(imat, bmat);
+
+      tv= transvmain;
+      for(a=0; a<tottrans; a++, tv++) {
+
+         if(event==1 || event==2) { /*Move all to Cursor*/
+
+            vec[0]= curs[0]-G.obedit->obmat[3][0];
+            vec[1]= curs[1]-G.obedit->obmat[3][1];
+            vec[2]= curs[2]-G.obedit->obmat[3][2];
+         }
+         Mat3MulVecfl(imat, vec);
+         VECCOPY(tv->loc, vec);
+
+      }
+      MEM_freeN(transvmain);
+      transvmain= 0;
+
+      if ELEM(G.obedit->type, OB_SURF, OB_CURVE) makeDispList(G.obedit);
+
+      if (G.obedit->type == OB_ARMATURE) special_trans_update(0);
+
+      notice("Removed: %d\n", removedoublesflag(1, doublimit));
+      allqueue(REDRAWVIEW3D, 0);
+      return;
+   }
+}
+
