@@ -1029,7 +1029,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					float cvec[3]={-1.0, 0.0, 0.0};
 					
 					vlr= RE_findOrAddVlak(R.totvlak++);
-					vlr->ob= ob;
+					vlr->ob= vlr_set_ob(ob);
 					vlr->v1= v1;
 					vlr->v2= RE_findOrAddVert(R.totvert++);
 					vlr->v3= vlr->v2;
@@ -1175,6 +1175,14 @@ static Material *give_render_material(Object *ob, int nr)
 	return ma;
 }
 
+/* when objects are duplicated, they are freed immediate, but still might be
+   in use for render... */
+static Object *vlr_set_ob(Object *ob)
+{
+	if(ob->flag & OB_FROMDUPLI) return (Object *)ob->newid;
+	return ob;
+}
+
 /* ------------------------------------------------------------------------- */
 static void init_render_mball(Object *ob)
 {
@@ -1234,7 +1242,7 @@ static void init_render_mball(Object *ob)
 	for(a=0; a<dl->parts; a++, index+=4) {
 
 		vlr= RE_findOrAddVlak(R.totvlak++);
-		vlr->ob= ob;
+		vlr->ob= vlr_set_ob(ob);
 		vlr->v1= RE_findOrAddVert(startvert+index[0]);
 		vlr->v2= RE_findOrAddVert(startvert+index[1]);
 		vlr->v3= RE_findOrAddVert(startvert+index[2]);
@@ -1501,7 +1509,7 @@ static void init_render_mesh(Object *ob)
 							float len;
 							
 							vlr= RE_findOrAddVlak(R.totvlak++);
-							vlr->ob= ob;
+							vlr->ob= vlr_set_ob(ob);
 							vlr->v1= RE_findOrAddVert(vertofs+v1);
 							vlr->v2= RE_findOrAddVert(vertofs+v2);
 							vlr->v3= RE_findOrAddVert(vertofs+v3);
@@ -1537,7 +1545,7 @@ static void init_render_mesh(Object *ob)
 						}
 						else if(v2 && (ma->mode & MA_WIRE)) {
 							vlr= RE_findOrAddVlak(R.totvlak++);
-							vlr->ob= ob;
+							vlr->ob= vlr_set_ob(ob);
 							vlr->v1= RE_findOrAddVert(vertofs+v1);
 							vlr->v2= RE_findOrAddVert(vertofs+v2);
 							vlr->v3= vlr->v2;
@@ -1566,7 +1574,7 @@ static void init_render_mesh(Object *ob)
 			medge= dlm?dlm->medge:me->medge;
 			for(a1=0; a1<end; a1++, medge++) {
 				vlr= RE_findOrAddVlak(R.totvlak++);
-				vlr->ob= ob;
+				vlr->ob= vlr_set_ob(ob);
 				vlr->v1= RE_findOrAddVert(vertofs+medge->v1);
 				vlr->v2= RE_findOrAddVert(vertofs+medge->v2);
 				vlr->v3= vlr->v2;
@@ -2031,7 +2039,7 @@ static void init_render_surf(Object *ob)
 
 
 					vlr= RE_findOrAddVlak(R.totvlak++);
-					vlr->ob= ob;
+					vlr->ob= vlr_set_ob(ob);
 					vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 					
 					flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
@@ -2155,7 +2163,7 @@ static void init_render_surf(Object *ob)
 					flen= CalcNormFloat4(v1->co, v3->co, v4->co, v2->co, n1);
 					if(flen!=0.0) {
 						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->ob= ob;
+						vlr->ob= vlr_set_ob(ob);
 						vlr->v1= v1;
 						vlr->v2= v3;
 						vlr->v3= v4;
@@ -2394,7 +2402,7 @@ static void init_render_curve(Object *ob)
 					for(; b<bl->nr; b++) {
 
 						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->ob= ob;
+						vlr->ob= vlr_set_ob(ob);
 						vlr->v1= RE_findOrAddVert(p2);
 						vlr->v2= RE_findOrAddVert(p1);
 						vlr->v3= RE_findOrAddVert(p3);
@@ -2508,7 +2516,7 @@ static void init_render_curve(Object *ob)
 			for(a=0; a<dl->parts; a++, index+=3) {
 
 				vlr= RE_findOrAddVlak(R.totvlak++);
-				vlr->ob = ob;	/* yafray: correction for curve rendering, obptr was not set */
+				vlr->ob = vlr_set_ob(ob);	/* yafray: correction for curve rendering, obptr was not set */
 				vlr->v1= RE_findOrAddVert(startvert+index[0]);
 				vlr->v2= RE_findOrAddVert(startvert+index[1]);
 				vlr->v3= RE_findOrAddVert(startvert+index[2]);
