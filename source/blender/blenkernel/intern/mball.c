@@ -1545,12 +1545,13 @@ void metaball_polygonize(Object *ob)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
-	MetaElem *ml;
+	MetaElem *ml=NULL;
 	DispList *dl;
 	Object *bob;
 	Base *base;
-	int a, nr_cubes;
+	int a, nr_cubes, obnr,nr;
 	float *ve, *no, totsize, width;
+	char obname[32], name[32];
 	
 	mb= ob->data;
 
@@ -1562,15 +1563,22 @@ void metaball_polygonize(Object *ob)
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	/* recount all MetaElems */
+	splitIDname(ob->id.name+2, obname, &obnr);
 	totelem= 0;
 	next_object(0, 0, 0);
 	while(next_object(1, &base, &bob)) {
 		if(bob->type==OB_MBALL) {
-			if(bob==G.obedit)
-				ml= editelems.first;
-			else {
-				mb= bob->data;
-				ml= mb->elems.first;
+			if(bob==ob){
+				if(bob==G.obedit) ml= editelems.first;
+				else ml= ((MetaBall*)bob->data)->elems.first;
+			}
+			else{
+				/* is bob in the same group as Object ob? */
+				splitIDname(bob->id.name+2, name, &nr);
+				if( strcmp(obname, name)==0 ) {
+					if(bob==G.obedit) ml= editelems.first;
+					else ml= ((MetaBall*)bob->data)->elems.first;
+				}
 			}
 			while(ml){
 				totelem++;
