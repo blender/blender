@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\kernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender" /I "..\..\..\source\blender\yafray" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\..\lib\windows\sdl\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\kernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender" /I "..\..\..\source\blender\yafray" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -66,7 +66,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\kernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender" /I "..\..\..\source\blender\yafray" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\..\lib\windows\sdl\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\kernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender" /I "..\..\..\source\blender\yafray" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -100,6 +100,10 @@ SOURCE=..\..\..\source\blender\render\intern\source\errorHandler.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\source\gammaCorrectionTables.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\render\intern\source\imagetexture.c
 # End Source File
 # Begin Source File
 
@@ -191,19 +195,11 @@ SOURCE=..\..\..\source\blender\render\intern\include\jitter.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\render\intern\include\old_zbuffer_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\render\intern\include\outerRenderLoop.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\include\pixelblending.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\include\pixelblending_types.h
 # End Source File
 # Begin Source File
 
@@ -216,10 +212,6 @@ SOURCE=..\..\..\source\blender\render\intern\include\RE_callbacks.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\include\rendercore.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\include\rendercore_int.h
 # End Source File
 # Begin Source File
 
@@ -243,19 +235,11 @@ SOURCE=..\..\..\source\blender\render\intern\include\vanillaRenderPipe.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\render\intern\include\vanillaRenderPipe_int.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\render\intern\include\vanillaRenderPipe_types.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\include\zbuf.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\include\zbuf_int.h
 # End Source File
 # Begin Source File
 

@@ -418,10 +418,6 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_object.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_osa_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_packedFile.h
 # End Source File
 # Begin Source File
