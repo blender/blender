@@ -27,30 +27,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_deflate"=".\BLO_deflate\BLO_deflate.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "BLO_inflate"=".\BLO_inflate\BLO_inflate.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "BLO_loader"=".\loader\BLO_loader.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -64,54 +40,6 @@ Package=<4>
 ###############################################################################
 
 Project: "BLO_readblenfile"=".\BLO_readblenfile\BLO_readblenfile.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "BLO_readstreamglue"=".\BLO_readstreamglue\BLO_readstreamglue.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "BLO_writeblenfile"=".\BLO_writeblenfile\BLO_writeblenfile.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "BLO_writestreamglue"=".\BLO_writestreamglue\BLO_writestreamglue.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "BLO_writestreamglue_stub"=".\BLO_writestreamglue_stub\BLO_writestreamglue_stub.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -336,22 +264,13 @@ Package=<4>
     Project_Dep_Name BLO_verify
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BLO_writestreamglue_stub
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name BLO_decrypt
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BLO_inflate
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BLO_loader
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BLO_readblenfile
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BLO_readstreamglue
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BKE_blenkernel
@@ -459,19 +378,10 @@ Package=<4>
     Project_Dep_Name BLO_readblenfile
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BLO_readstreamglue
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name BLO_decrypt
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BLO_inflate
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name BLO_verify
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BLO_writestreamglue_stub
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name SND_OpenAL
@@ -486,7 +396,10 @@ Package=<4>
     Project_Dep_Name PHY_Dummy
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name PHY_Ode
+    Project_Dep_Name PHY_Sumo
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_fuzzics
     End Project Dependency
 }}}
 
@@ -711,34 +624,16 @@ Package=<4>
     Project_Dep_Name BLO_decrypt
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BLO_deflate
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name BLO_encrypt
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BLO_inflate
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name BLO_loader
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BLO_readblenfile
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BLO_readstreamglue
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BLO_sign
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BLO_verify
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BLO_writeblenfile
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BLO_writestreamglue
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BRA_radiosity
@@ -820,6 +715,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name PHY_Sumo
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BLO_readblenfile
     End Project Dependency
 }}}
 
