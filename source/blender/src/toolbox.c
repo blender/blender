@@ -90,6 +90,7 @@
 #include "BIF_editoops.h"
 #include "BIF_imasel.h"
 #include "BIF_screen.h"
+#include "BIF_space.h"
 #include "BIF_tbcallback.h"
 #include "BIF_editnla.h"
 
@@ -1984,12 +1985,26 @@ static void tb_do_transform(void *arg, int event)
 			transform('s');
 			break;
 		case 3: /* transform properties */
-			mainqenter(NKEY, 1);
+			add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
 			break;
 		case 4: /* snap */
 			snapmenu();
 			break;
+		case 5: /* Shrink/Fatten Along Normals */
+			transform('N');
+			break;
+		case 6: /* Shear */
+			transform('S');
+			break;
+		case 7: /* Warp */
+			transform('w');
+			break;
+		case 8: /* proportional edit (toggle) */
+			if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;
+			else G.f |= G_PROPORTIONAL;
+			break;
 	}
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static TBitem tb_transform_object_mirror[]= {
@@ -2029,23 +2044,23 @@ static TBitem tb_transform_edit_mirror[]= {
 {  -1, "", 			0, do_view3d_edit_mirrormenu}};
 
 static TBitem tb_transform_editmode1[]= {
-{	0, "Grab/Move|G", 	'g', NULL},
+{	0, "Grab/Move|G", 	0, NULL},
 {	0, "Grab/Move on Axis| ", 	0, tb_transform_moveaxis},
-{	0, "Rotate|R", 		'r', NULL},
+{	0, "Rotate|R", 		1, NULL},
 {	0, "Rotate on Axis", 	0, tb_transform_rotateaxis},
-{	0, "Scale|S", 		's', NULL},
+{	0, "Scale|S", 		2, NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
 {	0, "Mirror", 	0, tb_transform_edit_mirror},
-{	0, "Shrink/Fatten|Alt S", TB_ALT|'s', NULL},
-{	0, "Shear|Ctrl S", TB_CTRL|'s', NULL},
-{	0, "Warp|Shift W", 	'W', NULL},
+{	0, "Shrink/Fatten|Alt S", 5, NULL},
+{	0, "Shear|Ctrl S", 6, NULL},
+{	0, "Warp|Shift W", 	7, NULL},
 {	0, "SEPR", 					0, NULL},
-{	ICON_MENU_PANEL, "Properties|N", 'N', NULL},
+{	ICON_MENU_PANEL, "Properties|N", 3, NULL},
 {	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
-{	0, "Proportional Edit|O", 	'o', 		NULL},
-{  -1, "", 			0, tb_do_hotkey}};
+{	0, "Proportional Edit|O", 	8, 		NULL},
+{  -1, "", 			0, tb_do_transform}};
 
 
 static TBitem tb_transform_editmode2[]= {
@@ -2056,7 +2071,7 @@ static TBitem tb_transform_editmode2[]= {
 {	0, "Scale|S", 		2, NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
-{	ICON_MENU_PANEL, "Properties|N", 'N', NULL},
+{	ICON_MENU_PANEL, "Properties|N", 3, NULL},
 {	0, "Snap", 		0, tb_transform_snap},
 {  -1, "", 			0, tb_do_transform}};
 
