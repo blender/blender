@@ -49,5 +49,10 @@ CPPFLAGS += -I..
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # path to freetype font stuff
+CPPFLAGS += -I$(NAN_FREETYPE)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 CPPFLAGS += -I../../include/
+
+ifdef WITH_FREETYPE2
+	CPPFLAGS += -DWITH_FREETYPE2
+endif

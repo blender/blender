@@ -136,6 +136,13 @@ PYPLAYERLIB ?= $(PYLIB)
   ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
   endif
+  ifeq ($(WITH_FREETYPE2), true)
+    ifeq ($(OS), windows)
+      COMLIB += $(NAN_FREETYPE)/lib/freetype214ST.lib
+    else
+      COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+    endif
+  endif
 ifeq ($(INTERNATIONAL), true)
     COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
     ifeq ($(OS), windows)

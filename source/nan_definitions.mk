@@ -114,6 +114,12 @@ all debug::
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
 
+    # l10n
+    #export INTERNATIONAL ?= true
+
+    # enable freetype2 support for text objects
+    #export WITH_FREETYPE2 ?= true
+
   else
   ifeq ($(OS),darwin)
 
@@ -156,6 +162,9 @@ all debug::
     # enable l10n
     export INTERNATIONAL ?= true
 
+    # enable freetype2 support for text objects
+    export WITH_FREETYPE2 ?= true
+
   else
   ifeq ($(OS),freebsd)
 
@@ -179,7 +188,6 @@ all debug::
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
-
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
@@ -191,6 +199,12 @@ all debug::
     export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
+
+    # enable l10n
+    export INTERNATIONAL ?= true
+
+    # enable freetype2 support for text objects
+    export WITH_FREETYPE2 ?= true
 
   else
   ifeq ($(OS),irix)
@@ -227,6 +241,12 @@ all debug::
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
 
+    # enable l10n
+    #export INTERNATIONAL ?= true
+	
+    # enable freetype2 support for text objects
+    #export WITH_FREETYPE2 ?= true
+
   else
   ifeq ($(OS),linux)
 
@@ -262,8 +282,12 @@ all debug::
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
 
-    #i10n
+    # l10n
     #export INTERNATIONAL ?= true
+
+    # enable freetype2 support for text objects
+    #export WITH_FREETYPE2 ?= true
+
 
   else
   ifeq ($(OS),openbsd)
@@ -301,6 +325,12 @@ all debug::
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
 
+    # l10n
+    #export INTERNATIONAL ?= true
+
+    # enable freetype2 support for text objects
+    #export WITH_FREETYPE2 ?= true
+
   else
   ifeq ($(OS),solaris)
 
@@ -335,6 +365,12 @@ all debug::
     export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
+
+    # l10n
+    #export INTERNATIONAL ?= true
+
+    # enable freetype2 support for text objects
+    #export WITH_FREETYPE2 ?= true
 
   else
   ifeq ($(OS),windows)
@@ -372,6 +408,12 @@ all debug::
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
 
+    # l10n
+    #export INTERNATIONAL ?= true
+
+    # enable freetype2 support for text objects
+    #export WITH_FREETYPE2 ?= true
+
   else # Platform not listed above
 
     export NAN_PYTHON ?= $(LCGDIR)/python
@@ -404,6 +446,12 @@ all debug::
     export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
+
+    # l10n
+    #export INTERNATIONAL ?= true
+
+    # enable freetype2 support for text objects
+    #export WITH_FREETYPE2 ?= true
   endif
 endif
 endif

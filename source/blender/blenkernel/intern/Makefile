@@ -58,8 +58,6 @@ CPPFLAGS += -I../../bpython/include
 CPPFLAGS += -I../../avi
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
-CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
-
 # we still refer to /include a bit...
 CPPFLAGS += -I../../include
 
@@ -74,3 +72,8 @@ CPPFLAGS += -I$(NAN_IKSOLVER)/include
 # path to our own external headerfiles
 CPPFLAGS += -I..
 
+ifdef WITH_FREETYPE2
+    CPPFLAGS += -DWITH_FREETYPE2
+    CPPFLAGS += -I$(NAN_FREETYPE)/include
+    CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
+endif

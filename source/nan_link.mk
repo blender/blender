@@ -37,11 +37,6 @@ ifdef NAN_DEBUG
     LDFLAGS += $(NAN_DEBUG)
 endif
 
-ifdef WITH_FREETYPE2
-   LDFLAGS += -L$(NAN_FREETYPE)/lib -lfreetype
-endif
-
-
 DBG_LDFLAGS	+= -g
 
 ifneq (x$(DEBUG_DIR), x)
