@@ -191,6 +191,7 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate)
 	// equal to subS (might be a little smaller).
 	MT_Scalar subStep;
 	int num_samples;
+	int frames = m_frames;
 	
 	// Compute the number of steps to do this update.
 	if (ticrate > 0.0)
@@ -201,9 +202,16 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate)
 	
 		if (num_samples > 4)
 		{
-			std::cout << "Dropping physics frames! frames:" << num_samples << std::endl;
-			num_samples /= 4;
-			subStep *= 4.0;
+			std::cout << "Dropping physics frames! frames:" << num_samples << " substep: " << subStep << std::endl;
+			MT_Scalar tr = ticrate;
+			do
+			{
+				frames = frames / 2;
+				tr = tr / 2.0;
+				num_samples = (unsigned int)(curtime*tr + 1.0) - frames;
+				subStep *= 2.0;
+			} while (num_samples > 8);
+			std::cout << "                         frames:" << num_samples << " substep: " << subStep << std::endl;
 		}
 	} 
 	else
@@ -226,7 +234,7 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate)
 		{
 			MT_Scalar time;
 			if (ticrate > 0.)
-				time = MT_Scalar(m_frames + step + 1) * subStep;
+				time = MT_Scalar(frames + step + 1) * subStep;
 			else
 				time = MT_Scalar(m_frames)/65536.0 + MT_Scalar(step + 1)*subStep;
 			
