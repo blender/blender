@@ -743,7 +743,7 @@ static void mesh_to_softbody(Object *ob)
 				bp->goal = temp;
 				
 				/* works assuming goal is <0.0, 1.0> */
-				bp->goal= sb->mingoal + (bp->goal - sb->mingoal)*goalfac;
+				bp->goal= sb->mingoal + bp->goal*goalfac;
 				
 			}
 			/* a little ad hoc changing the goal control to be less *sharp* */
