@@ -208,6 +208,20 @@ static char NMesh_setMode_doc[] =
 "(none to 4 strings) - set the mode flags of this nmesh.\n\
 () - unset all flags.";
 
+static char NMesh_getMaxSmoothAngle_doc[] =
+"() - get the max smooth angle for mesh auto smoothing.";
+
+static char NMesh_setMaxSmoothAngle_doc[] =
+"(int) - set the max smooth angle for mesh auto smoothing in the range\n\
+[1,80] in degrees.";
+
+static char NMesh_getSubDivLevels_doc[] =
+"() - get the subdivision levels for display and rendering: [display, render]";
+
+static char NMesh_setSubDivLevels_doc[] =
+"([int, int]) - set the subdivision levels for [display, render] -- they are\n\
+clamped to the range [1,6].";
+
 static char M_NMesh_New_doc[] =
 "() - returns a new, empty NMesh mesh object\n";
 
@@ -271,6 +285,8 @@ typedef struct {
 	PyObject *verts;
 	PyObject *faces;
   int sel_face; /*@ XXX remove */
+	short smoothresh; /* max AutoSmooth angle */
+	short subdiv[2]; /* SubDiv Levels: display and rendering */
 	short mode; /* see the EXPP_NMESH_* defines in the beginning of this file */
 	char flags;
 

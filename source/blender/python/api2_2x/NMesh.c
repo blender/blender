@@ -31,7 +31,13 @@
 
 #include "NMesh.h"
 
-#define NMESH_FRAME_MAX 18000
+#define NMESH_FRAME_MAX				18000
+#define NMESH_SMOOTHRESH			30
+#define NMESH_SMOOTHRESH_MIN	1
+#define NMESH_SMOOTHRESH_MAX	80
+#define NMESH_SUBDIV					1
+#define NMESH_SUBDIV_MIN			1
+#define NMESH_SUBDIV_MAX			6
 
 void mesh_update(Mesh *mesh)
 {
@@ -944,6 +950,61 @@ PyObject *NMesh_link(PyObject *self, PyObject *args)
 	return EXPP_incr_ret(Py_None);
 }
 
+static PyObject *NMesh_getMaxSmoothAngle (BPy_NMesh *self)
+{
+	PyObject *attr = PyInt_FromLong (self->smoothresh);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						 "couldn't get NMesh.maxSmoothAngle attribute");
+}
+
+static PyObject *NMesh_setMaxSmoothAngle (PyObject *self, PyObject *args)
+{
+	short value = 0;
+	BPy_NMesh *nmesh = (BPy_NMesh *)self;
+
+	if (!PyArg_ParseTuple(args, "h", &value))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+							 "expected an int in [1, 80] as argument");
+
+	nmesh->smoothresh =
+		(short)EXPP_ClampInt (value, NMESH_SMOOTHRESH_MIN, NMESH_SMOOTHRESH_MAX);
+
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
+static PyObject *NMesh_getSubDivLevels (BPy_NMesh *self)
+{
+	PyObject *attr = Py_BuildValue ("[h,h]", self->subdiv[0], self->subdiv[1]);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						 "couldn't get NMesh.subDivLevels attribute");
+}
+
+static PyObject *NMesh_setSubDivLevels (PyObject *self, PyObject *args)
+{
+	short display = 0, render = 0;
+	BPy_NMesh *nmesh = (BPy_NMesh *)self;
+
+	if (!PyArg_ParseTuple(args, "(hh)", &display, &render))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+							 "expected a sequence [int, int] as argument");
+
+	nmesh->subdiv[0] =
+		(short)EXPP_ClampInt (display, NMESH_SUBDIV_MIN, NMESH_SUBDIV_MAX);
+
+	nmesh->subdiv[1] =
+		(short)EXPP_ClampInt (render, NMESH_SUBDIV_MIN, NMESH_SUBDIV_MAX);
+
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
 static PyObject *NMesh_getMode (BPy_NMesh *self)
 {
 	PyObject *attr = PyInt_FromLong (self->mode);
@@ -1005,8 +1066,14 @@ static struct PyMethodDef NMesh_methods[] =
 	MethodDef(insertKey),
 	MethodDef(removeAllKeys),
 	MethodDef(update),
-	{"getMode", (PyCFunction)NMesh_getMode, METH_NOARGS, NMesh_getMode_doc},
 	MethodDef(setMode),
+	MethodDef(setMaxSmoothAngle),
+	MethodDef(setSubDivLevels),
+	{"getMode", (PyCFunction)NMesh_getMode, METH_NOARGS, NMesh_getMode_doc},
+	{"getMaxSmoothAngle", (PyCFunction)NMesh_getMaxSmoothAngle, METH_NOARGS,
+		NMesh_getMaxSmoothAngle_doc},
+	{"getSubDivLevels", (PyCFunction)NMesh_getSubDivLevels, METH_NOARGS,
+		NMesh_getSubDivLevels_doc},
 	{NULL, NULL}
 };
 
@@ -1029,6 +1096,12 @@ static PyObject *NMesh_getattr(PyObject *self, char *name)
 	else if (strcmp(name, "verts") == 0)
 		return EXPP_incr_ret(me->verts);
 
+	else if (strcmp(name, "maxSmoothAngle") == 0)
+		return PyInt_FromLong(me->smoothresh);
+
+	else if (strcmp(name, "subDivLevels") == 0)
+		return Py_BuildValue("[h,h]", me->subdiv[0], me->subdiv[1]);
+
 	else if (strcmp(name, "users") == 0) {
 		if (me->mesh) {
 			return PyInt_FromLong(me->mesh->id.us); 
@@ -1042,8 +1115,9 @@ static PyObject *NMesh_getattr(PyObject *self, char *name)
 		return EXPP_incr_ret(me->faces);
 
 	else if (strcmp(name, "__members__") == 0)
-		return Py_BuildValue("[s,s,s,s,s]",
-										"name", "materials", "verts", "users", "faces");
+		return Py_BuildValue("[s,s,s,s,s,s,s]",
+			"name", "materials", "verts", "users", "faces", "maxSmoothAngle",
+			"subdivLevels");
 
 	return Py_FindMethod(NMesh_methods, (PyObject*)self, name);
 }
@@ -1097,6 +1171,47 @@ static int NMesh_setattr(PyObject *self, char *name, PyObject *v)
 
 		else
 			return EXPP_ReturnIntError (PyExc_TypeError, "expected a sequence");
+	}
+
+	else if (!strcmp(name, "maxSmoothAngle")) {
+		short smoothresh = 0;
+
+		if (!PyInt_Check(v))
+			return EXPP_ReturnIntError (PyExc_TypeError,
+							"expected int argument");
+
+		smoothresh = (short)PyInt_AsLong(v);
+
+		me->smoothresh =
+			EXPP_ClampInt(smoothresh, NMESH_SMOOTHRESH_MIN, NMESH_SMOOTHRESH_MAX);
+	}
+
+	else if (!strcmp(name, "subDivLevels")) {
+		int subdiv[2] = {0,0};
+		int i;
+		PyObject *tmp;
+
+		if (!PySequence_Check(v) || (PySequence_Length(v) != 2))
+			return EXPP_ReturnIntError (PyExc_TypeError,
+							"expected a list [int, int] as argument");
+
+		for (i = 0; i < 2; i++) {
+			tmp = PySequence_GetItem(v, i);
+			if (tmp) {
+				if (!PyInt_Check(tmp)) {
+					Py_DECREF (tmp);
+					return EXPP_ReturnIntError (PyExc_TypeError,
+						"expected a list [int, int] as argument");
+				}
+
+				subdiv[i] = PyInt_AsLong (tmp);
+				me->subdiv[i] =
+					(short)EXPP_ClampInt(subdiv[i], NMESH_SUBDIV_MIN, NMESH_SUBDIV_MAX);
+				Py_DECREF (tmp);
+			}
+			else return EXPP_ReturnIntError (PyExc_RuntimeError,
+				"couldn't retrieve subdiv values from list");
+		}
 	}
 
 	else
@@ -1241,6 +1356,10 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 {
 	BPy_NMesh *me = PyObject_NEW (BPy_NMesh, &NMesh_Type);
 	me->flags = 0;
+	me->subdiv[0] = NMESH_SUBDIV;
+	me->subdiv[1] = NMESH_SUBDIV;
+	me->smoothresh = NMESH_SMOOTHRESH;
+
 	me->object = NULL; /* not linked to any object yet */
 
 	if (!oldmesh) {
@@ -1276,7 +1395,10 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 		else {
 			me->name = PyString_FromString(oldmesh->id.name+2);
 			me->mesh = oldmesh;
-			me->mode = oldmesh->flag; /* yes, we save the mesh flags in nmesh->mode */
+			me->mode = oldmesh->flag; /* yes, we save the mesh flags in nmesh->mode*/
+			me->subdiv[0] = oldmesh->subdiv;
+			me->subdiv[1] = oldmesh->subdivr;
+			me->smoothresh = oldmesh->smoothresh;
 
 			mfaceints = NULL;
 			msticky = oldmesh->msticky;
@@ -1703,8 +1825,12 @@ static int convert_NMeshToMesh (Mesh *mesh, BPy_NMesh *nmesh)
 	mesh->tface = NULL;
 	mesh->mat = NULL;
 
-	/* Minor note: we used 'mode' because 'flag' was already used internally by nmesh */
+	/* Minor note: we used 'mode' because 'flag' was already used internally
+	 * by nmesh */
 	mesh->flag = nmesh->mode;
+	mesh->smoothresh = nmesh->smoothresh;
+	mesh->subdiv = nmesh->subdiv[0];
+	mesh->subdivr = nmesh->subdiv[1];
 
 	/*@ material assignment moved to PutRaw */
 	mesh->totvert = PySequence_Length(nmesh->verts);

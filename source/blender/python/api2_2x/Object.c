@@ -1236,6 +1236,10 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 		switch (self->object->type)
 		{
 				case OB_MESH:
+				case OB_LAMP:
+				case OB_CAMERA: /* we can probably add the other types, too */
+				case OB_ARMATURE:
+				case OB_CURVE:
 						oldid = (ID*) self->object->data;
 						id = (ID*) object->object->data;
 						self->object->data = object->object->data;

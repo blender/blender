@@ -232,7 +232,9 @@ class NMesh:
   @cvar verts: The list of NMesh vertices (NMVerts).
   @cvar users: The number of Objects using (linked to) this mesh.
   @cvar faces: The list of NMesh faces (NMFaces).
-  @cvar mode:  The mode flags for this mesh.  See L{setMode}
+  @cvar mode:  The mode flags for this mesh.  See L{setMode}.
+  @cvar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
+  @cvar maxSmoothAngle: The max angle for auto smoothing.  See L{setMode}.
   """
 
   def addMaterial(material):
@@ -483,4 +485,31 @@ class NMesh:
     @type vertList: list of ints
     @param vertList: if given, only those vertex points that are both in the
         list and group passed in are returned.
-   """
+    """
+
+  def getMaxSmoothAngle():
+    """
+    Get the max angle for auto smoothing.
+    @return: The value in degrees.
+    """
+
+  def setMaxSmoothAngle(angle):
+    """
+    Set the max angle for auto smoothing.
+    @type angle: int
+    @param angle: The new value in degrees -- it's clamped to [1, 80].
+    """
+
+  def getSubDivLevels():
+    """
+    Get the mesh subdivision levels for realtime display and rendering.
+    @return: list of ints: [display, render].
+    """
+
+  def setSubDivLevels(subdiv):
+    """
+    Set the mesh subdivision levels for realtime display and rendering.
+    @type subdiv: list of 2 ints
+    @param subdiv: new subdiv levels: [display, render].  Both are clamped to
+        lie in the range [1, 6].
+    """
