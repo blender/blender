@@ -689,8 +689,8 @@ void shadeSkyPixelFloat(float *colf, float *view, float *dxyview)
 		blend= fabs(0.5+ view[1]);
 	}
 
-	hor[0]= R.wrld.horr; hor[1]= R.wrld.horr; hor[2]= R.wrld.horb;
-	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zenr; zen[2]= R.wrld.zenb;
+	hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
+	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
 	
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and colour blend are added.           */
