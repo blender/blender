@@ -2611,11 +2611,11 @@ void test_scale_screen(bScreen *sc)
 static void draw_front_xor_dirdist_line(char dir, int dist, int start, int end)
 {
 	if (dir=='h') {
-		glutil_draw_front_xor_line(start, dist, end, dist);
-		glutil_draw_front_xor_line(start, dist+1, end, dist+1);
+		sdrawXORline(start, dist, end, dist);
+		sdrawXORline(start, dist+1, end, dist+1);
 	} else {
-		glutil_draw_front_xor_line(dist, start, dist, end);
-		glutil_draw_front_xor_line(dist+1, start, dist+1, end);
+		sdrawXORline(dist, start, dist, end);
+		sdrawXORline(dist+1, start, dist+1, end);
 	}
 }
 
@@ -2697,6 +2697,9 @@ static void moveareas(ScrEdge *edge)
 	
 	mywinset(G.curscreen->mainwin);
 
+	glReadBuffer(GL_FRONT);
+	glDrawBuffer(GL_FRONT);
+
 	doit= delta= 0;
 	getmouseco_sc(mvalo);
 	draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
@@ -2716,7 +2719,7 @@ static void moveareas(ScrEdge *edge)
 			delta= CLAMPIS(delta, -smaller, bigger);
 			
 			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
-
+			glFlush();
 		} 
 		else if (event==LEFTMOUSE) {
 			doit= 1;
@@ -2729,6 +2732,9 @@ static void moveareas(ScrEdge *edge)
 		}
 	}
 	draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
+	glFlush();
+	glReadBuffer(GL_BACK);
+	glDrawBuffer(GL_BACK);
 
 	if (doit==1) {
 		for (v1= G.curscreen->vertbase.first; v1; v1= v1->next) {
@@ -2757,7 +2763,6 @@ static void moveareas(ScrEdge *edge)
 		testareas();
 	}
 	
-	glDrawBuffer(GL_BACK);
 	mainqenter(DRAWEDGES, 1);
 	dodrawscreen= 1;		/* patch! event gets lost,,,? */
 }
