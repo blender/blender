@@ -94,7 +94,7 @@ class Text3d:
     Set the drawing mode.  The flag corresponds to the Blender settings for 3D, Front, Back. This parameter is a bitfield.
     @rtype: PyNone
     @type val: integer bitfield
-    @param val : The Text3d's flag bits.  See L{getFlag} for the meaning of the individual bits.
+    @param val : The Text3d's mode bits.  See L{getDrawMode} for the meaning of the individual bits.
     """
 
   def getUVordco():
