@@ -599,7 +599,10 @@ void RE_setwindowclip(int mode, int jmode)
 }
 
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~ PARTS ~~~~~~~~~~~~~~~~~~~~~~ */
+
+#define PART_EMPTY	-2
+
 void initparts()
 {
 	short nr, xd, yd, xpart, ypart, xparts, yparts;
@@ -627,7 +630,7 @@ void initparts()
 	yparts= R.r.yparts;
 
 	for(nr=0;nr<xparts*yparts;nr++)
-		allparts[nr][0]= -1;	/* clear array */
+		allparts[nr][0]= PART_EMPTY;	/* clear array */
 
 	xpart= R.rectx/xparts;
 	ypart= R.recty/yparts;
@@ -662,17 +665,26 @@ void initparts()
 			if(yd<R.r.yparts-1) allparts[nr][3]= allparts[nr][1]+ypart;
 			else allparts[nr][3]= ymaxb;
 
-			if(allparts[nr][2]-allparts[nr][0]<=0) allparts[nr][0]= -1;
-			if(allparts[nr][3]-allparts[nr][1]<=0) allparts[nr][0]= -1;
+			if(allparts[nr][2]-allparts[nr][0]<=0) allparts[nr][0]= PART_EMPTY;
+			if(allparts[nr][3]-allparts[nr][1]<=0) allparts[nr][0]= PART_EMPTY;
+			
+			/* gauss needs 1 pixel extra to work */
+			if(xparts*yparts>1 && (R.r.mode & R_GAUSS)) {
+				allparts[nr][0]-= 1;
+				allparts[nr][1]-= 1;
+				allparts[nr][2]+= 1;
+				allparts[nr][3]+= 1;
+			}
 		}
 	}
+	
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 short setpart(short nr)	/* return 0 if incorrect part */
 {
 
-	if(allparts[nr][0]== -1) return 0;
+	if(allparts[nr][0]== PART_EMPTY) return 0;
 
 	R.xstart= allparts[nr][0]-R.afmx;
 	R.ystart= allparts[nr][1]-R.afmy;
@@ -688,18 +700,26 @@ short setpart(short nr)	/* return 0 if incorrect part */
 void addparttorect(short nr, Part *part)
 {
 	unsigned int *rt, *rp;
-	short y, heigth, len;
+	int y, heigth, len, copylen;
 
 	/* the right offset in rectot */
 
-	rt= R.rectot+ (allparts[nr][1]*R.rectx+ allparts[nr][0]);
 	rp= part->rect;
-	len= (allparts[nr][2]-allparts[nr][0]);
+	copylen=len= (allparts[nr][2]-allparts[nr][0]);
 	heigth= (allparts[nr][3]-allparts[nr][1]);
+	
+	if(R.r.mode & R_GAUSS) {
+		rp+= 1+len;
+		copylen= len-2;
+		heigth -= 2;
+		rt= R.rectot+ (allparts[nr][1] + 1)*R.rectx+ (allparts[nr][0]+1);
+	}
+	else rt= R.rectot+ allparts[nr][1]*R.rectx+ allparts[nr][0];
 
-	for(y=0;y<heigth;y++) {
-		memcpy(rt, rp, 4*len);
-		rt+=R.rectx;
+
+	for(y=0; y<heigth; y++) {
+		memcpy(rt, rp, 4*copylen);
+		rt+= R.rectx;
 		rp+= len;
 	}
 }
@@ -942,7 +962,7 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 					
 					part= R.parts.first;
 					for(pa=0; pa<parts; pa++) {
-						if(allparts[pa][0]== -1) break;
+						if(allparts[pa][0]== PART_EMPTY) break;
 						if(part==0) break;
 						
 						if(R.r.mode & R_PANORAMA) {

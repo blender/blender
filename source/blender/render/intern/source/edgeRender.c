@@ -791,7 +791,6 @@ void fillEdgeRenderFace(float *v1, float *v2, float *v3)
 		if(sn1<0) sn1= 0;
 		zverg= (int) CLAMPIS((sn1*zxd+zy0), INT_MIN, INT_MAX);
 
-		if ((sn1 < 0) || (sn1>imWidth) ) printf("\n sn1 exceeds line");
 		linex = xoffset + sn1;
 		liney = yoffset;
 		
