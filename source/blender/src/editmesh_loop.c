@@ -365,6 +365,9 @@ void vertex_loop_select()
 		}
 		
 		EM_select_flush(); // flushes vertex -> edge -> face selection
+		
+		countall();
+		
 		BIF_undo_push("Select Vertex Loop");
 	}
 
