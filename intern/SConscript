@@ -7,5 +7,11 @@ SConscript(['SoundSystem/SConscript',
             'container/SConscript',
             'memutil/SConscript/',
             'decimation/SConscript',
-            'bsp/SConscript',
             'iksolver/SConscript'])
+
+NEW_CSG='false'
+
+if NEW_CSG=='false':
+	SConscript(['bsp/SConscript'])
+else:
+	SConscript(['csg/SConscript'])
