@@ -162,7 +162,7 @@ Effect *copy_effect(Effect *eff)
 {
 	Effect *effn;
 
-	effn= MEM_dupalloc(eff);
+	effn= MEM_dupallocN(eff);
 	if(effn->type==EFF_PARTICLE) ((PartEff *)effn)->keys= 0;
 
 	return effn;	
