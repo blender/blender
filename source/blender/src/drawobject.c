@@ -2536,7 +2536,7 @@ static void drawmeshwire(Object *ob)
 			
 			mvert= me->mvert;
 			mface= me->mface;
-			
+
 			ok= 0;
 			if(me->totface==0) ok= 1;
 			else {
@@ -3690,7 +3690,7 @@ void draw_object_ext(Base *base)
 	}
 	
 	G.f |= G_DRAW_EXT;
-	
+
 	glDrawBuffer(GL_FRONT);
 
 	/* check all views */

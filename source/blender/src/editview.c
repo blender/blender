@@ -548,7 +548,7 @@ void mouse_select(void)
 	if(basact) {
 		if(G.obedit) {
 			/* only do select */
-			deselectall_except(BASACT);
+			deselectall_except(basact);
 			basact->flag |= SELECT;
 			draw_object_ext(basact);
 		}
@@ -572,8 +572,8 @@ void mouse_select(void)
 			basact->object->flag= basact->flag;
 			
 			// for visual speed
-			if(oldbasact != basact) draw_object_ext(oldbasact);
 			draw_object_ext(basact);
+			if(oldbasact != basact) draw_object_ext(oldbasact);
 
 			if(oldbasact != basact) {
 				set_active_base(basact);
@@ -598,9 +598,11 @@ void mouse_select(void)
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
 		}
-
+		
+		/* now its getting confusing... finish() only works in frontbuffer here */
+		glDrawBuffer(GL_FRONT);
 		glFinish();		/* reveil frontbuffer drawing */
-
+		glDrawBuffer(GL_BACK);
 	}
 
 	countall();
@@ -832,6 +834,9 @@ void borderselect(void)
 				
 				base= base->next;
 			}
+			/* frontbuffer flush */
+			glFinish();
+			
 			allqueue(REDRAWDATASELECT, 0);
 			
 			/* because backbuf drawing */

@@ -1024,7 +1024,6 @@ void drawview3d_render(struct View3D *v3d)
 	Base *base;
 	Object *ob;
 
-		/* XXXXXXXX live and die by the hack */
 	free_all_realtime_images();
 	mywindow_build_and_set_renderwin();
 		
