@@ -55,6 +55,8 @@
 #include "KX_ClientObjectInfo.h"
 #include "RAS_BucketManager.h"
 
+#include "KX_PyMath.h"
+
 // This file defines relationships between parents and children
 // in the game engine.
 
@@ -77,11 +79,11 @@ KX_GameObject::KX_GameObject(
 	m_pSGNode = new SG_Node(this,sgReplicationInfo,callbacks);
 	
 	// define the relationship between this node and it's parent.
-
+	
 	KX_NormalParentRelation * parent_relation = 
 		KX_NormalParentRelation::New();
 	m_pSGNode->SetParentRelation(parent_relation);
-
+	
 
 };
 
@@ -303,11 +305,13 @@ void KX_GameObject::UpdateNonDynas()
 void KX_GameObject::UpdateTransform()
 {
 	if (m_pPhysicsController1)
-	{
 		m_pPhysicsController1->SetSumoTransform(false);
-	}
 }
 
+void KX_GameObject::UpdateTransformFunc(SG_IObject* node, void* gameobj, void* scene)
+{
+	((KX_GameObject*)gameobj)->UpdateTransform();
+}
 
 
 void KX_GameObject::SetDebugColor(unsigned int bgra)
@@ -408,7 +412,7 @@ KX_GameObject::MarkVisible(
 	 * determined on this level. Maybe change this to mesh level
 	 * later on? */
 	
-	double* fl = GetOpenGLMatrix();
+	double* fl = GetOpenGLMatrixPtr()->getPointer();
 	for (size_t i=0;i<m_meshes.size();i++)
 	{
 		m_meshes[i]->MarkVisible(fl,this,visible,m_bUseObjectColor,m_objectColor);
@@ -422,7 +426,7 @@ KX_GameObject::MarkVisible(
 	void
 	)
 {
-	double* fl = GetOpenGLMatrix();
+	double* fl = GetOpenGLMatrixPtr()->getPointer();
 	for (size_t i=0;i<m_meshes.size();i++)
 	{
 		m_meshes[i]->MarkVisible(fl,
@@ -603,10 +607,10 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},  
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_VARARGS},
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_VARARGS},
-	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
-	{"getVelocity", (PyCFunction) KX_GameObject::sPyGetVelocity, METH_VARARGS},
 	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_VARARGS},
 	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_VARARGS},
+	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
+	{"getVelocity", (PyCFunction) KX_GameObject::sPyGetVelocity, METH_VARARGS},
 	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_VARARGS},
 	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_VARARGS},
 	{"applyImpulse", (PyCFunction) KX_GameObject::sPyApplyImpulse, METH_VARARGS},
@@ -654,17 +658,7 @@ PyObject* KX_GameObject::PyGetPosition(PyObject* self,
 									   PyObject* args, 
 									   PyObject* kwds)
 {
-	MT_Point3 pos = NodeGetWorldPosition();
-	
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
-	}
-	
-	return resultlist;
-	
+	return PyObjectFromMT_Point3(NodeGetWorldPosition());
 }
 
 
@@ -702,9 +696,101 @@ PyParentObject KX_GameObject::Parents[] = {
 
 PyObject* KX_GameObject::_getattr(const STR_String& attr)
 {
+	if (m_pPhysicsController1)
+	{
+		if (attr == "mass")
+			return PyFloat_FromDouble(GetPhysicsController()->GetMass());
+	}
+
+	if (attr == "parent")
+	{	
+		KX_GameObject* parent = GetParent();
+		if (parent)
+			return parent;
+		Py_Return;
+	}
+	
+	if (attr == "visible")
+		return PyInt_FromLong(m_bVisible);
+	
+	if (attr == "position")
+		return PyObjectFromMT_Point3(NodeGetWorldPosition());
+	
+	if (attr == "orientation")
+		return PyObjectFromMT_Matrix3x3(NodeGetWorldOrientation());
+	
+	if (attr == "scaling")
+		return PyObjectFromMT_Vector3(NodeGetWorldScaling());
+	
 	_getattr_up(SCA_IObject);
 }
 
+int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr method
+{
+	if (attr == "mass")
+		return 1;
+	
+	if (attr == "parent")
+		return 1;
+		
+	if (PyInt_Check(value))
+	{
+		int val = PyInt_AsLong(value);
+		if (attr == "visible")
+		{
+			SetVisible(val != 0);
+			return 0;
+		}
+	}
+	
+	if (PySequence_Check(value))
+	{
+		if (attr == "orientation")
+		{
+			MT_Matrix3x3 rot;
+			if (PyObject_IsMT_Matrix(value, 3))
+			{
+				rot = MT_Matrix3x3FromPyObject(value);
+				NodeSetLocalOrientation(rot);
+				return 0;
+			}
+			
+			if (PySequence_Size(value) == 4)
+			{
+				MT_Quaternion qrot = MT_QuaternionFromPyList(value);
+				rot.setRotation(qrot);
+				NodeSetLocalOrientation(rot);
+				return 0;
+			}
+			
+			if (PySequence_Size(value) == 3)
+			{
+				MT_Vector3 erot = MT_Vector3FromPyList(value);
+				rot.setEuler(erot);
+				NodeSetLocalOrientation(rot);
+				return 0;
+			}
+			
+			return 1;
+		}
+		
+		if (attr == "position")
+		{
+			MT_Point3 pos(MT_Point3FromPyList(value));
+			NodeSetLocalPosition(pos);
+			return 0;
+		}
+		
+		if (attr == "scaling")
+		{
+			MT_Vector3 scale(MT_Vector3FromPyList(value));
+			NodeSetLocalScale(scale);
+			return 0;
+		}
+	}
+	
+	return SCA_IObject::_setattr(attr, value);
+}
 
 
 PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, 
@@ -712,16 +798,7 @@ PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self,
 											 PyObject* kwds)
 {
 	// only can get the velocity if we have a physics object connected to us...
-	MT_Vector3 velocity = GetLinearVelocity();
-	
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(velocity[index]));
-	}
-
-	return resultlist;
+	return PyObjectFromMT_Vector3( GetLinearVelocity());
 }
 
 
@@ -756,66 +833,19 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self,
 	MT_Point3 point(0.0,0.0,0.0);
 	
 	
-	MT_Point3 pos;
-	PyObject* pylist;
-	bool	error = false;
-	
-	int len = PyTuple_Size(args);
-	
-	if ((len > 0) && PyArg_ParseTuple(args,"O",&pylist))
+	PyObject* pypos = NULL;
+	if (PyArg_ParseTuple(args, "|O", &pypos))
 	{
-		if (pylist->ob_type == &CListValue::Type)
-		{
-			CListValue* listval = (CListValue*) pylist;
-			if (listval->GetCount() == 3)
-			{
-				int index;
-				for (index=0;index<3;index++)
-				{
-					pos[index] = listval->GetValue(index)->GetNumber();
-				}
-			}	else
-			{
-				error = true;
-			}
-			
-		} else
-		{
-			
-			// assert the list is long enough...
-			int numitems = PyList_Size(pylist);
-			if (numitems == 3)
-			{
-				int index;
-				for (index=0;index<3;index++)
-				{
-					pos[index] = PyFloat_AsDouble(PyList_GetItem(pylist,index));
-				}
-			}
-			else
-			{
-				error = true;
-			}
-		}
-		
-		if (!error)
-			point = pos;	
+		if (pypos)
+			point = MT_Point3FromPyList(pypos);
 	}
-	
 	
 	if (m_pPhysicsController1)
 	{
 		velocity = m_pPhysicsController1->GetVelocity(point);
 	}
 	
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(velocity[index]));
-	}
-
-	return resultlist;
+	return PyObjectFromMT_Vector3(velocity);
 }
 
 
@@ -842,18 +872,7 @@ PyObject* KX_GameObject::PyGetReactionForce(PyObject* self,
 											PyObject* kwds)
 {
 	// only can get the velocity if we have a physics object connected to us...
-	
-	MT_Vector3 reaction_force = GetPhysicsController()->getReactionForce();
-	
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
-	{
-		PyList_SetItem(resultlist,index,
-			PyFloat_FromDouble(reaction_force[index]));
-	}
-
-	return resultlist;
+	return PyObjectFromMT_Vector3(GetPhysicsController()->getReactionForce());
 }
 
 
@@ -897,12 +916,16 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 								   PyObject* args, 
 								   PyObject* kwds)
 {
-	if (m_meshes.size() > 0)
-	{
-		KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[0]);
-		return meshproxy;
-	}
+	int mesh = 0;
 	
+	if (PyArg_ParseTuple(args, "|i", &mesh))
+	{
+		if (mesh < m_meshes.size() && mesh >= 0)
+		{
+			KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
+			return meshproxy;
+		}
+	}
 	Py_Return;
 }
 
@@ -913,16 +936,20 @@ PyObject* KX_GameObject::PyApplyImpulse(PyObject* self,
 										PyObject* kwds)
 {
 	
-	MT_Point3  attach(0, 1, 0);
-	MT_Vector3 impulse(1, 0, 0);
 	
-	if (ConvertPythonVectorArgs(args,attach,impulse))
+	PyObject* pyattach;
+	PyObject* pyimpulse;
+	
+	if (PyArg_ParseTuple(args, "OO", &pyattach, &pyimpulse))
 	{
+		MT_Point3  attach(MT_Point3FromPyList(pyattach));
+		MT_Vector3 impulse(MT_Vector3FromPyList(pyimpulse));
+	
 		if (m_pPhysicsController1)
 		{
 			m_pPhysicsController1->applyImpulse(attach, impulse);
 		}
-		
+
 	}
 	
 	Py_Return;
@@ -975,27 +1002,8 @@ PyObject* KX_GameObject::PyGetOrientation(PyObject* self,
 										  PyObject* args,
 										  PyObject* kwds) //keywords
 {
-	// do the conversion of a C++ matrix to a python list
-	
-	PyObject* resultlist = PyList_New(3);
-	
-	
-	int row,col;
 	const MT_Matrix3x3& orient = NodeGetWorldOrientation();
-	
-	for (row=0;row<3;row++)
-	{
-		PyObject* veclist = PyList_New(3);
-		
-		for (col=0;col<3;col++)
-		{
-			const MT_Scalar fl = orient[row][col];
-			PyList_SetItem(veclist,col,PyFloat_FromDouble(fl));
-		}
-		PyList_SetItem(resultlist,row,veclist);
-		
-	}
-	return resultlist;
+	return PyObjectFromMT_Matrix3x3(orient);
 }
 
 
@@ -1004,68 +1012,33 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self,
 										  PyObject* args, 
 										  PyObject* kwds)
 {
-	MT_Matrix3x3 matrix;
-	
 	PyObject* pylist;
 	bool	error = false;
 	int row,col;
 	
 	PyArg_ParseTuple(args,"O",&pylist);
 	
-	if (pylist->ob_type == &CListValue::Type)
+	MT_Matrix3x3 matrix;
+	if (PyObject_IsMT_Matrix(pylist, 3))
 	{
-		CListValue* listval = (CListValue*) pylist;
-		if (listval->GetCount() == 3)
+		matrix = MT_Matrix3x3FromPyObject(pylist);
+			
+		if (!PyErr_Occurred())
 		{
-			for (row=0;row<3;row++) // each row has a 3-vector [x,y,z]
-			{
-				CListValue* vecval = (CListValue*)listval->GetValue(row);
-				for (col=0;col<3;col++)
-				{
-					matrix[row][col] = vecval->GetValue(col)->GetNumber();
-					
-				}
-			}
+			NodeSetLocalOrientation(matrix);
 		}
-		else
-		{
-			error = true;
-		}
-	}
-	else
-	{
-		// assert the list is long enough...
-		int numitems = PyList_Size(pylist);
-		if (numitems == 3)
-		{
-			for (row=0;row<3;row++) // each row has a 3-vector [x,y,z]
-			{
-				
-				PyObject* veclist = PyList_GetItem(pylist,row); // here we have a vector3 list
-				for (col=0;col<3;col++)
-				{
-					matrix[row][col] =  PyFloat_AsDouble(PyList_GetItem(veclist,col));
-					
-				}
-			}
-		}
-		else
-		{
-			error = true;
-		}
+		
+		Py_Return;
 	}
 	
-	if (!error)
+	MT_Quaternion quat = MT_QuaternionFromPyList(pylist);
+	if (!PyErr_Occurred())
 	{
-		if (m_pPhysicsController1)
-		{
-			m_pPhysicsController1->setOrientation(matrix.getRotation());
-		}
+		matrix.setRotation(quat);
 		NodeSetLocalOrientation(matrix);
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_Return;
 }
 
 
@@ -1075,16 +1048,13 @@ PyObject* KX_GameObject::PySetPosition(PyObject* self,
 									   PyObject* kwds)
 {
 	// make a general function for this, it's needed many times
-	
-	MT_Point3 pos = ConvertPythonVectorArg(args);
-	if (this->m_pPhysicsController1)
+	PyObject *pypos;
+	if (PyArg_ParseTuple(args, "O", &pypos))
 	{
-		this->m_pPhysicsController1->setPosition(pos);
+		MT_Point3 pos = MT_Point3FromPyList(pypos);
+		NodeSetLocalPosition(pos);
 	}
-	NodeSetLocalPosition(pos);
-	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_Return;
 }
 
 PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self,

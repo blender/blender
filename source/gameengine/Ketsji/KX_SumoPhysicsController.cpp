@@ -84,8 +84,7 @@ void	KX_SumoPhysicsController::ApplyForce(const MT_Vector3& force,bool local)
 
 bool KX_SumoPhysicsController::Update(double time)
 {
-	return SynchronizeMotionStates(time);
-
+	return SynchronizeMotionStates(time); 
 }
 
 void	KX_SumoPhysicsController::SetSimulatedTime(double time)

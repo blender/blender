@@ -415,9 +415,11 @@ public:
 	 * Update the physics object transform based upon the current SG_Node
 	 * position.
 	 */
-		void						
+		void
 	UpdateTransform(
 	);
+
+	static void UpdateTransformFunc(SG_IObject* node, void* gameobj, void* scene);
 
 	/**
 	 * Only update the transform if it's a non-dynamic object
@@ -572,6 +574,13 @@ public:
 	_getattr(
 		const STR_String& attr
 	);
+ 
+	virtual 
+		int 
+	_setattr(
+		const STR_String& attr, 
+		PyObject *value
+	);		// _setattr method
 
 		PyObject*					
 	PySetPosition(

@@ -177,7 +177,7 @@ public:
 
 	MT_Transform GetWorldTransform() const;
 
-	void	ComputeWorldTransforms(		const SG_Spatial *parent);
+	bool	ComputeWorldTransforms(		const SG_Spatial *parent);
 
 	/**
 	 * Bounding box functions.
@@ -217,7 +217,7 @@ protected:
 	 * any controllers to update this object. 
 	 */ 
 
-		void 
+		bool 
 	UpdateSpatialData(
 		const SG_Spatial *parent,
 		double time

@@ -188,8 +188,6 @@ public:
 	Destruct(
 	);
 	
-
-
 private:
 
 		void		

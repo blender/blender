@@ -103,7 +103,7 @@ SetParentRelation(
  */
 
 
-	void 
+	bool 
 SG_Spatial::
 UpdateSpatialData(
 	const SG_Spatial *parent,
@@ -128,16 +128,15 @@ UpdateSpatialData(
 	// our world coordinates.
 
 	if (!bComputesWorldTransform)
-	{
-		ComputeWorldTransforms(parent);
-	}
+		bComputesWorldTransform = ComputeWorldTransforms(parent);
+
+	return bComputesWorldTransform;
 }
 
-void	SG_Spatial::ComputeWorldTransforms(const SG_Spatial *parent)
+bool	SG_Spatial::ComputeWorldTransforms(const SG_Spatial *parent)
 {
-	m_parent_relation->UpdateChildCoordinates(this,parent);
+	return m_parent_relation->UpdateChildCoordinates(this,parent);
 }
-
 
 /**
  * Position and translation methods

@@ -85,38 +85,12 @@ float SumoPhysicsController::getMass()
 
 bool SumoPhysicsController::SynchronizeMotionStates(float time)
 {
-
 	if (m_bFirstTime)
 	{
-		setSumoTransform(false);
+		setSumoTransform(!m_bFirstTime);
 		m_bFirstTime = false;
 	}
-
-	if (!m_bDyna)
-	{
-		if (m_sumoObj)
-		{
-			MT_Point3 pos;
-			GetWorldPosition(pos);
-
-			m_sumoObj->setPosition(pos);
-			if (m_bDyna)
-			{
-				m_sumoObj->setScaling(MT_Vector3(1,1,1));
-			} else
-			{
-				MT_Vector3 scaling;
-				GetWorldScaling(scaling);
-				m_sumoObj->setScaling(scaling);
-			}
-			MT_Matrix3x3 orn;
-			GetWorldOrientation(orn);
-			m_sumoObj->setOrientation(orn.getRotation());
-			m_sumoObj->calcXform();
-		}
-	}
-	return false; // physics object are not part of
-				 // hierarchy, or ignore it ??
+	return false;
 }
  
 

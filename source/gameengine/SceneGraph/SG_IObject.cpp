@@ -130,6 +130,17 @@ ActivateDestructionCallback(
 	}
 }
 
+	void
+SG_IObject::
+ActivateUpdateTransformCallback(
+){
+	if (m_callbacks.m_updatefunc)
+	{
+		// Call client provided update func.
+		m_callbacks.m_updatefunc(this, m_SGclientObject, m_SGclientInfo);
+	}
+}
+
 	void 
 SG_IObject::
 SetControllerTime(

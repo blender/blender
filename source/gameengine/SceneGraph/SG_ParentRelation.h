@@ -69,7 +69,7 @@ public :
 	 */ 
 	
 	virtual
-		void
+		bool
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent

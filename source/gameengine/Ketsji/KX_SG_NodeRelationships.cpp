@@ -50,7 +50,7 @@ New(
 	return new KX_NormalParentRelation();
 }		
 
-	void
+	bool
 KX_NormalParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
@@ -82,6 +82,7 @@ UpdateChildCoordinates(
 
 		child_w_pos = p_world_pos + p_world_scale * 
 			(p_world_rotation * child_pos);
+		
 	} else {
 
 		child_w_scale = child_scale;
@@ -92,6 +93,8 @@ UpdateChildCoordinates(
 	child->SetWorldScale(child_w_scale);
 	child->SetWorldPosition(child_w_pos);
 	child->SetWorldOrientation(child_w_rotation);
+	
+	return parent != NULL;
 }
 
 	SG_ParentRelation *
@@ -130,7 +133,7 @@ New(
  * Method inherited from KX_ParentRelation
  */
 
-	void
+	bool
 KX_VertexParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
@@ -161,7 +164,6 @@ UpdateChildCoordinates(
 		child_w_scale = child_scale;
 		child_w_rotation = child_rotation;
 		child_w_pos = p_world_pos + child_pos;
-
 	} else {
 
 		child_w_scale = child_scale;
@@ -172,6 +174,8 @@ UpdateChildCoordinates(
 	child->SetWorldScale(child_w_scale);
 	child->SetWorldPosition(child_w_pos);
 	child->SetWorldOrientation(child_w_rotation);
+	
+	return parent != NULL;
 }
 
 /** 
@@ -215,7 +219,7 @@ New(
  * Method inherited from KX_ParentRelation
  */
 
-	void
+	bool
 KX_SlowParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
@@ -280,6 +284,8 @@ UpdateChildCoordinates(
 				child_w_rotation[1][i] = (m_relax * child_w_rotation[1][i] + child_n_rotation[1][i]) * weight;
 				child_w_rotation[2][i] = (m_relax * child_w_rotation[2][i] + child_n_rotation[2][i]) * weight;
 			}
+			
+			//FIXME: update physics controller.
 		} else {
 			child_w_scale = child_n_scale;
 			child_w_pos = child_n_pos;
@@ -297,6 +303,8 @@ UpdateChildCoordinates(
 	child->SetWorldScale(child_w_scale);
 	child->SetWorldPosition(child_w_pos);
 	child->SetWorldOrientation(child_w_rotation);
+	
+	return parent != NULL;
 }
 
 /** 

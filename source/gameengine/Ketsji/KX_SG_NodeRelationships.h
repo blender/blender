@@ -69,7 +69,7 @@ public :
 	 * Method inherited from KX_ParentRelation
 	 */
 
-		void
+		bool
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent
@@ -113,7 +113,7 @@ public :
 	 * Method inherited from KX_ParentRelation
 	 */
 
-		void
+		bool
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent
@@ -158,7 +158,7 @@ public :
 	 * Method inherited from KX_ParentRelation
 	 */
 
-		void
+		bool
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent

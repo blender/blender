@@ -51,6 +51,12 @@ typedef void* (*SG_DestructionNewCallback)(
 	void*	clientinfo
 );
 
+typedef void  (*SG_UpdateTransformCallback)(
+	SG_IObject* sgobject,
+	void*	clientobj,
+	void*	clientinfo
+);
+
 
 /**
  * SG_Callbacks hold 2 call backs to the outside world.
@@ -72,21 +78,25 @@ struct	SG_Callbacks
 	SG_Callbacks(
 	):
 		m_replicafunc(NULL),
-		m_destructionfunc(NULL) 
+		m_destructionfunc(NULL),
+		m_updatefunc(NULL)
 	{
 	};
 		
 	SG_Callbacks(
 		SG_ReplicationNewCallback repfunc,
-		SG_DestructionNewCallback destructfunc
+		SG_DestructionNewCallback destructfunc,
+		SG_UpdateTransformCallback updatefunc
 	): 
 		m_replicafunc(repfunc),
-		m_destructionfunc(destructfunc) 
+		m_destructionfunc(destructfunc),
+		m_updatefunc(updatefunc)
 	{
 	};
 
 	SG_ReplicationNewCallback	m_replicafunc;
 	SG_DestructionNewCallback	m_destructionfunc;
+	SG_UpdateTransformCallback	m_updatefunc;
 };
 
 /**
@@ -202,6 +212,10 @@ protected :
 
 		void
 	ActivateDestructionCallback(
+	);
+	
+		void
+	ActivateUpdateTransformCallback(
 	);
 
 	SG_IObject(
