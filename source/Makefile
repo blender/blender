@@ -38,7 +38,7 @@ endif
 
 include nan_definitions.mk
 
-DIRS = ode creator blender kernel sumo gameengine
+DIRS = ode creator blender kernel gameengine
 
 ifeq ($(OS),windows)
     DIRS += icons
