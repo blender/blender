@@ -1050,8 +1050,6 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self,
 										  PyObject* kwds)
 {
 	PyObject* pylist;
-	bool	error = false;
-	int row,col;
 	
 	if (PyArg_ParseTuple(args,"O",&pylist))
 	{
