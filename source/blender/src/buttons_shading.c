@@ -820,7 +820,7 @@ static void texture_panel_musgrave(Tex *tex)
 	if(uiNewPanel(curarea, block, "Musgrave", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	str= "Ridged Multifractal %x0|Hybrid Multifractal %x1|Multifractal %x2|Hetero Terrain %x3|fBm %x4";
+	str= "Multifractal %x0|Ridged Multifractal %x1|Hybrid Multifractal %x2|Hetero Terrain %x4|fBm %x3";
 	uiDefButS(block, MENU, B_TEXPRV, str, 10, 160, 150, 19, &tex->stype, 0.0, 0.0, 0, 0, "Sets Musgrave type");
 	
 	uiBlockBeginAlign(block);
