@@ -294,10 +294,6 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_screen_types.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\makesdna\DNA_script_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\makesdna\DNA_scriptlink_types.h
 # End Source File
 # Begin Source File
