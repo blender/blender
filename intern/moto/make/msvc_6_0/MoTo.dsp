@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\moto\libmoto.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY ..\..\include\*.h ..\..\..\..\lib\windows\moto\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\moto\*.lib ..\..\..\..\lib\windows\moto\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\include\*.h ..\..\..\..\lib\windows\moto\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\moto\*.lib ..\..\..\..\lib\windows\moto\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "MoTo - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\moto\debug\libmoto.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\include\*.h ..\..\..\..\lib\windows\moto\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\moto\debug\*.lib ..\..\..\..\lib\windows\moto\lib\debug\*.a	ECHO Copying Debug info.	XCOPY ..\..\..\..\obj\windows\intern\moto\debug\vc60.* ..\..\..\..\lib\windows\moto\lib\debug\	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\include\*.h ..\..\..\..\lib\windows\moto\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\moto\debug\*.lib ..\..\..\..\lib\windows\moto\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /Y ..\..\..\..\obj\windows\intern\moto\debug\vc60.* ..\..\..\..\lib\windows\moto\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying GHOST files library (release target) to lib tree.
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\ghost\*.lib ..\..\..\..\lib\windows\ghost\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\ghost\*.lib ..\..\..\..\lib\windows\ghost\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "ghost - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying GHOST files library (debug target) to lib tree.
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\ghost\debug\*.lib ..\..\..\..\lib\windows\ghost\lib\debug\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\ghost\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\ghost\debug\*.lib ..\..\..\..\lib\windows\ghost\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

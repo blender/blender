@@ -80,12 +80,35 @@ public :
 	AddFace(
 		int *verts,
 		int num_verts
-	);
+	){
+		int i;
+		for (i= 2; i <num_verts; i++) {
+			BSP_TFace f;
+			f.m_verts[0] = verts[0];
+			f.m_verts[1] = verts[i-1];
+			f.m_verts[2] = verts[i];
+
+ 			m_faces.push_back(f);
+
+			BuildNormal(m_faces.back());		
+		}
+	}
 
 		void
 	BuildNormal(
 		BSP_TFace & f
-	) const ;
+	) const {
+		MT_Vector3 l1 = 
+			m_verts[f.m_verts[1]].m_pos - 
+			m_verts[f.m_verts[0]].m_pos;
+		MT_Vector3 l2 = 
+			m_verts[f.m_verts[2]].m_pos - 
+			m_verts[f.m_verts[1]].m_pos;
+
+		MT_Vector3 normal = l1.cross(l2);
+		
+		f.m_normal = normal.safe_normalized();
+	}
 		
 };
 
@@ -158,6 +181,17 @@ VertexIt_Step(
 };
 
 static
+	void
+VertexIt_Reset(
+	CSG_IteratorPtr it
+) {
+	// assume CSG_IteratorPtr is of the correct type.
+	VertexIt * vertex_it = (VertexIt *)it;
+
+	vertex_it->pos = vertex_it->mesh->VertexSet().begin();
+};
+
+static
 	CSG_VertexIteratorDescriptor * 
 VertexIt_Construct(
 	BSP_TMesh *mesh,
@@ -170,6 +204,7 @@ VertexIt_Construct(
 	output->Done = VertexIt_Done;
 	output->Fill = VertexIt_Fill;
 	output->Step = VertexIt_Step;
+	output->Reset = VertexIt_Reset;
 	output->num_elements = mesh->VertexSet().size();
 	
 	VertexIt * v_it = new VertexIt;
@@ -245,6 +280,17 @@ FaceIt_Step(
 };
 
 static
+	void
+FaceIt_Reset(
+	CSG_IteratorPtr it
+) {
+	// assume CSG_IteratorPtr is of the correct type.
+	FaceIt * face_it = (FaceIt *)it;		
+
+	face_it->pos = face_it->mesh->FaceSet().begin();
+};
+
+static
 	CSG_FaceIteratorDescriptor * 
 FaceIt_Construct(
 	BSP_TMesh * mesh
@@ -255,6 +301,7 @@ FaceIt_Construct(
 	output->Done = FaceIt_Done;
 	output->Fill = FaceIt_Fill;
 	output->Step = FaceIt_Step;
+	output->Reset = FaceIt_Reset;
 
 	output->num_elements = mesh->FaceSet().size();
 	

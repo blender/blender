@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\string\libstring.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h  ..\..\..\..\lib\windows\string\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\string\*.lib ..\..\..\..\lib\windows\string\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h  ..\..\..\..\lib\windows\string\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\string\*.lib ..\..\..\..\lib\windows\string\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "string - Win32 Debug"
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"../../../../obj/windows/intern/string/debug\libstring.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h  ..\..\..\..\lib\windows\string\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\string\debug\*.lib ..\..\..\..\lib\windows\string\lib\debug\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h  ..\..\..\..\lib\windows\string\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\string\debug\*.lib ..\..\..\..\lib\windows\string\lib\debug\*.a	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

@@ -64,6 +64,17 @@
 
 #include <iostream>
 
+	int 
+EmptyInterpFunc(
+	void *d1, 
+	void * d2, 
+	void *dnew, 
+	float epsilon
+){
+	return 0;
+}
+
+
 
 using namespace std;
 
@@ -125,10 +136,6 @@ Swap(
 }
 
 
-
-
-
-
 	MT_Transform
 BSP_GhostTestApp3D::
 GetTransform(
@@ -174,25 +181,29 @@ Operate(
 	// describe properties.
 
 	CSG_MeshPropertyDescriptor props;
-	props.mesh_property_flags = 0;
+	props.user_face_vertex_data_size = 0;
 	props.user_data_size = 0;
 
 	CSG_BooleanOperation * op =  CSG_NewBooleanFunction();
 	props = CSG_DescibeOperands(op,props,props);
 
-	CSG_PerformBooleanOperation(op,CSG_OperationType(type),
-		*fA,*vA,*fB,*vB
+	CSG_PerformBooleanOperation(
+		op,CSG_OperationType(type),
+		*fA,*vA,*fB,*vB,EmptyInterpFunc
 	);
 
-	CSG_FaceIteratorDescriptor * out_f = CSG_OutputFaceDescriptor(op);
-	CSG_VertexIteratorDescriptor * out_v = CSG_OutputVertexDescriptor(op);
+	CSG_FaceIteratorDescriptor out_f;
+	CSG_OutputFaceDescriptor(op,&out_f);
 
-	MEM_SmartPtr<BSP_TMesh> new_mesh (BuildMesh(props,*out_f,*out_v));
+	CSG_VertexIteratorDescriptor out_v;
+	CSG_OutputVertexDescriptor(op,&out_v);
+
+	MEM_SmartPtr<BSP_TMesh> new_mesh (BuildMesh(props,out_f,out_v));
 
 	// free stuff
 
-	CSG_FreeVertexDescriptor(out_v);
-	CSG_FreeFaceDescriptor(out_f);
+	CSG_FreeVertexDescriptor(&out_v);
+	CSG_FreeFaceDescriptor(&out_f);
 	CSG_FreeBooleanOperation(op);
 
 	op = NULL;
@@ -255,8 +266,8 @@ InitApp(
 	
 	m_window = m_system->createWindow(
 		"GHOST crud3D!",
-		100,100,640,480,GHOST_kWindowStateNormal,
-		GHOST_kDrawingContextTypeOpenGL
+		100,100,512,512,GHOST_kWindowStateNormal,
+		GHOST_kDrawingContextTypeOpenGL,false
 	);
 
 	if (
@@ -312,7 +323,8 @@ processEvent(
 		{
 			int x,y;
 			m_system->getCursorPosition(x,y);
-	
+
+
 			int wx,wy;
 			m_window->screenToClient(x,y,wx,wy);
 
@@ -346,7 +358,8 @@ processEvent(
 				m_rotation_settings[m_current_object].m_moving = false;
 				m_rotation_settings[m_current_object].x_old = 0;
 				m_rotation_settings[m_current_object].y_old = 0;
-			} else 
+
+		} else 
 			if (button == GHOST_kButtonMaskRight) {
 				m_translation_settings[m_current_object].m_moving = false;
 				m_translation_settings[m_current_object].x_old;
@@ -383,9 +396,10 @@ processEvent(
 				GHOST_Rect bounds;
 				m_window->getClientBounds(bounds);
 
-				int w_h = bounds.getWidth();
+				int w_h = bounds.getHeight();
 
 				y = w_h - wy;
+				x = wx;
 
 				double mvmatrix[16];
 				double projmatrix[16];
@@ -402,16 +416,9 @@ processEvent(
 
 				GLdouble ex,ey,ez;
 
-				MT_Vector3 bbox_min, bbox_max;
-				
-				bbox_min = m_meshes[0]->m_min;
-				bbox_max = m_meshes[0]->m_max;
-
-				MT_Vector3 bbox_centre = (bbox_min + bbox_max)/2;
-
-				ex = bbox_centre.x();
-				ey = bbox_centre.y();
-				ez = bbox_centre.z();
+				ex = m_translation_settings[m_current_object].m_t_x;
+				ey = m_translation_settings[m_current_object].m_t_y;
+				ez = m_translation_settings[m_current_object].m_t_z;
 
 				gluProject(ex, ey, ez, mvmatrix, projmatrix, viewport, &px, &py, &sz);
 				gluUnProject((GLdouble) x, (GLdouble) y, sz, mvmatrix, projmatrix, viewport, &px, &py, &pz);
@@ -475,24 +482,19 @@ processEvent(
 				}
 
 				case GHOST_kKeyR:
-
 					m_render_modes[m_current_object]++;
-
 					if (m_render_modes[m_current_object] > e_last_render_mode) {
 						m_render_modes[m_current_object] = e_first_render_mode;
 					}
-
 					handled = true;
 					m_window->invalidate();
 					break;					
-
-
 
 				case GHOST_kKeyB:
 					handled = true;
 					m_window->invalidate();
 					break;					
-	
+
 				case GHOST_kKeyQ:
 					m_finish_me_off = true;
 					handled = true;
@@ -503,20 +505,19 @@ processEvent(
 					m_window->invalidate();
 					handled = true;
 					break;
-			
+
 				case GHOST_kKeySpace:
-						
+
 					// increment the current object only if the object is not being
 					// manipulated.
 					if (! (m_rotation_settings[m_current_object].m_moving || m_translation_settings[m_current_object].m_moving)) {
 						m_current_object ++;
 						if (m_current_object >= m_meshes.size()) {
 							m_current_object = 0;
+
 						}
 					}
 					m_window->invalidate();
-					
-
 					handled = true;
 					break;
 				default :
@@ -527,9 +528,7 @@ processEvent(
 		default :
 			break;
 	}
-
 	return handled;
-	
 };
 
 BSP_GhostTestApp3D::
@@ -543,37 +542,34 @@ BSP_GhostTestApp3D::
 		m_system = NULL;
 	}
 };
+
 	
+
 	void
 BSP_GhostTestApp3D::
 DrawPolies(
 ){
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	for (int i = 0; i < m_meshes.size(); ++i) {
-
 		MT_Transform trans = GetTransform(i);
 
 		float opengl_mat[16];
 		trans.getValue(opengl_mat);
 
-		opengl_mat[14] -= 30;
-			
 		glPushMatrix();
-		glLoadMatrixf(opengl_mat);
-
+		glMultMatrixf(opengl_mat);
 		MT_Vector3 color(1.0,1.0,1.0);
-
 		if (i == m_current_object) {
 			color = MT_Vector3(1.0,0,0);
 		}
-	
 		BSP_MeshDrawer::DrawMesh(m_meshes[i].Ref(),m_render_modes[i]);
 
 		glPopMatrix();	
 	}
 
 	m_window->swapBuffers();
+
 }
 
 	void
@@ -590,28 +586,30 @@ InitOpenGl(
 	GLfloat light_position1[] = {1.0, 0, 0, 0.0};  /* Infinite light location. */
 
 	/* Enable a single OpenGL light. */
+
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse0);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position0);
 
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse1);
 	glLightfv(GL_LIGHT1, GL_POSITION, light_position1);
 
-	  glEnable(GL_LIGHT0);
-	  glEnable(GL_LIGHT1);
-	  glEnable(GL_LIGHTING);
+
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHTING);
 
 	// make sure there is no back face culling.
-//	glDisable(GL_CULL_FACE);
-
+	//	glDisable(GL_CULL_FACE);
 
 	// use two sided lighting model
-	
-	 glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
 
 	/* Use depth buffering for hidden surface elimination. */
+
 	glEnable(GL_DEPTH_TEST);
 
 	/* Setup the view of the cube. */
+
 	glMatrixMode(GL_PROJECTION);
 
 	// centre of the box + 3* depth of box
@@ -633,7 +631,8 @@ InitOpenGl(
 	gluLookAt(
 		centre.x(), centre.y(), centre.z() + distance*depth, //eye  
 		centre.x(), centre.y(), centre.z(), //centre      
-		0.0, 1.0, 0.);      /* up is in positive Y direction */
+		0.0, 1.0, 0.
+	);      /* up is in positive Y direction */
 
 }	
 

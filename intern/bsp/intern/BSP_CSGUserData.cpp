@@ -66,7 +66,7 @@ Duplicate(
 		int output = Size();
 		IncSize();
 
-		memcpy(&m_data[ m_data.size() - 1 - m_width ], record, m_width);
+		memcpy(&m_data[ m_data.size() - m_width ], record, m_width);
 	
 		return output;
 	}
@@ -80,7 +80,7 @@ Duplicate(
 ){
 	if (m_width) {
 		IncSize();
-		memcpy(&m_data[ m_data.size() - 1 - m_width ], 
+		memcpy(&m_data[ m_data.size() - m_width ], 
 			&m_data[ record_index * m_width], m_width);
 	}
 }	

@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Copying BMFONT files library (release target) to lib tree.
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\lib\windows\bmfont\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\bmfont\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\lib\windows\bmfont\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "bmfont - Win32 Debug"

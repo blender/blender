@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\guardedalloc\libguardedalloc.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\guardedalloc\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\guardedalloc\*.lib ..\..\..\..\lib\windows\guardedalloc\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\guardedalloc\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\guardedalloc\*.lib ..\..\..\..\lib\windows\guardedalloc\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "guardedalloc - Win32 Debug"

@@ -108,10 +108,6 @@ SOURCE=.\BSP_PlyLoader.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\BSP_TMesh.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\BSP_TMesh.h
 # End Source File
 # Begin Source File
