@@ -8,6 +8,7 @@ from distutils import sysconfig
 sdl_cenv = Environment ()
 sdl_lenv = Environment ()
 link_env = Environment ()
+env = Environment ()
 
 if sys.platform == 'linux2':
     use_international = 'true'
@@ -208,8 +209,50 @@ elif sys.platform == 'win32':
     python_lib = 'python22'
 
 elif string.find (sys.platform, 'sunos') != -1:
-    window_system = 'X11'
+    use_international = 'true'
+    use_gameengine = 'false'
+    use_openal = 'false'
+    use_fmod = 'false'
+    use_quicktime = 'false'
+    use_sumo = 'false'
+    use_ode = 'false'
+    release_flags = ['-O2']
+    debug_flags = ['-O2', '-g']
+    extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
+    cxxflags = []
     defines = []
+    env['ENV']['CC']='gcc'
+    env['ENV']['CXX']='g++'
+    warn_flags = ['-Wall', '-W']
+    window_system = 'X11'
+    platform_libs = ['m', 'z', 'GL', 'GLU', 'png', 'jpeg', 'util']
+    platform_libpath = []
+    platform_linkflags = []
+    extra_includes = []
+    # SDL specific stuff.
+    sdl_cenv.ParseConfig ('sdl-config --cflags')
+    sdl_lenv.ParseConfig ('sdl-config --libs')
+    sdl_cdict = sdl_cenv.Dictionary()
+    sdl_ldict = sdl_lenv.Dictionary()
+    sdl_cflags = string.join(sdl_cdict['CCFLAGS'])
+    sdl_include = sdl_cdict['CPPPATH'][0]
+    link_env.Append (LIBS=sdl_ldict['LIBS'])
+    link_env.Append (LIBPATH=sdl_ldict['LIBPATH'])
+    solid_include = '#extern/solid/include'
+    ode_include = '#extern/ode/dist/include/ode'
+    # Python variables.
+    python_include = sysconfig.get_python_inc ()
+    python_libpath = sysconfig.get_python_lib (0, 1) + '/config'
+    python_lib = 'python%d.%d' % sys.version_info[0:2]
+    # International stuff
+    if (use_international == 'true'):
+        defines += ['INTERNATIONAL', 'FTGL_STATIC_LIBRARY', 'WITH_FREETYPE2']
+        platform_libpath += ['#../lib/solaris-2.8-sparc/ftgl',
+                             '#../lib/solaris-2.8-sparc/freetype/lib']
+        platform_libs += ['ftgl', 'freetype']
+        extra_includes += ['#../lib/solaris-2.8-sparc/ftgl/include',
+                           '#../lib/solaris-2.8-sparc/freetype/include']
+
 
 elif string.find (sys.platform, 'irix') != -1:
     use_international = 'false'
