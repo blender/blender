@@ -3768,6 +3768,9 @@ static void do_versions(Main *main)
 		}
 	}	
 
+	if(main->versionfile <= 225) {
+		U.wheellinescroll = 3;
+	}
 	/* onder in blender.c de nummers wijzigen! */
 }
 
