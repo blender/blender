@@ -229,8 +229,12 @@ static PyObject *M_Scene_New(PyObject *self, PyObject *args, PyObject *kword)
 
 	blscene = add_scene(name); /* first create the Scene in Blender */
 
-	if (blscene) /* now create the wrapper obj in Python */
-		pyscene = Scene_CreatePyObject (blscene);
+	if (blscene){ 
+	  /* return user count to zero because add_scene() inc'd it */
+	  blscene->id.us = 0;  
+	  /* now create the wrapper obj in Python */
+	  pyscene = Scene_CreatePyObject (blscene);
+	}
 	else
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 														"couldn't create Scene obj in Blender"));

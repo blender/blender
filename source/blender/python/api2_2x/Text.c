@@ -49,8 +49,12 @@ static PyObject *M_Text_New(PyObject *self, PyObject *args, PyObject *keywords)
 
   bl_text = add_empty_text();
 
-  if (bl_text)
+  if (bl_text) {
+    /* return user count to zero because add_empty_text() inc'd it */
+    bl_text->id.us = 0;
+    /* create python wrapper obj */
     py_text = Text_CreatePyObject (bl_text);
+  }
   else
     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
                     "couldn't create Text Object in Blender");

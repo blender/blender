@@ -44,20 +44,23 @@ static PyObject *M_Curve_New(PyObject *self, PyObject *args)
   Curve      *blcurve = 0; /* for actual Curve Data we create in Blender */
   
   if (!PyArg_ParseTuple(args, "|s", &name))
-					return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-														"expected string argument or no argument"));
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+				   "expected string argument or no argument"));
 
   blcurve = add_curve(OB_CURVE); /* first create the Curve Data in Blender */
-  if (blcurve == NULL)
-					return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-														"couldn't create Curve Data in Blender"));
+  
+  if (blcurve == NULL) /* bail out if add_curve() failed */
+    return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				   "couldn't create Curve Data in Blender"));
 
+  /* return user count to zero because add_curve() inc'd it */
+  blcurve->id.us = 0;
+  /* create python wrapper obj */
   pycurve = (BPy_Curve *)PyObject_NEW(BPy_Curve, &Curve_Type);
 
-     
   if (pycurve == NULL)
-					return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-															"couldn't create Curve Data object"));
+    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+				   "couldn't create Curve Data object"));
 
   pycurve->curve = blcurve; /* link Python curve wrapper to Blender Curve */
   if (name)

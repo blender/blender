@@ -52,8 +52,12 @@ static PyObject *M_Armature_New(PyObject *self, PyObject *args,
            "expected string(s) or empty argument"));
 
   bl_armature = add_armature(); /* first create in Blender */
-  if (bl_armature) /* now create the wrapper obj in Python */
+  if (bl_armature){
+    /* return user count to zero because add_armature() inc'd it */
+    bl_armature->id.us = 0;
+    /* now create the wrapper obj in Python */
     py_armature = (BPy_Armature *)PyObject_NEW(BPy_Armature, &Armature_Type);
+  }
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
            "couldn't create Armature Data in Blender"));

@@ -76,8 +76,12 @@ static PyObject *M_Metaball_New(PyObject *self, PyObject *args)
 
   blmball = add_mball(); /* first create the MetaBall Data in Blender */
 
-  if (blmball) /* now create the wrapper obj in Python */
+  if (blmball){ 
+    /* return user count to zero since add_mball() incref'ed it */
+    blmball->id.us = 0; 
+    /* now create the wrapper obj in Python */
     pymball = (BPy_Metaball *)PyObject_NEW(BPy_Metaball, &Metaball_Type);
+  }
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				   "couldn't create MetaBall Data in Blender"));

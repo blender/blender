@@ -116,13 +116,17 @@ static PyObject *M_World_New(PyObject *self, PyObject *args, PyObject *kwords)
 
 	if (!PyArg_ParseTuple(args, "s", &name))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected	int argument"));
+					       "expected	int argument"));
 
 
 	blworld = add_world(name);
 
-	if (blworld) 
-		pyworld = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
+	if (blworld){
+	  /* return user count to zero because add_world() inc'd it */
+	  blworld->id.us = 0;
+	  /* create python wrapper obj */
+	  pyworld = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
+	}
 	else
 		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 																	 "couldn't create World Data in Blender"));

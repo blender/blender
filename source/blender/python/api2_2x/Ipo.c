@@ -45,19 +45,27 @@ static PyObject *M_Ipo_New(PyObject *self, PyObject *args)
   BPy_Ipo    *pyipo;
   Ipo      *blipo;
 
-	if (!PyArg_ParseTuple(args, "ss", &code,&name))
+  if (!PyArg_ParseTuple(args, "ss", &code,&name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string int arguments"));
-		if (!strcmp(code,"Object"))idcode = ID_OB;
-		if (!strcmp(code,"Camera"))idcode = ID_CA;
-		if (!strcmp(code,"World"))idcode = ID_WO;
-		if (!strcmp(code,"Material"))idcode = ID_MA;
-		if (idcode == -1)
+
+  if (!strcmp(code,"Object"))idcode = ID_OB;
+  if (!strcmp(code,"Camera"))idcode = ID_CA;
+  if (!strcmp(code,"World"))idcode = ID_WO;
+  if (!strcmp(code,"Material"))idcode = ID_MA;
+  
+  if (idcode == -1)
     return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad code"));
-		printf("%d %d %d \n", ID_OB, ID_CA, ID_WO);
+  
+  printf("%d %d %d \n", ID_OB, ID_CA, ID_WO);
+  
   blipo = add_ipo(name,idcode);
 
-  if (blipo) 
-		pyipo = (BPy_Ipo *)PyObject_NEW(BPy_Ipo, &Ipo_Type);
+  if (blipo){
+    /* return user count to zero because add_ipo() inc'd it */
+    blipo->id.us = 0;
+    /* create python wrapper obj */
+    pyipo = (BPy_Ipo *)PyObject_NEW(BPy_Ipo, &Ipo_Type);
+  }
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 																	 "couldn't create Ipo Data in Blender"));
