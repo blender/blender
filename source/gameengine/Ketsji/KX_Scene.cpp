@@ -615,6 +615,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
+	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
 	
 	return replica;
 }
@@ -803,13 +804,22 @@ void KX_Scene::UpdateMeshTransformations()
 void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty)
 {
 	int intersect = KX_Camera::INTERSECT;
+	KX_GameObject *gameobj = node->Client()?(KX_GameObject*) node->Client()->GetSGClientObject():NULL;
 	
 	/* If the camera is inside the box, assume intersect. */
 	if (!node->inside(GetActiveCamera()->NodeGetWorldPosition()))
 	{
-		MT_Point3 box[8];
-		node->get(box);
-		intersect = GetActiveCamera()->BoxInsideFrustum(box);
+		MT_Scalar radius = node->Radius();
+		MT_Point3 centre = node->Centre();
+		
+		intersect = GetActiveCamera()->SphereInsideFrustum(centre, radius);
+		
+		if (intersect == KX_Camera::INTERSECT)
+		{
+			MT_Point3 box[8];
+			node->get(box);
+			intersect = GetActiveCamera()->BoxInsideFrustum(box);
+		}
 	}
 
 	switch (intersect)
@@ -818,9 +828,8 @@ void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty)
 			MarkSubTreeVisible(node, rasty, false);
 			break;
 		case KX_Camera::INTERSECT:
-			if (node->Client())
+			if (gameobj)
 			{
-				KX_GameObject *gameobj = (KX_GameObject*) node->Client()->GetSGClientObject();
 				int nummeshes = gameobj->GetMeshCount();
 				
 				for (int m=0;m<nummeshes;m++)
@@ -856,7 +865,7 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 				(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
 			}
 		}
-		gameobj->MarkVisible(visible);
+		gameobj->MarkVisible(visible && gameobj->GetVisible());
 	}
 	if (node->Left())
 		MarkSubTreeVisible(node->Left(), rasty, visible);
@@ -873,19 +882,39 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 	for (int i = 0; i < m_objectlist->GetCount(); i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_objectlist->GetValue(i);
+		// If Frustum culling is off, the object is always visible.
 		bool vis = !GetActiveCamera()->GetFrustumCulling();
-		if (!vis)
-			vis = gameobj->GetSGNode()->inside( GetActiveCamera()->GetCameraLocation() );
+		
+		// If the camera is inside this node, then the object is visible.
 		if (!vis)
 		{
-			MT_Point3 box[8];
-			gameobj->GetSGNode()->getBBox(box);
-			vis = GetActiveCamera()->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
+			vis = gameobj->GetSGNode()->inside( GetActiveCamera()->GetCameraLocation() );
+		}
+			
+		// Test the object's bound sphere against the view frustum.
+		if (!vis)
+		{
+			MT_Vector3 scale = gameobj->GetSGNode()->GetWorldScaling();
+			MT_Scalar radius = scale[scale.closestAxis()] * gameobj->GetSGNode()->Radius();
+			switch (GetActiveCamera()->SphereInsideFrustum(gameobj->NodeGetWorldPosition(), radius))
+			{
+				case KX_Camera::INSIDE:
+					vis = true;
+					break;
+				case KX_Camera::OUTSIDE:
+					vis = false;
+					break;
+				case KX_Camera::INTERSECT:
+					// Test the object's bound box against the view frustum.
+					MT_Point3 box[8];
+					gameobj->GetSGNode()->getBBox(box);
+					vis = GetActiveCamera()->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
+					break;
+			}
 		}
 		
 		if (vis)
 		{
-			
 			int nummeshes = gameobj->GetMeshCount();
 			
 			for (int m=0;m<nummeshes;m++)
@@ -901,7 +930,10 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 		}
 	}
 #else
-	MarkVisible(m_objecttree, rasty);
+	if (GetActiveCamera()->GetFrustumCulling())
+		MarkVisible(m_objecttree, rasty);
+	else
+		MarkSubTreeVisible(m_objecttree, rasty, true);
 #endif
 }
 

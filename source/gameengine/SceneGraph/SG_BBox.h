@@ -63,13 +63,13 @@ public:
 	/**
 	 * Enlarges the bounding box to contain the specified point.
 	 */
-	SG_BBox& operator +=(MT_Point3 &point);
+	SG_BBox& operator +=(const MT_Point3 &point);
 	/**
 	 * Enlarges the bounding box to contain the specified bound box.
 	 */
-	SG_BBox& operator +=(SG_BBox &bbox);
+	SG_BBox& operator +=(const SG_BBox &bbox);
 	
-	SG_BBox operator + (SG_BBox &bbox2) const;
+	SG_BBox operator + (const SG_BBox &bbox2) const;
 #if 0
 	/**
 	 * Translates the bounding box.
@@ -124,6 +124,10 @@ public:
 	 * @param world a world transform to be applied.
 	 */
 	void getaa(MT_Point3 *box, const MT_Transform &world) const;
+	
+	void split(SG_BBox &left, SG_BBox &right) const;
+	
+	friend class SG_Tree;
 
 };
 

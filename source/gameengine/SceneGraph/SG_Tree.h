@@ -37,7 +37,7 @@
 #include "MT_Point3.h"
 #include "SG_BBox.h"
 
-#include <vector> 
+#include <set> 
 
 class SG_Node;
 
@@ -52,6 +52,8 @@ class SG_Tree
 	SG_Tree* m_right;
 	SG_Tree* m_parent;
 	SG_BBox  m_bbox;
+	MT_Point3 m_centre;
+	MT_Scalar m_radius;
 	SG_Node* m_client_object;
 public:
 	SG_Tree();
@@ -95,7 +97,23 @@ public:
 	 * Test if the given bounding box is inside this bounding box.
 	 */
 	bool inside(const MT_Point3 &point) const;
+	
+	void SetLeft(SG_Tree *left);
+	void SetRight(SG_Tree *right);
 
+	MT_Point3 Centre() const { return m_centre; }
+	MT_Scalar Radius() { return m_radius; }
+	
+	//friend class SG_TreeFactory;
+	
+	struct greater
+	{
+		bool operator()(const SG_Tree *a, const SG_Tree *b)
+		{
+			return a->volume() > b->volume();
+		}
+	};
+	
 };
 
 
@@ -108,7 +126,8 @@ public:
  */
 class SG_TreeFactory 
 {
-	std::vector<SG_Tree*> m_objects;
+	typedef std::multiset<SG_Tree*, SG_Tree::greater> TreeSet;
+	TreeSet m_objects;
 public:
 	SG_TreeFactory();
 	~SG_TreeFactory();
@@ -117,12 +136,21 @@ public:
 	 *  Add a node to be added to the tree.
 	 */
 	void Add(SG_Node* client);
+	void Add(SG_Tree* tree);
 
 	/**
 	 *  Build the tree from the set of nodes added by
 	 *  the Add method.
 	 */
+	SG_Tree* MakeTreeUp();
+	
+	/**
+	 *  Build the tree from the set of nodes top down.
+	 */
+	SG_Tree* MakeTreeDown(SG_BBox &bbox);
+	
 	SG_Tree* MakeTree();
+	
 };
 
 #endif /* __SG_BBOX_H__ */

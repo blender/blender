@@ -53,16 +53,18 @@ class SG_Spatial : public SG_IObject
 
 protected:
 	MT_Point3		m_localPosition;
-	MT_Matrix3x3	m_localRotation;
+	MT_Matrix3x3		m_localRotation;
 	MT_Vector3		m_localScaling;
 
 	MT_Point3		m_worldPosition;
-	MT_Matrix3x3	m_worldRotation;
+	MT_Matrix3x3		m_worldRotation;
 	MT_Vector3		m_worldScaling;
 	
-	SG_ParentRelation * m_parent_relation;
+	SG_ParentRelation *	m_parent_relation;
 	
-	SG_BBox		m_bbox;
+	SG_BBox			m_bbox;
+	MT_Scalar		m_radius;
+	
 
 public:
 
@@ -173,6 +175,7 @@ public:
 	GetWorldScaling(
 	) const	;
 
+	MT_Transform GetWorldTransform() const;
 
 	void	ComputeWorldTransforms(		const SG_Spatial *parent);
 
@@ -184,7 +187,10 @@ public:
 	bool inside(const MT_Point3 &point) const;
 	void getBBox(MT_Point3 *box) const;
 	void getAABBox(MT_Point3 *box) const;
-
+	
+	MT_Scalar Radius() const { return m_radius; }
+	void SetRadius(MT_Scalar radius) { m_radius = radius; }
+	
 protected:
 	friend class SG_Controller;
 	

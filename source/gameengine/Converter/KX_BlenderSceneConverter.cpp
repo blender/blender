@@ -118,7 +118,9 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		itm++;
 	}
 	
+#ifdef USE_SUMO_SOLID
 	KX_ClearSumoSharedShapes();
+#endif
 }
 
 

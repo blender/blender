@@ -50,7 +50,7 @@ SG_Spatial(
 	m_localPosition(MT_Point3(0,0,0)),
 	m_localRotation(1,0,0,0,1,0,0,0,1),
 	m_localScaling(MT_Vector3(1.f,1.f,1.f)),
-
+	
 	m_worldPosition(MT_Point3(0,0,0)),
 	m_worldRotation(0,0,0,0,0,0,0,0,0),
 	m_worldScaling(MT_Vector3(1.f,1.f,1.f)),
@@ -74,7 +74,8 @@ SG_Spatial(
 	
 	m_parent_relation(NULL),
 	
-	m_bbox(other.m_bbox)
+	m_bbox(other.m_bbox),
+	m_radius(other.m_radius)
 {
 	// duplicate the parent relation for this object
 	m_parent_relation = other.m_parent_relation->NewCopy();
@@ -118,7 +119,8 @@ UpdateSpatialData(
 
 	for (;cit!=c_end;++cit)
 	{
-		bComputesWorldTransform = bComputesWorldTransform || (*cit)->Update(time);
+		if ((*cit)->Update(time))
+			bComputesWorldTransform = true;
 	}
 
 	// If none of the objects updated our values then we ask the
@@ -126,9 +128,9 @@ UpdateSpatialData(
 	// our world coordinates.
 
 	if (!bComputesWorldTransform)
-    {
+	{
 		ComputeWorldTransforms(parent);
-    }
+	}
 }
 
 void	SG_Spatial::ComputeWorldTransforms(const SG_Spatial *parent)
@@ -299,18 +301,26 @@ void SG_Spatial::SetBBox(SG_BBox& bbox)
 	m_bbox = bbox;
 }
 
+MT_Transform SG_Spatial::GetWorldTransform() const
+{
+	return MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2]));
+}
+
 bool SG_Spatial::inside(const MT_Point3 &point) const
 {
-	return m_bbox.transform(MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2]))).inside(point);
+	MT_Scalar radius = m_worldScaling[m_worldScaling.closestAxis()]*m_radius;
+	return (m_worldPosition.distance2(point) <= radius*radius) ?
+		m_bbox.transform(GetWorldTransform()).inside(point) :
+		false;
 }
 
 void SG_Spatial::getBBox(MT_Point3 *box) const
 {
-	m_bbox.get(box, MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2])));
+	m_bbox.get(box, GetWorldTransform());
 }
 
 void SG_Spatial::getAABBox(MT_Point3 *box) const
 {
-	m_bbox.getaa(box, MT_Transform(m_worldPosition, m_worldRotation.scaled(m_worldScaling[0], m_worldScaling[1], m_worldScaling[2])));
+	m_bbox.getaa(box, GetWorldTransform());
 }
 

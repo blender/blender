@@ -52,6 +52,12 @@ SG_BBox::SG_BBox(const SG_BBox &other, const MT_Transform &world) :
 	m_min(world(other.m_min)),
 	m_max(world(other.m_max))
 {
+	*this += world(MT_Point3(m_min[0], m_min[1], m_max[2]));
+	*this += world(MT_Point3(m_min[0], m_max[1], m_min[2]));
+	*this += world(MT_Point3(m_min[0], m_max[1], m_max[2]));
+	*this += world(MT_Point3(m_max[0], m_min[1], m_min[2]));
+	*this += world(MT_Point3(m_max[0], m_min[1], m_max[2]));
+	*this += world(MT_Point3(m_max[0], m_max[1], m_min[2]));
 }
 
 SG_BBox::SG_BBox(const SG_BBox &other) :
@@ -64,7 +70,7 @@ SG_BBox::~ SG_BBox()
 {
 }
 
-SG_BBox& SG_BBox::operator +=(MT_Point3 &point)
+SG_BBox& SG_BBox::operator +=(const MT_Point3 &point)
 {
 	if (point[0] < m_min[0])
 		m_min[0] = point[0];
@@ -84,7 +90,7 @@ SG_BBox& SG_BBox::operator +=(MT_Point3 &point)
 	return *this;
 }
 
-SG_BBox& SG_BBox::operator += (SG_BBox &bbox)
+SG_BBox& SG_BBox::operator += (const SG_BBox &bbox)
 {
 	*this += bbox.m_min;
 	*this += bbox.m_max;
@@ -92,7 +98,7 @@ SG_BBox& SG_BBox::operator += (SG_BBox &bbox)
 	return *this;
 }
 
-SG_BBox SG_BBox::operator +(SG_BBox &bbox2) const
+SG_BBox SG_BBox::operator +(const SG_BBox &bbox2) const
 {
 	SG_BBox ret = *this;
 	ret += bbox2;
@@ -121,7 +127,14 @@ void SG_BBox::scale(const MT_Vector3& size, const MT_Point3& point)
 
 SG_BBox SG_BBox::transform(const MT_Transform &world) const
 {
-	return SG_BBox(world(m_min), world(m_max));
+	SG_BBox bbox(world(m_min), world(m_max));
+	bbox += world(MT_Point3(m_min[0], m_min[1], m_max[2]));
+	bbox += world(MT_Point3(m_min[0], m_max[1], m_min[2]));
+	bbox += world(MT_Point3(m_min[0], m_max[1], m_max[2]));
+	bbox += world(MT_Point3(m_max[0], m_min[1], m_min[2]));
+	bbox += world(MT_Point3(m_max[0], m_min[1], m_max[2]));
+	bbox += world(MT_Point3(m_max[0], m_max[1], m_min[2]));
+	return bbox;
 }
 
 bool SG_BBox::inside(const MT_Point3 &point) const
@@ -176,4 +189,65 @@ void SG_BBox::getaa(MT_Point3 *box, const MT_Transform &world) const
 	*box++ = MT_Point3(max[0], min[1], max[2]);
 	*box++ = MT_Point3(max[0], max[1], min[2]);
 	*box++ = max;
+}
+
+void SG_BBox::split(SG_BBox &left, SG_BBox &right) const
+{
+	MT_Scalar sizex = m_max[0] - m_min[0];
+	MT_Scalar sizey = m_max[1] - m_min[1];
+	MT_Scalar sizez = m_max[2] - m_min[2];
+	if (sizex < sizey)
+	{
+		if (sizey > sizez)
+		{
+			left.m_min = m_min;
+			left.m_max[0] = m_max[0];
+			left.m_max[1] = m_min[1] + sizey/2.0;
+			left.m_max[2] = m_max[2];
+			
+			right.m_min[0] = m_min[0];
+			right.m_min[1] = m_min[1] + sizey/2.0;
+			right.m_min[2] = m_min[2];
+			right.m_max = m_max;
+			std::cout << "splity" << std::endl;
+		} else {
+			left.m_min = m_min;
+			left.m_max[0] = m_max[0];
+			left.m_max[1] = m_max[1];
+			left.m_max[2] = m_min[2] + sizez/2.0;
+		
+			right.m_min[0] = m_min[0];
+			right.m_min[1] = m_min[1];
+			right.m_min[2] = m_min[2] + sizez/2.0;
+			right.m_max = m_max;
+			std::cout << "splitz" << std::endl;
+		}
+	} else {
+		if (sizex > sizez)
+		{
+			left.m_min = m_min;
+			left.m_max[0] = m_min[0] + sizex/2.0;
+			left.m_max[1] = m_max[1];
+			left.m_max[2] = m_max[2];
+			
+			right.m_min[0] = m_min[0] + sizex/2.0;
+			right.m_min[1] = m_min[1];
+			right.m_min[2] = m_min[2];
+			right.m_max = m_max;
+			std::cout << "splitx" << std::endl;
+		} else {
+			left.m_min = m_min;
+			left.m_max[0] = m_max[0];
+			left.m_max[1] = m_max[1];
+			left.m_max[2] = m_min[2] + sizez/2.0;
+		
+			right.m_min[0] = m_min[0];
+			right.m_min[1] = m_min[1];
+			right.m_min[2] = m_min[2] + sizez/2.0;
+			right.m_max = m_max;
+			std::cout << "splitz" << std::endl;
+		}
+	}
+	
+	//std::cout << "Left: " << left.m_min << " -> " << left.m_max << " Right: " << right.m_min << " -> " << right.m_max << std::endl;
 }

@@ -46,9 +46,18 @@ SG_Tree::SG_Tree(SG_Tree* left, SG_Tree* right) :
 		m_right(right),
 		m_client_object(NULL)
 {
-	m_bbox = m_left->m_bbox + m_right->m_bbox;
-	m_left->m_parent = this;
-	m_right->m_parent = this;
+	if (m_left)
+	{
+		m_bbox = m_left->m_bbox;
+		m_left->m_parent = this;
+	}
+	if (m_right)
+	{
+		m_bbox += m_right->m_bbox;
+		m_right->m_parent = this;
+	}
+	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 	
 SG_Tree::SG_Tree(SG_Node* client) :
@@ -56,10 +65,9 @@ SG_Tree::SG_Tree(SG_Node* client) :
 		m_right(NULL),
 		m_client_object(client)
 {
-	const MT_Vector3 &scale = client->GetWorldScaling();
-	m_bbox = SG_BBox(client->BBox(), 
-		MT_Transform(client->GetWorldPosition(), 
-			client->GetWorldOrientation().scaled(scale[0], scale[1], scale[2])));
+	m_bbox = SG_BBox(client->BBox(), client->GetWorldTransform());
+	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 
 SG_Tree::~SG_Tree() 
@@ -128,23 +136,13 @@ SG_Tree* SG_Tree::Find(SG_Node *node)
 
 void SG_Tree::get(MT_Point3 *box) const
 {
-	if (m_client_object)
-	{
-		m_client_object->getAABBox(box);
-	}
-	else
-	{
-		MT_Transform identity;
-		identity.setIdentity();
-		m_bbox.getaa(box, identity);
-	}
+	MT_Transform identity;
+	identity.setIdentity();
+	m_bbox.get(box, identity);
 }
 
 bool SG_Tree::inside(const MT_Point3 &point) const
 {
-	if (m_client_object)
-		return m_client_object->inside(point);
-
 	return m_bbox.inside(point);
 }
 
@@ -153,18 +151,20 @@ const SG_BBox& SG_Tree::BBox() const
 	return m_bbox;
 }
 
-SG_TreeFactory::SG_TreeFactory()
+void SG_Tree::SetLeft(SG_Tree *left)
 {
+	m_left = left;
+	m_bbox += left->m_bbox;
+	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 
-SG_TreeFactory::~SG_TreeFactory()
+void SG_Tree::SetRight(SG_Tree *right)
 {
-}
-	
-void SG_TreeFactory::Add(SG_Node* client)
-{
-	if (client)
-		m_objects.push_back(new SG_Tree(client));
+	m_right = right;
+	m_bbox += right->m_bbox;
+	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 
 /**
@@ -215,25 +215,151 @@ public:
 	}
 };
 
+SG_TreeFactory::SG_TreeFactory()
+{
+}
+
+SG_TreeFactory::~SG_TreeFactory()
+{
+}
+	
+void SG_TreeFactory::Add(SG_Node* client)
+{
+	if (client)
+		m_objects.insert(new SG_Tree(client));
+}
+
+void SG_TreeFactory::Add(SG_Tree* tree)
+{
+	m_objects.insert(tree);
+}
+
+SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
+{
+	if (m_objects.size() == 0)
+		return NULL;
+	if (m_objects.size() == 1)
+		return *m_objects.begin();
+		
+	TreeSet::iterator it = m_objects.begin();
+	SG_Tree *root = *it;
+	if (m_objects.size() == 2)
+	{
+		root->SetRight(*(++it));
+		return root;
+	}
+		
+	if (m_objects.size() == 3)
+	{
+		root->SetLeft(*(++it));
+		root->SetRight(*(++it));
+		return root;
+	}
+
+	if (bbox.volume() < 1.0)
+		return MakeTreeUp();
+		
+	SG_TreeFactory lefttree;
+	SG_TreeFactory righttree;
+	
+	SG_BBox left, right;
+	int hasleft = 0, hasright = 0;
+	bbox.split(left, right);
+	
+	if (left.test(root->BBox()) == SG_BBox::INSIDE)
+	{
+		lefttree.Add(root);
+		root = NULL;
+	}
+	
+	if (root && right.test(root->BBox()) == SG_BBox::INSIDE)
+	{
+		righttree.Add(root);
+		root = NULL;
+	}
+	
+	for (++it; it != m_objects.end(); ++it)
+	{
+		switch (left.test((*it)->BBox()))
+		{
+			case SG_BBox::INSIDE:
+				// Object is inside left tree;
+				lefttree.Add(*it);
+				hasleft++;
+				break;
+			case SG_BBox::OUTSIDE:
+				righttree.Add(*it);
+				hasright++;
+				break;
+			case SG_BBox::INTERSECT:
+				if (left.inside((*it)->Client()->GetWorldPosition()))
+				{
+					lefttree.Add(*it);
+					hasleft++;
+				} else {
+					righttree.Add(*it);
+					hasright++;
+				}
+				break;
+		}
+	}
+	std::cout << "Left: " << hasleft << " Right: " << hasright << " Count: " << m_objects.size() << std::endl;
+	
+	SG_Tree *leftnode = NULL;
+	if (hasleft)
+		leftnode = lefttree.MakeTreeDown(left);
+	
+	SG_Tree *rightnode = NULL;
+	if (hasright)
+		rightnode = righttree.MakeTreeDown(right);
+		
+	if (!root)
+		root = new SG_Tree(leftnode, rightnode);
+	else
+	{
+		if (leftnode)
+			root->SetLeft(leftnode);
+		if (rightnode)
+			root->SetRight(rightnode);
+	}
+
+	return root;
+}
+
 SG_Tree* SG_TreeFactory::MakeTree()
+{
+	if (m_objects.size() < 8)
+		return MakeTreeUp();
+
+	TreeSet::iterator it = m_objects.begin();
+	SG_BBox bbox((*it)->BBox());
+	for (++it; it != m_objects.end(); ++it)
+		bbox += (*it)->BBox();
+	
+	return MakeTreeDown(bbox);
+}
+
+SG_Tree* SG_TreeFactory::MakeTreeUp()
 {
 	unsigned int num_objects = m_objects.size();
 	
 	if (num_objects < 1)
 		return NULL;
 	if (num_objects < 2)
-		return m_objects[0];
+		return *m_objects.begin();
 
 	HalfArray<SG_Tree*> sizes;
 	sizes.resize(num_objects);
 	
 	unsigned int x, y;
-	for( y = 0; y < num_objects; y++)
+	TreeSet::iterator xit, yit;
+	for( y = 0, yit = m_objects.begin(); y < num_objects; y++, ++yit)
 	{
-		sizes(y, y) = m_objects[y];
-		for( x = y+1; x < num_objects; x++)
+		sizes(y, y) = *yit;
+		xit = yit;
+		for( x = y+1, ++xit; x < num_objects; x++, ++xit)
 		{
-			sizes(x, y) = new SG_Tree(m_objects[x], m_objects[y]);
+			sizes(x, y) = new SG_Tree(*xit, *yit);
 			
 		}
 	}
@@ -246,14 +372,8 @@ SG_Tree* SG_TreeFactory::MakeTree()
 		//char temp[16];
 		for( y = 0; y < num_objects; y++)
 		{
-			/*std::cout << sizes(y, y) << " ";
-			for( unsigned int x = 0; x < y; x++)
-				std::cout << "                   "; */
-			
 			for( x = y+1; x < num_objects; x++)
 			{
-				//sprintf(temp, "%7.1f", sizes(x, y)->volume());
-				//std::cout << sizes(x, y) << "(" << temp << ") ";
 				if (sizes(x, y)->volume() < min_volume)
 				{
 					min = sizes(x, y);
@@ -262,10 +382,7 @@ SG_Tree* SG_TreeFactory::MakeTree()
 					min_volume = sizes(x, y)->volume();
 				}
 			}
-			//std::cout << std::endl;
 		}
-		
-		//std::cout << "minx, miny, minv = " << minx << ", " << miny << ", " << min_volume << std::endl;
 		
 		/* Remove other bboxes that contain the two bboxes */
 		sizes.delete_column(miny);

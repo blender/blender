@@ -39,6 +39,8 @@
 #pragma warning (disable : 4786)
 #endif
 
+#include <math.h>
+
 #include "BL_BlenderDataConversion.h"
 #include "KX_BlenderGL.h"
 #include "KX_BlenderScalarInterpolator.h"
@@ -523,12 +525,11 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	
 
 
-
-void my_boundbox_mesh(Mesh *me, float *loc, float *size)
-		{
+float my_boundbox_mesh(Mesh *me, float *loc, float *size)
+{
 	MVert *mvert;
 	BoundBox *bb;
-	float min[3], max[3];
+	MT_Point3 min, max;
 	float mloc[3], msize[3];
 	int a;
 	
@@ -543,7 +544,7 @@ void my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	mvert= me->mvert;
 	for(a=0; a<me->totvert; a++, mvert++) {
 		DO_MINMAX(mvert->co, min, max);
-		}
+	}
 		
 	if(me->totvert) {
 		loc[0]= (min[0]+max[0])/2.0;
@@ -567,7 +568,16 @@ void my_boundbox_mesh(Mesh *me, float *loc, float *size)
 
 	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
 	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
-			}
+
+	float radius = 0;
+	for (a=0, mvert = me->mvert; a < me->totvert; a++, mvert++)
+	{
+		float vert_radius = MT_Vector3(mvert->co).length2();
+		if (vert_radius > radius)
+			radius = vert_radius;
+	} 
+	return sqrt(radius);
+}
 		
 
 
@@ -863,7 +873,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
 		RAS_MeshObject* meshobj = converter->FindGameMesh(mesh, ob->lay);
 		float centre[3], extents[3];
-		my_boundbox_mesh((Mesh*) ob->data, centre, extents);
+		float radius = my_boundbox_mesh((Mesh*) ob->data, centre, extents);
 		
 		if (!meshobj) {
 			meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
@@ -898,6 +908,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		MT_Point3 max = MT_Point3(centre) + MT_Vector3(extents);
 		SG_BBox bbox = SG_BBox(min, max);
 		gameobj->GetSGNode()->SetBBox(bbox);
+		gameobj->GetSGNode()->SetRadius(radius);
 	
 		break;
 	}
