@@ -1555,7 +1555,7 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select swap%x8|Flip Normals %x9|Smooth %x10|Mirror%x12");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select swap%x8|Flip Normals %x9|Smooth %x10");
 		if(nr>0) waitcursor(1);
 		
 		switch(nr) {
@@ -1599,10 +1599,6 @@ void special_editmenu(void)
 			undo_push_mesh("Smooth");
 			vertexsmooth();
 			break;
-		case 12:
-			undo_push_mesh("Mirror");
-			mirrormenu();
-			break;
 		}		
 		
 		makeDispList(G.obedit);
@@ -1612,7 +1608,7 @@ void special_editmenu(void)
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Mirror%x3");
+		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2");
 		
 		switch(nr) {
 		case 1:
@@ -1620,9 +1616,6 @@ void special_editmenu(void)
 			break;
 		case 2:
 			switchdirectionNurb2();
-			break;
-		case 3:
-			mirrormenu();
 			break;
 		}
 	}
@@ -6753,14 +6746,16 @@ void mirrormenu(void){
 	mode=pupmenu("Mirror Axis %t|Global X%x1|       Y%x2|       Z%x3|Local X%x4|      Y%x5|      Z%x6|View X%x7|     Y%x8|     Z%x9|");
 
 	if (G.obedit==0) return;
-	if (mode==0) return;
+	if (mode==-1) return;
 
 	make_trans_verts(min, max, 0);
 	Mat3CpyMat4(mat, G.obedit->obmat);
+	// Inverting the matrix explicitly, since a 4x4 inverse is not always the same
 	Mat3Inv(imat, mat);
 
 	tv = transvmain;
 
+	// Taking care of all the centre modes
 	if(G.vd->around==V3D_CENTROID) {
 		VecCopyf(centre, centroid);
 	}
@@ -6774,77 +6769,97 @@ void mirrormenu(void){
 	else if(G.vd->around==V3D_LOCAL) {
 		centre[0] = centre[1] = centre[2] = 0.0;
 	}
-	
-	if ((mode==1) || (mode==2) || (mode==3)) {
+	// Boundbox centre is implicit
 
+	if ((mode==1) || (mode==2) || (mode==3)) {
+		// Global axis
+
+		// axis is mode with an offset
 		axis = mode - 1;
 
 		for(a=0; a<tottrans; a++, tv++) {
 			float vec[3];
-			vec[0] = tv->loc[0];
-			vec[1] = tv->loc[1];
-			vec[2] = tv->loc[2];
+			VecCopyf(vec, tv->loc);
+
+			// Center offset and object matrix apply
 			VecSubf(vec, vec, centre);
 			Mat3MulVecfl(mat, vec);
+
+			// Flip
 			vec[axis] *= -1;
+
+			// Center offset and object matrix unapply
 			Mat3MulVecfl(imat, vec);
 			VecAddf(vec, vec, centre);
-			tv->loc[0] = vec[0];
-			tv->loc[1] = vec[1];
-			tv->loc[2] = vec[2];
+
+			VecCopyf(tv->loc, vec);
 		}
 
 	}
 	else if ((mode==4) || (mode==5) || (mode==6)){
+		// Local axis
 
+		// axis is mode with an offset
 		axis = mode - 4;
 
 		for(a=0; a<tottrans; a++, tv++) {
+			// Center offset apply
 			tv->loc[axis] -= centre[axis];
+
+			// Flip
 			tv->loc[axis] *= -1;
+
+			// Center offset unapply
 			tv->loc[axis] += centre[axis];
 		}
 
 	}
 	else if ((mode==7) || (mode==8) || (mode==9)){
+		// View axis
 		float viewmat[3][3], iviewmat[3][3];
 
 		Mat3CpyMat4(viewmat, G.vd->viewmat);
+	// Inverting the matrix explicitly, since a 4x4 inverse is not always the same
 		Mat3Inv(iviewmat, viewmat);
 
+		// axis is mode with an offset
 		axis = mode - 7;
+
+		// Calculate the Centre in the View space
 		Mat3MulVecfl(mat, centre);
 		VecAddf(centre, centre, G.obedit->obmat[3]);
 		Mat3MulVecfl(viewmat, centre);
 
 		for(a=0; a<tottrans; a++, tv++) {
 			float vec[3];
-			vec[0] = tv->loc[0];
-			vec[1] = tv->loc[1];
-			vec[2] = tv->loc[2];
+			VecCopyf(vec, tv->loc);
 
-
+			// Object Matrix and Offset apply
 			Mat3MulVecfl(mat, vec);
 			VecAddf(vec, vec, G.obedit->obmat[3]);
+
+			// View Matrix and Center apply
 			Mat3MulVecfl(viewmat, vec);
-
 			VecSubf(vec, vec, centre);
-			vec[axis] *= -1;
-			VecAddf(vec, vec, centre);
 
+			// Flip
+			vec[axis] *= -1;
+
+			// View Matrix and Center unapply
+			VecAddf(vec, vec, centre);
 			Mat3MulVecfl(iviewmat, vec);
+
+			// Object Matrix and Offset unapply
 			VecSubf(vec, vec, G.obedit->obmat[3]);
 			Mat3MulVecfl(imat, vec);
 
-			tv->loc[0] = vec[0];
-			tv->loc[1] = vec[1];
-			tv->loc[2] = vec[2];
+			VecCopyf(tv->loc, vec);
 		}
 
 	}
 	calc_trans_verts();
 	special_trans_update(0);
-	special_aftertrans_update('m', a & 1, 0, 0);
+	special_aftertrans_update('m', 1, 0, 0);
 
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_headredraw(curarea);
