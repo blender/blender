@@ -37,28 +37,33 @@ USERSETTINGS = ./dist/config/user-settings
 TEMPSETTINGS = ./user-settings
 
 all:
+	[ -d $(DISTDIR)/lib ] || mkdir $(DISTDIR)/lib
+	# prepare settings for patching, clean in case of interruption
+	[ ! -f $(TEMPSETTINGS) ] || mv $(TEMPSETTINGS) $(USERSETTINGS) 
+	mv $(USERSETTINGS) $(TEMPSETTINGS)
     ifeq ($(OS),freebsd)
 	(grep FreeBSD $(DISTDIR)/Makefile >/dev/null ; \
 	    [ $$? -eq 0 ] || patch < patchfile.FreeBSD )
     endif
-    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
-	[ -d $(DISTDIR)/lib ] || mkdir $(DISTDIR)/lib
-	$(MAKE) -C $(DISTDIR)
+    ifeq ($(OS),darwin)
+	cat $(TEMPSETTINGS) | sed s/unix-gcc/osx/ > $(USERSETTINGS)
     endif
     ifeq ($(OS),windows)
-	[ -d $(DISTDIR)/lib ] || mkdir $(DISTDIR)/lib
 	# compile with MSVC
-	mv $(USERSETTINGS) $(TEMPSETTINGS)
 	cat $(TEMPSETTINGS) | sed s/unix-gcc/msvc/ > $(USERSETTINGS)
 	env PATH=".:$(PATH)" $(MAKE) -C $(DISTDIR)
-	mv $(TEMPSETTINGS) $(USERSETTINGS)
     endif
+    ifeq ($(OS),$(findstring $(OS), "freebsd linux darwin"))
+	$(MAKE) -C $(DISTDIR)
+    endif
+	# restore settings
+	mv $(TEMPSETTINGS) $(USERSETTINGS)
 
 # fake debug target
 debug:
 
 install: all
-    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
+    ifeq ($(OS),$(findstring $(OS), "freebsd linux darwin"))
 	[ -d $(LCGDIR) ] || mkdir $(LCGDIR)
 	[ -d $(NAN_ODE) ] || mkdir $(NAN_ODE)
 	[ -d $(NAN_ODE)/include ] || mkdir $(NAN_ODE)/include
@@ -91,7 +96,7 @@ install: all
     endif
 
 clean:
-    ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
+    ifeq ($(OS),$(findstring $(OS), "freebsd linux darwin"))
 	[ ! -f dist/Makefile ] || $(MAKE) -C dist clean
     endif
     ifeq ($(OS),freebsd)
