@@ -719,6 +719,7 @@ void mouse_select_sima(void)
 	
 		glDrawBuffer(GL_FRONT);
 		draw_tfaces();
+		glFlush(); // at OSX, a flush pops up the "frontbuffer" (it does a swap, doh!)
 		glDrawBuffer(GL_BACK);
 		
 		std_rmouse_transform(transform_tface_uv);
