@@ -1298,7 +1298,7 @@ static void render_panel_yafrayGlobal()
 	uiDefButS(block,TOGN|BIT|0, B_REDR, "Auto AA",5,110,150,20, &G.scene->r.YF_AA, 
 					0, 0, 0, 0, "Set AA using OSA and GI quality, disable for manual control");
 	uiDefButS(block,TOGN|BIT|0, B_REDR, "xml",175,110,75,20, &G.scene->r.YFexportxml, 
-					0, 0, 0, 0, "Export to an xml file and call yafray isntead of plugin");
+					0, 0, 0, 0, "Export to an xml file and call yafray instead of plugin");
  	if(G.scene->r.YF_AA){
  		uiDefButI(block, NUM, 0, "AA Passes ", 5,85,150,20,
 				&G.scene->r.YF_AApasses, 0, 64, 10, 10, "AA Passes");

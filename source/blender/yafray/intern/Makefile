@@ -44,6 +44,7 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I../../render/intern/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../include
 CPPFLAGS += -I..
