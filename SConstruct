@@ -10,7 +10,7 @@ if sys.hexversion < 0x2030000:
 	print "You need at least Python 2.3 to build Blender with SCons"
 	print
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-	exit()
+	sys.exit()
 
 if sys.platform != 'win32':
 	sys.stdout = os.popen("tee build.log", "w")
@@ -1322,11 +1322,21 @@ def printadd(env, target, source):
 def noaction(env, target, source):
 	print "Empty action"
 
-def DistClean(dir2clean):
+def DoClean(dir2clean):
 	"""
 	Do a removal of the root_build_dir the fast way
 	"""
+	import shutil
+
 	print "distcleaning... %s"%dir2clean
+	dirs = os.listdir(dir2clean)
+	for dir in dirs:
+		if os.path.isdir(dir2clean + "/" + dir) == 1:
+			print "clean dir %s"%(dir2clean+"/" + dir)
+			shutil.rmtree(dir2clean+"/" + dir)
+		else:
+			print "clean file %s"%(dir2clean+"/" + dir)
+			os.remove(dir2clean+"/" + dir)
 	print "done"
 
 def BlenderDefault(target):
@@ -1548,7 +1558,7 @@ if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_G
 release_target = env.Alias("release", BlenderRelease('blender$PROGSUFFIX'))
 default_target = env.Alias("default", BlenderDefault('blender$PROGSUFFIX'))
 wininst_target = env.Alias("winist", BlenderNSIS('blender$PROGSUFFIX'))
-distclean_target = env.Alias("distclean", DistClean(root_build_dir))
+distclean_target = env.Alias("clean", DoClean(root_build_dir))
 
 Default("default")
 
