@@ -606,7 +606,7 @@ static PyObject *Object_getData (BPy_Object *self)
         case ID_MA:
             break;
         case OB_MESH:
-            data_object = NMesh_CreatePyObject (self->object->data);
+            data_object = NMesh_CreatePyObject (self->object->data, self->object);
             break;
         case ID_OB:
             data_object = Object_CreatePyObject (self->object->data);
@@ -801,7 +801,7 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
     if (Curve_CheckPyObject (py_data))
         data = (void *)Curve_FromPyObject (py_data);
     if (NMesh_CheckPyObject (py_data))
-        data = (void *)NMesh_FromPyObject (py_data);
+        data = (void *)NMesh_FromPyObject (py_data, self->object);
 
     /* have we set data to something good? */
     if( !data )

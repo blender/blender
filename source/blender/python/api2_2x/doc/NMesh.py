@@ -164,6 +164,13 @@ class NMVert:
   @cvar uvco: The vertex texture "sticky" coordinates.
   @type index: int
   @cvar index: The vertex index, if owned by a mesh.
+  @warn:  There are two kinds of uv texture coordinates in Blender: per vertex
+     ("sticky") and per face vertex (uv in L{NMFace}).  In the first, there's
+     only one uv pair of coordinates for each vertex in the mesh.  In the
+     second, for each face it belongs to, a vertex can have different uv
+     coordinates.  This makes the per face option more flexible, since two
+     adjacent faces won't have to be mapped to a continuous region in an image:
+     each face can be independently mapped to any part of its texture.
   """
 
 class NMFace:
@@ -186,6 +193,15 @@ class NMFace:
   @cvar transp: Transparency mode bit vector
      (see L{NMesh.FaceTranspModes<FaceTranspModes>}).
   @cvar uv: List of per-face UV coordinates: [(u0, v0), (u1, v1), ...].
+  @warn: Assigning uv textures to mesh faces in Blender works like this:
+    1. Select your mesh.
+    2. Enter face select mode (press f) and select at least some face(s).
+    3. In the UV/Image Editor window, load / select an image.
+    4. Play in both windows (better split the screen to see both at the same
+       time) until the uv coordinates are where you want them.  Hint: in the
+       3d window, the 'u' key opens a menu of default uv choices and the 'r'
+       key lets you rotate the uv coords.
+    5. Leave face select mode (press f).
   """
 
   def append(vertex):

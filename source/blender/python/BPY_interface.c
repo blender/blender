@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano
+ * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -199,6 +199,30 @@ void init_syspath(void)
     syspath_append(p);  /* append to module search path */
   }
 
+  /* sds */
+  /* bring in the site module so we can add site-package dirs to sys.path */
+  mod = PyImport_ImportModule("site"); /* new ref */
+
+  if (mod) {
+    PyObject* item;
+    int size, index;
+
+    /* get the value of 'sitedirs' from the module */
+    d = PyModule_GetDict (mod); /* borrowed ref */
+    p = PyDict_GetItemString (d, "sitedirs");  /* borrowed ref */
+
+    /* append each item in sitedirs list to path */
+    size = PyList_Size (p);
+
+    for (index = 0; index < size; index++) {
+      item  = PySequence_GetItem (p, index);  /* new ref */
+      syspath_append (item);
+    }
+
+    Py_DECREF(mod);
+  }
+  else PyErr_Clear();
+
   /* set sys.executable to the Blender exe */
   mod = PyImport_ImportModule("sys"); /* new ref */
 
@@ -280,7 +304,9 @@ void BPY_Err_Handle(Text *text)
     v = PyObject_GetAttrString(err, "lineno");
     g_script_error.lineno = PyInt_AsLong(v);
     Py_XDECREF(v);
-    return; 
+    /* this avoids an abort in Python 2.3's garbage collecting: */
+    PyErr_Clear(); 
+    return;
   } else {
     PyErr_NormalizeException(&exception, &err, &tb);
     PyErr_Restore(exception, err, tb); // takes away reference!

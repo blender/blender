@@ -85,8 +85,8 @@ PyObject * Types_Init (void);
 
 /* NMesh Data */
 PyObject * NMesh_Init (void);
-PyObject * NMesh_CreatePyObject (Mesh *me);
-Mesh     * NMesh_FromPyObject   (PyObject *pyobj);
+PyObject * NMesh_CreatePyObject (Mesh *me, Object *ob);
+Mesh     * NMesh_FromPyObject   (PyObject *pyobj, Object *ob);
 int        NMesh_CheckPyObject  (PyObject *pyobj);
 
 /* Material */

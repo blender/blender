@@ -79,6 +79,8 @@ PyTypeObject NMCol_Type;
 
 extern PyTypeObject Image_Type;
 
+struct BPy_Object;
+
 /* Globals */
 
 static PyObject *g_nmeshmodule = NULL;
@@ -211,11 +213,12 @@ typedef struct {
 typedef struct {
 	PyObject_HEAD
 	Mesh *mesh;
+  Object *object; /* object the mesh is linked to (can be NULL) */
 	PyObject *name;
 	PyObject *materials;
 	PyObject *verts;
 	PyObject *faces;
-	int sel_face; /*@ XXX remove */
+  int sel_face; /*@ XXX remove */
 	char flags;
 
 #define NMESH_HASMCOL	1<<0

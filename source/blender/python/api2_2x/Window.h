@@ -69,6 +69,9 @@ static PyObject *M_Window_FileSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_ImageSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_DrawProgressBar (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetCursorPos (PyObject *self);
+static PyObject *M_Window_SetCursorPos (PyObject *self, PyObject *args);
+static PyObject *M_Window_GetViewVector (PyObject *self);
+static PyObject *M_Window_GetViewMatrix (PyObject *self);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -115,6 +118,15 @@ currently being done.";
 char M_Window_GetCursorPos_doc[] =
 "() - Get the current 3d cursor position as a list of three floats.";
 
+char M_Window_SetCursorPos_doc[] =
+"([f,f,f]) - Set the current 3d cursor position from a list of three floats.";
+
+char M_Window_GetViewVector_doc[] =
+"() - Get the current 3d view vector as a list of three floats [x,y,z].";
+
+char M_Window_GetViewMatrix_doc[] =
+"() - Get the current 3d view matrix.";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Window module:             */
 /*****************************************************************************/
@@ -132,6 +144,12 @@ struct PyMethodDef M_Window_methods[] = {
           M_Window_DrawProgressBar_doc},
   {"GetCursorPos", (PyCFunction)M_Window_GetCursorPos,  METH_NOARGS,
           M_Window_GetCursorPos_doc},
+  {"SetCursorPos", M_Window_SetCursorPos,  METH_VARARGS,
+          M_Window_SetCursorPos_doc},
+  {"GetViewVector", (PyCFunction)M_Window_GetViewVector,  METH_NOARGS,
+          M_Window_GetViewVector_doc},
+  {"GetViewMatrix", (PyCFunction)M_Window_GetViewMatrix,  METH_NOARGS,
+          M_Window_GetViewMatrix_doc},
   {NULL, NULL, 0, NULL}
 };
 

@@ -150,30 +150,30 @@ static void NMFace_dealloc (PyObject *self)
 static PyObject *new_NMFace(PyObject *vertexlist)
 {
   BPy_NMFace *mf = PyObject_NEW (BPy_NMFace, &NMFace_Type);
-	PyObject *vlcopy;
+  PyObject *vlcopy;
 
-	if (vertexlist) { /* create a copy of the given vertex list */
-		PyObject *item;
-		int i, len = PyList_Size(vertexlist);
+  if (vertexlist) { /* create a copy of the given vertex list */
+    PyObject *item;
+    int i, len = PyList_Size(vertexlist);
 
-		vlcopy = PyList_New(len);
+    vlcopy = PyList_New(len);
 
-		if (!vlcopy)
-			return EXPP_ReturnPyObjError(PyExc_MemoryError,
-					"couldn't create PyList");		
+    if (!vlcopy)
+      return EXPP_ReturnPyObjError(PyExc_MemoryError,
+          "couldn't create PyList");    
 
-		for (i = 0; i < len; i++) {
-			item = PySequence_GetItem(vertexlist, i); /* PySequence increfs */
+    for (i = 0; i < len; i++) {
+      item = PySequence_GetItem(vertexlist, i); /* PySequence increfs */
 
-			if (item)
-				PyList_SET_ITEM(vlcopy, i, item);
-			else
-				return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-							"couldn't get vertex from a PyList");
-		}
-	}
-	else /* create an empty vertex list */
-		vlcopy = PyList_New(0);
+      if (item)
+        PyList_SET_ITEM(vlcopy, i, item);
+      else
+        return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+              "couldn't get vertex from a PyList");
+    }
+  }
+  else /* create an empty vertex list */
+    vlcopy = PyList_New(0);
 
   mf->v = vlcopy;
   mf->uv = PyList_New(0);
@@ -581,33 +581,33 @@ static void NMesh_dealloc(PyObject *self)
 
 static PyObject *NMesh_addMaterial (PyObject *self, PyObject *args)
 {
-	BPy_NMesh *me = (BPy_NMesh *)self;
-	BPy_Material *pymat;
-	Material *mat;
-	PyObject *iter;
-	int i, len = 0;
+  BPy_NMesh *me = (BPy_NMesh *)self;
+  BPy_Material *pymat;
+  Material *mat;
+  PyObject *iter;
+  int i, len = 0;
 
-	if (!PyArg_ParseTuple (args, "O!", &Material_Type, &pymat))
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-						"expected Blender Material PyObject");
+  if (!PyArg_ParseTuple (args, "O!", &Material_Type, &pymat))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected Blender Material PyObject");
 
-	mat = pymat->material;
-	len = PyList_Size(me->materials);
+  mat = pymat->material;
+  len = PyList_Size(me->materials);
 
-	if (len >= 16)
-		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-						"object data material lists can't have more than 16 materials");
+  if (len >= 16)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+            "object data material lists can't have more than 16 materials");
 
-	for (i = 0; i < len; i++) {
-		iter = PyList_GetItem(me->materials, i);
-		if (mat == Material_FromPyObject(iter))
-			return EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"material already in the list");
-	}
+  for (i = 0; i < len; i++) {
+    iter = PyList_GetItem(me->materials, i);
+    if (mat == Material_FromPyObject(iter))
+      return EXPP_ReturnPyObjError (PyExc_AttributeError,
+            "material already in the list");
+  }
 
-	PyList_Append(me->materials, (PyObject *)pymat);
+  PyList_Append(me->materials, (PyObject *)pymat);
 
-	return EXPP_incr_ret (Py_None);
+  return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *NMesh_removeAllKeys (PyObject *self, PyObject *args)
@@ -630,8 +630,8 @@ static PyObject *NMesh_removeAllKeys (PyObject *self, PyObject *args)
 static PyObject *NMesh_insertKey(PyObject *self, PyObject *args)
 {
   int fra = -1, oldfra = -1;
-	char *type = NULL;
-	short typenum;
+  char *type = NULL;
+  short typenum;
   BPy_NMesh *nm = (BPy_NMesh *)self;
   Mesh *mesh = nm->mesh;
 
@@ -639,16 +639,16 @@ static PyObject *NMesh_insertKey(PyObject *self, PyObject *args)
     return EXPP_ReturnPyObjError (PyExc_TypeError,
            "expected nothing or an int and optionally a string as arguments");
 
-	if (!type || !strcmp(type, "relative"))
-		typenum = 1;
-	else if (!strcmp(type, "absolute"))
-		typenum = 2;
+  if (!type || !strcmp(type, "relative"))
+    typenum = 1;
+  else if (!strcmp(type, "absolute"))
+    typenum = 2;
   else
     return EXPP_ReturnPyObjError (PyExc_AttributeError,
              "if given, type should be 'relative' or 'absolute'");
 
   if (fra > 0) {
-	  fra = EXPP_ClampInt(fra, 1, NMESH_FRAME_MAX);
+    fra = EXPP_ClampInt(fra, 1, NMESH_FRAME_MAX);
     oldfra = G.scene->r.cfra;
     G.scene->r.cfra = fra;
   }
@@ -776,7 +776,7 @@ static PyObject *NMesh_hasVertexColours(PyObject *self, PyObject *args)
 
 static PyObject *NMesh_update(PyObject *self, PyObject *args)
 {
-	int recalc_normals = 0;
+  int recalc_normals = 0;
   BPy_NMesh *nmesh = (BPy_NMesh *)self;
   Mesh *mesh = nmesh->mesh;
 
@@ -784,7 +784,7 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
       return EXPP_ReturnPyObjError (PyExc_AttributeError,
         "expected nothing or an int (0 or 1) as argument");
 
-	if (recalc_normals && recalc_normals != 1)
+  if (recalc_normals && recalc_normals != 1)
       return EXPP_ReturnPyObjError (PyExc_ValueError,
         "expected 0 or 1 as argument");
 
@@ -793,8 +793,8 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
     convert_NMeshToMesh(mesh, nmesh);
   } else { 
     nmesh->mesh = Mesh_fromNMesh(nmesh);
-		mesh = nmesh->mesh;
-	}
+    mesh = nmesh->mesh;
+  }
 
   if (recalc_normals) vertexnormals_mesh(mesh, 0);
 
@@ -808,8 +808,8 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
   */
   test_object_materials((ID *)mesh);
 
-	if (nmesh->name && nmesh->name != Py_None)
-		new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
+  if (nmesh->name && nmesh->name != Py_None)
+    new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
 
   if (!during_script())
     allqueue(REDRAWVIEW3D, 0);
@@ -831,9 +831,9 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
   /* Get a reference to the mesh object wrapped in here. */
   Mesh *me = ((BPy_NMesh*)self)->mesh;
 
-	if (!me)
-		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-								"unlinked nmesh: call its .update() method first");
+  if (!me)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                "unlinked nmesh: call its .update() method first");
 
   /* Parse the parameters: only on integer (vertex index) */
   if (!PyArg_ParseTuple(args, "i", &index))
@@ -861,13 +861,13 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
 
     /*Add the weight and the name of the bone, which is used to identify it*/
 
-				if (sweight->data) /* valid bone: return its name */
-/*					PyList_SetItem(influence_list, i,
+        if (sweight->data) /* valid bone: return its name */
+/*          PyList_SetItem(influence_list, i,
             Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
-				else // NULL bone: return Py_None instead
-					PyList_SetItem(influence_list, i,
+        else // NULL bone: return Py_None instead
+          PyList_SetItem(influence_list, i,
             Py_BuildValue("[Of]", Py_None, sweight->weight));*/
-					PyList_Append(influence_list,
+          PyList_Append(influence_list,
             Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
 
     /* Next weight */
@@ -876,7 +876,7 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
     }
     else //influence_list = PyList_New(0);
       return EXPP_ReturnPyObjError (PyExc_IndexError,
-							"vertex index out of range");
+              "vertex index out of range");
   }
   else influence_list = PyList_New(0);
 
@@ -1142,6 +1142,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 {
   BPy_NMesh *me = PyObject_NEW (BPy_NMesh, &NMesh_Type);
   me->flags = 0;
+  me->object = NULL; /* not linked to any object in particular yet */
 
   if (!oldmesh) {
     me->name = EXPP_incr_ret(Py_None);
@@ -1289,7 +1290,7 @@ static PyObject *M_NMesh_GetRawFromObject(PyObject *self, PyObject *args)
 
   ((BPy_NMesh *) nmesh)->mesh = 0;
 
-	return nmesh;
+  return nmesh;
 }
 
 static void mvert_from_data(MVert *mv, MSticky *st, BPy_NMVert *from) 
@@ -1478,7 +1479,7 @@ void EXPP_unlink_mesh(Mesh *me)
 /*  ... here we want to preserve mesh keys */
 /* if users want to get rid of them, they can use mesh.removeAllKeys() */
 /*
-	if(me->key) me->key->id.us--;
+  if(me->key) me->key->id.us--;
   me->key= 0;
 */
   if(me->texcomesh) me->texcomesh= 0;
@@ -1737,8 +1738,8 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   }
 
   if (name) new_id(&(G.main->mesh), &mesh->id, name);
-	else if (nmesh->name && nmesh->name != Py_None)
-		new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
+  else if (nmesh->name && nmesh->name != Py_None)
+    new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
 
   unlink_existingMeshData(mesh);
   convert_NMeshToMesh(mesh, nmesh);
@@ -1773,6 +1774,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   // each bit indicates the binding PER MATERIAL 
 
   if (ob) { // we created a new object
+    nmesh->object = ob; /* linking so vgrouping methods know which obj to work on */
     NMesh_assignMaterials_toObject(nmesh, ob);
     EXPP_synchronizeMaterialLists (ob, ob->data);
     return Object_CreatePyObject(ob);
@@ -1888,9 +1890,13 @@ PyObject *NMesh_Init (void)
 
 /* These are needed by Object.c */
 
-PyObject *NMesh_CreatePyObject (Mesh *me)
+PyObject *NMesh_CreatePyObject (Mesh *me, Object *ob)
 {
-  return new_NMesh (me);
+  BPy_NMesh *nmesh = (BPy_NMesh *)new_NMesh (me);
+
+  if (nmesh) nmesh->object = ob; /* linking nmesh and object for vgrouping methods */
+
+  return (PyObject *)nmesh;
 }
 
 int NMesh_CheckPyObject (PyObject *pyobj)
@@ -1898,13 +1904,27 @@ int NMesh_CheckPyObject (PyObject *pyobj)
   return (pyobj->ob_type == &NMesh_Type);
 }
 
-Mesh *NMesh_FromPyObject (PyObject *pyobj)
+Mesh *NMesh_FromPyObject (PyObject *pyobj, Object *ob)
 {
   if (pyobj->ob_type == &NMesh_Type) {
-    Mesh *me = Mesh_fromNMesh ((BPy_NMesh *)pyobj);
-		mesh_update(me);
-		return me;
-	}
+    Mesh *mesh;
+    BPy_NMesh *nmesh = (BPy_NMesh *)pyobj;
+
+    if (nmesh->mesh) {
+      mesh = nmesh->mesh;
+      unlink_existingMeshData(mesh);
+      convert_NMeshToMesh(mesh, nmesh);
+    }
+    else { 
+      nmesh->mesh = Mesh_fromNMesh(nmesh);
+      mesh = nmesh->mesh;
+    }
+
+    nmesh->object = ob; /* linking for vgrouping methods */
+
+    mesh_update(mesh);
+    return mesh;
+  }
 
   return NULL;
 }

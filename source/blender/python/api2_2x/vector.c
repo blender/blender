@@ -146,16 +146,31 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
 
 static PyObject *Vector_repr (VectorObject *self)
 {
-  char  buffer[100];
+  int i, maxindex = self->size - 1;
+  char ftoa[24];
+  PyObject *str1, *str2;
 
-	if (self->size == 3)
-		sprintf (buffer, "[%.3f, %.3f, %.3f]\n",
-           self->vec[0], self->vec[1], self->vec[2]);
-	else /* assuming size == 4 */
-		sprintf (buffer, "[%.3f, %.3f, %.3f, %.3f]\n",
-           self->vec[0], self->vec[1], self->vec[2], self->vec[3]);
+  str1 = PyString_FromString ("[");
 
-  return PyString_FromString (buffer);
+  for (i = 0; i < maxindex; i++) {
+    sprintf(ftoa, "%.3f, ", self->vec[i]);
+    str2 = PyString_FromString (ftoa);
+    if (!str1 || !str2) goto error; /* my first goto : ) */
+    PyString_ConcatAndDel (&str1, str2);
+  }
+
+  sprintf(ftoa, "%.3f]\n", self->vec[maxindex]);
+  str2 = PyString_FromString (ftoa);
+  if (!str1 || !str2) goto error; /* uh-oh, became a habit */
+  PyString_ConcatAndDel (&str1, str2);
+
+  if (str1) return str1;
+
+error:
+  Py_XDECREF (str1);
+  Py_XDECREF (str2);
+  return EXPP_ReturnPyObjError (PyExc_MemoryError,
+            "couldn't create PyString!");
 }
 
 static PySequenceMethods Vector_SeqMethods =
@@ -193,10 +208,10 @@ PyObject *newVectorObject(float *vec, int size)
 
   vector_Type.ob_type = &PyType_Type;
 
-  self= PyObject_NEW(VectorObject, &vector_Type);
-  
-  self->vec= vec;
-  self->size= size;
-  
+  self = PyObject_NEW(VectorObject, &vector_Type);
+
+  self->vec = vec;
+  self->size = size;
+ 
   return (PyObject*) self;
 }

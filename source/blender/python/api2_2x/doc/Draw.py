@@ -3,6 +3,8 @@
 """
 The Blender.Draw submodule.
 
+B{New}: L{PupMenu}.
+
 Draw
 ====
 
@@ -142,6 +144,30 @@ def Button(name, event, x, y, width, height, tooltip = None):
       is kept over the button).
   """
 
+def PupMenu(name, maxrow = None):
+  """
+  Create a pop-up menu.
+
+  The menu options are specified through the 'name' parameter, like with
+  L{Menu}: options are followed by a format code and separated by the '|'
+  character.  Valid format codes are:
+    - %t - The option should be used as the title of the pop-up;
+    - %l - insert a separating line;
+    - %xB{N} - Chosen this option, PupMenu should return the integer B{N}.
+
+  Example::
+    name = "OK?%t|QUIT BLENDER"  # if no %xN integer is set, indices start from 1
+    result = Draw.PupMenu(name)
+    if result: Draw.PupMenu("Do you really think we'd let scripts close Blender?%t|Yes|No")
+
+  @type name: string
+  @param name: The format string to define the contents of the button.
+  @type maxrow: int
+  @param maxrow: The maximum number of rows for each column in the pop-up.
+  @rtype: int
+  @return: the chosen entry number or -1 if none was chosen.
+  """
+
 def Menu(name, event, x, y, width, height, default, tooltip = None):
   """
   Create a new Menu Button object.
@@ -150,6 +176,7 @@ def Menu(name, event, x, y, width, height, default, tooltip = None):
   I{followed} by a format code and separated by the '|' (pipe) character.  Valid
   format codes are:
     - %t - The option should be used as the title;
+    - %l - Insert a separating line;
     - %xB{N} - The option should set the integer B{N} in the button value.
 
   Example::
@@ -159,7 +186,7 @@ def Menu(name, event, x, y, width, height, default, tooltip = None):
     # will appear as the default choice in the Menu.
 
   @type name: string
-  @param name: The string to display on the button.
+  @param name: The format string to define the contents of the button.
   @type event: int
   @param event: The event number to pass to the button event function when
       activated.

@@ -249,6 +249,8 @@ static PyMethodDef BPy_Lamp_methods[] = {
           "(int) - change Lamp halo step value"},
   {"setEnergy", (PyCFunction)Lamp_setEnergy, METH_VARARGS,
           "(float) - change Lamp energy value"},
+  {"setDist", (PyCFunction)Lamp_setDist, METH_VARARGS,
+          "(float) - change Lamp clipping distance value"},
   {"setSpotSize", (PyCFunction)Lamp_setSpotSize, METH_VARARGS,
           "(float) - change Lamp spot size value"},
   {"setSpotBlend", (PyCFunction)Lamp_setSpotBlend, METH_VARARGS,

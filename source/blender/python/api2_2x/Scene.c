@@ -152,7 +152,7 @@ static PyMethodDef BPy_Scene_methods[] = {
   {"currentFrame", (PyCFunction)Scene_currentFrame, METH_VARARGS,
           "(frame) - If frame is given, the current frame is set and"
                   "\nreturned in any case"},
-  {"frameSettings", (PyCFunction)Scene_frameSettings, METH_NOARGS,
+  {"frameSettings", (PyCFunction)Scene_frameSettings, METH_VARARGS,
           "(start, end, current) - Sets or retrieves the Scene's frame"
 					" settings.\nIf the frame arguments are specified, they are set. "
 					"A tuple (start, end, current) is returned in any case."},
@@ -539,6 +539,10 @@ static PyObject *Scene_update (BPy_Scene *self, PyObject *args)
       return EXPP_ReturnPyObjError (PyExc_TypeError,
               "expected nothing or int (0 or 1) argument");
 
+/* Under certain circunstances, sort_baselist *here* can crash Blender.
+ * A "RuntimeError: max recursion limit" happens when a scriptlink
+ * on frame change has scene.update(1).
+ * Investigate better how to avoid this. */
   if (!full)
 		sort_baselist (scene);
 

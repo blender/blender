@@ -139,3 +139,25 @@ def GetCursorPos ():
   @rtype: list of three floats
   @return: the current position: [x, y, z].
   """
+def SetCursorPos (coords):
+  """
+  Change the 3d cursor position.  Note: if visible, the 3d window must be
+  redrawn to display the change.  This can be done with
+  L{Redraw}(L{Types}['VIEW3D']), for example.
+  @type coords: 3 floats or a list of 3 floats
+  @param coords: The new x, y, z coordinates.
+  """
+
+def GetViewVector ():
+  """
+  Get the current 3d view vector.
+  @rtype: list of three floats
+  @return: the current vector: [x, y, z].
+  """
+
+def GetViewMatrix ():
+  """
+  Get the current 3d view matrix.
+  @rtype: 4x4 float matrix
+  @return: the current matrix.
+  """

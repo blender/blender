@@ -30,6 +30,7 @@
 */
 
 #include "Window.h"
+#include "vector.h"
 
 /* Many parts of the code here come from the older bpython implementation
  * (file opy_window.c) */
@@ -207,6 +208,86 @@ static PyObject *M_Window_GetCursorPos(PyObject *self)
             "GetCursorPos: couldn't create pylist"));
 
   return pylist;
+}
+
+/*****************************************************************************/
+/* Function:              M_Window_SetCursorPos                              */
+/* Python equivalent:     Blender.Window.SetCursorPos                        */
+/*****************************************************************************/
+static PyObject *M_Window_SetCursorPos(PyObject *self, PyObject *args)
+{
+	int ok = 0;
+  float val[3];
+
+	if (PyObject_Length (args) == 3)
+		ok = PyArg_ParseTuple (args, "fff", &val[0], &val[1], &val[2]);
+	else
+		ok = PyArg_ParseTuple(args, "(fff)", &val[0], &val[1], &val[2]);
+
+	if (!ok)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+									"expected [f,f,f] or f,f,f as arguments");
+
+  if (G.vd && G.vd->localview) {
+		G.vd->cursor[0] = val[0];
+		G.vd->cursor[1] = val[1];
+		G.vd->cursor[2] = val[2];
+	}
+  else {
+		G.scene->cursor[0] = val[0];
+		G.scene->cursor[1] = val[1];
+		G.scene->cursor[2] = val[2];
+	}
+
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
+/*****************************************************************************/
+/* Function:              M_Window_GetViewVector                             */
+/* Python equivalent:     Blender.Window.GetViewVector                       */
+/*****************************************************************************/
+static PyObject *M_Window_GetViewVector(PyObject *self)
+{
+	float *vec = NULL;
+  PyObject *pylist;
+
+  if (!G.vd) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
+	vec = G.vd->viewinv[2];
+
+  pylist = Py_BuildValue("[fff]", vec[0], vec[1], vec[2]);
+
+  if (!pylist)
+    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+            "GetViewVector: couldn't create pylist"));
+
+  return pylist;
+}
+
+/*****************************************************************************/
+/* Function:              M_Window_GetViewMatrix                             */
+/* Python equivalent:     Blender.Window.GetViewMatrix                       */
+/*****************************************************************************/
+static PyObject *M_Window_GetViewMatrix(PyObject *self)
+{
+	PyObject *viewmat;
+
+  if (!G.vd) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
+	viewmat = newMatrixObject (G.vd->viewmat);
+
+  if (!viewmat)
+    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+            "GetViewMatrix: couldn't create matrix pyobject"));
+
+  return viewmat;
 }
 
 /*****************************************************************************/
