@@ -8593,6 +8593,8 @@ void select_non_manifold(void)
 		}
 		eve= eve->next;
 	}
+
+	countall();
 	addqueue(curarea->win,  REDRAW, 0);
 
 }
@@ -8626,6 +8628,7 @@ void select_more(void)
 		eve= eve->next;
 	}
 
+	countall();
 	addqueue(curarea->win,  REDRAW, 0);
 }
 
@@ -8707,6 +8710,7 @@ void select_less(void)
 		eve= eve->next;
 	}
 
+	countall();
 	allqueue(REDRAWVIEW3D, 0);
 }
 
