@@ -1323,6 +1323,7 @@ void do_material_tex(ShadeInput *shi)
 			else if(mtex->texco==TEXCO_WINDOW) {
 				co= shi->winco; dx= O.dxwin; dy= O.dywin;
 			}
+			else continue;	// can happen when texco defines disappear and it renders old files
 			
 			/* de pointer defines if bumping happens */
 			if(mtex->mapto & (MAP_NORM|MAP_DISPLACE)) {
@@ -1464,7 +1465,7 @@ void do_material_tex(ShadeInput *shi)
 					}
 				}
 				// rotate to global coords
-				if(mtex->texco==TEXCO_ORCO) {
+				if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
 					if(shi->vlr && shi->vlr->ob) {
 						float len= Normalise(tex->nor);
 						// can be optimized... (ton)
@@ -1541,9 +1542,9 @@ void do_material_tex(ShadeInput *shi)
 					Normalise(shi->vn);
 					
 					/* this makes sure the bump is passed on to the next texture */
-					shi->orn[0]= shi->vn[0];
-					shi->orn[1]= shi->vn[1];
-					shi->orn[2]= shi->vn[2];
+					shi->orn[0]= -shi->vn[0];
+					shi->orn[1]= -shi->vn[1];
+					shi->orn[2]= -shi->vn[2];
 					
 					/* reflection vector */
 					calc_R_ref(shi);

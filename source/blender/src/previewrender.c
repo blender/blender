@@ -786,7 +786,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		if(mat->texco & TEXCO_OBJECT) {
 			VECCOPY(shi->co, shi->lo);
 		}
-		if(mat->texco & TEXCO_NORM) {
+		if(mat->texco & (TEXCO_NORM)) {
 			shi->orn[0]= shi->vn[0];
 			shi->orn[1]= shi->vn[1];
 			shi->orn[2]= shi->vn[2];

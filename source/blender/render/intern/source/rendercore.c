@@ -2604,9 +2604,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			}
 		}
 		if(texco & TEXCO_NORM) {
-			shi->orn[0]= shi->vn[0];
-			shi->orn[1]= shi->vn[1];
-			shi->orn[2]= shi->vn[2];
+			shi->orn[0]= -shi->vn[0];
+			shi->orn[1]= -shi->vn[1];
+			shi->orn[2]= -shi->vn[2];
 		}
 				
 		if(mode & MA_RADIO) {

@@ -696,7 +696,7 @@ int imagewrap(Tex *tex, float *texvec)
 			if(tex->imaflag & TEX_NORMALMAP) {
 				tex->nor[0]= 0.5-Tr;
 				tex->nor[1]= 0.5-Tg;
-				tex->nor[2]= 0.5-Tb;
+				tex->nor[2]= -Tb;
 			}
 			else {
 				/* bump: take three samples */
@@ -1553,7 +1553,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 		if(tex->nor && (tex->imaflag & TEX_NORMALMAP)) {
 			tex->nor[0]= 0.5-Tr;
 			tex->nor[1]= 0.5-Tg;
-			tex->nor[2]= 0.5-Tb;
+			tex->nor[2]= -Tb;
 		}
 	}
 	else {
