@@ -41,7 +41,7 @@ class SND_OpenALDevice : public SND_AudioDevice
 {
 public:
 	SND_OpenALDevice();
-	~SND_OpenALDevice();
+	virtual ~SND_OpenALDevice();
 
 	SND_WaveSlot* LoadSample(const STR_String& samplename,
 							 void* memlocation,

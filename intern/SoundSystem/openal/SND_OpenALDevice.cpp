@@ -60,6 +60,8 @@
 #endif
 #include <fcntl.h>
 
+#include <signal.h>
+
 /* untill openal gets unified we need this hack for non-windows systems */
 #if !defined(WIN32) && !defined(ALC_MAJOR_VERSION)
 
@@ -208,7 +210,8 @@ ALvoid alutUnloadWAV(ALenum format,ALvoid *data,ALsizei size,ALsizei freq)
 
 
 SND_OpenALDevice::SND_OpenALDevice()
-	: m_context(NULL),
+	: SND_AudioDevice(),
+	  m_context(NULL),
 	  m_device(NULL)
 {
     /* Removed the functionality for checking if noaudio was provided on */
@@ -235,6 +238,20 @@ SND_OpenALDevice::SND_OpenALDevice()
 				alcMakeContextCurrent(m_context);
 				m_audio = true;
 				m_device = dev;
+#ifdef __linux__
+				/*
+				*   SIGHUP Hack:
+				*
+				*   On Linux, alcDestroyContext generates a SIGHUP (Hangup) when killing the OpenAL
+				*   mixer thread, which kills Blender.
+				*  
+				*   So we set the signal to ignore....
+				*
+				*   TODO: check if this applies to other platforms.
+				*
+				*/
+				signal(SIGHUP, SIG_IGN);
+#endif
 			}
 		}
 
@@ -307,19 +324,33 @@ void SND_OpenALDevice::MakeCurrent() const
 
 SND_OpenALDevice::~SND_OpenALDevice()
 {
+	MakeCurrent();
+	
+	if (m_buffersinitialized)
+	{
+		alDeleteBuffers(NUM_BUFFERS, m_buffers);
+		m_buffersinitialized = false;
+	}
+	
+	if (m_sourcesinitialized)
+	{
+		for (int i = 0; i < NUM_SOURCES; i++)
+			alSourceStop(m_sources[i]);
+		
+		alDeleteSources(NUM_SOURCES, m_sources);
+		m_sourcesinitialized = false;
+	}
+	
 	if (m_context) {
 		MakeCurrent();
-		
-		if (m_buffersinitialized)
-			alDeleteBuffers(NUM_BUFFERS, m_buffers);
-
-		if (m_sourcesinitialized)
-			alDeleteSources(NUM_SOURCES, m_sources);
-		
 		alcDestroyContext(m_context);
 		m_context = NULL;
 	}
 	
+#ifdef __linux__
+	// restore the signal state above.
+	signal(SIGHUP, SIG_DFL);
+#endif	
 	// let's see if we used the cd. if not, just leave it alone
 	SND_CDObject* pCD = SND_CDObject::Instance();
 	
