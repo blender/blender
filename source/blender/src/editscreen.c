@@ -2911,7 +2911,7 @@ int get_cursor(void) {
 }
 
 void set_cursor(int curs) {
-	if (!(R.flag & R_RENDERING)) {
+	if (!(R.flag & R_RENDERING) && G.background == 0) {
 		if (curs!=curcursor) {
 			curcursor= curs;
 			window_set_cursor(mainwin, curs);
