@@ -46,7 +46,7 @@ source_files = ['BPY_interface.c',
                 'api2_2x/rgbTuple.c',
                 'api2_2x/gen_utils.c',
                 'api2_2x/sceneRender.c',
-                'api2_2x/EXPP_interface.c'
+                'api2_2x/EXPP_interface.c',
 		'api2_2x/Noise.c']
 
 python_env.Append (CPPPATH = ['api2_2x',
