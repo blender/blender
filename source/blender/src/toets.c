@@ -759,7 +759,7 @@ int blenderqread(unsigned short event, short val)
 					else enter_posemode();
 				}
 				else if(ob->type==OB_MESH) {
-					EM_selectmode_menu();
+					if(ob==G.obedit) EM_selectmode_menu();
 				}
 			}
 		}

@@ -218,19 +218,12 @@ static short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4)  /* intersec
 	*/
 	float div, labda, mu;
 	
-	div= (v1[0]-v2[0])*(v3[1]-v4[1])-(v3[0]-v4[0])*(v1[1]-v2[1]);
+	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
 	if(div==0.0) return -1;
 	
-	labda= (v1[1]-v3[1])*(v3[0]-v4[0])-(v1[0]-v3[0])*(v3[1]-v4[1]);
-	labda= -(labda/div);
-	
-	div= v3[1]-v4[1];
-	if(div==0) {
-		div=v3[0]-v4[0];
-		mu= -(labda*(v2[0]-v1[0])+v1[0]-v3[0])/div;
-	} else {
-		mu= -(labda*(v2[1]-v1[1])+v1[1]-v3[1])/div;
-	}
+	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
+
+	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
 	
 	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
 		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
@@ -243,7 +236,7 @@ static short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4)  /* intersec
 static int lasso_inside_edge(short mcords[][2], short moves, short *v1, short *v2)
 {
 	int a;
-	
+
 	// check points in lasso
 	if(lasso_inside(mcords, moves, v1[0], v1[1])) return 1;
 	if(lasso_inside(mcords, moves, v2[0], v2[1])) return 1;
@@ -251,7 +244,7 @@ static int lasso_inside_edge(short mcords[][2], short moves, short *v1, short *v
 	/* no points in lasso, so we have to intersect with lasso edge */
 	
 	if( IsectLL2Ds(mcords[0], mcords[moves-1], v1, v2) > 0) return 1;
-	for(a=0; a<moves; a++) {
+	for(a=0; a<moves-1; a++) {
 		if( IsectLL2Ds(mcords[a], mcords[a+1], v1, v2) > 0) return 1;
 	}
 	
@@ -400,6 +393,9 @@ static void do_lasso_select(short mcords[][2], short moves, short select)
 		do_lasso_select_objects(mcords, moves, select);
 	else if(G.obedit->type==OB_MESH) 
 		do_lasso_select_mesh(mcords, moves, select);
+
+	BIF_undo_push("Lasso select");
+
 }
 
 /* un-draws and draws again */

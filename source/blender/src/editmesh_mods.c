@@ -295,6 +295,10 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	glBegin(GL_POLYGON);
 	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
 	glEnd();
+	glBegin(GL_LINE_LOOP);	// for zero sized masks, lines
+	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
+	glEnd();
+	
 	persp(PERSP_VIEW);
 	glFinish();	// to be sure readpixels sees mask
 	
