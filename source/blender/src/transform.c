@@ -2060,8 +2060,9 @@ int Resize(TransInfo *t, short mval[2])
 		}
 		
 		/* flip scale, but not for manipulator center handle */
-		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) < 0)
-			ratio *= -1.0f;
+		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) + 
+			 (t->center2d[1] - mval[1]) * (t->center2d[1] - t->imval[1]) < 0)
+				ratio *= -1.0f;
 	}
 	
 	size[0] = size[1] = size[2] = ratio;

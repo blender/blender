@@ -107,6 +107,15 @@
 extern TransInfo Trans;
 
 
+static int is_mat4_flipped(float mat[][4])
+{
+	float vec[3];
+	
+	Crossf(vec, mat[0], mat[1]);
+	if( Inpf(vec, mat[2]) < 0.0 ) return 1;
+	return 0;
+}	
+
 /* transform widget center calc helper for below */
 static void calc_tw_center(float *co)
 {
@@ -940,9 +949,13 @@ static void draw_manipulator_scale(float mat[][4], int moving, int drawflags)
 		Mat4CpyMat4(matt, mat); // to copy the parts outside of [3][3]
 		Mat4MulMat34(matt, Trans.mat, mat);
 		mymultmatrix(matt);
+		glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
 	}
-	else mymultmatrix(mat);
-
+	else {
+		mymultmatrix(mat);
+		glFrontFace( is_mat4_flipped(mat)?GL_CW:GL_CCW);
+	}
+	
 	/* axis */
 	if( (G.f & G_PICKSEL)==0 ) {
 		
@@ -1005,9 +1018,11 @@ static void draw_manipulator_scale(float mat[][4], int moving, int drawflags)
 		}
 	}
 	
+	/* restore */
 	myloadmatrix(G.vd->viewmat);
 	
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	glFrontFace(GL_CCW);
 }
 
 static void draw_cone(GLUquadricObj *qobj, float len, float width)
