@@ -66,8 +66,6 @@ extern PyTypeObject Object_Type;
 /*****************************************************************************/
 /* Python BPy_Object structure definition.                                     */
 /*****************************************************************************/
-struct BPy_Object;
-
 typedef struct {
     PyObject_HEAD
     struct Object   * object;

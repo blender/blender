@@ -668,9 +668,9 @@ static PyObject *Object_getDrawType (BPy_Object *self)
 static PyObject *Object_getEuler (BPy_Object *self)
 {
     PyObject *attr = Py_BuildValue ("fff",
-                                    self->object->drot[0],
-                                    self->object->drot[1],
-                                    self->object->drot[2]);
+                                    self->object->rot[0],
+                                    self->object->rot[1],
+                                    self->object->rot[2]);
 
     if (attr) return (attr);
 
@@ -992,19 +992,19 @@ static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args)
 
 static PyObject *Object_setEuler (BPy_Object *self, PyObject *args)
 {
-    float   drot1;
-    float   drot2;
-    float   drot3;
+    float   rot1;
+    float   rot2;
+    float   rot3;
 
-    if (!PyArg_ParseTuple (args, "fff", &drot1, &drot2, &drot3))
+    if (!PyArg_ParseTuple (args, "fff", &rot1, &rot2, &rot3))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected three float arguments"));
     }
 
-    self->object->drot[0] = drot1;
-    self->object->drot[1] = drot2;
-    self->object->drot[2] = drot3;
+    self->object->rot[0] = rot1;
+    self->object->rot[1] = rot2;
+    self->object->rot[2] = rot3;
 
     Py_INCREF (Py_None);
     return (Py_None);
