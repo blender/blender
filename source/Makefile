@@ -106,10 +106,12 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
-    COMLIB += $(OCGDIR)/gameengine/blphys/blode/$(DEBUG_DIR)libblode.a
-    COMLIB += $(NAN_ODE)/lib/libode.a
-#    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
-    COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
+    COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
+    COMLIB += $(NAN_SOLID)/lib/libsolid.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/fuzzics/$(DEBUG_DIR)libfuzzics.a
+    COMLIB += $(NAN_QHULL)/lib/libqhull.a
+   COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
 #    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a

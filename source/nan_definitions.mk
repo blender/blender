@@ -58,7 +58,13 @@ all debug::
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
     export NAN_MOTO ?= $(LCGDIR)/moto
-    export NAN_SOLID ?= $(SRCHOME)/sumo/SOLID-3.0
+ifeq ($(FREE_WINDOWS), true)
+    export NAN_SOLID ?= $(LCGDIR)/gcc/solid
+    export NAN_QHULL ?= $(LCGDIR)/gcc/qhull
+else
+    export NAN_SOLID ?= $(LCGDIR)/solid
+    export NAN_QHULL ?= $(LCGDIR)/qhull
+endif
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey

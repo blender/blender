@@ -38,7 +38,9 @@ CPPFLAGS ?= $(NAN_CPPFLAGS)
 # common parts ---------------------------------------------------
 
 # Uncomment next line to enable integrated game engine
-#CFLAGS += -DGAMEBLENDER=1
+CFLAGS  += -DGAMEBLENDER=1
+CFLAGS  += -DUSE_SUMO_SOLID
+CCFLAGS += -DUSE_SUMO_SOLID
 
 ifdef NAN_DEBUG
     CFLAGS += $(NAN_DEBUG)
