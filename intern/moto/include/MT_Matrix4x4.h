@@ -39,10 +39,6 @@
 #ifndef MT_MATRIX4X4_H
 #define MT_MATRIX4X4_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <MT_assert.h>
 
 #include "MT_Vector4.h"

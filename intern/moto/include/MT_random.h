@@ -32,10 +32,6 @@
 #ifndef MT_RANDOM_H
 #define MT_RANDOM_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <limits.h>
 
 #define MT_RAND_MAX ULONG_MAX

@@ -41,11 +41,6 @@
 #ifndef _H_MEM_REF_COUNTED_C_API
 #define _H_MEM_REF_COUNTED_C_API
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 /** A pointer to a private object. */
 typedef struct MEM_TOpaqueObject* MEM_TObjectPtr;
 /** A pointer to a shared object. */

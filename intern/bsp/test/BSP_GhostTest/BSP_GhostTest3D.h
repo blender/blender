@@ -30,14 +30,7 @@
  */
 
 #ifndef BSP_GhostTest_h
-
 #define BSP_GhostTest_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 
 #include "GHOST_IEventConsumer.h"
 #include "MT_Vector3.h"

@@ -32,10 +32,6 @@
 #ifndef NAN_INCLUDED_LOD_QSDecimator_H
 #define NAN_INCLUDED_LOD_QSDecimator_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_NonCopyable.h"
 #include "LOD_ManMesh2.h"
 #include "LOD_ExternNormalEditor.h"

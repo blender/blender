@@ -30,13 +30,7 @@
  */
 
 #ifndef NAN_INCLDUED_EgdeCollapser_h
-
 #define NAN_INCLDUED_EgdeCollapser_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 // This is a helper class that collapses edges of a 2 - manifold mesh.
 

@@ -40,10 +40,6 @@
 #ifndef _GHOST_EVENT_PRINTER_H_
 #define _GHOST_EVENT_PRINTER_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_IEventConsumer.h"
 
 #include "STR_String.h"

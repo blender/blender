@@ -32,10 +32,6 @@
 #ifndef GEN_OPTIMIZE_H
 #define GEN_OPTIMIZE_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef GEN_INLINED
 #define GEN_INLINE inline
 #else

@@ -26,8 +26,6 @@
 *
 */
 
-
-
 #ifndef STPWATCH_H
 #define STPWATCH_H
 

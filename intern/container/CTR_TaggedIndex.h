@@ -50,11 +50,6 @@
 
 #include <functional>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 enum {
 
 	empty_tag = 0x0,

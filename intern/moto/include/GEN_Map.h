@@ -32,11 +32,6 @@
 #ifndef GEN_MAP_H
 #define GEN_MAP_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 template <class Key, class Value>
 class GEN_Map {
 private:

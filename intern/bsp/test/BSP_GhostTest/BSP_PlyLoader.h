@@ -30,13 +30,7 @@
  */
 
 #ifndef BSP_PlyLoader_h
-
 #define BSP_PlyLoader_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 #include "MEM_SmartPtr.h"
 #include "BSP_TMesh.h"

@@ -30,13 +30,7 @@
  */
 
 #ifndef NAN_INCLUDED_LOD_DecimationClass_h
-
 #define NAN_INCLUDED_LOD_DecimationClass_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 #include "MEM_SmartPtr.h"
 #include "MEM_NonCopyable.h"

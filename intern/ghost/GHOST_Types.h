@@ -40,10 +40,6 @@
 #ifndef _GHOST_TYPES_H_
 #define _GHOST_TYPES_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef	char				GHOST_TInt8;
 typedef	unsigned char		GHOST_TUns8;
 typedef short				GHOST_TInt16;

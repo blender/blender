@@ -30,13 +30,7 @@
  */
 
 #ifndef BSP_CSGHELPER_H
-
 #define BSP_CSGHELPER_H
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 class BSP_CSGMesh;
 class BSP_MeshFragment;

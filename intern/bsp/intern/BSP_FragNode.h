@@ -30,13 +30,7 @@
  */
 
 #ifndef BSP_FragNode_h
-
 #define BSP_FragNode_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 #include "BSP_FragTree.h"
 #include "BSP_MeshFragment.h"

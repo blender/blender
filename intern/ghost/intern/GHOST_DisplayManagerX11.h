@@ -40,10 +40,6 @@
 #ifndef _GHOST_DISPLAY_MANAGER_X11_H_
 #define _GHOST_DISPLAY_MANAGER_X11_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_DisplayManager.h"
 
 

@@ -46,10 +46,6 @@
 #ifndef MT_VECTOR4_H
 #define MT_VECTOR4_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <MT_assert.h>
 
 #include "MT_Tuple4.h"

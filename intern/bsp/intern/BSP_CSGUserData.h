@@ -30,13 +30,7 @@
  */
 
 #ifndef BSP_CSGUserData_h
-
 #define BSP_CSGUserData_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 #include <vector>
 

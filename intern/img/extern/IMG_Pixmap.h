@@ -41,10 +41,6 @@
 #ifndef _H_IMG_Pixmap
 #define _H_IMG_Pixmap
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GEN_Types.h"
 #include "GEN_Rect.h"
 

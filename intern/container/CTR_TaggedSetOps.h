@@ -32,11 +32,6 @@
 #ifndef NAN_INCLUDED_LOD_TaggedSetOps_h
 #define NAN_INCLUDED_LOD_TaggedSetOps_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 #include "MEM_NonCopyable.h"
 #include <vector>
 

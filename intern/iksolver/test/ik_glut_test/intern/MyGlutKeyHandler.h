@@ -32,11 +32,6 @@
 #ifndef NAN_INCLUDED_MyGlutKeyHandler_h
 #define NAN_INCLUDED_MyGlutKeyHandler_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 #include "../common/GlutKeyboardManager.h"
 
 class MyGlutKeyHandler : public GlutKeyboardHandler

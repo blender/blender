@@ -60,13 +60,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #ifndef GEN_LIST_H
 #define GEN_LIST_H
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 class GEN_Link {
 public:

@@ -40,10 +40,6 @@
 #ifndef _GHOST_WINDOW_CARBON_H_
 #define _GHOST_WINDOW_CARBON_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef __APPLE__
 #error Apple OSX only!
 #endif // __APPLE__

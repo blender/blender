@@ -30,18 +30,11 @@
  */
 
 #ifndef NAN_INCLUDED_BSP_MeshFragment_h
-
 #define NAN_INCLUDED_BSP_MeshFragment_h
-
 
 #define BSP_SPLIT_EPSILON MT_Scalar(1e-5)
 
 #include <vector>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "BSP_MeshPrimitives.h"
 
 

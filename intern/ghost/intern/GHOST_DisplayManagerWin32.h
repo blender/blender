@@ -40,10 +40,6 @@
 #ifndef _GHOST_DISPLAY_MANAGER_WIN32_H_
 #define _GHOST_DISPLAY_MANAGER_WIN32_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #error WIN32 only!
 #endif // WIN32

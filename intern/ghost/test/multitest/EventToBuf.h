@@ -29,11 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 char *eventtype_to_string(GHOST_TEventType type);
-
 void event_to_buf(GHOST_EventHandle evt, char buf[128]);
 

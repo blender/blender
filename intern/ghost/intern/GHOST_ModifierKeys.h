@@ -40,10 +40,6 @@
 #ifndef _GHOST_MODIFIER_KEYS_H_
 #define _GHOST_MODIFIER_KEYS_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_Types.h"
 
 struct GHOST_ModifierKeys

@@ -32,10 +32,6 @@
 #ifndef NAN_INCLUDED_MeshExceptions_h
 #define NAN_INCLUDED_MeshExceptions_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class LOD_MeshException {
 
 public :

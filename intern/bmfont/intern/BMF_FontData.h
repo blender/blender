@@ -38,10 +38,6 @@
 #ifndef __BMF_FONTDATA_H__
 #define __BMF_FONTDATA_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 typedef struct {
 	signed char width, height;
 	signed char xorig, yorig;

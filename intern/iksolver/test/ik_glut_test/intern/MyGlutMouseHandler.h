@@ -32,10 +32,6 @@
 #ifndef NAN_INCLUDED_MyGlutMouseHandler_h
 #define NAN_INCLUDED_MyGlutMouseHandler_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "../common/GlutMouseManager.h"
 #include <GL/glut.h>
 #include "IK_solver.h"

@@ -32,10 +32,6 @@
 #ifndef MT_PLANE3
 #define MT_PLANE3
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MT_Tuple4.h"
 #include "MT_Point3.h"
 

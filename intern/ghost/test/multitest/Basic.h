@@ -29,11 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 int		min_i				(int a, int b);
 
 int		max_i				(int a, int b);

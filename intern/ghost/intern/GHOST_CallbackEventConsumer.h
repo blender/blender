@@ -40,10 +40,6 @@
 #ifndef _GHOST_CALLBACK_EVENT_CONSUMER_H_
 #define _GHOST_CALLBACK_EVENT_CONSUMER_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_IEventConsumer.h"
 #include "GHOST_C-api.h"
 

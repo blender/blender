@@ -25,8 +25,6 @@
 *
 */
 
-
-
 #ifndef CHOLESKY_H
 #define CHOLESKY_H
 

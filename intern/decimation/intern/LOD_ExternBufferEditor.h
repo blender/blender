@@ -38,11 +38,6 @@
 #ifndef NAN_INCLUDED_LOD_ExternBufferEditor_h
 #define NAN_INCLUDED_LOD_ExternBufferEditor_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
 #include "LOD_MeshPrimitives.h"
 #include <vector>
 #include "LOD_ManMesh2.h"

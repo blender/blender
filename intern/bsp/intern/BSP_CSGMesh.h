@@ -30,13 +30,7 @@
  */
 
 #ifndef NAN_INCLUDED_BSP_CSGMesh_h
-
 #define NAN_INCLUDED_BSP_CSGMesh_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 #include "BSP_MeshPrimitives.h"
 #include "MEM_SmartPtr.h"

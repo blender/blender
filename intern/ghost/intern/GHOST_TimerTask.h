@@ -40,10 +40,6 @@
 #ifndef _GHOST_TIMER_TASK_H_
 #define _GHOST_TIMER_TASK_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_ITimerTask.h"
 
 

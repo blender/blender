@@ -32,10 +32,6 @@
 #ifndef MT_ASSERT_H
 #define MT_ASSERT_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef	MT_NDEBUG
 
 #define MT_assert(predicate) ((void)0)

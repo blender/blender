@@ -32,10 +32,6 @@
 #ifndef NAN_INCLUDED_MeshPrimitives_h
 #define NAN_INCLUDED_MeshPrimitives_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MT_Vector3.h"
 #include "CTR_TaggedIndex.h"
 #include "CTR_UHeap.h"

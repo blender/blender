@@ -40,10 +40,6 @@
 #ifndef _GHOST_WINDOW_H_
 #define _GHOST_WINDOW_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_IWindow.h"
 
 class STR_String;

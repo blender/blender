@@ -37,10 +37,6 @@
  * Blender Key loader library internal stuff
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "openssl/rand.h"
 #include "openssl/rsa.h"
 #include "openssl/ripemd.h"

@@ -73,11 +73,6 @@
 #ifndef NAN_INCLUDED_IK_solver_h
 #define NAN_INCLUDED_IK_solver_h
 
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

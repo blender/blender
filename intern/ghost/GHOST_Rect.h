@@ -40,10 +40,6 @@
 #ifndef _H_GHOST_Rect
 #define _H_GHOST_Rect
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_Types.h"
 
 

@@ -39,10 +39,6 @@
 #ifndef __BMF_FONTS_H
 #define __BMF_FONTS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "BMF_Settings.h"
 
 typedef enum

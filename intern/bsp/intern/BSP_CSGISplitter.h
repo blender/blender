@@ -30,13 +30,7 @@
  */
 
 #ifndef BSP_CSGISplitter_h
-
 #define BSP_CSGISplitter_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 class BSP_MeshFragment;
 class BSP_CSGMesh;

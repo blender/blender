@@ -29,10 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 void*	memdbl		(void *mem, int *size_pr, int item_size);
 
 char*	string_dup	(char *str);

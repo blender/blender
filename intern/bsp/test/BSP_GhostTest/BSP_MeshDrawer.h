@@ -30,15 +30,7 @@
  */
 
 #ifndef BSP_MeshDrawer_h
-
 #define BSP_MeshDrawer_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
-
 
 class BSP_TMesh;
 class MT_Vector3;

@@ -32,10 +32,6 @@
 #ifndef GEN_STREAM_H
 #define GEN_STREAM_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __CUSTOM_STREAM
 
 class MT_OStream

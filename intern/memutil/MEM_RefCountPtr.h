@@ -32,10 +32,6 @@
 #ifndef NAN_INCLUDED_MEM_RefCountPtr_h
 #define NAN_INCLUDED_MEM_RefCountPtr_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * $Id$
  * Copyright (C) 2001 NaN Technologies B.V.

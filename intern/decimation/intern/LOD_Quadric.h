@@ -32,10 +32,6 @@
 #ifndef NAN_INCLUDED_LOD_Quadric_h
 #define NAN_INCLUDED_LOD_Quadric_h
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MT_Vector3.h"
 #include "MT_Matrix3x3.h"
 

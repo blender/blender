@@ -40,10 +40,6 @@
 #ifndef _H_MEM_REF_COUNTED
 #define _H_MEM_REF_COUNTED
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /**
  * An object with reference counting.
  * Base class for objects with reference counting.

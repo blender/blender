@@ -30,13 +30,7 @@
  */
 
 #ifndef BSP_CSGMesh_CFIterator_h
-
 #define BSP_CSGMesh_CFIterator_h
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 
 #include "BSP_CSGMesh.h"
 #include "../extern/CSG_BooleanOps.h"

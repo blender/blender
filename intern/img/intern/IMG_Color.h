@@ -43,12 +43,7 @@
 #ifndef _H_IMG_Color
 #define _H_IMG_Color
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 class IMG_ColorRGBA;
-
 
 class IMG_ColorRGB {
 public:

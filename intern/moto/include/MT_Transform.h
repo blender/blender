@@ -53,10 +53,6 @@
 #ifndef MT_TRANSFORM_H
 #define MT_TRANSFORM_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MT_Point3.h"
 #include "MT_Matrix3x3.h"
 
