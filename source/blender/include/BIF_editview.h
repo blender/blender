@@ -40,6 +40,8 @@ void	arrows_move_cursor(unsigned short event);
 void	borderselect(void);
 void	circle_select(void);
 void	deselectall(void);
+void selectall_type(short obtype);
+void selectall_layer(int layernum);
 void	draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selecting);
 void	fly(void);
 int		gesture(void);
