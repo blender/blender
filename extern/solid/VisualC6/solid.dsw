@@ -1,0 +1,188 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "broad"=".\broad\broad.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "complex"=".\complex\complex.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "convex"=".\convex\convex.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name qhull
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "dynamics"=".\dynamics\dynamics.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "gldemo"=".\gldemo\gldemo.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name solid
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "mnm"=".\mnm\mnm.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name dynamics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name solid
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "physics"=".\physics\physics.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name dynamics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name solid
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "qhull"="..\..\qhull2002.1\VisualC6\qhull\qhull.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "sample"=".\sample\sample.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name solid
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "solid"=".\solid\solid.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name broad
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name complex
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name convex
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "solid_dll"=".\solid_dll\solid_dll.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name broad
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name complex
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name convex
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
