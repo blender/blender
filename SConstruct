@@ -197,12 +197,12 @@ elif sys.platform == 'darwin':
 	platform_libpath = ['/System/Library/Frameworks/OpenGL.framework/Libraries']
 	platform_linkflags = []
 	# SOLID library information
-	solid_lib = ['libsolid']                                          
-	solid_libpath = [darwin_precomp + 'solid/lib']                                          
-	solid_include = [darwin_precomp + 'solid/include']
-	qhull_lib = ['libqhull']                                          
-	qhull_libpath = [darwin_precomp + 'qhull/lib']                                          
-	qhull_include = [darwin_precomp + 'qhull/include']
+	solid_lib = []                                          
+	solid_libpath = []                                          
+	solid_include = ['#/extern/solid']
+	qhull_lib = []                                          
+	qhull_libpath = []                                          
+	qhull_include = ['#/extern/qhull/include']
 	# ODE library information
 	ode_lib = ['libode']                                             
 	ode_libpath = [darwin_precomp + 'ode/lib']                                          
