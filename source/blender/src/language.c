@@ -106,7 +106,7 @@ float BIF_GetStringWidth(BMF_Font* font, char *str, int translate)
 	float rt;
 
 #ifdef INTERNATIONAL
-	if(G.ui_international == TRUE)	//versionnumber
+	if(G.ui_international == TRUE)
 		if(U.transopts & TR_BUTTONS)
 			rt= FTF_GetStringWidth(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 		else
