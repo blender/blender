@@ -689,6 +689,7 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 	
 }
 
+#if 0
 static void ui_set_panel_pattern(char dir)
 {
 	static int firsttime= 1;
@@ -707,6 +708,7 @@ static void ui_set_panel_pattern(char dir)
 	if(dir=='h') glPolygonStipple(path);	
 	else glPolygonStipple(patv);	
 }
+#endif
 
 static char *ui_block_cut_str(uiBlock *block, char *str, short okwidth)
 {
@@ -876,18 +878,19 @@ void ui_draw_panel(uiBlock *block)
 			glColor3ub(160, 160, 167);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			// blend now for panels in 3d window, test...
+			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			glColor4ub(198, 198, 198, 100);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
-			if(align) {
-				glColor4ub(206, 206, 206, 100);
-				if(align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
-				else ui_set_panel_pattern('v');
-	
-				glRectf(block->minx, block->miny, block->maxx, block->maxy);
-				glDisable(GL_POLYGON_STIPPLE);
-			}
+			//if(align) {
+			//	glColor4ub(206, 206, 206, 100);
+			//	if(align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
+			//	else ui_set_panel_pattern('v');
+
+			//	glRectf(block->minx, block->miny, block->maxx, block->maxy);
+			//	glDisable(GL_POLYGON_STIPPLE);
+			// }
 			glDisable(GL_BLEND);
 		}
 		else if(panel->control & UI_PNL_TRANSP) {
@@ -926,7 +929,7 @@ void ui_draw_panel(uiBlock *block)
 		glRasterPos2f(block->minx+2, block->maxy+3);
 		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
 		BIF_draw_icon(ICON_X);
-		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
+		if(block->aspect>1.1) glPixelZoom(1.0, 1.0);
 		ofsx= 16;
 	}
 
