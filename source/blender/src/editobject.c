@@ -7253,7 +7253,7 @@ void make_displists_by_obdata(void *obdata) {
 /* ******************************************************************** */
 /* Mirror function in Edit Mode */
 
-void mirror(short mode) {
+void mirror_edit(short mode) {
 	short axis, a;
 	float mat[3][3], imat[3][3], min[3], max[3];
 	TransVert *tv;
@@ -7383,15 +7383,81 @@ void mirror(short mode) {
 	tottrans= 0;
 }
 
+void mirror_object(short mode) {
+	TransOb *tob;
+	short a, axis;
+	float off[3], imat[3][3];
+
+	setbaseflags_for_editing('s');
+	figure_pose_updating();
+	make_trans_objects();
+
+	tob = transmain;
+
+	// Taking care of all the centre modes
+	if(G.vd->around==V3D_CENTROID) {
+		VecCopyf(centre, centroid);
+	}
+	else if(G.vd->around==V3D_CURSOR) {
+		float *curs;
+		curs= give_cursor();
+		VECCOPY(centre, curs);
+	}
+	else if(G.vd->around==V3D_LOCAL) {
+		centre[0] = centre[1] = centre[2] = 0.0;
+	}
+	// Boundbox centre is implicit
+
+	if ( (mode == 1) || (mode == 2) || (mode == 3) ) {
+		axis = mode - 1;
+		for(a=0; a<tottrans; a++, tob++) {
+			Mat3Inv(imat, tob->obmat);
+
+			VecSubf(off, tob->loc, centre);
+
+			Mat3MulVecfl(imat, off);
+
+			off[axis] *= -1;
+
+			Mat3MulVecfl(tob->obmat, off);
+
+			VecAddf(off, off, centre);
+
+			tob->loc[0] = off[0];
+			tob->loc[1] = off[1];
+			tob->loc[2] = off[2];
+
+			tob->size[axis] *= -1;
+		}
+	}
+	
+	special_aftertrans_update('m', 1, 0, 0);
+
+	allqueue(REDRAWVIEW3D, 0);
+	scrarea_queue_headredraw(curarea);
+
+	clearbaseflags_for_editing();
+	if(transmain) MEM_freeN(transmain);
+	transmain= 0;
+
+	tottrans= 0;
+}
+
 void mirrormenu(void){
 	short mode = 0;
 
-	if (G.obedit==0) return;
 
-	mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
+	if (G.obedit==0) {
+		mode=pupmenu("Mirror Axis %t|X Local%x1|Y Local%x2|Z Local%x3|");
 
-	if (mode==-1) return; /* return */
+		if (mode==-1) return; /* return */
+		mirror_object(mode); /* separating functionality from interface | call*/
+	}
+	else {
+		mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
 
-	mirror(mode); /* separating functionality from interface | call*/
+		if (mode==-1) return; /* return */
+		mirror_edit(mode); /* separating functionality from interface | call*/
+	}
 }
 

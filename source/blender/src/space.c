@@ -1162,14 +1162,17 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							makeDispList(G.obedit);
 						}
 					}
-					else if((G.qual==0)) {
+					else if((G.qual==0) || (G.qual==LR_CTRLKEY)) {
 						mirrormenu();
 					}
 					if(G.qual & (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY)) {
 						if(G.obedit->type==OB_MESH) select_non_manifold();
 					}
 				}
-				else if((G.qual==0)){
+				else if(G.qual & LR_CTRLKEY) {
+					mirrormenu();
+				}
+				else if(G.qual==0) {
 				     movetolayer();
 				}
  				break;

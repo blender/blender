@@ -469,6 +469,11 @@ saacos(
 sasqrt(
 	float fac
 );
+	void
+printvecf(
+	char *str,
+	float v[3]
+);
 	float 
 Inpf(
 	float *v1, 

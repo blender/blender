@@ -949,6 +949,14 @@ int FloatCompare( float *v1,  float *v2, float limit)
 	return 0;
 }
 
+void printvecf( char *str,  float v[3])
+{
+	printf("%s\n", str);
+	printf("%f %f %f\n",v[0],v[1],v[2]);
+	printf("\n");
+
+}
+
 void printmatrix4( char *str,  float m[][4])
 {
 	printf("%s\n", str);

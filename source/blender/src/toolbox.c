@@ -2048,6 +2048,12 @@ static void tb_do_transform(void *arg, int event)
 	}
 }
 
+static TBitem tb_transform_object_mirror[]= {
+{	0, "X Local|M, 1", 	1, NULL},
+{	0, "Y Local|M, 2", 	2, NULL},
+{	0, "Z Local|M, 3", 	3, NULL},
+{  -1, "", 			0, do_view3d_object_mirrormenu}};
+
 static TBitem tb_transform[]= {
 {	0, "Grab/Move|G", 	0, NULL},
 {	0, "Grab/Move on Axis| ", 	0, tb_transform_moveaxis},
@@ -2056,13 +2062,15 @@ static TBitem tb_transform[]= {
 {	0, "Scale|S", 		2, NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
+{	0, "Mirror", 	0, tb_transform_object_mirror},
+{	0, "SEPR", 					0, NULL},
 {	ICON_MENU_PANEL, "Properties|N", 3, NULL},
 {	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
 {	0, "Clear/Apply", 	0, tb_transform_clearapply},
 {  -1, "", 			0, tb_do_transform}};
 
-static TBitem tb_transform_mirror[]= {
+static TBitem tb_transform_edit_mirror[]= {
 {	0, "X Global|M, 1", 	1, NULL},
 {	0, "Y Global|M, 2", 	2, NULL},
 {	0, "Z Global|M, 3", 	3, NULL},
@@ -2074,7 +2082,7 @@ static TBitem tb_transform_mirror[]= {
 {	0, "X View|M, 7", 	7, NULL},
 {	0, "Y View|M, 8", 	8, NULL},
 {	0, "Z View|M, 9", 	9, NULL},
-{  -1, "", 			0, do_view3d_edit_mesh_mirrormenu}};
+{  -1, "", 			0, do_view3d_edit_mirrormenu}};
 
 static TBitem tb_transform_editmode1[]= {
 {	0, "Grab/Move|G", 	'g', NULL},
@@ -2084,12 +2092,12 @@ static TBitem tb_transform_editmode1[]= {
 {	0, "Scale|S", 		's', NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
-{	0, "Mirror", 	0, tb_transform_mirror},
+{	0, "Mirror", 	0, tb_transform_edit_mirror},
 {	0, "Shrink/Fatten|Alt S", TB_ALT|'s', NULL},
 {	0, "Shear|Ctrl S", TB_CTRL|'s', NULL},
 {	0, "Warp|Shift W", 	'W', NULL},
 {	0, "SEPR", 					0, NULL},
-{	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
+{	ICON_MENU_PANEL, "Properties|N", 'N', NULL},
 {	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
 {	0, "Proportional Edit|O", 	'o', 		NULL},
@@ -2104,7 +2112,7 @@ static TBitem tb_transform_editmode2[]= {
 {	0, "Scale|S", 		2, NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
-{	ICON_MENU_PANEL, "Properties|n", 'n', NULL},
+{	ICON_MENU_PANEL, "Properties|N", 'N', NULL},
 {	0, "Snap", 		0, tb_transform_snap},
 {  -1, "", 			0, tb_do_transform}};
 

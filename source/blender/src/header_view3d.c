@@ -134,6 +134,35 @@
 
 static int viewmovetemp = 0;
 
+void do_view3d_object_mirrormenu(void *arg, int event)
+{
+	switch(event) {
+		case 1:
+		case 2:
+		case 3:
+			mirror_object(event);
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_object_mirrormenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_object_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_object_mirrormenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 void do_layer_buttons(short event)
 {
 	static int oldlay= 1;
@@ -1510,6 +1539,8 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+
+	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 		
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1800,7 +1831,7 @@ static uiBlock *view3d_edit_mesh_normalsmenu(void *arg_unused)
 	return block;
 }
 
-void do_view3d_edit_mesh_mirrormenu(void *arg, int event)
+void do_view3d_edit_mirrormenu(void *arg, int event)
 {
 	switch(event) {
 		case 1:
@@ -1812,19 +1843,19 @@ void do_view3d_edit_mesh_mirrormenu(void *arg, int event)
 		case 7:
 		case 8:
 		case 9:
-			mirror(event);
+			mirror_edit(event);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-static uiBlock *view3d_edit_mesh_mirrormenu(void *arg_unused)
+static uiBlock *view3d_edit_mirrormenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_view3d_edit_mesh_mirrormenu, NULL);
+	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_mirrormenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Global|M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
@@ -1846,7 +1877,6 @@ static uiBlock *view3d_edit_mesh_mirrormenu(void *arg_unused)
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
-
 
 static void do_view3d_edit_mesh_showhidemenu(void *arg, int event)
 {
@@ -1968,7 +1998,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBlockBut(block, view3d_edit_mesh_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Along Normals|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Warp|Shift W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
