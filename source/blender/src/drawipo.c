@@ -206,7 +206,7 @@ void draw_ipogrid(void)
 	step= (G.v2d->mask.xmax-G.v2d->mask.xmin+1)/IPOSTEP;
 	
 	if(curarea->spacetype==SPACE_SOUND) glColor3ub(0x70, 0x70, 0x60);
-	else BIF_ThemeColor(curarea, TH_GRID);
+	else BIF_ThemeColor(TH_GRID);
 	
 	for(a=0; a<step; a++) {
 		glBegin(GL_LINE_STRIP);
@@ -218,7 +218,7 @@ void draw_ipogrid(void)
 	vec2[0]= vec1[0]-= 0.5*ipogrid_dx;
 	
 	if(curarea->spacetype==SPACE_SOUND) glColor3ub(0x80, 0x80, 0x70);
-	else  BIF_ThemeColorShade(curarea, TH_GRID, 16);
+	else  BIF_ThemeColorShade(TH_GRID, 16);
 	
 	step++;
 	for(a=0; a<=step; a++) {
@@ -235,7 +235,7 @@ void draw_ipogrid(void)
 		
 		step= (curarea->winy+1)/IPOSTEP;
 		
-		BIF_ThemeColor(curarea, TH_GRID);
+		BIF_ThemeColor(TH_GRID);
 		for(a=0; a<=step; a++) {
 			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1); glVertex2fv(vec2);
@@ -246,7 +246,7 @@ void draw_ipogrid(void)
 		step++;
 		
 		if(curarea->spacetype==SPACE_IPO) {
-			BIF_ThemeColorShade(curarea, TH_GRID, 16);
+			BIF_ThemeColorShade(TH_GRID, 16);
 			for(a=0; a<step; a++) {
 				glBegin(GL_LINE_STRIP);
 				glVertex2fv(vec1); glVertex2fv(vec2);
@@ -256,7 +256,7 @@ void draw_ipogrid(void)
 		}
 	}
 	
-	BIF_ThemeColorShade(curarea, TH_GRID, -50);
+	BIF_ThemeColorShade(TH_GRID, -50);
 	
 	if (curarea->spacetype!=SPACE_ACTION && curarea->spacetype!=SPACE_NLA)
 	{	/* Horizontal axis */
@@ -615,7 +615,7 @@ void drawscroll(int disptype)
 	
 	if(G.v2d->scroll & HOR_SCROLL) {
 		
-		BIF_ThemeColorShade(curarea, TH_SHADE1, light);
+		BIF_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
 		
 		/* slider */
@@ -629,11 +629,11 @@ void drawscroll(int disptype)
 		
 		if(horxmin > horxmax) horxmin= horxmax;
 		
-		BIF_ThemeColorShade(curarea, TH_SHADE1, dark);
+		BIF_ThemeColorShade(TH_SHADE1, dark);
 		glRecti(horxmin,  hor.ymin,  horxmax,  hor.ymax);
 
 		/* decoration bright line */
-		BIF_ThemeColorShade(curarea, TH_SHADE1, lighter);
+		BIF_ThemeColorShade(TH_SHADE1, lighter);
 		sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
 
 		/* the numbers: convert ipogrid_startx and -dx to scroll coordinates */
@@ -643,7 +643,7 @@ void drawscroll(int disptype)
 		dfac= (ipogrid_dx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 		dfac= dfac*(hor.xmax-hor.xmin);
 		
-		BIF_ThemeColor(curarea, TH_TEXT);
+		BIF_ThemeColor(TH_TEXT);
 		val= ipogrid_startx;
 		while(fac < hor.xmax) {
 			
@@ -675,7 +675,7 @@ void drawscroll(int disptype)
 	}
 	
 	if(G.v2d->scroll & VERT_SCROLL) {
-		BIF_ThemeColorShade(curarea, TH_SHADE1, light);
+		BIF_ThemeColorShade(TH_SHADE1, light);
 		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
 		
 		/* slider */
@@ -689,11 +689,11 @@ void drawscroll(int disptype)
 		
 		if(vertymin > vertymax) vertymin= vertymax;
 		
-		BIF_ThemeColorShade(curarea, TH_SHADE1, dark);
+		BIF_ThemeColorShade(TH_SHADE1, dark);
 		glRecti(vert.xmin,  vertymin,  vert.xmax,  vertymax);
 
 		/* decoration black line */
-		BIF_ThemeColorShade(curarea, TH_SHADE1, darker);
+		BIF_ThemeColorShade(TH_SHADE1, darker);
 		if(G.v2d->scroll & HOR_SCROLL) 
 			sdrawline(vert.xmax, vert.ymin+SCROLLH, vert.xmax, vert.ymax);
 		else 
@@ -707,7 +707,7 @@ void drawscroll(int disptype)
 		dfac= dfac*(vert.ymax-vert.ymin-SCROLLH);
 		
 		if(curarea->spacetype==SPACE_SEQ) {
-			BIF_ThemeColor(curarea, TH_TEXT);
+			BIF_ThemeColor(TH_TEXT);
 			val= ipogrid_starty;
 			fac+= 0.5*dfac;
 			while(fac < vert.ymax) {
@@ -722,7 +722,7 @@ void drawscroll(int disptype)
 			/* No digits on vertical axis in action mode! */
 		}
 		else {
-			BIF_ThemeColor(curarea, TH_TEXT);
+			BIF_ThemeColor(TH_TEXT);
 			val= ipogrid_starty;
 			while(fac < vert.ymax) {
 				scroll_prstr((float)(vert.xmax)-14.0, fac, val, 'v', disptype);
@@ -750,7 +750,7 @@ static void draw_ipobuts(SpaceIpo *sipo)
 		if(tot<area->winy) sipo->butofs= 0;
 	}
 	
-	BIF_ThemeColor(curarea, TH_SHADE2);
+	BIF_ThemeColor(TH_SHADE2);
 	glRects(v2d->mask.xmax,  0,  area->winx,  area->winy);
 	
 	cpack(0x0);
@@ -840,14 +840,14 @@ static void draw_ipovertices(int sel)
 		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
 			
 			if(G.sipo->showkey) {
-				if(sel) BIF_ThemeColor(curarea, TH_TEXT_HI);
-				 else BIF_ThemeColor(curarea, TH_TEXT);
+				if(sel) BIF_ThemeColor(TH_TEXT_HI);
+				 else BIF_ThemeColor(TH_TEXT);
 			} else if(ei->flag & IPO_EDIT) {
-				if(sel) BIF_ThemeColor(curarea, TH_VERTEX_SELECT); 
-				else BIF_ThemeColor(curarea, TH_VERTEX);
+				if(sel) BIF_ThemeColor(TH_VERTEX_SELECT); 
+				else BIF_ThemeColor(TH_VERTEX);
 			} else {
-				if(sel) BIF_ThemeColor(curarea, TH_TEXT_HI);
-				 else BIF_ThemeColor(curarea, TH_TEXT);
+				if(sel) BIF_ThemeColor(TH_TEXT_HI);
+				 else BIF_ThemeColor(TH_TEXT);
 				 
 				val= (ei->icu->flag & IPO_SELECT)!=0;
 				if(sel != val) continue;
@@ -1008,7 +1008,7 @@ static void draw_ipocurves(int sel)
 				icu= ei->icu;	
 				
 				/* curve */
-				if(G.sipo->showkey) BIF_ThemeColor(curarea, TH_TEXT); 
+				if(G.sipo->showkey) BIF_ThemeColor(TH_TEXT); 
 				else cpack(ei->col);
 				
 				/* cyclic */
@@ -1204,7 +1204,7 @@ static void draw_cfra(SpaceIpo *sipo)
 	vec[0]*= G.scene->r.framelen;
 	
 	vec[1]= v2d->cur.ymin;
-	BIF_ThemeColor(curarea, TH_HILITE);
+	BIF_ThemeColor(TH_HILITE);
 	glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);
@@ -1218,7 +1218,7 @@ static void draw_cfra(SpaceIpo *sipo)
 		if(ob && ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
 			vec[0]-= ob->sf;
 			
-			BIF_ThemeColorShade(curarea, TH_HILITE, -30);
+			BIF_ThemeColorShade(TH_HILITE, -30);
 			
 			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec);
@@ -1309,7 +1309,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 	v2d->hor.xmax+=IPOBUTX;
 	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
 
-	BIF_GetThemeColor3fv(sa, TH_BACK, col);
+	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0); 
 
 	if (sipo->pin)

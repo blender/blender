@@ -378,7 +378,7 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 
-	BIF_GetThemeColor3fv(sa, TH_BACK, col);
+	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 

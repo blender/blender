@@ -246,6 +246,8 @@ void areawinset(short win)
 			return;
 		}
 		
+		BIF_SetTheme(curarea);
+		
 		switch(curarea->spacetype) {
 		case SPACE_VIEW3D:
 			G.vd= curarea->spacedata.first;
@@ -300,8 +302,8 @@ void headerbox(ScrArea *area)
 	glClearColor(SCR_BACK, SCR_BACK, SCR_BACK, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	if(area_is_active_area(area)) BIF_ThemeColor(area, TH_HEADER);
-	else BIF_ThemeColorShade(area, TH_HEADER, -20);
+	if(area_is_active_area(area)) BIF_ThemeColor(TH_HEADER);
+	else BIF_ThemeColorShade(TH_HEADER, -20);
 	
 	/* weird values here... is because of window matrix that centres buttons */
 	if(area->headertype==HEADERTOP) {

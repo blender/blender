@@ -362,24 +362,39 @@ enum {
 
 struct bTheme;
 
-void 	BIF_InitThemeColors(void);
-void 	BIF_ThemeColor(struct ScrArea *sa, int colorid);
-void 	BIF_ThemeColor4(struct ScrArea *sa, int colorid);
-void 	BIF_ThemeColorShade(struct ScrArea *sa, int colorid, int offset);
-void 	BIF_ThemeColorBlend(struct ScrArea *sa, int colorid1, int colorid2, float fac);
+// THE CODERS API FOR THEMES:
 
-// get only one value, not scaled
-float 	BIF_GetThemeColorf(struct ScrArea *sa, int colorid);
+// sets the color
+void 	BIF_ThemeColor(int colorid);
+
+// sets the color plus alpha
+void 	BIF_ThemeColor4(int colorid);
+
+// sets color plus offset for shade
+void 	BIF_ThemeColorShade(int colorid, int offset);
+
+// sets color, which is blend between two theme colors
+void 	BIF_ThemeColorBlend(int colorid1, int colorid2, float fac);
+
+// returns one value, not scaled
+float 	BIF_GetThemeColorf(int colorid);
+
 // get three color values, scaled to 0.0-1.0 range
-void 	BIF_GetThemeColor3fv(struct ScrArea *sa, int colorid, float *col);
-// get the byte values
-void 	BIF_GetThemeColor3ubv(struct ScrArea *sa, int colorid, char *col);
-void 	BIF_GetThemeColor4ubv(struct ScrArea *sa, int colorid, char *col);
+void 	BIF_GetThemeColor3fv(int colorid, float *col);
 
+// get the 3 or 4 byte values
+void 	BIF_GetThemeColor3ubv(int colorid, char *col);
+void 	BIF_GetThemeColor4ubv(int colorid, char *col);
+
+
+// internal (blender) usage only, for init and set active
+void 	BIF_InitTheme(void);
+void 	BIF_SetTheme(struct ScrArea *sa);
 void	BIF_resources_init		(void);
 void	BIF_resources_free		(void);
 
 
+// icon API
 int		BIF_get_icon_width		(BIFIconID icon);
 int		BIF_get_icon_height		(BIFIconID icon);
 void	BIF_draw_icon			(BIFIconID icon);

@@ -2209,6 +2209,7 @@ void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				bTheme *btheme= U.themes.first;
 				BLI_remlink(&U.themes, btheme);
 				MEM_freeN(btheme);
+				BIF_SetTheme(curarea); // prevent usage of old theme in calls	
 				addqueue(sa->win, REDRAW, 1);
 			}
 			else if(val==B_NAME_THEME) {

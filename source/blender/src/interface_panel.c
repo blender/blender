@@ -677,7 +677,7 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
 
 	
-	BIF_ThemeColor(curarea, TH_TEXT_HI);
+	BIF_ThemeColor(TH_TEXT_HI);
 	
 	if(dir=='h') {
 		ui_draw_anti_tria( x, y, x, y+10.0, x+6, y+5.25);
@@ -758,11 +758,11 @@ static void ui_draw_panel_header(uiBlock *block)
 	if(nr==1) {
 		/* active tab */
 		/*uiSetRoundBox(3);
-		BIF_ThemeColorShade(curarea, TH_HEADER, -3);
+		BIF_ThemeColorShade(TH_HEADER, -3);
 		uiRoundBox(2+block->minx+pnl_icons, panel->sizey-1, block->maxx, panel->sizey+PNL_HEADER, 10);
 		*/
 
-		BIF_ThemeColor(curarea, TH_TEXT_HI);
+		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(4+block->minx+pnl_icons, block->maxy+5);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 1);
 		return;
@@ -776,10 +776,10 @@ static void ui_draw_panel_header(uiBlock *block)
 		else if(pa==panel) {
 			/* active tab */
 			uiSetRoundBox(3);
-			BIF_ThemeColorShade(curarea, TH_HEADER, -3);
+			BIF_ThemeColorShade(TH_HEADER, -3);
 			uiRoundBox(2+pnl_icons+a*width, panel->sizey-1, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 
-			BIF_ThemeColor(curarea, TH_TEXT);
+			BIF_ThemeColor(TH_TEXT);
 			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
@@ -789,10 +789,10 @@ static void ui_draw_panel_header(uiBlock *block)
 		else if(pa->paneltab==panel) {
 			/* not active tab */
 			
-			BIF_ThemeColorShade(curarea, TH_HEADER, -60);
+			BIF_ThemeColorShade(TH_HEADER, -60);
 			uiRoundBox(2+pnl_icons+a*width, panel->sizey, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 			
-			BIF_ThemeColor(curarea, TH_TEXT_HI);
+			BIF_ThemeColor(TH_TEXT_HI);
 			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 1);
@@ -805,7 +805,7 @@ static void ui_draw_panel_header(uiBlock *block)
 	// dragger
 	/*
 	uiSetRoundBox(15);
-	BIF_ThemeColorShade(curarea, TH_HEADER, -70);
+	BIF_ThemeColorShade(TH_HEADER, -70);
 	uiRoundBox(panel->sizex-PNL_ICON+5, panel->sizey+5, panel->sizex-5, panel->sizey+PNL_HEADER-5, 5);
 	*/
 	
@@ -825,23 +825,23 @@ void ui_draw_panel(uiBlock *block)
 	
 	if(panel->flag & PNL_CLOSEDY) {
 		uiSetRoundBox(15);
-		BIF_ThemeColorShade(curarea, TH_HEADER, -30);
+		BIF_ThemeColorShade(TH_HEADER, -30);
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		
 		// title
 		ofsx= PNL_ICON+8;
 		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
-		BIF_ThemeColor(curarea, TH_TEXT_HI);
+		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(4+block->minx+ofsx, block->maxy+5);
 		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS), 1);
 
 		//  border
 		if(panel->flag & PNL_SELECT) {
-			BIF_ThemeColorShade(curarea, TH_HEADER, -120);
+			BIF_ThemeColorShade(TH_HEADER, -120);
 			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 		if(panel->flag & PNL_OVERLAP) {
-			BIF_ThemeColor(curarea, TH_TEXT_HI);
+			BIF_ThemeColor(TH_TEXT_HI);
 			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 	
@@ -851,11 +851,11 @@ void ui_draw_panel(uiBlock *block)
 		int a, end, ofs;
 		
 		uiSetRoundBox(15);
-		BIF_ThemeColorShade(curarea, TH_HEADER, -30);
+		BIF_ThemeColorShade(TH_HEADER, -30);
 		uiRoundBox(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 	
 		// title, only capitals for now
-		BIF_ThemeColor(curarea, TH_TEXT_HI);
+		BIF_ThemeColor(TH_TEXT_HI);
 		str[1]= 0;
 		end= strlen(panel->panelname);
 		ofs= 20;
@@ -870,11 +870,11 @@ void ui_draw_panel(uiBlock *block)
 		
 		//  border
 		if(panel->flag & PNL_SELECT) {
-			BIF_ThemeColorShade(curarea, TH_HEADER, -120);
+			BIF_ThemeColorShade(TH_HEADER, -120);
 			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 		}
 		if(panel->flag & PNL_OVERLAP) {
-			BIF_ThemeColor(curarea, TH_TEXT_HI);
+			BIF_ThemeColor(TH_TEXT_HI);
 			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 		}
 	
@@ -884,12 +884,12 @@ void ui_draw_panel(uiBlock *block)
 		uiSetRoundBox(3);
 
 		if(panel->control & UI_PNL_SOLID) {
-			BIF_ThemeColorShade(curarea, TH_HEADER, -40);
+			BIF_ThemeColorShade(TH_HEADER, -40);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			// blend now for panels in 3d window, test...
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
-			BIF_ThemeColor4(curarea, TH_PANEL);
+			BIF_ThemeColor4(TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
 			//if(align) {
@@ -903,12 +903,12 @@ void ui_draw_panel(uiBlock *block)
 			glDisable(GL_BLEND);
 		}
 		else if(panel->control & UI_PNL_TRANSP) {
-			BIF_ThemeColorShade(curarea, TH_HEADER, -30);
+			BIF_ThemeColorShade(TH_HEADER, -30);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
-			BIF_ThemeColor4(curarea, TH_PANEL);
+			BIF_ThemeColor4(TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
 			glDisable(GL_BLEND);
@@ -920,11 +920,11 @@ void ui_draw_panel(uiBlock *block)
 		//  border
 		uiSetRoundBox(3);
 		if(panel->flag & PNL_SELECT) {
-			BIF_ThemeColorShade(curarea, TH_HEADER, -120);
+			BIF_ThemeColorShade(TH_HEADER, -120);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 		if(panel->flag & PNL_OVERLAP) {
-			BIF_ThemeColor(curarea, TH_TEXT_HI);
+			BIF_ThemeColor(TH_TEXT_HI);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 		
@@ -1085,7 +1085,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 		}
 		else {
 			psnext->pa->ofsx = get_panel_real_ofsx(ps->pa)+PNL_DIST;
-			psnext->pa->ofsy = ps->pa->ofsy;
+			psnext->pa->ofsy = ps->pa->ofsy + ps->pa->sizey - psnext->pa->sizey;
 		}
 	}
 	

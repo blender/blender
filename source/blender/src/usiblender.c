@@ -142,7 +142,6 @@ void BIF_read_file(char *name)
 
 int BIF_read_homefile(void)
 {
-	bTheme *btheme;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
 	int success;
@@ -164,7 +163,9 @@ int BIF_read_homefile(void)
 		success = BKE_read_file_from_memory(datatoc_B_blend, datatoc_B_blend_size, NULL);
 	}
 	strcpy(G.sce, scestr);
-
+	
+	BIF_InitTheme();	// sets default again
+	
 	if (success) {
 		G.save_over = 0;
 
@@ -490,7 +491,6 @@ void BIF_init(void)
 	init_draw_rects();	/* drawobject.c */
 	init_gl_stuff();	/* drawview.c */
 	BIF_read_homefile(); 
-	BIF_InitThemeColors();	/* after read home file! */
 	readBlog();
 	strcpy(G.lib, G.sce);
 

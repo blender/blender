@@ -732,11 +732,11 @@ static void tekenvertslatt(short sel)
 	float size;
 	int a, uxt, u, vxt, v, wxt, w;
 
-	size= BIF_GetThemeColorf(curarea, TH_VERTEX_SIZE);
+	size= BIF_GetThemeColorf(TH_VERTEX_SIZE);
 	glPointSize(size);
 
-	if(sel) BIF_ThemeColor(curarea, TH_VERTEX_SELECT);
-	else BIF_ThemeColor(curarea, TH_VERTEX);
+	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
+	else BIF_ThemeColor(TH_VERTEX);
 
 	glBegin(GL_POINTS);
 
@@ -1036,11 +1036,11 @@ void tekenvertices(short sel)
 	EditVert *eve;
 	float size;
 	
-	size= BIF_GetThemeColorf(curarea, TH_VERTEX_SIZE);
+	size= BIF_GetThemeColorf(TH_VERTEX_SIZE);
 	glPointSize(size);
 	
-	if(sel) BIF_ThemeColor(curarea, TH_VERTEX_SELECT);
-	else BIF_ThemeColor(curarea, TH_VERTEX);
+	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
+	else BIF_ThemeColor(TH_VERTEX);
 
 	glBegin(GL_POINTS);
 
@@ -2400,8 +2400,8 @@ static void drawmeshwire(Object *ob)
 		if(G.f & (G_FACESELECT+G_DRAWFACES)) {	/* faces */
 			char col1[4], col2[4];
 			
-			BIF_GetThemeColor4ubv(curarea, TH_FACE, col1);
-			BIF_GetThemeColor4ubv(curarea, TH_FACE_SELECT, col2);
+			BIF_GetThemeColor4ubv(TH_FACE, col1);
+			BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
 			
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
@@ -2459,7 +2459,7 @@ static void drawmeshwire(Object *ob)
 		
 		if(G.f & G_DRAWEDGES) {	/* Use edge Highlighting */
 			char col[4];
-			BIF_GetThemeColor3ubv(curarea, TH_EDGE_SELECT, col);
+			BIF_GetThemeColor3ubv(TH_EDGE_SELECT, col);
 			glShadeModel(GL_SMOOTH);
 			
 			eed= G.eded.first;
@@ -2785,10 +2785,10 @@ static void tekenvertsN(Nurb *nu, short sel)
 
 	if(nu->hide) return;
 
-	if(sel) BIF_ThemeColor(curarea, TH_VERTEX_SELECT);
-	else BIF_ThemeColor(curarea, TH_VERTEX);
+	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
+	else BIF_ThemeColor(TH_VERTEX);
 
-	size= BIF_GetThemeColorf(curarea, TH_VERTEX_SIZE);
+	size= BIF_GetThemeColorf(TH_VERTEX_SIZE);
 	glPointSize(size);
 	
 	glBegin(GL_POINTS);
@@ -3453,15 +3453,15 @@ void draw_object(Base *base)
 	if((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) {
 		project_short(ob->obmat[3], &base->sx);
 		
-		if(G.moving==1 && (base->flag & (SELECT+BA_PARSEL))) BIF_ThemeColor(curarea, TH_TRANSFORM);
+		if(G.moving==1 && (base->flag & (SELECT+BA_PARSEL))) BIF_ThemeColor(TH_TRANSFORM);
 		else {
 		
-			BIF_ThemeColor(curarea, TH_WIRE);
+			BIF_ThemeColor(TH_WIRE);
 			if((G.scene->basact)==base) {
-				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(curarea, TH_ACTIVE);
+				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(TH_ACTIVE);
 			}
 			else {
-				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(curarea, TH_SELECT);
+				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(TH_SELECT);
 			}
 			
 			// no theme yet

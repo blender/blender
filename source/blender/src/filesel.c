@@ -887,12 +887,12 @@ static void draw_filescroll(SpaceFile *sfile)
 
 	if(scrollrct.ymin+10 >= scrollrct.ymax) return;
 	
-	BIF_ThemeColor(curarea, TH_BACK);
+	BIF_ThemeColor(TH_BACK);
 	glRecti(scrollrct.xmin,  scrollrct.ymin,  scrollrct.xmax,  scrollrct.ymax);
 
 	uiEmboss(scrollrct.xmin, scrollrct.ymin, scrollrct.xmax, scrollrct.ymax, 1);
 
-	BIF_ThemeColor(curarea, TH_HEADER);
+	BIF_ThemeColor(TH_HEADER);
 	glRecti(bar.xmin+2,  bar.ymin+2,  bar.xmax-2,  bar.ymax-2);
 
 	uiEmboss(bar.xmin+2, bar.ymin+2, bar.xmax-2, bar.ymax-2, filescrollselect);
@@ -902,11 +902,11 @@ static void draw_filescroll(SpaceFile *sfile)
 static void regelrect(int id, int x, int y)
 {
 	if(id & ACTIVE) {
-		if(id & HILITE) BIF_ThemeColorShade(curarea, TH_HILITE, 20);
-		else BIF_ThemeColor(curarea, TH_HILITE);
+		if(id & HILITE) BIF_ThemeColorShade(TH_HILITE, 20);
+		else BIF_ThemeColor(TH_HILITE);
 	}
-	else if(id & HILITE) BIF_ThemeColorShade(curarea, TH_BACK, 20);
-	else BIF_ThemeColor(curarea, TH_BACK);
+	else if(id & HILITE) BIF_ThemeColorShade(TH_BACK, 20);
+	else BIF_ThemeColor(TH_BACK);
 	
 	glRects(x-17,  y-3,  x+collumwidth-21,  y+11);
 
@@ -952,8 +952,8 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 		glRects(x-14,  y,  x-8,  y+7);
 	}
 	
-	if(S_ISDIR(files->type)) BIF_ThemeColor(curarea, TH_TEXT_HI);
-	else BIF_ThemeColor(curarea, TH_TEXT);
+	if(S_ISDIR(files->type)) BIF_ThemeColor(TH_TEXT_HI);
+	else BIF_ThemeColor(TH_TEXT);
 
 	s = files->string;
 	if(s) {
@@ -1095,7 +1095,7 @@ static void draw_filetext(SpaceFile *sfile)
 
 
 	/* box */
-	BIF_ThemeColor(curarea, TH_BACK);
+	BIF_ThemeColor(TH_BACK);
 	glRecti(textrct.xmin,  textrct.ymin,  textrct.xmax,  textrct.ymax);
 
 	/* collums */
@@ -1128,7 +1128,7 @@ static void draw_filetext(SpaceFile *sfile)
 	/* clear drawing errors, with text at the right hand side: */
 	uiEmboss(textrct.xmin, textrct.ymin, textrct.xmax, textrct.ymax, 1);
 	
-	BIF_ThemeColor(curarea, TH_HEADER);
+	BIF_ThemeColor(TH_HEADER);
 	glRecti(textrct.xmax+2,  textrct.ymin,  textrct.xmax+10,  textrct.ymax);
 }
 
@@ -1144,7 +1144,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 
 	myortho2(-0.5, sa->winx-0.5, -0.5, sa->winy-0.5);
 
-	BIF_GetThemeColor3fv(sa, TH_HEADER, col);	// basic undrawn color is border
+	BIF_GetThemeColor3fv(TH_HEADER, col);	// basic undrawn color is border
 	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 

@@ -428,7 +428,7 @@ static void drawgrid_draw(float wx, float wy, float x, float y, float dx)
 
 }
 
-static void drawgrid(ScrArea *sa)
+static void drawgrid(void)
 {
 	/* extern short bgpicmode; */
 	float wx, wy, x, y, fw, fx, fy, dx;
@@ -460,7 +460,7 @@ static void drawgrid(ScrArea *sa)
 	if(dx==0) dx= fabs(y-(wy)*fy/fw);
 
 	/* check zoom out */
-	BIF_ThemeColor(sa, TH_GRID);
+	BIF_ThemeColor(TH_GRID);
 	persp(PERSP_WIN);
 
 	if(dx<6.0) {
@@ -473,23 +473,23 @@ static void drawgrid(ScrArea *sa)
 				dx*=10;
 				if(dx<6.0);
 				else {
-					BIF_ThemeColor(sa, TH_GRID);
+					BIF_ThemeColor(TH_GRID);
 					drawgrid_draw(wx, wy, x, y, dx);
 				}
 			}
 			else {	// start blending out
-				BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+				BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 				drawgrid_draw(wx, wy, x, y, dx);
 			
-				BIF_ThemeColor(sa, TH_GRID);
+				BIF_ThemeColor(TH_GRID);
 				drawgrid_draw(wx, wy, x, y, 10*dx);
 			}
 		}
 		else {	// start blending out (6 < dx < 60)
-			BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+			BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 			drawgrid_draw(wx, wy, x, y, dx);
 			
-			BIF_ThemeColor(sa, TH_GRID);
+			BIF_ThemeColor(TH_GRID);
 			drawgrid_draw(wx, wy, x, y, 10*dx);
 		}
 	}
@@ -499,34 +499,34 @@ static void drawgrid(ScrArea *sa)
 			if(dx>60.0) {		// start blending in
 				dx/= 10.0;
 				if(dx>60.0) {
-					BIF_ThemeColor(sa, TH_GRID);
+					BIF_ThemeColor(TH_GRID);
 					drawgrid_draw(wx, wy, x, y, dx);
 				}
 				else {
-					BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+					BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 					drawgrid_draw(wx, wy, x, y, dx);
-					BIF_ThemeColor(sa, TH_GRID);
+					BIF_ThemeColor(TH_GRID);
 					drawgrid_draw(wx, wy, x, y, dx*10);
 				}
 			}
 			else {
-				BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+				BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 				drawgrid_draw(wx, wy, x, y, dx);
-				BIF_ThemeColor(sa, TH_GRID);
+				BIF_ThemeColor(TH_GRID);
 				drawgrid_draw(wx, wy, x, y, dx*10);
 			}
 		}
 		else {
-			BIF_ThemeColorBlend(curarea, TH_BACK, TH_GRID, dx/60.0);
+			BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 			drawgrid_draw(wx, wy, x, y, dx);
-			BIF_ThemeColor(sa, TH_GRID);
+			BIF_ThemeColor(TH_GRID);
 			drawgrid_draw(wx, wy, x, y, dx*10);
 		}
 	}
 
 	x+= (wx); 
 	y+= (wy);
-	BIF_GetThemeColor3ubv(curarea, TH_GRID, col);
+	BIF_GetThemeColor3ubv(TH_GRID, col);
 	
 	/* center cross */
 	if(G.vd->view==3) glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36); /* y-as */
@@ -544,7 +544,7 @@ static void drawgrid(ScrArea *sa)
 }
 
 
-static void drawfloor(ScrArea *sa)
+static void drawfloor(void)
 {
 	View3D *vd;
 	float vert[3], grid;
@@ -560,8 +560,8 @@ static void drawfloor(ScrArea *sa)
 	gridlines= vd->gridlines/2;
 	grid= gridlines*vd->grid;
 	
-	BIF_ThemeColor(sa, TH_GRID);
-	BIF_GetThemeColor3ubv(curarea, TH_GRID, col);
+	BIF_ThemeColor(TH_GRID);
+	BIF_GetThemeColor3ubv(TH_GRID, col);
 	
 	for(a= -gridlines;a<=gridlines;a++) {
 
@@ -569,7 +569,7 @@ static void drawfloor(ScrArea *sa)
 			glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36);	/* y-as */
 		}
 		else if(a==1) {
-			BIF_ThemeColor(sa, TH_GRID);
+			BIF_ThemeColor(TH_GRID);
 		}
 		
 	
@@ -582,14 +582,14 @@ static void drawfloor(ScrArea *sa)
 		glEnd();
 	}
 	
-	BIF_ThemeColor(sa, TH_GRID);
+	BIF_ThemeColor(TH_GRID);
 	
 	for(a= -gridlines;a<=gridlines;a++) {
 		if(a==0) {
 			glColor3ub(col[0]>219?255:col[0]+36, col[1]<26?0:col[1]-26, col[2]<26?0:col[2]-26);	/* x-as */
 		}
 		else if(a==1) {
-			BIF_ThemeColor(sa, TH_GRID);
+			BIF_ThemeColor(TH_GRID);
 		}
 	
 		glBegin(GL_LINE_STRIP);
@@ -846,7 +846,7 @@ static void draw_selected_name(char *name)
 
 	sprintf(info, "(%d) %s", CFRA, name);
 
-	BIF_ThemeColor(curarea, TH_TEXT_HI);
+	BIF_ThemeColor(TH_TEXT_HI);
 	glRasterPos2i(30,  10);
 	BMF_DrawString(G.fonts, info);
 }
@@ -1226,7 +1226,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 		else {
 			float col[3];
-			BIF_GetThemeColor3fv(sa, TH_BACK, col);
+			BIF_GetThemeColor3fv(TH_BACK, col);
 			glClearColor(col[0], col[1], col[2], 0.0); 
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1235,7 +1235,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 	else {
 		float col[3];
-		BIF_GetThemeColor3fv(sa, TH_BACK, col);
+		BIF_GetThemeColor3fv(TH_BACK, col);
 		glClearColor(col[0], col[1], col[2], 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
@@ -1244,7 +1244,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 
 	if(G.vd->view==0 || G.vd->persp!=0) {
-		drawfloor(sa);
+		drawfloor();
 		if(G.vd->persp==2) {
 			if(G.scene->world) {
 				if(G.scene->world->mode & WO_STARS) RE_make_stars(star_stuff_init_func,
@@ -1255,7 +1255,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 	else {
-		drawgrid(sa);
+		drawgrid();
 
 		if(G.vd->flag & V3D_DISPBGPIC) {
 			draw_bgpic();
