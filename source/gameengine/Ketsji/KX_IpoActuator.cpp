@@ -191,22 +191,24 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	bool bNegativeEvent = false;
 	int numevents = m_events.size();
 
-	for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
+	if (frame)
 	{
-		i--;
-		if ((*i)->GetNumber() == 0.0f)
-			bNegativeEvent = true;
-		
-		(*i)->Release();
-		m_events.pop_back();
-	}
-
-	if (bNegativeEvent)
-	{
-		RemoveAllEvents();
+		for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
+		{
+			--i;
+			if ((*i)->GetNumber() == 0.0f)
+				bNegativeEvent = true;
+			
+			(*i)->Release();
+		}
+		m_events.clear();
+	
+		if (bNegativeEvent)
+		{
+			RemoveAllEvents();
+		}
 	}
 	
-
 	double  start_smaller_then_end = ( m_startframe < m_endframe ? 1.0 : -1.0);
 
 	bool result=true;

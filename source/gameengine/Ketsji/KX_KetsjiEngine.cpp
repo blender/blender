@@ -797,6 +797,8 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 			left, right, bottom, top, nearfrust, farfrust);
 	
 		cam->SetProjectionMatrix(projmat);
+		
+		// Otherwise the projection matrix for each eye will be the same...
 		if (m_rasterizer->Stereo())
 			cam->InvalidateProjectionMatrix();
 	}
