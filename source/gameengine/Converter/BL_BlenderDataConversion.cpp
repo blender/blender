@@ -162,28 +162,39 @@
 
 static unsigned int KX_rgbaint2uint_new(unsigned int icol)
 {
-	unsigned int temp=0;
-	unsigned char *cp= (unsigned char *)&temp;
-	unsigned char *src= (unsigned char *)&icol;
-	cp[3]= src[0];//alpha
-	cp[2]= src[1];//blue
-	cp[1]= src[2];//green
-	cp[0]= src[3];//red
-	return temp;
+	union
+	{
+		unsigned int integer;
+		unsigned char cp[4];
+	} out_colour, in_colour;
+	
+	in_colour.integer = icol;
+	out_colour.cp[0] = in_colour.cp[3]; // red
+	out_colour.cp[1] = in_colour.cp[2]; // green
+	out_colour.cp[2] = in_colour.cp[1]; // blue
+	out_colour.cp[3] = in_colour.cp[0]; // alpha
+	
+	return out_colour.integer;
 }
 
 /* Now the real converting starts... */
 static unsigned int KX_Mcol2uint_new(MCol col)
 {
 	/* color has to be converted without endian sensitivity. So no shifting! */
-	unsigned int temp=0;
-	unsigned char *cp= (unsigned char *)&temp;
-	unsigned char *src = (unsigned char *) &col;
-	cp[0]= src[3]; // red
-	cp[1]= src[2]; // green
-	cp[2]= src[1]; // blue
-	cp[3]= src[0]; // Alpha
-	return temp;
+	union
+	{
+		MCol col;
+		unsigned int integer;
+		unsigned char cp[4];
+	} out_colour, in_colour;
+
+	in_colour.col = col;
+	out_colour.cp[0] = in_colour.cp[3]; // red
+	out_colour.cp[1] = in_colour.cp[2]; // green
+	out_colour.cp[2] = in_colour.cp[1]; // blue
+	out_colour.cp[3] = in_colour.cp[0]; // alpha
+	
+	return out_colour.integer;
 }
 
 RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools* rendertools, KX_Scene* scene, KX_BlenderSceneConverter *converter)
@@ -269,6 +280,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 			
 				}
 	
+				Material* ma = give_current_material(blenderobj, 1 /* mface->mat_nr */);
+				const char* matnameptr = (ma ? ma->id.name : "");
 				
 				bool polyvisible = true;
 				if (mesh->tface && tface)
@@ -293,11 +306,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					{
 						uv3 = MT_Point2(tface->uv[3]);
 						rgb3 = KX_rgbaint2uint_new(tface->col[3]);
-					} else {
-					}
-	
-	
-				} else
+					} 
+				} 
+				else
 				{
 					//
 					if (mmcol)
@@ -316,27 +327,41 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					
 						mmcol += 4;
 					}
-					else{
+					else
+					{
 						// If there are no vertex colors OR texfaces,
 						// Initialize face to white and set COLLSION true and everything else FALSE
-						rgb0 = KX_rgbaint2uint_new(0xFFFFFFFF);
-						rgb1 = KX_rgbaint2uint_new(0xFFFFFFFF);
-						rgb2 = KX_rgbaint2uint_new(0xFFFFFFFF);
-						
-						if (mface->v4)
-							rgb3 = KX_rgbaint2uint_new(0xFFFFFFFF);
-	
+						unsigned int colour = 0xFFFFFFFFL;
 						mode = TF_DYNAMIC;	
 						transp = TF_SOLID;
 						tile = 0;
+						if (ma)
+						{
+							// If we have a material, take the default colour from the material.
+							union
+							{
+								unsigned char cp[4];
+								unsigned int integer;
+							} col_converter;
+							
+							col_converter.cp[3] = (unsigned char) (ma->r*255.0);
+							col_converter.cp[2] = (unsigned char) (ma->g*255.0);
+							col_converter.cp[1] = (unsigned char) (ma->b*255.0);
+							col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
+							
+							colour = col_converter.integer;
+						}
+						
+						rgb0 = KX_rgbaint2uint_new(colour);
+						rgb1 = KX_rgbaint2uint_new(colour);
+						rgb2 = KX_rgbaint2uint_new(colour);	
+						
+						if (mface->v4)
+							rgb3 = KX_rgbaint2uint_new(colour);
 					}
 				}
 					
 				
-				Material* ma = give_current_material(blenderobj, 1 /* mface->mat_nr */);
-				const char* matnameptr = (ma ? ma->id.name : "");
-				
-	
 				bool istriangle = (mface->v4==0);
 				bool zsort = ma?(ma->mode & MA_ZTRA) != 0:false;
 				
