@@ -72,6 +72,7 @@
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_deform.h"		// lattice_modifier()
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -121,6 +122,7 @@ static void draw_bounding_volume(Object *ob);
 // Materials start counting at # one....
 #define MAXMATBUF (MAXMAT + 1)
 static float matbuf[MAXMATBUF][2][4];
+static int last_gl_matnr=-1;
 
 static void init_gl_materials(Object *ob)
 {
@@ -159,13 +161,16 @@ static void init_gl_materials(Object *ob)
 			matbuf[a][1][3]= 1.0;
 		}
 	}
+
+	last_gl_matnr = -1;
 }
 
 static void set_gl_material(int nr)
 {
-	if(nr<MAXMATBUF) {
+	if(nr<MAXMATBUF && nr!=last_gl_matnr) {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matbuf[nr][0]);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matbuf[nr][1]);
+		last_gl_matnr = nr;
 	}
 }
 
@@ -628,7 +633,7 @@ static void drawlamp(Object *ob)
 		glVertex3fv(vec);
 	glEnd();
 	setlinestyle(0);
-		
+	
 	if(la->type==LA_SPOT && (la->mode & LA_SHAD) ) {
 		tekenshadbuflimits(la, ob->obmat);
 	}
@@ -1171,7 +1176,7 @@ static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col
 	col[1] = (unsigned char)(fb * ((input/2.0f)+0.5f));
 	col[0] = 255;
 }
-static unsigned int *calc_weightpaint_colors(Object *ob) 
+static unsigned char *calc_weightpaint_colors(Object *ob) 
 {
 	Mesh *me = ob->data;
 	MFace *mf = me->mface;
@@ -1190,7 +1195,7 @@ static unsigned int *calc_weightpaint_colors(Object *ob)
 			calc_weightpaint_vert_color(ob, mf->v4, &wtcol[(i*4 + 3)*4]); 
 	}
 	
-	return (unsigned int*) wtcol;
+	return wtcol;
 }
 
 /* ************** DRAW MESH ****************** */
@@ -1203,242 +1208,6 @@ static unsigned int *calc_weightpaint_colors(Object *ob)
  * These routines should not have user interface related
  * logic!!!
  */
-
-static void displistmesh_draw_solid(DispListMesh *dlm, float *nors) 
-{
-	int glmode=-1, shademodel=-1, matnr=-1;
-	int i;
-
-#define PASSVERT(ind) {						\
-	if (shademodel==GL_SMOOTH)				\
-		glNormal3sv(dlm->mvert[(ind)].no);	\
-	glVertex3fv(dlm->mvert[(ind)].co);		\
-}
-
-	glBegin(glmode=GL_QUADS);
-	for (i=0; i<dlm->totface; i++) {
-		MFace *mf= &dlm->mface[i];
-		
-		if (mf->v3) {
-			int new_glmode = mf->v4?GL_QUADS:GL_TRIANGLES;
-			int new_shademodel = (mf->flag&ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
-			int new_matnr = mf->mat_nr+1;
-			
-			if(new_glmode!=glmode || new_shademodel!=shademodel || new_matnr!=matnr) {
-				glEnd();
-
-				if (new_matnr!=matnr) {
-					set_gl_material(matnr=new_matnr);
-				}
-
-				glShadeModel(shademodel=new_shademodel);
-				glBegin(glmode=new_glmode);
-			}
-			
-			if (shademodel==GL_FLAT)
-				glNormal3fv(&nors[i*3]);
-				
-			PASSVERT(mf->v1);
-			PASSVERT(mf->v2);
-			PASSVERT(mf->v3);
-			if (mf->v4)
-				PASSVERT(mf->v4);
-		}
-	}
-	glEnd();
-	
-#undef PASSVERT
-}
-
-static void displistmesh_draw_colored(DispListMesh *dlm, unsigned char *vcols1, unsigned char *vcols2) 
-{
-	int i, lmode;
-	
-	glShadeModel(GL_SMOOTH);
-	if (vcols2)
-		glEnable(GL_CULL_FACE);
-		
-#define PASSVERT(vidx, fidx) {					\
-	unsigned char *col= &colbase[fidx*4];		\
-	glColor3ub(col[3], col[2], col[1]);			\
-	glVertex3fv(dlm->mvert[(vidx)].co);			\
-}
-
-	glBegin(lmode= GL_QUADS);
-	for (i=0; i<dlm->totface; i++) {
-		MFace *mf= &dlm->mface[i];
-		
-		if (mf->v3) {
-			int nmode= mf->v4?GL_QUADS:GL_TRIANGLES;
-			unsigned char *colbase= &vcols1[i*16];
-			
-			if (nmode!=lmode) {
-				glEnd();
-				glBegin(lmode= nmode);
-			}
-			
-			PASSVERT(mf->v1, 0);
-			PASSVERT(mf->v2, 1);
-			PASSVERT(mf->v3, 2);
-			if (mf->v4)
-				PASSVERT(mf->v4, 3);
-			
-			if (vcols2) {
-				unsigned char *colbase= &vcols2[i*16];
-
-				if (mf->v4)
-					PASSVERT(mf->v4, 3);
-				PASSVERT(mf->v3, 2);
-				PASSVERT(mf->v2, 1);
-				PASSVERT(mf->v1, 0);
-			}
-		}
-	}
-	glEnd();
-
-	if (vcols2)
-		glDisable(GL_CULL_FACE);
-	
-#undef PASSVERT
-}
-
-	// draw all edges of derived mesh as lines
-static void draw_ss_edges(DispListMesh *dlm)
-{
-	MVert *mvert= dlm->mvert;
-	int i;
-
-	if (dlm->medge) {
-		MEdge *medge= dlm->medge;
-	
-		glBegin(GL_LINES);
-		for (i=0; i<dlm->totedge; i++, medge++) {
-			glVertex3fv(mvert[medge->v1].co); 
-			glVertex3fv(mvert[medge->v2].co);
-		}
-		glEnd();
-	} else {
-		MFace *mface= dlm->mface;
-
-		for (i=0; i<dlm->totface; i++, mface++) {
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(mvert[mface->v1].co);
-			glVertex3fv(mvert[mface->v2].co);
-			if (mface->v3) {
-				glVertex3fv(mvert[mface->v3].co);
-				if (mface->v4)
-					glVertex3fv(mvert[mface->v4].co);
-			}
-			glEnd();
-		}
-	}
-}
-
-	// draw exterior edges of derived mesh as lines
-	//  o don't draw edges corresponding to hidden edges
-	//  o if useCol is true set color based on selection flag
-	//  o if onlySeams is true, only draw edges with seam set
-	//
-	// this function *must* be called on DLM's with ->medge defined
-static void draw_ss_em_exterior_edges(DispListMesh *dlm, int useColor, char *baseCol, char *selCol, int onlySeams)
-{
-	MEdge *medge= dlm->medge;
-	MVert *mvert= dlm->mvert;
-	int a;
-	
-	glBegin(GL_LINES);
-	for (a=0; a<dlm->totedge; a++, medge++) {
-		if (medge->flag&ME_EDGEDRAW) {
-			EditEdge *eed = dlm->editedge[a];
-			if (eed && eed->h==0 && (!onlySeams || eed->seam)) {
-				if (useColor) {
-					glColor4ubv((eed->f & SELECT)?selCol:baseCol);
-				}
-				glVertex3fv(mvert[medge->v1].co); 
-				glVertex3fv(mvert[medge->v2].co);
-			}
-		}
-	}
-	glEnd();
-}
-
-	// draw exterior edges of derived mesh as lines
-	//
-	// this function *must* be called on DLM's with ->medge defined
-static void draw_ss_exterior_edges(DispListMesh *dlm)
-{
-	MEdge *medge= dlm->medge;
-	MVert *mvert= dlm->mvert;
-	int a;
-	
-	glBegin(GL_LINES);
-	for (a=0; a<dlm->totedge; a++, medge++) {
-		if (medge->flag&ME_EDGEDRAW) {
-			glVertex3fv(mvert[medge->v1].co); 
-			glVertex3fv(mvert[medge->v2].co);
-		}
-	}
-	glEnd();
-}
-
-	// draw edges of edit mesh as lines
-	//  o don't draw edges corresponding to hidden edges
-	//  o if useCol is 0 don't set color
-	//  o if useCol is 1 set color based on edge selection flag
-	//  o if useCol is 2 set color based on vert selection flag
-	//  o if onlySeams is true, only draw edges with seam set
-static void draw_em_edges(EditMesh *em, int useColor, char *baseCol, char *selCol, int onlySeams) 
-{
-	EditEdge *eed;
-
-	glBegin(GL_LINES);
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0 && (!onlySeams || eed->seam)) {
-			if (useColor==1) {
-				glColor4ubv((eed->f&SELECT)?selCol:baseCol);
-			} else if (useColor==2) {
-				glColor4ubv((eed->v1->f&SELECT)?selCol:baseCol);
-			}
-			glVertex3fv(eed->v1->co);
-			if (useColor==2) {
-				glColor4ubv((eed->v2->f&SELECT)?selCol:baseCol);
-			}
-			glVertex3fv(eed->v2->co);
-		}
-	}
-	glEnd();
-}
-
-	// draw editmesh faces as lines
-	//  o no color
-	//  o only if efa->h, efa->f&SELECT, and edges are unhidden
-static void draw_em_sel_faces_as_lines(EditMesh *em)
-{
-	EditFace *efa;
-
-	glBegin(GL_LINES);
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0 && (efa->f & SELECT)) { 
-			if(efa->e1->h==0) {
-				glVertex3fv(efa->v1->co);
-				glVertex3fv(efa->v2->co);
-			}
-			if(efa->e2->h==0) {
-				glVertex3fv(efa->v2->co);
-				glVertex3fv(efa->v3->co);
-			}
-			if(efa->e3->h==0) {
-				glVertex3fv(efa->e3->v1->co);
-				glVertex3fv(efa->e3->v2->co);
-			}
-			if(efa->e4 && efa->e4->h==0) {
-				glVertex3fv(efa->e4->v1->co);
-				glVertex3fv(efa->e4->v2->co);
-			}
-		}
-	}
-	glEnd();
-}
 
 	// draw editmesh face normals as lines
 	//  o no color
@@ -1461,294 +1230,6 @@ static void draw_em_face_normals(EditMesh *em, float normalLength)
 	glEnd();
 }
 
-	// draw faces of derived mesh
-	//  o if useCol is true set color based on selection flag
-static void draw_ss_faces(DispListMesh *dlm, int useColor, char *baseCol, char *selCol) {
-	MFace *mface= dlm->mface;
-	int a;
-
-	for(a=0; a<dlm->totface; a++, mface++) {
-		if(mface->v3) {
-			if (useColor) {
-				EditFace *efa= dlm->editface[a];
-				glColor4ubv((efa->f & SELECT)?selCol:baseCol);
-			}
-			
-			glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
-			glVertex3fv(dlm->mvert[mface->v1].co);
-			glVertex3fv(dlm->mvert[mface->v2].co);
-			glVertex3fv(dlm->mvert[mface->v3].co);
-			if (mface->v4) glVertex3fv(dlm->mvert[mface->v4].co);
-			glEnd();
-		}
-	}
-}
-
-	// draw faces of editmesh
-	//  o if useCol is 1 set color based on selection flag
-	//  o if useCol is 2 set material
-	//  o only draw if efa->h==0
-	//
-	// XXX: Why the discrepancy between hidden faces in this and draw_ss_faces?
-static void draw_em_faces(EditMesh *em, int useColor, char *baseCol, char *selCol, int useNormal) {
-	EditFace *efa;
-	int lastMat = -1;
-
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0) {
-			if (useColor==1) {
-				glColor4ubv((efa->f & SELECT)?selCol:baseCol);
-			} else if (useColor==2) {
-				if (lastMat!=efa->mat_nr+1) {
-					set_gl_material(lastMat = efa->mat_nr+1);
-				}
-			}
-
-			if (useNormal) {
-				glNormal3fv(efa->n);
-			}
-			
-			glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-			glVertex3fv(efa->v1->co);
-			glVertex3fv(efa->v2->co);
-			glVertex3fv(efa->v3->co);
-			if(efa->v4) glVertex3fv(efa->v4->co);
-			glEnd();
-		}
-	}
-}
-
-	// draw verts of mesh as points
-	//  o no color
-	//  o respect build effect if useBuildVars is true
-	//  o draw verts using extverts array if non-NULL
-static void draw_mesh_verts(Object *ob, int useBuildVars, float *extverts)
-{
-	Mesh *me = ob->data;
-	int a, start=0, end=me->totvert;
-	MVert *mvert = me->mvert;
-
-	set_buildvars(ob, &start, &end);
-
-	glBegin(GL_POINTS);
-	if(extverts) {
-		extverts+= 3*start;
-		for(a= start; a<end; a++, extverts+=3) { /* DispList found, Draw displist */
-			glVertex3fv(extverts);
-		}
-	}
-	else {
-		mvert+= start;
-		for(a= start; a<end; a++, mvert++) { /* else Draw mesh verts directly */
-			glVertex3fv(mvert->co);
-		}
-	}
-	glEnd();
-}
-
-	// draw edges of mesh as lines
-	//  o no color
-	//  o respect build effect if useBuildVars is true
-	//  o draw verts using extverts array if non-NULL
-static void draw_mesh_edges(Object *ob, int useBuildVars, float *extverts)
-{
-	Mesh *me = ob->data;
-	int a, start= 0, end= me->totface;
-	MVert *mvert = me->mvert;
-	MFace *mface = me->mface;
-	float *f1, *f2, *f3, *f4;
-
-	if (useBuildVars) {
-		set_buildvars(ob, &start, &end);
-		mface+= start;
-	}
-	
-		// edges can't cope with buildvars, draw with
-		// faces if build is in use.
-	if(me->medge && start==0 && end==me->totface) {
-		MEdge *medge= me->medge;
-		
-		glBegin(GL_LINES);
-		for(a=me->totedge; a>0; a--, medge++) {
-			if(medge->flag & ME_EDGEDRAW) {
-				if(extverts) {
-					f1= extverts+3*medge->v1;
-					f2= extverts+3*medge->v2;
-				}
-				else {
-					f1= (mvert+medge->v1)->co;
-					f2= (mvert+medge->v2)->co;
-				}
-				glVertex3fv(f1); glVertex3fv(f2); 
-			}
-		}
-		glEnd();
-	}
-	else {
-		for(a=start; a<end; a++, mface++) {
-			int test= mface->edcode;
-			
-			if(test) {
-				if(extverts) {
-					f1= extverts+3*mface->v1;
-					f2= extverts+3*mface->v2;
-				}
-				else {
-					f1= (mvert+mface->v1)->co;
-					f2= (mvert+mface->v2)->co;
-				}
-				
-				if(mface->v4) {
-					if(extverts) {
-						f3= extverts+3*mface->v3;
-						f4= extverts+3*mface->v4;
-					}
-					else {
-						f3= (mvert+mface->v3)->co;
-						f4= (mvert+mface->v4)->co;
-					}
-					
-					if(test== ME_V1V2+ME_V2V3+ME_V3V4+ME_V4V1) {
-						glBegin(GL_LINE_LOOP);
-							glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4);
-						glEnd();
-					}
-					else if(test== ME_V1V2+ME_V2V3+ME_V3V4) {
-
-						glBegin(GL_LINE_STRIP);
-							glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4);
-						glEnd();
-					}
-					else if(test== ME_V2V3+ME_V3V4+ME_V4V1) {
-
-						glBegin(GL_LINE_STRIP);
-							glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f4); glVertex3fv(f1);
-						glEnd();
-					}
-					else if(test== ME_V3V4+ME_V4V1+ME_V1V2) {
-
-						glBegin(GL_LINE_STRIP);
-							glVertex3fv(f3); glVertex3fv(f4); glVertex3fv(f1); glVertex3fv(f2);
-						glEnd();
-					}
-					else if(test== ME_V4V1+ME_V1V2+ME_V2V3) {
-
-						glBegin(GL_LINE_STRIP);
-							glVertex3fv(f4); glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
-						glEnd();
-					}
-					else {
-						if(test & ME_V1V2) {
-
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f1); glVertex3fv(f2);
-							glEnd();
-						}
-						if(test & ME_V2V3) {
-
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f2); glVertex3fv(f3);
-							glEnd();
-						}
-						if(test & ME_V3V4) {
-
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f3); glVertex3fv(f4);
-							glEnd();
-						}
-						if(test & ME_V4V1) {
-
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f4); glVertex3fv(f1);
-							glEnd();
-						}
-					}
-				}
-				else if(mface->v3) {
-					if(extverts) f3= extverts+3*mface->v3;
-					else f3= (mvert+mface->v3)->co;
-
-					if(test== ME_V1V2+ME_V2V3+ME_V3V1) {
-						glBegin(GL_LINE_LOOP);
-							glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
-						glEnd();
-					}
-					else if(test== ME_V1V2+ME_V2V3) {
-
-						glBegin(GL_LINE_STRIP);
-							glVertex3fv(f1); glVertex3fv(f2); glVertex3fv(f3);
-						glEnd();
-					}
-					else if(test== ME_V2V3+ME_V3V1) {
-
-						glBegin(GL_LINE_STRIP);
-							glVertex3fv(f2); glVertex3fv(f3); glVertex3fv(f1);
-						glEnd();
-					}
-					else if(test== ME_V1V2+ME_V3V1) {
-
-						glBegin(GL_LINE_STRIP);
-							glVertex3fv(f3); glVertex3fv(f1); glVertex3fv(f2);
-						glEnd();
-					}
-					else {
-						if(test & ME_V1V2) {
-
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f1); glVertex3fv(f2);
-							glEnd();
-						}
-						if(test & ME_V2V3) {
-
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f2); glVertex3fv(f3);
-							glEnd();
-						}
-						if(test & ME_V3V1) {
-
-							glBegin(GL_LINE_STRIP);
-								glVertex3fv(f3); glVertex3fv(f1);
-							glEnd();
-						}
-					}
-				}
-				else if(test & ME_V1V2) {
-
-					glBegin(GL_LINE_STRIP);
-						glVertex3fv(f1); glVertex3fv(f2);
-					glEnd();
-				}
-			}
-		}
-	}
-}
-		// draw ss exterior verts as bgl points
-		//  o no color
-		//  o only if eve->h, sel flag matches
-static void draw_ss_em_exterior_verts(EditMesh *em, int sel) {
-	EditVert *eve;
-
-	bglBegin(GL_POINTS);
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0 && (eve->f & SELECT)==sel && eve->ssco) 
-			bglVertex3fv(eve->ssco);
-	}
-	bglEnd();		
-}
-
-		// draw editmesh verts as bgl points
-		//  o no color
-		//  o only if eve->h, sel flag matches
-static void draw_em_verts(EditMesh *em, int sel) {
-	EditVert *eve;
-
-	bglBegin(GL_POINTS);
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0 && (eve->f & SELECT)==sel ) bglVertex3fv(eve->co);
-	}
-	bglEnd();		
-}
-
 	// draw editmesh face centers as bgl points
 	//  o no color
 	//  o only if efa->h, efa->fgonf!=EM_FGON, matching sel
@@ -1764,200 +1245,6 @@ static void draw_em_face_centers(EditMesh *em, int sel) {
 	bglEnd();
 }
 
-static void draw_mesh_faces(Object *ob, int useBuildVars, float *extverts, float *nors)
-{
-	Mesh *me = ob->data;
-	MVert *mvert= me->mvert;
-	MFace *mface= me->mface;
-	int a, start=0, end=me->totface;
-	int glmode=-1, shademodel=-1, matnr=-1;
-
-	if (useBuildVars) {
-		set_buildvars(ob, &start, &end);
-		mface+= start;
-	}
-	
-#define PASSVERT(co, index, punoBit) {			\
-	if (shademodel==GL_SMOOTH) {				\
-		short *no = (mvert+index)->no;			\
-		if (mface->puno&punoBit) {				\
-			glNormal3s(-no[0], -no[1], -no[2]); \
-		} else {								\
-			glNormal3sv(no);					\
-		}										\
-	}											\
-	glVertex3fv(co);							\
-}
-
-	glBegin(glmode=GL_QUADS);
-	for(a=start; a<end; a++, mface++, nors+=3) {
-		if(mface->v3) {
-			int new_glmode, new_matnr, new_shademodel;
-			float *v1, *v2, *v3, *v4;
-
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-				v3= mface->v3?extverts+3*mface->v3:NULL;
-				v4= mface->v4?extverts+3*mface->v4:NULL;
-			}
-			else {
-				v1= (mvert+mface->v1)->co;
-				v2= (mvert+mface->v2)->co;
-				v3= mface->v3?(mvert+mface->v3)->co:NULL;
-				v4= mface->v4?(mvert+mface->v4)->co:NULL;
-			}
-				
-			new_glmode = v4?GL_QUADS:GL_TRIANGLES;
-			new_matnr = mface->mat_nr+1;
-			new_shademodel = (!(me->flag&ME_AUTOSMOOTH) && (mface->flag & ME_SMOOTH))?GL_SMOOTH:GL_FLAT;
-			
-			if (new_glmode!=glmode || new_matnr!=matnr || new_shademodel!=shademodel) {
-				glEnd();
-
-				if (new_matnr!=matnr) {
-					set_gl_material(matnr=new_matnr);
-				}
-
-				glShadeModel(shademodel=new_shademodel);
-				glBegin(glmode=new_glmode);
-			}
-				
-			if(shademodel==GL_FLAT) 
-				glNormal3fv(nors);
-
-			PASSVERT(v1, mface->v1, ME_FLIPV1);
-			PASSVERT(v2, mface->v2, ME_FLIPV2);
-			PASSVERT(v3, mface->v3, ME_FLIPV3);
-			if (v4) {
-				PASSVERT(v4, mface->v4, ME_FLIPV4);
-			}
-		}
-	}
-	glEnd();
-
-	glShadeModel(GL_FLAT);
-#undef PASSVERT
-}
-
-static void draw_mesh_loose_edges(Object *ob, int useBuildVars, float *extverts)
-{
-	Mesh *me = ob->data;
-	MVert *mvert= me->mvert;
-	MFace *mface= me->mface;
-	int a, start=0, end=me->totface;
-
-	if (useBuildVars) {
-		set_buildvars(ob, &start, &end);
-		mface+= start;
-	}
-		
-	glBegin(GL_LINES);
-	for(a=start; a<end; a++, mface++) {
-		float *v1, *v2, *v3, *v4;
-
-		if(extverts) {
-			v1= extverts+3*mface->v1;
-			v2= extverts+3*mface->v2;
-			v3= mface->v3?extverts+3*mface->v3:NULL;
-			v4= mface->v4?extverts+3*mface->v4:NULL;
-		}
-		else {
-			v1= (mvert+mface->v1)->co;
-			v2= (mvert+mface->v2)->co;
-			v3= mface->v3?(mvert+mface->v3)->co:NULL;
-			v4= mface->v4?(mvert+mface->v4)->co:NULL;
-		}
-			
-		if(!mface->v3) {
-			glVertex3fv(v1);
-			glVertex3fv(v2);
-		} 
-	}
-	glEnd();
-}
-
-static void draw_mesh_colored(Object *ob, int useBuildVars, int useTwoSide, unsigned int *col1, unsigned int *col2, float *extverts)
-{
-	Mesh *me= ob->data;
-	MVert *mvert= me->mvert;
-	MFace *mface= me->mface;
-	int a, glmode, start=0, end=me->totface;
-	unsigned char *cp1, *cp2;
-
-	if (useBuildVars) {
-		set_buildvars(ob, &start, &end);
-		mface+= start;
-		col1+= 4*start;
-		if(col2) col2+= 4*start;
-	}
-	
-	cp1= (char *)col1;
-	if(col2) {
-		cp2= (char *)col2;
-	} else {
-		cp2= NULL;
-		useTwoSide= 0;
-	}
-
-	glEnable(GL_CULL_FACE);
-	glShadeModel(GL_SMOOTH);
-	glBegin(glmode=GL_QUADS);
-	for(a=start; a<end; a++, mface++, cp1+= 16) {
-		if(mface->v3) {
-			int new_glmode= mface->v4?GL_QUADS:GL_TRIANGLES;
-			float *v1, *v2, *v3, *v4;
-
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-				v3= extverts+3*mface->v3;
-				v4= mface->v4?extverts+3*mface->v4:NULL;
-			}
-			else {
-				v1= (mvert+mface->v1)->co;
-				v2= (mvert+mface->v2)->co;
-				v3= (mvert+mface->v3)->co;
-				v4= mface->v4?(mvert+mface->v4)->co:NULL;
-			}
-
-			if (new_glmode!=glmode) {
-				glEnd();
-				glBegin(glmode= new_glmode);
-			}
-				
-			glColor3ub(cp1[3], cp1[2], cp1[1]);
-			glVertex3fv( v1 );
-			glColor3ub(cp1[7], cp1[6], cp1[5]);
-			glVertex3fv( v2 );
-			glColor3ub(cp1[11], cp1[10], cp1[9]);
-			glVertex3fv( v3 );
-			if(v4) {
-				glColor3ub(cp1[15], cp1[14], cp1[13]);
-				glVertex3fv( v4 );
-			}
-				
-			if(useTwoSide) {
-				glColor3ub(cp2[11], cp2[10], cp2[9]);
-				glVertex3fv( v3 );
-				glColor3ub(cp2[7], cp2[6], cp2[5]);
-				glVertex3fv( v2 );
-				glColor3ub(cp2[3], cp2[2], cp2[1]);
-				glVertex3fv( v1 );
-				if(mface->v4) {
-					glColor3ub(cp2[15], cp2[14], cp2[13]);
-					glVertex3fv( v4 );
-				}
-			}
-		}
-		if(col2) cp2+= 16;
-	}
-	glEnd();
-
-	glShadeModel(GL_FLAT);
-	glDisable(GL_CULL_FACE);
-}
-
 /* Second section of routines: Combine first sets to form fancy
  * drawing routines (for example rendering twice to get overlays).
  *
@@ -1967,57 +1254,56 @@ static void draw_mesh_colored(Object *ob, int useBuildVars, int useTwoSide, unsi
 
 /* EditMesh drawing routines*/
 
-static void draw_em_fancy_verts(EditMesh *em, int optimal, int sel)
+static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 {
-	char col[4], fcol[4];
-	int pass;
+	int sel;
 
 	if(G.zbuf) glDepthMask(0);		// disable write in zbuffer, zbuf select
 
-	BIF_GetThemeColor3ubv(sel?TH_VERTEX_SELECT:TH_VERTEX, col);
-	BIF_GetThemeColor3ubv(sel?TH_FACE_DOT:TH_WIRE, fcol);
+	for (sel=0; sel<2; sel++) {
+		char col[4], fcol[4];
+		int pass;
 
-	for (pass=0; pass<2; pass++) {
-		float size = BIF_GetThemeValuef(TH_VERTEX_SIZE);
-		float fsize = BIF_GetThemeValuef(TH_FACEDOT_SIZE);
+		BIF_GetThemeColor3ubv(sel?TH_VERTEX_SELECT:TH_VERTEX, col);
+		BIF_GetThemeColor3ubv(sel?TH_FACE_DOT:TH_WIRE, fcol);
 
-		if (pass==0) {
-			if(G.zbuf && !(G.vd->flag&V3D_ZBUF_SELECT)) {
-				glDisable(GL_DEPTH_TEST);
-					
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glEnable(GL_BLEND);
+		for (pass=0; pass<2; pass++) {
+			float size = BIF_GetThemeValuef(TH_VERTEX_SIZE);
+			float fsize = BIF_GetThemeValuef(TH_FACEDOT_SIZE);
+
+			if (pass==0) {
+				if(G.zbuf && !(G.vd->flag&V3D_ZBUF_SELECT)) {
+					glDisable(GL_DEPTH_TEST);
+						
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glEnable(GL_BLEND);
+				} else {
+					continue;
+				}
+
+				size = (size>2.1?size/2.0:size);
+				fsize = (fsize>2.1?fsize/2.0:fsize);
+				col[3] = fcol[3] = 100;
 			} else {
-				continue;
+				col[3] = fcol[3] = 255;
 			}
-
-			size = (size>2.1?size/2.0:size);
-			fsize = (fsize>2.1?fsize/2.0:fsize);
-			col[3] = fcol[3] = 100;
-		} else {
-			col[3] = fcol[3] = 255;
-		}
+				
+			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+				glPointSize(size);
+				glColor4ubv(col);
+				cageDM->drawMappedVertsEM(cageDM, sel);
+			}
 			
-		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-			glPointSize(size);
-			glColor4ubv(col);
-			if(optimal) {
-				draw_ss_em_exterior_verts(em, sel);
+			if(G.scene->selectmode & SCE_SELECT_FACE) {
+				glPointSize(fsize);
+				glColor4ubv(fcol);
+				draw_em_face_centers(em, sel);
 			}
-			else {
-				draw_em_verts(em, sel);
+			
+			if (pass==0) {
+				glDisable(GL_BLEND);
+				glEnable(GL_DEPTH_TEST);
 			}
-		}
-		
-		if(G.scene->selectmode & SCE_SELECT_FACE) {
-			glPointSize(fsize);
-			glColor4ubv(fcol);
-			draw_em_face_centers(em, sel);
-		}
-		
-		if (pass==0) {
-			glDisable(GL_BLEND);
-			glEnable(GL_DEPTH_TEST);
 		}
 	}
 
@@ -2025,7 +1311,7 @@ static void draw_em_fancy_verts(EditMesh *em, int optimal, int sel)
 	glPointSize(1.0);
 }
 
-static void draw_em_fancy_edges(EditMesh *em, DispListMesh *dlm, int optimal)
+static void draw_em_fancy_edges(DerivedMesh *cageDM)
 {
 	int pass;
 	char wire[4], sel[4];
@@ -2051,46 +1337,20 @@ static void draw_em_fancy_edges(EditMesh *em, DispListMesh *dlm, int optimal)
 		}
 
 		if(G.scene->selectmode == SCE_SELECT_FACE) {
-			if(optimal) {
-				draw_ss_em_exterior_edges(dlm, 1, wire, sel, 0);
-			}
-			else {
-				/* draw faces twice, to have selected ones on top */
-				/* we draw unselected the edges though, so they show in face mode */
-				glColor4ubv(wire);
-				draw_em_edges(em, 0, NULL, NULL, 0);
-
-				glColor4ubv(sel);
-				draw_em_sel_faces_as_lines(em);
-			}
+			cageDM->drawMappedEdgesEM(cageDM, 1, wire, sel, 0);
 		}	
 		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
-			/* Use edge highlighting */
-			
-			/* (bleeding edges) to illustrate selection is defined on vertex basis */
-			/* but cannot do with subdivided edges... */
-			if(!optimal && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
+			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 				glShadeModel(GL_SMOOTH);
-				draw_em_edges(em, 2, wire, sel, 0);
+				cageDM->drawMappedEdgesEM(cageDM, 2, wire, sel, 0);
 				glShadeModel(GL_FLAT);
-			}
-			else {
-				if(optimal) {
-					draw_ss_em_exterior_edges(dlm, 1, wire, sel, 0);
-				}
-				else {
-					draw_em_edges(em, 1, wire, sel, 0);
-				}
+			} else {
+				cageDM->drawMappedEdgesEM(cageDM, 1, wire, sel, 0);
 			}
 		}
 		else {
 			glColor4ubv(wire);
-			if(optimal) {
-				draw_ss_em_exterior_edges(dlm, 0, NULL, NULL, 0);
-			}
-			else {
-				draw_em_edges(em, 0, NULL, NULL, 0);
-			}
+			cageDM->drawMappedEdgesEM(cageDM, 0, NULL, NULL, 0);
 		}
 
 		if (pass==0) {
@@ -2109,8 +1369,7 @@ static void draw_em_creases(EditMesh *em)
 	glBegin(GL_LINES);
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->h==0 && eed->crease!=0.0) {
-			if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
-			else BIF_ThemeColor(TH_WIRE);
+			BIF_ThemeColor((eed->f&SELECT)?TH_EDGE_SELECT:TH_WIRE);
 			
 			v1= eed->v1->co; v2= eed->v2->co;
 			VECSUB(vec, v2, v1);
@@ -2248,10 +1507,17 @@ static void draw_em_measure_stats(EditMesh *em)
 	}
 }
 
-static void draw_em_fancy(Object *ob, EditMesh *em, DispListMesh *meDLM, float *meNors, int optimal, int dt)
+static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, DerivedMesh *realDM, int dt)
 {
 	extern float editbutsize;	/* buttons.c */
 	Mesh *me = ob->data;
+	DerivedMesh *cageDM;
+
+	if(realDM && (me->flag&ME_OPT_EDGES)) {
+		cageDM = realDM;
+	} else {
+		cageDM = baseDM;
+	}
 
 	if(dt>OB_WIRE) {
 		init_gl_materials(ob);
@@ -2259,12 +1525,8 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DispListMesh *meDLM, float *
 
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
-		
-		if(meDLM) {
-			displistmesh_draw_solid(meDLM, meNors);
-		} else {
-			draw_em_faces(em, 2, NULL, NULL, 1);
-		}
+
+		cageDM->drawFacesSolid(cageDM, set_gl_material);
 
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
@@ -2276,12 +1538,12 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DispListMesh *meDLM, float *
 		bglPolygonOffset(1.0);
 		glDepthMask(0);
 	} else {
-		if (meDLM) {
+		if (realDM) {
 			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-			if (optimal) {
-				draw_ss_exterior_edges(meDLM);
+			if (me->flag&ME_OPT_EDGES) {
+				realDM->drawMappedEdgesEM(realDM, 0, NULL, NULL, 0);
 			} else {
-				draw_ss_edges(meDLM);
+				realDM->drawEdges(realDM);
 			}
 		}
 	}
@@ -2296,12 +1558,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DispListMesh *meDLM, float *
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		if(optimal) {
-			draw_ss_faces(meDLM, 1, col1, col2);
-		}
-		else {
-			draw_em_faces(em, 1, col1, col2, 0);
-		}
+		cageDM->drawFacesEM(cageDM, 1, col1, col2);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
@@ -2313,18 +1570,13 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DispListMesh *meDLM, float *
 		BIF_ThemeColor(TH_EDGE_SEAM);
 		glLineWidth(2);
 
-		if(optimal) {
-			draw_ss_em_exterior_edges(meDLM, 0, NULL, NULL, 1);
-		}
-		else {
-			draw_em_edges(em, 0, NULL, NULL, 1);
-		}
+		cageDM->drawMappedEdgesEM(cageDM, 0, NULL, NULL, 1);
 
 		glColor3ub(0,0,0);
 		glLineWidth(1);
 	}
 
-	draw_em_fancy_edges(em, meDLM, optimal);
+	draw_em_fancy_edges(cageDM);
 
 	if(G.f & G_DRAWCREASES) {
 		draw_em_creases(em);
@@ -2333,9 +1585,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DispListMesh *meDLM, float *
 	if(ob==G.obedit) {
 			// XXX Not clear this is needed here. - zr
 		calc_meshverts();
-
-		draw_em_fancy_verts(em, optimal, 0);
-		draw_em_fancy_verts(em, optimal, 1);
+		draw_em_fancy_verts(em, cageDM);
 
 		if(G.f & G_DRAWNORMALS) {
 			BIF_ThemeColor(TH_NORMAL);
@@ -2352,34 +1602,28 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DispListMesh *meDLM, float *
 	}
 }
 
-/* Mesh drawing routines*/
+/* Mesh drawing routines */
 
-static void draw_mesh_object_outline(Object *ob, DispListMesh *meDLM, float *obExtVerts)
+static void draw_mesh_object_outline(DerivedMesh *dm)
 {
 	glLineWidth(2.0);
 	glDepthMask(0);
 				
-	if(meDLM) {
-		draw_ss_edges(meDLM);
-	} 
-	else {
-		draw_mesh_edges(ob, 1, obExtVerts);
-	}
+	dm->drawEdges(dm);
 				
 	glLineWidth(1.0);
 	glDepthMask(1);
 }
 
-static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int optimal, int dt)
+static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM, int dt)
 {
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
 	int draw_wire = ob->dtx&OB_DRAWWIRE;
 	DispList *dl, *obDL = ob->disp.first;
-	unsigned int *obCol1 = obDL?obDL->col1:NULL;
-	unsigned int *obCol2 = obDL?obDL->col2:NULL;
 	float *obExtVerts;
+	DerivedMesh *dm = realDM?realDM:baseDM;
 
 	dl = find_displist(&ob->disp, DL_VERTS);
 	obExtVerts = dl?dl->verts:NULL;
@@ -2391,10 +1635,21 @@ static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int 
 		// is a temporal solution, a reconstruction of the
 		// displist system should take care of it (zr/ton)
 	if(obDL && obDL->mesh) {
-		if (obDL->mesh->medge && (obDL->mesh->flag&ME_OPT_EDGES)) {
-			draw_ss_exterior_edges(obDL->mesh);
-		} else {
-			draw_ss_edges(obDL->mesh);
+		DispListMesh *dlm = obDL->mesh;
+		MVert *mvert= dlm->mvert;
+		MFace *mface= dlm->mface;
+		int i;
+
+		for (i=0; i<dlm->totface; i++, mface++) {
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(mvert[mface->v1].co);
+			glVertex3fv(mvert[mface->v2].co);
+			if (mface->v3) {
+				glVertex3fv(mvert[mface->v3].co);
+				if (mface->v4)
+					glVertex3fv(mvert[mface->v4].co);
+			}
+			glEnd();
 		}
 	}
 	else if(dt==OB_BOUNDBOX) {
@@ -2402,7 +1657,7 @@ static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int 
 	}
 	else if(hasHaloMat || me->totface==0 || (me->medge && me->totedge==0)) {
 		glPointSize(1.5);
-		draw_mesh_verts(ob, 1, obExtVerts);
+		dm->drawVerts(dm);
 		glPointSize(1.0);
 	}
 	else if(dt==OB_WIRE) {
@@ -2413,7 +1668,7 @@ static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int 
 	}
 	else if(dt==OB_SOLID ) {
 		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
-			draw_mesh_object_outline(ob, meDLM, obExtVerts);
+			draw_mesh_object_outline(dm);
 		}
 
 		init_gl_materials(ob);
@@ -2422,51 +1677,45 @@ static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int 
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 		
-				/* vertexpaint only true when selecting */
-		if ((G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && ob==OBACT) {
-			draw_mesh_faces(ob, 1, obExtVerts, NULL);
-		} else {
-			if(meDLM) {
-				displistmesh_draw_solid(meDLM, meNors);
-			} else {
-				draw_mesh_faces(ob, 1, obExtVerts, meNors);
-			}
-		}
+		dm->drawFacesSolid(dm, set_gl_material);
 
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
 
-		if(!meDLM) {
-			BIF_ThemeColor(TH_WIRE);
-
-			draw_mesh_loose_edges(ob, 1, obExtVerts);
-		}
+		BIF_ThemeColor(TH_WIRE);
+		dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
 		if( (G.f & G_WEIGHTPAINT)) {
-			unsigned int *wtcol = calc_weightpaint_colors(ob);
-			draw_mesh_colored(ob, 1, me->flag&ME_TWOSIDED, (unsigned int*)wtcol, 0, obExtVerts);
+			unsigned char *wtcol = calc_weightpaint_colors(ob);
+			baseDM->drawFacesColored(baseDM, me->flag&ME_TWOSIDED, wtcol, 0);
 			MEM_freeN (wtcol);
 		}
 		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
-			draw_mesh_colored(ob, 1, me->flag&ME_TWOSIDED, (unsigned int *)me->mcol, 0, obExtVerts);
+			baseDM->drawFacesColored(baseDM, me->flag&ME_TWOSIDED, (unsigned char*) me->mcol, 0);
 		}
 		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->tface) {
 			tface_to_mcol(me);
-			draw_mesh_colored(ob, 1, me->flag&ME_TWOSIDED, (unsigned int *)me->mcol, 0, obExtVerts);
+			baseDM->drawFacesColored(baseDM, me->flag&ME_TWOSIDED, (unsigned char*) me->mcol, 0);
 			MEM_freeN(me->mcol); 
 			me->mcol= 0;
 		}
 		else {
+			unsigned int *obCol1, *obCol2;
+
+			dl = ob->disp.first;
+			if (!dl || !dl->col1) {
+				shadeDispList(ob);
+				dl = ob->disp.first;
+			}
+			obCol1 = dl->col1;
+			obCol2 = dl->col2;
+
 			if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
-				draw_mesh_object_outline(ob, meDLM, obExtVerts);
+				draw_mesh_object_outline(dm);
 			}
 
-			if(meDLM) {
-				displistmesh_draw_colored(meDLM, (unsigned char*) obCol1, (unsigned char*) obCol2);
-			} else {
-				draw_mesh_colored(ob, 1, me->flag&ME_TWOSIDED, obCol1, obCol2, obExtVerts);
-			}
+			dm->drawFacesColored(dm, me->flag&ME_TWOSIDED, (unsigned char*) obCol1, (unsigned char*) obCol2);
 		}
 	}
 
@@ -2485,17 +1734,11 @@ static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int 
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 
-		if(meDLM) {
-				// XXX is !dlm->medge possible?
-			if (meDLM->medge && (meDLM->flag&ME_OPT_EDGES)) {
-				draw_ss_exterior_edges(meDLM);
-			}
-			else {
-				draw_ss_edges(meDLM);
-			}
-		} 
+		if (me->flag&ME_OPT_EDGES) {
+			dm->drawMappedEdges(dm);
+		}
 		else {
-			draw_mesh_edges(ob, 1, obExtVerts);
+			dm->drawEdges(dm);
 		}
 
 		if (dt!=OB_WIRE) {
@@ -2508,74 +1751,22 @@ static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int 
 static void draw_mesh_object(Object *ob, int dt)
 {
 	Mesh *me= ob->data;
-	DispList *meDL;
-	DispListMesh *meDLM;
-	float *meNors;
-	int optimal;
+	DerivedMesh *baseDM = mesh_get_base_derived(ob);
+	DerivedMesh *realDM = mesh_get_derived(ob);
 
-		/* First thing is to make sure any needed data is calculated.
-		 * This includes displists on both Object and Mesh, the
-		 * bounding box, DispList normals, and shaded colors.
-		 *
-		 * Sometimes the calculation is skipped if it won't be used,
-		 * but at the moment it is hard to verify this for sure in
-		 * the code. Tread carefully!
-		 */
-
-		/* Check for need for displist (it's zero when parent, key, or hook changed) */
-	if(ob->disp.first==NULL) {
-		if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
-		else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
-		else if(ob->hooks.first) makeDispList(ob);
-		else if(ob->softflag & 0x01) makeDispList(ob);
-		else if(ob->effect.first) {	// as last check
-			Effect *eff= ob->effect.first;
-			if(eff->type==EFF_WAVE) makeDispList(ob);
-		}
-	}
-	if(me->disp.first==NULL && mesh_uses_displist(me)) {
-		makeDispList(ob);
-	}
-
-	if (ob==G.obedit) {
-		if (dt>OB_WIRE && mesh_uses_displist(me)) {
-			DispList *dl = me->disp.first;
-
-			if(!dl || !dl->nors) {
-				addnormalsDispList(ob, &me->disp);
-			}
-		}
-	} else {
-		if(me->bb==NULL) tex_space_mesh(me);
-		if(me->totface>4) if(boundbox_clip(ob->obmat, me->bb)==0) return;
-
-		if (dt==OB_SOLID) {
-			DispList *dl = me->disp.first;
-
-			if(!dl || !dl->nors) {
-				addnormalsDispList(ob, &me->disp);
-			}
-		}
-
-		if (dt==OB_SHADED && !(G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))) {
-			DispList *dl = ob->disp.first;
-
-			if (!dl || !dl->col1) {
-				shadeDispList(ob);
-			}
-		}
-	}
-
-	meDL = me->disp.first;
-	meNors = meDL?meDL->nors:NULL;
-	meDLM = (mesh_uses_displist(me) && meDL)?meDL->mesh:NULL;
-	optimal = meDLM && meDLM->medge && me->flag&ME_OPT_EDGES;
-
-	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
-		draw_em_fancy(ob, G.editMesh, meDLM, meNors, optimal, dt);
+	if(G.obedit && ob->data==G.obedit->data) {
+		draw_em_fancy(ob, G.editMesh, baseDM, realDM, dt);
 	}
 	else {
-		draw_mesh_fancy(ob, meDLM, meNors, optimal, dt);
+		if(me->bb==NULL) tex_space_mesh(me);
+		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
+			draw_mesh_fancy(ob, baseDM, realDM, dt);
+		}
+	}
+
+	baseDM->release(baseDM);
+	if (realDM) {
+		realDM->release(realDM);
 	}
 }
 
@@ -2586,8 +1777,6 @@ static int index3_nors_incr= 1;
 
 static void drawDispListwire(ListBase *dlbase)
 {
-		// This routine has been cleaned so that no DispLists of type
-		// DispListMesh should go through here. - zr
 	DispList *dl;
 	int parts, nr, ofs, *index;
 	float *data;
@@ -2831,8 +2020,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 
 static void drawDispListshaded(ListBase *lb, Object *ob)
 {
-		// This routine has been cleaned so that no DispLists of type
-		// DispListMesh should go through here. - zr
 	DispList *dl, *dlob;
 	int parts, p1, p2, p3, p4, a, b, *index;
 	float *data, *v1, *v2, *v3, *v4;/*  , *extverts=0 */
