@@ -89,8 +89,6 @@
 
 #include "BDR_editobject.h"
 
-#include "blendertimer.h"
-
 #include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"

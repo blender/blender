@@ -70,8 +70,6 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 
-#include "blendertimer.h"
-
 #include "blendef.h"
 #include "mydevice.h"
 #include "winlay.h"
@@ -598,7 +596,7 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 static int test_break(void)
 {
 	if (!G.afbreek) {
-		if (MISC_test_break()) {
+		if (blender_test_break()) {
 			;
 		} else if (render_win) {
 			winlay_process_events(0);

@@ -75,8 +75,6 @@
 
 #include "BSE_view.h"
 
-#include "blendertimer.h"
-
 #include "mydevice.h"
 #include "interface.h"
 #include "blendef.h"

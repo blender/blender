@@ -2731,7 +2731,7 @@ void zbufshade(void)
 	
 	if(R.r.mode & R_EDGE) edge_enhance();
 
-	/* if((R.flag & R_HALO) && MISC_test_break()==0) halovert(); */
+	/* if((R.flag & R_HALO) && blender_test_break()==0) halovert(); */
 
 } /* end of void zbufshade() */
 

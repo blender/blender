@@ -71,9 +71,6 @@
 #include "BSE_drawipo.h"
 #include "BSE_sequence.h"
 
-/* Modules used */
-#include "blendertimer.h" /* timer functions */
-
 int no_rightbox=0, no_leftbox= 0;
 
 static void EmbossBoxf(float x1, float y1, float x2, float y2, int sel, unsigned int dark, unsigned int light)

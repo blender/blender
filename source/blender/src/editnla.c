@@ -80,7 +80,6 @@
 #include "interface.h"
 #include "blendef.h"
 #include "mydevice.h"
-#include "blendertimer.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

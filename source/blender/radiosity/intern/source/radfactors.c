@@ -54,7 +54,6 @@
 
 #include "radio.h"
 #include "render.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
-#include "blendertimer.h" /* timer functions */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -562,7 +561,7 @@ void progressiverad()
 		
 		clear_backface_test();
 		
-		if(MISC_test_break()) break;
+		if(blender_test_break()) break;
 		if(RG.maxiter && RG.maxiter<=it) break;
 
 		shoot=findshootpatch();
@@ -728,7 +727,7 @@ void subdivideshootElements(int it)
 			}
 			else a--;
 			
-			if(MISC_test_break()) break;
+			if(blender_test_break()) break;
 		}
 		
 		/* test op extreem weinig kleurverloop binnen patch met subdivflag */
@@ -799,7 +798,7 @@ void subdivideshootElements(int it)
 		}
 		makeGlobalElemArray();
 
-		if(contin==0 || MISC_test_break()) break;
+		if(contin==0 || blender_test_break()) break;
 	}
 	
 	make_node_display();
@@ -884,7 +883,7 @@ void subdivideshootPatches(int it)
 				
 				setnodeflags(shoot->first, RAD_SHOOT, 0);
 				
-				if(MISC_test_break()) break;
+				if(blender_test_break()) break;
 			}
 			else a--;
 			
@@ -911,7 +910,7 @@ void subdivideshootPatches(int it)
 		converttopatches();
 		makeGlobalElemArray();
 
-		if(contin==0 || MISC_test_break()) break;
+		if(contin==0 || blender_test_break()) break;
 	}
 	make_node_display();
 }

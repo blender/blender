@@ -77,7 +77,6 @@
 #include "BDR_drawmesh.h"
 
 #include "RE_renderconverter.h"
-#include "blendertimer.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -516,7 +515,7 @@ void setCallbacks(void)
 	/* BLI_blenlib: */
 	
 	BLI_setErrorCallBack(error_cb); /* */
-	BLI_setInterruptCallBack(MISC_test_break);
+	BLI_setInterruptCallBack(blender_test_break);
 
 	/* render module: execution flow, timers, cursors and display. */
 	RE_set_getrenderdata_callback(RE_rotateBlenderScene);

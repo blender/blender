@@ -90,7 +90,6 @@
 #include "BDR_editcurve.h"
 
 /* old stuff */
-#include "blendertimer.h"
 #include "blendef.h"
 #include "interface.h"
 #include "mydevice.h"

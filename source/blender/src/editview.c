@@ -88,8 +88,6 @@
 #include "BSE_drawview.h"
 #include "BSE_editaction.h"
 
-#include "blendertimer.h"
-
 #include "blendef.h"
 #include "mydevice.h"
 

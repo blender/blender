@@ -92,7 +92,6 @@
 #include "blendef.h"
 #include "interface.h"
 #include "render.h"
-#include "blendertimer.h" /* timer functions */
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

@@ -90,9 +90,9 @@
 #include "render.h"
 
 #include "RE_renderconverter.h"
-#include "blendertimer.h" /* MISC_test_break */
 
 #include "BIF_space.h"
+#include "BIF_screen.h"
 #include "BIF_editkey.h"
 
 #include "BSE_sequence.h"
@@ -304,11 +304,11 @@ void RE_make_stars(void (*initfunc)(void),
 				printf("Too many stars\n");
 				break;
 			}
-			if(MISC_test_break()) break;
+			if(blender_test_break()) break;
 		}
 		if(done > MAXVERT) break;
 
-		if(MISC_test_break()) break;
+		if(blender_test_break()) break;
 	}
 	if (termfunc) termfunc();
 }
@@ -2909,7 +2909,7 @@ void RE_rotateBlenderScene(void)
 
 			ob->flag &= ~OB_DO_IMAT;
 		}
-		if(MISC_test_break()) break;
+		if(blender_test_break()) break;
 
 		if(base->next==0 && G.scene->set && base==G.scene->base.last) {
 			base= G.scene->set->base.first;
@@ -2938,7 +2938,7 @@ void RE_rotateBlenderScene(void)
 
 	slurph_opt= 1;
 
-	if(MISC_test_break()) return;
+	if(blender_test_break()) return;
 
 	/* if(R.totlamp==0) defaultlamp(); */
 	
