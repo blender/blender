@@ -933,6 +933,9 @@ def common_libs(env):
               'blender_MT',
               'blender_BMF',
               'soundsystem'])
+	if user_options_dict['USE_QUICKTIME'] == 1:
+		env.Append (LIBS=['blender_quicktime'])
+
 
 def international_libs(env):
 	"""
@@ -960,8 +963,6 @@ def blender_libs(env):
 		'blender_BSP',
 		'blender_blenkernel',
 		'blender_IK'])
-	if user_options_dict['USE_QUICKTIME'] == 1:
-		env.Append (LIBS=['blender_quicktime'])
 
 def ketsji_libs(env):
 	"""
@@ -984,13 +985,13 @@ def ketsji_libs(env):
 				'blender_kernel',
 				'NG_network',
 				'NG_loopbacknetwork'])
-	if user_options_dict['USE_PHYSICS'] == 'solid':
-		env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
-	else:
-		env.Append (LIBS=['PHY_Ode',
-				'PHY_Physics'])
-		env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
-		env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
+		if user_options_dict['USE_PHYSICS'] == 'solid':
+			env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
+		else:
+			env.Append (LIBS=['PHY_Ode',
+					'PHY_Physics'])
+			env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
+			env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
 
 def player_libs(env):
 	"""
@@ -1040,9 +1041,9 @@ def system_libs(env):
 		env.Append (LINKFLAGS='AudioToolbox')
 		env.Append (LINKFLAGS='-framework')
 		env.Append (LINKFLAGS='CoreAudio')
-	if user_options_dict['USE_QUICKTIME'] == 1:
-		env.Append (LINKFLAGS='-framework')
-		env.Append (LINKFLAGS='QuickTime')
+		if user_options_dict['USE_QUICKTIME'] == 1:
+			env.Append (LINKFLAGS='-framework')
+			env.Append (LINKFLAGS='QuickTime')
 	else:
 		env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
 	if sys.platform == 'win32':
