@@ -4625,19 +4625,44 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 
 	su= ui_bgnpupdraw((int)(x1-1), (int)(y1-1), (int)(x2+4), (int)(y2+4), 0);
 
-	glColor3ub(0xD0, 0xD0, 0xC0);
-	glRectf(x1, y1, x2, y2);
-	
 	/* bottom */
-	glColor3ub(0,0,0);
-	fdrawline(x1, y1, x2, y1);
+	//glColor3ub(0,0,0);
+	//fdrawline(x1, y1, x2, y1);
 	/* right */
-	fdrawline(x2, y1, x2, y2);
+	//fdrawline(x2, y1, x2, y2);
 	/* top */
-	glColor3ub(255,255,255);
-	fdrawline(x1, y2, x2, y2);
+	//glColor3ub(255,255,255);
+	//fdrawline(x1, y2, x2, y2);
 	/* left */
-	fdrawline(x1, y1, x1, y2);
+	//fdrawline(x1, y1, x1, y2);
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
+	/*glColor4ub(0, 0, 0, 100);
+	fdrawline(x1+4, y1, x2+1, y1);
+	fdrawline(x2+1, y1, x2+1, y2-4);
+	*/
+	glColor4ub(0, 0, 0, 60);
+	fdrawline(x1+3, y1-1, x2, y1-1);
+	fdrawline(x2+1, y1, x2+1, y2-3);
+	
+	glColor4ub(0, 0, 0, 40);
+	fdrawline(x1+3, y1-2, x2+1, y1-2);
+	fdrawline(x2+2, y1-1, x2+2, y2-3);
+
+	glColor4ub(0, 0, 0, 20);
+	fdrawline(x1+3, y1-3, x2+2, y1-3);
+	fdrawline(x2+3, y1-2, x2+3, y2-3);
+	
+	glColor4ub(0, 0, 0, 20);
+	fdrawline(x2, y2, x2+3, y2-3);
+	
+
+	glDisable(GL_BLEND);
+	
+	glColor3ub(0xFF, 0xFF, 0xDD);
+	glRectf(x1, y1, x2, y2);
 	
 	glColor3ub(0,0,0);
 	glRasterPos2f( x1+3, y1+4);
