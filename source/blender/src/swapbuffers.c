@@ -104,12 +104,12 @@ static void screen_swapbuffers_REDRAW(bScreen *sc)
 	sa= sc->areabase.first;
 	while(sa) {
 		if(sa->win && (sa->win_swap & WIN_FRONT_OK)==0) break;
-		if(!sa->headertype) sa->head_swap= WIN_EQUAL;
+		if(sa->headertype==0) sa->head_swap= WIN_EQUAL;
 		if((sa->head_swap & WIN_FRONT_OK)==0) break;
 		sa= sa->next;
 	}
 	if(sa==0) return;
-	
+
 	sa= sc->areabase.first;
 	while(sa) {
 		swap= sa->win_swap;

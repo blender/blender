@@ -135,8 +135,7 @@ void mainqenter_ext(unsigned short event, short val, char ascii)
 		return;
 
 	if (nevents<MAXQUEUE) {
-		memmove(mainqueue+1, mainqueue, sizeof(*mainqueue)*nevents);
-		
+		memmove(mainqueue+1, mainqueue, sizeof(*mainqueue)*nevents);	
 		mainqueue[0].event= event;
 		mainqueue[0].val= val;
 		mainqueue[0].ascii= ascii;

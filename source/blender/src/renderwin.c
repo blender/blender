@@ -596,10 +596,9 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 
 		glFlush();
 		glDrawBuffer(GL_BACK);
-		
 		v3d->flag |= V3D_DISPIMAGE;
-					
 		v3d->area->win_swap= WIN_FRONT_OK;
+		
 	}
 }
 
@@ -781,7 +780,8 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	else {
 		RE_initrender(ogl_render_view3d);
 	}
-	update_for_newframe();
+
+	if(anim) update_for_newframe();  // only when anim, causes redraw event which frustrates dispview
 	R.flag= 0;
 	
 	if (render_win) window_set_cursor(render_win->win, CURSOR_STD);
@@ -791,7 +791,9 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 
 	G.afbreek= 0;
 	end_test_break_callback();
-	mainwindow_make_active();
+	if (R.displaymode == R_DISPLAYWIN) // when in dispview it destroys the image
+		mainwindow_make_active();
+
 }
 
 /* finds area with a 'dispview' set */
