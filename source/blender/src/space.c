@@ -812,52 +812,43 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case ONEKEY:
 				ob= OBACT;
 				if(G.qual==LR_CTRLKEY) {
-					if(G.obedit) {
-							flip_subdivison(G.obedit, 1);
-					}
-					else if(ob->type == OB_MESH) {
+					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 1);
 					}
 				}
-				else
-					do_layer_buttons(0); break;
+				else do_layer_buttons(0); 
+				break;
+				
 			case TWOKEY:
 				ob= OBACT;
 				if(G.qual==LR_CTRLKEY) {
-					if(G.obedit) {
-							flip_subdivison(G.obedit, 2);
-					}
-					else if(ob->type == OB_MESH) {
+					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 2);
 					}
 				}
-				else
-					do_layer_buttons(1); 
+				else do_layer_buttons(1); 
 				break;
+				
 			case THREEKEY:
 				ob= OBACT;
 				if(G.qual==LR_CTRLKEY) {
-					if(G.obedit) {
-							flip_subdivison(G.obedit, 3);
-					}
-					else if(ob->type == OB_MESH) {
+					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 3);
 					}
 				}
-				else
-					do_layer_buttons(2); break;
+				else do_layer_buttons(2); 
+				break;
+				
 			case FOURKEY:
 				ob= OBACT;
-				if(G.qual & LR_CTRLKEY) {
-					if(G.obedit) {
-							flip_subdivison(G.obedit, 4);
-					}
-					else if(ob->type == OB_MESH) {
+				if(G.qual==LR_CTRLKEY) {
+					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 4);
 					}
 				}
-				else
-				do_layer_buttons(3); break;
+				else do_layer_buttons(3); 
+				break;
+				
 			case FIVEKEY:
 				do_layer_buttons(4); break;
 			case SIXKEY:
