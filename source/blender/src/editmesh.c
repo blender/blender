@@ -7838,7 +7838,7 @@ char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no) {
 
 // Detects and fix a quad wrapping after the resize
 // Arguments are the orginal verts followed by the final verts and then the bevel size and the normal
-void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) {
+void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float *no) {
 	float vec[3];
 	char wrap[4];
 	
@@ -7927,35 +7927,37 @@ void bevel_shrink_faces(float d, int flag)
 {
 	EditVlak *evl;
 	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3];
-	
+
 	/* move edges of all faces with evl->f1 & flag closer towards their centres */
 	evl= G.edvl.first;
 	while (evl) {
-		VECCOPY(v1, evl->v1->co);
-		VECCOPY(v2, evl->v2->co);			
-		VECCOPY(v3, evl->v3->co);	
-		VECCOPY(no, evl->n);
-		if (evl->v4 == NULL) {
-			bevel_displace_vec(vec, v1, v2, v3, d, no);
-			VECCOPY(evl->v2->co, vec);
-			bevel_displace_vec(vec, v2, v3, v1, d, no);
-			VECCOPY(evl->v3->co, vec);		
-			bevel_displace_vec(vec, v3, v1, v2, d, no);
-			VECCOPY(evl->v1->co, vec);
+		if (evl->f1 & flag) {
+			VECCOPY(v1, evl->v1->co);
+			VECCOPY(v2, evl->v2->co);			
+			VECCOPY(v3, evl->v3->co);	
+			VECCOPY(no, evl->n);
+			if (evl->v4 == NULL) {
+				bevel_displace_vec(vec, v1, v2, v3, d, no);
+				VECCOPY(evl->v2->co, vec);
+				bevel_displace_vec(vec, v2, v3, v1, d, no);
+				VECCOPY(evl->v3->co, vec);		
+				bevel_displace_vec(vec, v3, v1, v2, d, no);
+				VECCOPY(evl->v1->co, vec);
 
-			fix_bevel_tri_wrap(v1, v2, v3, evl->v1->co, evl->v2->co, evl->v3->co, no);
-		} else {
-			VECCOPY(v4, evl->v4->co);
-			bevel_displace_vec(vec, v1, v2, v3, d, no);
-			VECCOPY(evl->v2->co, vec);
-			bevel_displace_vec(vec, v2, v3, v4, d, no);
-			VECCOPY(evl->v3->co, vec);		
-			bevel_displace_vec(vec, v3, v4, v1, d, no);
-			VECCOPY(evl->v4->co, vec);		
-			bevel_displace_vec(vec, v4, v1, v2, d, no);
-			VECCOPY(evl->v1->co, vec);
+				fix_bevel_tri_wrap(v1, v2, v3, evl->v1->co, evl->v2->co, evl->v3->co, no);
+			} else {
+				VECCOPY(v4, evl->v4->co);
+				bevel_displace_vec(vec, v1, v2, v3, d, no);
+				VECCOPY(evl->v2->co, vec);
+				bevel_displace_vec(vec, v2, v3, v4, d, no);
+				VECCOPY(evl->v3->co, vec);		
+				bevel_displace_vec(vec, v3, v4, v1, d, no);
+				VECCOPY(evl->v4->co, vec);		
+				bevel_displace_vec(vec, v4, v1, v2, d, no);
+				VECCOPY(evl->v1->co, vec);
 
-			fix_bevel_quad_wrap(v1, v2, v3, v4, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co, d, no);
+				fix_bevel_quad_wrap(v1, v2, v3, v4, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co, d, no);
+			}
 		}
 		evl= evl->next;
 	}	
@@ -7965,7 +7967,7 @@ void bevel_shrink_draw(float d, int flag)
 {
 	EditVlak *evl;
 	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3], fv1[3], fv2[3], fv3[3], fv4[3];
-	
+
 	/* move edges of all faces with evl->f1 & flag closer towards their centres */
 	evl= G.edvl.first;
 	while (evl) {
@@ -7997,14 +7999,14 @@ void bevel_shrink_draw(float d, int flag)
 			glEnd();						
 		} else {
 			VECCOPY(v4, evl->v4->co);
+			bevel_displace_vec(vec, v4, v1, v2, d, no);
+			VECCOPY(fv1, vec);
 			bevel_displace_vec(vec, v1, v2, v3, d, no);
 			VECCOPY(fv2, vec);
 			bevel_displace_vec(vec, v2, v3, v4, d, no);
 			VECCOPY(fv3, vec);		
 			bevel_displace_vec(vec, v3, v4, v1, d, no);
 			VECCOPY(fv4, vec);		
-			bevel_displace_vec(vec, v4, v1, v2, d, no);
-			VECCOPY(fv1, vec);
 
 			fix_bevel_quad_wrap(v1, v2, v3, v4, fv1, fv2, fv3, fv4, d, no);
 
@@ -8027,18 +8029,6 @@ void bevel_shrink_draw(float d, int flag)
 		}
 		evl= evl->next;
 	}	
-}
-
-void bevel_shrink_faces_test()
-{
-	EditVlak *evl;
-	
-	evl= G.edvl.first;
-	while (evl) {
-		evl->f1 |= 1;
-		evl= evl->next;
-	}
-	bevel_shrink_faces(0.1, 1);
 }
 
 void bevel_mesh(float bsize, int allfaces)
