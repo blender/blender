@@ -64,6 +64,7 @@ struct DispListMesh {
 	struct MCol *mcol;
 	struct MFaceInt *mface;
 	struct TFace *tface;
+	int flag;
 };
 
 /*

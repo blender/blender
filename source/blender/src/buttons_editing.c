@@ -376,11 +376,13 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",10,178,130,17, &me->flag, 0, 0, 0, 0, "Treats all faces with angles less than Degr: as 'smooth' during render");
 
 	uiDefButS(block, NUM, B_DIFF, "Degr:",					10,156,130,17, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
-
+	uiBlockSetCol(block, TH_BUT_SETTING2);
 	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,130,17, &me->flag, 0, 0, 0, 0, "Treats the active object as a Catmull-Clark Subdivision Surface");
+	uiBlockSetCol(block, TH_AUTO);
 
 	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			10,104,100,18, &me->subdiv, 0, 12, 0, 0, "Defines the level of subdivision to display in real time interactively");
 	uiDefButS(block, NUM, B_MAKEDISP, "",					110, 104, 30, 18, &me->subdivr, 0, 12, 0, 0, "Defines the level of subdivision to apply during rendering");
+	uiDefButS(block, TOG|BIT|8, B_MAKEDISP, "Optimal",	10,84,130,17, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
 	
 	if(me->msticky) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "Sticky", 10,57,70,20, 0, val, 0, 0, 0, "");

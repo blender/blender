@@ -1106,15 +1106,40 @@ static void displistmesh_draw_wire(DispListMesh *dlm) {
 	for (i=0; i<dlm->totface; i++) {
 		MFaceInt *mf= &dlm->mface[i];
 		
-		glBegin(GL_LINE_LOOP);
-		glVertex3fv(dlm->mvert[mf->v1].co);
-		glVertex3fv(dlm->mvert[mf->v2].co);
-		if (mf->v3) {
-			glVertex3fv(dlm->mvert[mf->v3].co);
-			if (mf->v4)
-				glVertex3fv(dlm->mvert[mf->v4].co);
+		if(dlm->flag & ME_OPT_EDGES) {
+			int test= mf->edcode;
+			if(test) {
+				glBegin(GL_LINES);
+				if(test & ME_V1V2) {
+					glVertex3fv(dlm->mvert[mf->v1].co); 
+					glVertex3fv(dlm->mvert[mf->v2].co);
+				}
+				if(test & ME_V2V3) {
+					glVertex3fv(dlm->mvert[mf->v2].co); 
+					glVertex3fv(dlm->mvert[mf->v3].co);
+				}
+				if(test & ME_V3V4) {
+					glVertex3fv(dlm->mvert[mf->v3].co); 
+					glVertex3fv(dlm->mvert[mf->v4].co);
+				}
+				if(test & ME_V4V1) {
+					glVertex3fv(dlm->mvert[mf->v4].co); 
+					glVertex3fv(dlm->mvert[mf->v1].co);
+				}
+				glEnd();
+			}
 		}
-		glEnd();
+		else {	// old method
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(dlm->mvert[mf->v1].co);
+			glVertex3fv(dlm->mvert[mf->v2].co);
+			if (mf->v3) {
+				glVertex3fv(dlm->mvert[mf->v3].co);
+				if (mf->v4)
+					glVertex3fv(dlm->mvert[mf->v4].co);
+			}
+			glEnd();
+		}
 	}
 }
 

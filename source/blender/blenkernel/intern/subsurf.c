@@ -132,11 +132,7 @@ static float *Vec2Add(float *ta, float *b) {
 	return ta;
 }
 
-static float *Vec2MulNT(float *t, float *a, float n) {
-	t[0]= a[0]*n;
-	t[1]= a[1]*n;
-	return t;
-}
+
 static float *Vec3MulNT(float *t, float *a, float n) {
 	t[0]= a[0]*n;
 	t[1]= a[1]*n;
@@ -174,7 +170,7 @@ struct _HyperVert {
 	HyperVert *next;
 	
 	float co[3];
-	
+	int flag;		// added for drawing optim
 	HyperVert *nmv;
 	LinkNode *edges, *faces;
 };
@@ -184,7 +180,7 @@ struct _HyperEdge {
 
 	HyperVert *v[2];
 	HyperVert *ep;
-
+	int flag;		// added for drawing optim
 	LinkNode *faces;
 };
 
@@ -257,7 +253,7 @@ static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co) {
 	hv->nmv= NULL;
 	hv->edges= NULL;
 	hv->faces= NULL;
-
+	
 	Vec3Cpy(hv->co, co);
 	
 	hv->next= hme->verts;
@@ -266,7 +262,7 @@ static HyperVert *hypermesh_add_vert(HyperMesh *hme, float *co) {
 	return hv;
 }
 
-static HyperEdge *hypermesh_add_edge(HyperMesh *hme, HyperVert *v1, HyperVert *v2) {
+static HyperEdge *hypermesh_add_edge(HyperMesh *hme, HyperVert *v1, HyperVert *v2, int flag) {
 	HyperEdge *he= BLI_memarena_alloc(hme->arena, sizeof(*he));
 	
 	BLI_linklist_prepend_arena(&v1->edges, he, hme->arena);
@@ -276,14 +272,15 @@ static HyperEdge *hypermesh_add_edge(HyperMesh *hme, HyperVert *v1, HyperVert *v
 	he->v[1]= v2;
 	he->ep= NULL;
 	he->faces= NULL;
-
+	he->flag= flag;
+	
 	he->next= hme->edges;
 	hme->edges= he;
 	
 	return he;
 }
 
-static HyperFace *hypermesh_add_face(HyperMesh *hme, HyperVert **verts, int nverts) {
+static HyperFace *hypermesh_add_face(HyperMesh *hme, HyperVert **verts, int nverts, int flag) {
 	HyperFace *f= BLI_memarena_alloc(hme->arena, sizeof(*f));
 	HyperVert *last;
 	int j;
@@ -302,7 +299,7 @@ static HyperFace *hypermesh_add_face(HyperMesh *hme, HyperVert **verts, int nver
 		HyperEdge *e= hypervert_find_edge(v, last);
 
 		if (!e)
-			e= hypermesh_add_edge(hme, v, last);
+			e= hypermesh_add_edge(hme, v, last, flag);
 
 		f->verts[j]= v;
 		f->edges[j]= e;
@@ -367,7 +364,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, DispList *dlverts) {
 			if (nverts>3)
 				verts[3]= vert_tbl[mf->v4];
 		
-			f= hypermesh_add_face(hme, verts, nverts);
+			f= hypermesh_add_face(hme, verts, nverts, 1);
 			f->orig.ind= i;
 
 			if (hme->hasuvco) {
@@ -388,7 +385,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, DispList *dlverts) {
 					*((unsigned int*) f->vcol[j])= *((unsigned int*) &mcol[j]);
 			}
 		} else {
-			hypermesh_add_edge(hme, vert_tbl[mf->v1], vert_tbl[mf->v2]);
+			hypermesh_add_edge(hme, vert_tbl[mf->v1], vert_tbl[mf->v2], 1);
 		}
 	}
 
@@ -407,11 +404,11 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 		 * the ev->prev link so we can find it easy, 
 		 * then restore real prev links later.
 		 */
-	for (ev= everts; ev; ev= ev->next)
+	for (ev= everts; ev; ev= ev->next) 
 		ev->prev= (EditVert*) hypermesh_add_vert(hme, ev->co);
 
 	for (ee= eedges; ee; ee= ee->next)
-		hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev);
+		hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, 1);
 	
 	for (ef= efaces; ef; ef= ef->next) {
 		int nverts= ef->v4?4:3;
@@ -424,7 +421,7 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 		if (nverts>3)
 			verts[3]= (HyperVert*) ef->v4->prev;
 
-		f= hypermesh_add_face(hme, verts, nverts);
+		f= hypermesh_add_face(hme, verts, nverts, 1);
 		f->orig.ef= ef;
 	}
 
@@ -522,8 +519,8 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 	}
 
 	for (e= me->edges; e; e= e->next) {
-		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep);
-		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep);
+		hypermesh_add_edge(nme, e->v[0]->nmv, e->ep, e->flag);
+		hypermesh_add_edge(nme, e->v[1]->nmv, e->ep, e->flag);
 	}
 
 	for (f= me->faces; f; f= f->next) {
@@ -570,7 +567,7 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 			nv[2]= f->mid;
 			nv[3]= f->edges[last]->ep;
 			
-			nf= hypermesh_add_face(nme, nv, 4);
+			nf= hypermesh_add_face(nme, nv, 4, 0);
 			nf->orig= f->orig;
 			
 			if (me->hasvcol) {
@@ -717,6 +714,7 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 	dlm->totface= nfaces;
 	dlm->mvert= MEM_mallocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
 	dlm->mface= MEM_mallocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
+	if(hme->orig_me) dlm->flag= hme->orig_me->flag;
 	
 	if (hme->hasuvco)
 		dlm->tface= MEM_callocN(dlm->totface*sizeof(*dlm->tface), "dlm->tface");
@@ -726,6 +724,7 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 	for (i=0, v= hme->verts; i<nverts; i++, v= v->next) {
 		MVert *mv= &dlm->mvert[i];
 		Vec3Cpy(mv->co, v->co);
+		mv->flag= v->flag;  // draw flag
 		v->nmv= (void*) i;
 	}
 	
@@ -740,9 +739,9 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 			 * nverts by face vertices, if necessary.
 			 */
 		
-		mf->v1= (int) f->verts[(0+voff)%4]->nmv;
-		mf->v2= (int) f->verts[(1+voff)%4]->nmv;
-		mf->v3= (int) f->verts[(2+voff)%4]->nmv;
+		mf->v1= (int) f->verts[(0+voff)]->nmv;
+		mf->v2= (int) f->verts[(1+voff)]->nmv;
+		mf->v3= (int) f->verts[(2+voff)]->nmv;
 		mf->v4= (int) f->verts[(3+voff)%4]->nmv;
 
 		if (hme->orig_me) {			
@@ -751,16 +750,50 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 			mf->mat_nr= origmf->mat_nr;
 			mf->flag= origmf->flag;
 			mf->puno= 0;
-			mf->edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
+			
+			
 		} else {
 			EditVlak *origef= f->orig.ef;
 			
 			mf->mat_nr= origef->mat_nr;
 			mf->flag= origef->flag;
 			mf->puno= 0;
-			mf->edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
 		}
-
+		
+		{ 	// draw flag			
+			mf->edcode= 0;
+			
+			f->verts[0]->flag= 0;
+			f->verts[1]->flag= 0;
+			f->verts[2]->flag= 0;
+			f->verts[3]->flag= 0;
+			
+			if(f->edges[0]->flag) {
+				f->edges[0]->flag= 0;
+				f->edges[0]->v[0]->flag++;
+				f->edges[0]->v[1]->flag++;
+			}
+			if(f->edges[1]->flag) {
+				f->edges[1]->flag= 0;
+				f->edges[1]->v[0]->flag++;
+				f->edges[1]->v[1]->flag++;
+			}
+			if(f->edges[2]->flag) {
+				f->edges[2]->flag= 0;
+				f->edges[2]->v[0]->flag++;
+				f->edges[2]->v[1]->flag++;
+			}
+			if(f->edges[3]->flag) {
+				f->edges[3]->flag= 0;
+				f->edges[3]->v[0]->flag++;
+				f->edges[3]->v[1]->flag++;
+			}
+			if( f->verts[0+voff]->flag && f->verts[1+voff]->flag ) mf->edcode|=ME_V1V2;
+			if( f->verts[1+voff]->flag && f->verts[2+voff]->flag ) mf->edcode|=ME_V2V3;
+			if( f->verts[2+voff]->flag && f->verts[(3+voff)%4]->flag ) mf->edcode|=ME_V3V4;
+			if( f->verts[(3+voff)%4]->flag && f->verts[0+voff]->flag ) mf->edcode|=ME_V4V1;
+		}
+			
 		if (hme->hasuvco) {
 			TFace *origtf, *tf= &dlm->tface[i];
 			
