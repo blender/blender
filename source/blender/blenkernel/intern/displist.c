@@ -1646,7 +1646,7 @@ void makeDispList(Object *ob)
 
 		if(ob->effect.first) object_wave(ob);
 		
-		if (me->flag & ME_SUBSURF) {
+		if (mesh_uses_displist(me)) {
 			DispListMesh *dlm;
 
 			if (ob==G.obedit) {

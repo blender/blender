@@ -1111,10 +1111,6 @@ int mesh_uses_displist(Mesh *me) {
 	return (me->flag&ME_SUBSURF);
 }
 
-int rendermesh_uses_displist(Mesh *me) {
-	return (me->flag&ME_SUBSURF);
-}
-
 void mesh_calculate_vertex_normals(Mesh *me)
 {
 	float (*tempNorms)[3]= MEM_callocN(me->totvert*sizeof(*tempNorms), "tempNorms");

@@ -1670,7 +1670,7 @@ void convertmenu(void)
 		nr= pupmenu("Convert Nurbs Surf to%t|Mesh");
 		if(nr>0) ok= 1;
 	}
-	else if(ob->type==OB_MESH && ((Mesh*) ob->data)->flag&ME_SUBSURF) {
+	else if(ob->type==OB_MESH && mesh_uses_displist((Mesh*) ob->data)) {
 		nr= pupmenu("Convert SubSurf to%t|Mesh (keep original)");
 		if(nr>0) ok= 1;
 	}
@@ -1697,10 +1697,7 @@ void convertmenu(void)
 			else if(ob->type==OB_MESH) {
 				Mesh *oldme= ob->data;
 				
-				if( oldme->subdiv==0 ) {
-					error("No subdivision Mesh to convert available");
-				}
-				else if (oldme->flag&ME_SUBSURF) {
+				if (mesh_uses_displist(oldme)) {
 					DispListMesh *dlm;
 
 					ob->flag |= OB_DONE;
@@ -1819,18 +1816,15 @@ void convertmenu(void)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+	/* Change subdivision properties of mesh object ob, if
+	 * level==-1 then toggle subsurf, else set to level.
+	 */
 void flip_subdivison(Object *ob, int level)
 {
-	Mesh *me;
+	Mesh *me = ob->data;
 
-	me = ob->data;
-
-	if (level == 0)
-	{
-		if(me->flag & ME_SUBSURF)
-			me->flag &= ~ME_SUBSURF;
-		else
-			me->flag |= ME_SUBSURF;
+	if (level == -1) {
+		me->flag ^= ME_SUBSURF;
 	} else {
 		me->subdiv = level;
 	}

@@ -1438,7 +1438,7 @@ static void init_render_mesh(Object *ob)
 	int start, end, flipnorm, do_autosmooth=0;
 	
 	me= ob->data;
-	if (rendermesh_uses_displist(me)) {
+	if (mesh_uses_displist(me)) {
 		init_render_displist_mesh(ob);
 		return;
 	}
@@ -2737,7 +2737,7 @@ void RE_freeRotateBlenderScene(void)
 				MEM_freeN(me->orco);
 				me->orco= 0;
 			}
-			if (rendermesh_uses_displist(me) && (me->subdiv!=me->subdivr)) {
+			if (mesh_uses_displist(me) && (me->subdiv!=me->subdivr)) {
 				makeDispList(ob);  /* XXX this should be replaced with proper caching */
 				me->subdivdone= 0;	/* needed to prevent multiple used meshes being recalculated */
 			}

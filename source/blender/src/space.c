@@ -1203,7 +1203,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if((G.qual==LR_SHIFTKEY)) {
 					if(ob && ob->type == OB_MESH) {
-						flip_subdivison(ob, 0);
+						flip_subdivison(ob, -1);
 					}
 				}
 				else if(G.qual==LR_ALTKEY) clear_object('o');

@@ -34,38 +34,6 @@
 #ifndef BKE_MESH_H
 #define BKE_MESH_H
 
-/* texflag */
-#define AUTOSPACE               1
-
-/* me->flag (let op alternatieven in blendpsx.h) */
-#define ME_ISDONE               1
-#define ME_NOPUNOFLIP   2
-#define ME_TWOSIDED             4
-#define ME_UVEFFECT             8
-#define ME_VCOLEFFECT   16
-#define ME_AUTOSMOOTH   32
-#define ME_SMESH                64
-#define ME_SUBSURF				128
-
-/* puno (mface) */
-#define ME_FLIPV1               1
-#define ME_FLIPV2               2
-#define ME_FLIPV3               4
-#define ME_FLIPV4               8
-#define ME_PROJXY               16
-#define ME_PROJXZ               32
-#define ME_PROJYZ               64
-
-/* edcode (mface) */
-#define ME_V1V2                 1
-#define ME_V2V3                 2
-#define ME_V3V1                 4
-#define ME_V3V4                 4
-#define ME_V4V1                 8
-
-/* flag (mface) */
-#define ME_SMOOTH               1
-
 /***/
 
 struct DispList;
@@ -105,7 +73,6 @@ void tface_to_mcol(struct Mesh *me);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
 int mesh_uses_displist(struct Mesh *me);
-int rendermesh_uses_displist(struct Mesh *me);
 float get_mvert_weight (struct Object *ob, int vert, int defgroup);
 int update_realtime_texture(struct TFace *tface, double time);
 
