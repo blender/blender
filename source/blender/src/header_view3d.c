@@ -1280,6 +1280,8 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_copyattrmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_copyattrmenu, NULL);
 	
+	ob= OBACT;
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Location|Ctrl C, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotation|Ctrl C, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Size|Ctrl C, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
@@ -1298,7 +1300,7 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Constraints|Ctrl C, 11",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 	
-	if ((ob= OBACT)) {
+	if (ob) {
 	
 		if ((ob->type == OB_MESH) || (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
 				(ob->type == OB_FONT) || (ob->type == OB_MBALL)) {
