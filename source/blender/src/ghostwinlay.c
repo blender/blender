@@ -228,7 +228,15 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 	winlay_get_screensize(&scr_w, &scr_h);
 	posy= (scr_h-posy-sizey);
 	
-	inital_state= start_maximized?GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
+	/* create a fullscreen window on unix by default*/
+#if !defined(WIN32) && !defined(__APPLE__)
+	inital_state= start_maximized?
+		GHOST_kWindowStateFullScreen:GHOST_kWindowStateNormal;
+#else
+	inital_state= start_maximized?
+		GHOST_kWindowStateMaximized:GHOST_kWindowStateNormal;
+#endif
+
 	ghostwin= GHOST_CreateWindow(g_system, 
 								title, 
 								posx, posy, sizex, sizey, 
