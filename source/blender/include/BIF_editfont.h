@@ -33,6 +33,8 @@
 #ifndef BIF_EDITFONT_H
 #define BIF_EDITFONT_H
 
+struct Text;
+
 void do_textedit(unsigned short event, short val, char _ascii);
 void make_editText(void);
 void load_editText(void);

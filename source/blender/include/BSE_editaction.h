@@ -38,6 +38,7 @@ struct bActionChannel;
 struct bPoseChannel;
 struct Object;
 struct Ipo;
+struct BWinEvent;
 
 struct bActionChannel* get_hilighted_action_channel(struct bAction* action);
 void set_exprap_action(int mode);
