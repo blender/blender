@@ -1172,7 +1172,7 @@ static void texture_panel_colors(Tex *tex)
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_TEXPRV, "Bright",		10,10,150,20, &tex->bright, 0.0, 2.0, 0, 0, "Changes the brightness of the colour or intensity of a texture");
-	uiDefButF(block, NUMSLI, B_TEXPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 2.0, 0, 0, "Changes the contrast of the colour or intensity of a texture");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 5.0, 0, 0, "Changes the contrast of the colour or intensity of a texture");
 }
 
 

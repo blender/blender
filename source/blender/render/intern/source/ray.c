@@ -1544,17 +1544,11 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		
 	}
 	else {	/* sky */
-		char skycol[4];
 		
 		VECCOPY(shi.view, vec);
 		Normalise(shi.view);
 
-		RE_sky(shi.view, skycol);	
-
-		col[0]= skycol[0]/255.0;
-		col[1]= skycol[1]/255.0;
-		col[2]= skycol[2]/255.0;
-
+		RE_sky(shi.view, col);	
 	}
 }
 
@@ -2121,7 +2115,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 				else sh+= 1.0;
 			}
 			else if(wrld->aocolor!=WO_AOPLAIN) {
-				char skycol[4];
+				float skycol[4];
 				float fac, view[3];
 				
 				view[0]= -vec[0];
@@ -2137,9 +2131,9 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 				}
 				else {
 					RE_sky(view, skycol);
-					shadfac[0]+= skycol[0]/255.0;
-					shadfac[1]+= skycol[1]/255.0;
-					shadfac[2]+= skycol[2]/255.0;
+					shadfac[0]+= skycol[0];
+					shadfac[1]+= skycol[1];
+					shadfac[2]+= skycol[2];
 				}
 			}
 		}

@@ -88,6 +88,8 @@
 
 #include "RE_renderconverter.h"
 
+#include "blendef.h"	/* CLAMP */
+
 #define PR_RECTX	141
 #define PR_RECTY	141
 #define PR_XMIN		10
@@ -385,7 +387,7 @@ static void sky_preview_pixel(float lens, int x, int y, char *rect)
 		view[2]= -lens*PR_RECTX/32.0;
 		Normalise(view);
 	}
-	RE_sky(view, rect);
+	RE_sky_char(view, rect);
 }
 
 static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char *rect)
@@ -642,9 +644,12 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 	
 	if(rgbnor & 1) {
 		
-		rect[0]= 255.0*Tr;
-		rect[1]= 255.0*Tg;
-		rect[2]= 255.0*Tb;
+		v1= 255.0*Tr;
+		rect[0]= CLAMPIS(v1, 0, 255);
+		v1= 255.0*Tg;
+		rect[1]= CLAMPIS(v1, 0, 255);
+		v1= 255.0*Tb;
+		rect[2]= CLAMPIS(v1, 0, 255);
 		
 		if(Ta!=1.0) {
 			tracol=  64+100*(abs(x)>abs(y));

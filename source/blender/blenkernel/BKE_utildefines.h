@@ -274,11 +274,11 @@
 					if(Tin<0.0) Tin= 0.0; else if(Tin>1.0) Tin= 1.0;
 
 #define BRICONRGB	Tr= tex->rfac*((Tr-0.5)*tex->contrast+tex->bright-0.5); \
-					if(Tr<0.0) Tr= 0.0; else if(Tr>1.0) Tr= 1.0; \
+					if(Tr<0.0) Tr= 0.0; \
 					Tg= tex->gfac*((Tg-0.5)*tex->contrast+tex->bright-0.5); \
-					if(Tg<0.0) Tg= 0.0; else if(Tg>1.0) Tg= 1.0; \
+					if(Tg<0.0) Tg= 0.0; \
 					Tb= tex->bfac*((Tb-0.5)*tex->contrast+tex->bright-0.5); \
-					if(Tb<0.0) Tb= 0.0; else if(Tb>1.0) Tb= 1.0;
+					if(Tb<0.0) Tb= 0.0; 
 
 /* mystifying stuff from blendef... */
 #define SELECT			1

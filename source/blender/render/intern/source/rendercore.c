@@ -163,9 +163,9 @@ float mistfactor(float *co)	/* dist en height, return alpha */
 	return (1.0-fac)* (1-R.wrld.misi);	
 }
 
-void RE_sky(float *view, char *col)
+void RE_sky(float *view, float *col)
 {
-	float lo[3], rf, gf, bf;
+	float lo[3];
 
 	if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		*( (unsigned int *)col)= R.wrld.fastcol;
@@ -206,22 +206,31 @@ void RE_sky(float *view, char *col)
 	R.inprh= 1.0-R.inprz;
 
 	if(R.wrld.skytype & WO_SKYBLEND) {
-		rf= 255.0*(R.inprh*R.wrld.horr + R.inprz*R.wrld.zenr);
-		gf= 255.0*(R.inprh*R.wrld.horg + R.inprz*R.wrld.zeng);
-		bf= 255.0*(R.inprh*R.wrld.horb + R.inprz*R.wrld.zenb);
-
-		if (rf>255.0) col[0]= 255; 
-		else col[0]= (char)rf;
-		if (gf>255.0) col[1]= 255; 
-		else col[1]= (char)gf;
-		if (bf>255.0) col[2]= 255; 
-		else col[2]= (char)bf;
+		col[0]= (R.inprh*R.wrld.horr + R.inprz*R.wrld.zenr);
+		col[1]= (R.inprh*R.wrld.horg + R.inprz*R.wrld.zeng);
+		col[2]= (R.inprh*R.wrld.horb + R.inprz*R.wrld.zenb);
 	}
 	else {
-		col[0]= 255.0*R.wrld.horr;
-		col[1]= 255.0*R.wrld.horg;
-		col[2]= 255.0*R.wrld.horb;
+		col[0]= R.wrld.horr;
+		col[1]= R.wrld.horg;
+		col[2]= R.wrld.horb;
 	}
+}
+
+void RE_sky_char(float *view, char *col)
+{
+	float f, colf[3];
+	
+	RE_sky(view, colf);
+	f= 255.0*colf[0];
+	if(f<=0.0) col[0]= 0; else if(f>255.0) col[0]= 255;
+	else col[0]= (char)f;
+	f= 255.0*colf[1];
+	if(f<=0.0) col[1]= 0; else if(f>255.0) col[1]= 255;
+	else col[1]= (char)f;
+	f= 255.0*colf[2];
+	if(f<=0.0) col[2]= 0; else if(f>255.0) col[2]= 255;
+	else col[2]= (char)f;
 	col[3]= 1;	/* to prevent wrong optimalisation alphaover of flares */
 }
 
@@ -372,7 +381,7 @@ void scanlinesky(char *rect, int y)
 					view[2]= -panosi*u + panoco*v;
 				}
 
-				RE_sky(view, (char *)&col);
+				RE_sky_char(view, (char *)&col);
 	
 				if(rect[3]==0) *((unsigned int *)rect)= col;
 				else alphafunc(rect, &col);

@@ -252,7 +252,8 @@ struct EnvMap *RE_copy_envmap(struct EnvMap *env);
 
 	/* patch for the external if, to support the split for the ui */
 	void RE_addalphaAddfac(char *doel, char *bron, char addfac);
-	void RE_sky(float *view, char *col); 
+	void RE_sky_char(float *view, char *col); 
+	void RE_sky(float *view, float *col); 
 	void RE_renderflare(struct HaloRen *har); 
 	/**
 	 * Shade the pixel at xn, yn for halo har, and write the result to col. 
