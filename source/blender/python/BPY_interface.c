@@ -175,7 +175,7 @@ void BPY_Err_Handle(Text *text)
     PyErr_Restore(exception, err, tb); // takes away reference!
     PyErr_Print();
     tb = PySys_GetObject("last_traceback");
-    Py_INCREF(tb);
+    Py_XINCREF(tb);
 
 /* From old bpython BPY_main.c:
  * 'check traceback objects and look for last traceback in the
@@ -183,15 +183,17 @@ void BPY_Err_Handle(Text *text)
  *  error occured. "If the error occured in another text file or module,
  *  the last frame in the current file is adressed."' */
 
-      while (1) { 
-        v = PyObject_GetAttrString(tb, "tb_next");
+    while (1) { 
+      v = PyObject_GetAttrString(tb, "tb_next");
 
-        if (v == Py_None || 
-          strcmp(PyString_AsString(traceback_getFilename(v)), GetName(text)))
-          break;
-        Py_DECREF(tb);
-        tb = v;
-      }
+      if (v == Py_None || strcmp(PyString_AsString(traceback_getFilename(v)),
+															GetName(text))) {
+        break;
+			}
+
+      Py_DECREF(tb);
+      tb = v;
+    }
 
     v = PyObject_GetAttrString(tb, "tb_lineno");
     g_script_error.lineno = PyInt_AsLong(v);
@@ -482,8 +484,6 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 
     if (PyErr_Occurred()) {
       BPY_free_compiled_text(text);
-			PyErr_SetString (PyExc_RuntimeError,
-											"couldn't compile script to Python bytecode");
 			return NULL;
     }
 
