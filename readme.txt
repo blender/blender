@@ -1,8 +1,8 @@
-Welcome to the fun world of opensource.
+Welcome to the fun world of open-source.
 
 To help you get started do the following before starting:
 
-You will want to downlod the following external packages:
+You will want to download the following external packages:
 
 openssl:  http://www.openssl.org
 python:  http://www.python.org
@@ -11,14 +11,14 @@ libjpeg:  http://www.ijg.org/
 libpng:  http://www.libpng.org/pub/png/
 zlib:   http://www.gzip.org/zlib/
 openal:  http://www.openal.org/home/
-(maye be needed for openal)sdl: http://www.libsdl.org/index.php
+(may be needed for openal)sdl: http://www.libsdl.org/index.php
 smpeg: http://www.lokigames.com/development/smpeg.php3
 
 If you do not have GL you will also need mesa:
 http://www.mesa3d.org
 
 --------------UNIX TIPS---------------------------------------
-Assuming your using tcsh/csh do the following before compiling.
+Assuming you are using tcsh/csh do the following before compiling.
 #Set this to wherever you have extracted the source.
 setenv NANBLENDERHOME `pwd`
 setenv MAKEFLAGS "-w -I$NANBLENDERHOME/source"
@@ -28,7 +28,7 @@ export NANBLENDERHOME
 set MAKEFLAGS="-w -I$NANBLENDERHOME/source"
 export MAKEFLAGS
 
-Then edit source/nan_definitions.mk to fit your environment.
+Then edit source/nan_definitions.mk to fit you're environment.
 
 After that cd $NANBLENDERHOME/intern 
 make
@@ -54,7 +54,7 @@ not be necessary (unless you want to know about the process of "freezing"
 Python code).
 
 Now before you go to the source directory, make sure you have installed the
-external libaries that Blender depends upon. Here is a description of the 
+external libraries that Blender depends upon. Here is a description of the 
 things you need.
 
 FINK:
@@ -72,7 +72,7 @@ I could not find it). You could use fink to install Python but that Python
 installation depends on X being installed and that is a large installation.
 
 If you prefer the easy way: download Python 2.2.2 from http://www.python.org.
-Follow the instructions to in the documentation to install it on your box. If
+Follow the instructions to in the documentation to install it on you're box. If
 you run OSX 10.2 it should install just fine. Basically a configure and a 
 "make" will do the job. The result is a Python library that should be copied to
 the library tree together with the associated header files.
@@ -89,7 +89,7 @@ RANLIB:
 Although the make files run ranlib on the libraries built, the gcc linker 
 complains about ranlib not being run. Until there is a solution, you will need
 to run ranlib by hand once in a while when the make breaks. Luckily, the error
-message lists the full path of the file to run ranlib on... Anybody ot there 
+message lists the full path of the file to run ranlib on... Anybody out there 
 with a real solution?
 
 Success!
