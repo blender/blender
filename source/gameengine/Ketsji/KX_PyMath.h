@@ -61,17 +61,25 @@ bool PyMatTo(PyObject* pymat, T& mat)
 	if (PySequence_Check(pymat))
 	{
 		unsigned int rows = PySequence_Size(pymat);
-		for (unsigned int y = 0; y < rows && y < Size(mat); y++)
+		if (rows != Size(mat))
+			return false;
+			
+		for (unsigned int y = 0; noerror && y < Size(mat); y++)
 		{
 			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
-			if (PySequence_Check(pyrow))
+			if (!PyErr_Occurred() && PySequence_Check(pyrow))
 			{
 				unsigned int cols = PySequence_Size(pyrow);
-				for( unsigned int x = 0; x < cols && x < Size(mat); x++)
+				if (cols != Size(mat))
+					noerror = false;
+				else
 				{
-					PyObject *item = PySequence_GetItem(pyrow, x); /* new ref */
-					mat[y][x] = PyFloat_AsDouble(item);
-					Py_DECREF(item);
+					for( unsigned int x = 0; x < Size(mat); x++)
+					{
+						PyObject *item = PySequence_GetItem(pyrow, x); /* new ref */
+						mat[y][x] = PyFloat_AsDouble(item);
+						Py_DECREF(item);
+					}
 				}
 			} else 
 				noerror = false;
@@ -92,7 +100,10 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	if (PySequence_Check(pyval))
 	{
 		unsigned int numitems = PySequence_Size(pyval);
-		for (unsigned int x = 0; x < numitems && x < Size(vec); x++)
+		if (numitems != Size(vec))
+			return false;
+			
+		for (unsigned int x = 0; x < numitems; x++)
 		{
 			PyObject *item = PySequence_GetItem(pyval, x); /* new ref */
 			vec[x] = PyFloat_AsDouble(item);
