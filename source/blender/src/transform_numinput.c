@@ -63,9 +63,14 @@
 void outputNumInput(NumInput *n, char *str)
 {
 	char cur;
-	short i;
+	short i, j;
 
-	for (i=0; i<=n->idx_max; i++) {
+	for (j=0; j<=n->idx_max; j++) {
+		/* if AFFECTALL and no number typed and cursor not on number, use first number */
+		if (n->flags & AFFECTALL && n->idx != j && n->ctrl[j] == 0)
+			i = 0;
+		else
+			i = j;
 
 		if (n->idx != i)
 			cur = ' ';
@@ -74,60 +79,65 @@ void outputNumInput(NumInput *n, char *str)
 
 		switch (n->ctrl[i]) {
 		case 0:
-			sprintf(&str[i*20], "NONE%c", cur);
+			sprintf(&str[j*20], "NONE%c", cur);
 			break;
 		case 1:
 		case -1:
-			sprintf(&str[i*20], "%.0f%c", n->val[i], cur);
+			sprintf(&str[j*20], "%.0f%c", n->val[i], cur);
 			break;
 		case 10:
 		case -10:
-			sprintf(&str[i*20], "%.f.%c", n->val[i], cur);
+			sprintf(&str[j*20], "%.f.%c", n->val[i], cur);
 			break;
 		case 100:
 		case -100:
-			sprintf(&str[i*20], "%.1f%c", n->val[i], cur);
+			sprintf(&str[j*20], "%.1f%c", n->val[i], cur);
 			break;
 		case 1000:
 		case -1000:
-			sprintf(&str[i*20], "%.2f%c", n->val[i], cur);
+			sprintf(&str[j*20], "%.2f%c", n->val[i], cur);
 		case 10000:
 		case -10000:
-			sprintf(&str[i*20], "%.3f%c", n->val[i], cur);
+			sprintf(&str[j*20], "%.3f%c", n->val[i], cur);
 			break;
 		default:
-			sprintf(&str[i*20], "%.4f%c", n->val[i], cur);
+			sprintf(&str[j*20], "%.4f%c", n->val[i], cur);
 		}
 	}
 }
 
 short hasNumInput(NumInput *n)
 {
-	short doit = 0;
 	short i;
 
 	for (i=0; i<=n->idx_max; i++) {
 		if (n->ctrl[i])
-			doit = 1;
+			return 1;
 	}
 
-	return doit;
+	return 0;
 }
 
 void applyNumInput(NumInput *n, float *vec)
 {
-	short i;
+	short i, j;
 
 	if (hasNumInput(n)) {
-		for (i=0; i<=n->idx_max; i++) {
+		for (j=0; j<=n->idx_max; j++) {
+			/* if AFFECTALL and no number typed and cursor not on number, use first number */
+			if (n->flags & AFFECTALL && n->idx != j && n->ctrl[j] == 0)
+				i = 0;
+			else
+				i = j;
+
 			if (n->ctrl[i] == 0 && n->flags & NULLONE) {
-				vec[i] = 1.0f;
+				vec[j] = 1.0f;
 			}
 			else if (n->val[i] == 0.0f && n->flags & NOZERO) {
-				vec[i] = 0.0001f;
+				vec[j] = 0.0001f;
 			}
 			else {
-				vec[i] = n->val[i];
+				vec[j] = n->val[i];
 			}
 		}
 	}

@@ -293,12 +293,9 @@ void initTransModeFlags(TransInfo *t, int mode)
 	t->mode = mode;
 	
 	switch (mode) {
-	case TFM_TRANSLATION:
-		break;
-	case TFM_ROTATION:
-		break;
 	case TFM_RESIZE:
 		t->num.flags |= NULLONE;
+		t->num.flags |= AFFECTALL;
 		if (!G.obedit) {
 			t->flag |= NOZERO;
 			t->num.flags |= NOZERO;

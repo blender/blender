@@ -133,6 +133,7 @@ typedef struct TransInfo {
 #define NONEGATIVE		4
 #define	NOZERO			8
 #define NOFRACTION		16
+#define	AFFECTALL		32
 
 /* transinfo->mode */
 #define TFM_REPEAT			0
