@@ -126,7 +126,7 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 	/*	We know that action actuators have been discarded from all non armature objects:
 	if we're being called, we're attached to a BL_ArmatureObject */
 	BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
-	int length = m_endtime - m_starttime;
+	float length = m_endtime - m_starttime;
 	
 	priority = m_priority;
 	
@@ -436,7 +436,7 @@ PyObject* BL_ActionActuator::PyGetProperty(PyObject* self,
 										   PyObject* kwds) {
 	PyObject *result;
 	
-	result = Py_BuildValue("s", m_propname);
+	result = Py_BuildValue("s", (const char *)m_propname);
 	
 	return result;
 }
