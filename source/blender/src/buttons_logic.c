@@ -2467,7 +2467,7 @@ void logic_buts(void)
 		else if(prop->type==PROP_INT) 
 			uiDefButI(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, &prop->data, -10000, 10000, 0, 0, "");
 		else if(prop->type==PROP_FLOAT) 
-			uiDefButF(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 100, 0, "");
+			uiDefButF(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 100, 3, "");
 		else if(prop->type==PROP_STRING) 
 			uiDefBut(block, TEX, butreturn, "",				215, (short)(70-20*a), 110, 19, prop->poin, 0, 127, 0, 0, "");
 		else if(prop->type==PROP_TIME) 
