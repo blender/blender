@@ -1338,6 +1338,43 @@ static void sethandles_actionchannel_keys(int code)
 	allqueue(REDRAWNLA, 0);
 }
 
+static void set_ipotype_actionchannels(void) {
+
+	bAction *act; 
+	bActionChannel *chan;
+	short event;
+
+	/* Get the selected action, exit if none are selected 
+	 */
+	act = G.saction->action;
+	if (!act)
+		return;
+
+	/* Present a popup menu asking the user what type
+	 * of IPO curve he/she/GreenBTH wants. ;)
+	 */
+	event= pupmenu("Channel Ipo Type %t|Constant %x1|Linear %x2|Bezier %x3");
+	if(event < 1) return;
+	
+	/* Loop through the channels and for the selected ones set
+	 * the type for each Ipo curve in the channel Ipo (based on
+	 * the value from the popup).
+	 */
+	for (chan = act->chanbase.first; chan; chan=chan->next){
+		if (chan->flag & ACHAN_SELECTED){
+			if (chan->ipo)
+				setipotype_ipo(chan->ipo, event);
+		}
+	}
+
+	/* Clean up and redraw stuff
+	 */
+	remake_action_ipos (act);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
 
 void winqreadactionspace(unsigned short event, short val, char ascii)
 {
@@ -1414,6 +1451,11 @@ void winqreadactionspace(unsigned short event, short val, char ascii)
 			else sethandles_actionchannel_keys(HD_ALIGN);
 			break;
  
+			/*** set the Ipo type  ***/
+		case TKEY:
+			set_ipotype_actionchannels();
+			break;
+
 		case BKEY:
 			borderselect_action();
 			break;

@@ -2958,6 +2958,43 @@ void sethandles_ipo(int code)
 }
 
 
+void set_ipocurve_constant(struct IpoCurve *icu) {
+	/* Sets the type of the IPO curve to constant
+	 */
+	icu->ipo= IPO_CONST;
+}
+
+void set_ipocurve_linear(struct IpoCurve *icu) {
+	/* Sets the type of the IPO curve to linear
+	 */
+	icu->ipo= IPO_LIN;
+}
+
+void set_ipocurve_bezier(struct IpoCurve *icu) {
+	/* Sets the type of the IPO curve to bezier
+	 */
+	icu->ipo= IPO_BEZ;
+}
+
+
+void setipotype_ipo(Ipo *ipo, int code)
+{
+	/* Sets the type of the each ipo curve in the
+	 * Ipo to a value based on the code
+	 */
+	switch (code) {
+	case 1:
+		ipo_keys_bezier_loop(ipo, NULL, set_ipocurve_constant);
+		break;
+	case 2:
+		ipo_keys_bezier_loop(ipo, NULL, set_ipocurve_linear);
+		break;
+	case 3:
+		ipo_keys_bezier_loop(ipo, NULL, set_ipocurve_bezier);
+		break;
+	}
+}
+
 void set_ipotype()
 {
 	EditIpo *ei;

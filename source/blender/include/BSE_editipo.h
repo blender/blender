@@ -131,6 +131,7 @@ void sampledata_to_ipocurve(float *data, int sfra, int efra, struct IpoCurve *ic
 void ipo_record(void);    
 
 void sethandles_ipo_keys(struct Ipo *ipo, int code);
+void setipotype_ipo(struct Ipo *ipo, int code);
 void set_ipo_key_selection(struct Ipo *ipo, int sel);
 int is_ipo_key_selected(struct Ipo *ipo);
 void delete_ipo_keys(struct Ipo *ipo);
