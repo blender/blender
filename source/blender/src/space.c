@@ -1040,7 +1040,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWHEADERS, 0);
 				}
 				else if(G.qual & LR_SHIFTKEY) {
-					if(ob->type == OB_MESH) {
+					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 0);
 					}
 				}
