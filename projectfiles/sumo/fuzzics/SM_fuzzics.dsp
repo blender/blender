@@ -40,7 +40,7 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
+# PROP Output_Dir "..\..\..\obj\windows\sumo\fuzzics"
 # PROP Intermediate_Dir "..\..\..\obj\windows\sumo\fuzzics"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\sumo\fuzzics\SM_fuzzics.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "SM_fuzzics - Win32 Debug"
 
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
+# PROP Output_Dir "..\..\..\obj\windows\sumo\fuzzics\debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\sumo\fuzzics\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
@@ -77,7 +77,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\sumo\fuzzics\debug\SM_fuzzics.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "SM_fuzzics - Win32 MT DLL Debug"
 
