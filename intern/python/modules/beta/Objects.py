@@ -94,7 +94,7 @@ class shadowNMesh:
 		# is improved. The GLU tesselator of Mesa < 4.0 is crappy...
 		if not self.tess:
 			return [] # no faces converted
-	#	import tess
+		import tess
 		i = 0
 		global tessfaces
 		tessfaces = []

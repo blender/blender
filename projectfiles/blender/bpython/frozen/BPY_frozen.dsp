@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.2" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.2" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "FUTURE_PYTHON_API" /YX /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -195,6 +195,10 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Converter__importloader.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_copy.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\..\source\blender\bpython\frozen\M_copy_reg.c
 # End Source File
 # Begin Source File
@@ -224,6 +228,10 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mcf__utils__singletonlist.c
 # Begin Source File
 
 SOURCE=..\..\..\..\source\blender\bpython\frozen\M_pprint.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_repr.c
 # End Source File
 # Begin Source File
 

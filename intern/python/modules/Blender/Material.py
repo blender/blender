@@ -14,7 +14,7 @@
     Scene.getCurrent().link(ob)                # link object to current scene
 """
 
-#import _Blender.Material as _Material
+import _Blender.Material as _Material
 import shadow
 #import Blender.Curve as Curve
 

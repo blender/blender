@@ -8,7 +8,7 @@
     im = Image.Load('dead-parrot.jpg')
 """
 
-#import _Blender.Image as _Image
+import _Blender.Image as _Image
 import shadow
 
 class Image(shadow.shadow):

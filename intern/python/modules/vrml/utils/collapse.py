@@ -11,8 +11,7 @@ Destructive Functions for "collapsing" Sequences into single levels
 
 [1, 2, 3, 4, 5, 6] # note is the same root list
 '''
-#import copy, types, sys
-import types, sys
+import copy, types, sys
 from types import ListType, TupleType # this now only supports the obsolete stuff...
 
 def hyperCollapse( inlist, allowedmap, type=type, list=list, itype=types.InstanceType, maxint= sys.maxint):

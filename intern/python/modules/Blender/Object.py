@@ -17,7 +17,7 @@
     ob.makeParent([actobj])          # make ob the parent of actobj
 """
 
-#import _Blender.Object as _Object
+import _Blender.Object as _Object
 
 import shadow
 reload(shadow)   # XXX
@@ -98,7 +98,7 @@ class Object(shadow.hasIPO):
 the Object's type, so you cannot link a Lamp to a mesh type Object.
 'data' can also be an Ipo object (IpoBlock)
 """
-		#from _Blender import Types
+		from _Blender import Types
 		# special case for NMesh:
 		if type(data) == Types.NMeshType:
 			return self._object.link(data)
@@ -146,7 +146,7 @@ original. The returned object is *free*, meaning, not linked to any scene."""
 	def getDeformData(self):
 		"""Returns the Datablock object containing the object's deformed data.
 Currently, this is only supported for a Mesh"""
-		#import _Blender.NMesh as _NMesh
+		import _Blender.NMesh as _NMesh
 		t = self._object.getType()
 		if t == self.Types['Mesh']:
 			data = _NMesh.GetRawFromObject(self.name)

@@ -10,7 +10,7 @@ import string,types
 # import the C module and the version number
 #
 from mxTextTools import *
-#from mxTextTools import __version__
+from mxTextTools import __version__
 
 #
 # import the symbols needed to write tag tables

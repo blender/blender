@@ -36,7 +36,7 @@ def regnumpy():
 	if globals().has_key('Numeric'):
 		return 1
 	try:
-#		import Numeric
+		import Numeric
 		SequenceTypes.append( Numeric.ArrayType )
 		MutableTypes.append( Numeric.ArrayType )
 		MutableSequenceTypes.append( Numeric.ArrayType )

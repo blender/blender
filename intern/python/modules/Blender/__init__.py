@@ -6,7 +6,7 @@ __all__ = ["Object", "Image", "NMesh", "Window", "Mesh", "sys",
            "Lamp", "Scene", "Draw", "Camera", "Material", "Types", "Ipo",
            "BGL"]
 
-#import _Blender
+import _Blender
 
 Get = _Blender.Get
 Redraw = _Blender.Redraw

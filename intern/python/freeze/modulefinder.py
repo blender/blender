@@ -330,9 +330,9 @@ class ModuleFinder:
         return m
 
     def find_module(self, name, path):
-#        if name in self.excludes:
-#            self.msgout(3, "find_module -> Excluded")
-#            raise ImportError, name
+        if name in self.excludes:
+            self.msgout(3, "find_module -> Excluded")
+            raise ImportError, name
 
         if path is None:
             if name in sys.builtin_module_names:
