@@ -1831,7 +1831,6 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 
 		if(lar->mode & LA_ONLYSHADOW) {
 			if((lar->mode & LA_SHAD)==0) lar->mode -= LA_ONLYSHADOW;
-			else if((R.r.mode & R_SHADOW)==0) lar->mode -= LA_ONLYSHADOW;
 		}
 
 	}

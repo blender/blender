@@ -1681,7 +1681,7 @@ void shade_lamp_loop()
 
 		/* test for lamp layer */
 		if(lar->mode & LA_LAYER) if((lar->lay & R.vlr->lay)==0) continue;
-
+		
 		/* lampdist calculation */
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 			VECCOPY(lv, lar->vec);
@@ -1757,7 +1757,7 @@ void shade_lamp_loop()
 					soft= (3.0*t-2.0*t*i);
 					inpr*= soft;
 				}
-				if(lar->mode & LA_ONLYSHADOW && lar->shb) {
+				if((lar->mode & LA_ONLYSHADOW) && lar->shb) {
 					if(ma->mode & MA_SHADOW) {
 						/* dot product positive: front side face! */
 						inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
