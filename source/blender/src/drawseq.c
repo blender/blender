@@ -468,7 +468,7 @@ void set_special_seq_update(int val)
 }
 
 
-static void draw_image_seq(void)
+static void draw_image_seq(ScrArea *sa)
 {
 	SpaceSeq *sseq;
 	StripElem *se;
@@ -477,8 +477,6 @@ static void draw_image_seq(void)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	curarea->win_swap= WIN_BACK_OK;
 
 	ibuf= (ImBuf *)give_ibuf_seq( (G.scene->r.cfra));
 
@@ -494,17 +492,18 @@ static void draw_image_seq(void)
 	}
 	if(ibuf==0 || ibuf->rect==0) return;
 
-	sseq= curarea->spacedata.first;
+	sseq= sa->spacedata.first;
 	if(sseq==0) return;
 
 	/* calc location */
-	x1= curarea->winrct.xmin+(curarea->winx-sseq->zoom*ibuf->x)/2;
-	y1= curarea->winrct.ymin+(curarea->winy-sseq->zoom*ibuf->y)/2;
+	x1= sa->winrct.xmin+(sa->winx-sseq->zoom*ibuf->x)/2;
+	y1= sa->winrct.ymin+(sa->winy-sseq->zoom*ibuf->y)/2;
 
-	rectwrite_part(curarea->winrct.xmin, curarea->winrct.ymin,
-				curarea->winrct.xmax, curarea->winrct.ymax,
+	rectwrite_part(sa->winrct.xmin, sa->winrct.ymin,
+				sa->winrct.xmax, sa->winrct.ymax,
 				x1, y1, ibuf->x, ibuf->y, (float)sseq->zoom,(float)sseq->zoom, ibuf->rect);
 
+	sa->win_swap= WIN_BACK_OK;
 }
 
 static void draw_extra_seqinfo(void)
@@ -777,7 +776,8 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	sseq= curarea->spacedata.first;
 	if(sseq->mainb==1) {
-		draw_image_seq();
+		draw_image_seq(curarea);
+		curarea->win_swap= WIN_BACK_OK;
 		return;
 	}
 

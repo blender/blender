@@ -1193,6 +1193,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	if(R.r.scemode & R_DOSEQ) {
 		R.rectx= R.r.xsch;
 		R.recty= R.r.ysch;
+		if(R.r.mode & R_PANORAMA) {
+			R.rectx*= R.r.xparts;
+		}
 		
 		if(R.rectot) MEM_freeN(R.rectot);
 		R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");

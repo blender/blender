@@ -64,11 +64,13 @@
 #include "BKE_scene.h"
 #include "BKE_ipo.h"
 
-#include "BIF_screen.h"
-#include "BIF_interface.h"
-#include "BIF_toolbox.h"
 #include "BSE_filesel.h"
+#include "BIF_interface.h"
 #include "BSE_headerbuttons.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
+#include "BIF_toolbox.h"
+
 #include "BSE_sequence.h"
 
 #include "blendef.h"
@@ -1953,6 +1955,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 
 						RE_initrender(NULL);
 						if (!G.background) {
+							mainwindow_make_active();
 							if(R.r.mode & R_FIELDS) update_for_newframe_muted();
 							R.flag= 0;
 

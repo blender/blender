@@ -3126,6 +3126,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						force_draw(0);
 						update_for_newframe();	/* for audio scrubbing */						
 					}
+					else PIL_sleep_ms(30);
 				
 				} while(get_mbut() & mousebut);
 				
