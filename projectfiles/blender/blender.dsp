@@ -52,6 +52,10 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 freetype214ST.lib ftgl_static_ST.lib gnu_gettext.lib qtmlClient.lib odelib.lib openal_static.lib libguardedalloc.a libbsp.a libbmfont.a libghost.a libstring.a ws2_32.lib dxguid.lib opengl32.lib libjpeg.a glu32.lib user32.lib gdi32.lib vfw32.lib advapi32.lib ole32.lib libdecimation.a libblenkey.a libeay32.lib libiksolver.a libpng.a libz.a libmoto.a /nologo /subsystem:console /machine:I386 /nodefaultlib:"msvcprt.lib" /nodefaultlib:"glut32.lib" /nodefaultlib:"libcd.lib" /nodefaultlib:"libc.lib" /nodefaultlib:"libcpd.lib" /nodefaultlib:"libcp.lib" /nodefaultlib:"libcmtd.lib" /out:"..\..\bin\blender.exe" /libpath:"..\..\..\lib\windows\freetype\lib" /libpath:"..\..\..\lib\windows\ftgl\lib" /libpath:"..\..\..\lib\windows\gettext\lib" /libpath:"..\..\..\lib\windows\ode\lib" /libpath:"..\..\..\lib\windows\bsp\lib" /libpath:"..\..\..\lib\windows\moto\lib" /libpath:"..\..\..\lib\windows\bmfont\lib" /libpath:"..\..\..\lib\windows\ghost\lib" /libpath:"..\..\..\lib\windows\python\frozen" /libpath:"..\..\..\lib\windows\guardedalloc\lib" /libpath:"..\..\..\lib\windows\string\lib" /libpath:"..\..\..\lib\windows\python\lib" /libpath:"..\..\..\lib\windows\iksolver\lib" /libpath:"..\..\..\lib\windows\decimation\lib" /libpath:"..\..\..\lib\windows\openal\lib" /libpath:"..\..\..\lib\windows\jpeg\lib" /libpath:"..\..\..\lib\windows\blenkey\lib" /libpath:"..\..\..\lib\windows\openssl\lib" /libpath:"..\..\..\lib\windows\zlib\lib\\" /libpath:"..\..\..\lib\windows\png\lib\\"
 # SUBTRACT LINK32 /pdb:none
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=ECHO Copying required 3rd party dlls...	XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\	ECHO Done
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "blender - Win32 Debug"
 
@@ -78,6 +82,10 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 odelib.lib openal_static.lib libguardedalloc.a libbsp.a libbmfont.a libghost.a libstring.a ws2_32.lib dxguid.lib opengl32.lib libjpeg.a glu32.lib user32.lib gdi32.lib vfw32.lib advapi32.lib ole32.lib libdecimation.a libblenkey.a libeay32.lib libiksolver.a libpng.a libz.a libmoto.a /nologo /subsystem:console /debug /machine:I386 /nodefaultlib:"glut32.lib" /nodefaultlib:"libcd.lib" /nodefaultlib:"libc.lib" /nodefaultlib:"libcpd.lib" /nodefaultlib:"libcp.lib" /nodefaultlib:"libcmt.lib" /nodefaultlib:"libcpmtd.lib" /nodefaultlib:"msvcprtd.lib" /out:"..\..\bin\debug\blender.exe" /pdbtype:sept /libpath:"..\..\..\lib\windows\ode\lib" /libpath:"..\..\..\lib\windows\bsp\lib\debug" /libpath:"..\..\..\lib\windows\moto\lib\debug" /libpath:"..\..\..\lib\windows\bmfont\lib\debug" /libpath:"..\..\..\lib\windows\ghost\lib\debug" /libpath:"..\..\..\lib\windows\python\frozen" /libpath:"..\..\..\lib\windows\guardedalloc\lib\debug" /libpath:"..\..\..\lib\windows\string\lib\debug" /libpath:"..\..\..\lib\windows\python\lib" /libpath:"..\..\..\lib\windows\iksolver\lib\debug" /libpath:"..\..\..\lib\windows\decimation\lib\debug" /libpath:"..\..\..\lib\windows\openal\lib" /libpath:"..\..\..\lib\windows\jpeg\lib" /libpath:"..\..\..\lib\windows\blenkey\lib\debug" /libpath:"..\..\..\lib\windows\openssl\lib" /libpath:"..\..\..\lib\windows\zlib\lib\\" /libpath:"..\..\..\lib\windows\png\lib\\"
 # SUBTRACT LINK32 /pdb:none
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=ECHO Copying required 3rd party dlls...	XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\	ECHO Done
+# End Special Build Tool
 
 !ENDIF 
 
