@@ -1878,6 +1878,7 @@ static TBitem tb_view[]= {
 {	0, "View All|Home", 		TB_PAD|'h', NULL},
 {	0, "SEPR", 		0, NULL},
 {	0, "Play Back Animation|Alt A", TB_ALT|'a', NULL},
+{	0, "Camera Fly Mode|Shift F", TB_SHIFT|'f', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
