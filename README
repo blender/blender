@@ -23,6 +23,49 @@ nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
 If you do not have GL you will also need mesa:
 http://www.mesa3d.org
 
+*********************************************************************
+*********************************************************************
+We are in the process of moving things over to automake/autoconf
+The old makefiles are still in place and will work.  If you want to
+get a working blender skip down to the next section and use this readme as
+a guide.
+
+If you want to play with the new autoconf environment you need to do the 
+following, inside this dir:
+./bootstrap
+mkdir ../newdir
+cd ../newdir
+../blender/configure
+
+Take a look at INSTALL for options you can give to configure.
+About half of the intern directory is done so you won't get very far.
+If you want to work on fixing it you need to edit Makefile.am's and 
+configure.ac
+after editing those files you need to run bootstrap again.
+
+TODO to finish up the intern dir
+Square away how ghost works.
+(i.e. would be nice if under windows you could choose X11 or normal windows
+libs, same with macos.. right now its a cludge and it doesn't do one explicitly
+probably involves changing the way configure.ac picks stuff)
+
+Get intern/python figured out.
+
+Add the following to configure.ac
+	--with-openssl=dir
+	--with-mozilla=dir	(get it so nspr is autodetected here)
+	--with-nspr=dir		(incase in different dir)
+	--with-jpeg=dir
+	--with-png=dir
+	--with-zlib=dir
+
+figure out why the heck the libtool that gets created is wrong on my
+system (mein@cs.umn.edu) :)
+
+
+*********************************************************************
+*********************************************************************
+
 --Notes on compiling mxTextTools----------------------------------------------
 To get the latest version to compile on my machine I had to
 edit mxSetup.py and remove /usr/include from INCLPATH for it to build
