@@ -580,8 +580,9 @@ class NMesh:
     Set the mode flags for this mesh.  Given mode strings turn the mode "on".
     Modes not passed in are turned "off", so setMode() (without arguments)
     unsets all mode flags.
-    @type m: string
-    @param m: mode string.  From none to 5 can be given:
+    @type m: string or int (bitflag)
+    @param m: mode string or int.  An int (see L{Modes}) or from none to 5
+      strings can be given:
        - "NoVNormalsFlip"
        - "TwoSided"
        - "AutoSmooth"

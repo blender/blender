@@ -280,11 +280,18 @@ def SetViewQuat (quat):
   @param quat: four floats or a list of four floats.
   """
 
-def GetViewOffset (ofs):
+def GetViewOffset ():
   """
   Get the current VIEW3D offset values.
   @rtype: list of floats
   @return: a list with three floats: [x,y,z].
+  """
+
+def SetViewOffset (ofs):
+  """
+	Set the current VIEW3D offset values.
+  @type ofs: 3 floats or list of 3 floats
+  @param ofs: the new view offset values.
   """
 
 def CameraView (camtov3d = 0):

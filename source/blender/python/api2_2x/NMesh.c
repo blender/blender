@@ -255,7 +255,7 @@ static char NMesh_getMode_doc[] =
 	"() - get the mode flags of this nmesh as an or'ed int value.";
 
 static char NMesh_setMode_doc[] =
-	"(none to 5 strings) - set the mode flags of this nmesh.\n\
+	"(int or none to 5 strings) - set the mode flags of this nmesh.\n\
 () - unset all flags.";
 
 static char NMesh_getMaxSmoothAngle_doc[] =
@@ -1507,30 +1507,41 @@ static PyObject *NMesh_getMode( BPy_NMesh * self )
 static PyObject *NMesh_setMode( PyObject * self, PyObject * args )
 {
 	BPy_NMesh *nmesh = ( BPy_NMesh * ) self;
+	PyObject *arg1 = NULL;
 	char *m[5] = { NULL, NULL, NULL, NULL, NULL };
 	short i, mode = 0;
 
-	if( !PyArg_ParseTuple
-	    ( args, "|sssss", &m[0], &m[1], &m[2], &m[3], &m[4] ) )
+	if( !PyArg_ParseTuple ( args, "|Ossss", &arg1, &m[1], &m[2], &m[3], &m[4] ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected from none to 5 strings as argument(s)" );
+			"expected an int or from none to 5 strings as argument(s)" );
 
-	for( i = 0; i < 5; i++ ) {
-		if( !m[i] )
-			break;
-		if( strcmp( m[i], "NoVNormalsFlip" ) == 0 )
-			mode |= EXPP_NMESH_MODE_NOPUNOFLIP;
-		else if( strcmp( m[i], "TwoSided" ) == 0 )
-			mode |= EXPP_NMESH_MODE_TWOSIDED;
-		else if( strcmp( m[i], "AutoSmooth" ) == 0 )
-			mode |= EXPP_NMESH_MODE_AUTOSMOOTH;
-		else if( strcmp( m[i], "SubSurf" ) == 0 )
-			mode |= EXPP_NMESH_MODE_SUBSURF;
-		else if( strcmp( m[i], "Optimal" ) == 0 )
-			mode |= EXPP_NMESH_MODE_OPTIMAL;
-		else
-			return EXPP_ReturnPyObjError( PyExc_AttributeError,
-						      "unknown NMesh mode" );
+	if (arg1) {
+		if (PyInt_Check(arg1)) {
+			mode = (short)PyInt_AsLong(arg1);
+		}
+		else if (PyString_Check(arg1)) {
+			m[0] = PyString_AsString(arg1);
+			for( i = 0; i < 5; i++ ) {
+				if( !m[i] ) break;
+				else if( strcmp( m[i], "NoVNormalsFlip" ) == 0 )
+					mode |= EXPP_NMESH_MODE_NOPUNOFLIP;
+				else if( strcmp( m[i], "TwoSided" ) == 0 )
+					mode |= EXPP_NMESH_MODE_TWOSIDED;
+				else if( strcmp( m[i], "AutoSmooth" ) == 0 )
+					mode |= EXPP_NMESH_MODE_AUTOSMOOTH;
+				else if( strcmp( m[i], "SubSurf" ) == 0 )
+					mode |= EXPP_NMESH_MODE_SUBSURF;
+				else if( strcmp( m[i], "Optimal" ) == 0 )
+					mode |= EXPP_NMESH_MODE_OPTIMAL;
+				else if( m[i][0] == '\0' )
+					mode = 0;
+				else
+					return EXPP_ReturnPyObjError( PyExc_AttributeError,
+		    	  "unknown NMesh mode" );
+			}
+		}
+		else return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected an int or from none to 5 strings as argument(s)" );
 	}
 
 	nmesh->mode = mode;

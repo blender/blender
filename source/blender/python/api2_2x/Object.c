@@ -753,7 +753,7 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *a, PyObject *kwd )
 
 	/* user wants only the name of the data object */
 	if (name_only) {
-		ID *id = &object->id;
+		ID *id = object->data;
 		data_object = Py_BuildValue("s", id->name+2);
 
 		if (data_object) return data_object;
