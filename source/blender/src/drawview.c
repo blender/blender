@@ -106,6 +106,7 @@
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
+#include "BDR_editobject.h"
 
 #include "BSE_view.h"
 #include "BSE_drawview.h"
@@ -1352,11 +1353,18 @@ void do_viewbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
-		
+	
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
 			v3d_editvertex_buts(NULL, ob, 1.0);
 			makeDispList(ob);
+			allqueue(REDRAWVIEW3D, 1);
+		}
+		break;
+	case B_OBJECTPANELPARENT:
+		if(ob) {
+			if( test_parent_loop(ob->parent, ob) ) 
+				ob->parent= NULL;
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
@@ -1433,7 +1441,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
 
 	uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
-	uiDefIDPoinBut(block, test_obpoin_but, B_REDR, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+	uiDefIDPoinBut(block, test_obpoin_but, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 
 	lim= 1000.0*MAX2(1.0, G.vd->grid);
 
@@ -2356,7 +2364,6 @@ void inner_play_anim_loop(int init, int mode)
 	static ScrArea *oldsa;
 	static double swaptime;
 	static int curmode;
-	Base *base;
 
 	/* init */
 	if(init) {
@@ -2422,7 +2429,6 @@ int play_anim(int mode)
 	int cfraont;
 	unsigned short event=0;
 	short val;
-	Base *base;
 
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;

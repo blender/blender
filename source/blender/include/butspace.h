@@ -127,10 +127,11 @@ void butspace_context_switch(SpaceButs *buts, struct Base *new);
 #define B_BGPICCLEAR	1005
 #define B_BGPICTEXCLEAR	1006
 
-#define B_OBJECTPANELROT 1007
+#define B_OBJECTPANELROT 	1007
 #define B_OBJECTPANELMEDIAN 1008
 #define B_ARMATUREPANEL1 	1009
 #define B_ARMATUREPANEL2 	1010
+#define B_OBJECTPANELPARENT 1011
 
 /* *********************** */
 #define B_LAMPBUTS		1200
