@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include "CCGSubSurf.h"
 
@@ -278,6 +279,10 @@ struct _CCGSubSurf {
 	int allowEdgeCreation;
 
 	void *q, *r;
+		
+		// data for calc vert normals
+	int calcVertNormals;
+	int normalDataOffset;
 
 		// data for age'ing (to debug sync)
 	int currentAge;
@@ -422,6 +427,11 @@ static void *_edge_getCo(CCGEdge *e, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	return &EDGE_getLevelData(e)[dataSize*(levelBase + x)];
 }
+static float *_edge_getNo(CCGEdge *e, int lvl, int x, int dataSize, int normalDataOffset) {
+	int levelBase = lvl + (1<<lvl) - 1;
+	return (float*) &EDGE_getLevelData(e)[dataSize*(levelBase + x) + normalDataOffset];
+}
+
 static void *_edge_getCoVert(CCGEdge *e, CCGVert *v, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	if (v==e->v0) {
@@ -493,6 +503,12 @@ static void *_face_getIFCo(CCGFace *f, int lvl, int S, int x, int y, int levels,
 	byte *gridBase = FACE_getCenterData(f) + dataSize*(1 + S*(maxGridSize + maxGridSize*maxGridSize));
 	return &gridBase[dataSize*(maxGridSize + (y*maxGridSize + x)*spacing)];
 }
+static float *_face_getIFNo(CCGFace *f, int lvl, int S, int x, int y, int levels, int dataSize, int normalDataOffset) {
+	int maxGridSize = 1 + (1<<(levels-1));
+	int spacing = 1<<(levels-lvl);
+	byte *gridBase = FACE_getCenterData(f) + dataSize*(1 + S*(maxGridSize + maxGridSize*maxGridSize));
+	return (float*) &gridBase[dataSize*(maxGridSize + (y*maxGridSize + x)*spacing) + normalDataOffset];
+}
 static int _face_getVertIndex(CCGFace *f, CCGVert *v) {
 	int i;
 	for (i=0; i<f->numVerts; i++)
@@ -529,6 +545,9 @@ static void *_face_getIFCoEdge(CCGFace *f, CCGEdge *e, int lvl, int eX, int eY, 
 		cy = y;
 	}
 	return _face_getIFCo(f, levels, S, cx, cy, levels, dataSize);
+}
+static float *_face_getIFNoEdge(CCGFace *f, CCGEdge *e, int lvl, int eX, int eY, int levels, int dataSize, int normalDataOffset) {
+	return (float*) ((byte*) _face_getIFCoEdge(f, e, lvl, eX, eY, levels, dataSize) + normalDataOffset);
 }
 
 static void _face_free(CCGFace *f, CCGSubSurf *ss) {
@@ -573,6 +592,9 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, CCGMeshHDL meshData, int subdivLevel
 
 		ss->useAgeCounts = 0;
 		ss->vertUserAgeOffset = ss->edgeUserAgeOffset = ss->faceUserAgeOffset = 0;
+
+		ss->calcVertNormals = 0;
+		ss->normalDataOffset = 0;
 
 		ss->q = CCGSUBSURF_alloc(ss, ss->meshIFC.vertDataSize);
 		ss->r = CCGSUBSURF_alloc(ss, ss->meshIFC.vertDataSize);
@@ -655,6 +677,22 @@ CCGError ccgSubSurf_setUseAgeCounts(CCGSubSurf *ss, int useAgeCounts, int vertUs
 	} else {
 		ss->useAgeCounts = 0;
 		ss->vertUserAgeOffset = ss->edgeUserAgeOffset = ss->faceUserAgeOffset = 0;
+	}
+
+	return eCCGError_None;
+}
+
+CCGError ccgSubSurf_setCalcVertexNormals(CCGSubSurf *ss, int useVertNormals, int normalDataOffset) {
+	if (useVertNormals) {
+		if (normalDataOffset<0 || normalDataOffset+12>ss->meshIFC.vertDataSize) {
+			return eCCGError_InvalidValue;
+		} else {
+			ss->calcVertNormals = 1;
+			ss->normalDataOffset = normalDataOffset;
+		}
+	} else {
+		ss->calcVertNormals = 0;
+		ss->normalDataOffset = 0;
 	}
 
 	return eCCGError_None;
@@ -1660,6 +1698,153 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			}
 		}
 	}
+
+#define FACE_getIFNo(f, lvl, S, x, y)	_face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
+#define AddNo(a, b)		{a[0]+= b[0], a[1]+= b[1], a[2] += b[2];}
+#define CopyNo(a, b)	{a[0] = b[0], a[1] = b[1], a[2]  = b[2];}
+	if (ss->calcVertNormals) {
+		int lvl = ss->subdivLevels;
+		int edgeSize = 1 + (1<<lvl);
+		int gridSize = 1 + (1<<(lvl-1));
+		int normalDataOffset = ss->normalDataOffset;
+
+		for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
+			CCGFace *f = (CCGFace*) effectedF[ptrIdx];
+			int S, x, y;
+
+			for (S=0; S<f->numVerts; S++) {
+				for (y=0; y<gridSize; y++) {
+					for (x=0; x<gridSize; x++) {
+						float *no = FACE_getIFNo(f, lvl, S, x, y);
+						no[0] = no[1] = no[2] = 0.0;
+					}
+				}
+			}
+		}
+
+		for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
+			CCGFace *f = (CCGFace*) effectedF[ptrIdx];
+			int S, x, y;
+
+			for (S=0; S<f->numVerts; S++) {
+				for (y=0; y<gridSize-1; y++) {
+					for (x=0; x<gridSize-1; x++) {
+						float *a = FACE_getIFCo(f, lvl, S, x+0, y+0);
+						float *b = FACE_getIFCo(f, lvl, S, x+1, y+0);
+						float *c = FACE_getIFCo(f, lvl, S, x+1, y+1);
+						float *d = FACE_getIFCo(f, lvl, S, x+0, y+1);
+						float a_cX = c[0]-a[0], a_cY = c[1]-a[1], a_cZ = c[2]-a[2];
+						float b_dX = d[0]-b[0], b_dY = d[1]-b[1], b_dZ = d[2]-b[2];
+						float no[3];
+
+						no[0] = b_dY*a_cZ - b_dZ*a_cY;
+						no[1] = b_dZ*a_cX - b_dX*a_cZ;
+						no[2] = b_dX*a_cY - b_dY*a_cX;
+
+						AddNo(FACE_getIFNo(f, lvl, S, x+0, y+0), no);
+						AddNo(FACE_getIFNo(f, lvl, S, x+1, y+0), no);
+						AddNo(FACE_getIFNo(f, lvl, S, x+1, y+1), no);
+						AddNo(FACE_getIFNo(f, lvl, S, x+0, y+1), no);
+
+						if (x==0 && y==0) {
+							int K;
+
+							AddNo(FACE_getIFNo(f, lvl, (S+1)%f->numVerts, 0, 1), no);
+							AddNo(FACE_getIFNo(f, lvl, (S-1+f->numVerts)%f->numVerts, 1, 0), no);
+
+							for (K=0; K<f->numVerts; K++) {
+								if (K!=S) {
+									AddNo(FACE_getIFNo(f, lvl, K, 0, 0), no);
+								}
+							}
+						} else if (y==0) {
+							AddNo(FACE_getIFNo(f, lvl, (S+1)%f->numVerts, 0, x), no);
+							AddNo(FACE_getIFNo(f, lvl, (S+1)%f->numVerts, 0, x+1), no);
+						} else if (x==0) {
+							AddNo(FACE_getIFNo(f, lvl, (S-1+f->numVerts)%f->numVerts, y, 0), no);
+							AddNo(FACE_getIFNo(f, lvl, (S-1+f->numVerts)%f->numVerts, y+1, 0), no);
+						}
+					}
+				}
+			}
+		}
+		for (ptrIdx=0; ptrIdx<numEffectedV; ptrIdx++) {
+			CCGVert *v = (CCGVert*) effectedV[ptrIdx];
+			float no[3] = {0};
+
+			for (i=0; i<v->numFaces; i++) {
+				CCGFace *f = v->faces[i];
+				AddNo(no, FACE_getIFNo(f, lvl, _face_getVertIndex(f,v), gridSize-1, gridSize-1));
+			}
+
+			for (i=0; i<v->numFaces; i++) {
+				CCGFace *f = v->faces[i];
+				CopyNo(FACE_getIFNo(f, lvl, _face_getVertIndex(f,v), gridSize-1, gridSize-1), no);
+			}
+		}
+		for (ptrIdx=0; ptrIdx<numEffectedE; ptrIdx++) {
+			CCGEdge *e = (CCGEdge*) effectedE[ptrIdx];
+			int x;
+
+			for (x=0; x<edgeSize; x++) {
+				float *no = _edge_getNo(e, lvl, x, vertDataSize, normalDataOffset);
+				no[0] = no[1] = no[2] = 0.0;
+			}
+
+			for (i=0; i<e->numFaces; i++) {
+				CCGFace *f = e->faces[i];
+
+				for (x=1; x<edgeSize-1; x++) {
+					AddNo(	_edge_getNo(e, lvl, x, vertDataSize, normalDataOffset),
+							_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
+				}
+			}
+
+			for (i=0; i<e->numFaces; i++) {
+				CCGFace *f = e->faces[i];
+
+				for (x=1; x<edgeSize-1; x++) {
+					CopyNo(	_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset),
+							_edge_getNo(e, lvl, x, vertDataSize, normalDataOffset));
+				}
+			}
+		}
+		for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
+			CCGFace *f = (CCGFace*) effectedF[ptrIdx];
+			int S;
+
+			for (S=0; S<f->numVerts; S++) {
+				CopyNo(	FACE_getIFNo(f, lvl, (S+1)%f->numVerts, 0, gridSize-1),
+						FACE_getIFNo(f, lvl, S, gridSize-1, 0));
+			}
+		}
+		for (ptrIdx=0; ptrIdx<numEffectedF; ptrIdx++) {
+			CCGFace *f = (CCGFace*) effectedF[ptrIdx];
+			int S, x, y;
+
+			for (S=0; S<f->numVerts; S++) {
+				for (y=0; y<gridSize; y++) {
+					for (x=0; x<gridSize; x++) {
+						float *no = FACE_getIFNo(f, lvl, S, x, y);
+						float length = sqrt(no[0]*no[0] + no[1]*no[1] + no[2]*no[2]);
+
+						if (length>FLT_EPSILON) {
+							float invLength = 1.0f/length;
+							no[0] *= invLength;
+							no[1] *= invLength;
+							no[2] *= invLength;
+						} else {
+							no[0] = no[1] = no[2] = 0.0;
+						}
+					}
+				}
+			}
+		}
+	}
+#undef CopyNo
+#undef AddNo
+#undef FACE_getIFNo
+
 #undef VERT_getCo
 #undef EDGE_getCo
 #undef FACE_getIECo
