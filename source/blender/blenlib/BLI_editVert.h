@@ -47,6 +47,11 @@ typedef struct EditVert
 	unsigned char f, h, f1, hash;
 	int	totweight;				/* __NLA */
 	struct MDeformWeight *dw;	/* __NLA */
+	int keyindex; /* lets hold on to this so that maybe we can have a hope
+				   * of restoring any key information if the number/order
+				   * of verts change.
+				   */
+
 } EditVert;
 
 typedef struct EditEdge

@@ -268,6 +268,10 @@ EditVert *addvertlist(float *vec)
 
 	eve->hash= hashnr++;
 
+	/* new verts get keyindex of -1 since they did not
+	 * have a pre-editmode vertex order
+	 */
+	eve->keyindex = -1;
 	return eve;
 }
 
@@ -1013,6 +1017,13 @@ void make_editMesh_real(Mesh *me)
 		eve->no[0]= mvert->no[0]/32767.0;
 		eve->no[1]= mvert->no[1]/32767.0;
 		eve->no[2]= mvert->no[2]/32767.0;
+
+		/* lets overwrite the keyindex of the editvert
+		 * with the order it used to be in before
+		 * editmode
+		 */
+		eve->keyindex = a;
+
 #ifdef __NLA
 
 		/* OLD VERSION */
@@ -1221,13 +1232,13 @@ void load_editMesh()
 void load_editMesh_real(Mesh *me, int undo)
 {
 	MFace *mface;
-	MVert *mvert;
+	MVert *mvert, *oldverts;
 	MSticky *ms;
-	KeyBlock *actkey=0;
+	KeyBlock *actkey=0, *currkey;
 	EditVert *eve;
 	EditVlak *evl;
 	EditEdge *eed;
-	float *fp, nor[3];
+	float *fp, *newkey, *oldkey, nor[3];
 	int i, a, ototvert;
 #ifdef __NLA
 	MDeformVert *dvert;
@@ -1235,260 +1246,281 @@ void load_editMesh_real(Mesh *me, int undo)
 #endif
 
 	ototvert= me->totvert;
+
+	/* lets save the old verts just in case we are actually working on
+	 * a key ... we now do processing of the keys at the end*/
+	oldverts = me->mvert;
+
+	/* this one also tests of edges are not in faces: */
+	/* eed->f==0: not in face, f==1: draw it */
+	/* eed->f1 : flag for dynaface (cylindertest, old engine) */
+	/* eve->f1 : flag for dynaface (sphere test, old engine) */
+	edge_drawflags();
 	
+	/* WATCH IT: in evl->f is punoflag (for vertex normal) */
+	vertexnormals( (me->flag & ME_NOPUNOFLIP)==0 );
+	
+	eed= G.eded.first;
+	while(eed) {
+		if(eed->f==0) G.totface++;
+		eed= eed->next;
+	}
+	
+	/* new Face block */
+	if(G.totface==0) mface= 0;
+	else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh1");
+	/* nieuw Vertex block */
+	if(G.totvert==0) mvert= 0;
+	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh2");
+
+#ifdef __NLA
+	if (G.totvert==0) dvert=0;
+	else dvert = MEM_callocN(G.totvert*sizeof(MDeformVert), "loadeditMesh3");
+
+	if (me->dvert) free_dverts(me->dvert, me->totvert);
+	me->dvert=dvert;
+#endif		
+
+	me->mvert= mvert;
+
+	if(me->mface) MEM_freeN(me->mface);
+	me->mface= mface;
+	me->totvert= G.totvert;
+	me->totface= G.totface;
+		
+	/* the vertices, abuse ->vn as counter */
+	eve= G.edve.first;
+	a=0;
+
+	while(eve) {
+		VECCOPY(mvert->co, eve->co);
+		mvert->mat_nr= 255;  /* what was this for, halos? */
+		
+		/* vertex normal */
+		VECCOPY(nor, eve->no);
+		VecMulf(nor, 32767.0);
+		VECCOPY(mvert->no, nor);
+#ifdef __NLA
+		/* NEW VERSION */
+		if (dvert){
+			dvert->totweight=eve->totweight;
+			if (eve->dw){
+				dvert->dw = MEM_callocN (sizeof(MDeformWeight)*eve->totweight,
+										 "deformWeight");
+				memcpy (dvert->dw, eve->dw, 
+						sizeof(MDeformWeight)*eve->totweight);
+				usedDvert++;
+			}
+		}
+#endif
+
+		eve->vn= (EditVert *)(long)(a++);  /* counter */
+			
+		mvert->flag= 0;
+			
+		mvert->flag= 0;
+		if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
+		mvert->flag |= (eve->f & 1);
+		if (eve->h) mvert->flag |= ME_HIDE;			
+			
+		eve= eve->next;
+		mvert++;
+#ifdef __NLA
+		dvert++;
+#endif
+	}
+	
+#ifdef __NLA
+	/* If we didn't actually need the dverts, get rid of them */
+	if (!usedDvert){
+		free_dverts(me->dvert, G.totvert);
+		me->dvert=NULL;
+	}
+#endif
+
+	/* the faces */
+	evl= G.edvl.first;
+	i = 0;
+	while(evl) {
+		mface= &((MFace *) me->mface)[i];
+			
+		mface->v1= (unsigned int) evl->v1->vn;
+		mface->v2= (unsigned int) evl->v2->vn;
+		mface->v3= (unsigned int) evl->v3->vn;
+		if(evl->v4) mface->v4= (unsigned int) evl->v4->vn;
+			
+		mface->mat_nr= evl->mat_nr;
+		mface->puno= evl->f;
+		mface->flag= evl->flag;
+			
+		/* mat_nr in vertex */
+		if(me->totcol>1) {
+			mvert= me->mvert+mface->v1;
+			if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+			mvert= me->mvert+mface->v2;
+			if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+			mvert= me->mvert+mface->v3;
+			if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+			if(mface->v4) {
+				mvert= me->mvert+mface->v4;
+				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+			}
+		}
+			
+		/* watch: evl->e1->f==0 means loose edge */ 
+			
+		if(evl->e1->f==1) {
+			mface->edcode |= ME_V1V2; 
+			evl->e1->f= 2;
+		}			
+		if(evl->e2->f==1) {
+			mface->edcode |= ME_V2V3; 
+			evl->e2->f= 2;
+		}
+		if(evl->e3->f==1) {
+			if(evl->v4) {
+				mface->edcode |= ME_V3V4;
+			}
+			else {
+				mface->edcode |= ME_V3V1;
+			}
+			evl->e3->f= 2;
+		}
+		if(evl->e4 && evl->e4->f==1) {
+			mface->edcode |= ME_V4V1; 
+			evl->e4->f= 2;
+		}
+			
+		/* no index '0' at location 3 or 4 */
+		if(evl->v4) fix_faceindices(mface, evl, 4);
+		else fix_faceindices(mface, evl, 3);
+			
+		i++;
+		evl= evl->next;
+	}
+		
+	/* add loose edges as a face */
+	eed= G.eded.first;
+	while(eed) {
+		if( eed->f==0 ) {
+			mface= &((MFace *) me->mface)[i];
+			mface->v1= (unsigned int) eed->v1->vn;
+			mface->v2= (unsigned int) eed->v2->vn;
+			test_index_mface(mface, 2);
+			mface->edcode= ME_V1V2;
+			i++;
+		}
+		eed= eed->next;
+	}
+		
+	tex_space_mesh(me);
+
+	/* tface block, always when undo even when it wasnt used, 
+	   this because of empty me pointer */
+	if( (me->tface || undo) && me->totface ) {
+		TFace *tfn, *tf;
+			
+		tf=tfn= MEM_callocN(sizeof(TFace)*me->totface, "tface");
+		evl= G.edvl.first;
+		while(evl) {
+				
+			*tf= evl->tf;
+				
+			if(G.f & G_FACESELECT) {
+				if( vlakselectedAND(evl, 1) ) tf->flag |= TF_SELECT;
+				else tf->flag &= ~TF_SELECT;
+			}
+				
+			tf++;
+			evl= evl->next;
+		}
+		/* if undo, me was empty */
+		if(me->tface) MEM_freeN(me->tface);
+		me->tface= tfn;
+	}
+	else if(me->tface) {
+		MEM_freeN(me->tface);
+		me->tface= NULL;
+	}
+		
+	/* mcol: same as tface... */
+	if( (me->mcol || undo) && me->totface) {
+		unsigned int *mcn, *mc;
+
+		mc=mcn= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
+		evl= G.edvl.first;
+		while(evl) {
+			memcpy(mc, evl->tf.col, 4*sizeof(int));
+				
+			mc+=4;
+			evl= evl->next;
+		}
+		if(me->mcol) MEM_freeN(me->mcol);
+			me->mcol= (MCol *)mcn;
+	}
+	else if(me->mcol) {
+		MEM_freeN(me->mcol);
+		me->mcol= 0;
+	}
+
+
 	/* are there keys? */
 	if(me->key) {
+
+		/* find the active key */
 		actkey= me->key->block.first;
 		while(actkey) {
 			if(actkey->flag & SELECT) break;
 			actkey= actkey->next;
 		}
+
+		/* Lets reorder the key data so that things line up roughly
+		 * with the way things were before editmode */
+		currkey = me->key->block.first;
+		while(currkey) {
+			if(currkey->data) {
+				fp=newkey= MEM_callocN(me->key->elemsize*G.totvert, 
+									   "currkey->data");
+				oldkey = currkey->data;
+
+				eve= G.edve.first;
+
+				i = 0;
+				mvert = me->mvert;
+				while(eve) {
+					if (eve->keyindex >= 0) {
+						if(currkey == actkey) {
+							if (actkey == me->key->refkey) {
+								VECCOPY(fp, mvert->co);
+							}
+							else {
+								VECCOPY(fp, mvert->co);
+								VECCOPY(mvert->co, oldverts[eve->keyindex].co);
+							}
+						}
+						else {
+							VECCOPY(fp, oldkey + 3 * eve->keyindex);
+						}
+					}
+					else {
+						VECCOPY(fp, mvert->co);
+					}
+					fp+= 3;
+					++i;
+					++mvert;
+					eve= eve->next;
+				}
+				currkey->totelem= G.totvert;
+				MEM_freeN(currkey->data);
+				currkey->data = newkey;
+			}
+			currkey= currkey->next;
+		}
+
 	}
 
-	
-	if(actkey && me->key->refkey!=actkey) {
-		/* active key && not the refkey: only vertices */
-				
-		if(G.totvert) {
-			if(actkey->data) MEM_freeN(actkey->data);
-		
-			fp=actkey->data= MEM_callocN(me->key->elemsize*G.totvert, "actkey->data");
-			actkey->totelem= G.totvert;
-	
-			eve= G.edve.first;
-			while(eve) {
-				VECCOPY(fp, eve->co);
-				fp+= 3;
-				eve= eve->next;
-			}
-		}
-	}
-	else if(me->key && actkey==0) {
-		/* there are keys, only write changes in mverts */
-		/* a bit unpredictable when the amount of vertices differ */
-			
-		eve= G.edve.first;
-		mvert= me->mvert;
-		for(a=0; a<me->totvert; a++, mvert++) {
-			VECCOPY(mvert->co, eve->co);
-			eve= eve->next;
-			if(eve==0) break;
-		}
-	}
-	else {
-		/* when there are keys: the refkey, otherise the mesh */
-		
-		/* this one also tests of edges are not in faces: */
-		/* eed->f==0: not in face, f==1: draw it */
-		/* eed->f1 : flag for dynaface (cylindertest, old engine) */
-		/* eve->f1 : flag for dynaface (sphere test, old engine) */
-		edge_drawflags();
-	
-		/* WATCH IT: in evl->f is punoflag (for vertex normal) */
-		vertexnormals( (me->flag & ME_NOPUNOFLIP)==0 );
-	
-		eed= G.eded.first;
-		while(eed) {
-			if(eed->f==0) G.totface++;
-			eed= eed->next;
-		}
-	
-		/* new Face block */
-		if(G.totface==0) mface= 0;
-		else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh1");
-		/* nieuw Vertex block */
-		if(G.totvert==0) mvert= 0;
-		else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh2");
+	if(oldverts) MEM_freeN(oldverts);
 
-#ifdef __NLA
-		if (G.totvert==0) dvert=0;
-		else dvert = MEM_callocN(G.totvert*sizeof(MDeformVert), "loadeditMesh3");
-
-		if (me->dvert) free_dverts(me->dvert, me->totvert);
-		me->dvert=dvert;
-#endif		
-		if(me->mvert) MEM_freeN(me->mvert);
-		me->mvert= mvert;
-
-		if(me->mface) MEM_freeN(me->mface);
-		me->mface= mface;
-		me->totvert= G.totvert;
-		me->totface= G.totface;
-		
-		/* the vertices, abuse ->vn as counter */
-		eve= G.edve.first;
-		a=0;
-
-		while(eve) {
-			VECCOPY(mvert->co, eve->co);
-			mvert->mat_nr= 255;  /* what was this for, halos? */
-			
-			/* vertex normal */
-			VECCOPY(nor, eve->no);
-			VecMulf(nor, 32767.0);
-			VECCOPY(mvert->no, nor);
-#ifdef __NLA
-			/* NEW VERSION */
-			if (dvert){
-				dvert->totweight=eve->totweight;
-				if (eve->dw){
-					dvert->dw = MEM_callocN (sizeof(MDeformWeight)*eve->totweight, "deformWeight");
-					memcpy (dvert->dw, eve->dw, sizeof(MDeformWeight)*eve->totweight);
-					usedDvert++;
-				}
-			}
-#endif
-
-			eve->vn= (EditVert *)(long)(a++);  /* counter */
-			
-			mvert->flag= 0;
-			if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
-			mvert->flag |= (eve->f & 1);
-			if (eve->h) mvert->flag |= ME_HIDE;			
-			
-			eve= eve->next;
-			mvert++;
-#ifdef __NLA
-			dvert++;
-#endif
-		}
-	
-#ifdef __NLA
-		/* If we didn't actually need the dverts, get rid of them */
-		if (!usedDvert){
-			free_dverts(me->dvert, G.totvert);
-			me->dvert=NULL;
-		}
-#endif
-
-		/* the faces */
-		evl= G.edvl.first;
-		i = 0;
-		while(evl) {
-			mface= &((MFace *) me->mface)[i];
-
-			mface->v1= (unsigned int) evl->v1->vn;
-			mface->v2= (unsigned int) evl->v2->vn;
-			mface->v3= (unsigned int) evl->v3->vn;
-			if(evl->v4) mface->v4= (unsigned int) evl->v4->vn;
-			
-			mface->mat_nr= evl->mat_nr;
-			mface->puno= evl->f;
-			mface->flag= evl->flag;
-			
-			/* mat_nr in vertex */
-			if(me->totcol>1) {
-				mvert= me->mvert+mface->v1;
-				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
-				mvert= me->mvert+mface->v2;
-				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
-				mvert= me->mvert+mface->v3;
-				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
-				if(mface->v4) {
-					mvert= me->mvert+mface->v4;
-					if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
-				}
-			}
-			
-			/* watch: evl->e1->f==0 means loose edge */ 
-			
-			if(evl->e1->f==1) {
-				mface->edcode |= ME_V1V2; 
-				evl->e1->f= 2;
-			}			
-			if(evl->e2->f==1) {
-				mface->edcode |= ME_V2V3; 
-				evl->e2->f= 2;
-			}
-			if(evl->e3->f==1) {
-				if(evl->v4) {
-					mface->edcode |= ME_V3V4;
-				}
-				else {
-					mface->edcode |= ME_V3V1;
-				}
-				evl->e3->f= 2;
-			}
-			if(evl->e4 && evl->e4->f==1) {
-				mface->edcode |= ME_V4V1; 
-				evl->e4->f= 2;
-			}
-			
-			/* no index '0' at location 3 or 4 */
-			if(evl->v4) fix_faceindices(mface, evl, 4);
-			else fix_faceindices(mface, evl, 3);
-			
-			i++;
-			evl= evl->next;
-		}
-		
-		/* add loose edges as a face */
-		eed= G.eded.first;
-		while(eed) {
-			if( eed->f==0 ) {
-				mface= &((MFace *) me->mface)[i];
-				mface->v1= (unsigned int) eed->v1->vn;
-				mface->v2= (unsigned int) eed->v2->vn;
-				test_index_mface(mface, 2);
-				mface->edcode= ME_V1V2;
-				i++;
-			}
-			eed= eed->next;
-		}
-		
-		tex_space_mesh(me);
-		if(actkey) mesh_to_key(me, actkey);
-		
-		/* tface block, always when undo even when it wasnt used, this because of empty me pointer */
-		if( (me->tface || undo) && me->totface ) {
-			TFace *tfn, *tf;
-			
-			tf=tfn= MEM_callocN(sizeof(TFace)*me->totface, "tface");
-			evl= G.edvl.first;
-			while(evl) {
-				
-				*tf= evl->tf;
-				
-				if(G.f & G_FACESELECT) {
-					if( vlakselectedAND(evl, 1) ) tf->flag |= TF_SELECT;
-					else tf->flag &= ~TF_SELECT;
-				}
-				
-				tf++;
-				evl= evl->next;
-			}
-			/* if undo, me was empty */
-			if(me->tface) MEM_freeN(me->tface);
-			me->tface= tfn;
-		}
-		else if(me->tface) {
-			MEM_freeN(me->tface);
-			me->tface= NULL;
-		}
-		
-		/* mcol: same as tface... */
-		if( (me->mcol || undo) && me->totface) {
-			unsigned int *mcn, *mc;
-			
-			mc=mcn= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
-			evl= G.edvl.first;
-			while(evl) {
-			
-				memcpy(mc, evl->tf.col, 4*sizeof(int));
-				
-				mc+=4;
-				evl= evl->next;
-			}
-			
-			if(me->mcol) MEM_freeN(me->mcol);
-			me->mcol= (MCol *)mcn;
-		}
-		else if(me->mcol) {
-			MEM_freeN(me->mcol);
-			me->mcol= NULL;
-		}
-	}
-	
 	if(actkey) do_spec_key(me->key);
 	
 	/* te be sure: clear ->vn pointers */
@@ -1514,7 +1546,6 @@ void load_editMesh_real(Mesh *me, int undo)
 	}
 	waitcursor(0);
 }
-
 
 void remake_editMesh(void)
 {
