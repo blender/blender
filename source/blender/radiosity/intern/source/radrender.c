@@ -279,7 +279,7 @@ void progressiverad_rr()
 		applyformfactors_rr(shoot);
 	
 		it++;
-		printf("\r Radiostity step %d", it); fflush(stdout);
+		printf("\r Radiosity step %d", it); fflush(stdout);
 		
 		clear_backface_test_rr();
 		
