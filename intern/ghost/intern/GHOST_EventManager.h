@@ -129,6 +129,28 @@ public:
 	 */
 	virtual GHOST_TSuccess removeConsumer(GHOST_IEventConsumer* consumer);
 
+	/**
+	 * Removes all events for a window from the stack.
+	 * @param	window	The window to remove events for.
+	 */
+	 	virtual void
+	 removeWindowEvents(
+	 	GHOST_IWindow* window
+	 );
+
+	/**
+	 * Removes all events of a certain type from the stack.
+	 * The window parameter is optional. If non-null, the routine will remove
+	 * events only associated with that window.
+	 * @param	type	The type of events to be removed.
+	 * @param	window	The window to remove the events for.
+	 */
+		virtual void
+	removeTypeEvents(
+		GHOST_TEventType type,
+		GHOST_IWindow* window = 0
+	);
+
 protected:
 	/**
 	 * Returns the event at the top of the stack and removes it.
@@ -142,10 +164,15 @@ protected:
 	 */
 	virtual void disposeEvents();
 
+	/** A stack with events. */
+	typedef std::deque<GHOST_IEvent*> TEventStack;
+	
 	/** The event stack. */
 	std::deque<GHOST_IEvent*> m_events;
 
+	/** A vector with event consumers. */
 	typedef std::vector<GHOST_IEventConsumer*> TConsumerVector;
+
 	/** The list with event consumers. */
 	TConsumerVector m_consumers;
 };

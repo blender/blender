@@ -66,7 +66,7 @@ GHOST_TUns32 GHOST_EventManager::getNumEvents()
 GHOST_TUns32 GHOST_EventManager::getNumEvents(GHOST_TEventType type)
 {
 	GHOST_TUns32 numEvents = 0;
-	std::deque<GHOST_IEvent*>::iterator p;
+	TEventStack::iterator p;
 	for (p = m_events.begin(); p != m_events.end(); p++) {
 		if ((*p)->getType() == type) {
 			numEvents++;
@@ -106,13 +106,6 @@ bool GHOST_EventManager::dispatchEvent(GHOST_IEvent* event)
 	bool handled;
 	if (event) {
 		handled = true;
-		/*
-		for (unsigned int i = 0; i < m_consumers.size(); i++) {
-			if (m_consumers[i]->processEvent(event)) {
-				handled = false;
-			}
-		}
-		*/		
 		TConsumerVector::iterator iter;
 		for (iter = m_consumers.begin(); iter != m_consumers.end(); iter++) {
 			if ((*iter)->processEvent(event)) {
@@ -194,6 +187,57 @@ GHOST_TSuccess GHOST_EventManager::removeConsumer(GHOST_IEventConsumer* consumer
 		success = GHOST_kFailure;
 	}
 	return success;
+}
+
+
+void GHOST_EventManager::removeWindowEvents(GHOST_IWindow* window)
+{
+	TEventStack::iterator iter;
+	iter = m_events.begin();
+	while (iter != m_events.end())
+	{
+		GHOST_IEvent* event = *iter;
+		if (event->getWindow() == window)
+		{
+            GHOST_PRINT("GHOST_EventManager::removeWindowEvents(): removing event\n");
+			/*
+			 * Found an event for this window, remove it.
+			 * The iterator will become invalid.
+			 */
+			delete event;
+			m_events.erase(iter);
+			iter = m_events.begin();
+		}
+		else
+		{
+			iter++;
+		}
+	}
+}
+
+void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow* window)
+{
+	TEventStack::iterator iter;
+	iter = m_events.begin();
+	while (iter != m_events.end())
+	{
+		GHOST_IEvent* event = *iter;
+		if ((event->getType() == type) && (!window || (event->getWindow() == window)))
+		{
+            GHOST_PRINT("GHOST_EventManager::removeTypeEvents(): removing event\n");
+			/*
+			 * Found an event of this type for the window, remove it.
+			 * The iterator will become invalid.
+			 */
+			delete event;
+			m_events.erase(iter);
+			iter = m_events.begin();
+		}
+		else
+		{
+			iter++;
+		}
+	}
 }
 
 

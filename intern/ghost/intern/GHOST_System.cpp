@@ -106,6 +106,13 @@ GHOST_TSuccess GHOST_System::removeTimer(GHOST_ITimerTask* timerTask)
 GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow* window)
 {
 	GHOST_TSuccess success;
+
+	/*
+	 * Remove all pending events for the window.
+	 */ 
+	if (m_windowManager->getWindowFound(window)) {
+		m_eventManager->removeWindowEvents(window);
+	}
 	if (window == m_windowManager->getFullScreenWindow()) {
 		success = endFullScreen();
 	}
@@ -165,7 +172,7 @@ GHOST_TSuccess GHOST_System::endFullScreen(void)
 	GHOST_TSuccess success = GHOST_kFailure;
 	GHOST_ASSERT(m_windowManager, "GHOST_System::endFullScreen(): invalid window manager")
 	if (m_windowManager->getFullScreen()) {
-        GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
+        //GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
         //GHOST_PRINT("GHOST_System::endFullScreen(): leaving window manager full-screen mode\n");
 		success = m_windowManager->endFullScreen();
 		GHOST_ASSERT(m_displayManager, "GHOST_System::endFullScreen(): invalid display manager")
