@@ -66,7 +66,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="common,dummy"
+				AdditionalIncludeDirectories="common;dummy;..\..\..\..\intern\moto\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"

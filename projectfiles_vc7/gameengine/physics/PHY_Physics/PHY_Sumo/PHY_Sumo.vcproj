@@ -57,7 +57,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\..\..\lib\windows\moto\include;..\..\..\..\..\extern\solid"
+				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\..\extern\solid;..\..\..\..\..\intern\moto\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"

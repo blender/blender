@@ -155,7 +155,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

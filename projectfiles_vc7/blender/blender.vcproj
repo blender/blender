@@ -22,7 +22,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\source\blender\misc,..\..\..\lib\windows\guardedalloc\include,..\..\source\blender\blenlib,..\..\source\kernel\gen_messaging,..\..\source\blender\include,..\..\source\blender,..\..\source\blender\makesdna,..\..\source\blender\blenkernel,..\..\source\blender\blenloader,..\..\source\blender\python,..\..\source\blender\imbuf,..\..\source\blender\render\extern\include,..\..\source\blender\radiosity\extern\include,..\..\source\kernel\gen_system,..\..\source\blender\renderconverter\,..\..\source\blender\renderui\"
-				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;FTGL_STATIC_LIBRARY"
+				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;FTGL_STATIC_LIBRARY;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static_ST.lib gnu_gettext.lib qtmlClient.lib odelib.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib libz_st.lib libmoto.lib PHY_Sumo.lib solid.lib qhull.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static_ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib libz_st.lib libmoto.lib PHY_Sumo.lib solid.lib qhull.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
