@@ -330,6 +330,8 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     object->lay = 1; // Layer, by default visible
     G.totobj++;
 
+		object->data = NULL;
+
     /* Create a Python object from it. */
     blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
     blen_object->object = object;
