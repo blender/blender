@@ -1409,6 +1409,10 @@ void do_global_buttons(unsigned short event)
 
 #ifdef _WIN32	// FULLSCREEN
 	case B_FLIPFULLSCREEN:
+		if(U.uiflag & FLIPFULLSCREEN)
+			U.uiflag &= ~FLIPFULLSCREEN;
+		else
+			U.uiflag |= FLIPFULLSCREEN;
 		mainwindow_toggle_fullscreen((U.uiflag & FLIPFULLSCREEN));
 		break;
 #endif
@@ -3400,15 +3404,15 @@ void info_buttons(void)
 	int xmax;
 
 	sprintf(naam, "header %d", curarea->headwin);	
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSM, UI_HELV, curarea->headwin);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSN, UI_HELV, curarea->headwin);
 	uiBlockSetCol(block, BUTGREY);
 
 	if(U.uiflag & FLIPINFOMENU) {
-		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_RIGHTARROW,
+		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
 				&(U.uiflag), 0, 0, 0, 0, "View pulldown menus");/* dir   */
 	} else {
-		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DOWNARROW_HLT,
+		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
 				&(U.uiflag), 0, 0, 0, 0, "Hide pulldown menus");/* dir   */
 	}
@@ -3493,16 +3497,28 @@ void info_buttons(void)
 
 #ifdef _WIN32	// FULLSCREEN
 	if(U.uiflag & FLIPFULLSCREEN) {
-		uiDefIconButS(block, TOG|BIT|7, B_FLIPFULLSCREEN, ICON_SPLITSCREEN,
+		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				&(U.uiflag), 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
+				0, 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
 	} else {
-		uiDefIconButS(block, TOG|BIT|7, B_FLIPFULLSCREEN, ICON_FULLSCREEN,
+		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_FULLSCREEN,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				&(U.uiflag), 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
+				0, 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
 	}
 #endif
-	
+/*
+#ifdef _WIN32	// FULLSCREEN
+	if(U.uiflag & FLIPFULLSCREEN) {
+		uiDefIconButS(block, TOG|BIT|7, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
+				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
+				&(U.uiflag), 0, 0, 0, 0, "Toggle Blender fullscreen");
+	} else {
+		uiDefIconButS(block, TOG|BIT|7, B_FLIPFULLSCREEN, ICON_WINDOW_FULLSCREEN,
+				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
+				&(U.uiflag), 0, 0, 0, 0, "Toggle Blender fullscreen");
+	}
+#endif
+*/	
 	}
 	
 	uiDrawBlock(block);
