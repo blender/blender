@@ -442,6 +442,7 @@ TFace* face_pick(Mesh *me, short x, short y)
 	}
 	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
 		backdrawview3d(0);
+		persp(PERSP_VIEW);
 	}
 	/* Read the pixel under the cursor */
 #ifdef __APPLE__
@@ -1247,6 +1248,8 @@ void face_draw()
 		error("Can not create brush"); return;
 	}
 
+	persp(PERSP_VIEW);
+
 	getmouseco_areawin(xy_old);
 	while (get_mbut() & L_MOUSE) {
 		getmouseco_areawin(xy);
@@ -1355,6 +1358,8 @@ void face_draw()
 	if (warn_packed_file) {
 		error("Painting in packed images not supported: %s", warn_packed_file);
 	}
+
+	persp(PERSP_WIN);
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
