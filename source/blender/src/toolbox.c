@@ -1353,7 +1353,11 @@ void add_numbut(int nr, int type, char *str, float min, float max, void *poin, c
 	strcpy(numbuts[nr].name, str);
 	numbuts[nr].min= min;
 	numbuts[nr].max= max;
-	if(tip) strcpy(numbuts[nr].tip, tip);
+	if(tip) 
+		strcpy(numbuts[nr].tip, tip);
+	else
+		strcpy(numbuts[nr].tip, "");
+	
 	
 	/* LET OP: TEX BUTTON UITZONDERING */
 	
