@@ -243,8 +243,10 @@ static void renderwin_reset_view(RenderWin *rw)
 	
 	/* crop option makes image smaller */
 	if ((G.scene->r.mode & R_BORDER) && (G.scene->r.mode & R_MOVIECROP)) { 
-		rectx*= (G.scene->r.border.xmax-G.scene->r.border.xmin);
-		recty*= (G.scene->r.border.ymax-G.scene->r.border.ymin);
+		if(!(G.scene->r.scemode & R_OGL)) {
+			rectx*= (G.scene->r.border.xmax-G.scene->r.border.xmin);
+			recty*= (G.scene->r.border.ymax-G.scene->r.border.ymin);
+		}
 	}
 	
 	if(rectx>w || recty>h) {
