@@ -45,7 +45,7 @@ public:
 
 	iterator add(BP_Proxy *proxy) 
 	{
-		BP_ProxyEntry entry = std::make_pair(proxy, 0);
+		BP_ProxyEntry entry = std::make_pair(proxy, (unsigned int)0);
 		iterator it = std::lower_bound(begin(), end(), entry);
 		if (it == end() || (*it).first != proxy) 
 		{
@@ -57,7 +57,7 @@ public:
 
 	void remove(BP_Proxy *proxy) 
 	{
-		BP_ProxyEntry entry = std::make_pair(proxy, 0);
+		BP_ProxyEntry entry = std::make_pair(proxy, (unsigned int)0);
 		iterator it = std::lower_bound(begin(), end(), entry);
 		if (it != end() && (*it).first == proxy && --(*it).second == 0) 
 		{
