@@ -111,6 +111,74 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_beta__Scenegraph.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__BGL.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Camera.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Draw.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Image.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Ipo.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Lamp.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Material.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Mesh.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__NMesh.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Object.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Scene.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__shadow.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__sys.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Text.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Types.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Blender__Window.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\..\source\blender\bpython\frozen\M_Converter.c
 # End Source File
 # Begin Source File
@@ -159,7 +227,31 @@ SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mcf__utils__singletonlist.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mxTextTools.c
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mx.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mx__TextTools.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mx__TextTools__Constants.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mx__TextTools__Constants__Sets.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mx__TextTools__Constants__TagTables.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mx__TextTools__mxTextTools.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\blender\bpython\frozen\M_mx__TextTools__TextTools.c
 # End Source File
 # Begin Source File
 
