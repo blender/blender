@@ -2034,7 +2034,15 @@ void editing_panels()
 		editing_panel_links(ob); // no editmode!
 		editing_panel_lattice_type(ob, lt);
 		break;
+
+	case OB_LAMP:
+		editing_panel_links(ob); // no editmode!
+		break;
 		
+	case OB_EMPTY:
+		editing_panel_links(ob); // no editmode!
+		break;
+
 	case OB_CAMERA:
 		cam= ob->data;
 		editing_panel_links(ob); // no editmode!
