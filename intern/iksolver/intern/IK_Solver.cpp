@@ -44,7 +44,7 @@
 #endif
 #include "../extern/IK_solver.h"
 
-#include <iostream.h>
+#include <iostream>
 
 	IK_Chain_ExternPtr  
 IK_CreateChain(

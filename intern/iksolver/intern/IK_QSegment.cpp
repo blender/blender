@@ -42,7 +42,7 @@
 #endif
 
 #include "IK_QSegment.h"
-#include <iostream.h>
+#include <iostream>
 
 IK_QSegment::
 IK_QSegment (
