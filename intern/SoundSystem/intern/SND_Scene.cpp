@@ -408,7 +408,7 @@ void SND_Scene::UpdateActiveObects()
 #endif
 
 //			if ((playstate == SND_STOPPED && (!juststartedplaying) && !pObject->GetLoopMode() && pObject->IsRunning())
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__)
 			if ((playstate == SND_STOPPED) && !pObject->GetLoopMode())
 #else
 			if (!pObject->GetLoopMode())

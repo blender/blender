@@ -59,6 +59,44 @@ extern "C" {
 
 #define BUFFERSIZE 32
 
+
+/*****************************************************************************
+ * Begin of temporary Endian stuff.
+ * I think there should be a central place to handle endian conversion but for
+ * the time being it suffices. Note that the defines come from the Blender
+ * source.
+ *****************************************************************************/
+typedef enum
+{
+	SND_endianBig = 0,
+	SND_endianLittle
+} SND_TEndian;
+
+#ifdef __APPLE__
+const SND_TEndian SND_fEndian = SND_endianBig;
+#else
+const SND_TEndian SND_fEndian = SND_endianLittle;
+#endif
+
+/* This one swaps the bytes in a short */
+#define SWITCH_SHORT(a) { \
+    char s_i, *p_i; \
+    p_i= (char *)&(a); \
+    s_i=p_i[0]; \
+    p_i[0] = p_i[1]; \
+    p_i[1] = s_i; }
+
+/* This one rotates the bytes in an int */
+#define SWITCH_INT(a) { \
+    char s_i, *p_i; \
+    p_i= (char *)&(a); \
+    s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
+    s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
+/*****************************************************************************
+ * End of temporary Endian stuff.
+ *****************************************************************************/
+
+
 /* loads a file */
 void* SND_LoadSample(char *filename)
 {
@@ -120,7 +158,10 @@ bool SND_IsSampleValid(const STR_String& name, void* memlocation)
 		
 		if(!(memcmp(buffer, "RIFF", 4) && memcmp(&(buffer[8]), "WAVEfmt ", 8)))
 		{
-			int shortbuf = * ((short *) &buffer[20]);
+			/* This was endian unsafe. See top of the file for the define. */
+			short shortbuf = *((short *) &buffer[20]);
+			if (SND_fEndian == SND_endianBig) SWITCH_SHORT(shortbuf);
+
 			if (shortbuf == SND_WAVE_FORMAT_PCM)
 				result = true;
 			
@@ -199,6 +240,8 @@ unsigned int SND_GetSampleFormat(void* sample)
 	{
 		memcpy(&sampletype, ((char*)sample) + 20, 2);
 	}
+	/* This was endian unsafe. See top of the file for the define. */
+	if (SND_fEndian == SND_endianBig) SWITCH_SHORT(sampletype);
 
 	return (unsigned int)sampletype;
 }
@@ -214,6 +257,8 @@ unsigned int SND_GetNumberOfChannels(void* sample)
 	{
 		memcpy(&numberofchannels, ((char*)sample) + 22, 2);
 	}
+	/* This was endian unsafe. See top of the file for the define. */
+	if (SND_fEndian == SND_endianBig) SWITCH_SHORT(numberofchannels);
 
 	return (unsigned int)numberofchannels;
 }
@@ -229,6 +274,8 @@ unsigned int SND_GetSampleRate(void* sample)
 	{
 		memcpy(&samplerate, ((char*)sample) + 24, 4);
 	}
+	/* This was endian unsafe. See top of the file for the define. */
+	if (SND_fEndian == SND_endianBig) SWITCH_INT(samplerate);
 
 	return samplerate;
 }
@@ -244,6 +291,8 @@ unsigned int SND_GetBitRate(void* sample)
 	{
 		memcpy(&bitrate, ((char*)sample) + 34, 2);
 	}
+	/* This was endian unsafe. See top of the file for the define. */
+	if (SND_fEndian == SND_endianBig) SWITCH_SHORT(bitrate);
 
 	return (unsigned int)bitrate;
 }
@@ -259,9 +308,13 @@ unsigned int SND_GetNumberOfSamples(void* sample)
 	if (CheckSample(sample))
 	{
 		memcpy(&chunklength, ((char*)sample) + offset, 4);
+		/* This was endian unsafe. See top of the file for the define. */
+		if (SND_fEndian == SND_endianBig) SWITCH_INT(chunklength);
+
 		offset = offset + chunklength + 4;
 		memcpy(data, ((char*)sample) + offset, 4);
 
+		/* This seems very unsafe, what if data is never found (f.i. corrupt file)... */
 		// lets find "data"
 		while (memcmp(data, "data", 4))
 		{
@@ -270,6 +323,9 @@ unsigned int SND_GetNumberOfSamples(void* sample)
 		}
 		offset += 4;
 		memcpy(&length, ((char*)sample) + offset, 4);
+
+		/* This was endian unsafe. See top of the file for the define. */
+		if (SND_fEndian == SND_endianBig) SWITCH_INT(length);
 	}
 
 	return length;

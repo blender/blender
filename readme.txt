@@ -85,14 +85,19 @@ $NANBLENDERHOME/lib/darwin-6.1-powerpc/python/lib/python2.2/config
 Now copy the include files and the libpython2.2.a library to those locations.
 
 FMOD:
-Will be added later.
+Download FMOD from http://www.fmod.org/ and unpack with StuffIt Expander. The
+archive contains header files and a library. Copy those to these directories
+(that you need to create first):
+$NANBLENDERHOME/lib/darwin-6.1-powerpc/fmod/include
+$NANBLENDERHOME/lib/darwin-6.1-powerpc/fmod/lib
 
 RANLIB:
 Although the make files run ranlib on the libraries built, the gcc linker 
 complains about ranlib not being run. Until there is a solution, you will need
 to run ranlib by hand once in a while when the make breaks. Luckily, the error
 message lists the full path of the file to run ranlib on... Anybody out there 
-with a real solution?
+with a real solution? I guess the problem arises from copying the files from 
+one location to the other...
 
 Now wait, don't type make yet! You'll have to edit a config file of ODE first.
 go to $NANBLENDERHOME/source/ode/config and edit the file "user-settings" so 

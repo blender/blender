@@ -366,19 +366,31 @@ void SND_FmodDevice::SetObjectLoop(int id, unsigned int loopmode) const
 	{
 	case SND_LOOP_OFF:
 		{
+#ifndef __APPLE__
 			char result = FSOUND_Sample_SetLoopMode(m_sources[id], FSOUND_LOOP_OFF);
+#else
+			char result = FSOUND_SetLoopMode(m_sources[id], FSOUND_LOOP_OFF);
+#endif
 //			char result = FSOUND_SetLoopMode(m_channels[id], FSOUND_LOOP_OFF);
 			break;
 		}
 	case SND_LOOP_NORMAL:
 		{
+#ifndef __APPLE__
 			char result = FSOUND_Sample_SetLoopMode(m_sources[id], FSOUND_LOOP_NORMAL);
+#else
+			char result = FSOUND_SetLoopMode(m_sources[id], FSOUND_LOOP_NORMAL);
+#endif
 //			char result = FSOUND_SetLoopMode(m_channels[id], FSOUND_LOOP_NORMAL);
 			break;
 		}
 	case SND_LOOP_BIDIRECTIONAL:
 		{
+#ifndef __APPLE__
 			char result = FSOUND_Sample_SetLoopMode(m_sources[id], FSOUND_LOOP_BIDI);
+#else
+			char result = FSOUND_SetLoopMode(m_sources[id], FSOUND_LOOP_BIDI);
+#endif
 //			char result = FSOUND_SetLoopMode(m_channels[id], FSOUND_LOOP_NORMAL);
 			break;
 		}
@@ -460,10 +472,14 @@ void SND_FmodDevice::SetObjectTransform(int id,
 
 void SND_FmodDevice::PlayCD(int track) const
 {
+#ifndef __APPLE__
 	signed char result = FSOUND_CD_Play(track);
+#else
+	signed char result = FSOUND_CD_Play(0, track);
+#endif
 
 #ifdef ONTKEVER
-	printf("play track %d, result: %c\n", track, result);
+	printf("SND_FmodDevice::PlayCD(): track=%d, result=%d\n", track, (int)result);
 #endif
 }
 
@@ -471,10 +487,14 @@ void SND_FmodDevice::PlayCD(int track) const
 
 void SND_FmodDevice::PauseCD(bool pause) const
 {
+#ifndef __APPLE__
 	signed char result = FSOUND_CD_SetPaused(pause);
+#else
+	signed char result = FSOUND_CD_SetPaused(0, pause);
+#endif
 
 #ifdef ONTKEVER
-	printf("pause cd: %d, result: %c\n", pause, result);
+	printf("SND_FmodDevice::PauseCD(): pause=%d, result=%d\n", pause, (int)result);
 #endif
 }
 
@@ -488,10 +508,14 @@ void SND_FmodDevice::StopCD() const
 	{
 		if (pCD->GetUsed())
 		{
+#ifndef __APPLE__
 			signed char result = FSOUND_CD_Stop();
+#else
+			signed char result = FSOUND_CD_Stop(0);
+#endif
 
 #ifdef ONTKEVER
-			printf("stop cd, result: %c\n", result);
+			printf("SND_FmodDevice::StopCD(): result=%d\n", (int)result);
 #endif
 		}
 	}
@@ -501,7 +525,15 @@ void SND_FmodDevice::StopCD() const
 
 void SND_FmodDevice::SetCDPlaymode(int playmode) const
 {
+#ifndef __APPLE__
 	FSOUND_CD_SetPlayMode(playmode);
+#else
+	FSOUND_CD_SetPlayMode(0, playmode);
+#endif
+
+#ifdef ONTKEVER
+	printf("SND_FmodDevice::SetCDPlaymode(): playmode=%d,\n", playmode);
+#endif
 }
 
 
@@ -509,10 +541,14 @@ void SND_FmodDevice::SetCDPlaymode(int playmode) const
 void SND_FmodDevice::SetCDGain(MT_Scalar gain) const
 {
 	int volume = gain * 255;
+#ifndef __APPLE__
 	signed char result = FSOUND_CD_SetVolume(volume);
+#else
+	signed char result = FSOUND_CD_SetVolume(0, volume);
+#endif
 
 #ifdef ONTKEVER
-	printf("gain: %f, volume: %d, result: %c\n", gain, volume, result);
+	printf("SND_FmodDevice::SetCDGain(): gain=%f, volume=%d, result=%d\n", gain, volume, (int)result);
 #endif
 }
 

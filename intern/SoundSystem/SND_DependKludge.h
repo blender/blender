@@ -37,21 +37,20 @@
 
 #if defined (_WIN32)
 #define USE_FMOD
+#elif defined (__linux__)
+#	if defined (__i386__)
+#		define USE_OPENAL
+#	endif
+#elif defined (__FreeBSD__)
+#	define USE_OPENAL
+#elif defined (__APPLE__)
+#	define USE_FMOD
 #else
-#	if defined (__linux__)
-#		if defined (__i386__)
-#			define USE_OPENAL
-#		endif
-#	else
-#		if defined (__FreeBSD__)
-#			define USE_OPENAL
-#		endif
-#		ifdef USE_OPENAL
-#			undef USE_OPENAL
-#		endif
-#		ifdef USE_FMOD
-#			undef USE_FMOD
-#		endif
+#	ifdef USE_OPENAL
+#		undef USE_OPENAL
+#	endif
+#	ifdef USE_FMOD
+#		undef USE_FMOD
 #	endif
 #endif
 
