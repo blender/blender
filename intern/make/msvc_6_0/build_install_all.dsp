@@ -52,6 +52,11 @@ MTL=midl.exe
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Desc=Python freeze
+PostBuild_Cmds=ECHO Freezing Blender Python code	..\..\python\freeze\freeze.bat
+# End Special Build Tool
 
 !ENDIF 
 
