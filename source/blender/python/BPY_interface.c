@@ -190,6 +190,8 @@ void init_syspath(void)
   if (mod) {
     d = PyModule_GetDict(mod); /* borrowed ref */
     PyDict_SetItemString(d, "executable", Py_BuildValue("s", bprogname));
+    /* in the future this can be extended to have more argv's if needed: */
+    PyDict_SetItemString(d, "argv", Py_BuildValue("[s]", bprogname));
     Py_DECREF(mod);
   }
 }
