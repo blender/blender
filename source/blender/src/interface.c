@@ -429,7 +429,12 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 {
 	static char str[256]="";
 	static double butval=0.0;
+	static float rgb[3];
+	void *poin;
 	
+	poin= but->poin;
+		
+		
 	if ELEM3(but->type, NUM, NUMSLI, HSVSLI) {
 	
 		if(mode=='c') {
@@ -439,6 +444,42 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			ui_set_but_val(but, butval);
 			ui_check_but(but);
 			return 1;
+		}
+	}
+	else if(but->type==COL) {
+		
+		if(mode=='c') {
+			if(but->pointype==FLO) {
+				float *fp= (float *) poin;
+				rgb[0]= fp[0];
+				rgb[1]= fp[1];
+				rgb[2]= fp[2];	
+			}	
+			else if (but->pointype==CHA) {
+				char *cp= (char *) poin;
+				rgb[0]= (float)(cp[0]/255.0);
+				rgb[1]= (float)(cp[1]/255.0);
+				rgb[2]= (float)(cp[2]/255.0);
+			}
+			
+		}
+		else {
+			if(but->pointype==FLO) {
+				float *fp= (float *) poin;
+				fp[0] = rgb[0];
+				fp[1] = rgb[1];
+				fp[2] = rgb[2];
+				return 1;
+			}
+			else if (but->pointype==CHA) {
+				char *cp= (char *) poin;
+				cp[0] = (char)(rgb[0]*255.0);
+				cp[1] = (char)(rgb[1]*255.0);
+				cp[2] = (char)(rgb[2]*255.0);
+				
+				return 1;
+			}
+			
 		}
 	}
 	else if(but->type==TEX) {
@@ -465,6 +506,8 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			return 1;
 		}
 	}
+		
+			
 	return 0;
 }
 
@@ -3246,7 +3289,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 							ui_draw_but(but);
 							
 							if(but->retval) addqueue(block->winq, UI_BUT_EVENT, (short)but->retval);
-							if(but->type==NUMSLI && but->a1) addqueue(block->winq, REDRAW, 1);	// col button update
+							if((but->type==NUMSLI && but->a1) || (but->type==COL)) addqueue(block->winq, REDRAW, 1);	// col button update
 
 							BIF_undo_push(but->str);
 						}
@@ -3726,7 +3769,7 @@ double ui_get_but_val(uiBut *but)
 {
 	void *poin;
 	double value = 0.0;
-
+	
 	poin= but->poin;
 
 	if(but->type== HSVSLI) {
@@ -3753,7 +3796,7 @@ double ui_get_but_val(uiBut *but)
 	else if( but->pointype == FLO ) {
 		value= *(float *)poin;
 	}
-
+    
 	return value;
 }
 
