@@ -473,6 +473,15 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							data->tar = NULL;
 							break;
 						}
+
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+						}
+
 						
 						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
 							curcon->flag |= CONSTRAINT_DISABLE;
