@@ -606,12 +606,12 @@ bool Application::processEvent(GHOST_IEvent* event)
 
 	case GHOST_kEventWindowClose:
 		{
-		GHOST_IWindow* window = event->getWindow();
-		if (window == m_mainWindow) {
+		GHOST_IWindow* window2 = event->getWindow();
+		if (window2 == m_mainWindow) {
 			m_exitRequested = true;
 		}
 		else {
-			m_system->disposeWindow(window);
+			m_system->disposeWindow(window2);
 		}
 		}
 		break;
@@ -626,21 +626,21 @@ bool Application::processEvent(GHOST_IEvent* event)
 
 	case GHOST_kEventWindowUpdate:
 		{
-			GHOST_IWindow* window = event->getWindow();
-			if(!m_system->validWindow(window))
+			GHOST_IWindow* window2 = event->getWindow();
+			if(!m_system->validWindow(window2))
 				break;
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			if(stereo)
 			{
-				View(window, stereo, LEFT_EYE);
+				View(window2, stereo, LEFT_EYE);
 				glPushMatrix();
 				RenderCamera();
 				RenderScene();
 				glPopMatrix();
 
-				View(window, stereo, RIGHT_EYE);
+				View(window2, stereo, RIGHT_EYE);
 				glPushMatrix();
 				RenderCamera();
 				RenderScene();
@@ -648,13 +648,13 @@ bool Application::processEvent(GHOST_IEvent* event)
 			}
 			else
 			{
-				View(window, stereo);
+				View(window2, stereo);
 				glPushMatrix();
 				RenderCamera();
 				RenderScene();
 				glPopMatrix();
 			}
-			window->swapBuffers();
+			window2->swapBuffers();
 		}
 		break;
 		

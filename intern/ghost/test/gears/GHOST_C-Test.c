@@ -46,6 +46,8 @@
 #include <string.h>
 #include <math.h>
 
+#define FALSE 0
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -66,6 +68,7 @@
 
 
 static void gearsTimerProc(GHOST_TimerTaskHandle task, GHOST_TUns64 time);
+int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData);
 
 static GLfloat view_rotx=20.0, view_roty=30.0, view_rotz=0.0;
 static GLfloat fAngle = 0.0;
@@ -77,7 +80,6 @@ static GHOST_TStandardCursor sCursor = GHOST_kStandardCursorFirstCursor;
 static GHOST_WindowHandle sFullScreenWindow = NULL;
 static GHOST_TimerTaskHandle sTestTimer;
 static GHOST_TimerTaskHandle sGearsTimer;
-
 
 static void testTimerProc(GHOST_TimerTaskHandle task, GHOST_TUns64 time)
 {
@@ -345,7 +347,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 					*/
 
 					sFullScreenWindow = GHOST_BeginFullScreen(shSystem, &setting,
-						false /* stereo flag */);
+						FALSE /* stereo flag */);
 				}
 				else
 				{
@@ -400,8 +402,8 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 		
 	case GHOST_kEventWindowClose:
 		{
-			GHOST_WindowHandle window = GHOST_GetEventWindow(hEvent);
-			if (window == sMainWindow)
+			GHOST_WindowHandle window2 = GHOST_GetEventWindow(hEvent);
+			if (window2 == sMainWindow)
 			{
 				sExitRequested = 1;
 			}
@@ -412,7 +414,7 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 					GHOST_RemoveTimer(shSystem, sGearsTimer);
 					sGearsTimer = 0;
 				}
-				GHOST_DisposeWindow(shSystem, window);
+				GHOST_DisposeWindow(shSystem, window2);
 			}
 		}
 		break;
@@ -425,15 +427,12 @@ int processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 		break;
 	case GHOST_kEventWindowUpdate:
 		{
-			GHOST_WindowHandle window = GHOST_GetEventWindow(hEvent);
-			if (!GHOST_ValidWindow(shSystem, window))
+			GHOST_WindowHandle window2 = GHOST_GetEventWindow(hEvent);
+			if (!GHOST_ValidWindow(shSystem, window2))
 				break;
-			//if (!m_fullScreenWindow)
-			{
-				setViewPortGL(window);
-				drawGL();
-				GHOST_SwapWindowBuffers(window);
-			}
+			setViewPortGL(window2);
+			drawGL();
+			GHOST_SwapWindowBuffers(window2);
 		}
 		break;
 		
@@ -465,7 +464,8 @@ int main(int argc, char** argv)
 			320,
 			200,
 			GHOST_kWindowStateNormal,
-			GHOST_kDrawingContextTypeOpenGL);
+			GHOST_kDrawingContextTypeOpenGL,
+			FALSE);
 		if (!sMainWindow)
 		{
 			printf("could not create main window\n");
@@ -480,7 +480,8 @@ int main(int argc, char** argv)
 			320,
 			200,
 			GHOST_kWindowStateNormal,
-			GHOST_kDrawingContextTypeOpenGL);
+			GHOST_kDrawingContextTypeOpenGL,
+			FALSE);
 		if (!sSecondaryWindow)
 		{
 			printf("could not create secondary window\n");
