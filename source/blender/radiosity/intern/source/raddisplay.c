@@ -64,6 +64,8 @@
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
 
+#include "BSE_view.h"
+
 #include "radio.h"
 
 /* cpack has to be endian-insensitive! (old irisgl function) */
@@ -217,6 +219,7 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 		if (sa->spacetype==SPACE_VIEW3D) {
 		 	/* use mywinget() here: otherwise it draws in header */
 		 	if(sa->win != mywinget()) areawinset(sa->win);
+			persp(PERSP_VIEW);
 			drawnodeWire(patch->first);
 		}
 		sa= sa->next;

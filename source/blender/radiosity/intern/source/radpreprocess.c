@@ -431,9 +431,14 @@ void rad_collect_meshes()
 						rn->f= RAD_PATCH;	/* this node is a Patch */
 						rn->type= rp->type;
 
-						CalcNormFloat(v1, v2, v3, rp->norm);
-						if(rn->type==4) rp->area= AreaQ3Dfl(v1, v2, v3, v4);
-						else rp->area= AreaT3Dfl(v1, v2, v3);
+						if(rn->type==4) {
+							rp->area= AreaQ3Dfl(v1, v2, v3, v4);
+							CalcNormFloat4(v1, v2, v3, v4, rp->norm);
+						}
+						else {
+							rp->area= AreaT3Dfl(v1, v2, v3);
+							CalcNormFloat(v1, v2, v3, rp->norm);
+						}
 
 						rn->area= rp->area;
 

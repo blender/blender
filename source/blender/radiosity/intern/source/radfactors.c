@@ -312,20 +312,23 @@ int makeformfactors(RPatch *shoot)
 {
 	RNode **re;
 	float len, vec[3], up[3], side[3], tar[5][3], *fp;
-	int a, overfl;
+	int a=0, overfl;
 
 	if(RG.totelem==0) return 0;
-
+	
 	memset(RG.formfactors, 0, 4*RG.totelem);
 
 	/* set up hemiview */
 	/* first: random upvector */
 	do {
+		a++;
 		vec[0]= (float)BLI_drand();
 		vec[1]= (float)BLI_drand();
 		vec[2]= (float)BLI_drand();
 		Crossf(up, shoot->norm, vec);
 		len= Normalise(up);
+		/* this safety for input normals that are zero or illegal sized */
+		if(a>3) return 0;
 	} while(len==0.0 || len>1.0);
 
 	VECCOPY(hemitop.up, up);
@@ -372,16 +375,6 @@ int makeformfactors(RPatch *shoot)
 	}
 	
 	if(overfl) {
-		/*
-		drawOverflowElem();
-		while(get_mbut()&L_MOUSE==0) {
-			if(get_mbut()&M_MOUSE) {
-				viewmove();
-				drawpatch_ext(shoot,0xFF77FF);
-				drawOverflowElem();
-			}
-		}
-		*/
 		if(shoot->first->down1) {
 			splitpatch(shoot);
 			return 0;
