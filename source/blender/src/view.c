@@ -755,6 +755,8 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 		rect.ymin= y1;
 		rect.ymax= y2;
 	}
+	/* get rid of overlay button matrix */
+	persp(PERSP_VIEW);
 	setwinmatrixview3d(&rect);
 	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
 	
@@ -799,6 +801,7 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 		G.zbuf= 0;
 		glDisable(GL_DEPTH_TEST);
 	}
+	persp(PERSP_WIN);
 
 	return hits;
 }
