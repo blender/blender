@@ -99,7 +99,8 @@ protected:
 	int font_size;
 
 	/** FTGL's */
-	FTFont* font;
+	FTFont* fontB;
+	FTFont* fontW;
 
 	/** from system encoding in .locale to UNICODE */
 //	iconv_t cd;

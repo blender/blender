@@ -107,7 +107,7 @@ FTF_TTFont::FTF_TTFont(void)
 	char *bundlepath;
 #endif
 
-	font=NULL;
+	fontB = fontW =NULL;
 	font_size=FONT_SIZE_DEFAULT;
 	strcpy(encoding_name, SYSTEM_ENCODING_DEFAULT);
 
@@ -145,7 +145,8 @@ FTF_TTFont::FTF_TTFont(void)
 
 FTF_TTFont::~FTF_TTFont(void)
 {
-	if (font) delete font;
+	if (fontB) delete fontB;
+	if (fontW) delete fontW;
 }
 
 
@@ -154,19 +155,26 @@ int FTF_TTFont::SetFont(char* str, int size)
 	int err = 0;
 	bool success = 0;
 
-	delete font;
+	if(fontB) delete fontB;
+	if(fontW) delete fontW;
 
-	font = new FTGLPixmapFont(str);
-	err = font->Error();
+	fontB = new FTGLPixmapFont(str);
+	fontW = new FTGLPixmapFont(str);
+	err = fontB->Error();
 
 	if(err) {
 //		printf("Failed to open font %s\n", str);
 		return 0;
 	} else {
-		success = font->FaceSize(size);
+		success = fontB->FaceSize(size);
+		if(!success) return 0;
+		success = fontW->FaceSize(size);
 		if(!success) return 0;
 
-		success = font->CharMap(ft_encoding_unicode);
+		success = fontB->CharMap(ft_encoding_unicode);
+		if(!success) return 0;
+
+		success = fontW->CharMap(ft_encoding_unicode);
 		if(!success) return 0;
 
 		return 1;
@@ -212,7 +220,8 @@ void FTF_TTFont::SetEncoding(char* str)
 
 void FTF_TTFont::SetSize(int size)
 {
-	font->FaceSize(size);
+	fontB->FaceSize(size);
+	fontW->FaceSize(size);
 	font_size = size;
 }
 
@@ -223,12 +232,12 @@ int FTF_TTFont::GetSize(void)
 
 int FTF_TTFont::Ascender(void)
 {
-	return font->Ascender();
+	return fontB->Ascender();
 }
 
 int FTF_TTFont::Descender(void)
 {
-	return font->Descender();
+	return fontB->Descender();
 }
 
 
@@ -249,20 +258,14 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag, int select)
 		len=utf8towchar(wstr,str);
 
 	if(!select) {
-		glPixelTransferf(GL_RED_SCALE, 0.0);
-		glPixelTransferf(GL_GREEN_SCALE, 0.0);
-		glPixelTransferf(GL_BLUE_SCALE, 0.0);
+		glColor4f(0.0, 0.0, 0.0, 1.0);
+		fontB->Render(wstr);
+		return fontB->Advance(wstr);
+	} else {
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		fontW->Render(wstr);
+		return fontW->Advance(wstr);
 	}
-	
-	font->Render(wstr);
-  
-	if(!select) {
-		glPixelTransferf(GL_RED_SCALE, 1.0);
-		glPixelTransferf(GL_GREEN_SCALE, 1.0);
-		glPixelTransferf(GL_BLUE_SCALE, 1.0);
-	}
-
-	return font->Advance(wstr);
 }
 
 
@@ -276,17 +279,19 @@ float FTF_TTFont::DrawStringRGB(char* str, unsigned int flag, float r, float g, 
 	else 
 		len=utf8towchar(wstr,str);
 
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+
 	glPixelTransferf(GL_RED_SCALE, r);
 	glPixelTransferf(GL_GREEN_SCALE, g);
 	glPixelTransferf(GL_BLUE_SCALE, b);
 	
-	font->Render(wstr);
+	fontW->Render(wstr);
   
 	glPixelTransferf(GL_RED_SCALE, 1.0);
 	glPixelTransferf(GL_GREEN_SCALE, 1.0);
 	glPixelTransferf(GL_BLUE_SCALE, 1.0);
 
-	return font->Advance(wstr);
+	return fontW->Advance(wstr);
 }
 
 
@@ -300,7 +305,8 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 	else 
 		len=utf8towchar(wstr,str);
 
-	return font->Advance(wstr);
+	glColor4f(0.0, 0.0, 0.0, 1.0);
+	return fontB->Advance(wstr);
 }
 
 
@@ -314,6 +320,7 @@ void FTF_TTFont::GetBoundingBox(char* str, float *llx, float *lly, float *llz, f
 	else 
 		len=utf8towchar(wstr,str);
 
-	font->BBox(wstr, *llx, *lly, *llz, *urx, *ury, *urz);
+	glColor4f(0.0, 0.0, 0.0, 1.0);
+	fontB->BBox(wstr, *llx, *lly, *llz, *urx, *ury, *urz);
 }
 
