@@ -1532,6 +1532,26 @@ int view2dzoom(unsigned short event)
   return 1;
 }
 
+void center_currframe(void)
+{
+	/* place the current frame in the
+	 * center of the 2D window.
+	 */
+	float width;
+  
+	areawinset(curarea->win);
+	curarea->head_swap= 0;
+
+	width = G.v2d->cur.xmax - G.v2d->cur.xmin;
+	G.v2d->cur.xmin = CFRA - 0.5*(width);
+	G.v2d->cur.xmax = CFRA + 0.5*(width);
+
+	test_view2d(G.v2d, curarea->winx, curarea->winy);
+	scrarea_do_windraw(curarea);
+	screen_swapbuffers();
+	curarea->head_swap= 0;
+}
+
 int view2dmove(unsigned short event)
 {
 	/* return 1 als er iets gedaan is */

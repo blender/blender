@@ -1405,6 +1405,14 @@ void winqreadactionspace(unsigned short event, short val, char ascii)
 		case HOMEKEY:
 			do_action_buttons(B_ACTHOME);
 			break;
+
+		case CKEY:
+			/* scroll the window so the current
+			 * frame is in the center.
+			 */
+			center_currframe();
+			break;
+
 		case DKEY:
 			if (G.qual & LR_SHIFTKEY && mval[0]>ACTWIDTH){
 				duplicate_actionchannel_keys();
