@@ -359,11 +359,12 @@ static void sound_panel_sound(bSound *sound)
 
 		/* info string */
 		if (sound->sample && sound->sample->len) {
-			if (sound->sample->channels == 1) strcpy(ch, "Mono");
-			else if (sound->sample->channels == 2) strcpy(ch, "Stereo");
-			else strcpy(ch, "Unknown");
+			char *tmp;
+			if (sound->sample->channels == 1) tmp= "Mono";
+			else if (sound->sample->channels == 2) tmp= "Stereo";
+			else tmp= "Unknown";
 			
-			sprintf(ch, "Sample: %s, %d bit, %d Hz, %d samples", ch, sound->sample->bits, sound->sample->rate, (sound->sample->len/(sound->sample->bits/8)/sound->sample->channels));
+			sprintf(ch, "Sample: %s, %d bit, %d Hz, %d samples", tmp, sound->sample->bits, sound->sample->rate, (sound->sample->len/(sound->sample->bits/8)/sound->sample->channels));
 			uiDefBut(block, LABEL, 0, ch, 			35,140,225,20, 0, 0, 0, 0, 0, "");
 		}
 		else {
