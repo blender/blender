@@ -3291,6 +3291,13 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 		y2 += 36;
 	}
 
+	// adjust tooltip heights
+	if(mywinget()==G.curscreen->mainwin)
+		y2 -= G.ui_international ? 4:1;		//tip is from pulldownmenu
+	else if(curarea->win != mywinget())
+		y2 -= G.ui_international ? 5:1;		//tip is from a windowheader
+//	else y2 += 1;							//tip is from button area
+
 	su= ui_bgnpupdraw((int)(x1-1), (int)(y1-1), (int)(x2+4), (int)(y2+4), 0);
 
 	glColor3ub(0xD0, 0xD0, 0xC0);
