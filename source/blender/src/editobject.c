@@ -181,7 +181,7 @@ float prop_cent[3];
 
 float centre[3], centroid[3];
 
-void mirrormesh(void);
+void mirrormenu(void);
 
 void add_object_draw(int type)	/* for toolbox */
 {
@@ -1597,7 +1597,7 @@ void special_editmenu(void)
 			vertexsmooth();
 			break;
 		case 12:
-			mirrormesh();
+			mirrormenu();
 			break;
 		}		
 		
@@ -1608,7 +1608,7 @@ void special_editmenu(void)
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2");
+		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Mirror%x3");
 		
 		switch(nr) {
 		case 1:
@@ -1616,6 +1616,9 @@ void special_editmenu(void)
 			break;
 		case 2:
 			switchdirectionNurb2();
+			break;
+		case 3:
+			mirrormenu();
 			break;
 		}
 	}
@@ -6691,62 +6694,49 @@ void make_displists_by_obdata(void *obdata) {
 /* ******************************************************************** */
 /* Mirror function in Edit Mode */
 
-void mirrormesh(){
-	short mode = 0, axis;
-	float centre[3] = {0,0,0}, *curs, mat[3][3], imat[3][3];
-	EditVert *eve;
+void mirrormenu(){
+	short mode = 0, axis, a;
+	float *curs, mat[3][3], imat[3][3], min[3], max[3];
+	TransVert *tv;
 	mode=pupmenu("Mirror Axis %t|Global X%x1|       Y%x2|       Z%x3|Local X%x4|      Y%x5|      Z%x6|View X%x7|     Y%x8|     Z%x9|");
 
 	if (G.obedit==0) return;
 	if (mode==0) return;
 
-	centre[0]= centre[1]= centre[2]= 0.0;
+	make_trans_verts(min, max, 0);
 	Mat3CpyMat4(mat, G.obedit->obmat);
 	Mat3Inv(imat, mat);
 
+	tv = transvmain;
+
 	if(G.vd->around==V3D_CENTROID) {
-		int a = 0;
-		eve= G.edve.first;
-		while(eve) {
-			a++;
-			if((eve->h==0) && (eve->f & 1)) {
-				VecAddf(centre, centre, eve->co);
-			}
-			eve= eve->next;
-		}
-		VecMulf(centre, 1.0/a);
-		
+		VECCOPY(centre, centroid);
 	}
 	else if(G.vd->around==V3D_CURSOR) {
 		curs= give_cursor();
 		VECCOPY(centre, curs);
-		
-		VecSubf(centre, centre, G.obedit->obmat[3]);
-		Mat3MulVecfl(imat, centre);
-
 	}
+
+	VecSubf(centre, centre, G.obedit->obmat[3]);
+	Mat3MulVecfl(imat, centre);
 	
 	if ((mode==1) || (mode==2) || (mode==3)) {
 
 		axis = mode - 1;
 
-		eve= G.edve.first;
-		while(eve) {
-			if((eve->h==0) && (eve->f & 1)) {
-				float vec[3];
-				vec[0] = eve->co[0];
-				vec[1] = eve->co[1];
-				vec[2] = eve->co[2];
-				Mat3MulVecfl(mat, vec);
-				vec[axis] -= centre[axis];
-				vec[axis] *= -1;
-				vec[axis] += centre[axis];
-				Mat3MulVecfl(imat, vec);
-				eve->co[0] = vec[0];
-				eve->co[1] = vec[1];
-				eve->co[2] = vec[2];
-			}
-			eve= eve->next;
+		for(a=0; a<tottrans; a++, tv++) {
+			float vec[3];
+			vec[0] = tv->loc[0];
+			vec[1] = tv->loc[1];
+			vec[2] = tv->loc[2];
+			Mat3MulVecfl(mat, vec);
+			vec[axis] -= centre[axis];
+			vec[axis] *= -1;
+			vec[axis] += centre[axis];
+			Mat3MulVecfl(imat, vec);
+			tv->loc[0] = vec[0];
+			tv->loc[1] = vec[1];
+			tv->loc[2] = vec[2];
 		}
 
 	}
@@ -6754,14 +6744,10 @@ void mirrormesh(){
 
 		axis = mode - 4;
 
-		eve= G.edve.first;
-		while(eve) {
-			if((eve->h==0) && (eve->f & 1)) {
-				eve->co[axis] -= centre[axis];
-				eve->co[axis] *= -1;
-				eve->co[axis] += centre[axis];
-			}
-			eve= eve->next;
+		for(a=0; a<tottrans; a++, tv++) {
+			tv->loc[axis] -= centre[axis];
+			tv->loc[axis] *= -1;
+			tv->loc[axis] += centre[axis];
 		}
 
 	}
@@ -6774,28 +6760,33 @@ void mirrormesh(){
 		axis = mode - 7;
 		Mat3MulVecfl(viewmat, centre);
 
-		eve= G.edve.first;
-		while(eve) {
-			if((eve->h==0) && (eve->f & 1)) {
-				float vec[3];
-				vec[0] = eve->co[0];
-				vec[1] = eve->co[1];
-				vec[2] = eve->co[2];
-				Mat3MulVecfl(mat, vec);
-				Mat3MulVecfl(viewmat, vec);
-				vec[axis] -= centre[axis];
-				vec[axis] *= -1;
-				vec[axis] += centre[axis];
-				Mat3MulVecfl(imat, vec);
-				Mat3MulVecfl(iviewmat, vec);
-				eve->co[0] = vec[0];
-				eve->co[1] = vec[1];
-				eve->co[2] = vec[2];
-			}
-			eve= eve->next;
+		for(a=0; a<tottrans; a++, tv++) {
+			float vec[3];
+			vec[0] = tv->loc[0];
+			vec[1] = tv->loc[1];
+			vec[2] = tv->loc[2];
+			Mat3MulVecfl(mat, vec);
+			Mat3MulVecfl(viewmat, vec);
+			vec[axis] -= centre[axis];
+			vec[axis] *= -1;
+			vec[axis] += centre[axis];
+			Mat3MulVecfl(imat, vec);
+			Mat3MulVecfl(iviewmat, vec);
+			tv->loc[0] = vec[0];
+			tv->loc[1] = vec[1];
+			tv->loc[2] = vec[2];
 		}
 
 	}
-	scrarea_do_windraw(curarea);
-	screen_swapbuffers();
+	special_trans_update(0);
+	special_aftertrans_update(mode, a & 1, 0, 0);
+
+	allqueue(REDRAWVIEW3D, 0);
+	scrarea_queue_headredraw(curarea);
+	
+	clearbaseflags_for_editing();
+	if(transvmain) MEM_freeN(transvmain);
+	transvmain= 0;
+
+	tottrans= 0;
 }
