@@ -33,12 +33,6 @@
  * \file Scene.c
  * \ingroup scripts
  * \brief Blender.Scene Module and Scene  PyObject implementation.
- *
- * Note: Parameters between "<" and ">" are optional.  But if one of them is
- * given, all preceding ones must be given, too.  Of course, this only relates
- * to the Python functions and methods described here and only inside Python
- * code. [ This will go to another file later, probably the main exppython
- * doc file].
  */
 
 #include <BKE_main.h>
@@ -46,12 +40,25 @@
 #include <BKE_scene.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
+#include <BSE_headerbuttons.h> /* for copy_scene */
+#include <BIF_drawscene.h>     /* for set_scene */
+#include <BIF_space.h>         /* for copy_view3d_lock() */
+#include <MEM_guardedalloc.h>  /* for MEM_callocN */
+#include <mydevice.h>          /* for #define REDRAW */
+
+#include "Object.h"
+#include "Camera.h"
+#include "modules.h"
 
 #include "Scene.h"
+
+static Base *EXPP_Scene_getObjectBase (Scene *scene, Object *object);
+PyObject *M_Object_Get (PyObject *self, PyObject *args); /* from Object.c */
 
 /*****************************************************************************/
 /* Python BPy_Scene defaults:                                                */
 /*****************************************************************************/
+#define EXPP_SCENE_FRAME_MAX 18000
 
 /*****************************************************************************/
 /* Python API function prototypes for the Scene module.                      */
@@ -95,7 +102,21 @@ struct PyMethodDef M_Scene_methods[] = {
 /* Python BPy_Scene methods declarations:                                    */
 /*****************************************************************************/
 static PyObject *Scene_getName(BPy_Scene *self);
-static PyObject *Scene_setName(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_setName(BPy_Scene *self, PyObject *arg);
+static PyObject *Scene_copy(BPy_Scene *self, PyObject *arg);
+static PyObject *Scene_startFrame(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_endFrame(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_currentFrame(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args);
+static PyObject *Scene_makeCurrent(BPy_Scene *self);
+static PyObject *Scene_update(BPy_Scene *self);
+static PyObject *Scene_link(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_unlink(BPy_Scene *self, PyObject *args);
+static PyObject *Scene_getRenderdir(BPy_Scene *self);
+static PyObject *Scene_getBackbufdir(BPy_Scene *self);
+static PyObject *Scene_getChildren(BPy_Scene *self);
+static PyObject *Scene_getCurrentCamera(BPy_Scene *self);
+static PyObject *Scene_setCurrentCamera(BPy_Scene *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python BPy_Scene methods table:                                           */
@@ -103,9 +124,45 @@ static PyObject *Scene_setName(BPy_Scene *self, PyObject *args);
 static PyMethodDef BPy_Scene_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Scene_getName, METH_NOARGS,
-      "() - Return Scene  name"},
+      "() - Return Scene name"},
   {"setName", (PyCFunction)Scene_setName, METH_VARARGS,
-      "(str) - Change Scene  name"},
+          "(str) - Change Scene name"},
+  {"copy",    (PyCFunction)Scene_copy, METH_VARARGS,
+          "(duplicate_objects = 1) - Return a copy of this scene\n"
+  "The optional argument duplicate_objects defines how the scene\n"
+  "children are duplicated:\n\t0: Link Objects\n\t1: Link Object Data"
+  "\n\t2: Full copy\n"},
+  {"startFrame", (PyCFunction)Scene_startFrame, METH_VARARGS,
+          "(frame) - If frame is given, the start frame is set and"
+                  "\nreturned in any case"},
+  {"endFrame", (PyCFunction)Scene_endFrame, METH_VARARGS,
+          "(frame) - If frame is given, the end frame is set and"
+                  "\nreturned in any case"},
+  {"currentFrame", (PyCFunction)Scene_currentFrame, METH_VARARGS,
+          "(frame) - If frame is given, the current frame is set and"
+                  "\nreturned in any case"},
+  {"frameSettings", (PyCFunction)Scene_frameSettings, METH_NOARGS,
+          "(start, end, current) - Sets or retrieves the Scene's frame"
+					" settings.\nIf the frame arguments are specified, they are set. "
+					"A tuple (start, end, current) is returned in any case."},
+  {"makeCurrent", (PyCFunction)Scene_makeCurrent, METH_NOARGS,
+          "() - Make self the current scene"},
+  {"update", (PyCFunction)Scene_update, METH_NOARGS,
+          "() - Update scene self"},
+  {"link", (PyCFunction)Scene_link, METH_VARARGS,
+          "(obj) - Link Object obj to this scene"},
+  {"unlink", (PyCFunction)Scene_unlink, METH_VARARGS,
+          "(obj) - Unlink Object obj from this scene"},
+  {"getRenderdir", (PyCFunction)Scene_getRenderdir, METH_NOARGS,
+          "() - Return directory where rendered images are saved to"},
+  {"getBackbufdir", (PyCFunction)Scene_getBackbufdir, METH_NOARGS,
+          "() - Return location of the backbuffer image"},
+  {"getChildren", (PyCFunction)Scene_getChildren, METH_NOARGS,
+          "() - Return list of all objects linked to scene self"},
+  {"getCurrentCamera", (PyCFunction)Scene_getCurrentCamera, METH_NOARGS,
+          "() - Return current active Camera"},
+  {"setCurrentCamera", (PyCFunction)Scene_setCurrentCamera, METH_VARARGS,
+          "() - Set the currently active Camera"},
   {0}
 };
 
@@ -271,7 +328,7 @@ static PyObject *M_Scene_Get(PyObject *self, PyObject *args)
  * \return A Python wrapper for the currently active scene.
  */
 
-PyObject *M_Scene_getCurrent (PyObject *self)
+static PyObject *M_Scene_getCurrent (PyObject *self)
 {
   return Scene_CreatePyObject ((Scene *)G.scene);
 }
@@ -288,12 +345,12 @@ PyObject *M_Scene_getCurrent (PyObject *self)
  * \param pyobj BPy_Scene*: A Scene PyObject wrapper.
  */
 
-PyObject *M_Scene_unlink (PyObject *self, PyObject *arg)
+static PyObject *M_Scene_unlink (PyObject *self, PyObject *args)
 { 
   PyObject *pyobj;
-	Scene    *scene;
+  Scene    *scene;
 
-  if (!PyArg_ParseTuple (arg, "O!", &Scene_Type, &pyobj))
+  if (!PyArg_ParseTuple (args, "O!", &Scene_Type, &pyobj))
         return EXPP_ReturnPyObjError (PyExc_TypeError,
                 "expected Scene PyType object");
 
@@ -305,8 +362,8 @@ PyObject *M_Scene_unlink (PyObject *self, PyObject *arg)
 
   free_libblock(&G.main->scene, scene);
 
-	Py_INCREF(Py_None);
-	return Py_None;
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
 /*@}*/
@@ -410,7 +467,7 @@ static PyObject *Scene_getName(BPy_Scene *self)
 
 /**
  * \brief Scene PyMethod setName
- * \param name - string: The new Scene  name.
+ * \param name - string: The new Scene name.
  */
 
 static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
@@ -428,6 +485,392 @@ static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
 
   Py_INCREF(Py_None);
   return Py_None;
+}
+
+/**
+ * \brief Scene PyMethod copy
+ *
+ * This function makes a copy of the scene (self).  The optional argument
+ * can be:\n 0: Link Objects \n1: Link Object Data (default)\n2: Full copy
+ * \param dup_objs - int: how the scene children are duplicated.
+ * \return PyObject*: A pointer to the created copy of the scene.
+ */
+
+static PyObject *Scene_copy (BPy_Scene *self, PyObject *args)
+{
+  short dup_objs = 1;
+  Scene *scene = self->scene;
+
+  if (!scene)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+            "Blender Scene was deleted!");
+
+  if (!PyArg_ParseTuple (args, "|h", &dup_objs))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected int in [0,2] or nothing as argument");
+
+  return Scene_CreatePyObject (copy_scene (scene, dup_objs));
+}
+
+/**
+ * \brief Scene PyMethod currentFrame
+ *
+ * If frame is given, the current frame is set and returned in any case.
+ * \param frame int: The value for the current frame.
+ * \return int: The current frame.
+ */
+
+/* Blender seems to accept any positive value up to 18000 for start, end and
+ * current frames, independently. */
+
+static PyObject *Scene_currentFrame (BPy_Scene *self, PyObject *args)
+{
+  short frame = -1;
+  RenderData *rd = &self->scene->r;
+
+  if (!PyArg_ParseTuple (args, "|h", &frame))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected int argument or nothing");
+
+  if (frame > 0) rd->cfra = EXPP_ClampInt(frame, 1, EXPP_SCENE_FRAME_MAX);
+
+  return PyInt_FromLong (rd->cfra);
+}
+
+/**
+ * \brief Scene PyMethod startFrame
+ *
+ * If frame is given, the start frame is set and returned in any case.
+ * \param frame int: The value for the start frame.
+ * \return int: The start frame.
+ */
+
+static PyObject *Scene_startFrame (BPy_Scene *self, PyObject *args)
+{
+  short frame = -1;
+  RenderData *rd = &self->scene->r;
+
+  if (!PyArg_ParseTuple (args, "|h", &frame))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected int argument or nothing");
+
+  if (frame > 0) rd->sfra = EXPP_ClampInt (frame, 1, EXPP_SCENE_FRAME_MAX);
+
+  return PyInt_FromLong (rd->sfra);
+}
+
+/**
+ * \brief Scene PyMethod endFrame
+ *
+ * If frame is given, the end frame is set and returned in any case.
+ * \param frame int: The value for the end frame.
+ * \return int: The end frame.
+ */
+
+static PyObject *Scene_endFrame (BPy_Scene *self, PyObject *args)
+{
+  short frame = -1;
+  RenderData *rd = &self->scene->r;
+
+  if (!PyArg_ParseTuple (args, "|h", &frame))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected int argument or nothing");
+
+  if (frame > 0) rd->efra = EXPP_ClampInt (frame, 1, EXPP_SCENE_FRAME_MAX);
+
+  return PyInt_FromLong (rd->efra);
+}
+
+/**
+ * \brief Scene PyMethod makeCurrent
+ *
+ * Make self the current scene.
+ */
+
+static PyObject *Scene_makeCurrent (BPy_Scene *self)
+{
+  Scene *scene = self->scene;
+
+  if (scene) set_scene (scene);
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
+/**
+ * \brief Scene PyMethod update
+ *
+ * Updates scene self.  This function explicitely resorts the base list of
+ * a newly created object hierarchy.
+ */
+
+static PyObject *Scene_update (BPy_Scene *self)
+{
+  Scene *scene = self->scene;
+
+  if (scene) sort_baselist (scene);
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
+/**
+ * \brief Scene PyMethod link
+ *
+ * Link the given object to this scene.
+ * \param object PyObject*: A pointer to an Object Python wrapper.
+ */
+
+static PyObject *Scene_link (BPy_Scene *self, PyObject *args)
+{
+  Scene    *scene = self->scene;
+  C_Object *bpy_obj; /* XXX Change to BPy or whatever is chosen */
+
+  if (!scene)
+      return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+              "Blender Scene was deleted!");
+
+  if (!PyArg_ParseTuple (args, "O!", &Object_Type, &bpy_obj))
+      return EXPP_ReturnPyObjError (PyExc_TypeError,
+              "expected Object argument");
+
+  else { /* Ok, all is fine, let's try to link it */
+    Object *object = bpy_obj->object;
+    Base *base;
+
+    /* We need to link the object to a 'Base', then link this base
+     * to the scene.  See DNA_scene_types.h ... */
+
+    /* First, check if the object isn't already in the scene */
+    base = EXPP_Scene_getObjectBase (scene, object);
+    /* if base is not NULL ... */
+    if (base) /* ... the object is already in one of the Scene Bases */
+      return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+              "object already in scene!");
+
+    /* not linked, go get mem for a new base object */
+
+    base = MEM_callocN(sizeof(Base), "newbase");
+ 
+    if (!base)
+      return EXPP_ReturnPyObjError (PyExc_MemoryError,
+              "couldn't allocate new Base for object");
+
+    base->object = object; /* link object to the new base */
+    base->lay = object->lay;
+    base->flag = object->flag;
+
+    object->id.us += 1; /* incref the object user count in Blender */
+
+    BLI_addhead(&scene->base, base); /* finally, link new base to scene */
+  }
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+
+/**
+ * \brief Scene PyMethod unlink
+ *
+ * Unlink (delete) the given object from this scene.
+ * \param object PyObject*:  A pointer to a Blender Object Python wrapper.
+ * \return int: 1 for success, 0 for failure.
+ */
+
+static PyObject *Scene_unlink (BPy_Scene *self, PyObject *args)
+{ 
+  C_Object *bpy_obj = NULL;
+  Object *object;
+  Scene *scene = self->scene;
+  Base *base;
+  short retval = 0;
+
+  if (!scene)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+            "Blender scene was deleted!");
+
+  if (!PyArg_ParseTuple(args, "O!", &Object_Type, &bpy_obj))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected Object as argument");
+
+  object = bpy_obj->object;
+
+  /* is the object really in the scene? */
+  base = EXPP_Scene_getObjectBase(scene, object);
+   
+  if (base) { /* if it is, remove it: */
+    BLI_remlink(&scene->base, base);
+    object->id.us -= 1;
+    MEM_freeN (base);
+    scene->basact = 0; /* in case the object was selected */
+    retval = 1;
+  }
+
+  return Py_BuildValue ("i", PyInt_FromLong (retval));
+}
+
+/**
+ * \brief Scene PyMethod getRenderdir
+ *
+ * \return string: The directory where rendered images are saved to.
+ */
+
+static PyObject *Scene_getRenderdir (BPy_Scene *self)
+{
+  if (self->scene)
+    return PyString_FromString (self->scene->r.pic);
+  else
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+            "Blender Scene was deleted!");
+}
+
+/**
+ * \brief Scene PyMethod getBackbufdir
+ *
+ * \return string: The backbuffer image location
+ */
+
+static PyObject *Scene_getBackbufdir (BPy_Scene *self)
+{
+  if (self->scene)
+    return PyString_FromString (self->scene->r.backbuf);
+  else
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+            "Blender Scene already deleted");
+}
+
+/**
+ * \brief Scene PyMethod frameSettings
+ *
+ * This method can be used to set (if the values are given) and in any case
+ * get a tuple representing the start, end and current frame values.
+ * \param start int: The optional start frame value;
+ * \param end   int: The optional end frame value;
+ * \param current int: The optional current frame value.
+ * \return tuple: (start, end, current) frame values.
+ */
+
+static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args)
+{	
+	int start = -1;
+	int end = -1;
+	int current = -1;
+	RenderData *rd = NULL;
+	Scene *scene = self->scene;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene was deleted!");
+
+	rd = &scene->r;
+
+	if (!PyArg_ParseTuple (args, "|iii", &start, &end, &current))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected three ints or nothing as arguments");
+
+	if (start > 0)   rd->sfra = EXPP_ClampInt (start, 1, EXPP_SCENE_FRAME_MAX);
+	if (end > 0)     rd->efra = EXPP_ClampInt (end, 1, EXPP_SCENE_FRAME_MAX);
+	if (current > 0) rd->cfra = EXPP_ClampInt (current, 1, EXPP_SCENE_FRAME_MAX);
+
+	return Py_BuildValue("(iii)", rd->sfra, rd->efra, rd->cfra);
+}
+
+/**
+ * \brief Scene PyMethod getChildren
+ *
+ * \return PyList: a list of all objects linked to Scene self.
+ */
+
+static PyObject *Scene_getChildren (BPy_Scene *self)
+{	
+	Scene *scene = self->scene;
+	PyObject *pylist= PyList_New(0);
+	PyObject *bpy_obj;
+	Object *object;
+	Base *base;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene was deleted!");
+
+	base = scene->base.first;
+
+	while (base) {
+		object = base->object;
+
+		bpy_obj = M_Object_Get(Py_None,
+										Py_BuildValue ("(s)", object->id.name+2));
+
+		if (!bpy_obj)
+			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+								"couldn't create new object wrapper");
+
+		PyList_Append (pylist, bpy_obj);
+		Py_XDECREF (bpy_obj); /* PyList_Append incref'ed it */
+
+		base = base->next;
+	}
+
+	return pylist;
+}
+
+/**
+ * \brief Scene PyMethod getCurrentCamera
+ *
+ * \return PyObject*: A wrapper for the currently active camera
+ */
+
+static PyObject *Scene_getCurrentCamera (BPy_Scene *self)
+{	
+	Object *cam_obj;
+	Scene *scene = self->scene;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene was deleted!");
+
+	cam_obj = scene->camera;
+
+	if (cam_obj) /* if found, return a wrapper for it */
+		return M_Object_Get (Py_None, Py_BuildValue ("(s)", cam_obj->id.name+2));
+
+  Py_INCREF(Py_None); /* none found */
+	return Py_None;
+}
+
+/**
+ * \brief Scene PyMethod setCurrentCamera
+ *
+ * Set the currently active Camera Object in Blender.
+ * \param cam_obj PyObject*: A Camera PyObject.
+ */
+
+static PyObject *Scene_setCurrentCamera (BPy_Scene *self, PyObject *args)
+{
+	Object *object;
+	C_Object *cam_obj;
+	Scene  *scene = self->scene;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene was deleted!");
+
+	if (!PyArg_ParseTuple(args, "O!", &Object_Type, &cam_obj))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected Camera Object as argument");
+
+	object = cam_obj->object;
+
+	scene->camera = object; /* set the current Camera */
+
+	/* if this is the current scene, update its window now */
+	if (scene == G.scene) copy_view3d_lock(REDRAW);
+
+/* XXX copy_view3d_lock(REDRAW) prints "bad call to addqueue: 0 (18, 1)".
+ * The same happens in bpython. */
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 /*@}*/
@@ -499,7 +942,7 @@ static int Scene_SetAttr (BPy_Scene *self, char *name, PyObject *value)
 
 /* First we put "value" in a tuple, because we want to pass it to functions
  * that only accept PyTuples. Using "N" doesn't increment value's ref count */
-  valtuple = Py_BuildValue("(N)", value);
+  valtuple = Py_BuildValue("(O)", value);
 
   if (!valtuple) /* everything OK with our PyObject? */
     return EXPP_ReturnIntError(PyExc_MemoryError,
@@ -569,3 +1012,28 @@ static PyObject *Scene_Repr (BPy_Scene *self)
 }
 
 /*@}*/
+
+/**
+ * \brief Internal helper function to search the Base of an Object
+ *
+ * This function looks up the linked list of Bases in a scene, searching
+ * for a given object.
+ * \param scene Scene*: A pointer to a Blender Scene;
+ * \param object Object*: A pointer to a Blender Object.
+ * \return The Base* to the Base where object was stored or NULL if the
+ * object isn't linked to this scene.
+ */
+
+Base *EXPP_Scene_getObjectBase(Scene *scene, Object *object)
+{
+  Base *base = scene->base.first;
+
+  while (base) {
+
+    if (object == base->object) return base; /* found it? */
+
+    base = base->next;
+  }
+
+  return NULL; /* object isn't linked to this scene */
+}

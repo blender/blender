@@ -451,7 +451,7 @@ static int Image_SetAttr (C_Image *self, char *name, PyObject *value)
  * function anyway, since it already has error checking, clamps to the right
  * interval and updates the Blender Image structure when necessary. */
 
-  valtuple = Py_BuildValue("(N)", value); /*the set* functions expect a tuple*/
+  valtuple = Py_BuildValue("(O)", value); /*the set* functions expect a tuple*/
 
   if (!valtuple)
     return EXPP_ReturnIntError(PyExc_MemoryError,

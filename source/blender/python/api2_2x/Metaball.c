@@ -1008,7 +1008,7 @@ if (strcmp (name, "rot") == 0)return  Metaball_getrot (self);
 /*******************************************************************************/
 static int MetaballSetAttr (C_Metaball *self, char *name, PyObject *value)
 {
-  PyObject *valtuple  = Py_BuildValue("(N)", value);
+  PyObject *valtuple  = Py_BuildValue("(O)", value);
 
   if (!valtuple) 
     return EXPP_ReturnIntError(PyExc_MemoryError,

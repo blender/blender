@@ -51,6 +51,7 @@ PyTypeObject Camera_Type;
 typedef struct {
   PyObject_HEAD
   Camera *camera;
+
 } BPy_Camera;
 
 /*****************************************************************************/

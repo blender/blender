@@ -761,7 +761,7 @@ PyObject *NMesh_link(PyObject *self, PyObject *args)
 {/*
 	C_Object *bl_obj;
 
-	if (!PyArg_ParseTuple(args, "O!", &Object_Type, bl_obj))
+	if (!PyArg_ParseTuple(args, "O!", &Object_Type, &bl_obj))
 			return EXPP_ReturnPyErrorObj (PyExc_TypeError,
 						"NMesh can only be linked to Objects");
 
@@ -982,7 +982,7 @@ static int get_active_faceindex(Mesh *me)
 static PyObject *new_NMesh_internal(Mesh *oldmesh,
                 DispListMesh *dlm, float *extverts) 
 {
-  C_NMesh *me = PyObject_NEW(C_NMesh, &NMesh_Type);
+  C_NMesh *me = PyObject_NEW (C_NMesh, &NMesh_Type);
   me->flags = 0;
 
   if (!oldmesh) {
@@ -1681,4 +1681,21 @@ PyObject *M_NMesh_Init (void)
 
   g_nmeshmodule = submodule;
   return submodule;
+}
+
+/* These are needed by Object.c */
+
+PyObject *NMesh_CreatePyObject (Mesh *me)
+{
+  return new_NMesh (me);
+}
+
+int NMesh_CheckPyObject (PyObject *pyobj)
+{
+	return (pyobj->ob_type == &NMesh_Type);
+}
+
+Mesh *NMesh_FromPyObject (PyObject *pyobj)
+{
+	return ((C_NMesh *)pyobj)->mesh;
 }

@@ -73,7 +73,10 @@ int        Scene_CheckPyObject  (PyObject *pyobj);
 PyObject *      M_Types_Init (void);
 
 /* NMesh Data */
-PyObject *      M_NMesh_Init (void);
+PyObject * M_NMesh_Init (void);
+PyObject * NMesh_CreatePyObject (struct Camera *cam);
+Camera   * NMesh_FromPyObject   (PyObject *pyobj);
+int        NMesh_CheckPyObject  (PyObject *pyobj);
 
 /* Material */
 PyObject *      M_Material_Init (void);

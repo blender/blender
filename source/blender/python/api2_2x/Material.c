@@ -1254,8 +1254,8 @@ static int Material_SetAttr (C_Material *self, char *name, PyObject *value)
  * interval and updates the Blender Material structure when necessary. */
 
 /* First we put "value" in a tuple, because we want to pass it to functions
- * that only accept PyTuples. Using "N" doesn't increment value's ref count */
-  valtuple = Py_BuildValue("(N)", value);
+ * that only accept PyTuples. */
+  valtuple = Py_BuildValue("(O)", value);
 
   if (!valtuple) /* everything OK with our PyObject? */
     return EXPP_ReturnIntError(PyExc_MemoryError,

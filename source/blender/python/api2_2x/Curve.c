@@ -614,7 +614,7 @@ static PyObject *CurveGetAttr (C_Curve *self, char *name)//getattr
 static int CurveSetAttr (C_Curve *self, char *name, PyObject *value)
 { PyObject *valtuple; 
   PyObject *error = NULL;
-  valtuple = Py_BuildValue("(N)", value);
+  valtuple = Py_BuildValue("(O)", value);
   //resolu resolv width ext1 ext2  
   if (!valtuple) 
     return EXPP_ReturnIntError(PyExc_MemoryError,

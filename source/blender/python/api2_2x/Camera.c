@@ -38,7 +38,8 @@
  * given, all preceding ones must be given, too.  Of course, this only relates
  * to the Python functions and methods described here and only inside Python
  * code. [ This will go to another file later, probably the main exppython
- * doc file].
+ * doc file].  XXX Better: put optional args with their default value:
+ * (self, name = "MyName")
  */
 
 #include <BKE_main.h>
@@ -256,6 +257,10 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                             "couldn't create Camera Data in Blender"));
+
+	/* let's return user count to zero, because ... */
+	blcam->id.us = 0; /* ... add_camera() right above incref'ed it */
+	/* XXX XXX Do this in other modules, too */
 
   if (pycam == NULL)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -876,8 +881,8 @@ static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *value)
  * interval and updates the Blender Camera structure when necessary. */
 
 /* First we put "value" in a tuple, because we want to pass it to functions
- * that only accept PyTuples. Using "N" doesn't increment value's ref count */
-  valtuple = Py_BuildValue("(N)", value);
+ * that only accept PyTuples. */
+  valtuple = Py_BuildValue("(O)", value);
 
   if (!valtuple) /* everything OK with our PyObject? */
     return EXPP_ReturnIntError(PyExc_MemoryError,

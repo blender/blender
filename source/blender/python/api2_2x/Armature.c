@@ -290,7 +290,7 @@ static int ArmatureSetAttr (C_Armature *self, char *name, PyObject *value)
   PyObject *valtuple; 
   PyObject *error = NULL;
 
-  valtuple = Py_BuildValue("(N)", value); /*the set* functions expect a tuple*/
+  valtuple = Py_BuildValue("(O)", value); /*the set* functions expect a tuple*/
 
   if (!valtuple)
     return EXPP_ReturnIntError(PyExc_MemoryError,
