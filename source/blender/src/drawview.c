@@ -1496,7 +1496,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	}
 }
 
-static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
+static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 {
 	uiBlock *block;
 	View3D *vd;
@@ -1588,7 +1588,7 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 }
 
 
-static void view3d_panel_properties(cntrl)	// VIEW3D_HANDLER_SETTINGS
+static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 {
 	uiBlock *block;
 	View3D *vd;

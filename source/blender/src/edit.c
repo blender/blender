@@ -1279,3 +1279,4 @@ void minmax_verts(float *min, float *max)
 	MEM_freeN(transvmain);
 	transvmain= 0;
 }
+
