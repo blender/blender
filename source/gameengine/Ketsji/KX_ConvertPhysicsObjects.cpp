@@ -124,7 +124,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 
 	SM_Object*	sumoObj=NULL;
 
-	if (objprop->m_dyna)
+	if (objprop->m_dyna && objprop->m_isactor)
 	{
 		DT_ShapeHandle shape = NULL;
 		switch (objprop->m_boundclass)
@@ -174,7 +174,6 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 		
 		sumoObj->setRigidBody(objprop->m_angular_rigidbody?true:false);
 		
-		objprop->m_isactor = objprop->m_dyna = true;
 		BL_RegisterSumoObject(gameobj,sceneptr,sumoObj,"",true, true);
 		
 	} 
@@ -344,7 +343,7 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 			DT_Vector3 pt;
 			/* V1 */
 			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-				poly->GetVertexIndexBase().m_indexarray[0],
+				poly->GetVertexIndexBase().m_indexarray[2],
 				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
 			DT_Vertex(pt);
 			/* V2 */
@@ -354,7 +353,7 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 			DT_Vertex(pt);
 			/* V3 */
 			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-				poly->GetVertexIndexBase().m_indexarray[2],
+				poly->GetVertexIndexBase().m_indexarray[0],
 				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
 			DT_Vertex(pt);
 			
@@ -366,7 +365,7 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 			    DT_Begin();
 				/* V1 */
 				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[0],
+					poly->GetVertexIndexBase().m_indexarray[3],
 					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
 				DT_Vertex(pt);
 				/* V3 */
@@ -376,7 +375,7 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 				DT_Vertex(pt);
 				/* V4 */
 				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[3],
+					poly->GetVertexIndexBase().m_indexarray[0],
 					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
 				DT_Vertex(pt);
 			
