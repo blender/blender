@@ -44,5 +44,5 @@ if sys.platform=='win32':
     dna.Command ('dna.c', '', "source\\blender\\makesdna\\intern\\makesdna $TARGET")
 else:
     dna.Command ('dna.c', '', "source/blender/makesdna/intern/makesdna $TARGET")
-obj = Object ('dna.c')
+obj = 'intern/dna.c'
 Return ('obj')
