@@ -1067,7 +1067,7 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
 }
 
 
-void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_Matrix4x4 & mat)
+void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 {
 	glMatrixMode(GL_PROJECTION);
 	double matrix[16];

@@ -152,7 +152,7 @@ public:
 					);
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat);
-	virtual void	SetProjectionMatrix(MT_Matrix4x4 & mat);
+	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);
 	virtual void	SetViewMatrix(
 						const MT_Matrix4x4 & mat,
 						const MT_Vector3& campos,

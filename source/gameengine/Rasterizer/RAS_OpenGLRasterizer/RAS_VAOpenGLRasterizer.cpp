@@ -184,15 +184,6 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 	}
 	// use glDrawElements to draw each vertexarray
 	static bool doWarning = true;
-	if (vertexarrays.size() > 1 && doWarning)
-	{
-		/* TODO: if vertexarrays.size() == 1 then if we are multitexturing
-		   we can glLockArraysEXT the vertex arrays - GL will be able to cache
-		   the vertex transforms. */
-		std::cout << "# vertex arrays: " << vertexarrays.size() << std::endl;
-		std::cout << "I wondered if this could happen: please inform the proper authorities." << std::endl;
-		doWarning = false;
-	}
 	
 	for (vt=0;vt<vertexarrays.size();vt++)
 	{
