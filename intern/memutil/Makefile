@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # memutil main makefile.
@@ -46,7 +46,7 @@ install: all debug
 	@[ -d $(NAN_MEMUTIL)/include ] || mkdir $(NAN_MEMUTIL)/include
 	@[ -d $(NAN_MEMUTIL)/lib ] || mkdir $(NAN_MEMUTIL)/lib
 	@[ -d $(NAN_MEMUTIL)/lib/debug ] || mkdir $(NAN_MEMUTIL)/lib/debug
-	cp -f $(DIR)/libmemutil.a $(NAN_MEMUTIL)/lib/
-	cp -f $(DIR)/debug/libmemutil.a $(NAN_MEMUTIL)/lib/debug
-	cp -f *.h $(NAN_MEMUTIL)/include/
+	@../tools/cpifdiff.sh $(DIR)/libmemutil.a $(NAN_MEMUTIL)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libmemutil.a $(NAN_MEMUTIL)/lib/debug
+	@../tools/cpifdiff.sh *.h $(NAN_MEMUTIL)/include/
 

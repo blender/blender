@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # bmfont main makefile.
@@ -46,11 +46,11 @@ install: all debug
 	@[ -d $(NAN_BMFONT)/include ] || mkdir $(NAN_BMFONT)/include
 	@[ -d $(NAN_BMFONT)/lib ] || mkdir $(NAN_BMFONT)/lib
 	@[ -d $(NAN_BMFONT)/lib/debug ] || mkdir $(NAN_BMFONT)/lib/debug
-	cp -f $(DIR)/libbmfont.a $(NAN_BMFONT)/lib/
-	cp -f $(DIR)/debug/libbmfont.a $(NAN_BMFONT)/lib/debug/
+	@../tools/cpifdiff.sh $(DIR)/libbmfont.a $(NAN_BMFONT)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libbmfont.a $(NAN_BMFONT)/lib/debug/
 ifeq ($(OS),darwin)
 	ranlib $(NAN_BMFONT)/lib/libbmfont.a
 	ranlib $(NAN_BMFONT)/lib/debug/libbmfont.a
 endif
-	cp -f *.h $(NAN_BMFONT)/include/
+	@../tools/cpifdiff.sh *.h $(NAN_BMFONT)/include/
 

@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # action main makefile.
@@ -46,7 +46,7 @@ install: all debug
 	@[ -d $(NAN_ACTION)/include ] || mkdir $(NAN_ACTION)/include
 	@[ -d $(NAN_ACTION)/lib ] || mkdir $(NAN_ACTION)/lib
 	@[ -d $(NAN_ACTION)/lib/debug ] || mkdir $(NAN_ACTION)/lib/debug
-	cp -f $(DIR)/libaction.a $(NAN_ACTION)/lib/
-	cp -f $(DIR)/debug/libaction.a $(NAN_ACTION)/lib/debug/
-	cp -f *.h $(NAN_ACTION)/include/
+	@../tools/cpifdiff.sh $(DIR)/libaction.a $(NAN_ACTION)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libaction.a $(NAN_ACTION)/lib/debug/
+	@../tools/cpifdiff.sh *.h $(NAN_ACTION)/include/
 

@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # decimation main makefile.
@@ -46,11 +46,11 @@ install: all debug
 	@[ -d $(NAN_DECIMATION)/include ] || mkdir $(NAN_DECIMATION)/include
 	@[ -d $(NAN_DECIMATION)/lib ] || mkdir $(NAN_DECIMATION)/lib
 	@[ -d $(NAN_DECIMATION)/lib/debug ] || mkdir $(NAN_DECIMATION)/lib/debug
-	cp -f $(DIR)/libdecimation.a $(NAN_DECIMATION)/lib/
-	cp -f $(DIR)/debug/libdecimation.a $(NAN_DECIMATION)/lib/debug/
+	@../tools/cpifdiff.sh $(DIR)/libdecimation.a $(NAN_DECIMATION)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libdecimation.a $(NAN_DECIMATION)/lib/debug/
 ifeq ($(OS),darwin)
 	ranlib $(NAN_DECIMATION)/lib/libdecimation.a
 	ranlib $(NAN_DECIMATION)/lib/debug/libdecimation.a
 endif
-	cp -f extern/*.h $(NAN_DECIMATION)/include/
+	@../tools/cpifdiff.sh extern/*.h $(NAN_DECIMATION)/include/
 

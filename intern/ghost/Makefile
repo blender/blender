@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # ghost main makefile.
@@ -46,11 +46,11 @@ install: all debug
 	@[ -d $(NAN_GHOST)/include ] || mkdir $(NAN_GHOST)/include
 	@[ -d $(NAN_GHOST)/lib ] || mkdir $(NAN_GHOST)/lib
 	@[ -d $(NAN_GHOST)/lib/debug ] || mkdir $(NAN_GHOST)/lib/debug
-	cp -f $(DIR)/libghost.a $(NAN_GHOST)/lib/
-	cp -f $(DIR)/debug/libghost.a $(NAN_GHOST)/lib/debug/
+	@../tools/cpifdiff.sh $(DIR)/libghost.a $(NAN_GHOST)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libghost.a $(NAN_GHOST)/lib/debug/
 ifeq ($(OS),darwin)
 	ranlib $(NAN_GHOST)/lib/libghost.a
 	ranlib $(NAN_GHOST)/lib/debug/libghost.a
 endif
-	cp -f *.h $(NAN_GHOST)/include/
+	@../tools/cpifdiff.sh *.h $(NAN_GHOST)/include/
 

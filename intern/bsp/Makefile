@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # bsp main makefile.
@@ -46,13 +46,13 @@ install: all debug
 	@[ -d $(NAN_BSP)/include ] || mkdir $(NAN_BSP)/include
 	@[ -d $(NAN_BSP)/lib ] || mkdir $(NAN_BSP)/lib
 	@[ -d $(NAN_BSP)/lib/debug ] || mkdir $(NAN_BSP)/lib/debug
-	cp -f $(DIR)/libbsp.a $(NAN_BSP)/lib/
-	cp -f $(DIR)/debug/libbsp.a $(NAN_BSP)/lib/debug/
+	@../tools/cpifdiff.sh $(DIR)/libbsp.a $(NAN_BSP)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libbsp.a $(NAN_BSP)/lib/debug/
 ifeq ($(OS),darwin)
 	ranlib $(NAN_BSP)/lib/libbsp.a
 	ranlib $(NAN_BSP)/lib/debug/libbsp.a
 endif
-	cp -f extern/*.h $(NAN_BSP)/include/
+	@../tools/cpifdiff.sh extern/*.h $(NAN_BSP)/include/
 
 
 

@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # string main makefile.
@@ -46,11 +46,11 @@ install: all debug
 	@[ -d $(NAN_STRING)/include ] || mkdir $(NAN_STRING)/include
 	@[ -d $(NAN_STRING)/lib ] || mkdir $(NAN_STRING)/lib
 	@[ -d $(NAN_STRING)/lib/debug ] || mkdir $(NAN_STRING)/lib/debug
-	cp -f $(DIR)/libstring.a $(NAN_STRING)/lib/
-	cp -f $(DIR)/debug/libstring.a $(NAN_STRING)/lib/debug/
+	@../tools/cpifdiff.sh $(DIR)/libstring.a $(NAN_STRING)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libstring.a $(NAN_STRING)/lib/debug/
 ifeq ($(OS),darwin)
 	ranlib $(NAN_STRING)/lib/libstring.a
 	ranlib $(NAN_STRING)/lib/debug/libstring.a
 endif
-	cp -f *.h $(NAN_STRING)/include/
+	@../tools/cpifdiff.sh *.h $(NAN_STRING)/include/
 

@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # container main makefile.
@@ -46,7 +46,7 @@ install: all debug
 	@[ -d $(NAN_CONTAINER)/include ] || mkdir $(NAN_CONTAINER)/include
 	@[ -d $(NAN_CONTAINER)/lib ] || mkdir $(NAN_CONTAINER)/lib
 	@[ -d $(NAN_CONTAINER)/lib/debug ] || mkdir $(NAN_CONTAINER)/lib/debug
-	cp -f $(DIR)/libcontainer.a $(NAN_CONTAINER)/lib/
-	cp -f $(DIR)/debug/libcontainer.a $(NAN_CONTAINER)/lib/debug
-	cp -f *.h $(NAN_CONTAINER)/include/
+	@../tools/cpifdiff.sh $(DIR)/libcontainer.a $(NAN_CONTAINER)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libcontainer.a $(NAN_CONTAINER)/lib/debug
+	@../tools/cpifdiff.sh *.h $(NAN_CONTAINER)/include/
 

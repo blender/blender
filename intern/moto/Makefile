@@ -25,7 +25,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 # moto main makefile.
@@ -46,11 +46,11 @@ install: all debug
 	@[ -d $(NAN_MOTO)/include ] || mkdir $(NAN_MOTO)/include
 	@[ -d $(NAN_MOTO)/lib ] || mkdir $(NAN_MOTO)/lib
 	@[ -d $(NAN_MOTO)/lib/debug ] || mkdir $(NAN_MOTO)/lib/debug
-	cp -f $(DIR)/libmoto.a $(NAN_MOTO)/lib/
-	cp -f $(DIR)/debug/libmoto.a $(NAN_MOTO)/lib/debug/
+	@../tools/cpifdiff.sh $(DIR)/libmoto.a $(NAN_MOTO)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libmoto.a $(NAN_MOTO)/lib/debug/
 ifeq ($(OS),darwin)
 	ranlib $(NAN_MOTO)/lib/libmoto.a
 	ranlib $(NAN_MOTO)/lib/debug/libmoto.a
 endif
-	cp -f include/*.h $(NAN_MOTO)/include/
+	@../tools/cpifdiff.sh include/*.h $(NAN_MOTO)/include/
 
