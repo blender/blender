@@ -309,12 +309,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame)
 	qtexport->ibuf = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
 
 	err = NewGWorldFromPtr( &qtexport->theGWorld,
-#ifdef __APPLE__
-							k32ARGBPixelFormat,
-#endif
-#ifdef _WIN32
 							k32RGBAPixelFormat,
-#endif
 							trackFrame,
 							NULL, NULL, 0,
 							(unsigned char *)qtexport->ibuf->rect,
@@ -362,10 +357,8 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 
 	//parse render bitmap into Quicktime's GWorld
 #ifdef __APPLE__
-// Swap alpha byte to the end, so ARGB become RGBA; note this is big endian-centric.
 	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
-		*( changePos ) = ( ( *readPos & 0xFFFFFFFF ) >> 8 ) |
-                         ( ( *readPos << 24 ) & 0xFF );
+		*( changePos ) = *( readPos );
 #endif
 #ifdef _WIN32
 	memcpy(changePos, readPos, boxsize*4);
