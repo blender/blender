@@ -2133,8 +2133,8 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	/* Measurement drawing options */
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|22, REDRAWVIEW3D, "Edge Length",	1125,131,150,19, &G.f, 0, 0, 0, 0, "Displays selected edge lengths");
-	uiDefButI(block, TOG|BIT|24, REDRAWVIEW3D, "Edge Angles",	1125,88,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
-	uiDefButI(block, TOG|BIT|23, REDRAWVIEW3D, "Face Area",		1125,110,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
+	uiDefButI(block, TOG|BIT|24, REDRAWVIEW3D, "Edge Angles",	1125,110,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
+	uiDefButI(block, TOG|BIT|23, REDRAWVIEW3D, "Face Area",		1125,88,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
 	uiBlockEndAlign(block);
 
 }
