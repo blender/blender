@@ -930,6 +930,9 @@ static void ObjectToTransData(TransData *td, Object *ob)
 	VECCOPY(td->center, ob->obmat[3]);
 
 	Mat3CpyMat4(td->axismtx, ob->obmat);
+	Normalise(td->axismtx[0]);
+	Normalise(td->axismtx[1]);
+	Normalise(td->axismtx[2]);
 
 	if (ob->parent)
 	{
