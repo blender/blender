@@ -960,6 +960,7 @@ void calc_meshverts_ext_f2(void)
 	
 	/* matrices */
 	areawinset(curarea->win);
+	persp(PERSP_VIEW);
 	mymultmatrix(G.obedit->obmat);
 	
 	if(G.edve.first==0) return;
