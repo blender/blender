@@ -828,7 +828,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			glClearColor(0.0, 0.0, 0.0, 0.0); 
 		}
 		else {
-			glClearColor(0.55, 0.55, 0.55, 0.0); 
+			glClearColor(0.45, 0.45, 0.45, 0.0); 
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
