@@ -184,13 +184,16 @@ elif sys.platform == 'darwin':
 	opengl_libpath = []
 	opengl_include = []
 	# SDL specific stuff.
-	sdl_env.ParseConfig ('sdl-config --cflags --libs')
-	sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
+	#sdl_env.ParseConfig ('sdl-config --cflags --libs')
 	# Want to use precompiled libraries?
 	if use_precomp == 'true':
 		sdl_include = [darwin_precomp + 'sdl/include']
 		sdl_libpath = [darwin_precomp + 'sdl/lib']
 		sdl_lib = ['libSDL.a']
+		sdl_cflags = [ '-I' + darwin_precomp + 'sdl/include' ]
+		sdl_env.Append (CCFLAGS = sdl_cflags )
+		sdl_env.Append (CPPPATH = [darwin_precomp + 'sdl/include'] )
+
 	platform_libs = ['stdc++'] 
 	extra_includes = ['/sw/include']
 	platform_libpath = ['/System/Library/Frameworks/OpenGL.framework/Libraries']
