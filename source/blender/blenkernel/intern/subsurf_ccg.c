@@ -572,10 +572,10 @@ static void subSurf_sync(SubSurf *ss) {
 		int i;
 
 		for (i=0; i<ss->me->totvert; i++) {
-			ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, subSurf->me->mvert[i].co);
+			ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->me->mvert[i].co);
 		}
 
-		if (subSurf->me->medge) {
+		if (ss->me->medge) {
 			for (i=0; i<ss->me->totedge; i++) {
 				MEdge *med = &ss->me->medge[i];
 				float crease = med->crease*creaseFactor/255.0f;
@@ -786,7 +786,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
 		CCGFace *f= ccgFaceIterator_getCurrent(fi);
 		EditFace *efa= ccgSubSurf_getFaceFaceHandle(ss, f);
 		int S, x, y, numVerts= ccgSubSurf_getFaceNumVerts(ss, f);
-		int isSmooth = !(me->flag&ME_AUTOSMOOTH) && (efa->flag&ME_SMOOTH);
+		int isSmooth = efa->flag&ME_SMOOTH;
 
 		if (efa->h!=0)
 			continue;
