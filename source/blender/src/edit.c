@@ -724,23 +724,23 @@ void snap_sel_to_grid()
 			tv= transvmain;
 			for(a=0; a<tottrans; a++, tv++) {
 
-			VECCOPY(vec, tv->loc);
-			Mat3MulVecfl(bmat, vec);
-			VecAddf(vec, vec, G.obedit->obmat[3]);
-			vec[0]= G.vd->grid*floor(.5+ vec[0]/gridf);
-			vec[1]= G.vd->grid*floor(.5+ vec[1]/gridf);
-			vec[2]= G.vd->grid*floor(.5+ vec[2]/gridf);
-			VecSubf(vec, vec, G.obedit->obmat[3]);
+				VECCOPY(vec, tv->loc);
+				Mat3MulVecfl(bmat, vec);
+				VecAddf(vec, vec, G.obedit->obmat[3]);
+				vec[0]= G.vd->grid*floor(.5+ vec[0]/gridf);
+				vec[1]= G.vd->grid*floor(.5+ vec[1]/gridf);
+				vec[2]= G.vd->grid*floor(.5+ vec[2]/gridf);
+				VecSubf(vec, vec, G.obedit->obmat[3]);
 
-			Mat3MulVecfl(imat, vec);
-			VECCOPY(tv->loc, vec);
+				Mat3MulVecfl(imat, vec);
+				VECCOPY(tv->loc, vec);
 
 			}
 
 			MEM_freeN(transvmain);
 			transvmain= 0;
-
-			if ELEM(G.obedit->type, OB_SURF, OB_CURVE) makeDispList(G.obedit);
+			
+			calc_trans_verts(); // does test2d, makedisplist too */
 
 			if (G.obedit->type == OB_ARMATURE)
 				special_trans_update(0);
@@ -824,7 +824,7 @@ void snap_sel_to_curs()
 			MEM_freeN(transvmain);
 			transvmain= 0;
 
-			if ELEM(G.obedit->type, OB_SURF, OB_CURVE) makeDispList(G.obedit);
+			calc_trans_verts(); // does test2d, makedisplist too */
 
 			if (G.obedit->type == OB_ARMATURE)
 				special_trans_update(0);
