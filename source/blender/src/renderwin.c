@@ -445,18 +445,32 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 	}
 }
 
+static char *renderwin_get_title(int doswap)
+{
+	static int swap= 0;
+	char *title="";
+	
+	swap+= doswap;
+	
+	if(swap & 1) {
+		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render (spare)";
+		else title = "Blender:Render (spare)";
+	}
+	else {
+		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render";
+		else title = "Blender:Render";
+	}
+
+	return title;
+}
 
 /* opens window and allocs struct */
 static void open_renderwin(int winpos[2], int winsize[2])
 {
 	Window *win;
-	/* yafray: Window title change for yafray, totally unnecessary of course, but... */
-	char* title;
-	if (G.scene->r.renderer==R_YAFRAY)
-		title = "YafRay:Render";
-	else
-		title = "Blender:Render";
-
+	char *title;
+	
+	title= renderwin_get_title(0);	/* 0 = no swap */
 	win= window_open(title, winpos[0], winpos[1], winsize[0], winsize[1], 0);
 
 	render_win= renderwin_alloc(win);
@@ -941,6 +955,7 @@ void BIF_swap_render_rects(void)
 		// don't open render_win if rendering has been
 	    // canceled or the render_win has been actively closed
 		if (render_win) {
+			window_set_title(render_win->win, renderwin_get_title(1));
 			renderwin_queue_redraw(render_win);
 		}
 	} else {

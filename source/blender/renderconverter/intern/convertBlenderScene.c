@@ -145,10 +145,10 @@ static void init_render_object(Object *ob);
 static HaloRen *initstar(float *vec, float hasize);
 
 /* Displacement Texture */
-void displace_render_face(VlakRen *vlr, float *scale);
-void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert);
-short test_for_displace(Object *ob);
-void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale);
+static void displace_render_face(VlakRen *vlr, float *scale);
+static void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert);
+static short test_for_displace(Object *ob);
+static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale);
 
 /* more prototypes for autosmoothing below */
 
@@ -2493,6 +2493,54 @@ static void init_render_curve(Object *ob)
 	}
 }
 
+/* prevent phong interpolation for giving ray shadow errors (terminator problem) */
+static void set_phong_threshold(Object *ob, int startface, int numface, int startvert, int numvert )
+{
+	VertRen *ver;
+	VlakRen *vlr;
+	float thresh= 0.0, dot;
+	int tot=0, i;
+	
+	/* Added check for 'pointy' situations, only dotproducts of 0.9 and larger 
+	   are taken into account. This threshold is meant to work on smooth geometry, not
+	   for extreme cases (ton) */
+	
+	for(i=startface; i<startface+numface; i++) {
+		vlr= RE_findOrAddVlak(i);
+		if(vlr->flag & R_SMOOTH) {
+			dot= INPR(vlr->n, vlr->v1->n);
+			dot= ABS(dot);
+			if(dot>0.9) {
+				thresh+= dot; tot++;
+			}
+			dot= INPR(vlr->n, vlr->v2->n);
+			dot= ABS(dot);
+			if(dot>0.9) {
+				thresh+= dot; tot++;
+			}
+
+			dot= INPR(vlr->n, vlr->v3->n);
+			dot= ABS(dot);
+			if(dot>0.9) {
+				thresh+= dot; tot++;
+			}
+
+			if(vlr->v4) {
+				dot= INPR(vlr->n, vlr->v4->n);
+				dot= ABS(dot);
+				if(dot>0.9) {
+					thresh+= dot; tot++;
+				}
+			}
+		}
+	}
+	
+	if(tot) {
+		thresh/= (float)tot;
+		ob->smoothresh= cos(0.5*M_PI-acos(thresh));
+	}
+}
+
 static void init_render_object(Object *ob)
 {
 	float mat[4][4];
@@ -2518,11 +2566,20 @@ static void init_render_object(Object *ob)
 		MTC_Mat4Invert(ob->imat, mat);
 	}
 	
-	/* the exception below is because displace code now is in init_render_mesh call, 
-	   I will look at means to have autosmooth enabled for all object types 
-	   and have it as general postprocess, like displace */
-	if (ob->type!=OB_MESH && test_for_displace( ob ) ) 
-		do_displacement(ob, startface, R.totvlak-startface, startvert, R.totvert-startvert);
+	/* generic post process here */
+	if(startvert!=R.totvert) {
+	
+		/* the exception below is because displace code now is in init_render_mesh call, 
+		I will look at means to have autosmooth enabled for all object types 
+		and have it as general postprocess, like displace */
+		if (ob->type!=OB_MESH && test_for_displace( ob ) ) 
+			do_displacement(ob, startface, R.totvlak-startface, startvert, R.totvert-startvert);
+	
+		/* phong normal interpolation can cause error in tracing (terminator prob) */
+		ob->smoothresh= 0.0;
+		if( (R.r.mode & R_RAYTRACE) && (R.r.mode & R_SHADOW) ) 
+			set_phong_threshold(ob, startface, R.totvlak-startface, startvert, R.totvert-startvert);
+	}
 }
 
 void RE_freeRotateBlenderScene(void)
@@ -2927,7 +2984,7 @@ void RE_rotateBlenderScene(void)
 /* **************************************************************** */
 /*                Displacement mapping                              */
 /* **************************************************************** */
-short test_for_displace(Object *ob)
+static short test_for_displace(Object *ob)
 {
 	/* return 1 when this object uses displacement textures. */
 	Material *ma;
@@ -2942,7 +2999,7 @@ short test_for_displace(Object *ob)
 }
 
 
-void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert )
+static void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert )
 {
 	VertRen *vr;
 	VlakRen *vlr;
@@ -2974,7 +3031,7 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	normalenrender(startvert, startface);
 }
 
-void displace_render_face(VlakRen *vlr, float *scale)
+static void displace_render_face(VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 	VertRen vr;
@@ -3042,7 +3099,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 	
 }
 
-void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
+static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 {
 	short texco= shi->matren->texco;
 	float sample=0;

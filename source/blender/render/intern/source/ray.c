@@ -2062,7 +2062,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		VECCOPY(lampco, lar->co);
 	}
 	
-	/* shadow and soft not implemented yet */
+	/* transp-shadow and soft not implemented yet */
 	if(lar->ray_totsamp<2 ||  isec.mode == DDA_SHADOW_TRA) {
 		/* set up isec */
 		VECCOPY(isec.start, shi->co);

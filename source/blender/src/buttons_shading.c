@@ -2707,14 +2707,15 @@ static void material_panel_shading(Material *ma)
 		uiBlockEndAlign(block);
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows or being detected by ray tracing");
+		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,150,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows or being detected by ray tracing");
 
 		uiBlockBeginAlign(block);
-		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,110,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
-		uiDefButI(block, TOG|BIT|19, 0, "TraShadow",		245,90,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
+		uiDefButI(block, TOG|BIT|19, 0, "TraShadow",		245,100,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiDefButI(block, TOG|BIT|22, 0, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 		uiBlockEndAlign(block);
 
-		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,60,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosty rendering");
+		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,55,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosty rendering");
 
 	}
 

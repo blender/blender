@@ -1899,14 +1899,14 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 {
 	LampRen *lar;
-	Material *ma;
+	Material *ma= shi->matren;
+	VlakRen *vlr= shi->vlr;
 	float i, inp, inpr, is, t, lv[3], lampdist, ld = 0;
-	float lvrot[3], *vn, *view, shadfac[4], soft;	// shadfac = rgba
+	float lvrot[3], *vn, *view, shadfac[4], soft, phongcorr;	// shadfac = rgba
 	int a;
 
 	vn= shi->vn;
 	view= shi->view;
-	ma= shi->matren;
 	
 	memset(shr, 0, sizeof(ShadeResult));
 	
@@ -1918,7 +1918,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		for(a=0; a<R.totlamp; a++) {
 			lar= R.la[a];
 			
-			if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
+			if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
 			
 			lv[0]= shi->co[0]-lar->co[0];
 			lv[1]= shi->co[1]-lar->co[1];
@@ -1953,7 +1953,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				float shad[4];
 				
 				/* single sided? */
-				if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.01) {
+				if( vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2] > -0.01) {
 					ray_shadow(shi, lar, shad);
 					shadfac[3]+= shad[3];
 					ir+= 1.0;
@@ -2014,7 +2014,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		lar= R.la[a];
 
 		/* test for lamp layer */
-		if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
+		if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
 		
 		/* lampdist calculation */
 		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
@@ -2119,7 +2119,18 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		/* inp = dotproduct, is = shader result, i = lamp energy (with shadow) */
 		
 		inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-				
+
+		/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
+		if((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
+			float thresh= vlr->ob->smoothresh;
+			if(inp>thresh)
+				phongcorr= (inp-thresh)/(inp*(1.0-thresh));
+			else
+				phongcorr= 0.0;
+		}
+		else phongcorr= 1.0;
+		
+		/* diffuse shaders */
 		if(lar->mode & LA_NO_DIFF) {
 			is= 0.0;	// skip shaders
 		}
@@ -2141,7 +2152,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			else is= inp;	// Lambert
 		}
 		
-		i= is;
+		i= is*phongcorr;
+		
 		if(i>0.0) {
 			i*= lampdist*ma->ref;
 		}
@@ -2157,10 +2169,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 							shadfac[3] = testshadowbuf(lar->shb, shi->co, inp);
 						}
 						else if(lar->mode & LA_SHAD_RAY) {
-							// this extra 0.001 prevents boundary cases (shadow on smooth sphere)
-							if((shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2]) > -0.001) 
-								ray_shadow(shi, lar, shadfac);
-							else shadfac[3]= 0.0;
+							ray_shadow(shi, lar, shadfac);
 						}
 	
 						/* warning, here it skips the loop */
@@ -2773,7 +2782,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 			if(shi.mat->mode & MA_RAYTRANSP) shr.alpha= 1.0;
 		}
 		
-		VecAddf(col, shr.diff, shr.spec);
+		VECADD(col, shr.diff, shr.spec);
 		
 		/* exposure correction */
 		if(R.wrld.exp!=0.0 || R.wrld.range!=1.0) {

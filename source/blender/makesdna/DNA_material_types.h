@@ -140,6 +140,7 @@ typedef struct Material {
 #define MA_SHADOW_TRA	0x80000
 #define MA_RAMP_COL		0x100000
 #define MA_RAMP_SPEC	0x200000
+#define MA_RAYBIAS		0x400000
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

@@ -198,7 +198,7 @@ typedef struct Object {
 	LBuf lbuf;
 	LBuf port;
 
-	float toonedge, pad2;
+	float toonedge, smoothresh;	/* smoothresh is phong interpolation ray_shadow correction in render */
 } Object;
 
 /* this work object is defined in object.c */
