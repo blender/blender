@@ -928,8 +928,9 @@ void RE_shadehalo(HaloRen *har, char *col, unsigned int zz, float dist, float xn
 
 	/* texture? */
 	if(har->tex) {
+		colf[0]= colf[1]= colf[2]= 0.0;
 		colf[3]= dist;
-		do_halo_tex(har, xn, yn, colf);
+		do_halo_tex(har, xn, yn, colf);	// can return without setting colf
 		
 		/* dist== colf[3]; */
 		
@@ -2594,6 +2595,12 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				shi->uv[0]= 2.0*(u+.5);
 				shi->uv[1]= 2.0*(v+.5);
 				shi->uv[2]= 0.0;	// texture.c assumes there are 3 coords
+				if(mode & MA_FACETEXTURE) {
+					/* no tface? set at 1.0 */
+					shi->vcol[0]= 1.0;
+					shi->vcol[1]= 1.0;
+					shi->vcol[2]= 1.0;
+				}
 			}
 		}
 		if(texco & TEXCO_NORM) {

@@ -1689,17 +1689,19 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 			dxt[0]= mtex->size[0]*dx;
 			dyt[0]= mtex->size[0]*dx;
 		}
-		else dxt[0]= 0.0;
+		else dxt[0]= dyt[0]= 0.0;
+		
 		if(mtex->projy) {
 			dxt[1]= mtex->size[1]*dx;
 			dyt[1]= mtex->size[1]*dx;
 		}
-		else dxt[1]= 0.0;
+		else dxt[1]= dyt[1]= 0.0;
+		
 		if(mtex->projz) {
 			dxt[2]= 0.0;
 			dyt[2]= 0.0;
 		}
-		else dxt[2]= 0.0;
+		else dxt[2]= dyt[2]= 0.0;
 
 	}
 
