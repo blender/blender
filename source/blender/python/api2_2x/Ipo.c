@@ -264,40 +264,43 @@ static PyObject *Ipo_getNcurves(BPy_Ipo *self)
 }
 
 
+	 char*nametab_ob[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
+	char*nametab_ca[3] = {"Lens","ClSta","ClEnd"};
+	char*nametab_wo[29] = {"HorR","HorG","HorB","ZenR","ZenG","ZenB","Expos","Misi","MisDi","MisSta","MisHi","StaR","StaG","StaB","StarDi","StarSi","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
+	char*nametab_ma[32] = {"R","G","B","SpecR","SpecG","SpecB","MirR","MirG","MirB","Ref","Alpha","Emit","Amb","Spec","Hard","SpTra","Ang","Mode","HaSize","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
+
+
+
 int num_from_type(char*type,int ipotype)
 {
 	int i = 0,typenumber = -1,tabsize;
 	if (ipotype == ID_OB)
 		{
-	 char*nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
 			tabsize = 24;
 	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab[i],type))
+		if(!strcmp(nametab_ob[i],type))
 			typenumber=i+1;
 
 		}
 	if (ipotype == ID_CA)
 		{
-	char*nametab[3] = {"Lens","ClSta","ClEnd"};
 			tabsize = 3;
 	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab[i],type))
+		if(!strcmp(nametab_ca[i],type))
 			typenumber=i+1;
 		}
 	if (ipotype == ID_WO)
 		{
-	char*nametab[29] = {"HorR","HorG","HorB","ZenR","ZenG","ZenB","Expos","Misi","MisDi","MisSta","MisHi","StaR","StaG","StaB","StarDi","StarSi","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
 			tabsize = 29;
 	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab[i],type))
+		if(!strcmp(nametab_wo[i],type))
 			typenumber=i+1;
 		}
 	if (ipotype == ID_MA)
 		{
-	char*nametab[32] = {"R","G","B","SpecR","SpecG","SpecB","MirR","MirG","MirB","Ref","Alpha","Emit","Amb","Spec","Hard","SpTra","Ang","Mode","HaSize","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
 			tabsize = 32;
 	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab[i],type))
+		if(!strcmp(nametab_ma[i],type))
 			typenumber=i+1;
 		}
 
@@ -309,23 +312,19 @@ char* type_from_num(int num,int ipotype)
 	
 	if (ipotype == ID_CA)
 		{
-	char * nametab[3] = {"Lens","ClSta","ClEnd"};
-	return nametab[num-1];
+	return nametab_ca[num-1];
 		}
 	if (ipotype == ID_OB)
 		{
-	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
-	return nametab[num-1];
+	return nametab_ob[num-1];
 		}
 	if (ipotype == ID_WO)
 		{
-	char*nametab[29] = {"HorR","HorG","HorB","ZenR","ZenG","ZenB","Expos","Misi","MisDi","MisSta","MisHi","StaR","StaG","StaB","StarDi","StarSi","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
-	return nametab[num-1];
+	return nametab_wo[num-1];
 		}
 	if (ipotype == ID_MA)
 		{
-	char*nametab[32] = {"R","G","B","SpecR","SpecG","SpecB","MirR","MirG","MirB","Ref","Alpha","Emit","Amb","Spec","Hard","SpTra","Ang","Mode","HaSize","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
-	return nametab[num-1];
+	return nametab_ma[num-1];
 		}
 	return 0;
 }
@@ -364,7 +363,6 @@ static PyObject *Ipo_getCurve(BPy_Ipo *self, PyObject *args)
 	IpoCurve *icu = 0;
 	if (!PyArg_ParseTuple(args, "s",&str))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
-	puts(str);
  for (icu=self->ipo->curve.first; icu; icu=icu->next){
 	 if (!strcmp(type_from_num(icu->adrcode, icu->blocktype),str))return IpoCurve_CreatePyObject(icu);
         }
