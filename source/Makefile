@@ -39,7 +39,7 @@ endif
 include nan_definitions.mk
 
 DIRS = creator blender kernel gameengine
-ifneq ($(OS),$(findstring $(OS), "darwin freebsd"))
+ifneq ($(OS),$(findstring $(OS), "darwin freebsd irix"))
     DIRS += ode
 endif
 

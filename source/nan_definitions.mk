@@ -148,15 +148,11 @@ all debug::
   ifeq ($(OS),irix)
     export ID = $(shell whoami)
     export HOST = $(shell /usr/bsd/hostname -s)
-    export NAN_PYTHON = /usr/freeware/include/python
     export NAN_PYTHON_VERSION = 2.1
     export NAN_PYTHON_BINARY = 
     export NAN_MXTEXTTOOLS = 
-    export NAN_JPEG = /usr/freeware
-    export NAN_PNG = /usr/freeware
-    export NAN_OPENSSL = /usr/freeware
     export NAN_ZLIB = /usr/freeware
-    export NAN_NSPR = /usr/local/apps/openblender/nspr/target
+    export NAN_NSPR = /usr/local/apps/openblender/nspr/target/dist
   endif
 
   ifeq ($(OS),linux)
