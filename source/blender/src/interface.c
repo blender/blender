@@ -2232,6 +2232,14 @@ static float palette[UI_PALETTE_TOT+1][3]= {
 {0.42, 0.42, 0.42}, {0.28, 0.28, 0.28}, {0.14, 0.14, 0.14}, {0.0, 0.0, 0.0}
 };  
 
+/* for picker, while editing hsv */
+static void ui_set_but_hsv(uiBut *but)
+{
+	float col[3];
+	
+	hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], col, col+1, col+2);
+	ui_set_but_vectorf(but, col);
+}
 
 static void update_picker_buts(uiBlock *block, float *hsv)
 {
@@ -2242,7 +2250,11 @@ static void update_picker_buts(uiBlock *block, float *hsv)
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &r, &g, &b);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->str[1]==' ') {
+		if(bt->type==HSVCUBE) {
+			VECCOPY(bt->hsv, hsv);
+			ui_set_but_hsv(bt);
+		}
+		else if(bt->str[1]==' ') {
 			if(bt->str[0]=='R') {
 				ui_set_but_val(bt, r);
 				ui_check_but(bt);
@@ -2434,15 +2446,6 @@ static int ui_do_but_COL(uiBut *but)
 	
 	return but->retval;
 
-}
-
-/* for picker, while editing hsv */
-static void ui_set_but_hsv(uiBut *but)
-{
-	float col[3];
-	
-	hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], col, col+1, col+2);
-	ui_set_but_vectorf(but, col);
 }
 
 static int ui_do_but_HSVCUBE(uiBut *but)
