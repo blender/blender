@@ -606,11 +606,12 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 		attr = PyInt_FromLong( self->image->yrep );
 	else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );
-
+	else if( strcmp( name, "users" ) == 0 )
+		attr = PyInt_FromLong( self->image->id.us );
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s]",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s]",
 				      "name", "filename", "size", "depth",
-				      "xrep", "yrep", "bindcode" );
+				      "xrep", "yrep", "bindcode", "users" );
 
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,

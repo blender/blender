@@ -55,6 +55,7 @@
 #include "DNA_text_types.h"
 
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
 
@@ -66,6 +67,9 @@
 #include "BIF_toolbox.h"
 
 #include "BPI_script.h"		/* script struct */
+
+#include "Image.h"              /* for accessing Blender.Image objects */
+#include "IMB_imbuf_types.h"    /* for the IB_rect define */
 
 #include "interface.h"
 #include "mydevice.h"		/*@ for all the event constants */
@@ -112,6 +116,8 @@ static PyObject *Method_PupMenu( PyObject * self, PyObject * args );
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupStrInput( PyObject * self, PyObject * args );
+/* next by Jonathan Merritt (lancelet): */
+static PyObject *Method_Image( PyObject * self, PyObject * args);
 
 static uiBlock *Get_uiBlock( void );
 static void py_slider_update( void *butv, void *data2_unused );
@@ -267,6 +273,14 @@ static char Method_PupFloatInput_doc[] =
 the float value show.\n\
 Return the user input value or None on user exit";
 
+static char Method_Image_doc[] =
+	"(image, x, y, zoomx = 1.0, zoomy = 1.0, [clipx, clipy, clipw, cliph])) \n\
+    - Draw an image.\n\
+(image) - Blender.Image to draw.\n\
+(x, y) - floats specifying the location of the image.\n\
+(zoomx, zoomy) - float zoom factors in horizontal and vertical directions.\n\
+(clipx, clipy, clipw, cliph) - integers specifying a clipping rectangle within the original image.";
+
 static char Method_PupStrInput_doc[] =
 	"(text, default, max = 20) - Display a float pop-up input.\n\
 (text) - text string to display on the button;\n\
@@ -304,6 +318,7 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( PupIntInput ),
 	MethodDef( PupFloatInput ),
 	MethodDef( PupStrInput ),
+	MethodDef( Image ),
 	MethodDef( Exit ),
 	MethodDef( Redraw ),
 	MethodDef( Draw ),
@@ -1196,6 +1211,107 @@ static PyObject *Method_PupStrInput( PyObject * self, PyObject * args )
 				      "couldn't create a PyString" );
 }
 
+/*****************************************************************************
+ * Function:            Method_Image                                         *
+ * Python equivalent:   Blender.Draw.Image                                   *
+ *                                                                           *
+ * @author Jonathan Merritt <j.merritt@pgrad.unimelb.edu.au>                 *
+ ****************************************************************************/
+static PyObject *Method_Image( PyObject * self, PyObject * args )
+{
+	PyObject *pyObjImage;
+	BPy_Image *py_img;
+	Image *image;
+	float originX, originY;
+	float zoomX = 1.0, zoomY = 1.0;
+	int clipX = 0, clipY = 0, clipW = -1, clipH = -1;
+	GLfloat scissorBox[4];
+
+	/* parse the arguments passed-in from Python */
+	if( !PyArg_ParseTuple( args, "Off|ffiiii", &pyObjImage, 
+		&originX, &originY, &zoomX, &zoomY, 
+		&clipX, &clipY, &clipW, &clipH ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected a Blender.Image and 2 floats, and " \
+			"optionally 2 floats and 4 ints as arguments" );
+	/* check that the first PyObject is actually a Blender.Image */
+	if( !Image_CheckPyObject( pyObjImage ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected a Blender.Image and 2 floats, and " \
+			"optionally 2 floats and 4 ints as arguments" );
+	/* check that the zoom factors are valid */
+	if( ( zoomX <= 0.0 ) || ( zoomY <= 0.0 ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"invalid zoom factors - they must be >= 0.0" );
+
+	/* fetch a C Image pointer from the passed-in Python object */
+	py_img = ( BPy_Image * ) pyObjImage;
+	image = py_img->image;
+
+	/* load the image data if necessary */
+	if( !image->ibuf )      /* if no image data is available ... */
+		load_image( image, IB_rect, "", 0 );    /* ... load it */
+	if( !image->ibuf )      /* if failed to load the image */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't load image data in Blender" );
+
+	/* set up a valid clipping rectangle.  if no clip rectangle was
+	 * given, this results in inclusion of the entire image.  otherwise,
+	 * the clipping is just checked against the bounds of the image.
+	 * if clipW or clipH are less than zero then they include as much of
+	 * the image as they can. */
+	clipX = EXPP_ClampInt( clipX, 0, image->ibuf->x );
+	clipY = EXPP_ClampInt( clipY, 0, image->ibuf->y );
+	if( ( clipW < 0 ) || ( clipW > ( image->ibuf->x - clipW ) ) )
+		clipW = image->ibuf->x - clipX;
+	if( ( clipH < 0 ) || ( clipH > ( image->ibuf->y - clipH ) ) )
+		clipH = image->ibuf->y - clipY;
+
+	/* -- we are "Go" to Draw! -- */
+
+	/* set the raster position.
+	 *
+	 * If the raster position is negative, then using glRasterPos2i() 
+	 * directly would cause it to be clipped.  Instead, we first establish 
+	 * a valid raster position within the clipping rectangle of the 
+	 * window and then use glBitmap() with a NULL image pointer to offset 
+	 * it to the true position we require.  To pick an initial valid 
+	 * raster position within the viewport, we query the clipping rectangle
+	 * and use its lower-left pixel.
+	 *
+	 * This particular technique is documented in the glRasterPos() man
+	 * page, although I haven't seen it used elsewhere in Blender.
+	 */
+	glGetFloatv( GL_SCISSOR_BOX, scissorBox );
+	glRasterPos2i( scissorBox[0], scissorBox[1] );
+	glBitmap( 0, 0, 0.0, 0.0, 
+		originX-scissorBox[0], originY-scissorBox[1], NULL );
+
+	/* set the zoom */
+	glPixelZoom( zoomX, zoomY );
+
+	/* set the width of the image (ROW_LENGTH), and the offset to the
+	 * clip origin within the image in x (SKIP_PIXELS) and 
+	 * y (SKIP_ROWS) */
+	glPixelStorei( GL_UNPACK_ROW_LENGTH,  image->ibuf->x );
+	glPixelStorei( GL_UNPACK_SKIP_PIXELS, clipX );
+	glPixelStorei( GL_UNPACK_SKIP_ROWS,   clipY );
+
+	/* draw the image */
+	glDrawPixels( clipW, clipH, GL_RGBA, GL_UNSIGNED_BYTE, 
+		image->ibuf->rect );
+
+	/* restore the defaults for some parameters (we could also use a
+	 * glPushClientAttrib() and glPopClientAttrib() pair). */
+	glPixelZoom( 1.0, 1.0 );
+	glPixelStorei( GL_UNPACK_SKIP_ROWS,   0 );
+	glPixelStorei( GL_UNPACK_SKIP_PIXELS, 0 );
+	glPixelStorei( GL_UNPACK_ROW_LENGTH,  0 );
+
+	Py_INCREF( Py_None );
+	return Py_None;
+
+}
 
 PyObject *Draw_Init( void )
 {

@@ -794,6 +794,8 @@ static PyObject *Camera_getAttr( BPy_Camera * self, char *name )
 		attr = PyFloat_FromDouble( self->camera->clipend );
 	else if( strcmp( name, "drawSize" ) == 0 )
 		attr = PyFloat_FromDouble( self->camera->drawsize );
+	else if( strcmp( name, "users" ) == 0 )
+		attr = PyInt_FromLong( self->camera->id.us );
 	else if( strcmp( name, "ipo" ) == 0 ) {
 		Ipo *ipo = self->camera->ipo;
 		if( ipo )
@@ -813,10 +815,10 @@ static PyObject *Camera_getAttr( BPy_Camera * self, char *name )
 	}
 
 	else if( strcmp( name, "__members__" ) == 0 ) {
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s]",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
 				      "name", "type", "mode", "lens",
 				      "clipStart", "ipo", "clipEnd",
-				      "drawSize", "Types", "Modes" );
+				      "drawSize", "Types", "Modes", "users" );
 	}
 
 	if( !attr )

@@ -1995,11 +1995,13 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 	else if( strcmp( name, "fresnelTransFac" ) == 0 )
 		attr = PyFloat_FromDouble( ( double ) self->material->
 					   fresnel_tra_i );
-
+	else if( strcmp( name, "users" ) == 0 )
+		attr = PyInt_FromLong( ( double ) self->material->
+					   id.us );
 	else if( strcmp( name, "__members__" ) == 0 ) {
-		attr =		/* 27 items */
+		attr =		/* 28 items */
 			Py_BuildValue
-			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
 			  "name", "mode", "rgbCol", "specCol", "mirCol", "R",
 			  "G", "B", "alpha", "amb", "emit", "ref", "spec",
 			  "specTransp", "add", "zOffset", "haloSize",
@@ -2007,7 +2009,7 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 			  "subSize", "hard", "nFlares", "nStars", "nLines",
 			  "nRings", "rayMirr", "rayMirrDepth", "fresnelDepth",
 			  "fresnelDepthFac", "IOR", "transDepth",
-			  "fresnelTrans", "fresnelTransFac" );
+			  "fresnelTrans", "fresnelTransFac", "users" );
 	}
 
 	if( !attr )

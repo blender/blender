@@ -1092,6 +1092,8 @@ static PyObject *MetaballGetAttr( BPy_Metaball * self, char *name )
 		return Metaball_getloc( self );
 	if( strcmp( name, "size" ) == 0 )
 		return Metaball_getsize( self );
+	if( strcmp( name, "users" ) == 0 )
+		return PyInt_FromLong( self->metaball->id.us );	
 	return Py_FindMethod( BPy_Metaball_methods, ( PyObject * ) self,
 			      name );
 }

@@ -921,6 +921,8 @@ static PyObject *World_GetAttr( BPy_World * self, char *name )
 		return World_getStar( self );
 	if( strcmp( name, "mist" ) == 0 )
 		return World_getMist( self );
+	if( strcmp( name, "users" ) == 0 )
+		return PyInt_FromLong( self->world->id.us );
 	return Py_FindMethod( BPy_World_methods, ( PyObject * ) self, name );
 }
 

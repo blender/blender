@@ -594,6 +594,67 @@ def Text(string, fontsize = 'normal'):
   @return: The width of I{string} drawn with the chosen I{fontsize}.
   """
 
+def Image(image, x, y, zoomx=1.0, zoomy=1.0, clipx=0, clipy=0, clipw=-1, cliph=-1):
+  """
+  Draw an image on the screen.
+
+  The image is drawn at the location specified by the coordinates (x,y).  A
+  pair of optional zoom factors (in horizontal and vertical directions) can
+  be applied to the image as it is drawn, and an additional clipping rectangle
+  can be applied to extract a particular sub-region of the image to draw.
+
+  Note that the clipping rectangle is given in image space coordinates.  In
+  image space, the origin is located at the bottom left, with x coordinates 
+  increasing to the right and y coordinates increasing upwards.  No matter 
+  where the clipping rectangle is placed in image space, the lower-left pixel 
+  drawn on the screen is always placed at the coordinates (x,y).  The
+  clipping rectangle is itself clipped to the dimensions of the image.  If
+  either the width or the height of the clipping rectangle are negative then
+  the corresponding dimension (width or height) is set to include as much of 
+  the image as possible.
+
+  Example::
+   import Blender
+   from Blender import BGL, Image, Draw
+
+   myimage = Image.Load('myimage.png')
+
+   def gui():
+        Draw.Image(myimage, 50, 50)
+   def event(evt, val):
+        if evt == Draw.ESCKEY:
+              Draw.Exit()
+
+   Draw.Register(gui, event, None)
+
+  @type image: Blender.Image
+  @param image: The image to draw.
+  @type x: int
+  @param x: The lower left x (horizontal) position of the origin of the image.
+  @type y: int
+  @param y: The lower left y (vertical) position of the origin of the image.
+  @type zoomx: float
+  @param zoomx: The x (horizontal) zoom factor to use when drawing the image.
+  @type zoomy: float
+  @param zoomy: The y (vertical) zoom factor to use when drawing the image.
+  @type clipx: int
+  @param clipx: The lower left x (horizontal) origin of the clipping rectangle
+                within the image.  A value of 0 indicates the left of the
+                image.
+  @type clipy: int
+  @param clipy: The lower left y (vertical) origin of the clipping rectangle
+                within the image.  A value of 0 indicates the bottom of the
+                image.
+  @type clipw: int
+  @param clipw: The width of the clipping rectangle within the image. If this
+                value is negative then the clipping rectangle includes as much
+                of the image as possible in the x (horizontal) direction.
+  @type cliph: int
+  @param cliph: The height of the clipping rectangle within the image. If this
+                value is negative then the clipping rectangle includes as much
+                of the image as possible in the y (vertical) direction.
+  """
+
 class Button:
   """
   The Button object

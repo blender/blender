@@ -1805,10 +1805,12 @@ static PyObject *Texture_getAttr( BPy_Texture * self, char *name )
 		attr = PyFloat_FromDouble( tex->vn_w4 );
 	else if( STREQ( name, "distAmnt" ) )
 		attr = PyFloat_FromDouble( tex->vn_w4 );
+	else if( STREQ( name, "users" ) )
+		attr = PyInt_FromLong( tex->id.us );	
 
 	else if( STREQ( name, "__members__" ) )
 		attr = Py_BuildValue
-			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
 			  "animFrames", "animLength", "animMontage",
 			  "animOffset", "animStart", "brightness", "contrast",
 			  "crop", "extend", "fieldsPerImage", "filterSize",
@@ -1816,7 +1818,7 @@ static PyObject *Texture_getAttr( BPy_Texture * self, char *name )
 			  "noiseSize", "noiseType", "repeat", "rgbCol",
 			  "stype", "turbulence", "type", "hFracDim",
 			  "lacunarity", "octs", "iScale", "exp", "weight1",
-			  "weight2", "weight3", "weight4", "distAmnt" );
+			  "weight2", "weight3", "weight4", "distAmnt", "users" );
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,

@@ -804,12 +804,15 @@ static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name )
 		attr = Py_BuildValue( "i", self->Lattice->pntsu *
 				      self->Lattice->pntsv *
 				      self->Lattice->pntsw );
+	} else if( strcmp( name, "users" ) == 0 ) {
+		attr = PyInt_FromLong( self->Lattice->id.us );
+	
 	} else if( strcmp( name, "__members__" ) == 0 )
 		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s]", "name", "width",
 				      "height", "depth", "widthType",
 				      "heightType", "depthType", "mode",
-				      "latSize" );
-
+				      "latSize", "users" );
+	
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject" ) );

@@ -1311,7 +1311,9 @@ static PyObject *Lamp_getAttr( BPy_Lamp * self, char *name )
 		attr = PyFloat_FromDouble( self->lamp->att1 );
 	else if( strcmp( name, "quad2" ) == 0 )
 		attr = PyFloat_FromDouble( self->lamp->att2 );
-
+	else if( strcmp( name, "users" ) == 0 )
+		attr = PyInt_FromLong( self->lamp->id.us );
+	
 	else if( strcmp( name, "Types" ) == 0 ) {
 		attr = Py_BuildValue( "{s:h,s:h,s:h,s:h,s:h,s:h}",
 				      "Lamp", EXPP_LAMP_TYPE_LAMP,
@@ -1336,16 +1338,16 @@ static PyObject *Lamp_getAttr( BPy_Lamp * self, char *name )
 			  EXPP_LAMP_MODE_NODIFFUSE, "NoSpecular",
 			  EXPP_LAMP_MODE_NOSPECULAR );
 	}
-
+	
 	else if( strcmp( name, "__members__" ) == 0 ) {
 		/* 23 entries */
 		attr = Py_BuildValue
-			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
 			  "name", "type", "mode", "samples", "bufferSize",
 			  "haloStep", "R", "G", "B", "energy", "dist",
 			  "spotSize", "spotBlend", "clipStart", "clipEnd",
 			  "bias", "softness", "haloInt", "quad1", "quad2",
-			  "Types", "Modes", "col" );
+			  "Types", "Modes", "col", "users" );
 	}
 
 	if( !attr )

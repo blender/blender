@@ -1031,17 +1031,23 @@ static PyObject *NMesh_getActiveFace( PyObject * self, PyObject * args )
 static PyObject *NMesh_hasVertexUV( PyObject * self, PyObject * args )
 {
 	BPy_NMesh *me = ( BPy_NMesh * ) self;
-	int flag;
+	int flag = -1;
 
-	if( args ) {
-		if( PyArg_ParseTuple( args, "i", &flag ) ) {
-			if( flag )
-				me->flags |= NMESH_HASVERTUV;
-			else
-				me->flags &= ~NMESH_HASVERTUV;
-		}
+	if( !PyArg_ParseTuple( args, "|i", &flag ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected int argument (or nothing)" );
+
+	switch ( flag ) {
+	case 0:
+		me->flags &= ~NMESH_HASVERTUV;
+		break;
+	case 1:
+		me->flags |= NMESH_HASVERTUV;
+		break;
+	default:
+		break;
 	}
-	PyErr_Clear(  );
+
 	if( me->flags & NMESH_HASVERTUV )
 		return EXPP_incr_ret( Py_True );
 	else
