@@ -1672,8 +1672,9 @@ void makeDispList(Object *ob)
 	float *data, *fp1, widfac, vec[3];
 	int len, a, b, draw=0;
 
-	if(ob==0) return;
+	if(ob==NULL) return;
 	if(ob->flag & OB_FROMDUPLI) return;
+
 	freedisplist(&(ob->disp));
 	
 	if(ob->type==OB_MESH) {
@@ -1682,7 +1683,8 @@ void makeDispList(Object *ob)
 		freedisplist(&(me->disp));
 
 		tex_space_mesh(ob->data);
-
+		
+		/* deform: input mesh, output ob dl_verts. is used by subsurf */
 		object_deform(ob);	
 		
 		if(ob->effect.first) object_wave(ob);
@@ -1694,6 +1696,7 @@ void makeDispList(Object *ob)
 				dlm= subsurf_make_dispListMesh_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
 			} else {
 				DispList *dlVerts= find_displist(&ob->disp, DL_VERTS);
+
 				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, 
 													me->subdiv, me->flag);
 			}
@@ -2236,6 +2239,7 @@ void test_all_displists(void)
 {
 	Base *base;
 	Object *ob;
+	int done;	/* prevent displist to be made too often */
 	unsigned int lay;
 	
 	/* background */	
@@ -2246,7 +2250,8 @@ void test_all_displists(void)
 		if(base->lay & lay) {
 			ob= base->object;
 			
-
+			done= 0;
+			
 			if(ob->type==OB_MBALL && (ob->ipo || ob->parent)) {
 				// find metaball object holding the displist
 				// WARNING: if more metaballs have IPO's the displist
@@ -2260,41 +2265,40 @@ void test_all_displists(void)
 				freedisplist(&ob->disp);
 			}
 			else if(ob->parent) {
-
+				
+				done= 1;
 				if (ob->parent->type == OB_LATTICE)
 					makeDispList(ob);
 				else if ((ob->parent->type == OB_IKA) && (ob->partype == PARSKEL))
 					makeDispList(ob);
-#ifdef __NLA
 				else if ((ob->parent->type==OB_ARMATURE) && (ob->partype == PARSKEL))
 					makeDispList(ob);
-				
-#endif
+				else done= 0;
 			}
 
 			/* warn, ob pointer changed in case of OB_MALL */
-
-			if ELEM(ob->type, OB_CURVE, OB_SURF) {
-				if(ob!=G.obedit) {
-					if( ((Curve *)(ob->data))->key ) makeDispList(ob);
+			if(done==0) {
+				if ELEM(ob->type, OB_CURVE, OB_SURF) {
+					if(ob!=G.obedit) {
+						if( ((Curve *)(ob->data))->key ) makeDispList(ob);
+					}
 				}
-			}
-			else if(ob->type==OB_FONT) {
-				Curve *cu= ob->data;
-				if(cu->textoncurve) {
-					if( ((Curve *)cu->textoncurve->data)->key ) {
-						text_to_curve(ob, 0);
-						makeDispList(ob);
+				else if(ob->type==OB_FONT) {
+					Curve *cu= ob->data;
+					if(cu->textoncurve) {
+						if( ((Curve *)cu->textoncurve->data)->key ) {
+							text_to_curve(ob, 0);
+							makeDispList(ob);
+						}
+					}
+				}
+				else if(ob->type==OB_MESH) {
+					if(ob->effect.first) object_wave(ob);
+					if(ob!=G.obedit) {
+						if(( ((Mesh *)(ob->data))->key )||(ob->effect.first)) makeDispList(ob);
 					}
 				}
 			}
-			else if(ob->type==OB_MESH) {
-				if(ob->effect.first) object_wave(ob);
-				if(ob!=G.obedit) {
-					if(( ((Mesh *)(ob->data))->key )||(ob->effect.first)) makeDispList(ob);
-				}
-			}
-
 		}
 		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
 		else base= base->next;

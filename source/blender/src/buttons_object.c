@@ -1354,7 +1354,9 @@ void effects_panel_effects(Object *ob)
 			paf= (PartEff *)eff;
 			
 			uiDefBut(block, BUT, B_RECALCAL, "RecalcAll", 741,187,67,27, 0, 0, 0, 0, 0, "Update the particle system");
-			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Static",	825,187,67,27, &paf->flag, 0, 0, 0, 0, "Make static particles");
+			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Static",	825,187,67,27, &paf->flag, 0, 0, 0, 0, "Make static particles (deform only works with SubSurf)");
+			if(paf->flag & PAF_STATIC)
+				uiDefButS(block, TOG|BIT|4, B_DIFF, "Animated",825,167,67,20, &paf->flag, 0, 0, 0, 0, "Static particles are recalculated each rendered frame");
 			
 			uiBlockBeginAlign(block);
 			uiDefButI(block, NUM, B_CALCEFFECT, "Tot:",			550,146,91,20, &paf->totpart, 1.0, 100000.0, 0, 0, "Set the total number of particles");

@@ -2362,7 +2362,7 @@ static void drawmeshwire(Object *ob)
 	Material *ma;
 	EditEdge *eed;
 	EditVlak *evl;
-	float fvec[3], cent[3], *f1, *f2, *f3, *f4, *extverts=0;
+	float fvec[3], cent[3], *f1, *f2, *f3, *f4, *extverts=NULL;
 	int a, start, end, test, ok, handles=0;
 
 	me= get_mesh(ob);
@@ -2503,52 +2503,50 @@ static void drawmeshwire(Object *ob)
 	}
 	else { /* Object mode draw */
 		
-		if(me==0) return;
+		if(me==NULL) return;
 		
 		if(me->bb==0) tex_space_mesh(me);
 		if(me->totface>4) if(boundbox_clip(ob->obmat, me->bb)==0) return;
 		
-		if(mesh_uses_displist(me)) drawDispListwire(&me->disp); /* Subsurf */
+		/* check for drawing vertices only */
+		ok= 0;
+		if(me->totface==0) ok= 1;
 		else {
+			ma= give_current_material(ob, 1);
+			if(ma && (ma->mode & MA_HALO)) ok= 1;
+		}
+		mvert= me->mvert;
+		mface= me->mface;
+		
+		dl= find_displist(&ob->disp, DL_VERTS);
+		if(dl) extverts= dl->verts;
+					
+		if(ok) {
+			start= 0; end= me->totvert;
+			set_buildvars(ob, &start, &end);
 			
-			mvert= me->mvert;
-			mface= me->mface;
-
-			ok= 0;
-			if(me->totface==0) ok= 1;
+			glPointSize(1.5);
+			glBegin(GL_POINTS);
+		
+			if(extverts) {
+				extverts+= 3*start;
+				for(a= start; a<end; a++, extverts+=3) { /* DispList found, Draw displist */
+					glVertex3fv(extverts);
+				}
+			}
 			else {
-				ma= give_current_material(ob, 1);
-				if(ma && (ma->mode & MA_HALO)) ok= 1;
-			}
-			
-			dl= find_displist(&ob->disp, DL_VERTS);
-			if(dl) extverts= dl->verts;
-			
-			if(ok) { /* No faces, just draw verts as points */
-				
-				start= 0; end= me->totvert;
-				set_buildvars(ob, &start, &end);
-				
-				glPointSize(1.5);
-				glBegin(GL_POINTS);
-				
-				if(extverts) {
-					extverts+= 3*start;
-					for(a= start; a<end; a++, extverts+=3) { /* DispList found, Draw displist */
-						glVertex3fv(extverts);
-					}
+				mvert+= start;
+				for(a= start; a<end; a++, mvert++) { /* else Draw mesh verts directly */
+					glVertex3fv(mvert->co);
 				}
-				else {
-					mvert+= start;
-					for(a= start; a<end; a++, mvert++) { /* else Draw mesh verts directly */
-						glVertex3fv(mvert->co);
-					}
-				}
-				
-				glEnd();
-				glPointSize(1.0);
 			}
-			else { /* Draw wire frame */
+			glEnd();
+			glPointSize(1.0);
+		}
+		else {
+	
+			if(mesh_uses_displist(me)) drawDispListwire(&me->disp); /* Subsurf */
+			else {
 				
 				start= 0; end= me->totface;
 				set_buildvars(ob, &start, &end);
@@ -2690,7 +2688,6 @@ static void drawmeshwire(Object *ob)
 					}
 				}
 			}
-			
 		}
 	}
 }
@@ -3677,6 +3674,7 @@ void draw_object(Base *base)
 			}
 			else drawDispList(ob, dt);
 		}
+		
 		if( (ob!=G.obedit) && ((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) ) {
 			paf = give_parteff(ob);
 			if( paf ) {

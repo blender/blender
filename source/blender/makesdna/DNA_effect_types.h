@@ -42,6 +42,7 @@
 #define PAF_BSPLINE		2
 #define PAF_STATIC		4
 #define PAF_FACE		8
+#define PAF_ANIMATED	16
 
 	/* eff->type */
 #define EFF_BUILD		0

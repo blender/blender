@@ -916,10 +916,10 @@ void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
 {
 	static float *jit=0;
 	static int jitlevel=1;
-	MVert *mvert;
-	MFace *mface;
+	MVert *mvert, *mvertbase=NULL;
+	MFace *mface, *mfacebase=NULL;
 	float u, v, *v1, *v2, *v3, *v4;
-	int curface, curjit;
+	int totface=0, totvert=0, curface, curjit;
 	short *n1, *n2, *n3, *n4;
 	
 	/* signal */
@@ -929,17 +929,36 @@ void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
 		return;
 	}
 	
-	if(me->totface==0 || nr<me->totvert) {
-		mvert= me->mvert + (nr % me->totvert);
+	/* get it from displist? */
+	if(me->disp.first) {
+		DispList *dl= me->disp.first;
+		if(dl->type==DL_MESH) {
+			DispListMesh *dlm= dl->mesh;
+			mvertbase= dlm->mvert;
+			mfacebase= dlm->mface;
+			totface= dlm->totface;
+			totvert= dlm->totvert;
+		}
+	}
+	
+	if(totvert==0) {
+		mvertbase= me->mvert;
+		mfacebase= me->mface;
+		totface= me->totface;
+		totvert= me->totvert;
+	}
+	
+	if(totface==0 || nr<totvert) {
+		mvert= mvertbase + (nr % totvert);
 		VECCOPY(co, mvert->co);
 		VECCOPY(no, mvert->no);
 	}
 	else {
 
-		nr-= me->totvert;
+		nr-= totvert;
 		
 		if(jit==0) {
-			jitlevel= nr/me->totface;
+			jitlevel= nr/totface;
 			if(jitlevel==0) jitlevel= 1;
 			if(jitlevel>100) jitlevel= 100;
 
@@ -948,35 +967,35 @@ void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
 			
 		}
 
-		curjit= nr/me->totface;
+		curjit= nr/totface;
 		curjit= curjit % jitlevel;
 
-		curface= nr % me->totface;
+		curface= nr % totface;
 		
-		mface= me->mface;
+		mface= mfacebase;
 		mface+= curface;
 
-		v1= (me->mvert+(mface->v1))->co;
-		v2= (me->mvert+(mface->v2))->co;
-		n1= (me->mvert+(mface->v1))->no;
-		n2= (me->mvert+(mface->v2))->no;
+		v1= (mvertbase+(mface->v1))->co;
+		v2= (mvertbase+(mface->v2))->co;
+		n1= (mvertbase+(mface->v1))->no;
+		n2= (mvertbase+(mface->v2))->no;
 		if(mface->v3==0) {
-			v3= (me->mvert+(mface->v2))->co;
-			v4= (me->mvert+(mface->v1))->co;
-			n3= (me->mvert+(mface->v2))->no;
-			n4= (me->mvert+(mface->v1))->no;
+			v3= (mvertbase+(mface->v2))->co;
+			v4= (mvertbase+(mface->v1))->co;
+			n3= (mvertbase+(mface->v2))->no;
+			n4= (mvertbase+(mface->v1))->no;
 		}
 		else if(mface->v4==0) {
-			v3= (me->mvert+(mface->v3))->co;
-			v4= (me->mvert+(mface->v1))->co;
-			n3= (me->mvert+(mface->v3))->no;
-			n4= (me->mvert+(mface->v1))->no;
+			v3= (mvertbase+(mface->v3))->co;
+			v4= (mvertbase+(mface->v1))->co;
+			n3= (mvertbase+(mface->v3))->no;
+			n4= (mvertbase+(mface->v1))->no;
 		}
 		else {
-			v3= (me->mvert+(mface->v3))->co;
-			v4= (me->mvert+(mface->v4))->co;
-			n3= (me->mvert+(mface->v3))->no;
-			n4= (me->mvert+(mface->v4))->no;
+			v3= (mvertbase+(mface->v3))->co;
+			v4= (mvertbase+(mface->v4))->co;
+			n3= (mvertbase+(mface->v3))->no;
+			n4= (mvertbase+(mface->v4))->no;
 		}
 
 		u= jit[2*curjit];
@@ -1019,7 +1038,7 @@ void build_particle_system(Object *ob)
 	}
 
 	paf= give_parteff(ob);
-	if(paf==0) return;
+	if(paf==NULL) return;
 
 	waitcursor(1);
 
@@ -1027,7 +1046,7 @@ void build_particle_system(Object *ob)
 
 	/* generate all particles */
 	if(paf->keys) MEM_freeN(paf->keys);
-	paf->keys= 0;
+	paf->keys= NULL;
 	new_particle(paf);
 
 	cfraont= G.scene->r.cfra;
@@ -1092,11 +1111,19 @@ void build_particle_system(Object *ob)
 	force[1]= paf->force[1]*0.05f;
 	force[2]= paf->force[2]*0.05f;
 	
-	deform= (ob->parent && ob->parent->type==OB_LATTICE);
-	if(deform) init_latt_deform(ob->parent, 0);
+	if( paf->flag & PAF_STATIC ) deform= 0;
+	else {
+		deform= (ob->parent && ob->parent->type==OB_LATTICE);
+		if(deform) init_latt_deform(ob->parent, 0);
+	}
 	
 	/* init */
 	give_mesh_mvert(me, totpart, co, no,paf->seed);
+
+	if(me->disp.first) {
+		DispList *dl= me->disp.first;
+		if(dl->type==DL_MESH) printf("from disp\n");
+	}
 
 	printf("\n");
 	printf("Calculating particles......... \n");
@@ -1207,11 +1234,12 @@ void build_particle_system(Object *ob)
 	give_mesh_mvert(0, 0, 0, 0,paf->seed);
 
 	/*Restore armature settings*/
-	if (armature_parent) {
-		do_all_actions();
-		rebuild_all_armature_displists();
+	if((paf->flag & PAF_STATIC)==0) {
+		if (armature_parent) {
+			do_all_actions();
+			rebuild_all_armature_displists();
+		}
 	}
-
 	/* put hierarchy back */
 	par= ob;
 	while(par) {

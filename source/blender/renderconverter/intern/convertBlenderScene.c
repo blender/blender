@@ -853,14 +853,14 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	int a, mat_nr=1;
 
 	pa= paf->keys;
-	if(pa==0) {
+	if(pa==NULL) {
 		build_particle_system(ob);
 		pa= paf->keys;
-		if(pa==0) return;
+		if(pa==NULL) return;
 	}
 
 	ma= give_render_material(ob, 1);
-	if(ma==0) ma= &defmaterial;
+	if(ma==NULL) ma= &defmaterial;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
@@ -955,7 +955,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	int a, mat_nr=1;
 
 	pa= paf->keys;
-	if(pa==0) {
+	if(pa==NULL || (paf->flag & PAF_ANIMATED)) {
 		build_particle_system(ob);
 		pa= paf->keys;
 		if(pa==0) return;
@@ -1253,15 +1253,15 @@ static void init_render_mesh(Object *ob)
 
 	me= ob->data;
 
+	/* object_deform changes imat */
+	do_puno= object_deform(ob);
+
 	paf = give_parteff(ob);
 	if(paf) {
 		if(paf->flag & PAF_STATIC) render_static_particle_system(ob, paf);
 		else render_particle_system(ob, paf);
 		return;
 	}
-
-	/* object_deform changes imat */
-	do_puno= object_deform(ob);
 
 	/* yafray: set transform to identity matrix */
 	if (R.r.renderer==R_YAFRAY)
