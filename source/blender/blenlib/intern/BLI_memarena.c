@@ -31,6 +31,8 @@
  * Efficient memory allocation for lots of similar small chunks.
  */
 
+#include <stdlib.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -55,7 +57,7 @@ MemArena *BLI_memarena_new(int bufsize) {
 	return ma;
 }
 void BLI_memarena_free(MemArena *ma) {
-	BLI_linklist_free(ma->bufs, (void(*)(void*)) MEM_freeN);
+	BLI_linklist_free(ma->bufs, (void(*)(void*)) free);
 	MEM_freeN(ma);
 }
 
@@ -69,9 +71,9 @@ void *BLI_memarena_alloc(MemArena *ma, int size) {
 		 * size up to multiple of 8 */	
 	size= PADUP(size, 8);
 	
-	if (size>=ma->cursize) {
+	if (size>ma->cursize) {
 		ma->cursize= (size>ma->bufsize)?size:ma->bufsize;
-		ma->curbuf= MEM_mallocN(ma->cursize, "ma->curbuf");
+		ma->curbuf= malloc(ma->cursize);
 		
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
 	}
