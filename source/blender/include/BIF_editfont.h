@@ -33,7 +33,7 @@
 #ifndef BIF_EDITFONT_H
 #define BIF_EDITFONT_H
 
-void do_textedit(unsigned short event, short val, char ascii);
+void do_textedit(unsigned short event, short val, unsigned char _ascii);
 void make_editText(void);
 void load_editText(void);
 void remake_editText(void);
