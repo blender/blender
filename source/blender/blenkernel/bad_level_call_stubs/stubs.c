@@ -90,6 +90,14 @@ ListBase editNurb;
 #include "render_types.h"
 struct RE_Render R;
 
+float Phong_Spec(float *n, float *l, float *v, int hard){return 0;}
+float Blinn_Spec(float *n, float *l, float *v, float a, float b){return 0;}
+float CookTorr_Spec(float *n, float *l, float *v, int hard){return 0;}
+float Toon_Spec(float *n, float *l, float *v, float a, float b){return 0;}
+float Toon_Diff(float *n, float *l, float *v, float a, float b){return 0;}
+float OrenNayar_Diff(float *n, float *l, float *v, float a, float b){return 0;}
+
+
 void waitcursor(int val){}
 void allqueue(unsigned short event, short val){}
 #define REDRAWVIEW3D	0x4010
@@ -180,6 +188,13 @@ int BPY_call_importloader(char *name)
 #define INT	96
 	/* struct EnvMap; */
 	/* struct Tex; */
+float Ta, Tb, Tg, Tin, Tr;
+
+void do_material_tex(ShadeInput *shi){}
+void externtex(struct MTex *mtex, float *vec){}
+void init_render_textures(void){}
+void end_render_textures(void){}
+
 void    RE_free_envmap(struct EnvMap *env){}      
 struct EnvMap *RE_copy_envmap(struct EnvMap *env){ return env;}
 void    RE_free_envmapdata(struct EnvMap *env){}
