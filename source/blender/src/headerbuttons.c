@@ -192,7 +192,7 @@ char *windowtype_pup(void)
 	static char string[1024];
 
 	strcpy(string, "Window type:%t"); //14
-	strcat(string, "|3D Viewport %x1"); //30
+	strcat(string, "|3D View %x1"); //30
 
 	strcat(string, "|%l"); // 33
 

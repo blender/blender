@@ -75,6 +75,7 @@
 #include "BLI_blenlib.h"
 
 #include "BSE_edit.h"
+#include "BSE_editaction.h"
 #include "BSE_editipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_view.h"
@@ -1979,10 +1980,19 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	case 0: /* transform properties */
 		blenderqread(NKEY, 1);
 		break;
-	case 1: /* insert keyframe */
+	case 1: /* copy current pose */
+		copy_posebuf();
+		break;
+	case 2: /* paste pose */
+		paste_posebuf(0);
+		break;
+	case 3: /* paste flipped pose */
+		paste_posebuf(1);
+		break;
+	case 4: /* insert keyframe */
 		common_insertkey();
 		break;
-	case 2: /* Move to Layer */
+	case 5: /* Move to Layer */
 		movetolayer();
 		break;
 	}
@@ -2003,11 +2013,17 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Current Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Flipped Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 		
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -2346,16 +2362,16 @@ static char *view3d_modeselect_pup(void)
 	/* if active object is an armature */
 	if (OBACT && OBACT->type==OB_ARMATURE) {
 		sprintf(string, formatstring,
-		"Object",						V3D_OBJECTMODE_SEL,
-		"Edit",						V3D_EDITMODE_SEL,
-		"Pose",						V3D_POSEMODE_SEL
+		"Object Mode",						V3D_OBJECTMODE_SEL,
+		"Edit Mode",						V3D_EDITMODE_SEL,
+		"Pose Mode",						V3D_POSEMODE_SEL
 		);
 	}
 	/* if active object is a mesh with armature */
 	else if ((OBACT && OBACT->type == OB_MESH) && ((((Mesh*)(OBACT->data))->dvert))) {
 		sprintf(string, formatstring,
-		"Object",						V3D_OBJECTMODE_SEL,
-		"Edit",						V3D_EDITMODE_SEL,
+		"Object Mode",						V3D_OBJECTMODE_SEL,
+		"Edit Mode",						V3D_EDITMODE_SEL,
 		"Face Select",			V3D_FACESELECTMODE_SEL,
 		"Vertex Paint",			V3D_VERTEXPAINTMODE_SEL,
 		"Texture Paint",		V3D_TEXTUREPAINTMODE_SEL,
@@ -2365,8 +2381,8 @@ static char *view3d_modeselect_pup(void)
 	/* if active object is a mesh */
 	else if (OBACT && OBACT->type == OB_MESH) {
 		sprintf(string, formatstring,
-		"Object",						V3D_OBJECTMODE_SEL,
-		"Edit",						V3D_EDITMODE_SEL,
+		"Object Mode",						V3D_OBJECTMODE_SEL,
+		"Edit Mode",						V3D_EDITMODE_SEL,
 		"Face Select",			V3D_FACESELECTMODE_SEL,
 		"Vertex Paint",			V3D_VERTEXPAINTMODE_SEL,
 		"Texture Paint",		V3D_TEXTUREPAINTMODE_SEL
@@ -2377,14 +2393,14 @@ static char *view3d_modeselect_pup(void)
 	|| (OBACT->type == OB_CURVE) || (OBACT->type == OB_SURF) || (OBACT->type == OB_FONT)
 	|| (OBACT->type == OB_MBALL) || (OBACT->type == OB_LATTICE))) {
 		sprintf(string, formatstring,
-		"Object",						V3D_OBJECTMODE_SEL,
-		"Edit",						V3D_EDITMODE_SEL
+		"Object Mode",						V3D_OBJECTMODE_SEL,
+		"Edit Mode",						V3D_EDITMODE_SEL
 		);
 	}
 	/* if active object is not editable */
 	else {
 		sprintf(string, formatstring,
-		"Object",						V3D_OBJECTMODE_SEL
+		"Object Mode",						V3D_OBJECTMODE_SEL
 		);
 	}
 	
@@ -2864,7 +2880,7 @@ void view3d_buttons(void)
 	xco+= 10;
 
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() , 
-																xco,0,120,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode:");
+																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode:");
 	
 	xco+= 128;
 	
@@ -2909,10 +2925,6 @@ void view3d_buttons(void)
 	uiDefIconButS(block, ROW, 1, ICON_CURSOR, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 1.0, 0, 0, "Enables Rotation or Scaling around cursor (DOTKEY)");
 	uiDefIconButS(block, ROW, 1, ICON_ROTATECOLLECTION, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 2.0, 0, 0, "Enables Rotation or Scaling around individual object centers");
 
-	if(G.vd->bgpic) {
-		xco+= XIC/2;
-		uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_IMAGE_COL, xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Displays a Background picture");
-	}
 	if(G.obedit && (OBACT->type == OB_MESH || OBACT->type == OB_CURVE || OBACT->type == OB_SURF || OBACT->type == OB_LATTICE)) {
 		extern int prop_mode;
 		xco+= XIC/2;
