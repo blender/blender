@@ -212,13 +212,13 @@ static void do_view3d_view_cameracontrolsmenu(void *arg, int event)
 		persptoetsen(PAD2);
 		G.qual &= ~LR_CTRLKEY;
 		break;
-	case 9: /* Zoom In */
+	case 8: /* Zoom In */
 		persptoetsen(PADPLUSKEY);
 		break;
-	case 10: /* Zoom Out */
+	case 9: /* Zoom Out */
 		persptoetsen(PADMINUS);
 		break;
-	case 11: /* Reset Zoom */
+	case 10: /* Reset Zoom */
 		persptoetsen(PADENTER);
 		break;
 	}
