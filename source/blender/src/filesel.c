@@ -490,6 +490,7 @@ void checkdir(char *dir)
 #endif
 }
 
+/* not called when browsing .blend itself */
 void test_flags_file(SpaceFile *sfile)
 {
 	struct direntry *file;
@@ -500,9 +501,9 @@ void test_flags_file(SpaceFile *sfile)
 	for(num=0; num<sfile->totfile; num++, file++) {
 		file->flags= 0;
 		file->type= file->s.st_mode;	/* restore the mess below */ 
-		
+
 			/* Don't check extensions for directories */ 
-		if (file->type&S_IFDIR)
+		if (file->type & S_IFDIR)
 			continue;
 			
 		if(sfile->type==FILE_BLENDER || sfile->type==FILE_LOADLIB) {
@@ -513,6 +514,7 @@ void test_flags_file(SpaceFile *sfile)
 					char name[FILE_MAXDIR+FILE_MAXFILE];
 					strcpy(name, sfile->dir);
 					strcat(name, file->relname);
+					
 					/* prevent current file being used as acceptable dir */
 					if (BLI_streq(G.main->name, name)==0) {
 						file->type &= ~S_IFMT;
@@ -546,20 +548,6 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".pict")
 					||	BLI_testextensie(file->relname, ".pntg") //macpaint
 					||	BLI_testextensie(file->relname, ".qtif")
-#ifdef WITH_FREEIMAGE
-				||	BLI_testextensie(file->relname, ".jng")
-				||	BLI_testextensie(file->relname, ".mng")
-				||	BLI_testextensie(file->relname, ".pbm")
-				||	BLI_testextensie(file->relname, ".pgm")
-				||	BLI_testextensie(file->relname, ".ppm")
-				||	BLI_testextensie(file->relname, ".wbmp")
-				||	BLI_testextensie(file->relname, ".cut")
-				||	BLI_testextensie(file->relname, ".ico")
-				||	BLI_testextensie(file->relname, ".koala")
-				||	BLI_testextensie(file->relname, ".pcd")
-				||	BLI_testextensie(file->relname, ".pcx")
-				||	BLI_testextensie(file->relname, ".ras")
-#endif
 					||	BLI_testextensie(file->relname, ".sgi")) {
 					file->flags |= IMAGEFILE;			
 				}
@@ -578,24 +566,6 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".png")
 					||	BLI_testextensie(file->relname, ".iff")
 					||	BLI_testextensie(file->relname, ".lbm")
-#ifdef WITH_FREEIMAGE
-				||	BLI_testextensie(file->relname, ".jng")
-				||	BLI_testextensie(file->relname, ".mng")
-				||	BLI_testextensie(file->relname, ".pbm")
-				||	BLI_testextensie(file->relname, ".pgm")
-				||	BLI_testextensie(file->relname, ".ppm")
-				||	BLI_testextensie(file->relname, ".wbmp")
-				||	BLI_testextensie(file->relname, ".cut")
-				||	BLI_testextensie(file->relname, ".ico")
-				||	BLI_testextensie(file->relname, ".koala")
-				||	BLI_testextensie(file->relname, ".pcd")
-				||	BLI_testextensie(file->relname, ".pcx")
-				||	BLI_testextensie(file->relname, ".ras")
-				||	BLI_testextensie(file->relname, ".gif")
-				||	BLI_testextensie(file->relname, ".psd")
-				||	BLI_testextensie(file->relname, ".tif")
-				||	BLI_testextensie(file->relname, ".tiff")
-#endif
 					||	BLI_testextensie(file->relname, ".sgi")) {
 					file->flags |= IMAGEFILE;			
 				}
@@ -906,7 +876,7 @@ static void draw_filescroll(SpaceFile *sfile)
 	
 }
 
-static void regelrect(int id, int x, int y)
+static void linerect(int id, int x, int y)
 {
 	if(id & ACTIVE) {
 		if(id & HILITE) BIF_ThemeColorShade(TH_HILITE, 20);
@@ -919,7 +889,7 @@ static void regelrect(int id, int x, int y)
 
 }
 
-static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
+static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 {
 	int boxcol=0;
 	char *s;
@@ -927,7 +897,7 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 	boxcol= files->flags & (HILITE + ACTIVE);
 
 	if(boxcol) {
-		regelrect(boxcol, x, y);
+		linerect(boxcol, x, y);
 	}
 
 	if(files->flags & BLENDERFILE) {
@@ -1009,9 +979,9 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 }
 
 
-static int calc_filesel_regel(SpaceFile *sfile, int nr, int *valx, int *valy)
+static int calc_filesel_line(SpaceFile *sfile, int nr, int *valx, int *valy)
 {
-	/* get screen coordinate of a 'regel', dutch for line */
+	/* get screen coordinate of a line */
 	int val, coll;
 
 	nr-= sfile->ofs;
@@ -1074,12 +1044,12 @@ static void set_active_file(SpaceFile *sfile, int act)
 
 		glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx-12, curarea->winy);
 
-		if( calc_filesel_regel(sfile, old, &x, &y) ) {
-			regelrect(0, x, y);
-			printregel(sfile, sfile->filelist+old, x, y);
+		if( calc_filesel_line(sfile, old, &x, &y) ) {
+			linerect(0, x, y);
+			print_line(sfile, sfile->filelist+old, x, y);
 		}
-		if( calc_filesel_regel(sfile, newi, &x, &y) ) {
-			printregel(sfile, sfile->filelist+newi, x, y);
+		if( calc_filesel_line(sfile, newi, &x, &y) ) {
+			print_line(sfile, sfile->filelist+newi, x, y);
 		}
 		
 		glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx, curarea->winy);
@@ -1128,9 +1098,9 @@ static void draw_filetext(SpaceFile *sfile)
 	files= sfile->filelist+sfile->ofs;
 	for(a= sfile->ofs; a<sfile->totfile; a++, files++) {
 	
-		if( calc_filesel_regel(sfile, a, &x, &y)==0 ) break;
+		if( calc_filesel_line(sfile, a, &x, &y)==0 ) break;
 		
-		printregel(sfile, files, x, y);
+		print_line(sfile, files, x, y);
 	}
 
 	/* clear drawing errors, with text at the right hand side: */
@@ -1156,7 +1126,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	sfile= curarea->spacedata.first;	
-	if(sfile->filelist==0) {
+	if(sfile->filelist==NULL) {
 		read_dir(sfile);
 		
 		calc_file_rcts(sfile);
@@ -1329,15 +1299,13 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	else if(type==FILE_LOADLIB) {
 		strcpy(sfile->dir, name);
 		if( is_a_library(sfile, temp, group) ) {
-			/* to force a reload of the library-filelist */
-			if(sfile->libfiledata==0) {
-				freefilelist(sfile);
-			}
+			/* force a reload of the library-filelist */
+			freefilelist(sfile);
 		}
 		else {
 			split_sfile(sfile, name);
 			if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
-			sfile->libfiledata= 0;
+			sfile->libfiledata= NULL;
 		}
 	}
 	else {	/* FILE_BLENDER */
@@ -1546,7 +1514,7 @@ static void filesel_execute(SpaceFile *sfile)
 			sfile->returnfunc((char*) (long)sfile->retval);
 		}
 		else {
-			if(strncmp(sfile->title, "SAVE", 4)==0) free_filesel_spec(sfile->dir);
+			if(strncmp(sfile->title, "Save", 4)==0) free_filesel_spec(sfile->dir);
 			
 			strcpy(name, sfile->dir);
 			strcat(name, sfile->file);
