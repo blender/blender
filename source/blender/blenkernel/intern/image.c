@@ -1,6 +1,4 @@
-/*  image.c        MIX MODEL
- * 
- *  maart 95
+/*  image.c        
  * 
  * $Id$
  *
@@ -99,8 +97,8 @@ int imaprepeat, imapextend;
 
 /*
  * 
- *  Talpha==TRUE betekent: lees alpha uit plaatje. Dit betekent niet dat Ta
- *  niet gebruikt moet worden,  hier kan info over rand van image in staan!
+ *  Talpha==TRUE means: read alpha from image. This does not mean that Ta
+ *  should not be used, here info can be stored about outside edge of an image!
  * 
  */
 
@@ -152,7 +150,7 @@ Image *add_image(char *name)
 	if(file== -1) return 0;
 	close(file);
 	
-	/* eerst zoeken naar eenzelfde ima */
+	/* first search an identical image */
 	ima= G.main->image.first;
 	while(ima) {
 		strcpy(strtest, ima->name);
@@ -197,7 +195,7 @@ void free_unused_animimages()
 }
 
 
-/* *********** LEZEN EN SCHRIJVEN ************** */
+/* *********** READ AND WRITE ************** */
 
 void makepicstring(char *string, int frame)
 {
@@ -213,7 +211,7 @@ void makepicstring(char *string, int frame)
 
 			len= strlen(string);
 			
-	/* kan ook: sprintf(num, "%04d", frame); */
+	/* can also: sprintf(num, "%04d", frame); */
 
 	i=4-sprintf(num,"%d",frame);
 	for(;i>0;i--){
@@ -246,7 +244,7 @@ void makepicstring(char *string, int frame)
 		
 }
 
-/* ******** IMAGWRAPPING INIT ************* */
+/* ******** IMAGE WRAPPING INIT ************* */
 
 void converttopremul(struct ImBuf *ibuf)
 {
@@ -254,7 +252,7 @@ void converttopremul(struct ImBuf *ibuf)
 	char *cp;
 	
 	if(ibuf==0) return;
-	if(ibuf->depth==24) {	/* alpha op 255 zetten */
+	if(ibuf->depth==24) {	/* put alpha at 255 */
 
 		cp= (char *)(ibuf->rect);
 		for(y=0; y<ibuf->y; y++) {
@@ -328,7 +326,7 @@ int calcimanr(int cfra, Tex *tex)
 {
 	int imanr, len, a, fra, dur;
 
-	/* hier (+fie_ima/2-1) zorgt ervoor dat correct wordt gedeeld */
+	/* here (+fie_ima/2-1) makes sure that division happens correctly */
 	
 	if(tex->frames==0) return 1;
 	
@@ -347,18 +345,18 @@ int calcimanr(int cfra, Tex *tex)
 	if(cfra<1) cfra= 1;
 	else if(cfra>len) cfra= len;
 	
-	/* omzetten current frame naar current field */
+	/* convert current frame to current field */
 	cfra= 2*(cfra);
 	if(R.flag & R_SEC_FIELD) cfra++;
 	
 
-	/* transformeren naar images space */
+	/* transform to images space */
 	imanr= (cfra+tex->fie_ima-2)/tex->fie_ima;
 	
 	if(imanr>tex->frames) imanr= tex->frames;
 	imanr+= tex->offset;
 	
-	/* zijn er plaatjes die langer duren? */
+	/* are there images that last longer? */
 	for(a=0; a<4; a++) {
 		if(tex->fradur[a][0]) {
 			
@@ -409,7 +407,7 @@ void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 	ibuf->flags |= IB_fields;
 	
 	if (ibuf->rect) {
-		/* kopieen aanmaken */
+		/* make copies */
 		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect, (unsigned char)0);
 		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect, (unsigned char)0);
 		
@@ -437,7 +435,7 @@ void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 	ibuf->flags |= IB_fields;
 	
 	if (ibuf->rect) {
-		/* kopieen aanmaken */
+		/* make copies */
 		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect, 0);
 		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect, 0);
 		
@@ -512,7 +510,7 @@ void ima_ibuf_is_nul(Tex *tex)
 			if(fra<0) fra= 0;
 			ima->ibuf = IMB_anim_absolute(ima->anim, fra);
 			
-			/* patch ivm textbutton met naam ima (B_NAMEIMA) */
+			/* patch for textbutton with name ima (B_NAMEIMA) */
 			if(ima->ibuf) {
 				strcpy(ima->ibuf->name, ima->name);
 				if (tex->imaflag & TEX_FIELDS) de_interlacefunc(ima->ibuf);
@@ -536,7 +534,7 @@ void ima_ibuf_is_nul(Tex *tex)
 	
 	if(ima->ibuf) {
 		
-		/* stringcodes ook in ibuf. ibuf->name wordt als 'undo' gebruikt (buttons.c) */
+		/* stringcodes also in ibuf. ibuf->name is used as 'undo' (buttons.c) */
 		strcpy(ima->ibuf->name, ima->name);
 		
 		if(ima->ibuf->cmap) {
@@ -544,7 +542,7 @@ void ima_ibuf_is_nul(Tex *tex)
 			if(tex->imaflag & TEX_ANIM5) {
 			
 				if(tex->imaflag & TEX_MORKPATCH) {
-						/**** PATCH OM KLEUR 2 GOED TE KUNNEN ZETTEN MORKRAMIA */
+						/**** PATCH TO SET COLOR 2 RIGHT (neogeo..) */
 					if(ima->ibuf->maxcol > 4) {
 						cp= (char *)(ima->ibuf->cmap+2);
 						cp[0]= 0x80;
@@ -672,7 +670,7 @@ int imagewrap(Tex *tex, float *texvec)
 		Tb = ((float)rect[2])/255.0f;
 		
 		if(tex->nor) {
-			/* bump: drie samples nemen */
+			/* bump: take three samples */
 			val1= Tr+Tg+Tb;
 
 			if(x<ibuf->x-1) {
@@ -688,7 +686,7 @@ int imagewrap(Tex *tex, float *texvec)
 			}
 			else val3= val1;
 
-			/* niet x en y verwisselen! */
+			/* do not mix up x and y here! */
 			tex->nor[0]= (val1-val2);
 			tex->nor[1]= (val1-val3);
 		}
@@ -889,13 +887,13 @@ float clipy_rctf(rctf *rf, float y1, float y2)
 }
 
 void boxsampleclip(struct ImBuf *ibuf, rctf *rf, float *rcol,
-				   float *gcol, float *bcol, float *acol)	/* return kleur 0.0-1.0 */
+				   float *gcol, float *bcol, float *acol)	/* return color 0.0-1.0 */
 /*  struct ImBuf *ibuf; */
 /*  rctf *rf; */
 /*  float *rcol, *gcol, *bcol, *acol; */
 {
-	/* sample box, is reeds geclipt en minx enz zijn op ibuf size gezet.
-     * Vergroot uit met antialiased edges van de pixels */
+	/* sample box, is clipped already, and minx etc. have been set at ibuf size.
+       Enlarge with antialiased edges of the pixels */
 
 	float muly,mulx,div;
 	int ofs;
@@ -919,7 +917,7 @@ void boxsampleclip(struct ImBuf *ibuf, rctf *rf, float *rcol,
 		*rcol= ((float)rect[0])/255.0f;
 		*gcol= ((float)rect[1])/255.0f;
 		*bcol= ((float)rect[2])/255.0f;
-			/* alpha is globaal, reeds gezet in functie imagewraposa() */
+			/* alpha is global, has been set in function imagewraposa() */
 		if(Talpha) {
 			*acol= ((float)rect[3])/255.0f;
 		}
@@ -986,15 +984,15 @@ void boxsampleclip(struct ImBuf *ibuf, rctf *rf, float *rcol,
 
 void boxsample(struct ImBuf *ibuf,
 			   float minx, float miny, float maxx, float maxy,
-			   float *rcol, float *gcol, float *bcol, float *acol)	/* return kleur 0.0-1.0 */
+			   float *rcol, float *gcol, float *bcol, float *acol)	/* return color 0.0-1.0 */
 /*  struct ImBuf *ibuf; */
 /*  float minx, miny, maxx, maxy; */
 /*  float *rcol, *gcol, *bcol, *acol; */
 {
-	/* Sample box, doet clip. minx enz lopen van 0.0 - 1.0 .
-     * Vergroot uit met antialiased edges van de pixels.
-     * Als global imaprepeat is gezet, worden
-     *  de weggeclipte stukken ook gesampled.
+	/* Sample box, performs clip. minx etc are in range 0.0 - 1.0 .
+     * Enlarge with antialiased edges of pixels.
+     * If global variable 'imaprepeat' has been set, the
+     *  clipped-away parts are sampled as well.
      */
 	rctf *rf, stack[8];
 	float opp, tot, r, g, b, a, alphaclip= 1.0;
@@ -1056,7 +1054,7 @@ void boxsample(struct ImBuf *ibuf,
 	if(Talpha==0) *acol= 1.0;
 	
 	if(alphaclip!=1.0) {
-		/* this is for laer investigation, premul or not? */
+		/* this is for laetr investigation, premul or not? */
 		/* *rcol*= alphaclip; */
 		/* *gcol*= alphaclip; */
 		/* *bcol*= alphaclip; */
@@ -1067,14 +1065,14 @@ void boxsample(struct ImBuf *ibuf,
 void filtersample(struct ImBuf *ibuf,
 				  float fx, float fy,
 				  float *rcol, float *gcol, float *bcol, float *acol)
-	/* return kleur 0.0-1.0 */
+	/* return color 0.0-1.0 */
 /*  struct ImBuf *ibuf; */										/* fx en fy tussen 0.0 en 1.0 */
 /*  float fx, fy; */
 /*  float *rcol, *gcol, *bcol, *acol; */
 {
-	/* met weighted filter 3x3
-     * de linker of rechter kolom is altijd 0
-     * en de bovenste of onderste rij is altijd 0
+	/* with weighted filter 3x3
+     * left or right collumn is always 0
+     * upper or lower row is awlays 0
      */
 
 	int fac, fac1, fac2, fracx, fracy, filt[4];
@@ -1108,7 +1106,7 @@ void filtersample(struct ImBuf *ibuf,
 		}
 
 		if(fracy<128) {
-			/* geval linksonder */
+			/* case left-under */
 			fac1= 128+fracy;
 			fac2= 128-fracy;
 
@@ -1123,7 +1121,7 @@ void filtersample(struct ImBuf *ibuf,
 			}
 		}
 		else {
-			/* geval linksboven */
+			/* case left-upper */
 			fac2= 384-fracy;
 			fac1= fracy-128;
 
@@ -1147,7 +1145,7 @@ void filtersample(struct ImBuf *ibuf,
 	}
 	else {
 		if(fracy<128) {
-			/* geval rechtsonder */
+			/* case right-under */
 			fac1= 128+fracy;
 			fac2= 128-fracy;
 
@@ -1162,7 +1160,7 @@ void filtersample(struct ImBuf *ibuf,
 			}
 		}
 		else {
-			/* geval rechtsboven */
+			/* case right-upper */
 			fac2= 384-fracy;
 			fac1= fracy-128;
 
@@ -1198,7 +1196,7 @@ void filtersample(struct ImBuf *ibuf,
 		r+= filt[fac]*rowcol[0];
 		g+= filt[fac]*rowcol[1];
 		b+= filt[fac]*rowcol[2];
-		if(Talpha) a+= filt[fac]*rowcol[3];		/* alpha is globaal */
+		if(Talpha) a+= filt[fac]*rowcol[3];		/* alpha is global */
 	}
 	*rcol= ((float)r)/16777216.0f;
 	*gcol= ((float)g)/16777216.0f;
@@ -1267,25 +1265,25 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 		
 		if(ibuf->flags & IB_fields) {
 			if(R.r.mode & R_FIELDS) {			/* field render */
-				if(R.flag & R_SEC_FIELD) {		/* correctie voor tweede field */
+				if(R.flag & R_SEC_FIELD) {		/* correction for 2nd field */
 					/* fac1= 0.5/( (float)ibuf->y ); */
 					/* fy-= fac1; */
 				}
-				else {				/* eerste field */
+				else {				/* first field */
 					fac1= 0.5f/( (float)ibuf->y );
 					fy+= fac1;
 				}
 			}
 		}
 		
-		/* pixel coordinaten */
+		/* pixel coordinates */
 
 		minx= MIN3(dxt[0],dyt[0],dxt[0]+dyt[0] );
 		maxx= MAX3(dxt[0],dyt[0],dxt[0]+dyt[0] );
 		miny= MIN3(dxt[1],dyt[1],dxt[1]+dyt[1] );
 		maxy= MAX3(dxt[1],dyt[1],dxt[1]+dyt[1] );
 
-		/* tex_sharper afgeschaft */
+		/* tex_sharper has been removed */
 
 		minx= tex->filtersize*(maxx-minx)/2.0f;
 		miny= tex->filtersize*(maxy-miny)/2.0f;
@@ -1293,14 +1291,14 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 		if(tex->imaflag & TEX_IMAROT) SWAP(float, minx, miny);
 		
 		if(minx>0.25) minx= 0.25;
-		else if(minx<0.00001f) minx= 0.00001f;	/* zijvlakken van eenheidskubus */
+		else if(minx<0.00001f) minx= 0.00001f;	/* side faces of unit-cube */
 		if(miny>0.25) miny= 0.25;
 		else if(miny<0.00001f) miny= 0.00001f;
 
 		
-		/* repeat en clip */
+		/* repeat and clip */
 		
-		/* let op: imaprepeat is globale waarde (zie boxsample) */
+		/* watch it: imaprepeat is global value (see boxsample) */
 		imaprepeat= (tex->extend==TEX_REPEAT);
 		imapextend= (tex->extend==TEX_EXTEND);
 
@@ -1337,7 +1335,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 			}
 		}
 
-		/* keuze:  */
+		/* choice:  */
 		if(tex->imaflag & TEX_MIPMAP) {
 			
 			dx= minx;
@@ -1353,18 +1351,18 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				if(maxd < pixsize) break;
 				previbuf= ibuf;
 				ibuf= ima->mipmap[curmap];
-				pixsize= 1.0f / (float)MIN2(ibuf->x, ibuf->y); /* hier stond 1.0 */		
+				pixsize= 1.0f / (float)MIN2(ibuf->x, ibuf->y); /* this used to be 1.0 */		
 				curmap++;
 			}
 			
 			if(previbuf!=ibuf || (tex->imaflag & TEX_INTERPOL)) {
-				/* minmaal 1 pixel sampelen */
+				/* sample at least 1 pixel */
 				if (minx < 0.5f / ima->ibuf->x) minx = 0.5f / ima->ibuf->x;
 				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;
 			}
 			
 			if(tex->nor) {
-				/* beetje extra filter */
+				/* a bit extra filter */
 				minx*= 1.35f;
 				miny*= 1.35f;
 				
@@ -1375,11 +1373,11 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				boxsample(ibuf, fx-2.0f*minx, fy-miny, fx+minx, fy+2.0f*miny, &fac1, &fac2, &fac3, &fac4);
 				val3= fac1+fac2+fac3;
 	
-				if(previbuf!=ibuf) {  /* interpoleren */
+				if(previbuf!=ibuf) {  /* interpolate */
 					
 					boxsample(previbuf, fx-2.0f*minx, fy-2.0f*miny, fx+minx, fy+miny, &fac1, &fac2, &fac3, &fac4);
 					
-					/* rgb berekenen */
+					/* calc rgb */
 					dx= 2.0f*(pixsize-maxd)/pixsize;
 					if(dx>=1.0f) {
 						Ta= fac4; Tb= fac3;
@@ -1400,7 +1398,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 					val3= dy*val3+ dx*(fac1+fac2+fac3);
 				}
 
-				/* niet x en y verwisselen! */
+				/* don't switch x or y! */
 				tex->nor[0]= (val1-val2);
 				tex->nor[1]= (val1-val3);
 
@@ -1413,7 +1411,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 	
 				boxsample(ibuf, minx, miny, maxx, maxy, &Tr, &Tg, &Tb, &Ta);
 	
-				if(previbuf!=ibuf) {  /* interpoleren */
+				if(previbuf!=ibuf) {  /* interpolate */
 					boxsample(previbuf, minx, miny, maxx, maxy, &fac1, &fac2, &fac3, &fac4);
 					
 					fx= 2.0f*(pixsize-maxd)/pixsize;
@@ -1433,14 +1431,14 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 		}
 		else {
 			if((tex->imaflag & TEX_INTERPOL)) {
-				/* minmaal 1 pixel sampelen */
+				/* sample 1 pixel minimum */
 				if (minx < 0.5f / ima->ibuf->x) minx = 0.5f / ima->ibuf->x;
 				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;
 			}
 
 			if(tex->nor) {
 				
-				/* beetje extra filter */
+				/* a bit extra filter */
 				minx*= 1.35f;
 				miny*= 1.35f;
 				
@@ -1453,7 +1451,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				boxsample(ibuf, fx-2.0f*minx, fy-miny, fx+miny, fy+2.0f*miny, &fac1, &fac2, &fac3, &fac4);
 				val3= fac1+fac2+fac3;
 
-				/* niet x en y verwisselen! */
+				/* don't switch x or y! */
 				tex->nor[0]= (val1-val2);
 				tex->nor[1]= (val1-val3);
 				

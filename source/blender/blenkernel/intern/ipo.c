@@ -1,6 +1,4 @@
-/* ipo.c  		MIXED MODEL
- * 
- * jan 95
+/* ipo.c 
  * 
  * $Id$
  *
@@ -77,9 +75,10 @@
 
 #define SMALL -1.0e-10
 
-/* Dit array is ervoor zodat defines zoals OB_LOC_X niet persee 0 hoeft te zijn.
-   Ook voor toekomstige backward compatibility.
-   Zo kan met een for-next lus alles worden afgelopen */
+/* This array concept was meant to make sure that defines such as OB_LOC_X
+   don't have to be enumerated, also for backward compatibility, future changes,
+   and to enable it all can be accessed with a for-next loop.
+*/
 
 int co_ar[CO_TOTIPO]= {
 	CO_ENFORCE
@@ -158,7 +157,7 @@ int snd_ar[SND_TOTIPO]= {
 
 
 
-float frame_to_float(int cfra)		/* zie ook bsystem_time in object.c */
+float frame_to_float(int cfra)		/* see also bsystem_time in object.c */
 {
 	extern float bluroffs;	/* object.c */
 	float ctime;
@@ -173,7 +172,7 @@ float frame_to_float(int cfra)		/* zie ook bsystem_time in object.c */
 	return ctime;
 }
 
-/* niet ipo zelf vrijgeven */
+/* do not free ipo itself */
 void free_ipo(Ipo *ipo)
 {
 	IpoCurve *icu;
@@ -222,9 +221,9 @@ void make_local_obipo(Ipo *ipo)
 	Ipo *ipon;
 	int local=0, lib=0;
 	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
+	/* - only lib users: do nothing
+	 * - only local users: set flag
+	 * - mixed: make copy
 	 */
 
 	ob= G.main->object.first;
@@ -265,12 +264,12 @@ void make_local_matipo(Ipo *ipo)
 	Material *ma;
 	Ipo *ipon;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
 
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	*/
+	
 	ma= G.main->mat.first;
 	while(ma) {
 		if(ma->ipo==ipo) {
@@ -309,12 +308,12 @@ void make_local_keyipo(Ipo *ipo)
 	Key *key;
 	Ipo *ipon;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
 
+	/* - only lib users: do nothing
+	 * - only local users: set flag
+	 * - mixed: make copy
+	 */
+	
 	key= G.main->key.first;
 	while(key) {
 		if(key->ipo==ipo) {
@@ -384,7 +383,7 @@ void calchandles_ipocurve(IpoCurve *icu)
 		if(bezt->vec[0][0]>bezt->vec[1][0]) bezt->vec[0][0]= bezt->vec[1][0];
 		if(bezt->vec[2][0]<bezt->vec[1][0]) bezt->vec[2][0]= bezt->vec[1][0];
 
-		calchandleNurb(bezt, prev, next, 1);	/* 1==speciale autohandle */
+		calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
 
 		prev= bezt;
 		if(a==1) {
@@ -392,7 +391,7 @@ void calchandles_ipocurve(IpoCurve *icu)
 		}
 		else next++;
 			
-		/* voor automatische ease in en out */
+		/* for automatic ease in and out */
 		if(bezt->h1==HD_AUTO && bezt->h2==HD_AUTO) {
 			if(a==0 || a==icu->totvert-1) {
 				if(icu->extrap==IPO_HORIZ) {
@@ -407,14 +406,14 @@ void calchandles_ipocurve(IpoCurve *icu)
 
 void testhandles_ipocurve(IpoCurve *icu)
 {
-	/* Te gebruiken als er iets aan de handles is veranderd.
-	 * Loopt alle BezTriples af met de volgende regels:
-     * FASE 1: types veranderen?
-     *  Autocalchandles: worden ligned als NOT(000 || 111)
-     *  Vectorhandles worden 'niets' als (selected en andere niet) 
-     * FASE 2: handles herberekenen
-     */
-	BezTriple *bezt;
+    /* use when something has changed with handles.
+    it treats all BezTriples with the following rules:
+    PHASE 1: do types have to be altered?
+     Auto handles: become aligned when selection status is NOT(000 || 111)
+     Vector handles: become 'nothing' when (one half selected AND other not)
+    PHASE 2: recalculate handles
+    */
+    BezTriple *bezt;
 	int flag, a;
 
 	bezt= icu->bezt;
@@ -508,8 +507,9 @@ int test_time_ipocurve(IpoCurve *icu)
 
 void correct_bezpart(float *v1, float *v2, float *v3, float *v4)
 {
-	/* de totale lengte van de handles mag niet langer zijn
-	 * dan de horizontale afstand tussen de punten (v1-v4)
+	/* the total length of the handles is not allowed to be more
+	 * than the horizontal distance between (v1-v4)
+         * this to prevent curve loops
 	 */
 	float h1[2], h2[2], len1, len2, len, fac;
 	
@@ -680,7 +680,7 @@ float eval_icu(IpoCurve *icu, float ipotime)
 			}
 		}
 		
-		/* uiteinden? */
+		/* endpoints? */
 	
 		if(prevbezt->vec[1][0]>=ipotime) {
 			if( (icu->extrap & IPO_DIR) && icu->ipo!=IPO_CONST) {
@@ -1531,13 +1531,13 @@ void do_ob_ipo(Object *ob)
 	
 	if(ob->ipo==0) return;
 
-	/* hier NIET ob->ctime zetten: bijv bij parent in onzichtb. layer */
+	/* do not set ob->ctime here: for example when parent in invisible layer */
 	
 	ctime= bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0);
 
 	calc_ipo(ob->ipo, ctime);
 
-	/* Patch: de localview onthouden */
+	/* Patch: remember localview */
 	lay= ob->lay & 0xFF000000;
 	
 	execute_ipo((ID *)ob, ob->ipo);
@@ -1547,7 +1547,7 @@ void do_ob_ipo(Object *ob)
 		if(strcmp(G.scene->id.name+2, ob->id.name+6)==0) {
 			G.scene->lay= ob->lay;
 			copy_view3d_lock(0);
-			/* hier geen REDRAW: gaat rondzingen! */
+			/* no redraw here! creates too many calls */
 		}
 	}
 }
@@ -1556,19 +1556,19 @@ void do_seq_ipo(Sequence *seq)
 {
 	float ctime, div;
 	
-	/* seq_ipo gaat iets anders: beide fields direkt berekenen */
+	/* seq_ipo has an exception: calc both fields immediately */
 	
 	if(seq->ipo) {
 		ctime= frame_to_float(G.scene->r.cfra - seq->startdisp);
 		div= (seq->enddisp - seq->startdisp)/100.0f;
 		if(div==0) return;
 		
-		/* tweede field */
+		/* 2nd field */
 		calc_ipo(seq->ipo, (ctime+0.5f)/div);
 		execute_ipo((ID *)seq, seq->ipo);
 		seq->facf1= seq->facf0;
 
-		/* eerste field */
+		/* 1st field */
 		calc_ipo(seq->ipo, ctime/div);
 		execute_ipo((ID *)seq, seq->ipo);
 
@@ -1623,7 +1623,7 @@ void do_all_ipos()
 		do_constraint_channels(&base->object->constraints, &base->object->constraintChannels, ctime);
 
 		if(base->object->ipo) {
-			/* per object ipo ook de calc_ipo doen: ivm mogelijke timeoffs */
+			/* do per object ipo the calc_ipo: because of possible timeoffs */
 			do_ob_ipo(base->object);
 			if(base->object->type==OB_MBALL) where_is_object(base->object);
 		}
@@ -1665,11 +1665,11 @@ void do_all_ipos()
 		snd= snd->id.next;
 	}
 
-	/* voor het geval dat...  LET OP: 2x */
+	/*just in case of...  WATCH IT: 2x */
 	base= G.scene->base.first;
 	while(base) {
 		
-		/* alleen layer updaten als ipo */
+		/* only update layer when an ipo */
 		if( has_ipo_code(base->object->ipo, OB_LAY) ) {
 			base->lay= base->object->lay;
 		}
@@ -1677,12 +1677,12 @@ void do_all_ipos()
 		base= base->next;
 	}
 	
-	/* voor het geval dat...*/
+	/* just in case...*/
 	if(G.scene->set) {
 		base= G.scene->set->base.first;
 		while(base) {
 			
-			/* alleen layer updaten als ipo */
+			/* only update layer when an ipo */
 			if( has_ipo_code(base->object->ipo, OB_LAY) ) {
 				base->lay= base->object->lay;
 			}
@@ -1744,7 +1744,7 @@ void add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
 	while(ce) {
 		
 		if( ce->cfra==bezt->vec[1][0] ) {
-			/* doen ivm dubbele keys */
+			/* do because of double keys */
 			if(bezt->f2 & 1) ce->sel= bezt->f2;
 			return;
 		}
@@ -1809,7 +1809,7 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 		}
 	}
 	if(ipo->showkey==0) {
-		/* alle keys deselecteren */
+		/* deselect all keys */
 		ce= elems->first;
 		while(ce) {
 			ce->sel= 0;

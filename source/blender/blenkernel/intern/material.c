@@ -1,7 +1,6 @@
 
-/*  material.c        MIX MODEL
- * 
- *  maart 95
+/*  material.c
+ *
  * 
  * $Id$
  *
@@ -140,11 +139,11 @@ void make_local_material(Material *ma)
 	MetaBall *mb;
 	Material *man;
 	int a, local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
+
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
 	if(ma->id.lib==0) return;
 	if(ma->id.us==1) {
@@ -344,10 +343,10 @@ Material *give_current_material(Object *ob, int act)
 	if(act>ob->totcol) act= ob->totcol;
 	else if(act==0) act= 1;
 
-	if( BTST(ob->colbits, act-1) ) {	/* aan object */
+	if( BTST(ob->colbits, act-1) ) {	/* in object */
 		ma= ob->mat[act-1];
 	}
-	else {								/* aan data */
+	else {								/* in data */
 		matarar= give_matarar(ob);
 		
 		if(matarar && *matarar) ma= (*matarar)[act-1];
@@ -385,7 +384,7 @@ ID *material_from(Object *ob, int act)
 
 void test_object_materials(ID *id)
 {
-	/* ob mat-array evenlang maken als obdata mat-array */
+	/* make the ob mat-array same size as 'ob->data' mat-array */
 	Object *ob;
 	Mesh *me;
 	Curve *cu;
@@ -472,14 +471,14 @@ void assign_material(Object *ob, Material *ma, int act)
 		ob->totcol= act;
 	}
 	
-	/* doe 't */
+	/* do it */
 
-	if( BTST(ob->colbits, act-1) ) {	/* aan object */
+	if( BTST(ob->colbits, act-1) ) {	/* in object */
 		mao= ob->mat[act-1];
 		if(mao) mao->id.us--;
 		ob->mat[act-1]= ma;
 	}
-	else {	/* aan data */
+	else {	/* in data */
 		mao= (*matarar)[act-1];
 		if(mao) mao->id.us--;
 		(*matarar)[act-1]= ma;
@@ -524,7 +523,7 @@ void init_render_material(Material *ma)
 	ma->ren= MEM_mallocN(sizeof(Material), "initrendermaterial");
 	memcpy(ma->ren, ma, sizeof(Material));
 	
-	/* alle texcoflags van mtex adden */
+	/* add all texcoflags from mtex */
 	ma= ma->ren;
 	ma->texco= 0;
 	ma->mapto= 0;
@@ -540,7 +539,7 @@ void init_render_material(Material *ma)
 /* 				mtex->projz= PROJ_Z; */
 /* 				mtex->mapping= MTEX_FLAT; */
 			}
-			/* hier niet testen op mtex->object en mtex->texco op TEXCO_ORCO zetten: mtex is linked! */
+			/* do not test for mtex->object and set mtex->texco at TEXCO_ORCO: mtex is linked! */
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;
@@ -677,16 +676,16 @@ void delete_material_index()
 	ob= ((G.scene->basact)? (G.scene->basact->object) : 0) ;
 	if(ob==0 || ob->totcol==0) return;
 	
-	/* neem als uitgangspunt de mesh/curve/mball, verwijder 1 index, EN bij alle ob's 
-	 * die ook zelfde ob->data hebben
+	/* take a mesh/curve/mball as starting point, remove 1 index,
+	 * AND with all objects that share the ob->data
 	 * 
-	 * Daarna ook indexen in mesh/curve/mball wijzigen!!!
+	 * after that check indices in mesh/curve/mball!!!
 	 */
 	
 	totcolp= give_totcolp(ob);
 	matarar= give_matarar(ob);
 
-	/* we deleten de actcol */
+	/* we delete the actcol */
 	if(ob->totcol) {
 		mao= (*matarar)[ob->actcol-1];
 		if(mao) mao->id.us--;
@@ -708,7 +707,7 @@ void delete_material_index()
 	
 		if(obt->data==ob->data) {
 			
-			/* LET OP: actcol hier niet van ob of van obt pakken (kan nul worden) */
+			/* WATCH IT: do not use actcol from ob or from obt (can become zero) */
 			mao= obt->mat[actcol-1];
 			if(mao) mao->id.us--;
 		
@@ -726,7 +725,7 @@ void delete_material_index()
 	allqueue(REDRAWBUTSMAT, 0);
 	
 
-	/* indexen van mesh goedzetten */
+	/* check indices from mesh */
 
 	if(ob->type==OB_MESH) {
 		me= get_mesh(ob);

@@ -1,4 +1,4 @@
-/*  exotic.c   mei 95     MIXED MODEL
+/*  exotic.c   
  * 
  *  $Id$
  *
@@ -174,7 +174,7 @@ static void read_videoscape_mesh(char *str)
 		vd+=3;
 	}
 	
-	/* de vlakken en kleuren tellen */
+	/* count faces and colors */
 	for(a=0; a<32; a++) color[a]= 0;
 	totcol= 0;
 	end= 1;
@@ -211,7 +211,7 @@ static void read_videoscape_mesh(char *str)
 		return;
 	}
 	
-	/* nieuw object */
+	/* new object */
 	ob= add_object(OB_MESH);
 	me= ob->data;
 	me->totvert= verts;
@@ -220,7 +220,7 @@ static void read_videoscape_mesh(char *str)
 	me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
 	if(me->totface) me->mface= MEM_callocN(me->totface*sizeof(MFace), "mface");
 	
-	/* kleuren */
+	/* colors */
 	if(totcol) {
 		ob->mat= MEM_callocN(sizeof(void *)*totcol, "ob->mat");
 		me->mat= MEM_callocN(sizeof(void *)*totcol, "me->mat");
@@ -229,7 +229,7 @@ static void read_videoscape_mesh(char *str)
 		ob->actcol= 1;
 	}
 	
-	/* materialen */
+	/* materials */
 	for(a=0; a<totcol; a++) {
 		ma= G.main->mat.first;
 		while(ma) {
@@ -393,7 +393,7 @@ static void read_radiogour(char *str)
 		colv++;
 	}
 	
-	/* de vlakken tellen */
+	/* count faces */
 	end= 1;
 	while(end>0) {
 		end= fscanf(fp,"%d", &poly);
@@ -420,7 +420,7 @@ static void read_radiogour(char *str)
 		return;
 	}
 	
-	/* nieuw object */
+	/* new object */
 	ob= add_object(OB_MESH);
 	me= ob->data;
 	me->totvert= verts;
@@ -501,7 +501,7 @@ static void read_radiogour(char *str)
 			}
 		}
 		
-		/* mcol is per vlak 4 kleuren */
+		/* mcol is 4 colors per face */
 		me->mcol= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
 		colf= (unsigned int *)me->mcol;
 
@@ -736,7 +736,7 @@ static int iv_colornumber(struct IvNode *iv)
 	int a;
 	char *cp;
 	
-	/* terugzoeken naar laatste materiaal */
+	/* search back to last material */
 	while(iv) {
 		if( strcmp(iv->nodename, "Material")==0) {
 			fp= iv->data[0];
@@ -787,7 +787,7 @@ static int iv_colornumber(struct IvNode *iv)
 
 static int iv_finddata(struct IvNode *iv, char *field, int fieldnr)
 {
-	/* zoek naar "field", tel lengte data en maak datablok. return skipdata */
+	/* search for "field", count data size and make datablock. return skipdata */
 	float *fp;
 	int len, stackcount, skipdata=0;
 	char *cpa, terminator, str[64];
@@ -802,7 +802,7 @@ static int iv_finddata(struct IvNode *iv, char *field, int fieldnr)
 			if( strncmp(cpa, field, len)==0 ) {
 				iv->fieldname[fieldnr]= cpa;
 				
-				/* lezen tot aan eerste karakter */
+				/* read until first character */
 				cpa+= len;
 				skipdata+= len;
 				*cpa= 0;
@@ -876,7 +876,7 @@ static int iv_finddata(struct IvNode *iv, char *field, int fieldnr)
 
 static void read_iv_index(float *data, float *baseadr, float *index, int nr, int coordtype)
 {
-	/* in data schrijven: baseadr met offset index (aantal nr)*/
+	/* write in data: baseadr with offset index (and number nr) */
 	float *fp;
 	int ofs;
 	
@@ -917,7 +917,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 
 	iv_data_stack= MEM_mallocN(sizeof(float)*IV_MAXSTACK, "ivstack");
 
-	/* eerste preprocess: commentar eruit */
+	/* preprocess: remove comments */
 	md= maindata+20;
 	count= 20;
 	while(count<filelen) {
@@ -934,14 +934,14 @@ static void read_inventor(char *str, struct ListBase *listb)
 	}
 	
 
-	/* we gaan alles ordenen: welke zijn de nodes en de fields? */
+	/* now time to collect: which are the nodes and fields? */
 	md= maindata;
 	count= 0;
 	while(count<filelen) {
-		if( *md=='{' ) {	/* terug lezen */
+		if( *md=='{' ) {	/* read back */
 		
 			cpa= md-1;
-			while( *cpa==32 || *cpa==13 || *cpa==10 || *cpa==9) {	/* spaties/enters/tab weg */
+			while( *cpa==32 || *cpa==13 || *cpa==10 || *cpa==9) {	/* remove spaces/enters/tab  */
 				*cpa= 0;
 				cpa--;
 			}		
@@ -1014,7 +1014,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 				ok= 1;
 			}
 			else {
-				/* naar 't einde */
+				/* to the end */
 				while( *md != '}') {
 					md++;
 					count++;
@@ -1035,14 +1035,14 @@ static void read_inventor(char *str, struct ListBase *listb)
 		count++;
 	}
 	
-	/* nodes samenvoegen */
+	/* join nodes */
 	iv= ivbase.first;
 	
 	while(iv) {
 		ivn= iv->next;
 		
 		if( strncmp(iv->nodename, "Indexed", 7)==0) {
-			/* terugzoeken: zelfde naam? */
+			/* seek back: same name? */
 			
 			ivp= iv->prev;
 			while(ivp) {
@@ -1058,7 +1058,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			}
 			
 			if(ivp) {
-				/* iv bij ivp voegen */
+				/* add iv to ivp */
 				
 				tot= iv->datalen[0] + ivp->datalen[0];
 				if(tot) {
@@ -1081,7 +1081,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 	}
 
 	
-	/* Nodes omzetten naar DispLists */
+	/* convert Nodes to DispLists */
 	iv= ivbase.first;
 	while(iv) {
 		
@@ -1093,7 +1093,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			
 			colnr= iv_colornumber(iv);
 
-			/* terugzoeken naar data */
+			/* seek back to data */
 			ivp= iv;
 			while(ivp->prev) {
 				ivp= ivp->prev;
@@ -1108,7 +1108,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			}
 			if(ivp) {
 			
-				/* tel het aantal lijnen */
+				/* count the nr of lines */
 				tot= 0;
 				index= iv->data[0];
                                 lll = iv->datalen[0]-1;
@@ -1117,7 +1117,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 					index++;
 				}
 				
-				tot*= 2;	/* aantal vertices */
+				tot*= 2;	/* nr of vertices */
 				dl= MEM_callocN(sizeof(struct DispList)+tot*3*sizeof(float), "leesInventor1");
 				BLI_addtail(listb, dl);
 				dl->type= DL_SEGM;
@@ -1140,7 +1140,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			
 			colnr= iv_colornumber(iv);
 		
-			/* terugzoeken naar data */
+			/* seek back to data */
 			ivp= iv;
 			while(ivp->prev) {
 				ivp= ivp->prev;
@@ -1155,19 +1155,19 @@ static void read_inventor(char *str, struct ListBase *listb)
 			}
 			
 			if(ivp) {
-				/* tel het aantal driehoeken */
+				/* count triangles */
 				tot= 0;
 				
 				index= iv->data[0];
 				polytype= (int) index[0];
 				
 				for(a=0; a<iv->datalen[0]; a++) {
-					if(index[0]== polytype) tot++;	/* een soort? */
+					if(index[0]== polytype) tot++;	/* one kind? */
 					index++;
 				}
 				
 				
-				tot*= polytype;		/* aantal vertices */
+				tot*= polytype;		/* nr of vertices */
 				dl= MEM_callocN(sizeof(struct DispList)+tot*3*sizeof(float), "leesInventor4");
 				BLI_addtail(listb, dl);
 				dl->type= DL_POLY;
@@ -1204,7 +1204,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			
 			colnr= iv_colornumber(iv);
 		
-			/* terugzoeken naar data */
+			/* seek back to data */
 			ivp= iv;
 			while(ivp->prev) {
 				ivp= ivp->prev;
@@ -1219,11 +1219,11 @@ static void read_inventor(char *str, struct ListBase *listb)
 			}
 			
 			if(ivp) {
-				/* tel het aantal driehoeken */
+				/* count triangles */
 				tot= 0;
 				face= 0;
 				
-				index= iv->data[0];		/* afmeting strip */ 
+				index= iv->data[0];		/* strip size */ 
 				
 				for(a=0; a<iv->datalen[0]; a++) {
 					tot+= (int) index[0];
@@ -1242,7 +1242,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 				BLI_addtail(listb, dl);
 				dl->col= colnr;
 
-				index= iv->data[0];		/* afmeting strip */ 
+				index= iv->data[0];		/* strip size */ 
 				fp= ivp->data[0];		/* vertices */
 				data= dl->verts;
 				idata= dl->index;
@@ -1276,7 +1276,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			
 			colnr= iv_colornumber(iv);
 		
-			/* terugzoeken naar data */
+			/* seek back to data */
 			ivp= iv;
 			while(ivp->prev) {
 				ivp= ivp->prev;
@@ -1291,7 +1291,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			}
 			if(ivp) {
 			
-				/* tel het aantal driehoeken */
+				/* count triangles */
 				face= 0;
 				index= iv->data[0];
                 lll = iv->datalen[0]-2;
@@ -1300,7 +1300,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 					index++;
 				}
 
-				/* aantal vertices */
+				/*number of vertices */
 				tot= ivp->datalen[0]/coordtype;
 
 				if(tot) {
@@ -1332,7 +1332,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 						
 						if(index[0]!= -1 && index[1]!= -1 && index[2]!= -1) {
 	
-							/* deze truuk is om poly's met meer dan 3 vertices correct te vullen */
+							/* this trick is to fill poly's with more than 3 vertices correctly */
 							if(first) {
 								nr= (int) index[0];
 								first= 0;
@@ -1354,7 +1354,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			
 			colnr= iv_colornumber(iv);
 		
-			/* terugzoeken naar data */
+			/* seek back to data */
 			ivp= iv;
 			while(ivp->prev) {
 				ivp= ivp->prev;
@@ -1369,7 +1369,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			}
 			if(ivp) {
 			
-				/* tel het aantal driehoeken */
+				/* count triangles */
 				face= 0;
 				index= iv->data[0];
                                 lll=iv->datalen[0]-2;
@@ -1378,7 +1378,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 					index++;
 				}
 				
-				/* aantal vertices */
+				/* nr of vertices */
 				tot= ivp->datalen[0]/coordtype;
 				
 				dl= MEM_callocN(sizeof(struct DispList), "leesInventor6");
@@ -1421,7 +1421,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			
 			colnr= iv_colornumber(iv);
 		
-			/* terugzoeken naar data */
+			/* seek back to data */
 			ivp= iv;
 			while(ivp->prev) {
 				ivp= ivp->prev;
@@ -1458,7 +1458,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 			
 			colnr= iv_colornumber(iv);
 		
-			/* terugzoeken naar data */
+			/* sek back to data */
 			ivp= iv;
 			while(ivp->prev) {
 				ivp= ivp->prev;
@@ -1516,7 +1516,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 						bp++;
 					}
 					
-					/* iv->datalen[2] / [3] is aantal knots */
+					/* iv->datalen[2] / [3] is number of knots */
 					nu->orderu= iv->datalen[2] - nu->pntsu;
 					nu->orderv= iv->datalen[3] - nu->pntsv;
 					
@@ -1550,7 +1550,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 		iv= iv->next;
 	}
 
-	/* vrijgeven */
+	/* free */
 	iv= ivbase.first;
 	while(iv) {
 		for(a=0; a<IV_MAXFIELD; a++) {
@@ -1579,13 +1579,13 @@ static void displist_to_mesh(DispList *dlfirst)
 	int a, b, startve, *idata, totedge=0, tottria=0, totquad=0, totvert=0, totvlak, totcol=0, colnr;
 	int p1, p2, p3, p4;
 		
-	/* eerst tellen */
+	/* count first */
 	INIT_MINMAX(min, max);
 
 	dl= dlfirst;
 	while(dl) {
 	
-		/* PATCH 1 (polyfill) kan hier niet, er wordt geen listbase meegegeven. eerder doen! */
+		/* PATCH 1 (polyfill) can't be done, there's no listbase here. do that first! */
 		/* PATCH 2 */
 		if(dl->type==DL_SEGM && dl->nr>2) {
 			data= (float *)(dl+1);
@@ -1599,10 +1599,10 @@ static void displist_to_mesh(DispList *dlfirst)
 			}
 		}
 		
-		/* kleuren */
+		/* colors */
 		if(dl->col > totcol) totcol= dl->col;
 		
-		/* afmeting en tellen */
+		/* size and count */
 		if(dl->type==DL_SURF) {
 			a= dl->nr;
 			b= dl->parts;
@@ -1698,7 +1698,7 @@ static void displist_to_mesh(DispList *dlfirst)
 
 	me= ob->data;
 	
-	/* kleuren */
+	/* colors */
 	if(totcol) {
 		ob->mat= MEM_callocN(sizeof(void *)*totcol, "ob->mat");
 		me->mat= MEM_callocN(sizeof(void *)*totcol, "me->mat");
@@ -1707,7 +1707,7 @@ static void displist_to_mesh(DispList *dlfirst)
 		ob->actcol= 1;
 	}
 	
-	/* materialen */
+	/* materials */
 	for(a=0; a<totcol; a++) {
 		ma= G.main->mat.first;
 		while(ma) {
@@ -1923,7 +1923,7 @@ static void displist_to_objects(ListBase *lbase)
 	ListBase tempbase;
 	int maxaantal, curcol, totvert=0, vert;
 	
-	/* eerst dit: is nu nog actief */
+	/* irst this: is still active */
 	if(ivsurf) {
 		where_is_object(ivsurf);
 		docentre_new();
@@ -1935,16 +1935,16 @@ static void displist_to_objects(ListBase *lbase)
 		
 		/* PATCH 1: polyfill */
 		if(dl->type==DL_POLY && dl->nr>4) {
-			/* oplossing: bij elkaar in aparte listbase zetten */
+			/* solution: put them together in separate listbase */
 			;
 		}
-		/* PATCH 2: poly's van 2 punten */
+		/* PATCH 2: poly's of 2 points */
 		if(dl->type==DL_POLY && dl->nr==2) dl->type= DL_SEGM;
 		
 		dl= next;
 	}
 
-	/* vertices tellen */
+	/* count vertices */
 
 	dl= lbase->first;
 	while(dl) {
@@ -1972,7 +1972,7 @@ static void displist_to_objects(ListBase *lbase)
 	
 	if(totvert>maxaantal) {
 	
-		/* probeer kleuren bij elkaar te zetten */
+		/* try to put colors together */
 		curcol= 0;
 		tempbase.first= tempbase.last= 0;
 
@@ -1989,7 +1989,7 @@ static void displist_to_objects(ListBase *lbase)
 				dl= next;
 			}
 			
-			/* in tempbase zitten alle kleuren 'curcol' */
+			/* in tempbase are all 'curcol' */
 			totvert= 0;
 			dl= first= tempbase.first;
 			while(dl) {
@@ -2273,7 +2273,7 @@ void write_videoscape(char *str)
 	}
 	
 	
-	/* weggooien als nog hogere nummers bestaan */
+	/* remove when higher numbers exist */
 	while(remove(str)==0) {
 		
 		val = BLI_stringdec(str, head, tail, &numlen);

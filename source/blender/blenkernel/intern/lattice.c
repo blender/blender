@@ -1,6 +1,7 @@
 /**
- * lattice.c      MIXED MODEL
- * june 2001 ton
+ * lattice.c
+ *
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -120,10 +121,10 @@ Lattice *add_lattice()
 	
 	lt->typeu= lt->typev= lt->typew= KEY_BSPLINE;
 	
-	/* tijdelijk */
+	/* temporally */
 	lt->def= MEM_callocN(sizeof(BPoint), "lattvert");
 	
-	resizelattice(lt);	/* maakt een regelmatige lattice */
+	resizelattice(lt);	/* creates a uniform lattice */
 		
 	return lt;
 }
@@ -154,10 +155,10 @@ void make_local_lattice(Lattice *lt)
 	Object *ob;
 	Lattice *ltn;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
+
+	/* - only lib users: do nothing
+	 * - only local users: set flag
+	 * - mixed: make copy
 	 */
 	
 	if(lt->id.lib==0) return;
@@ -223,7 +224,7 @@ void calc_lat_fudu(int flag, int res, float *fu, float *du)
 
 void init_latt_deform(Object *oblatt, Object *ob)
 {
-	/* we maken een array met alle verschillen */
+	/* we make an array with all differences */
 	BPoint *bp;
 	float *fp, imat[4][4];
 	float vec[3], fu, fv, fw, du=0.0, dv=0.0, dw=0.0;
@@ -238,27 +239,27 @@ void init_latt_deform(Object *oblatt, Object *ob)
 
 	if(ob) where_is_object(ob);
 
-	/* bijv bij particle systeem: ob==0 */
+	/* for example with a particle system: ob==0 */
 	if(ob==0) {
-		/* in deformspace, matrix berekenen */
+		/* in deformspace, calc matrix  */
 		Mat4Invert(latmat, oblatt->obmat);
 	
-		/* terug: in deform array verwerken */
+		/* back: put in deform array */
 		Mat4Invert(imat, latmat);
 	}
 	else {
-		/* in deformspace, matrix berekenen */
+		/* in deformspace, calc matrix */
 		Mat4Invert(imat, oblatt->obmat);
 		Mat4MulMat4(latmat, ob->obmat, imat);
 	
-		/* terug: in deform array verwerken */
+		/* back: put in deform array */
 		Mat4Invert(imat, latmat);
 	}
 	calc_lat_fudu(deformLatt->flag, deformLatt->pntsu, &fu, &du);
 	calc_lat_fudu(deformLatt->flag, deformLatt->pntsv, &fv, &dv);
 	calc_lat_fudu(deformLatt->flag, deformLatt->pntsw, &fw, &dw);
 	
-	/* we berekenen hier steeds de u v w lattice coordinaten, weinig reden ze te onthouden */
+	/* we keep calculating the u v w lattice coordinates, not enough reason to store that */
 	
 	vec[2]= fw;
 	for(w=0; w<deformLatt->pntsw; w++) {
@@ -288,9 +289,9 @@ void calc_latt_deform(float *co)
 	
 	if(latticedata==0) return;
 	
-	lt= deformLatt;	/* kortere notatie! */
+	lt= deformLatt;	/* just for shorter notation! */
 	
-	/* co is in lokale coords, met latmat behandelen */
+	/* co is in local coords, treat with latmat */
 	
 	VECCOPY(vec, co);
 	Mat4MulVecfl(latmat, vec);
@@ -393,7 +394,7 @@ int object_deform(Object *ob)
 
 	if(ob->parent==0) return 0;
 	
-	/* altijd proberen in deze fie de hele deform te doen: apply! */
+	/* always try to do the entire deform in this function: apply! */
 	
 	if(ob->parent->type==OB_LATTICE) {
 		

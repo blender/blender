@@ -1,7 +1,5 @@
 
-/*  ika.c      MIXED MODEL
- * 
- *  april 96
+/*  ika.c      
  *  
  * 
  * $Id$
@@ -67,12 +65,11 @@
 
 void unlink_ika(Ika *ika)
 {
-	/* loskoppelen: */
 	
 
 }
 
-/* niet Ika zelf vrijgeven */
+/* do not free Ika itself */
 void free_ika(Ika *ika)
 {
 
@@ -117,8 +114,8 @@ void make_local_ika(Ika *ika)
 	Ika *ikan;
 	int local=0, lib=0;
 	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
+	/* - only lib users: dont do
+	 * - only local users: set flag
 	 * - mixed: copy
 	 */
 	
@@ -183,13 +180,13 @@ int count_limbs(Object *ob)
 /* ************************************************** */
 
 
-/* aan hand van eff[] de len en alpha */
+/* using eff[ ] and len and alpha */
 void calc_limb(Limb *li)
 {
 	Limb *prev= li;
 	float vec[2], alpha= 0.0;
 	
-	/* alpha van 'parents' */
+	/* alpha from 'parents' */
 	while( (prev=prev->prev) ) {
 	  alpha+= prev->alpha;
 	}
@@ -208,7 +205,7 @@ void calc_limb(Limb *li)
 
 }
 
-/* aan hand van len en alpha worden de eindpunten berekend */
+/* using len and alpha the endpoints are calculated */
 void calc_ika(Ika *ika, Limb *li)
 {
 	float alpha=0.0, co, si;
@@ -256,7 +253,7 @@ void init_defstate_ika(Object *ob)
 	ika->toty= 0.0;
 	li= ika->limbbase.first;
 	
-	calc_ika(ika, 0);	/* correcte eindpunten */
+	calc_ika(ika, 0);	/* correct endpoints */
 	
 	while(li) {
 		li->alphao= li->alpha;
@@ -300,7 +297,7 @@ void rotate_ika(Object *ob, Ika *ika)
 	Limb *li;
 	float len2, da, n1[2], n2[2];
 	
-	/* terug roteren */
+	/* rotate back */
 	euler_rot(ob->rot, -ika->toty, 'y');
 	ika->toty= 0.0;
 	
@@ -322,7 +319,7 @@ void rotate_ika(Object *ob, Ika *ika)
 		da= (n2[0])/(len2);
 		if(n1[0]<0.0) da= -da;
 		
-		/* als de x comp bijna nul is kan dit gebeuren */
+		/* when the x component is almost zero, this can happen */
 		if(da<=-1.0+TOLER || da>=1.0) ;
 		else {
 		
@@ -340,7 +337,7 @@ void rotate_ika_xy(Object *ob, Ika *ika)
 	Limb *li;
 	float ang, da, n1[3], n2[3], axis[3], quat[4];
 	
-	/* terug roteren */
+	/* rotate back */
 	euler_rot(ob->rot, -ika->toty, 'y');
 	euler_rot(ob->rot, -ika->totx, 'x');
 	
@@ -400,7 +397,7 @@ void itterate_ika(Object *ob)
 	if((ika->flag & IK_GRABEFF)==0) return;
 
 	disable_where_script(1);
-	/* memory: grote tijdsprongen afvangen */
+	/* memory: handle large steps in time */
 	it= abs(ika->lastfra - G.scene->r.cfra);
 	ika->lastfra= G.scene->r.cfra;
 	if(it>10) {
@@ -412,13 +409,12 @@ void itterate_ika(Object *ob)
 		li= ika->limbbase.first;
 		while(li) {
 			li->alpha= (1.0f-ika->mem)*li->alpha + ika->mem*li->alphao;
-			if(li->fac==1.0f) li->fac= 0.05f;	/* oude files: kan weg in juni 96 */
 			li= li->next;
 		}
 	}
 	calc_ika(ika, 0);
 	
-	/* effector heeft parent? */
+	/* effector has parent? */
 	if(ika->parent) {
 		
 		if(ika->partype==PAROBJECT) {
@@ -436,7 +432,7 @@ void itterate_ika(Object *ob)
 	}
 
 
-	/* y-as goed draaien */
+	/* rotate y-as correctly */
 	if(ika->flag & IK_XYCONSTRAINT) 
 		rotate_ika_xy(ob, ika);
 	else
@@ -448,7 +444,7 @@ void itterate_ika(Object *ob)
 		where_is_object(ob);
 		Mat4Invert(ob->imat, ob->obmat);
 		VecMat4MulVecfl(ika->effn, ob->imat, ika->effg);
-		/* forward: dan gaan ook de eerste limbs */
+		/* forward orfer: to do the first limbs as well */
 		li= ika->limbbase.first;
 		while(li) {
 			
@@ -470,7 +466,7 @@ void itterate_ika(Object *ob)
 			
 			itterate_limb(ika, li);
 			
-			/* zet je calc_ika() buiten deze lus: lange kettingen instabiel */
+			/* when you put calc_ika() outside this loop: long chains get instable */
 			calc_ika(ika, li);
 
 			li= li->prev;

@@ -1,7 +1,5 @@
 
-/*  key.c      MIXED MODEL
- * 
- *  mei 95
+/*  key.c      
  *  
  * 
  * $Id$
@@ -101,7 +99,7 @@ void free_key(Key *key)
 /* from misc_util: flip the bytes from x  */
 /*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
 
-Key *add_key(ID *id)	/* algemeen */
+Key *add_key(ID *id)	/* common function */
 {
 	Key *key;
 	char *el;
@@ -171,12 +169,12 @@ Key *copy_key(Key *key)
 
 void make_local_key(Key *key)
 {
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
-	if(key==0) return;
+
+    /* - only lib users: do nothing
+    * - only local users: set flag
+    * - mixed: make copy
+    */
+    if(key==0) return;
 	
 	key->id.lib= 0;
 	new_id(0, (ID *)key, 0);
@@ -278,7 +276,7 @@ void set_afgeleide_four_ipo(float d, float *data, int type)
 
 int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 {
-	/* return 1 betekent k[2] is de positie, 0 is interpoleren */
+	/* return 1 means k[2] is the position, return 0 means interpolate */
 	KeyBlock *k1, *firstkey;
 	float d, dpos, ofs=0, lastpos, temp, fval[4];
 	short bsplinetype;
@@ -298,7 +296,7 @@ int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 
 	if(k1->next==0) return 1;
 
-	if(cycl) {	/* voorsorteren */
+	if(cycl) {	/* pre-sort */
 		k[2]= k1->next;
 		k[3]= k[2]->next;
 		if(k[3]==0) k[3]=k1;
@@ -320,8 +318,7 @@ int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 		if(fac<t[1]) fac+= dpos;
 		k1= k[3];
 	}
-	else {		/* voorsorteren */
-		/* waarom dit voorsorteren niet eerder gedaan? voor juist interpoleren in begin noodz. */
+	else {		/* pre-sort */
 		k[2]= k1->next;
 		t[2]= k[2]->pos;
 		k[3]= k[2]->next;
@@ -330,7 +327,7 @@ int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 		k1= k[3];
 	}
 	
-	while( t[2]<fac ) {	/* goede plek vinden */
+	while( t[2]<fac ) {	/* find correct location */
 		if(k1->next==0) {
 			if(cycl) {
 				k1= firstkey;
@@ -357,17 +354,17 @@ int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 
 
 	if(cycl==0) {
-		if(bsplinetype==0) {	/* B spline gaat niet door de punten */
-			if(fac<=t[1]) {		/* fac voor 1e key */
+		if(bsplinetype==0) {	/* B spline doesn't go through the control points */
+			if(fac<=t[1]) {		/* fac for 1st key */
 				t[2]= t[1];
 				k[2]= k[1];
 				return 1;
 			}
-			if(fac>=t[2] ) {	/* fac na 2e key */
+			if(fac>=t[2] ) {	/* fac after 2nd key */
 				return 1;
 			}
 		}
-		else if(fac>t[2]) {	/* laatste key */
+		else if(fac>t[2]) {	/* last key */
 			fac= t[2];
 			k[3]= k[2];
 			t[3]= t[2];
@@ -377,12 +374,12 @@ int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 	d= t[2]-t[1];
 	if(d==0.0) {
 		if(bsplinetype==0) {
-			return 1;	/* beide keys gelijk */
+			return 1;	/* both keys equal */
 		}
 	}
 	else d= (fac-t[1])/d;
 
-	/* interpolatie */
+	/* interpolation */
 	
 	set_four_ipo(d, t, k[1]->type);
 
@@ -450,7 +447,7 @@ void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *k, int 
 		else return;
 	}
 
-	/* deze uitzondering is om slurphing mogelijk te maken */
+	/* this exception is needed for slurphing */
 	if(start!=0) {
 		
 		poin+= poinsize*start;
@@ -473,7 +470,7 @@ void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *k, int 
 		elemstr[2]= 0;
 	}
 	
-	/* alleen in dit stuk, hierboven niet! */
+	/* just do it here, not above! */
 	elemsize= key->elemsize;
 	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
 
@@ -509,7 +506,7 @@ void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *k, int 
 			cp+= 2; ofsp++;
 		}
 		
-		/* gaan we moeilijk doen */
+		/* are we going to be nasty? */
 		if(flagflo) {
 			ktot+= kd;
 			while(ktot>=1.0) {
@@ -537,7 +534,7 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 			
 			step= nu->pntsu*nu->pntsv;
 			
-			/* uitzondering omdat keys graag met volledige blokken werken */
+			/* exception because keys prefer to work with complete blocks */
 			poin= (char *)nu->bp->vec;
 			poin -= a*sizeof(BPoint);
 			
@@ -604,12 +601,12 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ct
 	
 	if(end>tot) end= tot;
 	
-	/* in geval beztriple */
-	elemstr[0]= 1;				/* aantal ipofloats */
+	/* in case of beztriple */
+	elemstr[0]= 1;				/* nr of ipofloats */
 	elemstr[1]= IPO_BEZTRIPLE;
 	elemstr[2]= 0;
 
-	/* alleen in dit stuk, hierboven niet! */
+	/* just here, not above! */
 	elemsize= key->elemsize;
 	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
 
@@ -653,7 +650,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ct
 					
 					ofsp= ofs;
 					
-					while( cp[0] ) {	/* cp[0]==aantal */
+					while( cp[0] ) {	/* cp[0]==amount */
 						
 						switch(cp[1]) {
 						case IPO_FLOAT:
@@ -724,7 +721,7 @@ void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, flo
 	k3= k[2]->data;
 	k4= k[3]->data;
 
-	/* testen op meer of minder punten (per key!) */
+	/*  test for more or less points (per key!) */
 	if(tot != k[0]->totelem) {
 		k1tot= 0.0;
 		flagflo |= 1;
@@ -758,7 +755,7 @@ void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, flo
 		else flagdo -= 8;
 	}
 
-		/* deze uitzondering is om slurphing mogelijk te maken */
+		/* this exception needed for slurphing */
 	if(start!=0) {
 
 		poin+= poinsize*start;
@@ -810,12 +807,12 @@ void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, flo
 
 	}
 
-	/* in geval beztriple */
-	elemstr[0]= 1;				/* aantal ipofloats */
+	/* in case of beztriple */
+	elemstr[0]= 1;				/* nr of ipofloats */
 	elemstr[1]= IPO_BEZTRIPLE;
 	elemstr[2]= 0;
 
-	/* alleen in dit stuk, hierboven niet! */
+	/* only here, not above! */
 	elemsize= key->elemsize;
 	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
 
@@ -826,7 +823,7 @@ void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, flo
 		
 		ofsp= ofs;
 		
-		while( cp[0] ) {	/* cp[0]==aantal */
+		while( cp[0] ) {	/* cp[0]==amount */
 			
 			switch(cp[1]) {
 			case IPO_FLOAT:
@@ -852,7 +849,7 @@ void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, flo
 			cp+= 2;
 			ofsp++;
 		}
-		/* gaan we moeilijk doen: als keys van lengte verschillen */
+		/* lets do it the difficult way: when keys have a different size */
 		if(flagdo & 1) {
 			if(flagflo & 1) {
 				k1tot+= k1d;
@@ -918,7 +915,7 @@ void do_mesh_key(Mesh *me)
 		if(me->totvert>100 && slurph_opt) {
 			step= me->totvert/50;
 			delta*= step;
-			/* in do_key en cp_key wordt a>tot afgevangen */
+			/* in do_key and cp_key the case a>tot is handled */
 		}
 		
 		cfra= G.scene->r.cfra;
@@ -987,7 +984,7 @@ void do_cu_key(Curve *cu, KeyBlock **k, float *t)
 			
 			step= nu->pntsu*nu->pntsv;
 			
-			/* uitzondering omdat keys graag met volledige blokken werken */
+			/* exception because keys prefer to work with complete blocks */
 			poin= (char *)nu->bp->vec;
 			poin -= a*sizeof(BPoint);
 			
@@ -1022,7 +1019,7 @@ void do_rel_cu_key(Curve *cu, float ctime)
 			
 			step= nu->pntsu*nu->pntsv;
 			
-			/* uitzondering omdat keys graag met volledige blokken werken */
+			/* exception because keys prefer to work with complete blocks */
 			poin= (char *)nu->bp->vec;
 			poin -= a*sizeof(BPoint);
 			
@@ -1063,7 +1060,7 @@ void do_curve_key(Curve *cu)
 		if(tot>100 && slurph_opt) {
 			step= tot/50;
 			delta*= step;
-			/* in do_key en cp_key wordt a>tot afgevangen */
+			/* in do_key and cp_key the case a>tot has been handled */
 		}
 		
 		cfra= G.scene->r.cfra;

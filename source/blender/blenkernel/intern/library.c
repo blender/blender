@@ -1,10 +1,8 @@
 
-/*  library.c   aug 94     MIXED MODEL
+/*  library.c 
  * 
- *  jan 95
- * 
- *  afhandeling ID's en libraries
- *  allocceren en vrijgeven alle library data
+ *  Contains management of ID's and libraries
+ *  allocate and free of all library data
  * 
  * $Id$
  *
@@ -109,7 +107,7 @@
 #define MAX_IDPUP		30	/* was 24 */
 #define MAX_LIBARRAY	100 /* was 30 */
 
-/* ************* ALGEMEEN ************************ */
+/* ************* general ************************ */
 
 void id_lib_extern(ID *id)
 {
@@ -192,7 +190,7 @@ ListBase *wich_libbase(Main *mainlib, short type)
 
 int set_listbasepointers(Main *main, ListBase **lb)
 {
-	/* BACKWARDS! let op volgorde van vrijgeven! (mesh<->mat) */
+	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */
 
 	lb[0]= &(main->ipo);
 	lb[1]= &(main->key);
@@ -232,13 +230,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	return 25;
 }
 
-/* *********** ALLOC EN FREE *****************
+/* *********** ALLOC AND FREE *****************
   
 free_libblock(ListBase *lb, ID *id )
-	lijstbasis en datablok geven, alleen ID wordt uitgelezen
+	provide a list-basis and datablock, but only ID is read
 
 void *alloc_libblock(ListBase *lb, type, name)
-	hangt in lijst en geeft nieuw ID
+	inserts in list and returns a new ID
 
  ***************************** */
 
@@ -337,7 +335,7 @@ void *alloc_libblock(ListBase *lb, short type, char *name)
 		id->us= 1;
 		*( (short *)id->name )= type;
 		new_id(lb, id, name);
-		/* alfabetisch opnieuw invoegen: zit in new_id */
+		/* alphabetic insterion: is in new_id */
 	}
 	return id;
 }
@@ -391,7 +389,7 @@ void free_libblock(ListBase *lb, void *idv)
 {
 	ID *id= idv;
 	
-	switch( GS(id->name) ) {	/* GetShort uit util.h */
+	switch( GS(id->name) ) {	/* GetShort from util.h */
 		case ID_SCE:
 			free_scene((Scene *)id);
 			break;
@@ -432,8 +430,6 @@ void free_libblock(ListBase *lb, void *idv)
 			free_lamp((Lamp *)id);
 			break;
 		case ID_CA:
-/*  			free_camera(id); */
-			/* cast wasn't here before... spooky... */
 			free_camera((Camera*) id);
 			break;
 		case ID_IP:
@@ -498,7 +494,7 @@ void free_libblock_us(ListBase *lb, void *idv)		/* test users */
 
 void free_main(Main *mainvar)
 {
-	/* ook aanroepen bij file inlezen, erase all, etc */
+	/* also call when reading a file, erase all, etc */
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a;
 
@@ -518,7 +514,7 @@ void free_main(Main *mainvar)
 /* ***************** ID ************************ */
 
 // only used in exotic.c
-ID *find_id(char *type, char *name)		/* type: "OB" of "MA" etc */
+ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 {
 	ID *id;
 	ListBase *lb;
@@ -693,7 +689,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 {
 	ID *idtest;
 	
-	/* alfabetisch opnieuw invoegen */
+	/* insert alphabetically */
 	if(lb->first!=lb->last) {
 		BLI_remlink(lb, id);
 		
@@ -705,7 +701,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 			}
 			idtest= idtest->next;
 		}
-		/* als laatste */
+		/* as last */
 		if(idtest==0) {
 			BLI_addtail(lb, id);
 		}
@@ -714,15 +710,15 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 }
 
 int new_id(ListBase *lb, ID *id, char *tname)
-/* alleen locale blokken: externe en indirekte hebben al een unieke ID */
-/* return 1: nieuwe naam gemaakt */
+/* only for local blocks: external en indirect blocks already have a unique ID */
+/* return 1: created a new name */
 {
 	ID *idtest;
 	int nr= 0, nrtest, maxtest=32, a;
 	char aname[32], *name, left[24], leftest[24], in_use[32];
 	
-	/* - naam splitsen
-	 * - zoeken
+	/* - split name
+	 * - search
 	 */
 
 	if(id->lib) return 0;
@@ -738,14 +734,14 @@ int new_id(ListBase *lb, ID *id, char *tname)
 
 	if(lb==0) lb= wich_libbase(G.main, GS(id->name));
 
-	/* eerste fase: bestaat de id al? */
+	/* phase 1: id already exists? */
 	idtest= lb->first;
 	while(idtest) {
 	
 		if(id!=idtest && idtest->lib==0) {
 			
-			/* niet alphabetic testen! */
-			/* optim */
+			/* do not test alphabetic! */
+			/* optimized */
 			if( idtest->name[2] == name[0] ) {
 				if(strcmp(name, idtest->name+2)==0) break;
 			}
@@ -798,7 +794,7 @@ int new_id(ListBase *lb, ID *id, char *tname)
 			left[16]= 0;
 			return (new_id(lb, id, left));
 		}
-		/* this format specifier is fucked... */
+		/* this format specifier is from hell... */
 		sprintf(id->name+2, "%s.%0.3d", left, nr);
 	}
 	
@@ -839,14 +835,15 @@ void all_local(void)
 			id->newid= 0;
 			id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
 			
-			idn= id->next;		/* id wordt mogelijk opnieuw ingevoegd */
+			idn= id->next;		/* id is possibly being inserted again */
 			if(id->lib) {
 				id->lib= 0;
-				new_id(lbarray[a], id, 0);	/* new_id doet dit alleen bij dubbele namen */
+				new_id(lbarray[a], id, 0);	/* new_id only does it with double names */
 				sort_alpha_id(lbarray[a], id);
 			}
 			else {
-				/* patch: testen of de zaak wel alphabetisch is */
+				/* patch: check for alphabetic ordering */
+			        /* has been removed... why!? (ton) */
 /*
 				if(idn) {
 					if(strcasecmp(id->name, idn->name)>0) {
@@ -867,7 +864,7 @@ void all_local(void)
 			id= idn;
 		}
 		
-		/* patch2: zorgen dat de zaak wel alphabetisch is */
+		/* patch2: make it aphabetically */
 		while( (id=tempbase.first) ) {
 			BLI_remlink(&tempbase, id);
 			BLI_addtail(lbarray[a], id);
@@ -879,7 +876,7 @@ void all_local(void)
 
 void test_idbutton(char *name)
 {
-	/* vanuit buttons: als naam al bestaat: new_id aanroepen */
+	/* called from buttons: when name already exists: call new_id */
 	ListBase *lb;
 	ID *idtest;
 	
@@ -887,7 +884,7 @@ void test_idbutton(char *name)
 	lb= wich_libbase(G.main, GS(name-2) );
 	if(lb==0) return;
 	
-	/* zoek welke id */
+	/* search for id */
 	idtest= lb->first;
 	while(idtest) {
 		if( strcmp(idtest->name+2, name)==0) break;

@@ -1,7 +1,5 @@
 
-/*  font.c      MIXED MODEL
- * 
- *  maart 95
+/*  font.c     
  *  
  * 
  * $Id$
@@ -75,11 +73,6 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 
-/* Nieuwe opzet voor vectorfont:
- *
- * geen PDrawfont meer, alles meteen naar Nurb en BezTriple
- *
- */
 
 struct chartrans {
 	float xof, yof;
@@ -224,7 +217,7 @@ static void buildchar(Curve *cu, unsigned char ascii, float ofsx, float ofsy, fl
 	vfd= vfont_get_data(cu->vfont);	
 	if (!vfd) return;
 	
-	/* maak een kopie op afstand ofsx, ofsy met shear*/
+	/* make a copy at distance ofsx,ofsy with shear*/
 	fsize= cu->fsize;
 	shear= cu->shear;
 	si= (float)sin(rot);
@@ -316,8 +309,8 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	short cnr=0, lnr=0;
 	char ascii, *mem;
 
-	/* opmerking: berekeningen altijd tot en met de '\0' van de string omdat
-	   de cursor op die plek moet kunnen staan */
+	/* renark: do calculations including the trailing '\0' of a string
+	   because the cursor can be at that location */
 
 	if(ob->type!=OB_FONT) return 0;
 
@@ -330,7 +323,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	vfd= vfont_get_data(vfont);
 	if (!vfd) return 0;
 	
-	/* aantal regels tellen */
+	/* count number of lines */
 	mem= cu->str;
 	slen = strlen(mem);
 	cu->lines= 1;
@@ -339,7 +332,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		if(ascii== '\n' || ascii== '\r') cu->lines++;
 	}
 
-	/* bereken ofset en rotatie van iedere letter */
+	/* calc offset and rotation of each char */
 	ct = chartransdata =
 		(struct chartrans*)MEM_callocN((slen+1)* sizeof(struct chartrans),"buildtext");
 	linedata= MEM_mallocN(sizeof(float)*cu->lines,"buildtext2");
@@ -358,7 +351,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			ct->linenr= lnr;
 			ct->charnr= cnr;
 			
-			/* alleen lege regels mogen kleiner dan 1 zijn */
+			/* only empty lines are allowed smaller than 1 */
 			if( linedist<1.0) {
 				if(i<slen && (cu->str[i+1]=='\r' || cu->str[i+1]=='\n')) yof-= linedist;
 				else yof-= 1.0;
@@ -393,7 +386,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		ct++;
 	}
 
-	/* met alle fontsettings plekken letters berekenen */
+	/* with fontsettings calc locations of characters */
 	if(cu->spacemode!=CU_LEFT && lnr>1) {
 		ct= chartransdata;
 
@@ -444,14 +437,14 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				if(maxy<ct->yof) maxy= ct->yof;
 			}
 			
-			/* we zetten de x-coordinaat exact op de curve, de y wordt geroteerd */
+			/* we put the x-coordinaat exact at the curve, the y is rotated */
 			
-			/* de lengte correctie */
+			/* length correction */
 			distfac= sizefac*cucu->path->totdist/(maxx-minx);
 			timeofs= 0.0;
 			
 			if(distfac > 1.0) {
-				/* pad langer dan tekst: spacemode doet mee */
+				/* path longer than text: spacemode involves */
 				distfac= 1.0f/distfac;
 				
 				if(cu->spacemode==CU_RIGHT) {
@@ -467,20 +460,20 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			
 			distfac/= (maxx-minx);
 			
-			timeofs+= distfac*cu->xof;	/* niet cyclic */
+			timeofs+= distfac*cu->xof;	/* not cyclic */
 			
 			ct= chartransdata;
 			for (i=0; i<=slen; i++, ct++) {
 				
-				/* roteren rond centrum letter */
+				/* rotate around centre character */
 				ascii = cu->str[i];
-				dtime= distfac*0.35f*vfd->width[ascii];	/* Waarom is 0.5 te groot? */
-				dtime= distfac*0.0f*vfd->width[ascii];	/* Waarom is 0.5 te groot? */
+				dtime= distfac*0.35f*vfd->width[ascii];	/* why not 0.5? */
+				dtime= distfac*0.0f*vfd->width[ascii];	/* why not 0.5? */
 				
 				ctime= timeofs + distfac*( ct->xof - minx);
 				CLAMP(ctime, 0.0, 1.0);
-				
-				/* de goede plek EN de goede rotatie apart berekenen */
+
+				/* calc the right loc AND the right rot separately */
 				where_on_path(cu->textoncurve, ctime, vec, tvec);
 				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec);
 				
@@ -503,8 +496,8 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 
 	if(mode==FO_CURSUP || mode==FO_CURSDOWN) {
-		/* 2: curs omhoog
-		   3: curs omlaag */
+		/* 2: curs up
+		   3: curs down */
 		ct= chartransdata+cu->pos;
 		
 		if(mode==FO_CURSUP && ct->linenr==0);
@@ -513,7 +506,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			if(mode==FO_CURSUP) lnr= ct->linenr-1;
 			else lnr= ct->linenr+1;
 			cnr= ct->charnr;
-			/* zoek karakter met lnr en cnr */
+			/* seek for char with lnr en cnr */
 			cu->pos= 0;
 			ct= chartransdata;
 			for (i= 0; i<slen; i++) {
@@ -528,7 +521,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		}
 	}
 	
-	/* eerst cursor */
+	/* cursor first */
 	if(ob==G.obedit) {
 		ct= chartransdata+cu->pos;
 		si= (float)sin(ct->rot);
@@ -551,7 +544,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	}
 
 	if(mode==0) {
-		/* nurbdata maken */
+		/* make nurbdata */
 		
 		freeNurblist(&cu->nurb);
 		
@@ -611,7 +604,7 @@ void font_duplilist(Object *par)
 	
 	Mat4CpyMat4(pmat, par->obmat);
 
-	/* in par staat een familienaam, deze gebruiken om objecten te vinden */
+	/* in par the family name is stored, use this to find the other objects */
 
 	chartransdata= text_to_curve(par, FO_DUPLI);
 	if(chartransdata==0) return;
@@ -643,8 +636,8 @@ void font_duplilist(Object *par)
 			newob= MEM_mallocN(sizeof(Object), "newobj dupli");
 			memcpy(newob, ob, sizeof(Object));
 			newob->flag |= OB_FROMDUPLI;
-			newob->id.newid= (ID *)par;		/* duplicator bewaren */
-			newob->totcol= par->totcol;	/* voor give_current_material */
+			newob->id.newid= (ID *)par;		/* keep duplicator */
+			newob->totcol= par->totcol;	/* for give_current_material */
 			
 			Mat4CpyMat4(newob->obmat, par->obmat);
 			VECCOPY(newob->obmat[3], vec);
