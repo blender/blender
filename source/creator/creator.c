@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 		
 		argc= 1;
 		
-		setprefsize(100, 100, 800, 600);
+		setprefsize(170, 100, 900, 768);
 		
 		winlay_get_screensize(&scr_x, &scr_y);
 		winlay_process_events(0);
