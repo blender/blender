@@ -1,11 +1,17 @@
 # The Blender Module
 
+# The module files in this folder are used to create the API documentation.
+# Doc system used: epydoc - http://epydoc.sf.net
+# command line: epydoc -t Blender.py -n "Blender" --no-private MODULES
+# where MODULES is a list of all such modules in this folder, like:
+# Blender.py Camera.py Lamp.py BGL.py etc.
+
 """
 Here goes the Introduction to Blender Python
 
 Let's see::
     - What scripting is, why have it
-    - What is Python, links
+    - What Python is, links
     - More about what scripting can give us
     - Overview of the Blender Python modules
     - Links to Blender, Blender Python, later: script lists
