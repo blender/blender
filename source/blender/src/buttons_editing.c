@@ -921,7 +921,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 	
 	uiDefButS(block, TOG|BIT|5, 0, "UV Orco",					600,160,150,19, &cu->flag, 0, 0, 0, 0, "");
 	if(ob->type==OB_SURF) 
-		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "No Puno Flip",	600,150,140,19, &cu->flag, 0, 0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "");
 
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 150, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
 	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");

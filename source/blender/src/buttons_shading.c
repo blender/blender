@@ -856,40 +856,37 @@ static void texture_panel_image1(Tex *tex)
 	char str[32];
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel1", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Crop and Anim", "Texture", 960, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Anim and Movie", "Texture", 960, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	if(tex->imaflag & TEX_ANIM5) {
-
-		/* print amount of frames anim */
-		if(tex->ima && tex->ima->anim) {
-			uiDefBut(block, BUT, B_TEXSETFRAMES, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "Paste number of frames in Frames: button");
-			sprintf(str, "%d frs  ", IMB_anim_get_duration(tex->ima->anim));
-			uiDefBut(block, LABEL, 0, str,      834, 110, 90, 18, 0, 0, 0, 0, 0, "");
-			sprintf(str, "%d cur  ", tex->ima->lastframe);
-			uiDefBut(block, LABEL, 0, str,      834, 90, 90, 18, 0, 0, 0, 0, 0, "");
-		}
-		else uiDefBut(block, LABEL, 0, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "");
-				
-		uiDefButS(block, NUM, B_TEXPRV, "Frames :",	642,110,150,19, &tex->frames, 0.0, 18000.0, 0, 0, "Activate animation option");
-		uiDefButS(block, NUM, B_TEXPRV, "Offset :",	642,90,150,19, &tex->offset, -9000.0, 9000.0, 0, 0, "Set the number of the first picture of the animation");
-		uiDefButS(block, NUM, B_TEXPRV, "Fie/Ima:",	642,60,98,19, &tex->fie_ima, 1.0, 200.0, 0, 0, "Set the number of fields per rendered frame");
-		uiDefButS(block, NUM, B_TEXPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, 9000.0, 0, 0, "Set the start frame of the animation");
-		uiDefButS(block, NUM, B_TEXPRV, "Len:",		642,10,150,19, &tex->len, 0.0, 9000.0, 0, 0, "Set the length of the animation");
-		
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,70,73,19, &(tex->fradur[0][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,50,73,19, &(tex->fradur[1][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,30,73,19, &(tex->fradur[2][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,10,73,19, &(tex->fradur[3][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_TEXPRV, "",			879,70,37,19, &(tex->fradur[0][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-		uiDefButS(block, NUM, B_TEXPRV, "",			879,50,37,19, &(tex->fradur[1][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-		uiDefButS(block, NUM, B_TEXPRV, "",			879,30,37,19, &(tex->fradur[2][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-		uiDefButS(block, NUM, B_TEXPRV, "",			879,10,37,19, &(tex->fradur[3][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-		uiBlockEndAlign(block);
-		uiDefButS(block, TOG|BIT|6, 0, "Cyclic",		743,60,48,19, &tex->imaflag, 0, 0, 0, 0, "Repeat animation image");
+	/* print amount of frames anim */
+	if(tex->ima && tex->ima->anim) {
+		uiDefBut(block, BUT, B_TEXSETFRAMES, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "Paste number of frames in Frames: button");
+		sprintf(str, "%d frs  ", IMB_anim_get_duration(tex->ima->anim));
+		uiDefBut(block, LABEL, 0, str,      834, 110, 90, 18, 0, 0, 0, 0, 0, "");
+		sprintf(str, "%d cur  ", tex->ima->lastframe);
+		uiDefBut(block, LABEL, 0, str,      834, 90, 90, 18, 0, 0, 0, 0, 0, "");
 	}
+	else uiDefBut(block, LABEL, 0, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "");
+			
+	uiDefButS(block, NUM, B_TEXPRV, "Frames :",	642,110,150,19, &tex->frames, 0.0, 18000.0, 0, 0, "Activate animation option");
+	uiDefButS(block, NUM, B_TEXPRV, "Offset :",	642,90,150,19, &tex->offset, -9000.0, 9000.0, 0, 0, "Set the number of the first picture of the animation");
+	uiDefButS(block, NUM, B_TEXPRV, "Fie/Ima:",	642,60,98,19, &tex->fie_ima, 1.0, 200.0, 0, 0, "Set the number of fields per rendered frame");
+	uiDefButS(block, NUM, B_TEXPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, 9000.0, 0, 0, "Set the start frame of the animation");
+	uiDefButS(block, NUM, B_TEXPRV, "Len:",		642,10,150,19, &tex->len, 0.0, 9000.0, 0, 0, "Set the length of the animation");
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,70,73,19, &(tex->fradur[0][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+	uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,50,73,19, &(tex->fradur[1][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+	uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,30,73,19, &(tex->fradur[2][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+	uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,10,73,19, &(tex->fradur[3][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_TEXPRV, "",			879,70,37,19, &(tex->fradur[0][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+	uiDefButS(block, NUM, B_TEXPRV, "",			879,50,37,19, &(tex->fradur[1][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+	uiDefButS(block, NUM, B_TEXPRV, "",			879,30,37,19, &(tex->fradur[2][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+	uiDefButS(block, NUM, B_TEXPRV, "",			879,10,37,19, &(tex->fradur[3][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+	uiBlockEndAlign(block);
+	uiDefButS(block, TOG|BIT|6, 0, "Cyclic",		743,60,48,19, &tex->imaflag, 0, 0, 0, 0, "Repeat animation image");
 }
 
 

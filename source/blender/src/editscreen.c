@@ -1869,20 +1869,24 @@ void setscreen(bScreen *sc)
 	test_scale_screen(sc);
 	testareas();
 	
-	for (sa= sc->areabase.first; sa; sa= sa->next) {
+	for(sa= sc->areabase.first; sa; sa= sa->next) {
 		SpaceLink *sl;
 
-		for (sl= sa->spacedata.first; sl; sl= sl->next) {
+		for(sl= sa->spacedata.first; sl; sl= sl->next) {
 			sl->area= sa;
 
-			if (sl->spacetype==SPACE_OOPS) {
-				SpaceOops *soops= (SpaceOops*) sl;
+			if(sl->spacetype==SPACE_OOPS) {
+				SpaceOops *soops= (SpaceOops *) sl;
 
 				/* patch for old files */
-				if (soops->v2d.cur.xmin==soops->v2d.cur.xmax) {
+				if(soops->v2d.cur.xmin==soops->v2d.cur.xmax) {
 					extern void init_v2d_oops(View2D*);
 					init_v2d_oops(&soops->v2d);
 				}
+			}
+			else if(sl->spacetype==SPACE_BUTS) {
+				SpaceButs *sbuts= (SpaceButs *)sl;
+				sbuts->re_align= 1;		// force an align call, maybe new panels were added, also for after file reading
 			}
 		}
 		
