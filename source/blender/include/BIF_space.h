@@ -51,9 +51,8 @@ struct BWinEvent;
 
 /* view3d handler codes */
 #define VIEW3D_HANDLER_BACKGROUND	1
-#define VIEW3D_HANDLER_VIEW			2
+#define VIEW3D_HANDLER_PROPERTIES	2
 #define VIEW3D_HANDLER_OBJECT		3
-#define VIEW3D_HANDLER_VERTEX		4
 
 /* ipo handler codes */
 #define IPO_HANDLER_SETTINGS	20

@@ -1163,7 +1163,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	}
 }
 
-static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
+static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 {
 	uiBlock *block;
 	View3D *vd;
@@ -1172,10 +1172,10 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	
 	vd= G.vd;
 
-	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_settings", UI_EMBOSS, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_background", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
-	if(uiNewPanel(curarea, block, "Backdrop and settings", "View3d", 10, 10, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Background", "View3d", 340, 10, 318, 204)==0) return;
 
 	if(vd->flag & V3D_DISPBGPIC) {
 		if(vd->bgpic==0) {
@@ -1217,6 +1217,21 @@ static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 			uiDefIconBut(block, BUT, B_BGPICTEXCLEAR, ICON_X, 290,80,20,19, 0, 0, 0, 0, 0, "Remove background texture link");
 		}
 	}
+}
+
+
+static void view3d_panel_properties(cntrl)	// VIEW3D_HANDLER_SETTINGS
+{
+	uiBlock *block;
+	View3D *vd;
+	
+	vd= G.vd;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "3D Viewport properties", "View3d", 10, 10, 318, 204)==0) return;
+
 
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Grid:",			10, 50, 150, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between gridlines");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "GridLines:",		160, 50, 150, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
@@ -1241,16 +1256,14 @@ static void view3d_blockhandlers(ScrArea *sa)
 	
 		switch(v3d->blockhandler[a]) {
 
-		case VIEW3D_HANDLER_BACKGROUND:
-			view3d_panel_settings(v3d->blockhandler[a+1]);	// 3d header
+		case VIEW3D_HANDLER_PROPERTIES:
+			view3d_panel_properties(v3d->blockhandler[a+1]);
 			break;
-		case VIEW3D_HANDLER_VIEW:
-			view3d_panel_settings(v3d->blockhandler[a+1]);	// 3d header
+		case VIEW3D_HANDLER_BACKGROUND:
+			view3d_panel_background(v3d->blockhandler[a+1]);
 			break;
 		case VIEW3D_HANDLER_OBJECT:
 			view3d_panel_object(v3d->blockhandler[a+1]);
-			break;
-		case VIEW3D_HANDLER_VERTEX:
 		
 			break;
 		
