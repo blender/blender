@@ -6,6 +6,8 @@ yafray_env = library_env.Copy ()
 
 source_files = ['intern/yafray_Render.cpp',
                 'intern/export_File.cpp',
+                'intern/export_Plugin.cpp',
+                'intern/yafexternal.cpp',
                 'intern/api.cpp']
 
 yafray_env.Append (CPPPATH = ['#/intern/guardedalloc',
@@ -13,6 +15,8 @@ yafray_env.Append (CPPPATH = ['#/intern/guardedalloc',
                               '../makesdna',
                               '../blenkernel',
                               '../imbuf',
-                              '../render/extern/include'])
+                              '../include',
+                              '../render/extern/include',
+                              '../render/intern/include'])
 
 yafray_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_yafray', source=source_files)

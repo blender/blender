@@ -5,6 +5,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+void YAF_switchPlugin();
+void YAF_switchFile();
 int YAF_exportScene();
 //void YAF_displayImage();
 void YAF_addDupliMtx(Object* obj);

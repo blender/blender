@@ -749,6 +749,10 @@ void yafrayRender()
 	printf("Starting scene conversion.\n");
 	prepareScene();
 	printf("Scene conversion done.\n");
+	if(!R.r.YFexportxml)
+		YAF_switchFile();
+	else
+		YAF_switchPlugin();
 	YAF_exportScene();
 	finalizeScene();
 }

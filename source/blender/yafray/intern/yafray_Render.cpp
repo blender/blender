@@ -45,7 +45,7 @@ bool yafrayRender_t::exportScene()
 		clearAll();
 		return false;
 	}
-
+	cout<<"Writing textures"<<endl;
 	// start actual data export
 	writeTextures();
 	writeMaterialsAndModulators();
