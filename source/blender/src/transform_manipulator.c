@@ -758,7 +758,8 @@ void BIF_draw_manipulator(ScrArea *sa)
 	float len1, len2, size, vec[3];
 	int totsel;
 	
-	if(v3d->twflag & V3D_USE_MANIPULATOR); else return;
+	if(!(v3d->twflag & V3D_USE_MANIPULATOR)) return;
+	if(G.moving && (G.moving & G_TRANSFORM_MANIP)==0) return;
 	
 	if(G.moving==0) {
 		v3d->twflag &= ~V3D_DRAW_MANIPULATOR;

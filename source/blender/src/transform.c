@@ -1592,7 +1592,7 @@ void ManipulatorTransform(int mode)
 	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
 	initTrans(&Trans);					// internal data, mouse, vectors
-
+	G.moving |= G_TRANSFORM_MANIP;		// signal to draw manipuls while transform
 	createTransData(&Trans);			// make TransData structs from selection
 
 	if (Trans.total == 0)

@@ -4248,7 +4248,7 @@ void draw_object(Base *base)
 	if((G.f & G_PICKSEL) == 0) {
 		project_short(ob->obmat[3], &base->sx);
 		
-		if(G.moving==1 && (base->flag & (SELECT+BA_PARSEL))) BIF_ThemeColor(TH_TRANSFORM);
+		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_PARSEL))) BIF_ThemeColor(TH_TRANSFORM);
 		else {
 		
 			BIF_ThemeColor(TH_WIRE);

@@ -351,8 +351,8 @@ void initTrans (TransInfo *t)
 {
 
 	/* moving: is shown in drawobject() (transform color) */
-	if(G.obedit) G.moving= 2;
-	else G.moving= 1;
+	if(G.obedit || G.obpose) G.moving= G_TRANSFORM_EDIT;
+	else G.moving= G_TRANSFORM_OBJ;
 
 	t->data = NULL;
 	t->ext = NULL;
