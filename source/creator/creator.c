@@ -29,7 +29,21 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
+/**
+ * \file creator.c
+ * \ingroup mainmodule
+ * \brief The main blender function is defined here.
+ *
+ * This file contains the int main(int,char**) function along with some helper
+ * functions.
+ *
+ * \todo clear out unnecessary includes
+ *
+ */
+/**
+ * \defgroup main_helpers Helpers
+ * \ingroup mainmodule
+ */
 #include <stdlib.h>
 
 #ifdef HAVE_CONFIG_H
@@ -111,10 +125,16 @@ extern char * build_platform;
 extern char * build_type;
 
 /*	Local Function prototypes */
+
 static void print_help();
 
 /* for the callbacks: */
 
+/**
+ * For callback functions. What does this do?
+ * \ingroup main_helpers
+ * \ingroup undoc
+ */
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
 char bprogname[FILE_MAXDIR+FILE_MAXFILE];
