@@ -4230,6 +4230,7 @@ void allqueue(unsigned short event, short val)
 				break;
 			case REDRAWINFO:
 				if(sa->spacetype==SPACE_INFO) {
+					scrarea_queue_winredraw(sa);
 					scrarea_queue_headredraw(sa);
 				}
 				break;

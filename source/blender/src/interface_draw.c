@@ -91,7 +91,31 @@
 // globals
 extern float UIwinmat[4][4];
 
+/* ************** safe rasterpos for pixmap alignment with pixels ************* */
 
+void ui_rasterpos_safe(float x, float y, float aspect)
+{
+	float vals[4], remainder;
+	int doit=0;
+	
+	glRasterPos2f(x, y);
+	glGetFloatv(GL_CURRENT_RASTER_POSITION, vals);
+
+	remainder= vals[0] - floor(vals[0]);
+	if(remainder > 0.4 && remainder < 0.6) {
+		if(remainder < 0.5) x -= 0.1*aspect;
+		else x += 0.1*aspect;
+		doit= 1;
+	}
+	remainder= vals[1] - floor(vals[1]);
+	if(remainder > 0.4 && remainder < 0.6) {
+		if(remainder < 0.5) y -= 0.1*aspect;
+		else y += 0.1*aspect;
+		doit= 1;
+	}
+	
+	if(doit) glRasterPos2f(x, y);
+}
 
 /* ************** generic embossed rect, for window sliders etc ************* */
 
@@ -1039,7 +1063,12 @@ static void round_button(float x1, float y1, float x2, float y2, float asp, int 
 
 	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
 	
+	glEnable( GL_LINE_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad);
+	glDisable( GL_LINE_SMOOTH );
+	glDisable( GL_BLEND );
 }
 
 /* button in midst of alignment row */
@@ -1278,59 +1307,75 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 
 }
 
-/* ************** STANDARD MENU DRAWING FUNCTION (no callback yet) ************* */
+/* ************** STANDARD MENU DRAWING FUNCTION ************* */
 
 
-// background for pulldowns, pullups, and other frontbuffer drawing temporal menus....
+static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
+{
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glShadeModel(GL_SMOOTH);
+	
+	/* right quad */
+	glBegin(GL_POLYGON);
+	glColor4ub(0, 0, 0, alpha);
+	glVertex2f(maxx, miny);
+	glVertex2f(maxx, maxy-shadsize);
+	glColor4ub(0, 0, 0, 0);
+	glVertex2f(maxx+shadsize, maxy-shadsize-shadsize);
+	glVertex2f(maxx+shadsize, miny);
+	glEnd();
+	
+	/* corner shape */
+	glBegin(GL_POLYGON);
+	glColor4ub(0, 0, 0, alpha);
+	glVertex2f(maxx, miny);
+	glColor4ub(0, 0, 0, 0);
+	glVertex2f(maxx+shadsize, miny);
+	glVertex2f(maxx+0.7*shadsize, miny-0.7*shadsize);
+	glVertex2f(maxx, miny-shadsize);
+	glEnd();
+	
+	/* bottom quad */		
+	glBegin(GL_POLYGON);
+	glColor4ub(0, 0, 0, alpha);
+	glVertex2f(minx+shadsize, miny);
+	glVertex2f(maxx, miny);
+	glColor4ub(0, 0, 0, 0);
+	glVertex2f(maxx, miny-shadsize);
+	glVertex2f(minx+shadsize+shadsize, miny-shadsize);
+	glEnd();
+	
+	glDisable(GL_BLEND);
+	glShadeModel(GL_FLAT);
+}
+
+// background for pulldowns, pullups, and other drawing temporal menus....
 // has to be made themable still (now only color)
 
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag)
 {
 
 	if( (flag & UI_BLOCK_NOSHADOW)==0) {
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
+		/* accumulated outline boxes to make shade not linear, is more pleasant */
+		ui_shadowbox(minx, miny, maxx, maxy, 6.0, 30);
+		ui_shadowbox(minx, miny, maxx, maxy, 4.0, 70);
+		ui_shadowbox(minx, miny, maxx, maxy, 2.0, 100);
 		
-		glColor4ub(0, 0, 0, 20);
-		
-		/* to prevent gaps being drawn between box and shadow (rounding errors?) */
-		fdrawline(minx+3, miny+0.25, maxx+0.25, miny+0.25);
-		fdrawline(maxx+0.25, miny+0.25, maxx+0.25, maxy-3);
-		
-		glColor4ub(0, 0, 0, 70);
-		fdrawline(minx+3, miny, maxx+1, miny);
-		fdrawline(maxx+1, miny, maxx+1, maxy-3);
-		
-		glColor4ub(0, 0, 0, 70);
-		fdrawline(minx+3, miny-1, maxx+1, miny-1);
-		fdrawline(maxx+1, miny-1, maxx+1, maxy-3);
-	
-		glColor4ub(0, 0, 0, 55);
-		fdrawline(minx+3, miny-2, maxx+2, miny-2);
-		fdrawline(maxx+2, miny-2, maxx+2, maxy-3);
-	
-		glColor4ub(0, 0, 0, 35);
-		fdrawline(minx+3, miny-3, maxx+3, miny-3);
-		fdrawline(maxx+3, miny-3, maxx+3, maxy-3);
-	
-		glColor4ub(0, 0, 0, 20);
-		fdrawline(minx+3, miny-4, maxx+4, miny-4);
-		fdrawline(maxx+4, miny-4, maxx+4, maxy-3);
-		
-		glDisable(GL_BLEND);
 	}
 	BIF_ThemeColor(TH_MENU_BACK);
 
 	glRectf(minx, miny, maxx, maxy);
 }
 
-/* pulldown menu */
-static void ui_draw_pulldown(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
+/* pulldown menu item */
+static void ui_draw_pulldown_item(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 
 	if(flag & UI_ACTIVE) {
 		BIF_ThemeColor(TH_MENU_HILITE);
 		glRectf(x1-1, y1, x2+2, y2);
+	
 
 	} else {
 		BIF_ThemeColor(colorid);	// is set at TH_MENU_ITEM when pulldown opened.
@@ -1339,7 +1384,29 @@ static void ui_draw_pulldown(int type, int colorid, float asp, float x1, float y
 
 }
 
+/* pulldown menu calling button */
+static void ui_draw_pulldown_round(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
+{
+	
+	if(flag & UI_ACTIVE) {
+		BIF_ThemeColor(TH_MENU_HILITE);
 
+		uiSetRoundBox(15);
+		gl_round_box(GL_POLYGON, x1, y1+3, x2, y2-3, 7.0);
+
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		gl_round_box(GL_LINE_LOOP, x1, y1+3, x2, y2-3, 7.0);
+		glDisable( GL_LINE_SMOOTH );
+		glDisable( GL_BLEND );
+		
+	} else {
+		BIF_ThemeColor(colorid);	// is set at TH_MENU_ITEM when pulldown opened.
+		glRectf(x1-1, y1+2, x2+1, y2-2);
+	}
+	
+}
 
 
 /* ************** TEXT AND ICON DRAWING FUNCTIONS ************* */
@@ -1395,7 +1462,7 @@ static void ui_draw_text_icon(uiBut *but)
 		}
 		
 		/* text color, with pulldown item exception */
-		if(but->embossfunc==ui_draw_pulldown) {
+		if(but->dt==UI_EMBOSSP) {
 			if(but->flag & (UI_SELECT|UI_ACTIVE)) {		
 				BIF_ThemeColor(TH_MENU_TEXT_HI);
 			} else {
@@ -1429,13 +1496,13 @@ static void ui_draw_text_icon(uiBut *but)
 		/* LABEL button exception */
 		if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
 	
-		glRasterPos2f( floor(x), floor((but->y1+but->y2- 9.0)/2.0));
+		ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
 		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
 
 		/* part text right aligned */
 		if(cpoin) {
 			len= BIF_GetStringWidth(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
-			glRasterPos2f( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0);
+			ui_rasterpos_safe( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0, but->aspect);
 			BIF_DrawString(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
 			*cpoin= '|';
 		}
@@ -1608,15 +1675,18 @@ static void ui_draw_nothing(int type, int colorid, float asp, float x1, float y1
 
 void ui_set_embossfunc(uiBut *but, int drawtype)
 {
-
+	// this aded for evaluating textcolor for example
+	but->dt= drawtype;
+	
 	// not really part of standard minimal themes, just make sure it is set
 	but->sliderfunc= ui_draw_slider;
 
 	// standard builtin first:
 	if(but->type==LABEL) but->embossfunc= ui_draw_nothing;
+	else if(but->type==PULLDOWN) but->embossfunc= ui_draw_pulldown_round;
 	else if(drawtype==UI_EMBOSSM) but->embossfunc= ui_draw_minimal;
 	else if(drawtype==UI_EMBOSSN) but->embossfunc= ui_draw_nothing;
-	else if(drawtype==UI_EMBOSSP) but->embossfunc= ui_draw_pulldown;
+	else if(drawtype==UI_EMBOSSP) but->embossfunc= ui_draw_pulldown_item;
 	else {
 		int theme= BIF_GetThemeValue(TH_BUT_DRAWTYPE);
 		
@@ -1647,14 +1717,9 @@ void ui_draw_but(uiBut *but)
 	
 	if(but==0) return;
 
-	if(but->block->frontbuf==UI_NEED_DRAW_FRONT) {
-		but->block->frontbuf= UI_HAS_DRAW_FRONT;
-	
-		glDrawBuffer(GL_FRONT);
-		if(but->win==curarea->headwin) curarea->head_swap= WIN_FRONT_OK;
-		else curarea->win_swap= WIN_FRONT_OK;
-	}
-	
+	/* signal for flush buttons and menus */
+	ui_block_set_flush(but->block, but);
+		
 	switch (but->type) {
 
 	case NUMSLI:

@@ -353,15 +353,15 @@ void nla_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block, nla_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, nla_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block, nla_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, nla_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Strip");
-		uiDefBlockBut(block, nla_stripmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, nla_stripmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
 	}

@@ -314,21 +314,24 @@ void areawinset(short win)
 void headerbox(ScrArea *area)
 {
 	float width= area->winx;
+	int active=0;
 
 	glClearColor(SCR_BACK, SCR_BACK, SCR_BACK, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	if(area_is_active_area(area)) BIF_ThemeColor(TH_HEADER);
+	active= area_is_active_area(area);
+
+	if(active) BIF_ThemeColor(TH_HEADER);
 	else BIF_ThemeColor(TH_HEADERDESEL);
 
 	/* weird values here... is because of window matrix that centres buttons */
 	if(area->headertype==HEADERTOP) {
 		uiSetRoundBox(3);
-		uiRoundBoxEmboss(-0.5+area->headbutofs, -10.0, width-1.5+area->headbutofs, HEADERY-2.0, SCR_ROUND);
+		uiRoundBoxEmboss(-0.5+area->headbutofs, -10.0, width-1.5+area->headbutofs, HEADERY-2.0, SCR_ROUND, active);
 	}
 	else {
 		uiSetRoundBox(12);
-		uiRoundBoxEmboss(-0.5+area->headbutofs, -3.5, width-1.5+area->headbutofs, HEADERY+10, SCR_ROUND);
+		uiRoundBoxEmboss(-0.5+area->headbutofs, -3.5, width-1.5+area->headbutofs, HEADERY+10, SCR_ROUND, active);
 	}
 	
 	uiSetRoundBox(15);
@@ -552,7 +555,6 @@ static void scrarea_dispatch_events(ScrArea *sa)
 void markdirty_all()
 {
 	ScrArea *sa;
-
 	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		if(sa->win) {
 			scrarea_queue_winredraw(sa);
@@ -564,6 +566,31 @@ void markdirty_all()
 		}
 	}
 }
+
+/* but no redraw! */
+void markdirty_all_back(void)
+{
+	ScrArea *sa;
+	
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->win) {
+			sa->win_swap &= ~WIN_BACK_OK;
+		}
+		if(sa->headwin) {
+			sa->head_swap &= ~WIN_BACK_OK;
+		}
+	}
+}
+
+void markdirty_win_back(short winid)
+{
+	ScrArea *sa= areawinar[winid];
+	if(sa) {
+		if(sa->win==winid) sa->win_swap &= ~WIN_BACK_OK;
+		else sa->head_swap &= ~WIN_BACK_OK;
+	}
+}
+
 
 int is_allowed_to_change_screen(bScreen *new)
 {
@@ -2923,7 +2950,7 @@ void draw_area_emboss(ScrArea *sa)
 	if(FALSE && sa->spacetype==SPACE_VIEW3D) {
 	cpack(0xA0A0A0);
 	uiSetRoundBox(31);
-	uiRoundBoxEmboss(5.0, 5.0, 25.0, 100.0, 8.0);
+	uiRoundBoxEmboss(5.0, 5.0, 25.0, 100.0, 8.0, 0);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 

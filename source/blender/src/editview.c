@@ -564,6 +564,7 @@ int gesture(void)
 			PIL_sleep_ms(10);
 			timer++;
 			if(timer>=10*U.tb_leftmouse) {
+				glDrawBuffer(GL_BACK); /* !! */
 				toolbox_n();
 				return 1;
 			}

@@ -381,7 +381,6 @@ void do_info_buttons(unsigned short event)
 	int nr;
 
 	switch(event) {
-
 	case B_INFOSCR:		/* menu select screen */
 
 		if( G.curscreen->screennr== -2) {
@@ -1802,37 +1801,39 @@ static void info_text(int x, int y)
 		strcat(infostr, ob->id.name+2);
 	}
 
+	if (g_progress_bar && g_progress_info) {
+		headerstr= g_progress_info;
+	} else {
+		headerstr= versionstr; 
+	}
+
 	if	(g_progress_bar) {
 		hsize = 4 + (138.0 * g_done);
 		fac1 = 0.5 * g_done; // do some rainbow colours on progress
 		fac2 = 1.0;
 		fac3 = 0.9;
 	} else {
-		hsize = 142;
+		hsize= 30+BIF_GetStringWidth(G.font, headerstr, (U.transopts & USER_TR_BUTTONS));
+
 		/* promise! Never change these lines again! (zr & ton did!) */
 		fac1= fabs(hashvectf[ 2*G.version+4]);
 		fac2= 0.5+0.1*hashvectf[ G.version+3];
 		fac3= 0.7;
 	}
-
-	if (g_progress_bar && g_progress_info) {
-		headerstr= g_progress_info;
-	} else {
-		headerstr= versionstr; 
-	}
 	
 	swatch_color= hsv_to_cpack(fac1, fac2, fac3);
 
 	cpack( swatch_color );
-	glRecti(x-24,  y-6,  x-22+hsize,	y+14);
+	glRecti(x-24,  y-6,  x-30+hsize,	y+14);
 
 	glColor3ub(0, 0, 0);
 
 	glRasterPos2i(x, y);
 
 	BIF_DrawString(G.font, headerstr, (U.transopts & USER_TR_MENUS));
-		
-	glRasterPos2i(x+122,	y);
+	hsize= BIF_GetStringWidth(G.font, headerstr, (U.transopts & USER_TR_BUTTONS));
+	
+	glRasterPos2i(x+hsize+10,	y);
 
 	BIF_DrawString(G.font, infostr, (U.transopts & USER_TR_MENUS));
 }
@@ -1867,27 +1868,27 @@ void info_buttons(void)
 		 * menu is drawn wider than it should be. The ypos of -1 is to make it properly fill the
 		 * height of the header */
 		xmax= GetButStringLength("File");
-		uiDefBlockBut(block, info_filemenu, NULL, "File",	xco, -1, xmax-3, 22, "");
+		uiDefPulldownBut(block, info_filemenu, NULL, "File",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Add");
-		uiDefBlockBut(block, info_addmenu, NULL, "Add",	xco, -1, xmax-3, 22, "");
+		uiDefPulldownBut(block, info_addmenu, NULL, "Add",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Timeline");
-		uiDefBlockBut(block, info_timelinemenu, NULL, "Timeline",	xco, -1, xmax-3, 22, "");
+		uiDefPulldownBut(block, info_timelinemenu, NULL, "Timeline",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Game");
-		uiDefBlockBut(block, info_gamemenu, NULL, "Game",	xco, -1, xmax-3, 22, "");
+		uiDefPulldownBut(block, info_gamemenu, NULL, "Game",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Render");
-		uiDefBlockBut(block, info_rendermenu, NULL, "Render",	xco, -1, xmax-3, 22, "");
+		uiDefPulldownBut(block, info_rendermenu, NULL, "Render",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Help");
-		uiDefBlockBut(block, info_helpmenu, NULL, "Help",	xco, -1, xmax-3, 22, "");
+		uiDefPulldownBut(block, info_helpmenu, NULL, "Help",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 	}

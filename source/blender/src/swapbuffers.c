@@ -40,6 +40,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -114,7 +115,6 @@ static void screen_swapbuffers_REDRAW(bScreen *sc)
 	while(sa) {
 		swap= sa->win_swap;
 		if( (swap & WIN_BACK_OK) == 0) {
-			
 			scrarea_do_windraw(sa);
 
 			doswap= 1;

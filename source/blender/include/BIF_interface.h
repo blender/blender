@@ -147,6 +147,7 @@ struct ScrArea;
 #define KEYEVT	(24<<9)
 #define ICONTEXTROW (25<<9)
 #define HSVCUBE (26<<9)
+#define PULLDOWN (27<<9)
 
 #define BUTTYPE	(31<<9)
 
@@ -156,7 +157,7 @@ typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
 
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
-void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad);
+void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad, int active);
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
@@ -237,6 +238,7 @@ void uiDefIDPoinBut(struct uiBlock *block,
 
 typedef uiBlock* (*uiBlockFuncFP)	(void *arg1);
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefPulldownBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 

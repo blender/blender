@@ -89,7 +89,11 @@ void add_readfile_event(char *filename);
 short ext_qtest(void);
 unsigned short extern_qread(short *val);
 unsigned short extern_qread_ext(short *val, char *ascii);
-void markdirty_all(void);
+
+extern void markdirty_all(void); // also sets redraw event
+extern void markdirty_all_back(void);
+extern void markdirty_win_back(short winid);
+	
 void screen_swapbuffers(void);
 void set_debug_swapbuffers_ovveride(struct bScreen *sc, int mode);
 int is_allowed_to_change_screen(struct bScreen *newp);

@@ -411,7 +411,6 @@ void viewmove(int mode)
 	
 	/* sometimes this routine is called from headerbuttons */
 	areawinset(curarea->win);
-	curarea->head_swap= 0;
 	
 	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
 	
@@ -580,8 +579,6 @@ void viewmove(int mode)
 		/* this in the end, otherwise get_mbut does not work on a PC... */
 		if( !(get_mbut() & (L_MOUSE|M_MOUSE))) break;
 	}
-
-	curarea->head_swap= WIN_FRONT_OK;
 }
 
 short v3d_windowmode=0;

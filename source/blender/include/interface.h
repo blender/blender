@@ -51,9 +51,8 @@
 /* warn: rest of uiBut->flag in BIF_interface.c */
 
 
-/* block->frontbuf: (only internal here), to nice localize the old global var uiFrontBuf */
-#define UI_NEED_DRAW_FRONT 		1
-#define UI_HAS_DRAW_FRONT 		2
+/* block->frontbuf: (only internal here). this signals something was drawn, for flush */
+#define UI_HAS_DRAWN 	1
 
 
 /* internal panel drawing defines */
@@ -141,7 +140,7 @@ struct uiBut {
 	BIFIconID icon;
 	short but_align;	/* aligning buttons, horiz/vertical */
 	short lock, win;
-	short iconadd;
+	short iconadd, dt;
 
 		/* IDPOIN data */
 	uiIDPoinFuncFP idpoin_func;
@@ -187,34 +186,41 @@ struct uiBlock {
 	int afterval, flag;
 	void *curfont;
 	
-	short autofill, win, winq, direction, dt, frontbuf, auto_open;  //frontbuf see below
-	void *saveunder;
+	short autofill, win, winq, direction, dt, frontbuf, auto_open, pad;  //frontbuf see below
+	void *overdraw;
 	
 	float xofs, yofs;  	// offset to parent button
 	rctf parentrct;		// for pulldowns, rect the mouse is allowed outside of menu (parent button)
 	rctf safety;		// pulldowns, to detect outside, can differ per case how it is created
 	
+	rctf flush;			// rect to be flushed to frontbuffer
 	int handler;		// for panels in other windows than buttonswin... just event code
 };
 
 /* interface.c */
+
+extern void ui_graphics_to_window(int win, float *x, float *y);
+extern void ui_window_to_graphics(int win, float *x, float *y);
+
+extern void ui_block_flush_back(uiBlock *block);
+extern void ui_block_set_flush(uiBlock *block, uiBut *but);
+
 extern void ui_check_but(uiBut *but);
 extern double ui_get_but_val(uiBut *but);
 extern void ui_get_but_vectorf(uiBut *but, float *vec);
 extern void ui_set_but_vectorf(uiBut *but, float *vec);
 extern void ui_autofill(uiBlock *block);
-extern void ui_graphics_to_window(int win, float *x, float *y);
-extern void ui_window_to_graphics(int win, float *x, float *y);
 
 /* interface_panel.c */
 extern void ui_draw_panel(uiBlock *block);
 extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shade);
+extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 
 /* interface_draw.c */
 extern void ui_set_embossfunc(uiBut *but, int drawtype);
 extern void ui_draw_but(uiBut *but);
+extern void ui_rasterpos_safe(float x, float y, float aspect);
 
 
 #endif

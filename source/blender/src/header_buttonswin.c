@@ -678,7 +678,7 @@ void buts_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("Panels");
-		uiDefBlockBut(block, buts_viewmenu, NULL, 
+		uiDefPulldownBut(block, buts_viewmenu, NULL, 
 					  "Panels", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 

@@ -129,7 +129,8 @@ void give_oopslink_line(Oops *oops, OopsLink *ol, float *v1, float *v2)
 void draw_oopslink(Oops *oops)
 {
 	OopsLink *ol;
-	float vec[4];
+	float vec[4][3], dist;
+	int a;
 	
 	if(oops->type==ID_SCE) {
 		if(oops->flag & SELECT) {
@@ -146,15 +147,36 @@ void draw_oopslink(Oops *oops)
 		else cpack(0x0);
 	}
 	
+	glEnable(GL_MAP1_VERTEX_3);
+	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0;
+	
 	ol= oops->link.first;
 	while(ol) {
 		if(ol->to && ol->to->hide==0) {
 			
-			give_oopslink_line(oops, ol, vec, vec+2);
+			give_oopslink_line(oops, ol, vec[0], vec[3]);
+			
+			dist= 0.5*VecLenf(vec[0], vec[3]);
+			
+			/* check ol->xof and yof for direction */
+			if(ol->xof <= 0.0) {
+				vec[1][0]= vec[0][0]-dist;
+				vec[1][1]= vec[0][1];
+			}
+			else {
+				vec[1][0]= vec[0][0];
+				vec[1][1]= vec[0][1]+dist;
+			}
+			/* v3 is always pointing down */
+			vec[2][0]= vec[3][0];
+			vec[2][1]= vec[3][1] - dist;
+
+			glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
 			
 			glBegin(GL_LINE_STRIP);
-			glVertex2fv(vec);
-			glVertex2fv(vec+2);
+			for(a=0; a<=30; a++) {
+				glEvalCoord1f((float)a/30.0);
+			}
 			glEnd();
 		}
 		ol= ol->next;

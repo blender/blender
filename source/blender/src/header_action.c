@@ -730,17 +730,17 @@ void action_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block, action_viewmenu, NULL, 
+		uiDefPulldownBut(block, action_viewmenu, NULL, 
 					  "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block, action_selectmenu, NULL, 
+		uiDefPulldownBut(block, action_selectmenu, NULL, 
 					  "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 	
 		xmax= GetButStringLength("Key");
-		uiDefBlockBut(block, action_keymenu, NULL, 
+		uiDefPulldownBut(block, action_keymenu, NULL, 
 					  "Key", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 	}

@@ -146,8 +146,8 @@ void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
 
 	gx= *x;
 	gy= *y;
-	*x= sx + getsizex*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
-	*y= sy + getsizey*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
+	*x= ((float)sx) + ((float)getsizex)*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
+	*y= ((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
 }
 
 
@@ -159,13 +159,13 @@ void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
 		
 	bwin_getsize(win, &getsizex, &getsizey);
 
-	a= .5*getsizex*UIwinmat[0][0];
-	b= .5*getsizex*UIwinmat[1][0];
-	c= .5*getsizex*(1.0+UIwinmat[3][0]);
+	a= .5*((float)getsizex)*UIwinmat[0][0];
+	b= .5*((float)getsizex)*UIwinmat[1][0];
+	c= .5*((float)getsizex)*(1.0+UIwinmat[3][0]);
 
-	d= .5*getsizey*UIwinmat[0][1];
-	e= .5*getsizey*UIwinmat[1][1];
-	f= .5*getsizey*(1.0+UIwinmat[3][1]);
+	d= .5*((float)getsizey)*UIwinmat[0][1];
+	e= .5*((float)getsizey)*UIwinmat[1][1];
+	f= .5*((float)getsizey)*(1.0+UIwinmat[3][1]);
 	
 	px= *x;
 	py= *y;
@@ -178,107 +178,193 @@ void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
 
 /* ************* SAVE UNDER ************ */
 
+/* new method: 
+
+OverDraw *ui_begin_overdraw(int minx, int miny, int maxx, int maxy);
+- enforces mainwindow to become active
+- grabs copy from frontbuffer, pastes in back
+
+void ui_flush_overdraw(OverDraw *od);
+- copies backbuffer to front
+
+void ui_refresh_overdraw(Overdraw *od);
+- pastes in back copy of frontbuffer again for fresh drawing
+
+void ui_end_overdraw(OverDraw *od);
+- puts back on frontbuffer saved image
+- frees copy
+- sets back active blender area
+- signals backbuffer to be corrupt (sel buffer!)
+
+*/
+
+/* frontbuffer updates now glCopyPixels too, with block->flush rect */
+
+/* new idea for frontbuffer updates:
+
+- hilites: with blended poly?
+
+- full updates... thats harder, but:
+  - copy original
+  - before draw, always paste to backbuf
+  - flush
+  - always end with redraw event for full update
+
+*/
+
 typedef struct {
 	short x, y, sx, sy, oldwin;
-	int oldcursor;
 	unsigned int *rect;
-} uiSaveUnder;
+} uiOverDraw;
 
 
-static void ui_paste_under(uiSaveUnder *su)
+static uiOverDraw *ui_begin_overdraw(int minx, int miny, int maxx, int maxy)
 {
+	uiOverDraw *od=NULL;
 	
-	if(su) {
+	// dirty patch removed for sun and sgi to mywindow.c commented out
+	
+	/* clip with actual window size */
+	if(minx < 0) minx= 0;
+	if(miny < 0) miny= 0;
+	if(maxx >= G.curscreen->sizex) maxx= G.curscreen->sizex-1;
+	if(maxy >= G.curscreen->sizey) maxy= G.curscreen->sizey-1;
+
+	if(minx<maxx && miny<maxy) {
+		od= MEM_callocN(sizeof(uiOverDraw), "overdraw");	
+		
+		od->x= minx;
+		od->y= miny;
+		od->sx= maxx-minx;
+		od->sy= maxy-miny;
+		od->rect= MEM_mallocN(od->sx*od->sy*4, "temp_frontbuffer_image");
+
+		od->oldwin= mywinget();
+		mywinset(G.curscreen->mainwin);
+		/* grab front */
+		glReadBuffer(GL_FRONT);
+		glReadPixels(od->x, od->y, od->sx, od->sy, GL_RGBA, GL_UNSIGNED_BYTE, od->rect);
+		glReadBuffer(GL_BACK);
+		/* paste in back */
 		glDisable(GL_DITHER);
-		glRasterPos2f( su->x,  su->y );
-		glDrawPixels(su->sx, su->sy, GL_RGBA, GL_UNSIGNED_BYTE, su->rect);
+		glRasterPos2f(od->x, od->y);
+		glDrawPixels(od->sx, od->sy, GL_RGBA, GL_UNSIGNED_BYTE, od->rect);
 		glEnable(GL_DITHER);
-
-		if(su->oldwin) {
-			mywinset(su->oldwin);
-			if (su->oldcursor) {
-				set_cursor(su->oldcursor);
-			}
-		}
-		
-		MEM_freeN(su->rect);
-		MEM_freeN(su);
-	}
-}
-
-
-static uiSaveUnder *ui_save_under(int x, int y, int sx, int sy)
-{
-	uiSaveUnder *su=NULL;
-	
-	if(sx>1 && sy>1) {
-		
-		su= MEM_callocN(sizeof(uiSaveUnder), "save under");	
-		
-		su->rect= MEM_mallocN(sx*sy*4, "temp_frontbuffer_image");
-		su->x= x;
-		su->y= y;
-		su->sx= sx;
-		su->sy= sy;
-		glReadPixels(x, y, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE, su->rect);
 	}
 	
-	return su;
+	return od;
 }
 
-
-static uiSaveUnder *ui_bgnpupdraw(int startx, int starty, int endx, int endy, int cursor)
+static void ui_flush_overdraw(uiOverDraw *od)
 {
-	uiSaveUnder *su;
-	short oldwin;
-	
-	#if defined(__sgi) || defined(__sun) || defined(__sun__) || defined (__sparc) || defined (__sparc__)
 
-	/* this is a dirty patch: gets sometimes the backbuffer */
-	my_get_frontbuffer_image(0, 0, 1, 1);
-	my_put_frontbuffer_image();
-	#endif
-
-	oldwin= mywinget();
-
-	mywinset(G.curscreen->mainwin);
-	
-	/* tinsy bit larger, 1 pixel on the edge */
-	
-	glReadBuffer(GL_FRONT);
+	if(od==NULL) return;
+	glDisable(GL_DITHER);
 	glDrawBuffer(GL_FRONT);
-	
-	/* for geforce and other cards */
+	glRasterPos2s(od->x, od->y);
+	glCopyPixels(od->x, od->y, od->sx, od->sy, GL_COLOR);
+	glEnable(GL_DITHER);
 	glFlush();
-
-	su= ui_save_under(startx-1, starty-1, endx-startx+2, endy-starty+6);
-	if(su) su->oldwin= oldwin;
-	
-	if(su && cursor) {
-		su->oldcursor= get_cursor();
-		set_cursor(CURSOR_STD);
-	}
-	
-	return su;
-}
-
-static void ui_endpupdraw(uiSaveUnder *su)
-{
-
-	/* for geforce and other cards */
-
-	glReadBuffer(GL_FRONT);
-	glDrawBuffer(GL_FRONT);
-	
-	glFlush();
-
-	if(su) {
-		ui_paste_under(su);
-	}
-	glReadBuffer(GL_BACK);
 	glDrawBuffer(GL_BACK);
 }
 
+static void ui_end_overdraw(uiOverDraw *od)
+{
+	if(od==NULL) return;
+	
+	glDisable(GL_DITHER);
+
+	// clear in back
+	glRasterPos2s(od->x, od->y);
+	glDrawPixels(od->sx, od->sy, GL_RGBA, GL_UNSIGNED_BYTE, od->rect);
+
+	// clear in front
+	glDrawBuffer(GL_FRONT);
+	glRasterPos2s(od->x, od->y);
+	glDrawPixels(od->sx, od->sy, GL_RGBA, GL_UNSIGNED_BYTE, od->rect);
+
+	glFlush();
+	glDrawBuffer(GL_BACK);
+	glEnable(GL_DITHER);
+	
+	if(od->oldwin) mywinset(od->oldwin);
+	
+	MEM_freeN(od->rect);
+	MEM_freeN(od);
+
+	markdirty_all_back();	// sets flags only
+	
+	/* todo; backbuffer selection redraw */
+}
+
+/* ****************** live updates for hilites and button presses *********** */
+
+void ui_block_flush_back(uiBlock *block)
+{
+	int minx, miny, sizex, sizey;
+	
+	/* note; this routine also has to work for block loop */
+	if(block->frontbuf==0) return;
+
+	/* copy pixels works on window coords, so we move to window space */
+
+	ui_graphics_to_window(block->win, &block->flush.xmin, &block->flush.ymin);
+	ui_graphics_to_window(block->win, &block->flush.xmax, &block->flush.ymax);
+	minx= floor(block->flush.xmin);
+	miny= floor(block->flush.ymin);
+	sizex= ceil(block->flush.xmax-block->flush.xmin);
+	sizey= ceil(block->flush.ymax-block->flush.ymin);
+
+	if(sizex>0 && sizey>0) {
+		glPushMatrix();
+		mywinset(G.curscreen->mainwin);
+		
+		glDisable(GL_DITHER);
+		glDrawBuffer(GL_FRONT);
+		glRasterPos2i(minx, miny);
+		glCopyPixels(minx, miny, sizex, sizey, GL_COLOR);
+		glEnable(GL_DITHER);
+		glFlush();
+		glDrawBuffer(GL_BACK);
+
+		mywinset(block->win);
+		glPopMatrix();
+		
+		markdirty_win_back(block->win);
+	}
+	
+	block->frontbuf= 0; 
+}
+
+/* merge info for live updates in frontbuf */
+void ui_block_set_flush(uiBlock *block, uiBut *but)
+{
+	/* clear signal */
+	if(but==NULL) {
+		block->frontbuf= 0; 
+
+		block->flush.xmin= 0.0;
+		block->flush.xmax= 0.0;
+	}
+	else {
+		if(block->frontbuf==0) {
+			/* first rect */
+			block->flush.xmin= but->x1;
+			block->flush.xmax= but->x2;
+			block->flush.ymin= but->y1;
+			block->flush.ymax= but->y2;
+		}
+		else {
+			/* union of rects */
+			if(block->flush.xmin > but->x1) block->flush.xmin= but->x1;
+			if(block->flush.xmax < but->x2) block->flush.xmax= but->x2;
+			if(block->flush.ymin > but->y1) block->flush.ymin= but->y1;
+			if(block->flush.ymax < but->y2) block->flush.ymax= but->y2;
+		}
+		block->frontbuf= UI_HAS_DRAWN;
+		
+	}
+}
 
 
 /* ******************* block calc ************************* */
@@ -365,20 +451,27 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	block->parentrct= butrct;	// will use that for pulldowns later
 
 	/* calc block rect */
-	block->minx= block->miny= 10000;
-	block->maxx= block->maxy= -10000;
-	
-	bt= block->buttons.first;
-	while(bt) {
-		if(bt->x1 < block->minx) block->minx= bt->x1;
-		if(bt->y1 < block->miny) block->miny= bt->y1;
-
-		if(bt->x2 > block->maxx) block->maxx= bt->x2;
-		if(bt->y2 > block->maxy) block->maxy= bt->y2;
+	if(block->buttons.first) {
+		block->minx= block->miny= 10000;
+		block->maxx= block->maxy= -10000;
 		
-		bt= bt->next;
+		bt= block->buttons.first;
+		while(bt) {
+			if(bt->x1 < block->minx) block->minx= bt->x1;
+			if(bt->y1 < block->miny) block->miny= bt->y1;
+
+			if(bt->x2 > block->maxx) block->maxx= bt->x2;
+			if(bt->y2 > block->maxy) block->maxy= bt->y2;
+			
+			bt= bt->next;
+		}
 	}
-	
+	else {
+		/* we're nice and allow empty blocks too */
+		block->minx= block->miny= 0;
+		block->maxx= block->maxy= 20;
+	}
+
 	ui_graphics_to_window(block->win, &block->minx, &block->miny);
 	ui_graphics_to_window(block->win, &block->maxx, &block->maxy);
 
@@ -599,14 +692,6 @@ static void ui_draw_linkline(uiBut *but, uiLinkLine *line)
 
 	if(line->from==NULL || line->to==NULL) return;
 	
-	if(but->block->frontbuf==UI_NEED_DRAW_FRONT) {
-		but->block->frontbuf= UI_HAS_DRAW_FRONT;
-	
-		glDrawBuffer(GL_FRONT);
-		if(but->win==curarea->headwin) curarea->head_swap= WIN_FRONT_OK;
-		else curarea->win_swap= WIN_FRONT_OK;
-	}
-
 	vec1[0]= (line->from->x1+line->from->x2)/2.0;
 	vec1[1]= (line->from->y1+line->from->y2)/2.0;
 	vec2[0]= (line->to->x1+line->to->x2)/2.0;
@@ -926,7 +1011,12 @@ static int ui_do_but_MENU(uiBut *but)
 	/* and lets go */
 	block->direction= UI_TOP;
 	ui_positionblock(block, but);
+	
+	/* blocks can come (and get scaled) from a normal window, now we go to screenspace */
 	block->win= G.curscreen->mainwin;
+	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
+	bwin_getsinglematrix(block->win, block->winmat);
+
 	event= uiDoBlocks(&listb, 0);
 	
 	menudata_free(md);
@@ -1032,7 +1122,7 @@ static int ui_do_but_BUT(uiBut *but)
 
 		if (but->flag != oflag) {
 			ui_draw_but(but);
-			glFlush(); // flush display in subloops
+			ui_block_flush_back(but->block);
 		}
 		
 		PIL_sleep_ms(10);
@@ -1181,7 +1271,7 @@ static int ui_do_but_TEX(uiBut *but)
 	BLI_strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 
 	ui_draw_but(but);
-	glFlush(); // flush display in subloops
+	ui_block_flush_back(but->block);
 	
 	while (get_mbut() & L_MOUSE) BIF_wait_for_statechange();
 	len= strlen(str);
@@ -1274,10 +1364,11 @@ static int ui_do_but_TEX(uiBut *but)
 			}
 		}
 
+		
 		if(dodraw) {
 			ui_check_but(but);
 			ui_draw_but(but);
-			glFlush(); // flush display in subloops
+			ui_block_flush_back(but->block);
 		}
 	}
 	
@@ -1364,7 +1455,7 @@ static int ui_do_but_NUM(uiBut *but)
 
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
-	glFlush(); // flush display before subloop
+	ui_block_flush_back(but->block);
 	
 	uiGetMouse(mywinget(), mval);
 	value= ui_get_but_val(but);
@@ -1422,8 +1513,8 @@ static int ui_do_but_NUM(uiBut *but)
 							ui_set_but_val(but, (double)temp);
 							ui_check_but(but);
 							ui_draw_but(but);
-							glFlush(); // flush display in subloops
-							
+							ui_block_flush_back(but->block);
+
 							uibut_do_func(but);
 						}
 					}
@@ -1446,7 +1537,7 @@ static int ui_do_but_NUM(uiBut *but)
 							ui_set_but_val(but, tempf);
 							ui_check_but(but);
 							ui_draw_but(but);
-							glFlush(); // flush display in subloops
+							ui_block_flush_back(but->block);
 						}
 					}
 	
@@ -1494,7 +1585,7 @@ static int ui_do_but_NUM(uiBut *but)
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
 	ui_draw_but(but);	
-	glFlush(); // flush display in subloops
+	ui_block_flush_back(but->block);
 	
 	uibut_do_func(but);
 	
@@ -1724,7 +1815,7 @@ static int ui_do_but_SLI(uiBut *but)
 			ui_set_but_val(but, tempf);
 			ui_check_but(but);
 			ui_draw_but(but);
-			glFlush(); // flush display in subloops
+			ui_block_flush_back(but->block);
 			
 			if(but->a1) {	/* color number */
 				uiBut *bt= but->prev;
@@ -1776,7 +1867,7 @@ static int ui_do_but_SLI(uiBut *but)
 	}
 	ui_check_but(but);
 	ui_draw_but(but);
-	glFlush(); // flush display in subloops
+	ui_block_flush_back(but->block);
 	
 	return but->retval;
 }
@@ -1847,7 +1938,7 @@ static int ui_do_but_BLOCK(uiBut *but)
 	ui_positionblock(block, but);
 	block->flag |= UI_BLOCK_LOOP;
 	
-	/* blocks can come from a normal window, but we go to screenspace */
+	/* blocks can come (and get scaled) from a normal window, now we go to screenspace */
 	block->win= G.curscreen->mainwin;
 	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
 	bwin_getsinglematrix(block->win, block->winmat);
@@ -2150,7 +2241,8 @@ static void do_palette_cb(void *bt1, void *col1)
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
 	}
-	glFlush(); // flush display in subloops
+	but= but1->block->buttons.first;
+	ui_block_flush_back(but->block);
 }
 
 /* bt1 is num but, col1 is pointer to original color */
@@ -2175,8 +2267,10 @@ static void do_palette1_cb(void *bt1, void *col1)
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
 	}
+	
+	but= but1->block->buttons.first;
+	ui_block_flush_back(but->block);
 
-	glFlush(); // flush display in subloops
 }
 
 /* color picker, Gimp version. mode: 'f' = floating panel, 'p' =  popup */
@@ -2249,6 +2343,7 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 static int ui_do_but_COL(uiBut *but)
 {
 	uiBlock *block;
+	uiBut *bt;
 	ListBase listb={NULL, NULL};
 	float hsv[3], old[3], *poin= NULL, colstore[3];
 	short event;
@@ -2278,7 +2373,12 @@ static int ui_do_but_COL(uiBut *but)
 	/* and lets go */
 	block->direction= UI_TOP;
 	ui_positionblock(block, but);
+
+	/* blocks can come from a normal window, but we go to screenspace */
 	block->win= G.curscreen->mainwin;
+	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
+	bwin_getsinglematrix(block->win, block->winmat);
+
 	event= uiDoBlocks(&listb, 0);
 	
 	if(but->pointype==CHA) ui_set_but_vectorf(but, colstore);
@@ -2338,7 +2438,7 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			for (bt= but->block->buttons.first; bt; bt= bt->next) {
 				ui_draw_but(bt);
 			}
-			glFlush(); // flush display in subloops
+			ui_block_flush_back(but->block);
 		}
 		else BIF_wait_for_statechange();
 	}
@@ -2455,7 +2555,7 @@ static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
 			but->y2 += dy;
 			
 			ui_draw_but(but);
-			glFlush();
+			ui_block_flush_back(but->block);
 			didit= 1;
 			but->rt[3]= 1;
 
@@ -2563,6 +2663,7 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		break;
 	
 	case BLOCK:
+	case PULLDOWN:
 		if(uevent->val) {
 			retval= ui_do_but_BLOCK(but);
 			if(block->auto_open==0) block->auto_open= 1;
@@ -2683,31 +2784,9 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 		}
 	}
 
-	/* check for a 'found one' to prevent going to 'frontbuffer' mode.
-	   this slows done gfx quite some, and at OSX the 'finish' forces a swapbuffer */
+	/* no frontbuffer draw anymore, redraw is fast enuf */
 	if(foundone) {
-	
-		/* draw */
-		but= block->buttons.first;
-		while(but) {
-			if(but->type==LINK && but->link) {
-				line= but->link->lines.first;
-				while(line) {
-					if(line==act) {
-						if((line->flag & UI_SELECT)==0) {
-							line->flag |= UI_SELECT;
-							ui_draw_linkline(but, line);
-						}
-					}
-					else if(line->flag & UI_SELECT) {
-						line->flag &= ~UI_SELECT;
-						ui_draw_linkline(but, line);
-					}
-					line= line->next;
-				}
-			}
-			but= but->next;
-		}
+		addqueue(block->win, REDRAW, 1);
 	}
 }
 
@@ -3044,7 +3123,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						if(but->type != LABEL && (but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 					}
 				}
-				else if(but->type==BLOCK || but->type==MENU) {	// automatic opens block button (pulldown)
+				else if(but->type==BLOCK || but->type==MENU || but->type==PULLDOWN || but->type==ICONTEXTROW) {	// automatic opens block button (pulldown)
 					int time;
 					if(uevent->event!=LEFTMOUSE ) {
 						if(block->auto_open==2) time= 1;	// test for toolbox
@@ -3112,9 +3191,15 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		but= but->next;
 	}
 
+	/* flush to frontbuffer */
+	if((block->flag & UI_BLOCK_LOOP)==0) {
+		ui_block_flush_back(block);
+	}
+
 	uiPanelPop(block); // pop matrix; no return without pop!
 
-	/* the linkines... why not make buttons from it? Speed? Memory? */
+
+/* the linkines... why not make buttons from it? Speed? Memory? */
 	if(uevent->val && (uevent->event==XKEY || uevent->event==DELKEY)) 
 		ui_delete_active_linkline(block);
 
@@ -3144,9 +3229,9 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	return retval;
 }
 
-static uiSaveUnder *ui_draw_but_tip(uiBut *but)
+static uiOverDraw *ui_draw_but_tip(uiBut *but)
 {
-	uiSaveUnder *su;
+	uiOverDraw *od;
 	float x1, x2, y1, y2;
 
 		
@@ -3197,7 +3282,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 		y2 -= G.ui_international ? 5:1;		//tip is from a windowheader
 //	else y2 += 1;							//tip is from button area
 
-	su= ui_bgnpupdraw((int)(x1-1), (int)(y1-2), (int)(x2+4), (int)(y2+4), 0);
+	od= ui_begin_overdraw((int)(x1-1), (int)(y1-2), (int)(x2+4), (int)(y2+4));
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -3218,17 +3303,17 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	glRectf(x1, y1, x2, y2);
 	
 	glColor3ub(0,0,0);
-	glRasterPos2f( x1+3, y1+5.0/but->aspect);
+	ui_rasterpos_safe( x1+3, y1+5.0/but->aspect, but->aspect);
 	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));
 	
-	glFlush();		/* to show it in the frontbuffer */
-	return su;
+	ui_flush_overdraw(od);		/* to show it in the frontbuffer */
+	return od;
 }
 
 /* inside this function no global UIbuttip... qread is not safe */
 static void ui_do_but_tip(uiBut *buttip)
 {
-	uiSaveUnder *su;
+	uiOverDraw *od;
 	int time;
 	
 	if (buttip && buttip->tip && buttip->tip[0]) {
@@ -3249,7 +3334,7 @@ static void ui_do_but_tip(uiBut *buttip)
 			 * of the button that owns it.
 			 */
 		uiPanelPush(buttip->block); // panel matrix
-		su= ui_draw_but_tip(buttip);
+		od= ui_draw_but_tip(buttip);
 		
 		while (1) {
 			char ascii;
@@ -3258,7 +3343,7 @@ static void ui_do_but_tip(uiBut *buttip)
 
 			if (evt==MOUSEX || evt==MOUSEY) {
 				short mouse[2];
-				uiGetMouse(su->oldwin, mouse);
+				uiGetMouse(od->oldwin, mouse);
 				
 				if (!uibut_contains_pt(buttip, mouse))
 					break;
@@ -3268,7 +3353,7 @@ static void ui_do_but_tip(uiBut *buttip)
 			}
 		}
 		
-		ui_endpupdraw(su);
+		ui_end_overdraw(od);
 		uiPanelPop(buttip->block); // panel matrix
 		/* still the evil global.... */
 		UIbuttip= NULL;
@@ -3303,7 +3388,7 @@ int uiDoBlocks(ListBase *lb, int event)
 	/* this is a caching mechanism, to prevent too many calls to glFrontBuffer and glFlush, which slows down interface */
 	block= lb->first;
 	while(block) {
-		block->frontbuf= UI_NEED_DRAW_FRONT;	// signal
+		ui_block_set_flush(block, NULL); // clears all flushing info
 		block= block->next;
 	}
 
@@ -3321,8 +3406,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			 */
 			if(block->flag & UI_BLOCK_REDRAW) {
 				if( block->flag & UI_BLOCK_LOOP) {
-					block->saveunder= ui_bgnpupdraw((int)block->minx-1, (int)block->miny-6, (int)block->maxx+6, (int)block->maxy+1, 1);
-					block->frontbuf= UI_HAS_DRAW_FRONT;
+					block->overdraw= ui_begin_overdraw((int)block->minx-1, (int)block->miny-6, (int)block->maxx+6, (int)block->maxy+1);
 				}
 				uiDrawBlock(block);
 				block->flag &= ~UI_BLOCK_REDRAW;
@@ -3334,11 +3418,10 @@ int uiDoBlocks(ListBase *lb, int event)
 			/* now a new block could be created for menus, this is 
 			   inserted in the beginning of a list */
 			
-			/* is there a glfinish cached? */
-			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
-				glFlush();
-				glDrawBuffer(GL_BACK);
-				block->frontbuf= UI_NEED_DRAW_FRONT;
+			/* is there a flush cached? */
+			if(block->frontbuf == UI_HAS_DRAWN) {
+				ui_flush_overdraw(block->overdraw);
+				block->frontbuf= 0;
 			}
 			
 			/* to make sure the matrix of the panel works for menus too */
@@ -3359,36 +3442,33 @@ int uiDoBlocks(ListBase *lb, int event)
 			if(block->flag & UI_BLOCK_REDRAW) {
 
 				if( block->flag & UI_BLOCK_LOOP) {
-					block->saveunder= ui_bgnpupdraw((int)block->minx-1, (int)block->miny-6, (int)block->maxx+6, (int)block->maxy+1, 1);
-					block->frontbuf= UI_HAS_DRAW_FRONT;
+					block->overdraw= ui_begin_overdraw((int)block->minx-1, (int)block->miny-6, (int)block->maxx+6, (int)block->maxy+1);
 				}
 				uiDrawBlock(block);
 				block->flag &= ~UI_BLOCK_REDRAW;
+				ui_flush_overdraw(block->overdraw);
+				block->frontbuf= 0;
 			}
-
-			/* need to reveil drawing? (not in end of loop, because of free block */
-			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
-				glFlush();
-				block->frontbuf= UI_NEED_DRAW_FRONT;
-			}
-
+			
 			uevent.event= extern_qread(&uevent.val);
 			
 			if(uevent.event) {
-			
 				retval= ui_do_block(block, &uevent);
 			
+				if(block->frontbuf == UI_HAS_DRAWN) { // flush now, maybe new menu was opened
+					ui_flush_overdraw(block->overdraw);
+					block->frontbuf= 0;
+				}
+
 				if(retval & UI_RETURN) {
-					/* free this block */
-					ui_endpupdraw(block->saveunder);
-					
+					ui_end_overdraw(block->overdraw);
 					BLI_remlink(lb, block);
 					uiFreeBlock(block);
 				}
 				if(retval & (UI_RETURN_OK|UI_RETURN_CANCEL)) {
 					/* free other menus */
 					while( (block= lb->first) && (block->flag & UI_BLOCK_LOOP)) {
-						ui_endpupdraw(block->saveunder);
+						ui_end_overdraw(block->overdraw);
 						BLI_remlink(lb, block);
 						uiFreeBlock(block);
 					}
@@ -3405,27 +3485,16 @@ int uiDoBlocks(ListBase *lb, int event)
 		if(retval==UI_CONT || (retval & UI_RETURN_OK)) cont= 0;
 	}
 	
-	/* cleanup frontbuffer & flags */
-	block= lb->first;
-	while(block) {
-		if(block->frontbuf==UI_HAS_DRAW_FRONT) glFlush();
-		block->frontbuf= 0;
-		block= block->next;
-	}
-	
 	/* afterfunc is used for fileloading too, so after this call, the blocks pointers are invalid */
 	if(retval & UI_RETURN_OK) {
 		if(UIafterfunc) UIafterfunc(UIafterfunc_arg, UIafterval);
 		UIafterfunc= NULL;
 	}
-
+	
 	/* tooltip */	
 	if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
 		if(U.flag & USER_TOOLTIPS) ui_do_but_tip(UIbuttip);
 	}
-
-	/* doesnt harm :-) */
-	glDrawBuffer(GL_BACK);
 
 	return retval;
 }
@@ -3925,6 +3994,7 @@ static int ui_auto_themecol(uiBut *but)
 		return TH_BUT_NUM;
 	case TEX:
 		return TH_BUT_TEXTFIELD;
+	case PULLDOWN:
 	case BLOCK:
 	case MENU:
 	case BUTM:
@@ -4157,7 +4227,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 
 	but->aspect= block->aspect;
 	but->win= block->win;
-	but->block= block;		// pointer back, used for frontbuffer status
+	but->block= block;		// pointer back, used for frontbuffer status, and picker
 
 	if(block->themecol==TH_AUTO) but->themecol= ui_auto_themecol(but);
 	else but->themecol= block->themecol;
@@ -4527,6 +4597,14 @@ void uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, int retval, char *str, 
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
 {
 	uiBut *but= ui_def_but(block, BLOCK, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+	but->block_func= func;
+	ui_check_but(but);
+	return but;
+}
+
+uiBut *uiDefPulldownBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)
+{
+	uiBut *but= ui_def_but(block, PULLDOWN, 0, str, x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
 	but->block_func= func;
 	ui_check_but(but);
 	return but;

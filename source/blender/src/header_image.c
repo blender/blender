@@ -1003,20 +1003,20 @@ void image_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block, image_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, image_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
         
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Image");
-		uiDefBlockBut(block, image_imagemenu, NULL, "Image", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, image_imagemenu, NULL, "Image", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("UVs");
-		uiDefBlockBut(block, image_uvsmenu, NULL, "UVs", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, image_uvsmenu, NULL, "UVs", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 	}
 	

@@ -286,15 +286,15 @@ void oops_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block, oops_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, oops_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block, oops_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, oops_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Block");
-		uiDefBlockBut(block, oops_blockmenu, NULL, "Block", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, oops_blockmenu, NULL, "Block", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
 	}

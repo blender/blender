@@ -813,24 +813,24 @@ void ipo_buttons(void)
 		ei = get_editipo();
 	
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block,ipo_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block,ipo_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 	
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block,ipo_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block,ipo_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 	
 		if (G.sipo->showkey) {
 			xmax= GetButStringLength("Key");
-			uiDefBlockBut(block,ipo_editmenu, NULL, "Key", xco, -2, xmax-3, 24, "");
+			uiDefPulldownBut(block,ipo_editmenu, NULL, "Key", xco, -2, xmax-3, 24, "");
 		}
 		else if(ei != NULL && (ei->flag & IPO_EDIT)) {
 			xmax= GetButStringLength("Point");
-			uiDefBlockBut(block,ipo_editmenu, NULL, "Point", xco, -2, xmax-3, 24, "");
+			uiDefPulldownBut(block,ipo_editmenu, NULL, "Point", xco, -2, xmax-3, 24, "");
 		}
 		else {
 			xmax= GetButStringLength("Curve");
-			uiDefBlockBut(block,ipo_editmenu, NULL, "Curve", xco, -2, xmax-3, 24, "");
+			uiDefPulldownBut(block,ipo_editmenu, NULL, "Curve", xco, -2, xmax-3, 24, "");
 		}
 			
 		xco+=xmax;

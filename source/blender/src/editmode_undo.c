@@ -207,7 +207,7 @@ void undo_editmode_step(int step)
 	undo_clean_stack();
 	
 	if(step==0) {
-		undo_restore(curundo);	// if NULL, reloads editmesh
+		undo_restore(curundo);
 	}
 	else if(step==1) {
 		
@@ -215,7 +215,7 @@ void undo_editmode_step(int step)
 		else {
 			printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
-			undo_restore(curundo);	// if NULL, reloads editmesh
+			undo_restore(curundo);
 		}
 	}
 	else {
@@ -311,6 +311,8 @@ uiBlock *editmode_undohistorymenu(void *arg_unused)
 	short yco = 20, menuwidth = 120;
 	short item=2;
 	
+	undo_clean_stack();	// removes other objects from it
+
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_undohistorymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_editmode_undohistorymenu, NULL);
 	
@@ -319,6 +321,7 @@ uiBlock *editmode_undohistorymenu(void *arg_unused)
 	for(uel= undobase.first; uel; uel= uel->next, item++) {
 		if (uel==curundo) uiDefBut(block, SEPR, 0, "",		0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, uel->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, (float)item, "");
+		if (uel==curundo) uiDefBut(block, SEPR, 0, "",		0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);

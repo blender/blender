@@ -182,7 +182,7 @@ static void round_box_shade_col(float *col1, float *col2, float fac)
 }
 
 /* linear horizontal shade within button or in outline */
-void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shade)
+void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown)
 {
 	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
 	                  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
@@ -198,12 +198,12 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
 	/* 'shade' defines strength of shading */	
-	coltop[0]= color[0]+shade; if(coltop[0]>1.0) coltop[0]= 1.0;
-	coltop[1]= color[1]+shade; if(coltop[1]>1.0) coltop[1]= 1.0;
-	coltop[2]= color[2]+shade; if(coltop[2]>1.0) coltop[2]= 1.0;
-	coldown[0]= color[0]-shade; if(coldown[0]<0.0) coldown[0]= 0.0;
-	coldown[1]= color[1]-shade; if(coldown[1]<0.0) coldown[1]= 0.0;
-	coldown[2]= color[2]-shade; if(coldown[2]<0.0) coldown[2]= 0.0;
+	coltop[0]= color[0]+shadetop; if(coltop[0]>1.0) coltop[0]= 1.0;
+	coltop[1]= color[1]+shadetop; if(coltop[1]>1.0) coltop[1]= 1.0;
+	coltop[2]= color[2]+shadetop; if(coltop[2]>1.0) coltop[2]= 1.0;
+	coldown[0]= color[0]+shadedown; if(coldown[0]<0.0) coldown[0]= 0.0;
+	coldown[1]= color[1]+shadedown; if(coldown[1]<0.0) coldown[1]= 0.0;
+	coldown[2]= color[2]+shadedown; if(coldown[2]<0.0) coldown[2]= 0.0;
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -235,7 +235,7 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 		
 		for(a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (div-rad+vec[a][1])/div);
-			glVertex2f( maxx-vec[a][1], maxy-rad+vec[a][1]);
+			glVertex2f( maxx-vec[a][1], maxy-rad+vec[a][0]);
 		}
 		round_box_shade_col(coltop, coldown, 1.0);
 		glVertex2f( maxx-rad, maxy);
@@ -336,7 +336,7 @@ static void gl_round_box_topshade(float minx, float miny, float maxx, float maxy
 }
 
 /* for headers and floating panels */
-void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad)
+void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad, int active)
 {
 	float color[4];
 	
@@ -349,6 +349,10 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad)
 	}
 	
 	/* solid part */
+	//if(active)
+	//	gl_round_box_shade(GL_POLYGON, minx, miny, maxx, maxy, rad, 0.10, -0.05);
+	// else
+	/* shading doesnt work for certain buttons yet (pulldown) need smarter buffer caching (ton) §*/
 	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
 	
 	/* set antialias line */
@@ -881,7 +885,7 @@ static void ui_draw_panel_header(uiBlock *block)
 		/* active tab */
 		/* draw text label */
 		BIF_ThemeColor(TH_TEXT_HI);
-		glRasterPos2f(4+block->minx+pnl_icons, block->maxy+5);
+		ui_rasterpos_safe(4+block->minx+pnl_icons, block->maxy+5, block->aspect);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & USER_TR_BUTTONS));
 		return;
 	}
@@ -901,7 +905,7 @@ static void ui_draw_panel_header(uiBlock *block)
 
 			/* draw the active text label */
 			BIF_ThemeColor(TH_TEXT);
-			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
+			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 
@@ -915,7 +919,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			
 			/* draw an inactive tab label */
 			BIF_ThemeColorShade(TH_TEXT_HI, -40);
-			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
+			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 				
@@ -953,7 +957,7 @@ void ui_draw_panel(uiBlock *block)
 		ofsx= PNL_ICON+8;
 		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
 		BIF_ThemeColor(TH_TEXT_HI);
-		glRasterPos2f(4+block->minx+ofsx, block->maxy+5);
+		ui_rasterpos_safe(4+block->minx+ofsx, block->maxy+5, block->aspect);
 		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & USER_TR_BUTTONS));
 
 		/*  border */
@@ -992,7 +996,7 @@ void ui_draw_panel(uiBlock *block)
 		for(a=0; a<end; a++) {
 			str[0]= panel->panelname[a];
 			if( isupper(str[0]) ) {
-				glRasterPos2f(block->minx+5, block->maxy-ofs);
+				ui_rasterpos_safe(block->minx+5, block->maxy-ofs, block->aspect);
 				BIF_DrawString(block->curfont, str, 0);
 				ofs+= 15;
 			}

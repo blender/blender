@@ -1542,7 +1542,6 @@ void do_global_buttons(unsigned short event)
 
 	/* END Fileselect windows for user preferences file paths */
 
-
 #ifdef INTERNATIONAL
 	case B_LOADUIFONT:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {

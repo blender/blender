@@ -255,7 +255,7 @@ void script_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("Scripts");
-		uiDefBlockBut(block,script_scriptsmenu, NULL, "Scripts", xco, 0, xmax, 20, "");
+		uiDefPulldownBut(block,script_scriptsmenu, NULL, "Scripts", xco, 0, xmax, 20, "");
 		xco+=xmax;
 	}
 

@@ -2185,7 +2185,7 @@ static uiBlock *tb_makemenu(void *arg)
 	
 	if(arg==NULL) return NULL;
 	
-	sprintf(str, "tb %d\n", counter++);
+	sprintf(str, "tb %d", counter++);
 	block= uiNewBlock(&tb_listb, str, UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetCol(block, TH_MENU_ITEM);
 

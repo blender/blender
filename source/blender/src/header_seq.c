@@ -460,19 +460,19 @@ void seq_buttons()
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block,seq_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block,seq_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 
 		xmax= GetButStringLength("Add");
-		uiDefBlockBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Strip");
-		uiDefBlockBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
+		uiDefPulldownBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
 		/* end of pull down menus */

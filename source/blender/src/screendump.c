@@ -143,10 +143,14 @@ void BIF_screendump(int fscreen)
 	} 
 	else {
 		{	/* a window */
-			int win= mywinget();
+			//int win= mywinget();
 
-			bwin_getsuborigin(win, &x, &y);
-			bwin_getsize(win, &dumpsx, &dumpsy);
+			//bwin_getsuborigin(win, &x, &y);
+			//bwin_getsize(win, &dumpsx, &dumpsy);
+			x= curarea->totrct.xmin;
+			y= curarea->totrct.ymin;
+			dumpsx= curarea->totrct.xmax-x;
+			dumpsy= curarea->totrct.ymax-y;
 		}
 	}
 	
@@ -155,6 +159,8 @@ void BIF_screendump(int fscreen)
 		dumprect= MEM_mallocN(sizeof(int)*dumpsx*dumpsy, "dumprect");
 		glReadBuffer(GL_FRONT);
 		glReadPixels(x, y, dumpsx, dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, dumprect);
+		glFinish();
+		glReadBuffer(GL_BACK);
 		
 		if(UIbuttip==NULL) {
 			wasmenu= 0;

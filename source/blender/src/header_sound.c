@@ -280,7 +280,7 @@ void sound_buttons(void)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block, sound_viewmenu, NULL, 
+		uiDefPulldownBut(block, sound_viewmenu, NULL, 
 					  "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
