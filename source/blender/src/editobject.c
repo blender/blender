@@ -258,38 +258,59 @@ extern int undo_push(char *);
 void make_track(void)
 {
 	Base *base;
+	short mode=0;
 	
 	if(G.scene->id.lib) return;
 	if(G.obedit) {
 		return;
 	}
 	if(BASACT==0) return;
-	
-#if 0
-	/* Not yet */
-	notice ("Make Track no longer supported.  Use constraints instead.");
-	return;
 
-	/* hrms, i would suppose then just to add a constraint for the user. be nice! (ton) */
-#endif
-
-	if(okee("Make Track")==0) return;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASELIB(base) {
-			if(base!=BASACT) {
-
-				base->object->track= BASACT->object;
-			}
-		}
-		base= base->next;
+	mode= pupmenu("Make Track %t|Constraint %x1|Old Track %x2");
+	if (mode == 0){
+		return;
 	}
+	else if (mode == 1){
+		bConstraint *con;
+		bTrackToConstraint *data;
 
-	test_scene_constraints();
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	sort_baselist(G.scene);
+		base= FIRSTBASE;
+		while(base) {
+			if TESTBASELIB(base) {
+				if(base!=BASACT) {
+					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+					strcpy (con->name, "AutoTrack");
+
+					data = con->data;
+					data->tar = BASACT->object;
+
+					add_constraint_to_object(con, base->object);
+				}
+			}
+			base= base->next;
+		}
+
+		test_scene_constraints();
+		allqueue(REDRAWVIEW3D, 0);
+		sort_baselist(G.scene);
+	}
+	else if (mode == 2){
+		base= FIRSTBASE;
+		while(base) {
+			if TESTBASELIB(base) {
+				if(base!=BASACT) {
+
+					base->object->track= BASACT->object;
+				}
+			}
+			base= base->next;
+		}
+
+		test_scene_constraints();
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
+		sort_baselist(G.scene);
+	}
 }
 
 void apply_obmat(Object *ob)
@@ -697,6 +718,47 @@ void make_parent(void)
 			}
 			if(effchild) break;
 			base= base->next;
+		}
+	}
+	else if(par->type == OB_CURVE){
+		bConstraint *con;
+		bFollowPathConstraint *data;
+
+		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2");
+		if (mode == 0){
+			return;
+		}
+		else if (mode == 2){
+
+			base= FIRSTBASE;
+			while(base) {
+				if TESTBASELIB(base) {
+					if(base!=BASACT) {
+						float cmat[4][4], vec[3], size[3];
+
+						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
+						strcpy (con->name, "AutoPath");
+
+						data = con->data;
+						data->tar = BASACT->object;
+
+						add_constraint_to_object(con, base->object);
+
+						get_constraint_target(con, TARGET_OBJECT, NULL, cmat, size, G.scene->r.cfra - base->object->sf);
+						VecSubf(vec, &base->object->obmat[3], cmat[3]);
+
+						base->object->loc[0] = vec[0];
+						base->object->loc[1] = vec[1];
+						base->object->loc[2] = vec[2];
+					}
+				}
+				base= base->next;
+			}
+
+			test_scene_constraints();
+			allqueue(REDRAWVIEW3D, 0);
+			sort_baselist(G.scene);
+			return;
 		}
 	}
 	else if(par->type == OB_ARMATURE){

@@ -119,6 +119,17 @@ float Inpf( float *v1, float *v2)
 	return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
 }
 
+/* Project v1 on v2 */
+void Projf(float *c, const float *v1, const float *v2)
+{
+	float mul;
+	mul = Inpf(v1, v2) / Inpf(v2, v2);
+	
+	c[0] = mul * v2[0];
+	c[1] = mul * v2[1];
+	c[2] = mul * v2[2];
+}
+
 void Mat3Transp(float mat[][3])
 {
 	float t;

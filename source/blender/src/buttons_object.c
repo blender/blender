@@ -278,6 +278,12 @@ static void get_constraint_typestring (char *str, bConstraint *con)
 	case CONSTRAINT_TYPE_ACTION:
 		strcpy (str, "Action");
 		return;
+	case CONSTRAINT_TYPE_LOCKTRACK:
+		strcpy (str, "Locked Track");
+		return;
+	case CONSTRAINT_TYPE_FOLLOWPATH:
+		strcpy (str, "Follow Path");
+		return;
 	default:
 		strcpy (str, "Unknown");
 		return;
@@ -299,6 +305,10 @@ static int get_constraint_col(bConstraint *con)
 		return TH_BUT_POPUP;
 	case CONSTRAINT_TYPE_ACTION:
 		return TH_BUT_ACTION;
+	case CONSTRAINT_TYPE_LOCKTRACK:
+		return TH_BUT_SETTING;
+	case CONSTRAINT_TYPE_FOLLOWPATH:
+		return TH_BUT_SETTING2;
 	default:
 		return TH_REDALERT;
 	}
@@ -326,14 +336,22 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 	if (con->flag & CONSTRAINT_EXPAND) {
 		
-		if (con->flag & CONSTRAINT_DISABLE)
+		if (con->flag & CONSTRAINT_DISABLE) {
+			BIF_ThemeColor(TH_REDALERT);
 			uiBlockSetCol(block, TH_REDALERT);
-		
-		if (type==TARGET_BONE)
+		}
+		else
+			BIF_ThemeColor(curCol);
+
+		/*if (type==TARGET_BONE)
 			but = uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Bone Constraint%t|Track To%x2|IK Solver%x3|Copy Rotation%x8|Copy Location%x9|Action%x12|Null%x0", *xco+20, *yco, 100, 20, &con->type, 0.0, 0.0, 0.0, 0.0, "Constraint type"); 
 		else
 			but = uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Object Constraint%t|Track To%x2|Copy Rotation%x8|Copy Location%x9|Null%x0", *xco+20, *yco, 100, 20, &con->type, 0.0, 0.0, 0.0, 0.0, "Constraint type"); 
+		*/
 		
+		glRects(*xco+34, *yco-12, *xco+138, *yco+5);
+		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+20, *yco, 100, 20, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
 		uiButSetFunc(but, constraint_changed_func, con, NULL);
 		con->otype = con->type;
 		
@@ -364,168 +382,276 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiDefIconButS(block, ICONTOG|BIT|CONSTRAINT_EXPAND_BIT, B_CONSTRAINT_REDRAW, ICON_RIGHTARROW, *xco+248, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse");
 
 
+
+	/* Draw constraint data*/
 	if (!(con->flag & CONSTRAINT_EXPAND)) {
 		(*yco)-=21;
-		return;
+	}
+	else {
+		switch (con->type){
+		case CONSTRAINT_TYPE_ACTION:
+			{
+				bActionConstraint *data = con->data;
+				bArmature *arm;
+
+				height = 86;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+
+				/* Draw target parameters */
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+
+				/* Draw action button */
+				uiDefIDPoinBut(block, test_actionpoin_but, B_CONSTRAINT_CHANGETARGET, "AC:", *xco+((width/2)-90), *yco-60, 75, 18, &data->act, "Action containing the keyed motion for this bone"); 
+				uiDefButI(block, MENU, B_CONSTRAINT_REDRAW, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-90), *yco-80, 75, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
+
+				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "Start:", *xco+((width/2)-15), *yco-60, 70, 18, &data->start, 1, 18000, 0.0, 0.0, "Starting frame of the keyed motion"); 
+				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "End:", *xco+((width/2)-15), *yco-80, 70, 18, &data->end, 1, 18000, 0.0, 0.0, "Ending frame of the keyed motion"); 
+				
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Min:", *xco+((width/2)+55), *yco-60, 80, 18, &data->min, -180, 180, 0, 0, "Minimum value for target channel range");
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Max:", *xco+((width/2)+55), *yco-80, 80, 18, &data->max, -180, 180, 0, 0, "Maximum value for target channel range");
+				
+			}
+			break;
+		case CONSTRAINT_TYPE_LOCLIKE:
+			{
+				bLocateLikeConstraint *data = con->data;
+				bArmature *arm;
+				height = 66;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+
+				/* Draw target parameters */
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+
+				/* Draw XYZ toggles */
+					but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+					but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+					but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+			}
+			break;
+		case CONSTRAINT_TYPE_ROTLIKE:
+			{
+				bRotateLikeConstraint *data = con->data;
+				bArmature *arm;
+				height = 46;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+
+			}
+			break;
+		case CONSTRAINT_TYPE_KINEMATIC:
+			{
+				bKinematicConstraint *data = con->data;
+				bArmature *arm;
+				
+				height = 66;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+				
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-96), *yco-20, 96, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
+				uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)), *yco-20, 96, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
+
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-40, 96, 18, &data->tar, "Target Object"); 
+				
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-60,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+				
+			}
+			break;
+		case CONSTRAINT_TYPE_TRACKTO:
+			{
+				bTrackToConstraint *data = con->data;
+				bArmature *arm;
+
+				height = 66;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+				
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+				
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)-84), *yco-60,19,18, &data->reserved1, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)-65), *yco-60,19,18, &data->reserved1, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)-46), *yco-60,19,18, &data->reserved1, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-X",	*xco+((width/2)-27), *yco-60,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Y",	*xco+((width/2)-3), *yco-60,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Z",	*xco+((width/2)+21), *yco-60,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",	*xco+((width/2)+60), *yco-60,19,18, &data->reserved2, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",	*xco+((width/2)+79), *yco-60,19,18, &data->reserved2, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",	*xco+((width/2)+98), *yco-60,19,18, &data->reserved2, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
+			}
+			break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+			{
+				bLockTrackConstraint *data = con->data;
+				bArmature *arm;
+				height = 66;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+
+				/* Draw target parameters */
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3), *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->lockflag, 13.0, 0.0, 0, 0, "Specify the axis that is locked");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->lockflag, 13.0, 1.0, 0, 0, "Specify the axis that is locked");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->lockflag, 13.0, 2.0, 0, 0, "Specify the axis that is locked");
+			}
+			break;
+		case CONSTRAINT_TYPE_FOLLOWPATH:
+			{
+				bFollowPathConstraint *data = con->data;
+
+				height = 66;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+				
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
+				
+				/* Draw Curve Follow toggle */
+				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "CurveFollow", *xco+((width/2)-84), *yco-40, 90, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
+
+				/* Draw Offset number button */
+				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Offset:", *xco+((width/2))+20, *yco-40, 96, 18, &data->offset, -9000, 9000, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
+
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)-84), *yco-60,19,18, &data->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)-65), *yco-60,19,18, &data->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)-46), *yco-60,19,18, &data->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-X",		*xco+((width/2)-27), *yco-60,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Y",		*xco+((width/2)-3), *yco-60,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"-Z",		*xco+((width/2)+21), *yco-60,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"X",		*xco+((width/2)+60), *yco-60,19,18, &data->upflag, 13.0, 0.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Y",		*xco+((width/2)+79), *yco-60,19,18, &data->upflag, 13.0, 1.0, 0, 0, "Specify the axis that is points upward");
+				uiDefButC(block, ROW,B_CONSTRAINT_REDRAW,"Z",		*xco+((width/2)+98), *yco-60,19,18, &data->upflag, 13.0, 2.0, 0, 0, "Specify the axis that is points upward");
+			}
+			break;
+		case CONSTRAINT_TYPE_NULL:
+			{
+				height = 20;
+				BIF_ThemeColor(curCol);
+				glRects(*xco+40, *yco-height-16, *xco+width+50, *yco-14);
+				uiEmboss((float)*xco+40, (float)*yco-height-16, (float)*xco+width+50, (float)*yco-14, 1);
+			}
+			break;
+		default:
+			height = 0;
+			break;
+		}
+
+		(*yco)-=(22+height);
 	}
 
 	if (con->type!=CONSTRAINT_TYPE_NULL) {
-		uiDefBut(block, NUMSLI|FLO, B_CONSTRAINT_REDRAW, "Influence:", *xco, *yco-20, 196, 20, &con->enforce, 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
-		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Edit Ipo", *xco+200, *yco-20, 64, 20, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
+		uiDefButF(block, NUMSLI, B_CONSTRAINT_REDRAW, "Inf:", *xco+20, *yco, 166, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
+		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Edit", *xco+186, *yco, 41, 20, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
 		/* If this is on an object, add the constraint to the object */
 		uiButSetFunc (but, activate_constraint_ipo_func, con, NULL);
 		/* If this is on a bone, add the constraint to the action (if any) */
-		(*yco)-=21;
+		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Key", *xco+227, *yco, 41, 20, 0, 0.0, 1.0, 0.0, 0.0, "Add an influence keyframe to the constraint");
+		/* Add a keyframe to the influence IPO */
+		uiButSetFunc (but, add_influence_key_to_constraint, con, NULL);
+		(*yco)-=24;
 	}
-
-	/* Draw constraint data*/
-
-	switch (con->type){
-	case CONSTRAINT_TYPE_ACTION:
-		{
-			bActionConstraint *data = con->data;
-			bArmature *arm;
-
-			height = 86;
-			BIF_ThemeColor(curCol);
-			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
-			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
-
-			/* Draw target parameters */
-			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
-
-			arm = get_armature(data->tar);
-			if (arm){
-				but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
-			}
-			else
-				strcpy (data->subtarget, "");
-
-			/* Draw action button */
-			uiDefIDPoinBut(block, test_actionpoin_but, B_CONSTRAINT_CHANGETARGET, "AC:", *xco+((width/2)-120), *yco-60, 80, 18, &data->act, "Action containing the keyed motion for this bone"); 
-
-			uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "Start:", *xco+((width/2)-40), *yco-60, 80, 18, &data->start, 1, 18000, 0.0, 0.0, "Starting frame of the keyed motion"); 
-			uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "End:", *xco+((width/2)+40), *yco-60, 80, 18, &data->end, 1, 18000, 0.0, 0.0, "Ending frame of the keyed motion"); 
-			
-			/* Draw XYZ toggles */
-			uiDefButI(block, MENU, B_CONSTRAINT_REDRAW, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-120), *yco-80, 80, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
-			uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Min:", *xco+((width/2)-40), *yco-80, 80, 18, &data->min, -180, 180, 0, 0, "Minimum value for target channel range");
-			uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Max:", *xco+((width/2)+40), *yco-80, 80, 18, &data->max, -180, 180, 0, 0, "Maximum value for target channel range");
-			
-		}
-		break;
-	case CONSTRAINT_TYPE_LOCLIKE:
-		{
-			bLocateLikeConstraint *data = con->data;
-			bArmature *arm;
-			height = 66;
-			BIF_ThemeColor(curCol);
-			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
-			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
-
-			/* Draw target parameters */
-			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
-
-			arm = get_armature(data->tar);
-			if (arm){
-				but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
-			}
-			else
-				strcpy (data->subtarget, "");
-
-			/* Draw XYZ toggles */
-				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-60, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
-		}
-		break;
-	case CONSTRAINT_TYPE_ROTLIKE:
-		{
-			bRotateLikeConstraint *data = con->data;
-			bArmature *arm;
-			height = 46;
-			BIF_ThemeColor(curCol);
-			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
-			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
-
-			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
-
-			arm = get_armature(data->tar);
-			if (arm){
-				but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
-			}
-			else
-				strcpy (data->subtarget, "");
-
-		}
-		break;
-	case CONSTRAINT_TYPE_KINEMATIC:
-		{
-			bKinematicConstraint *data = con->data;
-			bArmature *arm;
-			
-			height = 66;
-			BIF_ThemeColor(curCol);
-			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
-			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
-			
-			uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-96), *yco-20, 96, 18, &data->tolerance, 0.0001, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
-			uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)), *yco-20, 96, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
-
-			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-40, 96, 18, &data->tar, "Target Object"); 
-			
-			arm = get_armature(data->tar);
-			if (arm){
-				but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-60,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
-			}
-			else
-				strcpy (data->subtarget, "");
-			
-		}
-		break;
-	case CONSTRAINT_TYPE_NULL:
-		{
-			height = 20;
-			BIF_ThemeColor(curCol);
-			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
-			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
-		}
-		break;
-	case CONSTRAINT_TYPE_TRACKTO:
-		{
-			bTrackToConstraint *data = con->data;
-			bArmature *arm;
-
-			height = 46;
-			BIF_ThemeColor(curCol);
-			glRects(*xco+34, *yco-height-16, *xco+width+24, *yco-14);
-			uiEmboss((float)*xco+34, (float)*yco-height-16, (float)*xco+width+24, (float)*yco-14, 1);
-			
-			uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+((width/2)-48), *yco-20, 96, 18, &data->tar, "Target Object"); 
-			
-			arm = get_armature(data->tar);
-			if (arm){
-				but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+((width/2)-48), *yco-40,96,18, &data->subtarget, 0, 24, 0, 0, "Bone");
-			}
-			else
-				strcpy (data->subtarget, "");
-		}
-		break;
-	default:
-		height = 0;
-		break;
-	}
-
-	(*yco)-=(24+height);
-
 }
 
+static uiBlock *add_constraintmenu(void *arg_unused)
+{
+	uiBlock *block;
+	
+	ListBase *conlist;
+	char ownerstr[64];
+	short type;
+	short yco= 0;
+	
+	conlist = get_constraint_client(ownerstr, &type, NULL);
+	
+	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
+
+	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIKE, ICON_BLANK1,"Copy Location",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIKE, ICON_BLANK1,"Copy Rotation",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_TRACKTO, ICON_BLANK1,"Track To",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK, ICON_BLANK1,"Lock Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH, ICON_BLANK1,"Follow Path",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+	if (type==TARGET_BONE) {
+	
+		uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+		uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_KINEMATIC, ICON_BLANK1,"IK Solver",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+		uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_ACTION, ICON_BLANK1,"Action",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+		
+	}
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, B_CONSTRAINT_ADD_NULL, ICON_BLANK1,"Null",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+		
+	return block;
+}
 
 void do_constraintbuts(unsigned short event)
 {
-	ListBase *list;
-	short	type;
-
 	switch(event) {
 	case B_CONSTRAINT_CHANGENAME:
 		break;
@@ -549,23 +675,97 @@ void do_constraintbuts(unsigned short event)
 		allqueue (REDRAWVIEW3D, 0);
 		allqueue (REDRAWBUTSOBJECT, 0);
 		break;
-	case B_CONSTRAINT_ADD:
+	case B_CONSTRAINT_ADD_NULL:
 		{
 			bConstraint *con;
-		//	ListBase *chanbase;
-		//	bConstraintChannel *chan;
+			
+			con = add_new_constraint(CONSTRAINT_TYPE_NULL);
+			add_constraint_to_client(con);
 
-		//	Object *ob = OBACT;
-			list = get_constraint_client(NULL, &type, NULL);
-		//	chanbase= get_constraint_client_channels(0);
-			if (list){
-				con = add_new_constraint();
-				unique_constraint_name(con, list);
-		//		chan = add_new_constraint_channel(con->name);
-		//		ob->activecon = chan;
-		//		BLI_addtail(chanbase, chan);
-				BLI_addtail(list, con);
-			}
+			test_scene_constraints();
+			allqueue (REDRAWVIEW3D, 0);
+			allqueue (REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CONSTRAINT_ADD_KINEMATIC:
+		{
+			bConstraint *con;
+			
+			con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
+			add_constraint_to_client(con);
+
+			test_scene_constraints();
+			allqueue (REDRAWVIEW3D, 0);
+			allqueue (REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CONSTRAINT_ADD_TRACKTO:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+			add_constraint_to_client(con);
+
+			test_scene_constraints();
+			allqueue (REDRAWVIEW3D, 0);
+			allqueue (REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CONSTRAINT_ADD_ROTLIKE:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_ROTLIKE);
+			add_constraint_to_client(con);
+
+			test_scene_constraints();
+			allqueue (REDRAWVIEW3D, 0);
+			allqueue (REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CONSTRAINT_ADD_LOCLIKE:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_LOCLIKE);
+			add_constraint_to_client(con);
+
+			test_scene_constraints();
+			allqueue (REDRAWVIEW3D, 0);
+			allqueue (REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CONSTRAINT_ADD_ACTION:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_ACTION);
+			add_constraint_to_client(con);
+
+			test_scene_constraints();
+			allqueue (REDRAWVIEW3D, 0);
+			allqueue (REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CONSTRAINT_ADD_LOCKTRACK:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
+			add_constraint_to_client(con);
+
+			test_scene_constraints();
+			allqueue (REDRAWVIEW3D, 0);
+			allqueue (REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_CONSTRAINT_ADD_FOLLOWPATH:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
+			add_constraint_to_client(con);
+
 			test_scene_constraints();
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWBUTSOBJECT, 0);
@@ -601,7 +801,7 @@ static void object_panel_constraint(void)
 	
 	if (conlist) {
 		 
-		uiDefBut(block, BUT, B_CONSTRAINT_ADD, "Add", 10, 190, 95, 20, 0, 0.0, 0, 0, 0,"Add new constraint");
+		uiDefBlockBut(block, add_constraintmenu, NULL, "Add|>> ", 10, 190, 70, 20, "Add a new constraint");
 		
 		/* Go through the list of constraints and draw them */
 		xco = 10;

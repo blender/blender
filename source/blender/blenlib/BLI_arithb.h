@@ -116,6 +116,11 @@ Crossf(
 	float *c, float *a, float *b
 );
 
+	void 
+Projf(
+	float *c, const float *v1, const float *v2
+);
+
 /**
  * Euler conversion routines
  */

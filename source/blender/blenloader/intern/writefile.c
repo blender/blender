@@ -691,6 +691,12 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 		case CONSTRAINT_TYPE_ACTION:
 			writestruct(wd, DATA, "bActionConstraint", 1, con->data);
 			break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+			writestruct(wd, DATA, "bLockTrackConstraint", 1, con->data);
+			break;
+		case CONSTRAINT_TYPE_FOLLOWPATH:
+			writestruct(wd, DATA, "bFollowPathConstraint", 1, con->data);
+			break;
 		default:
 			break;
 		}

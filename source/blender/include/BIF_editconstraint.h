@@ -48,13 +48,14 @@ typedef struct ConstraintElement{
 } ConstraintElement;
 
 struct bConstraintChannel *add_new_constraint_channel(const char *name);
-struct bConstraint * add_new_constraint(void);
+struct bConstraint * add_new_constraint(int type);
+void add_influence_key_to_constraint (struct bConstraint *con);
+void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
+void add_constraint_to_client(struct bConstraint *con);
 struct ListBase *get_constraint_client_channels (int forcevalid);
 struct ListBase *get_constraint_client(char *name, short *clienttype, void** clientdata);
 int test_constraints (struct Object *owner, const char *substring, int disable);
 void test_scene_constraints (void);
-void unique_constraint_name (struct bConstraint *con, struct ListBase *list);
-void *new_constraint_data (short type);
 
 /*  void unique_constraint_name (struct bConstraint *con, struct ListBase *list); */
 

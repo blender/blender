@@ -1227,8 +1227,6 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
-		case CONSTRAINT_TYPE_NULL:
-			break;
 		case CONSTRAINT_TYPE_TRACKTO:
 			{
 				bTrackToConstraint *data;
@@ -1236,7 +1234,22 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
-
+		case CONSTRAINT_TYPE_LOCKTRACK:
+			{
+				bLockTrackConstraint *data;
+				data= ((bLockTrackConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			};
+			break;
+		case CONSTRAINT_TYPE_FOLLOWPATH:
+			{
+				bFollowPathConstraint *data;
+				data= ((bFollowPathConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			};
+			break;
+		case CONSTRAINT_TYPE_NULL:
+			break;
 		}
 	}
 }
@@ -3746,6 +3759,80 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 228) {
 		Scene *sce;
 		bScreen *sc;
+		Object *ob;
+
+
+		/*  As of now, this insures that the transition from the old Track system
+		    to the new full constraint Track is painless for everyone.*/
+		ob = main->object.first;
+	
+		while (ob) {
+			ListBase *list;
+			list = &ob->constraints;
+			
+			/* check for already existing TrackTo constraint
+			   set their track and up flag correctly */
+
+			if (list){
+				bConstraint *curcon;
+				for (curcon = list->first; curcon; curcon=curcon->next){
+					if (curcon->type == CONSTRAINT_TYPE_TRACKTO){
+						bTrackToConstraint *data = curcon->data;
+						data->reserved1 = ob->trackflag;
+						data->reserved2 = ob->upflag;
+					}
+				}
+			}
+
+			if (ob->type == OB_ARMATURE) {
+				if (ob->pose){
+					bConstraint *curcon;
+					bPoseChannel *pchan;
+					for (pchan = ob->pose->chanbase.first; 
+						 pchan; pchan=pchan->next){
+						for (curcon = pchan->constraints.first; 
+							 curcon; curcon=curcon->next){
+							if (curcon->type == CONSTRAINT_TYPE_TRACKTO){
+								bTrackToConstraint *data = curcon->data;
+								data->reserved1 = ob->trackflag;
+								data->reserved2 = ob->upflag;
+							}
+						}
+					}
+                }
+			}
+
+			/* Change Ob->Track in real TrackTo constraint
+
+			NOT SURE IF PEOPLE WANT THIS SO I DISABLED IT
+			
+			if (ob->track){
+				bConstraint *con;
+				bTrackToConstraint *data;
+
+				list = &ob->constraints;
+				if (list)
+				{
+					con = MEM_callocN(sizeof(bConstraint), "constraint");
+					strcpy (con->name, "AutoTrack");
+					unique_constraint_name(con, list);
+					con->flag |= CONSTRAINT_EXPAND;
+					con->enforce=1.0F;
+					con->type = CONSTRAINT_TYPE_TRACKTO;
+					data = (bTrackToConstraint *) 
+						new_constraint_data(CONSTRAINT_TYPE_TRACKTO);
+
+					data->tar = ob->track;
+					data->reserved1 = ob->trackflag;
+					data->reserved2 = ob->upflag;
+					con->data= (void*) data;
+					BLI_addtail(list, con);
+				}
+				ob->track = 0;
+			}*/
+
+			ob = ob->id.next;
+		}
 
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->r.mode |= R_ENVMAP;
@@ -4186,6 +4273,18 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_TRACKTO:
 			{
 				bTrackToConstraint *data = (bTrackToConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				break;
+			}
+		case CONSTRAINT_TYPE_LOCKTRACK:
+			{
+				bLockTrackConstraint *data = (bLockTrackConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				break;
+			}
+		case CONSTRAINT_TYPE_FOLLOWPATH:
+			{
+				bFollowPathConstraint *data = (bFollowPathConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 				break;
 			}

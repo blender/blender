@@ -81,50 +81,6 @@ const char *g_conString;
 Object *g_conObj;
 
 
-void unique_constraint_name (bConstraint *con, ListBase *list){
-	char		tempname[64];
-	int			number;
-	char		*dot;
-	int exists = 0;
-	bConstraint *curcon;
-	
-	/* See if we even need to do this */
-	for (curcon = list->first; curcon; curcon=curcon->next){
-		if (curcon!=con){
-			if (!strcmp(curcon->name, con->name)){
-				exists = 1;
-				break;
-			}
-		}
-	}
-	
-	if (!exists)
-		return;
-
-	/*	Strip off the suffix */
-	dot=strchr(con->name, '.');
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <=999; number++){
-		sprintf (tempname, "%s.%03d", con->name, number);
-		
-		exists = 0;
-		for (curcon=list->first; curcon; curcon=curcon->next){
-			if (con!=curcon){
-				if (!strcmp (curcon->name, tempname)){
-					exists = 1;
-					break;
-				}
-			}
-		}
-		if (!exists){
-			strcpy (con->name, tempname);
-			return;
-		}
-	}
-}
-
 static int is_child_of_ex(Object *owner, const char *ownersubstr, Object *parent, const char *parsubstr)
 {
 	Object *curob;
@@ -549,6 +505,79 @@ static short detect_constraint_loop (Object *owner, const char* substring, int d
 							break;
 							//		return 1;
 						}
+						if (data->reserved2==data->reserved1){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+						if (data->reserved2+3==data->reserved1){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+					}
+					break;
+				case CONSTRAINT_TYPE_LOCKTRACK:
+					{
+						bLockTrackConstraint *data = curcon->data;
+					
+						if (!exist_object(data->tar)){
+							data->tar = NULL;
+							break;
+						}
+						
+						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+						if (detect_constraint_loop (data->tar, data->subtarget, disable)){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+						if (data->lockflag==data->trackflag){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+						if (data->lockflag+3==data->trackflag){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+					}
+					break;
+				case CONSTRAINT_TYPE_FOLLOWPATH:
+					{
+						bFollowPathConstraint *data = curcon->data;
+					
+						if (!exist_object(data->tar)){
+							data->tar = NULL;
+							break;
+						}
+						if (data->tar->type != OB_CURVE){
+							data->tar = NULL;
+							break;
+						}
+						if (data->upflag==data->trackflag){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
+						if (data->upflag+3==data->trackflag){
+							curcon->flag |= CONSTRAINT_DISABLE;
+							result = 1;
+							break;
+							//		return 1;
+						}
 					}
 					break;
 				}
@@ -666,83 +695,43 @@ ListBase *get_constraint_client(char *name, short *clientType, void **clientdata
 	return list;
 }
 
-void	*new_constraint_data (short type)
-{
-	void	*result;
-	
-	switch (type){
-	case CONSTRAINT_TYPE_KINEMATIC:
-		{
-			bKinematicConstraint *data;
-			data = MEM_callocN(sizeof(bKinematicConstraint), "kinematicConstraint");
-
-			data->tolerance = 0.001;
-			data->iterations = 500;
-
-			result = data;
-		}
-		break;
-	case CONSTRAINT_TYPE_NULL:
-		{
-			result = NULL;
-		}
-		break;
-	case CONSTRAINT_TYPE_TRACKTO:
-		{
-			bTrackToConstraint *data;
-			data = MEM_callocN(sizeof(bTrackToConstraint), "tracktoConstraint");
-
-			result = data;
-
-		}
-		break;
-	case CONSTRAINT_TYPE_ROTLIKE:
-		{
-			bRotateLikeConstraint *data;
-			data = MEM_callocN(sizeof(bRotateLikeConstraint), "rotlikeConstraint");
-
-			result = data;
-		}
-		break;
-	case CONSTRAINT_TYPE_LOCLIKE:
-		{
-			bLocateLikeConstraint *data;
-			data = MEM_callocN(sizeof(bLocateLikeConstraint), "loclikeConstraint");
-
-			data->flag |= LOCLIKE_X|LOCLIKE_Y|LOCLIKE_Z;
-			result = data;
-		}
-		break;
-	case CONSTRAINT_TYPE_ACTION:
-		{
-			bActionConstraint *data;
-			data = MEM_callocN(sizeof(bActionConstraint), "actionConstraint");
-
-			result = data;
-		}
-		break;
-	default:
-		result = NULL;
-		break;
-	}
-
-	return result;
-}
-
-bConstraint * add_new_constraint(void)
+bConstraint * add_new_constraint(int type)
 {
 	bConstraint *con;
 
 	con = MEM_callocN(sizeof(bConstraint), "constraint");
 
 	/* Set up a generic constraint datablock */
-	con->type = CONSTRAINT_TYPE_TRACKTO;
+	con->type = type;
 	con->flag |= CONSTRAINT_EXPAND;
 	con->enforce=1.0F;
 	/* Load the data for it */
 	con->data = new_constraint_data(con->type);
 	strcpy (con->name, "Const");
 	return con;
+}
+
+void add_constraint_to_object(bConstraint *con, Object *ob)
+{
+	ListBase *list;
+	list = &ob->constraints;
+	if (list)
+	{
+		unique_constraint_name(con, list);
+		BLI_addtail(list, con);
+	}
+}
+
+void add_constraint_to_client(bConstraint *con)
+{
+	ListBase *list;
+	short type;
+	list = get_constraint_client(NULL, &type, NULL);
+	if (list)
+	{
+		unique_constraint_name(con, list);
+		BLI_addtail(list, con);
+	}
 }
 
 bConstraintChannel *add_new_constraint_channel(const char* name)
@@ -755,3 +744,6 @@ bConstraintChannel *add_new_constraint_channel(const char* name)
 	return chan;
 }
 
+void add_influence_key_to_constraint (bConstraint *con){
+	printf("doesn't do anything yet\n");
+}

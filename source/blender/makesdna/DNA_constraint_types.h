@@ -109,9 +109,21 @@ typedef struct bActionConstraint{
 	char		subtarget[32];
 } bActionConstraint;
 
-/* Single-target object constraints */
+/* Locked Axis Tracking constraint */
+typedef struct bLockTrackConstraint{
+	Object		*tar;
+	int			trackflag;
+	int			lockflag;
+	char		subtarget[32];
+} bLockTrackConstraint;
+
+/* Follow Path constraints */
 typedef struct bFollowPathConstraint{
 	Object		*tar;	/* Must be path object */
+	float		offset; /* Offset in time on the path (in frame) */
+	int			followflag;
+	int			trackflag;
+	int			upflag;
 } bFollowPathConstraint;
 
 /* Zero-target constraints */
@@ -126,7 +138,7 @@ typedef struct bRotationConstraint{
 #define CONSTRAINT_TYPE_CHILDOF		1	/* Unimplemented */
 #define CONSTRAINT_TYPE_TRACKTO		2	
 #define CONSTRAINT_TYPE_KINEMATIC	3	
-#define CONSTRAINT_TYPE_FOLLOWPATH	4	/* Unimplemented */
+#define CONSTRAINT_TYPE_FOLLOWPATH	4
 #define CONSTRAINT_TYPE_ROTLIMIT	5	/* Unimplemented */
 #define CONSTRAINT_TYPE_LOCLIMIT	6	/* Unimplemented */
 #define CONSTRAINT_TYPE_SIZELIMIT	7	/* Unimplemented */
@@ -135,6 +147,7 @@ typedef struct bRotationConstraint{
 #define CONSTRAINT_TYPE_SIZELIKE	10	/* Unimplemented */
 #define CONSTRAINT_TYPE_PYTHON		11	/* Unimplemented */
 #define CONSTRAINT_TYPE_ACTION		12
+#define CONSTRAINT_TYPE_LOCKTRACK	13	/* New Tracking constraint that locks an axis in place - theeth */
 
 /* bConstraint.flag */
 #define CONSTRAINT_EXPAND		0x00000001
@@ -153,6 +166,22 @@ typedef struct bRotationConstraint{
 #define LOCLIKE_X		0x00000001
 #define LOCLIKE_Y		0x00000002
 #define LOCLIKE_Z		0x00000004
+
+/* Tracking flags */
+#define LOCK_X		0x00000000
+#define LOCK_Y		0x00000001
+#define LOCK_Z		0x00000002
+
+#define UP_X		0x00000000
+#define UP_Y		0x00000001
+#define UP_Z		0x00000002
+
+#define TRACK_X		0x00000000
+#define TRACK_Y		0x00000001
+#define TRACK_Z		0x00000002
+#define TRACK_nX	0x00000003
+#define TRACK_nY	0x00000004
+#define TRACK_nZ	0x00000005
 
 #endif
 

@@ -41,6 +41,8 @@ struct bAction;
 struct bArmature;
 
 /* Function prototypes */
+void unique_constraint_name (struct bConstraint *con, struct ListBase *list);
+void *new_constraint_data (short type);
 void evaluate_constraint (struct bConstraint *constraint, struct Object *ob, short ownertype, void *ownerdata, float targetmat[][4]);
 void free_constraints (struct ListBase *conlist);
 void copy_constraints (struct ListBase *dst, struct ListBase *src);
