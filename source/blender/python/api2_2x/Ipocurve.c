@@ -30,13 +30,15 @@
  */
 
 #include "Ipocurve.h"
-#include "BezTriple.h"
+
 /*****************************************************************************/
 /* Function:              M_IpoCurve_New                                          */
 /* Python equivalent:     Blender.IpoCurve.New                                    */
 /*****************************************************************************/
-PyObject *M_IpoCurve_New(PyObject *self, PyObject *args)
+static PyObject *M_IpoCurve_New(PyObject *self, PyObject *args)
 {
+
+
 	return 0;
 }
 
@@ -56,36 +58,106 @@ PyObject *IpoCurve_Init (void)
 }
 
 /*****************************************************************************/
-/* Function:              M_IpoCurve_Get                                       */
-/* Python equivalent:     Blender.IpoCurve.Get                                 */
-/* Description:           Receives a string and returns the ipo data obj  */
+/* Function:              M_IpoCurve_Get                                     */
+/* Python equivalent:     Blender.IpoCurve.Get                               */
+/* Description:           Receives a string and returns the ipo data obj     */
 /*                        whose name matches the string.  If no argument is  */
-/*                        passed in, a list of all ipo data names in the  */
+/*                           passed in, a list of all ipo data names in the  */
 /*                        current scene is returned.                         */
 /*****************************************************************************/
-PyObject *M_IpoCurve_Get(PyObject *self, PyObject *args)
+static PyObject *M_IpoCurve_Get(PyObject *self, PyObject *args)
 {
 	return 0;
 }
 
 
 /*****************************************************************************/
-/* Python C_IpoCurve methods:                                                  */
+/* Python C_IpoCurve methods:                                                */
 /*****************************************************************************/
 
-PyObject *IpoCurve_setName(C_IpoCurve *self, PyObject *args)
+static PyObject *IpoCurve_setInterpolation( C_IpoCurve * self, PyObject *args)
+{
+	char*interpolationtype = 0;
+	int id = -1;
+  if (!PyArg_ParseTuple(args, "s", &interpolationtype))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string argument"));
+	if (!strcmp(interpolationtype,"Bezier"))id = IPO_BEZ;
+	if (!strcmp(interpolationtype,"Constant"))id = IPO_CONST;
+	if (!strcmp(interpolationtype,"Linear"))id = IPO_LIN;
+	if (id == -1)
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"bad interpolation ytpe"));
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+static PyObject *IpoCurve_getInterpolation( C_IpoCurve * self)
+{
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+static PyObject *IpoCurve_setExtrapolation( C_IpoCurve * self, PyObject *args)
+{
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self)
+{
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject *args)
+{
+short MEM_freeN(void *vmemh)	;
+	void *MEM_mallocN(unsigned int len, char *str);
+	char *str=0;
+	float x,y;
+	int npoints;
+	IpoCurve *icu;
+	BezTriple *bzt,*tmp;
+	static char name[10] = "mlml";
+	PyObject*popo = 0;
+  if (!PyArg_ParseTuple(args, "Os", &popo,&str))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected list argument"));
+	x = PyFloat_AsDouble(PyTuple_GetItem(popo,0));
+	y = PyFloat_AsDouble(PyTuple_GetItem(popo,1));
+  icu = self->ipocurve;
+	npoints = icu->totvert;
+	tmp = icu->bezt;
+	icu->bezt = MEM_mallocN(sizeof(BezTriple)*(npoints+1),name);
+	if(tmp){
+	memmove(icu->bezt,tmp,sizeof(BezTriple)*npoints);
+	MEM_freeN(tmp);
+	}
+	memmove(icu->bezt+npoints,icu->bezt,sizeof(BezTriple));
+	icu->totvert++;
+	bzt = icu->bezt + npoints;
+	bzt->vec[0][0] = x-1;
+	bzt->vec[1][0] = x;
+	bzt->vec[2][0] = x+1;
+	bzt->vec[0][1] = y-1;
+	bzt->vec[1][1] = y;
+	bzt->vec[2][1] = y+1;
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject *IpoCurve_setName(C_IpoCurve *self, PyObject *args)
 {
 	return 0;
 }
 
-PyObject *IpoCurve_Recalc(C_IpoCurve *self)
+static PyObject *IpoCurve_Recalc(C_IpoCurve *self)
 {
 	void testhandles_ipocurve(IpoCurve *icu);
 	IpoCurve *icu = self->ipocurve;
 	testhandles_ipocurve(icu); 
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
-PyObject* IpoCurve_getName (C_IpoCurve *self)
+static PyObject* IpoCurve_getName (C_IpoCurve *self)
 {
 	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
 
@@ -101,12 +173,12 @@ return PyString_FromString(nametab[self->ipocurve->adrcode-1]);
 
 
 
-void IpoCurveDeAlloc (C_IpoCurve *self)
+static void IpoCurveDeAlloc (C_IpoCurve *self)
 {
   PyObject_DEL (self);
 }
 
-PyObject* IpoCurve_getPoints (C_IpoCurve *self)
+static PyObject* IpoCurve_getPoints (C_IpoCurve *self)
 {	
 struct BezTriple *bezt;
         PyObject* l = PyList_New(0);
@@ -141,7 +213,7 @@ struct BezTriple *bezt;
 /*              the function that accesses C_IpoCurve "member variables" and      */
 /*              methods.                                                     */
 /*****************************************************************************/
-PyObject *IpoCurveGetAttr (C_IpoCurve *self, char *name)
+static PyObject *IpoCurveGetAttr (C_IpoCurve *self, char *name)
 {
 if (strcmp (name, "bezierPoints") == 0)return IpoCurve_getPoints(self);
 if (strcmp (name, "name") == 0)return IpoCurve_getName(self);
@@ -153,7 +225,7 @@ if (strcmp (name, "name") == 0)return IpoCurve_getName(self);
 /* Description: This is a callback function for the C_IpoCurve type. It is the */
 /*              function that sets IpoCurve Data attributes (member variables).*/
 /*****************************************************************************/
-int IpoCurveSetAttr (C_IpoCurve *self, char *name, PyObject *value)
+static int IpoCurveSetAttr (C_IpoCurve *self, char *name, PyObject *value)
 {
 if (strcmp (name, "bezierPoints") == 0)return IpoCurve_setPoints(self,value);
   return 0; /* normal exit */
@@ -164,7 +236,7 @@ if (strcmp (name, "bezierPoints") == 0)return IpoCurve_setPoints(self,value);
 /* Description: This is a callback function for the C_IpoCurve type. It           */
 /*              builds a meaninful string to represent ipo objects.          */
 /*****************************************************************************/
-PyObject *IpoCurveRepr (C_IpoCurve *self)
+static PyObject *IpoCurveRepr (C_IpoCurve *self)
 {
 	char s[1024];	
 	sprintf(s,"IpoCurve %d %d %d %d %d %d %d %d \n",self->ipocurve->blocktype,self->ipocurve->adrcode,self->ipocurve->vartype,self->ipocurve->totvert,self->ipocurve->ipo,self->ipocurve->extrap,self->ipocurve->flag,self->ipocurve->rt);

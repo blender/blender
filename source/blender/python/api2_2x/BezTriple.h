@@ -49,8 +49,8 @@
 /*****************************************************************************/
 /* Python API function prototypes for the BezTriple module.                        */
 /*****************************************************************************/
-PyObject *M_BezTriple_New (PyObject *self, PyObject *args);
-PyObject *M_BezTriple_Get (PyObject *self, PyObject *args);
+static PyObject *M_BezTriple_New (PyObject *self, PyObject *args);
+static PyObject *M_BezTriple_Get (PyObject *self, PyObject *args);
 
 
 
@@ -58,7 +58,7 @@ PyObject *M_BezTriple_Get (PyObject *self, PyObject *args);
 /* Python method structure definition for Blender.BezTriple module:             */
 /*****************************************************************************/
 
-static struct PyMethodDef M_BezTriple_methods[] = {
+struct PyMethodDef M_BezTriple_methods[] = {
   {"New",(PyCFunction)M_BezTriple_New, METH_VARARGS|METH_KEYWORDS,0},
   {"Get",         M_BezTriple_Get,         METH_VARARGS, 0},
   {"get",         M_BezTriple_Get,         METH_VARARGS, 0},
@@ -76,8 +76,8 @@ typedef struct {
 /*****************************************************************************/
 /* Python C_BezTriple methods declarations:                                     */
 /*****************************************************************************/
-PyObject *BezTriple_getName(C_BezTriple *self);
-PyObject *BezTriple_setName(C_BezTriple *self, PyObject *args);
+static PyObject *BezTriple_getName(C_BezTriple *self);
+static PyObject *BezTriple_setName(C_BezTriple *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python C_BezTriple methods table:                                            */
@@ -94,16 +94,16 @@ static PyMethodDef C_BezTriple_methods[] = {
 /*****************************************************************************/
 /* Python BezTriple_Type callback function prototypes:                          */
 /*****************************************************************************/
-void BezTripleDeAlloc (C_BezTriple *self);
-//int BezTriplePrint (C_BezTriple *self, FILE *fp, int flags);
-int BezTripleSetAttr (C_BezTriple *self, char *name, PyObject *v);
-PyObject *BezTripleGetAttr (C_BezTriple *self, char *name);
-PyObject *BezTripleRepr (C_BezTriple *self);
+static void BezTripleDeAlloc (C_BezTriple *self);
+//static int BezTriplePrint (C_BezTriple *self, FILE *fp, int flags);
+static int BezTripleSetAttr (C_BezTriple *self, char *name, PyObject *v);
+static PyObject *BezTripleGetAttr (C_BezTriple *self, char *name);
+static PyObject *BezTripleRepr (C_BezTriple *self);
 
 /*****************************************************************************/
 /* Python BezTriple_Type structure definition:                                  */
 /*****************************************************************************/
-static PyTypeObject BezTriple_Type =
+PyTypeObject BezTriple_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */

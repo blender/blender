@@ -93,6 +93,7 @@ static PyObject *Ipo_setBlocktype(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getRctf(C_Ipo *self);
 static PyObject *Ipo_setRctf(C_Ipo *self, PyObject *args);
 
+static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getNcurves(C_Ipo *self);
 static PyObject *Ipo_getNBezPoints(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_DeleteBezPoints(C_Ipo *self, PyObject *args);
@@ -120,6 +121,8 @@ static PyMethodDef C_Ipo_methods[] = {
       "() - Return Ipo rctf - "},
   {"setRctf", (PyCFunction)Ipo_setRctf, METH_VARARGS,
       "(str) - Change Ipo rctf"},
+  {"addCurve", (PyCFunction)Ipo_addCurve, METH_VARARGS,
+      "() - Return Ipo ncurves"},
   {"getNcurves", (PyCFunction)Ipo_getNcurves, METH_NOARGS,
       "() - Return Ipo ncurves"},
   {"getNBezPoints", (PyCFunction)Ipo_getNBezPoints, METH_VARARGS,

@@ -30,25 +30,31 @@
  */
 
 #include "Ipo.h"
-#include "Ipocurve.h"
 /*****************************************************************************/
 /* Function:              M_Ipo_New                                          */
 /* Python equivalent:     Blender.Ipo.New                                    */
 /*****************************************************************************/
+
+
+
 static PyObject *M_Ipo_New(PyObject *self, PyObject *args)
 {
 	Ipo *add_ipo(char *name, int idcode);
-	char*name = NULL;
-	int code = 0;
+	char*name = NULL,*code=NULL;
+	int idcode = -1;
   C_Ipo    *pyipo;
   Ipo      *blipo;
 
-	if (!PyArg_ParseTuple(args, "si", &name,&code))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected string int arguments"));
+	if (!PyArg_ParseTuple(args, "ss", &code,&name))
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string int arguments"));
+		if (!strcmp(code,"Object"))idcode = ID_OB;
+		if (!strcmp(code,"Camera"))idcode = ID_CA;
+		if (!strcmp(code,"World"))idcode = ID_WO;
+		if (!strcmp(code,"Material"))idcode = ID_MA;
+		if (idcode == -1)
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad code"));
 
-
-  blipo = add_ipo(name,code);
+  blipo = add_ipo(name,idcode);
 
   if (blipo) 
 		pyipo = (C_Ipo *)PyObject_NEW(C_Ipo, &Ipo_Type);
@@ -256,6 +262,37 @@ static PyObject *Ipo_getNcurves(C_Ipo *self)
         }
 
   return (PyInt_FromLong(i) );
+}
+
+
+
+static PyObject *Ipo_addCurve(C_Ipo *self, PyObject *args)
+{ 
+	void *MEM_callocN(unsigned int len, char *str);
+
+	int i = 0,typenumber = -1;
+	char*type = 0;
+	static char *name="mmm";	
+	char * nametab[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
+	if (!PyArg_ParseTuple(args, "s",&type))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
+	for(i = 0;i<24;i++)
+		if(!strcmp(nametab[i],type))
+			typenumber=i+1;
+
+	if (typenumber == -1)
+		return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown type"));
+
+	IpoCurve*ptr = (IpoCurve*)MEM_callocN(sizeof(IpoCurve),name);
+	ptr->blocktype = 16975;
+	ptr->totvert = 0;
+	ptr->adrcode = typenumber;
+	ptr->ipo = 2;
+	ptr->flag = 7;
+			
+	BLI_addhead(&(self->ipo->curve),ptr);
+
+	return IpoCurve_CreatePyObject (ptr);
 }
 
 
