@@ -32,7 +32,7 @@
 
 SOURCEDIR = intern
 
-include nan_subdirs.mk
+# include nan_subdirs.mk
 
 ALLDIRS = string ghost guardedalloc bmfont moto container memutil
 ALLDIRS += decimation iksolver keymaker bsp python/freeze
@@ -41,5 +41,10 @@ all::
 	@for i in $(ALLDIRS); do \
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
 	    $(MAKE) -C $$i install || exit 1; \
+	done
+clean test debug::
+	@for i in $(ALLDIRS); do \
+	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
+	    $(MAKE) -C $$i $@ || exit 1; \
 	done
 
