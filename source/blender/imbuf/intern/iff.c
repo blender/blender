@@ -62,8 +62,8 @@ unsigned short imb_start_iff(struct ImBuf *ibuf, int file)
 		*point++=BMHD;
 		*point++=sizeof(struct BitMapHeader);
 
-		bmhd=(struct BitMapHeader *)point;		/* bmhd wijst naar plek waar bmhd moet komen */
-		point=(unsigned int *)((char *)point+sizeof(struct BitMapHeader));	/* pointer alvast verder zetten */
+		bmhd=(struct BitMapHeader *)point;		/* bmhd points to location where bmhd will be */
+		point=(unsigned int *)((char *)point+sizeof(struct BitMapHeader));	/* advance pointer already */
 
 		bmhd->w=ibuf->x;
 		bmhd->h=ibuf->y;
@@ -93,7 +93,7 @@ unsigned short imb_start_iff(struct ImBuf *ibuf, int file)
 		*point++ = BIG_LONG(sizeof(struct Adat));
 
 		adat = (struct Adat *)point;
-		point = (unsigned int *)((char *)point+sizeof(struct Adat));	/* pointer alvast verder zetten */
+		point = (unsigned int *)((char *)point+sizeof(struct Adat));	/* advance pointer already */
 
 		adat->w = BIG_SHORT(ibuf->x);
 		adat->h = BIG_SHORT(ibuf->y);
@@ -180,11 +180,11 @@ unsigned short imb_update_iff(int file, int code)
 
 	if (file<=0) return (FALSE);
 
-	filelen = BLI_filesize(file)-8;			/* filelengte berekenen */
+	filelen = BLI_filesize(file)-8;			/* calc filelength  */
 
 	lseek(file,0L,2);		/* seek end */
 
-	if (filelen & 1){						/* lengte even maken */
+	if (filelen & 1){						/* make length 'even' */
 		switch(code){
 		case BODY:
 			nop = IFFNOP;
@@ -203,7 +203,7 @@ unsigned short imb_update_iff(int file, int code)
 	filelen-=4;
 	lseek(file,4L,1);
 
-	while (filelen>0){		/* zoek BODY op */
+	while (filelen>0){		/* seek BODY */
 		read(file, buf, 8);
 		filelen -= 8;
 		if (buf[0] == code) break;

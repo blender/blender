@@ -80,20 +80,6 @@
 #define calloc(x,y) MEM_callocN((x)*(y), __FILE__)
 #define freelist(x) BLI_freelistN(x)
 
-/*
-bindkey -r f1,'cc -O -c imbuf.c\n'
-
-bindkeyo -r f1,'make paint \n'
-bindkeyo -r f2,'paint /usr/4Dgifts/iristools/images/max5.rgb \n'
-
-bindkey -r f1,'cc paint.c imbuf.c -lgl_s -lm -lfm_s -g -o paint\n'
-bindkey -r f2,'/usr/people/bin/compres /usr/people/pics/0600\n'	
-
-compileren met:
-
-lc -Lm -f8 -dAMIGA imbuf
-*/
-
 #ifdef SHLIB
 void *(*ib_calloc)();
 #define calloc(x,y) ib_calloc((x),(y))

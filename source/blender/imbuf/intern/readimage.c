@@ -104,7 +104,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 			if (GET_ID(mem) == FORM){
 				if (GET_ID(mem+2) == ILBM){
 					return (imb_loadamiga(mem, flags));
-				} else if (GET_ID(mem+5) == ILBM){			/* animaties */
+				} else if (GET_ID(mem+5) == ILBM){			/* animations */
 					return (imb_loadamiga(mem+3, flags));
 				} else if (GET_ID(mem+2) == ANIM){
 					return (imb_loadanim(mem, flags));
@@ -154,7 +154,7 @@ struct ImBuf *IMB_loadiffmem(int *mem, int flags) {
 		if (GET_ID(mem) == FORM){
 			if (GET_ID(mem+2) == ILBM){
 				return (imb_loadamiga(mem, flags));
-			} else if (GET_ID(mem+5) == ILBM){			/* animaties */
+			} else if (GET_ID(mem+5) == ILBM){			/* animations */
 				return (imb_loadamiga(mem+3, flags));
 			} else if (GET_ID(mem+2) == ANIM){
 				return (imb_loadanim(mem, flags));

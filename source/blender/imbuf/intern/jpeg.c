@@ -65,20 +65,16 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 #endif
 
 /*
- * Er zijn in principe vier verschillende jpeg formaten.
+ * In principle there are 4 jpeg formats.
  * 
- * 1. jpeg - standaard drukwerk, u & v op kwart van resolutie
- * 2. jvid - standaard video u & v halve resolutie, frame opengeklapt
+ * 1. jpeg - standard printing, u & v at quarter of resulution
+ * 2. jvid - standaard video, u & v half resolution, frame not interlaced
 
 type 3 is unsupported as of jul 05 2000 Frank.
 
- * 3. jstr - als 2, maar dan met twee losse fields weggeschreven
- *		moet baseline zijn
- *		moet rgb zijn
- *		moet samplingfactors goed hebben
- 
+ * 3. jstr - as 2, but written in 2 seperate fields
 
- * 4. jmax - geen scaling in de componenten
+ * 4. jmax - no scaling in the components
  */
 
 static int jpeg_failed = FALSE;
@@ -253,7 +249,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 	struct ImBuf * ibuf = 0;
 	uchar * rect;
 
-	/* eigen app1 handler installeren */
+	/* install own app1 handler */
 	ibuf_ftype = 0;
 	jpeg_set_marker_processor(cinfo, 0xe1, handle_app1);
 	cinfo->dct_method = JDCT_FLOAT;
@@ -488,7 +484,7 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 	}
 	jpeg_set_defaults(cinfo);
 	
-	/* eigen instellingen */
+	/* own settings */
 
 	cinfo->dct_method = JDCT_FLOAT;
 	jpeg_set_quality(cinfo, quality, TRUE);
@@ -535,7 +531,7 @@ static int save_vidjpeg(char * name, struct ImBuf * ibuf)
 
 	init_jpeg(outfile, cinfo, ibuf);
 
-	/* scalings factoren goedzetten */
+	/* adjust scaling factors */
 	if (cinfo->in_color_space == JCS_RGB) {
 		cinfo->comp_info[0].h_samp_factor = 2;
 		cinfo->comp_info[0].v_samp_factor = 1;
@@ -601,7 +597,7 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 
 	init_jpeg(outfile, cinfo, ibuf);
 
-	/* scalings factoren goedzetten */
+	/* adjust scaling factors */
 	if (cinfo->in_color_space == JCS_RGB) {
 		cinfo->comp_info[0].h_samp_factor = 1;
 		cinfo->comp_info[0].v_samp_factor = 1;

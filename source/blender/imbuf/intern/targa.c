@@ -111,7 +111,7 @@ static int tga_out4(unsigned int data, FILE * file)
 	uchar *p;
 
 	p = (uchar *) & data;
-	/* volgorde = bgra */
+	/* order = bgra */
 	if (putc(p[2],file) == EOF) return(EOF);
 	if (putc(p[1],file) == EOF) return(EOF);
 	if (putc(p[0],file) == EOF) return(EOF);
@@ -138,8 +138,8 @@ static short makebody_tga(ImBuf * ibuf, FILE * file, int (*out)(unsigned int, FI
 					last = this;
 					this = *rect++;
 					if (last == this){
-						if (this == rect[-3]){	/* drie dezelfde? */
-							bytes --;		/* bytes goed zetten */
+						if (this == rect[-3]){	/* three the same? */
+							bytes --;		/* set bytes */
 							break;
 						}
 					}
@@ -167,8 +167,8 @@ static short makebody_tga(ImBuf * ibuf, FILE * file, int (*out)(unsigned int, FI
 
 				copy = FALSE;
 			} else {
-				while (*rect++ == this){		/* zoek naar eerste afwijkende byte */
-					if (--bytes == 0) break;	/* of einde regel */
+				while (*rect++ == this){		/* seek for first different byte */
+					if (--bytes == 0) break;	/* oor end of line */
 				}
 				rect --;
 				copy = rect-rectstart;
@@ -254,7 +254,7 @@ short imb_savetarga(struct ImBuf * ibuf, int file, int flags)
 
 	memset(buf,0,sizeof(buf));
 
-	/* buf[0] = 0;  lengte string */
+	/* buf[0] = 0;  length string */
 
 	buf[16] = (ibuf->depth + 0x7 ) & ~0x7;
 	if (ibuf->cmap) {
@@ -372,9 +372,6 @@ int imb_is_a_targa(void *buf) {
 }
 
 static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
-/*  struct ImBuf *ibuf; */
-/*  uchar *mem; */
-/*  int psize; */
 {
 	int count, col, size;
 	unsigned int *rect;
@@ -386,7 +383,7 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
 	size = ibuf->x * ibuf->y;
 	rect = ibuf->rect;
 	
-	/* alpha zetten */
+	/* set alpha */
 	cp[0] = 0xff;
 	cp[1] = cp[2] = 0;
 	
@@ -398,7 +395,7 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
 
 			if (psize & 2){
 				if (psize & 1){
-					/* volgorde = bgra */
+					/* order = bgra */
 					cp[0] = mem[3];
 					cp[1] = mem[0];
 					cp[2] = mem[1];
@@ -435,7 +432,7 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
 				while (count > 0){
 					if (psize & 2){
 						if (psize & 1){
-							/* volgorde = bgra */
+							/* order = bgra */
 							cp[0] = mem[3];
 							cp[1] = mem[0];
 							cp[2] = mem[1];
@@ -478,14 +475,14 @@ static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int psize)
 	size = ibuf->x * ibuf->y;
 	rect = ibuf->rect;
 
-	/* alpha zetten */
+	/* set alpha */
 	cp[0] = 0xff;
 	cp[1] = cp[2] = 0;
 
 	while(size > 0){
 		if (psize & 2){
 			if (psize & 1){
-				/* volgorde = bgra */
+				/* order = bgra */
 				cp[0] = mem[3];
 				cp[1] = mem[0];
 				cp[2] = mem[1];
@@ -493,7 +490,7 @@ static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int psize)
 				/*col = (mem[3] << 24) + (mem[0] << 16) + (mem[1] << 8) + mem[2];*/
 				mem += 4;
 			} else{
-				/* zet alpha bij 24 bits kleuren */
+				/* set alpha for 24 bits colors */
 				cp[1] = mem[0];
 				cp[2] = mem[1];
 				cp[3] = mem[2];
@@ -571,14 +568,14 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
 		for (col = ibuf->maxcol - 1; col > 0; col >>= 1) size++;
 		ibuf->depth = size;
 
-		if (tga.mapbits != 32) {	/* alpha bits zetten */
+		if (tga.mapbits != 32) {	/* set alpha bits  */
 			ibuf->cmap[0] &= BIG_LONG(0x00ffffff);
 		}
 	}
 	
 	if (flags & IB_test) return (ibuf);
 
-	if (tga.imgtyp != 1 && tga.imgtyp != 9) IMB_freecmapImBuf(ibuf); /* kan soms gebeuren (beuh) */
+	if (tga.imgtyp != 1 && tga.imgtyp != 9) IMB_freecmapImBuf(ibuf); /* happens sometimes (beuh) */
 
 	switch(tga.imgtyp){
 	case 1:

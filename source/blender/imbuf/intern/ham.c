@@ -58,9 +58,6 @@ static void addhamdither(short x, unsigned char *dit,
 				  short dmax, unsigned char *rgb,
 				  unsigned short *ham,
 				  short type, short round, short shift)
-/*  short x, dmax, type, round, shift; */
-/*  uchar *dit, *rgb; */
-/*  unsigned short *ham; */
 {
 	short dx = 0;
 	short c1, c2;
@@ -102,27 +99,21 @@ static void convhamscanl(short x, short y,
 				  unsigned char coltab[][4],
 				  short *deltab,
 				  short bits)
-/*  short x, y, bits; */
-/*  uchar *rgbbase; */
-/*  uchar coltab[][4]; */
-/*  short *deltab; */
 {
 	int a, r, g, b, lr, lg, lb, dr, dg, db, col, fout, type, x2;
 	int round, shift;
 	uchar *rgb, dit[2];
 	unsigned short *ham, *hambase;
 
-	/* Opzet:
-		eerst wordt het gehele plaatje afgelopen, waarbij kleurovergangen gecodeerd
-		worden: FGRB XXXX XXXX
-		F			- vrije kleurwaarde, mag door ieder veranderd worden
-		G/R/B		- groen/rood/blauw ham overgang, alleen door die kleur te veranderen
-		XXXX XXXX	- N bits waarde.
+	/* Concept:
+		first we check the entire image, where color transitions are coded: FGRB XXXX XXXX
+		F			- free color value, can be changed by anyone
+		G/R/B		- green/red/blue ham transition, only to be changed by this color
+		XXXX XXXX	- N bits value.
 	
-		0000 XXXX XXXX is palet kleur.
+		0000 XXXX XXXX is palette color.
 	
-		daarna wordt eerst de groen dither toegevoegd, dan de rood dither en
-		tenslotte wordt blauwdither toegevoegd
+		after that first the green dither is added, then the red dither, and finally blue dither
 	*/
 
 	if ((hambase = (unsigned short *) malloc((x+4) * sizeof(unsigned short)))==0) return;
@@ -138,7 +129,7 @@ static void convhamscanl(short x, short y,
 	shift = 8 - bits;
 	round = 1 << (shift - 1);
 	
-	/* om te voorkomen dat er 'ruis' ontstaat aan het einde van de regel */
+	/* to prevent 'noise' at the end of the line */
 	for (x2 = 3; x2 >= 0; x2 --) hambase[x + x2] = HAMFREE;
 	
 	for (x2 = x ;x2 > 0; x2--){
@@ -254,7 +245,6 @@ static void convhamscanl(short x, short y,
 
 
 short imb_converttoham(struct ImBuf *ibuf)
-/*  struct ImBuf* ibuf; */
 {
 	unsigned int coltab[256],*rect;
 	short x,y,* deltab;

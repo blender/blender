@@ -52,7 +52,7 @@ unsigned int **imb_copyplanelist(struct ImBuf *ibuf)
 	unsigned int **listn,**listo;
 
 	nobp=ibuf->depth;
-	listn= malloc(nobp*sizeof(int *));			/* kopie van bitmap maken */
+	listn= malloc(nobp*sizeof(int *));			/* make copy of bitmap */
 	if (listn==0) return (0);
 
 	listo=ibuf->planes;
@@ -66,9 +66,9 @@ unsigned int **imb_copyplanelist(struct ImBuf *ibuf)
 
 static void bptolscanl(unsigned int *buf, int size, unsigned int **list, int nobp, int offset)
 {
-	/* 	zet bitplanes om in een buffer met ints
-	door 4 deelbare hoeveelheid bitplanes,
-	breedte bitplanes op	ints afgrond 	*/
+	/* 	converts bitplanes to a buffer with ints
+	by 4 dividiable amount of bitplanes,
+	the width of bitplanes is rounded at ints 	*/
 
 	list += nobp;
 
@@ -183,7 +183,7 @@ void imb_bptolong(struct ImBuf *ibuf)
 	int nobp,i,x;
 	unsigned int *rect,offset;
 
-	/* eerst alle ints wissen */
+	/* first clear all ints */
 
 	if (ibuf == 0) return;
 	if (ibuf->planes == 0) return;
@@ -191,7 +191,7 @@ void imb_bptolong(struct ImBuf *ibuf)
 
 	nobp=ibuf->depth;
 	if (nobp != 32){
-		if (nobp == 24) IMB_rectoptot(ibuf, 0, IMB_rectfill, 0xff000000); /* alpha zetten */
+		if (nobp == 24) IMB_rectoptot(ibuf, 0, IMB_rectfill, 0xff000000); /* set alpha */
 		else IMB_rectoptot(ibuf, 0, IMB_rectfill, 0);
 	}
 
@@ -209,8 +209,8 @@ void imb_bptolong(struct ImBuf *ibuf)
 
 static void ltobpscanl(unsigned int *rect, int x, unsigned int **list, int nobp, int offset)
 {
-	/* zet een buffer met ints, om in bitplanes. Opgepast, buffer 
-		wordt vernietigd !*/
+	/* converts a buffer with ints to bitplanes. Take care, buffer 
+		will be destroyed !*/
 
 	if (nobp != 32)
 	{
@@ -338,8 +338,8 @@ static void ltobpscanl(unsigned int *rect, int x, unsigned int **list, int nobp,
 
 void imb_longtobp(struct ImBuf *ibuf)
 {
-	/* zet een buffer met ints, om in bitplanes. Opgepast, buffer 
-		wordt vernietigd !*/
+	/* converts a buffer with ints to bitplanes. Take care, buffer
+	will be destroyed !*/
 
 	int nobp,i,x;
 	unsigned int *rect,offset,*buf;

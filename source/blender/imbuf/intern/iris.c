@@ -128,7 +128,6 @@ static uchar * file_data;
 static int file_offset;
 
 static unsigned short getshort(FILE *inf)
-/*  FILE *inf; */
 {
 	unsigned char * buf;
 	
@@ -139,7 +138,6 @@ static unsigned short getshort(FILE *inf)
 }
 
 static unsigned int getlong(FILE *inf)
-/*  FILE *inf; */
 {
 	unsigned char * buf;
 	
@@ -150,8 +148,6 @@ static unsigned int getlong(FILE *inf)
 }
 
 static void putshort(FILE *outf, unsigned short val)
-/*  FILE *outf; */
-/*  unsigned short val; */
 {
 	unsigned char buf[2];
 
@@ -161,8 +157,6 @@ static void putshort(FILE *outf, unsigned short val)
 }
 
 static int putlong(FILE *outf, unsigned int val)
-/*  FILE *outf; */
-/*  unsigned int val; */
 {
 	unsigned char buf[4];
 
@@ -174,8 +168,6 @@ static int putlong(FILE *outf, unsigned int val)
 }
 
 static void readheader(FILE *inf, IMAGE *image)
-/*  FILE *inf; */
-/*  IMAGE *image; */
 {
 	memset(image, 0, sizeof(IMAGE));
 	image->imagic = getshort(inf);
@@ -187,8 +179,6 @@ static void readheader(FILE *inf, IMAGE *image)
 }
 
 static int writeheader(FILE *outf, IMAGE *image)
-/*  FILE *outf; */
-/*  IMAGE *image; */
 {
 	IMAGE t;
 
@@ -208,9 +198,6 @@ static int writeheader(FILE *outf, IMAGE *image)
 }
 
 static int writetab(FILE *outf, unsigned int *tab, int len)
-/*  FILE *outf; */
-/*  unsigned int *tab; */
-/*  int len; */
 {
 	int r = 0;
 
@@ -222,9 +209,6 @@ static int writetab(FILE *outf, unsigned int *tab, int len)
 }
 
 static void readtab(FILE *inf, unsigned int *tab, int len)
-/*  FILE *inf; */
-/*  unsigned int *tab; */
-/*  int len; */
 {
 	while(len) {
 		*tab++ = getlong(inf);
@@ -399,7 +383,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 			rect += 4;
 		}
 	} else if (image.zsize == 3){
-		/* alpha toevoegen */
+		/* add alpha */
 		rect = (uchar *) ibuf->rect;
 		for (x = ibuf->x * ibuf->y; x > 0; x--) {
 			rect[0] = 255;
@@ -423,8 +407,6 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 /* static utility functions for longimagedata */
 
 static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n)
-/*  unsigned char *lptr, *cptr; */
-/*  int z, n; */
 {
 	lptr += z;
 	while(n--) {
@@ -481,8 +463,6 @@ static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n
 */
 
 static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
-/*  unsigned char *optr, *iptr; */
-/*  int z; */
 {
 	unsigned char pixel, count;
 
@@ -635,8 +615,6 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, int 
 /* static utility functions for output_iris */
 
 static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
-/*  unsigned char *rgbptr, *lumptr; */
-/*  int n; */
 {
 	lumptr += CHANOFFSET(0);
 	while(n--) {
@@ -647,8 +625,6 @@ static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
 }
 
 static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt)
-/*  unsigned char *lbuf, *rlebuf; */
-/*  int z, cnt; */
 {
 	unsigned char *iptr, *ibufend, *sptr, *optr;
 	short todo, cc;

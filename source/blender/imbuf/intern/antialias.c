@@ -46,31 +46,22 @@
 #include <config.h>
 #endif
 
-/* werking:
+/* how it works:
 
-1 - zoek een overgang in een kolom
-2 - kijk wat de relatie met links en rechts is, 
-	
-	Is pixel boven overgang links of rechts ervan gelijk aan bovenste kleur, 
-	zoek dan naar beneden.
-	
-	Is pixel onder overgang links of rechts ervan gelijk aan onderste kleur, 
-	zoek dan naar boven.
-	
-	
+1 - seek for a transistion in a collumn
+2 - check the relationship with left and right, 
+
+Is pixel above transition to the left or right equal to the top color, seek down
+
+Is pixel below transition to the left or right equal to the bottom color, seek up 
+		
 */
 
-/* er moet een functie * komen die aan kan geven of twee kleuren nu
- * wel of niet gelijk zijn.
- * Voor nu maar een define
+/* there should be a funcion * to indicate if two colors are
+ * equal or not.
+ * For now we use a define
  */
 
-
-/*
-	zipfork "cc -g anti.c util.o -lgl_s -limbuf -limage -lm -o anti > /dev/console"                                                                  
-	zipfork "anti /data/rt > /dev/console"                                                                  
-	zipfork "anti /pics/martin/03.01.ChambFinal/0001 > /dev/console"                                                                  
-*/
 
 static unsigned int anti_mask = 0xffffffff;
 static int anti_a, anti_b, anti_g, anti_r;
@@ -162,12 +153,12 @@ static Edge * findmatch(Edge * first, Edge * edge)
 				if (first->next == 0) match = first;
 				else if (first->next->position >= edge->position) match = first;
 			} else if (first->col2 == edge->col1) {
-				match = 0; /* bij zigzagjes kan deze al 'ns foutief gezet zijn */
+				match = 0; /* at 'sig saw' situations this one can be wrongly set */
 			}
 		} else if (first->position == edge->position) {
 			if (first->col1 == edge->col1 || first->col2 == edge->col2) match = first;
 		} else {
-			if (match) break;	/* er is er al een */
+			if (match) break;	/* there is one */
 			
 			if (first->col1 == edge->col1) {
 				if (first->prev == 0) match = first;
@@ -190,8 +181,8 @@ static void filterdraw(unsigned int * ldest, unsigned int * lsrce, int zero, int
 	int count;
 	double weight, add;
 	
-	/* we filteren de pixels op ldest tussen in en out met pixels van lsrce
-	 * Het gewicht loopt ondertussen van 0 naar 1
+	/* we filter the pixels at ldest between in and out with pixels from lsrce
+	 * weight values go from 0 to 1
 	 */
 	
 
@@ -218,7 +209,7 @@ static void filterdraw(unsigned int * ldest, unsigned int * lsrce, int zero, int
 	add = 0.5 / count;
 	weight = 0.5 * add;
 	
-	/* dit moet natuurlijk gamma gecorrigeerd */
+	/* this of course gamma corrected */
 	
 	for(; count > 0; count --) {
 		if (anti_a) dst[0] += weight * (src[0] - dst[0]);
@@ -260,11 +251,11 @@ static void filterimage(struct ImBuf * ibuf, struct ImBuf * cbuf, ListBase * lis
 			drawboth = FALSE;
 			
 			if (left == 0 || right == 0) {
-				/* rand */
+				/* edge */
 				any = left;
 				if (right) any = right;
 				if (any) {
-					/* spiegelen */
+					/* mirroring */
 					pos = 2 * middle->position - any->position;
 
 					if (any->position < middle->position) {
@@ -290,18 +281,18 @@ static void filterimage(struct ImBuf * ibuf, struct ImBuf * cbuf, ListBase * lis
 					drawboth = TRUE;
 				}
 			} else if (left->position == middle->position || right->position == middle->position) {
-				/* recht stuk */
-				/* klein hoekje, met een van de twee op afstand 2 (ander is toch op afstand 0) ? */
+				/* straight piece */
+				/* small corner, with one of the two at distance 2 (the other is at dist 0) ? */
 				
 				if (abs(left->position - right->position) == 2) drawboth = TRUE;
 			} else if (left->position < middle->position && right->position > middle->position){
-				/* trap 1 */
+				/* stair 1 */
 				drawboth = TRUE;
 			} else if (left->position > middle->position && right->position < middle->position){
-				/* trap 2 */
+				/* stair 2 */
 				drawboth = TRUE;
 			} else {
-				/* piek */
+				/* a peek */
 				drawboth = TRUE;
 			}
 			
@@ -345,7 +336,7 @@ void IMB_antialias(struct ImBuf * ibuf)
 }
 
 
-/* intelligente scaling */
+/* intelligent scaling */
 
 static void _intel_scale(struct ImBuf * ibuf, ListBase * listarray, int dir)
 {
@@ -440,12 +431,12 @@ void IMB_clever_double(struct ImBuf * ibuf)
 		for (i = 0; i < size; i++) {
 			curlist = listarray + i;
 			new = (Edge*)MEM_callocN(sizeof(Edge),"Edge");
-			new->col2 = ibuf->rect[i]; /* bovenste pixel */
+			new->col2 = ibuf->rect[i]; /* upper pixel */
 			new->col1 = new->col2 - 1;
 			BLI_addhead(curlist, new);
 			new = (Edge*)MEM_callocN(sizeof(Edge),"Edge");
 			new->position = ibuf->y - 1;
-			new->col1 = ibuf->rect[i + ((ibuf->y -1) * ibuf->x)]; /* onderste pixel */
+			new->col1 = ibuf->rect[i + ((ibuf->y -1) * ibuf->x)]; /* bottom pixel */
 			new->col2 = new->col1 - 1;
 			BLI_addtail(curlist, new);
 		}
@@ -458,12 +449,12 @@ void IMB_clever_double(struct ImBuf * ibuf)
 			for (i = 0; i < size; i++) {
 				curlist = listarray + i;
 				new =  (Edge*)MEM_callocN(sizeof(Edge),"Edge");
-				new->col2 = ibuf->rect[i * ibuf->x]; /* linkse pixel */
+				new->col2 = ibuf->rect[i * ibuf->x]; /* left pixel */
 				new->col1 = new->col2 - 1;
 				BLI_addhead(curlist, new);
 				new =  (Edge*)MEM_callocN(sizeof(Edge),"Edge");
 				new->position = ibuf->x - 1;
-				new->col1 = ibuf->rect[((i + 1) * ibuf->x) - 1]; /* rechtse pixel */
+				new->col1 = ibuf->rect[((i + 1) * ibuf->x) - 1]; /* right pixel */
 				new->col2 = new->col1 - 1;
 				BLI_addtail(curlist, new);
 			}

@@ -200,21 +200,18 @@ float adat_distort = 1.0;
 
 /*
  * 
- * Nieuwe versie:
+ * New version:
  * 
- * 32 helderheden	Y			 15 direct te bereiken (zwart & wit zijn specials)
- * 16 kleuren		H ue		
- * 7 intensiteiten	S aturation
+ * 32 brighntesses	Y			 15 with direct access (black and white are specials)
+ * 16 colors		H ue		
+ * 7 intensities	S aturation
  * 
- * Totaal 3584 'verschillende' kleuren. Eerste 512 kleuren vrij.
+ * Total 3584 'different' colors. First 512 colors free.
  * 
  * 
  */
 
 void imb_convhamx(struct ImBuf *ibuf, unsigned char coltab[][4], short *deltab)
-/*  struct ImBuf *ibuf; */
-/*  uchar coltab[][4]; */
-/*  short *deltab; */
 {
 	short r,g,b,lr,lg,lb,dr,dg,db,col,fout,type,step;
 	int i;
@@ -294,9 +291,6 @@ void imb_convhamx(struct ImBuf *ibuf, unsigned char coltab[][4], short *deltab)
 }
 
 static short dec_hamx(struct ImBuf * ibuf, unsigned char *body, int cmap[])
-/*  struct ImBuf * ibuf; */
-/*  uchar *body; */
-/*  int cmap[]; */
 {
 	int todo,i;
 	int j,step,col;
@@ -457,9 +451,6 @@ struct ImBuf *imb_loadanim(int *iffmem, int flags)
 static unsigned char *makebody_anim(int bytes,
 							 unsigned char *buf,
 							 unsigned char *rect)
-/*  register uchar *buf; */
-/*  register uchar *rect; */
-/*  int bytes; */
 {
 	register uchar last,this;
 	register int copy;
@@ -476,8 +467,8 @@ static unsigned char *makebody_anim(int bytes,
 				last = this;
 				this = *rect++;
 				if (last == this){
-					if (this == rect[-3]){		/* drie dezelfde? */
-						bytes --;					/* bytes goed zetten */
+					if (this == rect[-3]){		/* three the same? */
+						bytes --;					/* init bytes */
 						break;
 					}
 				}
@@ -505,8 +496,8 @@ static unsigned char *makebody_anim(int bytes,
 
 			copy = FALSE;
 		} else {
-			while (*rect++ == this){		/* zoek naar eerste afwijkende byte */
-				if (--bytes == 0) break;	/* of einde regel */
+			while (*rect++ == this){		/* seek first different byte */
+				if (--bytes == 0) break;	/* or end of line */
 			}
 			rect --;
 			copy = rect-rectstart;
@@ -533,8 +524,6 @@ static unsigned char *makebody_anim(int bytes,
 
 
 short imb_enc_anim(struct ImBuf *ibuf, int file)
-/*  struct ImBuf *ibuf; */
-/*  int file; */
 {
 	int step, size, i, skip, steps = 0;
 	uchar *buf1, *crect, *_buf1, *_buf2, *bufend;
@@ -544,7 +533,7 @@ short imb_enc_anim(struct ImBuf *ibuf, int file)
 	if (file < 0 ) return (0);
 	if (ibuf->rect == 0) return(0);
 
-	/* dither toevoegen */
+	/* add dither */
 
 	switch(ibuf->ftype){
 	case AN_hamx:

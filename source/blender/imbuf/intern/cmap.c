@@ -55,9 +55,8 @@ short alpha_col0 = FALSE;
 
 
 /*
- * er zit nog ergens een bug/inconsequentie in het programma. Als je een plaatje om wilt zetten
- * naar een colormap met 1 bit resolutie krijg je een zwart plaatje. Zowieso alles met minder
- * dan 4 bits is te donker.
+ * there still is a bug here. If you want to convert an image to a 1 bit colormap you get
+ * a black image. All conversion to less than 4 bits is too dark anyway.
  */
 
 void IMB_freeImBufdata(void)
@@ -118,7 +117,6 @@ void imb_losecmapbits(struct ImBuf *ibuf, unsigned int *coltab)
 
 
 static void addcmapbits(struct ImBuf *ibuf)
-/*  struct ImBuf *ibuf; */
 {
 	int i,bits;
 	int div,mul;
@@ -155,7 +153,7 @@ static short addplanetocube(short *cube, short *plane, int minx, int miny, int s
 	short done = FALSE;
 	int x, numx, numy, skipc, skipp, temp;
 
-	/* eerst maar eens clippen */
+	/* clip first */
 
 	numx = numy = sizep;
 
@@ -213,7 +211,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 	nocol = maxcol - mincol;
 	coltab += 4 * mincol;
 	
-	/* kleuren terugbrengen tot juiste hoeveelheid bits */
+	/* reduce colors to the right amount of bits */
 
 	{
 		unsigned int * lctab, and;
@@ -224,7 +222,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 		for (i=nocol-1 ; i >= 0 ; i--) lctab[i] = (lctab[i] & and) >> (8 - cbits);
 	}
 
-	/* zijn deze gegevens hetzelfde als de vorige ? */
+	/* is this data the same as previous ? */
 
 	if (lastcube){
 		if (mincol == lastmincol && maxcol == lastmaxcol && cbits == lastcbits){
@@ -258,7 +256,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 	lastmaxcol = maxcol;
 	lastcbits = cbits;
 
-	/* cube initialiseren */
+	/* cube initialise */
 
 	cube = _cube;
 	for (i = (1 << (3 * cbits)); i > 0 ; i--){
@@ -267,7 +265,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 		cube += 2;
 	}
 
-	/* error look up table aan maken */
+	/* mak error look up table */
 
 	{
 		unsigned int delta;
@@ -281,7 +279,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 		}
 	}
 
-	/* colorplane initialiseren */
+	/* colorplane initialise */
 
 	for (i = 6 * nocol - 1; i >= 0; i--) _colp[i] = 1;
 
@@ -289,7 +287,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 	addcg = (addcr << cbits);
 	addcb = (addcg << cbits);
 
-	/* eerste ronde invullen */
+	/* fill in first round */
 
 	{
 		unsigned int ofs;
@@ -299,7 +297,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 
 		for (i = 0 ; i < nocol ; i++){
 			ofs = (col[3] * addcr) + (col[2] * addcg) + (col[1] * addcb);
-			/* is deze kleur al ingevuld -> dan overslaan */
+			/* color been filled in -> then skip */
 			if (cube[ofs + 1]) cube[ofs] = i + mincol;
 			cube[ofs + 1] = 0;
 			col += 4;
@@ -312,7 +310,7 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 		done = FALSE;
 		sizep = 2*i +1;
 
-		/* plane initialiseren */
+		/* plane initialise */
 		{
 			unsigned int delta;
 			short *plane;
@@ -381,8 +379,6 @@ short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short 
 
 
 static void convcmap(struct ImBuf* ibuf, short *deltab, short cbits)
-/*  struct ImBuf* ibuf; */
-/*  short *deltab,cbits; */
 {
 	unsigned int *rect;
 	short x,y;
@@ -449,7 +445,7 @@ short IMB_converttocmap(struct ImBuf *ibuf)
 	convcmap(ibuf, deltab, cbits);
 	
 	if (abuf) {
-		/* alpha omzetten naar kleur 0 */
+		/* convert alpha to color 0 */
 		rect = ibuf->rect;
 		arect = abuf->rect;
 		
@@ -471,14 +467,11 @@ short IMB_converttocmap(struct ImBuf *ibuf)
 
 
 void imb_makecolarray(struct ImBuf *ibuf, unsigned char *mem, short nocols)
-/*  struct ImBuf *ibuf; */
-/*  uchar *mem; */
-/*  short nocols; */
 {
 	short i,bits = 0;
 	uchar *cmap;
 
-	/* wat is hier de theorie achter */
+	/* what's the theory behind this? */
 	
 	nocols = ibuf->maxcol;
 
@@ -534,7 +527,6 @@ void imb_makecolarray(struct ImBuf *ibuf, unsigned char *mem, short nocols)
 #define SWITCH_INT(a)	{char s_i, *p_i; p_i= (char *)&(a); s_i= p_i[0]; p_i[0]= p_i[3]; p_i[3]= s_i; s_i= p_i[1]; p_i[1]= p_i[2]; p_i[2]= s_i; }
 
 void IMB_applycmap(struct ImBuf *ibuf)
-/*  struct ImBuf *ibuf; */
 {
 	unsigned int *rect, *cmap;
 	int x, y, i, col, code;
@@ -548,7 +540,7 @@ void IMB_applycmap(struct ImBuf *ibuf)
 
 	if (IS_ham(ibuf)){
 		
-		/* masker genereren maximaal (8 + 2) bits */
+		/* generate mask of max (8 + 2) bits */
 		mask = malloc(1024 * 2 * sizeof(int));
 
 		x = 1 << (ibuf->depth - 2);
@@ -568,7 +560,7 @@ void IMB_applycmap(struct ImBuf *ibuf)
 			mask[i + x + x + x + 1024] = 0xff000000 | col << 8;
 		}
 		
-		/* alleen kleur 0 transparant */
+		/* only color 0 transparant */
 		mask[0+1024] =ibuf->cmap[0];
 		
 		for (y = ibuf->y ; y>0 ; y--){

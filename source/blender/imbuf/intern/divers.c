@@ -45,7 +45,6 @@
 #endif
 
 void imb_checkncols(struct ImBuf *ibuf)
-/*  struct ImBuf *ibuf; */
 {
 	unsigned int i;
 
@@ -78,7 +77,7 @@ void imb_checkncols(struct ImBuf *ibuf)
 		}
 		return;
 	} else {
-		/* ibuf->maxcol is bepalend voor de diepte */
+		/* ibuf->maxcol defines the depth */
 		for (i=1 ; ibuf->maxcol > (1 << i); i++);
 		ibuf->depth = i;
 		return;
@@ -96,7 +95,7 @@ void IMB_de_interlace(struct ImBuf *ibuf)
 	ibuf->flags |= IB_fields;
 	
 	if (ibuf->rect) {
-		/* kopieen aanmaken */
+		/* make copies */
 		tbuf1 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
 		tbuf2 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
 		

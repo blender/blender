@@ -218,8 +218,8 @@ static uchar *makebody(uchar **planes, short bytes, short depth, uchar *buf)
 					last = this;
 					this = *bitpl++;
 					if (last == this){
-						if (this == bitpl[-3]){		/* drie dezelfde? */
-							todo -= 1;					/* todo goed zetten */
+						if (this == bitpl[-3]){		/* three identical ones? */
+							todo -= 1;		/* set todo */
 							break;
 						}
 					}
@@ -248,8 +248,8 @@ static uchar *makebody(uchar **planes, short bytes, short depth, uchar *buf)
 				copy = FALSE;
 			}
 			else{
-				while (*bitpl++ == this){		/* zoek naar eerste afwijkende byte */
-					if (--todo == 0) break;	/* of einde regel */
+				while (*bitpl++ == this){	/* search for first different bye */
+					if (--todo == 0) break;	/* or end of line */
 				}
 				bitpl -= 1;
 				copy = bitpl-bitplstart;
@@ -486,7 +486,7 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 		return(0);
 	}
 	
-	/* vergeet stencil */
+	/* forget stencil */
 	ibuf->depth = bmhd.nPlanes;
 	
 	if (flags & IB_rect){
@@ -507,7 +507,7 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 				*rect++ = col;
 			}
 			ibuf->depth = 24;
-		} else if (ibuf->depth <= 8) { /* geen colormap en geen 24 bits: zwartwit */
+		} else if (ibuf->depth <= 8) { /* no colormap and no 24 bits: b&w */
 			uchar *rect;
 			int size, shift;
 
