@@ -1089,7 +1089,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	} else if (val) {
 		switch (event) {
 		case FKEY:
-			if ((G.qual & LR_ALTKEY) && (G.qual & LR_SHIFTKEY)) {
+			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				p= pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3");
 
 				switch(p) {
@@ -1129,7 +1129,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case EKEY:
-			if (G.qual & LR_ALTKEY && G.qual & LR_SHIFTKEY) {
+			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				p= pupmenu("Edit %t|"
 							"Cut %x0|"
 							"Copy %x1|"
@@ -1156,7 +1156,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case VKEY:
-			if (G.qual & LR_ALTKEY && G.qual & LR_SHIFTKEY) {
+			if (G.qual == (LR_ALTKEY| LR_SHIFTKEY)) {
 				p= pupmenu("View %t|"
 							"Top of File %x0|"
 							"Bottom of File %x1|"
@@ -1189,7 +1189,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case SKEY:
-			if (G.qual & LR_ALTKEY && G.qual & LR_SHIFTKEY) {
+			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				p= pupmenu("Select %t|"
 							"Select All %x0|"
 							"Select Line %x1|"
@@ -1241,7 +1241,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case DKEY:
-			if (G.qual & LR_CTRLKEY) {
+			if (G.qual == LR_CTRLKEY) {
 				txt_delete_char(text);
 				do_draw= 1;
 				pop_space_text(st);
@@ -1249,7 +1249,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case EKEY:
-			if (G.qual & LR_CTRLKEY) {
+			if (G.qual == LR_CTRLKEY) {
 				txt_move_eol(text, G.qual & LR_SHIFTKEY);
 				do_draw= 1;
 				pop_space_text(st);
@@ -1257,26 +1257,26 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case JKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual == LR_ALTKEY) {
 				do_draw= jumptoline_interactive(st);
 			}
 			break;
 
 		case OKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual == LR_ALTKEY) {
 				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
 			}
 			break;
 			
 		case MKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual == LR_ALTKEY) {
 				txt_export_to_object(text);
 				do_draw= 1;	
 			}
 			break;
 
 		case NKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual == LR_ALTKEY) {
 				st->text= add_empty_text();
 				st->top= 0;
 			
@@ -1287,19 +1287,15 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case PKEY:
-			if (G.qual & LR_ALTKEY) {
+			if (G.qual == LR_ALTKEY) {
 				run_python_script(st);
 				do_draw= 1;
 			}
 			break;
 			
 		case RKEY:
-			if (G.qual & LR_ALTKEY) {
-				txt_do_redo(text);
-				do_draw= 1;	
-			}
-			if (G.qual & LR_CTRLKEY) {
-			        if (text->compiled) BPY_free_compiled_text(text);
+			if (G.qual == LR_ALTKEY) {
+			    if (text->compiled) BPY_free_compiled_text(text);
 			        text->compiled = NULL;
 				if (okee("Reopen Text")) {
 					if (!reopen_text(text)) {
@@ -1321,13 +1317,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case UKEY:
-			if (G.qual & LR_ALTKEY) {
-				if (G.qual & LR_SHIFTKEY) txt_do_redo(text);
-					//txt_print_undo(text); //debug buffer in console
-				else {
-					txt_do_undo(text);
-					do_draw= 1;
-				}
+			//txt_print_undo(text); //debug buffer in console
+			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
+				txt_do_redo(text);
+				do_draw= 1;
+			}
+			if (G.qual == LR_ALTKEY) {
+				txt_do_undo(text);
+				do_draw= 1;
 			}
 			break;
 
@@ -1344,7 +1341,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case XKEY:
-			if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
+			if (G.qual == LR_ALTKEY || G.qual == LR_CTRLKEY) {
 				txt_cut_sel(text);
 				do_draw= 1;	
 				pop_space_text(st);
