@@ -164,5 +164,8 @@ void select_more(void);
 void select_less(void);
 void selectrandom_mesh(void);
 
+void editmesh_select_by_material(int index);
+void editmesh_deselect_by_material(int index);
+
 #endif
 

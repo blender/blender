@@ -95,6 +95,7 @@
 #include "BSE_trans_types.h"
 #endif /* NAN_TPT */
 
+static cumapsize= 1.0;
 TFace *lasttface=0;
 
 void set_lasttface()
@@ -633,7 +634,6 @@ void uv_autocalc_tface()
 	MFace *mface;
 	MVert *mv;
 	Object *ob;
-	extern float cumapsize;	/* buttons.c */
 	float dx, dy, min[3], cent[3], max[3], no[3], *loc, mat[4][4];
 	float fac = 1.0;
 

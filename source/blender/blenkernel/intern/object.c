@@ -1025,7 +1025,6 @@ void ob_parlimb(Object *ob, Object *par, float mat[][4])
 void give_parvert(Object *par, int nr, float *vec)
 {
 	Mesh *me;
-	MVert *mvert;
 	EditVert *eve;
 /*  	extern ListBase editNurb; already in bad lev calls */
 	Nurb *nu;
@@ -1065,7 +1064,7 @@ void give_parvert(Object *par, int nr, float *vec)
 					VECCOPY(vec, fp);
 				}
 				else {
-					mvert= me->mvert + nr;
+					MVert *mvert= me->mvert + nr;
 					VECCOPY(vec, mvert->co);
 				}
 			}

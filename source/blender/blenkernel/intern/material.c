@@ -39,7 +39,6 @@
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_meta_types.h"
@@ -679,10 +678,8 @@ void delete_material_index()
 {
 	Material *mao, ***matarar;
 	Object *ob, *obt;
-	Mesh *me;
 	Curve *cu;
 	Nurb *nu;
-	MFace *mface;
 	short *totcolp;
 	int a, actcol;
 	
@@ -745,13 +742,8 @@ void delete_material_index()
 	/* check indices from mesh */
 
 	if(ob->type==OB_MESH) {
-		me= get_mesh(ob);
-		mface= me->mface;
-		a= me->totface;
-		while(a--) {
-			if(mface->mat_nr && mface->mat_nr>=actcol-1) mface->mat_nr--;
-			mface++;
-		}
+		Mesh *me= get_mesh(ob);
+		mesh_delete_material_index(me, actcol-1);
 		makeDispList(ob);
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) {

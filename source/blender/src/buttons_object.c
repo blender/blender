@@ -95,7 +95,6 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
@@ -131,7 +130,8 @@
 
 #include "butspace.h" // own module
 
-float hspeed=0.1, prspeed=0.0, prlen=0.0;
+static float hspeed=0.1, prspeed=0.0;
+float prlen=0.0;
 
 
 
@@ -938,7 +938,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	Mesh *me;
 	Nurb *nu;
 	Curve *cu;
-	MFace *mface;
 	BezTriple *bezt;
 	BPoint *bp;
 	unsigned int local;
@@ -1017,23 +1016,10 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_MATDESEL:
 		if(G.obedit) {
 			if(G.obedit->type == OB_MESH) {
-				evl= G.edvl.first;
-				while(evl) {
-					if(evl->mat_nr== G.obedit->actcol-1) {
-						if(event==B_MATSEL) {
-							if(evl->v1->h==0) evl->v1->f |= 1;
-							if(evl->v2->h==0) evl->v2->f |= 1;
-							if(evl->v3->h==0) evl->v3->f |= 1;
-							if(evl->v4 && evl->v4->h==0) evl->v4->f |= 1;
-						}
-						else {
-							if(evl->v1->h==0) evl->v1->f &= ~1;
-							if(evl->v2->h==0) evl->v2->f &= ~1;
-							if(evl->v3->h==0) evl->v3->f &= ~1;
-							if(evl->v4 && evl->v4->h==0) evl->v4->f &= ~1;
-						}
-					}
-					evl= evl->next;
+				if (event==B_MATSEL) {
+					editmesh_select_by_material(G.obedit->actcol-1);
+				} else {
+					editmesh_deselect_by_material(G.obedit->actcol-1);
 				}
 				allqueue(REDRAWVIEW3D, 0);
 			}
@@ -1151,12 +1137,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 				if(TESTBASELIB(base)) {
 					if(base->object->type==OB_MESH) {
 						me= base->object->data;
-						mface= me->mface;
-						for(a=0; a<me->totface; a++, mface++) {
-							if(event==B_SETSMOOTH) mface->flag |= ME_SMOOTH;
-							else mface->flag &= ~ME_SMOOTH;
-						}
-
+						mesh_set_smooth_flag(me, (event==B_SETSMOOTH));
 						makeDispList(base->object);
 					}
 					else if ELEM(base->object->type, OB_SURF, OB_CURVE) {

@@ -1162,13 +1162,13 @@ void docentre(void)
 	Object *ob;
 	Mesh *me, *tme;
 	Curve *cu;
-	MVert *mvert;
 //	BezTriple *bezt;
 //	BPoint *bp;
 	Nurb *nu, *nu1;
 	EditVert *eve;
 	float cent[3], centn[3], min[3], max[3], omat[3][3];
 	int a;
+	MVert *mvert;
 
 	if(G.scene->id.lib) return;
 

@@ -9638,3 +9638,29 @@ void vertex_loop_select()
 	SetBlenderCursor(SYSCURSOR);
 	return;
 }
+
+void editmesh_select_by_material(int index) {
+	EditVlak *evl;
+	
+	for (evl=G.edvl.first; evl; evl= evl->next) {
+		if (evl->mat_nr==index) {
+			if(evl->v1->h==0) evl->v1->f |= 1;
+			if(evl->v2->h==0) evl->v2->f |= 1;
+			if(evl->v3->h==0) evl->v3->f |= 1;
+			if(evl->v4 && evl->v4->h==0) evl->v4->f |= 1;
+		}
+	}
+}
+
+void editmesh_deselect_by_material(int index) {
+	EditVlak *evl;
+	
+	for (evl=G.edvl.first; evl; evl= evl->next) {
+		if (evl->mat_nr==index) {
+			if(evl->v1->h==0) evl->v1->f &= ~1;
+			if(evl->v2->h==0) evl->v2->f &= ~1;
+			if(evl->v3->h==0) evl->v3->f &= ~1;
+			if(evl->v4 && evl->v4->h==0) evl->v4->f &= ~1;
+		}
+	}
+}

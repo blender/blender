@@ -152,12 +152,12 @@
 
 #include "butspace.h" // own module
 
-int decim_faces=0;
-short degr= 90, step= 9, turn= 1, editbutflag= 1;
-float doublimit= 0.001;
-float editbutvweight=1;
-float extr_offs= 1.0, editbutweight=1.0, editbutsize=0.1, cumapsize= 1.0;
-
+static int decim_faces=0;
+static short degr= 90, step= 9, turn= 1;
+static float extr_offs= 1.0;
+static float editbutweight=1.0;
+short editbutflag= 1;
+float doublimit= 0.001, editbutvweight=1, editbutsize=0.1;
 
 
 

@@ -1148,3 +1148,27 @@ void mesh_calculate_vertex_normals(Mesh *me)
 	
 	MEM_freeN(tempNorms);
 }
+
+void mesh_delete_material_index(Mesh *me, int index) {
+	int i;
+
+	for (i=0; i<me->totface; i++) {
+		MFace *mf = &((MFace*) me->mface)[i];
+		if (mf->mat_nr && mf->mat_nr>=index) 
+			mf->mat_nr--;
+	}
+}
+
+void mesh_set_smooth_flag(Mesh *me, int enableSmooth) {
+	int i;
+
+	for (i=0; i<me->totface; i++) {
+		MFace *mf = &((MFace*) me->mface)[i];
+
+		if (enableSmooth) {
+			mf->flag |= ME_SMOOTH;
+		} else {
+			mf->flag &= ~ME_SMOOTH;
+		}
+	}
+}
