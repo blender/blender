@@ -1426,7 +1426,8 @@ static void createTransData(TransInfo *t)
 	else if (G.obedit) {
 		t->ext = NULL;
 		if (G.obedit->type == OB_MESH) {
-			if(t->mode==TFM_SHRINKFATTEN) vertexnormals(0);
+			if(t->mode==TFM_SHRINKFATTEN && (t->context & CTX_NO_NOR_RECALC)==0)
+				vertexnormals(0);
 			createTransEditVerts(t);	
    		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
@@ -1653,6 +1654,10 @@ void Transform(int mode, int context)
 						initTransModeFlags(&Trans, TFM_ROTATION);
 						initRotation(&Trans);
 					}
+					Trans.redraw = 1;
+					break;
+				case CKEY:
+					stopConstraint(&Trans);
 					Trans.redraw = 1;
 					break;
 				case XKEY:

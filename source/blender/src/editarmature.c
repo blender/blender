@@ -1999,7 +1999,7 @@ void extrude_armature(void)
 	
 	/* Transform the endpoints */
 	countall();
-	Transform(TFM_TRANSLATION, CTX_NOPET);
+	Transform(TFM_TRANSLATION, CTX_NO_PET);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
@@ -2163,7 +2163,7 @@ void adduplicate_armature(void)
 	}
 
 
-	Transform(TFM_TRANSLATION, CTX_NOPET);
+	Transform(TFM_TRANSLATION, CTX_NO_PET);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);

@@ -2793,7 +2793,7 @@ void addvert_Nurb(int mode)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	if(mode=='e') Transform(TFM_TRANSLATION, CTX_NOPET);
+	if(mode=='e') Transform(TFM_TRANSLATION, CTX_NO_PET);
 	else while(get_mbut()&R_MOUSE) BIF_wait_for_statechange();
 
 	if(mode!='e') {
@@ -2830,7 +2830,7 @@ void extrude_nurb()
 				makeDispList(G.obedit);
 				BIF_undo_push("Extrude");
 				countall();
-				Transform(TFM_TRANSLATION, CTX_NOPET);
+				Transform(TFM_TRANSLATION, CTX_NO_PET);
 			}
 		}
 	}
@@ -3058,7 +3058,7 @@ void adduplicate_nurb()
 	adduplicateflagNurb(1);
 
 	countall();
-	Transform(TFM_TRANSLATION, CTX_NOPET);
+	Transform(TFM_TRANSLATION, CTX_NO_PET);
 }
 
 void delNurb()

@@ -50,10 +50,11 @@
 #define TFM_PUSHPULL		12
 
 /* TRANSFORM CONTEXTS */
-#define CTX_NONE		0
-#define CTX_TEXTURE		1
-#define CTX_EDGE		2
-#define CTX_NOPET		4
+#define CTX_NONE			0
+#define CTX_TEXTURE			1
+#define CTX_EDGE			2
+#define CTX_NO_PET			4
+#define CTX_NO_NOR_RECALC	8
 
 /* TRANSFORM PROPORTIONAL FALLOFF MODES */
 #define PROP_SHARP		0

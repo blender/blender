@@ -388,7 +388,7 @@ void initTrans (TransInfo *t)
 	t->flag = 0;
 
 	/* setting PET flag */
-	if ((t->context & CTX_NOPET) == 0 && (G.f & G_PROPORTIONAL)) {
+	if ((t->context & CTX_NO_PET) == 0 && (G.f & G_PROPORTIONAL)) {
 		t->flag |= T_PROP_EDIT;
 	}
 

@@ -307,7 +307,7 @@ void adduplicate_mball()
 		ml= ml->prev;
 	}
 	
-	Transform(TFM_TRANSLATION, CTX_NOPET);
+	Transform(TFM_TRANSLATION, CTX_NO_PET);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 

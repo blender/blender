@@ -437,7 +437,7 @@ void adduplicate_mesh(void)
 
 	waitcursor(0);
 	countall(); 
-	Transform(TFM_TRANSLATION, CTX_NOPET);
+	Transform(TFM_TRANSLATION, CTX_NO_PET);
 }
 
 
