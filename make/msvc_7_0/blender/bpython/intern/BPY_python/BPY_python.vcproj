@@ -166,6 +166,9 @@
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Material.c">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Mathutils.c">
+			</File>
+			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Metaball.c">
 			</File>
 			<File
@@ -208,10 +211,16 @@
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\constant.c">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\euler.c">
+			</File>
+			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\gen_utils.c">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\matrix.c">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\quat.c">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\rgbTuple.c">
@@ -281,6 +290,9 @@
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Material.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Mathutils.h">
+			</File>
+			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\Metaball.h">
 			</File>
 			<File
@@ -326,13 +338,22 @@
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\constant.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\euler.h">
+			</File>
+			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\gen_utils.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\matrix.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\modules.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\rgbTuple.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\quat.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\..\..\source\blender\python\api2_2x\vector.h">
