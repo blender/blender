@@ -52,6 +52,23 @@ Example::
     - ROT - add bone's rotation to keyframe
     - LOC - add bone's location to keyframe
     - SIZE- add bone's size to keyframe
+    
+@var BoneclassFlags: The available flags for setting boneclass.
+    - SKINNABLE
+    - UNSKINNABLE
+    - HEAD
+    - NECK
+    - BACK
+    - SHOULDER
+    - ARM
+    - HAND
+    - FINGER
+    - THUMB
+    - PELVIS
+    - LEG
+    - FOOT
+    - TOE
+    - TENTACLE
 """
 
 class Bone:
@@ -69,6 +86,8 @@ class Bone:
   @cvar parent: The parent Bone.
   @cvar children: The children bones.
   @cvar weight: The bone's weight.
+  @cvar ik: Whether the bone is set to IK.
+  @cvar boneclass: The boneclass of this bone.
   """
 
   def getName():
@@ -258,4 +277,39 @@ class Bone:
     will set information about the rotation, and/or location, and/or size of the bone.
     @type Action: PyAction
     @param Action: a python action that has either been created or returned from an object
+    """
+    
+  def setBoneclass(boneclass):
+    """
+    Set the bones's boneclass.
+    @type boneclass: Enumeration constant. See above.
+    @param boneclass: The boneclass of this bone.
+    """
+
+  def getBoneclass():
+    """
+    Get this Bone's boneclass.
+    @rtype: Enumeration const (string)
+    """
+
+  def hasIK():
+    """
+    Determines whether or not this bone as flaged as IK.
+    @rtype: true (1) or false (0)
+    """
+
+  def getRestMatrix(locale = 'worldspace'):
+    """
+    Return a matrix that represents the rotation and position 
+    of this bone. There are two types of matrices that can be 
+    returned - bonespace (in the coord. system of parent) or
+    worldspace (in the coord system of blender). The rotation will
+    be in either worldspace or bonespace. Translaction vectors (row 4)
+    will be the bone's head position (if worldspace) or the difference
+    from this bone's head to the parent head (if bonespace).
+    @type locale: string Values are:
+      - worldspace
+      - bonespace
+    @param locale: default is worldspace
+    @rtype: 4x4 PyMatrix
     """

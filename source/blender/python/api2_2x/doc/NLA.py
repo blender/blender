@@ -76,8 +76,8 @@ def CopyAction (action):
 
 def GetActions ():
   """
-  Get all actions and return them as a list.
-  @rtype: PyList of PyActions
+  Get all actions and return them as a Key : Value Dictionary.
+  @rtype: Dictionary of PyActions
   @return: All the actions in blender
   """
   
@@ -127,6 +127,6 @@ class Action:
   def getAllChannelIpos():
     """
     Get the all the Ipos for this action
-    @rtype: PyDict [channel : PyIpo]
+    @rtype: Dictionary [channel : PyIpo]
     @return: the Ipos for all the channels in the action
     """

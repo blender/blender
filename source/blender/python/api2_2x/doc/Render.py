@@ -389,6 +389,22 @@ class RenderData:
     @param toggle: pass 1 for on / 0 for off
     """
 
+  def setBorder(left,bottom,right,top):
+    """
+    Set a border for rendering from cameras in the scene.
+    The left,bottom coordinates and right,top coordinates
+    define the size of the border. (0,0,1,1) will set the border
+    to the whole camera. (0,0) lower left and (1,1) upper right.
+    @type left: float
+    @param left: float between 0 and 1
+    @type right: float
+    @param right: float between 0 and 1
+    @type bottom: float
+    @param bottom: float between 0 and 1
+    @type top: float
+    @param top: float between 0 and 1
+    """
+
   def enableGammaCorrection(toggle):
     """
     Enable/disable gamma correction.
