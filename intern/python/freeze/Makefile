@@ -13,7 +13,7 @@ default: importer
 install: importer
 
 importer: 
-	python $(PYFLAGS) freeze.py -d -x os -x pprint -x Blender -I $(SRCDIR) -o $(TARGETDIR) $(SRCDIR)/VRMLmain.py 
+	python $(PYFLAGS) freeze.py -d -x os -x pprint -I $(SRCDIR) -o $(TARGETDIR) $(SRCDIR)/VRMLmain.py 
 
 clean:
 	rm *.pyo
