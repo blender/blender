@@ -1637,37 +1637,35 @@ static void world_panel_mapto(World *wrld)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	920,130,52,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		974,130,38,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		1014,130,69,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
-	
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",				920,105,163,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
+
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			920,40,163,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
+	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			10,80,135,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Blend",		920,180,86,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Hori",		1006,180,87,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "ZenUp",		1093,180,86,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
-	uiDefButS(block, TOG|BIT|3, B_MATPRV, "ZenDo",		1179,180,86,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Blend",		10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "ZenUp",		160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
+	uiDefButS(block, TOG|BIT|3, B_MATPRV, "ZenDo",		235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-        uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),1087,100,179,18,
-&(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
 
-
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col  ",		1087,50,179,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Nor  ",		1087,30,179,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Var  ",		1087,10,179,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col  ",		155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Nor  ",		155,80,155,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Var  ",		155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
 	
 }
 
@@ -1984,25 +1982,24 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	920,130,52,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		974,130,38,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "RGBtoInt",	1014,130,69,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",				920,105,163,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			920,40,163,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
+	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			10,80,135,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
 	
 	/* MAP TO */
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",		920,180,81,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic colour of the lamp");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic colour of the lamp");
 	
 	uiBlockBeginAlign(block);
-        uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),1087,100,179,18,
-&(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
 
 }
@@ -2473,58 +2470,58 @@ static void material_panel_map_to(Material *ma)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	900,132,54,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		956,132,39,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		997,132,71,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",				900,100,168,20, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
 	
 	if(ma->colormodel==MA_HSV) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButF(block, HSVSLI, B_MATPRV, "H ",			900,80,168,19, &(mtex->r), 0.0, 0.9999, B_MTEXCOL, 0, "");
-		uiDefButF(block, HSVSLI, B_MATPRV, "S ",			900,60,168,19, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
-		uiDefButF(block, HSVSLI, B_MATPRV, "V ",			900,40,168,19, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
+		uiDefButF(block, HSVSLI, B_MATPRV, "H ",		10,80,135,19, &(mtex->r), 0.0, 0.9999, B_MTEXCOL, 0, "");
+		uiDefButF(block, HSVSLI, B_MATPRV, "S ",		10,60,135,19, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
+		uiDefButF(block, HSVSLI, B_MATPRV, "V ",		10,40,135,19, &(mtex->r), 0.0001, 1.0, B_MTEXCOL, 0, "");
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	else {
-		uiDefButF(block, NUMSLI, B_MATPRV, "R ",			900,80,168,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-		uiDefButF(block, NUMSLI, B_MATPRV, "G ",			900,60,168,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-		uiDefButF(block, NUMSLI, B_MATPRV, "B ",			900,40,168,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+		uiDefButF(block, NUMSLI, B_MATPRV, "R ",		10,80,135,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+		uiDefButF(block, NUMSLI, B_MATPRV, "G ",		10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+		uiDefButF(block, NUMSLI, B_MATPRV, "B ",		10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		900,10,168,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the texture uses to mix with (not RGB)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the texture uses to mix with (not RGB)");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",	900,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
-	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",	950,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",	1000,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
-	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",	1050,180,55,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affext the mirror colour");
-	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",	1105,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
-	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",	1155,180,55,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
-	uiDefButS(block, TOG3|BIT|11, B_MATPRV, "Amb",	1210,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
+	uiDefButS(block, TOG3|BIT|1, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
+	uiDefButS(block, TOG|BIT|3, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affext the mirror colour");
+	uiDefButS(block, TOG3|BIT|4, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
+	uiDefButS(block, TOG3|BIT|5, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
+	uiDefButS(block, TOG3|BIT|11, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
 	
-	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",	900,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
-	uiDefButS(block, TOG3|BIT|9, B_MATPRV, "RayMir",960,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
-	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1020,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
-	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1080,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-	uiDefButS(block, TOG3|BIT|10, B_MATPRV, "Translu",1140,160,65,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
-	uiDefButS(block, TOG3|BIT|12, B_MATPRV, "Disp",	1205,160,55,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+	uiDefButS(block, TOG3|BIT|8, B_MATPRV, "Hard",		10,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
+	uiDefButS(block, TOG3|BIT|9, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
+	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+	uiDefButS(block, TOG3|BIT|10, B_MATPRV, "Translu",	205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
+	uiDefButS(block, TOG3|BIT|12, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),1087,100,179,18, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,70,179,18, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
 	/* newnoise: increased range to 25, the constant offset for bumpmapping quite often needs a higher nor setting */
-	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",		1087,50,179,18, &(mtex->norfac), 0.0, 25.0, 0, 0, "Sets the amount the texture affects normal values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",		1087,30,179,18, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Disp ",		1087,10,179,19, &(mtex->dispfac), 0.0, 1.0, 0, 0, "Sets the amount the texture displaces the surface");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",			155,80,155,19, &(mtex->norfac), 0.0, 25.0, 0, 0, "Sets the amount the texture affects normal values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",			155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Disp ",			155,40,155,19, &(mtex->dispfac), 0.0, 1.0, 0, 0, "Sets the amount the texture displaces the surface");
 	uiBlockEndAlign(block);
 }
 

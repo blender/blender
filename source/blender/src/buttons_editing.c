@@ -2365,7 +2365,7 @@ static void editing_panel_mesh_paint(void)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_paint", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Paint", "Editing", 640, 0, 318, 204)==0) return;
 
-	uiBlockBeginAlign(block);
+    uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
 	uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
 	uiDefButF(block, NUMSLI, 0, "B ",			979,120,194,19, &Gvp.b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
@@ -2374,7 +2374,7 @@ static void editing_panel_mesh_paint(void)
 	uiDefButF(block, NUMSLI, 0, "Opacity ",		979,100,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
 	uiDefButF(block, NUMSLI, 0, "Size ",		979,80,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 
-	uiDefButF(block, COL, B_REDR, "",		1176,100,28,80, &(Gvp.r), 0, 0, 0, B_VPCOLSLI, "");
+	uiDefButF(block, COL, B_REDR, "",		1176,99,28,80, &(Gvp.r), 0, 0, 0, B_VPCOLSLI, "");
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_DIFF, "Mix",			1212,160,63,19, &Gvp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colours");
 	uiDefButS(block, ROW, B_DIFF, "Add",			1212,140,63,19, &Gvp.mode, 1.0, 1.0, 0, 0, "Add the vertex colour");
@@ -2383,17 +2383,17 @@ static void editing_panel_mesh_paint(void)
 	uiDefButS(block, ROW, B_DIFF, "Filter",		1212, 80,63,19, &Gvp.mode, 1.0, 4.0, 0, 0, "Mix the colours with an alpha factor");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|1, 0, "Area", 		980,50,80,19, &Gvp.flag, 0, 0, 0, 0, "Set the area the brush covers");
+	uiDefButS(block, TOG|BIT|1, 0, "Area", 		979,50,81,19, &Gvp.flag, 0, 0, 0, 0, "Set the area the brush covers");
 	uiDefButS(block, TOG|BIT|2, 0, "Soft", 		1061,50,112,19, &Gvp.flag, 0, 0, 0, 0, "Use a soft brush");
 	uiDefButS(block, TOG|BIT|3, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Use vertex normal for painting");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_VPGAMMA, "Set", 	980,30,80,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");
+	uiDefBut(block, BUT, B_VPGAMMA, "Set", 	979,30,81,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");
 	uiDefButF(block, NUM, B_DIFF, "Mul:", 		1061,30,112,19, &Gvp.mul, 0.1, 50.0, 10, 0, "Set the number to multiply vertex colours with");
 	uiDefButF(block, NUM, B_DIFF, "Gamma:", 	1174,30,102,19, &Gvp.gamma, 0.1, 5.0, 10, 0, "Change the clarity of the vertex colours");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	980,5,80,20, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
+	uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	979,5,81,20, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
 
 }
 

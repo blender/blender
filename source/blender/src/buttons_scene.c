@@ -990,12 +990,13 @@ static void render_panel_output(void)
 	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	8, 170, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
-	uiDefBut(block, TEX,0,"",							30, 170, 268, 19,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
-	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 8, 148, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
-	uiDefBut(block, TEX,0,"",							30, 148, 268, 19,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
-	uiDefIconBut(block, BUT,B_FS_FTYPE, ICON_FILESEL,	8, 125, 20, 19, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
-	uiDefBut(block, TEX,0,"",							30, 125, 268, 19,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
+	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	10, 190, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
+	uiDefBut(block, TEX,0,"",							31, 190, 279, 20,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
+	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 10, 168, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
+	uiDefBut(block, TEX,0,"",							31, 168, 279, 20,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
+	uiDefIconBut(block, BUT,B_FS_FTYPE, ICON_FILESEL,	10, 146, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
+	uiDefBut(block, TEX,0,"",							31, 146, 279, 20,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
+	uiBlockEndAlign(block);
 	
 	
 	/* SET BUTTON */
@@ -1003,44 +1004,45 @@ static void render_panel_output(void)
 	id= (ID *)G.scene->set;
 	IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), id, &(G.buts->menunr));
 	if(strp[0])
-		uiDefButS(block, MENU, B_SETBROWSE, strp, 8, 96, 20, 19, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
+		uiDefButS(block, MENU, B_SETBROWSE, strp, 10, 120, 20, 20, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
 	MEM_freeN(strp);
 
 	if(G.scene->set) {
 		uiSetButLock(1, NULL);
-		uiDefIDPoinBut(block, test_scenepoin_but, 0, "",	29, 96, 100, 19, &(G.scene->set), "Name of the Set");
+		uiDefIDPoinBut(block, test_scenepoin_but, 0, "",	31, 120, 100, 20, &(G.scene->set), "Name of the Set");
 		uiClearButLock();
-		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		131, 96, 20, 19, 0, 0, 0, 0, 0, "Remove Set link");
+		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		132, 120, 20, 20, 0, 0, 0, 0, 0, "Remove Set link");
 	}
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|0, 0,"Backbuf",	8, 70, 62, 19, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
+	uiDefButS(block, TOG|BIT|0, 0,"Backbuf",	10, 94, 60, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
 	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
-			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(9+18*a),(short)(7+12*b),16,10, &R.winpos, 0, 0, 0, 0, "Render window placement on screen");
-
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_REDR, "DispView",	72, 7, 65, 19, &R.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
-	uiDefButS(block, ROW, B_REDR, "DispWin",	139, 7, 62, 19, &R.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
+			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &R.winpos, 0, 0, 0, 0, "Render window placement on screen");
 	uiBlockEndAlign(block);
 
-	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	228, 8, 67, 18, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &R.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
+	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &R.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
+	uiBlockEndAlign(block);
+
+	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	250, 10, 60, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|5, 0,"Edge",	154, 70, 47, 19, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings |>> ", 204, 70, 93, 19, "Display edge settings");
+	uiDefButI(block, TOG|BIT|5, 0,"Edge",	155, 94, 44, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings |>> ", 200, 94, 110, 20, "Display edge settings");
 	uiBlockEndAlign(block);
 
 	/* unified render buttons */
 	if(G.scene->r.mode & R_UNIFIED) {
-		uiDefBlockBut(block, post_render_menu, NULL, "Post process |>> ", 205, 48, 92, 19, "Only for unified render");
+		uiDefBlockBut(block, post_render_menu, NULL, "Post process |>> ", 200, 68, 110, 20, "Only for unified render");
 		if (G.scene->r.mode & R_GAMMA) {
-			uiDefButF(block, NUMSLI, 0,"Gamma:",		8, 48, 143, 19,
+			uiDefButF(block, NUMSLI, 0,"Gamma:",		10, 68, 142, 20,
 					 &(G.scene->r.gamma), 0.2, 5.0, B_GAMMASLI, 0,
 					 "The gamma value for blending oversampled images (1.0 = no correction).");
 		}
