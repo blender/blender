@@ -84,6 +84,7 @@ void sort_faces(void);
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_editconstraint.h"
 
 #include "BDR_editobject.h" 
 

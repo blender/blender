@@ -1,3 +1,5 @@
+int strsv_(char *, char *, char *, int *, float *, int *, float *, int *);
+
 
 /* Subroutine */ int strsv_(char *uplo, char *trans, char *diag, int *n, 
 	float *a, int *lda, float *x, int *incx)

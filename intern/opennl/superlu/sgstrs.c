@@ -28,7 +28,7 @@
 void susolve(int, int, float*, float*);
 void slsolve(int, int, float*, float*);
 void smatvec(int, int, int, float*, float*, float*);
-
+void sprint_soln(int , float *);
 
 void
 sgstrs (trans_t trans, SuperMatrix *L, SuperMatrix *U,

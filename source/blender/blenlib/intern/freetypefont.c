@@ -89,7 +89,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	const char *fontname;
 	float scale, height;
 	float dx, dy;
-	int i, j, k, l, m;
+	int i, j, k, l, m =0;
 
 	// load the freetype font
 	err = FT_New_Memory_Face( library,
@@ -135,8 +135,8 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
 	// extract generic ascii character range
 	for(i = myMIN_ASCII; i <= myMAX_ASCII; i++) {
-		int  *npoints;	//total points of each contour
-		int  *onpoints;	//num points on curve
+		int  *npoints = NULL;	//total points of each contour
+		int  *onpoints = NULL;	//num points on curve
 
 		glyph_index = FT_Get_Char_Index( face, i );
 		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP);

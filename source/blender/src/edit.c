@@ -73,6 +73,7 @@
 
 #include "BIF_editmesh.h"
 #include "BIF_editview.h"
+#include "BIF_editarmature.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"

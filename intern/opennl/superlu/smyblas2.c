@@ -20,6 +20,13 @@
  * triangular matrix is stored in a 2D array M(1:nrow,1:ncol). 
  * The solution will be returned in the rhs vector.
  */
+
+/* local prototypes*/
+void slsolve ( int, int, float *, float *);
+void susolve ( int, int, float *, float *);
+void smatvec ( int, int, int, float *, float *, float *);
+
+
 void slsolve ( int ldm, int ncol, float *M, float *rhs )
 {
     int k;

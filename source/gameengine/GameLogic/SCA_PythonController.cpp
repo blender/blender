@@ -128,7 +128,9 @@ void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 	m_pythondictionary = PyDict_Copy(pythondictionary); /* new reference */
 }
 
+#if 0
 static char* sPyGetCurrentController__doc__;
+#endif
 
 
 PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self, 
@@ -139,8 +141,9 @@ PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self,
 	return m_sCurrentController;
 }
 
-
+#if 0
 static char* sPyAddActiveActuator__doc__;
+#endif
 	
   
 PyObject* SCA_PythonController::sPyAddActiveActuator(

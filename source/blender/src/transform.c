@@ -1715,7 +1715,7 @@ void initResize(TransInfo *t)
 	t->transform = Resize;
 }
 
-void headerResize(TransInfo *t, float vec[3], char *str) {
+static void headerResize(TransInfo *t, float vec[3], char *str) {
 	char tvec[60];
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
@@ -2161,7 +2161,7 @@ void initTranslation(TransInfo *t)
 	else initgrabz(t->center[0], t->center[1], t->center[2]); 
 }
 
-void headerTranslation(TransInfo *t, float vec[3], char *str) {
+static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	char tvec[60];
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
@@ -2189,7 +2189,7 @@ void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	}
 }
 
-void applyTranslation(TransInfo *t, float vec[3]) {
+static void applyTranslation(TransInfo *t, float vec[3]) {
 	TransData *td = t->data;
 	float tvec[3];
 	int i;

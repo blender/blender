@@ -372,7 +372,7 @@ static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3
  *
  */
 
-void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
+static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
 {
 	if (td && t->con.mode & CON_APPLY) {
 		float tmat[3][3];
@@ -449,7 +449,7 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
+static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
 {
 	if (td && t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
@@ -476,7 +476,7 @@ void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
 	}
 }
 
-void drawObjectConstraint(TransInfo *t) {
+static void drawObjectConstraint(TransInfo *t) {
 	int i;
 	TransData * td = t->data;
 

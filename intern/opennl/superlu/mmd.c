@@ -5,6 +5,13 @@ typedef int shortint;
 /* prototypes -------------------- */
 int  genmmd_(int *, int *, int *, int *, int *, int *, int *, 
 					int *, int *, int *, int *, int *);
+int mmdint_(int *, int *, shortint *, shortint *, shortint *, shortint *, shortint *, 
+			shortint *, shortint *);
+int mmdelm_(int *, int *, shortint *, shortint *, shortint *, shortint *, shortint *, 
+			shortint *, shortint *, int *, int *);
+int mmdupd_(int *, int *, int *, shortint *, int *, int *, shortint *, 
+			shortint *, shortint *, shortint *, shortint *, shortint *, int *, int *);
+int mmdnum_(int *, shortint *, shortint *, shortint *);
 
 
 /* *************************************************************** */

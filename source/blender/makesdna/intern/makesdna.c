@@ -464,7 +464,7 @@ int preprocess_include(char *maindata, int len)
 	return newlen;
 }
 
-void *read_file_data(char *filename, int *len_r)
+static void *read_file_data(char *filename, int *len_r)
 {
 #ifdef WIN32
 	FILE *fp= fopen(filename, "rb");
@@ -719,7 +719,6 @@ int calculate_structlens(void)
 						/* 2-4 aligned/ */
 						if(typelens[type]>3 && (len % 4) ) {
 							printf("Align 4 error in struct: %s %s (add %d padding bytes)\n", types[structtype], cp, len%4);
-							printf("   \n", len%4);
 							dna_error = 1;
 						}
 						else if(typelens[type]==2 && (len % 2) ) {
@@ -1048,7 +1047,7 @@ int make_structDNA(FILE *file)
 
 /* ************************* END MAKE DNA ********************** */
 
-void make_bad_file(char *file)
+static void make_bad_file(char *file)
 {
 	FILE *fp= fopen(file, "w");
 	fprintf(fp, "ERROR! Cannot make correct DNA.c file, STUPID!\n");

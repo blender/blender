@@ -36,8 +36,9 @@ double SuperLU_timer_() {
 #ifndef CLK_TCK
 #define CLK_TCK 60
 #endif
+double SuperLU_timer_(void);
 
-double SuperLU_timer_()
+double SuperLU_timer_(void)
 {
 #ifdef NO_TIMER
     /* no sys/times.h on WIN32 */
