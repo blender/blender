@@ -1,10 +1,3 @@
-# *** PROPOSAL ***
-#    11/11/2003
-
-# Detail of classes MTex, EnvMap and ColorBand not included yet
-# Also missing is Tex.imaflag, Tex.flag and Tex.stype, pending discussion on
-# their implementation
-
 #
 # Blender.Texture module and the Texture PyType object
 #
@@ -67,7 +60,7 @@ Example::
     - FIELDS - Work with field images [cannot be used with MIPMAP]
     - ROT90 - Rotate the image 90 degrees when rendering
     - CALCALPHA - Calculate an alpha from the RGB
-    - STFIELD - ???
+    - STFIELD - Denotes this is a standard field
     - MOVIE - Use a movie for an image
     - CYCLIC - Repeat animation image
     - ANTI - Use anti-aliasing
@@ -101,14 +94,14 @@ Example::
         5. Blend type
             - BLN_LIN - Use a linear progression
             - BLN_QUAD - Use a quadratic progression
-            - BLN_EASE - ???
+            - BLN_EASE - Uses a more complicated blend function
             - BLN_DIAG - Use a diagonal progression
             - BLN_SPHERE - Use a progression with the shape of a sphere
             - BLN_HALO - Use a quadratic progression with the shape of a sphere
         6. Stucci type
             - STC_PLASTIC - Standard stucci
-            - STC_WALLIN - Set start value (?)
-            - STC_WALLOUT - Set end value (?)
+            - STC_WALLIN - Creates dimples
+            - STC_WALLOUT - Creates ridges
         7. Noise type
             - NSE_DEFAULT - Noise has no STypes
         8. Image type
