@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "../../../../../obj/windows/intern/string"
-# PROP Intermediate_Dir "../../../../../obj/windows/intern/string"
+# PROP Output_Dir "../../../../obj/windows/intern/string"
+# PROP Intermediate_Dir "../../../../obj/windows/intern/string"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h"  "..\..\..\..\lib\windows\string\include"	ECHO Copying lib	COPY "..\..\..\..\..\obj\windows\intern\string\string.lib" "..\..\..\..\..\develop\lib\windows\string\lib\libstring.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\string\include md ..\..\..\..\lib\windows\string\include	IF NOT EXIST ..\..\..\..\lib\windows\string\lib md ..\..\..\..\lib\windows\string\lib	IF NOT EXIST ..\..\..\..\lib\windows\string\lib\debug md ..\..\..\..\lib\windows\string\lib\debug	ECHO Copying header files	COPY "..\..\*.h"  "..\..\..\..\lib\windows\string\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\string\string.lib" "..\..\..\..\\lib\windows\string\lib\libstring.a"	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "string - Win32 Debug"
@@ -65,8 +65,8 @@ PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h"  "..\..\..\..\lib\wind
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "../../../../../obj/windows/intern/string/debug"
-# PROP Intermediate_Dir "../../../../../obj/windows/intern/string/debug"
+# PROP Output_Dir "../../../../obj/windows/intern/string/debug"
+# PROP Intermediate_Dir "../../../../obj/windows/intern/string/debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	COPY "..\..\*.h"  "..\..\..\..\lib\windows\string\include"	ECHO Copying lib	COPY "..\..\..\..\..\obj\windows\intern\string\debug\string.lib" "..\..\..\..\..\develop\lib\windows\string\lib\debug\libstring.a"	ECHO Done
+PostBuild_Cmds=ECHO Creating directories	IF NOT EXIST ..\..\..\..\lib\windows\string\include md ..\..\..\..\lib\windows\string\include	IF NOT EXIST ..\..\..\..\lib\windows\string\lib\debug md ..\..\..\..\lib\windows\string\lib\debug	ECHO Copying header files	COPY "..\..\*.h"  "..\..\..\..\lib\windows\string\include"	ECHO Copying lib	COPY "..\..\..\..\obj\windows\intern\string\debug\string.lib" "..\..\..\..\lib\windows\string\lib\debug\libstring.a"	ECHO Done
 # End Special Build Tool
 
 !ENDIF 
