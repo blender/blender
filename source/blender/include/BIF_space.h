@@ -67,6 +67,9 @@ struct BWinEvent;
 /* nla handler codes */
 #define NLA_HANDLER_PROPERTIES	50
 
+/* sequence handler codes */
+#define SEQ_HANDLER_PROPERTIES	60
+
 
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);

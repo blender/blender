@@ -1418,7 +1418,7 @@ void clever_numbuts(void)
 		// panel now
 	}
 	else if(curarea->spacetype==SPACE_SEQ) {
-		clever_numbuts_seq();
+		// panel now
 	}
 	else if(curarea->spacetype==SPACE_IMAGE) {
 		// panel now

@@ -2864,6 +2864,9 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
+		case UI_BUT_EVENT:
+			do_seqbuttons(val);			
+			break;
 		case LEFTMOUSE:
 			if(sseq->mainb || view2dmove(event)==0) {
 				
@@ -3010,6 +3013,12 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else
 					make_meta();
+			}
+			break;
+		case NKEY:
+			if(G.qual==0) {
+				add_blockhandler(curarea, SEQ_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+				scrarea_queue_winredraw(curarea);
 			}
 			break;
 		case SKEY:

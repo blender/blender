@@ -58,5 +58,8 @@ void				touch_seq_files(void);
 void				transform_seq(int mode);
 void				un_meta(void);
 
+/* drawseq.c */
+void do_seqbuttons(short);
+
 #endif
 

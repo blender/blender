@@ -814,6 +814,7 @@ int blenderqread(unsigned short event, short val)
 				else if(curarea->spacetype==SPACE_IMAGE);			// is new panel, in ipo queue
 				else if(curarea->spacetype==SPACE_ACTION);			// is own queue
 				else if(curarea->spacetype==SPACE_NLA);			// is new panel
+				else if(curarea->spacetype==SPACE_SEQ);			// is new panel
 				else {
 					clever_numbuts();
 					return 0;

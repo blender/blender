@@ -1628,6 +1628,7 @@ static void view3d_blockhandlers(ScrArea *sa)
 	View3D *v3d= sa->spacedata.first;
 	short a;
 	
+	/* warning; blocks need to be freed each time, handlers dont remove */
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {

@@ -301,8 +301,8 @@ static void do_seq_editmenu(void *arg, int event)
 	case 3: /* Separate Meta Strip */
 		un_meta();
 		break;
-	case 4: /* Meta Properties... */
-		clever_numbuts_seq();
+	case 4: /* Properties... */
+		add_blockhandler(curarea, SEQ_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 		break;
 	case 5: /* Duplicate */
 		add_duplicate_seq();

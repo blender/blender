@@ -58,6 +58,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
+#include "BKE_plugin_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"
@@ -66,11 +67,19 @@
 #include "BIF_editseq.h"
 #include "BIF_drawimage.h"
 #include "BIF_resources.h"
+#include "BIF_space.h"
+#include "BIF_interface.h"
 
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
 #include "BSE_sequence.h"
 #include "BSE_seqaudio.h"
+
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+
+#include "blendef.h"	/* CFRA */
+#include "mydevice.h"	/* REDRAWSEQ */
 
 int no_rightbox=0, no_leftbox= 0;
 
@@ -579,6 +588,109 @@ static void draw_extra_seqinfo(void)
 	}	
 }
 
+#define SEQ_BUT_PLUGIN	1
+#define SEQ_BUT_MOVIE	2
+
+void do_seqbuttons(short val)
+{
+	extern Sequence *last_seq;
+	StripElem *se;
+	
+	switch(val) {
+	case SEQ_BUT_PLUGIN:
+		new_stripdata(last_seq);
+		free_imbuf_effect_spec(CFRA);
+		break;
+		
+	case SEQ_BUT_MOVIE:
+		se= last_seq->curelem;
+		if(se && se->ibuf ) {
+			IMB_freeImBuf(se->ibuf);
+			se->ibuf= 0;
+		}
+		break;
+	}
+	
+	allqueue(REDRAWSEQ, 0);
+}
+
+static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
+{
+	extern Sequence *last_seq;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "seq_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Transform Properties", "Seq", 10, 230, 318, 204)==0) return;
+
+	if(last_seq==NULL) return;
+
+	if(last_seq->type==SEQ_PLUGIN) {
+		PluginSeq *pis;
+		VarStruct *varstr;
+		int a, xco, yco;
+		
+		pis= last_seq->plugin;
+		if(pis->vars==0) return;
+		
+		varstr= pis->varstr;
+		if(varstr) {
+			for(a=0; a<pis->vars; a++, varstr++) {
+				xco= 150*(a/6)+10;
+				yco= 125 - 20*(a % 6)+1;
+				uiDefBut(block, varstr->type, SEQ_BUT_PLUGIN, varstr->name, xco,yco,150,19, &(pis->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+
+			}
+		}
+	}
+	else if(last_seq->type==SEQ_MOVIE) {
+
+		if(last_seq->mul==0.0) last_seq->mul= 1.0;
+
+		uiDefBut(block, TEX, 0, "Name ", 10,140,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefButS(block, TOG|BIT|4, SEQ_BUT_MOVIE, "FilterY ", 10,120,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
+		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Mul:", 10,100,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "");
+
+	}
+	else if(last_seq->type==SEQ_SOUND) {
+
+		uiDefBut(block, TEX, 0, "Name ", 10,140,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefButS(block, TOG|BIT|5, 0, "Mute", 10,120,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
+		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Gain (dB):", 10,100,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
+		uiDefButF(block, NUM, SEQ_BUT_MOVIE, "Pan:", 	10,80,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
+	}		
+	else if(last_seq->type==SEQ_META) {
+
+		uiDefBut(block, TEX, 0, "Name ", 10,140,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+
+	}
+
+}
+
+static void seq_blockhandlers(ScrArea *sa)
+{
+	SpaceSeq *sseq= sa->spacedata.first;
+	short a;
+
+	/* warning; blocks need to be freed each time, handlers dont remove (for ipo moved to drawipospace) */
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
+
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(sseq->blockhandler[a]) {
+
+		case SEQ_HANDLER_PROPERTIES:
+			seq_panel_properties(sseq->blockhandler[a+1]);
+			break;
+		
+		}
+		/* clear action value for event */
+		sseq->blockhandler[a+1]= 0;
+	}
+	uiDrawBlocksPanels(sa, 0);
+
+}
+
 void drawseqspace(ScrArea *sa, void *spacedata)
 {
 	SpaceSeq *sseq;
@@ -594,7 +706,10 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 		draw_image_seq();
 		return;
 	}
-	
+
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
+
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	if(ed && ed->metastack.first) glClearColor(col[0], col[1], col[2]-1.0, 0.0);
 	else glClearColor(col[0], col[1], col[2], 0.0);
@@ -656,6 +771,12 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	}
 	
 	draw_area_emboss(sa);
+
+	if(sseq->mainb==0) {
+		/* it is important to end a view in a transform compatible with buttons */
+		bwin_scalematrix(sa->win, sseq->blockscale, sseq->blockscale, sseq->blockscale);
+		seq_blockhandlers(sa);
+	}
 	
 	curarea->win_swap= WIN_BACK_OK;
 }
