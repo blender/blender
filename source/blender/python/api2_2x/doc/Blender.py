@@ -57,7 +57,7 @@ The Blender Python API Reference
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}
-@see: U{www.python.org/docs<http://www.python.org/docs>}
+@see: U{www.python.org/doc<http://www.python.org/doc>}
 """
 
 def Set (request, data):
