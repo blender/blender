@@ -81,6 +81,7 @@ typedef struct Isect {
 	short isect, mode;	/* isect: which half of quad, mode: DDA_SHADOW, DDA_MIRROR, DDA_SHADOW_TRA */
 	float ddalabda;
 	float col[4];		/* RGBA for shadow_tra */
+	int lay;			/* -1 default, set for layer lamps */
 } Isect;
 
 typedef struct Branch
@@ -861,23 +862,24 @@ static int testnode(Isect *is, Node *no, int x, int y, int z)
 		while(vlr) {
 		
 			if(raycount != vlr->raycount) {
-				
-				if(ocvaldone==0) {
-					calc_ocval_ray(&ocval, (float)x, (float)y, (float)z, 0.0, 0.0, 0.0);
-					ocvaldone= 1;
-				}
-				
-				ov= no->ov+nr;
-				if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
-					//accepted++;
-					is->vlr= vlr;
-
-					if(intersection(is)) {
-						g_oc.vlr_last= vlr;
-						return 1;
+				if(is->lay & vlr->lay) {
+					if(ocvaldone==0) {
+						calc_ocval_ray(&ocval, (float)x, (float)y, (float)z, 0.0, 0.0, 0.0);
+						ocvaldone= 1;
 					}
+					
+					ov= no->ov+nr;
+					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
+						//accepted++;
+						is->vlr= vlr;
+	
+						if(intersection(is)) {
+							g_oc.vlr_last= vlr;
+							return 1;
+						}
+					}
+					//else rejected++;
 				}
-				//else rejected++;
 			}
 			
 			nr++;
@@ -1068,9 +1070,11 @@ static int d3dda(Isect *is)
 	
 		/* check with last intersected shadow face */
 		if(g_oc.vlr_last!=NULL && g_oc.vlr_last!=is->vlrorig) {
-			is->vlr= g_oc.vlr_last;
-			VECSUB(is->vec, is->end, is->start);
-			if(intersection(is)) return 1;
+			if(is->lay & g_oc.vlr_last->lay) {
+				is->vlr= g_oc.vlr_last;
+				VECSUB(is->vec, is->end, is->start);
+				if(intersection(is)) return 1;
+			}
 		}
 	}
 	
@@ -1936,6 +1940,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 
 	isec.vlrorig= shi->vlr;
 	isec.mode= DDA_SHADOW;
+	isec.lay= -1;
 	coh_test= 0;		// reset coherence optimize
 
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0;
@@ -2043,6 +2048,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		stored= *(shi->matren);
 	}
 	else isec.mode= DDA_SHADOW;
+	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
 	
 	shadfac[3]= 1.0;	// 1=full light
 	coh_test= 0;		// reset coherence optimize
