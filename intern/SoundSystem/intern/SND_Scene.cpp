@@ -409,14 +409,8 @@ void SND_Scene::UpdateActiveObects()
 				printf("%d - ",playstate);
 #endif
 
-//			if ((playstate == SND_STOPPED && (!juststartedplaying) && !pObject->GetLoopMode() && pObject->IsRunning())
-#if defined(WIN32) || defined(__APPLE__)
 			if ((playstate == SND_STOPPED) && !pObject->GetLoopMode())
-#else
-			if (!pObject->GetLoopMode())
-#endif
 			{
-//				printf("remove: %d\n", tijd);
 				RemoveActiveObject(pObject);
 			}
 		}
