@@ -809,6 +809,7 @@ void add_primitiveMesh(int type)
 		extern signed char monkeyf[][4];
 		extern signed char monkeyv[][3];
 		EditVert **tv= MEM_mallocN(sizeof(*tv)*monkeynv*2, "tv");
+		EditFace *efa;
 		int i;
 
 		for (i=0; i<monkeynv; i++) {
@@ -820,8 +821,8 @@ void add_primitiveMesh(int type)
 			tv[monkeynv+i]->f |= SELECT;
 		}
 		for (i=0; i<monkeynf; i++) {
-			addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
-			addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
+			efa= addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
+			efa= addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
 		}
 
 		MEM_freeN(tv);
@@ -840,7 +841,7 @@ void add_primitiveMesh(int type)
 	// simple selection flush OK, based on fact it's a single model
 	EM_select_flush(); // flushes vertex -> edge -> face selection
 	
-	if(type!=0 && type!=10) righthandfaces(1);
+	if(type!=0 && type!=10 && type!=13) righthandfaces(1);
 	countall();
 
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
