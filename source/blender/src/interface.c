@@ -3760,7 +3760,7 @@ short pupmenu(char *instr)
 		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts && TR_BUTTONS));
 		if(xmax>width) width= xmax;
 
-		if( strcmp(name, "%l")==0) height+= boxh/2;
+		if( strcmp(name, "%l")==0) height+= 6;
 		else height+= boxh;
 	}
 
@@ -3822,8 +3822,8 @@ short pupmenu(char *instr)
 		char *name= md->items[a].str;
 		
 		if( strcmp(name, "%l")==0) {
-			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, boxh, NULL, 0, 0.0, 0, 0, "");
-			y1 -= boxh/2;
+			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, 6, NULL, 0, 0.0, 0, 0, "");
+			y1 -= 6;
 		}
 		else {
 			uiDefButS(block, BUTM, B_NOP, name, x1, y1, width, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");
