@@ -205,10 +205,11 @@ static void free_anim_movie(struct anim * anim) { ; }
 #endif
 
 static int an_stringdec(char *string, char* kop, char *staart,unsigned short *numlen) {
-	unsigned short len,nums,nume;
+	unsigned short len,nume,nums=0;
 	short i,found=FALSE;
 
 	len=strlen(string);
+        nume = len;
 
 	for(i=len-1;i>=0;i--){
 		if (string[i]=='/') break;
@@ -255,7 +256,9 @@ unsigned short numlen, int pic) {
 
 
 static void free_anim_avi (struct anim *anim) {
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 	int i;
+#endif
 
 	if (anim == NULL) return;
 	if (anim->avi == NULL) return;
