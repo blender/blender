@@ -1227,7 +1227,7 @@ static void createTransData(TransInfo *t)
 		t->mode &= ~TFM_TEX;	// now becoming normal grab/rot/scale
 	}
 	else if (G.obpose) {
-		t->flag &= T_POSE;
+		t->flag |= T_POSE;
 		createTransPose();
 	}
 	else if (G.obedit) {
@@ -1337,6 +1337,9 @@ void Transform(int mode)
 		break;
 	case TFM_TILT:
 		initTilt(&Trans);
+		break;
+	case TFM_TRACKBALL:
+		initTrackball(&Trans);
 		break;
 	}
 
@@ -1572,8 +1575,6 @@ void Transform(int mode)
 	scrarea_queue_headredraw(curarea);
 }
 
-static void draw_nothing(TransInfo *t) {}
-
 void ManipulatorTransform(int mode) 
 {
 	int ret_val = 0;
@@ -1597,9 +1598,6 @@ void ManipulatorTransform(int mode)
 	if (Trans.total == 0)
 		return;
 
-	/* no drawing of constraint lines */
-	Trans.con.drawExtra= draw_nothing;
-	
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
 	mode= Trans.mode;
@@ -1617,8 +1615,12 @@ void ManipulatorTransform(int mode)
 	case TFM_RESIZE:
 		initResize(&Trans);
 		break;
+	case TFM_TRACKBALL:
+		initTrackball(&Trans);
+		break;
 	}
-
+	
+	Trans.flag |= T_USES_MANIPULATOR;
 	Trans.redraw = 1;
 
 	while (ret_val == 0) {
@@ -1915,6 +1917,8 @@ void initResize(TransInfo *t)
 			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
 		) );
 
+	if(Trans.fac==0.0f) Trans.fac= 1.0f;	// prevent Inf
+	
 	t->idx_max = 2;
 	t->num.idx_max = 2;
 	t->snap[0] = 0.0f;
@@ -1960,13 +1964,19 @@ int Resize(TransInfo *t, short mval[2])
 	int i;
 	char str[50];
 
-	ratio = (float)sqrt( (float)
-		(
-			(t->center2d[1] - mval[1])*(t->center2d[1] - mval[1])
-		+
-			(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
-		) ) / t->fac;
-
+	/* for manipulator, center handle, the scaling can't be done relative to center */
+	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
+		ratio = 1.0f - ((t->center2d[0] - mval[0]) + (t->center2d[1] - mval[1]))/100.0f;
+	}
+	else {
+		ratio = (float)sqrt( (float)
+			(
+				(t->center2d[1] - mval[1])*(t->center2d[1] - mval[1])
+			+
+				(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
+			) ) / t->fac;
+	}
+	
 	size[0] = size[1] = size[2] = ratio;
 
 	snapGrid(t, size);
@@ -1982,6 +1992,8 @@ int Resize(TransInfo *t, short mval[2])
 		t->con.applySize(t, NULL, mat);
 	}
 
+	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	
 	headerResize(t, size, str);
 
 	for(i = 0 ; i < t->total; i++, td++) {
@@ -2064,7 +2076,7 @@ int Resize(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center);
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
 
 	return 1;
 }
@@ -2249,6 +2261,8 @@ int Rotation(TransInfo *t, short mval[2])
 	//printf("Axis %f %f %f\n", axis[0], axis[1], axis[2]);
 	VecRotToMat3(axis, final * td->factor, mat);
 
+	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
@@ -2352,8 +2366,167 @@ int Rotation(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center);
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
 
+	return 1;
+}
+
+
+/* ************************** TRACKBALL *************************** */
+
+void initTrackball(TransInfo *t) 
+{
+	t->idx_max = 1;
+	t->num.idx_max = 1;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * (float)((5.0/180)*M_PI);
+	t->snap[2] = t->snap[1] * 0.2f;
+	t->fac = 0;
+	t->transform = Trackball;
+}
+
+int Trackball(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	int i;
+	char str[50];
+	float vec[3], axis1[3], axis2[3];
+	float mat[3][3], totmat[3][3], smat[3][3];
+	float phi[2];
+	
+	VECCOPY(axis1, G.vd->persinv[0]);
+	VECCOPY(axis2, G.vd->persinv[1]);
+	Normalise(axis1);
+	Normalise(axis2);
+	
+	/* factore has to become setting or so */
+	phi[0]= .01*(float)( t->imval[1] - mval[1] );
+	phi[1]= .01*(float)( mval[0] - t->imval[0] );
+	
+	//if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
+	//else t->fac += dphi;
+	
+	snapGrid(t, phi);
+	
+	if (hasNumInput(&t->num)) {
+		//char c[20];
+		
+		//applyNumInput(&t->num, phi);
+		
+		//outputNumInput(&(t->num), c);
+		
+		//sprintf(str, "Trackball: %s %s", &c[0], t->proptext);
+		
+		//final *= (float)(M_PI / 180.0);
+	}
+	else {
+		sprintf(str, "Trackball: %.2f %.2f %s", 180.0*phi[0]/M_PI, 180.0*phi[1]/M_PI, t->proptext);
+	}
+	
+	VecRotToMat3(axis1, phi[0], smat);
+	VecRotToMat3(axis2, phi[1], totmat);
+	
+	Mat3MulMat3(mat, smat, totmat);
+	
+	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		if (G.vd->around == V3D_LOCAL) {
+			VECCOPY(t->center, td->center);
+		}
+		
+		if (t->flag & T_EDIT) {
+			Mat3MulMat3(totmat, mat, td->mtx);
+			Mat3MulMat3(smat, td->smtx, totmat);
+			
+			VecSubf(vec, td->iloc, t->center);
+			Mat3MulVecfl(smat, vec);
+			
+			VecAddf(td->loc, vec, t->center);
+		}
+		else {
+			float eul[3], fmat[3][3];
+			
+			/* translation */
+			VecSubf(vec, td->center, t->center);
+			Mat3MulVecfl(mat, vec);
+			VecAddf(vec, vec, t->center);
+			/* vec now is the location where the object has to be */
+			VecSubf(vec, vec, td->center);
+			Mat3MulVecfl(td->smtx, vec);
+			
+			VecAddf(td->loc, td->iloc, vec);
+			
+			if(td->flag & TD_USEQUAT) {
+				float quat[4];
+				
+				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				
+				Mat3ToQuat(fmat, quat);	// Actual transform
+				
+				QuatMul(td->ext->quat, quat, td->ext->iquat);
+			}
+			else if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
+				float obmat[3][3];
+				
+				/* are there ipo keys? */
+				if(td->tdi) {
+					TransDataIpokey *tdi= td->tdi;
+					float rot[3];
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot);
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, mat, obmat);
+					Mat3ToEul(fmat, eul);
+					compatible_eul(eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					if(tdi->flag & TOB_IPODROT) {
+						VecSubf(rot, eul, td->ext->irot);
+					}
+					else {
+						VecSubf(rot, eul, td->ext->drot);
+					}
+					
+					VecMulf(rot, (float)(9.0/M_PI_2));
+					VecSubf(rot, rot, tdi->oldrot);
+					
+					add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
+					add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
+					add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
+				}
+				else {
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, mat, obmat);
+					Mat3ToEul(fmat, eul);
+					compatible_eul(eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					VecSubf(eul, eul, td->ext->drot);
+					/* and apply */
+					VECCOPY(td->ext->rot, eul);
+				}
+			}
+		}
+	}
+	
+	recalcData(t);
+	
+	headerprint(str);
+	
+	force_draw(0);
+	
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
+	
 	return 1;
 }
 

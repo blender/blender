@@ -1217,7 +1217,12 @@ void screenmain(void)
 		if (event==0 || event==EXECUTE) {
 			screen_dispatch_events();
 		}
-
+		
+		if(G.f & G_DEBUG) {
+			GLenum error = glGetError();
+			if (error)
+				printf("GL error: %s\n", gluErrorString(error));
+		}
 		/* Bizar hack. The event queue has mutated... */
 		if ( (firsttime) && (event == 0) ) {
 

@@ -76,6 +76,7 @@
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
+#include "BDR_drawobject.h"
 
 #include "blendef.h"
 #include "transform.h"
@@ -95,7 +96,14 @@
 #define MAN_ROT_X		8
 #define MAN_ROT_Y		16
 #define MAN_ROT_Z		32
-#define MAN_ROT_C		63
+#define MAN_ROT_V		64
+#define MAN_ROT_T		128
+#define MAN_ROT_C		248
+
+#define MAN_SCALE_X		256
+#define MAN_SCALE_Y		512
+#define MAN_SCALE_Z		1024
+#define MAN_SCALE_C		1792
 
 
 /* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
@@ -273,9 +281,9 @@ static int calc_manipulator(ScrArea *sa)
 	/* global, local or normal orientation? */
 	if(ob) {
 		// local....
-		if(totsel==1 || v3d->around==V3D_LOCAL) {
-			Mat4CpyMat4(v3d->twmat, ob->obmat);
-			Mat4Ortho(v3d->twmat);
+		if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || G.obpose) {
+			//Mat4CpyMat4(v3d->twmat, ob->obmat);
+			//Mat4Ortho(v3d->twmat);
 		}		
 	}
 	   
@@ -298,7 +306,7 @@ static void manipulator_setcolor(char mode)
 	else {
 		switch(mode) {
 		case 'x':
-			glColor3ub(255, 100, 100);
+			glColor3ub(255, 0, 100);
 			break;
 		case 'y':
 			glColor3ub(100, 255, 100);
@@ -324,14 +332,228 @@ static void manipulator_setcolor(char mode)
 
 static int Gval= 0xFFFF;	// defines drawmodus while moving...
 
+static void draw_manipulator_rotate(float mat[][4])
+{
+	double plane[4];
+	float size, vec[3], unitmat[4][4];
+	
+	/* when called while moving in mixed mode, do not draw when... */
+	if((Gval & MAN_ROT_C)==0) return;
+	
+	glDisable(GL_DEPTH_TEST);
+	Mat4One(unitmat);
+	
+	/* Screen aligned help circle */
+	glPushMatrix();
+	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
+	
+		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
+		VECCOPY(plane, G.vd->viewinv[2]);
+		plane[3]= -0.001; // clip full circle
+		glClipPlane(GL_CLIP_PLANE0, plane);
+	
+	glRotatef( -360.0*saacos(G.vd->viewquat[0])/M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
+	VECCOPY(vec, mat[0]);
+	size= Normalise(vec);
+	if((G.f & G_PICKSEL)==0) {
+		BIF_ThemeColorShade(TH_BACK, -30);
+		drawcircball(unitmat[3], size, unitmat);
+	}		
+	/* Screen aligned view rot circle */
+	if(Gval & MAN_ROT_V) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
+		BIF_ThemeColor(TH_TRANSFORM);
+		drawcircball(unitmat[3], 1.2*size, unitmat);
+	}
+	glPopMatrix();
+	
+	/* apply the transform delta */
+	if(G.moving) {
+		float matt[4][4];
+		Mat4CpyMat4(matt, mat); // to copy the parts outside of [3][3]
+		Mat4MulMat34(matt, Trans.mat, mat);
+		mymultmatrix(matt);
+	}
+	else mymultmatrix(mat);
+	
+	/* Trackball center */
+	if(Gval & MAN_ROT_T) {
+		GLUquadricObj *qobj = gluNewQuadric(); 
+		
+		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_T);
+		
+		BIF_ThemeColor(TH_TRANSFORM);
+		glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, 0.0);
+		glVertex3fv(G.vd->viewinv[2]);
+		glEnd();
+		
+		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
+		
+		/* only has to be set here */
+		gluQuadricDrawStyle(qobj, GLU_FILL); 
+		gluQuadricNormals(qobj, GLU_SMOOTH);
+		glEnable(GL_CULL_FACE);		// backface removal
+		glEnable(GL_LIGHTING);
+		glShadeModel(GL_SMOOTH);
+		
+		glTranslatef(G.vd->viewinv[2][0], G.vd->viewinv[2][1], G.vd->viewinv[2][2]);
+		
+		gluSphere(qobj, CYWID, 8, 6);
+		
+		/* restore */
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glTranslatef(-G.vd->viewinv[2][0], -G.vd->viewinv[2][1], -G.vd->viewinv[2][2]);
+		
+		gluDeleteQuadric(qobj);
+	}
+		
+	glEnable(GL_CLIP_PLANE0);
+
+	/* Z circle */
+	if(Gval & MAN_ROT_Z) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
+		manipulator_setcolor('z');
+		drawcircball(unitmat[3], 1.0, unitmat);
+	}
+	/* X circle */
+	if(Gval & MAN_ROT_X) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
+		glRotatef(90.0, 0.0, 1.0, 0.0);
+		manipulator_setcolor('x');
+		drawcircball(unitmat[3], 1.0, unitmat);
+		glRotatef(-90.0, 0.0, 1.0, 0.0);
+	}	
+	/* Y circle */
+	if(Gval & MAN_ROT_Y) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+		manipulator_setcolor('y');
+		drawcircball(unitmat[3], 1.0, unitmat);
+		glRotatef(-90.0, 1.0, 0.0, 0.0);
+	}
+	
+	glDisable(GL_CLIP_PLANE0);
+	
+	myloadmatrix(G.vd->viewmat);
+	
+	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+}
+
+static void draw_manipulator_scale(float mat[][4])
+{
+	float cusize= CYWID*0.75;
+	
+	/* when called while moving in mixed mode, do not draw when... */
+	if((Gval & MAN_SCALE_C)==0) return;
+	
+	if(G.moving) {
+		float matt[4][4];
+		
+		Mat4CpyMat4(matt, mat); // to copy the parts outside of [3][3]
+		Mat4MulMat34(matt, Trans.mat, mat);
+		mymultmatrix(matt);
+	}
+	else mymultmatrix(mat);
+
+	/* if not shiftkey, center point as first, for selectbuffer order */
+	if(G.f & G_PICKSEL) {
+		if(!(G.qual & LR_SHIFTKEY)) {
+			glLoadName(MAN_SCALE_C);
+			glBegin(GL_POINTS);
+			glVertex3f(0.0, 0.0, 0.0);
+			glEnd();
+		}
+	}
+	else {
+		float vec[3];
+		
+		glDisable(GL_DEPTH_TEST);
+		
+		/* axis */
+		glBegin(GL_LINES);
+		if(Gval & MAN_SCALE_X) {
+			manipulator_setcolor('x');
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(1.0, 0.0, 0.0);
+		}		
+		if(Gval & MAN_SCALE_Y) {
+			manipulator_setcolor('y');
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(0.0, 1.0, 0.0);
+		}		
+		if(Gval & MAN_SCALE_Z) {
+			manipulator_setcolor('z');
+			glVertex3f(0.0, 0.0, 0.0);
+			glVertex3f(0.0, 0.0, 1.0);
+		}
+		glEnd();
+		
+		/* only has to be set when not in picking */
+		glEnable(GL_CULL_FACE);		// backface removal
+		glEnable(GL_LIGHTING);
+		glShadeModel(GL_SMOOTH);
+		
+		/* center cube */
+		BIF_GetThemeColor3fv(TH_TRANSFORM, vec);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec);
+		
+		drawsolidcube(cusize);
+	}	
+
+	/* Z cube */
+	glTranslatef(0.0, 0.0, 1.0+cusize/2);
+	if(Gval & MAN_SCALE_Z) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_Z);
+		manipulator_setcolor('Z');
+		drawsolidcube(cusize);
+	}	
+	/* X cube */
+	glTranslatef(1.0+cusize/2, 0.0, -(1.0+cusize/2));
+	if(Gval & MAN_SCALE_X) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_X);
+		manipulator_setcolor('X');
+		drawsolidcube(cusize);
+	}	
+	/* Y cube */
+	glTranslatef(-(1.0+cusize/2), 1.0+cusize/2, 0.0);
+	if(Gval & MAN_SCALE_Y) {
+		if(G.f & G_PICKSEL) glLoadName(MAN_SCALE_Y);
+		manipulator_setcolor('Y');
+		drawsolidcube(cusize);
+	}
+	
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+	
+	/* if shiftkey, center point as last, for selectbuffer order */
+	if(G.f & G_PICKSEL) {
+		if(G.qual & LR_SHIFTKEY) {
+			glTranslatef(0.0, -(1.0+cusize/2), 0.0);
+			glLoadName(MAN_SCALE_C);
+			glBegin(GL_POINTS);
+			glVertex3f(0.0, 0.0, 0.0);
+			glEnd();
+		}
+	}
+	
+	myloadmatrix(G.vd->viewmat);
+	
+	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+}
 
 static void draw_manipulator_translate(float mat[][4])
 {
 	GLUquadricObj *qobj = gluNewQuadric(); 
 	
+	/* when called while moving in mixed mode, do not draw when... */
+	if((Gval & MAN_TRANS_C)==0) return;
+	
 	if(G.moving) glTranslatef(Trans.vec[0], Trans.vec[1], Trans.vec[2]);
 	
-	glMultMatrixf(mat);
+	mymultmatrix(mat);
 	
 	/* if not shiftkey, center point as first, for selectbuffer order */
 	if(G.f & G_PICKSEL) {
@@ -482,14 +704,17 @@ void BIF_draw_manipulator(ScrArea *sa)
 	
 	if(v3d->twflag & V3D_DRAW_MANIPULATOR) {
 		
-		if(v3d->twmode==V3D_MANIPULATOR_TRANSLATE)
+		if(v3d->twtype & V3D_MANIPULATOR_ROTATE)
+			draw_manipulator_rotate(v3d->twmat);
+		if(v3d->twtype & V3D_MANIPULATOR_SCALE)
+			draw_manipulator_scale(v3d->twmat);
+		if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE)
 			draw_manipulator_translate(v3d->twmat);
+		
 	}
 }
 
-
-
-static int manipulator_selectbuf(ScrArea *sa)
+static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 {
 	View3D *v3d= sa->spacedata.first;
 	rctf rect;
@@ -499,37 +724,47 @@ static int manipulator_selectbuf(ScrArea *sa)
 	G.f |= G_PICKSEL;
 	
 	getmouseco_areawin(mval);
-	rect.xmin= mval[0]-7;
-	rect.xmax= mval[0]+7;
-	rect.ymin= mval[1]-7;
-	rect.ymax= mval[1]+7;
+	rect.xmin= mval[0]-hotspot;
+	rect.xmax= mval[0]+hotspot;
+	rect.ymin= mval[1]-hotspot;
+	rect.ymax= mval[1]+hotspot;
 	
 	/* get rid of overlay button matrix */
 	persp(PERSP_VIEW);
 	
 	setwinmatrixview3d(&rect);
-	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
-
-	glSelectBuffer( MAXPICKBUF, (GLuint *)buffer);
+	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, sa->winmat);
+	
+	glSelectBuffer( 32, buffer);
 	glRenderMode(GL_SELECT);
 	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
 	glPushName(-1);
 	
 	/* do the drawing */
-	if(v3d->twmode==V3D_MANIPULATOR_TRANSLATE)
+	if(v3d->twtype & V3D_MANIPULATOR_ROTATE)
+		draw_manipulator_rotate(v3d->twmat);
+	if(v3d->twtype & V3D_MANIPULATOR_SCALE)
+		draw_manipulator_scale(v3d->twmat);
+	if(v3d->twtype & V3D_MANIPULATOR_TRANSLATE)
 		draw_manipulator_translate(v3d->twmat);
 	
-	
-	glPopName();	/* see above (pushname) */
 	hits= glRenderMode(GL_RENDER);
 	
 	G.f &= ~G_PICKSEL;
 	setwinmatrixview3d(0);
-	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
+	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, sa->winmat);
 	
 	persp(PERSP_WIN);
 	
-	if(hits>0) {
+	if(hits==1) return buffer[3];
+	else if(hits>1) {
+		/* we compare the two first in buffer, but exclude centers */
+		
+		if(buffer[3]==MAN_TRANS_C || buffer[3]==MAN_SCALE_C);
+		else if(buffer[4+3]==MAN_TRANS_C || buffer[4+3]==MAN_SCALE_C);
+		else {
+			if(buffer[4+1] < buffer[1]) return buffer[4+3];
+		}
 		return buffer[3];
 	}
 	return 0;
@@ -543,8 +778,14 @@ int BIF_do_manipulator(ScrArea *sa)
 	if(!(v3d->twflag & V3D_USE_MANIPULATOR)) return 0;
 	if(!(v3d->twflag & V3D_DRAW_MANIPULATOR)) return 0;
 	
-	// find the hotspots (Gval is for draw)
-	Gval=val= manipulator_selectbuf(sa);
+	// find the hotspots (Gval is for draw). first test narrow hotspot
+	// warning, Gval is ugly global defining how it draws, don't set it before doing select calls!
+	val= manipulator_selectbuf(sa, 7.0);
+	if(val) {
+		Gval= manipulator_selectbuf(sa, 3.0);
+		if(Gval) val= Gval;
+		else Gval= val;
+	}
 	
 	switch(val) {
 		case MAN_TRANS_C:
@@ -576,6 +817,56 @@ int BIF_do_manipulator(ScrArea *sa)
 			else
 				BIF_setSingleAxisConstraint(v3d->twmat[2]);
 			ManipulatorTransform(TFM_TRANSLATION);
+			break;
+			
+		case MAN_SCALE_C:
+			ManipulatorTransform(TFM_RESIZE);
+			break;
+		case MAN_SCALE_X:
+			if(G.qual & LR_SHIFTKEY) {
+				Gval= MAN_SCALE_Y|MAN_SCALE_Z;
+				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2]);
+			}
+			else
+				BIF_setSingleAxisConstraint(v3d->twmat[0]);
+			ManipulatorTransform(TFM_RESIZE);
+			break;
+		case MAN_SCALE_Y:
+			if(G.qual & LR_SHIFTKEY) {
+				Gval= MAN_SCALE_X|MAN_SCALE_Z;
+				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2]);
+			}
+			else
+				BIF_setSingleAxisConstraint(v3d->twmat[1]);
+			ManipulatorTransform(TFM_RESIZE);
+			break;
+		case MAN_SCALE_Z:
+			if(G.qual & LR_SHIFTKEY) {
+				Gval= MAN_SCALE_X|MAN_SCALE_Y;
+				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1]);
+			}
+			else
+				BIF_setSingleAxisConstraint(v3d->twmat[2]);
+			ManipulatorTransform(TFM_RESIZE);
+			break;
+		
+		case MAN_ROT_X:
+			BIF_setSingleAxisConstraint(v3d->twmat[0]);
+			ManipulatorTransform(TFM_ROTATION);
+			break;
+		case MAN_ROT_Y:
+			BIF_setSingleAxisConstraint(v3d->twmat[1]);
+			ManipulatorTransform(TFM_ROTATION);
+			break;
+		case MAN_ROT_Z:
+			BIF_setSingleAxisConstraint(v3d->twmat[2]);
+			ManipulatorTransform(TFM_ROTATION);
+			break;
+		case MAN_ROT_T:
+			ManipulatorTransform(TFM_TRACKBALL);
+			break;			
+		case MAN_ROT_V:
+			ManipulatorTransform(TFM_ROTATION);
 			break;
 	}
 	

@@ -146,8 +146,11 @@ typedef struct TransInfo {
 #define T_EDIT			2
 #define T_POSE			4
 #define T_TEXTURE		8
+		// for manipulator exceptions, like scaling using center point, drawing help lines
+#define T_USES_MANIPULATOR	128
 
 
+/* transinfo->con->mode */
 #define CON_APPLY		1
 #define CON_AXIS0		2
 #define CON_AXIS1		4
@@ -185,6 +188,9 @@ int ShrinkFatten(TransInfo *t, short mval[2]);
 
 void initTilt(TransInfo *t);
 int Tilt(TransInfo *t, short mval[2]);
+
+void initTrackball(TransInfo *t);
+int Trackball(TransInfo *t, short mval[2]);
 
 #endif
 

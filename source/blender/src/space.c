@@ -720,7 +720,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	unsigned short event= evt->event;
 	short val= evt->val;
 	char ascii= evt->ascii;
-	View3D *v3d= curarea->spacedata.first;
+	View3D *v3d= sa->spacedata.first;
 	Object *ob;
 	float *curs;
 	int doredraw= 0, pupval;
@@ -1220,12 +1220,20 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(okee("Clear location")) {
 						clear_object('g');
 					}
-				} else if((G.qual==0))
+				} else if((G.qual==0)) {
+					if(v3d->twflag & V3D_USE_MANIPULATOR) {
+						if((v3d->twtype & V3D_MANIPULATOR_TRANSLATE)==0) {
+							v3d->twtype= V3D_MANIPULATOR_TRANSLATE;
+							doredraw= 1;
+							break;
+						}
+					}
 #ifdef NEWTRANSFORM
 					Transform(TFM_TRANSLATION);
 #else
 					transform('g');
 #endif
+				}
 				break;
 			case HKEY:
 				if(G.obedit) {
@@ -1485,19 +1493,35 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if (G.obedit->type==OB_MESH)
 							loopoperations(LOOP_CUT);
 					}
-					else if((G.qual==0))
+					else if((G.qual==0)) {
+						if(v3d->twflag & V3D_USE_MANIPULATOR) {
+							if((v3d->twtype & V3D_MANIPULATOR_ROTATE)==0) {
+								v3d->twtype= V3D_MANIPULATOR_ROTATE;
+								doredraw= 1;
+								break;
+							}
+						}
 #ifdef NEWTRANSFORM
 						Transform(TFM_ROTATION);
 #else
 						transform('r');
 #endif
+					}
 				}
-				else if((G.qual==0))
+				else if((G.qual==0)) {
+					if(v3d->twflag & V3D_USE_MANIPULATOR) {
+						if((v3d->twtype & V3D_MANIPULATOR_ROTATE)==0) {
+							v3d->twtype= V3D_MANIPULATOR_ROTATE;
+							doredraw= 1;
+							break;
+						}
+					}
 #ifdef NEWTRANSFORM
 					Transform(TFM_ROTATION);
 #else
 					transform('r');
 #endif
+				}
 				break;
 			case SKEY:
 				if(G.obedit) {
@@ -1517,14 +1541,25 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 #endif
 					else if(G.qual==LR_SHIFTKEY)
 						snapmenu();
-					else if(G.qual==0)
+					else if(G.qual==0) {
+						if(v3d->twflag & V3D_USE_MANIPULATOR) {
+							if((v3d->twtype & V3D_MANIPULATOR_SCALE)==0) {
+								v3d->twtype= V3D_MANIPULATOR_SCALE;
+								doredraw= 1;
+								break;
+							}
+						}
 #ifdef NEWTRANSFORM
 						Transform(TFM_RESIZE);
-					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
-						Transform(TFM_TOSPHERE);
 #else
 						transform('s');
 #endif
+					}
+					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
+#ifdef NEWTRANSFORM
+						Transform(TFM_TOSPHERE);
+#endif
+					
 				}
 				else if(G.qual==LR_ALTKEY) {
 					if(okee("Clear size")) {
@@ -1534,15 +1569,25 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_SHIFTKEY) {
 					snapmenu();
 				}
-				else if((G.qual==0))
+				else if((G.qual==0)) {
+					if(v3d->twflag & V3D_USE_MANIPULATOR) {
+						if((v3d->twtype & V3D_MANIPULATOR_SCALE)==0) {
+							v3d->twtype= V3D_MANIPULATOR_SCALE;
+							doredraw= 1;
+							break;
+						}
+					}
 #ifdef NEWTRANSFORM
 					Transform(TFM_RESIZE);
+#else
+					transform('s');
+#endif
+				}
+#ifdef NEWTRANSFORM
 				else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
 					Transform(TFM_TOSPHERE);
 				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
 					Transform(TFM_SHEAR);
-#else
-					transform('s');
 #endif
 				break;
 			case TKEY:

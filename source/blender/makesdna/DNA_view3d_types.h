@@ -147,10 +147,10 @@ typedef struct View3D {
 #define V3D_SHOW_Y				4
 #define V3D_SHOW_Z				8
 
-/* View3d->twtype */
-#define V3D_MANIPULATOR_TRANSLATE	0
-#define V3D_MANIPULATOR_ROTATE		1
-#define V3D_MANIPULATOR_SCALE		2
+/* View3d->twtype (bits, we can combine them) */
+#define V3D_MANIPULATOR_TRANSLATE	1
+#define V3D_MANIPULATOR_ROTATE		2
+#define V3D_MANIPULATOR_SCALE		4
 
 /* View3d->twmode */
 #define V3D_MANIPULATOR_GLOBAL		0

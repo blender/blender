@@ -61,6 +61,7 @@ void drawcircball(float *cent, float rad, float tmat[][4]);
 void get_local_bounds(struct Object *ob, float *centre, float *size);
 void draw_object(struct Base *base);
 void draw_object_ext(struct Base *base);
+void drawsolidcube(float size);
 extern void draw_object_backbufsel(struct Object *ob);
 
 #ifdef __cplusplus

@@ -133,7 +133,7 @@ void recalcData(TransInfo *t)
 		for (i=0; i<t->total; i++, td++) {
 			chan = MEM_callocN (sizeof (bPoseChannel), "transPoseChannel");
 			
-			if (t->mode == TFM_ROTATION) {
+			if (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL) {
 				chan->flag |= POSE_ROT;
 				memcpy (chan->quat, td->ext->quat, sizeof (chan->quat));
 			}
@@ -230,16 +230,17 @@ void recalcData(TransInfo *t)
 		base= FIRSTBASE;
 		while(base) {
 			if(base->flag & BA_DO_IPO) {
-				IpoCurve *icu;
-				
-				base->object->ctime= -1234567.0;
-				
-				icu= base->object->ipo->curve.first;
-				while(icu) {
-					calchandles_ipocurve(icu);
-					icu= icu->next;
-				}
-				
+				if(base->object->ipo) {
+					IpoCurve *icu;
+					
+					base->object->ctime= -1234567.0;
+					
+					icu= base->object->ipo->curve.first;
+					while(icu) {
+						calchandles_ipocurve(icu);
+						icu= icu->next;
+					}
+				}				
 			}
 			if(base->object->partype & PARSLOW) {
 				base->object->partype -= PARSLOW;
@@ -639,8 +640,9 @@ void calculateCenter(TransInfo *t)
 
 	/* setting constraint center */
 	VECCOPY(t->con.center, t->center);
-	if(t->flag & T_EDIT) {
-		Mat4MulVecfl(G.obedit->obmat, t->con.center);
+	if(t->flag & (T_EDIT|T_POSE)) {
+		Object *ob= G.obedit?G.obedit:G.obpose;
+		Mat4MulVecfl(ob->obmat, t->con.center);
 	}
 
 	/* voor panning from cameraview */

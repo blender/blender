@@ -589,6 +589,7 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 
 	Crossf(space[1], vec, v);
 	Crossf(space[2], vec, space[1]);
+	Mat3Ortho(space);
 
 	Mat3Ortho(space);
 
@@ -603,6 +604,8 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
+	
+	startConstraint(t);
 }
 
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
@@ -612,7 +615,6 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
 	VECCOPY(space[0], vec1);
 	VECCOPY(space[1], vec2);
 	Crossf(space[2], space[0], space[1]);
-
 	Mat3Ortho(space);
 	
 	Mat3CpyMat3(t->con.mtx, space);
@@ -626,6 +628,8 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
 	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
+	
+	startConstraint(t);
 }
 
 
@@ -635,6 +639,8 @@ void BIF_drawConstraint(void)
 	TransCon *tc = &(t->con);
 
 	if (!(tc->mode & CON_APPLY))
+		return;
+	if (t->flag & T_USES_MANIPULATOR)
 		return;
 
 	if (tc->drawExtra) {

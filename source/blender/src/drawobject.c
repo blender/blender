@@ -318,11 +318,14 @@ void drawaxes(float size)
 	}
 }
 
-#if 0
-static void drawgourcube(void)
+
+void drawsolidcube(float size)
 {
 	float n[3];
 
+	glPushMatrix();
+	glScalef(size, size, size);
+	
 	n[0]=0; n[1]=0; n[2]=0;
 	glBegin(GL_QUADS);
 		n[0]= -1.0;
@@ -364,8 +367,9 @@ static void drawgourcube(void)
 		glNormal3fv(n); 
 		glVertex3fv(cube[7]); glVertex3fv(cube[4]); glVertex3fv(cube[0]); glVertex3fv(cube[3]);
 	glEnd();
+	
+	glPopMatrix();
 }
-#endif
 
 static void drawcube(void)
 {

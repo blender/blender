@@ -4625,6 +4625,7 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 236) {
 		Scene *sce= main->scene.first;
 		Camera *cam= main->camera.first;
+		bScreen *sc;
 		
 		while(sce) {
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
@@ -4636,6 +4637,19 @@ static void do_versions(Main *main)
 				if(cam->type==CAM_ORTHO) printf("NOTE: ortho render has changed, tweak new Camera 'scale' value.\n");
 			}
 			cam= cam->id.next;
+		}
+		/* set manipulator type */
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						if(v3d->twtype==0) v3d->twtype= V3D_MANIPULATOR_TRANSLATE;
+					}
+				}
+			}
 		}
 	}
 	
