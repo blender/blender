@@ -728,7 +728,7 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	for (pym = BPyMenuTable[PYMENU_IMPORT]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+4, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+4, pym->tooltip?pym->tooltip:pym->filename);
 	}
 
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -792,7 +792,7 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 
 	/* note that we acount for the 3 previous entries with i+3: */
 	for (pym = BPyMenuTable[PYMENU_EXPORT]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, 
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
 				 NULL, 0.0, 0.0, 1, i+4, 
 				 pym->tooltip?pym->tooltip:pym->filename);
 	}
@@ -1646,7 +1646,7 @@ static uiBlock *info_help_websitesmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_help_websitesmenu, NULL);
 	
 	for (pym = BPyMenuTable[PYMENU_HELPWEBSITES]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -1699,7 +1699,7 @@ static uiBlock *info_help_systemmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Benchmark",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	
 	for (pym = BPyMenuTable[PYMENU_HELPSYSTEM]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -1748,7 +1748,7 @@ static uiBlock *info_helpmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	for (pym = BPyMenuTable[PYMENU_HELP]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
 	}
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

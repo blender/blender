@@ -1655,7 +1655,7 @@ static uiBlock *view3d_edit_object_scriptsmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_edit_object_scriptsmenu, NULL);
 
 	for (pym = BPyMenuTable[PYMENU_OBJECT]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
 	}
 
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -2157,7 +2157,7 @@ static uiBlock *view3d_edit_mesh_scriptsmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_scriptsmenu, NULL);
 
 	for (pym = BPyMenuTable[PYMENU_MESH]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
 	}
 
 	uiBlockSetDirection(block, UI_RIGHT);

@@ -943,7 +943,7 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	/* note that we acount for the 3 previous entries with i+3: */
 	for (pym = BPyMenuTable[PYMENU_UV]; pym; pym = pym->next, i++) {
 
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, 
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
 				 NULL, 0.0, 0.0, 1, i+20, 
 				 pym->tooltip?pym->tooltip:pym->filename);
 	}

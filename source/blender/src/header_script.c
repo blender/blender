@@ -102,7 +102,7 @@ static uiBlock *script_scripts_submenus(void *int_menutype)
 	uiBlockSetButmFunc(block, do_scripts_submenus, int_menutype);
 
 	for (pym = BPyMenuTable[menutype]; pym; pym = pym->next, i++) {
-		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
 	}
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
