@@ -82,15 +82,15 @@ void rectwrite_imasel(int winxmin, int winymin, int winxmax, int winymax, int x1
 	
 	oldxim= xim;
 		
-	/* coordinaten hoe 't op scherm komt */
+	/* coordinates how it will be put at screen */
 	x2= x1+ zoomx*xim;
 	y2= y1+ zoomy*yim;
 
-	/* partiele clip */
+	/* partial clip */
 	if(x1<=winxmin) {
-		/* recten bij OpenGL mogen niet links/onder van windowrand beginnen */
+		/* with OpenGL, rects are not allowed to start outside of the left/bottom window edge */
 		cx= winxmin-x1+(int)zoomx;
-		/* zorg ervoor dat de rect pixelnauwkeurig wordt neergezet */
+		/* make sure the rect will be drawn pixel-exact */
 		cx/= zoomx;
 		cx++;
 		x1+= zoomx*cx;
@@ -616,7 +616,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 				ima = ima->next;
 			}
 			
-			if ((simasel->mode & 8) == 8) {	 /* if loep */
+			if ((simasel->mode & 8) == 8) {	 /* if magnify */
 				
 				if (bitset(simasel->fase, IMS_KNOW_IMA) && (simasel->hilite_ima)) {
 			
@@ -857,9 +857,9 @@ void pibplay(SpaceImaSel *simasel)
 
 
 
-/* ************** hoofdtekenfunktie ************** */
+/* ************** main drawing function ************** */
 
-void drawimaselspace(ScrArea *sa, void *spacedata)	/* hoofdtekenfunktie */
+void drawimaselspace(ScrArea *sa, void *spacedata)
 {
 	SpaceImaSel *simasel;
 	simasel= curarea->spacedata.first;

@@ -186,7 +186,7 @@ int set_tpage(TFace *tface)
 	unsigned int *rect, *bind;
 	int tpx, tpy, tilemode, tileXRep,tileYRep;
 	
-	/* afschakelen */
+	/* disable */
 	if(tface==0) {
 		if(lasttface==0) return 0;
 		
@@ -476,7 +476,7 @@ void update_realtime_textures()
 		if(ima->tpageflag & IMA_TWINANIM) {
 			if(ima->twend >= ima->xrep*ima->yrep) ima->twend= ima->xrep*ima->yrep-1;
 		
-			/* check: zit de bindcode niet het array? Vrijgeven. (nog doen) */
+			/* check: is bindcode not in the array? Free. (to do) */
 			
 			ima->lastframe++;
 			if(ima->lastframe > ima->twend) ima->lastframe= ima->twsta;
@@ -487,10 +487,6 @@ void update_realtime_textures()
 }
 
 
-/* XXX, this routine should die but
- * the great wisdom of NaN has inspired
- * its progation.
- */
 void spack(unsigned int ucol)
 {
 	char *cp= (char *)&ucol;
@@ -571,7 +567,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 			}
 
 			if(tface->flag & TF_ACTIVE) {
-				/* kleuren: R=x G=y */
+				/* colors: R=x G=y */
 				cpack(0xFF);
 				glBegin(GL_LINE_STRIP); glVertex3fv(v1); if(v4) glVertex3fv(v4); else glVertex3fv(v3); glEnd();
 				cpack(0xFF00);
@@ -753,7 +749,8 @@ static int set_draw_settings_cached(int clearcache, int textured, TFace *texface
 	return c_badtex;
 }
 
-void draw_tface_mesh(Object *ob, Mesh *me, int dt)	/* maximum dt: precies volgens ingestelde waardes */
+void draw_tface_mesh(Object *ob, Mesh *me, int dt)
+/* maximum dt (drawtype): exactly according values that have been set */
 {
 	TFace *tface;
 	MFace *mface;
@@ -774,7 +771,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)	/* maximum dt: precies volgen
 	obcol[2]= CLAMPIS(ob->col[2]*255, 0, 255);
 	obcol[3]= CLAMPIS(ob->col[3]*255, 0, 255);
 	
-	/* eerst alle texture polys */
+	/* first all texture polys */
 	
 	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
 	if(G.vd->drawtype==OB_TEXTURE) istex= 1;
@@ -965,7 +962,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)	/* maximum dt: precies volgen
 			}
 		}
 		
-		/* textures uitzetten */
+		/* switch off textures */
 		set_tpage(0);
 	}
 

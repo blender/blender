@@ -289,7 +289,7 @@ char texstr[15][8]= {"None"  , "Clouds" , "Wood",
 #define B_PRINTLEN		1414
 #define B_RELKEY		1415
 
-	/* heeft MAX_EFFECT standen! Volgende pas 1450... */
+	/* this has MAX_EFFECT settings! Next free define is 1450... */
 #define B_SELEFFECT	1430	
 
 
@@ -369,7 +369,7 @@ enum {
 #define B_DOCENTRENEW	2016
 #define B_DOCENTRECURSOR	2017
 
-	/* 32 getallen! */
+	/* 32 values! */
 #define B_OBLAY			2018
 
 #define B_MESHBUTS		2100
@@ -973,7 +973,7 @@ static void do_common_editbuts(unsigned short event)
 				scrarea_queue_winredraw(curarea);
 			}
 			BASACT->lay += local;
-			/* optimale redraw */
+			/* optimal redraw */
 			if( (OBACT->lay & G.vd->lay) && (BASACT->lay & G.vd->lay) );
 			else if( (OBACT->lay & G.vd->lay)==0 && (BASACT->lay & G.vd->lay)==0 );
 			else allqueue(REDRAWVIEW3D, 0);
@@ -1031,7 +1031,7 @@ void common_editbuts(void)
 	
 	uiBlockSetCol(block, BUTGREY);
 	
-	/* material en select swap en hide */
+	/* material and select swap and hide */
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
 		
 			if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
@@ -1468,7 +1468,7 @@ void do_meshbuts(unsigned short event)
 		vertexsmooth();
 		break;
 	}
-	/* LETOP: bovenstaande events alleen in editmode! */
+	/* WATCH IT: previous events only in editmode! */
 }
 
 static void verify_vertexgroup_name_func(void *datav, void *data2_unused)
@@ -2023,7 +2023,7 @@ void do_curvebuts(unsigned short event)
 		if(ob->type==OB_FONT) text_to_curve(ob, 0);
 		makeDispList(ob);
 		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWINFO, 1); 	/* 1, want header->win==0! */
+		allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 		break;
 	
 	case B_SUBDIVCURVE:
@@ -3066,7 +3066,7 @@ void latticebuts(void)
 Tex *cur_imatex=0;
 int prv_win= 0;
 
-void load_tex_image(char *str)	/* aangeroepen vanuit fileselect */
+void load_tex_image(char *str)	/* called from fileselect */
 {
 	Image *ima=0;
 	Tex *tex;
@@ -3081,7 +3081,7 @@ void load_tex_image(char *str)	/* aangeroepen vanuit fileselect */
 			}
 			tex->ima= ima;
 
-			free_image_buffers(ima);	/* forceer opnieuw inlezen */
+			free_image_buffers(ima);	/* force reading again */
 			ima->ok= 1;
 		}
 
@@ -3091,7 +3091,7 @@ void load_tex_image(char *str)	/* aangeroepen vanuit fileselect */
 	}
 }
 
-void load_plugin_tex(char *str)	/* aangeroepen vanuit fileselect */
+void load_plugin_tex(char *str)	/* called from fileselect */
 {
 	Tex *tex;
 	
@@ -3188,7 +3188,7 @@ void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey
 	glEnd();
 	glShadeModel(GL_FLAT);
 	
-	/* hulplijntjes */
+	/* help lines */
 	
 	v1[0]= v2[0]=v3[0]= x1;
 	v1[1]= y1;
@@ -3264,7 +3264,7 @@ void do_texbuts(unsigned short event)
 	case B_LOADTEXIMA:
 	case B_LOADTEXIMA1:
 		if(tex==0) return;
-		/* globals: even onthouden: we maken andere area fileselect */
+		/* globals: temporal store them: we make another area a fileselect */
 		cur_imatex= tex;
 		prv_win= curarea->win;
 		
@@ -3294,7 +3294,7 @@ void do_texbuts(unsigned short event)
 			cur_imatex= tex;
 			prv_win= curarea->win;
 			
-			/* naam in tex->ima is door button veranderd! */
+			/* name in tex->ima has been changed by button! */
 			strcpy(str, tex->ima->name);
 			if(tex->ima->ibuf) strcpy(tex->ima->name, tex->ima->ibuf->name);
 
@@ -3403,7 +3403,7 @@ void do_texbuts(unsigned short event)
 	case B_LOADPLUGIN:
 		if(tex==0) return;
 
-		/* globals: even onthouden: we maken andere area fileselect */
+		/* globals: store temporal: we make another area a fileselect */
 		cur_imatex= tex;
 		prv_win= curarea->win;
 			
@@ -3497,7 +3497,7 @@ void do_texbuts(unsigned short event)
 				glDrawBuffer(GL_BACK);
 				
 				do_texbuts(B_CALCCBAND2);
-				cbd= tex->coba->data + tex->coba->cur;	/* ivm qsort */
+				cbd= tex->coba->data + tex->coba->cur;	/* because qsort */
 				
 				mvalo[0]= mval[0];
 			}
@@ -3848,7 +3848,7 @@ void texbuts(void)
 			
 			uiBlockSetCol(block, BUTGREY);
 	
-			/* printen aantal frames anim */
+			/* print amount of frames anim */
 			if(tex->ima && tex->ima->anim) {
 				uiDefBut(block, BUT, B_TEXSETFRAMES, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "Paste number of frames in Frames: button");
 				sprintf(str, "%d frs  ", IMB_anim_get_duration(tex->ima->anim));
@@ -3959,7 +3959,7 @@ void texbuts(void)
 			uiBlockSetCol(block, BUTPURPLE);
 			uiDefButS(block, NUM, B_REDR,		"Cur:",				1082,104,132,20, &tex->coba->cur, 0.0, (float)(tex->coba->tot-1), 0, 0, "The active colour from the colorband");
 	
-			uiDefBut(block, LABEL, B_DOCOLORBAND, "", 923,81,345,20, 0, 0, 0, 0, 0, "Colorband"); /* alleen voor event! */
+			uiDefBut(block, LABEL, B_DOCOLORBAND, "", 923,81,345,20, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
 			
 			drawcolorband(tex->coba, 923,81,345,20);
 			cbd= tex->coba->data + tex->coba->cur;
@@ -4024,7 +4024,7 @@ void do_matbuts(unsigned short event)
 		BIF_previewdraw(G.buts);
 		break;
 	case B_MATPRV:
-		/* dit event wordt ook door lamp, tex en sky gebruikt */
+		/* this event also used by lamp, tex and sky */
 		BIF_preview_changed(G.buts);
 		break;
 	case B_MATPRV_DRAW:
@@ -4097,9 +4097,9 @@ void matbuts(void)
 	sprintf(str, "buttonswin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
 
-	if(ob->actcol==0) ob->actcol= 1;	/* ivm TOG|BIT button */
+	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
-	/* aangeven waar het materiaal aan hangt */
+	/* indicate which one is linking a material */
 	uiBlockSetCol(block, BUTSALMON);
 	uiDefButS(block, TOG|BIT|(ob->actcol-1), B_MATFROM, "OB",	342, 195, 33, 20, &ob->colbits, 0, 0, 0, 0, "Link material to object");
 	idn= ob->data;
@@ -4109,7 +4109,7 @@ void matbuts(void)
 	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,		380, 195, 33, 20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
 	uiBlockSetCol(block, BUTGREY);
 	
-	/* id is het blok waarvan materiaal wordt gepakt */
+	/* id is the block from which the material is used */
 	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
 	else id= ob->data;
 
@@ -4966,7 +4966,7 @@ void lampbuts(void)
 	id= (ID *)mtex->tex;
 	IDnames_to_pupstring(&strp, NULL, "ADD NEW %x 32767", &(G.main->tex), id, &(G.buts->texnr));
 	
-	/* werkt niet omdat lockpoin op lamp staat, niet op texture */
+	/* doesnt work, because lockpoin points to lamp, not to texture */
 	uiDefButS(block, MENU, B_LTEXBROWSE, strp, 900,146,20,19, &(G.buts->texnr), 0, 0, 0, 0, "Select an existing texture, or create new");	
 	MEM_freeN(strp);
 	
@@ -5451,10 +5451,10 @@ void animbuts(void)
 		}
 	}
 	
-	/* IPO BUTTONS ALS LAATSTE */
+	/* IPO BUTTONS AS LAST */
 	ok= 0;
 	if(G.sipo) {
-		/* bestaat deze? */
+		/* do these exist? */
 		sa= G.curscreen->areabase.first;
 		while(sa) {
 			if(sa->spacetype==SPACE_IPO && sa->spacedata.first==G.sipo) break;
@@ -5650,7 +5650,7 @@ void worldbuts(void)
 	uiDefButF(block, NUM, B_MATPRV, "sizeY",	745,30,133,18, mtex->size+1, -20.0, 20.0, 10, 0, "Set an extra scaling for the texture coordinate");
 	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	745,10,133,18, mtex->size+2, -20.0, 20.0, 10, 0, "Set an extra scaling for the texture coordinate");
 	
-	/* TEXTUREBLOK SELECT */
+	/* TEXTUREBLOCK SELECT */
 	id= (ID *)mtex->tex;
 	IDnames_to_pupstring(&strp, NULL, "ADD NEW %x 32767", &(G.main->tex), id, &(G.buts->texnr));
 	uiDefButS(block, MENU, B_WTEXBROWSE, strp, 900,146,20,19, &(G.buts->texnr), 0, 0, 0, 0, "Browse");
@@ -5748,7 +5748,7 @@ static void load_bgpic_image(char *name)
 		}
 		vd->bgpic->ima= ima;
 		
-		free_image_buffers(ima);	/* forceer opnieuw inlezen */
+		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
 	}
 	allqueue(REDRAWBUTSVIEW, 0);
@@ -5815,7 +5815,7 @@ void viewbuts(void)
 	uiBlock *block;
 	char *strp, str[64];
 	
-	/* op zoek naar spacedata */
+	/* searching for spacedata */
 	vd= scrarea_find_space_of_type(curarea, SPACE_VIEW3D);
 	if(vd==0) return;
 	
@@ -5852,7 +5852,7 @@ void viewbuts(void)
 		}
 		
 		/* There is a bug here ... (what bug? where? what is this? - zr) */
-		/* textureblok: */
+		/* texture block: */
 		id= (ID *)vd->bgpic->tex;
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(G.buts->texnr));
 		if (strp[0]) 
@@ -5899,7 +5899,7 @@ void backbuf_pic(char *name)
 
 	ima= add_image(name);
 	if(ima) {
-		free_image_buffers(ima);	/* forceer opnieuw inlezen */
+		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
 	}
 }
@@ -7233,7 +7233,7 @@ void do_blenderbuttons(unsigned short event)
 {
 	SpaceButs *buts;
 	
-	/* teken ook de soortgelijke windows? */
+	/* redraw windows of the same type? */
 	buts= curarea->spacedata.first;
 	if(buts->mainb==BUTS_VIEW) allqueue(REDRAWBUTSVIEW, curarea->win);
 	else if(buts->mainb==BUTS_LAMP) allqueue(REDRAWBUTSLAMP, curarea->win);

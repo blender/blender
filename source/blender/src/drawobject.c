@@ -136,7 +136,7 @@ static void init_gl_materials(Object *ob)
 		matbuf[0][1][2]= defmaterial.specb;
 		matbuf[0][1][3]= 1.0;
 		
-		/* ook matnr 1, displists! */
+		/* do material 1 too, for displists! */
 		VECCOPY(matbuf[1][0], matbuf[0][0]);
 		VECCOPY(matbuf[1][1], matbuf[0][1]);
 	}
@@ -450,25 +450,25 @@ static void tekenshadbuflimits(Lamp *la, float mat[][4])
 
 static void spotvolume(float *lvec, float *vvec, float inp)
 {
-	/* camera staat op 0,0,0 */
+	/* camera is at 0,0,0 */
 	float temp[3],plane[3],mat1[3][3],mat2[3][3],mat3[3][3],mat4[3][3],q[4],co,si,hoek;
 
 	Normalise(lvec);
-	Normalise(vvec);				/* is dit de goede vector ? */
+	Normalise(vvec);				/* is this the correct vector ? */
 
-	Crossf(temp,vvec,lvec);		/* vergelijking van vlak door vvec en lvec */
-	Crossf(plane,lvec,temp);		/* en dan het vlak loodrecht daarop en evenwijdig aan lvec */
+	Crossf(temp,vvec,lvec);		/* equation for a plane through vvec en lvec */
+	Crossf(plane,lvec,temp);		/* a plane perpendicular to this, parrallel with lvec */
 
 	Normalise(plane);
 
-	/* nu hebben we twee vergelijkingen: die van de kegel en die van het vlak, maar we hebben
-	drie onbekenden We halen nu een onbekende weg door het vlak naar z=0 te roteren */
-	/* Ik heb geen flauw idee of dat mag, we moeten tenslotte twee oplossingen krijgen, maar we
-	proberen het gewoon: vlak vector moet (0,0,1) worden*/
+	/* now we've got two equations: one of a cone and one of a plane, but we have
+	three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
 
-	/* roteer om uitproduct vector van (0,0,1) en vlakvector, inproduct graden */
-	/* volgens defenitie volgt dat uitproduct is (plane[1],-plane[0],0), en cos() = plane[2]);*/
+	/* rotate around cross product vector of (0,0,1) and plane normal, dot product degrees */
+	/* according definition, we derive cross product is (plane[1],-plane[0],0), en cos = plane[2]);*/
 
+	/* translating this comment to english didnt really help me understanding the math! :-) (ton) */
+	
 	q[1] = plane[1] ; 
 	q[2] = -plane[0] ; 
 	q[3] = 0 ;
@@ -485,7 +485,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 
 	QuatToMat3(q,mat1);
 
-	/* lampvector nu over acos(inp) graden roteren */
+	/* rotate lamp vector now over acos(inp) degrees */
 
 	vvec[0] = lvec[0] ; 
 	vvec[1] = lvec[1] ; 
@@ -629,7 +629,7 @@ static void draw_limit_line(float sta, float end, unsigned int col)
 
 void drawcamera(Object *ob)
 {
-	/* een staande piramide met (0,0,0) als top */
+	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
 	World *wrld;
 	float vec[8][4], tmat[4][4], fac, facx, facy, depth;
@@ -638,7 +638,7 @@ void drawcamera(Object *ob)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
 	
-	/* zo is ie altijd te zien */
+	/* that way it's always visible */
 	fac= cam->drawsize;
 	if(G.vd->persp>=2) fac= cam->clipsta+0.1;
 	
@@ -646,7 +646,7 @@ void drawcamera(Object *ob)
 	facx= fac*1.28;
 	facy= fac*1.024;
 	
-	vec[0][0]= 0; vec[0][1]= 0; vec[0][2]= 0.001;	/* GLBUG: z niet op nul vanwege picking op entry */
+	vec[0][0]= 0; vec[0][1]= 0; vec[0][2]= 0.001;	/* GLBUG: for picking at iris Entry (well thats old!) */
 	vec[1][0]= facx; vec[1][1]= facy; vec[1][2]= depth;
 	vec[2][0]= facx; vec[2][1]= -facy; vec[2][2]= depth;
 	vec[3][0]= -facx; vec[3][1]= -facy; vec[3][2]= depth;
@@ -674,7 +674,7 @@ void drawcamera(Object *ob)
 	if(G.vd->persp>=2) return;
 	if(G.f & G_BACKBUFSEL) return;
 	
-	/* pijl aan top */
+	/* arrow on top */
 	vec[0][2]= depth;
 
 	glBegin(GL_QUADS);
@@ -1039,7 +1039,7 @@ void tekenvertices_ext(int mode)
 	
 	glDrawBuffer(GL_FRONT);
 
-	/* alle views aflopen */
+	/* check all views */
 	tempsa= curarea;
 	sa= G.curscreen->areabase.first;
 	while(sa) {
@@ -1423,7 +1423,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 
 				set_gl_material(dl->col+1);
 								
-				/* voor poly's is er maar 1 normaal nodig */
+				/* voor polys only one normal needed */
 				if(index3_nors_incr==0) {
 					while(parts--) {
 
@@ -1773,7 +1773,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 					}
 					
 	
-					/* dit GL_QUADS grapje is op snelheid getest: factor 2! */
+					/* this GL_QUADS joke below was tested for speed: a factor 2! */
 						
 					if(v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
 					else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
@@ -1891,7 +1891,7 @@ static void drawmeshshaded(Object *ob, unsigned int *col1, unsigned int *col2)
 	me= ob->data;
 	mface= me->mface;
 	
-	/* tekent ie geen hide */
+	/* then it does not draw hide */
 	if( (G.f & G_FACESELECT) && ob==((G.scene->basact) ? (G.scene->basact->object) : 0)) tface= me->tface;
 	else tface= 0;
 	
@@ -2088,7 +2088,7 @@ static void drawDispList(Object *ob, int dt)
 			else
 #endif
 			if( G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
-				/* in deze volgorde: vertexpaint heeft soms al mcol gemaakt */
+				/* in order: vertexpaint already made mcol */
 ///*
 
 //*/
@@ -2152,7 +2152,7 @@ static void drawDispList(Object *ob, int dt)
 			dl= lb->first;
 			if(dl==0) return;
 			
-			/* regel: dl->type INDEX3 altijd vooraan in lijst */
+			/* rule: dl->type INDEX3 is always first in list */
 			if(dl->type!=DL_INDEX3) {
 				curve_to_filledpoly(ob->data, lb);
 				dl= lb->first;
@@ -2430,7 +2430,7 @@ static void drawmeshwire(Object *ob)
 
 			glEnd();
 		}
-		if(G.f & (G_FACESELECT+G_DRAWFACES)) {	/* vlakken */
+		if(G.f & (G_FACESELECT+G_DRAWFACES)) {	/* faces */
 			
 			evl= G.edvl.first;
 			while(evl) {
@@ -2868,7 +2868,7 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 	float vec[3];
 	int a, nr, skip;
 
-	/* eerst handles niet select */
+	/* first non-selected handles */
 	nu= nurb;
 	while(nu) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -2877,7 +2877,7 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 		nu= nu->next;
 	}
 	
-	/* dan DispList */
+	/* then DispList */
 	
 	cpack(0);
 	cu= ob->data;
@@ -3247,7 +3247,7 @@ void draw_object(Base *base)
 	
 	ob= base->object;
 
-	/* keys tekenen? */
+	/* draw keys? */
 	if(base==(G.scene->basact) || (base->flag & (SELECT+BA_WASSEL))) {
 		if(warning_recursive==0 && ob!=G.obedit) {
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
@@ -3318,12 +3318,12 @@ void draw_object(Base *base)
 		}
 	}
 	
-	/* patch? kinderen met timeoffs verprutsen ouders. Hoe los je dat op! */
+	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(G.scene->r.cfra)) where_is_object(ob); */
 
 	mymultmatrix(ob->obmat);
 
-	/* welke wire kleur */
+	/* which wire color */
 	if((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) {
 		project_short(ob->obmat[3], &base->sx);
 		
@@ -3350,7 +3350,7 @@ void draw_object(Base *base)
 	if(G.zbuf==0 && dt>OB_WIRE) dt= OB_WIRE;
 	dtx= 0;
 	
-	/* faceselect uitzondering: ook solid tekenen als dt==wire, behalve in editmode */
+	/* faceselect exception: also draw solid when dt==wire, except in editmode */
 	if(ob==((G.scene->basact) ? (G.scene->basact->object) : 0) && (G.f & (G_FACESELECT+G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
 		if(ob->type==OB_MESH) {
 			
@@ -3466,7 +3466,7 @@ void draw_object(Base *base)
 				&& ((G.f & (G_BACKBUFSEL+G_PICKSEL)) == 0) ) {
 				paf = give_parteff(ob);
 				if( paf ) {
-					if(col) cpack(0xFFFFFF);	/* zichtbaarheid */
+					if(col) cpack(0xFFFFFF);	/* for visibility */
 					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf);
 					else draw_particle_system(ob, paf);
 					cpack(col);
@@ -3488,8 +3488,6 @@ void draw_object(Base *base)
 		case OB_CURVE:
 		case OB_SURF:
 			cu= ob->data;
-			/* een pad niet solid tekenen: wel dus!!! */
-			/* if(cu->flag & CU_PATH) if(dt>OB_WIRE) dt= OB_WIRE; */
 			
 			if(ob==G.obedit) {
 				drawnurb(ob, editNurb.first, dt);
@@ -3508,7 +3506,7 @@ void draw_object(Base *base)
 			drawaxes(1.0);
 			break;
 		case OB_LAMP:
-			/* doet myloadmatrix */
+			/* does a myloadmatrix */
 			drawlamp(ob);
 			break;
 		case OB_CAMERA:
@@ -3531,7 +3529,7 @@ void draw_object(Base *base)
 		}
 	}
 
-	/* draw extra: na gewone draw ivm makeDispList */
+	/* draw extra: after normal draw because of makeDispList */
 	if(dtx) {
 		if(G.f & G_SIMULATION);
 		else if(dtx & OB_AXIS) {
@@ -3573,7 +3571,7 @@ void draw_object(Base *base)
 	if(G.f & G_SIMULATION) return;
 
 	if((G.f & (G_BACKBUFSEL+G_PICKSEL))==0) {
-		/* hulplijnen e.d. */
+		/* help lines and so */
 		if(ob->parent && (ob->parent->lay & G.vd->lay)) {
 			setlinestyle(3);
 			glBegin(GL_LINES);
@@ -3643,12 +3641,12 @@ void draw_object_ext(Base *base)
 	
 	glDrawBuffer(GL_FRONT);
 
-	/* alle views aflopen */
+	/* check all views */
 	tempsa= curarea;
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if(sa->spacetype==SPACE_VIEW3D) {
-			/* er wordt beperkt in beide buffers getekend: selectbuffer! */
+			/* limited drawing in both buffers: selectbuffer! */
 			
 			vd= sa->spacedata.first;
 			if(base->lay & vd->lay) {

@@ -128,7 +128,7 @@ int get_border(rcti *rect, short col)
 
 	mywinset(G.curscreen->mainwin);
 	
-	/* pietsje groter, 1 pixel aan de rand */
+	/* slightly larger, 1 pixel at the edge */
 	glReadBuffer(GL_FRONT);
 	glDrawBuffer(GL_FRONT);
 
@@ -149,7 +149,7 @@ int get_border(rcti *rect, short col)
 
 	while(TRUE) {
 	
-		/* als een renderwindow open is en de muis gaat erin */
+		/* for when a renderwindow is open, and a mouse cursor activates it */
 		persp(1);
 		mywinset(curarea->win);
 		persp(0);
@@ -286,7 +286,7 @@ int get_border(rcti *rect, short col)
 			rect->ymax= mval[1];
 			retval= event;
 
-			/* normaliseren */
+			/* normalise */
 			if(rect->xmin>rect->xmax) SWAP(int, rect->xmin, rect->xmax);
 			if(rect->ymin>rect->ymax) SWAP(int, rect->ymin, rect->ymax);
 			
@@ -296,7 +296,7 @@ int get_border(rcti *rect, short col)
 	}
 
 
-	/* wissen */
+	/* clear */
 	if(event!=BKEY) {
 		if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_IPO) {
 			scrarea_queue_winredraw(curarea);
@@ -338,7 +338,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	persp(0);
 	glDrawBuffer(GL_FRONT);
 
-	/* cirkel tekenen */
+	/* draw circle */
 
 	if(mvalo && no_mvalo==0) {
 		sdrawXORcirc(mvalo[0], mvalo[1], rado);
@@ -381,7 +381,7 @@ void circle_selectCB(select_CBfunc callback)
 	
 	while(TRUE) {
 		
-		/* als een renderwindow open is en de muis gaat erin */
+		/* for when another window is open and a mouse cursor activates it */
 
 		mywinset(curarea->win);
 
@@ -432,7 +432,7 @@ void circle_selectCB(select_CBfunc callback)
 		}
 	}
 	
-	/* cirkel wissen */
+	/* clear circle */
 	draw_sel_circle(0, mvalo, 0, rad, 1);
 
 	countall();
@@ -545,7 +545,7 @@ void countall()
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 				
-				/* Synch selection to parent for ik children */
+				/* Sync selection to parent for ik children */
 				if ((ebo->flag & BONE_IK_TOPARENT) && ebo->parent){
 					G.totvert--;
 					if (ebo->parent->flag & BONE_TIPSEL)
@@ -621,7 +621,7 @@ void countall()
 		}
 	}
 	
-	allqueue(REDRAWINFO, 1);	/* 1, want header->win==0! */
+	allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
 		return;
 	}
 	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
@@ -630,7 +630,7 @@ void countall()
 			G.totface= me->totface;
 			G.totvert= me->totvert;
 		}
-		allqueue(REDRAWINFO, 1);	/* 1, want header->win==0! */
+		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
 		return;
 	}
 
@@ -661,7 +661,7 @@ void countall()
 		}
 		base= base->next;
 	}
-	allqueue(REDRAWINFO, 1); 	/* 1, want header->win==0! */
+	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 }
 
 

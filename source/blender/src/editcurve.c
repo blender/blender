@@ -101,7 +101,7 @@
 
 ListBase editNurb;
 BPoint *lastselbp;
-Nurb *lastnu;		/* voor selected */
+Nurb *lastnu;		/* for selected */
 
 
 /*  void freeNurblist(ListBase *lb); already declared in the kernel */
@@ -231,11 +231,11 @@ static void printweightsNurb(void)
 #endif
 
 
-/* ********************* LOAD EN MAKE *************** */
+/* ********************* LOAD and MAKE *************** */
 
 void load_editNurb()
 {
-	/* laad editNurb in object */
+	/* load editNurb in object */
 	Curve *cu= 0;
 	Nurb *nu, *newnu;
 	KeyBlock *actkey=0;
@@ -248,7 +248,7 @@ void load_editNurb()
 		
 		cu= G.obedit->data;
 
-		/* zijn er keys? */
+		/* are there keys? */
 		if(cu->key) {
 			actkey= cu->key->block.first;
 			while(actkey) {
@@ -257,7 +257,7 @@ void load_editNurb()
 			}
 
 			if(actkey) {
-				/* aktieve key: de vertices */
+				/* active key: the vertices */
 				
 				if(G.totvert) {
 					if(actkey->data) MEM_freeN(actkey->data);
@@ -271,8 +271,8 @@ void load_editNurb()
 		}
 		
 		if(cu->key && actkey!=cu->key->refkey) {
-			/* er zijn keys, alleen veranderingen in verts schrijven */
-			/* als aantal vertices verschillen, beetje onvoorspelbaar */
+			/* there are keys, only write changes in vertices */
+			/* when amount of vertices differs, becomes unpredictable a bit */
 				
 			/* vertex -> vertex copy! */
 			if(actkey) key_to_curve(actkey, cu, &cu->nurb);		
@@ -296,13 +296,13 @@ void load_editNurb()
 		
 	}
 	
-	lastnu= 0;	/* voor selected */
+	lastnu= 0;	/* for selected */
 	
 }
 
 void make_editNurb()
 {
-	/* maak kopie van baseNurb in editNurb */
+	/* make copy of baseNurb in editNurb */
 	Curve *cu=0;
 	Nurb *nu, *newnu;
 	BezTriple *bezt;
@@ -312,7 +312,7 @@ void make_editNurb()
 
 	if(G.obedit==0) return;
 
-	lastselbp= 0;   /* global voor select row */
+	lastselbp= 0;   /* global for select row */
 
 	if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 		freeNurblist(&editNurb);
@@ -323,7 +323,7 @@ void make_editNurb()
 		while(nu) {
 			newnu= duplicateNurb(nu);
 			BLI_addtail(&editNurb, newnu);
-			/* flags op nul */
+			/* flags zero */
 			newnu->hide= 0;
 			if((nu->type & 7)==CU_BEZIER) {
 				a= nu->pntsu;
@@ -363,7 +363,7 @@ void make_editNurb()
 	
 	countall();
 	
-	lastnu= 0;	/* voor selected */
+	lastnu= 0;	/* for selected */
 }
 
 void remake_editNurb()
@@ -398,14 +398,14 @@ void separate_nurb()
 		return;
 	}
 	
-	/* we gaan de zaak als volgt neppen:
-	 * 1. duplicate base: dit wordt de nieuwe,  oude pointer onthouden
-	 * 2. alle NIET geselecteerde curves/nurbs apart zetten
-	 * 3. load_ebaseNurb(): dit is de nieuwe base
-	 * 4. freelist en oude nurbs weer terughalen
+	/* we are going to trick everything as follows:
+	 * 1. duplicate base: this is the new one,  remember old pointer
+	 * 2. set aside all NOT selected curves/nurbs
+	 * 3. load_ebaseNurb(): this will be the new base
+	 * 4. freelist and restore old nurbs
 	 */
 	
-	/* alleen ebase geselecteerd */
+	/* only edit-base selected */
 	base= FIRSTBASE;
 	while(base) {
 		if(base->lay & G.vd->lay) {
@@ -415,7 +415,7 @@ void separate_nurb()
 		base= base->next;
 	}
 
-	/* apart zetten: alles wat maar enigszins NIET select is */
+	/* set aside: everything that is not selected */
 	editnurbo.first= editnurbo.last= 0;
 	nu= editNurb.first;
 	while(nu) {
@@ -432,14 +432,14 @@ void separate_nurb()
 
 	trans[0]=trans[1]=trans[2]=trans[3]=trans[4]=trans[5]= 0.0;
 	trans[6]=trans[7]=trans[8]= 1.0;
-	G.qual |= LR_ALTKEY;	/* patch om zeker te zijn van gelinkte dupli */
+	G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked dupli */
 	adduplicate(trans);
 	G.qual &= ~LR_ALTKEY;
 	
-	G.obedit= BASACT->object;	/* basact wordt in adduplicate() gezet */
+	G.obedit= BASACT->object;	/* basact is set in adduplicate() */
 	
 	G.obedit->data= copy_curve(cu);
-	/* omdat nieuwe curve een kopie is: aantal users verlagen */
+	/* because new curve is a copy: reduce user count */
 	cu->id.us--;
 	
 	load_editNurb();
@@ -450,8 +450,8 @@ void separate_nurb()
 	
 	editNurb= editnurbo;
 	
-	G.obedit= 0;	/* displisten doen anders in editmode */
-	makeDispList(OBACT);	/* de gesepareerde */
+	G.obedit= 0;	/* displists behave different in edit mode */
+	makeDispList(OBACT);	/* this is the separated one */
 	
 	G.obedit= oldob;
 	BASACT= oldbase;
@@ -462,20 +462,16 @@ void separate_nurb()
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 
-	lastnu= 0;	/* voor selected */
+	lastnu= 0;	/* for selected */
 }
 
 /* ******************* FLAGS ********************* */
 
 
 short isNurbselUV(Nurb *nu, int *u, int *v, int flag)
-/*
-Nurb *nu;
-int *u, *v, flag;
-*/
 {
-	/* return u!=-1:   1 rij in u-richting geselecteerd. U heeft de waarde tussen 0-pntsv 
-     * return v!=-1: 1 kolom in v-richting geselecteerd. V heeft de waarde tussen 0-pntsu 
+	/* return u!=-1:     1 row in u-direction selected. U has value between 0-pntsv 
+     * return v!=-1: 1 collumn in v-direction selected. V has value between 0-pntsu 
      */
 	BPoint *bp;
 	int a, b, sel;
@@ -492,7 +488,7 @@ int *u, *v, flag;
 			if(*u== -1) *u= b;
 			else return 0;
 		}
-		else if(sel>1) return 0;    /* want sel==1 is nog goed */
+		else if(sel>1) return 0;    /* because sel==1 is still ok */
 	}
 
 	for(a=0; a<nu->pntsu; a++) {
@@ -514,7 +510,6 @@ int *u, *v, flag;
 }
 
 void setflagsNurb(short flag)
-/*  short flag; */
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -545,7 +540,7 @@ void setflagsNurb(short flag)
 
 void rotateflagNurb(short flag, float *cent, float rotmat[][3])
 {
-	/* alle verts met (flag & 'flag') rotate */
+	/* all verts with (flag & 'flag') rotate */
 	Nurb *nu;
 	BPoint *bp;
 	int a;
@@ -576,7 +571,7 @@ void rotateflagNurb(short flag, float *cent, float rotmat[][3])
 
 void translateflagNurb(short flag, float *vec)
 {
-	/* alle verts met (->f & flag) translate */
+	/* all verts with ('flag' & flag) translate */
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -609,7 +604,7 @@ void translateflagNurb(short flag, float *vec)
 	}
 }
 
-void weightflagNurb(short flag, float w, int mode)	/* mode==0: vervangen, mode==1: vermenigvuldigen */
+void weightflagNurb(short flag, float w, int mode)	/* mode==0: replace, mode==1: multiply */
 {
 	Nurb *nu;
 	BPoint *bp;
@@ -647,7 +642,7 @@ void deleteflagNurb(short flag)
 	while(nu) {
 		next= nu->next;
 
-		/* is de hele nurb geselecteerd */
+		/* is entire nurb selected */
 		bp= nu->bp;
 		a= nu->pntsu*nu->pntsv;
 		while(a) {
@@ -661,7 +656,7 @@ void deleteflagNurb(short flag)
 			freeNurb(nu);
 		}
 		else {
-			/* is de nurb in U richting geselecteerd */
+			/* is nurb in U direction selected */
 			newv= nu->pntsv;
 			bp= nu->bp;
 			for(b=0; b<nu->pntsv; b++) {
@@ -678,7 +673,7 @@ void deleteflagNurb(short flag)
 				}
 			}
 			if(newv!=nu->pntsv && b==nu->pntsv)	{
-				/* deleten */
+				/* delete */
 				bp= nu->bp;
 				bpn = newbp =
 					(BPoint*) MEM_mallocN(newv * nu->pntsu * sizeof(BPoint), "deleteNurb");
@@ -697,7 +692,7 @@ void deleteflagNurb(short flag)
 				makeknots(nu, 2, nu->flagv>>1);
 			}
 			else {
-				/* is de nurb in V richting geselecteerd */
+				/* is the nurb in V direction selected */
 				newu= nu->pntsu;
 				for(a=0; a<nu->pntsu; a++) {
 					bp= nu->bp+a;
@@ -714,7 +709,7 @@ void deleteflagNurb(short flag)
 					}
 				}
 				if(newu!=nu->pntsu && a==nu->pntsu)	{
-					/* deleten */
+					/* delete */
 					bp= nu->bp;
 					bpn = newbp =
 						(BPoint*) MEM_mallocN(newu * nu->pntsv * sizeof(BPoint), "deleteNurb");
@@ -728,7 +723,7 @@ void deleteflagNurb(short flag)
 					}
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
-					if(newu==1 && nu->pntsv>1) {    /* maak een U spline */
+					if(newu==1 && nu->pntsv>1) {    /* make a U spline */
 						nu->pntsu= nu->pntsv;
 						nu->pntsv= 1;
 						SWAP(short, nu->orderu, nu->orderv);
@@ -749,7 +744,6 @@ void deleteflagNurb(short flag)
 }
 
 short extrudeflagNurb(int flag)
-/*  int flag; */
 {
 	Nurb *nu;
 	BPoint *bp, *bpn, *newbp;
@@ -793,11 +787,11 @@ short extrudeflagNurb(int flag)
 			}
 		}
 		else {
-			/* welke rij of kolom is geselecteerd */
+			/* which row or collumn is selected */
 
 			if( isNurbselUV(nu, &u, &v, flag) ) {
 
-				/* alles deselecteren */
+				/* deselect all */
 				bp= nu->bp;
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
@@ -805,7 +799,7 @@ short extrudeflagNurb(int flag)
 					bp++;
 				}
 
-				if(u==0 || u== nu->pntsv-1) {	    /* rij in u-richting geselecteerd */
+				if(u==0 || u== nu->pntsv-1) {	    /* row in u-direction selected */
 					ok= 1;
 					newbp =
 						(BPoint*) MEM_mallocN(nu->pntsu*(nu->pntsv + 1)
@@ -835,7 +829,7 @@ short extrudeflagNurb(int flag)
 					if(nu->resolv<3) nu->resolv++;
 					makeknots(nu, 2, nu->flagv>>1);
 				}
-				else if(v==0 || v== nu->pntsu-1) {	    /* kolom in v-richting geselecteerd */
+				else if(v==0 || v== nu->pntsu-1) {	    /* collumn in v-direction selected */
 					ok= 1;
 					bpn = newbp =
 						(BPoint*) MEM_mallocN((nu->pntsu + 1) * nu->pntsv * sizeof(BPoint), "extrudeNurb1");
@@ -873,7 +867,6 @@ short extrudeflagNurb(int flag)
 
 
 void adduplicateflagNurb(short flag)
-/*  short flag; */
 {
 	Nurb *nu, *newnu;
 	BezTriple *bezt, *bezt1;
@@ -923,7 +916,7 @@ void adduplicateflagNurb(short flag)
 				bezt++;
 			}
 		}
-		else if(nu->pntsv==1) {	/* want UV Nurb heeft andere duplimethode */
+		else if(nu->pntsv==1) {	/* because UV Nurb has a different method for dupli */
 			bp= nu->bp;
 			for(a=0; a<nu->pntsu; a++) {
 				enda= -1;
@@ -963,7 +956,7 @@ void adduplicateflagNurb(short flag)
 			}
 		}
 		else {
-			/* een rechthoekig gebied in de nurb moet geselecteerd zijn */
+			/* a rectangular area in nurb has to be selected */
 			if(isNurbsel(nu)) {
 				usel= MEM_callocN(nu->pntsu, "adduplicateN4");
 				bp= nu->bp;
@@ -1069,7 +1062,7 @@ void switchdirection_knots(float *base, int tot)
 	
 	if(base==NULL || tot==0) return;
 	
-	/* de knots omkeren */
+	/* reverse knots */
 	a= tot;
 	fp1= base;
 	fp2= fp1+(a-1);
@@ -1080,7 +1073,7 @@ void switchdirection_knots(float *base, int tot)
 		fp1++; 
 		fp2--;
 	}
-	/* en weer in stijgende lijn maken */
+	/* and make in increasing order again */
 	a= tot;
 	fp1= base;
 	fp2=tempf= MEM_mallocN(sizeof(float)*a, "switchdirect");
@@ -1363,7 +1356,7 @@ void subdivideNurb()
            Endpoints are preserved. Otherwise, all selected and inserted points are 
            newly created. Old points are discarded.
         */
-			/* tellen */
+			/* count */
 			if(nu->flagu & 1) {
 				a= nu->pntsu;
 				bezt= nu->bezt;
@@ -1381,13 +1374,9 @@ void subdivideNurb()
 			}
 
 			if(aantal) {
-				/* inserten */
+				/* insert */
 				beztnew =
-					/* I have some severe doubt about the original
-                     * formulation... I stick to the upper bound to be
-                     * on the safe side */
 					(BezTriple*)MEM_mallocN((aantal + nu->pntsu) * sizeof(BezTriple), "subdivNurb");
-/*  					mallocstructN(BezTriple, aantal+nu->pntsu, "subdivNurb"); */
 				beztn= beztnew;
 				if(nu->flagu & 1) {
 					a= nu->pntsu;
@@ -1420,7 +1409,7 @@ void subdivideNurb()
 					prevbezt= bezt;
 					bezt++;
 				}
-				/* laatste punt */
+				/* last point */
 				if((nu->flagu & 1)==0) memcpy(beztn, prevbezt, sizeof(BezTriple));
 
 				MEM_freeN(nu->bezt);
@@ -1437,7 +1426,7 @@ void subdivideNurb()
            should be. I split it off just now, let's see if it is
            stable... nzc 30-5-'00
          */
-			/* tellen */
+			/* count */
 			if(nu->flagu & 1) {
 				a= nu->pntsu*nu->pntsv;
 				bp= nu->bp;
@@ -1455,7 +1444,7 @@ void subdivideNurb()
 			}
 
 			if(aantal) {
-				/* inserten */
+				/* insert */
 				bpnew =
 					(BPoint*)MEM_mallocN((aantal + nu->pntsu) * sizeof(BPoint), "subdivNurb2");
 				bpn= bpnew;
@@ -1487,7 +1476,7 @@ void subdivideNurb()
 					prevbp= bp;
 					bp++;
 				}
-				if((nu->flagu & 1)==0) memcpy(bpn, prevbp, sizeof(BPoint));	/* laatste punt */
+				if((nu->flagu & 1)==0) memcpy(bpn, prevbp, sizeof(BPoint));	/* last point */
 
 				MEM_freeN(nu->bp);
 				nu->bp= bpnew;
@@ -1541,7 +1530,7 @@ void subdivideNurb()
            fit the order, duplicates of the endpoints are added as
            needed. 
         */
-			/* selecteer-arrays aanleggen */
+			/* selection-arrays */
 			usel= MEM_callocN(sizeof(int)*nu->pntsu, "subivideNurb3");
 			vsel= MEM_callocN(sizeof(int)*nu->pntsv, "subivideNurb3");
 			sel= 0;
@@ -1558,12 +1547,12 @@ void subdivideNurb()
 					bp++;
 				}
 			}
-			if( sel == (nu->pntsu*nu->pntsv) ) {	/* hele nurb subdividen */
+			if( sel == (nu->pntsu*nu->pntsv) ) {	/* subdivide entire nurb */
            /* Global subdivision is a special case of partial
               subdivision. Strange it is considered separately... */
 				bpn=bpnew= MEM_mallocN( (2*nu->pntsu-1)*(2*nu->pntsv-1)*sizeof(BPoint), "subdivideNurb4");
 				bp= nu->bp;
-				/* eerst de rijen subdividen */
+				/* first subdivide rows */
 				for(a=0; a<nu->pntsv; a++) {
 					for(b=0; b<nu->pntsu; b++) {
 						*bpn= *bp;
@@ -1581,7 +1570,7 @@ void subdivideNurb()
 					}
 					bpn+= (2*nu->pntsu-1);
 				}
-				/* nu nieuwe invoegen */
+				/* now insert new */
 				bpn= bpnew+(2*nu->pntsu-1);
 				bp= bpnew+(4*nu->pntsu-2);
 				prevbp= bpnew;
@@ -1609,7 +1598,7 @@ void subdivideNurb()
 				makeknots(nu, 2, nu->flagv>>1);
 			} /* End of 'if(sel== nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
 			else {
-				/* in v richting subdividen? */
+				/* subdivide in v direction? */
 				sel= 0;
 				for(a=0; a<nu->pntsv-1; a++) {
 					if(vsel[a]==nu->pntsu && vsel[a+1]==nu->pntsu) sel++;
@@ -1652,7 +1641,7 @@ void subdivideNurb()
 					makeknots(nu, 2, nu->flagv>>1);
 				}
 				else {
-					/* of in u richting? */
+					/* or in u direction? */
 					sel= 0;
 					for(a=0; a<nu->pntsu-1; a++) {
 						if(usel[a]==nu->pntsv && usel[a+1]==nu->pntsv) sel++;
@@ -1696,13 +1685,11 @@ void subdivideNurb()
 			}
 			MEM_freeN(usel); 
 			MEM_freeN(vsel);
-         // printf("*** subdivideNurb: end of NURB splitting part\n");
+
 		} /* End of 'if((nu->type & 7)==CU_NURBS)'  */
 		nu= nu->next;
 	}
 
-   /* Sync flushing */
-   // printf("*** subdivideNurb: subdivide done\n");
 
 	makeDispList(G.obedit);
 	countall();
@@ -1711,15 +1698,9 @@ void subdivideNurb()
 
 
 short findnearestNurbvert(short sel, Nurb **nurb, BezTriple **bezt, BPoint **bp)
-/*
-short sel;
-Nurb **nurb;
-BezTriple **bezt;
-BPoint **bp;
-*/
 {
-	/* sel==1: selected krijgen een nadeel */
-	/* in nurb en bezt of bp wordt nearest weggeschreven */
+	/* sel==1: selected gets a disadvantage */
+	/* in nurb and bezt or bp the nearest is written */
 	/* return 0 1 2: handlepunt */
 	Nurb *nu;
 	BezTriple *bezt1;
@@ -1730,7 +1711,7 @@ BPoint **bp;
 	*bezt= 0;
 	*bp= 0;
 
-	/* projektie doen */
+	/* do projection */
 	calc_nurbverts_ext();	/* drawobject.c */
 	
 	getmouseco_areawin(mval);
@@ -1752,7 +1733,7 @@ BPoint **bp;
 						*bp= 0; 
 					}
 
-					/* middelste punten een klein nadeel */
+					/* middle points get a small disadvantage */
 					temp= 3+abs(mval[0]- bezt1->s[1][0])+ abs(mval[1]- bezt1->s[1][1]);
 					if( (bezt1->f2 & 1)==sel) temp+=5;
 					if(temp<dist) { 
@@ -1803,8 +1784,8 @@ BPoint **bp;
 
 void findselectedNurbvert(Nurb **nu, BezTriple **bezt, BPoint **bp)
 {
-	/* in nu en (bezt of bp) wordt selected weggeschreven als er 1 sel. is */
-	/* als er meer punten in 1 spline selected: alleen nu terug, bezt en bp zijn 0 */
+	/* in nu and (bezt or bp) selected are written if there's 1 sel.  */
+	/* if more points selected in 1 spline: return only nu, bezt and bp are 0 */
 	Nurb *nu1;
 	BezTriple *bezt1;
 	BPoint *bp1;
@@ -1866,9 +1847,6 @@ void findselectedNurbvert(Nurb **nu, BezTriple **bezt, BPoint **bp)
 }
 
 void setsplinetype(short type)
-/*
-short type;
-*/
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1885,7 +1863,7 @@ short type;
 		if(isNurbsel(nu)) {
 
 			if((nu->type & 7)==0) {		/* Poly */
-				if(type==CU_BEZIER) {			    /* naar Bezier met vecthandles  */
+				if(type==CU_BEZIER) {			    /* to Bezier with vecthandles  */
 					nr= nu->pntsu;
 					bezt =
 						(BezTriple*)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
@@ -1906,7 +1884,7 @@ short type;
 					nu->type |= 1;
 					calchandlesNurb(nu);
 				}
-				else if(type==4) {		    /* naar Nurb */
+				else if(type==4) {		    /* to Nurb */
 					nu->type &= ~7;
 					nu->type+= 4;
 					nu->orderu= 4;
@@ -1922,7 +1900,7 @@ short type;
 				}
 			}
 			else if((nu->type & 7)==CU_BEZIER) {	/* Bezier */
-				if(type==0 || type==4) {	    /* naar Poly of Nurb */
+				if(type==0 || type==4) {	    /* to Poly or Nurb */
 					nr= 3*nu->pntsu;
 					nu->bp =
 						(BPoint*)MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
@@ -1931,7 +1909,7 @@ short type;
 					bp= nu->bp;
 					while(a--) {
 						if(type==0 && bezt->h1==HD_VECT && bezt->h2==HD_VECT) {
-							/* vectorhandle wordt 1 polyvert */
+							/* vector handle becomes 1 poly vertice */
 							VECCOPY(bp->vec, bezt->vec[1]);
 							bp->vec[3]= 1.0;
 							bp->f1= bezt->f2;
@@ -1968,14 +1946,14 @@ short type;
 				}
 			}
 			else if( (nu->type & 7)==CU_NURBS && G.obedit->type==OB_CURVE) {
-				if(type==0) {			/* naar Poly */
+				if(type==0) {			/* to Poly */
 					nu->type &= ~7;
 					MEM_freeN(nu->knotsu);
 					nu->knotsu= 0;
 					if(nu->knotsv) MEM_freeN(nu->knotsv);
 					nu->knotsv= 0;
 				}
-				else if(type==CU_BEZIER) {		/* naar Bezier */
+				else if(type==CU_BEZIER) {		/* to Bezier */
 					nr= nu->pntsu/3;
 					bezt =
 						(BezTriple*)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
@@ -2297,7 +2275,7 @@ void merge_nurb()
 
 void addsegment_nurb()
 {
-	/* voegt twee curves samen */
+	/* joins 2 curves */
 	Nurb *nu, *nu1=0, *nu2=0;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -2328,10 +2306,10 @@ void addsegment_nurb()
 		return;
 	}
 	
-	/* vind de beide nurben en punten, nu1 wordt achter nu2 gezet */
+	/* find both nurbs and points, nu1 will be put behind nu2 */
 	nu= editNurb.first;
 	while(nu) {
-		if((nu->flagu & 1)==0) {    /* niet cyclic */
+		if((nu->flagu & 1)==0) {    /* not cyclic */
 			if( (nu->type & 7)==CU_BEZIER ) {
 				bezt= nu->bezt;
 				if(nu1==0) {
@@ -2415,7 +2393,7 @@ void addsegment_nurb()
 				nu1->pntsu+= nu2->pntsu;
 				BLI_remlink(&editNurb, nu2);
 
-				/* en de knots aaneenrijgen */
+				/* now join the knots */
 				if((nu1->type & 7)==4) {
 					fp= MEM_mallocN(sizeof(float)*KNOTSU(nu1), "addsegment3");
 					memcpy(fp, nu1->knotsu, sizeof(float)*a);
@@ -2529,8 +2507,6 @@ void mouse_nurb()
 }
 
 void spinNurb(float *dvec, short mode)
-/*  float *dvec; */
-/*  short mode; */	/* 0 is extrude, 1 is duplicate */
 {
 	Nurb *nu;
 	float *curs, si,phi,n[3],q[4],cmat[3][3],tmat[3][3],imat[3][3];
@@ -2544,7 +2520,7 @@ void spinNurb(float *dvec, short mode)
 	Mat3CpyMat4(persmat, G.vd->viewmat);
 	Mat3Inv(persinv, persmat);
 
-	/* imat en centrum en afmeting */
+	/* imat and centre and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
 	Mat3Inv(imat, bmat);
 
@@ -2650,8 +2626,8 @@ void addvert_Nurb(int mode)
 	if(bezt==0 && bp==0) return;
 
 	if((nu->type & 7)==CU_BEZIER) {
-		/* welk bezpoint? */
-		if(bezt== nu->bezt) {   /* eerste */
+		/* which bezpoint? */
+		if(bezt== nu->bezt) {   /* first */
 			bezt->f1= bezt->f2= bezt->f3= 0;
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
@@ -2665,7 +2641,7 @@ void addvert_Nurb(int mode)
 			nu->bezt= newbezt;
 			bezt= newbezt+1;
 		}
-		else if(bezt== (nu->bezt+nu->pntsu-1)) {  /* laatste */
+		else if(bezt== (nu->bezt+nu->pntsu-1)) {  /* last */
 			bezt->f1= bezt->f2= bezt->f3= 0;
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
@@ -2706,8 +2682,8 @@ void addvert_Nurb(int mode)
 		}
 	}
 	else if(nu->pntsv==1) {
-		/* welk b-point? */
-		if(bp== nu->bp) {   /* eerste */
+		/* which b-point? */
+		if(bp== nu->bp) {   /* first */
 			bp->f1= 0;
 			newbp =
 				(BPoint*)MEM_callocN((nu->pntsu+1) * sizeof(BPoint), "addvert_Nurb3");
@@ -2717,7 +2693,7 @@ void addvert_Nurb(int mode)
 			MEM_freeN(nu->bp);
 			nu->bp= newbp;
 		}
-		else if(bp== (nu->bp+nu->pntsu-1)) {  /* laatste */
+		else if(bp== (nu->bp+nu->pntsu-1)) {  /* last */
 			bp->f1= 0;
 			newbp =
 				(BPoint*)MEM_callocN((nu->pntsu+1) * sizeof(BPoint), "addvert_Nurb4");
@@ -2958,7 +2934,7 @@ void selectrow_nurb()
 	if(G.obedit==0 || G.obedit->type!=OB_SURF) return;
 	if(lastselbp==0) return;
 
-	/* zoek de juiste nurb en toggle met u of v */
+	/* find the correct nurb and toggle with u of v */
 	nu= editNurb.first;
 	while(nu) {
 		bp= nu->bp;
@@ -3037,7 +3013,7 @@ void delNurb()
 	}
 
 	if(event==0) {
-		/* eerste doorloop, kunnen hele stukken weg? */
+		/* first loop, can we remove entire pieces? */
 		nu= editNurb.first;
 		while(nu) {
 			next= nu->next;
@@ -3075,7 +3051,7 @@ void delNurb()
 			}
 			nu= next;
 		}
-		/* tweede doorloop, kleine stukken weg: alleen curves */
+		/* 2nd loop, delete small pieces: just for curves */
 		nu= editNurb.first;
 		while(nu) {
 			next= nu->next;
@@ -3126,7 +3102,7 @@ void delNurb()
 		}
 	}
 	else if(event==1) {	/* erase segment */
-		/* vind de twee geselecteerde punten */
+		/* find the 2 selected points */
 		bezt1= bezt2= 0;
 		bp1= bp2= 0;
 		nu= editNurb.first;
@@ -3140,7 +3116,7 @@ void delNurb()
 						bezt1= bezt;
 						bezt2= bezt+1;
 						if( (bezt2->f1 & 1) || (bezt2->f2 & 1) || (bezt2->f3 & 1) ) ;
-						else {	/* misschien niet cyclic maken */
+						else {	/* maybe do not make cyclic */
 							if(a==0 && (nu->flagu & 1) ) {
 								bezt2= bezt+(nu->pntsu-1);
 								if( (bezt2->f1 & 1) || (bezt2->f2 & 1) || (bezt2->f3 & 1) ) {
@@ -3165,7 +3141,7 @@ void delNurb()
 						bp1= bp;
 						bp2= bp+1;
 						if( bp2->f1 & 1 ) ;
-						else {	/* misschien niet cyclic maken */
+						else {	/* maybe do not make cyclic */
 							if(a==0 && (nu->flagu & 1) ) {
 								bp2= bp+(nu->pntsu-1);
 								if( bp2->f1 & 1 ) {
@@ -3189,7 +3165,7 @@ void delNurb()
 		}
 		if(nu1) {
 			if(bezt1) {
-				if(nu1->pntsu==2) {	/* helemaal weg */
+				if(nu1->pntsu==2) {	/* remove completely */
 					BLI_remlink(&editNurb, nu);
 					freeNurb(nu);
 				}
@@ -3204,9 +3180,9 @@ void delNurb()
 					MEM_freeN(bezt);
 					calchandlesNurb(nu);
 				}
-				else {			/* nieuwe curve erbij */
+				else {			/* add new curve */
 
-/* hier zit een fout in... maar waar? (a kan nul worden) */
+/* seems to be an error here... but where? (a can become zero) */
 
 					nu =
 						(Nurb*)MEM_mallocN(sizeof(Nurb), "delNurb2");
@@ -3231,7 +3207,7 @@ void delNurb()
 				}
 			}
 			else if(bp1) {
-				if(nu1->pntsu==2) {	/* helemaal weg */
+				if(nu1->pntsu==2) {	/* remove completely */
 					BLI_remlink(&editNurb, nu);
 					freeNurb(nu);
 				}
@@ -3245,7 +3221,7 @@ void delNurb()
 					nu1->flagu--;
 					MEM_freeN(bp);
 				}
-				else {			/* nieuwe curve erbij */
+				else {			/* add new curve */
 					nu = (Nurb*)MEM_mallocN(sizeof(Nurb), "delNurb6");
 					memcpy(nu, nu1, sizeof(Nurb));
 					BLI_addtail(&editNurb, nu);
@@ -3298,7 +3274,7 @@ void join_curve(int type)
 	}
 	else if(okee("Join selected Curves")==0) return;
 	
-	/* alle geselecteerde curves invers transformen in obact */
+	/* trasnform all selected curves inverse in obact */
 	Mat4Invert(imat, ob->obmat);
 	
 	base= FIRSTBASE;
@@ -3311,7 +3287,7 @@ void join_curve(int type)
 					cu= base->object->data;
 				
 					if(cu->nurb.first) {
-						/* let op: matmul omkeren is ECHT fout */
+						/* watch it: switch order here really goes wrong */
 						Mat4MulMat4(cmat, base->object->obmat, imat);
 						
 						nu= cu->nurb.first;
@@ -3359,11 +3335,11 @@ void join_curve(int type)
 
 Nurb *addNurbprim(int type, int stype, int newname)
 /* type: &8= 2D;  0=poly,1 bez, 4 nurb
- * stype:   0: 2/4 punts curve
- *	    1: 8 punts cirkel
+ * stype:   0: 2/4 points curve
+ *	    1: 8 points circle
  *	    2: 4x4 patch Nurb
  *	    3: tube 4:sphere 5:donut
- *		6: 5 punts,  5e order rechte lijn (pad) alleen nurbspline!
+ *		6: 5 points,  5th order straight line (for anim path) 
  */
 {
 	static int xzproj= 0;
@@ -3374,7 +3350,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 	float fac,cmat[3][3];
 	int a, b;
 
-	/* imat en centrum en afmeting */
+	/* imat and centre and size */
 	if(G.obedit) {
 		
 		Mat3CpyMat4(mat, G.obedit->obmat);
@@ -3467,13 +3443,13 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			for(a=0;a<4;a++, bp++) Mat3MulVecfl(imat,bp->vec);
 
 			if((type & 7)==4) {
-				nu->knotsu= 0;	/* makeknots alloceert */
+				nu->knotsu= 0;	/* makeknots allocates */
 				makeknots(nu, 1, nu->flagu>>1);
 			}
 
 		}
 		break;
-	case 6:	/* 5 punts pad */
+	case 6:	/* 5 point pad */
 		nu->pntsu= 5;
 		nu->pntsv= 1;
 		nu->orderu= 5;
@@ -3501,12 +3477,12 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		for(a=0;a<5;a++, bp++) Mat3MulVecfl(imat,bp->vec);
 
 		if((type & 7)==4) {
-			nu->knotsu= 0;	/* makeknots alloceert */
+			nu->knotsu= 0;	/* makeknots allocates */
 			makeknots(nu, 1, nu->flagu>>1);
 		}
 
 		break;
-	case 1:	/* cirkel */
+	case 1:	/* circle */
 		if(newname) {
 			rename_id((ID *)G.obedit, "CurveCircle");
 			rename_id((ID *)G.obedit->data, "CurveCircle");
@@ -3628,10 +3604,10 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				rename_id((ID *)G.obedit->data, "SurfTube");
 			}
 
-			nu= addNurbprim(4, 1, 0);  /* cirkel */
+			nu= addNurbprim(4, 1, 0);  /* circle */
 			nu->resolu= 32;
 			nu->flag= ME_SMOOTH;
-			BLI_addtail(&editNurb, nu); /* tijdelijk voor extrude en translate */
+			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
 			vec[2]= -G.vd->grid;
 			Mat3MulVecfl(imat, vec);
@@ -3682,7 +3658,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->flagu= 4;
 			makeknots(nu, 1, nu->flagu>>1);
 
-			BLI_addtail(&editNurb, nu); /* tijdelijk voor spin */
+			BLI_addtail(&editNurb, nu); /* temporal for spin */
 			spinNurb(0, 0);
 
 			makeknots(nu, 2, nu->flagv>>1);
@@ -3704,12 +3680,12 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 
 			xzproj= 1;
-			nu= addNurbprim(4, 1, 0);  /* cirkel */
+			nu= addNurbprim(4, 1, 0);  /* circle */
 			xzproj= 0;
 			nu->resolu= 24;
 			nu->resolv= 32;
 			nu->flag= ME_SMOOTH;
-			BLI_addtail(&editNurb, nu); /* tijdelijk voor extrude en translate */
+			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
 			spinNurb(0, 0);
 
 			BLI_remlink(&editNurb, nu);
@@ -3725,7 +3701,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		break;
 	}
 	
-	/* altijd doen: */
+	/* always do: */
 	nu->flag= ME_SMOOTH;
 	
 	test2DNurb(nu);
@@ -3790,7 +3766,7 @@ void add_primitiveCurve(int stype)
 
 	check_editmode(OB_CURVE);
 	
-	/* als geen obedit: nieuw object en in editmode gaan */
+	/* if no obedit: new object and enter editmode */
 	if(G.obedit==0) {
 		add_object(OB_CURVE);
 		base_init_from_view3d(BASACT, G.vd);
@@ -3836,7 +3812,7 @@ void add_primitiveNurb(int type)
 
 	check_editmode(OB_SURF);
 
-	/* als geen obedit: nieuw object en in editmode gaan */
+	/* if no obedit: new object and enter editmode */
 	if(G.obedit==0) {
 		add_object(OB_SURF);
 		base_init_from_view3d(BASACT, G.vd);

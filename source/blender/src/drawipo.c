@@ -130,7 +130,7 @@ static void step_to_grid(float *step, int *macht)
 {
 	float loga, rem;
 	
-	/* proberen step als 10e macht te schrijven */
+	/* try to write step as a power of 10 */
 	
 	loga= log10(*step);
 	*macht= (int)(loga);
@@ -161,8 +161,8 @@ void calc_ipogrid()
 {
 	float space, pixels;
 	
-	/* regel: gridstep is minimaal IPOSTEP pixels */
-	/* hoe groot zijn IPOSTEP pixels? */
+	/* rule: gridstep is minimal IPOSTEP pixels */
+	/* how large is IPOSTEP pixels? */
 	
 	if(G.v2d==0) return;
 	
@@ -370,7 +370,7 @@ void view2d_zoom(View2D *v2d, float factor, int winx, int winy) {
 
 void test_view2d(View2D *v2d, int winx, int winy)
 {
-	/* cur mag niet groter dan max, kleiner dan min of buiten tot vallen */
+	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
 	rctf *cur, *tot;
 	float dx, dy, temp, fac, zoom;
 	
@@ -389,7 +389,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		v2d->cur.xmax=v2d->cur.xmin+((float)winx);
 
 	if(v2d->keepzoom & V2D_KEEPZOOM) {
-		/* niet op min/max testen: ahv curarea de zoom fixeren */
+		/* do not test for min/max: usiig curarea try to fixate zoom */
 		zoom= ((float)winx)/dx;
 		
 		if(zoom<v2d->minzoom || zoom>v2d->maxzoom) {
@@ -524,7 +524,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		dx= (cur->ymax-cur->ymin)/(cur->xmax-cur->xmin);
 		dy= ((float)winy)/((float)winx);
 		
-		/* dx/dy is de totale aspect */
+		/* dx/dy is the total aspect */
 		
 		/* this exception is for buttons...keepzoom doesnt work proper */
 		if(v2d->keepzoom) fac= dy;
@@ -532,7 +532,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 		
 		if(fac>1.0) {
 			
-			/* portrait window: x corrigeren */
+			/* portrait window: correct for x */
 			dx= cur->ymax-cur->ymin;
 			temp= (cur->xmax+cur->xmin);
 			
@@ -625,7 +625,7 @@ static void draw_solution(SpaceIpo *sipo)
 		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
 			cpack(ei->col);
 				
-				/* DISPBITS ipo's have 'multiple' values. */
+				/* DISPBITS ipos have 'multiple' values. */
 			if(ei->disptype==IPO_DISPBITS) {
 				int b, val= ei->icu->curval;
 					
@@ -673,13 +673,13 @@ void drawscroll(int disptype)
 		glRecti(horxmin,  hor.ymin+1,  horxmax,  hor.ymax-1);
 		
 		cpack(light);
-		sdrawline(horxmin,  hor.ymax-1,  horxmax,  hor.ymax-1);  /* boven */
-		sdrawline(horxmin,  hor.ymin+1,  horxmin,  hor.ymax-1);  /* links */
+		sdrawline(horxmin,  hor.ymax-1,  horxmax,  hor.ymax-1);  /* top */
+		sdrawline(horxmin,  hor.ymin+1,  horxmin,  hor.ymax-1);  /* left */
 		cpack(darker);
-		sdrawline(horxmin,  hor.ymin+1,  horxmax,  hor.ymin+1);  /* onder */
-		sdrawline(horxmax,  hor.ymin+1,  horxmax,  hor.ymax-1);  /* rechts */
+		sdrawline(horxmin,  hor.ymin+1,  horxmax,  hor.ymin+1);  /* bottom */
+		sdrawline(horxmax,  hor.ymin+1,  horxmax,  hor.ymax-1);  /* right */
 		
-		/* de cijfers: ipogrid_startx en -dx omzetten naar scroll coordinaten */
+		/* the numbers: convert ipogrid_startx and -dx to scroll coordinates */
 		fac= (ipogrid_startx- G.v2d->cur.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 		fac= hor.xmin+fac*(hor.xmax-hor.xmin);
 		
@@ -731,13 +731,13 @@ void drawscroll(int disptype)
 		
 		cpack(light);
 		
-		sdrawline(vert.xmin+1,  vertymax,  vert.xmax-1,  vertymax);  /* boven */
-		sdrawline(vert.xmin+1,  vertymin,  vert.xmin+1,  vertymax);  /* links */
+		sdrawline(vert.xmin+1,  vertymax,  vert.xmax-1,  vertymax);  /* top */
+		sdrawline(vert.xmin+1,  vertymin,  vert.xmin+1,  vertymax);  /* left */
 		cpack(darker);
-		sdrawline(vert.xmin+1,  vertymin,  vert.xmax-1,  vertymin);  /* onder */
-		sdrawline(vert.xmax-1,  vertymin,  vert.xmax-1,  vertymax);  /* rechts */
+		sdrawline(vert.xmin+1,  vertymin,  vert.xmax-1,  vertymin);  /* bottom */
+		sdrawline(vert.xmax-1,  vertymin,  vert.xmax-1,  vertymax);  /* right */
 		
-		/* de cijfers: ipogrid_starty en -dy omzetten naar scroll coordinaten */
+		/* the numbers: convert ipogrid_starty and -dy to scroll coordinates */
 		fac= (ipogrid_starty- G.v2d->cur.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
 		fac= vert.ymin+SCROLLH+fac*(vert.ymax-vert.ymin-SCROLLH);
 		
@@ -1063,7 +1063,7 @@ static void draw_ipocurves(int sel)
 					
 					if(ei->disptype==IPO_DISPBITS) {
 						
-						/* lijnen */
+						/* lines */
 						cpack(ei->col);
 						bezt= icu->bezt;
 						a= icu->totvert;
@@ -1106,7 +1106,7 @@ static void draw_ipocurves(int sel)
 						
 						glBegin(GL_LINE_STRIP);
 						
-						/* extrap naar links? */
+						/* extrapolate to left? */
 						if( (icu->extrap & IPO_CYCL)==0) {
 							if(prevbezt->vec[1][0] > G.v2d->cur.xmin) {
 								v1[0]= G.v2d->cur.xmin;
@@ -1176,7 +1176,7 @@ static void draw_ipocurves(int sel)
 							prevbezt= bezt;
 							bezt++;
 							
-							/* laatste punt? */
+							/* last point? */
 							if(b==0) {
 								v1[0]= prevbezt->vec[1][0]+cycxofs;
 								v1[1]= prevbezt->vec[1][1]+cycyofs;
@@ -1184,7 +1184,7 @@ static void draw_ipocurves(int sel)
 							}
 						}
 						
-						/* extrap naar rechts? */
+						/* extrapolate to right? */
 						if( (icu->extrap & IPO_CYCL)==0) {
 							if(prevbezt->vec[1][0] < G.v2d->cur.xmax) {
 								v1[0]= G.v2d->cur.xmax;
@@ -1205,7 +1205,7 @@ static void draw_ipocurves(int sel)
 					if(icu->extrap & IPO_DIR) cycyofs+= cycdy;
 				}
 				
-				/* lijn die het einde van een snelheidscurve aangeeft */
+				/* line that indicates the end of a speed curve */
 				if(G.sipo->blocktype==ID_CU && icu->adrcode==CU_SPEED) {
 					b= icu->totvert-1;
 					if(b) {
@@ -1353,14 +1353,14 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		} 
 	}
 
-	test_editipo();	/* test of huidige editipo klopt, make_editipo zet de v2d->cur */
+	test_editipo();	/* test if current editipo is correct, make_editipo sets v2d->cur */
 
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 	
  
 	if(sipo->editipo) {
 		
-		/* schaal corrigeren voor graden? */
+		/* correct scale for degrees? */
 		disptype= -1;
 		ei= sipo->editipo;
 		for(a=0; a<sipo->totipo; a++, ei++) {
@@ -1403,7 +1403,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		
 		if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 			
-			/* ortho op pixelnivo curarea */
+			/* ortho at pixel level curarea */
 			myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
 			
 			if(v2d->scroll) {
@@ -1456,7 +1456,7 @@ int view2dzoom(unsigned short event)
 	float fac, dx, dy, wtemp;
 	short mval[2], mvalo[2];
 
-	areawinset(curarea->win);	/* vanuit buttons */
+	areawinset(curarea->win);	/* from buttons */
 	curarea->head_swap= 0;
 	getmouseco_areawin(mvalo);
 	
@@ -1564,11 +1564,11 @@ void center_currframe(void)
 
 int view2dmove(unsigned short event)
 {
-	/* return 1 als er iets gedaan is */
+	/* return 1 when something was done */
 	float facx=0.0, facy=0.0, dx, dy, left=1.0, right=1.0;
 	short mval[2], mvalo[2], leftret=1;
 	
-	/* alles goedzetten */
+	/* init */
 	scrarea_do_windraw(curarea);
 	curarea->head_swap= 0;
 
@@ -1586,7 +1586,7 @@ int view2dmove(unsigned short event)
 		}
 	}
 	
-	/* testen waar muis is */
+	/* test where mouse is */
 	getmouseco_areawin(mvalo);
 	
 	if ELEM6(curarea->spacetype, SPACE_IPO, SPACE_SEQ, SPACE_OOPS, SPACE_SOUND, SPACE_ACTION, SPACE_NLA) 
@@ -1598,7 +1598,7 @@ int view2dmove(unsigned short event)
 			else if(IN_2D_VERT_SCROLL((int)mvalo)) {
 				facy= -(G.v2d->tot.ymax-G.v2d->tot.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
 				if(get_mbut()&L_MOUSE) {
-					/* welk deel van de scrollbar moet bewegen? */
+					/* which part of scrollbar should move? */
 					if(mvalo[1]< (vertymin+vertymax)/2 ) right= 0.0;
 					else left= 0.0;
 					leftret= 0;
@@ -1607,7 +1607,7 @@ int view2dmove(unsigned short event)
 			else if(IN_2D_HORIZ_SCROLL((int)mvalo)) {
 				facx= -(G.v2d->tot.xmax-G.v2d->tot.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
 				if(get_mbut()&L_MOUSE) {
-					/* welk deel van de scrollbar moet bewegen? */
+					/* which part of scrollbar should move? */
 					if(mvalo[0]< (horxmin+horxmax)/2 ) right= 0.0;
 					else left= 0.0;
 					leftret= 0;
@@ -1728,7 +1728,7 @@ EditIpo *select_proj_ipo(rctf *rectf, int event)
 	
 	glSelectBuffer( MAXPICKBUF, buffer); 
 	glRenderMode(GL_SELECT);
-	glInitNames();	/* deze twee fies zijn waarvoor? Anders werkt het niet */
+	glInitNames();	/* whatfor? but otherwise it does not work */
 	glPushName(-1);
 	
 	init_pickselcode();	/* drawipo.c */
@@ -1737,7 +1737,7 @@ EditIpo *select_proj_ipo(rctf *rectf, int event)
 	G.f -= G_PICKSEL;
 	
 	hits= glRenderMode(GL_RENDER);
-	glPopName();	/* zie boven (pushname) */
+	glPopName();	/* see above (pushname) */
 	if(hits<1) return 0;
 	
 	code= 1;

@@ -174,7 +174,7 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
-			ofsx= curarea->winrct.xmin;	/* ivm mywin */
+			ofsx= curarea->winrct.xmin;	/* because mywin */
 			ofsy= curarea->winrct.ymin;
 			glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1); 
 			glScissor(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
@@ -199,7 +199,7 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		
-		/* ortho op pixelnivo curarea */
+		/* ortho at pixel level curarea */
 		myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
 		
 		if(G.v2d->scroll) {

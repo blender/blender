@@ -80,15 +80,15 @@ void rectwrite_part(int winxmin, int winymin, int winxmax, int winymax, int x1, 
 	
 	oldxim= xim;
 		
-	/* coordinaten hoe 't op scherm komt */
+	/* coordinates how its drawn at the screen */
 	x2= x1+ zoomx*xim;
 	y2= y1+ zoomy*yim;
 
-	/* partiele clip */
+	/* partial clip */
 	if(x1<winxmin) {
-		/* recten bij OpenGL mogen niet links/onder van windowrand beginnen */
+		/* with OpenGL, rects are not allowed to start outside of the left/bottom window edge */
 		cx= winxmin-x1+(int)zoomx;
-		/* zorg ervoor dat de rect pixelnauwkeurig wordt neergezet */
+		/* make sure the rect will be drawn pixel-exact */
 		cx/= zoomx;
 		cx++;
 		x1+= zoomx*cx;
@@ -177,11 +177,11 @@ void calc_image_view(SpaceImage *sima, char mode)
 	/* float! */
 	zoom= sima->zoom;
 	
-	/* relatieve afbeeld links */
+	/* relative display right */
 	sima->v2d.cur.xmin= ((curarea->winrct.xmin - (float)x1)/zoom);
 	sima->v2d.cur.xmax= sima->v2d.cur.xmin + ((float)curarea->winx/zoom);
 	
-	/* relatieve afbeeld links */
+	/* relative display left */
 	sima->v2d.cur.ymin= ((curarea->winrct.ymin-(float)y1)/zoom);
 	sima->v2d.cur.ymax= sima->v2d.cur.ymin + ((float)curarea->winy/zoom);
 	
@@ -332,7 +332,7 @@ void draw_tfaces(void)
 					glEnd();
 				
 					setlinestyle(2);
-					/* kleuren: R=x G=y */
+					/* colors: R=x G=y */
 					
 					if(tface->flag & TF_ACTIVE) cpack(0xFF00); else cpack(0xFFFFFF);
 	
@@ -393,7 +393,7 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 	unsigned int *rt, *rp, *rectmain;
 	short y, heigth, len;
 
-	/* de juiste offset in rectot */
+	/* the right offset in rectot */
 
 	rt= ibuf->rect+ (starty*ibuf->x+ startx);
 
@@ -445,7 +445,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		return;
 	}
 
-	/* plek berekenen */
+	/* calc location */
 	x1= xmin+(curarea->winx-G.sima->zoom*ibuf->x)/2;
 	y1= ymin+(curarea->winy-G.sima->zoom*ibuf->y)/2;
 
@@ -476,7 +476,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		if(G.sima->image->tpageflag & IMA_TILES) {
 			
 			
-			/* eventjes laten staan */
+			/* just leave this a while */
 			if(G.sima->image->xrep<1) return;
 			if(G.sima->image->yrep<1) return;
 			

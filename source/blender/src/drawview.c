@@ -234,7 +234,7 @@ void init_gl_stuff(void)
 void two_sided(int val)
 {
 
-	/* twosided aan: geft errors bij x flip! */
+	/* twosided on: gives errors with x flip! */
 	glLightModeliv(GL_LIGHT_MODEL_TWO_SIDE, (GLint *)&val);
 }
 
@@ -272,7 +272,7 @@ void circ(float x, float y, float rad)
 	gluDeleteQuadric(qobj);
 }
 
-/* ********** IN ONTWIKKELING ********** */
+/* **********  ********** */
 
 static void draw_bgpic(void)
 {
@@ -298,7 +298,7 @@ static void draw_bgpic(void)
 	if(ima==0) return;
 	if(ima->ok==0) return;
 	
-	/* plaatje testen */
+	/* test for image */
 	if(ima->ibuf==0) {
 	
 		if(bgpic->rect) MEM_freeN(bgpic->rect);
@@ -337,7 +337,7 @@ static void draw_bgpic(void)
 		y2= vb.ymax;
 	}
 	else {
-		/* windowco berekenen */
+		/* calc window coord */
 		initgrabz(0.0, 0.0, 0.0);
 		window_to_3d(vec, 1, 0);
 		fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
@@ -356,7 +356,7 @@ static void draw_bgpic(void)
 		y2=  cy+ asp*fac*(bgpic->yof+bgpic->size);
 	}
 	
-	/* volledige clip? */
+	/* complete clip? */
 	
 	if(x2 < 0 ) return;
 	if(y2 < 0 ) return;
@@ -384,7 +384,7 @@ static void draw_bgpic(void)
 
 void timestr(double time, char *str)
 {
-	/* formaat 00:00:00.00 (hr:min:sec) string moet 12 lang */
+	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
 	int  hr= (int)      time/(60*60);
 	int min= (int) fmod(time/60, 60.0);
 	int sec= (int) fmod(time, 60.0);
@@ -413,7 +413,7 @@ static void drawgrid(void)
 	fy= vec4[1]; 
 	fw= vec4[3];
 
-	wx= (curarea->winx/2.0);	/* ivm afrondfoutjes, grid op verkeerde plek */
+	wx= (curarea->winx/2.0);	/* because of rounding errors, grid at wrong location */
 	wy= (curarea->winy/2.0);
 
 	x= (wx)*fx/fw;
@@ -465,7 +465,7 @@ static void drawgrid(void)
 		fy+= dx;
 	}
 
-	/* kruis in midden */
+	/* center cross */
 	if(G.vd->view==3) cpack(0xA0D0A0); /* y-as */
 	else cpack(0xA0A0D0);	/* x-as */
 
@@ -591,6 +591,11 @@ void calc_viewborder(struct View3D *v3d, rcti *viewborder_r)
 		/* magic zoom calculation, no idea what
 	     * it signifies, if you find out, tell me! -zr
 		 */
+	/* simple, its magic dude!
+	 * well, to be honest, this gives a natural feeling zooming
+	 * with multiple keypad presses (ton)
+	 */
+	
 	zoomfac= (M_SQRT2 + v3d->camzoom/50.0);
 	zoomfac= (zoomfac*zoomfac)*0.25;
 	
@@ -628,7 +633,7 @@ static void drawviewborder(void)
 	x2= viewborder.xmax;
 	y2= viewborder.ymax;
 
-	/* rand */
+	/* edge */
 	setlinestyle(3);
 	cpack(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
@@ -652,7 +657,7 @@ static void drawviewborder(void)
 		glRectf(x3,  y3,  x4,  y4); 
 	}
 
-	/* safetykader */
+	/* safety border */
 
 	fac= 0.1;
 	
@@ -727,7 +732,7 @@ void backdrawview3d(int test)
 		base= (G.scene->base.first);
 		while(base) {
 			
-			/* elke base ivm meerdere windows */
+			/* each base, because of multiple windows */
 			base->selcol= 0x070707 | ( ((tel & 0xF00)<<12) + ((tel & 0xF0)<<8) + ((tel & 0xF)<<4) );
 			tel++;
 	
@@ -802,7 +807,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Base *base;
 	Object *ob;
 	
-	setwinmatrixview3d(0);	/* 0= geen pick rect */
+	setwinmatrixview3d(0);	/* 0= no pick rect */
 
 	setviewmatrixview3d();
 
@@ -854,10 +859,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		clear_object_constraint_status(base->object);
 	}
 
-	/* eerst set tekenen */
+	/* draw set first */
 	if(G.scene->set) {
 	
-		/* patchje: kleur blijft constant */ 
+		/* patch: color remains constant */ 
 		G.f |= G_PICKSEL;
 
 		base= G.scene->set->base.first;
@@ -892,13 +897,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		G.f &= ~G_PICKSEL;
 	}
 	
-/* SILLY CODE!!!! */
-/* See next silly code... why is the same code
- * ~ duplicated twice, and then this silly if(FALSE)
- * in part... wacky! and bad!
- */
-
-	/* eerst niet selected en dupli's */
+	/* first draw not selected and the duplis */
 	base= G.scene->base.first;
 	while(base) {
 		
@@ -906,14 +905,15 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			
 			where_is_object(base->object);
 
+			/* dupli drawing temporal off here */
 			if(FALSE && base->object->transflag & OB_DUPLI) {
 				extern ListBase duplilist;
 				Base tbase;
 
-				/* altijd eerst original tekenen vanwege make_displist */
+				/* draw original always first because of make_displist */
 				draw_object(base);
 
-				/* patchje: kleur blijft constant */ 
+				/* patch: color remains constant */ 
 				G.f |= G_PICKSEL;
 				cpack(0x404040);
 				
@@ -938,7 +938,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		
 		base= base->next;
 	}
-	/*  selected */
+	/* draw selected */
 	base= G.scene->base.first;
 	while(base) {
 		
@@ -950,7 +950,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 
 /* SILLY CODE!!!! */
-	/* dupli's, als laatste om zeker te zijn de displisten zijn ok */
+	/* duplis, draw as last to make sure the displists are ok */
 	base= G.scene->base.first;
 	while(base) {
 		
@@ -959,7 +959,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				extern ListBase duplilist;
 				Base tbase;
 
-				/* patchje: kleur blijft constant */ 
+				/* patch: color remains constant */ 
 				G.f |= G_PICKSEL;
 				cpack(0x404040);
 				
@@ -1062,17 +1062,17 @@ void drawview3d_render(struct View3D *v3d)
 
 	test_all_displists();
 
-	/* niet erg nette calc_ipo en where_is forceer */
+	/* not really nice forcing of calc_ipo and where_is */
 	ob= G.main->object.first;
 	while(ob) {
 		ob->ctime= -123.456;
 		ob= ob->id.next;
 	}
 
-	/* eerst set tekenen */
+	/* first deaw set */
 	if(G.scene->set) {
 	
-		/* patchje: kleur blijft constant */ 
+		/* patch: color remains constant */ 
 		G.f |= G_PICKSEL;
 		
 		base= G.scene->set->base.first;
@@ -1109,7 +1109,7 @@ void drawview3d_render(struct View3D *v3d)
 	for (base = G.scene->base.first; base; base=base->next){
 		clear_object_constraint_status(base->object);
 	}
-	/* eerst niet selected en dupli's */
+	/* first not selected and duplis */
 	base= G.scene->base.first;
 	while(base) {
 		
@@ -1122,10 +1122,10 @@ void drawview3d_render(struct View3D *v3d)
 					extern ListBase duplilist;
 					Base tbase;
 					
-					/* altijd eerst original tekenen vanwege make_displist */
+					/* always draw original first because of make_displist */
 					draw_object(base);
 					
-					/* patchje: kleur blijft constant */ 
+					/* patch: color remains constant */ 
 					G.f |= G_PICKSEL;
 					cpack(0x404040);
 					
@@ -1150,7 +1150,7 @@ void drawview3d_render(struct View3D *v3d)
 		base= base->next;
 	}
 
-	/*  selected */
+	/* draw selected */
 	base= G.scene->base.first;
 	while(base) {
 		
@@ -1283,6 +1283,9 @@ void sumo_callback(void *obp)
     }
     Mat3ToEul(matf, ob->rot);
 }
+
+/* for test and fun, i've written the next functions to play with dynamics
+   using a variant of play-anim... was never released nor really tested (ton) */
 
 void init_anim_sumo(void)
 {
@@ -1459,7 +1462,7 @@ void update_anim_sumo(void)
 			
 			if(ob->sumohandle) {
 				if((ob->gameflag & OB_DYNAMIC)==0) {
-					/* evt: optimise, check for anim */
+					/* maybe: optimise, check for anim */
                     scaling[0] = ob->size[0];
                     scaling[1] = ob->size[1];
                     scaling[2] = ob->size[2];
@@ -1554,7 +1557,7 @@ void inner_play_anim_loop(int init, int mode)
 		sa= sa->next;	
 	}
 	
-	/* minimaal swaptime laten voorbijgaan */
+	/* make sure that swaptime passed by */
 	tottime -= swaptime;
 	while (update_time()) PIL_sleep_ms(1);
 
@@ -1573,7 +1576,7 @@ int play_anim(int mode)
 	unsigned short event=0;
 	short val;
 	
-	/* patch voor zeer oude scenes */
+	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;
 	if(EFRA==0) EFRA= 250;
 	
@@ -1582,7 +1585,7 @@ int play_anim(int mode)
 	update_time();
 
 	/* waitcursor(1); */
-	G.f |= G_PLAYANIM;		/* in sequence.c en view.c wordt dit afgevangen */
+	G.f |= G_PLAYANIM;		/* in sequence.c and view.c this is handled */
 
 	cfraont= CFRA;
 	oldsa= curarea;
@@ -1659,7 +1662,7 @@ int play_anim(int mode)
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
 	allqueue (REDRAWACTION, 0);
-	/* vooropig */
+	/* for the time being */
 	update_for_newframe();
 #ifdef NAN_LINEAR_PHYSICS	
 	end_anim_sumo();

@@ -54,14 +54,14 @@
 
 #include "BSE_view.h"
 
-#include "blendef.h" /* DIE ! */
+#include "blendef.h" /* old */
 #include "mydevice.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-void set_scene(Scene *sce)		/* zie ook scene.c: set_scene_bg() */
+void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 {
 	bScreen *sc;
 	
@@ -72,7 +72,7 @@ void set_scene(Scene *sce)		/* zie ook scene.c: set_scene_bg() */
 		if((U.flag & SCENEGLOBAL) || sc==G.curscreen) {
 		
 			if(sce != sc->scene) {
-				/* alle area's endlocalview */
+				/* all areas endlocalview */
 				ScrArea *sa= sc->areabase.first;
 				while(sa) {
 					endlocalview(sa);
@@ -87,7 +87,7 @@ void set_scene(Scene *sce)		/* zie ook scene.c: set_scene_bg() */
 	
 	copy_view3d_lock(0);	/* space.c */
 
-	/* zijn er camera's in de views die niet in de scene zitten? */
+	/* are there cameras in the views that are not in the scene? */
 	sc= G.main->screen.first;
 	while(sc) {
 		if( (U.flag & SCENEGLOBAL) || sc==G.curscreen) {
@@ -113,9 +113,9 @@ void set_scene(Scene *sce)		/* zie ook scene.c: set_scene_bg() */
 
 	set_scene_bg(G.scene);	
 	
-	/* volledige redraw */
+	/* complete redraw */
 	allqueue(REDRAWALL, 0);
-	allqueue(REDRAWDATASELECT, 0);	/* doet remake */
+	allqueue(REDRAWDATASELECT, 0);	/* does a remake */
 }
 
 

@@ -79,15 +79,15 @@ static void EmbossBoxf(float x1, float y1, float x2, float y2, int sel, unsigned
 	if(sel) cpack(dark); 
 	else cpack(light);
 	if(sel) glLineWidth(2.0);
-	fdrawline(x1,  y2,  x2,  y2); 	/* boven */
-	if(no_leftbox==0) fdrawline(x1,  y1,  x1,  y2);	/* links */
+	fdrawline(x1,  y2,  x2,  y2); 	/* top */
+	if(no_leftbox==0) fdrawline(x1,  y1,  x1,  y2);	/* left */
 	
 	if(sel) glLineWidth(1.0);
 	
 	if(sel) cpack(light); 
 	else cpack(dark);	
-	fdrawline(x1,  y1,  x2,  y1); /* onder */
-	if(no_rightbox==0) fdrawline(x2,  y1,  x2,  y2); 	/* rechts */
+	fdrawline(x1,  y1,  x2,  y1); /* bottom */
+	if(no_rightbox==0) fdrawline(x2,  y1,  x2,  y2); 	/* right */
 	
 }
 
@@ -223,7 +223,7 @@ void drawseq(Sequence *seq)
 	v2[1]= y2;
 	if(seq->type < SEQ_EFFECT) {
 
-		/* decoratie: balkjes */
+		/* decoration: the bars */
 		x1= seq->startdisp;
 		x2= seq->enddisp;
 		
@@ -255,11 +255,11 @@ void drawseq(Sequence *seq)
 		
 	}
 
-	/* berekenen of seq lang genoeg is om naam te printen */
+	/* calculate if seq is long enough to print a name */
 	x1= seq->startdisp+seq->handsize;
 	x2= seq->enddisp-seq->handsize;
 	
-	/* maar eerst de inhoud van de meta */
+	/* but first the contents of a meta */
 	if(seq->type==SEQ_META) drawmeta_contents(seq, x1, y1+0.15, x2, y2-0.15);
 	
 	if(x1<G.v2d->cur.xmin) x1= G.v2d->cur.xmin;
@@ -310,7 +310,7 @@ void drawseq(Sequence *seq)
 
 	if(seq->type < SEQ_EFFECT) {
 
-		/* decoratie: driehoekjes */
+		/* decoration: triangles */
 		x1= seq->startdisp;
 		x2= seq->enddisp;
 		
@@ -318,7 +318,7 @@ void drawseq(Sequence *seq)
 		dark= 0x202020;
 		light= 0xB0B0B0;
 		
-		/* linker driehoek */
+		/* left triangle */
 		
 		if(seq->flag & SEQ_LEFTSEL) {
 			cpack(body+0x20);
@@ -354,7 +354,7 @@ void drawseq(Sequence *seq)
 			BMF_DrawString(G.font, str);
 		}
 		
-		/* rechter driehoek */
+		/* right triangle */
 		
 		dark= 0x202020;
 		light= 0xB0B0B0;
@@ -401,7 +401,7 @@ void set_special_seq_update(int val)
 {
 	int x;
 
-	/* als met muis in sequence && LEFTMOUSE */
+	/* if mouse over a sequence && LEFTMOUSE */
 	if(val) {
 		special_seq_update= find_nearest_seq(&x);
 	}
@@ -438,17 +438,14 @@ static void draw_image_seq(void)
 	sseq= curarea->spacedata.first;
 	if(sseq==0) return;
 	
-	/* plek berekenen */
+	/* calc location */
 	x1= curarea->winrct.xmin+(curarea->winx-sseq->zoom*ibuf->x)/2;
 	y1= curarea->winrct.ymin+(curarea->winy-sseq->zoom*ibuf->y)/2;
-	
-	/* convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect); */
 	
 	rectwrite_part(curarea->winrct.xmin, curarea->winrct.ymin, 
 				curarea->winrct.xmax, curarea->winrct.ymax, 
 				x1, y1, ibuf->x, ibuf->y, (float)sseq->zoom,(float)sseq->zoom, ibuf->rect);
 
-	/* convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect); */
 }
 
 static void draw_extra_seqinfo(void)
@@ -461,14 +458,14 @@ static void draw_extra_seqinfo(void)
 	
 	if(last_seq==0) return;
 		
-	/* xfac: afm 1 pixel */
+	/* xfac: size of 1 pixel */
 	xfac= G.v2d->cur.xmax - G.v2d->cur.xmin;
 	xfac/= (float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
 	xco= G.v2d->cur.xmin+40*xfac;
 	
 	cpack(0);
 	
-	/* NAAM */
+	/* NAME */
 	glRasterPos3f(xco,  0.3, 0.0);
 	strcpy(str, give_seqname(last_seq));
 	BMF_DrawString(G.font, str);
@@ -501,7 +498,7 @@ static void draw_extra_seqinfo(void)
 			xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
 		}
 		
-		/* FIRST EN LAST */
+		/* FIRST AND LAST */
 	
 		if(last_seq->strip) {
 			se= last_seq->strip->stripdata;
@@ -559,7 +556,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
-			ofsx= curarea->winrct.xmin;	/* ivm mywin */
+			ofsx= curarea->winrct.xmin;	/* because of mywin */
 			ofsy= curarea->winrct.ymin;
 			glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1); 
 			glScissor(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
@@ -577,7 +574,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	draw_ipogrid();
 	draw_cfra_seq();
 
-	/* sequenties: eerst de deselect */
+	/* sequences: first deselect */
 	
 	if(ed) {
 		seq= ed->seqbasep->first;
@@ -602,7 +599,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		
-		/* ortho op pixelnivo curarea */
+		/* ortho at pixel level curarea */
 		myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
 		
 		if(G.v2d->scroll) {

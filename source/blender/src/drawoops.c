@@ -213,7 +213,7 @@ void mysbox(float x1, float y1, float x2, float y2)
 unsigned int give_oops_color(short type, short sel, unsigned int *border)
 {
 	unsigned int body;
-	/* geeft ook aan of stippellijn getekend moet */
+	/* also finds out if a dashed line should be drawn */
 
 	switch(type) {
 	case ID_OB:
@@ -333,7 +333,7 @@ void draw_oops(Oops *oops, uiBlock *block)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	if(line) setlinestyle(0);
 
-	/* connectieblokjes */
+	/* connection blocks */
 	ol= oops->link.first;
 	while(ol) {
 
@@ -386,7 +386,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
-			ofsx= curarea->winrct.xmin;	/* ivm mywin */
+			ofsx= curarea->winrct.xmin;	/* because of mywin */
 			ofsy= curarea->winrct.ymin;
 
 			glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1); 
@@ -397,7 +397,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 
 	oopscalex= .14*((float)curarea->winx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
-	calc_ipogrid();	/* voor scrollvariables */
+	calc_ipogrid();	/* for scrollvariables */
 	build_oops();
 
 	oops= G.soops->oops.first;
@@ -427,7 +427,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 
 	
 	if(G.v2d->scroll) {	
-		/* ortho op pixelnivo curarea */
+		/* ortho at pixel level curarea */
 		myortho2(-0.5, curarea->winx+0.5, -0.5, curarea->winy+0.5);
 		drawscroll(0);		
 	}
