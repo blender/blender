@@ -1262,6 +1262,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.obedit->type==OB_LATTICE) {
 						if(G.qual==LR_CTRLKEY) add_hook();
 					}
+					else if(G.obedit->type==OB_MBALL) {
+						if(G.qual==LR_ALTKEY)
+							reveal_mball();
+						else if((G.qual==LR_SHIFTKEY))
+							hide_mball(1);
+						else if((G.qual==0)) 
+							hide_mball(0);
+					}
 				}
 				else if(G.f & G_FACESELECT)
 					hide_tface();

@@ -103,6 +103,7 @@ typedef struct MetaBall {
 
 /* ml->flag */
 #define MB_NEGATIVE	2
+#define MB_HIDE		4
 
 #endif
 

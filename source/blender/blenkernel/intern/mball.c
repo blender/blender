@@ -338,7 +338,7 @@ Object *find_basis_mball(Object *basis)
 			}
 			
 			while(ml){
-				totelem++;
+				if(!(ml->flag & MB_HIDE)) totelem++;
 				ml= ml->next;
 			}
 		}
@@ -1484,57 +1484,59 @@ float init_meta(Object *ob)	/* return totsize */
 				}
 			}
 			while(ml) {
-
-				Mat4One(temp2);
-				temp2[3][0]= ml->x;
-				temp2[3][1]= ml->y;
-				temp2[3][2]= ml->z;
-			
-				/* make a copy because of duplicates */
-				mainb[a]= new_pgn_element(sizeof(MetaElem));
-				*(mainb[a])= *ml;
-				mainb[a]->bb = new_pgn_element(sizeof(BoundBox));
+				if(!(ml->flag & MB_HIDE)) {
+					Mat4One(temp2);
+					temp2[3][0]= ml->x;
+					temp2[3][1]= ml->y;
+					temp2[3][2]= ml->z;
 				
-				mat= new_pgn_element(4*4*sizeof(float));
-				imat= new_pgn_element(4*4*sizeof(float));
-				
-				/* mat is the matrix to transform from mball into the basis-mball */
-				Mat4Invert(obinv, ob->obmat);
-				Mat4MulMat4(temp1, bob->obmat, obinv);
-				/* MetaBall transformation */
-				Mat4MulMat4(mat, temp2, temp1);
-
-				Mat4Invert(imat,mat);				
-
-				mainb[a]->rad2= ml->rad*ml->rad;
-
-				mainb[a]->mat= (float*) mat;
-				mainb[a]->imat= (float*) imat;
-
-				if(ml->type==MB_BALL){
-					max= 0.0;
+					/* make a copy because of duplicates */
+					mainb[a]= new_pgn_element(sizeof(MetaElem));
+					*(mainb[a])= *ml;
+					mainb[a]->bb = new_pgn_element(sizeof(BoundBox));
+					
+					mat= new_pgn_element(4*4*sizeof(float));
+					imat= new_pgn_element(4*4*sizeof(float));
+					
+					/* mat is the matrix to transform from mball into the basis-mball */
+					Mat4Invert(obinv, ob->obmat);
+					Mat4MulMat4(temp1, bob->obmat, obinv);
+					/* MetaBall transformation */
+					Mat4MulMat4(mat, temp2, temp1);
+        
+					Mat4Invert(imat,mat);				
+        
+					mainb[a]->rad2= ml->rad*ml->rad;
+        
+					mainb[a]->mat= (float*) mat;
+					mainb[a]->imat= (float*) imat;
+        
+					if(ml->type==MB_BALL){
+						max= 0.0;
+					}
+					else if((ml->type==MB_TUBE)){
+						max= bob->size[0]*ml->expx;
+					}
+					else if((ml->type==MB_PLANE)){
+						max= MAX2(bob->size[0]*ml->expx, bob->size[1]*ml->expy);
+					}
+					else if((ml->type==MB_CUBE)||(ml->type==MB_ELIPSOID)){
+						max= MAX3(bob->size[0]*ml->expx,
+							bob->size[1]*ml->expy,
+							bob->size[2]*ml->expz);
+					}
+					
+					mainb[a]->bb->vec[0][0]= mat[3][0] - bob->size[0]*(max+ml->rad)/ob->size[0];
+					mainb[a]->bb->vec[0][1]= mat[3][1] - bob->size[1]*(max+ml->rad)/ob->size[1];
+					mainb[a]->bb->vec[0][2]= mat[3][2] - bob->size[2]*(max+ml->rad)/ob->size[2];
+					                                                                           
+					mainb[a]->bb->vec[6][0]= mat[3][0] + bob->size[0]*(max+ml->rad)/ob->size[0];
+					mainb[a]->bb->vec[6][1]= mat[3][1] + bob->size[1]*(max+ml->rad)/ob->size[1];
+					mainb[a]->bb->vec[6][2]= mat[3][2] + bob->size[2]*(max+ml->rad)/ob->size[2];
+					
+					a++;
 				}
-				else if((ml->type==MB_TUBE)){
-					max= bob->size[0]*ml->expx;
-				}
-				else if((ml->type==MB_PLANE)){
-					max= MAX2(bob->size[0]*ml->expx, bob->size[1]*ml->expy);
-				}
-				else if((ml->type==MB_CUBE)||(ml->type==MB_ELIPSOID)){
-					max= MAX3(bob->size[0]*ml->expx, bob->size[1]*ml->expy, bob->size[2]*ml->expz);
-				}
-				
-				mainb[a]->bb->vec[0][0]= mat[3][0] - bob->size[0]*(max+ml->rad)/ob->size[0];
-				mainb[a]->bb->vec[0][1]= mat[3][1] - bob->size[1]*(max+ml->rad)/ob->size[1];
-				mainb[a]->bb->vec[0][2]= mat[3][2] - bob->size[2]*(max+ml->rad)/ob->size[2];
-				                                                                           
-				mainb[a]->bb->vec[6][0]= mat[3][0] + bob->size[0]*(max+ml->rad)/ob->size[0];
-				mainb[a]->bb->vec[6][1]= mat[3][1] + bob->size[1]*(max+ml->rad)/ob->size[1];
-				mainb[a]->bb->vec[6][2]= mat[3][2] + bob->size[2]*(max+ml->rad)/ob->size[2];
-				
 				ml= ml->next;
-				a++;
-				
 			}
 		}
 	}
@@ -1925,6 +1927,7 @@ void metaball_polygonize(Object *ob)
 	
 	mb= ob->data;
 
+	if(totelem==0) return;
 	if(!(R.flag & R_RENDERING) && (mb->flag==MB_UPDATE_NEVER)) return;
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
@@ -1939,11 +1942,6 @@ void metaball_polygonize(Object *ob)
 	/* initialize all mainb (MetaElems) */
 	totsize= init_meta(ob);
 
-	if(totelem==0) {
-		MEM_freeN(mainb);
-		return;
-	}
-	
 	if(metaball_tree){
 		free_metaball_octal_node(metaball_tree->first);
 		MEM_freeN(metaball_tree);

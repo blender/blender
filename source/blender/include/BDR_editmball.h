@@ -47,6 +47,8 @@ void adduplicate_mball(void);
 void delete_mball(void); 
 void freeMetaElemlist(struct ListBase *lb);
 void undo_push_mball(char *name);
+void hide_mball(char hide);
+void reveal_mball(void);
 
 #endif /*  BDR_EDITMBALL_H */
 

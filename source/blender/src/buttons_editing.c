@@ -1428,7 +1428,10 @@ static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 		uiDefButS(block, ROW, B_RECALCMBALL, "Cube",			938,62,60,19, &lastelem->type, 1.0, 7.0, 0, 0, "Draw active meta as Cube");
 		uiBlockEndAlign(block);
 
-		uiDefButS(block, TOG|BIT|1, B_RECALCMBALL, "Negative",753,16,250,19, &lastelem->flag, 0, 0, 0, 0, "Make active meta creating holes");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|1, B_RECALCMBALL, "Negative",753,16,125,19, &lastelem->flag, 0, 0, 0, 0, "Make active meta creating holes");
+		uiDefButS(block, TOG|BIT|2, B_RECALCMBALL, "Hide",878,16,125,19, &lastelem->flag, 0, 0, 0, 0, "Make active meta invisible");
+		uiBlockEndAlign(block);
 
 	}
 

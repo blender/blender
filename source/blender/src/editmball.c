@@ -414,3 +414,48 @@ void undo_push_mball(char *name)
 {
 	undo_editmode_push(name, free_undoMball, undoMball_to_editMball, editMball_to_undoMball);
 }
+
+/* Hide selected/unselected MetaElems */
+void hide_mball(char hide)
+{
+	MetaElem *ml;
+
+	ml= editelems.first;
+
+	while(ml){
+		if(hide){
+			if(!(ml->flag & SELECT))
+				ml->flag |= MB_HIDE;
+		}
+		else{
+			if(ml->flag & SELECT)
+				ml->flag |= MB_HIDE;
+		}
+		ml= ml->next;
+	}
+
+	makeDispList(G.obedit);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+
+	BIF_undo_push("Hide MetaElems");
+}
+
+/* Unhide all edited MetaElems */
+void reveal_mball(void)
+{
+	MetaElem *ml;
+
+	ml= editelems.first;
+
+	while(ml){
+		ml->flag &= ~MB_HIDE;
+		ml= ml->next;
+	}
+
+	makeDispList(G.obedit);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+
+	BIF_undo_push("Unhide MetaElems");
+}
