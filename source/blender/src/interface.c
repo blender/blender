@@ -3342,10 +3342,10 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 								if ELEM4(but->type, BLOCK, BUT, LABEL, PULLDOWN); 
 								else {
 									/* define which string to use for undo */
-									if ELEM(but->type, LINK, INLINK) BIF_undo_push("Add button link");
-									else if ELEM(but->type, MENU, ICONTEXTROW) BIF_undo_push(but->drawstr);
-									else if(but->str[0]) BIF_undo_push(but->str);
-									else BIF_undo_push(but->tip);
+									if ELEM(but->type, LINK, INLINK) screen_delayed_undo_push("Add button link");
+									else if ELEM(but->type, MENU, ICONTEXTROW) screen_delayed_undo_push(but->drawstr);
+									else if(but->drawstr[0]) screen_delayed_undo_push(but->drawstr);
+									else screen_delayed_undo_push(but->tip);
 								}
 							}
 						}

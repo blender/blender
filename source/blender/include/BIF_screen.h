@@ -98,6 +98,7 @@ void screen_swapbuffers(void);
 void set_debug_swapbuffers_ovveride(struct bScreen *sc, int mode);
 int is_allowed_to_change_screen(struct bScreen *newp);
 void splash(void * data, int datasizei, char * string);
+void screen_delayed_undo_push(char *name);
 void screenmain(void);
 void getdisplaysize(void);
 void setprefsize(int stax, int stay, int sizx, int sizy);

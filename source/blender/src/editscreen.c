@@ -1003,6 +1003,15 @@ static ScrArea *screen_find_area_for_pt(bScreen *sc, short *mval)
 	return NULL;
 }
 
+/* ugly yah, will disappear on better event system */
+/* is called from interface.c after button events */
+static char delayed_undo_name[64];
+void screen_delayed_undo_push(char *name)
+{
+	strncpy(delayed_undo_name, name, 63);
+	mainqenter(UNDOPUSH, 1);
+}
+
 void screenmain(void)
 {
 	int has_input= 1;
@@ -1096,6 +1105,9 @@ void screenmain(void)
 		else if (event==REDRAW) {
 			markdirty_all();
 			dodrawscreen= 1;
+		}
+		else if( event==UNDOPUSH) {
+			BIF_undo_push(delayed_undo_name);
 		}
 		else if (event==AUTOSAVE_FILE) {
 			BIF_write_autosave();

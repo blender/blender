@@ -204,6 +204,7 @@
 #define RESHAPE				0x4007
 #define UI_BUT_EVENT		0x4008
 #define AUTOSAVE_FILE		0x4009
+#define UNDOPUSH			0x400A
 
 /* REDRAWVIEW3D has to be the first one (lowest number) for buttons! */
 #define REDRAWVIEW3D		0x4010
