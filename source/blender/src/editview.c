@@ -713,7 +713,7 @@ int gesture(void)
 				else {
 #ifdef NEWTRANSFORM
 					if(i=='g') Transform(TFM_TRANSLATION);
-					else if(i=='s') Transform(TFM_ROTATION);
+					else if(i=='r') Transform(TFM_ROTATION);
 					else Transform(TFM_RESIZE);
 #else
 					transform(i);
