@@ -50,6 +50,8 @@
 #include "BKE_global.h"
 #include "BKE_texture.h"
 
+#include "BLI_rand.h"
+
 /* local include */
 #include "RE_callbacks.h"
 #include "old_zbuffer_types.h"
@@ -217,15 +219,18 @@ void RE_sky(float *view, float *col)
 void RE_sky_char(float *view, char *col)
 {
 	float f, colf[3];
+	float dither_value;
+
+	dither_value = (BLI_frand()*R.r.dither_intensity)/256.0; 
 	
 	RE_sky(view, colf);
-	f= 255.0*colf[0];
+	f= 255.0*(colf[0]+dither_value);
 	if(f<=0.0) col[0]= 0; else if(f>255.0) col[0]= 255;
 	else col[0]= (char)f;
-	f= 255.0*colf[1];
+	f= 255.0*(colf[1]+dither_value);
 	if(f<=0.0) col[1]= 0; else if(f>255.0) col[1]= 255;
 	else col[1]= (char)f;
-	f= 255.0*colf[2];
+	f= 255.0*(colf[2]+dither_value);
 	if(f<=0.0) col[2]= 0; else if(f>255.0) col[2]= 255;
 	else col[2]= (char)f;
 	col[3]= 1;	/* to prevent wrong optimalisation alphaover of flares */
@@ -2846,12 +2851,21 @@ void shadepixel_short(float x, float y, int vlaknr, int mask, unsigned short *sh
 	else shortcol[2]= 65535.0*colf[2];
 	if(colf[3]<=0.0) shortcol[3]= 0; else if(colf[3]>=1.0) shortcol[3]= 65535;
 	else shortcol[3]= 65535.0*colf[3];
-
+	
 	if(usegamtab) {
 		shortcol[0]= igamtab2[ shortcol[0] ];
 		shortcol[1]= igamtab2[ shortcol[1] ];
 		shortcol[2]= igamtab2[ shortcol[2] ];
 	}
+	
+	if(R.r.dither_intensity!=0.0) {
+		short dither_value = (short)(BLI_frand()*R.r.dither_intensity*256.0);
+		/* no dither for color 254/255, is OK. intensity is <= 2.0 */
+		if( shortcol[0] < 65000) shortcol[0]+= dither_value;
+		if( shortcol[1] < 65000) shortcol[1]+= dither_value;
+		if( shortcol[2] < 65000) shortcol[2]+= dither_value;
+	}	
+	
 }
 
 PixStr *addpsmain()

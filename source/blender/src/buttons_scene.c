@@ -1031,13 +1031,16 @@ static void render_panel_output(void)
 			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &R.winpos, 0, 0, 0, 0, "Render window placement on screen");
 	uiBlockEndAlign(block);
 
-	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Passepartout", 72, 30, 122, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Draws darkened passepartout in camera view");
 	uiBlockBeginAlign(block);
+	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Passepartout", 72, 30, 122, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Draws darkened passepartout in camera view");
 	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &R.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
 	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &R.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
 	uiBlockEndAlign(block);
 
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	250, 10, 60, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
+
+	/* Dither control */
+	uiDefButF(block, NUM,B_DIFF, "Dither:",		205,31,105,19, &G.scene->r.dither_intensity, 0.0, 1.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);

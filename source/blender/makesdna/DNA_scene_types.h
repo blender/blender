@@ -211,6 +211,10 @@ typedef struct RenderData {
 	/** post-production settings. Don't really belong here */
 	float postmul, postgamma, postadd, postigamma;
 
+	/* Dither noise intensity */
+	float dither_intensity;
+	float pad_dither;
+
 	/* yafray: global panel params. TODO: move elsewhere */
 	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
 	short YF_AA, YFexportxml, yfpad1[3];

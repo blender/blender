@@ -57,6 +57,8 @@
 #include "DNA_object_types.h"
 #include "BKE_global.h"
 
+#include "BLI_rand.h"
+
 /* local includes (from the render module) */
 #include "RE_callbacks.h"
 #include "render.h"       /* all kinds of stuff                              */
@@ -1342,27 +1344,30 @@ void zBufferFillEdge(float *vec1, float *vec2)
 void std_transFloatColV2CharColV( RE_COLBUFTYPE *buf, char *target)
 {
 	float fval;
+	float dither_value;
+
+	dither_value = (BLI_frand()*R.r.dither_intensity)/256.0; 
 	
 	/* alpha */
-	if(buf[3]<=0.0) target[3]= 0;
-	else if(buf[3]>1.0) target[3]= 255;
-	else target[3]= 255.0*buf[3];
+	if((buf[3]+dither_value)<=0.0) target[3]= 0;
+	else if((buf[3]+dither_value)>1.0) target[3]= 255;
+	else target[3]= 255.0*(buf[3]+dither_value);
 	
 	if(R.r.postgamma==1.0) {
 		/* r */
-		fval= R.r.postmul*buf[0] + R.r.postadd;
+		fval= R.r.postmul*buf[0] + R.r.postadd + dither_value;
 		if(fval<=0.0) target[0]= 0;
 		else if(fval>1.0) target[0]= 255;
 		else target[0]= 255.0*fval;
 
 		/* g */
-		fval= R.r.postmul*buf[1] + R.r.postadd;
+		fval= R.r.postmul*buf[1] + R.r.postadd + dither_value;
 		if(fval<=0.0) target[1]= 0;
 		else if(fval>1.0) target[1]= 255;
 		else target[1]= 255.0*fval;
 
 		/* b */
-		fval= R.r.postmul*buf[2] + R.r.postadd;
+		fval= R.r.postmul*buf[2] + R.r.postadd + dither_value;
 		if(fval<=0.0) target[2]= 0;
 		else if(fval>1.0) target[2]= 255;
 		else target[2]= 255.0*fval;
@@ -1376,19 +1381,19 @@ void std_transFloatColV2CharColV( RE_COLBUFTYPE *buf, char *target)
 	
 	
 		/* r */
-		fval= pow(R.r.postmul*buf[0], R.r.postigamma) + R.r.postadd;
+		fval= pow(R.r.postmul*buf[0], R.r.postigamma) + R.r.postadd + dither_value;
 		if(fval<=0.0) target[0]= 0;
 		else if(fval>1.0) target[0]= 255;
 		else target[0]= 255.0*fval;
 
 		/* g */
-		fval=pow( R.r.postmul*buf[1], R.r.postigamma) + R.r.postadd;
+		fval=pow( R.r.postmul*buf[1], R.r.postigamma) + R.r.postadd + dither_value;
 		if(fval<=0.0) target[1]= 0;
 		else if(fval>1.0) target[1]= 255;
 		else target[1]= 255.0*fval;
 
 		/* b */
-		fval= pow(R.r.postmul*buf[2], R.r.postigamma) + R.r.postadd;
+		fval= pow(R.r.postmul*buf[2], R.r.postigamma) + R.r.postadd + dither_value;
 		if(fval<=0.0) target[2]= 0;
 		else if(fval>1.0) target[2]= 255;
 		else target[2]= 255.0*fval;
