@@ -1148,8 +1148,8 @@ static void render_panel_anim(void)
 	uiDefButS(block, NUM, B_RTCHANGED, "rt:",789,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,18000.0, 0, 0, "The start frame of the animation");
-	uiDefButS(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,1.0,18000.0, 0, 0, "The end  frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "The end  frame of the animation");
 	uiBlockEndAlign(block);
 }
 
@@ -1371,8 +1371,8 @@ void anim_panels()
 	block= uiNewBlock(&curarea->uiblocks, "anim_panel", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim", "Anim", 0, 0, 318, 204)==0) return;
 
-	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	320,17,93,27,&G.scene->r.sfra,1.0,18000.0, 0, 0, "Specify the start frame of the animation");
-	uiDefButS(block, NUM,REDRAWSEQ,"End:",	416,17,95,27,&G.scene->r.efra,1.0,18000.0, 0, 0, "Specify the end frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	320,17,93,27,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"End:",	416,17,95,27,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
 
 	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	320,69,93,22,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old map value in frames");
 	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify new map value in frames");

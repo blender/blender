@@ -34,6 +34,9 @@
 
 /* **************** MAX ********************* */
 
+#define MAXFRAME	30000
+#define MAXFRAMEF	30000.0f
+
 #define MAXLAMP		32765
 /* max length material array, 16 because of bits in matfrom */
 #define MAXPICKBUF      10000

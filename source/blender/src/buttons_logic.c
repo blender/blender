@@ -1571,13 +1571,13 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			}
 			else
 			{
-				uiDefButS(block, NUM, 0, "Sta: ",xco+30, yco-64, (width-60)/2, 19, &aa->sta, 0.0, 18000.0, 0, 0, "Start frame");
-				uiDefButS(block, NUM, 0, "End: ",xco+30+(width-60)/2, yco-64, (width-60)/2, 19, &aa->end, 0.0, 18000.0, 0, 0, "End frame");
+				uiDefButS(block, NUM, 0, "Sta: ",xco+30, yco-64, (width-60)/2, 19, &aa->sta, 0.0, MAXFRAMEF, 0, 0, "Start frame");
+				uiDefButS(block, NUM, 0, "End: ",xco+30+(width-60)/2, yco-64, (width-60)/2, 19, &aa->end, 0.0, MAXFRAMEF, 0, 0, "End frame");
 			}
 			
 			
 			
-			uiDefButS(block, NUM, 0, "Blendin: ", xco+30, yco-84, (width-60)/2, 19, &aa->blendin, 0.0, 18000.0, 0.0, 0.0, "Number of frames of motion blending");
+			uiDefButS(block, NUM, 0, "Blendin: ", xco+30, yco-84, (width-60)/2, 19, &aa->blendin, 0.0, MAXFRAMEF, 0.0, 0.0, "Number of frames of motion blending");
 			uiDefButS(block, NUM, 0, "Priority: ", xco+30+(width-60)/2, yco-84, (width-60)/2, 19, &aa->priority, 0.0, 100.0, 0.0, 0.0, "Execution priority - lower numbers will override actions with higher numbers");
 			
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
@@ -1631,11 +1631,11 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			else {
 				uiDefButS(block, NUM, 0, 
 					"Sta",		xco+20, yco-44, (width-100)/2, 19, 
-					&ia->sta, 0.0, 18000.0, 0, 0, 
+					&ia->sta, 0.0, MAXFRAMEF, 0, 0, 
 					"Start frame");
 				uiDefButS(block, NUM, 0, 
 					"End",		xco+18+(width-90)/2, yco-44, (width-100)/2, 19, 
-					&ia->end, 0.0, 18000.0, 0, 0, 
+					&ia->end, 0.0, MAXFRAMEF, 0, 0, 
 					"End frame");
 				
 				uiDefButS(block, TOG|BIT|ACT_IPOFORCE_BIT, B_REDR, 

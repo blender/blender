@@ -1385,21 +1385,21 @@ PyObject *RenderData_GaussFilterSize( BPy_RenderData * self, PyObject * args )
 PyObject *RenderData_StartFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args, &self->renderContext->sfra,
-					      1, 18000 );
+					      1, MAXFRAME );
 }
 
 //------------------------------------RenderData.CurrentFrame() ---------
 PyObject *RenderData_CurrentFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args, &self->renderContext->cfra,
-					      1, 18000 );
+					      1, MAXFRAME );
 }
 
 //------------------------------------RenderData.EndFrame() -------------
 PyObject *RenderData_EndFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args, &self->renderContext->efra,
-					      1, 18000 );
+					      1, MAXFRAME );
 }
 
  //------------------------------------RenderData.ImageSizeX() ----------

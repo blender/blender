@@ -712,7 +712,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 
 	//set the current frame
 	if( frame > 0 ) {
-		frame = EXPP_ClampInt( frame, 1, 18000 );
+		frame = EXPP_ClampInt( frame, 1, MAXFRAME );
 		oldfra = G.scene->r.cfra;
 		G.scene->r.cfra = frame;
 	}

@@ -445,8 +445,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButI(block, MENU, B_CONSTRAINT_REDRAW, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-117), *yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
 
 				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "Start:", *xco+((width/2)-36), *yco-64, 78, 18, &data->start, 1, 18000, 0.0, 0.0, "Starting frame of the keyed motion"); 
-				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "End:", *xco+((width/2)-36), *yco-84, 78, 18, &data->end, 1, 18000, 0.0, 0.0, "Ending frame of the keyed motion"); 
+				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "Start:", *xco+((width/2)-36), *yco-64, 78, 18, &data->start, 1, MAXFRAME, 0.0, 0.0, "Starting frame of the keyed motion"); 
+				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "End:", *xco+((width/2)-36), *yco-84, 78, 18, &data->end, 1, MAXFRAME, 0.0, 0.0, "Ending frame of the keyed motion"); 
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
@@ -1240,9 +1240,9 @@ static void object_panel_anim(Object *ob)
 	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
 	uiDefButC(block, TOG|BIT|6, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, 17999.0, 0, 0, "Specify startframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, (MAXFRAMEF - 1.0f), 0, 0, "Specify startframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		170,105,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, 18000.0, 0, 0, "Specify endframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, MAXFRAMEF, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		171,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButC(block, TOG|BIT|2, REDRAWALL, "Offs Ob",			24,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");

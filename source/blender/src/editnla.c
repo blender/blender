@@ -1623,18 +1623,18 @@ void clever_numbuts_nla(void){
 	if (!strip)
 		return;
 	
-	add_numbut(but++, LABEL, "Timeline Range:", 1.0, 18000.0, 0, 0);
-	add_numbut(but++, NUM|FLO, "Strip Start:", 1.0, 18000.0, &strip->start, "First frame in the timeline");
-	add_numbut(but++, NUM|FLO, "Strip End:", 1.0, 18000.0, &strip->end, "Last frame in the timeline");
-	add_numbut(but++, LABEL, "Action Range:", 1.0, 18000.0, 0, 0);
-	add_numbut(but++, NUM|FLO, "Action Start:", 1.0, 18000.0, &strip->actstart, "First frame of the action to map to the playrange");
-	add_numbut(but++, NUM|FLO, "Action End:", 1.0, 18000.0, &strip->actend, "Last frame of the action to map to the playrange");
-	add_numbut(but++, LABEL, "Blending:", 1.0, 18000.0, 0, 0);
-	add_numbut(but++, NUM|FLO, "Blend In:", 0.0, 18000.0, &strip->blendin, "Number of frames of ease-in");
-	add_numbut(but++, NUM|FLO, "Blend Out:", 0.0, 18000.0, &strip->blendout, "Number of frames of ease-out");
-	add_numbut(but++, LABEL, "Options:", 1.0, 18000.0, 0, 0);
-	add_numbut(but++, NUM|FLO, "Repeat:", 0.0001, 18000.0, &strip->repeat, "Number of times the action should repeat");
-	add_numbut(but++, NUM|FLO, "Stride:", 0.0001, 1000.0, &strip->stridelen, "Distance covered by one complete cycle of the action specified in the Action Range");
+	add_numbut(but++, LABEL, "Timeline Range:", 1.0, MAXFRAMEF, 0, 0);
+	add_numbut(but++, NUM|FLO, "Strip Start:", 1.0, MAXFRAMEF, &strip->start, "First frame in the timeline");
+	add_numbut(but++, NUM|FLO, "Strip End:", 1.0, MAXFRAMEF, &strip->end, "Last frame in the timeline");
+	add_numbut(but++, LABEL, "Action Range:", 1.0, MAXFRAMEF, 0, 0);
+	add_numbut(but++, NUM|FLO, "Action Start:", 1.0, MAXFRAMEF, &strip->actstart, "First frame of the action to map to the playrange");
+	add_numbut(but++, NUM|FLO, "Action End:", 1.0, MAXFRAMEF, &strip->actend, "Last frame of the action to map to the playrange");
+	add_numbut(but++, LABEL, "Blending:", 1.0, MAXFRAMEF, 0, 0);
+	add_numbut(but++, NUM|FLO, "Blend In:", 0.0, MAXFRAMEF, &strip->blendin, "Number of frames of ease-in");
+	add_numbut(but++, NUM|FLO, "Blend Out:", 0.0, MAXFRAMEF, &strip->blendout, "Number of frames of ease-out");
+	add_numbut(but++, LABEL, "Options:", 1.0, MAXFRAMEF, 0, 0);
+	add_numbut(but++, NUM|FLO, "Repeat:", 0.0001, MAXFRAMEF, &strip->repeat, "Number of times the action should repeat");
+	add_numbut(but++, NUM|FLO, "Stride:", 0.0001, MAXFRAMEF, &strip->stridelen, "Distance covered by one complete cycle of the action specified in the Action Range");
 	{
 		/* STUPID HACK BECAUSE NUMBUTS ARE BROKEN WITH MULTIPLE TOGGLES */
 		short hold= (strip->flag & ACTSTRIP_HOLDLASTFRAME) ? 1 : 0;

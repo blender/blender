@@ -743,7 +743,7 @@ void buts_buttons(void)
 	uiBlockEndAlign(block);
 	
 	xco+=XIC;
-	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Displays Current Frame of animation. Click to change.");
+	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, MAXFRAMEF, 0, 0, "Displays Current Frame of animation. Click to change.");
 	xco+= 80;
 
 	buttons_active_id(&id, &idfrom);

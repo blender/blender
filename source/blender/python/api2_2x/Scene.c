@@ -57,7 +57,7 @@ static Base *EXPP_Scene_getObjectBase( Scene * scene, Object * object );
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 
 //----------------------------------- Python BPy_Scene defaults------------
-#define EXPP_SCENE_FRAME_MAX 18000
+#define EXPP_SCENE_FRAME_MAX 30000
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MIN 4
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MAX 10000
 //-----------------------Python API function prototypes for the Scene module--
