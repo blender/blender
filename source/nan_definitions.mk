@@ -94,7 +94,7 @@ endif
     export ID = $(USER)
     export HOST = $(HOSTNAME)
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -263,7 +263,7 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
     export NAN_PYTHON ?= /usr
-    export NAN_PYTHON_VERSION ?= 2.2
+    export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_OPENAL ?= /usr
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -305,7 +305,7 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -346,7 +346,7 @@ endif
     export ID = $(shell /usr/ucb/whoami)
     export HOST = $(shell hostname)
     export NAN_PYTHON ?= /usr/local
-    export NAN_PYTHON_VERSION ?= 2.2
+    export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -387,7 +387,7 @@ endif
     export ID = $(LOGNAME)
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
-    export NAN_PYTHON_VERSION ?= 2.2
+    export NAN_PYTHON_VERSION ?= 2.3
     ifeq ($(FREE_WINDOWS), true)
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
@@ -439,7 +439,7 @@ endif
   else # Platform not listed above
 
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= python
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
