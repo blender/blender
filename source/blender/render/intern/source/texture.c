@@ -93,7 +93,7 @@ void init_render_texture(Tex *tex)
 	char name[256], head[FILE_MAXFILE], tail[FILE_MAXFILE];
 
 	/* is also used as signal */
-	tex->nor= 0;
+	tex->nor= NULL;
 
 	/* imap test */
 	if(tex->frames && tex->ima && tex->ima->name) {	/* frames */
@@ -476,8 +476,9 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 
 	pit= tex->plugin;
 	if(pit && pit->doit) {
-		VECCOPY(pit->result+5, tex->nor); 
-
+		if(tex->nor) {
+			VECCOPY(pit->result+5, tex->nor); 
+		}
 		if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, dxt, dyt);
 		else rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, 0, 0);
 
@@ -921,7 +922,7 @@ void do_material_tex(ShadeInput *shi)
 				tex->nor= norvec;
 				norvec[0]= norvec[1]= norvec[2]= 0.0;
 			}
-			else tex->nor= 0;
+			else tex->nor= NULL;
 			
 			if(tex->type==TEX_IMAGE) {
 				
@@ -1287,7 +1288,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 	mtex= har->mat->mtex[0];
 	if(mtex->tex==0) return;
 	/* no normal mapping */
-	mtex->tex->nor= 0;
+	mtex->tex->nor= NULL;
 		
 	texvec[0]= xn/har->rad;
 	texvec[1]= yn/har->rad;
@@ -1682,7 +1683,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 					if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
 				}
-				else tex->nor= 0;
+				else tex->nor= NULL;
 			}
 			
 			rgb= multitex(tex, texvec, dxt, dyt, shi->osatex);
@@ -1795,7 +1796,7 @@ void externtex(MTex *mtex, float *vec)
 			if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 			else tex->norfac= mtex->norfac;
 		}
-		else tex->nor= 0;
+		else tex->nor= NULL;
 	}
 	
 	rgb= multitex(tex, texvec, dxt, dyt, 0);
