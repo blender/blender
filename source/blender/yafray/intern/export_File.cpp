@@ -1222,7 +1222,7 @@ void yafrayFileRender_t::writePathlight()
 bool yafrayFileRender_t::writeWorld()
 {
 	World *world = G.scene->world;
-
+	short i=0,j=0;
 	if (R.r.GIquality!=0) {
 		if (R.r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";
@@ -1232,6 +1232,42 @@ bool yafrayFileRender_t::writeWorld()
 	}
 
 	if (world==NULL) return false;
+
+	for(i=0;i<8;i++){
+		if(world->mtex[i] != NULL){
+			if(world->mtex[i]->tex->type == TEX_IMAGE && world->mtex[i]->tex->ima != NULL){
+				
+				for(j=0;j<160;j++){
+					if(world->mtex[i]->tex->ima->name[j] == '\0' && j > 3){
+						if(
+							(world->mtex[i]->tex->ima->name[j-3] == 'h' || world->mtex[i]->tex->ima->name[j-3] == 'H' ) &&
+							(world->mtex[i]->tex->ima->name[j-2] == 'd' || world->mtex[i]->tex->ima->name[j-2] == 'D' ) &&
+							(world->mtex[i]->tex->ima->name[j-1] == 'r' || world->mtex[i]->tex->ima->name[j-1] == 'R' )
+							){
+								ostr.str("");
+								ostr << "<background type=\"HDRI\" name=\"world_background\" ";
+								ostr << "exposure_adjust = \"";
+								ostr << (world->mtex[i]->tex->bright-1) << "\"";									
+								ostr << " mapping = \"probe\" ";
+								ostr << ">\n";
+								ostr << "<filename value=\"" << world->mtex[i]->tex->ima->name << "\"/>\n";
+								ostr << "</background>\n\n";
+								xmlfile << ostr.str();
+								return true;						
+						}
+					}
+				}
+
+				ostr.str("");
+				ostr << "<background type=\"image\" name=\"world_background\" power=\"";
+				ostr << world->mtex[i]->tex->bright << "\">\n";
+				ostr << "<filename value=\"" << world->mtex[i]->tex->ima->name << "\"/>\n";
+				ostr << "</background>\n\n";
+				xmlfile << ostr.str();
+				return true;
+			}
+		}
+	}
 
 	ostr.str("");
 	ostr << "<background type=\"constant\" name=\"world_background\" >\n";
