@@ -66,6 +66,7 @@
 #include "BDR_editobject.h"
 #include "BDR_drawmesh.h"
 
+	
 #include "BIF_gl.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
@@ -74,6 +75,8 @@
 #include "BIF_resources.h"
 #include "BIF_interface.h"
 #include "BIF_editsima.h"
+
+#include "BSE_trans_types.h"
 
 /* Modules used */
 #include "mydevice.h"
@@ -762,6 +765,32 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	image_editvertex_buts(block);
 }
 
+static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
+{
+	extern VPaint Gvp;         /* from vpaint - this was copied from the paint panel*/
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_panel_paint", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_PAINT);  // for close and esc
+	if(uiNewPanel(curarea, block, "Paint", "Image", 10, 230, 318, 204)==0)
+		return;
+
+	/* Here we will define our stuff  - this was copied from the paint panel*/
+		
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
+	uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
+	uiDefButF(block, NUMSLI, 0, "B ",			979,120,194,19, &Gvp.b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
+	uiBlockEndAlign(block);
+
+	uiDefButF(block, NUMSLI, 0, "Opacity ",		979,100,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+	uiDefButF(block, NUMSLI, 0, "Size ",		979,80,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+
+	uiDefButF(block, COL, B_VPCOLSLI, "",		1176,100,28,80, &(Gvp.r), 0, 0, 0, 0, "");
+}
+
+
 static void image_blockhandlers(ScrArea *sa)
 {
 	SpaceImage *sima= sa->spacedata.first;
@@ -776,7 +805,9 @@ static void image_blockhandlers(ScrArea *sa)
 		case IMAGE_HANDLER_PROPERTIES:
 			image_panel_properties(sima->blockhandler[a+1]);
 			break;
-		
+		case IMAGE_HANDLER_PAINT:
+			image_panel_paint(sima->blockhandler[a+1]);
+			break;		
 		}
 		/* clear action value for event */
 		sima->blockhandler[a+1]= 0;

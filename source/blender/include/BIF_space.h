@@ -59,6 +59,7 @@ struct BWinEvent;
 
 /* image handler codes */
 #define IMAGE_HANDLER_PROPERTIES	30
+#define IMAGE_HANDLER_PAINT			31
 
 /* action handler codes */
 #define ACTION_HANDLER_PROPERTIES	40

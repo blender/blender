@@ -381,6 +381,12 @@ static void do_image_viewmenu(void *arg, int event)
 			G.f |= G_DRAWFACES;
 		allqueue(REDRAWIMAGE, 0);
 		break;
+	case 7: /* Properties  Panel */
+		add_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
+		break;
+	case 8: /* Paint Panel... */
+		add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -393,6 +399,10 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Paint Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+
 	
 	if(G.f & G_DRAWFACES) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Faces", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Faces|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
