@@ -91,7 +91,7 @@ short IMB_png_encode(struct ImBuf *ibuf, int file, int flags)
 	unsigned char *pixels = 0;
 	unsigned char *from, *to;
 	png_bytepp row_pointers = 0;
-	int i, bytesperpixel, color_type;
+	int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
 	FILE *fp = 0;
 
 	bytesperpixel = (ibuf->depth + 7) >> 3;

@@ -247,7 +247,7 @@ short imb_savetarga(struct ImBuf * ibuf, int file, int flags)
 	char buf[20];
 	FILE *fildes;
 	int i;
-	short ok;
+	short ok = 0;
 
 	if (ibuf == 0) return (0);
 	if (ibuf->rect == 0) return (0);
