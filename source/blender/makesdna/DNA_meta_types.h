@@ -89,6 +89,7 @@ typedef struct MetaBall {
 #define MB_UPDATE_ALWAYS	0
 #define MB_UPDATE_HALFRES	1
 #define MB_UPDATE_FAST		2
+#define MB_UPDATE_NEVER		3
 
 /* ml->type */
 #define MB_BALL		0

@@ -1334,6 +1334,7 @@ static void editing_panel_mball_type(Object *ob, MetaBall *mb)
 	uiDefButS(block, ROW, B_DIFF, "Always",	471, 85, 120, 19, &mb->flag, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, ROW, B_DIFF, "Half Res",	471, 65, 120, 19, &mb->flag, 0.0, 1.0, 0, 0, "");
 	uiDefButS(block, ROW, B_DIFF, "Fast",		471, 45, 120, 19, &mb->flag, 0.0, 2.0, 0, 0, "");
+	uiDefButS(block, ROW, B_DIFF, "Never",		471, 25, 120, 19, &mb->flag, 0.0, 3.0, 0, 0, "");
 
 }
 
