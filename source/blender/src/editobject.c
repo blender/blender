@@ -734,7 +734,7 @@ void make_parent(void)
 			while(base) {
 				if TESTBASELIB(base) {
 					if(base!=BASACT) {
-						float cmat[4][4], vec[3], size[3], tmpvec[3];
+						float cmat[4][4], vec[3], size[3];
 
 						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
 						strcpy (con->name, "AutoPath");
@@ -745,10 +745,7 @@ void make_parent(void)
 						add_constraint_to_object(con, base->object);
 
 						get_constraint_target(con, TARGET_OBJECT, NULL, cmat, size, G.scene->r.cfra - base->object->sf);
-						tmpvec[0] = base->object->obmat[3][0];
-						tmpvec[1] = base->object->obmat[3][1];
-						tmpvec[2] = base->object->obmat[3][2];
-						VecSubf(vec, tmpvec, cmat[3]);
+						VecSubf(vec, base->object->obmat[3], cmat[3]);
 
 						base->object->loc[0] = vec[0];
 						base->object->loc[1] = vec[1];
@@ -3855,6 +3852,11 @@ void transform(int mode)
 	char str[100];
 	int	keyflags = 0;
 
+	float addvec[3] = {0,0,0}; // for new typing code
+	short ax = 0, del = 0, typemode = 0; // also for new typing thingy
+	short pe[3] = {0,0,0}; // again for the same thing. Determines if the period key has been pressed.
+	short mi[3] = {1,1,1}; // same thing again. Determines whether or not the minus key has been pressed (in order to add or substract new numbers).
+
 	short drawhelpline = 0; // for new help lines code.
 	float vx[3] = {1,0,0}, vy[3] = {0,1,0}, vz[3] = {0,0,1};
 		
@@ -4121,6 +4123,12 @@ void transform(int mode)
 				}
 				else window_to_3d(dvec, mval[0]-xn, mval[1]-yn);
 
+				if (typemode){
+					dvec[0] = addvec[0];
+					dvec[1] = addvec[1];
+					dvec[2] = addvec[2];
+				}
+
 				/* grids */
 				if(G.qual & LR_SHIFTKEY) {
 					dvec[0]= 0.1*(dvec[0]-d_dvec[0])+d_dvec[0];
@@ -4190,7 +4198,20 @@ void transform(int mode)
 						}
 
 					}
-					sprintf(str, "Dx: %.4f   Dy: %.4f  Dz: %.4f", dvec[0], dvec[1], dvec[2]);
+					if (typemode){
+						switch (ax){
+						case 0:
+							sprintf(str, "%sDx: >%.4f<   Dy: %.4f  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
+							break;
+						case 1:
+							sprintf(str, "%sDx: %.4f   Dy: >%.4f<  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
+							break;
+						case 2:
+							sprintf(str, "%sDx: %.4f   Dy: %.4f  Dz: >%.4f<", gmode, dvec[0], dvec[1], dvec[2]);
+						}
+					}
+					else
+						sprintf(str, "%sDx: %.4f   Dy: %.4f  Dz: %.4f", gmode, dvec[0], dvec[1], dvec[2]);
 					headerprint(str);
 
 					time= my_clock();
@@ -4210,20 +4231,28 @@ void transform(int mode)
 				}
 			}
 			else if(mode=='r' || mode=='t' || mode=='R') {
+				int turntable = 0;
 				doit= 0;
 				keyflags |= KEYFLAG_ROT;
 				dx2= xc-mval[0];
 				dy2= yc-mval[1];
 				
 				if(midtog && (mode=='r' || mode=='R')) {
+					turntable = 1;
 					phi0+= .007*(float)(dy2-dy1);
 					phi1+= .007*(float)(dx1-dx2);
 				
 					apply_keyb_grid(&phi0, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & AUTOROTGRID);
 					apply_keyb_grid(&phi1, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & AUTOROTGRID);
 
+					if(typemode){
+						VecRotToMat3(rot0, addvec[1]*M_PI/180.0, smat);
+						VecRotToMat3(rot1, addvec[2]*M_PI/180.0, totmat);
 
-					if(oldval[0]!=phi0 || oldval[1]!=phi1) {
+						Mat3MulMat3(mat, smat, totmat);
+						doit= 1;
+					}
+					else if(oldval[0]!=phi0 || oldval[1]!=phi1){
 						VecRotToMat3(rot0, phi0, smat);
 						VecRotToMat3(rot1, phi1, totmat);
 
@@ -4247,18 +4276,32 @@ void transform(int mode)
 						else phi+= dphi;
 						
 						apply_keyb_grid(&phi, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, gridflag & AUTOROTGRID);
+
+						if(axismode) {
+							if(axismode==XTRANS) vec[0]= -1.0; else vec[0]= 0.0;
+							if(axismode==YTRANS) vec[1]= 1.0; else vec[1]= 0.0;
+							if(axismode==ZTRANS) vec[2]= -1.0; else vec[2]= 0.0;
+							if (G.obedit){
+								if (axismode == XTRANSLOCAL) VECCOPY(vec, G.obedit->obmat[0]);
+								if (axismode == YTRANSLOCAL) VECCOPY(vec, G.obedit->obmat[1]);
+								if (axismode == ZTRANSLOCAL) VECCOPY(vec, G.obedit->obmat[2]);
+								if (axismode & TRANSLOCAL) VecMulf(vec, -1.0);
+							}
+						}
 						
-						if(oldval[2]!=phi) {
+						if(typemode){
+							doit= 1;
+							if(axismode) {
+								VecRotToMat3(vec, addvec[0]*M_PI/180.0, mat);
+							}
+							else VecRotToMat3(rot2, addvec[0]*M_PI/180.0, mat);
+						}
+						else if(oldval[2]!=phi) {
 							dx1= dx2; 
 							dy1= dy2;
 							oldval[2]= phi;
 							doit= 1;
 							if(axismode) {
-
-								if(axismode==XTRANS) vec[0]= -1.0; else vec[0]= 0.0;
-								if(axismode==YTRANS) vec[1]= 1.0; else vec[1]= 0.0;
-								if(axismode==ZTRANS) vec[2]= -1.0; else vec[2]= 0.0;
-							
 								VecRotToMat3(vec, phi, mat);
 							}
 							else VecRotToMat3(rot2, phi, mat);
@@ -4281,7 +4324,8 @@ void transform(int mode)
 						
 							/* Roll around local axis */
 							if (mode=='r' || mode=='R'){
-								if (tob && axismode){
+
+								if (tob && axismode && (turntable == 0)){
 									if (axismode == XTRANSLOCAL){ 
 										VECCOPY(vec, tob->axismat[0]);
 									}
@@ -4291,7 +4335,6 @@ void transform(int mode)
 									if (axismode == ZTRANSLOCAL){
 										VECCOPY(vec, tob->axismat[2]);
 									}
-									
 									/* Correct the vector */
 									if ((axismode & TRANSLOCAL) && ((G.vd->viewmat[0][2] * vec[0]+G.vd->viewmat[1][2] * vec[1]+G.vd->viewmat[2][2] * vec[2])>0)){
 										vec[0]*=-1;
@@ -4299,7 +4342,10 @@ void transform(int mode)
 										vec[2]*=-1;
 									}
 
-									VecRotToMat3(vec, phi, mat);
+									if (typemode)
+										VecRotToMat3(vec, addvec[0] * M_PI / 180.0, mat);
+									else
+										VecRotToMat3(vec, phi, mat);
 								}
 							}
 								Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0, 0, 0, 0);
@@ -4411,11 +4457,23 @@ void transform(int mode)
 								if(mode=='R') {
 
 									if(midtog) {
-										VecRotToMat3(rot0, tv->fac*phi0, smat);
-										VecRotToMat3(rot1, tv->fac*phi1, totmat);
+										if (typemode){
+											VecRotToMat3(rot0, tv->fac*addvec[1] * M_PI / 180.0, smat);
+											VecRotToMat3(rot1, tv->fac*addvec[2] * M_PI / 180.0, totmat);
+										}
+										else{
+											VecRotToMat3(rot0, tv->fac*phi0, smat);
+											VecRotToMat3(rot1, tv->fac*phi1, totmat);
+										}
+
 										Mat3MulMat3(mat, smat, totmat);
 									}
-									else VecRotToMat3(rot2, tv->fac*phi, mat);
+									else {
+										if (typemode)
+											VecRotToMat3(rot2, tv->fac*addvec[0] * M_PI / 180.0, mat);
+										else
+											VecRotToMat3(rot2, tv->fac*phi, mat);
+									}
 									
 								}
 
@@ -4430,16 +4488,41 @@ void transform(int mode)
 						}
 					}
 					
-					if(midtog) sprintf(str, "Rotx: %.2f  Roty: %.2f", 180.0*phi0/M_PI, 180.0*phi1/M_PI);
-					else if(axismode) {
-						if(axismode==XTRANS) sprintf(str, "Rot X: %.2f", 180.0*phi/M_PI);
-						else if(axismode==YTRANS) sprintf(str, "Rot Y: %.2f", 180.0*phi/M_PI);
-						else if(axismode==ZTRANS) sprintf(str, "Rot Z: %.2f", 180.0*phi/M_PI);
-						else if(axismode==XTRANSLOCAL) sprintf(str, "Local Rot X: %.2f", 180.0*phi/M_PI);
-						else if(axismode==YTRANSLOCAL) sprintf(str, "Local Rot Y: %.2f", 180.0*phi/M_PI);
-						else if(axismode==ZTRANSLOCAL) sprintf(str, "Local Rot Z: %.2f", 180.0*phi/M_PI);
+					
+					if(midtog){
+						if (typemode){
+							if (ax == 1)
+								sprintf(str, "Rotx: >%.2f<  Roty: %.2f", addvec[1], addvec[2]);
+							if (ax == 2)
+								sprintf(str, "Rotx: %.2f  Roty: >%.2f<", addvec[1], addvec[2]);
+						}
+						else
+							sprintf(str, "Rotx: %.2f  Roty: %.2f", 180.0*phi0/M_PI, 180.0*phi1/M_PI);
 					}
-					else sprintf(str, "Rot: %.2f", 180.0*phi/M_PI);
+					else if(axismode) {
+						if (typemode){
+							if(axismode==XTRANS) sprintf(str, "Rot X: >%.2f<", 180.0*phi/M_PI, addvec[0]);
+							else if(axismode==YTRANS) sprintf(str, "Rot Y: >%.2f<", addvec[0]);
+							else if(axismode==ZTRANS) sprintf(str, "Rot Z: >%.2f<", addvec[0]);
+							else if(axismode==XTRANSLOCAL) sprintf(str, "Local Rot X: >%.2f<", addvec[0]);
+							else if(axismode==YTRANSLOCAL) sprintf(str, "Local Rot Y: >%.2f<", addvec[0]);
+							else if(axismode==ZTRANSLOCAL) sprintf(str, "Local Rot Z: >%.2f<", addvec[0]);
+						}
+						else{
+							if(axismode==XTRANS) sprintf(str, "Rot X: %.2f", 180.0*phi/M_PI);
+							else if(axismode==YTRANS) sprintf(str, "Rot Y: %.2f", 180.0*phi/M_PI);
+							else if(axismode==ZTRANS) sprintf(str, "Rot Z: %.2f", 180.0*phi/M_PI);
+							else if(axismode==XTRANSLOCAL) sprintf(str, "Local Rot X: %.2f", 180.0*phi/M_PI);
+							else if(axismode==YTRANSLOCAL) sprintf(str, "Local Rot Y: %.2f", 180.0*phi/M_PI);
+							else if(axismode==ZTRANSLOCAL) sprintf(str, "Local Rot Z: %.2f", 180.0*phi/M_PI);
+						}
+					}
+					else{
+						if (typemode)
+							sprintf(str, "Rot: >%.2f<", addvec[0]);
+						else
+							sprintf(str, "Rot: %.2f", 180.0*phi/M_PI);
+					}
 					headerprint(str);
 					
 					time= my_clock();
@@ -4669,6 +4752,7 @@ void transform(int mode)
 				}
 			}
 			else if(mode=='w') {
+				float Dist1;
 				
 				window_to_3d(dvec, 1, 1);
 				
@@ -4676,15 +4760,20 @@ void transform(int mode)
 	
 				/* calc angle for print */
 				dist= max[0]-centre[0];
+				Dist1 = dist;
 				phi0= 360*omtrekfac*dist/(rad*M_PI);
+
+				if ((typemode) && (addvec[0])){
+					phi0 = addvec[0];
+				}
 				
-				if(G.qual & LR_CTRLKEY) {
+				if((G.qual & LR_CTRLKEY) && (typemode == 0)){
 					phi0= 5.0*floor(phi0/5.0);
 					omtrekfac= (phi0*rad*M_PI)/(360.0*dist);
 				}
 				
 				
-				sprintf(str, "Warp %3.3f", phi0); 
+				sprintf(str, "Warp %3.3f (%3.3f)", phi0, addvec[0]); 
 				headerprint(str);
 	
 				/* each vertex transform individually */
@@ -4701,8 +4790,11 @@ void transform(int mode)
 						Mat4MulVecfl(G.vd->viewmat, vec);
 								
 						dist= vec[0]-centre[0];
-					
-						phi0= (omtrekfac*dist/rad) - 0.5*M_PI;
+
+						if ((typemode) && (addvec[0]))
+							phi0= (phi0*dist*M_PI/(360*Dist1)) - 0.5*M_PI;
+						else
+							phi0= (omtrekfac*dist/rad) - 0.5*M_PI;
 					
 						co= cos(phi0);
 						si= sin(phi0);
@@ -4804,6 +4896,8 @@ void transform(int mode)
 		}
 		
 		while( qtest() ) {
+			float add_num = 0; // numerical value to be added
+
 			event= extern_qread(&val);
 			
 			if(val) {
@@ -4836,11 +4930,10 @@ void transform(int mode)
 					else
 						axismode = 0;
 
-/* typety type code
 					if ((mode == 'r') || (mode == 'R')){
 						if (midtog){ax = 1;}
 						else{ax = 0;}
-					}*/
+					}
 					firsttime= 1;
 					break;
 				case GKEY:
@@ -5005,6 +5098,240 @@ void transform(int mode)
 				case LEFTCTRLKEY:
 				case RIGHTCTRLKEY:
 					firsttime= 1;
+					break;
+				case NKEY:
+					{
+						// toggle between typemode = 0 and typemode = 1
+						typemode *= -1;
+						typemode += 1;
+						firsttime = 1;
+					}
+					break;
+				case BACKSPACEKEY:
+					{
+						if (typemode){
+							if (((mode == 's') && (ax == 0)) || (mode == 'N')){
+								addvec[0]=addvec[1]=addvec[2]=0;
+								pe[0]=pe[1]=pe[2]=0;
+								mi[0]=mi[1]=mi[2]=1;
+							}
+							else if (del == 1){
+								addvec[0]=addvec[1]=addvec[2]=0;
+								pe[0]=pe[1]=pe[2]=0;
+								mi[0]=mi[1]=mi[2]=1;
+								del = 0;
+							}
+							else if (mode == 's'){
+								addvec[ax-1]=0;
+								pe[ax-1]=0;
+								mi[ax-1]=1;
+								del = 1;
+							}
+							else if ((mode == 'r') || (mode == 'R')){
+								phi -= M_PI * addvec[ax] / 180;
+								addvec[ax] = 0;
+								pe[ax]=0;
+								mi[ax]=1;
+								del = 1;
+							}
+							else{
+								addvec[ax] = 0;
+								pe[ax]=0;
+								mi[ax]=1;
+								del = 1;
+							}
+						}
+						else{
+							getmouseco_areawin(mval);
+							xn=xo= mval[0];
+							yn=xo= mval[1];
+							dx1= xc-xn; 
+							dy1= yc-yn;
+							phi= phi0= phi1= 0.0;
+							sizefac= sqrt( (float)((yc-yn)*(yc-yn)+(xn-xc)*(xn-xc)) );
+							if(sizefac<2.0) sizefac= 2.0;
+						}
+						firsttime = 1;
+						break;
+					}
+				case PERIODKEY:
+					{
+						typemode = 1;
+						del = 0;
+						if (((mode == 's') && (ax == 0)) || (mode == 'N')){
+							if (pe[0] == 0){pe[0] = 1;}
+							if (pe[1] == 0){pe[1] = 1;}
+							if (pe[2] == 0){pe[2] = 1;}
+						}
+						else if (mode == 's'){
+							if (pe[ax-1] == 0){pe[ax-1] = 1;}
+						}
+						else{
+							if (pe[ax] == 0){pe[ax] = 1;}
+						}
+						break;
+					}
+				case MINUSKEY:
+					{
+						del = 0;
+						if (((mode == 's') && (ax==0)) || (mode == 'N')){
+							addvec[0]*=-1;
+							mi[0] *= -1;
+							addvec[1]*=-1;
+							mi[1] *= -1;
+							addvec[2]*=-1;
+							mi[2] *= -1;
+						}
+						else if (mode == 's'){
+							addvec[ax-1]*=-1;
+							mi[ax-1] *= -1;
+						}
+						else{
+							addvec[ax]*=-1;
+							mi[ax] *= -1;
+						}
+						firsttime = 1;
+						break;
+					}
+				case TABKEY:
+					{
+						typemode = 1;
+						del = 0;
+						if ((mode == 'S') || (mode == 'w') || (mode == 'C') || (mode == 'N'))
+							break;
+						if ((mode != 'r') && (mode != 'R')){
+							ax += 1;
+							if (mode == 's'){
+								if (ax == 4){ax=0;}
+							}
+							else if (ax == 3){ax=0;}
+							firsttime = 1;
+						}
+						else if (((mode == 'r') || (mode == 'R')) && (midtog)){
+							ax += 1;
+							if (ax == 3){ax = 1;}
+							firsttime = 1;
+						}
+						break;
+					}
+				case PAD9:
+				case NINEKEY:
+					{add_num += 1;}
+				case PAD8:
+				case EIGHTKEY:
+					{add_num += 1;}
+				case PAD7:
+				case SEVENKEY:
+					{add_num += 1;}
+				case PAD6:
+				case SIXKEY:
+					{add_num += 1;}
+				case PAD5:
+				case FIVEKEY:
+					{add_num += 1;}
+				case PAD4:
+				case FOURKEY:
+					{add_num += 1;}
+				case PAD3:
+				case THREEKEY:
+					{add_num += 1;}
+				case PAD2:
+				case TWOKEY:
+					{add_num += 1;}
+				case PAD1:
+				case ONEKEY:
+					{add_num += 1;}
+				case PAD0:
+				case ZEROKEY:
+					{
+						typemode = 1;
+						del = 0;
+						if (mode == 's'){
+							if (ax == 0){
+								if (pe[0]){
+									int div = 1;
+									int i;
+									for (i = 0; i < pe[ax]; i++){div*=10;}
+									addvec[0] += mi[0] * add_num / div;
+									pe[0]+=1;
+									addvec[1] += mi[1] * add_num / div;
+									pe[1]+=1;
+									addvec[2] += mi[2] * add_num / div;
+									pe[2]+=1;
+								}
+								else{
+									addvec[0] *= 10;
+									addvec[0] += mi[0] * add_num;
+									addvec[1] *= 10;
+									addvec[1] += mi[1] * add_num;
+									addvec[2] *= 10;
+									addvec[2] += mi[2] * add_num;
+								}
+							}
+							else{
+								if (pe[ax-1]){
+									int div = 1;
+									int i;
+									for (i = 0; i < pe[ax-1]; i++){div*=10;}
+									addvec[ax-1] += mi[ax-1] * add_num / div;
+									pe[ax-1]+=1;
+								}
+								else{
+									addvec[ax-1] *= 10;
+									addvec[ax-1] += mi[ax-1] * add_num;
+								}
+							}
+							
+						}
+						else if (mode == 'N'){
+								if (pe[0]){
+									int div = 1;
+									int i;
+									for (i = 0; i < pe[ax]; i++){div*=10;}
+									addvec[0] += mi[0] * add_num / div;
+									pe[0]+=1;
+									addvec[1] += mi[1] * add_num / div;
+									pe[1]+=1;
+									addvec[2] += mi[2] * add_num / div;
+									pe[2]+=1;
+								}
+								else{
+									addvec[0] *= 10;
+									addvec[0] += mi[0] * add_num;
+									addvec[1] *= 10;
+									addvec[1] += mi[1] * add_num;
+									addvec[2] *= 10;
+									addvec[2] += mi[2] * add_num;
+								}
+						}
+						else if ((mode == 'r') || (mode == 'R')){
+							if (pe[ax]){
+								int div = 1;
+								int i;
+								for (i = 0; i < pe[ax]; i++){div*=10;}
+								addvec[ax] += mi[ax] * add_num / div;
+								pe[ax]+=1;
+							}
+							else{
+								addvec[ax] *= 10;
+								addvec[ax] += mi[ax] * add_num;
+							}
+						}
+						else{
+							if (pe[ax]){
+								int div = 1;
+								int i;
+								for (i = 0; i < pe[ax]; i++){div*=10;}
+								addvec[ax] += mi[ax] * add_num / div;
+								pe[ax]+=1;
+							}
+							else{
+								addvec[ax] *= 10;
+								addvec[ax] += mi[ax] * add_num;
+							}
+						}
+						firsttime=1;
+					}
 					break;
 				}
 	
