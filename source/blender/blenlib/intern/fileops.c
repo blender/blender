@@ -198,9 +198,10 @@ void BLI_recurdir_fileops(char *dirname) {
 		*lslash = 0;
 		BLI_recurdir_fileops(tmp);
 	}
-
-	if (!CreateDirectory(dirname, NULL))
-		callLocalErrorCallBack("Unable to create directory\n");
+	
+	if(dirname[0]) /* patch, this recursive loop tries to create a nameless directory */
+		if (!CreateDirectory(dirname, NULL))
+			callLocalErrorCallBack("Unable to create directory\n");
 }
 
 int BLI_rename(char *from, char *to) {
