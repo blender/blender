@@ -107,6 +107,7 @@ static PyObject *Curve_getNumPoints (BPy_Curve * self, PyObject * args);
 static PyObject *Curve_getNumPoints (BPy_Curve * self, PyObject * args);
 
 static PyObject *Curve_appendPoint (BPy_Curve * self, PyObject * args);
+static PyObject *Curve_appendNurb (BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getMaterials (BPy_Curve * self);
 
@@ -205,17 +206,12 @@ Sets a control point "},
 	 "(nothing or integer) - returns the number of points of the specified curve"},
 	{"appendPoint", (PyCFunction) Curve_appendPoint, METH_VARARGS,
 	 "( int numcurve, list of coordinates) - adds a new point to end of curve"},
+	{"appendNurb", (PyCFunction) Curve_appendNurb, METH_VARARGS,
+	 "( new_nurb ) - adds a new nurb to the Curve"},
 	{"update", (PyCFunction) Curve_update, METH_NOARGS,
 	 "( ) - updates display lists after changes to Curve"},
 	{"getMaterials", (PyCFunction) Curve_getMaterials, METH_NOARGS,
 	 "() - returns list of materials assigned to this Curve"},
-#if 0
-// fixme
-	{"getIter", (PyCFunction) Curve_getIter, METH_NOARGS,
-	 "() - returns an iterator for the curves that make up the Curve"},
-	{"iterNext", (PyCFunction) Curve_iterNext, METH_NOARGS,
-	 "() - returns the next curve or NULL if at end of list "},
-#endif
 	{NULL, NULL, 0, NULL}
 };
 
@@ -285,7 +281,7 @@ PyTypeObject Curve_Type = {
 
 	/* new release 2.2 stuff - Iterators */
 	(getiterfunc) Curve_getIter,	/* tp_iter */
-	(iternextfunc) Curve_iterNext,	/* tp_iternext *//* was Curve_iterNext */
+	(iternextfunc) Curve_iterNext,	/* tp_iternext */
 
 	/*  Attribute descriptor and subclassing stuff */
 	BPy_Curve_methods,	/* tp_methods */
@@ -763,7 +759,6 @@ static PyObject *Curve_setControlPoint (BPy_Curve * self, PyObject * args)
 	for(i = 0; i < numcourbe; i++)
 		ptrnurb = ptrnurb->next;
 
-	/* fixme: case where ->bp && ->bezt are both NULL is not handled */
 	if(ptrnurb->bp)
 		for(i = 0; i < 4; i++)
 			ptrnurb->bp[numpoint].vec[i] =
@@ -1071,7 +1066,7 @@ static PyObject *Curve_appendPoint (BPy_Curve * self, PyObject * args)
 	PyObject* coord_args;  /* coords for new point */
 	Nurb* nurb = self->curve->nurb.first;  /* first nurb in Curve */
 
-// fixme - need to malloc new Nurb
+/* fixme - need to malloc new Nurb */
 	if( ! nurb )
 		return( EXPP_ReturnPyObjError
 			( PyExc_AttributeError,
@@ -1098,6 +1093,63 @@ static PyObject *Curve_appendPoint (BPy_Curve * self, PyObject * args)
 }
 
 
+static PyObject *Curve_appendNurb (BPy_Curve * self, PyObject * args )
+{
+	Nurb *nurb_ptr = self->curve->nurb.first;
+	Nurb **pptr = (Nurb**) &( self->curve->nurb.first );
+	Nurb *new_nurb;
+
+	
+	/* walk to end of nurblist */
+	if( nurb_ptr){
+		while( nurb_ptr->next ) {
+			nurb_ptr = nurb_ptr->next;
+		}
+		pptr = &nurb_ptr->next;
+	}
+
+	/* malloc new nurb */
+	new_nurb = (Nurb*)MEM_callocN( sizeof(Nurb), "appendNurb");
+	if( !new_nurb)
+		return EXPP_ReturnPyObjError
+			(PyExc_MemoryError,
+			 "unable to malloc Nurb");
+
+	if( CurNurb_appendPointToNurb( new_nurb, args )){
+		*pptr = new_nurb;
+		new_nurb->resolu = 12;
+		new_nurb->resolv = 12;
+
+		if( new_nurb->bezt ){ /* do setup for bezt */
+			new_nurb->type = CU_BEZIER;
+			new_nurb->bezt->h1 = HD_ALIGN;
+			new_nurb->bezt->h2 = HD_ALIGN;
+			new_nurb->bezt->f1 = 1;
+			new_nurb->bezt->f2 = 1;
+			new_nurb->bezt->f3 = 1;
+			/* calchandlesNurb( new_nurb ); */
+		}
+		else{ /* set up bp */
+			new_nurb->pntsv = 1;
+			new_nurb->type = CU_NURBS;
+			new_nurb->orderu = 4;
+			new_nurb->flagu = 0;
+			new_nurb->flagv = 0;
+			new_nurb->bp->f1 = 0;
+			new_nurb->knotsu=0;
+			/*makenots( new_nurb, 1, new_nurb->flagu >> 1); */
+		}
+		
+	}
+	else{
+		freeNurb( new_nurb);
+		return NULL; /* with PyErr already set */
+	}
+	
+	return EXPP_incr_ret (Py_None);
+}
+
+
 /* 
  *   Curve_update( )
  *   method to update display list for a Curve.
@@ -1106,7 +1158,6 @@ static PyObject *Curve_appendPoint (BPy_Curve * self, PyObject * args)
 
 static PyObject *Curve_update( BPy_Curve *self )
 {
-	
 	update_displists( (void*) self->curve );
 
 	Py_INCREF (Py_None);

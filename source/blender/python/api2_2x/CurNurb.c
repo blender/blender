@@ -52,17 +52,17 @@ stuff in this section should be placed in bpy_types.h
 
 
 extern PyMethodDef BPy_CurNurb_methods[];
-PyObject *CurNurb_CreatePyObject( Nurb * blen_nurb );
-static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args );
-static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self );
+PyObject *CurNurb_CreatePyObject (Nurb * blen_nurb);
+static PyObject *CurNurb_setMatIndex (BPy_CurNurb * self, PyObject * args);
+static PyObject *CurNurb_getMatIndex (BPy_CurNurb * self);
 /* static PyObject* CurNurb_setXXX( BPy_CurNurb* self, PyObject* args ); */
-PyObject* CurNurb_getPoint( BPy_CurNurb* self, int index );
-static int CurNurb_length( PyInstanceObject *inst);
+PyObject *CurNurb_getPoint (BPy_CurNurb * self, int index);
+static int CurNurb_length (PyInstanceObject * inst);
 static PyObject *CurNurb_getIter (BPy_CurNurb * self);
 static PyObject *CurNurb_iterNext (BPy_CurNurb * self);
-PyObject* CurNurb_append( BPy_CurNurb* self, PyObject* args );
-PyObject* CurNurb_pointAtIndex( Nurb* nurb, int index );
-static PyObject *CurNurb_isNurb( BPy_CurNurb* self );
+PyObject *CurNurb_append (BPy_CurNurb * self, PyObject * args);
+PyObject *CurNurb_pointAtIndex (Nurb * nurb, int index);
+static PyObject *CurNurb_isNurb (BPy_CurNurb * self);
 
 char M_CurNurb_doc[] = "CurNurb";
 
@@ -71,42 +71,42 @@ char M_CurNurb_doc[] = "CurNurb";
   CurNurb_Type callback function prototypes:                          
 */
 
-static void CurNurb_dealloc( BPy_CurNurb * self );
-static int CurNurb_compare( BPy_CurNurb * a, BPy_CurNurb * b );
-static PyObject *CurNurb_getAttr( BPy_CurNurb * self, char *name );
-static int CurNurb_setAttr( BPy_CurNurb * self, char *name, PyObject * v );
-static PyObject *CurNurb_repr( BPy_CurNurb * self );
+static void CurNurb_dealloc (BPy_CurNurb * self);
+static int CurNurb_compare (BPy_CurNurb * a, BPy_CurNurb * b);
+static PyObject *CurNurb_getAttr (BPy_CurNurb * self, char *name);
+static int CurNurb_setAttr (BPy_CurNurb * self, char *name, PyObject * v);
+static PyObject *CurNurb_repr (BPy_CurNurb * self);
 
 
 
 
-void CurNurb_dealloc( BPy_CurNurb * self )
+void CurNurb_dealloc (BPy_CurNurb * self)
 {
-	PyObject_DEL( self );
+	PyObject_DEL (self);
 }
 
 
 
-static PyObject *CurNurb_getAttr( BPy_CurNurb * self, char *name )
+static PyObject *CurNurb_getAttr (BPy_CurNurb * self, char *name)
 {
 	PyObject *attr = Py_None;
 
-	if( strcmp( name, "mat_index" ) == 0 )
-		attr = PyInt_FromLong( self->nurb->mat_nr );
+	if(strcmp (name, "mat_index") == 0)
+		attr = PyInt_FromLong (self->nurb->mat_nr);
 
-	else if( strcmp( name, "points" ) == 0 )
-		attr = PyInt_FromLong( self->nurb->pntsu );
+	else if(strcmp (name, "points") == 0)
+		attr = PyInt_FromLong (self->nurb->pntsu);
 
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create PyObject" );
+	if(!attr)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+					      "couldn't create PyObject");
 
 	/* member attribute found, return it */
-	if( attr != Py_None )
+	if(attr != Py_None)
 		return attr;
 
 	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_CurNurb_methods, ( PyObject * ) self, name );
+	return Py_FindMethod (BPy_CurNurb_methods, (PyObject *) self, name);
 }
 
 
@@ -114,39 +114,39 @@ static PyObject *CurNurb_getAttr( BPy_CurNurb * self, char *name )
   setattr
 */
 
-static int CurNurb_setAttr( BPy_CurNurb * self, char *name, PyObject * value )
+static int CurNurb_setAttr (BPy_CurNurb * self, char *name, PyObject * value)
 {
 	PyObject *valtuple;
 	PyObject *error = NULL;
 
 	/* make a tuple to pass to our type methods */
-	valtuple = Py_BuildValue( "(O)", value );
+	valtuple = Py_BuildValue ("(O)", value);
 
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "CurNurb.setAttr: cannot create pytuple" );
+	if(!valtuple)
+		return EXPP_ReturnIntError (PyExc_MemoryError,
+					    "CurNurb.setAttr: cannot create pytuple");
 
-	if( strcmp( name, "mat_index" ) == 0 )
-		error = CurNurb_setMatIndex( self, valtuple );
+	if(strcmp (name, "mat_index") == 0)
+		error = CurNurb_setMatIndex (self, valtuple);
 
 	else {			/* error - no match for name */
-		Py_DECREF( valtuple );
+		Py_DECREF (valtuple);
 
-		if( ( strcmp( name, "ZZZZ" ) == 0 ) ||	/* user tried to change a */
-		    ( strcmp( name, "ZZZZ" ) == 0 ) )	/* constant dict type ... */
-			return EXPP_ReturnIntError( PyExc_AttributeError,
-						    "constant dictionary -- cannot be changed" );
+		if((strcmp (name, "ZZZZ") == 0) ||	/* user tried to change a */
+		   (strcmp (name, "ZZZZ") == 0))	/* constant dict type ... */
+			return EXPP_ReturnIntError (PyExc_AttributeError,
+						    "constant dictionary -- cannot be changed");
 		else
-			return EXPP_ReturnIntError( PyExc_KeyError,
-						    "attribute not found" );
+			return EXPP_ReturnIntError (PyExc_KeyError,
+						    "attribute not found");
 	}
 
 
-	Py_DECREF( valtuple );	/* since it is not being returned */
-	if( error != Py_None )
+	Py_DECREF (valtuple);	/* since it is not being returned */
+	if(error != Py_None)
 		return -1;
 
-	Py_DECREF( Py_None );
+	Py_DECREF (Py_None);
 	return 0;		/* normal exit */
 }
 
@@ -156,12 +156,12 @@ static int CurNurb_setAttr( BPy_CurNurb * self, char *name, PyObject * value )
   blender data.
 */
 
-static int CurNurb_compare( BPy_CurNurb * a, BPy_CurNurb * b )
+static int CurNurb_compare (BPy_CurNurb * a, BPy_CurNurb * b)
 {
 	Nurb *pa = a->nurb;
 	Nurb *pb = b->nurb;
 
-	return ( pa == pb ) ? 0 : -1;
+	return (pa == pb) ? 0 : -1;
 }
 
 
@@ -169,34 +169,34 @@ static int CurNurb_compare( BPy_CurNurb * a, BPy_CurNurb * b )
   factory method to create a BPy_CurNurb from a Blender Nurb
 */
 
-PyObject *CurNurb_CreatePyObject( Nurb * blen_nurb )
+PyObject *CurNurb_CreatePyObject (Nurb * blen_nurb)
 {
 	BPy_CurNurb *pyNurb;
 
-	pyNurb = ( BPy_CurNurb * ) PyObject_NEW( BPy_CurNurb, &CurNurb_Type );
+	pyNurb = (BPy_CurNurb *) PyObject_NEW (BPy_CurNurb, &CurNurb_Type);
 
-	if( !pyNurb )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "could not create BPy_CurNurb PyObject" );
+	if(!pyNurb)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+					      "could not create BPy_CurNurb PyObject");
 
 	pyNurb->nurb = blen_nurb;
-	return ( PyObject * ) pyNurb;
+	return (PyObject *) pyNurb;
 }
 
 
 /*
  *  CurNurb_repr
  */
-static PyObject *CurNurb_repr( BPy_CurNurb * self )
+static PyObject *CurNurb_repr (BPy_CurNurb * self)
 {				/* used by 'repr' */
 
-	return PyString_FromFormat( "[CurNurb \"%d\"]", self->nurb->type );
+	return PyString_FromFormat ("[CurNurb \"%d\"]", self->nurb->type);
 }
 
 
-static PyObject *M_CurNurb_New( PyObject * self, PyObject * args )
+static PyObject *M_CurNurb_New (PyObject * self, PyObject * args)
 {
-	return ( PyObject * ) 0;
+	return (PyObject *) 0;
 
 }
 
@@ -208,11 +208,11 @@ static PyObject *M_CurNurb_New( PyObject * self, PyObject * args )
  * arg is BezTriple or list of xyzw floats 
  */
 
-PyObject* CurNurb_append( BPy_CurNurb* self, PyObject* args )
+PyObject *CurNurb_append (BPy_CurNurb * self, PyObject * args)
 {
-	Nurb* nurb = self->nurb;
+	Nurb *nurb = self->nurb;
 
-	return CurNurb_appendPointToNurb( nurb, args );
+	return CurNurb_appendPointToNurb (nurb, args);
 }
 
 
@@ -222,87 +222,92 @@ PyObject* CurNurb_append( BPy_CurNurb* self, PyObject* args )
  * this is a non-bpy utility func to add a point to a given nurb
  */
 
-PyObject* CurNurb_appendPointToNurb( Nurb* nurb, PyObject* args )
+PyObject *CurNurb_appendPointToNurb (Nurb * nurb, PyObject * args)
 {
 
 	int i;
 	int size;
-	PyObject* pyOb;
+	PyObject *pyOb;
 	int npoints;
 
 	/*
-	  do we have a list of four floats or a BezTriple?
-	*/
-	PyArg_ParseTuple( args, "O", &pyOb );
+	   do we have a list of four floats or a BezTriple?
+	 */
+	PyArg_ParseTuple (args, "O", &pyOb);
 
-	if( BezTriple_CheckPyObject( pyOb )){
-		BezTriple* tmp;
+	if(BezTriple_CheckPyObject (pyOb)) {
+		BezTriple *tmp;
 		npoints = nurb->pntsu;
 
 /*		printf("\ndbg: got a BezTriple\n"); */
-		tmp = nurb->bezt; /* save old points */
-		nurb->bezt = (BezTriple*)MEM_mallocN (
-			sizeof(BezTriple) * (npoints + 1), "CurNurb_append2");
+		tmp = nurb->bezt;	/* save old points */
+		nurb->bezt =
+			(BezTriple *) MEM_mallocN (sizeof (BezTriple) *
+						   (npoints + 1),
+						   "CurNurb_append2");
 
-		if( ! nurb->bezt )
-			return( EXPP_ReturnPyObjError
+		if(!nurb->bezt)
+			return (EXPP_ReturnPyObjError
 				(PyExc_MemoryError, "allocation failed"));
 
 		/* copy old points to new */
-		memmove( nurb->bezt, tmp, sizeof( BezTriple) * npoints );
-		MEM_freeN( tmp );
+		memmove (nurb->bezt, tmp, sizeof (BezTriple) * npoints);
+		if( tmp )
+			MEM_freeN (tmp);
 		nurb->pntsu++;
 		/* add new point to end of list */
-		memcpy( nurb->bezt + npoints, 
-			BezTriple_FromPyObject( pyOb),
-			sizeof( BezTriple));
-		
-	} else if( PySequence_Check( pyOb )) {
-		size = PySequence_Size( pyOb );
+		memcpy (nurb->bezt + npoints,
+			BezTriple_FromPyObject (pyOb), sizeof (BezTriple));
+
+	} else if(PySequence_Check (pyOb)) {
+		size = PySequence_Size (pyOb);
 /*		printf("\ndbg: got a sequence of size %d\n", size );  */
-		if( size == 4 ) {
-			BPoint* tmp;
+		if(size == 4) {
+			BPoint *tmp;
 			npoints = nurb->pntsu;
-			
-			tmp = nurb->bp;  /* save old pts */
-			
-			nurb->bp =(BPoint*)MEM_mallocN ( sizeof (BPoint) * (npoints + 1),
-							 "CurNurb_append1");
-			if( ! nurb->bp )
-				return( EXPP_ReturnPyObjError 
-					(PyExc_MemoryError, "allocation failed"));
-			
-			memmove( nurb->bp, tmp, sizeof(BPoint) * npoints );
-			MEM_freeN( tmp );
+
+			tmp = nurb->bp;	/* save old pts */
+
+			nurb->bp =
+				(BPoint *) MEM_mallocN (sizeof (BPoint) *
+							(npoints + 1),
+							"CurNurb_append1");
+			if(!nurb->bp)
+				return (EXPP_ReturnPyObjError
+					(PyExc_MemoryError,
+					 "allocation failed"));
+
+			memmove (nurb->bp, tmp, sizeof (BPoint) * npoints);
+			if( tmp) 
+				MEM_freeN (tmp);
 
 			++nurb->pntsu;
 			/* initialize new BPoint from old */
-			memcpy( nurb->bp + npoints, nurb->bp, sizeof (BPoint));
+			memcpy (nurb->bp + npoints, nurb->bp, sizeof (BPoint));
 
-			for( i=0; i < 4; ++i){
-				float tmpx = 
-					(float) PyFloat_AsDouble 
-					( PySequence_GetItem ( pyOb, i));
+			for(i = 0; i < 4; ++i) {
+				float tmpx =
+					(float) PyFloat_AsDouble
+					(PySequence_GetItem (pyOb, i));
 				nurb->bp[npoints].vec[i] = tmpx;
-				
-			}
-			
-			makeknots(nurb, 1, nurb->flagu >> 1);
 
-		}else if( size == 3 ){  /* 3 xyz coords */
-			printf("\nNot Yet Implemented!\n");
+			}
+
+			makeknots (nurb, 1, nurb->flagu >> 1);
+
+		} else if(size == 3) {	/* 3 xyz coords */
+			printf ("\nNot Yet Implemented!\n");
 
 		}
-		
+
 	} else {
 		/* bail with error */
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected better stuff" ) );
+		return (EXPP_ReturnPyObjError
+			(PyExc_AttributeError, "expected better stuff"));
 
 	}
-	
-	return (EXPP_incr_ret( Py_None ));
+
+	return (EXPP_incr_ret (Py_None));
 }
 
 
@@ -312,19 +317,18 @@ PyObject* CurNurb_appendPointToNurb( Nurb* nurb, PyObject* args )
  *  set index into material list
  */
 
-static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args )
+static PyObject *CurNurb_setMatIndex (BPy_CurNurb * self, PyObject * args)
 {
 	int index;
 
-	if( !PyArg_ParseTuple( args, "i", &( index ) ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected integer argument" ) );
+	if(!PyArg_ParseTuple (args, "i", &(index)))
+		return (EXPP_ReturnPyObjError
+			(PyExc_AttributeError, "expected integer argument"));
 
 	/* fixme:  some range checking would be nice! */
 	self->nurb->mat_nr = index;
 
-	Py_INCREF( Py_None );
+	Py_INCREF (Py_None);
 	return Py_None;
 }
 
@@ -334,15 +338,15 @@ static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args )
  * returns index into material list
  */
 
-static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self )
+static PyObject *CurNurb_getMatIndex (BPy_CurNurb * self)
 {
-	PyObject *index = PyInt_FromLong( ( long ) self->nurb->mat_nr );
+	PyObject *index = PyInt_FromLong ((long) self->nurb->mat_nr);
 
-	if( index )
+	if(index)
 		return index;
 
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"could not get material index" ) );
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				       "could not get material index"));
 }
 
 
@@ -361,40 +365,39 @@ static PyObject *CurNurb_getIter (BPy_CurNurb * self)
 	self->nextPoint = 0;
 
 	/* set exhausted flag if both bp and bezt are zero */
-	if( (!self->bp)  && (!self->bezt))
+	if((!self->bp) && (!self->bezt))
 		self->atEnd = 1;
 
-	Py_INCREF( self );
-	return (PyObject*) self;
+	Py_INCREF (self);
+	return (PyObject *) self;
 }
 
 
 
-static PyObject *CurNurb_iterNext( BPy_CurNurb * self )
+static PyObject *CurNurb_iterNext (BPy_CurNurb * self)
 {
 	PyObject *po;		/* return value */
 	Nurb *pnurb = self->nurb;
 	int npoints = pnurb->pntsu;
 
 	/* are we at end already? */
-	if( self->atEnd )
-		return ( EXPP_ReturnPyObjError( PyExc_StopIteration,
-						"iterator at end" ) );
+	if(self->atEnd)
+		return (EXPP_ReturnPyObjError (PyExc_StopIteration,
+					       "iterator at end"));
 
-	if( self->nextPoint < npoints ){
+	if(self->nextPoint < npoints) {
 
-		po =  CurNurb_pointAtIndex( self->nurb, self->nextPoint);
+		po = CurNurb_pointAtIndex (self->nurb, self->nextPoint);
 		self->nextPoint++;
 
 		return po;
 
-	}
-	else{
-		self->atEnd = 1; /* set flag true */
+	} else {
+		self->atEnd = 1;	/* set flag true */
 	}
 
-	return(  EXPP_ReturnPyObjError( PyExc_StopIteration,
-					"iterator at end" ) );
+	return (EXPP_ReturnPyObjError (PyExc_StopIteration,
+				       "iterator at end"));
 }
 
 
@@ -404,7 +407,7 @@ static PyObject *CurNurb_iterNext( BPy_CurNurb * self )
  * test whether spline nurb or bezier
  */
 
-static PyObject *CurNurb_isNurb( BPy_CurNurb* self )
+static PyObject *CurNurb_isNurb (BPy_CurNurb * self)
 {
 	/* NOTE: a Nurb has bp and bezt pointers
 	 * depending on type.
@@ -412,13 +415,12 @@ static PyObject *CurNurb_isNurb( BPy_CurNurb* self )
 	 * in that case, we return False
 	 */
 
-	if( self->nurb->bp ){
-		Py_INCREF( Py_True );
+	if(self->nurb->bp) {
+		Py_INCREF (Py_True);
 		return Py_True;
-	}
-	else{
-		Py_INCREF( Py_False );
-		return( Py_False );
+	} else {
+		Py_INCREF (Py_False);
+		return (Py_False);
 	}
 }
 
@@ -432,7 +434,7 @@ static PyObject *CurNurb_isNurb( BPy_CurNurb* self )
 
 static PyMethodDef M_CurNurb_methods[] = {
 /*   name, method, flags, doc_string                */
-	{"New", ( PyCFunction ) M_CurNurb_New, METH_VARARGS | METH_KEYWORDS,
+	{"New", (PyCFunction) M_CurNurb_New, METH_VARARGS | METH_KEYWORDS,
 	 " () - doc string"},
 /*  {"Get", (PyCFunction) M_CurNurb_method, METH_NOARGS, " () - doc string"}, */
 /*   {"method", (PyCFunction) M_CurNurb_method, METH_NOARGS, " () - doc string"}, */
@@ -451,13 +453,13 @@ static PyMethodDef M_CurNurb_methods[] = {
 static PyMethodDef BPy_CurNurb_methods[] = {
 /*   name,     method,                    flags,         doc               */
 /*  {"method", (PyCFunction) CurNurb_method, METH_NOARGS, " () - doc string"} */
-	{"setMatIndex", ( PyCFunction ) CurNurb_setMatIndex, METH_VARARGS,
+	{"setMatIndex", (PyCFunction) CurNurb_setMatIndex, METH_VARARGS,
 	 "( index ) - set index into materials list"},
-	{"getMatIndex", ( PyCFunction ) CurNurb_getMatIndex, METH_NOARGS,
+	{"getMatIndex", (PyCFunction) CurNurb_getMatIndex, METH_NOARGS,
 	 "( ) - get current material index"},
-	{"append", ( PyCFunction ) CurNurb_append, METH_VARARGS,
+	{"append", (PyCFunction) CurNurb_append, METH_VARARGS,
 	 "( point ) - add a new point.  arg is BezTriple or list of x,y,z,w floats"},
-	{"isNurb", ( PyCFunction ) CurNurb_isNurb, METH_NOARGS,
+	{"isNurb", (PyCFunction) CurNurb_isNurb, METH_NOARGS,
 	 "( ) - boolean function tests if this spline is type nurb or bezier"},
 	{NULL, NULL, 0, NULL}
 };
@@ -468,14 +470,14 @@ static PyMethodDef BPy_CurNurb_methods[] = {
  */
 
 static PySequenceMethods CurNurb_as_sequence = {
-        (inquiry)CurNurb_length,              /* sq_length   */
-        (binaryfunc) 0,           /* sq_concat */
-        (intargfunc) 0,           /* sq_repeat */
-        (intargfunc) CurNurb_getPoint,             /* sq_item */
-        (intintargfunc) 0,         /* sq_slice */
-        0,                                      /* sq_ass_item */
-        0,                                      /* sq_ass_slice */
-        (objobjproc) 0,         /* sq_contains */
+	(inquiry) CurNurb_length,	/* sq_length   */
+	(binaryfunc) 0,		/* sq_concat */
+	(intargfunc) 0,		/* sq_repeat */
+	(intargfunc) CurNurb_getPoint,	/* sq_item */
+	(intintargfunc) 0,	/* sq_slice */
+	0,			/* sq_ass_item */
+	0,			/* sq_ass_slice */
+	(objobjproc) 0,		/* sq_contains */
 	0,
 	0
 };
@@ -488,20 +490,20 @@ static PySequenceMethods CurNurb_as_sequence = {
 */
 
 PyTypeObject CurNurb_Type = {
-	PyObject_HEAD_INIT( NULL ) /* required py macro */ 0,	/* ob_size */
+	PyObject_HEAD_INIT (NULL) /* required py macro */ 0,	/* ob_size */
 	/*  For printing, in format "<module>.<name>" */
-	"CurNurb",			/* char *tp_name; */
-	sizeof( CurNurb_Type ),	/* int tp_basicsize, */
+	"CurNurb",		/* char *tp_name; */
+	sizeof (CurNurb_Type),	/* int tp_basicsize, */
 	0,			/* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) CurNurb_dealloc,	/*    destructor tp_dealloc; */
+	(destructor) CurNurb_dealloc,	/*    destructor tp_dealloc; */
 	0,			/*    printfunc tp_print; */
-	( getattrfunc ) CurNurb_getAttr,	/*    getattrfunc tp_getattr; */
-	( setattrfunc ) CurNurb_setAttr,	/*    setattrfunc tp_setattr; */
-	( cmpfunc ) CurNurb_compare,	/*    cmpfunc tp_compare; */
-	( reprfunc ) CurNurb_repr,	/*    reprfunc tp_repr; */
+	(getattrfunc) CurNurb_getAttr,	/*    getattrfunc tp_getattr; */
+	(setattrfunc) CurNurb_setAttr,	/*    setattrfunc tp_setattr; */
+	(cmpfunc) CurNurb_compare,	/*    cmpfunc tp_compare; */
+	(reprfunc) CurNurb_repr,	/*    reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
 
@@ -541,7 +543,7 @@ PyTypeObject CurNurb_Type = {
   /*** Added in release 2.2 ***/
 	/*   Iterators */
 	(getiterfunc) CurNurb_getIter,	/*    getiterfunc tp_iter; */
-	(iternextfunc) CurNurb_iterNext, /*    iternextfunc tp_iternext; */
+	(iternextfunc) CurNurb_iterNext,	/*    iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_CurNurb_methods,	/*    struct PyMethodDef *tp_methods; */
@@ -575,20 +577,19 @@ PyTypeObject CurNurb_Type = {
  * this is a tp_as_sequence method, not a regular instance method.
  */
 
-static int CurNurb_length( PyInstanceObject *inst)
+static int CurNurb_length (PyInstanceObject * inst)
 {
-	Nurb* nurb;
+	Nurb *nurb;
 	int len;
 
-	if( CurNurb_CheckPyObject( (PyObject*)inst ) ) {
-		nurb =  ((BPy_CurNurb*) inst)->nurb;
+	if(CurNurb_CheckPyObject ((PyObject *) inst)) {
+		nurb = ((BPy_CurNurb *) inst)->nurb;
 		len = nurb->pntsu;
-		return  len;
+		return len;
 	}
 
-	return EXPP_ReturnIntError( PyExc_RuntimeError,
-					    "arg is not a BPy_CurNurb" );
-
+	return EXPP_ReturnIntError (PyExc_RuntimeError,
+				    "arg is not a BPy_CurNurb");
 }
 
 
@@ -599,15 +600,15 @@ static int CurNurb_length( PyInstanceObject *inst)
  * it is called via the [] operator, not as a usual instance method.
  */
 
-PyObject* CurNurb_getPoint( BPy_CurNurb* self, int index )
+PyObject *CurNurb_getPoint (BPy_CurNurb * self, int index)
 {
 	PyObject *pyo;
-	Nurb* myNurb;
+	Nurb *myNurb;
 
 	int npoints;
 
 	/* for convenince */
-	myNurb = self->nurb; 
+	myNurb = self->nurb;
 	npoints = myNurb->pntsu;
 
 	/* DELETED: bail if index < 0 */
@@ -615,23 +616,17 @@ PyObject* CurNurb_getPoint( BPy_CurNurb* self, int index )
 	/* negative indices as starting from the right end of a sequence */
 
 	/* bail if no Nurbs in Curve */
-	if( npoints == 0)
-		return( EXPP_ReturnPyObjError( PyExc_IndexError,
+	if(npoints == 0)
+		return (EXPP_ReturnPyObjError (PyExc_IndexError,
 					       "no points in this CurNurb"));
-	
-	if(  index >= npoints  ) /* out of range!  */
-		return( EXPP_ReturnPyObjError( PyExc_IndexError,
+
+	if(index >= npoints)	/* out of range!  */
+		return (EXPP_ReturnPyObjError (PyExc_IndexError,
 					       "index out of range"));
 
-	pyo = CurNurb_pointAtIndex( myNurb, index );
+	pyo = CurNurb_pointAtIndex (myNurb, index);
 
-	// handle bezt case AND bp case
-
-
-	
-
-	return (PyObject*) pyo;
-
+	return (PyObject *) pyo;
 }
 
 
@@ -639,38 +634,36 @@ PyObject* CurNurb_getPoint( BPy_CurNurb* self, int index )
  * this is an internal routine.  not callable directly from python
  */
 
-PyObject* CurNurb_pointAtIndex( Nurb* nurb, int index )
+PyObject *CurNurb_pointAtIndex (Nurb * nurb, int index)
 {
-	PyObject* pyo;
+	PyObject *pyo;
 
-	if( nurb->bp ){ /* we have a nurb curve */
+	if(nurb->bp) {		/* we have a nurb curve */
 		int i;
-		pyo = PyList_New( 4 );
+		pyo = PyList_New (4);
 
-		for( i = 0; i < 4; i++ ){ 
-			PyList_SetItem( pyo, i,
-					PyFloat_FromDouble( nurb->bp[index].vec[i] ));
-			
+		for(i = 0; i < 4; i++) {
+			PyList_SetItem (pyo, i,
+					PyFloat_FromDouble (nurb->bp[index].vec[i]));
+
 		}
-		
-	}else if( nurb->bezt ) {  /* we have a bezier */
-		/* if an error occurs, we just pass it on */
-		pyo = BezTriple_CreatePyObject( &( nurb->bezt[index] ) );
 
-	}
-	else /* something is horribly wrong */
+	} else if(nurb->bezt) {	/* we have a bezier */
+		/* if an error occurs, we just pass it on */
+		pyo = BezTriple_CreatePyObject (&(nurb->bezt[index]));
+
+	} else			/* something is horribly wrong */
 		/* neither bp or bezt is set && pntsu != 0 */
-		return( EXPP_ReturnPyObjError( PyExc_SystemError,
+		return (EXPP_ReturnPyObjError (PyExc_SystemError,
 					       "inconsistant structure found"));
 
-
-	return( pyo );
+	return (pyo);
 }
 
 
-int CurNurb_CheckPyObject( PyObject * py_obj )
+int CurNurb_CheckPyObject (PyObject * py_obj)
 {
-	return ( py_obj->ob_type == &CurNurb_Type );
+	return (py_obj->ob_type == &CurNurb_Type);
 }
 
 
@@ -681,6 +674,7 @@ PyObject *CurNurb_Init (void)
 	Curve_Type.ob_type = &PyType_Type;
 
 	submodule =
-		Py_InitModule3 ("Blender.CurNurb", M_CurNurb_methods, M_CurNurb_doc);
+		Py_InitModule3 ("Blender.CurNurb", M_CurNurb_methods,
+				M_CurNurb_doc);
 	return (submodule);
 }
