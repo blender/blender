@@ -587,6 +587,7 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 			data = (bFollowPathConstraint*)con->data;
 
 			if (data->tar){
+				short OldFlag;
 				Curve *cu;
 				float q[4], vec[4], dir[3], *quat, x1, totmat[4][4];
 				float curvetime;
@@ -596,6 +597,7 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 				Mat4One (totmat);
 
 				cu= data->tar->data;
+				OldFlag = cu->flag;
 				
 				if(data->followflag) {
 					if(!(cu->flag & CU_FOLLOW)) cu->flag += CU_FOLLOW;
@@ -636,6 +638,7 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 					Mat4MulSerie(mat, data->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
 				}
 
+				cu->flag = OldFlag;
 				valid=1;
 			}
 			else
