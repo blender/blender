@@ -61,9 +61,9 @@
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.                    */
 /*****************************************************************************/
-PyObject *M_Object_New(PyObject *self, PyObject *args);
-PyObject *M_Object_Get(PyObject *self, PyObject *args);
-PyObject *M_Object_GetSelected (PyObject *self, PyObject *args);
+static PyObject *M_Object_New(PyObject *self, PyObject *args);
+static PyObject *M_Object_Get(PyObject *self, PyObject *args);
+static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -225,6 +225,7 @@ objects."},
     {"shareFrom",        (PyCFunction)Object_shareFrom,        METH_VARARGS,
         "Link data of self with object specified in the argument. This\n\
 works only if self and the object specified are of the same type."},
+    {0}
 };
 
 /*****************************************************************************/

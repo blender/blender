@@ -35,7 +35,7 @@
 /* Function:              M_Object_New                                       */
 /* Python equivalent:     Blender.Object.New                                 */
 /*****************************************************************************/
-PyObject *M_Object_New(PyObject *self, PyObject *args)
+static PyObject *M_Object_New(PyObject *self, PyObject *args)
 {
     struct Object   * object;
     C_Object        * blen_object;
@@ -192,7 +192,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
 /* Function:              M_Object_Get                                       */
 /* Python equivalent:     Blender.Object.Get                                 */
 /*****************************************************************************/
-PyObject *M_Object_Get(PyObject *self, PyObject *args)
+static PyObject *M_Object_Get(PyObject *self, PyObject *args)
 {
     struct Object   * object;
     char            * name = NULL;
@@ -258,7 +258,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
 /* Function:              M_Object_GetSelected                               */
 /* Python equivalent:     Blender.Object.getSelected                         */
 /*****************************************************************************/
-PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
+static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
 {
     C_Object        * blen_object;
     PyObject        * list;
@@ -430,7 +430,8 @@ static PyObject *Object_getData (C_Object *self)
 
 static PyObject *Object_getDeformData (C_Object *self)
 {
-    return (Py_None);
+    return (PythonReturnErrorObject (PyExc_NotImplementedError,
+            "getDeformData: not yet implemented"));
 }
 
 static PyObject *Object_getDeltaLocation (C_Object *self)
@@ -481,7 +482,8 @@ static PyObject *Object_getEuler (C_Object *self)
 
 static PyObject *Object_getInverseMatrix (C_Object *self)
 {
-    return (Py_None);
+    return (PythonReturnErrorObject (PyExc_NotImplementedError,
+            "getInverseMatrix: not yet implemented"));
 }
 
 static PyObject *Object_getLocation (C_Object *self, PyObject *args)
@@ -500,12 +502,14 @@ static PyObject *Object_getLocation (C_Object *self, PyObject *args)
 static PyObject *Object_getMaterials (C_Object *self)
 {
     /* TODO: Implement when the Material module is implemented. */
-    return (Py_None);
+    return (PythonReturnErrorObject (PyExc_NotImplementedError,
+            "getMaterials: not yet implemented"));
 }
 
 static PyObject *Object_getMatrix (C_Object *self)
 {
-    return (Py_None);
+    return (PythonReturnErrorObject (PyExc_NotImplementedError,
+            "getMatrix: not yet implemented"));
 }
 
 static PyObject *Object_getParent (C_Object *self)
@@ -715,7 +719,8 @@ static PyObject *Object_makeParent (C_Object *self, PyObject *args)
 
 static PyObject *Object_materialUsage (C_Object *self, PyObject *args)
 {
-    return (Py_None);
+    return (PythonReturnErrorObject (PyExc_NotImplementedError,
+            "materialUsage: not yet implemented"));
 }
 
 static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args)
@@ -865,10 +870,11 @@ static PyObject *Object_setMaterials (C_Object *self, PyObject *args)
                 break;
         }
     }
+    return (Py_None);
 #endif
 
-    Py_INCREF (Py_None);
-    return (Py_None);
+    return (PythonReturnErrorObject (PyExc_NotImplementedError,
+            "setMaterials: not yet implemented"));
 }
 
 static PyObject *Object_shareFrom (C_Object *self, PyObject *args)
