@@ -2,9 +2,11 @@
 # This is the makefile for the bytecode freezing of all modules which
 # the main file depends on (last argument in importer rule)
 
+include nan_definitions.mk
+
 SRCDIR = ../modules
 
-TARGETDIR = ../../../source/blender/bpython/frozen
+TARGETDIR = $(OCGDIR)/blender/bpython/frozen
 
 PYFLAGS = -S -O
 
@@ -13,7 +15,9 @@ default: importer
 install: importer
 
 importer: 
-	python $(PYFLAGS) freeze.py -d -x os -x pprint -I $(SRCDIR) -o $(TARGETDIR) $(SRCDIR)/VRMLmain.py 
+	@[ -d $(TARGETDIR) ] || mkdir -p $(TARGETDIR)
+	python $(PYFLAGS) freeze.py -d -x os -x pprint -x string -x copy -I $(SRCDIR) -o $(TARGETDIR) $(SRCDIR)/VRMLmain.py 
+	$(MAKE) -C $(TARGETDIR)
 
 clean:
 	rm *.pyo

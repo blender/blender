@@ -42,7 +42,7 @@ endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-CPPFLAGS += -DFUTURE_PYTHON_API  # see api.h for configuration
+CPPFLAGS += -DCURRENT_PYTHON_API  # see api.h for configuration
 #CPPFLAGS += -DNO_RELEASE  # see api.h for configuration
 
 # OpenGL and Python
