@@ -748,7 +748,9 @@ void action_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 	
 	// object action is allowed to be zero!
-	if (!get_action_mesh_key()) {
+	/* (ton) commented out below line, since people can apparently link Action to any object (mesh) and
+		not unlink anymore when theres a mesh key. Needs to be rethought this stuff! */
+	//if (!get_action_mesh_key()) {
 	
 		/* NAME ETC */
 		ob=OBACT;
@@ -768,7 +770,7 @@ void action_buttons(void)
 				 "converted into Ipo keys");
 		xco+=64;
 
-	}
+	//}
 	uiClearButLock();
 
 	/* draw LOCK */

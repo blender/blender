@@ -4525,6 +4525,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 			
 			// tuck original indices in efa->prev
 			for(b=1, efa= G.editMesh->faces.first; efa; efa= efa->next, b++) efa->prev= (EditFace *)(b);
+			a= b+1;	// correct return value, next loop excludes hidden faces
 
 			for(b=0, mface= dlm->mface; b<dlm->totface; b++, mface++) {
 				if(mface->v3) {
@@ -4544,7 +4545,6 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 			for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)
 				efa->prev= prevefa;
 
-			a= b+1;	
 		}
 		else {
 			a= 1;
