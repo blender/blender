@@ -2128,7 +2128,7 @@ void loop(int mode)
 {
 	EditEdge *start, *eed, *opposite,*currente, *oldstart;
 	EditVlak *evl, *currentvl, *formervl;	
-	short lastface=0, foundedge=0, c=0, tri=0, side=1, totface=0, searching=1, event=0;
+	short lastface=0, foundedge=0, c=0, tri=0, side=1, totface=0, searching=1, event=0, noface=1;
 	
 	if ((G.obedit==0) || (G.edvl.first==0)) return;
 	
@@ -2143,14 +2143,40 @@ void loop(int mode)
 		/* reset variables */
 		start=eed=opposite=currente=0;
 		evl=currentvl=formervl=0;
-		side=1;
+		side=noface=1;
 		lastface=foundedge=c=tri=totface=0;		
 			
 		/* Look for an edge close by */
 		start=findnearestedge();	
 		
+		/* If the edge doesn't belong to a face, it's not a valid starting edge */
+		if(start){
+			start->f |= 16;
+			evl=G.edvl.first;
+			while(evl){
+				if(evl->e1->f & 16){					
+					noface=0;
+					evl->e1->f &= ~16;
+				}
+				else if(evl->e2->f & 16){					
+					noface=0;
+					evl->e2->f &= ~16;
+				}
+				else if(evl->e3->f & 16){					
+					noface=0;
+					evl->e3->f &= ~16;
+				}
+				else if(evl->e4 && evl->e4->f & 16){					
+					noface=0;
+					evl->e4->f &= ~16;
+				}
+				
+				evl=evl->next;
+			}			
+		}				
+				
 		/* Did we find anything that is selectable? */
-		if(start && (oldstart==NULL || start!=oldstart)){
+		if(start && !noface && (oldstart==NULL || start!=oldstart)){
 							
 			/* If we stay in the neighbourhood of this edge, we don't have to recalculate the loop everytime*/
 			oldstart=start;	
