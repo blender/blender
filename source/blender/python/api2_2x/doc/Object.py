@@ -98,6 +98,10 @@ class Object:
     @cvar name: The name of the object.
   """
 
+  def buildParts():
+    """
+		recomputes the particle system
+    """
   def clrParent(mode = 0, fast = 0):
     """
     Clears parent object.
