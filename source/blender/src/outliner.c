@@ -555,6 +555,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
 				}
 			}
+			break;
 		case ID_KE:
 			{
 				Key *key= (Key *)id;

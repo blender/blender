@@ -333,7 +333,8 @@ static void butspace_context_switch(SpaceButs *buts, Object *new)
 		int tab= buts->tab[CONTEXT_SHADING];
 		
 		if(tab == TAB_SHADING_WORLD) {
-			if(new->type==OB_LAMP) {
+			if(new->type==OB_CAMERA);
+			else if(new->type==OB_LAMP) {
 				buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
 			}
 			else buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
