@@ -2213,6 +2213,7 @@ void join_triangles(void)
 				if( convex(v1->co, v2->co, v3->co, v4->co) > 0.01) {
 					if(exist_face(v1, v2, v3, v4)==0) {
 						w = addfacelist(v1, v2, v3, v4, efaa[0], NULL); /* seam edge may get broken */
+						w->f= efaa[0]->f;	/* copy selection flag */
 						untag_edges(w);
 
 						UVCOPY(w->tf.uv[0], uv[0]);
