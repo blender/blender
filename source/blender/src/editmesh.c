@@ -7158,6 +7158,7 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 			}
 		}
 
+		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
 	} else {
 		float cent[3], norm[3];
@@ -7182,6 +7183,7 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 			}
 		}
 
+		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
 	}
 }
