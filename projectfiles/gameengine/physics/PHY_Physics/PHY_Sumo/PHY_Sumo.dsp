@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GR /GX /O2 /I "../../../../../extern/solid" /I "../../../../../source/gameengine/physics" /I "../../../../../source/gameengine/physics/common" /I "../../../../../source/gameengine/physics/sumo" /I "../../../../../source/gameengine/physics/sumo/include" /I "../../../../../source/gameengine/physics/sumo/fuzzics/include" /I "../../../../../../lib/windows/Moto/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "../../../../../extern/solid" /I "../../../../../source/gameengine/physics" /I "../../../../../source/gameengine/physics/common" /I "../../../../../source/gameengine/physics/sumo" /I "../../../../../source/gameengine/physics/sumo/include" /I "../../../../../source/gameengine/physics/sumo/fuzzics/include" /I "../../../../../../lib/windows/Moto/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\gameengine\physics\PHY_Physics.lib"
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\gameengine\physics\sumo\PHY_Sumo.lib"
 
 !ELSEIF  "$(CFG)" == "PHY_Sumo - Win32 Debug"
 
@@ -88,6 +88,10 @@ LIB32=link.exe -lib
 # Begin Source File
 
 SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_FhObject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_MotionState.cpp
 # End Source File
 # Begin Source File
 
