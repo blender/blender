@@ -57,6 +57,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_armature.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"
@@ -119,6 +120,28 @@ static void calc_tw_center(float *co)
 	
 	DO_MINMAX(co, min, max);
 	VecAddf(twcent, twcent, co);
+}
+
+/* callback */
+static void stats_pose(ListBase *lb)
+{
+	Bone *bone;
+	float vec[3];
+	
+	for(bone= lb->first; bone; bone= bone->next) {
+		if (bone->flag & BONE_SELECTED) {
+			/* We don't let IK children get "grabbed" */
+			/* ALERT! abusive global Trans here */
+			if ( (Trans.mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+				
+				get_bone_root_pos (bone, vec, 1);
+				
+				calc_tw_center(vec);
+				return;	// see above function
+			}
+		}
+		stats_pose(&bone->childbase);
+	}
 }
 
 
@@ -248,7 +271,19 @@ static int calc_manipulator(ScrArea *sa)
 		}
 	}
 	else if(G.obpose) {
-		;
+		bArmature *arm= G.obpose->data;
+		
+		/* count total */
+		count_bone_select(&arm->bonebase, &totsel);
+		if(totsel) {
+			/* recursive get stats */
+			stats_pose(&arm->bonebase);
+			
+			VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!
+			Mat4MulVecfl(G.obpose->obmat, G.scene->twcent);
+			Mat4MulVecfl(G.obpose->obmat, G.scene->twmin);
+			Mat4MulVecfl(G.obpose->obmat, G.scene->twmax);
+		}
 	}
 	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
 		;
@@ -439,10 +474,9 @@ static void draw_manipulator_rotate(float mat[][4])
 		Mat3CpyMat4(smat, mat);
 		Mat3Inv(imat, smat);
 
-
 		getViewVector(mat[3], offset);
-		VecMulf(offset, -1.0f);
 		Mat3MulVecfl(imat, offset);
+		Normalise(offset);	// matrix space is such that 1.0 = size of sphere
 		
 		BIF_ThemeColor(TH_TRANSFORM);
 		glBegin(GL_LINES);

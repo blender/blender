@@ -292,7 +292,8 @@ static void createTransTexspace(void)
 /* ********************* pose mode ************* */
 
 /* callback, make sure it's identical structured as next one */
-static void count_bone_select(ListBase *lb, int *counter) 
+/* also used to count for manipulator */
+void count_bone_select(ListBase *lb, int *counter) 
 {
 	Bone *bone;
 	
@@ -309,7 +310,7 @@ static void count_bone_select(ListBase *lb, int *counter)
 	}
 }
 
-/* callback */
+/* recursive */
 static void add_pose_transdata(ListBase *lb, Object *ob, TransData **tdp)
 {
 	Bone *bone;
@@ -2389,7 +2390,7 @@ int Rotation(TransInfo *t, short mval[2])
 
 /* ************************** TRACKBALL *************************** */
 
-static void initTrackball(TransInfo *t) 
+void initTrackball(TransInfo *t) 
 {
 	t->idx_max = 1;
 	t->num.idx_max = 1;
@@ -2430,7 +2431,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 	}
 }
 
-static int Trackball(TransInfo *t, short mval[2]) 
+int Trackball(TransInfo *t, short mval[2]) 
 {
 	char str[50];
 	float axis1[3], axis2[3];

@@ -1584,6 +1584,7 @@ static void add_bone_input (Object *ob)
 	cursLoc= give_cursor();
 	
 	VECCOPY (curs,cursLoc);
+	G.moving= G_TRANSFORM_EDIT;
 	
 	while (addbones>0){
 		afbreek=0;
@@ -1741,6 +1742,7 @@ static void add_bone_input (Object *ob)
 	}	/*	End of bone adding loop*/
 	
 	countall();
+	G.moving= 0;
 
 }
 

@@ -132,7 +132,7 @@ void getViewVector(float coord[3], float vec[3]) {
 
 		Mat4MulVec4fl(G.vd->viewinv, p2);
 
-		VecSubf(vec, p2, p1);
+		VecSubf(vec, p1, p2);
 	}
 	else {
 		VECCOPY(vec, G.vd->viewinv[2]);
