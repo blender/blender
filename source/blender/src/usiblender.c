@@ -126,6 +126,7 @@ void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
 
+
 	//here?
 	//sound_end_all_sounds();
 
