@@ -102,10 +102,15 @@ void free_matcopybuf(void)
 	for(a=0; a<8; a++) {
 		if(matcopybuf.mtex[a]) {
 			MEM_freeN(matcopybuf.mtex[a]);
-			matcopybuf.mtex[a]= 0;
+			matcopybuf.mtex[a]= NULL;
 		}
 	}
  
+	if(matcopybuf.ramp_col) MEM_freeN(matcopybuf.ramp_col);
+	if(matcopybuf.ramp_spec) MEM_freeN(matcopybuf.ramp_spec);
+	matcopybuf.ramp_col= NULL;
+	matcopybuf.ramp_spec= NULL;
+	
 	default_mtex(&mtexcopybuf);
 }
 
@@ -142,10 +147,12 @@ void do_buts_buttons(short event)
 		break;
 	case B_MATCOPY:
 		if(G.buts->lockpoin) {
-
 			if(matcopied) free_matcopybuf();
 
 			memcpy(&matcopybuf, G.buts->lockpoin, sizeof(Material));
+			if(matcopybuf.ramp_col) matcopybuf.ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
+			if(matcopybuf.ramp_spec) matcopybuf.ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
+
 			for(a=0; a<8; a++) {
 				mtex= matcopybuf.mtex[a];
 				if(mtex) {
@@ -159,6 +166,8 @@ void do_buts_buttons(short event)
 		if(matcopied && G.buts->lockpoin) {
 			ma= G.buts->lockpoin;
 			/* free current mat */
+			if(ma->ramp_col) MEM_freeN(ma->ramp_col);
+			if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 			for(a=0; a<8; a++) {
 				mtex= ma->mtex[a];
 				if(mtex && mtex->tex) mtex->tex->id.us--;
@@ -168,6 +177,9 @@ void do_buts_buttons(short event)
 			id= (ma->id);
 			memcpy(G.buts->lockpoin, &matcopybuf, sizeof(Material));
 			(ma->id)= id;
+			
+			if(matcopybuf.ramp_col) ma->ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
+			if(matcopybuf.ramp_spec) ma->ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
 			
 			for(a=0; a<8; a++) {
 				mtex= ma->mtex[a];
