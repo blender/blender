@@ -41,6 +41,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_image_types.h"
@@ -231,17 +232,22 @@ struct treesort {
 static int treesort_alpha(const void *v1, const void *v2)
 {
 	const struct treesort *x1= v1, *x2= v2;
+	int comp;
 	
 	/* first put objects last (hierarchy) */
-	if(x1->idcode==ID_OB && x2->idcode!=ID_OB) return 1;
-	else if(x2->idcode==ID_OB && x1->idcode!=ID_OB) return -1;
-	else {
+	comp= (x1->idcode==ID_OB);
+	if(x2->idcode==ID_OB) comp+=2;
+	
+	if(comp==1) return 1;
+	else if(comp==2) return -1;
+	else if(comp==3) {
 		int comp= strcmp(x1->name, x2->name);
 		
 		if( comp>0 ) return 1;
 		else if( comp<0) return -1;
 		return 0;
 	}
+	return 0;
 }
 
 /* this is nice option for later? doesnt look too useful... */
@@ -297,6 +303,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 				tp->te= te;
 				tp->name= te->name;
 				tp->idcode= te->idcode;
+				if(tselem->type) tp->idcode= 0;	// dont sort this
 				tp->id= tselem->id;
 			}
 			
@@ -360,20 +367,39 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_OB:
 			{
 				Object *ob= (Object *)id;
+				
 				outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
 				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
 				outliner_add_element(soops, &te->subtree, ob->action, te, 0, 0);
 				
 				for(a=0; a<ob->totcol; a++) 
 					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
-
-				if(ob->nlastrips.first) {
-					bActionStrip *strip;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_NLA, 0);
+				
+				if(ob->constraints.first) {
+					bConstraint *con;
+					TreeElement *ten;
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_CONSTRAINT_BASE, 0);
 					int a= 0;
-					tenla->name= "NLA strips";
-					for (strip=ob->nlastrips.first; strip; strip=strip->next, a++) {
-						outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TE_NLA_ACTION, a);
+					
+					tenla->name= "Constraints";
+					for(con= ob->constraints.first; con; con= con->next, a++) {
+						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TE_CONSTRAINT, a);
+						ten->name= con->name;
+						ten->directdata= con;
+						outliner_add_element(soops, &ten->subtree, con->ipo, ten, 0, 0);
+						/* possible add all other types links? */
+					}
+				}
+				if(ob->hooks.first) {
+					ObHook *hook;
+					TreeElement *ten;
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_HOOKS_BASE, 0);
+					int a= 0;
+					
+					tenla->name= "Hooks";
+					for(hook=ob->hooks.first; hook; hook= hook->next, a++) {
+						ten= outliner_add_element(soops, &tenla->subtree, hook->parent, tenla, TE_HOOK, a);
+						ten->name= hook->name;
 					}
 				}
 				if(ob->defbase.first) {
@@ -381,10 +407,21 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					TreeElement *ten;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_DEFGROUP_BASE, 0);
 					int a= 0;
+					
 					tenla->name= "Vertex Groups";
 					for (defgroup=ob->defbase.first; defgroup; defgroup=defgroup->next, a++) {
 						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TE_DEFGROUP, a);
 						ten->name= defgroup->name;
+					}
+				}
+				if(ob->nlastrips.first) {
+					bActionStrip *strip;
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_NLA, 0);
+					int a= 0;
+					
+					tenla->name= "NLA strips";
+					for (strip=ob->nlastrips.first; strip; strip=strip->next, a++) {
+						outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TE_NLA_ACTION, a);
 					}
 				}
 				
@@ -459,10 +496,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				int a= 0;
 				
 				tselem= TREESTORE(parent);
-				if(tselem->type!=TE_NLA) { // dont expand NLA
-					for (chan=act->chanbase.first; chan; chan=chan->next, a++) {
-						outliner_add_element(soops, &te->subtree, chan->ipo, te, 0, a);
-					}
+				for (chan=act->chanbase.first; chan; chan=chan->next, a++) {
+					outliner_add_element(soops, &te->subtree, chan->ipo, te, 0, a);
 				}
 			}
 			break;
@@ -969,7 +1004,7 @@ static int tree_element_active(SpaceOops *soops, TreeElement *te, int set)
 }
 
 /* generic call for non-id data to make/check active in UI */
-static int tree_element_type_active(TreeElement *te, TreeStoreElem *tselem, int set)
+static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	
 	switch(tselem->type) {
@@ -977,6 +1012,10 @@ static int tree_element_type_active(TreeElement *te, TreeStoreElem *tselem, int 
 			return tree_element_active_defgroup(te, tselem, set);
 		case TE_BONE:
 			return tree_element_active_bone(te, tselem, set);
+		case TE_HOOK: // actually object
+			if(set) tree_element_active_object(soops, te);
+			else if(tselem->id==(ID *)OBACT) return 1;
+			break;
 	}
 	return 0;
 }
@@ -991,8 +1030,16 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 		/* open close icon */
 		if( (mval[0]>te->xs && mval[0]<te->xs+OL_X) || event==RETKEY || event==PADENTER) {
 			
-			if(tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
-			else tselem->flag |= TSE_CLOSED;
+			/* all below close/open? */
+			if( (G.qual & LR_SHIFTKEY) ) {
+				tselem->flag &= ~TSE_CLOSED;
+				outliner_open_close(soops, &te->subtree, outliner_has_one_closed(soops, &te->subtree));
+			}
+			else {
+				if(tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
+				else tselem->flag |= TSE_CLOSED;
+				
+			}
 			
 			return 1;
 		}
@@ -1012,7 +1059,10 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 				}
 				else if(ELEM4(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT)) {
 					if(G.obedit) exit_editmode(2);
-					else enter_editmode();
+					else {
+						enter_editmode();
+						mainqenter(F9KEY, 1);
+					}
 				}
 				else if(te->idcode==ID_AR) {
 					if(G.obedit) exit_editmode(2);
@@ -1024,7 +1074,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 				}
 				return 1;
 			}
-			else tree_element_type_active(te, tselem, 1);
+			else tree_element_type_active(soops, te, tselem, 1);
 			
 		}
 		else return 0;
@@ -1054,7 +1104,9 @@ void outliner_mouse_event(ScrArea *sa, short event)
 		if(do_outliner_mouse_event(soops, te, event, fmval)) break;
 	}
 	
-	if(te) allqueue(REDRAWOOPS, 0);
+	if(te) {
+		allqueue(REDRAWOOPS, 0);
+	}
 
 }
 
@@ -1090,8 +1142,50 @@ void outliner_show_active(struct ScrArea *sa)
 		if(ytop>0) ytop= 0;
 		so->v2d.cur.ymax= ytop;
 		so->v2d.cur.ymin= ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin);
-		scrarea_queue_redraw(curarea);
+		scrarea_queue_redraw(sa);
 	}
+}
+
+static int subtree_has_objects(SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(tselem->type==0 && te->idcode==ID_OB) return 1;
+		if( subtree_has_objects(soops, &te->subtree)) return 1;
+	}
+	return 0;
+}
+
+static void tree_element_show_hierarchy(SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+
+	/* open all object elems, close others */
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		
+		if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)
+		   && subtree_has_objects(soops, &te->subtree))
+			tselem->flag &= ~TSE_CLOSED;
+		else
+			tselem->flag |= TSE_CLOSED;
+		
+		tree_element_show_hierarchy(soops, &te->subtree);
+	}
+	
+}
+
+/* show entire object level hierarchy */
+void outliner_show_hierarchy(struct ScrArea *sa)
+{
+	SpaceOops *so= sa->spacedata.first;
+	
+	tree_element_show_hierarchy(so, &so->tree);
+	scrarea_queue_redraw(sa);
 }
 
 /* ***************** DRAW *************** */
@@ -1108,8 +1202,14 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 				BIF_draw_icon(ICON_VERTEXSEL); break;
 			case TE_BONE:
 				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
+			case TE_CONSTRAINT_BASE:
+				BIF_draw_icon(ICON_CONSTRAINT); break;
+			case TE_HOOKS_BASE:
+				BIF_draw_icon(ICON_HOOK); break;
+			case TE_HOOK:
+				BIF_draw_icon(ICON_OBJECT); break;
 			default:
-				BIF_draw_icon(ICON_RING); break;
+				BIF_draw_icon(ICON_DOT); break;
 		}
 	}
 	else {
@@ -1174,7 +1274,7 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 				else if(G.obedit && G.obedit->data==tselem->id) active= 1;
 				else active= tree_element_active(soops, te, 0);
 			}
-			else active= tree_element_type_active(te, tselem, 0);
+			else active= tree_element_type_active(soops, te, tselem, 0);
 			
 			if(active) {
 				uiSetRoundBox(15);
@@ -1250,7 +1350,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 			}
 		}
 		else {
-			if( tree_element_type_active(te, tselem, 0) ) active= 1;
+			if( tree_element_type_active(soops, te, tselem, 0) ) active= 1;
 			glColor4ub(220, 220, 255, 100);
 		}
 		
@@ -1274,13 +1374,12 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		offsx+= OL_X;
 		
 		/* datatype icon */
-		if(tselem->id) {
-			glRasterPos2i(startx+offsx, *starty+2); // icons a bit higher
-			tselem_draw_icon(tselem);
-			offsx+= OL_X;
-		}
-		glDisable(GL_BLEND);
 		
+		glRasterPos2i(startx+offsx, *starty+2); // icons a bit higher
+		tselem_draw_icon(tselem);
+		offsx+= OL_X;
+		glDisable(GL_BLEND);
+
 		/* name */
 		if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
 		else BIF_ThemeColor(TH_TEXT);
@@ -1321,16 +1420,55 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 	}
 }
 
+static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, int *starty)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	int y1, y2;
+	
+	if(lb->first==NULL) return;
+	
+	
+	y1=y2= *starty; /* for vertical lines between objects */
+	for(te=lb->first; te; te= te->next) {
+		y2= *starty;
+		tselem= TREESTORE(te);
+		
+		/* horizontal line? */
+		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, *starty+1, startx+OL_X, *starty-1);
+			
+		*starty-= OL_H;
+		
+		if((tselem->flag & TSE_CLOSED)==0)
+			outliner_draw_hierarchy(soops, &te->subtree, startx+OL_X, starty);
+	}
+	
+	if(lb->first!=lb->last) { // more than 1 element
+		te= lb->last;
+		tselem= TREESTORE(te);
+		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, y1+OL_H, startx+2, y2);
+	}
+	
+}
+
 static void outliner_draw_tree(SpaceOops *soops)
 {
 	TreeElement *te;
-	int starty= soops->v2d.tot.ymax-OL_H, startx= 0;
+	int starty, startx;
 	
 #ifdef INTERNATIONAL
 	FTF_SetFontSize('l');
 #endif
+	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
+	BIF_ThemeColorShade(TH_BACK, -20);
+	starty= soops->v2d.tot.ymax-OL_H/2;
+	startx= 6;
+	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
+	
+	starty= soops->v2d.tot.ymax-OL_H;
+	startx= 0;
 	for(te= soops->tree.first; te; te= te->next) {
 		outliner_draw_tree_element(soops, te, startx, &starty);
 	}

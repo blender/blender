@@ -54,12 +54,17 @@ typedef struct TreeElement {
 #define TE_DEFGROUP_BASE	3
 #define TE_DEFGROUP			4
 #define TE_BONE				5
+#define TE_CONSTRAINT_BASE	6
+#define TE_CONSTRAINT		7
+#define TE_HOOKS_BASE		8
+#define TE_HOOK				9
 
 extern void draw_outliner(struct ScrArea *sa, struct SpaceOops *so);
 extern void outliner_free_tree(struct ListBase *lb);
 extern void outliner_mouse_event(struct ScrArea *sa, short event);
 extern void outliner_toggle_visible(struct ScrArea *sa);
 extern void outliner_show_active(struct ScrArea *sa);
+extern void outliner_show_hierarchy(struct ScrArea *sa);
 
 #endif
 

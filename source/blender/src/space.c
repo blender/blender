@@ -3807,6 +3807,10 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			outliner_toggle_visible(sa);
 			break;
 		
+		case HOMEKEY:
+			outliner_show_hierarchy(sa);
+			break;
+			
 		case RETKEY:
 		case PADENTER:
 			outliner_mouse_event(sa, event);
