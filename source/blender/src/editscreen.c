@@ -2330,11 +2330,11 @@ static void scrarea_draw_splitpoint(ScrArea *sa, char dir, float fac)
 
 	if (split) {
 		if(dir=='h') {
-			glutil_draw_front_xor_line(sa->totrct.xmin, split, sa->totrct.xmax, split);
-			glutil_draw_front_xor_line(sa->totrct.xmin, split-1, sa->totrct.xmax, split-1);
+			sdrawXORline(sa->totrct.xmin, split, sa->totrct.xmax, split);
+			sdrawXORline(sa->totrct.xmin, split-1, sa->totrct.xmax, split-1);
 		} else {
-			glutil_draw_front_xor_line(split, sa->totrct.ymin, split, sa->totrct.ymax);
-			glutil_draw_front_xor_line(split-1, sa->totrct.ymin, split-1, sa->totrct.ymax);
+			sdrawXORline(split, sa->totrct.ymin, split, sa->totrct.ymax);
+			sdrawXORline(split-1, sa->totrct.ymin, split-1, sa->totrct.ymax);
 		}
 	}
 }
@@ -2354,6 +2354,8 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 	
 	mywinset(G.curscreen->mainwin);
 	/* should already have a good matrix */
+	glReadBuffer(GL_FRONT);
+	glDrawBuffer(GL_FRONT);
 
 	/* keep track of grid and minsize */
 	while(ok==0) {
@@ -2399,11 +2401,15 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 		if(val && event==ESCKEY) {
 			ok= -1;
 		}
+		glFlush();
 	}
 
 	if (!first) {
 		scrarea_draw_splitpoint(sa, dir, fac);
+		glFlush();
 	}
+	glReadBuffer(GL_BACK);
+	glDrawBuffer(GL_BACK);
 
 	if(ok==1) {
 		splitarea(sa, dir, fac);
