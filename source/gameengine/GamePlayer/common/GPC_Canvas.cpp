@@ -460,7 +460,7 @@ MakeScreenShot(
 	png_write_info(png_ptr, info_ptr);
 
 	// allocate memory for an array of row-pointers
-	row_pointers = new (png_bytep) [(GetHeight() * sizeof(png_bytep))];
+	row_pointers = new png_bytep [(GetHeight() * sizeof(png_bytep))];
 	if (!row_pointers) 
 	{
 		std::cout << "Cannot allocate row-pointers array" << std::endl;
