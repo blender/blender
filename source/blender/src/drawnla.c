@@ -113,22 +113,24 @@ static void draw_nlatree(void)
 	glColor3ub(0x00, 0x00, 0x00);
 	
 	x = 0.0;
-	
+
 	y = count_nla_levels();
 
 	y*= (NLACHANNELHEIGHT+NLACHANNELSKIP);
+
 	
 	for (base=G.scene->base.first; base; base=base->next){
 		if (nla_filter(base, 0)){		
 			cpack (0xAAAAAA);
 			glRectf(x,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
-			
+
 			/* Draw the name / ipo timeline*/
 			if (TESTBASE_SAFE(base))
 				cpack(0xFFFFFF);
 			else
 				cpack (0x000000);
 			glRasterPos2f(x+16,  y-4);
+
 			BMF_DrawString(G.font, base->object->id.name+2);
 			
 			/* Draw the constraint ipos */
@@ -160,7 +162,6 @@ static void draw_nlatree(void)
 						cpack(0xFFFFFF);
 					else
 						cpack (0x000000);
-
 					glRasterPos2f(x+32,  y-4);
 					BMF_DrawString(G.font, base->object->action->id.name+2);
 				}
@@ -178,11 +179,13 @@ static void draw_nlatree(void)
 					else
 						cpack (0x000000);
 
-					glRasterPos2f(x+48,  y-4);
-					BMF_DrawString(G.font, strip->act->id.name+2);
+	// why this test? check freeing mem when deleting strips? (ton)
+					if(strip->act) {
+						glRasterPos2f(x+48,  y-4);
+						BMF_DrawString(G.font, strip->act->id.name+2);
 
-					y-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
-
+						y-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+					}
 				}
 			}
 		}
