@@ -74,28 +74,28 @@ class Metaball:
     """
 
 		
-     def getMetaElemList():
+  def getMetaElemList():
     """
     retreives the list of the Metaelems of the Metaball
     @rtype: List
     @return:  List of Metaelem classes
-		Each Metaelem object has NO function, but 4 read/write fields
-		coords : a list of three floats, the coordinates of the Metaelem object
-		dims :  a list of three floats, the dimensions of the meteelem object
-		rad : a float, the radius of the object
-		stif : a float, the stifness of the object
-		Example : 
-		import Blender
+		Each Metaelem object has NO function, but 4 read/write fields\n
+		coords : a list of three floats, the coordinates of the Metaelem object\n
+		dims :  a list of three floats, the dimensions of the meteelem object\n
+		rad : a float, the radius of the object\n
+		stif : a float, the stifness of the object\n
+		Example : \n
+		import Blender\n
 
-		mb = Blender.Metaball.Get("mball")
-		ob = Blender.Object.Get("ob")
-		ll =  mb.getMetaElemList()
-		me = ll[0]
-		old = me.coords
-		new = [old[0],old[1],old[2]-.02]
-		me.coords = new
+		mb = Blender.Metaball.Get("mball")\n
+		ob = Blender.Object.Get("ob")\n
+		ll =  mb.getMetaElemList()\n
+		me = ll[0]\n
+		old = me.coords\n
+		new = [old[0],old[1],old[2]-.02]\n
+		me.coords = new\n
 
-		ob.makeDisplayList()
+		ob.makeDisplayList()\n
 		Blender.Window.QRedrawAll()
 		"""
 
