@@ -607,7 +607,7 @@ static PyObject *Object_getData (BPy_Object *self)
             data_object = Camera_CreatePyObject (self->object->data);
             break;
         case OB_CURVE://#ID_CU:
-            data_object = CurveCreatePyObject (self->object->data);
+            data_object = Curve_CreatePyObject (self->object->data);
             break;
         case ID_IM:
             data_object = Image_CreatePyObject (self->object->data);
