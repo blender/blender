@@ -120,9 +120,6 @@ inline  bool operator <( const RAS_MatArrayIndex& rhs,const RAS_MatArrayIndex& l
 class RAS_MeshObject
 {
 	
-	enum { BUCKET_MAX_INDICES = 16384 };//2048};//8192};
-	enum { BUCKET_MAX_TRIANGLES = 4096 };
-	
 	//	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
 	//vector<class RAS_IPolyMaterial*,KX_ArrayOptimizer> m_vertexArrays;
 	virtual KX_ArrayOptimizer* GetArrayOptimizer(RAS_IPolyMaterial* polymat);
@@ -137,40 +134,15 @@ class RAS_MeshObject
 	static STR_String			s_emptyname;
 	bool					m_zsort;
 	
-	struct polygonSlot
-	{
-		float        m_z;
-		RAS_Polygon *m_poly;
-			
-		polygonSlot(float z, RAS_Polygon* poly) :
-			m_z(z),
-			m_poly(poly)
-		{}
-		/**
-		 * pnorm and pval form the plane equation that the distance from is used to
-		 * sort against.
-		 */
-		polygonSlot(const MT_Vector3 &pnorm, const MT_Scalar &pval, RAS_MeshObject* mesh, RAS_Polygon* poly);
-	};
-		
-	struct backtofront
-	{
-		bool operator()(const polygonSlot &a, const polygonSlot &b) const
-		{
-			return a.m_z < b.m_z;
-		}
-	};
-	
-	struct fronttoback
-	{
-		bool operator()(const polygonSlot &a, const polygonSlot &b) const
-		{
-			return a.m_z > b.m_z;
-		}
-	};
+	struct polygonSlot;
+	struct backtofront;
+	struct fronttoback;
 
 	
 protected:
+	enum { BUCKET_MAX_INDICES = 65535 };//2048};//8192};
+	enum { BUCKET_MAX_TRIANGLES = 65535 };
+	
 	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
 	
 	RAS_MaterialBucket::Set			m_materials;
@@ -218,7 +190,10 @@ public:
 
 	void				DebugColor(unsigned int abgr);
 	
-	void SortPolygons(const MT_Transform &transform);
+	/**
+	 *  Sorts the polygons by their transformed z values.
+	 */
+	void				SortPolygons(const MT_Transform &transform);
 
 	void				SchedulePolygons(
 							const MT_Transform &transform,
@@ -233,7 +208,7 @@ public:
 	
 	virtual RAS_TexVert*	GetVertex(
 								short array,
-								short index,
+								unsigned int index,
 								RAS_IPolyMaterial* polymat
 							);
 	

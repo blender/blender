@@ -35,6 +35,8 @@
 #include <config.h>
 #endif
 
+#define SHORT(x) short(x*32767.0)
+
 RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Point2& uv,
 						 const unsigned int rgba,
@@ -62,6 +64,7 @@ void RAS_TexVert::SetRGBA(const MT_Vector4& rgba)
 	colp[2] = rgba[2]*255.0;
 	colp[3] = rgba[3]*255.0;
 }
+
 
 void RAS_TexVert::SetXYZ(const MT_Point3& xyz)
 {
@@ -106,18 +109,14 @@ const float* RAS_TexVert::getNormal() const
 	return m_normal;
 }
 
-
-
 const float* RAS_TexVert::getLocalXYZ() const
 { 
 	return m_localxyz;
 }
-	
 
-
-const unsigned int& RAS_TexVert::getRGBA() const
+const unsigned char* RAS_TexVert::getRGBA() const
 {
-	return m_rgba;
+	return (unsigned char*) &m_rgba;
 }
 
 #endif

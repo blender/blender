@@ -82,7 +82,7 @@ int RAS_Polygon::VertexCount()
 
 
 void RAS_Polygon::SetVertex(int i,
-							int vertexindex ) //const MT_Point3& xyz,const MT_Point2& uv,const unsigned int rgbacolor,const MT_Vector3& normal)
+						unsigned int vertexindex ) //const MT_Point3& xyz,const MT_Point2& uv,const unsigned int rgbacolor,const MT_Vector3& normal)
 {
 	m_vertexindexbase.SetIndex(i,vertexindex); //m_bucket->FindOrAddVertex(m_vertexindexbase.m_vtxarray,
 	//xyz,uv,rgbacolor,normal));

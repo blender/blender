@@ -452,7 +452,7 @@ void RAS_MeshObject::RemoveFromBuckets(double* oglmatrix,
  * it is the clients responsibility to make sure the array and index are valid
  */
 RAS_TexVert* RAS_MeshObject::GetVertex(short array,
-									   short index,
+									   unsigned int index,
 									   RAS_IPolyMaterial* polymat)
 {
 	 KX_ArrayOptimizer* ao = GetArrayOptimizer(polymat);//*(m_matVertexArrays[*polymat]);
@@ -488,12 +488,12 @@ int	RAS_MeshObject::FindVertexArray(int numverts,
 	{
 		if ( (ao->m_TriangleArrayCount[i] + (numverts-2)) < BUCKET_MAX_TRIANGLES) 
 		{
-			 if((ao->m_VertexArrayCache1[i]->size()+numverts < BUCKET_MAX_INDICES))
-				{
-					array = i;
-					ao->m_TriangleArrayCount[array]+=numverts-2;
-					break;
-				}
+			if((ao->m_VertexArrayCache1[i]->size()+numverts < BUCKET_MAX_INDICES))
+			{
+				array = i;
+				ao->m_TriangleArrayCount[array]+=numverts-2;
+				break;
+			}
 		}
 	}
 
@@ -547,21 +547,52 @@ void RAS_MeshObject::UpdateMaterialList()
 	}
 }
 
-RAS_MeshObject::polygonSlot::polygonSlot(const MT_Vector3 &pnorm, const MT_Scalar &pval, RAS_MeshObject *mesh, RAS_Polygon* poly) :
-			m_poly(poly)
+struct RAS_MeshObject::polygonSlot
 {
-	const KX_VertexIndex &base = m_poly->GetIndexBase();
-	RAS_TexVert *vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[0], poly->GetMaterial()->GetPolyMaterial());
-	m_z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
-	
-	for( unsigned int i = 1; i < m_poly->VertexCount(); i++)
+	float        m_z;
+	RAS_Polygon *m_poly;
+		
+	polygonSlot(float z, RAS_Polygon* poly) :
+		m_z(z),
+		m_poly(poly)
+	{}
+	/**
+	 * pnorm and pval form the plane equation that the distance from is used to
+	 * sort against.
+	 */
+        polygonSlot(const MT_Vector3 &pnorm, const MT_Scalar &pval, RAS_MeshObject *mesh, RAS_Polygon* poly) :
+			m_poly(poly)
 	{
-		vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[i], poly->GetMaterial()->GetPolyMaterial());
-		float z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
-		if (z < m_z)
-			m_z = z;
+		const KX_VertexIndex &base = m_poly->GetIndexBase();
+		RAS_TexVert *vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[0], poly->GetMaterial()->GetPolyMaterial());
+		m_z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
+		
+		for( unsigned int i = 1; i < m_poly->VertexCount(); i++)
+		{
+			vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[i], poly->GetMaterial()->GetPolyMaterial());
+			float z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
+			m_z += z;
+		}
+		m_z /= m_poly->VertexCount();
 	}
-}
+};
+	
+struct RAS_MeshObject::backtofront
+{
+	bool operator()(const polygonSlot &a, const polygonSlot &b) const
+	{
+		return a.m_z < b.m_z;
+	}
+};
+
+struct RAS_MeshObject::fronttoback
+{
+	bool operator()(const polygonSlot &a, const polygonSlot &b) const
+	{
+		return a.m_z > b.m_z;
+	}
+};
+
 
 void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 {
@@ -603,6 +634,7 @@ void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 	for (; ait != alphapolyset.end(); ++ait)
 		SchedulePoly((*ait).m_poly->GetVertexIndexBase(), (*ait).m_poly->VertexCount(), (*ait).m_poly->GetMaterial()->GetPolyMaterial());
 }
+
 
 void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawingmode,RAS_IRasterizer* rasty)
 {

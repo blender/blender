@@ -45,10 +45,9 @@
 using namespace std;
 
 typedef vector<unsigned short> KX_IndexArray;
-typedef vector< KX_IndexArray* > vecIndexArrays;
 typedef vector<RAS_TexVert> KX_VertexArray;
 typedef vector< KX_VertexArray* >  vecVertexArray;
-
+typedef vector< KX_IndexArray* > vecIndexArrays;
 
 /**
  * KX_VertexIndex
@@ -56,9 +55,9 @@ typedef vector< KX_VertexArray* >  vecVertexArray;
 struct KX_VertexIndex {
 public:
 	KX_VertexIndex(int size);
-	void	SetIndex(short loc,short index);
+	void	SetIndex(short loc,unsigned int index);
 	short	m_vtxarray;
-	short	m_indexarray[4];
+	unsigned short	m_indexarray[4];
 	short	m_size;
 };
 
@@ -69,18 +68,20 @@ public:
 class KX_MeshSlot
 {
 public:
-	void*				m_clientObj;
-	RAS_Deformer*			m_pDeformer;	//	__NLA
-	double*				m_OpenGLMatrix;
-	class RAS_MeshObject*		m_mesh;
+	void*					m_clientObj;
+	RAS_Deformer*				m_pDeformer;	//	__NLA
+	double*					m_OpenGLMatrix;
+	class RAS_MeshObject*			m_mesh;
+	mutable bool				m_bVisible; // for visibility
+	mutable bool  				m_bObjectColor;
+	mutable MT_Vector4			m_RGBAcolor;
 	
-	mutable bool			m_bVisible; // for visibility
-	mutable bool  		    m_bObjectColor;
-	mutable MT_Vector4		m_RGBAcolor;
-	
-	KX_MeshSlot() :m_pDeformer(NULL), m_bVisible(true) {}
-	//	KX_MeshSlot() :m_bVisible(true) {}
-	
+	KX_MeshSlot() :
+		m_pDeformer(NULL), 
+		m_bVisible(true)
+	{
+	}
+	~KX_MeshSlot() {};
 	bool					Less(const KX_MeshSlot& lhs) const;
 };
 

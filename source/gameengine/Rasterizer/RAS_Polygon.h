@@ -72,7 +72,7 @@ public:
 	
 //	RAS_TexVert* GetVertex(int index);
 	int					VertexCount();
-	void				SetVertex(int i,int vertexindex); //const MT_Point3& xyz,const MT_Point2& uv,const unsigned int rgbacolor,const MT_Vector3& normal)
+	void				SetVertex(int i, unsigned int vertexindex); //const MT_Point3& xyz,const MT_Point2& uv,const unsigned int rgbacolor,const MT_Vector3& normal)
 	
 	const KX_VertexIndex& GetIndexBase();
 

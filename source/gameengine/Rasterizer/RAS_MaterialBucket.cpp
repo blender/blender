@@ -56,7 +56,7 @@ KX_VertexIndex::KX_VertexIndex(int size)
 
 
 
-void KX_VertexIndex::SetIndex(short loc,short index)
+void KX_VertexIndex::SetIndex(short loc,unsigned int index)
 {
 	m_indexarray[loc]=index;
 }

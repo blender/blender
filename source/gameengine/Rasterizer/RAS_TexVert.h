@@ -47,15 +47,21 @@ static MT_Point2 g_pt2;
 class RAS_TexVert
 {
 	
-	float			m_localxyz[3];	// 3*4 = 12 = 24
-	float			m_uv1[2];	// 2*4 =  8 = 24 + 16 = 40
-	unsigned int	m_rgba;			// 4   = 40 + 4 = 44
-	float			m_normal[3];	// 3*2 =  6 = 50 
-	short			m_flag;		// 32 bytes total size, fits nice = 52 = not fit nice
+	float			m_localxyz[3];	// 3*4 = 12
+	float			m_uv1[2];	// 2*4 =  8
+	unsigned int	m_rgba;			//        4
+	float			m_tangent[4];   // 4*2 =  8
+	float			m_normal[3];	// 3*2 =  6 
+	short			m_flag;		//        2
+	                                        //---------
+						//       40
+	//32 bytes total size, fits nice = 52 = not fit nice.
+	// We'll go for 64 bytes total size - 24 bytes left.
 
 
 public:
 	short getFlag() const;
+	
 	RAS_TexVert()// :m_xyz(0,0,0),m_uv(0,0),m_rgba(0)
 	{}
 	RAS_TexVert(const MT_Point3& xyz,
@@ -79,15 +85,14 @@ public:
 		return m_normal;
 	}
 	
-	const unsigned int& getRGBA() const {
-		return m_rgba;
+	const unsigned char* getRGBA() const {
+		return (unsigned char *) &m_rgba;
 	}
 #else
 	const float* getUV1 () const;
 	const float*		getNormal() const;
 	const float*		getLocalXYZ() const;
-	const unsigned int&	getRGBA() const;
-
+	const unsigned char*	getRGBA() const;
 #endif
 	void				SetXYZ(const MT_Point3& xyz);
 	void				SetUV(const MT_Point2& uv);
