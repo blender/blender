@@ -6532,7 +6532,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 		
 		if(sbuts->align==BUT_VERTICAL) {
 			psnext->pa->ofsx = ps->pa->ofsx;
-			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - ps->pa->sizey-PNL_HEADER-PNL_DIST;
+			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-PNL_DIST;
 		}
 		else {
 			psnext->pa->ofsx = ps->pa->ofsx + ps->pa->sizex+PNL_DIST;
