@@ -107,6 +107,8 @@ void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 	glGetIntegerv(GL_BLUE_BITS, &b);
 
 	mainwin_color_depth= r + g + b;
+	
+	if(G.f & G_DEBUG) printf("Color depth R=%d G=%d B=%d\n", (int)r, (int)g, (int)b);
 }
 
 /* XXXXXXXXXXXXXXXX very hacky, not allowed to release
