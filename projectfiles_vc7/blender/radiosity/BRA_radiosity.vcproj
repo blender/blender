@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BRA_radiosity"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\radiosity"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\radiosity"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\radiosity"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\radiosity"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,25 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\imbuf,..\..\..\source\blender\blenlib,..\..\..\source\blender\blenkernel,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\radiosity\extern\include,..\..\..\source\blender,..\..\..\source\blender\include,..\..\..\source\blender\misc,..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\radiosity/BRA_radiosity.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\radiosity/"
-				ObjectFile=".\..\..\..\obj\windows\blender\radiosity/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\radiosity/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\radiosity\BRA_radiosity.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\radiosity\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\radiosity\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\radiosity\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\radiosity\BRA_radiosity.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BRA_radiosity.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -55,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\radiosity\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\radiosity\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\radiosity\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\radiosity\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,17 +73,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\imbuf,..\..\..\source\blender\blenlib,..\..\..\source\blender\blenkernel,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\radiosity\extern\include,..\..\..\source\blender,..\..\..\source\blender\include,..\..\..\source\blender\misc,..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\radiosity\debug/BRA_radiosity.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\radiosity\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\radiosity\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\radiosity\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\radiosity\debug\BRA_radiosity.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\radiosity\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\radiosity\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\radiosity\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -85,7 +91,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\radiosity\debug\BRA_radiosity.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BRA_radiosity.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -101,8 +107,15 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

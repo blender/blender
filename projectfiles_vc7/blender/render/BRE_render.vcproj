@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BRE_render"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\render"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\render"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\render"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\render"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,25 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_messaging;..\..\..\source\blender\imbuf;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\include;..\..\..\source\blender\misc;..\..\..\source\kernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\python;..\..\..\source\blender;..\..\..\source\blender\yafray"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\render/BRE_render.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\render/"
-				ObjectFile=".\..\..\..\obj\windows\blender\render/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\render/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\render\BRE_render.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\render\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\render\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\render\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\render\BRE_render.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BRE_render.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -55,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\render\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\render\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\render\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\render\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,17 +73,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_messaging;..\..\..\source\blender\imbuf;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\include;..\..\..\source\blender\misc;..\..\..\source\kernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\python;..\..\..\source\blender;..\..\..\source\blender\yafray"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\render\debug/BRE_render.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\render\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\render\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\render\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\render\debug\BRE_render.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\render\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\render\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\render\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -85,7 +91,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\render\debug\BRE_render.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BRE_render.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -101,15 +107,19 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
-			<File
-				RelativePath="..\..\..\source\blender\render\intern\source\RE_callbacks.c">
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\edgeRender.c">
 			</File>
@@ -121,6 +131,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\gammaCorrectionTables.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\imagetexture.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\initrender.c">
@@ -138,16 +151,19 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\ray.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\render\intern\source\renderHelp.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\render\intern\source\renderPreAndPost.c">
+				RelativePath="..\..\..\source\blender\render\intern\source\RE_callbacks.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\rendercore.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\renderdatabase.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\renderHelp.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\renderPreAndPost.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\shadbuf.c">
@@ -168,9 +184,6 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
-			<File
-				RelativePath="..\..\..\source\blender\render\intern\include\RE_callbacks.h">
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\edgeRender.h">
 			</File>
@@ -205,16 +218,19 @@
 				RelativePath="..\..\..\source\blender\render\intern\include\pixelshading.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\render\intern\include\renderHelp.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\render\intern\include\renderPreAndPost.h">
+				RelativePath="..\..\..\source\blender\render\intern\include\RE_callbacks.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\rendercore.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\rendercore_int.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\renderHelp.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\renderPreAndPost.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\shadbuf.h">

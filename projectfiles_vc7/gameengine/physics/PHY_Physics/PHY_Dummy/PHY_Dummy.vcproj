@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="PHY_Dummy"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/PHY_Dummy.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\PHY_Dummy.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll\PHY_Dummy.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,24 +73,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/PHY_Dummy.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\debug\PHY_Dummy.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug\PHY_Dummy.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\debug\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -99,11 +106,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,24 +124,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/PHY_Dummy.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\PHY_Dummy.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug\PHY_Dummy.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\debug\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -144,11 +157,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,25 +175,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy/PHY_Dummy.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\PHY_Dummy.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\dummy\PHY_Dummy.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -190,8 +209,118 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\physics\common"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\PHY_Dummy.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\debug\PHY_Dummy.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\blenplayer"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\physics\common"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\PHY_Dummy.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\dummy\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\PHY_Dummy.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

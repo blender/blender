@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="SYS_system"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/SYS_system.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\SYS_system.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll\SYS_system.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\SYS_system.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,62 +73,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/SYS_system.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug\SYS_system.lib"
-				SuppressStartupBanner="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system\debug"
-			ConfigurationType="4"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/SYS_system.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\debug\SYS_system.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_system\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -129,7 +91,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\debug\SYS_system.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\SYS_system.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -145,11 +107,69 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\kernel\gen_system"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\SYS_system.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\SYS_system.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,25 +177,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system/SYS_system.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\kernel\gen_system/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\kernel\gen_system/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\SYS_system.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_system\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_system\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\kernel\gen_system\SYS_system.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\SYS_system.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -191,8 +211,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\SYS_system.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_system\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\SYS_system.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_system\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\SYS_system.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_system\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_system\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_system\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\SYS_system.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

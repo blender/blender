@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BLO_loader"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\loader\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\loader\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\loader\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\loader\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,17 +21,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\loader\debug/BLO_loader.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\loader\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\loader\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\loader\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\loader\debug\BLO_loader.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\loader\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\loader\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\loader\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\loader\debug\BLO_loader.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -55,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\loader\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\loader\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,24 +73,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\loader\mtdll_debug/BLO_loader.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\loader\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\loader\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\loader\mtdll_debug/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\debug\BLO_loader.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\loader\mtdll_debug\BLO_loader.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -100,11 +107,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\loader\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\loader\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\loader\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\loader\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,24 +125,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\loader\mtdll/BLO_loader.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\loader\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\blender\loader\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\loader\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\BLO_loader.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\loader\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\loader\mtdll\BLO_loader.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -145,11 +159,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\loader"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\loader"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\loader"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\loader"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,25 +177,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\blender\blenloader,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\loader/BLO_loader.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\loader/"
-				ObjectFile=".\..\..\..\obj\windows\blender\loader/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\loader/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\loader\BLO_loader.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\loader\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\loader\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\loader\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\loader\BLO_loader.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BLO_loader.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -191,8 +211,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\loader\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\loader\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\loader\debug\BLO_loader.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\loader\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\loader\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\loader\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BLO_loader.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\loader\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\loader\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\streamglue;..\..\..\source\blender\readblenfile;..\..\..\source\blender\writeblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\writestreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel\gen_messaging"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\loader\BLO_loader.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\loader\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\loader\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\loader\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BLO_loader.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -200,32 +331,41 @@
 			<File
 				RelativePath="..\..\..\source\blender\blenloader\intern\genfile.c">
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Blender Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="MT DLL Debug|Win32">
+					Name="3D Plugin Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="MT DLL Release|Win32">
+					Name="3D Plugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\source\blender\blenloader,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenloader\intern\undofile.c">
+				<FileConfiguration
+					Name="BlenderPlayer Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="BlenderPlayer Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenloader\intern\readblenentry.c">
@@ -233,55 +373,82 @@
 			<File
 				RelativePath="..\..\..\source\blender\blenloader\intern\readfile.c">
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Blender Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="MT DLL Debug|Win32">
+					Name="3D Plugin Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="MT DLL Release|Win32">
+					Name="3D Plugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\source\blender\blenloader,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="BlenderPlayer Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="BlenderPlayer Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenloader\intern\undofile.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenloader\intern\writefile.c">
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Blender Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="MT DLL Debug|Win32">
+					Name="3D Plugin Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="MT DLL Release|Win32">
+					Name="3D Plugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\blenloader,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\..\source\blender\blenloader,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\include,..\..\..\source\blender\streamglue\,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\writeblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readblenfile,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readstreamglue,..\..\..\source\blender\writestreamglue,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\python;..\..\..\source\blender;$(NoInherit)"/>
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="BlenderPlayer Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="BlenderPlayer Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories=""/>
 				</FileConfiguration>
 			</File>
 		</Filter>

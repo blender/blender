@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="blender"
+	RootNamespace="blender"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -11,9 +12,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\obj\windows\blender"
-			IntermediateDirectory=".\..\..\obj\windows\blender"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\bin\debug"
+			IntermediateDirectory="..\..\..\build\msvc_7\source\blender"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,18 +22,18 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\source\blender\misc,..\..\..\lib\windows\guardedalloc\include,..\..\source\blender\blenlib,..\..\source\kernel\gen_messaging,..\..\source\blender\include,..\..\source\blender,..\..\source\blender\makesdna,..\..\source\blender\blenkernel,..\..\source\blender\blenloader,..\..\source\blender\python,..\..\source\blender\imbuf,..\..\source\blender\render\extern\include,..\..\source\blender\radiosity\extern\include,..\..\source\kernel\gen_system,..\..\source\blender\renderconverter\,..\..\source\blender\renderui\"
-				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;FTGL_STATIC_LIBRARY;USE_SUMO_SOLID"
+				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
+				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;USE_SUMO_SOLID;FTGL_LIBRARY_STATIC"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\obj\windows\blender/blender.pch"
-				AssemblerListingLocation=".\..\..\obj\windows\blender/"
-				ObjectFile=".\..\..\obj\windows\blender/"
-				ProgramDataBaseFileName=".\..\..\obj\windows\blender/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\build\msvc_7\source\blender\blender.pch"
+				AssemblerListingLocation="..\..\..\build\msvc_7\source\blender\"
+				ObjectFile="..\..\..\build\msvc_7\source\blender\"
+				ProgramDataBaseFileName="..\..\..\build\msvc_7\source\blender\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -40,25 +41,28 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static_ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libopennl.lib libpng_st.lib libz_st.lib libmoto.lib PHY_Sumo.lib solid.lib qhull.lib python23.lib"
+				AdditionalDependencies="SDL.lib freetype2.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib odelib.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib libz_st.lib libmoto.lib solid.lib qhull.lib libopennl.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\ftgl\lib;..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\bsp\lib;..\..\..\lib\windows\moto\lib;..\..\..\lib\windows\bmfont\lib;..\..\..\lib\windows\ghost\lib;..\..\..\lib\windows\python\frozen;..\..\..\lib\windows\guardedalloc\lib;..\..\..\lib\windows\string\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\iksolver\lib;..\..\..\lib\windows\decimation\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\blenkey\lib;..\..\..\lib\windows\openssl\lib;..\..\..\lib\windows\soundsystem\lib\;..\..\..\lib\windows\zlib\lib\;..\..\..\lib\windows\png\lib\;..\..\..\lib\windows\QTDevWin\Libraries;..\..\obj\windows\gameengine\physics\sumo\Release;..\..\..\lib\windows\solid\lib;..\..\..\lib\windows\qhull\lib;..\..\..\lib\windows\opennl\lib"
+				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_7\libs\intern;..\..\..\build\msvc_7\libs\extern"
 				IgnoreAllDefaultLibraries="FALSE"
-				IgnoreDefaultLibraryNames="msvcprt.lib;glut32.lib;libcd.lib;libc.lib;libcpd.lib;libcp.lib;libcmtd.lib"
-				ProgramDatabaseFile=".\..\..\obj\windows\blender/blender.pdb"
+				IgnoreDefaultLibraryNames="libc.lib, msvcrt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib"
+				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\blender.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName=".\..\..\obj\windows\blender/blender.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Copying required 3rd party dlls...
-XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\
-XCOPY /Y ..\..\..\lib\windows\sdl\lib\*dll ..\..\bin\
-XCOPY /Y ..\..\..\lib\windows\python\lib\*dll ..\..\bin\
+				CommandLine="ECHO Moving libraries and export definitions...
+MOVE /Y ..\..\bin\blender.lib ..\..\..\build\msvc_7\libs
+MOVE /Y ..\..\bin\blender.exp ..\..\..\build\msvc_7\libs
+ECHO Copying required 3rd party dlls...
+XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin
+XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
+XCOPY /Y ..\..\..\lib\windows\python\lib\python23.dll ..\..\bin
 ECHO Done
 "/>
 			<Tool
@@ -68,33 +72,40 @@ ECHO Done
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1043"/>
+				Culture="0"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\obj\windows\blender\debug"
-			IntermediateDirectory=".\..\..\obj\windows\blender\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\bin\debug"
+			IntermediateDirectory="..\..\..\build\msvc_7\source\blender\debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="2"
+			DeleteExtensionsOnClean="*.obj;*.pdb;*.tlb;*.tli;*.tlh;*.tmp;*.rsp;*.bat;$(TargetPath)">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\source\blender\misc,..\..\..\lib\windows\guardedalloc\include,..\..\source\blender\blenlib,..\..\source\kernel\gen_messaging,..\..\source\blender\include,..\..\source\blender,..\..\source\blender\makesdna,..\..\source\blender\blenkernel,..\..\source\blender\blenloader,..\..\source\blender\python,..\..\source\blender\imbuf,..\..\source\blender\render\extern\include,..\..\source\blender\radiosity\extern\include,..\..\source\kernel\gen_system,..\..\source\blender\renderconverter\,..\..\source\blender\renderui\"
+				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE,WITH_QUICKTIME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\obj\windows\blender\debug/blender.pch"
-				AssemblerListingLocation=".\..\..\obj\windows\blender\debug/"
-				ObjectFile=".\..\..\obj\windows\blender\debug/"
-				ProgramDataBaseFileName=".\..\..\obj\windows\blender\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\build\msvc_7\source\blender\debug\blender.pch"
+				AssemblerListingLocation="..\..\..\build\msvc_7\source\blender\debug\"
+				ObjectFile="..\..\..\build\msvc_7\source\blender\debug\"
+				ProgramDataBaseFileName="..\..\..\build\msvc_7\source\blender\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -102,23 +113,35 @@ ECHO Done
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static_ST.lib gnu_gettext.lib qtmlClient.lib odelib.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib libz_st.lib libmoto.lib solid.lib qhull.lib"
+				AdditionalOptions="/MACHINE:I386
+"
+				AdditionalDependencies="SDL.lib freetype2.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib odelib.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib libz_st.lib libmoto.lib solid.lib qhull.lib libopennl.lib"
+				ShowProgress="0"
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\ftgl\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\bsp\lib\debug;..\..\..\lib\windows\moto\lib\debug;..\..\..\lib\windows\bmfont\lib\debug;..\..\..\lib\windows\ghost\lib\debug;..\..\..\lib\windows\guardedalloc\lib\debug;..\..\..\lib\windows\string\lib\debug;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\iksolver\lib\debug;..\..\..\lib\windows\decimation\lib\debug;..\..\..\lib\windows\openal\lib;..\..\obj\windows\intern\soundsystem\dummy\debug;..\..\obj\windows\intern\soundsystem\openal\debug;..\..\..\lib\windows\soundsystem\lib\debug\;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\zlib\lib\;..\..\..\lib\windows\png\lib\;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\lib\windows\solid\lib;..\..\..\lib\windows\qhull\lib;..\..\..\lib\windows\opennl\lib\debug"
-				IgnoreDefaultLibraryNames="glut32.lib;libc.lib;libcd.lib;libcpd.lib;libcp.lib;libcmt.lib"
+				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
+				IgnoreDefaultLibraryNames="libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, msvcrtd.lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\obj\windows\blender\debug/blender.pdb"
+				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\debug\blender.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName=".\..\..\obj\windows\blender\debug/blender.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Copying required 3rd party dlls...
-XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\
+				CommandLine="ECHO Moving libraries and export definitions...
+MOVE /Y ..\..\bin\debug\blender.lib ..\..\..\build\msvc_7\libs\debug
+MOVE /Y ..\..\bin\debug\blender.exp ..\..\..\build\msvc_7\libs\debug
+MOVE /Y ..\..\bin\debug\blender.ilk ..\..\..\build\msvc_7\libs\debug
+ECHO Copying required 3rd party dlls...
+XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\python\lib\python23_d.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\bin\debug
+ECHO Copying language folder
+IF NOT EXIST ..\..\bin\debug\.blender MKDIR ..\..\bin\debug\.blender
+XCOPY /Y ..\..\bin\.blender ..\..\bin\debug\.blender /E
 ECHO Done
 "/>
 			<Tool
@@ -132,9 +155,16 @@ ECHO Done
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -145,13 +175,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\source\icons\winblender.rc">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Blender Debug|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"/>

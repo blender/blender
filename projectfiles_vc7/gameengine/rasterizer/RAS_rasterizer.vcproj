@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="RAS_rasterizer"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\rasterizer\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\rasterizer\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,17 +21,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\moto\include\,..\..\..\..\lib\windows\string\include,..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\rasterizer\debug/RAS_rasterizer.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\rasterizer\debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\rasterizer\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\rasterizer\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\RAS_rasterizer.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\rasterizer\debug\RAS_rasterizer.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\RAS_rasterizer.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -55,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,24 +73,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../../lib/windows/moto/include,..\..\..\..\lib\windows\string\include,..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll/RAS_rasterizer.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\RAS_rasterizer.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll\RAS_rasterizer.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\RAS_rasterizer.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -100,11 +107,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\rasterizer"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\rasterizer"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,25 +125,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\moto\include\,..\..\..\..\lib\windows\string\include,..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\rasterizer/RAS_rasterizer.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\rasterizer/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\rasterizer/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\rasterizer/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\RAS_rasterizer.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\rasterizer\RAS_rasterizer.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\RAS_rasterizer.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -146,11 +159,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -158,24 +177,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../../lib/windows/moto/include,..\..\..\..\lib\windows\string\include,..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll_debug/RAS_rasterizer.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll_debug/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\debug\RAS_rasterizer.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\rasterizer\mtdll_debug\RAS_rasterizer.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\RAS_rasterizer.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -191,8 +211,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\RAS_rasterizer.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\RAS_rasterizer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\RAS_rasterizer.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\rasterizer\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\RAS_rasterizer.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -219,10 +350,10 @@
 				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_Polygon.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_TexVert.cpp">
+				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_texmatrix.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_texmatrix.cpp">
+				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_TexVert.cpp">
 			</File>
 		</Filter>
 		<Filter

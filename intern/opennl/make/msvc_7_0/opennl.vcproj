@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="opennl"
 	ProjectGUID="{8B8D4FC3-3234-4E54-8376-5AB83D00D164}"
 	Keyword="Win32Proj">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\opennl\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\opennl\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\opennl\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\opennl\debug"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -22,26 +22,30 @@
 				AdditionalIncludeDirectories="..\..\..\opennl\extern;..\..\..\opennl\superlu"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				MinimalRebuild="FALSE"
-				BasicRuntimeChecks="0"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="TRUE"
-				UsePrecompiledHeader="0"
-				WarningLevel="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\opennl\debug\OpenNL.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\opennl\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\opennl\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\opennl\debug\"
+				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\opennl\debug\libopennl.lib"/>
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libopennl.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying OpenNL files library (debug target) to lib tree."
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\opennl\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\opennl\debug\*.lib ..\..\..\..\..\lib\windows\opennl\lib\debug\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\opennl\include MKDIR ..\..\..\..\..\build\msvc_7\intern\opennl\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\opennl\include
 ECHO Done
 "/>
 			<Tool
@@ -52,11 +56,17 @@ ECHO Done
 				Name="VCResourceCompilerTool"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\opennl"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\opennl"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\opennl"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\opennl"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -70,11 +80,12 @@ ECHO Done
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="0"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\opennl\"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\opennl"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\opennl\"
-				WarningLevel="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\opennl\OpenNL.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\opennl\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\opennl\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\opennl\"
+				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="1"/>
@@ -82,15 +93,15 @@ ECHO Done
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\opennl\libopennl.lib"/>
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libopennl.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying OpenNL files library to lib tree."
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\opennl\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\opennl\*.lib ..\..\..\..\..\lib\windows\opennl\lib\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\opennl\include MKDIR ..\..\..\..\..\build\msvc_7\intern\opennl\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\opennl\include
 ECHO Done
 "/>
 			<Tool
@@ -102,8 +113,125 @@ ECHO Done
 				PreprocessorDefinitions="NDEBUG"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\..\opennl\extern;..\..\..\opennl\superlu"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\OpenNL.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="1"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libopennl.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying OpenNL files library to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\opennl\include MKDIR ..\..\..\..\..\build\msvc_7\intern\opennl\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\opennl\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\opennl\extern;..\..\..\opennl\superlu"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				MinimalRebuild="FALSE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\debug\OpenNL.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\opennl\mtdll\debug\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libopennl.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying OpenNL files library (debug target) to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\opennl\include MKDIR ..\..\..\..\..\build\msvc_7\intern\opennl\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\opennl\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -111,7 +239,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\colamd.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -120,7 +254,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\get_perm_c.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -129,7 +269,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\heap_relax_snode.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -138,7 +284,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\lsame.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -147,7 +299,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\memory.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -156,7 +314,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\mmd.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -168,7 +332,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\relax_snode.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -177,7 +347,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\scolumn_bmod.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -186,7 +362,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\scolumn_dfs.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -195,7 +377,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\scopy_to_ucol.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -204,7 +392,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\sgssv.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -213,7 +407,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\sgstrf.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -222,7 +422,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\sgstrs.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -231,7 +437,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\smemory.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -240,7 +452,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\smyblas2.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -249,7 +467,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\sp_coletree.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -258,7 +482,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\sp_ienv.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -267,7 +497,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\sp_preorder.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -276,7 +512,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\spanel_bmod.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -285,7 +527,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\spanel_dfs.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -294,7 +542,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\spivotL.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -303,7 +557,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\spruneL.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -312,7 +572,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\ssnode_bmod.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -321,7 +587,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\ssnode_dfs.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -330,7 +602,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\ssp_blas2.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -339,7 +617,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\ssp_blas3.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -348,7 +632,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\strsv.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -357,7 +647,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\superlu_timer.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -366,7 +662,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\sutil.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -375,7 +677,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\util.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -384,7 +692,13 @@ ECHO Done
 			<File
 				RelativePath="..\..\superlu\xerbla.c">
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3DPlugin Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						ObjectFile="$(IntDir)/$(InputName)1.obj"/>

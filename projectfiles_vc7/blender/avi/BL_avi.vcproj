@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BL_avi"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\avi\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\avi\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,62 +21,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\avi,..\..\..\source\blender\include,..\..\..\..\lib\windows\jpeg\include,..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\avi\mtdll_debug/BL_avi.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\avi\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\avi\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\avi\mtdll_debug/"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\avi\mtdll_debug\BL_avi.lib"
-				SuppressStartupBanner="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\avi\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\avi\debug"
-			ConfigurationType="4"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\avi,..\..\..\source\blender\include,..\..\..\..\lib\windows\jpeg\include,..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\avi\debug/BL_avi.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\avi\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\avi\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\avi\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\debug\BL_avi.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -84,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\avi\debug\BL_avi.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\BL_avi.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -100,11 +55,69 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\avi"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\avi"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\avi\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\avi\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="FALSE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\avi\debug\BL_avi.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\avi\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\avi\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\avi\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BL_avi.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\avi"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\avi"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,25 +125,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\avi,..\..\..\source\blender\include,..\..\..\..\lib\windows\jpeg\include,..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\avi/BL_avi.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\avi/"
-				ObjectFile=".\..\..\..\obj\windows\blender\avi/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\avi/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\avi\BL_avi.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\avi\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\avi\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\avi\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\avi\BL_avi.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BL_avi.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -146,11 +159,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\avi\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\avi\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\avi\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\avi\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -158,24 +177,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\avi,..\..\..\source\blender\include,..\..\..\..\lib\windows\jpeg\include,..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\avi\mtdll/BL_avi.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\avi\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\blender\avi\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\avi\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\BL_avi.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\avi\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\avi\mtdll\BL_avi.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\BL_avi.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -191,8 +211,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\avi\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\avi\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="FALSE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\avi\debug\BL_avi.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\avi\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\avi\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\avi\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BL_avi.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\avi\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\avi\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\avi\BL_avi.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\avi\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\avi\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\avi\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BL_avi.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

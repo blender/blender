@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BL_src"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\src"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\src"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\src"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\src"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include\;..\..\..\source\blender\img;..\..\..\source\blender\renderui;..\..\..\..\lib\windows\soundsystem\include\;..\..\..\..\lib\windows\python\include\python2.0\;..\..\..\..\lib\windows\bmfont\include;..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\renderconverter;..\..\..\source\blender\verify;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\ftfont;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\kernel\gen_system;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\include;..\..\..\source\blender;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\network;..\..\..\..\lib\windows\decimation\include;..\..\..\source\blender\blenpluginapi\;..\..\..\..\lib\windows\blenkey\include;..\..\..\..\lib\windows\ghost\include;..\..\..\..\lib\windows\opennl\include;..\..\..\..\lib\windows\bsp\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\blenkey\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER=1;WITH_QUICKTIME;INTERNATIONAL"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\src/BL_src.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\src/"
-				ObjectFile=".\..\..\..\obj\windows\blender\src/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\src/"
-				WarningLevel="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\src\BL_src.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\src\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\src\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\src\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\src\BL_src.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BL_src.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\src\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\src\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\src\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\src\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,25 +73,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include\;..\..\..\source\blender\img;..\..\..\source\blender\renderui;..\..\..\..\lib\windows\soundsystem\include\;..\..\..\..\lib\windows\python\include\python2.0\;..\..\..\..\lib\windows\bmfont\include;..\..\..\source\blender\ftfont;..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\renderconverter;..\..\..\source\blender\verify;..\..\..\source\blender\readstreamglue;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\kernel\gen_system;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\include;..\..\..\source\blender;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\network;..\..\..\..\lib\windows\decimation\include;..\..\..\source\blender\blenpluginapi\;..\..\..\..\lib\windows\blenkey\include;..\..\..\..\lib\windows\ghost\include;..\..\..\..\lib\windows\bsp\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
-				PreprocessorDefinitions="WIN32,_LIB,_CONSOLE,GAMEBLENDER,WITH_QUICKTIME,INTERNATIONAL"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\blenkey\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,_CONSOLE,GAMEBLENDER,WITH_QUICKTIME,INTERNATIONAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\src\debug/BL_src.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\src\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\src\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\src\debug/"
-				WarningLevel="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\src\debug\BL_src.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\src\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\src\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\src\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
-				CompileAs="0"
-				UndefinePreprocessorDefinitions="_DEBUG"/>
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\src\debug\BL_src.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BL_src.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -100,8 +107,15 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -492,10 +506,10 @@
 				RelativePath="..\..\..\source\blender\include\BIF_writeavicodec.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\include\BSE_filesel.h">
+				RelativePath="..\..\..\source\blender\include\blendef.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\include\blendef.h">
+				RelativePath="..\..\..\source\blender\include\BSE_filesel.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\butspace.h">

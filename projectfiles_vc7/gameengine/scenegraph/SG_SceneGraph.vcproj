@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="SG_SceneGraph"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\scenegraph"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\scenegraph"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,25 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\scenegraph/SG_SceneGraph.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\scenegraph/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\scenegraph/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\scenegraph/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\SG_SceneGraph.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\scenegraph\SG_SceneGraph.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\SG_SceneGraph.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -55,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\scenegraph\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\scenegraph\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,17 +73,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\scenegraph\debug/SG_SceneGraph.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\scenegraph\debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\scenegraph\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\scenegraph\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\SG_SceneGraph.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -85,7 +91,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\scenegraph\debug\SG_SceneGraph.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\SG_SceneGraph.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -101,11 +107,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -113,24 +125,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll_debug/SG_SceneGraph.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll_debug/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\debug\SG_SceneGraph.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll_debug\SG_SceneGraph.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\SG_SceneGraph.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -146,11 +159,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -158,24 +177,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll/SG_SceneGraph.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\SG_SceneGraph.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\scenegraph\mtdll\SG_SceneGraph.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\SG_SceneGraph.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -191,8 +211,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\SG_SceneGraph.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\SG_SceneGraph.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\SG_SceneGraph.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\scenegraph\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\SG_SceneGraph.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="bmfont"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\bmfont"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\bmfont"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -27,28 +27,27 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\bmfont/bmfont.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\bmfont/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\bmfont/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\bmfont/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bmfont\bmfont.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bmfont\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bmfont\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bmfont\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\bmfont\libbmfont.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libbmfont.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copying BMFONT files library (release target) to lib tree."
+				Description="Copying BMFONT files library to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\bmfont\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bmfont\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bmfont\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\bmfont\include
 ECHO Done
 "/>
 			<Tool
@@ -61,11 +60,17 @@ ECHO Done
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\bmfont\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\bmfont\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -77,30 +82,30 @@ ECHO Done
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\bmfont\debug/bmfont.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\bmfont\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\bmfont\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\bmfont\debug/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bmfont\debug\bmfont.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bmfont\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bmfont\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bmfont\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\bmfont\debug\libbmfont.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libbmfont.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copying BMFONT files library (debug target) to lib tree."
+				Description="Copying BMFONT files library (debug target) to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\bmfont\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bmfont\debug\*.lib ..\..\..\..\..\lib\windows\bmfont\lib\debug\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bmfont\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bmfont\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\bmfont\include
 ECHO Done
 "/>
 			<Tool
@@ -113,8 +118,130 @@ ECHO Done
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..;..\..\intern"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\bmfont.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libbmfont.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BMFONT files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bmfont\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bmfont\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\bmfont\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..;..\..\intern"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\debug\bmfont.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bmfont\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libbmfont.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BMFONT files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bmfont\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bmfont\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\bmfont\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

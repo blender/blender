@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="iksolver"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\iksolver"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\iksolver"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,32 +21,33 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..\..\..\intern\memutil;..\..\..\..\intern\moto\include"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\iksolver/iksolver.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\iksolver/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\iksolver/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\iksolver/"
-				WarningLevel="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\iksolver\iksolver.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\iksolver\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\iksolver\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\iksolver\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\iksolver\libiksolver.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libiksolver.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying IK files library to lib tree."
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\iksolver\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\iksolver\*.lib ..\..\..\..\..\lib\windows\iksolver\lib\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\iksolver\include MKDIR ..\..\..\..\..\build\msvc_7\intern\iksolver\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\iksolver\include
 ECHO Done
 "/>
 			<Tool
@@ -59,11 +60,17 @@ ECHO Done
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\iksolver\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\iksolver\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -71,32 +78,34 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\intern\memutil;..\..\..\..\intern\moto\include"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\iksolver\debug/iksolver.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\iksolver\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\iksolver\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\iksolver\debug/"
-				WarningLevel="1"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\iksolver\debug\iksolver.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\iksolver\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\iksolver\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\iksolver\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\iksolver\debug\libiksolver.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libiksolver.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying IK files library (debug target) to lib tree."
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\iksolver\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\iksolver\debug\*.lib ..\..\..\..\..\lib\windows\iksolver\lib\debug\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\iksolver\include MKDIR ..\..\..\..\..\build\msvc_7\intern\iksolver\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\iksolver\include
 ECHO Done
 "/>
 			<Tool
@@ -109,8 +118,130 @@ ECHO Done
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\iksolver.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libiksolver.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying IK files library to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\iksolver\include MKDIR ..\..\..\..\..\build\msvc_7\intern\iksolver\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\iksolver\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\debug\iksolver.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\iksolver\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libiksolver.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying IK files library (debug target) to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\iksolver\include MKDIR ..\..\..\..\..\build\msvc_7\intern\iksolver\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\iksolver\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="intern"

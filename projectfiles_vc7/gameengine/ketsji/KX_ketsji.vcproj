@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="KX_ketsji"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\ketsji\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\ketsji\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,26 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\source\gameengine\physics\common\dummy,..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\lib\windows\string\include,..\..\..\..\lib\windows\moto\include,..\..\..\source\kernel\gen_system,..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\rasterizer,..\..\..\source\gameengine\scenegraph,..\..\..\source\gameengine\gamelogic,..\..\..\source\gameengine\expressions,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\source\gameengine\network,..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\source\gameengine\physics,..\..\..\source\gameengine\physics\common,..\..\..\source\gameengine\physics\dummy,..\..\..\source\gameengine\physics\sumo,..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\source\gameengine\physics\sumo\include,..\..\..\source\gameengine\physics\BlOde"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\ketsji\mtdll/KX_ketsji.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\ketsji\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\ketsji\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\ketsji\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\KX_ketsji.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\ketsji\mtdll\KX_ketsji.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +56,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,25 +74,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\source\gameengine\physics\common\dummy,..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\lib\windows\string\include,..\..\..\..\lib\windows\moto\include,..\..\..\source\kernel\gen_system,..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\rasterizer,..\..\..\source\gameengine\scenegraph,..\..\..\source\gameengine\gamelogic,..\..\..\source\gameengine\expressions,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\source\gameengine\network,..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\source\gameengine\physics,..\..\..\source\gameengine\physics\common,..\..\..\source\gameengine\physics\dummy,..\..\..\source\gameengine\physics\sumo,..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\source\gameengine\physics\sumo\include,..\..\..\source\gameengine\physics\BlOde"
-				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
+				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/KX_ketsji.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\debug\KX_ketsji.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\ketsji\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"
-				UndefinePreprocessorDefinitions="_DEBUG"/>
+				DebugInformationFormat="3"
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug\KX_ketsji.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -100,11 +108,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\ketsji\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\ketsji\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,26 +126,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.2;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\physics\common\dummy;..\..\..\..\lib\windows\string\include;..\..\..\..\lib\windows\moto\include;..\..\..\source\kernel\gen_system;..\..\..\..\lib\windows\soundsystem\include;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\expressions;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\network;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\blender\python;..\..\..\extern\solid\"
-				PreprocessorDefinitions="JANCODEPANCO,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
+				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\ketsji\debug/KX_ketsji.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\ketsji\debug/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\ketsji\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\ketsji\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\KX_ketsji.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
-				CompileAs="0"
-				UndefinePreprocessorDefinitions="_DEBUG"/>
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\ketsji\debug\KX_ketsji.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,11 +160,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\gameengine\ketsji"
-			IntermediateDirectory=".\..\..\..\obj\windows\gameengine\ketsji"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -159,7 +178,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.2;..\..\..\source\gameengine\physics\common\dummy;..\..\..\..\lib\windows\string\include;..\..\..\..\lib\windows\moto\include;..\..\..\source\kernel\gen_system;..\..\..\..\lib\windows\SoundSystem\include;..\..\..\source\blender\python;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\network;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\BlOde;..\..\..\extern\solid;..\..\..\..\lib\windows\solid\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -167,18 +186,18 @@
 				DefaultCharIsUnsigned="TRUE"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\gameengine\ketsji/KX_ketsji.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\gameengine\ketsji/"
-				ObjectFile=".\..\..\..\obj\windows\gameengine\ketsji/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\gameengine\ketsji/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\KX_ketsji.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\ketsji\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\ketsji\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\gameengine\ketsji\KX_ketsji.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -194,8 +213,120 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
+				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\KX_ketsji.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\KX_ketsji.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\gameengine\ketsji\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				RuntimeTypeInfo="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\KX_ketsji.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\ketsji\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\gameengine\ketsji\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\KX_ketsji.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -237,6 +368,9 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PolygonMaterial.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.cpp">
 			</File>
 			<File
@@ -249,10 +383,10 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_RayEventManager.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_SG_NodeRelationships.cpp">
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Scene.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Scene.cpp">
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_SG_NodeRelationships.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_SumoPhysicsController.cpp">
@@ -276,10 +410,10 @@
 				Name="ActuatorsImp"
 				Filter="">
 				<File
-					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CDActuator.cpp">
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CameraActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CameraActuator.cpp">
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CDActuator.cpp">
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_ConstraintActuator.cpp">
@@ -389,10 +523,10 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_GameObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_IPOTransform.h">
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_IPhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_IPhysicsController.h">
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_IPOTransform.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_ISceneConverter.h">
@@ -422,6 +556,9 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PolygonMaterial.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.h">
 			</File>
 			<File
@@ -434,10 +571,10 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_RayEventManager.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_SG_NodeRelationships.h">
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Scene.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Scene.h">
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_SG_NodeRelationships.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_SumoPhysicsController.h">
@@ -461,10 +598,10 @@
 				Name="Actuators"
 				Filter="">
 				<File
-					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CDActuator.h">
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CameraActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CameraActuator.h">
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_CDActuator.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_ConstraintActuator.h">

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="blenkey"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\blenkey\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\blenkey\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -24,30 +24,31 @@
 				AdditionalIncludeDirectories="..\..;..\..\python;..\..\..\..\..\lib\windows\openssl\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\blenkey\debug/blenkey.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\blenkey\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\blenkey\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\blenkey\debug/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\blenkey\debug\blenkey.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\blenkey\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\blenkey\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\blenkey\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\blenkey\debug\libblenkey.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libblenkey.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying BLENKEY files library (debug target) to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\lib\windows\blenkey\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\..\lib\windows\blenkey\lib\debug\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\blenkey\include MKDIR ..\..\..\..\..\build\msvc_7\intern\blenkey\include
+XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\build\msvc_7\intern\blenkey\include
+ECHO Done
 "/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
@@ -59,11 +60,17 @@ XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\..\lib\w
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\blenkey"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\blenkey"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -74,30 +81,30 @@ XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\..\lib\w
 				AdditionalIncludeDirectories="..\..;..\..\python;..\..\..\..\..\lib\windows\openssl\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\blenkey/blenkey.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\blenkey/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\blenkey/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\blenkey/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\blenkey\blenkey.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\blenkey\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\blenkey\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\blenkey\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\blenkey\libblenkey.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libblenkey.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying BLENKEY files library to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\lib\windows\blenkey\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\..\lib\windows\blenkey\lib\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\blenkey\include MKDIR ..\..\..\..\..\build\msvc_7\intern\blenkey\include
+XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\build\msvc_7\intern\blenkey\include
 ECHO Done
 "/>
 			<Tool
@@ -110,8 +117,129 @@ ECHO Done
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..;..\..\python;..\..\..\..\..\lib\windows\openssl\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\blenkey.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libblenkey.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BLENKEY files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\blenkey\include MKDIR ..\..\..\..\..\build\msvc_7\intern\blenkey\include
+XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\build\msvc_7\intern\blenkey\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..;..\..\python;..\..\..\..\..\lib\windows\openssl\include"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\debug\blenkey.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\blenkey\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libblenkey.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BLENKEY files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\blenkey\include MKDIR ..\..\..\..\..\build\msvc_7\intern\blenkey\include
+XCOPY /Y ..\..\blenkey.h ..\..\..\..\..\build\msvc_7\intern\blenkey\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="bsplib"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\bsp\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\bsp\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,34 +21,34 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\memutil;..\..\..\..\..\lib\windows\moto\include;..\..\..\..\..\lib\windows\container\include;..\..\..\..\..\lib\windows\memutil\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\bsp\debug/bsplib.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\bsp\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\bsp\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\bsp\debug/"
-				WarningLevel="1"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\debug\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\bsp\debug\libbsp.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libbsp.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library (debug target) to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\bsp\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\debug\*.lib ..\..\..\..\..\lib\windows\bsp\lib\debug\*.lib
-ECHO Copying Debug info.
-XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\debug\vc70.* ..\..\..\..\..\lib\windows\bsp\lib\debug\
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
 ECHO Done
 "/>
 			<Tool
@@ -61,11 +61,17 @@ ECHO Done
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\bsp"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\bsp"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -73,33 +79,33 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\memutil;..\..\..\..\..\lib\windows\moto\include;..\..\..\..\..\lib\windows\container\include;..\..\..\..\..\lib\windows\memutil\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\bsp/bsplib.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\bsp/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\bsp/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\bsp/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\bsp\libbsp.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libbsp.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\bsp\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\*.lib ..\..\..\..\..\lib\windows\bsp\lib\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
 ECHO Done
 "/>
 			<Tool
@@ -112,8 +118,130 @@ ECHO Done
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libbsp.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\container\include"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\bsplib.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\bsp\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libbsp.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying BSP files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\bsp\include MKDIR ..\..\..\..\..\build\msvc_7\intern\bsp\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\bsp\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="intern"

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="DNA_makesdna"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\makesdna\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,194 +21,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\blenkernel,..\..\..\source\blender"
-				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\makesdna\mtdll_debug/DNA_makesdna.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\makesdna\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\makesdna\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\makesdna\mtdll_debug/"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.a"
-				OutputFile=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
-				LinkIncremental="2"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\lib\windows\guardedalloc\lib"
-				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="DNA_makesdna.pdb"
-				SubSystem="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="CD ..\..\..\source\blender\makesdna\intern\
-DNA_makesdna.exe dna.c
-"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\makesdna"
-			ConfigurationType="1"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\blenkernel,..\..\..\source\blender"
-				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
-				StringPooling="TRUE"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="TRUE"
-				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\makesdna/DNA_makesdna.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\makesdna/"
-				ObjectFile=".\..\..\..\obj\windows\blender\makesdna/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\makesdna/"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
-				OutputFile=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\lib\windows\guardedalloc\lib,..\..\..\obj\windows\blender\blenlib"
-				IgnoreDefaultLibraryNames="libc.lib"
-				ProgramDatabaseFile="DNA_makesdna.pdb"
-				SubSystem="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				Description="Building DNA"
-				CommandLine="CD ..\..\..\source\blender\makesdna\intern\
-DNA_makesdna.exe dna.c
-"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-		</Configuration>
-		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\makesdna\mtdll"
-			ConfigurationType="1"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\blenkernel,..\..\..\source\blender"
-				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
-				StringPooling="TRUE"
-				RuntimeLibrary="4"
-				EnableFunctionLevelLinking="TRUE"
-				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\makesdna\mtdll/DNA_makesdna.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\makesdna\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\blender\makesdna\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\makesdna\mtdll/"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.a"
-				OutputFile=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\lib\windows\guardedalloc\lib,..\..\..\..\obj\windows\blender\blenlib"
-				ProgramDatabaseFile="DNA_makesdna.pdb"
-				SubSystem="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
-			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="CD ..\..\..\source\blender\makesdna\intern\
-DNA_makesdna.exe dna.c
-"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-		</Configuration>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\makesdna\debug"
-			ConfigurationType="1"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenlib,..\..\..\source\blender\blenkernel,..\..\..\source\blender"
-				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\makesdna\debug/DNA_makesdna.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\makesdna\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\makesdna\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\makesdna\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\debug\DNA_makesdna.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -221,10 +44,10 @@ DNA_makesdna.exe dna.c
 				OutputFile=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\lib\windows\guardedalloc\lib\debug,..\..\..\obj\windows\blender\blenlib\debug"
-				IgnoreDefaultLibraryNames="libc.lib"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\build\msvc_7\libs"
+				IgnoreDefaultLibraryNames="	libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, libcmtd.lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="DNA_makesdna.pdb"
+				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\debug\DNA_makesdna.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -246,9 +69,354 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\makesdna\DNA_makesdna.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\makesdna\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\makesdna\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\makesdna\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\build\msvc_7\libs"
+				IgnoreDefaultLibraryNames="libc.lib"
+				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\DNA_makesdna.pdb"
+				SubSystem="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Building DNA"
+				CommandLine="CD ..\..\..\source\blender\makesdna\intern\
+DNA_makesdna.exe dna.c
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\DNA_makesdna.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\makesdna\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\build\msvc_7\libs"
+				IgnoreDefaultLibraryNames="	libc.lib, libcmt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib"
+				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\DNA_makesdna.pdb"
+				SubSystem="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Building DNA"
+				CommandLine="CD ..\..\..\source\blender\makesdna\intern\
+DNA_makesdna.exe dna.c
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\debug"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\DNA_makesdna.pch"
+				ExpandAttributedSource="FALSE"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386
+"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern\debug;..\..\..\..\build\msvc_7\libs\debug"
+				IgnoreAllDefaultLibraries="FALSE"
+				IgnoreDefaultLibraryNames="libc.lib, libcd.lib"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\debug\DNA_makesdna.pdb"
+				SubSystem="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Building DNA"
+				CommandLine="CD ..\..\..\source\blender\makesdna\intern
+DNA_makesdna.exe dna.c
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\blenplayer"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\DNA_makesdna.pch"
+				ExpandAttributedSource="FALSE"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\makesdna\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386
+"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
+				LinkIncremental="2"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern\debug;..\..\..\..\build\msvc_7\libs\debug"
+				IgnoreAllDefaultLibraries="FALSE"
+				IgnoreDefaultLibraryNames="libc.lib, libcd.lib"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\debug\DNA_makesdna.pdb"
+				SubSystem="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Building DNA"
+				CommandLine="CD ..\..\..\source\blender\makesdna\intern
+DNA_makesdna.exe dna.c
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\makesdna\blenplayer"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\makesdna\DNA_makesdna.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\makesdna\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\makesdna\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\makesdna\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\build\msvc_7\libs"
+				IgnoreDefaultLibraryNames="libc.lib"
+				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\DNA_makesdna.pdb"
+				SubSystem="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Building DNA"
+				CommandLine="CD ..\..\..\source\blender\makesdna\intern\
+DNA_makesdna.exe dna.c
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -260,9 +428,6 @@ DNA_makesdna.exe dna.c
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
-			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_ID.h">
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_action_types.h">
 			</File>
@@ -295,6 +460,9 @@ DNA_makesdna.exe dna.c
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_group_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_ID.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_ika_types.h">

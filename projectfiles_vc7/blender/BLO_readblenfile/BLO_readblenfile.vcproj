@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BLO_readblenfile"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\readblenfile\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\readblenfile\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\blender\streamglue\,..\..\..\source\blender\blenloader\,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenlib,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\readblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\readblenfile\mtdll/BLO_readblenfile.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\readblenfile\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\blender\readblenfile\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\readblenfile\mtdll/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\BLO_readblenfile.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\readblenfile\mtdll\BLO_readblenfile.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\BLO_readblenfile.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +55,17 @@
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\readblenfile\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\readblenfile\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +73,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blender\readstreamglue\,..\..\..\source\blender\blenloader\,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenlib,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\readblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\readblenfile\debug/BLO_readblenfile.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\readblenfile\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\readblenfile\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\readblenfile\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\BLO_readblenfile.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -83,7 +90,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\readblenfile\debug\BLO_readblenfile.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BLO_readblenfile.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -99,11 +106,17 @@
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\readblenfile\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\readblenfile\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,24 +124,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blender\readstreamglue\,..\..\..\source\blender\blenloader\,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenlib,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\readblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\readblenfile\mtdll_debug/BLO_readblenfile.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\readblenfile\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\readblenfile\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\readblenfile\mtdll_debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\debug\BLO_readblenfile.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\readblenfile\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\readblenfile\mtdll_debug\BLO_readblenfile.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\BLO_readblenfile.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -144,11 +157,17 @@
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\readblenfile"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\readblenfile"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,25 +175,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\blender\streamglue\,..\..\..\source\blender\blenloader\,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenlib,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\readblenfile\,..\..\..\source\blender\deflate\,..\..\..\source\blender\inflate\,..\..\..\..\lib\windows\zlib\include,..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\readblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\readblenfile/BLO_readblenfile.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\readblenfile/"
-				ObjectFile=".\..\..\..\obj\windows\blender\readblenfile/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\readblenfile/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\BLO_readblenfile.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\readblenfile\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\readblenfile\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\readblenfile\BLO_readblenfile.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BLO_readblenfile.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -190,8 +209,118 @@
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\readblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\kernel\gen_messaging"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\BLO_readblenfile.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\readblenfile\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BLO_readblenfile.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\readblenfile\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\inflate;..\..\..\source\blender\deflate;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\blender\readblenfile;..\..\..\source\blender\readstreamglue;..\..\..\source\kernel\gen_messaging"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\BLO_readblenfile.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\readblenfile\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\readblenfile\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\readblenfile\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BLO_readblenfile.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="PHY_Ode"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/PHY_Ode.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\debug\PHY_Ode.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug\PHY_Ode.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\debug\PHY_Ode.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +54,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,70 +72,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\source\gameengine\physics\common"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
-				StringPooling="TRUE"
-				RuntimeLibrary="4"
-				EnableFunctionLevelLinking="TRUE"
-				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode/PHY_Ode.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\ode/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\ode/"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\PHY_Ode.lib"
-				SuppressStartupBanner="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll"
-			ConfigurationType="4"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/PHY_Ode.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\PHY_Ode.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll\PHY_Ode.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\PHY_Ode.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -145,11 +106,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug"
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,24 +124,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\source\gameengine\physics\common"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/PHY_Ode.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\debug\PHY_Ode.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug\PHY_Ode.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\debug\PHY_Ode.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -190,8 +157,67 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\lib\windows\ode\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\source\gameengine\physics\common"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\PHY_Ode.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\ode\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\PHY_Ode.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

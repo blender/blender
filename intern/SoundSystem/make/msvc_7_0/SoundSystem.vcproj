@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="SoundSystem"
 	ProjectGUID="{98330220-47A6-42E0-9DE4-AD0FF5D204D6}"
 	SccProjectName=""
@@ -12,9 +12,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\soundsystem\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\soundsystem\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -22,16 +22,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\dummy;..\..\openal;..\..\..\..\..\lib\windows\string\include;..\..\..\..\..\lib\windows\moto\include"
+				AdditionalIncludeDirectories="..\..;..\..\dummy;..\..\openal;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\soundsystem\debug/SoundSystem.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\soundsystem\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\soundsystem\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\soundsystem\debug/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\debug\SoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\soundsystem\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\soundsystem\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -39,16 +40,16 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\soundsystem\debug\libSoundSystem.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libSoundSystem.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying SND SoundSystem files library (debug target) to lib tree."
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\SoundSystem\include\*.h
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\soundsystem\debug\*.lib ..\..\..\..\..\lib\windows\SoundSystem\lib\debug\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include MKDIR ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
 ECHO Done
 "/>
 			<Tool
@@ -61,11 +62,17 @@ ECHO Done
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\soundsystem"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\soundsystem"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -73,34 +80,34 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..;..\..\dummy;..\..\openal;..\..\..\..\..\lib\windows\string\include;..\..\..\..\..\lib\windows\moto\include"
+				AdditionalIncludeDirectories="..\..;..\..\dummy;..\..\openal;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\soundsystem/SoundSystem.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\soundsystem/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\soundsystem/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\soundsystem/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\SoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\soundsystem\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\soundsystem\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\soundsystem\libSoundSystem.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libSoundSystem.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying SND SoundSystem files library to lib tree."
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\*.h ..\..\..\..\..\lib\windows\SoundSystem\include\*.h
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\soundsystem\*.lib ..\..\..\..\..\lib\windows\SoundSystem\lib\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include MKDIR ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
 ECHO Done
 "/>
 			<Tool
@@ -113,8 +120,131 @@ ECHO Done
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..;..\..\dummy;..\..\openal;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\SoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libSoundSystem.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying SND SoundSystem files library to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include MKDIR ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..;..\..\dummy;..\..\openal;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\debug\SoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\soundsystem\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libSoundSystem.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying SND SoundSystem files library (debug target) to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include MKDIR ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\SoundSystem\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

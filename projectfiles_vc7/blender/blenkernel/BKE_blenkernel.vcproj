@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BKE_blenkernel"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\blenkernel\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\blenkernel\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,62 +21,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blenloader,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\renderconverter,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\avi,..\..\..\source\blender\imbuf,..\..\..\source\kernel\gen_system,..\..\..\source\blender\blenloader,..\..\..\source\blender,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\python,..\..\..\source\blender\blenlib,../../../source/gameengine\SoundSystem\,../../../../lib/windows/iksolver/include,../../../../lib/windows/bsp/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/BKE_blenkernel.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\blenkernel\mtdll_debug\BKE_blenkernel.lib"
-				SuppressStartupBanner="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\blenkernel\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\blenkernel\debug"
-			ConfigurationType="4"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="../../../../lib/windows/bsp/include,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\renderconverter,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\avi,..\..\..\source\blender\imbuf,..\..\..\source\kernel\gen_system,..\..\..\source\blender\blenloader,..\..\..\source\blender,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\python,..\..\..\source\blender\blenlib,../../../source/gameengine\SoundSystem\,../../../../lib/windows/iksolver/include"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\blenkernel\debug/BKE_blenkernel.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\blenkernel\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\blenkernel\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\blenkernel\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\debug\BKE_blenkernel.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -84,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\blenkernel\debug\BKE_blenkernel.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\BKE_blenkernel.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -100,11 +55,69 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\blenkernel"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\blenkernel"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\BKE_blenkernel.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BKE_blenkernel.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,25 +125,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../../lib/windows/bsp/include,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\renderconverter,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\avi,..\..\..\source\blender\imbuf,..\..\..\source\kernel\gen_system,..\..\..\source\blender\blenloader,..\..\..\source\blender,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\python,..\..\..\source\blender\blenlib,../../../source/gameengine\SoundSystem\,../../../../lib/windows/iksolver/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2,UNWRAPPER"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\blenkernel/BKE_blenkernel.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\blenkernel/"
-				ObjectFile=".\..\..\..\obj\windows\blender\blenkernel/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\blenkernel/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\BKE_blenkernel.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\blenkernel\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\blenkernel\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\blenkernel\BKE_blenkernel.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BKE_blenkernel.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -146,11 +159,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\blenkernel\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\blenkernel\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -158,24 +177,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\source\gameengine\soundsystem\snd_blenderwavecache,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\renderconverter,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\avi,..\..\..\source\blender\imbuf,..\..\..\source\kernel\gen_system,..\..\..\source\blender\blenloader,..\..\..\source\blender,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\python,..\..\..\source\blender\blenlib,../../../source/gameengine\SoundSystem\,../../../../lib/windows/iksolver/include,../../../../lib/windows/bsp/include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\blenkernel\mtdll/BKE_blenkernel.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\blenkernel\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\blender\blenkernel\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\blenkernel\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\BKE_blenkernel.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\blenkernel\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\blenkernel\mtdll\BKE_blenkernel.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\BKE_blenkernel.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -191,8 +211,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\BKE_blenkernel.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\blenkernel\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BKE_blenkernel.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\blenkernel\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2,UNWRAPPER"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\BKE_blenkernel.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\blenkernel\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\blenkernel\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\blenkernel\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BKE_blenkernel.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

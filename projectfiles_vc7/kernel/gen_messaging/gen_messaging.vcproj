@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="gen_messaging"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -26,19 +26,19 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll_debug/gen_messaging.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll_debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\debug\gen_messaging.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll_debug\gen_messaging.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\gen_messaging.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +54,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\kernel\gen_messaging\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\kernel\gen_messaging\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -71,11 +77,11 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\kernel\gen_messaging\debug/gen_messaging.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\kernel\gen_messaging\debug/"
-				ObjectFile=".\..\..\..\obj\windows\kernel\gen_messaging\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\kernel\gen_messaging\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\gen_messaging.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -83,7 +89,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\kernel\gen_messaging\debug\gen_messaging.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\gen_messaging.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -99,11 +105,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\kernel\gen_messaging"
-			IntermediateDirectory=".\..\..\..\obj\windows\kernel\gen_messaging"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -118,18 +130,18 @@
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\kernel\gen_messaging/gen_messaging.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\kernel\gen_messaging/"
-				ObjectFile=".\..\..\..\obj\windows\kernel\gen_messaging/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\kernel\gen_messaging/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\gen_messaging.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\kernel\gen_messaging\gen_messaging.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\gen_messaging.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -145,11 +157,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -162,19 +180,20 @@
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll/gen_messaging.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\gen_messaging.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\kernel\gen_messaging\mtdll\gen_messaging.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\gen_messaging.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -190,8 +209,118 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\source\kernel\gen_messaging"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\gen_messaging.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\gen_messaging.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\source\kernel\gen_messaging"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\gen_messaging.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\kernel\gen_messaging\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\gen_messaging.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

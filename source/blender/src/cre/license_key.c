@@ -38,7 +38,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "BLO_readfile.h"
-#include "BLO_keyStore.h"
+//#include "BLO_keyStore.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="BL_imbuf"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\imbuf\debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\imbuf\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenloader;..\..\..\source\blender\include;..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\imbuf\debug/BL_imbuf.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\imbuf\debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\imbuf\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\imbuf\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\BL_imbuf.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -38,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\imbuf\debug\BL_imbuf.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\imbuf\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\imbuf\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,23 +73,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\avi,..\..\..\source\blender\imbuf,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenlib,..\..\..\source\blender\include,..\..\..\..\lib\windows\jpeg\include,..\..\..\..\lib\windows\zlib\include,..\..\..\..\lib\windows\png\include,..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\imbuf\mtdll_debug/BL_imbuf.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\imbuf\mtdll_debug/"
-				ObjectFile=".\..\..\..\obj\windows\blender\imbuf\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\imbuf\mtdll_debug/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\debug\BL_imbuf.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\imbuf\mtdll_debug\BL_imbuf.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\debug\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -98,11 +106,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\imbuf\mtdll"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\imbuf\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -110,24 +124,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\avi,..\..\..\source\blender\imbuf,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenlib,..\..\..\source\blender\include,..\..\..\..\lib\windows\jpeg\include,..\..\..\..\lib\windows\zlib\include,..\..\..\..\lib\windows\png\include,..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\imbuf\mtdll/BL_imbuf.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\imbuf\mtdll/"
-				ObjectFile=".\..\..\..\obj\windows\blender\imbuf\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\imbuf\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\BL_imbuf.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\imbuf\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\imbuf\mtdll\BL_imbuf.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\mtdll\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -143,11 +158,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\obj\windows\blender\imbuf"
-			IntermediateDirectory=".\..\..\..\obj\windows\blender\imbuf"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -155,25 +176,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\obj\windows\blender\imbuf/BL_imbuf.pch"
-				AssemblerListingLocation=".\..\..\..\obj\windows\blender\imbuf/"
-				ObjectFile=".\..\..\..\obj\windows\blender\imbuf/"
-				ProgramDataBaseFileName=".\..\..\..\obj\windows\blender\imbuf/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\imbuf\BL_imbuf.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\imbuf\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\imbuf\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\imbuf\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\obj\windows\blender\imbuf\BL_imbuf.lib"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -189,8 +210,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\BL_imbuf.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\imbuf\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BL_imbuf.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\blenplayer"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\imbuf\BL_imbuf.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\imbuf\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\imbuf\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\imbuf\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BL_imbuf.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

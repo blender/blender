@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="GP_common"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python1.5,..\..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\gameengine\Converter,..\..\..\..\source\gameengine\soundsystem\snd_dummy,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\..\lib\windows\string\include,..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\gameengine\GamePlayer\common\,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\sumo\fuzzics\include,..\..\..\..\..\lib\windows\openal\include,../../../../source/blender/blenkernel,../../../../source/blender/makesdna,../../../../source/blender/blenlib,../../../../source/blender/blenloader,../../../../source/blender/render/extern/include,../../../../source/blender/imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\..\build\msvc_7\intern\openal\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\..\build\msvc_7\intern\SoundSystem\include;..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\Converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\GamePlayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\soundsystem\snd_dummy;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\Physics\Sumo;..\..\..\..\source\gameengine\Physics\common;..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll/GP_common.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\GP_common.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll\GP_common.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\mtdll\GP_common.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -54,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,70 +73,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\gameengine\Converter,..\..\..\..\source\gameengine\soundsystem\snd_dummy,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\..\lib\windows\string\include,..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\gameengine\GamePlayer\common\,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\sumo\fuzzics\include,..\..\..\..\..\lib\windows\openal\include,../../../../source/blender/blenkernel,../../../../source/blender/makesdna,../../../../source/blender/blenlib,../../../../source/blender/blenloader,../../../../source/blender/render/extern/include,../../../../source/blender/imbuf"
-				PreprocessorDefinitions="WIN32,_LIB"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\debug/GP_common.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\debug/"
-				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="3"
-				CompileAs="0"
-				UndefinePreprocessorDefinitions="_DEBUG"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\debug\GP_common.lib"
-				SuppressStartupBanner="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll_debug"
-			ConfigurationType="4"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\gameengine\Converter,..\..\..\..\source\gameengine\soundsystem\snd_dummy,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\..\lib\windows\string\include,..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\gameengine\GamePlayer\common\,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\sumo\fuzzics\include,..\..\..\..\..\lib\windows\openal\include,../../../../source/blender/blenkernel,../../../../source/blender/makesdna,../../../../source/blender/blenlib,../../../../source/blender/blenloader,../../../../source/blender/render/extern/include,../../../../source/blender/imbuf"
-				PreprocessorDefinitions="WIN32,_LIB"
+				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\..\build\msvc_7\intern\openal\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\..\build\msvc_7\intern\SoundSystem\include;..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\Converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\GamePlayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\soundsystem\snd_dummy;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\Physics\Sumo;..\..\..\..\source\gameengine\Physics\common;..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include"
+				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll_debug/GP_common.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll_debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll_debug/"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\debug\GP_common.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"
-				UndefinePreprocessorDefinitions="_DEBUG"/>
+				DebugInformationFormat="3"
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\mtdll_debug\GP_common.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\mtdll\debug\GP_common.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -145,11 +106,68 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\gameplayer\common"
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\..\build\msvc_7\intern\openal\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\..\build\msvc_7\intern\SoundSystem\include;..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\Converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\GamePlayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\soundsystem\snd_dummy;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\Physics\Sumo;..\..\..\..\source\gameengine\Physics\common;..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include"
+				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\debug\GP_common.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\debug\GP_common.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,25 +175,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\gameengine\Converter,..\..\..\..\source\gameengine\soundsystem\snd_dummy,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\..\lib\windows\string\include,..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\gameengine\GamePlayer\common\,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\sumo\fuzzics\include,..\..\..\..\..\lib\windows\openal\include,../../../../source/blender/blenkernel,../../../../source/blender/makesdna,../../../../source/blender/blenlib,../../../../source/blender/blenloader,../../../../source/blender/render/extern/include,../../../../source/blender/imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\..\build\msvc_7\intern\openal\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\..\build\msvc_7\intern\SoundSystem\include;..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\blenkernel;..\..\..\..\source\blender\blenloader;..\..\..\..\source\blender\makesdna;..\..\..\..\source\blender\render\extern\include;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\network;..\..\..\..\source\gameengine\rasterizer;..\..\..\..\source\gameengine\Converter;..\..\..\..\source\gameengine\gamelogic;..\..\..\..\source\gameengine\scenegraph;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\soundsystem;..\..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\..\source\gameengine\GamePlayer\common;..\..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\source\gameengine\soundsystem\snd_dummy;..\..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\..\source\gameengine\Physics\Sumo;..\..\..\..\source\gameengine\Physics\common;..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\source\sumo\include;..\..\..\..\source\sumo\fuzzics\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common/GP_common.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\gameplayer\common/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\gameplayer\common/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\GP_common.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\gameplayer\common\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\gameplayer\common\GP_common.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\GP_common.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -191,12 +209,22 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\..\..\source\gameengine\GamePlayer\common\bmfont.cpp">
+			</File>
 			<File
 				RelativePath="..\..\..\..\source\gameengine\GamePlayer\common\GPC_Canvas.cpp">
 			</File>
@@ -238,9 +266,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\source\gameengine\GamePlayer\common\windows\GPW_System.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\common\bmfont.cpp">
 			</File>
 		</Filter>
 		<Filter

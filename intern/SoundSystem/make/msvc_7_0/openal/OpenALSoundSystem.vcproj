@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="OpenALSoundSystem"
 	ProjectGUID="{213356A9-3A1F-41DA-9819-1297BCD17DEE}"
 	SccProjectName=""
@@ -12,9 +12,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -22,16 +22,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\string;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..\..\sdl;..\..\..\intern;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\intern\string\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug/OpenALSoundSystem.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\debug\OpenALSoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -39,16 +40,12 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\intern\soundsystem\openal\debug\libOpenALSoundSystem.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\intern\debug\libOpenALSoundSystem.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Copying lib
-XCOPY /Y ..\..\..\..\..\obj\windows\intern\soundsystem\openal\debug\*.lib ..\..\..\..\..\..\lib\windows\SoundSystem\lib\debug\*.lib
-ECHO Done
-"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -59,11 +56,17 @@ ECHO Done
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -71,34 +74,30 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\string;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..\..\sdl;..\..\..\intern;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\intern\string\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal/OpenALSoundSystem.pch"
-				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal/"
-				ObjectFile=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal/"
-				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal/"
-				WarningLevel="1"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\OpenALSoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\intern\soundsystem\openal\libOpenALSoundSystem.lib"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\intern\libOpenALSoundSystem.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Copying lib
-XCOPY /Y ..\..\..\..\..\obj\windows\intern\soundsystem\openal\*.lib ..\..\..\..\..\..\lib\windows\SoundSystem\lib\*.lib
-ECHO Done
-"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -109,8 +108,119 @@ ECHO Done
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\sdl;..\..\..\intern;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\intern\string\include"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\OpenALSoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libOpenALSoundSystem.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\sdl;..\..\..\intern;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\intern\string\include"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\debug\OpenALSoundSystem.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\intern\soundsystem\openal\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libOpenALSoundSystem.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

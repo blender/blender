@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="PHY_Sumo"
 	ProjectGUID="{9625642D-6F20-4FB6-A089-BE7441B223E3}"
 	Keyword="Win32Proj">
@@ -11,28 +11,32 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="Debug"
-			IntermediateDirectory="Debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\..\..\lib\windows\moto\include;..\..\..\..\..\..\lib\windows\solid\include"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\PHY_Sumo.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/PHY_Sumo.lib"/>
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\debug\PHY_Sumo.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -45,11 +49,17 @@
 				Name="VCResourceCompilerTool"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\sumo\Release"
-			IntermediateDirectory=".\..\..\..\..\..\obj\windows\gameengine\physics\sumo\Release"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -57,22 +67,26 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include;..\..\..\..\..\extern\solid;..\..\..\..\..\intern\moto\include"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				RuntimeTypeInfo="TRUE"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\PHY_Sumo.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\"
+				WarningLevel="2"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/PHY_Sumo.lib"/>
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\PHY_Sumo.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -85,8 +99,207 @@
 				Name="VCResourceCompilerTool"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_SUMO_SOLID"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				RuntimeTypeInfo="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\PHY_Sumo.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\PHY_Sumo.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\blenplayer"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\PHY_Sumo.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\debug\PHY_Sumo.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\blenplayer"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\blenplayer"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				InlineFunctionExpansion="1"
+				OmitFramePointers="TRUE"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_SUMO_SOLID"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				RuntimeTypeInfo="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\PHY_Sumo.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\PHY_Sumo.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Sumo\include;..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\debug\PHY_Sumo.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\mtdll\debug\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\debug\PHY_Sumo.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -102,6 +315,9 @@
 				Filter="">
 				<File
 					RelativePath="..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_FhObject.cpp">
+				</File>
+				<File
+					RelativePath="..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_MotionState.cpp">
 				</File>
 				<File
 					RelativePath="..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_Object.cpp">

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="decimation"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\decimation\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\decimation\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\decimation\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\decimation\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,34 +21,34 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\moto\include\;..\..\..\..\..\lib\windows\container\include\;..\..\..\..\..\lib\windows\memutil\include\"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\decimation\debug/decimation.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\decimation\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\decimation\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\decimation\debug/"
-				WarningLevel="1"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\decimation\debug\decimation.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\decimation\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\decimation\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\decimation\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\decimation\debug\libdecimation.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\libdecimation.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying LOD files library (debug target) to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\decimation\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\..\lib\windows\decimation\lib\debug\*.lib
-ECHO Copying Debug info.
-XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\vc70.* ..\..\..\..\..\lib\windows\decimation\lib\debug\
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\decimation\include MKDIR ..\..\..\..\..\build\msvc_7\intern\decimation\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\decimation\include
 ECHO Done
 "/>
 			<Tool
@@ -61,11 +61,17 @@ ECHO Done
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\intern\decimation"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\intern\decimation"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\decimation"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\decimation"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -73,32 +79,33 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\moto\include\;..\..\..\..\..\lib\windows\container\include\;..\..\..\..\..\lib\windows\memutil\include\"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\intern\decimation/decimation.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\decimation/"
-				ObjectFile=".\..\..\..\..\obj\windows\intern\decimation/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\decimation/"
-				WarningLevel="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\decimation\decimation.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\decimation\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\decimation\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\decimation\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\intern\decimation\libdecimation.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\libdecimation.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying LOD files library to lib tree"
 				CommandLine="ECHO Copying header files
-XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\lib\windows\decimation\include\
-ECHO Copying lib
-XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\..\lib\windows\decimation\lib\*.lib
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\decimation\include MKDIR ..\..\..\..\..\build\msvc_7\intern\decimation\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\decimation\include
 ECHO Done
 "/>
 			<Tool
@@ -111,8 +118,130 @@ ECHO Done
 				Culture="1043"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\decimation.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\libdecimation.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying LOD files library to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\decimation\include MKDIR ..\..\..\..\..\build\msvc_7\intern\decimation\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\decimation\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\moto\include"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\debug\decimation.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\decimation\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\libdecimation.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying LOD files library (debug target) to lib tree"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\decimation\include MKDIR ..\..\..\..\..\build\msvc_7\intern\decimation\include
+XCOPY /Y ..\..\extern\*.h ..\..\..\..\..\build\msvc_7\intern\decimation\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1043"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="intern"

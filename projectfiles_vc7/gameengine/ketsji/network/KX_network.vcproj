@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.0"
 	Name="KX_network"
 	SccProjectName=""
 	SccLocalPath="">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network"
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,25 +21,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\GameLogic,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\Network"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network/KX_network.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\ketsji\network/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\ketsji\network/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\KX_network.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\KX_network.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\KX_network.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -55,11 +55,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network\debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network\debug"
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,26 +73,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\GameLogic,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\Network"
-				PreprocessorDefinitions="WIN32,_LIB"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\debug/KX_network.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\ketsji\network\debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\ketsji\network\debug/"
-				WarningLevel="3"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\KX_network.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
-				CompileAs="0"
-				UndefinePreprocessorDefinitions="_DEBUG"/>
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\debug\KX_network.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\debug\KX_network.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,11 +107,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Release|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll"
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -114,24 +125,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\GameLogic,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\Network"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll/KX_network.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll/"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\KX_network.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll\KX_network.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\mtdll\KX_network.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,11 +159,17 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="MT DLL Debug|Win32"
-			OutputDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll_debug"
-			IntermediateDirectory=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll_debug"
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -159,25 +177,25 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\GameLogic,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\Network"
-				PreprocessorDefinitions="WIN32,_LIB"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll_debug/KX_network.pch"
-				AssemblerListingLocation=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll_debug/"
-				ObjectFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll_debug/"
-				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll_debug/"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\debug\KX_network.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\mtdll\debug\"
+				WarningLevel="2"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
-				CompileAs="0"
-				UndefinePreprocessorDefinitions="_DEBUG"/>
+				DebugInformationFormat="3"
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\..\..\..\..\obj\windows\gameengine\ketsji\network\mtdll_debug\KX_network.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\mtdll\debug\KX_network.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -193,8 +211,119 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\blenplayer"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\KX_network.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\debug\KX_network.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\blenplayer"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\blenplayer"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\KX_network.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\source\gameengine\ketsji\network\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\KX_network.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
