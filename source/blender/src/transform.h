@@ -141,7 +141,10 @@ typedef struct TransInfo {
 #define TFM_RESIZE			3
 #define TFM_TOSPHERE		4
 #define TFM_SHEAR			5
-#define TFM_LAMP_ENERGY		6
+#define TFM_WARP			7
+#define TFM_SHRINKFATTEN	8
+
+#define TFM_LAMP_ENERGY		10
 
 /* transinfo->flag */
 #define T_OBJECT		1
@@ -187,6 +190,9 @@ int ToSphere(TransInfo *t, short mval[2]);
 
 void initRotation(TransInfo *t);
 int Rotation(TransInfo *t, short mval[2]);
+
+void initShrinkFatten(TransInfo *t);
+int ShrinkFatten(TransInfo *t, short mval[2]);
 
 #endif
 

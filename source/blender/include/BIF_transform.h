@@ -44,8 +44,10 @@
 #define TFM_RESIZE			3
 #define TFM_TOSPHERE		4
 #define TFM_SHEAR			5
-#define TFM_LAMP_ENERGY		6
 #define TFM_WARP			7
+#define TFM_SHRINKFATTEN	8
+
+#define TFM_LAMP_ENERGY		10
 
 	// not sure if adding modes is the right way... context detecting could be done different (ton)
 #define TFM_TEX				32

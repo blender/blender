@@ -397,6 +397,7 @@ static void createTransArmatureVerts(void)
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
 			VECCOPY (td->iloc, ebo->tail);
+			VECCOPY (td->center, td->iloc);
 			td->loc= ebo->tail;
 			td->flag= TD_SELECTED;
 
@@ -410,6 +411,7 @@ static void createTransArmatureVerts(void)
 		}
 		if (ebo->flag & BONE_ROOTSEL){
 			VECCOPY (td->iloc, ebo->head);
+			VECCOPY (td->center, td->iloc);
 			td->loc= ebo->head;
 			td->flag= TD_SELECTED;
 
@@ -657,6 +659,16 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->loc = eve->co;
 	VECCOPY(td->center, td->loc);
 	VECCOPY(td->iloc, td->loc);
+
+	// Setting normals
+	VECCOPY(td->axismtx[2], eve->no);
+	td->axismtx[0][0]		=
+		td->axismtx[0][1]	=
+		td->axismtx[0][2]	=
+		td->axismtx[1][0]	=
+		td->axismtx[1][1]	=
+		td->axismtx[1][2]	= 0.0f;
+
 	td->ext = NULL;
 	td->tdi = NULL;
 }
@@ -1263,6 +1275,9 @@ void Transform(int mode)
 	case TFM_WARP:
 		initWarp(&Trans);
 		break;
+	case TFM_SHRINKFATTEN:
+		initShrinkFatten(&Trans);
+		break;
 	}
 
 	// Emptying event queue
@@ -1507,8 +1522,8 @@ void initWarp(TransInfo *t)
 	}
 
 	if (t->flag & T_EDIT) {
-		Mat3MulVecfl(G.obedit->obmat, min);
-		Mat3MulVecfl(G.obedit->obmat, max);
+		Mat4MulVecfl(G.obedit->obmat, min);
+		Mat4MulVecfl(G.obedit->obmat, max);
 	}
 	Mat4MulVecfl(G.vd->viewmat, min);
 	Mat4MulVecfl(G.vd->viewmat, max);
@@ -2231,6 +2246,97 @@ int Translation(TransInfo *t, short mval[2])
 	headerprint(str);
 
 	force_draw(0);
+
+	return 1;
+}
+
+/* ************************** SHRINK/FATTEN *************************** */
+
+void initShrinkFatten(TransInfo *t) 
+{
+	if (G.obedit->type != OB_MESH) {
+		initResize(t);
+		return;
+	}
+
+	t->val /= (float)t->total;
+
+	Trans.fac = (float)sqrt( (float)
+		(
+			(Trans.center2d[1] - Trans.imval[1])*(Trans.center2d[1] - Trans.imval[1])
+		+
+			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
+		) );
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = G.vd->grid * 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = ShrinkFatten;
+}
+
+
+
+int ShrinkFatten(TransInfo *t, short mval[2]) 
+{
+	float vec[3], center[3];
+	float ratio;
+	int i;
+	char str[50];
+	TransData *td = t->data;
+
+	ratio = (float)sqrt( (float)
+		(
+			(t->center2d[1] - mval[1])*(t->center2d[1] - mval[1])
+		+
+			(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
+		) ) / t->fac;
+
+	ratio -= 1.0f;
+
+	if (ratio < 0.0f)
+		ratio = 0.0f;
+
+	if (mval[0] < t->center2d[0])
+		ratio *= -1;
+
+	snapGrid(t, &ratio);
+
+	applyNumInput(&t->num, &ratio);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+
+		sprintf(str, "Shrink/Fatten: %s %s", c, t->proptext);
+	}
+	else {
+		/* default header print */
+		sprintf(str, "Shrink/Fatten: %.4f %s", ratio, t->proptext);
+	}
+	
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			continue;
+
+		VECCOPY(vec, td->axismtx[2]);
+		VecMulf(vec, ratio);
+		VecMulf(vec, td->factor);
+
+		VecAddf(td->loc, td->iloc, vec);
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	force_draw(0);
+
+	helpline (t->center);
 
 	return 1;
 }

@@ -1499,7 +1499,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case SKEY:
 				if(G.obedit) {
 					if(G.qual==LR_ALTKEY)
+#ifdef NEWTRANSFORM
+						Transform(TFM_SHRINKFATTEN);
+#else
 						transform('N'); /* scale along normal */
+#endif
 					else if(G.qual==LR_CTRLKEY)
 #ifdef NEWTRANSFORM
 						Transform(TFM_SHEAR);
