@@ -223,6 +223,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	
 	int lightlayer = blenderobj->lay;
 	
+	MFace* mface = static_cast<MFace*>(mesh->mface);
+	TFace* tface = static_cast<TFace*>(mesh->tface);
+	MCol* mmcol = mesh->mcol;
+	MT_assert(mface || mesh->totface == 0);
+	
 	// Determine if we need to make a skinned mesh
 	if (mesh->dvert){
 		meshobj = new BL_SkinMeshObject(lightlayer);
@@ -233,11 +238,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 	
 	meshobj->SetName(mesh->id.name);
-	
-	MFace* mface = static_cast<MFace*>(mesh->mface);
-	TFace* tface = static_cast<TFace*>(mesh->tface);
-	MT_assert(mface && "Mesh has no faces!");
-	MCol* mmcol = mesh->mcol;
 	
 	meshobj->m_xyz_index_to_vertex_index_mapping.resize(mesh->totvert);
 	
