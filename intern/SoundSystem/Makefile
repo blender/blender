@@ -48,7 +48,7 @@ ifneq ($(NAN_NO_OPENAL),true)
       DIRS += openal
   endif
   ifeq ($(OS),freebsd)
-    DIRS += openal
+    DIRS += openal sdl
   endif
   ifeq ($(OS),$(findstring $(OS), "linux"))
     DIRS += openal sdl
