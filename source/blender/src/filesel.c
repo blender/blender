@@ -2304,6 +2304,9 @@ static void library_to_filelist(SpaceFile *sfile)
 	}
 	
 	idcode= groupname_to_code(group);
+
+		// memory for strings is passed into filelist[i].relname
+		// and free'd in freefilelist
 	if (idcode) {
 		names= BLO_blendhandle_get_datablock_names(sfile->libfiledata, idcode);
 	} else {
