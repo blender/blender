@@ -1505,11 +1505,11 @@ void initWarp(TransInfo *t)
 	Mat4MulVecfl(G.obedit->obmat, max);
 	Mat4MulVecfl(G.vd->viewmat, max);
 	
-	t->center[0]= (min[0]+max[0])/2.0;
-	t->center[1]= (min[1]+max[1])/2.0;
-	t->center[2]= (min[2]+max[2])/2.0;
+	t->center[0]= (min[0]+max[0])/2.0f;
+	t->center[1]= (min[1]+max[1])/2.0f;
+	t->center[2]= (min[2]+max[2])/2.0f;
 	
-	t->val= (max[0]-min[0])/2.0;	// t->val is free variable
+	t->val= (max[0]-min[0])/2.0f;	// t->val is free variable
 	
 	Mat4Invert(G.obedit->imat, G.obedit->obmat);
 }
@@ -1690,6 +1690,34 @@ void initResize(TransInfo *t)
 	t->transform = Resize;
 }
 
+void headerResize(TransInfo *t, float vec[3], char *str) {
+	char tvec[60];
+	if (hasNumInput(&t->num)) {
+		outputNumInput(&(t->num), tvec);
+	}
+	else {
+		sprintf(&tvec[0], "%.4f", vec[0]);
+		sprintf(&tvec[20], "%.4f", vec[1]);
+		sprintf(&tvec[40], "%.4f", vec[2]);
+	}
+
+	if (t->con.mode & CON_APPLY) {
+		switch(t->num.idx_max) {
+		case 0:
+			sprintf(str, "Size: %s%s %s", &tvec[0], t->con.text, t->proptext);
+			break;
+		case 1:
+			sprintf(str, "Size: %s : %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			break;
+		case 2:
+			sprintf(str, "Size: %s : %s : %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+		}
+	}
+	else {
+		sprintf(str, "Size X: %s   Y: %s  Z: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+	}
+}
+
 int Resize(TransInfo *t, short mval[2]) 
 {
 	TransData *td = t->data;
@@ -1710,7 +1738,10 @@ int Resize(TransInfo *t, short mval[2])
 
 	snapGrid(t, size);
 
-	applyNumInput(&t->num, size);
+	if (hasNumInput(&t->num)) {
+		applyNumInput(&t->num, size);
+		constraintNumInput(t, size);
+	}
 
 	SizeToMat3(size, mat);
 
@@ -1718,19 +1749,8 @@ int Resize(TransInfo *t, short mval[2])
 		t->con.applySize(t, NULL, mat);
 	}
 
-	/* header print for NumInput */
-	if (hasNumInput(&t->num)) {
-		char c[60];
+	headerResize(t, size, str);
 
-		outputNumInput(&(t->num), c);
-
-		sprintf(str, "Size X: %s Y: %s Z: %s %s", &c[0], &c[20], &c[40], t->proptext);
-	}
-	else {
-		/* default header print */
-		sprintf(str, "Size X: %.3f Y: %.3f Z: %.3f %s", size[0], size[1], size[2], t->proptext);
-	}
-	
 	for(i = 0 ; i < t->total; i++, td++) {
 		float smat[3][3];
 		if (td->flag & TD_NOACTION)

@@ -114,8 +114,46 @@ void recalcData();
 /* ************************** CONSTRAINTS ************************* */
 void getConstraintMatrix(TransInfo *t);
 
+void constraintNumInput(TransInfo *t, float vec[3])
+{
+	int mode = t->con.mode;
+	float nval = (t->num.flags & NULLONE)?1.0f:0.0f;
+
+	if (getConstraintSpaceDimension(t) == 2) {
+		if (mode & (CON_AXIS0|CON_AXIS1)) {
+			vec[2] = nval;
+		}
+		else if (mode & (CON_AXIS1|CON_AXIS2)) {
+			vec[2] = vec[1];
+			vec[1] = vec[0];
+			vec[0] = nval;
+		}
+		else if (mode & (CON_AXIS0|CON_AXIS2)) {
+			vec[2] = vec[1];
+			vec[1] = nval;
+		}
+	}
+	else if (getConstraintSpaceDimension(t) == 1) {
+		if (mode & CON_AXIS0) {
+			vec[1] = nval;
+			vec[2] = nval;
+		}
+		else if (mode & CON_AXIS1) {
+			vec[1] = vec[0];
+			vec[0] = nval;
+			vec[2] = nval;
+		}
+		else if (mode & CON_AXIS2) {
+			vec[2] = vec[0];
+			vec[0] = nval;
+			vec[1] = nval;
+		}
+	}
+}
+
 static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	int i = 0;
+
 	Mat3MulVecfl(t->con.imtx, vec);
 
 	snapGrid(t, vec);
@@ -131,7 +169,10 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 			vec[2] = 1.0f;
 	}
 
-	applyNumInput(&t->num, vec);
+	if (hasNumInput(&t->num)) {
+		applyNumInput(&t->num, vec);
+		constraintNumInput(t, vec);
+	}
 	
 	if (t->con.mode & CON_AXIS0) {
 		pvec[i++] = vec[0];
@@ -498,7 +539,7 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 	getConstraintMatrix(t);
 
 	VECCOPY(t->con.center, t->center);
-	if (G.obedit) {
+	if (t->flag & T_EDIT) {
 		Mat4MulVecfl(G.obedit->obmat, t->con.center);
 	}
 
@@ -511,7 +552,7 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 }
 
 void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
-	if (G.obedit) {
+	if (t->flag & T_EDIT) {
 		float obmat[3][3];
 		Mat3CpyMat4(obmat, G.obedit->obmat);
 		setConstraint(t, obmat, mode, text);
@@ -527,9 +568,6 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 			getConstraintMatrix(t);
 
 			VECCOPY(t->con.center, t->center);
-			if (G.obedit) {
-				Mat4MulVecfl(G.obedit->obmat, t->con.center);
-			}
 
 			startConstraint(t);
 
@@ -671,9 +709,11 @@ void initSelectConstraint(TransInfo *t)
 	t->con.mode |= CON_APPLY;
 	t->con.mode |= CON_SELECT;
 	VECCOPY(t->con.center, t->center);
-	if (G.obedit) {
+
+	if (t->flag & T_EDIT) {
 		Mat4MulVecfl(G.obedit->obmat, t->con.center);
 	}
+
 	setNearestAxis(t);
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
@@ -696,10 +736,6 @@ void postSelectConstraint(TransInfo *t)
 
 	setNearestAxis(t);
 
-	t->con.mode |= CON_APPLY;
-	VECCOPY(t->con.center, t->center);
-
-	getConstraintMatrix(t);
 	startConstraint(t);
 	t->redraw = 1;
 }

@@ -39,6 +39,8 @@ void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
 void setLocalConstraint(TransInfo *t, int mode, const char text[]);
 
+void constraintNumInput(TransInfo *t, float vec[3]);
+
 //void drawConstraint(TransCon *t);
 void drawConstraint();
 
