@@ -1682,6 +1682,7 @@ static TBitem tb_curve_edit_cv[]= {
 {	0, "Vector|V", 					TB_ALT|'t', NULL},
 {	0, "SEPR", 								0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", TB_CTRL|'p', NULL},
+{	0, "Add Hook|Ctrl H",			TB_CTRL|'h', NULL},
 {  -1, "", 			0, tb_do_hotkey}};
 
 
@@ -1708,6 +1709,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 {	0, "Remove Doubles|W, 5", 			1, NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", 	0, NULL},
+{	0, "Add Hook|Ctrl H",		6, NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_verticesmenu}};
 
 static TBitem tb_mesh_edit_edge[]= {

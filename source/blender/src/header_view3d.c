@@ -1843,6 +1843,9 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 	case 5: /*merge */
 		mergemenu();
 		break;
+	case 6: /* add hook */
+		add_hook();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1866,7 +1869,8 @@ static uiBlock *view3d_edit_mesh_verticesmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Vertex Parent|Ctrl P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Vertex Parent|Ctrl P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Hook|Ctrl H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -2308,7 +2312,10 @@ static void do_view3d_edit_curve_controlpointsmenu(void *arg, int event)
 	case 5: /* make vertex parent */
 		make_parent();
 		break;
-		}
+	case 6: /* add hook */
+		add_hook();
+		break;
+	}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -2332,6 +2339,7 @@ static uiBlock *view3d_edit_curve_controlpointsmenu(void *arg_unused)
 		
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Vertex Parent|Ctrl P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Hook|Ctrl H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

@@ -420,7 +420,8 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 /* ******************* copy and paste ********************  */
 
 /* c = copy, v = paste */
-static void ui_but_copy_paste(uiBut *but, char mode)
+/* return 1 when something changed */
+static int ui_but_copy_paste(uiBut *but, char mode)
 {
 	static char str[256]="";
 	static double butval=0.0;
@@ -433,6 +434,7 @@ static void ui_but_copy_paste(uiBut *but, char mode)
 		else {
 			ui_set_but_val(but, butval);
 			ui_check_but(but);
+			return 1;
 		}
 	}
 	else if(but->type==TEX) {
@@ -444,6 +446,7 @@ static void ui_but_copy_paste(uiBut *but, char mode)
 			strncpy(but->poin, str, but->max);
 			uibut_do_func(but);
 			ui_check_but(but);
+			return 1;
 		}
 	}
 	else if(but->type==IDPOIN) {
@@ -455,9 +458,10 @@ static void ui_but_copy_paste(uiBut *but, char mode)
 		else {
 			but->idpoin_func(str, but->idpoin_idpp);
 			ui_check_but(but);
+			return 1;
 		}
 	}
-	
+	return 0;
 }
 
 /* ******************* block calc ************************* */
@@ -1243,6 +1247,7 @@ static int ui_do_but_KEYEVT(uiBut *but)
 	ui_set_but_val(but, -1);
 	ui_check_but(but);
 	ui_draw_but(but);
+	ui_block_flush_back(but->block);
 
 	do {
 		event= extern_qread(&val);
@@ -3226,17 +3231,22 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			for(but= block->buttons.first; but; but= but->next) {
 				if(but->type!=LABEL) {
 					if(but->flag & UI_ACTIVE) {
-						if(uevent->event==VKEY) ui_but_copy_paste(but, 'v');
+						int doit=0;
+						
+						if(uevent->event==VKEY) doit= ui_but_copy_paste(but, 'v');
 						else ui_but_copy_paste(but, 'c');
+						
+						if(doit) {
+							ui_draw_but(but);
+							
+							if(but->retval) addqueue(block->winq, UI_BUT_EVENT, (short)but->retval);
+							if(but->type==NUMSLI && but->a1) addqueue(block->winq, REDRAW, 1);	// col button update
 
-						ui_draw_but(but);
-						
-						if(but->retval) addqueue(block->winq, UI_BUT_EVENT, (short)but->retval);
-						BIF_undo_push(but->str);
-						
+							BIF_undo_push(but->str);
+						}
+						// but we do return, to prevent passing event through other queues */
 						if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
 						else if(but->retval) retval= UI_RETURN_OK;
-						
 						break;
 					}
 				}

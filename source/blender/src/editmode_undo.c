@@ -182,7 +182,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 static void undo_clean_stack(void)
 {
 	UndoElem *uel, *next;
-	int mixed= 0, checknames= 1;
+	int mixed= 0;
 	
 	/* global undo changes pointers, so we also allow identical names */
 	/* side effect: when deleting/renaming object and start editing new one with same name */
@@ -190,19 +190,18 @@ static void undo_clean_stack(void)
 	uel= undobase.first; 
 	while(uel) {
 		next= uel->next;
-		if(uel->ob != G.obedit) {
-			
-			/* for when global undo changes pointers... */
-			if(checknames && strcmp(uel->id.name, G.obedit->id.name)==0) {
-				uel->ob= G.obedit;
-			}
-			else {
-				mixed= 1;
-				BLI_remlink(&undobase, uel);
-				uel->freedata(uel->undodata);
-				MEM_freeN(uel);
-			}
+		
+		/* for when global undo changes pointers... */
+		if(strcmp(uel->id.name, G.obedit->id.name)==0) {
+			uel->ob= G.obedit;
 		}
+		else {
+			mixed= 1;
+			BLI_remlink(&undobase, uel);
+			uel->freedata(uel->undodata);
+			MEM_freeN(uel);
+		}
+
 		uel= next;
 	}
 	
