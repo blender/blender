@@ -2,9 +2,11 @@
 
 # The module files in this folder are used to create the API documentation.
 # Doc system used: epydoc - http://epydoc.sf.net
-# command line: epydoc -t Blender.py -n "Blender" --no-private MODULES
-# where MODULES is a list of all such modules in this folder, like:
-# Blender.py Camera.py Lamp.py BGL.py etc.
+# command line:
+
+# epydoc -t Blender.py -n "Blender" --no-private --no-frames Blender.py \
+# Camera.py Lamp.py Material.py BGL.py Window.py Text.py Image.py NMesh.py \
+# Scene.py Draw.py Armature.py Types.py Curve.py Effect.py Ipo.py Metaball.py
 
 """
 This is the main Blender module.
@@ -19,11 +21,16 @@ Blender Python
 
   - L{Types}
   - L{Scene}
+  - L{Object}
   - L{NMesh}
   - L{Material}
-  - L{Armature}
   - L{Camera}
   - L{Lamp}
+  - L{Armature}
+  - L{Metaball}
+  - L{Effect}
+  - L{Curve}
+  - L{Ipo}
   - L{BGL}
   - L{Window}
   - L{Draw}

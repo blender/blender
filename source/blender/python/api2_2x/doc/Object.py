@@ -20,9 +20,11 @@ def New (type, name='type'):
   """
   Creates a new Object.
   @type type: string
-  @param type: The Object type: 'Armature', 'Camera', 'Curve', 'Lamp', 'Mesh' or 'Empty'.
+  @param type: The Object type: 'Armature', 'Camera', 'Curve', 'Lamp', 'Mesh'
+      or 'Empty'.
   @type name: string
-  @param name: The name of the object. By default, the name will be the same as the object type.
+  @param name: The name of the object. By default, the name will be the same
+      as the object type.
   @rtype: Blender Object
   @return: The created Object.
   """
@@ -65,7 +67,8 @@ class Object:
     @cvar dRotX: The delta X rotation angle (in radians) of the object.
     @cvar dRotY: The delta Y rotation angle (in radians) of the object.
     @cvar dRotZ: The delta Z rotation angle (in radians) of the object.
-    @cvar drot: The delta (X,Y,Z) rotation angles (in radians) of the object (vector).
+    @cvar drot: The delta (X,Y,Z) rotation angles (in radians) of the object
+        (vector).
     @cvar SizeX: The X size of the object.
     @cvar SizeY: The Y size of the object.
     @cvar SizeZ: The Z size of the object.
@@ -84,113 +87,121 @@ class Object:
     @cvar ipo: The ipo data associated with the object. (Read-only)
     @cvar mat: The actual matrix of the object. (Read-only)
     @cvar matrix: The actual matrix of the object. (Read-only)
-    @cvar colbits: The Material usage mask. A set bit #n means: the Material #n in the Object's material list is used. Otherwise, the Material #n of the Objects Data material list is displayed.
-    @cvar drawType: The object's drawing type used. 1 - Bounding box, 2 - wire, 3 - Solid, 4- Shaded, 5 - Textured.
-    @cvar drawMode: The object's drawing mode used. The value can be a sum of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage, 32 - drawwire.
+    @cvar colbits: The Material usage mask. A set bit #n means: the Material
+        #n in the Object's material list is used. Otherwise, the Material #n
+        of the Objects Data material list is displayed.
+    @cvar drawType: The object's drawing type used. 1 - Bounding box,
+        2 - wire, 3 - Solid, 4- Shaded, 5 - Textured.
+    @cvar drawMode: The object's drawing mode used. The value can be a sum
+        of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
+        32 - drawwire.
     @cvar name: The name of the object.
   """
 
   def clrParent(mode = 0, fast = 0):
-  """
-  Clears parent object.
-  @type mode: int
-  @type fast: int
-  @param mode: A mode flag. If mode flag is 2, then the object transform will be kept. Any other value, or no value at all will update the object transform.
-  @param fast: If the value is 0, the scene hierarchy will not be updated. Any other value, or no value at all will update the scene hierarchy.
-  """
+    """
+    Clears parent object.
+    @type mode: int
+    @type fast: int
+    @param mode: A mode flag. If mode flag is 2, then the object transform will
+        be kept. Any other value, or no value at all will update the object
+        transform.
+    @param fast: If the value is 0, the scene hierarchy will not be updated. Any
+        other value, or no value at all will update the scene hierarchy.
+    """
 
   def getData():
-  """
-  """
+    """
+    """
 
   def getDeltaLocation():
-  """
-  """
+    """
+    """
 
   def getDrawMode():
-  """
-  """
+    """
+    """
 
   def getDrawType():
-  """
-  """
+    """
+    """
 
   def getEuler():
-  """
-  """
+    """
+    """
 
   def getInverseMatrix():
-  """
-  """
+    """
+    """
 
   def getLocation():
-  """
-  """
+    """
+    """
 
   def getMaterials():
-  """
-  """
+    """
+    """
 
   def getMatrix():
-  """
-  """
+    """
+    """
 
   def getName():
-  """
-  """
+    """
+    """
 
   def getParent():
-  """
-  """
+    """
+    """
 
   def getTracked():
-  """
-  """
+    """
+    """
 
   def getType():
-  """
-  """
+    """
+    """
 
   def link(object):
-  """
-  """
+    """
+    """
 
   def makeParent(objects, noninverse = 0, fast = 0):
-  """
-  """
+    """
+    """
 
   def materialUsage(material_source = 'Data'):
-  """
-  """
+    """
+    """
 
-  def setDeltaLocation(float, float, float):
-  """
-  """
+  def setDeltaLocation(float1, float2, float3):
+    """
+    """
 
   def setDrawMode(char):
-  """
-  """
+    """
+    """
 
   def setDrawType(char):
-  """
-  """
+    """
+    """
 
-  def setEuler(float, float, float):
-  """
-  """
+  def setEuler(float1, float2, float3):
+    """
+    """
 
-  def setLocation(float, float, float):
-  """
-  """
+  def setLocation(float1, float2, float3):
+    """
+    """
 
   def setMaterials(materials):
-  """
-  """
+    """
+    """
 
   def setName(String):
-  """
-  """
-
+    """
+    """
+ 
   def shareFrom(Object):
-  """
-  """
+    """
+    """
