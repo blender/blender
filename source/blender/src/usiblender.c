@@ -259,6 +259,11 @@ int BIF_read_homefile(void)
 				}
 			}
 		}
+		if (G.main->versionfile <= 235) {
+			/* illegal combo... */
+			if (U.flag & USER_LMOUSESELECT) 
+				U.flag &= ~USER_TWOBUTTONMOUSE;
+		}
 		
 		space_set_commmandline_options();
 

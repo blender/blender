@@ -2348,11 +2348,15 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y4label+5,mpref,buth,
 				0, 0, 0, 0, 0, "");
 		}
-
-		uiDefButBitS(block, TOG, USER_TWOBUTTONMOUSE, 0, "Emulate 3 Button Mouse",
+		
+		/* illegal combo... */
+		if (U.flag & USER_LMOUSESELECT) 
+			U.flag &= ~USER_TWOBUTTONMOUSE;
+		
+		uiDefButBitS(block, TOG, USER_TWOBUTTONMOUSE, B_DRAWINFO, "Emulate 3 Button Mouse",
 			(xpos+edgsp+(3*mpref)+(4*midsp)),y3,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
-			"Emulates a middle mouse button with Alt LeftMouse");
+			"Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option)");
 		
 			
 		uiDefBut(block, LABEL,0,"Middle Mouse Button:",
