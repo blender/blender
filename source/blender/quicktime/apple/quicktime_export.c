@@ -695,6 +695,9 @@ int get_qtcodec_settings(void)
 		err = SCSetInfo(qcdx->theComponent, scDataRateSettingsType,	&qcdx->aDataRateSetting);
 		CheckError(err, "SCSetInfo3 error");
 	}
+
+	check_renderbutton_framerate();
+
 	// put up the dialog box
 	err = SCRequestSequenceSettings(qcdx->theComponent);
  
