@@ -96,25 +96,6 @@
 
 /* ------------------------------------------------------------------------- */
 
-#ifdef RE_FULL_SAFETY
-/* Full safety does the following:                                           */
-/* - add extra bounds checking                                               */
-/* - add extra type checking                                                 */
-/* - do a little performance analysis                                        */
-/* - trace the original sources                                              */
-
-/* trace the version of the source */
-char vanillaRenderPipe_ext_h[]   = VANILLARENDERPIPE_EXT_H;
-char vanillaRenderPipe_int_h[]   = VANILLARENDERPIPE_INT_H;
-char vanillaRenderPipe_types_h[] = VANILLARENDERPIPE_TYPES_H;
-char vanillaRenderPipe_c[]       =
-"$Id$";
-/* counters for error handling */
-static int conflictsresolved; /* number of conflicts in one frame            */
-
-#include "errorHandler.h"
-#endif /* RE_FULL_SAFETY stuff */
-
 /* ------------------------------------------------------------------------- */
 
 /* External : -------------------------------------------------------------- */
@@ -194,16 +175,6 @@ void zBufShadeAdvanced()
     int      y, keepLooping = 1;
     float xjit = 0.0, yjit = 0.0;
 
-#ifdef RE_FULL_SAFETY
-    /* reset trace */
-	RE_errortrace_reset();
-    conflictsresolved = 0;
-    fprintf(stderr, "\n*** Activated full error trace on "
-            "unified renderer using:\n\t%s\n\t%s\n\t%s\n\t%s", 
-            vanillaRenderPipe_c, vanillaRenderPipe_ext_h,
-            vanillaRenderPipe_int_h, vanillaRenderPipe_types_h);
-#endif
-
     Zjitx=Zjity= -0.5; /* jitter preset: 0.5 pixel */
 
 	/* EDGE: for edge rendering we should compute a larger buffer, but this  */
@@ -279,11 +250,6 @@ void zBufShadeAdvanced()
 
 	add_halo_flare(); /* from rendercore */
 	
-#ifdef RE_FULL_SAFETY
-	fprintf(stderr, "\n--- resolved %d conflicts", conflictsresolved);
-	fflush(stderr);
-#endif
-
 	if (!(R.r.mode & R_OSA)) {
 		jit[0][0] = xjit;
 		jit[0][1] = yjit; 
@@ -382,9 +348,6 @@ void calcZBufLine(int y)
 int countAndSortPixelFaces(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE], 
                            RE_APixstrExt *ap)
 {
-#ifdef RE_FULL_SAFETY
-	char fname[] = "countAndSortPixelFaces";
-#endif
     int totvlak;          /* face counter                          */
     int i;                /* generic counter                       */
 
@@ -401,9 +364,6 @@ int countAndSortPixelFaces(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
                 if(totvlak > (RE_MAX_FACES_PER_PIXEL - 1)) 
 				{
                     totvlak = (RE_MAX_FACES_PER_PIXEL - 1);
-#ifdef RE_FULL_SAFETY
-					RE_error(RE_TOO_MANY_FACES, fname);
-#endif
 				}
             } else break;
         };
@@ -449,13 +409,11 @@ int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
 				 struct RE_faceField* stack, int ptr,
 				 int totvlak, float x, float y, int osaNr) {
 
-#ifdef RE_FULL_SAFETY
-    char* fname = "composeStack";
-#endif
     float  xs = 0.0;
     float  ys = 0.0;  /* coordinates for the render-spot              */
 
     float  alphathreshold[RE_MAX_OSA_COUNT];
+	float colbuf[4];
     int    inconflict          = 0;
     int    saturationthreshold = 0;
     int    saturated           = 0;
@@ -497,9 +455,6 @@ int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
 			stack[ptr].conflictCount = Ccount;
             if (zrow[totvlak][RE_ZMAX] > Cthresh) 
 				Cthresh = zrow[totvlak][RE_ZMAX]; 
-#ifdef RE_FULL_SAFETY
-            if (Ccount == 2) conflictsresolved++; 
-#endif
         } else { 
             Cthresh         = zrow[totvlak][RE_ZMAX];
             Ccount          = 0;
@@ -540,10 +495,17 @@ int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
 	xs= (float)x;
 	ys= (float)y;
 
+	/* code identical for rendering empty sky pixel */
 	renderSkyPixelFloat(xs, ys);
+	cpFloatColV(collector, colbuf);
+
+	if(R.flag & R_LAMPHALO) {
+		renderSpotHaloPixel(x, y, collector);
+		addAlphaOverFloat(colbuf, collector);
+	}
 
 	stack[ptr].faceType      = RE_SKY;
-	cpFloatColV(collector, stack[ptr].colour);
+	cpFloatColV(colbuf, stack[ptr].colour);
 	stack[ptr].data          = NULL;
 	stack[ptr].mask          = 0xFFFF;
 	stack[ptr].conflictCount = 0;
@@ -560,9 +522,6 @@ int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
   This means layers [ n - c, ..., n ]
  */
 int resolveConflict(struct RE_faceField* stack, int ptr, float x, float y) {
-#ifdef RE_FULL_SAFETY
-    char* fname = "resolveConflicts";
-#endif
 	int face;
     int layer;
     float dx, dy;
@@ -644,12 +603,10 @@ void integrateStack(struct RE_faceField* stack, int ptr,
 
 	/* Should be integrated in the rest of the rendering... */
 
-	if((R.flag & R_LAMPHALO) 
-		/*&& 
-		( VR_covered < ((1 << osaNr) - 1 ) )*/
-		) {
+	if(R.flag & R_LAMPHALO) {
 		float halocol[4];
 		int i;
+		
 		renderSpotHaloPixel(x, y, halocol);
 		/* test seems to be wrong? */
 		if (halocol[3] > RE_EMPTY_COLOUR_FLOAT) {
@@ -872,16 +829,8 @@ void renderZBufLine(int y) {
 			RE_OSAstack_ptr = composeStack(zrow,
 										   RE_OSAstack, RE_OSAstack_ptr,
 										   stackDepth, x, y, osaNr);
-/*  #ifdef RE_OLD_INTEGRATION */
-/*  			printf("Performing old integration\n"); */
-/*  			integrateStack(RE_OSAstack, RE_OSAstack_ptr, */
-/*  						   x, y, osaNr); */
-/*  #endif */
-/*  #ifndef RE_OLD_INTEGRATION */
-/*  			printf("Performing new integration\n"); */
   			integratePerSubStack(RE_OSAstack, RE_OSAstack_ptr, 
   								 x, y, osaNr); 
-/*  #endif */
 			
 			/* d. Gamma corrected blending                                   */
 			sampleFloatColV2FloatColV(sampcol, colbuf, osaNr);
@@ -898,8 +847,9 @@ void renderZBufLine(int y) {
 			/* onto the existing colour in the collector.                    */
 			if(R.flag & R_LAMPHALO) {
 				renderSpotHaloPixel(x, y, collector);
+				addAlphaOverFloat(colbuf, collector);
 			}
-			addAlphaOverFloat(colbuf, collector);
+			
 		}
     } /* End of pixel loop */
     
@@ -1477,16 +1427,6 @@ void transferColourBufferToOutput(int y)
     RE_COLBUFTYPE *buf = AColourBuffer;
     char *target = (char*) (R.rectot + (y * imageWidth));
 
-#ifdef RE_FULL_SAFETY
-	/* since the R.rectot always has size imageWidth * imageHeight, this     */
-	/* check is possible. I may want to check this per assignment later on.  */
-	if ( (y < 0) || ((y > (imageHeight - 1) ))) {
-		char fname[] = "transferColourBufferToOutput";
-		RE_error_int(RE_WRITE_OUTSIDE_COLOUR_BUFFER, fname, y);
-		return;
-	}
-#endif
-					
 	/* Copy the first <imageWidth> pixels. We can do some more clipping on    */
 	/* the z buffer, I think.                                                 */
 	while (x < imageWidth) {
@@ -1530,13 +1470,6 @@ void eraseColBuf(RE_COLBUFTYPE *buf) {
 
 int calcDepth(float x, float y, void* data, int type)
 {
-#ifdef RE_FULL_SAFETY
-    char fname[] = "calcDepth";
-    if (data == NULL) {
-        RE_error(RE_BAD_DATA_POINTER, fname);
-        return 0; 
-    }
-#endif
     
     if (type & RE_POLY) {
         VlakRen* vlr = (VlakRen*) data;
@@ -1583,9 +1516,6 @@ int calcDepth(float x, float y, void* data, int type)
         HaloRen* har = (HaloRen*) data;
         return har->zBufDist;
     }
-#ifdef RE_FULL_SAFETY
-    else RE_error(RE_BAD_FACE_TYPE, fname);
-#endif /* RE_FULL_SAFETY */
     return 0;
 } /* end of int calcDepth(float x, float y, void* data, int type) */
 
@@ -1593,13 +1523,6 @@ int calcDepth(float x, float y, void* data, int type)
 
 void blendOverFloat(int type, float* dest, float* source, void* data)
 {
-#ifdef RE_FULL_SAFETY
-    char fname[] = "blendOverFloat";
-    if (data == NULL){
-        RE_error(RE_BAD_DATA_POINTER, fname);
-        return; 
-    }
-#endif
 
     if (type & RE_POLY) {
         VlakRen *ver = (VlakRen*) data;
@@ -1615,9 +1538,6 @@ void blendOverFloat(int type, float* dest, float* source, void* data)
     } else if (type & RE_SKY) {
 		addAlphaOverFloat(dest, source);
 	}
-#ifdef RE_FULL_SAFETY
-    else  RE_error(RE_BAD_FACE_TYPE, fname);
-#endif
 
 } /* end of void blendOverFloat(int , float*, float*, void*) */
 
@@ -1625,13 +1545,6 @@ void blendOverFloat(int type, float* dest, float* source, void* data)
 void blendOverFloatRow(int type, float* dest, float* source, 
                        void* data, int mask, int osaNr) 
 {
-#ifdef RE_FULL_SAFETY
-    char* fname = "blendOverFloatRow";
-    if ((data == NULL) && ((type & RE_POLY) || (type & RE_HALO))) {
-        RE_error(RE_BAD_DATA_POINTER, fname);
-        return; 
-    }
-#endif
     
     if (type & RE_POLY) {
         VlakRen *ver = (VlakRen*) data;
@@ -1648,9 +1561,6 @@ void blendOverFloatRow(int type, float* dest, float* source,
     } else if (type & RE_SKY) {
             addOverSampColF(dest, source, mask, osaNr);		
 	}
-#ifdef RE_FULL_SAFETY
-    else  RE_error(RE_BAD_FACE_TYPE, fname);
-#endif
 } /* end of void blendOverFloatRow(int, float*, float*, void*) */
 
 /* ------------------------------------------------------------------------- */

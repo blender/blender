@@ -140,16 +140,6 @@ unsigned int calcHaloZ(HaloRen *har, unsigned int zz)
 void *renderPixel(float x, float y, int *obdata)
 {
     void* data = NULL;
-#ifdef RE_PIXSHADE_FULL_SAFETY
-    char fname[] = "renderPixel";
-#endif
-#ifdef RE_FAKE_PIXELS
-    collector[0] = RE_UNITY_COLOUR_FLOAT;
-    collector[1] = 0;
-    collector[2] = RE_UNITY_COLOUR_FLOAT;
-    collector[3] = RE_UNITY_COLOUR_FLOAT;
-    return NULL;  
-#endif
     
     if (obdata[3] & RE_POLY) {
         /* face pixels aren't rendered in floats yet, so we wrap it here */
@@ -163,9 +153,6 @@ void *renderPixel(float x, float y, int *obdata)
 		/* it returns NULL pointers. */
         data = renderFacePixel(x, y, obdata[1]);
  	}		
-#ifdef RE_PIXSHADE_FULL_SAFETY
-    else RE_error(RE_BAD_FACE_TYPE, fname);
-#endif /* RE_PIXSHADE_FULL_SAFETY */    
     return data;
    
 } /* end of void renderPixel(float x, float y, int *obdata) */
@@ -175,9 +162,6 @@ void *renderPixel(float x, float y, int *obdata)
 void *renderFacePixel(float x, float y, int vlaknr) 
 /* Result goes into <collector>                                              */
 {
-#ifdef RE_PIXSHADE_FULL_SAFETY
-	char fname[]= "renderFacePixelFloat";
-#endif
     static VlakRen *vlr; /* static, because we don't want to recalculate vlr */
                          /* when we already know it                          */
     static VertRen *v1, *v2, *v3;
@@ -186,23 +170,6 @@ void *renderFacePixel(float x, float y, int vlaknr)
     float *o1, *o2, *o3;
     float u, v, l, dl, hox, hoy, detsh, fac, deler, alpha;
     char *cp1, *cp2, *cp3;
-
-/*  	RE_error(RE_TRACE_COUNTER, fname); */
-	
-#ifdef RE_FAKE_FACE_PIXELS
-    collector[0] = 0;
-    collector[1] = 0;
-    collector[2] = RE_UNITY_COLOUR_FLOAT;
-    collector[3] = RE_UNITY_COLOUR_FLOAT;
-    /* try to keep the rest as clean as possible... */
-    if( ((vlaknr & 0x7FFFFF) <= R.totvlak) 
-        && ! ((R.vlaknr== -1)||(vlaknr<=0)) ) {
-        /* a bit superfluous to do this always, but    */
-        /* when this is switched on, it doesn't matter */
-        vlr= RE_findOrAddVlak( (vlaknr-1) & 0x7FFFFF);
-    } else vlr = NULL; 
-    return vlr;
-#endif
     
     if(R.vlaknr== -1) {	/* set by initrender */
         /* also set in the pixelrender loop */
@@ -618,12 +585,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
 		if(vlaknr<=0) {	/* calculate view vector and set R.co at far */
 
 			/* this view vector stuff should get its own function */
-			if( (G.special1 & G_HOLO) && 
-				((Camera *)G.scene->camera->data)->flag & CAM_HOLO2) {
-				R.view[0]= (x+(R.xstart)+1.0+holoofs);
-			} else {
-				R.view[0]= (x+(R.xstart)+1.0);
-			}
+			R.view[0]= (x+(R.xstart)+1.0);
 
 			if(R.flag & R_SEC_FIELD) {
 				if(R.r.mode & R_ODDFIELD) R.view[1]= (y+R.ystart+0.5)*R.ycor;
@@ -649,13 +611,7 @@ void *renderFacePixel(float x, float y, int vlaknr)
 		}
 
 		shadeSpotHaloPixelFloat(collector);
-/*  		renderspothaloFix(collector); */
-				
 	}
-	
-#ifdef RE_PIXSHADE_FULL_SAFETY
-	if (!vlr) RE_error(RE_BAD_DATA_POINTER, fname);
-#endif
 	
 	return vlr;
     
@@ -715,15 +671,17 @@ void shadeSpotHaloPixelFloat(float *col)
 				/* this is a slightly different approach: I do the gamma     */
 				/* correction BEFORE the addition. What does the other       */
 				/* approach do?                                              */
+				
+				/* removed gamma correction here (ton) looks better, but still not 100% OK */
 				if (col[3]< RE_EMPTY_COLOUR_FLOAT) {
-					col[0] = gammaCorrect(rescol[0]);
-					col[1] = gammaCorrect(rescol[1]);
-					col[2] = gammaCorrect(rescol[2]);
+					col[0] = (rescol[0]);
+					col[1] = (rescol[1]);
+					col[2] = (rescol[2]);
 					col[3] = rescol[3];
 				} else {
-					col[0] += gammaCorrect(rescol[0]);
-					col[1] += gammaCorrect(rescol[1]);
-					col[2] += gammaCorrect(rescol[2]);
+					col[0] += (rescol[0]);
+					col[1] += (rescol[1]);
+					col[2] += (rescol[2]);
 					col[3] += rescol[3];
 				}
 
@@ -1284,12 +1242,6 @@ void shadeLampLusFloat()
 			+ ((1.0 - (ma->mirb * R.refcol[0])) * ((ma->b * ib) +ma->ambb))
 			+isb;
 	}
-
-#ifdef RE_FAKE_LAMP_SHADE
-	collector[0] = 0.5;
-	collector[1] = 0.5;
-	collector[2] = 1.0;
-#endif
 	
 }
 
@@ -1299,15 +1251,6 @@ void* renderHaloPixel(float x, float y, int haloNr) {
     HaloRen *har = NULL;
     float dist = 0.0;
     unsigned int zz = 0;
-    
-#ifdef RE_FAKE_HALO_PIXELS
-    collector[0] = RE_UNITY_COLOUR_FLOAT;
-    collector[1] = 0;
-    collector[2] = 0;
-    collector[3] = RE_UNITY_COLOUR_FLOAT;
-    har = RE_findOrAddHalo(haloNr); /* crash prevention */
-    return (void*) har;
-#endif
 
     /* Find har to go with haloNr */
     har = RE_findOrAddHalo(haloNr);
@@ -1327,13 +1270,6 @@ void* renderHaloPixel(float x, float y, int haloNr) {
     if (dist < har->radsq) {
         shadeHaloFloat(har, collector, zz, dist, 
 					  (x - har->xs), (y - har->ys) * R.ycor, har->flarec);
-		/* make a second fake pixel? */
-#ifdef RE_FAKE_HALO_PIXELS_2
-		collector[0] = RE_UNITY_COLOUR_FLOAT;
-		collector[1] = 0;
-		collector[2] = 0;
-		collector[3] = RE_UNITY_COLOUR_FLOAT;
-#endif
     }; /* else: this pixel is not rendered for this halo: no colour */
 
     return (void*) har;
@@ -1548,14 +1484,9 @@ void renderSpotHaloPixel(float x, float y, float* target)
 {
 	float u = 0.0, v = 0.0;
 	
-#ifdef RE_FAKE_SPOTHALO_PIXELS
-	target[0] = 0.0;
-	target[1] = 1.0;
-	target[2] = 0.0;
-	target[3] = 1.0;
-	return;
-#endif
-	
+	/* this needs to be cleared */
+	target[0]= target[1]= target[2]= target[3]= 0.0;
+
 	/* Strange fix? otherwise done inside shadepixel. It's sort  */
 	/* of like telling this is a 'sky' pixel.                    */
 	R.vlaknr = 0;
@@ -1564,12 +1495,7 @@ void renderSpotHaloPixel(float x, float y, float* target)
 	/*
 	  Here's the viewvector setting again.
 	*/
-	if( (G.special1 & G_HOLO) && ((Camera *)G.scene->camera->data)->flag & CAM_HOLO2) {
-		R.view[0]= (x+(R.xstart)+1.0+holoofs);
-	}
-	else {
-		R.view[0]= (x+(R.xstart)+1.0);
-	}
+	R.view[0]= (x+(R.xstart)+1.0);
 	
 	if(R.flag & R_SEC_FIELD) {
 		if(R.r.mode & R_ODDFIELD) R.view[1]= (y+R.ystart+0.5)*R.ycor;
@@ -1634,10 +1560,10 @@ void renderspothaloFix(float *col)
 			
 			if(i>0.0) {
 				/* Premul colours here! */
-				col[0] = i * lar->r;
-				col[1] = i * lar->g;
-				col[2] = i * lar->b;
-				col[3] = i;
+				col[0]+= i * lar->r;
+				col[1]+= i * lar->g;
+				col[2]+= i * lar->b;
+				col[3]+= i;
 			} 
 		} 
 	} 
@@ -1675,13 +1601,6 @@ enum RE_SkyAlphaBlendingType getSkyBlendingMode() {
 /* This one renders into collector, as always.                               */
 void renderSkyPixelFloat(float x, float y)
 {
-#ifdef RE_FAKE_SKY_PIXELS
-	collector[0] = 1.0;
-	collector[1] = 1.0;
-	collector[2] = 0.0;
-	collector[3] = 1.0;
-	return;
-#endif
 
 	switch (keyingType) {
 	case RE_ALPHA_PREMUL:
