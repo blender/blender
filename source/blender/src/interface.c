@@ -3460,28 +3460,167 @@ static int ui_auto_themecol(uiBut *but)
 	}
 }
 
-void uiBlockBeginAlign(uiBlock *block, char dir)
+void uiBlockBeginAlign(uiBlock *block)
 {
 	/* if other align was active, end it */
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
 
-	if(dir=='h') block->flag |= UI_BUT_ALIGN_RIGHT;
-	else block->flag |= UI_BUT_ALIGN_DOWN;
+	block->flag |= UI_BUT_ALIGN_DOWN;	
+	/* buttons declared after this call will this align flag */
+}
+
+static int buts_are_horiz(uiBut *but1, uiBut *but2)
+{
+	float dx, dy;
 	
-	/* buttons declared after this call will get align flags updated */
+	dx= fabs( but1->x2 - but2->x1);
+	dy= fabs( but1->y1 - but2->y2);
+	
+	if(dx > dy) return 0;
+	return 1;
 }
 
 void uiBlockEndAlign(uiBlock *block)
+{
+	uiBut *prev, *but=NULL, *next;
+	int flag= 0, cols=0, rows=0;
+	
+	if( BIF_GetThemeValue(TH_BUT_DRAWTYPE) != 2) return;
+	
+	/* auto align:
+		- go back to first button of align start (ALIGN_DOWN)
+		- compare triples, and define flags
+	*/
+	prev= block->buttons.last;
+	while(prev) {
+		if( (prev->flag & UI_BUT_ALIGN_DOWN)) but= prev;
+		else break;
+		
+		if(but && but->next) {
+			if(buts_are_horiz(but, but->next)) cols++;
+			else rows++;
+		}
+		
+		prev= prev->prev;
+	}
+	if(but==NULL) return;
+	
+	/* rows==0: 1 row, cols==0: 1 collumn */
+	
+	prev= NULL;
+	while(but) {
+		next= but->next;
+		
+		/* clear old flag */
+		but->flag &= ~UI_BUT_ALIGN_DOWN;
+		
+		if(flag==0) {	/* first case */
+			if(next) {
+				if(buts_are_horiz(but, next)) {
+					if(rows==0)
+						flag= UI_BUT_ALIGN_RIGHT;
+					else 
+						flag= UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT;
+				}
+				else {
+					flag= UI_BUT_ALIGN_DOWN;
+				}
+			}
+		}
+		else if(next==NULL) {	/* last case */
+			if(prev) {
+				if(buts_are_horiz(prev, but)) {
+					if(rows==0) 
+						flag= UI_BUT_ALIGN_LEFT;
+					else
+						flag= UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT;
+				}
+				else flag= UI_BUT_ALIGN_TOP;
+			}
+		}
+		else if(buts_are_horiz(but, next)) {
+			/* check if this is already second row */
+			if( prev && buts_are_horiz(prev, but)==0) {
+				flag |= UI_BUT_ALIGN_TOP;
+				/* exception case: bottom row */
+				if(rows>0) {
+					uiBut *bt= but;
+					while(bt) {
+						if(bt->next && buts_are_horiz(bt, bt->next)==0 ) break; 
+						bt= bt->next;
+					}
+					if(bt==0) flag= UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT;
+				}
+			}
+			else flag |= UI_BUT_ALIGN_LEFT;
+		}
+		else {
+			if(cols==0) {
+				flag |= UI_BUT_ALIGN_TOP;
+			}
+			else {	/* next button switches to new row */
+				if( (flag & UI_BUT_ALIGN_TOP)==0) {	/* stil top row */
+					flag= UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;
+				}
+				else flag |= UI_BUT_ALIGN_TOP;
+			}
+		}
+		
+		but->flag |= flag;
+		
+		/* merge coordinates */
+		if(prev) {
+			// simple cases 
+			if(rows==0) {
+				but->x1= (prev->x2+but->x1)/2.0;
+				prev->x2= but->x1;
+			}
+			else if(cols==0) {
+				but->y2= (prev->y1+but->y2)/2.0;
+				prev->y1= but->y2;
+			}
+			else {
+				if(buts_are_horiz(prev, but)) {
+					but->x1= (prev->x2+but->x1)/2.0;
+					prev->x2= but->x1;
+					/* copy height too */
+					but->y2= prev->y2;
+				}
+				else if(prev->prev && buts_are_horiz(prev->prev, prev)==0) {
+					/* the previous button is a single one in its row */
+					but->y2= (prev->y1+but->y2)/2.0;
+					prev->y1= but->y2;
+				}
+				else {
+					/* the previous button is not a single one in its row */
+					but->y2= prev->y1;
+				}
+			}
+		}
+		
+		prev= but;
+		but= next;
+	}
+	
+	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
+}
+
+void uiBlockEndAligno(uiBlock *block)
 {
 	uiBut *but;
 	
 	/* correct last defined button */
 	but= block->buttons.last;
 	if(but) {
-		if(block->flag & UI_BUT_ALIGN_DOWN)
+		/* vertical align case */
+		if( (block->flag & UI_BUT_ALIGN) == (UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_DOWN) ) {
 			but->flag &= ~UI_BUT_ALIGN_DOWN;
-		else
+		}
+		/* horizontal align case */
+		if( (block->flag & UI_BUT_ALIGN) == (UI_BUT_ALIGN_LEFT|UI_BUT_ALIGN_RIGHT) ) {
 			but->flag &= ~UI_BUT_ALIGN_RIGHT;
+		}
+		/* else do nothing, manually provided flags */
 	}
 	block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 }
@@ -3574,28 +3713,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		but->flag |= UI_TEXT_LEFT;
 	}
 	
-	if(block->flag & UI_BUT_ALIGN) {
-		but->flag |= (block->flag & UI_BUT_ALIGN);
-		
-		/* merge edges of buttons to same location */
-		if(but->flag & UI_BUT_ALIGN_LEFT) {
-			uiBut *prev= but->prev;
-			if(prev) {
-				but->x1=prev->x2= (but->x1+prev->x2)/2.0;
-			}
-		}
-		else if(but->flag & UI_BUT_ALIGN_TOP) {
-			uiBut *prev= but->prev;
-			if(prev) {
-				but->y2=prev->y1= (but->y2+prev->y1)/2.0;
-			}
-		}
-		
-		/* after first button, align is both sides */
-		if(block->flag & UI_BUT_ALIGN_RIGHT) block->flag |= UI_BUT_ALIGN_LEFT;
-		else if(block->flag & UI_BUT_ALIGN_DOWN) block->flag |= UI_BUT_ALIGN_TOP;
-
-	}
+	but->flag |= (block->flag & UI_BUT_ALIGN);
 	
 	return but;
 }

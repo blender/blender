@@ -175,7 +175,8 @@ void uiFreeBlocksWin(struct ListBase *lb, int win);
 uiBlock *uiNewBlock(struct ListBase *lb, char *name, short dt, short font, short win);
 uiBlock *uiGetBlock(char *name, struct ScrArea *sa);
 
-void uiBlockBeginAlign(uiBlock *block, char dir);
+/* automatic aligning, horiz or verical */
+void uiBlockBeginAlign(uiBlock *block);
 void uiBlockEndAlign(uiBlock *block);
 
 uiBut *uiDefBut(uiBlock *block, 

@@ -1289,24 +1289,44 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 	}
 	
 	if(align) {
-		if(align==UI_BUT_ALIGN_TOP) {
+		switch(align) {
+		case UI_BUT_ALIGN_TOP:
 			uiSetRoundBox(12);
 			round_button(x1, y1, x2, y2, asp, colorid);
-		}
-		else if(align==UI_BUT_ALIGN_DOWN) {
+			break;
+		case UI_BUT_ALIGN_DOWN:
 			uiSetRoundBox(3);
 			round_button(x1, y1, x2, y2, asp, colorid);
-		}
-		else if(align==UI_BUT_ALIGN_LEFT) {
+			break;
+		case UI_BUT_ALIGN_LEFT:
 			uiSetRoundBox(6);
 			round_button(x1, y1, x2, y2, asp, colorid);
-		}
-		else if(align==UI_BUT_ALIGN_RIGHT) {
+			break;
+		case UI_BUT_ALIGN_RIGHT:
 			uiSetRoundBox(9);
 			round_button(x1, y1, x2, y2, asp, colorid);
-		}
-		else {
+			break;
+			
+		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
+			uiSetRoundBox(1);
+			round_button(x1, y1, x2, y2, asp, colorid);
+			break;
+		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
+			uiSetRoundBox(2);
+			round_button(x1, y1, x2, y2, asp, colorid);
+			break;
+		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
+			uiSetRoundBox(8);
+			round_button(x1, y1, x2, y2, asp, colorid);
+			break;
+		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
+			uiSetRoundBox(4);
+			round_button(x1, y1, x2, y2, asp, colorid);
+			break;
+			
+		default:
 			round_button_mid(x1, y1, x2, y2, asp, colorid, align);
+			break;
 		}
 	} 
 	else {
@@ -1696,6 +1716,8 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 			but->embossfunc= ui_draw_minimal;
 		}
 	}
+	
+	// note: if you want aligning, adapt the call uiBlockEndAlign in interface.c 
 }
 
 

@@ -138,7 +138,7 @@ typedef struct UserDef {
 	short encoding;
 	short transopts;
 	short menuthreshold1, menuthreshold2;
-	char fontname[64];
+	char fontname[256];		// FILE_MAXDIR+FILE length
 	struct ListBase themes;
 	short undosteps, pad0;
 	short tb_leftmouse, tb_rightmouse;

@@ -2158,7 +2158,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	} else if(U.userpref == 2) { /* language & colors */
 
 #ifdef INTERNATIONAL
-		char curfont[64];
+		char curfont[320];
 
 		sprintf(curfont, "Interface Font: ");
 		strcat(curfont,U.fontname);
