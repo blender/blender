@@ -369,7 +369,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 void start_game(void)
 {
 #if GAMEBLENDER == 1
-#ifndef NAN_NO_KETSJI
+#ifndef NO_KETSJI
 	Scene *sc, *startscene = G.scene;
 	LinkNode *scene_cfra_store;
 
