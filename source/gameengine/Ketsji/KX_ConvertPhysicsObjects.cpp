@@ -416,6 +416,7 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 		physicscontroller->setClientInfo(gameobj);						
 		gameobj->GetSGNode()->AddSGController(physicscontroller);
 
+		bool isActor = objprop->m_isactor;
 		STR_String materialname;
 		if (meshobj)
 			materialname = meshobj->GetMaterialName(0);
