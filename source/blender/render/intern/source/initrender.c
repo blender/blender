@@ -820,8 +820,16 @@ void yafrayRender()
 {
 	R.flag |= R_RENDERING;	/* !!! */
 
+	/* all allocs moved here, out of export code */
+	/* display rgba buf */
+	if (R.rectot) MEM_freeN(R.rectot);
+	R.rectot = MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+	/* zbuf */
 	if (R.rectz) MEM_freeN(R.rectz);
-	R.rectz = NULL;
+	R.rectz = (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
+	/* float rgba buf */
+	if (R.rectftot) MEM_freeN(R.rectftot);
+	if (R.r.mode & R_FBUF) R.rectftot= MEM_callocN(4*sizeof(float)*R.rectx*R.recty, "rectftot");
 
 	// switch must be done before prepareScene()
 	if (!R.r.YFexportxml)
@@ -835,6 +843,12 @@ void yafrayRender()
 
 	YAF_exportScene();
 	finalizeScene();
+
+	// show postpro effects if floatbuffer used (plugin only)
+	if (R.r.YFexportxml) {
+		if ((R.r.mode & R_FBUF) && R.rectftot)
+			RE_floatbuffer_to_output();
+	}
 }
 
 

@@ -119,8 +119,12 @@ bool yafrayFileRender_t::initExport()
 	// try the user setting setting first, export dir must be set and exist
 	if (strlen(U.yfexportdir)==0) 
 	{
-		cout << "No export directory set in user defaults!\n";
-		dir_failed = true;
+		cout << "No export directory set in user defaults!" << endl;
+		char* temp = getenv("TEMP");
+		// if no envar, use /tmp
+		xmlpath = temp ? temp : "/tmp";
+		cout << "Will try TEMP instead: " << xmlpath << endl;
+		// no fail here, but might fail when opening file...
 	}
 	else 
 	{
@@ -255,9 +259,6 @@ void yafrayFileRender_t::displayImage()
 {
 	// although it is possible to load the image using blender,
 	// maybe it is best to just do a read here, for now the yafray output is always a raw tga anyway
-
-	// rectot already freed in initrender
-	R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 
 	FILE* fp = fopen(imgout.c_str(), "rb");
 	if (fp==NULL) {

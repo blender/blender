@@ -189,20 +189,18 @@ bool yafrayPluginRender_t::initExport()
 		plugin_loaded = true;
 	}
 	
-	if (R.rectot==NULL) {
-		R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-		unsigned int *bpt=R.rectot, count=R.rectx*R.recty;
-		while (--count) bpt[count] = 0xff800000;
-		cout << "Image allocated" << endl;
-	}
+	// all buffers allocated in initrender.c
+	unsigned int *bpt=R.rectot, count=R.rectx*R.recty;
+	while (--count) bpt[count] = 0xff800000;
+	cout << "Image initialized" << endl;
 
-	if (R.rectz==NULL) {
-		R.rectz = (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
-		unsigned int *zbuf=R.rectz, count=R.rectx*R.recty;
-		while (--count) zbuf[count] = 0x7fffffff;
-		cout << "Zbuffer allocated" << endl;
-	}
+	unsigned int *zbuf=R.rectz;
+	count = R.rectx*R.recty;
+	while (--count) zbuf[count] = 0x7fffffff;
+	cout << "Zbuffer initialized" << endl;
 
+	// no need to fill ftot
+	
 	return true;
 }
 
@@ -1690,30 +1688,41 @@ bool yafrayPluginRender_t::writeWorld()
 
 #include "RE_callbacks.h"
 
-bool blenderYafrayOutput_t::putPixel(int x, int y,const yafray::color_t &c, 
-		yafray::CFLOAT alpha,yafray::PFLOAT depth)
+bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c, 
+		yafray::CFLOAT alpha, yafray::PFLOAT depth)
 {
-	unsigned char* bpt = (unsigned char*)R.rectot + ((((R.recty-1)-y)*R.rectx)<<2);
-	int temp=(int)(c.R*255.0+0.5);
-	if(temp>255) temp=255;
-	bpt[4*x]=temp;
-	temp=(int)(c.G*255.0+0.5);
-	if(temp>255) temp=255;
-	bpt[4*x+1]=temp;
-	temp=(int)(c.B*255.0+0.5);
-	if(temp>255) temp=255;
-	bpt[4*x+2]=temp;
-	temp=(int)(alpha*255.0+0.5);
-	if(temp>255) temp=255;
-	bpt[4*x+3]=temp;
+	unsigned int px = ((R.recty-1)-y)*R.rectx;
+	unsigned char* bpt = (unsigned char*)R.rectot + (px<<2);
+	int x4 = x<<2;
+	int temp = (int)(c.R*255.f+0.5f);
+	if (temp>255) temp=255;
+	bpt[x4] = temp;
+	temp=(int)(c.G*255.f+0.5f);
+	if (temp>255) temp=255;
+	bpt[x4+1] = temp;
+	temp=(int)(c.B*255.f+0.5f);
+	if (temp>255) temp=255;
+	bpt[x4+2] = temp;
+	temp=(int)(alpha*255.f+0.5f);
+	if (temp>255) temp=255;
+	bpt[x4+3] = temp;
+
+	// float buffer
+	if ((R.r.mode & R_FBUF) && R.rectftot) {
+		float* fpt = R.rectftot + (px<<2);
+		fpt[x4] = c.R;
+		fpt[x4+1] = c.G;
+		fpt[x4+2] = c.B;
+		fpt[x4+3] = alpha;
+	}
 
 	// depth values
-	unsigned int* zbuf = R.rectz + ((R.recty-1)-y)*R.rectx;
+	unsigned int* zbuf = R.rectz + px;
 	depth -= R.near;
 	float mz = R.far - R.near;
 	if (depth<0) depth=0; else if (depth>mz) depth=mz;
-	if (mz!=0.f) mz = 1.f/mz;
-	zbuf[x] = (unsigned int)(depth*mz*2147483647.f);
+	if (mz!=0.f) mz = 2147483647.f/mz;
+	zbuf[x] = (unsigned int)(depth*mz);
 
 	out++;
 	if(out==4096)
