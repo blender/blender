@@ -234,8 +234,8 @@ def BlenderRelease(target):
 			release_env.Depends(releaseit, bs_globals.playername)
 		release_env.Alias("release", releaseit)
 	else:
-		release_env = init_env.Copy()
+		release_env = bs_globals.init_env.Copy()
 		releaseit = release_env.Command('blender.tar.gz', bs_globals.appname, printadd)
-		if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+		if bs_globals.user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 			release_env.Depends(releaseit, bs_globals.playername)
 		release_env.Alias("release", releaseit)
