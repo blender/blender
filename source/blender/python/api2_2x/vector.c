@@ -392,6 +392,7 @@ PyObject *Vector_add( PyObject * v1, PyObject * v2 )
 {
 	float *vec;
 	int x;
+	PyObject *retval;
 
 	if( ( !VectorObject_Check( v1 ) ) || ( !VectorObject_Check( v2 ) ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -413,15 +414,18 @@ PyObject *Vector_add( PyObject * v1, PyObject * v2 )
 			( ( VectorObject * ) v2 )->vec[x];
 	}
 
-	return ( PyObject * ) newVectorObject( vec,
-					       ( ( ( VectorObject * ) v1 )->
-						 size ) );
+	retval = ( PyObject * ) newVectorObject( vec,
+						 ( ( ( VectorObject * ) v1 )->
+						   size ) );
+	PyMem_Free( vec );
+	return retval;
 }
 
 PyObject *Vector_sub( PyObject * v1, PyObject * v2 )
 {
 	float *vec;
 	int x;
+	PyObject *retval;
 
 	if( ( !VectorObject_Check( v1 ) ) || ( !VectorObject_Check( v2 ) ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -443,15 +447,18 @@ PyObject *Vector_sub( PyObject * v1, PyObject * v2 )
 			( ( VectorObject * ) v2 )->vec[x];
 	}
 
-	return ( PyObject * ) newVectorObject( vec,
-					       ( ( ( VectorObject * ) v1 )->
-						 size ) );
+	retval = ( PyObject * ) newVectorObject( vec,
+						 ( ( ( VectorObject * ) v1 )->
+						   size ) );
+	PyMem_Free( vec );
+	return retval;
 }
 
 PyObject *Vector_mul( PyObject * v1, PyObject * v2 )
 {
 	float *vec;
 	int x;
+	PyObject *retval;
 
 	if( ( !VectorObject_Check( v1 ) ) || ( !VectorObject_Check( v2 ) ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -473,15 +480,18 @@ PyObject *Vector_mul( PyObject * v1, PyObject * v2 )
 			( ( VectorObject * ) v2 )->vec[x];
 	}
 
-	return ( PyObject * ) newVectorObject( vec,
-					       ( ( ( VectorObject * ) v1 )->
-						 size ) );
+	retval =  ( PyObject * ) newVectorObject( vec,
+						  ( ( ( VectorObject * ) v1 )->
+						    size ) );
+	PyMem_Free( vec );
+	return retval;
 }
 
 PyObject *Vector_div( PyObject * v1, PyObject * v2 )
 {
 	float *vec;
 	int x;
+	PyObject *retval;
 
 	if( ( !VectorObject_Check( v1 ) ) || ( !VectorObject_Check( v2 ) ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -507,9 +517,11 @@ PyObject *Vector_div( PyObject * v1, PyObject * v2 )
 			( ( VectorObject * ) v2 )->vec[x];
 	}
 
-	return ( PyObject * ) newVectorObject( vec,
-					       ( ( ( VectorObject * ) v1 )->
-						 size ) );
+	retval =  ( PyObject * ) newVectorObject( vec,
+						  ( ( ( VectorObject * ) v1 )->
+						    size ) );
+	PyMem_Free( vec );
+	return retval;
 }
 
 //coercion of unknown types to type VectorObject for numeric protocols
@@ -522,7 +534,7 @@ int Vector_coerce( PyObject ** v1, PyObject ** v2 )
 
 	if( VectorObject_Check( *v1 ) ) {
 		if( VectorObject_Check( *v2 ) ) {	//two vectors
-			Py_INCREF( *v1 );
+			Py_INCREF( *v1 );  /* fixme:  wahy are we bumping the ref count? */
 			Py_INCREF( *v2 );
 			return 0;
 		} else {
@@ -540,9 +552,8 @@ int Vector_coerce( PyObject ** v1, PyObject ** v2 )
 								v1 )->size ) *
 							    sizeof( float ) );
 					for( x = 0;
-					     x <
-					     ( ( ( VectorObject * ) *
-						 v1 )->size ); x++ ) {
+					     x <  ( ( ( VectorObject * ) * v1 )->size );
+					     x++ ) {
 						vec[x] = ( float ) *tempI;
 					}
 					PyMem_Free( tempI );
@@ -641,11 +652,19 @@ PyTypeObject vector_Type = {
 
 
 /* 
- * create a Vector Object
- * if vec arg is NULL
- *   allocate memory on python stack.
- *   initialize to zero in homogenous coords.
+ * create a Vector Object( vec, size )
+ *
+ *  Note: Vector now  uses copy semantics like STL containers.
+ *   Memory for vec member is allocated on python stack.  
+ *   We own this memory and will free it later. 
+ *  
  * size arg is number of floats to alloc.
+ *
+ * if vec arg is NULL
+ *   fill our vec with zeros
+ *   initialize 4d vectors to zero in homogenous coords.
+ * else
+ *   vec param is copied into our local memory and always freed.
  */
 
 PyObject *newVectorObject( float *vec, int size )
@@ -657,17 +676,19 @@ PyObject *newVectorObject( float *vec, int size )
 
 	self = PyObject_NEW( VectorObject, &vector_Type );
 
+	self->vec = PyMem_Malloc( size * sizeof( float ) );
+	self->delete_pymem = 1;	/* must free this alloc later */
+
 	if( !vec ) {
-		self->vec = PyMem_Malloc( size * sizeof( float ) );
 		for( x = 0; x < size; x++ ) {
 			self->vec[x] = 0.0f;
 		}
-		if( size == 4 )
+		if( size == 4 )  /* do the homogenous thing */
 			self->vec[3] = 1.0f;
-		self->delete_pymem = 1;	/* must free this alloc later */
 	} else {
-		self->vec = vec;
-		self->delete_pymem = 0;
+		for( x = 0; x < size; x++ ){
+			self->vec[x] = vec[x];
+		}
 	}
 
 	self->size = size;

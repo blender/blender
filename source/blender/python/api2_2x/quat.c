@@ -150,14 +150,16 @@ PyObject *Quaternion_Conjugate( QuaternionObject * self )
 
 static void Quaternion_dealloc( QuaternionObject * self )
 {
+	PyMem_Free( self->quat );
 	PyObject_DEL( self );
 }
 
 static PyObject *Quaternion_getattr( QuaternionObject * self, char *name )
 {
 	double mag = 0.0f;
-	float *vec;
+	float *vec = NULL;
 	int x;
+	PyObject *retval;
 
 	if( ELEM4( name[0], 'w', 'x', 'y', 'z' ) && name[1] == 0 ) {
 		return PyFloat_FromDouble( self->quat[name[0] - 'w'] );
@@ -186,7 +188,9 @@ static PyObject *Quaternion_getattr( QuaternionObject * self, char *name )
 			vec[x] = ( self->quat[x + 1] / ( ( float ) ( mag ) ) );
 		}
 		Normalise( vec );
-		return ( PyObject * ) newVectorObject( vec, 3 );
+		retval = ( PyObject * ) newVectorObject( vec, 3 );
+		PyMem_Free( vec );
+		return retval;
 	}
 	return Py_FindMethod( Quaternion_methods, ( PyObject * ) self, name );
 }
@@ -334,7 +338,8 @@ static PyObject *Quaternion_repr( QuaternionObject * self )
 
 PyObject *Quaternion_add( PyObject * q1, PyObject * q2 )
 {
-	float *quat;
+	float *quat = NULL;
+	PyObject *retval;
 	int x;
 
 	if( ( !QuaternionObject_Check( q1 ) )
@@ -353,12 +358,15 @@ PyObject *Quaternion_add( PyObject * q1, PyObject * q2 )
 			( ( ( QuaternionObject * ) q2 )->quat[x] );
 	}
 
-	return ( PyObject * ) newQuaternionObject( quat );
+	retval =  ( PyObject * ) newQuaternionObject( quat );
+	PyMem_Free( quat );
+	return retval;
 }
 
 PyObject *Quaternion_sub( PyObject * q1, PyObject * q2 )
 {
-	float *quat;
+	float *quat = NULL;
+	PyObject *retval;
 	int x;
 
 	if( ( !QuaternionObject_Check( q1 ) )
@@ -376,12 +384,16 @@ PyObject *Quaternion_sub( PyObject * q1, PyObject * q2 )
 			( ( ( QuaternionObject * ) q1 )->quat[x] ) -
 			( ( ( QuaternionObject * ) q2 )->quat[x] );
 	}
-	return ( PyObject * ) newQuaternionObject( quat );
+	retval = ( PyObject * ) newQuaternionObject( quat );
+
+	PyMem_Free( quat );
+	return retval;
 }
 
 PyObject *Quaternion_mul( PyObject * q1, PyObject * q2 )
 {
-	float *quat;
+	float *quat = NULL;
+	PyObject *retval;
 	int x;
 
 	if( ( !QuaternionObject_Check( q1 ) )
@@ -400,15 +412,18 @@ PyObject *Quaternion_mul( PyObject * q1, PyObject * q2 )
 			( ( QuaternionObject * ) q1 )->quat[x] *
 			( ( QuaternionObject * ) q2 )->quat[x];
 	}
-	return ( PyObject * ) newQuaternionObject( quat );
+	retval =  ( PyObject * ) newQuaternionObject( quat );
+
+	PyMem_Free( quat );
+	return retval;
 }
 
 //coercion of unknown types to type QuaternionObject for numeric protocols
 int Quaternion_coerce( PyObject ** q1, PyObject ** q2 )
 {
-	long *tempI;
-	double *tempF;
-	float *quat;
+	long *tempI = NULL;
+	double *tempF = NULL;
+	float *quat = NULL;
 	int x;
 
 	if( QuaternionObject_Check( *q1 ) ) {
@@ -429,8 +444,9 @@ int Quaternion_coerce( PyObject ** q1, PyObject ** q2 )
 					}
 					PyMem_Free( tempI );
 					*q2 = newQuaternionObject( quat );
+					PyMem_Free( quat );
 					( ( QuaternionObject * ) * q2 )->flag = 1;	//int coercion
-					Py_INCREF( *q1 );
+					Py_INCREF( *q1 );  /* fixme:  is this needed? */
 					return 0;
 				} else if( PyFloat_Check( *q2 ) ) {	//cast scalar to Quaternion
 					tempF = PyMem_Malloc( 1 *
@@ -444,14 +460,15 @@ int Quaternion_coerce( PyObject ** q1, PyObject ** q2 )
 					}
 					PyMem_Free( tempF );
 					*q2 = newQuaternionObject( quat );
+					PyMem_Free( quat );
 					( ( QuaternionObject * ) * q2 )->flag = 2;	//float coercion
-					Py_INCREF( *q1 );
+					Py_INCREF( *q1 );  /* fixme:  is this needed? */
 					return 0;
 				}
 			}
 			//unknown type or numeric cast failure
 			printf( "attempting quaternion operation with unsupported type...\n" );
-			Py_INCREF( *q1 );
+			Py_INCREF( *q1 );  /* fixme:  is this needed? */
 			return 0;	//operation will type check
 		}
 	} else {
@@ -514,6 +531,13 @@ PyTypeObject quaternion_Type = {
 	&Quaternion_SeqMethods,	/*tp_as_sequence */
 };
 
+/* 
+ newQuaternionObject
+ 
+ if the quat arg is not null, this method allocates memory and copies *quat into it.
+ we will free the memory in the dealloc routine.
+*/
+
 PyObject *newQuaternionObject( float *quat )
 {
 	QuaternionObject *self;
@@ -523,14 +547,17 @@ PyObject *newQuaternionObject( float *quat )
 
 	self = PyObject_NEW( QuaternionObject, &quaternion_Type );
 
+	self->quat = PyMem_Malloc( 4 * sizeof( float ) );
+
 	if( !quat ) {
-		self->quat = PyMem_Malloc( 4 * sizeof( float ) );
 		for( x = 0; x < 4; x++ ) {
 			self->quat[x] = 0.0f;
 		}
 		self->quat[3] = 1.0f;
 	} else {
-		self->quat = quat;
+		for( x = 0; x < 4; x++ ) {
+			self->quat[x] = quat[x];
+		}
 	}
 	self->flag = 0;
 

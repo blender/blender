@@ -252,6 +252,7 @@ static PyObject *M_Mathutils_Vector( PyObject * self, PyObject * args )
 {
 	PyObject *listObject = NULL;
 	PyObject *checkOb = NULL;
+	PyObject *retval = NULL;
 	int x;
 	float *vec;
 
@@ -269,7 +270,7 @@ static PyObject *M_Mathutils_Vector( PyObject * self, PyObject * args )
 						"2D, 3D and 4D vectors supported\n" ) );
 
 	for( x = 0; x < PyList_Size( listObject ); x++ ) {
-		checkOb = PyList_GetItem( listObject, x );
+		checkOb = PyList_GetItem( listObject, x );  /* borrowed refernce */
 		if( !PyInt_Check( checkOb ) && !PyFloat_Check( checkOb ) )
 			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 							"expected list of numbers\n" ) );
@@ -286,8 +287,11 @@ static PyObject *M_Mathutils_Vector( PyObject * self, PyObject * args )
 						      "python list not parseable\n" );
 		}
 	}
-	return ( PyObject * ) newVectorObject( vec,
-					       PyList_Size( listObject ) );
+
+	retval =  ( PyObject * ) newVectorObject( vec,
+						  PyList_Size( listObject ) );
+	PyMem_Free( vec );
+	return retval;
 }
 
 //***************************************************************************
@@ -298,6 +302,7 @@ static PyObject *M_Mathutils_CopyVec( PyObject * self, PyObject * args )
 	VectorObject *vector;
 	float *vec;
 	int x;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple( args, "O!", &vector_Type, &vector ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -308,7 +313,10 @@ static PyObject *M_Mathutils_CopyVec( PyObject * self, PyObject * args )
 		vec[x] = vector->vec[x];
 	}
 
-	return ( PyObject * ) newVectorObject( vec, vector->size );
+	retval =  ( PyObject * ) newVectorObject( vec, vector->size );
+	
+	PyMem_Free( vec );
+	return retval;
 }
 
 //finds perpendicular vector - only 3D is supported
@@ -326,7 +334,7 @@ static PyObject *M_Mathutils_CrossVecs( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"only 3D vectors are supported\n" ) );
 
-	vecCross = newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
+	vecCross = newVectorObject( NULL, 3 );
 	Crossf( ( ( VectorObject * ) vecCross )->vec, vec1->vec, vec2->vec );
 
 	return vecCross;
@@ -414,6 +422,7 @@ static PyObject *M_Mathutils_MidpointVecs( PyObject * self, PyObject * args )
 	VectorObject *vec2;
 	float *vec;
 	int x;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple
 	    ( args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2 ) )
@@ -428,7 +437,10 @@ static PyObject *M_Mathutils_MidpointVecs( PyObject * self, PyObject * args )
 	for( x = 0; x < vec1->size; x++ ) {
 		vec[x] = 0.5f * ( vec1->vec[x] + vec2->vec[x] );
 	}
-	return ( PyObject * ) newVectorObject( vec, vec1->size );
+	retval = ( PyObject * ) newVectorObject( vec, vec1->size );
+	
+	PyMem_Free( vec );
+	return retval;
 }
 
 //row vector multiplication
@@ -438,6 +450,7 @@ static PyObject *M_Mathutils_VecMultMat( PyObject * self, PyObject * args )
 	PyObject *ob2 = NULL;
 	MatrixObject *mat;
 	VectorObject *vec;
+	PyObject *retval;
 	float *vecNew;
 	int x, y;
 	int z = 0;
@@ -467,13 +480,17 @@ static PyObject *M_Mathutils_VecMultMat( PyObject * self, PyObject * args )
 		dot = 0;
 	}
 
-	return ( PyObject * ) newVectorObject( vecNew, vec->size );
+	retval =  ( PyObject * ) newVectorObject( vecNew, vec->size );
+
+	PyMem_Free( vecNew );
+	return retval;
 }
 
 static PyObject *M_Mathutils_ProjectVecs( PyObject * self, PyObject * args )
 {
 	VectorObject *vec1;
 	VectorObject *vec2;
+	PyObject *retval;
 	float *vec;
 	float dot = 0.0f;
 	float dot2 = 0.0f;
@@ -501,7 +518,10 @@ static PyObject *M_Mathutils_ProjectVecs( PyObject * self, PyObject * args )
 	for( x = 0; x < vec1->size; x++ ) {
 		vec[x] = dot * vec2->vec[x];
 	}
-	return ( PyObject * ) newVectorObject( vec, vec1->size );
+
+	retval = ( PyObject * ) newVectorObject( vec, vec1->size );
+	PyMem_Free( vec );
+	return retval;
 }
 
 //End Vector Utils
@@ -518,6 +538,7 @@ static PyObject *M_Mathutils_Matrix( PyObject * self, PyObject * args )
 	PyObject *rowC = NULL;
 	PyObject *rowD = NULL;
 	PyObject *checkOb = NULL;
+	PyObject *retval = NULL;
 	int x, rowSize, colSize;
 	float *mat;
 	int OK;
@@ -570,8 +591,9 @@ static PyObject *M_Mathutils_Matrix( PyObject * self, PyObject * args )
 	colSize = PyList_Size( rowA );
 
 	//check for numeric types
+	/* PyList_GetItem() returns borrowed ref */
 	for( x = 0; x < colSize; x++ ) {
-		checkOb = PyList_GetItem( rowA, x );
+		checkOb = PyList_GetItem( rowA, x );  
 		if( !PyInt_Check( checkOb ) && !PyFloat_Check( checkOb ) )
 			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 							"1st list - expected list of numbers\n" ) );
@@ -631,7 +653,10 @@ static PyObject *M_Mathutils_Matrix( PyObject * self, PyObject * args )
 		}
 	}
 	//pass to matrix creation
-	return newMatrixObject( mat, rowSize, colSize );
+	retval =  newMatrixObject( mat, rowSize, colSize );
+
+	PyMem_Free( mat);
+	return retval;
 }
 
 //***************************************************************************
@@ -641,7 +666,7 @@ static PyObject *M_Mathutils_Matrix( PyObject * self, PyObject * args )
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 static PyObject *M_Mathutils_RotationMatrix( PyObject * self, PyObject * args )
 {
-
+	PyObject *retval;
 	float *mat;
 	float angle = 0.0f;
 	char *axis = NULL;
@@ -781,7 +806,10 @@ static PyObject *M_Mathutils_RotationMatrix( PyObject * self, PyObject * args )
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject( mat, matSize, matSize );
+	retval = newMatrixObject( mat, matSize, matSize );
+
+	PyMem_Free( mat );
+	return retval;
 }
 
 //***************************************************************************
@@ -792,6 +820,7 @@ static PyObject *M_Mathutils_TranslationMatrix( PyObject * self,
 						PyObject * args )
 {
 	VectorObject *vec;
+	PyObject *retval;
 	float *mat;
 
 	if( !PyArg_ParseTuple( args, "O!", &vector_Type, &vec ) ) {
@@ -810,7 +839,10 @@ static PyObject *M_Mathutils_TranslationMatrix( PyObject * self,
 	mat[13] = vec->vec[1];
 	mat[14] = vec->vec[2];
 
-	return newMatrixObject( mat, 4, 4 );
+	retval = newMatrixObject( mat, 4, 4 );
+
+	PyMem_Free( mat );
+	return retval;
 }
 
 
@@ -827,6 +859,7 @@ static PyObject *M_Mathutils_ScaleMatrix( PyObject * self, PyObject * args )
 	float *mat;
 	float norm = 0.0f;
 	int x;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple
 	    ( args, "fi|O!", &factor, &matSize, &vector_Type, &vec ) ) {
@@ -923,7 +956,10 @@ static PyObject *M_Mathutils_ScaleMatrix( PyObject * self, PyObject * args )
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject( mat, matSize, matSize );
+	retval = newMatrixObject( mat, matSize, matSize );
+
+	PyMem_Free( mat );
+	return retval;
 }
 
 //***************************************************************************
@@ -940,6 +976,7 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix( PyObject * self,
 	VectorObject *vec = NULL;
 	float norm = 0.0f;
 	int x;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple
 	    ( args, "si|O!", &plane, &matSize, &vector_Type, &vec ) ) {
@@ -1075,7 +1112,10 @@ static PyObject *M_Mathutils_OrthoProjectionMatrix( PyObject * self,
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject( mat, matSize, matSize );
+	retval =  newMatrixObject( mat, matSize, matSize );
+	
+	PyMem_Free( mat );
+	return retval;
 }
 
 //***************************************************************************
@@ -1088,6 +1128,7 @@ static PyObject *M_Mathutils_ShearMatrix( PyObject * self, PyObject * args )
 	int matSize;
 	char *plane;
 	float *mat;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple( args, "sfi", &plane, &factor, &matSize ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1170,7 +1211,10 @@ static PyObject *M_Mathutils_ShearMatrix( PyObject * self, PyObject * args )
 		mat[3] = 0.0f;
 	}
 	//pass to matrix creation
-	return newMatrixObject( mat, matSize, matSize );
+	retval = newMatrixObject( mat, matSize, matSize );
+
+	PyMem_Free( mat );
+	return retval;
 }
 
 //***************************************************************************
@@ -1181,6 +1225,7 @@ static PyObject *M_Mathutils_CopyMat( PyObject * self, PyObject * args )
 	MatrixObject *matrix;
 	float *mat;
 	int x, y, z;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple( args, "O!", &matrix_Type, &matrix ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1197,9 +1242,12 @@ static PyObject *M_Mathutils_CopyMat( PyObject * self, PyObject * args )
 		}
 	}
 
-	return ( PyObject * ) newMatrixObject( mat, matrix->rowSize,
-					       matrix->colSize );
+	retval =  ( PyObject * ) newMatrixObject( mat, matrix->rowSize,
+						  matrix->colSize );
+	PyMem_Free( mat );
+	return retval;
 }
+
 static PyObject *M_Mathutils_MatMultVec( PyObject * self, PyObject * args )
 {
 
@@ -1207,6 +1255,7 @@ static PyObject *M_Mathutils_MatMultVec( PyObject * self, PyObject * args )
 	PyObject *ob2 = NULL;
 	MatrixObject *mat;
 	VectorObject *vec;
+	PyObject *retval;
 	float *vecNew;
 	int x, y;
 	int z = 0;
@@ -1237,7 +1286,10 @@ static PyObject *M_Mathutils_MatMultVec( PyObject * self, PyObject * args )
 		dot = 0;
 	}
 
-	return ( PyObject * ) newVectorObject( vecNew, vec->size );
+	retval =  ( PyObject * ) newVectorObject( vecNew, vec->size );
+
+	PyMem_Free( vecNew );
+	return retval;
 }
 
 //***************************************************************************
@@ -1247,11 +1299,12 @@ static PyObject *M_Mathutils_MatMultVec( PyObject * self, PyObject * args )
 static PyObject *M_Mathutils_Quaternion( PyObject * self, PyObject * args )
 {
 	PyObject *listObject;
-	float *vec;
-	float *quat;
+	float *vec = NULL;
+	float *quat = NULL;
 	float angle = 0.0f;
 	int x;
 	float norm;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple
 	    ( args, "O!|f", &PyList_Type, &listObject, &angle ) )
@@ -1289,11 +1342,15 @@ static PyObject *M_Mathutils_Quaternion( PyObject * self, PyObject * args )
 		quat[3] =
 			( float ) ( sin( ( double ) ( angle ) / 2 ) ) * vec[2];
 
-		PyMem_Free( vec );
-
-		return newQuaternionObject( quat );
+		retval = newQuaternionObject( quat );
 	} else
-		return newQuaternionObject( vec );
+		retval = newQuaternionObject( vec );
+
+	/* freeing a NULL ptr is ok */
+	PyMem_Free( vec );
+	PyMem_Free( quat );
+	
+	return retval;
 }
 
 //***************************************************************************
@@ -1302,7 +1359,8 @@ static PyObject *M_Mathutils_Quaternion( PyObject * self, PyObject * args )
 static PyObject *M_Mathutils_CopyQuat( PyObject * self, PyObject * args )
 {
 	QuaternionObject *quatU;
-	float *quat;
+	float *quat = NULL;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple( args, "O!", &quaternion_Type, &quatU ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1314,14 +1372,17 @@ static PyObject *M_Mathutils_CopyQuat( PyObject * self, PyObject * args )
 	quat[2] = quatU->quat[2];
 	quat[3] = quatU->quat[3];
 
-	return ( PyObject * ) newQuaternionObject( quat );
+	retval = ( PyObject * ) newQuaternionObject( quat );
+	PyMem_Free( quat );
+	return retval;
 }
 
 static PyObject *M_Mathutils_CrossQuats( PyObject * self, PyObject * args )
 {
 	QuaternionObject *quatU;
 	QuaternionObject *quatV;
-	float *quat;
+	float *quat = NULL;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple( args, "O!O!", &quaternion_Type, &quatU,
 			       &quaternion_Type, &quatV ) )
@@ -1330,14 +1391,15 @@ static PyObject *M_Mathutils_CrossQuats( PyObject * self, PyObject * args )
 	quat = PyMem_Malloc( 4 * sizeof( float ) );
 	QuatMul( quat, quatU->quat, quatV->quat );
 
-	return ( PyObject * ) newQuaternionObject( quat );
+	retval = ( PyObject * ) newQuaternionObject( quat );
+	PyMem_Free( quat );
+	return retval;
 }
 
 static PyObject *M_Mathutils_DotQuats( PyObject * self, PyObject * args )
 {
 	QuaternionObject *quatU;
 	QuaternionObject *quatV;
-	float *quat;
 	int x;
 	float dot = 0.0f;
 
@@ -1346,7 +1408,6 @@ static PyObject *M_Mathutils_DotQuats( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected Quaternion types" ) );
 
-	quat = PyMem_Malloc( 4 * sizeof( float ) );
 	for( x = 0; x < 4; x++ ) {
 		dot += quatU->quat[x] * quatV->quat[x];
 	}
@@ -1359,8 +1420,9 @@ static PyObject *M_Mathutils_DifferenceQuats( PyObject * self,
 {
 	QuaternionObject *quatU;
 	QuaternionObject *quatV;
-	float *quat;
-	float *tempQuat;
+	float *quat = NULL;
+	float *tempQuat = NULL;
+	PyObject *retval;
 	int x;
 	float dot = 0.0f;
 
@@ -1388,14 +1450,19 @@ static PyObject *M_Mathutils_DifferenceQuats( PyObject * self,
 	}
 	QuatMul( quat, tempQuat, quatV->quat );
 
-	return ( PyObject * ) newQuaternionObject( quat );
+	retval = ( PyObject * ) newQuaternionObject( quat );
+
+	PyMem_Free( quat );
+	PyMem_Free( tempQuat );
+	return retval;
 }
 
 static PyObject *M_Mathutils_Slerp( PyObject * self, PyObject * args )
 {
 	QuaternionObject *quatU;
 	QuaternionObject *quatV;
-	float *quat;
+	float *quat = NULL;
+	PyObject *retval;
 	float param, x, y, cosD, sinD, deltaD, IsinD, val;
 	int flag, z;
 
@@ -1432,7 +1499,9 @@ static PyObject *M_Mathutils_Slerp( PyObject * self, PyObject * args )
 			val = -val;
 		quat[z] = ( quatU->quat[z] * x ) + ( val * y );
 	}
-	return ( PyObject * ) newQuaternionObject( quat );
+	retval = ( PyObject * ) newQuaternionObject( quat );
+	PyMem_Free( quat );
+	return retval;
 }
 
 //***************************************************************************
@@ -1442,7 +1511,8 @@ static PyObject *M_Mathutils_Slerp( PyObject * self, PyObject * args )
 static PyObject *M_Mathutils_Euler( PyObject * self, PyObject * args )
 {
 	PyObject *listObject;
-	float *vec;
+	float *vec = NULL;
+	PyObject *retval;
 	int x;
 
 	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &listObject ) )
@@ -1461,7 +1531,10 @@ static PyObject *M_Mathutils_Euler( PyObject * self, PyObject * args )
 						      "python list not parseable\n" );
 	}
 
-	return ( PyObject * ) newEulerObject( vec );
+	retval = ( PyObject * ) newEulerObject( vec );
+
+	PyMem_Free( vec );
+	return retval;
 }
 
 
@@ -1471,7 +1544,8 @@ static PyObject *M_Mathutils_Euler( PyObject * self, PyObject * args )
 static PyObject *M_Mathutils_CopyEuler( PyObject * self, PyObject * args )
 {
 	EulerObject *eulU;
-	float *eul;
+	float *eul = NULL;
+	PyObject *retval;
 
 	if( !PyArg_ParseTuple( args, "O!", &euler_Type, &eulU ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1482,7 +1556,9 @@ static PyObject *M_Mathutils_CopyEuler( PyObject * self, PyObject * args )
 	eul[1] = eulU->eul[1];
 	eul[2] = eulU->eul[2];
 
-	return ( PyObject * ) newEulerObject( eul );
+	retval = ( PyObject * ) newEulerObject( eul );
+	PyMem_Free( eul );
+	return retval;
 }
 
 static PyObject *M_Mathutils_RotateEuler( PyObject * self, PyObject * args )
