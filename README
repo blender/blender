@@ -11,6 +11,7 @@ mxtexttools:http://www.egenix.com/files/python/mxTextTools.html (python lib)
 libjpeg:  http://www.ijg.org/
 libpng:  http://www.libpng.org/pub/png/
 zlib:   http://www.gzip.org/zlib/
+ode:	http://q12.org/ode/ode.html
 openal:  http://www.openal.org/home/		(for linux/windows)
 	sdl: http://www.libsdl.org/index.php (for openal)
 	smpeg: http://www.lokigames.com/development/smpeg.php3 (for openal)
