@@ -1721,7 +1721,6 @@ static int ui_do_but_SLI(uiBut *but)
 
 		if (redraw) {
 			pos= 1;
-			
 			ui_set_but_val(but, tempf);
 			ui_check_but(but);
 			ui_draw_but(but);
@@ -3534,18 +3533,18 @@ static void ui_set_but_val(uiBut *but, double value)
 		
 	}
 	else if( but->pointype==CHA )
-		*((char *)poin)= (char)value;
+		*((char *)poin)= (char)floor(value+0.5);
 	else if( but->pointype==SHO ) {
 		/* gcc 3.2.1 seems to have problems 
 		 * casting a double like 32772.0 to
 		 * a short so we cast to an int, then 
 		 to a short */
 		int gcckludge;
-		gcckludge = (int) value;
+		gcckludge = (int) floor(value+0.5);
 		*((short *)poin)= (short) gcckludge;
 	}
 	else if( but->pointype==INT )
-		*((int *)poin)= (int)value;
+		*((int *)poin)= (int)floor(value+0.5);
 	else if( but->pointype==FLO )
 		*((float *)poin)= value;
 	
