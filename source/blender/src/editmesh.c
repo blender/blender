@@ -8709,3 +8709,37 @@ void select_less(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 }
+
+
+void selectrandom_mesh(void) /* randomly selects a user-set % of vertices */
+{
+	EditVert *eve;
+	int newsel = 0; /* to decide whether to redraw or not */
+	short randfac = 50;
+
+	if(G.obedit==0) return;
+
+	/* Get the percentage of vertices to randomly select as 'randfac' */
+	if(button(&randfac,0, 100,"Percentage:")==0) return;
+		
+	if(G.obedit->lay & G.vd->lay) {
+		eve= G.edve.first;
+		while(eve) {
+			BLI_srand( BLI_rand() ); /* random seed */
+			if ( (BLI_frand() * 100) < randfac) {
+					eve->f |= SELECT;
+					newsel = 1;
+			} else {
+				/* Deselect other vertices
+				 *
+				 * - Commenting this out makes it add to the selection, 
+				 * rather than replace it.
+				 * eve->f &= ~SELECT;
+				 */
+			}
+			eve= eve->next;
+		}
+		countall();
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}

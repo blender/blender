@@ -1577,17 +1577,19 @@ static TBitem tb_object_select[]= {
 
 
 static TBitem tb_mesh_select[]= {
-{	0, "Border Select|B", 	0, NULL},
-{	0, "SEPR", 				0, NULL},
-{	0, "(De)select All|A", 	2, NULL},
-{	0, "Inverse", 			3, NULL},
-{	0, "SEPR", 				0, NULL},
-{	0, "Face Loop|Shift R", 6, NULL},
-{	0, "Linked Vertices|Ctrl L", 4, NULL},
-{   0, "SEPR",                          0, NULL},
-{   0, "More|Ctrl Numpad +",            7, NULL},
-{   0, "Less|Ctrl Numpad -",            8, NULL},
-{   0, "Non-manifold|Shift Ctrl Alt M", 9, NULL},
+{	0, "Border Select|B",               0, NULL},
+{	0, "SEPR",                          0, NULL},
+{	0, "(De)select All|A",              2, NULL},
+{	0, "Inverse",                       3, NULL},
+{	0, "SEPR",                          0, NULL},
+{	0, "Random...",			            5, NULL},
+{	0, "Non-Manifold|Shift Ctrl Alt M", 9, NULL},
+{	0, "SEPR",                          0, NULL},
+{	0, "More|Ctrl Numpad +",            7, NULL},
+{	0, "Less|Ctrl Numpad -",            8, NULL},
+{	0, "SEPR",                          0, NULL},
+{	0, "Face Loop...|Shift R",          6, NULL},
+{	0, "Linked Vertices|Ctrl L",        4, NULL},
 {  -1, "", 			0, do_view3d_select_meshmenu}};
 
 

@@ -155,10 +155,11 @@ void undo_redo_mesh(void);
 void undo_clear_mesh(void);
 void undo_menu_mesh(void);
 
-/* Stuff */
+/* Selection */
 void select_non_manifold(void);
 void select_more(void);
 void select_less(void);
+void selectrandom_mesh(void);
 
 #endif
 
