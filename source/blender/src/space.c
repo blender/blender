@@ -1354,7 +1354,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if((G.qual==0) || (G.qual==LR_CTRLKEY)) {
 						mirrormenu();
 					}
-					if(G.qual & (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY)) {
+					if ( !(~G.qual & 
+						   (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY)) ) {
 						if(G.obedit->type==OB_MESH) select_non_manifold();
 					}
 				}
