@@ -36,7 +36,9 @@
 /*****************************************************************************/
 static PyObject *M_Object_New(PyObject *self, PyObject *args);
 PyObject *M_Object_Get(PyObject *self, PyObject *args);
+PyObject *M_Object_get(PyObject *self, PyObject *args);
 static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args);
+static PyObject *M_Object_getSelected (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -68,11 +70,11 @@ struct PyMethodDef M_Object_methods[] = {
                     M_Object_New_doc},
     {"Get",         (PyCFunction)M_Object_Get,         METH_VARARGS,
                     M_Object_Get_doc},
-    {"get",         (PyCFunction)M_Object_Get,         METH_VARARGS,
+    {"get",         (PyCFunction)M_Object_get,         METH_VARARGS,
                     M_Object_Get_doc},
     {"GetSelected", (PyCFunction)M_Object_GetSelected, METH_VARARGS,
                     M_Object_GetSelected_doc},
-    {"getSelected", (PyCFunction)M_Object_GetSelected, METH_VARARGS,
+    {"getSelected", (PyCFunction)M_Object_getSelected, METH_VARARGS,
                     M_Object_GetSelected_doc},
     {NULL, NULL, 0, NULL}
 };
@@ -446,6 +448,18 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
+/* Function:              M_Object_get                                       */
+/* Python equivalent:     Blender.Object.get                                 */
+/*****************************************************************************/
+PyObject *M_Object_get(PyObject *self, PyObject *args)
+{
+    PyErr_Warn (PyExc_DeprecationWarning,
+                "The Object.get() function will be removed in Blender 2.29\n" \
+                "Please update the script to use Object.Get");
+    return (M_Object_Get (self, args));
+}
+
+/*****************************************************************************/
 /* Function:              M_Object_GetSelected                               */
 /* Python equivalent:     Blender.Object.getSelected                         */
 /*****************************************************************************/
@@ -499,6 +513,19 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
         base_iter = base_iter->next;
     }
     return (list);
+}
+
+/*****************************************************************************/
+/* Function:              M_Object_getSelected                               */
+/* Python equivalent:     Blender.Object.getSelected                         */
+/*****************************************************************************/
+static PyObject *M_Object_getSelected (PyObject *self, PyObject *args)
+{
+    PyErr_Warn (PyExc_DeprecationWarning,
+                "The Object.getSelected() function will be removed in "\
+                "Blender 2.29\n" \
+                "Please update the script to use Object.GetSelected");
+    return (M_Object_GetSelected (self, args));
 }
 
 /*****************************************************************************/
