@@ -200,7 +200,10 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 		base_init_from_view3d(BASACT, G.vd);
 		
 		if(type==OB_EMPTY) BIF_undo_push("Add Empty");
-		else if(type==OB_LAMP) BIF_undo_push("Add Lamp");
+		else if(type==OB_LAMP) {
+			BIF_undo_push("Add Lamp");
+			if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
+		}
 		else if(type==OB_LATTICE) BIF_undo_push("Add Lattice");
 		else BIF_undo_push("Add Camera");
 		
@@ -247,6 +250,7 @@ void free_and_unlink_base(Base *base)
 void delete_obj(int ok)
 {
 	Base *base;
+	int islamp= 0;
 	
 	if(G.obpose) return;
 	if(G.obedit) return;
@@ -258,6 +262,7 @@ void delete_obj(int ok)
 
 		if TESTBASE(base) {
 			if(ok==0 &&  (ok=okee("Erase selected"))==0) return;
+			if(base->object->type==OB_LAMP) islamp= 1;
 			
 			free_and_unlink_base(base);
 		}
@@ -269,6 +274,8 @@ void delete_obj(int ok)
 	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	
+	if(islamp && G.vd->drawtype==OB_SHADED) reshadeall_displist();
+
 	test_scene_constraints();
 	allqueue(REDRAWVIEW3D, 0);
 	redraw_test_buttons(OBACT);
@@ -1832,7 +1839,8 @@ void movetolayer(void)
 {
 	Base *base;
 	unsigned int lay= 0, local;
-
+	int islamp= 0;
+	
 	if(G.scene->id.lib) return;
 
 	base= FIRSTBASE;
@@ -1852,11 +1860,14 @@ void movetolayer(void)
 			/* upper byte is used for local view */
 			local= base->lay & 0xFF000000;  
 			base->lay= lay + local;
-
 			base->object->lay= lay;
+			if(base->object->type==OB_LAMP) islamp= 1;
 		}
 		base= base->next;
 	}
+	
+	if(islamp && G.vd->drawtype == OB_SHADED) reshadeall_displist();
+
 	countall();
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);

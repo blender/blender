@@ -176,7 +176,7 @@ void do_layer_buttons(short event)
 	scrarea_queue_headredraw(curarea);
 	
 	if(curarea->spacetype==SPACE_OOPS) allqueue(REDRAWVIEW3D, 1); /* 1==also do headwin */
-	
+	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();	
 }
 
 static void do_view3d_view_cameracontrolsmenu(void *arg, int event)

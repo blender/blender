@@ -160,7 +160,24 @@ static void shade_buttons_change_3d(void)
 			if(v3d->drawtype >= OB_SOLID) addqueue(sa->win, REDRAW, 0);
 			if(v3d->drawtype == OB_SHADED) {
 				if(ob->type==OB_LAMP) reshadeall_displist();
-				else freedisplist(&ob->disp);
+				else {
+					/* all objects using material */
+					Base *base= FIRSTBASE;
+					Material *ma= give_current_material(ob, ob->actcol);	
+					int a;
+					
+					while(base) {
+						if(base->lay & G.vd->lay) {
+							for(a=1; a<=ob->totcol; a++) {
+								if(ma == give_current_material(base->object, a)) {
+									freedisplist(&(base->object->disp));
+									break;
+								}
+							}
+						}
+						base= base->next;
+					}
+				}
 			}
 		}
 	}	

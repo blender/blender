@@ -4237,11 +4237,8 @@ void draw_object(Base *base)
 			else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
 			else if(dt==OB_WIRE || me->totface==0) drawmeshwire(ob);
 			else if(ma && (ma->mode & MA_HALO)) drawmeshwire(ob);
-			else if(me->tface) {
-				if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
-					draw_tface_mesh(ob, ob->data, dt);
-				}
-				else drawDispList(ob, dt);
+			else if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
+				draw_tface_mesh(ob, ob->data, dt);
 			}
 			else drawDispList(ob, dt);
 		}

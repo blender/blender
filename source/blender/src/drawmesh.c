@@ -864,7 +864,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	int a, mode;
 	short islight, istex;
 	
-	if (!me || !me->tface) return;
+	if(me==NULL) return;
 
 
 	glShadeModel(GL_SMOOTH);
@@ -913,151 +913,211 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			mface= me->mface;
 			tface= me->tface;
 		}
+		
 		// tface can be NULL
-		if(tface==NULL) return;
-		
-		for (a=0; a<totface; a++, tface++) {
-			int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr, badtex;
-			float *v1, *v2, *v3, *v4;
-			MFace *mf= &mface[a];
-
-			v1idx= mf->v1;
-			v2idx= mf->v2;
-			v3idx= mf->v3;
-			v4idx= mf->v4;
-			mf_smooth= mf->flag & ME_SMOOTH;
-			matnr= mf->mat_nr;
+		if(tface==NULL) {
 			
-			if(v3idx==0) continue;
-			if(tface->flag & TF_HIDE) continue;
-			if(tface->mode & TF_INVISIBLE) continue;
-			
-			mode= tface->mode;
-
-			if (extverts) {
-				v1= extverts+3*v1idx;
-				v2= extverts+3*v2idx;
-				v3= extverts+3*v3idx;
-				v4= v4idx?(extverts+3*v4idx):NULL;
-			} else {
-				v1= (mvert+v1idx)->co;
-				v2= (mvert+v2idx)->co;
-				v3= (mvert+v3idx)->co;
-				v4= v4idx?(mvert+v4idx)->co:NULL;
-			}
-
-			badtex= set_draw_settings_cached(0, istex && (mode&TF_TEX), tface, islight && (mode&TF_LIGHT), ob, matnr, mode&TF_TWOSIDE);
-
-			if (prop && !badtex && !editing && (mode & TF_BMFONT)) {
-				char string[MAX_PROPSTRING];
-				int characters, index;
-				Image *ima;
-				float curpos;
-
-				// The BM_FONT handling code is duplicated in the gameengine
-				// Search for 'Frank van Beek' ;-)
-
-				// string = "Frank van Beek";
-
-				set_property_valstr(prop, string);
-				characters = strlen(string);
+			for (a=0; a<totface; a++) {
+				int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr;
+				float *v1, *v2, *v3, *v4;
+				MFace *mf= &mface[a];
 				
-				ima = tface->tpage;
-				if (ima == NULL) {
-					characters = 0;
+				v1idx= mf->v1;
+				v2idx= mf->v2;
+				v3idx= mf->v3;
+				v4idx= mf->v4;
+				mf_smooth= mf->flag & ME_SMOOTH;
+				matnr= mf->mat_nr;
+				
+				if(v3idx==0) continue;
+
+				set_draw_settings_cached(0, 0, NULL, 1, ob, matnr, TF_TWOSIDE);
+				
+				if (extverts) {
+					v1= extverts+3*v1idx;
+					v2= extverts+3*v2idx;
+					v3= extverts+3*v3idx;
+					v4= v4idx?(extverts+3*v4idx):NULL;
+				} else {
+					v1= (mvert+v1idx)->co;
+					v2= (mvert+v2idx)->co;
+					v3= (mvert+v3idx)->co;
+					v4= v4idx?(mvert+v4idx)->co:NULL;
 				}
-
-				if (1 || !mf_smooth) {
-					float nor[3];
-
-					CalcNormFloat(v1, v2, v3, nor);
-
-					glNormal3fv(nor);
+				
+				{
+					Material *ma= give_current_material(ob, matnr);
+					if(ma) glColor3f(ma->r, ma->g, ma->b);
+					else glColor3f(0.5, 0.5, 0.5);
 				}
-
-				curpos= 0.0;
+				
 				glBegin(v4?GL_QUADS:GL_TRIANGLES);
-				for (index = 0; index < characters; index++) {
-					float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-					int character = string[index];
-					char *cp= NULL;
-
-					// lets calculate offset stuff
-					// space starts at offset 1
-					// character = character - ' ' + 1;
-					
-					matrixGlyph(ima->ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
-					movex+= curpos;
-
-					if (mode & TF_OBCOL) glColor3ubv(obcol);
-					else cp= (char *)&(tface->col[0]);
-
-					glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
-					if (cp) glColor3ub(cp[3], cp[2], cp[1]);
-					glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
-					
-					glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
-					if (cp) glColor3ub(cp[7], cp[6], cp[5]);
-					glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
-		
-					glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
-					if (cp) glColor3ub(cp[11], cp[10], cp[9]);
-					glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
-		
-					if(v4) {
-						glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
-						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
-						glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
-					}
-
-					curpos+= advance;
-				}
-				glEnd();
-			}
-			else {
-				char *cp= NULL;
 				
-				if (badtex) glColor3ub(0xFF, 0x00, 0xFF);
-				else if (mode & TF_OBCOL) glColor3ubv(obcol);
-				else cp= (char *)&(tface->col[0]);
-
 				if (!mf_smooth) {
 					float nor[3];
-
 					CalcNormFloat(v1, v2, v3, nor);
-
 					glNormal3fv(nor);
 				}
-
-				glBegin(v4?GL_QUADS:GL_TRIANGLES);
-
-				glTexCoord2fv(tface->uv[0]);
-				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+				
 				if (mf_smooth) glNormal3sv(mvert[v1idx].no);
 				glVertex3fv(v1);
 				
-				glTexCoord2fv(tface->uv[1]);
-				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				if (mf_smooth) glNormal3sv(mvert[v2idx].no);
 				glVertex3fv(v2);
-
-				glTexCoord2fv(tface->uv[2]);
-				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+				
 				if (mf_smooth) glNormal3sv(mvert[v3idx].no);
 				glVertex3fv(v3);
-	
+				
 				if(v4) {
-					glTexCoord2fv(tface->uv[3]);
-					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 					if (mf_smooth) glNormal3sv(mvert[v4idx].no);
 					glVertex3fv(v4);
 				}
 				glEnd();
 			}
 		}
+		else {	// has tfaces
+			for (a=0; a<totface; a++, tface++) {
+				int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr, badtex;
+				float *v1, *v2, *v3, *v4;
+				MFace *mf= &mface[a];
 
-		/* switch off textures */
-		set_tpage(0);
+				v1idx= mf->v1;
+				v2idx= mf->v2;
+				v3idx= mf->v3;
+				v4idx= mf->v4;
+				mf_smooth= mf->flag & ME_SMOOTH;
+				matnr= mf->mat_nr;
+				
+				if(v3idx==0) continue;
+				if(tface->flag & TF_HIDE) continue;
+				if(tface->mode & TF_INVISIBLE) continue;
+				
+				mode= tface->mode;
+
+				if (extverts) {
+					v1= extverts+3*v1idx;
+					v2= extverts+3*v2idx;
+					v3= extverts+3*v3idx;
+					v4= v4idx?(extverts+3*v4idx):NULL;
+				} else {
+					v1= (mvert+v1idx)->co;
+					v2= (mvert+v2idx)->co;
+					v3= (mvert+v3idx)->co;
+					v4= v4idx?(mvert+v4idx)->co:NULL;
+				}
+
+				badtex= set_draw_settings_cached(0, istex && (mode&TF_TEX), tface, islight && (mode&TF_LIGHT), ob, matnr, mode&TF_TWOSIDE);
+
+				if (prop && !badtex && !editing && (mode & TF_BMFONT)) {
+					char string[MAX_PROPSTRING];
+					int characters, index;
+					Image *ima;
+					float curpos;
+
+					// The BM_FONT handling code is duplicated in the gameengine
+					// Search for 'Frank van Beek' ;-)
+					// string = "Frank van Beek";
+
+					set_property_valstr(prop, string);
+					characters = strlen(string);
+					
+					ima = tface->tpage;
+					if (ima == NULL) {
+						characters = 0;
+					}
+
+					if (1 || !mf_smooth) {
+						float nor[3];
+
+						CalcNormFloat(v1, v2, v3, nor);
+
+						glNormal3fv(nor);
+					}
+
+					curpos= 0.0;
+					glBegin(v4?GL_QUADS:GL_TRIANGLES);
+					for (index = 0; index < characters; index++) {
+						float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
+						int character = string[index];
+						char *cp= NULL;
+
+						// lets calculate offset stuff
+						// space starts at offset 1
+						// character = character - ' ' + 1;
+						
+						matrixGlyph(ima->ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+						movex+= curpos;
+
+						if (mode & TF_OBCOL) glColor3ubv(obcol);
+						else cp= (char *)&(tface->col[0]);
+
+						glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
+						if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+						glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
+						
+						glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
+						if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+						glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
+			
+						glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
+						if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+						glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
+			
+						if(v4) {
+							glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
+							if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+							glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
+						}
+
+						curpos+= advance;
+					}
+					glEnd();
+				}
+				else {
+					char *cp= NULL;
+					
+					if (badtex) glColor3ub(0xFF, 0x00, 0xFF);
+					else if (mode & TF_OBCOL) glColor3ubv(obcol);
+					else cp= (char *)&(tface->col[0]);
+
+					if (!mf_smooth) {
+						float nor[3];
+
+						CalcNormFloat(v1, v2, v3, nor);
+
+						glNormal3fv(nor);
+					}
+
+					glBegin(v4?GL_QUADS:GL_TRIANGLES);
+
+					glTexCoord2fv(tface->uv[0]);
+					if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+					if (mf_smooth) glNormal3sv(mvert[v1idx].no);
+					glVertex3fv(v1);
+					
+					glTexCoord2fv(tface->uv[1]);
+					if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+					if (mf_smooth) glNormal3sv(mvert[v2idx].no);
+					glVertex3fv(v2);
+
+					glTexCoord2fv(tface->uv[2]);
+					if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+					if (mf_smooth) glNormal3sv(mvert[v3idx].no);
+					glVertex3fv(v3);
+		
+					if(v4) {
+						glTexCoord2fv(tface->uv[3]);
+						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+						if (mf_smooth) glNormal3sv(mvert[v4idx].no);
+						glVertex3fv(v4);
+					}
+					glEnd();
+				}
+			}
+
+			/* switch off textures */
+			set_tpage(0);
+		}
 	}
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
