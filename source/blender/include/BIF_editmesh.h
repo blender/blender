@@ -98,6 +98,8 @@ extern int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin,
 extern int EM_check_backbuf_border(int index);
 extern void EM_free_backbuf_border(void);
 
+extern void EM_selectmode_menu(void);
+
 extern void vertexnoise(void);
 extern void vertexsmooth(void);
 extern void righthandfaces(int select);

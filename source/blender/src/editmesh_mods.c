@@ -1572,6 +1572,25 @@ void editmesh_deselect_by_material(int index)
 	EM_selectmode_flush();
 }
 
+void EM_selectmode_menu(void)
+{
+	int val;
+	
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) pupmenu_set_active(1);
+	else if(G.scene->selectmode & SCE_SELECT_EDGE) pupmenu_set_active(2);
+	else pupmenu_set_active(3);
+	
+	val= pupmenu("Select Mode%t|Vertices|Edges|Faces");
+	if(val>0) {
+		if(val==1) G.scene->selectmode= SCE_SELECT_VERTEX;
+		else if(val==2) G.scene->selectmode= SCE_SELECT_EDGE;
+		else G.scene->selectmode= SCE_SELECT_FACE;
+	
+		EM_selectmode_set(); // when mode changes
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
 /* ************************* SEAMS AND EDGES **************** */
 
 void editmesh_mark_seam(int clear)

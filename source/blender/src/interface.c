@@ -4557,15 +4557,42 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 
 /* ******************** PUPmenu ****************** */
 
+static int pupmenu_set= 0;
+
+void pupmenu_set_active(int val)
+{
+	pupmenu_set= val;
+}
+
+/* value== -1 read, otherwise set */
+static int pupmenu_memory(char *str, int value)
+{
+	static char mem[256], first=1;
+	int val=0, nr=0;
+	
+	if(first) {
+		memset(mem, 0, 256);
+		first= 0;
+	}
+	while(str[nr]) {
+		val+= str[nr];
+		nr++;
+	}
+
+	if(value >= 0) mem[ val & 255 ]= value;
+	else return mem[ val & 255 ];
+	
+	return 0;
+}
+
+#define PUP_LABELH	6
 short pupmenu(char *instr)
 {
 	uiBlock *block;
 	ListBase listb= {NULL, NULL};
 	int event;
-	static int lastselected= 0;
-	short width, height=0, mousexmove = 0, mouseymove, xmax, ymax, mval[2], val= -1;
+	short lastselected, width, height=0, mousexmove = 0, mouseymove, xmax, ymax, mval[2], val= -1;
 	short a, startx, starty, endx, endy, boxh=TBOXH, x1, y1;
-	static char laststring[UI_MAX_NAME_STR];
 	MenuData *md;
 
 	/* block stuff first, need to know the font */
@@ -4584,7 +4611,7 @@ short pupmenu(char *instr)
 		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts && USER_TR_BUTTONS));
 		if(xmax>width) width= xmax;
 
-		if( strcmp(name, "%l")==0) height+= 6;
+		if( strcmp(name, "%l")==0) height+= PUP_LABELH;
 		else height+= boxh;
 	}
 
@@ -4595,14 +4622,27 @@ short pupmenu(char *instr)
 
 	getmouseco_sc(mval);
 	
-	if(strncmp(laststring, instr, UI_MAX_NAME_STR-1)!=0) lastselected= 0;
-	BLI_strncpy(laststring, instr, UI_MAX_NAME_STR);
-	
-	startx= mval[0]-(0.8*(width));
-	if(lastselected>=0 && lastselected<md->nitems) {
-		starty= mval[1]-height+boxh/2+lastselected*boxh;
+	/* set first item */
+	lastselected= 0;
+	if(pupmenu_set) {
+		lastselected= pupmenu_set-1;
+		pupmenu_set= 0;
 	}
-	else starty= mval[1]-height/2;
+	else if(md->nitems>1) {
+		lastselected= pupmenu_memory(instr, -1);
+	}
+
+	startx= mval[0]-(0.8*(width));
+	starty= mval[1]-height+boxh/2;
+	if(lastselected>=0 && lastselected<md->nitems) {
+		for(a=0; a<md->nitems; a++) {
+			if(a==lastselected) break;
+			if( strcmp(md->items[a].str, "%l")==0) starty+= PUP_LABELH;
+			else starty+=boxh;
+		}
+		
+		//starty= mval[1]-height+boxh/2+lastselected*boxh;
+	}
 	
 	mouseymove= 0;
 	
@@ -4635,20 +4675,20 @@ short pupmenu(char *instr)
 	if(md->title) {
 		uiBut *bt;
 		uiSetCurFont(block, UI_HELVB);
-		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+md->nitems*boxh), width, boxh, NULL, 0.0, 0.0, 0, 0, "");
+		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+height), width, boxh, NULL, 0.0, 0.0, 0, 0, "");
 		bt->flag= UI_TEXT_LEFT;
 		uiSetCurFont(block, UI_HELV);
 	}
 
-	y1= starty + boxh*(md->nitems-1);
+	y1= starty + height - boxh;
 	x1= startx;
 	
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		
 		if( strcmp(name, "%l")==0) {
-			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, 6, NULL, 0, 0.0, 0, 0, "");
-			y1 -= 6;
+			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, PUP_LABELH, NULL, 0, 0.0, 0, 0, "");
+			y1 -= PUP_LABELH;
 		}
 		else {
 			uiDefButS(block, BUTM, B_NOP, name, x1, y1, width, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");
@@ -4661,11 +4701,14 @@ short pupmenu(char *instr)
 	event= uiDoBlocks(&listb, 0);
 
 	/* calculate last selected */
-	lastselected= 0;
-	for(a=0; a<md->nitems; a++) {
-		if(val==md->items[a].retval) lastselected= a;
+	if(event & UI_RETURN_OK) {
+		lastselected= 0;
+		for(a=0; a<md->nitems; a++) {
+			if(val==md->items[a].retval) lastselected= a;
+		}
+		
+		pupmenu_memory(instr, lastselected);
 	}
-
 	menudata_free(md);
 	
 	if(mouseymove && (event & UI_RETURN_OUT)==0) ui_warp_pointer(mousexmove, mouseymove);
@@ -4786,8 +4829,8 @@ short pupmenu_col(char *instr, int maxrow)
 		y1= starty - boxh*(a%rows) + (rows-1)*boxh; 
 		
 		if( strcmp(name, "%l")==0){
-			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, 6, NULL, 0, 0.0, 0, 0, "");
-			y1 -= 6;
+			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, PUP_LABELH, NULL, 0, 0.0, 0, 0, "");
+			y1 -= PUP_LABELH;
 		}
 		else {
 			uiDefButI(block, BUTM, B_NOP, name, x1, y1, width, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");

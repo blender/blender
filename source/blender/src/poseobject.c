@@ -123,6 +123,8 @@ void enter_posemode(void)
 		if( arm==0 ) return;
 		G.obpose= ob;
 		/*		make_poseMesh();	*/
+		allqueue(REDRAWHEADERS, 0);	
+		allqueue(REDRAWBUTSALL, 0);	
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	default:
@@ -217,6 +219,8 @@ void exit_posemode (int freedata)
 		
 		countall();
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWHEADERS, 0);	
+		allqueue(REDRAWBUTSALL, 0);	
 	}
 	else {
 		G.obpose= ob;

@@ -72,16 +72,17 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_interface.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
 #include "BIF_butspace.h"
-#include "BIF_renderwin.h"
-#include "BIF_toolbox.h"
-#include "BIF_toets.h"
 #include "BIF_editseq.h"
 #include "BIF_editsound.h"
+#include "BIF_editmesh.h"
+#include "BIF_interface.h"
 #include "BIF_poseobject.h"
+#include "BIF_renderwin.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
+#include "BIF_toets.h"
+#include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
 
 #include "BDR_vpaint.h"
@@ -751,12 +752,16 @@ int blenderqread(unsigned short event, short val)
 			}
 		}
 		else if(G.qual==LR_CTRLKEY){
-			if(G.obpose)
-				exit_posemode(1);
-			else
-				enter_posemode();
-			allqueue(REDRAWHEADERS, 0);	
-			allqueue(REDRAWBUTSALL, 0);	
+			Object *ob= OBACT;
+			if(ob) {
+				if(ob->type==OB_ARMATURE) {
+					if(G.obpose) exit_posemode(1);
+					else enter_posemode();
+				}
+				else if(ob->type==OB_MESH) {
+					EM_selectmode_menu();
+				}
+			}
 		}
 		else if(G.qual==LR_SHIFTKEY) {
 			if(G.obedit)

@@ -149,7 +149,8 @@ int get_border(rcti *rect, short col)
 	/* draws the selection initial cross */
 	sdrawXORline4(0, 0,  mvalo[1],  curarea->winx,  mvalo[1]);
 	sdrawXORline4(1, mvalo[0],  0,  mvalo[0],  curarea->winy); 
-
+	glFlush();
+	
 	while(TRUE) {
 	
 		/* selection loop while mouse pressed */
@@ -187,6 +188,8 @@ int get_border(rcti *rect, short col)
 			else if(event==MIDDLEMOUSE) break;
 			else if(event==RIGHTMOUSE) break;
 		}
+		else PIL_sleep_ms(10);
+		
 	} /* end while (TRUE) */
 
 	/* erase XORed lines */

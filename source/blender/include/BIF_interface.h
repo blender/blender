@@ -273,8 +273,9 @@ void	uiBlockSetFunc		(uiBlock *block,	void (*func)(void *arg1, void *arg2), void
 void	uiButSetFunc		(uiBut *but,		void (*func)(void *arg1, void *arg2), void *arg1, void *arg2);
 void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)());
 
-short pupmenu(char *instr); 
-short pupmenu_col(char *instr, int maxrow);
+extern void pupmenu_set_active(int val);
+extern short pupmenu(char *instr); 
+extern short pupmenu_col(char *instr, int maxrow);
 
 extern void uiFreePanels(struct ListBase *lb);
 extern void uiNewPanelTabbed(char *, char *);
