@@ -3853,7 +3853,23 @@ static void drawSolidSelect(Object *ob, ListBase *lb)
 		glLineWidth(2.0);
 		glDepthMask(0);
 		
-		if(ob->type==OB_MESH) drawmeshwire(ob);
+		if(ob->type==OB_MESH) {
+			/* optimal draw gives ugly outline, so we temporally disable it */
+			Mesh *me= ob->data;
+			DispList *dl= me->disp.first;
+			DispListMesh *dlm=NULL;
+			short flag= 0;
+			
+			if(dl && dl->mesh) {
+				dlm= dl->mesh;
+				flag= dlm->flag & ME_OPT_EDGES;
+				dlm->flag &= ~ME_OPT_EDGES;
+			}
+			
+			drawmeshwire(ob);
+			
+			if(dlm && flag) dlm->flag |= flag;
+		}
 		else drawDispListwire(lb);
 		
 		glLineWidth(1.0);
