@@ -542,8 +542,8 @@ void GHOST_WindowCarbon::loadCursor(bool visible, GHOST_TStandardCursor cursor) 
 		GCMAP( GHOST_kStandardCursorWait,					kThemeWatchCursor);
 		GCMAP( GHOST_kStandardCursorText,					kThemeIBeamCursor);
 		GCMAP( GHOST_kStandardCursorCrosshair,				kThemeCrossCursor);
-		GCMAP( GHOST_kStandardCursorUpDown,					kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorLeftRight,				kThemeResizeLeftRightCursor);
+		GCMAP( GHOST_kStandardCursorUpDown,					kThemeClosedHandCursor);
+		GCMAP( GHOST_kStandardCursorLeftRight,				kThemeClosedHandCursor);
 		GCMAP( GHOST_kStandardCursorTopSide,				kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorBottomSide,				kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorLeftSide,				kThemeResizeLeftCursor);
