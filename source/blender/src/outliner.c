@@ -585,7 +585,21 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						ten= outliner_add_element(soops, &te->subtree, id, te, TSE_EBONE, a);
 						ten->directdata= ebone;
 						ten->name= ebone->name;
+						ebone->temp= ten;
 					}
+					/* make hierarchy */
+					ten= te->subtree.first;
+					while(ten) {
+						TreeElement *nten= ten->next, *par;
+						ebone= (EditBone *)ten->directdata;
+						if(ebone->parent) {
+							BLI_remlink(&te->subtree, ten);
+							par= ebone->parent->temp;
+							BLI_addtail(&par->subtree, ten);
+						}
+						ten= nten;
+					}
+					
 				}
 				else {
 					Bone *curBone;
