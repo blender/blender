@@ -296,20 +296,8 @@ Section "Uninstall"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender"
   DeleteRegKey HKLM SOFTWARE\BlenderFoundation
   ; remove files
-  Delete $INSTDIR\blender.exe
-  Delete $INSTDIR\blenderplayer.exe
-  Delete $INSTDIR\python23.dll
-  Delete $INSTDIR\python23.zip
-  Delete $INSTDIR\sdl.dll
-  Delete $INSTDIR\gnu_gettext.dll
-  Delete $INSTDIR\Copyright.txt
-  Delete $INSTDIR\Blender.html
-  Delete $INSTDIR\GPL-license.txt
-  Delete $INSTDIR\python-license.txt
-  Delete $INSTDIR\Release_SHORTVERS.txt
-  Delete $INSTDIR\Help.url
-  Delete $INSTDIR\uninstall.exe
-  Delete $INSTDIR\zlib.pyd
+  [DELROOTDIRCONTS]
+  
   Delete $INSTDIR\.blender\.bfont.ttf
   Delete $INSTDIR\.blender\.Blanguages
   ; remove shortcuts, if any.

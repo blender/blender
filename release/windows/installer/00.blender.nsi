@@ -268,6 +268,15 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\disp_paint.py
   File DISTDIR\.blender\scripts\doc_browser.py
   File DISTDIR\.blender\scripts\fixfromarmature.py
+  File DISTDIR\.blender\scripts\help_getting_started.py
+  File DISTDIR\.blender\scripts\help_manual.py
+  File DISTDIR\.blender\scripts\help_py_reference.py
+  File DISTDIR\.blender\scripts\help_release_notes.py
+  File DISTDIR\.blender\scripts\help_tutorials.py
+  File DISTDIR\.blender\scripts\help_web_blender.py
+  File DISTDIR\.blender\scripts\help_web_devcomm.py
+  File DISTDIR\.blender\scripts\help_web_eshop.py
+  File DISTDIR\.blender\scripts\help_web_usercomm.py
   File DISTDIR\.blender\scripts\hotkeys.py
   File DISTDIR\.blender\scripts\kloputils.py
   File DISTDIR\.blender\scripts\knife.py

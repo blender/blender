@@ -1492,6 +1492,15 @@ def donsis(env, target, source):
 	rootstring += "\n\n"
 	nsis_cnt = string.replace(nsis_cnt, "[ROOTDIRCONTS]", rootstring)
 	
+	# do delete items
+	delrootlist = []
+	for rootitem in rootdir:
+		if os.path.isdir(startdir + "\\dist\\" + rootitem) == 0:
+			delrootlist.append("Delete $INSTDIR\\" + rootitem)
+	delrootstring = string.join(delrootlist, "\n ")
+	delrootstring += "\n"
+	nsis_cnt = string.replace(nsis_cnt, "[DELROOTDIRCONTS]", delrootstring)
+	
 	# do scripts
 	scriptlist = []
 	scriptdir = os.listdir(startdir + "\\dist\\.blender\\scripts")
