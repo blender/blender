@@ -3890,6 +3890,7 @@ short pupmenu(char *instr)
 
 	y1= starty + boxh*(md->nitems-1);
 	x1= startx;
+	
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		

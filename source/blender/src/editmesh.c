@@ -7234,11 +7234,14 @@ CutCurve *get_mouse_trail(int *len, char mode){
 	
 	glColor3ub(200, 200, 0);
 	
-	event=extern_qread(&val);
-	while((event != RETKEY ) && (event != PADENTER ) && (event != RIGHTMOUSE) ){  
-		event=extern_qread(&val);	/* Enter or RMB indicates finish */
+	while(TRUE) {
 		
-		if ((event==ESCKEY)||(event==RIGHTMOUSE)){
+		event=extern_qread(&val);	/* Enter or RMB indicates finish */
+		if(val) {
+			if(event==RETKEY || event==PADENTER) break;
+		}
+		
+		if( event==ESCKEY || event==RIGHTMOUSE ) {
 			if (curve) MEM_freeN(curve);
 			*len=0;
 			glFinish();
@@ -7367,10 +7370,15 @@ void KnifeSubdivide(char mode){
 	
 	if (G.obedit==0) return;
 	
+	if (mode==KNIFE_PROMPT) {
+		short val= pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2");
+		if(val<1) return;
+		mode= val;	// warning, mode is char, pupmenu returns -1 with ESC
+	}
+
 	undo_push_mesh("Knife");
 	
 	calc_meshverts_ext();  /*Update screen coords for current window */
-	if (mode==KNIFE_PROMPT) mode=pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2|");
 	
 	/* Set a knife cursor here */
 	oldcursor=get_cursor();
@@ -7664,24 +7672,24 @@ void undo_clear_mesh(void)
 
 void undo_menu_mesh(void)
 {
-       short event=66;
-       int i, lasti;
-       char menu[2080], temp[64];
+	short event=66;
+	int i;
+	char menu[2080], temp[64];
 
-       TEST_EDITMESH
+	TEST_EDITMESH
 
-       strcpy(menu, "UNDO %t|%l");
-       strcat(menu, "|All changes%x1|%l");
-	   
-	   for (i=G.undo_edit_level; i>=0; i--) {
-               snprintf(temp, 64, "|%s%%x%d", G.undo_edit[i].name, i+2);
-			   strcat(menu, temp);
-       }
+	strcpy(menu, "UNDO %t|%l");
+	strcat(menu, "|All changes%x1|%l");
+	
+	for (i=G.undo_edit_level; i>=0; i--) {
+			snprintf(temp, 64, "|%s%%x%d", G.undo_edit[i].name, i+2);
+			strcat(menu, temp);
+	}
 
-	   event=pupmenu_col(menu, 20);
+	event=pupmenu_col(menu, 20);
 
-       if(event<1) return;
+	if(event<1) return;
 
-       if (event==1) remake_editMesh();
-       else undo_pop_mesh(G.undo_edit_level-event+3);
+	if (event==1) remake_editMesh();
+	else undo_pop_mesh(G.undo_edit_level-event+3);
 }
