@@ -3610,7 +3610,7 @@ static void ui_do_but_tip(void)
 			if (anyqtest())
 				return;
 			else
-				PIL_sleep_ms(2);
+				PIL_sleep_ms(30);
 		}
 			
 			/* Display the tip, and keep it displayed
