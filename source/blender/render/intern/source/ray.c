@@ -1412,11 +1412,6 @@ static void reflection(float *ref, float *n, float *view, float *orn)
 	
 	f1= -2.0*(n[0]*view[0]+ n[1]*view[1]+ n[2]*view[2]);
 	
-	if(orn==NULL) {
-		// heuristic, should test this! is to prevent normal going to the back
-		if(f1> -0.2) f1= -0.2;
-	}
-	
 	ref[0]= (view[0]+f1*n[0]);
 	ref[1]= (view[1]+f1*n[1]);
 	ref[2]= (view[2]+f1*n[2]);
