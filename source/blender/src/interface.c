@@ -760,6 +760,7 @@ static int ui_do_but_MENU(uiBut *but)
 
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	block->themecol= TH_MENU_ITEM;
 	
 	md= decompose_menu_string(but->str);
 
@@ -1414,6 +1415,7 @@ static int ui_do_but_ICONROW(uiBut *but)
 	/* here we go! */
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	block->themecol= TH_MENU_ITEM;
 	
 	for(a=(int)but->min; a<=(int)but->max; a++) {
 		uiDefIconBut(block, BUTM|but->pointype, but->retval, but->icon+(a-but->min), 0, (short)(18*a), (short)(but->x2-but->x1-4), 18, but->poin, (float)a, 0.0, 0, 0, "");
@@ -1446,6 +1448,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
+	block->themecol= TH_MENU_ITEM;
 
 	md= decompose_menu_string(but->str);
 
@@ -3738,6 +3741,7 @@ short pupmenu(char *instr)
 	/* block stuff first, need to know the font */
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
+	block->themecol= TH_MENU_ITEM;
 	
 	md= decompose_menu_string(instr);
 
@@ -3849,6 +3853,7 @@ short pupmenu_col(char *instr, int maxrow)
 	
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT);
+	block->themecol= TH_MENU_ITEM;
 	
 	md= decompose_menu_string(instr);
 
