@@ -53,6 +53,7 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../include
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I../../radiosity/extern/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
