@@ -6059,13 +6059,13 @@ static void ui_draw_tria(float x, float y, float aspect, char dir)
 	glBegin(GL_POLYGON);	
 	if(dir=='h') {
 		glVertex2f( x, y);
-		glVertex2f( x, y+15.0);
-		glVertex2f( x+13, y+7.5);
+		glVertex2f( x, y+12.0);
+		glVertex2f( x+10, y+6);
 	}
 	else {
-		glVertex2f( x, y+13.0);
-		glVertex2f( x+15, y+13.0);
-		glVertex2f( x+7.5, y);	
+		glVertex2f( x, y+10.0);
+		glVertex2f( x+12, y+10.0);
+		glVertex2f( x+6, y);	
 	}
 	glEnd();
 	
@@ -6108,6 +6108,7 @@ static void ui_draw_panel_tabs(uiBlock *block)
 	if(nr==1) return;
 	
 	/* draw */
+	
 	a= 0;
 	width= (panel->sizex - 2*PNL_SAFETY)/nr;
 	pa= curarea->panels.first;
@@ -6119,7 +6120,7 @@ static void ui_draw_panel_tabs(uiBlock *block)
 			uiRoundBox(PNL_SAFETY+1+a*width, pa->sizey-PNL_HEADER, PNL_SAFETY-1+(a+1)*width, pa->sizey, 10);
 
 			glColor3ub(240,240,240);
-			glRasterPos2f(PNL_SAFETY+7+a*width, panel->sizey+5);
+			glRasterPos2f(PNL_SAFETY+7+a*width, panel->sizey-PNL_HEADER+5);
 			BIF_DrawString(block->curfont, pa->panelname, (U.transopts & TR_BUTTONS), 0);
 
 			a++;
@@ -6153,7 +6154,7 @@ static void ui_draw_panel(uiBlock *block)
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 	
 		glColor3ub(255,255,255);
-		glRasterPos2f(block->minx+10, block->maxy+5);
+		glRasterPos2f(block->minx+40, block->maxy+5);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
 
 		//  border
@@ -6186,7 +6187,7 @@ static void ui_draw_panel(uiBlock *block)
 		
 		if( panel_has_tabs(block->panel)==0) {
 			glColor3ub(255,255,255);
-			glRasterPos2f(block->minx+10, block->maxy+5);
+			glRasterPos2f(block->minx+40, block->maxy+5);
 			BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
 		}
 		
@@ -6215,9 +6216,9 @@ static void ui_draw_panel(uiBlock *block)
 	}
 	/* icon */
 	if(block->panel->flag & PNL_CLOSED)
-		ui_draw_tria(block->minx+10, block->maxy+2, block->aspect, 'h');
+		ui_draw_tria(block->minx+10, block->maxy+3, block->aspect, 'h');
 	else
-		ui_draw_tria(block->minx+10, block->maxy+2, block->aspect, 'v');
+		ui_draw_tria(block->minx+10, block->maxy+3, block->aspect, 'v');
 
 }
 
