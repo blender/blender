@@ -173,6 +173,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
     blen_object->object = object;
     blen_object->data = NULL;
+    blen_object->parent = NULL;
 
     return ((PyObject*)blen_object);
 }
@@ -317,7 +318,6 @@ static PyObject *Object_clrParent (C_Object *self, PyObject *args)
 {
     int       mode=0;
     int       fast=0;
-    Object  * parent;
 
     if (!PyArg_ParseTuple (args, "|ii", &mode, &fast))
     {
@@ -325,8 +325,9 @@ static PyObject *Object_clrParent (C_Object *self, PyObject *args)
             "expected one or two integers as arguments"));
     }
 
-    parent = self->object->parent;
-    self->object->parent = 0;
+    /* Remove the link only, the object is still in the scene. */
+    self->object->parent = NULL;
+    self->parent = NULL;
 
     if (mode == 2)
     {
@@ -418,7 +419,15 @@ static PyObject *Object_getDeformData (C_Object *self)
 
 static PyObject *Object_getDeltaLocation (C_Object *self)
 {
-    return (Py_None);
+    PyObject *attr = Py_BuildValue ("fff",
+                                    self->object->dloc[0],
+                                    self->object->dloc[1],
+                                    self->object->dloc[2]);
+
+    if (attr) return (attr);
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get Object.dloc attributes"));
 }
 
 static PyObject *Object_getDrawMode (C_Object *self)
@@ -428,12 +437,29 @@ static PyObject *Object_getDrawMode (C_Object *self)
 
 static PyObject *Object_getDrawType (C_Object *self)
 {
+    /* TODO: this needs to be verified, if the api is correct! */
+/*
+    PyObject *attr = Py_BuildValue ("b", self->object->dt);
+
+    if (attr) return (attr);
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get Object.drawType attribute"));
+*/
     return (Py_None);
 }
 
 static PyObject *Object_getEuler (C_Object *self)
 {
-    return (Py_None);
+    PyObject *attr = Py_BuildValue ("fff",
+                                    self->object->drot[0],
+                                    self->object->drot[1],
+                                    self->object->drot[2]);
+
+    if (attr) return (attr);
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get Object.drot attributes"));
 }
 
 static PyObject *Object_getInverseMatrix (C_Object *self)
@@ -443,11 +469,20 @@ static PyObject *Object_getInverseMatrix (C_Object *self)
 
 static PyObject *Object_getLocation (C_Object *self, PyObject *args)
 {
-    return (Py_None);
+    PyObject *attr = Py_BuildValue ("fff",
+                                    self->object->loc[0],
+                                    self->object->loc[1],
+                                    self->object->loc[2]);
+
+    if (attr) return (attr);
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get Object.loc attributes"));
 }
 
 static PyObject *Object_getMaterials (C_Object *self)
 {
+    /* TODO: Implement when the Material module is implemented. */
     return (Py_None);
 }
 
@@ -458,12 +493,48 @@ static PyObject *Object_getMatrix (C_Object *self)
 
 static PyObject *Object_getParent (C_Object *self)
 {
-    return (Py_None);
+    PyObject *attr;
+
+    if (self->parent)
+    {
+        Py_INCREF ((PyObject*)self->parent);
+        return ((PyObject*)self->parent);
+    }
+
+    /* TODO: what if self->object->parent==NULL? Should we return Py_None? */
+    attr = M_ObjectCreatePyObject (self->object->parent);
+
+    if (attr)
+    {
+        self->parent = (struct C_Object*)attr;
+        return (attr);
+    }
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get Object.parent attribute"));
 }
 
 static PyObject *Object_getTracked (C_Object *self)
 {
-    return (Py_None);
+    PyObject    *attr;
+
+    if (self->track)
+    {
+        Py_INCREF ((PyObject*)self->track);
+        return ((PyObject*)self->track);
+    }
+
+    /* TODO: what if self->object->track==NULL? Should we return Py_None? */
+    attr = M_ObjectCreatePyObject (self->object->track);
+
+    if (attr)
+    {
+        self->track = (struct C_Object*)attr;
+        return (attr);
+    }
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get Object.track attribute"));
 }
 
 static PyObject *Object_getType (C_Object *self)
@@ -543,6 +614,7 @@ static PyObject *Object_makeParent (C_Object *self, PyObject *args)
 {
     PyObject    * list;
     PyObject    * py_child;
+    C_Object    * py_obj_child;
     Object      * child;
     Object      * parent;
     int           noninverse;
@@ -583,6 +655,8 @@ static PyObject *Object_makeParent (C_Object *self, PyObject *args)
         }
         child->partype = PAROBJECT;
         child->parent = parent;
+        py_obj_child = (C_Object *) py_child;
+        py_obj_child->parent = (struct C_Object *)self;
         if (noninverse == 1)
         {
             /* Parent inverse = unity */
@@ -614,6 +688,21 @@ static PyObject *Object_materialUsage (C_Object *self, PyObject *args)
 
 static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args)
 {
+    float   dloc1;
+    float   dloc2;
+    float   dloc3;
+
+    if (!PyArg_Parse (args, "fff", &dloc1, &dloc2, &dloc3))
+    {
+        return (PythonReturnErrorObject (PyExc_TypeError,
+                "expected three float arguments"));
+    }
+
+    self->object->dloc[1] = dloc1;
+    self->object->dloc[2] = dloc2;
+    self->object->dloc[3] = dloc3;
+
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
@@ -629,11 +718,41 @@ static PyObject *Object_setDrawType (C_Object *self, PyObject *args)
 
 static PyObject *Object_setEuler (C_Object *self, PyObject *args)
 {
+    float   drot1;
+    float   drot2;
+    float   drot3;
+
+    if (!PyArg_Parse (args, "fff", &drot1, &drot2, &drot3))
+    {
+        return (PythonReturnErrorObject (PyExc_TypeError,
+                "expected three float arguments"));
+    }
+
+    self->object->drot[1] = drot1;
+    self->object->drot[2] = drot2;
+    self->object->drot[3] = drot3;
+
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
 static PyObject *Object_setLocation (C_Object *self, PyObject *args)
 {
+    float   loc1;
+    float   loc2;
+    float   loc3;
+
+    if (!PyArg_Parse (args, "fff", &loc1, &loc2, &loc3))
+    {
+        return (PythonReturnErrorObject (PyExc_TypeError,
+                "expected three float arguments"));
+    }
+
+    self->object->loc[1] = loc1;
+    self->object->loc[2] = loc2;
+    self->object->loc[3] = loc3;
+
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
@@ -840,8 +959,12 @@ static int ObjectSetAttr (C_Object *obj, char *name, PyObject *value)
     if (StringEqual (name, "LocZ"))
         return (!PyArg_Parse (value, "f", &(object->loc[2])));
     if (StringEqual (name, "loc"))
-        return (!PyArg_Parse (value, "fff", &(object->loc[0]),
-                              &(object->loc[1]), &(object->loc[2])));
+    {
+        if (Object_setLocation (obj, value) != Py_None)
+            return (-1);
+        else
+            return (0);
+    }
     if (StringEqual (name, "dLocX"))
         return (!PyArg_Parse (value, "f", &(object->dloc[0])));
     if (StringEqual (name, "dLocY"))
@@ -849,8 +972,12 @@ static int ObjectSetAttr (C_Object *obj, char *name, PyObject *value)
     if (StringEqual (name, "dLocZ"))
         return (!PyArg_Parse (value, "f", &(object->dloc[2])));
     if (StringEqual (name, "dloc"))
-        return (!PyArg_Parse (value, "fff", &(object->dloc[0]),
-                              &(object->dloc[1]), &(object->dloc[2])));
+    {
+        if (Object_setDeltaLocation (obj, value) != Py_None)
+            return (-1);
+        else
+            return (0);
+    }
     if (StringEqual (name, "RotX"))
         return (!PyArg_Parse (value, "f", &(object->rot[0])));
     if (StringEqual (name, "RotY"))
@@ -858,8 +985,12 @@ static int ObjectSetAttr (C_Object *obj, char *name, PyObject *value)
     if (StringEqual (name, "RotZ"))
         return (!PyArg_Parse (value, "f", &(object->rot[2])));
     if (StringEqual (name, "rot"))
-        return (!PyArg_Parse (value, "fff", &(object->rot[0]),
-                              &(object->rot[1]), &(object->rot[2])));
+    {
+        if (Object_setEuler (obj, value) != Py_None)
+            return (-1);
+        else
+            return (0);
+    }
     if (StringEqual (name, "dRotX"))
         return (!PyArg_Parse (value, "f", &(object->drot[0])));
     if (StringEqual (name, "dRotY"))
