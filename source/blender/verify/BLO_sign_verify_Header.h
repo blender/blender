@@ -41,9 +41,10 @@ extern "C" {
 #include "BLO_sys_types.h"
 
 #define SIGNVERIFYHEADERSTRUCTSIZE sizeof(struct BLO_sign_verify_HeaderStruct)
-// TODO use reasonable sizes
-// Tests showed: pubKeyLen 64, cryptedKeyLen 64 bytes
-// So we pick 2*64 bytes + tail for now :
+/* TODO use reasonable sizes
+Tests showed: pubKeyLen 64, cryptedKeyLen 64 bytes
+So we pick 2*64 bytes + tail for now : */
+
 #define MAXPUBKEYLEN 130
 #define MAXSIGNATURELEN 130
 
@@ -62,12 +63,12 @@ struct BLO_sign_verify_HeaderStruct {
 #define MAXSIGNERLEN 100
 
 struct BLO_SignerHeaderStruct {
-	uint8_t name[MAXSIGNERLEN];			// the signers name (from the key)
-	uint8_t email[MAXSIGNERLEN];		// the signers email (from the key)
-	uint8_t homeUrl[MAXSIGNERLEN];		// the signers home page
-	uint8_t text[MAXSIGNERLEN];			// optional additional user text
-	uint8_t pubKeyUrl1[MAXSIGNERLEN];	// the signers pubKey store
-	uint8_t pubKeyUrl2[MAXSIGNERLEN];	// the signers pubKey at NaN
+	uint8_t name[MAXSIGNERLEN];	/* the signers name (from the key) */
+	uint8_t email[MAXSIGNERLEN];	/* the signers email (from the key) */
+	uint8_t homeUrl[MAXSIGNERLEN];	/* the signers home page */
+	uint8_t text[MAXSIGNERLEN];	/* optional additional user text */
+	uint8_t pubKeyUrl1[MAXSIGNERLEN];	/* the signers pubKey store */
+	uint8_t pubKeyUrl2[MAXSIGNERLEN];	/* the signers pubKey at NaN */
 };
 
 #ifdef __cplusplus

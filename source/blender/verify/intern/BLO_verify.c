@@ -46,7 +46,7 @@
 #include "BLO_verify.h"
 #include "BLO_sign_verify_Header.h"	/* used by verify and encrypt */
 
-#include "BLO_signer_info.h" // external signer info struct
+#include "BLO_signer_info.h" /* external signer info struct */
 
 static struct BLO_SignerInfo g_SignerInfo = {"", "", ""};
 
@@ -202,9 +202,9 @@ BLO_verify_process(
 
 	/* Is there really (still) new data available ? */
 	if (dataIn > 0) {
-		// BLO_SignerHeaderStruct
+		/* BLO_SignerHeaderStruct */
 		if (BLO_verify->signerHeader->name[0] == 0) {
-			// we don't have our signerHeader complete yet
+			/* we don't have our signerHeader complete yet */
 			unsigned int processed;
 			processed = ((dataIn + BLO_verify->streamDone -
 				SIGNVERIFYHEADERSTRUCTSIZE) <= SIGNERHEADERSTRUCTSIZE)
@@ -217,7 +217,7 @@ BLO_verify_process(
 			data += processed;
 			if (BLO_verify->streamDone == SIGNVERIFYHEADERSTRUCTSIZE +
 				SIGNERHEADERSTRUCTSIZE) {
-				// we have the whole header, absorb it
+				/* we have the whole header, absorb it */
 				struct BLO_SignerHeaderStruct *signerHeader;
 				signerHeader = (struct BLO_SignerHeaderStruct *)
 					BLO_verify->signerHeaderBuffer;
@@ -246,12 +246,12 @@ BLO_verify_process(
 					BLO_verify->signerHeader->pubKeyUrl1,
 					BLO_verify->signerHeader->pubKeyUrl2);
 #endif
-				// also update the signature and crc checksum
+				/* also update the signature and crc checksum */
 				RIPEMD160_Update(&(BLO_verify->ripemd160_ctx),
 								 BLO_verify->signerHeaderBuffer,
 								 SIGNERHEADERSTRUCTSIZE);
 
-				// update datacrc
+				/* update datacrc */
 				BLO_verify->datacrc = crc32(
 					BLO_verify->datacrc, (const Bytef *)
 					BLO_verify->signerHeaderBuffer,
@@ -264,13 +264,13 @@ BLO_verify_process(
 	if (dataIn > 0) {
 		RIPEMD160_Update(&(BLO_verify->ripemd160_ctx), data, dataIn);
 
-		// update datacrc
+		/* update datacrc */
 		BLO_verify->datacrc = crc32(
 			BLO_verify->datacrc, (const Bytef *) data, dataIn);
 
 		BLO_verify->streamDone += dataIn;
 
-		// give data to streamGlueRead, it will find out what to do next
+		/* give data to streamGlueRead, it will find out what to do next */
 		err = readStreamGlue(
 			BLO_verify->endControl,
 			&(BLO_verify->streamGlue),
@@ -365,16 +365,16 @@ BLO_verify_end(
 		free(BLO_verify);
 		return err;
 	}
-	// static exponent
+	/* static exponent */
 	rsa->e = BN_bin2bn(rsa_e, sizeof(rsa_e)-1, rsa->e);
 
-	// public part into rsa->n
+	/* public part into rsa->n */
 	rsa->n = BN_bin2bn(BLO_verify->streamHeader->pubKey,
 					   BLO_verify->streamHeader->pubKeyLen,
 					   rsa->n);
-	//DEBUG RSA_print_fp(stdout, rsa, 0);
+	/*DEBUG RSA_print_fp(stdout, rsa, 0); */
 
-	// verify the signature
+	/* verify the signature */
 	verifySuccess = RSA_verify(NID_ripemd160, digest, RIPEMD160_DIGEST_LENGTH,
 			       BLO_verify->streamHeader->signature,
 				   BLO_verify->streamHeader->signatureLen, rsa);
@@ -392,12 +392,12 @@ BLO_verify_end(
 			  BRS_SETSPECERR(BRS_SIGFAILED);
 	}
 
-// copy signer information to external struct 
+/* copy signer information to external struct  */
 	
 	strncpy(g_SignerInfo.name, BLO_verify->signerHeader->name, MAXSIGNERLEN-1);
 	strncpy(g_SignerInfo.email, BLO_verify->signerHeader->email, MAXSIGNERLEN-1);
 	strncpy(g_SignerInfo.homeUrl, BLO_verify->signerHeader->homeUrl, MAXSIGNERLEN-1);
-//
+
 	free(digest);
 	free(BLO_verify->streamGlue);
 	free(BLO_verify->streamHeader);

@@ -39,7 +39,7 @@ struct BLO_SignerInfo {
 	char name[MAXSIGNERLEN];
 	char email[MAXSIGNERLEN];
 	char homeUrl[MAXSIGNERLEN];
-	// more to come...
+	/* more to come... */
 };
 
 struct BLO_SignerInfo *BLO_getSignerInfo(void);
