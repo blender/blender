@@ -3667,8 +3667,7 @@ void draw_object(Base *base)
 		if(dtx & OB_BOUNDBOX) draw_bounding_volume(ob);
 		if(dtx & OB_TEXSPACE) drawtexspace(ob);
 		if(dtx & OB_DRAWNAME) {
-			if(ob->type==OB_LAMP) glRasterPos3fv(ob->obmat[3]);
-			else glRasterPos3f(0.0,  0.0,  0.0);
+			glRasterPos3f(0.0,  0.0,  0.0);
 			
 			BMF_DrawString(G.font, " ");
 			BMF_DrawString(G.font, ob->id.name+2);
