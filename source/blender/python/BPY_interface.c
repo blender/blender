@@ -396,6 +396,8 @@ int BPY_txt_do_python(struct SpaceText* st)
 
   if (!st->text) return 0;
 
+	PyErr_Clear();
+
 	/* check if this text is already running */
 	while (script) {
 		if (!strcmp(script->id.name+2, st->text->id.name+2)) {
@@ -476,7 +478,7 @@ int BPY_menu_do_python(short menutype, int event)
 	BPyMenu *pym;
 	BPySubMenu *pysm;
 	FILE *fp = NULL;
-	char *buffer;
+	char *buffer, *s;
 	char filestr[FILE_MAXDIR+FILE_MAXFILE];
 	char dirname[FILE_MAXDIR];
 	Script *script = G.main->script.first;
@@ -485,6 +487,8 @@ int BPY_menu_do_python(short menutype, int event)
 	pym = BPyMenu_GetEntry(menutype, (short)event);
 
 	if (!pym) return 0;
+
+	PyErr_Clear();
 
 	if (pym->version > G.version)
 		notice ("Version mismatch: script was written for Blender %d. "
@@ -523,8 +527,8 @@ int BPY_menu_do_python(short menutype, int event)
 		BLI_make_file_string("/", filestr, dirname,	pym->filename);
 	}
 
-	fp = fopen(filestr, "r");
-	if (!fp) { /* later also support userhome/.blender/scripts/ or whatever */
+	fp = fopen(filestr, "rb");
+	if (!fp) {
 		printf("Error loading script: couldn't open file %s\n", filestr);
 		return 0;
 	}
@@ -571,6 +575,9 @@ int BPY_menu_do_python(short menutype, int event)
 	len = fread(buffer, 1, len, fp);
 
 	buffer[len] = '\0';
+
+	/* fast clean-up of dos lines */
+	for (s = buffer; *s != '\0'; s++)	if (*s == '\r') *s = ' ';
 
 	fclose(fp);
 
