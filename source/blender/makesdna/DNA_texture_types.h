@@ -272,6 +272,11 @@ typedef struct Tex {
 #define MTEX_MUL		1
 #define MTEX_ADD		2
 #define MTEX_SUB		3
+#define MTEX_DIV		4
+#define MTEX_DARK		5
+#define MTEX_DIFF		6
+#define MTEX_LIGHT		7
+#define MTEX_SCREEN		8
 
 /* **************** EnvMap ********************* */
 

@@ -1118,7 +1118,7 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 /* fact = texture strength, facg = button strength value */
 static void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype, int alphatype)
 {
-	float facm;
+	float facm, col;
 	
 	switch(blendtype) {
 	case MTEX_BLEND:
@@ -1139,6 +1139,7 @@ static void texture_rgb_blend(float *in, float *tex, float *out, float fact, flo
 		in[1]= (fact*tex[1] + facm*out[1]);
 		in[2]= (fact*tex[2] + facm*out[2]);
 		break;
+
 	case MTEX_MUL:
 		fact*= facg;
 		facm= 1.0-facg;
@@ -1146,6 +1147,15 @@ static void texture_rgb_blend(float *in, float *tex, float *out, float fact, flo
 		in[1]= (facm+fact*tex[1])*out[1];
 		in[2]= (facm+fact*tex[2])*out[2];
 		break;
+
+	case MTEX_SCREEN:
+		fact*= facg;
+		facm= 1.0-facg;
+		in[0]= 1.0-(facm+fact*(1.0-tex[0]))*(1.0-out[0]);
+		in[1]= 1.0-(facm+fact*(1.0-tex[1]))*(1.0-out[1]);
+		in[2]= 1.0-(facm+fact*(1.0-tex[2]))*(1.0-out[2]);
+		break;
+
 	case MTEX_SUB:
 		fact= -fact;
 	case MTEX_ADD:
@@ -1153,6 +1163,52 @@ static void texture_rgb_blend(float *in, float *tex, float *out, float fact, flo
 		in[0]= (fact*tex[0] + out[0]);
 		in[1]= (fact*tex[1] + out[1]);
 		in[2]= (fact*tex[2] + out[2]);
+		break;
+
+	case MTEX_DIV:
+		fact*= facg;
+		facm= 1.0-fact;
+		
+		if(tex[0]!=0.0)
+			in[0]= facm*out[0] + fact*out[0]/tex[0];
+		if(tex[1]!=0.0)
+			in[1]= facm*out[1] + fact*out[1]/tex[1];
+		if(tex[2]!=0.0)
+			in[2]= facm*out[2] + fact*out[2]/tex[2];
+
+		break;
+
+	case MTEX_DIFF:
+		fact*= facg;
+		facm= 1.0-fact;
+		in[0]= facm*out[0] + fact*fabs(tex[0]-out[0]);
+		in[1]= facm*out[1] + fact*fabs(tex[1]-out[1]);
+		in[2]= facm*out[2] + fact*fabs(tex[2]-out[2]);
+		break;
+
+	case MTEX_DARK:
+		fact*= facg;
+		facm= 1.0-fact;
+		
+		col= fact*tex[0];
+		if(col < out[0]) in[0]= col; else in[0]= out[0];
+		col= fact*tex[1];
+		if(col < out[1]) in[1]= col; else in[1]= out[1];
+		col= fact*tex[2];
+		if(col < out[2]) in[2]= col; else in[2]= out[2];
+		break;
+
+	case MTEX_LIGHT:
+		fact*= facg;
+		facm= 1.0-fact;
+		
+		col= fact*tex[0];
+		if(col > out[0]) in[0]= col; else in[0]= out[0];
+		col= fact*tex[1];
+		if(col > out[1]) in[1]= col; else in[1]= out[1];
+		col= fact*tex[2];
+		if(col > out[2]) in[2]= col; else in[2]= out[2];
+		break;
 	}
 
 
@@ -1165,8 +1221,8 @@ void do_material_tex(ShadeInput *shi)
 	Material *mat_spec, *mat_har, *mat_emit, *mat_alpha, *mat_ray_mirr, *mat_translu;
 	MTex *mtex;
 	Tex *tex;
-	float *co = NULL, *dx = NULL, *dy = NULL, fact, 
-		facm, factt, facmm, facmul = 0.0, stencilTin=1.0;
+	float *co = NULL, *dx = NULL, *dy = NULL;
+	float fact, facm, factt, facmm, facmul = 0.0, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], Tnor=1.0;
 	int tex_nr, rgbnor= 0;
 
@@ -1383,10 +1439,11 @@ void do_material_tex(ShadeInput *shi)
 				else if(mtex->mapto & MAP_ALPHA) {
 					alphatype= T_ALPHA_TRANSP;
 				}
-				if(Talpha) alphatype |= T_ALPHA_PREMUL;
+				else Tin= Ta;
 				
-				Tin= Ta;
-
+				if(Talpha) {
+					alphatype |= T_ALPHA_PREMUL;
+				}
 				if(mtex->mapto & MAP_COL) {
 					texture_rgb_blend(&shi->matren->r, tcol, &mat_col->r, Tin, mtex->colfac, mtex->blendtype, alphatype);
 					mat_col= shi->matren;

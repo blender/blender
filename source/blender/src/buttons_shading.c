@@ -2403,10 +2403,18 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, TOG3|BIT|12, B_MATPRV, "Disp",	1205,160,55,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,120,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,120,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Sets texture to multiply the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,120,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,120,40,18, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,133,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,133,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Sets texture to multiply the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,133,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,133,40,18, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
+
+	uiDefButS(block, ROW, B_MATPRV, "Div",			1087,115,60,18, &(mtex->blendtype), 9.0, (float)MTEX_DIV, 0, 0, "Sets texture to divide the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Screen",			1147,115,60,18, &(mtex->blendtype), 9.0, (float)MTEX_SCREEN, 0, 0, "Sets texture to screen the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Diff",			1207,115,59,18, &(mtex->blendtype), 9.0, (float)MTEX_DIFF, 0, 0, "Sets texture to difference the values or colour");
+
+	uiDefButS(block, ROW, B_MATPRV, "Light",			1087,98,90,18, &(mtex->blendtype), 9.0, (float)MTEX_LIGHT, 0, 0, "Sets texture to choose the lighter value");
+	uiDefButS(block, ROW, B_MATPRV, "Dark",			1177,98,89,18, &(mtex->blendtype), 9.0, (float)MTEX_DARK, 0, 0, "Sets texture to choose the darker");
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,70,179,18, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
 	/* newnoise: increased range to 25, the constant offset for bumpmapping quite often needs a higher nor setting */
