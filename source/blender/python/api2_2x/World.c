@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot
+ * Contributor(s): Jacques Guignot, Johnny Matthews
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -48,16 +48,26 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
+#include <BSE_editipo.h>
+#include <BIF_space.h>
+#include <mydevice.h>
 
 #include <DNA_scene_types.h>  /* for G.scene */
 
 #include "World.h"
 #include "Ipo.h"
 
+
 #include "constant.h"
+#include "rgbTuple.h"
 #include "gen_utils.h"
 
-
+#define IPOKEY_ZENITH   0
+#define IPOKEY_HORIZON  1
+#define IPOKEY_MIST     2
+#define IPOKEY_STARS    3
+#define IPOKEY_OFFSET   4
+#define IPOKEY_SIZE     5
 /*****************************************************************************/
 /* Python BPy_World methods declarations:                                   */
 /*****************************************************************************/
@@ -66,6 +76,7 @@ static PyObject *World_setRange( BPy_World * self, PyObject * args );
 static PyObject *World_getIpo( BPy_World * self );
 static PyObject *World_setIpo( BPy_World * self, PyObject * args );
 static PyObject *World_clearIpo( BPy_World * self );
+static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args );
 static PyObject *World_getName( BPy_World * self );
 static PyObject *World_setName( BPy_World * self, PyObject * args );
 static PyObject *World_getMode( BPy_World * self );
@@ -212,6 +223,8 @@ static PyMethodDef BPy_World_methods[] = {
 	 "() - Makes this world the active world for the current scene."},
 	{"makeActive", ( PyCFunction ) World_setCurrent, METH_NOARGS,
 	 "please use setCurrent instead, this alias will be removed."},
+	{"insertIpoKey", ( PyCFunction ) World_insertIpoKey, METH_VARARGS,
+	 "( World IPO type ) - Inserts a key into the IPO"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -398,6 +411,13 @@ PyObject *World_Init( void )
 
 	submodule = Py_InitModule3( "Blender.World",
 				    M_World_methods, M_World_doc );
+
+	PyModule_AddIntConstant( submodule, "ZENITH",      IPOKEY_ZENITH );
+	PyModule_AddIntConstant( submodule, "HORIZON",     IPOKEY_HORIZON );
+	PyModule_AddIntConstant( submodule, "MIST",        IPOKEY_MIST );
+	PyModule_AddIntConstant( submodule, "STARS",       IPOKEY_STARS );
+	PyModule_AddIntConstant( submodule, "OFFSET",      IPOKEY_OFFSET );
+	PyModule_AddIntConstant( submodule, "SIZE",        IPOKEY_SIZE );
 
 	return ( submodule );
 }
@@ -1070,4 +1090,61 @@ World *GetWorldByName( char *name )
 
 	/* There is no object with the given name */
 	return ( NULL );
+}
+/*
+ * World_insertIpoKey()
+ *  inserts World IPO key for ZENITH,HORIZON,MIST,STARS,OFFSET,SIZE
+ */
+
+static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
+{
+	int key = 0, map;
+
+	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument" ) );
+
+	map = texchannel_to_adrcode(self->world->texact);
+
+	if(key == IPOKEY_ZENITH) {
+		insertkey((ID *)self->world, WO_ZEN_R);
+		insertkey((ID *)self->world, WO_ZEN_G);
+		insertkey((ID *)self->world, WO_ZEN_B);
+	}
+	if(key == IPOKEY_HORIZON) {
+		insertkey((ID *)self->world, WO_HOR_R);
+		insertkey((ID *)self->world, WO_HOR_G);
+		insertkey((ID *)self->world, WO_HOR_B);
+	}
+	if(key == IPOKEY_MIST) {
+		insertkey((ID *)self->world, WO_MISI);
+		insertkey((ID *)self->world, WO_MISTDI);
+		insertkey((ID *)self->world, WO_MISTSTA);
+		insertkey((ID *)self->world, WO_MISTHI);
+	}
+	if(key == IPOKEY_STARS) {
+		insertkey((ID *)self->world, WO_STAR_R);
+		insertkey((ID *)self->world, WO_STAR_G);
+		insertkey((ID *)self->world, WO_STAR_B);
+		insertkey((ID *)self->world, WO_STARDIST);
+		insertkey((ID *)self->world, WO_STARSIZE);
+	}
+	if(key == IPOKEY_OFFSET) {
+		insertkey((ID *)self->world, map+MAP_OFS_X);
+		insertkey((ID *)self->world, map+MAP_OFS_Y);
+		insertkey((ID *)self->world, map+MAP_OFS_Z);
+	}
+	if(key == IPOKEY_SIZE) {
+		insertkey((ID *)self->world, map+MAP_SIZE_X);
+		insertkey((ID *)self->world, map+MAP_SIZE_Y);
+		insertkey((ID *)self->world, map+MAP_SIZE_Z);
+	}
+
+	allspace(REMAKEIPO, 0);
+	EXPP_allqueue(REDRAWIPO, 0);
+	EXPP_allqueue(REDRAWVIEW3D, 0);
+	EXPP_allqueue(REDRAWACTION, 0);
+	EXPP_allqueue(REDRAWNLA, 0);
+
+	return EXPP_incr_ret( Py_None );
 }

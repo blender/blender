@@ -37,6 +37,9 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
+#include <BIF_space.h>
+#include <BSE_editipo.h>
+#include <mydevice.h>
 
 #include "Lamp.h"
 #include "Ipo.h"
@@ -44,8 +47,6 @@
 #include "constant.h"
 #include "rgbTuple.h"
 #include "gen_utils.h"
-
-
 
 /*****************************************************************************/
 /* Python BPy_Lamp defaults:                                                 */
@@ -119,6 +120,12 @@
 #define EXPP_LAMP_COL_MIN 0.0
 #define EXPP_LAMP_COL_MAX 1.0
 
+#define IPOKEY_RGB       0
+#define IPOKEY_ENERGY    1
+#define IPOKEY_SPOTSIZE  2
+#define IPOKEY_OFFSET    3
+#define IPOKEY_SIZE      4
+
 /*****************************************************************************/
 /* Python API function prototypes for the Lamp module.                       */
 /*****************************************************************************/
@@ -183,6 +190,7 @@ static PyObject *Lamp_getCol( BPy_Lamp * self );
 static PyObject *Lamp_getIpo( BPy_Lamp * self );
 static PyObject *Lamp_clearIpo( BPy_Lamp * self );
 static PyObject *Lamp_setIpo( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_setName( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_setType( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_setIntType( BPy_Lamp * self, PyObject * args );
@@ -303,6 +311,9 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "() - unlink the IPO for this lamp"},
 	{"setIpo", ( PyCFunction ) Lamp_setIpo, METH_VARARGS,
 	 "( lamp-ipo ) - link an IPO to this lamp"},
+	 {"insertIpoKey", ( PyCFunction ) Lamp_insertIpoKey, METH_VARARGS,
+	 "( Lamp IPO type ) - Inserts a key into IPO"},
+
 	{NULL, NULL, 0, NULL}
 };
 
@@ -552,6 +563,12 @@ PyObject *Lamp_Init( void )
 	if( Modes )
 		PyModule_AddObject( submodule, "Modes", Modes );
 
+	PyModule_AddIntConstant( submodule, "RGB",      IPOKEY_RGB );
+	PyModule_AddIntConstant( submodule, "ENERGY",   IPOKEY_ENERGY );
+	PyModule_AddIntConstant( submodule, "SPOTSIZE", IPOKEY_SPOTSIZE );
+	PyModule_AddIntConstant( submodule, "OFFSET",   IPOKEY_OFFSET );
+	PyModule_AddIntConstant( submodule, "SIZE",     IPOKEY_SIZE );
+	
 	return submodule;
 }
 
@@ -1532,4 +1549,50 @@ static PyObject *Lamp_clearIpo( BPy_Lamp * self )
 	}
 
 	return EXPP_incr_ret_False(); /* no ipo found */
+}
+
+/*
+ * Lamp_insertIpoKey()
+ *  inserts Lamp IPO key for RGB,ENERGY,SPOTSIZE,OFFSET,SIZE
+ */
+
+static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args )
+{
+	int key = 0, map;
+
+	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument" ) );
+
+	map = texchannel_to_adrcode(self->lamp->texact);
+
+	if (key == IPOKEY_RGB ) {
+		insertkey((ID *)self->lamp,LA_COL_R);
+		insertkey((ID *)self->lamp,LA_COL_G);
+		insertkey((ID *)self->lamp,LA_COL_B);      
+	}
+	if (key == IPOKEY_ENERGY ) {
+		insertkey((ID *)self->lamp,LA_ENERGY);    
+	}	
+	if (key == IPOKEY_SPOTSIZE ) {
+		insertkey((ID *)self->lamp,LA_SPOTSI);    
+	}
+	if (key == IPOKEY_OFFSET ) {
+		insertkey((ID *)self->lamp, map+MAP_OFS_X);
+		insertkey((ID *)self->lamp, map+MAP_OFS_Y);
+		insertkey((ID *)self->lamp, map+MAP_OFS_Z);  
+	}
+	if (key == IPOKEY_SIZE ) {
+		insertkey((ID *)self->lamp, map+MAP_SIZE_X);
+		insertkey((ID *)self->lamp, map+MAP_SIZE_Y);
+		insertkey((ID *)self->lamp, map+MAP_SIZE_Z);  
+	}
+
+	allspace(REMAKEIPO, 0);
+	EXPP_allqueue(REDRAWIPO, 0);
+	EXPP_allqueue(REDRAWVIEW3D, 0);
+	EXPP_allqueue(REDRAWACTION, 0);
+	EXPP_allqueue(REDRAWNLA, 0);
+
+	return EXPP_incr_ret( Py_None );
 }
