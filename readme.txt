@@ -23,6 +23,7 @@ Assuming you are using tcsh/csh do the following before compiling.
 setenv NANBLENDERHOME `pwd`
 setenv MAKEFLAGS "-w -I$NANBLENDERHOME/source"
 
+Or for bash/sh do this:
 set NANBLENDERHOME=`pwd`
 export NANBLENDERHOME
 set MAKEFLAGS="-w -I$NANBLENDERHOME/source"
@@ -33,9 +34,15 @@ Then edit source/nan_definitions.mk to fit you're environment.
 to point to where you have it installed)
 
 After that cd $NANBLENDERHOME/intern 
-make
+make		(If you have errors just make; make install in the dirs
+		 listed in the makefile)
 make install
-Then cd $NANBLENDERHOME/intern/python and follow the instructions in README
+
+Then cd $NANBLENDERHOME/intern/python/freeze 
+make
+cd $NANBLENDERHOME/source/blender/bpython/frozen
+make -f Makefile.freeze
+
 Then cd $NANBLENDERHOME/source
 make
 
@@ -47,14 +54,6 @@ www.blender.org
 
 
 ----------------------Mac OSX TIPS--------------------------------------
-
-Build the intern libraries according to the description above. Instead of going
-to the $NANBLENDERHOME/intern/python directory and reading the instructions, 
-you can better directly go to the $NANBLENDERHOME/intern/python/freeze 
-directory and make there. You can of course read the README.NaN but it should
-not be necessary (unless you want to know about the process of "freezing" 
-Python code).
-
 Now before you go to the source directory, make sure you have installed the
 external libraries that Blender depends upon. Here is a description of the 
 things you need.
