@@ -2872,7 +2872,7 @@ void apply_object()
 			make_duplilist_real();
 		}
 		else {
-			if(okee("Apply deformation")==0) {
+			if(okee("Apply deformation")) {
 				object_apply_deform(ob);
 				BIF_undo_push("Apply deformation");
 			}
