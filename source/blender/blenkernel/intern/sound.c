@@ -33,7 +33,7 @@ void sound_free_sound(bSound *sound)
 	//if (sound) {
 	//	sound_set_sample(sound, NULL);
 	//}
-	
+	if (sound->stream) MEM_freeN(sound->stream);
 }
 
 void sound_free_sample(bSample *sample)
