@@ -3704,7 +3704,12 @@ void draw_object(Base *base)
 		if (list){
 			bConstraint *curcon;
 			float size[3], tmat[4][4];
-
+			char col[4], col2[4];
+			
+			BIF_GetThemeColor3ubv(TH_GRID, col);
+			make_axis_color(col, col2, 'z');
+			glColor3ubv(col2);
+			
 			for (curcon = list->first; curcon; curcon=curcon->next){
 				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)){
 					get_constraint_target(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
