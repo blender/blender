@@ -871,7 +871,7 @@ void BLI_where_am_i(char *fullname, char *name)
 char* BLI_getbundle(void) {
 	CFURLRef bundleURL;
 	CFStringRef pathStr;
-	char path[MAXPATHLEN];
+	static char path[MAXPATHLEN];
 	CFBundleRef mainBundle = CFBundleGetMainBundle();
 
 	bundleURL = CFBundleCopyBundleURL(mainBundle);
