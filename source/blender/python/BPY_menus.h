@@ -83,7 +83,9 @@ typedef enum {
 	PYMENU_MISC,
 	PYMENU_MESH,
 	PYMENU_MATERIALS,
-	PYMENU_HELP, /* inserted in the info header 'Help' menu */
+	PYMENU_HELP, /* Main Help menu items - prob best to leave for 'official' ones */
+	PYMENU_HELPSYSTEM, /* Resources, troubleshooting, system tools */
+	PYMENU_HELPWEBSITES, /* Help -> Websites submenu */
 	PYMENU_IMPORT,
 	PYMENU_EXPORT,
 	PYMENU_ANIMATION,

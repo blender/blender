@@ -2,7 +2,7 @@
 """
 Name: 'System Information...'
 Blender: 234
-Group: 'Help'
+Group: 'HelpSystem'
 Tooltip: 'Information about your Blender environment, useful to diagnose problems.'
 """
 

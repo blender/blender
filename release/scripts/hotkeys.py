@@ -1,10 +1,10 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'HotKeys'
+Name: 'Hotkey Reference'
 Blender: 232
 Group: 'Help'
-Tip: 'All the hotkeys.'
+Tip: 'All the hotkeys'
 """ 
 # $Id$
 #------------------------

@@ -1549,12 +1549,8 @@ static uiBlock *info_rendermenu(void *arg_unused)
 
 static void do_info_help_websitesmenu(void *arg, int event)
 {
-	/* these are no defines, easier this way, the codes are in the function below */
-	switch(event) {
-	case 0: /*	*/
+	BPY_menu_do_python(PYMENU_HELPWEBSITES, event);
 
-		break;
-		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1562,22 +1558,16 @@ static void do_info_help_websitesmenu(void *arg, int event)
 static uiBlock *info_help_websitesmenu(void *arg_unused)
 {
 	uiBlock *block;
+	BPyMenu *pym;
 	short yco = 20, menuwidth = 120;
+	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "info_help_websitesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_help_websitesmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Blender Website *",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Blender E-shop *",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Development Community *",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "User Community *",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "...? *",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	for (pym = BPyMenuTable[PYMENU_HELPWEBSITES]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -1585,6 +1575,58 @@ static uiBlock *info_help_websitesmenu(void *arg_unused)
 	return block;
 }
 
+static void do_info_help_systemmenu(void *arg, int event)
+{
+	/* events >=10 are registered bpython scripts */
+	if (event >= 10) BPY_menu_do_python(PYMENU_HELPSYSTEM, event - 10);
+	else {
+		switch(event) {
+
+		case 1: /* Benchmark */
+			/* dodgy hack turning on CTRL ALT SHIFT key to do a benchmark 
+			 *	rather than copying lines and lines of code from toets.c :( 
+			 */
+	
+			if(select_area(SPACE_VIEW3D)) {
+				mainqenter(LEFTSHIFTKEY, 1);
+				mainqenter(LEFTCTRLKEY, 1);
+				mainqenter(LEFTALTKEY, 1);
+				mainqenter(TKEY, 1);
+				mainqenter(TKEY, 0);
+				mainqenter(EXECUTE, 1);
+				mainqenter(LEFTSHIFTKEY, 0);
+				mainqenter(LEFTCTRLKEY, 0);
+				mainqenter(LEFTALTKEY, 0);
+			}
+			break;
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+
+static uiBlock *info_help_systemmenu(void *arg_unused)
+{
+	uiBlock *block;
+	BPyMenu *pym;
+	short yco = 20, menuwidth = 120;
+	int i = 0;
+
+	block= uiNewBlock(&curarea->uiblocks, "info_help_systemmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_help_systemmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Benchmark",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	
+	for (pym = BPyMenuTable[PYMENU_HELPSYSTEM]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+		
+	return block;
+}
 
 static void do_info_helpmenu(void *arg, int event)
 {
@@ -1596,32 +1638,16 @@ static void do_info_helpmenu(void *arg, int event)
 		areawinset(sa->win);
 	}
 
-	/* events >=2 are registered bpython scripts */
-	if (event >= 2) BPY_menu_do_python(PYMENU_HELP, event - 2);
-
-	else switch(event) {
+	/* events >=10 are registered bpython scripts */
+	if (event >= 10) BPY_menu_do_python(PYMENU_HELP, event - 10);
+	else {
+		switch(event) {
 									
-	case 0: /* About Blender */
-		break;
-	case 1: /* Benchmark */
-		/* dodgy hack turning on CTRL ALT SHIFT key to do a benchmark 
-		 *	rather than copying lines and lines of code from toets.c :( 
-		 */
-
-		if(select_area(SPACE_VIEW3D)) {
-			mainqenter(LEFTSHIFTKEY, 1);
-			mainqenter(LEFTCTRLKEY, 1);
-			mainqenter(LEFTALTKEY, 1);
-			mainqenter(TKEY, 1);
-			mainqenter(TKEY, 0);
-			mainqenter(EXECUTE, 1);
-			mainqenter(LEFTSHIFTKEY, 0);
-			mainqenter(LEFTCTRLKEY, 0);
-			mainqenter(LEFTALTKEY, 0);
+		case 0: /* About Blender */
+			break;
 		}
-		break;
 	}
-	
+
 	allqueue(REDRAWINFO, 0);
 }
 
@@ -1641,32 +1667,17 @@ static uiBlock *info_helpmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	/*	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "-- Placeholders only --",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tutorials *",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "User Manual *",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Python Scripting Reference *",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	for (pym = BPyMenuTable[PYMENU_HELP]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
+	}
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, info_help_websitesmenu, NULL, ICON_RIGHTARROW_THIN, "Websites", 0, yco-=20, 120, 19, "");
-
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-*/
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Benchmark",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	
-/*	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Release Notes *",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-*/
-
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	for (pym = BPyMenuTable[PYMENU_HELP]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+2, pym->tooltip?pym->tooltip:pym->filename);
-	}
+	uiDefIconTextBlockBut(block, info_help_systemmenu, NULL, ICON_RIGHTARROW_THIN, "System", 0, yco-=20, 120, 19, "");
 
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
