@@ -930,9 +930,7 @@ static void ObjectToTransData(TransData *td, Object *ob)
 	VECCOPY(td->center, ob->obmat[3]);
 
 	Mat3CpyMat4(td->axismtx, ob->obmat);
-	Normalise(td->axismtx[0]);
-	Normalise(td->axismtx[1]);
-	Normalise(td->axismtx[2]);
+	Mat3Ortho(td->axismtx);
 
 	if (ob->parent)
 	{
@@ -1403,12 +1401,22 @@ void Transform(int mode)
 					ret_val = TRANS_CONFIRM;
 					break;
 				case GKEY:
+					restoreTransObjects(&Trans);
+					initTransModeFlags(&Trans, TFM_TRANSLATION);
+					initTranslation(&Trans);
+					Trans.redraw = 1;
+					break;
 				case SKEY:
+					restoreTransObjects(&Trans);
+					initTransModeFlags(&Trans, TFM_RESIZE);
+					initResize(&Trans);
+					Trans.redraw = 1;
+					break;
 				case RKEY:
-					if (G.qual == LR_CTRLKEY)
-						applyTransObjects(&Trans);
-					else
-						restoreTransObjects(&Trans);
+					restoreTransObjects(&Trans);
+					initTransModeFlags(&Trans, TFM_ROTATION);
+					initRotation(&Trans);
+					Trans.redraw = 1;
 					break;
 				case XKEY:
 					if (cmode == 'X') {
@@ -1994,6 +2002,10 @@ int Resize(TransInfo *t, short mval[2])
 			t->con.applySize(t, td, tmat);
 		}
 
+		if (G.vd->around == V3D_LOCAL) {
+			VECCOPY(t->center, td->center);
+		}
+
 		if (td->ext) {
 			float fsize[3];
 
@@ -2247,6 +2259,10 @@ int Rotation(TransInfo *t, short mval[2])
 		}
 		else if (G.f & G_PROPORTIONAL) {
 			VecRotToMat3(axis, final * td->factor, mat);
+		}
+
+		if (G.vd->around == V3D_LOCAL) {
+			VECCOPY(t->center, td->center);
 		}
 
 		if (t->flag & T_EDIT) {

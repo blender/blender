@@ -590,9 +590,13 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	Crossf(space[1], vec, v);
 	Crossf(space[2], vec, space[1]);
 
+	Mat3Ortho(space);
+
 	Mat3CpyMat3(t->con.mtx, space);
 	t->con.mode = (CON_AXIS0|CON_APPLY);
 	getConstraintMatrix(t);
+
+	startConstraint(t);
 
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
@@ -608,10 +612,14 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
 	VECCOPY(space[0], vec1);
 	VECCOPY(space[1], vec2);
 	Crossf(space[2], space[0], space[1]);
+
+	Mat3Ortho(space);
 	
 	Mat3CpyMat3(t->con.mtx, space);
 	t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
 	getConstraintMatrix(t);
+
+	startConstraint(t);
 	
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;

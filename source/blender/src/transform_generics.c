@@ -336,10 +336,12 @@ void drawLine(float *center, float *dir, char axis, short options)
 	glColor3ubv(col2);
 
 	setlinestyle(0);
+	glLineWidth(3.0);
 	glBegin(GL_LINE_STRIP); 
 		glVertex3fv(v1); 
 		glVertex3fv(v2); 
 	glEnd();
+	glLineWidth(1.0);
 	
 	myloadmatrix(G.vd->viewmat);
 }
@@ -474,44 +476,47 @@ static void restore_ipokey(float *poin, float *old)
 	}
 }
 
+void restoreElement(TransData *td) {
+	VECCOPY(td->loc, td->iloc);
+	if (td->val) {
+		*td->val = td->ival;
+	}
+	if (td->ext) {
+		if (td->ext->rot) {
+			VECCOPY(td->ext->rot, td->ext->irot);
+		}
+		if (td->ext->size) {
+			VECCOPY(td->ext->size, td->ext->isize);
+		}
+		if(td->flag & TD_USEQUAT) {
+			if (td->ext->quat) {
+				QUATCOPY(td->ext->quat, td->ext->iquat);
+			}
+		}
+	}
+	if(td->tdi) {
+		TransDataIpokey *tdi= td->tdi;
+		
+		restore_ipokey(tdi->locx, tdi->oldloc);
+		restore_ipokey(tdi->locy, tdi->oldloc+1);
+		restore_ipokey(tdi->locz, tdi->oldloc+2);
+
+		restore_ipokey(tdi->rotx, tdi->oldrot);
+		restore_ipokey(tdi->roty, tdi->oldrot+1);
+		restore_ipokey(tdi->rotz, tdi->oldrot+2);
+		
+		restore_ipokey(tdi->sizex, tdi->oldsize);
+		restore_ipokey(tdi->sizey, tdi->oldsize+1);
+		restore_ipokey(tdi->sizez, tdi->oldsize+2);
+	}
+}
+
 void restoreTransObjects(TransInfo *t)
 {
 	TransData *td;
 	
 	for (td = t->data; td < t->data + t->total; td++) {
-		VECCOPY(td->loc, td->iloc);
-		if (td->val) {
-			*td->val = td->ival;
-		}
-		if (td->ext) {
-			if (td->ext->rot) {
-				VECCOPY(td->ext->rot, td->ext->irot);
-			}
-			if (td->ext->size) {
-				VECCOPY(td->ext->size, td->ext->isize);
-			}
-			if(td->flag & TD_USEQUAT) {
-				if (td->ext->quat) {
-					QUATCOPY(td->ext->quat, td->ext->iquat);
-				}
-			}
-		}
-		if(td->tdi) {
-			TransDataIpokey *tdi= td->tdi;
-			
-			restore_ipokey(tdi->locx, tdi->oldloc);
-			restore_ipokey(tdi->locy, tdi->oldloc+1);
-			restore_ipokey(tdi->locz, tdi->oldloc+2);
-
-			restore_ipokey(tdi->rotx, tdi->oldrot);
-			restore_ipokey(tdi->roty, tdi->oldrot+1);
-			restore_ipokey(tdi->rotz, tdi->oldrot+2);
-			
-			restore_ipokey(tdi->sizex, tdi->oldsize);
-			restore_ipokey(tdi->sizey, tdi->oldsize+1);
-			restore_ipokey(tdi->sizez, tdi->oldsize+2);
-		}
-		
+		restoreElement(td);
 	}	
 	recalcData(t);
 } 
@@ -673,7 +678,7 @@ void calculatePropRatio(TransInfo *t)
 				*/
 				td->flag |= TD_NOACTION;
 				td->factor = 0.0f;
-				break;
+				restoreElement(td);
 			}
 			else {
 				td->flag &= ~TD_NOACTION;
@@ -693,6 +698,7 @@ void calculatePropRatio(TransInfo *t)
 					break;
 				case PROP_CONST:
 					td->factor = 1;
+					//td->factor = (float)sqrt(2*dist - dist * dist);
 					break;
 				default:
 					td->factor = 1;
@@ -713,6 +719,7 @@ void calculatePropRatio(TransInfo *t)
 			strcpy(t->proptext, "(Linear)");
 			break;
 		case PROP_CONST:
+			//strcpy(t->proptext, "(Sphere)");
 			strcpy(t->proptext, "(Constant)");
 			break;
 		default:
