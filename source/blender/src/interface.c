@@ -2250,7 +2250,13 @@ static int uiActAsTextBut(uiBut *but)
 	
 	value= ui_get_but_val(but);
 	if( but->pointype==FLO ) {
-		sprintf(str, "%.3f", value);
+		if(but->a2) { /* amount of digits defined */
+			if(but->a2==1) sprintf(str, "%.1f", value);
+			else if(but->a2==2) sprintf(str, "%.2f", value);
+			else if(but->a2==3) sprintf(str, "%.3f", value);
+			else sprintf(str, "%.4f", value);
+		}
+		else sprintf(str, "%.3f", value);
 	}
 	else {
 		sprintf(str, "%d", (int)value);
@@ -4008,8 +4014,16 @@ static void ui_check_but(uiBut *but)
 		value= ui_get_but_val(but);
 
 		if( but->pointype==FLO ) {
-			if(but->max<10.001) sprintf(but->drawstr, "%s%.3f", but->str, value);
-			else sprintf(but->drawstr, "%s%.2f", but->str, value);
+			if(but->a2) { /* amount of digits defined */
+				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
+				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);
+				else if(but->a2==3) sprintf(but->drawstr, "%s%.3f", but->str, value);
+				else sprintf(but->drawstr, "%s%.4f", but->str, value);
+			}
+			else {
+				if(but->max<10.001) sprintf(but->drawstr, "%s%.3f", but->str, value);
+				else sprintf(but->drawstr, "%s%.2f", but->str, value);
+			}
 		}
 		else {
 			sprintf(but->drawstr, "%s%d", but->str, (int)value);
