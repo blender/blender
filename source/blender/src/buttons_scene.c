@@ -1117,8 +1117,8 @@ static void render_panel_format()
 		if(G.scene->r.imtype == R_QUICKTIME) {
 #ifdef WITH_QUICKTIME
 #if defined (_WIN32) || defined (__APPLE__)
-			glColor3f(0.65, 0.65, 0.7);
-			glRecti(892,yofs+46,892+225,yofs+45+20);
+			//glColor3f(0.65, 0.65, 0.7);
+			//glRecti(892,yofs+46,892+225,yofs+45+20);
 			if(G.scene->r.qtcodecdata == NULL)
 				uiDefBut(block, LABEL, 0, "Codec: not set",  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			else
@@ -1142,8 +1142,8 @@ static void render_panel_format()
 #endif /* WITH_QUICKTIME */
 		} else {
 #ifdef _WIN32
-			glColor3f(0.65, 0.65, 0.7);
-			glRecti(892,yofs+46,892+225,yofs+45+20);
+			//glColor3f(0.65, 0.65, 0.7);
+			//glRecti(892,yofs+46,892+225,yofs+45+20);
 			if(G.scene->r.avicodecdata == NULL)
 				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+43,225,20, 0, 0, 0, 0, 0, "");
 			else
@@ -1192,8 +1192,8 @@ void anim_panels()
 {
 	uiBlock *block;
 	
-	
-	block= uiNewBlock(&curarea->uiblocks, "anim_panels", UI_EMBOSS, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "anim_panel", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Anim", "Anim", 0, 0, 318, 204)==0) return;
 
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	320,17,93,27,&G.scene->r.sfra,1.0,18000.0, 0, 0, "Specify the start frame of the animation");
 	uiDefButS(block, NUM,REDRAWSEQ,"End:",	416,17,95,27,&G.scene->r.efra,1.0,18000.0, 0, 0, "Specify the end frame of the animation");
@@ -1205,9 +1205,6 @@ void anim_panels()
 	
 	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	416,47,95,19, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 
-
-	uiDrawBlock(block);
-	
 
 }
 

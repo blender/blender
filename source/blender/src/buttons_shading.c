@@ -137,7 +137,7 @@ void load_tex_image(char *str)	/* called from fileselect */
 
 		allqueue(REDRAWBUTSSHADING, 0);
 
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 	}
 }
 
@@ -154,7 +154,7 @@ void load_plugin_tex(char *str)	/* called from fileselect */
 	tex->plugin= add_plugin_tex(str);
 
 	allqueue(REDRAWBUTSSHADING, 0);
-	BIF_preview_changed(G.buts);
+	BIF_all_preview_changed();
 }
 
 int vergcband(const void *a1, const void *a2)
@@ -298,20 +298,20 @@ void do_texbuts(unsigned short event)
 	switch(event) {
 	case B_TEXCHANNEL:
 		scrarea_queue_headredraw(curarea);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case B_TEXTYPE:
 		if(tex==0) return;
 		tex->stype= 0;
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		break;
 	case B_DEFTEXVAR:
 		if(tex==0) return;
 		default_tex(tex);
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		break;
 	case B_LOADTEXIMA:
 	case B_LOADTEXIMA1:
@@ -353,9 +353,12 @@ void do_texbuts(unsigned short event)
 			load_tex_image(str);
 		}
 		break;
+	case B_TEXPRV:
+		BIF_all_preview_changed();
+		break;
 	case B_TEXREDR_PRV:
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		break;
 	case B_TEXIMABROWSE:
 		if(tex) {
@@ -372,7 +375,7 @@ void do_texbuts(unsigned short event)
 					if(id) id->us--;
 				
 					allqueue(REDRAWBUTSSHADING, 0);
-					BIF_preview_changed(G.buts);
+					BIF_all_preview_changed();
 				}
 			}
 		}
@@ -394,7 +397,7 @@ void do_texbuts(unsigned short event)
 					IMB_freeImBuf(ibuf);
 					tex->ima->ibuf= 0;
 					tex->ima->ok= 1;
-					BIF_preview_changed(G.buts);
+					BIF_all_preview_changed();
 				}
 			}
 		}
@@ -419,7 +422,7 @@ void do_texbuts(unsigned short event)
 			tex->ima->ok= 1;
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);
-			BIF_preview_changed(G.buts);
+			BIF_all_preview_changed();
 		}
 		allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
 		
@@ -477,14 +480,14 @@ void do_texbuts(unsigned short event)
 		tex->stype= 0;
 		tex->plugin= add_plugin_tex(str);
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		break;
 	
 	case B_COLORBAND:
 		if(tex==0) return;
 		if(tex->coba==0) tex->coba= add_colorband();
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		break;
 	
 	case B_ADDCOLORBAND:
@@ -507,7 +510,7 @@ void do_texbuts(unsigned short event)
 		tex->coba->tot--;
 
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		break;
 
 	case B_CALCCBAND:
@@ -526,7 +529,7 @@ void do_texbuts(unsigned short event)
 		if(event==B_CALCCBAND2) return;
 		
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		
 		break;
 		
@@ -560,7 +563,7 @@ void do_texbuts(unsigned short event)
 				BIF_wait_for_statechange();
 			}
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_preview_changed(G.buts);
+			BIF_all_preview_changed();
 		}
 		break;
 		
@@ -569,14 +572,14 @@ void do_texbuts(unsigned short event)
 			RE_free_envmap(tex->env);
 			tex->env= 0;
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_preview_changed(G.buts);
+			BIF_all_preview_changed();
 		}
 		break;
 	case B_ENV_FREE:
 		if(tex->env) {
 			RE_free_envmapdata(tex->env);
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_preview_changed(G.buts);
+			BIF_all_preview_changed();
 		}
 		break;
 	case B_ENV_FREE_ALL:
@@ -590,7 +593,7 @@ void do_texbuts(unsigned short event)
 			tex= tex->id.next;
 		}
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_preview_changed(G.buts);
+		BIF_all_preview_changed();
 		break;
 	case B_ENV_SAVE:
 		if(tex->env && tex->env->ok) {
@@ -602,7 +605,7 @@ void do_texbuts(unsigned short event)
 		break;	
 	case B_ENV_OB:
 		if(tex->env && tex->env->object) {
-			BIF_preview_changed(G.buts);
+			BIF_all_preview_changed();
 			if ELEM(tex->env->object->type, OB_CAMERA, OB_LAMP) {
 				error("Camera or Lamp not allowed");
 				tex->env->object= 0;
@@ -615,7 +618,7 @@ void do_texbuts(unsigned short event)
 			PluginTex *pit= tex->plugin;
 			if(pit && pit->callback) {
 				pit->callback(event - B_PLUGBUT);
-				BIF_preview_changed(G.buts);
+				BIF_all_preview_changed();
 			}
 		}
 	}
@@ -637,7 +640,7 @@ static void texture_panel_plugin(Tex *tex)
 		pit= tex->plugin;
 		
 		for(a=0; a<pit->stypes; a++) {
-			uiDefButS(block, ROW, B_MATPRV, pit->stnames+16*a, (76*a), 152, 75, 20, &tex->stype, 2.0, (float)a, 0, 0, "");
+			uiDefButS(block, ROW, B_TEXPRV, pit->stnames+16*a, (76*a), 152, 75, 20, &tex->stype, 2.0, (float)a, 0, 0, "");
 		}
 		
 		varstr= pit->varstr;
@@ -665,9 +668,9 @@ static void texture_panel_magic(Tex *tex)
 	if(uiNewPanel(curarea, block, "Magic", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiDefButF(block, NUM, B_MATPRV, "Size :",		10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the pattern");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		10, 90, 150, 19, &tex->noisedepth, 0.0, 10.0, 0, 0, "Set the depth of the pattern");
-	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the strength of the pattern");
+	uiDefButF(block, NUM, B_TEXPRV, "Size :",		10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the pattern");
+	uiDefButS(block, NUM, B_TEXPRV, "Depth:",		10, 90, 150, 19, &tex->noisedepth, 0.0, 10.0, 0, 0, "Set the depth of the pattern");
+	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the strength of the pattern");
 }
 
 static void texture_panel_blend(Tex *tex)
@@ -678,14 +681,14 @@ static void texture_panel_blend(Tex *tex)
 	if(uiNewPanel(curarea, block, "Blend", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiDefButS(block, ROW, B_MATPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use a linear progresion"); 
-	uiDefButS(block, ROW, B_MATPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Use a quadratic progression"); 
-	uiDefButS(block, ROW, B_MATPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, ""); 
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Flip XY",	235, 180, 75, 19, &tex->flag, 0, 0, 0, 0, "Flip the direction of the progression a quarter turn");
+	uiDefButS(block, ROW, B_TEXPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use a linear progresion"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Use a quadratic progression"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, ""); 
+	uiDefButS(block, TOG|BIT|1, B_TEXPRV, "Flip XY",	235, 180, 75, 19, &tex->flag, 0, 0, 0, 0, "Flip the direction of the progression a quarter turn");
 
-	uiDefButS(block, ROW, B_MATPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, 3.0, 0, 0, "Use a diagonal progression");
-	uiDefButS(block, ROW, B_MATPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, 4.0, 0, 0, "Use progression with the shape of a sphere");
-	uiDefButS(block, ROW, B_MATPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, 5.0, 0, 0, "Use a quadratic progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, 3.0, 0, 0, "Use a diagonal progression");
+	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, 4.0, 0, 0, "Use progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, 5.0, 0, 0, "Use a quadratic progression with the shape of a sphere");
 	
 }
 
@@ -699,16 +702,16 @@ static void texture_panel_wood(Tex *tex)
 	if(uiNewPanel(curarea, block, "Wood", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiDefButS(block, ROW, B_MATPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard wood texture"); 
-	uiDefButS(block, ROW, B_MATPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use wood rings"); 
-	uiDefButS(block, ROW, B_MATPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Add noise to standard wood"); 
-	uiDefButS(block, ROW, B_MATPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Add noise to rings"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard wood texture"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use wood rings"); 
+	uiDefButS(block, ROW, B_TEXPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Add noise to standard wood"); 
+	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Add noise to rings"); 
 
-	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
-	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	85, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	85, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
-	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	160, 130, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the bandnoise and ringnoise types");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	160, 130, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the bandnoise and ringnoise types");
 
 
 }
@@ -721,14 +724,14 @@ static void texture_panel_stucci(Tex *tex)
 	if(uiNewPanel(curarea, block, "Stucci", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiDefButS(block, ROW, B_MATPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use standard stucci");
-	uiDefButS(block, ROW, B_MATPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, 1.0, 0, 0, "Set start value"); 
-	uiDefButS(block, ROW, B_MATPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, 2.0, 0, 0, "Set end value"); 
-	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
-	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Use standard stucci");
+	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, 1.0, 0, 0, "Set start value"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, 2.0, 0, 0, "Set end value"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
-	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 90, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the depth of the stucci");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	10, 90, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the depth of the stucci");
 }
 
 static void texture_panel_marble(Tex *tex)
@@ -739,16 +742,16 @@ static void texture_panel_marble(Tex *tex)
 	if(uiNewPanel(curarea, block, "Marble", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiDefButS(block, ROW, B_MATPRV, "Soft",			10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use soft marble"); 
-	uiDefButS(block, ROW, B_MATPRV, "Sharp",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use more clearly defined marble"); 
-	uiDefButS(block, ROW, B_MATPRV, "Sharper",		160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Use very clear defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use soft marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Use more clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Use very clear defined marble"); 
 
-	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
-	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 100, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	110, 160, 100, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
-	uiDefButS(block, NUM, B_MATPRV, "NoiseDepth:",	10, 90, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the marble calculation");
-	uiDefButF(block, NUM, B_MATPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the sine bands");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButS(block, NUM, B_TEXPRV, "NoiseDepth:",	10, 90, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the marble calculation");
+	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	10, 70, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Set the turbulence of the sine bands");
 
 
 }
@@ -761,13 +764,13 @@ static void texture_panel_clouds(Tex *tex)
 	if(uiNewPanel(curarea, block, "Clouds", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
-	uiDefButS(block, ROW, B_MATPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard noise"); 
-	uiDefButS(block, ROW, B_MATPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, 1.0, 0, 0, "Let Noise give RGB value"); 
-	uiDefButS(block, ROW, B_MATPRV, "Soft noise",	155, 180, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
-	uiDefButS(block, ROW, B_MATPRV, "Hard noise",	230, 180, 80, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Use standard noise"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, 1.0, 0, 0, "Let Noise give RGB value"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Use soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Use hard noise");
 
-	uiDefButF(block, NUM, B_MATPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
-	uiDefButS(block, NUM, B_MATPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the cloud calculation");
+	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Set the dimension of the noise table");
+	uiDefButS(block, NUM, B_TEXPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Set the depth of the cloud calculation");
 
 }
 
@@ -830,7 +833,7 @@ static void texture_panel_envmap(Tex *tex)
 		if(env->stype!=ENV_LOAD) 
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 2048.0, 0, 0, "Set the resolution in pixels");
 
-		uiDefButF(block, NUM, B_MATPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjust sharpness or blurriness of the reflection"),
+		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjust sharpness or blurriness of the reflection"),
 		uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Number of times a map gets rendered again, for recursive mirror effect"),
 
 		uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Set start value for clipping");
@@ -872,20 +875,20 @@ static void texture_panel_image1(Tex *tex)
 		}
 		else uiDefBut(block, LABEL, 0, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "");
 				
-		uiDefButS(block, NUM, B_MATPRV, "Frames :",	642,110,150,19, &tex->frames, 0.0, 18000.0, 0, 0, "Activate animation option");
-		uiDefButS(block, NUM, B_MATPRV, "Offset :",	642,90,150,19, &tex->offset, -9000.0, 9000.0, 0, 0, "Set the number of the first picture of the animation");
-		uiDefButS(block, NUM, B_MATPRV, "Fie/Ima:",	642,60,98,19, &tex->fie_ima, 1.0, 200.0, 0, 0, "Set the number of fields per rendered frame");
-		uiDefButS(block, NUM, B_MATPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, 9000.0, 0, 0, "Set the start frame of the animation");
-		uiDefButS(block, NUM, B_MATPRV, "Len:",		642,10,150,19, &tex->len, 0.0, 9000.0, 0, 0, "Set the length of the animation");
+		uiDefButS(block, NUM, B_TEXPRV, "Frames :",	642,110,150,19, &tex->frames, 0.0, 18000.0, 0, 0, "Activate animation option");
+		uiDefButS(block, NUM, B_TEXPRV, "Offset :",	642,90,150,19, &tex->offset, -9000.0, 9000.0, 0, 0, "Set the number of the first picture of the animation");
+		uiDefButS(block, NUM, B_TEXPRV, "Fie/Ima:",	642,60,98,19, &tex->fie_ima, 1.0, 200.0, 0, 0, "Set the number of fields per rendered frame");
+		uiDefButS(block, NUM, B_TEXPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, 9000.0, 0, 0, "Set the start frame of the animation");
+		uiDefButS(block, NUM, B_TEXPRV, "Len:",		642,10,150,19, &tex->len, 0.0, 9000.0, 0, 0, "Set the length of the animation");
 	
-		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,70,73,19, &(tex->fradur[0][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiDefButS(block, NUM, B_MATPRV, "",			879,70,37,19, &(tex->fradur[0][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,50,73,19, &(tex->fradur[1][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiDefButS(block, NUM, B_MATPRV, "",			879,50,37,19, &(tex->fradur[1][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,30,73,19, &(tex->fradur[2][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiDefButS(block, NUM, B_MATPRV, "",			879,30,37,19, &(tex->fradur[2][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-		uiDefButS(block, NUM, B_MATPRV, "Fra:",		802,10,73,19, &(tex->fradur[3][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
-		uiDefButS(block, NUM, B_MATPRV, "",			879,10,37,19, &(tex->fradur[3][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,70,73,19, &(tex->fradur[0][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_TEXPRV, "",			879,70,37,19, &(tex->fradur[0][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,50,73,19, &(tex->fradur[1][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_TEXPRV, "",			879,50,37,19, &(tex->fradur[1][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,30,73,19, &(tex->fradur[2][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_TEXPRV, "",			879,30,37,19, &(tex->fradur[2][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
+		uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,10,73,19, &(tex->fradur[3][0]), 0.0, 18000.0, 0, 0, "Montage mode: frame start");
+		uiDefButS(block, NUM, B_TEXPRV, "",			879,10,37,19, &(tex->fradur[3][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
 	
 		uiDefButS(block, TOG|BIT|6, 0, "Cyclic",		743,60,48,19, &tex->imaflag, 0, 0, 0, 0, "Repeat animation image");
 	}
@@ -904,13 +907,13 @@ static void texture_panel_image(Tex *tex)
 
 	/* types */
 	uiDefButS(block, TOG|BIT|0, 0, "InterPol",			10, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Interpolate pixels of the image");
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "UseAlpha",	85, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Use the alpha layer");
-	uiDefButS(block, TOG|BIT|5, B_MATPRV, "CalcAlpha",	160, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Calculate an alpha based on the RGB");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "NegAlpha",	235, 180, 75, 18, &tex->flag, 0, 0, 0, 0, "Reverse the alpha value");
+	uiDefButS(block, TOG|BIT|1, B_TEXPRV, "UseAlpha",	85, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Use the alpha layer");
+	uiDefButS(block, TOG|BIT|5, B_TEXPRV, "CalcAlpha",	160, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Calculate an alpha based on the RGB");
+	uiDefButS(block, TOG|BIT|2, B_TEXPRV, "NegAlpha",	235, 180, 75, 18, &tex->flag, 0, 0, 0, 0, "Reverse the alpha value");
 
 	uiDefButS(block, TOG|BIT|2, B_IMAPTEST, "MipMap",	10, 160, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Generate a series of pictures used for mipmapping");
 	uiDefButS(block, TOG|BIT|3, B_IMAPTEST, "Fields",	70, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Work with field images");
-	uiDefButS(block, TOG|BIT|4, B_MATPRV, "Rot90",		120, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Rotate image 90 degrees when rendered");
+	uiDefButS(block, TOG|BIT|4, B_TEXPRV, "Rot90",		120, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Rotate image 90 degrees when rendered");
 	uiDefButS(block, TOG|BIT|7, B_RELOADIMA, "Movie",	170, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Use a movie for an image");
 	uiDefButS(block, TOG|BIT|8, 0, "Anti",				220, 160, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Use anti-aliasing");
 	uiDefButS(block, TOG|BIT|10, 0, "StField",			260, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "");
@@ -941,15 +944,15 @@ static void texture_panel_image(Tex *tex)
 
 	/* crop extend clip */
 	
-	uiDefButF(block, NUM, B_MATPRV, "Filter :",	10,92,135,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Set the filter size used by mipmap and interpol");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter :",	10,92,135,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Set the filter size used by mipmap and interpol");
 	
 	uiDefButS(block, ROW, 0, "Extend",			10,70,75,19, &tex->extend, 4.0, 1.0, 0, 0, "Extend the colour of the edge");
 	uiDefButS(block, ROW, 0, "Clip",			85,70,75,19, &tex->extend, 4.0, 2.0, 0, 0, "Return alpha 0.0 outside image");
 	uiDefButS(block, ROW, 0, "ClipCube",		160,70,75,19, &tex->extend, 4.0, 4.0, 0, 0, "Return alpha 0.0 outside cubeshaped area around image");
 	uiDefButS(block, ROW, 0, "Repeat",			235,70,75,19, &tex->extend, 4.0, 3.0, 0, 0, "Repeat image horizontally and vertically");
 
-	uiDefButS(block, NUM, B_MATPRV, "Xrepeat:",	10,50,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the X direction");
-	uiDefButS(block, NUM, B_MATPRV, "Yrepeat:",	160,50,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the Y direction");
+	uiDefButS(block, NUM, B_TEXPRV, "Xrepeat:",	10,50,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the X direction");
+	uiDefButS(block, NUM, B_TEXPRV, "Yrepeat:",	160,50,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Set the degree of repetition in the Y direction");
 
 	uiDefButF(block, NUM, B_REDR, "MinX ",		10,28,150,19, &tex->cropxmin, -10.0, 10.0, 10, 0, "Set minimum X value for cropping");
 	uiDefButF(block, NUM, B_REDR, "MaxX ",		160,28,150,19, &tex->cropxmax, -10.0, 10.0, 10, 0, "Set maximum X value for cropping");
@@ -992,26 +995,26 @@ static void texture_panel_colors(Tex *tex)
 		cbd= tex->coba->data + tex->coba->cur;
 		
 		uiDefButF(block, NUM, B_CALCCBAND, "Pos",	10,120,80,20, &cbd->pos, 0.0, 1.0, 10, 0, "Set the position of the active colour");
-		uiDefButS(block, ROW, B_MATPRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "Interpolation type Ease");
-		uiDefButS(block, ROW, B_MATPRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Interpolation type Linear");
-		uiDefButS(block, ROW, B_MATPRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Interpolation type Spline");
+		uiDefButS(block, ROW, B_TEXPRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "Interpolation type Ease");
+		uiDefButS(block, ROW, B_TEXPRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Interpolation type Linear");
+		uiDefButS(block, ROW, B_TEXPRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Interpolation type Spline");
 		uiDefButF(block, COL, B_BANDCOL, "",		150,120,30,20, &(cbd->r), 0, 0, 0, 0, "");
-		uiDefButF(block, NUMSLI, B_MATPRV, "A ",	180,120,130,20, &cbd->a, 0.0, 1.0, 0, 0, "Set the alpha value");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "A ",	180,120,130,20, &cbd->a, 0.0, 1.0, 0, 0, "Set the alpha value");
 		
-		uiDefButF(block, NUMSLI, B_MATPRV, "R ",	10,100,100,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Set the red value");
-		uiDefButF(block, NUMSLI, B_MATPRV, "G ",	110,100,100,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Set the green value");
-		uiDefButF(block, NUMSLI, B_MATPRV, "B ",	210,100,100,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Set the blue value");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "R ",	10,100,100,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Set the red value");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "G ",	110,100,100,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Set the green value");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "B ",	210,100,100,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Set the blue value");
 		
 	}
 
 	/* RGB-BRICON */
 	if((tex->flag & TEX_COLORBAND)==0) {
-		uiDefButF(block, NUMSLI, B_MATPRV, "R ",		60,80,200,20, &tex->rfac, 0.0, 2.0, 0, 0, "Set the red value");
-		uiDefButF(block, NUMSLI, B_MATPRV, "G ",		60,60,200,20, &tex->gfac, 0.0, 2.0, 0, 0, "Set the green value");
-		uiDefButF(block, NUMSLI, B_MATPRV, "B ",		60,40,200,20, &tex->bfac, 0.0, 2.0, 0, 0, "Set the blue value");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "R ",		60,80,200,20, &tex->rfac, 0.0, 2.0, 0, 0, "Set the red value");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "G ",		60,60,200,20, &tex->gfac, 0.0, 2.0, 0, 0, "Set the green value");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "B ",		60,40,200,20, &tex->bfac, 0.0, 2.0, 0, 0, "Set the blue value");
 	}
-	uiDefButF(block, NUMSLI, B_MATPRV, "Bright",		10,10,150,20, &tex->bright, 0.0, 2.0, 0, 0, "Set the brightness of the colour or intensity of a texture");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 2.0, 0, 0, "Set the contrast of the colour or intensity of a texture");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "Bright",		10,10,150,20, &tex->bright, 0.0, 2.0, 0, 0, "Set the brightness of the colour or intensity of a texture");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 2.0, 0, 0, "Set the contrast of the colour or intensity of a texture");
 
 }
 

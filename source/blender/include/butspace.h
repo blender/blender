@@ -172,6 +172,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_BANDCOL		1319
 #define B_LOADTEXIMA1	1320
 #define B_PLUGBUT		1321
+#define B_TEXPRV		1322
 
 /* plugbut reserves 24 buttons at least! */
 

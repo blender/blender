@@ -315,9 +315,26 @@ static void draw_tex_crop(Tex *tex)
 	
 }
 
+void BIF_all_preview_changed(void)
+{
+	ScrArea *sa;
+	SpaceButs *sbuts;
+	
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		if(sa->spacetype==SPACE_BUTS) {
+			sbuts= sa->spacedata.first;
+			sbuts->cury= 0;
+			addafterqueue(sa->win, RENDERPREVIEW, 1);
+		}
+		sa= sa->next;
+	}
+}
+
+
 void BIF_preview_changed(SpaceButs *sbuts)
 {
-	/* can be called when nu buttonswindow visible */
+	/* can be called when no buttonswindow visible */
 	if(sbuts) {
 		sbuts->cury= 0;
 		addafterqueue(sbuts->area->win, RENDERPREVIEW, 1);
