@@ -509,10 +509,10 @@ void do_update_for_newframe(int mute)
 	allqueue(REDRAWBUTSSHADING, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 
-	clear_all_constraints();
 	/* layers/materials, object ipos are calculted in where_is_object (too) */
 	do_all_ipos();
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+	clear_all_constraints();
 	do_all_keys();
 	do_all_actions();
 	do_all_ikas();
