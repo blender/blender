@@ -865,24 +865,32 @@ int blenderqread(unsigned short event, short val)
 		}
 		else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) {
 			int a;
-			int event= pupmenu("10 Timer%t|draw|draw+swap");
+			int event= pupmenu("10 Timer%t|draw|draw+swap|displist");
 			if(event>0) {
 				double stime= PIL_check_seconds_timer();
 				char tmpstr[128];
 				int time;
 
-				printf("start timer\n");
 				waitcursor(1);
-								
+				
 				for(a=0; a<10; a++) {
-					scrarea_do_windraw(curarea);
-					if(event==2) screen_swapbuffers();
+					if (event==1) {
+						scrarea_do_windraw(curarea);
+					} else if (event==2) {
+						scrarea_do_windraw(curarea);
+						screen_swapbuffers();
+					} else if (event==3) {
+						if (OBACT) {
+							makeDispList(OBACT);
+						}
+					}
 				}
 			
 				time= (PIL_check_seconds_timer()-stime)*1000;
 				
-				if(event==1) sprintf(tmpstr, "draw %%t|%d", time);
-				if(event==2) sprintf(tmpstr, "d+sw %%t|%d", time);
+				if(event==1) sprintf(tmpstr, "draw %%t|%d ms", time);
+				if(event==2) sprintf(tmpstr, "d+sw %%t|%d ms", time);
+				if(event==3) sprintf(tmpstr, "displist %%t|%d ms", time);
 			
 				waitcursor(0);
 				pupmenu(tmpstr);
