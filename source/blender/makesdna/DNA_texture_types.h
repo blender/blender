@@ -243,6 +243,22 @@ typedef struct Tex {
 #define TEX_NOISESOFT	0
 #define TEX_NOISEPERL	1
 
+/* tex->noisebasis2 in texture.c - wood waveforms */
+#define TEX_SIN			0
+#define TEX_SAW			1
+#define TEX_TRI			2
+
+/* tex->stype in texture.c - wood types */
+#define TEX_BAND		0
+#define TEX_RING		1
+#define TEX_BANDNOISE	2
+#define TEX_RINGNOISE	3
+
+/* tex->stype in texture.c - marble types */
+#define TEX_SOFT		0
+#define TEX_SHARP		1
+#define TEX_SHARPER		2
+
 /* wrap */
 #define MTEX_FLAT		0
 #define MTEX_CUBE		1

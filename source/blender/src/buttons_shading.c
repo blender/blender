@@ -894,12 +894,12 @@ static void texture_panel_wood(Tex *tex)
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButF(block, NUM, B_TEXPRV, "Turbulence:",	160, 130, 150, 19, &tex->turbul, 0.0, 200.0, 10, 0, "Sets the turbulence of the bandnoise and ringnoise types");
 	uiBlockEndAlign(block);
-
+	
 	/* newnoise: noisebasis menu */
 	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
 	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
-
+	
 }
 
 static void texture_panel_stucci(Tex *tex)
@@ -938,14 +938,18 @@ static void texture_panel_marble(Tex *tex)
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_marble", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Marble", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
-
+	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 100, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses soft marble"); 
 	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		110, 180, 100, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses more clearly defined marble"); 
 	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		210, 180, 100, 18, &tex->stype, 2.0, 2.0, 0, 0, "Uses very clearly defined marble"); 
-
+	
 	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
 	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	
+	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 140, 100, 18, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses soft marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Saw",			110, 140, 100, 18, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses more clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Tri",			210, 140, 100, 18, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses very clearly defined marble"); 
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -957,7 +961,7 @@ static void texture_panel_marble(Tex *tex)
 	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
 	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
-
+	
 }
 
 static void texture_panel_clouds(Tex *tex)

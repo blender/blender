@@ -535,7 +535,6 @@ void add_primitiveMesh(int type)
 		fill= 0;
 		if(newob) rename_id((ID *)G.obedit, "Circle");
 		if(newob) rename_id((ID *)me, "Circle");
-		if(G.scene->selectmode==SCE_SELECT_FACE) notice("Circle is not visible in face mode");
 		undostr="Add Circle";
 		break;
 	case 5:		/* cylinder  */

@@ -354,30 +354,71 @@ static int clouds(Tex *tex, float *texvec, TexResult *texres)
 
 }
 
+/* creates a sine wave */
+static float tex_sin(float a)
+{
+	a = 0.5 + 0.5*sin(a);
+		
+	return a;
+}
+
+/* creates a saw wave */
+static float tex_saw(float a)
+{
+	const float b = 2*M_PI;
+	
+	int n = (int)(a / b);
+	a -= n*b;
+	if (a < 0) a += b;
+	return a / b;
+}
+
+/* creates a triangle wave */
+static float tex_tri(float a)
+{
+	const float b = 2*M_PI;
+	const float rmax = 1.0;
+	
+	a = rmax - 2.0*fabs(floor((a*(1.0/b))+0.5) - (a*(1.0/b)));
+	
+	return a;
+}
+
 /* computes basic wood intensity value at x,y,z */
 static float wood_int(Tex *tex, float x, float y, float z)
 {
-	float wi=0;
+	float wi=0;						
+	short wf = tex->noisebasis2;	/* wave form:	TEX_SIN=0,  TEX_SAW=1,  TEX_TRI=2						 */
+	short wt = tex->stype;			/* wood type:	TEX_BAND=0, TEX_RING=1, TEX_BANDNOISE=2, TEX_RINGNOISE=3 */
 
-	if (tex->stype==0)
-		wi = 0.5 + 0.5*sin((x + y + z)*10.0);
-	else if (tex->stype==1)
-		wi = 0.5 + 0.5*sin(sqrt(x*x + y*y + z*z)*20.0);
-	else if (tex->stype==2) {
-		wi = BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-		wi = 0.5 + 0.5*sin(tex->turbul*wi + (x + y + z)*10.0);
+	float (*waveform[3])(float);	/* create array of pointers to waveform functions */
+	waveform[0] = tex_sin;			/* assign address of tex_sin() function to pointer array */
+	waveform[1] = tex_saw;
+	waveform[2] = tex_tri;
+	
+	if ((wf>TEX_TRI) || (wf<TEX_SIN)) wf=0; /* check to be sure noisebasis2 is initialized ahead of time */
+		
+	if (wt==TEX_BAND) {
+		wi = waveform[wf]((x + y + z)*10.0);
 	}
-	else if (tex->stype==3) {
-		wi = BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-		wi = 0.5 + 0.5*sin(tex->turbul*wi + (sqrt(x*x + y*y + z*z))*20.0);
+	else if (wt==TEX_RING) {
+		wi = waveform[wf](sqrt(x*x + y*y + z*z)*20.0);
 	}
-
+	else if (wt==TEX_BANDNOISE) {
+		wi = tex->turbul*BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		wi = waveform[wf]((x + y + z)*10.0 + wi);
+	}
+	else if (wt==TEX_RINGNOISE) {
+		wi = tex->turbul*BLI_gNoise(tex->noisesize, x, y, z, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		wi = waveform[wf](sqrt(x*x + y*y + z*z)*20.0 + wi);
+	}
+	
 	return wi;
 }
 
 static int wood(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv=TEX_INT;	/* return value, int:0, col:1, nor:2, everything:3 */
 
 	texres->tin = wood_int(tex, texvec[0], texvec[1], texvec[2]);
 	if (texres->nor!=NULL) {
@@ -387,7 +428,7 @@ static int wood(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = wood_int(tex, texvec[0], texvec[1], texvec[2] + tex->nabla);
 		
 		tex_normal_derivate(tex, texres);
-		rv += 2;
+		rv = TEX_NOR;
 	}
 
 	BRICONT;
@@ -399,13 +440,28 @@ static int wood(Tex *tex, float *texvec, TexResult *texres)
 static float marble_int(Tex *tex, float x, float y, float z)
 {
 	float n, mi;
-
+	short wf = tex->noisebasis2;	/* wave form:	TEX_SIN=0,  TEX_SAW=1,  TEX_TRI=2						*/
+	short mt = tex->stype;			/* marble type:	TEX_SOFT=0,	TEX_SHARP=1,TEX_SHAPER=2 					*/
+	
+	float (*waveform[3])(float);	/* create array of pointers to waveform functions */
+	waveform[0] = tex_sin;			/* assign address of tex_sin() function to pointer array */
+	waveform[1] = tex_saw;
+	waveform[2] = tex_tri;
+	
+	if ((wf>TEX_TRI) || (wf<TEX_SIN)) wf=0; /* check to be sure noisebasis2 isn't initialized ahead of time */
+	
 	n = 5.0 * (x + y + z);
+	
+	mi = n + tex->turbul * BLI_gTurbulence(tex->noisesize, x, y, z, tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT),  tex->noisebasis);
 
-	mi = 0.5 + 0.5 * sin(n + tex->turbul * BLI_gTurbulence(tex->noisesize, x, y, z, tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT),  tex->noisebasis));
-	if (tex->stype>=1) {
-		mi = sqrt(mi);
-		if (tex->stype==2) mi = sqrt(mi);
+	if (mt>=TEX_SOFT) {  /* TEX_SOFT always true */
+		mi = waveform[wf](mi);
+		if (mt==TEX_SHARP) {
+			mi = sqrt(mi);
+		} 
+		else if (mt==TEX_SHARPER) {
+			mi = sqrt(sqrt(mi));
+		}
 	}
 
 	return mi;
@@ -413,7 +469,7 @@ static float marble_int(Tex *tex, float x, float y, float z)
 
 static int marble(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv=TEX_INT;	/* return value, int:0, col:1, nor:2, everything:3 */
 
 	texres->tin = marble_int(tex, texvec[0], texvec[1], texvec[2]);
 
@@ -425,7 +481,7 @@ static int marble(Tex *tex, float *texvec, TexResult *texres)
 		
 		tex_normal_derivate(tex, texres);
 		
-		rv += 2;
+		rv = TEX_NOR;
 	}
 
 	BRICONT;
