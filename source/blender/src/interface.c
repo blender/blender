@@ -2097,30 +2097,31 @@ static void update_picker_buts(uiBlock *block, float *col)
 	rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->str[1]); // sting longer than 1 char
-		else if(bt->str[0]=='R') {
-			ui_set_but_val(bt, col[0]);
-			ui_check_but(bt);
-		}
-		else if(bt->str[0]=='G') {
-			ui_set_but_val(bt, col[1]);
-			ui_check_but(bt);
-		}
-		else if(bt->str[0]=='B') {
-			ui_set_but_val(bt, col[2]);
-			ui_check_but(bt);
-		}
-		else if(bt->str[0]=='H') {
-			ui_set_but_val(bt, h);
-			ui_check_but(bt);
-		}
-		else if(bt->str[0]=='S') {
-			ui_set_but_val(bt, s);
-			ui_check_but(bt);
-		}
-		else if(bt->str[0]=='V') {
-			ui_set_but_val(bt, v);
-			ui_check_but(bt);
+		if(bt->str[1]==' ') {
+			if(bt->str[0]=='R') {
+				ui_set_but_val(bt, col[0]);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='G') {
+				ui_set_but_val(bt, col[1]);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='B') {
+				ui_set_but_val(bt, col[2]);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='H') {
+				ui_set_but_val(bt, h);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='S') {
+				ui_set_but_val(bt, s);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='V') {
+				ui_set_but_val(bt, v);
+				ui_check_but(bt);
+			}
 		}
 	}
 }
@@ -2306,19 +2307,24 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			x= ((float)mval[0]-but->x1)/(but->x2-but->x1);
 			y= ((float)mval[1]-but->y1)/(but->x2-but->x1);
 			
-			CLAMP(x, 0.001, 0.999);
-			CLAMP(y, 0.001, 0.999);
+			/* we're hacking values now to prevent rgb_to_hsv working wrong */
+			CLAMP(x, 0.0005, 0.9995);
+			CLAMP(y, 0.0005, 0.9995);
 			
 			/* assign position to color */
 			ui_get_but_vectorf(but, col);
 			rgb_to_hsv(col[0], col[1], col[2], &h, &s, &v);
-			if(v==0.0) v= 0.001;
-			if(s==0.0) s= 0.001;
+			if(v==0.0) v= 0.0005;
+			if(s==0.0) s= 0.0005;
 			
 			if(but->a1==0) hsv_to_rgb(x, s, y, col, col+1, col+2);
 			else if(but->a1==1) hsv_to_rgb(x, y, v, col, col+1, col+2);
 			else if(but->a1==2) hsv_to_rgb(h, y, x, col, col+1, col+2);
 			else hsv_to_rgb(x, s, v, col, col+1, col+2);
+			
+			if(col[0]<0.001) col[0]= 0.0; else if (col[0]>0.999) col[0]= 1.0;
+			if(col[1]<0.001) col[1]= 0.0; else if (col[1]>0.999) col[1]= 1.0;
+			if(col[2]<0.001) col[2]= 0.0; else if (col[2]>0.999) col[2]= 1.0;
 			
 			ui_set_but_vectorf(but, col);
 			
