@@ -64,9 +64,14 @@
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 
+#include "BIF_editmesh.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+/** check if passed mesh has faces, return zero if only edges, 1 if faces have been found */
+int has_faces(Mesh *me);
 
 /**
  * Here's the vertex iterator structure used to walk through
@@ -360,14 +365,22 @@ InterpFaceVertexData(
 	return 0;
 }
 
+int has_faces(Mesh *me)
+{
+	MFace *mface;
+	int a;
 
+	mface= me->mface;
+	for(a=0; a<me->totface; a++, mface++) {		
+		if(mface->v3) return 1;
+	}
+	return 0;
+}
 
 /**
  * Assumes mesh is valid and forms part of a fresh
  * blender object.
  */
-
-
 
 	int
 NewBooleanMesh(
@@ -397,6 +410,13 @@ NewBooleanMesh(
 	CSG_OperationType op_type;
 
 	if (me == NULL || me2 == NULL) return 0;
+
+	success = has_faces(me);
+	if(success==0) return 0;
+	success = has_faces(me2);
+	if(success==0) return 0;
+	
+	success = 0;
 
 	switch (int_op_type) {
 		case 1 : op_type = e_csg_intersection; break;
