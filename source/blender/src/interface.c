@@ -4593,6 +4593,7 @@ void uiBlockSetDirection(uiBlock *block, int direction)
 	block->direction= direction;
 }
 
+/* this call escapes if there's alignment flags */
 void uiBlockFlipOrder(uiBlock *block)
 {
 	ListBase lb;
@@ -4600,6 +4601,7 @@ void uiBlockFlipOrder(uiBlock *block)
 	float centy, miny=10000, maxy= -10000;
 
 	for(but= block->buttons.first; but; but= but->next) {
+		if(but->flag & UI_BUT_ALIGN) return;
 		if(but->y1 < miny) miny= but->y1;
 		if(but->y2 > maxy) maxy= but->y2;
 	}
