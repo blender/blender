@@ -232,7 +232,8 @@ elif sys.platform == 'darwin':
                         '-framework', 'System',
                         '-framework', 'Python',
                         '-framework', 'CoreServices',
-                        '-framework', 'Foundation']
+                        '-framework', 'Foundation',
+			'-framework', 'OpenGL']
     # International stuff
     ftgl_lib = ['ftgl']
     ftgl_libpath = [darwin_precomp + 'ftgl/lib']
