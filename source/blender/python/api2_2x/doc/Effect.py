@@ -22,6 +22,12 @@ are shared between all effects. It has three submodules : Wave, Build, Particle
 
 Example::
   import Blender
+	listffects = Blender.Effect.Get()
+	print listeffects
+	eff = listeffects[0]
+	#we suppose the first effect is a build effect
+	print eff.getLen()
+	eff.setLen(500)	
 """
 
 def New (type):
