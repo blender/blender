@@ -79,6 +79,16 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 
+#ifdef __sgi
+
+#if defined(_SGI_EXTRA_PREDEFINES) && !defined(NO_FAST_ATOMS)
+#include <X11/SGIFastAtom.h>
+#else
+#define XSGIFastInternAtom(dpy,string,fast_name,how) XInternAtom(dpy,string,how)
+#endif
+
+#endif
+
 // For timing
 
 #include <sys/time.h>
@@ -98,7 +108,15 @@ GHOST_SystemX11(
 	
 	if (!m_display) return;
 	
-	m_delete_window_atom = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
+#ifdef __sgi
+	m_delete_window_atom 
+	  = XSGIFastInternAtom(m_display,
+			       "WM_DELETE_WINDOW", 
+			       SGI_XA_WM_DELETE_WINDOW, False);
+#else
+	m_delete_window_atom 
+	  = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
+#endif
 
 	// compute the initial time
 	timeval tv;
@@ -457,7 +475,8 @@ processEvent(
 		case ClientMessage:
 		{
 			XClientMessageEvent & xcme = xe->xclient;
-			
+
+#ifndef __sgi			
 			if (xcme.data.l[0] == m_delete_window_atom) {
 				g_event = new 
 				GHOST_Event(	
@@ -468,7 +487,7 @@ processEvent(
 			} else {
 				/* Unknown client message, ignore */
 			}
-
+#endif
 			break;
 		}
 			
