@@ -33,6 +33,7 @@
 #include <DNA_text_types.h>
 #include <MEM_guardedalloc.h>
 #include <BLI_blenlib.h>
+#include <BIF_space.h>
 
 #include "gen_utils.h"
 #include "constant.h"
