@@ -1906,7 +1906,9 @@ void do_sky_tex(float *lo)
 			}
 			if(mtex->texflag & MTEX_STENCIL) {
 				if(rgb) {
-					
+					fact= Ta;
+					Ta*= stencilTin;
+					stencilTin*= fact;
 				}
 				else {
 					fact= Tin;
@@ -1915,7 +1917,7 @@ void do_sky_tex(float *lo)
 				}
 			}
 			else {
-				if(rgb) ;
+				if(rgb) Ta *= stencilTin;
 				else Tin*= stencilTin;
 			}
 			
@@ -1928,7 +1930,7 @@ void do_sky_tex(float *lo)
 					Tg= mtex->g;
 					Tb= mtex->b;
 				}
-				else Tin= 1.0;
+				else Tin= Ta;
 				
 				tcol[0]= Tr; tcol[1]= Tg; tcol[2]= Tb;
 
