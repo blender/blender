@@ -245,7 +245,7 @@ MT_Scalar closest_pointsComplexConvex(const DT_Shape& a, const MT_Transform& a2w
 							(b_margin > MT_Scalar(0.0) ? static_cast<const DT_Convex&>(DT_Minkowski(tb, DT_Sphere(b_margin))) : static_cast<const DT_Convex&>(tb)), pa, pb);
     }
     
-    return -closest_pointsComplexConvex(b, b2w, b_margin, a, a2w, a_margin, pb, pa);
+    return closest_pointsComplexConvex(b, b2w, b_margin, a, a2w, a_margin, pb, pa);
 }
 
 MT_Scalar closest_pointsComplexComplex(const DT_Shape& a, const MT_Transform& a2w, MT_Scalar a_margin,
