@@ -543,16 +543,18 @@ static void draw_image_view_icon(void)
 	
 	glRasterPos2f(5.0, 5.0);
 
-	if(G.sima->flag & SI_STICKYUVS || G.sima->flag & SI_LOCALSTICKY)
-		BIF_draw_icon(ICON_A_WACKY_VERT_AND_SOME_LINES);
-	else
-		BIF_draw_icon(ICON_SOME_WACKY_VERTS_AND_LINES);
+	if(G.sima->flag & SI_STICKYUVS) {
+		BIF_draw_icon(ICON_STICKY2_UVS);
+		glRasterPos2f(25.0, 5.0);
+	}
+	else if(G.sima->flag & SI_LOCALSTICKY) {
+		BIF_draw_icon(ICON_STICKY_UVS);
+		glRasterPos2f(25.0, 5.0);
+	}
 
-	glRasterPos2f(25.0, 5.0);
-	if(G.sima->flag & SI_SELACTFACE)
-		BIF_draw_icon(ICON_CLIPUV_HLT);
-	else
-		BIF_draw_icon(ICON_CLIPUV_DEHLT);
+	if(G.sima->flag & SI_SELACTFACE) {
+			BIF_draw_icon(ICON_DRAW_UVFACES);
+	}
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
