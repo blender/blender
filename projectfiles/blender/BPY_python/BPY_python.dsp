@@ -159,6 +159,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Lamp.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Lattice.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Material.c
 # End Source File
 # Begin Source File
@@ -300,6 +304,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Ipocurve.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Lamp.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Lattice.h
 # End Source File
 # Begin Source File
 
