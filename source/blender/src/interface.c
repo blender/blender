@@ -1898,14 +1898,17 @@ static void ui_draw_but_TEX(uiBut *but)
 		}	
 	}
 	if(but->drawstr[0]!=0) {
-		glColor3ub(255,255,255);
+		/* make text white if selected (editing) */
+		if (but->flag & UI_SELECT) glColor3ub(255,255,255);
+		else glColor3ub(0,0,0);
 
 		if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
 		else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 		
 		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
 		
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), 1);
+		/* last arg determines text black (0) or whilte (1) */
+		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & TR_BUTTONS), but->flag & UI_SELECT);
 	}
 }
 

@@ -1660,7 +1660,7 @@ static void info_text(int x, int y)
 	swatch_color= hsv_to_cpack(fac1, fac2, fac3);
 
 	cpack( swatch_color );
-	glRecti(x-24,  y-4,  x-24+hsize,	y+13);
+	glRecti(x-24,  y-7,  x-24+hsize,	y+16);
 
 	glColor3ub(0, 0, 0);
 
@@ -1668,7 +1668,7 @@ static void info_text(int x, int y)
 
 	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS), 0);
 		
-	glRasterPos2i(x+120,	y);
+	glRasterPos2i(x+122,	y);
 
 	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS), 0);
 }
@@ -1701,28 +1701,32 @@ void info_buttons(void)
 		if(area_is_active_area(curarea)) uiBlockSetCol(block, HEADERCOLSEL);	
 		else uiBlockSetCol(block, HEADERCOL);	
 
+		
+		/* the 'xmax - 3' rather than xmax is to prevent some weird flickering where the highlighted
+		 * menu is drawn wider than it should be. The ypos of -1 is to make it properly fill the
+		 * height of the header */
 		xmax= GetButStringLength("File");
-		uiDefBlockBut(block, info_filemenu, NULL, "File",	xco, 0, xmax, 21, "");
+		uiDefBlockBut(block, info_filemenu, NULL, "File",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Add");
-		uiDefBlockBut(block, info_addmenu, NULL, "Add",	xco, 0, xmax, 21, "");
+		uiDefBlockBut(block, info_addmenu, NULL, "Add",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Timeline");
-		uiDefBlockBut(block, info_timelinemenu, NULL, "Timeline",	xco, 0, xmax, 21, "");
+		uiDefBlockBut(block, info_timelinemenu, NULL, "Timeline",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Game");
-		uiDefBlockBut(block, info_gamemenu, NULL, "Game",	xco, 0, xmax, 21, "");
+		uiDefBlockBut(block, info_gamemenu, NULL, "Game",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Render");
-		uiDefBlockBut(block, info_rendermenu, NULL, "Render",	xco, 0, xmax, 21, "");
+		uiDefBlockBut(block, info_rendermenu, NULL, "Render",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 		xmax= GetButStringLength("Help");
-		uiDefBlockBut(block, info_helpmenu, NULL, "Help",	xco, 0, xmax, 21, "");
+		uiDefBlockBut(block, info_helpmenu, NULL, "Help",	xco, -1, xmax-3, 22, "");
 		xco+= xmax;
 
 	}
@@ -1754,10 +1758,10 @@ void info_buttons(void)
 	}
 	else xco= 430;
 	
-	info_text(xco+24, 6);
+	info_text(xco+29, 6);
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+1, 0,XIC,YIC, 0, 0, 0, 0, 0, "Click to display Splash Screen");
+	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+7, 0,XIC,YIC, 0, 0, 0, 0, 0, "Click to display Splash Screen");
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 
 /*
