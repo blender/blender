@@ -1190,6 +1190,39 @@ static void ui_draw_links(uiBlock *block)
 
 /* ******************* block calc ************************* */
 
+void uiTextBoundsBlock(uiBlock *block, int addval)
+{
+	uiBut *bt;
+	int i = 0, j;
+	
+	bt= block->buttons.first;
+	while(bt) {
+		if(bt->type!=SEPR) {
+#ifdef INTERNATIONAL
+		if(G.ui_international == TRUE)
+			if(U.transopts & TR_BUTTONS)
+				j= FTF_GetStringWidth(bt->drawstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			else
+				j= FTF_GetStringWidth(bt->drawstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+		else
+			j= BMF_GetStringWidth(bt->font, bt->drawstr);
+#else
+		j= BMF_GetStringWidth(bt->font, bt->drawstr);
+#endif
+		if(j > i) i = j;
+		}
+		bt= bt->next;
+	}
+
+	
+	bt= block->buttons.first;
+	while(bt) {
+		bt->x2 = i + addval;
+		bt= bt->next;
+	}
+}
+
+
 void uiBoundsBlock(uiBlock *block, int addval)
 {
 	uiBut *bt;

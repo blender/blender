@@ -44,6 +44,7 @@ extern int UIfrontbuf;
 
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy);
+void uiTextBoundsBlock(uiBlock *block, int addval);
 void uiBoundsBlock(struct uiBlock *block, int addval);
 void uiDrawBlock(struct uiBlock *block);
 void uiGetMouse(int win, short *adr);

@@ -2507,6 +2507,8 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "Sign File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_SIGN_BIT, "Add signature to file");
 	uiDefBut(block, BUTM, 1, "Lock File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_LOCK_BIT, "Protect the file from editing by others");
 */
+	uiTextBoundsBlock(block, 50);
+
 	/* Toggle buttons */
 	
 	yco= 0;
@@ -2565,6 +2567,7 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 #endif
 
 	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
 		
 	return block;
 }
@@ -2586,6 +2589,7 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	uiDefButS(block, TOG|BIT|2, 0, "Two Sided", xco, yco-=20, 75, 19,   &U.vrmlflag, 0.0, 0.0, 0, 0, "Import two sided faces");
 
 	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
 		
 	return block;
 }
@@ -2651,7 +2655,8 @@ static uiBlock *info_filemenu(void *arg_unused)
 #endif /* EXPERIMENTAL_MENUS */
 	uiBlockSetDirection(block, UI_DOWN);
 
-	
+	uiTextBoundsBlock(block, 80);
+
 	return block;
 }
 
@@ -2777,6 +2782,7 @@ static uiBlock *info_editmenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "Snap Menu|Shift S",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 11, "Activate the snap menu");
 	
 	uiBlockSetDirection(block, UI_DOWN);
+	uiTextBoundsBlock(block, 80);
 		
 	return block;
 }
@@ -2909,6 +2915,7 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 #endif /* EXPERIMENTAL_MENUS */
 
 	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
 		
 	return block;
 }
@@ -2959,6 +2966,7 @@ static uiBlock *info_add_curvemenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "Path|",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Add a path");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
 		
 	return block;
 }
@@ -3015,6 +3023,7 @@ static uiBlock *info_add_surfacemenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "NURBS Donut|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Add a donut");
 
 	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
 		
 	return block;
 }
@@ -3092,6 +3101,7 @@ static uiBlock *info_addmenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "Lattice|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
 	uiBlockSetDirection(block, UI_DOWN);
+	uiTextBoundsBlock(block, 80);
 		
 	return block;
 }
@@ -3152,6 +3162,7 @@ static uiBlock *info_viewmenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "View All|Home",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 7, "");
 	
 	uiBlockSetDirection(block, UI_DOWN);
+	uiTextBoundsBlock(block, 50);
 	
 	return block;
 }
@@ -3202,6 +3213,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 			 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, G_FILE_AUTOPLAY_BIT,
 			 "Toggle between automatic game start on and off");
 	
+	uiTextBoundsBlock(block, 50);
 	/* Toggle buttons */
 #if GAMEBLENDER == 1
 	yco= -26;
@@ -3225,6 +3237,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	uiDefIconButI(block, ICONTOG|BIT|G_FILE_AUTOPLAY_BIT,
 			 0, ICON_CHECKBOX_DEHLT, -20, yco-=20, 19, 19,
 			 &G.fileflags, 0.0, 0.0, 0, 0, "");
+
 
 	return block;
 }
@@ -3266,7 +3279,9 @@ static uiBlock *info_toolsmenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "Pack Data",						0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefBut(block, BUTM, 1, "Advanced Unpack",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "");
+
 	uiBlockSetDirection(block, UI_DOWN);
+	uiTextBoundsBlock(block, 20);
 	
 	return block;
 }
@@ -3369,6 +3384,7 @@ static int GetButStringLength(char *str) {
 
 	return rt;
 }
+
 
 
 void info_buttons(void)
