@@ -2472,7 +2472,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sima->image= newlibadr_us(fd, sc->id.lib, sima->image);
 					}
 					else if(sl->spacetype==SPACE_NLA){
-						SpaceNla *snla= (SpaceNla *)sl;	
+						/* SpaceNla *snla= (SpaceNla *)sl;	*/
 					}
 					else if(sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText *)sl;
