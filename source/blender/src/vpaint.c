@@ -798,6 +798,7 @@ void weight_paint(void)
 
 //	if(me->tface==NULL && me->mcol==NULL) return;
 	
+	persp(PERSP_VIEW);
 	/* imat for normals */
 	Mat4MulMat4(mat, ob->obmat, G.vd->viewmat);
 	Mat4Invert(imat, mat);
@@ -956,6 +957,7 @@ void vertex_paint()
 
 	if(me->tface==NULL && me->mcol==NULL) return;
 	
+	persp(PERSP_VIEW);
 	/* imat for normals */
 	Mat4MulMat4(mat, ob->obmat, G.vd->viewmat);
 	Mat4Invert(imat, mat);
