@@ -42,10 +42,8 @@ all debug::
     endif
   endif
 
-  # First generic defaults for all, some of which should be overruled
-  # by platform dependent settings in the next section of this file.
+  # First generic defaults for all platforms which should be constant.
   # Note: ?= lets these defaults be overruled by environment variables,
-  # except those which are overruled in the platform section below.
 
     export SRCHOME ?= $(NANBLENDERHOME)/source
     export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
@@ -59,19 +57,6 @@ all debug::
     export LCGDIR = $(NAN_LIBDIR)/$(CONFIG_GUESS)
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
-    export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.0
-    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c 'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so 
-    export NAN_OPENAL ?= $(LCGDIR)/openal
-    export NAN_FMOD ?= $(LCGDIR)/fmod
-    export NAN_JPEG ?= $(LCGDIR)/jpeg
-    export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_SDL ?= $(LCGDIR)/sdl
-    export NAN_ODE ?= $(SRCHOME)/ode
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
-    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
-    export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_MOTO ?= $(LCGDIR)/moto
     export NAN_SOLID ?= $(SRCHOME)/sumo/SOLID-3.0
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
@@ -88,8 +73,32 @@ all debug::
     export NAN_IMG ?= $(LCGDIR)/img
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
-    export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
+
+
+  # Platform Dependent settings go below:
+
+  ifeq ($(OS),beos)
+
+    export ID = $(USER)
+    export HOST = $(HOSTNAME)
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
+	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= $(LCGDIR)/openssl
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_NSPR ?= $(LCGDIR)/nspr
+
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
@@ -97,83 +106,282 @@ all debug::
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
     # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
     # if this is not set.
-    export NAN_NSPR ?= $(LCGDIR)/nspr
-    export NAN_BUILDINFO = true
+
+    export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
-    export NAN_PARANOID = true
+    export NAN_PARANOID ?= true
 
-  # Platform Dependent settings go below. Defaults form the previous
-  # section can be overruled here. Note: don't use ?= here ;-)
-  # Also note that these cannot be overruled by environment variables
-  # anymore. (or we must put all global defaults in platform sections)
-
-  ifeq ($(OS),beos)
-    export ID = $(USER)
-    export HOST = $(HOSTNAME)
-  endif
-
+  else
   ifeq ($(OS),darwin)
+
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
-    # Override libraries locations to use fink installed libraries
-    export NAN_OPENSSL = /sw
-    export NAN_JPEG = /sw
-    export NAN_PNG = /sw
-    export NAN_ODE = $(LCGDIR)/ode
-    # Override common python settings so that the python that comes with 
-    # OSX 10.2 in /usr/local/ is used.
-    export NAN_PYTHON = /sw
-    export NAN_PYTHON_VERSION = 2.2
-    export NAN_PYTHON_BINARY = $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_MXTEXTTOOLS = $(shell $(NAN_PYTHON_BINARY) -c 'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so 
-  endif
+    export NAN_PYTHON ?= /sw
+    export NAN_PYTHON_VERSION ?= 2.2
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
+        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= /sw
+    export NAN_PNG ?= /sw
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= /sw
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_NSPR ?= $(LCGDIR)/nspr
 
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+  else
   ifeq ($(OS),freebsd)
+
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
-    export NAN_PYTHON = /usr/local/include/python
-    export NAN_PYTHON_VERSION = 2.2
-    export NAN_PYTHON_BINARY = 
-    export NAN_MXTEXTTOOLS = 
-    export NAN_OPENAL = /usr/local
-    export NAN_JPEG = /usr/local
-    export NAN_PNG = /usr/local
-    export NAN_SDL = /usr/local
-    export NAN_ODE = $(LCGDIR)/ode
-    export NAN_OPENSSL = /usr
-    export NAN_ZLIB = /usr
-    export NAN_NSPR = /usr/local
-  endif
+    export NAN_PYTHON ?= /usr/local/include/python
+    export NAN_PYTHON_VERSION ?= 2.2
+    export NAN_PYTHON_BINARY ?= 
+    export NAN_MXTEXTTOOLS ?= 
+    export NAN_OPENAL ?= /usr/local
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= /usr/local
+    export NAN_PNG ?= /usr/local
+    export NAN_SDL ?= /usr/local
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= /usr/local
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= /usr
+    export NAN_NSPR ?= /usr/local
 
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+  else
   ifeq ($(OS),irix)
+
     export ID = $(shell whoami)
     export HOST = $(shell /usr/bsd/hostname -s)
-    export NAN_PYTHON_VERSION = 2.1
-    export NAN_PYTHON_BINARY = 
-    export NAN_MXTEXTTOOLS = 
-    export NAN_ZLIB = /usr/freeware
-    export NAN_NSPR = /usr/local/apps/openblender/nspr/target/dist
-  endif
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.1
+    export NAN_PYTHON_BINARY ?= 
+    export NAN_MXTEXTTOOLS ?= 
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= $(LCGDIR)/openssl
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= /usr/freeware
+    export NAN_NSPR ?= /usr/local/apps/openblender/nspr/target/dist
 
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+  else
   ifeq ($(OS),linux)
+
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
-    export NAN_ODE = $(LCGDIR)/ode
-  endif
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
+        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= $(LCGDIR)/openssl
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_NSPR ?= $(LCGDIR)/nspr
 
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+  else
   ifeq ($(OS),openbsd)
+
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
-  endif
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
+        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= $(LCGDIR)/openssl
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_NSPR ?= $(LCGDIR)/nspr
 
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+  else
   ifeq ($(OS),solaris)
+
     export ID = $(shell /usr/ucb/whoami)
     export HOST = $(shell hostname)
-  endif
+    export NAN_PYTHON ?= /usr/local
+    export NAN_PYTHON_VERSION ?= 2.2
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
+        'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_OPENAL ?= /usr/local
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= /usr/local
+    export NAN_PNG ?= /usr/local
+    export NAN_SDL ?= /usr/local
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= /usr/local/ssl
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= /usr
+    export NAN_NSPR ?= $(LCGDIR)/nspr
 
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+  else
   ifeq ($(OS),windows)
+
     export ID = $(LOGNAME)
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
+	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= $(LCGDIR)/openssl
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_NSPR ?= $(LCGDIR)/nspr
+
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
+
+  else # Platform not listed above
+
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
+	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
+    export NAN_OPENAL ?= $(LCGDIR)/openal
+    export NAN_FMOD ?= $(LCGDIR)/fmod
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_ODE ?= $(LCGDIR)/ode
+    export NAN_OPENSSL ?= $(LCGDIR)/openssl
+    export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
+    export NAN_MESA ?= /usr/src/Mesa-3.1
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
+    export NAN_NSPR ?= $(LCGDIR)/nspr
+
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
+
+    export NAN_BUILDINFO ?= true
+    # Be paranoid regarding library creation (do not update archives)
+    export NAN_PARANOID ?= true
   endif
-
 endif
-
+endif
+endif
+endif
+endif
+endif
+endif
+endif
