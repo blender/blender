@@ -4423,11 +4423,11 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 		int b;
 		
 		if(dl) dlm= dl->mesh;
-		a= 1; // color indices start with 1
+		a= 0; 
 
 		if(dlm) {
 			MFace *mface;
-			efa= dlm->editface[0];
+			efa= NULL;
 			
 			for(b=0, mface= dlm->mface; b<dlm->totface; b++, mface++) {
 				if(mface->v3) {
@@ -4447,6 +4447,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 					glEnd();
 				}
 			}
+			a++;	// the weird constructed loop ends with last drawn color...
 		}
 		else {
 			

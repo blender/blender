@@ -307,7 +307,7 @@ static void check_fgons_selection()
 			
 			if(sel && desel) break;
 		}
-		printf("fgon %d sel %d desel %d\n", index, sel, desel);
+
 		if(sel && desel) sel= 0;
 		else if(sel) sel= 1;
 		else sel= 0;

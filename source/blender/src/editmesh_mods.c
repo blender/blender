@@ -424,9 +424,11 @@ EditEdge *findnearestedge(short *dist)
 		if(buf) {
 			index= sample_backbuf_rect(buf, 50, em_solidoffs, em_wireoffs, &distance); // global, set in drawobject.c
 			MEM_freeN(buf);
-
 			if(distance < *dist) {
-				if(index>0 && index<=em_wireoffs) for(eed= G.editMesh->edges.first; eed; eed= eed->next, a++) if(index==a) break;
+				if(index>0 && index<=em_wireoffs-em_solidoffs) {
+					for(eed= G.editMesh->edges.first; eed; eed= eed->next, a++) 
+						if(index==a) break;
+				}
 				if(eed) *dist= distance;
 			}
 		}
