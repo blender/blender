@@ -519,7 +519,7 @@ static void createTransMBallVerts(void)
 			VECCOPY(td->center, td->loc);
 
 			if(ml->flag & SELECT) td->flag= TD_SELECTED | TD_USEQUAT;
-			else td->flag= 0;
+			else td->flag= TD_USEQUAT;
 
 			Mat3CpyMat3(td->smtx, smtx);
 			Mat3CpyMat3(td->mtx, mtx);
