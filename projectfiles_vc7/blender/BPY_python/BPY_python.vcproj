@@ -226,6 +226,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\gen_utils.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\logic.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\matrix.c">
 			</File>
 			<File
@@ -360,6 +363,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\gen_utils.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\logic.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\matrix.h">
