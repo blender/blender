@@ -39,6 +39,7 @@
 #include <string.h>
 #include <locale.h>
 #include "libintl.h"
+#include "BLI_blenlib.h"
 
 #ifdef __APPLE__
 #include <libgen.h>
@@ -49,7 +50,6 @@
 #include "FTF_TTFont.h"
 
 #define DOMAIN_NAME "blender"
-#define MESSAGE_FILE "message"
 
 #define SYSTEM_ENCODING_DEFAULT "UTF-8"
 #define FONT_SIZE_DEFAULT 12
@@ -103,9 +103,50 @@ int utf8towchar(wchar_t *w, char *c)
 
 FTF_TTFont::FTF_TTFont(void)
 {	
+#ifdef __APPLE__
+	char tmp[1024];
+#endif
+
 	font=NULL;
 	font_size=FONT_SIZE_DEFAULT;
 	strcpy(encoding_name, SYSTEM_ENCODING_DEFAULT);
+
+	//set messagepath directory
+
+#ifndef LOCALEDIR
+#define LOCALEDIR "/usr/share/locale"
+#endif
+
+	BLI_make_file_string("/", messagepath, BLI_gethome(), ".blender/locale");
+printf("1. %s\n", messagepath);
+	if (BLI_exist(messagepath) == NULL) {	// locale not in home dir
+
+		strcpy(messagepath, ".blender/locale");
+printf("2. %s\n", messagepath);
+		if(BLI_exist(messagepath) == NULL) {	// locale not in current dir
+
+			strcpy(messagepath, LOCALEDIR);
+printf("3. %s\n", messagepath);
+			if(BLI_exist(messagepath) == NULL) {	// locale not in LOCALEDIR
+
+
+#ifdef __APPLE__
+				/* message catalogs are stored inside the application bundle */
+				strcpy(tmp, dirname(bprogname));
+				strcat(tmp, "/../Resources/message");
+				realpath(tmp, messagepath);
+printf("4. %s\n", messagepath);
+				if(BLI_exist(messagepath) == NULL) {	// locale not in bundle dir
+#endif
+					
+					strcpy(messagepath, "message");		// old compatibility as last
+printf("5. %s\n", messagepath);
+				}
+#ifdef __APPLE__
+			} // heh
+#endif
+		}
+	}
 }
 
 
@@ -142,10 +183,6 @@ int FTF_TTFont::SetFont(char* str, int size)
 
 void FTF_TTFont::SetLanguage(char* str)
 {
-#ifdef __APPLE__
-	char tmp[1024];
-	char msgpath[1024];
-#endif
 
 #if defined (_WIN32) || defined(__APPLE__)
 	char envstr[12];
@@ -169,17 +206,10 @@ void FTF_TTFont::SetLanguage(char* str)
 	setlocale(LC_NUMERIC, "C");
 #endif
 
-#ifdef __APPLE__
-	/* message catalogs are stored inside the application bundle */
-	strcpy(tmp, dirname(bprogname));
-	strcat(tmp, "/../Resources/message");
-	realpath(tmp, msgpath);
-	bindtextdomain(DOMAIN_NAME, msgpath);
+
+	bindtextdomain(DOMAIN_NAME, messagepath);
 	textdomain(DOMAIN_NAME);
-#else
-	bindtextdomain(DOMAIN_NAME, MESSAGE_FILE);
-	textdomain(DOMAIN_NAME);
-#endif
+
 	strcpy(language, str);
 }
 

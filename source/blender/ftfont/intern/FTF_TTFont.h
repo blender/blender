@@ -91,6 +91,8 @@ public:
 	void SetEncoding(char* str);
 
 protected:
+	char messagepath[1024];
+
 	char language[32];
 	char encoding_name[32];
 	char font_name[128];

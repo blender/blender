@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../../../source\blender\makesdna" /I "../../../source\blender\blenloader" /I "../../../../lib/windows/ftgl/include" /I "../../../../lib/windows/freetype/include" /I "../../../lib/windows/iconv/include" /I "../../../../lib/windows/gettext/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "WCHAR_T16" /D "HAVE_LC_MESSAGES" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../../../source\blender\makesdna" /I "../../../source\blender\blenloader" /I "../../../source\blender\blenlib" /I "../../../../lib/windows/ftgl/include" /I "../../../../lib/windows/freetype/include" /I "../../../lib/windows/iconv/include" /I "../../../../lib/windows/gettext/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "WCHAR_T16" /D "HAVE_LC_MESSAGES" /YX /FD /c
 # ADD BASE RSC /l 0x411 /d "NDEBUG"
 # ADD RSC /l 0x411 /d "NDEBUG"
 BSC32=bscmake.exe
