@@ -250,7 +250,7 @@ void start_interface_font(void)
 
 		sprintf(U.fontname, "/.bfont.ttf\0");
 #else
-		sprintf(U.fontname, "/.bfont.ttf\0");
+		sprintf(U.fontname, ".blender/.bfont.ttf\0");
 
 		result = FTF_SetFont(U.fontname, U.fontsize);
 #endif
