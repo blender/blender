@@ -2363,7 +2363,7 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 	MFace *mface;
 	TFace *tface;
 	Image *ima;
-	int a, b, totcol;
+	int a, b, totcol, texind;
 	char str[32];
 	
 	replace_chars(str, me->id.name+2);
@@ -2422,6 +2422,7 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 	
 	totcol= me->totcol;
 	if(totcol==0) totcol= 1;
+	texind= 0; // index for uv coords
 	
 	for(b=0; b<totcol; b++) {
 		
@@ -2470,8 +2471,28 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 			mface++;
 		}
 		fprintf(fp, "\t\t\t]\n");
-		fprintf(fp, "\t\t}\n");
 
+		if(me->tface) {
+			fprintf(fp, "\t\t\ttextureCoordIndex [\n");
+	
+			a= me->totface;
+			mface= me->mface;
+			while(a--) {
+				if(mface->mat_nr==b) {
+					if(mface->v4) {
+						fprintf(fp, "\t\t\t\t %d, %d, %d, %d, -1,\n", texind, texind+1, texind+2, texind+3); 
+						texind+= 4;
+					}
+					else if(mface->v3) {
+						fprintf(fp, "\t\t\t\t %d, %d, %d, -1,\n", texind, texind+1, texind+2); 
+						texind+= 3;
+					}
+				}
+				mface++;
+			}
+			fprintf(fp, "\t\t\t]\n");
+		}
+		fprintf(fp, "\t\t}\n");
 	}
 	
 	fprintf(fp, "\t}\n");
