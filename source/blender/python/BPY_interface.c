@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
- * Chris Keith
+ * Chris Keith, Chris Want
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -114,14 +114,26 @@ PyObject *blender_import( PyObject * self, PyObject * args );
 *	          api variations.
 * Notes:	Currently only the api for 2.2x will be initialised. 
 ****************************************************************************/
-void BPY_start_python( void )
+void BPY_start_python( int argc, char **argv )
 {
-	bpy_registryDict = PyDict_New(  );	/* check comment at start of this file */
+	static int argc_copy = 0;
+	static char **argv_copy = NULL;
+	int first_time = argc;
+
+	/* we keep a copy of the values of argc and argv so that the game engine
+	 * can call BPY_start_python(0, NULL) whenever a game ends, without having
+	 * to know argc and argv there (in source/blender/src/space.c) */
+
+	if( first_time ) {
+		argc_copy = argc;
+		argv_copy = argv;
+	}
+
+	bpy_registryDict = PyDict_New(  );/* check comment at start of this file */
 
 	if( !bpy_registryDict )
 		printf( "Error: Couldn't create the Registry Python Dictionary!" );
 
-/* TODO: Shouldn't "blender" be replaced by PACKAGE ?? (config.h) */
 	Py_SetProgramName( "blender" );
 
 	/* 
@@ -130,16 +142,19 @@ void BPY_start_python( void )
 	 * rest of our init msgs.
 	 */
 
-	printf( "Checking for Python install...\n" );
-	fflush( stdout );
+	if( first_time ) { /* so it only prints msg on first_time */
+		printf( "Checking for Python install...\n" );
+		fflush( stdout );
+	}
 
 	Py_Initialize(  );
+	PySys_SetArgv( argc_copy, argv_copy );
 
 	init_ourImport(  );
 
 	initBlenderApi2_2x(  );
 
-	init_syspath(  );
+	init_syspath( first_time ); /* not first_time: some msgs are suppressed */
 
 	return;
 }
@@ -187,7 +202,7 @@ void syspath_append( char *dirname )
 	Py_DECREF( mod_sys );
 }
 
-void init_syspath( void )
+void init_syspath( int first_time )
 {
 	PyObject *path;
 	PyObject *mod, *d;
@@ -238,7 +253,7 @@ void init_syspath( void )
 		int size = 0;
 		int index;
 
-		printf( "Installed Python found!\n" );
+		if( first_time ) printf( "Installed Python found!\n" );
 
 		/* get the value of 'sitedirs' from the module */
 
@@ -260,15 +275,16 @@ void init_syspath( void )
 		Py_DECREF( mod );
 	} else {		/* import 'site' failed */
 		PyErr_Clear(  );
-		printf( "No installed Python found.\n" );
-		printf( "Only built-in modules are available.  Some scripts may not run.\n" );
-		printf( "Continuing happily.\n" );
+		if( first_time ) {
+			printf( "No installed Python found.\n" );
+			printf( "Only built-in modules are available.  Some scripts may not run.\n" );
+			printf( "Continuing happily.\n" );
+		}
 	}
 
 	/* 
 	 * initialize the sys module
 	 * set sys.executable to the Blender exe 
-	 * set argv[0] to the Blender exe
 	 */
 
 	mod = PyImport_ImportModule( "sys" );	/* new ref */
@@ -277,9 +293,6 @@ void init_syspath( void )
 		d = PyModule_GetDict( mod );	/* borrowed ref */
 		PyDict_SetItemString( d, "executable",
 				      Py_BuildValue( "s", bprogname ) );
-		/* in the future this can be extended to have more argv's if needed: */
-		PyDict_SetItemString( d, "argv",
-				      Py_BuildValue( "[s]", bprogname ) );
 		Py_DECREF( mod );
 	}
 }

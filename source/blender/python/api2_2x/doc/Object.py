@@ -3,7 +3,8 @@
 """
 The Blender.Object submodule
 
-B{New}: 'oldlocal' parameter in L{Object.Object.getMatrix}. 
+B{New}: 'old_worldspace' parameter in L{Object.Object.getMatrix}, which now
+defaults to 'worldspace'. 
 
 Object
 ======
@@ -146,7 +147,7 @@ class Object:
     @cvar data: The data of the object. (Read-only)
     @cvar ipo: The ipo data associated with the object. (Read-only)
     @cvar mat: The matrix of the object relative to its parent. (Read-only)
-    @cvar matrix: The matrix of the object relative to its parent. (Read-only)
+    @cvar matrix: The matrix of the object in world space. (Read-only)
     @cvar matrixLocal: The matrix of the object relative to its parent. (Read-only)
     @cvar matrixWorld: The matrix of the object in world space. (Read-only)
     @cvar colbits: The Material usage mask. A set bit #n means: the Material
@@ -287,17 +288,17 @@ class Object:
     @return: list of Material Objects assigned to the object.
     """
 
-  def getMatrix(space = 'localspace'):
+  def getMatrix(space = 'worldspace'):
     """
     Returns the object matrix.
     @type space: string
     @param space: The desired matrix:
-      - localspace (default): relative to the object's parent;
-      - worldspace: absolute, taking vertex parents, tracking and ipo's into
-          account;
-      - oldlocal: old behavior, prior to Blender 2.34, where eventual changes
-          made by the script itself were not taken into account until the
-          script finished executing.
+      - worldspace (default): absolute, taking vertex parents, tracking and
+          ipo's into account;
+      - localspace: relative to the object's parent;
+      - old_worldspace: old behavior, prior to Blender 2.34, where eventual
+          changes made by the script itself were not taken into account until
+          a redraw happened, either called by the script or upon its exit.
     Returns the object matrix.
     @rtype: Py_Matrix
     @return: a python 4x4 matrix object

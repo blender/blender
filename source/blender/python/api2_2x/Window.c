@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Tom Musgrove
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -47,6 +47,7 @@
 #include <BIF_screen.h>
 #include <BIF_space.h>
 #include <BIF_drawtext.h>
+#include <BIF_mywindow.h> /* L/M/R_MOUSE bitflags */
 #include <BIF_spacetypes.h>
 #include <mydevice.h>
 #include <DNA_view3d_types.h>
@@ -85,6 +86,7 @@ static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetViewOffset( PyObject * self );
 static PyObject *M_Window_SetViewOffset( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetViewMatrix( PyObject * self );
+static PyObject *M_Window_GetPerspMatrix( PyObject * self );
 static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args );
 static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args );
 static PyObject *M_Window_EditMode( PyObject * self, PyObject * args );
@@ -164,6 +166,9 @@ static char M_Window_GetViewVector_doc[] =
 static char M_Window_GetViewMatrix_doc[] =
 	"() - Get the current 3d view matrix.";
 
+static char M_Window_GetPerspMatrix_doc[] =
+	"() - Get the current 3d Persp matrix.";
+
 static char M_Window_EditMode_doc[] =
 	"() - Get the current status -- 0: not in edit mode; 1: in edit mode.\n\
 (status) - if 1: enter edit mode; if 0: leave edit mode.\n\
@@ -228,7 +233,7 @@ static char M_Window_SetMouseCoords_doc[] =
 (x,y) - ints ([x, y] also accepted): the new x, y coordinates.";
 
 static char M_Window_GetMouseButtons_doc[] =
-	"() - Get the current mouse button state (see Blender.Draw.LEFTMOUSE, etc).";
+	"() - Get the current mouse button state (see Blender.Window.MButs dict).";
 
 static char M_Window_GetKeyQualifiers_doc[] =
 	"() - Get the current qualifier keys state.\n\
@@ -306,6 +311,8 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_SetViewOffset_doc},
 	{"GetViewMatrix", ( PyCFunction ) M_Window_GetViewMatrix, METH_NOARGS,
 	 M_Window_GetViewMatrix_doc},
+	{"GetPerspMatrix", ( PyCFunction ) M_Window_GetPerspMatrix, METH_NOARGS,
+	 M_Window_GetPerspMatrix_doc},
 	{"EditMode", ( PyCFunction ) M_Window_EditMode, METH_VARARGS,
 	 M_Window_EditMode_doc},
 	{"ViewLayer", ( PyCFunction ) M_Window_ViewLayer, METH_VARARGS,
@@ -784,6 +791,30 @@ static PyObject *M_Window_GetViewMatrix( PyObject * self )
 	return viewmat;
 }
 
+/*****************************************************************************/
+/* Function:	M_Window_GetPerspMatrix				*/
+/* Python equivalent:	Blender.Window.GetPerspMatrix		*/
+/*****************************************************************************/
+static PyObject *M_Window_GetPerspMatrix( PyObject * self )
+{
+	PyObject *perspmat;
+	
+	if( !G.vd ) {
+		Py_INCREF( Py_None );
+		return Py_None;
+	}
+
+	perspmat =
+		( PyObject * ) newMatrixObject( ( float * ) G.vd->persmat, 4,
+						4 );
+
+	if( !perspmat )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "GetPerspMatrix: couldn't create matrix pyobject" );
+
+	return perspmat;
+}
+
 static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 {
 	short status = -1;
@@ -1214,7 +1245,7 @@ static PyObject *M_Window_GetScreenInfo( PyObject * self, PyObject * args,
 /*****************************************************************************/
 PyObject *Window_Init( void )
 {
-	PyObject *submodule, *Types, *Qual, *dict;
+	PyObject *submodule, *Types, *Qual, *MButs, *dict;
 
 	submodule =
 		Py_InitModule3( "Blender.Window", M_Window_methods,
@@ -1226,6 +1257,7 @@ PyObject *Window_Init( void )
 
 	Types = M_constant_New(  );
 	Qual = M_constant_New(  );
+	MButs = M_constant_New(  );
 
 	if( Types ) {
 		BPy_constant *d = ( BPy_constant * ) Types;
@@ -1262,6 +1294,16 @@ PyObject *Window_Init( void )
 		constant_insert( d, "SHIFT", PyInt_FromLong( LR_SHIFTKEY ) );
 
 		PyModule_AddObject( submodule, "Qual", Qual );
+	}
+
+	if( MButs ) {
+		BPy_constant *d = ( BPy_constant * ) MButs;
+
+		constant_insert( d, "L", PyInt_FromLong( L_MOUSE ) );
+		constant_insert( d, "M", PyInt_FromLong( M_MOUSE ) );
+		constant_insert( d, "R", PyInt_FromLong( R_MOUSE ) );
+
+		PyModule_AddObject( submodule, "MButs", MButs );
 	}
 
 	return submodule;

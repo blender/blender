@@ -3,7 +3,7 @@
 """
 The Blender.World submodule
 
-B{New}: scriptLink methods: L{World.getScriptLinks}, ...
+B{New}: L{GetCurrent}, L{World.setCurrent}.
 
 INTRODUCTION
 ============
@@ -44,7 +44,7 @@ def New (name):
   @type name: string
   @param name: World's name (optionnal).
   @rtype: Blender World
-  @return: The created World. If the "name" paraeter has not been provided, it will be automatically be set by blender.
+  @return: The created World. If the "name" parameter has not been provided, it will be automatically be set by blender.
   """
 
 def Get (name):
@@ -59,7 +59,7 @@ def Get (name):
   """
 
 
-def GetActive ():
+def GetCurrent ():
   """
   Get the active world of the scene.
   @rtype: Blender World or None
@@ -315,7 +315,7 @@ class World:
     @param event: "FrameChanged" or "Redraw".
     """
   
-  def makeActive ():
+  def setCurrent ():
     """
     Make this world active in the current scene.
     @rtype: PyNone

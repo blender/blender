@@ -67,8 +67,12 @@ static PyObject *M_Theme_Get( PyObject * self, PyObject * args );
 static char M_Theme_doc[] = "The Blender Theme module\n\n\
 This module provides access to UI Theme data in Blender";
 
-static char M_Theme_New_doc[] = "Theme.New (name = 'New Theme'):\n\
-	Return a new Theme Data object with the given type and name.";
+static char M_Theme_New_doc[] = "Theme.New (name = 'New Theme',\
+theme = <default>):\n\
+	Return a new Theme Data object.\n\
+(name) - string: the Theme's name, it defaults to 'New Theme';\n\
+(theme) - bpy Theme: a base Theme to copy all data from, it defaults to the\n\
+current one.";
 
 static char M_Theme_Get_doc[] = "Theme.Get (name = None):\n\
 	Return the theme data with the given 'name', None if not found, or\n\

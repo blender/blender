@@ -196,9 +196,14 @@ hierarchy (faster)"},
 	 "(i = 0) - Returns list of materials assigned to the object.\n\
 if i is nonzero, empty slots are not ignored: they are returned as None's."},
 	{"getMatrix", ( PyCFunction ) Object_getMatrix, METH_VARARGS,
-	 "(str = 'localspace') - Returns the object matrix.\n\
-(str = 'localspace') - the wanted matrix: worldspace, localspace (default)\n\
-or oldlocal (not updated, it was the only choice before Blender 2.34)."},
+	 "(str = 'worldspace') - Returns the object matrix.\n\
+(str = 'localspace') - the wanted matrix: worldspace (default), localspace\n\
+or old_worldspace.\n\
+\n\
+'old_worldspace' was the only behavior before Blender 2.34.  With it the\n\
+matrix is not updated for changes made by the script itself\n\
+(like obj.LocX = 10) until a redraw happens, either called by the script or\n\
+automatic when the script finishes."},
 	{"getName", ( PyCFunction ) Object_getName, METH_NOARGS,
 	 "Returns the name of the object"},
 	{"getParent", ( PyCFunction ) Object_getParent, METH_NOARGS,
@@ -952,7 +957,7 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 {
 	PyObject *matrix;
-	char *space = "localspace";	/* default to local */
+	char *space = "worldspace";	/* default to local */
 
 	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -970,13 +975,14 @@ static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
 		object_to_mat4( self->object,
 				*( ( MatrixObject * ) matrix )->matrix );
-	} else if( BLI_streq( space, "oldlocal" ) ) {	/* old behavior, prior to 2.34 */
+		/* old behavior, prior to 2.34, check this method's doc string: */
+	} else if( BLI_streq( space, "old_worldspace" ) ) {
 		Mat4CpyMat4( *( ( MatrixObject * ) matrix )->matrix,
 			     self->object->obmat );
 	} else {
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"wrong parameter, expected nothing or either 'localspace' (default),\n\
-'worldspace' or 'oldlocal'" ) );
+				"wrong parameter, expected nothing or either 'worldspace' (default),\n\
+'localspace' or 'old_worldspace'" ) );
 	}
 	return matrix;
 }
@@ -2199,7 +2205,7 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	}
 	if( StringEqual( name, "mat" ) || StringEqual( name, "matrix" ) )
 		return ( Object_getMatrix
-			 ( obj, Py_BuildValue( "(s)", "localspace" ) ) );
+			 ( obj, Py_BuildValue( "(s)", "worldspace" ) ) );
 	if( StringEqual( name, "matrixWorld" ) )
 		return ( Object_getMatrix
 			 ( obj, Py_BuildValue( "(s)", "worldspace" ) ) );

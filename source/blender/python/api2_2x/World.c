@@ -85,7 +85,7 @@ static PyObject *World_setMist( BPy_World * self, PyObject * args );
 static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_addScriptLink( BPy_World * self, PyObject * args );
 static PyObject *World_clearScriptLinks( BPy_World * self );
-static PyObject *World_makeActive( BPy_World * self );
+static PyObject *World_setCurrent( BPy_World * self );
 
 
 /*****************************************************************************/
@@ -94,7 +94,7 @@ static PyObject *World_makeActive( BPy_World * self );
 static PyObject *M_World_New( PyObject * self, PyObject * args,
 			      PyObject * keywords );
 static PyObject *M_World_Get( PyObject * self, PyObject * args );
-static PyObject *M_World_GetActive( PyObject * self );
+static PyObject *M_World_GetCurrent( PyObject * self );
 
 
 /*****************************************************************************/
@@ -123,7 +123,7 @@ static char M_World_Get_doc[] =
 	"(name) - return the world with the name 'name', \
 returns None if not found.\n If 'name' is not specified, \
 it returns a list of all worlds in the\ncurrent scene.";
-static char M_World_GetActive_doc[] = "() - returns the current world, or \
+static char M_World_GetCurrent_doc[] = "() - returns the current world, or \
 None if the Scene has no world";
 
 
@@ -135,8 +135,10 @@ struct PyMethodDef M_World_methods[] = {
 	{"New", ( PyCFunction ) M_World_New, METH_VARARGS | METH_KEYWORDS,
 	 M_World_New_doc},
 	{"Get", M_World_Get, METH_VARARGS, M_World_Get_doc},
-	{"GetActive", ( PyCFunction ) M_World_GetActive, METH_NOARGS,
-	 M_World_GetActive_doc},
+	{"GetActive", ( PyCFunction ) M_World_GetCurrent, METH_NOARGS,
+	 M_World_GetCurrent_doc},
+	{"GetCurrent", ( PyCFunction ) M_World_GetCurrent, METH_NOARGS,
+	 M_World_GetCurrent_doc},
 	{"get", M_World_Get, METH_VARARGS, M_World_Get_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -200,8 +202,10 @@ static PyMethodDef BPy_World_methods[] = {
 	{"clearScriptLinks", ( PyCFunction ) World_clearScriptLinks,
 	 METH_NOARGS,
 	 "() - Delete all scriptlinks from this world :)."},
-	{"makeActive", ( PyCFunction ) World_makeActive, METH_NOARGS,
+	{"setCurrent", ( PyCFunction ) World_setCurrent, METH_NOARGS,
 	 "() - Makes this world the active world for the current scene."},
+	{"makeActive", ( PyCFunction ) World_setCurrent, METH_NOARGS,
+	 "please use setCurrent instead, this alias will be removed."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -357,7 +361,7 @@ static PyObject *M_World_Get( PyObject * self, PyObject * args )
 
 
 
-static PyObject *M_World_GetActive( PyObject * self )
+static PyObject *M_World_GetCurrent( PyObject * self )
 {
 	BPy_World *w = NULL;
 	if( !G.scene->world ) {
@@ -864,8 +868,8 @@ static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args )
 
 
 
-/* world.makeActive */
-static PyObject *World_makeActive( BPy_World * self )
+/* world.setCurrent */
+static PyObject *World_setCurrent( BPy_World * self )
 {
 	World *world = self->world;
 	/* If there is a world then it now has one less user */

@@ -74,6 +74,9 @@ Example::
   #
   Draw.Register(show_win, ev, None)      # start the main loop
 
+@note: you can use the L{Image} module and L{Image.Image} bpy object to load
+    and set textures.  See L{Image.Image.glLoad} and L{Image.Image.glFree},
+    for example.
 @see: U{www.opengl.org}
 @see: U{nehe.gamedev.net}
 """

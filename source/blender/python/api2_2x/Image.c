@@ -34,6 +34,7 @@
 #include "BLI_winstuff.h"
 #endif				/* WIN32 */
 
+#include <BDR_drawmesh.h> /* free_realtime_image */
 #include <BKE_main.h>
 #include <BKE_global.h>
 #include <BKE_library.h>
@@ -250,6 +251,7 @@ static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_reload( BPy_Image * self );	/* by Campbell */
 static PyObject *Image_glLoad( BPy_Image * self );
+static PyObject *Image_glFree( BPy_Image * self );
 
 /*****************************************************************************/
 /* Python BPy_Image methods table:	 */
@@ -275,6 +277,9 @@ static PyMethodDef BPy_Image_methods[] = {
 	{"glLoad", ( PyCFunction ) Image_glLoad, METH_NOARGS,
 	 "() - Load the image data in OpenGL texture memory.\n\
 	The bindcode (int) is returned."},
+	{"glFree", ( PyCFunction ) Image_glFree, METH_NOARGS,
+	 "() - Free the image data from OpenGL texture memory only,\n\
+		see also image.glLoad()."},
 	{"setName", ( PyCFunction ) Image_setName, METH_VARARGS,
 	 "(str) - Change Image object name"},
 	{"setXRep", ( PyCFunction ) Image_setXRep, METH_VARARGS,
@@ -480,6 +485,14 @@ static PyObject *Image_reload( BPy_Image * self )
 
 	Py_INCREF( Py_None );
 	return Py_None;
+}
+
+static PyObject *Image_glFree( BPy_Image * self )
+{
+	Image *img = self->image;
+
+	free_realtime_image( img );
+	return EXPP_incr_ret( Py_None );
 }
 
 static PyObject *Image_glLoad( BPy_Image * self )

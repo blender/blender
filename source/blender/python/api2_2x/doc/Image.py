@@ -6,7 +6,7 @@ The Blender.Image submodule.
 Image
 =====
 
-B{New}: L{Image.reload}, L{Image.getBindCode}.
+B{New}: L{Image.glLoad}, L{Image.glFree}.
 
 This module provides access to B{Image} objects in Blender.
 
@@ -110,8 +110,8 @@ class Image:
 
   def getBindCode():
     """
-    Get the Image's bindcode.  This is for texture loading using BGL calls,
-    see for example L{BGL.glBindTexture}.
+    Get the Image's bindcode.  This is for texture loading using BGL calls.
+    See, for example, L{BGL.glBindTexture} and L{glLoad}.
     @rtype: int
     """
 
@@ -123,6 +123,29 @@ class Image:
     @warn: if the image file is corrupt or still being written, it will be
        replaced by a blank image in Blender, but no error will be returned.
     @returns: None
+    """
+
+  def glLoad():
+    """
+    Load this image's data into OpenGL texture memory, if it is not already
+    loaded (image.bindcode is 0 if it is not loaded yet).
+    @note: Usually you don't need to call this method.  It is only necessary
+       if you want to draw textured objects in the Scripts window and the
+       image's bind code is zero at that moment, otherwise Blender itself can
+       take care of binding / unbinding textures.  Calling this method for an
+       image with nonzero bind code simply returns the image's bind code value
+       (see L{getBindCode}).
+    @rtype: int
+    @returns: the texture's bind code.
+    """
+
+  def glFree():
+    """
+    Delete this image's data from OpenGL texture memory, only (the image itself
+    is not removed from Blender's memory).  Internally, glDeleteTextures (see
+    L{BGL.glDeleteTextures}) is used, but this method also updates Blender's
+    Image object so that its bind code is set to 0.  See also L{Image.glLoad},
+    L{Image.getBindCode}.
     """
 
   def setName(name):

@@ -8,7 +8,7 @@ Window
 
 This module provides access to B{Window} functions in Blender.
 
-B{New}: many new functions related to screens and events.
+B{New}: L{GetPerspMatrix}.
 
 Example:
 --------
@@ -81,6 +81,12 @@ DrawProgressBar::
     - LSHIFT
     - RSHIFT
     - SHIFT
+
+@type MButs: readonly dictionary
+@var MButs: Mouse buttons.
+    - L: left mouse button
+    - M: middle mouse button
+    - R: right mouse button
 """
 
 def Redraw (spacetype = '<Types.VIEW3D>'):
@@ -197,6 +203,13 @@ def GetViewVector ():
 def GetViewMatrix ():
   """
   Get the current 3d view matrix.
+  @rtype: 4x4 float matrix
+  @return: the current matrix.
+  """
+
+def GetPerspMatrix ():
+  """
+  Get the current 3d perspective matrix.
   @rtype: 4x4 float matrix
   @return: the current matrix.
   """
@@ -358,7 +371,7 @@ def SetMouseCoords (coords):
 
 def GetMouseButtons ():
   """
-  Get the current mouse button state (compare with events from L{Draw}).
+  Get the current mouse button state (see / compare against L{MButs}).
   @rtype: int
   @return: an or'ed flag with the currently pressed buttons.
   """

@@ -473,7 +473,7 @@ void start_game(void)
 
 	/* Restart BPY - unload the game engine modules. */
 	BPY_end_python();
-	BPY_start_python();
+	BPY_start_python(0, NULL); /* argc, argv stored there already */
 	BPY_post_start_python(); /* userpref path and menus init */
 
 	restore_all_scene_cfra(scene_cfra_store);

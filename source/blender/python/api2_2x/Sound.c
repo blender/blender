@@ -48,11 +48,16 @@
 /* Python BPy_Sound defaults:					*/
 /*****************************************************************************/
 
+#define EXPP_SND_volume_MIN   0.0
+#define EXPP_SND_volume_MAX   1.0
+#define EXPP_SND_pitch_MIN  -12.0
+#define EXPP_SND_pitch_MAX   12.0
+#define EXPP_SND_attenuation_MIN 0.0
+#define EXPP_SND_attenuation_MAX 5.0
+
 /*****************************************************************************/
 /* Python API function prototypes for the Sound module.		*/
 /*****************************************************************************/
-static PyObject *M_Sound_New( PyObject * self, PyObject * args,
-			      PyObject * keywords );
 static PyObject *M_Sound_Get( PyObject * self, PyObject * args );
 static PyObject *M_Sound_Load( PyObject * self, PyObject * args );
 
@@ -63,26 +68,20 @@ static PyObject *M_Sound_Load( PyObject * self, PyObject * args );
 /************************************************************************/
 static char M_Sound_doc[] = "The Blender Sound module\n\n";
 
-static char M_Sound_New_doc[] =
-	"() - return a new Sound object -- unimplemented";
-
 static char M_Sound_Get_doc[] =
 	"(name) - return the sound with the name 'name', \
 returns None if not found.\n If 'name' is not specified, \
 it returns a list of all sounds in the\ncurrent scene.";
 
 static char M_Sound_Load_doc[] =
-	"(filename, redraw = 0) - return sound from file filename as Sound Object,\n\
+	"(filename) - return sound from file filename as a Sound Object,\n\
 returns None if not found.";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Sound module:							 */
 /*****************************************************************************/
 struct PyMethodDef M_Sound_methods[] = {
-	{"New", ( PyCFunction ) M_Sound_New, METH_VARARGS | METH_KEYWORDS,
-	 M_Sound_New_doc},
 	{"Get", M_Sound_Get, METH_VARARGS, M_Sound_Get_doc},
-	{"get", M_Sound_Get, METH_VARARGS, M_Sound_Get_doc},
 	{"Load", M_Sound_Load, METH_VARARGS, M_Sound_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -109,7 +108,8 @@ static PyObject *Sound_set ## funcname(BPy_Sound *self, PyObject *args) { \
     if (!PyArg_ParseTuple(args, "f", &f))			\
 	    return (EXPP_ReturnPyObjError (PyExc_TypeError,	\
 		    "expected float argument"));		\
-    self->sound->varname = f;					\
+    self->sound->varname = EXPP_ClampFloat(f,\
+			EXPP_SND_##varname##_MIN, EXPP_SND_##varname##_MAX);\
     Py_INCREF(Py_None);						\
     return Py_None;						\
 }
@@ -127,14 +127,18 @@ static PyObject *Sound_set ## funcname(BPy_Sound *self, PyObject *args) { \
 static PyObject *Sound_getName( BPy_Sound * self );
 static PyObject *Sound_getFilename( BPy_Sound * self );
 static PyObject *Sound_play( BPy_Sound * self );
-static PyObject *Sound_makeActive( BPy_Sound * self );
+static PyObject *Sound_setCurrent( BPy_Sound * self );
+//static PyObject *Sound_reload ( BPy_Sound * self );
 SOUND_FLOAT_METHODS( Volume, volume )
-	SOUND_FLOAT_METHODS( Panning, panning )
-	SOUND_FLOAT_METHODS( Attenuation, attenuation )
-	SOUND_FLOAT_METHODS( Pitch, pitch )
-	SOUND_FLOAT_METHODS( MinGain, min_gain )
-	SOUND_FLOAT_METHODS( MaxGain, max_gain )
-	SOUND_FLOAT_METHODS( Distance, distance )
+SOUND_FLOAT_METHODS( Attenuation, attenuation )
+SOUND_FLOAT_METHODS( Pitch, pitch )
+/* these can't be set via interface, removed for now */
+/*
+SOUND_FLOAT_METHODS( Panning, panning )
+SOUND_FLOAT_METHODS( MinGain, min_gain )
+SOUND_FLOAT_METHODS( MaxGain, max_gain )
+SOUND_FLOAT_METHODS( Distance, distance )
+*/
 
 /*****************************************************************************/
 /* Python BPy_Sound methods table:				         */
@@ -147,15 +151,21 @@ static PyMethodDef BPy_Sound_methods[] = {
 	 "() - Return Sound object filename"},
 	{"play", ( PyCFunction ) Sound_play, METH_NOARGS,
 	 "() - play this sound"},
-	{"makeActive", ( PyCFunction ) Sound_makeActive, METH_NOARGS,
+	{"setCurrent", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
 	 "() - make this the active sound in the sound buttons win (also redraws)"},
+	//{"reload", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
+	 //"() - reload this Sound object's sample.\n\
+//This is only useful if the original sound file has changed."},
 	SOUND_FLOAT_METHOD_FUNCS( Volume )
-		SOUND_FLOAT_METHOD_FUNCS( Panning )
-		SOUND_FLOAT_METHOD_FUNCS( Attenuation )
-		SOUND_FLOAT_METHOD_FUNCS( Pitch )
-		SOUND_FLOAT_METHOD_FUNCS( MinGain )
-		SOUND_FLOAT_METHOD_FUNCS( MaxGain )
-	SOUND_FLOAT_METHOD_FUNCS( Distance ) {NULL, NULL, 0, NULL}
+	SOUND_FLOAT_METHOD_FUNCS( Attenuation )
+	SOUND_FLOAT_METHOD_FUNCS( Pitch )
+	/*
+	SOUND_FLOAT_METHOD_FUNCS( Panning )
+	SOUND_FLOAT_METHOD_FUNCS( MinGain )
+	SOUND_FLOAT_METHOD_FUNCS( MaxGain )
+	SOUND_FLOAT_METHOD_FUNCS( Distance )
+	*/
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
@@ -184,19 +194,6 @@ PyTypeObject Sound_Type = {
 	BPy_Sound_methods,	/* tp_methods */
 	0,			/* tp_members */
 };
-
-/*****************************************************************************/
-/* Function:	M_Sound_New						*/
-/* Python equivalent:	Blender.Sound.New				*/
-/*****************************************************************************/
-static PyObject *M_Sound_New( PyObject * self, PyObject * args,
-			      PyObject * keywords )
-{
-	printf( "In Sound_New() - unimplemented in 2.34\n" );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
 
 /* NOTE: these were copied and modified from image.h.  To Be Done TBD:
  * macro-ize them, or C++ templates eventually?
@@ -417,7 +414,7 @@ static PyObject *Sound_play( BPy_Sound * self )
 	return Py_None;
 }
 
-static PyObject *Sound_makeActive( BPy_Sound * self )
+static PyObject *Sound_setCurrent( BPy_Sound * self )
 {
 	bSound *snd_ptr = self->sound;
 
@@ -433,6 +430,19 @@ static PyObject *Sound_makeActive( BPy_Sound * self )
 	Py_INCREF( Py_None );
 	return Py_None;
 }
+/*
+static PyObject *Sound_reload( BPy_Sound * self)
+{
+	sound_free_sample();
+
+	if (sound->snd_sound) {
+		SND_RemoveSound(ghSoundScene, sound->snd_sound);
+		sound->snd_sound = NULL;
+	}
+
+	return EXPP_incr_ret( Py_None );
+}
+*/
 
 /*****************************************************************************/
 /* Function:	Sound_getAttr					*/

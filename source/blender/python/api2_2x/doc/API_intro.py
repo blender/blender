@@ -34,11 +34,13 @@ The Blender Python API Reference
   - L{Scene} (*)
      - L{Radio}
      - L{Render}
+  - L{Sound} (new)
   - L{Text}
   - L{Texture}
   - L{Types}
-  - L{Window}
-  - L{World}
+  - L{Window} (*)
+     - L{Theme} (new)
+  - L{World} (*)
   - L{sys<Sys>}
 
  (*) - marks updated.

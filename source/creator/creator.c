@@ -440,7 +440,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		BPY_start_python();
+		BPY_start_python(argc, argv);
 		
 		/**
 		 * NOTE: sound_init_audio() *must be* after start_python,
@@ -452,7 +452,7 @@ int main(int argc, char **argv)
 
 	}
 	else {
-		BPY_start_python();
+		BPY_start_python(argc, argv);
 		
 		// (ton) Commented out. I have no idea whats thisfor... will mail around!
 		// SYS_WriteCommandLineInt(syshandle,"noaudio",1);

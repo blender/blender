@@ -46,7 +46,7 @@ struct _object;  // forward declaration for PyObject !
 extern "C" {
 #endif
 
-	void BPY_start_python( void );
+	void BPY_start_python( int argc, char **argv );
 	void BPY_end_python( void );
 	void BPY_post_start_python( void );
 	int BPY_Err_getLinenumber( void );
@@ -75,7 +75,7 @@ extern "C" {
 	void BPY_clear_script( struct Script *script );
 	void BPY_free_finished_script( struct Script *script );
 
-	void init_syspath( void );
+	void init_syspath( int first_time );
 	void syspath_append( char *dir );
 	char *bpy_gethome( void );
 
