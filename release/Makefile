@@ -157,6 +157,8 @@ endif
 
 pkg: install
 	@echo "----> Create distribution file $(BLENDNAME)$(EXT1)"
+	@#enable the next sleep if you get 'tar file changed while reading'
+	@#sleep 10
 	@cd $(NAN_OBJDIR) && \
 	rm -f  $(VERSION)/$(BLENDNAME)$(EXT1)* && \
 	$(TAR) $(VERSION)/$(BLENDNAME)$(EXT1) $(BLENDNAME)
