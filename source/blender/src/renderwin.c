@@ -772,7 +772,24 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 		rcti win_rct, vb;
 
 		calc_viewborder(v3d, &vb);
-
+		
+		/* if border render  */
+		if(G.scene->r.mode & R_BORDER) { 
+			
+			/* but, if image is full (at end of border render, without crop) we don't */
+			if(R.rectx != (G.scene->r.size*G.scene->r.xsch)/100 ||
+			   R.recty != (G.scene->r.size*G.scene->r.ysch)/100 ) {
+			
+				facx= (float) (vb.xmax-vb.xmin);
+				facy= (float) (vb.ymax-vb.ymin);
+				
+				vb.xmax= vb.xmin + facx*G.scene->r.border.xmax;
+				vb.ymax= vb.ymin + facy*G.scene->r.border.ymax;
+				vb.xmin+= facx*G.scene->r.border.xmin;
+				vb.ymin+= facy*G.scene->r.border.ymin;
+			}
+		}
+			
 		facx= (float) (vb.xmax-vb.xmin)/R.rectx;
 		facy= (float) (vb.ymax-vb.ymin)/R.recty;
 
