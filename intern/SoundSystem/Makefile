@@ -42,7 +42,7 @@ DIRS += dummy
 ifneq ($(NAN_NO_OPENAL),true)
   ifeq ($(OS),windows)
       DIRS += fmod 
-      DIRS += openal
+      DIRS += openal sdl
   endif
   #ifeq ($(OS),darwin)
   #    DIRS += fmod 
@@ -52,7 +52,7 @@ ifneq ($(NAN_NO_OPENAL),true)
   endif
   ifeq ($(OS),$(findstring $(OS), "linux"))
     ifeq ($(CPU),i386)
-      DIRS += openal 
+      DIRS += openal sdl
     endif
   endif
 else

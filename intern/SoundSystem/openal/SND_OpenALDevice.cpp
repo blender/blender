@@ -40,6 +40,7 @@
 #endif //WIN32
 
 #include "SND_OpenALDevice.h"
+#include "SND_SDLCDDevice.h"
 #include "SoundDefines.h"
 
 #include "SND_Utils.h"
@@ -275,9 +276,16 @@ SND_OpenALDevice::SND_OpenALDevice()
 	{
 		m_wavecache = new SND_WaveCache();
 	}
+	
+	m_cdrom = new SND_SDLCDDevice();
 }
 
+void SND_OpenALDevice::UseCD(void) const
+{
+	// only fmod has CD support, so only create it here
+	SND_CDObject::CreateSystem();
 
+}
 
 void SND_OpenALDevice::MakeCurrent() const
 {
@@ -299,6 +307,18 @@ SND_OpenALDevice::~SND_OpenALDevice()
 		if (m_sourcesinitialized)
 			alDeleteSources(NUM_SOURCES, m_sources);
 	}
+	
+	// let's see if we used the cd. if not, just leave it alone
+	SND_CDObject* pCD = SND_CDObject::Instance();
+	
+	if (pCD)
+	{
+		this->StopCD();
+		SND_CDObject::DisposeSystem();
+	}
+	
+	if (m_cdrom)
+		delete m_cdrom;
 }
 
 
@@ -435,6 +455,8 @@ void SND_OpenALDevice::SetListenerRollOffFactor(MT_Scalar rollofffactor) const
 
 void SND_OpenALDevice::NextFrame() const
 {
+	// CD
+	m_cdrom->NextFrame();
 	// not needed by openal
 }
 
@@ -596,6 +618,11 @@ void SND_OpenALDevice::SetObjectLoop(int id, unsigned int loopmode) const
 		alSourcei (m_sources[id], AL_LOOPING, AL_TRUE);
 }
 
+void SND_OpenALDevice::SetObjectLoopPoints(int id, unsigned int loopstart, unsigned int loopend) const
+{
+
+
+}
 
 
 void SND_OpenALDevice::SetObjectMinGain(int id, MT_Scalar mingain) const
@@ -659,4 +686,35 @@ void SND_OpenALDevice::SetObjectTransform(int id,
 	alSourcefv(m_sources[id], AL_VELOCITY, obvel);
 #endif
 
+}
+
+void SND_OpenALDevice::PlayCD(int track) const
+{
+	m_cdrom->PlayCD(track);
+}
+
+
+void SND_OpenALDevice::PauseCD(bool pause) const
+{
+	m_cdrom->PauseCD(pause);
+}
+
+void SND_OpenALDevice::StopCD() const
+{
+	SND_CDObject* pCD = SND_CDObject::Instance();
+
+	if (pCD && pCD->GetUsed())
+	{
+		m_cdrom->StopCD();
+	}
+}
+
+void SND_OpenALDevice::SetCDPlaymode(int playmode) const
+{
+	m_cdrom->SetCDPlaymode(playmode);
+}
+
+void SND_OpenALDevice::SetCDGain(MT_Scalar gain) const
+{
+	m_cdrom->SetCDGain(gain);
 }

@@ -24,12 +24,15 @@ soundsys_env.Append (CPPPATH = ['.',
                                 '../moto/include',
                                 '../string',
                                 'dummy',
-                                'openal'])
+                                'openal',
+                                'sdl'])
 
 if user_options_dict['USE_OPENAL'] == 1:
     source_files += ['openal/SND_OpenALDevice.cpp',
-                     'openal/pthread_cancel.cpp']
+                     'openal/pthread_cancel.cpp',
+		     'sdl/SND_SDLCDDevice.cpp']
     soundsys_env.Append (CPPPATH=user_options_dict['OPENAL_INCLUDE'])
+    soundsys_env.Append (CPPPATH=user_options_dict['SDL_INCLUDE'])
         
 if user_options_dict['USE_FMOD'] == 1:
     source_files += ['fmod/SND_FmodDevice.cpp']

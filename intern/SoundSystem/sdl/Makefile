@@ -31,17 +31,16 @@
 #
 #
 
-LIBNAME = OpenALSoundSystem
+LIBNAME = SDLSoundSystem
 DIR = $(OCGDIR)/intern/$(LIBNAME)
 
 include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += -I$(NAN_OPENAL)/include    
+CPPFLAGS += $(NAN_SDLCFLAGS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../intern
 CPPFLAGS += -I..
 CPPFLAGS += -I.
-CPPFLAGS += -I../sdl

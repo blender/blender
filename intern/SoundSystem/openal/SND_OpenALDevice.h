@@ -35,6 +35,8 @@
 #include "SND_AudioDevice.h"
 #include "SoundDefines.h"
 
+typedef struct SDL_CD;
+
 class SND_OpenALDevice : public SND_AudioDevice
 {
 public:
@@ -54,6 +56,7 @@ public:
 	void MakeCurrent() const;
 
 	void NextFrame() const;
+	void UseCD() const;
 
 	void SetObjectBuffer(int id, unsigned int buffer); 
 
@@ -64,7 +67,7 @@ public:
 	void PauseObject(int id) const;
 
 	void SetObjectLoop(int id, unsigned int loopmode) const;
-	void SetObjectLoopPoints(int id, unsigned int loopstart, unsigned int loopend) const {};
+	void SetObjectLoopPoints(int id, unsigned int loopstart, unsigned int loopend) const;
 	void SetObjectPitch(int id, MT_Scalar pitch) const;
 	void SetObjectGain(int id, MT_Scalar gain) const;
 	void SetObjectMinGain(int id, MT_Scalar mingain) const;
@@ -80,11 +83,11 @@ public:
 							const MT_Scalar& rollofffactor) const;
 	void ObjectIs2D(int id) const;
 
-	void PlayCD(int track) const {};
-	void PauseCD(bool pause) const {};
-	void StopCD() const {};
-	void SetCDPlaymode(int playmode) const {};
-	void SetCDGain(MT_Scalar gain) const {};
+	void PlayCD(int track) const;
+	void PauseCD(bool pause) const;
+	void StopCD() const;
+	void SetCDPlaymode(int playmode) const;
+	void SetCDGain(MT_Scalar gain) const;
 	
 	void StartUsingDSP()	{};
 	float* GetSpectrum()	{ return NULL; }
@@ -97,6 +100,8 @@ private:
 	unsigned int	m_sources[NUM_SOURCES];
 	bool			m_buffersinitialized;
 	bool			m_sourcesinitialized;
+	
+	class SND_SDLCDDevice*	m_cdrom;
 };
 
 #endif //SND_OPENALDEVICE
