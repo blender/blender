@@ -601,27 +601,37 @@ static void hypermesh_calc_sharp_vert(HyperVert *v, float co[3])
 	co[2] = v->co[2];
 }
 
-static void hypermesh_calc_creased_vert(HyperVert *v, float co[3])
+static void hypermesh_calc_creased_vert(HyperVert *v, float co[3], float w)
 {
-	HyperVert *e1v = NULL, *e2v = NULL;
-	HyperEdge *he;
-	LinkNode *link;
-	int count;
+	LinkNode *l;
+	float epSum[3] = {0,0,0};
+	int count = 0;
 	
 	/* use the crease rule */
-	for (count= 0, link= v->edges; link; link= link->next) {
-		he = (HyperEdge *)link->link;
+	for (l= v->edges; l; l= l->next) {
+		HyperEdge *he = l->link;
 		if (he->sharp != 0.0) {
-			if (e1v)
-				e2v = hyperedge_other_vert(he, v);
-			else
-				e1v = hyperedge_other_vert(he, v);
+			HyperVert *oV = hyperedge_other_vert(he, v);
+			epSum[0] += oV->co[0];
+			epSum[1] += oV->co[1];
+			epSum[2] += oV->co[2];
+			count++;
 		}
 	}
-	
-	co[0] = (e1v->co[0] + 6.0 * v->co[0] + e2v->co[0]) / 8.0;
-	co[1] = (e1v->co[1] + 6.0 * v->co[1] + e2v->co[1]) / 8.0;
-	co[2] = (e1v->co[2] + 6.0 * v->co[2] + e2v->co[2]) / 8.0;
+
+	epSum[0] /= count;
+	epSum[1] /= count;
+	epSum[2] /= count;
+
+	if (count!=2) {
+		epSum[0] = epSum[0] + (v->co[0] - epSum[0])*w;
+		epSum[1] = epSum[1] + (v->co[1] - epSum[1])*w;
+		epSum[2] = epSum[2] + (v->co[2] - epSum[2])*w;
+	}
+
+	co[0] = (3.0 * v->co[0] + epSum[0]) / 4.0;
+	co[1] = (3.0 * v->co[1] + epSum[1]) / 4.0;
+	co[2] = (3.0 * v->co[2] + epSum[2]) / 4.0;
 }
 
 static void hypermesh_calc_interp_vert(HyperVert *v, float co[3], float w)
@@ -630,7 +640,7 @@ static void hypermesh_calc_interp_vert(HyperVert *v, float co[3], float w)
 	float co2[3];
 	
 	hypermesh_calc_smooth_vert(v, co1);
-	hypermesh_calc_creased_vert(v, co2);
+	hypermesh_calc_creased_vert(v, co2, w);
 	
 	hypermesh_lininterp_vert(co, co1, co2, w);
 }
@@ -686,10 +696,8 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 			hypermesh_calc_smooth_vert(v, s);
 			break;
 		case 2:
-			hypermesh_calc_interp_vert(v, s, avgw);
-			break;
 		default:
-			hypermesh_calc_sharp_vert(v, s);
+			hypermesh_calc_interp_vert(v, s, avgw);
 			break;
 		}
 		
