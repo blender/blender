@@ -113,7 +113,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="../../../../lib/windows/bsp/include,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\renderconverter,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\avi,..\..\..\source\blender\imbuf,..\..\..\source\kernel\gen_system,..\..\..\source\blender\blenloader,..\..\..\source\blender,..\..\..\source\blender\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\python,..\..\..\source\blender\blenlib,../../../source/gameengine\SoundSystem\,../../../../lib/windows/iksolver/include"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2,UNWRAPPER"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
