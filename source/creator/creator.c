@@ -128,46 +128,43 @@ static void fpe_handler(int sig)
 
 static void print_help(void)
 {
-				printf ("Blender V %d.%02d\n", G.version/100, G.version%100);
-				printf ("Usage: blender [options ...] [file]\n");
+	printf ("Blender V %d.%02d\n", G.version/100, G.version%100);
+	printf ("Usage: blender [options ...] [file]\n");
 				
-				printf ("\nRender options:\n");
-				printf ("  -b <file>\tRender <file> in background\n");
-				printf ("    -S <name>\tSet scene <name>\n");				
-				printf ("    -f <frame>\tRender frame <frame> and save it\n");				
-				printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
-				printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
-				printf ("    -a\t\tRender animation\n");
+	printf ("\nRender options:\n");
+	printf ("  -b <file>\tRender <file> in background\n");
+	printf ("    -S <name>\tSet scene <name>\n");				
+	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
+	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
+	printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
+	printf ("    -a\t\tRender animation\n");
 				
-				printf ("\nAnimation options:\n");
-				printf ("  -a <file(s)>\tPlayback <file(s)>\n");
-				printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
-				printf ("    -m\t\tRead from disk (Don't buffer)\n");
+	printf ("\nAnimation options:\n");
+	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
+	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
+	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 				
-				printf ("\nWindow options:\n");
-				printf ("  -w\t\tForce opening with borders\n");
+	printf ("\nWindow options:\n");
+	printf ("  -w\t\tForce opening with borders\n");
 #ifdef WIN32
-				printf ("  -W\t\tForce opening without borders\n");
+	printf ("  -W\t\tForce opening without borders\n");
 #endif				
-				printf ("  -p <sx> <sy> <w> <h>\tOpen with lower left corner at <sx>, <sy>\n");
-				printf ("                      \tand width and height <w>, <h>\n");
-				printf ("\nGame Engine specific options:\n");
-				printf ("  -g fixedtime\t\tRun on 50 hertz without dropping frames\n");
-				printf ("  -g vertexarrays\tUse Vertex Arrays for rendering (usually faster)\n");
-				printf ("  -g noaudio\t\tNo audio in Game Engine\n");
-				printf ("  -g nomipmap\t\tNo Texture Mipmapping\n");
-				printf ("  -g linearmipmap\tLinear Texture Mipmapping instead of Nearest (default)\n");
+	printf ("  -p <sx> <sy> <w> <h>\tOpen with lower left corner at <sx>, <sy>\n");
+	printf ("                      \tand width and height <w>, <h>\n");
+	printf ("\nGame Engine specific options:\n");
+	printf ("  -g fixedtime\t\tRun on 50 hertz without dropping frames\n");
+	printf ("  -g vertexarrays\tUse Vertex Arrays for rendering (usually faster)\n");
+	printf ("  -g noaudio\t\tNo audio in Game Engine\n");
+	printf ("  -g nomipmap\t\tNo Texture Mipmapping\n");
+	printf ("  -g linearmipmap\tLinear Texture Mipmapping instead of Nearest (default)\n");
 				
-				
-				
-				
-				printf ("\nMisc options:\n");
-				printf ("  -d\t\tTurn debugging on\n");
-				printf ("  -noaudio\tDisable audio on systems that support audio\n");
-				printf ("  -h\t\tPrint this help text\n");
-				printf ("  -y\t\tDisable OnLoad scene scripts, use -Y to find out why its -y\n");
+	printf ("\nMisc options:\n");
+	printf ("  -d\t\tTurn debugging on\n");
+	printf ("  -noaudio\tDisable audio on systems that support audio\n");
+	printf ("  -h\t\tPrint this help text\n");
+	printf ("  -y\t\tDisable OnLoad scene scripts, use -Y to find out why its -y\n");
 #ifdef WIN32
-				printf ("  -R\t\tRegister .blend extension\n");
+	printf ("  -R\t\tRegister .blend extension\n");
 #endif
 }
 
