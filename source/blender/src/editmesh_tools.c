@@ -2439,6 +2439,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 	EditMesh *em = G.editMesh;
 	EditFace *face[2], *efa, *newFace[2];
 	EditVert *faces[2][4],*v1,*v2,*v3,*v4,*vtemp;
+	EditEdge *srchedge = NULL;
 	short facecount=0, p1=0,p2=0,p3=0,p4=0,fac1=4,fac2=4,i,j;
 
 	/* check to make sure that the edge is only part of 2 faces */
@@ -2733,7 +2734,19 @@ static void edge_rotate(EditEdge *eed,int dir)
 		faces[1][(p3+1)%fac2]->f |= SELECT;
 	}
 	
+	/*Copy old edge's flags to new center edge*/
+	for(srchedge=em->edges.first;srchedge;srchedge=srchedge->next){
+		if(srchedge->v1->f & SELECT &&srchedge->v2->f & SELECT  )
+			srchedge->f = eed->f;
+			srchedge->h = eed->h;
+			srchedge->dir = eed->dir;
+			srchedge->seam = eed->seam;
+			srchedge->crease = eed->crease;
+	}
+	
+	
 	/* copy flags and material */
+	
 	newFace[0]->mat_nr     = face[0]->mat_nr;
 	newFace[0]->tf.flag    = face[0]->tf.flag;
 	newFace[0]->tf.transp  = face[0]->tf.transp;
@@ -2741,6 +2754,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 	newFace[0]->tf.tile    = face[0]->tf.tile;
 	newFace[0]->tf.unwrap  = face[0]->tf.unwrap;
 	newFace[0]->tf.tpage   = face[0]->tf.tpage;
+	newFace[0]->flag       = face[0]->flag;
 
 	newFace[1]->mat_nr     = face[1]->mat_nr;
 	newFace[1]->tf.flag    = face[1]->tf.flag;
@@ -2749,10 +2763,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 	newFace[1]->tf.tile    = face[1]->tf.tile;
 	newFace[1]->tf.unwrap  = face[1]->tf.unwrap;
 	newFace[1]->tf.tpage   = face[1]->tf.tpage;
-
-	/* redo the vertex selection */
-
-	
+	newFace[1]->flag       = face[1]->flag;
 
 	/* get rid of the old edge and faces*/
 	remedge(eed);
