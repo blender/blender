@@ -7,6 +7,7 @@ Here are some links to external packages you may or maynot need:
 
 openssl:  http://www.openssl.org
 python:  http://www.python.org
+mxtexttools:http://www.egenix.com/files/python/mxTextTools.html (python lib)
 nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
 libjpeg:  http://www.ijg.org/
 libpng:  http://www.libpng.org/pub/png/
