@@ -100,6 +100,12 @@ all debug::
   ifeq ($(OS),darwin)
     ID = $(shell whoami)
     HOST = $(shell hostname -s)
+    # MAART: override libraries locations to use fink installed libraries
+    export NAN_OPENSSL = /sw
+    export NAN_JPEG = /sw
+    export NAN_PNG = /sw
+    export NAN_PYTHON = $(LCGDIR)/python
+    export NAN_PYTHON_VERSION = 2.2
   endif
   ifeq ($(OS),freebsd)
     ID = $(shell whoami)
