@@ -84,9 +84,9 @@ short bgpicmode=0, near=1000, far=1000;
 MTex emptytex;
 MTex mtexcopybuf;
 
-char texstr[15][8]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
-					 "Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "",
-					 ""      , ""       , ""};
+char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
+					 "Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
+					 "Voronoi", "DistNoise", "", "", "", "", "", ""};
 /*  ---------------------------------------------------------------------- */
 
 void test_idbutton_cb(void *namev, void *arg2_unused)

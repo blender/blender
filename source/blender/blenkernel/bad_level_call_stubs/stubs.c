@@ -204,7 +204,7 @@ int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt){
 }
 
 void    RE_calc_R_ref(void){}
-char texstr[15][8];	/* buttons.c */
+char texstr[20][12];	/* buttons.c */
 Osa O;
 
 /* editsca.c */
