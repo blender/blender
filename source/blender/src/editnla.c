@@ -88,23 +88,15 @@
 /* Note: A lot of these pretty much duplicate the behaviour of the
 action windows.  The functions should be shared, not copy-pasted */
 
-static void deselect_nlachannel_keys (int test);
-static void deselect_nlachannels(int test);
-static void transform_nlachannel_keys(char mode);	
-static void delete_nlachannel_keys(void);
-static void delete_nlachannels(void);
-static void duplicate_nlachannel_keys(void);
-static void borderselect_nla(void);
+static void transform_nlachannel_keys(char mode);
 static void mouse_nla(int selectmode);
 static Base *get_nearest_nlachannel_ob_key (float *index, short *sel);
 static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel);
 static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel);
-
 static void mouse_nlachannels(short mval[2]);
 static void add_nlablock(short mval[2]);
 static bActionStrip *get_active_nlastrip(void);
 static void convert_nla(short mval[2]);
-
 extern int count_nla_levels(void);	/* From drawnla.c */
 extern int nla_filter (Base* base, int flags);	/* From drawnla.c */
 
@@ -601,7 +593,7 @@ void init_nlaspace(ScrArea *sa)
 	snla->lock = 0;
 };
 
-static void deselect_nlachannel_keys (int test)
+void deselect_nlachannel_keys (int test)
 {
 	Base			*base;
 	int				sel=1;
@@ -938,7 +930,7 @@ static void transform_nlachannel_keys(char mode)
 	MEM_freeN (tv);
 }
 
-static void delete_nlachannel_keys(void)
+void delete_nlachannel_keys(void)
 {
 	Base *base;
 	bActionChannel *chan;
@@ -987,7 +979,7 @@ static void delete_nlachannel_keys(void)
 	allqueue(REDRAWIPO, 0);
 }
 
-static void duplicate_nlachannel_keys(void)
+void duplicate_nlachannel_keys(void)
 {
 	Base *base;
 	bActionChannel *chan;
@@ -1037,7 +1029,7 @@ static void duplicate_nlachannel_keys(void)
 	transform_nlachannel_keys ('g');
 }
 
-static void borderselect_nla(void)
+void borderselect_nla(void)
 { 
 	Base *base;
 	rcti rect;
@@ -1578,7 +1570,7 @@ void clever_numbuts_nla(void){
 	allqueue (REDRAWVIEW3D, 0);
 }	
 
-static void deselect_nlachannels(int test){
+void deselect_nlachannels(int test){
 	int sel = 1;
 	Base *base;
 	bConstraintChannel *conchan;
@@ -1625,7 +1617,7 @@ static void deselect_nlachannels(int test){
 	}	
 }
 
-static void delete_nlachannels(void){
+void delete_nlachannels(void){
 	Base *base;
 	bConstraintChannel *conchan, *nextchan;
 	int sel=0;
