@@ -1455,7 +1455,8 @@ void Transform(int mode)
 		if(mode==TFM_RESIZE) cmode= 's';
 		else if(mode==TFM_ROTATION) cmode= 'r';
 		/* aftertrans does displists, ipos and action channels */
-		special_aftertrans_update(cmode, 0, (short)(ret_val == TRANS_CANCEL), 0 /*keyflags*/);
+		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
+		special_aftertrans_update(cmode, 0, (short)(ret_val == TRANS_CANCEL), 7);
 		
 		if(G.obedit==NULL && G.obpose==NULL)
 			clear_trans_object_base_flags();
