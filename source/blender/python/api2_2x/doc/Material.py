@@ -47,7 +47,8 @@ Example::
     - HALOTEX      - Give halo a texture.
     - HALOPUNO     - Use the vertex normal to specify the dimension of the halo.
     - HALOFLARE    - Render halo as a lens flare.
-
+    - RAYMIRROR    - Enables raytracing for mirror reflection rendering.
+    - RAYTRANSP    - Enables raytracing for transparency rendering.
 @warn: Some Modes are only available when the 'Halo' mode is I{off} and
     others only when it is I{on}.  But these two subsets of modes share the same
     numerical values in their Blender C #defines. So, for example, if 'Halo' is
@@ -114,6 +115,15 @@ class Material:
   @cvar nRings: Number of halo rings - [0, 24].
   @type ipo: Blender Ipo
   @cvar ipo: This Material's ipo.
+  @cvar rayMirr: Amount mirror reflection for raytrace.
+  @cvar rayMirrDepth: Amount of inter-reflections calculated maximal.
+  @cvar fresnelDepth: Power of Fresnel for mirror reflection. 
+  @cvar fresnelDepthFac: Blending factor for Fresnel. 
+  @cvar IOR: Sets the angular index of refraction for raytrace. 
+  @cvar transDepth: Amount of refractions calculated maximal. 
+  @cvar fresnelTrans: Power of Fresnel for transparency.
+  @cvar fresnelTransFac: Blending factor for Fresnel.
+  @cvar specTrans: Makes specular areas opaque on transparent materials.
   @warning: Most member variables assume values in some [Min, Max] interval.
    When trying to set them, the given parameter will be clamped to lie in
    that range: if val < Min, then val = Min, if val > Max, then val = Max.
@@ -472,6 +482,110 @@ class Material:
     Set the number of rings on each halo.
     @type nrings: int
     @param nrings: The new value in [0, 24].
+    """
+
+  def getRayMirr():
+    """
+    Get amount mirror reflection for raytrace.
+    @rtype: float
+    """
+
+  def setRayMirr(nrmirr):
+    """
+    Set amount mirror reflection for raytrace.
+    @type nrmirr: float
+    @param nrmirr: The new value in [0.0, 1.0].
+    """
+
+  def getRayMirrDepth():
+    """
+    Get amount of inter-reflections calculated maximal.
+    @rtype: int
+    """
+
+  def setRayMirrDepth(nrmirr):
+    """
+    Set amount mirror reflection for raytrace.
+    @type nrmirr: int
+    @param nrmirr: The new value in [0.0, 1.0].
+    """
+
+  def getFresnelMirr():
+    """
+    Get power of Fresnel for mirror reflection.
+    @rtype: float
+    """
+
+  def setFresnelMirr(nrmirr):
+    """
+    Set power of Fresnel for mirror reflection.
+    @type nrmirr: float
+    @param nrmirr: The new value in [0.0, 1.0].
+    """
+
+  def getFresnelMirrFac():
+    """
+    Get the number of Ray Mirror.
+    @rtype: float
+    """
+
+  def setFresnelMirrFac(nrmirr):
+    """
+    Set the number of ray mirror
+    @type nrmirr: float
+    @param nrmirr: The new value in [0.0, 1.0].
+    """
+
+  def getIOR():
+    """
+    Get the angular index of refraction for raytrace.
+    @rtype: float
+    """
+
+  def setIOR(nrmirr):
+    """
+    Set the angular index of refraction for raytrace.
+    @type nrmirr: float
+    @param nrmirr: The new value in [0.0, 1.0].
+    """
+
+  def getTransDepth():
+    """
+    Get amount of refractions calculated maximal.
+    @rtype: int
+    """
+
+  def setTransDepth(nrmirr):
+    """
+    Set amount of refractions calculated maximal.
+    @type nrmirr: int
+    @param nrmirr: The new value in [0.0, 1.0].
+    """
+
+  def getFresnelTrans():
+    """
+    Get power of Fresnel for transparency.
+    @rtype: float
+    """
+
+  def setFresnelTrans(nrmirr):
+    """
+    Set power of Fresnel for transparency.
+    @type nrmirr: float
+    @param nrmirr: The new value in [0.0, 1.0].
+    """
+
+  def getFresnelTransFac():
+    """
+    Get blending factor for Fresnel.
+    @rtype: float
+    """
+
+  def setFresnelTransFac(nrmirr):
+    """
+    Set blending factor for Fresnel.
+    @type nrmirr: float
+    @param nrmirr: The new value in [0.0, 1.0].
     """
 
   def setTexture(index, texture, texco, mapto):

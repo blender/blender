@@ -71,7 +71,12 @@
 #define EXPP_MAT_MODE_HALOSHADE						MA_HALO_SHADE
 #define EXPP_MAT_MODE_HALOFLARE						MA_HALO_FLARE
 #define EXPP_MAT_MODE_RADIO								MA_RADIO
-
+#define EXPP_MAT_MODE_RAYMIRROR						MA_RAYMIRROR
+#define EXPP_MAT_MODE_ZTRA						MA_ZTRA	
+#define EXPP_MAT_MODE_RAYTRANSP						MA_RAYTRANSP
+#define EXPP_MAT_MODE_ONLYSHADOW					MA_ONLYSHADOW
+#define EXPP_MAT_MODE_NOMIST						MA_NOMIST
+#define EXPP_MAT_MODE_ENV						MA_ENV
 /* Material MIN, MAX values */
 #define EXPP_MAT_ADD_MIN					 0.0
 #define EXPP_MAT_ADD_MAX					 1.0
@@ -114,6 +119,35 @@
 #define EXPP_MAT_NLINES_MAX		 250
 #define EXPP_MAT_NRINGS_MIN			 0
 #define EXPP_MAT_NRINGS_MAX			24
+
+#define EXPP_MAT_RAYMIRR_MIN			 0.0
+#define EXPP_MAT_RAYMIRR_MAX			 1.0
+#define EXPP_MAT_MIRRDEPTH_MIN			 0
+#define EXPP_MAT_MIRRDEPTH_MAX			 10
+#define EXPP_MAT_FRESNELMIRR_MIN			0.0
+#define EXPP_MAT_FRESNELMIRR_MAX			5.0
+#define EXPP_MAT_FRESNELMIRRFAC_MIN			1.0
+#define EXPP_MAT_FRESNELMIRRFAC_MAX			5.0
+#define EXPP_MAT_ZOFFS_MIN				0.0
+#define EXPP_MAT_ZOFFS_MAX				10.0
+#define EXPP_MAT_IOR_MIN				1.0
+#define EXPP_MAT_IOR_MAX				3.0
+#define EXPP_MAT_TRANSDEPTH_MIN				0
+#define EXPP_MAT_TRANSDEPTH_MAX				10
+#define EXPP_MAT_FRESNELTRANS_MIN			0.0
+#define EXPP_MAT_FRESNELTRANS_MAX			5.0
+#define EXPP_MAT_FRESNELTRANSFAC_MIN			1.0
+#define EXPP_MAT_FRESNELTRANSFAC_MAX			5.0
+#define EXPP_MAT_SPECTRANS_MIN				0.0
+#define EXPP_MAT_SPECTRANS_MAX				1.0
+#define EXPP_MAT_MIRRTRANSADD_MIN			0.0
+#define EXPP_MAT_MIRRTRANSADD_MAX			1.0
+
+
+
+
+
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the Material module.									 */
@@ -292,6 +326,13 @@ static PyObject *Lamp_ModesDict (void)
 		EXPP_ADDCONST(HALOSHADE);
 		EXPP_ADDCONST(HALOFLARE);
 		EXPP_ADDCONST(RADIO);
+		EXPP_ADDCONST(RAYMIRROR);
+		EXPP_ADDCONST(ZTRA);
+		EXPP_ADDCONST(RAYTRANSP);
+		EXPP_ADDCONST(ONLYSHADOW);
+		EXPP_ADDCONST(NOMIST);
+		EXPP_ADDCONST(ENV);
+
 	}
 
 	return Modes;
@@ -348,6 +389,14 @@ static PyObject *Material_getNFlares(BPy_Material *self);
 static PyObject *Material_getNStars(BPy_Material *self);
 static PyObject *Material_getNLines(BPy_Material *self);
 static PyObject *Material_getNRings(BPy_Material *self);
+static PyObject *Material_getRayMirr(BPy_Material *self);
+static PyObject *Material_getMirrDepth(BPy_Material *self);
+static PyObject *Material_getFresnelMirr(BPy_Material *self);
+static PyObject *Material_getFresnelMirrFac(BPy_Material *self);
+static PyObject *Material_getIOR(BPy_Material *self);
+static PyObject *Material_getTransDepth(BPy_Material *self);
+static PyObject *Material_getFresnelTrans(BPy_Material *self);
+static PyObject *Material_getFresnelTransFac(BPy_Material *self);
 static PyObject *Material_getTextures(BPy_Material *self);
 static PyObject *Material_setIpo(BPy_Material *self, PyObject *args);
 static PyObject *Material_clearIpo(BPy_Material *self);
@@ -377,6 +426,16 @@ static PyObject *Material_setNFlares(BPy_Material *self, PyObject *args);
 static PyObject *Material_setNStars(BPy_Material *self, PyObject *args);
 static PyObject *Material_setNLines(BPy_Material *self, PyObject *args);
 static PyObject *Material_setNRings(BPy_Material *self, PyObject *args);
+/* ** Mirror and transp ** */
+static PyObject *Material_setRayMirr(BPy_Material *self, PyObject *args);
+static PyObject *Material_setMirrDepth(BPy_Material *self, PyObject *args);
+static PyObject *Material_setFresnelMirr(BPy_Material *self, PyObject *args); 
+static PyObject *Material_setFresnelMirrFac(BPy_Material *self, PyObject *args); 
+static PyObject *Material_setIOR(BPy_Material *self, PyObject *args); 
+static PyObject *Material_setTransDepth(BPy_Material *self, PyObject *args);
+static PyObject *Material_setFresnelTrans(BPy_Material *self, PyObject *args); 
+static PyObject *Material_setFresnelTransFac(BPy_Material *self, PyObject *args); 
+/* ** */
 static PyObject *Material_setTexture(BPy_Material *self, PyObject *args);
 static PyObject *Material_clearTexture(BPy_Material *self, PyObject *args);
 
@@ -445,6 +504,22 @@ static PyMethodDef BPy_Material_methods[] = {
 			"() - Return Material's number of lines in halo"},
 	{"getNRings", (PyCFunction)Material_getNRings, METH_NOARGS,
 			"() - Return Material's number of rings in halo"},
+	{"getRayMirr", (PyCFunction)Material_getRayMirr, METH_NOARGS,
+			"() - Return mount mirror"},
+	{"getMirrDepth", (PyCFunction)Material_getMirrDepth, METH_NOARGS,
+			"() - Return amount mirror depth"},
+	{"getFresnelMirr", (PyCFunction)Material_getFresnelMirr, METH_NOARGS,
+			"() - Return fresnel power for refractions"},
+	{"getFresnelMirrFac", (PyCFunction)Material_getFresnelMirrFac, METH_NOARGS,
+			"() - Return fresnel power for refractions factor"},
+	{"getIOR", (PyCFunction)Material_getIOR, METH_NOARGS,
+			"() - Return IOR"},
+	{"getTransDepth", (PyCFunction)Material_getTransDepth, METH_NOARGS,
+			"() - Return amount inter-refractions"},
+	{"getFresnelTrans", (PyCFunction)Material_getFresnelTrans, METH_NOARGS,
+			"() - Return fresnel power for refractions"},
+	{"getFresnelTransFac", (PyCFunction)Material_getFresnelTransFac, METH_NOARGS,
+			"() - Return fresnel power for refractions factor"},
 	{"getTextures", (PyCFunction)Material_getTextures, METH_NOARGS,
 			"() - Return Material's texture list as a tuple"},
 	{"setName", (PyCFunction)Material_setName, METH_VARARGS,
@@ -503,6 +578,22 @@ static PyMethodDef BPy_Material_methods[] = {
 			"(i) - Set Material's number of lines in halo - [0, 250]"},
 	{"setNRings", (PyCFunction)Material_setNRings, METH_VARARGS,
 			"(i) - Set Material's number of rings in halo - [0, 24]"},
+	{"setRayMirr", (PyCFunction)Material_setRayMirr, METH_VARARGS,
+			"(f) - Set amount mirror - [0.0, 1.0]"},
+	{"setMirrDepth", (PyCFunction)Material_setMirrDepth, METH_VARARGS,
+			"(i) - Set amount inter-reflections - [0, 10]"},
+	{"setFresnelMirr", (PyCFunction)Material_setFresnelMirr, METH_VARARGS,
+			"(f) - Set fresnel power for mirror - [0.0, 5.0]"},
+	{"setFresnelMirrFac", (PyCFunction)Material_setFresnelMirrFac, METH_VARARGS,
+			"(f) - Set blend fac for mirror fresnel - [1.0, 5.0]"},
+	{"setIOR", (PyCFunction)Material_setIOR, METH_VARARGS,
+			"(f) - Set IOR - [1.0, 3.0]"},
+	{"setTransDepth", (PyCFunction)Material_setTransDepth, METH_VARARGS,
+			"(i) - Set amount inter-refractions - [0, 10]"},
+	{"setFresnelTrans", (PyCFunction)Material_setFresnelTrans, METH_VARARGS,
+			"(f) - Set fresnel power for refractions - [0.0, 5.0]"},
+	{"setFresnelTransFac", (PyCFunction)Material_setFresnelTransFac, METH_VARARGS,
+			"(f) - Set fresnel power for refractions factot- [0.0, 5.0]"},
 	{"setTexture", (PyCFunction)Material_setTexture, METH_VARARGS,
 			 "(n,tex,texco=0,mapto=0) - Set numbered texture to tex"},
 	{"clearTexture", (PyCFunction)Material_clearTexture, METH_VARARGS,
@@ -606,7 +697,7 @@ PyObject *Material_CreatePyObject (struct Material *mat)
 
 	pymat->col	= (BPy_rgbTuple *)rgbTuple_New(col);
 	pymat->amb	= (BPy_rgbTuple *)rgbTuple_New(amb);
-	pymat->spec = (BPy_rgbTuple *)rgbTuple_New(spec);
+	pymat->spec 	= (BPy_rgbTuple *)rgbTuple_New(spec);
 	pymat->mir	= (BPy_rgbTuple *)rgbTuple_New(mir);
 
 	return (PyObject *)pymat;
@@ -904,6 +995,86 @@ static PyObject *Material_getNRings(BPy_Material *self)
 											 "couldn't get Material.nRings attribute");
 }
 
+static PyObject *Material_getRayMirr(BPy_Material *self)
+{
+	PyObject *attr = PyFloat_FromDouble((double)self->material->ray_mirror);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_getMirrDepth(BPy_Material *self)
+{
+	PyObject *attr = PyInt_FromLong((long)self->material->ray_depth);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_getFresnelMirr(BPy_Material *self)
+{
+	PyObject *attr = PyFloat_FromDouble((double)self->material->fresnel_mir);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_getFresnelMirrFac(BPy_Material *self)
+{
+	PyObject *attr = PyFloat_FromDouble((double)self->material->fresnel_mir_i);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_getIOR(BPy_Material *self)
+{
+	PyObject *attr = PyFloat_FromDouble((double)self->material->ang);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_getTransDepth(BPy_Material *self)
+{
+	PyObject *attr = PyInt_FromLong((long)self->material->ray_depth_tra);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_getFresnelTrans(BPy_Material *self)
+{
+	PyObject *attr = PyFloat_FromDouble((double)self->material->fresnel_tra);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
+static PyObject *Material_getFresnelTransFac(BPy_Material *self)
+{
+	PyObject *attr = PyFloat_FromDouble((double)self->material->fresnel_tra_i);
+
+	if (attr) return attr;
+
+	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+											 "couldn't get Material.nRings attribute");
+}
+
 static PyObject *Material_getTextures(BPy_Material *self)
 {
 	int i;
@@ -934,7 +1105,7 @@ static PyObject *Material_getTextures(BPy_Material *self)
 	return tuple;
 }
 
-static PyObject *Material_setIpo(BPy_Material *self, PyObject *args)
+PyObject *Material_setIpo(BPy_Material *self, PyObject *args)
 {
 	PyObject *pyipo = 0;
 	Ipo *ipo = NULL;
@@ -1007,20 +1178,22 @@ static PyObject *Material_setName(BPy_Material *self, PyObject *args)
 static PyObject *Material_setMode(BPy_Material *self, PyObject *args)
 {
 	int i, flag = 0;
-	char *m[22] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-								 NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-								 NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+	char *m[28] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+			NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+			NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+			NULL,NULL,NULL, NULL, NULL, NULL};
 
-	if (!PyArg_ParseTuple(args, "|ssssssssssssssssssssss",
-					&m[0], &m[1], &m[2], &m[3],  &m[4],  &m[5],  &m[6],
-					&m[7], &m[8], &m[9], &m[10], &m[11], &m[12], &m[13],
-					&m[14], &m[15], &m[16], &m[17], &m[18], &m[19], &m[20], &m[21]))
+	if (!PyArg_ParseTuple( args, "|ssssssssssssssssssssssssssss",
+			       &m[0], &m[1], &m[2], &m[3],  &m[4],  &m[5],  &m[6],
+			       &m[7], &m[8], &m[9], &m[10], &m[11], &m[12], &m[13],
+			       &m[14], &m[15], &m[16], &m[17], &m[18], &m[19], &m[20], &m[21],
+			       &m[22],&m[23],&m[24], &m[25], &m[26], &m[27]))
 	{
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 						"expected from none to 22 string argument(s)"));
 	}
 
-	for (i = 0; i < 22; i++) {
+	for (i = 0; i < 28; i++) {
 		if (m[i] == NULL) break;
 		if (strcmp(m[i], "Traceable") == 0)
 			flag |= EXPP_MAT_MODE_TRACEABLE;
@@ -1066,6 +1239,20 @@ static PyObject *Material_setMode(BPy_Material *self, PyObject *args)
 			flag |= EXPP_MAT_MODE_HALOFLARE;
 		else if (strcmp(m[i], "Radio") == 0)
 			flag |= EXPP_MAT_MODE_RADIO;
+		/* ** Mirror ** */
+		else if (strcmp(m[i], "RayMirr") == 0)
+			flag |= EXPP_MAT_MODE_RAYMIRROR;	
+		else if (strcmp(m[i], "ZTransp") == 0)
+			flag |= EXPP_MAT_MODE_ZTRA;	
+		else if (strcmp(m[i], "RayTransp") == 0)
+			flag |= EXPP_MAT_MODE_RAYTRANSP;
+		else if (strcmp(m[i], "OnlyShadow") == 0)
+			flag |= EXPP_MAT_MODE_ONLYSHADOW;		
+		else if (strcmp(m[i], "NoMist") == 0)
+			flag |= EXPP_MAT_MODE_NOMIST;
+		else if (strcmp(m[i], "Env") == 0)
+			flag |= EXPP_MAT_MODE_ENV;
+		/* ** */
 		else
 			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 							"unknown Material mode argument"));
@@ -1408,6 +1595,119 @@ static PyObject *Material_setNRings(BPy_Material *self, PyObject *args)
 	return EXPP_incr_ret (Py_None);
 }
 
+static PyObject *Material_setRayMirr(BPy_Material *self, PyObject *args)
+{
+	float value;
+
+	if (!PyArg_ParseTuple(args, "f", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0.0, 1.0]"));
+
+	self->material->ray_mirror = EXPP_ClampFloat (value, EXPP_MAT_RAYMIRR_MIN,
+									EXPP_MAT_RAYMIRR_MAX);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setMirrDepth(BPy_Material *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0, 10]"));
+
+	self->material->ray_depth = EXPP_ClampInt (value, EXPP_MAT_MIRRDEPTH_MIN,
+									EXPP_MAT_MIRRDEPTH_MAX);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setFresnelMirr(BPy_Material *self, PyObject *args)
+{
+	float value;
+
+	if (!PyArg_ParseTuple(args, "f", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0.0, 5.0]"));
+
+	self->material->fresnel_mir = EXPP_ClampFloat (value, EXPP_MAT_FRESNELMIRR_MIN,
+									EXPP_MAT_FRESNELMIRR_MAX);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setFresnelMirrFac(BPy_Material *self, PyObject *args)
+{
+	float value;
+
+	if (!PyArg_ParseTuple(args, "f", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0.0, 5.0]"));
+
+	self->material->fresnel_mir_i = EXPP_ClampFloat (value, EXPP_MAT_FRESNELMIRRFAC_MIN,
+									EXPP_MAT_FRESNELMIRRFAC_MAX);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setIOR(BPy_Material *self, PyObject *args)
+{
+	float value;
+
+	if (!PyArg_ParseTuple(args, "f", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0.0, 5.0]"));
+
+	self->material->ang = EXPP_ClampFloat (value, EXPP_MAT_IOR_MIN,
+									EXPP_MAT_IOR_MAX);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setTransDepth(BPy_Material *self, PyObject *args)
+{
+	int value;
+
+	if (!PyArg_ParseTuple(args, "i", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0, 10]"));
+
+	self->material->ray_depth_tra = EXPP_ClampInt (value, EXPP_MAT_TRANSDEPTH_MIN,
+									EXPP_MAT_TRANSDEPTH_MAX);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setFresnelTrans(BPy_Material *self, PyObject *args)
+{
+	float value;
+
+	if (!PyArg_ParseTuple(args, "f", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0.0, 5.0]"));
+
+	self->material->fresnel_tra = EXPP_ClampFloat (value, EXPP_MAT_FRESNELTRANS_MIN,
+									EXPP_MAT_FRESNELTRANS_MAX);
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *Material_setFresnelTransFac(BPy_Material *self, PyObject *args)
+{
+	float value;
+
+	if (!PyArg_ParseTuple(args, "f", &value))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected float argument in [0.0, 5.0]"));
+
+	self->material->fresnel_tra_i = EXPP_ClampFloat (value, EXPP_MAT_FRESNELTRANSFAC_MIN,
+									EXPP_MAT_FRESNELTRANSFAC_MAX);
+
+	return EXPP_incr_ret (Py_None);
+
+}
+
 static PyObject *Material_setTexture(BPy_Material *self, PyObject *args)
 {
 	int texnum;
@@ -1578,6 +1878,22 @@ static PyObject *Material_getAttr (BPy_Material *self, char *name)
 		attr = PyInt_FromLong((long)self->material->linec);
 	else if (strcmp(name, "nRings") == 0)
 		attr = PyInt_FromLong((long)self->material->ringc);
+	else if (strcmp (name, "rayMirr") == 0)
+		attr = PyFloat_FromDouble((double)self->material->ray_mirror);
+	else if (strcmp (name, "rayMirrDepth") == 0)
+		attr = PyInt_FromLong((long)self->material->ray_depth);
+	else if (strcmp (name, "fresnelDepth") == 0)
+		attr = PyFloat_FromDouble((double)self->material->fresnel_mir);
+	else if (strcmp (name, "fresnelDepthFac") == 0)
+		attr = PyFloat_FromDouble((double)self->material->fresnel_mir_i);
+	else if (strcmp (name, "IOR") == 0)
+		attr = PyFloat_FromDouble((double)self->material->ang);
+	else if (strcmp (name, "transDepth") == 0)
+		attr = PyInt_FromLong((double)self->material->ray_depth_tra);
+	else if (strcmp (name, "fresnelTrans") == 0)
+		attr = PyFloat_FromDouble((double)self->material->fresnel_tra);
+	else if (strcmp (name, "fresnelTransFac") == 0)
+		attr = PyFloat_FromDouble((double)self->material->fresnel_tra_i); 
 
 	else if (strcmp(name, "__members__") == 0) {
 		attr = /* 27 items */
@@ -1586,7 +1902,9 @@ static PyObject *Material_getAttr (BPy_Material *self, char *name)
 				"R", "G", "B", "alpha", "amb", "emit", "ref", "spec",
 				"specTransp", "add", "zOffset", "haloSize", "haloSeed",
 				"flareSize", "flareBoost", "flareSeed", "subSize", "hard",
-				"nFlares", "nStars", "nLines", "nRings");
+				"nFlares", "nStars", "nLines", "nRings", "rayMirr", "rayMirrDepth",
+				"fresnelDepth", "fresnelDepthFac", "IOR", "transDepth", "fresnelTrans",
+				"fresnelTransFac");
 	}
 
 	if (!attr)
@@ -1686,6 +2004,22 @@ static int Material_setAttr (BPy_Material *self, char *name, PyObject *value)
 		error = Material_setNLines (self, valtuple);
 	else if (strcmp (name, "nRings") == 0)
 		error = Material_setNRings (self, valtuple);
+	else if (strcmp (name, "rayMirr") == 0)
+		error = Material_setRayMirr(self, valtuple);
+	else if (strcmp (name, "rayMirrDepth") == 0)
+		error = Material_setMirrDepth(self, valtuple);
+	else if (strcmp (name, "fresnelDepth") == 0)
+		error = Material_setFresnelMirr(self, valtuple);
+	else if (strcmp (name, "fresnelDepthFac") == 0)
+		error = Material_setFresnelMirrFac(self, valtuple);
+	else if (strcmp (name, "IOR") == 0)
+		error = Material_setIOR(self, valtuple);
+	else if (strcmp (name, "transDepth") == 0)
+		error = Material_setTransDepth(self, valtuple);
+	else if (strcmp (name, "fresnelTrans") == 0)
+		error = Material_setFresnelTrans(self, valtuple);
+	else if (strcmp (name, "fresnelTransFac") == 0)
+		error = Material_setFresnelTransFac(self, valtuple);
 
 	else { /* Error */
 		Py_DECREF(valtuple);
@@ -1707,7 +2041,7 @@ static int Material_setAttr (BPy_Material *self, char *name, PyObject *value)
 /*****************************************************************************/
 /* Function:		Material_repr																								 */
 /* Description: This is a callback function for the BPy_Material type. It		 */
-/*							builds a meaninful string to represent material objects.		 */
+/*		     builds a meaninful string to represent material objects.		 */
 /*****************************************************************************/
 static PyObject *Material_repr (BPy_Material *self)
 {
