@@ -1279,6 +1279,8 @@ static BPy_NMFace *nmface_from_data(BPy_NMesh *mesh, int vidxs[4],
 		col = (MCol *) (tface->col);	/* XXX weird, tface->col is uint[4] */
 	}
 	else {
+		newf->mode = TF_DYNAMIC; /* just to initialize it to something meaninful,*/
+		/* since without tfaces there are no tface->mode's, obviously. */
 		newf->image = NULL;
 		newf->uv = PyList_New(0); 
 	} 

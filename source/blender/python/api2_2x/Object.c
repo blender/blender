@@ -990,7 +990,7 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 				"old object reference count below 0"));
 		}
 	}
-	return (Py_None);
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
@@ -1059,7 +1059,7 @@ static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
 		/* We don't need the child object anymore. */
 		Py_DECREF ((PyObject *) child);
 	}
-	return (Py_None);
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *Object_materialUsage (BPy_Object *self, PyObject *args)
@@ -1256,7 +1256,7 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 				break;
 		}
 	}
-	return (Py_None);
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *Object_setName (BPy_Object *self, PyObject *args)

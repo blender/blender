@@ -42,7 +42,9 @@ Example::
     - SELECT - selected.
     - HIDE - hidden.
     - ACTIVE - the active face.
-@var FaceModes: The available face modes.
+@var FaceModes: The available face modes. Note: these are only meaninful if
+  nmesh.hasFaceUV() returns true, since in Blender this info is stored at the
+  TexFace (TexFace button in Edit Mesh buttons) structure.
     - ALL - set all modes at once.
     - BILLBOARD - always orient after camera.
     - HALO - halo face, always point to camera.

@@ -4,7 +4,7 @@
 # Doc system used: epydoc - http://epydoc.sf.net
 # command line:
 
-# epydoc -o BPY_API_228 --url "http://www.blender.org" -t Blender.py \
+# epydoc -o BPY_API_230 --url "http://www.blender.org" -t Blender.py \
 # -n "Blender" --no-private --no-frames Blender.py \
 # Types.py Scene.py Object.py NMesh.py Material.py Camera.py Lamp.py \
 # Armature.py Metaball.py Effect.py Curve.py Ipo.py World.py BGL.py Window.py \
@@ -52,8 +52,8 @@ The Blender Python API Reference
  open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.28 (already updated for 2.28a) or newer.
-@version: 0.1
+@requires: Blender 2.30 or newer.
+@version: 0.2
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}
