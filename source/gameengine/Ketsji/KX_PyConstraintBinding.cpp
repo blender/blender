@@ -128,7 +128,6 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 {
 	int constraintid;
 	
-	int len = PyTuple_Size(args);
 	if (PyArg_ParseTuple(args,"i",&constraintid))
 	{
 		if (g_physics_env)
@@ -138,9 +137,6 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
-
-
-
 
 
 static struct PyMethodDef physicsconstraints_methods[] = {
