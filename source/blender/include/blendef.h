@@ -184,6 +184,8 @@
 #define B_CURVEALONE	49
 /* EVENT < 50: alone's en locals */
 
+#define B_KEEPDATA			60
+
 #define B_SHOWSPLASH		70
 #define B_RESETAUTOSAVE		71
 #define B_SOUNDTOGGLE		72

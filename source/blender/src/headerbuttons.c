@@ -205,7 +205,7 @@ static int std_libbuttons(uiBlock *block,
 						  int xco, int pin, short *pinpoin, 
 						  int browse, ID *id, ID *parid, 
 						  short *menupoin, int users, 
-						  int lib, int del, int autobut);
+						  int lib, int del, int autobut, int keepbut);
 
 
 extern char versionstr[]; /* from blender.c */
@@ -274,7 +274,7 @@ void write_dxf_fs()
 
 /* ********************** GLOBAL ****************************** */
 
-static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int browse, ID *id, ID *parid, short *menupoin, int users, int lib, int del, int autobut)
+static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int browse, ID *id, ID *parid, short *menupoin, int users, int lib, int del, int autobut, int keepbut)
 {
 	ListBase *lb;
 	Object *ob;
@@ -482,6 +482,10 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			
 			
 		}
+		if(keepbut) {
+			uiDefBut(block, BUT, keepbut, "F", (short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Keep Datablock");	
+			xco+= XIC;
+		}
 	}
 	else xco+=XIC;
 	
@@ -546,11 +550,13 @@ void do_global_buttons(unsigned short event)
 	bAction *act;
 	ID *id, *idtest, *from;
 	int nr= 1;
+
 	
 	ob= OBACT;
 	
 	id= 0;	/* id op nul voor texbrowse */
 	
+
 	switch(event) {
 	
 	case B_NEWFRAME:
@@ -1320,6 +1326,28 @@ void do_global_buttons(unsigned short event)
 		/* naam scene ook in set PUPmenu */
 		if ELEM(curarea->spacetype, SPACE_BUTS, SPACE_INFO) allqueue(REDRAWBUTSALL, 0);
 
+		allqueue(REDRAWHEADERS, 0);
+
+		break;
+	
+	case B_KEEPDATA:
+		/* keep datablock. similar to pressing FKEY in a fileselect window
+		 * maybe we can move that stuff to a seperate function? -- sg
+		 */
+		if (curarea->spacetype==SPACE_BUTS) {
+			id= (ID *)G.buts->lockpoin;
+		} else if(curarea->spacetype==SPACE_IPO) {
+			id = (ID *)G.sipo->ipo;
+		} /* similar for other spacetypes ? */
+		if (id) {
+			if( id->flag & LIB_FAKEUSER) {
+				id->flag -= LIB_FAKEUSER;
+				id->us--;
+			} else {
+				id->flag |= LIB_FAKEUSER;
+				id->us++;
+			}
+		}
 		allqueue(REDRAWHEADERS, 0);
 
 		break;
@@ -3182,11 +3210,11 @@ void info_buttons(void)
 		
 		/* STD SCREEN BUTTONS */
 		xco+= XIC;
-		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0);
+		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
 	
 		/* STD SCENE BUTTONS */
 		xco+= 5;
-		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &G.curscreen->scenenr, 1, 1, B_INFODELSCE, 0);
+		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &G.curscreen->scenenr, 1, 1, B_INFODELSCE, 0, 0);
 	}
 	else xco= 430;
 	
@@ -3651,7 +3679,7 @@ void action_buttons(void)
 	ob=OBACT;
 	from = (ID*) ob;
 
-	xco= std_libbuttons(block, xco+1.5*XIC, B_ACTPIN, &G.saction->pin, B_ACTIONBROWSE, (ID*)G.saction->action, from, &(G.saction->actnr), B_ACTALONE, B_ACTLOCAL, B_ACTIONDELETE, 0);	
+	xco= std_libbuttons(block, xco+1.5*XIC, B_ACTPIN, &G.saction->pin, B_ACTIONBROWSE, (ID*)G.saction->action, from, &(G.saction->actnr), B_ACTALONE, B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
 
 #ifdef __NLA_BAKE
 	/* Draw action baker */
@@ -4021,7 +4049,7 @@ void ipo_buttons(void)
 	/* NAME ETC */
 	id= (ID *)get_ipo_to_edit(&from);
 
-	xco= std_libbuttons(block, (short)(xco+1.5*XIC), B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, (ID*)G.sipo->ipo, from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0);	
+	xco= std_libbuttons(block, (short)(xco+1.5*XIC), B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, (ID*)G.sipo->ipo, from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
 
 	uiSetButLock(id && id->lib, "Can't edit library data");
 
@@ -4366,12 +4394,12 @@ void buts_buttons(void)
 	
 	if(G.buts->mainb==BUTS_LAMP) {
 		if(id) {
-			xco= std_libbuttons(block, xco, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0);	
+			xco= std_libbuttons(block, xco, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
 		}
 	}
 	else if(G.buts->mainb==BUTS_MAT) {
 		if(ob && (ob->type<OB_LAMP) && ob->type) {
-			xco= std_libbuttons(block, xco, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME);
+			xco= std_libbuttons(block, xco, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 		}
 	
 		/* COPY PASTE */
@@ -4391,23 +4419,23 @@ void buts_buttons(void)
 	else if(G.buts->mainb==BUTS_TEX) {
 		if(G.buts->texfrom==0) {
 			if(idfrom) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME);
+				xco= std_libbuttons(block, xco, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 			}
 		}
 		else if(G.buts->texfrom==1) {
 			if(idfrom) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME);
+				xco= std_libbuttons(block, xco, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 			}
 		}
 		else if(G.buts->texfrom==2) {
 			if(idfrom) {
-				xco= std_libbuttons(block, xco, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME);
+				xco= std_libbuttons(block, xco, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 			}
 		}
 	}
 	else if(G.buts->mainb==BUTS_ANIM) {
 		if(id) {
-			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0);
+			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
 			
 			if(G.scene->group) {
 				Group *group= G.scene->group;
@@ -4419,18 +4447,18 @@ void buts_buttons(void)
 	}
 	else if(G.buts->mainb==BUTS_GAME) {
 		if(id) {
-			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0);
+			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
 		}
 	}
 	else if(G.buts->mainb==BUTS_WORLD) {
-		xco= std_libbuttons(block, xco, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0);
+		xco= std_libbuttons(block, xco, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 	}
 	else if (G.buts->mainb==BUTS_SOUND) {
-		xco= std_libbuttons(block, xco, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0);
+		xco= std_libbuttons(block, xco, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
 	}
 
 	else if(G.buts->mainb==BUTS_RENDER) {
-		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &(G.curscreen->scenenr), 1, 1, B_INFODELSCE, 0);
+		xco= std_libbuttons(block, xco, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &(G.curscreen->scenenr), 1, 1, B_INFODELSCE, 0, B_KEEPDATA);
 	}
 	else if(G.buts->mainb==BUTS_EDIT) {
 		if(id) {
@@ -4471,7 +4499,7 @@ void buts_buttons(void)
 				local= B_LATTLOCAL;
 			}
 			
-			xco= std_libbuttons(block, xco, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0);
+			xco= std_libbuttons(block, xco, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
  				
 			xco+= XIC;
 		}
@@ -4485,7 +4513,7 @@ void buts_buttons(void)
 		if(id) {
 
 
-			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0);
+			xco= std_libbuttons(block, xco, 0, NULL, 0, id, idfrom, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, 0);
 
 			get_constraint_client(NULL, &type, &data);
 			if (data && type==TARGET_BONE){
@@ -4854,7 +4882,7 @@ void text_buttons(void)
 	/* STD TEXT BUTTONS */
 	if (!BPY_spacetext_is_pywin(st)) {
 		xco+= 2*XIC;
-		xco= std_libbuttons(block, xco, 0, NULL, B_TEXTBROWSE, (ID*)st->text, 0, &(st->menunr), 0, 0, B_TEXTDELETE, 0);
+		xco= std_libbuttons(block, xco, 0, NULL, B_TEXTBROWSE, (ID*)st->text, 0, &(st->menunr), 0, 0, B_TEXTDELETE, 0, 0);
 
 		/*
 		if (st->text) {
@@ -5102,7 +5130,7 @@ void sound_buttons(void)
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
 	uiDefIconBut(block, BUT, B_SOUNDHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");
 
-	xco= std_libbuttons(block, xco+40, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0);	
+	xco= std_libbuttons(block, xco+40, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
 
 	if(G.ssound->sound) {
 		bSound *sound= G.ssound->sound;
@@ -5428,7 +5456,7 @@ void image_buttons(void)
 	uiDefIconButS(block, TOG|BIT|0, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Keep UV polygons square while editing");
 	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Clip UV with image size");		
 
-	xco= std_libbuttons(block, xco+40, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0);
+	xco= std_libbuttons(block, xco+40, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	if (G.sima->image) {
 		if (G.sima->image->packedfile) {
