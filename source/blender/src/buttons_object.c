@@ -1261,18 +1261,20 @@ static void editing_panel_deflectors(Object *ob)
 	
 	if(ob->pd) {
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Force field",	10,160,200,20, &ob->pd->forcefield, 0, 0, 0, 0, "Object center attracts or repels particles");
-		uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "Vortex field",	10,140,200,20, &ob->pd->forcefield, 0, 0, 0, 0, "Particles swirl around Z-axis of the object");
 
-		uiDefButF(block, NUM, B_DIFF, "Strength: ",	10,120,200,20, &ob->pd->f_strength, -1000, 1000, 1000, 0, "Strength of force field");
-		uiDefButF(block, NUM, B_DIFF, "Fall-off: ",	10,100,200,20, &ob->pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
+		uiDefButI(block, ROW, REDRAWVIEW3D, "None",	10,160,200,20, &ob->pd->forcefield, 1.0, 0, 0, 0, "No force");
+		uiDefButI(block, ROW, REDRAWVIEW3D, "Force field",	10,140,200,20, &ob->pd->forcefield, 1.0, PFIELD_FORCE, 0, 0, "Object center attracts or repels particles");
+		uiDefButI(block, ROW, REDRAWVIEW3D, "Vortex field",	10,120,200,20, &ob->pd->forcefield, 1.0, PFIELD_VORTEX, 0, 0, "Particles swirl around Z-axis of the object");
+
+		uiDefButF(block, NUM, B_DIFF, "Strength: ",	10,100,200,20, &ob->pd->f_strength, -1000, 1000, 1000, 0, "Strength of force field");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Fall-off: ",	10,80,200,20, &ob->pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
 		/* only meshes collide now */
 		if(ob->type==OB_MESH) {
 			uiBlockBeginAlign(block);
-			uiDefButS(block, TOG|BIT|0, B_DIFF, "Deflection",10,70,200,20, &ob->pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
-			uiDefButF(block, NUM, B_DIFF, "Damping: ",	10,50,200,20, &ob->pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
-			uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	10,30,200,20, &ob->pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
-			uiDefButF(block, NUM, B_DIFF, "Permeability: ",		10,10,200,20, &ob->pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
+			uiDefButS(block, TOG|BIT|0, B_DIFF, "Deflection",10,50,200,20, &ob->pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+			uiDefButF(block, NUM, B_DIFF, "Damping: ",	10,30,200,20, &ob->pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
+			uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	10,10,200,20, &ob->pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
+			uiDefButF(block, NUM, B_DIFF, "Permeability: ",		10,-10,200,20, &ob->pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
 		}
 	}
 }

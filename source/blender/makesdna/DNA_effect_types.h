@@ -67,6 +67,10 @@
 #define WAV_Y			4
 #define WAV_CYCL		8
 
+	/* Effector Fields types */
+#define PFIELD_FORCE	1
+#define PFIELD_VORTEX	2
+#define PFIELD_MAGNET	3
 
 typedef struct Effect {
 	struct Effect *next, *prev;

@@ -405,7 +405,7 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 	while (base) {
 		if(base->lay & par_layer) {
 			ob= base->object;
-			if(ob->pd && ob->pd->forcefield & 1) {
+			if(ob->pd && ob->pd->forcefield == PFIELD_FORCE) {
 
 				/* Need to set r.cfra for paths (investigate, ton) */
 				cur_frame = G.scene->r.cfra;
@@ -442,7 +442,7 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 				force[2] += (vect_to_vert[2] * f_force );
 
 			}
-			if(ob->pd && ob->pd->forcefield & 2) {
+			else if(ob->pd && ob->pd->forcefield == PFIELD_VORTEX) {
 				/* Need to set r.cfra for paths (investigate, ton) */
 				cur_frame = G.scene->r.cfra;
 				G.scene->r.cfra = (short)cur_time;
