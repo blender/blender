@@ -3920,6 +3920,7 @@ void texbuts(void)
 					for(a=0; a<pit->vars; a++, varstr++) {
 						xco= 350 + 140*(a/6);
 						yco= 110 - 20*(a % 6);
+						pit->data[a] = varstr->def;
 						uiDefBut(block, varstr->type, B_PLUGBUT+a, varstr->name, (short)xco,(short)yco,137,19, &(pit->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
 					}
 				}
