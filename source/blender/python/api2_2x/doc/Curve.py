@@ -71,14 +71,14 @@ class Curve:
     @param name: The new name.
     """
 
-  def getPathlen():
+  def getPathLen():
     """
     Get this Curve's path length.
     @rtype: int
     @return: the path length.
     """
 
-  def setPathlen(len):
+  def setPathLen(len):
     """
     Set this Curve's path length.
     @rtype: PyNone
@@ -105,9 +105,12 @@ class Curve:
     """
     Get the Curve mode value.
     The mode of the curve is a combination of 4 parameters.
-    Bits 0,1,2 : "Back", "Front" and "3D".
-    Bit 3 :  "CurvePath" is set.
-    Bit 4 :  "CurveFollow" is set.
+       - Bit 0 : "Back" is set
+       - Bit 1 :  "Front" is set
+       - Bit 2 :  "3D" is set
+       - Bit 3 :  "CurvePath" is set.
+       - Bit 4 :  "CurveFollow" is set.
+      
     @rtype: int
     """
 
@@ -116,7 +119,7 @@ class Curve:
     Set the  Curve mode  value.
     @rtype: PyNone
     @type val: int
-    @param val : The new Curve's mode value. 
+    @param val : The new Curve's mode value.  See L{getMode} for the meaning of the bit fields.
     """
 
   def getBevresol():
@@ -203,24 +206,28 @@ class Curve:
     @param ext2: The new Curve's ext2 value. 
     """
 
-  def getControlpoint(numcurve,numpoint):
+  def getControlPoint(numcurve,numpoint):
     """
     Get the curve's control point value. 
     @type numcurve: int
     @type numpoint: int
     @rtype: list
-    @return: depends upon the curve's type.\n
-    type bezier : a list of three coordinates\n
-    type nurbs : a list of nine coordinates.
+    @return: depends upon the curve's type.
+      - type bezier : a list of three coordinates
+      - type nurbs : a list of nine coordinates.
     """
 
-  def setControlpoint(controlpoint):
+  def setControlPoint( numcurve, numpoint, controlpoint):
     """
     Set the Curve's controlpoint value. 
     @rtype: PyNone
+    @type numcurve: int
+    @type numpoint: int
     @type controlpoint: list
-    @param controlpoint: The new Curve's controlpoint value.\n
-    see getControlpoint for the length of the list.
+    @param numcurve: index for spline in Curve, starting from 0
+    @param numpoint: index for point in spline, starting from 0
+    @param controlpoint: The new controlpoint value.
+    See L{getControlPoint} for the length of the list.
     """
 
   def getLoc():
