@@ -44,6 +44,10 @@
 #include <string.h> 
 #include <float.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __sun__
 #include <strings.h>
 #endif

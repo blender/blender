@@ -36,6 +36,10 @@
 #include "BLO_readStreamGlue.h"
 #include "BLO_readStreamGlueLoopBack.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	struct readStreamGlueLoopBackStruct *
 readStreamGlueLoopBack_begin(
 	void *endControl)

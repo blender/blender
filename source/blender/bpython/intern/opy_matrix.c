@@ -41,6 +41,10 @@
 #include "BLI_arithb.h"
 #include "opy_vector.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 PyObject *BPY_tuple_repr(PyObject *self, int size);
 
 /* PROTOS */

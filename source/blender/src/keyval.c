@@ -33,13 +33,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
-
-
 #include "BIF_keyval.h"
-
 #include "blendef.h"
-
 #include "mydevice.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 char *key_event_to_string(unsigned short event)
 {

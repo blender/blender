@@ -48,6 +48,10 @@
 
 #include "BLO_writeStreamGlue.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef _WIN32
 #define O_BINARY 0
 #endif

@@ -51,8 +51,11 @@ c = module.Const['CONSTANT']
 
 #include "Python.h"
 #include "BPY_macros.h"
-
 #include "BPY_constobject.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #define Const_Check(v)       ((v)->ob_type == &Const_Type)
 

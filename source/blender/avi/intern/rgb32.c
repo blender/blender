@@ -38,8 +38,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "MEM_guardedalloc.h"
-
 #include "rgb32.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void *avi_converter_from_rgb32 (AviMovie *movie, int stream, unsigned char *buffer, int *size) {
 	int y, x, rowstridea, rowstrideb;

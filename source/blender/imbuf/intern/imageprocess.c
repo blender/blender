@@ -42,6 +42,10 @@
 
 #include "IMB_imbuf.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* Only this one is used liberally here, and in imbuf */
 void IMB_convert_rgba_to_abgr(int size, unsigned int *rect)
 {

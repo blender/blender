@@ -32,6 +32,10 @@
 #include "mydevice.h"
 #include "blendef.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 char *event_to_string(short evt) {
 #define smap(evt)	case evt: return #evt
 	switch (evt) {

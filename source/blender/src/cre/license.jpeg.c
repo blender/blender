@@ -30,5 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 int datatoc_tonize= 0;
 char datatoc_ton[]= {0};

@@ -42,6 +42,10 @@
 
 #include "IMB_cmap.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 static short *lastcube = 0;
 static uchar *lastcoltab = 0;
 static short lastmaxcol;

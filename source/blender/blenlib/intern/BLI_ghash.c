@@ -35,8 +35,11 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
-
 #include "BLI_ghash.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /***/
 

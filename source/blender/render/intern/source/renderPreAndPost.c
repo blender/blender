@@ -44,6 +44,10 @@
 #include "renderHelp.h"
 #include "shadowBuffer.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * Rotate all objects, make shadowbuffers and environment maps.
  */

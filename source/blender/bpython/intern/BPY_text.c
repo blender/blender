@@ -74,6 +74,10 @@
 #include "b_interface.h"
 #include "opy_datablock.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 DATABLOCK_GET(Textmodule, text object, getTextList())
 
 #define CHECK_VALIDTEXT(x) CHECK_VALIDDATA(x, \

@@ -31,8 +31,11 @@
  */
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-
 #include "BIF_scrarea.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void *scrarea_find_space_of_type(ScrArea *sa, int type)
 {

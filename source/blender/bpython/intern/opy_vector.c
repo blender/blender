@@ -38,7 +38,9 @@
 #include "BPY_modules.h"
 #include "opy_vector.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /*****************************/
 /*    Vector Python Object   */

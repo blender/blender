@@ -32,24 +32,22 @@
 
 #include <string.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef _WIN32
 #include "BLI_winstuff.h"
 #pragma warning (once : 4761)
 #endif
 
 #include "MEM_guardedalloc.h"
-
 #include "BMF_Api.h"
-
 #include "BLI_blenlib.h"
-
 #include "IMB_imbuf_types.h"
-
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-
 #include "BKE_global.h"
-
 #include "BIF_fsmenu.h"
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -58,7 +56,6 @@
 #include "BIF_imasel.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
-
 #include "BSE_drawimasel.h"
 #include "BSE_filesel.h"
 

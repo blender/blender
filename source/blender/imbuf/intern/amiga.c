@@ -43,6 +43,10 @@
 #include "IMB_bitplanes.h"
 #include "IMB_amiga.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* actually hard coded endianness */
 #define GET_BIG_LONG(x) (((uchar *) (x))[0] << 24 | ((uchar *) (x))[1] << 16 | ((uchar *) (x))[2] << 8 | ((uchar *) (x))[3])
 #define GET_LITTLE_LONG(x) (((uchar *) (x))[3] << 24 | ((uchar *) (x))[2] << 16 | ((uchar *) (x))[1] << 8 | ((uchar *) (x))[0])

@@ -53,6 +53,10 @@
 
 #include "radio.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* locals */
 void *malloc_fast(int size);
 void *calloc_fast(int size);

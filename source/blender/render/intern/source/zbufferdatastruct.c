@@ -63,6 +63,11 @@
 #include "zbufferdatastruct.h"
 #include "render.h"
 #include "render_intern.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* if defined: all jittersamples are stored individually. _very_ serious     */
 /* performance hit ! also gives some buffer size problems in big scenes      */
 /* #define RE_INDIVIDUAL_SUBPIXELS */

@@ -64,6 +64,10 @@
 #include "blendef.h"
 #include "nla.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 static short add_constraint_element (Object *owner, const char *substring, Object *parent, const char *parentstring);
 static short detect_constraint_loop (Object *owner, const char* substring, int disable);
 static void test_bonelist_constraints (Object *owner, ListBase *list);

@@ -31,6 +31,10 @@
  */
 /* DataToC output of file <B_blend> */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 int datatoc_B_blend_size= 32472;
 char datatoc_B_blend[]= {
  66, 76, 69, 78, 68, 69, 82, 95,118, 50, 49, 50, 82, 69, 78, 68, 32,  0,  0,  0,136,237,255,191,

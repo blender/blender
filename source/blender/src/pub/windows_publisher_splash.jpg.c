@@ -30,6 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 /* DataToC output of file <splash_jpg> */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef _WIN32
 
 int datatoc_tonize= 30796;

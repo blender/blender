@@ -48,6 +48,10 @@
 
 #include "BLO_signer_info.h" /* external signer info struct */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 static struct BLO_SignerInfo g_SignerInfo = {"", "", ""};
 
 struct verifyStructType {

@@ -39,10 +39,12 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
 #include "IMB_allocimbuf.h"
 #include "IMB_bitplanes.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 unsigned int **imb_copyplanelist(struct ImBuf *ibuf)
 {

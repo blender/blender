@@ -38,8 +38,11 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
 #include "IMB_filter.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 
 /************************************************************************/

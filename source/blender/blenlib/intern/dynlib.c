@@ -30,8 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 #include <stdlib.h>
-
 #include "../PIL_dynlib.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /*
  * XXX, should use mallocN so we can see

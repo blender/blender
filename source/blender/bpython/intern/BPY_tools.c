@@ -34,6 +34,10 @@
 #include "BKE_global.h"
 #include "BPY_tools.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* These should all have BPY prefixes later on */
 
 PyObject *BPY_incr_ret(PyObject *ob) {

@@ -46,6 +46,10 @@
 #include "mydevice.h"
 #include "import.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* PROTOS */
 
 extern void init_frozenmodules(void);  // frozen module library

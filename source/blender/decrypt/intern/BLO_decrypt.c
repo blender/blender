@@ -48,6 +48,10 @@
 #include "BLO_decrypt.h"
 #include "BLO_en_de_cryptHeader.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct decryptStructType {
 	struct readStreamGlueStruct *streamGlue;
 	unsigned int streamDone;

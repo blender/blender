@@ -34,8 +34,11 @@
 #include "GEN_messaging.h"
 #include "stdio.h"
 #include "errorHandler.h"
-
 #include "render_intern.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 

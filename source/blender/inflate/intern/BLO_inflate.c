@@ -43,6 +43,10 @@
 
 #include "BLO_inflate.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // TODO use other error function
 static int CHECK_ERR(int err, char *msg);
 

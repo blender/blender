@@ -34,15 +34,16 @@
 
 #include <string.h>
 #include "BLI_blenlib.h"
-
 #include "imbuf.h"
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
 #include "IMB_allocimbuf.h"
 #include "IMB_iris.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 typedef struct {
     unsigned short	imagic;		/* stuff saved on disk . . */

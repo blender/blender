@@ -54,6 +54,9 @@
 #include "DNA_view3d_types.h"
 #include "DNA_space_types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /*********************************/
 /* helper routines               */

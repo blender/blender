@@ -66,6 +66,10 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 static int correct_oops_y(Oops *oops);
 
 

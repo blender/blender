@@ -52,6 +52,10 @@
 #include "BPY_macros.h"
 #include "BPY_window.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* DEFINES */
 
 #define CHECK_VALIDSCENE(x) CHECK_VALIDDATA(x, \

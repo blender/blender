@@ -55,6 +55,10 @@
 #include "BLO_deflate.h"
 #include "BLO_writeStreamGlue.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct streamGlueControlStruct *Global_streamGlueControl;
 
 void printStreamGlueHeader(struct streamGlueHeaderStruct *s)

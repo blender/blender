@@ -59,6 +59,10 @@
 //#include "screen.h"
 //#include "ipo.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void INITMODULE(BLENDERMODULE)(void);
 
 PyObject *g_sysmodule;

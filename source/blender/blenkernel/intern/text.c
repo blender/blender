@@ -48,6 +48,10 @@
 
 #include "BPY_extern.h" // Blender Python library
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /***************/ /*
 
 How Texts should work

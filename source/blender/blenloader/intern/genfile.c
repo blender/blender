@@ -31,6 +31,10 @@
  * DNA handling
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef WIN32 
 #include <unistd.h> // for read close
 #else

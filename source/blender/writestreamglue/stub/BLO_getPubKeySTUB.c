@@ -35,6 +35,10 @@
 #include "blenkey.h" // for byte ... duh this needs change !
 #include "BLO_getPubKey.h" 
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	int
 getPubKey(byte *dataStreamPubKey,
 		  int dataStreamPubKeyLen,

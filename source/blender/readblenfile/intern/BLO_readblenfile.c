@@ -36,6 +36,10 @@
 #include <string.h>
 #include <fcntl.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #include <io.h>		// read, open
 #else // ! WIN32

@@ -44,6 +44,10 @@
 #include "IMB_divers.h"
 #include "IMB_allocimbuf.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 static unsigned int dfltcmap[16] = {
 	0x00000000, 0xffffffff, 0x777777ff, 0xccccccff, 
 	0xcc3344ff, 0xdd8844ff, 0xccdd44ff, 0x888833ff, 

@@ -47,6 +47,10 @@
 #include "BLO_decrypt.h"
 #include "BLO_verify.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	unsigned int
 correctByteOrder(
 	unsigned int x)

@@ -56,6 +56,10 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void set_active_group(void)
 {
 	/* with active object, find active group */

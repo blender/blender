@@ -35,9 +35,12 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /***/
 

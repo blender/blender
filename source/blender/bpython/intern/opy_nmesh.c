@@ -59,6 +59,11 @@
 #include "opy_vector.h"
 
 #include "b_interface.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* PROTOS */
 
 static int convert_NMeshToMesh(Mesh *mesh, NMesh *nmesh);

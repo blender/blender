@@ -50,6 +50,10 @@
 
 #include "BLI_arithb.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * Implementation of boolean ops mesh interface.
  */

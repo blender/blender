@@ -38,10 +38,13 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
 #include "IMB_cmap.h"
 #include "IMB_hamx.h"
 #include "IMB_ham.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 extern short alpha_col0;
 

@@ -32,6 +32,10 @@
 #include <string.h>    // strlen
 #include "BLO_writeblenfile.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 main()
 {
 	struct BLO_writeblenfileStruct *control;

@@ -59,6 +59,10 @@
 #include "BPY_extern.h"
 #include "BKE_material.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void free_material(Material *ma)
 {
 	int a;

@@ -46,6 +46,10 @@
 #include "BLI_scanfill.h"
 #include "BLI_callbacks.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* callbacks for errors and interrupts and some goo */
 static void (*BLI_localErrorCallBack)(char*) = NULL;
 static int (*BLI_localInterruptCallBack)(void) = NULL;

@@ -36,15 +36,14 @@
  */
 
 #include <string.h>
-
 #include "MEM_guardedalloc.h"
-
 #include "BLI_blenlib.h"
-
 #include "DNA_object_types.h"
-
 #include "BKE_deform.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void color_temperature (float input, unsigned char *r, unsigned char *g, unsigned char *b)
 {

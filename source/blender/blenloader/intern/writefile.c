@@ -74,6 +74,10 @@ ACHTER LibBlock
 - schrijf USER als aangegeven (~/.B.blend)
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef WIN32 
 #include <unistd.h>
 #else

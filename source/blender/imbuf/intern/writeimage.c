@@ -53,6 +53,10 @@
 #include "IMB_bitplanes.h"
 #include "IMB_divers.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 short (*IMB_fp_png_encode)(struct ImBuf *ibuf, int file, int flags) = 0;
 

@@ -76,6 +76,10 @@
 #include "vanillaRenderPipe.h"
 #include "vanillaRenderPipe_int.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* crud */
 #define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
 

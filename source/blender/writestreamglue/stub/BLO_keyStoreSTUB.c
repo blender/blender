@@ -35,6 +35,10 @@
 
 #include "BLO_keyStore.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	void
 keyStoreConstructor(
 	UserStruct *keyUserStruct,

@@ -66,6 +66,10 @@
 
 #include "IK_solver.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*	Function prototypes */
 
 static void apply_pose_bonechildren (Bone* bone, bPose* pose, int doit);

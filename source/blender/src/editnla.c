@@ -84,6 +84,10 @@
 #include "license_key.h"
 #include "keyed_functions.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* Note: A lot of these pretty much duplicate the behaviour of the
 action windows.  The functions should be shared, not copy-pasted */
 typedef struct NlaParam{

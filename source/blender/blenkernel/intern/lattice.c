@@ -63,6 +63,10 @@
 #include "BKE_object.h"
 #include "BKE_ika.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 Lattice *editLatt=0, *deformLatt=0;
 
 float *latticedata=0, latmat[4][4];

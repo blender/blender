@@ -37,6 +37,10 @@
 #include "BPY_macros.h"
 #include "b_interface.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* GLOBALS */
 
 PyObject *g_blenderdict;

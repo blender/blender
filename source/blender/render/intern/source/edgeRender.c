@@ -67,6 +67,10 @@
 #include "zbuf.h" /* for zbufclipwire and zbufclip */
 #include "jitter.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef RE_EDGERENDERSAFE
 char edgeRender_h[] = EDGERENDER_H;
 char edgeRender_c[] = "$Id$";

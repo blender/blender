@@ -30,6 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 /* DataToC output of file <splash_jpg> */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if !defined(WIN32) && !defined(__APPLE__)
 int datatoc_tonize= 29208;
 char datatoc_ton[]= {

@@ -46,6 +46,10 @@
 
 #include "endian.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 static int AVI_DEBUG=0;
 static char DEBUG_FCC[4];
 

@@ -86,6 +86,10 @@
 #include "errorHandler.h"
 #include "pixelshading.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* maybe declare local functions here?                                       */
 /* ------------------------------------------------------------------------- */

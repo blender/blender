@@ -35,12 +35,13 @@
 #include <stdlib.h>
 
 #include "GEN_messaging.h"
-
 #include "zlib.h"
-
 #include "BLO_writeStreamGlue.h"
-
 #include "BLO_dumpFromMemory.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 	int
 BLO_dumpFromMemory(

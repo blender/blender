@@ -51,6 +51,10 @@
 #include "renderHelp.h"
 #include "RE_callbacks.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 extern short pa; /* can move to inside the outer loop */
 /* should make a gamtab module, just like the jitter... */
 extern unsigned short *mask1[9], *mask2[9], *igamtab2;

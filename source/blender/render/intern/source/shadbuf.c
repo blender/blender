@@ -54,6 +54,10 @@
 #include "jitter.h"
 #include "zbuf.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* if defined: objects don't cast shadows anymore                            */
 /*  #define RE_NO_SHADOWS */
 

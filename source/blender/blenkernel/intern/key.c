@@ -61,6 +61,9 @@
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #define KEY_BPOINT		1
 #define KEY_BEZTRIPLE	2

@@ -53,6 +53,10 @@
 #include "BKE_object.h"
 #include "BKE_ipo.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void free_object_key(ObjectKey *ok)
 {
 	if(ok->ipo) ok->ipo->id.us--;

@@ -33,8 +33,6 @@
  * CSG operations. 
  */
 
-
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
@@ -65,6 +63,9 @@
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
  * Here's the vertex iterator structure used to walk through

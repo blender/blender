@@ -64,9 +64,11 @@
 
 #include "radio.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void setparelem(RNode *rn, RPatch *par);
-
-
 
 void splitconnected()
 {

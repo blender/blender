@@ -58,6 +58,10 @@
 
 #include "BKE_bad_level_calls.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 ListBase duplilist= {0, 0}; 
 
 void free_path(Path *path)

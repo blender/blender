@@ -38,6 +38,10 @@
 #include "BLO_readStreamErrors.h"
 #include "BLO_decrypt.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	BLO_decryptStructHandle
 BLO_decrypt_begin(
 	void *endControl)

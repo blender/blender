@@ -99,6 +99,10 @@
 
 #include "b_interface.h" /* needed for most of the DNA datatypes */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 /* ---------------------------------------------------------------------- */
 

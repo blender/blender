@@ -41,6 +41,10 @@
 
 #include "BLI_arithb.h" /* Mat4Invert */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* PROTOS */
 
 

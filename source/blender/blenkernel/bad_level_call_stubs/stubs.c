@@ -33,10 +33,12 @@
 
 
 #include "BLI_blenlib.h"
-
 #include "DNA_material_types.h"
-
 #include "BKE_bad_level_calls.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 int winqueue_break= 0;
 

@@ -58,6 +58,9 @@
 #include "BPY_extern.h"
 #include "BKE_main.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void free_world(World *wrld)
 {

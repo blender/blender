@@ -38,6 +38,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef WIN32
 #include <unistd.h>
 #else

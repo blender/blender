@@ -96,6 +96,10 @@
 #include "radio.h"
 #include "mydevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* locals? This one was already done in radio.h... */
 /*  void rad_status_str(char *str); */
 

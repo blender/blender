@@ -48,6 +48,10 @@
 #include "BIF_editdeform.h"
 #include "BIF_toolbox.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void sel_verts_defgroup (int select)
 {
 	EditVert		*eve;

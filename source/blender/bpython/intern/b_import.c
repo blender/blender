@@ -40,8 +40,6 @@
 	
 */
 	
-
-
 #include "DNA_text_types.h"
 #include "Python.h"
 #include "import.h"
@@ -49,13 +47,14 @@
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_text.h"
-
 #include "BLI_blenlib.h" // mallocs
-
 #include "BPY_macros.h" 
 #include "BPY_main.h" 
-
 #include "b_import.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 
 /* ---------------------------------------------------------------------------- */

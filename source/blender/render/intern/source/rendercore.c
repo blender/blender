@@ -68,6 +68,10 @@
 #include "rendercore.h"
 #include "rendercore_int.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* globals for this file */
 /* moved to renderData.c? Not yet... */
 RE_Render R;

@@ -42,6 +42,10 @@
 #include "BLO_deflate.h"
 #include "BLO_in_de_flateHeader.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // TODO use other error function
 static int CHECK_ERR(int err, char *msg);
 

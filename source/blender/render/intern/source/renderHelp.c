@@ -41,7 +41,9 @@
 #include "renderHelp.h"
 #include "zbuf.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 static float panovco, panovsi;
 static float panophi=0.0;

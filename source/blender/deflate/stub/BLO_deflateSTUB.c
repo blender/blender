@@ -37,6 +37,10 @@
 #include "BLO_streamglue.h"
 #include "BLO_deflate.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	int
 BLO_deflate(
 	unsigned char *data,

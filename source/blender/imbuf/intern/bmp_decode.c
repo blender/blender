@@ -40,11 +40,13 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
 #include "IMB_allocimbuf.h"
 #include "IMB_cmap.h"
 #include "IMB_bmp.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 // some code copied from article on microsoft.com, copied
 // here for enhanced BMP support in the future

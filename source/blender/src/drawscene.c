@@ -57,6 +57,9 @@
 #include "blendef.h" /* DIE ! */
 #include "mydevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void set_scene(Scene *sce)		/* zie ook scene.c: set_scene_bg() */
 {

@@ -44,6 +44,10 @@
 #include "BLO_readfile.h"
 #include "BLO_keyStore.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 int LICENSE_KEY_VALID = FALSE;
 int I_AM_PUBLISHER = TRUE;
 

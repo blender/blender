@@ -31,6 +31,10 @@
  */
 /* DataToC output of file <blenderbuttons> */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 int datatoc_blenderbuttons_size= 37540;
 char datatoc_blenderbuttons[]= {
 137, 80, 78, 71,

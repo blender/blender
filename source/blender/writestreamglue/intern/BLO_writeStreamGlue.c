@@ -36,17 +36,17 @@
 #include <assert.h>
 
 #include "zlib.h"
-
 #include "GEN_messaging.h"
-
 #include "BLO_writeStreamGlue.h"
-
 #include "BLO_dumpFromMemory.h"
-
 #include "BLO_writeblenfile.h"
 #include "BLO_deflate.h"
 #include "BLO_encrypt.h"
 #include "BLO_sign.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /**
  * streamGlueWrite does not really stream; it buffers all data it gets

@@ -32,10 +32,12 @@
  */
 
 #include <stdio.h>
-
 #include "GEN_messaging.h"
-
 #include "BLO_writeStreamGlue.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 	struct streamGlueControlStruct *
 streamGlueControlConstructor(

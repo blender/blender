@@ -43,6 +43,10 @@
 #include "render_intern.h"
 #include "jitter.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 float jit[64][2];
 
 void init_render_jit(int nr);

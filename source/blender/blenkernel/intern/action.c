@@ -66,6 +66,10 @@
 #include "BKE_constraint.h"
 #include "DNA_constraint_types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* Local function prototypes */
 static 
 	void 

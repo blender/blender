@@ -40,7 +40,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -56,6 +55,10 @@
 #include "radio.h"
 #include "render.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
 #include "blendertimer.h" /* timer functions */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* locals */
 void rad_setmatrices(RadView *vw);

@@ -29,6 +29,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef BUILD_DATE
 char * build_date=BUILD_DATE;
 char * build_time=BUILD_TIME;

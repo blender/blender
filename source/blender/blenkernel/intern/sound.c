@@ -20,6 +20,10 @@
 #include "BKE_sound.h"
 #include "BKE_packedFile.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 ListBase _samples = {0,0}, *samples = &_samples;
 
 void sound_free_sound(bSound *sound)

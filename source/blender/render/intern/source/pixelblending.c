@@ -50,6 +50,9 @@
 #include "gammaCorrectionTables.h"
 
 /* externals */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Debug/behaviour defines                                                   */

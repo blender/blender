@@ -34,16 +34,17 @@
 
 #include "BKE_nla.h"
 #include "BKE_blender.h"
-
 #include "BLI_blenlib.h"
-
 #include "DNA_space_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_action_types.h"
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
-
 #include "MEM_guardedalloc.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void copy_actionstrip (bActionStrip **dst, bActionStrip **src){
 	bActionStrip *dstrip;

@@ -44,6 +44,10 @@
 #include "MTC_vectorops.h"
 #include <math.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void MTC_diff3Int(int v1[3], int v2[3], int v3[3])
 {
 	v1[0] = v2[0] - v3[0];

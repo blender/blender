@@ -35,6 +35,10 @@
 #include <math.h>
 #include "BLI_blenlib.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef _WIN32
 #pragma warning (once : 4244) // "conversion from double to float"
 #pragma warning (once : 4305) // "truncation from const double to float"

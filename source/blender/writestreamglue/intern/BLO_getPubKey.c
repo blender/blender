@@ -36,6 +36,10 @@
 #include "BLO_keyStore.h"
 #include "BLO_getPubKey.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 	int
 getPubKey(byte *dataStreamPubKey,
 		  int dataStreamPubKeyLen,

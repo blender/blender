@@ -42,6 +42,10 @@
 #include "IMB_targa.h"
 #include "IMB_png.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* from misc_util: flip the bytes from x  */
 #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1])
 

@@ -41,6 +41,10 @@
 #include <commdlg.h>
 #include <vfw.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #undef AVIIF_KEYFRAME // redefined in AVI_avi.h
 #undef AVIIF_LIST // redefined in AVI_avi.h
 

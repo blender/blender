@@ -56,6 +56,10 @@
 #include "BKE_object.h"
 #include "BKE_ika.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* Let's go! */
 #define TOLER 0.000076
 #define CLAMP(a, b, c) if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c) 

@@ -44,6 +44,10 @@
 
 #include "BSE_editipo.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* GLOBALS */
 
 /* These should be put into a proper dictionary for quicker retrieval..*/

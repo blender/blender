@@ -41,10 +41,12 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
 #include "IMB_jpeg.h"
-
 #include "jpeglib.h" 
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* the types are from the jpeg lib */
 static void jpeg_error (j_common_ptr cinfo);

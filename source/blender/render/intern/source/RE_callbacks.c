@@ -36,6 +36,10 @@
 #include "render_intern.h"
 #include "RE_callbacks.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
  * The callbacks are done in three parts:
  *

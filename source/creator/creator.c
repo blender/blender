@@ -32,6 +32,10 @@
 
 #include <stdlib.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* This little block needed for linking to Blender... */
 
 #include "MEM_guardedalloc.h"

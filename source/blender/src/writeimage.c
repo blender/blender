@@ -38,8 +38,11 @@
 #include "render.h"
 #include "license_key.h"  // LICENSE_KEY_VALID
 #include "BKE_utildefines.h" // ELEM
-
 #include "BIF_writeimage.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 int BIF_write_ibuf(ImBuf *ibuf, char *name)
 {

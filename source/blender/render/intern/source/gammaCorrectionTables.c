@@ -35,8 +35,11 @@
 #include "gammaCorrectionTables.h"
 #include <stdlib.h>
 #include <math.h>
-
 #include "render_intern.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* There are two parts here: one for the old renderer, one for the unified   */
 /* renderer. we start with the latter.                                       */

@@ -33,16 +33,16 @@
 
 // TODO
 
-
 #include "Python.h" 
-
 #include "BPY_csg.h"
-
 #include "BKE_booleanops_mesh.h"                    
 #include "BKE_booleanops.h"                      
 #include "MEM_guardedalloc.h"     
-
 #include "b_interface.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef DEBUG
 	#define CSG_DEBUG(str)   \

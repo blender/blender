@@ -37,6 +37,10 @@
 #include "BLO_keyStore.h"
 #include "BLO_keyStorePrivate.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 // our ugly but private global pointer
 static struct keyStoreStruct *keyStore = NULL;
 

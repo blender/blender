@@ -39,6 +39,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void IMB_dit0(struct ImBuf * ibuf, short ofs, short bits)
 {
 	int x, y, and, add, pix;

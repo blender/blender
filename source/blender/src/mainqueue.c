@@ -35,8 +35,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-
 #include "BIF_mainqueue.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 typedef struct {
 	unsigned short event;

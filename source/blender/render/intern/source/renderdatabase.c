@@ -67,6 +67,10 @@
 #include "render.h"
 #include "render_intern.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 VertRen *RE_findOrAddVert(int nr)

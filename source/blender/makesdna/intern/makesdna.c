@@ -56,8 +56,11 @@
 #include <stdio.h>
 
 #include "MEM_guardedalloc.h"
-
 #include "DNA_sdna_types.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #define SDNA_MAX_FILENAME_LENGTH 255
 

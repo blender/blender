@@ -37,8 +37,11 @@
 
 #include "AVI_avi.h"
 #include "avi_intern.h"
-
 #include "endian.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* avi_set_compress_options gets its own file... now don't WE feel important? */
 

@@ -35,6 +35,10 @@
 #include <stdlib.h>
 #include <string.h>    // strlen
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef _WIN32
 #include <io.h>        // open / write
 #else // WIN32
