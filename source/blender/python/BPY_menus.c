@@ -668,8 +668,8 @@ int BPyMenu_Init(int usedir)
 	char fname[FILE_MAXDIR+FILE_MAXFILE];
 	char dirname[FILE_MAXDIR];
 	char *upydir = U.pythondir;
-	time_t tdir1, tdir2, tfile;
-	int res1, res2, resf = 0;
+	time_t tdir1 = 0, tdir2 = 0, tfile = 0;
+	int res1 = 0, res2 = 0, resf = 0;
 
 	DEBUG = G.f & G_DEBUG; /* is Blender in debug mode (started with -d) ? */
 
