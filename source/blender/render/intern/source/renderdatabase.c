@@ -65,6 +65,7 @@
 #include "BLI_arithb.h"
 
 #include "DNA_material_types.h" 
+#include "DNA_mesh_types.h" 
 #include "DNA_texture_types.h" 
 
 #include "BKE_texture.h" 
@@ -171,6 +172,26 @@ VlakRen *RE_findOrAddVlak(int nr)
 	}
 	v+= (nr & 255);
 	return v;
+}
+
+/* ------------------------------------------------------------------------ */
+
+TFace *RE_findTFace(void)
+{
+	TFaceBlock *tfb = R.tfaceBlocks;
+
+	if (!tfb || !tfb->numAvail) {
+		TFaceBlock *tfbn = MEM_mallocN(sizeof(*tfbn), "TFaceBlock");
+
+		tfbn->tfaces = MEM_mallocN(sizeof(*tfbn->tfaces)*TABLEINITSIZE, "TFaceBlock->tfaces");
+		tfbn->numAvail = TABLEINITSIZE;
+		tfbn->next = R.tfaceBlocks;
+		R.tfaceBlocks = tfbn;
+
+		tfb = tfbn;
+	}
+
+	return &tfb->tfaces[tfb->numAvail--];
 }
 
 /* ------------------------------------------------------------------------- */

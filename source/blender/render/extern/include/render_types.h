@@ -51,6 +51,17 @@
 
 /* ------------------------------------------------------------------------- */
 
+struct TFace;
+
+typedef struct TFaceBlock TFaceBlock;
+
+struct TFaceBlock {
+	TFaceBlock *next;
+
+	struct TFace *tfaces;
+	int numAvail;
+};
+
 /* localized texture result data */
 typedef struct TexResult {
 	float tin, tr, tg, tb, ta;
@@ -139,7 +150,8 @@ typedef struct RE_Render
 	struct VlakRen **blovl;
 	struct VertRen **blove;
 	struct HaloRen **bloha;
-	
+	struct TFaceBlock *tfaceBlocks;
+
 	int *rectaccu;
 	int *rectz; /* z buffer: distance buffer */
 	unsigned int *rectf1, *rectf2;

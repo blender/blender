@@ -442,6 +442,14 @@ void RE_init_render_data(void)
 
 void RE_free_render_data()
 {
+	TFaceBlock *tfb;
+
+	while (tfb = R.tfaceBlocks) {
+		R.tfaceBlocks = tfb->next;
+		MEM_freeN(tfb->tfaces);
+		MEM_freeN(tfb);
+	}
+
 	MEM_freeN(R.blove);
 	R.blove= NULL;
 	MEM_freeN(R.blovl);
