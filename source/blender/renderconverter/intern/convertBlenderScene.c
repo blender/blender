@@ -2808,6 +2808,23 @@ void RE_rotateBlenderScene(void)
 	init_render_textures();
 	init_render_materials();
 
+	/* imat objects, OB_DO_IMAT can be set in init_render_materials
+	   has to be done here, since displace can have texture using Object map-input */
+	ob= G.main->object.first;
+	while(ob) {
+		if(ob->flag & OB_DO_IMAT) {
+
+			ob->flag &= ~OB_DO_IMAT;
+			/* yafray: set transform to identity matrix, not sure if this is needed here */
+			if (R.r.renderer==R_YAFRAY)
+				MTC_Mat4One(mat);
+			else
+				MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
+			MTC_Mat4Invert(ob->imat, mat);
+		}
+		ob= ob->id.next;
+	}
+
 	/* MAKE RENDER DATA */
 
 	/* each object should only be rendered once */
@@ -2929,7 +2946,6 @@ void RE_rotateBlenderScene(void)
 				MTC_Mat4Invert(ob->imat, mat);
 			}
 
-			ob->flag &= ~OB_DO_IMAT;
 		}
 		if(blender_test_break()) break;
 
@@ -2939,22 +2955,6 @@ void RE_rotateBlenderScene(void)
 		}
 		else base= base->next;
 
-	}
-
-	/* imat objects */
-	ob= G.main->object.first;
-	while(ob) {
-		if(ob->flag & OB_DO_IMAT) {
-
-			ob->flag &= ~OB_DO_IMAT;
-			/* yafray: set transform to identity matrix, not sure if this is needed here */
-			if (R.r.renderer==R_YAFRAY)
-				MTC_Mat4One(mat);
-			else
-				MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
-			MTC_Mat4Invert(ob->imat, mat);
-		}
-		ob= ob->id.next;
 	}
 
 	sort_halos();
