@@ -89,13 +89,13 @@ NewMesh(
 	}
 
 	if (props.user_face_vertex_data_size) {
-		char * fv_data = NULL;
-		fv_data = new char[4 * props.user_face_vertex_data_size];
+		char * fv_data2 = NULL;
+		fv_data2 = new char[4 * props.user_face_vertex_data_size];
 		
-		face.user_face_vertex_data[0] = fv_data;
-		face.user_face_vertex_data[1] = fv_data + props.user_face_vertex_data_size;
-		face.user_face_vertex_data[2] = fv_data + 2*props.user_face_vertex_data_size;
-		face.user_face_vertex_data[3] = fv_data + 3*props.user_face_vertex_data_size;
+		face.user_face_vertex_data[0] = fv_data2;
+		face.user_face_vertex_data[1] = fv_data2 + props.user_face_vertex_data_size;
+		face.user_face_vertex_data[2] = fv_data2 + 2*props.user_face_vertex_data_size;
+		face.user_face_vertex_data[3] = fv_data2 + 3*props.user_face_vertex_data_size;
 	} else {
 		face.user_face_vertex_data[0] = NULL;
 		face.user_face_vertex_data[1] = NULL;

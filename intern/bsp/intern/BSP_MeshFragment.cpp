@@ -106,8 +106,6 @@ ClassifyPolygon(
 		if (BSP_Classification(vert.OpenTag()) == e_unclassified)
 		{
 			MT_Scalar sdistance = plane.signedDistance(vert.m_pos);
-			MT_Scalar fsdistance = fabs(sdistance);
-
 			if (fabs(sdistance) <= BSP_SPLIT_EPSILON) {
 				// this vertex is on
 				vert.SetOpenTag(e_classified_on);	
