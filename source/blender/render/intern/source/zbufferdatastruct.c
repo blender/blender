@@ -70,7 +70,7 @@
 
 /* if defined: all jittersamples are stored individually. _very_ serious     */
 /* performance hit ! also gives some buffer size problems in big scenes      */
-// #define RE_INDIVIDUAL_SUBPIXELS
+#define RE_INDIVIDUAL_SUBPIXELS
 
 /* ------------------------------------------------------------------------- */
 
@@ -184,11 +184,6 @@ void insertObject(int apteller,
 	/* Guard the insertion if needed? */
   	RE_APixstrExt* apn = &APixbufExt[apteller]; 
 	int all_subpixels= 0;
-	
-	if(obtype==RE_POLY) {
-		VlakRen *vlr= RE_findOrAddVlak( (obindex-1) & 0x7FFFFF);
-		if(vlr->flag & R_FULL_OSA) all_subpixels= 1;
-	}
 	
 	while(apn) {
 		if(apn->t[0] == RE_NONE) {

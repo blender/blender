@@ -424,7 +424,7 @@ static int            VR_cbuf[RE_MAX_FACES_PER_PIXEL][2];
 int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
 				 struct RE_faceField* stack, int ptr,
 				 int totvlak, float x, float y, int osaNr) {
-
+	VlakRen *vlr= NULL;
     float  xs = 0.0;
     float  ys = 0.0;  /* coordinates for the render-spot              */
 
@@ -438,6 +438,7 @@ int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
     int    Cthresh             = 0;
 	int    save_totvlak        = totvlak;
 	int    fullsubpixelflags   = 0;
+	int    full_osa;
 
 	VR_covered = 0;
     for(i = 0; i < osaNr; i++) alphathreshold[i] = 0.0;
@@ -446,16 +447,44 @@ int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE],
     while ( (!saturated || (saturated && inconflict) ) && (totvlak > 0) ) {
         totvlak--;
 			
-        i= centmask[ zrow[totvlak][RE_MASK] ]; /* recenter sample position - */
-        xs= (float)x+centLut[i &  15];
-        ys= (float)y+centLut[i >> 4];
-        
-        /* stack face ----------- */
-		stack[ptr].mask     = zrow[totvlak][RE_MASK];
-		stack[ptr].data     = renderPixel(xs, ys, zrow[totvlak], stack[ptr].mask);
+		full_osa= 0;
+		if(R.osa && (zrow[totvlak][RE_TYPE] & RE_POLY)) {
+			vlr= RE_findOrAddVlak((zrow[totvlak][RE_INDEX]-1) & 0x7FFFFF);
+			if(vlr->flag & R_FULL_OSA) full_osa= 1;
+		}
+		
+		if(full_osa) {
+			float div=0.0, accol[4]={0.0, 0.0, 0.0, 0.0};
+			int a, mask= zrow[totvlak][RE_MASK];
+			
+			for(a=0; a<R.osa; a++) {
+				if(mask & (1<<a)) {
+					xs= (float)x + jit[a][0];
+					ys= (float)y + jit[a][1];
+					renderPixel(xs, ys, zrow[totvlak], 1<<a);
+					accol[0] += collector[0]; accol[1] += collector[1]; accol[2] += collector[2]; accol[3] += collector[3];
+					div+= 1.0;
+				}
+			}
+			if(div!=0.0) {
+				div= 1.0/div;
+				collector[0]= accol[0]*div; collector[1]= accol[1]*div; collector[2]= accol[2]*div; collector[3]= accol[3]*div;
+			}
+			stack[ptr].mask= mask;
+			stack[ptr].data= vlr;
+		}
+		else {
+			i= centmask[ zrow[totvlak][RE_MASK] ]; /* recenter sample position - */
+			xs= (float)x+centLut[i &  15];
+			ys= (float)y+centLut[i >> 4];
+			
+			/* stack face ----------- */
+			stack[ptr].mask     = zrow[totvlak][RE_MASK];
+			stack[ptr].data     = renderPixel(xs, ys, zrow[totvlak], stack[ptr].mask);
+		}
 		stack[ptr].faceType = zrow[totvlak][RE_TYPE];
         cpFloatColV(collector, stack[ptr].colour);
-
+		
 		/* This is done so that spothalos are properly overlayed on halos    */
 		/* maybe we need to check the colour here...                         */
   		if(zrow[totvlak][RE_TYPE] & RE_POLY) VR_covered |= zrow[totvlak][RE_MASK]; 
