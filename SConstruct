@@ -247,7 +247,8 @@ elif sys.platform == 'darwin':
 	openal_lib = ['libopenal']
 	openal_libpath = [darwin_precomp + 'openal/lib']
 	openal_include = [darwin_precomp + 'openal/include']
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 
 elif sys.platform == 'cygwin':
@@ -329,7 +330,8 @@ elif sys.platform == 'cygwin':
 	openal_lib = []
 	openal_libpath = []
 	openal_include = []
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 
 elif sys.platform == 'win32':
@@ -432,7 +434,8 @@ elif sys.platform == 'win32':
 	openal_lib = ['openal_static']
 	openal_libpath = ['#../lib/windows/openal/lib']
 	openal_include = ['#../lib/windows/openal/include']
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 
 elif string.find (sys.platform, 'sunos') != -1:
@@ -512,7 +515,8 @@ elif string.find (sys.platform, 'sunos') != -1:
 	openal_lib = []
 	openal_libpath = []
 	openal_include = []
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 
 elif string.find (sys.platform, 'irix') != -1:
@@ -599,13 +603,15 @@ elif string.find (sys.platform, 'irix') != -1:
 	openal_lib = []
 	openal_libpath = []
 	openal_include = []
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 
 elif string.find (sys.platform, 'hp-ux') != -1:
 	window_system = 'X11'
 	defines = []
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 
 elif sys.platform=='openbsd3':
@@ -686,7 +692,8 @@ elif sys.platform=='openbsd3':
 	openal_lib = ['openal']
 	openal_libpath = ['/usr/lib']
 	openal_include = ['/usr/include']
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 	
 elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
@@ -767,7 +774,8 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	openal_lib = ['openal']
 	openal_libpath = ['/usr/lib']
 	openal_include = ['/usr/include']
-	if use_openexr == 'false':
+        use_openexr = 'false'
+	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 
 else:
