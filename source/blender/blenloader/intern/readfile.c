@@ -1178,7 +1178,7 @@ static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 	bActionStrip *strip;
 
 	for (strip=striplist->first; strip; strip=strip->next){
-		strip->act = newlibadr(fd, id->lib, strip->act);
+		strip->act = newlibadr_us(fd, id->lib, strip->act);
 		strip->ipo = newlibadr(fd, id->lib, strip->ipo);
 	};
 }
