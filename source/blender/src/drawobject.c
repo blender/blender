@@ -1791,7 +1791,12 @@ static void drawmeshsolid(Object *ob, float *nors)
 		if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 
 	}
-	else if(nors) {		/* should never be zero, but is weak code... the displist system needs a make over (ton) */
+	else {		/* [nors] should never be zero, but is weak code... the displist 
+				   system needs a make over (ton)
+		          
+				   Face select and vertex paint calls drawmeshsolid() with nors = NULL!
+				   It's still weak code but hey, as ton says, the whole system needs 
+		           a good thrashing! ;) (aphex) */
 
 		start= 0; end= me->totface;
 		set_buildvars(ob, &start, &end);
