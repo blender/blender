@@ -29,6 +29,8 @@ set MAKEFLAGS="-w -I$NANBLENDERHOME/source"
 export MAKEFLAGS
 
 Then edit source/nan_definitions.mk to fit you're environment.
+(You'll want to change things like NAN_OPENSSL,NAN_JPEG, NAN_PNG etc.. 
+to point to where you have it installed)
 
 After that cd $NANBLENDERHOME/intern 
 make
