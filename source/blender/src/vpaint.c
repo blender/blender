@@ -276,12 +276,12 @@ void copy_vpaint_undo(unsigned int *mcol, int tot)
 {
 	if(vpaintundobuf) MEM_freeN(vpaintundobuf);
 	vpaintundobuf= 0;
+	totvpaintundo= tot;	// because of return, it is used by weightpaint
 	
 	if(mcol==0 || tot==0) return;
 	
 	vpaintundobuf= MEM_mallocN(4*sizeof(int)*tot, "vpaintundobuf");
 	memcpy(vpaintundobuf, mcol, 4*sizeof(int)*tot);
-	totvpaintundo= tot;
 	
 }
 
@@ -793,10 +793,6 @@ void weight_paint(void)
 	}
 	if(me==0 || me->totface==0) return;
 	if(ob->lay & G.vd->lay); else error("Active object not in this layer!");
-	
-//	if(me->tface==NULL && me->mcol==NULL) make_vertexcol();
-
-//	if(me->tface==NULL && me->mcol==NULL) return;
 	
 	persp(PERSP_VIEW);
 	/* imat for normals */
