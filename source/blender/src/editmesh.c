@@ -5890,13 +5890,16 @@ void add_primitiveMesh(int type)
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 	if(G.vd==0) return;
 
+	/* if editmode exists for other type, it exits */
 	check_editmode(OB_MESH);
 	
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT);
-	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-
+	if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT)) {
+		G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT);
+		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+	}
+	
 	/* if no obedit: new object and enter editmode */
-	if(G.obedit==0) {
+	if(G.obedit==NULL) {
 		/* add_object actually returns an object ! :-)
 		But it also stores the added object struct in
 		G.scene->basact->object (BASACT->object) */
