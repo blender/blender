@@ -55,6 +55,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
@@ -883,9 +884,6 @@ static void do_info_filemenu(void *arg, int event)
 	case 13:
 		exit_usiblender();
 		break;
-	case 14:
-		G.fileflags ^= G_FILE_NO_UI;
-		break;
 	case 15:	/* recover previous session */
 		{
 			extern short winqueue_break; /* editscreen.c */
@@ -926,14 +924,6 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|F1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen Last|Ctrl O",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
-
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	if(G.fileflags & G_FILE_NO_UI) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Load UI",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Load UI",	 	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	}
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -1213,6 +1203,57 @@ static uiBlock *info_add_metamenu(void *arg_unused)
 	return block;
 }
 
+void do_info_add_lampmenu(void *arg, int event)
+{
+
+	switch(event) {		
+		case 0: /* lamp */
+			add_objectLamp(LA_LOCAL);
+			break;
+		case 1: /* sun */
+			add_objectLamp(LA_SUN);
+			break;
+		case 2: /* spot */
+			add_objectLamp(LA_SPOT);
+			break;
+		case 3: /* hemi */
+			add_objectLamp(LA_HEMI);
+			break;
+		case 4: /* area */
+			add_objectLamp(LA_AREA);
+			break;
+		case 5: /* YafRay photon lamp */
+			if (G.scene->r.renderer==R_YAFRAY)
+				add_objectLamp(LA_YF_PHOTON);
+			break;
+		default:
+			break;
+	}
+	allqueue(REDRAWINFO, 0);
+}
+
+static uiBlock *info_add_lampmenu(void *arg_unused)
+{
+/*		static short tog=0; */
+	uiBlock *block;
+	short yco= 0;
+	
+	block= uiNewBlock(&curarea->uiblocks, "add_lampmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_add_lampmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Sun|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Spot|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hemi|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Area|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "");
+	if (G.scene->r.renderer==R_YAFRAY)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Photon|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+		
+	return block;
+}
 
 void do_info_addmenu(void *arg, int event)
 {
@@ -1243,7 +1284,7 @@ void do_info_addmenu(void *arg, int event)
 			break;
 		case 7:
 			/* Lamp */
-			add_object_draw(OB_LAMP);
+		//	add_object_draw(OB_LAMP);
 			break;
 		case 8:
 			/* Armature */
@@ -1275,10 +1316,15 @@ static uiBlock *info_addmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, info_add_metamenu, NULL, ICON_RIGHTARROW_THIN, "Meta", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Text",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Empty",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "");
+//	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBlockBut(block, info_add_lampmenu, NULL, ICON_RIGHTARROW_THIN, "Lamp", 0, yco-=20, 120, 19, "");
+	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	/* armature needs 3d window to draw */
 	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");

@@ -139,9 +139,9 @@ void file_buttons(void)
 	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
 	uiDefIconButS(block, TOG|BIT|3, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
 
-	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+10,0,90,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
+	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
 
-	xco+=80;
+	xco+=90;
 
 	if(sfile->type==FILE_LOADLIB) {
 		uiBlockBeginAlign(block);
@@ -153,6 +153,9 @@ void file_buttons(void)
 		uiDefButS(block, TOG|BIT|5, B_REDR, "Active Layer", xco+=65,0,80,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) in active layer");
 		uiDefButS(block, TOG|BIT|6, B_REDR, "At Cursor", xco+=80,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) at cursor, use centroid if more than one object is selected");
 		uiBlockEndAlign(block);
+	} else {
+		uiDefButI(block, TOGN|BIT|10, B_REDR, "Load UI", xco+=XIC,0,80,YIC, &G.fileflags, 0, 0, 0, 0, "Load the UI setup as well as the scene data");
+		xco+=100;
 	}
 
 	if(sfile->type==FILE_UNIX) {
