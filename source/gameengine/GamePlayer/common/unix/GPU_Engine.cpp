@@ -47,7 +47,9 @@
 #include "NG_LoopBackNetworkDeviceInterface.h"
 #include "SND_DeviceManager.h"
 #include "KX_BlenderSceneConverter.h"
-#include "SM_Scene.h"
+#ifdef USE_SUMO_SOLID
+   #include "SM_Scene.h"
+#endif
 #include "KX_KetsjiEngine.h"
 
 #include "GPC_RenderTools.h"
