@@ -44,7 +44,7 @@
 				OutputFile=".\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\build\msvc_7\libs"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern\mtdll\debug;..\..\..\..\build\msvc_7\libs\mtdll\debug"
 				IgnoreDefaultLibraryNames="	libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, libcmtd.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\debug\DNA_makesdna.pdb"
@@ -177,7 +177,7 @@ DNA_makesdna.exe dna.c
 				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\build\msvc_7\libs"
+				AdditionalLibraryDirectories="..\..\..\..\build\msvc_7\libs\intern\mtdll;..\..\..\..\build\msvc_7\libs\mtdll"
 				IgnoreDefaultLibraryNames="	libc.lib, libcmt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib"
 				ProgramDatabaseFile="..\..\..\..\build\msvc_7\libs\DNA_makesdna.pdb"
 				SubSystem="1"/>
