@@ -41,21 +41,15 @@
 
 #include "SND_FmodDevice.h"
 #include "SoundDefines.h"
-#include "SYS_System.h"
 #include "SND_Utils.h"
 
 SND_FmodDevice::SND_FmodDevice()
 {
-	// check if audio is wanted
-	SYS_SystemHandle syshandle = SYS_GetSystem();
-	int audio = SYS_GetCommandLineInt(syshandle,"noaudio",0);
-	
+    /* Removed the functionality for checking if noaudio was provided on */
+    /* the commandline. */
 	m_dspunit = NULL;
 
-	if (audio == 1)
-		m_audio = false;
-	else
-		m_audio = true;
+	m_audio = true;
 
 	// let's check if we can get fmod to initialize...
 	if (m_audio)

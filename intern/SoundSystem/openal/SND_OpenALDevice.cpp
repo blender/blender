@@ -41,7 +41,6 @@
 
 #include "SND_OpenALDevice.h"
 #include "SoundDefines.h"
-#include "SYS_System.h"
 
 #include "SND_Utils.h"
 
@@ -204,15 +203,9 @@ ALvoid alutUnloadWAV(ALenum format,ALvoid *data,ALsizei size,ALsizei freq)
 
 SND_OpenALDevice::SND_OpenALDevice()
 {
-	// check if audio is wanted
-	SYS_SystemHandle syshandle = SYS_GetSystem();
-	int audio = SYS_GetCommandLineInt(syshandle,"noaudio",0);
-
-	if (audio != 0)
-		m_audio = false;
-	else
-		m_audio = true;
-
+    /* Removed the functionality for checking if noaudio was provided on */
+    /* the commandline. */
+	m_audio = true;
 	m_context = NULL;
 	m_buffersinitialized = false;
 	m_sourcesinitialized = false;

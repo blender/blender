@@ -44,7 +44,6 @@
 
 #include "SND_Scene.h"
 #include "SND_DependKludge.h"
-#include "SYS_System.h"
 #include "SND_IAudioDevice.h"
 
 #include <stdlib.h>
@@ -87,10 +86,9 @@ SND_Scene::~SND_Scene()
 // check if audioplayback is wanted
 bool SND_Scene::IsPlaybackWanted()
 {
-	SYS_SystemHandle syshandle = SYS_GetSystem();
-	int audio = SYS_GetCommandLineInt(syshandle,"noaudio",0);
-
-	if ((audio == 0) && m_audiodevice && m_wavecache)
+    /* Removed the functionality for checking if noaudio was provided on */
+    /* the commandline. */
+	if (m_audiodevice && m_wavecache)
 	{
 		m_audioplayback = true;
 	}
