@@ -549,26 +549,13 @@ void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
 
 	switch (keyingType) {
 	case RE_ALPHA_PREMUL:
-		/* Premul: don't fill, and don't change the values! */
+	case RE_ALPHA_KEY:
+		/* Premul or key: don't fill, and don't change the values! */
+		/* key alpha used to fill in color in 'empty' pixels, doesn't work anymore this way */
 		collector[0] = 0.0; 
 		collector[1] = 0.0; 
 		collector[2] = 0.0; 
 		collector[3] = 0.0; 
-		break;
-	case RE_ALPHA_KEY:
-		/*
-		  Key: Leave pixels fully coloured, but retain alpha data, so you   
-		  can composit the picture later on.                                
-		  - Should operate on the stack outcome!
-		*/		
-/*  		collector[0] = 0.0; */
-/*  		collector[1] = 0.0; */
-/*  		collector[2] = 0.0; */
-/*  		collector[3] = 0.0; */
-		collector[3]= 0.0;
-		collector[0]= R.wrld.horr;
-		collector[1]= R.wrld.horg;
-		collector[2]= R.wrld.horb;
 		break;
 	case RE_ALPHA_SKY:
 		/* Fill in the sky as if it were a normal face. */

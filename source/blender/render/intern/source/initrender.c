@@ -192,9 +192,9 @@ static void init_filt_mask(void)
 	}
 
 	if(R.r.alphamode==R_ALPHAKEY) gamma= 1.0;	/* gamma correction of alpha is nasty */
-
-	if(R.r.mode & R_GAMMA) gamma= 2.0;
+	else if(R.r.mode & R_GAMMA) gamma= 2.0;
 	else gamma= 1.0;
+	
 	igamma= 1.0/gamma;
 
 	if(gamma!= lastgamma) {
@@ -879,7 +879,8 @@ static void renderloop_setblending(void)
 	/* this value should only be set here. do_gamma is for gammablended adding of subpixels */
 	do_gamma= 0;
 	if(R.r.mode & R_GAMMA) {
-		if((R.r.mode & R_OSA)) do_gamma= 1;
+		if(R.r.alphamode==R_ALPHAKEY);	// alpha corrected gamma doesnt work for key alpha
+		else if((R.r.mode & R_OSA)) do_gamma= 1;
 	}
 	
 	/* always call, it does gamma tables used by alphaunder, but call after R.osa and jit was set */
