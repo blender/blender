@@ -133,11 +133,9 @@ static void normalenrender(int startvert, int startvlak);
 static void as_addvert(VertRen *v1, VlakRen *vlr);
 static void as_freevert(VertRen *ver);
 static void autosmooth(int startvert, int startvlak, int degr);
-static void make_render_halos(Object *ob, Mesh *me, Material *ma, float *extverts);
 static int mesh_test_flipnorm(Object *ob, MFace *mface, VlakRen *vlr, float imat[][3]);
 static void render_particle_system(Object *ob, PartEff *paf);
 static void render_static_particle_system(Object *ob, PartEff *paf);
-static void init_render_displist_mesh(Object *ob);
 static int verghalo(const void *a1, const void *a2);
 static void sort_halos(void);
 static void init_render_mball(Object *ob);
@@ -779,10 +777,9 @@ static void autosmooth(int startvert, int startvlak, int degr)
 /* End of autosmoothing:                                                     */
 /* ------------------------------------------------------------------------- */
 
-static void make_render_halos(Object *ob, Mesh *me, Material *ma, float *extverts)
+static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, Material *ma, float *extverts)
 {
 	HaloRen *har;
-	MVert *mvert;
 	float xn, yn, zn, nor[3], view[3];
 	float *orco, vec[3], hasize, mat[4][4], imat[3][3];
 	int start, end, a, ok;
@@ -791,12 +788,11 @@ static void make_render_halos(Object *ob, Mesh *me, Material *ma, float *extvert
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
 	R.flag |= R_HALO;
-	mvert= me->mvert;
 
 	orco= me->orco;
 
 	start= 0;
-	end= me->totvert;
+	end= totvert;
 	set_buildvars(ob, &start, &end);
 	mvert+= start;
 	if(extverts) extverts+= 3*start;
@@ -1097,155 +1093,6 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 
 }
 
-/* ------------------------------------------------------------------------- */
-
-static void init_render_displist_mesh(Object *ob)
-{
-	Mesh *me;
-	DispList *dl;
-	DispListMesh *dlm;
-	VlakRen *vlr;
-	Material *matar[32];
-	VertRen *ver, *v1, *v2, *v3, *v4;
-	float xn, yn, zn;
-	float mat[4][4], imat[3][3], *data, *nors, *orco=0, n1[3], flen;
-	int a, b, flipnorm= -1,  need_orco=0, startvert, p1, p2, p3, p4;
-	int old_totvert= R.totvert;
-	int old_totvlak= R.totvlak;
-	int i;
-
-	me= ob->data;
-
-	/* yafray: set transform to identity matrix */
-	if (R.r.mode & R_YAFRAY)
-		MTC_Mat4One(mat);
-	else
-		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
-	MTC_Mat3CpyMat4(imat, ob->imat);
-
-	/* material array */
-	memset(matar, 0, sizeof(matar));
-	matar[0]= &defmaterial;
-	for(a=0; a<ob->totcol; a++) {
-		matar[a]= give_render_material(ob, a+1);
-		if(matar[a]==0) matar[a]= &defmaterial;
-		if(matar[a]->ren->texco & TEXCO_ORCO) {
-			need_orco= 1;
-		}
-	}
-
-	dl= me->disp.first;
-
-	/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
-
-	if((dl==0) || ((me->subdiv != me->subdivr))) {
-		/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
-		if((me->subdivdone-1)!=me->subdivr) {
-			DispList *dlVerts;
-
-			object_deform(ob);
-
-			dlVerts= find_displist(&ob->disp, DL_VERTS);
-			dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, me->subdivr, me->flag);
-			dl= MEM_callocN(sizeof(*dl), "dl");
-			dl->type= DL_MESH;
-			dl->mesh= dlm;
-
-			free_displist_by_type(&me->disp, DL_MESH);
-			BLI_addtail(&me->disp, dl);
-
-			me->subdivdone= me->subdivr+1;	/* stupid hack, add one because otherwise old files will get
-											 * subdivdone==0, so me->subdivr==0 won't work. proper caching
-											 * will remove this hack.
-											 */
-		}
-	}
-
-	if(dl==0 || dl->type!=DL_MESH) return;
-	dlm= dl->mesh;
-
-	if(need_orco) {
-		make_orco_displist_mesh(ob, me->subdivr);
-		orco= me->orco;
-	}
-
-	startvert= R.totvert;
-	
-	for (i=0; i<dlm->totvert; i++) {
-		MVert *mv= &dlm->mvert[i];
-		
-		ver= RE_findOrAddVert(R.totvert++);
-		VECCOPY(ver->co, mv->co);
-		MTC_Mat4MulVecfl(mat, ver->co);
-		
-		xn= mv->no[0];
-		yn= mv->no[1];
-		zn= mv->no[2];
-
-		/* transpose ! */
-		ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-
-		Normalise(ver->n);
-		
-		if (orco)
-			ver->orco= &orco[i*3];
-	}
-
-	for (i=0; i<dlm->totface; i++) {
-		MFaceInt *mf= &dlm->mface[i];
-		
-		if (!mf->v3)
-			continue;
-			
-		v1= RE_findOrAddVert(startvert+mf->v1);
-		v2= RE_findOrAddVert(startvert+mf->v2);
-		v3= RE_findOrAddVert(startvert+mf->v3);
-
-		if (mf->v4) {
-			v4= RE_findOrAddVert(startvert+mf->v4);
-			flen= CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, n1);
-		} else { 
-			v4= 0;
-			flen= CalcNormFloat(v1->co, v2->co, v3->co, n1);
-		}
-
-		if(flen!=0.0) {
-			vlr= RE_findOrAddVlak(R.totvlak++);
-			vlr->ob= ob;
-			vlr->v1= v1;
-			vlr->v2= v2;
-			vlr->v3= v3;
-			vlr->v4= v4;
-
-			VECCOPY(vlr->n, n1);
-			vlr->len= flen;
-			vlr->lay= ob->lay;
-				
-			vlr->mat= matar[mf->mat_nr];
-			vlr->flag= mf->flag;
-			if(dlm->flag & ME_OPT_EDGES) vlr->ec= mf->edcode;
-			else vlr->ec= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1; 
-			vlr->puno= mf->puno;
-			
-			if(flipnorm== -1) flipnorm= test_flipnorm(v1->co, v2->co, v3->co, vlr, imat);
-
-			if(flipnorm) {
-				vlr->n[0]= -vlr->n[0];
-				vlr->n[1]= -vlr->n[1];
-				vlr->n[2]= -vlr->n[2];
-			}
-			
-			if (dlm->tface) {
-				vlr->tface= &dlm->tface[i];
-				vlr->vcol= vlr->tface->col;
-			} else if (dlm->mcol)
-				vlr->vcol= (unsigned int *) &dlm->mcol[i*4];
-		}
-	}
-}
 
 /* ------------------------------------------------------------------------- */
 
@@ -1431,6 +1278,7 @@ static void init_render_mesh(Object *ob)
 	VlakRen *vlr, *vlr1;
 	VertRen *ver;
 	Material *ma;
+	MFaceInt *mfaceint = NULL;
 	MSticky *ms;
 	PartEff *paf;
 	DispList *dl;
@@ -1439,15 +1287,12 @@ static void init_render_mesh(Object *ob)
 	float xn, yn, zn, nor[3], imat[3][3], mat[4][4];
 	float *extverts=0, *orco;
 	int a, a1, ok, do_puno, need_orco=0, totvlako, totverto, vertofs;
-	int start, end, flipnorm, do_autosmooth=0;
-	
-	me= ob->data;
-	if (mesh_uses_displist(me)) {
-		init_render_displist_mesh(ob);
-		return;
-	}
+	int start, end, flipnorm, do_autosmooth=0, totvert;
+	DispListMesh *dlm;
 
-   paf = give_parteff(ob);
+	me= ob->data;
+
+	paf = give_parteff(ob);
 	if(paf) {
 		if(paf->flag & PAF_STATIC) render_static_particle_system(ob, paf);
 		else render_particle_system(ob, paf);
@@ -1466,10 +1311,6 @@ static void init_render_mesh(Object *ob)
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
 	if(me->totvert==0) return;
-	mvert= me->mvert;
-
-	dl= find_displist(&ob->disp, DL_VERTS);
-	if(dl) extverts= dl->verts;
 
 	totvlako= R.totvlak;
 	totverto= R.totvert;
@@ -1495,27 +1336,72 @@ static void init_render_mesh(Object *ob)
 				}
 			}
 		}
+	}
+
+	if (mesh_uses_displist(me)) {
+		dl= me->disp.first;
+
+		/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
+
+		if((dl==0) || ((me->subdiv != me->subdivr))) {
+			/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
+			if((me->subdivdone-1)!=me->subdivr) {
+				DispList *dlVerts;
+
+				object_deform(ob);
+
+				dlVerts= find_displist(&ob->disp, DL_VERTS);
+				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, me->subdivr, me->flag);
+				dl= MEM_callocN(sizeof(*dl), "dl");
+				dl->type= DL_MESH;
+				dl->mesh= dlm;
+
+				free_displist_by_type(&me->disp, DL_MESH);
+				BLI_addtail(&me->disp, dl);
+
+				me->subdivdone= me->subdivr+1;	/* stupid hack, add one because otherwise old files will get
+												* subdivdone==0, so me->subdivr==0 won't work. proper caching
+												* will remove this hack.
+												*/
+			}
+		}
+
+		if(dl==0 || dl->type!=DL_MESH) return;
+		dlm= dl->mesh;
+
+		mvert= dlm->mvert;
+		totvert= dlm->totvert;
+
+		if(need_orco) {
+			make_orco_displist_mesh(ob, me->subdivr);
+		}
+		ms= NULL; // no stick in displistmesh
+	} else {
+		dlm= NULL;
+		mvert= me->mvert;
+		totvert= me->totvert;
+
+		dl= find_displist(&ob->disp, DL_VERTS);
+		if(dl) extverts= dl->verts;
+	
 		if(need_orco) {
 			make_orco_mesh(me);
 		}
+		ms= me->msticky;
 	}
 	
 	orco= me->orco;
-	ms= me->msticky;
-	tface= me->tface;
-	if(tface) vertcol= ((TFace *)me->tface)->col;
-	else vertcol= (unsigned int *)me->mcol;
 
 	ma= give_render_material(ob, 1);
 	if(ma==0) ma= &defmaterial;
 
 
 	if(ma->mode & MA_HALO) {
-		make_render_halos(ob, me, ma, extverts);
+		make_render_halos(ob, me, totvert, mvert, ma, extverts);
 	}
 	else {
 
-		for(a=0; a<me->totvert; a++, mvert++) {
+		for(a=0; a<totvert; a++, mvert++) {
 
 			ver= RE_findOrAddVert(R.totvert++);
 			if(extverts) {
@@ -1552,7 +1438,7 @@ static void init_render_mesh(Object *ob)
 		/* test for a flip in the matrix: then flip face normal as well */
 
 		/* faces in order of color blocks */
-		vertofs= R.totvert- me->totvert;
+		vertofs= R.totvert - totvert;
 		for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
 
 			ma= give_render_material(ob, a1+1);
@@ -1571,34 +1457,71 @@ static void init_render_mesh(Object *ob)
 			}
 
 			if(ok) {
+				TFace *tface= NULL;
+
 				/* radio faces need autosmooth, to separate shared vertices in corners */
 				if(R.r.mode & R_RADIO)
 					if(ma->mode & MA_RADIO) 
 						do_autosmooth= 1;
 				
 				start= 0;
-				end= me->totface;
+				end= dlm?dlm->totface:me->totface;
 				set_buildvars(ob, &start, &end);
-				mvert= me->mvert;
-				mface= me->mface;
-				mface+= start;
-				if(tface) {
-					tface= me->tface;
-					tface+= start;
+				if (dlm) {
+					mfaceint= dlm->mface + start;
+					if (dlm->tface) {
+						tface= dlm->tface + start;
+						vertcol= dlm->tface->col;
+					} else if (dlm->mcol) {
+						vertcol= (unsigned int *)dlm->mcol;
+					} else {
+						vertcol= NULL;
+					}
+				} else {
+					mfaceint= NULL;
+					mface= ((MFace*) me->mface) + start;
+					if (me->tface) {
+						tface= ((TFace*) me->tface) + start;
+						vertcol= ((TFace*) me->tface)->col;
+					} else if (me->mcol) {
+						vertcol= (unsigned int *)me->mcol;
+					} else {
+						vertcol= NULL;
+					}
 				}
 				
-				for(a=start; a<end; a++, mface++) {
+				for(a=start; a<end; a++) {
+					int mat_nr;
+					int v1, v2, v3, v4, puno, edcode, flag;
+					if (mfaceint) {
+						mat_nr= mfaceint->mat_nr;
+						v1= mfaceint->v1;
+						v2= mfaceint->v2;
+						v3= mfaceint->v3;
+						v4= mfaceint->v4;
+						flag= mfaceint->flag;
+						puno= mfaceint->puno;
+						edcode= mfaceint->edcode;
+					} else {
+						mat_nr= mface->mat_nr;
+						v1= mface->v1;
+						v2= mface->v2;
+						v3= mface->v3;
+						v4= mface->v4;
+						flag= mface->flag;
+						puno= mface->puno;
+						edcode= mface->edcode;
+					}
+					if( mat_nr==a1 ) {
 
-					if( mface->mat_nr==a1 ) {
-
-						if(mface->v3) {
+						if(v3) {
 
 							vlr= RE_findOrAddVlak(R.totvlak++);
 							vlr->ob= ob;
-							vlr->v1= RE_findOrAddVert(vertofs+mface->v1);
-							vlr->v2= RE_findOrAddVert(vertofs+mface->v2);
-							vlr->v3= RE_findOrAddVert(vertofs+mface->v3);
-							if(mface->v4) vlr->v4= RE_findOrAddVert(vertofs+mface->v4);
+							vlr->v1= RE_findOrAddVert(vertofs+v1);
+							vlr->v2= RE_findOrAddVert(vertofs+v2);
+							vlr->v3= RE_findOrAddVert(vertofs+v3);
+							if(v4) vlr->v4= RE_findOrAddVert(vertofs+v4);
 							else vlr->v4= 0;
 
 							/* render normals are inverted in render */
@@ -1608,19 +1531,23 @@ static void init_render_mesh(Object *ob)
 							    vlr->n);
 
 							vlr->mat= ma;
-							vlr->puno= mface->puno;
-							vlr->flag= mface->flag;
+							vlr->puno= puno;
+							vlr->flag= flag;
 							if((me->flag & ME_NOPUNOFLIP) || (ma->mode & MA_RAYTRANSP)) {
 								vlr->flag |= R_NOPUNOFLIP;
 								vlr->puno |= 15;  // no flip
 							}
-							vlr->ec= mface->edcode;
+							vlr->ec= edcode;
 							vlr->lay= ob->lay;
 
 							if(vlr->len==0) R.totvlak--;
 							else {
 								if(flipnorm== -1) {	/* per object test once */
-									flipnorm= mesh_test_flipnorm(ob, mface, vlr, imat);
+									if (mfaceint) {
+										flipnorm= test_flipnorm(dlm->mvert[v1].co, dlm->mvert[v2].co, dlm->mvert[v3].co, vlr, imat);
+									} else {
+										flipnorm= mesh_test_flipnorm(ob, mface, vlr, imat);
+									}
 								}
 								if(flipnorm) {
 									vlr->n[0]= -vlr->n[0];
@@ -1638,24 +1565,29 @@ static void init_render_mesh(Object *ob)
 								
 							}
 						}
-						else if(mface->v2 && (ma->mode & MA_WIRE)) {
+						else if(v2 && (ma->mode & MA_WIRE)) {
 							vlr= RE_findOrAddVlak(R.totvlak++);
 							vlr->ob= ob;
-							vlr->v1= RE_findOrAddVert(vertofs+mface->v1);
-							vlr->v2= RE_findOrAddVert(vertofs+mface->v2);
+							vlr->v1= RE_findOrAddVert(vertofs+v1);
+							vlr->v2= RE_findOrAddVert(vertofs+v2);
 							vlr->v3= vlr->v2;
 							vlr->v4= 0;
 
 							vlr->n[0]=vlr->n[1]=vlr->n[2]= 0.0;
 
 							vlr->mat= ma;
-							vlr->puno= mface->puno;
-							vlr->flag= mface->flag;
+							vlr->puno= puno;
+							vlr->flag= flag;
 							vlr->ec= ME_V1V2;
 							vlr->lay= ob->lay;
 						}
 					}
-					
+
+					if (mfaceint) {
+						mfaceint++;
+					} else {
+						mface++;
+					}
 					if(tface) tface++;
 				}
 			}
