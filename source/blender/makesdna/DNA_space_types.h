@@ -395,6 +395,7 @@ typedef struct SpaceImaSel {
 #define FILE_STRINGCODE		2
 #define FILE_LINK			4
 #define FILE_HIDE_DOT		8
+#define FILE_AUTOSELECT		16
 
 /* sfile->sort */
 #define FILE_SORTALPHA		0

@@ -144,6 +144,7 @@ void file_buttons(void)
 	if(sfile->type==FILE_LOADLIB) {
 		uiDefButS(block, TOGN|BIT|2, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Copies selected data into current project");
 		uiDefButS(block, TOG|BIT|2, B_REDR, "Link",	xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Creates a link to selected data from current project");
+		uiDefButS(block, TOGN|BIT|4, B_REDR, "Autosel", xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
 	}
 
 	if(sfile->type==FILE_UNIX) {

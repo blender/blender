@@ -4894,7 +4894,7 @@ static void give_base_to_objects(Scene *sce, ListBase *lb)
 }
 #endif
 
-static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *name, int idcode)
+static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *name, int idcode, short flag)
 {
 	Object *ob;
 	Base *base;
@@ -4934,6 +4934,12 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					base->lay= ob->lay;
 					base->object= ob;
 					ob->id.us++;
+					
+					if(!(flag & FILE_AUTOSELECT)) { /* inverse logic here, because we want it to be the default action */
+						base->flag |= SELECT;
+						base->object->flag = base->flag;
+						G.scene->basact = base;
+					}
 				}
 				afbreek= 1;
 			}
@@ -4983,7 +4989,7 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	/* which one do we need? */
 	mainl = blo_find_main(&mainlist, dir);
 
-	append_named_part(fd, mainl, G.scene, name, idcode);
+	append_named_part(fd, mainl, G.scene, name, idcode, 0);
 
 	/* make main consistant */
 	expand_main(fd, mainl);
@@ -5029,6 +5035,8 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		}
 	}
 	/* now we have or selected, or an indicated file */
+	
+	if(!(sfile->flag & FILE_AUTOSELECT)) scene_deselect_all(G.scene);
 
 	mainlist.first= mainlist.last= G.main;
 	G.main->next= NULL;
@@ -5041,12 +5049,12 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	mainl->versionfile= fd->fileversion;	// needed for do_version
 	
 	if(totsel==0) {
-		append_named_part(fd, mainl, G.scene, sfile->file, idcode);
+		append_named_part(fd, mainl, G.scene, sfile->file, idcode, sfile->flag);
 	}
 	else {
 		for(a=0; a<sfile->totfile; a++) {
 			if(sfile->filelist[a].flags & ACTIVE) {
-				append_named_part(fd, mainl, G.scene, sfile->filelist[a].relname, idcode);
+				append_named_part(fd, mainl, G.scene, sfile->filelist[a].relname, idcode, sfile->flag);
 			}
 		}
 	}
