@@ -66,7 +66,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../lib/windows/ftgl/include" /I "../../../../lib/windows/freetype/include" /I "../../../lib/windows/iconv/include" /I "../../../../lib/windows/gettext/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "WCHAR_T16" /D "INTERNATIONAL" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../source\blender\blenlib" /I "../../../source\blender\makesdna" /I "../../../../lib/windows/ftgl/include" /I "../../../../lib/windows/freetype/include" /I "../../../lib/windows/iconv/include" /I "../../../../lib/windows/gettext/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "WCHAR_T16" /D "HAVE_LC_MESSAGES" /D "FTGL_LIBRARY_STATIC" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x411 /d "_DEBUG"
 # ADD RSC /l 0x411 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -75,10 +75,6 @@ BSC32=bscmake.exe
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-# Begin Special Build Tool
-SOURCE="$(InputPath)"
-PostBuild_Cmds=XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\ftfont\include\	XCOPY /Y ..\..\..\..\obj\windows\intern\ftfont\*.lib ..\..\..\..\lib\windows\ftfont\lib\*.a
-# End Special Build Tool
 
 !ENDIF 
 

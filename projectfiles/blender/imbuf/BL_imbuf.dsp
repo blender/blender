@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\imbuf\intern" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /I "..\..\..\source\blender\render\extern\include" /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\imbuf\intern" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\render\extern\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -68,7 +68,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\imbuf\intern" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\render\extern\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /FD /I /GZ "..\..\..\source\blender\imbuf" /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
