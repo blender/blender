@@ -717,8 +717,9 @@ void scanfill(PolyFill *pf)
 		while(sc->first) {	/* for as long there are edges */
 			ed1= sc->first;
 			ed2= ed1->next;
-
-			if(callLocalInterruptCallBack()) break;
+			
+			/* commented out... the ESC here delivers corrupted memory (and doesnt work during grab) */
+			/* if(callLocalInterruptCallBack()) break; */
 			if(totface>maxface) {
 				/* printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts); */
 				a= verts;
