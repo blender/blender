@@ -1716,8 +1716,6 @@ void do_material_tex()
 				}
 			}
 		}
-		
-		if(R.mat->septex) break;
 	}
 }
 
