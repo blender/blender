@@ -239,6 +239,9 @@ void makepicstring(char *string, int frame)
 	else if(G.scene->r.imtype==R_JPEG90) {
 		extension= ".jpg";
 	}
+	else if(G.scene->r.imtype==R_BMP) {
+		extension= ".bmp";
+	}
 	
 	if(G.scene->r.scemode & R_EXTENSION) strcat(string, extension);
 		
