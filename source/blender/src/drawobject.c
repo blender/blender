@@ -617,7 +617,7 @@ static void drawlamp(Object *ob)
 	}
 
 	glPushMatrix();
-	glMultMatrixf(G.vd->viewmat);
+	glLoadMatrixf(G.vd->viewmat);
 	
 	VECCOPY(vec, ob->obmat[3]);
 	
