@@ -150,6 +150,7 @@ typedef struct TransInfo {
 #define T_EDIT			2
 #define T_POSE			4
 #define T_TEXTURE		8
+#define T_CAMERA		16
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	128
 

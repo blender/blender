@@ -1262,6 +1262,10 @@ static void createTransData(TransInfo *t)
 		createTransObject();
 		t->flag |= T_OBJECT;
 	}
+
+	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
+		t->flag |= T_CAMERA;
+	}
 }
 
 #define TRANS_CANCEL	2
@@ -1376,7 +1380,7 @@ void Transform(int mode)
 		while( qtest() ) {
 			event= extern_qread(&val);
 
-			if(val) {
+			if (val) {
 				switch (event){
 				/* enforce redraw of transform when modifiers are used */
 				case LEFTCTRLKEY:
@@ -1388,10 +1392,10 @@ void Transform(int mode)
 					
 				case MIDDLEMOUSE:
 					/* exception for switching to dolly, or trackball, in camera view */
-					if((Trans.flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
-						if(Trans.mode==TFM_TRANSLATION)
+					if (Trans.flag & T_CAMERA) {
+						if (Trans.mode==TFM_TRANSLATION)
 							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
-						else if(Trans.mode==TFM_ROTATION) {
+						else if (Trans.mode==TFM_ROTATION) {
 							restoreTransObjects(&Trans);
 							initTransModeFlags(&Trans, TFM_TRACKBALL);
 							initTrackball(&Trans);
@@ -1424,9 +1428,16 @@ void Transform(int mode)
 					Trans.redraw = 1;
 					break;
 				case RKEY:
-					restoreTransObjects(&Trans);
-					initTransModeFlags(&Trans, TFM_ROTATION);
-					initRotation(&Trans);
+					if (Trans.mode == TFM_ROTATION) {
+						restoreTransObjects(&Trans);
+						initTransModeFlags(&Trans, TFM_TRACKBALL);
+						initTrackball(&Trans);
+					}
+					else {
+						restoreTransObjects(&Trans);
+						initTransModeFlags(&Trans, TFM_ROTATION);
+						initRotation(&Trans);
+					}
 					Trans.redraw = 1;
 					break;
 				case XKEY:
