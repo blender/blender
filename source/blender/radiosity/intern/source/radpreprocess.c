@@ -364,13 +364,9 @@ void rad_collect_meshes()
 				}
 				else {
 					for(a=0; a<base->object->totcol; a++) {
-						if(a+RG.totmat>MAXMAT-1) break;
-						RG.matar[a+RG.totmat]= give_current_material(base->object, a+1);
-					}
-
-					RG.totmat+= base->object->totcol;
-					if (RG.totmat >= MAXMAT) {
-						RG.totmat = MAXMAT - 1;
+						if(RG.totmat >= MAXMAT) break;
+						RG.matar[RG.totmat]= give_current_material(base->object, a+1);
+						RG.totmat++;
 					}
 				}
 			}

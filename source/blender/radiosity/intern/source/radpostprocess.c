@@ -55,6 +55,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BIF_toolbox.h"  // notice()
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -701,6 +702,8 @@ void rad_addmesh(void)
 	int a, vcount, vlnr, startf, endf;
 	
 	if(RG.totface==0) return;
+	
+	if(RG.totmat==MAXMAT) notice("warning: cannot assign more than 16 materials to 1 mesh");
 	
 	/* make sure there's alpha in the color, to distinguish */
 	for(a=0; a<RG.totface; a++) {
