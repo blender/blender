@@ -1692,7 +1692,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 	Material *ma= give_current_material(ob, 1);
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
 	int draw_wire = ob->dtx&OB_DRAWWIRE;
-	DispList *dl, *obDL = ob->disp.first;
+	DispList *dl;
 	float *obExtVerts;
 	DerivedMesh *dm = realDM?realDM:baseDM;
 
@@ -3711,10 +3711,8 @@ void draw_object_ext(Base *base)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static int bbs_mesh_verts__setDrawOptions(void *userData, void *vert)
+static int bbs_mesh_verts__setDrawOptions(void *userData, EditVert *eve)
 {
-	EditVert *eve = vert;
-
 	if (eve->h==0) {
 		set_framebuffer_index_color((int) eve->prev);
 		return 1;
@@ -3739,10 +3737,8 @@ static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 	return offset;
 }		
 
-static int bbs_mesh_wire__setDrawOptions(void *userData, void *edge)
+static int bbs_mesh_wire__setDrawOptions(void *userData, EditEdge *eed)
 {
-	EditEdge *eed = edge;
-
 	if (eed->h==0) {
 		set_framebuffer_index_color((int) eed->vn);
 		return 1;
@@ -3762,10 +3758,8 @@ static int bbs_mesh_wire(DerivedMesh *dm, int offset)
 	return offset;
 }		
 
-static int bbs_mesh_solid__setDrawOptions(void *userData, void *face)
+static int bbs_mesh_solid__setDrawOptions(void *userData, EditFace *efa)
 {
-	EditFace *efa = face;
-
 	if (efa->h==0) {
 		set_framebuffer_index_color((int) efa->prev);
 		return 1;
