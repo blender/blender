@@ -633,7 +633,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		}
 
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
-			if(0) {//efa->fgonf==0) {
+			if(efa->fgonf==0) {
 				if(efa->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
 				else BIF_ThemeColor(TH_WIRE);
 				

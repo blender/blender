@@ -913,9 +913,9 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						mouse_armature();
 				}
 				else if((G.obedit) && (G.qual == (LR_CTRLKEY|LR_ALTKEY)))
-					mouse_mesh();	// edge select
+					mouse_mesh();	// loop select for 1 mousebutton dudes
 				else if((G.obedit) && (G.qual == (LR_CTRLKEY|LR_ALTKEY|LR_SHIFTKEY)))
-					mouse_mesh();	// edge select
+					mouse_mesh();	// loop select for 1 mousebutton dudes
 				else if(G.obpose) { 
 					if (G.obpose->type==OB_ARMATURE)
 						mousepose_armature();

@@ -2487,17 +2487,19 @@ static void drawmeshwire_creases(void)
 
 static void glVertex_efa_edges(EditFace *efa)
 {
-
-	glVertex3fv(efa->v1->co);
-	glVertex3fv(efa->v2->co);
-
-	glVertex3fv(efa->v2->co);
-	glVertex3fv(efa->v3->co);
-
-	glVertex3fv(efa->e3->v1->co);
-	glVertex3fv(efa->e3->v2->co);
-
-	if(efa->e4) {
+	if(efa->e1->h==0) {
+		glVertex3fv(efa->v1->co);
+		glVertex3fv(efa->v2->co);
+	}
+	if(efa->e2->h==0) {
+		glVertex3fv(efa->v2->co);
+		glVertex3fv(efa->v3->co);
+	}
+	if(efa->e3->h==0) {
+		glVertex3fv(efa->e3->v1->co);
+		glVertex3fv(efa->e3->v2->co);
+	}
+	if(efa->e4 && efa->e4->h==0) {
 		glVertex3fv(efa->e4->v1->co);
 		glVertex3fv(efa->e4->v2->co);
 	}
@@ -2600,7 +2602,7 @@ static void drawmeshwire(Object *ob)
 				for (a=0; a<dlm->totedge; a++, medge++) {
 					if(medge->flag & ME_EDGEDRAW) {
 						eed= dlm->editedge[a];
-						if(eed) {
+						if(eed->h==0) {
 							if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
 							else BIF_ThemeColor(TH_WIRE);
 							glVertex3fv(mvert[medge->v1].co); 
@@ -4374,7 +4376,7 @@ static int bbs_mesh_wire(Object *ob, int offset)
 		for (b=0; b<dlm->totedge; b++, medge++) {
 			if(medge->flag & ME_EDGEDRAW) {
 				eed= dlm->editedge[b];
-				if(eed) {
+				if(eed && eed->h==0) {
 					
 					index= (int)eed->vn;
 					cpack(index_to_framebuffer(index));
