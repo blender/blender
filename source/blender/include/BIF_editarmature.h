@@ -115,6 +115,9 @@ void hide_selected_pose_bones(void);
 void hide_unselected_pose_bones(void);
 void show_all_pose_bones(void);
 
+int bone_looper(Object *ob, struct Bone *bone, void *data,
+				int (*bone_func)(Object *, struct Bone *, void *));
+
 int is_delay_deform(void);
 
 #define	BONESEL_TIP		0x08000000
