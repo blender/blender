@@ -127,6 +127,7 @@ void loopoperations(char mode);
 #define LOOP_SELECT	1
 #define LOOP_CUT	2
 
+void vertex_loop_select(void); 
 void edge_select(void);
 
 void extrude_repeat_mesh(int steps, float offs);

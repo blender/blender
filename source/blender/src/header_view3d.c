@@ -1029,6 +1029,9 @@ static void do_view3d_select_faceselmenu(void *arg, int event)
 		case 3: /* Select Inverse */
 			selectswap_tface();
 			break;
+		case 4: /* Select Same UV */
+			get_same_uv();
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1047,6 +1050,7 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Same UV",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
