@@ -31,11 +31,17 @@
 # Toplevel Makefile for blender. Bounces make to subdirectories.
 # Available targets: 'all' 'debug' 'release'
 
+# If the user wants to override some of the build
+# vars they can put it in the file user-def.mk which
+# will get included if it exists (please do not commit
+# user-def.mk to cvs).
+sinclude user-def.mk
+
 export NANBLENDERHOME=$(shell pwd)
 MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
 
 SOURCEDIR = blender
-DIRS = extern intern source po
+DIRS ?= extern intern source po
 include source/nan_subdirs.mk
 
 .PHONY: release
