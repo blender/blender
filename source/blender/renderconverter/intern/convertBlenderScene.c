@@ -2819,8 +2819,10 @@ void RE_rotateBlenderScene(void)
 	base= G.scene->base.first;
 	while(base) {
 		clear_object_constraint_status(base->object);
-		if (base->object->type==OB_ARMATURE)
+		if (base->object->type==OB_ARMATURE) {
 			where_is_armature (base->object);
+			make_displists_by_armature(base->object);
+		}
 		else
 
 		where_is_object(base->object);
