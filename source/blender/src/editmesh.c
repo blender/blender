@@ -8392,7 +8392,7 @@ void bevel_mesh(float bsize, int allfaces)
 				}
 				if(evl) {
 					float inp;	
-					CalcNormFloat(neweve[0], neweve[1], neweve[2], evl->n);
+					CalcNormFloat(neweve[0]->co, neweve[1]->co, neweve[2]->co, evl->n);
 					inp= evl->n[0]*G.vd->viewmat[0][2] + evl->n[1]*G.vd->viewmat[1][2] + evl->n[2]*G.vd->viewmat[2][2];
 					if(inp < 0.0) flipvlak(evl);
 #ifdef BEV_DEBUG
