@@ -40,8 +40,6 @@ struct ScrArea;
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
 
-extern int UIfrontbuf;
-
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy);
 void uiTextBoundsBlock(uiBlock *block, int addval);

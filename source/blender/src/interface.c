@@ -168,6 +168,9 @@ struct uiBut {
 		/* BUTM data */
 	void (*butm_func)(void *arg, int event);
 	void *butm_func_arg;
+	
+		/* pointer back */
+	uiBlock *block;
 };
 
 struct uiBlock {
@@ -194,15 +197,18 @@ struct uiBlock {
 	int afterval;
 	void *curfont;
 	
-	short autofill, flag, win, winq, direction, dt;
+	short autofill, flag, win, winq, direction, dt, frontbuf;  //frontbuf see below
 	void *saveunder;
 	
 	float xofs, yofs;  // offset to parent button
 };
 
-/* ************ GLOBALS ************* */
+/* block->frontbuf: (only internal here), to nice localize the old global var uiFrontBuf */
+#define UI_NEED_DRAW_FRONT 		1
+#define UI_HAS_DRAW_FRONT 		2
 
-int UIfrontbuf= 0;
+
+/* ************ GLOBALS ************* */
 
 static float UIwinmat[4][4];
 static int UIlock= 0, UIafterval;
@@ -210,7 +216,7 @@ static char *UIlockstr=NULL;
 static void (*UIafterfunc)(void *arg, int event);
 static void *UIafterfunc_arg;
 
-static uiFont UIfont[UI_ARRAY]= {0};
+static uiFont UIfont[UI_ARRAY];  // no init needed
 static uiBut *UIbuttip;
 
 /* ****************************** */
@@ -1084,7 +1090,9 @@ static void ui_draw_but(uiBut *but)
 	
 	if(but==0) return;
 
-	if(UIfrontbuf) {
+	if(but->block->frontbuf==UI_NEED_DRAW_FRONT) {
+		but->block->frontbuf= UI_HAS_DRAW_FRONT;
+	
 		glDrawBuffer(GL_FRONT);
 		if(but->win==curarea->headwin) curarea->head_swap= WIN_FRONT_OK;
 		else curarea->win_swap= WIN_FRONT_OK;
@@ -1245,11 +1253,6 @@ static void ui_draw_but(uiBut *but)
 		ui_draw_but_LINK(but);
 		break;
 	}
-	
-	if(UIfrontbuf) {
-		glFinish();
-		glDrawBuffer(GL_BACK);
-	}
 }
 
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy)
@@ -1288,18 +1291,26 @@ void uiDrawMenuBox(float minx, float miny, float maxx, float maxy)
 	fdrawline(minx, miny, minx, maxy);
 }
 
-static void ui_draw_linkline(BIFColorID col, uiLinkLine *line)
+static void ui_draw_linkline(uiBut *but, uiLinkLine *line)
 {
 	float vec1[2], vec2[2];
 
 	if(line->from==NULL || line->to==NULL) return;
 	
+	if(but->block->frontbuf==UI_NEED_DRAW_FRONT) {
+		but->block->frontbuf= UI_HAS_DRAW_FRONT;
+	
+		glDrawBuffer(GL_FRONT);
+		if(but->win==curarea->headwin) curarea->head_swap= WIN_FRONT_OK;
+		else curarea->win_swap= WIN_FRONT_OK;
+	}
+
 	vec1[0]= (line->from->x1+line->from->x2)/2.0;
 	vec1[1]= (line->from->y1+line->from->y2)/2.0;
 	vec2[0]= (line->to->x1+line->to->x2)/2.0;
 	vec2[1]= (line->to->y1+line->to->y2)/2.0;
 	
-	if(line->flag & UI_SELECT) BIF_set_color(col, COLORSHADE_LIGHT);
+	if(line->flag & UI_SELECT) BIF_set_color(but->col, COLORSHADE_LIGHT);
 	else glColor3ub(0,0,0);
 	fdrawline(vec1[0], vec1[1], vec2[0], vec2[1]);
 }
@@ -1314,7 +1325,7 @@ static void ui_draw_links(uiBlock *block)
 		if(but->type==LINK && but->link) {
 			line= but->link->lines.first;
 			while(line) {
-				ui_draw_linkline(but->col, line);
+				ui_draw_linkline(but, line);
 				line= line->next;
 			}
 		}
@@ -1576,12 +1587,8 @@ static void ui_drawblock_int(uiBlock *block)
 		ui_draw_but(but);
 	}
 
-	if(UIfrontbuf) glDrawBuffer(GL_FRONT);
 	ui_draw_links(block);
-	if(UIfrontbuf) {
-		glFinish();
-		glDrawBuffer(GL_BACK);
-	}
+	
 }
 
 void uiDrawBlock(uiBlock *block)
@@ -1874,9 +1881,6 @@ static int ui_do_but_MENU(uiBut *but)
 	uiBoundsBlock(block, 3);
 
 	event= uiDoBlocks(&listb, 0);
-	
-	/* ready, restore stuff */
-	UIfrontbuf= 1;	
 	
 	menudata_free(md);
 	
@@ -2194,14 +2198,14 @@ static int ui_do_but_TEX(uiBut *but)
 			else if(dev==PADENTER || dev==RETKEY) {
 				break;
 			}
-                        else if(dev==DELKEY) {
-                                if(but->pos>=0 && but->pos<strlen(str)) {
-                                        for(x=but->pos; x<=strlen(str); x++)
-                                                str[x]= str[x+1];
-                                        str[--len]='\0';
-                                        dodraw= 1;
-                                }
-                        }
+			else if(dev==DELKEY) {
+					if(but->pos>=0 && but->pos<strlen(str)) {
+							for(x=but->pos; x<=strlen(str); x++)
+									str[x]= str[x+1];
+							str[--len]='\0';
+							dodraw= 1;
+					}
+			}
 			else if(dev==BACKSPACEKEY) {
 				if(len!=0) {
 					if(get_qual() & LR_SHIFTKEY) {
@@ -2223,6 +2227,7 @@ static int ui_do_but_TEX(uiBut *but)
 		if(dodraw) {
 			ui_check_but(but);
 			ui_draw_but(but);
+			glFinish(); // flush display in subloops
 		}
 	}
 	
@@ -2361,6 +2366,7 @@ static int ui_do_but_NUM(uiBut *but)
 						ui_set_but_val(but, (double)temp);
 						ui_check_but(but);
 						ui_draw_but(but);
+						glFinish(); // flush display in subloops
 						
 						uibut_do_func(but);
 					}
@@ -2384,6 +2390,7 @@ static int ui_do_but_NUM(uiBut *but)
 						ui_set_but_val(but, tempf);
 						ui_check_but(but);
 						ui_draw_but(but);
+						glFinish(); // flush display in subloops
 					}
 				}
 
@@ -2418,6 +2425,7 @@ static int ui_do_but_NUM(uiBut *but)
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
 	ui_draw_but(but);	
+	glFinish(); // flush display in subloops
 	
 	return but->retval;
 }
@@ -2480,9 +2488,6 @@ static int ui_do_but_ICONROW(uiBut *but)
 	block->win= G.curscreen->mainwin;
 	
 	uiDoBlocks(&listb, 0);
-	
-	/* ready, restore stuff */
-	UIfrontbuf= 1;	
 
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
@@ -2496,7 +2501,6 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	uiBlock *block;
 	ListBase listb={NULL, NULL};
 	int width, a, xmax, ypos;
-	int event;
 	MenuData *md;
 
 	but->flag |= UI_SELECT;
@@ -2573,9 +2577,6 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	uiBoundsBlock(block, 3);
 
 	uiDoBlocks(&listb, 0);
-
-	/* ready, restore stuff */
-	UIfrontbuf= 1;
 	
 	menudata_free(md);
 
@@ -2668,6 +2669,7 @@ static int ui_do_but_SLI(uiBut *but)
 			ui_set_but_val(but, tempf);
 			ui_check_but(but);
 			ui_draw_but(but);
+			glFinish(); // flush display in subloops
 			
 			if(but->a1) {	/* color number */
 				uiBut *bt= but->prev;
@@ -2719,6 +2721,7 @@ static int ui_do_but_SLI(uiBut *but)
 	}
 	ui_check_but(but);
 	ui_draw_but(but);
+	glFinish(); // flush display in subloops
 	
 	return but->retval;
 }
@@ -2742,7 +2745,7 @@ static int ui_do_but_NUMSLI(uiBut *but)
 
 	while(get_mbut() & L_MOUSE) BIF_wait_for_statechange();
 	
-	ui_draw_but(but);	
+	ui_draw_but(but);
 	
 	/* hsv patch */
 	if(but->type==HSVSLI) {
@@ -3262,8 +3265,6 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 	if(foundone) {
 	
 		/* draw */
-		glDrawBuffer(GL_FRONT);
-		
 		but= block->buttons.first;
 		while(but) {
 			if(but->type==LINK && but->link) {
@@ -3272,21 +3273,18 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 					if(line==act) {
 						if((line->flag & UI_SELECT)==0) {
 							line->flag |= UI_SELECT;
-							ui_draw_linkline(but->col, line);
+							ui_draw_linkline(but, line);
 						}
 					}
 					else if(line->flag & UI_SELECT) {
 						line->flag &= ~UI_SELECT;
-						ui_draw_linkline(but->col, line);
+						ui_draw_linkline(but, line);
 					}
 					line= line->next;
 				}
 			}
 			but= but->next;
 		}
-	
-		glFinish();
-		glDrawBuffer(GL_BACK);
 	}
 }
 
@@ -3603,7 +3601,7 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	BMF_DrawString(but->font, but->tip);
 #endif
 	
-	glFinish();		/* for geforce, to show it in the frontbuffer */
+	glFinish();		/* to show it in the frontbuffer */
 	return su;
 }
 
@@ -3670,8 +3668,7 @@ int uiDoBlocks(ListBase *lb, int event)
 	int retval= UI_NOTHING, cont= 1;
 
 	if(lb->first==0) return UI_NOTHING;
-	
-	UIfrontbuf= 1;
+		
 	UIbuttip= NULL;
 	UIafterfunc= NULL;	/* to prevent infinite loops, this shouldnt be a global! */
 	
@@ -3679,6 +3676,14 @@ int uiDoBlocks(ListBase *lb, int event)
 	uevent.event= event;
 	uevent.val= 1;
 
+	/* this is a caching mechanism, to prevent too many calls to glFrontBuffer and glFinish, which slows down interface */
+	block= lb->first;
+	while(block) {
+		block->frontbuf= UI_NEED_DRAW_FRONT;	// signal
+		block= block->next;
+	}
+
+	/* main loop, we stay here for pulldown menus or temporal blocks (UI_BLOCK_LOOP type) */
 	while(cont) {
 		block= lb->first;
 		while(block) {
@@ -3687,12 +3692,20 @@ int uiDoBlocks(ListBase *lb, int event)
 			if(block->flag & UI_BLOCK_REDRAW) {
 				if( block->flag & UI_BLOCK_LOOP) {
 					block->saveunder= ui_bgnpupdraw((int)block->minx-1, (int)block->miny-4, (int)block->maxx+4, (int)block->maxy+1, 1);
+					block->frontbuf= UI_HAS_DRAW_FRONT;
 				}
 				uiDrawBlock(block);
 				block->flag &= ~UI_BLOCK_REDRAW;
 			}
 
 			retval= ui_do_block(block, &uevent);
+			
+			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
+				glFinish();
+				glDrawBuffer(GL_BACK);
+				block->frontbuf= UI_NEED_DRAW_FRONT;
+			}
+			
 			if(retval==UI_CONT || retval & UI_RETURN) break;
 
 			block= block->next;
@@ -3709,9 +3722,16 @@ int uiDoBlocks(ListBase *lb, int event)
 
 				if( block->flag & UI_BLOCK_LOOP) {
 					block->saveunder= ui_bgnpupdraw((int)block->minx-1, (int)block->miny-4, (int)block->maxx+4, (int)block->maxy+1, 1);
+					block->frontbuf= UI_HAS_DRAW_FRONT;
 				}
 				uiDrawBlock(block);
 				block->flag &= ~UI_BLOCK_REDRAW;
+			}
+
+			/* need to reveil drawing? (not in end of loop, because of free block */
+			if(block->frontbuf == UI_HAS_DRAW_FRONT) {
+				glFinish();
+				block->frontbuf= UI_NEED_DRAW_FRONT;
 			}
 
 			uevent.event= extern_qread(&uevent.val);
@@ -3741,15 +3761,11 @@ int uiDoBlocks(ListBase *lb, int event)
 			if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
 				if(U.flag & TOOLTIPS) ui_do_but_tip();
 			}
-			
 		}
 
 		if(retval==UI_CONT || (retval & UI_RETURN_OK)) cont= 0;
 	}
 	
-	UIfrontbuf= 0;
-	
-
 	if(retval & UI_RETURN_OK) {
 		if(UIafterfunc) UIafterfunc(UIafterfunc_arg, UIafterval);
 		UIafterfunc= NULL;
@@ -3759,6 +3775,18 @@ int uiDoBlocks(ListBase *lb, int event)
 	if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
 		if(U.flag & TOOLTIPS) ui_do_but_tip();
 	}
+
+
+	/* cleanup frontbuffer & flags */
+	block= lb->first;
+	while(block) {
+		if(block->frontbuf==UI_HAS_DRAW_FRONT) glFinish();
+		block->frontbuf= 0;
+		block= block->next;
+	}
+	
+	/* doesnt harm :-) */
+	glDrawBuffer(GL_BACK);
 
 	return retval;
 }
@@ -3946,7 +3974,7 @@ uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 		}
 	}
 	
-	block= MEM_callocN(sizeof(uiBlock), "iuBlock");
+	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	if(lb) BLI_addhead(lb, block);		/* at the beginning of the list! */
 
 	strcpy(block->name, name);
@@ -4215,6 +4243,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 
 	but->aspect= block->aspect;
 	but->win= block->win;
+	but->block= block;		// pointer back, used for frontbuffer status
 
 	if (but->type==BUTM) {
 		but->butm_func= block->butm_func;
@@ -4588,9 +4617,6 @@ short pupmenu(char *instr)
 		if(val==md->items[a].retval) lastselected= a;
 	}
 
-	/* ready, restore stuff */
-	UIfrontbuf= 0;	
-	
 	menudata_free(md);
 	
 	if(mouseymove && (event & UI_RETURN_OUT)==0) warp_pointer(mousexmove, mouseymove);
@@ -4741,9 +4767,6 @@ short pupmenu_col(char *instr, int maxrow)
 	uiBoundsBlock(block, 3);
 
 	event= uiDoBlocks(&listb, 0);
-	
-	/* ready, restore stuff */
-	UIfrontbuf= 1;	
 	
 	menudata_free(md);
 	

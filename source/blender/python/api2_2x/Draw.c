@@ -421,14 +421,14 @@ static void py_slider_update(void *butv, void *data2_unused)
     is still being used might be deleted 
     */
 
-/*@ UIfrontbuf = 0; 
+/*@  
     spacetext_do_pywin_buttons(curarea->spacedata.first, but->retval); */
 
   g_window_redrawn = 0;
   curarea->win_swap= WIN_BACK_OK; 
-  UIfrontbuf = 1; 
+  /* removed global uiFrontBuf (contact ton when this goes wrong here) */
   spacetext_do_pywin_buttons(curarea->spacedata.first, uiButGetRetVal(but));
-  UIfrontbuf = 0;
+
 
   if (!g_window_redrawn) /*@ if Redraw already called */
     M_Window_Redraw(0, Py_BuildValue("(i)", SPACE_VIEW3D));

@@ -43,7 +43,6 @@
 #define UI_HELV			0
 #define UI_HELVB		1
 
-
 /* Button types */
 #define CHA	32
 #define SHO	64
