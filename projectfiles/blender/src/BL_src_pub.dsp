@@ -91,7 +91,7 @@ SOURCE=..\..\..\source\blender\src\pub\license_key.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\pub\windows_publisher_splash.jpg.c
+SOURCE=..\..\..\source\blender\src\splash.jpg.c
 # End Source File
 # End Group
 # Begin Group "Header Files"

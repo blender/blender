@@ -320,7 +320,7 @@ SOURCE=..\..\..\source\blender\src\oops.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\osx_creator_splash.jpg.c
+SOURCE=..\..\..\source\blender\src\splash.jpg.c
 # End Source File
 # Begin Source File
 
@@ -380,10 +380,6 @@ SOURCE=..\..\..\source\blender\src\toolbox.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\unix_creator_splash.jpg.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\src\usiblender.c
 # End Source File
 # Begin Source File
@@ -393,10 +389,6 @@ SOURCE=..\..\..\source\blender\src\view.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\src\vpaint.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\src\windows_creator_splash.jpg.c
 # End Source File
 # Begin Source File
 
