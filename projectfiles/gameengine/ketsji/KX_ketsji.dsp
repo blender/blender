@@ -434,10 +434,6 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_ObColorIpoSGController.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\gameengine\Ketsji\KX_PhysicsController.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_WorldIpoController.h
 # End Source File
 # End Group
@@ -512,10 +508,6 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_EmptyObject.h
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_GameObject.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\gameengine\Ketsji\KX_IClientObject.h
 # End Source File
 # Begin Source File
 

@@ -188,10 +188,6 @@ SOURCE=..\..\..\source\blender\avi\intern\endian.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\avi\intern\jmf.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\avi\intern\mjpeg.h
 # End Source File
 # Begin Source File

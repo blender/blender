@@ -130,10 +130,6 @@ SOURCE=..\..\..\source\gameengine\BlenderRoutines\KX_BlenderCanvas.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\gameengine\BlenderRoutines\KX_BlenderDevice.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\gameengine\BlenderRoutines\KX_BlenderGL.h
 # End Source File
 # Begin Source File

@@ -173,10 +173,6 @@ SOURCE=..\..\..\source\blender\blenloader\BLO_readfile.h
 
 SOURCE=..\..\..\source\blender\blenloader\BLO_soundfile.h
 # End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\streamglue\BLO_streamglue.h
-# End Source File
 # End Group
 # End Target
 # End Project

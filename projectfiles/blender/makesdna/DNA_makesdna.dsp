@@ -186,15 +186,11 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_armature_types.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\makesdna\DNA_base_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\makesdna\DNA_bgpic_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\makesdna\DNA_camera_types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\makesdna\DNA_constraint_types.h
 # End Source File
 # Begin Source File
 
@@ -203,6 +199,10 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_controller_types.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\makesdna\DNA_curve_types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\makesdna\DNA_documentation.h
 # End Source File
 # Begin Source File
 
@@ -254,10 +254,6 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_material_types.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\makesdna\DNA_memHead.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\makesdna\DNA_mesh_types.h
 # End Source File
 # Begin Source File
@@ -271,10 +267,6 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_nla_types.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\makesdna\DNA_object_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\makesdna\DNA_old_game.h
 # End Source File
 # Begin Source File
 
@@ -323,10 +315,6 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_sound_types.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\makesdna\DNA_space_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\makesdna\DNA_spaceimasel_types.h
 # End Source File
 # Begin Source File
 

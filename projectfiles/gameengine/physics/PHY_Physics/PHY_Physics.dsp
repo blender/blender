@@ -159,15 +159,7 @@ SOURCE=..\..\..\..\source\gameengine\Physics\common\PHY_DynamicTypes.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\source\gameengine\Physics\PHY_DynamicTypes.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\..\source\gameengine\Physics\common\PHY_IMotionState.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\..\source\gameengine\Physics\PHY_IMotionState.h
 # End Source File
 # Begin Source File
 
@@ -175,15 +167,7 @@ SOURCE=..\..\..\..\source\gameengine\Physics\common\PHY_IPhysicsController.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\source\gameengine\Physics\PHY_IPhysicsController.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\..\source\gameengine\Physics\common\PHY_IPhysicsEnvironment.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\..\source\gameengine\Physics\PHY_IPhysicsEnvironment.h
 # End Source File
 # Begin Source File
 

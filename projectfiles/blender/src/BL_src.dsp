@@ -452,10 +452,6 @@ SOURCE=..\..\..\source\blender\include\BSE_filesel.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\sound.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\src\winlay.h
 # End Source File
 # End Group

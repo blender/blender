@@ -290,10 +290,6 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_action.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_actuator_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_anim.h
 # End Source File
 # Begin Source File
@@ -302,39 +298,11 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_armature.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_armature_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_avi.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_avi_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_bad_level_calls.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_base_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_bgpic_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_blender.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_blenkernel.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_blenkernel_types.h
 # End Source File
 # Begin Source File
 
@@ -350,15 +318,11 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_booleanops.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_camera_types.h
+SOURCE=..\..\..\source\blender\blenkernel\BKE_booleanops_mesh.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_cfraElem_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_controller_types.h
+SOURCE=..\..\..\source\blender\blenkernel\BKE_constraint.h
 # End Source File
 # Begin Source File
 
@@ -366,7 +330,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_curve.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_curve_types.h
+SOURCE=..\..\..\source\blender\blenkernel\BKE_deform.h
 # End Source File
 # Begin Source File
 
@@ -374,15 +338,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_displist.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_editmesh.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_effect.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_effect_types.h
 # End Source File
 # Begin Source File
 
@@ -390,27 +346,11 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_endian.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_event_codes.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_exotic.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_fastLamp_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_fileglobal_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_font.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_genfile.h
 # End Source File
 # Begin Source File
 
@@ -422,23 +362,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_group.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_group_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_halo_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_ID.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_ika.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_ika_types.h
 # End Source File
 # Begin Source File
 
@@ -446,19 +370,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_image.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_image_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_imbuf_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_ipo.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_ipo_types.h
 # End Source File
 # Begin Source File
 
@@ -466,19 +378,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_key.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_key_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_lamp_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_lampren_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_lattice_types.h
+SOURCE=..\..\..\source\blender\blenkernel\BKE_lattice.h
 # End Source File
 # Begin Source File
 
@@ -490,15 +390,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_main.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_materail_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_material.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_material_types.h
 # End Source File
 # Begin Source File
 
@@ -510,27 +402,11 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_mesh.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_mesh_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_meta_types.h
+SOURCE=..\..\..\source\blender\blenkernel\BKE_nla.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\BKE_object.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_object_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_old_game.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_oops_types.h
 # End Source File
 # Begin Source File
 
@@ -550,22 +426,6 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_property.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_property_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_pymain.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_readfile.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_render.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_sca.h
 # End Source File
 # Begin Source File
@@ -574,31 +434,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_scene.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_scene_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_screen.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_screen_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_scriptlink_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_sdna_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_sensor_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_sequence_types.h
 # End Source File
 # Begin Source File
 
@@ -606,19 +442,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_sound.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_sound_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_space_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_spaceimasel_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_strings.h
+SOURCE=..\..\..\source\blender\blenkernel\BKE_subsurf.h
 # End Source File
 # Begin Source File
 
@@ -626,19 +450,7 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_text.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_text_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_texture.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_texture_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_userdef_types.h
 # End Source File
 # Begin Source File
 
@@ -646,35 +458,11 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_utildefines.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_vfont_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_view2d_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_view3d_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_vlakren_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_wave_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\BKE_world.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\BKE_world_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_writefile.h
+SOURCE=..\..\..\source\blender\blenkernel\BKE_writeavi.h
 # End Source File
 # End Group
 # End Target

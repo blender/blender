@@ -231,18 +231,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BRE_renderui"=".\renderui\BRE_renderui.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "DNA_makesdna"=".\makesdna\DNA_makesdna.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -669,18 +657,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SND_fmod"="..\gameengine\sound\fmod\SND_fmod.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "SND_openal"="..\gameengine\sound\openal\SND_openal.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -829,9 +805,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BRE_renderconverter
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BRE_renderui
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BL_src_pub

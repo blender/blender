@@ -235,10 +235,6 @@ SOURCE=..\..\..\source\gameengine\Converter\BlenderWorldInfo.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\gameengine\Converter\KX_BlenderCanvas.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\gameengine\Converter\KX_BlenderScalarInterpolator.h
 # End Source File
 # Begin Source File

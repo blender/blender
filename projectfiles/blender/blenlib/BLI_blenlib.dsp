@@ -231,19 +231,11 @@ SOURCE=..\..\..\source\blender\blenlib\BLI_blenlib.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenlib\BLI_callbacks.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenlib\intern\BLI_callbacks.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenlib\BLI_editVert.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_fileops.h
 # End Source File
 # Begin Source File
 
@@ -259,35 +251,7 @@ SOURCE=..\..\..\source\blender\blenlib\BLI_linklist.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenlib\BLI_listBase.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenlib\BLI_memarena.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_memHead.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_noise.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_objfnt_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_packedFile_types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_rct.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\BLI_scanfill.h
 # End Source File
 # Begin Source File
 
@@ -307,15 +271,7 @@ SOURCE=..\..\..\source\blender\blenlib\intern\BLI_util.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenlib\BLI_vec_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenlib\BLI_winstuff.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\matrixops.h
 # End Source File
 # Begin Source File
 
@@ -332,10 +288,6 @@ SOURCE=..\..\..\source\blender\blenlib\PIL_dynlib.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenlib\PIL_time.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenlib\vectorops.h
 # End Source File
 # End Group
 # End Target
