@@ -552,6 +552,8 @@ void ui_autofill(uiBlock *block)
 	but= block->buttons.first;
 	lasti= -1;
 	while(but) {
+		// signal for aligning code
+		but->flag |= UI_BUT_ALIGN_DOWN;
 		
 		i= but->x1;
 
@@ -575,6 +577,8 @@ void ui_autofill(uiBlock *block)
 		
 		but= but->next;
 	}
+	
+	uiBlockEndAlign(block);
 	
 	MEM_freeN(maxw); MEM_freeN(maxh);	
 	block->autofill= 0;

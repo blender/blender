@@ -1474,16 +1474,15 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 	else 
 		BIF_ThemeColorShade(colorid, -40); 
 
-	glRectf(x1, ymid-yc, x2, ymid+yc);
-
+	/* left part */
+	glRectf(x1, ymid-2.0*yc, x1+fac, ymid+2.0*yc);
+	/* right part */
+	glRectf(x1+fac, ymid-yc, x2, ymid+yc);
 
 	/* the movable slider */
-	if(flag & UI_ACTIVE) 
-		BIF_ThemeColorShade(colorid, +50); 
-	else 
-		BIF_ThemeColorShade(colorid, +40); 
-
-	glRectf(x1+fac-aspect, ymid-yc, x1+fac+aspect, ymid+yc);
+	
+	BIF_ThemeColorShade(colorid, +70); 
+	glRectf(x1+fac-aspect, ymid-2.0*yc, x1+fac+aspect, ymid+2.0*yc);
 
 }
 
@@ -1716,11 +1715,9 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 		}
 		else if(theme==2) {
 			but->embossfunc= ui_draw_round;
-			but->sliderfunc= ui_default_slider;
 		}
 		else if(theme==3) {
 			but->embossfunc= ui_draw_oldskool;
-			but->sliderfunc= ui_default_slider;	// should be oldskool.... later
 		}
 		else {
 			but->embossfunc= ui_draw_minimal;

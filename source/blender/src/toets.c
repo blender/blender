@@ -736,7 +736,7 @@ int blenderqread(unsigned short event, short val)
 			else
 				enter_posemode();
 			allqueue(REDRAWHEADERS, 0);	
-			
+			allqueue(REDRAWBUTSALL, 0);	
 		}
 		else if(G.qual==LR_SHIFTKEY) {
 			if(G.obedit)

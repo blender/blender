@@ -803,7 +803,25 @@ static void object_panel_constraint(void)
 	
 	if (conlist) {
 		 
-		uiDefBlockBut(block, add_constraintmenu, NULL, "Add|>> ", 10, 190, 70, 20, "Add a new constraint");
+		uiDefBlockBut(block, add_constraintmenu, NULL, "Add|>> ", 10, 190, 100, 20, "Add a new constraint");
+		
+		/* print active object or bone */
+		{
+			short type;
+			void *data=NULL;
+			char str[64];
+			
+			str[0]= 0;
+			get_constraint_client(NULL, &type, &data);
+			if (data && type==TARGET_BONE){
+				sprintf(str, "To Bone: %s", ((Bone*)data)->name);
+			}
+			else if(OBACT) {
+				Object *ob= OBACT;
+				sprintf(str, "To Object: %s", ob->id.name+2);
+			}
+			uiDefBut(block, LABEL, 1, str,	110, 190, 200, 20, NULL, 0.0, 0.0, 0, 0, "Displays Active Object or Bone name");
+		}
 		
 		/* Go through the list of constraints and draw them */
 		xco = 10;
