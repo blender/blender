@@ -84,6 +84,13 @@ int        NMesh_CheckPyObject  (PyObject *pyobj);
 
 /* Material */
 PyObject * Material_Init (void);
+PyObject * Material_CreatePyObject (struct Material *mat);
+int        Material_CheckPyObject (PyObject *pyobj);
+Material **EXPP_newMaterialList_fromPyList (PyObject *list);
+Material **EXPP_newMaterialList(int len);
+int        EXPP_releaseMaterialList (Material **matlist, int len);
+int        EXPP_synchronizeMaterialLists (Object *object, void *data);
+PyObject * EXPP_PyList_fromMaterialList(Material **matlist, int len);
 
 /* Camera Data */
 PyObject * Camera_Init (void);

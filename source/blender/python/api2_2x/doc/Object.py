@@ -103,10 +103,6 @@ class Object:
   """
   """
 
-  def getDeformData():
-  """
-  """
-
   def getDeltaLocation():
   """
   """

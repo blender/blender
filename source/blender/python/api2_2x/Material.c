@@ -472,7 +472,7 @@ static void Material_Dealloc (BPy_Material *self)
 /* Description: This function will create a new BPy_Material from an existing*/
 /*              Blender material structure.                                  */
 /*****************************************************************************/
-PyObject *Material_CreatePyObject (Material *mat)
+PyObject *Material_CreatePyObject (struct Material *mat)
 {
   BPy_Material *pymat;
   float *col[3], *amb[3], *spec[3], *mir[3];
@@ -1389,4 +1389,76 @@ Material **EXPP_newMaterialList(int len)
     (Material **)MEM_mallocN(len * sizeof(Material *), "MaterialList");
 
   return matlist;
+}
+
+int EXPP_releaseMaterialList (Material **matlist, int len)
+{
+    int           i;
+    Material    * mat;
+
+    if ((len < 0) || (len > MAXMAT)) {
+        printf ("illegal matindex!\n");
+        return 0;
+    }
+
+    for (i=0 ; i<len ; i++) {
+        mat = matlist[i];
+        if (mat != NULL) {
+            if (((ID *)mat)->us > 0)
+                ((ID *)mat)->us--;
+            else
+                printf ("FATAL: material usage=0: %s", ((ID *)mat)->name);
+        }
+    }
+    MEM_freeN (matlist);
+
+    return 1;
+}
+
+/** expands pointer array of length 'oldsize' to length 'newsize'.
+  * A pointer to the (void *) array must be passed as first argument 
+  * The array pointer content can be NULL, in this case a new array of length
+  * 'newsize' is created.
+  */
+
+static int expandPtrArray(void **p, int oldsize, int newsize)
+{
+	void *newarray;
+
+	if (newsize < oldsize) {
+		return 0;
+	}	
+	newarray = MEM_callocN(newsize * sizeof(void *), "PtrArray");
+	if (*p) {
+		memcpy(newarray, *p, oldsize);
+		MEM_freeN(*p);
+	}	
+	*p = newarray;
+	return 1;
+}
+
+int EXPP_synchronizeMaterialLists (Object *object, void *data)
+{
+    Material  *** p_dataMaterials = give_matarar (object);
+    short       * nmaterials = give_totcolp (object);
+
+    if (object->totcol > *nmaterials) {
+        /* More object mats than data mats */
+        *nmaterials = object->totcol;
+        return expandPtrArray ((void *) p_dataMaterials,
+                               *nmaterials,
+                               object->totcol);
+    }
+    else {
+        if (object->totcol < *nmaterials) {
+            /* More data mats than object mats */
+            object->totcol = *nmaterials;
+            return expandPtrArray ((void *) &object->mat,
+                                   object->totcol,
+                                   *nmaterials);
+        }
+    }
+
+    /* No synchronization is needed; they're of equal length */
+    return 1;
 }

@@ -82,7 +82,6 @@ struct PyMethodDef M_Object_methods[] = {
 /*****************************************************************************/
 static PyObject *Object_clrParent (BPy_Object *self, PyObject *args);
 static PyObject *Object_getData (BPy_Object *self);
-static PyObject *Object_getDeformData (BPy_Object *self);
 static PyObject *Object_getDeltaLocation (BPy_Object *self);
 static PyObject *Object_getDrawMode (BPy_Object *self);
 static PyObject *Object_getDrawType (BPy_Object *self);
@@ -119,9 +118,6 @@ hierarchy (faster)"},
     {"getData",          (PyCFunction)Object_getData,          METH_NOARGS,
         "Returns the datablock object containing the object's data, \
 e.g. Mesh"},
-    {"getDeformData",    (PyCFunction)Object_getDeformData,    METH_NOARGS,
-        "Returns the datablock object containing the object's deformed \
-data.\nCurrently, this is only supported for a Mesh"},
     {"getDeltaLocation", (PyCFunction)Object_getDeltaLocation, METH_NOARGS,
         "Returns the object's delta location (x, y, z)"},
     {"getDrawMode",      (PyCFunction)Object_getDrawMode,      METH_NOARGS,
@@ -592,6 +588,7 @@ static PyObject *Object_getData (BPy_Object *self)
             data_object = Image_CreatePyObject (self->object->data);
             break;
         case ID_IP:
+            data_object = Ipo_CreatePyObject (self->object->data);
             break;
         case OB_LAMP://#ID_LA:
             data_object = Lamp_CreatePyObject (self->object->data);
@@ -607,6 +604,7 @@ static PyObject *Object_getData (BPy_Object *self)
         case ID_SCE:
             break;
         case ID_TXT:
+            data_object = Text_CreatePyObject (self->object->data);
             break;
         case ID_WO:
             break;
@@ -624,12 +622,6 @@ static PyObject *Object_getData (BPy_Object *self)
         Py_INCREF (data_object);
         return (data_object);
     }
-}
-
-static PyObject *Object_getDeformData (BPy_Object *self)
-{
-    return (PythonReturnErrorObject (PyExc_NotImplementedError,
-            "getDeformData: not yet implemented"));
 }
 
 static PyObject *Object_getDeltaLocation (BPy_Object *self)
@@ -704,9 +696,8 @@ static PyObject *Object_getLocation (BPy_Object *self, PyObject *args)
 
 static PyObject *Object_getMaterials (BPy_Object *self)
 {
-    /* TODO: Implement when the Material module is implemented. */
-    return (PythonReturnErrorObject (PyExc_NotImplementedError,
-            "getMaterials: not yet implemented"));
+    return (EXPP_PyList_fromMaterialList (self->object->mat,
+                                          self->object->totcol));
 }
 
 static PyObject *Object_getMatrix (BPy_Object *self)
@@ -1034,7 +1025,6 @@ static PyObject *Object_setLocation (BPy_Object *self, PyObject *args)
 
 static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 {
-#if 0
     PyObject     * list;
     int            len;
     int            i;
@@ -1063,8 +1053,7 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 
         if (self->object->mat)
         {
-            /* TODO: create replacement function */
-            releaseMaterialList (self->object->mat, len);
+            EXPP_releaseMaterialList (self->object->mat, len);
         }
         /* Increase the user count on all materials */
         for (i=0 ; i<len ; i++)
@@ -1081,19 +1070,15 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
             case OB_FONT:   /* fall through */
             case OB_MESH:   /* fall through */
             case OB_MBALL:  /* fall through */
-            case OB_SURF
-                /* TODO: create replacement function */:
-                synchronizeMaterialLists (self->object, self->object->data);
+            case OB_SURF:
+                EXPP_synchronizeMaterialLists (self->object,
+                                               self->object->data);
                 break;
             default:
                 break;
         }
     }
     return (Py_None);
-#endif
-
-    return (PythonReturnErrorObject (PyExc_NotImplementedError,
-            "setMaterials: not yet implemented"));
 }
 
 static PyObject *Object_setName (BPy_Object *self, PyObject *args)
