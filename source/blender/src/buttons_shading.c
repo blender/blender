@@ -1473,7 +1473,7 @@ static void world_panel_texture(World *wrld)
 	/* TEXCO */
 	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,50,19, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Pass camera view vector on to the texture");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		150,110,50,19, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "The name of the object used as a source for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,110,100,19, &(mtex->object), "");
+	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,90,100,19, &(mtex->object), "");
 	
 	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,18, mtex->ofs, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
 	uiDefButF(block, NUM, B_MATPRV, "dY",		100,30,100,18, mtex->ofs+1, -20.0, 20.0, 10, 0, "Set the extra translation of the texture coordinate");
@@ -1724,7 +1724,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 		uiDefBut(block, BUT, B_TEXCLEARLAMP, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erase link to texture");
 	}
 	else 
-		uiDefButS(block, TOG, B_WTEXBROWSE, "Add New" ,100, 160, 163, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Add new data block");
+		uiDefButS(block, TOG, B_LTEXBROWSE, "Add New" ,100, 160, 163, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Add new data block");
 
 	/* TEXCO */
 	uiBlockSetCol(block, TH_AUTO);
