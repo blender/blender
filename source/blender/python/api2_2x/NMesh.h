@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano.
+ * Contributor(s): Willian P. Germano, Jordi Rovira i Bonnet, Joseph Gilbert.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -41,9 +41,18 @@
 #include <config.h>
 #endif
 
-#include "MEM_guardedalloc.h"
-#include "BIF_editmesh.h" /* vertexnormals_mesh() */
+#include "DNA_mesh_types.h"
+#include "DNA_key_types.h"
+#include "DNA_listBase.h"
+#include "DNA_object_types.h"
+#include "DNA_material_types.h"
+#include "DNA_armature_types.h"
+
 #include "BDR_editface.h" /* make_tfaces */
+#include "BIF_editdeform.h"
+#include "BIF_editkey.h" /* insert_meshkey */
+#include "BIF_editmesh.h" /* vertexnormals_mesh() */
+#include "BIF_space.h"
 #include "BKE_mesh.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -52,15 +61,10 @@
 #include "BKE_screen.h"
 #include "BKE_object.h"
 #include "BLI_blenlib.h"
-#include "BIF_space.h"
-#include "DNA_mesh_types.h"
-#include "DNA_key_types.h"
-#include "DNA_listBase.h"
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
-#include "DNA_armature_types.h"
+#include "MEM_guardedalloc.h"
+
+#include "blendef.h"
 #include "mydevice.h"
-#include "BIF_editkey.h" /* insert_meshkey */
 
 #include "Material.h"
 #include "Image.h"
@@ -68,8 +72,6 @@
 #include "constant.h"
 #include "gen_utils.h"
 #include "modules.h"
-
-#include "blendef.h"
 
 /* EXPP Mesh defines */
 #define EXPP_NMESH_MODE_NOPUNOFLIP  ME_NOPUNOFLIP
@@ -87,6 +89,13 @@ extern PyTypeObject Image_Type;
 
 struct BPy_Object;
 
+/* These are from blender/src/editdeform.c, should be declared elsewhere,
+ * maybe in BIF_editdeform.h, after proper testing of vgrouping methods XXX */
+void create_dverts (Mesh *me);
+void add_vert_defnr (Object *ob, int def_nr, int vertnum, float weight,
+								int assignmode);
+void remove_vert_def_nr (Object *ob, int def_nr, int vertnum);
+
 /* Globals */
 static PyObject *g_nmeshmodule = NULL;
 
@@ -98,33 +107,38 @@ static PyObject *g_nmeshmodule = NULL;
 
 
 static char NMesh_addVertGroup_doc[] =
-	"add a named and empty vertex(deform) Group to a mesh that has been linked\n\
-	to an object. ";
+"add a named and empty vertex(deform) Group to a mesh that has been linked\n\
+to an object. ";
+
 static char NMesh_removeVertGroup_doc[] =
-	"remove a named vertex(deform) Group from a mesh that has been linked\n\
-	to an object.  Will remove all verts assigned to group.";
+"remove a named vertex(deform) Group from a mesh that has been linked\n\
+to an object.  Will remove all verts assigned to group.";
+
 static char NMesh_assignVertsToGroup_doc[] =
-	"Adds an array (a python list) of vertex points (by index) to a named\n\
-	vertex group.  The list will have an associated wieght assigned to them.\n\
-	The weight represents the amount of influence this group has over these vertex\n\
-	points. Weights should be in the range of 0.0 - 1.0.\n\
-	The assignmode can be either 'add', 'subtract', or 'replace'.  If this vertex\n\
-	is not assigned to the group 'add' creates a new association with the weight\n\
-	specified, otherwise the weight given is added to the current weight of the vertex.\n\
-	'subtract' will attempt to subtract the weight passed from a vertex already\n\
-	associated with a group, else it does nothing. 'replace' attempts to replace the\n\
-	weight with the new weight value for an already associated vertex/group, else\n\
-	it does nothing. The mesh must have all it's vertex points set before attempting\n\
-	to assign any vertex points to a vertex group.";
+"Adds an array (a python list) of vertex points (by index) to a named\n\
+vertex group.  The list will have an associated wieght assigned to them.\n\
+The weight represents the amount of influence this group has over these\n\
+vertex points. Weights should be in the range of 0.0 - 1.0.\n\
+The assignmode can be either 'add', 'subtract', or 'replace'.  If this vertex\n\
+is not assigned to the group 'add' creates a new association with the weight\n\
+specified, otherwise the weight given is added to the current weight of the\n\
+vertex.\n\
+'subtract' will attempt to subtract the weight passed from a vertex already\n\
+associated with a group, else it does nothing. 'replace' attempts to replace\n\
+the weight with the new weight value for an already associated vertex/group,\n\
+else it does nothing. The mesh must have all it's vertex points set before\n\
+attempting to assign any vertex points to a vertex group.";
+
 static char NMesh_removeVertsFromGroup_doc[] =
-	"Will remove an array (a python list) of vertex points from a named group in a\n\
-	mesh that has been linked to an object. If no list is given this will remove all\n\
-	vertex point associations with the group passed";
+"Remove an array (a python list) of vertex points from a named group in a\n\
+mesh that has been linked to an object. If no list is given this will remove\n\
+all vertex point associations with the group passed";
+
 static char NMesh_returnVertsFromGroup_doc[] =
-	"By passing a python list of vertex indeces and a named group, this will return\n\
-	a python list representing the indeces that are a part of this vertex group.\n\
-	If no association was found for the index passed nothing will be return for\n\
-	the index. An optional flag will also return the weights as well";
+"By passing a python list of vertex indices and a named group, this will\n\
+return a python list representing the indeces that are a part of this vertex.\n\
+group. If no association was found for the index passed nothing will be\n\
+return for the index. An optional flag will also return the weights as well";
 
 static char M_NMesh_doc[] =
 "The Blender.NMesh submodule";
