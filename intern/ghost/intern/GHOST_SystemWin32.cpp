@@ -166,9 +166,9 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	if (window) {
 		if (window->getValid()) {
 			// Store the pointer to the window
-			if (state != GHOST_kWindowStateFullScreen) {
+//			if (state != GHOST_kWindowStateFullScreen) {
 				m_windowManager->addWindow(window);
-			}
+//			}
 		}
 		else {
 			delete window;
