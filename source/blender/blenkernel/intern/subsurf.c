@@ -930,7 +930,7 @@ static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short sub
 		tmp->hasuvco= hme->hasuvco;
 		tmp->orig_me= hme->orig_me;
 		
-		if (type & ME_SIMPLE_SUBSURF) hypermesh_simple_subdivide(hme, tmp);
+		if (type == ME_SIMPLE_SUBSURF) hypermesh_simple_subdivide(hme, tmp);
 		else hypermesh_subdivide(hme, tmp);      /* default to CC subdiv. */
 		
 		hypermesh_free(hme);

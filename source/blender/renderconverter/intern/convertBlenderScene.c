@@ -3188,7 +3188,7 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	
 	do_material_tex(shi);
 
-	/* 0.25 could become button once?  */
+	/* 0.5 could become button once?  */
 	vr->co[0] += 0.5 * shi->displace[0] * scale[0] ; 
 	vr->co[1] += 0.5 * shi->displace[1] * scale[1] ; 
 	vr->co[2] += 0.5 * shi->displace[2] * scale[2] ; 
