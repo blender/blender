@@ -1468,7 +1468,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 	
-	if (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
+	if ((ob!=G.obedit) && (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))) {
 		if(uiNewPanel(curarea, block, "Paint", "View3d", 10, 230, 318, 204)==0) return;
 	} else {
 		if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
