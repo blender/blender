@@ -1088,8 +1088,8 @@ DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, 
 			oldDerived->release(oldDerived);
 		}
 		return derivedmesh_from_displistmesh(em, displistmesh_from_editmesh(em));
-	} else if (type==ME_CCG_SUBSURF) {
-		return subsurf_ccg_make_derived_from_editmesh(em, subdivLevels, oldDerived);
+	} else if (type==ME_CCG_SUBSURF || type==ME_SIMPLE_SUBSURF) {
+		return subsurf_ccg_make_derived_from_editmesh(em, type==ME_SIMPLE_SUBSURF, subdivLevels, oldDerived);
 	} else {
 		HyperMesh *hme= hypermesh_from_editmesh(em, subdivLevels);
 	
@@ -1104,8 +1104,8 @@ DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, 
 DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels) {
 	if (subdivLevels<1) {
 		return derivedmesh_from_displistmesh(NULL, displistmesh_from_mesh(me, NULL));
-	} else if (me->subsurftype==ME_CCG_SUBSURF) {
-		return subsurf_ccg_make_derived_from_mesh(me, subdivLevels);
+	} else if (me->subsurftype==ME_CCG_SUBSURF || me->subsurftype==ME_SIMPLE_SUBSURF) {
+		return subsurf_ccg_make_derived_from_mesh(me, me->subsurftype==ME_SIMPLE_SUBSURF, subdivLevels);
 	} else {
 		HyperMesh *hme= hypermesh_from_mesh(me, subdivLevels);
 

@@ -277,6 +277,7 @@ struct _CCGSubSurf {
 	int subdivLevels;
 	int numGrids;
 	int allowEdgeCreation;
+	float defaultCreaseValue;
 
 	void *q, *r;
 		
@@ -589,6 +590,7 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, CCGMeshHDL meshData, int subdivLevel
 		ss->subdivLevels = subdivLevels;
 		ss->numGrids = 0;
 		ss->allowEdgeCreation = 0;
+		ss->defaultCreaseValue = 0;
 
 		ss->useAgeCounts = 0;
 		ss->vertUserAgeOffset = ss->edgeUserAgeOffset = ss->faceUserAgeOffset = 0;
@@ -639,8 +641,9 @@ void ccgSubSurf_free(CCGSubSurf *ss) {
 	}
 }
 
-CCGError ccgSubSurf_setAllowEdgeCreation(CCGSubSurf *ss, int allowEdgeCreation) {
+CCGError ccgSubSurf_setAllowEdgeCreation(CCGSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue) {
 	ss->allowEdgeCreation = !!allowEdgeCreation;
+	ss->defaultCreaseValue = defaultCreaseValue;
 
 	return eCCGError_None;
 }
@@ -963,7 +966,7 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 			ss->tempEdges[k] = _vert_findEdgeTo(ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts]);
 
 			if (ss->allowEdgeCreation && !ss->tempEdges[k]) {
-				CCGEdge *e = ss->tempEdges[k] = _edge_new((CCGEdgeHDL) -1, ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts], 0.0, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+				CCGEdge *e = ss->tempEdges[k] = _edge_new((CCGEdgeHDL) -1, ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts], ss->defaultCreaseValue, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
 				_ehash_insert(ss->eMap, (EHEntry*) e);
 				e->v0->flags |= Vert_eEffected;
 				e->v1->flags |= Vert_eEffected;
