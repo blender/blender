@@ -2830,8 +2830,8 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	
 	glColor4ub(0, 0, 0, 8);
 	
-	gl_round_box(x1+3, y1-3, x2+3, y2-3, 5.0);
-	gl_round_box(x1+3, y1-4, x2+4, y2-3, 7.0);
+	gl_round_box(x1+3, y1-3, x2+3, y2-3, 4.0);
+	gl_round_box(x1+3, y1-4, x2+4, y2-3, 5.0);
 	glEnd();
 
 	glDisable(GL_BLEND);
