@@ -514,7 +514,8 @@ void yafrayRender_t::writeMaterialsAndModulators()
 		ostr.str("");
 		ostr << "<shader type=\"blendershader\" name=\"" << blendmat->first << "\" >\n";
 		ostr << "\t<attributes>\n";
-		ostr << "\t\t<color r=\"" << matr->r << "\" g=\"" << matr->g << "\" b=\"" << matr->b << "\" />\n";
+		float diff=matr->alpha;
+		ostr << "\t\t<color r=\"" << matr->r*diff << "\" g=\"" << matr->g*diff << "\" b=\"" << matr->b*diff << "\" />\n";
 		ostr << "\t\t<specular_color r=\"" << matr->specr << "\" g=\"" << matr->specg << "\" b=\"" << matr->specb<< "\" />\n";
 		ostr << "\t\t<mirror_color r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
 		ostr << "\t\t<diffuse_reflect value=\"" << matr->ref << "\" />\n";
@@ -531,15 +532,15 @@ void yafrayRender_t::writeMaterialsAndModulators()
 			// blender uses mir color for reflection as well
 			ostr << "\t\t<reflected r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
 			ostr << "\t\t<min_refle value=\""<< rf << "\" />\n";
-			if (matr->ray_depth) maxraydepth = matr->ray_depth;
+			if (matr->ray_depth>maxraydepth) maxraydepth = matr->ray_depth;
 		}
-		if (matr->mode & MA_RAYTRANSP) {
-			// blender refraction color always white?
-			//ostr << "\t\t<transmitted r=\"" << matr->r << "\" g=\"" << matr->g << "\" b=\"" << matr->b << "\" />\n";
-			ostr << "\t\t<transmitted r=\"1\" g=\"1\" b=\"1\" />\n";
+		if (matr->mode & MA_RAYTRANSP) 
+		{
+			float tr=1.0-matr->alpha;
+			ostr << "\t\t<transmitted r=\"" << matr->r * tr << "\" g=\"" << matr->g * tr << "\" b=\"" << matr->b * tr << "\" />\n";
 			// tir on by default
 			ostr << "\t\t<tir value=\"on\" />\n";
-			if (matr->ray_depth_tra) maxraydepth = matr->ray_depth_tra;
+			if (matr->ray_depth_tra>maxraydepth) maxraydepth = matr->ray_depth_tra;
 		}
 
 		string Mmode = "";
