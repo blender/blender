@@ -2061,13 +2061,14 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 static EditEdge *findnearestedge()
 {
 	EditEdge *closest, *eed;
-	short foundedge=0, found=0, mval[2];
+	short found=0, mval[2];
 	float distance[2], v1[2], v2[2], mval2[2];
 	
 	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
 	
 	if(G.eded.first==0) return NULL;
 	eed=G.eded.first;	
+	closest=NULL;
 	
 	/* reset test flags */
 	while(eed){	
@@ -2195,6 +2196,9 @@ void loop(int mode)
 	if(mode=='c')undo_push_mesh("Loop Subdivide");
 	else if(mode=='s')undo_push_mesh("Faceloop select");	
 	
+	start=NULL;
+	oldstart=NULL;
+
 	while(searching){
 		
 		/* reset variables */
@@ -2204,10 +2208,10 @@ void loop(int mode)
 		lastface=foundedge=c=tri=totface=0;		
 			
 		/* Look for an edge close by */
-		start=findnearestedge();		
+		start=findnearestedge();	
 		
 		/* Did we find anything that is selectable? */
-		if(start && start!=oldstart){   
+		if(start && (oldstart==NULL || start!=oldstart)){
 							
 			/* If we stay in the neighbourhood of this edge, we don't have to recalculate the loop everytime*/
 			oldstart=start;	
@@ -2401,7 +2405,6 @@ void loop(int mode)
 				evl= G.edvl.first;
 				while(evl){
 					if(evl->f & 8){
-						int a=0;						
 						
 						if(!(evl->e1->f & 8)){
 							glBegin(GL_LINES);							
@@ -2522,8 +2525,10 @@ void loop(int mode)
 			}
 			
 			/* restore matrix transform */
-			glPopMatrix();	
-	
+			glPopMatrix();
+			
+			headerprint("LMB to confirm, RMB to cancel");
+			
 			/* this also verifies other area/windows for clean swap */
 			screen_swapbuffers();
 			
@@ -2607,6 +2612,7 @@ void loop(int mode)
 		evl=evl->next;
 	}
 	
+	/* send event to redraw this window, does header too */
 	addqueue(curarea->win, REDRAW, 1); 
 }
 
