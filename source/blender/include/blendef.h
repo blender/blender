@@ -301,6 +301,7 @@
 #define B_TEXTDELETE	504
 #define B_TEXTFONT		505
 #define B_TEXTSTORE		506
+#define B_TEXTLINENUM	507
 
 /* FILE: 550 */
 #define B_SORTFILELIST	551
