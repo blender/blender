@@ -169,7 +169,7 @@ static int rcubi[3][4]= {
 
 static int ray_previewrender(int x,  int y,  float *vec, float *vn)
 {
-	float scalef= 12.8/100.0;
+	float scalef= 10.0/100.0;
 	float ray1[3], ray2[3];
 	float minlabda, labda;
 	int totface= 3, hitface= -1;
@@ -737,6 +737,9 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			/* hack for cubemap, why!!! */
 			SWAP(float, shi->vn[0], shi->vn[1]);
 		}
+		/* textures otherwise upside down */
+		if(mat->pr_type==MA_CUBE || mat->pr_type==MA_SPHERE) 
+			shi->lo[2]= -shi->lo[2];
 
 		if(mat->texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->lo);
