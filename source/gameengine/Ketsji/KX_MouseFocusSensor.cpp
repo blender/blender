@@ -55,6 +55,7 @@
 #include "SM_Object.h"
 #include "SM_Scene.h"
 #include "SumoPhysicsEnvironment.h"
+#include "KX_SumoPhysicsController.h"
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -183,8 +184,8 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * _should_ be wrong! */
 
 	/* old: */
-    float nearclip = 0.0;
-    float farclip = -1.0;
+	float nearclip = 0.0;
+	float farclip = 1.0;
 
 	/*	build the from and to point in normalised device coordinates 
 	 *	Looks like normailized device coordinates are [-1,1] in x [-1,1] in y
@@ -193,17 +194,16 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 *	The actual z coordinates used don't have to be exact just infront and 
 	 *	behind of the near and far clip planes.
 	 */ 
-	
 	MT_Vector4 frompoint = MT_Vector4( 
 		(2 * (m_x-x_lb) / width) - 1.0,
 		1.0 - (2 * (m_y - y_lb) / height),
-		(nearclip + 3 * farclip) / (farclip - nearclip),
+		nearclip,
 		1.0
 	);
 	MT_Vector4 topoint = MT_Vector4( 
 		(2 * (m_x-x_lb) / width) - 1.0,
 		1.0 - (2 * (m_y-y_lb) / height),
-		(3 * nearclip + farclip) / (farclip - nearclip),
+		farclip,
 		1.0
 	);
 
@@ -240,37 +240,83 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	
 	SumoPhysicsEnvironment *spe = dynamic_cast<SumoPhysicsEnvironment* > (m_kxscene->GetPhysicsEnvironment());
 	SM_Scene *sumoScene = spe->GetSumoScene();
+	KX_SumoPhysicsController *spc = dynamic_cast<KX_SumoPhysicsController*> (cam->GetPhysicsController());
+	SM_Object *sumoCam = spc?spc->GetSumoObject():NULL;
+	MT_Vector3 todir = topoint3 - frompoint3;
+	if (todir.dot(todir) < MT_EPSILON)
+		return false;
+	todir.normalize();
 
-	SM_Object* hitSMObj = sumoScene->rayTest(NULL, 
-						frompoint3,
-						topoint3,
-						resultpoint, 
-						resultnormal);
-	
-	/* all this casting makes me nervous... */
-	KX_ClientObjectInfo* client_info 
-		= ( hitSMObj ?
-			(KX_ClientObjectInfo*) ((SM_Object*)hitSMObj)->getClientObject() :
-			NULL);
-	KX_GameObject* hitKXObj = ( client_info ? 
-								(KX_GameObject*)client_info->m_clientobject : 
-								NULL);
+	while (true)
+	{	
+		SM_Object* hitSMObj = sumoScene->rayTest(sumoCam, 
+							frompoint3,
+							topoint3,
+							resultpoint, 
+							resultnormal);
 		
+		if (!hitSMObj)
+			return false;
+			
+		/* all this casting makes me nervous... */
+		KX_ClientObjectInfo* client_info 
+			= ( hitSMObj ?
+				(KX_ClientObjectInfo*) hitSMObj->getClientObject() :
+				NULL);
+		
+		if (!client_info)
+		{
+			std::cout<< "WARNING:  MouseOver sensor " << GetName() << " cannot sense SM_Object " << hitSMObj << " - no client info.\n" << std::endl;
+			return false;
+		} 
 	
-	/* Is this me? In the ray test, there are a lot of extra checks
-	 * for aliasing artefacts from self-hits. That doesn't happen
-	 * here, so a simple test suffices. Or does the camera also get
-	 * self-hits? (No, and the raysensor shouldn't do it either, since
-	 * self-hits are excluded by setting the correct ignore-object.)
-	 * Hitspots now become valid. */
-  	if (hitKXObj == thisObj)
-	{
-		m_hitPosition = resultpoint;
-		m_hitNormal = resultnormal;
-		res = true;
+		KX_GameObject* hitKXObj = (KX_GameObject*)client_info->m_clientobject;
+		
+		if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
+		{
+			// false hit
+			KX_SumoPhysicsController *hitspc = dynamic_cast<KX_SumoPhysicsController *> (static_cast<KX_GameObject*> (hitKXObj) ->GetPhysicsController());
+			if (hitspc)
+			{
+				/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
+				MT_Scalar marg = 0.01 + hitspc->GetSumoObject()->getMargin();
+				if (hitspc->GetSumoObject()->getShapeProps())
+				{
+					marg += 2*hitspc->GetSumoObject()->getShapeProps()->m_radius;
+				}
+				
+				/* Calculate the other side of this object */
+				MT_Point3 hitObjPos;
+				hitspc->GetWorldPosition(hitObjPos);
+				MT_Vector3 hitvector = hitObjPos - resultpoint;
+				if (hitvector.dot(hitvector) > MT_EPSILON)
+				{
+					hitvector.normalize();
+					marg *= 2.*todir.dot(hitvector);
+				}
+				frompoint3 = resultpoint + marg * todir;
+			} else {
+				return false;
+			}
+			continue;
+		}
+		/* Is this me? In the ray test, there are a lot of extra checks
+		* for aliasing artefacts from self-hits. That doesn't happen
+		* here, so a simple test suffices. Or does the camera also get
+		* self-hits? (No, and the raysensor shouldn't do it either, since
+		* self-hits are excluded by setting the correct ignore-object.)
+		* Hitspots now become valid. */
+		if (hitKXObj == thisObj)
+		{
+			m_hitPosition = resultpoint;
+			m_hitNormal = resultnormal;
+			return true;
+		}
+		
+		return false;
 	}
 
-	return res;
+	return false;
 }
 
 /* ------------------------------------------------------------------------- */
