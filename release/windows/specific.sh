@@ -88,7 +88,7 @@ if (`test -x "$NSIS"`) then
     TEMPFILE=00.blender_tmp.nsi
     DISTDIR=`cygpath -m $DISTDIR`
     # make a installer config for this release
-    cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$SHORTVERS|g" > $TEMPFILE
+    cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$SHORTVERS|g" | sed "s|MUI_$VERSION|MUI_VERSION|g" > $TEMPFILE
     "$NSIS" $TEMPFILE
     rm $TEMPFILE
 fi
