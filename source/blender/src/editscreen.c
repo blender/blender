@@ -2022,7 +2022,6 @@ static void copy_screen(bScreen *to, bScreen *from)
 	ScrVert *s1, *s2;
 	ScrEdge *se;
 	ScrArea *sa, *saf;
-	ListBase lbase;
 
 	/* free 'to' */
 	free_screen(to);

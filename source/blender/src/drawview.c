@@ -156,28 +156,52 @@ void setalpha_bgpic(BGpic *bgpic)
 }
 
 
-static float light_pos1[] = { -0.3, 0.3, 0.90, 0.0 }; 
-//static float light_pos2[] = { 0.5, 0.5, 0.10, 0.0 }; // never used?
-
 void default_gl_light(void)
 {
-	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
-	float light_col1[] = { 0.8, 0.8, 0.8, 0.0 }; 
-	//float light_col2[] = { 0.4, 0.4, 0.8, 0.0 }; 
-	
 	int a;
+	
+	/* initialize */
+	if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0) {
+		U.light[0].flag= 1;
+		U.light[0].vec[0]= -0.3; U.light[0].vec[1]= 0.3; U.light[0].vec[2]= 0.9;
+		U.light[0].col[0]= 0.8; U.light[0].col[1]= 0.8; U.light[0].col[2]= 0.8;
+		U.light[0].spec[0]= 0.5; U.light[0].spec[1]= 0.5; U.light[0].spec[2]= 0.5;
+		U.light[0].spec[3]= 1.0;
+		
+		U.light[1].flag= 1;
+		U.light[1].vec[0]= 0.5; U.light[1].vec[1]= 0.5; U.light[1].vec[2]= 0.1;
+		U.light[1].col[0]= 0.4; U.light[1].col[1]= 0.4; U.light[1].col[2]= 0.8;
+		U.light[1].spec[0]= 0.3; U.light[1].spec[1]= 0.3; U.light[1].spec[2]= 0.5;
+		U.light[1].spec[3]= 1.0;
+	
+		U.light[2].flag= 0;
+		U.light[2].vec[0]= 0.3; U.light[2].vec[1]= -0.3; U.light[2].vec[2]= -0.2;
+		U.light[2].col[0]= 0.8; U.light[2].col[1]= 0.5; U.light[2].col[2]= 0.4;
+		U.light[2].spec[0]= 0.5; U.light[2].spec[1]= 0.4; U.light[2].spec[2]= 0.3;
+		U.light[2].spec[3]= 1.0;
+	}
+	
 
-	glLightfv(GL_LIGHT0, GL_POSITION, light_pos1); 
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_col1); 
-	glLightfv(GL_LIGHT0, GL_SPECULAR, mat_specular); 
+	glLightfv(GL_LIGHT0, GL_POSITION, U.light[0].vec); 
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, U.light[0].col); 
+	glLightfv(GL_LIGHT0, GL_SPECULAR, U.light[0].spec); 
 
-	//glLightfv(GL_LIGHT1, GL_POSITION, light_pos2); 
-	//glLightfv(GL_LIGHT1, GL_DIFFUSE, light_col2); 
-	//glLightfv(GL_LIGHT1, GL_SPECULAR, mat_specular); 
+	glLightfv(GL_LIGHT1, GL_POSITION, U.light[1].vec); 
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, U.light[1].col); 
+	glLightfv(GL_LIGHT1, GL_SPECULAR, U.light[1].spec); 
 
-	glEnable(GL_LIGHT0);
-	//glEnable(GL_LIGHT1);
-	for(a=1; a<8; a++) glDisable(GL_LIGHT0+a);
+	glLightfv(GL_LIGHT2, GL_POSITION, U.light[2].vec); 
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, U.light[2].col); 
+	glLightfv(GL_LIGHT2, GL_SPECULAR, U.light[2].spec); 
+
+	for(a=0; a<8; a++) {
+		if(a<3) {
+			if(U.light[a].flag) glEnable(GL_LIGHT0+a);
+			else glDisable(GL_LIGHT0+a);
+		}
+		else glDisable(GL_LIGHT0+a);
+	}
+	
 	glDisable(GL_LIGHTING);
 
 	glDisable(GL_COLOR_MATERIAL);

@@ -1548,6 +1548,7 @@ void space_sound_button_function(int event)
 #define B_THEME_COPY 	3307
 #define B_THEME_PASTE 	3308
 
+#define B_RECALCLIGHT 	3310
 
 // needed for event; choose new 'curmain' resets it...
 static short th_curcol= TH_BACK;
@@ -1671,6 +1672,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 void drawinfospace(ScrArea *sa, void *spacedata)
 {
 	uiBlock *block;
+	static short cur_light=0, cur_light_var=0;
 	float fac, col[3];
 	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y2label, y3label, y4label;
 	short smallprefbut, medprefbut, largeprefbut, smfileselbut;
@@ -2033,7 +2035,61 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		}
 
 	} else if (U.userpref == 4) { /* system & opengl */
+		uiDefBut(block, LABEL,0,"Solid OpenGL light:",
+			xpos+edgespace, y3label, medprefbut, buth,
+			0, 0, 0, 0, 0, "");
+		
+		uiDefButS(block, MENU, B_REDR, "Light1 %x0|Light2 %x1|Light3 %x2",
+			xpos+edgespace, y2, 2*medprefbut/6, buth, &cur_light, 0.0, 0.0, 0, 0, "");
+		uiBlockSetCol(block, TH_BUT_SETTING1);
+		uiDefButI(block, TOG|BIT|0, B_RECALCLIGHT, "On",
+			xpos+edgespace+2*medprefbut/6, y2, medprefbut/6, buth, 
+			&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "");
+			
+		uiBlockSetCol(block, TH_AUTO);
+		uiDefButS(block, ROW, B_REDR, "Vec",
+			xpos+edgespace+3*medprefbut/6, y2, medprefbut/6, buth, 
+			&cur_light_var, 123.0, 0.0, 0, 0, "");
+		uiDefButS(block, ROW, B_REDR, "Col",
+			xpos+edgespace+4*medprefbut/6, y2, medprefbut/6, buth, 
+			&cur_light_var, 123.0, 1.0, 0, 0, "");
+		uiDefButS(block, ROW, B_REDR, "Spec",
+			xpos+edgespace+5*medprefbut/6, y2, medprefbut/6, buth, 
+			&cur_light_var, 123.0, 2.0, 0, 0, "");
 
+		if(cur_light_var==1) {
+			uiDefButF(block, NUM, B_RECALCLIGHT, "R ",
+				xpos+edgespace, y1, medprefbut/3, buth, 
+				U.light[cur_light].col, 0.0, 1.0, 100, 2, "");
+			uiDefButF(block, NUM, B_RECALCLIGHT, "G ",
+				xpos+edgespace+medprefbut/3, y1, medprefbut/3, buth, 
+				U.light[cur_light].col+1, 0.0, 1.0, 100, 2, "");
+			uiDefButF(block, NUM, B_RECALCLIGHT, "B ",
+				xpos+edgespace+2*medprefbut/3, y1, medprefbut/3, buth, 
+				U.light[cur_light].col+2, 0.0, 1.0, 100, 2, "");
+		}
+		else if(cur_light_var==2) {
+			uiDefButF(block, NUM, B_RECALCLIGHT, "sR ",
+				xpos+edgespace, y1, medprefbut/3, buth, 
+				U.light[cur_light].spec, 0.0, 1.0, 100, 2, "");
+			uiDefButF(block, NUM, B_RECALCLIGHT, "sG ",
+				xpos+edgespace+medprefbut/3, y1, medprefbut/3, buth, 
+				U.light[cur_light].spec+1, 0.0, 1.0, 100, 2, "");
+			uiDefButF(block, NUM, B_RECALCLIGHT, "sB ",
+				xpos+edgespace+2*medprefbut/3, y1, medprefbut/3, buth, 
+				U.light[cur_light].spec+2, 0.0, 1.0, 100, 2, "");
+		}
+		else if(cur_light_var==0) {
+			uiDefButF(block, NUM, B_RECALCLIGHT, "X ",
+				xpos+edgespace, y1, medprefbut/3, buth, 
+				U.light[cur_light].vec, -1.0, 1.0, 100, 2, "");
+			uiDefButF(block, NUM, B_RECALCLIGHT, "Y ",
+				xpos+edgespace+medprefbut/3, y1, medprefbut/3, buth, 
+				U.light[cur_light].vec+1, -1.0, 1.0, 100, 2, "");
+			uiDefButF(block, NUM, B_RECALCLIGHT, "Z ",
+				xpos+edgespace+2*medprefbut/3, y1, medprefbut/3, buth, 
+				U.light[cur_light].vec+2, -1.0, 1.0, 100, 2, "");
+		}
 
 /*
 		uiDefButS(block, TOG|BIT|5, 0, "Log Events to Console",
@@ -2241,6 +2297,14 @@ void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					th_curcol_ptr[3]= th_curcol_arr[3];
 					allqueue(REDRAWALL, 0);
 				}
+			}
+			else if(val==B_RECALCLIGHT) {
+				if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0)
+					U.light[0].flag= 1;
+				
+				default_gl_light();
+				addqueue(sa->win, REDRAW, 1);
+				allqueue(REDRAWVIEW3D, 0);
 			}
 			else do_global_buttons(val);
 			

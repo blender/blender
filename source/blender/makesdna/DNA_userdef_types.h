@@ -110,6 +110,11 @@ typedef struct bTheme {
 	
 } bTheme;
 
+typedef struct SolidLight {
+	int flag, pad;
+	float col[4], spec[4], vec[4];
+} SolidLight;
+
 typedef struct UserDef {
 	short flag, dupflag;
 	int savetime;
@@ -136,6 +141,7 @@ typedef struct UserDef {
 	char fontname[64];
 	struct ListBase themes;
 	short undosteps, pad0[3];
+	struct SolidLight light[3];
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

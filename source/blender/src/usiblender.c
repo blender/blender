@@ -492,8 +492,8 @@ void BIF_init(void)
 	initbuttons();
 	
 	init_draw_rects();	/* drawobject.c */
-	init_gl_stuff();	/* drawview.c */
 	BIF_read_homefile(); 
+	init_gl_stuff();	/* drawview.c, after homefile */
 	readBlog();
 	strcpy(G.lib, G.sce);
 
