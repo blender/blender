@@ -59,7 +59,7 @@ typedef enum PHY_PhysicsType {
 /// PHY_ConstraintType enumerates all supported Constraint Types
 typedef enum PHY_ConstraintType {
 	PHY_POINT2POINT_CONSTRAINT=1,
-	PHY_LINEHINGE_CONSTRAINT,
+	PHY_LINEHINGE_CONSTRAINT
 
 } PHY_ConstraintType;
 
