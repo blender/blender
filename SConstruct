@@ -60,6 +60,8 @@ elif sys.platform == 'darwin':
     extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
     cxxflags = []
     defines = ['_THREAD_SAFE']
+    if use_quicktime == 'true':
+        defines += ['WITH_QUICKTIME']
     warn_flags = ['-Wall', '-W']
     release_flags = []
     debug_flags = ['-g']
@@ -182,10 +184,10 @@ elif sys.platform == 'win32':
     python_include = '#../lib/windows/python/include/python2.2'
     python_libpath = '#../lib/windows/python/lib'
     python_lib = 'python22'
-    link_env.Append (CPPDEFINES = defines)
 
 elif string.find (sys.platform, 'sunos') != -1:
     window_system = 'X11'
+    defines = []
 
 elif string.find (sys.platform, 'irix') != -1:
     use_international = 'false'
@@ -225,6 +227,7 @@ elif string.find (sys.platform, 'irix') != -1:
 
 elif string.find (sys.platform, 'hp-ux') != -1:
     window_system = 'X11'
+    defines = []
 
 else:
     print "Unknown platform"
@@ -291,6 +294,7 @@ libraries = (['blender_render',
 
 link_env.Append (LIBS=libraries)
 link_env.Append (LIBPATH=libpath)
+link_env.Append (CPPDEFINES=defines)
 
 if use_international == 'true':
     link_env.Append (LIBS=['blender_FTF'])
