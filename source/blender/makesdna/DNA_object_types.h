@@ -293,7 +293,6 @@ extern Object workob;
 #define BA_DISP_UPDATE		16
 #define BA_DO_IPO			32
 #define OB_GONNA_MOVE		32
-
 #define BA_FROMSET			128
 #define OB_DO_IMAT			256
 #define OB_FROMDUPLI		512
