@@ -94,6 +94,7 @@ extern       void force_draw(void);
 extern		 void force_draw_all(void);
 extern		 void force_draw_plus(int type);
 extern       void freespacelist(struct ListBase *lb);
+extern       void handle_view3d_around(void);
 extern       void handle_view3d_lock(void);
 extern       void init_butspace(struct ScrArea *sa);
 extern       void init_filespace(struct ScrArea *sa);

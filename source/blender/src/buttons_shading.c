@@ -2351,6 +2351,46 @@ void do_matbuts(unsigned short event)
 	}
 }
 
+static char *mapto_blendtype_pup(void)
+{
+	static char string[1024];
+	char formatstr[1024];
+	char tempstr[1024];
+	
+	strcpy(string, "Layer Blending Mode: %t");
+	strcpy(formatstr, "|%s %%x%d");
+	
+	sprintf(tempstr, formatstr, "Mix", MTEX_BLEND);
+	strcat(string, tempstr);
+	
+	//strcat(string, "|%l");
+	
+	sprintf(tempstr, formatstr, "Add", MTEX_ADD);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Lighten", MTEX_LIGHT);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Screen", MTEX_SCREEN);
+	strcat(string, tempstr);
+	
+	//strcat(string, "|%l");
+	
+	sprintf(tempstr, formatstr, "Subtract", MTEX_SUB);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Darken", MTEX_DARK);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Multiply", MTEX_MUL);
+	strcat(string, tempstr);
+
+	//strcat(string, "|%l");
+	
+	sprintf(tempstr, formatstr, "Difference", MTEX_DIFF);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Divide", MTEX_DIV);
+	strcat(string, tempstr);
+		
+	return (string);
+}
+
 static void material_panel_map_to(Material *ma)
 {
 	uiBlock *block;
@@ -2408,7 +2448,11 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1080,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
 	uiDefButS(block, TOG3|BIT|10, B_MATPRV, "Translu",1140,160,65,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
 	uiDefButS(block, TOG3|BIT|12, B_MATPRV, "Disp",	1205,160,55,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+	uiBlockEndAlign(block);
 	
+	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),1087,100,179,18, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+			
+	/*		
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,133,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
 	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,133,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Sets texture to multiply the values or colour");
@@ -2421,6 +2465,7 @@ static void material_panel_map_to(Material *ma)
 
 	uiDefButS(block, ROW, B_MATPRV, "Light",			1087,98,90,18, &(mtex->blendtype), 9.0, (float)MTEX_LIGHT, 0, 0, "Sets texture to choose the lighter value");
 	uiDefButS(block, ROW, B_MATPRV, "Dark",			1177,98,89,18, &(mtex->blendtype), 9.0, (float)MTEX_DARK, 0, 0, "Sets texture to choose the darker");
+	*/
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,70,179,18, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
@@ -2750,7 +2795,7 @@ static void material_panel_ramps(Material *ma)
 		uiDefBut(block, LABEL, 0, "Factor",190,30,120,20, NULL, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButC(block, MENU, B_MATPRV, "Shader %x0|Energy %x1|Normal %x2|Result %x3",10,10,90,20, inputc, 0, 0, 0, 0, "Input for Ramp");
-		uiDefButC(block, MENU, B_MATPRV, "Mix %x0|Add %x1|Mult %x2|Sub %x3",110,10,90,20, methodc, 0, 0, 0, 0, "Blending method for Ramp (uses alpha in Colorband)");
+		uiDefButC(block, MENU, B_MATPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2",110,10,90,20, methodc, 0, 0, 0, 0, "Blending method for Ramp (uses alpha in Colorband)");
 		uiDefButF(block, NUMSLI, B_MATPRV, "", 190,10,120,20, facp, 0.0, 1.0, 100, 0, "Blending factor (also uses alpha in Colorband)");
 	}
 }

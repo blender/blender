@@ -3862,31 +3862,21 @@ void view3d_buttons(void)
 	/* DRAWTYPE */
 	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading (Hotkeys: Z, Shift Z, Ctrl Z, Alt Z");
 
-	// uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Drawtype: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
-
-	// uiDefIconTextButS(block, MENU, REDRAWVIEW3D, (ICON_BBOX+G.vd->drawtype-1), "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5",	
-	//														xco,0,124,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
-	//	uiDefButS(block, MENU, REDRAWVIEW3D, "Viewport Shading%t|Bounding Box %x1|Wireframe %x2|Solid %x3|Shaded %x4|Textured %x5", 
-	//																xco,0,110,20, &(G.vd->drawtype), 0, 0, 0, 0, "Viewport Shading");
-	
-	
 	/* around */
 	xco+= XIC+18;
-	uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Period) ");
-	/*
-	uiDefIconButS(block, ROW, 1, ICON_ROTATE, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 0.0, 0, 0, "Enables Rotation or Scaling around boundbox center (COMMAKEY)");
-	uiDefIconButS(block, ROW, 1, ICON_ROTATECENTER, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 3.0, 0, 0, "Enables Rotation or Scaling around median point");
-	uiDefIconButS(block, ROW, 1, ICON_CURSOR, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 1.0, 0, 0, "Enables Rotation or Scaling around cursor (DOTKEY)");
-	uiDefIconButS(block, ROW, 1, ICON_ROTATECOLLECTION, xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 2.0, 0, 0, "Enables Rotation or Scaling around individual object centers");
-	*/
 	
-	xco+= 18;
+	uiBlockBeginAlign(block);
+	uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Period) ");
+
+	xco+= XIC+10;
 	
 	uiDefIconButS(block, TOG|BIT|10, B_AROUND, ICON_ALIGN,
-				xco+=XIC,0,XIC,YIC,
-				&G.vd->flag, 0, 0, 0, 0, "Translate only (align)");	
+				xco,0,XIC,YIC,
+				&G.vd->flag, 0, 0, 0, 0, "Move object centers only");	
+	uiBlockEndAlign(block);
 	
-	xco+= XIC+14;
+	xco+= XIC+8;
+	
 	/* LAYERS */
 	if(G.vd->localview==0) {
 		
