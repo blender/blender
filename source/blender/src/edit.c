@@ -334,9 +334,14 @@ int get_border(rcti *rect, short col)
 		setlinestyle(0);
 		switch (curarea->spacetype) {
 		case SPACE_VIEW3D:
-			if (G.obedit)
-				circle_selectCB(&obedit_selectionCB);
+			if (G.obedit) {
+				if ELEM4(G.obedit->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
+					circle_selectCB(&obedit_selectionCB);
+					return 0;
+				}
+			}
 			return 0;
+			
 		case SPACE_IMAGE: // brush select in UV editor
 			circle_selectCB(&uvedit_selectionCB);
 			// this is a hack; we return 0 that the caller from get_border
