@@ -329,8 +329,10 @@ Object *find_basis_mball(Object *basis)
 					else ml= ((MetaBall*)ob->data)->elems.first;
 					
 					if(obnr<basisnr){
-						basis= ob;
-						basisnr= obnr;
+						if(!(ob->flag & OB_FROMDUPLI)){
+							basis= ob;
+							basisnr= obnr;
+						}
 					}	
 				}
 			}
