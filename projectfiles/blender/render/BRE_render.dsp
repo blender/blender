@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=BRE_render - Win32 Profile
+CFG=BRE_render - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,13 +13,12 @@ CFG=BRE_render - Win32 Profile
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "BRE_render.mak" CFG="BRE_render - Win32 Profile"
+!MESSAGE NMAKE /f "BRE_render.mak" CFG="BRE_render - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "BRE_render - Win32 Release" (based on "Win32 (x86) Static Library")
 !MESSAGE "BRE_render - Win32 Debug" (based on "Win32 (x86) Static Library")
-!MESSAGE "BRE_render - Win32 Profile" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -38,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\render"
+# PROP Output_Dir "..\..\..\obj\windows\blender\render"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\render"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -62,8 +61,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\render\debug"
+# PROP Output_Dir "..\..\..\obj\windows\blender\render\debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\render\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -78,37 +77,12 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\render\debug\BRE_render.lib"
 
-!ELSEIF  "$(CFG)" == "BRE_render - Win32 Profile"
-
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "BRE_render___Win32_Profile"
-# PROP BASE Intermediate_Dir "BRE_render___Win32_Profile"
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "BRE_render___Win32_Profile"
-# PROP Intermediate_Dir "BRE_render___Win32_Profile"
-# PROP Target_Dir ""
-LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\bpython\include" /I "..\..\..\source\blender" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\kernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\bpython\include" /I "..\..\..\source\blender" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-LIB32=link.exe -lib
-# ADD BASE LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\render\debug\BRE_render.lib"
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\render\profile\BRE_render.lib"
-
 !ENDIF 
 
 # Begin Target
 
 # Name "BRE_render - Win32 Release"
 # Name "BRE_render - Win32 Debug"
-# Name "BRE_render - Win32 Profile"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

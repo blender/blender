@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=SM_solid - Win32 Profile
+CFG=SM_solid - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,7 +13,7 @@ CFG=SM_solid - Win32 Profile
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "SM_solid.mak" CFG="SM_solid - Win32 Profile"
+!MESSAGE NMAKE /f "SM_solid.mak" CFG="SM_solid - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -21,7 +21,6 @@ CFG=SM_solid - Win32 Profile
 !MESSAGE "SM_solid - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "SM_solid - Win32 MT DLL Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "SM_solid - Win32 MT DLL Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "SM_solid - Win32 Profile" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -65,8 +64,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\sumo\solid\debug"
+# PROP Output_Dir "..\..\..\obj\windows\sumo\solid\debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\sumo\solid\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -79,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\sumo\solid\debug\SM_solid.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "SM_solid - Win32 MT DLL Debug"
 
@@ -129,30 +128,6 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo /out:"..\..\..\..\..\obj\windows\sumo\solid\SM_solid.lib"
 # ADD LIB32 /nologo
 
-!ELSEIF  "$(CFG)" == "SM_solid - Win32 Profile"
-
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "SM_solid___Win32_Profile"
-# PROP BASE Intermediate_Dir "SM_solid___Win32_Profile"
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "SM_solid___Win32_Profile"
-# PROP Intermediate_Dir "SM_solid___Win32_Profile"
-# PROP Target_Dir ""
-LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\sumo\SOLID-3.0\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\source\gameengine\physics\sumo\SOLID-3.0\include" /I "../../../lib/windows/moto/include" /I "..\..\..\source\gameengine\physics\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-LIB32=link.exe -lib
-# ADD BASE LIB32 /nologo /out:"..\..\..\..\obj\windows\sumo\solid\debug\SM_solid.lib"
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\sumo\solid\profile\SM_solid.lib"
-
 !ENDIF 
 
 # Begin Target
@@ -161,7 +136,6 @@ LIB32=link.exe -lib
 # Name "SM_solid - Win32 Debug"
 # Name "SM_solid - Win32 MT DLL Debug"
 # Name "SM_solid - Win32 MT DLL Release"
-# Name "SM_solid - Win32 Profile"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

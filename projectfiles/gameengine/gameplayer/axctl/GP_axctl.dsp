@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=GP_axctl - Win32 Profile
+CFG=GP_axctl - Win32 MT DLL Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,13 +13,12 @@ CFG=GP_axctl - Win32 Profile
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "GP_axctl.mak" CFG="GP_axctl - Win32 Profile"
+!MESSAGE NMAKE /f "GP_axctl.mak" CFG="GP_axctl - Win32 MT DLL Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "GP_axctl - Win32 MT DLL Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "GP_axctl - Win32 MT DLL Release" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "GP_axctl - Win32 Profile" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -61,17 +60,6 @@ LINK32=link.exe
 # SUBTRACT BASE LINK32 /nodefaultlib
 # ADD LINK32 libmoto.a libguardedalloc.a libbmfont.a libstring.a ws2_32.lib opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib vfw32.lib libjpeg.lib libblenkey.a libeay32.lib libz.a libpng.a fmodvc.lib /nologo /subsystem:windows /dll /debug /machine:I386 /nodefaultlib:"libcd.lib" /nodefaultlib:"libc.lib" /nodefaultlib:"libcmtd.lib" /nodefaultlib:"msvcrtd.lib" /nodefaultlib:"mfc42.lib" /nodefaultlib:"mfcs42.lib" /out:"..\..\..\..\..\obj\windows\debug\Blender3DPlugin.ocx" /pdbtype:sept /libpath:"../../../../lib/windows/fmod/lib" /libpath:"../../../../lib/windows/guardedalloc/lib" /libpath:"../../../../lib/windows/openal/lib/debug_MT" /libpath:"../../../../lib/windows/moto/lib" /libpath:"../../../../lib/windows/bmfont/lib" /libpath:"../../../../lib/windows/string/lib" /libpath:"../../../../lib/windows/python/lib" /libpath:"../../../../lib/windows/jpeg/lib" /libpath:"..\..\..\..\lib\windows\openssl\lib\mt_dll" /libpath:"..\..\..\..\lib\windows\zlib\lib\\" /libpath:"..\..\..\..\lib\windows\blenkey\lib\\" /libpath:"..\..\..\..\lib\windows\png\lib"
 # SUBTRACT LINK32 /nodefaultlib
-# Begin Custom Build - Registering ActiveX Control...
-OutDir=.\..\..\..\..\..\obj\windows\gameengine\gameplayer\axctl\mtdll_debug
-TargetPath=\Documents and Settings\maarten\My Documents\obj\windows\debug\Blender3DPlugin.ocx
-InputPath=\Documents and Settings\maarten\My Documents\obj\windows\debug\Blender3DPlugin.ocx
-SOURCE="$(InputPath)"
-
-"$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	regsvr32 /s /c "$(TargetPath)" 
-	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg" 
-	
-# End Custom Build
 
 !ELSEIF  "$(CFG)" == "GP_axctl - Win32 MT DLL Release"
 
@@ -101,60 +89,6 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 opengl32.lib glu32.lib glaux.lib /nologo /subsystem:windows /dll /machine:I386 /out:"Release/ActiveXgp.ocx"
 # ADD LINK32 fmodvc.lib libmoto.a libguardedalloc.a libbmfont.a libstring.a ws2_32.lib opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib vfw32.lib libjpeg.lib openal_static.lib libblenkey.a libeay32.lib libz.a libpng.a /nologo /subsystem:windows /dll /machine:I386 /nodefaultlib:"libcd.lib" /nodefaultlib:"libc.lib" /nodefaultlib:"libcmt.lib" /nodefaultlib:"msvcrtd.lib" /out:"..\..\..\..\..\obj\windows\Blender3DPlugin.ocx" /libpath:"../../../../lib/windows/fmod/lib" /libpath:"../../../../lib/windows/guardedalloc/lib" /libpath:"../../../../lib/windows/openal/lib/release_MT" /libpath:"../../../../lib/windows/moto/lib" /libpath:"../../../../lib/windows/bmfont/lib" /libpath:"../../../../lib/windows/string/lib" /libpath:"../../../../lib/windows/python/lib" /libpath:"../../../../lib/windows/jpeg/lib" /libpath:"..\..\..\..\lib\windows\openssl\lib\mt_dll" /libpath:"..\..\..\..\lib\windows\zlib\lib\\" /libpath:"..\..\..\..\lib\windows\blenkey\lib\\" /libpath:"..\..\..\..\lib\windows\png\lib"
-# Begin Custom Build - Registering ActiveX Control...
-OutDir=.\..\..\..\..\..\obj\windows\gameengine\gameplayer\axctl\mtdll
-TargetPath=\Documents and Settings\maarten\My Documents\obj\windows\Blender3DPlugin.ocx
-InputPath=\Documents and Settings\maarten\My Documents\obj\windows\Blender3DPlugin.ocx
-SOURCE="$(InputPath)"
-
-"$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	regsvr32 /s /c "$(TargetPath)" 
-	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg" 
-	
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "GP_axctl - Win32 Profile"
-
-# PROP BASE Use_MFC 2
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "GP_axctl___Win32_Profile"
-# PROP BASE Intermediate_Dir "GP_axctl___Win32_Profile"
-# PROP BASE Target_Ext "ocx"
-# PROP BASE Ignore_Export_Lib 0
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 2
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "GP_axctl___Win32_Profile"
-# PROP Intermediate_Dir "GP_axctl___Win32_Profile"
-# PROP Target_Ext "ocx"
-# PROP Ignore_Export_Lib 0
-# PROP Target_Dir ""
-# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\gameengine\ketsji\kxnetwork" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer" /I "..\..\..\..\source\gameengine\scenegraph" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\gameengine\soundsystem" /I "..\..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\sumo\fuzzics\include" /I "..\..\..\..\lib\windows\openal\include" /I "..\..\..\..\lib\windows\python\include\python1.5" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "../../../../source/blender/blenkernel" /I "../../../../source/blender/makesdna" /I "../../../../source/blender/blenlib" /I "../../../../source/blender/blenloader" /I "../../../../source/blender/render/extern/include" /I "../../../../source/blender/imbuf" /I "..\..\..\..\source\gameengine\converter" /I "..\..\..\..\source\gameengine\GamePlayer\common" /I "..\..\..\..\source\gameengine\GamePlayer\common\windows" /I "..\..\..\..\lib\windows\iksolver\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_USRDLL" /YX /FD /GZ /c
-# SUBTRACT BASE CPP /Fr
-# ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /O2 /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\gameengine\ketsji\kxnetwork" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer" /I "..\..\..\..\source\gameengine\scenegraph" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\gameengine\soundsystem" /I "..\..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\sumo\fuzzics\include" /I "..\..\..\..\lib\windows\openal\include" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "../../../../source/blender/blenkernel" /I "../../../../source/blender/makesdna" /I "../../../../source/blender/blenlib" /I "../../../../source/blender/blenloader" /I "../../../../source/blender/render/extern/include" /I "../../../../source/blender/imbuf" /I "..\..\..\..\source\gameengine\converter" /I "..\..\..\..\source\gameengine\GamePlayer\common" /I "..\..\..\..\source\gameengine\GamePlayer\common\windows" /I "..\..\..\..\lib\windows\iksolver\include" /D "WIN32" /D "_WINDOWS" /D "_WINDLL" /D "_AFXDLL" /D "_MBCS" /D "_USRDLL" /U "_DEBUG" /YX /FD /c
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
-# ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-LINK32=link.exe
-# ADD BASE LINK32 opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib libjpeg.lib openal_static.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"..\..\..\..\..\obj\windows\debug\BlenderPlayer.ocx" /pdbtype:sept /libpath:"../../../../lib/windows/python/lib" /libpath:"../../../../lib/windows/jpeg/lib" /libpath:"../../../../lib/windows/openal/lib/debug_MT"
-# SUBTRACT BASE LINK32 /nodefaultlib
-# ADD LINK32 libbmfont.a libstring.a ws2_32.lib opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib libjpeg.lib openal_static.lib libblenkey.a libeay32.lib libz.a libpng.a /nologo /subsystem:windows /dll /debug /machine:I386 /out:"..\..\..\..\..\obj\windows\profile\BlenderPlayer.ocx" /pdbtype:sept /libpath:"../../../../lib/windows/openal/lib/debug_MT" /libpath:"../../../../lib/windows/bmfont/lib" /libpath:"../../../../lib/windows/string/lib" /libpath:"../../../../lib/windows/python/lib" /libpath:"../../../../lib/windows/jpeg/lib" /libpath:"..\..\..\..\lib\windows\openssl\lib" /libpath:"..\..\..\..\lib\windows\zlib\lib\\" /libpath:"..\..\..\..\lib\windows\blenkey\lib\\" /libpath:"..\..\..\..\lib\windows\png\lib"
-# SUBTRACT LINK32 /nodefaultlib
-# Begin Custom Build - Registering ActiveX Control...
-OutDir=.\GP_axctl___Win32_Profile
-TargetPath=\Documents and Settings\maarten\My Documents\obj\windows\profile\BlenderPlayer.ocx
-InputPath=\Documents and Settings\maarten\My Documents\obj\windows\profile\BlenderPlayer.ocx
-SOURCE="$(InputPath)"
-
-"$(OutDir)\regsvr32.trg" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	regsvr32 /s /c "$(TargetPath)" 
-	echo regsvr32 exec. time > "$(OutDir)\regsvr32.trg" 
-	
-# End Custom Build
 
 !ENDIF 
 
@@ -162,7 +96,6 @@ SOURCE="$(InputPath)"
 
 # Name "GP_axctl - Win32 MT DLL Debug"
 # Name "GP_axctl - Win32 MT DLL Release"
-# Name "GP_axctl - Win32 Profile"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

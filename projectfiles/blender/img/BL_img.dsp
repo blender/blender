@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=BL_img - Win32 Profile
+CFG=BL_IMG - WIN32 DEBUG
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,13 +13,12 @@ CFG=BL_img - Win32 Profile
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "BL_img.mak" CFG="BL_img - Win32 Profile"
+!MESSAGE NMAKE /f "BL_img.mak" CFG="BL_IMG - WIN32 DEBUG"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "BL_img - Win32 Release" (based on "Win32 (x86) Static Library")
 !MESSAGE "BL_img - Win32 Debug" (based on "Win32 (x86) Static Library")
-!MESSAGE "BL_img - Win32 Profile" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -78,37 +77,12 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\img\debug\BL_img.lib"
 
-!ELSEIF  "$(CFG)" == "BL_img - Win32 Profile"
-
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "BL_img___Win32_Profile"
-# PROP BASE Intermediate_Dir "BL_img___Win32_Profile"
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "BL_img___Win32_Profile"
-# PROP Intermediate_Dir "BL_img___Win32_Profile"
-# PROP Target_Dir ""
-LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-LIB32=link.exe -lib
-# ADD BASE LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\img\debug\BL_img.lib"
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\img\profile\BL_img.lib"
-
 !ENDIF 
 
 # Begin Target
 
 # Name "BL_img - Win32 Release"
 # Name "BL_img - Win32 Debug"
-# Name "BL_img - Win32 Profile"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

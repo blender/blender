@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=BL_imbuf - Win32 Profile
+CFG=BL_imbuf - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,7 +13,7 @@ CFG=BL_imbuf - Win32 Profile
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "BL_imbuf.mak" CFG="BL_imbuf - Win32 Profile"
+!MESSAGE NMAKE /f "BL_imbuf.mak" CFG="BL_imbuf - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -21,7 +21,6 @@ CFG=BL_imbuf - Win32 Profile
 !MESSAGE "BL_imbuf - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "BL_imbuf - Win32 MT DLL Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "BL_imbuf - Win32 MT DLL Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "BL_imbuf - Win32 Profile" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -40,7 +39,7 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
+# PROP Output_Dir "..\..\..\..\obj\windows\blender\imbuf"
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\imbuf"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
@@ -53,7 +52,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\imbuf\BL_imbuf.lib"
+# ADD LIB32 /nologo /out:"..\..\..\obj\windows\blender\imbuf\BL_imbuf.lib"
 
 !ELSEIF  "$(CFG)" == "BL_imbuf - Win32 Debug"
 
@@ -64,8 +63,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\imbuf\debug"
+# PROP Output_Dir "..\..\..\obj\windows\blender\imbuf\debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\imbuf\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -77,7 +76,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\imbuf\debug\BL_imbuf.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "BL_imbuf - Win32 MT DLL Debug"
 
@@ -88,8 +87,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\..\obj\windows\blender\imbuf\mtdll_debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\imbuf\mtdll_debug"
+# PROP Output_Dir "..\..\..\obj\windows\blender\imbuf\mtdll_debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\imbuf\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -112,8 +111,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\..\obj\windows\blender\imbuf\mtdll"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\imbuf\mtdll"
+# PROP Output_Dir "..\..\..\obj\windows\blender\imbuf\mtdll"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\imbuf\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
@@ -127,30 +126,6 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo /out:"..\..\..\..\..\obj\windows\blender\imbuf\BL_imbuf.lib"
 # ADD LIB32 /nologo
 
-!ELSEIF  "$(CFG)" == "BL_imbuf - Win32 Profile"
-
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "BL_imbuf___Win32_Profile"
-# PROP BASE Intermediate_Dir "BL_imbuf___Win32_Profile"
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "BL_imbuf___Win32_Profile"
-# PROP Intermediate_Dir "BL_imbuf___Win32_Profile"
-# PROP Target_Dir ""
-LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\lib\windows\png\include" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-LIB32=link.exe -lib
-# ADD BASE LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\imbuf\debug\BL_imbuf.lib"
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\imbuf\profile\BL_imbuf.lib"
-
 !ENDIF 
 
 # Begin Target
@@ -159,7 +134,6 @@ LIB32=link.exe -lib
 # Name "BL_imbuf - Win32 Debug"
 # Name "BL_imbuf - Win32 MT DLL Debug"
 # Name "BL_imbuf - Win32 MT DLL Release"
-# Name "BL_imbuf - Win32 Profile"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=DNA_makesdna - Win32 Profile
+CFG=DNA_makesdna - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,7 +13,7 @@ CFG=DNA_makesdna - Win32 Profile
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "DNA_makesdna.mak" CFG="DNA_makesdna - Win32 Profile"
+!MESSAGE NMAKE /f "DNA_makesdna.mak" CFG="DNA_makesdna - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -21,7 +21,6 @@ CFG=DNA_makesdna - Win32 Profile
 !MESSAGE "DNA_makesdna - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE "DNA_makesdna - Win32 MT DLL Release" (based on "Win32 (x86) Console Application")
 !MESSAGE "DNA_makesdna - Win32 MT DLL Debug" (based on "Win32 (x86) Console Application")
-!MESSAGE "DNA_makesdna - Win32 Profile" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -41,7 +40,7 @@ RSC=rc.exe
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "..\..\..\source\blender\makesdna\intern"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\makesdna"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\makesdna"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
@@ -53,7 +52,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo /o"DNA_makesdna.bsc"
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 libguardedalloc.a BLI_blenlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /pdb:"DNA_makesdna.pdb" /machine:I386 /nodefaultlib:"libc.lib" /libpath:"..\..\..\lib\windows\guardedalloc\lib" /libpath:"..\..\..\..\obj\windows\blender\blenlib"
+# ADD LINK32 libguardedalloc.a BLI_blenlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /pdb:"DNA_makesdna.pdb" /machine:I386 /nodefaultlib:"libc.lib" /libpath:"..\..\..\lib\windows\guardedalloc\lib" /libpath:"..\..\..\obj\windows\blender\blenlib"
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
@@ -71,7 +70,7 @@ PostBuild_Cmds=CD ..\..\..\source\blender\makesdna\intern\	DNA_makesdna.exe dna.
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "..\..\..\source\blender\makesdna\intern"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\makesdna\debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\makesdna\debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
@@ -84,7 +83,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo /o"DNA_makesdna.bsc"
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 libguardedalloc.a BLI_blenlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /pdb:"DNA_makesdna.pdb" /debug /machine:I386 /nodefaultlib:"libc.lib" /pdbtype:sept /libpath:"..\..\..\lib\windows\guardedalloc\lib" /libpath:"..\..\..\..\obj\windows\blender\blenlib\debug"
+# ADD LINK32 libguardedalloc.a BLI_blenlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /pdb:"DNA_makesdna.pdb" /debug /machine:I386 /nodefaultlib:"libc.lib" /pdbtype:sept /libpath:"..\..\..\lib\windows\guardedalloc\lib" /libpath:"..\..\..\obj\windows\blender\blenlib\debug"
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
@@ -154,38 +153,6 @@ SOURCE="$(InputPath)"
 PostBuild_Cmds=CD ..\..\..\source\blender\makesdna\intern\	DNA_makesdna.exe dna.c
 # End Special Build Tool
 
-!ELSEIF  "$(CFG)" == "DNA_makesdna - Win32 Profile"
-
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "DNA_makesdna___Win32_Profile0"
-# PROP BASE Intermediate_Dir "DNA_makesdna___Win32_Profile0"
-# PROP BASE Ignore_Export_Lib 0
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "DNA_makesdna___Win32_Profile0"
-# PROP Intermediate_Dir "DNA_makesdna___Win32_Profile0"
-# PROP Ignore_Export_Lib 0
-# PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /J /FD /GZ /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /J /FD /c
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG"
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo /o"DNA_makesdna.bsc"
-# ADD BSC32 /nologo /o"DNA_makesdna.bsc"
-LINK32=link.exe
-# ADD BASE LINK32 BLI_blenlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /pdb:"DNA_makesdna.pdb" /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\obj\windows\blender\blenlib\debug"
-# SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 libguardedalloc.a BLI_blenlib.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /pdb:"DNA_makesdna.pdb" /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\lib\windows\guardedalloc\lib" /libpath:"..\..\..\..\obj\windows\blender\blenlib\debug"
-# SUBTRACT LINK32 /pdb:none
-# Begin Special Build Tool
-SOURCE="$(InputPath)"
-PostBuild_Desc=Building DNA
-PostBuild_Cmds=CD ..\..\..\source\blender\makesdna\intern\	DNA_makesdna.exe dna.c
-# End Special Build Tool
-
 !ENDIF 
 
 # Begin Target
@@ -194,7 +161,6 @@ PostBuild_Cmds=CD ..\..\..\source\blender\makesdna\intern\	DNA_makesdna.exe dna.
 # Name "DNA_makesdna - Win32 Debug"
 # Name "DNA_makesdna - Win32 MT DLL Release"
 # Name "DNA_makesdna - Win32 MT DLL Debug"
-# Name "DNA_makesdna - Win32 Profile"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

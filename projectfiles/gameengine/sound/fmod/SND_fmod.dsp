@@ -63,8 +63,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\fmod\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\fmod\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -77,7 +77,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\..\obj\windows\gameengine\soundsystem\fmod\debug\SND_fmod.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "SND_fmod - Win32 MT DLL Debug"
 
