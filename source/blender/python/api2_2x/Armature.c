@@ -314,29 +314,37 @@ Armature_getName (BPy_Armature * self)
 }
 
 
-/** Create and return a list of the root bones for this armature. */
+static void
+append_childrenToList(Bone *parent, PyObject *listbones)
+{
+	Bone *child = NULL;
+
+	//append children 
+    for(child = parent->childbase.first; child; child = child->next){
+		PyList_Append (listbones, Bone_CreatePyObject (child));
+		if(child->childbase.first){	 //has children?
+			append_childrenToList(child, listbones);
+		}
+	}
+
+}
+
 static PyObject *
 Armature_getBones (BPy_Armature * self)
 {
-  int totbones = 0;
+
   PyObject *listbones = NULL;
-  Bone *current = NULL;
-  int i;
+  Bone *parent = NULL;
+  
+  listbones = PyList_New(0);
 
-  /* Count the number of bones to create the list */
-  current = self->armature->bonebase.first;
-  for (; current; current = current->next)
-    totbones++;
-
-  /* Create a list with a bone wrapper for each bone */
-  current = self->armature->bonebase.first;
-  listbones = PyList_New (totbones);
-  for (i = 0; i < totbones; i++)
-    {
-      /* Wrap and set to corresponding element of the list. */
-      PyList_SetItem (listbones, i, Bone_CreatePyObject (current));
-      current = current->next;
-    }
+  //append root bones
+  for (parent = self->armature->bonebase.first; parent; parent = parent->next){
+      PyList_Append (listbones, Bone_CreatePyObject (parent));
+	  if(parent->childbase.first){	 //has children?
+			append_childrenToList(parent, listbones);
+	  }
+  }
 
   return listbones;
 }
@@ -525,8 +533,6 @@ Armature_setAttr (BPy_Armature * self, char *name, PyObject * value)
 
   if (strcmp (name, "name") == 0)
     error = Armature_setName (self, valtuple);
-  /*  if (strcmp (name, "bones") == 0)
-     error = Armature_setBones (self, valtuple); */
   else
     {				/* Error */
       Py_DECREF (valtuple);

@@ -653,9 +653,9 @@ Bone_setParent(BPy_Bone *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:	Bone_dealloc																				 */
+/* Function:	Bone_dealloc												*/
 /* Description: This is a callback function for the BPy_Bone type. It is     */
-/*		the destructor function.																		 */
+/*		the destructor function.											*/
 /*****************************************************************************/
 static void
 Bone_dealloc (BPy_Bone * self)
@@ -665,7 +665,7 @@ Bone_dealloc (BPy_Bone * self)
 }
 
 /*****************************************************************************/
-/* Function:	Bone_getAttr															      */
+/* Function:	Bone_getAttr												*/
 /* Description: This is a callback function for the BPy_Bone type. It is    */
 /*	     	the function that accesses BPy_Bone member variables and	 */
 /*		methods.							 */
@@ -714,7 +714,7 @@ Bone_getAttr (BPy_Bone * self, char *name)
 }
 
 /*****************************************************************************/
-/* Function:		Bone_setAttr																				 */
+/* Function:		Bone_setAttr											*/
 /* Description: This is a callback function for the BPy_Bone type. It is the */
 /*		function that changes Bone Data members values. If this	     */
 /*		data is linked to a Blender Bone, it also gets updated.	     */
@@ -751,7 +751,7 @@ Bone_setAttr (BPy_Bone * self, char *name, PyObject * value)
 }
 
 /*****************************************************************************/
-/* Function:	Bone_repr																					 */
+/* Function:	Bone_repr													*/
 /* Description: This is a callback function for the BPy_Bone type. It	 */
 /*		builds a meaninful string to represent bone objects.	 */
 /*****************************************************************************/
@@ -765,10 +765,10 @@ Bone_repr (BPy_Bone * self)
 }
 
 /**************************************************************************/
-/* Function:	Bone_compare 																					*/
+/* Function:	Bone_compare 											*/
 /* Description: This is a callback function for the BPy_Bone type. It	*/
 /*		compares the two bones: translate comparison to the	*/
-/*		C pointers.																					*/
+/*		C pointers.														*/
 /**************************************************************************/
 static int
 Bone_compare (BPy_Bone * a, BPy_Bone * b)
@@ -777,13 +777,10 @@ Bone_compare (BPy_Bone * a, BPy_Bone * b)
   return (pa == pb) ? 0 : -1;
 }
 
-
-
-
 /*****************************************************************************/
-/* Function:	Bone_CreatePyObject 																				 */
+/* Function:	Bone_CreatePyObject 										*/
 /* Description: This function will create a new BlenBone from an existing    */
-/*		Bone structure.																					    */
+/*		Bone structure.														*/
 /*****************************************************************************/
 PyObject *
 Bone_CreatePyObject (struct Bone * obj)
@@ -801,9 +798,9 @@ Bone_CreatePyObject (struct Bone * obj)
 }
 
 /*****************************************************************************/
-/* Function:	Bone_CheckPyObject																				 */
+/* Function:	Bone_CheckPyObject											*/
 /* Description: This function returns true when the given PyObject is of the */
-/*		type Bone. Otherwise it will return false.									 */
+/*		type Bone. Otherwise it will return false.							*/
 /*****************************************************************************/
 int
 Bone_CheckPyObject (PyObject * py_obj)
@@ -812,9 +809,9 @@ Bone_CheckPyObject (PyObject * py_obj)
 }
 
 /*****************************************************************************/
-/* Function:	Bone_FromPyObject																				 */
+/* Function:	Bone_FromPyObject											*/
 /* Description: This function returns the Blender bone from the given	 */
-/*		PyObject.																					 */
+/*		PyObject.														*/
 /*****************************************************************************/
 struct Bone *
 Bone_FromPyObject (PyObject * py_obj)
