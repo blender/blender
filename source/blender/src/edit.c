@@ -733,6 +733,8 @@ void snap_sel_to_grid()
 
 
 		if(G.obedit) {
+			tottrans= 0;
+			
 #ifdef __NLA
 			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
 #else
@@ -820,6 +822,7 @@ void snap_sel_to_curs()
 	curs= give_cursor();
 
 		if(G.obedit) {
+			tottrans= 0;
 #ifdef __NLA
 			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
 #else
@@ -1068,7 +1071,7 @@ void snap_to_center()
 	centroid[0]= centroid[1]= centroid[2]= 0.0;
 
 		if(G.obedit) {
-			/*tottrans=0;*/
+			tottrans= 0;
 #ifdef __NLA
 			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
 #else
@@ -1130,6 +1133,7 @@ void snap_to_center()
 /* Snap the selection to the snaplocation (duh!) */
 
 		if(G.obedit) {
+			tottrans= 0;
 #ifdef __NLA
 			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
 #else
