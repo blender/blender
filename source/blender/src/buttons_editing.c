@@ -207,8 +207,8 @@ static void decimate_faces(void)
 	me= ob->data;
 
 	/* add warning for vertex col and tfaces */
-	if(me->tface || me->mcol || me->dvert) {
-		if(okee("This will remove UV coordinates, vertexcolors, and deform weights")==0) return;
+	if(me->tface || me->mcol || me->dvert || me->medge) {
+		if(okee("This will remove UV coordinates, vertexcolors, deform weights and edge data")==0) return;
 		if(me->tface) MEM_freeN(me->tface);
 		if(me->mcol) MEM_freeN(me->mcol);
 		if(me->dvert) free_dverts(me->dvert, me->totvert);
@@ -347,6 +347,11 @@ static void decimate_apply(void)
 			me->mvert= dlm->mvert;
 			dlm->mvert= NULL;
 			me->totvert= dlm->totvert;
+
+			// edges
+			if(me->medge) MEM_freeN(me->medge);
+			me->medge = NULL;
+			me->totedge = 0;
 
 			// faces
 			if(me->mface) MEM_freeN(me->mface);

@@ -264,7 +264,7 @@ elif sys.platform == 'cygwin':
     debug_flags = ['-O2', '-g']
     extra_flags = ['-pipe', '-mno-cygwin', '-mwindows', '-funsigned-char']
     cxxflags = []
-    defines = ['FREE_WINDOWS', 'NDEBUG']
+    defines = ['FREE_WINDOWS']
     warn_flags = ['-Wall', '-Wno-char-subscripts']
     platform_libs = ['png', 'jpeg', 'netapi32',
                      'opengl32', 'glu32', 'winmm',
@@ -900,8 +900,7 @@ else:
 
 if user_options_dict['BUILD_BINARY'] == 'release':
     cflags = extra_flags + release_flags + warn_flags
-    if sys.platform == 'win32':
-        defines += ['NDEBUG']
+    defines += ['NDEBUG']
 else:
     cflags = extra_flags + debug_flags + warn_flags
     if sys.platform == 'win32':
