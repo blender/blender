@@ -1057,20 +1057,22 @@ if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
 if sys.platform == 'darwin':
     bundle = Environment ()
     blender_app = 'blender'
-    bundle.Depends ('#/blender.app/Contents/MacOS/' + blender_app, blender_app)
+    bundle.Depends ('#/blender.app/Contents/Info.plist', blender_app)
     bundle.Command ('#/blender.app/Contents/Info.plist',
                     '#/source/darwin/blender.app/Contents/Info.plist',
                     "rm -rf blender.app && " + \
                     "cp -R source/darwin/blender.app . && " +
                     "cat $SOURCE | sed s/VERSION/`cat release/VERSION`/ | \
                                    sed s/DATE/`date +'%Y-%b-%d'`/ \
-                                   > $TARGET")
-    bundle.Command ('blender.app/Contents/MacOS/' + blender_app, blender_app,
-                    'strip -u -r $SOURCE && ' + \
-                    'cp $SOURCE $TARGET && ' + \
+                                   > $TARGET && " + \
+                    'cp -p blender blender.app/Contents/MacOS/blender && ' + \
+                    'strip -u -r blender.app/Contents/MacOS/blender && ' + \
                     'cp bin/.blender/.bfont.ttf blender.app/Contents/Resources/ && ' + \
                     'cp bin/.blender/.Blanguages blender.app/Contents/Resources/ && ' + \
                     'cp -R bin/.blender/locale blender.app/Contents/Resources/ && ' + \
+                    'cp -R release/bpydata blender.app/Contents/Resources/ && ' + \
+                    'cp -R release/scripts blender.app/Contents/Resources/ && ' + \
+                    'cp -R release/plugins blender.app/Contents/Resources/ && ' + \
                     'chmod +x $TARGET && ' + \
                     'find blender.app -name CVS -prune -exec rm -rf {} \; && ' +
                     'find blender.app -name .DS_Store -exec rm -rf {} \;')
