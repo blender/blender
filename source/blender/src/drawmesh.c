@@ -878,6 +878,9 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	
 	/* first all texture polys */
 	
+	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
+	else glFrontFace(GL_CCW);
+	
 	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
 	if(G.vd->drawtype==OB_TEXTURE) istex= 1;
 	else istex= 0;
