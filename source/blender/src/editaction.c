@@ -1255,15 +1255,10 @@ void transform_actionchannel_keys(char mode)
 	
 			if (G.saction->lock){
 				do_all_actions();
-				allqueue (REDRAWVIEW3D, 0);
-				allqueue (REDRAWACTION, 0);
-				allqueue (REDRAWIPO, 0);
-				allqueue(REDRAWNLA, 0);
-				force_draw_all();
+				force_draw_all(0);
 			}
 			else {
-				addqueue (curarea->win, REDRAWALL, 0);
-				force_draw ();
+				force_draw(0);
 			}
 		}
 		
@@ -1445,11 +1440,11 @@ void transform_meshchannel_keys(char mode, Key *key)
                 allqueue (REDRAWACTION, 0);
                 allqueue (REDRAWIPO, 0);
                 allqueue(REDRAWNLA, 0);
-                force_draw_all();
+                force_draw_all(0);
             }
             else {
                 addqueue (curarea->win, REDRAWALL, 0);
-                force_draw ();
+                force_draw(0);
             }
         }
 		
@@ -2454,9 +2449,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
 						update_for_newframe();
-						force_draw_plus(SPACE_VIEW3D);
-						force_draw_plus(SPACE_IPO);
-						force_draw_plus(SPACE_BUTS);
+						force_draw_plus(SPACE_VIEW3D, 1);
+						force_draw_plus(SPACE_IPO, 1);
+						force_draw_plus(SPACE_BUTS, 1);
 					}
 					
 				} while(get_mbut() & mousebut);

@@ -267,7 +267,7 @@ int extrude_ika(Object *ob, int add)
 			xo= mval[0];
 			yo= mval[1];
 			
-			force_draw();
+			force_draw(1);
 		}
 		
 		while(qtest()) {

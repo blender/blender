@@ -411,7 +411,7 @@ void mouse_select_seq(void)
 		recurs_sel_seq(seq);
 	}
 
-	force_draw();
+	force_draw(0);
 
 	if(last_seq) allqueue(REDRAWIPO, 0);
 
@@ -1874,7 +1874,7 @@ void transform_seq(int mode)
 			}
 			END_SEQ;
 
-			force_draw();
+			force_draw(0);
 		}
 		else BIF_wait_for_statechange();
 

@@ -836,7 +836,7 @@ void move_keys(void)
 			xo= mval[0];
 			yo= mval[1];
 				
-			force_draw();
+			force_draw(0);
 		}
 		else BIF_wait_for_statechange();
 		

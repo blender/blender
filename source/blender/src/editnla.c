@@ -306,8 +306,8 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
 						update_for_newframe();
-						force_draw_plus(SPACE_VIEW3D);
-						force_draw_plus(SPACE_IPO);
+						force_draw_plus(SPACE_VIEW3D, 1);
+						force_draw_plus(SPACE_IPO, 1);
 					}
 					
 				} while(get_mbut() & mousebut);
@@ -1013,11 +1013,11 @@ void transform_nlachannel_keys(char mode)
 				allqueue (REDRAWVIEW3D, 0);
 				allqueue (REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
-				force_draw_all();
+				force_draw_all(0);
 			}
 			else {
 				addqueue (curarea->win, REDRAWALL, 0);
-				force_draw ();
+				force_draw(0);
 			}
 		}
 		

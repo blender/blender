@@ -2605,7 +2605,7 @@ void mouse_select_ipo()
 	
 	update_editipo_flags();
 	
-	force_draw();
+	force_draw(0);
 	BIF_undo_push("Select Ipo");
 	
 	if(G.sipo->showkey && G.sipo->blocktype==ID_OB) {
@@ -4813,16 +4813,16 @@ void transform_ipo(int mode)
 			/* update realtime */
 			if(G.sipo->lock) {
 				if(G.sipo->blocktype==ID_MA) {
-					force_draw_plus(SPACE_BUTS);
+					force_draw_plus(SPACE_BUTS, 0);
 				}
 				else if(G.sipo->blocktype==ID_KE) {
 					do_ob_key(OBACT);
 					makeDispList(OBACT);
-					force_draw_plus(SPACE_VIEW3D);
+					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_AC) {
 					do_all_actions();
-					force_draw_all();
+					force_draw_all(0);
 				}
 				else if(G.sipo->blocktype==ID_OB) {
 					Base *base= FIRSTBASE;
@@ -4831,12 +4831,12 @@ void transform_ipo(int mode)
 						if(base->object->ipo==G.sipo->ipo) do_ob_ipo(base->object);
 						base= base->next;
 					}
-					force_draw_plus(SPACE_VIEW3D);
+					force_draw_plus(SPACE_VIEW3D, 0);
 				}
-				else force_draw();
+				else force_draw(0);
 			}
 			else {
-				force_draw();
+				force_draw(0);
 			}
 			firsttime= 0;
 		}

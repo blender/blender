@@ -1687,7 +1687,7 @@ static void add_bone_input (Object *ob)
 			Mat4One (bone->obmat);
 			bone->size[0]=bone->size[1]=bone->size[2]=1.0F;
 
-			force_draw_plus(SPACE_BUTS);
+			force_draw_plus(SPACE_BUTS, 1);
 			
 			while(qtest()) {
 				event= extern_qread(&val);
@@ -2892,7 +2892,7 @@ void hide_selected_pose_bones(void) {
 	bone_looper(G.obpose, arm->bonebase.first, NULL, 
 				hide_selected_pose_bone);
 
-	force_draw();
+	force_draw(1);
 }
 
 int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) {
@@ -2913,7 +2913,7 @@ void hide_unselected_pose_bones(void) {
 	bone_looper(G.obpose, arm->bonebase.first, NULL, 
 				hide_unselected_pose_bone);
 
-	force_draw();
+	force_draw(1);
 }
 
 int show_pose_bone(Object *ob, Bone *bone, void *ptr) {
@@ -2936,7 +2936,7 @@ void show_all_pose_bones(void) {
 	bone_looper(G.obpose, arm->bonebase.first, NULL, 
 				show_pose_bone);
 
-	force_draw();
+	force_draw(1);
 }
 
 int is_delay_deform(void)

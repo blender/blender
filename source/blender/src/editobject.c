@@ -5397,7 +5397,7 @@ void transform(int mode)
 						set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
 
 					if(fast==0) {
-						force_draw();
+						force_draw(0);
 						time= my_clock()-time;
 						if(time>50) fast= 1;
 					}
@@ -5717,7 +5717,7 @@ void transform(int mode)
 					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
 
 					if(fast==0) {
-						force_draw();
+						force_draw(0);
 						time= my_clock()-time;
 						if(time>50) fast= 1;
 					}
@@ -5979,7 +5979,7 @@ void transform(int mode)
 					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
 
 					if(fast==0) {
-						force_draw();
+						force_draw(0);
 						time= my_clock()-time;
 						if(time>50) fast= 1;
 					}
@@ -6059,7 +6059,7 @@ void transform(int mode)
 
 				if(fast==0) {
 					time= my_clock();
-					force_draw();
+					force_draw(0);
 					time= my_clock()-time;
 					if(time>50) fast= 1;
 				}
@@ -6127,7 +6127,7 @@ void transform(int mode)
 
 						if(fast==0) {
 							time= my_clock();
-							force_draw();
+							force_draw(0);
 							time= my_clock()-time;
 							if(time>50) fast= 1;
 						}

@@ -322,7 +322,7 @@ void transform_oops(int mode)
 			xo= mval[0];
 			yo= mval[1];
 			
-			force_draw();
+			force_draw(0);
 			
 			firsttime= 0;
 			
@@ -468,7 +468,7 @@ void mouse_select_oops(void)
 	oops_to_select_objects();	/* also redraw */
 	scrarea_queue_headredraw(curarea);
 	
-	force_draw();
+	force_draw(1);
 	
 	std_rmouse_transform(transform_oops);
 }

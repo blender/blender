@@ -1809,7 +1809,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
 						update_for_newframe();
-						force_draw_all();/* To make constraint sliders redraw */
+						force_draw_all(0); /* To make constraint sliders redraw */
 					}
 				
 				} while(get_mbut() & mousebut);
@@ -3131,7 +3131,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						first= 0;
 				
 						CFRA= cfra;
-						force_draw();
+						force_draw(0);
 						update_for_newframe();	/* for audio scrubbing */						
 					}
 				
@@ -3589,11 +3589,11 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							/* Make OpenGL aware of a changed texture */
 							free_realtime_image(sima->image);
 							/* Redraw this view and the 3D view */
-							force_draw_plus(SPACE_VIEW3D);
+							force_draw_plus(SPACE_VIEW3D, 0);
 						}
 						else {
 							/* Redraw only this view */
-							force_draw();
+							force_draw(0);
 						}
 						xy_prev[0] = xy_curr[0];
 						xy_prev[1] = xy_curr[1];
@@ -3605,7 +3605,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					/* Make OpenGL aware of a changed texture */
 					free_realtime_image(sima->image);
 					/* Redraw this view and the 3D view */
-					force_draw_plus(SPACE_VIEW3D);
+					force_draw_plus(SPACE_VIEW3D, 1);
 				}
 				IMG_BrushDispose(brush);
 				IMG_CanvasDispose(canvas);
@@ -4581,15 +4581,16 @@ void allspace(unsigned short event, short val)
 	}
 }
 
-
-void force_draw()
+/* if header==1, then draw header for curarea too. Excepption for headerprint()... */
+void force_draw(int header)
 {
 	/* draws alle areas that something identical to curarea */
 	extern int afterqtest(short win, unsigned short evt);	//editscreen.c
 	ScrArea *tempsa, *sa;
 
 	scrarea_do_windraw(curarea);
-	
+	if(header) scrarea_do_headdraw(curarea);
+		
 	tempsa= curarea;
 	sa= G.curscreen->areabase.first;
 	while(sa) {
@@ -4598,19 +4599,13 @@ void force_draw()
 				if( ((View3D *)sa->spacedata.first)->lay & ((View3D *)tempsa->spacedata.first)->lay) {
 					areawinset(sa->win);
 					scrarea_do_windraw(sa);
+					scrarea_do_headdraw(sa);
 				}
 			}
-			else if(sa->spacetype==SPACE_IPO) {
+			else {
 				areawinset(sa->win);
 				scrarea_do_windraw(sa);
-			}
-			else if(sa->spacetype==SPACE_SEQ) {
-				areawinset(sa->win);
-				scrarea_do_windraw(sa);
-			}
-			else if(sa->spacetype==SPACE_ACTION) {
-				areawinset(sa->win);
-				scrarea_do_windraw(sa);
+				scrarea_do_headdraw(sa);
 			}
 		}
 		sa= sa->next;
@@ -4635,13 +4630,14 @@ void force_draw()
 	
 }
 
-void force_draw_plus(int type)
+/* if header==1, then draw header for curarea too. Excepption for headerprint()... */
+void force_draw_plus(int type, int header)
 {
 	/* draws all areas that show something like curarea AND areas of 'type' */
 	ScrArea *tempsa, *sa;
 
 	scrarea_do_windraw(curarea); 
-	scrarea_do_headdraw(curarea);
+	if(header) scrarea_do_headdraw(curarea);
 
 	tempsa= curarea;
 	sa= G.curscreen->areabase.first;
@@ -4660,7 +4656,8 @@ void force_draw_plus(int type)
 	screen_swapbuffers();
 }
 
-void force_draw_all(void)
+/* if header==1, then draw header for curarea too. Excepption for headerprint()... */
+void force_draw_all(int header)
 {
 	/* redraws all */
 	ScrArea *tempsa, *sa;
@@ -4672,7 +4669,7 @@ void force_draw_all(void)
 	while(sa) {
 		if(sa->headwin) {
 			scrarea_do_headdraw(sa);
-			scrarea_do_headchange(sa);
+			if(sa!=curarea || header) scrarea_do_headchange(sa);
 		}
 		if(sa->win) {
 			scrarea_do_windraw(sa);

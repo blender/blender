@@ -50,7 +50,7 @@ void unlink_screen(struct bScreen *sc);
 void freeAllRad(void);
 void free_editText(void);
 void setscreen(struct bScreen *sc);
-void force_draw_all(void);
+void force_draw_all(int);
   /* otherwise the WHILE_SEQ doesn't work */
 struct Sequence;
 struct ListBase;

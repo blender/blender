@@ -689,8 +689,8 @@ void transform_tface_uv(int mode)
 			xo= mval[0];
 			yo= mval[1];
 			
-			if(G.sima->lock || mode=='w') force_draw_plus(SPACE_VIEW3D);
-			else force_draw();
+			if(G.sima->lock || mode=='w') force_draw_plus(SPACE_VIEW3D, 0);
+			else force_draw(0);
 			
 			firsttime= 0;
 			
@@ -1148,7 +1148,7 @@ void mouse_select_sima(void)
 			*flagpoin |= val;
 	}
 	
-	force_draw();
+	force_draw(1);
 	
 	BIF_undo_push("Select UV");
 	std_rmouse_transform(transform_tface_uv);
@@ -1290,7 +1290,7 @@ void uvedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 
 		if(G.f & G_DRAWFACES) { /* full redraw only if necessary */
 			draw_sel_circle(0, 0, 0, 0, 0); /* signal */
-			force_draw();
+			force_draw(0);
 		}
 		else { /* force_draw() is no good here... */
 			glDrawBuffer(GL_FRONT);

@@ -1444,7 +1444,7 @@ void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 	EM_selectmode_flush();
 
 	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-	force_draw();
+	force_draw(0);
 
 }
 
@@ -1510,7 +1510,7 @@ void nurbscurve_selectionCB(int selecting, Object *editobj, short *mval, float r
 		nu= nu->next;
 	}
 	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-	force_draw();
+	force_draw(0);
 
 
 }
@@ -1539,7 +1539,7 @@ void lattice_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 		bp++;
 	}
 	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-	force_draw();
+	force_draw(0);
 }
 
 /** Callbacks for selection in Editmode */
