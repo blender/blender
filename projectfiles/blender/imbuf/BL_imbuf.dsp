@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\imbuf\intern" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /I "..\..\..\source\blender\render\extern\include" /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -151,6 +151,10 @@ SOURCE=..\..\..\source\blender\imbuf\intern\anim.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\imbuf\intern\anim5.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\imbuf\intern\antialias.c
 # End Source File
 # Begin Source File
@@ -219,6 +223,14 @@ SOURCE=..\..\..\source\blender\imbuf\intern\png_encode.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\quicktime\apple\quicktime_export.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\quicktime\apple\quicktime_import.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\imbuf\intern\readimage.c
 # End Source File
 # Begin Source File
@@ -256,6 +268,14 @@ SOURCE=..\..\..\source\blender\imbuf\intern\IMB_allocimbuf.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\imbuf\intern\IMB_amiga.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\imbuf\intern\IMB_anim.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\imbuf\intern\IMB_anim5.h
 # End Source File
 # Begin Source File
 
@@ -324,6 +344,14 @@ SOURCE=..\..\..\source\blender\imbuf\intern\imbuf_patch.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\imbuf\intern\matrix.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\quicktime\quicktime_export.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\quicktime\quicktime_import.h
 # End Source File
 # End Group
 # End Target
