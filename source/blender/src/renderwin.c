@@ -351,8 +351,10 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 		renderwin_reshape(rw);
 	} else if (evt==REDRAW) {
 		renderwin_draw(rw, 0);
+#ifndef __APPLE__
 	} else if (evt==WINCLOSE) {
 		close_renderwin();
+#endif
 	} else if (evt==INPUTCHANGE) {
 		rw->active= val;
 		
