@@ -1770,7 +1770,7 @@ static void draw_mesh_faces(Object *ob, int useBuildVars, float *extverts, float
 	MVert *mvert= me->mvert;
 	MFace *mface= me->mface;
 	int a, start=0, end=me->totface;
-	int glmode=-1, cullmode=-1, shademodel=-1, matnr=-1;
+	int glmode=-1, shademodel=-1, matnr=-1;
 
 	if (useBuildVars) {
 		set_buildvars(ob, &start, &end);
@@ -2400,7 +2400,7 @@ static void draw_mesh_fancy(Object *ob, DispListMesh *meDLM, float *meNors, int 
 	else if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
 	}
-	else if(hasHaloMat || me->totface==0 || me->totedge==0) {
+	else if(hasHaloMat || me->totface==0 || (me->medge && me->totedge==0)) {
 		glPointSize(1.5);
 		draw_mesh_verts(ob, 1, obExtVerts);
 		glPointSize(1.0);
@@ -4065,7 +4065,6 @@ void draw_object(Base *base)
 	static int warning_recursive= 0;
 	int sel, drawtype, colindex= 0, ipoflag;
 	short dt, dtx, zbufoff= 0;
-	int draw_solid_outline = 0;
 
 	ob= base->object;
 
