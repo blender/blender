@@ -285,7 +285,11 @@ static void sound_panel_listener(void)
 
 	yco -= 30;
 	uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Doppler: ",
-	xco,yco,195,24,&G.listener->dopplervelocity, 0.0, 10.0, 1.0, 0, "Use this for scaling the doppler effect");
+	xco,yco,195,24,&G.listener->dopplerfactor, 0.0, 10.0, 1.0, 0, "Use this for scaling the doppler effect");
+	
+	yco -=30;
+	uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Velocity: ",
+	xco,yco,195,24,&G.listener->dopplervelocity,0.0,10000.0, 1.0,0, "Sets the propagation speed of sound");
 
 	
 }

@@ -557,7 +557,7 @@ static void sound_init_listener(void)
 	G.listener = MEM_callocN(sizeof(bSoundListener), "soundlistener");
 	G.listener->gain = 1.0;
 	G.listener->dopplerfactor = 1.0;
-	G.listener->dopplervelocity = 1.0;
+	G.listener->dopplervelocity = 340.29f;
 }
 
 void BIF_init(void)
