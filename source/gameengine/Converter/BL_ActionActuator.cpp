@@ -46,6 +46,10 @@
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 BL_ActionActuator::~BL_ActionActuator()
 {
 	if (m_pose) {

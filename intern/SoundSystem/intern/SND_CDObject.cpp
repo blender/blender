@@ -36,6 +36,9 @@
 
 #include "SND_CDObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SND_CDObject* SND_CDObject::m_instance = NULL;
 

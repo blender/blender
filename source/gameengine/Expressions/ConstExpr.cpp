@@ -13,13 +13,13 @@
  *
  */
 
-
-
 #include "Value.h" // for precompiled header
-
 #include "ConstExpr.h"
 #include "VectorValue.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

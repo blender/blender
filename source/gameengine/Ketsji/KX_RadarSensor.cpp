@@ -30,8 +30,12 @@
  */
 
 #include "KX_RadarSensor.h"
-
 #include "KX_GameObject.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /**
  * 	RadarSensor constructor. Creates a near-sensor derived class, with a cone collision shape.
  */

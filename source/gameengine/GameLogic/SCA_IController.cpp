@@ -30,9 +30,12 @@
  */
 
 #include "SCA_IController.h"
-
 #include "SCA_LogicManager.h"
 #include "SCA_IActuator.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SCA_IController::SCA_IController(SCA_IObject* gameobj,
 								 PyTypeObject* T)

@@ -30,10 +30,11 @@
  */
 
 #include "BIF_scrarea.h"
-
-
 #include "KX_BlenderCanvas.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 KX_BlenderCanvas::KX_BlenderCanvas(struct ScrArea *area) :
 m_area(area)

@@ -31,7 +31,9 @@
 
 #include "GEN_Matrix4x4.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 GEN_Matrix4x4::GEN_Matrix4x4()
 {

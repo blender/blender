@@ -32,6 +32,10 @@
  */
 #include "GEN_HashedPtr.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 unsigned int GEN_Hash(unsigned int inDWord)
 {
 	unsigned int key = inDWord;

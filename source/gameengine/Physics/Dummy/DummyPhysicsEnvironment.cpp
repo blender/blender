@@ -32,7 +32,9 @@
 #include "DummyPhysicsEnvironment.h"
 #include "PHY_IMotionState.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 DummyPhysicsEnvironment::DummyPhysicsEnvironment()
 {

@@ -31,7 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertControllers.h"
 #include "KX_Python.h"
@@ -45,6 +44,10 @@
 #include "SCA_LogicManager.h"
 #include "KX_GameObject.h"
 #include "IntValue.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* This little block needed for linking to Blender... */
 #ifdef WIN32

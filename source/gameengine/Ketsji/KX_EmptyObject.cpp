@@ -30,3 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 #include "KX_EmptyObject.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+

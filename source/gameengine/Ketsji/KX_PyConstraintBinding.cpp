@@ -35,6 +35,9 @@
 #include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsController.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 // nasty glob variable to connect scripting language
 // if there is a better way (without global), please do so!

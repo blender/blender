@@ -42,6 +42,10 @@
 #include "NG_NetworkMessage.h"
 #include "NG_NetworkObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 KX_NetworkEventManager::KX_NetworkEventManager(class SCA_LogicManager*
 logicmgr, class NG_NetworkDeviceInterface *ndi) :
 SCA_EventManager(NETWORK_EVENTMGR), m_logicmgr(logicmgr), m_ndi(ndi)

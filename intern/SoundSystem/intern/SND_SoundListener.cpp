@@ -36,6 +36,10 @@
 
 #include "SND_SoundListener.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 SND_SoundListener::SND_SoundListener()
 {
 	m_modified = true;

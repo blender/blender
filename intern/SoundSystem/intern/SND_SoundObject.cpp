@@ -36,7 +36,9 @@
 
 #include "SND_SoundObject.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SND_SoundObject::SND_SoundObject()// : m_modified(true)
 {

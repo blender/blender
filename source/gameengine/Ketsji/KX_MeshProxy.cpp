@@ -30,11 +30,13 @@
  */
 
 #include "KX_MeshProxy.h"
-
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_MeshObject.h"
 #include "KX_VertexProxy.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 PyTypeObject KX_MeshProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

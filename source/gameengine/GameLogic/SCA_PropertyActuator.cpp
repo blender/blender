@@ -34,9 +34,12 @@
 
 #include "SCA_PropertyActuator.h"
 #include "InputParser.h"
-
 #include "Operator2Expr.h"
 #include "ConstExpr.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

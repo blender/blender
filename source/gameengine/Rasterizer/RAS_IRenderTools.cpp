@@ -31,7 +31,9 @@
 
 #include "RAS_IRenderTools.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void RAS_IRenderTools::SetViewMat(const MT_Transform& trans)
 {

@@ -31,9 +31,11 @@
  * GHOST Blender Player keyboard device implementation.
  */
 
-
 #include "GPG_KeyboardDevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 {

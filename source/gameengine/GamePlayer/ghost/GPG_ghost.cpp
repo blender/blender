@@ -34,6 +34,10 @@
 #include <iostream>
 #include <math.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __linux__
 #ifdef __alpha__
 #include <signal.h>

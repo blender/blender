@@ -18,6 +18,10 @@
 
 #include "solid.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 const MT_Scalar bowl_curv = 0.10;
 const MT_Scalar timeStep = 0.04;
 const MT_Scalar ground_margin = 0.0;

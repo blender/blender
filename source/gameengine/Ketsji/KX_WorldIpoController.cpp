@@ -30,9 +30,12 @@
  */
 
 #include "KX_WorldIpoController.h"
-
 #include "KX_ScalarInterpolator.h"
 #include "KX_WorldInfo.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 bool KX_WorldIpoController::Update(double currentTime)
 {

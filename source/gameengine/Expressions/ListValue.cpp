@@ -14,11 +14,14 @@
  *
  */
 
-
 #include "ListValue.h"
 #include "StringValue.h"
 #include "VoidValue.h"
 #include <algorithm>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 int listvalue_bufferlen(PyObject* list)
 {

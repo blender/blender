@@ -40,6 +40,10 @@
 #include "SND_Scene.h" // needed for replication
 #include <iostream>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */

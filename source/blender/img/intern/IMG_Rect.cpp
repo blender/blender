@@ -31,6 +31,9 @@
 
 #include "IMG_Rect.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 TVisibility IMG_Rect::getVisibility(IMG_Rect& r) const
 {

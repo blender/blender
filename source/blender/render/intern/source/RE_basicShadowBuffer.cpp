@@ -32,8 +32,6 @@
 
 #include <math.h>
 #include <string.h>
-
-//#include <iostream.h>
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
 
@@ -49,6 +47,11 @@
 
 /* own include */
 #include "RE_basicShadowBuffer.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* crud */
 #define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )  
 /* ------------------------------------------------------------------------- */

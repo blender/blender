@@ -13,9 +13,6 @@
  *
  */
 
-
-
-
 #include "EmptyValue.h"
 #include "IntValue.h"
 #include "FloatValue.h"
@@ -24,6 +21,9 @@
 #include "ListValue.h"
 #include "VoidValue.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

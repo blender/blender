@@ -31,6 +31,9 @@
 
 #include "RAS_TexVert.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Point2& uv,

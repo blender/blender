@@ -29,14 +29,17 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #include "SCA_IObject.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
 #include "MT_Point3.h"
-
 #include "ListValue.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 

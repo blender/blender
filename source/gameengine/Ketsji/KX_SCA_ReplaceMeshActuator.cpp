@@ -38,8 +38,11 @@
 
 // Please look here for revision history.
 
-
 #include "KX_SCA_ReplaceMeshActuator.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */

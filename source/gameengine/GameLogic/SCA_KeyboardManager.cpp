@@ -39,6 +39,10 @@
 #include "IntValue.h"
 #include <vector>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 SCA_KeyboardManager::SCA_KeyboardManager(SCA_LogicManager* logicmgr,
 										 SCA_IInputDevice* inputdev)
 	:	SCA_EventManager(KEYBOARD_EVENTMGR),

@@ -12,13 +12,14 @@
  *
  */
 
-
 #include "StringValue.h"
 #include "BoolValue.h"
 #include "ErrorValue.h"
 #include "VoidValue.h"
-//#include "FactoryManager.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

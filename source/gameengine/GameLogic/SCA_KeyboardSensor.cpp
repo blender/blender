@@ -36,7 +36,9 @@
 #include "StringValue.h"
 #include "SCA_IInputDevice.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

@@ -30,11 +30,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-//  #include <iostream.h>
-
 #include "render_intern.h"
-
 #include "RE_DummyShadowBuffer.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 struct LampRen;
 
 RE_DummyShadowBuffer::RE_DummyShadowBuffer(void)

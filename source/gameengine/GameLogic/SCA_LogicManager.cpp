@@ -32,13 +32,15 @@
  */
 #include "Value.h"
 #include "SCA_LogicManager.h"
-
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
 #include "SCA_EventManager.h"
-
 #include <set>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SCA_LogicManager::SCA_LogicManager()
 {

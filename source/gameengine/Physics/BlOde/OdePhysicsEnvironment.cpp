@@ -29,6 +29,9 @@
 #include <../ode/src/joint.h>
 #include <ode/odemath.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 ODEPhysicsEnvironment::ODEPhysicsEnvironment()
 {

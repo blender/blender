@@ -12,11 +12,12 @@
  *
  */
 
-
-
 #include "Expression.h"
 #include "ErrorValue.h"
-//#include "FactoryManager.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

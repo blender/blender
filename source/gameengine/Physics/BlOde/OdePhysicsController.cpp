@@ -24,6 +24,10 @@
 
 #include <ode/ode.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // general to-do list for ODE physics. This is maintained in doxygen format.

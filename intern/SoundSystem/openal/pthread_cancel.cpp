@@ -29,6 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  * FreeBSD 3.4 does not yet have pthread_cancel (3.5 and above do)
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef __FreeBSD__
 
 #include <osreldate.h>

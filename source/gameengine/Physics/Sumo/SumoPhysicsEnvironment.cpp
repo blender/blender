@@ -34,6 +34,9 @@
 #include "SumoPhysicsController.h"
 #include "SM_Scene.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 const MT_Scalar UpperBoundForFuzzicsIntegrator = 0.01;
 // At least 100Hz (isn't this CPU hungry ?)

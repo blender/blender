@@ -31,7 +31,9 @@
 
 #include "IMG_CanvasRGBA32.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 IMG_CanvasRGBA32::IMG_CanvasRGBA32(TUns32 width, TUns32 height)
 	: IMG_PixmapRGBA32(width, height)

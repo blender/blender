@@ -30,12 +30,13 @@
  */
 
 #include "KX_CameraIpoSGController.h"
-
 #include "KX_ScalarInterpolator.h"
 #include "KX_Camera.h"
-
 #include "RAS_CameraData.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 bool KX_CameraIpoSGController::Update(double currentTime)
 {

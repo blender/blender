@@ -32,6 +32,10 @@
 #include <iostream.h>
 #include "GPU_KeyboardDevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void GPU_KeyboardDevice::register_X_key_down_event(KeySym k)
 {
 	ConvertEvent(k, 1);

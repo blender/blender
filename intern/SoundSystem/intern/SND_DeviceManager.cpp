@@ -34,6 +34,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "SND_DeviceManager.h"
 #include "SND_DependKludge.h"
 #include "SND_DummyDevice.h"

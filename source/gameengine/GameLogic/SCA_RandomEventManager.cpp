@@ -40,6 +40,10 @@ using namespace std;
 #include <iostream>
 #include <stdio.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 SCA_RandomEventManager::SCA_RandomEventManager(class SCA_LogicManager* logicmgr)
 		: m_logicmgr(logicmgr),
 		SCA_EventManager(RANDOM_EVENTMGR)

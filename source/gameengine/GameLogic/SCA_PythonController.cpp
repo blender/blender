@@ -39,6 +39,9 @@
 #include "compile.h"
 #include "eval.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 // initialize static member variables
 SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;

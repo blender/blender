@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #include "KX_HashedPtr.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 unsigned int KX_Hash(unsigned int inDWord)
 {

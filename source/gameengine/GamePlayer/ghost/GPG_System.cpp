@@ -32,11 +32,12 @@
  */
 
 #include "GPG_System.h"
-
 #include <assert.h>
-
 #include "GHOST_ISystem.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 GPG_System::GPG_System(GHOST_ISystem* system)
 : m_system(system)

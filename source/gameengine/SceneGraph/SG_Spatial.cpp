@@ -35,6 +35,10 @@
 #include "SG_Controller.h"
 #include "SG_ParentRelation.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 SG_Spatial::
 SG_Spatial(
 	void* clientobj,

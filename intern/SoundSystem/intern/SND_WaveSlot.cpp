@@ -29,10 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #include "SND_WaveSlot.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SND_WaveSlot::~SND_WaveSlot()
 {

@@ -32,7 +32,9 @@
 
 #include "KX_TimeLogger.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 KX_TimeLogger::KX_TimeLogger(unsigned int maxNumMeasurements)
 : m_maxNumMeasurements(maxNumMeasurements), m_logging(false), m_logStart(0)

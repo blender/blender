@@ -32,14 +32,17 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #include "SCA_ExpressionController.h"
 #include "SCA_ISensor.h"
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"
 #include "InputParser.h"
-
 #include "MT_Transform.h" // for fuzzyZero
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

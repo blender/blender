@@ -31,6 +31,10 @@
  * Conversion of Blender data blocks to KX sensor system
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32

@@ -31,6 +31,9 @@
  */
 #include "KX_IPhysicsController.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 KX_IPhysicsController::KX_IPhysicsController(bool dyna,void* userdata)
 

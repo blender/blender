@@ -31,7 +31,9 @@
 
 #include "SCA_ILogicBrick.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SCA_LogicManager* SCA_ILogicBrick::m_sCurrentLogicManager = NULL;
 

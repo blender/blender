@@ -30,8 +30,11 @@
  */
 
 #include "SG_IObject.h"
-
 #include "SG_Controller.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SG_IObject::
 SG_IObject(

@@ -30,8 +30,11 @@
  */
 
 #include "SND_AudioDevice.h"
-
 #include "SND_SoundObject.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef WIN32
 // This warning tells us about truncation of __long__ stl-generated names.

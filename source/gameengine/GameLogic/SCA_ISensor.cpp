@@ -36,9 +36,11 @@
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* Native functions */
-
-
 void	SCA_ISensor::ReParent(SCA_IObject* parent)
 {
 	SCA_ILogicBrick::ReParent(parent);

@@ -35,6 +35,9 @@
 #include "KX_IpoActuator.h"
 #include "KX_GameObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* Type strings                                                              */

@@ -30,8 +30,11 @@
  */
 
 #include "RAS_FramingManager.h"
-
 #include "RAS_Rect.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 	void
 RAS_FramingManager::

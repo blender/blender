@@ -31,7 +31,9 @@
 
 #include "IMG_PixmapRGBA32.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 IMG_PixmapRGBA32::IMG_PixmapRGBA32(TUns32 width, TUns32 height)
 	: IMG_Pixmap(), m_mem(width * height)

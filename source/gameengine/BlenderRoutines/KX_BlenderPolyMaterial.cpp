@@ -29,9 +29,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #include "KX_BlenderPolyMaterial.h"
 #include "BKE_mesh.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 KX_BlenderPolyMaterial::KX_BlenderPolyMaterial(const STR_String &texname,
 											   bool ba,

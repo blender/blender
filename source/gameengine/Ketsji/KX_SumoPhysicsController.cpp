@@ -6,7 +6,9 @@
 #include "KX_GameObject.h"
 #include "KX_MotionState.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void	KX_SumoPhysicsController::applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse)
 {

@@ -31,8 +31,9 @@
 
 #include "IMG_Pixmap.h"
 
-
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 IMG_Pixmap::IMG_Pixmap()
 {

@@ -31,6 +31,9 @@
 
 #include "RAS_IPolygonMaterial.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 bool ba,

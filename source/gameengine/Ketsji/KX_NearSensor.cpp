@@ -38,6 +38,9 @@
 #include "KX_TouchEventManager.h"
 #include "KX_Scene.h" // needed to create a replica
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef PHYSICS_NOT_YET
 

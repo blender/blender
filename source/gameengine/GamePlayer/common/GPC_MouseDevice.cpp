@@ -32,6 +32,9 @@
 
 #include "GPC_MouseDevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 GPC_MouseDevice::GPC_MouseDevice()
 {

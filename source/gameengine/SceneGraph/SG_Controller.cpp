@@ -31,6 +31,9 @@
 
 #include "SG_Controller.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 	void 
 SG_Controller::

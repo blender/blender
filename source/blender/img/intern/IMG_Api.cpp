@@ -30,10 +30,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 #include "../IMG_Api.h"
-
 #include "IMG_BrushRGBA32.h"
 #include "IMG_CanvasRGBA32.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 IMG_BrushPtr IMG_BrushCreate(unsigned int w, unsigned int h, float r, float g, float b, float a)
 {

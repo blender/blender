@@ -30,9 +30,11 @@
  */
 
 #include "KX_VertexProxy.h"
-
 #include "RAS_TexVert.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 PyTypeObject KX_VertexProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

@@ -31,7 +31,9 @@
 
 #include "SCA_IScene.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SCA_IScene::SCA_IScene()
 {

@@ -31,8 +31,11 @@
  */
    
 //#include <iostream>
-
 #include "GPU_Canvas.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 GPU_Canvas::GPU_Canvas(KXH_plugin_handle p, int width, int height)
 	: GPC_Canvas(width, height), m_plugin(p)

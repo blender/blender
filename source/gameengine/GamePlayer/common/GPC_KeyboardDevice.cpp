@@ -33,6 +33,9 @@
 #include <iostream.h>
 #include "GPC_KeyboardDevice.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /** 
  * NextFrame toggles currentTable with previousTable,

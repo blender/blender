@@ -31,6 +31,9 @@
 
 #include "KX_ISystem.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef WIN32
 #pragma warning (disable :4786)

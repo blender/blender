@@ -16,12 +16,14 @@
 // have to do the trick
 // when expression is cached, there will be a call to UpdateCalc() instead of Calc()
 
-
-
 #include "Operator2Expr.h"
 #include "StringValue.h"
 #include "VoidValue.h"
-//#include "FactoryManager.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////

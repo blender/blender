@@ -38,8 +38,12 @@
 #include "SCA_IActuator.h"
 #include "SCA_RandomActuator.h"
 #include "math.h"
-
 #include "MT_Transform.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */

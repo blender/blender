@@ -38,6 +38,10 @@
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */

@@ -30,9 +30,12 @@
  */
 
 #include "RAS_MeshObject.h"
-
 #include "RAS_IRasterizer.h"
 #include "MT_MinMax.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 STR_String RAS_MeshObject::s_emptyname = "";
 

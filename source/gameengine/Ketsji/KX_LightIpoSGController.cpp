@@ -30,12 +30,13 @@
  */
 
 #include "KX_LightIpoSGController.h"
-
 #include "KX_ScalarInterpolator.h"
 #include "KX_Light.h"
-
 #include "RAS_LightObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 bool KX_LightIpoSGController::Update(double currentTime)
 {

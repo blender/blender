@@ -38,9 +38,11 @@
 #include <vector>
 #include "SCA_ISensor.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 using namespace std;
-
-
 
 SCA_AlwaysEventManager::SCA_AlwaysEventManager(class SCA_LogicManager* logicmgr)
 	: m_logicmgr(logicmgr),

@@ -31,6 +31,10 @@
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
@@ -38,19 +42,13 @@
 #endif
 
 #include "MT_Point3.h"
-
 #include "KX_ClientObjectInfo.h"
-
-
 #include "RAS_FramingManager.h"
 #include "RAS_ICanvas.h"
 #include "RAS_IRasterizer.h"
-
 #include "SCA_IScene.h"
-
 #include "KX_Scene.h"
 #include "KX_Camera.h"
-
 #include "KX_MouseFocusSensor.h"
 
 /* ------------------------------------------------------------------------- */

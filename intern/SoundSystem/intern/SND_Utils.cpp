@@ -48,6 +48,10 @@ extern "C" {
 #include <math.h>
 #include <string.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if defined(WIN32)
 #include <io.h>
 #else

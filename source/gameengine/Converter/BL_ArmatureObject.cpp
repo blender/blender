@@ -40,6 +40,10 @@
 #include "MEM_guardedalloc.h"
 #include "DNA_action_types.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 CValue* BL_ArmatureObject::GetReplica()
 {
 	BL_ArmatureObject* replica = new BL_ArmatureObject(*this);

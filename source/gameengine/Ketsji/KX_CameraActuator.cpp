@@ -41,6 +41,10 @@
 STR_String KX_CameraActuator::X_AXIS_STRING = "x";
 STR_String KX_CameraActuator::Y_AXIS_STRING = "y";
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

@@ -48,6 +48,9 @@
 #include "NG_NetworkScene.h"
 #include "NG_LoopBackNetworkDeviceInterface.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 GPW_Engine::GPW_Engine(char *customLoadingAnimationURL,
 		int foregroundColor, int backgroundColor, int frameRate) :

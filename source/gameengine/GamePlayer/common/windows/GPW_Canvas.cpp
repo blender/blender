@@ -32,6 +32,10 @@
 
 #include "GPW_Canvas.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 GPW_Canvas::GPW_Canvas(HWND hWnd, HDC hDC, int width, int height)
 	: GPC_Canvas(width, height), m_hWnd(hWnd), m_hRC(0), m_hDC(hDC)
 {

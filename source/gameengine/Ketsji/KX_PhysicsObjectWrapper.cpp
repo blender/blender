@@ -34,6 +34,10 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 KX_PhysicsObjectWrapper::KX_PhysicsObjectWrapper(
 						PHY_IPhysicsController* ctrl,
 						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T)

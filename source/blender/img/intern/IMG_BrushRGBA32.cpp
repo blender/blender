@@ -30,10 +30,11 @@
  */
 
 #include "IMG_BrushRGBA32.h"
-
-
 #include <math.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 IMG_BrushRGBA32::IMG_BrushRGBA32(TUns32 w, TUns32 h, const IMG_ColorRGB& c, float a)
 	: IMG_PixmapRGBA32(w, h), m_color(c), m_alpha(a)

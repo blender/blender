@@ -12,7 +12,6 @@
  *
  */
 
-
 #include "FloatValue.h"
 #include "IntValue.h"
 #include "StringValue.h"
@@ -20,8 +19,9 @@
 #include "ErrorValue.h"
 #include "VoidValue.h"
 
-///#include "..\..\menuvalue.h"
-//#include "FactoryManager.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

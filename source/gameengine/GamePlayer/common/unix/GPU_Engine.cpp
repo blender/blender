@@ -32,11 +32,8 @@
    
 #include <assert.h>
 #include <unistd.h>
-
 #include "GPU_Engine.h"
-
 #include "GPC_MouseDevice.h"
-
 #include "GPU_Canvas.h"
 #include "GPU_KeyboardDevice.h"
 #include "GPU_System.h"
@@ -56,6 +53,9 @@
 #include "GPC_RenderTools.h"
 #include "GPC_RawImage.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void Redraw(GPU_Engine *engine);  // -the- redraw function
 

@@ -30,10 +30,12 @@
  */
 
 #include "KX_ObColorIpoSGController.h"
-
 #include "KX_ScalarInterpolator.h"
 #include "KX_GameObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 bool KX_ObColorIpoSGController::Update(double currentTime)
 {

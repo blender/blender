@@ -35,6 +35,9 @@
 #include "GPC_KeyboardDevice.h"
 #include "NG_NetworkDeviceInterface.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 GPC_System::GPC_System()
 //		: m_ndi(0)

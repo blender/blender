@@ -36,6 +36,10 @@
 
 #include "SND_IdObject.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 SND_IdObject::SND_IdObject()
 {
 }

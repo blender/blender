@@ -35,10 +35,15 @@
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
 #include <vector>
+
 using namespace std;
 
 #include <iostream>
 #include <stdio.h>
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 void KX_RayEventManager::NextFrame(double curtime,double deltatime)
 {

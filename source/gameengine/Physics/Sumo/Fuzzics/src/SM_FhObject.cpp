@@ -1,6 +1,10 @@
 #include "SM_FhObject.h"
 #include "MT_MinMax.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void SM_FhObject::ray_hit(void *client_data,
 						  void *client_object1,
 						  void *client_object2,

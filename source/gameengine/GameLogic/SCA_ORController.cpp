@@ -37,6 +37,10 @@
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */

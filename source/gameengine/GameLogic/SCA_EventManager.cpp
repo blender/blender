@@ -29,10 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #include "SCA_EventManager.h"
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 SCA_EventManager::SCA_EventManager(EVENT_MANAGER_TYPE mgrtype)
 	:m_mgrtype(mgrtype)

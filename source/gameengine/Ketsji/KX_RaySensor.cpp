@@ -41,6 +41,9 @@
 #include "KX_GameObject.h"
 #include "KX_Scene.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 					SCA_IObject* gameobj,

@@ -29,6 +29,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef WIN32
 // annoying warnings about truncated STL debug info

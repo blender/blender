@@ -30,10 +30,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "GPC_PolygonMaterial.h"
-
 #include "MT_Vector3.h"
-
 #include "RAS_IRasterizer.h"
 
 /* This list includes only data type definitions */

@@ -29,8 +29,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-
 #include "KX_BlenderScalarInterpolator.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 extern "C" int IPO_GetChannels(struct Ipo *ipo, short *channels);
 extern "C" float IPO_GetFloatValue(struct Ipo *ipo, /*IPO_Channel*/ short channel, float ctime);

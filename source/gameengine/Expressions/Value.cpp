@@ -15,7 +15,6 @@
  *
  */
 
-
 #include "Value.h"
 #include "FloatValue.h"
 #include "IntValue.h"
@@ -25,7 +24,9 @@
 #include "ErrorValue.h"
 #include "ListValue.h"
 
-//#include "FactoryManager.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

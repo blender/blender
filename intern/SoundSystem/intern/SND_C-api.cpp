@@ -34,6 +34,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "SND_C-api.h"
 #include "SND_DeviceManager.h"
 #include "SND_Scene.h"

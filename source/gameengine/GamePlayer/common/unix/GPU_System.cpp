@@ -31,9 +31,11 @@
  */
    
 #include <sys/time.h>
-
 #include "GPU_System.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 static struct timeval startTime;
 static int startTimeDone = 0;

@@ -31,8 +31,6 @@
  */
 
 #include <assert.h>
-//#include <iostream.h>
-
 #include "render.h"
 #include "render_intern.h"
 #include "shadbuf.h"
@@ -40,6 +38,10 @@
 #include "RE_ShadowBuffer.h"      /* the base buffer         */
 #include "RE_DummyShadowBuffer.h" /* A dummy shadow buffer   */
 #include "RE_basicShadowBuffer.h" /* the 'old' shadow buffer */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 struct ShadBuf;
 struct LampRen;
