@@ -115,7 +115,8 @@ source_files = ['B.blend.c',
                 'writeavicodec.c',
                 'writeimage.c',
                 'writemovie.c',
-                'language.c']
+                'language.c',
+                'yafray_Render.cpp']
 
 src_env.Append (CPPPATH = ['#/intern/guardedalloc',
                            '../blenlib',
