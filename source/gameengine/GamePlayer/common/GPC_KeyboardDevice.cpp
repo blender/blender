@@ -120,7 +120,7 @@ bool GPC_KeyboardDevice::ConvertEvent(int incode, int val)
 				}
 			}
 		}
-	} else {
+	} else if(kxevent==KX_ENDKEY) {
 		exit(1);
 	}	
 	return result;
