@@ -35,6 +35,6 @@ include nan_definitions.mk
 
 SOURCEDIR = source/gameengine/Physics
 DIR = $(OCGDIR)/gameengine/blphys
-DIRS = common Sumo Dummy BlOde
+DIRS = common Dummy BlOde
 
 include nan_subdirs.mk
