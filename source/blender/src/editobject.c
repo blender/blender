@@ -6749,7 +6749,7 @@ void std_rmouse_transform(void (*xf_func)(int))
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 			if(curarea->spacetype==SPACE_VIEW3D)
-				Transform(TFM_TRANSLATION);
+				Transform(TFM_TRANSLATION, CTX_NONE);
 			else
 				xf_func('g');
 
@@ -7615,7 +7615,7 @@ void adduplicate(float *dtrans)
 	clear_id_newpoins();
 	
 	countall();
-	if(dtrans==0) Transform(TFM_TRANSLATION);
+	if(dtrans==0) Transform(TFM_TRANSLATION, CTX_NONE);
 	
 	set_active_base(BASACT);
 	
@@ -7963,9 +7963,9 @@ void texspace_edit(void)
 
 	//transmode= TRANS_TEX;
 	
-	if(nr==1) Transform(TFM_TEX_TRANSLATION);
-	else if(nr==2) Transform(TFM_TEX_RESIZE);
-	else if(nr==3) Transform(TFM_TEX_ROTATION);
+	if(nr==1) Transform(TFM_TRANSLATION, CTX_TEXTURE);
+	else if(nr==2) Transform(TFM_RESIZE, CTX_TEXTURE);
+	else if(nr==3) Transform(TFM_ROTATION, CTX_TEXTURE);
 	
 	//transmode= 0;
 }

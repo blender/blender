@@ -1991,13 +1991,13 @@ static void tb_do_transform(void *arg, int event)
 	switch(event)
 	{
 		case 0: /* Grab/move */
-			Transform(TFM_TRANSLATION);
+			Transform(TFM_TRANSLATION, CTX_NONE);
 			break;
 		case 1: /* Rotate */
-			Transform(TFM_ROTATION);
+			Transform(TFM_ROTATION, CTX_NONE);
 			break;
 		case 2: /* Scale */
-			Transform(TFM_RESIZE);
+			Transform(TFM_RESIZE,CTX_NONE);
 			break;
 		case 3: /* transform properties */
 			add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
@@ -2009,7 +2009,7 @@ static void tb_do_transform(void *arg, int event)
 			transform('N');
 			break;
 		case 6: /* Shear */
-			Transform(TFM_SHEAR);
+			Transform(TFM_SHEAR, CTX_NONE);
 			break;
 		case 7: /* Warp */
 			transform('w');

@@ -1225,7 +1225,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_object('g');
 					}
 				} else if((G.qual==0)) {
-					Transform(TFM_TRANSLATION);
+					Transform(TFM_TRANSLATION, CTX_NONE);
 				}
 				break;
 			case HKEY:
@@ -1483,28 +1483,28 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							loopoperations(LOOP_CUT);
 					}
 					else if((G.qual==0)) {
-						Transform(TFM_ROTATION);
+						Transform(TFM_ROTATION, CTX_NONE);
 					}
 				}
 				else if((G.qual==0)) {
-					Transform(TFM_ROTATION);
+					Transform(TFM_ROTATION, CTX_NONE);
 				}
 				break;
 			case SKEY:
 				if(G.obedit) {
 					if(G.qual==LR_ALTKEY)
-						Transform(TFM_SHRINKFATTEN);
+						Transform(TFM_SHRINKFATTEN, CTX_NONE);
 					else if(G.qual==LR_CTRLKEY)
-						Transform(TFM_SHEAR);
+						Transform(TFM_SHEAR, CTX_NONE);
 					else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
-						Transform(TFM_SHEAR);
+						Transform(TFM_SHEAR, CTX_NONE);
 					else if(G.qual==LR_SHIFTKEY)
 						snapmenu();
 					else if(G.qual==0) {
-						Transform(TFM_RESIZE);
+						Transform(TFM_RESIZE, CTX_NONE);
 					}
 					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)){
-						Transform(TFM_TOSPHERE);
+						Transform(TFM_TOSPHERE, CTX_NONE);
 					}
 					
 				}
@@ -1517,12 +1517,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					snapmenu();
 				}
 				else if((G.qual==0)) {
-					Transform(TFM_RESIZE);
+					Transform(TFM_RESIZE, CTX_NONE);
 				}
 				else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
-					Transform(TFM_TOSPHERE);
+					Transform(TFM_TOSPHERE, CTX_NONE);
 				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
-					Transform(TFM_SHEAR);
+					Transform(TFM_SHEAR, CTX_NONE);
 				break;
 			case TKEY:
 				if(G.obedit){
@@ -1537,7 +1537,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							clear_tilt();
 						}
 						else if (G.qual==0) {
-							Transform(TFM_TILT);
+							Transform(TFM_TILT, CTX_NONE);
 						}
 					}
 				}
@@ -1603,7 +1603,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case WKEY:
 				if((G.qual==LR_SHIFTKEY)) {
-					Transform(TFM_WARP);
+					Transform(TFM_WARP, CTX_NONE);
 				}
 				else if(G.qual==LR_ALTKEY) {
 					/* if(G.obedit && G.obedit->type==OB_MESH) write_videoscape(); */

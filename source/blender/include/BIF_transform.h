@@ -49,20 +49,19 @@
 #define TFM_LAMP_ENERGY		10
 #define TFM_TRACKBALL		11
 
-	// not sure if adding modes is the right way... context detecting could be done different (ton)
-#define TFM_TEX				32
-#define TFM_TEX_TRANSLATION	33
-#define TFM_TEX_ROTATION	34
-#define TFM_TEX_RESIZE		35
+/* TRANSFORM CONTEXTS */
+#define CTX_NONE		0
+#define CTX_TEXTURE		1
+#define CTX_EDGE		2
 
-
+/* TRANSFORM PROPORTIONAL FALLOFF MODES */
 #define PROP_SHARP		0
 #define PROP_SMOOTH		1
 #define PROP_ROOT		2
 #define PROP_LIN		3
 #define PROP_CONST		4
 
-void Transform(int mode);
+void Transform(int mode, int context);
 
 
 struct TransInfo;

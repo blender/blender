@@ -1226,10 +1226,9 @@ static void createTransObject(void)
 
 static void createTransData(TransInfo *t) 
 {
-	if( t->mode & TFM_TEX) {
+	if (t->context == CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		createTransTexspace();
-		t->mode &= ~TFM_TEX;	// now becoming normal grab/rot/scale
 	}
 	else if (G.obpose) {
 		t->flag |= T_POSE;
@@ -1278,7 +1277,7 @@ static void createTransData(TransInfo *t)
 
 /* ************************** TRANSFORMATIONS **************************** */
 
-void Transform(int mode) 
+void Transform(int mode, int context) 
 {
 	int ret_val = 0;
 	short pmval[2] = {0, 0}, mval[2], val;
@@ -1305,6 +1304,8 @@ void Transform(int mode)
 	else {
 		LastMode = mode;
 	}
+
+	Trans.context = context;
 	
 	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
@@ -1615,6 +1616,8 @@ void ManipulatorTransform(int mode)
 		Trans.propsize = 1.0;
 	}
 	/* END */
+
+	Trans.context = CTX_NONE;
 
 	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
@@ -2457,7 +2460,6 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f %s", 180.0*final/M_PI, t->proptext);
 	}
 
-	//printf("Axis %f %f %f\n", axis[0], axis[1], axis[2]);
 	VecRotToMat3(axis, final * td->factor, mat);
 
 	t->val = final;				// used in manipulator

@@ -107,6 +107,7 @@ typedef struct TransData {
 
 typedef struct TransInfo {
     int         mode;           /* current mode                         */
+    int         context;        /* current context                      */
     int       (*transform)(struct TransInfo *, short *);
                                 /* transform function pointer           */
     char        redraw;         /* redraw flag                          */
