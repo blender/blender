@@ -32,6 +32,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "BLO_keyStore.h"
 #include "BLO_getPubKey.h"

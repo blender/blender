@@ -32,6 +32,7 @@
  */
 
 #include <stdio.h>
+#include <string.h> /* memcpy, strcpy */
 #include <stdlib.h>
 
 #include "openssl/rsa.h"
