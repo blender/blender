@@ -2588,8 +2588,14 @@ static void edge_rotate(EditEdge *eed)
 		/*This should never happen*/
 		return;
 	}
+	
+	/* copy flags and material */
+	newFace[0]->flag= face[0]->flag;
+	newFace[1]->flag= face[1]->flag;
+	newFace[0]->mat_nr= face[0]->mat_nr;
+	newFace[1]->mat_nr= face[1]->mat_nr;
 
-	/* redo the selection */
+	/* redo the vertex selection */
 	faces[0][(p1+1)%fac1]->f |= SELECT;
 	faces[1][(p3+1)%fac2]->f |= SELECT;	
 	
