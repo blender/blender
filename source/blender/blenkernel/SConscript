@@ -28,7 +28,9 @@ source_files = ['intern/constraint.c',
                 'intern/effect.c',
                 'intern/key.c',
                 'intern/object.c',
+                'intern/CCGSubSurf.c',
                 'intern/subsurf.c',
+                'intern/subsurf_ccg.c',
                 'intern/blender.c',
                 'intern/exotic.c',
                 'intern/lattice.c',
@@ -39,7 +41,7 @@ source_files = ['intern/constraint.c',
                 'intern/font.c',
                 'intern/library.c',
                 'intern/property.c',
-		'intern/softbody.c',
+                'intern/softbody.c',
                 'intern/texture.c']
 
 blenkernel_env.Append (CPPPATH = ['.',
@@ -56,6 +58,9 @@ blenkernel_env.Append (CPPPATH = ['.',
 
 if user_options_dict['USE_INTERNATIONAL'] == 1:
     blenkernel_env.Append (CPPDEFINES = 'WITH_FREETYPE2')
+
+#fixme: if user_options_dict['USE_CCGSUBSURFLIB'] == 1:
+#    blenkernel_env.Append (CPPDEFINES = 'WITH_CCGSUBSURF')
 
 blenkernel_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenkernel', source=source_files)
 
