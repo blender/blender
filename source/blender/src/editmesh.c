@@ -2154,10 +2154,6 @@ void loop(int mode)
 			eed=G.eded.first;
 			while(eed) {		
 				eed->f &= ~(2|4|8|32);
-				if(mode!='s'){
-					eed->v1->f &= ~1;
-					eed->v2->f &= ~1;
-				}
 				eed->v1->f &= ~(2|8|16);
 				eed->v2->f &= ~(2|8|16);			
 				eed= eed->next;			
@@ -2484,11 +2480,7 @@ void loop(int mode)
 	
 	/*----------Select Loop------------*/
 	if(mode=='s' && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
-		EditVert *eve;						
-			
-		/* deselectall */
-		for(eve= G.edve.first; eve; eve= eve->next) eve->f&= ~1;
-		
+				
 		evl= G.edvl.first;
 		while(evl){
 			if(evl->f & 8){
