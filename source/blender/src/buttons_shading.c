@@ -145,6 +145,27 @@ static char *mapto_blendtype_pup(void)
 
 	return (string);
 }
+
+static void shade_buttons_change_3d(void)
+{
+	Object *ob= OBACT;
+	ScrArea *sa;
+	
+	if(ob==NULL) return;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			View3D *v3d= sa->spacedata.first;
+			
+			if(v3d->drawtype >= OB_SOLID) addqueue(sa->win, REDRAW, 0);
+			if(v3d->drawtype == OB_SHADED) {
+				if(ob->type==OB_LAMP) reshadeall_displist();
+				else freedisplist(&ob->disp);
+			}
+		}
+	}	
+}
+
 /* *************************** TEXTURE ******************************** */
 
 Tex *cur_imatex=0;
@@ -348,7 +369,6 @@ static void drawcolorband_cb(void)
 	}
 }
 
-
 static void do_colorbandbuts(ColorBand *coba, unsigned short event)
 {
 	uiBlock *block;
@@ -435,6 +455,7 @@ static void do_colorbandbuts(ColorBand *coba, unsigned short event)
 			}
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_all_preview_changed();
+			shade_buttons_change_3d();
 		}
 		break;
 	}
@@ -516,6 +537,7 @@ void do_texbuts(unsigned short event)
 	case B_TEXREDR_PRV:
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_all_preview_changed();
+		shade_buttons_change_3d();
 		break;
 	case B_TEXIMABROWSE:
 		if(tex) {
@@ -644,7 +666,7 @@ void do_texbuts(unsigned short event)
 		if(tex==0) return;
 		if(tex->coba==0) tex->coba= add_colorband();
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
+		BIF_all_preview_changed(); // also ramps, so we do this
 		break;
 	
 	case B_ADDCOLORBAND:
@@ -2342,6 +2364,7 @@ static void lamp_panel_preview(Object *ob, Lamp *la)
 
 /* ****************** MATERIAL ***************** */
 
+
 void do_matbuts(unsigned short event)
 {
 	static short mtexcopied=0;
@@ -2363,10 +2386,12 @@ void do_matbuts(unsigned short event)
 	case B_MATPRV:
 		/* this event also used by lamp, tex and sky */
 		BIF_preview_changed(G.buts);
+		shade_buttons_change_3d();
 		break;
 	case B_MATPRV_DRAW:
 		BIF_preview_changed(G.buts);
 		allqueue(REDRAWBUTSSHADING, 0);
+		shade_buttons_change_3d();
 		break;
 	case B_MATHALO:
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
@@ -2374,6 +2399,7 @@ void do_matbuts(unsigned short event)
 		if((ma->mode & MA_HALO)==0) ma->mode &= ~MA_STAR;
 		BIF_preview_changed(G.buts);
 		allqueue(REDRAWBUTSSHADING, 0);
+		shade_buttons_change_3d();
 		break;
 	case B_TEXCLEAR:
 		ma= G.buts->lockpoin;
@@ -2444,6 +2470,7 @@ void do_matbuts(unsigned short event)
 
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_all_preview_changed();
+			shade_buttons_change_3d();
 		}
 		break;
 
