@@ -71,21 +71,22 @@
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 
-#include "BIF_gl.h"
-#include "BIF_mywindow.h"
-#include "BIF_screen.h"
-#include "BIF_interface.h"
-#include "BIF_space.h"
-#include "BIF_editview.h"
-#include "BIF_glutil.h"
-#include "BIF_toolbox.h"
 #include "BIF_editmesh.h"
+#include "BIF_editview.h"
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
+#include "BIF_interface.h"
+#include "BIF_mywindow.h"
+#include "BIF_resources.h"
+#include "BIF_space.h"
+#include "BIF_screen.h"
+#include "BIF_toolbox.h"
 
-#include "BSE_view.h"
 #include "BSE_edit.h"
-#include "BSE_trans_types.h"
 #include "BSE_drawipo.h"
 #include "BSE_drawview.h"
+#include "BSE_trans_types.h"
+#include "BSE_view.h"
 
 #include "BDR_editobject.h"
 #include "BDR_editmball.h"
@@ -214,15 +215,18 @@ int get_border(rcti *rect, short col)
 				
 				/* draw size information in corner */
 				if(curarea->spacetype==SPACE_VIEW3D) {
-					glColor3f(0.4375, 0.4375, 0.4375); 
-					glRecti(0, 10, 250, 20);
-					glColor3f(0.0, 0.0, 0.0); 
+					BIF_ThemeColor(TH_BACK);
+					glRecti(10, 25, 250, 40);
 	
 					if(G.vd->persp==0) {
 						window_to_3d(dvec, mvalo[0]-x1, mvalo[1]-y1);
 	
-						glRasterPos2i(10,  10);
 						sprintf(str, "X %.4f  Y %.4f  Z %.4f  Dia %.4f", dvec[0], dvec[1], dvec[2], sqrt(dvec[0]*dvec[0]+dvec[1]*dvec[1]+dvec[2]*dvec[2]));
+						glColor3f(0.0, 0.0, 0.0); 
+						glRasterPos2i(15,  27);
+						BMF_DrawString(G.fonts, str);
+						glColor3f(0.7, 0.7, 0.7); 
+						glRasterPos2i(16,  28);
 						BMF_DrawString(G.fonts, str);
 					}
 					else if(G.vd->persp==2) {
@@ -236,25 +240,32 @@ int get_border(rcti *rect, short col)
 						fac2= (mvalo[1]-y1)/( (float) (vb.ymax-vb.ymin) );
 						fac2*= 0.01*G.scene->r.size*G.scene->r.ysch;
 						
-						glRasterPos2i(10,  10);
 						sprintf(str, "X %.1f  Y %.1f  Dia %.1f", fabs(fac1), fabs(fac2), sqrt(fac1*fac1 + fac2*fac2) );
+						glColor3f(0.0, 0.0, 0.0); 
+						glRasterPos2i(15,  27);
+						BMF_DrawString(G.fonts, str);
+						glColor3f(0.7, 0.7, 0.7); 
+						glRasterPos2i(16,  28);
 						BMF_DrawString(G.fonts, str);
 					}
 				}
 				else if(curarea->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= curarea->spacedata.first;
 	
-					glColor3f(.40625, .40625, .40625);
+					BIF_ThemeColor(TH_BACK);
 					glRecti(20, 30, 170, 40);
-					glColor3f(0.0, 0.0, 0.0); 
 								
 					mvalo[2]= x1;
 					mvalo[3]= y1;
 					areamouseco_to_ipoco(&sipo->v2d, mval, dvec, dvec+1);
 					areamouseco_to_ipoco(&sipo->v2d, mvalo+2, dvec+2, dvec+3);
-	
-					glRasterPos2i(30,  30);
+
 					sprintf(str, "Time: %.4f  Y %.4f", dvec[0]-dvec[2], dvec[1]-dvec[3]);
+					glRasterPos2i(30,  30);
+					glColor3f(0.0, 0.0, 0.0); 
+					BMF_DrawString(G.fonts, str);
+					glRasterPos2i(31,  31);
+					glColor3f(0.9, 0.9, 0.9); 
 					BMF_DrawString(G.fonts, str);
 				}
 

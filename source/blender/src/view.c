@@ -586,6 +586,7 @@ void viewmove(int mode)
 
 short v3d_windowmode=0;
 
+/* important to not set windows active in here, can be renderwin for example */
 void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 {
 	Camera *cam=0;
@@ -629,7 +630,7 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 		}
 	}
 	
-	if(v3d_windowmode) {
+	if(v3d_windowmode) { // hackish
 		winx= R.rectx;
 		winy= R.recty;
 	}
@@ -723,7 +724,7 @@ void obmat_to_viewmat(Object *ob)
 	Mat3ToQuat(tmat, G.vd->viewquat);
 }
 
-
+/* dont set windows active in in here, is used by renderwin too */
 void setviewmatrixview3d()
 {
 	Camera *cam;

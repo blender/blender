@@ -467,6 +467,7 @@ static char *renderwin_get_title(int doswap)
 /* opens window and allocs struct */
 static void open_renderwin(int winpos[2], int winsize[2])
 {
+	extern void mywindow_build_and_set_renderwin( int orx, int ory, int sizex, int sizey); // mywindow.c
 	Window *win;
 	char *title;
 	
@@ -481,7 +482,12 @@ static void open_renderwin(int winpos[2], int winsize[2])
 	winlay_process_events(0);
 	window_make_active(render_win->win);
 	winlay_process_events(0);
-
+	
+	/* mywindow has to know about it too */
+	mywindow_build_and_set_renderwin(winpos[0], winpos[1], winsize[0], winsize[1]);
+	/* and we should be able to draw 3d in it */
+	init_gl_stuff();
+	
 	renderwin_draw(render_win, 1);
 	renderwin_draw(render_win, 1);
 }
@@ -565,6 +571,7 @@ static void renderwin_init_display_cb(void)
 			else {
 				window_raise(render_win->win);
 				window_make_active(render_win->win);
+				mywinset(2);	// to assign scissor/viewport again in mywindow.c. is hackish yes
 			}
 
 			renderwin_reset_view(render_win);
@@ -849,7 +856,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		window_set_cursor(render_win->win, CURSOR_WAIT);
 		// when opening new window... not cross platform identical behaviour, so
 		// for now call it each time
-		if(ogl_render_view3d) init_gl_stuff();
+		// if(ogl_render_view3d) init_gl_stuff();
 	}
 	waitcursor(1);
 
@@ -923,6 +930,14 @@ static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, in
 }
 
 /* -------------- API: externally called --------------- */
+
+void BIF_renderwin_make_active(void)
+{
+	if(render_win) {
+		window_make_active(render_win->win);
+		mywinset(2);
+	}
+}
 
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)

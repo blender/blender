@@ -114,16 +114,27 @@ void mywindow_init_mainwin(Window *win, int orx, int ory, int sizex, int sizey)
 	}
 }
 
-/* XXXXXXXXXXXXXXXX very hacky, not allowed to release again after 2.24
- * again after 2.24
+/* XXXXXXXXXXXXXXXX very hacky, because of blenderwindows vs ghostwindows vs renderwindow
+   this routine sets up a blenderwin (a mywin)
  */
-void mywindow_build_and_set_renderwin(void)
+void mywindow_build_and_set_renderwin( int orx, int ory, int sizex, int sizey)
 {
+
+	swinarray[2]= &renderwindow;
+
+	renderwindow.xmin= orx;
+	renderwindow.ymin= ory;
+	renderwindow.xmax= orx+sizex-1;
+	renderwindow.ymax= ory+sizey-1;
+	renderwindow.qevents= NULL;
+
+	myortho2(-0.5, (float)sizex-0.5, -0.5, (float)sizey-0.5);
+	glLoadIdentity();
+
 	glGetFloatv(GL_PROJECTION_MATRIX, (float *)renderwindow.winmat);
 	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)renderwindow.viewmat);
 	
-	swinarray[2]= &renderwindow;
-	renderwindow.qevents= NULL;
+	mywinset(2);
 
 	curswin= 2;
 }
@@ -318,8 +329,7 @@ void mywinset(int wid)
 		printf("mywinset %d: doesn't exist\n", wid);
 		return;
 	}
-
-	if (wid == 1) {	/* main window */
+	if (wid == 1 || wid == 2) {	/* main window or renderwindow*/
 		glViewport(0,  0, ( win->xmax-win->xmin)+1, ( win->ymax-win->ymin)+1);
 		glScissor(0,  0, ( win->xmax-win->xmin)+1, ( win->ymax-win->ymin)+1);
 	}

@@ -227,6 +227,7 @@ void default_gl_light(void)
 	glDisable(GL_COLOR_MATERIAL);
 }
 
+/* also called when render 'ogl' */
 void init_gl_stuff(void)	
 {
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
@@ -1930,24 +1931,21 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	 */
 void drawview3d_render(struct View3D *v3d)
 {
-	extern void mywindow_build_and_set_renderwin(void);
 	extern short v3d_windowmode;
 	Base *base;
 	Object *ob;
 
 	free_all_realtime_images();
-	mywindow_build_and_set_renderwin();
-		
+
 	v3d_windowmode= 1;
 	setwinmatrixview3d(0);
 	v3d_windowmode= 0;
 	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(R.winmat);
+	myloadmatrix(R.winmat);
 	glMatrixMode(GL_MODELVIEW);
 	
 	setviewmatrixview3d();
-	glLoadMatrixf(v3d->viewmat);
-
+	myloadmatrix(v3d->viewmat);
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, R.winmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
@@ -1964,11 +1962,10 @@ void drawview3d_render(struct View3D *v3d)
 		BIF_GetThemeColor3fv(TH_BACK, col);
 		glClearColor(col[0], col[1], col[2], 0.0); 
 	}
-	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	glLoadIdentity();
-	glLoadMatrixf(v3d->viewmat);
+	myloadmatrix(v3d->viewmat);
 	
 	/* abuse! to make sure it doesnt draw the helpstuff */
 	G.f |= G_SIMULATION;
@@ -2083,7 +2080,7 @@ void drawview3d_render(struct View3D *v3d)
 	}
 
 	if(G.scene->radio) RAD_drawall(G.vd->drawtype>=OB_SOLID);
-	
+
 	if(G.zbuf) {
 		G.zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
