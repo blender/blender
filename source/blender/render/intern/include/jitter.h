@@ -41,7 +41,7 @@ extern "C" {
 
 extern float jit[64][2];
 
-void initjit(float *jit, int num);
+void initjit(float *jitarr, int num);
 
 #ifdef __cplusplus
 }

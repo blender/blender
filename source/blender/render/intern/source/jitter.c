@@ -150,7 +150,7 @@ void RE_jitterate2(float *jit1, float *jit2, int num, float rad2)
 }
 
 
-void initjit(float *jit, int num)
+void initjit(float *jitarr, int num)
 {
 	float *jit2, x, rad1, rad2, rad3;
 	int i;
@@ -165,16 +165,16 @@ void initjit(float *jit, int num)
 	BLI_srand(31415926 + num);
 	x= 0;
 	for(i=0; i<2*num; i+=2) {
-		jit[i]= x+ rad1*(0.5-BLI_drand());
-		jit[i+1]= ((float)i/2)/num +rad1*(0.5-BLI_drand());
+		jitarr[i]= x+ rad1*(0.5-BLI_drand());
+		jitarr[i+1]= ((float)i/2)/num +rad1*(0.5-BLI_drand());
 		x+= rad3;
 		x -= floor(x);
 	}
 
 	for (i=0 ; i<24 ; i++) {
-		RE_jitterate1(jit, jit2, num, rad1);
-		RE_jitterate1(jit, jit2, num, rad1);
-		RE_jitterate2(jit, jit2, num, rad2);
+		RE_jitterate1(jitarr, jit2, num, rad1);
+		RE_jitterate1(jitarr, jit2, num, rad1);
+		RE_jitterate2(jitarr, jit2, num, rad2);
 	}
 
 	MEM_freeN(jit2);
