@@ -88,6 +88,11 @@ struct DerivedMesh {
 			 */
 	void (*drawFacesColored)(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2);
 
+			/* Draw all faces uses TFace 
+			 *  o Drawing options too complicated to enumerate, look at code.
+			 */
+	void (*drawFacesTex)(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr));
+
 			/* Draw single mapped vert as bgl point (no options) */
 	void (*drawMappedVertEM)(DerivedMesh *dm, void *vert);
 

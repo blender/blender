@@ -56,6 +56,7 @@
 
 #include "BKE_bmfont.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -810,6 +811,14 @@ static int set_draw_settings_cached(int clearcache, int textured, TFace *texface
 		c_badtex= 0;
 	}
 
+	if (texface) {
+		lit = lit && (texface->mode&TF_LIGHT);
+		textured = textured && (texface->mode&TF_TEX);
+		doublesided = texface->mode&TF_TWOSIDE;
+	} else {
+		textured = 0;
+	}
+
 	if (doublesided!=c_doublesided) {
 		if (doublesided) glDisable(GL_CULL_FACE);
 		else glEnable(GL_CULL_FACE);
@@ -818,7 +827,7 @@ static int set_draw_settings_cached(int clearcache, int textured, TFace *texface
 	}
 
 	if (textured!=c_textured || texface!=c_texface) {
-		if (textured) {
+		if (textured ) {
 			c_badtex= !set_tpage(texface);
 		} else {
 			set_tpage(0);
@@ -856,6 +865,29 @@ static int set_draw_settings_cached(int clearcache, int textured, TFace *texface
 	return c_badtex;
 }
 
+/* Icky globals, fix with userdata parameter */
+
+static Object *g_draw_tface_mesh_ob = NULL;
+static int g_draw_tface_mesh_islight = 0;
+static int g_draw_tface_mesh_istex = 0;
+static unsigned char g_draw_tface_mesh_obcol[4];
+static int draw_tface_mesh__set_draw(TFace *tface, int matnr)
+{
+	if (set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
+		glColor3ub(0xFF, 0x00, 0xFF);
+		return 0; /* Don't set color */
+	} else if (tface && tface->mode&TF_OBCOL) {
+		glColor3ubv(g_draw_tface_mesh_obcol);
+		return 0; /* Don't set color */
+	} else if (!tface) {
+		Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr);
+		if(ma) glColor3f(ma->r, ma->g, ma->b);
+		else glColor3f(0.5, 0.5, 0.5);
+		return 1; /* Set color from mcol if available */
+	} else {
+		return 1; /* Set color from tface */
+	}
+}
 void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 /* maximum dt (drawtype): exactly according values that have been set */
 {
@@ -863,7 +895,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	MFace *mface=NULL;
 	float *extverts= NULL;
 	unsigned char obcol[4];
-	int a, mode;
+	int a;
 	short islight, istex;
 	
 	if(me==NULL) return;
@@ -887,141 +919,60 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	if(G.vd->drawtype==OB_TEXTURE) istex= 1;
 	else istex= 0;
 
+	g_draw_tface_mesh_ob = ob;
+	g_draw_tface_mesh_islight = islight;
+	g_draw_tface_mesh_istex = istex;
+	memcpy(g_draw_tface_mesh_obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, 0, 0, 0, 0, 0, 0);
 
 	if(dt > OB_SOLID) {
 		bProperty *prop = get_property(ob, "Text");
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
-		MVert *mvert=NULL;
-		int start=0, totface;
+		DerivedMesh *dm;
+		int start, totface;
 
 		if(mesh_uses_displist(me) && editing==0) {
-			DispList *dl= find_displist(&me->disp, DL_MESH);
-			DispListMesh *dlm= NULL;
-
-			if (!dl)
-				totface= 0;
-			else {
-				dlm = dl->mesh;
-				totface= dlm->totface;
-				mvert= dlm->mvert;
-				mface= dlm->mface;
-				tface= dlm->tface;
-			}
-		} 
-		else {
-			DispList *dl= find_displist(&ob->disp, DL_VERTS);
-			if (dl) extverts= dl->verts;
-			
-			/* although buildvars are not supported in engine, they're in Blender... */
-			totface= me->totface;
-			set_buildvars(ob, &start, &totface);
-
-			mvert= me->mvert;
-			mface= me->mface;
-			tface= me->tface;
+			dm = mesh_get_derived(ob);
+		} else {
+			dm = mesh_get_base_derived(ob);
 		}
-		
-		// tface can be NULL
-		if(tface==NULL) {
-			
-			for (a=start; a<totface; a++) {
-				int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr;
-				float *v1, *v2, *v3, *v4;
-				MFace *mf= &mface[a];
-				
-				v1idx= mf->v1;
-				v2idx= mf->v2;
-				v3idx= mf->v3;
-				v4idx= mf->v4;
-				mf_smooth= mf->flag & ME_SMOOTH;
-				matnr= mf->mat_nr;
-				
-				if(v3idx==0) continue;
+		dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
+		dm->release(dm);
 
-				set_draw_settings_cached(0, 0, NULL, islight, ob, matnr, TF_TWOSIDE);
-				
-				if (extverts) {
-					v1= extverts+3*v1idx;
-					v2= extverts+3*v2idx;
-					v3= extverts+3*v3idx;
-					v4= v4idx?(extverts+3*v4idx):NULL;
-				} else {
-					v1= (mvert+v1idx)->co;
-					v2= (mvert+v2idx)->co;
-					v3= (mvert+v3idx)->co;
-					v4= v4idx?(mvert+v4idx)->co:NULL;
-				}
-				
-				{
-					Material *ma= give_current_material(ob, matnr);
-					if(ma) glColor3f(ma->r, ma->g, ma->b);
-					else glColor3f(0.5, 0.5, 0.5);
-				}
-				
-				glBegin(v4?GL_QUADS:GL_TRIANGLES);
-				
-				if (!mf_smooth) {
-					float nor[3];
-					CalcNormFloat(v1, v2, v3, nor);
-					glNormal3fv(nor);
-				}
-				
-				if (mf_smooth) glNormal3sv(mvert[v1idx].no);
-				glVertex3fv(v1);
-				
-				if (mf_smooth) glNormal3sv(mvert[v2idx].no);
-				glVertex3fv(v2);
-				
-				if (mf_smooth) glNormal3sv(mvert[v3idx].no);
-				glVertex3fv(v3);
-				
-				if(v4) {
-					if (mf_smooth) glNormal3sv(mvert[v4idx].no);
-					glVertex3fv(v4);
-				}
-				glEnd();
-			}
-		}
-		else {	// has tfaces
+		start = 0;
+		totface = me->totface;
+		set_buildvars(ob, &start, &totface);
+
+		if (!editing && !mesh_uses_displist(me) && prop && tface) {
 			tface+= start;
 			for (a=start; a<totface; a++, tface++) {
-				int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr, badtex;
-				float *v1, *v2, *v3, *v4;
 				MFace *mf= &mface[a];
+				int mode= tface->mode;
+				int matnr= mf->mat_nr;
+				int mf_smooth= mf->flag & ME_SMOOTH;
 
-				v1idx= mf->v1;
-				v2idx= mf->v2;
-				v3idx= mf->v3;
-				v4idx= mf->v4;
-				mf_smooth= mf->flag & ME_SMOOTH;
-				matnr= mf->mat_nr;
-				
-				if(v3idx==0) continue;
-				if(tface->flag & TF_HIDE) continue;
-				if(tface->mode & TF_INVISIBLE) continue;
-				
-				mode= tface->mode;
-
-				if (extverts) {
-					v1= extverts+3*v1idx;
-					v2= extverts+3*v2idx;
-					v3= extverts+3*v3idx;
-					v4= v4idx?(extverts+3*v4idx):NULL;
-				} else {
-					v1= (mvert+v1idx)->co;
-					v2= (mvert+v2idx)->co;
-					v3= (mvert+v3idx)->co;
-					v4= v4idx?(mvert+v4idx)->co:NULL;
-				}
-
-				badtex= set_draw_settings_cached(0, istex && (mode&TF_TEX), tface, islight && (mode&TF_LIGHT), ob, matnr, mode&TF_TWOSIDE);
-
-				if (prop && !badtex && !editing && (mode & TF_BMFONT)) {
+				if (mf->v3 && !(tface->flag&TF_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
+					int badtex= set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE);
+					float *v1, *v2, *v3, *v4;
 					char string[MAX_PROPSTRING];
 					int characters, index;
 					Image *ima;
 					float curpos;
+
+					if (badtex)
+						continue;
+
+					if (extverts) {
+						v1= extverts+3*mf->v1;
+						v2= extverts+3*mf->v2;
+						v3= extverts+3*mf->v3;
+						v4= mf->v4?(extverts+3*mf->v4):NULL;
+					} else {
+						v1= (me->mvert+mf->v1)->co;
+						v2= (me->mvert+mf->v2)->co;
+						v3= (me->mvert+mf->v3)->co;
+						v4= mf->v4?(me->mvert+mf->v4)->co:NULL;
+					}
 
 					// The BM_FONT handling code is duplicated in the gameengine
 					// Search for 'Frank van Beek' ;-)
@@ -1057,7 +1008,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 						matrixGlyph(ima->ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
 						movex+= curpos;
 
-						if (mode & TF_OBCOL) glColor3ubv(obcol);
+						if (tface->mode & TF_OBCOL) glColor3ubv(obcol);
 						else cp= (char *)&(tface->col[0]);
 
 						glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
@@ -1082,51 +1033,11 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 					}
 					glEnd();
 				}
-				else {
-					char *cp= NULL;
-					
-					if (badtex) glColor3ub(0xFF, 0x00, 0xFF);
-					else if (mode & TF_OBCOL) glColor3ubv(obcol);
-					else cp= (char *)&(tface->col[0]);
-
-					if (!mf_smooth) {
-						float nor[3];
-
-						CalcNormFloat(v1, v2, v3, nor);
-
-						glNormal3fv(nor);
-					}
-
-					glBegin(v4?GL_QUADS:GL_TRIANGLES);
-
-					glTexCoord2fv(tface->uv[0]);
-					if (cp) glColor3ub(cp[3], cp[2], cp[1]);
-					if (mf_smooth) glNormal3sv(mvert[v1idx].no);
-					glVertex3fv(v1);
-					
-					glTexCoord2fv(tface->uv[1]);
-					if (cp) glColor3ub(cp[7], cp[6], cp[5]);
-					if (mf_smooth) glNormal3sv(mvert[v2idx].no);
-					glVertex3fv(v2);
-
-					glTexCoord2fv(tface->uv[2]);
-					if (cp) glColor3ub(cp[11], cp[10], cp[9]);
-					if (mf_smooth) glNormal3sv(mvert[v3idx].no);
-					glVertex3fv(v3);
-		
-					if(v4) {
-						glTexCoord2fv(tface->uv[3]);
-						if (cp) glColor3ub(cp[15], cp[14], cp[13]);
-						if (mf_smooth) glNormal3sv(mvert[v4idx].no);
-						glVertex3fv(v4);
-					}
-					glEnd();
-				}
 			}
-
-			/* switch off textures */
-			set_tpage(0);
 		}
+
+		/* switch off textures */
+		set_tpage(0);
 	}
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);

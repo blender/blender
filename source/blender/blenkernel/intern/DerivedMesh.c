@@ -48,6 +48,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
@@ -361,6 +362,78 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	glDisable(GL_CULL_FACE);
 }
 
+static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr)) 
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me = mdm->ob->data;
+	MVert *mvert= me->mvert;
+	MFace *mface= me->mface;
+	TFace *tface = me->tface;
+	float *extverts = mdm->extverts;
+	float *nors = mdm->nors;
+	int a, start=0, end=me->totface;
+
+	set_buildvars(mdm->ob, &start, &end);
+	
+	for (a=start; a<end; a++) {
+		float *v1, *v2, *v3, *v4;
+		MFace *mf= &mface[a];
+		unsigned char *cp= NULL;
+		
+		if(mf->v3==0) continue;
+		if(tface && (tface->flag & (TF_HIDE|TF_INVISIBLE))) continue;
+
+		if (extverts) {
+			v1= extverts+3*mf->v1;
+			v2= extverts+3*mf->v2;
+			v3= extverts+3*mf->v3;
+			v4= mf->v4?(extverts+3*mf->v4):NULL;
+		} else {
+			v1= (mvert+mf->v1)->co;
+			v2= (mvert+mf->v2)->co;
+			v3= (mvert+mf->v3)->co;
+			v4= mf->v4?(mvert+mf->v4)->co:NULL;
+		}
+
+		if (setDrawParams(tface, mf->mat_nr)) {
+			if (tface) {
+				cp= (unsigned char *) tface->col;
+			} else if (me->mcol) {
+				cp= (unsigned char *) &me->mcol[a*4];
+			}
+		}
+
+		if (!(mf->flag&ME_SMOOTH)) {
+			glNormal3fv(&nors[a*3]);
+		}
+
+		glBegin(v4?GL_QUADS:GL_TRIANGLES);
+		if (tface) glTexCoord2fv(tface->uv[0]);
+		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
+		glVertex3fv(v1);
+			
+		if (tface) glTexCoord2fv(tface->uv[1]);
+		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
+		glVertex3fv(v2);
+
+		if (tface) glTexCoord2fv(tface->uv[2]);
+		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
+		glVertex3fv(v3);
+
+		if(v4) {
+			if (tface) glTexCoord2fv(tface->uv[3]);
+			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
+			glVertex3fv(v4);
+		}
+		glEnd();
+
+		if (tface) tface++;
+	}
+}
 static int meshDM_getNumVerts(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
@@ -407,6 +480,7 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
 	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
+	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
 	mdm->dm.drawFacesEM = NULL;
 
 	mdm->dm.release = MEM_freeN;
@@ -627,6 +701,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 
 	emdm->dm.drawFacesSolid = emDM_drawFacesSolid;
 	emdm->dm.drawFacesColored = NULL;
+	emdm->dm.drawFacesTex = NULL;
 	emdm->dm.drawFacesEM = emDM_drawFacesEM;
 
 	emdm->dm.release = MEM_freeN;
@@ -996,6 +1071,63 @@ static int ssDM_drawMappedFacesEMSelect(DerivedMesh *dm, void (*setColor)(int in
 	return endOffset;
 }
 
+static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr)) 
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	MVert *mvert= dlm->mvert;
+	MFace *mface= dlm->mface;
+	TFace *tface = dlm->tface;
+	float *nors = dlm->nors;
+	int a;
+	
+	for (a=0; a<dlm->totface; a++) {
+		MFace *mf= &mface[a];
+		unsigned char *cp= NULL;
+		
+		if(mf->v3==0) continue;
+		if(tface && (tface->flag & (TF_HIDE|TF_INVISIBLE))) continue;
+
+		if (setDrawParams(tface, mf->mat_nr)) {
+			if (tface) {
+				cp= (unsigned char*) tface->col;
+			} else if (dlm->mcol) {
+				cp= (unsigned char*) &dlm->mcol[a*4];
+			}
+		}
+
+		if (!(mf->flag&ME_SMOOTH)) {
+			glNormal3fv(&nors[a*3]);
+		}
+
+		glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
+		if (tface) glTexCoord2fv(tface->uv[0]);
+		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
+		glVertex3fv((mvert+mf->v1)->co);
+			
+		if (tface) glTexCoord2fv(tface->uv[1]);
+		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
+		glVertex3fv((mvert+mf->v2)->co);
+
+		if (tface) glTexCoord2fv(tface->uv[2]);
+		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
+		glVertex3fv((mvert+mf->v3)->co);
+
+		if(mf->v4) {
+			if (tface) glTexCoord2fv(tface->uv[3]);
+			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
+			glVertex3fv((mvert+mf->v4)->co);
+		}
+		glEnd();
+
+		if (tface) tface++;
+	}
+}
+
 static int ssDM_getNumVerts(DerivedMesh *dm)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -1051,6 +1183,7 @@ static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, int needsF
 
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
+	ssdm->dm.drawFacesTex = ssDM_drawFacesTex;
 	ssdm->dm.drawFacesEM = ssDM_drawFacesEM;
 
 	ssdm->dm.release = ssDM_release;
