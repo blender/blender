@@ -63,8 +63,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BPY_extern.h"
-
 #include "BIF_gl.h"
 #include "BIF_keyval.h"
 #include "BIF_interface.h"

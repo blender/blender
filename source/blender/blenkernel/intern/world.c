@@ -54,7 +54,6 @@
 #include "BKE_library.h"
 #include "BKE_world.h"
 #include "BKE_global.h"
-#include "BPY_extern.h"
 #include "BKE_main.h"
 
 #ifdef HAVE_CONFIG_H

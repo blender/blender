@@ -116,8 +116,6 @@
 #include "BKE_armature.h"	//	for precalc_bonelist_irestmats
 #include "BKE_action.h"
 
-#include "BPY_extern.h" // for BPY_do_pyscript
-
 #include "BIF_butspace.h" // for do_versions, patching event codes
 
 #include "BLO_readfile.h"

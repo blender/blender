@@ -134,8 +134,6 @@
 #include "blendef.h"
 #include "datatoc.h"
 
-#include "BPY_extern.h" // Blender Python library
-
 #include "TPT_DependKludge.h"
 #ifdef NAN_TPT
 #include "BSE_trans_types.h"

@@ -98,8 +98,6 @@
 
 #include "BSE_sequence.h"
 
-#include "BPY_extern.h"
-
 #include "nla.h"
 
 #ifdef HAVE_CONFIG_H

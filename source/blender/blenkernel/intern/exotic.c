@@ -121,8 +121,6 @@
 #include "BKE_displist.h"
 #include "BKE_curve.h"
 
-#include "BPY_extern.h"
-
 /***/
 
 static int is_dxf(char *str);

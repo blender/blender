@@ -70,7 +70,6 @@
 #include "BKE_main.h"
 #include "BKE_sca.h"
 #include "BKE_text.h"
-#include "BPY_extern.h"
 #include "BSE_filesel.h"
 
 #include "blendef.h"

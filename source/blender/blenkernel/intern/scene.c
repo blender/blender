@@ -77,7 +77,6 @@
 
 #include "BKE_library.h"
 
-#include "BPY_extern.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
 #include "BKE_ipo.h"

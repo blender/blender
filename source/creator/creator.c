@@ -70,8 +70,6 @@
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
 
-#include "BPY_extern.h"  // for init of blender python extension
-
 #include "BSE_headerbuttons.h" // for BIF_read_homefile
 
 #include "BDR_drawmesh.h"

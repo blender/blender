@@ -92,7 +92,6 @@
 #include "BKE_mball.h"
 #include "BKE_effect.h"
 #include "BKE_sca.h"
-#include "BPY_extern.h"
 #include "BKE_displist.h"
 #include "BKE_property.h"
 #include "BKE_anim.h"

@@ -98,8 +98,6 @@
 #include "BLI_blenlib.h"
 #include "BLO_writefile.h"
 
-#include "BPY_extern.h"
-
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"

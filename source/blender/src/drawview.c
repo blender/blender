@@ -115,8 +115,6 @@
 
 #include "RE_renderconverter.h"
 
-#include "BPY_extern.h" // Blender Python library
-
 #include "blendef.h"
 #include "mydevice.h"
 #include "butspace.h"  // event codes

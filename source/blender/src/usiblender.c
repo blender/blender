@@ -106,7 +106,6 @@
 #include "BDR_editobject.h"
 #include "BDR_vpaint.h"
 
-#include "BPY_extern.h"
 #include "blendef.h"
 
 #include "radio.h"

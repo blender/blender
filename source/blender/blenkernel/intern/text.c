@@ -48,8 +48,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BPY_extern.h" // Blender Python library
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
