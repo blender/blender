@@ -89,9 +89,5 @@ typedef struct Lamp {
 
 /* mapto */
 #define LAMAP_COL		1
-
-/* bit isolated... */
-#define MAXLAMP		256
-
 #endif
 

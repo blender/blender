@@ -46,6 +46,7 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "blendef.h"
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"

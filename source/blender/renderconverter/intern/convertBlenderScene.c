@@ -42,6 +42,7 @@
 #include <string.h>
 #include <limits.h>          /* for INT_MAX                 */
 
+#include "blendef.h"
 #include "MTC_matrixops.h"
 
 #include "MEM_guardedalloc.h"
