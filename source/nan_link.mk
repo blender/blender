@@ -129,7 +129,7 @@ ifeq ($(OS),windows)
 		MINGWLIB = /usr/lib/w32api
 		LDFLAGS += -mwindows -mno-cygwin -mconsole
 		DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32
-		DADD += -L/usr/lib/w32api 
+		DADD += -L/usr/lib/w32api -lwinmm
     else
 	    DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
 		DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
