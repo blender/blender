@@ -363,42 +363,40 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		particle_tex(mtex, paf, pa->co, pa->no);
 	}
 	
-	/* keys */
-	if(paf->totkey>1) {
+	if(paf->totkey>1) deltalife= pa->lifetime/(paf->totkey-1);
+	else deltalife= pa->lifetime;
+
+	opa= pa;
+	pa++;
 		
-		deltalife= pa->lifetime/(paf->totkey-1);
+	b= paf->totkey-1;
+	while(b--) {
+		/* nieuwe tijd */
+		pa->time= opa->time+deltalife;
+
+		/* nieuwe plek */
+		pa->co[0]= opa->co[0] + deltalife*opa->no[0];
+		pa->co[1]= opa->co[1] + deltalife*opa->no[1];
+		pa->co[2]= opa->co[2] + deltalife*opa->no[2];
+
+		/* nieuwe snelheid */
+		pa->no[0]= opa->no[0] + deltalife*force[0];
+		pa->no[1]= opa->no[1] + deltalife*force[1];
+		pa->no[2]= opa->no[2] + deltalife*force[2];
+
+		/* snelheid: texture */
+		if(mtex && paf->texfac!=0.0) {
+			particle_tex(mtex, paf, pa->co, pa->no);
+		}
+		if(damp!=1.0) {
+			pa->no[0]*= damp;
+			pa->no[1]*= damp;
+			pa->no[2]*= damp;
+		}
+	
 		opa= pa;
 		pa++;
-		
-		b= paf->totkey-1;
-		while(b--) {
-			/* nieuwe tijd */
-			pa->time= opa->time+deltalife;
-			
-			/* nieuwe plek */
-			pa->co[0]= opa->co[0] + deltalife*opa->no[0];
-			pa->co[1]= opa->co[1] + deltalife*opa->no[1];
-			pa->co[2]= opa->co[2] + deltalife*opa->no[2];
-			
-			/* nieuwe snelheid */
-			pa->no[0]= opa->no[0] + deltalife*force[0];
-			pa->no[1]= opa->no[1] + deltalife*force[1];
-			pa->no[2]= opa->no[2] + deltalife*force[2];
-
-			/* snelheid: texture */
-			if(mtex && paf->texfac!=0.0) {
-				particle_tex(mtex, paf, pa->co, pa->no);
-			}
-			if(damp!=1.0) {
-				pa->no[0]*= damp;
-				pa->no[1]*= damp;
-				pa->no[2]*= damp;
-			}
-	
-			opa= pa;
-			pa++;
-			/* opa wordt onderin ook gebruikt */
-		}
+		/* opa wordt onderin ook gebruikt */
 	}
 
 	if(deform) {
@@ -411,10 +409,11 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		}
 	}
 	
-	/* de grote vermenigvuldiging */
+	/* the big multiplication */
 	if(depth<PAF_MAXMULT && paf->mult[depth]!=0.0) {
 		
-		/* uit gemiddeld 'mult' deel van de particles ontstaan 'child' nieuwe */
+		/* new 'child' emerges from an average 'mult' part from 
+			the particles */
 		damp = (float)nr;
 		rt1= (int)(damp*paf->mult[depth]);
 		rt2= (int)((damp+1.0)*paf->mult[depth]);
