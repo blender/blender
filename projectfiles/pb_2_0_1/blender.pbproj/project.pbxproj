@@ -143,6 +143,7 @@
 //C64
 		C6859E8C029090F304C91782 = {
 			children = (
+				FABF2CFE03B278BF03A800BA,
 			);
 			isa = PBXGroup;
 			name = Documentation;
@@ -1765,7 +1766,6 @@
 				FA975594039C23F0036DFF9B,
 				FA97559F039C23F0036DFF9B,
 				FA9755BC039C23F0036DFF9B,
-				FA97560C039C23F0036DFF9B,
 				FA975614039C23F1036DFF9B,
 			);
 			isa = PBXGroup;
@@ -1839,12 +1839,6 @@
 			path = moto/lib/libmoto.a;
 			refType = 4;
 		};
-		FA97560C039C23F0036DFF9B = {
-			isa = PBXFileReference;
-			name = libpython2.2.a;
-			path = python/lib/python2.2/config/libpython2.2.a;
-			refType = 4;
-		};
 		FA975614039C23F1036DFF9B = {
 			isa = PBXFileReference;
 			name = libstring.a;
@@ -1883,12 +1877,6 @@
 		};
 		FA9756F7039C23F1036DFF9B = {
 			fileRef = FA9755BC039C23F0036DFF9B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FA975740039C23F1036DFF9B = {
-			fileRef = FA97560C039C23F0036DFF9B;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -1977,6 +1965,18 @@
 			settings = {
 			};
 		};
+		FABF2CFE03B278BF03A800BA = {
+			isa = PBXFileReference;
+			name = README;
+			path = ../../README;
+			refType = 2;
+		};
+		FABF2CFF03B278BF03A800BA = {
+			fileRef = FABF2CFE03B278BF03A800BA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		FACC35CB03A2505303FE47F7 = {
 			buildActionMask = 2147483647;
 			files = (
@@ -1989,6 +1989,7 @@
 			files = (
 				FAE56ADA03A68F47030D2C22,
 				FAE56ADC03A68F63030D2C22,
+				FABF2CFF03B278BF03A800BA,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2092,11 +2093,6 @@
 				FACC363D03A251FC03FE47F7,
 				FACC363E03A251FC03FE47F7,
 				FACC363F03A251FD03FE47F7,
-				FACC364003A251FD03FE47F7,
-				FACC364103A251FE03FE47F7,
-				FACC364203A251FE03FE47F7,
-				FACC364303A251FF03FE47F7,
-				FACC364403A2520003FE47F7,
 				FACC364503A2520103FE47F7,
 				FACC364603A2520103FE47F7,
 				FACC364703A2520103FE47F7,
@@ -2118,11 +2114,6 @@
 				FACC365703A2520C03FE47F7,
 				FACC365803A2520D03FE47F7,
 				FACC365903A2520D03FE47F7,
-				FACC365A03A2520D03FE47F7,
-				FACC365B03A2520E03FE47F7,
-				FACC365C03A2520F03FE47F7,
-				FACC365D03A2520F03FE47F7,
-				FACC365E03A2521003FE47F7,
 				FACC365F03A2521703FE47F7,
 				FACC366003A2521803FE47F7,
 				FACC366103A2521903FE47F7,
@@ -2496,7 +2487,6 @@
 				FACC372503A2547B03FE47F7,
 				FACC372603A2547B03FE47F7,
 				FACC372703A2547C03FE47F7,
-				FACC372803A2547D03FE47F7,
 				FACC372903A2547D03FE47F7,
 				FACC37D603A2596303FE47F7,
 			);
@@ -2519,11 +2509,11 @@
 				FACC35CF03A2505303FE47F7,
 			);
 			buildSettings = {
-				HEADER_SEARCH_PATHS = "/sw/include \"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenGL.framework\" ../../lib/darwin-6.1-powerpc/python/include/python2.2 ../../lib/darwin-6.1-powerpc/fmod/include/ ../../lib/darwin-6.1-powerpc/ode/include ../../lib/darwin-6.1-powerpc/guardedalloc/include ../../lib/darwin-6.1-powerpc/blenkey/include ../../lib/darwin-6.1-powerpc/iksolver/include ../../lib/darwin-6.1-powerpc/bsp/include ../../lib/darwin-6.1-powerpc/bmfont/include ../../lib/darwin-6.1-powerpc/decimation/include ../../lib/darwin-6.1-powerpc/ghost/include ../../lib/darwin-6.1-powerpc/moto/include ../../lib/darwin-6.1-powerpc/string/include";
-				LIBRARY_SEARCH_PATHS = "/usr/lib/gcc/darwin/3.1 /sw/lib ../../lib/darwin-6.1-powerpc/python/lib/python2.2/config ../../lib/darwin-6.1-powerpc/ode/lib ../../lib/darwin-6.1-powerpc/fmod/lib ../../lib/darwin-6.1-powerpc/blenkey/lib/ ../../lib/darwin-6.1-powerpc/bmfont/lib/ ../../lib/darwin-6.1-powerpc/bsp/lib/ ../../lib/darwin-6.1-powerpc/container/lib/ ../../lib/darwin-6.1-powerpc/decimation/lib ../../lib/darwin-6.1-powerpc/ghost/lib ../../lib/darwin-6.1-powerpc/guardedalloc/lib ../../lib/darwin-6.1-powerpc/iksolver/lib ../../lib/darwin-6.1-powerpc/memutil/lib ../../lib/darwin-6.1-powerpc/moto/lib ../../lib/darwin-6.1-powerpc/string/lib";
+				HEADER_SEARCH_PATHS = "/sw/include \"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenGL.framework\" /usr/local/include/python2.2/ ../../lib/darwin-6.1-powerpc/fmod/include/ ../../lib/darwin-6.1-powerpc/ode/include ../../lib/darwin-6.1-powerpc/guardedalloc/include ../../lib/darwin-6.1-powerpc/blenkey/include ../../lib/darwin-6.1-powerpc/iksolver/include ../../lib/darwin-6.1-powerpc/bsp/include ../../lib/darwin-6.1-powerpc/bmfont/include ../../lib/darwin-6.1-powerpc/decimation/include ../../lib/darwin-6.1-powerpc/ghost/include ../../lib/darwin-6.1-powerpc/moto/include ../../lib/darwin-6.1-powerpc/string/include";
+				LIBRARY_SEARCH_PATHS = "/usr/lib/gcc/darwin/3.1 /usr/local/lib/python2.2/config /sw/lib ../../lib/darwin-6.1-powerpc/ode/lib ../../lib/darwin-6.1-powerpc/fmod/lib ../../lib/darwin-6.1-powerpc/blenkey/lib/ ../../lib/darwin-6.1-powerpc/bmfont/lib/ ../../lib/darwin-6.1-powerpc/bsp/lib/ ../../lib/darwin-6.1-powerpc/container/lib/ ../../lib/darwin-6.1-powerpc/decimation/lib ../../lib/darwin-6.1-powerpc/ghost/lib ../../lib/darwin-6.1-powerpc/guardedalloc/lib ../../lib/darwin-6.1-powerpc/iksolver/lib ../../lib/darwin-6.1-powerpc/memutil/lib ../../lib/darwin-6.1-powerpc/moto/lib ../../lib/darwin-6.1-powerpc/string/lib";
 				OPTIMIZATION_CFLAGS = "-O3";
 				OTHER_CFLAGS = "-DGAMEBLENDER=1";
-				OTHER_LDFLAGS = "-lz";
+				OTHER_LDFLAGS = "-lz -lpython2.2";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = blender;
 				SECTORDER_FLAGS = "";
@@ -3205,36 +3195,6 @@
 			settings = {
 			};
 		};
-		FACC364003A251FD03FE47F7 = {
-			fileRef = FAFFD064039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC364103A251FE03FE47F7 = {
-			fileRef = FAFFD066039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC364203A251FE03FE47F7 = {
-			fileRef = FAFFD068039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC364303A251FF03FE47F7 = {
-			fileRef = FAFFD06A039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC364403A2520003FE47F7 = {
-			fileRef = FAFFD06C039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		FACC364503A2520103FE47F7 = {
 			fileRef = FAFFD06E039C0D9C03A6FA84;
 			isa = PBXBuildFile;
@@ -3357,36 +3317,6 @@
 		};
 		FACC365903A2520D03FE47F7 = {
 			fileRef = FAFFD096039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC365A03A2520D03FE47F7 = {
-			fileRef = FAFFD098039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC365B03A2520E03FE47F7 = {
-			fileRef = FAFFD09A039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC365C03A2520F03FE47F7 = {
-			fileRef = FAFFD09C039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC365D03A2520F03FE47F7 = {
-			fileRef = FAFFD09E039C0D9C03A6FA84;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC365E03A2521003FE47F7 = {
-			fileRef = FAFFD0A0039C0D9C03A6FA84;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -4539,12 +4469,6 @@
 		};
 		FACC372703A2547C03FE47F7 = {
 			fileRef = FA9755BC039C23F0036DFF9B;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		FACC372803A2547D03FE47F7 = {
-			fileRef = FA97560C039C23F0036DFF9B;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -6852,11 +6776,6 @@
 				FAFFD05E039C0D9C03A6FA84,
 				FAFFD060039C0D9C03A6FA84,
 				FAFFD062039C0D9C03A6FA84,
-				FAFFD064039C0D9C03A6FA84,
-				FAFFD066039C0D9C03A6FA84,
-				FAFFD068039C0D9C03A6FA84,
-				FAFFD06A039C0D9C03A6FA84,
-				FAFFD06C039C0D9C03A6FA84,
 				FAFFD06E039C0D9C03A6FA84,
 				FAFFD070039C0D9C03A6FA84,
 				FAFFD072039C0D9C03A6FA84,
@@ -6878,11 +6797,6 @@
 				FAFFD092039C0D9C03A6FA84,
 				FAFFD094039C0D9C03A6FA84,
 				FAFFD096039C0D9C03A6FA84,
-				FAFFD098039C0D9C03A6FA84,
-				FAFFD09A039C0D9C03A6FA84,
-				FAFFD09C039C0D9C03A6FA84,
-				FAFFD09E039C0D9C03A6FA84,
-				FAFFD0A0039C0D9C03A6FA84,
 				FAFFD0A2039C0D9C03A6FA84,
 			);
 			isa = PBXGroup;
@@ -7039,31 +6953,6 @@
 			path = M_gzip.c;
 			refType = 4;
 		};
-		FAFFD064039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_mcf.c;
-			refType = 4;
-		};
-		FAFFD066039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_mcf__utils.c;
-			refType = 4;
-		};
-		FAFFD068039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_mcf__utils__hier_rx.c;
-			refType = 4;
-		};
-		FAFFD06A039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_mcf__utils__hierobj.c;
-			refType = 4;
-		};
-		FAFFD06C039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_mcf__utils__singletonlist.c;
-			refType = 4;
-		};
 		FAFFD06E039C0D9C03A6FA84 = {
 			isa = PBXFileReference;
 			path = M_repr.c;
@@ -7167,31 +7056,6 @@
 		FAFFD096039C0D9C03A6FA84 = {
 			isa = PBXFileReference;
 			path = M_vrml__scenegraph.c;
-			refType = 4;
-		};
-		FAFFD098039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_vrml__utils.c;
-			refType = 4;
-		};
-		FAFFD09A039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_vrml__utils__collapse.c;
-			refType = 4;
-		};
-		FAFFD09C039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_vrml__utils__err.c;
-			refType = 4;
-		};
-		FAFFD09E039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_vrml__utils__namespace.c;
-			refType = 4;
-		};
-		FAFFD0A0039C0D9C03A6FA84 = {
-			isa = PBXFileReference;
-			path = M_vrml__utils__typeclasses.c;
 			refType = 4;
 		};
 		FAFFD0A2039C0D9C03A6FA84 = {
@@ -14661,7 +14525,6 @@
 				FA9756D1039C23F1036DFF9B,
 				FA9756D4039C23F1036DFF9B,
 				FA9756F7039C23F1036DFF9B,
-				FA975740039C23F1036DFF9B,
 				FA975744039C23F1036DFF9B,
 				FA975754039C24DF036DFF9B,
 				FA975755039C24E0036DFF9B,
@@ -14693,8 +14556,8 @@
 			);
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "";
-				HEADER_SEARCH_PATHS = "/sw/include \"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenGL.framework\" ../../lib/darwin-6.1-powerpc/python/include/python2.2 ../../lib/darwin-6.1-powerpc/fmod/include/ ../../lib/darwin-6.1-powerpc/ode/include ../../lib/darwin-6.1-powerpc/guardedalloc/include ../../lib/darwin-6.1-powerpc/blenkey/include ../../lib/darwin-6.1-powerpc/iksolver/include ../../lib/darwin-6.1-powerpc/string/include ../../lib/darwin-6.1-powerpc/moto/include ../../lib/darwin-6.1-powerpc/bmfont/include ../../lib/darwin-6.1-powerpc/ghost/include";
-				LIBRARY_SEARCH_PATHS = "/usr/lib/gcc/darwin/3.1 /sw/lib ../../lib/darwin-6.1-powerpc/python/lib/python2.2/config ../../lib/darwin-6.1-powerpc/fmod/lib ../../lib/darwin-6.1-powerpc/ode/lib ../../lib/darwin-6.1-powerpc/blenkey/lib ../../lib/darwin-6.1-powerpc/bmfont/lib ../../lib/darwin-6.1-powerpc/bsp/lib ../../lib/darwin-6.1-powerpc/container/lib ../../lib/darwin-6.1-powerpc/ghost/lib ../../lib/darwin-6.1-powerpc/guardedalloc/lib ../../lib/darwin-6.1-powerpc/iksolver/lib ../../lib/darwin-6.1-powerpc/memutil/lib ../../lib/darwin-6.1-powerpc/moto/lib ../../lib/darwin-6.1-powerpc/string/lib";
+				HEADER_SEARCH_PATHS = "/sw/include \"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenGL.framework\" /usr/local/include/python2.2/ ../../lib/darwin-6.1-powerpc/fmod/include/ ../../lib/darwin-6.1-powerpc/ode/include ../../lib/darwin-6.1-powerpc/guardedalloc/include ../../lib/darwin-6.1-powerpc/blenkey/include ../../lib/darwin-6.1-powerpc/iksolver/include ../../lib/darwin-6.1-powerpc/string/include ../../lib/darwin-6.1-powerpc/moto/include ../../lib/darwin-6.1-powerpc/bmfont/include ../../lib/darwin-6.1-powerpc/ghost/include";
+				LIBRARY_SEARCH_PATHS = "/usr/lib/gcc/darwin/3.1 /usr/local/lib/python2.2/config /sw/lib ../../lib/darwin-6.1-powerpc/fmod/lib ../../lib/darwin-6.1-powerpc/ode/lib ../../lib/darwin-6.1-powerpc/blenkey/lib ../../lib/darwin-6.1-powerpc/bmfont/lib ../../lib/darwin-6.1-powerpc/bsp/lib ../../lib/darwin-6.1-powerpc/container/lib ../../lib/darwin-6.1-powerpc/ghost/lib ../../lib/darwin-6.1-powerpc/guardedalloc/lib ../../lib/darwin-6.1-powerpc/iksolver/lib ../../lib/darwin-6.1-powerpc/memutil/lib ../../lib/darwin-6.1-powerpc/moto/lib ../../lib/darwin-6.1-powerpc/string/lib";
 				OPTIMIZATION_CFLAGS = "-O3";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-lz";
