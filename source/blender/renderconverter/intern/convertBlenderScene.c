@@ -64,6 +64,7 @@
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 
 #include "BKE_mesh.h"
 #include "BKE_key.h"
@@ -3094,14 +3095,32 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 	float min[3]={1e9, 1e9, 1e9}, max[3]={-1e9, -1e9, -1e9};
 	float scale=1.0f;
 	int i;
+	BoundBox bb;
+
+	/* Calculate Texture space scale factor  - Still needs work.  */
+	if (ob->type & OB_MESH) {
+		if (( (Mesh *)(ob->data) )->bb == NULL) tex_space_mesh((Mesh *)(ob->data));
+		memcpy(&bb, ( (Mesh *)(ob->data) )->bb, 8*sizeof(float) );
+	}
+	else if (ob->type & OB_CURVE | OB_SURF | OB_FONT) {
+		if (( (Curve *)(ob->data) )->bb == NULL) tex_space_curve((Curve *)(ob->data));
+		memcpy(&bb, ((Curve *)(ob->data) )->bb, 8*sizeof(float) );
+	}
+	else if (ob->type & OB_MBALL) {
+		if (( (MetaBall *)(ob->data) )->bb == NULL) tex_space_mball(ob);
+		memcpy(&bb, ( (MetaBall *)(ob->data) )->bb, 8*sizeof(float) );
+	}
+	else memcpy(&bb, ob->bb, 8*sizeof(float) );
+		
+	for(i=0; i<8; i++){
+			DO_MINMAX(bb.vec[i], min, max);
+	}
 	
-	minmax_object(ob, min, max);
-	VecSubf(min, max, min);
-	scale= MAX3(min[0], min[1], min[2]); /*Overall scale of obj */
+	VecSubf(max, max, min);
+	scale = MAX3(max[0], max[1], max[2]);
+	printf("scale=%f\n", scale);
 	
-	/* calculate vertex normals */
-	//normalenrender(startvert, startface);
-	
+	/* Clear all flags */
 	for(i=startvert; i<startvert+numvert; i++){ /* Clear vert flags */
 		vr= RE_findOrAddVert(i);
 		vr->flag= 0;

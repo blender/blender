@@ -2204,8 +2204,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			/*		|\ 1|	or  |1 /| */
 			/*		|0\ |		|/ 0| */
 			/*		1---2		1---2 	0 = orig face, 1 = new face */
-
-			if(vlr->flag & R_DIVIDE_24) {
+			
+			/* Update vert nums to point to correct verts of original face */
+			if(vlr->flag & R_DIVIDE_24) {  
 				if(vlr->flag & R_FACE_SPLIT) {
 					j1++; j2++; j3++;
 				}
