@@ -2911,6 +2911,7 @@ void apply_object()
 				/* texspace and normals */
 				BASACT= base;
 				enter_editmode();
+				BIF_undo_push("Applied object");	// editmode undo itself
 				exit_editmode(1); // freedata, but no undo
 				BASACT= basact;				
 				
@@ -2978,6 +2979,7 @@ void apply_object()
 				/* texspace and normals */
 				BASACT= base;
 				enter_editmode();
+				BIF_undo_push("Applied object");	// editmode undo itself
 				exit_editmode(1); // freedata, but no undo
 				BASACT= basact;
 			}

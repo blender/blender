@@ -577,7 +577,7 @@ void KnifeSubdivide(char mode)
 	if (curve && len && mode){
 		eed= em->edges.first;		
 		while(eed) {	
-			if((eed->v1->f & 1) && (eed->v2->f & 1)){
+			if( eed->f & SELECT ){
 				isect=seg_intersect(eed, curve, len);
 				if (isect) eed->f2= 1;
 				else eed->f2=0;
