@@ -1648,8 +1648,6 @@ static uiBlock *view3d_edit_object_scriptsmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "v3d_eobject_pymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_scriptsmenu, NULL);
 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
 	for (pym = BPyMenuTable[PYMENU_OBJECT]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
 	}
@@ -2175,8 +2173,6 @@ static uiBlock *view3d_edit_mesh_scriptsmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "v3d_emesh_pymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_scriptsmenu, NULL);
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	for (pym = BPyMenuTable[PYMENU_MESH]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
