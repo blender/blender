@@ -327,7 +327,7 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 			glNormal3fv(&nors[a*3]);
 		}
 
-		glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
+		glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
 		if (tface) glTexCoord2fv(tface->uv[0]);
 		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
@@ -343,7 +343,7 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
 		glVertex3fv(meshDM__getVertCo(mdm, mf->v3));
 
-		if(mface->v4) {
+		if(mf->v4) {
 			if (tface) glTexCoord2fv(tface->uv[3]);
 			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
