@@ -4,7 +4,8 @@
 The Blender.NMesh submodule.
 
 B{New}: edges class (L{NMEdge}) and nmesh methods (L{NMesh.addEdge},
-L{NMesh.addEdgesData}, etc.); new optional arguments to L{NMesh.update}.
+L{NMesh.addEdgesData}, etc.); new optional arguments to L{NMesh.update};
+L{NMesh.transform}.
 
 Mesh Data
 =========
@@ -154,16 +155,16 @@ def GetRawFromObject(name):
       be created.
   """
 
-def PutRaw(nmesh, name = None, recalculate_normals = 1, store_edges = 0):
+def PutRaw(nmesh, name = None, recalc_normals = 1, store_edges = 0):
   """
   Put an NMesh object back in Blender.
   @type nmesh: NMesh
   @type name: string
-  @type recalculate_normals: int
+  @type recalc_normals: int
   @type store_edges: int
   @param name: The name of the mesh data object in Blender which will receive
      this nmesh data.  It can be an existing mesh data object or a new one.
-  @param recalculate_normals: If non-zero, the vertex normals for the mesh will
+  @param recalc_normals: If non-zero, the vertex normals for the mesh will
      be recalculated.
   @param store_edges: if non-zero, the edges data are stored
   @rtype: None or Object
@@ -339,9 +340,10 @@ class NMesh:
   def addEdge(v1, v2):
     """
     Create an edge between two vertices.
-    If an edge already exists between those vertices, it is returned. (in blender, only zero or one edge can link two vertices).
+    If an edge already exists between those vertices, it is returned.
     Created edge is automatically added to edges list.
     You can only call this method if mesh has edge data.
+    @note: In Blender only zero or one edge can link two vertices.
     @type v1: NMVert
     @param v1: the first vertex of the edge.
     @type v2: NMVert
@@ -552,8 +554,10 @@ class NMesh:
     @param store_edges: if nonzero, then edge data is stored.
     @type vertex_shade: int (bool)
     @param vertex_shade: if nonzero vertices are colored based on the
-        current lighting setup.  To use it, be out of edit mode or else
-        an error will be returned.
+        current lighting setup, like when there are no vertex colors and no
+        textured faces and a user enters Vertex Paint Mode in Blender (only
+        lamps in visible layers account).  To use this functionality, be out of
+        edit mode or else an error will be returned.
     @warn: edit mesh and normal mesh are two different structures in Blender,
         synchronized upon leaving or entering edit mode.  Always remember to
         leave edit mode (L{Window.EditMode}) before calling this update
@@ -566,6 +570,41 @@ class NMesh:
     @note: if your mesh disappears after it's updated, try
         L{Object.Object.makeDisplayList}.  'Subsurf' meshes (see L{getMode},
         L{setMode}) need their display lists updated, too.
+    """
+
+  def transform(matrix, recalc_normals = False):
+    """
+    Transforms the mesh by the specified 4x4 matrix, as returned by
+    L{Object.Object.getMatrix}, though this will work with any invertible 4x4
+    matrix type.  Ideal Usage for this is exporting to an external file, where
+    global vertex locations are required for each object.
+    Sometimes external renderers / file formats do not use vertex normals.
+    In this case you can skip transforming the vertex normals by letting
+    the optional parameter recalc_normals as False or 0.
+    
+    Example::
+     # This script outputs deformed meshes worldspace vertex locations
+     # for a selected object
+     import Blender
+     from Blender import NMesh, Object
+     
+     ob = Object.GetSelected()[0] # Get the first selected object
+     me = NMesh.GetRawFromObject(ob) # Get the objects deformed mesh data
+     me.transform(ob.matrix)
+   
+     for v in me.verts:
+       print 'worldspace vert', v.co
+    
+    @type matrix: Py_Matrix
+    @param matrix: 4x4 Matrix which can contain location, scale and rotation. 
+    @type recalc_normals: int (bool)
+    @param recalc_normals: if True or 1, will only transform vertex locations.
+    @warn: if you call this method and later L{update} the mesh, the new
+        vertex positions will be passed back to Blender, but the object
+        matrix of each object linked to this mesh won't be automatically
+        updated.  You need to set the object transformations (rotation,
+        translation and scaling) to identities, then, or the mesh data will
+        be changed ("transformed twice").
     """
 
   def getMode():

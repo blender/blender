@@ -78,21 +78,31 @@ typedef struct BPyMenu {
  * source/blender/src/, like done in header_info.c for import/export;
 */
 typedef enum {
-	PYMENU_WIZARDS,		/* complex 'app' scripts */
-	PYMENU_UV,		/* UV editing tools, to go in UV/Image editor space, 'UV' menu */
-	PYMENU_OBJECT,
-	PYMENU_MISC,
-	PYMENU_MESH,
-	PYMENU_MATERIALS,
-	PYMENU_HELP,		/* Main Help menu items - prob best to leave for 'official' ones */
-	PYMENU_HELPSYSTEM,	/* Resources, troubleshooting, system tools */
-	PYMENU_HELPWEBSITES,	/* Help -> Websites submenu */
-	PYMENU_IMPORT,
-	PYMENU_EXPORT,
+	PYMENU_ADD,/* creates new objects */
 	PYMENU_ANIMATION,
-	PYMENU_ADD,		/* creates new objects */
+	PYMENU_EXPORT,
+	PYMENU_IMPORT,
+	PYMENU_MATERIALS,
+	PYMENU_MESH,
+	PYMENU_MISC,
+	PYMENU_OBJECT,
+	PYMENU_RENDER,/* exporters to external renderers */
+	PYMENU_THEMES,
+	PYMENU_UV,/* UV editing tools, to go in UV/Image editor space, 'UV' menu */
+	PYMENU_WIZARDS,/* complex 'app' scripts */
+
+	/* entries put below don't appear at the Scripts win->Scripts menu;
+	 * see define right below */
+
+	PYMENU_FACESELECT,
+	PYMENU_HELP,/*Main Help menu items - prob best to leave for 'official' ones*/
+	PYMENU_HELPSYSTEM,/* Resources, troubleshooting, system tools */
+	PYMENU_HELPWEBSITES,/* Help -> Websites submenu */
+
 	PYMENU_TOTAL
 } PYMENUHOOKS;
+
+#define PYMENU_SCRIPTS_MENU_TOTAL PYMENU_FACESELECT
 
 /* BPyMenuTable holds all registered pymenus, as linked lists for each menu
  * where they can appear (see PYMENUHOOKS enum above).

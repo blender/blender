@@ -40,6 +40,7 @@
 #include <BIF_drawtext.h>
 #include <BKE_text.h>
 #include <BLI_blenlib.h>
+#include <DNA_space_types.h>
 #include <DNA_text_types.h>
 
 #include "Text.h"
@@ -51,8 +52,7 @@
 /*****************************************************************************/
 /* Python API function prototypes for the Text module.                       */
 /*****************************************************************************/
-static PyObject *M_Text_New( PyObject * self, PyObject * args,
-			     PyObject * keywords );
+static PyObject *M_Text_New( PyObject * self, PyObject * args);
 static PyObject *M_Text_Get( PyObject * self, PyObject * args );
 static PyObject *M_Text_Load( PyObject * self, PyObject * args );
 static PyObject *M_Text_unlink( PyObject * self, PyObject * args );
@@ -81,8 +81,7 @@ static char M_Text_unlink_doc[] =
 /* Python method structure definition for Blender.Text module:               */
 /*****************************************************************************/
 struct PyMethodDef M_Text_methods[] = {
-	{"New", ( PyCFunction ) M_Text_New, METH_VARARGS | METH_KEYWORDS,
-	 M_Text_New_doc},
+	{"New", M_Text_New, METH_VARARGS, M_Text_New_doc},
 	{"Get", M_Text_Get, METH_VARARGS, M_Text_Get_doc},
 	{"get", M_Text_Get, METH_VARARGS, M_Text_Get_doc},
 	{"Load", M_Text_Load, METH_VARARGS, M_Text_Load_doc},
@@ -107,10 +106,10 @@ static PyObject *Text_getName( BPy_Text * self );
 static PyObject *Text_getFilename( BPy_Text * self );
 static PyObject *Text_getNLines( BPy_Text * self );
 static PyObject *Text_setName( BPy_Text * self, PyObject * args );
-static PyObject *Text_clear( BPy_Text * self, PyObject * args );
+static PyObject *Text_clear( BPy_Text * self );
 static PyObject *Text_write( BPy_Text * self, PyObject * args );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
-static PyObject *Text_asLines( BPy_Text * self, PyObject * args );
+static PyObject *Text_asLines( BPy_Text * self );
 
 /*****************************************************************************/
 /* Python BPy_Text methods table:                                            */
@@ -125,13 +124,13 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "() - Return number of lines in text buffer"},
 	{"setName", ( PyCFunction ) Text_setName, METH_VARARGS,
 	 "(str) - Change Text Object name"},
-	{"clear", ( PyCFunction ) Text_clear, METH_VARARGS,
+	{"clear", ( PyCFunction ) Text_clear, METH_NOARGS,
 	 "() - Clear Text buffer"},
 	{"write", ( PyCFunction ) Text_write, METH_VARARGS,
 	 "(line) - Append string 'str' to Text buffer"},
 	{"set", ( PyCFunction ) Text_set, METH_VARARGS,
 	 "(name, val) - Set attribute 'name' to value 'val'"},
-	{"asLines", ( PyCFunction ) Text_asLines, METH_VARARGS,
+	{"asLines", ( PyCFunction ) Text_asLines, METH_NOARGS,
 	 "() - Return text buffer as a list of lines"},
 	{NULL, NULL, 0, NULL}
 };
@@ -170,14 +169,14 @@ PyTypeObject Text_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Text_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 /*****************************************************************************/
 /* Function:              M_Text_New                                         */
 /* Python equivalent:     Blender.Text.New                                   */
 /*****************************************************************************/
-static PyObject *M_Text_New( PyObject * self, PyObject * args,
-			     PyObject * keywords )
+static PyObject *M_Text_New( PyObject * self, PyObject * args)
 {
 	char *name = NULL;
 	char buf[21];
@@ -249,9 +248,9 @@ static PyObject *M_Text_Get( PyObject * self, PyObject * args )
 		if( wanted_txt == NULL ) {	/* Requested text doesn't exist */
 			char error_msg[64];
 			PyOS_snprintf( error_msg, sizeof( error_msg ),
-				       "Text \"%s\" not found", name );
+				"Text \"%s\" not found", name );
 			return ( EXPP_ReturnPyObjError
-				 ( PyExc_NameError, error_msg ) );
+				( PyExc_NameError, error_msg ) );
 		}
 
 		return wanted_txt;
@@ -293,28 +292,30 @@ static PyObject *M_Text_Get( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Text_Load( PyObject * self, PyObject * args )
 {
-	char *fname;
-	Text *txt_ptr;
-	BPy_Text *txt;
+	char *fname = NULL;
+	char fpath[FILE_MAXDIR + FILE_MAXFILE];
+	Text *txt_ptr = NULL;
+	unsigned int maxlen = FILE_MAXDIR + FILE_MAXFILE;
 
 	if( !PyArg_ParseTuple( args, "s", &fname ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
-	txt = ( BPy_Text * ) PyObject_NEW( BPy_Text, &Text_Type );
+	if (strlen(fname) > (maxlen - 1))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"text filename too long");
+	else if (!BLI_exists(fname))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"text file not found");
 
-	if( !txt )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create PyObject Text_Type" );
+	BLI_strncpy(fpath, fname, maxlen);
 
-	txt_ptr = add_text( fname );
+	txt_ptr = add_text( fpath );
 	if( !txt_ptr )
 		return EXPP_ReturnPyObjError( PyExc_IOError,
 					      "couldn't load text" );
 
-	txt->text = txt_ptr;
-
-	return ( PyObject * ) txt;
+	return Text_CreatePyObject(txt_ptr);
 }
 
 /*****************************************************************************/
@@ -454,7 +455,7 @@ static PyObject *Text_setName( BPy_Text * self, PyObject * args )
 	return Py_None;
 }
 
-static PyObject *Text_clear( BPy_Text * self, PyObject * args )
+static PyObject *Text_clear( BPy_Text * self)
 {
 	int oldstate;
 
@@ -514,7 +515,7 @@ static PyObject *Text_write( BPy_Text * self, PyObject * args )
 	return Py_None;
 }
 
-static PyObject *Text_asLines( BPy_Text * self, PyObject * args )
+static PyObject *Text_asLines( BPy_Text * self )
 {
 	TextLine *line;
 	PyObject *list, *ob;

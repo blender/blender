@@ -1119,7 +1119,7 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 			  "blender could not create ipo curve" );
 
 	allspace( REMAKEIPO, 0 );
-	allqueue( REDRAWIPO, 0 );
+	EXPP_allqueue( REDRAWIPO, 0 );
 
 	/* create a bpy wrapper for the new ipo curve */
 	return IpoCurve_CreatePyObject( icu );

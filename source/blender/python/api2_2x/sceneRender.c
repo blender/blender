@@ -43,6 +43,7 @@
 #include <mydevice.h>
 #include <butspace.h>
 #include <BKE_bad_level_calls.h>
+#include <render.h> /* RE_animrender() */
 #include "sceneRender.h"
 #include "blendef.h"
 #include "Scene.h"
@@ -524,6 +525,7 @@ PyTypeObject RenderData_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_RenderData_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 //---------------------------------------------------Render Module Init--
 PyObject *Render_Init( void )
@@ -639,7 +641,7 @@ static PyObject *M_Render_BitToggleInt( PyObject * args, int setting,
 		*structure |= setting;
 	else
 		*structure &= ~setting;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 
@@ -665,7 +667,7 @@ static PyObject *M_Render_BitToggleShort( PyObject * args, short setting,
 		*structure |= setting;
 	else
 		*structure &= ~setting;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 
@@ -692,7 +694,7 @@ static PyObject *M_Render_GetSetAttributeFloat( PyObject * args,
 		}
 
 		*structure = property;
-		allqueue( REDRAWBUTSSCENE, 0 );
+		EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 		return EXPP_incr_ret( Py_None );
 	} else
 		return Py_BuildValue( "f", *structure );
@@ -719,7 +721,7 @@ static PyObject *M_Render_GetSetAttributeShort( PyObject * args,
 		}
 
 		*structure = property;
-		allqueue( REDRAWBUTSSCENE, 0 );
+		EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 		return EXPP_incr_ret( Py_None );
 	} else
 		return Py_BuildValue( "h", *structure );
@@ -745,7 +747,7 @@ static PyObject *M_Render_GetSetAttributeInt( PyObject * args, int *structure,
 		}
 
 		*structure = property;
-		allqueue( REDRAWBUTSSCENE, 0 );
+		EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 		return EXPP_incr_ret( Py_None );
 	} else
 		return Py_BuildValue( "i", *structure );
@@ -768,8 +770,8 @@ static void M_Render_DoSizePreset( BPy_RenderData * self, short xsch,
 	self->renderContext->yparts = yparts;
 
 	BLI_init_rctf( &self->renderContext->safety, a, b, c, d );
-	allqueue( REDRAWBUTSSCENE, 0 );
-	allqueue( REDRAWVIEWCAM, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWVIEWCAM, 0 );
 }
 
 //------------------------------------Render Module Function Definitions-
@@ -819,7 +821,7 @@ PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
 						      "list contains unknown string\n" );
 	}
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -828,7 +830,7 @@ PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 PyObject *M_Render_EnableDispView( PyObject * self )
 {
 	G.displaymode = R_DISPLAYVIEW;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -837,7 +839,7 @@ PyObject *M_Render_EnableDispView( PyObject * self )
 PyObject *M_Render_EnableDispWin( PyObject * self )
 {
 	G.displaymode = R_DISPLAYWIN;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -861,10 +863,28 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 {
 	Scene *oldsce;
 
-	oldsce = G.scene;
-	set_scene( self->scene );
-	BIF_do_render( 0 );
-	set_scene( oldsce );
+	if (!G.background) {
+		oldsce = G.scene;
+		set_scene( self->scene );
+		BIF_do_render( 0 );
+		set_scene( oldsce );
+	}
+
+	else { /* background mode (blender -b file.blend -P script) */
+
+		int end_frame = G.scene->r.efra; /* is of type short currently */
+
+		if (G.scene != self->scene)
+			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				"scene to render in bg mode must be the active scene");
+
+		G.scene->r.efra = G.scene->r.sfra;
+
+		RE_animrender(NULL);
+
+		G.scene->r.efra = end_frame;
+	}
+
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -873,10 +893,22 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 {
 	Scene *oldsce;
 
-	oldsce = G.scene;
-	set_scene( self->scene );
-	BIF_do_render( 1 );
-	set_scene( oldsce );
+	if (!G.background) {
+		oldsce = G.scene;
+		set_scene( self->scene );
+		BIF_do_render( 1 );
+		set_scene( oldsce );
+	}
+	else { /* background mode (blender -b file.blend -P script) */
+		if (G.scene != self->scene)
+			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				"scene to render in bg mode must be the active scene");
+
+		if (G.scene->r.sfra > G.scene->r.efra)
+			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				"start frame must be less or equal to end frame");
+		RE_animrender(NULL);
+	}
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -950,7 +982,7 @@ PyObject *RenderData_SetRenderPath( BPy_RenderData * self, PyObject * args )
 						"path is too long (SetRenderPath)" ) );
 
 	strcpy( self->renderContext->pic, name );
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -976,7 +1008,7 @@ PyObject *RenderData_SetBackbufPath( BPy_RenderData * self, PyObject * args )
 						"path is too long (SetBackbufPath)" ) );
 
 	strcpy( self->renderContext->backbuf, name );
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	ima = add_image( name );
 	if( ima ) {
@@ -1014,7 +1046,7 @@ PyObject *RenderData_SetFtypePath( BPy_RenderData * self, PyObject * args )
 						"path is too long (SetFtypePath)" ) );
 
 	strcpy( self->renderContext->ftype, name );
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1132,7 +1164,7 @@ PyObject *RenderData_SetOversamplingLevel( BPy_RenderData * self,
 						"expected 5,8,11, or 16" ) );
 
 	self->renderContext->osa = level;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1172,7 +1204,7 @@ PyObject *RenderData_PartsY( BPy_RenderData * self, PyObject * args )
 PyObject *RenderData_EnableSky( BPy_RenderData * self )
 {
 	self->renderContext->alphamode = R_ADDSKY;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1181,7 +1213,7 @@ PyObject *RenderData_EnableSky( BPy_RenderData * self )
 PyObject *RenderData_EnablePremultiply( BPy_RenderData * self )
 {
 	self->renderContext->alphamode = R_ALPHAPREMUL;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1190,7 +1222,7 @@ PyObject *RenderData_EnablePremultiply( BPy_RenderData * self )
 PyObject *RenderData_EnableKey( BPy_RenderData * self )
 {
 	self->renderContext->alphamode = R_ALPHAKEY;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1246,7 +1278,7 @@ PyObject *RenderData_SetRenderWinSize( BPy_RenderData * self, PyObject * args )
 						"expected 25, 50, 75, or 100" ) );
 
 	self->renderContext->size = size;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1328,7 +1360,7 @@ PyObject *RenderData_SetBorder( BPy_RenderData * self, PyObject * args )
 	self->renderContext->border.xmax = xmax;
 	self->renderContext->border.ymax = ymax;
 
-	allqueue( REDRAWVIEWCAM, 1 );
+	EXPP_allqueue( REDRAWVIEWCAM, 1 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1415,7 +1447,7 @@ PyObject *RenderData_SetRenderer( BPy_RenderData * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected INTERN or YAFRAY" ) );
 
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -1467,7 +1499,7 @@ PyObject *RenderData_SetImageType( BPy_RenderData * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );
 
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -1491,7 +1523,7 @@ PyObject *RenderData_FramesPerSec( BPy_RenderData * self, PyObject * args )
 PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANESBW;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1500,7 +1532,7 @@ PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
 PyObject *RenderData_EnableRGBColor( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANES24;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1509,7 +1541,7 @@ PyObject *RenderData_EnableRGBColor( BPy_RenderData * self )
 PyObject *RenderData_EnableRGBAColor( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANES32;
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1583,7 +1615,7 @@ PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );
 
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -1613,7 +1645,7 @@ PyObject *RenderData_SetYafrayGIQuality( BPy_RenderData * self,
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );
 
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -1633,7 +1665,7 @@ PyObject *RenderData_SetYafrayGIMethod( BPy_RenderData * self,
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );
 
-	allqueue( REDRAWBUTSSCENE, 0 );
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 	return EXPP_incr_ret( Py_None );
 }
 

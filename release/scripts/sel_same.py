@@ -1,10 +1,10 @@
 #!BPY
 
 """
-Name: 'Select Same Faces'
+Name: 'Similar to Active'
 Blender: 234
-Group: 'UV'
-Tooltip: 'Select faces if attributes match the active'
+Group: 'FaceSelect'
+Tooltip: 'Select faces that match a given attribute of the active face'
 """
 
 __author__ = "Campbell Barton"
@@ -28,7 +28,7 @@ script and choose the selection rule: by same (or similar for some itens):
 - area;<br>
 - proportions;<br>
 - normal vector;<br>
-- co-planar.
+- coplanar.
 
 Another menu will ask if the script should add, subtract, overwrite or
 overwrite inverse of current current selection.  For some choices like vcolors,
@@ -80,7 +80,7 @@ from math import sqrt
 # Sanity checks                      #
 #====================================#
 def error(str):
-	Draw.PupMenu('ERROR%t|'+str)
+	Draw.PupMenu('ERROR: '+str)
 af = None 
 selection = Object.GetSelected()
 if len(selection) == 0:
@@ -88,7 +88,7 @@ if len(selection) == 0:
 else:
   object = Object.GetSelected()[0]
   if object.getType() != 'Mesh':
-    error('Not a mesh')
+    error('Active object must be a mesh')
   else:
     mesh = object.getData()
     
@@ -97,7 +97,7 @@ else:
     if af: af = mesh.faces[af]
 
 if af == None:
-  error('no active face')
+  error('No active face')
 
 else: # Okay everything seems sane
   
@@ -105,16 +105,16 @@ else: # Okay everything seems sane
   # Popup menu to select the functions #
   #====================================#
   method = Draw.PupMenu(\
-  'Select Same as Active%t|\
+  'Selection Attribute%t|\
   Material|\
   UV Image|\
   Face Mode|\
   Vertex Colours|\
-  UV CO-Ords|\
+  UV Coordinates|\
   Area|\
-  Proportions|\
-  Normal|\
-  Co-Planer|')
+  Edge Proportions|\
+  Normal Vector|\
+  Coplanar|')
   
   if method != -1:
     #================================================#
@@ -389,7 +389,7 @@ else: # Okay everything seems sane
         if limit != None:
           get_same_normal(limit)
       elif method == 9: # coplaner
-        limit = getLimit('coplaner limit: ')
+        limit = getLimit('coplanar limit: ')
         if limit != None:
           get_same_coplaner(limit)
       

@@ -90,7 +90,8 @@ static uiBlock *script_scripts_submenus(void *int_menutype)
 	BPyMenu *pym;
 	int i = 0, menutype = (int)int_menutype;
 
-	if ((menutype < 0) || (menutype > PYMENU_TOTAL)) return NULL;
+	if ((menutype < 0) || (menutype > PYMENU_SCRIPTS_MENU_TOTAL))
+		return NULL;
 
 	block= uiNewBlock(&curarea->uiblocks, "scriptsscriptssubmenus", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_scripts_submenus, int_menutype);
@@ -130,8 +131,6 @@ static void do_script_scriptsmenu(void *arg, int event)
 /* Scripts menu */
 static uiBlock *script_scriptsmenu(void *arg_unused)
 {
-	//SpaceScript *sc= curarea->spacedata.first;
-	//Script *script= sc->script;
 	uiBlock *block;
 	short yco = 0, menuwidth = 120;
 	int i;
@@ -139,11 +138,11 @@ static uiBlock *script_scriptsmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "script_scriptsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_script_scriptsmenu, NULL);
 
-	for (i = 0; i < PYMENU_TOTAL; i++) {
+	for (i = 0; i < PYMENU_SCRIPTS_MENU_TOTAL; i++) {
 		uiDefIconTextBlockBut(block, script_scripts_submenus, (void *)i, ICON_RIGHTARROW_THIN, BPyMenu_group_itoa(i), 0, yco-=20, menuwidth, 19, "");
 	}
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Update Menus", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "Use when you modify the scripts dir or its contents");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Update Menus", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "Use when a scripts folder or its contents are modified");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

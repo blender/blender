@@ -380,7 +380,7 @@ def parse_help_info(script):
 	fname = bsys.join(path, script.fname)
 
 	if not bsys.exists(fname):
-		Draw.PupMenu('IO Error|Couldn\'t find script %s' % fname)
+		Draw.PupMenu('IO Error: Couldn\'t find script %s' % fname)
 		return None
 
 	f = file(fname, 'r')
@@ -473,7 +473,7 @@ def parse_bpymenus(lines):
 				i += 1
 				l = lines[i].strip()
 
-	AllGroups.reverse()
+#	AllGroups.reverse()
 
 
 def create_group_menus():
@@ -554,7 +554,7 @@ def gui(): # drawing the screen
 
 	if SCREEN == START_SCREEN:
 		x = PADDING
-		bw = 70
+		bw = 85
 		bh = 25
 		hincr = 50
 

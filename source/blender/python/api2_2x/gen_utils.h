@@ -94,4 +94,7 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 int EXPP_clearScriptLinks( ScriptLink * slink );
 int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene );
 
+/* this queues redraws if we're not in background mode: */
+void EXPP_allqueue(unsigned short event, short val);
+
 #endif				/* EXPP_gen_utils_h */

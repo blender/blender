@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'Save Current Theme'
+Name: 'Save Current Theme...'
 Blender: 236
 Group: 'Export'
 Tooltip: 'Save current theme as a bpython script'
@@ -71,14 +71,14 @@ def write_theme(filename):
 
 # \"\"\"
 # Name: '%s'
-# Blender: 234
-# Group: 'Theme'
+# Blender: 236
+# Group: 'Themes'
 # Tooltip: 'Change current theme'
 # \"\"\"
 
 __%s__ = "????"
 __%s__ = "1.0"
-__%s__ = [""]
+__%s__ = ["blender"]
 __%s__ = \"\"\"\\
 You can edit this section to write something about your script that can
 be read then with the Scripts Help Browser script in Blender.
@@ -112,10 +112,9 @@ theme = Theme.New('%s')
 
 	fout.write('\nBlender.Redraw(-1)')
 	fout.close()
+	try:
+		Blender.UpdateMenus()
+	except:
+		Blender.Draw.PupMenu("Warning - check console!%t|Menus could not be automatically updated")
 
 FileSelector(write_theme, "Save Current Theme", default_fname)
-
-try:
-	Blender.UpdateMenus()
-except:
-	Blender.Draw.PupMenu("Warning - check console!%t|Menus could not be automatically updated")

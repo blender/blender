@@ -90,10 +90,8 @@
 static PyObject *g_nmeshmodule = NULL;
 
 static int unlink_existingMeshData( Mesh * mesh );
-static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh, int store_edges );
-/* <start> */
+static int convert_NMeshToMesh( Mesh *mesh, BPy_NMesh *nmesh, int store_edges );
 static PyObject *NMesh_printDebug( PyObject * self );
-/* <end> */
 static PyObject *NMesh_addEdge( PyObject * self, PyObject * args );
 static PyObject *NMesh_findEdge( PyObject * self, PyObject * args );
 static PyObject *NMesh_removeEdge( PyObject * self, PyObject * args );
@@ -103,18 +101,14 @@ static PyObject *NMesh_removeFace( PyObject * self, PyObject * args );
 static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args );
 static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args );
 static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args );
-static PyObject *NMesh_removeVertsFromGroup( PyObject * self,
-					     PyObject * args );
+static PyObject *NMesh_removeVertsFromGroup( PyObject * self,PyObject * args );
 static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args );
 static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args );
 static PyObject *NMesh_getVertGroupNames( PyObject * self );
-
-/* <start> */
+static PyObject *NMesh_transform (PyObject *self, PyObject *args);
 
 static char NMesh_printDebug_doc[] =
   "print debug info about the mesh.";
-
-/* <end> */
 
 static char NMesh_addEdge_doc[] =
   "create an edge between two vertices.\n\
@@ -243,8 +237,7 @@ static char NMesh_getVertexInfluences_doc[] =
 specified by index. The list contains pairs with the \n\
 bone name and the weight.";
 
-
-static char NMesh_update_doc[] = \
+static char NMesh_update_doc[] =
 "(recalc_normals = 0, store_edges = 0, vertex_shade = 0) - Updates the Mesh.\n\
 Optional arguments: if given and nonzero:\n\
 'recalc_normals': normal vectors are recalculated;\n\
@@ -288,14 +281,20 @@ This returns the mesh as used by the object, which\n\
 means it contains all deformations and modifications.";
 
 static char M_NMesh_PutRaw_doc[] =
-	"(mesh, [name, renormal, store_edges]) - Return a raw mesh to Blender\n\n\
+	"(mesh, name = None, recalc_normals = 1, store_edges = 0]) -\n\
+Return a raw mesh to Blender\n\n\
 (mesh) The NMesh object to store\n\
 [name] The mesh to replace\n\
-[renormal=1] Flag to control vertex normal recalculation\n\
+[recalc_normals = 1] Flag to control vertex normal recalculation\n\
 [store_edges=0] Store edges data in the blender mesh\n\
 If the name of a mesh to replace is not given a new\n\
 object is created and returned.";
 
+static char NMesh_transform_doc[] =
+	"(matrix, recalc_normals = 0) - Transform the mesh by the supplied 4x4\n\
+matrix.\n\
+(recalc_normals) - if given and 1 or True, transforming the vertex normals\n\
+is skipped.";
 
 
 void mesh_update( Mesh * mesh )
@@ -1341,7 +1340,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 	}
 
 	if( !during_script(  ) && needs_redraw)
-		allqueue( REDRAWVIEW3D, 0 );
+		EXPP_allqueue( REDRAWVIEW3D, 0 );
 
 	return PyInt_FromLong( 1 );
 }
@@ -1579,6 +1578,7 @@ static struct PyMethodDef NMesh_methods[] = {
 	MethodDef( setMode ),
 	MethodDef( setMaxSmoothAngle ),
 	MethodDef( setSubDivLevels ),
+	MethodDef( transform ),
 
 /* METH_NOARGS: function(PyObject *self) */
 #undef MethodDef
@@ -2818,7 +2818,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	mesh_update( mesh );
 
 	if( !during_script(  ) )
-		allqueue( REDRAWVIEW3D, 0 );
+		EXPP_allqueue( REDRAWVIEW3D, 0 );
 
 	// @OK...this requires some explanation:
 	// Materials can be assigned two ways:
@@ -3347,9 +3347,6 @@ static PyObject *NMesh_removeFace( PyObject * self, PyObject * args )
   return EXPP_incr_ret( Py_None );
 }
 
-
-/* <start> */
-
 static PyObject *NMesh_printDebug( PyObject * self )
 {
   BPy_NMesh *bmesh=(BPy_NMesh *)self;
@@ -3402,7 +3399,6 @@ static PyObject *NMesh_printDebug( PyObject * self )
 	return EXPP_incr_ret( Py_None );
 }
 
-/* <end> */
 static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args )
 {
 	char *groupStr;
@@ -3425,7 +3421,7 @@ static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args )
 
 	add_defgroup_name( object, groupStr );
 
-	allqueue( REDRAWBUTSALL, 1 );
+	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -3461,7 +3457,7 @@ static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args )
 
 	del_defgroup( object );
 
-	allqueue( REDRAWBUTSALL, 1 );
+	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -3658,7 +3654,7 @@ static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args )
 	int tempInt;
 	int x;
 
-	listObject = ( void * ) -2054456;	//can't use NULL macro because compiler thinks
+	listObject = Py_None;	//can't use NULL macro because compiler thinks
 	//it's a 0 and we need to check 0 index vertex pos
 	l1 = FALSE;
 	l2 = FALSE;
@@ -3705,7 +3701,7 @@ static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args )
 
 	count = 0;
 
-	if( listObject == ( void * ) -2054456 )	//do entire group
+	if( listObject == Py_None )	//do entire group
 	{
 		for( k = 0; k < ( ( Mesh * ) object->data )->totvert; k++ ) {
 			dvert = ( ( Mesh * ) object->data )->dvert + k;
@@ -3816,13 +3812,11 @@ static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "Couldn't find the expected vertex group" );
 
-	//set name
 	PyOS_snprintf( defGroup->name, 32, newGr );
 	unique_vertexgroup_name( defGroup, ( ( BPy_NMesh * ) self )->object );
 
 	return EXPP_incr_ret( Py_None );
 }
-
 
 static PyObject *NMesh_getVertGroupNames( PyObject * self )
 {
@@ -3843,4 +3837,75 @@ static PyObject *NMesh_getVertGroupNames( PyObject * self )
 	}
 
 	return list;
+}
+
+static PyObject *NMesh_transform (PyObject *self, PyObject *args)
+{
+	BPy_NMesh *nmesh = ( BPy_NMesh * ) self;
+	BPy_NMVert *mv;
+	PyObject *ob1 = NULL;
+	MatrixObject *mat;
+	float vx, vy, vz;
+	int i, recalc_normals = 0;
+
+	if( !PyArg_ParseTuple( args, "O!|i", &matrix_Type, &ob1, &recalc_normals ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected matrix and optionally an int as arguments" ) );
+
+	mat = ( MatrixObject * ) ob1;
+
+	if( mat->colSize != 4 || mat->rowSize != 4 )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"matrix must be a 4x4 transformation matrix\n"
+			"for example as returned by object.getMatrix()" ) );
+	
+	/* loop through all the verts and transform locations by the supplied
+	 * matrix */
+	for( i = 0; i < PySequence_Length(nmesh->verts); i++ ) {
+		mv = ( BPy_NMVert * ) PySequence_GetItem( nmesh->verts, i );
+		vx = mv->co[0];
+		vy = mv->co[1];
+		vz = mv->co[2];
+
+		/* Mat4MulVecfl(mat->matrix, mv->co); */
+
+		mv->co[0] = vx*mat->matrix[0][0] + vy*mat->matrix[1][0] +
+								vz*mat->matrix[2][0] + mat->matrix[3][0];
+		mv->co[1] = vx*mat->matrix[0][1] + vy*mat->matrix[1][1] +
+								vz*mat->matrix[2][1] + mat->matrix[3][1];
+		mv->co[2] = vx*mat->matrix[0][2] + vy*mat->matrix[1][2] +
+					 			vz*mat->matrix[2][2] + mat->matrix[3][2];
+
+		Py_DECREF(mv);
+	}
+
+	if ( recalc_normals ) {
+		/* loop through all the verts and transform normals by the inverse
+		 * of the transpose of the supplied matrix */
+		float invmat[4][4];
+
+		if (!Mat4Invert(invmat, mat->matrix))
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+				"given matrix is not invertible");
+
+		for( i = 0; i < PySequence_Length(nmesh->verts); i++ ) {
+			mv = ( BPy_NMVert * ) PySequence_GetItem( nmesh->verts, i );
+			vx = mv->no[0];
+			vy = mv->no[1];
+			vz = mv->no[2];
+			mv->no[0] = vx*invmat[0][0] + vy*invmat[0][1] + vz*invmat[0][2] +
+						 			invmat[0][3];
+			mv->no[1] = vx*invmat[1][0] + vy*invmat[1][1] + vz*invmat[1][2] +
+									invmat[1][3];
+			mv->no[2] = vx*invmat[2][0] + vy*invmat[2][1] + vz*invmat[2][2] +
+									invmat[2][3];
+			Normalise(mv->no);
+			Py_DECREF(mv);
+		}
+	}
+
+	/* should we alternatively return a list of changed verts (and preserve
+	 * the original ones) ? */
+	Py_INCREF( Py_None );
+	return Py_None;
 }

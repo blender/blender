@@ -67,22 +67,29 @@ Introduction:
 Scripting and Blender:
 ======================
 
-There are four basic ways to execute scripts in Blender:
+These are the basic ways to execute scripts in Blender:
 
  1. They can be loaded or typed as text files in the Text Editor window, then
  executed with ALT+P.
- 2. Via command line: 'blender -P <scriptname>' will start Blender and executed
+ 2. Via command line: C{blender -P <scriptname>} will start Blender and execute
  the given script.  <scriptname> can be a filename in the user's file system or
  the name of a text saved in a .blend Blender file:
  'blender myfile.blend -P textname'.
- 3. Properly registered scripts can be selected directly from the program's
+ 3. Via command line in I{background mode}: use the '-b' flag (the order is
+ important): C{blender -b <blendfile> -P <scriptname>}.  <blendfile> can be any
+ .blend file, including the default .B.blend that is in Blender's home dir
+ L{Blender.Get}('homedir'). In this mode no window will be opened and the
+ program will leave as soon as the script finishes execution.
+ 4. Properly registered scripts can be selected directly from the program's
  menus.
- 4. Scriptlinks: these are also loaded or typed in the Text Editor window and
+ 5. Scriptlinks: these are also loaded or typed in the Text Editor window and
  can be linked to objects, materials or scenes using the Scriptlink buttons
  tab.  Script links get executed automatically when their events (ONLOAD,
  REDRAW, FRAMECHANGED) are triggered.  Normal scripts can create (L{Text}) and
  link other scripts to objects and events, see L{Object.Object.addScriptLink},
  for example.
+ 6. A script can call another script (that will run in its own context, with
+ its own global dictionary) with the L{Blender.Run} module function.
 
 Registering scripts:
 --------------------
@@ -148,6 +155,7 @@ Interaction with users:
     program buttons, which stay there accepting user input like any other
     Blender window until the user closes them;
   - make changes to the 3D View (set visible layer(s), view point, etc);
+  - tell Blender to execute other scripts (see L{Blender.Run}());
   - use external Python libraries, if available.
 
  You can read the documentation for the L{Window}, L{Draw} and L{BGL} modules
@@ -161,16 +169,56 @@ Command line mode:
 
  Python was embedded in Blender, so to access bpython modules you need to
  run scripts from the program itself: you can't import the Blender module
- into an external Python interpreter.  But with "OnLoad" script links, the
- "-b" background mode and additions like the "-P" command line switch,
- L{Blender.Save}, L{Blender.Load}, L{Blender.Quit} and the L{Library} module,
- for many tasks it's possible to control Blender via some automated process
- using scripts.  Note that command line scripts are run before Blender
- initializes its windows, so many functions that get or set window related
- attributes (like most in L{Window}) don't work here.  If you need those, use
- an ONLOAD script link (see L{Scene.Scene.addScriptLink}) instead -- it's
- also possible to use a command line script to write or set an ONLOAD script
- link.
+ into an external Python interpreter.
+
+ But with "OnLoad" script links, the "-b" background mode and additions like
+ the "-P" command line switch, L{Blender.Save}, L{Blender.Load},
+ L{Blender.Quit} and the L{Library} module, for many tasks it's possible to
+ control Blender via some automated process using scripts.  Note that command
+ line scripts are run before Blender initializes its windows (and in '-b' mode
+ no window will be initialized), so many functions that get or set window
+ related attributes (like most in L{Window}) don't work here.  If you need
+ those, use an ONLOAD script link (see L{Scene.Scene.addScriptLink}) instead --
+ it's also possible to use a command line script to write or set an ONLOAD
+ script link.  Check the L{Blender.mode} module var to know if Blender is being
+ executed in "background" or "interactive" mode.
+
+ Background mode examples::
+
+  # Open Blender in background mode with file 'myfile.blend'
+  # and run the script 'script.py':
+
+  blender -b myfile.blend -P script.py
+
+  # Note: a .blend file is always required.  'script.py' can be a file
+  # in the file system or a Blender Text stored in 'myfile.blend'.
+
+  # Let's assume 'script.py' has code to render the current frame;
+  # this line will set the [s]tart and [e]nd (and so the current) frame to
+  # frame 44 and call the script:
+
+  blender -b myfile.blend -s 44 -e 44 -P script.py
+
+  # Using now a script written to render animations, we set different
+  # start and end frames and then execute this line:
+
+  blender -b myfile.blend -s 1 -e 10 -P script.py
+
+  # Note: we can also set frames and define if we want a single image or
+  # an animation in the script body itself, naturally.
+
+ The rendered pictures will be written to the default render folder, that can
+ also be set via bpython (take a look at L{Render.RenderData}).  Their
+ names will be the equivalent frame number followed by the extension of the
+ chosen image type: 0001.png, for example.  To rename them to something else,
+ coders can use the C{rename} function in the standard 'os' Python module.
+
+ Reminder: if you just need to render, it's not necessary to have a script.
+ Blender can create stills and animations with its own command line arguments.
+ Example:
+  - a single image at frame 44: blender -b myfile.blend -f 44
+  - an animation from frame 1 to 10: blender -b myfile.blend -s 1 -e 10 -a
+
 
 Demo mode:
 ----------
@@ -263,7 +311,7 @@ Documenting scripts:
 
  Example::
    __author__ = 'Mr. Author'
-   __version__ = '1.0 11/11/04'
+   __version__ = '1.0 2005/06/06'
    __url__ = ["Author's site, http://somewhere.com",
        "Support forum, http://somewhere.com/forum/", "blender", "elysiun"]
    __email__ = ["Mr. Author, mrauthor:somewhere*com", "scripts"]
@@ -294,9 +342,10 @@ A note to newbie script writers:
 
  Interpreted languages are known to be much slower than compiled code, but for
  many applications the difference is negligible or acceptable.  Also, with
- profiling to identify slow areas and well thought optimizations, the speed
- can be I{considerably} improved in many cases.  Try some of the best bpython
- scripts to get an idea of what can be done, you may be surprised.
+ profiling (or even simple direct timing with L{Blender.sys.time<Sys.time>}) to
+ identify slow areas and well thought optimizations, the speed can be
+ I{considerably} improved in many cases.  Try some of the best bpython scripts
+ to get an idea of what can be done, you may be surprised.
 
 @author: The Blender Python Team
 @requires: Blender 2.35 or newer.

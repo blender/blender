@@ -1030,7 +1030,10 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 static void do_view3d_select_faceselmenu(void *arg, int event)
 {
 //	extern void borderselect(void);
-	
+
+	/* events >= 5 are registered bpython scripts */
+	if (event >= 5) BPY_menu_do_python(PYMENU_FACESELECT, event - 5);
+
 	switch(event) {
 			case 0: /* border select */
 			borderselect();
@@ -1052,7 +1055,9 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
-	
+	BPyMenu *pym;
+	int i = 0;
+
 	block= uiNewBlock(&curarea->uiblocks, "view3d_select_faceselmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_select_faceselmenu, NULL);
 	
@@ -1063,6 +1068,15 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Same UV",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	/* note that we account for the 5 previous entries with i+5: */
+	for (pym = BPyMenuTable[PYMENU_FACESELECT]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 1, i+5,
+			pym->tooltip?pym->tooltip:pym->filename);
+	}
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -3249,6 +3263,7 @@ static uiBlock *view3d_facesel_showhidemenu(void *arg_unused)
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+
 static void do_view3d_faceselmenu(void *arg, int event)
 {
 	/* code copied from buttons.c :(	

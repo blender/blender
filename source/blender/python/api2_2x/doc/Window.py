@@ -8,8 +8,6 @@ Window
 
 This module provides access to B{Window} functions in Blender.
 
-B{New}: L{GetPerspMatrix}.
-
 Example:
 --------
 
@@ -133,6 +131,11 @@ def FileSelector (callback, title = 'SELECT FILE', filename = '<default>'):
       and return from the file selection window.
   @type filename: string
   @param filename: A filename.  This defaults to Blender.Get('filename').
+  @warn: script links are not allowed to call the File / Image Selectors.  This
+     is because script links global dictionaries are removed when they finish
+     execution and the File Selector needs the passed callback to stay around.
+     An alternative is calling the File Selector from another script (see
+     L{Blender.Run}).
   """
 
 def ImageSelector (callback, title = 'SELECT IMAGE', filename = '<default>'):
@@ -153,7 +156,12 @@ def ImageSelector (callback, title = 'SELECT IMAGE', filename = '<default>'):
   @param title: The string that appears in the button to confirm the selection
       and return from the image selection window.
   @type filename: string
-  @param filename: A filename.  This defaults to Blender.Get('filename').
+  @param filename: A filename.  This defaults to L{Blender.Get}('filename').
+  @warn: script links are not allowed to call the File / Image Selectors.  This
+     is because script links global dictionaries are removed when they finish
+     execution and the File Selector needs the passed callback to stay around.
+     An alternative is calling the File Selector from another script (see
+     L{Blender.Run}).
   """
 
 def DrawProgressBar (done, text):

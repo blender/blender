@@ -77,6 +77,7 @@
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
 
+#include "api2_2x/gen_utils.h"
 #include "api2_2x/modules.h"
 
 /* bpy_registryDict is declared in api2_2x/Registry.h and defined
@@ -356,17 +357,22 @@ const char *BPY_Err_getFilename( void )
 /*****************************************************************************/
 PyObject *traceback_getFilename( PyObject * tb )
 {
-	PyObject *v;
+	PyObject *v = NULL;
 
 /* co_filename is in f_code, which is in tb_frame, which is in tb */
 
 	v = PyObject_GetAttrString( tb, "tb_frame" );
-	Py_XDECREF( v );
-	v = PyObject_GetAttrString( v, "f_code" );
-	Py_XDECREF( v );
-	v = PyObject_GetAttrString( v, "co_filename" );
+	if (v) {
+		Py_DECREF( v );
+		v = PyObject_GetAttrString( v, "f_code" );
+		if (v) {
+			Py_DECREF( v );
+			v = PyObject_GetAttrString( v, "co_filename" );
+		}
+	}
 
-	return v;
+	if (v) return v;
+	else return PyString_FromString("unknown");
 }
 
 /****************************************************************************
@@ -429,11 +435,8 @@ void BPY_Err_Handle( char *script_name )
 		while( 1 ) {
 			v = PyObject_GetAttrString( tb, "tb_next" );
 
-			if( v == Py_None
-			    ||
-			    strcmp( PyString_AsString
-				    ( traceback_getFilename( v ) ),
-				    script_name ) ) {
+			if( !v || v == Py_None ||
+				strcmp(PyString_AsString(traceback_getFilename(v)), script_name)) {
 				break;
 			}
 
@@ -442,12 +445,16 @@ void BPY_Err_Handle( char *script_name )
 		}
 
 		v = PyObject_GetAttrString( tb, "tb_lineno" );
-		g_script_error.lineno = PyInt_AsLong( v );
-		Py_XDECREF( v );
+		if (v) {
+			g_script_error.lineno = PyInt_AsLong(v);
+			Py_DECREF(v);
+		}
 		v = traceback_getFilename( tb );
-		strncpy( g_script_error.filename, PyString_AsString( v ),
-			 FILENAME_LENGTH );
-		Py_XDECREF( v );
+		if (v) {
+			strncpy( g_script_error.filename, PyString_AsString( v ),
+				FILENAME_LENGTH );
+			Py_DECREF(v);
+		}
 		Py_DECREF( tb );
 	}
 
@@ -543,56 +550,48 @@ int BPY_txt_do_python_Text( struct Text *text )
 }
 
 /****************************************************************************
-* Description: The original function of this name has been refactored	   
-* into BPY_txt_do_python_Text.  That version is needed for the command	
-* line support for Python.  This is here to keep the interface the 
-* same and reduce code changes elsewhere. 
-****************************************************************************/
-int BPY_txt_do_python( struct SpaceText *st )
-{
-	return BPY_txt_do_python_Text( st->text );
-}
-
-/****************************************************************************
 * Description: Called from command line to run a Python script
 * automatically. 
 ****************************************************************************/
 void BPY_run_python_script( char *fn )
 {
 	Text *text = NULL;
-	int is_blenText = 0;
+	int is_blender_text = 0;
 
-	if( !BLI_exists( fn ) ) {	/* if there's no such filename ... */
+	if (!BLI_exists(fn)) {	/* if there's no such filename ... */
 		text = G.main->text.first;	/* try an already existing Blender Text */
-		while( text ) {
-			if( !strcmp( fn, text->id.name + 2 ) )
-				break;
+
+		while (text) {
+			if (!strcmp(fn, text->id.name + 2)) break;
 			text = text->id.next;
 		}
 
-		if( !text ) {
-			printf( "\nError: no such file or Blender text -- %s.\n", fn );
+		if (text == NULL) {
+			printf("\nError: no such file or Blender text -- %s.\n", fn);
 			return;
-		} else
-			is_blenText = 1;	/* fn is already a Blender Text */
+		}
+		else is_blender_text = 1;	/* fn is already a Blender Text */
 	}
 
-	if( !is_blenText )
-		text = add_text( fn );
-	if( text == NULL ) {
-		printf( "Error in BPY_run_python_script: couldn't create Blender text " "from %s\n", fn );
-		// Chris: On Windows if I continue I just get a segmentation
-		// violation.  To get a baseline file I exit here.
-		exit( 2 );
+	else {
+		text = add_text(fn);
+
+		if (text == NULL) {
+			printf("\nError in BPY_run_python_script:\n"
+				"couldn't create Blender text from %s\n", fn);
+		/* Chris: On Windows if I continue I just get a segmentation
+		 * violation.  To get a baseline file I exit here. */
+		exit(2);
+		/* return; */
+		}
 	}
 
-	if( BPY_txt_do_python_Text( text ) != 1 ) {
-		printf( "\nError executing Python script from command-line:\n"
-			"%s (at line %d).\n", fn, BPY_Err_getLinenumber(  ) );
+	if (BPY_txt_do_python_Text(text) != 1) {
+		printf("\nError executing Python script from command-line:\n"
+			"%s (at line %d).\n", fn, BPY_Err_getLinenumber());
 	}
 
-	if( !is_blenText )
-		free_libblock( &G.main->text, text );
+	if (!is_blender_text) free_libblock(&G.main->text, text);
 }
 
 /****************************************************************************
@@ -611,7 +610,6 @@ int BPY_menu_do_python( short menutype, int event )
 	FILE *fp = NULL;
 	char *buffer, *s;
 	char filestr[FILE_MAXDIR + FILE_MAXFILE];
-	char dirname[FILE_MAXDIR];
 	char scriptname[21];
 	Script *script = NULL;
 	int len;
@@ -654,13 +652,9 @@ int BPY_menu_do_python( short menutype, int event )
 	}
 
 	if( pym->dir )		/* script is in U.pythondir */
-		BLI_make_file_string( "/", filestr, U.pythondir,
-				      pym->filename );
-	else {			/* script is in ~/.blender/scripts/ */
-		BLI_make_file_string( "/", dirname, bpy_gethome(  ),
-				      "scripts" );
-		BLI_make_file_string( "/", filestr, dirname, pym->filename );
-	}
+		BLI_make_file_string( "/", filestr, U.pythondir, pym->filename );
+	else /* script is in ~/.blender/scripts/ */
+		BLI_make_file_string( "/", filestr, bpy_gethome(1), pym->filename );
 
 	fp = fopen( filestr, "rb" );
 	if( !fp ) {
@@ -692,9 +686,10 @@ int BPY_menu_do_python( short menutype, int event )
 	 * each group will be put to code this properly) */
 	switch ( menutype ) {
 
-	case PYMENU_IMPORT:	/* first 3 were handled in header_info.c */
+	case PYMENU_IMPORT:	/* first 4 were handled in header_info.c */
 	case PYMENU_EXPORT:
 	case PYMENU_HELP:
+	case PYMENU_RENDER:
 	case PYMENU_WIZARDS:
 		break;
 
@@ -1033,8 +1028,7 @@ void BPY_do_pyscript( ID * id, short event )
 		disable_where_scriptlink( during_slink );
 
 		/* set globals in Blender module to identify scriptlink */
-		Py_INCREF( Py_True );
-		PyDict_SetItemString( g_blenderdict, "bylink", Py_True );
+		PyDict_SetItemString( g_blenderdict, "bylink", EXPP_incr_ret_True() );
 		PyDict_SetItemString( g_blenderdict, "link",
 				      ID_asPyObject( id ) );
 		PyDict_SetItemString( g_blenderdict, "event",
@@ -1074,8 +1068,7 @@ void BPY_do_pyscript( ID * id, short event )
 		/* cleanup bylink flag and clear link so PyObject
 		 * can be released 
 		 */
-		Py_INCREF( Py_False );
-		PyDict_SetItemString( g_blenderdict, "bylink", Py_False );
+		PyDict_SetItemString( g_blenderdict, "bylink", EXPP_incr_ret_False() );
 		Py_INCREF( Py_None );
 		PyDict_SetItemString( g_blenderdict, "link", Py_None );
 		PyDict_SetItemString( g_blenderdict, "event",
@@ -1358,17 +1351,25 @@ void init_ourImport( void )
 
 /* this makes sure BLI_gethome() returns a path with '.blender' appended
  * Besides, this function now either returns userhome/.blender (if it exists)
- * or blenderInstallDir/.blender/ otherwise 
+ * or blenderInstallDir/.blender/ otherwise.
+ * If append_scriptsdir is non NULL, "scripts/" is appended to the dir, to
+ * get the path to the scripts folder.
+ * Finally, if searched dir doesn't exist, NULL is returned.
 */
-char *bpy_gethome(  )
+char *bpy_gethome(int append_scriptsdir)
 {
 	static char homedir[FILE_MAXDIR];
+	static char scriptsdir[FILE_MAXDIR];
 	char bprogdir[FILE_MAXDIR];
 	char *s;
 	int i;
 
-	if( homedir[0] != '\0' )
-		return homedir;	/* no need to search twice */
+	if (append_scriptsdir) {
+		if (scriptsdir[0] != '\0')
+			return scriptsdir;
+	}
+	else if (homedir[0] != '\0')
+		return homedir;
 
 	s = BLI_gethome(  );
 
@@ -1378,8 +1379,13 @@ char *bpy_gethome(  )
 		BLI_make_file_string( "/", homedir, s, ".blender/" );
 
 	/* if userhome/.blender/ exists, return it */
-	if( BLI_exists( homedir ) )
-		return homedir;
+	if( BLI_exists( homedir ) ) {
+		if (append_scriptsdir) {
+			BLI_make_file_string("/", scriptsdir, homedir, "scripts/");
+			if (BLI_exists (scriptsdir)) return scriptsdir;
+		}
+		else return homedir;
+	}
 
 	/* otherwise, use argv[0] (bprogname) to get .blender/ in
 	 * Blender's installation dir */
@@ -1390,5 +1396,13 @@ char *bpy_gethome(  )
 	PyOS_snprintf( bprogdir, i, bprogname );
 	BLI_make_file_string( "/", homedir, bprogdir, ".blender/" );
 
-	return homedir;
+	if (BLI_exists(homedir)) {
+		if (append_scriptsdir) {
+			BLI_make_file_string("/", scriptsdir, homedir, "scripts/");
+			if (BLI_exists(scriptsdir)) return scriptsdir;
+		}
+		else return homedir;
+	}
+
+	return NULL;
 }

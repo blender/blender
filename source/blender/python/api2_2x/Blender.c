@@ -49,6 +49,7 @@
 #include <BKE_global.h>
 #include <BKE_packedFile.h>
 #include <BKE_object.h>
+#include <BKE_text.h>
 #include <BPI_script.h>
 #include <BSE_headerbuttons.h>
 #include <DNA_ID.h>
@@ -60,13 +61,10 @@
 #include <BKE_ipo.h>
 #include <blendef.h>
 
-
-
 #include "gen_utils.h"
 #include "modules.h"
 #include "../BPY_extern.h"	/* for bpy_gethome() */
 #include "../BPY_menus.h"	/* to update menus */
-
 
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/
@@ -77,10 +75,10 @@ static PyObject *Blender_Redraw( PyObject * self, PyObject * args );
 static PyObject *Blender_Quit( PyObject * self );
 static PyObject *Blender_Load( PyObject * self, PyObject * args );
 static PyObject *Blender_Save( PyObject * self, PyObject * args );
+static PyObject *Blender_Run( PyObject * self, PyObject * args );
 static PyObject *Blender_UpdateMenus( PyObject * self);
 
 extern PyObject *Text3d_Init( void ); /* missing in some include */
-
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
@@ -135,6 +133,10 @@ Note 2: only .blend raises an error if file wasn't saved.\n\
 \tYou can use Blender.sys.exists(filename) to make sure the file was saved\n\
 \twhen writing to one of the other formats.";
 
+static char Blender_Run_doc[] =
+	"(script) - Run the given Python script.\n\
+(script) - the path to a file or the name of an available Blender Text.";
+
 static char Blender_UpdateMenus_doc[] =
 	"() - Update the menus where scripts are registered.  Only needed for\n\
 scripts that save other new scripts in the default or user defined folders.";
@@ -149,6 +151,7 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Quit", ( PyCFunction ) Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
 	{"Save", Blender_Save, METH_VARARGS, Blender_Save_doc},
+	{"Run", Blender_Run, METH_VARARGS, Blender_Run_doc},
 	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
 	 Blender_UpdateMenus_doc},
 	{NULL, NULL, 0, NULL}
@@ -196,104 +199,87 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *Blender_Get( PyObject * self, PyObject * args )
 {
-	PyObject *object;
-	PyObject *dict;
-	char *str;
+	PyObject *ret = NULL, *dict = NULL;
+	char *str = NULL;
 
-	if( !PyArg_ParseTuple( args, "O", &object ) ) {
-		/* TODO: Do we need to generate a nice error message here? */
-		return ( NULL );
+	if( !PyArg_ParseTuple( args, "s", &str ) )
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected string argument");
+
+	if( StringEqual( str, "curframe" ) )
+		ret = PyInt_FromLong( G.scene->r.cfra );
+	else if( StringEqual( str, "curtime" ) )
+		ret = PyFloat_FromDouble( frame_to_float( G.scene->r.cfra ) );
+	else if( StringEqual( str, "staframe" ) )
+		ret = PyInt_FromLong( G.scene->r.sfra );
+	else if( StringEqual( str, "endframe" ) )
+		ret = PyInt_FromLong( G.scene->r.efra );
+	else if( StringEqual( str, "filename" ) )
+		ret = PyString_FromString( G.sce );
+	else if( StringEqual( str, "homedir" ) ) {
+		char *hdir = bpy_gethome(0);
+		if( BLI_exists( hdir ))
+			ret = PyString_FromString( hdir );
+		else
+			ret = EXPP_incr_ret( Py_None );
 	}
+	else if( StringEqual( str, "datadir" ) ) {
+		char datadir[FILE_MAXDIR];
 
-	if( PyString_Check( object ) ) {
-		str = PyString_AsString( object );
+		BLI_make_file_string( "/", datadir, bpy_gethome(1), "bpydata/" );
+		if( BLI_exists( datadir ) )
+			ret = PyString_FromString( datadir );
+		else
+			ret = EXPP_incr_ret( Py_None );
+	}
+	else if(StringEqual(str, "udatadir")) {
+		char udatadir[FILE_MAXDIR];
 
-		if( StringEqual( str, "curframe" ) ) {
-			return ( PyInt_FromLong( G.scene->r.cfra ) );
+		if (BLI_exists(U.pythondir)) {
+			BLI_make_file_string("/", udatadir, U.pythondir, "bpydata/");
+			if (BLI_exists(udatadir))
+				ret = PyString_FromString(udatadir);
 		}
-		if( StringEqual( str, "curtime" ) ) {
-			return ( PyFloat_FromDouble
-				 ( frame_to_float( G.scene->r.cfra ) ) );
-		}
-		if( StringEqual( str, "staframe" ) ) {
-			return ( PyInt_FromLong( G.scene->r.sfra ) );
-		}
-		if( StringEqual( str, "endframe" ) ) {
-			return ( PyInt_FromLong( G.scene->r.efra ) );
-		}
-		if( StringEqual( str, "filename" ) ) {
-			return ( PyString_FromString( G.sce ) );
-		}
-		if( StringEqual( str, "homedir" ) ) {
-			if( BLI_exists( bpy_gethome() ))
-				return PyString_FromString( bpy_gethome() );
-			else
-				return EXPP_incr_ret( Py_None );
-		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}
+	else if( StringEqual( str, "scriptsdir" ) ) {
+		char *sdir = bpy_gethome(1);
 
-		if( StringEqual( str, "datadir" ) ) {
-			char datadir[FILE_MAXDIR];
-			BLI_make_file_string( "/", datadir, bpy_gethome(  ),
-					      "bpydata/" );
-			if( BLI_exists( datadir ) )
-				return PyString_FromString( datadir );
+		if (sdir)
+			ret = PyString_FromString(sdir);
 			else
-				return EXPP_incr_ret( Py_None );
-		}
-		if( StringEqual( str, "scriptsdir" ) ) {
-			char scriptsdir[FILE_MAXDIR];
-			BLI_make_file_string( "/", scriptsdir, bpy_gethome(  ),
-					      "scripts/" );
-			if( BLI_exists( scriptsdir ) )
-				return PyString_FromString( scriptsdir );
-			else
-				return EXPP_incr_ret( Py_None );
-		}
-		if( StringEqual( str, "uscriptsdir" ) ) {
+				ret = EXPP_incr_ret( Py_None );
+	}
+	else if( StringEqual( str, "uscriptsdir" ) ) {
 			if( BLI_exists( U.pythondir ) )
-				return PyString_FromString( U.pythondir );
+				ret = PyString_FromString( U.pythondir );
 			else
-				return EXPP_incr_ret( Py_None );
-		}
-		/* According to the old file (opy_blender.c), the following if
-		   statement is a quick hack and needs some clean up. */
-		if( StringEqual( str, "vrmloptions" ) ) {
-			dict = PyDict_New(  );
-
-			PyDict_SetItemString( dict, "twoside",
-					      PyInt_FromLong( U.
-							      vrmlflag &
-							      USER_VRML_TWOSIDED ) );
-
-			PyDict_SetItemString( dict, "layers",
-					      PyInt_FromLong( U.
-							      vrmlflag &
-							      USER_VRML_LAYERS ) );
-
-			PyDict_SetItemString( dict, "autoscale",
-					      PyInt_FromLong( U.
-							      vrmlflag &
-							      USER_VRML_AUTOSCALE ) );
-
-			return ( dict );
-		}		/* End 'quick hack' part. */
-		if( StringEqual( str, "version" ) ) {
-			return ( PyInt_FromLong( G.version ) );
-		}
-		/* TODO: Do we want to display a usefull message here that the
-		   requested data is unknown?
-		   else
-		   {
-		   return (EXPP_ReturnPyObjError (..., "message") );
-		   }
-		 */
-	} else {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string argument" ) );
+				ret = EXPP_incr_ret( Py_None );
 	}
+	/* According to the old file (opy_blender.c), the following if
+	   statement is a quick hack and needs some clean up. */
+	else if( StringEqual( str, "vrmloptions" ) ) {
+		ret = PyDict_New(  );
 
-	return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-					"bad request identifier" ) );
+		PyDict_SetItemString( dict, "twoside",
+			PyInt_FromLong( U.vrmlflag & USER_VRML_TWOSIDED ) );
+
+		PyDict_SetItemString( dict, "layers",
+			PyInt_FromLong( U.vrmlflag & USER_VRML_LAYERS ) );
+
+		PyDict_SetItemString( dict, "autoscale",
+			PyInt_FromLong( U.vrmlflag & USER_VRML_AUTOSCALE ) );
+
+	} /* End 'quick hack' part. */
+	else if(StringEqual( str, "version" ))
+		ret = PyInt_FromLong( G.version );
+	else
+		return EXPP_ReturnPyObjError( PyExc_AttributeError, "unknown attribute" );
+
+	if (ret) return ret;
+	else
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+			"could not create pystring!");
 }
 
 /*****************************************************************************/
@@ -491,6 +477,47 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject *Blender_Run(PyObject *self, PyObject *args)
+{
+	char *fname = NULL;
+	Text *text = NULL;
+	int is_blender_text = 0;
+
+	if (!PyArg_ParseTuple(args, "s", &fname))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+			"expected a filename or a Blender Text name as argument");
+
+	if (!BLI_exists(fname)) {	/* if there's no such filename ... */
+		text = G.main->text.first;	/* try an already existing Blender Text */
+
+		while (text) {
+			if (!strcmp(fname, text->id.name + 2)) break;
+			text = text->id.next;
+		}
+
+		if (!text) {
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"no such file or Blender text");
+		}
+		else is_blender_text = 1;	/* fn is already a Blender Text */
+	}
+
+	else {
+		text = add_text(fname);
+
+		if (!text) {
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"couldn't create Blender Text from given file");
+		}
+	}
+
+	BPY_txt_do_python_Text(text);
+
+	if (!is_blender_text) free_libblock(&G.main->text, text);
+
+	return EXPP_incr_ret(Py_None);
+}
+
 static PyObject * Blender_UpdateMenus( PyObject * self )
 {
 
@@ -510,7 +537,7 @@ static PyObject * Blender_UpdateMenus( PyObject * self )
 void M_Blender_Init( void )
 {
 	PyObject *module;
-	PyObject *dict;
+	PyObject *dict, *smode;
 
 	g_blenderdict = NULL;
 
@@ -519,12 +546,18 @@ void M_Blender_Init( void )
 
 	types_InitAll(  );	/* set all our pytypes to &PyType_Type */
 
+	if (G.background)
+		smode = PyString_FromString("background");
+	else
+		smode = PyString_FromString("interactive");
+
 	dict = PyModule_GetDict( module );
 	g_blenderdict = dict;
 
 	PyDict_SetItemString( dict, "bylink", EXPP_incr_ret_False() );
 	PyDict_SetItemString( dict, "link", EXPP_incr_ret ( Py_None ) );
 	PyDict_SetItemString( dict, "event", PyString_FromString( "" ) );
+	PyDict_SetItemString( dict, "mode", smode );
 
 	PyDict_SetItemString( dict, "Types", Types_Init(  ) );
 	PyDict_SetItemString( dict, "sys", sys_Init(  ) );

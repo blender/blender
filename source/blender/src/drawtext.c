@@ -966,7 +966,7 @@ void run_python_script(SpaceText *st)
 	char *py_filename;
 	Text *text=st->text;
 
-	if (!BPY_txt_do_python(st)) {
+	if (!BPY_txt_do_python_Text(text)) {
 		int lineno = BPY_Err_getLinenumber();
 		// jump to error if happened in current text:
 		py_filename = (char*) BPY_Err_getFilename();

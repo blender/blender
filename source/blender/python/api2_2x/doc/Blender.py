@@ -10,10 +10,27 @@
 """
 The main Blender module.
 
-B{New}: L{UpdateMenus}.
+B{New}: L{Run}, L{UpdateMenus}, new options to L{Get}.
 
 Blender
 =======
+
+@type bylink: bool
+@var bylink: True if the current script is being executed as a script link.
+@type link: Blender Object or None
+@var link: if this script is a running script link, 'link' points to the
+    linked Object (can be a scene, object (mesh, camera, lamp), material or
+    world).  If this is not a script link, 'link' is None.
+@type event: string
+@var event: if this script is a running script link, 'event' tells what
+    kind of link triggered it (ex: OnLoad, FrameChanged, Redraw, etc.).
+@type mode: string
+@var mode: Blender's current mode:
+    - 'interactive': normal mode, with an open window answering to user input;
+    - 'background': Blender was started as 'C{blender -b <blender file>}' and
+      will exit as soon as it finishes rendering or executing a script
+      (ex: 'C{blender -b <blender file> -P <script>}').  Try 'C{blender -h}'
+      for more detailed informations.
 """
 
 def Set (request, data):
@@ -31,21 +48,25 @@ def Get (request):
   Retrieve settings from Blender.
   @type request: string
   @param request: The setting data to be returned:
-      - 'curframe': the current animation frame
-      - 'curtime' : the current animation time
-      - 'staframe': the start frame of the animation
-      - 'endframe': the end frame of the animation
-      - 'filename': the name of the last file read or written
-      - 'homedir':  Blender's home dir
+      - 'curframe': the current animation frame.
+      - 'curtime' : the current animation time.
+      - 'staframe': the start frame of the animation.
+      - 'endframe': the end frame of the animation.
+      - 'filename': the name of the last file read or written.
+      - 'homedir':  Blender's home dir.
       - 'datadir' : the path to the dir where scripts should store and
             retrieve their data files, including saved configuration (can
             be None, if not found).
+      - 'udatadir': the path to the user defined data dir.  This may not be
+            available (is None if not found), but users that define uscriptsdir
+            have a place for their own scripts and script data that won't be
+            erased when a new version of Blender is installed.
       - 'scriptsdir': the path to the main dir where scripts are stored
             (can be None, if not found).
       - 'uscriptsdir': the path to the user defined dir for scripts, see
             the paths tab in the User Preferences window in Blender
             (can be None, if not found).
-      - 'version' : the Blender version number
+      - 'version' : the Blender version number.
   @return: The requested data.
   """
 
@@ -106,6 +127,17 @@ def Save (filename, overwrite = 0):
 
   @note: The substring ".B.blend" is not accepted inside 'filename'.
   @note: DXF, STL and Videoscape export only B{selected} meshes.
+  """
+
+def Run (script):
+  """
+  Execute the given script.
+  @type script: string
+  @param script: the name of an available Blender Text (use L{Text.Get}() to
+      get a complete list) or the full pathname to a Python script file in the
+      system.
+  @note: the script is executed in its own context (with its own global
+      dictionary), as if you had called it with ALT+P or chosen from a menu.
   """
 
 def UpdateMenus ():

@@ -36,7 +36,7 @@
 #include <BKE_sound.h>
 #include <BLI_blenlib.h>
 #include <BIF_editsound.h>
-#include <BIF_space.h>		/* allqueue() */
+#include <BIF_space.h>		/* EXPP_allqueue() */
 
 #include "mydevice.h"		/* redraw defines */
 
@@ -427,8 +427,8 @@ static PyObject *Sound_setCurrent( BPy_Sound * self )
 		}
 	}
 
-	allqueue( REDRAWSOUND, 0 );
-	allqueue( REDRAWBUTSLOGIC, 0 );
+	EXPP_allqueue( REDRAWSOUND, 0 );
+	EXPP_allqueue( REDRAWBUTSLOGIC, 0 );
 
 	Py_INCREF( Py_None );
 	return Py_None;

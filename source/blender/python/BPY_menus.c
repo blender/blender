@@ -77,20 +77,26 @@ BPyMenu *BPyMenuTable[PYMENU_TOTAL];
 
 static int bpymenu_group_atoi( char *str )
 {
-	if( !strcmp( str, "Import" ) )
-		return PYMENU_IMPORT;
-	else if( !strcmp( str, "Export" ) )
+	if( !strcmp( str, "Export" ) )
 		return PYMENU_EXPORT;
+	else if( !strcmp( str, "Import" ) )
+		return PYMENU_IMPORT;
 	else if( !strcmp( str, "Help" ) )
 		return PYMENU_HELP;
-	else if( !strcmp( str, "Websites" ) || !strcmp( str, "HelpWebsites" ) )
+	else if( !strcmp( str, "HelpWebsites" ) )
 		return PYMENU_HELPWEBSITES;
-	else if( !strcmp( str, "System" ) || !strcmp( str, "HelpSystem" ) )
+	else if( !strcmp( str, "HelpSystem" ) )
 		return PYMENU_HELPSYSTEM;
-	else if( !strcmp( str, "Add" ) )
-		return PYMENU_ADD;
+	else if( !strcmp( str, "Render" ) )
+		return PYMENU_RENDER;
+	else if( !strcmp( str, "Object" ) )
+		return PYMENU_OBJECT;
 	else if( !strcmp( str, "Mesh" ) )
 		return PYMENU_MESH;
+	else if( !strncmp( str, "Theme", 5 ) )
+		return PYMENU_THEMES;
+	else if( !strcmp( str, "Add" ) )
+		return PYMENU_ADD;
 	else if( !strcmp( str, "Wizards" ) )
 		return PYMENU_WIZARDS;
 	else if( !strcmp( str, "Animation" ) )
@@ -99,8 +105,8 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_MATERIALS;
 	else if( !strcmp( str, "UV" ) )
 		return PYMENU_UV;
-	else if( !strcmp( str, "Object" ) )
-		return PYMENU_OBJECT;
+	else if( !strcmp( str, "FaceSelect" ) )
+		return PYMENU_FACESELECT;
 	/* "Misc" or an inexistent group name: use misc */
 	else
 		return PYMENU_MISC;
@@ -109,11 +115,11 @@ static int bpymenu_group_atoi( char *str )
 char *BPyMenu_group_itoa( short menugroup )
 {
 	switch ( menugroup ) {
-	case PYMENU_IMPORT:
-		return "Import";
-		break;
 	case PYMENU_EXPORT:
 		return "Export";
+		break;
+	case PYMENU_IMPORT:
+		return "Import";
 		break;
 	case PYMENU_ADD:
 		return "Add";
@@ -122,13 +128,22 @@ char *BPyMenu_group_itoa( short menugroup )
 		return "Help";
 		break;
 	case PYMENU_HELPWEBSITES:
-		return "Websites";
+		return "HelpWebsites";
 		break;
 	case PYMENU_HELPSYSTEM:
-		return "System";
+		return "HelpSystem";
+		break;
+	case PYMENU_RENDER:
+		return "Render";
+		break;
+	case PYMENU_OBJECT:
+		return "Object";
 		break;
 	case PYMENU_MESH:
 		return "Mesh";
+		break;
+	case PYMENU_THEMES:
+		return "Themes";
 		break;
 	case PYMENU_WIZARDS:
 		return "Wizards";
@@ -142,8 +157,8 @@ char *BPyMenu_group_itoa( short menugroup )
 	case PYMENU_UV:
 		return "UV";
 		break;
-	case PYMENU_OBJECT:
-		return "Object";
+	case PYMENU_FACESELECT:
+		return "FaceSelect";
 		break;
 	case PYMENU_MISC:
 		return "Misc";
@@ -284,7 +299,7 @@ static void bpymenu_set_tooltip( BPyMenu * pymenu, char *tip )
  * if found, update it with new info, otherwise create a new one and fill it.
  */
 static BPyMenu *bpymenu_AddEntry( short group, short version, char *name,
-				  char *fname, int whichdir, char *tooltip )
+	char *fname, int is_userdir, char *tooltip )
 {
 	BPyMenu *menu, *next = NULL, **iter;
 	int nameclash = 0;
@@ -301,7 +316,7 @@ static BPyMenu *bpymenu_AddEntry( short group, short version, char *name,
 	 *   accept and let the new one override the other.
 	 * - otherwise, report the error and return NULL. */
 	if( menu ) {
-		if( menu->dir < whichdir ) {	/* new one is in U.pythondir */
+		if( menu->dir < is_userdir ) {	/* new one is in U.pythondir */
 			nameclash = 1;
 			if( menu->name )
 				MEM_freeN( menu->name );
@@ -313,9 +328,9 @@ static BPyMenu *bpymenu_AddEntry( short group, short version, char *name,
 				bpymenu_RemoveAllSubEntries( menu->submenus );
 			next = menu->next;
 		} else {	/* they are in the same dir */
-			if( DEBUG ) {
-				printf( "\nWarning: script %s's menu name is already in use.\n", fname );
-				printf( "Edit the script and change its Name: '%s' field, please.\n" "Note: if you really want two scripts in the same menu with\n" "the same name, keep one in the default dir and the other in\n" "the user defined dir, where it will take precedence.\n", name );
+			if (DEBUG) {
+				printf("\nWarning: script %s's menu name is already in use.\n", fname );
+				printf("Edit the script and change its Name: '%s' field, please.\n" "Note: if you really want two scripts in the same menu with\n" "the same name, keep one in the default dir and the other in\n" "the user defined dir, where it will take precedence.\n", name);
 			}
 			return NULL;
 		}
@@ -331,7 +346,7 @@ static BPyMenu *bpymenu_AddEntry( short group, short version, char *name,
 	menu->tooltip = NULL;
 	if( tooltip )
 		menu->tooltip = BLI_strdup( tooltip );
-	menu->dir = whichdir;
+	menu->dir = is_userdir;
 	menu->submenus = NULL;
 	menu->next = next;	/* non-NULL if menu already existed */
 
@@ -399,7 +414,7 @@ static int bpymenu_CreateFromFile( void )
 {
 	FILE *fp;
 	char line[255], w1[255], w2[255], tooltip[255], *tip;
-	int parsing, version, whichdir;
+	int parsing, version, is_userdir;
 	short group;
 	BPyMenu *pymenu = NULL;
 
@@ -409,7 +424,7 @@ static int bpymenu_CreateFromFile( void )
 		BPyMenuTable[group] = NULL;
 
 	/* let's try to open the file with bpymenu data */
-	BLI_make_file_string( "/", line, bpy_gethome(  ), BPYMENU_DATAFILE );
+	BLI_make_file_string( "/", line, bpy_gethome(0), BPYMENU_DATAFILE );
 
 	fp = fopen( line, "rb" );
 
@@ -464,7 +479,7 @@ static int bpymenu_CreateFromFile( void )
 				parsing =
 					sscanf( line,
 						"'%[^']' %d %s %d '%[^']'\n",
-						w1, &version, w2, &whichdir,
+						w1, &version, w2, &is_userdir,
 						tooltip );
 
 				if( parsing <= 0 ) {	/* invalid line, get rid of it */
@@ -474,7 +489,7 @@ static int bpymenu_CreateFromFile( void )
 
 				pymenu = bpymenu_AddEntry( group,
 							   ( short ) version,
-							   w1, w2, whichdir,
+							   w1, w2, is_userdir,
 							   tip );
 				if( !pymenu ) {
 					puts( "BPyMenus error: couldn't create bpymenu entry.\n" );
@@ -506,7 +521,7 @@ static void bpymenu_WriteDataFile( void )
 	char fname[FILE_MAXDIR + FILE_MAXFILE];
 	int i;
 
-	BLI_make_file_string( "/", fname, bpy_gethome(  ), BPYMENU_DATAFILE );
+	BLI_make_file_string( "/", fname, bpy_gethome(0), BPYMENU_DATAFILE );
 
 	fp = fopen( fname, "w" );
 	if( !fp ) {
@@ -583,194 +598,242 @@ void BPyMenu_PrintAllEntries( void )
 	}
 }
 
-/** Creates BPyMenu entries for scripts from directory.
+/* bpymenu_ParseFile:
+ * recursively scans folders looking for scripts to register.
  *
  * This function scans the scripts directory looking for .py files with the
  * right header and menu info, using that to fill the bpymenu structs.
- * whichdir defines if the script is in the default scripts dir or the
- * user defined one (U.pythondir: whichdir == 1).
+ * is_userdir defines if the script is in the default scripts dir or the
+ * user defined one (U.pythondir: is_userdir == 1).
  * Speed is important.
- * <code>whichdir</code> defines if the script is in the default scripts dir
- * or the user defined one (U.pythondir: <code>whichdir == 1</code>).
- * <p>
- * The first line of the script must be '<code>#!BPY</code>'.
+ *
+ * The first line of the script must be '#!BPY'.
  * The header registration lines must appear between the first pair of
- * '<code># \"\"\"</code>' and follow this order (the single-quotes are part of
+ * '\"\"\"' and follow this order (the single-quotes are part of
  * the format):
- * <p>
- * <code>
+ *
  * # \"\"\"<br>
- * # Name: 'script name for the menu'<br>
- * # Blender: <code>short int</code> (minimal Blender version)<br>
- * # Group: 'group name' (defines menu)<br>
- * # Submenu: 'submenu name' related_1word_arg<br>
- * # Tooltip: 'tooltip for the menu'<br>
- * # \"\"\"<br>
- * </code>
- * <p>
+ * # Name: 'script name for the menu'
+ * # Blender: <code>short int</code> (minimal Blender version)
+ * # Group: 'group name' (defines menu)
+ * # Submenu: 'submenu name' related_1word_arg
+ * # Tooltip: 'tooltip for the menu'
+ * # \"\"\"
+ *
  * Notes:
- * <ul>
- * <li> There may be more than one submenu line, or none:
- * Submenus and the tooltip are optional;
- * <li> The Blender version is the same number reported by 
- * <code>Blender.Get('version')</code> in BPython or <code>G.version</code>
- * in C;
- * <li> Line length must be less than 99.
- * <li> Script headers as python documentation strings without the leading
- * hash character (#) should no longer be used.
- * </ul>
- * 
- * @param dirname Directory name to scan.
- * @param whichdir Specifies the directory. 1 if user defined script directory, 
- *                else default script directory.
- * @return 0 on success.
+ *
+ * - Commenting out header lines with "#" is optional, but recommended.
+ * - There may be more than one submenu line, or none:
+ *   submenus and the tooltip are optional;
+ * - The Blender version is the same number reported by 
+ *   Blender.Get('version') in BPython or G.version in C;
+ * - Line length must be less than 99.
  */
-
-static int bpymenu_CreateFromDir( char *dirname, int whichdir )
+static int bpymenu_ParseFile(FILE *file, char *fname, int is_userdir)
 {
-	DIR *dir;                /* directory stream object */
-	FILE *currentFile;       /* file stream object */ 
-	struct dirent *dirEntry; /* directory entry */
-	struct stat fileStatus;
-	char *fileExtension;
-	char fileName[FILE_MAXFILE + FILE_MAXDIR]; /* filename including path */
-	/* parser variables */
 	char line[100];
 	char head[100];
 	char middle[100];
 	char tail[100];
-	int nMatches;
-	int parserState;
-	/* script header variables */
-	char scriptName[100];
-	int scriptBlender;
-	int scriptGroup;
+	int matches;
+	int parser_state;
+
+	char script_name[100];
+	int script_version;
+	int script_group;
+
 	BPyMenu *scriptMenu = NULL;
-	/* other */
-	int returnValue = 0;
-	
-	/* open directory stream */
-	dir = opendir(dirname);
-	if (dir != NULL) {
-		/* directory stream opened */
-		while ((dirEntry = readdir(dir)) != NULL) {
-			/* Check if filename does not start with a dot,
-			 * ends with '.py' and is a regular file. */
-			BLI_make_file_string("/", fileName, dirname, dirEntry->d_name);
-			fileExtension = strstr(dirEntry->d_name, ".py");
-			
-			if ((strncmp(dirEntry->d_name, ".", 1) != 0)
-				&& (fileExtension != NULL)
-				&& (*(fileExtension + 3) == '\0')
-				&& (stat(fileName, &fileStatus) == 0)
-				&& (S_ISREG(fileStatus.st_mode))) {
-				/* check file header */
-				currentFile = fopen(fileName, "rb");
-				if (currentFile != NULL) {
-					parserState = 1; /* state of parser, 0 to terminate */
-					while ((parserState != 0) && (fgets(line, 100, currentFile) != NULL)) {
-						switch (parserState) {
-							case 1: /* #!BPY */
-								if (strncmp(line, "#!BPY", 5) == 0) {
-									parserState++;
-								} else {
-									parserState = 0;
-								}
-								break;
-							case 2: /* # \"\"\" */
-								if ((strstr(line, "\"\"\""))) {
-									parserState++;
-								}
-								break;
-							case 3: /* # Name: 'script name for the menu' */
-								nMatches = sscanf(line, "%[^']'%[^']'%c", head, scriptName, tail);
-								if ((nMatches == 3) && (strstr(head, "Name:") != NULL)) {
-									parserState++;
-								} else {
-									if (DEBUG) {
-										fprintf(stderr, "BPyMenus error: Wrong 'Name' line: %s\n", fileName);
-									}
-									parserState = 0;
-								}
-								break;
-							case 4: /* # Blender: <short int> */
-								nMatches = sscanf(line, "%[^1234567890]%i%c", head, &scriptBlender, tail);
-								if (nMatches == 3) {
-									parserState++;
-								} else {
-									if (DEBUG) {
-										fprintf(stderr, "BPyMenus error: Wrong 'Blender' line: %s\n", fileName);
-									}
-									parserState = 0;
-								}
-								break;
-							case 5: /* # Group: 'group name' */
-								nMatches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
-								if ((nMatches == 3) && (strstr(head, "Group:") != NULL)) {
-									scriptGroup = bpymenu_group_atoi(middle);
-									if (scriptGroup < 0) {
-										if (DEBUG) {
-											fprintf(stderr, "BPyMenus error: Unknown group \"%s\": %s\n", middle, fileName);
-										}
-										parserState = 0;
-									} else {
-										/* register script */
-										scriptMenu = bpymenu_AddEntry(scriptGroup, (short int) scriptBlender, scriptName,
-										                              dirEntry->d_name, whichdir, NULL);
-										if (scriptMenu == NULL) {
-											if (DEBUG) {
-												fprintf(stderr, "BPyMenus error: Couldn't create entry for: %s\n", fileName);
-											}
-											parserState = 0;
-										} else {
-											parserState++;
-										}
-									}
-								} else {
-									if (DEBUG) {
-										fprintf(stderr, "BPyMenus error: Wrong 'Group' line: %s\n", fileName);
-									}
-									parserState = 0;
-								}
-								break;
-							case 6: /* optional elements */
-								/* # Submenu: 'submenu name' related_1word_arg */
-								nMatches = sscanf(line, "%[^']'%[^']'%s\n", head, middle, tail);
-								if ((nMatches == 3) && (strstr(head, "Submenu:") != NULL)) {
-									bpymenu_AddSubEntry(scriptMenu, middle, tail);
-								} else {
-									/* # Tooltip: 'tooltip for the menu */
-									nMatches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
-									if ((nMatches == 3)
-										&& ((strstr(head, "Tooltip:") != NULL) || (strstr(head, "Tip:") != NULL))) {
-										bpymenu_set_tooltip(scriptMenu, middle);
-									}
-									parserState = 0;
-								}
-								break;
-							default:
-								parserState = 0;
-								break;
-						}
+
+	if (file != NULL) {
+		parser_state = 1; /* state of parser, 0 to terminate */
+
+		while ((parser_state != 0) && (fgets(line, 100, file) != NULL)) {
+
+			switch (parser_state) {
+
+				case 1: /* !BPY */
+					if (strncmp(line, "#!BPY", 5) == 0) {
+						parser_state++;
+					} else {
+						parser_state = 0;
 					}
-					/* close file stream */
-					fclose(currentFile);
-				} else {
-					/* open file failed */
-					if(DEBUG) {
-						fprintf(stderr, "BPyMenus error: Couldn't open %s.\n", dirEntry->d_name);
+					break;
+
+				case 2: /* \"\"\" */
+					if ((strstr(line, "\"\"\""))) {
+						parser_state++;
+					}
+					break;
+
+				case 3: /* Name: 'script name for the menu' */
+					matches = sscanf(line, "%[^']'%[^']'%c", head, script_name, tail);
+					if ((matches == 3) && (strstr(head, "Name:") != NULL)) {
+						parser_state++;
+					} else {
+						if (DEBUG)
+							fprintf(stderr, "BPyMenus error: Wrong 'Name' line: %s\n", fname);
+						parser_state = 0;
+					}
+					break;
+
+				case 4: /* Blender: <short int> */
+					matches = sscanf(line, "%[^1234567890]%i%c", head, &script_version,
+						tail);
+					if (matches == 3) {
+						parser_state++;
+					} else {
+						if (DEBUG)
+							fprintf(stderr,"BPyMenus error: Wrong 'Blender' line: %s\n",fname);
+						parser_state = 0;
+					}
+					break;
+
+				case 5: /* Group: 'group name' */
+					matches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
+					if ((matches == 3) && (strstr(head, "Group:") != NULL)) {
+						script_group = bpymenu_group_atoi(middle);
+						if (script_group < 0) {
+							if (DEBUG)
+								fprintf(stderr, "BPyMenus error: Unknown group \"%s\": %s\n",
+									middle, fname);
+							parser_state = 0;
+						}
+						
+						else { /* register script */
+							scriptMenu = bpymenu_AddEntry(script_group,
+								(short int)script_version, script_name, fname, is_userdir,NULL);
+							if (scriptMenu == NULL) {
+								if (DEBUG)
+									fprintf(stderr,
+										"BPyMenus error: Couldn't create entry for: %s\n", fname);
+								parser_state = 0;
+							} else {
+								parser_state++;
+							}
+						}
+
+					} else {
+						if (DEBUG)
+							fprintf(stderr, "BPyMenus error: Wrong 'Group' line: %s\n",fname);
+						parser_state = 0;
+					}
+					break;
+
+				case 6: /* optional elements */
+					/* Submenu: 'submenu name' related_1word_arg */
+					matches = sscanf(line, "%[^']'%[^']'%s\n", head, middle, tail);
+					if ((matches == 3) && (strstr(head, "Submenu:") != NULL)) {
+						bpymenu_AddSubEntry(scriptMenu, middle, tail);
+					} else {
+						/* Tooltip: 'tooltip for the menu */
+						matches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
+						if ((matches == 3) && ((strstr(head, "Tooltip:") != NULL) ||
+							(strstr(head, "Tip:") != NULL))) {
+							bpymenu_set_tooltip(scriptMenu, middle);
+						}
+						parser_state = 0;
+					}
+					break;
+
+				default:
+					parser_state = 0;
+					break;
+			}
+		}
+	}
+
+	else { /* shouldn't happen, it's checked in bpymenus_ParseDir */
+		if (DEBUG)
+			fprintf(stderr, "BPyMenus error: Couldn't open %s.\n", fname);
+		return -1;
+	}
+
+	return 0;
+}
+
+/* bpymenu_ParseDir:
+ * recursively scans folders looking for scripts to register.
+ *
+ * This function scans the scripts directory looking for .py files with the
+ * right header and menu info.
+ * - is_userdir defines if the script is in the default scripts dir or the
+ * user defined one (U.pythondir: is_userdir == 1);
+ * - parentdir is the parent dir name to store as part of the script filename,
+ * if we're down a subdir.
+ * Speed is important.
+ */
+static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
+{
+	DIR *dir; 
+	FILE *file = NULL;
+	struct dirent *de;
+	struct stat status;
+	char *file_extension;
+	char path[FILE_MAXFILE + FILE_MAXDIR];
+	char subdir[FILE_MAXDIR];
+	char *s = NULL;
+
+	dir = opendir(dirname);
+
+	if (dir != NULL) {
+		while ((de = readdir(dir)) != NULL) {
+
+			/* skip files and dirs starting with '.' or 'bpy' */
+			if ((de->d_name[0] == '.') || !strncmp(de->d_name, "bpy", 3)) {
+				continue;
+			}
+
+			BLI_make_file_string("/", path, dirname, de->d_name);
+
+			if (stat(path, &status) != 0) {
+				if (DEBUG)
+					fprintf(stderr, "stat %s failed: %s\n", path, strerror(errno));
+			}
+
+			if (S_ISREG(status.st_mode)) { /* is file */
+
+				file_extension = strstr(de->d_name, ".py");
+
+				if (file_extension && *(file_extension + 3) == '\0') {
+					file = fopen(path, "rb");
+
+					if (file) {
+						s = de->d_name;
+						if (parentdir) {
+							BLI_make_file_string(NULL, subdir, parentdir, de->d_name);
+							s = subdir;
+						}
+						bpymenu_ParseFile(file, s, is_userdir);
+						fclose(file);
+					}
+
+					else {
+						if (DEBUG)
+							fprintf(stderr, "BPyMenus error: Couldn't open %s.\n", path);
 					}
 				}
 			}
+
+			else if (S_ISDIR(status.st_mode)) { /* is subdir */
+				s = de->d_name;
+				if (parentdir) {
+					BLI_make_file_string(NULL, subdir, parentdir, de->d_name);
+					s = subdir;
+				}
+				bpymenu_ParseDir(path, s, is_userdir);
+			}
+
 		}
-		/* close directory stream */
 		closedir(dir);
-	} else {
-		/* open directory stream failed */
-		fprintf(stderr, "opendir %s failed: %s\n", dirname, strerror(errno));
-		returnValue = -1;
 	}
-	return returnValue;
+
+	else { /* open directory stream failed */
+		if (DEBUG)
+			fprintf(stderr, "opendir %s failed: %s\n", dirname, strerror(errno));
+		return -1;
+	}
+
+	return 0;
 }
 
 static int bpymenu_GetStatMTime( char *name, int is_file, time_t * mtime )
@@ -819,7 +882,7 @@ int BPyMenu_Init( int usedir )
 	if( U.pythondir[0] == '\0' )
 		upydir = NULL;
 
-	BLI_make_file_string( "/", dirname, bpy_gethome(  ), "scripts" );
+	BLI_strncpy(dirname, bpy_gethome(1), FILE_MAXDIR);
 
 	res1 = bpymenu_GetStatMTime( dirname, 0, &tdir1 );
 
@@ -861,33 +924,34 @@ int BPyMenu_Init( int usedir )
 	if( DEBUG )
 		printf( "\nRegistering scripts in Blender menus ...\n\n" );
 
-	if( !usedir ) {		/* if we're not forced to use the dir */
-		BLI_make_file_string( "/", fname, bpy_gethome(  ),
+	if (usedir) resf = -1;
+	else { /* if we're not forced to use the dir */
+		BLI_make_file_string( "/", fname, bpy_gethome(0),
 				      BPYMENU_DATAFILE );
 		resf = bpymenu_GetStatMTime( fname, 1, &tfile );
 		if( resf < 0 )
 			tfile = 0;
+
+		/* comparing dates */
+
+		if( ( tfile > tdir1 ) && ( tfile > tdir2 ) && !resf ) {	/* file is newer */
+			resf = bpymenu_CreateFromFile(  );	/* -1 if an error occurred */
+			if( !resf && DEBUG )
+				printf( "Getting menu data for scripts from file: %s\n\n", fname );
+		}
+		else resf = -1;	/* -1 to use dirs: didn't use file or it was corrupted */
 	}
-
-	/* comparing dates */
-
-	if( ( tfile > tdir1 ) && ( tfile > tdir2 ) && !resf ) {	/* file is newer */
-		resf = bpymenu_CreateFromFile(  );	/* -1 if an error occurred */
-		if( !resf && DEBUG )
-			printf( "Getting menu data for scripts from file: %s\n\n", fname );
-	} else
-		resf = -1;	/* -1 to use dirs: didn't use file or it was corrupted */
 
 	if( resf == -1 ) {	/* use dirs */
 		if( DEBUG ) {
-			printf( "Getting menu data for scripts from dir(s):\n%s\n", dirname );
+			printf( "Getting menu data for scripts from dir(s):\n%s\n\n", dirname );
 			if( upydir )
 				printf( "%s\n", upydir );
 		}
 		if( res1 == 0 )
-			bpymenu_CreateFromDir( dirname, 0 );
+			bpymenu_ParseDir( dirname, NULL, 0 );
 		if( res2 == 0 )
-			bpymenu_CreateFromDir( U.pythondir, 1 );
+			bpymenu_ParseDir( U.pythondir, NULL, 1 );
 
 		/* check if we got any data */
 		for( res1 = 0; res1 < PYMENU_TOTAL; res1++ )

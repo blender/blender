@@ -282,6 +282,14 @@ int EXPP_map_getStrVal( const EXPP_map_pair * map, int ival,
 	return 0;
 }
 
+/* Redraw wrappers */
+
+/* this queues redraws if we're not in background mode: */
+void EXPP_allqueue(unsigned short event, short val)
+{
+	if (!G.background) allqueue(event, val);
+}
+
 /************************************************************************/
 /* Scriptlink-related functions, used by scene, object, etc. bpyobjects */
 /************************************************************************/

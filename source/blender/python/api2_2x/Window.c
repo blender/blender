@@ -37,7 +37,7 @@
 #include <BDR_editobject.h>	/* enter / leave editmode */
 #include <BKE_global.h>
 #include <BKE_library.h>
-#include <BKE_object.h>		/* for during_script() */
+#include <BKE_object.h>		/* for during_script() and during_scriptlink() */
 #include <BKE_scene.h>		/* scene_find_camera() */
 #include <BIF_usiblender.h>
 #include <BIF_mywindow.h>
@@ -378,7 +378,7 @@ PyObject *M_Window_Redraw( PyObject * self, PyObject * args )
 	if( wintype < 0 )
 		redraw_all = 1;
 
-	if( !during_script( ) ) {
+	if( !during_script( ) && !G.background ) {
 		tempsa = curarea;
 		sa = G.curscreen->areabase.first;
 
@@ -432,7 +432,7 @@ static PyObject *M_Window_RedrawAll( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Window_QRedrawAll( PyObject * self, PyObject * args )
 {
-	allqueue( REDRAWALL, 0 );
+	EXPP_allqueue( REDRAWALL, 0 );
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -478,11 +478,20 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 	Script *script = NULL;
 	int startspace = 0;
 
-	if( (!PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename ) )
+	if (during_scriptlink())
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"script links can't call the file selector");
+
+	if (G.background)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"the file selector is not available in background mode");
+
+	if((!PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename))
 		|| (!PyCallable_Check(EXPP_FS_PyCallback)))
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "\nexpected a callback function (and optionally one or two strings) "
-					      "as argument(s)" );
+			"\nexpected a callback function (and optionally one or two strings) "
+			"as argument(s)" );
+
 	Py_XINCREF(EXPP_FS_PyCallback);
 
 /* trick: we move to a spacescript because then the fileselector will properly
@@ -528,12 +537,21 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 	Script *script = NULL;
 	int startspace = 0;
 
+	if (during_scriptlink())
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"script links can't call the image selector");
+
+	if (G.background)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"the image selector is not available in background mode");
+
 	if( !PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename ) 
 		|| (!PyCallable_Check(EXPP_FS_PyCallback)))
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_AttributeError,
 			   "\nexpected a callback function (and optionally one or two strings) "
 			   "as argument(s)" ) );
+
 	Py_XINCREF(EXPP_FS_PyCallback);
 
 /* trick: we move to a spacescript because then the fileselector will properly
@@ -580,6 +598,10 @@ static PyObject *M_Window_DrawProgressBar( PyObject * self, PyObject * args )
 	float done;
 	char *info = NULL;
 	int retval = 0;
+
+	if (G.background)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"the progress bar is not available in background mode");
 
 	if( !PyArg_ParseTuple( args, "fs", &done, &info ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -964,6 +986,10 @@ static PyObject *M_Window_QRead( PyObject * self )
 	short val = 0;
 	unsigned short event;
 
+	if (G.background)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"QRead is not available in background mode");
+
 	event = extern_qread( &val );
 
 	return Py_BuildValue( "ii", event, val );
@@ -975,6 +1001,10 @@ static PyObject *M_Window_QAdd( PyObject * self, PyObject * args )
 	short evt;		/* unsigned, we check below */
 	short val;
 	short after = 0;
+
+	if (G.background)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"QAdd is not available in background mode");
 
 	if( !PyArg_ParseTuple( args, "hhh|h", &win, &evt, &val, &after ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -997,6 +1027,10 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 	short win;
 	ScrArea *sa = G.curscreen->areabase.first;
 	ScrArea *oldsa = NULL;
+
+	if (G.background)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"QHandle is not available in background mode");
 
 	if( !PyArg_ParseTuple( args, "h", &win ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1153,7 +1187,7 @@ static PyObject *M_Window_SetScreen( PyObject * self, PyObject * args )
 
 	if( !scr )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "no such screen, check Window.GetScreens() for valid names." );
+					      "no such screen, check Window.GetScreens() for valid names" );
 
 	return EXPP_incr_ret( Py_None );
 }
