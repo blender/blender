@@ -1278,6 +1278,7 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	fac+= tvec[0]*cross[2][0]+ tvec[1]*cross[2][1]+ tvec[2]*cross[2][2];
 	fac+= tvec[0]*cross[3][0]+ tvec[1]*cross[3][1]+ tvec[2]*cross[3][2];
 
+	if(fac<=0.0) return 0.0;
 	return pow(fac*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
 }
 
@@ -1735,28 +1736,31 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 			lv[2]/= ld;
 			
 			/* ld is re-used further on (texco's) */
-			
-			if(lar->mode & LA_QUAD) {
-				t= 1.0;
-				if(lar->ld1>0.0)
-					t= lar->dist/(lar->dist+lar->ld1*ld);
-				if(lar->ld2>0.0)
-					t*= lar->distkw/(lar->distkw+lar->ld2*ld*ld);
-
-				lampdist= t;
+			if(lar->type==LA_AREA) {
+				lampdist= 1.0;
 			}
 			else {
-				lampdist= (lar->dist/(lar->dist+ld));
+				if(lar->mode & LA_QUAD) {
+					t= 1.0;
+					if(lar->ld1>0.0)
+						t= lar->dist/(lar->dist+lar->ld1*ld);
+					if(lar->ld2>0.0)
+						t*= lar->distkw/(lar->distkw+lar->ld2*ld*ld);
+	
+					lampdist= t;
+				}
+				else {
+					lampdist= (lar->dist/(lar->dist+ld));
+				}
+	
+				if(lar->mode & LA_SPHERE) {
+					t= lar->dist - ld;
+					if(t<0.0) continue;
+					
+					t/= lar->dist;
+					lampdist*= (t);
+				}
 			}
-
-			if(lar->mode & LA_SPHERE) {
-				t= lar->dist - ld;
-				if(t<0.0) continue;
-				
-				t/= lar->dist;
-				lampdist*= (t);
-			}
-			
 		}
 		
 		if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv, shi);
