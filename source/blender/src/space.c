@@ -876,7 +876,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_layer_buttons(-1); break;
 				
 			case AKEY:
-				if(G.qual==LR_CTRLKEY) apply_object();
+				if(G.qual & LR_CTRLKEY) apply_object();	// also with shift!
 				else if((G.qual==LR_SHIFTKEY)) {
 					tbox_setmain(0);
 					toolbox();
@@ -1113,7 +1113,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case LKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH)
-						selectconnected_mesh();
+						selectconnected_mesh(G.qual);
 					if(G.obedit->type==OB_ARMATURE)
 						selectconnected_armature();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
