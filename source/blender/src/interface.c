@@ -6754,7 +6754,7 @@ static void ui_drag_panel(uiBlock *block)
 {
 	SpaceButs *sbuts= curarea->spacedata.first;
 	Panel *panel= block->panel;
-	short first=1, ofsx, ofsy, dx, dy, dxo=0, dyo=0, mval[2], mvalo[2];
+	short first=1, ofsx, ofsy, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];
 
 	if(curarea->spacetype!=SPACE_BUTS) {
 		printf("align not supported yet here\n");
