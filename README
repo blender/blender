@@ -84,18 +84,69 @@ www.blender.org
 
 
 ----------------------Mac OSX TIPS--------------------------------------
-Now before you go to the source directory, make sure you have installed the
-external libraries that Blender depends upon. Here is a description of the 
-things you need.
+When building Blender on OSX you have three choices:
+METHOD 1. Build using the old NaN Makefiles.
+METHOD 2. Build using the new automake/autoconf files
+METHOD 3. Use the Project Builder project
 
-FINK:
-Use fink (http://fink.sourceforge.net/) to install the following libraries that
-Blender depends on:
+METHOD 1 and 3
+The first 4 steps are th same for methods 1 and 3. Only the actual Blender 
+build step number 5 is different.
+
+Step1:
+If you want to follow method 1 and 3, follow the instructions above to set the
+environment variables. You don't need to edit the Makefiles. They should work
+out of the box in combinations with some external libraries that should be on
+your system in a fixed location. 
+
+Step 2:
+You can use the package installer fink (http://fink.sourceforge.net/) for some
+of the external libraries:
 1. openssl (fink install openssl)
 2. jpeg    (fink install jpeg)
 3. png     (fink install png)
 
-PYTHON:
+Step 3:
+The rest of the external libraries are present in CVS in binary format so you
+don't have to download them. Precompiled libraries are found in CVS in 
+directory:
+$NANBLENDERHOME/lib/darwin-6.1-powerpc
+If you are not running on a darwing kernel 6.1 (which is likely if you auto-
+update your system, you might want to add a symbolic link in the 
+$NANBLENDERHOME/lib/ directory. For example, if you work on a 6.2 kernel:
+ln -s darwin-6.1-powerpc darwin-6.2-powerpc
+
+Step 4: 
+Start the build process by building Blender's "intern" libraries. Navigate to 
+$NANBLENDERHOME/intern and type make. This will build the intern libaries which
+will be installed into the $NANBLENDERHOME/lib/darwin-6.1-powerpc (thanks to 
+the symbolic link).
+Now you can choose how to build Blender itself; using the Makefiles or the 
+Project Builder project.
+
+Step 5 METHOD 1:
+Navigate to $NANBLENDERHOME/source and type make. 
+
+Step 5 METHOD 3:
+The project Builder project can be found in the directory:
+$NANBLENDERHOME/projectfiles/pb_2_0_1
+Start Project Builder open the blender.pbproj project, choose a target (blender
+or player) and build.
+
+Step 6:
+Although the Makefiles in the intern directory run ranlib on the libraries 
+built, the gcc linker complains about ranlib not being run. Until there is a
+solution, you will need to run ranlib by hand once in a while when the make 
+breaks. Luckily, the error message lists the full path of the file to run 
+ranlib on... Anybody out there with a real solution? I guess the problem arises
+from copying the files from one location to the other...
+
+
+BUILDING EXTERNAL LIBRARIES
+If you don't want to use the precompiled libraries you can download and/or
+build them yourself. Here are some directions.
+
+PYHON:
 Mac OSX 10.2 (Jaguar) now comes with Python (2.2.1) pre-installed. This is fine
 for producing the "frozen" Python code found in the intern directory. However,
 the installation does not contain the python library to link against (at least
@@ -120,15 +171,10 @@ archive contains header files and a library. Copy those to these directories
 $NANBLENDERHOME/lib/darwin-6.1-powerpc/fmod/include
 $NANBLENDERHOME/lib/darwin-6.1-powerpc/fmod/lib
 
-RANLIB:
-Although the make files run ranlib on the libraries built, the gcc linker 
-complains about ranlib not being run. Until there is a solution, you will need
-to run ranlib by hand once in a while when the make breaks. Luckily, the error
-message lists the full path of the file to run ranlib on... Anybody out there 
-with a real solution? I guess the problem arises from copying the files from 
-one location to the other...
-
-Now wait, don't type make yet! You'll have to edit a config file of ODE first.
+ODE:
+Ode is currently included in the source tree of Blender. This might change in
+the close future. But for now you don't need to download Ode.
+If you want to build ODE yourself, you'll have to edit a config file of ODE first.
 go to $NANBLENDERHOME/source/ode/config and edit the file "user-settings" so 
 that platform is equal to osx (PLATFORM=osx).
 
