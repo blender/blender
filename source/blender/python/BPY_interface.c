@@ -34,6 +34,10 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
+
 #include <Python.h>
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
