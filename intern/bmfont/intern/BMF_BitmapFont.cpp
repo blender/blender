@@ -86,10 +86,11 @@ void BMF_BitmapFont::DrawString(char* str)
 {
 	GLint alignment;
 	unsigned char c;
+
+#ifdef __APPLE__
 	GLint vp[4];  // hack stuff
 	GLubyte nullm = 0;	// hack stuff
 	
-#ifdef __APPLE__
 	if(is_a_really_crappy_nvidia_card()) {
 		glGetIntegerv(GL_VIEWPORT, vp);   // hack stuff
 		
