@@ -38,7 +38,9 @@
 #include "MT_assert.h"
 
 #ifdef _MSC_VER
-#define _snprintf snprintf
+#ifndef snprintf
+  #define snprintf _snprintf
+#endif
 #endif
 
 // Query the user if they want to break/abort the program, ignore the assert, or ignore all future
