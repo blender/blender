@@ -319,7 +319,7 @@ void BIF_drawConstraint()
 
 }
 
-/* called from drawview.c, as ane xtra per-window draw option */
+/* called from drawview.c, as an extra per-window draw option */
 void BIF_drawPropCircle()
 {
 	TransInfo *t = BIF_GetTransInfo();

@@ -82,13 +82,15 @@
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
 
-#include "BKE_global.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
-#include "BKE_lattice.h"
+#include "BKE_action.h"
+#include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_lattice.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -115,7 +117,45 @@ extern TransInfo Trans;
 
 void recalcData(TransInfo *t)
 {
-	if (G.obedit) {
+	Base *base;
+	
+	if(G.obpose) {
+		TransData *td= t->data;
+		bPoseChannel	*chan;
+		int	i;
+		
+		if (!G.obpose->pose) G.obpose->pose= MEM_callocN(sizeof(bPose), "pose");
+		
+		/*	Make channels for the transforming bones (in posemode) */
+		for (i=0; i<t->total; i++, td++) {
+			chan = MEM_callocN (sizeof (bPoseChannel), "transPoseChannel");
+			
+			if (t->mode == TFM_ROTATION) {
+				chan->flag |= POSE_ROT;
+				memcpy (chan->quat, td->quat, sizeof (chan->quat));
+			}
+			if (t->mode == TFM_TRANSLATION) {
+				chan->flag |= POSE_LOC;
+				memcpy (chan->loc, td->loc, sizeof (chan->loc));
+				printf("loc %f %f %f\n", chan->loc[0], chan->loc[1], chan->loc[2]);
+			}
+			if (t->mode == TFM_RESIZE) {
+				chan->flag |= POSE_SIZE;
+				memcpy (chan->size, td->size, sizeof (chan->size));
+			}
+			
+			strcpy (chan->name, ((Bone*) td->bone)->name);
+			
+			set_pose_channel (G.obpose->pose, chan);
+
+		}
+		
+		clear_pose_constraint_status(G.obpose);
+		
+		if (!is_delay_deform()) make_displists_by_armature(G.obpose);
+		
+	}
+	else if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
 			recalc_editnormals();
 			makeDispList(G.obedit);
@@ -146,11 +186,37 @@ void recalcData(TransInfo *t)
   			}   	
 		}
 	}
+	
+	/* ugly stuff for posemode */
+	base= FIRSTBASE;
+	while(base) {
+		extern int pose_flags_reset_done(Object *ob);	// linker solves
+		
+		if (pose_flags_reset_done(base->object)) {
+			if (!is_delay_deform())
+				make_displists_by_armature(base->object);
+		}
+		
+		base= base->next;
+	}
+	
+	if (G.obpose && G.obpose->type == OB_ARMATURE)
+		clear_pose_constraint_status(G.obpose);
+	
+	if (!is_delay_deform()) make_displists_by_armature(G.obpose);
+
+	
+	/* update shaded drawmode while transform */
+	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
+	
 }
 
-void initTransModeFlags(TransInfo *t, int mode) {
+void initTransModeFlags(TransInfo *t, int mode) 
+{
 	t->flags = 0;
 	t->num.flags = 0;
+	t->mode = mode;
+	
 	switch (mode) {
 	case TFM_TRANSLATION:
 		break;
@@ -207,12 +273,16 @@ void drawLine(float *center, float *dir, char axis)
 	myloadmatrix(G.vd->viewmat);
 }
 
-void postTrans (TransInfo *t) {
-	MEM_freeN(t->data);
-	t->data = NULL;
+void postTrans (TransInfo *t) 
+{
 
 	G.moving = 0; // Set moving flag off (display as usual)
 
+	//special_aftertrans_update();
+	
+	MEM_freeN(t->data);
+	t->data = NULL;
+	
 	scrarea_do_windraw(curarea);
 	screen_swapbuffers();
 
@@ -317,8 +387,7 @@ void initTrans (TransInfo *t)
 	t->transform		= NULL;
 	t->con.applyVec		= NULL;
 	t->con.applyRot	= NULL;
-	t->mode				=
-		t->con.mode		=
+	t->con.mode		=
 		t->total			=
 		t->num.idx		=
 		t->num.idx_max	=

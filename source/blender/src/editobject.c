@@ -3100,7 +3100,8 @@ static void clear_pose_update_flag(Object *ob) {
 	}
 }
 
-static int pose_flags_reset_done(Object *ob) {
+/* exposed in transform.c */
+int pose_flags_reset_done(Object *ob) {
 	/* Clear the constraint done status for every pose channe;
 	 * that has been flagged as needing constant updating
 	 */
@@ -3317,7 +3318,8 @@ static void figure_bone_nocalc_core(Object *ob, bArmature *arm) {
 	}
 }
 
-static void figure_bone_nocalc(Object *ob) {
+/* exposed in transform.c */
+void figure_bone_nocalc(Object *ob) {
 	/* Let's figure out which bones need to be recalculated,
 	 * and which don't. Calculations are based on which bones
 	 * are selected, and the constraints that love them.
@@ -3486,6 +3488,7 @@ static int pose_do_update_flag(Object *ob) {
 
 /* this is a confusing call, it also does the constraint update flags, but was not used...
    hopefully transform refactor will take care better of it (ton) */
+/* exposed int transform.c */
 void figure_pose_updating(void)
 {
 	Base *base;

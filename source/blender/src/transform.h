@@ -70,7 +70,9 @@ typedef struct TransData {
     float  mtx[3][3];    /* Matrix of the data to transform                                                */
     float  smtx[3][3];   /* Matrix needed to apply the changes (in most case, the inverse of the parent)   */
 	struct Object *ob;
-    int    flag;         /* Various flags                                                                  */
+    int    flag;         /* Various flags */
+	
+	void *bone;			/* BWARGH! old transform demanded it, added for now (ton) */
 } TransData;
 
 typedef struct TransInfo {

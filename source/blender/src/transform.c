@@ -72,8 +72,6 @@
 #include "DNA_vfont_types.h"
 #include "DNA_constraint_types.h"
 
-#include "BIF_screen.h"
-#include "BIF_space.h"
 #include "BIF_editview.h"
 #include "BIF_resources.h"
 #include "BIF_mywindow.h"
@@ -81,6 +79,9 @@
 #include "BIF_editlattice.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -119,7 +120,7 @@ int	LastMode = TFM_TRANSLATION;
 
 /* ************************** CONVERSIONS ************************* */
 
-int allocTransData()
+static int allocTransData(void)
 {
 	int count, mode=0;
 	countall();
@@ -137,7 +138,117 @@ int allocTransData()
 	return count;
 }
 
-void createTransArmatureVerts()
+/* ********************* pose mode ************* */
+
+/* callback */
+static int test_bone_select(Object *ob, Bone *bone, void *ptr) 
+{
+	if (bone->flag & BONE_SELECTED) return 1;
+	return 0;
+}
+
+/* callback */
+static int add_pose_transdata(Object *ob, Bone *bone, void *ptr)
+{
+	TransData **tvp= ptr;
+	TransData *tv= *tvp;
+	float	parmat[4][4], tempmat[4][4];
+	float tempobmat[4][4], smtx[3][3];
+	float vec[3];
+	
+	if (bone->flag & BONE_SELECTED){
+
+		/* We don't let IK children get "grabbed" */
+		/* if (!((mode=='g' || mode=='G') && (bone->flag & BONE_IK_TOPARENT))){ */
+				// commented out, no idea what it means (ton)
+		
+		get_bone_root_pos (bone, vec, 1);
+		
+		//VecAddf (centroid, centroid, vec);
+		
+		tv->ob = ob;
+		tv->bone= bone; //	FIXME: Dangerous
+		
+		tv->loc = bone->loc;
+		tv->rot= NULL;
+		tv->quat= bone->quat;
+		tv->size= bone->size;
+		tv->dist= 0.0f;
+
+		memcpy (tv->iquat, bone->quat, sizeof (bone->quat));
+		memcpy (tv->isize, bone->size, sizeof (bone->size));
+		memcpy (tv->iloc, bone->loc, sizeof (bone->loc));
+		
+		printf("init loc %f %f %f\n", tv->iloc[0], tv->iloc[1], tv->iloc[2]);
+		
+		/* Get the matrix of this bone minus the usertransform */
+		Mat4CpyMat4 (tempobmat, bone->obmat);
+		Mat4One (bone->obmat);
+		get_objectspace_bone_matrix(bone, tempmat, 1, 1);
+		Mat4CpyMat4 (bone->obmat, tempobmat);
+
+		Mat4MulMat4 (parmat, tempmat, ob->obmat);	/* Original */
+		
+		Mat3CpyMat4 (smtx, parmat);
+		Mat3Inv (tv->smtx, smtx);
+		
+		Mat3CpyMat4 (tv->mtx, bone->obmat);
+		
+		(*tvp)++;
+	}
+	return 0;
+}
+
+static void createTransPoseVerts(void)
+{
+	bArmature *arm;
+	TransData *tv;
+	float mtx[3][3], smtx[3][3];
+	
+	Trans.total= 0;	// to be able to return
+	
+	/* check validity of state */
+	arm=get_armature (G.obpose);
+	if (arm==NULL) return;
+	
+	if (arm->flag & ARM_RESTPOS){
+		notice ("Transformation not possible while Rest Position is enabled");
+		return;
+	}
+	if (!(G.obpose->lay & G.vd->lay)) return;
+
+	/* copied from old code, no idea. we let linker solve it for now */
+	{
+		extern void figure_bone_nocalc(Object *ob);
+		extern void figure_pose_updating(void);
+
+		/* figure out which bones need calculating */
+		figure_bone_nocalc(G.obpose);
+		figure_pose_updating();
+	}
+	
+	/* copied from old code, no idea... (ton) */
+	apply_pose_armature(arm, G.obpose->pose, 0);
+	where_is_armature (G.obpose);
+	
+	/* count total */
+	Trans.total= bone_looper(G.obpose, arm->bonebase.first, NULL, test_bone_select);
+	if(Trans.total==0) return;
+	
+	/* init trans data */
+	Mat3CpyMat4(mtx, G.obpose->obmat);
+	Mat3Inv(smtx, mtx);
+	
+    tv = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
+	
+	Mat3CpyMat4(mtx, G.obpose->obmat);
+	Mat3Inv(smtx, mtx);
+	
+	bone_looper(G.obpose, arm->bonebase.first, &tv, add_pose_transdata);
+	
+}
+
+static void createTransArmatureVerts(void)
 {
 	EditBone *ebo;
 	TransData *tv;
@@ -159,9 +270,6 @@ void createTransArmatureVerts()
 	Mat3Inv(smtx, mtx);
 
     tv = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditBone");
-	
-	Mat3CpyMat4(mtx, G.obedit->obmat);
-	Mat3Inv(smtx, mtx);
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
@@ -198,12 +306,12 @@ void createTransArmatureVerts()
 	}
 }
 
-void createTransMBallVerts()
+static void createTransMBallVerts(void)
 {
  	MetaElem *ml;
 	TransData *tv;
-	int count;
 	float mtx[3][3], smtx[3][3];
+	int count;
 
 	count = allocTransData();
 	if (!count) return;
@@ -238,17 +346,17 @@ void createTransMBallVerts()
 	}
 } 
 
-void createTransCurveVerts()
+static void createTransCurveVerts(void)
 {
 	TransData *tv = NULL;
-	int count=0;
-	int mode = 0; /*This used for. . .what?*/
   	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	int a;
-	//int proptrans= 0;
 	float mtx[3][3], smtx[3][3];
+	int a;
+	int count=0;
+	int mode = 0; /*This used for. . .what?*/
+	//int proptrans= 0;
 
 	count = allocTransData();
 	if (!count) return;
@@ -345,7 +453,7 @@ void createTransCurveVerts()
 	}
 }
 
-void createTransLatticeVerts()
+static void createTransLatticeVerts(void)
 {
 	TransData *tv = NULL;
 	int count = 0;
@@ -393,7 +501,7 @@ void createTransLatticeVerts()
 	}
 } 
 
-void VertsToTransData(TransData *tob, EditVert *eve)
+static void VertsToTransData(TransData *tob, EditVert *eve)
 {
 	tob->flag = 0;
 	tob->loc = eve->co;
@@ -404,7 +512,7 @@ void VertsToTransData(TransData *tob, EditVert *eve)
 	tob->quat = NULL;
 }
 
-void createTransEditVerts()
+static void createTransEditVerts(void)
 {
 	TransData *tob = NULL;
 	int totsel = 0;
@@ -520,7 +628,8 @@ void createTransEditVerts()
 	}
 }
 
-void ObjectToTransData(TransData *tob, Object *ob) {
+static void ObjectToTransData(TransData *tob, Object *ob) 
+{
 	float totmat[3][3], obinv[3][3], obmtx[3][3];
 	Object *tr;
 	void *cfirst, *clast;
@@ -561,7 +670,7 @@ void ObjectToTransData(TransData *tob, Object *ob) {
 	Mat3MulMat3(tob->smtx, obmtx, obinv);
 }
 
-void createTransObject()
+static void createTransObject(void)
 {
 	TransData *tob = NULL;
 	Object *ob;
@@ -676,8 +785,12 @@ void createTransObject()
 
 }
 
-void createTransData() {
-	if (G.obedit) {
+static void createTransData(void) 
+{
+	if (G.obpose) {
+		createTransPoseVerts();
+	}
+	else if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
 			createTransEditVerts();	
    		}
@@ -707,17 +820,17 @@ void createTransData() {
 
 /* ************************** TRANSFORMATIONS **************************** */
 
-void Transform(int mode) {
+void Transform(int mode) 
+{
 	int ret_val = 0;
 	short pmval[2] = {0, 0}, mval[2], val;
-	float MatI[3][3];
+	float mati[3][3];
 	unsigned short event;
 
 	/*joeedh -> hopefully may be what makes the old transform() constant*/	
 	areawinset(curarea->win);
 
-
-	Mat3One(MatI);
+	Mat3One(mati);
 
 	/* stupid PET initialisation code */
 	/* START */
@@ -733,11 +846,11 @@ void Transform(int mode) {
 		LastMode = mode;
 	}
 	
-	initTransModeFlags(&Trans, mode);
+	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
-	initTrans(&Trans);
+	initTrans(&Trans);					// data, mouse, vectors
 
-	createTransData();
+	createTransData();					// make TransData structs from selection
 
 	if (Trans.total == 0)
 		return;
@@ -813,21 +926,21 @@ void Transform(int mode) {
 					break;
 				case XKEY:
 					if (G.qual == 0)
-						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS0));
+						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS1|CONAXIS2));
+						setConstraint(&Trans, mati, (APPLYCON|CONAXIS1|CONAXIS2));
 					break;
 				case YKEY:
 					if (G.qual == 0)
-						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS1));
+						setConstraint(&Trans, mati, (APPLYCON|CONAXIS1));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS0|CONAXIS2));
+						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0|CONAXIS2));
 					break;
 				case ZKEY:
 					if (G.qual == 0)
-						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS2));
+						setConstraint(&Trans, mati, (APPLYCON|CONAXIS2));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS0|CONAXIS1));
+						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0|CONAXIS1));
 					break;
 				case OKEY:
 					if (G.qual==LR_SHIFTKEY) {
@@ -884,7 +997,8 @@ void Transform(int mode) {
 
 /* ************************** WRAP *************************** */
 
-void initWrap(TransInfo *t) {
+void initWrap(TransInfo *t) 
+{
 	float min[3], max[3], loc[3];
 	int i;
 	calculateCenterCursor(t);
@@ -911,19 +1025,22 @@ void initWrap(TransInfo *t) {
 }
 
 
-int Wrap(TransInfo *t, short mval[2]) {
+int Wrap(TransInfo *t, short mval[2])
+{
 	return 1;
 }
 
 /* ************************** SHEAR *************************** */
 
-void initShear(TransInfo *t) {
+void initShear(TransInfo *t) 
+{
 	t->num.idx_max = 0;
 	t->transform = Shear;
 	t->fac = (float)(t->center2d[0] - t->imval[0]);
 }
 
-int Shear(TransInfo *t, short mval[2]) {
+int Shear(TransInfo *t, short mval[2]) 
+{
 	float vec[3];
 	float smat[3][3], tmat[3][3], totmat[3][3], omat[3][3], persmat[3][3], persinv[3][3];
 	float value;
@@ -998,7 +1115,8 @@ int Shear(TransInfo *t, short mval[2]) {
 
 /* ************************** RESIZE *************************** */
 
-void initResize(TransInfo *t) {
+void initResize(TransInfo *t) 
+{
 	Trans.fac = (float)sqrt( (float)
 		(
 			(Trans.center2d[1] - Trans.imval[1])*(Trans.center2d[1] - Trans.imval[1])
@@ -1010,13 +1128,14 @@ void initResize(TransInfo *t) {
 	t->transform = Resize;
 }
 
-int Resize(TransInfo *t, short mval[2]) {
+int Resize(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
 	float vec[3];
 	float size[3], tsize[3], mat[3][3], tmat[3][3], omat[3][3];
 	float ratio;
 	int i;
 	char str[50];
-	TransData *td = t->data;
 
 	if (G.obedit) {
 		Mat3CpyMat4(omat, G.obedit->obmat);
@@ -1098,7 +1217,8 @@ int Resize(TransInfo *t, short mval[2]) {
 
 /* ************************** TOSPHERE *************************** */
 
-void initToSphere(TransInfo *t) {
+void initToSphere(TransInfo *t) 
+{
 	TransData *td = t->data;
 	int i;
 
@@ -1122,7 +1242,8 @@ void initToSphere(TransInfo *t) {
 
 
 
-int ToSphere(TransInfo *t, short mval[2]) {
+int ToSphere(TransInfo *t, short mval[2]) 
+{
 	float vec[3];
 	float ratio, radius;
 	int i;
@@ -1185,13 +1306,15 @@ int ToSphere(TransInfo *t, short mval[2]) {
 
 /* ************************** ROTATION *************************** */
 
-void initRotation(TransInfo *t) {
+void initRotation(TransInfo *t) 
+{
 	t->num.idx_max = 0;
 	t->fac = 0;
 	t->transform = Rotation;
 }
 
-int Rotation(TransInfo *t, short mval[2]) {
+int Rotation(TransInfo *t, short mval[2]) 
+{
 	TransData *td = t->data;
 	int i;
 	char str[50];
@@ -1313,20 +1436,14 @@ int Rotation(TransInfo *t, short mval[2]) {
 
 /* ************************** TRANSLATION *************************** */
 	
-void initTranslation(TransInfo *t) {
-	// int x, y;
+void initTranslation(TransInfo *t) 
+{
 	t->num.idx_max = 2;
 	t->transform = Translation;
-	
-	//x = G.vd->area->v1->vec.x;
-	//y = G.vd->area->v1->vec.y + (G.vd->area->headwin?28:1);
-	//warp_pointer(t->center2d[0] + x, t->center2d[1] + y);
-
-	//t->imval[0] = t->center2d[0];
-	//t->imval[1] = t->center2d[1];
 }
 
-int Translation(TransInfo *t, short mval[2]) {
+int Translation(TransInfo *t, short mval[2]) 
+{
 	float vec[3], tvec[3];
 	int i;
 	char str[70];

@@ -33,6 +33,8 @@
 #ifndef BIF_TRANSFORM_H
 #define BIF_TRANSFORM_H
 
+//#define NEWTRANSFORM	1
+
 /* ******************** Macros & Prototypes *********************** */
 
 /* MODE AND NUMINPUT FLAGS */
@@ -53,7 +55,8 @@
 void Transform(int mode);
 
 
-extern struct TransInfo;
+struct TransInfo;
+
 struct TransInfo * BIF_GetTransInfo();
 void BIF_setSingleAxisConstraint(float vec[3]);
 void BIF_drawConstraint();
