@@ -2184,6 +2184,9 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 	case 6: /* duplicate */
 		duplicate_context_selected();
 		break;
+	case 7: /* make edge face */
+		addedgeface_mesh();
+		break;
 	case 8: /* delete */
 		delete_context_selected();
 		break;
