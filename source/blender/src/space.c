@@ -852,7 +852,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					view3d_home(1);
 					curs= give_cursor();
 					curs[0]=curs[1]=curs[2]= 0.0;
-					scrarea_queue_winredraw(curarea);
+					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if(G.obedit!=0 && ELEM(G.obedit->type, OB_CURVE, OB_SURF) ) {
 					makecyclicNurb();
