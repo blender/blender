@@ -40,15 +40,17 @@
 /*****************************************************************************/
 extern PyObject *g_blenderdict;
 
-void initBlender (void);
-PyObject *initObject (void);
-PyObject *ObjectCreatePyObject (struct Object *obj);
-PyObject *M_NMesh_Init (void);
-PyObject *M_Camera_Init (void);
-PyObject *M_Lamp_Init (void);
-PyObject *M_Curve_Init (void);
-PyObject *M_Image_Init (void);
-PyObject *M_Window_Init (void);
-PyObject *M_Draw_Init (void);
-PyObject *M_BGL_Init (void);
-PyObject *M_Text_Init (void);
+void            M_Blender_Init (void);
+PyObject *      M_Object_Init (void);
+PyObject *      M_ObjectCreatePyObject (struct Object *obj);
+int             M_ObjectCheckPyObject (PyObject *py_obj);
+struct Object * M_ObjectFromPyObject (PyObject *py_obj);
+PyObject *      M_NMesh_Init (void);
+PyObject *      M_Camera_Init (void);
+PyObject *      M_Lamp_Init (void);
+PyObject *      M_Curve_Init (void);
+PyObject *      M_Image_Init (void);
+PyObject *      M_Window_Init (void);
+PyObject *      M_Draw_Init (void);
+PyObject *      M_BGL_Init (void);
+PyObject *      M_Text_Init (void);

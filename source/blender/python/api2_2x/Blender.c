@@ -201,12 +201,12 @@ PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
 /*****************************************************************************/
 /* Function:              initBlender                                        */
 /*****************************************************************************/
-void initBlender (void)
+void M_Blender_Init (void)
 {
 	PyObject	* module;
 	PyObject	* dict;
 
-	printf ("In initBlender()\n");
+	printf ("In M_Blender_Init()\n");
 	g_blenderdict = NULL;
 
 	/* TODO: create a docstring for the Blender module */
@@ -214,7 +214,7 @@ void initBlender (void)
 
 	dict = PyModule_GetDict (module);
 	g_blenderdict = dict;
-	PyDict_SetItemString (dict, "Object", initObject());
+	PyDict_SetItemString (dict, "Object", M_Object_Init());
 	PyDict_SetItemString (dict, "NMesh",  M_NMesh_Init());
 	PyDict_SetItemString (dict, "Camera", M_Camera_Init());
 	PyDict_SetItemString (dict, "Lamp",   M_Lamp_Init());

@@ -35,11 +35,13 @@
 #include <Python.h>
 #include <stdio.h>
 
+#include <BDR_editobject.h>
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_main.h>
 #include <BKE_mesh.h>
 #include <BKE_object.h>
+#include <BKE_scene.h>
 #include <BLI_arithb.h>
 #include <BLI_blenlib.h>
 #include <DNA_ID.h>
@@ -51,6 +53,7 @@
 #include <DNA_view3d_types.h>
 
 #include "gen_utils.h"
+#include "modules.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.                    */
@@ -82,23 +85,15 @@ char M_Object_GetSelected_doc[] =
 The active object is the first in the list, if visible";
 
 /*****************************************************************************/
-/* Python BlenderObject structure definition.                                */
+/* Python C_Object structure definition.                                     */
 /*****************************************************************************/
 typedef struct {
     PyObject_HEAD
-    PyObject         *dict;
     struct Object    *object;
-} C_BlenObject;
+} C_Object;
 
 /*****************************************************************************/
-/* PythonTypeObject callback function prototypes                             */
-/*****************************************************************************/
-void ObjectDeAlloc (C_BlenObject *obj);
-PyObject* ObjectGetAttr (C_BlenObject *obj, char *name);
-int ObjectSetAttr (C_BlenObject *obj, char *name, PyObject *v);
-
-/*****************************************************************************/
-/* Python method structure definition.                                       */
+/* Python method structure definition for Blender.Object module:             */
 /*****************************************************************************/
 struct PyMethodDef M_Object_methods[] = {
     {"New",         (PyCFunction)M_Object_New,         METH_VARARGS,
@@ -113,26 +108,123 @@ struct PyMethodDef M_Object_methods[] = {
 };
 
 /*****************************************************************************/
+/* Python C_Object methods declarations:                                     */
+/*****************************************************************************/
+static PyObject *Object_clrParent (C_Object *self, PyObject *args);
+static PyObject *Object_getData (C_Object *self);
+static PyObject *Object_getDeformData (C_Object *self);
+static PyObject *Object_getDeltaLocation (C_Object *self);
+static PyObject *Object_getDrawMode (C_Object *self);
+static PyObject *Object_getDrawType (C_Object *self);
+static PyObject *Object_getEuler (C_Object *self);
+static PyObject *Object_getInverseMatrix (C_Object *self);
+static PyObject *Object_getLocation (C_Object *self, PyObject *args);
+static PyObject *Object_getMaterials (C_Object *self);
+static PyObject *Object_getMatrix (C_Object *self);
+static PyObject *Object_getParent (C_Object *self);
+static PyObject *Object_getTracked (C_Object *self);
+static PyObject *Object_getType (C_Object *self);
+static PyObject *Object_link (C_Object *self, PyObject *args);
+static PyObject *Object_makeParent (C_Object *self, PyObject *args);
+static PyObject *Object_materialUsage (C_Object *self, PyObject *args);
+static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args);
+static PyObject *Object_setDrawMode (C_Object *self, PyObject *args);
+static PyObject *Object_setDrawType (C_Object *self, PyObject *args);
+static PyObject *Object_setEuler (C_Object *self, PyObject *args);
+static PyObject *Object_setLocation (C_Object *self, PyObject *args);
+static PyObject *Object_setMaterials (C_Object *self, PyObject *args);
+static PyObject *Object_shareFrom (C_Object *self, PyObject *args);
+
+/*****************************************************************************/
+/* Python C_Object methods table:                                            */
+/*****************************************************************************/
+static PyMethodDef C_Object_methods[] = {
+    /* name, method, flags, doc */
+    {"clrParent",        (PyCFunction)Object_clrParent,        METH_VARARGS,
+        "(x) - "},
+    {"getData",          (PyCFunction)Object_getData,          METH_NOARGS,
+        "(x) - "},
+    {"getDeformData",    (PyCFunction)Object_getDeformData,    METH_NOARGS,
+        "(x) - "},
+    {"getDeltaLocation", (PyCFunction)Object_getDeltaLocation, METH_NOARGS,
+        "(x) - "},
+    {"getDrawMode",      (PyCFunction)Object_getDrawMode,      METH_NOARGS,
+        "(x) - "},
+    {"getDrawType",      (PyCFunction)Object_getDrawType,      METH_NOARGS,
+        "(x) - "},
+    {"getEuler",         (PyCFunction)Object_getEuler,         METH_NOARGS,
+        "(x) - "},
+    {"getInverseMatrix", (PyCFunction)Object_getInverseMatrix, METH_NOARGS,
+        "(x) - "},
+    {"getLocation",      (PyCFunction)Object_getLocation,      METH_VARARGS,
+        "(x) - "},
+    {"getMaterials",     (PyCFunction)Object_getMaterials,     METH_NOARGS,
+        "(x) - "},
+    {"getMatrix",        (PyCFunction)Object_getMatrix,        METH_NOARGS,
+        "(x) - "},
+    {"getParent",        (PyCFunction)Object_getParent,        METH_NOARGS,
+        "(x) - "},
+    {"getTracked",       (PyCFunction)Object_getTracked,       METH_NOARGS,
+        "(x) - "},
+    {"getType",          (PyCFunction)Object_getType,          METH_NOARGS,
+        "(x) - "},
+    {"link",             (PyCFunction)Object_link,             METH_VARARGS,
+        "(x) - "},
+    {"makeParent",       (PyCFunction)Object_makeParent,       METH_VARARGS,
+        "(x) - "},
+    {"materialUsage",    (PyCFunction)Object_materialUsage,    METH_VARARGS,
+        "(x) - "},
+    {"setDeltaLocation", (PyCFunction)Object_setDeltaLocation, METH_VARARGS,
+        "(x) - "},
+    {"setDrawMode",      (PyCFunction)Object_setDrawMode,      METH_VARARGS,
+        "(x) - "},
+    {"setDrawType",      (PyCFunction)Object_setDrawType,      METH_VARARGS,
+        "(x) - "},
+    {"setEuler",         (PyCFunction)Object_setEuler,         METH_VARARGS,
+        "(x) - "},
+    {"setLocation",      (PyCFunction)Object_setLocation,      METH_VARARGS,
+        "(x) - "},
+    {"setMaterials",     (PyCFunction)Object_setMaterials,     METH_VARARGS,
+        "(x) - "},
+    {"shareFrom",        (PyCFunction)Object_shareFrom,        METH_VARARGS,
+        "(x) - "},
+};
+
+/*****************************************************************************/
+/* PythonTypeObject callback function prototypes                             */
+/*****************************************************************************/
+static void      ObjectDeAlloc (C_Object *obj);
+static int       ObjectPrint   (C_Object *obj, FILE *fp, int flags);
+static PyObject* ObjectGetAttr (C_Object *obj, char *name);
+static int       ObjectSetAttr (C_Object *obj, char *name, PyObject *v);
+static PyObject* ObjectRepr    (C_Object *obj);
+
+/*****************************************************************************/
 /* Python TypeObject structure definition.                                   */
 /*****************************************************************************/
 static PyTypeObject object_type =
 {
     PyObject_HEAD_INIT(&PyType_Type)
     0,                                /* ob_size */
-    "Object",                        /* tp_name */
-    sizeof (C_BlenObject),            /* tp_basicsize */
+    "Object",                         /* tp_name */
+    sizeof (C_Object),                /* tp_basicsize */
     0,                                /* tp_itemsize */
     /* methods */
     (destructor)ObjectDeAlloc,        /* tp_dealloc */
-    0,                                /* tp_print */
-    (getattrfunc)ObjectGetAttr,        /* tp_getattr */
-    (setattrfunc)ObjectSetAttr,        /* tp_setattr */
+    (printfunc)ObjectPrint,           /* tp_print */
+    (getattrfunc)ObjectGetAttr,       /* tp_getattr */
+    (setattrfunc)ObjectSetAttr,       /* tp_setattr */
     0,                                /* tp_compare */
-    0,                                /* tp_repr */
+    (reprfunc)ObjectRepr,             /* tp_repr */
     0,                                /* tp_as_number */
     0,                                /* tp_as_sequence */
     0,                                /* tp_as_mapping */
     0,                                /* tp_as_hash */
+    0,0,0,0,0,0,
+    0,                                /* tp_doc */ 
+    0,0,0,0,0,0,
+    C_Object_methods,                 /* tp_methods */
+    0,                                /* tp_members */
 };
 
 #endif /* EXPP_OBJECT_H */
