@@ -238,8 +238,8 @@ static const EXPP_map_pair *tex_stype_map[] = {
     tex_stype_default_map,    /* none */
     tex_stype_clouds_map,
     tex_stype_wood_map,
-    tex_stype_default_map,    /* magic */
     tex_stype_marble_map,
+    tex_stype_default_map,    /* magic */
     tex_stype_blend_map,
     tex_stype_stucci_map,
     tex_stype_default_map,    /* noise */
