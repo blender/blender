@@ -1097,7 +1097,7 @@ void error(char *fmt, ...)
 
 int saveover(char *file)
 {
-	return (!BLI_exists(file) || confirm("SAVE OVER", file));
+	return (!BLI_exists(file) || confirm("Save over", file));
 }
 
 /* ****************** EXTRA STUFF **************** */

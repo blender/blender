@@ -942,7 +942,7 @@ int blenderqread(unsigned short event, short val)
 	case XKEY:
 		if(textspace==0) {
 			if(G.qual==LR_CTRLKEY) {
-				if(okee("ERASE ALL")) {
+				if(okee("Erase all")) {
 					if( BIF_read_homefile()==0) error("No file ~/.B.blend");
 				}
 				return 0;
