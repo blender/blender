@@ -189,7 +189,6 @@ works only if self and the object specified are of the same type."},
 /* PythonTypeObject callback function prototypes                             */
 /*****************************************************************************/
 static void      Object_dealloc (BPy_Object *obj);
-static int       Object_print   (BPy_Object *obj, FILE *fp, int flags);
 static PyObject* Object_getAttr (BPy_Object *obj, char *name);
 static int       Object_setAttr (BPy_Object *obj, char *name, PyObject *v);
 static PyObject* Object_repr    (BPy_Object *obj);
@@ -207,7 +206,7 @@ PyTypeObject Object_Type =
     0,                                /* tp_itemsize */
     /* methods */
     (destructor)Object_dealloc,       /* tp_dealloc */
-    (printfunc)Object_print,          /* tp_print */
+    0,                                /* tp_print */
     (getattrfunc)Object_getAttr,      /* tp_getattr */
     (setattrfunc)Object_setAttr,      /* tp_setattr */
     (cmpfunc)Object_compare,          /* tp_compare */
@@ -387,14 +386,13 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
 PyObject *M_Object_Get(PyObject *self, PyObject *args)
 {
     struct Object   * object;
+    BPy_Object      * blen_object;
     char            * name = NULL;
 
     PyArg_ParseTuple(args, "|s", &name);
 
     if (name != NULL)
     {
-        BPy_Object    * blen_object;
-
         object = GetObjectByName (name);
 
         if (object == NULL)
@@ -414,34 +412,34 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
     }
     else
     {
-        /* No argument has been given. Return a list of all objects by name. */
+        /* No argument has been given. Return a list of all objects. */
         PyObject    * obj_list;
-        ID          * id_iter;
-        int           index = 0;
+        Link        * link;
+        int           index;
 
         obj_list = PyList_New (BLI_countlist (&(G.main->object)));
 
         if (obj_list == NULL)
         {
             return (PythonReturnErrorObject (PyExc_SystemError,
-                        "List creation failed."));
+                    "List creation failed."));
         }
 
-        object = G.main->object.first;
-        id_iter = &(object->id);
-        while (id_iter)
+        link = G.main->object.first;
+        index = 0;
+        while (link)
         {
-            PyObject    * object;
+            object = (Object*)link;
+            blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type);
+            blen_object->object = object;
+            blen_object->parent = NULL;
+            blen_object->data = NULL;
+            blen_object->track = NULL;
+            blen_object->ipo = NULL;
 
-            object = PyString_FromString (GetIdName (id_iter));
-            if (object == NULL)
-            {
-                return (PythonReturnErrorObject (PyExc_SystemError,
-                        "Python string creation failed."));
-            }
-            PyList_SetItem (obj_list, index, object);
-            id_iter = id_iter->next;
+            PyList_SetItem (obj_list, index, (PyObject*)blen_object);
             index++;
+            link = link->next;
         }
         return (obj_list);
     }
@@ -699,11 +697,21 @@ static PyObject *Object_getEuler (BPy_Object *self)
 
 static PyObject *Object_getInverseMatrix (BPy_Object *self)
 {
-    Object  * ob;
     float     inverse[4][4];
+    Object  * ob;
 
-    ob = self->object->data;
-    Mat4Invert (inverse, ob->obmat);
+    ob = self->object;
+    printf ("----Before inverse----\n");
+    printf ("%f, %f, %f, %f\n", ob->obmat[0][0], ob->obmat[0][1], ob->obmat[0][2], ob->obmat[0][3]);
+    printf ("%f, %f, %f, %f\n", ob->obmat[1][0], ob->obmat[1][1], ob->obmat[1][2], ob->obmat[1][3]);
+    printf ("%f, %f, %f, %f\n", ob->obmat[2][0], ob->obmat[2][1], ob->obmat[2][2], ob->obmat[2][3]);
+    printf ("%f, %f, %f, %f\n", ob->obmat[3][0], ob->obmat[3][1], ob->obmat[3][2], ob->obmat[3][3]);
+    Mat4Invert (inverse, self->object->obmat);
+    printf ("-----After inverse-----\n");
+    printf ("%f, %f, %f, %f\n", inverse[0][0], inverse[0][1], inverse[0][2], inverse[0][3]);
+    printf ("%f, %f, %f, %f\n", inverse[1][0], inverse[1][1], inverse[1][2], inverse[1][3]);
+    printf ("%f, %f, %f, %f\n", inverse[2][0], inverse[2][1], inverse[2][2], inverse[2][3]);
+    printf ("%f, %f, %f, %f\n", inverse[3][0], inverse[3][1], inverse[3][2], inverse[3][3]);
 
     return (newMatrixObject (inverse));
 }
@@ -731,14 +739,14 @@ static PyObject *Object_getMatrix (BPy_Object *self)
 {
     Object  * ob;
 
-    ob = self->object->data;
+    ob = self->object;
 
     return (newMatrixObject (ob->obmat));
 }
 
 static PyObject *Object_getName (BPy_Object *self)
 {
-    PyObject *attr = Py_BuildValue ("s", self->object->id.name);
+    PyObject *attr = Py_BuildValue ("s", self->object->id.name+2);
 
     if (attr) return (attr);
 
@@ -1111,22 +1119,17 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 static PyObject *Object_setName (BPy_Object *self, PyObject *args)
 {
     char  * name;
-    int     length;
+    char    buf[21];
 
-    if (!PyArg_Parse (args, "s#", &name, &length))
+    if (!PyArg_Parse (args, "s", &name))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected a String as argument"));
     }
 
-    if (length > 23)
-    {
-        return (PythonReturnErrorObject (PyExc_AttributeError,
-                "name argument may not exceed 23 characters"));
-    }
+    PyOS_snprintf(buf, sizeof(buf), "%s", name);
 
-    free (self->object->id.name);
-    strncpy (self->object->id.name, name, length);
+    rename_id(&self->object->id, buf);
 
     Py_INCREF (Py_None);
     return (Py_None);
@@ -1560,22 +1563,11 @@ static int Object_compare (BPy_Object *a, BPy_Object *b)
 }
 
 /*****************************************************************************/
-/* Function:    Object_print                                                 */
-/* Description: This is a callback function for the BPy_Object type. It      */
-/*              builds a meaninful string to 'print' object objects.         */
-/*****************************************************************************/
-static int Object_print(BPy_Object *self, FILE *fp, int flags)
-{ 
-  fprintf(fp, "[Object \"%s\"]", self->object->id.name+2);
-  return 0;
-}
-
-/*****************************************************************************/
 /* Function:    Object_repr                                                  */
 /* Description: This is a callback function for the BPy_Object type. It      */
 /*              builds a meaninful string to represent object objects.       */
 /*****************************************************************************/
 static PyObject *Object_repr (BPy_Object *self)
 {
-  return PyString_FromString(self->object->id.name+2);
+  return PyString_FromFormat("[Object \"%s\"]", self->object->id.name+2);
 }

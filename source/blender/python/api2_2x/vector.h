@@ -73,7 +73,7 @@ typedef struct {
 /* PROTOS */
 
 PyObject *newVectorObject(float *vec, int size);
-PyObject *newMatrixObject(Matrix4Ptr mat);
+PyObject *newMatrixObject(float mat[][4]);
 void init_py_matrix(void);
 
 #endif /* EXPP_vector_h */

@@ -125,7 +125,7 @@ PyTypeObject Matrix_Type =
     &Matrix_SeqMethods,             /*tp_as_sequence*/
 };
 
-PyObject * newMatrixObject (Matrix4Ptr mat)
+PyObject * newMatrixObject (float mat[][4])
 {
     MatrixObject    * self;
 
