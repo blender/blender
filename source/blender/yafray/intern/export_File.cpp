@@ -72,6 +72,8 @@ static int createDir(char* name)
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 static string unixYafrayPath()
@@ -1215,6 +1217,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 	sprintf(yfr, "%d ", R.r.YF_numprocs);
 	string command = command_path + "yafray -c " + yfr + "\"" + xmlpath + "\"";
 	int ret=system(command.c_str());
+#ifndef WIN32
 	if(WIFEXITED(ret))
 	{
 		if(WEXITSTATUS(ret)) cout<<"Executed -"<<command<<"-"<<endl;
@@ -1231,6 +1234,10 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 	else
 		cout<<"Unknown error\n";
 	return false;
+#else
+	return ret==0;
+#endif
+	
 }
 
 
