@@ -3,7 +3,7 @@
 ;
 ; Blender Self-Installer for Windows (NSIS - http://nsis.sourceforge.net)
 ;
-; 09.02.2003    aphex (mediocre@mixmojo.com)
+; 09.02.2003    aphex (mediocre@mixnmojo.com)
 ;
 
 Name "Blender"
