@@ -1164,6 +1164,11 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			if (sce->r.avicodecdata->lpParms) writedata(wd, DATA, sce->r.avicodecdata->cbParms, sce->r.avicodecdata->lpParms);
 		}
 		
+		if (sce->r.qtcodecdata) {
+			writestruct(wd, DATA, "QuicktimeCodecData", 1, sce->r.qtcodecdata);
+			if (sce->r.qtcodecdata->cdParms) writedata(wd, DATA, sce->r.qtcodecdata->cdSize, sce->r.qtcodecdata->cdParms);
+		}
+
 		sce= sce->id.next;
 	}
 }

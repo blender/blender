@@ -6027,7 +6027,7 @@ void do_renderbuts(unsigned short event)
 		if (((G.scene->r.imtype == R_AVICODEC) 
 			 && (G.scene->r.avicodecdata == NULL)) ||
 			((G.scene->r.imtype == R_QUICKTIME) 
-			 && (have_qtcodec == FALSE))) {
+			 && (G.scene->r.qtcodecdata == NULL))) {
 		} else {
 		  break;
 		}
@@ -6589,10 +6589,10 @@ void renderbuts(void)
 #if defined (_WIN32) || defined (__APPLE__)
 			glColor3f(0.65, 0.65, 0.7);
 			glRecti(892,yofs+46,892+225,yofs+45+20);
-			if(!have_qtcodec)
+			if(G.scene->r.qtcodecdata == NULL)
 				uiDefBut(block, LABEL, 0, "Codec: not set",  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			else
-				uiDefBut(block, LABEL, 0, qtcdname,  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, G.scene->r.qtcodecdata->qtcodecname,  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
 #else /* libquicktime */
 			if (!G.scene->r.qtcodecdata) G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData), "QtCodecData");

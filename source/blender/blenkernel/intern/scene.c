@@ -1,4 +1,3 @@
-
 /*  scene.c
  *  
  * 
@@ -101,6 +100,17 @@ void free_avicodecdata(AviCodecData *acd)
 	}
 }
 
+void free_qtcodecdata(QuicktimeCodecData *qcd)
+{
+	if (qcd) {
+		if (qcd->cdParms){
+			MEM_freeN(qcd->cdParms);
+			qcd->cdParms = NULL;
+			qcd->cdSize = 0;
+		}
+	}
+}
+
 /* do not free scene itself */
 void free_scene(Scene *sce)
 {
@@ -124,6 +134,11 @@ void free_scene(Scene *sce)
 		free_avicodecdata(sce->r.avicodecdata);
 		MEM_freeN(sce->r.avicodecdata);
 		sce->r.avicodecdata = NULL;
+	}
+	if (sce->r.qtcodecdata) {
+		free_qtcodecdata(sce->r.qtcodecdata);
+		MEM_freeN(sce->r.qtcodecdata);
+		sce->r.qtcodecdata = NULL;
 	}
 }
 

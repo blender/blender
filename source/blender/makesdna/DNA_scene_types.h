@@ -81,8 +81,21 @@ typedef struct AviCodecData {
 	char			avicodecname[128];
 } AviCodecData;
 
+typedef struct QuicktimeCodecData {
+
+	void			*cdParms;			/* codec/compressor options */
+	void			*pad;				/* padding */
+
+	unsigned int	cdSize;				/* size of cdParms buffer */
+	unsigned int	pad2;				/* padding */
+
+	char			qtcodecname[128];
+} QuicktimeCodecData;
+
+
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
+	struct QuicktimeCodecData *qtcodecdata;
 	
 	short cfra, sfra, efra;	/* fames as in 'images' */
 	short images, framapto, flag;

@@ -40,6 +40,7 @@ struct Base;
 struct AviCodecData;
 
 void free_avicodecdata(struct AviCodecData *acd);
+void free_qtcodecdata(struct QuicktimeCodecData *acd);
 void free_scene(struct Scene *me);
 struct Scene *add_scene(char *name);
 int object_in_scene(struct Object *ob, struct Scene *sce);

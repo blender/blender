@@ -2107,12 +2107,17 @@ Scene *copy_scene(Scene *sce, int level)
 	if (sce->r.avicodecdata) {
 
 		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
-
 		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
-
 		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
 	}
 
+	// make a private copy of the qtcodecdata
+
+	if (sce->r.qtcodecdata) {
+
+		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
+	}
 	return scen;
 }
 
@@ -2208,6 +2213,12 @@ void do_info_buttons(unsigned short event)
 					sce->r.avicodecdata = MEM_dupallocN(G.scene->r.avicodecdata);
 					sce->r.avicodecdata->lpFormat = MEM_dupallocN(G.scene->r.avicodecdata->lpFormat);
 					sce->r.avicodecdata->lpParms = MEM_dupallocN(G.scene->r.avicodecdata->lpParms);
+				}
+#endif
+#ifdef WITH_QUICKTIME
+				if (sce->r.qtcodecdata) {
+					sce->r.qtcodecdata = MEM_dupallocN(G.scene->r.qtcodecdata);
+					sce->r.qtcodecdata->cdParms = MEM_dupallocN(G.scene->r.qtcodecdata->cdParms);
 				}
 #endif
 			}

@@ -2291,6 +2291,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		sce->r.avicodecdata->lpParms = newdataadr(fd, sce->r.avicodecdata->lpParms);
 	}
 
+	sce->r.qtcodecdata = newdataadr(fd, sce->r.qtcodecdata);
+	if (sce->r.qtcodecdata) {
+		sce->r.qtcodecdata->cdParms = newdataadr(fd, sce->r.qtcodecdata->cdParms);
+	}
+
 	if(sce->ed) {
 		ed= sce->ed= newdataadr(fd, sce->ed);
 		
