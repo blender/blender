@@ -287,7 +287,7 @@ void unlink_object(Object *ob)
 	mat= G.main->mat.first;
 	while(mat) {
 	
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(mat->mtex[a] && ob==mat->mtex[a]->object) {
 				/* actually, test for lib here... to do */
 				mat->mtex[a]->object= 0;
@@ -316,7 +316,7 @@ void unlink_object(Object *ob)
 	wrld= G.main->world.first;
 	while(wrld) {
 		if(wrld->id.lib==0) {
-			for(a=0; a<6; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a] && ob==wrld->mtex[a]->object)
 					wrld->mtex[a]->object =0;
 			}
@@ -519,7 +519,7 @@ Lamp *copy_lamp(Lamp *la)
 	
 	lan= copy_libblock(la);
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(lan->mtex[a]) {
 			lan->mtex[a]= MEM_mallocN(sizeof(MTex), "copylamptex");
 			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
@@ -600,7 +600,7 @@ void free_lamp(Lamp *la)
 		
 	BPY_free_scriptlink(&la->scriptlink);
 	
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		mtex= la->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);

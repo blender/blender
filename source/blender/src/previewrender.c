@@ -1076,7 +1076,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 		init_render_material(mat);
 		
 		/* clear imats */
-		for(x=0; x<8; x++) {
+		for(x=0; x<MAX_MTEX; x++) {
 			if(mat->mtex[x]) {
 				if(mat->mtex[x]->tex) {
 					init_render_texture(mat->mtex[x]->tex);
@@ -1279,7 +1279,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 	
 	if(mat) {
 		end_render_material(mat);
-		for(x=0; x<8; x++) {
+		for(x=0; x<MAX_MTEX; x++) {
 			if(mat->mtex[x] && mat->mtex[x]->tex) end_render_texture(mat->mtex[x]->tex);
 		}	
 	}

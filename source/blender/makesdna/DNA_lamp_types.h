@@ -37,6 +37,10 @@
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
 
+#ifndef MAX_MTEX
+#define MAX_MTEX	10
+#endif
+
 struct MTex;
 struct Ipo;
 
@@ -68,7 +72,7 @@ typedef struct Lamp {
 	short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
 	float YF_causticblur, YF_ltradius;
 	
-	struct MTex *mtex[8];
+	struct MTex *mtex[10];
 	struct Ipo *ipo;
 	
 	ScriptLink scriptlink;

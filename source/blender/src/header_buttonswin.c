@@ -99,7 +99,7 @@ void free_matcopybuf(void)
 	extern MTex mtexcopybuf;	/* buttons.c */
 	int a;
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(matcopybuf.mtex[a]) {
 			MEM_freeN(matcopybuf.mtex[a]);
 			matcopybuf.mtex[a]= NULL;
@@ -153,7 +153,7 @@ void do_buts_buttons(short event)
 			if(matcopybuf.ramp_col) matcopybuf.ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
 			if(matcopybuf.ramp_spec) matcopybuf.ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
 
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				mtex= matcopybuf.mtex[a];
 				if(mtex) {
 					matcopybuf.mtex[a]= MEM_dupallocN(mtex);
@@ -168,7 +168,7 @@ void do_buts_buttons(short event)
 			/* free current mat */
 			if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 			if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				mtex= ma->mtex[a];
 				if(mtex && mtex->tex) mtex->tex->id.us--;
 				if(mtex) MEM_freeN(mtex);
@@ -181,7 +181,7 @@ void do_buts_buttons(short event)
 			if(matcopybuf.ramp_col) ma->ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
 			if(matcopybuf.ramp_spec) ma->ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
 			
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				mtex= ma->mtex[a];
 				if(mtex) {
 					ma->mtex[a]= MEM_dupallocN(mtex);

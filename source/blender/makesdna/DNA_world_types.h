@@ -40,6 +40,10 @@
 struct Ipo;
 struct MTex;
 
+#ifndef MAX_MTEX
+#define MAX_MTEX	10
+#endif
+
 
 /**
  * World defines general modelling data such as a background fill,
@@ -101,7 +105,7 @@ typedef struct World {
 	int physicsEngine;
 
 	struct Ipo *ipo;
-	struct MTex *mtex[8];
+	struct MTex *mtex[10];
 
 	ScriptLink scriptlink;
 

@@ -814,6 +814,8 @@ int texchannel_to_adrcode(int channel)
 		case 5: return MA_MAP6; 
 		case 6: return MA_MAP7; 
 		case 7: return MA_MAP8; 
+		case 8: return MA_MAP9; 
+		case 9: return MA_MAP10; 
 		default: return 0;
 	}
 }
@@ -2040,7 +2042,7 @@ void add_vert_ipo()
 	
 	ei= get_editipo();
 	if(ei==0) {
-		error("Too many EditIpos");
+		error("Too many (or no) EditIpos");
 		return;
 	}
 	

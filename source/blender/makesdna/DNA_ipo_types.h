@@ -153,6 +153,8 @@ typedef short IPO_Channel;
 #define MA_MAP6		0x400
 #define MA_MAP7		0x800
 #define MA_MAP8		0x1000
+#define MA_MAP9		0x2000
+#define MA_MAP10	0x4000
 
 #define TEX_TOTNAM	14
 
@@ -252,7 +254,7 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define LA_TOTIPO	23
+#define LA_TOTIPO	21
 #define LA_TOTNAM	10
 
 #define LA_ENERGY	1

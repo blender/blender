@@ -1393,11 +1393,11 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	/* CHANNELS */
 	uiBlockBeginAlign(block);
 	yco= 150;
-	for(a= 0; a<8; a++) {
+	for(a= 0; a<MAX_MTEX; a++) {
 		
 		if(ma) mt= ma->mtex[a];
-		else if(wrld && a<6)  mt= wrld->mtex[a];
-		else if(la && a<6)  mt= la->mtex[a];
+		else if(wrld)  mt= wrld->mtex[a];
+		else if(la)  mt= la->mtex[a];
 		
 		if(mt && mt->tex) splitIDname(mt->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
@@ -1407,11 +1407,11 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 			uiDefButC(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(ma->texact), 0.0, (float)a, 0, 0, "Click to select texture channel");
 			yco-= 20;
 		}
-		else if(wrld && a<6) {
+		else if(wrld) {
 			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(wrld->texact), 0.0, (float)a, 0, 0, "");
 			yco-= 20;
 		}
-		else if(la && a<6) {
+		else if(la) {
 			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(la->texact), 0.0, (float)a, 0, 0, "");
 			yco-= 20;
 		}
@@ -1763,12 +1763,12 @@ static void world_panel_texture(World *wrld)
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiBlockBeginAlign(block);
-	for(a= 0; a<6; a++) {
+	for(a= 0; a<MAX_MTEX; a++) {
 		mtex= wrld->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
 		str[10]= 0;
-		uiDefButS(block, ROW, REDRAWBUTSSHADING, str,10, 160-20*a, 80, 20, &(wrld->texact), 3.0, (float)a, 0, 0, "Texture channel");
+		uiDefButS(block, ROW, REDRAWBUTSSHADING, str,10, 160-18*a, 80, 20, &(wrld->texact), 3.0, (float)a, 0, 0, "Texture channel");
 	}
 	uiBlockEndAlign(block);
 
@@ -2081,6 +2081,8 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
 
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col  ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+
 }
 
 
@@ -2100,12 +2102,12 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiBlockBeginAlign(block);
-	for(a= 0; a<6; a++) {
+	for(a= 0; a<MAX_MTEX; a++) {
 		mtex= la->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
 		str[10]= 0;
-		uiDefButS(block, ROW, B_REDR, str,	10, 160-20*a, 80, 20, &(la->texact), 3.0, (float)a, 0, 0, "");
+		uiDefButS(block, ROW, B_REDR, str,	10, 160-18*a, 80, 20, &(la->texact), 3.0, (float)a, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 	
@@ -2691,24 +2693,24 @@ static void material_panel_texture(Material *ma)
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	
 	uiBlockBeginAlign(block);
-	for(a= 0; a<8; a++) {
+	for(a= 0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
 		str[10]= 0;
-		uiDefButC(block, ROW, B_MATPRV_DRAW, str,	10, 180-20*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV_DRAW, str,	10, 180-18*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 	
 	/* SEPTEX */
 	uiBlockSetCol(block, TH_AUTO);
 	
-	for(a= 0; a<8; a++) {
+	for(a= 0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
 			if(ma->septex & (1<<a)) 
-				uiDefButC(block, TOG|BIT|a, B_MATPRV_DRAW, " ",	-20, 180-20*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
-			else uiDefIconButC(block, TOG|BIT|a, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	-20, 180-20*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+				uiDefButC(block, TOG|BIT|a, B_MATPRV_DRAW, " ",	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+			else uiDefIconButC(block, TOG|BIT|a, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
 		}
 	}
 	

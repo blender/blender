@@ -6840,7 +6840,7 @@ void single_obdata_users(int flag)
 				case OB_LAMP:
 					if(id && id->us>1 && id->lib==0) {
 						ob->data= la= copy_lamp(ob->data);
-						for(a=0; a<8; a++) {
+						for(a=0; a<MAX_MTEX; a++) {
 							if(la->mtex[a]) {
 								ID_NEW(la->mtex[a]->object);
 							}
@@ -6981,7 +6981,7 @@ void single_mat_users(int flag)
 							ma->ipo->id.us--;
 						}
 						
-						for(b=0; b<8; b++) {
+						for(b=0; b<MAX_MTEX; b++) {
 							if(ma->mtex[b] && ma->mtex[b]->tex) {
 								tex= ma->mtex[b]->tex;
 								if(tex->id.us>1) {
@@ -7031,7 +7031,7 @@ void single_tex_users_expand()
 	ma= G.main->mat.first;
 	while(ma) {
 		if(ma->id.flag & LIB_NEW) {
-			for(b=0; b<8; b++) {
+			for(b=0; b<MAX_MTEX; b++) {
 				if(ma->mtex[b] && ma->mtex[b]->tex) {
 					do_single_tex_user( &(ma->mtex[b]->tex) );
 				}
@@ -7043,7 +7043,7 @@ void single_tex_users_expand()
 	la= G.main->lamp.first;
 	while(la) {
 		if(la->id.flag & LIB_NEW) {
-			for(b=0; b<6; b++) {
+			for(b=0; b<MAX_MTEX; b++) {
 				if(la->mtex[b] && la->mtex[b]->tex) {
 					do_single_tex_user( &(la->mtex[b]->tex) );
 				}
@@ -7054,7 +7054,7 @@ void single_tex_users_expand()
 	wo= G.main->world.first;
 	while(wo) {
 		if(wo->id.flag & LIB_NEW) {
-			for(b=0; b<6; b++) {
+			for(b=0; b<MAX_MTEX; b++) {
 				if(wo->mtex[b] && wo->mtex[b]->tex) {
 					do_single_tex_user( &(wo->mtex[b]->tex) );
 				}
@@ -7111,7 +7111,7 @@ void single_mat_users_expand(void)
 	ma= G.main->mat.first;
 	while(ma) {
 		if(ma->id.flag & LIB_NEW) {
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) {
 					ID_NEW(ma->mtex[a]->object);
 				}
@@ -7270,7 +7270,7 @@ void make_local(void)
 			
 			if(ob->type==OB_LAMP) {
 				la= ob->data;
-				for(b=0; b<8; b++) {
+				for(b=0; b<MAX_MTEX; b++) {
 					if(la->mtex[b] && la->mtex[b]->tex) {
 						make_local_texture(la->mtex[b]->tex);
 					}
@@ -7283,7 +7283,7 @@ void make_local(void)
 					if(ma) {
 						make_local_material(ma);
 					
-						for(b=0; b<8; b++) {
+						for(b=0; b<MAX_MTEX; b++) {
 							if(ma->mtex[b] && ma->mtex[b]->tex) {
 								make_local_texture(ma->mtex[b]->tex);
 							}
@@ -7300,7 +7300,7 @@ void make_local(void)
 					if(ma) {
 						make_local_material(ma);
 					
-						for(b=0; b<8; b++) {
+						for(b=0; b<MAX_MTEX; b++) {
 							if(ma->mtex[b] && ma->mtex[b]->tex) {
 								make_local_texture(ma->mtex[b]->tex);
 							}
@@ -7541,7 +7541,7 @@ void adduplicate(float *dtrans)
 				ma= (Material *)mao->id.newid;
 				
 				if(dupflag & USER_DUP_TEX) {
-					for(a=0; a<8; a++) {
+					for(a=0; a<MAX_MTEX; a++) {
 						if(ma->mtex[a]) {
 							id= (ID *)ma->mtex[a]->tex;
 							if(id) {
@@ -7653,7 +7653,7 @@ void selectlinks(int nr)
 						if(mat1==mat) base->flag |= SELECT;
 					}
 					else if(mat1 && nr==4) {
-						for(b=0; b<8; b++) {
+						for(b=0; b<MAX_MTEX; b++) {
 							if(mat1->mtex[b]) {
 								if(tex==mat1->mtex[b]->tex) base->flag |= SELECT;
 							}
@@ -7695,7 +7695,7 @@ void image_aspect(void)
 			for(a=1; a<=ob->totcol; a++) {
 				ma= give_current_material(ob, a);
 				if(ma) {
-					for(b=0; b<8; b++) {
+					for(b=0; b<MAX_MTEX; b++) {
 						if(ma->mtex[b] && ma->mtex[b]->tex) {
 							tex= ma->mtex[b]->tex;
 							if(tex->type==TEX_IMAGE && tex->ima && tex->ima->ibuf) {

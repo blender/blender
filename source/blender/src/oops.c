@@ -647,12 +647,12 @@ void add_material_oopslinks(Material *ma, Oops *oops, short flag)
 	int a;
 	
 	if(flag & OOPS_TE) {
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(ma->mtex[a]) add_oopslink("tex", oops, ID_TE, &(ma->mtex[a]->tex), (float)(0.5*OOPSX), (float)OOPSY);
 		}
 	}
 	if(flag & OOPS_OB) {
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(ma->mtex[a]) add_oopslink("ob", oops, ID_OB, &(ma->mtex[a]->object), 0.0, (float)(0.2*OOPSY));
 		}
 	}
@@ -755,7 +755,7 @@ void add_lamp_oopslinks(Lamp *la, Oops *oops, short flag)
 	int a;
 	
 	if(flag & OOPS_TE) {
-		for(a=0; a<6; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(la->mtex[a]) {
 				add_oopslink("tex", oops, ID_TE, &(la->mtex[a]->tex), 0.0, (float)(0.5*OOPSY));
 			}
@@ -829,7 +829,7 @@ void add_texture_oops(Material *ma)
 {
 	int a;
 	
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
 			add_test_oops(ma->mtex[a]->tex);
 			if(ma->mtex[a]->tex) if(G.soops->visiflag & OOPS_IM) add_test_oops(ma->mtex[a]->tex->ima);
@@ -1047,7 +1047,7 @@ void build_oops()
 						oops= add_test_oops(ob->data);
 						if(G.soops->visiflag & OOPS_IP) add_test_oops(la->ipo);
 						if(G.soops->visiflag & OOPS_TE) {
-							for(a=0; a<6; a++) {
+							for(a=0; a<MAX_MTEX; a++) {
 								if(la->mtex[a]) add_test_oops(la->mtex[a]->tex);
 							}
 						}

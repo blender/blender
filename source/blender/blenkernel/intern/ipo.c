@@ -165,7 +165,7 @@ int la_ar[LA_TOTIPO]= {
 	MA_MAP1+MAP_OFS_X, MA_MAP1+MAP_OFS_Y, MA_MAP1+MAP_OFS_Z, 
 	MA_MAP1+MAP_SIZE_X, MA_MAP1+MAP_SIZE_Y, MA_MAP1+MAP_SIZE_Z, 
 	MA_MAP1+MAP_R, MA_MAP1+MAP_G, MA_MAP1+MAP_B,
-	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF, MA_MAP1+MAP_NORF, MA_MAP1+MAP_VARF
+	MA_MAP1+MAP_DVAR, MA_MAP1+MAP_COLF
 };
 
 /* yafray: aperture & focal distance curves added */
@@ -1172,6 +1172,8 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP6) mtex= ma->mtex[5];
 			else if(icu->adrcode & MA_MAP7) mtex= ma->mtex[6];
 			else if(icu->adrcode & MA_MAP8) mtex= ma->mtex[7];
+			else if(icu->adrcode & MA_MAP9) mtex= ma->mtex[8];
+			else if(icu->adrcode & MA_MAP10) mtex= ma->mtex[9];
 			
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
@@ -1254,6 +1256,8 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP6) mtex= wo->mtex[5];
 			else if(icu->adrcode & MA_MAP7) mtex= wo->mtex[6];
 			else if(icu->adrcode & MA_MAP8) mtex= wo->mtex[7];
+			else if(icu->adrcode & MA_MAP9) mtex= wo->mtex[8];
+			else if(icu->adrcode & MA_MAP10) mtex= wo->mtex[9];
 			
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
@@ -1297,6 +1301,8 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP6) mtex= la->mtex[5];
 			else if(icu->adrcode & MA_MAP7) mtex= la->mtex[6];
 			else if(icu->adrcode & MA_MAP8) mtex= la->mtex[7];
+			else if(icu->adrcode & MA_MAP9) mtex= la->mtex[8];
+			else if(icu->adrcode & MA_MAP10) mtex= la->mtex[9];
 			
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );

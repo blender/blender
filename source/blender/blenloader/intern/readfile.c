@@ -1542,7 +1542,7 @@ static void lib_link_lamp(FileData *fd, Main *main)
 	while(la) {
 		if(la->id.flag & LIB_NEEDLINK) {
 
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				mtex= la->mtex[a];
 				if(mtex) {
 					mtex->tex= newlibadr_us(fd, la->id.lib, mtex->tex);
@@ -1566,7 +1566,7 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 
 	direct_link_scriptlink(fd, &la->scriptlink);
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		la->mtex[a]= newdataadr(fd, la->mtex[a]);
 	}
 }
@@ -1691,7 +1691,7 @@ static void lib_link_world(FileData *fd, Main *main)
 
 			wrld->ipo= newlibadr_us(fd, wrld->id.lib, wrld->ipo);
 
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				mtex= wrld->mtex[a];
 				if(mtex) {
 					mtex->tex= newlibadr_us(fd, wrld->id.lib, mtex->tex);
@@ -1713,7 +1713,7 @@ static void direct_link_world(FileData *fd, World *wrld)
 
 	direct_link_scriptlink(fd, &wrld->scriptlink);
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		wrld->mtex[a]= newdataadr(fd, wrld->mtex[a]);
 	}
 }
@@ -1985,7 +1985,7 @@ static void lib_link_material(FileData *fd, Main *main)
 
 			ma->ipo= newlibadr_us(fd, ma->id.lib, ma->ipo);
 
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				mtex= ma->mtex[a];
 				if(mtex) {
 					mtex->tex= newlibadr_us(fd, ma->id.lib, mtex->tex);
@@ -2005,7 +2005,7 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 	direct_link_scriptlink(fd, &ma->scriptlink);
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		ma->mtex[a]= newdataadr(fd, ma->mtex[a]);
 	}
 
@@ -4805,7 +4805,7 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 {
 	int a;
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
 			expand_doit(fd, mainvar, ma->mtex[a]->tex);
 			expand_doit(fd, mainvar, ma->mtex[a]->object);
@@ -4818,7 +4818,7 @@ static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
 {
 	int a;
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(la->mtex[a]) {
 			expand_doit(fd, mainvar, la->mtex[a]->tex);
 			expand_doit(fd, mainvar, la->mtex[a]->object);
@@ -4838,7 +4838,7 @@ static void expand_world(FileData *fd, Main *mainvar, World *wrld)
 {
 	int a;
 
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(wrld->mtex[a]) {
 			expand_doit(fd, mainvar, wrld->mtex[a]->tex);
 			expand_doit(fd, mainvar, wrld->mtex[a]->object);

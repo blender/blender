@@ -519,7 +519,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			Material *ma= (Material *)id;
 			
 			outliner_add_element(soops, &te->subtree, ma->ipo, te, 0, 0);
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
 			}
 		}
@@ -542,7 +542,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Lamp *la= (Lamp *)id;
 				outliner_add_element(soops, &te->subtree, la->ipo, te, 0, 0);
-				for(a=0; a<6; a++) {
+				for(a=0; a<MAX_MTEX; a++) {
 					if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
 				}
 			}
@@ -551,7 +551,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				World *wrld= (World *)id;
 				outliner_add_element(soops, &te->subtree, wrld->ipo, te, 0, 0);
-				for(a=0; a<6; a++) {
+				for(a=0; a<MAX_MTEX; a++) {
 					if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
 				}
 			}
@@ -1600,25 +1600,23 @@ static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep)
 static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep)
 {
 	MTex **mtex= NULL;
-	int tottex= 0;
 	int a;
 	
 	if( GS(tsep->id->name)==ID_MA) {
 		Material *ma= (Material *)tsep->id;
 		mtex= ma->mtex;
-		tottex= 8;
 	}
 	else if( GS(tsep->id->name)==ID_LA) {
 		Lamp *la= (Lamp *)tsep->id;
 		mtex= la->mtex;
-		tottex= 6;
 	}
 	else if( GS(tsep->id->name)==ID_WO) {
 		World *wrld= (World *)tsep->id;
 		mtex= wrld->mtex;
-		tottex= 6;
 	}
-	for(a=0; a<tottex; a++) {
+	else return;
+	
+	for(a=0; a<MAX_MTEX; a++) {
 		if(a==te->index && mtex[a]) {
 			if(mtex[a]->tex) {
 				mtex[a]->tex->id.us--;

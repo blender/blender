@@ -493,7 +493,7 @@ void make_local_texture(Tex *tex)
 	
 	ma= G.main->mat.first;
 	while(ma) {
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(ma->mtex[a] && ma->mtex[a]->tex==tex) {
 				if(ma->id.lib) lib= 1;
 				else local= 1;
@@ -503,7 +503,7 @@ void make_local_texture(Tex *tex)
 	}
 	la= G.main->lamp.first;
 	while(la) {
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(la->mtex[a] && la->mtex[a]->tex==tex) {
 				if(la->id.lib) lib= 1;
 				else local= 1;
@@ -513,7 +513,7 @@ void make_local_texture(Tex *tex)
 	}
 	wrld= G.main->world.first;
 	while(wrld) {
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(wrld->mtex[a] && wrld->mtex[a]->tex==tex) {
 				if(wrld->id.lib) lib= 1;
 				else local= 1;
@@ -533,7 +533,7 @@ void make_local_texture(Tex *tex)
 		
 		ma= G.main->mat.first;
 		while(ma) {
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a] && ma->mtex[a]->tex==tex) {
 					if(ma->id.lib==0) {
 						ma->mtex[a]->tex= texn;
@@ -546,7 +546,7 @@ void make_local_texture(Tex *tex)
 		}
 		la= G.main->lamp.first;
 		while(la) {
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(la->mtex[a] && la->mtex[a]->tex==tex) {
 					if(la->id.lib==0) {
 						la->mtex[a]->tex= texn;
@@ -559,7 +559,7 @@ void make_local_texture(Tex *tex)
 		}
 		wrld= G.main->world.first;
 		while(wrld) {
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a] && wrld->mtex[a]->tex==tex) {
 					if(wrld->id.lib==0) {
 						wrld->mtex[a]->tex= texn;

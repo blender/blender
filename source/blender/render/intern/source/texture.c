@@ -1270,7 +1270,7 @@ void do_material_tex(ShadeInput *shi)
 	
 	mat_col=mat_colspec=mat_colmir=mat_ref=mat_spec=mat_har=mat_emit=mat_alpha=mat_ray_mirr=mat_translu=mat_amb= shi->mat;
 	
-	for(tex_nr=0; tex_nr<8; tex_nr++) {
+	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
 		
 		/* separate tex switching */
 		if(shi->mat->septex & (1<<tex_nr)) continue;
@@ -1792,8 +1792,7 @@ void do_sky_tex(float *lo)
 	
 	wrld_hor= wrld_zen= G.scene->world;
 
-	/* The 6 here is the max amount of channels for a world */
-	for(tex_nr=0; tex_nr<6; tex_nr++) {
+	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
 		if(R.wrld.mtex[tex_nr]) {
 			mtex= R.wrld.mtex[tex_nr];
 			
@@ -1960,7 +1959,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 	
 	tex_nr= 0;
 	
-	for(; tex_nr<6; tex_nr++) {
+	for(; tex_nr<MAX_MTEX; tex_nr++) {
 		
 		if(la->mtex[tex_nr]) {
 			mtex= la->mtex[tex_nr];
@@ -2000,8 +1999,10 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 				VECCOPY(tempvec, lavec);
 				MTC_Mat3MulVecfl(la->imat, tempvec);
 				
-				tempvec[0]*= la->spottexfac;
-				tempvec[1]*= la->spottexfac;
+				if(la->type==LA_SPOT) {
+					tempvec[0]*= la->spottexfac;
+					tempvec[1]*= la->spottexfac;
+				}
 				co= tempvec; 
 				
 				dx= dxt; dy= dyt;	

@@ -1432,7 +1432,7 @@ static void init_render_mesh(Object *ob)
 			if(ma->alpha==0.0 && ma->spectra==0.0) {
 				ok= 0;
 				/* texture on transparency? */
-				for(a=0; a<8; a++) {
+				for(a=0; a<MAX_MTEX; a++) {
 					if(ma->mtex[a] && ma->mtex[a]->tex) {
 						if(ma->mtex[a]->mapto & MAP_ALPHA) ok= 1;
 					}
@@ -1711,7 +1711,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	lar->spotsi= cos( M_PI*lar->spotsi/360.0 );
 	lar->spotbl= (1.0-lar->spotsi)*la->spotblend;
 
-	memcpy(lar->mtex, la->mtex, 8*4);
+	memcpy(lar->mtex, la->mtex, MAX_MTEX*sizeof(void *));
 
 	lar->lay= ob->lay & 0xFFFFFF;	// higher 8 bits are localview layers
 
@@ -1756,7 +1756,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		}
 	}
 
-	for(c=0; c<6; c++) {
+	for(c=0; c<MAX_MTEX; c++) {
 		if(la->mtex[c] && la->mtex[c]->tex) {
 			lar->mode |= LA_TEXTURE;
 

@@ -73,7 +73,7 @@ void free_material(Material *ma)
 	if(ma->ren) MEM_freeN(ma->ren);
 	ma->ren= NULL;
 	
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
@@ -143,7 +143,7 @@ Material *copy_material(Material *ma)
 	
 	id_us_plus((ID *)man->ipo);
 	
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
 			man->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
 			memcpy(man->mtex[a], ma->mtex[a], sizeof(MTex));
@@ -177,7 +177,7 @@ void make_local_material(Material *ma)
 		ma->id.lib= 0;
 		ma->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ma, 0);
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(ma->mtex[a]) id_lib_extern((ID *)ma->mtex[a]->tex);
 		}
 		
@@ -241,7 +241,7 @@ void make_local_material(Material *ma)
 		ma->id.lib= 0;
 		ma->id.flag= LIB_LOCAL;
 		
-		for(a=0; a<8; a++) {
+		for(a=0; a<MAX_MTEX; a++) {
 			if(ma->mtex[a]) id_lib_extern((ID *)ma->mtex[a]->tex);
 		}
 		
@@ -554,7 +554,7 @@ void init_render_material(Material *ma)
 	ma= ma->ren;
 	ma->texco= 0;
 	ma->mapto= 0;
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
 			

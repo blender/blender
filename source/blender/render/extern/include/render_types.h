@@ -275,7 +275,7 @@ typedef struct LampRen
 	VlakRen *vlr_last;
 	
 	struct LampRen *org;
-	struct MTex *mtex[8];
+	struct MTex *mtex[MAX_MTEX];
 } LampRen;
 
 #endif /* RENDER_TYPES_H */

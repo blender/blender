@@ -56,6 +56,7 @@
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -867,21 +868,21 @@ void ipo_buttons(void)
 	else if(G.sipo->blocktype == ID_TE)
 		icon = ICON_TEXTURE;
 
-	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Display IPO type");
+	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Show IPO type");
 
 	xco += 85;
 
 	if(G.sipo->blocktype==ID_MA) {
-		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
+		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, MAX_MTEX-1.0, 0, 0, "Channel Number of the active Material texture.");
 		xco-= 4;
 	}
 	if(G.sipo->blocktype==ID_WO) {
-		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
+		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, MAX_MTEX-1.0, 0, 0, "Channel Number of the active World texture.");
 		xco-= 4;
 	}
 	
 	if(G.sipo->blocktype==ID_LA) {
-		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
+		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, MAX_MTEX-1.0, 0, 0, "Channel Number of the active Lamp texture. ");
 		xco-= 4;
 	}
 	

@@ -39,6 +39,10 @@
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
 
+#ifndef MAX_MTEX
+#define MAX_MTEX	10
+#endif
+
 struct MTex;
 struct Ipo;
 struct Material;
@@ -87,7 +91,7 @@ typedef struct Material {
 	short ramp_show, pad3;
 	float rampfac_col, rampfac_spec;
 	
-	struct MTex *mtex[8];
+	struct MTex *mtex[10];
 	struct Ipo *ipo;
 	struct Material *ren;
 	

@@ -960,7 +960,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
 
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) writestruct(wd, DATA, "MTex", 1, ma->mtex[a]);
 			}
 			
@@ -984,7 +984,7 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
 
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
 
@@ -1006,7 +1006,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_LA, "Lamp", 1, la);
 
 			/* direct data */
-			for(a=0; a<8; a++) {
+			for(a=0; a<MAX_MTEX; a++) {
 				if(la->mtex[a]) writestruct(wd, DATA, "MTex", 1, la->mtex[a]);
 			}
 

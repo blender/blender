@@ -69,7 +69,7 @@ void free_world(World *wrld)
 	
 	BPY_free_scriptlink(&wrld->scriptlink);
 	
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		mtex= wrld->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
@@ -110,7 +110,7 @@ World *copy_world(World *wrld)
 	
 	wrldn= copy_libblock(wrld);
 	
-	for(a=0; a<8; a++) {
+	for(a=0; a<MAX_MTEX; a++) {
 		if(wrld->mtex[a]) {
 			wrldn->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
@@ -196,7 +196,8 @@ void init_render_world()
 		Normalise(R.grvec);
 		Mat3CpyMat4(R.imat, R.viewinv);
 		
-		for(a=0; a<6; a++) if(R.wrld.mtex[a] && R.wrld.mtex[a]->tex) R.wrld.skytype |= WO_SKYTEX;
+		for(a=0; a<MAX_MTEX; a++) 
+			if(R.wrld.mtex[a] && R.wrld.mtex[a]->tex) R.wrld.skytype |= WO_SKYTEX;
 		
 		if(G.scene->camera && G.scene->camera->type==OB_CAMERA) {
 			Camera *cam= G.scene->camera->data;

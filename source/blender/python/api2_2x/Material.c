@@ -1146,11 +1146,11 @@ static PyObject *Material_getTextures( BPy_Material * self )
 {
 	int i;
 	struct MTex *mtex;
-	PyObject *t[8];
+	PyObject *t[MAX_MTEX];
 	PyObject *tuple;
 
 	/* build a texture list */
-	for( i = 0; i < 8; ++i ) {
+	for( i = 0; i < MAX_MTEX; ++i ) {
 		mtex = self->material->mtex[i];
 
 		if( mtex ) {
@@ -1805,10 +1805,10 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "iO!|ii", &texnum, &Texture_Type, &pytex,
 			       &texco, &mapto ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,7] and Texture" );
-	if( ( texnum < 0 ) || ( texnum >= 8 ) )
+					      "expected int in [0,9] and Texture" );
+	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,7] and Texture" );
+					      "expected int in [0,9] and Texture" );
 
 	bltex = Texture_FromPyObject( pytex );
 
@@ -1836,10 +1836,10 @@ static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "i", &texnum ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,7]" );
-	if( ( texnum < 0 ) || ( texnum >= 8 ) )
+					      "expected int in [0,9]" );
+	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,7]" );
+					      "expected int in [0,9]" );
 
 	mtex = self->material->mtex[texnum];
 	if( mtex ) {
