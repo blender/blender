@@ -59,10 +59,6 @@ Add the following to configure.ac
 	--with-png=dir
 	--with-zlib=dir
 
-figure out why the heck the libtool that gets created is wrong on my
-system (mein@cs.umn.edu) :)
-
-
 *********************************************************************
 *********************************************************************
 
