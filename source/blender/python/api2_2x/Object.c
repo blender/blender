@@ -831,6 +831,9 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *a, PyObject *kwd )
 	case ID_TXT:
 		data_object = Text_CreatePyObject( object->data );
 		break;
+	case OB_FONT:
+		data_object = Text3d_CreatePyObject( object->data );
+		break;		
 	case ID_WO:
 		break;
 	default:

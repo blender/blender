@@ -52,6 +52,7 @@ typedef Curve Text3d;
 int Text3d_CheckPyObject( PyObject * py_obj );
 PyObject *Text3d_Init( void );
 struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
+PyObject *Text3d_CreatePyObject( Text3d* text3d );
 
 /* Python BPy_Text3d structure definition */
 typedef struct {

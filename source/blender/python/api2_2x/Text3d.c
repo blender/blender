@@ -56,9 +56,9 @@ extern void freedisplist(struct ListBase *lb);
 static PyObject *M_Text3d_New( PyObject * self, PyObject * args );
 static PyObject *M_Text3d_Get( PyObject * self, PyObject * args );
 
-/*****************************************************************************/
-/* Python callback function prototypes for the Text3D module.  
-/*****************************************************************************/
+/*****************************************************************************
+ * Python callback function prototypes for the Text3D module.  
+ *****************************************************************************/
 static PyObject *return_ModuleConstant( char *constant_name);
 static PyObject *generate_ModuleIntConstant(char *name, int value);
 
@@ -558,7 +558,6 @@ static PyObject* Text3d_setDrawMode(BPy_Text3d* self,PyObject* args)
 	//parse and set bits
 	for (i = 0; i < size; i++) {
 		PyObject *v;
-		BPy_constant *constant;
 		int value;
 
 		v = PySequence_GetItem(listObject, i);
@@ -851,4 +850,26 @@ static PyObject *Text3d_setAlignment( BPy_Text3d * self, PyObject * args )
 	self->curve->spacemode = (short)value;
 
 	return EXPP_incr_ret( Py_None );
+}
+
+
+/*****************************************************************************
+ * Function:    Text3d_CreatePyObject                                       
+ * Description: This function will create a new BPy_Text3d from an existing   
+ *               Blender structure.                                     
+ *****************************************************************************/
+
+PyObject *Text3d_CreatePyObject( Text3d * text3d )
+{
+	BPy_Text3d *pytext3d;
+
+	pytext3d = ( BPy_Text3d * ) PyObject_NEW( BPy_Text3d, &Text3d_Type );
+
+	if( !pytext3d )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create BPy_Text3d object" );
+
+	pytext3d->curve = text3d;
+
+	return ( PyObject * ) pytext3d;
 }
