@@ -147,11 +147,35 @@ static void NMFace_dealloc (PyObject *self)
   PyObject_DEL(self);
 }
 
-static BPy_NMFace *new_NMFace(PyObject *vertexlist)
+static PyObject *new_NMFace(PyObject *vertexlist)
 {
   BPy_NMFace *mf = PyObject_NEW (BPy_NMFace, &NMFace_Type);
+	PyObject *vlcopy;
 
-  mf->v = vertexlist;
+	if (vertexlist) { /* create a copy of the given vertex list */
+		PyObject *item;
+		int i, len = PyList_Size(vertexlist);
+
+		vlcopy = PyList_New(len);
+
+		if (!vlcopy)
+			return EXPP_ReturnPyObjError(PyExc_MemoryError,
+					"couldn't create PyList");		
+
+		for (i = 0; i < len; i++) {
+			item = PySequence_GetItem(vertexlist, i); /* PySequence increfs */
+
+			if (item)
+				PyList_SET_ITEM(vlcopy, i, item);
+			else
+				return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+							"couldn't get vertex from a PyList");
+		}
+	}
+	else /* create an empty vertex list */
+		vlcopy = PyList_New(0);
+
+  mf->v = vlcopy;
   mf->uv = PyList_New(0);
   mf->image = NULL;
   mf->mode = TF_DYNAMIC + TF_TEX;
@@ -159,10 +183,10 @@ static BPy_NMFace *new_NMFace(PyObject *vertexlist)
   mf->transp = TF_SOLID;
   mf->col = PyList_New(0);
 
-  mf->smooth= 0;
-  mf->mat_nr= 0;
+  mf->smooth = 0;
+  mf->mat_nr = 0;
 
-  return mf;
+  return (PyObject *)mf;
 }
 
 static PyObject *M_NMesh_Face(PyObject *self, PyObject *args)
@@ -173,9 +197,9 @@ static PyObject *M_NMesh_Face(PyObject *self, PyObject *args)
         return EXPP_ReturnPyObjError (PyExc_TypeError,
              "expected a list of vertices or nothing as argument");
 
-  if (!vertlist) vertlist = PyList_New(0);
+/*  if (!vertlist) vertlist = PyList_New(0); */
 
-  return (PyObject *)new_NMFace(vertlist);
+  return new_NMFace(vertlist);
 }
 
 static PyObject *NMFace_append(PyObject *self, PyObject *args)

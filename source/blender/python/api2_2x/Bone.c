@@ -543,10 +543,10 @@ static PyObject *Bone_setQuat(BPy_Bone *self, PyObject *args)
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
             "expected 4 float arguments"));
   
-  self->bone->head[0] = f1;
-  self->bone->head[1] = f2;
-  self->bone->head[2] = f3;
-  self->bone->head[3] = f4;
+  self->bone->quat[0] = f1;
+  self->bone->quat[1] = f2;
+  self->bone->quat[2] = f3;
+  self->bone->quat[3] = f4;
 
   Py_INCREF(Py_None);
   return Py_None;
