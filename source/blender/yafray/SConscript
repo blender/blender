@@ -8,7 +8,9 @@ yafray_env.Append (CCFLAGS = cflags)
 yafray_env.Append (CXXFLAGS = cxxflags)
 yafray_env.Append (CPPDEFINES = defines)
 
-source_files = ['intern/yafray_Render.cpp']
+source_files = ['intern/yafray_Render.cpp',
+                'intern/export_File.cpp',
+                'intern/api.cpp']
 
 yafray_env.Append (CPPPATH = ['#/intern/guardedalloc',
                               '../blenlib',
