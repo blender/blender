@@ -30,7 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifdef __sgi
+#define OLD_IMASEL	1
+#else
 #define OLD_IMASEL	0
+#endif
 
 #include <string.h>
 
