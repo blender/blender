@@ -324,17 +324,25 @@ static PyObject *Blender_Quit(PyObject *self)
 static PyObject *Blender_Load(PyObject *self, PyObject *args)
 {
 	char *fname = NULL;
+	int keep_oldfname = 0;
 	Script *script = NULL;
-	char str[32];
+	char str[32], name[FILE_MAXDIR];
 	int file, is_blend_file = 0;
 
-	if (!PyArg_ParseTuple(args, "|s", &fname))
+	if (!PyArg_ParseTuple(args, "|si", &fname, &keep_oldfname))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
-			"expected filename string or nothing (for default file) as argument");
+			"expected filename and optional int or nothing as arguments");
 
-	if (fname && !BLI_exists(fname))
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"requested file doesn't exist!");
+	if (fname) {
+		if (strlen(fname) > FILE_MAXDIR) /* G.main->name's max length */
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"filename too long!");
+		else if (!BLI_exists(fname))
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"requested file doesn't exist!");
+
+		if (keep_oldfname) BLI_strncpy(name, G.sce, FILE_MAXDIR);
+	}
 
 	/* We won't let a new .blend file be loaded if there are still other
 	 * scripts running, since loading a new file will close and remove them. */
@@ -394,6 +402,11 @@ static PyObject *Blender_Load(PyObject *self, PyObject *args)
 		BIF_read_homefile();
 	else
 		BIF_read_file(fname);
+
+	if (fname && keep_oldfname) {
+		/*BLI_strncpy(G.main->name, name, FILE_MAXDIR);*/
+		BLI_strncpy(G.sce, name, FILE_MAXDIR);
+	}
 
 	Py_INCREF(Py_None);
 	return Py_None;

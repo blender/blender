@@ -4,7 +4,7 @@
 Name: 'Blender Knife Tool'
 Blender: 232
 Group: 'Mesh'
-Tooltip: 'Cut a mesh along a plane w/o creating doubles'
+Tooltip: 'Cut selected mesh(es) along an active plane w/o creating doubles'
 """
 
 # $Id$

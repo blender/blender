@@ -7,8 +7,6 @@ Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
-# $Id$
-#
 # --------------------------------------------------------------------------
 # OBJ Export v0.9 by Campbell Barton (AKA Ideasman)
 # --------------------------------------------------------------------------
@@ -49,19 +47,6 @@ def stripPath(path):
 	return path
 
 
-#================================================#
-# Gets the world matrix of an object             #
-# by multiplying by parents mat's recursively    #
-# This only works in some simple situations,     #
-# needs work....                                 #
-#================================================#
-def getWorldMat(ob):
-   mat = ob.getMatrix()
-   p = ob.getParent()
-   if p != None:
-      mat = mat + getWorldMat(p)
-   return mat
-  
 #==================#
 # Apply Transform  #
 #==================#
@@ -118,119 +103,110 @@ def save_mtl(filename):
 
 
 def save_obj(filename):
-   
-   # First output all material
-   mtlfilename = filename[:-4] + '.mtl'
-   save_mtl(mtlfilename)
-   
-   
-   
-   file = open(filename, "w")
-   
-   
-   # Write Header
-   file.write('# Blender OBJ File: ' + Get('filename') + ' \n')
-   file.write('# www.blender.org\n')
-   
-   # Tell the obj file what file to use.
-   file.write('mtllib ' + stripPath(mtlfilename) + ' \n')   
-   
-   
-   # Get all meshs
-   for ob in Object.Get():
-      if ob.getType() == 'Mesh':
-         m = ob.getData()
-         if len(m.verts) > 0: # Make sure there is somthing to write.
-           
-            # Set the default mat
-            currentMatName = NULL_MAT
-            currentImgName = NULL_IMG
-           
-            file.write('o ' + ob.getName() + '_' + m.name + '\n') # Write Object name
-           
-            # Dosent work properly,
-            matrix = getWorldMat(ob)
-
-	    smooth = 0
-           
-            # Vert
-            for v in m.verts:
-               # Transform the vert
-               vTx = apply_transform(v.co, matrix)
-              
-               file.write('v ')
-               file.write(saneFloat(vTx[0]))
-               file.write(saneFloat(vTx[1]))
-               file.write(saneFloat(vTx[2]) + '\n')
+  
+  # First output all material
+  mtlfilename = filename[:-4] + '.mtl'
+  save_mtl(mtlfilename)
+  
+  file = open(filename, "w")
+  
+  # Write Header
+  file.write('# Blender OBJ File: ' + Get('filename') + ' \n')
+  file.write('# www.blender.org\n')
+  
+  # Tell the obj file what file to use.
+  file.write('mtllib ' + stripPath(mtlfilename) + ' \n')   
+  
+  # Initialize totals, these are updated each object
+  totverts = totuvco = 0
+  
+  
+  # Get all meshs
+  for ob in Object.Get():
+     if ob.getType() == 'Mesh':
+        m = ob.getData()
+        if len(m.verts) > 0: # Make sure there is somthing to write.
+          
+          # Set the default mat
+          currentMatName = NULL_MAT
+          currentImgName = NULL_IMG
+          
+          file.write('o ' + ob.getName() + '_' + m.name + '\n') # Write Object name
+          
+          # Works 100% Yay
+          matrix = ob.getMatrix('worldspace')
+          
+          # Vert
+          for v in m.verts:
+            # Transform the vert
+            vTx = apply_transform(v.co, matrix)
             
-            # UV
-            for f in m.faces:
-               if len(f.v) > 2:
-                  for uvIdx in range(len(f.v)):
-                     file.write('vt ')
-                     if f.uv:
-                        file.write(saneFloat(f.uv[uvIdx][0]))
-                        file.write(saneFloat(f.uv[uvIdx][1]))
-                     else:
-                        file.write('0.0 ')
-                        file.write('0.0 ')
-                       
-                     file.write('0.0' + '\n')
-            
-            # NORMAL
-            for f1 in m.faces:
-               if len(f1.v) > 2:
-                  for v in f1.v:
-                     # Transform the normal
-                     noTx = apply_transform(v.no, matrix)
-                     noTx.normalize()
-                     file.write('vn ')
-                     file.write(saneFloat(noTx[0]))
-                     file.write(saneFloat(noTx[1]))
-                     file.write(saneFloat(noTx[2]) + '\n')
-            
-            uvIdx = 0
-            for f in m.faces:
-               if len(f.v) > 2:
-                  # Check material and change if needed.
-                  if len(m.materials) > f.mat:
-                     if currentMatName != m.materials[f.mat].getName():
-                        currentMatName = m.materials[f.mat].getName()
-                        file.write('usemtl ' + currentMatName + '\n')
-                    
-                  elif currentMatName != NULL_MAT:
-                     currentMatName = NULL_MAT
-                     file.write('usemtl ' + currentMatName + '\n')
+            file.write('v ')
+            file.write(saneFloat(vTx[0]))
+            file.write(saneFloat(vTx[1]))
+            file.write(saneFloat(vTx[2]) + '\n')
+          
+          # UV
+          for f in m.faces:
+             if len(f.v) > 2:
+                for uvIdx in range(len(f.v)):
+                  file.write('vt ')
+                  if f.uv:
+                    file.write(saneFloat(f.uv[uvIdx][0]))
+                    file.write(saneFloat(f.uv[uvIdx][1]))
+                  else:
+                    file.write('0.0 ')
+                    file.write('0.0 ')
+                     
+                  file.write('0.0' + '\n')
+          
+          # NORMAL
+          for f1 in m.faces:
+             if len(f1.v) > 2:
+                for v in f1.v:
+                   # Transform the normal
+                   noTx = apply_transform(v.no, matrix)
+                   noTx.normalize()
+                   file.write('vn ')
+                   file.write(saneFloat(noTx[0]))
+                   file.write(saneFloat(noTx[1]))
+                   file.write(saneFloat(noTx[2]) + '\n')
+          
+          uvIdx = 0
+          for f in m.faces:
+             if len(f.v) > 2:
+                # Check material and change if needed.
+                if len(m.materials) > f.mat:
+                   if currentMatName != m.materials[f.mat].getName():
+                      currentMatName = m.materials[f.mat].getName()
+                      file.write('usemtl ' + currentMatName + '\n')
                   
-                  # UV IMAGE
-                  # If the face uses a different image from the one last set then add a usemap line.
-                  if f.image:
-                    if f.image.filename != currentImgName:
-                      currentImgName = f.image.filename
-                      file.write( 'usemat ' + stripPath(currentImgName) +'\n') # Set a new image for all following faces
-                      
-                  elif currentImgName != NULL_IMG: # Not using an image so set to NULL_IMG
-                    currentImgName = NULL_IMG
+                elif currentMatName != NULL_MAT:
+                   currentMatName = NULL_MAT
+                   file.write('usemtl ' + currentMatName + '\n')
+                
+                # UV IMAGE
+                # If the face uses a different image from the one last set then add a usemap line.
+                if f.image:
+                  if f.image.filename != currentImgName:
+                    currentImgName = f.image.filename
                     file.write( 'usemat ' + stripPath(currentImgName) +'\n') # Set a new image for all following faces
+                    
+                elif currentImgName != NULL_IMG: # Not using an image so set to NULL_IMG
+                  currentImgName = NULL_IMG
+                  file.write( 'usemat ' + stripPath(currentImgName) +'\n') # Set a new image for all following faces
+                
+                file.write('f ')
+                for v in f.v:
+                  file.write( str(m.verts.index(v) + totverts +1) + '/') # Vert IDX
+                  file.write( str(uvIdx + totuvco +1) + '/') # UV IDX
+                  file.write( str(uvIdx + totuvco +1) + ' ') # NORMAL IDX
+                  uvIdx+=1
+                file.write('\n')
+        
+        # Make the indicies global rather then per mesh
+        totverts += len(m.verts)
+        totuvco += uvIdx
+  file.close()
 
-		  if f.smooth == 1:
-		     if smooth == 0:
-		        smooth = 1
-			file.write('s 1\n')
-                  
-		  if f.smooth == 0:
-		     if smooth == 1:
-		        smooth = 0
-			file.write('s off\n')
-                  
-                  file.write('f ')
-                  for v in f.v:
-                     file.write( str(m.verts.index(v) +1) + '/') # Vert IDX
-                     file.write( str(uvIdx +1) + '/') # UV IDX
-                     file.write( str(uvIdx +1) + ' ') # NORMAL IDX
-                     uvIdx+=1
-                  file.write('\n')
-              
-   file.close()
-
-Window.FileSelector(save_obj, 'Export OBJ', newFName('obj'))
+Window.FileSelector(save_obj, 'Export Wavefront OBJ', newFName('obj'))

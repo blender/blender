@@ -258,11 +258,13 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\ac3d_export.py
   File DISTDIR\.blender\scripts\ac3d_import.py
   File DISTDIR\.blender\scripts\Apply_def.py
+  File DISTDIR\.blender\scripts\Axiscopy.py
   File DISTDIR\.blender\scripts\batch_name_edit.py
   File DISTDIR\.blender\scripts\bevel_center.py
   File DISTDIR\.blender\scripts\blender2cal3d.py
   File DISTDIR\.blender\scripts\bvh_export.py
   File DISTDIR\.blender\scripts\bvh_import.py
+  File DISTDIR\.blender\scripts\clean_mesh.py
   File DISTDIR\.blender\scripts\DirectX8Exporter.py
   File DISTDIR\.blender\scripts\DirectXExporter.py
   File DISTDIR\.blender\scripts\disp_paint.py
@@ -282,8 +284,12 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\knife.py
   File DISTDIR\.blender\scripts\lightwave_export.py
   File DISTDIR\.blender\scripts\lightwave_import.py
+  File DISTDIR\.blender\scripts\mod_ai2obj.py
   File DISTDIR\.blender\scripts\mod_blender.py
+  File DISTDIR\.blender\scripts\mod_eps2obj.py
+  File DISTDIR\.blender\scripts\mod_gimp2obj.py
   File DISTDIR\.blender\scripts\mod_meshtools.py
+  File DISTDIR\.blender\scripts\mod_svg2obj.py
   File DISTDIR\.blender\scripts\nendo_export.py
   File DISTDIR\.blender\scripts\nendo_import.py
   File DISTDIR\.blender\scripts\obdatacopier.py
@@ -291,6 +297,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\obj_import.py
   File DISTDIR\.blender\scripts\off_export.py
   File DISTDIR\.blender\scripts\off_import.py
+  File DISTDIR\.blender\scripts\paths_import.py
   File DISTDIR\.blender\scripts\radiosity_export.py
   File DISTDIR\.blender\scripts\radiosity_import.py
   File DISTDIR\.blender\scripts\raw_export.py
@@ -298,6 +305,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\renameobjectbyblock.py
   File DISTDIR\.blender\scripts\rvk1_torvk2.py
   File DISTDIR\.blender\scripts\sel_same.py
+  File DISTDIR\.blender\scripts\skin.py
   File DISTDIR\.blender\scripts\slp_import.py
   File DISTDIR\.blender\scripts\sysinfo.py
   File DISTDIR\.blender\scripts\truespace_export.py

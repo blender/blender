@@ -564,11 +564,11 @@ int BPY_menu_do_python(short menutype, int event)
 	pym = BPyMenu_GetEntry(menutype, (short)event);
 
 	if (!pym) return 0;
-/* uncomment before release 2.34
+
 	if (pym->version > G.version)
 		notice ("Version mismatch: script was written for Blender %d. "
 						"It may fail with yours: %d.", pym->version, G.version);
-*/
+
 /* if there are submenus, let the user choose one from a pupmenu that we
  * create here.*/
 	pysm = pym->submenus;
