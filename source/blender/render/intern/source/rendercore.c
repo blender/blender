@@ -928,7 +928,7 @@ void RE_shadehalo(HaloRen *har, char *col, unsigned int zz, float dist, float xn
 
 	/* texture? */
 	if(har->tex) {
-		colf[0]= colf[1]= colf[2]= 0.0;
+		colf[0]= har->r; colf[1]= har->g; colf[2]= har->b;
 		colf[3]= dist;
 		do_halo_tex(har, xn, yn, colf);	// can return without setting colf
 		

@@ -306,6 +306,7 @@ void shadeHaloFloat(HaloRen *har,
 	/* The colour is either the rgb spec-ed by the user, or extracted from   */
 	/* the texture                                                           */
 	if(har->tex) {
+		colf[0]= har->r; colf[1]= har->g; colf[2]= har->b;
 		colf[3]= dist;
 		do_halo_tex(har, xn, yn, colf);
 		colf[0]*= colf[3];
