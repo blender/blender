@@ -88,10 +88,7 @@ void apply_lattice(void)
 		if TESTBASELIB(base) {
 			if( (par= base->object->parent) ) {
 				if(par->type==OB_LATTICE) {
-					
-					lt_applyflag= 1;
-					object_deform(base->object);
-					lt_applyflag= 0;
+					object_apply_deform(base->object);
 					
 					base->object->parent= 0;
 				}

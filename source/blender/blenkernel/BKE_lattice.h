@@ -39,7 +39,6 @@ struct Object;
 struct BPoint;
 
 extern struct Lattice *editLatt;
-extern int lt_applyflag;
 
 
 void resizelattice(struct Lattice *lt);
@@ -52,6 +51,7 @@ void init_latt_deform(struct Object *oblatt, struct Object *ob);
 void calc_latt_deform(float *co);
 void end_latt_deform(void);
 int object_deform(struct Object *ob);
+int object_apply_deform(struct Object *ob);
 struct BPoint *latt_bp(struct Lattice *lt, int u, int v, int w);
 void outside_lattice(struct Lattice *lt);
 

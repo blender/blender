@@ -71,7 +71,6 @@
 Lattice *editLatt=0, *deformLatt=0;
 
 float *latticedata=0, latmat[4][4];
-int lt_applyflag= 0;
 
 void resizelattice(Lattice *lt)
 {
@@ -383,7 +382,7 @@ void end_latt_deform()
 }
 
 
-int object_deform(Object *ob)
+static int _object_deform(Object *ob, int applyflag)
 {
 	Mesh *me;
 	Curve *cu;
@@ -411,7 +410,7 @@ int object_deform(Object *ob)
 			dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
 
 			for(a=0; a<me->totvert; a++, mvert++, fp+=3) {
-				if(lt_applyflag) calc_latt_deform(mvert->co);
+				if(applyflag) calc_latt_deform(mvert->co);
 				else {
 					VECCOPY(fp, mvert->co);
 					calc_latt_deform(fp);
@@ -430,7 +429,7 @@ int object_deform(Object *ob)
 		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 		
 			cu= ob->data;
-			if(lt_applyflag) {
+			if(applyflag) {
 				Nurb *nu;
 				BPoint *bp;
 				
@@ -489,7 +488,7 @@ int object_deform(Object *ob)
 			dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
 
 			for(a=0; a<me->totvert; a++, mvert++, fp+=3) {
-				if(lt_applyflag){
+				if(applyflag){
 					calc_armature_deform(ob->parent, mvert->co, a);
 				}
 				else {
@@ -528,7 +527,7 @@ int object_deform(Object *ob)
 			dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
 
 			for(a=0; a<me->totvert; a++, mvert++, fp+=3) {
-				if(lt_applyflag) calc_skel_deform(ika, mvert->co);
+				if(applyflag) calc_skel_deform(ika, mvert->co);
 				else {
 					VECCOPY(fp, mvert->co);
 					calc_skel_deform(ika, fp);
@@ -538,7 +537,7 @@ int object_deform(Object *ob)
 		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 		
 			cu= ob->data;
-			if(lt_applyflag) {
+			if(applyflag) {
 				Nurb *nu;
 				BPoint *bp;
 				
@@ -578,6 +577,16 @@ int object_deform(Object *ob)
 	return 0;
 
 }
+
+int object_deform(Object *ob)
+{
+	return _object_deform(ob, 0);
+}
+int object_apply_deform(Object *ob)
+{
+	return _object_deform(ob, 1);
+}
+
 
 BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {
