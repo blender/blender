@@ -1245,11 +1245,11 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF)					
 							selectrow_nurb();
 						else if (G.obedit->type==OB_MESH)
-							loop('s');
+							loopoperations(LOOP_SELECT);
 					}
 					else if(G.qual==LR_CTRLKEY) {
 						if (G.obedit->type==OB_MESH)
-							loop('c');
+							loopoperations(LOOP_CUT);
 					}
 					else if((G.qual==0))
 						transform('r');

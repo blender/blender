@@ -716,7 +716,7 @@ void do_view3d_select_meshmenu(void *arg, int event)
 			selectrandom_mesh();
 			break;
 		case 6: /* select Faceloop */
-			loop('s');
+			loopoperations(LOOP_SELECT);
 			break;
 		case 7: /* select more */
 			select_more();
@@ -1657,7 +1657,7 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		KnifeSubdivide(KNIFE_PROMPT);
 		break;
 	case 4: /* Loop subdivide */
-		loop('c');
+		loopoperations(LOOP_CUT);
 		break;
 	case 5: /* Make Edge/Face */
 		addedgevlak_mesh();

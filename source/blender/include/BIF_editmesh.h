@@ -123,7 +123,10 @@ void separatemenu(void);
 void separate_mesh(void);
 void separate_mesh_loose(void);
 
-void loop(int);
+void loopoperations(char mode);
+#define LOOP_SELECT	1
+#define LOOP_CUT	2
+
 void edge_select(void);
 
 void extrude_repeat_mesh(int steps, float offs);

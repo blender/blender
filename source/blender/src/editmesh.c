@@ -2095,6 +2095,64 @@ static EditEdge *findnearestedge()
 	else return 0;
 }
 
+/* does the same as findnearestedge but both vertices of the edge should be on screen*/
+static EditEdge *findnearestvisibleedge()
+{
+	EditEdge *closest, *eed;
+	EditVert *eve;
+	short foundedge=0, found=0, mval[2];
+	float distance[2], v1[2], v2[2], mval2[2];
+		
+	if(G.eded.first==0) return NULL;
+	else eed=G.eded.first;	
+	
+	/* reset flags */	
+	for(eve=G.edve.first; eve; eve=eve->next){
+		eve->f &= ~2;
+	}	
+	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
+	
+	closest=NULL;
+	getmouseco_areawin(mval);
+	
+	mval2[0] = (float)mval[0];    	/* cast to float because of the pdist function only taking floats...*/
+	mval2[1] = (float)mval[1];
+	
+	eed=G.eded.first;
+	while(eed) {      					/* compare the distance to the rest of the edges and find the closest one*/
+		if( !((eed->v1->f | eed->v2->f) & 2) && (eed->v1->h==0 && eed->v2->h==0) ){ 	/* only return edges with both vertices on screen */
+			v1[0] = eed->v1->xs;  			
+			v1[1] = eed->v1->ys;
+			v2[0] = eed->v2->xs;
+			v2[1] = eed->v2->ys;
+			
+			distance[1] = PdistVL2Dfl(mval2, v1, v2);
+			
+			if(distance[1]<50){    			/* TODO: make this maximum selecting distance selectable (the same with vertice select?) */
+				if(found) {              	/*do we have to compare it to other distances? */
+					if (distance[1]<distance[0]){
+						distance[0]=distance[1];
+						closest=eed;  	/*save the current closest edge*/
+					}
+				} else {
+					distance[0]=distance[1];
+					closest=eed;
+					found=1;
+				}
+			}
+		}
+		eed= eed->next;
+	}
+	
+	/* reset flags */	
+	for(eve=G.edve.first; eve; eve=eve->next){
+		eve->f &= ~2;
+	}
+	
+	if(found) return closest;
+	else return 0;
+}
+
 #if 0
 /* this is a template function to demonstrate a loop with drawing...
    it is a temporal mode, so use with wisdom! if you can avoid, always better. (ton)
@@ -2158,20 +2216,33 @@ void loop(int mode)
 /* 
 functionality: various loop functions
 parameters: mode tells the function what it should do with the loop:
-		's' = select
-		'c' = cut in half
+		LOOP_SELECT = select
+		LOOP_CUT = cut in half
 */	
-void loop(int mode)
+
+void loopoperations(char mode)
 {
+	EditVert* look = NULL;
+
 	EditEdge *start, *eed, *opposite,*currente, *oldstart;
-	EditVlak *evl, *currentvl, *formervl;	
+	EditEdge **tagged = NULL,**taggedsrch = NULL,*close;
+
+	EditVlak *evl,**percentfacesloop = NULL, *currentvl,  *formervl;	
+
 	short lastface=0, foundedge=0, c=0, tri=0, side=1, totface=0, searching=1, event=0, noface=1;
-	
+	short skip,nextpos,percentfaces;
+
+	int i=0,ect=0,j=0,k=0,cut,smooth,timesthrough = 0;
+
+	float percentcut, outcut;
+
+	char mesg[100];
+
 	if ((G.obedit==0) || (G.edvl.first==0)) return;
 	
-	if(mode=='c')undo_push_mesh("Loop Subdivide");
-	else if(mode=='s')undo_push_mesh("Faceloop select");	
-	
+	if(mode==LOOP_CUT)undo_push_mesh("Faceloop Subdivide");
+	else if(mode==LOOP_SELECT)undo_push_mesh("Faceloop Select");	
+		
 	start=NULL;
 	oldstart=NULL;
 
@@ -2182,10 +2253,9 @@ void loop(int mode)
 		evl=currentvl=formervl=0;
 		side=noface=1;
 		lastface=foundedge=c=tri=totface=0;		
-			
-		/* Look for an edge close by */
-		start=findnearestedge();	
-		
+				
+		start=findnearestvisibleedge();
+				
 		/* If the edge doesn't belong to a face, it's not a valid starting edge */
 		if(start){
 			start->f |= 16;
@@ -2203,7 +2273,7 @@ void loop(int mode)
 					noface=0;
 					evl->e3->f &= ~16;
 				}
-				else if(evl->e4 && evl->e4->f & 16){					
+				else if(evl->e4 && (evl->e4->f & 16)){					
 					noface=0;
 					evl->e4->f &= ~16;
 				}
@@ -2214,28 +2284,25 @@ void loop(int mode)
 				
 		/* Did we find anything that is selectable? */
 		if(start && !noface && (oldstart==NULL || start!=oldstart)){
-							
+			
+						
 			/* If we stay in the neighbourhood of this edge, we don't have to recalculate the loop everytime*/
 			oldstart=start;	
 			
-			/* Clear flags */		
-			eed=G.eded.first;
-			while(eed) {		
-				eed->f &= ~(2|4|8|32);
+			/* Clear flags */
+			for(eed=G.eded.first; eed; eed=eed->next){			
+				eed->f &= ~(2|4|8|32|64);
 				eed->v1->f &= ~(2|8|16);
-				eed->v2->f &= ~(2|8|16);			
-				eed= eed->next;			
+				eed->v2->f &= ~(2|8|16);				
 			}
 			
-			evl= G.edvl.first;
-			while(evl){
+			for(evl= G.edvl.first; evl; evl=evl->next){			
 				evl->f &= ~(4|8);
-				totface++;
-				evl=evl->next;
+				totface++;				
 			}
 					
 			/* Tag the starting edge */
-			start->f |= (2|4|8);				
+			start->f |= (2|4|8|64);				
 			start->v1->f |= 2;
 			start->v2->f |= 2;		
 			
@@ -2252,8 +2319,11 @@ void loop(int mode)
 					if(!(evl->v4)){	/* Exception for triangular faces */
 						
 						if((evl->e1->f | evl->e2->f | evl->e3->f) & 2){
-							tri=1;
-							currentvl=evl;						
+							if(!(evl->f & 4)){								
+								tri=1;
+								currentvl=evl;
+								if(side==1) evl->f |= 4;
+							}
 						}						
 					}
 					else{
@@ -2264,47 +2334,65 @@ void loop(int mode)
 								if(!(evl->f & 4)){
 									
 									if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
-										opposite=evl->e1;														
-										foundedge=1;
+										if(evl->e1->v1->h==0 && evl->e1->v2->h==0){
+											opposite=evl->e1;														
+											foundedge=1;
+										}
 									}
 									else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
-										opposite=evl->e2;
-										foundedge=1;
+										if(evl->e2->v1->h==0 && evl->e2->v2->h==0){
+											opposite=evl->e2;
+											foundedge=1;
+										}
 									}
 									else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
-										opposite=evl->e3;
-										foundedge=1;
+										if(evl->e3->v1->h==0 && evl->e3->v2->h==0){
+											opposite=evl->e3;
+											foundedge=1;
+										}
 									}
 									else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
-										opposite=evl->e4;
-										foundedge=1;
+										if(evl->e4->v1->h==0 && evl->e4->v2->h==0){
+											opposite=evl->e4;
+											foundedge=1;
+										}
 									}
 									
-									currentvl=evl;
-									formervl=evl;
+									if(foundedge){
+										currentvl=evl;
+										formervl=evl;
 									
-									/* mark this side of the edge so we know in which direction we went */
-									if(side==1) evl->f |= 4;
+										/* mark this side of the edge so we know in which direction we went */
+										if(side==1) evl->f |= 4;
+									}
 								}
 							}
 							else {	
 								if(evl!=formervl){	/* prevent going backwards in the loop */
 								
 									if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
-										opposite=evl->e1;
-										foundedge=1;
+										if(evl->e1->v1->h==0 && evl->e1->v2->h==0){
+											opposite=evl->e1;														
+											foundedge=1;
+										}
 									}
 									else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
-										opposite=evl->e2;
-										foundedge=1;
+										if(evl->e2->v1->h==0 && evl->e2->v2->h==0){
+											opposite=evl->e2;
+											foundedge=1;
+										}
 									}
 									else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
-										opposite=evl->e3;
-										foundedge=1;
+										if(evl->e3->v1->h==0 && evl->e3->v2->h==0){
+											opposite=evl->e3;
+											foundedge=1;
+										}
 									}
 									else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
-										opposite=evl->e4;
-										foundedge=1;
+										if(evl->e4->v1->h==0 && evl->e4->v2->h==0){
+											opposite=evl->e4;
+											foundedge=1;
+										}
 									}
 									
 									currentvl=evl;
@@ -2353,23 +2441,13 @@ void loop(int mode)
 					currente->f |= 8;
 					currentvl->f |= 8;
 					
-					/* cheat to correctly split tri's:
-					 * Set eve->f & 16 for the last vertex of the loop
-					 */
-					if(tri){
-						currentvl->v1->f |= 16;
-						currentvl->v2->f |= 16;
-						currentvl->v3->f |= 16;
-						
-						currente->v1->f &= ~16;
-						currente->v2->f &= ~16;
-					}
-						
+					
+												
 					/* is the the first time we've ran out of possible faces?
-					*  try to start from the beginning but in the opposite direction to select as many
-					*  verts as possible.
+					*  try to start from the beginning but in the opposite direction go as far as possible
 					*/				
-					if(side==1){					
+					if(side==1){						
+						if(tri)tri=0;
 						currente=start;
 						currente->f |= 2;
 						currente->v1->f |= 2;
@@ -2377,7 +2455,7 @@ void loop(int mode)
 						side++;
 						c=0;
 					}
-					else lastface=1;				
+					else lastface=1;
 				}				
 				/*----------END Decisions-----------------------------*/
 				
@@ -2399,7 +2477,7 @@ void loop(int mode)
 			
 			glColor3ub(255, 255, 0);
 			
-			if(mode=='s'){
+			if(mode==LOOP_SELECT){
 				evl= G.edvl.first;
 				while(evl){
 					if(evl->f & 8){
@@ -2438,14 +2516,18 @@ void loop(int mode)
 				}
 			}
 				
-			if(mode=='c'){
+			if(mode==LOOP_CUT){
 				evl= G.edvl.first;
 				while(evl){
 					if(evl->f & 8){
 						float cen[2][3];
-						int a=0;
-						glBegin(GL_LINES);
+						int a=0;						
 						
+						evl->v1->f &= ~8;
+						evl->v2->f &= ~8;
+						evl->v3->f &= ~8;
+						if(evl->v4)evl->v4->f &= ~8;
+					
 						if(evl->e1->f & 8){
 							cen[a][0]= (evl->e1->v1->co[0] + evl->e1->v2->co[0])/2.0;
 							cen[a][1]= (evl->e1->v1->co[1] + evl->e1->v2->co[1])/2.0;
@@ -2461,8 +2543,8 @@ void loop(int mode)
 							cen[a][1]= (evl->e2->v1->co[1] + evl->e2->v2->co[1])/2.0;
 							cen[a][2]= (evl->e2->v1->co[2] + evl->e2->v2->co[2])/2.0;
 							
-							evl->e1->v1->f |= 8;
-							evl->e1->v2->f |= 8;
+							evl->e2->v1->f |= 8;
+							evl->e2->v2->f |= 8;
 							
 							a++;
 						}
@@ -2471,8 +2553,8 @@ void loop(int mode)
 							cen[a][1]= (evl->e3->v1->co[1] + evl->e3->v2->co[1])/2.0;
 							cen[a][2]= (evl->e3->v1->co[2] + evl->e3->v2->co[2])/2.0;
 							
-							evl->e1->v1->f |= 8;
-							evl->e1->v2->f |= 8;
+							evl->e3->v1->f |= 8;
+							evl->e3->v2->f |= 8;
 							
 							a++;
 						}
@@ -2483,43 +2565,58 @@ void loop(int mode)
 								cen[a][1]= (evl->e4->v1->co[1] + evl->e4->v2->co[1])/2.0;
 								cen[a][2]= (evl->e4->v1->co[2] + evl->e4->v2->co[2])/2.0;
 								
-								evl->e1->v1->f |= 8;
-								evl->e1->v2->f |= 8;
+								evl->e4->v1->f |= 8;
+								evl->e4->v2->f |= 8;
 							
 								a++;
 							}
 						}
-						else{	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
-							if(a!=2){
-								if(evl->v1->f & 16){
+						else{	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */														
+								if(!(evl->v1->f & 8) && evl->v1->h==0){
 									cen[a][0]= evl->v1->co[0];
 									cen[a][1]= evl->v1->co[1];
 									cen[a][2]= evl->v1->co[2];
-									evl->v1->f &= ~16;
+									a++;								
 								}
-								else if(evl->v2->f & 16){
+								else if(!(evl->v2->f & 8) && evl->v2->h==0){
 									cen[a][0]= evl->v2->co[0];
 									cen[a][1]= evl->v2->co[1];
-									cen[a][2]= evl->v2->co[2];
-									evl->v2->f &= ~16;
+									cen[a][2]= evl->v2->co[2];	
+									a++;
 								}
-								else if(evl->v3->f & 16){
+								else if(!(evl->v3->f & 8) && evl->v3->h==0){
 									cen[a][0]= evl->v3->co[0];
 									cen[a][1]= evl->v3->co[1];
 									cen[a][2]= evl->v3->co[2];
-									evl->v3->f &= ~16;
-								}
-							}
+									a++;									
+								}							
 						}
+						
+						if(a==2){
+							glBegin(GL_LINES);
 							
-						
-						glVertex3fv(cen[0]);
-						glVertex3fv(cen[1]);
-						
-						glEnd();						
+							glVertex3fv(cen[0]);
+							glVertex3fv(cen[1]);	
+												
+							glEnd();
+						}						
 					}
 					evl=evl->next;
 				}
+				
+				eed=G.eded.first; 
+				while(eed){
+					if(eed->f & 64){
+						glBegin(GL_LINES);
+						glColor3ub(200, 255, 200);
+						glVertex3fv(eed->v1->co);
+						glVertex3fv(eed->v2->co);
+						glEnd();
+						eed=0;
+					}else{
+						eed = eed->next;
+					}
+				}		
 			}
 			
 			/* restore matrix transform */
@@ -2536,10 +2633,10 @@ void loop(int mode)
 		
 		while(qtest()) {
 			unsigned short val=0;			
-			event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
+			event= extern_qread(&val);	/* extern_qread stores important events for the mainloop to handle */
 
 			/* val==0 on key-release event */
-			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY)){
+			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY || event == MIDDLEMOUSE)){
 				searching=0;
 			}
 		}	
@@ -2547,66 +2644,419 @@ void loop(int mode)
 	}/*while(event!=ESCKEY && event!=RIGHTMOUSE && event!=LEFTMOUSE && event!=RETKEY){*/
 	
 	/*----------Select Loop------------*/
-	if(mode=='s' && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
+	if(mode==LOOP_SELECT && start!=NULL && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE)){
 				
-		evl= G.edvl.first;
-		while(evl){
-			if(evl->f & 8){
-				evl->v1->f |= 1;
-				evl->v2->f |= 1;
-				evl->v3->f |= 1;
-				if(evl->v4)evl->v4->f |= 1;
-			}					
-			evl=evl->next;
+		/* If this is a unmodified select, clear the selection */
+		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
+			for(evl= G.edvl.first;evl;evl=evl->next){
+				evl->v1->f &= !1;
+				evl->v2->f &= !1;
+				evl->v3->f &= !1;
+				if(evl->v4)evl->v4->f &= !1;			
+			}
 		}
+		/* Alt was not pressed, so add to the selection */
+		if(!(G.qual & LR_ALTKEY)){
+			for(evl= G.edvl.first;evl;evl=evl->next){
+				if(evl->f & 8){
+					evl->v1->f |= 1;
+					evl->v2->f |= 1;
+					evl->v3->f |= 1;
+					if(evl->v4)evl->v4->f |= 1;
+				}
+			}
+		}
+		/* alt was pressed, so subtract from the selection */
+		else
+		{
+			for(evl= G.edvl.first;evl;evl=evl->next){
+				if(evl->f & 8){
+					evl->v1->f &= !1;
+					evl->v2->f &= !1;
+					evl->v3->f &= !1;
+					if(evl->v4)evl->v4->f &= !1;
+				}
+			}
+		}
+	
 	}
 	/*----------END Select Loop------------*/
 	
 	/*----------Cut Loop---------------*/			
-	if(mode=='c' && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
+	if(mode==LOOP_CUT && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
 		
-		/* subdivide works on selected verts... */
-		eed=G.eded.first;
-		while(eed) {		
-			if(eed->f & 8){
-				eed->v1->f |= 1;
-				eed->v2->f |= 1;
-			}			
-			eed= eed->next;			
+		/* count the number of edges in the loop */		
+		for(eed=G.eded.first; eed; eed = eed->next){
+			if(eed->f & 8)
+				ect++;
+		}		
+		
+		tagged = malloc(ect*sizeof(EditEdge*));
+		taggedsrch = malloc(ect*sizeof(EditEdge*));
+		for(i=0;i<ect;i++)
+		{
+			tagged[i] = NULL;
+			taggedsrch[i] = NULL;
 		}
-		
-		subdivideflag(8, 0, B_KNIFE); /* B_KNIFE tells subdivide that edgeflags are already set */
-		
-		eed=G.eded.first;
-		while(eed) {							
-			if(eed->v1->f & 16) eed->v1->f |= 1;
-			else eed->v1->f &= ~1;
+		ect = 0;
+		for(eed=G.eded.first; eed; eed = eed->next){
+			if(eed->f & 8)
+			{
+				if(eed->h==0){
+					eed->v1->f |= 1;
+					eed->v2->f |= 1;
+					tagged[ect] = eed;
+					eed->f &= ~(32);
+					ect++;
+				}
+			}			
+		}
+		taggedsrch[0] = tagged[0];
+
+		while(timesthrough < 2)
+		{
+			i=0;
+			while(i < ect){/*Look at the members of the search array to line up cuts*/
+				if(taggedsrch[i]==NULL)break;
+				for(j=0;j<ect;j++){			 /*Look through the list of tagged verts for connected edges*/
+					int addededge = 0;
+					if(taggedsrch[i]->f & 32)        /*If this edgee is marked as flipped, use vert 2*/
+						look = taggedsrch[i]->v2;
+					else							 /*else use vert 1*/
+						look = taggedsrch[i]->v1;
+
+					if(taggedsrch[i] == tagged[j])
+						continue;  /*If we are looking at the same edge, skip it*/
+	
+					skip = 0;
+					for(k=0;k<ect;k++)	{
+						if(taggedsrch[k] == NULL)	/*go to empty part of search list without finding*/
+							break;							
+						if(tagged[j] == taggedsrch[k]){		/*We found a match already in the list*/
+							skip = 1;
+							break;
+						}
+					}
+					if(skip)
+						continue;
+					nextpos = 0;
+					if(findedgelist(look,tagged[j]->v2)){
+						while(nextpos < ect){ /*Find the first open spot in the search array*/
+							if(taggedsrch[nextpos] == NULL){
+								taggedsrch[nextpos] = tagged[j]; /*put tagged[j] in it*/
+								taggedsrch[nextpos]->f |= 32;
+								addededge = 1;
+								break;
+							}
+							else
+								nextpos++;
+						}
+					} /* End else if connected to vert 2*/
+					else if(findedgelist(look,tagged[j]->v1)){   /*If our vert is connected to vert 1 */
+						while(nextpos < ect){ /*Find the first open spot in the search array */
+							if(taggedsrch[nextpos] == NULL){
+								taggedsrch[nextpos] = tagged[j]; /*put tagged[j] in it*/
+								addededge = 1;
+								break;
+							}
+							else 
+								nextpos++;
+						}
+					}
+
+					if(addededge)
+					{
+						break;
+					}					
+				}/* End Outer For (j)*/
+				i++;
+			} /* End while(j<ect)*/
+			timesthrough++;
+		} /*end while timesthrough */
+		percentcut = 0.50;
+		searching = 1;
+		cut   = 1;
+		smooth = 0;
+		close = NULL;
+
+
+		/* Count the Number of Faces in the selected loop*/
+		percentfaces = 0;
+		for(evl= G.edvl.first; evl ;evl=evl->next){
+			if(evl->f & 8)
+			 {
+				percentfaces++;	
+			 }
+		}
 			
-			if(eed->v2->f & 16) eed->v2->f |= 1;
-			else eed->v2->f &= ~1;
+		/* create a dynamic array for those face pointers */
+		percentfacesloop = malloc(percentfaces*sizeof(EditVlak*));
+
+		/* put those faces in the array */
+		i=0;
+		for(evl= G.edvl.first; evl ;evl=evl->next){
+			 if(evl->f & 8)
+			 {
+				percentfacesloop[i] = evl;	
+				i++;
+			 }
+		}
+
+		while(searching){
 			
-			eed= eed->next;			
+			/* For the % calculation */
+			short mval[2];			
+			float labda, rc[2], len;
+			float v1[2], v2[2], v3[2];
+
+			/*------------- Percent Cut Preview Lines--------------- */
+			scrarea_do_windraw(curarea);			
+			persp(PERSP_VIEW);
+			glPushMatrix();
+			mymultmatrix(G.obedit->obmat);
+			glColor3ub(0, 255, 255);
+				
+			/*Put the preview lines where they should be for the percentage selected.*/
+
+			for(i=0;i<percentfaces;i++){
+				evl = percentfacesloop[i];
+				for(eed = G.eded.first; eed; eed=eed->next){
+					if(eed->f & 64){	/* color the starting edge */			
+						glBegin(GL_LINES);
+												
+						glColor3ub(200, 255, 200);
+						glVertex3fv(eed->v1->co);					
+						glVertex3fv(eed->v2->co);
+						
+						glEnd();
+					}
+				}
+				
+				glColor3ub(0,255,255);
+				if(evl->f & 8)
+				{
+					float cen[2][3];
+					int a=0;					
+					
+					evl->v1->f &= ~8;
+					evl->v2->f &= ~8;
+					evl->v3->f &= ~8;
+					if(evl->v4)evl->v4->f &= ~8;
+					
+					if(evl->e1->f & 8){
+						float pct;
+						if(evl->e1->f & 32)
+							pct = 1-percentcut;
+						else
+							pct = percentcut;
+						cen[a][0]= evl->e1->v1->co[0] - ((evl->e1->v1->co[0] - evl->e1->v2->co[0]) * (pct));
+						cen[a][1]= evl->e1->v1->co[1] - ((evl->e1->v1->co[1] - evl->e1->v2->co[1]) * (pct));
+						cen[a][2]= evl->e1->v1->co[2] - ((evl->e1->v1->co[2] - evl->e1->v2->co[2]) * (pct));
+						evl->e1->v1->f |= 8;
+						evl->e1->v2->f |= 8;
+						a++;
+					}
+					if((evl->e2->f & 8) && a!=2)
+					{
+						float pct;
+						if(evl->e2->f & 32)
+							pct = 1-percentcut;
+						else
+							pct = percentcut;
+						cen[a][0]= evl->e2->v1->co[0] - ((evl->e2->v1->co[0] - evl->e2->v2->co[0]) * (pct));
+						cen[a][1]= evl->e2->v1->co[1] - ((evl->e2->v1->co[1] - evl->e2->v2->co[1]) * (pct));
+						cen[a][2]= evl->e2->v1->co[2] - ((evl->e2->v1->co[2] - evl->e2->v2->co[2]) * (pct));
+
+						evl->e2->v1->f |= 8;
+						evl->e2->v2->f |= 8;
+						
+						a++;
+					}
+					if((evl->e3->f & 8) && a!=2){
+						float pct;
+						if(evl->e3->f & 32)
+							pct = 1-percentcut;
+						else
+							pct = percentcut;
+						cen[a][0]= evl->e3->v1->co[0] - ((evl->e3->v1->co[0] - evl->e3->v2->co[0]) * (pct));
+						cen[a][1]= evl->e3->v1->co[1] - ((evl->e3->v1->co[1] - evl->e3->v2->co[1]) * (pct));
+						cen[a][2]= evl->e3->v1->co[2] - ((evl->e3->v1->co[2] - evl->e3->v2->co[2]) * (pct));
+
+						evl->e3->v1->f |= 8;
+						evl->e3->v2->f |= 8;
+						
+						a++;
+					}
+						
+					if(evl->e4){
+						if((evl->e4->f & 8) && a!=2){
+							float pct;
+							if(evl->e4->f & 32)
+								pct = 1-percentcut;
+							else
+								pct = percentcut;
+							cen[a][0]= evl->e4->v1->co[0] - ((evl->e4->v1->co[0] - evl->e4->v2->co[0]) * (pct));
+							cen[a][1]= evl->e4->v1->co[1] - ((evl->e4->v1->co[1] - evl->e4->v2->co[1]) * (pct));
+							cen[a][2]= evl->e4->v1->co[2] - ((evl->e4->v1->co[2] - evl->e4->v2->co[2]) * (pct));
+
+							evl->e4->v1->f |= 8;
+							evl->e4->v2->f |= 8;
+						
+							a++;
+						}
+					}
+					else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
+						if(!(evl->v1->f & 8) && evl->v1->h==0){
+							cen[a][0]= evl->v1->co[0];
+							cen[a][1]= evl->v1->co[1];
+							cen[a][2]= evl->v1->co[2];
+							a++;								
+						}
+						else if(!(evl->v2->f & 8) && evl->v2->h==0){
+							cen[a][0]= evl->v2->co[0];
+							cen[a][1]= evl->v2->co[1];
+							cen[a][2]= evl->v2->co[2];
+							a++;								
+						}
+						else if(!(evl->v3->f & 8) && evl->v3->h==0){
+							cen[a][0]= evl->v3->co[0];
+							cen[a][1]= evl->v3->co[1];
+							cen[a][2]= evl->v3->co[2];
+							a++;													
+						}
+					}
+					
+					if(a==2){
+						glBegin(GL_LINES);
+						
+						glVertex3fv(cen[0]);
+						glVertex3fv(cen[1]);	
+											
+						glEnd();
+					}					
+				}/* end preview line drawing */			
+			}
+			/* restore matrix transform */
+			glPopMatrix();
+
+			/*--------- END Preview Lines------------*/
+			while(qtest()) 
+			{
+				unsigned short val=0;			
+				event= extern_qread(&val);	/* extern_qread stores important events for the mainloop to handle */
+				/* val==0 on key-release event */
+		
+	
+				if(val && (event==SKEY))
+				{
+					if(smooth)smooth = 0;
+					else smooth = 1;
+				}
+	
+				if(val && (event==LEFTMOUSE || event==RETKEY))
+				{
+					searching=0;
+				}
+				if(val && (event==ESCKEY || event==RIGHTMOUSE ))
+				{
+					searching=0;
+					cut = 0;
+				}
+				
+			}			
+			
+
+			/* Determine the % on wich the loop should be cut */
+			getmouseco_areawin(mval);			
+			v1[0]=(float)mval[0];
+			v1[1]=(float)mval[1];
+			
+			v2[0]=(float)start->v1->xs;
+			v2[1]=(float)start->v1->ys;
+			
+			v3[0]=(float)start->v2->xs;
+			v3[1]=(float)start->v2->ys;
+			
+			rc[0]= v3[0]-v2[0];
+			rc[1]= v3[1]-v2[1];
+			len= rc[0]*rc[0]+ rc[1]*rc[1];
+				
+			labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;
+			if(labda<=0.0) labda=0.0;
+			else if(labda>=1.0)labda=1.0;
+						
+			percentcut=labda;		
+			
+			if(start->f & 32)
+				percentcut = 1.0-percentcut;
+		
+		if (G.qual & LR_CTRLKEY)
+			percentcut = (int)(percentcut*100.0)/100.0;		
+
+		outcut = (percentcut*100.0);
+		if(smooth)
+			sprintf(mesg,"Cut: %0.2f%%, Smooth (skey): ON",outcut);
+		else
+			sprintf(mesg,"Cut: %0.2f%%, Smooth (skey): OFF",outcut);
+		headerprint(mesg);
+		screen_swapbuffers();
+		
+	}			
+	
+	if(cut){
+		/* Now that we have selected a cut %, mark the edges for cutting. */
+		for(eed = G.eded.first; eed; eed=eed->next){		
+			   	if(percentcut == 1.0)
+					percentcut = 0.9999;
+				else if(percentcut == 0.0)
+					percentcut = 0.0001;
+				if(eed->f & 8){
+					if(eed->f & 32)
+						eed->f1 = 32768*(1.0-percentcut);
+					else
+						eed->f1 = 32768*(percentcut);
+				}				
+		}
+	/*-------------------------------------*/
+
+			if(smooth)
+				subdivideflag(8, 0, B_KNIFE | B_PERCENTSUBD | B_SMOOTH); /* B_KNIFE tells subdivide that edgeflags are already set */
+			else
+				subdivideflag(8, 0, B_KNIFE | B_PERCENTSUBD); /* B_KNIFE tells subdivide that edgeflags are already set */
+			
+			for(eed = G.eded.first; eed; eed=eed->next){							
+				if(eed->v1->f & 16) eed->v1->f |= 1;
+				else eed->v1->f &= ~1;
+				
+				if(eed->v2->f & 16) eed->v2->f |= 1;
+				else eed->v2->f &= ~1;
+			}			
 		}
 	}
 	/*----------END Cut Loop-----------------------------*/
+
 	
-	
+
 	/* Clear flags */		
-	eed=G.eded.first;
-	while(eed) {		
-		eed->f &= ~(2|4|8|32);
+	for(eed = G.eded.first; eed; eed=eed->next){	
+		eed->f &= ~(2|4|8|32|64);
 		eed->v1->f &= ~(2|16);
-		eed->v2->f &= ~(2|16);
-		eed= eed->next;			
+		eed->v2->f &= ~(2|16);		
 	}
 	
-	evl= G.edvl.first;
-	while(evl){
+	for(evl= G.edvl.first; evl; evl=evl->next){
 		evl->f &= ~(4|8);
-		evl=evl->next;
 	}
 	
 	countall();
+
+	if(tagged)
+		free(tagged);
+	if(taggedsrch)
+		free(taggedsrch);
+	if(percentfacesloop)
+		free(percentfacesloop);
+	
 	/* send event to redraw this window, does header too */	
 	addqueue(curarea->win, REDRAW, 1); 
 }
@@ -7593,10 +8043,10 @@ void LoopMenu(){ /* Called by KKey */
 				
 	switch (ret){
 		case 1:
-			loop('s');
+			loopoperations(LOOP_SELECT);
 			break;
 		case 2:
-			loop('c');
+			loopoperations(LOOP_CUT);
 			break;
 		case 3: 
 			KnifeSubdivide(KNIFE_EXACT);
