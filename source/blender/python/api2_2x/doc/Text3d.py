@@ -78,4 +78,208 @@ class Text3d:
     @param name:  The new text string for this object.
     @returns: PyNone
     """
+  
+  def getDrawMode():
+    """
+    Get the drawing mode (3d, front, back)
+    This item is a bitfield whose value is a combination of the following parameters.
+       - Bit 0 :  "3D" is set
+       - Bit 1 :  "Front" is set
+       - Bit 2 :  "Back" is set      
+    @rtype: integer bitfield
+    """
+
+  def setDrawMode(val):
+    """
+    Set the drawing mode.  The flag corresponds to the Blender settings for 3D, Front, Back. This parameter is a bitfield.
+    @rtype: PyNone
+    @type val: integer bitfield
+    @param val : The Text3d's flag bits.  See L{getFlag} for the meaning of the individual bits.
+    """
+
+  def getUVordco():
+    """
+    Return wether UV coords are used for Texture mapping 
+    """
+     
+  def setUVordco(val):
+    """
+    Set the font to use UV coords for Texture mapping 
+    """    
+     
+  def getBevelAmount():
+    """
+    Get the Text3d's bevel resolution value.
+    @rtype: float
+    """
+
+  def setBevelAmount(bevelresol):
+    """
+    Set the Text3d's bevel resolution value.
+    @rtype: PyNone
+    @type bevelresol: float
+    @param bevelresol: The new Curve's bevel resolution value.
+    """
+ 
+  def getDefaultResolution():
+    """
+    Return Default text resolution.
+    @rtype: float
+    """
+
+  def setDefaultResolution(resolu):
+    """
+    Sets Default text Resolution.
+    @rtype: PyNone
+    @type resolu: float
+    @param resolu: The new Curve's U-resolution value.
+    """
+ 
+  def getWidth():
+    """
+    Get the Text3d's width value.
+    @rtype: float
+    """
+
+  def setWidth(width):
+    """
+    Set the Text3d's width value. 
+    @rtype: PyNone
+    @type width: float
+    @param width: The new text3d's width value. 
+    """
+
+  def getgetExtrudeDepth():
+    """
+    Get the text3d's ext1 value.
+    @rtype: float
+    """
+
+  def setgetExtrudeDepth(ext1):
+    """
+    Set the text3d's ext1 value. 
+    @rtype: PyNone
+    @type ext1: float
+    @param ext1: The new text3d's ext1 value. 
+    """
+
+  def getExtrudeBevelDepth():
+    """
+    Get the text3d's ext2 value.
+    @rtype: float
+    """
+
+  def setExtrudeBevelDepth(ext2):
+    """
+    Set the text3d's ext2 value.
+    @rtype: PyNone 
+    @type ext2: float
+    @param ext2: The new text3d's ext2 value. 
+    """
+
+  def getShear():
+    """
+    Get the text3d's shear value.
+    @rtype: float
+    """
+
+  def setShear(shear):
+    """
+    Set the text3d's shear value.
+    @rtype: PyNone 
+    @type shear: float
+    @param shear: The new text3d's shear value. 
+    """
+
+  def getSize():
+    """
+    Get the text3d's size value.
+    @rtype: float
+    """
+
+  def setSize(size):
+    """
+    Set the text3d's size value.
+    @rtype: PyNone 
+    @type size: float
+    @param size: The new text3d's size value. 
+    """
+
+  def getLineSeparation():
+    """
+    Get the text3d's ext2 value.
+    @rtype: float
+    """
+
+  def setLineSeparation(sep):
+    """
+    Set the text3d's ext2 value.
+    @rtype: PyNone 
+    @type sep: float
+    @param sep: The new text3d's separation value. 
+    """
+
+  def getSpacing():
+    """
+    Get the text3d's spacing value.
+    @rtype: float
+    """
+
+  def setSpacing(spacing):
+    """
+    Set the text3d's spacing value.
+    @rtype: PyNone 
+    @type spacing: float
+    @param spacing: The new text3d's spacing value. 
+    """
+
+  def getXoffset():
+    """
+    Get the text3d's Xoffset value.
+    @rtype: float
+    """
+
+  def setXoffset(xof):
+    """
+    Set the text3d's Xoffset value.
+    @rtype: PyNone 
+    @type xof: float
+    @param xof: The new text3d's Xoffset value. 
+    """
+
+  def getYoffset():
+    """
+    Get the text3d's Yoffset value.
+    @rtype: float
+    """
+
+  def setYoffset(yof):
+    """
+    Set the text3d's Yoffset value.
+    @rtype: PyNone 
+    @type yof: float
+    @param yof: The new text3d's Yoffset value. 
+    """
+
+  def getAlignment():
+    """
+    Get the text3d's alignment value. Uses module constants
+        - LEFT
+        - RIGHT
+        - MIDDLE
+        - FLUSH
+    @rtype: int
+    """
+
+  def setAlignment(align):
+    """
+    Set the text3d's Alignment value. Uses module constants
+        - LEFT
+        - RIGHT
+        - MIDDLE
+        - FLUSH
+    @rtype: PyNone 
+    @type align: int
+    @param align: The new text3d's Alignment value. 
+    """
 
