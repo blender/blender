@@ -116,6 +116,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toets.h"
 #include "BIF_buttons.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
@@ -4627,6 +4628,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					firsttime=1;
 					break;
 				
+				case WHEELDOWNMOUSE:
 				case PADPLUSKEY:
 					if(G.f & G_PROPORTIONAL) {
 						prop_size*= 1.1;
@@ -4639,10 +4641,6 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					break;
 
 				case WHEELUPMOUSE:
-					persptoetsen(PADPLUSKEY);
-					firsttime= 1;
-					break;
-
 				case PADMINUS:
 					if(G.f & G_PROPORTIONAL) {
 						prop_size*= 0.90909090;
@@ -4654,11 +4652,6 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					}
 					break;
 
-				case WHEELDOWNMOUSE:
-					persptoetsen(PADMINUS);
-					firsttime= 1;
-					break;
-				
 				case LEFTSHIFTKEY:
 				case RIGHTSHIFTKEY:
 					VECCOPY(d_dvec, dvec);

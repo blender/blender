@@ -81,6 +81,7 @@
 #include "BSE_edit.h"
 #include "BSE_trans_types.h"
 #include "BSE_drawipo.h"
+#include "BSE_drawview.h"
 
 #include "BDR_editobject.h"
 
@@ -408,9 +409,11 @@ void circle_selectCB(select_CBfunc callback)
 				firsttime= 1;
 				
 				break;
+			case WHEELDOWNMOUSE:
 			case PADPLUSKEY:
 				if(val) if(rad<200.0) rad*= 1.2;
 				break;
+			case WHEELUPMOUSE:
 			case PADMINUS:
 				if(val) if(rad>5.0) rad/= 1.2;
 				break;
