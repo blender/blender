@@ -4,6 +4,7 @@ sg_scenegraph_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 sg_scenegraph_env.Append (CCFLAGS = cflags)
 sg_scenegraph_env.Append (CXXFLAGS = cxxflags)
 sg_scenegraph_env.Append (CPPDEFINES = defines)
@@ -17,4 +18,4 @@ sg_scenegraph_env.Append (CPPPATH=['.',
                                    '#intern/moto/include'
                                   ])
 
-sg_scenegraph_env.Library (target='#/lib/SG_SceneGraph', source=source_files)
+sg_scenegraph_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/SG_SceneGraph', source=source_files)

@@ -8,7 +8,7 @@ Import ('python_include')
 Import ('sdl_cflags')
 Import ('sdl_include')
 Import ('extra_includes')
-Import ('use_international')
+Import ('user_options_dict')
 src_env.Append (CCFLAGS = cflags)
 src_env.Append (CCFLAGS = sdl_cflags)
 src_env.Append (CXXFLAGS = cxxflags)
@@ -140,9 +140,9 @@ src_env.Append (CPPPATH = ['#/intern/guardedalloc',
                            python_include,
                            sdl_include])
 
-if use_international=='true':
+if user_options_dict['USE_INTERNATIONAL'] == 1:
     src_env.Append (CPPPATH=['../ftfont'])
 
 src_env.Append (CPPPATH=extra_includes)
 
-src_env.Library (target='#/lib/blender_blendersrc', source=source_files)
+src_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blendersrc', source=source_files)

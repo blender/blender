@@ -4,6 +4,7 @@ blenplugin_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 blenplugin_env.Append (CCFLAGS = cflags)
 blenplugin_env.Append (CXXFLAGS = cxxflags)
 blenplugin_env.Append (CPPDEFINES = defines)
@@ -17,4 +18,4 @@ blenplugin_env.Append (CPPPATH = ['.',
                                   '../imbuf',
                                   '../makesdna'])
 
-blenplugin_env.Library (target='#/lib/blender_blenpluginapi', source=source_files)
+blenplugin_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenpluginapi', source=source_files)

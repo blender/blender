@@ -4,6 +4,7 @@ yafray_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 yafray_env.Append (CCFLAGS = cflags)
 yafray_env.Append (CXXFLAGS = cxxflags)
 yafray_env.Append (CPPDEFINES = defines)
@@ -19,4 +20,4 @@ yafray_env.Append (CPPPATH = ['#/intern/guardedalloc',
                               '../imbuf',
                               '../render/extern/include'])
 
-yafray_env.Library (target='#/lib/blender_yafray', source=source_files)
+yafray_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_yafray', source=source_files)

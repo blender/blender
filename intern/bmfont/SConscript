@@ -4,6 +4,7 @@ bmfont_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 bmfont_env.Append (CCFLAGS = cflags)
 bmfont_env.Append (CXXFLAGS = cxxflags)
 bmfont_env.Append (CPPDEFINES = defines)
@@ -23,4 +24,4 @@ source_files = ['intern/BMF_Api.cpp',
 bmfont_env.Append (CPPPATH = ['.',
                               'intern'])
 
-bmfont_env.Library (target='#/lib/blender_BMF', source=source_files)
+bmfont_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_BMF', source=source_files)

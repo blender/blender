@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('python_include')
+Import ('user_options_dict')
 sca_gamelogic_env.Append (CCFLAGS = cflags)
 sca_gamelogic_env.Append (CXXFLAGS = cxxflags)
 sca_gamelogic_env.Append (CPPDEFINES = defines)
@@ -45,4 +46,4 @@ sca_gamelogic_env.Append (CPPPATH=['.',
                                    python_include,
                                   ])
 
-sca_gamelogic_env.Library (target='#/lib/SCA_GameLogic', source=source_files)
+sca_gamelogic_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/SCA_GameLogic', source=source_files)

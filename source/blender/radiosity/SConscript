@@ -4,6 +4,7 @@ rad_env = Environment ()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 rad_env.Append (CCFLAGS = cflags)
 rad_env.Append (CXXFLAGS = cxxflags)
 rad_env.Append (CPPDEFINES = defines)
@@ -24,4 +25,4 @@ rad_env.Append (CPPPATH = ['extern/include',
                            '#/intern/guardedalloc',
                            '../render/extern/include'])
 
-rad_env.Library (target='#/lib/blender_radiosity', source=source_files)
+rad_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_radiosity', source=source_files)

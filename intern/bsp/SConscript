@@ -4,6 +4,7 @@ bsp_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 bsp_env.Append (CCFLAGS = cflags)
 bsp_env.Append (CXXFLAGS = cxxflags)
 bsp_env.Append (CPPDEFINES = defines)
@@ -26,4 +27,4 @@ bsp_env.Append (CPPPATH = ['intern',
                            '../moto/include',
                            '../memutil'])
 
-bsp_env.Library (target='#/lib/blender_BSP', source=source_files)
+bsp_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_BSP', source=source_files)

@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('extra_includes')
+Import ('user_options_dict')
 blenlib_env.Append (CCFLAGS = cflags)
 blenlib_env.Append (CXXFLAGS = cxxflags)
 blenlib_env.Append (CPPDEFINES = defines)
@@ -38,4 +39,4 @@ blenlib_env.Append (CPPPATH = ['.',
                                '../include'])
 
 blenlib_env.Append (CPPPATH = extra_includes)
-blenlib_env.Library (target='#/lib/blender_blenlib', source=source_files)
+blenlib_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenlib', source=source_files)

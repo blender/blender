@@ -1,29 +1,28 @@
-Import ('use_quicktime')
-Import ('use_international')
+Import ('user_options_dict')
 
-SConscript(['blenloader/SConscript',
+SConscript(['avi/SConscript',
+            'blenkernel/SConscript',
+            'blenlib/SConscript',
+            'blenloader/SConscript',
+            'blenpluginapi/SConscript',
             'deflate/SConscript',
-            'inflate/SConscript',
-            'writestreamglue/SConscript',
-            'readstreamglue/SConscript',
-            'writeblenfile/SConscript',
-            'readblenfile/SConscript',
-            'avi/SConscript',
             'imbuf/SConscript',
             'img/SConscript',
-            'render/SConscript',
-            'radiosity/SConscript',
-            'blenlib/SConscript',
-            'blenkernel/SConscript',
-            'blenpluginapi/SConscript',
-            'python/SConscript',
+            'inflate/SConscript',
             'makesdna/SConscript',
-            'src/SConscript',
+            'python/SConscript',
+            'radiosity/SConscript',
+            'readblenfile/SConscript',
+            'readstreamglue/SConscript',
+            'render/SConscript',
             'renderconverter/SConscript',
+            'src/SConscript',
+            'writeblenfile/SConscript',
+            'writestreamglue/SConscript',
             'yafray/SConscript'])
 
-if use_international == 'true':
+if user_options_dict['USE_INTERNATIONAL'] == 1:
     SConscript (['ftfont/SConscript'])
 
-if use_quicktime == 'true':
+if user_options_dict['USE_QUICKTIME'] == 1:
     SConscript (['quicktime/SConscript'])

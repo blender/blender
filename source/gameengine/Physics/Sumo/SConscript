@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('solid_include')
+Import ('user_options_dict')
 phy_sumo_env.Append (CCFLAGS = cflags)
 phy_sumo_env.Append (CXXFLAGS = cxxflags)
 phy_sumo_env.Append (CPPDEFINES = defines)
@@ -22,4 +23,4 @@ phy_sumo_env.Append (CPPPATH = ['.',
                                 '#/intern/moto/include'
                                ])
 
-phy_sumo_env.Library (target='#/lib/PHY_Sumo', source=source_files)
+phy_sumo_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Sumo', source=source_files)

@@ -4,6 +4,7 @@ phy_dummy_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 phy_dummy_env.Append (CCFLAGS = cflags)
 phy_dummy_env.Append (CXXFLAGS = cxxflags)
 phy_dummy_env.Append (CPPDEFINES = defines)
@@ -14,4 +15,4 @@ phy_dummy_env.Append (CPPPATH = ['.',
                                  '../common'
                                 ])
 
-phy_dummy_env.Library (target='#/lib/PHY_Dummy', source=source_files)
+phy_dummy_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Dummy', source=source_files)

@@ -4,6 +4,7 @@ makesdna_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 makesdna_env.Append (CCFLAGS = cflags)
 makesdna_env.Append (CXXFLAGS = cxxflags)
 makesdna_env.Append (CPPDEFINES = defines)
@@ -15,4 +16,4 @@ objs.append (o)
 
 makesdna_env.Append (CPPPATH = ['#/intern/guardedalloc'])
 
-makesdna_env.Library (target='#/lib/blender_makesdna', source=objs)
+makesdna_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_makesdna', source=objs)

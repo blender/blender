@@ -4,6 +4,7 @@ string_env = Environment ()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 string_env.Append (CCFLAGS = cflags)
 string_env.Append (CXXFLAGS = cxxflags)
 string_env.Append (CPPDEFINES = defines)
@@ -12,4 +13,4 @@ source_files = ['intern/STR_String.cpp']
 
 string_env.Append (CPPPATH = ['.'])
 
-string_env.Library (target='#/lib/blender_STR', source=source_files)
+string_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_STR', source=source_files)

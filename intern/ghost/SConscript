@@ -4,11 +4,11 @@ ghost_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
+Import ('window_system')
 ghost_env.Append (CCFLAGS = cflags)
 ghost_env.Append (CXXFLAGS = cxxflags)
 ghost_env.Append (CPPDEFINES = defines)
-
-Import ('window_system')
 
 source_files = ['intern/GHOST_Buttons.cpp',
                 'intern/GHOST_C-api.cpp',
@@ -42,4 +42,4 @@ else:
 ghost_env.Append (CPPPATH = ['.',
                              '../string'])
 
-ghost_env.Library (target='#/lib/blender_GHOST', source=source_files)
+ghost_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_GHOST', source=source_files)

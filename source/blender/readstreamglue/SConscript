@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('extra_includes')
+Import ('user_options_dict')
 readstrgl_env.Append (CCFLAGS = cflags)
 readstrgl_env.Append (CXXFLAGS = cxxflags)
 readstrgl_env.Append (CPPDEFINES = defines)
@@ -18,4 +19,4 @@ readstrgl_env.Append (CPPPATH = ['.',
                                  '../inflate'])
 
 readstrgl_env.Append (CPPPATH = extra_includes)
-readstrgl_env.Library (target='#/lib/blender_readstreamglue', source=source_files)
+readstrgl_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_readstreamglue', source=source_files)

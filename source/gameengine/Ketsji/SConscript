@@ -4,10 +4,9 @@ ketsji_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('use_sumo')
-Import ('use_ode')
 Import ('python_include')
 Import ('solid_include')
+Import ('user_options_dict')
 ketsji_env.Append (CCFLAGS = cflags)
 ketsji_env.Append (CXXFLAGS = cxxflags)
 ketsji_env.Append (CPPDEFINES = defines)
@@ -62,11 +61,11 @@ source_files = ['KX_WorldIpoController.cpp',
                 'KX_Camera.cpp'
                 ]
 
-if use_sumo == 'true':
+if user_options_dict['USE_PHYSICS'] == 'solid':
     source_files += ['KX_SumoPhysicsController.cpp']
     ketsji_env.Append (CPPPATH = [solid_include])
 
-if use_ode == 'true':
+if user_options_dict['USE_PHYSICS'] == 'ode':
     source_files += ['KX_OdePhysicsController.cpp']
 
 ketsji_env.Append (CPPPATH = ['.',
@@ -108,4 +107,4 @@ ketsji_env.Append (CPPPATH = ['.',
                               python_include
                              ])
 
-ketsji_env.Library (target='#/lib/KX_ketsji', source=source_files)
+ketsji_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_ketsji', source=source_files)

@@ -7,8 +7,7 @@ soundsys_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('use_openal')
-Import ('use_fmod')
+Import ('user_options_dict')
 Import ('extra_includes')
 
 soundsys_env.Append (CCFLAGS = cflags)
@@ -34,20 +33,19 @@ soundsys_env.Append (CPPPATH = ['.',
                                 'dummy',
                                 'openal'])
 
-if use_openal == 'true':
+if user_options_dict['USE_OPENAL'] == 1:
     source_files += ['openal/SND_OpenALDevice.cpp',
                      'openal/pthread_cancel.cpp']
     if sys.platform=='win32':
         defines += ['_LIB']
         soundsys_env.Append(CPPDEFINES = defines)
         
-
-if use_fmod == 'true':
+if user_options_dict['USE_FMOD'] == 1:
     source_files += ['fmod/SND_FmodDevice.cpp']
 
-if use_openal == 'false' and use_fmod == 'false':
+if user_options_dict['USE_OPENAL'] == 0 and user_options_dict['USE_FMOD'] == 0:
     soundsys_env.Append (CPPDEFINES = 'NO_SOUND')
 
 soundsys_env.Append (CPPPATH = extra_includes)
 
-soundsys_env.Library (target='#/lib/soundsystem', source=source_files)
+soundsys_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/soundsystem', source=source_files)

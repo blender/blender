@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('extra_includes')
 Import ('defines')
+Import ('user_options_dict')
 quicktime_env.Append (CCFLAGS = cflags)
 quicktime_env.Append (CXXFLAGS = cxxflags)
 quicktime_env.Append (CPPPATH = extra_includes)
@@ -24,4 +25,4 @@ quicktime_env.Append (CPPPATH = ['.',
                                  '../readstreamglue',
                                  '../render/extern/include'])
 
-quicktime_env.Library (target='#/lib/blender_quicktime', source=source_files)
+quicktime_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_quicktime', source=source_files)

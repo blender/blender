@@ -6,6 +6,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('extra_includes')
+Import ('user_options_dict')
 inflate_env.Append (CCFLAGS = cflags)
 inflate_env.Append (CXXFLAGS = cxxflags)
 inflate_env.Append (CPPDEFINES = defines)
@@ -17,4 +18,4 @@ inflate_env.Append (CPPPATH = ['.',
                                '../readstreamglue'])
 
 inflate_env.Append (CPPPATH = extra_includes)
-inflate_env.Library (target='#/lib/blender_inflate', source=source_files)
+inflate_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_inflate', source=source_files)

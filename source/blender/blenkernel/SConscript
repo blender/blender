@@ -4,6 +4,7 @@ blenkernel_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 blenkernel_env.Append (CCFLAGS = cflags)
 blenkernel_env.Append (CXXFLAGS = cxxflags)
 blenkernel_env.Append (CPPDEFINES = defines)
@@ -57,4 +58,4 @@ blenkernel_env.Append (CPPPATH = ['.',
                                   '#/intern/iksolver/extern',
                                   '../blenloader'])
 
-blenkernel_env.Library (target='#/lib/blender_blenkernel', source=source_files)
+blenkernel_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenkernel', source=source_files)

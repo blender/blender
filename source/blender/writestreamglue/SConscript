@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('extra_includes')
+Import ('user_options_dict')
 wrstrgl_env.Append (CCFLAGS = cflags)
 wrstrgl_env.Append (CXXFLAGS = cxxflags)
 wrstrgl_env.Append (CPPDEFINES = defines)
@@ -21,4 +22,4 @@ wrstrgl_env.Append (CPPPATH = ['.',
                                '../../kernel/gen_messaging'])
 
 wrstrgl_env.Append (CPPPATH = extra_includes)
-wrstrgl_env.Library (target='#/lib/blender_writestreamglue', source=source_files)
+wrstrgl_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_writestreamglue', source=source_files)

@@ -4,6 +4,7 @@ ras_openglrasterizer_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 ras_openglrasterizer_env.Append (CCFLAGS = cflags)
 ras_openglrasterizer_env.Append (CXXFLAGS = cxxflags)
 ras_openglrasterizer_env.Append (CPPDEFINES = defines)
@@ -19,4 +20,4 @@ ras_openglrasterizer_env.Append (CPPPATH=['.',
                                           '#source/gameengine/Rasterizer'
                                          ])
 
-ras_openglrasterizer_env.Library (target='#/lib/RAS_OpenGLRasterizer', source=source_files)
+ras_openglrasterizer_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/RAS_OpenGLRasterizer', source=source_files)

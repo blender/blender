@@ -368,69 +368,29 @@ user_options.AddOptions (
                      allowed_values = ('release', 'debug'))),
     )
 user_options.Update (user_options_env)
-user_dict = user_options_env.Dictionary()
+user_options_dict = user_options_env.Dictionary()
 
-root_build_dir = user_dict['BUILD_DIR']
-if user_dict['USE_INTERNATIONAL'] == 1:
-    use_international = 'true'
-else:
-    use_international = 'false'
+root_build_dir = user_options_dict['BUILD_DIR']
     
-if user_dict['USE_PHYSICS'] == 'ode':
-    use_ode = 'true'
-    use_sumo = 'false'
-else:
-    use_ode = 'false'
-    use_sumo = 'true'
-
-if user_dict['BUILD_GAMEENGINE']:
-    use_gameengine = 'true'
+if user_options_dict['BUILD_GAMEENGINE'] == 1:
     defines += ['GAMEBLENDER=1']
+    if user_options_dict['USE_PHYSICS'] == 'ode':
+        defines += ['USE_ODE']
+    else:
+        defines += ['USE_SUMO_SOLID']
 else:
-    use_gameengine = 'false'
     defines += ['GAMEBLENDER=0']
 
-if user_dict['USE_OPENAL'] == 1:
-    use_openal = 'true'
-else:
-    use_openal = 'false'
-
-if user_dict['USE_FMOD'] == 1:
-    use_fmod = 'true'
-else:
-    use_fmod = 'false'
-
-if user_dict['USE_QUICKTIME'] == 1:
-    use_quicktime = 'true'
-else:
-    use_quicktime = 'false'
-
-if user_dict['BUILD_BINARY'] == 'release':
+if user_options_dict['BUILD_BINARY'] == 'release':
     cflags = extra_flags + release_flags + warn_flags
 else:
     cflags = extra_flags + debug_flags + warn_flags
-
-#-----------------------------------------------------------------------------
-# Game Engine settings
-#-----------------------------------------------------------------------------
-if use_gameengine == 'true':
-    if use_sumo == 'true':
-        defines += ['USE_SUMO_SOLID']
-    if use_ode == 'true':
-        defines += ['USE_ODE']
 
 #-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files
 #-----------------------------------------------------------------------------
 cflags = extra_flags + release_flags + warn_flags
 
-Export ('use_international')
-Export ('use_gameengine')
-Export ('use_openal')
-Export ('use_fmod')
-Export ('use_quicktime')
-Export ('use_ode')
-Export ('use_sumo')
 Export ('python_include')
 Export ('cflags')
 Export ('defines')
@@ -445,13 +405,14 @@ Export ('platform_libs')
 Export ('platform_libpath')
 Export ('platform_linkflags')
 Export ('root_build_dir')
+Export ('user_options_dict')
 
 BuildDir (root_build_dir+'/intern', 'intern', duplicate=0)
 SConscript (root_build_dir+'intern/SConscript')
 BuildDir (root_build_dir+'/source', 'source', duplicate=0)
 SConscript (root_build_dir+'source/SConscript')
 
-libpath = (['lib'])
+libpath = (['#'+root_build_dir+'/lib'])
 
 libraries = (['blender_render',
               'blender_yafray',

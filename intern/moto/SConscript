@@ -4,6 +4,7 @@ moto_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 moto_env.Append (CCFLAGS = cflags)
 moto_env.Append (CXXFLAGS = cxxflags)
 moto_env.Append (CPPDEFINES = defines)
@@ -22,4 +23,4 @@ source_files = ['intern/MT_CmMatrix4x4.cpp',
 
 moto_env.Append (CPPPATH = ['include'])
 
-moto_env.Library (target='#/lib/blender_MT', source=source_files)
+moto_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_MT', source=source_files)

@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('extra_includes')
+Import ('user_options_dict')
 deflate_env.Append (CCFLAGS = cflags)
 deflate_env.Append (CXXFLAGS = cxxflags)
 deflate_env.Append (CPPDEFINES = defines)
@@ -18,4 +19,4 @@ deflate_env.Append (CPPPATH = ['.',
                                '../inflate'])
 
 deflate_env.Append (CPPPATH=extra_includes)
-deflate_env.Library (target='#/lib/blender_deflate', source=source_files)
+deflate_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_deflate', source=source_files)

@@ -4,6 +4,7 @@ iksolver_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 iksolver_env.Append (CCFLAGS = cflags)
 iksolver_env.Append (CXXFLAGS = cxxflags)
 iksolver_env.Append (CPPDEFINES = defines)
@@ -18,4 +19,4 @@ iksolver_env.Append (CPPPATH = ['intern',
                                 '../moto/include',
                                 '../memutil'])
 
-iksolver_env.Library (target='#/lib/blender_IK', source=source_files)
+iksolver_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_IK', source=source_files)

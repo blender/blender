@@ -4,6 +4,7 @@ memutil_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 memutil_env.Append (CCFLAGS = cflags)
 memutil_env.Append (CXXFLAGS = cxxflags)
 memutil_env.Append (CPPDEFINES = defines)
@@ -12,4 +13,4 @@ source_files = ['intern/MEM_RefCountedC-Api.cpp']
 
 memutil_env.Append (CPPPATH = ['.'])
 
-memutil_env.Library (target='#/lib/blender_MEM', source=source_files)
+memutil_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_MEM', source=source_files)

@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('ode_include')
+Import ('user_options_dict')
 phy_ode_env.Append (CCFLAGS = cflags)
 phy_ode_env.Append (CXXFLAGS = cxxflags)
 phy_ode_env.Append (CPPDEFINES = defines)
@@ -17,4 +18,4 @@ phy_ode_env.Append (CPPPATH=['.',
                              ode_include
                             ])
 
-phy_ode_env.Library (target='#/lib/PHY_Ode', source=source_files)
+phy_ode_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Ode', source=source_files)

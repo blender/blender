@@ -6,6 +6,7 @@ Import ('cxxflags')
 Import ('defines')
 Import ('solid_include')
 Import ('python_include')
+Import ('user_options_dict')
 kx_converter_env.Append (CCFLAGS = cflags)
 kx_converter_env.Append (CXXFLAGS = cxxflags)
 kx_converter_env.Append (CPPDEFINES = defines)
@@ -66,4 +67,4 @@ kx_converter_env.Append (CPPPATH = ['.',
                                     solid_include
                                     ])
 
-kx_converter_env.Library (target='#/lib/KX_converter', source=source_files)
+kx_converter_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_converter', source=source_files)

@@ -4,6 +4,7 @@ blenloader_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 blenloader_env.Append (CCFLAGS = cflags)
 blenloader_env.Append (CXXFLAGS = cxxflags)
 blenloader_env.Append (CPPDEFINES = defines)
@@ -26,4 +27,4 @@ blenloader_env.Append (CPPPATH = ['.',
                                   '../writestreamglue',
                                   '../readstreamglue'])
 
-blenloader_env.Library (target='#/lib/blender_blenloader', source=source_files)
+blenloader_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenloader', source=source_files)

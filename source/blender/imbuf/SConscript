@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('extra_includes')
+Import ('user_options_dict')
 imbuf_env.Append (CCFLAGS = cflags)
 imbuf_env.Append (CXXFLAGS = cxxflags)
 imbuf_env.Append (CPPDEFINES = defines)
@@ -46,4 +47,4 @@ imbuf_env.Append (CPPPATH = ['.',
                              '../blenkernel'])
 
 imbuf_env.Append (CPPPATH = extra_includes)
-imbuf_env.Library (target='#/lib/blender_imbuf', source=source_files)
+imbuf_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_imbuf', source=source_files)

@@ -1,22 +1,21 @@
-Import ('use_ode')
-Import ('use_sumo')
+Import ('user_options_dict')
 
-SConscript(['Ketsji/SConscript',
-            'Ketsji/KXNetwork/SConscript',
-            'Expressions/SConscript',
-            'BlenderRoutines/SConscript',
+SConscript(['BlenderRoutines/SConscript',
             'Converter/SConscript',
+            'Expressions/SConscript',
+            'GameLogic/SConscript',
+            'Ketsji/SConscript',
+            'Ketsji/KXNetwork/SConscript',
             'Network/SConscript',
             'Network/LoopBackNetwork/SConscript',
-            'GameLogic/SConscript',
             'Physics/common/SConscript',
             'Physics/Dummy/SConscript',
             'Rasterizer/SConscript',
             'Rasterizer/RAS_OpenGLRasterizer/SConscript',
             'SceneGraph/SConscript'])
 
-if use_sumo == 'true':
+if user_options_dict['USE_PHYSICS'] == 'solid':
     SConscript(['Physics/Sumo/SConscript'])
 
-if use_ode == 'true':
+if user_options_dict['USE_PHYSICS'] == 'ode':
     SConscript(['Physics/BlOde/SConscript'])

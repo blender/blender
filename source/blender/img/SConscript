@@ -4,6 +4,7 @@ img_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 img_env.Append (CCFLAGS = cflags)
 img_env.Append (CXXFLAGS = cxxflags)
 img_env.Append (CPPDEFINES = defines)
@@ -16,4 +17,4 @@ source_files = ['intern/IMG_Api.cpp',
                 'intern/IMG_PixmapRGBA32.cpp',
                 'intern/IMG_Rect.cpp']
 
-img_env.Library (target='#/lib/blender_img', source=source_files)
+img_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_img', source=source_files)

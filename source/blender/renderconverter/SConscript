@@ -4,6 +4,7 @@ renderconv_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 renderconv_env.Append (CCFLAGS = cflags)
 renderconv_env.Append (CXXFLAGS = cxxflags)
 renderconv_env.Append (CPPDEFINES = defines)
@@ -19,4 +20,4 @@ renderconv_env.Append (CPPPATH = ['.',
                                   '../render/extern/include',
                                   '../python'])
 
-renderconv_env.Library (target='#/lib/blender_renderconverter', source=source_files)
+renderconv_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_renderconverter', source=source_files)

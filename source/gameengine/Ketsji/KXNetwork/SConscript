@@ -5,6 +5,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
 Import ('python_include')
+Import ('user_options_dict')
 kx_network_env.Append (CCFLAGS = cflags)
 kx_network_env.Append (CXXFLAGS = cxxflags)
 kx_network_env.Append (CPPDEFINES = defines)
@@ -26,4 +27,4 @@ kx_network_env.Append (CPPPATH = ['.',
                                   '#source/gameengine/Network',
                                  ])
 
-kx_network_env.Library (target='#/lib/KX_network', source=source_files)
+kx_network_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_network', source=source_files)

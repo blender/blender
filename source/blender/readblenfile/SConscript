@@ -4,6 +4,7 @@ readblenfile_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
+Import ('user_options_dict')
 readblenfile_env.Append (CCFLAGS = cflags)
 readblenfile_env.Append (CXXFLAGS = cxxflags)
 readblenfile_env.Append (CPPDEFINES = defines)
@@ -16,4 +17,4 @@ readblenfile_env.Append (CPPPATH = ['.',
                                     '../blenkernel',
                                     '../../kernel/gen_messaging'])
 
-readblenfile_env.Library (target='#/lib/blender_readblenfile', source=source_files)
+readblenfile_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_readblenfile', source=source_files)

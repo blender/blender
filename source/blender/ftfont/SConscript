@@ -3,6 +3,7 @@ Import ('cflags')
 Import ('cxxflags')
 Import ('extra_includes')
 Import ('defines')
+Import ('user_options_dict')
 
 source_files = ['intern/FTF_Api.cpp',
                 'intern/FTF_TTFont.cpp']
@@ -18,4 +19,4 @@ ftf_env.Append(CPPPATH = include_paths)
 ftf_env.Append(CCFLAGS = cflags)
 ftf_env.Append(CXXFLAGS = cxxflags)
 ftf_env.Append(CPPDEFINES = defines)
-ftf_env.Library (target='#/lib/blender_FTF', source=source_files)
+ftf_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_FTF', source=source_files)
