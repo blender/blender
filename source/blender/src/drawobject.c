@@ -4582,6 +4582,23 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 					glEnd();
 				}
 			}
+			
+			if(facecol && (G.scene->selectmode & SCE_SELECT_FACE)) {		
+				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
+				
+				bglBegin(GL_POINTS);
+				for(efa= G.editMesh->faces.first; efa; efa= efa->next) {
+					if(efa->h==0) {
+						if(efa->fgonf==EM_FGON);
+						else {
+							cpack(index_to_framebuffer((int)efa->prev));
+							bglVertex3fv(efa->cent);
+						}
+					}
+				}
+				bglEnd();
+			}
+			
 			for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)
 				efa->prev= prevefa;
 
