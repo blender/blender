@@ -56,7 +56,6 @@ endif
 
 # PreProcessor stuff ------------------------------------------
 
-CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_GHOST)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
@@ -112,3 +111,5 @@ endif
 ifeq ($(INTERNATIONAL), true)
     CPPFLAGS += -DINTERNATIONAL
 endif
+
+CPPFLAGS += -I$(OPENGL_HEADERS)

@@ -44,7 +44,6 @@ endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I../blender/render/extern/include
 CPPFLAGS += -I../blender/radiosity/extern/include
 # two needed for the kernel
@@ -63,3 +62,5 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I$(NAN_QUICKTIME)/include -DWITH_QUICKTIME
 endif
+
+CPPFLAGS += -I$(OPENGL_HEADERS)
