@@ -194,19 +194,22 @@ int main(int argc, char **argv)
 	if (argc==2 && strncmp(argv[1], "-psn_", 5)==0) {
 		extern int GHOST_HACK_getFirstFile(char buf[]);
 		static char firstfilebuf[512];
-		int scr_x,scr_y;
 		
 		argc= 1;
 		
-		setprefsize(100, 100, 800, 600);
-		
-		winlay_get_screensize(&scr_x, &scr_y);
-		winlay_process_events(0);
 		if (GHOST_HACK_getFirstFile(firstfilebuf)) {
 			argc= 2;
 			argv[1]= firstfilebuf;
 		}
 	}
+
+	winlay_get_screensize(&sizx, &sizy);
+	
+	/* make the main windows slightly smaller than the screen,
+	 * to prevent it from hiding behind the menu bar */
+	setprefsize(0, 0, sizx, sizy-45);
+	
+	winlay_process_events(0);
 #endif
 
 #ifdef __FreeBSD__
