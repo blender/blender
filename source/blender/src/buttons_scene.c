@@ -1042,12 +1042,12 @@ static void render_panel_output(void)
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|5, 0,"Edge",	155, 94, 44, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings |>> ", 200, 94, 110, 20, "Display edge settings");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 200, 94, 110, 20, "Display edge settings");
 	uiBlockEndAlign(block);
 
 	/* unified render buttons */
 	if(G.scene->r.mode & R_UNIFIED) {
-		uiDefBlockBut(block, post_render_menu, NULL, "Post process |>> ", 200, 68, 110, 20, "Only for unified render");
+		uiDefBlockBut(block, post_render_menu, NULL, "Post process", 200, 68, 110, 20, "Only for unified render");
 		if (G.scene->r.mode & R_GAMMA) {
 			uiDefButF(block, NUMSLI, 0,"Gamma:",		10, 68, 142, 20,
 					 &(G.scene->r.gamma), 0.2, 5.0, B_GAMMASLI, 0,
@@ -1165,7 +1165,7 @@ static void render_panel_format(void)
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_format", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Format", "Render", 960, 0, 318, 204)==0) return;
 	uiDefBlockBut(block, framing_render_menu, NULL, 
-				  "Game framing settings |>> ", 
+				  "Game framing settings", 
 				  892, 169, 227, 20, "Display game framing settings");
 	/* uiDefIconTextBlockBut(block, framing_render_menu, NULL, 
 						   ICON_BLOCKBUT_CORNER, 
@@ -1221,7 +1221,7 @@ static void render_panel_format(void)
 			}
 
 			yofs -= 22;
-			uiDefBlockBut(block, qtcodec_menu, NULL, "Codec Settings |>> ", 892,yofs, 227, 20, "Edit Codec settings for QuickTime");
+			uiDefBlockBut(block, qtcodec_menu, NULL, "Codec Settings", 892,yofs, 227, 20, "Edit Codec settings for QuickTime");
 			yofs +=22;
 
 #endif /* libquicktime */

@@ -138,8 +138,8 @@ void do_action_buttons(unsigned short event)
 			G.v2d->cur.ymin=-SCROLLB;
 
 			if (!G.saction->action){	// here the mesh rvk?
-				G.v2d->cur.xmax=0;
-				G.v2d->cur.xmax=100;
+				G.v2d->cur.xmax= -5;
+				G.v2d->cur.xmax= 100;
 			}
 			else {
 				float extra;
@@ -148,6 +148,11 @@ void do_action_buttons(unsigned short event)
 				extra= 0.05*(G.v2d->cur.xmax - G.v2d->cur.xmin);
 				G.v2d->cur.xmin-= extra;
 				G.v2d->cur.xmax+= extra;
+				
+				if(G.v2d->cur.xmin==G.v2d->cur.xmax) {
+					G.v2d->cur.xmax= -5;
+					G.v2d->cur.xmax= 100;
+				}
 			}
 
 			G.v2d->tot= G.v2d->cur;

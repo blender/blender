@@ -1164,10 +1164,8 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 		uiDefBut(block, LABEL, 0, "Convert",	463,173,72, 18, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT,B_CONVERTPOLY,"Poly",		467,152,72, 18, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT,B_CONVERTBEZ,"Bezier",	467,132,72, 18, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT,B_CONVERTBSPL,"Bspline",	467,112,72, 18, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT,B_CONVERTCARD,"Cardinal",	467,92,72, 18, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT,B_CONVERTNURB,"Nurb",		467,72,72, 18, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT,B_CONVERTBEZ,"Bezier",		467,132,72, 18, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT,B_CONVERTNURB,"Nurb",		467,112,72, 18, 0, 0, 0, 0, 0, "");
 	}
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_UNIFU,"Uniform U",	565,152,102, 18, 0, 0, 0, 0, 0, "");
