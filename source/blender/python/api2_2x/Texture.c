@@ -915,9 +915,14 @@ static PyObject *Texture_getSType( BPy_Texture * self )
 {
 	PyObject *attr = NULL;
 	const char *stype = NULL;
+	int n_stype;
 
+	if( self->texture->type == EXPP_TEX_TYPE_ENVMAP )
+		n_stype = self->texture->env->stype;
+	else
+		n_stype = self->texture->stype;
 	if( EXPP_map_getStrVal( tex_stype_map[self->texture->type],
-				self->texture->stype, &stype ) )
+				n_stype, &stype ) )
 		attr = PyString_FromString( stype );
 
 	if( !attr )
@@ -1449,6 +1454,9 @@ static PyObject *Texture_setSType( BPy_Texture * self, PyObject * args )
 		   EXPP_map_getShortVal( tex_stype_map
 					 [EXPP_TEX_TYPE_DISTNOISE], stype,
 					 &self->texture->noisebasis ) ) );
+	else if( ( self->texture->type == EXPP_TEX_TYPE_ENVMAP &&
+	      EXPP_map_getShortVal( tex_stype_map[self->texture->type],
+				    stype, &self->texture->env->stype ) ) );
 	else if( !EXPP_map_getShortVal
 		 ( tex_stype_map[self->texture->type], stype,
 		   &self->texture->stype ) )
@@ -1475,7 +1483,10 @@ static PyObject *Texture_setIntSType( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid stype (for this type)" );
 
-	self->texture->stype = stype;
+	if( self->texture->type == EXPP_TEX_TYPE_ENVMAP )
+		self->texture->env->stype = stype;
+	else
+		self->texture->stype = stype;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1780,7 +1791,10 @@ static PyObject *Texture_getAttr( BPy_Texture * self, char *name )
 		attr = Py_BuildValue( "(f,f,f)", tex->rfac, tex->gfac,
 				      tex->gfac );
 	else if( STREQ( name, "stype" ) )
-		attr = PyInt_FromLong( tex->stype );
+		if( self->texture->type == EXPP_TEX_TYPE_ENVMAP )
+			attr = PyInt_FromLong( tex->env->stype );
+		else
+			attr = PyInt_FromLong( tex->stype );
 	else if( STREQ( name, "turbulence" ) )
 		attr = PyFloat_FromDouble( tex->turbul );
 	else if( STREQ( name, "type" ) )
