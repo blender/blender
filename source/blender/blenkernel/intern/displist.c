@@ -2373,6 +2373,8 @@ void test_all_displists(void)
 					freedisp= 1;
 				else if ((ob->parent->type==OB_ARMATURE) && (ob->partype == PARSKEL))
 					makedisp= 1;
+				else if(ob->softflag & OB_SB_ENABLE)
+					makedisp= 1;
 				else if ((ob->parent->type==OB_CURVE) && (ob->partype == PARSKEL))
 					freedisp= 1;
 				else if(ob->partype==PARVERT1 || ob->partype==PARVERT3) {

@@ -1277,7 +1277,7 @@ void where_is_object_time(Object *ob, float ctime)
 	
 	/* new version: correct parent+vertexparent and track+parent */
 	/* this one only calculates direct attached parent and track */
-	/* hij is sneller, maar moet wel de timeoffs in de gaten houden */
+	/* is faster, but should keep track of timeoffs */
 	
 	if(ob==0) return;
 

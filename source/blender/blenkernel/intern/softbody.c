@@ -653,7 +653,7 @@ static void mesh_update_softbody(Object *ob)
 			if(ob->soft->bspring==NULL) 
 				if(object_has_edges(ob)) sbObjectToSoftbody(ob);
 		
-			/* hrms .. do springs alter their lenght ?
+			/* hrms .. do springs alter their lenght ? (yes, mesh keys would (ton))
 			if(medge) {
 				bs= ob->soft->bspring;
 				bp= ob->soft->bpoint;
@@ -966,8 +966,14 @@ void sbObjectReset(Object *ob)
 		// origS is previous timestep
 		VECCOPY(bp->origS, bp->origE);
 		VECCOPY(bp->pos, bp->origE);
+		VECCOPY(bp->origT, bp->origE);
 		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
+
 		// no idea about the Heun stuff! (ton)
+		VECCOPY(bp->prevpos, bp->vec);
+		VECCOPY(bp->prevvec, bp->vec);
+		VECCOPY(bp->prevdx, bp->vec);
+		VECCOPY(bp->prevdv, bp->vec);
 	}
 }
 

@@ -2348,6 +2348,7 @@ void inner_play_anim_loop(int init, int mode)
  * - 3: all view3d and seq areas, no replay */
 int play_anim(int mode)
 {
+	Base *base;
 	ScrArea *sa, *oldsa;
 	int cfraont;
 	unsigned short event=0;
@@ -2410,7 +2411,13 @@ int play_anim(int mode)
 	do_all_ipos();
 	do_all_keys();
 	do_all_actions();
-	do_all_ikas();
+
+	/* set all objects on current frame... test_all_displists() needs it */
+	base= G.scene->base.first;
+	while(base) {
+		if(G.vd->lay & base->lay) where_is_object(base->object);
+		base= base->next;
+	}
 	test_all_displists();
 	
 	audiostream_stop();

@@ -241,7 +241,7 @@ int mesh_modifier(Object *ob, char mode)
 	else if(ob->effect.first);	// weak... particles too
 	else if(ob->parent && ob->parent->type==OB_LATTICE);
 	else if(ob->parent && ob->partype==PARSKEL); 
-	else if(ob->softflag & 0x01);
+	else if(ob->softflag & OB_SB_ENABLE);
 	else return 0;
 	
 	if(me->totvert==0) return 0;
