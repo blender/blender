@@ -41,77 +41,41 @@ all debug::
       $(error $(ERRTXT))
     endif
   endif
-    export SRCHOME ?= $(NANBLENDERHOME)/source
 
+  # First generic defaults for all, some of which should be overruled
+  # by platform dependent settings in the next section of this file.
+  # Note: ?= lets these defaults be overruled by environment variables,
+  # except those which are overruled in the platform section below.
+
+    export SRCHOME ?= $(NANBLENDERHOME)/source
     export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
     export OS := $(shell echo ${CONFIG_GUESS} | sed -e 's/-.*//')
     export OS_VERSION := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-//' -e 's/-[^-]*//')
     export CPU := $(shell echo ${CONFIG_GUESS} | sed -e 's/^[^-]*-[^-]*-//')
     export MAKE_START := $(shell date "+%H:%M:%S %d-%b-%Y")
-
     export NAN_LIBDIR ?= $(NANBLENDERHOME)/lib
     export NAN_OBJDIR ?= $(NANBLENDERHOME)/obj
-
-  ifeq ($(OS),freebsd)
-    export NAN_PYTHON ?= /usr/local/include/python
-    export NAN_PYTHON_VERSION ?= 2.2
-  else
+    # Library Config_Guess DIRectory
+    export LCGDIR = $(NAN_LIBDIR)/$(CONFIG_GUESS)
+    # Object Config_Guess DIRectory
+    export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
-  endif
-
-  ifeq ($(OS),freebsd)
-    export NAN_PYTHON_BINARY ?= 
-    export NAN_MXTEXTTOOLS ?= 
-  else
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c 'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so 
-  endif
-
-  ifeq ($(OS),freebsd)
-    export NAN_OPENAL ?= /usr/local
-  else
     export NAN_OPENAL ?= $(LCGDIR)/openal
-  endif
-
     export NAN_FMOD ?= $(LCGDIR)/fmod
-
-  ifeq ($(OS),freebsd)
-    export NAN_JPEG ?= /usr/local
-  else
     export NAN_JPEG ?= $(LCGDIR)/jpeg
-  endif
-
-  ifeq ($(OS),freebsd)
-    export NAN_PNG ?= /usr/local
-  else
     export NAN_PNG ?= $(LCGDIR)/png
-  endif
-
-  ifeq ($(OS),freebsd)
-    export NAN_SDL ?= /usr/local
-  else
     export NAN_SDL ?= $(LCGDIR)/sdl
-  endif
-
+    export NAN_ODE ?= $(SRCHOME)/ode
+    export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_MOTO ?= $(LCGDIR)/moto
     export NAN_SOLID ?= $(SRCHOME)/sumo/SOLID-3.0
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
-
-  ifeq ($(OS),freebsd)
-    export NAN_ODE ?= $(LCGDIR)/ode
-  else
-    export NAN_ODE ?= $(SRCHOME)/ode
-  endif
-
-  ifeq ($(OS),freebsd)
-    export NAN_OPENSSL ?= /usr
-  else
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
-  endif
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey
     export NAN_DECIMATION ?= $(LCGDIR)/decimation
     export NAN_GUARDEDALLOC ?= $(LCGDIR)/guardedalloc
@@ -124,13 +88,7 @@ all debug::
     export NAN_IMG ?= $(LCGDIR)/img
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
-
-  ifeq ($(OS),freebsd)
-    export NAN_ZLIB ?= /usr
-  else
     export NAN_ZLIB ?= $(LCGDIR)/zlib
-  endif
-
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -139,68 +97,86 @@ all debug::
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
     # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
     # if this is not set.
-  ifeq ($(OS),freebsd)
-    export NAN_NSPR ?= /usr/local
-  else
     export NAN_NSPR ?= $(LCGDIR)/nspr
-  endif
-
     export NAN_BUILDINFO = true
-
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID = true
 
-    # Library Config_Guess DIRectory
-    export LCGDIR = $(NAN_LIBDIR)/$(CONFIG_GUESS)
-
-    # Object Config_Guess DIRectory
-    export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
+  # Platform Dependent settings go below. Defaults form the previous
+  # section can be overruled here. Note: don't use ?= here ;-)
+  # Also note that these cannot be overruled by environment variables
+  # anymore. (or we must put all global defaults in platform sections)
 
   ifeq ($(OS),beos)
-    ID = $(USER)
-    HOST = $(HOSTNAME)
+    export ID = $(USER)
+    export HOST = $(HOSTNAME)
   endif
+
   ifeq ($(OS),darwin)
-    ID = $(shell whoami)
-    HOST = $(shell hostname -s)
+    export ID = $(shell whoami)
+    export HOST = $(shell hostname -s)
     # Override libraries locations to use fink installed libraries
     export NAN_OPENSSL = /sw
     export NAN_JPEG = /sw
     export NAN_PNG = /sw
     export NAN_ODE = $(LCGDIR)/ode
-	# Override common python settings so that the python that comes with 
-	# OSX 10.2 in /usr/local/ is used.
+    # Override common python settings so that the python that comes with 
+    # OSX 10.2 in /usr/local/ is used.
     export NAN_PYTHON = /usr/local
     export NAN_PYTHON_VERSION = 2.2
     export NAN_PYTHON_BINARY = $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS = $(shell $(NAN_PYTHON_BINARY) -c 'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so 
   endif
+
   ifeq ($(OS),freebsd)
-    ID = $(shell whoami)
-    HOST = $(shell hostname -s)
+    export ID = $(shell whoami)
+    export HOST = $(shell hostname -s)
+    export NAN_PYTHON = /usr/local/include/python
+    export NAN_PYTHON_VERSION = 2.2
+    export NAN_PYTHON_BINARY = 
+    export NAN_MXTEXTTOOLS = 
+    export NAN_OPENAL = /usr/local
+    export NAN_JPEG = /usr/local
+    export NAN_PNG = /usr/local
+    export NAN_SDL = /usr/local
+    export NAN_ODE = $(LCGDIR)/ode
+    export NAN_OPENSSL = /usr
+    export NAN_ZLIB = /usr
+    export NAN_NSPR = /usr/local
   endif
+
   ifeq ($(OS),irix)
-    ID = $(shell whoami)
-    HOST = $(shell /usr/bsd/hostname -s)
+    export ID = $(shell whoami)
+    export HOST = $(shell /usr/bsd/hostname -s)
+    export NAN_PYTHON = /usr/freeware/include/python
+    export NAN_PYTHON_VERSION = 2.1
+    export NAN_PYTHON_BINARY = 
+    export NAN_MXTEXTTOOLS = 
+    export NAN_JPEG = /usr/freeware
+    export NAN_PNG = /usr/freeware
+    export NAN_OPENSSL = /usr/freeware
+    export NAN_ZLIB = /usr/freeware
+    export NAN_NSPR = /usr/local/apps/openblender/nspr/target
   endif
+
   ifeq ($(OS),linux)
-    ID = $(shell whoami)
-    HOST = $(shell hostname -s)
+    export ID = $(shell whoami)
+    export HOST = $(shell hostname -s)
   endif
+
   ifeq ($(OS),openbsd)
-    ID = $(shell whoami)
-    HOST = $(shell hostname -s)
+    export ID = $(shell whoami)
+    export HOST = $(shell hostname -s)
   endif
+
   ifeq ($(OS),solaris)
-    ID = $(shell /usr/ucb/whoami)
-    HOST = $(shell hostname)
+    export ID = $(shell /usr/ucb/whoami)
+    export HOST = $(shell hostname)
   endif
+
   ifeq ($(OS),windows)
-    ID = $(LOGNAME)
+    export ID = $(LOGNAME)
   endif
-    export ID HOST
 
 endif
-
-
 
