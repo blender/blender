@@ -2692,6 +2692,9 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 		 */
 		bone_looper(ob, arm->bonebase.first, NULL,
 					add_defgroup_unique_bone);
+		if (ob->type == OB_MESH)
+			create_dverts((Mesh*)ob->data);
+
 		break;
 
 	case 3:
