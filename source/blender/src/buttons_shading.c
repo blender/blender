@@ -1913,11 +1913,11 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 		//uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1|Cube %x2|Box %x3",
 		uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1",
 				10, 150, 100, 19, &la->area_shape, 0,0,0,0, "Sets area light shape");
-		uiDefButF(block, NUM,B_LAMPREDRAW,"Size ",	10,130,100,19, &la->area_size, 0.001, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
+		uiDefButF(block, NUM,B_LAMPREDRAW,"Size ",	10,130,100,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
 		if ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX) 
-			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeY ",	10,110,100,19, &la->area_sizey, 0.001, 100.0, 10, 0, "Area light size Y, doesn't affect energy amount");
+			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeY ",	10,110,100,19, &la->area_sizey, 0.01, 100.0, 10, 0, "Area light size Y, doesn't affect energy amount");
 		if(la->area_shape==LA_AREA_BOX)
-			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeZ ",	10,90,100,19, &la->area_sizez, 0.001, 100.0, 10, 0, "Area light size Z, doesn't affect energy amount");
+			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeZ ",	10,90,100,19, &la->area_sizez, 0.01, 100.0, 10, 0, "Area light size Z, doesn't affect energy amount");
 	}
 	else if ELEM(la->type, LA_LOCAL, LA_SPOT) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);

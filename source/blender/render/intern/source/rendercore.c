@@ -1227,33 +1227,54 @@ void halovert()
 
 /* ---------------- shaders ----------------------- */
 
-/* Stoke's form factor */
+static double Normalise_d(double *n)
+{
+	double d;
+	
+	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
+
+	if(d>0.00000000000000001) {
+		d= sqrt(d);
+
+		n[0]/=d; 
+		n[1]/=d; 
+		n[2]/=d;
+	} else {
+		n[0]=n[1]=n[2]= 0.0;
+		d= 0.0;
+	}
+	return d;
+}
+
+
+/* Stoke's form factor. Need doubles here for extreme small area sizes */
 static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 {
-	float tvec[3], fac;
-	float vec[4][3];	/* vectors of rendered co to vertices lamp */
-	float cross[4][3];	/* cross products of this */
-	float rad[4];	/* angles between vecs */
+	double fac;
+	double vec[4][3];	/* vectors of rendered co to vertices lamp */
+	double cross[4][3];	/* cross products of this */
+	double rad[4];		/* angles between vecs */
 
-	VecSubf(vec[0], co, lar->area[0]);
-	VecSubf(vec[1], co, lar->area[1]);
-	VecSubf(vec[2], co, lar->area[2]);
-	VecSubf(vec[3], co, lar->area[3]);
+	VECSUB(vec[0], co, lar->area[0]);
+	VECSUB(vec[1], co, lar->area[1]);
+	VECSUB(vec[2], co, lar->area[2]);
+	VECSUB(vec[3], co, lar->area[3]);
 	
-	Normalise(vec[0]);
-	Normalise(vec[1]);
-	Normalise(vec[2]);
-	Normalise(vec[3]);
+	Normalise_d(vec[0]);
+	Normalise_d(vec[1]);
+	Normalise_d(vec[2]);
+	Normalise_d(vec[3]);
 
 	/* cross product */
-	Crossf(cross[0], vec[0], vec[1]);
-	Crossf(cross[1], vec[1], vec[2]);
-	Crossf(cross[2], vec[2], vec[3]);
-	Crossf(cross[3], vec[3], vec[0]);
-	Normalise(cross[0]);
-	Normalise(cross[1]);
-	Normalise(cross[2]);
-	Normalise(cross[3]);
+	CROSS(cross[0], vec[0], vec[1]);
+	CROSS(cross[1], vec[1], vec[2]);
+	CROSS(cross[2], vec[2], vec[3]);
+	CROSS(cross[3], vec[3], vec[0]);
+
+	Normalise_d(cross[0]);
+	Normalise_d(cross[1]);
+	Normalise_d(cross[2]);
+	Normalise_d(cross[3]);
 
 	/* angles */
 	rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];
@@ -1267,16 +1288,15 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	rad[3]= acos(rad[3]);
 
 	/* Stoke formula */
-	VecMulf(cross[0], rad[0]);
-	VecMulf(cross[1], rad[1]);
-	VecMulf(cross[2], rad[2]);
-	VecMulf(cross[3], rad[3]);
+	VECMUL(cross[0], rad[0]);
+	VECMUL(cross[1], rad[1]);
+	VECMUL(cross[2], rad[2]);
+	VECMUL(cross[3], rad[3]);
 
-	VECCOPY(tvec, vn);
-	fac=  tvec[0]*cross[0][0]+ tvec[1]*cross[0][1]+ tvec[2]*cross[0][2];
-	fac+= tvec[0]*cross[1][0]+ tvec[1]*cross[1][1]+ tvec[2]*cross[1][2];
-	fac+= tvec[0]*cross[2][0]+ tvec[1]*cross[2][1]+ tvec[2]*cross[2][2];
-	fac+= tvec[0]*cross[3][0]+ tvec[1]*cross[3][1]+ tvec[2]*cross[3][2];
+	fac=  vn[0]*cross[0][0]+ vn[1]*cross[0][1]+ vn[2]*cross[0][2];
+	fac+= vn[0]*cross[1][0]+ vn[1]*cross[1][1]+ vn[2]*cross[1][2];
+	fac+= vn[0]*cross[2][0]+ vn[1]*cross[2][1]+ vn[2]*cross[2][2];
+	fac+= vn[0]*cross[3][0]+ vn[1]*cross[3][1]+ vn[2]*cross[3][2];
 
 	if(fac<=0.0) return 0.0;
 	return pow(fac*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
@@ -2445,9 +2465,11 @@ temp_y= floor(y);
 		
 		/* exposure correction */
 		if(R.wrld.exposure!=0.0 || R.wrld.range!=1.0) {
-			col[0]= R.wrld.linfac*(1.0-exp( col[0]*R.wrld.logfac) );
-			col[1]= R.wrld.linfac*(1.0-exp( col[1]*R.wrld.logfac) );
-			col[2]= R.wrld.linfac*(1.0-exp( col[2]*R.wrld.logfac) );
+			if((shi.matren->mode & MA_SHLESS)==0) {
+				col[0]= R.wrld.linfac*(1.0-exp( col[0]*R.wrld.logfac) );
+				col[1]= R.wrld.linfac*(1.0-exp( col[1]*R.wrld.logfac) );
+				col[2]= R.wrld.linfac*(1.0-exp( col[2]*R.wrld.logfac) );
+			}
 		}
 		
 		/* MIST */
