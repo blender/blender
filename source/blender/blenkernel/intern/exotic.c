@@ -1929,7 +1929,8 @@ static void displist_to_mesh(DispList *dlfirst)
 	float *data, vec[3], min[3], max[3];
 	int a, b, startve, *idata, totedge=0, tottria=0, totquad=0, totvert=0, totface, totcol=0, colnr;
 	int p1, p2, p3, p4;
-		
+	unsigned int maxvertidx;
+
 	/* count first */
 	INIT_MINMAX(min, max);
 
@@ -2089,6 +2090,7 @@ static void displist_to_mesh(DispList *dlfirst)
 	if(totface) me->mface= MEM_callocN(totface*sizeof(MFace), "mface");
 	me->totvert= totvert;
 	me->totface= totface;
+	maxvertidx= totvert-1;
 	
 	mvert= me->mvert;
 	mface= me->mface;
@@ -2223,9 +2225,9 @@ static void displist_to_mesh(DispList *dlfirst)
 				mface->v3= startve+idata[2];
 				mface->mat_nr= colnr;
 				
-				if (mface->v1>me->totvert-1) mface->v1= me->totvert-1;
-				if (mface->v2>me->totvert-1) mface->v2= me->totvert-1;
-				if (mface->v3>me->totvert-1) mface->v3= me->totvert-1;
+				if (mface->v1>maxvertidx) mface->v1= maxvertidx;
+				if (mface->v2>maxvertidx) mface->v2= maxvertidx;
+				if (mface->v3>maxvertidx) mface->v3= maxvertidx;
 
 				test_index_mface(mface, 3);
 				mface++;
