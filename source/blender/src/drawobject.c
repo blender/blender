@@ -302,13 +302,16 @@ void drawaxes(float size)
 			
 		v2[axis]+= size*0.125;
 		glRasterPos3fv(v2);
-
-		if (axis==0)
-			BMF_DrawString(G.font, "x");
-		else if (axis==1)
-			BMF_DrawString(G.font, "y");
-		else
-			BMF_DrawString(G.font, "z");
+		
+		// patch for 3d cards crashing on glSelect for text drawing (IBM)
+		if((G.f & G_PICKSEL) == 0) {
+			if (axis==0)
+				BMF_DrawString(G.font, "x");
+			else if (axis==1)
+				BMF_DrawString(G.font, "y");
+			else
+				BMF_DrawString(G.font, "z");
+		}
 	}
 }
 
@@ -3681,10 +3684,13 @@ void draw_object(Base *base)
 		if(dtx & OB_BOUNDBOX) draw_bounding_volume(ob);
 		if(dtx & OB_TEXSPACE) drawtexspace(ob);
 		if(dtx & OB_DRAWNAME) {
-			glRasterPos3f(0.0,  0.0,  0.0);
-			
-			BMF_DrawString(G.font, " ");
-			BMF_DrawString(G.font, ob->id.name+2);
+			// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+			if((G.f & G_PICKSEL) == 0) {
+				glRasterPos3f(0.0,  0.0,  0.0);
+				
+				BMF_DrawString(G.font, " ");
+				BMF_DrawString(G.font, ob->id.name+2);
+			}
 		}
 		if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);
 		if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) draw_extra_wire(ob);
