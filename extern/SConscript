@@ -1,0 +1,2 @@
+SConscript(['qhull/SConscript',
+            'solid/SConscript'])

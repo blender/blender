@@ -1,0 +1,65 @@
+import sys
+solid_env = Environment()
+
+# Import the C flags set in the SConstruct file
+#Import ('cflags')
+#Import ('cxxflags')
+#Import ('defines')
+Import ('user_options_dict')
+defines = ['USE_DOUBLES','QHULL', '_LIB']
+cflags = []
+cxxflags = []
+
+if sys.platform=='win32':
+    defines += ['WIN32','NDEBUG', '_WINDOWS', '_LIB']
+    cflags += ['/MT', '/W3', '/GX', '/O2']
+else:
+    print "################################################"
+    print 
+    print "Check if solid builds on your platform correctly"
+    print "Add your platform specific defines"
+    print "and cflags / cxxflags to the"
+    print "extern/solid/SConscript file"
+
+solid_env.Append (CCFLAGS = cflags)
+solid_env.Append (CPPFLAGS = cxxflags)
+
+solid_env.Append (CPPDEFINES = defines)
+
+solid_sources = ['src/DT_C-api.cpp',
+                'src/DT_Encounter.cpp',
+                'src/DT_Object.cpp',
+                'src/DT_RespTable.cpp',
+                'src/DT_Scene.cpp']
+
+convex_sources = ['src/convex/DT_Accuracy.cpp',
+                'src/convex/DT_Box.cpp',
+                'src/convex/DT_Cone.cpp',
+                'src/convex/DT_Convex.cpp',
+                'src/convex/DT_Cylinder.cpp',
+                'src/convex/DT_Facet.cpp',
+                'src/convex/DT_LineSegment.cpp',
+                'src/convex/DT_PenDepth.cpp',
+                'src/convex/DT_Point.cpp',
+                'src/convex/DT_Polyhedron.cpp',
+                'src/convex/DT_Polytope.cpp',
+                'src/convex/DT_Sphere.cpp',
+                'src/convex/DT_Triangle.cpp']
+                
+complex_sources = ['src/complex/DT_BBoxTree.cpp',
+                'src/complex/DT_Complex.cpp']
+
+broad_sources = ['src/broad/BP_C-api.cpp',
+                'src/broad/BP_EndpointList.cpp',
+                'src/broad/BP_Proxy.cpp',
+                'src/broad/BP_Scene.cpp']
+
+solid_env.Append (CPPPATH = ['include',
+                             'src',
+                             'src/broad',
+                             'src/complex',
+                             'src/convex',
+                             '../qhull/include'])
+source_files = solid_sources + convex_sources + complex_sources + broad_sources
+
+solid_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/extern_solid', source=source_files)

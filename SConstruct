@@ -260,7 +260,7 @@ elif sys.platform == 'win32':
     defines += ['WITH_QUICKTIME']
     defines += ['_LIB', 'USE_OPENAL']
     warn_flags = []
-    platform_libs = [ 'qtmlClient', 'odelib', 'soundsystem',
+    platform_libs = [ 'qtmlClient', 'soundsystem',
                      'ws2_32', 'dxguid', 'vfw32', 'winmm',
                      'iconv', 'kernel32', 'user32', 'gdi32',
                      'winspool', 'comdlg32', 'advapi32', 'shell32',
@@ -310,7 +310,7 @@ elif sys.platform == 'win32':
     link_env.RES(['source/icons/winblender.rc'])
     window_system = 'WIN32'
     # SOLID library information
-    solid_lib = ['solid']
+    solid_lib = ['extern/solid']
     solid_libpath = ['#../lib/windows/solid/lib']
     solid_include = ['#../lib/windows/solid/include']
     qhull_lib = ['qhull']
@@ -821,6 +821,8 @@ Export ('platform_linkflags')
 Export ('user_options_dict')
 Export ('library_env')
 
+BuildDir (root_build_dir+'/extern', 'extern', duplicate=0)
+SConscript (root_build_dir+'extern/SConscript')
 BuildDir (root_build_dir+'/intern', 'intern', duplicate=0)
 SConscript (root_build_dir+'intern/SConscript')
 BuildDir (root_build_dir+'/source', 'source', duplicate=0)
@@ -900,10 +902,8 @@ if user_options_dict['BUILD_GAMEENGINE'] == 1:
                            'NG_loopbacknetwork'])
     if user_options_dict['USE_PHYSICS'] == 'solid':
         link_env.Append (LIBS=['PHY_Sumo'])
-        link_env.Append (LIBS=user_options_dict['SOLID_LIBRARY'])
-        link_env.Append (LIBPATH=user_options_dict['SOLID_LIBPATH'])
-        link_env.Append (LIBS=user_options_dict['QHULL_LIBRARY'])
-        link_env.Append (LIBPATH=user_options_dict['QHULL_LIBPATH'])
+        link_env.Append (LIBS=['extern_qhull',
+                               'extern_solid'])
     else:
         link_env.Append (LIBS=['PHY_Ode',
                                'PHY_Physics'])
