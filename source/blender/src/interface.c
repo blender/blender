@@ -2072,11 +2072,12 @@ static int ui_do_but_LINK(uiBlock *block, uiBut *but)
 #define BPICK	24.0
 
 #define UI_PALETTE_TOT 16
-static float palette[UI_PALETTE_TOT][3]= {
-{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 
-{1.0, 1.0, 0.0}, {1.0, 0.0, 1.0}, {0.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 
-{0.85, 0.85, 0.85}, {0.7, 0.7, 0.7}, {0.6, 0.6, 0.6}, {0.5, 0.5, 0.5}, 
-{0.4, 0.4, 0.4}, {0.3, 0.3, 0.3}, {0.2, 0.2, 0.2}, {0.1, 0.1, 0.1}
+/* note; in tot+1 the old color is stored */
+static float palette[UI_PALETTE_TOT+1][3]= {
+{0.93, 0.83, 0.81}, {0.88, 0.89, 0.73}, {0.69, 0.81, 0.57}, {0.51, 0.76, 0.64}, 
+{0.37, 0.56, 0.61}, {0.33, 0.29, 0.55}, {0.46, 0.21, 0.51}, {0.40, 0.12, 0.18}, 
+{1.0, 1.0, 1.0}, {0.85, 0.85, 0.85}, {0.7, 0.7, 0.7}, {0.56, 0.56, 0.56}, 
+{0.42, 0.42, 0.42}, {0.28, 0.28, 0.28}, {0.14, 0.14, 0.14}, {0.0, 0.0, 0.0}
 };  
 
 
@@ -2136,6 +2137,8 @@ static void do_palette_cb(void *bt1, void *bt2)
 		ui_set_but_vectorf(but2, col);
 	}
 
+	update_picker_buts(but1->block, col);
+	
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
 	}
@@ -2169,7 +2172,7 @@ static void do_palette1_cb(void *bt1, void *bt2)
 		}
 	}
 	
-	update_picker_buts(but2->block, col);
+	update_picker_buts(but1->block, col);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
@@ -2178,6 +2181,7 @@ static void do_palette1_cb(void *bt1, void *bt2)
 	glFlush(); // flush display in subloops
 }
 
+#if 0
 /* color picker, cube version */
 static int ui_do_but_COL1(uiBut *but)
 {
@@ -2245,6 +2249,7 @@ static int ui_do_but_COL1(uiBut *but)
 	
 	return but->retval;
 }
+#endif
 
 /* color picker, Gimp version */
 static int ui_do_but_COL(uiBut *but)
@@ -2252,7 +2257,7 @@ static int ui_do_but_COL(uiBut *but)
 	uiBlock *block;
 	uiBut *bt;
 	ListBase listb={NULL, NULL};
-	float oldcol[3], col[3], hsv[3], h;
+	float col[3], hsv[3], h;
 	int a;
 	short event;
 	
@@ -2267,7 +2272,7 @@ static int ui_do_but_COL(uiBut *but)
 	block->themecol= TH_BUT_NUM;
 	
 	ui_get_but_vectorf(but, col);
-	VECCOPY(oldcol, col);
+	VECCOPY(palette[UI_PALETTE_TOT], col);	// old color stored there, for palette_cb to work
 	
 	// the cube intersection
 	bt= uiDefButF(block, HSVCUBE, 0, "",	0,DPICK+BPICK,FPICK,FPICK, (float *)but->poin, 0.0, 0.0, 2, 0, "");
@@ -2277,7 +2282,8 @@ static int ui_do_but_COL(uiBut *but)
 	uiButSetFlag(bt, UI_NO_HILITE);
 
 	// palette
-	uiDefButF(block, COL, 0, "",		FPICK+DPICK, 0, BPICK,BPICK, oldcol, 0.0, 0.0, -1, 0, "");
+	bt=uiDefButF(block, COL, 0, "",		FPICK+DPICK, 0, BPICK,BPICK, palette[UI_PALETTE_TOT], 0.0, 0.0, -1, 0, "");
+	uiButSetFunc(bt, do_palette_cb, bt, but);
 	uiDefButF(block, COL, 0, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "");
 
 	h= (DPICK+BPICK+FPICK-64)/(UI_PALETTE_TOT/2.0);
