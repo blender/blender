@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "../../../../lib/windows/bsp/include" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\blenlib" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_FREETYPE2" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "../../../../lib/windows/bsp/include" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\blenlib" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_FREETYPE2" /D "USE_CCGSUBSURFLIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -162,6 +162,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\bmfont.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\CCGSubSurf.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\constraint.c
 # End Source File
 # Begin Source File
@@ -171,6 +175,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\curve.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\intern\deform.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\intern\DerivedMesh.c
 # End Source File
 # Begin Source File
 
@@ -274,6 +282,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\subsurf.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\subsurf_ccg.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\text.c
 # End Source File
 # Begin Source File
@@ -339,6 +351,10 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_curve.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\BKE_deform.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\BKE_DerivedMesh.h
 # End Source File
 # Begin Source File
 
@@ -475,6 +491,10 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_world.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\BKE_writeavi.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\intern\CCGSubSurf.h
 # End Source File
 # End Group
 # End Target
