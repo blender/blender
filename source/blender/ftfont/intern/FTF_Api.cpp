@@ -132,14 +132,14 @@ FTF_EXPORT void FTF_GetBoundingBox(char* str, float *llx, float *lly, float *llz
 
 /**
   * added by phase
-  *
+  * changed by ton; to allow both file load as memory load (datasize!=0)
   */
-FTF_EXPORT int FTF_SetFont(char* str, int size)
+FTF_EXPORT int FTF_SetFont(const unsigned char* str, int datasize, int fontsize)
 {
-  return _FTF_GetFont()->SetFont(str, size);
+  return _FTF_GetFont()->SetFont(str, datasize, fontsize);
 }
 
-/* added bt ton */
+/* added by ton */
 
 FTF_EXPORT void FTF_SetFontSize(char size)
 {

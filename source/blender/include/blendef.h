@@ -275,27 +275,28 @@
 /* INFO: 300 */
 /* watch: also in filesel.c and editobject.c */
 #define B_INFOSCR		301
-#define B_INFODELSCR		302
+#define B_INFODELSCR	302
 #define B_INFOSCE		304
-#define B_INFODELSCE		305
+#define B_INFODELSCE	305
 #define B_FILEMENU		306
 #define B_PACKFILE		307
 
 #define B_CONSOLEOUT		308
 #define B_CONSOLENUMLINES	309
-#define B_USERPREF		310
+#define B_USERPREF			310
 #define B_LOADUIFONT		311
 #define B_SETLANGUAGE		312
 #define B_SETFONTSIZE		313
 #define B_SETENCODING		314
 #define B_SETTRANSBUTS		315
 #define B_DOLANGUIFONT		316
+#define B_RESTOREFONT		317
 
-#define B_UITHEMECHANGED	317
-#define B_UITHEMECOLORMOD	318
-#define B_UITHEMERESET		319
-#define B_UITHEMEIMPORT		320
-#define B_UITHEMEEXPORT		321
+#define B_UITHEMECHANGED	320
+#define B_UITHEMECOLORMOD	321
+#define B_UITHEMERESET		322
+#define B_UITHEMEIMPORT		323
+#define B_UITHEMEEXPORT		324
 
 /* Definitions for the fileselect buttons in user prefs */
 #define B_FONTDIRFILESEL  	330

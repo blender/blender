@@ -43,6 +43,7 @@
 #include "BIF_language.h"
 #include "BIF_space.h"		/* allqueue() */
 #include "BIF_toolbox.h"	/* error() */
+#include "datatoc.h"		/* std font */
 
 #include "MEM_guardedalloc.h"	/* vprintf, etc ??? */
 
@@ -178,20 +179,18 @@ void lang_setlanguage(void)
 /* called from fileselector */
 void set_interface_font(char *str) 
 {
-	char di[FILE_MAXDIR];
 
 	/* this test needed because fileselect callback can happen after disable AA fonts */
 	if(U.transopts & USER_DOTRANSLATE) {
-		if(FTF_SetFont(str, U.fontsize)) {
+		if(FTF_SetFont(str, 0, U.fontsize)) {
 			lang_setlanguage();
-			BLI_split_dirfile(str, di, U.fontname);
-	
-			if(strlen(di) < FILE_MAXDIR) strcpy(U.fontdir, di);
-	
+			
+			if(strlen(str) < FILE_MAXDIR) strcpy(U.fontname, str);
 			G.ui_international = TRUE;
-		} else {
-			sprintf(U.fontname, "Invalid font.");
-			G.ui_international = FALSE;
+		} 
+		else {
+			U.fontname[0]= 0;
+			G.ui_international = TRUE;	// this case will switch to standard font
 		}
 		allqueue(REDRAWALL, 0);
 	}
@@ -200,69 +199,31 @@ void set_interface_font(char *str)
 
 void start_interface_font(void) 
 {
-	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int result = 0;
-#ifdef __APPLE__
-	char *bundlepath;
-#endif
+
+	if(U.fontsize && U.fontname[0] ) { // we have saved user settings + fontpath
+		
+		// try loading font from U.fontname = full path to font in usersettings
+		result = FTF_SetFont(U.fontname, 0, U.fontsize);
+	}
+	else if(U.fontsize) {	// user settings, default
+		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
+	}
 	
-	/* hack to find out if we have saved language/font settings.
-	   if not, set defaults and try .bfont.tff --phase */
-	
-	if(U.fontsize != 0) { // we have saved user settings
-		// try load the font from the font dir
-		BLI_make_file_string("/", tstr, U.fontdir, U.fontname);
-		result = FTF_SetFont(tstr, U.fontsize);
-
-		if(!result) {	// else try loading font from current dir
-			result = FTF_SetFont(U.fontname, U.fontsize);
-		}
-
-		// try home dir (special case for .bfont.ttf) (aphex)
-
-		if(!result) {
-			strcpy(tstr, BLI_gethome());
-			if (strstr(tstr,".blender") == 0) {
-				strcat(tstr,"/.blender/");
-			}
-			strcat(tstr, U.fontname);
-			result = FTF_SetFont(tstr, U.fontsize);
-		}
-	} else {
+	if(result==0) {		// use default
 		U.language= 0;
 		U.fontsize= 11;
 		U.encoding= 0;
-
-#if defined (__APPLE__)
-		bundlepath = BLI_getbundle();
-		strcpy(tstr, bundlepath);
-		strcat(tstr, "/Contents/Resources/");
-		strcat(tstr, ".bfont.ttf");
-		result = FTF_SetFont(tstr, U.fontsize);
-
-		//sprintf(U.fontname, ".blender/.bfont.ttf");
-		strncpy(U.fontname, tstr, 255);		
-		
-#elif defined (WIN32)
-		strcpy(tstr, BLI_gethome());
-		strcat(tstr, "/.bfont.ttf\0");
-		result = FTF_SetFont(tstr, U.fontsize);
-
-		sprintf(U.fontname, "/.bfont.ttf\0");
-#else
-		strcpy(tstr, BLI_gethome());
-		strcat(tstr, "/.blender/.bfont.ttf");
-		result = FTF_SetFont(tstr, U.fontsize);
-
-		strncpy(U.fontname, tstr, 255);		
-#endif
+		U.fontname[0]= 0;
+		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
 	}
 
 	if(result) {
 		lang_setlanguage();
 
 		G.ui_international = TRUE;
-	} else {
+	} 
+	else {
 		printf("no font found for international support\n");
 		G.ui_international = FALSE;
 		U.transopts &= ~USER_DOTRANSLATE;

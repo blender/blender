@@ -132,7 +132,7 @@ FTF_EXPORT void FTF_SetFontSize(char size);
  * @param str
  * @param size
  */
-FTF_EXPORT int FTF_SetFont(char* str, int size);
+FTF_EXPORT int FTF_SetFont(const unsigned char* str, int datasize, int fontsize);
 
 /**
  * SetLanguage

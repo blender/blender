@@ -159,7 +159,7 @@ void FTF_TTFont::SetFontSize(char size)
 
 }
 
-int FTF_TTFont::SetFont(char* str, int size)
+int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
 {
 	int err = 0;
 	bool success = 0;
@@ -171,7 +171,9 @@ int FTF_TTFont::SetFont(char* str, int size)
 	fontm= NULL;
 	fontl= NULL;
 
-	font = new FTGLPixmapFont(str);
+	if(datasize) font = new FTGLPixmapFont(str, datasize);
+	else font = new FTGLPixmapFont(str);
+
 	err = font->Error();
 
 	if(err) {
@@ -180,12 +182,15 @@ int FTF_TTFont::SetFont(char* str, int size)
 	} else {
 		
 		fontm= font;
-		fonts = new FTGLPixmapFont(str);
-		fontl = new FTGLPixmapFont(str);
+
+		if(datasize) fonts = new FTGLPixmapFont(str, datasize);
+		else fonts = new FTGLPixmapFont(str);
+		if(datasize) fontl = new FTGLPixmapFont(str, datasize);
+		else fontl = new FTGLPixmapFont(str);
 		
-		success = fonts->FaceSize(size-2<8?8:size-2);
-		success = fontm->FaceSize(size-1<8?8:size-1);
-		success = fontl->FaceSize(size);
+		success = fonts->FaceSize(fontsize-2<8?8:fontsize-2);
+		success = fontm->FaceSize(fontsize-1<8?8:fontsize-1);
+		success = fontl->FaceSize(fontsize);
 		if(!success) return 0;
 
 		success = fonts->CharMap(ft_encoding_unicode);
@@ -196,7 +201,6 @@ int FTF_TTFont::SetFont(char* str, int size)
 		return 1;
 	}
 }
-
 
 void FTF_TTFont::SetLanguage(char* str)
 {

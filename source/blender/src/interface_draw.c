@@ -446,29 +446,32 @@ static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
 /* left/right arrows for number fields */
 static void ui_default_num_arrows(float x1, float y1, float x2, float y2)
 {
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	
-	glVertex2f((short)x1+5,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)+4);
-	glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)-4);
-	glEnd();
+	if( x2-x1 > 25) {	// 25 is a bit arbitrary, but small buttons cant have arrows
 
-	/* right */
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
+		glEnable( GL_POLYGON_SMOOTH );
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		
+		glShadeModel(GL_FLAT);
+		glBegin(GL_TRIANGLES);
+		
+		glVertex2f((short)x1+5,(short)(y2-(y2-y1)/2));
+		glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)+4);
+		glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)-4);
+		glEnd();
 
-	glVertex2f((short)x2-5,(short)(y2-(y2-y1)/2));
-	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)-4);
-	glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
+		/* right */
+		glShadeModel(GL_FLAT);
+		glBegin(GL_TRIANGLES);
+
+		glVertex2f((short)x2-5,(short)(y2-(y2-y1)/2));
+		glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)-4);
+		glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)+4);
+		glEnd();
+		
+		glDisable( GL_BLEND );
+		glDisable( GL_POLYGON_SMOOTH );
+	}
 }
 
 /* changing black/white for TOG3 buts */

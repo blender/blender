@@ -85,7 +85,7 @@ public:
 	 */
 	void SetFontSize(char size);
 
-	int SetFont(char* str, int size);
+	int SetFont(const unsigned char* str, int datasize, int fontsize);
 
 	void SetLanguage(char* str);
 

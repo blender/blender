@@ -2464,25 +2464,29 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	} else if(U.userpref == 2) { /* language & colors */
 
 #ifdef INTERNATIONAL
-		char curfont[320];
-
-		sprintf(curfont, "Interface Font: ");
-		strcat(curfont,U.fontname);
-
 		uiDefButBitS(block, TOG, USER_DOTRANSLATE, B_DOLANGUIFONT, "International Fonts",
 			xpos,y2,mpref,buth,
 			&(U.transopts), 0, 0, 0, 0, "Activate international interface");
 
 		if(U.transopts & USER_DOTRANSLATE) {
+			char curfont[320];
+			
+			sprintf(curfont, "Interface Font: ");
+			if(U.fontname[0]) strcat(curfont, U.fontname);
+			else strcat(curfont, "Built-in");
+			
 			uiDefBut(block, LABEL,0,curfont,
-				(xpos+edgsp+mpref+midsp),y2,mpref,buth,
+				(xpos),y3,4*mpref,buth,
 				0, 0, 0, 0, 0, "");
 
 			uiDefBut(block, BUT, B_LOADUIFONT, "Select Font",
 				xpos,y1,mpref,buth,
 				0, 0, 0, 0, 0, "Select a new font for the interface");
 
-
+			uiDefButI(block, BUT, B_RESTOREFONT, "Restore to default",
+					  (xpos+edgsp+mpref+midsp),y2,mpref,buth,
+					  &U.fontsize, 0, 0, 0, 0, "Restores to using the default included antialised font");
+			
 			uiDefButI(block, MENU|INT, B_SETFONTSIZE, fontsize_pup(),
 				(xpos+edgsp+mpref+midsp),y1,mpref,buth,
 				&U.fontsize, 0, 0, 0, 0, "Current interface font size (points)");

@@ -8,6 +8,7 @@ src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
 
 source_files = ['B.blend.c',
                 'Bfont.c',
+		'bfont.ttf.c',
                 'blenderbuttons.c',
                 'booleanops.c',
                 'booleanops_mesh.c',

@@ -1564,6 +1564,12 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWALL, 0);
 		break;
 
+	case B_RESTOREFONT:		/* is button from space.c  *info* */
+		U.fontsize= 0;
+		start_interface_font();
+		allqueue(REDRAWALL, 0);
+		break;
+		
 	case B_DOLANGUIFONT:	/* is button from space.c  *info* */
 		if(U.transopts & USER_DOTRANSLATE)
 			start_interface_font();
