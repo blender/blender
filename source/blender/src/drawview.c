@@ -934,43 +934,43 @@ void do_viewbuts(unsigned short event)
 	}
 }
 
-static void view3d_panel_object(short action)	// VIEW3D_HANDLER_OBJECT
+static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 {
 	uiBlock *block;
 	Object *ob= OBACT;
 	float lim;
 	
 	if(ob==NULL) return;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_object", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiSetPanelStyle(UI_PNL_SOLID);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_STOW | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 	if(uiNewPanel(curarea, block, "Object", "View3d", 10, 230, 318, 204)==0) return;
-	uiSetPanelStyle(UI_PNL_TRANSP);
 
 	uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,150,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
 	uiDefIDPoinBut(block, test_obpoin_but, B_REDR, "Par:", 160, 180, 150, 20, &ob->parent, "Parent Object"); 
 
 	lim= 1000.0*MAX2(1.0, G.vd->grid);
 
-	uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 150, 20, &(ob->loc[0]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 150, 20, &(ob->loc[1]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 150, 20, &(ob->loc[2]), -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 150, 19, &(ob->loc[0]), -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 150, 19, &(ob->loc[1]), -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 150, 19, &(ob->loc[2]), -lim, lim, 100, 0, "");
 
 	ob_eul[0]= 180.0*ob->rot[0]/M_PI;
 	ob_eul[1]= 180.0*ob->rot[1]/M_PI;
 	ob_eul[2]= 180.0*ob->rot[2]/M_PI;
 	
-	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	10, 70, 150, 20, &(ob_eul[0]), -lim, lim, 1000, 0, "");
-	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 150, 20, &(ob_eul[1]), -lim, lim, 1000, 0, "");
-	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 150, 20, &(ob_eul[2]), -lim, lim, 1000, 0, "");
+	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	10, 70, 150, 19, &(ob_eul[0]), -lim, lim, 1000, 0, "");
+	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 150, 19, &(ob_eul[1]), -lim, lim, 1000, 0, "");
+	uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 150, 19, &(ob_eul[2]), -lim, lim, 1000, 0, "");
 
-	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 150, 20, &(ob->size[0]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 150, 20, &(ob->size[1]), -lim, lim, 100, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 150, 20, &(ob->size[2]), -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 150, 19, &(ob->size[0]), -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 150, 19, &(ob->size[1]), -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 150, 19, &(ob->size[2]), -lim, lim, 100, 0, "");
+
 }
 
-
-static void view3d_panel_settings(short action)	// VIEW3D_HANDLER_SETTINGS
+static void view3d_panel_settings(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 {
 	uiBlock *block;
 	View3D *vd;
@@ -980,9 +980,9 @@ static void view3d_panel_settings(short action)	// VIEW3D_HANDLER_SETTINGS
 	vd= G.vd;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_settings", UI_EMBOSSX, UI_HELV, curarea->win);
-	uiSetPanelStyle(UI_PNL_SOLID);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_STOW | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
 	if(uiNewPanel(curarea, block, "Backdrop and settings", "View3d", 10, 10, 318, 204)==0) return;
-	uiSetPanelStyle(UI_PNL_TRANSP);
 
 	if(vd->flag & V3D_DISPBGPIC) {
 		if(vd->bgpic==0) {
@@ -1048,6 +1048,8 @@ static void view3d_blockhandlers(ScrArea *sa)
 	View3D *v3d= sa->spacedata.first;
 	short a;
 	
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
+
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 	
 		switch(v3d->blockhandler[a]) {

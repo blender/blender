@@ -82,9 +82,13 @@ struct ScrArea;
 #define UI_HELV			0
 #define UI_HELVB		1
 
-/* panel style */
-#define UI_PNL_TRANSP	0
-#define UI_PNL_SOLID	1
+/* panel controls */
+#define UI_PNL_TRANSP	1
+#define UI_PNL_SOLID	2
+
+#define UI_PNL_CLOSE	32
+#define UI_PNL_STOW		64
+#define UI_PNL_TO_MOUSE	128
 
 
 /* definitions for icons (and their alignment) in buttons */
@@ -251,8 +255,8 @@ void uiPanelPush(uiBlock *block);
 void uiPanelPop(uiBlock *block);
 extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
 extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
-extern void uiSetPanelStyle(int);
-
+extern void uiPanelControl(int);
+extern void uiSetPanelHandler(int);
 
 #endif /*  BIF_INTERFACE_H */
 

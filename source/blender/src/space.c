@@ -169,7 +169,10 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 	
 	// find empty spot
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		if( sl->blockhandler[a]==eventcode );
+		if( sl->blockhandler[a]==eventcode ) {
+			sl->blockhandler[a+1]= val;
+			break;
+		}
 		else if( sl->blockhandler[a]==0) {
 			sl->blockhandler[a]= eventcode;
 			sl->blockhandler[a+1]= val;
@@ -1076,7 +1079,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else {
 					if(G.obedit);
-					else add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, HANDLER_MOUSEPOS);
+					else add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_TO_MOUSE);
 					
 					allqueue(REDRAWVIEW3D, 0);
 				}

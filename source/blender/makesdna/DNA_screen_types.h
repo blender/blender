@@ -85,7 +85,9 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	short ofsx, ofsy, sizex, sizey;
 	short flag, active;					/* active= used currently by a uiBlock */
-	short style, pad2;
+	short control, pad;
+	short old_ofsx, old_ofsy;		/* for stow */
+	int pad2;
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 } Panel;
 

@@ -189,11 +189,15 @@ struct uiBlock {
 	
 	float xofs, yofs;  	// offset to parent button
 	rctf parentrct;		// for pulldowns, rect the mouse is allowed outside of menu (parent button)
+	
+	int handler;		// for panels in other windows than buttonswin... just event code
 };
 
 /* interface.c */
 extern void ui_check_but(uiBut *but);
 extern void ui_autofill(uiBlock *block);
+extern void ui_graphics_to_window(int win, float *x, float *y);
+extern void ui_window_to_graphics(int win, float *x, float *y);
 
 /* interface_panel.c */
 extern void ui_draw_panel(uiBlock *block);

@@ -191,7 +191,7 @@ static uiSaveUnder *ui_save_under(int x, int y, int sx, int sy)
 /* ************* DRAW ************** */
 
 
-static void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
+void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
 {
 	float gx, gy;
 	int sx, sy;
@@ -208,7 +208,7 @@ static void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite 
 
 
 
-static void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
+void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
 {
 	float a, b, c, d, e, f, px, py;
 	int getsizex, getsizey;
@@ -4335,38 +4335,43 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 
 	/* check boundbox and panel events */
 	if( block->minx <= uevent->mval[0] && block->maxx >= uevent->mval[0] ) {
+		// inside block
+		if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) inside= 1;
 		
-		if(block->panel==NULL) {
-			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] )
-				inside= 1;
-		}
-		else if(block->panel->paneltab==NULL) {
-		
-			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) inside= 1;
-
+		if(block->panel && block->panel->paneltab==NULL) {
+			
 			/* clicked at panel header? */
-			if(uevent->event==LEFTMOUSE) {
-				if( block->panel->flag & PNL_CLOSEDX) {
-					if(block->minx <= uevent->mval[0] && block->minx+PNL_HEADER >= uevent->mval[0]) 
-						inside= 2;
-				}
-				else if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) )
+			if( block->panel->flag & PNL_CLOSEDX) {
+				if(block->minx <= uevent->mval[0] && block->minx+PNL_HEADER >= uevent->mval[0]) 
 					inside= 2;
-				
-				if(inside==2) {
-					uiPanelPop(block); 	// pop matrix; no return without pop!
-					ui_do_panel(block, uevent);
-					return UI_EXIT_LOOP;	// exit loops because of moving panels
-				}
 			}
-			else if(uevent->event==PADPLUSKEY || uevent->event==PADMINUS) {
-				SpaceLink *sl= curarea->spacedata.first;
+			else if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) )
+				inside= 2;
 				
-				if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
-				else sl->blockscale-= 0.1;
-				CLAMP(sl->blockscale, 0.6, 1.0);
-				addqueue(block->winq, REDRAW, 1);
-				retval= UI_CONT;
+			if(inside) {	// this stuff should move to do_panel
+				
+				if(uevent->event==LEFTMOUSE) {
+					if(inside==2) {
+						uiPanelPop(block); 	// pop matrix; no return without pop!
+						ui_do_panel(block, uevent);
+						return UI_EXIT_LOOP;	// exit loops because of moving panels
+					}
+				}
+				else if(uevent->event==ESCKEY) {
+					if(block->handler) {
+						rem_blockhandler(curarea, block->handler);
+						addqueue(curarea->win, REDRAW, 1);
+					}
+				}
+				else if(uevent->event==PADPLUSKEY || uevent->event==PADMINUS) {
+					SpaceLink *sl= curarea->spacedata.first;
+					
+					if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
+					else sl->blockscale-= 0.1;
+					CLAMP(sl->blockscale, 0.6, 1.0);
+					addqueue(block->winq, REDRAW, 1);
+					retval= UI_CONT;
+				}
 			}
 		}
 	}

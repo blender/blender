@@ -369,7 +369,7 @@ static void copy_panel_offset(Panel *pa, Panel *papar)
 
 
 
-/* ugly global... but will be NULLed after each 'newPanel' call */
+/* global... but will be NULLed after each 'newPanel' call */
 static char *panel_tabbed=NULL, *group_tabbed=NULL;
 
 void uiNewPanelTabbed(char *panelname, char *groupname)
@@ -379,11 +379,19 @@ void uiNewPanelTabbed(char *panelname, char *groupname)
 }
 
 /* another global... */
-static int pnl_style= UI_PNL_TRANSP;
+static int pnl_control= UI_PNL_TRANSP;
 
-void uiSetPanelStyle(int style)
+void uiPanelControl(int control)
 {
-	pnl_style= style;
+	pnl_control= control;
+}
+
+/* another global... */
+static int pnl_handler= 0;
+
+void uiSetPanelHandler(int handler)
+{
+	pnl_handler= handler;
 }
 
 
@@ -416,7 +424,6 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		pa->ofsy= ofsy & ~(PNL_GRID-1);
 		pa->sizex= sizex;
 		pa->sizey= sizey;
-		pa->style= pnl_style;
 		
 		/* pre align, for good sorting later on */
 		if(sa->spacetype==SPACE_BUTS && pa->prev) {
@@ -447,11 +454,26 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		}
 	}
 	
+	if(pnl_control & UI_PNL_TO_MOUSE) {
+		short mval[2];
+		
+		Mat4CpyMat4(UIwinmat, block->winmat);	// can be first event here
+		uiGetMouse(block->win, mval);		
+		pa->ofsx= mval[0]-pa->sizex/2;
+		pa->ofsy= mval[1]-pa->sizey/2;
+		
+		if(pa->flag & PNL_CLOSED) pa->flag &= ~PNL_CLOSED;
+	}
+	
 	block->panel= pa;
+	block->handler= pnl_handler;
 	pa->active= 1;
-
-	/* clear global */
+	pa->control= pnl_control;
+	
+	/* clear ugly globals */
 	panel_tabbed= group_tabbed= NULL;
+	pnl_handler= 0;
+	pnl_control= UI_PNL_TRANSP; // back to default
 	
 	if(block->panel->paneltab) return 0;
 	if(block->panel->flag & PNL_CLOSED) return 0;
@@ -647,10 +669,10 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 	glColor3ub(240, 240, 240);
 	
 	if(dir=='h') {
-		ui_draw_anti_tria( x, y, x, y+12.0, x+10, y+6);
+		ui_draw_anti_tria( x, y, x, y+10.0, x+8.75, y+5.25);
 	}
 	else {
-		ui_draw_anti_tria( x, y+10.0,  x+12, y+10.0, x+6, y);	
+		ui_draw_anti_tria( x-2, y+8.75,  x+10-2, y+8.75, x+5.25-2, y);	
 	}
 	
 	
@@ -707,7 +729,7 @@ static void ui_draw_panel_header(uiBlock *block)
 {
 	Panel *pa, *panel= block->panel;
 	float width;
-	int a, nr= 1;
+	int a, nr= 1, pnl_icons;
 	char *str;
 	
 	/* count */
@@ -719,15 +741,18 @@ static void ui_draw_panel_header(uiBlock *block)
 		pa= pa->next;
 	}
 	
+	pnl_icons= PNL_ICON;
+	if(panel->control & UI_PNL_CLOSE) pnl_icons+= PNL_ICON;
+
 	if(nr==1) {
 		glColor3ub(255,255,255);
-		glRasterPos2f(block->minx+40, block->maxy+5);
+		glRasterPos2f(block->minx+pnl_icons, block->maxy+5);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
 		return;
 	}
 	
 	a= 0;
-	width= (panel->sizex - 3 - 2*PNL_ICON)/nr;
+	width= (panel->sizex - 3 - pnl_icons - PNL_ICON)/nr;
 	pa= curarea->panels.first;
 	while(pa) {
 		if(pa->active==0);
@@ -735,10 +760,10 @@ static void ui_draw_panel_header(uiBlock *block)
 			/* active tab */
 			uiSetRoundBox(15);
 			glColor3ub(140, 140, 147);
-			uiRoundBox(2+PNL_ICON+a*width, panel->sizey+3, PNL_ICON+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
+			uiRoundBox(2+pnl_icons+a*width, panel->sizey+3, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 
 			glColor3ub(255,255,255);
-			glRasterPos2f(10+PNL_ICON+a*width, panel->sizey+5);
+			glRasterPos2f(10+pnl_icons+a*width, panel->sizey+5);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
 
@@ -748,7 +773,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			/* not active tab */
 			
 			glColor3ub(95,95,95);
-			glRasterPos2f(10+PNL_ICON+a*width, panel->sizey+5);
+			glRasterPos2f(10+pnl_icons+a*width, panel->sizey+5);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
 			
@@ -766,37 +791,40 @@ static void ui_draw_panel_header(uiBlock *block)
 
 void ui_draw_panel(uiBlock *block)
 {
-	int align=0;
+	Panel *panel= block->panel;
+	int align=0, ofsx;
 	
-	if(block->panel->paneltab) return;
+	if(panel->paneltab) return;
 
 	if(curarea->spacetype==SPACE_BUTS) {
 		SpaceButs *sbuts= curarea->spacedata.first;
 		align= sbuts->align;
 	}
 	
-	if(block->panel->flag & PNL_CLOSEDY) {
+	if(panel->flag & PNL_CLOSEDY) {
 		uiSetRoundBox(15);
 		glColor3ub(160, 160, 167);
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		
 		// title
+		ofsx= 2*PNL_ICON;
+		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
 		glColor3ub(255,255,255);
 		glRasterPos2f(block->minx+40, block->maxy+5);
-		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
+		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & TR_BUTTONS), 0);
 
 		//  border
-		if(block->panel->flag & PNL_SELECT) {
+		if(panel->flag & PNL_SELECT) {
 			glColor3ub(64, 64, 64);
 			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
-		if(block->panel->flag & PNL_OVERLAP) {
+		if(panel->flag & PNL_OVERLAP) {
 			glColor3ub(240, 240, 240);
 			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
 	
 	}
-	else if(block->panel->flag & PNL_CLOSEDX) {
+	else if(panel->flag & PNL_CLOSEDX) {
 		char str[4];
 		int a, end, ofs;
 		
@@ -807,10 +835,10 @@ void ui_draw_panel(uiBlock *block)
 		// title, only capitals for now
 		glColor3ub(255,255,255);
 		str[1]= 0;
-		end= strlen(block->panel->panelname);
+		end= strlen(panel->panelname);
 		ofs= 20;
 		for(a=0; a<end; a++) {
-			str[0]= block->panel->panelname[a];
+			str[0]= panel->panelname[a];
 			if( isupper(str[0]) ) {
 				glRasterPos2f(block->minx+5, block->maxy-ofs);
 				BIF_DrawString(block->curfont, str, 0, 0);
@@ -819,11 +847,11 @@ void ui_draw_panel(uiBlock *block)
 		}
 		
 		//  border
-		if(block->panel->flag & PNL_SELECT) {
+		if(panel->flag & PNL_SELECT) {
 			glColor3ub(64, 64, 64);
 			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 		}
-		if(block->panel->flag & PNL_OVERLAP) {
+		if(panel->flag & PNL_OVERLAP) {
 			glColor3ub(240, 240, 240);
 			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 		}
@@ -833,7 +861,7 @@ void ui_draw_panel(uiBlock *block)
 		
 		uiSetRoundBox(3);
 
-		if(block->panel->style== UI_PNL_SOLID) {
+		if(panel->control & UI_PNL_SOLID) {
 			glColor3ub(160, 160, 167);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			// blend now for panels in 3d window, test...
@@ -851,7 +879,7 @@ void ui_draw_panel(uiBlock *block)
 			}
 			glDisable(GL_BLEND);
 		}
-		else {
+		else if(panel->control & UI_PNL_TRANSP) {
 			glColor3ub(218, 218, 218);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
@@ -861,11 +889,11 @@ void ui_draw_panel(uiBlock *block)
 
 		//  border
 		uiSetRoundBox(3);
-		if(block->panel->flag & PNL_SELECT) {
+		if(panel->flag & PNL_SELECT) {
 			glColor3ub(64, 64, 64);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
-		if(block->panel->flag & PNL_OVERLAP) {
+		if(panel->flag & PNL_OVERLAP) {
 			glColor3ub(240, 240, 240);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
 		}
@@ -879,15 +907,26 @@ void ui_draw_panel(uiBlock *block)
 		glDisable(GL_BLEND);
 
 	}
+	
+	/* draw optional close icon */
+	
+	ofsx= 0;
+	if(panel->control & UI_PNL_CLOSE) {
+		glRasterPos2f(block->minx+2, block->maxy+3);
+		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
+		BIF_draw_icon(ICON_X);
+		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
+		ofsx= 16;
+	}
 
-	/* draw close icon */
-
-	if(block->panel->flag & PNL_CLOSEDY)
-		ui_draw_tria_icon(block->minx+6, block->maxy+3, block->aspect, 'h');
-	else if(block->panel->flag & PNL_CLOSEDX)
+	/* draw collapse icon */
+	
+	if(panel->flag & PNL_CLOSEDY)
+		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'h');
+	else if(panel->flag & PNL_CLOSEDX)
 		ui_draw_tria_icon(block->minx+4, block->maxy+2, block->aspect, 'h');
 	else
-		ui_draw_tria_icon(block->minx+6, block->maxy+3, block->aspect, 'v');
+		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'v');
 
 
 }
@@ -1131,6 +1170,35 @@ void uiDrawBlocksPanels(ScrArea *sa, int re_align)
 
 	/* re-align */
 	if(re_align) uiAlignPanelStep(sa, 1.0);
+	
+	/* clip panels (headers) for non-butspace situations (maybe make optimized event later) */
+	if(sa->spacetype!=SPACE_BUTS) {
+		SpaceLink *sl= sa->spacedata.first;
+		for(block= sa->uiblocks.first; block; block= block->next) {
+			if(block->panel && block->panel->active && block->panel->paneltab == NULL) {
+				float dx=0.0, dy=0.0, minx, miny, maxx, maxy;
+				
+				minx= sl->blockscale*block->panel->ofsx;
+				maxx= sl->blockscale*(block->panel->ofsx+block->panel->sizex);
+				miny= sl->blockscale*(block->panel->ofsy+block->panel->sizey);
+				maxy= sl->blockscale*(block->panel->ofsy+block->panel->sizey+PNL_HEADER);
+				
+				if(minx<0.0) dx= -minx;
+				else if(maxx > (float)sa->winx) dx= sa->winx-maxx;
+				if(miny<0.0) dy= -miny;
+				else if(maxy > (float)sa->winy) dy= sa->winy-maxy;
+
+				block->panel->ofsx+= dx/sl->blockscale;
+				block->panel->ofsy+= dy/sl->blockscale;
+
+				/* copy locations */
+				for(patest= sa->panels.first; patest; patest= patest->next) {
+					if(patest->paneltab==block->panel) copy_panel_offset(patest, block->panel);
+				}
+				
+			}
+		}
+	}
 
 	/* draw */
 	block= sa->uiblocks.first;
@@ -1408,6 +1476,55 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	
 }
 
+static void stow_unstow(uiBlock *block)
+{
+	SpaceLink *sl= curarea->spacedata.first;
+	Panel *pa;
+	int ok=0, x, y, width;
+	
+	if(block->panel->flag & PNL_CLOSEDY) {
+		
+		width= (curarea->winx-320)/sl->blockscale;
+		if(width<5) width= 5;
+		
+		/* find empty spot in bottom */
+		for(y=4; y<100; y+= PNL_HEADER+4) {
+			for(x=4; x<width; x+= 324) {
+				ok= 1;
+				/* check overlap with other panels */
+				for(pa=curarea->panels.first; pa; pa=pa->next) {
+					if(pa!=block->panel && pa->active && pa->paneltab==NULL) {
+						if( abs(pa->ofsx-x)<320 ) {
+							if( abs(pa->ofsy+pa->sizey-y)<PNL_HEADER+4) ok= 0;
+						}
+					}
+				}
+				
+				if(ok) break;
+			}
+			if(ok) break;
+		}
+		if(ok==0) printf("still primitive code... fix!\n");
+		
+		block->panel->old_ofsx= block->panel->ofsx;
+		block->panel->old_ofsy= block->panel->ofsy;
+		
+		block->panel->ofsx= x;
+		block->panel->ofsy= y-block->panel->sizey;
+		
+	}
+	else {
+		block->panel->ofsx= block->panel->old_ofsx;
+		block->panel->ofsy= block->panel->old_ofsy;
+	
+	}
+	/* copy locations */
+	for(pa= curarea->panels.first; pa; pa= pa->next) {
+		if(pa->paneltab==block->panel) copy_panel_offset(pa, block->panel);
+	}
+
+}
+
 
 /* this function is supposed to call general window drawing too */
 /* also it supposes a block has panel, and isnt a menu */
@@ -1426,22 +1543,41 @@ void ui_do_panel(uiBlock *block, uiEvent *uevent)
 	if(uevent->event==LEFTMOUSE && block->panel->paneltab==NULL) {
 		int button= 0;
 		
-		/* check open/closed button */
+		/* check open/collapsed button */
 		if(block->panel->flag & PNL_CLOSEDX) {
 			if(uevent->mval[1] >= block->maxy) button= 1;
 		}
-		else if(uevent->mval[0] <= block->minx+PNL_ICON+3) button= 1;
+		else if(block->panel->control & UI_PNL_CLOSE) {
+			if(uevent->mval[0] <= block->minx+PNL_ICON-2) button= 2;
+			else if(uevent->mval[0] <= block->minx+2*PNL_ICON+2) button= 1;
+		}
+		else if(uevent->mval[0] <= block->minx+PNL_ICON+2) {
+			button= 1;
+		}
 		
 		if(button) {
-			if(block->panel->flag & PNL_CLOSED) block->panel->flag &= ~PNL_CLOSED;
-			else if(align==BUT_HORIZONTAL) block->panel->flag |= PNL_CLOSEDX;
-			else block->panel->flag |= PNL_CLOSEDY;
-			
-			for(pa= curarea->panels.first; pa; pa= pa->next) {
-				if(pa->paneltab==block->panel) {
-					if(block->panel->flag & PNL_CLOSED) pa->flag |= PNL_CLOSED;
-					else pa->flag &= ~PNL_CLOSED;
+		
+			if(button==2) { // close
+				rem_blockhandler(curarea, block->handler);
+				addqueue(curarea->win, REDRAW, 1);
+			}
+			else {
+		
+				if(block->panel->flag & PNL_CLOSED) block->panel->flag &= ~PNL_CLOSED;
+				else if(align==BUT_HORIZONTAL) block->panel->flag |= PNL_CLOSEDX;
+				else block->panel->flag |= PNL_CLOSEDY;
+				
+				for(pa= curarea->panels.first; pa; pa= pa->next) {
+					if(pa->paneltab==block->panel) {
+						if(block->panel->flag & PNL_CLOSED) pa->flag |= PNL_CLOSED;
+						else pa->flag &= ~PNL_CLOSED;
+					}
 				}
+				// extra, for non-butspace: open/collapse at window header
+				if(curarea->spacetype!=SPACE_BUTS)
+					stow_unstow(block);
+
+				
 			}
 			if(align==0) addqueue(block->win, REDRAW, 1);
 			else ui_animate_panels(curarea);

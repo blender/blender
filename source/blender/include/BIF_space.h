@@ -49,10 +49,6 @@ struct BWinEvent;
 /* is hardcoded in DNA_space_types.h */
 #define SPACE_MAXHANDLER	8
 
-/* values for events */
-#define HANDLER_MOUSEPOS	1
-#define HANDLER_CLOSE		2
-
 /* view3d handler codes */
 #define VIEW3D_HANDLER_BACKGROUND	1
 #define VIEW3D_HANDLER_VIEW			2
@@ -71,7 +67,7 @@ void	scrarea_do_headdraw		(struct ScrArea *sa);
 void	scrarea_do_headchange	(struct ScrArea *sa);
 
 /* space.c */
-extern		void add_blockhandler(struct ScrArea *sa, short eventcode, short val);
+extern		void add_blockhandler(struct ScrArea *sa, short eventcode, short action);
 extern		void rem_blockhandler(struct ScrArea *sa, short eventcode);
 
 extern		 void space_set_commmandline_options(void);
