@@ -680,7 +680,7 @@ int BPyMenu_Init(int usedir)
 
 	if (U.pythondir[0] == '\0') upydir = NULL;
 
-	BLI_make_file_string ("/", dirname, bpymenu_gethome(), "scripts/");
+	BLI_make_file_string ("/", dirname, bpymenu_gethome(), "scripts");
 
 	res1 = bpymenu_GetStatMTime(dirname, 0, &tdir1);
 
