@@ -15,7 +15,7 @@ Example::
   txt = Text3d.New("MyText")          # create a new Text3d object
   cur = Scene.getCurrent()    # get current scene
   ob = Object.New('Text')    # make curve object
-  ob.link(c)                  # link curve data with this object
+  ob.link(txt)                  # link curve data with this object
   cur.link(ob)                # link object into scene
   ob.makeDisplayList()
   Window.RedrawAll()
