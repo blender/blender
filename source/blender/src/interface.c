@@ -2271,6 +2271,9 @@ static int ui_do_but_COL(uiBut *but)
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
 	block->themecol= TH_BUT_NUM;
 	
+	// safety, put in beginning otherwise tooltips wont work
+	uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
+
 	ui_get_but_vectorf(but, col);
 	VECCOPY(palette[UI_PALETTE_TOT], col);	// old color stored there, for palette_cb to work
 	
@@ -2282,15 +2285,15 @@ static int ui_do_but_COL(uiBut *but)
 	uiButSetFlag(bt, UI_NO_HILITE);
 
 	// palette
-	bt=uiDefButF(block, COL, 0, "",		FPICK+DPICK, 0, BPICK,BPICK, palette[UI_PALETTE_TOT], 0.0, 0.0, -1, 0, "");
+	bt=uiDefButF(block, COL, 0, "rt",		FPICK+DPICK, 0, BPICK,BPICK, palette[UI_PALETTE_TOT], 0.0, 0.0, -1, 0, "Old color, click to restore");
 	uiButSetFunc(bt, do_palette_cb, bt, but);
-	uiDefButF(block, COL, 0, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "");
+	uiDefButF(block, COL, 0, "rt1",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
 
 	h= (DPICK+BPICK+FPICK-64)/(UI_PALETTE_TOT/2.0);
 	for(a=0; a<UI_PALETTE_TOT/2; a++) {
-		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "");
+		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");
 		uiButSetFunc(bt, do_palette_cb, bt, but);
-		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "");		
+		bt= uiDefButF(block, COL, 0, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");		
 		uiButSetFunc(bt, do_palette_cb, bt, but);
 	}
 
@@ -2311,9 +2314,6 @@ static int ui_do_but_COL(uiBut *but)
 	uiButSetFunc(bt, do_palette1_cb, bt, but);
 	bt= uiDefButF(block, NUM, 0, "V ",	2*h, BPICK+2*DPICK+FPICK, h,20, hsv+2, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, but);
-
-	// safety 
-	uiDefBut(block, LABEL, 0, "",	-DPICK,-DPICK, FPICK+3*DPICK+BPICK, FPICK+4*DPICK+BPICK+40, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* and lets go */
 	block->direction= UI_TOP;
