@@ -48,6 +48,11 @@ FTGL needs a small patch to get glyphs with the right colour in the cache
 +        ftglColour[0] = ftglColour[1] = ftglColour[2] = ftglColour[3] = 1.0;
 
 
+You may also need to modify the typedef for GLUTesselatorFunction in 
+src/FTVectoriser.cpp if your on an undefined system.  To do that
+check the following link to find out various platform identifiers.
+http://www.blender.org/modules/documentation/intranet/conventions/codingstyleguide.html#3_2
+
 *********************************************************************
 *********************************************************************
 We are in the process of moving things over to automake/autoconf
