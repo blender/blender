@@ -633,7 +633,7 @@ int gesture(void)
 	if(G.qual & LR_CTRLKEY) {
 		if(G.obedit==NULL) {
 			if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) return 0;
-			if(G.obpose) return;
+			if(G.obpose) return 0;
 		}
 		lasso= 1;
 	}
@@ -1008,7 +1008,7 @@ void mouse_select(void)
 	int temp, a, dist=100;
 	short hits, mval[2];
 
-	/* always start list from basact */
+	/* always start list from basact in wire mode */
 	startbase=  FIRSTBASE;
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 
@@ -1046,25 +1046,61 @@ void mouse_select(void)
 		if(hits==0) hits= selectprojektie(buffer, mval[0]-21, mval[1]-21, mval[0]+21, mval[1]+21);
 
 		if(hits>0) {
-
+			
 			if(G.qual & LR_ALTKEY) basact= mouse_select_menu(buffer, hits, mval);
 			else {
-				base= startbase;
-				while(base) {
-					if(base->lay & G.vd->lay) {
-						for(a=0; a<hits; a++) {
-							/* index was converted */
-							if(base->selcol==buffer[ (4 * a) + 3 ]) {
-								basact= base;
-							}
+				static short lastmval[2]={-100, -100};
+				int donearest= 0;
+				
+				/* define if we use solid nearest select or not */
+				if(G.vd->drawtype>OB_WIRE) {
+					donearest= 1;
+					if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
+						donearest= 0;
+					}
+				}
+				lastmval[0]= mval[0]; lastmval[1]= mval[1];
+				
+				if(donearest) {
+					unsigned int min= 0xFFFFFFFF;
+					int selcol= 0, notcol=0;
+					if(BASACT) notcol= BASACT->selcol;
+					
+					for(a=0; a<hits; a++) {
+						/* index was converted */
+						if( min > buffer[4*a+1] && notcol!=buffer[4*a+3]) {
+							min= buffer[4*a+1];
+							selcol= buffer[4*a+3];
 						}
 					}
+					base= FIRSTBASE;
+					while(base) {
+						if(base->lay & G.vd->lay) {
+							if(base->selcol==selcol) break;
+						}
+						base= base->next;
+					}
+					if(base) basact= base;
+				}
+				else {
 					
-					if(basact) break;
-					
-					base= base->next;
-					if(base==0) base= FIRSTBASE;
-					if(base==startbase) break;
+					base= startbase;
+					while(base) {
+						if(base->lay & G.vd->lay) {
+							for(a=0; a<hits; a++) {
+								/* index was converted */
+								if(base->selcol==buffer[(4*a)+3]) {
+									basact= base;
+								}
+							}
+						}
+						
+						if(basact) break;
+						
+						base= base->next;
+						if(base==0) base= FIRSTBASE;
+						if(base==startbase) break;
+					}
 				}
 			}
 		}
