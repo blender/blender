@@ -407,6 +407,7 @@ int main(int argc, char **argv)
 		 *   - "-d": enables debugging.
 		 *   - "-w": fullscreen mode.
 		 *   - "-W": borderless window (MS windows only).
+		 *   - "-R": registers the blender extensions. (MS windows only).
 		 *   - "-noaudion", "-nosound": disables audio.
 		 *   - "-nofrozen": disables frozen python.
 		 */
@@ -457,6 +458,12 @@ int main(int argc, char **argv)
 						/* XXX, fixme zr, borderless on win32 */
 #ifdef _WIN32	// FULLSCREEN
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
+#endif
+					break;
+				case 'R':
+				/* Registering filetypes only makes sense on windows...      */
+#ifdef WIN32
+					RegisterBlendExtension(argv[0]);
 #endif
 					break;
 				case 'n':
@@ -545,7 +552,6 @@ int main(int argc, char **argv)
 	 *  - "-S": sets the starting scene name.
 	 *  - "-s": sets the start frame.
 	 *  - "-e": sets the end frame.
-	 *  - "-R": registers the blender extensions. (MS windows only)
 	 *  - <file>: sets the blender file to open.
 	 */
 	for(a=1; a<argc; a++) {
@@ -640,12 +646,6 @@ int main(int argc, char **argv)
 				if(G.scene) {
 					if (a < argc) (G.scene->r.efra) = atoi(argv[a]);
 				}
-				break;
-			case 'R':
-				/* Registering filetypes only makes sense on windows...      */
-#ifdef WIN32
-				RegisterBlendExtension(argv[0]);
-#endif
 				break;
 			}
 		}

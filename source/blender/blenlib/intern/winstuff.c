@@ -57,11 +57,11 @@ int BLI_getInstallationDir( char * str ) {
 	
 	size = sizeof(buffer);
 
-	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation", 0, 
+	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation\\Blender", 0, 
 		KEY_ALL_ACCESS, &hkey);
 
 	if (lresult == ERROR_SUCCESS) {
-		lresult = RegQueryValueEx(hkey, "Install_Dir", 0, NULL, (LPBYTE)buffer, &size);
+		lresult = RegQueryValueEx(hkey, "Inst_Dir", 0, NULL, (LPBYTE)buffer, &size);
 		strcpy(str, buffer);
 		RegCloseKey(hkey);
 		return 1;
@@ -82,12 +82,11 @@ void RegisterBlendExtension(char * str) {
 
 	strncpy(dir, str, strlen(str)-11);
 
-	lresult = RegCreateKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation", 0, 
+	lresult = RegCreateKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation\\Blender", 0, 
 		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 
 	if (lresult == ERROR_SUCCESS) {
-		if (dwd != REG_OPENED_EXISTING_KEY)
-			lresult = RegSetValueEx(hkey, "Install_Dir", 0, REG_SZ, dir, strlen(dir)+1);
+		lresult = RegSetValueEx(hkey, "Inst_Dir", 0, REG_SZ, dir, strlen(dir)+1);
 		RegCloseKey(hkey);
 	}
 
