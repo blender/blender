@@ -1141,14 +1141,18 @@ static int tree_element_active_nla_action(TreeElement *te, TreeStoreElem *tselem
 {
 	if(set) {
 		bActionStrip *strip= te->directdata;
-		deselect_nlachannel_keys(0);
-		strip->flag |= ACTSTRIP_SELECT;
-		allqueue(REDRAWNLA, 0);
+		if(strip) {
+			deselect_nlachannel_keys(0);
+			strip->flag |= ACTSTRIP_SELECT;
+			allqueue(REDRAWNLA, 0);
+		}
 	}
 	else {
 		/* id in tselem is action */
 		bActionStrip *strip= te->directdata;
-		if(strip->flag & ACTSTRIP_SELECT) return 1;
+		if(strip) {
+			if(strip->flag & ACTSTRIP_SELECT) return 1;
+		}
 	}
 	return 0;
 }
