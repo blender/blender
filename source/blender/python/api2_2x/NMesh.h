@@ -56,6 +56,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_armature_types.h"
 #include "mydevice.h"
 
 #include "gen_utils.h"
@@ -112,6 +113,12 @@ The optional argument sets the textured faces flag";
 static char NMesh_hasVertexColours_doc[] =
 "(flag = None) - returns 1 if Mesh has vertex colours.\n\
 The optional argument sets the vertex colour flag";
+
+static char NMesh_getVertexInfluences_doc[] =
+"Return a list of the influences of bones in the vertex \n\
+specified by index. The list contains pairs with the \n\
+bone name and the weight.";
+
 
 static char NMesh_update_doc[] = "updates the Mesh";
 /*

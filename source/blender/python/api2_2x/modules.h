@@ -39,6 +39,7 @@
 #include <DNA_lamp_types.h>
 #include <DNA_curve_types.h>
 #include <DNA_effect_types.h>
+#include <DNA_armature_types.h>
 
 /*****************************************************************************/
 /* Global variables                                                          */
@@ -85,12 +86,17 @@ PyObject *      CurveCreatePyObject (struct Curve *curve);
 struct Curve *  CurveFromPyObject   (PyObject *py_obj);
 int             CurveCheckPyObject  (PyObject *py_obj);
 
+/* Armature Data */
+PyObject *         M_Armature_Init (void);
+PyObject *         ArtmatureCreatePyObject (bArmature *armature);
+bArmature*         ArmatureFromPyObject   (PyObject *py_obj);
+int                ArmatureCheckPyObject  (PyObject *py_obj);
+
 /* Particle Effects Data */
-/*
-PyObject *      M_Effect_Init (void);
+/*PyObject *      M_Effect_Init (void);
 PyObject *      EffectCreatePyObject (struct Effect *effect);
-int             EffectCheckPyObject (PyObject *py_obj);
 struct Effect * EffectFromPyObject (PyObject *py_obj);
+int             EffectCheckPyObject (PyObject *py_obj);
 */
 
 /* Init functions for other modules */

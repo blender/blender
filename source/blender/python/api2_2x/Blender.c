@@ -221,11 +221,10 @@ void M_Blender_Init (void)
         PyDict_SetItemString (dict, "Camera",   M_Camera_Init());
         PyDict_SetItemString (dict, "Lamp",     M_Lamp_Init());
         PyDict_SetItemString (dict, "Curve",    M_Curve_Init());
+        PyDict_SetItemString (dict, "Armature", M_Armature_Init());
         PyDict_SetItemString (dict, "Image",    M_Image_Init());
         PyDict_SetItemString (dict, "Window",   M_Window_Init());
         PyDict_SetItemString (dict, "Draw",     M_Draw_Init());
         PyDict_SetItemString (dict, "BGL",      M_BGL_Init());
         PyDict_SetItemString (dict, "Text",     M_Text_Init());
-/*      PyDict_SetItemString (dict, "Effect",   M_Effect_Init()); */
 }
-

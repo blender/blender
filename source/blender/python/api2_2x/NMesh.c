@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -684,6 +684,61 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
   return PyInt_FromLong(1);
 }
 
+
+/** Implementation of the python method getVertexInfluence for an NMesh object.
+ * This method returns a list of pairs (string,float) with bone nemaes and influences that this vertex receives.
+ * @author Jordi Rovira i Bonet
+ */
+static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
+{
+  int index;
+  PyObject* influence_list = NULL;
+
+  // Get a reference to the mesh object wrapped in here.
+  Mesh *me= ((C_NMesh*)self)->mesh;
+
+  // Parse the parameters: only on integer (vertex index)
+  if (!PyArg_ParseTuple(args, "i", &index))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                 "expected int argument (index of the vertex)");
+
+  // Proceed only if we have vertex deformation information and index is valid
+  if (me->dvert)
+    if ((index>=0) && (index<me->totvert))
+      {
+	int i;
+	MDeformWeight *sweight = NULL;
+	
+	// Number of bones influencig the vertex
+	int totinfluences=me->dvert[index].totweight;
+	
+	// Build the list only with weights and names of the influent bones
+	influence_list = PyList_New(totinfluences);
+
+	//Get the reference of the first wwight structure
+	sweight = me->dvert[index].dw;      
+	for (i=0; i<totinfluences; i++) {
+
+	  // Some check that should always be true
+	  assert(sweight->data);
+
+	  //Add the weight and the name of the bone, which is used to identify it
+	  PyList_SetItem(influence_list, i, Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
+
+	  //Next weight
+	  sweight++;
+	}
+      }
+    else influence_list = PyList_New(0);
+  else influence_list = PyList_New(0);
+
+  // Return the list. !QUESTION! Should i reincrement the number of references like i'm doing?
+  return EXPP_incr_ret(influence_list);
+
+}
+
+
+
 Mesh *Mesh_fromNMesh(C_NMesh *nmesh)
 {
   Mesh *mesh = NULL;
@@ -717,6 +772,7 @@ static struct PyMethodDef NMesh_methods[] =
   MethodDef(hasVertexUV),
   MethodDef(getActiveFace),
   MethodDef(getSelectedFaces),
+  MethodDef(getVertexInfluences),
   MethodDef(update),
   {NULL, NULL}
 };

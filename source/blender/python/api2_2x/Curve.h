@@ -47,7 +47,7 @@
 #include "gen_utils.h"
 
 /*****************************************************************************/
-/* Python API function prototypes for the Curve module.                      */
+/*  Python API function prototypes for the Curve module.                     */
 /*****************************************************************************/
 static PyObject *M_Curve_New (PyObject *self, PyObject *args);
 static PyObject *M_Curve_Get (PyObject *self, PyObject *args);
@@ -55,13 +55,18 @@ static PyObject *M_Curve_Get (PyObject *self, PyObject *args);
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
 /* In Python these will be written to the console when doing a               */
-/* Blender.Curve.__doc__                                                     */
+/*  Blender.Curve.__doc__                                                    */
 /*****************************************************************************/
-char M_Curve_doc[] = "";
+char M_Curve_doc[] = "The Blender Curve module\n\n\
+This module provides access to **Curve Data** in Blender.\n\
+Functions :\n\
+	New(opt name) : creates a new curve object with the given name (optional)\n\
+	Get(name) : retreives a curve  with the given name (mandatory)\n\
+	get(name) : same as Get. Kept for compatibility reasons";
 char M_Curve_New_doc[] ="";
 char M_Curve_Get_doc[] ="xxx";
 /*****************************************************************************/
-/* Python method structure definition for Blender.Curve module:              */
+/*  Python method structure definition for Blender.Curve module:             */
 /*****************************************************************************/
 struct PyMethodDef M_Curve_methods[] = {
   {"New",(PyCFunction)M_Curve_New, METH_VARARGS,M_Curve_New_doc},
@@ -79,7 +84,7 @@ typedef struct {
 } C_Curve;
 
 /*****************************************************************************/
-/* Python C_Curve methods declarations:                                      */
+/*  Python C_Curve methods declarations:                                     */
 /*****************************************************************************/
 static PyObject *Curve_getName(C_Curve *self);
 static PyObject *Curve_setName(C_Curve *self, PyObject *args);
@@ -111,60 +116,74 @@ static PyObject *Curve_getSize(C_Curve *self);
 static PyObject *Curve_setSize(C_Curve *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Curve methods table:                                            */
+/*  Python C_Curve methods table:                                            */
 /*****************************************************************************/
 static PyMethodDef C_Curve_methods[] = {
  /* name, method, flags, doc */
-  {"getName", (PyCFunction)Curve_getName, METH_NOARGS,
-          "() - Return Curve Data name"},
-  {"setName", (PyCFunction)Curve_setName, METH_NOARGS,
-          "() - Sets Curve Data name"},
-  {"getPathLen", (PyCFunction)Curve_getPathLen, METH_NOARGS,
-          "() - Return Curve path length"},
-  {"setPathLen", (PyCFunction)Curve_setPathLen, METH_VARARGS,
-          "(int) - Sets Curve path length"},
-  {"getTotcol", (PyCFunction)Curve_getTotcol, METH_NOARGS,"() - Return totcol"},
-  {"setTotcol", (PyCFunction)Curve_setTotcol, METH_VARARGS,
-          "(int) - Sets totcol"},
-  {"getFlag", (PyCFunction)Curve_getMode, METH_NOARGS,"() - Return flag"},
-  {"setFlag", (PyCFunction)Curve_setMode, METH_VARARGS,"(int) - Sets flag"},
-  {"getBevresol", (PyCFunction)Curve_getBevresol, METH_NOARGS,
-          "() - Return bevresol"},
-  {"setBevresol", (PyCFunction)Curve_setBevresol, METH_VARARGS,
-          "(int) - Sets bevresol"},
-  {"getResolu", (PyCFunction)Curve_getResolu, METH_NOARGS,"() - Return resolu"},
-  {"setResolu", (PyCFunction)Curve_setResolu, METH_VARARGS,
-          "(int) - Sets resolu"},
-  {"getResolv", (PyCFunction)Curve_getResolv, METH_NOARGS,"() - Return resolv"},
-  {"setResolv", (PyCFunction)Curve_setResolv, METH_VARARGS,
-          "(int) - Sets resolv"},
-  {"getWidth", (PyCFunction)Curve_getWidth, METH_NOARGS,"() - Return width"},
-  {"setWidth", (PyCFunction)Curve_setWidth, METH_VARARGS,"(int) - Sets width"},
-  {"getExt1", (PyCFunction)Curve_getExt1, METH_NOARGS,"() - Return ext1"},
-  {"setExt1", (PyCFunction)Curve_setExt1, METH_VARARGS,"(int) - Sets ext1"},
-  {"getExt2", (PyCFunction)Curve_getExt2, METH_NOARGS,"() - Return ext2"},
-  {"setExt2", (PyCFunction)Curve_setExt2, METH_VARARGS,"(int) - Sets ext2"},
-  {"getControlPoint", (PyCFunction)Curve_getControlPoint, METH_VARARGS,
-          "(int numcurve,int numpoint) - Gets a control point.Depending upon"
-          " the curve type, returne a list of 4 or 9 floats"},
-  {"setControlPoint", (PyCFunction)Curve_setControlPoint, METH_VARARGS,
-          "(int numcurve,int numpoint,float x,float y,float z, float w)(nurbs)"
-          " or  (int numcurve,int numpoint,float x1,...,x9(bezier) "
-					"Sets a control point "},
-  {"getLoc", (PyCFunction)Curve_getLoc, METH_NOARGS,"() - Gets Location"},
-  {"setLoc", (PyCFunction)Curve_setLoc, METH_VARARGS,
-          "(float x,float y,float z) - Sets Location"},
-  {"getRot", (PyCFunction)Curve_getRot, METH_NOARGS,"() - Gets Rotation"},
-  {"setRot", (PyCFunction)Curve_setRot, METH_VARARGS,
-          "(float x,float y,float z) - Sets Rotation"},
-  {"getSize", (PyCFunction)Curve_getSize, METH_NOARGS,"() - Gets Size"},
-  {"setSize", (PyCFunction)Curve_setSize, METH_VARARGS,
-          "(float x,float y,float z) - Sets Size"},
+  {"getName", (PyCFunction)Curve_getName,
+	METH_NOARGS,"() - Return Curve Data name"},
+  {"setName", (PyCFunction)Curve_setName,
+	METH_VARARGS,"() - Sets Curve Data name"},
+  {"getPathLen", (PyCFunction)Curve_getPathLen,
+	METH_NOARGS,"() - Return Curve path length"},
+  {"setPathLen", (PyCFunction)Curve_setPathLen,
+	METH_VARARGS,"(int) - Sets Curve path length"},
+  {"getTotcol", (PyCFunction)Curve_getTotcol,
+	METH_NOARGS,"() - Return totcol"},
+  {"setTotcol", (PyCFunction)Curve_setTotcol, 
+	METH_VARARGS,"(int) - Sets totcol"},
+  {"getFlag", (PyCFunction)Curve_getMode, 
+   	METH_NOARGS,"() - Return flag"},
+  {"setFlag", (PyCFunction)Curve_setMode, 
+	METH_VARARGS,"(int) - Sets flag"},
+  {"getBevresol", (PyCFunction)Curve_getBevresol, 
+	METH_NOARGS,"() - Return bevresol"},
+  {"setBevresol", (PyCFunction)Curve_setBevresol, 
+	METH_VARARGS,"(int) - Sets bevresol"},
+  {"getResolu", (PyCFunction)Curve_getResolu, 
+	METH_NOARGS,"() - Return resolu"},
+  {"setResolu", (PyCFunction)Curve_setResolu, 
+	METH_VARARGS,"(int) - Sets resolu"},
+  {"getResolv", (PyCFunction)Curve_getResolv, 
+	METH_NOARGS,"() - Return resolv"},
+  {"setResolv", (PyCFunction)Curve_setResolv, 
+	METH_VARARGS,"(int) - Sets resolv"},
+  {"getWidth", (PyCFunction)Curve_getWidth, 
+	METH_NOARGS,"() - Return width"},
+  {"setWidth", (PyCFunction)Curve_setWidth, 
+	METH_VARARGS,"(int) - Sets width"},
+  {"getExt1", (PyCFunction)Curve_getExt1, 
+	METH_NOARGS,"() - Return ext1"},
+  {"setExt1", (PyCFunction)Curve_setExt1, 
+	METH_VARARGS,"(int) - Sets ext1"},
+  {"getExt2", (PyCFunction)Curve_getExt2, 
+	METH_NOARGS,"() - Return ext2"},
+  {"setExt2", (PyCFunction)Curve_setExt2, 
+	METH_VARARGS,"(int) - Sets ext2"},
+  {"getControlPoint", (PyCFunction)Curve_getControlPoint, 
+	METH_VARARGS,"(int numcurve,int numpoint) - Gets a control point."
+			"\nDepending upon the curve type, returne a list of 4 or 9 floats"},
+  {"setControlPoint", (PyCFunction)Curve_setControlPoint, 
+	METH_VARARGS,"(int numcurve,int numpoint,float x,float y,float z,\
+loat w)(nurbs) or  (int numcurve,int numpoint,float x1,...,x9(bezier)\
+Sets a control point "},
+  {"getLoc", (PyCFunction)Curve_getLoc, 
+	METH_NOARGS,"() - Gets Location"},
+  {"setLoc", (PyCFunction)Curve_setLoc, 
+	METH_VARARGS,"(float x,float y,float z) - Sets Location"},
+  {"getRot", (PyCFunction)Curve_getRot, 
+	METH_NOARGS,"() - Gets Rotation"},
+  {"setRot", (PyCFunction)Curve_setRot, 
+	METH_VARARGS,"(float x,float y,float z) - Sets Rotation"},
+  {"getSize", (PyCFunction)Curve_getSize, 
+	METH_NOARGS,"() - Gets Size"},
+  {"setSize", (PyCFunction)Curve_setSize, 
+	METH_VARARGS,"(float x,float y,float z) - Sets Size"},
   {0}
 };
 
 /*****************************************************************************/
-/* Python Curve_Type callback function prototypes:                          */
+/*  Python Curve_Type callback function prototypes:                           */
 /*****************************************************************************/
 static void CurveDeAlloc (C_Curve *msh);
 static int CurvePrint (C_Curve *msh, FILE *fp, int flags);
@@ -175,8 +194,9 @@ PyObject* CurveCreatePyObject (struct Curve *curve);
 int CurveCheckPyObject (PyObject *py_obj);
 struct Curve* CurveFromPyObject (PyObject *py_obj);
 
+
 /*****************************************************************************/
-/* Python Curve_Type structure definition:                                  */
+/* Python Curve_Type structure definition:                                   */
 /*****************************************************************************/
 static PyTypeObject Curve_Type =
 {
