@@ -1,7 +1,6 @@
 
-/*  mesh.c      MIXED MODEL
- * 
- *  jan/maart 95
+/*  mesh.c
+ *
  *  
  * 
  * $Id$
@@ -100,7 +99,7 @@ int update_realtime_texture(TFace *tface, double time)
 	if(ima->tpageflag & IMA_TWINANIM) {
 		if(ima->twend >= ima->xrep*ima->yrep) ima->twend= ima->xrep*ima->yrep-1;
 		
-		/* check: zit de bindcode niet het array? Vrijgeven. (nog doen) */
+		/* check: is the bindcode not in the array? Then free. (still to do) */
 		
 		diff = (float)(time-ima->lastupdate);
 
@@ -156,7 +155,7 @@ void unlink_mesh(Mesh *me)
 }
 
 
-/* niet mesh zelf vrijgeven */
+/* do not free mesh itself */
 void free_mesh(Mesh *me)
 {
 
@@ -276,7 +275,7 @@ void make_local_tface(Mesh *me)
 	tface= me->tface;
 	while(a--) {
 		
-		/* speciaal geval: ima altijd meteen lokaal */
+		/* special case: ima always local immediately */
 		if(tface->tpage) {
 			ima= tface->tpage;
 			if(ima->id.lib) {
@@ -295,11 +294,11 @@ void make_local_mesh(Mesh *me)
 	Object *ob;
 	Mesh *men;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
+
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
 	if(me->id.lib==0) return;
 	if(me->id.us==1) {
@@ -501,7 +500,7 @@ void make_orco_mesh(Mesh *me)
 				orco[1]= (fp[1]-me->loc[1])/me->size[1];
 				orco[2]= (fp[2]-me->loc[2])/me->size[2];
 				
-				/* mvert alleen ophogen als totvert <= kb->totelem */
+				/* only increase mvert when totvert <= kb->totelem */
 				if(a<kb->totelem) fp+=3;
 			}
 		}
@@ -517,7 +516,7 @@ void make_orco_mesh(Mesh *me)
 			orco[1]= (mvert->co[1]-me->loc[1])/me->size[1];
 			orco[2]= (mvert->co[2]-me->loc[2])/me->size[2];
 			
-			/* mvert alleen ophogen als totvert <= me->totvert */
+			/* only increase mvert when totvert <= me->totvert */
 			if(a<me->totvert) mvert++;
 		}
 	}
@@ -560,7 +559,7 @@ void test_index_mface(MFace *mface, int nr)
 		nr--;
 	}
 
-	/* voorkom dat een nul op de verkeerde plek staat */
+	/* prevent a zero at wrong index location */
 	if(nr==2) {
 		if(mface->v2==0) SWAP(int, mface->v1, mface->v2);
 	}
@@ -608,7 +607,7 @@ void test_index_mface(MFace *mface, int nr)
 
 		void test_index_mface()
 
-	but it fixes texture coordinates as well.
+	but it fixes texture coordinates as well. 
 */
 
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
@@ -637,7 +636,7 @@ void test_index_face(MFace *mface, TFace *tface, int nr)
 		nr--;
 	}
 
-	/* voorkom dat een nul op de verkeerde plek staat */
+	/* prevent a zero at wrong index location */
 	if(nr==2) {
 		if(mface->v2==0) SWAP(int, mface->v1, mface->v2);
 	}
@@ -854,14 +853,14 @@ void nurbs_to_mesh(Object *ob)
 	cu= ob->data;
 
 	if(ob->type==OB_CURVE) {
-		/* regel: dl->type INDEX3 altijd vooraan in lijst */
+		/* rule: dl->type INDEX3 always as first in list */
 		dl= cu->disp.first;
 		if(dl->type!=DL_INDEX3) {
 			curve_to_filledpoly(ob->data, &cu->disp);
 		}
 	}
 
-	/* tellen */
+	/* count */
 	dl= cu->disp.first;
 	while(dl) {
 		if(dl->type==DL_SEGM) {
@@ -890,7 +889,7 @@ void nurbs_to_mesh(Object *ob)
 		return;
 	}
 
-	/* mesh maken */
+	/* make mesh */
 	me= add_mesh();
 	me->totvert= totvert;
 	me->totface= totvlak;
@@ -903,7 +902,7 @@ void nurbs_to_mesh(Object *ob)
 	mvert=me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "cumesh1");
 	mface=me->mface= MEM_callocN(me->totface*sizeof(MFace), "cumesh2");
 
-	/* verts en vlakken */
+	/* verts and faces */
 	vertcount= 0;
 
 	dl= cu->disp.first;
@@ -1000,9 +999,9 @@ void nurbs_to_mesh(Object *ob)
 
 				if( (dl->flag & 2)==0 && a==dl->parts-1) break;
 
-				if(dl->flag & 1) {				/* p2 -> p1 -> */
+				if(dl->flag & 1) {			/* p2 -> p1 -> */
 					p1= startvert+ dl->nr*a;	/* p4 -> p3 -> */
-					p2= p1+ dl->nr-1;			/* -----> volgende rij */
+					p2= p1+ dl->nr-1;		/* -----> next row */
 					p3= p1+ dl->nr;
 					p4= p2+ dl->nr;
 					b= 0;
@@ -1049,7 +1048,7 @@ void nurbs_to_mesh(Object *ob)
 	
 	tex_space_mesh(me);
 	
-	/* andere users */
+	/* other users */
 	ob1= G.main->object.first;
 	while(ob1) {
 		if(ob1->data==cu) {

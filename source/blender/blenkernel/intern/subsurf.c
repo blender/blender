@@ -1,5 +1,5 @@
 
-/*  subsurf.c      MIXED MODEL
+/*  subsurf.c
  * 
  *  jun 2001
  *  

@@ -1,7 +1,6 @@
 
-/*  world.c        MIX MODEL
+/*  world.c
  * 
- *  april 95
  * 
  * $Id$
  *
@@ -121,11 +120,11 @@ void make_local_world(World *wrld)
 	Scene *sce;
 	World *wrldn;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
+
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
 	if(wrld->id.lib==0) return;
 	if(wrld->id.us==1) {
@@ -192,7 +191,7 @@ void init_render_world()
 		if(G.scene->camera && G.scene->camera->type==OB_CAMERA) {
 			Camera *cam= G.scene->camera->data;
 			if(cam->type==CAM_ORTHO) {
-				/* dit is maar ongeveer */
+				/* this is an estimation */
 				R.wrld.miststa+= (float)fabs(R.viewmat[3][2]);
 			}
 		}

@@ -1,13 +1,11 @@
-/*  mball.c      MIXED MODEL
- * 
- *  mei 95
+/*  mball.c
  *  
  *  
+ *  MetaBalls are created from a single Object (with a name without number in it),
+ *  here the DispList and BoundBox also is located.
+ *  All objects with the same name (but with a number in it) are added to this.
  *  
- *  METABALLS ontstaan vanuit een Object (naam zonder nr), hier zit de DispList en boundbox, 
- *  alle objecten met zelfde naam (en een nr) worden hieraan toegevoegd.
- *  
- *  De texture coordinaten zitten als loos element in de displist.
+ *  texture coordinates are patched within the displist
  * 
  * $Id$
  *
@@ -90,7 +88,7 @@ void unlink_mball(MetaBall *mb)
 }
 
 
-/* niet mball zelf vrijgeven */
+/* do not free mball itself */
 void free_mball(MetaBall *mb)
 {
 	
@@ -141,10 +139,10 @@ void make_local_mball(MetaBall *mb)
 	Object *ob;
 	MetaBall *mbn;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
+
+	/* - only lib users: do nothing
+	 * - only local users: set flag
+	 * - mixed: make copy
 	 */
 	
 	if(mb->id.lib==0) return;
@@ -248,7 +246,7 @@ void make_orco_mball(Object *ob)
 	float loc[3], size[3];
 	int a;
 	
-	/* size en loc restoren */
+	/* restore size and loc */
 	bb= ob->bb;
 	loc[0]= (bb->vec[0][0]+bb->vec[4][0])/2.0f;
 	size[0]= bb->vec[4][0]-loc[0];
@@ -300,7 +298,7 @@ Object *find_basis_mball(Object *basis)
 
 /* ******************** ARITH ************************* */
 
-/* DANKBAAR GEBRUIK GEMAAKT VAN (EN COMPLEET VERANDERD) :
+/* BASED AT CODE (but mostly rewritten) :
  * C code from the article
  * "An Implicit Surface Polygonizer"
  * by Jules Bloomenthal, jbloom@beauty.gmu.edu
@@ -551,7 +549,7 @@ void accum_mballfaces(int i1, int i2, int i3, int i4)
 	
 	cur= indices+4*curindex;
 
-	/* voorkomen dat nulcodes voorkomen */
+	/* prevent zero codes for faces indices */
 	if(i3==0) {
 		if(i4) {
 			i3= i4;
@@ -585,18 +583,17 @@ struct pgn_elements {
 
 void *new_pgn_element(int size)
 {
-	/* gedurende het polygonizeren worden duizenden elementen aangemaakt en
-	 * nooit (tussendoor) vrijgegeven. Alleen op eind is vrijgeven nodig.
+	/* during polygonize 1000s of elements are allocated
+	 * and never freed inbetween. Freeing only done at the end.
 	 */
 	int blocksize= 16384;
-	static int offs= 0;		/* het huidige vrije adres */
+	static int offs= 0;		/* the current free address */
 	static struct pgn_elements *cur= 0;
 	static ListBase lb= {0, 0};
 	void *adr;
 	
 	if(size>10000 || size==0) {
 		printf("incorrect use of new_pgn_element\n");
-		/* exit(0); */
 	}
 	else if(size== -1) {
 		cur= lb.first;
@@ -740,9 +737,6 @@ void docube(CUBE *cube, PROCESS *p)
  * and add new cube to cube stack */
 
 void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, int c4, PROCESS *p)
-/*  CUBE *old; */
-/*  PROCESS *p; */
-/*  int i, j, k, bit, c1, c2, c3, c4; */
 {
 	CUBE newc;
 	CUBES *oldcubes = p->cubes;
@@ -794,14 +788,12 @@ void testface(int i, int j, int k, CUBE* old, int bit, int c1, int c2, int c3, i
    set (and cache) its function value */
 
 CORNER *setcorner (PROCESS* p, int i, int j, int k)
-/*  int i, j, k; */
-/*  PROCESS *p; */
 {
 	/* for speed, do corner value caching here */
 	CORNER *c;
 	int index;
 
-	/* bestaat corner al? */
+	/* does corner exist? */
 	index = HASH(i, j, k);
 	c = p->corners[index];
 	
@@ -865,7 +857,6 @@ int nextcwedge (int edge, int face)
 /* otherface: return face adjoining edge that is not the given face */
 
 int otherface (int edge, int face)
-/*  int edge, face; */
 {
 	int other = leftface[edge];
 	return face == other? rightface[edge] : other;
@@ -946,8 +937,6 @@ void BKE_freecubetable(void)
  * return 1 if already set; otherwise, set and return 0 */
 
 int setcenter(CENTERLIST *table[], int i, int j, int k)
-/*  CENTERLIST *table[]; */
-/*  int i, j, k; */
 {
 	int index;
 	CENTERLIST *newc, *l, *q;
@@ -977,8 +966,6 @@ void setedge (EDGELIST *table[],
 			  int k1, int i2,
 			  int j2, int k2,
 			  int vid)
-/*  EDGELIST *table[]; */
-/*  int i1, j1, k1, i2, j2, k2, vid; */
 {
 	unsigned int index;
 	EDGELIST *newe;
@@ -1013,8 +1000,6 @@ void setedge (EDGELIST *table[],
 int getedge (EDGELIST *table[],
 			 int i1, int j1, int k1,
 			 int i2, int j2, int k2)
-/*  EDGELIST *table[]; */
-/*  int i1, j1, k1, i2, j2, k2; */
 {
 	EDGELIST *q;
 	
@@ -1051,8 +1036,6 @@ int getedge (EDGELIST *table[],
 /* addtovertices: add v to sequence of vertices */
 
 void addtovertices (VERTICES *vertices, VERTEX v)
-/*  VERTICES *vertices; */
-/*  VERTEX v; */
 {
 	if (vertices->count == vertices->max) {
 		int i;
@@ -1071,8 +1054,6 @@ void addtovertices (VERTICES *vertices, VERTEX v)
 /* vnormal: compute unit length surface normal at point */
 
 void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
-/*  MB_POINT *point, *v; */
-/*  PROCESS *p; */
 {
 	float delta= 0.2f*p->delta;
 	float f = p->function(point->x, point->y, point->z);
@@ -1124,8 +1105,6 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 
 
 int vertid (CORNER *c1, CORNER *c2, PROCESS *p)
-/*  CORNER *c1, *c2; */
-/*  PROCESS *p; */
 {
 	VERTEX v;
 	MB_POINT a, b;
@@ -1226,14 +1205,14 @@ void polygonize(PROCESS *mbproc)
 		
 		converge(&in, &out, -1.0, mbproc->function, &mbproc->start);
 	
-		/* NEW1: zorg voor correcte uitgangspositie */
+		/* NEW1: make sure correct starting position */
 		i= (int)floor(mbproc->start.x/mbproc->size );
 		j= (int)floor(mbproc->start.y/mbproc->size );
 		k= (int)floor(mbproc->start.z/mbproc->size );
 		
 		mbproc->start.x= mbproc->start.y= mbproc->start.z= 0.0;
 
-/* dit gaat niet altijd goed: soms wordt een bal niet gevonden. waarom? */
+/* but it doesn't always work, sometimes it doesn't see a ball, but why? (ton) */
 		
 		/* test if cube has been found before */
 		if( setcenter(mbproc->centers, i, j, k)==0 ) {
@@ -1368,7 +1347,7 @@ float init_meta(Object *ob)	/* return totsize */
 	
 	splitIDname(ob->id.name+2, obname, &obnr);
 	
-	/* hoofdarray maken */
+	/* make main array */
 	
 	next_object(0, 0, 0);
 	while(next_object(1, &base, &bob)) {
@@ -1395,7 +1374,7 @@ float init_meta(Object *ob)	/* return totsize */
 						ml= editelems.first;
 					else ml= mb->elems.first;
 
-					/* mat is de matrix om van deze mball in de basis-mbal te komen */
+					/* mat is the matrix to transform from mball into the basis-mbal */
 					mat= new_pgn_element(4*4*sizeof(float));
 					Mat4MulMat4(mat, bob->obmat, obinv);
 					
@@ -1407,7 +1386,7 @@ float init_meta(Object *ob)	/* return totsize */
 			while(ml && totelem<MB_MAXELEM) {
 				a= totelem;
 				
-				/* kopie maken i.v.m. duplicates */
+				/* make a copy because of duplicates */
 				mainb[a]= new_pgn_element(sizeof(MetaElem));
 				*(mainb[a])= *ml;
 				
@@ -1424,7 +1403,7 @@ float init_meta(Object *ob)	/* return totsize */
 		}
 	}
 	
-	/* totsize (= 'manhattan' straal) berekenen */
+	/* totsize (= 'manhattan' radius) */
 	totsize= 0.0;
 	for(a=0; a<totelem; a++) {
 		
@@ -1491,13 +1470,13 @@ void metaball_polygonize(Object *ob)
 		return;
 	}
 
-	/* width is afmeting per polygoniseerkubus */
+	/* width is size per polygonize cube */
 	if(R.flag & R_RENDERING) width= mb->rendersize;
 	else {
 		width= mb->wiresize;
 		if(G.moving && mb->flag==MB_UPDATE_HALFRES) width*= 2;
 	}
-	/* nr_cubes is voor de veiligheid, minmaal de totsize */
+	/* nr_cubes is just for safety, minimum is totsize */
 	nr_cubes= (int)(0.5+totsize/width);
 
 	/* init process */

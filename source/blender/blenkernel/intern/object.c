@@ -1,6 +1,5 @@
-/* object.c  		MIXED MODEL
- * 
- * jan 95
+/* object.c
+ *
  * 
  * $Id$
  *
@@ -105,7 +104,7 @@
 /* Local function protos */
 static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int simul);
 
-float originmat[3][3];	/* na where_is_object(), kan her en der gebruikt worden */
+float originmat[3][3];	/* after where_is_object(), can be used in other functions (bad!) */
 Object workob;
 
 void clear_workob(void)
@@ -146,12 +145,12 @@ void update_base_layer(Object *ob)
 	}
 }
 
-/* niet object zelf vrijgeven */
+/* do not free object itself */
 void free_object(Object *ob)
 {
 	int a;
 	
-	/* specifieke data loskoppelen */
+	/* disconnect specific data */
 	if(ob->data) {
 		ID *id= ob->data;
 		id->us--;
@@ -212,7 +211,7 @@ void unlink_object(Object *ob)
 	unlink_controllers(&ob->controllers);
 	unlink_actuators(&ob->actuators);
 	
-	/* alle objecten aflopen: parents en bevels */
+	/* check all objects: parents en bevels */
 	obt= G.main->object.first;
 	while(obt) {
 		if(obt->id.lib==0) {
@@ -247,13 +246,13 @@ void unlink_object(Object *ob)
 		obt= obt->id.next;
 	}
 	
-	/* materialen */
+	/* materials */
 	mat= G.main->mat.first;
 	while(mat) {
 	
 		for(a=0; a<8; a++) {
 			if(mat->mtex[a] && ob==mat->mtex[a]->object) {
-				/* eigenlijk testen op lib */
+				/* actually, test for lib here... to do */
 				mat->mtex[a]->object= 0;
 			}
 		}
@@ -289,7 +288,7 @@ void unlink_object(Object *ob)
 		wrld= wrld->id.next;
 	}
 		
-	/* scene's */
+	/* scenes */
 	sce= G.main->scene.first;
 	while(sce) {
 		if(sce->id.lib==0) {
@@ -382,11 +381,11 @@ void make_local_camera(Camera *cam)
 	Object *ob;
 	Camera *camn;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
+
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
 	if(cam->id.lib==0) return;
 	if(cam->id.us==1) {
@@ -482,11 +481,11 @@ void make_local_lamp(Lamp *la)
 	Object *ob;
 	Lamp *lan;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
+
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
 	if(la->id.lib==0) return;
 	if(la->id.us==1) {
@@ -601,8 +600,8 @@ static char *get_obdata_defname(int type)
 	}
 }
 
-/* algemene add: in G.scene, met layer uit area en default naam */
-/* maakt alle minimaal nodige datablokken aan, zonder vertices etc. */
+/* general add: to G.scene, with layer from area and default name */
+/* creates minimum required data, but without vertices etc. */
 Object *add_object(int type)
 {
 	Object *ob;
@@ -649,7 +648,7 @@ Object *add_object(int type)
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
 
-	/* Gameengine defaults*/
+	/* Game engine defaults*/
 	ob->mass= ob->inertia= 1.0f;
 	ob->formfactor= 0.4f;
 	ob->damping= 0.04f;
@@ -727,7 +726,7 @@ Object *copy_object(Object *ob)
 	if (actcon)
 		obn->activecon = actcon;
 
-	/* usernummers ophogen */
+	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->ipo);
 	id_us_plus((ID *)obn->action);
@@ -757,11 +756,11 @@ void make_local_object(Object *ob)
 	Scene *sce;
 	Base *base;
 	int local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
+
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
 	if(ob->id.lib==0) return;
 	if(ob->id.us==1) {
@@ -817,7 +816,7 @@ void make_local_object(Object *ob)
 
 /* *************** CALC ****************** */
 
-/* er zit ook een tijdberekening in de drawobject() */
+/* there is also a timing calculation in drawobject() */
 
 float bluroffs= 0.0;
 int no_speed_curve= 0;
@@ -835,11 +834,11 @@ void disable_speed_curve(int val)
 
 float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 {
-	/* geeft float terug ( zie ook frame_to_float in ipo.c) */
+	/* returns float ( see frame_to_float in ipo.c) */
 
 	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
 	
-	/* tweede field */
+	/* 2nd field */
 	if(R.flag & R_SEC_FIELD) {
 		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
 	}
@@ -930,7 +929,7 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	if(cu->path==0 || cu->path->data==0) calc_curvepath(par);
 	if(cu->path==0) return;
 	
-	/* uitzondering afvangen: curve paden die als duplicator worden gebruikt */
+	/* catch exceptions: curve paths used as a duplicator */
 	if(enable_cu_speed) {
 		ctime= bsystem_time(ob, par, (float)G.scene->r.cfra, 0.0);
 		
@@ -999,7 +998,7 @@ void ob_parlimb(Object *ob, Object *par, float mat[][4])
 	float ang=0.0;
 	int cur=0;
 	
-	/* in lokale ob space */
+	/* in local ob space */
 	Mat4One(mat);
 	
 	ika= par->data;
@@ -1058,7 +1057,7 @@ void give_parvert(Object *par, int nr, float *vec)
 			if(me->totvert) {
 				if(nr >= me->totvert) nr= 0;
 				
-				/* is er deform */
+				/* is there a deform */
 				dl= find_displist(&par->disp, DL_VERTS);
 				if(dl) {
 					fp= dl->verts+3*nr;
@@ -1128,7 +1127,7 @@ void ob_parvert3(Object *ob, Object *par, float mat[][4])
 {
 	float cmat[3][3], v1[3], v2[3], v3[3], q[4];
 
-	/* in lokale ob space */
+	/* in local ob space */
 	Mat4One(mat);
 	
 	if ELEM3(par->type, OB_MESH, OB_SURF, OB_CURVE) {
@@ -1182,8 +1181,8 @@ void where_is_object_time(Object *ob, float ctime)
 	int a;
 	int pop; 
 	
-	/* nieuwe versie: correcte parent+vertexparent en track+parent */
-	/* deze berekent alleen de directe relatie met de parent en track */
+	/* new version: correct parent+vertexparent and track+parent */
+	/* this one only calculates direct attached parent and track */
 	/* hij is sneller, maar moet wel de timeoffs in de gaten houden */
 	
 	if(ob==0) return;
@@ -1364,7 +1363,7 @@ void solve_tracking (Object *ob, float targetmat[][4])
 	QuatToMat3(quat, totmat);
 	
 	if(ob->parent && (ob->transflag & OB_POWERTRACK)) {
-		/* 'tijdelijk' : parent info wissen */
+		/* 'temporal' : clear parent info */
 		object_to_mat4(ob, tmat);
 		tmat[0][3]= ob->obmat[0][3];
 		tmat[1][3]= ob->obmat[1][3];
@@ -1383,7 +1382,7 @@ void solve_tracking (Object *ob, float targetmat[][4])
 void where_is_object(Object *ob)
 {
 	
-	/* deze zijn gememcopied */
+	/* these have been mem copied */
 	if(ob->flag & OB_FROMDUPLI) return;
 	
 	where_is_object_time(ob, (float)G.scene->r.cfra);
@@ -1391,6 +1390,7 @@ void where_is_object(Object *ob)
 
 
 void where_is_object_simul(Object *ob)
+/* was written for the old game engine (until 2.04) */
 /* It seems that this function is only called
 for a lamp that is the child of another object */
 {
@@ -1401,11 +1401,9 @@ for a lamp that is the child of another object */
 	float fac1, fac2;
 	int a;
 	
-	/* nieuwe versie: correcte parent+vertexparent en track+parent */
-	/* deze berekent alleen de directe relatie met de parent en track */
-	/* GEEN TIMEOFFS */
+	/* NO TIMEOFFS */
 	
-	/* geen ipo! (ivm dloc en realtime-ipos) */
+	/* no ipo! (because of dloc and realtime-ipos) */
 	ipo= ob->ipo;
 	ob->ipo= NULL;
 
@@ -1435,7 +1433,7 @@ for a lamp that is the child of another object */
 
 	solve_constraints(ob, TARGET_OBJECT, NULL, G.scene->r.cfra);
 	
-	/*  LET OP!!! */
+	/*  WATCH IT!!! */
 	ob->ipo= ipo;
 	
 }
@@ -1569,7 +1567,7 @@ void what_does_parent1(Object *par, int partype, int par1, int par2, int par3)
 	Mat4One(workob.parentinv);
 	workob.parent= par;
 	if(par) 
-		workob.track= par->track;	/* LET OP: NIET ECHT NETJES */
+		workob.track= par->track;	/* WATCH IT: THATS NOT NICE CODE */
 	workob.partype= partype;
 	workob.par1= par1;
 	workob.par2= par2;

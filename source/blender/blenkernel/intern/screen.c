@@ -1,5 +1,5 @@
 
-/* screen.c  dec/jan 93/94		GRAPHICS
+/* screen.c
  * 
  * $Id$
  *

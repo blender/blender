@@ -1,7 +1,5 @@
 
-/*  scene.c      MIXED MODEL
- * 
- *  jan 95
+/*  scene.c
  *  
  * 
  * $Id$
@@ -103,7 +101,7 @@ void free_avicodecdata(AviCodecData *acd)
 	}
 }
 
-/* niet scene zelf vrijgeven */
+/* do not free scene itself */
 void free_scene(Scene *sce)
 {
 	Base *base;
@@ -113,7 +111,7 @@ void free_scene(Scene *sce)
 		base->object->id.us--;
 		base= base->next;
 	}
-	/* pas op: niet objects vrijgeven! */
+	/* do not free objects! */
 
 	BLI_freelistN(&sce->base);
 	free_editing(sce->ed);
@@ -185,15 +183,14 @@ int object_in_scene(Object *ob, Scene *sce)
 
 void sort_baselist(Scene *sce)
 {
-	/* alles in volgorde van parent en track */
+	/* in order of parent and track */
 	ListBase tempbase, noparentbase, notyetbase;
 	Base *base, *test=NULL;
 	Object *par;
 	int doit, domore= 0, lastdomore=1;
 	
 	
-	/* volgorde gelijk houden als er niets veranderd is! */
-	/* hier waren problemen met campos array's: volgorde camera's is van belang */
+	/* keep same order when nothing has changed! */
 	
 	while(domore!=lastdomore) {
 
@@ -347,7 +344,7 @@ void set_scene_bg(Scene *sce)
 	
 	G.scene= sce;
 	
-	/* objecten deselecteren (voor dataselect) */
+	/* deselect objects (for dataselect) */
 	ob= G.main->object.first;
 	while(ob) {
 		ob->flag &= ~(SELECT|OB_FROMGROUP);
@@ -365,10 +362,10 @@ void set_scene_bg(Scene *sce)
 		group= group->id.next;
 	}
 
-	/* baselijst sorteren */
+	/* sort baselist */
 	sort_baselist(sce);
 
-	/* layers en flags uit bases naar objecten kopieeren */
+	/* copy layers and flags from bases to objects */
 	base= G.scene->base.first;
 	while(base) {
 		
@@ -378,7 +375,7 @@ void set_scene_bg(Scene *sce)
 		flag= base->object->flag & OB_FROMGROUP;
 		base->flag |= flag;
 		
-		base->object->ctime= -1234567.0;	/* forceer ipo */
+		base->object->ctime= -1234567.0;	/* force ipo to be calculated later */
 		base= base->next;
 	}
 
@@ -431,7 +428,7 @@ int next_object(int val, Base **base, Object **ob)
 			
 				
 				
-			/* de eerste base */
+			/* the first base */
 			if(fase==F_START) {
 				*base= G.scene->base.first;
 				if(*base) {
@@ -439,7 +436,7 @@ int next_object(int val, Base **base, Object **ob)
 					fase= F_SCENE;
 				}
 				else {
-					/* uitzondering: een lege scene */
+				    /* exception: empty scene */
 					if(G.scene->set && G.scene->set->base.first) {
 						*base= G.scene->set->base.first;
 						*ob= (*base)->object;
@@ -453,7 +450,7 @@ int next_object(int val, Base **base, Object **ob)
 					if(*base) *ob= (*base)->object;
 					else {
 						if(fase==F_SCENE) {
-							/* de scene is klaar, we gaan door met de set */
+							/* scene is finished, now do the set */
 							if(G.scene->set && G.scene->set->base.first) {
 								*base= G.scene->set->base.first;
 								*ob= (*base)->object;
@@ -474,7 +471,7 @@ int next_object(int val, Base **base, Object **ob)
 						
 					}
 				}
-				/* dupli's afhandelen */
+				/* handle dupli's */
 				if(dupob) {
 					
 					*ob= dupob;

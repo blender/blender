@@ -1,4 +1,6 @@
-/**
+/* texture.c
+ *
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -87,7 +89,7 @@ extern int Talpha;
 
 /* ------------------------------------------------------------------------- */
 
-/* Alle support voor plugin textures: */
+/* All support for plugin textures: */
 int test_dlerr(const char *name,  const char *symbol)
 {
 	char *err;
@@ -200,7 +202,7 @@ void free_plugin_tex(PluginTex *pit)
 {
 	if(pit==0) return;
 		
-	/* geen PIL_dynlib_close: dezelfde plugin kan meerdere keren geopend zijn: 1 handle */
+	/* no PIL_dynlib_close: same plugin can be opened multiple times, 1 handle */
 	MEM_freeN(pit);	
 }
 
@@ -251,18 +253,18 @@ int do_colorband(ColorBand *coba)
 	
 	cbd1= coba->data;
 	
-	if(Tin <= cbd1->pos) {	/* helemaal links */
+	if(Tin <= cbd1->pos) {	/* ultimate left */
 		Tr= cbd1->r;
 		Tg= cbd1->g;
 		Tb= cbd1->b;
 		Ta= cbd1->a;
 	}
 	else {
-		/* we zoeken de eerste pos > Tin */
+		/* we're looking for first pos > Tin */
 	
 		for(a=0; a<coba->tot; a++, cbd1++) if(cbd1->pos >= Tin) break;
 			
-		if(a==coba->tot) {	/* helemaal rechts */
+		if(a==coba->tot) {	/* ultimate right */
 			cbd1--;
 			Tr= cbd1->r;
 			Tg= cbd1->g;
@@ -274,7 +276,7 @@ int do_colorband(ColorBand *coba)
 			fac= (Tin-cbd1->pos)/(cbd2->pos-cbd1->pos);
 			
 			if(coba->ipotype==2) {
-				/* ipo van r naar l: 3 2 1 0 */
+				/* ipo from right to left: 3 2 1 0 */
 				
 				if(a>=coba->tot-1) cbd0= cbd1;
 				else cbd0= cbd1+1;
@@ -432,15 +434,15 @@ void make_local_texture(Tex *tex)
 	World *wrld;
 	Lamp *la;
 	int a, local=0, lib=0;
-	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
-	 */
+
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
 	if(tex->id.lib==0) return;
 
-	/* speciaal geval: ima altijd meteen lokaal */
+	/* special case: ima always local immediately */
 	if(tex->ima) {
 		tex->ima->id.lib= 0;
 		tex->ima->id.flag= LIB_LOCAL;
@@ -575,7 +577,7 @@ void init_render_texture(Tex *tex)
 	/* is also used as signal */
 	tex->nor= 0;
 
-	/* imap testen */
+	/* imap test */
 	if(tex->frames && tex->ima && tex->ima->name) {	/* frames */
 		strcpy(name, tex->ima->name);
 		
@@ -589,7 +591,7 @@ void init_render_texture(Tex *tex)
 			}
 		}
 		else {
-				/* voor patch field-ima rendering */
+				/* for patch field-ima rendering */
 			tex->ima->lastframe= imanr;
 			
 			BLI_stringdec(name, head, tail, &numlen);
@@ -989,7 +991,7 @@ int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt)
 	return rgbnor;
 }
 
-/* *************** PROJEKTIES ******************* */
+/* *************** PROJECTIONS ******************* */
 
 void tubemap(float x, float y, float z, float *adr1, float *adr2)
 {
@@ -1012,7 +1014,7 @@ void spheremap(float x, float y, float z, float *adr1, float *adr2)
 	len= sqrt(x*x+y*y+z*z);
 	if(len>0.0) {
 		
-		if(x==0.0 && y==0.0) *adr1= 0.0;	/* anders domain error */
+		if(x==0.0 && y==0.0) *adr1= 0.0;	/* othwise domain error */
 		else *adr1 = (1.0 - atan2(x,y)/M_PI )/2.0;
 		
 		z/=len;
@@ -1184,7 +1186,7 @@ void do_2d_mapping(MTex *mtex, float *t, float *dxt, float *dyt)
 			dyt[1]/= 2.0;
 		}
 		else if ELEM(wrap, MTEX_TUBE, MTEX_SPHERE) {
-			/* uitzondering: de naad achter (y<0.0) */
+			/* exception: the seam behind (y<0.0) */
 			ok= 1;
 			if(t[1]<=0.0) {
 				fx= t[0]+dxt[0];
@@ -1237,7 +1239,7 @@ void do_2d_mapping(MTex *mtex, float *t, float *dxt, float *dyt)
 			dyt[1]/= 2.0;
 		}
 		
-		/* als area dan dxt[] en dyt[] opnieuw berekenen */
+		/* if area, then reacalculate dxt[] and dyt[] */
 		if(areaflag) {
 			fx= area[0]; 
 			fy= area[1];
@@ -1337,8 +1339,8 @@ void do_material_tex()
 		facm, factt, facmm, facmul = 0.0, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3];
 	int tex_nr, rgbnor= 0;
-	
-	/* hier flag testen of er wel tex is */
+
+	/* here: test flag if there's a tex (todo) */
 	
 	mat_col=mat_colspec=mat_colmir=mat_ref=mat_spec=mat_har=mat_emit=mat_alpha= R.mat;
 	
@@ -1352,7 +1354,7 @@ void do_material_tex()
 			tex= mtex->tex;
 			if(tex==0) continue;
 			
-			/* welke coords */
+			/* which coords */
 			if(mtex->texco==TEXCO_ORCO) {
 				co= R.lo; dx= O.dxlo; dy= O.dylo;
 			}
@@ -1375,7 +1377,7 @@ void do_material_tex()
 					}
 				}
 				else {
-					/* als object niet bestaat geen orco's gebruiken (zijn niet geinitialiseerd */
+					/* if object doesn't exist, do not use orcos (not initialized) */
 					co= R.co;
 					dx= O.dxco; dy= O.dyco;
 				}
@@ -1405,7 +1407,7 @@ void do_material_tex()
 			
 			if(tex->type==TEX_IMAGE) {
 				
-				/* nieuw: eerst coords verwisselen, dan map, dan trans/scale */
+				/* new: first swap coords, then map, then trans/scale */
 				
 				/* placement */
 				if(mtex->projx) texvec[0]= co[mtex->projx-1];
@@ -1436,7 +1438,7 @@ void do_material_tex()
 
 				do_2d_mapping(mtex, texvec, dxt, dyt);
 				
-				/* translate en scale */
+				/* translate and scale */
 				texvec[0]= mtex->size[0]*(texvec[0]-0.5) +mtex->ofs[0]+0.5;
 				texvec[1]= mtex->size[1]*(texvec[1]-0.5) +mtex->ofs[1]+0.5;
 				if(R.osatex) {
@@ -1622,7 +1624,7 @@ void do_material_tex()
 					
 					Normalise(R.vn);
 					
-					/* hierdoor wordt de bump aan de volgende texture doorgegeven */
+					/* this makes sure the bump is passed on to the next texture */
 					R.orn[0]= R.vn[0];
 					R.orn[1]= -R.vn[1];
 					R.orn[2]= R.vn[2];
@@ -1777,7 +1779,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 	
 	rgb= multitex(mtex->tex, texvec, dxt, dyt);
 
-	/* texture uitgang */
+	/* texture output */
 	if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {
 		Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 		rgb= 0;
@@ -1857,12 +1859,12 @@ void do_sky_tex()
 	float tempvec[3], texvec[3], dxt[3], dyt[3];
 	int tex_nr, rgb= 0, ok;
 	
-	
-	/* hier flag testen of er wel tex is */
+
+	/* todo: add flag to test if there's a tex */
 	
 	wrld_hor= wrld_zen= G.scene->world;
 
-	/* The 6 here is rather arbitrary, it seems. */
+	/* The 6 here is the max amount of channels for a world */
 	for(tex_nr=0; tex_nr<6; tex_nr++) {
 		if(R.wrld.mtex[tex_nr]) {
 			mtex= R.wrld.mtex[tex_nr];
@@ -1870,7 +1872,7 @@ void do_sky_tex()
 			if(mtex->tex==0) continue;
 			/* if(mtex->mapto==0) continue; */
 			
-			/* welke coords */
+			/* which coords */
 			co= R.lo;
 			
 			/* Grab the mapping settings for this texture */
@@ -1898,7 +1900,7 @@ void do_sky_tex()
 			
 			rgb= multitex(mtex->tex, texvec, dxt, dyt);
 			
-			/* texture uitgang */
+			/* texture output */
 			if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {
 				Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 				rgb= 0;
@@ -1989,7 +1991,7 @@ void do_sky_tex()
 						wrld_zen= &R.wrld;
 					}
 					else {
-						/* anders blijft zenRGB hangen */
+						/* otherwise zenRGB undefined */
 						R.wrld.zenr= wrld_zen->zenr;
 						R.wrld.zeng= wrld_zen->zeng;
 						R.wrld.zenb= wrld_zen->zenb;
@@ -2031,8 +2033,6 @@ void do_lamp_tex(LampRen *la, float *lavec)
 	float texvec[3], dxt[3], dyt[3], tempvec[3];
 	int tex_nr, rgb= 0;
 	
-	/* hier flag testen of er wel tex is */
-	
 	la_col= la->org;
 	
 	tex_nr= 0;
@@ -2045,7 +2045,7 @@ void do_lamp_tex(LampRen *la, float *lavec)
 			tex= mtex->tex;
 			if(tex==0) continue;
 			
-			/* welke coords */
+			/* which coords */
 			if(mtex->texco==TEXCO_OBJECT) {
 				ob= mtex->object;
 				if(ob) {
@@ -2127,7 +2127,7 @@ void do_lamp_tex(LampRen *la, float *lavec)
 				do_2d_mapping(mtex, texvec, dxt, dyt);
 				
 				if(mtex->mapto & MAP_NORM) {
-					/* de pointer bepaalt of er gebumpt wordt */
+					/* the pointer defines if bump happens */
 					tex->nor= R.vn;
 					if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
@@ -2139,7 +2139,7 @@ void do_lamp_tex(LampRen *la, float *lavec)
 			
 			
 			
-			/* texture uitgang */
+			/* texture output */
 			if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {
 				Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 				rgb= 0;
@@ -2243,7 +2243,7 @@ void externtex(MTex *mtex, float *vec)
 		do_2d_mapping(mtex, texvec, dxt, dyt);
 		
 		if(mtex->mapto & MAP_NORM) {
-			/* de pointer bepaalt of er gebumpt wordt */
+			/* the pointer defines if there's bump */
 			tex->nor= R.vn;
 			if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 			else tex->norfac= mtex->norfac;
