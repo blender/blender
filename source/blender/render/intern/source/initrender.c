@@ -1090,7 +1090,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 				free_image_buffers(bima);
 			}
 			if(R.backbuf==0) {
-				error("No backbuf there!");
+				// error() doesnt work with render window open
+				//error("No backbuf there!");
+				printf("Error: No backbuf %s\n", name);
 				G.afbreek= 1;
 				return;
 			}
