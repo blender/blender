@@ -113,15 +113,19 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em)
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
 	EditVert *eve, *evePrev;
 	EditEdge *eed;
-	EditFace *evl;
+	EditFace *efa;
 	MFace *mfNew;
 	int i;
 
 	dlm->totvert= BLI_countlist(&em->verts);
-	dlm->totface= BLI_countlist(&em->edges)+BLI_countlist(&em->faces);
+	dlm->totedge= BLI_countlist(&em->edges);
+	dlm->totface= BLI_countlist(&em->faces);
+	dlm->editedge= MEM_mallocN(sizeof(*dlm->editedge)*dlm->totedge, "dlm->editedge");
+	dlm->editface= MEM_mallocN(sizeof(*dlm->editface)*dlm->totface, "dlm->editface");
 	dlm->mvert= MEM_callocN(sizeof(*dlm->mface)*dlm->totvert, "dlm->mvert");
 	dlm->mcol= NULL;
 	dlm->tface= NULL;
+	dlm->medge= MEM_mallocN(sizeof(*dlm->medge)*dlm->totedge, "dlm->mface");
 	dlm->mface= MEM_mallocN(sizeof(*dlm->mface)*dlm->totface, "dlm->mface");
 
 	i=0;
@@ -133,36 +137,34 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em)
 	}
 
 	mfNew= dlm->mface;
-	for (evl= em->faces.first; evl; evl= evl->next) {
+	for (i=0,efa= em->faces.first; efa; efa= efa->next) {
 		// we skip hidden faces
-		if(evl->v1->h || evl->v2->h || evl->v3->h || (evl->v4 && evl->v4->h)) dlm->totface--;
+		if(efa->v1->h || efa->v2->h || efa->v3->h || (efa->v4 && efa->v4->h)) dlm->totface--;
 		else {
-			mfNew->v1= (int) evl->v1->prev;
-			mfNew->v2= (int) evl->v2->prev;
-			mfNew->v3= (int) evl->v3->prev;
-			mfNew->v4= evl->v4?(int) evl->v4->prev:0;
-			mfNew->flag= evl->flag;
-			mfNew->mat_nr= evl->mat_nr;
+			dlm->editface[i++] = efa;
+			mfNew->v1= (int) efa->v1->prev;
+			mfNew->v2= (int) efa->v2->prev;
+			mfNew->v3= (int) efa->v3->prev;
+			mfNew->v4= efa->v4?(int) efa->v4->prev:0;
+			mfNew->flag= efa->flag;
+			mfNew->mat_nr= efa->mat_nr;
 			mfNew->puno= 0;
 			mfNew->edcode= 0;
 	
-			if (evl->v4 && !mfNew->v4) {
+			if (efa->v4 && !mfNew->v4) {
 				mfNew->v1^= mfNew->v3^= mfNew->v1^= mfNew->v3;
 				mfNew->v2^= mfNew->v4^= mfNew->v2^= mfNew->v4;
 			}
 			mfNew++;
 		}
 	}
-	for (eed= em->edges.first; eed; eed= eed->next, mfNew++) {
-
-		mfNew->v1= (int) eed->v1->prev;
-		mfNew->v2= (int) eed->v2->prev;
-		mfNew->v3= 0;
-		mfNew->v4= 0;
-		mfNew->flag= 0;
-		mfNew->mat_nr= 0;
-		mfNew->puno= 0;
-		mfNew->edcode= 0;
+	for (i=0,eed= em->edges.first; eed; eed= eed->next) {
+		MEdge *medge = &dlm->medge[i];
+		dlm->editedge[i++] = eed;
+		medge->v1 = (int) eed->v1->prev;
+		medge->v2 = (int) eed->v2->prev;
+		medge->crease = eed->crease;
+		medge->flag = ME_EDGEDRAW;
 	}
 
 		/* restore prev links */
@@ -1458,7 +1460,7 @@ static void curve_to_displist(ListBase *nubase, ListBase *dispbase)
 static void filldisplist(ListBase *dispbase, ListBase *to)
 {
 	EditVert *eve, *v1, *vlast;
-	EditFace *evl;
+	EditFace *efa;
 	DispList *dlnew=0, *dl;
 	float *f1;
 	int colnr=0, cont=1, tot, a, *index;
@@ -1522,10 +1524,10 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 
 			/* count faces  */
 			tot= 0;
-			evl= fillfacebase.first;
-			while(evl) {
+			efa= fillfacebase.first;
+			while(efa) {
 				tot++;
-				evl= evl->next;
+				efa= efa->next;
 			}
 
 			if(tot) {
@@ -1554,15 +1556,15 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 				}
 				
 				/* index data */
-				evl= fillfacebase.first;
+				efa= fillfacebase.first;
 				index= dlnew->index;
-				while(evl) {
-					index[0]= (long)evl->v1->vn;
-					index[1]= (long)evl->v2->vn;
-					index[2]= (long)evl->v3->vn;
+				while(efa) {
+					index[0]= (long)efa->v1->vn;
+					index[1]= (long)efa->v2->vn;
+					index[2]= (long)efa->v3->vn;
 					
 					index+= 3;
-					evl= evl->next;
+					efa= efa->next;
 				}
 			}
 
