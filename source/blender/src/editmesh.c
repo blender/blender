@@ -2299,25 +2299,35 @@ void loopoperations(char mode)
 		start=findnearestvisibleedge();
 				
 		/* If the edge doesn't belong to a face, it's not a valid starting edge */
+		/* and only accept starting edge if it is part of at least one visible face */
 		if(start){
 			start->f |= 16;
 			evl=em->faces.first;
 			while(evl){
-				if(evl->e1->f & 16){					
-					noface=0;
-					evl->e1->f &= ~16;
+				if(evl->e1->f & 16){
+					/* since this edge is on the face, check if the face has any hidden verts */
+					if( !evl->v1->h && !evl->v2->h &&  !evl->v3->h && (evl->v4 && !evl->v4->h)  ){
+						noface=0;
+						evl->e1->f &= ~16;
+					}
 				}
 				else if(evl->e2->f & 16){					
-					noface=0;
-					evl->e2->f &= ~16;
+					if( !evl->v1->h && !evl->v2->h &&  !evl->v3->h && (evl->v4 && !evl->v4->h)  ){
+						noface=0;
+						evl->e2->f &= ~16;
+					}
 				}
 				else if(evl->e3->f & 16){					
-					noface=0;
-					evl->e3->f &= ~16;
+					if( !evl->v1->h && !evl->v2->h &&  !evl->v3->h && (evl->v4 && !evl->v4->h)  ){
+						noface=0;
+						evl->e3->f &= ~16;
+					}
 				}
 				else if(evl->e4 && (evl->e4->f & 16)){					
-					noface=0;
-					evl->e4->f &= ~16;
+					if( !evl->v1->h && !evl->v2->h &&  !evl->v3->h && (evl->v4 && !evl->v4->h)  ){
+						noface=0;
+						evl->e4->f &= ~16;
+					}
 				}
 				
 				evl=evl->next;
