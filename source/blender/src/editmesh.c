@@ -9442,6 +9442,20 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices */
 	}
 }
 
+short edgeFaces(EditEdge *e){
+	EditMesh *em = G.editMesh;
+	EditVlak *search=NULL;
+	short count = 0;
+	
+	search = em->faces.first;
+	while(search){
+		if((search->e1 == e || search->e2 == e) || (search->e3 == e || search->e4 == e)) 
+			count++;
+	search = search->next;
+	}
+	return count;	
+}
+
 /* this utility function checks to see if 2 edit edges share a face,
 	returns 1 if they do
 	returns 0 if they do not, or if the function is passed the same edge 2 times
@@ -9493,7 +9507,7 @@ void vertex_loop_select()
 
 			scrarea_do_windraw(curarea);
 			nearest = findnearestedge();
-			if (nearest) {
+			if (nearest && edgeFaces(nearest)==2) {
 				for(search = em->edges.first;search;search=search->next)
 					search->f &= ~32;
 					
@@ -9505,6 +9519,7 @@ void vertex_loop_select()
 				looking = 1;
 				while(looking){
 					if(protect++ > numEdges) break;
+					if(edgeFaces(compEdge) != 2) break;
 					/*Find Edges that have v1*/
 					edgeValCount = -1;
 					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
@@ -9513,8 +9528,10 @@ void vertex_loop_select()
 						if(valSearch->v1 == v1 || valSearch->v2 == v1){
 							if(valSearch != compEdge){
 								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
-									edgeValCount++;							
-									EdgeVal[edgeValCount] = valSearch;
+									if(edgeFaces(valSearch) == 2){
+										edgeValCount++;							
+										EdgeVal[edgeValCount] = valSearch;
+									}
 								}
 							}
 						}
@@ -9555,7 +9572,7 @@ void vertex_loop_select()
 				protect = 0;
 				while(looking/* && !looped*/){
 					if(protect++ > numEdges) break;
-					
+					if(edgeFaces(compEdge) != 2) break;
 					/*Find Edges that have v1*/
 					edgeValCount = -1;
 					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
@@ -9564,8 +9581,10 @@ void vertex_loop_select()
 						if(valSearch->v1 == v2 || valSearch->v2 == v2){
 							if(valSearch != compEdge){
 								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
-									edgeValCount++;							
-									EdgeVal[edgeValCount] = valSearch;
+									if(edgeFaces(valSearch) == 2){
+										edgeValCount++;							
+										EdgeVal[edgeValCount] = valSearch;
+									}
 								}
 							}
 						}
