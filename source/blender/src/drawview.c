@@ -1203,6 +1203,9 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		uiDefBut(block, BUT,	    B_LOADBGPIC, "LOAD",	10,120,100,19, 0, 0, 0, 0, 0, "Specify the BackGroundPic");
 		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,120,190,19,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
 		
+		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,100,150,19,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
+		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,100,150,19,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
+
 		/* There is a bug here ... (what bug? where? what is this? - zr) */
 		/* (ton) the use of G.buts->texnr is hackish */
 		/* texture block: */
