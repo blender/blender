@@ -69,6 +69,7 @@ ifeq ($(OS),freebsd)
     LLIBS = -L/usr/X11R6/lib -lX11 -lXmu -lm -lutil -lz -pthread -lc_r
     DADD = -lGL -lGLU
     DYNLDFLAGS = -shared $(LDFLAGS)
+    LOPTS = -Wl,--export-dynamic
   ifeq ($(OS_VERSION),$(findstring $(OS_VERSION), "3.4 4.0"))
     COMMENT = "MESA 3.0"
     SADD = /usr/X11R6/lib/libGL.a /usr/X11R6/lib/libGLU.a
