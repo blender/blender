@@ -932,7 +932,7 @@ void initlocalview()
 		afm[0]= (max[0]-min[0]);
 		afm[1]= (max[1]-min[1]);
 		afm[2]= (max[2]-min[2]);
-		size= MAX3(afm[0], afm[1], afm[2]);
+		size= 0.7*MAX3(afm[0], afm[1], afm[2]);
 		if(size<=0.01) size= 0.01;
 	}
 	
@@ -946,6 +946,13 @@ void initlocalview()
 
 		G.vd->dist= size;
 
+		// correction for window aspect ratio
+		if(curarea->winy>2 && curarea->winx>2) {
+			size= (float)curarea->winx/(float)curarea->winy;
+			if(size<1.0) size= 1.0/size;
+			G.vd->dist*= size;
+		}
+		
 		if(G.vd->persp>1) {
 			G.vd->persp= 1;
 			
@@ -1009,21 +1016,25 @@ void centreview()	/* like a localview without local! */
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
-	size= MAX3(afm[0], afm[1], afm[2]);
+	size= 0.7*MAX3(afm[0], afm[1], afm[2]);
 	
 	if(size<=0.01) size= 0.01;
 	
-	
-
 	G.vd->ofs[0]= -(min[0]+max[0])/2.0;
 	G.vd->ofs[1]= -(min[1]+max[1])/2.0;
 	G.vd->ofs[2]= -(min[2]+max[2])/2.0;
 
 	G.vd->dist= size;
 
+	// correction for window aspect ratio
+	if(curarea->winy>2 && curarea->winx>2) {
+		size= (float)curarea->winx/(float)curarea->winy;
+		if(size<1.0) size= 1.0/size;
+		G.vd->dist*= size;
+	}
+	
 	if(G.vd->persp>1) {
 		G.vd->persp= 1;
-		
 	}
 
 	G.vd->cursor[0]= -G.vd->ofs[0];
@@ -1121,7 +1132,7 @@ void view3d_home(int centre)
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
-	size= MAX3(afm[0], afm[1], afm[2]);
+	size= 0.7*MAX3(afm[0], afm[1], afm[2]);
 	if(size==0.0) ok= 0;
 		
 	if(ok) {
