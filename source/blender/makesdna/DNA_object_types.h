@@ -176,6 +176,11 @@ extern Object workob;
 /* used many places... should be specialized */
 #define SELECT			1
 #define ACTIVE			2
+#define GONNA_MOVE     32 /* temporary, for figuring what stuff needs
+						   * updating during transform due to parenting
+						   * or constraints... do not rely on this value
+						   * unless you are me (CW).
+						   */
 
 /* type */
 #define OB_EMPTY		0

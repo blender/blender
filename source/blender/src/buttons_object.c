@@ -731,8 +731,6 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 
 void do_constraintbuts(unsigned short event)
 {
-	clear_object_constraint_status(OBACT);
-
 	switch(event) {
 	case B_CONSTRAINT_CHANGENAME:
 		break;
@@ -860,6 +858,9 @@ void do_constraintbuts(unsigned short event)
 	default:
 		break;
 	}
+
+	clear_object_constraint_status(OBACT);
+	make_displists_by_armature (OBACT);
 }
 
 static void object_panel_constraint(void)

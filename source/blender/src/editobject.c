@@ -2638,37 +2638,6 @@ static int is_ob_constraint_target(Object *ob, ListBase *conlist) {
 
 }
 
-static int pose_do_update_flag(Object *ob) {
-	/* Figure out which pose channels need constant updating.
-	 */
-	Base *base;
-	bPoseChannel *chan;
-	int do_update = 0;
-
-	if (ob->pose) {
-		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
-			if (chan->constraints.first) {
-				for (base= FIRSTBASE; base; base= base->next) {
-					if (is_ob_constraint_target(base->object, 
-												&chan->constraints)) {
-						if( (base->flag & SELECT) || (ob->flag & SELECT)) {
-							/* If this armature is selected, or if the
-							 * object that is the target of a constraint
-							 * is selected, then lets constantly update
-							 * this pose channel.
-							 */
-							chan->flag |= PCHAN_TRANS_UPDATE;
-							do_update = 1;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return do_update;
-}
-
 int clear_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
 	/* When we aren't transform()-ing, we'll want to turn off
 	 * the no calc flag for bone bone in case the frame changes,
@@ -2737,31 +2706,6 @@ static int is_ik_root_docalc(Bone *bone) {
 	return 0;
 }
 
-static void ik_chain_docalc(Bone *bone) {
-	/* Let's clear the no calc flag for an entire IK chain
-	 */
-	Bone		*curBone;
-
-	/* This bone */
-	bone->flag &= ~BONE_NOCALC;
-
-	/* The parents */
-	for (curBone = bone; curBone; curBone=curBone->parent) {
-		if (!curBone->parent)
-			break;
-		else if (!(curBone->flag & BONE_IK_TOPARENT))
-			break;
-		curBone->parent->flag &= ~BONE_NOCALC;
-	}
-
-	/* The children */
-	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-		if (curBone->flag & BONE_IK_TOPARENT) {
-			curBone->flag &= ~BONE_NOCALC;
-		}
-	}
-}
-
 static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 										  Object *ob, bArmature *arm) {
 	/* If this bone has a constraint with a subtarget that has
@@ -2782,14 +2726,16 @@ static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 		if ( (subtarbone = get_named_bone(arm, subtar)) ) {
 			if (~subtarbone->flag & BONE_NOCALC) {
 				if (con->type == CONSTRAINT_TYPE_KINEMATIC)
-					ik_chain_docalc(conbone);
+					ik_chain_looper(ob, conbone, NULL, 
+									clear_bone_nocalc);
 				else 
 					conbone->flag &= ~BONE_NOCALC;
 			}
 			else {
 				if (is_ik_root_docalc(conbone)) {
 					if (con->type == CONSTRAINT_TYPE_KINEMATIC)
-						ik_chain_docalc(conbone);
+						ik_chain_looper(ob, conbone, NULL, 
+										clear_bone_nocalc);
 					else
 						conbone->flag &= ~BONE_NOCALC;
 				}
@@ -2800,7 +2746,8 @@ static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 		/* no subtarget ... target is regular object */
 		if (is_ik_root_docalc(conbone)) {
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC)
-				ik_chain_docalc(conbone);
+				ik_chain_looper(ob, conbone, NULL, 
+								clear_bone_nocalc);
 			else
 				conbone->flag &= ~BONE_NOCALC;
 		}
@@ -2808,27 +2755,16 @@ static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
 
 }
 
-static void figure_bone_nocalc(Object *ob) {
+static void figure_bone_nocalc_core(Object *ob, bArmature *arm) {
 	/* Let's figure out which bones need to be recalculated,
 	 * and which don't. Calculations are based on which bones
 	 * are selected, and the constraints that love them.
 	 */
-	bArmature *arm;
 	bPoseChannel *chan;
 	bConstraint *con;
 	Bone *conbone;
 
 	int numbones, oldnumbones, iterations;
-
-	arm = get_armature(ob);
-	if (!arm) return;
-
-	if (arm->flag & ARM_RESTPOS) return;
-
-	/* Set no calc for all bones
-	 */
-	bone_looper(ob, arm->bonebase.first, NULL, 
-				set_bone_nocalc);
 
 	oldnumbones = -1;
 	numbones    =  0;
@@ -2862,6 +2798,160 @@ static void figure_bone_nocalc(Object *ob) {
 	}
 }
 
+static void figure_bone_nocalc(Object *ob) {
+	/* Let's figure out which bones need to be recalculated,
+	 * and which don't. Calculations are based on which bones
+	 * are selected, and the constraints that love them.
+	 */
+	bArmature *arm;
+
+	arm = get_armature(ob);
+	if (!arm) return;
+
+	if (arm->flag & ARM_RESTPOS) return;
+
+	/* Set no calc for all bones
+	 */
+	bone_looper(ob, arm->bonebase.first, NULL, 
+				set_bone_nocalc);
+
+	figure_bone_nocalc_core(ob, arm);
+}
+
+int bone_nocalc2chan_trans_update(Object *ob, Bone *bone, void *ptr) {
+	/* Set PCHAN_TRANS_UPDATE for channels with bones that don't have
+	 * the no calc flag set ... I hate this.
+	 */
+	bPoseChannel *chan;
+
+	if (~bone->flag & BONE_NOCALC) {
+		chan = get_pose_channel(ob->pose, bone->name);
+		if (chan) chan->flag |= PCHAN_TRANS_UPDATE;
+	}
+	else {
+		/* reset this thing too */
+		bone->flag &= ~BONE_NOCALC;
+	}
+	
+	return 0;
+}
+
+void clear_gonna_move(void) {
+	Base *base;
+
+	/* clear the gonna move flag */
+	for (base= FIRSTBASE; base; base= base->next) {
+		base->object->flag &= ~GONNA_MOVE;
+	}
+}
+
+int is_parent_gonna_move(Object *ob) {
+	if ( (ob->parent) &&
+		 (ob->parent->flag & GONNA_MOVE) ) {
+		return 1;
+	}
+	return 0;
+}
+
+int is_constraint_target_gonna_move(Object *ob) {
+	Object *tarOb;
+	bConstraint *con;
+
+	for (con = ob->constraints.first; con; con=con->next) {
+		if ( (tarOb = get_con_target(con)) ) {
+			if (tarOb->flag & GONNA_MOVE )
+				return 1;
+		}
+	}
+	return 0;
+}
+
+void flag_moving_objects(void) {
+	Base *base;
+	int numgonnamove = 0, oldnumgonnamove = -1;
+
+	clear_gonna_move();
+
+	/* the 'well ordering principle' guarantees convergence (honest)
+	 */
+	while (numgonnamove != oldnumgonnamove) {
+		oldnumgonnamove = numgonnamove;
+		numgonnamove = 0;
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->flag & GONNA_MOVE) {
+				++numgonnamove;
+			}
+			else if (base->flag & SELECT) {
+				base->object->flag |= GONNA_MOVE;
+				++numgonnamove;
+			}
+			else if (is_parent_gonna_move(base->object)) {
+				base->object->flag |= GONNA_MOVE;
+				++numgonnamove;
+			}
+			else if (is_constraint_target_gonna_move(base->object)) {
+				base->object->flag |= GONNA_MOVE;
+				++numgonnamove;
+			}
+		}
+	}
+
+}
+
+static int pose_do_update_flag(Object *ob) {
+	/* Figure out which pose channels need constant updating.
+	 * Well use the bone BONE_NOCALC bit to do some temporary
+	 * flagging (so we can reuse code), which will later be
+	 * converted to a value for a channel... I hate this.
+	 */
+	Base *base;
+	bPoseChannel *chan;
+	int do_update = 0;
+	bArmature *arm;
+
+	arm = get_armature(ob);
+	if (!arm) return 0;
+
+	/* initialize */
+	bone_looper(ob, arm->bonebase.first, NULL, 
+				set_bone_nocalc);
+
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			if (chan->constraints.first) {
+				for (base= FIRSTBASE; base; base= base->next) {
+					if (is_ob_constraint_target(base->object, 
+												&chan->constraints)) {
+						if( (base->object->flag & GONNA_MOVE) || 
+							(ob->flag & GONNA_MOVE)) {
+							Bone *bone;
+							/* If this armature is selected, or if the
+							 * object that is the target of a constraint
+							 * is selected, then lets constantly update
+							 * this pose channel.
+							 */
+							bone = get_named_bone(ob->data, chan->name);
+							if (bone) {
+								bone->flag &= ~BONE_NOCALC;
+								++do_update;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (do_update) {
+		figure_bone_nocalc_core(ob, arm);
+	}
+
+	bone_looper(ob, arm->bonebase.first, NULL, 
+				bone_nocalc2chan_trans_update);
+
+	return do_update;
+}
+
 /*** POSE FIGURIN' -- END ***/
 
 
@@ -2878,6 +2968,8 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 	Base *base;
 	
 	copy_baseflags();
+	flag_moving_objects();
+
 
 	for (base= FIRSTBASE; base; base= base->next) {
 		base->flag &= ~(BA_PARSEL+BA_WASSEL);

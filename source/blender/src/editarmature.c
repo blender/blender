@@ -2508,6 +2508,43 @@ int bone_looper(Object *ob, Bone *bone, void *data,
     return count;
 }
 
+int ik_chain_looper(Object *ob, Bone *bone, void *data,
+				   int (*bone_func)(Object *, Bone *, void *)) {
+
+    /* We want to apply the function bone_func to every bone 
+     * in an ik chain -- feed ikchain_looper a bone in the chain and 
+     * a pointer to the bone_func and watch it go!. The int count 
+     * can be useful for counting bones with a certain property
+     * (e.g. skinnable)
+     */
+	Bone *curBone;
+    int   count = 0;
+
+    if (bone) {
+
+        /* This bone */
+        count += bone_func(ob, bone, data);
+
+        /* The parents */
+		for (curBone = bone; curBone; curBone=curBone->parent) {
+			if (!curBone->parent)
+				break;
+			else if (!(curBone->flag & BONE_IK_TOPARENT))
+				break;
+			count += bone_func(ob, curBone->parent, data);
+		}
+
+		/* The children */
+		for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
+			if (curBone->flag & BONE_IK_TOPARENT) {
+				count += bone_func(ob, curBone, data);
+			}
+		}
+    }
+
+    return count;
+}
+
 int bone_skinnable(Object *ob, Bone *bone, void *data)
 {
     /* Bones that are not of boneclass BONE_UNSKINNABLE
