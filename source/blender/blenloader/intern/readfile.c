@@ -3975,6 +3975,30 @@ static void do_versions(Main *main)
 			}
 			wrld= wrld->id.next;
 		}
+		
+		/* new bit flags for showing/hiding grid floor and axes */
+		bScreen *sc = main->screen.first;
+		while(sc) {
+			ScrArea *sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl= sa->spacedata.first;
+				while (sl) {
+					if (sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D*) sl;
+
+						if (v3d->gridflag==0) {
+							v3d->gridflag |= V3D_SHOW_X;
+							v3d->gridflag |= V3D_SHOW_Y;
+							v3d->gridflag |= V3D_SHOW_FLOOR;
+							v3d->gridflag &= ~V3D_SHOW_Z;
+						}
+					}
+					sl= sl->next;
+				}
+				sa= sa->next;
+			}
+			sc= sc->id.next;
+		}
 	}
 	/* don't forget to set version number in blender.c! */
 }

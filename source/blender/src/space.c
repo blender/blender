@@ -1523,6 +1523,10 @@ void initview3d(ScrArea *sa)
 		vd->camera= G.scene->camera;
 	}
 	vd->scenelock= 1;
+	vd->gridflag |= V3D_SHOW_X;
+	vd->gridflag |= V3D_SHOW_Y;
+	vd->gridflag |= V3D_SHOW_FLOOR;
+	vd->gridflag &= ~V3D_SHOW_Z;
 }
 
 

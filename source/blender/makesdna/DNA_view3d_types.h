@@ -104,7 +104,8 @@ typedef struct View3D {
 	short mxo, myo;
 
 	short gridlines, viewbut;
-	short modeselect, menunr, texnr, pad1;
+	short gridflag;
+	short modeselect, menunr, texnr;
 } View3D;
 
 /* View3D->flag */
@@ -130,6 +131,12 @@ typedef struct View3D {
 #define V3D_PERSP_ORTHO          0
 #define V3D_PERSP_DO_3D_PERSP    1
 #define V3D_PERSP_USE_THE_CAMERA 2
+
+/* View3d->gridflag */
+#define V3D_SHOW_FLOOR			1
+#define V3D_SHOW_X				2
+#define V3D_SHOW_Y				4
+#define V3D_SHOW_Z				8
 
 #endif
 

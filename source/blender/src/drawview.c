@@ -621,7 +621,8 @@ static void drawfloor(void)
 	float vert[3], grid;
 	int a, gridlines;
 	char col[3], col2[3];
-	
+	short draw_line = 0;
+		
 	vd= curarea->spacedata.first;
 
 	vert[2]= 0.0;
@@ -633,43 +634,97 @@ static void drawfloor(void)
 	
 	BIF_GetThemeColor3ubv(TH_GRID, col);
 	
+	/* draw the Y axis and/or grid lines */
 	for(a= -gridlines;a<=gridlines;a++) {
-
 		if(a==0) {
-			make_axis_color(col, col2, 'y');
-			glColor3ubv(col2);
+			/* check for the 'show Y axis' preference */
+			if (vd->gridflag & V3D_SHOW_Y) { 
+				make_axis_color(col, col2, 'y');
+				glColor3ubv(col2);
+				
+				draw_line = 1;
+			} else if (vd->gridflag & V3D_SHOW_FLOOR) {
+				BIF_ThemeColorShade(TH_GRID, -10);
+			} else {
+				draw_line = 0;
+			}
+		} else {
+			/* check for the 'show grid floor' preference */
+			if (vd->gridflag & V3D_SHOW_FLOOR) {
+				if( (a % 10)==0) {
+					BIF_ThemeColorShade(TH_GRID, -10);
+				}
+				else BIF_ThemeColorShade(TH_GRID, 10);
+				
+				draw_line = 1;
+			} else {
+				draw_line = 0;
+			}
 		}
-		else if( (a % 10)==0) {
-			BIF_ThemeColorShade(TH_GRID, -10);
-		}
-		else BIF_ThemeColorShade(TH_GRID, 10);
 		
-	
-		glBegin(GL_LINE_STRIP);
-        vert[0]= a*vd->grid;
-        vert[1]= grid;
-        glVertex3fv(vert);
-        vert[1]= -grid;
-        glVertex3fv(vert);
-		glEnd();
+		if (draw_line) {
+			glBegin(GL_LINE_STRIP);
+	        vert[0]= a*vd->grid;
+	        vert[1]= grid;
+	        glVertex3fv(vert);
+	        vert[1]= -grid;
+	        glVertex3fv(vert);
+			glEnd();
+		}
 	}
 	
+	/* draw the X axis and/or grid lines */
 	for(a= -gridlines;a<=gridlines;a++) {
 		if(a==0) {
-			make_axis_color(col, col2, 'x');
-			glColor3ubv(col2);
+			/* check for the 'show X axis' preference */
+			if (vd->gridflag & V3D_SHOW_X) { 
+				make_axis_color(col, col2, 'x');
+				glColor3ubv(col2);
+				
+				draw_line = 1;
+			} else if (vd->gridflag & V3D_SHOW_FLOOR) {
+				BIF_ThemeColorShade(TH_GRID, -10);
+			} else {
+				draw_line = 0;
+			}
+		} else {
+			/* check for the 'show grid floor' preference */
+			if (vd->gridflag & V3D_SHOW_FLOOR) {
+				if( (a % 10)==0) {
+					BIF_ThemeColorShade(TH_GRID, -10);
+				}
+				else BIF_ThemeColorShade(TH_GRID, 10);
+				
+				draw_line = 1;
+			} else {
+				draw_line = 0;
+			}
 		}
-		else if( (a % 10)==0) {
-			BIF_ThemeColorShade(TH_GRID, -10);
+		
+		if (draw_line) {
+			glBegin(GL_LINE_STRIP);
+	        vert[1]= a*vd->grid;
+	        vert[0]= grid;
+	        glVertex3fv(vert );
+	        vert[0]= -grid;
+	        glVertex3fv(vert);
+			glEnd();
 		}
-		else BIF_ThemeColorShade(TH_GRID, 10);
+	}
 	
+	/* draw the Z axis line */	
+	/* check for the 'show Z axis' preference */
+	if (vd->gridflag & V3D_SHOW_Z) {
+		make_axis_color(col, col2, 'z');
+		glColor3ubv(col2);
+		
 		glBegin(GL_LINE_STRIP);
-        vert[1]= a*vd->grid;
-        vert[0]= grid;
-        glVertex3fv(vert );
-        vert[0]= -grid;
-        glVertex3fv(vert);
+		vert[0]= 0;
+		vert[1]= 0;
+		vert[2]= grid;
+		glVertex3fv(vert );
+		vert[2]= -grid;
+		glVertex3fv(vert);
 		glEnd();
 	}
 
@@ -1417,7 +1472,7 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_background", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
-	if(uiNewPanel(curarea, block, "Background", "View3d", 340, 10, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
 
 	if(vd->flag & V3D_DISPBGPIC) {
 		if(vd->bgpic==0) {
@@ -1426,43 +1481,73 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 			vd->bgpic->blend= 0.5;
 		}
 	}
-	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "BackGroundPic",	10,160,150,20 , &vd->flag, 0, 0, 0, 0, "Display a picture in the 3D background");
 	
-	if(vd->bgpic) {
+	uiDefButBitS(block, TOG, V3D_DISPBGPIC, REDRAWVIEW3D, "Use Background Image", 0, 162, 200, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
+	
+	uiDefBut(block, LABEL, 1, " ",	206, 162, 84, 20, NULL, 0.0, 0.0, 0, 0, "");
+	
+	
+	if(vd->flag & V3D_DISPBGPIC) {
+
+		/* Background Image */
+		uiDefBut(block, LABEL, 1, "Image:",	0, 128, 76, 19, NULL, 0.0, 0.0, 0, 0, "");
 		
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:", 		160,160,150,20, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size for the width of the BackGroundPic");
-		
+		uiBlockBeginAlign(block);
+		uiDefIconBut(block, BUT, B_LOADBGPIC, ICON_FILESEL,	90, 128, 20, 20, 0, 0, 0, 0, 0, "Open a new background image");
+
 		id= (ID *)vd->bgpic->ima;
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(vd->menunr));
 		if(strp[0]) {
-			uiBlockBeginAlign(block);
-			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	10,130,20,20, &(vd->menunr), 0, 0, 0, 0, "Browse");
+		
+			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	110, 128, 20, 20, &(vd->menunr), 0, 0, 0, 0, "Select a background image");
 		
 			if(vd->bgpic->ima)  {
-				uiDefBut(block, TEX,	    0,"BGpic: ",		30,130,260,20,&vd->bgpic->ima->name,0.0,100.0, 0, 0, "The Selected BackGroundPic");
-				uiDefIconBut(block, BUT, B_BGPICCLEAR, ICON_X, 	290,130,20,20, 0, 0, 0, 0, 0, "Remove background image link");
+				uiDefBut(block, TEX,	    0,"BG: ",		130, 128, 140, 20, &vd->bgpic->ima->name,0.0,100.0, 0, 0, "The currently selected background image");
+				uiDefIconBut(block, BUT, B_BGPICCLEAR, ICON_X, 270, 128, 20, 20, 0, 0, 0, 0, 0, "Remove background image link");
 			}
+			uiBlockEndAlign(block);
+		} else {
 			uiBlockEndAlign(block);
 		}
 		MEM_freeN(strp);
 
-		uiDefBut(block, BUT,	    B_LOADBGPIC, "LOAD",	10,100,100,20, 0, 0, 0, 0, 0, "Specify the BackGroundPic");
-		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,100,190,20,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
-		
-		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,70,140,20,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
-		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,70,140,20,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
 
-		/* texture block: */
+		/* Background texture */
+		uiDefBut(block, LABEL, 1, "Texture:",	0, 100, 76, 19, NULL, 0.0, 0.0, 0, 0, "");
+		
 		id= (ID *)vd->bgpic->tex;
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(vd->texnr));
-		if (strp[0]) 
-			uiDefButS(block, MENU, B_BGPICTEX, strp,			10, 50, 20,20, &(vd->texnr), 0, 0, 0, 0, "Select texture for animated backgroundimage");
+		if (strp[0])
+			uiBlockBeginAlign(block);
+			uiDefButS(block, MENU, B_BGPICTEX, strp,			90, 100, 20,20, &(vd->texnr), 0, 0, 0, 0, "Select a texture to use as an animated background image");
 		MEM_freeN(strp);
 		
 		if (id) {
-			uiDefBut(block, TEX, B_IDNAME, "TE:",				30,50,260,20, id->name+2, 0.0, 18.0, 0, 0, "");
-			uiDefIconBut(block, BUT, B_BGPICTEXCLEAR, ICON_X, 	290,50,20,20, 0, 0, 0, 0, 0, "Remove background texture link");
+			uiDefBut(block, TEX, B_IDNAME, "TE:",				110, 100, 160, 20, id->name+2, 0.0, 18.0, 0, 0, "");
+			uiDefIconBut(block, BUT, B_BGPICTEXCLEAR, ICON_X, 	270, 100, 20, 20, 0, 0, 0, 0, 0, "Remove background texture link");
+			uiBlockEndAlign(block);
+		} else {
+			uiBlockEndAlign(block);
 		}
+
+		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	0, 60 , 290, 19, &vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the transparency of the background image");
+
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",		0, 28, 140, 19, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size (width) of the background image");
+
+		uiDefButF(block, NUM, REDRAWVIEW3D, "X Offset:",	0, 6, 140, 19, &vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the horizontal offset of the background image");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Y Offset:",	150, 6, 140, 19, &vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the vertical offset of the background image");
+
+	
+		
+		// uiDefButF(block, NUM, REDRAWVIEW3D, "Size:", 		160,160,150,20, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size for the width of the BackGroundPic");
+		
+
+
+//		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,100,190,20,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
+		
+//		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,70,140,20,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
+//		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,70,140,20,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
+
 	}
 }
 
@@ -1477,16 +1562,26 @@ static void view3d_panel_properties(cntrl)	// VIEW3D_HANDLER_SETTINGS
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "3D Viewport properties", "View3d", 10, 10, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "View Properties", "View3d", 340, 10, 318, 204)==0) return;
 
+	uiDefBut(block, LABEL, 1, "Grid:",	0, 162, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Grid:",			10, 50, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between gridlines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "GridLines:",		160, 50, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",			10, 30, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "Set the lens for the perspective view");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",			0, 140, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		150, 140, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+
+	uiDefBut(block, LABEL, 1, "3D Grid:",	0, 110, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipStart:",		10, 10, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set startvalue in perspective view mode");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "ClipEnd:",			160, 10, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set endvalue in perspective view mode");
+	uiDefButBitS(block, TOG, V3D_SHOW_FLOOR, REDRAWVIEW3D, "Grid Floor",	0, 88, 90, 19, &vd->gridflag, 0, 0, 0, 0, "Show the grid floor in free camera mode");
+	uiDefButBitS(block, TOG, V3D_SHOW_X, REDRAWVIEW3D, "X Axis",	102, 88, 60, 19, &vd->gridflag, 0, 0, 0, 0, "Show the X Axis line");
+	uiDefButBitS(block, TOG, V3D_SHOW_Y, REDRAWVIEW3D, "Y Axis",	166, 88, 60, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
+	uiDefButBitS(block, TOG, V3D_SHOW_Z, REDRAWVIEW3D, "Z Axis",	230, 88, 60, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
 
+	uiDefBut(block, LABEL, 1, "View Camera:",	0, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",			0, 28, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
+	
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",		0, 6, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",			150, 6, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
 
 }
 
