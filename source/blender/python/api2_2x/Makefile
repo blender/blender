@@ -52,4 +52,5 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../include
 CPPFLAGS += -I$(NAN_BMFONT)/include
+CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
