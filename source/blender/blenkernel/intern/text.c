@@ -147,6 +147,7 @@ void free_text(Text *text)
 
 	if(text->name) MEM_freeN(text->name);
 	MEM_freeN(text->undo_buf);
+	if (text->compiled) BPY_free_compiled_text(text);
 }
 
 Text *add_empty_text(void) 

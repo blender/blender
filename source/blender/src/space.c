@@ -3070,6 +3070,19 @@ void init_textspace(ScrArea *sa)
 	st->top= 0;
 }
 
+void init_scriptspace(ScrArea *sa)
+{
+	SpaceScript *sc;
+
+	sc = MEM_callocN(sizeof(SpaceScript), "initscriptspace");
+	BLI_addhead(&sa->spacedata, sc);
+
+	sc->spacetype = SPACE_SCRIPT;
+
+	sc->script = NULL;
+	sc->flags = 0;
+}
+
 void init_imaselspace(ScrArea *sa)
 {
 	SpaceImaSel *simasel;
@@ -3477,6 +3490,11 @@ void init_oopsspace(ScrArea *sa)
 extern void drawtextspace(ScrArea *sa, void *spacedata);
 extern void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
+/* ******************** SPACE: Script ********************** */
+
+extern void drawscriptspace(ScrArea *sa, void *spacedata);
+extern void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
+
 /* ******************** SPACE: ALGEMEEN ********************** */
 
 void newspace(ScrArea *sa, int type)
@@ -3531,6 +3549,8 @@ void newspace(ScrArea *sa, int type)
 					init_actionspace(sa);
 				else if(type==SPACE_TEXT)
 					init_textspace(sa);
+				else if(type==SPACE_SCRIPT)
+					init_scriptspace(sa);
 				else if(type==SPACE_SOUND)
 					init_soundspace(sa);
 				else if(type==SPACE_NLA)
@@ -3610,6 +3630,9 @@ void freespacelist(ListBase *lb)
 		}
 		else if(sl->spacetype==SPACE_TEXT) {
 			free_textspace((SpaceText *)sl);
+		}
+		else if(sl->spacetype==SPACE_SCRIPT) {
+			free_scriptspace((SpaceScript *)sl);
 		}
 		else if(sl->spacetype==SPACE_SOUND) {
 			free_soundspace((SpaceSound *)sl);
@@ -3875,6 +3898,11 @@ void allqueue(unsigned short event, short val)
 				break;
 			case REDRAWTEXT:
 				if(sa->spacetype==SPACE_TEXT) {
+					scrarea_queue_winredraw(sa);
+				}
+				break;
+			case REDRAWSCRIPT:
+				if (sa->spacetype==SPACE_SCRIPT) {
 					scrarea_queue_winredraw(sa);
 				}
 				break;
@@ -4158,6 +4186,17 @@ SpaceType *spacetext_get_type(void)
 	if (!st) {
 		st= spacetype_new("Text");
 		spacetype_set_winfuncs(st, drawtextspace, NULL, winqreadtextspace);
+	}
+
+	return st;
+}
+SpaceType *spacescript_get_type(void)
+{
+	static SpaceType *st = NULL;
+
+	if (!st) {
+		st = spacetype_new("Script");
+		spacetype_set_winfuncs(st, drawscriptspace, NULL, winqreadscriptspace);
 	}
 
 	return st;

@@ -1,14 +1,5 @@
 /**
- * blenlib/BKE_main.h (mar-2001 nzc)
  *
- * Main is the root of the 'database' of a Blender context. All data
- * is stuffed into lists, and all these lists are knotted to here. A
- * Blender file is not much more but a binary dump of these
- * lists. This list of lists is not serialized itself.
- *
- * Oops... this should be a _types.h file.
- *
- * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -32,51 +23,23 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * This is a new part of Blender.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Willian P. Germano.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#ifndef BKE_MAIN_H
-#define BKE_MAIN_H
 
-#include "DNA_listBase.h"
+#ifndef BIF_DRAWSCRIPT_H
+#define BIF_DRAWSCRIPT_H
 
-struct Library;
+struct ScrArea;
+struct SpaceScript;
+struct Script;
 
-typedef struct Main {
-	struct Main *next, *prev;
-	char name[160];
-	short versionfile, rt;
-	struct Library *curlib;
-	ListBase scene;
-	ListBase library;
-	ListBase object;
-	ListBase mesh;
-	ListBase curve;
-	ListBase mball;
-	ListBase mat;
-	ListBase tex;
-	ListBase image;
-	ListBase ika;
-	ListBase wave;
-	ListBase latt;
-	ListBase lamp;
-	ListBase camera;
-	ListBase ipo;
-	ListBase key;
-	ListBase world;
-	ListBase screen;
-	ListBase script;
-	ListBase vfont;
-	ListBase text;
-	ListBase sound;
-	ListBase group;
-	ListBase armature;	/* NLA */
-	ListBase action;	/* NLA */
-} Main;
+void unlink_script(struct Script *script);
 
+void init_scriptspace(struct ScrArea *sa);
+void free_scriptspace(struct SpaceScript *sc);
 
-#endif
-
+#endif /* BIF_DRAWSCRIPT_H */

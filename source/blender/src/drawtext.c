@@ -543,11 +543,6 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	float col[3];
 	int linecount = 0;
 
-	if (BPY_spacetext_is_pywin(st)) {
-		BPY_spacetext_do_pywin_draw(st);
-		return;
-	}
-	
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -983,11 +978,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	SpaceText *st= curarea->spacedata.first;
 	Text *text= st->text;
 	int do_draw=0, p;
-
-	if (BPY_spacetext_is_pywin(st)) {
-		BPY_spacetext_do_pywin_event(st, event, val);
-		return;
-	}
 
 	/* smartass code to prevent the events below from not working! */
 	if (!isprint(ascii) || (G.qual & ~LR_SHIFTKEY)) ascii= 0;

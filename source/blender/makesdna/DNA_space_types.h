@@ -42,6 +42,7 @@
 struct Ipo;
 struct ID;
 struct Text;
+struct Script;
 struct ImBuf;
 struct Image;
 struct SpaceIpo;
@@ -250,12 +251,19 @@ typedef struct SpaceText {
 	float pix_per_line;
 
 	struct rcti txtscroll, txtbar;
-	
-	void *py_draw;
-	void *py_event;
-	void *py_button;
-	void *py_globaldict;
+
 } SpaceText;
+
+typedef struct SpaceScript {
+	SpaceLink *next, *prev;
+	int spacetype, pad1;
+	struct ScrArea *area;
+	struct Script *script;
+
+	int pad2;
+	short flags, menunr;
+
+} SpaceScript;
 
 #
 #

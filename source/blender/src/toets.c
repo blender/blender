@@ -521,6 +521,7 @@ int blenderqread(unsigned short event, short val)
 	if (G.flags & G_FLAGS_AUTOPLAY) return 1;
 
 	if (curarea && curarea->spacetype==SPACE_TEXT) textspace= 1;
+	else if (curarea && curarea->spacetype==SPACE_SCRIPT) textspace= 1;
 
 	switch(event) {
 
@@ -798,7 +799,7 @@ int blenderqread(unsigned short event, short val)
 		break;
 
 	case NKEY:
-		if(textediting==0 && textspace==0 ) {
+		if(textediting==0 && textspace==0) {
 			if(G.qual & LR_CTRLKEY);
 			else if(G.qual==0 || (G.qual & LR_SHIFTKEY)) {
 				if(curarea->spacetype==SPACE_VIEW3D);		// is new panel, in view3d queue

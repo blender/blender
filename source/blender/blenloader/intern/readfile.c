@@ -2477,11 +2477,12 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceText *st= (SpaceText *)sl;
 				
 						st->text= newlibadr(fd, sc->id.lib, st->text);
-						
-						st->py_draw= NULL;
-						st->py_event= NULL;
-						st->py_button= NULL;
-						st->py_globaldict= NULL;
+
+					}
+					else if(sl->spacetype==SPACE_SCRIPT) {
+						SpaceScript *sc= (SpaceScript *)sl;
+
+						sc->script = NULL;
 					}
 					else if(sl->spacetype==SPACE_OOPS) {
 						SpaceOops *so= (SpaceOops *)sl;

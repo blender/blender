@@ -62,7 +62,7 @@ static PyObject *M_sys_dirname (PyObject *self, PyObject *args)
 {
   PyObject *c;
 
-  char *name, dirname[256];
+  char *name, *p, dirname[256];
   char sep;
   int n;
 
@@ -74,14 +74,20 @@ static PyObject *M_sys_dirname (PyObject *self, PyObject *args)
   sep = PyString_AsString(c)[0];
   Py_DECREF(c);
 
-  n = strrchr(name, sep) - name;
-  if (n > 255) {
-    PyErr_SetString(PyExc_RuntimeError, "path too long");
-    return 0;
-  }
+  p = strrchr(name, sep);
 
-  strncpy(dirname, name, n);
-  dirname[n] = 0;
+  if (p) {
+		n = p - name;
 
-  return Py_BuildValue("s", dirname);
+		if (n > 255) {
+			PyErr_SetString(PyExc_RuntimeError, "path too long");
+			return 0;
+		}
+
+  	strncpy(dirname, name, n);
+  	dirname[n] = 0;
+  	return Py_BuildValue("s", dirname);
+	}
+
+	return Py_BuildValue("s", "."); /* XXX need to fix this? (is crossplatform?)*/
 }

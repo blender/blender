@@ -92,6 +92,7 @@ SpaceType *spacetype_from_code(int spacecode)
 	case SPACE_SEQ:		return spaceseq_get_type();
 	case SPACE_SOUND:	return spacesound_get_type();
 	case SPACE_TEXT:	return spacetext_get_type();
+	case SPACE_SCRIPT:return spacescript_get_type();
 	case SPACE_VIEW3D:	return spaceview3d_get_type();
 	default:
 		return NULL;

@@ -71,6 +71,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_script_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
@@ -1410,6 +1411,12 @@ void filesel_prevspace()
 		BLI_addtail(&curarea->spacedata, sfile);
 
 		sfile= curarea->spacedata.first;
+
+		if (sfile->spacetype == SPACE_SCRIPT) {
+			SpaceScript *sc = (SpaceScript *)sfile;
+			if (sc->script) sc->script->flags &=~SCRIPT_FILESEL;
+		}
+
 		newspace(curarea, sfile->spacetype);
 	}
 	else newspace(curarea, SPACE_INFO);

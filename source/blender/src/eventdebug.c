@@ -66,6 +66,7 @@ char *event_to_string(short evt) {
 	smap(IMALEFTMOUSE);
 	smap(AFTERPIBREAD);
 	smap(REDRAWTEXT);
+	smap(REDRAWSCRIPT);
 	smap(REDRAWACTION);
 	smap(LEFTMOUSE);
 	smap(MIDDLEMOUSE);

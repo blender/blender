@@ -30,6 +30,7 @@
 */
 
 #include "gen_utils.h"
+#include "constant.h"
 
 /*****************************************************************************/
 /* Description: This function clamps an int to the given interval            */
@@ -184,12 +185,8 @@ PyObject *EXPP_tuple_repr(PyObject *self, int size)
 		Py_DECREF(item);
 	}
 
-
 	return repr;
-
 }
-
-
 
 /****************************************************************************/
 /* Description: searches through a map for a pair with a given name. If the */
@@ -238,20 +235,16 @@ int EXPP_map_getShortVal (const EXPP_map_pair *map,
 /*              and nonzero is returned. If the pair is absent, zero is     */
 /*              returned.                                                   */
 /****************************************************************************/
-int EXPP_map_getStrVal (const EXPP_map_pair *map,
-                                        int ival, const char **sval)
+int EXPP_map_getStrVal (const EXPP_map_pair *map, int ival, const char **sval)
 {
-    while (map->sval)
+  while (map->sval)
+  {
+    if (ival == map->ival)
     {
-        if (ival == map->ival)
-        {
-            *sval = map->sval;
-            return 1;
-        }
-        ++map;
+      *sval = map->sval;
+      return 1;
     }
-    return 0;
+    ++map;
+  }
+  return 0;
 }
-
-
-

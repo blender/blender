@@ -33,6 +33,8 @@
 #define EXPP_gen_utils_h
 
 #include <Python.h>
+#include "compile.h"
+#include "eval.h" /* for PyEval_GetLocals */
 #include <stdio.h>
 #include <string.h>
 
@@ -41,6 +43,7 @@
 #include <DNA_ID.h>
 #include <DNA_object_types.h>
 #include <DNA_material_types.h>
+#include <DNA_script_types.h>
 #include <DNA_scriptlink_types.h>
 #include <DNA_listBase.h>
 
@@ -62,7 +65,6 @@ int EXPP_ReturnIntError (PyObject *type, char *error_msg);
 
 int EXPP_check_sequence_consistency (PyObject *seq, PyTypeObject *against);
 PyObject *EXPP_tuple_repr(PyObject *self, int size);
-
 
 /* mapping utilities - see Texture.c for an example of how to use these */
 typedef struct {

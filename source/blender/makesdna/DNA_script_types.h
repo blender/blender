@@ -1,13 +1,6 @@
 /**
- * blenlib/BKE_main.h (mar-2001 nzc)
- *
- * Main is the root of the 'database' of a Blender context. All data
- * is stuffed into lists, and all these lists are knotted to here. A
- * Blender file is not much more but a binary dump of these
- * lists. This list of lists is not serialized itself.
- *
- * Oops... this should be a _types.h file.
- *
+ * blenlib/DNA_script_types.h (mar-2001 nzc)
+ *	
  * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -32,51 +25,45 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * This is a new part of Blender.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Willian P. Germano.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#ifndef BKE_MAIN_H
-#define BKE_MAIN_H
+
+#ifndef DNA_SCRIPT_TYPES_H
+#define DNA_SCRIPT_TYPES_H
 
 #include "DNA_listBase.h"
+#include "DNA_ID.h"
 
-struct Library;
+typedef struct Script {
+	ID id;
 
-typedef struct Main {
-	struct Main *next, *prev;
-	char name[160];
-	short versionfile, rt;
-	struct Library *curlib;
-	ListBase scene;
-	ListBase library;
-	ListBase object;
-	ListBase mesh;
-	ListBase curve;
-	ListBase mball;
-	ListBase mat;
-	ListBase tex;
-	ListBase image;
-	ListBase ika;
-	ListBase wave;
-	ListBase latt;
-	ListBase lamp;
-	ListBase camera;
-	ListBase ipo;
-	ListBase key;
-	ListBase world;
-	ListBase screen;
-	ListBase script;
-	ListBase vfont;
-	ListBase text;
-	ListBase sound;
-	ListBase group;
-	ListBase armature;	/* NLA */
-	ListBase action;	/* NLA */
-} Main;
+	char *filename; /* NULL for Blender Text scripts */
 
+	void *py_draw;
+	void *py_event;
+	void *py_button;
+	void *py_globaldict;
 
-#endif
+	int flags, lastspace;
 
+} Script;
+
+/* Note: a script that registers callbacks in the script->py_* pointers
+ * above (or calls the file or image selectors) needs to keep its global
+ * dictionary until Draw.Exit() is called and the callbacks removed.
+ * Unsetting SCRIPT_RUNNING means the interpreter reached the end of the
+ * script and returned control to Blender, but we can't get rid of its
+ * namespace (global dictionary) while SCRIPT_GUI or SCRIPT_FILESEL is set,
+ * because of the callbacks.  The flags and the script name are saved in
+ * each running script's global dictionary, under '__script__'. */
+
+/* Flags */
+#define SCRIPT_RUNNING	0x01
+#define SCRIPT_GUI			0x02
+#define SCRIPT_FILESEL	0x04
+
+#endif /* DNA_SCRIPT_TYPES_H */

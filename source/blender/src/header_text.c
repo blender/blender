@@ -508,28 +508,26 @@ void text_buttons(void)
 
 
 	/* STD TEXT BUTTONS */
-	if (!BPY_spacetext_is_pywin(st)) {
-		xco+= 2*XIC;
-		xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXTBROWSE, (ID*)st->text, 0, &(st->menunr), 0, 0, B_TEXTDELETE, 0, 0);
+	xco+= 2*XIC;
+	xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXTBROWSE, (ID*)st->text, 0, &(st->menunr), 0, 0, B_TEXTDELETE, 0, 0);
 
-		/*
-		if (st->text) {
-			if (st->text->flags & TXT_ISDIRTY && (st->text->flags & TXT_ISEXT || !(st->text->flags & TXT_ISMEM)))
-				uiDefIconBut(block, BUT,0, ICON_ERROR, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "The text has been changed");
-			if (st->text->flags & TXT_ISEXT) 
-				uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Stores text in project file");
-			else 
-				uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Disables storing of text in project file");
-			xco+=10;
-		}
-		*/		
-
-		xco+=XIC;
-		if(st->font_id>1) st->font_id= 0;
-		uiDefButI(block, MENU, B_TEXTFONT, "Screen 12 %x0|Screen 15%x1", xco,0,100,YIC, &st->font_id, 0, 0, 0, 0, "Displays available fonts");
-		xco+=100;
+	/*
+	if (st->text) {
+		if (st->text->flags & TXT_ISDIRTY && (st->text->flags & TXT_ISEXT || !(st->text->flags & TXT_ISMEM)))
+			uiDefIconBut(block, BUT,0, ICON_ERROR, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "The text has been changed");
+		if (st->text->flags & TXT_ISEXT) 
+			uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Stores text in project file");
+		else 
+			uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Disables storing of text in project file");
+		xco+=10;
 	}
-	
+	*/		
+
+	xco+=XIC;
+	if(st->font_id>1) st->font_id= 0;
+	uiDefButI(block, MENU, B_TEXTFONT, "Screen 12 %x0|Screen 15%x1", xco,0,100,YIC, &st->font_id, 0, 0, 0, 0, "Displays available fonts");
+	xco+=100;
+
 	/* always as last  */
 	curarea->headbutlen= xco+2*XIC;
 

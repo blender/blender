@@ -235,6 +235,7 @@
 #define REDRAWSOUND			0x402F
 #define REDRAWACTION		0x4030
 #define REDRAWNLA			0x4031
+#define REDRAWSCRIPT	0x4032
 
 #endif	/* !__MYDEVICE_H__ */
 

@@ -33,7 +33,10 @@
 
 #include <Python.h>
 
+#include <BIF_space.h>
+#include <BIF_screen.h>
 #include <BKE_global.h>
+#include <BKE_library.h>
 #include <BKE_main.h>
 #include <DNA_ID.h>
 #include <DNA_camera_types.h>
@@ -41,7 +44,10 @@
 #include <DNA_material_types.h>
 #include <DNA_object_types.h>
 #include <DNA_scene_types.h>
+#include <DNA_screen_types.h>
+#include <DNA_script_types.h>
 #include <DNA_scriptlink_types.h>
+#include <DNA_space_types.h>
 #include <DNA_world_types.h>
 
 #include "EXPP_interface.h"
@@ -176,4 +182,43 @@ TODO: Check this */
       Py_BuildValue("s", event_to_name(event)));
 
   return (scriptlink);
+}
+
+void BPY_clear_script (Script *script)
+{
+	if (!script) return;
+
+	Py_XDECREF((PyObject *)script->py_globaldict);
+	Py_XDECREF((PyObject *)script->py_button);
+	Py_XDECREF((PyObject *)script->py_event);
+	Py_XDECREF((PyObject *)script->py_draw);
+}
+
+void EXPP_move_to_spacescript (Script *script)
+{ /* used by BPY_txt_do_python when a text is already being executed */
+	SpaceScript *sc;
+	newspace(curarea, SPACE_SCRIPT);
+	sc = curarea->spacedata.first;
+	sc->script = script;
+	return;
+}
+
+/*****************************************************************************/
+/* Description: This function frees a finished (flags == 0) script.          */
+/*****************************************************************************/
+void BPY_free_finished_script(Script *script)
+{
+	PyObject *d = script->py_globaldict;
+
+	if (d) {
+  	PyDict_Clear (d);
+  	Py_DECREF (d);   /* Release dictionary. */
+		script->py_globaldict = NULL;
+	}
+
+	if (script->lastspace != SPACE_SCRIPT)
+		newspace (curarea, script->lastspace);
+
+	free_libblock(&G.main->script, script);
+	return;
 }

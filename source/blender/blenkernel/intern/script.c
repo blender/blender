@@ -1,14 +1,7 @@
-/**
- * blenlib/BKE_main.h (mar-2001 nzc)
+/* script.c
  *
- * Main is the root of the 'database' of a Blender context. All data
- * is stuffed into lists, and all these lists are knotted to here. A
- * Blender file is not much more but a binary dump of these
- * lists. This list of lists is not serialized itself.
  *
- * Oops... this should be a _types.h file.
- *
- * $Id$ 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -32,51 +25,46 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * This is a new part of Blender.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Willian P. Germano.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#ifndef BKE_MAIN_H
-#define BKE_MAIN_H
 
-#include "DNA_listBase.h"
+#include "MEM_guardedalloc.h"
 
-struct Library;
+#include "DNA_script_types.h"
 
-typedef struct Main {
-	struct Main *next, *prev;
-	char name[160];
-	short versionfile, rt;
-	struct Library *curlib;
-	ListBase scene;
-	ListBase library;
-	ListBase object;
-	ListBase mesh;
-	ListBase curve;
-	ListBase mball;
-	ListBase mat;
-	ListBase tex;
-	ListBase image;
-	ListBase ika;
-	ListBase wave;
-	ListBase latt;
-	ListBase lamp;
-	ListBase camera;
-	ListBase ipo;
-	ListBase key;
-	ListBase world;
-	ListBase screen;
-	ListBase script;
-	ListBase vfont;
-	ListBase text;
-	ListBase sound;
-	ListBase group;
-	ListBase armature;	/* NLA */
-	ListBase action;	/* NLA */
-} Main;
+#include "BKE_script.h"
+#include "BIF_drawscript.h" /* for unlink_script */
 
+/*
+#include "BLI_blenlib.h"
+#include "BKE_bad_level_calls.h"
+#include "BKE_utildefines.h"
+#include "BKE_library.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 
+#include "BPY_extern.h" // Blender Python library
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
+*/
 
+void free_script (Script *script)
+{
+	if (!script) return;
+
+	if (script->py_globaldict || script->py_button ||
+			script->py_event || script->py_draw)
+	{
+		BPY_clear_script(script);
+	}
+
+	unlink_script (script); /* unlink from all visible SPACE_SCRIPTS */
+
+	return;
+}

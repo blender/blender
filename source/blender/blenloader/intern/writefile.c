@@ -1278,6 +1278,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_TEXT) {
 					writestruct(wd, DATA, "SpaceText", 1, sl);
 				}
+				else if(sl->spacetype==SPACE_SCRIPT) {
+					writestruct(wd, DATA, "SpaceScript", 1, sl);
+				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					writestruct(wd, DATA, "SpaceAction", 1, sl);
 				}

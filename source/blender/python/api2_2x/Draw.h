@@ -46,10 +46,12 @@
 #include "BMF_Api.h"
 
 #include "DNA_screen_types.h"
+#include "DNA_script_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
 #include "BKE_global.h"
+#include "BKE_library.h"
 
 #include "BIF_gl.h"
 #include "BIF_screen.h"
@@ -77,7 +79,6 @@ int g_window_redrawn;
 static char Draw_doc[] =
 "The Blender.Draw submodule";
 
-static void exit_pydraw (SpaceText *st);
 static uiBlock *Get_uiBlock (void);
 void initDraw (void);
 
@@ -119,13 +120,14 @@ static Button *newbutton (void);
 
 /* GUI interface routines */
 
-static void exit_pydraw(SpaceText *st);
-static void exec_callback(SpaceText *st, PyObject *callback, PyObject *args);
-void BPY_spacetext_do_pywin_draw(SpaceText *st);
-static void spacetext_do_pywin_buttons(SpaceText *st, unsigned short event);
-void BPY_spacetext_do_pywin_event(SpaceText *st,
-								unsigned short event, short val);
-int BPY_spacetext_is_pywin(SpaceText *sc);
+static void exit_pydraw(SpaceScript *sc, short error);
+static void exec_callback(SpaceScript *sc, PyObject *callback, PyObject *args);
+
+/* these are declared in ../BPY_extern.h */
+void BPY_spacescript_do_pywin_draw(SpaceScript *sc);
+static void spacescript_do_pywin_buttons(SpaceScript *sc, unsigned short event);
+void BPY_spacescript_do_pywin_event(SpaceScript *sc, unsigned short event, short val);
+void BPY_free_compiled_text(Text *text);
 
 static char Method_Exit_doc[] = 
 "() - Exit the windowing interface";

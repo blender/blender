@@ -126,6 +126,7 @@ typedef struct Library {
 #define ID_SEQ		MAKE_ID2('S', 'Q')
 #define ID_AR		MAKE_ID2('A', 'R')
 #define ID_AC		MAKE_ID2('A', 'C')
+#define ID_SCRIPT	MAKE_ID2('P', 'Y')
 
 #define IPO_CO		MAKE_ID2('C', 'O')	/* NOTE! This is not an ID, but is needed for g.sipo->blocktype */
 

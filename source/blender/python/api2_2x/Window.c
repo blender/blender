@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -31,90 +31,90 @@
 
 #include "Window.h"
 #include "vector.h"
+#include <BKE_library.h>
 
 /* Many parts of the code here come from the older bpython implementation
  * (file opy_window.c) */
 
 /*****************************************************************************/
-/* Function:              M_Window_Redraw                                    */
-/* Python equivalent:     Blender.Window.Redraw                              */
+/* Function:							M_Window_Redraw																		 */
+/* Python equivalent:			Blender.Window.Redraw															 */
 /*****************************************************************************/
 PyObject *M_Window_Redraw(PyObject *self, PyObject *args)
 { /* not static so py_slider_update in Draw.[ch] can use it */
-  ScrArea *tempsa, *sa;
-  SpaceText *st;
-  int wintype = SPACE_VIEW3D;
-  short redraw_all = 0;
+	ScrArea *tempsa, *sa;
+	SpaceText *st;
+	int wintype = SPACE_VIEW3D;
+	short redraw_all = 0;
 
-  if (!PyArg_ParseTuple(args, "|i", &wintype))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected int argument (or nothing)"));
+	if (!PyArg_ParseTuple(args, "|i", &wintype))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+						"expected int argument (or nothing)"));
 
-  if (wintype < 0)
-    redraw_all = 1;
+	if (wintype < 0)
+		redraw_all = 1;
 
-  if (!during_script()) { /* XXX check this */
-    tempsa= curarea;
-    sa = G.curscreen->areabase.first;
+	if (!during_script()) { /* XXX check this */
+		tempsa= curarea;
+		sa = G.curscreen->areabase.first;
 
-    while (sa) {
+		while (sa) {
 
-      if (sa->spacetype == wintype || redraw_all) {
-        /* don't force-redraw Text window (Python GUI) when
-           redraw is called out of a slider update */
-        if (sa->spacetype == SPACE_TEXT) {
-          st = sa->spacedata.first;
-          if (st->text->flags & TXT_FOLLOW) /* follow cursor display */
-            pop_space_text(st);
-          if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
-            scrarea_queue_redraw(sa);
-          }
+			if (sa->spacetype == wintype || redraw_all) {
+				/* don't force-redraw Text window (Python GUI) when
+					 redraw is called out of a slider update */
+				if (sa->spacetype == SPACE_TEXT) {
+					st = sa->spacedata.first;
+					if (st->text->flags & TXT_FOLLOW) /* follow cursor display */
+						pop_space_text(st);
+					if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
+						scrarea_queue_redraw(sa);
+					}
 
+				} else {
+					scrarea_do_windraw(sa);
+					if (sa->headwin) scrarea_do_headdraw(sa);
+				}
+			}
 
-        } else {
-          scrarea_do_windraw(sa);
-          if (sa->headwin) scrarea_do_headdraw(sa);
-        }
-      }
+			sa= sa->next;
+		}
 
-      sa= sa->next;
-    }
+		if (curarea != tempsa) areawinset (tempsa->win);
 
-    if (curarea != tempsa) areawinset (tempsa->win);
+		if (curarea->headwin) scrarea_do_headdraw (curarea);
 
-    if (curarea->headwin) scrarea_do_headdraw (curarea);
+		screen_swapbuffers();
+	}
 
-    screen_swapbuffers();
-  }
-
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_RedrawAll                                 */
-/* Python equivalent:     Blender.Window.RedrawAll                           */
+/* Function:							M_Window_RedrawAll																 */
+/* Python equivalent:			Blender.Window.RedrawAll													 */
 /*****************************************************************************/
 static PyObject *M_Window_RedrawAll(PyObject *self, PyObject *args)
 {
-  return M_Window_Redraw(self, Py_BuildValue("(i)", -1));
+	return M_Window_Redraw(self, Py_BuildValue("(i)", -1));
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_QRedrawAll                                */
-/* Python equivalent:     Blender.Window.QRedrawAll                          */
+/* Function:							M_Window_QRedrawAll																 */
+/* Python equivalent:			Blender.Window.QRedrawAll													 */
 /*****************************************************************************/
 static PyObject *M_Window_QRedrawAll(PyObject *self, PyObject *args)
 {
-  allqueue(REDRAWALL, 0);
+	allqueue(REDRAWALL, 0);
 
-  Py_INCREF(Py_None);
-  return Py_None;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_FileSelector                              */
-/* Python equivalent:     Blender.Window.FileSelector                        */
+/* Function:							M_Window_FileSelector															 */
+/* Python equivalent:			Blender.Window.FileSelector												 */
 /*****************************************************************************/
 
 /* This is the callback to "activate_fileselect" below.  It receives the
@@ -123,101 +123,147 @@ static PyObject *M_Window_QRedrawAll(PyObject *self, PyObject *args)
 
 static void getSelectedFile(char *name)
 {
-  if (EXPP_FS_PyCallback) {
-    SpaceText *st= curarea->spacedata.first;
+	if (!EXPP_FS_PyCallback) return;
 
-    PyObject_CallFunction((PyObject *)EXPP_FS_PyCallback, "s", name);
+	PyObject_CallFunction((PyObject *)EXPP_FS_PyCallback, "s", name);
 
-    EXPP_FS_PyCallback = NULL;
-    st->flags &= ST_CLEAR_NAMESPACE; /* global dict can be cleared */
-  }
+	EXPP_FS_PyCallback = NULL;
+
+	return;
 }
 
 static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 {
-  char *title = "SELECT FILE";
-  SpaceText *st = curarea->spacedata.first;
+	char *title = "SELECT FILE";
+	SpaceScript *sc;
+	Script *script = G.main->script.last;
+	int startspace = 0;
 
-  if (!PyArg_ParseTuple(args, "O!|s",
-                        &PyFunction_Type, &EXPP_FS_PyCallback, &title))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-    "\nexpected a callback function (and optionally a string) as argument(s)"));
+	if (!PyArg_ParseTuple(args, "O!|s", &PyFunction_Type, &EXPP_FS_PyCallback,
+				&title))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+		"\nexpected a callback function (and optionally a string) as argument(s)"));
 
-  st->flags &= ~ST_CLEAR_NAMESPACE; /* so global dict won't be cleared */
+/* trick: we move to a spacescript because then the fileselector will properly
+ * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
+ * selection.  This is necessary because when a user cancels, the
+ * getSelectedFile function above doesn't get called and so couldn't unset the
+ * flag. */
+	startspace = curarea->spacetype;
+	if (startspace != SPACE_SCRIPT) newspace (curarea, SPACE_SCRIPT);
 
-  activate_fileselect(FILE_BLENDER, title, G.sce, getSelectedFile);
+	sc = curarea->spacedata.first;
 
-  Py_INCREF(Py_None);
-  return Py_None;
+	/* did we get the right script? */
+	if (!(script->flags & SCRIPT_RUNNING)) {
+		/* if not running, then we were already on a SpaceScript space, executing
+		 * a registered callback -- aka: this script has a gui */
+		script = sc->script; /* this is the right script */
+	}
+	else { /* still running, use the trick */
+		script->lastspace = startspace;
+		sc->script = script;
+	}
+
+	script->flags |= SCRIPT_FILESEL;
+
+	activate_fileselect(FILE_BLENDER, title, G.sce, getSelectedFile);
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 static PyObject *M_Window_ImageSelector(PyObject *self, PyObject *args)
 {
-  char *title = "SELECT IMAGE";
-  SpaceText *st = curarea->spacedata.first;
+	char *title = "SELECT IMAGE";
+	SpaceScript *sc;
+	Script *script = G.main->script.last;
+	int startspace = 0;
 
-  if (!PyArg_ParseTuple(args, "O!|s",
-                        &PyFunction_Type, &EXPP_FS_PyCallback, &title))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-    "\nexpected a callback function (and optionally a string) as argument(s)"));
+	if (!PyArg_ParseTuple(args, "O!|s", &PyFunction_Type, &EXPP_FS_PyCallback,
+				&title))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+		"\nexpected a callback function (and optionally a string) as argument(s)"));
 
-  st->flags &= ~ST_CLEAR_NAMESPACE; /* hold global dictionary */
+/* trick: we move to a spacescript because then the fileselector will properly
+ * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
+ * selection.  This is necessary because when a user cancels, the
+ * getSelectedFile function above doesn't get called and so couldn't unset the
+ * flag. */
+	startspace = curarea->spacetype;
+	if (startspace != SPACE_SCRIPT) newspace (curarea, SPACE_SCRIPT);
 
-  activate_imageselect(FILE_BLENDER, title, G.sce, getSelectedFile);
+	sc = curarea->spacedata.first;
 
-  Py_INCREF(Py_None);
-  return Py_None;
+	/* did we get the right script? */
+	if (!(script->flags & SCRIPT_RUNNING)) {
+		/* if not running, then we're on a SpaceScript space, executing a
+		 * registered callback -- aka: this script has a gui */
+		SpaceScript *sc = curarea->spacedata.first;
+		script = sc->script; /* this is the right script */
+	}
+	else { /* still running, use the trick */
+		script->lastspace = startspace;
+		sc->script = script;
+	}
+
+	script->flags |= SCRIPT_FILESEL; /* same flag as filesel */
+
+	activate_imageselect(FILE_BLENDER, title, G.sce, getSelectedFile);
+
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_DrawProgressBar                           */
-/* Python equivalent:     Blender.Window.DrawProgressBar                     */
+/* Function:							M_Window_DrawProgressBar													 */
+/* Python equivalent:			Blender.Window.DrawProgressBar										 */
 /*****************************************************************************/
 static PyObject *M_Window_DrawProgressBar(PyObject *self, PyObject *args)
 {
-  float done;
-  char *info = NULL;
-  int retval;
+	float done;
+	char *info = NULL;
+	int retval;
 
-  if(!PyArg_ParseTuple(args, "fs", &done, &info))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected a float and a string as arguments"));
+	if(!PyArg_ParseTuple(args, "fs", &done, &info))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+						"expected a float and a string as arguments"));
 
-  retval = progress_bar(done, info);
+	retval = progress_bar(done, info);
 
-  return Py_BuildValue("i", retval);
+	return Py_BuildValue("i", retval);
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_GetCursorPos                              */
-/* Python equivalent:     Blender.Window.GetCursorPos                        */
+/* Function:							M_Window_GetCursorPos															 */
+/* Python equivalent:			Blender.Window.GetCursorPos												 */
 /*****************************************************************************/
 static PyObject *M_Window_GetCursorPos(PyObject *self)
 {
-  float *cursor = NULL;
-  PyObject *pylist;
+	float *cursor = NULL;
+	PyObject *pylist;
 
-  if (G.vd && G.vd->localview)
-    cursor = G.vd->cursor;
-  else cursor = G.scene->cursor;
+	if (G.vd && G.vd->localview)
+		cursor = G.vd->cursor;
+	else cursor = G.scene->cursor;
 
-  pylist = Py_BuildValue("[fff]", cursor[0], cursor[1], cursor[2]);
+	pylist = Py_BuildValue("[fff]", cursor[0], cursor[1], cursor[2]);
 
-  if (!pylist)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-            "GetCursorPos: couldn't create pylist"));
+	if (!pylist)
+		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"GetCursorPos: couldn't create pylist"));
 
-  return pylist;
+	return pylist;
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_SetCursorPos                              */
-/* Python equivalent:     Blender.Window.SetCursorPos                        */
+/* Function:							M_Window_SetCursorPos															 */
+/* Python equivalent:			Blender.Window.SetCursorPos												 */
 /*****************************************************************************/
 static PyObject *M_Window_SetCursorPos(PyObject *self, PyObject *args)
 {
 	int ok = 0;
-  float val[3];
+	float val[3];
 
 	if (PyObject_Length (args) == 3)
 		ok = PyArg_ParseTuple (args, "fff", &val[0], &val[1], &val[2]);
@@ -228,12 +274,12 @@ static PyObject *M_Window_SetCursorPos(PyObject *self, PyObject *args)
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
 									"expected [f,f,f] or f,f,f as arguments");
 
-  if (G.vd && G.vd->localview) {
+	if (G.vd && G.vd->localview) {
 		G.vd->cursor[0] = val[0];
 		G.vd->cursor[1] = val[1];
 		G.vd->cursor[2] = val[2];
 	}
-  else {
+	else {
 		G.scene->cursor[0] = val[0];
 		G.scene->cursor[1] = val[1];
 		G.scene->cursor[2] = val[2];
@@ -244,70 +290,70 @@ static PyObject *M_Window_SetCursorPos(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_GetViewVector                             */
-/* Python equivalent:     Blender.Window.GetViewVector                       */
+/* Function:							M_Window_GetViewVector														 */
+/* Python equivalent:			Blender.Window.GetViewVector											 */
 /*****************************************************************************/
 static PyObject *M_Window_GetViewVector(PyObject *self)
 {
 	float *vec = NULL;
-  PyObject *pylist;
+	PyObject *pylist;
 
-  if (!G.vd) {
+	if (!G.vd) {
 		Py_INCREF (Py_None);
 		return Py_None;
 	}
 
 	vec = G.vd->viewinv[2];
 
-  pylist = Py_BuildValue("[fff]", vec[0], vec[1], vec[2]);
+	pylist = Py_BuildValue("[fff]", vec[0], vec[1], vec[2]);
 
-  if (!pylist)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-            "GetViewVector: couldn't create pylist"));
+	if (!pylist)
+		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"GetViewVector: couldn't create pylist"));
 
-  return pylist;
+	return pylist;
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_GetViewMatrix                             */
-/* Python equivalent:     Blender.Window.GetViewMatrix                       */
+/* Function:							M_Window_GetViewMatrix														 */
+/* Python equivalent:			Blender.Window.GetViewMatrix											 */
 /*****************************************************************************/
 static PyObject *M_Window_GetViewMatrix(PyObject *self)
 {
 	PyObject *viewmat;
 
-  if (!G.vd) {
+	if (!G.vd) {
 		Py_INCREF (Py_None);
 		return Py_None;
 	}
 
 	viewmat = newMatrixObject (G.vd->viewmat);
 
-  if (!viewmat)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-            "GetViewMatrix: couldn't create matrix pyobject"));
+	if (!viewmat)
+		return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"GetViewMatrix: couldn't create matrix pyobject"));
 
-  return viewmat;
+	return viewmat;
 }
 
 /*****************************************************************************/
-/* Function:              Window_Init                                        */
+/* Function:							Window_Init																				 */
 /*****************************************************************************/
 PyObject *Window_Init (void)
 {
-  PyObject  *submodule, *Types;
+	PyObject	*submodule, *Types;
 
-  submodule = Py_InitModule3("Blender.Window", M_Window_methods, M_Window_doc);
+	submodule = Py_InitModule3("Blender.Window", M_Window_methods, M_Window_doc);
 
-  Types = Py_BuildValue("{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
-                  "VIEW3D", SPACE_VIEW3D, "IPO", SPACE_IPO, "OOPS", SPACE_OOPS,
-                  "BUTS", SPACE_BUTS, "FILE", SPACE_FILE, "IMAGE", SPACE_IMAGE,
-                  "INFO", SPACE_INFO, "SEQ", SPACE_SEQ, "IMASEL", SPACE_IMASEL,
-                  "SOUND", SPACE_SOUND, "ACTION", SPACE_ACTION,
-                  "TEXT", SPACE_TEXT, "NLA", SPACE_NLA);
+	Types = Py_BuildValue("{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
+		"VIEW3D", SPACE_VIEW3D, "IPO", SPACE_IPO, "OOPS", SPACE_OOPS,
+		"BUTS", SPACE_BUTS, "FILE", SPACE_FILE, "IMAGE", SPACE_IMAGE,
+		"INFO", SPACE_INFO, "SEQ", SPACE_SEQ, "IMASEL", SPACE_IMASEL,
+		"SOUND", SPACE_SOUND, "ACTION", SPACE_ACTION,
+		"TEXT", SPACE_TEXT, "NLA", SPACE_NLA, "SCRIPT", SPACE_SCRIPT);
 
-  if (Types) PyModule_AddObject(submodule, "Types", Types);
+	if (Types) PyModule_AddObject(submodule, "Types", Types);
 
-  return submodule;
+	return submodule;
 }
 

@@ -78,6 +78,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_script_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
@@ -216,8 +217,12 @@ char *windowtype_pup(void)
 
 	strcat(string, "|%l"); //254
 
-	strcat(string, "|Image Browser %x10");
-	strcat(string, "|File Browser %x5");
+	strcat(string, "|Image Browser %x10"); //273
+	strcat(string, "|File Browser %x5"); //290
+
+	strcat(string, "|%l"); //293
+
+	strcat(string, "|Scripts Window %x14"); //313
 
 	return (string);
 }
@@ -302,6 +307,9 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			else if(curarea->spacetype==SPACE_TEXT) {
 				id= G.main->text.first;
 			}
+			else if(curarea->spacetype==SPACE_SCRIPT) {
+				id= G.main->script.first;
+			}
 		}
 		if(id) {
 			char *extrastr= NULL;
@@ -355,6 +363,9 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		}
 		else if(curarea->spacetype==SPACE_TEXT) {
 			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766 | ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+		}
+		else if(curarea->spacetype==SPACE_SCRIPT) {
+			uiDefButS(block, MENU, browse, "No running scripts", xco, yco, XIC, YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 		}
 		else if(curarea->spacetype==SPACE_SOUND) {
 			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
@@ -2000,7 +2011,8 @@ void do_headerbuttons(short event)
 	else if(event<400) do_image_buttons(event);
 	else if(event<450) do_buts_buttons(event);
 	else if(event<500) do_imasel_buttons(event);
-	else if(event<550) do_text_buttons(event);
+	else if(event<525) do_text_buttons(event);
+	else if(event<550) do_script_buttons(event);
 	else if(event<600) do_file_buttons(event);
 	else if(event<650) do_seq_buttons(event);
 	else if(event<700) do_sound_buttons(event);

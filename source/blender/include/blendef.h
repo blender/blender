@@ -336,6 +336,9 @@
 #define B_TEXTSTORE		506
 #define B_TEXTLINENUM		507
 
+/* SCRIPT: 525 */
+#define B_SCRIPTBROWSE 526
+
 /* FILE: 550 */
 #define B_SORTFILELIST		551
 #define B_RELOADDIR		552

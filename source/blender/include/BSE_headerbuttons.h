@@ -37,7 +37,7 @@ struct uiBlock;
 struct ID;
 
 /* these used to be in blender/src/headerbuttons.c: */
-#define SPACEICONMAX  14 /* See release/datafiles/blenderbuttons */
+#define SPACEICONMAX  15 /* See release/datafiles/blenderbuttons */
 #define XIC 20
 #define YIC 20
 
@@ -83,6 +83,7 @@ void oops_buttons(void);
 void seq_buttons(void);
 void sound_buttons(void);
 void text_buttons(void);
+void script_buttons(void);
 void view3d_buttons(void);
 
 void do_global_buttons(unsigned short event);
@@ -101,6 +102,7 @@ void do_oops_buttons(short event);
 void do_seq_buttons(short event);
 void do_sound_buttons(unsigned short event);
 void do_text_buttons(unsigned short event);
+void do_script_buttons(unsigned short event);
 void do_view3d_buttons(short event); 
 
 void do_headerbuttons(short event);

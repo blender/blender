@@ -39,10 +39,10 @@
 #include <stdio.h>
 
 #include <MEM_guardedalloc.h>
-
 #include <BLI_blenlib.h> /* for BLI_last_slash() */
 
 #include <BKE_global.h>
+#include <BKE_library.h>
 #include <BKE_main.h>
 #include <BKE_text.h>
 #include <DNA_camera_types.h>
@@ -51,15 +51,17 @@
 #include <DNA_material_types.h>
 #include <DNA_object_types.h>
 #include <DNA_scene_types.h>
+#include <DNA_screen_types.h>
+#include <DNA_script_types.h>
 #include <DNA_scriptlink_types.h>
 #include <DNA_space_types.h>
 #include <DNA_text_types.h>
 #include <DNA_world_types.h>
-
 #include <DNA_userdef_types.h> /* for U.pythondir */
 
 #include "BPY_extern.h"
 #include "api2_2x/EXPP_interface.h"
+#include "api2_2x/constant.h"
 
 /* bpy_registryDict is declared in api2_2x/Registry.h and defined
  * here.  This Python dictionary will be used to store data that scripts
@@ -371,81 +373,77 @@ void BPY_Err_Handle(Text *text)
 /* Notes:       It is called by blender/src/drawtext.c when a Blender user   */
 /*              presses ALT+PKEY in the script's text window.                */
 /*****************************************************************************/
-struct _object *BPY_txt_do_python(struct SpaceText* st)
+int BPY_txt_do_python(struct SpaceText* st)
 {
-  PyObject *dict, *ret;
-  PyObject *main_dict = PyModule_GetDict(PyImport_AddModule("__main__"));
+  PyObject *py_dict, *py_result;
+	BPy_constant *tracer;
+	Script *script = G.main->script.first;
 
-  if (!st->text) return NULL;
+  if (!st->text) return 0;
 
-/* The EXPP_releaseGlobalDict global variable controls whether we should run
- * the script with a clean global dictionary or should keep the current one,
- * possibly already "polluted" by other calls to the Python Interpreter.
- * The default is to use a clean one.  To change this the script writer must
- * call Blender.ReleaseGlobalDict(bool), with bool == 0, in the script. */
+	/* check if this text is already running */
+	while (script) {
+		if (!strcmp(script->id.name+2, st->text->id.name+2)) {
+			/* if this text is already a running script, just move to it: */
+			EXPP_move_to_spacescript (script);
+			return 1;
+		}
+		script = script->id.next;
+	}
 
-  if (EXPP_releaseGlobalDict) {
-    printf("Using a clean Global Dictionary.\n");
-    st->flags |= ST_CLEAR_NAMESPACE;
-    dict = CreateGlobalDictionary();
-  }
-  else
-    dict = main_dict; /* must be careful not to free the main_dict */
+	/* Create a new script structure and initialize it: */
+	script = alloc_libblock(&G.main->script, ID_SCRIPT, GetName(st->text));
+
+	if (!script) {
+		printf("couldn't allocate memory for Script struct!");
+		return 0;
+	}
+
+	script->id.us = 1;
+	script->filename = NULL; /* it's a Blender Text script */
+	script->flags = SCRIPT_RUNNING;
+	script->py_draw = NULL;
+	script->py_event = NULL;
+	script->py_button = NULL;
+
+	py_dict = CreateGlobalDictionary();
+
+	script->py_globaldict = py_dict;
+
+/* We will insert a constant dict at this script's namespace, with the name
+ * of the script.  Later more info can be added, if necessary. */
+	tracer = (BPy_constant *)M_constant_New(); /*create a constant object*/
+	if (tracer) {
+		constant_insert(tracer, "name", PyString_FromString(script->id.name+2));
+	}
+
+	PyDict_SetItemString(py_dict, "__script__", (PyObject *)tracer);
 
   clearScriptLinks ();
 
-  ret = RunPython (st->text, dict); /* Run the script */
+  py_result = RunPython (st->text, py_dict); /* Run the script */
 
-  if (!ret) { /* Failed execution of the script */
-
-    if (EXPP_releaseGlobalDict && (dict != main_dict))
-      ReleaseGlobalDictionary(dict);
+	if (!py_result) { /* Failed execution of the script */
 
     BPY_Err_Handle(st->text);
+		ReleaseGlobalDictionary(py_dict);
+		free_libblock(&G.main->script, script);
     BPY_end_python();
     BPY_start_python();
 
-    return NULL;
-  }
+    return 0;
+	}
+	else {
+		Py_DECREF (py_result);
+		script->flags &=~SCRIPT_RUNNING;
+		if (!script->flags) {
+			ReleaseGlobalDictionary(py_dict);
+			script->py_globaldict = NULL;
+			free_libblock(&G.main->script, script);
+		}
+	}
 
-  else Py_DECREF (ret);
-
-/* Scripts that use the GUI rely on the persistent global namespace, so
- * they need a workaround: The namespace is released when the GUI is exit.'
- * See api2_2x/Draw.c: Method_Register() */
-
-/* Block below: The global dict should only be released if:
- * - a script didn't defined it to be persistent and
- * - Draw.Register() is not in use (no GUI) and
- * - it is not the real __main__ dict (if it is, restart to clean it) */
-
-  if (EXPP_releaseGlobalDict) {
-    if (st->flags & ST_CLEAR_NAMESPACE) { /* False if the GUI is in use */
-
-      if (dict != main_dict) ReleaseGlobalDictionary(dict);
-
-      else {
-        BPY_end_python(); /* restart to get a fresh __main__ dict */
-        BPY_start_python();
-      }
-
-    }
-  }
-  else if (dict != main_dict) PyDict_Update (main_dict, dict);
-
-/* Line above: if it should be kept and it's not already the __main__ dict,
- * merge it into the __main__ one.  This happens when to release is the
- * current behavior and the script changes that with
- * Blender.ReleaseGlobalDict(0). */
-
-/* Edited from old BPY_main.c:
- * 'The return value is the global namespace dictionary of the script
- *  context.  This may be stored in the SpaceText instance to give control
- *  over namespace persistence.  Remember that the same script may be
- *  executed in several windows ...  Namespace persistence is desired for
- *  scripts that use the GUI and store callbacks to the current script.' */
-
-  return dict;
+  return 1; /* normal return */
 }
 
 /*****************************************************************************/
@@ -460,7 +458,6 @@ void BPY_free_compiled_text(struct Text* text)
 
   return;
 }
-
 /*****************************************************************************/
 /* ScriptLinks                                                               */
 /*****************************************************************************/

@@ -352,6 +352,7 @@ void scrarea_do_headdraw(ScrArea *area)
 		case SPACE_IMASEL:	imasel_buttons();	break;
 		case SPACE_OOPS:	oops_buttons();		break;
 		case SPACE_TEXT:	text_buttons();		break;
+		case SPACE_SCRIPT:script_buttons();		break;
 		case SPACE_SOUND:	sound_buttons();	break;
 		case SPACE_ACTION:	action_buttons();	break;
 		case SPACE_NLA:		nla_buttons();		break;
@@ -1055,7 +1056,7 @@ void screenmain(void)
 			towin= 0;
 		}
 		else if (event==QKEY) {
-			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT);
+			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
 			else {
 				if(val && okee("QUIT BLENDER")) exit_usiblender();
 				towin= 0;
@@ -1084,7 +1085,7 @@ void screenmain(void)
 			}
 		}
 		else if (event==SPACEKEY) {
-			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT);
+			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
 			else {
 				if(val) toolbox_n();
 				towin= 0;

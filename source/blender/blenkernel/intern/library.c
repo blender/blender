@@ -71,6 +71,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_text_types.h"
+#include "DNA_script_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_group_types.h"
 #include "DNA_armature_types.h"
@@ -86,11 +87,12 @@
 #include "BKE_sound.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
+#include "BKE_script.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_curve.h"
 #include "BKE_mball.h"
- #include "BKE_text.h"
+#include "BKE_text.h"
 #include "BKE_texture.h"
 #include "BKE_scene.h"
 #include "BKE_image.h"
@@ -173,6 +175,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->vfont);
 		case ID_TXT:
 			return &(mainlib->text);
+		case ID_SCRIPT:
+			return &(mainlib->script);
 		case ID_SO:
 			return &(mainlib->sound);
 		case ID_SAMPLE:
@@ -225,9 +229,10 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[23]= &(main->group);
 
 	lb[24]= samples;
-	lb[25]= 0;
-	
-	return 25;
+	lb[25]= &(main->script);
+	lb[26]=0;
+
+	return 26;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -304,6 +309,9 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_TXT:
 			id= MEM_callocN(sizeof(Text), "text");
+			break;
+		case ID_SCRIPT:
+			id= MEM_callocN(sizeof(Script), "script");
 			break;
 		case ID_SO:
 			id= MEM_callocN(sizeof(bSound), "sound");
@@ -449,6 +457,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_TXT:
 			free_text((Text *)id);
+			break;
+		case ID_SCRIPT:
+			free_script((Script *)id);
 			break;
 		case ID_SO:
 			sound_free_sound((bSound *)id);
