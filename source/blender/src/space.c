@@ -1148,7 +1148,11 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
  				break;
 			case NKEY:
-				if(G.obedit) {
+				if((G.qual==0)) {
+					add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_TO_MOUSE);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+				else if(G.obedit) {
 					switch (G.obedit->type){
 					case OB_ARMATURE:
 						if(G.qual==LR_CTRLKEY){
@@ -1176,10 +1180,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						break;
 					}
 				}
-				else if((G.qual==0)){
-					add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_TO_MOUSE);
-					allqueue(REDRAWVIEW3D, 0);
-				}
+				
 				break;
 			case OKEY:
 				ob= OBACT;

@@ -33,6 +33,7 @@
 //#define NAN_LINEAR_PHYSICS
 
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,10 +59,14 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "DNA_object_types.h"
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
@@ -69,11 +74,14 @@
 #include "DNA_space_types.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_anim.h"
 #include "BKE_constraint.h"
+#include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ika.h"
+#include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
@@ -92,6 +100,8 @@
 #include "BIF_drawimage.h"
 #include "BIF_editgroup.h"
 #include "BIF_mywindow.h"
+#include "BIF_editarmature.h"
+#include "BIF_poseobject.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
@@ -981,9 +991,9 @@ static void load_bgpic_image(char *name)
 }
 
 /* this one assumes there is only one global active object in blender...  (for object panel) */
-static float ob_eul[3];
+static float ob_eul[4];	// used for quat too....
 /* this one assumes there is only one editmode in blender...  (for object panel) */
-static float ve_median[3];
+static float ve_median[4];
 static int ve_median_tot=0;
 
 /* is used for both read and write... */
@@ -1005,6 +1015,51 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			}
 			eve= eve->next;
 		}
+	}
+	else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
+		extern ListBase editNurb; /* editcurve.c */
+		Nurb *nu;
+		BPoint *bp;
+		BezTriple *bezt;
+		int a;
+		
+		nu= editNurb.first;
+		while(nu) {
+			if((nu->type & 7)==1) {
+				bezt= nu->bezt;
+				a= nu->pntsu;
+				while(a--) {
+					if(bezt->f2 & 1) {
+						VecAddf(median, median, bezt->vec[1]);
+						tot++;
+					}
+					else {
+						if(bezt->f1 & 1) {
+							VecAddf(median, median, bezt->vec[0]);
+							tot++;
+						}
+						if(bezt->f3 & 1) {
+							VecAddf(median, median, bezt->vec[2]);
+							tot++;
+						}
+					}
+					bezt++;
+				}
+			}
+			else {
+				bp= nu->bp;
+				a= nu->pntsu*nu->pntsv;
+				while(a--) {
+					if(bp->f1 & 1) {
+						VecAddf(median, median, bp->vec);
+						tot++;
+					}
+					bp++;
+				}
+			}
+			nu= nu->next;
+		}
+	
 	}
 	if(tot==0) return;
 
@@ -1041,8 +1096,112 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				eve= eve->next;
 			}
 		}
+		else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
+			extern ListBase editNurb; /* editcurve.c */
+			Nurb *nu;
+			BPoint *bp;
+			BezTriple *bezt;
+			int a;
+			
+			nu= editNurb.first;
+			while(nu) {
+				if((nu->type & 7)==1) {
+					bezt= nu->bezt;
+					a= nu->pntsu;
+					while(a--) {
+						if(bezt->f2 & 1) {
+							VecAddf(bezt->vec[0], bezt->vec[0], median);
+							VecAddf(bezt->vec[1], bezt->vec[1], median);
+							VecAddf(bezt->vec[2], bezt->vec[2], median);
+						}
+						else {
+							if(bezt->f1 & 1) {
+								VecAddf(bezt->vec[0], bezt->vec[0], median);
+							}
+							if(bezt->f3 & 1) {
+								VecAddf(bezt->vec[2], bezt->vec[2], median);
+							}
+						}
+						bezt++;
+					}
+				}
+				else {
+					bp= nu->bp;
+					a= nu->pntsu*nu->pntsv;
+					while(a--) {
+						if(bp->f1 & 1) {
+							VecAddf(bp->vec, bp->vec, median);
+							tot++;
+						}
+						bp++;
+					}
+				}
+				test2DNurb(nu);
+				testhandlesNurb(nu); /* test for bezier too */
+
+				nu= nu->next;
+			}
+			makeDispList(G.obedit);
+		}
 	}
 }
+
+static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
+{
+	bArmature *arm;
+	Bone *bone;
+
+	arm = get_armature(OBACT);
+	if (!arm)
+		return;
+
+	bone = get_first_selected_bone();
+
+	if (!bone)
+		return;
+
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatX:",	10, 120, 145, 19, bone->quat, -100.0, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatY:",	160, 120, 145, 19, bone->quat+1, -100.0, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatZ:",	10, 100, 150, 19, bone->quat+2, -100.0, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatW:",	160, 100, 150, 19, bone->quat+3, -100.0, 100.0, 10, 0, "");
+
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	10, 70, 145, 19, bone->loc, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 50, 145, 19, bone->loc+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	10, 30, 145, 19, bone->loc+2, -lim, lim, 100, 0, "");
+
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 150, 19, bone->size, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 50, 150, 19, bone->size+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 150, 19, bone->size+2, -lim, lim, 100, 0, "");
+
+}
+
+static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
+{
+	EditBone *ebone;
+	
+	ebone= G.edbo.first;
+
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+		if (ebone->flag & BONE_SELECTED)
+			break;
+	}
+
+	if (!ebone)
+		return;
+
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootX:",	10, 70, 145, 19, ebone->head, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootY:",	10, 50, 145, 19, ebone->head+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootZ:",	10, 30, 145, 19, ebone->head+2, -lim, lim, 100, 0, "");
+
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipX:",	160, 70, 150, 19, ebone->tail, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipY:",	160, 50, 150, 19, ebone->tail+1, -lim, lim, 100, 0, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipZ:",	160, 30, 150, 19, ebone->tail+2, -lim, lim, 100, 0, "");
+
+	ob_eul[0]= 180.0*ebone->roll/M_PI;
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 150, 19, ob_eul, -lim, lim, 100, 0, "");
+
+}
+
 
 
 void do_viewbuts(unsigned short event)
@@ -1119,6 +1278,58 @@ void do_viewbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
+		
+	case B_ARMATUREPANEL1:
+		{
+			EditBone *ebone, *child;
+			
+			ebone= G.edbo.first;
+			for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+				if (ebone->flag & BONE_SELECTED) break;
+			}
+			if (ebone) {
+				ebone->roll= M_PI*ob_eul[0]/180.0;
+				//	Update our parent
+				if (ebone->parent && ebone->flag & BONE_IK_TOPARENT){
+					VECCOPY (ebone->parent->tail, ebone->head);
+				}
+			
+				//	Update our children if necessary
+				for (child = G.edbo.first; child; child=child->next){
+					if (child->parent == ebone && child->flag & BONE_IK_TOPARENT){
+						VECCOPY (child->head, ebone->tail);
+					}
+				}
+				allqueue(REDRAWVIEW3D, 1);
+			}
+		}
+		break;
+	case B_ARMATUREPANEL2:
+		{
+			bPoseChannel *chan;
+			bArmature *arm;
+			Bone *bone;
+		
+			arm = get_armature(OBACT);
+			if (!arm) return;
+			bone = get_first_selected_bone();
+		
+			if (!bone) return;
+
+			/* This is similar to code in special_trans_update */
+	
+			if (!G.obpose->pose) G.obpose->pose= MEM_callocN(sizeof(bPose), "pose");
+			chan = MEM_callocN (sizeof (bPoseChannel), "transPoseChannel");
+		
+			chan->flag |= POSE_LOC|POSE_ROT|POSE_SIZE;
+			memcpy (chan->loc, bone->loc, sizeof (chan->loc));
+			memcpy (chan->quat, bone->quat, sizeof (chan->quat));
+			memcpy (chan->size, bone->size, sizeof (chan->size));
+			strcpy (chan->name, bone->name);
+			
+			set_pose_channel (G.obpose->pose, chan);
+			allqueue(REDRAWVIEW3D, 1);
+		}
 	}
 }
 
@@ -1142,7 +1353,11 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	lim= 1000.0*MAX2(1.0, G.vd->grid);
 
 	if(ob==G.obedit) {
-		v3d_editvertex_buts(block, ob, lim);
+		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(block, ob, lim);
+		else v3d_editvertex_buts(block, ob, lim);
+	}
+	else if(ob==G.obpose) {
+		v3d_posearmature_buts(block, ob, lim);
 	}
 	else {
 		uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 150, 19, &(ob->loc[0]), -lim, lim, 100, 0, "");

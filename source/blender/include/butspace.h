@@ -125,6 +125,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 
 #define B_OBJECTPANELROT 1007
 #define B_OBJECTPANELMEDIAN 1008
+#define B_ARMATUREPANEL1 	1009
+#define B_ARMATUREPANEL2 	1010
 
 /* *********************** */
 #define B_LAMPBUTS		1200
