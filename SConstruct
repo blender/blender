@@ -42,7 +42,6 @@ bs_config.parseOpts()
 if os.path.isdir (bs_globals.root_build_dir) == 0:
 	os.makedirs (bs_globals.root_build_dir)
 
-
 # Blender version.
 version='2.36'
 shortversion = '236' # for wininst target -> nsis installer creation
@@ -131,123 +130,6 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	openal_include = ['/usr/include']
 
 elif sys.platform == 'darwin':
-<<<<<<< SConstruct
-    use_international = 'true'
-    use_gameengine = 'true'
-    use_openal = 'true'
-    use_fmod = 'false'
-    use_quicktime = 'true'
-    use_precomp = 'true'
-    use_sumo = 'true'
-    use_ode = 'false'
-    use_buildinfo = 'true'
-    build_blender_dynamic = 'true'
-    build_blender_static = 'false'
-    build_blender_player = 'true'
-    build_blender_plugin = 'false'
-    # TODO: replace darwin-6.1-powerpc with the actual directiory on the
-    #       build machine
-<<<<<<< SConstruct
-    darwin_precomp = '#../lib/darwin-6.6-powerpc'
-    extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
-=======
-    # darwin-6.1 is the name of cvs precomp folder
-    # a symbolic link named darwin-X.Y-powerpc must be manually done
-    #for now. X-Y is darwin kernel rev number
-    darwin_precomp = '#../lib/darwin-6.1-powerpc/'
-    fink_path = '/sw/'
-    # TODO : try -mpowerpc -mpowerpc-gopt -mpowerpc-gfxopt optims
-    #           doing actual profiling
-    extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc'] 
-    
-    # , '-malign-natural'] malign is causing problems with jpeg lib but worth a 1-2% speedup
-    #'-force_cpusubtype_ALL', '-mpowerpc-gpopt', 
->>>>>>> 1.82
-    cxxflags = []
-    defines = ['_THREAD_SAFE' ]
-    if use_quicktime == 'true':
-        defines += ['WITH_QUICKTIME']
-<<<<<<< SConstruct
-    warn_flags = ['-Wall']
-    release_flags = []
-=======
-    warn_flags = ['-Wall']    # , '-W'
-    release_flags = ['-O3']
->>>>>>> 1.82
-    debug_flags = ['-g']
-    window_system = 'CARBON'
-    # z library information
-    z_lib = ['z']
-    z_libpath = []
-    z_include = []
-    # TODO : add a flag to allow each lib to be build from fink or precomp
-    #        without having to have to specify the path manually in config.opts.    
-    # png library information
-    png_lib = ['libpng']
-    png_libpath = [darwin_precomp + 'png/lib']
-    png_include = [darwin_precomp + 'png/include']
-    # jpeg library information
-    jpeg_lib = ['libjpeg']
-    jpeg_libpath = [darwin_precomp + 'jpeg/lib']
-    jpeg_include = [darwin_precomp + 'jpeg/include']
-    # OpenGL library information
-    opengl_lib = ['GL', 'GLU']
-    opengl_static = []
-    opengl_libpath = []
-    opengl_include = []
-    # SDL specific stuff.
-    sdl_env.ParseConfig ('sdl-config --cflags --libs')
-    sdl_cflags = sdl_env.Dictionary()['CCFLAGS']
-    # Want to use precompiled libraries?
-    if use_precomp == 'true':
-        sdl_include = [darwin_precomp + 'sdl/include']
-        sdl_libpath = [darwin_precomp + 'sdl/lib']
-        sdl_lib = ['libSDL.a']
-    platform_libs = ['stdc++'] 
-    extra_includes = ['/sw/include']
-    platform_libpath = ['/System/Library/Frameworks/OpenGL.framework/Libraries']
-    platform_linkflags = []
-    # SOLID library information
-    solid_lib = ['libsolid']                                          
-    solid_libpath = [darwin_precomp + 'solid/lib']                                          
-    solid_include = [darwin_precomp + 'solid/include']
-    qhull_lib = ['libqhull']                                          
-    qhull_libpath = [darwin_precomp + 'qhull/lib']                                          
-    qhull_include = [darwin_precomp + 'qhull/include']
-    # ODE library information
-    ode_lib = ['libode']                                             
-    ode_libpath = [darwin_precomp + 'ode/lib']                                          
-    ode_include = [darwin_precomp + 'ode/include/ode']
-    # Python variables.
-    # TODO : fill vars differently if we are on 10.2 or 10.3
-    # python_lib = ['python%d.%d' % sys.version_info[0:2]]
-    # python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
-    # python_include = [sysconfig.get_python_inc ()]
-    # python_linkflags = Split (sysconfig.get_config_var('LINKFORSHARED'))
-    python_lib = []
-    python_libpath = ['/System/Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/config']
-    python_include = ['/System/Library/Frameworks/Python.framework/Versions/2.3/include/python2.3']
-    python_linkflags = ['-u', '__dummy', '-u', '_PyMac_Error', 
-                        '-framework', 'System',
-                        '-framework', 'Python',
-                        '-framework', 'CoreServices',
-                        '-framework', 'Foundation',
-                        '-framework', 'OpenGL']
-    # International stuff
-    ftgl_lib = ['ftgl']
-    ftgl_libpath = [darwin_precomp + 'ftgl/lib']
-    ftgl_include = [darwin_precomp + 'ftgl/include']
-    freetype_lib = ['libfreetype']
-    freetype_libpath = [darwin_precomp + 'freetype/lib']
-    freetype_include = [darwin_precomp + 'freetype/include']
-    gettext_lib = ['libintl']
-    gettext_libpath = [darwin_precomp + 'gettext/lib']
-    gettext_include = [darwin_precomp + 'gettext/include']
-    # OpenAL library information
-    openal_lib = ['libopenal']
-    openal_libpath = [darwin_precomp + 'openal/lib']
-    openal_include = [darwin_precomp + 'openal/include']
-=======
 	use_international = 'true'
 	use_gameengine = 'true'
 	use_openal = 'true'
@@ -353,7 +235,6 @@ elif sys.platform == 'darwin':
 	openal_lib = ['libopenal']
 	openal_libpath = [darwin_precomp + 'openal/lib']
 	openal_include = [darwin_precomp + 'openal/include']
->>>>>>> 1.92
 
 elif sys.platform == 'cygwin':
 	use_international = 'false'
