@@ -2,17 +2,17 @@ THIS_DIR=./
 DEL_CMD=rm -f
 CC=cc
 OBJ=.o
-C_FLAGS=-c -Wall -fno-rtti -fno-exceptions -Wall
+C_FLAGS=-c -Wall -fno-rtti -fno-exceptions -Wall -I/usr/X11R6/include
 C_INC=-I
 C_OUT=-o 
 C_EXEOUT=-o 
 C_DEF=-D
 C_OPT=-O
 AR=ar rc 
-RANLIB=
+RANLIB=ranlib
 LIB_PREFIX=lib
 LIB_SUFFIX=.a
-LINK_OPENGL=-L/usr/X11R6/lib -L/usr/X11/lib -L/usr/lib/X11R6 -L/usr/lib/X11 -lX11 -lGL -lGLU
+LINK_OPENGL=-L/usr/X11R6/lib -L/usr/X11/lib -L/usr/lib/X11R6 -L/usr/lib/X11 -lX11 -lGL -lGLU -lstdc++
 LINK_MATH=-lm
 
 ifeq ($(BUILD),release)
