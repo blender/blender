@@ -184,6 +184,51 @@ static int is_stl(char *str)
   }                                                     \
 }
 
+static void simple_vertex_normal_blend(short *no, short *ble)
+{
+	if(no[0]==0 && no[1]==0 && no[2]==0) {
+		VECCOPY(no, ble);
+	}
+	else {
+		no[0]= (2*no[0] + ble[0])/3;
+		no[1]= (2*no[1] + ble[1])/3;
+		no[2]= (2*no[2] + ble[2])/3;
+	}
+}
+
+static void mesh_add_normals_flags(Mesh *me)
+{
+	MVert *v1, *v2, *v3, *v4;
+	MFace *mface;
+	float nor[3];
+	int a;
+	short sno[3];
+	
+	mface= me->mface;
+	for(a=0; a<me->totface; a++, mface++) {
+		if(mface->v3) {
+			mface->edcode= ME_V1V2 | ME_V2V3;	// only draw 2 for speed
+			
+			v1= me->mvert+mface->v1;
+			v2= me->mvert+mface->v2;
+			v3= me->mvert+mface->v3;
+			v4= me->mvert+mface->v4;
+			
+			CalcNormFloat(v1->co, v2->co, v3->co, nor);
+			sno[0]= 32767.0*nor[0];
+			sno[1]= 32767.0*nor[1];
+			sno[2]= 32767.0*nor[2];
+			
+			simple_vertex_normal_blend(v1->no, sno);
+			simple_vertex_normal_blend(v2->no, sno);
+			simple_vertex_normal_blend(v3->no, sno);
+			if(mface->v4) {
+				simple_vertex_normal_blend(v4->no, sno);
+			}
+		}
+	}	
+}
+
 static void read_stl_mesh_binary(char *str)
 {
 	FILE   *fpSTL;
@@ -2214,12 +2259,14 @@ static void displist_to_mesh(DispList *dlfirst)
 		dl= dl->next;
 	}
 
-	G.obedit= ob;
-	make_editMesh();
-	load_editMesh();
-	free_editMesh();
+	//G.obedit= ob;
+	//make_editMesh();
+	//load_editMesh();
+	//free_editMesh();
 	
-	G.obedit= 0;
+	//G.obedit= 0;
+	
+	mesh_add_normals_flags(me);
 	tex_space_mesh(me);
 
 }
