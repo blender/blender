@@ -2588,7 +2588,7 @@ void mouse_select_ipo()
 	
 	if(G.sipo->showkey && G.sipo->blocktype==ID_OB) {
 		ob= OBACT;
-		if(ob && (ob->ipoflag & OB_DRAWKEY)) draw_object_ext(BASACT);
+		if(ob && (ob->ipoflag & OB_DRAWKEY)) allqueue(REDRAWVIEW3D, 0);
 	}
 	
 	getmouseco_areawin(mval);
