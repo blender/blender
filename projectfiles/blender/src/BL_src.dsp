@@ -111,7 +111,27 @@ SOURCE=..\..\..\source\blender\src\butspace.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\buttons_editing.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\buttons_logic.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\buttons_object.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\buttons_scene.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\buttons_script.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\buttons_shading.c
 # End Source File
 # Begin Source File
 
@@ -255,10 +275,6 @@ SOURCE=..\..\..\source\blender\src\editoops.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\editsca.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\src\editscreen.c
 # End Source File
 # Begin Source File
@@ -292,6 +308,58 @@ SOURCE=..\..\..\source\blender\src\ghostwinlay.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\src\glutil.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_action.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_buttonswin.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_filesel.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_image.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_imasel.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_info.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_ipo.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_nla.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_oops.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_seq.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_sound.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_text.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_view3d.c
 # End Source File
 # Begin Source File
 
@@ -460,6 +528,10 @@ SOURCE=..\..\..\source\blender\include\blendef.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BSE_filesel.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\butspace.h
 # End Source File
 # Begin Source File
 

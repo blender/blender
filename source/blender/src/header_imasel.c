@@ -56,6 +56,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BIF_gl.h"
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_resources.h"
@@ -66,6 +67,7 @@
 
 #include "interface.h"
 #include "blendef.h"
+
 
 void do_imasel_buttons(short event)
 {
