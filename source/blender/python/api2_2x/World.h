@@ -81,18 +81,8 @@ struct PyMethodDef M_World_methods[] = {
 /*****************************************************************************/
 static PyObject *World_getName(BPy_World *self);
 static PyObject *World_setName(BPy_World *self, PyObject *args);
-static PyObject *World_getColormodel(BPy_World *self);
-static PyObject *World_setColormodel(BPy_World *self, PyObject *args );
-static PyObject *World_getFastcol(BPy_World *self);
-static PyObject *World_setFastcol(BPy_World *self, PyObject *args );
 static PyObject *World_getSkytype(BPy_World *self);
 static PyObject *World_setSkytype(BPy_World *self, PyObject *args );
-static PyObject *World_getMode(BPy_World *self);
-static PyObject *World_setMode(BPy_World *self, PyObject *args );
-static PyObject *World_getTotex(BPy_World *self);
-static PyObject *World_setTotex(BPy_World *self, PyObject *args );
-static PyObject *World_getTexact(BPy_World *self);
-static PyObject *World_setTexact(BPy_World *self, PyObject *args );
 static PyObject *World_getMistype(BPy_World *self);
 static PyObject *World_setMistype(BPy_World *self, PyObject *args );
 static PyObject *World_getHor(BPy_World *self);
@@ -103,8 +93,6 @@ static PyObject *World_getAmb(BPy_World *self);
 static PyObject *World_setAmb(BPy_World *self, PyObject *args );
 static PyObject *World_getStar(BPy_World *self);
 static PyObject *World_setStar(BPy_World *self, PyObject *args );
-static PyObject *World_getDof(BPy_World *self);
-static PyObject *World_setDof(BPy_World *self, PyObject *args );
 static PyObject *World_getMist(BPy_World *self);
 static PyObject *World_setMist(BPy_World *self, PyObject *args );
 
@@ -116,30 +104,10 @@ static PyMethodDef BPy_World_methods[] = {
       "() - Return World Data name"},
   {"setName", (PyCFunction)World_setName, METH_VARARGS,
       "() - Return World Data name"},
-  {"getColormodel", (PyCFunction)World_getColormodel, METH_NOARGS,
-      "() - Return World Data colormodel"},
-  {"setColormodel", (PyCFunction)World_setColormodel, METH_VARARGS,
-      "() - Return World Data colormodel"},
-  {"getFastcol", (PyCFunction)World_getFastcol, METH_NOARGS,
-      "() - Return World Data fastcol"},
-  {"setFastcol", (PyCFunction)World_setFastcol, METH_VARARGS,
-      "() - Return World Data fastcol"},
   {"getSkytype", (PyCFunction)World_getSkytype, METH_NOARGS,
       "() - Return World Data skytype"},
   {"setSkytype", (PyCFunction)World_setSkytype, METH_VARARGS,
       "() - Return World Data skytype"},
-  {"getMode", (PyCFunction)World_getMode, METH_NOARGS,
-      "() - Return World Data mode"},
-  {"setMode", (PyCFunction)World_setMode, METH_VARARGS,
-      "() - Return World Data mode"},
-  {"getTotex", (PyCFunction)World_getTotex, METH_NOARGS,
-      "() - Return World Data totex"},
-  {"setTotex", (PyCFunction)World_setTotex, METH_VARARGS,
-      "() - Return World Data totex"},
-  {"getTexact", (PyCFunction)World_getTexact, METH_NOARGS,
-      "() - Return World Data texact"},
-  {"setTexact", (PyCFunction)World_setTexact, METH_VARARGS,
-      "() - Return World Data texact"},
   {"getMistype", (PyCFunction)World_getMistype, METH_NOARGS,
       "() - Return World Data mistype"},
   {"setMistype", (PyCFunction)World_setMistype, METH_VARARGS,
@@ -160,10 +128,6 @@ static PyMethodDef BPy_World_methods[] = {
       "() - Return World Data star"},
   {"setStar", (PyCFunction)World_setStar, METH_VARARGS,
       "() - Return World Data star"},
-  {"getDof", (PyCFunction)World_getDof, METH_NOARGS,
-      "() - Return World Data dof"},
-  {"setDof", (PyCFunction)World_setDof, METH_VARARGS,
-      "() - Return World Data dof"},
   {"getMist", (PyCFunction)World_getMist, METH_NOARGS,
       "() - Return World Data mist"},
   {"setMist", (PyCFunction)World_setMist, METH_VARARGS,

@@ -580,18 +580,13 @@ static PyObject *World_GetAttr (BPy_World *self, char *name)
 {
 
 if (strcmp (name, "name") == 0)return  World_getName (self);
-if (strcmp (name, "colormodel") == 0)return  World_getColormodel (self);
-if (strcmp (name, "fastcol") == 0)return  World_getFastcol (self);
 if (strcmp (name, "skytype") == 0)return  World_getSkytype (self);
 if (strcmp (name, "mode") == 0)return  World_getMode (self);
-if (strcmp (name, "totex") == 0)return  World_getTotex (self);
-if (strcmp (name, "texact") == 0)return  World_getTexact (self);
 if (strcmp (name, "mistype") == 0)return  World_getMistype (self);
 if (strcmp (name, "hor") == 0)return  World_getHor (self);
 if (strcmp (name, "zen") == 0)return  World_getZen (self);
 if (strcmp (name, "amb") == 0)return  World_getAmb (self);
 if (strcmp (name, "star") == 0)return  World_getStar (self);
-if (strcmp (name, "dof") == 0)return  World_getDof (self);
 if (strcmp (name, "mist") == 0)return  World_getMist (self);
   return Py_FindMethod(BPy_World_methods, (PyObject *)self, name);
 }
@@ -611,18 +606,13 @@ static int World_SetAttr (BPy_World *self, char *name, PyObject *value)
     return EXPP_ReturnIntError(PyExc_MemoryError,
 															 "WorldSetAttr: couldn't parse args");
 		if (strcmp (name, "name") == 0) World_setName (self,valtuple);
-if (strcmp (name, "colormodel") == 0) World_setColormodel (self,valtuple);
-if (strcmp (name, "fastcol") == 0) World_setFastcol (self,valtuple);
 if (strcmp (name, "skytype") == 0) World_setSkytype (self,valtuple);
 if (strcmp (name, "mode") == 0) World_setMode (self,valtuple);
-if (strcmp (name, "totex") == 0) World_setTotex (self,valtuple);
-if (strcmp (name, "texact") == 0) World_setTexact (self,valtuple);
 if (strcmp (name, "mistype") == 0) World_setMistype (self,valtuple);
 if (strcmp (name, "hor") == 0) World_setHor (self,valtuple);
 if (strcmp (name, "zen") == 0) World_setZen (self,valtuple);
 if (strcmp (name, "amb") == 0) World_setAmb (self,valtuple);
 if (strcmp (name, "star") == 0) World_setStar (self,valtuple);
-if (strcmp (name, "dof") == 0) World_setDof (self,valtuple);
 if (strcmp (name, "mist") == 0) World_setMist (self,valtuple);
 return 0; /* normal exit */
 }
