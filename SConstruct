@@ -16,7 +16,6 @@ version='2.32'
 
 sdl_env = Environment ()
 freetype_env = Environment ()
-link_env = Environment ()
 env = Environment ()
 
 if sys.platform == 'linux2' or sys.platform == 'linux-i386':
@@ -310,7 +309,6 @@ elif sys.platform == 'win32':
     sdl_libpath = ['#../lib/windows/sdl/lib']
     sdl_lib = ['SDL']
     sdl_cflags = []
-    link_env.RES(['source/icons/winblender.rc'])
     window_system = 'WIN32'
     # SOLID library information
     solid_lib = ['extern/solid']
@@ -811,7 +809,7 @@ else:
 # Generic library generation environment. This one is the basis for each
 # library.
 #-----------------------------------------------------------------------------
-library_env = Environment ()
+library_env = env.Copy ()
 library_env.Replace (CC = user_options_dict['TARGET_CC'])
 library_env.Replace (CXX = user_options_dict['TARGET_CXX'])
 library_env.Replace (PATH = user_options_dict['PATH'])
@@ -874,15 +872,9 @@ libraries = (['blender_creator',
               'blender_MT',
               'soundsystem'])
 
+link_env = library_env.Copy ()
 link_env.Append (LIBS=libraries)
 link_env.Append (LIBPATH=libpath)
-link_env.Replace (CC = user_options_dict['TARGET_CC'])
-link_env.Replace (CXX = user_options_dict['TARGET_CXX'])
-link_env.Replace (PATH = user_options_dict['PATH'])
-link_env.Replace (AR = user_options_dict['TARGET_AR'])
-link_env.Append (CCFLAGS = cflags)
-link_env.Append (CXXFLAGS = cxxflags)
-link_env.Append (CPPDEFINES = defines)
 
 if user_options_dict['USE_INTERNATIONAL'] == 1:
     link_env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
@@ -945,6 +937,9 @@ if sys.platform == 'darwin':
         link_env.Append (LINKFLAGS=' -framework QuickTime')
 else:
     link_env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
+
+if sys.platform == 'win32':
+    link_env.RES(['source/icons/winblender.rc'])
 
 link_env.BuildDir (root_build_dir, '.', duplicate=0)
 
