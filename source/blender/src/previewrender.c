@@ -315,8 +315,11 @@ static void draw_tex_crop(Tex *tex)
 
 void BIF_preview_changed(SpaceButs *sbuts)
 {
-	sbuts->cury= 0;
-	addafterqueue(sbuts->area->win, RENDERPREVIEW, 1);
+	/* can be called when nu buttonswindow visible */
+	if(sbuts) {
+		sbuts->cury= 0;
+		addafterqueue(sbuts->area->win, RENDERPREVIEW, 1);
+	}
 }
 
 void BIF_previewdraw(SpaceButs *sbuts)
