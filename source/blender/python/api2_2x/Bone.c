@@ -38,6 +38,7 @@
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
 #include <DNA_action_types.h>
+#include <DNA_armature_types.h>
 #include <BIF_poseobject.h>
 #include <BKE_action.h>
 #include <BSE_editaction.h>
@@ -76,6 +77,8 @@ static PyObject *Bone_getQuat (BPy_Bone * self);
 static PyObject *Bone_getParent (BPy_Bone * self);
 static PyObject *Bone_hasParent (BPy_Bone * self);
 static PyObject *Bone_getWeight (BPy_Bone * self);
+static PyObject *Bone_getBoneclass (BPy_Bone * self);
+static PyObject *Bone_hasIK(BPy_Bone * self);
 static PyObject *Bone_getChildren (BPy_Bone * self);
 static PyObject *Bone_clearParent (BPy_Bone * self);
 static PyObject *Bone_clearChildren (BPy_Bone * self);
@@ -91,6 +94,8 @@ static PyObject *Bone_setQuat (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setParent(BPy_Bone *self, PyObject *args);
 static PyObject *Bone_setWeight(BPy_Bone *self, PyObject *args);
 static PyObject *Bone_setPose (BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setBoneclass (BPy_Bone *self, PyObject *args);
+static PyObject *Bone_getRestMatrix(BPy_Bone * self, PyObject *args);
 //--------------- Python BPy_Bone methods table:-----------------------------------------------------------------
 static PyMethodDef BPy_Bone_methods[] = {
   {"getName", (PyCFunction) Bone_getName, METH_NOARGS,
@@ -112,6 +117,10 @@ static PyMethodDef BPy_Bone_methods[] = {
    "() - unhides the bone"},
   {"getWeight", (PyCFunction) Bone_getWeight, METH_NOARGS,
    "() - return Bone weight"},
+  {"getBoneclass", (PyCFunction) Bone_getBoneclass, METH_NOARGS,
+   "() - return Bone boneclass"},
+  {"hasIK", (PyCFunction)Bone_hasIK, METH_VARARGS,  
+   "() - get the Bone IKToParent flag."},
   {"getParent", (PyCFunction) Bone_getParent, METH_NOARGS,
    "() - return the parent bone of this one if it exists."
    " None if not found. You can check this condition with the "
@@ -144,6 +153,10 @@ static PyMethodDef BPy_Bone_methods[] = {
    "() - set the Bone weight."},
   {"setPose", (PyCFunction)Bone_setPose, METH_VARARGS,  
    "() - set a pose for this bone at a frame."},
+  {"setBoneclass", (PyCFunction)Bone_setBoneclass, METH_VARARGS,  
+   "() - set the Bone boneclass."},
+  {"getRestMatrix", (PyCFunction)Bone_getRestMatrix, METH_VARARGS,  
+   "() - return the rest matrix for this bone"},
   {NULL, NULL, 0, NULL}
 };
 //--------------- Python TypeBone callback function prototypes----------------------------------------
@@ -189,6 +202,21 @@ Bone_Init (void)
   PyModule_AddIntConstant(submodule, "ROT",  POSE_ROT);
   PyModule_AddIntConstant(submodule, "LOC",  POSE_LOC);
   PyModule_AddIntConstant(submodule, "SIZE", POSE_SIZE);
+  PyModule_AddIntConstant(submodule, "SKINNABLE", 0);
+  PyModule_AddIntConstant(submodule, "UNSKINNABLE", 1);
+  PyModule_AddIntConstant(submodule, "HEAD", 2);
+  PyModule_AddIntConstant(submodule, "NECK", 3);
+  PyModule_AddIntConstant(submodule, "BACK", 4);
+  PyModule_AddIntConstant(submodule, "SHOULDER", 5);
+  PyModule_AddIntConstant(submodule, "ARM", 6);
+  PyModule_AddIntConstant(submodule, "HAND", 7);
+  PyModule_AddIntConstant(submodule, "FINGER", 8);
+  PyModule_AddIntConstant(submodule, "THUMB", 9);
+  PyModule_AddIntConstant(submodule, "PELVIS", 10);
+  PyModule_AddIntConstant(submodule, "LEG", 11);
+  PyModule_AddIntConstant(submodule, "FOOT", 12);
+  PyModule_AddIntConstant(submodule, "TOE", 13);
+  PyModule_AddIntConstant(submodule, "TENTACLE", 14);
 
   return (submodule);
 }
@@ -301,6 +329,49 @@ testChildbase(Bone *bone, Bone *test)
 
 	return 0;
 }
+//--------------- returnBoneclassEnum---------------------------------------------------------------------
+static PyObject *
+returnBoneclassEnum(int value)
+{
+	char *str;
+	str = PyMem_Malloc(32 + 1);
+
+	switch(value){
+		case 0:
+			BLI_strncpy(str,"SKINNABLE",32);	break;
+		case 1:
+			BLI_strncpy(str,"UNSKINNABLE",32);	break;
+		case 2:
+			BLI_strncpy(str,"HEAD",32);	break;
+		case 3:
+			BLI_strncpy(str,"NECK",32);	break;
+		case 4:
+			BLI_strncpy(str,"BACK",32);	break;
+		case 5:
+			BLI_strncpy(str,"SHOULDER",32);	break;
+		case 6:
+			BLI_strncpy(str,"ARM",32); break;
+		case 7:
+			BLI_strncpy(str,"HAND",32);	break;
+		case 8:
+			BLI_strncpy(str,"FINGER",32);	break;
+		case 9:
+			BLI_strncpy(str,"THUMB",32);	break;
+		case 10:
+			BLI_strncpy(str,"PELVIS",32);	break;
+		case 11:
+			BLI_strncpy(str,"LEG",32);	break;
+		case 12:
+			BLI_strncpy(str,"FOOT",32);	break;
+		case 13:
+			BLI_strncpy(str,"TOE",32);	break;
+		case 14:
+			BLI_strncpy(str,"TENTACLE",32); 	break;
+		default:
+			BLI_strncpy(str, "SKINNABLE",32);	break;
+	}
+	return (PyObject*)PyString_FromString(str);
+}
 //---------------BPy_Bone internal callbacks/methods---------------------------------------------
 //--------------- dealloc---------------------------------------------------------------------------------------
 static void
@@ -337,12 +408,16 @@ Bone_getAttr (BPy_Bone * self, char *name)
     attr = Bone_getChildren (self);
   else if (strcmp (name, "weight") == 0)
     attr = Bone_getWeight (self);
+  else if (strcmp (name, "boneclass") == 0)
+    attr = Bone_getBoneclass (self);
+  else if (strcmp (name, "ik") == 0)
+    attr = Bone_hasIK (self);
   else if (strcmp (name, "__members__") == 0)
     {
       /* 9 entries */
-      attr = Py_BuildValue ("[s,s,s,s,s,s,s,s,s]",
+      attr = Py_BuildValue ("[s,s,s,s,s,s,s,s,s,s,s]",
 			    "name", "roll", "head", "tail", "loc", "size",
-			    "quat", "parent", "children", "weight");
+			    "quat", "parent", "children", "weight", "boneclass", "ik");
     }
 
   if (!attr)
@@ -475,7 +550,7 @@ M_Bone_New (PyObject * self, PyObject * args)
 	//allocate space for python vars
     py_bone->name= PyMem_Malloc (32 + 1);
 	py_bone->parent =PyMem_Malloc (32 + 1);
-	py_bone->head = (VectorObject*)newVectorObject(PyMem_Malloc (3*sizeof (float)), 3);		
+	py_bone->head = (VectorObject*)newVectorObject(PyMem_Malloc (3*sizeof (float)), 3);	
 	py_bone->tail = (VectorObject*)newVectorObject(PyMem_Malloc (3*sizeof (float)), 3);			
 	py_bone->loc = (VectorObject*)newVectorObject(PyMem_Malloc (3*sizeof (float)), 3);	
 	py_bone->dloc = (VectorObject*)newVectorObject(PyMem_Malloc (3*sizeof (float)), 3);	
@@ -842,15 +917,15 @@ Bone_setHead (BPy_Bone * self, PyObject * args)
 				   "expected 3 (or a list of 3) float arguments"));
 
   if (!self->bone) {	//test to see if linked to armature
-	  //use python vars
-	  self->head->vec[0] = f1;
-	  self->head->vec[1] = f2;
-	  self->head->vec[2] = f3;
+		//use python vars
+		self->head->vec[0] = f1;
+		self->head->vec[1] = f2;
+		self->head->vec[2] = f3;
   }else{
-	  //use bone datastruct
-	self->bone->head[0] = f1;
-	self->bone->head[1] = f2;
-	self->bone->head[2] = f3;
+		//use bone datastruct
+		self->bone->head[0] = f1;
+		self->bone->head[1] = f2;
+		self->bone->head[2] = f3;
   }
   return EXPP_incr_ret  (Py_None);
 }
@@ -1370,4 +1445,118 @@ Bone_setPose (BPy_Bone *self, PyObject *args)
 	 rebuild_all_armature_displists();
 	}
 	return EXPP_incr_ret  (Py_None);
+}
+
+//--------------- BPy_Bone.getBoneclass()----------------------------------------------------------------------------
+static PyObject *
+Bone_getBoneclass (BPy_Bone * self)
+{
+  PyObject *attr = NULL;
+
+  if (!self->bone) {	//test to see if linked to armature
+	  //use python vars
+	  attr = returnBoneclassEnum(self->boneclass);
+  }else{
+	  //use bone datastruct
+      attr = returnBoneclassEnum(self->bone->boneclass);
+  }
+  if (attr)
+    return attr;
+
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				 "couldn't get Bone.Boneclass attribute"));
+}
+//--------------- BPy_Bone.setBoneclass()-------------------------------------------------------------------------
+static PyObject *
+Bone_setBoneclass(BPy_Bone *self, PyObject *args)
+{
+  int boneclass;
+
+  if (!PyArg_ParseTuple (args, "i", &boneclass))
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+				   "expected enum argument"));
+
+  if (!self->bone) {	//test to see if linked to armature
+	  //use python vars
+	  self->boneclass = boneclass;
+  }else{
+	  //use bone datastruct
+	 self->bone->boneclass = boneclass;
+  }  
+  return EXPP_incr_ret  (Py_None);
+}
+//--------------- BPy_Bone.hasIK()----------------------------------------------------------------------------
+static PyObject *
+Bone_hasIK (BPy_Bone * self)
+{
+  if (!self->bone) {	//test to see if linked to armature
+	  //use python vars
+	  if(self->flag & BONE_IK_TOPARENT){
+			Py_INCREF (Py_True);
+			return Py_True;
+	  }else{
+		  	Py_INCREF (Py_False);
+			return Py_False;
+	  }
+  }else{
+	  //use bone datastruct
+	  if(self->bone->flag & BONE_IK_TOPARENT){
+			Py_INCREF (Py_True);
+			return Py_True;
+	  }else{
+		  	Py_INCREF (Py_False);
+			return Py_False;
+	  }
+  }
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				 "couldn't get Bone.Boneclass attribute"));
+}
+//--------------- BPy_Bone.getRestMatrix()----------------------------------------------------------------------------
+static PyObject *
+Bone_getRestMatrix(BPy_Bone * self, PyObject *args)
+{
+	char *local = "worldspace";
+	char *bonespace = "bonespace";
+	char *worldspace = "worldspace";
+    PyObject *matrix;
+	float delta[3];
+	float root[3];
+	float p_root[3];
+
+	if (!PyArg_ParseTuple (args, "|s", &local))
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+															"expected string"));
+
+	if(!BLI_streq(local, bonespace) && !BLI_streq(local, worldspace))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+															"expected 'bonespace' or 'worldspace'"));
+
+	matrix = newMatrixObject(PyMem_Malloc(16 * sizeof(float)),4,4);
+
+	if (!self->bone) {	//test to see if linked to armature
+		//use python vars
+		if(BLI_streq(local, worldspace)){
+			VecSubf (delta, self->tail->vec, self->head->vec);
+			make_boneMatrixvr( *((MatrixObject*)matrix)->matrix, delta, self->roll);
+		}else if(BLI_streq(local, bonespace)){
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+															"bone not yet linked to an armature....'"));
+		}
+	}else{
+		//use bone datastruct
+		if(BLI_streq(local, worldspace)){
+			get_objectspace_bone_matrix (self->bone, *((MatrixObject*)matrix)->matrix, 1, 1);
+		}else if(BLI_streq(local, bonespace)){
+			VecSubf (delta, self->bone->tail, self->bone->head);
+			make_boneMatrixvr( *((MatrixObject*)matrix)->matrix, delta, self->bone->roll);
+			if(self->bone->parent){
+				get_bone_root_pos(self->bone,root,1);
+				get_bone_root_pos(self->bone->parent,p_root,1);
+				VecSubf(delta,root,p_root);
+				VECCOPY(((MatrixObject*)matrix)->matrix[3], delta);
+			}
+		}
+	}
+
+	return matrix;
 }

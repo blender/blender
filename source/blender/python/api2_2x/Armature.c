@@ -570,14 +570,18 @@ static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args)
 		Mat4Invert (iM_parentRest, M_boneObjectspace);
 
 		//transformation of local bone
-		Mat4MulVecfl(iM_parentRest, py_bone->bone->head);
 		Mat4MulVecfl(iM_parentRest, py_bone->bone->tail);
+		Mat4MulVecfl(iM_parentRest, py_bone->bone->head);
 
 	}else //no parent....
 		BLI_addtail (&self->armature->bonebase,py_bone->bone);
 
-	precalc_bonelist_irestmats(&self->armature->bonebase);
+	//rebuild_bone_parent_matrix(py_bone->bone);
 
+	precalc_bonelist_irestmats(&self->armature->bonebase);
+	precalc_armature_posemats(self->armature);
+	precalc_bone_defmat (py_bone->bone);
+	
 	Py_INCREF(Py_None);
 	return Py_None;
 }
