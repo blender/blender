@@ -38,8 +38,10 @@
 #include <DNA_camera_types.h>
 #include <DNA_lamp_types.h>
 #include <DNA_curve_types.h>
-#include <DNA_effect_types.h>
 #include <DNA_armature_types.h>
+#include <DNA_ipo_types.h>
+#include <DNA_effect_types.h>
+#include <DNA_meta_types.h>
 #include <DNA_image_types.h>
 
 /*****************************************************************************/
@@ -77,9 +79,9 @@ int        Camera_CheckPyObject  (PyObject *pyobj);
 
 /* Lamp Data */
 PyObject * M_Lamp_Init (void);
-PyObject * Lamp_createPyObject (struct Lamp *lamp);
-Lamp     * Lamp_fromPyObject   (PyObject *pyobj);
-int        Lamp_checkPyObject  (PyObject *pyobj);
+PyObject * Lamp_CreatePyObject (struct Lamp *lamp);
+Lamp     * Lamp_FromPyObject   (PyObject *pyobj);
+int        Lamp_CheckPyObject  (PyObject *pyobj);
 
 /* Curve Data */
 PyObject *      M_Curve_Init (void);
@@ -93,12 +95,23 @@ PyObject *         M_ArmatureCreatePyObject (bArmature *armature);
 bArmature*         M_ArmatureFromPyObject   (PyObject *py_obj);
 int                M_ArmatureCheckPyObject  (PyObject *py_obj);
 
+/* Ipo Data */
+PyObject *      M_Ipo_Init (void);
+PyObject *      Ipo_CreatePyObject (struct Ipo *ipo);
+struct Ipo *    Ipo_FromPyObject   (PyObject *py_obj);
+int             Ipo_CheckPyObject  (PyObject *py_obj);
+
+/* Metaball Data */
+PyObject *        M_Metaball_Init (void);
+PyObject *        Metaball_CreatePyObject (MetaBall *metaball);
+struct MetaBall * Metaball_FromPyObject   (PyObject *py_obj);
+int               Metaball_CheckPyObject  (PyObject *py_obj);
+
 /* Particle Effects Data */
-/*PyObject *      M_Effect_Init (void);
-PyObject *      EffectCreatePyObject (struct Effect *effect);
-struct Effect * EffectFromPyObject (PyObject *py_obj);
-int             EffectCheckPyObject (PyObject *py_obj);
-*/
+PyObject *      M_Effect_Init (void);
+PyObject *      Effect_CreatePyObject (struct Effect *effect);
+struct Effect * Effect_FromPyObject (PyObject *py_obj);
+int             Effect_CheckPyObject (PyObject *py_obj);
 
 /* Image */
 PyObject * M_Image_Init (void);

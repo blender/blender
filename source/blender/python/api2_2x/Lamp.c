@@ -53,7 +53,7 @@ static PyObject *M_Lamp_New(PyObject *self, PyObject *args, PyObject *keywords)
 
   bl_lamp = add_lamp(); /* first create in Blender */
   if (bl_lamp) /* now create the wrapper obj in Python */
-    py_lamp = (C_Lamp *)Lamp_createPyObject(bl_lamp);
+    py_lamp = (C_Lamp *)Lamp_CreatePyObject(bl_lamp);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                             "couldn't create Lamp Data in Blender"));
@@ -112,7 +112,7 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
     while ((lamp_iter) && (wanted_lamp == NULL)) {
 
 			if (strcmp (name, lamp_iter->id.name+2) == 0)
-        wanted_lamp = (C_Lamp *)Lamp_createPyObject(lamp_iter);
+        wanted_lamp = (C_Lamp *)Lamp_CreatePyObject(lamp_iter);
 
 			lamp_iter = lamp_iter->id.next;
     }
@@ -216,11 +216,11 @@ PyObject *M_Lamp_Init (void)
 /* Three Python Lamp_Type helper functions needed by the Object module: */
 
 /*****************************************************************************/
-/* Function:    Lamp_createPyObject                                          */
+/* Function:    Lamp_CreatePyObject                                          */
 /* Description: This function will create a new C_Lamp from an existing      */
 /*              Blender lamp structure.                                      */
 /*****************************************************************************/
-PyObject *Lamp_createPyObject (Lamp *lamp)
+PyObject *Lamp_CreatePyObject (Lamp *lamp)
 {
 	C_Lamp *pylamp;
 	float *rgb[3];
@@ -243,21 +243,21 @@ PyObject *Lamp_createPyObject (Lamp *lamp)
 }
 
 /*****************************************************************************/
-/* Function:    Lamp_checkPyObject                                           */
+/* Function:    Lamp_CheckPyObject                                           */
 /* Description: This function returns true when the given PyObject is of the */
 /*              type Lamp. Otherwise it will return false.                   */
 /*****************************************************************************/
-int Lamp_checkPyObject (PyObject *pyobj)
+int Lamp_CheckPyObject (PyObject *pyobj)
 {
 	return (pyobj->ob_type == &Lamp_Type);
 }
 
 /*****************************************************************************/
-/* Function:    Lamp_fromPyObject                                            */
+/* Function:    Lamp_FromPyObject                                            */
 /* Description: This function returns the Blender lamp from the given        */
 /*              PyObject.                                                    */
 /*****************************************************************************/
-Lamp *Lamp_fromPyObject (PyObject *pyobj)
+Lamp *Lamp_FromPyObject (PyObject *pyobj)
 {
 	return ((C_Lamp *)pyobj)->lamp;
 }

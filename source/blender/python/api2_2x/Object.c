@@ -397,7 +397,7 @@ static PyObject *Object_getData (C_Object *self)
         case ID_IP:
             break;
         case ID_LA:
-            data_object = Lamp_createPyObject (self->object->data);
+            data_object = Lamp_CreatePyObject (self->object->data);
             break;
         case ID_MA:
             break;
@@ -592,9 +592,9 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
             "expected an object as argument"));
     }
     if (Camera_CheckPyObject (py_data))
-        data = (void*) Camera_FromPyObject (py_data);
-    if (Lamp_checkPyObject (py_data))
-        data = (void*) Lamp_fromPyObject (py_data);
+        data = (void *)Camera_FromPyObject (py_data);
+    if (Lamp_CheckPyObject (py_data))
+        data = (void *)Lamp_FromPyObject (py_data);
     /* TODO: add the (N)Mesh check and from functions here when finished. */
 
     oldid = (ID*) self->object->data;
