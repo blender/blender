@@ -194,7 +194,6 @@ GHOST_SystemCarbon::GHOST_SystemCarbon() :
 
 	UnsignedWide micros;
 	::Microseconds(&micros);
-	UInt64 millis;
 	m_start_time = UnsignedWideToUInt64(micros)/1000;
 }
 
@@ -377,14 +376,14 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[512]) {
 
 OSErr GHOST_SystemCarbon::sAEHandlerLaunch(const AppleEvent *event, AppleEvent *reply, SInt32 refCon)
 {
-	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
+	//GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
 	
 	return noErr;
 }
 
 OSErr GHOST_SystemCarbon::sAEHandlerOpenDocs(const AppleEvent *event, AppleEvent *reply, SInt32 refCon)
 {
-	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
+	//GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
 	AEDescList docs;
 	SInt32 ndocs;
 	OSErr err;
@@ -426,7 +425,7 @@ OSErr GHOST_SystemCarbon::sAEHandlerOpenDocs(const AppleEvent *event, AppleEvent
 
 OSErr GHOST_SystemCarbon::sAEHandlerPrintDocs(const AppleEvent *event, AppleEvent *reply, SInt32 refCon)
 {
-	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
+	//GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) refCon;
 	
 	return noErr;
 }
