@@ -158,6 +158,8 @@ typedef struct Material {
 #define TEXCO_OSA		512
 #define TEXCO_WINDOW	1024
 #define NEED_UV			2048
+/* optim = use simpler AA */
+#define TEXCO_OPTIM		4096
 
 /* mapto */
 #define MAP_COL			1

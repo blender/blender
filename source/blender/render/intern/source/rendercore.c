@@ -2941,7 +2941,6 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 					ps= (PixStr *) POINTER_FROM_CODE(*rd);
 				else ps= NULL;
 				
-				/* do all subpixels? */
 				if(TRUE) {
 					for(samp=0; samp<R.osa; samp++) {
 						curmask= 1<<samp;
@@ -2965,7 +2964,6 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 					}
 				}
 				else {	/* do collected faces together */
-				
 					if(ps) face= ps->vlak0;
 					else face= (int)*rd;
 					mask= 0;
@@ -2975,9 +2973,9 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 						xs= (float)x+centLut[b & 15];
 						ys= (float)y+centLut[b>>4];
 
-						shadepixel_short(xs, ys, ps->vlak, curmask, shortcol);
+						shadepixel_short(xs, ys, ps->vlak, ps->mask, shortcol);
 
-						if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
+						if(shortcol[3]) add_filt_mask(ps->mask, shortcol, rb1, rb2, rb3);
 
 						mask |= ps->mask;
 						ps= ps->next;
@@ -2985,13 +2983,13 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 
 					mask= (~mask) & fullmask;
 					if(mask) {
-						b= centmask[ps->mask];
+						b= centmask[mask];
 						xs= (float)x+centLut[b & 15];
 						ys= (float)y+centLut[b>>4];
 
 						shadepixel_short(xs, ys, face, mask, shortcol);
 	
-						if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
+						if(shortcol[3]) add_filt_mask(mask, shortcol, rb1, rb2, rb3);
 					}
 				}
 
@@ -3072,6 +3070,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 	if(R.r.mode & R_EDGE) if(R.rectaccu) MEM_freeN(R.rectaccu);
 	R.rectaccu= 0;
 	if(R.flag & R_ZTRA) endaccumbuf();
+
 } /* end of void zbufshadeDA() */
 
 /* ------------------------------------------------------------------------ */

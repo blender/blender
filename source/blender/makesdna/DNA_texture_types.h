@@ -253,44 +253,6 @@ typedef struct Tex {
 #define TEX_RGB		1
 #define TEX_NOR		2
 
-/* texco */
-#define TEXCO_ORCO		1
-#define TEXCO_REFL		2
-#define TEXCO_NORM		4
-#define TEXCO_GLOB		8
-#define TEXCO_UV		16
-#define TEXCO_OBJECT	32
-#define TEXCO_LAVECTOR	64
-#define TEXCO_VIEW		128
-#define TEXCO_STICKY	256
-#define TEXCO_OSA		512
-#define TEXCO_WINDOW	1024
-#define NEED_UV			2048
-
-/* mapto */
-#define MAP_COL			1
-#define MAP_NORM		2
-#define MAP_COLSPEC		4
-#define MAP_COLMIR		8
-#define MAP_VARS		(0xFFF0)
-#define MAP_REF			16
-#define MAP_SPEC		32
-#define MAP_EMIT		64
-#define MAP_ALPHA		128
-#define MAP_HAR			256
-#define MAP_XTRA		512
-#define MAP_DISPLACE	4096
-
-/* pr_type */
-#define MA_FLAT			0
-#define MA_SPHERE		1
-#define MA_CUBE			2
-
-/* pr_back */
-#define MA_DARK			1
-
-/* pr_lamp	*/
-
 /* **************** MTEX ********************* */
 
 /* proj */
