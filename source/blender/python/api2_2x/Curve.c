@@ -106,6 +106,7 @@ static PyObject *Curve_getSize( BPy_Curve * self );
 static PyObject *Curve_setSize( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getNumCurves( BPy_Curve * self );
 static PyObject *Curve_isNurb( BPy_Curve * self, PyObject * args );
+static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args);
 static PyObject *Curve_getNumPoints( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getNumPoints( BPy_Curve * self, PyObject * args );
 
@@ -204,6 +205,8 @@ Sets a control point "},
 	{"isNurb", ( PyCFunction ) Curve_isNurb,
 	 METH_VARARGS,
 	 "(nothing or integer) - returns 1 if curve is type Nurb, O otherwise."},
+	{"isCyclic", ( PyCFunction ) Curve_isCyclic,
+	 METH_VARARGS, "( nothing or integer ) - returns true if curve is cyclic (closed), false otherwise."},
 	{"getNumPoints", ( PyCFunction ) Curve_getNumPoints,
 	 METH_VARARGS,
 	 "(nothing or integer) - returns the number of points of the specified curve"},
@@ -1056,6 +1059,49 @@ static PyObject *Curve_isNurb( BPy_Curve * self, PyObject * args )
 	/* oops */
 	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"couldn't get curve type" ) );
+}
+
+/* trying to make a check for closedness (cyclic), following on isNurb (above) 
+   copy-pasting done by antont@kyperjokki.fi */
+
+static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args )
+{
+	int curve_num = 0;	/* default value */
+	int is_cyclic;
+	Nurb *ptrnurb;
+	PyObject *ret_val;
+	int i;
+
+	/* parse and check input args */
+	if( !PyArg_ParseTuple( args, "|i", &curve_num ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected int argument" ) );
+	}
+	if( curve_num < 0 ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"curve number must be non-negative" ) );
+	}
+
+	ptrnurb = self->curve->nurb.first;
+
+	if( !ptrnurb )		/* no splines in this curve */
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"no splines in this Curve" ) );
+
+	for( i = 0; i < curve_num; i++ ) {
+		ptrnurb = ptrnurb->next;
+		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
+			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+							"curve index out of range" ) );
+	}
+
+	if(  ptrnurb->flagu & CU_CYCLIC ){
+		Py_INCREF( Py_True );
+		return Py_True;
+	} else {
+		Py_INCREF( Py_False );
+		return Py_False;
+	}
 }
 
 

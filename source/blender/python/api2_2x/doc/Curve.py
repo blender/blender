@@ -226,7 +226,7 @@ class Curve:
 
   def getControlPoint(numcurve,numpoint):
     """
-    Get the curve's control point value. 
+    Get the curve's control point value. The numpoint arg is an index into the list of points and starts with 0.
     @type numcurve: int
     @type numpoint: int
     @rtype: list of floats
@@ -237,7 +237,7 @@ class Curve:
 
   def setControlPoint( numcurve, numpoint, controlpoint):
     """
-    Set the Curve's controlpoint value. 
+    Set the Curve's controlpoint value.   The numpoint arg is an index into the list of points and starts with 0.
     @rtype: PyNone
     @type numcurve: int
     @type numpoint: int
@@ -333,12 +333,22 @@ class Curve:
       """
       method used to determine whether a CurNurb is of type Bezier or of type Nurb.
       @rtype: integer
-      @return:  Zero of curve is type Bezier, One if curve is of type Nurb.
+      @return:  Zero if curve is type Bezier, One if curve is of type Nurb.
       @type curve_num: integer
       @param curve_num: zero-based index into list of curves in this Curve.
       @raise AttributeError:  throws exception if curve_num is out of range.
       """
 
+  def isCyclic( curve_num ):
+      """
+      Boolean method checks whether the curve is cyclic (closed) or not.
+
+      @rtype: boolean
+      @return: True if is cyclic, False if not
+      @type curve_num: integer
+      @param curve_num: zero-based index into list of curves in this Curve
+      @raise AttributeError:  throws exception if curve_num is out of range.
+      """
 
 class CurNurb:
     """
@@ -383,6 +393,13 @@ class CurNurb:
       @rtype: boolean
       @return:  True or False
       """
+
+    def isCyclic():
+      """
+      Boolean method checks whether a CurNurb is cyclic (a closed curve) or not.
+      @rtype: boolean
+      @return: True or False
+	  """
 
   
     

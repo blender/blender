@@ -63,6 +63,7 @@ static PyObject *CurNurb_iterNext( BPy_CurNurb * self );
 PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * args );
 PyObject *CurNurb_pointAtIndex( Nurb * nurb, int index );
 static PyObject *CurNurb_isNurb( BPy_CurNurb * self );
+static PyObject *CurNurb_isCyclic( BPy_CurNurb * self );
 
 char M_CurNurb_doc[] = "CurNurb";
 
@@ -426,6 +427,23 @@ static PyObject *CurNurb_isNurb( BPy_CurNurb * self )
 	}
 }
 
+/*
+ * CurNurb_isCyclic()
+ * test whether spline cyclic (closed) or not (open)
+ */
+
+static PyObject *CurNurb_isCyclic( BPy_CurNurb * self )
+{
+        /* supposing that the flagu is always set */ 
+
+	if( self->nurb->flagu & CU_CYCLIC ) {
+		Py_INCREF( Py_True );
+		return Py_True;
+	} else {
+		Py_INCREF( Py_False );
+		return ( Py_False );
+	}
+}
 
 /*
    table of module methods
@@ -463,6 +481,8 @@ static PyMethodDef BPy_CurNurb_methods[] = {
 	 "( point ) - add a new point.  arg is BezTriple or list of x,y,z,w floats"},
 	{"isNurb", ( PyCFunction ) CurNurb_isNurb, METH_NOARGS,
 	 "( ) - boolean function tests if this spline is type nurb or bezier"},
+	{"isCyclic", ( PyCFunction ) CurNurb_isCyclic, METH_NOARGS,
+	 "( ) - boolean function tests if this spline is cyclic (closed) or not (open)"},
 	{NULL, NULL, 0, NULL}
 };
 
