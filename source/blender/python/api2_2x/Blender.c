@@ -216,6 +216,7 @@ void M_Blender_Init (void)
   PyDict_SetItemString (dict, "Material", Material_Init());
   PyDict_SetItemString (dict, "Camera",   Camera_Init());
   PyDict_SetItemString (dict, "Lamp",     Lamp_Init());
+  PyDict_SetItemString (dict, "Lattice",  Lattice_Init());
   PyDict_SetItemString (dict, "Curve",    Curve_Init());
   PyDict_SetItemString (dict, "Armature", Armature_Init());
   PyDict_SetItemString (dict, "Ipo",      Ipo_Init());

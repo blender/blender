@@ -85,6 +85,8 @@ PyObject *Types_Init (void)
 
   PyDict_SetItemString(dict, "ButtonType",   (PyObject *)&Button_Type);
 
+  PyDict_SetItemString(dict, "LatticeType",  (PyObject *)&Lattice_Type);
+
   /* External helper Types available to the main ones above */
 
   PyDict_SetItemString(dict, "vectorType",   (PyObject *)&vector_Type);

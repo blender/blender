@@ -42,6 +42,7 @@ extern PyTypeObject NMesh_Type, NMFace_Type, NMVert_Type, NMCol_Type;
 extern PyTypeObject Camera_Type, Lamp_Type, Image_Type, Text_Type;
 extern PyTypeObject Armature_Type, Bone_Type;
 extern PyTypeObject Curve_Type, Ipo_Type, Metaball_Type;
+extern PyTypeObject Lattice_Type;
 
 extern PyTypeObject vector_Type, buffer_Type, rgbTuple_Type,
 				            constant_Type;

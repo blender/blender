@@ -268,7 +268,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
 /*	else if (strcmp (str_type, "Text") == 0)	type = OB_FONT; */
 /*	else if (strcmp (str_type, "Ika") == 0)		type = OB_IKA; */
   else if (strcmp (str_type, "Lamp") == 0)	  type = OB_LAMP;
-//  else if (strcmp (str_type, "Lattice") == 0) type = OB_LATTICE;
+  else if (strcmp (str_type, "Lattice") == 0) type = OB_LATTICE;
 /*	else if (strcmp (str_type, "Mball") == 0)	type = OB_MBALL; */
   else if (strcmp (str_type, "Mesh") == 0)	  type = OB_MESH;
 /*	else if (strcmp (str_type, "Surf") == 0)	type = OB_SURF; */
@@ -586,10 +586,10 @@ int EXPP_add_obdata(struct Object *object)
 	  object->data = add_mesh();
 	  G.totmesh++;
 	  break;
-/*	case OB_LATTICE:
+	case OB_LATTICE:
       object->data = (void *)add_lattice();
 	  object->dt = OB_WIRE;
-	  break;*/
+	  break;
 
 	/* TODO the following types will be supported later
 	case OB_SURF:
@@ -657,7 +657,7 @@ static PyObject *Object_getData (BPy_Object *self)
 			data_object = Lamp_CreatePyObject (object->data);
 			break;
 		case OB_LATTICE:
-//			data_object = Lattice_CreatePyObject (object->data);
+			data_object = Lattice_CreatePyObject (object->data);
 			break;
 		case ID_MA:
 			break;
@@ -935,8 +935,8 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 		data = (void *)Curve_FromPyObject (py_data);
 	if (NMesh_CheckPyObject (py_data))
 		data = (void *)Mesh_FromPyObject (py_data, self->object);
-	//if (Lattice_CheckPyObject (py_data))
-	//	data = (void *)Lattice_FromPyObject (py_data);
+	if (Lattice_CheckPyObject (py_data))
+		data = (void *)Lattice_FromPyObject (py_data);
 
 	/* have we set data to something good? */
 	if( !data )
@@ -979,13 +979,13 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 					"The 'link' object is incompatible with the base object"));
 			}
 			break;
-		/*case ID_LT:
+		case ID_LT:
 			if (self->object->type != OB_LATTICE)
 			{
 					return (PythonReturnErrorObject (PyExc_AttributeError,
 							"The 'link' object is incompatible with the base object"));
 			}
-			break;*/
+			break;
 		default:
 			return (PythonReturnErrorObject (PyExc_AttributeError,
 				"Linking this object type is not supported"));
@@ -1325,7 +1325,7 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 		case OB_CAMERA: /* we can probably add the other types, too */
 		case OB_ARMATURE:
 		case OB_CURVE:
-		//case OB_LATTICE:
+		case OB_LATTICE:
 			oldid = (ID*) self->object->data;
 			id = (ID*) object->object->data;
 			self->object->data = object->object->data;

@@ -39,6 +39,7 @@
 #include <DNA_mesh_types.h>
 #include <DNA_camera_types.h>
 #include <DNA_lamp_types.h>
+#include <DNA_lattice_types.h>
 #include <DNA_curve_types.h>
 #include <DNA_armature_types.h>
 #include <DNA_ipo_types.h>
@@ -169,6 +170,12 @@ PyObject * World_CreatePyObject (struct World *world);
 int        World_CheckPyObject (PyObject *py_obj);
 World    * World_FromPyObject (PyObject *py_obj);
 World    * GetWorldByName (char * name);
+
+/* Lattice */
+PyObject * Lattice_Init (void);
+PyObject * Lattice_CreatePyObject (Lattice *lt);
+Lattice  * Lattice_FromPyObject   (PyObject *pyobj);
+int        Lattice_CheckPyObject  (PyObject *pyobj);
 
 /* Init functions for other modules */
 PyObject * Window_Init (void);
