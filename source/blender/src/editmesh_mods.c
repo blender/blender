@@ -132,10 +132,18 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 	Mat4MulVec4fl(persmat, vec4);
 	vec4[2]/= vec4[3];
 	vec4[2]= 0.5 + vec4[2]/2;
+
+	if(1) {
+		unsigned int zvali;
+		glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,  &zvali);
+		zval= ((float)zvali)/((float)0xFFFFFFFF);
+		// printf("my proj %f zbuf %x %f mydiff %f\n", vec4[2], zvali, zval, vec4[2]-zval);
+	}
+	else {
+		glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,  &zval);
+		// printf("my proj %f zbuf %f mydiff %f\n", vec4[2], zval, vec4[2]-zval);
+	}
 	
-	glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,  &zval);
-					
-				//	printf("my proj %f zbuf %f mydiff %f\n", vec4[2], zval, vec4[2]-zval);
 	if( vec4[2] > zval) return 0;
 	return 1;
 }
