@@ -2454,7 +2454,11 @@ int play_anim(int mode)
 	audiostream_start( CFRA );
 	
 	inner_play_anim_loop(1, mode);	/* 1==init */
-
+	
+	 /* forces all buffers to be OK for current frame (otherwise other windows get redrawn with CFRA+1) */
+	curarea->win_swap= WIN_BACK_OK;
+	screen_swapbuffers();
+	
 	while(TRUE) {
 
 		inner_play_anim_loop(0, 0);
