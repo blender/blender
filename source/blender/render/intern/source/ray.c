@@ -1302,7 +1302,7 @@ static int d3dda(Isect *is)
 static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr= is->vlr;
-	int flip= 0;
+	int osatex= 0, flip= 0;
 	
 	/* set up view vector */
 	VECCOPY(shi->view, is->vec);
@@ -1332,7 +1332,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	// Osa structs we leave unchanged now
-	shi->osatex= 0;	
+	SWAP(int, osatex, shi->osatex);
 	
 	// but, set O structs zero where it can confuse texture code
 	if(shi->matren->texco & (TEXCO_NORM|TEXCO_REFL) ) {
@@ -1350,7 +1350,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		shade_input_set_coords(shi, is->u, is->v, 0, 1, 2);
 	}
 	
-	shi->osatex= (shi->matren->texco & TEXCO_OSA);
+	SWAP(int, osatex, shi->osatex);
 
 	if(is->mode==DDA_SHADOW_TRA) shade_color(shi, shr);
 	else {
@@ -1450,7 +1450,7 @@ static void color_combine(float *result, float fac1, float fac2, float *col1, fl
 #endif
 
 /* the main recursive tracer itself */
-static void traceray(short depth, float *start, float *vec, float *col, VlakRen *vlr, int mask)
+static void traceray(short depth, float *start, float *vec, float *col, VlakRen *vlr, int mask, int osatex)
 {
 	ShadeInput shi;
 	ShadeResult shr;
@@ -1467,6 +1467,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 
 	if( d3dda(&isec) ) {
 		shi.mask= mask;
+		shi.osatex= osatex;
 		shade_ray(&isec, &shi, &shr);
 		
 		if(depth>0) {
@@ -1475,7 +1476,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 				float f, f1, refract[3], tracol[3];
 				
 				refraction(refract, shi.vn, shi.view, shi.matren->ang);
-				traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask);
+				traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask, osatex);
 				
 				f= shr.alpha; f1= 1.0-f;
 				shr.diff[0]= f*shr.diff[0] + f1*tracol[0];
@@ -1493,7 +1494,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 			if(f!=0.0) {
 			
 				reflection(ref, shi.vn, shi.view, NULL);			
-				traceray(depth-1, shi.co, ref, col, shi.vlr, shi.mask);
+				traceray(depth-1, shi.co, ref, col, shi.vlr, shi.mask, osatex);
 			
 				f1= 1.0-f;
 
@@ -1676,7 +1677,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		float refract[3];
 		
 		refraction(refract, shi->vn, shi->view, shi->matren->ang);
-		traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask);
+		traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0);
 		
 		f= shr->alpha; f1= 1.0-f;
 		shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
@@ -1698,7 +1699,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			else
 				reflection(vec, shi->vn, shi->view, NULL);
 	
-			traceray(shi->matren->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask);
+			traceray(shi->matren->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask, shi->osatex);
 			
 			f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
 			shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
