@@ -1972,7 +1972,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 		if(do_wire) {
 			start= 0; end= me->totface;
 			set_buildvars(ob, &start, &end);
-			mface= me->mface+start;
+			mface= ((MFace *)me->mface)+start;
 			BIF_ThemeColor(TH_WIRE);
 			glBegin(GL_LINES);
 			for(a=0; a<end; a++, mface++) {
