@@ -2236,12 +2236,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Right Mouse",
-			(xpos+edgsp+(3*mpref)+(4*midsp)),y5,(mpref/2),buth,
-			&(U.flag), 0, 0, 0, 0, "Use the Right Mouse Button for selection");
 		uiDefButBitS(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Left Mouse",
-			(xpos+edgsp+(3*mpref)+(4*midsp)+(mpref/2)),y5,(mpref/2),buth,
+			(xpos+edgsp+(3*mpref)+(4*midsp)),y5,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Use the Left Mouse Button for selection");
+		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Right Mouse",
+			(xpos+edgsp+(3*mpref)+(4*midsp)+(mpref/2)),y5,(mpref/2),buth,
+			&(U.flag), 0, 0, 0, 0, "Use the Right Mouse Button for selection");
 		uiBlockEndAlign(block);
 		
 		
