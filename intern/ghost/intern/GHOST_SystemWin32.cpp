@@ -470,7 +470,6 @@ GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 {
 	GHOST_TInt32 x, y;
 	getSystem()->getCursorPosition(x, y);
-	printf("%d %d\n",x,y);
 	return new GHOST_EventCursor (getSystem()->getMilliSeconds(), type, window, x, y);
 }
 
