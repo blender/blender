@@ -1060,7 +1060,7 @@ static void read_videoscape(char *str)
 /* ***************** INVENTOR ******************* */
 
 
-#define IV_MAXSTACK 500000
+#define IV_MAXSTACK 3000000
 #define IV_MAXFIELD 10
 #define IV_MAXCOL 16
 
