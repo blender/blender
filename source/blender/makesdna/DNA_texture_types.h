@@ -149,7 +149,7 @@ typedef struct Tex {
 	float cropxmin, cropymin, cropxmax, cropymax;
 	short xrepeat, yrepeat;
 	short extend, len;
-	float checkerdist, pad;
+	float checkerdist, nabla;
 	short frames, offset, sfra, fie_ima;
 	float norfac, *nor;
 	

@@ -4589,6 +4589,14 @@ static void do_versions(Main *main)
 			}
 		}
 	}
+	if(main->versionfile <= 235) {
+		Tex *tex= main->tex.first;
+		
+		while(tex) {
+			if(tex->nabla==0.0) tex->nabla= 0.025;
+			tex= tex->id.next;
+		}
+	}
 	
 	/* don't forget to set version number in blender.c! */
 }

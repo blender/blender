@@ -194,6 +194,36 @@ void end_render_textures()
 
 /* ------------------------------------------------------------------------- */
 
+/* this allows colorbanded textures to control normals as well */
+static void tex_normal_derivate(float fac, Tex *tex)
+{
+	if (tex->flag & TEX_COLORBAND) {
+		float col[4];
+		if (do_colorband(tex->coba, fac, col)) {
+			float fac0, fac1, fac2, fac3;
+			
+			fac0= (col[0]+col[1]+col[2]);
+			do_colorband(tex->coba, tex->nor[0], col);
+			fac1= (col[0]+col[1]+col[2]);
+			do_colorband(tex->coba, tex->nor[1], col);
+			fac2= (col[0]+col[1]+col[2]);
+			do_colorband(tex->coba, tex->nor[2], col);
+			fac3= (col[0]+col[1]+col[2]);
+			
+			tex->nor[0]= 0.3333*(fac0 - fac1);
+			tex->nor[1]= 0.3333*(fac0 - fac2);
+			tex->nor[2]= 0.3333*(fac0 - fac3);
+			
+			return;
+		}
+	}
+	tex->nor[0]= fac - tex->nor[0];
+	tex->nor[1]= fac - tex->nor[1];
+	tex->nor[2]= fac - tex->nor[2];
+}
+
+
+
 static int blend(Tex *tex, float *texvec)
 {
 	float x, y, t;
@@ -240,9 +270,6 @@ static int blend(Tex *tex, float *texvec)
 
 /* ------------------------------------------------------------------------- */
 /* ************************************************************************* */
-/* clouds, wood & marble updated to do proper bumpmapping */
-/* 0.025 seems reasonable value for offset */
-#define B_OFFS 0.025
 
 /* newnoise: all noisebased types now have different noisebases to choose from */
 
@@ -253,9 +280,11 @@ static int clouds(Tex *tex, float *texvec)
 
 	if (tex->nor!=NULL) {
 		// calculate bumpnormal
-		tex->nor[0] = Tin - BLI_gTurbulence(tex->noisesize, texvec[0] + B_OFFS, texvec[1], texvec[2], tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-		tex->nor[1] = Tin - BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1] + B_OFFS, texvec[2], tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-		tex->nor[2] = Tin - BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1], texvec[2] + B_OFFS, tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		tex->nor[0] = BLI_gTurbulence(tex->noisesize, texvec[0] + tex->nabla, texvec[1], texvec[2], tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		tex->nor[1] = BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1] + tex->nabla, texvec[2], tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		tex->nor[2] = BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1], texvec[2] + tex->nabla, tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+		
+		tex_normal_derivate(Tin, tex);
 		rv += 2;
 	}
 
@@ -304,9 +333,11 @@ static int wood(Tex *tex, float *texvec)
 	Tin = wood_int(tex, texvec[0], texvec[1], texvec[2]);
 	if (tex->nor!=NULL) {
 		/* calculate bumpnormal */
-		tex->nor[0] = Tin - wood_int(tex, texvec[0] + B_OFFS, texvec[1], texvec[2]);
-		tex->nor[1] = Tin - wood_int(tex, texvec[0], texvec[1] + B_OFFS, texvec[2]);
-		tex->nor[2] = Tin - wood_int(tex, texvec[0], texvec[1], texvec[2] + B_OFFS);
+		tex->nor[0] = wood_int(tex, texvec[0] + tex->nabla, texvec[1], texvec[2]);
+		tex->nor[1] = wood_int(tex, texvec[0], texvec[1] + tex->nabla, texvec[2]);
+		tex->nor[2] = wood_int(tex, texvec[0], texvec[1], texvec[2] + tex->nabla);
+		
+		tex_normal_derivate(Tin, tex);
 		rv += 2;
 	}
 
@@ -339,9 +370,12 @@ static int marble(Tex *tex, float *texvec)
 
 	if (tex->nor!=NULL) {
 		/* calculate bumpnormal */
-		tex->nor[0] = Tin - marble_int(tex, texvec[0] + B_OFFS, texvec[1], texvec[2]);
-		tex->nor[1] = Tin - marble_int(tex, texvec[0], texvec[1] + B_OFFS, texvec[2]);
-		tex->nor[2] = Tin - marble_int(tex, texvec[0], texvec[1], texvec[2] + B_OFFS);
+		tex->nor[0] = marble_int(tex, texvec[0] + tex->nabla, texvec[1], texvec[2]);
+		tex->nor[1] = marble_int(tex, texvec[0], texvec[1] + tex->nabla, texvec[2]);
+		tex->nor[2] = marble_int(tex, texvec[0], texvec[1], texvec[2] + tex->nabla);
+		
+		tex_normal_derivate(Tin, tex);
+		
 		rv += 2;
 	}
 
@@ -467,17 +501,19 @@ static float mg_mFractalOrfBmTex(Tex *tex, float *texvec)
 	else
 		mgravefunc = mg_fBm;
 
-	Tin = mgravefunc(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+	Tin = tex->ns_outscale*mgravefunc(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
 
 	if (tex->nor!=NULL) {
+		float offs= tex->nabla/tex->noisesize;	// also scaling of texvec
+		
 		/* calculate bumpnormal */
-		tex->nor[0] = Tin - mgravefunc(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
-		tex->nor[1] = Tin - mgravefunc(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
-		tex->nor[2] = Tin - mgravefunc(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+		tex->nor[0] = tex->ns_outscale*mgravefunc(texvec[0] + offs, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+		tex->nor[1] = tex->ns_outscale*mgravefunc(texvec[0], texvec[1] + offs, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+		tex->nor[2] = tex->ns_outscale*mgravefunc(texvec[0], texvec[1], texvec[2] + offs, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
+		
+		tex_normal_derivate(Tin, tex);
 		rv += 2;
 	}
-
-	Tin *= tex->ns_outscale;
 
 	BRICON;
 
@@ -495,17 +531,19 @@ static float mg_ridgedOrHybridMFTex(Tex *tex, float *texvec)
 	else
 		mgravefunc = mg_HybridMultiFractal;
 
-	Tin = mgravefunc(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+	Tin = tex->ns_outscale*mgravefunc(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
 
 	if (tex->nor!=NULL) {
+		float offs= tex->nabla/tex->noisesize;	// also scaling of texvec
+		
 		/* calculate bumpnormal */
-		tex->nor[0] = Tin - mgravefunc(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
-		tex->nor[1] = Tin - mgravefunc(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
-		tex->nor[2] = Tin - mgravefunc(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+		tex->nor[0] = tex->ns_outscale*mgravefunc(texvec[0] + offs, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+		tex->nor[1] = tex->ns_outscale*mgravefunc(texvec[0], texvec[1] + offs, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+		tex->nor[2] = tex->ns_outscale*mgravefunc(texvec[0], texvec[1], texvec[2] + offs, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
+		
+		tex_normal_derivate(Tin, tex);
 		rv += 2;
 	}
-
-	Tin *= tex->ns_outscale;
 
 	BRICON;
 
@@ -518,17 +556,19 @@ static float mg_HTerrainTex(Tex *tex, float *texvec)
 {
 	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
 
-	Tin = mg_HeteroTerrain(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+	Tin = tex->ns_outscale*mg_HeteroTerrain(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
 
 	if (tex->nor!=NULL) {
+		float offs= tex->nabla/tex->noisesize;	// also scaling of texvec
+		
 		/* calculate bumpnormal */
-		tex->nor[0] = Tin - mg_HeteroTerrain(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
-		tex->nor[1] = Tin - mg_HeteroTerrain(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
-		tex->nor[2] = Tin - mg_HeteroTerrain(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+		tex->nor[0] = tex->ns_outscale*mg_HeteroTerrain(texvec[0] + offs, texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+		tex->nor[1] = tex->ns_outscale*mg_HeteroTerrain(texvec[0], texvec[1] + offs, texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+		tex->nor[2] = tex->ns_outscale*mg_HeteroTerrain(texvec[0], texvec[1], texvec[2] + offs, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
+		
+		tex_normal_derivate(Tin, tex);
 		rv += 2;
 	}
-
-	Tin *= tex->ns_outscale;
 
 	BRICON;
 
@@ -544,10 +584,14 @@ static float mg_distNoiseTex(Tex *tex, float *texvec)
 	Tin = mg_VLNoise(texvec[0], texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
 
 	if (tex->nor!=NULL) {
+		float offs= tex->nabla/tex->noisesize;	// also scaling of texvec
+		
 		/* calculate bumpnormal */
-		tex->nor[0] = Tin - mg_VLNoise(texvec[0] + B_OFFS, texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
-		tex->nor[1] = Tin - mg_VLNoise(texvec[0], texvec[1] + B_OFFS, texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
-		tex->nor[2] = Tin - mg_VLNoise(texvec[0], texvec[1], texvec[2] + B_OFFS, tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+		tex->nor[0] = mg_VLNoise(texvec[0] + offs, texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+		tex->nor[1] = mg_VLNoise(texvec[0], texvec[1] + offs, texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+		tex->nor[2] = mg_VLNoise(texvec[0], texvec[1], texvec[2] + offs, tex->dist_amount, tex->noisebasis, tex->noisebasis2);
+
+		tex_normal_derivate(Tin, tex);
 		rv += 2;
 	}
 
@@ -610,13 +654,17 @@ static float voronoiTex(Tex *tex, float *texvec)
 	}
 
 	if (tex->nor!=NULL) {
+		float offs= tex->nabla/tex->noisesize;	// also scaling of texvec
+
 		/* calculate bumpnormal */
-		voronoi(texvec[0] + B_OFFS, texvec[1], texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
-		tex->nor[0] = Tin - sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
-		voronoi(texvec[0], texvec[1] + B_OFFS, texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
-		tex->nor[1] = Tin - sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
-		voronoi(texvec[0], texvec[1], texvec[2] + B_OFFS, da, pa, tex->vn_mexp,  tex->vn_distm);
-		tex->nor[2] = Tin - sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
+		tex->nor[0] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp,  tex->vn_distm);
+		tex->nor[1] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp,  tex->vn_distm);
+		tex->nor[2] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
+		
+		tex_normal_derivate(Tin, tex);
 		rv += 2;
 	}
 

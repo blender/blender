@@ -376,14 +376,14 @@ static void drawcolorband_cb(void)
 	buttons_active_id(&id, &idfrom);
 	if( GS(id->name)==ID_TE) {
 		Tex *tex= (Tex *)id;
-		drawcolorband(tex->coba, 12,145,300,30);
+		drawcolorband(tex->coba, 10,145,300,30);
 	}
 	else if( GS(id->name)==ID_MA) {
 		Material *ma= (Material *)id;
 		if(ma->ramp_show==0)
-			drawcolorband(ma->ramp_col, 12,110,300,30);
+			drawcolorband(ma->ramp_col, 10,110,300,30);
 		else
-			drawcolorband(ma->ramp_spec, 12,110,300,30);
+			drawcolorband(ma->ramp_spec, 10,110,300,30);
 	}
 }
 
@@ -895,6 +895,7 @@ static void texture_panel_wood(Tex *tex)
 	/* newnoise: noisebasis menu */
 	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 
 }
 
@@ -907,12 +908,12 @@ static void texture_panel_stucci(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard stucci");
-	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Creates Dimples"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates Ridges"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard stucci");
+	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, 1.0, 0, 0, "Creates Dimples"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates Ridges"); 
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 112, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	122, 160, 113, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -922,6 +923,7 @@ static void texture_panel_stucci(Tex *tex)
 	/* newnoise: noisebasis menu */
 	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 
 }
 
@@ -934,12 +936,12 @@ static void texture_panel_marble(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses soft marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses more clearly defined marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Uses very clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 100, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses soft marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		110, 180, 100, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses more clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		210, 180, 100, 18, &tex->stype, 2.0, 2.0, 0, 0, "Uses very clearly defined marble"); 
 
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 112, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	122, 160, 113, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -950,6 +952,7 @@ static void texture_panel_marble(Tex *tex)
 	/* newnoise: noisebasis menu */
 	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 
 }
 
@@ -974,6 +977,7 @@ static void texture_panel_clouds(Tex *tex)
 	/* newnoise: noisebasis menu */
 	uiDefBut(block, LABEL, 0, "Noise Basis",		10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(),	10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+	uiDefButF(block, NUM, B_NOP, "Nabla: ",			160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 
 }
 
@@ -1013,6 +1017,7 @@ static void texture_panel_musgrave(Tex *tex)
 	/* noisebasis menu */
 	uiDefBut(block, LABEL, 0, "Noise Basis", 10, 30, 150, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), 10, 10, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+	uiDefButF(block, NUM, B_NOP, "Nabla: ", 160, 10, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 
 }
 
@@ -1039,7 +1044,9 @@ static void texture_panel_distnoise(Tex *tex)
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), 10, 80, 150, 19, &tex->noisebasis, 0,0,0,0, "Sets the noise basis which does the distortion");
 	/* noisebasis to distort */
 	uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), 160, 80, 150, 19, &tex->noisebasis2, 0,0,0,0, "Sets the noise basis to distort");
+	uiBlockEndAlign(block);
 
+	uiDefButF(block, NUM, B_NOP, "Nabla: ", 10, 50, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 }
 
 
@@ -1053,30 +1060,32 @@ static void texture_panel_voronoi(Tex *tex)
 
 	/* color types */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Int", 10, 180, 50, 18, &tex->vn_coltype, 1.0, 0.0, 0, 0, "Only calculate intensity"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Col1", 60, 180, 50, 18, &tex->vn_coltype, 1.0, 1.0, 0, 0, "Color cells by position"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Col2", 110, 180, 50, 18, &tex->vn_coltype, 1.0, 2.0, 0, 0, "Same as Col1 + outline based on F2-F1"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Col3", 160, 180, 50, 18, &tex->vn_coltype, 1.0, 3.0, 0, 0, "Same as Col2 * intensity"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Int", 10, 180, 75, 18, &tex->vn_coltype, 1.0, 0.0, 0, 0, "Only calculate intensity"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Col1", 85, 180, 75, 18, &tex->vn_coltype, 1.0, 1.0, 0, 0, "Color cells by position"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Col2", 160, 180, 75, 18, &tex->vn_coltype, 1.0, 2.0, 0, 0, "Same as Col1 + outline based on F2-F1"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Col3", 235, 180, 75, 18, &tex->vn_coltype, 1.0, 3.0, 0, 0, "Same as Col2 * intensity"); 
 	uiBlockEndAlign(block);
 
 	/* distance metric */
 	sprintf(dm_menu, "Distance Metric %%t|Actual Distance %%x%d|Distance Squared %%x%d|Manhattan %%x%d|Chebychev %%x%d|Minkovsky 1/2 %%x%d|Minkovsky 4 %%x%d|Minkovsky %%x%d", TEX_DISTANCE, TEX_DISTANCE_SQUARED, TEX_MANHATTAN, TEX_CHEBYCHEV, TEX_MINKOVSKY_HALF, TEX_MINKOVSKY_FOUR, TEX_MINKOVSKY);
-	uiDefBut(block, LABEL, 0, "Distance Metric", 10, 160, 200, 19, 0, 0, 0, 0, 0, "");
-	uiDefButS(block, MENU, B_TEXPRV, dm_menu, 10, 140, 200, 19, &tex->vn_distm, 0,0,0,0, "Sets the distance metric to be used");
+	uiDefBut(block, LABEL, 0, "Distance Metric", 10, 160, 150, 19, 0, 0, 0, 0, 0, "");
+	uiDefButS(block, MENU, B_TEXPRV, dm_menu, 10, 140, 150, 19, &tex->vn_distm, 0,0,0,0, "Sets the distance metric to be used");
 
 	if (tex->vn_distm==TEX_MINKOVSKY)
-		uiDefButF(block, NUMSLI, B_TEXPRV, "Exp: ", 10, 120, 200, 19, &tex->vn_mexp, 0.01, 10.0, 10, 0, "Sets minkovsky exponent");
+		uiDefButF(block, NUMSLI, B_TEXPRV, "Exp: ", 10, 120, 150, 19, &tex->vn_mexp, 0.01, 10.0, 10, 0, "Sets minkovsky exponent");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "iScale: ", 	10, 95, 100, 19, &tex->ns_outscale, 0.01, 10.0, 10, 0, "Scales intensity output");
-	uiDefButF(block, NUM, B_TEXPRV, "Size: ",	110, 95, 100, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
+	uiDefButF(block, NUM, B_TEXPRV, "iScale: ", 160, 140, 150, 19, &tex->ns_outscale, 0.01, 10.0, 10, 0, "Scales intensity output");
+	uiDefButF(block, NUM, B_TEXPRV, "Size: ",	160, 120, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_NOP, "Nabla: ",		160, 70, 150, 19, &tex->nabla, 0.001, 0.1, 1, 0, "Defines size of derivative offset used for calculating normal");	
 
 	/* weights */
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_TEXPRV, "W1: ", 10, 70, 200, 19, &tex->vn_w1, -2.0, 2.0, 10, 0, "Sets feature weight 1");
-	uiDefButF(block, NUMSLI, B_TEXPRV, "W2: ", 10, 50, 200, 19, &tex->vn_w2, -2.0, 2.0, 10, 0, "Sets feature weight 2");
-	uiDefButF(block, NUMSLI, B_TEXPRV, "W3: ", 10, 30, 200, 19, &tex->vn_w3, -2.0, 2.0, 10, 0, "Sets feature weight 3");
-	uiDefButF(block, NUMSLI, B_TEXPRV, "W4: ", 10, 10, 200, 19, &tex->vn_w4, -2.0, 2.0, 10, 0, "Sets feature weight 4");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W1: ", 10, 70, 150, 19, &tex->vn_w1, -2.0, 2.0, 10, 0, "Sets feature weight 1");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W2: ", 10, 50, 150, 19, &tex->vn_w2, -2.0, 2.0, 10, 0, "Sets feature weight 2");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W3: ", 10, 30, 150, 19, &tex->vn_w3, -2.0, 2.0, 10, 0, "Sets feature weight 3");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "W4: ", 10, 10, 150, 19, &tex->vn_w4, -2.0, 2.0, 10, 0, "Sets feature weight 4");
 }
 
 
@@ -1434,7 +1443,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 		
 		sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE);
 		uiDefBut(block, LABEL, 0, "Texture Type",		160, 150, 140, 20, 0, 0.0, 0.0, 0, 0, "");
-		uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 130, 140, 20, &tex->type, 0,0,0,0, "Select texture type");
+		uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 125, 140, 25, &tex->type, 0,0,0,0, "Select texture type");
 
 	}
 	else {

@@ -336,6 +336,7 @@ void default_tex(Tex *tex)
 	tex->noisesize= 0.25;
 	tex->noisedepth= 2;
 	tex->turbul= 5.0;
+	tex->nabla= 0.025;	// also in do_versions
 	tex->bright= 1.0;
 	tex->contrast= tex->filtersize= 1.0;
 	tex->rfac= 1.0;
