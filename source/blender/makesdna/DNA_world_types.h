@@ -140,6 +140,8 @@ typedef struct World {
 
 /* texco (also in DNA_material_types.h) */
 #define TEXCO_ANGMAP	64
+#define TEXCO_H_SPHEREMAP	256
+#define TEXCO_H_TUBEMAP	1024
 
 /* mapto */
 #define WOMAP_BLEND		1

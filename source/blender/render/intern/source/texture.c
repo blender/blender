@@ -1741,20 +1741,46 @@ void do_sky_tex(float *lo)
 			dyt[0]= dyt[1]= dyt[2]= O.dyview;
 			
 			/* Grab the mapping settings for this texture */
-			if(mtex->texco==TEXCO_ANGMAP) {
+			switch(mtex->texco) {
+			case TEXCO_ANGMAP:
 				
 				fact= (1.0/M_PI)*acos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1])); 
 				tempvec[0]= lo[0]*fact;
 				tempvec[1]= lo[1]*fact;
 				tempvec[2]= 0.0;
 				co= tempvec;
-				
-			}
-			else if(mtex->texco==TEXCO_OBJECT) {
-				Object *ob= mtex->object;
-				if(ob) {
+				break;
+			
+			case TEXCO_H_SPHEREMAP:
+			case TEXCO_H_TUBEMAP:
+				if(R.wrld.skytype & WO_ZENUP) {
+					if(mtex->texco==TEXCO_H_TUBEMAP) tubemap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
+					else spheremap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
+					/* tube/spheremap maps for outside view, not inside */
+					tempvec[0]= 1.0-tempvec[0];
+					/* only top half */
+					tempvec[1]= 2.0*tempvec[1]-1.0;
+					tempvec[2]= 0.0;
+					/* and correction for do_2d_mapping */
+					tempvec[0]= 2.0*tempvec[0]-1.0;
+					tempvec[1]= 2.0*tempvec[1]-1.0;
+					co= tempvec;
+				}
+				else {
+					/* potentially dangerous... check with multitex! */
+					R.wrld.horr= (wrld_hor->horr);
+					R.wrld.horg= (wrld_hor->horg);
+					R.wrld.horb= (wrld_hor->horb);
+					R.wrld.zenr= (wrld_hor->zenr);
+					R.wrld.zeng= (wrld_hor->zeng);
+					R.wrld.zenb= (wrld_hor->zenb);
+					continue;
+				}
+				break;
+			case TEXCO_OBJECT:
+				if(mtex->object) {
 					VECCOPY(tempvec, lo);
-					MTC_Mat4MulVecfl(ob->imat, tempvec);
+					MTC_Mat4MulVecfl(mtex->object->imat, tempvec);
 					co= tempvec;
 				}
 			}
@@ -1771,7 +1797,7 @@ void do_sky_tex(float *lo)
 			
 			/* texture */
 			if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
-			
+		
 			rgb= multitex(mtex->tex, texvec, dxt, dyt, R.osa);
 			
 			/* texture output */

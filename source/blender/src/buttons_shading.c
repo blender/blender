@@ -1637,10 +1637,12 @@ static void world_panel_texture(World *wrld)
 
 	/* TEXCO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,60,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses global coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "AngMap",		160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses 360 degree angular coordinates, e.g. for spherical light probes");
-	uiDefButS(block, ROW, B_MATPRV, "Object",		230,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,90,200,20, &(mtex->object), "");
+	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,45,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses global coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "AngMap",		145,110,55,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses 360 degree angular coordinates, e.g. for spherical light probes");
+	uiDefButS(block, ROW, B_MATPRV, "Sphere",		200,110,55,20, &(mtex->texco), 4.0, (float)TEXCO_H_SPHEREMAP, 0, 0, "For 360 degree panorama sky, spherical mapped, only top half");
+	uiDefButS(block, ROW, B_MATPRV, "Tube",			255,110,45,20, &(mtex->texco), 4.0, (float)TEXCO_H_TUBEMAP, 0, 0, "For 360 degree panorama sky, cylindrical mapped, only top half");
+	uiDefButS(block, ROW, B_MATPRV, "Object",		100,90,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 170,90,130,20, &(mtex->object), "");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
