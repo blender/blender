@@ -178,6 +178,11 @@ QuatSub(
 	float *q2
 );
 
+
+void QuatInterpol(float *result, float *quat1, float *quat2, float t);
+void QuatAdd(float *result, float *quat1, float *quat2, float t);
+
+
 /**
  * @section matrix multiplication can copying routines
  */

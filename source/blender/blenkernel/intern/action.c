@@ -178,26 +178,38 @@ void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
 				 * This sucks because it is slow and stupid
 				 */
 				
-				QuatToMat3(dchan->quat, mat);
-				Mat3ToQuat(mat, dquat);
-				QuatToMat3(schan->quat, mat);
-				Mat3ToQuat(mat, squat);
+				//QuatToMat3(dchan->quat, mat);
+				//Mat3ToQuat(mat, dquat);
+				//QuatToMat3(schan->quat, mat);
+				//Mat3ToQuat(mat, squat);
 				
+				/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
 				/* Do the transformation blend */
+				if (schan->flag & POSE_ROT) {
+					QUATCOPY(dquat, dchan->quat);
+					QUATCOPY(squat, schan->quat);
+					if(mode==POSE_BLEND)
+						QuatInterpol(dchan->quat, dquat, squat, srcweight);
+					else
+						QuatAdd(dchan->quat, dquat, squat, srcweight);
+					NormalQuat (dchan->quat);
+				}
+
 				for (i=0; i<3; i++){
 					if (schan->flag & POSE_LOC)
 						dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
 					if (schan->flag & POSE_SIZE)
 						dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
-					if (schan->flag & POSE_ROT)
-						dchan->quat[i+1] = (dquat[i+1]*dstweight) + (squat[i+1]*srcweight);
+					//if (schan->flag & POSE_ROT)
+					//	dchan->quat[i+1] = (dquat[i+1]*dstweight) + (squat[i+1]*srcweight);
 				}
 				
 				/* Do one more iteration for the quaternions only and normalize the quaternion if needed */
-				if (schan->flag & POSE_ROT)
-					dchan->quat[0] = 1.0f + ((dquat[0]-1.0f)*dstweight) + ((squat[0]-1.0f)*srcweight);
-				if (mode==POSE_BLEND)
-					NormalQuat (dchan->quat);
+				//if (schan->flag & POSE_ROT)
+				//	dchan->quat[0] = 1.0f + ((dquat[0]-1.0f)*dstweight) + ((squat[0]-1.0f)*srcweight);
+				//if (mode==POSE_BLEND)
+				//	NormalQuat (dchan->quat);
+				
 				dchan->flag |= schan->flag;
 			}
 		}

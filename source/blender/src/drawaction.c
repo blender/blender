@@ -877,15 +877,16 @@ static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert)
 		/* Count required keys */
 		for (achan=act->chanbase.first; achan; achan=achan->next){
 			/* Count transformation keys */
-			for (icu=achan->ipo->curve.first; icu; icu=icu->next)
-				count+=icu->totvert;
-			
-			/* Count constraint keys */
-			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-				for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+			if(achan->ipo) {
+				for (icu=achan->ipo->curve.first; icu; icu=icu->next)
 					count+=icu->totvert;
-			
-
+				
+				/* Count constraint keys */
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+					for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+						count+=icu->totvert;
+				
+			}
 		}
 		
 		/* Build the list */

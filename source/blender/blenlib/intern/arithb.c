@@ -1386,6 +1386,92 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 	
 }
 
+/* A & M Watt, Advanced animation and rendering techniques, 1992 ACM press */
+
+void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
+{
+	float omega, cosom, sinom, sc1, sc2;
+
+	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
+	
+	/* rotate around shortest angle */
+	if ((1.0 + cosom) > 0.0001) {
+		
+		if ((1.0 - cosom) > 0.0001) {
+			omega = acos(cosom);
+			sinom = sin(omega);
+			sc1 = sin((1.0 - t) * omega) / sinom;
+			sc2 = sin(t * omega) / sinom;
+		} 
+		else {
+			sc1 = 1.0 - t;
+			sc2 = t;
+		}
+		result[0] = sc1*quat1[0] + sc2*quat2[0];
+		result[1] = sc1*quat1[1] + sc2*quat2[1];
+		result[2] = sc1*quat1[2] + sc2*quat2[2];
+		result[3] = sc1*quat1[3] + sc2*quat2[3];
+	} 
+	else {
+		result[0] = quat2[3];
+		result[1] = -quat2[2];
+		result[2] = quat2[1];
+		result[3] = -quat2[0];
+		
+		sc1 = sin((1.0 - t)*M_PI_2);
+		sc2 = sin(t*M_PI_2);
+
+		result[0] = sc1*quat1[0] + sc2*result[0];
+		result[1] = sc1*quat1[1] + sc2*result[1];
+		result[2] = sc1*quat1[2] + sc2*result[2];
+		result[3] = sc1*quat1[3] + sc2*result[3];
+	}
+}
+
+void QuatInterpol(float *result, float *quat1, float *quat2, float t)
+{
+	float quat[4], omega, cosom, sinom, sc1, sc2;
+
+	cosom = quat1[0]*quat2[0] + quat1[1]*quat2[1] + quat1[2]*quat2[2] + quat1[3]*quat2[3] ;
+	
+	/* rotate around shortest angle */
+	if (cosom < 0.0) {
+		cosom = -cosom;
+		quat[0]= -quat1[0];
+		quat[1]= -quat1[1];
+		quat[2]= -quat1[2];
+		quat[3]= -quat1[3];
+	} 
+	else {
+		quat[0]= quat1[0];
+		quat[1]= quat1[1];
+		quat[2]= quat1[2];
+		quat[3]= quat1[3];
+	}
+	
+	if ((1.0 - cosom) > 0.0001) {
+		omega = acos(cosom);
+		sinom = sin(omega);
+		sc1 = sin((1 - t) * omega) / sinom;
+		sc2 = sin(t * omega) / sinom;
+	} else {
+		sc1= 1.0 - t;
+		sc2= t;
+	}
+	
+	result[0] = sc1 * quat[0] + sc2 * quat2[0];
+	result[1] = sc1 * quat[1] + sc2 * quat2[1];
+	result[2] = sc1 * quat[2] + sc2 * quat2[2];
+	result[3] = sc1 * quat[3] + sc2 * quat2[3];
+}
+
+void QuatAdd(float *result, float *quat1, float *quat2, float t)
+{
+	result[0]= quat1[0] + t*quat2[0];
+	result[1]= quat1[1] + t*quat2[1];
+	result[2]= quat1[2] + t*quat2[2];
+	result[3]= quat1[3] + t*quat2[3];
+}
 
 /* **************** VIEW / PROJECTION ********************************  */
 
