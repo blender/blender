@@ -2031,7 +2031,7 @@ static PyObject *Object_getDupliVerts ( BPy_Object * self ) {
 }
 
 static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args ) {
-	int setting= NULL;
+	int setting= 0;
 	if( !PyArg_ParseTuple( args, "i", &setting ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected a string") );
