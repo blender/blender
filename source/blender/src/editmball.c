@@ -181,8 +181,7 @@ void add_primitiveMball(int dummy_argument)
 	
 	lastelem= ml;
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSALL, 0);
+	allqueue(REDRAWALL, 0);
 	makeDispList(G.obedit);
 }
 

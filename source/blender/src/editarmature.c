@@ -1522,11 +1522,8 @@ void add_primitiveArmature(int type)
 	};
 	
 	countall();
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSALL, 0);
-	allqueue(REDRAWBUTSHEAD, 0);
-	allqueue(REDRAWBUTSCONSTRAINT, 0);
-	allqueue(REDRAWNLA, 0);
+
+	allqueue(REDRAWALL, 0);
 }
 
 static void add_bone_input (Object *ob)

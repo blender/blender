@@ -3796,10 +3796,8 @@ void add_primitiveCurve(int stype)
 	BLI_addtail(&editNurb, nu);
 	makeDispList(G.obedit);
 	
-	allqueue(REDRAWBUTSALL, 0);
-	
 	countall();
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWALL, 0);
 }
 
 void add_primitiveNurb(int type)
@@ -3828,11 +3826,9 @@ void add_primitiveNurb(int type)
 	nu= addNurbprim(4, type, newname);
 	BLI_addtail(&editNurb,nu);
 	makeDispList(G.obedit);
-	
-	allqueue(REDRAWBUTSALL, 0);
-	
+
 	countall();
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWALL, 0);
 }
 
 

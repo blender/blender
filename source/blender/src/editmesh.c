@@ -4535,11 +4535,9 @@ void add_primitiveMesh(int type)
 	
 	if(type!=0 && type!=10) righthandfaces(1);
 	countall();
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWHEADERS, 0);
+
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
-	allqueue(REDRAWBUTSALL, 0);
+	allqueue(REDRAWALL, 0);
 	makeDispList(G.obedit);
 
 	if (type==13) notice("Oooh Oooh Oooh");

@@ -567,6 +567,13 @@ void tbox_execute(void)
 	unsigned short event=0;
 	unsigned short qual1=0, qual2=0;
 
+	/* needed to check for valid selected objects */
+	Base *base;
+	Object *ob;
+
+	base= BASACT;
+	ob= base->object;
+
 	if(tbfunc) {
 		tbfunc(tbval);
 	}
@@ -590,30 +597,48 @@ void tbox_execute(void)
 		}
 		/* ctrl-s (Shear): switch into editmode ### */
 		else if(strcmp(tbstr1, "c|s")==0) {
-			if (!G.obedit) {
-				enter_editmode();
-				/* ### put these into a deselectall_gen() */
-				if(G.obedit->type==OB_MESH) deselectall_mesh();
-				else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
-				else if(G.obedit->type==OB_MBALL) deselectall_mball();
-				else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
-				/* ### */
+			/* check that a valid object is selected to prevent crash */
+		        if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+				error("Only editable 3D objects can be sheared");
 			}
-			qual1 = LEFTCTRLKEY;
-			event = SKEY;
+			else if ((base->lay & G.vd->lay)==0) {
+				error("Only objects on visible layers can be warped");
+			}
+			else {
+				if (!G.obedit) {
+					enter_editmode();
+					/* ### put these into a deselectall_gen() */
+					if(G.obedit->type==OB_MESH) deselectall_mesh();
+					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
+					else if(G.obedit->type==OB_MBALL) deselectall_mball();
+					else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
+					/* ### */
+				}
+				qual1 = LEFTCTRLKEY;
+				event = SKEY;
+			}
 		}
 		else if(strcmp(tbstr1, "W")==0) {
-			if (!G.obedit) {
-				enter_editmode();
-				/* ### put these into a deselectall_gen() */
-				if(G.obedit->type==OB_MESH) deselectall_mesh();
-				else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
-				else if(G.obedit->type==OB_MBALL) deselectall_mball();
-				else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
-				/* ### */
+		        /* check that a valid object is selected to prevent crash */
+			if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
+				error("Only editable 3D objects can be warped");
 			}
-			qual1 = LEFTSHIFTKEY;
-			event = WKEY;
+			else if ((base->lay & G.vd->lay)==0) {
+				error("Only objects on visible layers can be warped");
+			}
+			else {
+				if (!G.obedit) {
+					enter_editmode();
+					/* ### put these into a deselectall_gen() */
+					if(G.obedit->type==OB_MESH) deselectall_mesh();
+					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
+					else if(G.obedit->type==OB_MBALL) deselectall_mball();
+					else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
+					/* ### */
+				}
+				qual1 = LEFTSHIFTKEY;
+				event = WKEY;
+			}
 		}
 
 		else if(strlen(tbstr1)<4 || (strlen(tbstr1)==4 && tbstr1[2]=='F')) {

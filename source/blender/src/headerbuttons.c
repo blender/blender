@@ -2780,6 +2780,9 @@ static void do_info_editmenu(void *arg, int event)
 		if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
 			error("Only editable 3D objects can be sheared");
 		}
+		else if ((base->lay & G.vd->lay)==0) {
+			error("Only objects on visible layers can be sheared");
+		}
 		else {
 			if (!G.obedit) {
 				enter_editmode();
@@ -2804,6 +2807,9 @@ static void do_info_editmenu(void *arg, int event)
 		/* check that a valid object is selected to prevent crash */
 		if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
 			error("Only editable 3D objects can be warped");
+		}
+		else if ((base->lay & G.vd->lay)==0) {
+			error("Only objects on visible layers can be warped");
 		}
 		else {
 			if (!G.obedit) {

@@ -208,11 +208,9 @@ void add_object_draw(int type)	/* for toolbox */
 	}
 
 	redraw_test_buttons(BASACT);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWACTION,0);
-	allqueue(REDRAWHEADERS, 0);
-	allqueue(REDRAWNLA, 0);
+
+	allqueue(REDRAWALL, 0);
+
 	deselect_all_area_oops();
 	set_select_flag_oops();
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */

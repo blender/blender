@@ -626,8 +626,8 @@ void add_primitiveFont(int dummy_argument)
 	cu->pos= 4;
 	
 	make_editText();
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSALL, 0);
+
+	allqueue(REDRAWALL, 0);
 }
 
 void to_upper(void)
