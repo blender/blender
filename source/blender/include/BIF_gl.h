@@ -34,17 +34,8 @@
 #ifndef BIF_GL_H
 #define BIF_GL_H
 
-	/* XXX, fixme zr... what is the deal here,
-	 * is there a reason unices don't use the
-	 * <> include? (they should)
-	 */
-#if !defined(__APPLE__) && !defined(WIN32)
-#include "GL/gl.h"
-#include "GL/glu.h"
-#else
 #include <GL/gl.h>
 #include <GL/glu.h>
-#endif
 
 	/*
 	 * these should be phased out. cpack should be replaced in
