@@ -100,6 +100,7 @@
 #include "BIF_gl.h"
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
+#include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
 #include "BIF_resources.h"

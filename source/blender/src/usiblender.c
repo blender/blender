@@ -564,7 +564,6 @@ void exit_usiblender(void)
 	free_posebuf();
 
 	free_blender();	/* blender.c, does entire library */
-	free_hashedgetab();
 	free_matcopybuf();
 	free_ipocopybuf();
 	freefastshade();

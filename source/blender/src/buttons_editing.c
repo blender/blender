@@ -98,6 +98,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editsound.h"
 #include "BIF_interface.h"
+#include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"

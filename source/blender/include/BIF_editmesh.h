@@ -30,6 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/* External for editmesh_xxxx.c functions */
+
 #ifndef BIF_EDITMESH_H
 #define BIF_EDITMESH_H
 
@@ -40,117 +42,13 @@ struct Mesh;
 struct bDeformGroup;
 struct View3D;
 
-void free_hashedgetab(void);
-void fasterdraw(void);
-void slowerdraw(void);
-void vertexnoise(void);
-void vertexsmooth(void);
-void make_sticky(void);
-void deselectall_mesh(void);
+/* ******************* editmesh.c */
+extern void make_editMesh(void);
+extern void load_editMesh(void);
+extern void free_editMesh(void);
+extern void remake_editMesh(void);
 
-/* For Knife subdivide */
-typedef struct CutCurve {
-	short  x; 
-	short  y;
-} CutCurve;
-
-void KnifeSubdivide(char mode);
-#define KNIFE_PROMPT 0
-#define KNIFE_EXACT 1
-#define KNIFE_MIDPOINT 2
-
-CutCurve *get_mouse_trail(int * length, char mode);
-#define TRAIL_POLYLINE 1 /* For future use, They don't do anything yet */
-#define TRAIL_FREEHAND 2
-#define TRAIL_MIXED    3 /* (1|2) */
-#define TRAIL_AUTO     4 
-#define	TRAIL_MIDPOINTS 8
-
-short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
-
-void LoopMenu(void);
-/* End Knife Subdiv */
-
-	/** Aligns the selected TFace's of @a me to the @a v3d,
-	 * using the given axis (0-2). Can give a user error.
-	 */
-void faceselect_align_view_to_selected(struct View3D *v3d, struct Mesh *me, int axis);
-	/** Aligns the selected faces or vertices of @a me to the @a v3d,
-	 * using the given axis (0-2). Can give a user error.
-	 */
-void editmesh_align_view_to_selected(struct View3D *v3d, int axis);
-
-struct EditVert *addvertlist(float *vec);
-struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
-struct EditFace *addfacelist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example);
-struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2);
-
-void remedge(struct EditEdge *eed);
-
-int faceselectedAND(struct EditFace *efa, int flag);
-
-void recalc_editnormals(void);
-void flip_editnormals(void);
-void vertexnormals(int testflip);
-/* this is currently only used by the python NMesh module: */
-void vertexnormals_mesh(struct Mesh *me, float *extverts);
-
-void make_editMesh(void);
-void load_editMesh(void);
-void free_editMesh(void);
-void remake_editMesh(void);
-
-void convert_to_triface(int all);
-
-void righthandfaces(int select);
-
-void mouse_mesh(void);
-
-void selectconnected_mesh(int qual);
-short extrudeflag(short flag,short type);
-void rotateflag(short flag, float *cent, float rotmat[][3]);
-void translateflag(short flag, float *vec);
-short removedoublesflag(short flag, float limit);
-void xsortvert_flag(int flag);
-void hashvert_flag(int flag);
-void subdivideflag(int flag, float rad, int beauty);
-void adduplicateflag(int flag);
-void extrude_mesh(void);
-void adduplicate_mesh(void);
-void split_mesh(void);
-
-void separatemenu(void);
-void separate_mesh(void);
-void separate_mesh_loose(void);
-
-void loopoperations(char mode);
-#define LOOP_SELECT	1
-#define LOOP_CUT	2
-
-void vertex_loop_select(void); 
-void edge_select(void);
-
-void extrude_repeat_mesh(int steps, float offs);
-void spin_mesh(int steps,int degr,float *dvec, int mode);
-void screw_mesh(int steps,int turns);
-void selectswap_mesh(void);
-void addvert_mesh(void);
-void addedgeface_mesh(void);
-void delete_mesh(void);
-void add_primitiveMesh(int type);
-void hide_mesh(int swap);
-void reveal_mesh(void);
-void beauty_fill(void);
-void join_triangles(void);
-void edge_flip(void);
-void join_mesh(void);
-void sort_faces(void);
-void vertices_to_sphere(void);
-void fill_mesh(void);
-
-void bevel_menu();
-
-/* Editmesh Undo code */
+	/* Editmesh Undo code */
 void undo_free_mesh(struct Mesh *me);
 void undo_push_mesh(char *name);
 void undo_pop_mesh(int steps);
@@ -158,21 +56,90 @@ void undo_redo_mesh(void);
 void undo_clear_mesh(void);
 void undo_menu_mesh(void);
 
-/* Selection */
-void select_non_manifold(void);
-void select_more(void);
-void select_less(void);
-void selectrandom_mesh(void);
+extern void separatemenu(void);
+extern void separate_mesh(void);
+extern void separate_mesh_loose(void);
 
-void Edge_Menu(void);
+/* ******************* editmesh_add.c */
+extern void add_primitiveMesh(int type);
+extern void adduplicate_mesh(void);
+extern void addvert_mesh(void);
+extern void addedgeface_mesh(void);
 
-void editmesh_select_by_material(int index);
-void editmesh_deselect_by_material(int index);
+/* ******************* editmesh_lib.c */
+extern int faceselectedAND(struct EditFace *efa, int flag);
+extern void recalc_editnormals(void);
+extern void flip_editnormals(void);
+extern void vertexnormals(int testflip);
 
-void editmesh_mark_seam(int clear);
+/* ******************* editmesh_mods.c */
+extern void vertexnoise(void);
+extern void vertexsmooth(void);
+extern void righthandfaces(int select);
+extern void mouse_mesh(void);
 
+extern void deselectall_mesh(void);
+extern void selectconnected_mesh(int qual);
+extern void selectswap_mesh(void);
+
+extern void hide_mesh(int swap);
+extern void reveal_mesh(void);
+
+extern void vertices_to_sphere(void);
+
+	/** Aligns the selected TFace's of @a me to the @a v3d,
+	 * using the given axis (0-2). Can give a user error.
+	 */
+extern void faceselect_align_view_to_selected(struct View3D *v3d, struct Mesh *me, int axis);
+	/** Aligns the selected faces or vertices of @a me to the @a v3d,
+	 * using the given axis (0-2). Can give a user error.
+	 */
+extern void editmesh_align_view_to_selected(struct View3D *v3d, int axis);
+
+	/* Selection */
+extern void select_non_manifold(void);
+extern void select_more(void);
+extern void select_less(void);
+extern void selectrandom_mesh(void);
+extern void editmesh_select_by_material(int index);
+extern void editmesh_deselect_by_material(int index);
+
+extern void Edge_Menu(void);
+extern void editmesh_mark_seam(int clear);
+
+/* ******************* editmesh_loop.c */
+
+#define KNIFE_PROMPT 0
+#define KNIFE_EXACT 1
+#define KNIFE_MIDPOINT 2
+
+extern void KnifeSubdivide(char mode);
+extern void LoopMenu(void);
+
+#define LOOP_SELECT	1
+#define LOOP_CUT	2
+
+extern void loopoperations(char mode);
+extern void vertex_loop_select(void); 
+
+/* ******************* editmesh_tools.c */
+extern void convert_to_triface(int all);
+extern short removedoublesflag(short flag, float limit);
+extern void xsortvert_flag(int flag);
+extern void hashvert_flag(int flag);
+extern void subdivideflag(int flag, float rad, int beauty);
+extern void extrude_mesh(void);
+extern void split_mesh(void);
+extern void extrude_repeat_mesh(int steps, float offs);
+extern void spin_mesh(int steps,int degr,float *dvec, int mode);
+extern void screw_mesh(int steps,int turns);
+extern void delete_mesh(void);
+extern void beauty_fill(void);
+extern void join_triangles(void);
+extern void edge_flip(void);
+extern void fill_mesh(void);
+extern void bevel_menu();
 void edge_rotate_selected(void);
-void edge_rotate(struct EditEdge *eed);
  
 #endif
 

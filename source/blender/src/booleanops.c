@@ -59,12 +59,10 @@
 // TODO check to see how many of these includes are necessary
 
 #include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_arithb.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 
-#include "BIF_editmesh.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
