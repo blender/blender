@@ -59,6 +59,7 @@ DONE:
 #include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BLI_blenlib.h"
+#include "BIF_toolbox.h"	/* error() */
 #include "BLO_sys_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -69,8 +70,6 @@ DONE:
 #include "quicktime_export.h"
 
 #ifdef _WIN32
-#include <stdio.h>
-#include "BLI_winstuff.h"
 #include <FixMath.h>
 #include <QTML.h>
 #include <TextUtils.h> 
@@ -502,7 +501,6 @@ void start_qt(void) {
 	FSRef	myRef;
 #else
 	char	*qtname;
-	FILE	*myFile = NULL;
 #endif
 
 	if(qte == NULL) qte = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
@@ -546,7 +544,6 @@ void start_qt(void) {
 #else
 		qtname = get_valid_qtname(name);
 		sprintf(theFullPath, "%s", qtname);
-		MEM_freeN(qtname);
 		
 		CopyCStringToPascal(theFullPath, qte->qtfilename);
 		err = FSMakeFSSpec(0, 0L, qte->qtfilename, &qte->theSpec);
@@ -560,9 +557,25 @@ void start_qt(void) {
 							&qte->theMovie );
 		CheckError(err, "CreateMovieFile error");
 
-		printf("Created QuickTime movie: %s\n", qtname);
+		if(err != noErr) {
+			G.afbreek = 1;
+#ifdef __APPLE__
+			error("Unable to create Quicktime movie: %s\n", name);
+#else
+			error("Unable to create Quicktime movie: %s\n", qtname);
+			MEM_freeN(qtname);
+#endif
+		} else {
 
-		QT_CreateMyVideoTrack();
+#ifdef __APPLE__
+			printf("Created QuickTime movie: %s\n", name);
+#else
+			printf("Created QuickTime movie: %s\n", qtname);
+			MEM_freeN(qtname);
+#endif
+
+			QT_CreateMyVideoTrack();
+		}
 	}
 }
 

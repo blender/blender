@@ -113,12 +113,18 @@ char *get_valid_qtname(char *name)
 	if(name[1] != ':') {
 		char drive[2];
 
-		drive[0] = Buffer[0];
-		drive[1] = '\0';
+		if(name[0] != '/' || name[0] != '\\') {
+			BLI_dynstr_append(ds, Buffer);
+			BLI_dynstr_append(ds, "/");
+			BLI_dynstr_append(ds, name);
+		} else {
+			drive[0] = Buffer[0];
+			drive[1] = '\0';
 
-		BLI_dynstr_append(ds, drive);
-		BLI_dynstr_append(ds, ":");
-		BLI_dynstr_append(ds, name);
+			BLI_dynstr_append(ds, drive);
+			BLI_dynstr_append(ds, ":");
+			BLI_dynstr_append(ds, name);
+		}
 	} else {
 		BLI_dynstr_append(ds, name);
 	}
