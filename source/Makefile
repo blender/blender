@@ -424,7 +424,7 @@ else
 endif
 
 ifeq ($(OS),windows)
-    PYLIB = $(NAN_PYTHON)/lib/python20.lib
+    PYLIB = $(NAN_PYTHON)/lib/python22.lib
     PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
     PYPLAYERLIB = $(PYLIB)
 
