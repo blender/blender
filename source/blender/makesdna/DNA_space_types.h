@@ -396,6 +396,8 @@ typedef struct SpaceImaSel {
 #define FILE_LINK			4
 #define FILE_HIDE_DOT		8
 #define FILE_AUTOSELECT		16
+#define FILE_ACTIVELAY		32
+#define FILE_ATCURSOR		64
 
 /* sfile->sort */
 #define FILE_SORTALPHA		0

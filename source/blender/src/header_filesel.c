@@ -148,7 +148,11 @@ void file_buttons(void)
 		uiDefButS(block, TOGN|BIT|2, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Copies selected data into current project");
 		uiDefButS(block, TOG|BIT|2, B_REDR, "Link",	xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Creates a link to selected data from current project");
 		uiBlockEndAlign(block);
-		uiDefButS(block, TOGN|BIT|4, B_REDR, "AutoSelect", xco+=110,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOGN|BIT|4, B_REDR, "Autosel", xco+=125,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
+		uiDefButS(block, TOG|BIT|5, B_REDR, "Active Layer", xco+=65,0,80,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) in active layer");
+		uiDefButS(block, TOG|BIT|6, B_REDR, "At Cursor", xco+=80,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) at cursor, use centroid if more than one object is selected");
+		uiBlockEndAlign(block);
 	}
 
 	if(sfile->type==FILE_UNIX) {

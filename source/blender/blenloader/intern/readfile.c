@@ -101,6 +101,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 #include "BLI_storage_types.h" // for relname flags
 
 #include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) open_plugin_seq set_rects_butspace check_imasel_copy
@@ -117,6 +118,8 @@
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_armature.h"	//	for precalc_bonelist_irestmats
 #include "BKE_action.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "BIF_butspace.h" // for do_versions, patching event codes
 
@@ -5135,6 +5138,7 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					if(id==0) ob= mainvar->object.last;
 					else ob= (Object *)id;
 
+					if((flag & FILE_ACTIVELAY)) ob->lay = G.scene->lay;
 					base->lay= ob->lay;
 					base->object= ob;
 					ob->id.us++;
@@ -5213,7 +5217,12 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	FileData *fd= (FileData*) sfile->libfiledata;
 	ListBase mainlist;
 	Main *mainl;
-	int a, totsel=0;
+	int a, totsel=0,count=0;
+	float *curs,centerloc[3],vec[3],min[3],max[3];
+	Base *centerbase;
+	Object *ob;
+	
+	INIT_MINMAX(min, max);
 
 	/* are there files selected? */
 	for(a=0; a<sfile->totfile; a++) {
@@ -5277,6 +5286,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	/* give a base to loose objects */
 	/* give_base_to_objects(G.scene, &(G.main->object)); */
 	/* has been removed... erm, why? (ton) */
+	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
 
 	/* patch to prevent switch_endian happens twice */
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
@@ -5285,6 +5295,37 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	}
 	
 	if(sfile->flag & FILE_STRINGCODE) BLI_makestringcode(G.sce, mainl->curlib->name);
+	
+	if(sfile->flag & FILE_ATCURSOR) {
+		centerbase= (G.scene->base.first);
+		while(centerbase) {
+			if(((centerbase)->flag & SELECT)) {
+				VECCOPY(vec, centerbase->object->loc);
+				DO_MINMAX(vec, min, max);
+				count++;
+			}
+			centerbase= centerbase->next;
+		}
+		if(count) {
+			centerloc[0]= (min[0]+max[0])/2;
+			centerloc[1]= (min[1]+max[1])/2;
+			centerloc[2]= (min[2]+max[2])/2;
+			curs = G.scene->cursor;
+			VECSUB(centerloc,curs,centerloc);
+		
+			centerbase= (G.scene->base.first);
+			while(centerbase) {
+				if( ((centerbase)->flag & SELECT)) {
+					ob= centerbase->object;
+					ob->loc[0] += centerloc[0];
+					ob->loc[1] += centerloc[1];
+					ob->loc[2] += centerloc[2];
+				}
+				centerbase= centerbase->next;
+			}
+		}
+		
+	}
 }
 
 /* ************* READ LIBRARY ************** */
