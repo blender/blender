@@ -637,6 +637,8 @@ void uv_autocalc_tface()
 	int a, b;
 	short cox, coy, mode, adr[2];
 	
+	persp(PERSP_VIEW);
+	
 	me= get_mesh(ob=OBACT);
 	if(me==0 || me->tface==0) return;
 	if(me->totface==0) return;
@@ -921,6 +923,8 @@ void uv_autocalc_tface()
 	allqueue(REDRAWIMAGE, 0);
 	myloadmatrix(G.vd->viewmat);
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+
+	persp(PERSP_WIN);
 	
 }
 
