@@ -1139,14 +1139,17 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
  			case MKEY:
 				if(G.obedit){
 					if(G.qual==LR_ALTKEY) {
-						if(G.obedit->type==OB_MESH)
+						if(G.obedit->type==OB_MESH) {
 							undo_push_mesh("Merge");
 							mergemenu();
+						}
 					}
-					else if((G.qual==0))
-						if(G.obedit->type==OB_MESH)
+					else if((G.qual==0)) {
+						if(G.obedit->type==OB_MESH) {
 							undo_push_mesh("Mirror");
-						mirrormenu();
+							mirrormenu();
+						}
+					}
 				}
 				else if((G.qual==0)){
 				     movetolayer();
