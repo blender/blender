@@ -6,8 +6,8 @@
 ; 09.02.2003    aphex (mediocre@mixmojo.com)
 ;
 
-Name "Blender VERSION"
-Caption "Blender Installer"
+Name "Blender"
+Caption "Blender VERSION Installer"
 OutFile "DISTDIR\..\VERSION\blender-VERSION-windows.exe"
 Icon "00.installer.ico"
 
