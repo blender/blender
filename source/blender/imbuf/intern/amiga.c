@@ -174,7 +174,7 @@ static uchar *decodebodykolum(uchar *body, short bytes, uchar **list, short d, i
 static uchar *decodebodyv(struct ImBuf *ibuf, uchar *body)
 {
 	uchar **list;
-	short skipx,i,bytes,times;
+	int skipx, i, bytes, times;
 
 	list = (uchar **)imb_copyplanelist(ibuf);
 	if (list == 0) return (0);

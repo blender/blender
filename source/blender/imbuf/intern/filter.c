@@ -97,7 +97,7 @@ static void filtcolum(unsigned char *point, int y, int skip)
 void IMB_filtery(struct ImBuf *ibuf)
 {
 	unsigned char *point;
-	short x,y,skip;
+	int x, y, skip;
 
 	point = (unsigned char *)ibuf->rect;
 	x = ibuf->x;
@@ -120,7 +120,7 @@ void IMB_filtery(struct ImBuf *ibuf)
 void imb_filterx(struct ImBuf *ibuf)
 {
 	unsigned char *point;
-	short x,y,skip;
+	int x, y, skip;
 
 	point = (unsigned char *)ibuf->rect;
 	x = ibuf->x;
