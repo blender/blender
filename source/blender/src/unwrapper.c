@@ -96,6 +96,127 @@ static int comp_lscmvert(const void *u1, const void *u2)
 	return 0;
 }
 
+/* Hashed edge table utility */
+
+#define EDHASH(a, b) ((a)*256 + (b))
+#define EDHASHSIZE 65536
+#define EDHMAX 256
+
+typedef struct HashEdge {
+	unsigned int v1, v2;
+	struct HashEdge *next;
+} HashEdge;
+
+static void hash_add_edge(HashEdge *htable, unsigned int v1, unsigned int v2)
+{
+	unsigned int hv1, hv2;
+	HashEdge *first, *he;
+
+	hv1= v1 % EDHMAX;
+	hv2= v2 % EDHMAX;
+	if(hv1 > hv2)
+		SWAP(unsigned int, hv1, hv2);
+
+	first = htable + EDHASH(hv1, hv2);
+
+	if(first->v1 == 0 && first->v2 == 0) {
+		first->v1 = v1;
+		first->v2 = v2;
+	}
+	else {
+		he= (HashEdge*)MEM_mallocN(sizeof(HashEdge), "mini");
+		he->v1= v1;
+		he->v2= v2;
+		he->next= first->next;
+		first->next= he;
+	}
+}
+
+static HashEdge *make_hash_edge_table(Mesh *me, short fill)
+{
+	HashEdge *htable;
+	MEdge *medge;
+	unsigned int a;
+
+	if(me->medge==NULL)
+		return NULL;
+
+	htable= MEM_callocN(EDHASHSIZE*sizeof(HashEdge), "lscmedgehashtable");
+
+	if(fill) {
+		medge= me->medge;
+		for(a=me->totedge; a>0; a--, medge++) {
+			if(medge->flag & ME_SEAM)
+				hash_add_edge(htable, medge->v1, medge->v2);
+		}
+	}
+
+	return htable;
+}
+
+static int edge_in_hash(HashEdge *htable, unsigned int v1, unsigned int v2)
+{
+	HashEdge *he;
+	unsigned int hv1, hv2;
+
+	hv1 = v1 % EDHMAX;
+	hv2 = v2 % EDHMAX;
+
+	if(hv1 > hv2)
+		SWAP(unsigned int, hv1, hv2);
+
+	he= htable + EDHASH(hv1, hv2);
+
+	while(he) {
+		if(he->v1 || he->v2) {
+			if(he->v1==v1 && he->v2==v2) return 1;
+			else if(he->v1==v2 && he->v2==v1) return 1;
+		}
+		he= he->next;
+	}
+
+	return 0;
+}
+
+static void clear_hash_edge_table(HashEdge *htable)
+{
+	HashEdge *first, *he, *hen;
+	int a;
+
+	if(htable) {
+		first= htable;
+		for(a=EDHASHSIZE; a>0; a--, first++) {
+			he= first->next;
+			while(he) {
+				hen= he->next;
+				MEM_freeN(he);
+				he= hen;
+			}
+			first->v1 = first->v2 = 0;
+			first->next = NULL;
+		}
+	}
+}
+
+static void free_hash_edge_table(HashEdge *htable)
+{
+	HashEdge *first, *he, *hen;
+	int a;
+
+	if(htable) {
+		first= htable;
+		for(a=EDHASHSIZE; a>0; a--, first++) {
+			he= first->next;
+			while(he) {
+				hen= he->next;
+				MEM_freeN(he);
+				he= hen;
+			}
+		}
+		MEM_freeN(htable);
+	}
+}
+
 /* divide selected faces in groups, based on seams. note that group numbering
    starts at 1 */
 static int make_seam_groups(Mesh *me, int **seamgroups)
@@ -104,13 +225,13 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 	TFace *tf, *tface;
 	MFace *mf, *mface;
 	int *gf, *gface, *groups;
-	char *cpmain;
+	HashEdge *htable;
 	int doit, mark;
 
 	if(!me || !me->tface) return 0;
 
 	groups= (int*)MEM_callocN(sizeof(int)*me->totface, "SeamGroups");
-	cpmain= (char*)MEM_mallocN(me->totvert, "cpmain");
+	htable= make_hash_edge_table(me, 0);
 
 	mface= (MFace*)me->mface;
 	tface= (TFace*)me->tface;
@@ -118,11 +239,15 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 	gid= 0;
 	for(b=me->totface; b>0; b--, mface++, tface++, gface++) {
 		if(!(tface->flag & TF_SELECT) || *gface!=0) continue;
+
+		if(gid != 0)
+			clear_hash_edge_table(htable);
+
 		gid++;
 		*gface= gid;
 		mark= 0;
 		doit= 1;
-		memset(cpmain, 0, me->totvert);
+
 
 		while(doit) {
 			doit= 0;
@@ -135,10 +260,20 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 			while(a--) {
 				if(tf->flag & TF_HIDE);
 				else if(tf->flag & TF_SELECT && *gf==gid && mf->v3) {
-					cpmain[mf->v1]= 1;
-					cpmain[mf->v2]= 1;
-					cpmain[mf->v3]= 1;
-					if(mf->v4) cpmain[mf->v4]= 1;
+					if(!edge_in_hash(htable, mf->v1, mf->v2))
+						hash_add_edge(htable, mf->v1, mf->v2);
+					if(!edge_in_hash(htable, mf->v2, mf->v3))
+						hash_add_edge(htable, mf->v2, mf->v3);
+					if(mf->v4) {
+						if(!edge_in_hash(htable, mf->v3, mf->v4))
+							hash_add_edge(htable, mf->v3, mf->v4);
+						if(!edge_in_hash(htable, mf->v4, mf->v1))
+							hash_add_edge(htable, mf->v4, mf->v1);
+					}
+					else {
+						if(!edge_in_hash(htable, mf->v3, mf->v1))
+							hash_add_edge(htable, mf->v3, mf->v1);
+					}
 				}
 				tf++; mf++; gf++;
 			}
@@ -155,23 +290,23 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 					mark= 0;
 	
 					if(!(tf->unwrap & TF_SEAM1))
-						if(cpmain[mf->v1] && cpmain[mf->v2])
+						if(edge_in_hash(htable, mf->v1, mf->v2))
 							mark= 1;
 					if(!(tf->unwrap & TF_SEAM2))
-						if(cpmain[mf->v2] && cpmain[mf->v3])
+						if(edge_in_hash(htable, mf->v2, mf->v3))
 							mark= 1;
 					if(!(tf->unwrap & TF_SEAM3)) {
 						if(mf->v4) {
-							if(cpmain[mf->v3] && cpmain[mf->v4])
+							if(edge_in_hash(htable, mf->v3, mf->v4))
 								mark= 1;
 						}
-						else if(cpmain[mf->v3] && cpmain[mf->v1])
+						else if(edge_in_hash(htable, mf->v3, mf->v1))
 							mark= 1;
 					}
 					if(mf->v4 && !(tf->unwrap & TF_SEAM4))
-						if(cpmain[mf->v4] && cpmain[mf->v1])
+						if(edge_in_hash(htable, mf->v4, mf->v1))
 							mark= 1;
-
+	
 					if(mark) {
 						*gf= gid;
 						doit= 1;
@@ -181,9 +316,10 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 			}
 		}
 	}
+
+	free_hash_edge_table(htable);
 	*seamgroups= groups;
 
-	MEM_freeN(cpmain);
 	return gid;
 }
 
@@ -1144,102 +1280,14 @@ void unwrap_lscm(void)
 	allqueue(REDRAWIMAGE, 0);
 }
 
+
+
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
-
-#define SEDHASH(a, b) ((a)*256 + (b))
-#define SEDHASHSIZE 65536
-#define SEDHMAX 256
-
-typedef struct SeamHashEdge {
-	MEdge *e;
-	struct SeamHashEdge *next;
-} SeamHashEdge;
-
-/* Hash table with edges, to find edges based on v1, v2 */
-static SeamHashEdge *make_seam_hash_edge_table(Mesh *me)
-{
-	SeamHashEdge *htable, *first, *he;
-	MEdge *medge;
-	unsigned int a, hv1, hv2;
-
-	if(me->medge==NULL)
-		return NULL;
-
-	htable= MEM_callocN(SEDHASHSIZE*sizeof(SeamHashEdge), "lscmedgehashtable");
-
-	medge= me->medge;
-	for(a=me->totedge; a>0; a--, medge++) {
-		if(!(medge->flag & ME_SEAM)) continue;
-
-		hv1= medge->v1 % SEDHMAX;
-		hv2= medge->v2 % SEDHMAX;
-		if(hv1 > hv2)
-			SWAP(unsigned int, hv1, hv2);
-
-		first = htable + SEDHASH(hv1, hv2);
-
-		if(first->e == NULL) {
-			first->e = medge;
-		}
-		else {
-			he= (SeamHashEdge*)malloc(sizeof(SeamHashEdge));
-			he->e= medge;
-			he->next= first->next;
-			first->next= he;
-		}
-	}
-
-	return htable;
-}
-
-static int edge_is_seam(SeamHashEdge *htable, unsigned int v1, unsigned int v2)
-{
-	SeamHashEdge *he;
-	unsigned int hv1, hv2;
-
-	hv1 = v1 % SEDHMAX;
-	hv2 = v2 % SEDHMAX;
-
-	if(hv1 > hv2)
-		SWAP(unsigned int, hv1, hv2);
-
-	he= htable + SEDHASH(hv1, hv2);
-
-	while(he) {
-		if(he->e) {
-			if(he->e->v1==v1 && he->e->v2==v2) return 1;
-			else if(he->e->v1==v2 && he->e->v2==v1) return 1;
-		}
-		he= he->next;
-	}
-
-	return 0;
-}
-
-static void free_seam_hash_edge_table(SeamHashEdge *htable)
-{
-	SeamHashEdge *first, *he, *hen;
-	int a;
-
-	if(htable) {
-		first= htable;
-		for(a=SEDHASHSIZE; a>0; a--, first++) {
-			he= first->next;
-			while(he) {
-				hen= he->next;
-				free(he);
-				he= hen;
-			}
-		}
-		MEM_freeN(htable);
-		htable= NULL;
-	}
-}
 
 void set_seamtface()
 {
 	Mesh *me;
-	SeamHashEdge *htable;
+	HashEdge *htable;
 	int a;
 	MFace *mf;
 	TFace *tf;
@@ -1247,7 +1295,7 @@ void set_seamtface()
 	me= get_mesh(OBACT);
 	if(!me || !me->tface || !(G.f & G_FACESELECT)) return;
 	
-	htable= make_seam_hash_edge_table(me);
+	htable= make_hash_edge_table(me, 1);
 
 	mf= me->mface;
 	tf= me->tface;
@@ -1257,16 +1305,102 @@ void set_seamtface()
 
 		if(!htable) continue;
 
-		if(edge_is_seam(htable, mf->v1, mf->v2)) tf->unwrap |= TF_SEAM1;
-		if(edge_is_seam(htable, mf->v2, mf->v3)) tf->unwrap |= TF_SEAM2;
+		if(edge_in_hash(htable, mf->v1, mf->v2)) tf->unwrap |= TF_SEAM1;
+		if(edge_in_hash(htable, mf->v2, mf->v3)) tf->unwrap |= TF_SEAM2;
 
 		if(mf->v4) {
-			if(edge_is_seam(htable, mf->v3, mf->v4)) tf->unwrap |= TF_SEAM3;
-			if(edge_is_seam(htable, mf->v4, mf->v1)) tf->unwrap |= TF_SEAM4;
+			if(edge_in_hash(htable, mf->v3, mf->v4)) tf->unwrap |= TF_SEAM3;
+			if(edge_in_hash(htable, mf->v4, mf->v1)) tf->unwrap |= TF_SEAM4;
 		}
-		else if(edge_is_seam(htable, mf->v3, mf->v1)) tf->unwrap |= TF_SEAM3;
+		else if(edge_in_hash(htable, mf->v3, mf->v1)) tf->unwrap |= TF_SEAM3;
 	}
 
-	free_seam_hash_edge_table(htable);
+	free_hash_edge_table(htable);
+}
+
+void select_linked_tfaces_with_seams()
+{
+	Mesh *me;
+	TFace *tface;
+	MFace *mface;
+	int a, doit=1, mark=0;
+	HashEdge *htable;
+	
+	me= get_mesh(OBACT);
+	if(me==0 || me->tface==0 || me->totface==0) return;
+	
+	htable= make_hash_edge_table(me, 0);
+	
+	while(doit) {
+		doit= 0;
+		
+		/* select connected: fill array */
+		tface= me->tface;
+		mface= me->mface;
+		a= me->totface;
+		while(a--) {
+			if(tface->flag & TF_HIDE);
+			else if(tface->flag & TF_SELECT) {
+				if(mface->v3) {
+					if(!edge_in_hash(htable, mface->v1, mface->v2))
+						hash_add_edge(htable, mface->v1, mface->v2);
+					if(!edge_in_hash(htable, mface->v2, mface->v3))
+						hash_add_edge(htable, mface->v2, mface->v3);
+					if(mface->v4) {
+						if(!edge_in_hash(htable, mface->v3, mface->v4))
+							hash_add_edge(htable, mface->v3, mface->v4);
+						if(!edge_in_hash(htable, mface->v4, mface->v1))
+							hash_add_edge(htable, mface->v4, mface->v1);
+					}
+					else {
+						if(!edge_in_hash(htable, mface->v3, mface->v1))
+							hash_add_edge(htable, mface->v3, mface->v1);
+					}
+				}
+			}
+			tface++; mface++;
+		}
+		
+		/* reverse: using array select the faces */
+
+		tface= me->tface;
+		mface= me->mface;
+		a= me->totface;
+		while(a--) {
+			if(tface->flag & TF_HIDE);
+			else if(mface->v3 && ((tface->flag & TF_SELECT)==0)) {
+				mark= 0;
+
+				if(!(tface->unwrap & TF_SEAM1))
+					if(edge_in_hash(htable, mface->v1, mface->v2))
+						mark= 1;
+				if(!(tface->unwrap & TF_SEAM2))
+					if(edge_in_hash(htable, mface->v2, mface->v3))
+						mark= 1;
+				if(!(tface->unwrap & TF_SEAM3)) {
+					if(mface->v4) {
+						if(edge_in_hash(htable, mface->v3, mface->v4))
+							mark= 1;
+					}
+					else if(edge_in_hash(htable, mface->v3, mface->v1))
+						mark= 1;
+				}
+				if(mface->v4 && !(tface->unwrap & TF_SEAM4))
+					if(edge_in_hash(htable, mface->v4, mface->v1))
+						mark= 1;
+
+				if(mark) {
+					tface->flag |= TF_SELECT;
+					doit= 1;
+				}
+			}
+			tface++; mface++;
+		}
+		
+	}
+	free_hash_edge_table(htable);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
 }
 

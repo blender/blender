@@ -659,6 +659,11 @@ void select_linked_tfaces()
 	
 	me= get_mesh(OBACT);
 	if(me==0 || me->tface==0 || me->totface==0) return;
+
+	if(me->medge) {
+		select_linked_tfaces_with_seams();
+		return;
+	}
 	
 	cpmain= MEM_callocN(me->totvert, "cpmain");
 	
@@ -692,23 +697,10 @@ void select_linked_tfaces()
 			else if(mface->v3 && ((tface->flag & TF_SELECT)==0)) {
 				mark= 0;
 
-				if(!(tface->unwrap & TF_SEAM1))
-					if(cpmain[mface->v1] && cpmain[mface->v2])
-						mark= 1;
-				if(!(tface->unwrap & TF_SEAM2))
-					if(cpmain[mface->v2] && cpmain[mface->v3])
-						mark= 1;
-				if(!(tface->unwrap & TF_SEAM3)) {
-					if(mface->v4) {
-						if(cpmain[mface->v3] && cpmain[mface->v4])
-							mark= 1;
-					}
-					else if(cpmain[mface->v3] && cpmain[mface->v1])
-						mark= 1;
-				}
-				if(mface->v4 && !(tface->unwrap & TF_SEAM4))
-					if(cpmain[mface->v4] && cpmain[mface->v1])
-						mark= 1;
+				if(cpmain[mface->v1] || cpmain[mface->v2] || cpmain[mface->v3])
+					mark= 1;
+				else if(mface->v4 && cpmain[mface->v4])
+					mark= 1;
 
 				if(mark) {
 					tface->flag |= TF_SELECT;

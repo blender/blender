@@ -35,6 +35,7 @@
 
 void set_seamtface(); /* set TF_SEAM flags in tfaces */
 void unwrap_lscm(); /* unwrap selected tfaces */
+void select_linked_tfaces_with_seams();
 
 #endif /* BDR_UNWRAPPER_H */
 
