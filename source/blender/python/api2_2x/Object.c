@@ -35,6 +35,9 @@
 
 #include "Object.h"
 #include "NLA.h"
+#include "blendef.h"
+#include "DNA_scene_types.h"
+#include "BSE_edit.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.					 */
@@ -957,7 +960,6 @@ static PyObject *Object_getBoundBox (BPy_Object *self)
 		float tmpvec[4];  /* tmp vector for homogenous coords math */
 		int i;
 		float *from;
-		//float *to;
 
 		bbox = PyList_New(8);
 		if (!bbox)
@@ -1906,7 +1908,35 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 		return (0);
 	}
 	if (StringEqual (name, "Layer"))
-		return (!PyArg_Parse (value, "i", &(object->lay)));
+	{
+        /*  usage note: caller of this func needs to do a 
+	   Blender.Redraw(-1) to update and redraw the interface */
+
+		Base *base;
+		int newLayer;
+		int local;
+		if(PyArg_Parse (value, "i", &newLayer)){
+			/* uppper 2 bytes are for local view */
+			newLayer &= 0x00FFFFFF;  
+			if( newLayer == 0 ) /* bail if nothing to do */
+				return( 0 );
+
+			/* update any bases pointing to our object */
+			base = FIRSTBASE;
+			if( base->object == obj->object ){
+				local = base->lay &= 0xFF000000;
+				base->lay = local | newLayer;
+				object->lay = base->lay;
+			}
+			countall();
+		}
+		else{
+			return EXPP_ReturnIntError(PyExc_AttributeError,
+						   "expected int as bitmask");
+		}
+			
+		return( 0 );
+	}
 	if (StringEqual (name, "parent"))
 	{
 		/* This is not allowed. */
