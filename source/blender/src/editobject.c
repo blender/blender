@@ -2904,6 +2904,7 @@ int is_parent_gonna_move(Object *ob) {
 int is_constraint_target_gonna_move(Object *ob) {
 	Object *tarOb;
 	bConstraint *con;
+	bPoseChannel *chan;
 
 	for (con = ob->constraints.first; con; con=con->next) {
 		if ( (tarOb = get_con_target(con)) ) {
@@ -2911,6 +2912,18 @@ int is_constraint_target_gonna_move(Object *ob) {
 				return 1;
 		}
 	}
+
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			for (con = chan->constraints.first; con; con=con->next) {
+				if ( (tarOb = get_con_target(con)) ) {
+					if (tarOb->flag & GONNA_MOVE )
+						return 1;
+				}
+			}
+		}
+	}
+
 	return 0;
 }
 
