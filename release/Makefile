@@ -31,7 +31,7 @@
 
 include nan_definitions.mk
 
-VERSION := $(shell cat VERSION)
+export VERSION := $(shell cat VERSION)
 
 BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
@@ -135,7 +135,7 @@ install: package
 pkg: install
 	@echo "----> Create distribution file $(BLENDNAME)$(EXT1)"
 	@cd $(NAN_OBJDIR) && \
-	rm -f  $(VERSION)/$(BLENDNAME)* && \
+	rm -f  $(VERSION)/$(BLENDNAME)$(EXT1)* && \
 	$(TAR) $(VERSION)/$(BLENDNAME)$(EXT1) $(BLENDNAME)
     ifdef COMPRESS
 	@echo "----> Compressing distribution to $(BLENDNAME)$(EXT1)$(EXT2)"
