@@ -53,6 +53,9 @@
 
 #include "MTC_matrixops.h"
 
+#include "render.h"
+#include "mydevice.h"
+
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"
@@ -82,8 +85,6 @@
 #include "PIL_time.h"
 
 #include "RE_renderconverter.h"
-#include "render.h"
-#include "mydevice.h"
 
 #define PR_RECTX	141
 #define PR_RECTY	141
