@@ -36,6 +36,7 @@ Section "Blender-VERSION (required)"
   ; Put file there
   File DISTDIR\blender.exe
   File DISTDIR\python22.dll
+  File DISTDIR\sdl.dll
   File DISTDIR\gnu_gettext.dll
   File DISTDIR\Copyright.txt
   File DISTDIR\Readme.txt
@@ -110,6 +111,7 @@ Section "Uninstall"
   ; remove files
   Delete $INSTDIR\blender.exe
   Delete $INSTDIR\python22.dll
+  Delete $INSTDIR\sdl.dll
   Delete $INSTDIR\gnu_gettext.dll
   Delete $INSTDIR\Copyright.txt
   Delete $INSTDIR\Readme.txt
