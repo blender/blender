@@ -37,6 +37,9 @@
 #include <MEM_guardedalloc.h>
 #include <DNA_ID.h>
 #include <BLI_blenlib.h>
+#include <BSE_editipo.h>
+#include <BIF_space.h>
+#include <mydevice.h>
 
 #include "constant.h"
 #include "gen_utils.h"
@@ -46,6 +49,7 @@
 
 #include "Material.h"
 #include "Ipo.h"
+
 
 /* only used for .oopsLoc at the moment */
 #include "DNA_oops_types.h"
@@ -149,7 +153,15 @@
 #define EXPP_MAT_MIRRTRANSADD_MAX			1.0
 
 
-
+#define IPOKEY_RGB          0
+#define IPOKEY_ALPHA        1 
+#define IPOKEY_HALOSIZE     2 
+#define IPOKEY_MODE         3
+#define IPOKEY_ALLCOLOR     10
+#define IPOKEY_ALLMIRROR    14
+#define IPOKEY_OFS          12
+#define IPOKEY_SIZE         13
+#define IPOKEY_ALLMAPPING   11
 
 
 
@@ -368,6 +380,17 @@ PyObject *Material_Init( void )
 
 	if( Modes )
 		PyModule_AddObject( submodule, "Modes", Modes );
+
+	PyModule_AddIntConstant( submodule, "RGB", IPOKEY_RGB );
+	PyModule_AddIntConstant( submodule, "ALPHA", IPOKEY_ALPHA );
+	PyModule_AddIntConstant( submodule, "HALOSIZE", IPOKEY_HALOSIZE );
+	PyModule_AddIntConstant( submodule, "MODE", IPOKEY_MODE );
+	PyModule_AddIntConstant( submodule, "ALLCOLOR", IPOKEY_ALLCOLOR );
+	PyModule_AddIntConstant( submodule, "ALLMIRROR", IPOKEY_ALLMIRROR );
+	PyModule_AddIntConstant( submodule, "OFS", IPOKEY_OFS );
+	PyModule_AddIntConstant( submodule, "SIZE", IPOKEY_SIZE );
+	PyModule_AddIntConstant( submodule, "ALLMAPPING", IPOKEY_ALLMAPPING );
+
 	return ( submodule );
 }
 
@@ -470,6 +493,9 @@ static PyObject *Material_addScriptLink( BPy_Material * self,
 					 PyObject * args );
 static PyObject *Material_clearScriptLinks( BPy_Material * self );
 
+static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
+
+
 /*****************************************************************************/
 /* Python BPy_Material methods table: */
 /*****************************************************************************/
@@ -556,6 +582,8 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(Blender Ipo) - Change Material's Ipo"},
 	{"clearIpo", ( PyCFunction ) Material_clearIpo, METH_NOARGS,
 	 "(Blender Ipo) - Unlink Ipo from this Material"},
+	{"insertIpoKey", ( PyCFunction ) Material_insertIpoKey, METH_VARARGS,
+	 "(Material Ipo Constant) - Insert IPO Key at current frame"},	 
 	{"setMode", ( PyCFunction ) Material_setMode, METH_VARARGS,
 	 "([s[,s]]) - Set Material's mode flag(s)"},
 	{"setRGBCol", ( PyCFunction ) Material_setRGBCol, METH_VARARGS,
@@ -1231,6 +1259,87 @@ static PyObject *Material_clearIpo( BPy_Material * self )
 
 	return EXPP_incr_ret_False(); /* no ipo found */
 }
+
+
+/* 
+ *  Material_insertIpoKey( key )
+ *   inserts Material IPO key at current frame
+ */
+
+static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args )
+{
+    int key = 0, map;
+    
+	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected int argument" ) ); 
+    				
+	map = texchannel_to_adrcode(self->material->texact);
+	
+	if(key==IPOKEY_RGB || key==IPOKEY_ALLCOLOR) {
+		insertkey((ID *)self->material, MA_COL_R);
+		insertkey((ID *)self->material, MA_COL_G);
+		insertkey((ID *)self->material, MA_COL_B);
+	}
+	if(key==IPOKEY_ALPHA || key==IPOKEY_ALLCOLOR) {
+		insertkey((ID *)self->material, MA_ALPHA);
+	}
+	if(key==IPOKEY_HALOSIZE || key==IPOKEY_ALLCOLOR) {
+		insertkey((ID *)self->material, MA_HASIZE);
+	}
+	if(key==IPOKEY_MODE || key==IPOKEY_ALLCOLOR) {
+		insertkey((ID *)self->material, MA_MODE);
+	}
+	if(key==IPOKEY_ALLCOLOR) {
+		insertkey((ID *)self->material, MA_SPEC_R);
+		insertkey((ID *)self->material, MA_SPEC_G);
+		insertkey((ID *)self->material, MA_SPEC_B);
+		insertkey((ID *)self->material, MA_REF);
+		insertkey((ID *)self->material, MA_EMIT);
+		insertkey((ID *)self->material, MA_AMB);
+		insertkey((ID *)self->material, MA_SPEC);
+		insertkey((ID *)self->material, MA_HARD);
+		insertkey((ID *)self->material, MA_MODE);
+		insertkey((ID *)self->material, MA_TRANSLU);
+		insertkey((ID *)self->material, MA_ADD);
+	}
+	if(key==IPOKEY_ALLMIRROR) {
+		insertkey((ID *)self->material, MA_RAYM);
+		insertkey((ID *)self->material, MA_FRESMIR);
+		insertkey((ID *)self->material, MA_FRESMIRI);
+		insertkey((ID *)self->material, MA_FRESTRA);
+		insertkey((ID *)self->material, MA_FRESTRAI);
+	}
+	if(key==IPOKEY_OFS || key==IPOKEY_ALLMAPPING) {
+		insertkey((ID *)self->material, map+MAP_OFS_X);
+		insertkey((ID *)self->material, map+MAP_OFS_Y);
+		insertkey((ID *)self->material, map+MAP_OFS_Z);
+	}
+	if(key==IPOKEY_SIZE || key==IPOKEY_ALLMAPPING) {
+		insertkey((ID *)self->material, map+MAP_SIZE_X);
+		insertkey((ID *)self->material, map+MAP_SIZE_Y);
+		insertkey((ID *)self->material, map+MAP_SIZE_Z);
+	}
+	if(key==IPOKEY_ALLMAPPING) {
+		insertkey((ID *)self->material, map+MAP_R);
+		insertkey((ID *)self->material, map+MAP_G);
+		insertkey((ID *)self->material, map+MAP_B);
+		insertkey((ID *)self->material, map+MAP_DVAR);
+		insertkey((ID *)self->material, map+MAP_COLF);
+		insertkey((ID *)self->material, map+MAP_NORF);
+		insertkey((ID *)self->material, map+MAP_VARF);
+		insertkey((ID *)self->material, map+MAP_DISP);
+	}
+
+	allspace(REMAKEIPO, 0);
+	EXPP_allqueue(REDRAWIPO, 0);
+	EXPP_allqueue(REDRAWVIEW3D, 0);
+	EXPP_allqueue(REDRAWACTION, 0);
+	EXPP_allqueue(REDRAWNLA, 0);
+
+	return  EXPP_incr_ret( Py_None );		
+}
+
 
 static PyObject *Material_setName( BPy_Material * self, PyObject * args )
 {
