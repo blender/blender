@@ -1890,9 +1890,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 					if(lar->shb) {
 						shadfac[3] = testshadowbuf(lar->shb, shi->co, inp);
 					}
+					else if(lar->type==LA_HEMI);	// no shadow
 					else if(lar->mode & LA_SHAD_RAY) {
-						// this extra check prevents boundary cases (shadow on smooth sphere)
-						if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.001) 
+						// this extra 0.001 prevents boundary cases (shadow on smooth sphere)
+						if((shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2]) > -0.001) 
 							ray_shadow(shi, lar, shadfac, mask);
 					}
 

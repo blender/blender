@@ -1816,6 +1816,9 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_spot", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Shadow and Spot", "Lamp", 640, 0, 318, 204)==0) return;
 
+	// hemis and ray shadow dont work at all...
+	if(la->type==LA_HEMI) return;
+
 	if(G.vd) grid= G.vd->grid; 
 	if(grid<1.0) grid= 1.0;
 
