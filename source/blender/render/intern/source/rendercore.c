@@ -2049,7 +2049,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				}
 			}
 		}
-		
+
 		if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv, shi);
 
 		/* init transp shadow */
@@ -2335,7 +2335,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 
 	/* calculate U and V, for scanline (normal u and v are -1 to 0) */
 	if(u==1.0) {
-		if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV)) {
+		/* exception case for wire render of edge */
+		if(vlr->v2==vlr->v3);
+		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV)) {
 			float detsh, t00, t10, t01, t11;
 			
 			if(vlr->snproj==0) {
@@ -2739,7 +2741,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		
 		/* ------  main shading loop */
 		shade_lamp_loop(&shi, &shr);
-		
+
 		if(shi.matren->translucency!=0.0) {
 			ShadeResult shr_t;
 			

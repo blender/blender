@@ -1505,7 +1505,8 @@ int calcDepth(float x, float y, void *data, int type)
         hoco_z =  (fac*view[2]) * R.winmat[2][2] + R.winmat[3][2]; 
         hoco_w =  (fac*view[2]) * R.winmat[2][3] + R.winmat[3][3]; 
         
-        zbuf_co = 0x7FFFFFFF*(hoco_z/hoco_w);            
+		if(hoco_w!=0.0) zbuf_co = 0x7FFFFFFF*(hoco_z/hoco_w);
+		else zbuf_co= 0x7FFFFFFF;
         
         return  zbuf_co; /* z component of R.co */
     } else if (type & RE_HALO) {
