@@ -183,19 +183,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BPY_frozen"=".\bpython\frozen\BPY_frozen.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "BPY_python"=".\bpython\intern\BPY_python\BPY_python.dsp" - Package Owner=<4>
+Project: "BPY_python"=".\BPY_python\BPY_python.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -870,9 +858,6 @@ Package=<4>
     Project_Dep_Name FTF_ftfont
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name BPY_frozen
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name BPY_python
     End Project Dependency
 }}}
@@ -880,18 +865,6 @@ Package=<4>
 ###############################################################################
 
 Project: "blenpluginapi"=".\blenpluginapi\blenpluginapi\blenpluginapi.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "exppython"=".\python\exppython.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
