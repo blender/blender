@@ -42,15 +42,15 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BKE_effect.h>
-#include <DNA_effect_types.h>
 
 #include"gen_utils.h"
+#include "bpy_types.h"
 
 
 /*****************************************************************************/
-/* Python C_Effect methods table:                                            */
+/* Python BPy_Effect methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Effect_methods[] = {
+static PyMethodDef BPy_Effect_methods[] = {
   {0}
 };
 
@@ -61,28 +61,21 @@ PyObject *M_Effect_New (PyObject *self, PyObject *args);
 PyObject *M_Effect_Get (PyObject *self, PyObject *args);
 
 
-/*****************************************************************************/
-/* Python C_Effect structure definition:                                     */
-/*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  Effect   *effect;
-} C_Effect;
 
 /*****************************************************************************/
-/* Python C_Effect methods declarations:                                     */
+/* Python BPy_Effect methods declarations:                                   */
 /*****************************************************************************/
-/*PyObject *Effect_getType(C_Effect *self);*/
+/*PyObject *Effect_getType(BPy_Effect *self);*/
 
 
 /*****************************************************************************/
 /* Python Effect_Type callback function prototypes:                          */
 /*****************************************************************************/
-void EffectDeAlloc (C_Effect *msh);
-int EffectPrint (C_Effect *msh, FILE *fp, int flags);
-int EffectSetAttr (C_Effect *msh, char *name, PyObject *v);
-PyObject *EffectGetAttr (C_Effect *msh, char *name);
-PyObject *EffectRepr (C_Effect *msh);
+void EffectDeAlloc (BPy_Effect *msh);
+int EffectPrint (BPy_Effect *msh, FILE *fp, int flags);
+int EffectSetAttr (BPy_Effect *msh, char *name, PyObject *v);
+PyObject *EffectGetAttr (BPy_Effect *msh, char *name);
+PyObject *EffectRepr (BPy_Effect *msh);
 PyObject* EffectCreatePyObject (struct Effect *effect);
 int EffectCheckPyObject (PyObject *py_obj);
 struct Effect* EffectFromPyObject (PyObject *py_obj);
@@ -94,7 +87,7 @@ static PyTypeObject Effect_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Effect",                               /* tp_name */
-  sizeof (C_Effect),                      /* tp_basicsize */
+  sizeof (BPy_Effect),                      /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)EffectDeAlloc,              /* tp_dealloc */
@@ -110,7 +103,7 @@ static PyTypeObject Effect_Type =
   0,0,0,0,0,0,
   0,                                      /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Effect_methods,                       /* tp_methods */
+  BPy_Effect_methods,                       /* tp_methods */
   0,                                      /* tp_members */
 };
 

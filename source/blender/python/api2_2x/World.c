@@ -52,154 +52,14 @@
 
 
 /*****************************************************************************/
-/* Python API function prototypes for the World module.                     */
-/*****************************************************************************/
-static PyObject *M_World_New (PyObject *self, PyObject *args,
-                               PyObject *keywords);
-static PyObject *M_World_Get (PyObject *self, PyObject *args);
-
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.World.__doc__                                                    */
-/*****************************************************************************/
-static char M_World_doc[] =
-"The Blender World module\n\n\
-This module provides access to **World Data** objects in Blender\n\n\
-Example::\n\n\
-  from Blender import World, Object, Scene\n\
-  c = World.New('ortho')      # create new ortho world data\n\
-  c.lens = 35.0                # set lens value\n\
-  cur = Scene.getCurrent()     # get current Scene\n\
-  ob = Object.New('World')    # make world object\n\
-  ob.link(c)                   # link world data with this object\n\
-  cur.link(ob)                 # link object into scene\n\
-  cur.setCurrentWorld(ob)     # make this world the active\n";
-
-static char M_World_New_doc[] =
-"(type) - return a new World object of type \"type\", \
-which can be 'persp' or 'ortho'.\n\
-() - return a new World object of type 'persp'.";
-
-static char M_World_Get_doc[] =
-"(name) - return the world with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all worlds in the\ncurrent scene.";
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.World module:              */
-/*****************************************************************************/
-struct PyMethodDef M_World_methods[] = {
-  {"New",(PyCFunction)M_World_New, METH_VARARGS|METH_KEYWORDS,M_World_New_doc},
-  {"Get",         M_World_Get,         METH_VARARGS, M_World_Get_doc},
-  {"get",         M_World_Get,         METH_VARARGS, M_World_Get_doc},
-  {NULL, NULL, 0, NULL}
-};
-
-/*****************************************************************************/
-/* Python C_World methods declarations:                                   */
-/*****************************************************************************/
-static PyObject *World_getName(C_World *self);
-static PyObject *World_setName(C_World *self, PyObject *args);
-static PyObject *World_getColormodel(C_World *self);
-static PyObject *World_setColormodel(C_World *self, PyObject *args );
-static PyObject *World_getFastcol(C_World *self);
-static PyObject *World_setFastcol(C_World *self, PyObject *args );
-static PyObject *World_getSkytype(C_World *self);
-static PyObject *World_setSkytype(C_World *self, PyObject *args );
-static PyObject *World_getMode(C_World *self);
-static PyObject *World_setMode(C_World *self, PyObject *args );
-static PyObject *World_getTotex(C_World *self);
-static PyObject *World_setTotex(C_World *self, PyObject *args );
-static PyObject *World_getTexact(C_World *self);
-static PyObject *World_setTexact(C_World *self, PyObject *args );
-static PyObject *World_getMistype(C_World *self);
-static PyObject *World_setMistype(C_World *self, PyObject *args );
-static PyObject *World_getHor(C_World *self);
-static PyObject *World_setHor(C_World *self, PyObject *args );
-static PyObject *World_getZen(C_World *self);
-static PyObject *World_setZen(C_World *self, PyObject *args );
-static PyObject *World_getAmb(C_World *self);
-static PyObject *World_setAmb(C_World *self, PyObject *args );
-static PyObject *World_getStar(C_World *self);
-static PyObject *World_setStar(C_World *self, PyObject *args );
-static PyObject *World_getDof(C_World *self);
-static PyObject *World_setDof(C_World *self, PyObject *args );
-static PyObject *World_getMist(C_World *self);
-static PyObject *World_setMist(C_World *self, PyObject *args );
-
-/*****************************************************************************/
-/* Python C_World methods table:                                          */
-/*****************************************************************************/
-static PyMethodDef C_World_methods[] = {
-  {"getName", (PyCFunction)World_getName, METH_NOARGS,
-      "() - Return World Data name"},
-  {"setName", (PyCFunction)World_setName, METH_VARARGS,
-      "() - Return World Data name"},
-  {"getColormodel", (PyCFunction)World_getColormodel, METH_NOARGS,
-      "() - Return World Data colormodel"},
-  {"setColormodel", (PyCFunction)World_setColormodel, METH_VARARGS,
-      "() - Return World Data colormodel"},
-  {"getFastcol", (PyCFunction)World_getFastcol, METH_NOARGS,
-      "() - Return World Data fastcol"},
-  {"setFastcol", (PyCFunction)World_setFastcol, METH_VARARGS,
-      "() - Return World Data fastcol"},
-  {"getSkytype", (PyCFunction)World_getSkytype, METH_NOARGS,
-      "() - Return World Data skytype"},
-  {"setSkytype", (PyCFunction)World_setSkytype, METH_VARARGS,
-      "() - Return World Data skytype"},
-  {"getMode", (PyCFunction)World_getMode, METH_NOARGS,
-      "() - Return World Data mode"},
-  {"setMode", (PyCFunction)World_setMode, METH_VARARGS,
-      "() - Return World Data mode"},
-  {"getTotex", (PyCFunction)World_getTotex, METH_NOARGS,
-      "() - Return World Data totex"},
-  {"setTotex", (PyCFunction)World_setTotex, METH_VARARGS,
-      "() - Return World Data totex"},
-  {"getTexact", (PyCFunction)World_getTexact, METH_NOARGS,
-      "() - Return World Data texact"},
-  {"setTexact", (PyCFunction)World_setTexact, METH_VARARGS,
-      "() - Return World Data texact"},
-  {"getMistype", (PyCFunction)World_getMistype, METH_NOARGS,
-      "() - Return World Data mistype"},
-  {"setMistype", (PyCFunction)World_setMistype, METH_VARARGS,
-      "() - Return World Data mistype"},
-  {"getHor", (PyCFunction)World_getHor, METH_NOARGS,
-      "() - Return World Data hor"},
-  {"setHor", (PyCFunction)World_setHor, METH_VARARGS,
-      "() - Return World Data hor"},
-  {"getZen", (PyCFunction)World_getZen, METH_NOARGS,
-      "() - Return World Data zen"},
-  {"setZen", (PyCFunction)World_setZen, METH_VARARGS,
-      "() - Return World Data zen"},
-  {"getAmb", (PyCFunction)World_getAmb, METH_NOARGS,
-      "() - Return World Data amb"},
-  {"setAmb", (PyCFunction)World_setAmb, METH_VARARGS,
-      "() - Return World Data amb"},
-  {"getStar", (PyCFunction)World_getStar, METH_NOARGS,
-      "() - Return World Data star"},
-  {"setStar", (PyCFunction)World_setStar, METH_VARARGS,
-      "() - Return World Data star"},
-  {"getDof", (PyCFunction)World_getDof, METH_NOARGS,
-      "() - Return World Data dof"},
-  {"setDof", (PyCFunction)World_setDof, METH_VARARGS,
-      "() - Return World Data dof"},
-  {"getMist", (PyCFunction)World_getMist, METH_NOARGS,
-      "() - Return World Data mist"},
-  {"setMist", (PyCFunction)World_setMist, METH_VARARGS,
-      "() - Return World Data mist"},
-  {0}
-};
-
-/*****************************************************************************/
 /* Python World_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void World_DeAlloc (C_World *self);
-static int World_Print (C_World *self, FILE *fp, int flags);
-static int World_SetAttr (C_World *self, char *name, PyObject *v);
-static int World_Compare (C_World *a, C_World *b);
-static PyObject *World_GetAttr (C_World *self, char *name);
-static PyObject *World_Repr (C_World *self);
+static void World_DeAlloc (BPy_World *self);
+static int World_Print (BPy_World *self, FILE *fp, int flags);
+static int World_SetAttr (BPy_World *self, char *name, PyObject *v);
+static int World_Compare (BPy_World *a, BPy_World *b);
+static PyObject *World_GetAttr (BPy_World *self, char *name);
+static PyObject *World_Repr (BPy_World *self);
 
 /*****************************************************************************/
 /* Python World_Type structure definition:                                  */
@@ -209,7 +69,7 @@ PyTypeObject World_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "World",                               /* tp_name */
-  sizeof (C_World),                    /* tp_basicsize */
+  sizeof (BPy_World),                    /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)World_DeAlloc,             /* tp_dealloc */
@@ -225,7 +85,7 @@ PyTypeObject World_Type =
   0,0,0,0,0,0,
   0,                                      /* tp_doc */ 
   0,0,0,0,0,0,
-  C_World_methods,                     /* tp_methods */
+  BPy_World_methods,                     /* tp_methods */
   0,                                      /* tp_members */
 };
 
@@ -251,7 +111,7 @@ static PyObject *M_World_New(PyObject *self, PyObject *args, PyObject *kwords)
 
 	World *add_world(char *name);
 	char*name = NULL;
-  C_World    *pyworld;
+  BPy_World    *pyworld;
   World      *blworld;
 
 	if (!PyArg_ParseTuple(args, "s", &name))
@@ -262,7 +122,7 @@ static PyObject *M_World_New(PyObject *self, PyObject *args, PyObject *kwords)
   blworld = add_world(name);
 
   if (blworld) 
-		pyworld = (C_World *)PyObject_NEW(C_World, &World_Type);
+		pyworld = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 																	 "couldn't create World Data in Blender"));
@@ -295,7 +155,7 @@ static PyObject *M_World_Get(PyObject *self, PyObject *args)
   char   *name = NULL;
   World *world_iter;
   PyObject *worldlist;
-  C_World *wanted_world = NULL;
+  BPy_World *wanted_world = NULL;
   char error_msg[64];
 
 	if (!PyArg_ParseTuple(args, "|s", &name))
@@ -307,7 +167,7 @@ static PyObject *M_World_Get(PyObject *self, PyObject *args)
 	if (name) { /* (name) - Search world by name */
     while ((world_iter) && (wanted_world == NULL)) {
       if (strcmp (name, world_iter->id.name+2) == 0) {
-        wanted_world = (C_World *)PyObject_NEW(C_World, &World_Type);
+        wanted_world = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
 				if (wanted_world) wanted_world->world = world_iter;
       }
       world_iter = world_iter->id.next;
@@ -329,7 +189,7 @@ static PyObject *M_World_Get(PyObject *self, PyObject *args)
 																			 "couldn't create PyList"));
 
 		while (world_iter) {
-			C_World *found_world = (C_World *)PyObject_NEW(C_World, &World_Type);
+			BPy_World *found_world = (BPy_World *)PyObject_NEW(BPy_World, &World_Type);
 			found_world->world = world_iter;
 			PyList_Append (worldlist ,  (PyObject *)found_world); 
 
@@ -365,7 +225,7 @@ PyObject *M_World_Init (void)
 
 
 /*****************************************************************************/
-/* Python C_World methods:                                                */
+/* Python BPy_World methods:                                                */
 /*****************************************************************************/
 
 /**
@@ -383,7 +243,7 @@ PyObject *M_World_Init (void)
  * \return string: The World Data name.
  */
 
-static PyObject *World_getName(C_World *self)
+static PyObject *World_getName(BPy_World *self)
 {
   PyObject *attr = PyString_FromString(self->world->id.name+2);
 
@@ -397,7 +257,7 @@ static PyObject *World_getName(C_World *self)
  * \param name - string: The new World Data name.
  */
 
-static PyObject *World_setName(C_World *self, PyObject *args)
+static PyObject *World_setName(BPy_World *self, PyObject *args)
 {
   char *name = 0;
   char buf[21];
@@ -422,7 +282,7 @@ static PyObject *World_setName(C_World *self, PyObject *args)
  * \return int : The World Data colormodel.
  */
 
-static PyObject *World_getColormodel(C_World *self)
+static PyObject *World_getColormodel(BPy_World *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->world->colormodel);
 
@@ -439,7 +299,7 @@ static PyObject *World_getColormodel(C_World *self)
  * \return int : The World Data colormodel.
  */
 
-static PyObject *World_setColormodel(C_World *self, PyObject *args )
+static PyObject *World_setColormodel(BPy_World *self, PyObject *args )
 {
   int colormodel;
 
@@ -457,7 +317,7 @@ static PyObject *World_setColormodel(C_World *self, PyObject *args )
  * \return int : The World Data fastcol.
  */
 
-static PyObject *World_getFastcol(C_World *self)
+static PyObject *World_getFastcol(BPy_World *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->world->fastcol);
 
@@ -474,7 +334,7 @@ static PyObject *World_getFastcol(C_World *self)
  * \return int : The World Data fastcol.
  */
 
-static PyObject *World_setFastcol(C_World *self, PyObject *args )
+static PyObject *World_setFastcol(BPy_World *self, PyObject *args )
 {
   int fastcol;
 
@@ -495,7 +355,7 @@ static PyObject *World_setFastcol(C_World *self, PyObject *args )
  * \return int : The World Data skytype.
  */
 
-static PyObject *World_getSkytype(C_World *self)
+static PyObject *World_getSkytype(BPy_World *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->world->skytype);
 
@@ -512,7 +372,7 @@ static PyObject *World_getSkytype(C_World *self)
  * \return int : The World Data skytype.
  */
 
-static PyObject *World_setSkytype(C_World *self, PyObject *args )
+static PyObject *World_setSkytype(BPy_World *self, PyObject *args )
 {
   int skytype;
 
@@ -531,7 +391,7 @@ static PyObject *World_setSkytype(C_World *self, PyObject *args )
  * \return int : The World Data mode.
  */
 
-static PyObject *World_getMode(C_World *self)
+static PyObject *World_getMode(BPy_World *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->world->mode);
 
@@ -548,7 +408,7 @@ static PyObject *World_getMode(C_World *self)
  * \return int : The World Data mode.
  */
 
-static PyObject *World_setMode(C_World *self, PyObject *args )
+static PyObject *World_setMode(BPy_World *self, PyObject *args )
 {
   int mode;
 
@@ -590,7 +450,7 @@ static PyObject *World_setMode(C_World *self, PyObject *args )
  * \return int : The World Data totex.
  */
 
-static PyObject *World_getTotex(C_World *self)
+static PyObject *World_getTotex(BPy_World *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->world->totex);
 
@@ -607,7 +467,7 @@ static PyObject *World_getTotex(C_World *self)
  * \return int : The World Data totex.
  */
 
-static PyObject *World_setTotex(C_World *self, PyObject *args )
+static PyObject *World_setTotex(BPy_World *self, PyObject *args )
 {
   int totex;
 
@@ -625,7 +485,7 @@ static PyObject *World_setTotex(C_World *self, PyObject *args )
  * \return int : The World Data texact.
  */
 
-static PyObject *World_getTexact(C_World *self)
+static PyObject *World_getTexact(BPy_World *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->world->texact);
 
@@ -642,7 +502,7 @@ static PyObject *World_getTexact(C_World *self)
  * \return int : The World Data texact.
  */
 
-static PyObject *World_setTexact(C_World *self, PyObject *args )
+static PyObject *World_setTexact(BPy_World *self, PyObject *args )
 {
   int texact;
 
@@ -660,7 +520,7 @@ static PyObject *World_setTexact(C_World *self, PyObject *args )
  * \return int : The World Data mistype.
  */
 
-static PyObject *World_getMistype(C_World *self)
+static PyObject *World_getMistype(BPy_World *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->world->mistype);
 
@@ -677,7 +537,7 @@ static PyObject *World_getMistype(C_World *self)
  * \return int : The World Data mistype.
  */
 
-static PyObject *World_setMistype(C_World *self, PyObject *args )
+static PyObject *World_setMistype(BPy_World *self, PyObject *args )
 {
   int mistype;
 
@@ -697,7 +557,7 @@ static PyObject *World_setMistype(C_World *self, PyObject *args )
 
 
 
-static PyObject *World_getHor(C_World *self)
+static PyObject *World_getHor(BPy_World *self)
 {
   PyObject *attr = PyList_New(0);
 	if (!attr)
@@ -710,7 +570,7 @@ static PyObject *World_getHor(C_World *self)
 }
 
 
-static PyObject *World_setHor(C_World *self, PyObject *args )
+static PyObject *World_setHor(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
   if (!PyArg_ParseTuple(args, "O", &listargs))
@@ -724,7 +584,7 @@ static PyObject *World_setHor(C_World *self, PyObject *args )
 }
 
 
-static PyObject *World_getZen(C_World *self)
+static PyObject *World_getZen(BPy_World *self)
 {
   PyObject *attr = PyList_New(0);
 	if (!attr)
@@ -737,7 +597,7 @@ static PyObject *World_getZen(C_World *self)
 }
 
 
-static PyObject *World_setZen(C_World *self, PyObject *args )
+static PyObject *World_setZen(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
   if (!PyArg_ParseTuple(args, "O", &listargs))
@@ -753,7 +613,7 @@ static PyObject *World_setZen(C_World *self, PyObject *args )
 
 
 
-static PyObject *World_getAmb(C_World *self)
+static PyObject *World_getAmb(BPy_World *self)
 {
   PyObject *attr = PyList_New(0);
 	if (!attr)
@@ -766,7 +626,7 @@ static PyObject *World_getAmb(C_World *self)
 }
 
 
-static PyObject *World_setAmb(C_World *self, PyObject *args )
+static PyObject *World_setAmb(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
   if (!PyArg_ParseTuple(args, "O", &listargs))
@@ -783,7 +643,7 @@ static PyObject *World_setAmb(C_World *self, PyObject *args )
 }
 
 
-static PyObject *World_getStar(C_World *self)
+static PyObject *World_getStar(BPy_World *self)
 {
   PyObject *attr = PyList_New(0);
 	if (!attr)
@@ -799,7 +659,7 @@ static PyObject *World_getStar(C_World *self)
 }
 
 
-static PyObject *World_setStar(C_World *self, PyObject *args )
+static PyObject *World_setStar(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
   if (!PyArg_ParseTuple(args, "O", &listargs))
@@ -821,7 +681,7 @@ static PyObject *World_setStar(C_World *self, PyObject *args )
 
 
 
-static PyObject *World_getDof(C_World *self)
+static PyObject *World_getDof(BPy_World *self)
 {
   PyObject *attr = PyList_New(0);
 	if (!attr)
@@ -834,7 +694,7 @@ static PyObject *World_getDof(C_World *self)
 }
 
 
-static PyObject *World_setDof(C_World *self, PyObject *args )
+static PyObject *World_setDof(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
   if (!PyArg_ParseTuple(args, "O", &listargs))
@@ -854,7 +714,7 @@ static PyObject *World_setDof(C_World *self, PyObject *args )
 
 
 
-static PyObject *World_getMist(C_World *self)
+static PyObject *World_getMist(BPy_World *self)
 {
   PyObject *attr = PyList_New(0);
 	if (!attr)
@@ -867,7 +727,7 @@ static PyObject *World_getMist(C_World *self)
 }
 
 
-static PyObject *World_setMist(C_World *self, PyObject *args )
+static PyObject *World_setMist(BPy_World *self, PyObject *args )
 {
 	PyObject *listargs=0;
   if (!PyArg_ParseTuple(args, "O", &listargs))
@@ -893,7 +753,7 @@ static PyObject *World_setMist(C_World *self, PyObject *args )
  * \brief The World PyType destructor
  */
 
-static void World_DeAlloc (C_World *self)
+static void World_DeAlloc (BPy_World *self)
 {
   PyObject_DEL (self);
 }
@@ -905,7 +765,7 @@ static void World_DeAlloc (C_World *self)
  * World PyObject data members.  Ex. in Python: "print myworld.lens".
  */
 
-static PyObject *World_GetAttr (C_World *self, char *name)
+static PyObject *World_GetAttr (BPy_World *self, char *name)
 {
 
 if (strcmp (name, "name") == 0)return  World_getName (self);
@@ -922,7 +782,7 @@ if (strcmp (name, "amb") == 0)return  World_getAmb (self);
 if (strcmp (name, "star") == 0)return  World_getStar (self);
 if (strcmp (name, "dof") == 0)return  World_getDof (self);
 if (strcmp (name, "mist") == 0)return  World_getMist (self);
-  return Py_FindMethod(C_World_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_World_methods, (PyObject *)self, name);
 }
 
 /**
@@ -932,7 +792,7 @@ if (strcmp (name, "mist") == 0)return  World_getMist (self);
  * World data member.  Ex. in Python: "myworld.lens = 45.0".
  */
 
-static int World_SetAttr (C_World *self, char *name, PyObject *value)
+static int World_SetAttr (BPy_World *self, char *name, PyObject *value)
 {
   PyObject *valtuple  = Py_BuildValue("(O)", value);
 
@@ -967,7 +827,7 @@ return 0; /* normal exit */
  * comparisons are meaninful -- the "<", "<=", ">" or ">=" are not.
  */
 
-static int World_Compare (C_World *a, C_World *b)
+static int World_Compare (BPy_World *a, BPy_World *b)
 {
   World *pa = a->world, *pb = b->world;
   return (pa == pb) ? 0:-1;
@@ -980,7 +840,7 @@ static int World_Compare (C_World *a, C_World *b)
  * World.  It builds a string with the name of the wrapped Blender World.
  */
 
-static int World_Print(C_World *self, FILE *fp, int flags)
+static int World_Print(BPy_World *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[World \"%s\"]", self->world->id.name+2);
   return 0;
@@ -993,7 +853,7 @@ static int World_Print(C_World *self, FILE *fp, int flags)
  * Python.  Repr gives a string representation of a PyObject.
  */
 
-static PyObject *World_Repr (C_World *self)
+static PyObject *World_Repr (BPy_World *self)
 {
   return PyString_FromString(self->world->id.name+2);
 }

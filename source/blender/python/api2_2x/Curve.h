@@ -42,9 +42,9 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BKE_curve.h>
-#include <DNA_curve_types.h>
 
 #include "gen_utils.h"
+#include "bpy_types.h"
 
 /*****************************************************************************/
 /*  Python API function prototypes for the Curve module.                     */
@@ -75,50 +75,43 @@ struct PyMethodDef M_Curve_methods[] = {
   {NULL, NULL, 0, NULL}
 };
 
-/*****************************************************************************/
-/* Python C_Curve structure definition:                                     */
-/*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  Curve   *curve;
-} C_Curve;
 
 /*****************************************************************************/
-/*  Python C_Curve methods declarations:                                     */
+/*  Python BPy_Curve methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Curve_getName(C_Curve *self);
-static PyObject *Curve_setName(C_Curve *self, PyObject *args);
-static PyObject *Curve_getPathLen(C_Curve *self);
-static PyObject *Curve_setPathLen(C_Curve *self, PyObject *args);
-static PyObject *Curve_getTotcol(C_Curve *self);
-static PyObject *Curve_setTotcol(C_Curve *self, PyObject *args);
-static PyObject *Curve_getMode(C_Curve *self);
-static PyObject *Curve_setMode(C_Curve *self, PyObject *args);
-static PyObject *Curve_getBevresol(C_Curve *self);
-static PyObject *Curve_setBevresol(C_Curve *self, PyObject *args);
-static PyObject *Curve_getResolu(C_Curve *self);
-static PyObject *Curve_setResolu(C_Curve *self, PyObject *args);
-static PyObject *Curve_getResolv(C_Curve *self);
-static PyObject *Curve_setResolv(C_Curve *self, PyObject *args);
-static PyObject *Curve_getWidth(C_Curve *self);
-static PyObject *Curve_setWidth(C_Curve *self, PyObject *args);
-static PyObject *Curve_getExt1(C_Curve *self);
-static PyObject *Curve_setExt1(C_Curve *self, PyObject *args);
-static PyObject *Curve_getExt2(C_Curve *self);
-static PyObject *Curve_setExt2(C_Curve *self, PyObject *args);
-static PyObject *Curve_getControlPoint(C_Curve *self, PyObject *args);
-static PyObject *Curve_setControlPoint(C_Curve *self, PyObject *args);
-static PyObject *Curve_getLoc(C_Curve *self);
-static PyObject *Curve_setLoc(C_Curve *self, PyObject *args);
-static PyObject *Curve_getRot(C_Curve *self);
-static PyObject *Curve_setRot(C_Curve *self, PyObject *args);
-static PyObject *Curve_getSize(C_Curve *self);
-static PyObject *Curve_setSize(C_Curve *self, PyObject *args);
+static PyObject *Curve_getName(BPy_Curve *self);
+static PyObject *Curve_setName(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getPathLen(BPy_Curve *self);
+static PyObject *Curve_setPathLen(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getTotcol(BPy_Curve *self);
+static PyObject *Curve_setTotcol(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getMode(BPy_Curve *self);
+static PyObject *Curve_setMode(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getBevresol(BPy_Curve *self);
+static PyObject *Curve_setBevresol(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getResolu(BPy_Curve *self);
+static PyObject *Curve_setResolu(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getResolv(BPy_Curve *self);
+static PyObject *Curve_setResolv(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getWidth(BPy_Curve *self);
+static PyObject *Curve_setWidth(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getExt1(BPy_Curve *self);
+static PyObject *Curve_setExt1(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getExt2(BPy_Curve *self);
+static PyObject *Curve_setExt2(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getControlPoint(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getLoc(BPy_Curve *self);
+static PyObject *Curve_setLoc(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getRot(BPy_Curve *self);
+static PyObject *Curve_setRot(BPy_Curve *self, PyObject *args);
+static PyObject *Curve_getSize(BPy_Curve *self);
+static PyObject *Curve_setSize(BPy_Curve *self, PyObject *args);
 
 /*****************************************************************************/
-/*  Python C_Curve methods table:                                            */
+/*  Python BPy_Curve methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Curve_methods[] = {
+static PyMethodDef BPy_Curve_methods[] = {
   {"getName", (PyCFunction)Curve_getName,
 	METH_NOARGS,"() - Return Curve Data name"},
   {"setName", (PyCFunction)Curve_setName,
@@ -184,11 +177,11 @@ Sets a control point "},
 /*****************************************************************************/
 /*  Python Curve_Type callback function prototypes:                           */
 /*****************************************************************************/
-static void CurveDeAlloc (C_Curve *msh);
-static int CurvePrint (C_Curve *msh, FILE *fp, int flags);
-static int CurveSetAttr (C_Curve *msh, char *name, PyObject *v);
-static PyObject *CurveGetAttr (C_Curve *msh, char *name);
-static PyObject *CurveRepr (C_Curve *msh);
+static void CurveDeAlloc (BPy_Curve *msh);
+static int CurvePrint (BPy_Curve *msh, FILE *fp, int flags);
+static int CurveSetAttr (BPy_Curve *msh, char *name, PyObject *v);
+static PyObject *CurveGetAttr (BPy_Curve *msh, char *name);
+static PyObject *CurveRepr (BPy_Curve *msh);
 PyObject* CurveCreatePyObject (struct Curve *curve);
 int CurveCheckPyObject (PyObject *py_obj);
 struct Curve* CurveFromPyObject (PyObject *py_obj);
@@ -202,7 +195,7 @@ PyTypeObject Curve_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Curve",                               /* tp_name */
-  sizeof (C_Curve),                      /* tp_basicsize */
+  sizeof (BPy_Curve),                      /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)CurveDeAlloc,              /* tp_dealloc */
@@ -218,7 +211,7 @@ PyTypeObject Curve_Type =
   0,0,0,0,0,0,
   0,                                      /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Curve_methods,                       /* tp_methods */
+  BPy_Curve_methods,                       /* tp_methods */
   0,                                      /* tp_members */
 };
 

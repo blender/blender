@@ -44,6 +44,7 @@
 #include <DNA_effect_types.h>
 
 #include "gen_utils.h"
+#include "bpy_types.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Particle module.                   */
@@ -52,71 +53,64 @@ PyObject *M_Particle_New (PyObject *self, PyObject *args);
 PyObject *M_Particle_Get (PyObject *self, PyObject *args);
 
 
-/*****************************************************************************/
-/* Python C_Particle structure definition:                                   */
-/*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  Effect   *particle;
-} C_Particle;
 
 #include"Effect.h"
 /*****************************************************************************/
-/* Python C_Particle methods declarations:                                   */
+/* Python BPy_Particle methods declarations:                                 */
 /*****************************************************************************/
-PyObject *Effect_getType(C_Effect *self);
-PyObject *Effect_setType(C_Effect *self, PyObject *args);
-PyObject *Effect_getFlag(C_Effect *self);
-PyObject *Effect_setFlag(C_Effect *self, PyObject *args);
-PyObject *Particle_getSta(C_Particle *self);
-PyObject *Particle_setSta(C_Particle *self,PyObject*a);
-PyObject *Particle_getEnd(C_Particle *self);
-PyObject *Particle_setEnd(C_Particle *self,PyObject*a);
-PyObject *Particle_getLifetime(C_Particle *self);
-PyObject *Particle_setLifetime(C_Particle *self,PyObject*a);
-PyObject *Particle_getNormfac(C_Particle *self);
-PyObject *Particle_setNormfac(C_Particle *self,PyObject*a);
-PyObject *Particle_getObfac(C_Particle *self);
-PyObject *Particle_setObfac(C_Particle *self,PyObject*a);
-PyObject *Particle_getRandfac(C_Particle *self);
-PyObject *Particle_setRandfac(C_Particle *self,PyObject*a);
-PyObject *Particle_getTexfac(C_Particle *self);
-PyObject *Particle_setTexfac(C_Particle *self,PyObject*a);
-PyObject *Particle_getRandlife(C_Particle *self);
-PyObject *Particle_setRandlife(C_Particle *self,PyObject*a);
-PyObject *Particle_getNabla(C_Particle *self);
-PyObject *Particle_setNabla(C_Particle *self,PyObject*a);
-PyObject *Particle_getVectsize(C_Particle *self);
-PyObject *Particle_setVectsize(C_Particle *self,PyObject*a);
-PyObject *Particle_getTotpart(C_Particle *self);
-PyObject *Particle_setTotpart(C_Particle *self,PyObject*a);
-PyObject *Particle_getTotkey(C_Particle *self);
-PyObject *Particle_setTotkey(C_Particle *self,PyObject*a);
-PyObject *Particle_getSeed(C_Particle *self);
-PyObject *Particle_setSeed(C_Particle *self,PyObject*a);
-PyObject *Particle_getForce(C_Particle *self);
-PyObject *Particle_setForce(C_Particle *self,PyObject*a);
-PyObject *Particle_getMult(C_Particle *self);
-PyObject *Particle_setMult(C_Particle *self,PyObject*a);
-PyObject *Particle_getLife(C_Particle *self);
-PyObject *Particle_setLife(C_Particle *self,PyObject*a);
-PyObject *Particle_getMat(C_Particle *self);
-PyObject *Particle_setMat(C_Particle *self,PyObject*a);
-PyObject *Particle_getChild(C_Particle *self);
-PyObject *Particle_setChild(C_Particle *self,PyObject*a);
-PyObject *Particle_getDefvec(C_Particle *self);
-PyObject *Particle_setDefvec(C_Particle *self,PyObject*a);
+PyObject *Effect_getType(BPy_Effect *self);
+PyObject *Effect_setType(BPy_Effect *self, PyObject *args);
+PyObject *Effect_getFlag(BPy_Effect *self);
+PyObject *Effect_setFlag(BPy_Effect *self, PyObject *args);
+PyObject *Particle_getSta(BPy_Particle *self);
+PyObject *Particle_setSta(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getEnd(BPy_Particle *self);
+PyObject *Particle_setEnd(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getLifetime(BPy_Particle *self);
+PyObject *Particle_setLifetime(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getNormfac(BPy_Particle *self);
+PyObject *Particle_setNormfac(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getObfac(BPy_Particle *self);
+PyObject *Particle_setObfac(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getRandfac(BPy_Particle *self);
+PyObject *Particle_setRandfac(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getTexfac(BPy_Particle *self);
+PyObject *Particle_setTexfac(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getRandlife(BPy_Particle *self);
+PyObject *Particle_setRandlife(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getNabla(BPy_Particle *self);
+PyObject *Particle_setNabla(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getVectsize(BPy_Particle *self);
+PyObject *Particle_setVectsize(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getTotpart(BPy_Particle *self);
+PyObject *Particle_setTotpart(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getTotkey(BPy_Particle *self);
+PyObject *Particle_setTotkey(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getSeed(BPy_Particle *self);
+PyObject *Particle_setSeed(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getForce(BPy_Particle *self);
+PyObject *Particle_setForce(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getMult(BPy_Particle *self);
+PyObject *Particle_setMult(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getLife(BPy_Particle *self);
+PyObject *Particle_setLife(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getMat(BPy_Particle *self);
+PyObject *Particle_setMat(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getChild(BPy_Particle *self);
+PyObject *Particle_setChild(BPy_Particle *self,PyObject*a);
+PyObject *Particle_getDefvec(BPy_Particle *self);
+PyObject *Particle_setDefvec(BPy_Particle *self,PyObject*a);
 
 
 
 /*****************************************************************************/
 /* Python Particle_Type callback function prototypes:                        */
 /*****************************************************************************/
-void ParticleDeAlloc (C_Particle *msh);
-int ParticlePrint (C_Particle *msh, FILE *fp, int flags);
-int ParticleSetAttr (C_Particle *msh, char *name, PyObject *v);
-PyObject *ParticleGetAttr (C_Particle *msh, char *name);
-PyObject *ParticleRepr (C_Particle *msh);
+void ParticleDeAlloc (BPy_Particle *msh);
+int ParticlePrint (BPy_Particle *msh, FILE *fp, int flags);
+int ParticleSetAttr (BPy_Particle *msh, char *name, PyObject *v);
+PyObject *ParticleGetAttr (BPy_Particle *msh, char *name);
+PyObject *ParticleRepr (BPy_Particle *msh);
 PyObject* ParticleCreatePyObject (struct Effect *particle);
 int ParticleCheckPyObject (PyObject *py_obj);
 struct Particle* ParticleFromPyObject (PyObject *py_obj);

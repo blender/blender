@@ -34,9 +34,9 @@
 
 
 /*****************************************************************************/
-/* Python C_Wave methods table:                                              */
+/* Python BPy_Wave methods table:                                              */
 /*****************************************************************************/
-static PyMethodDef C_Wave_methods[] = {
+static PyMethodDef BPy_Wave_methods[] = {
 	{"getType", (PyCFunction)Effect_getType,
 	 METH_NOARGS,"() - Return Effect type"},
   {"setType", (PyCFunction)Effect_setType, 
@@ -99,7 +99,7 @@ PyTypeObject Wave_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                     
   "Wave",                              
-  sizeof (C_Wave),                   
+  sizeof (BPy_Wave),                   
   0,                                    
   /* methods */
   (destructor)WaveDeAlloc,              /* tp_dealloc */
@@ -115,7 +115,7 @@ PyTypeObject Wave_Type =
   0,0,0,0,0,0,
   0,                                      /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Wave_methods,                       /* tp_methods */
+  BPy_Wave_methods,                       /* tp_methods */
   0,                                      /* tp_members */
 };
 
@@ -163,7 +163,7 @@ struct PyMethodDef M_Wave_methods[] = {
 PyObject *M_Wave_New(PyObject *self, PyObject *args)
 {
 int type =   EFF_WAVE;
-  C_Effect    *pyeffect;
+  BPy_Effect    *pyeffect;
   Effect      *bleffect = 0; 
   
   printf ("In Effect_New()\n");
@@ -173,7 +173,7 @@ int type =   EFF_WAVE;
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 	     "couldn't create Effect Data in Blender"));
 
-  pyeffect = (C_Effect *)PyObject_NEW(C_Effect, &Effect_Type);
+  pyeffect = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
 
      
   if (pyeffect == NULL) return (EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -196,7 +196,7 @@ PyObject *M_Wave_Get(PyObject *self, PyObject *args)
   char     *name = 0;
   Object   *object_iter;
   Effect *eff;
-  C_Wave *wanted_eff;
+  BPy_Wave *wanted_eff;
   int num,i;
   printf ("In Effect_Get()\n");
   if (!PyArg_ParseTuple(args, "si", &name, &num ))
@@ -226,7 +226,7 @@ PyObject *M_Wave_Get(PyObject *self, PyObject *args)
 	      if (!eff)
 		return(EXPP_ReturnPyObjError(PyExc_AttributeError,"bject"));
 	    }
-	  wanted_eff = (C_Wave *)PyObject_NEW(C_Wave, &Wave_Type);
+	  wanted_eff = (BPy_Wave *)PyObject_NEW(BPy_Wave, &Wave_Type);
 	  wanted_eff->wave = eff;
 	  return (PyObject*)wanted_eff;  
 	}
@@ -249,16 +249,16 @@ PyObject *M_Wave_Init (void)
 }
 
 /*****************************************************************************/
-/* Python C_Wave methods:                                                    */
+/* Python BPy_Wave methods:                                                    */
 /*****************************************************************************/
 
-PyObject *Wave_getStartx(C_Wave *self)
+PyObject *Wave_getStartx(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->startx);
 }
 
-PyObject *Wave_setStartx(C_Wave *self,PyObject *args)
+PyObject *Wave_setStartx(BPy_Wave *self,PyObject *args)
 { 
   WaveEff*ptr = (WaveEff*)self->wave;
   float val = 0;
@@ -270,13 +270,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getStarty(C_Wave *self)
+PyObject *Wave_getStarty(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->starty);
 }
 
-PyObject *Wave_setStarty(C_Wave *self,PyObject *args)
+PyObject *Wave_setStarty(BPy_Wave *self,PyObject *args)
 { 
   WaveEff*ptr = (WaveEff*)self->wave;
   float val = 0;
@@ -288,13 +288,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getHeight(C_Wave *self)
+PyObject *Wave_getHeight(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->height);
 }
 
-PyObject *Wave_setHeight(C_Wave *self,PyObject *args)
+PyObject *Wave_setHeight(BPy_Wave *self,PyObject *args)
 { 
   WaveEff*ptr = (WaveEff*)self->wave;
   float val = 0;
@@ -306,13 +306,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getWidth(C_Wave *self)
+PyObject *Wave_getWidth(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->width);
 }
 
-PyObject *Wave_setWidth(C_Wave *self,PyObject *args)
+PyObject *Wave_setWidth(BPy_Wave *self,PyObject *args)
 { 
   float val = 0;
   WaveEff*ptr;
@@ -325,13 +325,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getNarrow(C_Wave *self)
+PyObject *Wave_getNarrow(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->narrow);
 }
 
-PyObject *Wave_setNarrow(C_Wave *self,PyObject *args)
+PyObject *Wave_setNarrow(BPy_Wave *self,PyObject *args)
 { 
   float val = 0;
   WaveEff*ptr;
@@ -344,13 +344,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getSpeed(C_Wave *self)
+PyObject *Wave_getSpeed(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->speed);
 }
 
-PyObject *Wave_setSpeed(C_Wave *self,PyObject *args)
+PyObject *Wave_setSpeed(BPy_Wave *self,PyObject *args)
 { 
   float val = 0;
   WaveEff*ptr;
@@ -363,13 +363,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getMinfac(C_Wave *self)
+PyObject *Wave_getMinfac(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->minfac);
 }
 
-PyObject *Wave_setMinfac(C_Wave *self,PyObject *args)
+PyObject *Wave_setMinfac(BPy_Wave *self,PyObject *args)
 { 
   float val = 0;
   WaveEff*ptr;
@@ -384,13 +384,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
 
 
 
-PyObject *Wave_getDamp(C_Wave *self)
+PyObject *Wave_getDamp(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->damp);
 }
 
-PyObject *Wave_setDamp(C_Wave *self,PyObject *args)
+PyObject *Wave_setDamp(BPy_Wave *self,PyObject *args)
 { 
   WaveEff*ptr;
   float val = 0;
@@ -403,13 +403,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getTimeoffs(C_Wave *self)
+PyObject *Wave_getTimeoffs(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->timeoffs);
 }
 
-PyObject *Wave_setTimeoffs(C_Wave *self,PyObject *args)
+PyObject *Wave_setTimeoffs(BPy_Wave *self,PyObject *args)
 { 
   float val = 0;
   WaveEff*ptr;
@@ -422,13 +422,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
   return Py_None;
 }
 
-PyObject *Wave_getLifetime(C_Wave *self)
+PyObject *Wave_getLifetime(BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   return PyFloat_FromDouble(ptr->lifetime);
 }
 
-PyObject *Wave_setLifetime(C_Wave *self,PyObject *args)
+PyObject *Wave_setLifetime(BPy_Wave *self,PyObject *args)
 { 
   float val = 0;
   WaveEff*ptr;
@@ -442,10 +442,10 @@ if (!PyArg_ParseTuple(args, "f", &val ))
 }
 /*****************************************************************************/
 /* Function:    WaveDeAlloc                                                  */
-/* Description: This is a callback function for the C_Wave type. It is       */
+/* Description: This is a callback function for the BPy_Wave type. It is       */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-void WaveDeAlloc (C_Wave *self)
+void WaveDeAlloc (BPy_Wave *self)
 {
   WaveEff*ptr = (WaveEff*)self->wave;
   PyObject_DEL (ptr);
@@ -453,12 +453,12 @@ void WaveDeAlloc (C_Wave *self)
 
 /*****************************************************************************/
 /* Function:    WaveGetAttr                                                  */
-/* Description: This is a callback function for the C_Wave type. It is       */
-/*              the function that accesses C_Wave "member variables" and     */
+/* Description: This is a callback function for the BPy_Wave type. It is       */
+/*              the function that accesses BPy_Wave "member variables" and     */
 /*              methods.                                                     */
 /*****************************************************************************/
 
-PyObject *WaveGetAttr (C_Wave *self, char *name)
+PyObject *WaveGetAttr (BPy_Wave *self, char *name)
 {
 	if (!strcmp(name,"lifetime"))return Wave_getLifetime( self);
 	else if (!strcmp(name,"timeoffs"))return Wave_getTimeoffs( self);
@@ -470,15 +470,15 @@ PyObject *WaveGetAttr (C_Wave *self, char *name)
 	else if (!strcmp(name,"height"))return Wave_getHeight( self);
 	else if (!strcmp(name,"startx"))return Wave_getStartx( self);
 	else if (!strcmp(name,"starty"))return Wave_getStarty( self);
-  return Py_FindMethod(C_Wave_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Wave_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
 /* Function:    WaveSetAttr                                                  */
-/* Description: This is a callback function for the C_Wave type. It is the   */
+/* Description: This is a callback function for the BPy_Wave type. It is the   */
 /*              function that sets Wave Data attributes (member variables).  */
 /*****************************************************************************/
-int WaveSetAttr (C_Wave *self, char *name, PyObject *value)
+int WaveSetAttr (BPy_Wave *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -524,10 +524,10 @@ int WaveSetAttr (C_Wave *self, char *name, PyObject *value)
 
 /*****************************************************************************/
 /* Function:    WavePrint                                                    */
-/* Description: This is a callback function for the C_Wave type. It          */
+/* Description: This is a callback function for the BPy_Wave type. It          */
 /*              builds a meaninful string to 'print' wave objects.           */
 /*****************************************************************************/
-int WavePrint(C_Wave *self, FILE *fp, int flags)
+int WavePrint(BPy_Wave *self, FILE *fp, int flags)
 { 
 
   printf("I'm a wave...Cool, no?");	
@@ -536,21 +536,21 @@ int WavePrint(C_Wave *self, FILE *fp, int flags)
 
 /*****************************************************************************/
 /* Function:    WaveRepr                                                     */
-/* Description: This is a callback function for the C_Wave type. It          */
+/* Description: This is a callback function for the BPy_Wave type. It          */
 /*              builds a meaninful string to represent wave objects.         */
 /*****************************************************************************/
-PyObject *WaveRepr (C_Wave *self) 
+PyObject *WaveRepr (BPy_Wave *self) 
 {
   return 0;
 }
 
 PyObject* WaveCreatePyObject (struct Effect *wave)
 {
- C_Wave    * blen_object;
+ BPy_Wave    * blen_object;
 
     printf ("In WaveCreatePyObject\n");
 
-    blen_object = (C_Wave*)PyObject_NEW (C_Wave, &Wave_Type);
+    blen_object = (BPy_Wave*)PyObject_NEW (BPy_Wave, &Wave_Type);
 
     if (blen_object == NULL)
     {
@@ -569,9 +569,9 @@ return (py_obj->ob_type == &Wave_Type);
 
 struct Wave* WaveFromPyObject (PyObject *py_obj)
 {
- C_Wave    * blen_obj;
+ BPy_Wave    * blen_obj;
 
-    blen_obj = (C_Wave*)py_obj;
+    blen_obj = (BPy_Wave*)py_obj;
     return ((struct Wave*)blen_obj->wave);
 
 }

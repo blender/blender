@@ -33,13 +33,41 @@
 
 
 /*****************************************************************************/
+/* Python Metaball_Type structure definition:                                  */
+/*****************************************************************************/
+PyTypeObject Metaball_Type =
+	{
+		PyObject_HEAD_INIT(NULL)
+		0,                                      /* ob_size */
+		"Metaball",                               /* tp_name */
+		sizeof (BPy_Metaball),                      /* tp_basicsize */
+		0,                                      /* tp_itemsize */
+		/* methods */
+		(destructor)MetaballDeAlloc,              /* tp_dealloc */
+		(printfunc)MetaballPrint,                 /* tp_print */
+		(getattrfunc)MetaballGetAttr,             /* tp_getattr */
+		(setattrfunc)MetaballSetAttr,             /* tp_setattr */
+		0,                                      /* tp_compare */
+		(reprfunc)MetaballRepr,                   /* tp_repr */
+		0,                                      /* tp_as_number */
+		0,                                      /* tp_as_sequence */
+		0,                                      /* tp_as_mapping */
+		0,                                      /* tp_as_hash */
+		0,0,0,0,0,0,
+		0,                                      /* tp_doc */ 
+		0,0,0,0,0,0,
+		BPy_Metaball_methods,                       /* tp_methods */
+		0,                                      /* tp_members */
+	};
+
+/*****************************************************************************/
 /* Function:              M_Metaball_New                                     */
 /* Python equivalent:     Blender.Metaball.New                               */
 /*****************************************************************************/
 static PyObject *M_Metaball_New(PyObject *self, PyObject *args)
 {
   char*name = 0;
-  C_Metaball    *pymball; /* for Data object wrapper in Python */
+  BPy_Metaball    *pymball; /* for Data object wrapper in Python */
   MetaBall      *blmball; /* for actual Data we create in Blender */
   char        buf[21];
   if (!PyArg_ParseTuple(args, "|s", &name))
@@ -50,7 +78,7 @@ static PyObject *M_Metaball_New(PyObject *self, PyObject *args)
   blmball = add_mball(); /* first create the MetaBall Data in Blender */
 
   if (blmball) /* now create the wrapper obj in Python */
-    pymball = (C_Metaball *)PyObject_NEW(C_Metaball, &Metaball_Type);
+    pymball = (BPy_Metaball *)PyObject_NEW(BPy_Metaball, &Metaball_Type);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				   "couldn't create MetaBall Data in Blender"));
@@ -90,11 +118,11 @@ static PyObject *M_Metaball_Get(PyObject *self, PyObject *args)
 
   if (name) { /* (name) - Search mball by name */
 
-    C_Metaball *wanted_mball = NULL;
+    BPy_Metaball *wanted_mball = NULL;
 
     while ((mball_iter) && (wanted_mball == NULL)) {
       if (strcmp (name, mball_iter->id.name+2) == 0) {
-	wanted_mball=(C_Metaball*)PyObject_NEW(C_Metaball,&Metaball_Type);
+	wanted_mball=(BPy_Metaball*)PyObject_NEW(BPy_Metaball,&Metaball_Type);
 	if (wanted_mball) 
 	  wanted_mball->metaball = mball_iter;
       }
@@ -120,7 +148,7 @@ static PyObject *M_Metaball_Get(PyObject *self, PyObject *args)
 				       "couldn't create PyList"));
 
     while (mball_iter) {
-			C_Metaball *found_mball=(C_Metaball*)PyObject_NEW(C_Metaball,&Metaball_Type);
+			BPy_Metaball *found_mball=(BPy_Metaball*)PyObject_NEW(BPy_Metaball,&Metaball_Type);
 			found_mball->metaball = mball_iter;
       PyList_Append (mballlist,   (PyObject *)found_mball);
       mball_iter = mball_iter->id.next;
@@ -147,9 +175,9 @@ PyObject *M_Metaball_Init (void)
 }
 
 /*******************************************************************************/
-/* Python C_Metaball methods:                                                  */
+/* Python BPy_Metaball methods:                                                  */
 /*******************************************************************************/
-static PyObject *Metaball_getName(C_Metaball *self)
+static PyObject *Metaball_getName(BPy_Metaball *self)
 {
 
   PyObject *attr = PyString_FromString(self->metaball->id.name+2);
@@ -162,7 +190,7 @@ static PyObject *Metaball_getName(C_Metaball *self)
 
 
 
-static PyObject *Metaball_setName(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setName(BPy_Metaball *self,PyObject*args)
 {
 	char   *name = NULL;
 	char buf[20];
@@ -178,7 +206,7 @@ static PyObject *Metaball_setName(C_Metaball *self,PyObject*args)
 }
 
 
-static PyObject *Metaball_getBbox(C_Metaball *self)
+static PyObject *Metaball_getBbox(BPy_Metaball *self)
 {
 	int i,j;
 	PyObject* ll;
@@ -195,7 +223,7 @@ static PyObject *Metaball_getBbox(C_Metaball *self)
   return l;
 }
 
-static PyObject *Metaball_getNMetaElems(C_Metaball *self)
+static PyObject *Metaball_getNMetaElems(BPy_Metaball *self)
 {
   int i = 0;
   MetaElem*ptr = self->metaball->elems.first;
@@ -210,7 +238,7 @@ static PyObject *Metaball_getNMetaElems(C_Metaball *self)
 
 
 
-static PyObject *Metaball_getloc(C_Metaball *self)
+static PyObject *Metaball_getloc(BPy_Metaball *self)
 {
   PyObject* l = PyList_New(0);
   PyList_Append( l, PyFloat_FromDouble(self->metaball->loc[0]));
@@ -219,7 +247,7 @@ static PyObject *Metaball_getloc(C_Metaball *self)
   return l;
 }
 
-static PyObject *Metaball_setloc(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setloc(BPy_Metaball *self,PyObject*args)
 {	
 	PyObject *listargs=0;
 	int i;
@@ -235,7 +263,7 @@ static PyObject *Metaball_setloc(C_Metaball *self,PyObject*args)
   return Py_None;
 }
 
-static PyObject *Metaball_getrot(C_Metaball *self)
+static PyObject *Metaball_getrot(BPy_Metaball *self)
 {
   PyObject* l = PyList_New(0);
   PyList_Append( l, PyFloat_FromDouble(self->metaball->rot[0]));
@@ -244,7 +272,7 @@ static PyObject *Metaball_getrot(C_Metaball *self)
   return l;
 }
 
-static PyObject *Metaball_setrot(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setrot(BPy_Metaball *self,PyObject*args)
 {	
 	PyObject *listargs=0;
 	int i;
@@ -260,7 +288,7 @@ static PyObject *Metaball_setrot(C_Metaball *self,PyObject*args)
   return Py_None;
 }
 
-static PyObject *Metaball_getsize(C_Metaball *self)
+static PyObject *Metaball_getsize(BPy_Metaball *self)
 {
   PyObject* l = PyList_New(0);
   PyList_Append( l, PyFloat_FromDouble(self->metaball->size[0]));
@@ -269,7 +297,7 @@ static PyObject *Metaball_getsize(C_Metaball *self)
   return l;
 }
 
-static PyObject *Metaball_setsize(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setsize(BPy_Metaball *self,PyObject*args)
 {	
 	PyObject *listargs=0;
 	int i;
@@ -285,12 +313,12 @@ static PyObject *Metaball_setsize(C_Metaball *self,PyObject*args)
   return Py_None;
 }
 
-static PyObject *Metaball_getWiresize(C_Metaball *self)
+static PyObject *Metaball_getWiresize(BPy_Metaball *self)
 {
   return PyFloat_FromDouble(self->metaball->wiresize);
 }
 
-static PyObject *Metaball_setWiresize(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setWiresize(BPy_Metaball *self,PyObject*args)
 {	
 	
   float val;
@@ -303,12 +331,12 @@ static PyObject *Metaball_setWiresize(C_Metaball *self,PyObject*args)
   return Py_None;
 
 }
-static PyObject *Metaball_getRendersize(C_Metaball *self)
+static PyObject *Metaball_getRendersize(BPy_Metaball *self)
 {
   return PyFloat_FromDouble(self->metaball->rendersize);
 }
 
-static PyObject *Metaball_setRendersize(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setRendersize(BPy_Metaball *self,PyObject*args)
 {	
 	
   float val;
@@ -321,12 +349,12 @@ static PyObject *Metaball_setRendersize(C_Metaball *self,PyObject*args)
   return Py_None;
 
 }
-static PyObject *Metaball_getThresh(C_Metaball *self)
+static PyObject *Metaball_getThresh(BPy_Metaball *self)
 {
   return PyFloat_FromDouble(self->metaball->thresh);
 }
 
-static PyObject *Metaball_setThresh(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setThresh(BPy_Metaball *self,PyObject*args)
 {	
 	
   float val;
@@ -345,7 +373,7 @@ static PyObject *Metaball_setThresh(C_Metaball *self,PyObject*args)
 /* get/set metaelems data,                                                     */
 /*******************************************************************************/
 
-static PyObject *Metaball_getMetadata(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_getMetadata(BPy_Metaball *self,PyObject*args)
 {	
   int num;
   int i = 0;
@@ -393,7 +421,7 @@ static PyObject *Metaball_getMetadata(C_Metaball *self,PyObject*args)
 
 
 
-static PyObject *Metaball_setMetadata(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setMetadata(BPy_Metaball *self,PyObject*args)
 {	
   int num;
   int i = 0;
@@ -443,7 +471,7 @@ return (EXPP_ReturnPyObjError (PyExc_TypeError, \
   return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown field "));
 }
 
-static PyObject *Metaball_getMetatype(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_getMetatype(BPy_Metaball *self,PyObject*args)
 {	
   int num;
   int i = 0;
@@ -458,7 +486,7 @@ static PyObject *Metaball_getMetatype(C_Metaball *self,PyObject*args)
 
 
 
-static PyObject *Metaball_setMetatype(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setMetatype(BPy_Metaball *self,PyObject*args)
 {	
   int num,val, i = 0;
   MetaElem*ptr = self->metaball->elems.first;
@@ -474,7 +502,7 @@ static PyObject *Metaball_setMetatype(C_Metaball *self,PyObject*args)
 }
 
 
-static PyObject *Metaball_getMetax(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_getMetax(BPy_Metaball *self,PyObject*args)
 {	
   MetaElem*ptr = self->metaball->elems.first;
   int num;
@@ -488,7 +516,7 @@ static PyObject *Metaball_getMetax(C_Metaball *self,PyObject*args)
 
 
 
-static PyObject *Metaball_setMetax(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setMetax(BPy_Metaball *self,PyObject*args)
 {	
   MetaElem*ptr = self->metaball->elems.first;
   int num, i = 0;
@@ -503,7 +531,7 @@ static PyObject *Metaball_setMetax(C_Metaball *self,PyObject*args)
   return Py_None;
 
 }
-static PyObject *Metaball_getMetay(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_getMetay(BPy_Metaball *self,PyObject*args)
 {	
   MetaElem*ptr = self->metaball->elems.first;
   int num;
@@ -517,7 +545,7 @@ static PyObject *Metaball_getMetay(C_Metaball *self,PyObject*args)
 
 
 
-static PyObject *Metaball_setMetay(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setMetay(BPy_Metaball *self,PyObject*args)
 {	
   MetaElem*ptr = self->metaball->elems.first;
   int num, i = 0;
@@ -534,7 +562,7 @@ static PyObject *Metaball_setMetay(C_Metaball *self,PyObject*args)
 }
 
 
-static PyObject *Metaball_getMetaz(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_getMetaz(BPy_Metaball *self,PyObject*args)
 {	
   MetaElem*ptr = self->metaball->elems.first;
   int num;
@@ -546,7 +574,7 @@ static PyObject *Metaball_getMetaz(C_Metaball *self,PyObject*args)
   return (PyFloat_FromDouble(ptr->z));
 }
 
-static PyObject *Metaball_setMetaz(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setMetaz(BPy_Metaball *self,PyObject*args)
 {	
   int num, i = 0;
   MetaElem*ptr = self->metaball->elems.first;
@@ -563,7 +591,7 @@ static PyObject *Metaball_setMetaz(C_Metaball *self,PyObject*args)
 }
 
 
-static PyObject *Metaball_getMetas(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_getMetas(BPy_Metaball *self,PyObject*args)
 {	
   MetaElem*ptr = self->metaball->elems.first;
   int num;
@@ -575,7 +603,7 @@ static PyObject *Metaball_getMetas(C_Metaball *self,PyObject*args)
   return (PyFloat_FromDouble(ptr->s));
 }
 
-static PyObject *Metaball_setMetas(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setMetas(BPy_Metaball *self,PyObject*args)
 {	
   int num, i = 0;
   MetaElem*ptr = self->metaball->elems.first;
@@ -596,7 +624,7 @@ static PyObject *Metaball_setMetas(C_Metaball *self,PyObject*args)
 
 
 
-static PyObject *Metaball_getMetalen(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_getMetalen(BPy_Metaball *self,PyObject*args)
 {	
   int num;
   int i = 0;
@@ -610,7 +638,7 @@ static PyObject *Metaball_getMetalen(C_Metaball *self,PyObject*args)
   return (PyFloat_FromDouble(ptr->len));
 }
 
-static PyObject *Metaball_setMetalen(C_Metaball *self,PyObject*args)
+static PyObject *Metaball_setMetalen(BPy_Metaball *self,PyObject*args)
 {	
   int num, i = 0;
   float val;
@@ -637,15 +665,15 @@ static PyObject *Metaball_setMetalen(C_Metaball *self,PyObject*args)
 
 /*****************************************************************************/
 /* Function:    MetaballDeAlloc                                              */
-/* Description: This is a callback function for the C_Metaball type. It is   */
+/* Description: This is a callback function for the BPy_Metaball type. It is   */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void MetaballDeAlloc (C_Metaball *self)
+static void MetaballDeAlloc (BPy_Metaball *self)
 {
   PyObject_DEL (self);
 }
 
-static int MetaballPrint (C_Metaball *self, FILE *fp, int flags)
+static int MetaballPrint (BPy_Metaball *self, FILE *fp, int flags)
 {
   fprintf(fp, "[MetaBall \"%s\"]", self->metaball->id.name+2);
   return 0;
@@ -653,26 +681,26 @@ static int MetaballPrint (C_Metaball *self, FILE *fp, int flags)
 }
 /*****************************************************************************/
 /* Function:    MetaballGetAttr                                              */
-/* Description: This is a callback function for the C_Metaball type. It is   */
-/*              the function that accesses C_Metaball "member variables" and */
+/* Description: This is a callback function for the BPy_Metaball type. It is   */
+/*              the function that accesses BPy_Metaball "member variables" and */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *MetaballGetAttr (C_Metaball *self, char *name)
+static PyObject *MetaballGetAttr (BPy_Metaball *self, char *name)
 {
 
 if (strcmp (name, "name") == 0)return  Metaball_getName (self);
 if (strcmp (name, "rot") == 0)return  Metaball_getrot (self);
 if (strcmp (name, "loc") == 0)return  Metaball_getloc (self);
 if (strcmp (name, "size") == 0)return  Metaball_getsize (self);
-  return Py_FindMethod(C_Metaball_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Metaball_methods, (PyObject *)self, name);
 }
 
 /*******************************************************************************/
 /* Function:    MetaballSetAttr                                                */
-/* Description: This is a callback function for the C_Metaball type. It is the */
+/* Description: This is a callback function for the BPy_Metaball type. It is the */
 /*              function that sets Metaball Data attributes (member variables).*/
 /*******************************************************************************/
-static int MetaballSetAttr (C_Metaball *self, char *name, PyObject *value)
+static int MetaballSetAttr (BPy_Metaball *self, char *name, PyObject *value)
 {
   PyObject *valtuple  = Py_BuildValue("(O)", value);
 
@@ -707,10 +735,10 @@ static int MetaballSetAttr (C_Metaball *self, char *name, PyObject *value)
 
 /*****************************************************************************/
 /* Function:    MetaballRepr                                                  */
-/* Description: This is a callback function for the C_Metaball type. It       */
+/* Description: This is a callback function for the BPy_Metaball type. It       */
 /*              builds a meaninful string to represent metaball objects.      */
 /*****************************************************************************/
-static PyObject *MetaballRepr (C_Metaball *self)
+static PyObject *MetaballRepr (BPy_Metaball *self)
 {
   return PyString_FromString(self->metaball->id.name+2);
 }

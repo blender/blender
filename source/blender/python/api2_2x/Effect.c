@@ -54,7 +54,7 @@ struct PyMethodDef M_Effect_methods[] = {
 /*****************************************************************************/
 PyObject *M_Effect_New(PyObject *self, PyObject *args)
 {
-  C_Effect    *pyeffect; 
+  BPy_Effect    *pyeffect; 
   Effect      *bleffect = 0; 
   int type = -1;
   char * btype = NULL;
@@ -76,7 +76,7 @@ PyObject *M_Effect_New(PyObject *self, PyObject *args)
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 	     "couldn't create Effect Data in Blender"));
 
-  pyeffect = (C_Effect *)PyObject_NEW(C_Effect, &Effect_Type);
+  pyeffect = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
 
      
   if (pyeffect == NULL) return (EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -98,7 +98,7 @@ PyObject *M_Effect_Get(PyObject *self, PyObject *args)
   char     *name = 0;
   Object   *object_iter;
   Effect *eff;
-  C_Effect *wanted_eff;
+  BPy_Effect *wanted_eff;
   int num,i;
   if (!PyArg_ParseTuple(args, "|si", &name, &num ))
     return(EXPP_ReturnPyObjError(PyExc_AttributeError,\
@@ -119,7 +119,7 @@ PyObject *M_Effect_Get(PyObject *self, PyObject *args)
 				if (object_iter->effect.first != NULL){
 					eff = object_iter->effect.first;
 					for(i = 0;i<num;i++)eff = eff->next;
-					wanted_eff = (C_Effect *)PyObject_NEW(C_Effect, &Effect_Type);
+					wanted_eff = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
 					wanted_eff->effect = eff;
 					return (PyObject*)wanted_eff;  
 				}
@@ -133,7 +133,7 @@ PyObject *	effectlist = PyList_New (0);
 				if (object_iter->effect.first != NULL){
 					eff = object_iter->effect.first;
 					while (eff){
-						C_Effect *found_eff = (C_Effect *)PyObject_NEW(C_Effect, &Effect_Type);
+						BPy_Effect *found_eff = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
 						found_eff->effect = eff;
 						PyList_Append (effectlist ,  (PyObject *)found_eff);  
 						eff = eff->next;
@@ -170,19 +170,19 @@ PyObject *M_Effect_Init (void)
 }
 
 /*****************************************************************************/
-/* Python C_Effect methods:                                                  */
+/* Python BPy_Effect methods:                                                  */
 /*****************************************************************************/
 
-PyObject *Effect_getType(C_Effect *self)
+PyObject *Effect_getType(BPy_Effect *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->effect->type);
   if (attr) return attr;
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,\
-				 "couldn't get mode attribute"));
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,\
+			"couldn't get mode attribute"));
 }
 
 
-PyObject *Effect_setType(C_Effect *self, PyObject *args)
+PyObject *Effect_setType(BPy_Effect *self, PyObject *args)
 {
   int value;
   if (!PyArg_ParseTuple(args, "i", &value))
@@ -193,7 +193,7 @@ PyObject *Effect_setType(C_Effect *self, PyObject *args)
   return Py_None;
 }
 
-PyObject *Effect_getFlag(C_Effect *self)
+PyObject *Effect_getFlag(BPy_Effect *self)
 {
   PyObject *attr = PyInt_FromLong((long)self->effect->flag);
   if (attr) return attr;
@@ -202,7 +202,7 @@ PyObject *Effect_getFlag(C_Effect *self)
 }
 
 
-PyObject *Effect_setFlag(C_Effect *self, PyObject *args)
+PyObject *Effect_setFlag(BPy_Effect *self, PyObject *args)
 {
   int value;
   if (!PyArg_ParseTuple(args, "i", &value))
@@ -219,58 +219,58 @@ PyObject *Effect_setFlag(C_Effect *self, PyObject *args)
 
 /*****************************************************************************/
 /* Function:    EffectDeAlloc                                                */
-/* Description: This is a callback function for the C_Effect type. It is     */
+/* Description: This is a callback function for the BPy_Effect type. It is     */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-void EffectDeAlloc (C_Effect *self)
+void EffectDeAlloc (BPy_Effect *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
 /* Function:    EffectGetAttr                                                */
-/* Description: This is a callback function for the C_Effect type. It is     */
-/*              the function that accesses C_Effect "member variables" and   */
+/* Description: This is a callback function for the BPy_Effect type. It is     */
+/*              the function that accesses BPy_Effect "member variables" and   */
 /*              methods.                                                     */
 /*****************************************************************************/
 
 
-PyObject *EffectGetAttr (C_Effect *self, char *name)
+PyObject *EffectGetAttr (BPy_Effect *self, char *name)
 {
 	switch(self->effect->type)
 		{
-		case EFF_BUILD : return BuildGetAttr( (C_Build*)self, name);
-		case EFF_WAVE : return WaveGetAttr ((C_Wave*)self, name);
-		case EFF_PARTICLE : return ParticleGetAttr ((C_Particle*)self, name);
+		case EFF_BUILD : return BuildGetAttr( (BPy_Build*)self, name);
+		case EFF_WAVE : return WaveGetAttr ((BPy_Wave*)self, name);
+		case EFF_PARTICLE : return ParticleGetAttr ((BPy_Particle*)self, name);
 		}
 
-  return Py_FindMethod(C_Effect_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Effect_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
 /* Function:    EffectSetAttr                                                */
-/* Description: This is a callback function for the C_Effect type. It is the */
+/* Description: This is a callback function for the BPy_Effect type. It is the */
 /*              function that sets Effect Data attributes (member variables).*/
 /*****************************************************************************/
 
 
-int EffectSetAttr (C_Effect *self, char *name, PyObject *value)
+int EffectSetAttr (BPy_Effect *self, char *name, PyObject *value)
 {
 	switch(self->effect->type)
 		{
-		case EFF_BUILD : return BuildSetAttr( (C_Build*)self, name,value);
-		case EFF_WAVE : return WaveSetAttr ((C_Wave*)self, name,value);
-		case EFF_PARTICLE : return ParticleSetAttr ((C_Particle*)self, name,value);
+		case EFF_BUILD : return BuildSetAttr( (BPy_Build*)self, name,value);
+		case EFF_WAVE : return WaveSetAttr ((BPy_Wave*)self, name,value);
+		case EFF_PARTICLE : return ParticleSetAttr ((BPy_Particle*)self, name,value);
 		}
   return 0; /* normal exit */
 }
 
 /*****************************************************************************/
 /* Function:    EffectPrint                                                  */
-/* Description: This is a callback function for the C_Effect type. It        */
+/* Description: This is a callback function for the BPy_Effect type. It        */
 /*              builds a meaninful string to 'print' effcte objects.         */
 /*****************************************************************************/
-int EffectPrint(C_Effect *self, FILE *fp, int flags) 
+int EffectPrint(BPy_Effect *self, FILE *fp, int flags) 
 { 
 if (self->effect->type == EFF_BUILD)puts("Effect Build");
 if (self->effect->type == EFF_PARTICLE)puts("Effect Particle");
@@ -281,10 +281,10 @@ if (self->effect->type == EFF_WAVE)puts("Effect Wave");
 
 /*****************************************************************************/
 /* Function:    EffectRepr                                                   */
-/* Description: This is a callback function for the C_Effect type. It        */
+/* Description: This is a callback function for the BPy_Effect type. It        */
 /*              builds a meaninful string to represent effcte objects.       */
 /*****************************************************************************/
-PyObject *EffectRepr (C_Effect *self) 
+PyObject *EffectRepr (BPy_Effect *self) 
 {
 char*str="";
 if (self->effect->type == EFF_BUILD)str =  "Effect Build";
@@ -295,11 +295,11 @@ return PyString_FromString(str);
 
 PyObject* EffectCreatePyObject (struct Effect *effect)
 {
- C_Effect    * blen_object;
+ BPy_Effect    * blen_object;
 
     printf ("In EffectCreatePyObject\n");
 
-    blen_object = (C_Effect*)PyObject_NEW (C_Effect, &Effect_Type);
+    blen_object = (BPy_Effect*)PyObject_NEW (BPy_Effect, &Effect_Type);
 
     if (blen_object == NULL)
     {
@@ -318,9 +318,9 @@ return (py_obj->ob_type == &Effect_Type);
 
 struct Effect* EffectFromPyObject (PyObject *py_obj)
 {
- C_Effect    * blen_obj;
+ BPy_Effect    * blen_obj;
 
-    blen_obj = (C_Effect*)py_obj;
+    blen_obj = (BPy_Effect*)py_obj;
     return ((Effect*)blen_obj->effect);
 
 }

@@ -33,28 +33,6 @@
 #include "Effect.h"
 
 /*****************************************************************************/
-/* Python C_Build methods table:                                             */
-/*****************************************************************************/
-static PyMethodDef C_Build_methods[] = {
-	{"getType", (PyCFunction)Effect_getType,
-	 METH_NOARGS,"() - Return Effect type"},
-  {"setType", (PyCFunction)Effect_setType, 
-   METH_VARARGS,"() - Set Effect type"},
-  {"getFlag", (PyCFunction)Effect_getFlag, 
-   METH_NOARGS,"() - Return Effect flag"},
-  {"setFlag", (PyCFunction)Effect_setFlag, 
-   METH_VARARGS,"() - Set Effect flag"},
-  {"getLen",(PyCFunction)Build_getLen,
-	 METH_NOARGS,"()-Return Build len"},
-  {"setLen",(PyCFunction)Build_setLen, METH_VARARGS,
-	 "()- Sets Build len"},
-  {"getSfra",(PyCFunction)Build_getSfra,
-	 METH_NOARGS,"()-Return Build sfra"},
-  {"setSfra",(PyCFunction)Build_setSfra, METH_VARARGS,
-	 "()- Sets Build sfra"},
-	{0}
-};
-/*****************************************************************************/
 /* Python Build_Type structure definition:                                   */
 /*****************************************************************************/
 PyTypeObject Build_Type =
@@ -62,7 +40,7 @@ PyTypeObject Build_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Build",                               /* tp_name */
-  sizeof (C_Build),                      /* tp_basicsize */
+  sizeof (BPy_Build),                      /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)BuildDeAlloc,              /* tp_dealloc */
@@ -78,19 +56,10 @@ PyTypeObject Build_Type =
   0,0,0,0,0,0,
   0,                                      /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Build_methods,                       /* tp_methods */
+  BPy_Build_methods,                       /* tp_methods */
   0,                                      /* tp_members */
 };
 
-/*****************************************************************************/
-/* Python method structure definition for Blender.Build module:              */
-/*****************************************************************************/
-struct PyMethodDef M_Build_methods[] = {
-  {"New",(PyCFunction)M_Build_New, METH_VARARGS,0},
-  {"Get",         M_Build_Get,         METH_VARARGS, 0},
-  {"get",         M_Build_Get,         METH_VARARGS, 0},
-  {NULL, NULL, 0, NULL}
-};
 
 
 /*****************************************************************************/
@@ -100,7 +69,7 @@ struct PyMethodDef M_Build_methods[] = {
 PyObject *M_Build_New(PyObject *self, PyObject *args)
 {
 int type =   EFF_BUILD;
-  C_Effect    *pyeffect; 
+  BPy_Effect    *pyeffect; 
   Effect      *bleffect = 0; 
   
   printf ("In Effect_New()\n");
@@ -110,7 +79,7 @@ int type =   EFF_BUILD;
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 	     "couldn't create Effect Data in Blender"));
 
-  pyeffect = (C_Effect *)PyObject_NEW(C_Effect, &Effect_Type);
+  pyeffect = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
 
      
   if (pyeffect == NULL) return (EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -133,7 +102,7 @@ PyObject *M_Build_Get(PyObject *self, PyObject *args)
   char     *name = 0;
   Object   *object_iter;
   Effect *eff;
-  C_Build *wanted_eff;
+  BPy_Build *wanted_eff;
   int num,i;
   printf ("In Effect_Get()\n");
   if (!PyArg_ParseTuple(args, "si", &name, &num ))
@@ -161,9 +130,9 @@ PyObject *M_Build_Get(PyObject *self, PyObject *args)
 	      if (eff->type != EFF_BUILD)continue;
 	      eff = eff->next;
 	      if (!eff)
-		return(EXPP_ReturnPyObjError(PyExc_AttributeError,"bject"));
+		return(EXPP_ReturnPyObjError(PyExc_AttributeError,"object not created"));
 	    }
-	  wanted_eff = (C_Build *)PyObject_NEW(C_Build, &Build_Type);
+	  wanted_eff = (BPy_Build *)PyObject_NEW(BPy_Build, &Build_Type);
 	  wanted_eff->build = eff;
 	  return (PyObject*)wanted_eff;  
 	}
@@ -173,6 +142,15 @@ PyObject *M_Build_Get(PyObject *self, PyObject *args)
   return Py_None;
 }
 
+
+
+struct PyMethodDef M_Build_methods[] = {
+  {"New",(PyCFunction)M_Build_New, METH_VARARGS, M_Build_New_doc},
+  {"Get",         M_Build_Get,         METH_VARARGS, M_Build_Get_doc},
+  {"get",         M_Build_Get,         METH_VARARGS,M_Build_Get_doc},
+  {NULL, NULL, 0, NULL}
+};
+
 /*****************************************************************************/
 /* Function:              M_Build_Init                                       */
 /*****************************************************************************/
@@ -181,22 +159,22 @@ PyObject *M_Build_Init (void)
   PyObject  *submodule;
   printf ("In M_Build_Init()\n");
   Build_Type.ob_type = &PyType_Type;
-  submodule = Py_InitModule3("Blender.Build",M_Build_methods, 0);
+  submodule = Py_InitModule3("Blender.Build",M_Build_methods,M_Build_doc );
   return (submodule);
 }
 
 /*****************************************************************************/
-/* Python C_Build methods:                                                  */
+/* Python BPy_Build methods:                                                  */
 /*****************************************************************************/
 
-PyObject *Build_getLen(C_Build *self)
+PyObject *Build_getLen(BPy_Build *self)
 {
   BuildEff*ptr = (BuildEff*)self->build;
   return PyFloat_FromDouble(ptr->len);
 }
 
 
-PyObject *Build_setLen(C_Build *self,PyObject *args)
+PyObject *Build_setLen(BPy_Build *self,PyObject *args)
 { 
   BuildEff*ptr = (BuildEff*)self->build;
   float val = 0;
@@ -209,13 +187,13 @@ if (!PyArg_ParseTuple(args, "f", &val ))
 }
 
 
-PyObject *Build_getSfra(C_Build *self)
+PyObject *Build_getSfra(BPy_Build *self)
 {
   BuildEff*ptr = (BuildEff*)self->build;
   return PyFloat_FromDouble(ptr->sfra);
 }
 
-PyObject *Build_setSfra(C_Build *self,PyObject *args)
+PyObject *Build_setSfra(BPy_Build *self,PyObject *args)
 { 
   BuildEff*ptr = (BuildEff*)self->build;
   float val = 0;
@@ -229,10 +207,10 @@ PyObject *Build_setSfra(C_Build *self,PyObject *args)
 
 /*****************************************************************************/
 /* Function:    BuildDeAlloc                                                 */
-/* Description: This is a callback function for the C_Build type. It is      */
+/* Description: This is a callback function for the BPy_Build type. It is      */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-void BuildDeAlloc (C_Build *self)
+void BuildDeAlloc (BPy_Build *self)
 {
   BuildEff*ptr = (BuildEff*)self;
   PyObject_DEL (ptr);
@@ -240,24 +218,24 @@ void BuildDeAlloc (C_Build *self)
 
 /*****************************************************************************/
 /* Function:    BuildGetAttr                                                 */
-/* Description: This is a callback function for the C_Build type. It is      */
-/*              the function that accesses C_Build "member variables" and    */
+/* Description: This is a callback function for the BPy_Build type. It is      */
+/*              the function that accesses BPy_Build "member variables" and    */
 /*              methods.                                                     */
 /*****************************************************************************/
 
-PyObject *BuildGetAttr (C_Build *self, char *name)
+PyObject *BuildGetAttr (BPy_Build *self, char *name)
 {
 	if (!strcmp(name,"sfra"))return Build_getSfra( self);
 	if (!strcmp(name,"len"))return Build_getLen( self);
-  return Py_FindMethod(C_Build_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Build_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
 /* Function:    BuildSetAttr                                                  */
-/* Description: This is a callback function for the C_Build type. It is the   */
+/* Description: This is a callback function for the BPy_Build type. It is the   */
 /*              function that sets Build Data attributes (member variables).  */
 /*****************************************************************************/
-int BuildSetAttr (C_Build *self, char *name, PyObject *value)
+int BuildSetAttr (BPy_Build *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -286,31 +264,31 @@ int BuildSetAttr (C_Build *self, char *name, PyObject *value)
 
 /*****************************************************************************/
 /* Function:    BuildPrint                                                   */
-/* Description: This is a callback function for the C_Build type. It         */
+/* Description: This is a callback function for the BPy_Build type. It         */
 /*              builds a meaninful string to 'print' build objects.          */
 /*****************************************************************************/
-int BuildPrint(C_Build *self, FILE *fp, int flags) 
+int BuildPrint(BPy_Build *self, FILE *fp, int flags) 
 { 
   return 0;
 }
 
 /*****************************************************************************/
 /* Function:    BuildRepr                                                    */
-/* Description: This is a callback function for the C_Build type. It         */
+/* Description: This is a callback function for the BPy_Build type. It         */
 /*              builds a meaninful string to represent build objects.        */
 /*****************************************************************************/
-PyObject *BuildRepr (C_Build *self) 
+PyObject *BuildRepr (BPy_Build *self) 
 {
   return 0;
 }
 
 PyObject* BuildCreatePyObject (struct Effect *build)
 {
- C_Build    * blen_object;
+ BPy_Build    * blen_object;
 
     printf ("In BuildCreatePyObject\n");
 
-    blen_object = (C_Build*)PyObject_NEW (C_Build, &Build_Type);
+    blen_object = (BPy_Build*)PyObject_NEW (BPy_Build, &Build_Type);
 
     if (blen_object == NULL)
     {
@@ -329,9 +307,9 @@ return (py_obj->ob_type == &Build_Type);
 
 struct Build* BuildFromPyObject (PyObject *py_obj)
 {
- C_Build    * blen_obj;
+ BPy_Build    * blen_obj;
 
-    blen_obj = (C_Build*)py_obj;
+    blen_obj = (BPy_Build*)py_obj;
     return ((struct Build*)blen_obj->build);
 
 }

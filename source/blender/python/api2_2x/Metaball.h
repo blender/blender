@@ -40,15 +40,11 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
-#include <DNA_meta_types.h>
 
 #include "constant.h"
 #include "gen_utils.h"
 #include "modules.h"
-
-/*****************************************************************************/
-/* Python C_Metaball defaults:                                                 */
-/*****************************************************************************/
+#include "bpy_types.h"
 
 
 /*****************************************************************************/
@@ -62,15 +58,15 @@ static PyObject *M_Metaball_Get (PyObject *self, PyObject *args);
 /* In Python these will be written to the console when doing a               */
 /* Blender.Metaball.__doc__                                                    */
 /*****************************************************************************/
-char M_Metaball_doc[] =
+static char M_Metaball_doc[] =
 "The Blender Metaball module\n\n\nMetaballs are spheres\
  that can join each other to create smooth,\
  organic volumes\n. The spheres themseves are called\
  'Metaelements' and can be accessed from the Metaball module.";
 
-char M_Metaball_New_doc[] ="Creates a new metaball";
+static char M_Metaball_New_doc[] ="Creates a new metaball";
 
-char M_Metaball_Get_doc[] ="Retreives an existing metaball";
+static char M_Metaball_Get_doc[] ="Retreives an existing metaball";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Metaball module:             */
@@ -82,52 +78,45 @@ struct PyMethodDef M_Metaball_methods[] = {
   {NULL, NULL, 0, NULL}
 };
 
-/*****************************************************************************/
-/* Python C_Metaball structure definition:                                     */
-/*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  MetaBall *metaball;
-} C_Metaball;
 
 /*****************************************************************************/
-/* Python C_Metaball methods declarations:                                     */
+/* Python BPy_Metaball methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Metaball_getBbox(C_Metaball *self);
-static PyObject *Metaball_getName(C_Metaball *self);
-static PyObject *Metaball_setName(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getWiresize(C_Metaball *self);
-static PyObject *Metaball_setWiresize(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getRendersize(C_Metaball *self);
-static PyObject *Metaball_setRendersize(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getThresh(C_Metaball *self);
-static PyObject *Metaball_setThresh(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getNMetaElems(C_Metaball *self);
-static PyObject *Metaball_getMetatype(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_setMetatype(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getMetadata(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_setMetadata(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getMetax(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_setMetax(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getMetay(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_setMetay(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getMetaz(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_setMetaz(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getMetas(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_setMetas(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getMetalen(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_setMetalen(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getloc(C_Metaball *self);
-static PyObject *Metaball_setloc(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getrot(C_Metaball *self);
-static PyObject *Metaball_setrot(C_Metaball *self,PyObject*args);
-static PyObject *Metaball_getsize(C_Metaball *self);
-static PyObject *Metaball_setsize(C_Metaball *self,PyObject*args);
+static PyObject *Metaball_getBbox(BPy_Metaball *self);
+static PyObject *Metaball_getName(BPy_Metaball *self);
+static PyObject *Metaball_setName(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getWiresize(BPy_Metaball *self);
+static PyObject *Metaball_setWiresize(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getRendersize(BPy_Metaball *self);
+static PyObject *Metaball_setRendersize(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getThresh(BPy_Metaball *self);
+static PyObject *Metaball_setThresh(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getNMetaElems(BPy_Metaball *self);
+static PyObject *Metaball_getMetatype(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_setMetatype(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getMetadata(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_setMetadata(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getMetax(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_setMetax(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getMetay(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_setMetay(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getMetaz(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_setMetaz(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getMetas(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_setMetas(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getMetalen(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_setMetalen(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getloc(BPy_Metaball *self);
+static PyObject *Metaball_setloc(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getrot(BPy_Metaball *self);
+static PyObject *Metaball_setrot(BPy_Metaball *self,PyObject*args);
+static PyObject *Metaball_getsize(BPy_Metaball *self);
+static PyObject *Metaball_setsize(BPy_Metaball *self,PyObject*args);
 
 /*****************************************************************************/
-/* Python C_Metaball methods table:                                            */
+/* Python BPy_Metaball methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Metaball_methods[] = {
+static PyMethodDef BPy_Metaball_methods[] = {
 	/* name, method, flags, doc */
   {"getName", (PyCFunction)Metaball_getName,\
    METH_NOARGS, "() - Return Metaball  name"},
@@ -196,38 +185,11 @@ static PyMethodDef C_Metaball_methods[] = {
 /*****************************************************************************/
 /* Python Metaball_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void MetaballDeAlloc (C_Metaball *self);
-static int MetaballPrint (C_Metaball *self, FILE *fp, int flags);
-static int MetaballSetAttr (C_Metaball *self, char *name, PyObject *v);
-static PyObject *MetaballGetAttr (C_Metaball *self, char *name);
-static PyObject *MetaballRepr (C_Metaball *self);
+static void MetaballDeAlloc (BPy_Metaball *self);
+static int MetaballPrint (BPy_Metaball *self, FILE *fp, int flags);
+static int MetaballSetAttr (BPy_Metaball *self, char *name, PyObject *v);
+static PyObject *MetaballGetAttr (BPy_Metaball *self, char *name);
+static PyObject *MetaballRepr (BPy_Metaball *self);
 
-/*****************************************************************************/
-/* Python Metaball_Type structure definition:                                  */
-/*****************************************************************************/
-PyTypeObject Metaball_Type =
-	{
-		PyObject_HEAD_INIT(NULL)
-		0,                                      /* ob_size */
-		"Metaball",                               /* tp_name */
-		sizeof (C_Metaball),                      /* tp_basicsize */
-		0,                                      /* tp_itemsize */
-		/* methods */
-		(destructor)MetaballDeAlloc,              /* tp_dealloc */
-		(printfunc)MetaballPrint,                 /* tp_print */
-		(getattrfunc)MetaballGetAttr,             /* tp_getattr */
-		(setattrfunc)MetaballSetAttr,             /* tp_setattr */
-		0,                                      /* tp_compare */
-		(reprfunc)MetaballRepr,                   /* tp_repr */
-		0,                                      /* tp_as_number */
-		0,                                      /* tp_as_sequence */
-		0,                                      /* tp_as_mapping */
-		0,                                      /* tp_as_hash */
-		0,0,0,0,0,0,
-		0,                                      /* tp_doc */ 
-		0,0,0,0,0,0,
-		C_Metaball_methods,                       /* tp_methods */
-		0,                                      /* tp_members */
-	};
 
 #endif /* EXPP_METABALL_H */

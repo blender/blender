@@ -33,9 +33,9 @@
 #include "Effect.h"
 
 /*****************************************************************************/
-/* Python C_Particle methods table:                                          */
+/* Python BPy_Particle methods table:                                          */
 /*****************************************************************************/
-static PyMethodDef C_Particle_methods[] = {
+static PyMethodDef BPy_Particle_methods[] = {
 	{"getType", (PyCFunction)Effect_getType,
 	 METH_NOARGS,"() - Return Effect type"},
   {"setType", (PyCFunction)Effect_setType, 
@@ -133,7 +133,7 @@ PyTypeObject Particle_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                   
   "Particle",                              
-  sizeof (C_Particle),                     
+  sizeof (BPy_Particle),                     
   0,                                    
 
   (destructor)ParticleDeAlloc,           
@@ -149,7 +149,7 @@ PyTypeObject Particle_Type =
   0,0,0,0,0,0,
   0,                                   
   0,0,0,0,0,0,
-  C_Particle_methods,                    
+  BPy_Particle_methods,                    
   0,                                   
 };
 /*****************************************************************************/
@@ -182,7 +182,7 @@ struct PyMethodDef M_Particle_methods[] = {
 PyObject *M_Particle_New(PyObject *self, PyObject *args)
 {
 	int type =   EFF_PARTICLE;
-  C_Effect    *pyeffect; 
+  BPy_Effect    *pyeffect; 
   Effect      *bleffect = 0;
   
 
@@ -191,7 +191,7 @@ PyObject *M_Particle_New(PyObject *self, PyObject *args)
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 																	 "couldn't create Effect Data in Blender"));
 
-  pyeffect = (C_Effect *)PyObject_NEW(C_Effect, &Effect_Type);
+  pyeffect = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
 
      
   if (pyeffect == NULL) return (EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -214,7 +214,7 @@ PyObject *M_Particle_Get(PyObject *self, PyObject *args)
   char     *name = 0;
   Object   *object_iter;
   Effect *eff;
-  C_Particle *wanted_eff;
+  BPy_Particle *wanted_eff;
   int num,i;
   if (!PyArg_ParseTuple(args, "si", &name, &num ))
     return(EXPP_ReturnPyObjError(PyExc_AttributeError,\
@@ -243,7 +243,7 @@ PyObject *M_Particle_Get(PyObject *self, PyObject *args)
 							if (!eff)
 								return(EXPP_ReturnPyObjError(PyExc_AttributeError,"bject"));
 						}
-					wanted_eff = (C_Particle *)PyObject_NEW(C_Particle, &Particle_Type);
+					wanted_eff = (BPy_Particle *)PyObject_NEW(BPy_Particle, &Particle_Type);
 					wanted_eff->particle = eff;
 					return (PyObject*)wanted_eff;  
 				}
@@ -265,10 +265,10 @@ PyObject *M_Particle_Init (void)
 }
 
 /*****************************************************************************/
-/* Python C_Particle methods:                                                */
+/* Python BPy_Particle methods:                                                */
 /*****************************************************************************/
 
-PyObject *Particle_getSta(C_Particle *self)
+PyObject *Particle_getSta(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -277,7 +277,7 @@ PyObject *Particle_getSta(C_Particle *self)
 
 
 
-PyObject *Particle_setSta(C_Particle *self,PyObject *args)
+PyObject *Particle_setSta(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val = 0;
@@ -288,7 +288,7 @@ PyObject *Particle_setSta(C_Particle *self,PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
-PyObject *Particle_getEnd(C_Particle *self)
+PyObject *Particle_getEnd(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -297,7 +297,7 @@ PyObject *Particle_getEnd(C_Particle *self)
 
 
 
-PyObject *Particle_setEnd(C_Particle *self,PyObject *args)
+PyObject *Particle_setEnd(BPy_Particle *self,PyObject *args)
 {  
 	float val = 0;
   PartEff*ptr = (PartEff*)self->particle;
@@ -309,7 +309,7 @@ PyObject *Particle_setEnd(C_Particle *self,PyObject *args)
   return Py_None;
 }
 
-PyObject *Particle_getLifetime(C_Particle *self)
+PyObject *Particle_getLifetime(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -318,7 +318,7 @@ PyObject *Particle_getLifetime(C_Particle *self)
 
 
 
-PyObject *Particle_setLifetime(C_Particle *self,PyObject *args)
+PyObject *Particle_setLifetime(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val = 0;
@@ -331,7 +331,7 @@ PyObject *Particle_setLifetime(C_Particle *self,PyObject *args)
 }
 
 
-PyObject *Particle_getNormfac(C_Particle *self)
+PyObject *Particle_getNormfac(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -340,7 +340,7 @@ PyObject *Particle_getNormfac(C_Particle *self)
 
 
 
-PyObject *Particle_setNormfac(C_Particle *self,PyObject *args)
+PyObject *Particle_setNormfac(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val = 0;
@@ -354,7 +354,7 @@ PyObject *Particle_setNormfac(C_Particle *self,PyObject *args)
 
 
 
-PyObject *Particle_getObfac(C_Particle *self)
+PyObject *Particle_getObfac(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -363,7 +363,7 @@ PyObject *Particle_getObfac(C_Particle *self)
 
 
 
-PyObject *Particle_setObfac(C_Particle *self,PyObject *args)
+PyObject *Particle_setObfac(BPy_Particle *self,PyObject *args)
 {  
 	float val = 0;
   PartEff*ptr = (PartEff*)self->particle;
@@ -377,7 +377,7 @@ PyObject *Particle_setObfac(C_Particle *self,PyObject *args)
 
 
 
-PyObject *Particle_getRandfac(C_Particle *self)
+PyObject *Particle_getRandfac(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -386,7 +386,7 @@ PyObject *Particle_getRandfac(C_Particle *self)
 
 
 
-PyObject *Particle_setRandfac(C_Particle *self,PyObject *args)
+PyObject *Particle_setRandfac(BPy_Particle *self,PyObject *args)
 {  
 	float val = 0;
   PartEff*ptr = (PartEff*)self->particle;
@@ -400,7 +400,7 @@ PyObject *Particle_setRandfac(C_Particle *self,PyObject *args)
 
 
 
-PyObject *Particle_getTexfac(C_Particle *self)
+PyObject *Particle_getTexfac(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -409,7 +409,7 @@ PyObject *Particle_getTexfac(C_Particle *self)
 
 
 
-PyObject *Particle_setTexfac(C_Particle *self,PyObject *args)
+PyObject *Particle_setTexfac(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val = 0;
@@ -423,7 +423,7 @@ PyObject *Particle_setTexfac(C_Particle *self,PyObject *args)
 
 
 
-PyObject *Particle_getRandlife(C_Particle *self)
+PyObject *Particle_getRandlife(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -432,7 +432,7 @@ PyObject *Particle_getRandlife(C_Particle *self)
 
 
 
-PyObject *Particle_setRandlife(C_Particle *self,PyObject *args)
+PyObject *Particle_setRandlife(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val = 0;
@@ -446,7 +446,7 @@ PyObject *Particle_setRandlife(C_Particle *self,PyObject *args)
 
 
 
-PyObject *Particle_getNabla(C_Particle *self)
+PyObject *Particle_getNabla(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -455,7 +455,7 @@ PyObject *Particle_getNabla(C_Particle *self)
 
 
 
-PyObject *Particle_setNabla(C_Particle *self,PyObject *args)
+PyObject *Particle_setNabla(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val = 0;
@@ -469,7 +469,7 @@ PyObject *Particle_setNabla(C_Particle *self,PyObject *args)
 
 
 
-PyObject *Particle_getVectsize(C_Particle *self)
+PyObject *Particle_getVectsize(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -478,7 +478,7 @@ PyObject *Particle_getVectsize(C_Particle *self)
 
 
 
-PyObject *Particle_setVectsize(C_Particle *self,PyObject *args)
+PyObject *Particle_setVectsize(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val = 0;
@@ -491,7 +491,7 @@ PyObject *Particle_setVectsize(C_Particle *self,PyObject *args)
 }
 
 
-PyObject *Particle_getTotpart(C_Particle *self)
+PyObject *Particle_getTotpart(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -500,7 +500,7 @@ PyObject *Particle_getTotpart(C_Particle *self)
 
 
 
-PyObject *Particle_setTotpart(C_Particle *self,PyObject *args)
+PyObject *Particle_setTotpart(BPy_Particle *self,PyObject *args)
 {  
 	int val = 0;
   PartEff*ptr = (PartEff*)self->particle;
@@ -513,7 +513,7 @@ PyObject *Particle_setTotpart(C_Particle *self,PyObject *args)
 }
 
 
-PyObject *Particle_getTotkey(C_Particle *self)
+PyObject *Particle_getTotkey(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -522,7 +522,7 @@ PyObject *Particle_getTotkey(C_Particle *self)
 
 
 
-PyObject *Particle_setTotkey(C_Particle *self,PyObject *args)
+PyObject *Particle_setTotkey(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	int val = 0;
@@ -536,7 +536,7 @@ PyObject *Particle_setTotkey(C_Particle *self,PyObject *args)
 
 
 
-PyObject *Particle_getSeed(C_Particle *self)
+PyObject *Particle_getSeed(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -545,7 +545,7 @@ PyObject *Particle_getSeed(C_Particle *self)
 
 
 
-PyObject *Particle_setSeed(C_Particle *self,PyObject *args)
+PyObject *Particle_setSeed(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	int val = 0;
@@ -557,7 +557,7 @@ PyObject *Particle_setSeed(C_Particle *self,PyObject *args)
   return Py_None;
 }
 
-PyObject *Particle_getForce(C_Particle *self)
+PyObject *Particle_getForce(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -565,7 +565,7 @@ PyObject *Particle_getForce(C_Particle *self)
 }
 
 
-PyObject *Particle_setForce(C_Particle *self,PyObject *args)
+PyObject *Particle_setForce(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
 	float val[3];
@@ -585,7 +585,7 @@ PyObject *Particle_setForce(C_Particle *self,PyObject *args)
   return Py_None;
 }
 
-PyObject *Particle_getMult(C_Particle *self)
+PyObject *Particle_getMult(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -594,7 +594,7 @@ PyObject *Particle_getMult(C_Particle *self)
 }
 
 
-PyObject *Particle_setMult(C_Particle *self,PyObject *args)
+PyObject *Particle_setMult(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
   float val[4];
@@ -612,7 +612,7 @@ if (PyTuple_Size(args) == 1)args = PyTuple_GetItem(args,0);
 
 
 
-PyObject *Particle_getLife(C_Particle *self)
+PyObject *Particle_getLife(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -621,7 +621,7 @@ PyObject *Particle_getLife(C_Particle *self)
 }
 
 
-PyObject *Particle_setLife(C_Particle *self,PyObject *args)
+PyObject *Particle_setLife(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
   float val[4];
@@ -638,7 +638,7 @@ if (PyTuple_Size(args) == 1)args = PyTuple_GetItem(args,0);
 
 
 
-PyObject *Particle_getChild(C_Particle *self)
+PyObject *Particle_getChild(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -647,7 +647,7 @@ PyObject *Particle_getChild(C_Particle *self)
 }
 
 
-PyObject *Particle_setChild(C_Particle *self,PyObject *args)
+PyObject *Particle_setChild(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
   float val[4];
@@ -664,7 +664,7 @@ if (PyTuple_Size(args) == 1)args = PyTuple_GetItem(args,0);
 
 
 
-PyObject *Particle_getMat(C_Particle *self)
+PyObject *Particle_getMat(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -673,7 +673,7 @@ PyObject *Particle_getMat(C_Particle *self)
 }
 
 
-PyObject *Particle_setMat(C_Particle *self,PyObject *args)
+PyObject *Particle_setMat(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
   float val[4];
@@ -689,7 +689,7 @@ if (PyTuple_Size(args) == 1)args = PyTuple_GetItem(args,0);
 }
 
 
-PyObject *Particle_getDefvec(C_Particle *self)
+PyObject *Particle_getDefvec(BPy_Particle *self)
 {
 
   PartEff*ptr = (PartEff*)self->particle;
@@ -698,7 +698,7 @@ PyObject *Particle_getDefvec(C_Particle *self)
 }
 
 
-PyObject *Particle_setDefvec(C_Particle *self,PyObject *args)
+PyObject *Particle_setDefvec(BPy_Particle *self,PyObject *args)
 {  
   PartEff*ptr = (PartEff*)self->particle;
   float val[3];
@@ -715,10 +715,10 @@ if (PyTuple_Size(args) == 1)args = PyTuple_GetItem(args,0);
 
 /*****************************************************************************/
 /* Function:    ParticleDeAlloc                                              */
-/* Description: This is a callback function for the C_Particle type. It is   */
+/* Description: This is a callback function for the BPy_Particle type. It is   */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-void ParticleDeAlloc (C_Particle *self)
+void ParticleDeAlloc (BPy_Particle *self)
 {
   PartEff*ptr = (PartEff*)self;
   PyObject_DEL (ptr);
@@ -726,13 +726,13 @@ void ParticleDeAlloc (C_Particle *self)
 
 /*****************************************************************************/
 /* Function:    ParticleGetAttr                                              */
-/* Description: This is a callback function for the C_Particle type. It is   */
-/*              the function that accesses C_Particle "member variables" and */
+/* Description: This is a callback function for the BPy_Particle type. It is   */
+/*              the function that accesses BPy_Particle "member variables" and */
 /*              methods.                                                     */
 /*****************************************************************************/
 
 
-PyObject *ParticleGetAttr (C_Particle *self, char *name)
+PyObject *ParticleGetAttr (BPy_Particle *self, char *name)
 {
 
   if (strcmp (name, "seed") == 0)
@@ -773,15 +773,15 @@ PyObject *ParticleGetAttr (C_Particle *self, char *name)
     return Particle_getDefvec (self); 
 
  
-  return Py_FindMethod(C_Particle_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Particle_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
 /* Function:    ParticleSetAttr                                              */
-/* Description: This is a callback function for the C_Particle type. It is th*/
+/* Description: This is a callback function for the BPy_Particle type. It is th*/
 /*              function that sets Particle Data attributes (member vars)    */
 /*****************************************************************************/
-int ParticleSetAttr (C_Particle *self, char *name, PyObject *value)
+int ParticleSetAttr (BPy_Particle *self, char *name, PyObject *value)
 {
 
   PyObject *valtuple; 
@@ -856,10 +856,10 @@ int ParticleSetAttr (C_Particle *self, char *name, PyObject *value)
 
 /*****************************************************************************/
 /* Function:    ParticlePrint                                                */
-/* Description: This is a callback function for the C_Particle type. It      */
+/* Description: This is a callback function for the BPy_Particle type. It      */
 /*              particles a meaninful string to 'print' particle objects.    */
 /*****************************************************************************/
-int ParticlePrint(C_Particle *self, FILE *fp, int flags) 
+int ParticlePrint(BPy_Particle *self, FILE *fp, int flags) 
 { 
   printf("Hi, I'm a particle!");	
   return 0;
@@ -867,20 +867,20 @@ int ParticlePrint(C_Particle *self, FILE *fp, int flags)
 
 /*****************************************************************************/
 /* Function:    ParticleRepr                                                 */
-/* Description: This is a callback function for the C_Particle type. It      */
+/* Description: This is a callback function for the BPy_Particle type. It      */
 /*              particles a meaninful string to represent particle objects.  */
 /*****************************************************************************/
-PyObject *ParticleRepr (C_Particle *self) 
+PyObject *ParticleRepr (BPy_Particle *self) 
 {
 	return PyString_FromString("Particle");
 }
 
 PyObject* ParticleCreatePyObject (struct Effect *particle)
 {
-	C_Particle    * blen_object;
+	BPy_Particle    * blen_object;
 
 
-	blen_object = (C_Particle*)PyObject_NEW (C_Particle, &Particle_Type);
+	blen_object = (BPy_Particle*)PyObject_NEW (BPy_Particle, &Particle_Type);
 
 	if (blen_object == NULL)
     {
@@ -899,9 +899,9 @@ int ParticleCheckPyObject (PyObject *py_obj)
 
 struct Particle* ParticleFromPyObject (PyObject *py_obj)
 {
-	C_Particle    * blen_obj;
+	BPy_Particle    * blen_obj;
 
-	blen_obj = (C_Particle*)py_obj;
+	blen_obj = (BPy_Particle*)py_obj;
 	return ((struct Particle*)blen_obj->particle);
 
 }
