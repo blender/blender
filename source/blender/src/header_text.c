@@ -344,8 +344,8 @@ static uiBlock *text_editmenu_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "text_editmenu_viewmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_text_editmenu_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Top of file", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Go to the top of this file");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bottom of file", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Go to the bottom of this file");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Top of File", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bottom of File", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -362,8 +362,8 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "text_editmenu_selectmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_text_editmenu_selectmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select All|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Select whole text in current file");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Line", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Select current line");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select All|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Line", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -380,22 +380,22 @@ static uiBlock *text_editmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "text_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_text_editmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo|Alt U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Undo last change");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo|Alt Shift U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Redo last change");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo|Alt U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo|Alt Shift U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut|Alt X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "Cut selected text to the clipboard");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy|Alt C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "Copy selected text to the clipboard");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste|Alt V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "Paste text from clipboard");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Print Cut Buffer", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "Print clipboard to the console");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut|Alt X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy|Alt C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste|Alt V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Print Cut Buffer", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, text_editmenu_viewmenu, NULL, ICON_RIGHTARROW_THIN, "View|Alt Shift V   ", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, text_editmenu_selectmenu, NULL, ICON_RIGHTARROW_THIN, "Select|Alt Shift S   ", 0, yco-=20, 120, 19, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump...|Alt J", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "Jump to line");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find...|Alt Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "Find text");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "Find text again");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump...|Alt J", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find...|Alt Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Export|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "Export text into the 3dview");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Export|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -420,15 +420,15 @@ static uiBlock *text_filemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "text_filemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_text_filemenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Alt N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "Create new file");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|Alt O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "Open existing file");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Alt N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|Alt O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	if(text) {
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "Reopen current file");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "Save current file");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save as...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "Save current file to another file");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save as...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "Run current python script");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	}
 
 	if(curarea->headertype==HEADERTOP) {
