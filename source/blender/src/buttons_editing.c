@@ -671,9 +671,9 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	MEM_freeN(strp);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,53,20, &cu->spacemode, 0.0,0.0, 0, 0, "Align text from the left of the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Middle",		535,135,55,20, &cu->spacemode, 0.0,1.0, 0, 0, "Align text from the middle of the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Right",		592,135,53,20, &cu->spacemode, 0.0,2.0, 0, 0, "Align text from the right of the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,53,20, &cu->spacemode, 0.0,0.0, 0, 0, "Left align the text from the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Middle",		535,135,55,20, &cu->spacemode, 0.0,1.0, 0, 0, "Middle align the text from the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Right",		592,135,53,20, &cu->spacemode, 0.0,2.0, 0, 0, "Right align the text from the object centre");
 	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		647,135,53,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill characters to maximum linewidth. (Multiple lines required)");
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
 	uiBlockEndAlign(block);

@@ -42,6 +42,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
+#include FT_BBOX_H
+#include FT_SIZES_H
 #include <freetype/ttnameid.h>
 
 #include "MEM_guardedalloc.h"
@@ -64,7 +66,6 @@
 static FT_Library	library;
 static FT_Error		err;
 
-
 static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 {
 	// Blender
@@ -77,6 +78,8 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	FT_GlyphSlot  glyph;
 	FT_UInt		glyph_index;
 	FT_Outline	ftoutline;
+	FT_Size		ftsize;
+
 /*
     FT_CharMap  found = 0;
 	FT_CharMap  charmap;
@@ -84,9 +87,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
 	int         n;
 */
-	//scale needs text_height from freetype metrics to make a standard linedist,
-	//is currently set to generic value
-	float scale= 1. / 1024.;
+	float scale, height;
 	float dx, dy;
 	int i, j, k, l, m;
 
@@ -119,7 +120,15 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
 	// allocate blender font
 	vfd= MEM_callocN(sizeof(*vfd), "FTVFontData");
-	strcpy(vfd->name, FT_Get_Postscript_Name(face)); 
+	strcpy(vfd->name, FT_Get_Postscript_Name(face));
+
+	// adjust font size
+	height = ((double) face->bbox.yMax - (double) face->bbox.yMin);
+
+	if(height != 0.0)
+		scale = 1.0 / height;
+	else
+		scale = 1.0 / 1000.0;
 
 	// extract generic ascii character range
 	for(i = myMIN_ASCII; i <= myMAX_ASCII; i++) {
