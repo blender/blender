@@ -101,7 +101,7 @@ static PyMethodDef BPy_ThemeSpace_methods[] = {
 PyTypeObject ThemeSpace_Type = {
 	PyObject_HEAD_INIT( NULL ) 0,	/* ob_size */
 	"Blender Space Theme",	/* tp_name */
-	sizeof( BPy_Theme ),	/* tp_basicsize */
+	sizeof( BPy_ThemeSpace ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
 	( destructor ) ThemeSpace_dealloc,	/* tp_dealloc */
@@ -277,7 +277,7 @@ static PyMethodDef BPy_ThemeUI_methods[] = {
 PyTypeObject ThemeUI_Type = {
 	PyObject_HEAD_INIT( NULL ) 0,	/* ob_size */
 	"Blender UI Theme",	/* tp_name */
-	sizeof( BPy_Theme ),	/* tp_basicsize */
+	sizeof( BPy_ThemeUI ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
 	( destructor ) ThemeUI_dealloc,	/* tp_dealloc */
