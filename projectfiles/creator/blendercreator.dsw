@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "BKE_blenkernel"="..\blender\blenkernel\BKE_blenkernel.dsp" - Package Owner=<4>
+Project: "BKE_blenkernel"=..\blender\blenkernel\BKE_blenkernel.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLI_blenlib"="..\blender\blenlib\BLI_blenlib.dsp" - Package Owner=<4>
+Project: "BLI_blenlib"=..\blender\blenlib\BLI_blenlib.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -27,7 +27,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_decrypt"="..\BLENDER\BLO_decrypt\BLO_decrypt.dsp" - Package Owner=<4>
+Project: "BLO_decrypt"=..\BLENDER\BLO_decrypt\BLO_decrypt.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -39,7 +39,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_decrypt_stub"="..\blender\BLO_decrypt_stub\BLO_decrypt_stub.dsp" - Package Owner=<4>
+Project: "BLO_decrypt_stub"=..\blender\BLO_decrypt_stub\BLO_decrypt_stub.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -51,7 +51,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_deflate"="..\blender\BLO_deflate\BLO_deflate.dsp" - Package Owner=<4>
+Project: "BLO_deflate"=..\blender\BLO_deflate\BLO_deflate.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -63,7 +63,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_encrypt"="..\BLENDER\BLO_encrypt\BLO_encrypt.dsp" - Package Owner=<4>
+Project: "BLO_encrypt"=..\BLENDER\BLO_encrypt\BLO_encrypt.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -75,7 +75,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_inflate"="..\BLENDER\BLO_inflate\BLO_inflate.dsp" - Package Owner=<4>
+Project: "BLO_inflate"=..\BLENDER\BLO_inflate\BLO_inflate.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -87,7 +87,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_loader"="..\blender\loader\BLO_loader.dsp" - Package Owner=<4>
+Project: "BLO_loader"=..\blender\loader\BLO_loader.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -99,7 +99,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_readblenfile"="..\BLENDER\BLO_readblenfile\BLO_readblenfile.dsp" - Package Owner=<4>
+Project: "BLO_readblenfile"=..\BLENDER\BLO_readblenfile\BLO_readblenfile.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -111,7 +111,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_readstreamglue"="..\BLENDER\BLO_readstreamglue\BLO_readstreamglue.dsp" - Package Owner=<4>
+Project: "BLO_readstreamglue"=..\BLENDER\BLO_readstreamglue\BLO_readstreamglue.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -123,7 +123,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_sign"="..\BLENDER\BLO_sign\BLO_sign.dsp" - Package Owner=<4>
+Project: "BLO_sign"=..\BLENDER\BLO_sign\BLO_sign.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -135,7 +135,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_verify"="..\BLENDER\BLO_verify\BLO_verify.dsp" - Package Owner=<4>
+Project: "BLO_verify"=..\BLENDER\BLO_verify\BLO_verify.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -147,7 +147,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_writeblenfile"="..\BLENDER\BLO_writeblenfile\BLO_writeblenfile.dsp" - Package Owner=<4>
+Project: "BLO_writeblenfile"=..\BLENDER\BLO_writeblenfile\BLO_writeblenfile.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -159,7 +159,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_writestreamglue"="..\BLENDER\BLO_writestreamglue\BLO_writestreamglue.dsp" - Package Owner=<4>
+Project: "BLO_writestreamglue"=..\BLENDER\BLO_writestreamglue\BLO_writestreamglue.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -171,7 +171,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BLO_writestreamglue_stub"="..\blender\BLO_writestreamglue_stub\BLO_writestreamglue_stub.dsp" - Package Owner=<4>
+Project: "BLO_writestreamglue_stub"=..\blender\BLO_writestreamglue_stub\BLO_writestreamglue_stub.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -183,7 +183,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_avi"="..\blender\avi\BL_avi.dsp" - Package Owner=<4>
+Project: "BL_avi"=..\blender\avi\BL_avi.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -195,7 +195,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_imbuf"="..\blender\imbuf\BL_imbuf.dsp" - Package Owner=<4>
+Project: "BL_imbuf"=..\blender\imbuf\BL_imbuf.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -207,7 +207,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_img"="..\blender\img\BL_img.dsp" - Package Owner=<4>
+Project: "BL_img"=..\blender\img\BL_img.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -219,7 +219,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_misc"="..\blender\misc\BL_misc.dsp" - Package Owner=<4>
+Project: "BL_misc"=..\blender\misc\BL_misc.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -231,7 +231,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_src"="..\blender\src\BL_src.dsp" - Package Owner=<4>
+Project: "BL_src"=..\blender\src\BL_src.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -243,7 +243,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_src_cre"="..\blender\src\BL_src_cre.dsp" - Package Owner=<4>
+Project: "BL_src_cre"=..\blender\src\BL_src_cre.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -255,7 +255,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BL_src_pub"="..\blender\src\BL_src_pub.dsp" - Package Owner=<4>
+Project: "BL_src_pub"=..\blender\src\BL_src_pub.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -267,7 +267,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BPY_frozen"="..\blender\bpython\frozen\BPY_frozen.dsp" - Package Owner=<4>
+Project: "BPY_frozen"=..\blender\bpython\frozen\BPY_frozen.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -279,7 +279,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BPY_python"="..\blender\bpython\intern\BPY_python\BPY_python.dsp" - Package Owner=<4>
+Project: "BPY_python"=..\blender\bpython\intern\BPY_python\BPY_python.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -291,7 +291,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BRA_radiosity"="..\blender\radiosity\BRA_radiosity.dsp" - Package Owner=<4>
+Project: "BRA_radiosity"=..\blender\radiosity\BRA_radiosity.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -303,7 +303,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BRE_render"="..\blender\render\BRE_render.dsp" - Package Owner=<4>
+Project: "BRE_render"=..\blender\render\BRE_render.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -315,7 +315,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BRE_renderconverter"="..\blender\renderconverter\BRE_renderconverter.dsp" - Package Owner=<4>
+Project: "BRE_renderconverter"=..\blender\renderconverter\BRE_renderconverter.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -327,7 +327,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BRE_renderui"="..\blender\renderui\BRE_renderui.dsp" - Package Owner=<4>
+Project: "BRE_renderui"=..\blender\renderui\BRE_renderui.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -339,7 +339,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "DNA_makesdna"="..\blender\makesdna\DNA_makesdna.dsp" - Package Owner=<4>
+Project: "DNA_makesdna"=..\blender\makesdna\DNA_makesdna.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -351,7 +351,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "EXP_expressions"="..\gameengine\expression\EXP_expressions.dsp" - Package Owner=<4>
+Project: "EXP_expressions"=..\gameengine\expression\EXP_expressions.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -363,7 +363,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "GP_axctl"="..\gameengine\gameplayer\axctl\GP_axctl.dsp" - Package Owner=<4>
+Project: "GP_axctl"=..\gameengine\gameplayer\axctl\GP_axctl.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -456,16 +456,16 @@ Package=<4>
     Project_Dep_Name SND_fmod
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name PHY_Dummy
+    Project_Dep_Name PHY_Physics
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name PHY_Physics
+    Project_Dep_Name PHY_Ode
     End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "GP_common"="..\gameengine\gameplayer\common\GP_common.dsp" - Package Owner=<4>
+Project: "GP_common"=..\gameengine\gameplayer\common\GP_common.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -477,7 +477,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "GP_ghost"="..\gameengine\gameplayer\ghost\GP_ghost.dsp" - Package Owner=<4>
+Project: "GP_ghost"=..\gameengine\gameplayer\ghost\GP_ghost.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -582,7 +582,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "KX_blenderhook"="..\gameengine\blenderhook\KX_blenderhook.dsp" - Package Owner=<4>
+Project: "KX_blenderhook"=..\gameengine\blenderhook\KX_blenderhook.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -594,7 +594,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "KX_converter"="..\gameengine\converter\KX_converter.dsp" - Package Owner=<4>
+Project: "KX_converter"=..\gameengine\converter\KX_converter.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -606,7 +606,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "KX_ketsji"="..\gameengine\ketsji\KX_ketsji.dsp" - Package Owner=<4>
+Project: "KX_ketsji"=..\gameengine\ketsji\KX_ketsji.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -618,7 +618,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "KX_network"="..\gameengine\ketsji\network\KX_network.dsp" - Package Owner=<4>
+Project: "KX_network"=..\gameengine\ketsji\network\KX_network.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -630,7 +630,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "NG_loopbacknetwork"="..\gameengine\network\loopbacknetwork\NG_loopbacknetwork.dsp" - Package Owner=<4>
+Project: "NG_loopbacknetwork"=..\gameengine\network\loopbacknetwork\NG_loopbacknetwork.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -642,7 +642,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "NG_network"="..\gameengine\network\network\NG_network.dsp" - Package Owner=<4>
+Project: "NG_network"=..\gameengine\network\network\NG_network.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -654,7 +654,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "PHY_Dummy"="..\GAMEENGINE\PHYSICS\PHY_PHYSICS\PHY_Dummy\PHY_Dummy.dsp" - Package Owner=<4>
+Project: "PHY_Dummy"=..\GAMEENGINE\PHYSICS\PHY_PHYSICS\PHY_Dummy\PHY_Dummy.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -666,7 +666,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "PHY_Ode"="..\gameengine\physics\PHY_Physics\PHY_Ode\PHY_Ode.dsp" - Package Owner=<4>
+Project: "PHY_Ode"=..\gameengine\physics\PHY_Physics\PHY_Ode\PHY_Ode.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -678,7 +678,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "PHY_Physics"="..\gameengine\physics\PHY_Physics\PHY_Physics.dsp" - Package Owner=<4>
+Project: "PHY_Physics"=..\gameengine\physics\PHY_Physics\PHY_Physics.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -690,7 +690,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "RAS_openglrasterizer"="..\gameengine\rasterizer\openglrasterizer\RAS_openglrasterizer.dsp" - Package Owner=<4>
+Project: "RAS_openglrasterizer"=..\gameengine\rasterizer\openglrasterizer\RAS_openglrasterizer.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -702,7 +702,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "RAS_rasterizer"="..\gameengine\rasterizer\RAS_rasterizer.dsp" - Package Owner=<4>
+Project: "RAS_rasterizer"=..\gameengine\rasterizer\RAS_rasterizer.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -714,7 +714,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SCA_GameLogic"="..\gameengine\gamelogic\SCA_GameLogic.dsp" - Package Owner=<4>
+Project: "SCA_GameLogic"=..\gameengine\gamelogic\SCA_GameLogic.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -726,7 +726,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SG_SceneGraph"="..\gameengine\scenegraph\SG_SceneGraph.dsp" - Package Owner=<4>
+Project: "SG_SceneGraph"=..\gameengine\scenegraph\SG_SceneGraph.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -738,7 +738,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SM_solid"="..\sumo\solid\SM_solid.dsp" - Package Owner=<4>
+Project: "SM_solid"=..\sumo\solid\SM_solid.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -750,7 +750,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SND_Dummy"="..\gameengine\sound\dummy\SND_Dummy.dsp" - Package Owner=<4>
+Project: "SND_Dummy"=..\gameengine\sound\dummy\SND_Dummy.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -762,7 +762,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SND_fmod"="..\gameengine\sound\fmod\SND_fmod.dsp" - Package Owner=<4>
+Project: "SND_fmod"=..\gameengine\sound\fmod\SND_fmod.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -774,7 +774,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SND_openal"="..\gameengine\sound\openal\SND_openal.dsp" - Package Owner=<4>
+Project: "SND_openal"=..\gameengine\sound\openal\SND_openal.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -786,7 +786,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SND_sound"="..\gameengine\sound\SND_sound.dsp" - Package Owner=<4>
+Project: "SND_sound"=..\gameengine\sound\SND_sound.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -798,7 +798,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SYS_system"="..\kernel\system\SYS_system.dsp" - Package Owner=<4>
+Project: "SYS_system"=..\kernel\system\SYS_system.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -810,7 +810,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "blendercreator"=".\blendercreator.dsp" - Package Owner=<4>
+Project: "blendercreator"=.\blendercreator.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -957,7 +957,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "blenderpublisher"="..\blenderpublisher\blenderpublisher.dsp" - Package Owner=<4>
+Project: "blenderpublisher"=..\blenderpublisher\blenderpublisher.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -1100,11 +1100,14 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name BPY_frozen
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Ode
+    End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "blenpluginapi"="..\blender\blenpluginapi\blenpluginapi\blenpluginapi.dsp" - Package Owner=<4>
+Project: "blenpluginapi"=..\blender\blenpluginapi\blenpluginapi\blenpluginapi.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -1116,7 +1119,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "gen_messaging"="..\KERNEL\gen_messaging\gen_messaging.dsp" - Package Owner=<4>
+Project: "gen_messaging"=..\KERNEL\gen_messaging\gen_messaging.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
