@@ -49,6 +49,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "intern/IMB_anim.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_image_types.h"
@@ -349,13 +350,17 @@ int calcimanr(int cfra, Tex *tex)
 	cfra= 2*(cfra);
 	if(R.flag & R_SEC_FIELD) cfra++;
 	
-
 	/* transform to images space */
 	imanr= (cfra+tex->fie_ima-2)/tex->fie_ima;
-	
 	if(imanr>tex->frames) imanr= tex->frames;
 	imanr+= tex->offset;
 	
+	if(tex->imaflag & TEX_ANIMCYCLIC) {
+		imanr= ( (imanr) % len );
+		while(imanr < 0) imanr+= len;
+		if(imanr==0) imanr= len;
+	}
+
 	/* are there images that last longer? */
 	for(a=0; a<4; a++) {
 		if(tex->fradur[a][0]) {
@@ -369,8 +374,7 @@ int calcimanr(int cfra, Tex *tex)
 			}
 		}
 	}
-	
-	
+
 	return imanr;
 }
 
@@ -486,6 +490,7 @@ void ima_ibuf_is_nul(Tex *tex)
 {
 	void (*de_interlacefunc)(struct ImBuf *ibuf);
 	Image *ima;
+	struct anim *anim;
 	int a, fra;
 	char str[FILE_MAXDIR+FILE_MAXFILE], *cp;
 		
@@ -504,12 +509,15 @@ void ima_ibuf_is_nul(Tex *tex)
 	
 		if(ima->anim==0) ima->anim = openanim(str, IB_cmap | IB_rect);
 		if (ima->anim) {
+			anim = ima->anim;
 			
 			ima->lastquality= R.osa;
 			fra= ima->lastframe-1;
-			if(fra<0) fra= 0;
+
+			if(fra<0) fra = 0;
+			if(fra>(anim->duration-1)) fra= anim->duration-1;
 			ima->ibuf = IMB_anim_absolute(ima->anim, fra);
-			
+
 			/* patch for textbutton with name ima (B_NAMEIMA) */
 			if(ima->ibuf) {
 				strcpy(ima->ibuf->name, ima->name);
