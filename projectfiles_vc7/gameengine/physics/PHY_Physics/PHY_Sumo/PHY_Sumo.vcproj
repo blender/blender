@@ -24,6 +24,7 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\PHY_Sumo.pch"
 				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"
@@ -305,6 +306,9 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPHYCallbackBridge.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPhysicsController.cpp">
 			</File>
 			<File
@@ -330,6 +334,9 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
+			<File
+				RelativePath="..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPHYCallbackBridge.h">
+			</File>
 			<File
 				RelativePath="..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPhysicsController.h">
 			</File>

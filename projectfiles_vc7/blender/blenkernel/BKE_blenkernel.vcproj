@@ -344,6 +344,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\bmfont.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\constraint.c">
 			</File>
 			<File
@@ -351,6 +354,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\deform.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\DerivedMesh.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\displist.c">
@@ -480,6 +486,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_deform.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_DerivedMesh.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_displist.h">
 			</File>
 			<File
@@ -583,6 +592,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_writeavi.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.h">
 			</File>
 		</Filter>
 	</Files>

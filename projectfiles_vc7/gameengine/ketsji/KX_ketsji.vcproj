@@ -381,6 +381,9 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInit.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_RayCast.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_RayEventManager.cpp">
 			</File>
 			<File
@@ -567,6 +570,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInit.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_RayCast.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_RayEventManager.h">
