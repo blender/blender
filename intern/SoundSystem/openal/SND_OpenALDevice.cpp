@@ -213,6 +213,7 @@ SND_OpenALDevice::SND_OpenALDevice()
 	else
 		m_audio = true;
 
+	m_context = NULL;
 	m_buffersinitialized = false;
 	m_sourcesinitialized = false;
 
