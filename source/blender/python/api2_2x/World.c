@@ -659,3 +659,40 @@ static PyObject *World_Repr (BPy_World *self)
 }
 
 /*@}*/
+
+static int World_compare (BPy_World *a, BPy_World *b)
+{
+  World *pa = a->world, *pb = b->world;
+  return (pa == pb) ? 0:-1;
+}
+
+PyObject* World_CreatePyObject (struct World *world)
+{
+ BPy_World    * blen_object;
+
+    blen_object = (BPy_World*)PyObject_NEW (BPy_World, &World_Type);
+
+    if (blen_object == NULL)
+    {
+        return (NULL);
+    }
+    blen_object->world = world;
+    return ((PyObject*)blen_object);
+
+}
+
+int World_CheckPyObject (PyObject *py_obj)
+{
+return (py_obj->ob_type == &World_Type);
+}
+
+
+struct World* World_FromPyObject (PyObject *py_obj)
+{
+ BPy_World    * blen_obj;
+
+    blen_obj = (BPy_World*)py_obj;
+    return (blen_obj->world);
+
+}
+
