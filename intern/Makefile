@@ -28,11 +28,18 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
-# Bounces make to subdirectories. Intended for future tinderbox tests.
+# Bounces make to subdirectories. Also installs after succesful all target.
 
 SOURCEDIR = intern
 
-DIRS = ghost guardedalloc bmfont decimation string memutil action moto
-DIRS += iksolver keymaker container 
-
 include nan_subdirs.mk
+
+ALLDIRS = string ghost guardedalloc bmfont moto container memutil
+ALLDIRS += decimation action iksolver keymaker
+
+all::
+	@for i in $(ALLDIRS); do \
+	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
+	    $(MAKE) -C $$i install || exit 1; \
+	done
+
