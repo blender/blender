@@ -1344,7 +1344,7 @@ static void init_render_mesh(Object *ob)
 	
 	/* we do this before deform */
 	if(need_orco) {
-		if (mesh_uses_displist(me)) 
+		if ((me->flag&ME_SUBSURF) && me->subdivr) 
 			make_orco_displist_mesh(ob, me->subdivr);
 		else
 			make_orco_mesh(me);
@@ -1353,7 +1353,7 @@ static void init_render_mesh(Object *ob)
 	/* after orco, because this changes mesh vertices (too) */
 	do_puno= mesh_modifier(ob, 's');
 	
-	if (mesh_uses_displist(me)) {
+	if ((me->flag&ME_SUBSURF) && me->subdivr) {
 		int needsFree;
 		DerivedMesh *dm = mesh_get_derived_render(ob, &needsFree);
 		dlm = dm->convertToDispListMesh(dm);
@@ -2734,7 +2734,7 @@ void RE_freeRotateBlenderScene(void)
 				MEM_freeN(me->orco);
 				me->orco= 0;
 			}
-			if (mesh_uses_displist(me) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) || ob==G.obedit) ) { 
+			if ((me->flag&ME_SUBSURF) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) || ob==G.obedit) ) { 
 			    /* Need to recalc for effects since they are time dependant */
 				makeDispList(ob);  /* XXX this should be replaced with proper caching */
 			}
@@ -2956,7 +2956,7 @@ void RE_rotateBlenderScene(void)
 				else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
 				else if(ob->hooks.first) makeDispList(ob);
 				else if(ob->softflag & 0x01) makeDispList(ob);
-				else if(me->disp.first==NULL && mesh_uses_displist(me)) makeDispList(ob);
+				else if(me->disp.first==NULL && (me->flag&ME_SUBSURF)) makeDispList(ob);
 				else if(ob->effect.first) {	// as last check
 					Effect *eff= ob->effect.first;
 					if(eff->type==EFF_WAVE) makeDispList(ob);

@@ -1131,7 +1131,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		CCGVert *v = effectedV[ptrIdx];
 		void *co = VERT_getCo(v, curLvl);
 		void *nCo = VERT_getCo(v, nextLvl);
-		int sharpCount = 0;
+		int sharpCount = 0, allSharp = 1;
 		float avgSharpness = 0.0;
 
 		for (i=0; i<v->numEdges; i++) {
@@ -1141,6 +1141,8 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			if (sharpness!=0.0f) {
 				sharpCount++;
 				avgSharpness += sharpness;
+			} else {
+				allSharp = 0;
 			}
 		}
 
@@ -1206,7 +1208,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 			ss->meshIFC.vertDataMulN(ss->meshData, q, (float) 1/sharpCount);
 
-			if (sharpCount!=2) {
+			if (sharpCount!=2 || allSharp) {
 					// q = q + (co-q)*avgSharpness
 				ss->meshIFC.vertDataCopy(ss->meshData, r, co);
 				ss->meshIFC.vertDataSub(ss->meshData, r, q);
@@ -1409,7 +1411,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			CCGVert *v = (CCGVert*) effectedV[ptrIdx];
 			void *co = VERT_getCo(v, curLvl);
 			void *nCo = VERT_getCo(v, nextLvl);
-			int sharpCount = 0;
+			int sharpCount = 0, allSharp = 1;
 			float avgSharpness = 0.0;
 
 			for (i=0; i<v->numEdges; i++) {
@@ -1419,6 +1421,8 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				if (sharpness!=0.0f) {
 					sharpCount++;
 					avgSharpness += sharpness;
+				} else {
+					allSharp = 0;
 				}
 			}
 
@@ -1485,7 +1489,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 				ss->meshIFC.vertDataMulN(ss->meshData, q, (float) 1/sharpCount);
 
-				if (sharpCount!=2) {
+				if (sharpCount!=2 || allSharp) {
 						// q = q + (co-q)*avgSharpness
 					ss->meshIFC.vertDataCopy(ss->meshData, r, co);
 					ss->meshIFC.vertDataSub(ss->meshData, r, q);

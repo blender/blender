@@ -969,7 +969,7 @@ static void build_mesh_data(Object *ob, int inEditMode)
 			if(eff->type==EFF_WAVE) makeDispList(ob);
 		}
 	}
-	if(mesh_uses_displist(me)) {
+	if(me->flag&ME_SUBSURF) {
 		if(inEditMode && !G.editMesh->derived) {
 			makeDispList(ob);
 		} else if (!inEditMode && !me->derived) {
@@ -986,8 +986,7 @@ DerivedMesh *mesh_get_derived(Object *ob)
 {
 	Mesh *me= ob->data;
 
-	if (mesh_uses_displist(me)) {
-
+	if ((me->flag&ME_SUBSURF) && me->subdiv) {
 		if(G.obedit && me==G.obedit->data) {
 			build_mesh_data(ob, 1);
 			return G.editMesh->derived;
@@ -1004,8 +1003,7 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 {
 	Mesh *me= ob->data;
 
-	if (mesh_uses_displist(me)) {
-			// XXX, assumes was created earlier... is this for sure?
+	if ((me->flag&ME_SUBSURF) && me->subdivr) {
 		if (me->subdiv==me->subdivr) {
 			*needsFree = 0;
 			if(G.obedit && me==G.obedit->data) {
@@ -1013,13 +1011,13 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 			} else {
 				return me->derived;
 			}
+		} 
+
+		*needsFree = 1;
+		if(G.obedit && me==G.obedit->data) {
+			return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype, NULL);
 		} else {
-			*needsFree = 1;
-			if(G.obedit && me==G.obedit->data) {
-				return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype, NULL);
-			} else {
-				return subsurf_make_derived_from_mesh(me, me->subdivr);
-			}
+			return subsurf_make_derived_from_mesh(me, me->subdivr);
 		}
 	}
 

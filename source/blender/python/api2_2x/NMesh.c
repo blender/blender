@@ -2164,7 +2164,7 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
 		Mesh *me = ( Mesh * ) ob->data;
 		DispList *dl;
 
-		if( mesh_uses_displist( me ) ) {
+		if( mesh_uses_displist( me )) {
 			DerivedMesh *dm = mesh_get_derived(ob);
 			DispListMesh *dlm = dm->convertToDispListMesh(dm);
 			nmesh = new_NMesh_internal( me, dlm, NULL );

@@ -988,7 +988,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(SubSurf *ss) {
 
 /***/
 
-DerivedMesh *subsurf_ccg_make_derived_from_editmesh(EditMesh *em, int useFlatSubdiv, int subdivLevels, DerivedMesh *oldDerived) {
+DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, short type, DerivedMesh *oldDerived) {
 	CCGDerivedMesh *ccgdm;
 
 	if (oldDerived) {
@@ -998,12 +998,13 @@ DerivedMesh *subsurf_ccg_make_derived_from_editmesh(EditMesh *em, int useFlatSub
 		ccgdm = getCCGDerivedMesh(ss);
 	}
 
-	subSurf_sync(ccgdm->ss, useFlatSubdiv);
+	subSurf_sync(ccgdm->ss, type==ME_SIMPLE_SUBSURF);
 
 	return (DerivedMesh*) ccgdm;
 }
 
-DerivedMesh *subsurf_ccg_make_derived_from_mesh(Mesh *me, int useFlatSubdiv, int subdivLevels) {
+DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels) {
+	int useFlatSubdiv = me->subsurftype==ME_SIMPLE_SUBSURF;
 	SubSurf *ss = subSurf_fromMesh(me, useFlatSubdiv, subdivLevels);
 	DispListMesh *dlm;
 
@@ -1015,3 +1016,4 @@ DerivedMesh *subsurf_ccg_make_derived_from_mesh(Mesh *me, int useFlatSubdiv, int
 	
 	return derivedmesh_from_displistmesh(NULL, dlm);
 }
+

@@ -39,9 +39,6 @@ struct EditMesh;
 struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, int subdivLevels, short type, struct DerivedMesh *oldDerived);
 struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, int subdivLevels);
 
-struct DerivedMesh *subsurf_ccg_make_derived_from_editmesh(struct EditMesh *em, int useFlatSubdiv, int subdivLevels, struct DerivedMesh *oldDerived);
-struct DerivedMesh *subsurf_ccg_make_derived_from_mesh(struct Mesh *me, int useFlatSubdiv, int subdivLevels);
-
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 
 #endif

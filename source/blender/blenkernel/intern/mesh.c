@@ -1203,7 +1203,7 @@ void mcol_to_tface(Mesh *me, int freedata)
 }
 
 int mesh_uses_displist(Mesh *me) {
-	return (me->flag&ME_SUBSURF);
+	return (me->flag&ME_SUBSURF) && me->subdiv;
 }
 
 void mesh_calculate_vertex_normals(Mesh *me)
