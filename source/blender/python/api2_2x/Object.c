@@ -649,13 +649,15 @@ static PyObject *Object_getActionIpos (BPy_Object *self)
 {
 	Object *obj=self->object;
 	PyObject *dict=PyDict_New ();
+	bAction *action = NULL;
+	bActionChannel *bone = NULL;
 	
 	if (obj->type==OB_ARMATURE) {
 		
 		if (obj->action!=0) {
 		
-			bAction *action=obj->action;
-			bActionChannel *bone=(bActionChannel*)(action->chanbase.first);
+			action = obj->action;
+			bone = (bActionChannel*)(action->chanbase.first);
 			
 			// Go through the list of bones
 			while (bone!=0) {
@@ -1030,6 +1032,8 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 		return (PythonReturnErrorObject (PyExc_AttributeError,
 			"expected an object as argument"));
 	}
+	if (Armature_CheckPyObject (py_data))
+		data = (void *)Armature_FromPyObject (py_data);
 	if (Camera_CheckPyObject (py_data))
 		data = (void *)Camera_FromPyObject (py_data);
 	if (Lamp_CheckPyObject (py_data))
@@ -1054,6 +1058,13 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 
 	switch (obj_id)
 	{
+		case ID_AR:
+			if (self->object->type != OB_ARMATURE)
+			{
+				return (PythonReturnErrorObject (PyExc_AttributeError,
+					"The 'link' object is incompatible with the base object"));
+			}
+			break;
 		case ID_CA:
 			if (self->object->type != OB_CAMERA)
 			{

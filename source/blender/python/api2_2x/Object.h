@@ -56,6 +56,7 @@
 #include <DNA_scene_types.h>
 #include <DNA_userdef_types.h>
 #include <DNA_view3d_types.h>
+#include <DNA_action_types.h>
 
 #include "bpy_types.h"
 #include "gen_utils.h"

@@ -36,6 +36,7 @@
 #include <BKE_object.h>
 #include <BKE_armature.h>
 #include <BKE_library.h>
+#include <MEM_guardedalloc.h>
 
 #include "constant.h"
 #include "gen_utils.h"
@@ -92,8 +93,7 @@ static PyObject *Bone_setTail (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setLoc (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setSize (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setQuat (BPy_Bone * self, PyObject * args);
-/* static PyObject *Bone_setParent(BPy_Bone *self, PyObject *args); */
-/* static PyObject *Bone_setChildren(BPy_Bone *self, PyObject *args); */
+static PyObject *Bone_setParent(BPy_Bone *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python BPy_Bone methods table:					 */
@@ -135,12 +135,8 @@ static PyMethodDef BPy_Bone_methods[] = {
    "(float,float,float) - set Bone size"},
   {"setQuat", (PyCFunction) Bone_setQuat, METH_VARARGS,
    "(float,float,float,float) - set Bone quat"},
-#if 0
-  {"setParent", (PyCFunction) Bone_setParent, METH_NOARGS,
+  {"setParent", (PyCFunction)Bone_setParent, METH_VARARGS,  
    "() - set the Bone parent of this one."},
-  {"setChildren", (PyCFunction) Bone_setChildren, METH_NOARGS,
-   "() - replace the children list of the bone."},
-#endif
   {NULL, NULL, 0, NULL}
 };
 
@@ -184,6 +180,7 @@ PyTypeObject Bone_Type = {
 /* Function:	M_Bone_New						 */
 /* Python equivalent:	Blender.Armature.Bone.New			 */
 /*****************************************************************************/
+
 static PyObject *
 M_Bone_New (PyObject * self, PyObject * args, PyObject * keywords)
 {
@@ -196,10 +193,17 @@ M_Bone_New (PyObject * self, PyObject * args, PyObject * keywords)
 				   "expected string or empty argument"));
 
   /*  Create the C structure for the newq bone */
-  bl_bone = (Bone *) malloc (sizeof (Bone));
+  bl_bone = (Bone *) MEM_callocN(sizeof (Bone), "bone");
   strncpy (bl_bone->name, name_str, sizeof (bl_bone->name));
 
-  if (bl_bone)			/* now create the wrapper obj in Python */
+  bl_bone->dist=1.0;
+  bl_bone->weight=1.0;
+  bl_bone->flag=32;
+  bl_bone->parent = NULL;
+  bl_bone->roll = 0.0;
+
+  // now create the wrapper obj in Python
+  if (bl_bone)				
     py_bone = (BPy_Bone *) PyObject_NEW (BPy_Bone, &Bone_Type);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
@@ -209,16 +213,9 @@ M_Bone_New (PyObject * self, PyObject * args, PyObject * keywords)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 				   "couldn't create Bone Data object"));
 
-  py_bone->bone = bl_bone;	/* link Python bone wrapper with Blender Bone */
-
-  if (strcmp (name_str, "BoneData") == 0)
-    return (PyObject *) py_bone;
-  else
-    {				/* user gave us a name for the bone, use it */
-      /*  TODO: check that name is not already in use? */
-      PyOS_snprintf (bl_bone->name, sizeof (bl_bone->name), "%s", name_str);
-    }
-
+  py_bone->bone = bl_bone;	// link Python bone wrapper with Blender Bone
+ 
+  Py_INCREF(py_bone);
   return (PyObject *) py_bone;
 }
 
@@ -379,7 +376,6 @@ Bone_getQuat (BPy_Bone * self)
 				 "couldn't get Bone.tail attribute"));
 }
 
-
 static PyObject *
 Bone_hasParent (BPy_Bone * self)
 {
@@ -494,7 +490,6 @@ Bone_setRoll (BPy_Bone * self, PyObject * args)
   Py_INCREF (Py_None);
   return Py_None;
 }
-
 
 static PyObject *
 Bone_setHead (BPy_Bone * self, PyObject * args)
@@ -636,6 +631,27 @@ Bone_setQuat (BPy_Bone * self, PyObject * args)
   return Py_None;
 }
 
+static PyObject *
+Bone_setParent(BPy_Bone *self, PyObject *args)
+{
+  BPy_Bone* py_bone;
+
+  if (!self->bone) 
+	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+
+  if (!PyArg_ParseTuple(args, "O", &py_bone))
+	return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected bone object argument"));
+
+  if(!py_bone->bone)
+	return (EXPP_ReturnPyObjError (PyExc_TypeError, "bone contains no data!"));
+
+  //set the parent of self
+  self->bone->parent = py_bone->bone;
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 /*****************************************************************************/
 /* Function:	Bone_dealloc																				 */
 /* Description: This is a callback function for the BPy_Bone type. It is     */
@@ -644,7 +660,8 @@ Bone_setQuat (BPy_Bone * self, PyObject * args)
 static void
 Bone_dealloc (BPy_Bone * self)
 {
-  PyObject_DEL (self);
+	MEM_freeN(self->bone);
+    PyObject_DEL (self);
 }
 
 /*****************************************************************************/

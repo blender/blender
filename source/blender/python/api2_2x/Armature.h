@@ -39,10 +39,9 @@
 /* Python BPy_Armature structure definition:                                 */
 /*****************************************************************************/
 
-typedef struct
-{
-  PyObject_HEAD bArmature * armature;
-}
-BPy_Armature;
+typedef struct {
+  PyObject_HEAD
+  bArmature *armature;
+} BPy_Armature;
 
 #endif /* EXPP_ARMATURE_H */
