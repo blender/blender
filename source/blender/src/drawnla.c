@@ -96,26 +96,19 @@ static void draw_nlatree(void)
 	float	x, y;
 	bActionStrip *strip;
 	bConstraintChannel *conchan;
-	float col[3];
 
 	myortho2(0,	NLAWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
 
-	/* Blank out the area */
+	/* Clip to the scrollable area */
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
 			ofsx= curarea->winrct.xmin;	
 			ofsy= curarea->winrct.ymin;
-			glViewport(ofsx,  ofsy+G.v2d->mask.ymin-SCROLLB, NLAWIDTH, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin-SCROLLB)); 
-			glScissor(ofsx,  ofsy+G.v2d->mask.ymin-SCROLLB, NLAWIDTH, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin-SCROLLB));
+			glViewport(ofsx,  ofsy+G.v2d->mask.ymin, NLAWIDTH, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin)); 
+			glScissor(ofsx,  ofsy+G.v2d->mask.ymin, NLAWIDTH, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin));
 		}
 	}
 	
-	BIF_GetThemeColor3fv(TH_HEADER, col);
-	glClearColor(col[0], col[1], col[2], 0.0); 
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	/* Clip to the scrollable area */
-
 	glColor3ub(0x00, 0x00, 0x00);
 	
 	x = 0.0;
@@ -197,7 +190,7 @@ static void draw_nlatree(void)
 		}
 	}
 	
-	myortho2(0,	NLAWIDTH, 0, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin-SCROLLB));	//	Scaling
+	myortho2(0,	NLAWIDTH, 0, ( ofsy+G.v2d->mask.ymax)-( ofsy+G.v2d->mask.ymin));	//	Scaling
 }
 
 static void draw_nlastrips(SpaceNla *snla)
@@ -215,7 +208,7 @@ static void draw_nlastrips(SpaceNla *snla)
 	/* Draw strips */
 
 	scr_rct.xmin= snla->area->winrct.xmin + NLAWIDTH;
-	scr_rct.ymin= snla->area->winrct.ymin + snla->v2d.mask.ymin-SCROLLB;
+	scr_rct.ymin= snla->area->winrct.ymin + snla->v2d.mask.ymin;
 	scr_rct.xmax= snla->area->winrct.xmin + snla->v2d.hor.xmax;
 	scr_rct.ymax= snla->area->winrct.ymin + snla->v2d.mask.ymax; 
 	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
@@ -545,6 +538,11 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 	
 	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+	
+	/* clear all, becomes the color for left part */
+	BIF_GetThemeColor3fv(TH_HEADER, col);
+	glClearColor(col[0], col[1], col[2], 0.0); 
+	glClear(GL_COLOR_BUFFER_BIT);
 	
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	

@@ -6684,7 +6684,6 @@ void rightmouse_transform(void)
 
 
 void single_object_users(int flag)	
-	/* after this call clear_id_newpoins() */
 {
 	Base *base;
 	Object *ob, *obn;
@@ -7078,6 +7077,8 @@ void single_user(void)
 	
 	if(G.scene->id.lib) return;
 
+	clear_id_newpoins();
+	
 	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex");
 	if(nr>0) {
 	

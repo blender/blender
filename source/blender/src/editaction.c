@@ -365,18 +365,18 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 
 	mval[0]-=7;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
-
 	mval[0]+=14;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 
-	ymax = count_action_levels (act) * (CHANNELHEIGHT + CHANNELSKIP);
-
+	ymax = count_action_levels(act) * (CHANNELHEIGHT + CHANNELSKIP);
+	ymax += CHANNELHEIGHT/2;
+	
 	*sel=0;
 
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 
 		/* Check action channel */
-		ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
+		ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
 		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
 			for (icu=chan->ipo->curve.first; icu; icu=icu->next){
 				for (i=0; i<icu->totvert; i++){
@@ -472,6 +472,7 @@ static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
     areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 
     ybase = key->totkey * (CHANNELHEIGHT + CHANNELSKIP);
+	ybase += CHANNELHEIGHT/2;
     *sel=0;
 
     /* lets loop through the IpoCurves trying to find the closest
@@ -678,7 +679,9 @@ void borderselect_action(void)
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 		
-		ymax=count_action_levels(act) * (CHANNELHEIGHT+CHANNELSKIP);
+		ymax= count_action_levels(act) * (CHANNELHEIGHT+CHANNELSKIP);
+		ymax += CHANNELHEIGHT/2;
+		
 		for (chan=act->chanbase.first; chan; chan=chan->next){
 			
 			/* Check action */
@@ -1661,7 +1664,7 @@ static void mouse_actionchannels(bAction *act, short *mval,
 	 * a rectangle.
 	 */
 	bActionChannel *chan;
-	float	click;
+	float	click, x,y;
 	int   clickmin, clickmax;
 	int		wsize, sel;
 	bConstraintChannel *conchan;
@@ -1678,23 +1681,20 @@ static void mouse_actionchannels(bAction *act, short *mval,
 	 * needed to draw all of the action channels and constraint
 	 * channels.
 	 */
-	wsize = (count_action_levels (act)*(CHANNELHEIGHT+CHANNELSKIP));
+	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	wsize += CHANNELHEIGHT/2;
 
-	click = (wsize-(mval[1]+G.v2d->cur.ymin));
-	click += CHANNELHEIGHT/2;
-	click /= (CHANNELHEIGHT+CHANNELSKIP);
+    areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
 	
-	clickmin = (int) click;
-
 	/* Only one click */
 	if (mvalo == NULL) {
 		clickmax = clickmin;
 	}
 	/* Two click values (i.e., border select */
 	else {
-		click = (wsize-(mvalo[1]+G.v2d->cur.ymin));
-		click += CHANNELHEIGHT/2;
-		click /= (CHANNELHEIGHT+CHANNELSKIP);
+		areamouseco_to_ipoco(G.v2d, mvalo, &x, &y);
+		click = ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
 
 		if ( ((int) click) < clickmin) {
 			clickmax = clickmin;
@@ -2012,7 +2012,7 @@ void select_all_keys_frames(bAction *act, short *mval,
 void select_all_keys_channels(bAction *act, short *mval, 
                               short *mvalo, int selectmode) {
 	bActionChannel    *chan;
-	float              click;
+	float              click, x,y;
 	int                clickmin, clickmax;
 	int                wsize;
 	bConstraintChannel *conchan;
@@ -2040,24 +2040,23 @@ void select_all_keys_channels(bAction *act, short *mval,
 	 * needed to draw all of the action channels and constraint
 	 * channels.
 	 */
-	wsize = (count_action_levels (act)*(CHANNELHEIGHT+CHANNELSKIP));
 
-	click = (wsize-(mval[1]+G.v2d->cur.ymin));
-	click += CHANNELHEIGHT/2;
-	click /= (CHANNELHEIGHT+CHANNELSKIP);
-
-	clickmin = (int) click;
-
+	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	wsize += CHANNELHEIGHT/2;
+	
+    areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+	
 	/* Only one click */
 	if (mvalo == NULL) {
 		clickmax = clickmin;
 	}
 	/* Two click values (i.e., border select) */
 	else {
-		click = (wsize-(mvalo[1]+G.v2d->cur.ymin));
-		click += CHANNELHEIGHT/2;
-		click /= (CHANNELHEIGHT+CHANNELSKIP);
 
+		areamouseco_to_ipoco(G.v2d, mvalo, &x, &y);
+		click = ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+		
 		if ( ((int) click) < clickmin) {
 			clickmax = clickmin;
 			clickmin = (int) click;
@@ -2576,7 +2575,7 @@ int get_nearest_key_num(Key *key, short *mval, float *x) {
     areamouseco_to_ipoco(G.v2d, mval, x, &y);
 
     ybase = key->totkey * (CHANNELHEIGHT + CHANNELSKIP);
-    num = (int) ((ybase - y) / (CHANNELHEIGHT+CHANNELSKIP));
+    num = (int) ((ybase - y + CHANNELHEIGHT/2) / (CHANNELHEIGHT+CHANNELSKIP));
 
     return (num + 1);
 }

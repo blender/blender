@@ -341,6 +341,8 @@ static void convert_nla(short mval[2])
 	bActionStrip *strip, *nstrip;
 	/* Find out what strip we're over */
 	ymax = count_nla_levels() * (NLACHANNELSKIP+NLACHANNELHEIGHT);
+	ymax+= NLACHANNELHEIGHT/2;
+	
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
 	for (base=G.scene->base.first; base; base=base->next){
@@ -485,8 +487,9 @@ static void add_nlablock(short mval[2])
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 
 	ymax = count_nla_levels();	
-	ymax*=(NLACHANNELHEIGHT + NLACHANNELSKIP);
-	
+	ymax*= (NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax+= NLACHANNELHEIGHT/2;
+
 	for (base=G.scene->base.first; base; base=base->next){
 		/* Handle object ipo selection */
 		if (nla_filter(base, 0)){
@@ -560,23 +563,22 @@ static void mouse_nlachannels(short mval[2])
 //	bActionChannel *chan;
 	bConstraintChannel *conchan=NULL;
 	bActionStrip *strip;
-	float	click;
+	float	click, x,y;
 	int		wsize;
 	int		sel;
 	Base	*base;
 	
 	wsize = (count_nla_levels ()*(NLACHANNELHEIGHT+NLACHANNELSKIP));
+	wsize+= NLACHANNELHEIGHT/2;
 
-
-	click = (wsize-(mval[1]+G.v2d->cur.ymin));
-	click += NLACHANNELHEIGHT/2;
-	click /= (NLACHANNELHEIGHT+NLACHANNELSKIP);
+    areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+    click = ((wsize - y) / (NLACHANNELHEIGHT+NLACHANNELSKIP));
 
 	if (click<0)
 		return;
 
 	for (base = G.scene->base.first; base; base=base->next){
-		if (nla_filter(base, 0)){
+		if (nla_filter(base, 0)) {
 			/* See if this is a base selected */
 			if ((int)click==0)
 				break;
@@ -644,8 +646,8 @@ static void mouse_nlachannels(short mval[2])
 	}
 	
 	/* Handle object strip selection */
-	else if (base)
-	{
+	else if (base) {
+		
 		/* Choose the mode */
 		if (base->flag & SELECT)
 			sel = 0;
@@ -653,18 +655,18 @@ static void mouse_nlachannels(short mval[2])
 			sel =1;
 		
 		/* Channel names clicking */
-		if (G.qual & LR_SHIFTKEY){
+		if (G.qual & LR_SHIFTKEY) {
 	//		select_poseelement_by_name(chan->name, !(chan->flag & ACHAN_SELECTED));
-			if (base->flag & SELECT){
+			if (base->flag & SELECT) {
 				base->flag &= ~SELECT;
 		//		hilight_channel(act, chan, 0);
 			}
-			else{
+			else {
 				base->flag |= SELECT;
 		//		hilight_channel(act, chan, 1);
 			}
 		}
-		else{
+		else {
 			deselect_nlachannels (0);	// Auto clear
 			base->flag |= SELECT;
 		//	hilight_channel(act, chan, 1);
@@ -1223,8 +1225,8 @@ static void mouse_nla(int selectmode)
 	getmouseco_areawin (mval);
 	
 	/* Try object ipo selection */
-	base=get_nearest_nlachannel_ob_key(&selx, &sel);
-	if (base){
+	base= get_nearest_nlachannel_ob_key(&selx, &sel);
+	if (base) {
 		if (selectmode == SELECT_REPLACE){
 			deselect_nlachannel_keys(0);
 			selectmode = SELECT_ADD;
@@ -1244,14 +1246,14 @@ static void mouse_nla(int selectmode)
 	}
 
 	/* Try action ipo selection */
-	act=get_nearest_nlachannel_ac_key(&selx, &sel);
-	if (act){
+	act= get_nearest_nlachannel_ac_key(&selx, &sel);
+	if (act) {
 		if (selectmode == SELECT_REPLACE){
 			deselect_nlachannel_keys(0);
 			selectmode = SELECT_ADD;
 		}
 		
-		for (chan=act->chanbase.first; chan; chan=chan->next){
+		for (chan=act->chanbase.first; chan; chan=chan->next) {
 			select_ipo_key(chan->ipo, selx, selectmode);
 			/* Try action constraint selection */
 			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
@@ -1265,7 +1267,7 @@ static void mouse_nla(int selectmode)
 	}
 	
 	/* Try nla strip selection */
-	base=get_nearest_nlastrip(&rstrip, &sel);
+	base= get_nearest_nlastrip(&rstrip, &sel);
 	if (base){
 		if (!(G.qual & LR_SHIFTKEY)){
 			deselect_nlachannel_keys(0);
@@ -1308,6 +1310,7 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 	
 	ymax = count_nla_levels();
 	ymax*=(NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax+= NLACHANNELHEIGHT/2;
 	
 	for (base = G.scene->base.first; base; base=base->next){
 		if (nla_filter(base, 0)){
@@ -1384,7 +1387,8 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 	
 	ymax = count_nla_levels();
 	
-	ymax*=(NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax*= (NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax+= NLACHANNELHEIGHT/2;
 	
 	*sel=0;
 	
@@ -1494,7 +1498,8 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 	
 	ymax = count_nla_levels();
 	
-	ymax*=(NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax*= (NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax+= NLACHANNELHEIGHT/2;
 	
 	*sel=0;
 	

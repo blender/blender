@@ -3014,21 +3014,21 @@ void drawscredge_area(ScrArea *sa)
 	cpack(0x0);
 	
 	/* right border area */
-	if(sa->headertype==HEADERTOP) sdrawline(x2, y1, x2, y2-SCR_ROUND);
-	else if(sa->headertype==HEADERDOWN) sdrawline(x2, y1+SCR_ROUND, x2, y2);
+	if(sa->headertype==HEADERTOP) sdrawline(x2, y1, x2, y2-SCR_ROUND+1);
+	else if(sa->headertype==HEADERDOWN) sdrawline(x2, y1+SCR_ROUND-1, x2, y2);
 	else sdrawline(x2, y1, x2, y2);
 	
 	/* left border area */
-	if(sa->headertype==HEADERTOP) sdrawline(x1, y1, x1, y2-SCR_ROUND);
-	else if(sa->headertype==HEADERDOWN) sdrawline(x1, y1+SCR_ROUND, x1, y2);
+	if(sa->headertype==HEADERTOP) sdrawline(x1, y1, x1, y2-SCR_ROUND+1);
+	else if(sa->headertype==HEADERDOWN) sdrawline(x1, y1+SCR_ROUND-1, x1, y2);
 	else sdrawline(x1, y1, x1, y2);
 	
 	/* top border area */
-	if(sa->headertype==HEADERTOP) sdrawline(x1+SCR_ROUND, y2, x2-SCR_ROUND, y2);
+	if(sa->headertype==HEADERTOP) sdrawline(x1+SCR_ROUND, y2, x2-SCR_ROUND+1, y2);
 	else sdrawline(x1, y2, x2, y2);
 	
 	/* bottom border area */
-	if(sa->headertype==HEADERDOWN) sdrawline(x1+SCR_ROUND, y1, x2-SCR_ROUND, y1);
+	if(sa->headertype==HEADERDOWN) sdrawline(x1+SCR_ROUND, y1, x2-SCR_ROUND+1, y1);
 	else sdrawline(x1, y1, x2, y1);
 	
 }

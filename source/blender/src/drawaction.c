@@ -134,7 +134,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 
 	x = NAMEWIDTH + 1;
     y = key->totkey*(CHANNELHEIGHT+CHANNELSKIP) 
-	  - CHANNELHEIGHT/2  - G.v2d->cur.ymin;
+	  + CHANNELHEIGHT/2  - G.v2d->cur.ymin;
 
 	/* make the little 'open the sliders' widget */
     BIF_ThemeColor(TH_FACE); // this slot was open...
@@ -307,30 +307,23 @@ static void draw_channel_names(void)
 	short ofsx, ofsy = 0; 
 	bAction	*act;
 	Key *key;
-	float col[3];
 
-	myortho2(0,	NAMEWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
-
-	/* Blank out the area */
+	/* Clip to the scrollable area */
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
 			ofsx= curarea->winrct.xmin;	
 			ofsy= curarea->winrct.ymin;
-			glViewport(ofsx,  ofsy+G.v2d->mask.ymin-SCROLLB, NAMEWIDTH, 
+			glViewport(ofsx,  ofsy+G.v2d->mask.ymin, NAMEWIDTH, 
 					   (ofsy+G.v2d->mask.ymax) -
-					   (ofsy+G.v2d->mask.ymin-SCROLLB)); 
-			glScissor(ofsx,	 ofsy+G.v2d->mask.ymin-SCROLLB, NAMEWIDTH, 
+					   (ofsy+G.v2d->mask.ymin)); 
+			glScissor(ofsx,	 ofsy+G.v2d->mask.ymin, NAMEWIDTH, 
 					  (ofsy+G.v2d->mask.ymax) -
-					  (ofsy+G.v2d->mask.ymin-SCROLLB));
+					  (ofsy+G.v2d->mask.ymin));
 		}
 	}
 	
-	BIF_GetThemeColor3fv(TH_HEADER, col);
-	glClearColor(col[0], col[1], col[2], 0.0); 
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	/* Clip to the scrollable area */
-
+	myortho2(0,	NAMEWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
+	
 	glColor3ub(0x00, 0x00, 0x00);
 
 	act=G.saction->action;
@@ -349,7 +342,7 @@ static void draw_channel_names(void)
     }
 
     myortho2(0,	NAMEWIDTH, 0, (ofsy+G.v2d->mask.ymax) -
-              (ofsy+G.v2d->mask.ymin-SCROLLB));	//	Scaling
+              (ofsy+G.v2d->mask.ymin));	//	Scaling
 
 }
 
@@ -422,7 +415,7 @@ static void draw_channel_strips(SpaceAction *saction)
 		return;
 
 	scr_rct.xmin= saction->area->winrct.xmin + ACTWIDTH;
-	scr_rct.ymin= saction->area->winrct.ymin + saction->v2d.mask.ymin-SCROLLB;
+	scr_rct.ymin= saction->area->winrct.ymin + saction->v2d.mask.ymin;
 	scr_rct.xmax= saction->area->winrct.xmin + saction->v2d.hor.xmax;
 	scr_rct.ymax= saction->area->winrct.ymin + saction->v2d.mask.ymax; 
 	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
@@ -487,7 +480,7 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 	if (!key->ipo) return;
 
 	scr_rct.xmin= saction->area->winrct.xmin + ACTWIDTH;
-	scr_rct.ymin= saction->area->winrct.ymin + saction->v2d.mask.ymin-SCROLLB;
+	scr_rct.ymin= saction->area->winrct.ymin + saction->v2d.mask.ymin;
 	scr_rct.xmax= saction->area->winrct.xmin + saction->v2d.hor.xmax;
 	scr_rct.ymax= saction->area->winrct.ymin + saction->v2d.mask.ymax; 
 	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
@@ -621,6 +614,11 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
 
+	/* background color for entire window (used in lefthand part tho) */
+	BIF_GetThemeColor3fv(TH_HEADER, col);
+	glClearColor(col[0], col[1], col[2], 0.0); 
+	glClear(GL_COLOR_BUFFER_BIT);
+	
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
 			ofsx= curarea->winrct.xmin;	

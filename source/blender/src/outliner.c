@@ -1363,8 +1363,6 @@ void outliner_mouse_event(ScrArea *sa, short event)
 	short mval[2];
 	
 	getmouseco_areawin(mval);
-	fmval[0]= mval[0];
-	fmval[1]= mval[1];
 	areamouseco_to_ipoco(&soops->v2d, mval, fmval, fmval+1);
 	
 	for(te= soops->tree.first; te; te= te->next) {
@@ -1494,15 +1492,11 @@ void outliner_select(struct ScrArea *sa )
 	short mval[2], yo=-1, selecting= -1;
 	
 	getmouseco_areawin(mval);
-	fmval[0]= mval[0];
-	fmval[1]= mval[1];
 	areamouseco_to_ipoco(&so->v2d, mval, fmval, fmval+1);
 	y1= fmval[1];
 
 	while (get_mbut() & R_MOUSE) {
 		getmouseco_areawin(mval);
-		fmval[0]= mval[0];
-		fmval[1]= mval[1];
 		areamouseco_to_ipoco(&so->v2d, mval, fmval, fmval+1);
 		y2= fmval[1];
 		if(yo!=mval[1]) {
