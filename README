@@ -274,3 +274,34 @@ step is only necessary if you're using a version of MacOS X prior to 10.2.
 When using the new automake system, QuickTime support can be enabled by passing
 the "--enable-quicktime=yes" flag to ./configure. When building with the original 
 NaN Makefiles, QuickTime support is enabled automatically.
+----------------------NetBSD TIPS--------------------------------------
+NetBSD (and other platforms using pkgsrc)
+
+Quick Install
+
+cd /usr/pkgsrc/graphics/blender
+make install
+
+In-depth Instructions
+
+NetBSD's Packages Collection provides for easy installation from 
+source on a multitude of platforms (NetBSD, Linux, OpenBSD, FreeBSD, 
+Darwin, Irix).  You should be able to compile and install Blender 
+easily by simply changing into the directory 
+/usr/pkgsrc/graphics/blender and issuing the command 'make install'.  
+This will automatically download the sources, verify their integrity, 
+download and install all necessary dependencies and build and install 
+Blender.  Please see for details:
+	http://www.netbsd.org/Documentation/software/packages.html
+	http://www.netbsd.org/Documentation/pkgsrc/
+
+
+Note that there are a few flags you can set to compile in support for 
+additional packages.  Search /usr/pkgsrc/mk/bsd.pkg.defaults.mk for 
+"BLENDER" variables and set them according to your preference in 
+/etc/mk.conf
+
+If you experience problems building the package, please use send-pr(1)
+
+on your NetBSD system or submit a proble report via:
+ http://www.netbsd.org/cgi-bin/sendpr.cgi?gndb=netbsd
