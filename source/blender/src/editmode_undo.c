@@ -222,7 +222,7 @@ void undo_editmode_step(int step)
 		
 		if(curundo==NULL || curundo->prev==NULL) error("No more steps to undo");
 		else {
-			printf("undo %s\n", curundo->name);
+			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
 			undo_restore(curundo);
 		}
@@ -234,7 +234,7 @@ void undo_editmode_step(int step)
 		else {
 			undo_restore(curundo->next);
 			curundo= curundo->next;
-			printf("redo %s\n", curundo->name);
+			if(G.f & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
 	}
 

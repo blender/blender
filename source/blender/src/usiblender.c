@@ -230,9 +230,11 @@ int BIF_read_homefile(void)
 			U.vrmlflag= USER_VRML_LAYERS;
 		}
 
-			/* added seam, normal color */
+			/* added seam, normal color, undo */
 		if (G.main->versionfile <= 234) {
 			bTheme *btheme;
+			
+			U.uiflag |= USER_GLOBALUNDO;
 			
 			for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 				/* check for alpha==0 is safe, then color was never set */
