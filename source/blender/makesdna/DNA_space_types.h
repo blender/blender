@@ -256,7 +256,8 @@ typedef struct SpaceText {
 
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
-	int spacetype, pad1;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
 	struct Script *script;
 

@@ -137,7 +137,8 @@ typedef struct bSoundListener {
 
 typedef struct SpaceSound {
 	struct SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
 	
 	View2D v2d;

@@ -57,6 +57,10 @@ struct BWinEvent;
 /* ipo handler codes */
 #define IPO_HANDLER_PROPERTIES	20
 
+/* image handler codes */
+#define IMAGE_HANDLER_PROPERTIES	30
+
+
 
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);

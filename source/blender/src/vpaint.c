@@ -239,6 +239,7 @@ void make_vertexcol()	/* single ob */
 	me= get_mesh(ob);
 	if(me==0) return;
 
+	/* to be able to copy lighting info, we only use it from single side (ton) */
 	if(me->flag & ME_TWOSIDED) {
 		me->flag &= ~ME_TWOSIDED;
 	}

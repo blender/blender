@@ -71,10 +71,14 @@
 #include "BIF_mywindow.h"
 #include "BIF_drawimage.h"
 #include "BIF_resources.h"
+#include "BIF_interface.h"
+#include "BIF_editsima.h"
 
 /* Modules used */
 #include "mydevice.h"
+#include "blendef.h"
 #include "render.h"
+#include "butspace.h"  // event codes
 
 
 void rectwrite_part(int winxmin, int winymin, int winxmax, int winymax, int x1, int y1, int xim, int yim, float zoomx, float zoomy, unsigned int *rect)
@@ -316,7 +320,8 @@ void draw_tfaces(void)
 		if(me && me->tface) {
 			calc_image_view(G.sima, 'f');	/* float */
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-
+			glLoadIdentity();
+			
 			/* draw shadow mesh */
 			if(G.sima->flag & SI_DRAWSHADOW){		
 				tface= me->tface;
@@ -452,7 +457,28 @@ void draw_tfaces(void)
 			}
 
             /* to make sure vertices markers are visible, draw them last */
+			/* we draw selected over unselected, so two loops */
 			BIF_GetThemeColor3ubv(TH_VERTEX, col1);
+			glColor4ubv(col1);
+			tface= me->tface;
+			mface= me->mface;
+			a= me->totface;
+			while(a--) {
+				if(mface->v3  && (tface->flag & TF_SELECT) ) {
+					glBegin(GL_POINTS);
+					
+					if(tface->flag & TF_SEL1); else glVertex2fv(tface->uv[0]);
+					if(tface->flag & TF_SEL2); else glVertex2fv(tface->uv[1]);
+					if(tface->flag & TF_SEL3); else glVertex2fv(tface->uv[2]);
+					if(mface->v4) {
+						if(tface->flag & TF_SEL4); else glVertex2fv(tface->uv[3]);
+					}
+					glEnd();
+				}
+				tface++;
+				mface++;
+			}
+			/* selected */
 			BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col2);
 			glColor4ubv(col2);
 			tface= me->tface;
@@ -462,22 +488,11 @@ void draw_tfaces(void)
 				if(mface->v3  && (tface->flag & TF_SELECT) ) {
 					glBegin(GL_POINTS);
 					
-					if(tface->flag & TF_SEL1) glColor3ubv(col2);
-					else glColor3ubv(col1);
-					glVertex2fv(tface->uv[0]);
-					
-					if(tface->flag & TF_SEL2) glColor3ubv(col2);
-					else glColor3ubv(col1);
-					glVertex2fv(tface->uv[1]);
-					
-					if(tface->flag & TF_SEL3) glColor3ubv(col2);
-					else glColor3ubv(col1);
-					glVertex2fv(tface->uv[2]);
-					
+					if(tface->flag & TF_SEL1) glVertex2fv(tface->uv[0]);
+					if(tface->flag & TF_SEL2) glVertex2fv(tface->uv[1]);
+					if(tface->flag & TF_SEL3) glVertex2fv(tface->uv[2]);
 					if(mface->v4) {
-						if(tface->flag & TF_SEL4) glColor3ubv(col2);
-						else glColor3ubv(col1);
-						glVertex2fv(tface->uv[3]);
+						if(tface->flag & TF_SEL4) glVertex2fv(tface->uv[3]);
 					}
 					glEnd();
 				}
@@ -560,6 +575,164 @@ static void draw_image_view_icon(void)
 	glDisable(GL_BLEND);
 }
 
+/* ************ panel stuff ************* */
+
+// button define is local, only events defined here possible
+#define B_TRANS_IMAGE	1
+
+/* is used for both read and write... */
+static void image_editvertex_buts(uiBlock *block)
+{
+	static float ocent[2];
+	float cent[2]= {0.0, 0.0};
+	int imx, imy;
+	int i, nactive= 0;
+	Mesh *me;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	me= get_mesh(OBACT);
+	
+	if (G.sima->image && G.sima->image->ibuf) {
+		imx= G.sima->image->ibuf->x;
+		imy= G.sima->image->ibuf->y;
+	} else
+		imx= imy= 256;
+	
+	for (i=0; i<me->totface; i++) {
+		MFace *mf= &((MFace*) me->mface)[i];
+		TFace *tf= &((TFace*) me->tface)[i];
+		
+		if (!mf->v3 || !(tf->flag & TF_SELECT))
+			continue;
+		
+		if (tf->flag & TF_SEL1) {
+			cent[0]+= tf->uv[0][0];
+			cent[1]+= tf->uv[0][1];
+			nactive++;
+		}
+		if (tf->flag & TF_SEL2) {
+			cent[0]+= tf->uv[1][0];
+			cent[1]+= tf->uv[1][1];
+			nactive++;
+		}
+		if (tf->flag & TF_SEL3) {
+			cent[0]+= tf->uv[2][0];
+			cent[1]+= tf->uv[2][1];
+			nactive++;
+		}
+		if (mf->v4 && (tf->flag & TF_SEL4)) {
+			cent[0]+= tf->uv[3][0];
+			cent[1]+= tf->uv[3][1];
+			nactive++;
+		}
+	}
+		
+	if(block) {	// do the buttons
+		if (nactive) {
+			ocent[0]= (cent[0]*imx)/nactive;
+			ocent[1]= (cent[1]*imy)/nactive;
+			
+			if(nactive==1) {
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 100, 300, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 80, 300, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
+			}
+			else {
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 100, 300, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 80, 300, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
+			}
+		}
+	}
+	else {	// apply event
+		float delta[2];
+		
+		cent[0]= (cent[0]*imx)/nactive;
+		cent[1]= (cent[1]*imy)/nactive;
+			
+		delta[0]= (ocent[0]-cent[0])/imx;
+		delta[1]= (ocent[1]-cent[1])/imy;
+
+		for (i=0; i<me->totface; i++) {
+			MFace *mf= &((MFace*) me->mface)[i];
+			TFace *tf= &((TFace*) me->tface)[i];
+		
+			if (!mf->v3 || !(tf->flag & TF_SELECT))
+				continue;
+		
+			if (tf->flag & TF_SEL1) {
+				tf->uv[0][0]+= delta[0];
+				tf->uv[0][1]+= delta[1];
+			}
+			if (tf->flag & TF_SEL2) {
+				tf->uv[1][0]+= delta[0];
+				tf->uv[1][1]+= delta[1];
+			}
+			if (tf->flag & TF_SEL3) {
+				tf->uv[2][0]+= delta[0];
+				tf->uv[2][1]+= delta[1];
+			}
+			if (mf->v4 && (tf->flag & TF_SEL4)) {
+				tf->uv[3][0]+= delta[0];
+				tf->uv[3][1]+= delta[1];
+			}
+		}
+			
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+	}
+}
+
+
+void do_imagebuts(unsigned short event)
+{
+	switch(event) {
+	case B_TRANS_IMAGE:
+		image_editvertex_buts(NULL);
+		break;
+	}
+}
+
+static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 230, 318, 204)==0) return;
+
+	if (G.sima->image && G.sima->image->ibuf) {
+		char str[32];
+		sprintf(str, "Image size %d x %d", G.sima->image->ibuf->x, G.sima->image->ibuf->y);
+		uiDefBut(block, LABEL, 0, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
+	}
+
+	image_editvertex_buts(block);
+}
+
+static void image_blockhandlers(ScrArea *sa)
+{
+	SpaceImage *sima= sa->spacedata.first;
+	short a;
+
+	/* warning; blocks need to be freed each time, handlers dont remove  */
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
+	
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(sima->blockhandler[a]) {
+
+		case IMAGE_HANDLER_PROPERTIES:
+			image_panel_properties(sima->blockhandler[a+1]);
+			break;
+		
+		}
+		/* clear action value for event */
+		sima->blockhandler[a+1]= 0;
+	}
+	uiDrawBlocksPanels(sa, 0);
+}
+
+
+
 void drawimagespace(ScrArea *sa, void *spacedata)
 {
 	ImBuf *ibuf= NULL;
@@ -572,8 +745,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-
-	curarea->win_swap= WIN_BACK_OK;
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
 	
 	xmin= curarea->winrct.xmin; xmax= curarea->winrct.xmax;
 	ymin= curarea->winrct.ymin; ymax= curarea->winrct.ymax;
@@ -670,7 +843,12 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 	draw_image_view_icon();
 	draw_area_emboss(sa);
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+
+	/* it is important to end a view in a transform compatible with buttons */
+	bwin_scalematrix(sa->win, G.sima->blockscale, G.sima->blockscale, G.sima->blockscale);
+	image_blockhandlers(sa);
+
+	curarea->win_swap= WIN_BACK_OK;
 }
 
 void image_viewmove(void)

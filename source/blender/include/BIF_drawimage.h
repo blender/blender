@@ -36,6 +36,7 @@
 struct ScrArea;
 struct SpaceImage;
 
+void do_imagebuts(unsigned short event);
 void calc_image_view(struct SpaceImage *sima, char mode);
 void drawimagespace(struct ScrArea *sa, void *spacedata);
 void draw_tfaces(void);

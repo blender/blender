@@ -85,6 +85,7 @@
 #include "BIF_drawimage.h"
 #include "BIF_drawseq.h"
 #include "BIF_drawtext.h"
+#include "BIF_drawscript.h"
 #include "BIF_editarmature.h"
 #include "BIF_editfont.h"
 #include "BIF_editika.h"
@@ -3016,6 +3017,7 @@ void init_seqspace(ScrArea *sa)
 
 	sseq->spacetype= SPACE_SEQ;
 	sseq->zoom= 1;
+	sseq->blockscale= 0.7;
 	
 	/* seq space goes from (0,8) to (250, 0) */
 
@@ -3065,6 +3067,7 @@ void init_actionspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, saction);
 
 	saction->spacetype= SPACE_ACTION;
+	saction->blockscale= 0.7;
 
 	saction->v2d.tot.xmin= 1.0;
 	saction->v2d.tot.ymin=	0.0;
@@ -3116,7 +3119,7 @@ void init_filespace(ScrArea *sa)
 
 	sfile->dir[0]= '/';
 	sfile->type= FILE_UNIX;
-
+	sfile->blockscale= 0.7;
 	sfile->spacetype= SPACE_FILE;
 }
 
@@ -3128,7 +3131,7 @@ void init_textspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, st);
 
 	st->spacetype= SPACE_TEXT;	
-	
+	st->blockscale= 0.7;
 	st->text= NULL;
 	st->flags= 0;
 	
@@ -3147,7 +3150,7 @@ void init_scriptspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, sc);
 
 	sc->spacetype = SPACE_SCRIPT;
-
+	sc->blockscale= 0.7;
 	sc->script = NULL;
 	sc->flags = 0;
 }
@@ -3160,7 +3163,7 @@ void init_imaselspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, simasel);
 
 	simasel->spacetype= SPACE_IMASEL;
-	
+	simasel->blockscale= 0.7;
 	simasel->mode = 7;
 	strcpy (simasel->dir,  U.textudir);	/* TON */
 	strcpy (simasel->file, "");
@@ -3199,7 +3202,7 @@ void init_soundspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, ssound);
 
 	ssound->spacetype= SPACE_SOUND;
-	
+	ssound->blockscale= 0.7;
 	/* sound space goes from (0,8) to (250, 0) */
 
 	ssound->v2d.tot.xmin= -4.0;
@@ -3255,7 +3258,7 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 #endif /* NAN_TPT */	
 	if(val==0) return;
 
-	if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+	if(uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 	
 	if (sima->flag & SI_DRAWTOOL) {
 #ifdef NAN_TPT
@@ -3319,6 +3322,7 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 	else {
 		/* Draw tool is inactive */
+	
 		switch(event) {
 			case LEFTMOUSE:
 				if(G.qual & LR_SHIFTKEY) mouseco_to_curtile();
@@ -3407,24 +3411,33 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				transform_tface_uv('w');
 				break;
 		}
-	}
+	}	
 
 	/* Events handled always (whether the draw tool is active or not) */
 	switch (event) {
-		case MIDDLEMOUSE:
-			image_viewmove();
-			break;
-		case WHEELUPMOUSE:
-		case WHEELDOWNMOUSE:
-		case PADPLUSKEY:
-		case PADMINUS:
-			image_viewzoom(event);
+	case UI_BUT_EVENT:
+		do_imagebuts(val);	// drawimage.c
+		break;
+	case MIDDLEMOUSE:
+		image_viewmove();
+		break;
+	case WHEELUPMOUSE:
+	case WHEELDOWNMOUSE:
+	case PADPLUSKEY:
+	case PADMINUS:
+		image_viewzoom(event);
+		scrarea_queue_winredraw(curarea);
+		break;
+	case HOMEKEY:
+		if((G.qual==0))
+			image_home();
+		break;
+	case NKEY:
+		if(G.qual==0) {
+			add_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			scrarea_queue_winredraw(curarea);
-			break;
-		case HOMEKEY:
-			if((G.qual==0))
-				image_home();
-			break;
+		}
+		break;
 	}
 }
 
@@ -3438,6 +3451,7 @@ void init_imagespace(ScrArea *sa)
 
 	sima->spacetype= SPACE_IMAGE;
 	sima->zoom= 1;
+	sima->blockscale= 0.7;
 }
 
 
@@ -3607,6 +3621,7 @@ void init_oopsspace(ScrArea *sa)
 	soops->visiflag= OOPS_OB+OOPS_MA+OOPS_ME+OOPS_TE+OOPS_CU+OOPS_IP;
 	
 	soops->spacetype= SPACE_OOPS;
+	soops->blockscale= 0.7;
 	init_v2d_oops(&soops->v2d);
 }
 

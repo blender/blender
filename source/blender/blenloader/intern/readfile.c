@@ -4117,7 +4117,8 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 232) {	
 		Tex *tex= main->tex.first;
 		World *wrld= main->world.first;
-		
+		bScreen *sc;
+
 		while(tex) {	
 			/* copied from kernel texture.c */
 			if(tex->ns_outscale==0.0) {
@@ -4143,7 +4144,19 @@ static void do_versions(Main *main)
 			if(wrld->aoenergy==0.0) wrld->aoenergy= 1.0;
 			wrld= wrld->id.next;
 		}
-		
+
+
+		// new variable blockscale, for panels in any area, do again because new
+		// areas didnt initialize it to 0.7 yet
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->blockscale==0.0) sl->blockscale= 0.7;
+				}
+			}
+		}
 	}	
 	
 	

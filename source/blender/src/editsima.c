@@ -98,7 +98,7 @@ static int compuvvert(const void *u1, const void *u2)
 	return 0;
 }
 
-static int is_uv_tface_editing_allowed(void)
+int is_uv_tface_editing_allowed(void)
 {
 	Mesh *me;
 
@@ -1132,14 +1132,7 @@ void mouse_select_sima(void)
 			*flagpoin |= val;
 	}
 	
-	if(redraw || G.f & G_DRAWFACES) force_draw();
-	else {
-		glDrawBuffer(GL_FRONT);
-		draw_tfaces();
-		/*at OSX, a flush pops up the "frontbuffer" (it does a swap, doh!)*/
-		glFlush(); 
-		glDrawBuffer(GL_BACK);
-	}
+	force_draw();
 	
 	std_rmouse_transform(transform_tface_uv);
 }

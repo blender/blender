@@ -30,7 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-void clever_numbuts_sima(void);
+int is_uv_tface_editing_allowed(void);
 void borderselect_sima(void);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);

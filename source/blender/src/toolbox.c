@@ -1451,7 +1451,7 @@ void clever_numbuts(void)
 		clever_numbuts_seq();
 	}
 	else if(curarea->spacetype==SPACE_IMAGE) {
-		clever_numbuts_sima();
+		//clever_numbuts_sima();
 	}
 	else if(curarea->spacetype==SPACE_IMASEL) {
 		clever_numbuts_imasel();
