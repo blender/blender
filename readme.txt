@@ -24,9 +24,9 @@ setenv NANBLENDERHOME `pwd`
 setenv MAKEFLAGS "-w -I$NANBLENDERHOME/source"
 
 Or for bash/sh do this:
-set NANBLENDERHOME=`pwd`
+NANBLENDERHOME=`pwd`
 export NANBLENDERHOME
-set MAKEFLAGS="-w -I$NANBLENDERHOME/source"
+MAKEFLAGS="-w -I$NANBLENDERHOME/source"
 export MAKEFLAGS
 
 Then edit source/nan_definitions.mk to fit you're environment.
