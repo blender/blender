@@ -500,9 +500,9 @@ void select_parent(void)	/* Makes parent active and de-selected OBACT */
 	oldbasact = BASACT;
 	BASACT = basact;
 	basact->flag |= SELECT;		
-	if(oldbasact) if(oldbasact != basact) draw_object_ext(oldbasact);
+	
 	basact->object->flag= basact->flag;
-	draw_object_ext(basact);
+	
 	set_active_base(basact);
 }
 
