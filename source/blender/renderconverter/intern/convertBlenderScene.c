@@ -1094,6 +1094,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 						har->lay= ob->lay;
 					}
 				}
+				if(har) har->lay= ob->lay;
 			}
 			
 			VECCOPY(vec1, vec);
