@@ -3745,15 +3745,7 @@ int my_clock(void)
 	return (int)ftime;
 }
 
-#define XTRANS		0x01
-#define YTRANS		0x02
-#define ZTRANS		0x04
-#define TRANSLOCAL	0x80
-#define XTRANSLOCAL	(XTRANS|TRANSLOCAL)
-#define YTRANSLOCAL	(YTRANS|TRANSLOCAL)
-#define ZTRANSLOCAL	(ZTRANS|TRANSLOCAL)
-
-void view_editmove(unsigned char event)
+static void view_editmove(unsigned char event)
 {
 	/* Regular:   Zoom in */
 	/* Shift:     Scroll up */
@@ -3812,7 +3804,127 @@ void view_editmove(unsigned char event)
 	}
 }
 
-char *transform_mode_to_string(int mode)
+/* *********************** AXIS CONSTRAINT HELPER LINE *************** */
+
+static void constline(float *center, float *dir, char axis, float axismat[][3])
+{
+	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
+	float v1[3], v2[3], v3[3];
+	char col[3], col2[2];
+	
+	if(G.obedit) mymultmatrix(G.obedit->obmat);	// sets opengl viewing
+
+	VecCopyf(v3, dir);
+	VecMulf(v3, G.vd->far);
+	
+	VecSubf(v2, center, v3);
+	VecAddf(v1, center, v3);
+
+	BIF_GetThemeColor3ubv(TH_GRID, col);
+	make_axis_color(col, col2, axis);
+	glColor3ubv(col2);
+
+	setlinestyle(0);
+	glBegin(GL_LINE_STRIP); 
+		glVertex3fv(v1); 
+		glVertex3fv(v2); 
+	glEnd();
+	
+	if(axismat) {
+		float mat[4][4];
+		
+		Mat4CpyMat3(mat, axismat);
+		VecAddf(mat[3], mat[3], center);
+		
+		mymultmatrix(mat);
+		BIF_ThemeColor(TH_TEXT);
+		drawaxes(2.0);
+	}
+	
+	myloadmatrix(G.vd->viewmat);
+	
+}
+
+
+#define XTRANS		0x01
+#define YTRANS		0x02
+#define ZTRANS		0x04
+#define TRANSLOCAL	0x80
+#define XTRANSLOCAL	(XTRANS|TRANSLOCAL)
+#define YTRANSLOCAL	(YTRANS|TRANSLOCAL)
+#define ZTRANSLOCAL	(ZTRANS|TRANSLOCAL)
+
+/* temporal storage for callback */
+struct constline_temp {
+	int mode, axismode, midtog;
+	float *centre, *vx, *vy, *vz;
+	float *imat;
+};
+
+static struct constline_temp cnst={0,0}; // init
+
+/* called while transform(), store the relevant values in struct  */
+static void set_constline_callback(int mode, int axismode, int midtog, 
+						float *centre, float imat[][3], float *vx, float *vy, float *vz)
+{
+	cnst.mode= mode;
+	cnst.axismode= axismode;
+	cnst.midtog= midtog;
+	cnst.centre= centre;
+	cnst.imat= (float *)imat;
+	cnst.vx= vx;
+	cnst.vy= vy;
+	cnst.vz= vz;
+}
+
+/* is called from drawview.c after drawing objects */
+void constline_callback(void)
+{
+	TransOb *tob;
+	int a;
+	
+	if(cnst.mode==0 || cnst.axismode==0) return;	// uninitialized or no helpline
+	
+	// check further:
+	if( (cnst.mode == 'C') || (cnst.mode == 'w') || (cnst.mode=='N') ) return; 
+	if( ((cnst.mode=='R')||(cnst.mode=='r')) && (cnst.midtog) ) return;
+		
+	if(G.obedit) {	// only one helpline in editmode
+		float matone[3][3];
+		Mat3One(matone);
+		
+		switch (cnst.axismode) {
+		case XTRANSLOCAL: constline(cnst.centre, cnst.vx, 'x', matone); break;
+		case YTRANSLOCAL: constline(cnst.centre, cnst.vy, 'y', matone); break;
+		case ZTRANSLOCAL: constline(cnst.centre, cnst.vz, 'z', matone); break;
+		case XTRANS: constline(cnst.centre, cnst.imat, 'x', NULL); break;
+		case YTRANS: constline(cnst.centre, cnst.imat+3, 'y', NULL); break;
+		case ZTRANS: constline(cnst.centre, cnst.imat+6, 'z', NULL); break;
+		}
+	}
+	else if(cnst.axismode < TRANSLOCAL) {	// for multiple objects one helpline...
+		switch (cnst.axismode) {
+		case XTRANS: constline(cnst.centre, cnst.vx, 'x', NULL); break;
+		case YTRANS: constline(cnst.centre, cnst.vy, 'y', NULL); break;
+		case ZTRANS: constline(cnst.centre, cnst.vz, 'z', NULL); break;
+		}
+	}
+	else {	// unless it's local transform
+		tob= transmain;
+		for(a=0; a<tottrans; a++, tob++) {
+			switch (cnst.axismode) {
+			case XTRANSLOCAL: constline(tob->loc, tob->axismat[0], 'x', tob->axismat); break;
+			case YTRANSLOCAL: constline(tob->loc, tob->axismat[1], 'y', tob->axismat); break;
+			case ZTRANSLOCAL: constline(tob->loc, tob->axismat[2], 'z', tob->axismat); break;
+			}
+		}
+	}
+}
+
+/* *********************** END AXIS CONSTRAINT HELPER LINE *************** */
+/* *********************** TRANSFORM()  *************** */
+
+static char *transform_mode_to_string(int mode)
 {
        switch(mode) {
                case 'g':       return("Grab"); break;
@@ -4224,6 +4336,8 @@ void transform(int mode)
 					if(G.obedit) calc_trans_verts();
 					special_trans_update(keyflags);
 					
+					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
+
 					if(fast==0) {
 						force_draw();
 						time= my_clock()-time;
@@ -4351,21 +4465,22 @@ void transform(int mode)
 										VecRotToMat3(vec, addvec[0] * M_PI / 180.0, mat);
 									else
 										VecRotToMat3(vec, phi, mat);
+										
 								}
 							}
-								Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0, 0, 0, 0);
+							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0, 0, 0, 0);
 
-								/* 2 */
-								if( (tob->ob->transflag & OB_QUAT) == 0 && tob->rot){
-									Mat3ToEul(smat, eul);
-									EulToMat3(eul, smat);
-								}
-							
-								/* 3 */
-								/* we now work with rot+drot */
+							/* 2 */
+							if( (tob->ob->transflag & OB_QUAT) == 0 && tob->rot){
+								Mat3ToEul(smat, eul);
+								EulToMat3(eul, smat);
+							}
+						
+							/* 3 */
+							/* we now work with rot+drot */
 								
-							if(tob->ob->transflag & OB_QUAT || !tob->rot)
-							{
+							if(tob->ob->transflag & OB_QUAT || !tob->rot) {
+							
 								/* drot+rot TO DO! */
 								Mat3ToQuat(smat, quat);	// Original
 								QuatMul(tob->quat, quat, tob->oldquat);
@@ -4435,24 +4550,26 @@ void transform(int mode)
 							}
 							
 							if(G.vd->around!=V3D_LOCAL && (!G.obpose))  {
-									/* translation */
-									VecSubf(vec, tob->obvec, centre);
-									Mat3MulVecfl(mat, vec);
-									VecAddf(vec, vec, centre);
-									/* vec now is the location where the object has to be */
-									VecSubf(vec, vec, tob->obvec);
-									Mat3MulVecfl(tob->parinv, vec);
-									
-									if(tob->flag & TOB_IPO) {
-										add_ipo_tob_poin(tob->locx, tob->oldloc, vec[0]);
-										add_ipo_tob_poin(tob->locy, tob->oldloc+1, vec[1]);
-										add_ipo_tob_poin(tob->locz, tob->oldloc+2, vec[2]);
-									}
-									else if(tob->loc) {
-										VecAddf(tob->loc, tob->oldloc, vec);
-									}
+								float vec[3];	// make local, the other vec stores rot axis
+								
+								/* translation */
+								VecSubf(vec, tob->obvec, centre);
+								Mat3MulVecfl(mat, vec);
+								VecAddf(vec, vec, centre);
+								/* vec now is the location where the object has to be */
+								VecSubf(vec, vec, tob->obvec);
+								Mat3MulVecfl(tob->parinv, vec);
+								
+								if(tob->flag & TOB_IPO) {
+									add_ipo_tob_poin(tob->locx, tob->oldloc, vec[0]);
+									add_ipo_tob_poin(tob->locy, tob->oldloc+1, vec[1]);
+									add_ipo_tob_poin(tob->locz, tob->oldloc+2, vec[2]);
+								}
+								else if(tob->loc) {
+									VecAddf(tob->loc, tob->oldloc, vec);
 								}
 							}
+						}
 						else {
 							if(mode=='t') {
 								if(tv->val) *(tv->val)= tv->oldval-phi;
@@ -4534,7 +4651,9 @@ void transform(int mode)
 
 					if(G.obedit) calc_trans_verts();
 					special_trans_update(keyflags);
-
+					
+					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
+					
 					if(fast==0) {
 						force_draw();
 						time= my_clock()-time;
@@ -4743,7 +4862,8 @@ void transform(int mode)
 					if(G.obedit) calc_trans_verts();
 					special_trans_update(keyflags);
 				
-
+					set_constline_callback(mode, axismode, midtog, centre, imat, vx, vy, vz);
+				
 					if(fast==0) {
 						force_draw();
 						time= my_clock()-time;
@@ -4833,70 +4953,6 @@ void transform(int mode)
 				}
 			}
 			/* Help line drawing starts here */
-			/* Drawing stuff I choose to put it in here so it can draw one line per object or per vertex */
-			if (((drawhelpline)||(axismode)) && (mode != 'C') && (mode != 'w') && (mode!='N') && (! (((mode=='R')||(mode=='r')) && (midtog)) ) ){
-				if (G.obedit && ((mode=='R')||(mode=='r')||(G.totvertsel > 5))){
-					if(axismode==XTRANSLOCAL) constline(centre, vx, 0xFF);
-					if(axismode==YTRANSLOCAL) constline(centre, vy, 0xFF00);
-					if(axismode==ZTRANSLOCAL) constline(centre, vz, 0xFF0000);
-					if(axismode==XTRANS) constline(centre, imat[0], 0xFF);
-					if(axismode==YTRANS) constline(centre, imat[1], 0xFF00);
-					if(axismode==ZTRANS) constline(centre, imat[2], 0xFF0000);
-					if((axismode==0)&&(drawhelpline==2)){
-						constline(centre, vx, 0xFF);
-						constline(centre, vy, 0xFF00);
-						constline(centre, vz, 0xFF0000);
-					}
-					if((axismode==0)&&(drawhelpline==1)){
-						constline(centre, imat[0], 0xFF);
-						constline(centre, imat[1], 0xFF00);
-						constline(centre, imat[2], 0xFF0000);
-					}
-				}
-				else {
-					tob= transmain;
-					tv= transvmain;
-					for(a=0; a<tottrans; a++, tob++, tv++) {
-						if(transmain) {
-							if(axismode==XTRANSLOCAL) constline(tob->loc, tob->axismat[0], 0xFF);
-							if(axismode==YTRANSLOCAL) constline(tob->loc, tob->axismat[1], 0xFF00);
-							if(axismode==ZTRANSLOCAL) constline(tob->loc, tob->axismat[2], 0xFF0000);
-							if(axismode==XTRANS) constline(tob->loc, vx, 0xFF);
-							if(axismode==YTRANS) constline(tob->loc, vy, 0xFF00);
-							if(axismode==ZTRANS) constline(tob->loc, vz, 0xFF0000);
-							if((axismode==0)&&(drawhelpline==1)){
-								constline(tob->oldloc, vx, 0xFF);
-								constline(tob->oldloc, vy, 0xFF00);
-								constline(tob->oldloc, vz, 0xFF0000);
-							}
-							if((axismode==0)&&(drawhelpline==2)){
-								constline(tob->oldloc, tob->axismat[0], 0xFF);
-								constline(tob->oldloc, tob->axismat[1], 0xFF00);
-								constline(tob->oldloc, tob->axismat[2], 0xFF0000);
-							}
-						}
-						else {
-							if(axismode==XTRANSLOCAL) constline(tv->loc, vx, 0xFF);
-							if(axismode==YTRANSLOCAL) constline(tv->loc, vy, 0xFF00);
-							if(axismode==ZTRANSLOCAL) constline(tv->loc, vz, 0xFF0000);
-							if(axismode==XTRANS) constline(tv->loc, imat[0], 0xFF);
-							if(axismode==YTRANS) constline(tv->loc, imat[1], 0xFF00);
-							if(axismode==ZTRANS) constline(tv->loc, imat[2], 0xFF0000);
-							if((axismode==0)&&(drawhelpline==2)){
-								constline(G.obedit->obmat[4], vx, 0xFF);
-								constline(G.obedit->obmat[4], vy, 0xFF00);
-								constline(G.obedit->obmat[4], vz, 0xFF0000);
-							}
-							if((axismode==0)&&(drawhelpline==1)){
-								constline(G.obedit->obmat[4], imat[0], 0xFF);
-								constline(G.obedit->obmat[4], imat[1], 0xFF00);
-								constline(G.obedit->obmat[4], imat[2], 0xFF0000);
-							}
-						}
-					}
-				}
-			}
-
 
 		}
 		

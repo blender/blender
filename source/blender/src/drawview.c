@@ -434,12 +434,33 @@ static void drawgrid_draw(float wx, float wy, float x, float y, float dx)
 
 }
 
+// not intern, called in editobject for constraint axis too
+void make_axis_color(char *col, char *col2, char axis)
+{
+	if(axis=='x') {
+		col2[0]= col[0]>219?255:col[0]+36;
+		col2[1]= col[1]<26?0:col[1]-26;
+		col2[2]= col[2]<26?0:col[2]-26;
+	}
+	else if(axis=='y') {
+		col2[0]= col[0]<46?0:col[0]-36;
+		col2[1]= col[1]>189?255:col[1]+66;
+		col2[2]= col[2]<46?0:col[2]-36; 
+	}
+	else {
+		col2[0]= col[0]<26?0:col[0]-26; 
+		col2[1]= col[1]<26?0:col[1]-26; 
+		col2[2]= col[2]>209?255:col[2]+46;
+	}
+	
+}
+
 static void drawgrid(void)
 {
 	/* extern short bgpicmode; */
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
-	char col[3];
+	char col[3], col2[3];
 	
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
@@ -537,13 +558,15 @@ static void drawgrid(void)
 	BIF_GetThemeColor3ubv(TH_GRID, col);
 	
 	/* center cross */
-	if(G.vd->view==3) glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36); /* y-as */
-	else glColor3ub(col[0]>219?255:col[0]+36, col[1]<26?0:col[1]-26, col[2]<26?0:col[2]-26);	/* x-as */
-
+	if(G.vd->view==3) make_axis_color(col, col2, 'y');
+	else make_axis_color(col, col2, 'x');
+	glColor3ubv(col2);
+	
 	fdrawline(0.0,  y,  (float)curarea->winx,  y); 
 	
-	if(G.vd->view==7) glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36);	/* y-as */
-	else glColor3ub(col[0]<36?0:col[0]-36, col[1]<36?0:col[1]-36, col[2]>209?255:col[2]+46);	/* z-as */
+	if(G.vd->view==7) make_axis_color(col, col2, 'y');
+	else make_axis_color(col, col2, 'z');
+	glColor3ubv(col2);
 
 	fdrawline(x, 0.0, x, (float)curarea->winy); 
 
@@ -557,7 +580,7 @@ static void drawfloor(void)
 	View3D *vd;
 	float vert[3], grid;
 	int a, gridlines;
-	char col[3];
+	char col[3], col2[3];
 	
 	vd= curarea->spacedata.first;
 
@@ -573,7 +596,8 @@ static void drawfloor(void)
 	for(a= -gridlines;a<=gridlines;a++) {
 
 		if(a==0) {
-			glColor3ub(col[0]<36?0:col[0]-36, col[1]>199?255:col[1]+56, col[2]<36?0:col[2]-36);	/* y-as */
+			make_axis_color(col, col2, 'y');
+			glColor3ubv(col2);
 		}
 		else if( (a % 10)==0) {
 			BIF_ThemeColorShade(TH_GRID, -10);
@@ -592,7 +616,8 @@ static void drawfloor(void)
 	
 	for(a= -gridlines;a<=gridlines;a++) {
 		if(a==0) {
-			glColor3ub(col[0]>219?255:col[0]+36, col[1]<26?0:col[1]-26, col[2]<26?0:col[2]-26);	/* x-as */
+			make_axis_color(col, col2, 'x');
+			glColor3ubv(col2);
 		}
 		else if( (a % 10)==0) {
 			BIF_ThemeColorShade(TH_GRID, -10);
@@ -1215,6 +1240,7 @@ static void view3d_blockhandlers(ScrArea *sa)
 
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
+	extern void constline_callback(void);	// editobject.c helpline
 	Base *base;
 	Object *ob;
 	
@@ -1363,6 +1389,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		
 		base= base->next;
 	}
+
+	if(G.moving) constline_callback();
 
 	/* duplis, draw as last to make sure the displists are ok */
 	base= G.scene->base.first;

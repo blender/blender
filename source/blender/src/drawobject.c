@@ -269,40 +269,6 @@ void helpline(float *vec)
 	glDrawBuffer(GL_BACK);
 }
 
-void constline(float *center, float *dir, int col)
-{
-	float v1[3], v2[3];
-	short val1[2], val2[2];
-
-
-	VecCopyf(v1, center);
-	VecCopyf(v2, dir);
-	if(G.obedit){
-		Mat4Mul3Vecfl(G.obedit->obmat, v1);
-		VecAddf(v1, v1, G.obedit->obmat[3]);
-	}
-	if(G.obedit) Mat4Mul3Vecfl(G.obedit->obmat, v2);
-
-	project_short_infiniteline(v1, v2, val1, val2);
-
-	persp(0);
-	
-	glDrawBuffer(GL_FRONT);
-	
-	cpack(col);
-
-	setlinestyle(0);
-	glBegin(GL_LINE_STRIP); 
-		glVertex2sv(val1); 
-		glVertex2sv(val2); 
-	glEnd();
-	
-	persp(PERSP_VIEW);
-
-	glFinish(); // flush display for frontbuffer
-	glDrawBuffer(GL_BACK);
-}
-
 void drawaxes(float size)
 {
 	int axis;

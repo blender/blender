@@ -47,7 +47,6 @@ struct Base;
 
 void init_draw_rects(void);
 void helpline(float *vec);
-void constline(float *center, float *dir, int col);
 void drawaxes(float size);
 void drawcamera(struct Object *ob);
 void calc_lattverts_ext(void);
