@@ -41,6 +41,7 @@
 #include <io.h>
 #endif
 
+#include <BDR_editobject.h> /* exit_editmode() */
 #include <BIF_usiblender.h>
 #include <BLI_blenlib.h>
 #include <BLO_writefile.h>
@@ -391,6 +392,8 @@ static PyObject *Blender_Load(PyObject *self, PyObject *args)
 		BIF_write_autosave(); /* for safety let's preserve the current data */
 	}
 
+	if (G.obedit) exit_editmode(1);
+
 	/* for safety, any filename with .B.blend is considered the default one.
 	 * It doesn't seem necessary to compare file attributes (like st_ino and
 	 * st_dev, according to the glibc info pages) to find out if the given
@@ -524,6 +527,7 @@ void M_Blender_Init (void)
 	PyDict_SetItemString (dict, "Noise",		Noise_Init());
 	PyDict_SetItemString (dict, "Mathutils",Mathutils_Init());
 	PyDict_SetItemString (dict, "Library",  Library_Init());
+	PyDict_SetItemString (dict, "Sound",    Sound_Init());
 
 	PyDict_SetItemString (dict, "CurNurb",  CurNurb_Init());
 

@@ -203,5 +203,6 @@ PyObject * BGL_Init (void);
 PyObject * Mathutils_Init (void);
 PyObject * NLA_Init (void);
 PyObject * Library_Init (void);
+PyObject * Sound_Init (void);
 
 #endif /* EXPP_modules_h */

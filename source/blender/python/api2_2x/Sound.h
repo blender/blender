@@ -1,9 +1,5 @@
-/**
- * blenlib/DNA_object_types.h (mar-2001 nzc)
- *	
- * Scriptlink is hard-coded in object for some reason.
- *
- * $Id$ 
+/* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -27,39 +23,35 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * This is a new part of Blender.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Chris Keith
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- */
-#ifndef DNA_SCRIPTLINK_TYPES_H
-#define DNA_SCRIPTLINK_TYPES_H
+*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef EXPP_SOUND_H
+#define EXPP_SOUND_H
 
-struct ID;
+#include <Python.h>
+#include <DNA_sound_types.h>
 
-typedef struct ScriptLink {
-	struct ID **scripts;
-	short *flag;
-	
-	short actscript, totscript;
-	int pad;
-} ScriptLink;
+/*****************************************************************************/
+/* Python BPy_Sound structure definition                                     */
+/*****************************************************************************/
+typedef struct {
+  PyObject_HEAD
+  bSound *sound;
+} BPy_Sound;
 
-/* **************** SCRIPTLINKS ********************* */
+/*****************************************************************************/
+/* Module Blender.Sound - public functions                                   */
+/*****************************************************************************/
+PyObject *Sound_Init (void);
+PyObject *Sound_CreatePyObject (bSound *sound);
+bSound   *Sound_FromPyObject (PyObject *pyobj);
+int	  Sound_CheckPyObject (PyObject *pyobj);
 
-#define SCRIPT_FRAMECHANGED	1
-#define SCRIPT_ONLOAD 2
-#define SCRIPT_REDRAW	4
-#define SCRIPT_ONSAVE	8
+#endif /* EXPP_SOUND_H */
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif
 

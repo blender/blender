@@ -130,6 +130,8 @@ char * event_to_name(short event)
 			return "FrameChanged";
 		case SCRIPT_ONLOAD:
 			return "OnLoad";
+		case SCRIPT_ONSAVE:
+			return "OnSave";
 		case SCRIPT_REDRAW:
 			return "Redraw";
 		default:
@@ -272,9 +274,11 @@ PyObject *EXPP_getScriptLinks (ScriptLink *slink, PyObject *args, int is_scene)
 		event = SCRIPT_REDRAW;
 	else if (is_scene && !strcmp(eventname, "OnLoad"))
 		event = SCRIPT_ONLOAD;
+	else if (is_scene && !strcmp(eventname, "OnSave"))
+		event = SCRIPT_ONSAVE;
 	else
 		return EXPP_ReturnPyObjError (PyExc_AttributeError,
-						"invalid event name.");
+						"invalid event name");
 
 	for (i = 0; i < slink->totscript; i++) {
 		if ((slink->flag[i] == event) && slink->scripts[i])
@@ -335,6 +339,8 @@ int EXPP_addScriptLink (ScriptLink *slink, PyObject *args, int is_scene)
 		event = SCRIPT_REDRAW;
 	else if (is_scene && !strcmp(eventname, "OnLoad"))
 		event = SCRIPT_ONLOAD;
+	else if (is_scene && !strcmp(eventname, "OnSave"))
+		event = SCRIPT_ONSAVE;
 	else
 		return EXPP_ReturnIntError (PyExc_AttributeError,
 						"invalid event name.");

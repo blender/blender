@@ -114,8 +114,8 @@ def load_mat_image(mat, img_fileName, type, mesh):
   # adds textures to faces (Textured/Alt-Z mode)
   # Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
   if type == 'Kd':
-    for f in mesh.faces:
-      if mesh.materials[f.mat].name == mat.name:
+    for f in meshList[objectName][0].faces:
+      if meshList[objectName][0].materials[f.mat].name == mat.name:
         
         # the inline usemat command overides the material Image
         if not f.image:
@@ -184,22 +184,24 @@ def load_mtl(dir, mtl_file, mesh):
 def load_obj(file):
   def applyMat(mesh, f, mat):
     # Check weather the 16 mat limit has been met.
-    if len( mesh.materials ) >= MATLIMIT:
+    if len( meshList[objectName][0].materials ) >= MATLIMIT:
       print 'Warning, max material limit reached, using an existing material'
-      return mesh, f
+      return meshList[objectName][0]
       
     mIdx = 0
-    for m in mesh.materials:
+    for m in meshList[objectName][0].materials:
       if m.getName() == mat.getName():
          break
       mIdx+=1
       
     if mIdx == len(mesh.materials):
-      mesh.addMaterial(mat)
+      meshList[objectName][0].addMaterial(mat)
       
     f.mat = mIdx
-    return mesh, f
-    
+    return f
+  
+  
+  
   # Get the file name with no path or .obj
   fileName = stripName( stripPath(file) )
   
@@ -208,23 +210,26 @@ def load_obj(file):
   DIR = pathName(file, stripPath(file))
 
   fileLines = open(file, 'r').readlines()
-    
-  mesh = NMesh.GetRaw() # new empty mesh
   
-  objectName = 'mesh' # If we cant get one, use this
-    
-  uvMapList = [(0,0)] # store tuple uv pairs here
-  
-  # This dummy vert makes life a whole lot easier-
-  # pythons index system then aligns with objs, remove later
-  vertList = [NMesh.Vert(0, 0, 0)] # store tuple uv pairs here
   
   # Here we store a boolean list of which verts are used or not
   # no we know weather to add them to the current mesh
   # This is an issue with global vertex indicies being translated to per mesh indicies
   # like blenders, we start with a dummy just like the vert.
   # -1 means unused, any other value refers to the local mesh index of the vert.
-  usedList = [-1] 
+  
+  # objectName has a char in front of it that determins weather its a group or object.
+  # We ignore it when naming the object.
+  objectName = 'omesh' # If we cant get one, use this
+  
+  meshList = {}
+  meshList[objectName] = (NMesh.GetRaw(), [-1]) # Mesh/meshList[objectName][1]
+  uvMapList = [(0,0)] # store tuple uv pairs here
+  
+  # This dummy vert makes life a whole lot easier-
+  # pythons index system then aligns with objs, remove later
+  vertList = [NMesh.Vert(0, 0, 0)] # store tuple uv pairs here
+  
   
   nullMat = getMat(NULL_MAT)
     
@@ -245,7 +250,7 @@ def load_obj(file):
     elif l[0] == 'v':
       # This is a new vert, make a new mesh
       vertList.append( NMesh.Vert(eval(l[1]), eval(l[2]), eval(l[3]) ) )
-      usedList.append(-1) # Ad the moment this vert is not used by any mesh.
+      meshList[objectName][1].append(-1) # Ad the moment this vert is not used by any meshList[objectName][0].
       
     elif l[0] == 'vn':
       pass
@@ -258,8 +263,12 @@ def load_obj(file):
         
       # Make a face with the correct material.
       f = NMesh.Face()
-      mesh, f = applyMat(mesh, f, currentMat)
-        
+      f = applyMat(meshList[objectName][0], f, currentMat)
+  
+      # Apply the current image to the face
+      if currentImg != NULL_IMG:
+        f.image = currentImg
+
       # Set up vIdxLs : Verts
       # Set up vtIdxLs : UV
       # Start with a dummy objects so python accepts OBJs 1 is the first index.
@@ -293,89 +302,63 @@ def load_obj(file):
       # Quads only, we could import quads using the method below but it polite to import a quad as a quad.
       if len(vIdxLs) == 4:
         for i in [0,1,2,3]:
-          if usedList[vIdxLs[i]] == -1:
-            mesh.verts.append(vertList[vIdxLs[i]])
-            f.v.append(mesh.verts[-1])
-            usedList[vIdxLs[i]] = len(mesh.verts)-1
+          if meshList[objectName][1][vIdxLs[i]] == -1:
+            meshList[objectName][0].verts.append(vertList[vIdxLs[i]])
+            f.v.append(meshList[objectName][0].verts[-1])
+            meshList[objectName][1][vIdxLs[i]] = len(meshList[objectName][0].verts)-1
           else:
-            f.v.append(mesh.verts[usedList[vIdxLs[i]]])
+            f.v.append(meshList[objectName][0].verts[meshList[objectName][1][vIdxLs[i]]])
           
         # UV MAPPING
         if fHasUV:
           for i in [0,1,2,3]:
             f.uv.append( uvMapList[ vtIdxLs[i] ] )
-        mesh.faces.append(f) # move the face onto the mesh
-        # Apply the current image to the face
-        if currentImg != NULL_IMG:
-          mesh.faces[-1].image = currentImg
+        meshList[objectName][0].faces.append(f) # move the face onto the mesh
       
       elif len(vIdxLs) >= 3: # This handles tri's and fans
         for i in range(len(vIdxLs)-2):
           f = NMesh.Face()
-          mesh, f = applyMat(mesh, f, currentMat)
-            
-          if usedList[vIdxLs[0]] == -1:
-            mesh.verts.append(vertList[vIdxLs[0]])
-            f.v.append(mesh.verts[-1])
-            usedList[vIdxLs[0]] = len(mesh.verts)-1
-          else:
-            f.v.append(mesh.verts[usedList[vIdxLs[0]]])
-            
-          if usedList[vIdxLs[i+1]] == -1:
-            mesh.verts.append(vertList[vIdxLs[i+1]])
-            f.v.append(mesh.verts[-1])
-            usedList[vIdxLs[i+1]] = len(mesh.verts)-1
-          else:
-            f.v.append(mesh.verts[usedList[vIdxLs[i+1]]])
-            
-          if usedList[vIdxLs[i+2]] == -1:
-            mesh.verts.append(vertList[vIdxLs[i+2]])
-            f.v.append(mesh.verts[-1])
-            usedList[vIdxLs[i+2]] = len(mesh.verts)-1
-          else:
-            f.v.append(mesh.verts[usedList[vIdxLs[i+2]]])  
-            
+          f = applyMat(meshList[objectName][0], f, currentMat)
+          for ii in [0, i+1, i+2]:
+            if meshList[objectName][1][vIdxLs[ii]] == -1:
+              meshList[objectName][0].verts.append(vertList[vIdxLs[ii]])
+              f.v.append(meshList[objectName][0].verts[-1])
+              meshList[objectName][1][vIdxLs[ii]] = len(meshList[objectName][0].verts)-1
+            else:
+              f.v.append(meshList[objectName][0].verts[meshList[objectName][1][vIdxLs[ii]]])
+              
           # UV MAPPING
           if fHasUV:
             f.uv.append( uvMapList[ vtIdxLs[0] ] )
             f.uv.append( uvMapList[ vtIdxLs[i+1] ] )
             f.uv.append( uvMapList[ vtIdxLs[i+2] ] )
-          mesh.faces.append(f) # move the face onto the mesh
-            
-          # Apply the current image to the face
-          if currentImg != NULL_IMG:
-            mesh.faces[-1].image = currentImg
+          meshList[objectName][0].faces.append(f) # move the face onto the mesh
+          
     
     # Object / Group
     elif l[0] == 'o' or l[0] == 'g':
       
-      # Reset the used list
-      ulIdx = 0
-      while ulIdx < len(usedList):
-        usedList[ulIdx] = -1
-        ulIdx +=1
+      # This makes sure that if an object and a group have the same name then
+      # they are not put into the same object.
+      if l[0] == 'o':
+        newObjectName = 'o' + '_'.join(l[1:])
+      elif l[0] == 'g':
+        newObjectName = 'g' + '_'.join(l[1:])
       
-      # Some material stuff
-      if mtl_fileName != '':
-        load_mtl(DIR, mtl_fileName, mesh)
+      if newObjectName == '':
+        objectName = 'omesh'
+      else:
+        objectName = newObjectName
       
-      # Make sure the objects is worth putting
-      if len(mesh.verts) > 1:
-        mesh.verts.remove(mesh.verts[0])
-        ob = NMesh.PutRaw(mesh, fileName + '_' + objectName)
-        if ob != None: # Name the object too.
-           ob.name = fileName + '_' + objectName
-      
-      # Make new mesh
-      mesh = NMesh.GetRaw()
-      # This dummy vert makes life a whole lot easier-
-      # pythons index system then aligns with objs, remove later
-      mesh.verts.append( NMesh.Vert(0, 0, 0) )
+      # If we havnt written to this mesh before then do so.
+      if objectName not in meshList.keys():
+        meshList[objectName] = (NMesh.GetRaw(), [-1])
+        meshList[objectName][0].verts.append( NMesh.Vert(0, 0, 0) )
         
-      # New mesh name
-      objectName = '_'.join(l[1:]) # Use join in case of spaces
-      
+        while len(meshList[objectName][1]) != len(vertList):
+          meshList[objectName][1].append(-1)
     
+    # Material
     elif l[0] == 'usemtl':
       if l[1] == '(null)':
         currentMat = getMat(NULL_MAT)
@@ -393,17 +376,20 @@ def load_obj(file):
       mtl_fileName = l[1]
       
     lIdx+=1
+    
+  #==============================================#
+  # Write all meshs in the dictionary            #
+  #==============================================#  
+  for mk in meshList.keys():
+    # Applies material properties to materials alredy on the mesh as well as Textures.
+    if mtl_fileName != '':
+      load_mtl(DIR, mtl_fileName, meshList[mk][0])
+    
+    meshList[mk][0].verts.remove(meshList[mk][0].verts[0])
+    ob = NMesh.PutRaw(meshList[mk][0], mk[1:])
+    if ob.name != None:
+      ob.name = mk[1:]
 
-  # Some material stuff
-  if mtl_fileName != '':
-    load_mtl(DIR, mtl_fileName, mesh)
-      
-  # We need to do this to put the last object.
-  # All other objects will be put alredy
-  if len(mesh.verts) > 1:
-    mesh.verts.remove(mesh.verts[0])
-    ob = NMesh.PutRaw(mesh, fileName + '_' + objectName)
-    if ob != None: # Name the object too.
-      ob.name = fileName + '_' + objectName
 
 Window.FileSelector(load_obj, 'Import Wavefront OBJ') 
+

@@ -765,17 +765,20 @@ static PyObject *M_Window_GetViewMatrix(PyObject *self)
 static PyObject *M_Window_EditMode(PyObject *self, PyObject *args)
 {
 	short status = -1;
+	char *undo_str = "From script";
+	int undo_str_len = 11;
 
-	if (!PyArg_ParseTuple(args, "|h", &status))
+	if (!PyArg_ParseTuple(args, "|hs#", &status, &undo_str, &undo_str_len))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
-			"expected nothing or an int (bool) as argument");
+			"expected nothing or an int (bool) and a string as arguments");
 
 	if (status >= 0) {
 		if (status) {
 				if (!G.obedit) enter_editmode();
 		}
 		else if (G.obedit) {
-			undo_push_mesh("From script"); /* use better solution after 2.34 */
+			if (undo_str_len > 63) undo_str[63] = '\0'; /* 64 is max */
+			undo_push_mesh(undo_str); /* use better solution after 2.34 */
 			exit_editmode(1);
 		}
 	}

@@ -201,7 +201,7 @@ def GetViewMatrix ():
   @return: the current matrix.
   """
 
-def EditMode(enable = -1):
+def EditMode(enable = -1, undo_msg = 'From script'):
   """
   Get and optionally set the current edit mode status: in or out.
 
@@ -221,7 +221,12 @@ def EditMode(enable = -1):
       -  1: enter edit mode.
 
       It's not an error to try to change to a state that is already the
-      current one, the function simply ignores the request. 
+      current one, the function simply ignores the request.
+  @type undo_msg: string
+  @param undo_msg: only needed when exiting edit mode (EditMode(0)).  This
+      string is used as the undo message in the Mesh->Undo History submenu in
+      the 3d view header.  Max length is 63, strings longer than that get
+      clamped.
   @rtype: int (bool)
   @return: 0 if Blender is not in edit mode right now, 1 otherwise. 
   @warn: this is an important function. NMesh operates on normal Blender

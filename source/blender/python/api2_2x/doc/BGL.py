@@ -3,6 +3,8 @@
 """
 The Blender.BGL submodule (the OpenGL wrapper).
 
+B{New}: some GLU functions: L{gluLookAt}, etc.
+
 The Blender.BGL submodule
 =========================
 
@@ -1603,9 +1605,97 @@ def glViewport(x,y,width,height):
   is first attached to a window, width and height are set to the dimensions of that window. 
   """
 
+def gluPerspective(fovY, aspect, zNear, zFar):
+  """
+  Set up a perspective projection matrix.
+  @see: U{http://www.parallab.uib.no/SGI_bookshelves/SGI_Developer/books/OpenGL_RM/sgi_html/ch06.html#id5557116}
+
+  @type fovY: double
+  @param fovY: Specifies the field of view angle, in degrees, in the y direction.
+  @type aspect: double
+  @param aspect: Specifies the aspect ratio that determines the field of view in the x direction. 
+   The aspect ratio is the ratio of x (width) to y (height).
+  @type zNear: double
+  @param zNear: Specifies the distance from the viewer to the near clipping plane (always positive).
+  @type zFar: double
+  @param zFar: Specifies the distance from the viewer to the far clipping plane (always positive).
+  """
+
+def gluLookAt(eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz):
+  """
+  Define a viewing transformation
+  @see: U{http://www.parallab.uib.no/SGI_bookshelves/SGI_Developer/books/OpenGL_RM/sgi_html/ch06.html#id5552781}
+
+  @type eyex, eyey, eyez: double
+  @param eyex, eyey, eyez: Specifies the position of the eye point.  
+  @type centerx, centery, centerz: double
+  @param centerx, centery, centerz: Specifies the position of the reference point.
+  @type upx, upy, upz: double
+  @param upx, upy, upz: Specifies the direction of the up vector.
+  """
+
+def gluOrtho2D(left, right, bottom, top):
+  """
+  Define a 2-D orthographic projection matrix
+  @see: U{http://www.parallab.uib.no/SGI_bookshelves/SGI_Developer/books/OpenGL_RM/sgi_html/ch06.html#id5556407}
+
+  @type left, right: double
+  @param left, right: Specify the coordinates for the left and right vertical clipping planes.
+  @type bottom, top: double
+  @param bottom, top: Specify the coordinates for the bottom and top horizontal clipping planes.
+  """
+
+def gluPickMatrix(x, y, width, height, viewport):
+  """
+  Define a picking region
+  @see: U{http://www.parallab.uib.no/SGI_bookshelves/SGI_Developer/books/OpenGL_RM/sgi_html/ch06.html#id5557442}
+
+  @type x, y: double
+  @param x, y: Specify the center of a picking region in window coordinates.
+  @type width, height: double
+  @param width, height: Specify the width and height, respectively, of the picking region in window coordinates.
+  @type viewport: Buffer object. [int]
+  @param viewport: Specifies the current viewport.
+  """
+
+def gluProject(objx, objy, objz, modelMatrix, projMatrix, viewport, winx, winy, winz):
+  """
+  Map object coordinates to window coordinates.
+  @see: U{http://www.parallab.uib.no/SGI_bookshelves/SGI_Developer/books/OpenGL_RM/sgi_html/ch06.html#id5557853}
+  
+  @type objx, objy, objz: double
+  @param objx, objy, objz: Specify the object coordinates.
+  @type modelMatrix: Buffer object. [double]
+  @param modelMatrix: Specifies the current modelview matrix (as from a glGetDoublev call).
+  @type projMatrix: Buffer object. [double]
+  @param projMatrix: Specifies the current projection matrix (as from a glGetDoublev call).
+  @type viewport: Buffer object. [int]
+  @param viewport: Specifies the current viewport (as from a glGetIntegerv call).
+  @type winx, winy, winz: Buffer object. [double]
+  @param winx, winy, winz: Return the computed window coordinates. 
+  """
+
+def gluUnProject(winx, winy, winz, modelMatrix, projMatrix, viewport, objx, objy, objz):
+  """
+  Map object coordinates to window
+  coordinates.
+  @see: U{http://www.parallab.uib.no/SGI_bookshelves/SGI_Developer/books/OpenGL_RM/sgi_html/ch06.html#id5557853}
+
+  @type winx, winy, winz: double
+  @param winx, winy, winz: Specify the window coordinates to be mapped.
+  @type modelMatrix: Buffer object. [double]
+  @param modelMatrix: Specifies the current modelview matrix (as from a glGetDoublev call).
+  @type projMatrix: Buffer object. [double]
+  @param projMatrix: Specifies the current projection matrix (as from a glGetDoublev call).
+  @type viewport: Buffer object. [int]
+  @param viewport: Specifies the current viewport (as from a glGetIntegerv call).
+  @type objx, objy, objz: Buffer object. [double]
+  @param objx, objy, objz: Return the computed object coordinates.
+  """
+
 class Buffer:
   """
-  The Buffer object is simply a block of memory that is delineated and initalized by the
+  The Buffer object is simply a block of memory that is delineated and initialized by the
   user. Many OpenGL funtions return data to a C-style pointer, however, because this
   is not possible in python the Buffer object can be used to this end. Wherever pointer
   notation is used in the OpenGL functions the Buffer object can be used in it's BGL 
@@ -1651,16 +1741,3 @@ class Buffer:
     @rtype: Buffer object
     @return: The newly created buffer as a PyObject.
     """
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -231,10 +231,11 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 		strcpy(str, "FrameChanged%x 1|");
 		strcat(str, "Redraw%x 4|");
 		if (scene) {
-			strcat(str, "OnLoad%x 2");
+			strcat(str, "OnLoad%x 2|");
+			strcat(str, "OnSave%x 8");
 		}
 
-		uiDefButS(block, MENU, 1, str, (short)sx, (short)sy, 140, 19, &script->flag[script->actscript-1], 0, 0, 0, 0, "Script links for the Frame changed event");
+		uiDefButS(block, MENU, 1, str, (short)sx, (short)sy, 140, 19, &script->flag[script->actscript-1], 0, 0, 0, 0, "Script links for this event");
 
 		uiDefIDPoinBut(block, test_scriptpoin_but, 1, "", (short)(sx+140),(short)sy, 140, 19, &script->scripts[script->actscript-1], "Name of Script to link");
 	}

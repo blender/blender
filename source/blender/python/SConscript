@@ -53,7 +53,8 @@ source_files = ['BPY_interface.c',
                 'api2_2x/sceneRender.c',
                 'api2_2x/sceneRadio.c',
                 'api2_2x/EXPP_interface.c',
-                'api2_2x/Noise.c']
+                'api2_2x/Noise.c',
+                'api2_2x/Sound.c']
 
 python_env.Append (CPPPATH = ['api2_2x',
                               '../blenkernel',

@@ -665,12 +665,18 @@ BGL_Wrap(1, Vertex4iv,          void,     (GLintP))
 BGL_Wrap(4, Vertex4s,           void,     (GLshort, GLshort, GLshort, GLshort))
 BGL_Wrap(1, Vertex4sv,          void,     (GLshortP))
 BGL_Wrap(4, Viewport,           void,     (GLint, GLint, GLsizei, GLsizei))
+BGLU_Wrap(4, Perspective,       void,     	(GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(9, LookAt,       		void,     	(GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(4, Ortho2D,       	void,     	(GLdouble, GLdouble, GLdouble, GLdouble))
+BGLU_Wrap(5, PickMatrix,       	void,     	(GLdouble, GLdouble, GLdouble, GLdouble, GLintP))
+BGLU_Wrap(9, Project,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
+BGLU_Wrap(9, UnProject,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
 
 /* #endif */
 
 #undef MethodDef
 #define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS, "no string"}
-
+#define MethodDefu(func) {"glu"#func, Method_##func, METH_VARARGS, "no string"}
 /* So that MethodDef(Accum) becomes:
  * {"glAccum", Method_Accumfunc, METH_VARARGS} */
 
@@ -992,7 +998,12 @@ static struct PyMethodDef BGL_methods[] = {
   MethodDef(Vertex4s),
   MethodDef(Vertex4sv),
   MethodDef(Viewport),
-
+  MethodDefu(Perspective),
+  MethodDefu(LookAt),
+  MethodDefu(Ortho2D),
+  MethodDefu(PickMatrix),
+  MethodDefu(Project),
+  MethodDefu(UnProject),
 /* #endif */
 
   {NULL, NULL, 0, NULL}

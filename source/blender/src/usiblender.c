@@ -371,7 +371,12 @@ void BIF_write_file(char *target)
 	char *err;
 	
 	if (BLI_streq(target, "")) return;
-	
+ 
+	/*Send the OnSave event*/
+	if (G.f & G_SCENESCRIPT) {
+		BPY_do_pyscript(&G.scene->id, SCRIPT_ONSAVE);
+	}
+
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {
 			error("Cannot overwrite used library");

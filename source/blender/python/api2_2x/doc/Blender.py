@@ -75,6 +75,8 @@ def Load (filename = None):
      script to previously defined data will generate a NameError.  So it's
      better to put Blender.Load as the last executed command in the script,
      when this function is used to open .blend files.
+  @warn: if in edit mode, this function leaves it, since Blender itself
+     requires that.
   """
 
 def Save (filename, overwrite = 0):

@@ -3,8 +3,7 @@
 """
 The Blender.Scene submodule.
 
-B{New}: L{Scene.play}; scriptLink methods: L{Scene.getScriptLinks}, etc;
-L{Scene.getRadiosityContext}
+B{New}: OnSave script link event: L{Scene.getScriptLinks}.
 
 Scene
 =====
@@ -174,7 +173,7 @@ class Scene:
     """
     Get a list with this Scene's script links of type 'event'.
     @type event: string
-    @param event: "FrameChanged", "OnLoad" or "Redraw".
+    @param event: "FrameChanged", "OnLoad", "OnSave" or "Redraw".
     @rtype: list
     @return: a list with Blender L{Text} names (the script links of the given
         'event' type) or None if there are no script links at all.
@@ -193,7 +192,7 @@ class Scene:
     @type text: string
     @param text: the name of an existing Blender L{Text}.
     @type event: string
-    @param event: "FrameChanged", "OnLoad" or "Redraw".
+    @param event: "FrameChanged", "OnLoad", "OnSave" or "Redraw".
     """
 
   def play (mode = 0, win = '<VIEW3D>'):
