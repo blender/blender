@@ -69,19 +69,15 @@
 #include "gen_utils.h"
 #include "modules.h"
 
-//<<<<<<< NMesh.h
 #include "blendef.h"
-//=======
-/* EXPP Mesh defines */
 
+/* EXPP Mesh defines */
 #define EXPP_NMESH_MODE_NOPUNOFLIP  ME_NOPUNOFLIP
 #define EXPP_NMESH_MODE_TWOSIDED    ME_TWOSIDED
 #define EXPP_NMESH_MODE_AUTOSMOOTH  ME_AUTOSMOOTH
 #define EXPP_NMESH_MODE_SUBSURF     ME_SUBSURF
 
-//>>>>>>> 1.13
 /* EXPP PyType Objects */
-
 PyTypeObject NMesh_Type;
 PyTypeObject NMFace_Type;
 PyTypeObject NMVert_Type;
@@ -92,11 +88,9 @@ extern PyTypeObject Image_Type;
 struct BPy_Object;
 
 /* Globals */
-
 static PyObject *g_nmeshmodule = NULL;
 
 /* Type checking for EXPP PyTypes */
-
 #define BPy_NMesh_Check(v)       ((v)->ob_type == &NMesh_Type)
 #define BPy_NMFace_Check(v)      ((v)->ob_type == &NMFace_Type)
 #define BPy_NMVert_Check(v)      ((v)->ob_type == &NMVert_Type)
@@ -110,11 +104,10 @@ static char NMesh_removeVertGroup_doc[] =
 	"remove a named vertex(deform) Group from a mesh that has been linked\n\
 	to an object.  Will remove all verts assigned to group.";
 static char NMesh_assignVertsToGroup_doc[] =
-	"Adds an array (a python list) of vertex points in the mesh to a named\n\
-	vertex group.  The list passed to this function represents the indeces of the\n\
-	vertex points in the mesh to add to the named group. The weight represents the\n\
-	amount of influence the group has over this vertex point. Weights should be in\n\
-	the range of 0.0 - 1.0. Vertex points can be assigned to more than one group.\n\
+	"Adds an array (a python list) of vertex points (by index) to a named\n\
+	vertex group.  The list will have an associated wieght assigned to them.\n\
+	The weight represents the amount of influence this group has over these vertex\n\
+	points. Weights should be in the range of 0.0 - 1.0.\n\
 	The assignmode can be either 'add', 'subtract', or 'replace'.  If this vertex\n\
 	is not assigned to the group 'add' creates a new association with the weight\n\
 	specified, otherwise the weight given is added to the current weight of the vertex.\n\
@@ -125,12 +118,13 @@ static char NMesh_assignVertsToGroup_doc[] =
 	to assign any vertex points to a vertex group.";
 static char NMesh_removeVertsFromGroup_doc[] =
 	"Will remove an array (a python list) of vertex points from a named group in a\n\
-	mesh that has been linked to an object.";
+	mesh that has been linked to an object. If no list is given this will remove all\n\
+	vertex point associations with the group passed";
 static char NMesh_returnVertsFromGroup_doc[] =
 	"By passing a python list of vertex indeces and a named group, this will return\n\
 	a python list representing the indeces that are a part of this vertex group.\n\
 	If no association was found for the index passed nothing will be return for\n\
-	the index. ";
+	the index. An optional flag will also return the weights as well";
 
 static char M_NMesh_doc[] =
 "The Blender.NMesh submodule";
