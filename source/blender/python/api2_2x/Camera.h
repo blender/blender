@@ -40,7 +40,7 @@
 #include "gen_utils.h"
 
 /* The Camera PyType Object defined in Camera.c */
-PyTypeObject Camera_Type;
+extern PyTypeObject Camera_Type;
 
 #define BPy_Camera_Check(v) \
     ((v)->ob_type == &Camera_Type) /* for type checking */

@@ -115,16 +115,15 @@ static void exit_pydraw(SpaceText *st)
 static void exec_callback(SpaceText *st, PyObject *callback, PyObject *args) 
 {
 	PyObject *result = PyObject_CallObject (callback, args);
-	printf ("In exec_callback\n");
-	if (result==NULL) {
-		printf("In exec_callback, result == NULL\n");
-		st->text->compiled= NULL;
-		PyErr_Print();
-		exit_pydraw(st);
+
+	if (result == NULL) {
+		st->text->compiled = NULL;
+		PyErr_Print ();
+		exit_pydraw (st);
 	}
-	printf ("In exec_callback 2\n");
-	Py_XDECREF(result);
-	Py_DECREF(args);
+
+	Py_XDECREF (result);
+	Py_DECREF (args);
 }
 
 /* BPY_spacetext_do_pywin_draw, the static spacetext_do_pywin_buttons and
@@ -165,7 +164,7 @@ static void spacetext_do_pywin_buttons(SpaceText *st, unsigned short event)
 
 void BPY_spacetext_do_pywin_event(SpaceText *st, unsigned short event, short val)
 {
-	if (event==QKEY && G.qual & (LR_ALTKEY|LR_CTRLKEY|LR_SHIFTKEY)) {
+	if (event == QKEY && G.qual & (LR_ALTKEY|LR_CTRLKEY|LR_SHIFTKEY)) {
 		exit_pydraw(st);
 		return;
 	}

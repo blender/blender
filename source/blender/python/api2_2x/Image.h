@@ -45,7 +45,7 @@ typedef struct {
 
 } C_Image;
 
-PyTypeObject Image_Type; /* The Image PyType Object */ 
+extern PyTypeObject Image_Type; /* The Image PyType Object */ 
 
 #define C_Image_Check(v)  ((v)->ob_type == &Image_Type) /* for type checking */
 

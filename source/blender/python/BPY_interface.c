@@ -176,10 +176,10 @@ void BPY_Err_Handle(Text *text)
     PyErr_Print();
     tb = PySys_GetObject("last_traceback");
 
-		if (!tb) {
-			printf("\nCan't get traceback\n");
-			return;
-		}
+    if (!tb) {
+      printf("\nCan't get traceback\n");
+      return;
+    }
 
     Py_INCREF(tb);
 
@@ -193,9 +193,9 @@ void BPY_Err_Handle(Text *text)
       v = PyObject_GetAttrString(tb, "tb_next");
 
       if (v == Py_None || strcmp(PyString_AsString(traceback_getFilename(v)),
-															GetName(text))) {
+                              GetName(text))) {
         break;
-			}
+      }
 
       Py_DECREF(tb);
       tb = v;
@@ -210,7 +210,7 @@ void BPY_Err_Handle(Text *text)
     Py_DECREF(tb);
   }
 
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -293,7 +293,7 @@ void BPY_free_compiled_text(struct Text* text)
   Py_DECREF((PyObject*) text->compiled);
   text->compiled = NULL;
 
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -317,7 +317,7 @@ void BPY_clear_bad_scriptlinks(struct Text *byebye)
 
   allqueue(REDRAWBUTSSCRIPT, 0);
 */
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -338,7 +338,7 @@ void BPY_do_all_scripts(short event)
 
   BPY_do_pyscript (&(G.scene->id), event);
 
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -373,7 +373,7 @@ void BPY_do_pyscript(struct ID *id, short event)
     }
   }
 
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -389,7 +389,7 @@ void BPY_free_scriptlink(struct ScriptLink *slink)
     if(slink->scripts) MEM_freeN(slink->scripts); 
   }
 
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -415,7 +415,7 @@ void BPY_copy_scriptlink(struct ScriptLink *scriptlink)
     memcpy(scriptlink->flag, tmp, sizeof(short)*scriptlink->totscript);
   }
 
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -448,36 +448,36 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 
   if (!text->compiled) { /* if it wasn't already compiled, do it now */
 
-#ifdef BLENDER_SANDBOX_MODE
+/*#ifdef BLENDER_SANDBOX_MODE
 
-/* IGNORE THIS ALL FOR A WHILE, IT'S VERY INCOMPLETE AND WILL CHANGE
- * CONSIDERABLY IN THE NEXT COMMIT.  THE ifdef won't stay, either. */
+// IGNORE THIS ALL FOR A WHILE, IT'S VERY INCOMPLETE AND WILL CHANGE
+// CONSIDERABLY IN THE NEXT COMMIT.  THE ifdef won't stay, either.
 
-/* The import statement is a security risk, so we don't allow it in
- * SANDBOX MODE.  Instead, we import all needed modules ourselves and
- * substitute all 'import' and '__import__' statements in the code by
- * '#mport' and '#_import__', resp., making their lines become comments
- * in Python (to let scripts run without import errors). */
+// The import statement is a security risk, so we don't allow it in
+// SANDBOX MODE.  Instead, we import all needed modules ourselves and
+// substitute all 'import' and '__import__' statements in the code by
+// '#mport' and '#_import__', resp., making their lines become comments
+// in Python (to let scripts run without import errors).
 
-/* Disable importing only for the safest sandbox mode */
+// Disable importing only for the safest sandbox mode 
 
-  	txt_move_bof(text, 0); /* move to the beginning of the script */
+    txt_move_bof(text, 0); // move to the beginning of the script
 
-/* Search all occurrences of 'import' in the script */
-/* XXX Also check for from ... import ... */
-  	while (txt_find_string (text, "import")) {
-			char *line = text->sell->line;
+// Search all occurrences of 'import' in the script
+// XXX Also check for from ... import ...
+    while (txt_find_string (text, "import")) {
+      char *line = text->sell->line;
 
-			if (text->curc > 1) /* is it '__import__' ? */
-				if (strncmp (&line[text->curc - 2],
-										 "__import__", 10) == 0) text->curc -= 2;
+      if (text->curc > 1) // is it '__import__' ?
+        if (strncmp (&line[text->curc - 2],
+                     "__import__", 10) == 0) text->curc -= 2;
 
-			line[text->curc] = '#'; /* change them to '#mport' or '#_import__' */
-	  }
+      line[text->curc] = '#'; // change them to '#mport' or '#_import__'
+    }
 
-#endif
+#endif */
 
-   buf = txt_to_buf(text);
+    buf = txt_to_buf(text);
 
     text->compiled = Py_CompileString(buf, GetName(text), Py_file_input);
 
@@ -485,15 +485,16 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 
     if (PyErr_Occurred()) {
       BPY_free_compiled_text(text);
-			return NULL;
+      return NULL;
     }
 
   }
-#ifdef BLENDER_SANDBOX_MODE
-	//save the script as a dict entry and call the eval code for it
-	//then return
-	PyDict_SetItemString(globaldict, "_SB_code", text->compiled);
-#endif
+
+/*#ifdef BLENDER_SANDBOX_MODE
+  //save the script as a dict entry and call the eval code for it
+  //then return
+  PyDict_SetItemString(globaldict, "_SB_code", text->compiled);
+#endif */
 
   return PyEval_EvalCode(text->compiled, globaldict, globaldict);
 }
@@ -528,7 +529,7 @@ void ReleaseGlobalDictionary (PyObject * dict)
   PyDict_Clear (dict);
   Py_DECREF (dict);   /* Release dictionary. */
 
-	return;
+  return;
 }
 
 /*****************************************************************************/
@@ -547,6 +548,5 @@ void DoAllScriptsFromList (ListBase *list, short event)
     id = id->next;
   }
 
-	return;
+  return;
 }
-

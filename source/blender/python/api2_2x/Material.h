@@ -48,7 +48,7 @@ typedef struct {
 
 } C_Material;
 
-PyTypeObject Material_Type; /* The Material PyType Object */
+extern PyTypeObject Material_Type; /* The Material PyType Object */
 
 #define C_Material_Check(v) \
     ((v)->ob_type == &Material_Type) /* for type checking */

@@ -57,7 +57,7 @@
 #include "modules.h"
 
 /* The Object PyType Object defined in Object.c */
-PyTypeObject Object_Type;
+extern PyTypeObject Object_Type;
 
 #define C_Object_Check(v) \
     ((v)->ob_type == &Object_Type) /* for type checking */
