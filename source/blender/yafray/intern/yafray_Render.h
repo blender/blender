@@ -65,55 +65,53 @@ extern void error (char *fmt, ...);
 
 class yafrayRender_t
 {
-public:
-	// ctor
-	yafrayRender_t() {}
-	// dtor
-	~yafrayRender_t() {}
+	public:
+		// ctor
+		yafrayRender_t() {}
+		// dtor
+		virtual ~yafrayRender_t() {}
 
-	// mtds
-	bool exportScene();
+		// mtds
+		bool exportScene();
 
-	void displayImage();
-	void addDupliMtx(Object* obj);
+		void addDupliMtx(Object* obj);
 
-	bool objectKnownData(Object* obj);
+		bool objectKnownData(Object* obj);
 
-private:
-	Object* maincam_obj;
-	float mainCamLens;
+	protected:
+		Object* maincam_obj;
+		float mainCamLens;
 
-	int maxraydepth;
+		int maxraydepth;
+		bool hasworld;
 
-	std::string imgout;
+		std::map<Object*, std::vector<VlakRen*> > all_objects;
+		std::map<std::string, Material*> used_materials;
+		std::map<std::string, std::pair<Material*, MTex*> > used_textures;
+		std::map<std::string, std::vector<float> > dupliMtx_list;
+		std::map<std::string, Object*> dup_srcob;
+		std::map<void*, Object*> objectData;
 
-	std::ofstream xmlfile;
-	std::ostringstream ostr;
-	std::map<Object*, std::vector<VlakRen*> > all_objects;
-	std::map<std::string, Material*> used_materials;
-	std::map<std::string, std::pair<Material*, MTex*> > used_textures;
-	std::map<std::string, std::vector<float> > dupliMtx_list;
-	std::map<std::string, Object*> dup_srcob;
-	std::map<void*, Object*> objectData;
+		Object* findObject(const char* name);
+		bool getAllMatTexObs();
 
-	Object* findObject(const char* name);
-	bool getAllMatTexObs();
-	void writeTextures();
-	void writeMaterialsAndModulators();
-	void writeObject(Object* obj, const std::vector<VlakRen*> &VLR_list, const float obmat[4][4]);
-	void writeAllObjects();
-	void writeLamps();
-	void writeCamera();
-	void writeHemilight();
-	void writePathlight();
-	bool writeWorld();
-	void clearAll();
-	bool executeYafray(const std::string &xmlpath);
+		virtual void writeTextures()=0;
+		virtual void writeMaterialsAndModulators()=0;
+		virtual void writeObject(Object* obj, const std::vector<VlakRen*> &VLR_list, const float obmat[4][4])=0;
+		virtual void writeAllObjects()=0;
+		virtual void writeLamps()=0;
+		virtual void writeCamera()=0;
+		virtual void writeHemilight()=0;
+		virtual void writePathlight()=0;
+		virtual bool writeWorld()=0;
+		virtual bool writeRender()=0;
+		virtual bool initExport()=0;
+		virtual bool finishExport()=0;
+		
+		void clearAll();
 
 };
 
-/* C access to yafray */
-extern yafrayRender_t YAFBLEND;
 #endif
 
 
