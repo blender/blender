@@ -44,6 +44,7 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 #CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 #CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I$(NAN_FTGL)/include
 CPPFLAGS += -I$(NAN_GETTEXT)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include
