@@ -346,14 +346,305 @@ void do_image_buttons(unsigned short event)
 }
 
 /* This should not be a stack var! */
-static int headerbuttons_packdummy;
+// static int headerbuttons_packdummy;
+
+static void do_image_viewmenu(void *arg, int event)
+{
+
+	switch(event) {
+	case 0: /* Update Automatically */
+		if(BTST(G.sima->lock, 0)) G.sima->lock = BCLR(G.sima->lock, 0);
+		else G.sima->lock = BSET(G.sima->lock, 0);
+		break;
+	case 1: /* View All */
+		do_image_buttons(B_SIMAGEHOME);
+		break;
+	case 2: /* Maximize Window */
+		/* using event B_FULL */
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *image_viewmenu(void *arg_unused)
+{
+/*	static short tog=0; */
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
+	
+	if(BTST(G.sima->lock, 0)) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	}
+
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+		
+	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
+
+static void do_image_selectmenu(void *arg, int event)
+{
+	switch(event)
+	{
+	case 0: /* Border Select */
+		borderselect_sima();
+		break;
+	case 1: /* Select/Deselect All */
+		select_swap_tface_uv();
+		break;
+	}
+}
+
+static uiBlock *image_selectmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_selectmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_image_selectmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+static void do_image_image_rtmappingmenu(void *arg, int event)
+{
+	switch(event) {
+	case 0: /* UV Co-ordinates */
+		G.sima->image->flag = BCLR(G.sima->image->flag, 4);
+		break;
+	case 1: /* Reflection */
+		G.sima->image->flag = BSET(G.sima->image->flag, 4);
+		break;
+		}
+
+ 	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *image_image_rtmappingmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_image_rtmappingmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_image_rtmappingmenu, NULL);
+	
+	if (BTST(G.sima->image->flag, 4)) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Co-ordinates",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Reflection",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Co-ordinates",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Reflection",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	}
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+static void do_image_imagemenu(void *arg, int event)
+{
+	Image *ima;
+	char name[256];
+
+	switch(event)
+	{
+	case 0: /* Open */
+		if(G.sima->image) strcpy(name, G.sima->image->name);
+		else strcpy(name, U.textudir);
+		
+		activate_fileselect(FILE_SPECIAL, "Open Image", name, load_space_image);
+		break;
+	case 1:
+		if(G.sima->image) strcpy(name, G.sima->image->name);
+		else strcpy(name, U.textudir);
+		
+		activate_fileselect(FILE_SPECIAL, "Replace Image", name, replace_space_image);
+		break;
+	case 2: /* Pack Image */
+		ima = G.sima->image;
+		if (ima) {
+			if (ima->packedfile) {
+				error("Image is already packed.");
+			} else {
+				if (ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY)) {
+					error("Can't pack painted image. Save the painted image first.");
+				} else {
+					ima->packedfile = newPackedFile(ima->name);
+				}
+			}
+		}
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWHEADERS, 0);
+		break;
+	case 3: /* Unpack Image */
+		ima = G.sima->image;
+		if (ima) {
+			if (ima->packedfile) {
+				if (G.fileflags & G_AUTOPACK) {
+					if (okee("Disable AutoPack?")) {
+						G.fileflags &= ~G_AUTOPACK;
+					}
+				}
+				
+				if ((G.fileflags & G_AUTOPACK) == 0) {
+					unpackImage(ima, PF_ASK);
+				}
+			} else {
+				error("There are no packed images to unpack");
+			}
+		}
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWHEADERS, 0);
+		break;
+	case 4: /* Texture Painting */
+		if(BTST(G.sima->flag, 3)) G.sima->flag = BCLR(G.sima->flag, 3);
+		else G.sima->flag = BSET(G.sima->flag, 3);
+		break;
+	case 5: /* Save Painted Image */
+		ima = G.sima->image;
+		if (ima) {
+			strcpy(name, ima->name);
+			if (ima->ibuf) {
+				activate_fileselect(FILE_SPECIAL, "Save As Same Type", name, save_paint);
+			}
+		}
+		break;
+
+	}
+}
+
+static uiBlock *image_imagemenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=150;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_imagemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_image_imagemenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	
+	if (G.sima->image) {
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+		
+		if (G.sima->image->packedfile) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpack Image...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+		} else {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Image", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+		}
+			
+		uiDefBut(block, SEPR, 0, "",        0, yco-=7, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+		if(BTST(G.sima->flag, 3)) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Texture Painting", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Painted Image...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		} else {
+			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Texture Painting", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+		}
+		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=7, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+		uiDefIconTextBlockBut(block, image_image_rtmappingmenu, NULL, ICON_RIGHTARROW_THIN, "Realtime Texture Mapping", 0, yco-=20, 120, 19, "");
+		// uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Realtime Texture Animation|",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	}
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 80);
+
+	return block;
+}
+
+static void do_image_uvsmenu(void *arg, int event)
+{
+	switch(event)
+	{
+	case 1: /* UVs Constrained Rectangular */
+		if(BTST(G.sima->flag, 0)) G.sima->flag = BCLR(G.sima->flag, 0);
+		else G.sima->flag = BSET(G.sima->flag, 0);
+		break;
+	case 2: /* UVs Clipped to Image Size */
+		if(BTST(G.sima->flag, 2)) G.sima->flag = BCLR(G.sima->flag, 2);
+		else G.sima->flag = BSET(G.sima->flag, 2);
+		break;
+	}
+}
+
+static uiBlock *image_uvsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_uvsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_image_uvsmenu, NULL);
+
+	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(BTST(G.sima->flag, 0)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	
+	if(BTST(G.sima->flag, 2)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
 
 void image_buttons(void)
 {
 	uiBlock *block;
-	short xco;
+	short xco, xmax;
 	char naam[256];
-	headerbuttons_packdummy = 0;
+	int headerbuttons_packdummy = 0;
 		
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
@@ -366,30 +657,84 @@ void image_buttons(void)
 	curarea->butspacetype= SPACE_IMAGE;
 
 	xco = 8;
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type. Click for menu of available types.");
+	xco+= XIC+14;
+
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if(curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Show pulldown menus");
+	} else {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Hide pulldown menus");
+	}
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	xco+=XIC;
+
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+		/* pull down menus */
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+		xmax= GetButStringLength("View");
+		uiDefBlockBut(block, image_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Select");
+		uiDefBlockBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Image");
+		uiDefBlockBut(block, image_imagemenu, NULL, "Image", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("UVs");
+		uiDefBlockBut(block, image_uvsmenu, NULL, "UVs", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+	}
+	
+	
+	/* other buttons: */
+	uiBlockSetEmboss(block, UI_EMBOSS);
+
+	// xco+=XIC;
+
+	/*xco = 8;
 	
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-
-	xco+= XIC+22;
+*/
+	// xco+= XIC+22;
 	
 	/* FULL WINDOW */
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	/* if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
+	*/
 	
 	/* HOME*/
-	uiDefIconBut(block, BUT, B_SIMAGEHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
+	/*	uiDefIconBut(block, BUT, B_SIMAGEHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)"); 
+	
+	
 	uiDefIconButS(block, TOG|BIT|0, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles constraining UV polygons to squares while editing");
-	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");		
+	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");		*/
 
-	xco= std_libbuttons(block, xco+40, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
+	
 	if (G.sima->image) {
+	
+		xco+= 8;
+	
 		if (G.sima->image->packedfile) {
 			headerbuttons_packdummy = 1;
 		}
-		uiDefIconButI(block, TOG|BIT|0, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Toggles packed status of this Image");
-		xco += XIC;
+		uiDefIconButI(block, TOG|BIT|0, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
+		
+		xco+= XIC;
 	}
 	
+	
+	/*
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco, 0, 2*XIC, YIC, 0, 0, 0, 0, 0, "Loads image - file select");
 	xco+= 2*XIC;
@@ -412,21 +757,31 @@ void image_buttons(void)
 		
 		uiDefButS(block, NUM, 0, "Speed", xco,0,4*XIC,YIC, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second. Click to change.");
 		xco+= 4.5*XIC;
-#ifdef NAN_TPT
+
+		// texture paint button used to be here
 		
-		uiDefIconButS(block, ICONTOG|BIT|3, B_SIMAGEPAINTTOOL, ICON_TPAINT_DEHLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables TexturePaint Mode");
 		xco+= XIC;
 		if (G.sima->image && G.sima->image->ibuf && (G.sima->image->ibuf->userflags & IB_BITMAPDIRTY)) {
 			uiDefBut(block, BUT, B_SIMAGESAVE, "Save",		xco,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Saves image");
 			xco += 2*XIC;
 		}
+	}
+*/
+
+	xco+= 8;
+
+	if (G.sima->image) {
+
+#ifdef NAN_TPT
+		
+		uiDefIconButS(block, TOG|BIT|3, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
+		xco+= XIC+8;
 #endif /* NAN_TPT */
+
 	}
 
 	/* draw LOCK */
-	xco+= XIC/2;
-	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	(short)(xco),0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
-
+	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	xco,0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Updates other affected window spaces automatically to reflect changes in real time");
 	
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;
