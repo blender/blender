@@ -219,6 +219,7 @@ endif
 
     export ID = $(shell whoami)
     export HOST = $(shell /usr/bsd/hostname -s)
+    export NAN_NO_KETSJI=true
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.2
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
