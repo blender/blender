@@ -48,7 +48,8 @@ typedef struct UserDef {
 	char sounddir[64];
 	short versions, vrmlflag;	// tmp for export, will be replaced by strubi
 	int gameflags;
-	int dummy_1;
+	int wheellinescroll;
+	short uiflag, pad2;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
@@ -70,6 +71,13 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define TOOLTIPS		2048
 #define TWOBUTTONMOUSE	4096
 #define NONUMPAD		8192
+
+/* uiflag */
+
+#define	KEYINSERTACT	1
+#define	KEYINSERTOBJ	2
+#define WHEELZOOMDIR	4
+#define FILTERFILEEXTS	8
 
 /* dupflag */
 #define DUPMESH			1

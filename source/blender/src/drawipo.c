@@ -56,6 +56,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
@@ -1440,24 +1441,77 @@ void scroll_ipobuts()
 
 
 
-void view2dzoom()
+int view2dzoom(unsigned short event)
 {
-	float fac, dx, dy;
+	float fac, dx, dy, wtemp;
 	short mval[2], mvalo[2];
-	
+
 	areawinset(curarea->win);	/* vanuit buttons */
 	curarea->head_swap= 0;
 	getmouseco_areawin(mvalo);
 	
-	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
-		getmouseco_areawin(mval);
-		
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-			
+	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || 
+          (event==WHEELUPMOUSE) ||
+          (event==WHEELDOWNMOUSE) ) {
+
+    /* regular mousewheel:   zoom regular
+     * alt-shift mousewheel: zoom y only
+     * alt-ctrl mousewheel:  zoom x only
+     */
+		if (event==WHEELUPMOUSE) {
+			if(U.uiflag & WHEELZOOMDIR)
+				wtemp = -0.1154;
+			else
+				wtemp = 0.1154;
+
+			dx= (float)(wtemp*(G.v2d->cur.xmax-G.v2d->cur.xmin));
+			dy= (float)(wtemp*(G.v2d->cur.ymax-G.v2d->cur.ymin));
+
+      switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+      case 0:
+        break;
+      case (LR_SHIFTKEY|LR_ALTKEY):
+        dx = 0;
+        break;
+      case (LR_CTRLKEY|LR_ALTKEY):
+        dy = 0;
+        break;
+      default:
+        return 0;
+        break;
+      }
+    }
+		else if (event==WHEELDOWNMOUSE) {
+			if(U.uiflag & WHEELZOOMDIR)
+				wtemp = 0.1154;
+			else
+				wtemp = -0.1154;
+			dx= (float)(wtemp*(G.v2d->cur.xmax-G.v2d->cur.xmin));
+			dy= (float)(wtemp*(G.v2d->cur.ymax-G.v2d->cur.ymin));
+
+      switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+      case 0:
+        break;
+      case (LR_SHIFTKEY|LR_ALTKEY):
+        dx = 0;
+        break;
+      case (LR_CTRLKEY|LR_ALTKEY):
+        dy = 0;
+        break;
+      default:
+        return 0;
+        break;
+      }
+
+    }
+    else {
+      getmouseco_areawin(mval);
 			fac= 0.001*(mval[0]-mvalo[0]);
 			dx= fac*(G.v2d->cur.xmax-G.v2d->cur.xmin);
 			fac= 0.001*(mval[1]-mvalo[1]);
 			dy= fac*(G.v2d->cur.ymax-G.v2d->cur.ymin);
+    }
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
 			G.v2d->cur.xmin+= dx;
 			G.v2d->cur.xmax-= dx;
@@ -1471,10 +1525,14 @@ void view2dzoom()
 			screen_swapbuffers();
 		}
 		else BIF_wait_for_statechange();
+    /* return if we were using the mousewheel
+     */
+    if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
 	}
+  return 1;
 }
 
-int view2dmove()
+int view2dmove(unsigned short event)
 {
 	/* return 1 als er iets gedaan is */
 	float facx=0.0, facy=0.0, dx, dy, left=1.0, right=1.0;
@@ -1484,11 +1542,18 @@ int view2dmove()
 	scrarea_do_windraw(curarea);
 	curarea->head_swap= 0;
 
-	
-	if(G.qual & LR_CTRLKEY) {
-		view2dzoom();
-		curarea->head_swap= 0;
-		return 0;
+	/* try to do some zooming if the
+	 * middlemouse and ctrl are pressed
+	 * or if the mousewheel is being used.
+	 * Return if zooming was done.
+	 */
+	if ( (G.qual & LR_CTRLKEY) ||
+		(event==WHEELUPMOUSE) || 
+		(event==WHEELDOWNMOUSE) ) {
+		if (view2dzoom(event)) {
+			curarea->head_swap= 0;
+			return 0;
+		}
 	}
 	
 	/* testen waar muis is */
@@ -1500,7 +1565,7 @@ int view2dmove()
 				facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
 				facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
 			}
-			else if(BLI_in_rcti(&G.v2d->vert, (int)mvalo[0], (int)mvalo[1])) {
+			else if(IN_2D_VERT_SCROLL((int)mvalo)) {
 				facy= -(G.v2d->tot.ymax-G.v2d->tot.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
 				if(get_mbut()&L_MOUSE) {
 					/* welk deel van de scrollbar moet bewegen? */
@@ -1509,7 +1574,7 @@ int view2dmove()
 					leftret= 0;
 				}
 			}
-			else if(BLI_in_rcti(&G.v2d->hor, (int)mvalo[0], (int)mvalo[1])) {
+			else if(IN_2D_HORIZ_SCROLL((int)mvalo)) {
 				facx= -(G.v2d->tot.xmax-G.v2d->tot.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
 				if(get_mbut()&L_MOUSE) {
 					/* welk deel van de scrollbar moet bewegen? */
@@ -1531,31 +1596,76 @@ int view2dmove()
 		if(get_mbut()&L_MOUSE && leftret) return 0;
 		if(facx==0.0 && facy==0.0) return 1;
 		
-		while(get_mbut()&(L_MOUSE|M_MOUSE)) {
-			getmouseco_areawin(mval);
-			if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-				dx= facx*(mvalo[0]-mval[0]);
-				dy= facy*(mvalo[1]-mval[1]);
-				G.v2d->cur.xmin+= left*dx;
-				G.v2d->cur.xmax+= right*dx;
-				G.v2d->cur.ymin+= left*dy;
-				G.v2d->cur.ymax+= right*dy;
-				
-				test_view2d(G.v2d, curarea->winx, curarea->winy);
-				
-				scrarea_do_windraw(curarea);
-				screen_swapbuffers();
-				
-				mvalo[0]= mval[0];
-				mvalo[1]= mval[1];
-				
-			}
-			else BIF_wait_for_statechange();
-		}
-		curarea->head_swap= 0;
-		return 1;
-}
+    while( (get_mbut()&(L_MOUSE|M_MOUSE)) || 
+           (event==WHEELUPMOUSE) ||
+           (event==WHEELDOWNMOUSE) ) {
 
+      /* If the mousewheel is used with shift key
+       * the scroll up and down. If the mousewheel
+       * is used with the ctrl key then scroll left
+       * and right.
+       */
+      if (event==WHEELUPMOUSE) {
+        switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+        case (LR_SHIFTKEY):
+          dx = 0.0;
+          dy= facy*10.0;
+          break;
+        case (LR_CTRLKEY):
+          dx= facx*10.0;
+          dy = 0.0;
+          break;
+        default:
+          return 0;
+          break;
+        }
+      }
+      else if (event==WHEELDOWNMOUSE) {
+        switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+        case (LR_SHIFTKEY):
+          dx = 0.0;
+          dy= -facy*10.0;
+          break;
+        case (LR_CTRLKEY):
+          dx= -facx*10.0;
+          dy = 0.0;
+          break;
+        default:
+          return 0;
+          break;
+        }
+      }
+      else {
+        getmouseco_areawin(mval);
+        dx= facx*(mvalo[0]-mval[0]);
+        dy= facy*(mvalo[1]-mval[1]);
+      }
+
+      if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+
+        G.v2d->cur.xmin+= left*dx;
+        G.v2d->cur.xmax+= right*dx;
+        G.v2d->cur.ymin+= left*dy;
+        G.v2d->cur.ymax+= right*dy;
+				
+        test_view2d(G.v2d, curarea->winx, curarea->winy);
+				
+        scrarea_do_windraw(curarea);
+        screen_swapbuffers();
+				
+        mvalo[0]= mval[0];
+        mvalo[1]= mval[1];
+				
+      }
+      else BIF_wait_for_statechange();
+      /* return if we were using the mousewheel
+       */
+      if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
+    }
+
+    curarea->head_swap= 0;
+    return 1;
+}
 
 void view2dborder(void)
 {

@@ -33,10 +33,17 @@
 #ifndef BSE_DRAWIPO_H
 #define BSE_DRAWIPO_H
 
+#define IN_2D_VERT_SCROLL(A) (BLI_in_rcti(&G.v2d->vert, A[0], A[1]))
+#define IN_2D_HORIZ_SCROLL(A) (BLI_in_rcti(&G.v2d->hor, A[0], A[1]))
+
+#define SELECT_REPLACE   1
+#define SELECT_ADD       2
+#define SELECT_SUBTRACT  4
+#define SELECT_INVERT   16
+
 struct EditIpo;
 struct View2D;
 struct rctf;
-
 
 void calc_ipogrid(void);
 void draw_ipogrid(void);
@@ -53,7 +60,7 @@ void drawscroll(int disptype);
 void drawipo(void);
 
 void scroll_ipobuts(void);
-void view2dzoom(void);
+int view2dzoom(unsigned short event);
 int view2dmove(void); 
 void view2dborder(void);
 

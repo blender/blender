@@ -1737,13 +1737,13 @@ void winqreadfilespace(unsigned short event, short val, char ascii)
 			break;		
 		
 		case WHEELDOWNMOUSE:
-			do_filescrollwheel(sfile, 3); //U.wheellinescroll);
+			do_filescrollwheel(sfile, U.wheellinescroll);
 			act= find_active_file(sfile, mval[0], mval[1]);
 			set_active_file(sfile, act);
 			do_draw= 1;
 			break;
 		case WHEELUPMOUSE:
-			do_filescrollwheel(sfile, -3); //U.wheellinescroll);
+			do_filescrollwheel(sfile, -U.wheellinescroll);
 			act= find_active_file(sfile, mval[0], mval[1]);
 			set_active_file(sfile, act);
 			do_draw= 1;

@@ -673,7 +673,7 @@ void paste_posebuf (int flip){
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
 	if (ob->pose){
-		if (U.flag & 0x01<<14){
+		if (U.uiflag & KEYINSERTACT){
 			/* Display "Avail, all" dialog */
 		}
 		for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
@@ -691,7 +691,7 @@ void paste_posebuf (int flip){
 
 				temp = set_pose_channel (ob->pose, temp);
 
-				if (U.flag & 0x01<<14){
+				if (U.uiflag & KEYINSERTACT){
 					/* Set keys on pose */
 					if (chan->flag & POSE_ROT){
 						set_action_key(ob->action, temp, AC_QUAT_X, newchan);
@@ -713,7 +713,7 @@ void paste_posebuf (int flip){
 			}
 		}
 
-		if (U.flag & 0x01<<14){
+		if (U.uiflag & KEYINSERTACT){
 			remake_action_ipos(ob->action);
 			allqueue (REDRAWIPO, 0);
 			allqueue (REDRAWVIEW3D, 0);
@@ -1488,6 +1488,8 @@ void winqreadactionspace(unsigned short event, short val, char ascii)
 			
 			break;
 		case MIDDLEMOUSE:
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
 			view2dmove();	/* in drawipo.c */
 			break;
 		}

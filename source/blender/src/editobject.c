@@ -3249,7 +3249,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 		bPose	*pose;
 		bPoseChannel *pchan;
 
-		if (U.flag & (0x01<<14) && !canceled){
+		if (U.uiflag & KEYINSERTACT && !canceled){
 			act=G.obpose->action;
 			pose=G.obpose->pose;
 			
@@ -3339,7 +3339,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 			where_is_object(ob);	/* altijd ivm track eytc */
 
 			/* Set autokey if necessary */
-			if ((U.flag & (0x01<<15)) && (!canceled) && (base->flag & SELECT)){
+			if ((U.uiflag & KEYINSERTOBJ) && (!canceled) && (base->flag & SELECT)){
 				if (keyflags & KEYFLAG_ROT){
 					insertkey(&base->object->id, OB_ROT_X);
 					insertkey(&base->object->id, OB_ROT_Y);
@@ -4632,12 +4632,31 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 						prop_size*= 1.1;
 						firsttime= 1;
 					}
+					else {
+					  persptoetsen(PADPLUSKEY);
+					  firsttime= 1;
+					}
 					break;
+
+				case WHEELUPMOUSE:
+					persptoetsen(PADPLUSKEY);
+					firsttime= 1;
+					break;
+
 				case PADMINUS:
 					if(G.f & G_PROPORTIONAL) {
 						prop_size*= 0.90909090;
 						firsttime= 1;
 					}
+					else {
+					  persptoetsen(PADMINUS);
+					  firsttime= 1;
+					}
+					break;
+
+				case WHEELDOWNMOUSE:
+					persptoetsen(PADMINUS);
+					firsttime= 1;
 					break;
 				
 				case LEFTSHIFTKEY:

@@ -55,6 +55,7 @@
 #include "DNA_text_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_text.h"
@@ -1142,12 +1143,12 @@ void winqreadtextspace(unsigned short event, short val, char ascii)
 			break;
 
 		case WHEELUPMOUSE:
-			screen_skip(st, -3);
+			screen_skip(st, -U.wheellinescroll);
 			do_draw= 1;
 			break;
 
 		case WHEELDOWNMOUSE:
-			screen_skip(st, 3);
+			screen_skip(st, U.wheellinescroll);
 			do_draw= 1;
 			break;
 		}

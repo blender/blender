@@ -3934,7 +3934,7 @@ void do_ipo_buttons(short event)
 		break;
 	case B_VIEW2DZOOM:
 		viewmovetemp= 0;
-		view2dzoom();
+		view2dzoom(event);
 		scrarea_queue_headredraw(curarea);
 		break;
 			

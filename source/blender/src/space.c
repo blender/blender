@@ -519,6 +519,67 @@ void winqread3d(unsigned short event, short val, char ascii)
 				else
 					mouse_select();
 				break;
+
+			case WHEELUPMOUSE:
+				/* Regular:   Zoom in */
+				/* Shift:     Scroll up */
+				/* Ctrl:      Scroll right */
+				/* Alt-Shift: Rotate up */
+				/* Alt-Ctrl:  Rotate right */
+
+				if( G.qual & LR_SHIFTKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_SHIFTKEY;
+						persptoetsen(PAD2);
+						G.qual |= LR_SHIFTKEY;
+					} else {
+						persptoetsen(PAD2);
+					}
+				} else if( G.qual & LR_CTRLKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_CTRLKEY;
+						persptoetsen(PAD4);
+						G.qual |= LR_CTRLKEY;
+					} else {
+						persptoetsen(PAD4);
+					}
+				} else if(U.uiflag & WHEELZOOMDIR) 
+					persptoetsen(PADMINUS);
+				else
+					persptoetsen(PADPLUSKEY);
+
+				doredraw= 1;
+				break;
+			case WHEELDOWNMOUSE:
+				/* Regular:   Zoom out */
+				/* Shift:     Scroll down */
+				/* Ctrl:      Scroll left */
+				/* Alt-Shift: Rotate down */
+				/* Alt-Ctrl:  Rotate left */
+
+				if( G.qual & LR_SHIFTKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_SHIFTKEY;
+						persptoetsen(PAD8);
+						G.qual |= LR_SHIFTKEY;
+					} else {
+						persptoetsen(PAD8);
+					}
+				} else if( G.qual & LR_CTRLKEY ) {
+					if( G.qual & LR_ALTKEY ) { 
+						G.qual &= ~LR_CTRLKEY;
+						persptoetsen(PAD6);
+						G.qual |= LR_CTRLKEY;
+					} else {
+						persptoetsen(PAD6);
+					}
+				} else if(U.uiflag & WHEELZOOMDIR) 
+					persptoetsen(PADPLUSKEY);
+				else
+					persptoetsen(PADMINUS);
+				
+				doredraw= 1;
+				break;
 			
 			case ONEKEY:
 				do_layer_buttons(0); break;
@@ -1080,6 +1141,12 @@ void winqreadipo(unsigned short event, short val, char ascii)
 			}
 			else view2dmove();	/* in drawipo.c */
 			break;
+
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
+			view2dmove(event);	/* in drawipo.c */
+			break;
+
 		case RIGHTMOUSE:
 			mouse_select_ipo();
 			allqueue (REDRAWACTION, 0);
@@ -1306,8 +1373,8 @@ void drawinfospace(void)
 			 "Enables/Disables tooltips");
 	
 //	uiDefButS(block, ICONTOG|BIT|14, 0, ICON(),	733,10,50,42, &(U.flag), 0, 0, 0, 0, "Automatic keyframe insertion");
-	uiDefButS(block, TOG|BIT|14, 0, "KeyAC",	733,32,50,20, &(U.flag), 0, 0, 0, 0, "Automatic keyframe insertion for actions");
-	uiDefButS(block, TOG|BIT|15, 0, "KeyOB",	733,10,50,20, &(U.flag), 0, 0, 0, 0, "Automatic keyframe insertion for objects");
+	uiDefButS(block, TOG|BIT|0, 0, "KeyAC",	733,32,50,20, &(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion for actions");
+	uiDefButS(block, TOG|BIT|1, 0, "KeyOB",	733,10,50,20, &(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion for objects");
 
 	uiDefButS(block, TOG|BIT|1, 0, "Grab Grid",	788,32,106,20, &(U.flag), 0, 0, 0, 0, "Changes default step mode for grabbing");
 	uiDefButS(block, TOG|BIT|2, 0, "Rot",		842,10,52,20, &(U.flag), 0, 0, 0, 0, "Changes default step mode for rotation");
@@ -1325,9 +1392,17 @@ void drawinfospace(void)
 	uiDefButS(block, TOG|BIT|7, 0, "Material",	1153,32,70,20, &(U.dupflag), 0, 0, 0, 0, "Causes Material data to be duplicated with Shift+D");
 	uiDefButS(block, TOG|BIT|8, 0, "Texture",		1153,10,70,20, &(U.dupflag), 0, 0, 0, 0, "Causes Texture data to be duplicated with Shift+D");
 
-	
-	
+
 	uiBlockSetCol(block, BUTGREY);
+
+	uiDefButS(block, NUM, 0, "WLines",
+			1153,54,70,20, &U.wheellinescroll,
+			0.0, 32.0, 0, 0,
+			"Mousewheel: The number of lines that get skipped");
+	uiDefButS(block, TOG|BIT|2, 0, "WZoom",
+			1081,54,70,20, &(U.uiflag), 0, 0, 0, 0,
+			"Mousewheel: Swaps mousewheel zoom direction");
+
 	dx= (1280-90)/6;
 
 
@@ -1413,8 +1488,11 @@ void winqreadbutspace(unsigned short event, short val, char ascii)
 			break;
 			
 		case MIDDLEMOUSE:
-			view2dmove();	/* in drawipo.c */
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
+			view2dmove(event);	/* in drawipo.c */
 			break;
+
 		case PADPLUSKEY:
 		case PADMINUS:
 			val= SPACE_BUTS;
@@ -1592,6 +1670,8 @@ void winqreadsequence(unsigned short event, short val, char ascii)
 			}
 			break;
 		case MIDDLEMOUSE:
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
 			if(sseq->mainb) break;
 			view2dmove();	/* in drawipo.c */
 			break;
@@ -2097,6 +2177,8 @@ void winqreadoopsspace(unsigned short event, short val, char ascii)
 		gesture();
 		break;
 	case MIDDLEMOUSE:
+	case WHEELUPMOUSE:
+	case WHEELDOWNMOUSE:
 		view2dmove();	/* in drawipo.c */
 		break;
 	case RIGHTMOUSE:

@@ -53,6 +53,7 @@
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 
@@ -273,8 +274,8 @@ void winqreadimasel(unsigned short event, short val, char ascii)
 		case IMS_INDIRSLI:
 		case IMS_INDIR:
 			if (simasel->dirsli){
-				if (event == WHEELUPMOUSE)	simasel->topdir -= 1;
-				if (event == WHEELDOWNMOUSE)	simasel->topdir += 1; 	
+				if (event == WHEELUPMOUSE)	simasel->topdir -= U.wheellinescroll;
+				if (event == WHEELDOWNMOUSE)	simasel->topdir += U.wheellinescroll; 	
 				queredraw = 1;
 			}
 			break;

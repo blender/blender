@@ -227,6 +227,8 @@ int calc_memleak (void* ptr){
 			
 			break;
 		case MIDDLEMOUSE:
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
 			view2dmove();	/* in drawipo.c */
 			break;
 		}
