@@ -111,7 +111,7 @@ static void oops_to_select_objects(void)
 	while(base) {
 		if(base->flag != base->object->flag) {
 			base->flag= base->object->flag;
-			set_active_base(base);
+			if(G.obedit==NULL && G.obpose==NULL) set_active_base(base);
 		}
 		base= base->next;
 	}
@@ -410,7 +410,7 @@ static void do_activate_oops(Oops *oops)
 			base= base->next;
 		}
 		if(base) {
-			set_active_base(base);	/* editview.c */
+			if(G.obedit==NULL && G.obpose==NULL) set_active_base(base);	/* editview.c */
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWOOPS, 0);
 			allqueue(REDRAWINFO, 1);
