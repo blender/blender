@@ -167,6 +167,11 @@ int BIF_read_homefile(void)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
 	int success;
+	static int screenmode = -1;
+
+#ifdef _WIN32	// FULLSCREEN
+	screenmode = U.uiflag & FLIPFULLSCREEN;
+#endif
 
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
@@ -194,7 +199,11 @@ int BIF_read_homefile(void)
 			case G_WINDOWSTATE_BORDER: /* force with borders */
 				U.uiflag &= ~FLIPFULLSCREEN;
 		}
-		mainwindow_toggle_fullscreen ((U.uiflag & FLIPFULLSCREEN));
+
+		if(screenmode != (U.uiflag & FLIPFULLSCREEN)) {
+			mainwindow_toggle_fullscreen ((U.uiflag & FLIPFULLSCREEN));
+			screenmode = (U.uiflag & FLIPFULLSCREEN);
+		}
 #endif
 
 		if (BLI_streq(U.tempdir, "/")) {
@@ -218,10 +227,12 @@ int BIF_read_homefile(void)
 			U.vrmlflag= USERDEF_VRML_LAYERS;
 		}
 
-			/* startup 2.26 with aa fonts ! */
+#ifndef __sgi
+		/* startup 2.26 with aa fonts ! */
 		if (G.main->versionfile <= 225) {
 			U.transopts |= TR_ALL;
 		}
+#endif
 
 		space_set_commmandline_options();
 

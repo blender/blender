@@ -38,14 +38,14 @@
 typedef struct UserDef {
 	short flag, dupflag;
 	int savetime;
-	char tempdir[64];
-	char fontdir[64];
-	char renderdir[64];
-	char textudir[64];
-	char plugtexdir[64];
-	char plugseqdir[64];
-	char pythondir[64];
-	char sounddir[64];
+	char tempdir[160];	// FILE_MAXDIR length
+	char fontdir[160];
+	char renderdir[160];
+	char textudir[160];
+	char plugtexdir[160];
+	char plugseqdir[160];
+	char pythondir[160];
+	char sounddir[160];
 	short versions, vrmlflag;	// tmp for export, will be replaced by strubi
 	int gameflags;
 	int wheellinescroll;

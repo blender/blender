@@ -140,6 +140,8 @@ void set_interface_font(char *str) {
 		lang_setlanguage();
 		BLI_split_dirfile(str, di, U.fontname);
 
+		if(strlen(di) < FILE_MAXDIR) strcpy(U.fontdir, di);
+
 		G.ui_international = TRUE;
 	} else {
 		sprintf(U.fontname, "Invalid font.");
@@ -168,7 +170,7 @@ void start_interface_font(void) {
 		U.language= 0;
 		U.fontsize= 11;
 		U.encoding= 0;
-		sprintf(U.fontname, ".bfont.ttf\0");
+		sprintf(U.fontname, ".blender/.bfont.ttf\0");
 
 		result = FTF_SetFont(U.fontname, U.fontsize);
 	}
@@ -180,6 +182,8 @@ void start_interface_font(void) {
 	} else {
 		printf("no font found for international support\n");
 		G.ui_international = FALSE;
+		U.transopts &= ~TR_ALL;
+		U.fontsize = 0;
 	}
 
 	allqueue(REDRAWALL, 0);
@@ -253,12 +257,18 @@ int read_languagefile(void) {
 	lines= BLI_read_file_as_lines(name);
 
 	if(lines == NULL) {
-		/* If not found in home, try current dir */
-		strcpy(name, ".Blanguages");
+		/* If not found in home, try .blender dir */
+		strcpy(name, ".blender\\.Blanguages");
 		lines= BLI_read_file_as_lines(name);
+
 		if(lines == NULL) {
-			error("File \".Blanguages\" not found");
-			return 0;
+			/* If not found in .blender, try current dir */
+			strcpy(name, ".Blanguages");
+			lines= BLI_read_file_as_lines(name);
+			if(lines == NULL) {
+				error("File \".Blanguages\" not found");
+				return 0;
+			}
 		}
 	}
 
