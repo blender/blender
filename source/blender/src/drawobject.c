@@ -3837,11 +3837,13 @@ void draw_object(Base *base)
 	}
 
 	/* draw outline for selected solid objects */
-	if(dt>OB_WIRE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) {
-		if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0)
-			draw_solid_select(ob);
+	if(G.vd->flag & V3D_SELECT_OUTLINE) {
+		if(dt>OB_WIRE && ob!=G.obedit && (G.f & G_BACKBUFSEL)==0) {
+			if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0)
+				draw_solid_select(ob);
+		}
 	}
-
+	
 	switch( ob->type) {
 		
 	case OB_MESH:
