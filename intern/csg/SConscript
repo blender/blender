@@ -1,0 +1,29 @@
+csg_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+csg_env.Append (CCFLAGS = cflags)
+csg_env.Append (CXXFLAGS = cxxflags)
+csg_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/CSG_BBoxTree.cpp',
+				'intern/CSG_ConnectedMeshWrapper.inl',
+				'intern/CSG_Math.inl',
+				'intern/CSG_Triangulate.inl',
+				'intern/blender/CSG_CsgOp.cpp',
+				'intern/blender/CSG_Interface.cpp',
+				'intern/CSG_BooleanOp.inl',
+				'intern/CSG_MeshWrapper.inl',
+				'intern/MT_Line3.cpp'
+				]
+
+csg_env.Append (CPPPATH = ['intern',
+                           '../container',
+                           '../moto/include',
+                           '../memutil',
+                           'intern/blender',
+                           'extern'])
+
+csg_env.Library (target='#/lib/blender_BSP', source=source_files)
