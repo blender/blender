@@ -121,6 +121,7 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_ALPHAUNDER) return "ALPHAUNDER";
 	else if(seq->type==SEQ_OVERDROP) return "OVER DROP";
 	else if(seq->type==SEQ_SWEEP) return "SWEEP";
+	else if(seq->type==SEQ_GLOW) return "GLOW";
 	else if(seq->type==SEQ_PLUGIN) {
 		if(seq->plugin && seq->plugin->doit) return seq->plugin->pname;
 		return "PLUGIN";
@@ -165,8 +166,10 @@ static unsigned int seq_color(Sequence *seq)
 		return 0x9080A0;
 	case SEQ_OVERDROP:
 		return 0x5080B0;
-		case SEQ_SWEEP:
+	case SEQ_SWEEP:
 		return 0x2080B0;
+	case SEQ_GLOW:
+		return 0x0080B0;
 	case SEQ_PLUGIN:
 		return 0x906000;
 	case SEQ_SOUND:
@@ -714,6 +717,16 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			strcpy(formatstring, "Select Sweep Type %t|Left to Right %x0|Right to Left %x1|Bottom to Top %x2|Top to Bottom %x3|Top left to Bottom right%x4|Bottom right to Top left %x5|Bottom left to Top right %x6|Top right to Bottom left %x7|Horizontal out %x8|Horizontal in %x9|Vertical out %x10|Vertical in %x11|Hor/Vert out %x12|Hor/Vert in %x13|Bottom left to Top right out %x14|Top left to Bottom right in %x15|Top left to Bottom right out %x16|Bottom left to Top right in %x17|Diagonal out %x18|Diagonal in %x19|Diagonal out 2 %x20|Diagonal in 2 %x21|");
 
 			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,90,220,22, &sweep->sweeptype, 0, 0, 0, 0, "What type of sweep should be performed");
+		}
+		else if(last_seq->type==SEQ_GLOW){
+			GlowVars *glow = (GlowVars *)last_seq->effectdata;
+
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,90,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:", 	10,70,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,50,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,30,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
+			uiDefButS(block, NUM, 0, "Quality:", 10,10,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
+			uiDefButS(block, TOG, 0, "Only boost", 10,-10,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
 		}
 
 	}

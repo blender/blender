@@ -31,6 +31,7 @@
  */
 
 #include <string.h>
+#include <math.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1087,6 +1088,11 @@ int check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
    return 0;
 }
 
+void init_sweep_effect(Sequence *seq)
+{
+	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	seq->effectdata = MEM_callocN(sizeof(struct SweepVars), "sweepvars");
+}
 
 void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
 {
@@ -1139,6 +1145,254 @@ void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsi
 	}
 }
 
+/* Glow Functions */
+
+void RVBlurBitmap2 ( unsigned char* map, int width,int height,float blur,
+   int quality)
+/*	MUUUCCH better than the previous blur. */
+/*	We do the blurring in two passes which is a whole lot faster. */
+/*	I changed the math arount to implement an actual Gaussian */
+/*	distribution. */
+/* */
+/*	Watch out though, it tends to misbehaven with large blur values on */
+/*	a small bitmap.  Avoid avoid avoid. */
+/*=============================== */
+{
+	unsigned char*	temp=NULL,*swap;
+	float	*filter=NULL;
+	int	x,y,i,fx,fy;
+	int	index, ix, halfWidth;
+	float	fval, k, weight, curColor[3], curColor2[3];
+
+	/*	If we're not really blurring, bail out */
+	if (blur<=0)
+		return;
+
+	/*	Allocate memory for the tempmap and the blur filter matrix */
+	temp= MEM_mallocN( (width*height*4), "blurbitmaptemp");
+	if (!temp)
+		return;
+
+	/*	Allocate memory for the filter elements */
+	halfWidth = ((quality+1)*blur);
+	filter = (float *)MEM_mallocN(sizeof(float)*halfWidth*2, "blurbitmapfilter");
+	if (!filter){
+		MEM_freeN (temp);
+		return;
+	}
+
+	/*	Apparently we're calculating a bell curve */
+	/*	based on the standard deviation (or radius) */
+	/*	This code is based on an example */
+	/*	posted to comp.graphics.algorithms by */
+	/*	Blancmange (bmange@airdmhor.gen.nz) */
+
+	k = -1.0/(2.0*3.14159*blur*blur);
+	fval=0;
+	for (ix = 0;ix< halfWidth;ix++){
+          	weight = (float)exp(k*(ix*ix));
+		filter[halfWidth - ix] = weight;
+		filter[halfWidth + ix] = weight;
+	}
+	filter[0] = weight;
+
+	/*	Normalize the array */
+	fval=0;
+	for (ix = 0;ix< halfWidth*2;ix++)
+		fval+=filter[ix];
+
+	for (ix = 0;ix< halfWidth*2;ix++)
+		filter[ix]/=fval;
+
+	/*	Blur the rows */
+	for (y=0;y<height;y++){
+		/*	Do the left & right strips */
+		for (x=0;x<halfWidth;x++){
+			index=(x+y*width)*4;
+			fx=0;
+			curColor[0]=curColor[1]=curColor[2]=0;
+			curColor2[0]=curColor2[1]=curColor2[2]=0;
+
+			for (i=x-halfWidth;i<x+halfWidth;i++){
+			   if ((i>=0)&&(i<width)){
+				curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
+				curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
+				curColor[2]+=map[(i+y*width)*4+GlowB]*filter[fx];
+
+				curColor2[0]+=map[(width-1-i+y*width)*4+GlowR] *
+                                   filter[fx];
+				curColor2[1]+=map[(width-1-i+y*width)*4+GlowG] *
+                                   filter[fx];
+				curColor2[2]+=map[(width-1-i+y*width)*4+GlowB] *
+                                   filter[fx];
+				}
+				fx++;
+			}
+			temp[index+GlowR]=curColor[0];
+			temp[index+GlowG]=curColor[1];
+			temp[index+GlowB]=curColor[2];
+
+			temp[((width-1-x+y*width)*4)+GlowR]=curColor2[0];
+			temp[((width-1-x+y*width)*4)+GlowG]=curColor2[1];
+			temp[((width-1-x+y*width)*4)+GlowB]=curColor2[2];
+
+		}
+		/*	Do the main body */
+		for (x=halfWidth;x<width-halfWidth;x++){
+			index=(x+y*width)*4;
+			fx=0;
+			curColor[0]=curColor[1]=curColor[2]=0;
+			for (i=x-halfWidth;i<x+halfWidth;i++){
+				curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
+				curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
+				curColor[2]+=map[(i+y*width)*4+GlowB]*filter[fx];
+				fx++;
+			}
+			temp[index+GlowR]=curColor[0];
+			temp[index+GlowG]=curColor[1];
+			temp[index+GlowB]=curColor[2];
+		}
+	}
+
+	/*	Swap buffers */
+	swap=temp;temp=map;map=swap;
+
+
+	/*	Blur the columns */
+	for (x=0;x<width;x++){
+		/*	Do the top & bottom strips */
+		for (y=0;y<halfWidth;y++){
+			index=(x+y*width)*4;
+			fy=0;
+			curColor[0]=curColor[1]=curColor[2]=0;
+			curColor2[0]=curColor2[1]=curColor2[2]=0;
+			for (i=y-halfWidth;i<y+halfWidth;i++){
+				if ((i>=0)&&(i<height)){
+				   /*	Bottom */
+				   curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
+				   curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];
+				   curColor[2]+=map[(x+i*width)*4+GlowB]*filter[fy];
+
+				   /*	Top */
+				   curColor2[0]+=map[(x+(height-1-i)*width) *
+                                      4+GlowR]*filter[fy];
+				   curColor2[1]+=map[(x+(height-1-i)*width) *
+                                      4+GlowG]*filter[fy];
+				   curColor2[2]+=map[(x+(height-1-i)*width) *
+                                      4+GlowB]*filter[fy];
+				}
+				fy++;
+			}
+			temp[index+GlowR]=curColor[0];
+			temp[index+GlowG]=curColor[1];
+			temp[index+GlowB]=curColor[2];
+			temp[((x+(height-1-y)*width)*4)+GlowR]=curColor2[0];
+			temp[((x+(height-1-y)*width)*4)+GlowG]=curColor2[1];
+			temp[((x+(height-1-y)*width)*4)+GlowB]=curColor2[2];
+		}
+		/*	Do the main body */
+		for (y=halfWidth;y<height-halfWidth;y++){
+			index=(x+y*width)*4;
+			fy=0;
+			curColor[0]=curColor[1]=curColor[2]=0;
+			for (i=y-halfWidth;i<y+halfWidth;i++){
+				curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
+				curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];
+				curColor[2]+=map[(x+i*width)*4+GlowB]*filter[fy];
+				fy++;
+			}
+			temp[index+GlowR]=curColor[0];
+			temp[index+GlowG]=curColor[1];
+			temp[index+GlowB]=curColor[2];
+		}
+	}
+
+
+	/*	Swap buffers */
+	swap=temp;temp=map;map=swap;
+
+	/*	Tidy up	 */
+	MEM_freeN (filter);
+	MEM_freeN (temp);
+}
+
+
+/*	Adds two bitmaps and puts the results into a third map. */
+/*	C must have been previously allocated but it may be A or B. */
+/*	We clamp values to 255 to prevent weirdness */
+/*=============================== */
+void RVAddBitmaps (unsigned char* a, unsigned char* b, unsigned char* c, int width, int height)
+{
+	int	x,y,index;
+
+	for (y=0;y<height;y++){
+		for (x=0;x<width;x++){
+			index=(x+y*width)*4;
+			c[index+GlowR]=MIN2(255,a[index+GlowR]+b[index+GlowR]);
+			c[index+GlowG]=MIN2(255,a[index+GlowG]+b[index+GlowG]);
+			c[index+GlowB]=MIN2(255,a[index+GlowB]+b[index+GlowB]);
+			c[index+GlowA]=MIN2(255,a[index+GlowA]+b[index+GlowA]);
+		}
+	}
+}
+
+/*	For each pixel whose total luminance exceeds the threshold, */
+/*	Multiply it's value by BOOST and add it to the output map */
+void RVIsolateHighlights (unsigned char* in, unsigned char* out, int width, int height, int threshold, float boost, float clamp)
+{
+	int x,y,index;
+	int	intensity;
+
+
+	for(y=0;y< height;y++) {
+		for (x=0;x< width;x++) {
+	 	   index= (x+y*width)*4;
+
+		   /*	Isolate the intensity */
+		   intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
+		   if (intensity>0){
+			out[index+GlowR]=MIN2(255*clamp, (in[index+GlowR]*boost*intensity)/255);
+			out[index+GlowG]=MIN2(255*clamp, (in[index+GlowG]*boost*intensity)/255);
+			out[index+GlowB]=MIN2(255*clamp, (in[index+GlowB]*boost*intensity)/255);
+			}
+			else{
+				out[index+GlowR]=0;
+				out[index+GlowG]=0;
+				out[index+GlowB]=0;
+			}
+		}
+	}
+}
+
+void init_glow_effect(Sequence *seq)
+{
+	GlowVars *glow;
+
+	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	seq->effectdata = MEM_callocN(sizeof(struct GlowVars), "glowvars");
+
+	glow = (GlowVars *)seq->effectdata;
+	glow->fMini = 0.5;
+	glow->fClamp = 1.0;
+	glow->fBoost = 0.5;
+	glow->dDist = 3.0;
+	glow->dQuality = 3;
+	glow->bNoComp = 0;
+}
+
+
+//void do_glow_effect(Cast *cast, float facf0, float facf1, int xo, int yo, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *outbuf, ImBuf *use)
+void do_glow_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
+{
+	unsigned char *outbuf=(unsigned char *)out;
+	unsigned char *inbuf=(unsigned char *)rect1;
+	GlowVars *glow = (GlowVars *)seq->effectdata;
+
+	RVIsolateHighlights	(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost, glow->fClamp);
+	RVBlurBitmap2 (outbuf, x, y, glow->dDist,glow->dQuality);
+	if (!glow->bNoComp)
+		RVAddBitmaps (inbuf , outbuf, outbuf, x, y);
+}
 
 void make_black_ibuf(ImBuf *ibuf)
 {
@@ -1252,6 +1506,9 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 		break;
 	case SEQ_SWEEP:
 		do_sweep_effect(seq, fac, facf, x, y, se1->ibuf->rect, se2->ibuf->rect, se->ibuf->rect);
+		break;
+	case SEQ_GLOW:
+		do_glow_effect(seq, fac, facf, x, y, se1->ibuf->rect, se2->ibuf->rect, se->ibuf->rect);
 		break;
 	case SEQ_PLUGIN:
 		if(seq->plugin && seq->plugin->doit) {

@@ -143,6 +143,15 @@ typedef struct SweepVars {
 	short sweeptype;
 } SweepVars;
 
+typedef struct GlowVars {	
+	float fMini;	/*	Minimum intensity to trigger a glow */
+	float fClamp;
+	float fBoost;	/*	Amount to multiply glow intensity */
+    float dDist;	/*	Radius of glow blurring */
+	int	dQuality;
+	int	bNoComp;	/*	SHOW/HIDE glow buffer */
+} GlowVars;
+
 
 /* ***************** SEQUENCE ****************** */
 
@@ -171,6 +180,7 @@ typedef struct SweepVars {
 #define SEQ_OVERDROP	15
 #define SEQ_PLUGIN		24
 #define SEQ_SWEEP		25
+#define SEQ_GLOW		26
 
 #endif
 

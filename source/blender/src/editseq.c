@@ -837,6 +837,7 @@ static int event_to_efftype(int event)
 	if(event==9) return SEQ_OVERDROP;
 	if(event==10) return SEQ_PLUGIN;
 	if(event==13) return SEQ_SWEEP;
+	if(event==14) return SEQ_GLOW;
 	return 0;
 }
 
@@ -871,7 +872,7 @@ static int add_seq_effect(int type)
 		seq= seq->next;
 	}
 
-	if(type==10 || type==13) {	/* plugin: minimal 1 select */
+	if(type==10 || type==13 || type==14) {	/* plugin: minimal 1 select */
 		if(seq2==0)  {
 			error("Need at least one selected sequence strip");
 			return 0;
@@ -901,7 +902,10 @@ static int add_seq_effect(int type)
 
 	/* Allocate variable structs for effects with settings */
 	if(seq->type==SEQ_SWEEP){
-		seq->effectdata = MEM_callocN(sizeof(struct SweepVars), "sweepvars");
+		init_sweep_effect(seq);
+	}
+	else if(seq->type==SEQ_GLOW){
+		init_glow_effect(seq);
 	}
 
 	if(seq->type==SEQ_ALPHAUNDER || seq->type==SEQ_ALPHAOVER) {
@@ -1003,13 +1007,16 @@ void add_sequence(int type)
 		case SEQ_SWEEP:
 			event = 13;
 			break;
+		case SEQ_GLOW:
+			event = 14;
+			break;
 		default:
 			event = 0;
 			break;
 		}
 	}
 	else {
-		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Sweep%x13");
+		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Sweep%x13|Glow%x14");
 	}
 
 	if(event<1) return;
@@ -1080,6 +1087,7 @@ void add_sequence(int type)
 	case 9:
 	case 10:
 	case 13:
+	case 14:
 
 		if(last_seq==0) error("Need at least one active sequence strip");
 		else if(event==10) {
@@ -1105,7 +1113,7 @@ void change_sequence(void)
 	if(last_seq==0) return;
 
 	if(last_seq->type & SEQ_EFFECT) {
-		event= pupmenu("Change Effect%t|Switch A <-> B %x1|Switch B <-> C %x10|Plugin%x11|Recalculate%x12|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9");
+		event= pupmenu("Change Effect%t|Switch A <-> B %x1|Switch B <-> C %x10|Plugin%x11|Recalculate%x12|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Sweep%x13|Glow%x14");
 		if(event>0) {
 			if(event==1) {
 				SWAP(Sequence *, last_seq->seq1, last_seq->seq2);
@@ -1122,6 +1130,16 @@ void change_sequence(void)
 				free_plugin_seq(last_seq->plugin);
 				last_seq->plugin= 0;
 				last_seq->type= event_to_efftype(event);
+
+				switch(last_seq->type){
+					case SEQ_SWEEP:
+						init_sweep_effect(last_seq);
+						break;
+					case SEQ_GLOW:
+						init_glow_effect(last_seq);
+						break;
+				}
+
 			}
 			new_stripdata(last_seq);
 			allqueue(REDRAWSEQ, 0);

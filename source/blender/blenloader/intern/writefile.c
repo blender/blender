@@ -1045,6 +1045,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 							case SEQ_SWEEP:
 								writestruct(wd, DATA, "SweepVars", 1, seq->effectdata);
 								break;
+							case SEQ_GLOW:
+								writestruct(wd, DATA, "GlowVars", 1, seq->effectdata);
+								break;
 						}
 					}
 
