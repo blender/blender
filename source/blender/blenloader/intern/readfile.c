@@ -391,7 +391,7 @@ void blo_join_main(ListBase *mainlist)
 {
 	Main *tojoin, *mainl= mainlist->first;
 
-	while (tojoin= mainl->next) {
+	while ((tojoin= mainl->next)) {
 		add_main_to_main(mainl, tojoin);
 		BLI_remlink(mainlist, tojoin);
 		MEM_freeN(tojoin);
@@ -1246,6 +1246,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 			{
 				bFollowPathConstraint *data;
 				data= ((bFollowPathConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			};
+			break;
+		case CONSTRAINT_TYPE_DISTANCELIMIT:
+			{
+				bDistanceLimitConstraint *data;
+				data= ((bDistanceLimitConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			};
 			break;
@@ -3721,11 +3728,94 @@ static void do_versions(Main *main)
 				}
 			}
 		}
+		
 	}	
+	if(main->versionfile <= 225) {
+		World *wo;
+		/* Use Sumo for old games */
+		for (wo = main->world.first; wo; wo= wo->id.next) {
+			wo->physicsEngine = 2;
+		}
+
+	}
 	if(main->versionfile <= 227) {
 		Scene *sce;
 		Material *ma;
 		bScreen *sc;
+		Object *ob;
+
+
+		/*  As of now, this insures that the transition from the old Track system
+		    to the new full constraint Track is painless for everyone. - theeth
+		*/
+		ob = main->object.first;
+	
+		while (ob) {
+			ListBase *list;
+			list = &ob->constraints;
+			
+			/* check for already existing TrackTo constraint
+			   set their track and up flag correctly */
+
+			if (list){
+				bConstraint *curcon;
+				for (curcon = list->first; curcon; curcon=curcon->next){
+					if (curcon->type == CONSTRAINT_TYPE_TRACKTO){
+						bTrackToConstraint *data = curcon->data;
+						data->reserved1 = ob->trackflag;
+						data->reserved2 = ob->upflag;
+					}
+				}
+			}
+
+			if (ob->type == OB_ARMATURE) {
+				if (ob->pose){
+					bConstraint *curcon;
+					bPoseChannel *pchan;
+					for (pchan = ob->pose->chanbase.first; 
+						 pchan; pchan=pchan->next){
+						for (curcon = pchan->constraints.first; 
+							 curcon; curcon=curcon->next){
+							if (curcon->type == CONSTRAINT_TYPE_TRACKTO){
+								bTrackToConstraint *data = curcon->data;
+								data->reserved1 = ob->trackflag;
+								data->reserved2 = ob->upflag;
+							}
+						}
+					}
+                }
+			}
+
+			/* Change Ob->Track in real TrackTo constraint */
+			
+			if (ob->track){
+				bConstraint *con;
+				bTrackToConstraint *data;
+
+				list = &ob->constraints;
+				if (list)
+				{
+					con = MEM_callocN(sizeof(bConstraint), "constraint");
+					strcpy (con->name, "AutoTrack");
+					unique_constraint_name(con, list);
+					con->flag |= CONSTRAINT_EXPAND;
+					con->enforce=1.0F;
+					con->type = CONSTRAINT_TYPE_TRACKTO;
+					data = (bTrackToConstraint *) 
+						new_constraint_data(CONSTRAINT_TYPE_TRACKTO);
+
+					data->tar = ob->track;
+					data->reserved1 = ob->trackflag;
+					data->reserved2 = ob->upflag;
+					con->data= (void*) data;
+					BLI_addtail(list, con);
+				}
+				ob->track = 0;
+			}
+
+			ob = ob->id.next;
+		}
+
 
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->audio.mixrate = 44100;
@@ -3928,6 +4018,31 @@ static void do_versions(Main *main)
 					}
 				}
 			}
+		}
+	}
+	if(main->versionfile <= 231) {
+		/* new bit flags for showing/hiding grid floor and axes */
+		bScreen *sc = main->screen.first;
+		while(sc) {
+			ScrArea *sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl= sa->spacedata.first;
+				while (sl) {
+					if (sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D*) sl;
+
+						if (v3d->gridflag==0) {
+							v3d->gridflag |= V3D_SHOW_X;
+							v3d->gridflag |= V3D_SHOW_Y;
+							v3d->gridflag |= V3D_SHOW_FLOOR;
+							v3d->gridflag &= ~V3D_SHOW_Z;
+						}
+					}
+					sl= sl->next;
+				}
+				sa= sa->next;
+			}
+			sc= sc->id.next;
 		}
 	}	
 	if(main->versionfile <= 231) {	
@@ -4370,6 +4485,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 			{
 				bFollowPathConstraint *data = (bFollowPathConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				break;
+			}
+		case CONSTRAINT_TYPE_DISTANCELIMIT:
+			{
+				bDistanceLimitConstraint *data = (bDistanceLimitConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 				break;
 			}
