@@ -1182,7 +1182,7 @@ static void init_render_mball(Object *ob)
 		return;
 
 	/* yafray: set transform to identity matrix */
-	if (R.r.mode & R_YAFRAY)
+	if (R.r.renderer==R_YAFRAY)
 		MTC_Mat4One(mat);
 	else
 		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
@@ -1303,7 +1303,7 @@ static void init_render_mesh(Object *ob)
 	do_puno= object_deform(ob);
 
 	/* yafray: set transform to identity matrix */
-	if (R.r.mode & R_YAFRAY)
+	if (R.r.renderer==R_YAFRAY)
 		MTC_Mat4One(mat);
 	else
 		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
@@ -1657,7 +1657,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	R.la[R.totlamp++]= lar;
 
 	/* yafray: in this case the lamp matrix is a copy of the object matrix */
-	if (R.r.mode & R_YAFRAY)
+	if (R.r.renderer==R_YAFRAY)
 		MTC_Mat4CpyMat4(mat, ob->obmat);
 	else
 		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
@@ -1799,7 +1799,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	}
 
 	/* yafray: shadowbuffers only needed for internal render */
-	if ((R.r.mode & R_YAFRAY)==0)
+	if (R.r.renderer==R_INTERN)
 	{
 		if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD) && (la->type==LA_SPOT) && doshadbuf ) {
 		/* Per lamp, one shadow buffer is made. */
@@ -1808,7 +1808,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	}
 	
 	/* yafray: shadow flag should not be cleared, only used with internal renderer */
-	if ((R.r.mode & R_YAFRAY)==0) {
+	if (R.r.renderer==R_INTERN) {
 		/* to make sure we can check ray shadow easily in the render code */
 		if(lar->mode & LA_SHAD_RAY) {
 			if( (R.r.mode & R_RAYTRACE)==0)
@@ -1845,7 +1845,7 @@ static void init_render_surf(Object *ob)
 	if(nu==0) return;
 
 	/* yafray: set transform to identity matrix */
-	if (R.r.mode & R_YAFRAY)
+	if (R.r.renderer==R_YAFRAY)
 		MTC_Mat4One(mat);
 	else
 		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
@@ -2252,7 +2252,7 @@ static void init_render_curve(Object *ob)
 	firststartvert= R.totvert;
 
 	/* yafray: set transform to identity matrix */
-	if (R.r.mode & R_YAFRAY)
+	if (R.r.renderer==R_YAFRAY)
 		MTC_Mat4One(mat);
 	else
 		MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
@@ -2605,7 +2605,7 @@ static void init_render_object(Object *ob)
 		init_render_mball(ob);
 	else {
 		/* yafray: set transform to identity matrix */
-		if (R.r.mode & R_YAFRAY)
+		if (R.r.renderer==R_YAFRAY)
 			MTC_Mat4One(mat);
 		else
 			MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
@@ -2888,7 +2888,7 @@ void RE_rotateBlenderScene(void)
 				 NOT done for lamps, these are included as separate objects, see below.
 				 correction: also ignore lattices, armatures and camera's (.....) */
 			if ((ob->type!=OB_LATTICE) && (ob->type!=OB_ARMATURE) &&
-					(ob->type!=OB_LAMP) && (ob->type!=OB_CAMERA) && (R.r.mode & R_YAFRAY))
+					(ob->type!=OB_LAMP) && (ob->type!=OB_CAMERA) && (R.r.renderer==R_YAFRAY))
 			{
 				printf("Adding %s to renderlist\n", ob->id.name);
 				ob->flag &= ~OB_DONE;
@@ -2905,7 +2905,7 @@ void RE_rotateBlenderScene(void)
 					/* exception: mballs! */
 					/* yafray: Include at least one copy of a dupliframe object for yafray in the renderlist.
 					   mballs comment above true as well for yafray, they are not included, only all other object types */
-					if (R.r.mode & R_YAFRAY) {
+					if (R.r.renderer==R_YAFRAY) {
 						if ((ob->type!=OB_MBALL) && ((ob->transflag & OB_DUPLIFRAMES)!=0)) {
 							printf("Object %s has OB_DUPLIFRAMES set, adding to renderlist\n", ob->id.name);
 							init_render_object(ob);
@@ -2940,7 +2940,7 @@ void RE_rotateBlenderScene(void)
 									 NOT done for lamps, these need to be included as normal lamps separately
 									 correction: also ignore lattices, armatures and cameras (....) */
 								if ((obd->type!=OB_LATTICE) && (obd->type!=OB_ARMATURE) &&
-										(obd->type!=OB_LAMP) && (obd->type!=OB_CAMERA) && (R.r.mode & R_YAFRAY))
+										(obd->type!=OB_LAMP) && (obd->type!=OB_CAMERA) && (R.r.renderer==R_YAFRAY))
 								{
 									printf("Adding dupli matrix for object %s\n", obd->id.name);
 									YAF_addDupliMtx(obd);
@@ -2956,7 +2956,7 @@ void RE_rotateBlenderScene(void)
 					/* yafray: if there are linked data objects (except lamps),
 					   yafray only needs to know about one, the rest can be instanciated.
 					   The dupliMtx list is used for this purpose */
-					if (R.r.mode & R_YAFRAY) {
+					if (R.r.renderer==R_YAFRAY) {
 						if ((ob->type!=OB_LAMP) && (YAF_objectKnownData(ob)))
 							printf("Added dupli matrix for linked data object %s\n", ob->id.name);
 						else
@@ -2968,7 +2968,7 @@ void RE_rotateBlenderScene(void)
 			}
 			else {
 				/* yafray: set transform to identity matrix, not sure if this is needed here */
-				if (R.r.mode & R_YAFRAY)
+				if (R.r.renderer==R_YAFRAY)
 					MTC_Mat4One(mat);
 				else
 					MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
@@ -2994,7 +2994,7 @@ void RE_rotateBlenderScene(void)
 
 			ob->flag &= ~OB_DO_IMAT;
 			/* yafray: set transform to identity matrix, not sure if this is needed here */
-			if (R.r.mode & R_YAFRAY)
+			if (R.r.renderer==R_YAFRAY)
 				MTC_Mat4One(mat);
 			else
 				MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);

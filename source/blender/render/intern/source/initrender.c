@@ -757,7 +757,7 @@ void yafrayRender()
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void render() {
 	/* yafray: render, see above */
-	if (R.r.mode & R_YAFRAY)
+	if (R.r.renderer==R_YAFRAY)
 		yafrayRender();
 	else {
 		/* not too neat... should improve... */

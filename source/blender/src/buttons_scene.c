@@ -994,9 +994,6 @@ static void render_panel_output(void)
 	uiDefButS(block, ROW, B_REDR, "DispWin",	139, 7, 62, 19, &R.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
 	uiBlockEndAlign(block);
 
-	/* yafray: enable/disable button */
-	uiDefButI(block, TOG|BIT|18, B_REDR, "YafRay", 154, 28, 141, 18, &G.scene->r.mode, 0, 0, 0, 0, "Use YafRay for rendering");
-
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	228, 8, 67, 18, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Toon shading buttons */
@@ -1024,18 +1021,20 @@ static void render_panel_render(void)
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_render", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
- 	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369,142,192,47, 0, 0, 0, 0, 0, "Start the rendering");
+	/* yafray: on request, render engine menu is back again, and moved to Render panel */
+	uiDefButS(block, MENU, B_REDR, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 369, 142, 192, 22, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
+	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369,166,192,35, 0, 0, 0, 0, 0, "Start the rendering");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,114,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
-	uiDefButS(block, ROW,B_DIFF,"5",			369,90,28,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
-	uiDefButS(block, ROW,B_DIFF,"8",			397,90,28,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
-	uiDefButS(block, ROW,B_DIFF,"11",			425,90,33,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
-	uiDefButS(block, ROW,B_DIFF,"16",			458,90,33,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
+	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,110,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
+	uiDefButS(block, ROW,B_DIFF,"5",			369,86,28,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
+	uiDefButS(block, ROW,B_DIFF,"8",			397,86,28,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
+	uiDefButS(block, ROW,B_DIFF,"11",			425,86,33,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
+	uiDefButS(block, ROW,B_DIFF,"16",			458,86,33,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	495,114,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
-	uiDefButF(block, NUM,B_DIFF,"Bf:",			495,90,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
+	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	495,110,66,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
+	uiDefButF(block, NUM,B_DIFF,"Bf:",			495,86,65,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,42,99,31,&G.scene->r.xparts,1.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
@@ -1047,17 +1046,17 @@ static void render_panel_render(void)
 	uiDefButS(block, ROW,800,"Key",		467,11,44,24,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
+	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,166,61,35, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,166,61,35, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
 	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,41,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
 	uiDefButI(block, TOG|BIT|16,0,"Ray",	606,142,35,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
 	uiDefButI(block, TOG|BIT|8,0,"Radio",	641,142,46,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_DIFF,"100%",			565,114,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
-	uiDefButS(block, ROW,B_DIFF,"75%",			565,90,36,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
-	uiDefButS(block, ROW,B_DIFF,"50%",			604,90,40,20,&G.scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
-	uiDefButS(block, ROW,B_DIFF,"25%",			647,90,39,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
+	uiDefButS(block, ROW,B_DIFF,"100%",			565,110,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
+	uiDefButS(block, ROW,B_DIFF,"75%",			565,86,36,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
+	uiDefButS(block, ROW,B_DIFF,"50%",			604,86,40,20,&G.scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
+	uiDefButS(block, ROW,B_DIFF,"25%",			647,86,39,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
 
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|6,0,"Fields",  564,50,60,23,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
@@ -1254,7 +1253,7 @@ static void render_panel_yafrayGI()
 			uiDefButI(block, NUM, 0, "MixCount:", 170,35,140,20, &G.scene->r.GImixphotons, 
 					0, 1000, 10, 10, "Number of photons to shoot");
 			uiDefButS(block,TOG|BIT|0, B_REDR, "Tune Photons",170,10,140,20, &G.scene->r.GIdirect, 
-					0, 0, 0, 0, "Show the photonmap directly in the render for tunning");
+					0, 0, 0, 0, "Show the photonmap directly in the render for tuning");
 		}
 	}
 }
@@ -1292,7 +1291,7 @@ void render_panels()
 	render_panel_anim();
 	render_panel_format();
 	/* yafray: GI & Global panel, only available when yafray enabled for rendering */
-	if (G.scene->r.mode & R_YAFRAY) {
+	if (G.scene->r.renderer==R_YAFRAY) {
 		if (G.scene->r.YF_gamma==0.0) G.scene->r.YF_gamma=1.0;
 		if (G.scene->r.YF_raybias==0.0) G.scene->r.YF_raybias=0.001;
 		if (G.scene->r.YF_raydepth==0) G.scene->r.YF_raydepth=5;

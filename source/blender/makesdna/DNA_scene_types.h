@@ -179,9 +179,11 @@ typedef struct RenderData {
 	 * 14: motion blur
 	 * 15: use unified renderer for this pic
 	 * 16: enable raytracing
-	 * 18: use YafRay for rendering
 	 */
 	int mode;
+
+	/* yafray: render engine (not exclusive to yafray) */
+	short renderer, rpad[3];
 
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
@@ -293,8 +295,10 @@ typedef struct Scene {
 #define R_UNIFIED       0x8000
 #define R_RAYTRACE      0x10000
 #define R_GAUSS      	0x20000
-/* yafray: render flag */
-#define R_YAFRAY	0x40000
+
+/* yafray: renderer flag (not only exclusive to yafray) */
+#define R_INTERN	0
+#define R_YAFRAY	1
 
 /* scemode */
 #define R_DOSEQ			0x0001

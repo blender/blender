@@ -445,7 +445,7 @@ static void open_renderwin(int winpos[2], int winsize[2])
 	Window *win;
 	/* yafray: Window title change for yafray, totally unnecessary of course, but... */
 	char* title;
-	if (G.scene->r.mode & R_YAFRAY)
+	if (G.scene->r.renderer==R_YAFRAY)
 		title = "YafRay:Render";
 	else
 		title = "Blender:Render";

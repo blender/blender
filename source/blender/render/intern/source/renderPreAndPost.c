@@ -71,7 +71,7 @@ void prepareScene()
 
 	/* yafray: 'direct' radiosity, environment maps and octree init not needed for yafray render */
 	/* although radio mode could be useful at some point, later */
-	if ((R.r.mode & R_YAFRAY)==0) {
+	if (R.r.renderer==R_INTERN) {
 
 		/* RADIO */
 		if(R.r.mode & R_RADIO) do_radio_render();
@@ -92,7 +92,7 @@ void finalizeScene(void)
 	/* Among other things, it releases the shadow buffers. */
 	RE_local_free_renderdata();
 	/* yafray: freeoctree not needed after yafray render, not initialized, see above */
-	if ((R.r.mode & R_YAFRAY)==0) {
+	if (R.r.renderer==R_INTERN) {
 		if(R.r.mode & R_RAYTRACE) freeoctree();
 	}
 }
