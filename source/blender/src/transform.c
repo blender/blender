@@ -1322,7 +1322,7 @@ void initTranslation(TransInfo *t) {
 	//x = G.vd->area->v1->vec.x;
 	//y = G.vd->area->v1->vec.y + (G.vd->area->headwin?28:1);
 	//warp_pointer(t->center2d[0] + x, t->center2d[1] + y);
-	
+
 	//t->imval[0] = t->center2d[0];
 	//t->imval[1] = t->center2d[1];
 }
