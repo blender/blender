@@ -142,6 +142,7 @@ void BIF_read_file(char *name)
 
 int BIF_read_homefile(void)
 {
+	bTheme *btheme;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
 	int success;
@@ -153,6 +154,10 @@ int BIF_read_homefile(void)
 
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
+	
+	/* only here free userdef themes... */
+	BLI_freelistN(&U.themes);
+	
 	if (BLI_exists(tstr)) {
 		success = BKE_read_file(tstr, NULL);
 	} else {
