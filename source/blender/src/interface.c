@@ -813,7 +813,8 @@ static void ui_warp_pointer(short x, short y)
 static int ui_do_but_MENU(uiBut *but)
 {
 	uiBlock *block;
-	ListBase listb={NULL, NULL};
+	uiBut *bt;
+	ListBase listb={NULL, NULL}, lb;
 	double fvalue;
 	int width, height=0, a, xmax, starty;
 	short startx;
@@ -906,6 +907,20 @@ static int ui_do_but_MENU(uiBut *but)
 		}
 	}
 	
+	/* the code up here has flipped locations, because of change of preferred order */
+	/* thats why we have to switch list order too, to make arrowkeys work */
+	
+	lb.first= lb.last= NULL;
+	bt= block->buttons.first;
+	while(bt) {
+		uiBut *next= bt->next;
+		BLI_remlink(&block->buttons, bt);
+		BLI_addhead(&lb, bt);
+		bt= next;
+	}
+	block->buttons= lb;
+
+	/* and lets go */
 	block->direction= UI_TOP;
 	ui_positionblock(block, but);
 	block->win= G.curscreen->mainwin;
@@ -4029,6 +4044,7 @@ void uiBlockSetDirection(uiBlock *block, int direction)
 {
 	block->direction= direction;
 }
+
 void uiBlockFlipOrder(uiBlock *block)
 {
 	ListBase lb;
