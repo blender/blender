@@ -64,6 +64,7 @@
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_ika.h"
+#include "BKE_curve.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

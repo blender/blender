@@ -404,7 +404,8 @@ void persptoetsen(unsigned short event)
 			do_all_keys();
 			do_all_actions();
 			do_all_ikas();
-
+			test_all_displists();
+			
 			reset_slowparents();	/* editobject.c */
 		}
 		else if(G.vd->persp<2) {

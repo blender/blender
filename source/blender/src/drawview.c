@@ -1734,14 +1734,21 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		G.f &= ~G_PICKSEL;
 	}
 	
-	/* first draw not selected and the duplis */
+	/* first calculate positions, we do this in separate loop to make sure displists
+	   (mball, deform, etc) are recaluclated based on correct object (parent/children) positions
+	*/
+	base= G.scene->base.first;
+	while(base) {
+		if(G.vd->lay & base->lay) where_is_object(base->object);
+		base= base->next;
+	}
+	
+	/* then draw not selected and the duplis */
 	base= G.scene->base.first;
 	while(base) {
 		
 		if(G.vd->lay & base->lay) {
 			
-			where_is_object(base->object);
-
 			/* dupli drawing temporal off here */
 			if(FALSE && base->object->transflag & OB_DUPLI) {
 				extern ListBase duplilist;
@@ -2484,7 +2491,8 @@ int play_anim(int mode)
 	do_all_keys();
 	do_all_actions();
 	do_all_ikas();
-
+	test_all_displists();
+	
 	audiostream_stop();
 
 	if(oldsa!=curarea) areawinset(oldsa->win);

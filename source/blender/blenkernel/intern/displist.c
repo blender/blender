@@ -2207,16 +2207,17 @@ void test_all_displists(void)
 			ob= base->object;
 			
 
-			if(ob->type==OB_MBALL && ob->ipo) {
+			if(ob->type==OB_MBALL && (ob->ipo || ob->parent)) {
 				// find metaball object holding the displist
 				// WARNING: if more metaballs have IPO's the displist
-				// is recalculated to often...
+				// is recalculated to often... do we free the displist
+				// and rely on the drawobject.c to build it again when needed
 
 				if(ob->disp.first == NULL) {
 					ob= find_basis_mball(ob);
 				}
-
-				makeDispList(ob);
+				// makeDispList(ob);
+				freedisplist(&ob->disp);
 			}
 			else if(ob->parent) {
 
@@ -2230,6 +2231,8 @@ void test_all_displists(void)
 				
 #endif
 			}
+
+			/* warn, ob pointer changed in case of OB_MALL */
 
 			if ELEM(ob->type, OB_CURVE, OB_SURF) {
 				if(ob!=G.obedit) {
