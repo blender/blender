@@ -36,6 +36,7 @@
 struct ScrArea;
 
 void drawnlaspace(struct ScrArea *sa, void *spacedata);
+void do_nlabuts(unsigned short event);
 
 #endif /* BSE_DRAWNLA */
 

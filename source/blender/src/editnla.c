@@ -78,6 +78,7 @@
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
 #include "BDR_editobject.h"
+#include "BSE_drawnla.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -96,7 +97,6 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel);
 static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel);
 static void mouse_nlachannels(short mval[2]);
 static void add_nlablock(short mval[2]);
-static bActionStrip *get_active_nlastrip(void);
 static void convert_nla(short mval[2]);
 extern int count_nla_levels(void);	/* From drawnla.c */
 extern int nla_filter (Base* base, int flags);	/* From drawnla.c */
@@ -123,7 +123,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_butspace(val); // abuse!
+			do_nlabuts(val); // in drawnla.c
 			break;
 
 		case HOMEKEY:
@@ -609,7 +609,7 @@ void init_nlaspace(ScrArea *sa)
 	snla->v2d.max[1]= 1000.0;
 	
 	snla->v2d.minzoom= 0.1F;
-	snla->v2d.maxzoom= 10;
+	snla->v2d.maxzoom= 50;
 	
 	snla->v2d.scroll= R_SCROLL+B_SCROLL;
 	snla->v2d.keepaspect= 0;
@@ -1521,30 +1521,12 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 	return firstact;
 }
 
-static bActionStrip *get_active_nlastrip(void)
-/* For now just returns the first selected strip */
-{
-	Base *base;
-	bActionStrip *strip;
-	
-	for (base=G.scene->base.first; base; base=base->next){
-		if (nla_filter(base, 0) && base->object->type==OB_ARMATURE){
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-				if (strip->flag & ACTSTRIP_SELECT)
-					return strip;
-			}
-		}
-	}
-	
-	return NULL;
-}
-
 void clever_numbuts_nla(void){
-	bActionStrip *strip;
+	bActionStrip *strip=NULL;
 	int but=0;
 		
 	/* Determine if an nla strip has been selected */
-	strip = get_active_nlastrip();
+	//strip = get_active_nlastrip();
 	if (!strip)
 		return;
 	

@@ -62,6 +62,7 @@
 #include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"
+#include "BSE_headerbuttons.h"
 
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -413,21 +414,68 @@ static void draw_nlastrips(SpaceNla *snla)
 
 /* ******* panel *********** */
 
+#define B_NLA_PANEL		121
+
+static bActionStrip *get_active_nlastrip(void)
+/* For now just returns the first selected strip */
+{
+	Base *base;
+	bActionStrip *strip;
+	
+	for (base=G.scene->base.first; base; base=base->next){
+		if (nla_filter(base, 0) && base->object->type==OB_ARMATURE){
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+				if (strip->flag & ACTSTRIP_SELECT)
+					return strip;
+			}
+		}
+	}
+	
+	return NULL;
+}
+
 void do_nlabuts(unsigned short event)
 {
+	bActionStrip *strip;
+		
+	/* Determine if an nla strip has been selected */
+	strip = get_active_nlastrip();
+	if (!strip) return;
+	
 	switch(event) {
-	case REDRAWVIEW3D:
-		allqueue(REDRAWVIEW3D, 0);
-		break;
 	case B_REDR:
+		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWNLA, 0);
+		break;
+	case B_NLA_PANEL:
+		if (strip->end<strip->start)
+			strip->end=strip->start;
+	
+	
+		if (strip->blendin>(strip->end-strip->start))
+			strip->blendin = strip->end-strip->start;
+	
+		if (strip->blendout>(strip->end-strip->start))
+			strip->blendout = strip->end-strip->start;
+	
+		if (strip->blendin > (strip->end-strip->start-strip->blendout))
+			strip->blendin = (strip->end-strip->start-strip->blendout);
+	
+		if (strip->blendout > (strip->end-strip->start-strip->blendin))
+			strip->blendout = (strip->end-strip->start-strip->blendin);
+		
+		
+		update_for_newframe_muted();
+		allqueue (REDRAWNLA, 0);
+		allqueue (REDRAWVIEW3D, 0);
+		
 		break;
 	}
 }
 
-
 static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 {
+	bActionStrip *strip;
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "nla_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
@@ -435,8 +483,36 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiSetPanelHandler(NLA_HANDLER_PROPERTIES);  // for close and esc
 	if(uiNewPanel(curarea, block, "Transform Properties", "NLA", 10, 230, 318, 204)==0) return;
 
-	uiDefBut(block, LABEL, 0, "test text",		10,180,300,19, 0, 0, 0, 0, 0, "");
+	/* Determine if an nla strip has been selected */
+	strip = get_active_nlastrip();
+	if (!strip) return;
+	
+	// first labels, for simpler align code :)
+	uiDefBut(block, LABEL, 0, "Timeline Range:",	10,180,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Action Range:",		10,140,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Blending:",			10,100,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Options:",			10,60,300,19, 0, 0, 0, 0, 0, "");
 
+	uiBlockBeginAlign(block);
+	uiDefBut(block, NUM|FLO, B_REDR, "Strip Start:", 10,160,150,19, &strip->start, 1.0, 18000.0, 100, 0, "First frame in the timeline");
+	uiDefBut(block, NUM|FLO, B_REDR, "Strip End:", 	160,160,150,19, &strip->end, 1.0, 18000.0, 100, 0, "Last frame in the timeline");
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, NUM|FLO, B_REDR, "Action Start:", 10,120,150,19, &strip->actstart, 1.0, 18000.0, 100, 0, "First frame of the action to map to the playrange");
+	uiDefBut(block, NUM|FLO, B_REDR, "Action End:", 160,120,150,19, &strip->actend, 1.0, 18000.0, 100, 0, "Last frame of the action to map to the playrange");
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, NUM|FLO, B_REDR, "Blendin:", 	10,80,150,19, &strip->blendin, 1.0, 18000.0, 100, 0, "Number of frames of ease-in");
+	uiDefBut(block, NUM|FLO, B_REDR, "Blendout:", 	160,80,150,19, &strip->blendout, 1.0, 18000.0, 100, 0, "Number of frames of ease-out");
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, NUM|FLO, B_REDR, "Repeat:", 	10,40,150,19, &strip->repeat, 1.0, 18000.0, 100, 0, "Number of times the action should repeat");
+	uiDefBut(block, NUM|FLO, B_REDR, "Stride:", 	160,40,150,19, &strip->stridelen, 1.0, 18000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, TOG|SHO|BIT|ACTSTRIP_USESTRIDEBIT, B_REDR, "Use Path",	10,0,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride. Only armatures parented to a path");
+	uiDefBut(block, TOG|SHO|BIT|ACTSTRIP_HOLDLASTFRAMEBIT, B_REDR, "Hold",	110,0,100,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
+	uiDefBut(block, TOG|SHO, B_REDR, "Add",	210,0,100,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
 }
 
 static void nla_blockhandlers(ScrArea *sa)
@@ -464,6 +540,8 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	float col[3];
 	short ofsx = 0, ofsy = 0;
 	
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);	/* for panel handler to work */
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 	
 	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
