@@ -3,13 +3,11 @@
 ;
 ; Blender Self-Installer for Windows (NSIS - http://nsis.sourceforge.net)
 ;
-; 09.02.2003    aphex (mediocre@mixnmojo.com)
-;
 
 !include "MUI.nsh"
 
-!define MUI_PRODUCT "Blender" ;Define your own software name here
-!define MUI_VERSION "VERSION" ;Define your own software version here
+!define MUI_PRODUCT "Blender" 
+!define MUI_VERSION "VERSION"
 
 !insertmacro MUI_LANGUAGEFILE_STRING MUI_TEXT_WELCOME_INFO_TEXT "This wizard will guide you through the installation of ${MUI_PRODUCT}.\r\n\r\nIt is recommended that you close all other applications before starting Setup.\r\n\r\n"
 
@@ -46,7 +44,7 @@
   LangString DESC_SecCopyUI ${LANG_ENGLISH} "Copy all required files to the application folder."
   LangString DESC_Section2 ${LANG_ENGLISH} "Add shortcut items to the Start Menu. (Recommended)"
   LangString DESC_Section3 ${LANG_ENGLISH} "Add a shortcut to Blender on your desktop."
-  LangString DESC_Section4 ${LANG_ENGLISH} "Blender can register itself with .blend files to allow double-clicking from Explorer, etc."
+  LangString DESC_Section4 ${LANG_ENGLISH} "Blender can register itself with .blend files to allow double-clicking from Windows Explorer, etc."
   
 ;--------------------------------
 ;Data
@@ -85,6 +83,17 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\ac3d_import.py
   File DISTDIR\.blender\scripts\blender2cal3d.py
   File DISTDIR\.blender\scripts\directxexporter.py
+  File DISTDIR\.blender\scripts\mod_flags.py
+  File DISTDIR\.blender\scripts\mod_meshtools.py
+  File DISTDIR\.blender\scripts\off_export.py
+  File DISTDIR\.blender\scripts\off_import.py
+  File DISTDIR\.blender\scripts\radiosity_export.py
+  File DISTDIR\.blender\scripts\radiosity_import.py
+  File DISTDIR\.blender\scripts\raw_export.py
+  File DISTDIR\.blender\scripts\raw_import.py
+  File DISTDIR\.blender\scripts\uv_export.py
+  File DISTDIR\.blender\scripts\videoscape_export.py
+  File DISTDIR\.blender\scripts\wrl2export.py
   SetOutPath $INSTDIR\.blender\bpydata
   File DISTDIR\.blender\bpydata\readme.txt
   
@@ -111,6 +120,10 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\locale\nl\LC_MESSAGES\blender.mo
   SetOutPath $INSTDIR\.blender\locale\sv\LC_MESSAGES
   File DISTDIR\.blender\locale\sv\LC_MESSAGES\blender.mo
+  SetOutPath $INSTDIR\.blender\locale\zh_cn\LC_MESSAGES
+  File DISTDIR\.blender\locale\zh_cn\LC_MESSAGES\blender.mo
+  SetOutPath $INSTDIR\.blender\locale\pt_br\LC_MESSAGES
+  File DISTDIR\.blender\locale\pt_br\LC_MESSAGES\blender.mo
   
   SetOutPath $INSTDIR
   ; Write the installation path into the registry
