@@ -4506,7 +4506,7 @@ void transform(int mode)
 					}
 					else if(axismode) {
 						if (typemode){
-							if(axismode==XTRANS) sprintf(str, "Rot X: >%.2f<", 180.0*phi/M_PI, addvec[0]);
+							if(axismode==XTRANS) sprintf(str, "Rot X: >%.2f<", addvec[0]);
 							else if(axismode==YTRANS) sprintf(str, "Rot Y: >%.2f<", addvec[0]);
 							else if(axismode==ZTRANS) sprintf(str, "Rot Z: >%.2f<", addvec[0]);
 							else if(axismode==XTRANSLOCAL) sprintf(str, "Local Rot X: >%.2f<", addvec[0]);
