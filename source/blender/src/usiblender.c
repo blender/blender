@@ -169,7 +169,10 @@ int BIF_read_homefile(void)
 
 	/* only here free userdef themes... */
 	BLI_freelistN(&U.themes);
-
+	
+	/* prevent loading no UI */
+	G.fileflags &= ~G_FILE_NO_UI;
+	
 	if (BLI_exists(tstr)) {
 		success = BKE_read_file(tstr, NULL);
 	} else {
