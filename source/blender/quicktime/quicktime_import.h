@@ -85,6 +85,8 @@ typedef struct _QuicktimeMovie {
 	int			have_gw;	//ugly
 } QuicktimeMovie;
 
+char *get_valid_qtname(char *name);
+
 
 // quicktime movie import functions
 

@@ -65,9 +65,12 @@ DONE:
 #include "MEM_guardedalloc.h"
 #include "render.h"
 
+#include "quicktime_import.h"
 #include "quicktime_export.h"
 
 #ifdef _WIN32
+#include <stdio.h>
+#include "BLI_winstuff.h"
 #include <FixMath.h>
 #include <QTML.h>
 #include <TextUtils.h> 
@@ -497,6 +500,9 @@ void start_qt(void) {
 #ifdef __APPLE__
 	int		myFile;
 	FSRef	myRef;
+#else
+	char	*qtname;
+	FILE	*myFile = NULL;
 #endif
 
 	if(qte == NULL) qte = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
@@ -522,9 +528,10 @@ void start_qt(void) {
 		sframe = (G.scene->r.sfra);
 
 		makeqtstring(name);
-		sprintf(theFullPath, "%s", name);
 
 #ifdef __APPLE__
+		sprintf(theFullPath, "%s", name);
+
 		/* hack: create an empty file to make FSPathMakeRef() happy */
 		myFile = open(theFullPath, O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRUSR|S_IWUSR);
 		if (myFile < 0) {
@@ -537,6 +544,10 @@ void start_qt(void) {
 		err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &qte->theSpec, NULL);
 		CheckError(err, "FsGetCatalogInfoRef error");
 #else
+		qtname = get_valid_qtname(name);
+		sprintf(theFullPath, "%s", qtname);
+		MEM_freeN(qtname);
+		
 		CopyCStringToPascal(theFullPath, qte->qtfilename);
 		err = FSMakeFSSpec(0, 0L, qte->qtfilename, &qte->theSpec);
 #endif
@@ -549,7 +560,7 @@ void start_qt(void) {
 							&qte->theMovie );
 		CheckError(err, "CreateMovieFile error");
 
-		printf("Created QuickTime movie: %s\n", name);
+		printf("Created QuickTime movie: %s\n", qtname);
 
 		QT_CreateMyVideoTrack();
 	}

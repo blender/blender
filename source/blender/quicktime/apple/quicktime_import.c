@@ -37,6 +37,7 @@
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
 #include "BKE_global.h"
+#include "BLI_dynstr.h"
 
 #ifdef __APPLE__
 #include <QuickTime/Movies.h>
@@ -99,6 +100,37 @@ void quicktime_exit(void)
 }
 
 
+#ifdef _WIN32
+char *get_valid_qtname(char *name)
+{
+	TCHAR Buffer[MAX_PATH];
+	DWORD dwRet;
+	char *qtname;
+	DynStr *ds= BLI_dynstr_new();
+
+	dwRet = GetCurrentDirectory(MAX_PATH, Buffer);
+
+	if(name[1] != ':') {
+		char drive[2];
+
+		drive[0] = Buffer[0];
+		drive[1] = '\0';
+
+		BLI_dynstr_append(ds, drive);
+		BLI_dynstr_append(ds, ":");
+		BLI_dynstr_append(ds, name);
+	} else {
+		BLI_dynstr_append(ds, name);
+	}
+
+	qtname= BLI_dynstr_get_cstring(ds);
+	BLI_dynstr_free(ds);
+
+	return qtname;
+}
+#endif /* _WIN32 */
+
+
 int anim_is_quicktime (char *name)
 {
 	FSSpec	theFSSpec;
@@ -111,6 +143,7 @@ int anim_is_quicktime (char *name)
 	FInfo						myFinderInfo;
 	FSRef						myRef;
 #else
+	char *qtname;
 	Str255  dst;
 #endif
 	OSErr						err = noErr;
@@ -129,11 +162,16 @@ int anim_is_quicktime (char *name)
 
 	if(QTIME_DEBUG) printf("qt: checking as movie\n");
 
-	sprintf(theFullPath, "%s", name);
 #ifdef __APPLE__
+	sprintf(theFullPath, "%s", name);
+
 	err = FSPathMakeRef(theFullPath, &myRef, 0);
 	err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &theFSSpec, NULL);
 #else
+	qtname = get_valid_qtname(name);
+	sprintf(theFullPath, "%s", qtname);
+	MEM_freeN(qtname);
+
 	CopyCStringToPascal(theFullPath, dst);
 	err = FSMakeFSSpec(0, 0L, dst, &theFSSpec);
 #endif
@@ -349,6 +387,7 @@ int startquicktime (struct anim *anim)
 #ifdef __APPLE__
 	FSRef		myRef;
 #else
+	char		*qtname;
 	Str255		dst;
 #endif
 
@@ -361,12 +400,17 @@ int startquicktime (struct anim *anim)
 	}
 
 	if(QTIME_DEBUG) printf("qt: attempting to load as movie %s\n", anim->name);
-	sprintf(theFullPath, "%s", anim->name);
 	
 #ifdef __APPLE__
+	sprintf(theFullPath, "%s", anim->name);
+
 	err = FSPathMakeRef(theFullPath, &myRef, 0);
 	err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &theFSSpec, NULL);
 #else
+	qtname = get_valid_qtname(anim->name);
+	sprintf(theFullPath, "%s", qtname);
+	MEM_freeN(qtname);
+
 	CopyCStringToPascal(theFullPath, dst);
 	FSMakeFSSpec(0, 0L, dst, &theFSSpec);
 #endif
