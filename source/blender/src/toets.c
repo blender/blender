@@ -562,7 +562,7 @@ int blenderqread(unsigned short event, short val)
 			BIF_save_rendered_image();
 			return 0;
 		}
-		else if(G.qual==LR_CTRLKEY) {
+		else if((G.qual==LR_CTRLKEY)||(G.qual==(LR_CTRLKEY|LR_SHIFTKEY))) {
 			BIF_screendump();
 		}
 		break;
