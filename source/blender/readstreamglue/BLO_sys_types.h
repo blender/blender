@@ -47,7 +47,12 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32
+#ifdef FREE_WINDOWS
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+#endif
+ 
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 
 /* The __intXX are built-in types of the visual complier! So we don't
  * need to include anything else here. */

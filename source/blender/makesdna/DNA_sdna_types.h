@@ -70,7 +70,7 @@ typedef struct BHead4 {
 #
 typedef struct BHead8 {
 	int code, len;
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 	/* This is a compiler type! */
 	__int64 old;
 #else

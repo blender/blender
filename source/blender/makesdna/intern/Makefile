@@ -54,10 +54,14 @@ ifeq ($(OS),windows)
     # _really_ needed, but it is the easiest fix for now. If you have 
     # some spare time, try to trace down the exact dep. Then again, you 
     # could also spend that time making the sdna system more robust.
-    WINLIBS = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
-    WINLIBS +=	advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
-    WINLIBS +=	winmm.lib opengl32.lib glu32.lib largeint.lib
-    WINLIBS +=	/link /nodefaultlib:libc
+	ifneq ($(FREE_WINDOWS),true)
+		WINLIBS = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
+		WINLIBS +=	advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+		WINLIBS +=	winmm.lib opengl32.lib glu32.lib largeint.lib
+		WINLIBS +=	/link /nodefaultlib:libc
+	else
+		LDFLAGS += -mwindows -mno-cygwin
+	endif
 endif
 
 clean::

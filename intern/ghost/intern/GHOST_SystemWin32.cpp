@@ -317,7 +317,11 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 		wc.cbClsExtra= 0;
 		wc.cbWndExtra= 0;
 		wc.hInstance= ::GetModuleHandle(0);
-		wc.hIcon = ::LoadIcon(wc.hInstance, "APPICON");
+		#ifndef FREE_WINDOWS
+  		wc.hIcon = ::LoadIcon(wc.hInstance, "APPICON");
+		#else
+		wc.hIcon = ::LoadIcon(NULL, "APPICON");
+		#endif
 		if (!wc.hIcon) {
 			::LoadIcon(NULL, IDI_APPLICATION);
 		}
@@ -466,6 +470,7 @@ GHOST_EventCursor* GHOST_SystemWin32::processCursorEvent(GHOST_TEventType type, 
 {
 	GHOST_TInt32 x, y;
 	getSystem()->getCursorPosition(x, y);
+	printf("%d %d\n",x,y);
 	return new GHOST_EventCursor (getSystem()->getMilliSeconds(), type, window, x, y);
 }
 

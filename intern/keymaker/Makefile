@@ -51,8 +51,12 @@ LOADER_OBJS = $(DIR)/$(DEBUG_DIR)keyloader.o
 ifneq ($(OS),windows)
     LIBS = $(NAN_OPENSSL)/lib/libcrypto.a
 else
-    LIBS = $(NAN_OPENSSL)/lib/libeay32.lib
-    LIBS += advapi32.lib gdi32.lib
+	ifeq ($(FREE_WINDOWS),true)
+		LIBS = $(NAN_OPENSSL)/lib/libcrypto.a
+	else
+	    LIBS = $(NAN_OPENSSL)/lib/libeay32.lib
+		LIBS += advapi32.lib gdi32.lib
+	endif
 endif
 
 all debug:: link

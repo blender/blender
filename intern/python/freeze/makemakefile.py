@@ -25,11 +25,15 @@ def makemakefile(outfp, makevars, files, target):
 	for key in keys:
 		outfp.write("%s=%s\n" % (key, makevars[key]))
 
-        outfp.write("\n\ninclude nan_definitions.mk\n")
-        outfp.write("ifeq ($(OS),windows)\n")
-        outfp.write("  CC=$(NANBLENDERHOME)/source/tools/cygwin/cl_wrapper.pl\n")
-        outfp.write("  CFLAGS=-I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION) $(OPT)\n")
-        outfp.write("endif\n")
+		outfp.write("\n\ninclude nan_definitions.mk\n")
+		outfp.write("ifeq ($(OS),windows)\n")
+		outfp.write("  CFLAGS=-I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION) $(OPT)\n")
+		outfp.write("  ifneq ($(FREE_WINDOWS),true)\n")
+		outfp.write("  	 CC=$(NANBLENDERHOME)/source/tools/cygwin/cl_wrapper.pl\n")
+		outfp.write("  else\n")
+		outfp.write("    CFLAGS += -mwindows -mno-cygwin\n")
+		outfp.write("  endif\n")
+		outfp.write("endif\n")
 
 	outfp.write("\nall: %s\n\n" % libtarget)
 

@@ -37,7 +37,7 @@
 #include <config.h>
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 
 #define  INC_OLE2
 #include <windows.h>

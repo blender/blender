@@ -134,6 +134,7 @@ static void strnlower (char *str, int n) {
 	}
 }
 
+#ifndef FREE_WINDOWS
 int strcasecmp (char *s1, char *s2) {
 	char *st1, *st2;
 	int r;
@@ -174,6 +175,7 @@ int strncasecmp (char *s1, char *s2, int n) {
 
 	return r;	
 }
+#endif
 
 DIR *opendir (const char *path) {
 	if (GetFileAttributes(path) & FILE_ATTRIBUTE_DIRECTORY) {

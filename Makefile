@@ -41,6 +41,10 @@ export NANBLENDERHOME=$(shell pwd)
 MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
 
 SOURCEDIR = blender
+ifeq ($(FREE_WINDOWS),true)
+    DIRS ?= dlltool intern source po
+endif
+
 DIRS ?= extern intern source po
 include source/nan_subdirs.mk
 

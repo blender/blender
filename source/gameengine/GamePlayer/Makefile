@@ -38,7 +38,9 @@ DIR = $(OCGDIR)/gameengine/GamePlayer
 DIRS = common ghost
 
 ifeq ($(OS),$(findstring $(OS), "freebsd irix windows"))
-    DIRS += netscape
+	ifneq ($(FREE_WINDOWS),true)
+	    DIRS += netscape
+	endif
 endif
 
 ifeq ($(OS),$(findstring $(OS), "linux"))

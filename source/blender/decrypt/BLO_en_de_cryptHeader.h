@@ -40,6 +40,10 @@ extern "C" {
 
 #include "BLO_sys_types.h"
 
+#ifdef FREE_WINDOWS
+typedef int int32_t;
+#endif
+	
 #define EN_DE_CRYPTHEADERSTRUCTSIZE sizeof(struct BLO_en_de_cryptHeaderStruct)
 
 // Tests showed: pubKeyLen 64, cryptedKeyLen 64 bytes

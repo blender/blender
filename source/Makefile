@@ -138,7 +138,11 @@ PYPLAYERLIB ?= $(PYLIB)
   endif
   ifeq ($(WITH_FREETYPE2), true)
     ifeq ($(OS), windows)
-      COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
+		ifeq ($(FREE_WINDOWS), true)
+			COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+		else
+			COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
+		endif
     else
       ifeq ($(OS), irix)
         COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
@@ -153,8 +157,7 @@ ifeq ($(INTERNATIONAL), true)
         ifeq ($(FREE_WINDOWS), true)
           COMLIB += $(NAN_GETTEXT)/lib/freegettext.a
           COMLIB += $(NAN_FTGL)/lib/libftgl.a
-          COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
-          COMLIB += $(NAN_ICONV)/lib/freeiconv.a
+          #COMLIB += $(NAN_ICONV)/lib/freeiconv.a
         else
           COMLIB += $(NAN_GETTEXT)/lib/gnu_gettext.lib
           COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
@@ -211,13 +214,18 @@ endif
 
     PULIB += $(NAN_BLENKEY)/lib/libblenkey.a
     SPLIB += $(NAN_BLENKEY)/lib/libblenkey.a
-  ifeq ($(OS),windows)
-    PULIB += $(NAN_OPENSSL)/lib/libeay32.lib
-    SPLIB += $(NAN_OPENSSL)/lib/libeay32.lib
-  else
-    PULIB += $(NAN_OPENSSL)/lib/libcrypto.a
-    SPLIB += $(NAN_OPENSSL)/lib/libcrypto.a
-  endif
+	ifeq ($(OS),windows)
+		ifeq ($(FREE_WINDOWS),true)
+			PULIB += $(NAN_OPENSSL)/lib/libcrypto.a
+			SPLIB += $(NAN_OPENSSL)/lib/libcrypto.a
+		else
+			PULIB += $(NAN_OPENSSL)/lib/libeay32.lib
+			SPLIB += $(NAN_OPENSSL)/lib/libeay32.lib
+		endif
+	else
+		PULIB += $(NAN_OPENSSL)/lib/libcrypto.a
+		SPLIB += $(NAN_OPENSSL)/lib/libcrypto.a
+	endif
 
     # These three need to be explicitly mentioned on the cl, because 
     # if they are offered as a lib, they are optimized away. (nzc)
@@ -395,7 +403,12 @@ else
 endif
 
 ifeq ($(OS),windows)
-    PYLIB = $(NAN_PYTHON)/lib/python22.lib
+	ifeq ($(FREE_WINDOWS),true)
+		PYLIB = $(NAN_PYTHON)/lib/freepy.a
+    else
+		PYLIB = $(NAN_PYTHON)/lib/python22.lib
+    endif
+    
     PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
     PYPLAYERLIB = $(PYLIB)
 
@@ -403,9 +416,11 @@ ifeq ($(OS),windows)
     NSPLUGLIB += $(NAN_NSPR)/lib/nspr4.lib
 
     BINTARGETS = blenderdynamic
-    BINTARGETS += blenderplayer
-    BINTARGETS += blenderdynplayer
-    BINTARGETS += plugin
+	ifneq ($(FREE_WINDOWS),true)
+	    BINTARGETS += blenderplayer
+		BINTARGETS += blenderdynplayer
+	    BINTARGETS += plugin
+	endif
 
     PULIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
     PULIB += $(NAN_ZLIB)/lib/libz.a
@@ -513,7 +528,9 @@ ifeq ($(OS),$(findstring $(OS), "freebsd linux irix solaris"))
 endif
 # Windows needs a 8.3 name... Why? Dunno...
 ifeq ($(OS),windows)
-    plugin: $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT)
+	ifneq ($(FREE_WINDOWS),true)
+	    plugin: $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT)
+	endif
 endif
 
 $(DIR)/$(DEBUG_DIR)blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)

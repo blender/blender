@@ -91,7 +91,9 @@ BLO_encrypt(
 	}
 
 #ifdef _WIN32
+#ifndef FREE_WINDOWS
 	RAND_screen();
+#endif
 #endif
 	RAND_bytes(cryptKey, cryptKeyLen);
 

@@ -38,6 +38,10 @@
 extern "C" {
 #endif
 
+#ifdef FREE_WINDOWS
+typedef int int32_t;
+#endif
+	
 #include "BLO_sys_types.h"
 
 #define SIGNVERIFYHEADERSTRUCTSIZE sizeof(struct BLO_sign_verify_HeaderStruct)

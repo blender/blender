@@ -48,7 +48,7 @@ struct header{
 	char	fill[HDRSIZE-NAMSIZE-2*sizeof(unsigned int)];
 };
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef unsigned int mode_t;
 #endif
 

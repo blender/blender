@@ -74,7 +74,11 @@ all debug::
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
-    export NAN_FTGL ?= $(LCGDIR)/ftgl
+    ifeq ($(FREE_WINDOWS), true)
+      export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
+    else
+      export NAN_FTGL ?= $(LCGDIR)/ftgl
+    endif
 
 
   # Platform Dependent settings go below:
@@ -379,7 +383,17 @@ all debug::
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
     export NAN_PYTHON_VERSION ?= 2.2
-    export NAN_PYTHON_BINARY ?= python
+    ifeq ($(FREE_WINDOWS), true)
+      export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+      export NAN_OPENSSL ?= $(LCGDIR)/gcc/openssl
+      export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
+      export NAN_ODE ?= $(LCGDIR)/gcc/ode
+    else
+      export NAN_PYTHON_BINARY ?= python
+      export NAN_OPENSSL ?= $(LCGDIR)/openssl
+      export NAN_FREETYPE ?= $(LCGDIR)/freetype
+      export NAN_ODE ?= $(LCGDIR)/ode
+    endif
     export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
 	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -387,13 +401,10 @@ all debug::
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_SDL ?= $(LCGDIR)/sdl
-    export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= $(LCGDIR)/openssl
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
-    export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
 
     # Uncomment the following line to use Mozilla inplace of netscape
@@ -403,7 +414,7 @@ all debug::
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
     # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
     # if this is not set.
-
+export NAN_PYTHON_BINARY ?= python
     export NAN_BUILDINFO ?= true
     # Be paranoid regarding library creation (do not update archives)
     export NAN_PARANOID ?= true
@@ -421,7 +432,7 @@ all debug::
 
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.0
-    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+	export NAN_PYTHON_BINARY ?= python
     export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
 	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
     export NAN_OPENAL ?= $(LCGDIR)/openal

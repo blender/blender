@@ -36,7 +36,7 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef unsigned __int64	r_uint64;
 #else
 typedef unsigned long long	r_uint64;

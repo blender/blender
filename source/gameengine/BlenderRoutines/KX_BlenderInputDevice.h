@@ -36,11 +36,16 @@
 #pragma warning(disable : 4786)  // shut off 255 char limit debug template warning
 #endif
 
+#include <map>
+
 /* need to be here for conversion purposes */
+#ifdef FREE_WINDOWS
+#undef HKEY
+#endif
+
 #include "mydevice.h"
 #include "SCA_IInputDevice.h"
 
-#include <map>
 /**
  Base Class for Blender specific inputdevices. Blender specific inputdevices are used when the gameengine is running in embedded mode instead of standalone mode.
 */

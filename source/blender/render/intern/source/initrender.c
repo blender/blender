@@ -1260,7 +1260,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	} else if (R.r.imtype==R_MOVIE) {
 		start_movie();
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 	} else if (R.r.imtype == R_AVICODEC) {
 		start_avi_codec();
 #endif
@@ -1290,7 +1290,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 			} else if (R.r.imtype == R_MOVIE) {
 				append_movie((G.scene->r.cfra));
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 			} else if (R.r.imtype == R_AVICODEC) {
 				append_avi_codec((G.scene->r.cfra));
 #endif
@@ -1330,7 +1330,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	} else if (R.r.imtype==R_MOVIE) {
 		end_movie();
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 	} else if (R.r.imtype == R_AVICODEC) {
 		end_avi_codec();
 #endif

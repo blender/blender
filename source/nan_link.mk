@@ -59,7 +59,7 @@ ifeq ($(OS),darwin)
     LLIBS    += -lGLU -lGL
     LLIBS    += -lz -framework Carbon -framework AGL
     ifeq ($(WITH_QUICKTIME), true)
-        LLIBS += -framework QuickTime
+		LLIBS += -framework QuickTime
     endif
     LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
     DBG_LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
@@ -124,19 +124,26 @@ endif
 ifeq ($(OS),windows)
     EXT = .exe
 	SOEXT = .dll
-    DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
-    DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
-    DADD += vfw32.lib winmm.lib opengl32.lib glu32.lib largeint.lib dxguid.lib
-    DADD += libcmt.lib
-    LOPTS = /link
-    LOPTS += /NODEFAULTLIB:"libc" 
-    LOPTS += /NODEFAULTLIB:"libcd" 
-    LOPTS += /NODEFAULTLIB:"libcp" 
-    LOPTS += /NODEFAULTLIB:"libcpd" 
-    LOPTS += /NODEFAULTLIB:"python20" 
-    LOPTS += /NODEFAULTLIB:"msvcrt" 
-    LOPTS += /SUBSYSTEM:CONSOLE
-    LDFLAGS += /MT
-    DYNLDFLAGS = /LD
+	ifeq ($(FREE_WINDOWS),true)
+		MINGWLIB = /usr/lib/w32api
+		LDFLAGS += -mwindows -mno-cygwin -mconsole
+		DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32
+		DADD += -L/usr/lib/w32api 
+    else
+	    DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
+		DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+	    DADD += vfw32.lib winmm.lib opengl32.lib glu32.lib largeint.lib dxguid.lib
+		DADD += libcmt.lib
+		LOPTS = /link
+		LOPTS += /NODEFAULTLIB:"libc" 
+		LOPTS += /NODEFAULTLIB:"libcd" 
+		LOPTS += /NODEFAULTLIB:"libcp" 
+		LOPTS += /NODEFAULTLIB:"libcpd" 
+		LOPTS += /NODEFAULTLIB:"python20" 
+		LOPTS += /NODEFAULTLIB:"msvcrt" 
+		LOPTS += /SUBSYSTEM:CONSOLE
+		LDFLAGS += /MT
+		DYNLDFLAGS = /LD
+	endif
 endif
 

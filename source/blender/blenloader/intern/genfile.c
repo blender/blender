@@ -61,6 +61,9 @@
 
 #include "genfile.h"
 
+#ifdef FREE_WINDOWS
+typedef long long __int64;
+#endif
 
 /*
  * - please note: no builtin security to detect input of double structs

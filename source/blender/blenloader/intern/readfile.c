@@ -498,7 +498,7 @@ static void switch_endian_bh8(BHead8 *bhead)
 static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 {
 	BHead4 *bhead4 = (BHead4 *) bhead;
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 	__int64 old;
 #else
 	long long old;
@@ -1052,7 +1052,7 @@ static void link_glob_list(FileData *fd, ListBase *lb)		/* for glob data */
 
 static void test_pointer_array(FileData *fd, void **mat)
 {
-#ifdef WIN32
+#if defined(WIN32) && !defined(FREE_WINDOWS)
 	__int64 *lpoin, *lmat;
 #else
 	long long *lpoin, *lmat;
