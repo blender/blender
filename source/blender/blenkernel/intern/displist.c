@@ -107,12 +107,14 @@ struct _FastLamp {
 static FastLamp *fastlamplist= NULL;
 static float fviewmat[4][4];
 
-DispListMesh *displistmesh_from_editmesh(EditMesh *em) {
+DispListMesh *displistmesh_from_editmesh(EditMesh *em) 
+{
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
-	int i;
 	EditVert *eve, *evePrev;
 	EditEdge *eed;
 	EditVlak *evl;
+	MFace *mfNew;
+	int i;
 
 	dlm->flag= 0;
 	dlm->totvert= BLI_countlist(&em->verts);
@@ -129,26 +131,28 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em) {
 		eve->prev= (void*) i;	/* hack to fetch indices */
 	}
 
-	i=0;
-	for (evl= em->faces.first; evl; evl= evl->next, i++) {
-		MFace *mfNew= &dlm->mface[i];
-
-		mfNew->v1= (int) evl->v1->prev;
-		mfNew->v2= (int) evl->v2->prev;
-		mfNew->v3= (int) evl->v3->prev;
-		mfNew->v4= evl->v4?(int) evl->v4->prev:0;
-		mfNew->flag= evl->flag;
-		mfNew->mat_nr= evl->mat_nr;
-		mfNew->puno= 0;
-		mfNew->edcode= 0;
-
-		if (evl->v4 && !mfNew->v4) {
-			mfNew->v1^= mfNew->v3^= mfNew->v1^= mfNew->v3;
-			mfNew->v2^= mfNew->v4^= mfNew->v2^= mfNew->v4;
+	mfNew= dlm->mface;
+	for (evl= em->faces.first; evl; evl= evl->next) {
+		// we skip hidden faces
+		if(evl->v1->h || evl->v2->h || evl->v3->h || (evl->v4 && evl->v4->h)) dlm->totface--;
+		else {
+			mfNew->v1= (int) evl->v1->prev;
+			mfNew->v2= (int) evl->v2->prev;
+			mfNew->v3= (int) evl->v3->prev;
+			mfNew->v4= evl->v4?(int) evl->v4->prev:0;
+			mfNew->flag= evl->flag;
+			mfNew->mat_nr= evl->mat_nr;
+			mfNew->puno= 0;
+			mfNew->edcode= 0;
+	
+			if (evl->v4 && !mfNew->v4) {
+				mfNew->v1^= mfNew->v3^= mfNew->v1^= mfNew->v3;
+				mfNew->v2^= mfNew->v4^= mfNew->v2^= mfNew->v4;
+			}
+			mfNew++;
 		}
 	}
-	for (eed= em->edges.first; eed; eed= eed->next, i++) {
-		MFace *mfNew= &dlm->mface[i];
+	for (eed= em->edges.first; eed; eed= eed->next, mfNew++) {
 
 		mfNew->v1= (int) eed->v1->prev;
 		mfNew->v2= (int) eed->v2->prev;
@@ -168,7 +172,8 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em) {
 
 	return dlm;
 }
-DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts) {
+DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts) 
+{
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
 	int i;
 	dlm->flag= 0;
@@ -201,7 +206,8 @@ DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts) {
 	return dlm;
 }
 
-void displistmesh_free(DispListMesh *dlm) {
+void displistmesh_free(DispListMesh *dlm) 
+{
 	// also check on mvert and mface, can be NULL after decimator (ton)
 	if( dlm->mvert) MEM_freeN(dlm->mvert);
 	if (dlm->mface) MEM_freeN(dlm->mface);
@@ -220,7 +226,8 @@ static DispListMesh *displistmesh_copy(DispListMesh *odlm) {
 	return ndlm;
 }
 
-void displistmesh_calc_vert_normals(DispListMesh *dlm) {
+void displistmesh_calc_vert_normals(DispListMesh *dlm) 
+{
 	MVert *mverts= dlm->mvert;
 	int nmverts= dlm->totvert;
 	MFace *mfaces= dlm->mface;
@@ -259,7 +266,8 @@ void displistmesh_calc_vert_normals(DispListMesh *dlm) {
 	MEM_freeN(tnorms);
 }
 
-void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) {
+void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) 
+{
 	MFace *mfaces;
 	int i;
 	
