@@ -109,7 +109,7 @@ static void (*UIafterfunc)(void *arg, int event);
 static void *UIafterfunc_arg;
 
 static uiFont UIfont[UI_ARRAY];  // no init needed
-static uiBut *UIbuttip;
+uiBut *UIbuttip;
 
 /* ************* PROTOTYPES ***************** */
 
@@ -2609,8 +2609,15 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			but= block->buttons.first;
 			count= 0;
 			while(but) {
-				if( but->type!=LABEL && but->type!=SEPR) count++;
-				if(count==act) {
+				int doit= 0;
+				
+				if(but->type!=LABEL && but->type!=SEPR) count++;
+				/* exception for menus like layer buts, with button aligning they're not drawn in order */
+				if(but->type==TOGR) {
+					if(but->bitnr==act-1) doit= 1;
+				} else if(count==act) doit=1;
+				
+				if(doit) {
 					but->flag |= UI_ACTIVE;
 					if(uevent->val==1) ui_draw_but(but);
 					else if(block->flag & UI_BLOCK_RET_1) { /* to make UI_BLOCK_RET_1 working */
@@ -3278,6 +3285,37 @@ uiBlock *uiGetBlock(char *name, ScrArea *sa)
 	return NULL;
 }
 
+/* used for making screenshots for menus, called in screendump.c */
+int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
+{
+	uiBlock *block= curarea->uiblocks.first;
+	int minx, miny, maxx, maxy;
+	
+	minx= 1<<30;
+	miny= 1<<30;
+	maxx= 0;
+	maxy= 0;
+	
+	while(block) {
+		if(block->flag & UI_BLOCK_LOOP) {
+			if(block->minx < minx) minx= (int)block->minx;
+			if(block->miny < miny) miny= (int)block->miny;
+			if(block->maxx > maxx) maxx= (int)block->maxx;
+			if(block->maxy > maxy) maxy= (int)block->maxy;
+		}
+		block= block->next;
+	}
+printf("%d %d %d %d\n", minx, miny, maxx, maxy);	
+	if(maxx!=0 && maxy!=0) {
+		*x= minx-10<0?0:minx;
+		*y= miny-10<0?0:miny;
+		*sizex= maxx-minx+10;
+		*sizey= maxy-miny+10;
+		return 1;
+	}
+	
+	return 0;
+}
 
 void ui_check_but(uiBut *but)
 {
