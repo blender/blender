@@ -317,7 +317,7 @@ all debug::
 
     export ID = $(LOGNAME)
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.0
+    export NAN_PYTHON_VERSION ?= 2.2
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?= $(shell $(NAN_PYTHON_BINARY) -c \
 	'import mx; print mx.__path__[0]')/TextTools/mxTextTools/mxTextTools.so
