@@ -123,10 +123,13 @@ typedef struct View3D {
 #define V3D_ALIGN			1024
 
 /* View3D->around */
-#define V3D_CENTRE		0
-#define V3D_CENTROID	3
-#define V3D_CURSOR		1
-#define V3D_LOCAL		2
+#define V3D_CENTRE		 0
+#define V3D_CENTROID	 3
+#define V3D_CENTROID_LOC 4
+#define V3D_CURSOR		 1
+#define V3D_CURSOR_LOC	 5
+#define V3D_LOCAL		 2
+
 
 /* View3d->persp */
 #define V3D_PERSP_ORTHO          0

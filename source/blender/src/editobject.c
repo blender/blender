@@ -4576,10 +4576,10 @@ void transform(int mode)
 		}
 
 	}
-	if(G.vd->around==V3D_CENTROID) {
+	if(G.vd->around==V3D_CENTROID  || G.vd->around==V3D_CENTROID_LOC) {
 		VECCOPY(centre, centroid);
 	}
-	else if(G.vd->around==V3D_CURSOR) {
+	else if(G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) {
 		curs= give_cursor();
 		VECCOPY(centre, curs);
 		
@@ -4969,7 +4969,7 @@ void transform(int mode)
 							 * 3. multiply with its own rotation, calculate euler.
 							 */
 							
-							if ((G.vd->flag & V3D_ALIGN)==0) {
+							if (/*(G.vd->flag & V3D_ALIGN)==0*/ G.vd->around != V3D_CURSOR_LOC && G.vd->around != V3D_CENTROID_LOC){
 							
     							/* Roll around local axis */
     							if (mode=='r' || mode=='R'){
@@ -5194,7 +5194,7 @@ void transform(int mode)
 						scrarea_do_windraw(curarea);
 						screen_swapbuffers();
 					}
-					if(tottrans>1 || G.vd->around==V3D_CURSOR) helpline(centre);
+					if(tottrans>1 || G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) helpline(centre);
 					else if (G.obpose) helpline (centre);
 				}
 			}
@@ -5268,8 +5268,8 @@ void transform(int mode)
 							/* size local with respect to parent AND own rotation */
 							/* local wrt parent: */
 							
-							if ((G.vd->flag & V3D_ALIGN)==0)  {							
-							
+							if ( /*(G.vd->flag & V3D_ALIGN)==0 */ G.vd->around != V3D_CURSOR_LOC && G.vd->around != V3D_CENTROID_LOC) {	
+								 							
     							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0,0 ,0, 0);
     							
     							/* local wrt own rotation: */
@@ -5442,7 +5442,7 @@ void transform(int mode)
 						scrarea_do_windraw(curarea);
 						screen_swapbuffers();
 					}
-					if(tottrans>1 || G.vd->around==V3D_CURSOR) helpline(centre);
+					if(tottrans>1 || G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) helpline(centre);
 				}
 			}
 			else if(mode=='w') {
@@ -7332,10 +7332,10 @@ void mirror_edit(short mode) {
 	tv = transvmain;
 
 	// Taking care of all the centre modes
-	if(G.vd->around==V3D_CENTROID) {
+	if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
 		VecCopyf(centre, centroid);
 	}
-	else if(G.vd->around==V3D_CURSOR) {
+	else if(G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) {
 		float *curs;
 		curs= give_cursor();
 		VECCOPY(centre, curs);
@@ -7459,10 +7459,10 @@ void mirror_object(short mode) {
 	tob = transmain;
 
 	// Taking care of all the centre modes
-	if(G.vd->around==V3D_CENTROID) {
+	if(G.vd->around==V3D_CENTROID  || G.vd->around==V3D_CENTROID_LOC) {
 		VecCopyf(centre, centroid);
 	}
-	else if(G.vd->around==V3D_CURSOR) {
+	else if(G.vd->around==V3D_CURSOR || G.vd->around==V3D_CURSOR_LOC) {
 		float *curs;
 		curs= give_cursor();
 		VECCOPY(centre, curs);

@@ -899,7 +899,7 @@ void snap_curs_to_sel()
 				DO_MINMAX(vec, min, max);
 			}
 
-			if(G.vd->around==V3D_CENTROID) {
+			if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
 				VecMulf(centroid, 1.0/(float)tottrans);
 				VECCOPY(curs, centroid);
 			}
@@ -923,7 +923,7 @@ void snap_curs_to_sel()
 				base= base->next;
 			}
 			if(count) {
-				if(G.vd->around==V3D_CENTROID) {
+				if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
 					VecMulf(centroid, 1.0/(float)count);
 					VECCOPY(curs, centroid);
 				}
@@ -970,7 +970,7 @@ void snap_curs_to_firstsel()
 				VecAddf(centroid, centroid, vec);
 				DO_MINMAX(vec, min, max);*/
 
-			if(G.vd->around==V3D_CENTROID) {
+			if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
 				VecMulf(vec, 1.0/(float)tottrans);
 				VECCOPY(curs, vec);
 			}
@@ -994,7 +994,7 @@ void snap_curs_to_firstsel()
 				base= base->next;
 			}
 			if(count) {
-				if(G.vd->around==V3D_CENTROID) {
+				if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
 					VecMulf(centroid, 1.0/(float)count);
 					VECCOPY(curs, centroid);
 				}
@@ -1046,7 +1046,7 @@ void snap_to_center()
 				DO_MINMAX(vec, min, max);
 			}
 
-			if(G.vd->around==V3D_CENTROID) {
+			if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
 				VecMulf(centroid, 1.0/(float)tottrans);
 				VECCOPY(snaploc, centroid);
 			}
@@ -1072,7 +1072,7 @@ void snap_to_center()
 				base= base->next;
 			}
 			if(count) {
-				if(G.vd->around==V3D_CENTROID) {
+				if(G.vd->around==V3D_CENTROID || G.vd->around==V3D_CENTROID_LOC) {
 					VecMulf(centroid, 1.0/(float)count);
 					VECCOPY(snaploc, centroid);
 				}
