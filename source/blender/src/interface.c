@@ -1711,7 +1711,7 @@ static int ui_do_but_SLI(uiBut *but)
 		} 
 	
 		value= ui_get_but_val(but);
-		lvalue= (int) value;
+		lvalue= floor(value+0.5);
 		
 		if( but->pointype!=FLO )
 			redraw= (temp != lvalue);
