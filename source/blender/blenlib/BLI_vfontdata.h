@@ -63,5 +63,19 @@ typedef struct VFontData {
 BLI_vfontdata_from_psfont(
 	struct PackedFile *pf);
 
+#ifdef WITH_FREETYPE2
+/**
+ * Construct a new VFontData structure from 
+ * Freetype font data in a PackedFile.
+ * 
+ * @param pf The font data.
+ * @retval A new VFontData structure, or NULL
+ * if unable to load.
+ */
+	VFontData*
+BLI_vfontdata_from_freetypefont(
+	struct PackedFile *pf);
+#endif
+
 #endif
 
