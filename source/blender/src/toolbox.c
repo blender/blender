@@ -1859,9 +1859,9 @@ static TBitem tb_object_track[]= {
 static TBitem tb_object[]= {
 {	0, "Insert Keyframe|I", 		'i', 		NULL},
 {	0, "SEPR", 								0, NULL},
-{	0, "Copy Links...|Ctrl L", 		TB_CTRL|'l', NULL},
+{	0, "Make Links...|Ctrl L", 		TB_CTRL|'l', NULL},
 {	0, "Make Single User...|U", 	'u', 		NULL},
-{	0, "Copy Properties...|Ctrl C", TB_CTRL|'c', NULL},
+{	0, "Copy Attributes...|Ctrl C", TB_CTRL|'c', NULL},
 {	0, "SEPR", 								0, NULL},
 {	0, "Parent", 	0, 		tb_object_parent},
 {	0, "Track", 	0, 		tb_object_track},
