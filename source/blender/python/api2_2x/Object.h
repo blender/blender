@@ -49,6 +49,7 @@
 #include <BLI_arithb.h>
 #include <BLI_blenlib.h>
 #include <DNA_armature_types.h>
+#include <DNA_action_types.h>
 #include <DNA_ID.h>
 #include <DNA_ika_types.h>
 #include <DNA_listBase.h>

@@ -89,6 +89,7 @@ struct PyMethodDef M_Object_methods[] = {
 static PyObject *Object_buildParts (BPy_Object *self);
 static PyObject *Object_clearIpo (BPy_Object *self);
 static PyObject *Object_clrParent (BPy_Object *self, PyObject *args);
+static PyObject *Object_getActionIpos (BPy_Object *self);
 static PyObject *Object_getData (BPy_Object *self);
 static PyObject *Object_getDeltaLocation (BPy_Object *self);
 static PyObject *Object_getDrawMode (BPy_Object *self);
@@ -136,6 +137,8 @@ static PyMethodDef BPy_Object_methods[] = {
 	"Clears parent object. Optionally specify:\n\
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
 hierarchy (faster)"},
+  {"getActionIpos", (PyCFunction)Object_getActionIpos, METH_NOARGS,
+	"() - Return a dict of (name:ipo)-keys containing each channel in the object's action"},
   {"getData", (PyCFunction)Object_getData, METH_NOARGS,
 	"Returns the datablock object containing the object's data, e.g. Mesh"},
   {"getDeltaLocation", (PyCFunction)Object_getDeltaLocation, METH_NOARGS,
@@ -641,6 +644,58 @@ int EXPP_add_obdata(struct Object *object)
 
   return 0;
 }
+
+static PyObject *Object_getActionIpos (BPy_Object *self)
+{
+	Object *obj=self->object;
+	PyObject *dict=PyDict_New ();
+	
+	if (obj->type==OB_ARMATURE) {
+		
+		if (obj->action!=0) {
+		
+			bAction *action=obj->action;
+			bActionChannel *bone=(bActionChannel*)(action->chanbase.first);
+			
+			// Go through the list of bones
+			while (bone!=0) {
+				
+				// Does this bone have an ipo?
+				if (bone->ipo!=0) {
+					
+					PyObject *ipo_attr=Ipo_CreatePyObject (bone->ipo);
+					
+					if (ipo_attr) {
+
+						// Insert dict entry using the bone name as key
+						if (PyDict_SetItemString (dict, bone->name, ipo_attr)!=0) {
+							Py_DECREF ( ipo_attr );
+							Py_DECREF ( dict );
+							
+							return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+									"Object_getActionIpos: couldn't set dict item");
+						}
+						
+						Py_DECREF (ipo_attr);
+						
+					} else {
+						
+						Py_DECREF ( dict );
+						
+						return (PythonReturnErrorObject (PyExc_RuntimeError,
+						"Object_getActionIpos: could not create Ipo object"));
+
+					}
+				}
+				
+				bone=bone->next;
+			}
+		}	
+	}
+	
+	return dict;
+}
+
 
 static PyObject *Object_getData (BPy_Object *self)
 {
