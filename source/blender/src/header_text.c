@@ -325,11 +325,30 @@ static void do_text_editmenu_selectmenu(void *arg, int event)
 	switch(event) {
 	case 1:
 		txt_sel_all(text);
-		break;
-			
+		break;		
 	case 2:
 		txt_sel_line(text);
 		break;
+	default:
+		break;
+	}
+
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceText *st= sa->spacedata.first;
+		if (st && st->spacetype==SPACE_TEXT) {
+			scrarea_queue_redraw(sa);
+		}
+	}
+}
+
+/* action executed after clicking in Format menu */
+static void do_text_formatmenu(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	ScrArea *sa;
+	
+	switch(event) {
 	case 3:
 		if (txt_has_sel(text)) {
 			txt_cut_sel(text);
@@ -402,16 +421,38 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select All|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Line", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Indent", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UnIndent", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Comment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UnComment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	
+	return block;
+}
+
+/* Format menu */
+static uiBlock *text_formatmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "text_formatmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_text_formatmenu, NULL);
+
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Indent|Tab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unindent|Shift Tab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Comment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Uncomment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
 	return block;
 }
 
@@ -424,8 +465,8 @@ static uiBlock *text_editmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "text_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_text_editmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo|Alt U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo|Alt Shift U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo|Ctrl Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo|Ctrl Shift Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut|Alt X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy|Alt C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
@@ -534,6 +575,10 @@ void text_buttons(void)
 		if(text) {
 			xmax= GetButStringLength("Edit");
 			uiDefPulldownBut(block,text_editmenu, NULL, "Edit", xco, 0, xmax, 20, "");
+			xco+=xmax;
+			
+			xmax= GetButStringLength("Format");
+			uiDefPulldownBut(block,text_formatmenu, NULL, "Format", xco, 0, xmax, 20, "");
 			xco+=xmax;
 		}
 	}

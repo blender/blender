@@ -140,6 +140,12 @@ static void do_oops_viewmenu(void *arg, int event)
 	case 7:
 		outliner_show_active(curarea);
 		break;
+	case 8:
+		outliner_one_level(curarea, 1);
+		break;
+	case 9:
+		outliner_one_level(curarea, -1);
+		break;
 	}
 }			
 
@@ -166,6 +172,11 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 	}
 	else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Expand One Level|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse One Level|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
