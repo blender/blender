@@ -44,17 +44,18 @@ ifeq ($(OS),windows)
     DIRS += icons
 endif
 
-ifeq ($(OS),solaris)
-  ifeq ($(CPU),sparc)
-    DIRS += ssr
-  endif
-endif
-
-ifeq ($(OS),freebsd)
-  ifeq ($(OS_VERSION),4.5)
-    DIRS += ssr
-  endif
-endif
+# Commented out by mein this is the moble phone stuff.
+#ifeq ($(OS),solaris)
+#  ifeq ($(CPU),sparc)
+#    DIRS += ssr
+#  endif
+#endif
+#
+#ifeq ($(OS),freebsd)
+#  ifeq ($(OS_VERSION),4.5)
+#    DIRS += ssr
+#  endif
+#endif
 
 ########## buildinfo kludge ###################
 CPPFLAGS += -I../Physics/common
@@ -98,7 +99,7 @@ PYPLAYERLIB ?= $(PYLIB)
     GRCLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
     GRCLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
     GRCLIB += $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libbpython.a
-    GRCLIB += $(NAN_PYTHON)/frozen/libfrozen.a
+    GRCLIB +=  $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libfrozen.a
 
     GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
     GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a

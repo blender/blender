@@ -46,8 +46,8 @@ After that cd $NANBLENDERHOME/intern
 make
 make install
 
-cd $NANBLENDERHOME/source/blender/bpython/frozen
-make -f Makefile.freeze
+cd $NANBLENDERHOME/source/ode
+Look at the README_BLENDER and follow instructions
 
 Then cd $NANBLENDERHOME/source
 make

@@ -124,7 +124,7 @@ def main():
     frozen_c = 'frozen.c'
     config_c = 'config.c'
     target = 'a.out'                    # normally derived from script name
-    makefile = 'Makefile.freeze'
+    makefile = 'Makefile'
     subsystem = 'console'
 
     # parse command line by first replacing any "-i" options with the file contents.
