@@ -1,0 +1,29 @@
+creator_env = Environment ()
+
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+Import ('user_options_dict')
+creator_env.Append (CCFLAGS = cflags)
+creator_env.Append (CXXFLAGS = cxxflags)
+creator_env.Append (CPPDEFINES = defines)
+
+source_files = ['creator.c']
+
+creator_env.Append (CPPPATH = ['#/intern/guardedalloc',
+                               '../blender/blenlib',
+                               '../blender/blenkernel',
+                               '../blender/include',
+                               '../blender/blenloader',
+                               '../blender/imbuf',
+                               '../blender/renderconverter',
+                               '../blender/render/extern/include',
+                               '../blender/python',
+                               '../blender/makesdna',
+                               '../kernel/gen_messaging',
+                               '../kernel/gen_system'])
+
+if user_options_dict['USE_QUICKTIME'] == 1:
+    creator_env.Append (CPPDEFINES = ['WITH_QUICKTIME'])
+
+creator_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_creator', source=source_files)

@@ -1,6 +1,7 @@
 Import ('user_options_dict')
 
 SConscript(['blender/SConscript',
-            'kernel/SConscript'])
+            'kernel/SConscript',
+            'creator/SConscript'])
 if user_options_dict['BUILD_GAMEENGINE'] == 1:
     SConscript (['gameengine/SConscript'])

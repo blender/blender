@@ -1,5 +1,6 @@
 import string
 import os
+import time
 import sys
 from distutils import sysconfig
 
@@ -23,6 +24,11 @@ if sys.platform == 'linux2':
     use_quicktime = 'false'
     use_sumo = 'false'
     use_ode = 'false'
+    use_buildinfo = 'false'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
     extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
@@ -48,6 +54,7 @@ if sys.platform == 'linux2':
     jpeg_include = ['/usr/include']
     # OpenGL library information
     opengl_lib = ['GL', 'GLU']
+    opengl_static = ['/usr/lib/libGL.a', '/usr/lib/libGLU.a']
     opengl_libpath = ['/usr/lib', '/usr/X11R6/lib']
     opengl_include = ['/usr/include']
     # SDL library information
@@ -96,6 +103,11 @@ elif sys.platform == 'darwin':
     use_precomp = 'true'
     use_sumo = 'false'
     use_ode = 'false'
+    use_buildinfo = 'false'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
     # TODO: replace darwin-6.8-powerpc with the actual directiory on the
     #       build machine
     darwin_precomp = '#../lib/darwin-6.8-powerpc'
@@ -122,6 +134,7 @@ elif sys.platform == 'darwin':
     jpeg_include = []
     # OpenGL library information
     opengl_lib = ['GL', 'GLU']
+    opengl_static = []
     opengl_libpath = []
     opengl_include = []
     # SDL specific stuff.
@@ -175,6 +188,11 @@ elif sys.platform == 'cygwin':
     use_quicktime = 'false'
     use_sumo = 'false'
     use_ode = 'false'
+    use_buildinfo = 'false'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
     extra_flags = ['-pipe', '-mno-cygwin', '-mwindows', '-funsigned-char']
@@ -228,6 +246,11 @@ elif sys.platform == 'win32':
     use_quicktime = 'true'
     use_sumo = 'false'
     use_ode = 'true'
+    use_buildinfo = 'false'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
     release_flags = ['/G6', '/GF']
     debug_flags = ['/Zi']
     extra_flags = ['/EHsc', '/J', '/W3', '/Gd', '/MT']
@@ -275,6 +298,7 @@ elif sys.platform == 'win32':
     jpeg_include = ['#../lib/windows/jpeg/include']
     # OpenGL library information
     opengl_lib = ['opengl32', 'glu32']
+    opengl_static = []
     opengl_libpath = []
     opengl_include = ['/usr/include']
     # SDL library information
@@ -322,6 +346,11 @@ elif string.find (sys.platform, 'sunos') != -1:
     use_quicktime = 'false'
     use_sumo = 'false'
     use_ode = 'false'
+    use_buildinfo = 'false'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
     extra_flags = ['-pipe', '-fPIC', '-funsigned-char']
@@ -349,6 +378,7 @@ elif string.find (sys.platform, 'sunos') != -1:
     jpeg_include = []
     # OpenGL library information
     opengl_lib = ['GL', 'GLU']
+    opengl_static = []
     opengl_libpath = []
     opengl_include = []
     # SDL library information
@@ -395,6 +425,11 @@ elif string.find (sys.platform, 'irix') != -1:
     use_quicktime = 'false'
     use_sumo = 'false'
     use_ode = 'false'
+    use_buildinfo = 'false'
+    build_blender_dynamic = 'true'
+    build_blender_static = 'false'
+    build_blender_player = 'false'
+    build_blender_plugin = 'false'
     irix_precomp = '#../lib/irix-6.5-mips'
     extra_flags = ['-n32', '-mips3', '-Xcpluscomm']
     cxxflags = ['-n32', '-mips3', '-Xcpluscomm', '-LANG:std']
@@ -428,6 +463,7 @@ elif string.find (sys.platform, 'irix') != -1:
     jpeg_include = [irix_precomp + '/jpeg/include']
     # OpenGL library information
     opengl_lib = ['GL', 'GLU']
+    opengl_static = []
     opengl_libpath = []
     opengl_include = []
     # SDL library information
@@ -489,6 +525,11 @@ else:
     config.write ("# Configuration file containing user definable options.\n")
     config.write ("VERSION = '2.32-cvs'\n")
     config.write ("BUILD_BINARY = 'release'\n")
+    config.write ("USE_BUILDINFO = '%s'\n"%(use_buildinfo))
+    config.write ("BUILD_BLENDER_DYNAMIC = '%s'\n"%(build_blender_dynamic))
+    config.write ("BUILD_BLENDER_STATIC = '%s'\n"%(build_blender_static))
+    config.write ("BUILD_BLENDER_PLAYER = '%s'\n"%(build_blender_player))
+    config.write ("BUILD_BLENDER_PLUGIN = '%s'\n"%(build_blender_plugin))
     config.write ("BUILD_DIR = '%s'\n"%(root_build_dir))
     config.write ("USE_INTERNATIONAL = '%s'\n"%(use_international))
     config.write ("BUILD_GAMEENGINE = '%s'\n"%(use_gameengine))
@@ -519,6 +560,7 @@ else:
     config.write ("OPENGL_INCLUDE = %s\n"%(opengl_include))
     config.write ("OPENGL_LIBPATH = %s\n"%(opengl_libpath))
     config.write ("OPENGL_LIBRARY = %s\n"%(opengl_lib))
+    config.write ("OPENGL_STATIC = %s\n"%(opengl_static))
     config.write ("\n# The following information is only necessary when you've enabled support for\n")
     config.write ("# the game engine.\n")
     config.write ("SOLID_INCLUDE = %s\n"%(solid_include))
@@ -554,6 +596,24 @@ user_options_env = Environment ()
 user_options = Options (config_file)
 user_options.AddOptions (
         ('VERSION', 'Blender version', version),
+        (EnumOption ('BUILD_BINARY', 'release',
+                     'Select a release or debug binary.',
+                     allowed_values = ('release', 'debug'))),
+        (BoolOption ('USE_BUILDINFO',
+                     'Set to 1 if you want to add build information.',
+                     'false')),
+        (BoolOption ('BUILD_BLENDER_DYNAMIC',
+                     'Set to 1 if you want to build blender with hardware accellerated OpenGL support.',
+                     'true')),
+        (BoolOption ('BUILD_BLENDER_STATIC',
+                     'Set to 1 if you want to build blender with software OpenGL support.',
+                     'false')),
+        (BoolOption ('BUILD_BLENDER_PLAYER',
+                     'Set to 1 if you want to build the blender player.',
+                     'false')),
+        (BoolOption ('BUILD_BLENDER_PLUGIN',
+                     'Set to 1 if you want to build the blender plugin.',
+                     'false')),
         ('BUILD_DIR', 'Target directory for intermediate files.',
                      root_build_dir),
         (BoolOption ('USE_INTERNATIONAL',
@@ -574,9 +634,6 @@ user_options.AddOptions (
         (BoolOption ('USE_QUICKTIME',
                      'Set to 1 to add support for QuickTime.',
                      'false')),
-        (EnumOption ('BUILD_BINARY', 'release',
-                     'Select a release or debug binary.',
-                     allowed_values = ('release', 'debug'))),
         ('PYTHON_INCLUDE', 'Include directory for Python header files.'),
         ('PYTHON_LIBPATH', 'Library path where the Python lib is located.'),
         ('PYTHON_LIBRARY', 'Python library name.'),
@@ -596,6 +653,7 @@ user_options.AddOptions (
         ('OPENGL_INCLUDE', 'Include directory for OpenGL header files.'),
         ('OPENGL_LIBPATH', 'Library path where the OpenGL libraries are located.'),
         ('OPENGL_LIBRARY', 'OpenGL library names.'),
+        ('OPENGL_STATIC', 'Linker flags for static linking of Open GL.'),
         ('SOLID_INCLUDE', 'Include directory for SOLID header files.'),
         ('SOLID_LIBPATH', 'Library path where the SOLID library is located.'),
         ('SOLID_LIBRARY', 'SOLID library name.'),
@@ -663,7 +721,8 @@ SConscript (root_build_dir+'source/SConscript')
 
 libpath = (['#'+root_build_dir+'/lib'])
 
-libraries = (['blender_render',
+libraries = (['blender_creator',
+              'blender_render',
               'blender_yafray',
               'blender_blendersrc',
               'blender_renderconverter',
@@ -746,8 +805,6 @@ link_env.Append (LIBS=user_options_dict['PNG_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['PNG_LIBPATH'])
 link_env.Append (LIBS=user_options_dict['JPEG_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['JPEG_LIBPATH'])
-link_env.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
-link_env.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
 link_env.Append (LIBS=user_options_dict['GETTEXT_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['GETTEXT_LIBPATH'])
 link_env.Append (LIBS=user_options_dict['Z_LIBRARY'])
@@ -765,28 +822,43 @@ if sys.platform == 'darwin':
 else:
     link_env.Append (LINKFLAGS=platform_linkflags)
 
-source_files = [root_build_dir+'source/creator/buildinfo.c',
-                root_build_dir+'source/creator/creator.c']
-
-if sys.platform == 'win32':
-	source_files += ['source/icons/winblender.res']
-
-include_paths = ['#/intern/guardedalloc',
-                 '#/source/blender/makesdna',
-                 '#/source/blender/blenkernel',
-                 '#/source/blender/blenloader',
-                 '#/source/blender/python',
-                 '#/source/blender/blenlib',
-                 '#/source/blender/renderconverter',
-                 '#/source/blender/render/extern/include',
-                 '#/source/kernel/gen_messaging',
-                 '#/source/kernel/gen_system',
-                 '#/source/blender/include',
-                 '#/source/blender/imbuf']
-
 link_env.BuildDir (root_build_dir, '.', duplicate=0)
-link_env.Append (CPPPATH=include_paths)
-link_env.Program (target='blender', source=source_files, CCFLAGS=cflags)
+
+build_date = time.strftime ("%Y-%m-%d")
+build_time = time.strftime ("%H:%M:%S")
+
+if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
+    dy_blender = link_env.Copy ()
+    dy_blender.Append (LIBS=user_options_dict['OPENGL_LIBRARY'])
+    dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
+    if user_options_dict['USE_BUILDINFO'] == 1:
+        dy_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
+                                         'BUILD_DATE=\'"%s"\''%(build_date),
+                                         'BUILD_TYPE=\'"dynamic"\'',
+                                         'NAN_BUILDINFO',
+                                         'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
+    dy_blender.Append (CCFLAGS=cflags)
+    d_obj = [dy_blender.Object (root_build_dir+'source/creator/d_buildinfo',
+                                [root_build_dir+'source/creator/buildinfo.c'])]
+    if sys.platform == 'win32':
+        dy_blender.Program (target='blender',
+                            source=d_obj + ['source/icons/winblender.res'])
+    else:
+        dy_blender.Program (target='blender', source=d_obj)
+if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
+    st_blender = link_env.Copy ()
+    if user_options_dict['USE_BUILDINFO'] == 1:
+        st_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
+                                         'BUILD_DATE=\'"%s"\''%(build_date),
+                                         'BUILD_TYPE=\'"static"\'',
+                                         'NAN_BUILDINFO',
+                                         'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
+    st_blender.Append (CCFLAGS=cflags)
+    st_blender.Append (LINKFLAGS=user_options_dict['OPENGL_STATIC'])
+    s_obj = [st_blender.Object (root_build_dir+'source/creator/s_buildinfo',
+                                [root_build_dir+'source/creator/buildinfo.c'])]
+    st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
+    st_blender.Program (target='blenderstatic', source=s_obj)
 
 if sys.platform == 'darwin':
     bundle = Environment ()
