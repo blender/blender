@@ -106,6 +106,11 @@ typedef struct View3D {
 	short gridlines, viewbut;
 	short gridflag;
 	short modeselect, menunr, texnr;
+	
+	/* transform widget info */
+	short twtype, twmode, twflag, twpad;
+	float twmat[4][4];
+	
 } View3D;
 
 /* View3D->flag */
@@ -141,6 +146,23 @@ typedef struct View3D {
 #define V3D_SHOW_X				2
 #define V3D_SHOW_Y				4
 #define V3D_SHOW_Z				8
+
+/* View3d->twtype */
+#define V3D_MANIPULATOR_TRANSLATE	0
+#define V3D_MANIPULATOR_ROTATE		1
+#define V3D_MANIPULATOR_SCALE		2
+
+/* View3d->twmode */
+#define V3D_MANIPULATOR_GLOBAL		0
+#define V3D_MANIPULATOR_LOCAL		1
+#define V3D_MANIPULATOR_NORMAL		2
+
+/* View3d->twflag */
+   /* USE = user setting, DRAW = based on selection */
+#define V3D_USE_MANIPULATOR		1
+#define V3D_DRAW_MANIPULATOR	2
+#define V3D_CALC_MANIPULATOR	4
+
 
 #endif
 

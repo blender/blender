@@ -3712,6 +3712,7 @@ void do_view3d_buttons(short event)
 		break;
 	case B_AROUND:
 		handle_view3d_around(); // copies to other 3d windows
+		allqueue(REDRAWVIEW3D, 1);
 		break;
 		
 	case B_SEL_VERT:
@@ -3963,6 +3964,11 @@ void view3d_buttons(void)
 	
 	xco+= XIC+8;
 
+	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_OBJECT,
+				  xco,0,XIC,YIC,
+				  &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform widgets");	
+	
+	xco+= XIC+8;
 	
 	/* LAYERS */
 	if(G.vd->localview==0) {

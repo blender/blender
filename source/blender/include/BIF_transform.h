@@ -33,7 +33,7 @@
 #ifndef BIF_TRANSFORM_H
 #define BIF_TRANSFORM_H
 
-// #define NEWTRANSFORM	1
+#define NEWTRANSFORM	1
 
 /* ******************** Macros & Prototypes *********************** */
 
@@ -67,11 +67,19 @@ void Transform(int mode);
 
 
 struct TransInfo;
+struct ScrArea;
 
 struct TransInfo * BIF_GetTransInfo(void);
 void BIF_setSingleAxisConstraint(float vec[3]);
+void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]);
 void BIF_drawConstraint(void);
 void BIF_drawPropCircle(void);
+
+/* view3d manipulators */
+void ManipulatorTransform(int mode);
+
+int BIF_do_manipulator(struct ScrArea *sa);
+void BIF_draw_manipulator(struct ScrArea *sa);
 
 #endif
 

@@ -494,6 +494,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 static void do_update_for_newframe(int mute)
 {
 	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
+	ScrArea *sa;
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWACTION,0);
@@ -521,6 +522,16 @@ static void do_update_for_newframe(int mute)
 	do_all_ikas();
 
 	test_all_displists();
+	
+	/* manipulators like updates too */
+	for(sa=G.curscreen->areabase.first; sa; sa=sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			View3D *v3d= sa->spacedata.first;
+			if(v3d->twflag & V3D_USE_MANIPULATOR) break;
+			else break;	// for now
+		}
+	}
+	if(sa) countall();	// does manipulator centers
 	
 	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) audiostream_scrub( CFRA );
 }

@@ -370,6 +370,12 @@ void initTrans (TransInfo *t)
 	t->num.val[0]		= 
 		t->num.val[1]	= 
 		t->num.val[2]	= 0.0f;
+
+	t->vec[0]			=
+		t->vec[1]		=
+		t->vec[2]		= 0.0f;
+	
+	Mat3One(t->mat);
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */

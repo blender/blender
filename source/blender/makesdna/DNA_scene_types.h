@@ -254,9 +254,10 @@ typedef struct Scene {
 	struct Group *group;
 	
 	float cursor[3];
+	float twcent[3];			/* center for transform widget */
+	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
 	unsigned int lay;
 	short selectmode, pad;
-	int pad1;
 
 	void *ed;
 	struct Radio *radio;

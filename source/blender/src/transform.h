@@ -125,6 +125,9 @@ typedef struct TransInfo {
     NumInput    num;            /* numerical input                      */
     float       val;            /* init value for some transformations  */
     float       fac;            /* factor for distance based transform  */
+	
+	float		vec[3];			/* translation, to show for widget   	*/
+	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
 } TransInfo;
 
 

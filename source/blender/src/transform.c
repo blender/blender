@@ -1564,6 +1564,134 @@ void Transform(int mode)
 	scrarea_queue_headredraw(curarea);
 }
 
+static void draw_nothing(TransInfo *t) {}
+
+void ManipulatorTransform(int mode) 
+{
+	int ret_val = 0;
+	short pmval[2] = {0, 0}, mval[2], val;
+	unsigned short event;
+
+
+	/* stupid PET initialisation code */
+	/* START */
+	if (Trans.propsize == 0.0f) {
+		Trans.propsize = 1.0;
+	}
+	/* END */
+
+	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
+
+	initTrans(&Trans);					// internal data, mouse, vectors
+
+	createTransData(&Trans);			// make TransData structs from selection
+
+	if (Trans.total == 0)
+		return;
+
+	/* no drawing of constraint lines */
+	Trans.con.drawExtra= draw_nothing;
+	
+	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
+	/* EVIL2: we gave as argument also texture space context bit... was cleared */
+	mode= Trans.mode;
+	
+	calculatePropRatio(&Trans);
+	calculateCenter(&Trans);
+
+	switch (mode) {
+	case TFM_TRANSLATION:
+		initTranslation(&Trans);
+		break;
+	case TFM_ROTATION:
+		initRotation(&Trans);
+		break;
+	case TFM_RESIZE:
+		initResize(&Trans);
+		break;
+	}
+
+	Trans.redraw = 1;
+
+	while (ret_val == 0) {
+		
+		getmouseco_areawin(mval);
+		
+		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
+			Trans.redraw = 1;
+		}
+		if (Trans.redraw) {
+			pmval[0] = mval[0];
+			pmval[1] = mval[1];
+
+			//selectConstraint(&Trans);  needed?
+			if (Trans.transform) {
+				Trans.transform(&Trans, mval);
+			}
+			Trans.redraw = 0;
+		}
+		
+		/* essential for idling subloop */
+		if( qtest()==0) PIL_sleep_ms(2);
+
+		while( qtest() ) {
+			event= extern_qread(&val);
+
+			switch (event){
+			/* enforce redraw of transform when modifiers are used */
+			case LEFTCTRLKEY:
+			case RIGHTCTRLKEY:
+			case LEFTSHIFTKEY:
+			case RIGHTSHIFTKEY:
+				Trans.redraw = 1;
+				break;
+				
+			case ESCKEY:
+			case RIGHTMOUSE:
+				ret_val = TRANS_CANCEL;
+				break;
+			case LEFTMOUSE:
+			case SPACEKEY:
+			case PADENTER:
+			case RETKEY:
+				ret_val = TRANS_CONFIRM;
+				break;
+			}
+		}
+	}
+	
+	if(ret_val == TRANS_CANCEL) {
+		restoreTransObjects(&Trans);
+	}
+	else {
+		BIF_undo_push("Transform");
+	}
+	
+	/* free data, reset vars */
+	postTrans(&Trans);
+	
+	/* mess from old transform, just for now (ton) */
+	{
+		char cmode='g';
+		
+		if(mode==TFM_RESIZE) cmode= 's';
+		else if(mode==TFM_ROTATION) cmode= 'r';
+		/* aftertrans does displists, ipos and action channels */
+		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
+		special_aftertrans_update(cmode, 0, (short)(ret_val == TRANS_CANCEL), 7);
+		
+		if(G.obedit==NULL && G.obpose==NULL)
+			clear_trans_object_base_flags();
+	}
+	
+	/* send events out for redraws */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	scrarea_queue_headredraw(curarea);
+}
+
+
+
 /* ************************** WRAP *************************** */
 
 /* warp is done fully in view space */
@@ -2294,26 +2422,27 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 	}
 }
 
+/* uses t->vec to store actual translation in */
 int Translation(TransInfo *t, short mval[2]) 
 {
-	float vec[3], tvec[3];
+	float tvec[3];
 	char str[200];
 
-	window_to_3d(vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+	window_to_3d(t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
-		t->con.applyVec(t, NULL, vec, tvec, pvec);
-		VECCOPY(vec, tvec);
+		t->con.applyVec(t, NULL, t->vec, tvec, pvec);
+		VECCOPY(t->vec, tvec);
 		headerTranslation(t, pvec, str);
 	}
 	else {
-		snapGrid(t, vec);
-		applyNumInput(&t->num, vec);
-		headerTranslation(t, vec, str);
+		snapGrid(t, t->vec);
+		applyNumInput(&t->num, t->vec);
+		headerTranslation(t, t->vec, str);
 	}
 
-	applyTranslation(t, vec);
+	applyTranslation(t, t->vec);
 
 	recalcData(t);
 

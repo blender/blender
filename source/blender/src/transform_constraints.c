@@ -580,6 +580,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 void BIF_setSingleAxisConstraint(float vec[3]) {
 	TransInfo *t = BIF_GetTransInfo();
 	float space[3][3], v[3];
+	
 	VECCOPY(space[0], vec);
 
 	v[0] = vec[2];
@@ -599,6 +600,26 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
 }
+
+void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
+	TransInfo *t = BIF_GetTransInfo();
+	float space[3][3];
+	
+	VECCOPY(space[0], vec1);
+	VECCOPY(space[1], vec2);
+	Crossf(space[2], space[0], space[1]);
+	
+	Mat3CpyMat3(t->con.mtx, space);
+	t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
+	getConstraintMatrix(t);
+	
+	t->con.drawExtra = NULL;
+	t->con.applyVec = applyAxisConstraintVec;
+	t->con.applySize = applyAxisConstraintSize;
+	t->con.applyRot = applyAxisConstraintRot;
+	t->redraw = 1;
+}
+
 
 void BIF_drawConstraint(void)
 {

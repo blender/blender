@@ -105,9 +105,6 @@
 #include "BIF_editarmature.h"
 #endif
 
-/* editmball.c */
-extern ListBase editelems;  /* go away ! */
-
 
 /* from editobject */
 extern void make_trans_verts(float *min, float *max, int mode);     
@@ -544,6 +541,8 @@ void count_object(Object *ob, int sel)
 	
 }
 
+/* countall does statistics */
+/* is called on most actions, like select/add/delete/layermove */
 void countall()
 {
 /*  	extern Lattice *editLatt; in BKE_lattice.h*/
@@ -559,9 +558,7 @@ void countall()
 	/* struct BodyPoint *bop; */
 	struct EditVert *eve;
 	struct EditFace *efa;
-#ifdef __NLA
 	struct EditBone *ebo;
-#endif
 	int a;
 
 	G.totvert= G.totvertsel= G.totfacesel= G.totface= G.totobj= 
@@ -585,7 +582,6 @@ void countall()
 				efa= efa->next;
 			}
 		}
-#ifdef __NLA
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 				
@@ -619,7 +615,6 @@ void countall()
 
 			}
 		}
-#endif
 		else if ELEM3(G.obedit->type, OB_CURVE, OB_SURF, OB_FONT) {
 			nu= editNurb.first;
 			while(nu) {
@@ -647,6 +642,9 @@ void countall()
 			}
 		}
 		else if(G.obedit->type==OB_MBALL) {
+			/* editmball.c */
+			extern ListBase editelems;  /* go away ! */
+			
 			ml= editelems.first;
 			while(ml) {
 				G.totvert++;

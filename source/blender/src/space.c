@@ -734,6 +734,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
 		
+		/* we consider manupilator a button, defaulting to leftmouse */
+		if(event==LEFTMOUSE) if(BIF_do_manipulator(sa)) return;
+		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
 			if (event==LEFTMOUSE) event = RIGHTMOUSE;

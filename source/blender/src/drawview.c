@@ -1951,9 +1951,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		base= base->next;
 	}
 
-
 	if(G.scene->radio) RAD_drawall(G.vd->drawtype>=OB_SOLID);
 	
+	BIF_draw_manipulator(sa);
+		
 	if(G.zbuf) {
 		G.zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);

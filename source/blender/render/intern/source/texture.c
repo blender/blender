@@ -1624,7 +1624,7 @@ void do_material_tex(ShadeInput *shi)
 					warpvec[2]= mtex->warpfac*texres.nor[2];
 					warpdone= 1;
 				}
-				
+#if 0				
 				// rotate to global coords
 				if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
 					// hrms, for sphere/tube map this rotating doesn't work nice
@@ -1639,8 +1639,8 @@ void do_material_tex(ShadeInput *shi)
 						}
 					}
 				}
+#endif
 			}
-
 
 			/* mapping */
 			if(mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
