@@ -1160,7 +1160,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			if(ps->type == SENS_PROP_INTERVAL)
 			{
 				uiDefBut(block, TEX, 1, "Min: ",		xco,yco-92,width/2, 19,
-					ps->value, 0, 31, 0, 0, "test for value");
+					ps->value, 0, 31, 0, 0, "test for min value");
 				uiDefBut(block, TEX, 1, "Max: ",		xco+width/2,yco-92,width/2, 19,
 					ps->maxvalue, 0, 31, 0, 0, "test for max value");
 			}
@@ -1991,7 +1991,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		case ACT_RANDOM_BOOL_UNIFORM:
 			uiDefBut(block, LABEL, 0, "     Do a 50-50 pick.",	(xco+10), yco-64, (width-20), 19,
 					 NULL, 0, 0, 0, 0,
-					 "Choose between true and false, 50%% chance each.");
+					 "Choose between true and false, 50% chance each.");
 			break;
 		case ACT_RANDOM_BOOL_BERNOUILLI:
 			uiDefButF(block, NUM, 1, "Chance", (xco+10), yco-64, (width-20), 19,
