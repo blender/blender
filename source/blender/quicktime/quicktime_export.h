@@ -34,6 +34,8 @@
 
 #if defined (_WIN32) || (__APPLE__)
 
+#define __AIFF__
+
 // quicktime movie output functions
 
 void start_qt(void);					//for initrender.c

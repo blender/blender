@@ -36,6 +36,8 @@
 #ifndef __QUICKTIME_IMP_H__
 #define __QUICKTIME_IMP_H__
 
+#define __AIFF__
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
