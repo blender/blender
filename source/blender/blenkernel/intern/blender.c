@@ -272,7 +272,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	R.displaymode= bfd->displaymode;
 	G.curscreen= bfd->curscreen;
 	G.fileflags= bfd->fileflags;
-	
+	G.f= bfd->globalf;
 	G.scene= G.curscreen->scene;
 	
 		/* few DispLists, but do text_to_curve */
