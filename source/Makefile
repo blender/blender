@@ -367,7 +367,7 @@ ifeq ($(NAN_NO_OPENAL), true)
     NAN_SND_LIBS += $(SOUNDSYSTEM)
 else
   ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
-    ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc"))
+    ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64"))
       ifeq ($(OS),freebsd)
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
