@@ -6599,7 +6599,7 @@ void renderbuts(void)
 #endif /* libquicktime */
 #endif /* WITH_QUICKTIME */
 		} else {
-#if defined (_WIN32) || defined (__APPLE__)
+#ifdef _WIN32
 			if(!have_avicodec)
 				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
 			else
