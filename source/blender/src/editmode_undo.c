@@ -166,7 +166,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 		while(undobase.first!=uel) {
 			UndoElem *first= undobase.first;
 			BLI_remlink(&undobase, first);
-			uel->freedata(first->undodata);
+			first->freedata(first->undodata);
 			MEM_freeN(first);
 		}
 	}
