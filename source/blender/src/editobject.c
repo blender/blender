@@ -775,7 +775,24 @@ void make_parent(void)
 		}
 	}
 	else if(par->type == OB_ARMATURE){
-			mode= pupmenu("Make Parent %t|Use Bone %x1|Use Armature %x2|Use Object %x3");
+
+			base= FIRSTBASE;
+			while(base) {
+				if TESTBASELIB(base) {
+					if(base!=BASACT) {
+						if(base->object->type==OB_MESH) {
+							mode= pupmenu("Make Parent %t|Use Bone %x1|Use Armature %x2|Use Object %x3");
+							break;
+						}
+						else {
+							mode= pupmenu("Make Parent %t|Use Bone %x1|Use Object %x3");
+							break;
+						}
+					}
+				}
+				base= base->next;
+			}
+		
 			switch (mode){
 			case 1:
 				mode=PARBONE;
