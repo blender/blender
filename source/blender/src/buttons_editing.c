@@ -1072,14 +1072,16 @@ void do_curvebuts(unsigned short event)
 	case B_MAKEDISP:
 		if(ob->type==OB_FONT) text_to_curve(ob, 0);
 		makeDispList(ob);
-		/* we need signal to send to other users of same data to recalc... */
-		base= FIRSTBASE;
-		while(base) {
-			if(base->lay & G.vd->lay) {
-				if(base->object->data==ob->data && base->object!=ob)
-					makeDispList(base->object);
+		if(ob!=G.obedit) { // subsurf with linked dupli will crash
+			/* we need signal to send to other users of same data to recalc... */
+			base= FIRSTBASE;
+			while(base) {
+				if(base->lay & G.vd->lay) {
+					if(base->object->data==ob->data && base->object!=ob)
+						makeDispList(base->object);
+				}
+				base= base->next;
 			}
-			base= base->next;
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */

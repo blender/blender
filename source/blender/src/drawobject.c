@@ -4450,7 +4450,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 			a++;	// the weird constructed loop ends with last drawn color...
 		}
 		else {
-			
+			a= 1;
 			glBegin(GL_QUADS);
 			glmode= GL_QUADS;
 			for(efa= G.editMesh->faces.first; efa; efa= efa->next, a++) {
