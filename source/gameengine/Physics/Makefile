@@ -35,6 +35,9 @@ include nan_definitions.mk
 
 SOURCEDIR = source/gameengine/Physics
 DIR = $(OCGDIR)/gameengine/blphys
-DIRS = common Sumo Dummy BlOde
+DIRS = common Sumo Dummy
+ifneq ($(OS),$(findstring $(OS), "irix"))
+    DIRS += BlOde
+endif
 
 include nan_subdirs.mk
