@@ -116,96 +116,177 @@ class Object:
 
   def getData():
     """
+    Returns the Datablock object containing the object's data. For example the
+    Mesh, Lamp or the Camera.
+    @return: Depending on the type of the Object, it returns a specific object
+    for the data requested.
     """
 
   def getDeltaLocation():
     """
+    Returns the object's delta location in a list (x, y, z)
+    @return: (x, y, z)
     """
 
   def getDrawMode():
     """
+    Returns the object draw mode.
     """
 
   def getDrawType():
     """
+    Returns the object draw type
     """
 
   def getEuler():
     """
+    Returns the object's rotation as Euler rotation vector (rotX, rotY, rotZ).
+    @return: (rotX, rotY, rotZ)
     """
 
   def getInverseMatrix():
     """
+    Returns the object's inverse matrix.
+    @rtype: Blender Matrix object
+    @return: the inverse of the matrix of the Object
     """
 
   def getLocation():
     """
+    Returns the object's location (x, y, z).
+    @return: (x, y, z)
     """
 
   def getMaterials():
     """
+    Returns a list of materials assigned to the object.
+    @rtype: list of Material Objects
+    @return: list of Material Objects assigned to the object.
     """
 
   def getMatrix():
     """
+    Returns the object matrix.
+    @rtype: Blender Matrix object.
+    @return: the matrix of the Object.
     """
 
   def getName():
     """
+    Returns the name of the object
+    @rtype: string
     """
 
   def getParent():
     """
+    Returns the object's parent object.
+    @rtype: Object
+    @return: The parent object of the object. If not available, None will be
+    returned.
     """
 
   def getTracked():
     """
+    Returns the object's tracked object.
+    @rtype: Object
+    @return: The tracked object of the object. If not available, None will be
+    returned.
     """
 
   def getType():
     """
+    Returns the type of the object.
+    @rtype: string
+    @return: The type of object.
     """
 
   def link(object):
     """
+    Links Object with data provided in the argument. The data must match the
+    Object's type, so you cannot link a Lamp to a Mesh type object.
+    @type object: Blender Object
+    @param object: A Blender Object.
     """
 
   def makeParent(objects, noninverse = 0, fast = 0):
     """
+    Makes the object the parent of the objects provided in the argument which
+    must be a list of valid Objects.
+    @type objects: Blender Object
+    @param objects: A Blender Object.
+    @type noninverse: int
+    @param noninverse: 0 - make parent with inverse
+    1 - make parent without inverse
+    @type fast: int
+    @param fast: 0 - update scene hierarchy automatically
+    1 - don't update scene hierarchy - which is faster. In this case, you must
+    explicitely update the Scene hierarchy.
     """
 
   def materialUsage(material_source = 'Data'):
     """
+    Determines the way the material is used and returns the status.
     """
 
-  def setDeltaLocation(float1, float2, float3):
+  def setDeltaLocation(delta_location):
     """
-    """
-
-  def setDrawMode(char):
-    """
-    """
-
-  def setDrawType(char):
-    """
+    Sets the object's delta location which must be a vector triple.
+    @type delta_location: A vector triple
+    @param delta_location: A vector triple (x, y, z) specifying the new
+    location.
     """
 
-  def setEuler(float1, float2, float3):
+  def setDrawMode(drawmode):
     """
+    Sets the object's drawing mode. The drawing mode can be a mix of modes. To
+    enable these, add up the values.
+    @type drawmode: int
+    @param drawmode: A sum of the following:
+    2  - axis
+    4  - texspace
+    8  - drawname
+    16 - drawimage
+    32 - drawwire
     """
 
-  def setLocation(float1, float2, float3):
+  def setDrawType(drawtype):
     """
+    Sets the object's drawing type.
+    """
+
+  def setEuler(rotation):
+    """
+    Sets the object's rotation according to the specified Euler angles. The
+    argument must be a vector triple.
+    @type rotation: A vector triple
+    @param rotation: A vector triple (x, y, z) specifying the Euler angles.
+    """
+
+  def setLocation(location):
+    """
+    Sets the object's location. The argument must be a vector triple.
+    @type location: A vector triple
+    @param location: A vector triple (x, y, z) specifying the new location.
     """
 
   def setMaterials(materials):
     """
+    Sets the materials. The argument must be a list of valid material objects.
+    @type materials: Materials list
+    @param materials: A list of Blender material objects.
     """
 
-  def setName(String):
+  def setName(name):
     """
+    Sets the name of the object.
+    @type name: String
+    @param name: The new name for the object.
     """
  
-  def shareFrom(Object):
+  def shareFrom(object):
     """
+    Link data of self with object specified in the argument. This works only
+    if self and the object specified are of the same type.
+    @type object: Blender Object
+    @param object: A Blender Object of the same type.
     """
