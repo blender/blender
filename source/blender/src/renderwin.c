@@ -203,8 +203,8 @@ static int renderwin_win_to_ndc(RenderWin *rw, int win_co[2], float ndc_r[2])
 
 	window_get_size(rw->win, &w, &h);
 
-	ndc_r[0]= (float) ((win_co[0]*2)/(w-1) - 1.0);
-	ndc_r[1]= (float) ((win_co[1]*2)/(h-1) - 1.0);
+	ndc_r[0]=  ((float)(win_co[0]*2)/(w-1) - 1.0);
+	ndc_r[1]=  ((float)(win_co[1]*2)/(h-1) - 1.0);
 
 	return (fabs(ndc_r[0])<=1.0 && fabs(ndc_r[1])<=1.0);
 }
@@ -276,7 +276,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
-	if (rw->flags&RW_FLAGS_PIXEL_EXAMINING) {
+	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2];
 		char buf[64];
 
@@ -290,7 +290,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 			renderwin_set_infotext(rw, NULL);
 			renderwin_queue_redraw(rw);
 		}
-	} else if (rw->flags&RW_FLAGS_PANNING) {
+	} 
+	else if (rw->flags & RW_FLAGS_PANNING) {
 		int delta_x= rw->lmouse[0] - rw->pan_mouse_start[0];
 		int delta_y= rw->lmouse[1] - rw->pan_mouse_start[1];
 	
@@ -300,7 +301,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 		rw->zoomofs[1]= CLAMPIS(rw->zoomofs[1], -R.recty/2, R.recty/2);
 
 		renderwin_queue_redraw(rw);
-	} else if (rw->flags&RW_FLAGS_OLDZOOM) {
+	} 
+	else if (rw->flags & RW_FLAGS_OLDZOOM) {
 		float ndc[2];
 		int w, h;
 
@@ -318,18 +320,20 @@ static void renderwin_mousebut_changed(RenderWin *rw)
 {
 	if (rw->mbut[0]) {
 		rw->flags|= RW_FLAGS_PIXEL_EXAMINING;
-	} else if (rw->mbut[1]) {
+	} 
+	else if (rw->mbut[1]) {
 		rw->flags|= RW_FLAGS_PANNING;
 		rw->pan_mouse_start[0]= rw->lmouse[0];
 		rw->pan_mouse_start[1]= rw->lmouse[1];
 		rw->pan_ofs_start[0]= rw->zoomofs[0];
 		rw->pan_ofs_start[1]= rw->zoomofs[1];
-	} else {
-		if (rw->flags&RW_FLAGS_PANNING) {
-			rw->flags&= ~RW_FLAGS_PANNING;
+	} 
+	else {
+		if (rw->flags & RW_FLAGS_PANNING) {
+			rw->flags &= ~RW_FLAGS_PANNING;
 			renderwin_queue_redraw(rw);
 		}
-		if (rw->flags&RW_FLAGS_PIXEL_EXAMINING) {
+		if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 			rw->flags&= ~RW_FLAGS_PIXEL_EXAMINING;
 			renderwin_set_infotext(rw, NULL);
 			renderwin_queue_redraw(rw);
