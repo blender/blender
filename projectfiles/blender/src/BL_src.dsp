@@ -271,6 +271,26 @@ SOURCE=..\..\..\source\blender\src\editmesh.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\editmesh_add.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\editmesh_lib.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\editmesh_loop.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\editmesh_mods.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\editmesh_tools.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\editnla.c
 # End Source File
 # Begin Source File
@@ -407,6 +427,10 @@ SOURCE=..\..\..\source\blender\src\mainqueue.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\meshtools.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\mywindow.c
 # End Source File
 # Begin Source File
@@ -527,6 +551,10 @@ SOURCE=..\..\..\source\blender\include\BIF_editfont.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_editmesh.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_editoops.h
 # End Source File
 # Begin Source File
@@ -564,6 +592,10 @@ SOURCE=..\..\..\source\blender\include\BSE_filesel.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\butspace.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\editmesh.h
 # End Source File
 # Begin Source File
 
