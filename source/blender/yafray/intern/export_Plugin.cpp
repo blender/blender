@@ -5,8 +5,8 @@ using namespace std;
 
 
 #ifdef WIN32 
-
-#include <windows.h>
+#define WIN32_SKIP_HKEY_PROTECTION
+#include "BLI_winstuff.h"
 
 #ifndef FILE_MAXDIR
 #define FILE_MAXDIR  160
