@@ -55,8 +55,8 @@ public:
 		m_blendframe(0),
 		m_lastpos(0, 0, 0),
 		m_flag(0),
-		m_starttime (starttime),
-		m_endtime(endtime) ,
+		m_startframe (starttime),
+		m_endframe(endtime) ,
 		m_localtime(starttime),
 		m_lastUpdate(-1),
 		m_playtype(playtype),
@@ -74,6 +74,8 @@ public:
 	virtual	bool Update(double curtime, bool frame);
 	CValue* GetReplica();
 	void ProcessReplica();
+	
+	void SetBlendTime (float newtime);
 
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetAction);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendin);
@@ -97,7 +99,6 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
 
 	virtual PyObject* _getattr(const STR_String& attr);
-	void SetBlendTime (float newtime);
 
 	enum ActionActType
 	{
@@ -109,13 +110,23 @@ public:
 	};
 
 protected:
+
+	void SetStartTime(float curtime);
+	void SetLocalTime(float curtime);
+	bool ClampLocalTime();
+
 	float	m_blendframe;
 	MT_Point3	m_lastpos;
 	int		m_flag;
+	/** The frame this action starts */
+	float	m_startframe;
+	/** The frame this action ends */
+	float	m_endframe;
+	/** The time this action started */
 	float	m_starttime;
-	float	m_startWallTime;
-	float	m_endtime;
+	/** The current time of the action */
 	float	m_localtime;
+	
 	float	m_lastUpdate;
 	short	m_playtype;
 	float	m_blendin;
@@ -127,7 +138,7 @@ protected:
 	struct bPose* m_userpose;
 	STR_String	m_propname;
 	struct bAction *m_action;
-	
+
 };
 
 enum {

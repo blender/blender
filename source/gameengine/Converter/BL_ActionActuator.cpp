@@ -79,7 +79,7 @@ void BL_ActionActuator::ProcessReplica(){
 	
 	m_pose = NULL;
 	m_blendpose = NULL;
-	m_localtime=m_starttime;
+	m_localtime=m_startframe;
 	m_lastUpdate=-1;
 	
 }
@@ -95,7 +95,60 @@ CValue* BL_ActionActuator::GetReplica() {
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	return replica;
-};
+}
+
+bool BL_ActionActuator::ClampLocalTime()
+{
+	if (m_startframe < m_endframe)
+	{
+		if (m_localtime < m_startframe)
+		{
+			m_localtime = m_startframe;
+			return true;
+		} 
+		else if (m_localtime > m_endframe)
+		{
+			m_localtime = m_endframe;
+			return true;
+		}
+	} else {
+		if (m_localtime > m_startframe)
+		{
+			m_localtime = m_startframe;
+			return true;
+		}
+		else if (m_localtime < m_endframe)
+		{
+			m_localtime = m_endframe;
+			return true;
+		}
+	}
+	return false;
+}
+
+void BL_ActionActuator::SetStartTime(float curtime)
+{
+	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
+	
+	if (!(m_flag & ACT_FLAG_REVERSE))
+		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
+	else
+		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_FIXED_FRAME_PER_SEC;
+}
+
+void BL_ActionActuator::SetLocalTime(float curtime)
+{
+	float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+	
+	if (m_endframe < m_startframe)
+		delta_time = -delta_time;
+
+	if (!(m_flag & ACT_FLAG_REVERSE))
+		m_localtime = m_startframe + delta_time;
+	else
+		m_localtime = m_endframe - delta_time;
+}
+
 
 bool BL_ActionActuator::Update(double curtime, bool frame)
 {
@@ -126,7 +179,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	/*	We know that action actuators have been discarded from all non armature objects:
 	if we're being called, we're attached to a BL_ArmatureObject */
 	BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
-	float length = m_endtime - m_starttime;
+	float length = m_endframe - m_startframe;
 	
 	priority = m_priority;
 	
@@ -150,8 +203,8 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				m_flag &= ~ACT_FLAG_KEYUP;
 				m_flag &= ~ACT_FLAG_REVERSE;
 				m_flag |= ACT_FLAG_LOCKINPUT;
-				m_localtime = m_starttime;
-				m_startWallTime = curtime;
+				m_localtime = m_startframe;
+				m_starttime = curtime;
 			}
 		}
 		if (bNegativeEvent){
@@ -162,9 +215,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		if (bPositiveEvent){
 			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
 				m_flag &= ~ACT_FLAG_REVERSE;
+				m_flag &= ~ACT_FLAG_KEYUP;
+				m_flag |= ACT_FLAG_LOCKINPUT;
+				SetStartTime(curtime);
 			}
 		}
 		if (bNegativeEvent){
+			m_flag |= ACT_FLAG_KEYUP;
+			m_flag &= ~ACT_FLAG_LOCKINPUT;
 			keepgoing=false;
 			apply=false;
 		}
@@ -173,10 +231,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		if (bPositiveEvent){
 			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
 				m_flag &= ~ACT_FLAG_REVERSE;
+				m_flag |= ACT_FLAG_LOCKINPUT;
+				m_starttime = curtime;
 			}
 		}
 		else if (bNegativeEvent){
 			m_flag |= ACT_FLAG_REVERSE;
+			m_flag &= ~ACT_FLAG_LOCKINPUT;
+			SetStartTime(curtime);
 		}
 		break;
 	case ACT_ACTION_PLAY:
@@ -184,7 +246,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
 				m_flag &= ~ACT_FLAG_REVERSE;
 				m_localtime = m_starttime;
-				m_startWallTime = curtime;
+				m_starttime = curtime;
 				m_flag |= ACT_FLAG_LOCKINPUT;
 			}
 		}
@@ -207,23 +269,20 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			m_lastpos = newpos;
 		}
 		else{
-			if (m_flag & ACT_FLAG_REVERSE)
-				m_localtime = m_endtime - (curtime - m_startWallTime) * KX_FIXED_FRAME_PER_SEC;
-			else
-				m_localtime = m_starttime + (curtime - m_startWallTime) * KX_FIXED_FRAME_PER_SEC;
+			SetLocalTime(curtime);
 		}
 	}
 	
 	/* Check if a wrapping response is needed */
 	if (length){
-		if (m_localtime < m_starttime || m_localtime > m_endtime)
+		if (m_localtime < m_startframe || m_localtime > m_endframe)
 		{
-			m_localtime = m_starttime + fmod(m_localtime, length);
+			m_localtime = m_startframe + fmod(m_localtime, length);
 			wrap = true;
 		}
 	}
 	else
-		m_localtime = m_starttime;
+		m_localtime = m_startframe;
 	
 	/* Perform post-increment tasks */
 	switch (m_playtype){
@@ -245,11 +304,11 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	case ACT_ACTION_FLIPPER:
 		if (wrap){
 			if (!(m_flag & ACT_FLAG_REVERSE)){
-				m_localtime=m_endtime;
-				keepgoing = false;
+				m_localtime=m_endframe;
+				//keepgoing = false;
 			}
 			else {
-				m_localtime=m_starttime;
+				m_localtime=m_startframe;
 				keepgoing = false;
 			}
 		}
@@ -258,14 +317,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		if (wrap){
 			if (m_flag & ACT_FLAG_KEYUP){
 				keepgoing = false;
-				m_localtime = m_endtime;
+				m_localtime = m_endframe;
 				m_flag &= ~ACT_FLAG_LOCKINPUT;
 			}
 		}
 		break;
 	case ACT_ACTION_PLAY:
 		if (wrap){
-			m_localtime = m_endtime;
+			m_localtime = m_endframe;
 			keepgoing = false;
 			m_flag &= ~ACT_FLAG_LOCKINPUT;
 		}
@@ -454,7 +513,7 @@ PyObject* BL_ActionActuator::PyGetEnd(PyObject* self,
 									  PyObject* kwds) {
 	PyObject *result;
 	
-	result = Py_BuildValue("f", m_endtime);
+	result = Py_BuildValue("f", m_endframe);
 	
 	return result;
 }
@@ -469,7 +528,7 @@ PyObject* BL_ActionActuator::PyGetStart(PyObject* self,
 										PyObject* kwds) {
 	PyObject *result;
 	
-	result = Py_BuildValue("f", m_starttime);
+	result = Py_BuildValue("f", m_startframe);
 	
 	return result;
 }
@@ -555,7 +614,7 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 	
 	if (PyArg_ParseTuple(args,"f",&start))
 	{
-		m_starttime = start;
+		m_startframe = start;
 	}
 	
 	Py_INCREF(Py_None);
@@ -574,7 +633,7 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 	
 	if (PyArg_ParseTuple(args,"f",&end))
 	{
-		m_endtime = end;
+		m_endframe = end;
 	}
 	
 	Py_INCREF(Py_None);
@@ -660,10 +719,10 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&frame))
 	{
 		m_localtime = frame;
-		if (m_localtime<m_starttime)
-			m_localtime=m_starttime;
-		else if (m_localtime>m_endtime)
-			m_localtime=m_endtime;
+		if (m_localtime<m_startframe)
+			m_localtime=m_startframe;
+		else if (m_localtime>m_endframe)
+			m_localtime=m_endframe;
 	}
 	
 	Py_INCREF(Py_None);
