@@ -7416,7 +7416,12 @@ void KnifeSubdivide(char mode){
 	Window *win;	
 	
 	if (G.obedit==0) return;
-	
+
+	if (editmesh_nvertices_selected() < 2) {
+		error("No edges are selected to operate on");
+		return;
+	}
+
 	if (mode==KNIFE_PROMPT) {
 		short val= pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2");
 		if(val<1) return;
