@@ -240,6 +240,9 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyMath.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInit.cpp">
 			</File>
 			<File
@@ -420,6 +423,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyMath.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PythonInit.h">
