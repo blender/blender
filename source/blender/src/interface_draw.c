@@ -183,22 +183,23 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	glPixelZoom(1.0, 1.0);
 }
 
+
 /* ************** DEFAULT THEME, SHADED BUTTONS ************* */
 
 
-#define M_WHITE		BIF_ThemeColorShade(bc, 80)
+#define M_WHITE		BIF_ThemeColorShade(colorid, 80)
 
-#define M_ACT_LIGHT	BIF_ThemeColorShade(bc, 55)
-#define M_LIGHT		BIF_ThemeColorShade(bc, 45)
-#define M_HILITE	BIF_ThemeColorShade(bc, 25)
-#define M_LMEDIUM	BIF_ThemeColorShade(bc, 10)
-#define M_MEDIUM	BIF_ThemeColor(bc)
-#define M_LGREY		BIF_ThemeColorShade(bc, -20)
-#define M_GREY		BIF_ThemeColorShade(bc, -45)
-#define M_DARK		BIF_ThemeColorShade(bc, -80)
+#define M_ACT_LIGHT	BIF_ThemeColorShade(colorid, 55)
+#define M_LIGHT		BIF_ThemeColorShade(colorid, 45)
+#define M_HILITE	BIF_ThemeColorShade(colorid, 25)
+#define M_LMEDIUM	BIF_ThemeColorShade(colorid, 10)
+#define M_MEDIUM	BIF_ThemeColor(colorid)
+#define M_LGREY		BIF_ThemeColorShade(colorid, -20)
+#define M_GREY		BIF_ThemeColorShade(colorid, -45)
+#define M_DARK		BIF_ThemeColorShade(colorid, -80)
 
-#define M_NUMTEXT							BIF_ThemeColorShade(bc, 25)
-#define M_NUMTEXT_ACT_LIGHT		BIF_ThemeColorShade(bc, 35)
+#define M_NUMTEXT				BIF_ThemeColorShade(colorid, 25)
+#define M_NUMTEXT_ACT_LIGHT		BIF_ThemeColorShade(colorid, 35)
 
 #define MM_WHITE	BIF_ThemeColorShade(TH_BUT_NEUTRAL, 120)
 #define MM_WHITE_OP	BIF_ThemeColorShadeAlpha(TH_BACK, 65, -100)
@@ -208,28 +209,22 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 #define MM_GREY		BIF_ThemeColorShade(TH_BUT_NEUTRAL, -45)
 #define MM_DARK		BIF_ThemeColorShade(TH_BUT_NEUTRAL, -80)
 
-
-static void ui_default_button(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
+/* base shaded button */
+static void shaded_button(float x1, float y1, float x2, float y2, float asp, int colorid, int flag, int mid)
 {
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* SHADED BUTTON */
+	/* 'mid' arg determines whether the button is in the middle of
+	 * an alignment group or not. 0 = not middle, 1 = is in the middle.
+	 * Done to allow cleaner drawing
+	 */
+	 
+	/* *** SHADED BUTTON BASE *** */
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
 	
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) M_MEDIUM;
 		else M_LGREY;
-	}
-	else {
+	} else {
 		if(flag & UI_ACTIVE) M_LIGHT;
 		else M_HILITE;
 	}
@@ -240,8 +235,7 @@ static void ui_default_button(int bc, float asp, float x1, float y1, float x2, f
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) M_LGREY;
 		else M_GREY;
-	}
-	else {
+	} else {
 		if(flag & UI_ACTIVE) M_ACT_LIGHT;
 		else M_LIGHT;
 	}
@@ -257,8 +251,7 @@ static void ui_default_button(int bc, float asp, float x1, float y1, float x2, f
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) M_LGREY;
 		else M_GREY;
-	}
-	else {
+	} else {
 		if(flag & UI_ACTIVE) M_ACT_LIGHT;
 		else M_LIGHT;
 	}
@@ -269,135 +262,86 @@ static void ui_default_button(int bc, float asp, float x1, float y1, float x2, f
 	glVertex2f(x1,y2);
 
 	glEnd();
-
-	/* END SHADED BUTTON */
-
-	/* OUTER SUNKEN EFFECT */
-	/* left */
+	/* *** END SHADED BUTTON BASE *** */
 	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x1-1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x1-1,y2);
-	glEnd();
+	/* *** INNER OUTLINE *** */
+	/* left */
+	if(!(flag & UI_SELECT)) {
+		glShadeModel(GL_SMOOTH);
+		glBegin(GL_LINES);
+		M_MEDIUM;
+		glVertex2f(x1+1,y1+2);
+		M_WHITE;
+		glVertex2f(x1+1,y2);
+		glEnd();
+	}
 	
 	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x2+1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	MM_WHITE_OP;
-	fdrawline(x1, y1-1, x2, y1-1);
+		if(!(flag & UI_SELECT)) {
+		glShadeModel(GL_SMOOTH);
+		glBegin(GL_LINES);
+		M_MEDIUM;
+		glVertex2f(x2-1,y1+2);
+		M_WHITE;
+		glVertex2f(x2-1,y2);
+		glEnd();
+	}
 	
-	glDisable(GL_BLEND);
-	/* END OUTER SUNKEN EFFECT */
-	
-	/* INNER OUTLINE */
 	glShadeModel(GL_FLAT);
 	
 	/* top */
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) M_LGREY;
 		else M_GREY;
-	}
-	else {
+	} else {
 		if(flag & UI_ACTIVE) M_WHITE;
 		else M_WHITE;
 	}
 
-	fdrawline(x1, (y2-1), x2, y2-1);
+	fdrawline(x1, (y2-1), x2, (y2-1));
 	
 	/* bottom */
-	
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) M_MEDIUM;
 		else M_LGREY;
-	}
-	else {
+	} else {
 		if(flag & UI_ACTIVE) M_LMEDIUM;
-		else M_LMEDIUM;
+		else M_MEDIUM;
 	}
-	fdrawline(x1, (y1+1), x2, y1+1);
-
-	/* left */
-	if(!(flag & UI_SELECT)) {
-	                        	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	M_WHITE;
-	glVertex2f(x1+1,y1+2);
-	M_LGREY;
-	glVertex2f(x1+1,y2);
-	glEnd();
+	fdrawline(x1, (y1+1), x2, (y1+1));
+	/* *** END INNER OUTLINE *** */
 	
+	/* *** OUTER OUTLINE *** */
+	if (mid) {
+		// we draw full outline, its not AA, and it works better button mouse-over hilite
+		MM_DARK;
+		
+		// left right
+		fdrawline(x1, y1, x1, y2);
+		fdrawline(x2, y1, x2, y2);
+	
+		// top down
+		fdrawline(x1, y2, x2, y2);
+		fdrawline(x1, y1, x2, y1); 
+	} else {
+		MM_DARK;
+		glBegin(GL_LINE_LOOP);
+		gl_round_box(x1, y1, x2, y2, 1.0);
+		glEnd();
 	}
-	
-	/* right */
-	if(!(flag & UI_SELECT)) {
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	M_LGREY;
-	glVertex2f(x2-1,y1+2);
-	M_WHITE;
-	glVertex2f(x2-1,y2);
-	glEnd();
-	
-	}
-	/* END INNER OUTLINE */
-	
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	MM_GREY;
-	fdrawline(x1, y2, x2, y2);
-	MM_MEDIUM;
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	MM_DARK;
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	MM_DARK;
-	fdrawline(x1+1, y1, x2, y1);
 	/* END OUTER OUTLINE */
-	
 }
 
-static void ui_default_text(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
+/* base flat button */
+static void flat_button(float x1, float y1, float x2, float y2, float asp, int colorid, int flag, int mid)
 {
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* FLAT TEXT/NUM FIELD */
+	/* 'mid' arg determines whether the button is in the middle of
+	 * an alignment group or not. 0 = not middle, 1 = is in the middle.
+	 * Done to allow cleaner drawing
+	 */
+	 
+	/* *** FLAT TEXT/NUM FIELD *** */
 	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) M_LGREY;
 		else M_GREY;
@@ -407,72 +351,79 @@ static void ui_default_text(int bc, float asp, float x1, float y1, float x2, flo
 		else M_NUMTEXT;
 	}
 
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END FLAT TEXT/NUM FIELD */
+	glRectf(x1, y1, x2, y2);
+	/* *** END FLAT TEXT/NUM FIELD *** */
 	
-	/* OUTER SUNKEN EFFECT */
-	/* left */
+	/* *** OUTER OUTLINE *** */
+	if (mid) {
+		// we draw full outline, its not AA, and it works better button mouse-over hilite
+		MM_DARK;
+		
+		// left right
+		fdrawline(x1, y1, x1, y2);
+		fdrawline(x2, y1, x2, y2);
 	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x1-1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x2+1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	MM_WHITE_OP;
-	fdrawline(x1, y1-1, x2, y1-1);
-	
-	glDisable(GL_BLEND);
-	/* END OUTER SUNKEN EFFECT */
-	
-
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	MM_GREY;
-	fdrawline(x1, y2, x2, y2);
-	MM_MEDIUM;
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	MM_DARK;
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	MM_DARK;
-	fdrawline(x1+1, y1, x2, y1);
+		// top down
+		fdrawline(x1, y2, x2, y2);
+		fdrawline(x1, y1, x2, y1); 
+	} else {
+		MM_DARK;
+		glBegin(GL_LINE_LOOP);
+		gl_round_box(x1, y1, x2, y2, 1.0);
+		glEnd();
+	}
 	/* END OUTER OUTLINE */
 }
 
+/* small side double arrow for iconrow */
+static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
+{
+	glEnable( GL_POLYGON_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	glShadeModel(GL_FLAT);
+	glBegin(GL_TRIANGLES);
+	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+4);
+	glEnd();
+		
+	glBegin(GL_TRIANGLES);
+	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -4);
+	glEnd();
+	
+	glDisable( GL_BLEND );
+	glDisable( GL_POLYGON_SMOOTH );
+}
 
+/* side double arrow for menu */
+static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
+{
+	glEnable( GL_POLYGON_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	glShadeModel(GL_FLAT);
+	glBegin(GL_TRIANGLES);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2)+1);
+	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)+4);
+	glEnd();
+		
+	glBegin(GL_TRIANGLES);
+	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2) -1);
+	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2) -4);
+	glEnd();
+	
+	glDisable( GL_BLEND );
+	glDisable( GL_POLYGON_SMOOTH );
+}
+
+/* left/right arrows for number fields */
 static void ui_default_num_arrows(float x1, float y1, float x2, float y2)
 {
 	glEnable( GL_POLYGON_SMOOTH );
@@ -501,536 +452,302 @@ static void ui_default_num_arrows(float x1, float y1, float x2, float y2)
 
 }
 
-static void ui_default_num(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
+/* button/popup menu/iconrow drawing code */
+static void ui_default_button(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
+	int align= (flag & UI_BUT_ALIGN);
 
-	float asp1;
-
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* FLAT TEXT/NUM FIELD */
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_LGREY;
-		else M_GREY;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_NUMTEXT_ACT_LIGHT;
-		else M_NUMTEXT;
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END FLAT TEXT/NUM FIELD */
+	if(align) {
 	
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x1-1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x2+1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	MM_WHITE_OP;
-	fdrawline(x1, y1-1, x2, y1-1);
-	
-	glDisable(GL_BLEND);
-	/* END OUTER SUNKEN EFFECT */
-	
-
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	MM_GREY;
-	fdrawline(x1, y2, x2, y2);
-	MM_MEDIUM;
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	MM_DARK;
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	MM_DARK;
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-
-	/* SIDE ARROWS */
-	/* left */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_DARK;
-		else M_DARK;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_GREY;
-		else M_LGREY;
-	}
-	
-	ui_default_num_arrows(x1, y1, x2, y2);
-	/* END SIDE ARROWS */
-}
-
-static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
-{
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
+		/* *** BOTTOM OUTER SUNKEN EFFECT *** */
+		if (align != UI_BUT_ALIGN_DOWN) {
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			MM_WHITE_OP;
+			fdrawline(x1, y1-1, x2, y1-1);	
+			glDisable(GL_BLEND);
+		}
+		/* *** END BOTTOM OUTER SUNKEN EFFECT *** */
 		
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2) -4);
-	glEnd();
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
-}
-
-static void ui_default_menu(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
-{
-
-	float asp1;
-	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* SHADED BUTTON */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-	
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_LGREY;
-		else M_GREY;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_LIGHT;
-		else M_HILITE;
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_GREY;
-		else M_DARK;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_ACT_LIGHT;
-		else M_LIGHT;
-	}
-
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glEnd();
-	
-
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_GREY;
-		else M_DARK;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_ACT_LIGHT;
-		else M_LIGHT;
-	}
-
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END SHADED BUTTON */
-
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x1-1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x2+1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	MM_WHITE_OP;
-	fdrawline(x1, y1-1, x2, y1-1);
-	
-	glDisable(GL_BLEND);
-	/* END OUTER SUNKEN EFFECT */
-	
-	
-	/* INNER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* top */
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_GREY;
-		else M_GREY;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_WHITE;
-		else M_WHITE;
-	}
-
-	fdrawline(x1, (y2-1), x2, y2-1);
-	
-	/* bottom */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_LGREY;
-		else M_LGREY;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_LMEDIUM;
-		else M_LMEDIUM;
-	}
-	fdrawline(x1, (y1+1), x2, y1+1);
-
-	/* left */
-	if(!(flag & UI_SELECT)) {
-	                        	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	M_WHITE;
-	glVertex2f(x1+1,y1+2);
-	M_LGREY;
-	glVertex2f(x1+1,y2);
-	glEnd();
-	
-	}
-	
-	/* right */
-	if(!(flag & UI_SELECT)) {
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	M_LGREY;
-	glVertex2f(x2-1,y1+2);
-	M_WHITE;
-	glVertex2f(x2-1,y2);
-	glEnd();
-	
-	}
-	/* END INNER OUTLINE */
-	
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	MM_GREY;
-	fdrawline(x1, y2, x2, y2);
-	MM_MEDIUM;
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	MM_DARK;
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	MM_DARK;
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-
-	/* DARKENED AREA */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	
-	glColor4ub(0, 0, 0, 30);
-	glRectf(x2-18, y1, x2, y2);
-
-	glDisable(GL_BLEND);
-	/* END DARKENED AREA */
-
-	/* MENU DOUBLE-ARROW  */
-	
-	/* set antialias line */
-	M_DARK;
-	ui_default_menu_arrows(x1, y1, x2, y2);
-	/* MENU DOUBLE-ARROW */
-
-}
-
-static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
-{
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
+		switch(align) {
+		case UI_BUT_ALIGN_TOP:
+			uiSetRoundBox(12);
+			
+			/* last arg in shaded_button() determines whether the button is in the middle of
+			 * an alignment group or not. 0 = not middle, 1 = is in the middle.
+			 * Done to allow cleaner drawing
+			 */
+			 
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_DOWN:
+			uiSetRoundBox(3);
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_LEFT:
+			
+			/* RIGHT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x2+1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x2+1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+			
+			uiSetRoundBox(6);
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_RIGHT:
 		
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-2,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-6,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -4);
-	glEnd();
+			/* LEFT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x1-1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x1-1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+		
+			uiSetRoundBox(9);
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+			
+		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
+			uiSetRoundBox(1);
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
+			uiSetRoundBox(2);
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
+		
+			/* LEFT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x1-1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x1-1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+		
+			uiSetRoundBox(8);
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
+		
+			/* RIGHT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x2+1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x2+1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+			
+			uiSetRoundBox(4);
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+			
+		default:
+			shaded_button(x1, y1, x2, y2, asp, colorid, flag, 1);
+			break;
+		}
+	} 
+	else {
+		uiSetRoundBox(15);
+		shaded_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+	}
 	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
+	/* *** EXTRA DRAWING FOR SPECIFIC CONTROL TYPES *** */
+	switch(type) {
+	case ICONROW:
+	case ICONTEXTROW:
+		/* DARKENED AREA */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		glColor4ub(0, 0, 0, 30);
+		glRectf(x2-9, y1, x2, y2);
+	
+		glDisable(GL_BLEND);
+		/* END DARKENED AREA */
+	
+		/* ICONROW DOUBLE-ARROW  */
+		M_DARK;
+		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		/* END ICONROW DOUBLE-ARROW */
+		break;
+	case MENU:
+		/* DARKENED AREA */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		glColor4ub(0, 0, 0, 30);
+		glRectf(x2-18, y1, x2, y2);
+	
+		glDisable(GL_BLEND);
+		/* END DARKENED AREA */
+	
+		/* MENU DOUBLE-ARROW  */
+		M_DARK;
+		ui_default_menu_arrows(x1, y1, x2, y2);
+		/* MENU DOUBLE-ARROW */
+	}
+	
+	
 }
 
-static void ui_default_iconrow(int bc, float asp, float x1, float y1, float x2, float y2, int flag)
+
+/* button/popup menu/iconrow drawing code */
+static void ui_default_flat(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
+	int align= (flag & UI_BUT_ALIGN);
 
-	float asp1;
+	if(align) {
 	
-	asp1= asp;
-
-	/*x1+= asp1;*/
-	x2-= asp1;	
-	/*y1+= asp1;*/
-	y2-= asp1;
-
-	/* SHADED BUTTON */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-	
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_LGREY;
-		else M_GREY;
-	}
+		/* *** BOTTOM OUTER SUNKEN EFFECT *** */
+		if (align != UI_BUT_ALIGN_DOWN) {
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			MM_WHITE_OP;
+			fdrawline(x1, y1-1, x2, y1-1);	
+			glDisable(GL_BLEND);
+		}
+		/* *** END BOTTOM OUTER SUNKEN EFFECT *** */
+		
+		switch(align) {
+		case UI_BUT_ALIGN_TOP:
+			uiSetRoundBox(12);
+			
+			/* last arg in shaded_button() determines whether the button is in the middle of
+			 * an alignment group or not. 0 = not middle, 1 = is in the middle.
+			 * Done to allow cleaner drawing
+			 */
+			 
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_DOWN:
+			uiSetRoundBox(3);
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_LEFT:
+			
+			/* RIGHT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x2+1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x2+1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+			
+			uiSetRoundBox(6);
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_RIGHT:
+		
+			/* LEFT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x1-1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x1-1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+		
+			uiSetRoundBox(9);
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+			
+		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
+			uiSetRoundBox(1);
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
+			uiSetRoundBox(2);
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
+		
+			/* LEFT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x1-1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x1-1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+		
+			uiSetRoundBox(8);
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
+		
+			/* RIGHT OUTER SUNKEN EFFECT */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			MM_WHITE_OP;
+			glVertex2f(x2+1,y1);
+			MM_WHITE_TR;
+			glVertex2f(x2+1,y2);
+			glEnd();
+			glDisable(GL_BLEND);
+			
+			uiSetRoundBox(4);
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
+			break;
+			
+		default:
+			flat_button(x1, y1, x2, y2, asp, colorid, flag, 1);
+			break;
+		}
+	} 
 	else {
-		if(flag & UI_ACTIVE) M_LIGHT;
-		else M_HILITE;
-	}
-
-	glVertex2f(x1,y1);
-	glVertex2f(x2,y1);
-
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_GREY;
-		else M_DARK;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_ACT_LIGHT;
-		else M_LIGHT;
-	}
-
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glEnd();
-	
-
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUADS);
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_GREY;
-		else M_DARK;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_ACT_LIGHT;
-		else M_LIGHT;
-	}
-
-	glVertex2f(x1,(y2-(y2-y1)/3));
-	glVertex2f(x2,(y2-(y2-y1)/3));
-	glVertex2f(x2,y2);
-	glVertex2f(x1,y2);
-
-	glEnd();
-	/* END SHADED BUTTON */
-
-	/* OUTER SUNKEN EFFECT */
-	/* left */
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x1-1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x1-1,y2);
-	glEnd();
-	
-	/* right */
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	MM_WHITE_OP;
-	glVertex2f(x2+1,y1);
-	MM_WHITE_TR;
-	glVertex2f(x2+1,y2);
-	glEnd();
-
-	/* bottom */
-	MM_WHITE_OP;
-	fdrawline(x1, y1-1, x2, y1-1);
-	
-	glDisable(GL_BLEND);
-	/* END OUTER SUNKEN EFFECT */
-	
-	
-	/* INNER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* top */
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_GREY;
-		else M_GREY;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_WHITE;
-		else M_WHITE;
-	}
-
-	fdrawline(x1, (y2-1), x2, y2-1);
-	
-	/* bottom */
-	
-	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) M_LGREY;
-		else M_LGREY;
-	}
-	else {
-		if(flag & UI_ACTIVE) M_LMEDIUM;
-		else M_LMEDIUM;
-	}
-	fdrawline(x1, (y1+1), x2, y1+1);
-
-	/* left */
-	if(!(flag & UI_SELECT)) {
-	                        	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	M_WHITE;
-	glVertex2f(x1+1,y1+2);
-	M_LGREY;
-	glVertex2f(x1+1,y2);
-	glEnd();
-	
+		uiSetRoundBox(15);
+		flat_button(x1, y1, x2, y2, asp, colorid, flag, 0);
 	}
 	
-	/* right */
-	if(!(flag & UI_SELECT)) {
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_LINES);
-	M_LGREY;
-	glVertex2f(x2-1,y1+2);
-	M_WHITE;
-	glVertex2f(x2-1,y2);
-	glEnd();
-	
+	/* *** EXTRA DRAWING FOR SPECIFIC CONTROL TYPES *** */
+	switch(type) {
+	case NUM:
+		/* SIDE ARROWS */
+		/* left */
+		if(flag & UI_SELECT) {
+			if(flag & UI_ACTIVE) M_DARK;
+			else M_DARK;
+		} else {
+			if(flag & UI_ACTIVE) M_GREY;
+			else M_LGREY;
+		}
+		
+		ui_default_num_arrows(x1, y1, x2, y2);
+		/* END SIDE ARROWS */
 	}
-	/* END INNER OUTLINE */
-	
-	/* OUTER OUTLINE */
-	glShadeModel(GL_FLAT);
-	
-	/* underneath semi-fake-AA */
-	MM_GREY;
-	fdrawline(x1, y2, x2, y2);
-	MM_MEDIUM;
-	fdrawline(x1, y1, x2, y1);
-
-	/* top */
-	MM_DARK;
-	fdrawline(x1+1, y2, x2, y2);
-
-	/* left */
-	fdrawline(x1, y1+1, x1, y2);
-
-	/* right */
-	fdrawline(x2, y1+1, x2, y2);
-	
-	/* bottom */
-	MM_DARK;
-	fdrawline(x1+1, y1, x2, y1);
-	/* END OUTER OUTLINE */
-
-	/* DARKENED AREA */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	
-	glColor4ub(0, 0, 0, 30);
-	glRectf(x2-9, y1, x2, y2);
-
-	glDisable(GL_BLEND);
-	/* END DARKENED AREA */
-
-	/* MENU DOUBLE-ARROW  */
-	
-	M_DARK;
-	ui_default_iconrow_arrows(x1, y1, x2, y2);
-
-	/* END MENU DOUBLE-ARROW */
-
 }
 
 static void ui_default_slider(int colorid, float fac, float aspect, float x1, float y1, float x2, float y2, int flag)
@@ -1039,32 +756,29 @@ static void ui_default_slider(int colorid, float fac, float aspect, float x1, fl
 
 	/* the slider background line */
 	ymid= (y1+y2)/2.0;
-	yc= 1.7*aspect;	// height of center line
-
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_QUADS);
-
-	if(flag & UI_ACTIVE) 
-		BIF_ThemeColorShade(TH_BUT_NUM, +10); 
-	else 
-		BIF_ThemeColor(TH_BUT_NUM); 
+	//yc= 2.5*aspect;	// height of center line
+	yc = 2.3; // height of center line
 	
+	if(flag & UI_SELECT) 
+			BIF_ThemeColorShade(TH_BUT_NUM, -5);
+	else
+		if(flag & UI_ACTIVE) 
+			BIF_ThemeColorShade(TH_BUT_NUM, +35); 
+		else
+			BIF_ThemeColorShade(TH_BUT_NUM, +25); 
+
+	glRectf(x1, ymid-yc, x2, ymid+yc);
 	
-	glVertex2f(x1,   ymid-yc);
-	glVertex2f(x2, ymid-yc);
-
-	if(flag & UI_ACTIVE) 
-		BIF_ThemeColorShade(TH_BUT_NUM, +45); 
-	else 
-		BIF_ThemeColorShade(TH_BUT_NUM, +10); 
-
-	glVertex2f(x2, ymid+yc);
-	glVertex2f(x1,   ymid+yc);
-
-	glEnd();
-
-	BIF_ThemeColorShade(TH_BUT_NUM, -80); 
+	/* top inner bevel */
+	if(flag & UI_SELECT) BIF_ThemeColorShade(TH_BUT_NUM, -40); 
+	else BIF_ThemeColor(TH_BUT_NUM); 
+	fdrawline(x1+1, ymid+yc, x2, ymid+yc);
+	
+	/* bottom inner bevel */
+	if(flag & UI_SELECT) BIF_ThemeColorShade(TH_BUT_NUM, +10); 
+	else BIF_ThemeColorShade(TH_BUT_NUM, +45); 
 	fdrawline(x1+1, ymid-yc, x2, ymid-yc);
+	
 	
 	/* the movable slider */
 	if(flag & UI_SELECT) BIF_ThemeColorShade(TH_BUT_NUM, +80); 
@@ -1115,21 +829,15 @@ static void ui_draw_default(int type, int colorid, float aspect, float x1, float
 {
 
 	switch(type) {
-	case NUM:
-		ui_default_num(colorid, aspect, x1, y1, x2, y2, flag);
-		break;
-	case TEX: 
-		ui_default_text(colorid, aspect, x1, y1, x2, y2, flag);
+	case TEX:
+	case NUM: 
+		ui_default_flat(type, colorid, aspect, x1, y1, x2, y2, flag);
 		break;
 	case ICONROW: 
 	case ICONTEXTROW: 
-		ui_default_iconrow(colorid, aspect, x1, y1, x2, y2, flag);
-		break;
 	case MENU: 
-		ui_default_menu(colorid, aspect, x1, y1, x2, y2, flag);
-		break;
 	default: 
-		ui_default_button(colorid, aspect, x1, y1, x2, y2, flag);
+		ui_default_button(type, colorid, aspect, x1, y1, x2, y2, flag);
 	}
 
 }
@@ -1251,8 +959,6 @@ static void round_button(float x1, float y1, float x2, float y2, float asp, int 
 	glBegin(GL_LINE_LOOP);
 	gl_round_box(x1, y1, x2, y2, rad);
 	glEnd();
-   
-	
 }
 
 /* button in midst of alignment row */
@@ -1269,10 +975,8 @@ static void round_button_mid(float x1, float y1, float x2, float y2, float asp, 
 
 	// top down
 	fdrawline(x1, y2, x2, y2);
-	fdrawline(x1, y1, x2, y1);
-	   
+	fdrawline(x1, y1, x2, y1);   
 }
-
 
 static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {

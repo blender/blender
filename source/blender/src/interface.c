@@ -2115,6 +2115,7 @@ static void edit_but(uiBlock *block, uiBut *but, uiEvent *uevent)
 			glFinish();
 			didit= 1;
 			but->rt[3]= 1;
+
 		}
 		/* idle for this poor code */
 		else PIL_sleep_ms(30);
@@ -2821,21 +2822,17 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
-	glColor4ub(0, 0, 0, 60);
-	fdrawline(x1+3, y1-1, x2, y1-1);
-	fdrawline(x2+1, y1, x2+1, y2-3);
-	
-	glColor4ub(0, 0, 0, 40);
-	fdrawline(x1+3, y1-2, x2+1, y1-2);
-	fdrawline(x2+2, y1-1, x2+2, y2-3);
-
 	glColor4ub(0, 0, 0, 20);
-	fdrawline(x1+3, y1-3, x2+2, y1-3);
-	fdrawline(x2+3, y1-2, x2+3, y2-3);
 	
-	glColor4ub(0, 0, 0, 20);
-	fdrawline(x2, y2, x2+3, y2-3);
+	glBegin(GL_POLYGON);
+	gl_round_box(x1+3, y1-1, x2+1, y2-2, 2.0);
+	gl_round_box(x1+3, y1-2, x2+2, y2-2, 3.0);
 	
+	glColor4ub(0, 0, 0, 8);
+	
+	gl_round_box(x1+3, y1-3, x2+3, y2-3, 5.0);
+	gl_round_box(x1+3, y1-4, x2+4, y2-3, 7.0);
+	glEnd();
 
 	glDisable(GL_BLEND);
 	
@@ -3532,7 +3529,7 @@ void uiBlockEndAlign(uiBlock *block)
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
 	
-	if( BIF_GetThemeValue(TH_BUT_DRAWTYPE) != 2) return;
+	if ( !((BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 1) || (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 2))) return;
 	
 	/* auto align:
 		- go back to first button of align start (ALIGN_DOWN)
