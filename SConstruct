@@ -919,7 +919,7 @@ library_env.SConsignFile (root_build_dir+'scons-signatures')
 # Settings to be exported to other SConscript files
 #-----------------------------------------------------------------------------
 
-if enable_clean==0:
+if enable_clean==0: # only read SConscripts when not cleaning, this to cut overhead
 	Export ('cflags')
 	Export ('defines')
 	Export ('window_system')
@@ -1338,24 +1338,10 @@ def printadd(env, target, source):
 def noaction(env, target, source):
 	print "Empty action"
 
-#~ def cleanaction(env, target, source):
-	#~ import shutil
-	#~ print
-	#~ print "start the clean"
-	#~ dirs = os.listdir(dir2clean)
-	#~ for dir in dirs:
-		#~ if os.path.isdir(dir2clean + "/" + dir) == 1:
-			#~ print "clean dir %s"%(dir2clean+"/" + dir)
-			#~ shutil.rmtree(dir2clean+"/" + dir)
-	#~ print "done"
-
 def DoClean(dir2clean):
 	"""
 	Do a removal of the root_build_dir the fast way
 	"""
-	#clean_env = Environment()
-	#cleanit = clean_env.Command('theclean', 'blender$PROGSUFFIX', cleanaction)
-	#clean_env.Alias("clean", cleanit)
 	
 	import shutil
 	print
@@ -1473,6 +1459,7 @@ def BlenderRelease(target):
 	"""
 	if sys.platform == 'darwin':
 		bundle = Environment ()
+		target = 'blender'
 		blender_app = target
 		bundle.Depends ('#/%s.app/Contents/Info.plist'%target, blender_app)
 		bundle.Command ('#/%s.app/Contents/Info.plist'%target,
@@ -1587,11 +1574,11 @@ if enable_clean == 0:
 	release_target = env.Alias("release", BlenderRelease('blender$PROGSUFFIX'))
 	default_target = env.Alias("default", BlenderDefault('blender$PROGSUFFIX'))
 	wininst_target = env.Alias("winist", BlenderNSIS('blender$PROGSUFFIX'))
-else:
+else: # only clean target to prevent any building
 	clean_target = env.Alias("clean", DoClean(root_build_dir))
 	Default("clean")
 
-if enable_clean == 0:
+if enable_clean == 0: # only set up dependencies when not cleaning
 	Default("default")
 
 	if sys.platform == 'win32':
