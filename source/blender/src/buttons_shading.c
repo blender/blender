@@ -226,7 +226,7 @@ int vergcband(const void *a1, const void *a2)
 void save_env(char *name)
 {
 	Tex *tex;
-	char str[FILE_MAXFILE];
+	char str[FILE_MAXDIR+FILE_MAXFILE];
 	
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
@@ -469,8 +469,7 @@ void do_texbuts(unsigned short event)
 	ScrArea *sa;
 	ID *id;	
 	int nr;
-	
-	char *name, str[80];
+	char *name, str[FILE_MAXDIR+FILE_MAXFILE];
 	
 	tex= G.buts->lockpoin;
 	
