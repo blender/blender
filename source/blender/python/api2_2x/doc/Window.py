@@ -87,6 +87,13 @@ DrawProgressBar::
     - L: left mouse button
     - M: middle mouse button
     - R: right mouse button
+
+@warn: The event system in Blender needs a rewrite, though we don't know when that will happen.  Until then, event related functions here (L{QAdd}, L{QRead},
+L{QHandle}, etc.) can be used, but they are actually experimental and can be
+substituted for a better method when the rewrite happens.  In other words, use
+them at your own risk, because though they should work well and allow many
+interesting and powerful possibilities, they can be deprecated in some future
+version of Blender / Blender Python.
 """
 
 def Redraw (spacetype = '<Types.VIEW3D>'):
@@ -305,18 +312,23 @@ def QRead ():
    # let's catch all events and move the 3D Cursor when user presses
    # the left mouse button.
    from Blender import Draw, Window
+
+   v3d = Window.ScreenInfo(Window.Types.VIEW3D)
+   id = v3d[0]['id'] # get the (first) VIEW3D's id
+
    done = 0
+
    while not done:  # enter a 'get event' loop
      evt, val = Window.QRead() # catch next event
-     if evt in [Draw.ESCKEY, Draw.QKEY]: done = 1 # end loop
+     if evt in [Draw.MOUSEX, Draw.MOUSEY]:
+       continue # speeds things up, ignores mouse movement
+     elif evt in [Draw.ESCKEY, Draw.QKEY]: done = 1 # end loop
      elif evt == Draw.SPACEKEY:
        Draw.PupMenu("Hey!|What did you expect?")
      elif evt == Draw.Redraw: # catch redraw events to handle them
        Window.RedrawAll() # redraw all areas
-     elif evt == Draw.LEFTMOUSE and val: # left button pressed
-       v3d = Window.ScreenInfo(Window.Types.VIEW3D)
-       id = v3d[0]['id'] # get the (first) VIEW3D's id
-       Window.QAdd(id, evt, 1) # add the caught mouse event to it
+     elif evt == Draw.LEFTMOUSE: # left button pressed
+       Window.QAdd(id, evt, 1) # add the caught mouse event to our v3d
        # actually we should check if the event happened inside that area,
        # using Window.GetMouseCoords() and v3d[0]['vertices'] values.
        Window.QHandle(id) # process the event
@@ -328,7 +340,7 @@ def QRead ():
   @return: [event, val], where:
       - event: int - the key or mouse event (see L{Draw});
       - val: int - 1 for a key press, 0 for a release, new x or y coordinates
-          for mouse events.
+          for mouse movement events.
   """
 
 def QAdd (win, event, val, after = 0):

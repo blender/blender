@@ -10,7 +10,7 @@
 """
 The main Blender module.
 
-B{New}: 'scriptsdir' parameter in L{Get}.
+B{New}: 'homedir', 'scriptsdir' and 'uscriptsdir' parameters in L{Get}.
 
 Blender
 =======
@@ -36,10 +36,14 @@ def Get (request):
       - 'staframe': the start frame of the animation
       - 'endframe': the end frame of the animation
       - 'filename': the name of the last file read or written
+      - 'homedir':  Blender's home dir
       - 'datadir' : the path to the dir where scripts should store and
             retrieve their data files, including saved configuration (can
             be None, if not found).
       - 'scriptsdir': the path to the main dir where scripts are stored
+            (can be None, if not found).
+      - 'uscriptsdir': the path to the user defined dir for scripts, see
+            the paths tab in the User Preferences window in Blender
             (can be None, if not found).
       - 'version' : the Blender version number
   @return: The requested data.

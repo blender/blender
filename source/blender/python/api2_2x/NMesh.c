@@ -1059,10 +1059,10 @@ static PyObject *NMesh_hasFaceUV( PyObject * self, PyObject * args )
 
 	switch ( flag ) {
 	case 0:
-		me->flags |= NMESH_HASFACEUV;
+		me->flags &= ~NMESH_HASFACEUV;
 		break;
 	case 1:
-		me->flags &= ~NMESH_HASFACEUV;
+		me->flags |= NMESH_HASFACEUV;
 		break;
 	default:
 		break;

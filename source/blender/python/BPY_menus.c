@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Michael Reimpell
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -583,171 +583,198 @@ void BPyMenu_PrintAllEntries( void )
 	}
 }
 
-/* bpymenu_GetDataFromDir:
- * this function scans the scripts dir looking for .py files with the
+/** Creates BPyMenu entries for scripts from directory.
+ *
+ * This function scans the scripts directory looking for .py files with the
  * right header and menu info, using that to fill the bpymenu structs.
  * whichdir defines if the script is in the default scripts dir or the
  * user defined one (U.pythondir: whichdir == 1).
  * Speed is important.
-*/
+ * <code>whichdir</code> defines if the script is in the default scripts dir
+ * or the user defined one (U.pythondir: <code>whichdir == 1</code>).
+ * <p>
+ * The first line of the script must be '<code>#!BPY</code>'.
+ * The header registration lines must appear between the first pair of
+ * '<code># \"\"\"</code>' and follow this order (the single-quotes are part of
+ * the format):
+ * <p>
+ * <code>
+ * # \"\"\"<br>
+ * # Name: 'script name for the menu'<br>
+ * # Blender: <code>short int</code> (minimal Blender version)<br>
+ * # Group: 'group name' (defines menu)<br>
+ * # Submenu: 'submenu name' related_1word_arg<br>
+ * # Tooltip: 'tooltip for the menu'<br>
+ * # \"\"\"<br>
+ * </code>
+ * <p>
+ * Notes:
+ * <ul>
+ * <li> There may be more than one submenu line, or none:
+ * Submenus and the tooltip are optional;
+ * <li> The Blender version is the same number reported by 
+ * <code>Blender.Get('version')</code> in BPython or <code>G.version</code>
+ * in C;
+ * <li> Line length must be less than 99.
+ * <li> Script headers as python documentation strings without the leading
+ * hash character (#) should no longer be used.
+ * </ul>
+ * 
+ * @param dirname Directory name to scan.
+ * @param whichdir Specifies the directory. 1 if user defined script directory, 
+ *                else default script directory.
+ * @return 0 on success.
+ */
+
 static int bpymenu_CreateFromDir( char *dirname, int whichdir )
 {
-	DIR *dir;
-	FILE *fp;
-	struct stat st;
-	struct dirent *dir_entry;
-	BPyMenu *pymenu;
-	char *s, *fname, pathstr[FILE_MAXFILE + FILE_MAXDIR];
-	char line[100], w[100];
-	char name[100], submenu[100], subarg[100], tooltip[100];
-	int res = 0, version = 0;
-
-	dir = opendir( dirname );
-
-	if( !dir ) {
-		if ( DEBUG )
-			printf("BPyMenus warning: could not open dir %s.\n", dirname);
-		return -1;
-	}
-
-/* we scan the dir for filenames ending with .py and starting with the
- * right 'magic number': '#!BPY'.  All others are ignored. */
-
-	while( ( dir_entry = readdir( dir ) ) != NULL ) {
-		fname = dir_entry->d_name;
-		/* ignore anything starting with a dot */
-		if( fname[0] == '.' )
-			continue;	/* like . and .. */
-
-		/* also skip filenames whose extension isn't '.py' */
-		s = strstr( fname, ".py" );
-		if( !s || *( s + 3 ) != '\0' )
-			continue;
-
-		BLI_make_file_string( "/", pathstr, dirname, fname );
-
-		/* paranoia: check if this is really a file and not a disguised dir */
-		if( ( stat( pathstr, &st ) == -1 ) || !S_ISREG( st.st_mode ) )
-			continue;
-
-		fp = fopen( pathstr, "rb" );
-
-		if( !fp ) {
-			if( DEBUG )
-				printf( "BPyMenus error: couldn't open %s.\n",
-					pathstr );
-			continue;
-		}
-
-		/* finally, look for the start string '#!BPY', with
-		 * or w/o white space(s) between #! and BPY */
-		fgets( line, 100, fp );
-		if( line[0] != '#' || line[1] != '!' )
-			goto discard;
-
-		if( !strstr( line, "BPY" ) )
-			goto discard;
-
-		/* file passed the tests, look for the three double-quotes */
-		while( fgets( line, 100, fp ) ) {
-			if( strstr( line, "\"\"\"" )) {
-				res = 1;	/* found */
-				break;
+	DIR *dir;                /* directory stream object */
+	FILE *currentFile;       /* file stream object */ 
+	struct dirent *dirEntry; /* directory entry */
+	struct stat fileStatus;
+	char *fileExtension;
+	char fileName[FILE_MAXFILE + FILE_MAXDIR]; /* filename including path */
+	/* parser variables */
+	char line[100];
+	char head[100];
+	char middle[100];
+	char tail[100];
+	int nMatches;
+	int parserState;
+	/* script header variables */
+	char scriptName[100];
+	int scriptBlender;
+	int scriptGroup;
+	BPyMenu *scriptMenu = NULL;
+	/* other */
+	int scanDir = 1;
+	int returnValue = 0;
+	
+	/* open directory stream */
+	dir = opendir(dirname);
+	if (dir != NULL) {
+		/* directory stream opened */
+		while (((dirEntry = readdir(dir)) != NULL) && (scanDir == 1)) {
+			/* Check if filename does not start with a dot,
+			 * ends with '.py' and is a regular file. */
+			BLI_make_file_string("/", fileName, dirname, dirEntry->d_name);
+			fileExtension = strstr(dirEntry->d_name, ".py");
+			
+			if ((strncmp(dirEntry->d_name, ".", 1) != 0)
+				&& (fileExtension != NULL)
+				&& (*(fileExtension + 3) == '\0')
+				&& (stat(fileName, &fileStatus) == 0)
+				&& (S_ISREG(fileStatus.st_mode))) {
+				/* check file header */
+				currentFile = fopen(fileName, "rb");
+				if (currentFile != NULL) {
+					parserState = 1; /* state of parser, 0 to terminate */
+					while ((parserState != 0) && (fgets(line, 100, currentFile) != NULL)) {
+						switch (parserState) {
+							case 1: /* #!BPY */
+								if (strncmp(line, "#!BPY", 5) == 0) {
+									parserState++;
+								} else {
+									parserState = 0;
+								}
+								break;
+							case 2: /* # \"\"\" */
+								if ((strstr(line, "\"\"\""))) {
+									parserState++;
+								}
+								break;
+							case 3: /* # Name: 'script name for the menu' */
+								nMatches = sscanf(line, "%[^']'%[^']'%c", head, scriptName, tail);
+								if ((nMatches == 3) && (strstr(head, "Name:") != NULL)) {
+									parserState++;
+								} else {
+									if (DEBUG) {
+										fprintf(stderr, "BPyMenus error: Wrong 'Name' line: %s\n", fileName);
+									}
+									parserState = 0;
+								}
+								break;
+							case 4: /* # Blender: <short int> */
+								nMatches = sscanf(line, "%[^1234567890]%i%c", head, &scriptBlender, tail);
+								if (nMatches == 3) {
+									parserState++;
+								} else {
+									if (DEBUG) {
+										fprintf(stderr, "BPyMenus error: Wrong 'Blender' line: %s\n", fileName);
+									}
+									parserState = 0;
+								}
+								break;
+							case 5: /* # Group: 'group name' */
+								nMatches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
+								if ((nMatches == 3) && (strstr(head, "Group:") != NULL)) {
+									scriptGroup = bpymenu_group_atoi(middle);
+									if (scriptGroup < 0) {
+										if (DEBUG) {
+											fprintf(stderr, "BPyMenus error: Unknown group \"%s\": %s\n", middle, fileName);
+										}
+										parserState = 0;
+									} else {
+										/* register script */
+										scriptMenu = bpymenu_AddEntry(scriptGroup, (short int) scriptBlender, scriptName,
+										                              dirEntry->d_name, whichdir, NULL);
+										if (scriptMenu == NULL) {
+											if (DEBUG) {
+												fprintf(stderr, "BPyMenus error: Couldn't create entry for: %s\n", fileName);
+											}
+											/* abort */
+											parserState = 0;
+											scanDir = 0;
+											returnValue = -2;
+										} else {
+											parserState++;
+										}
+									}
+								} else {
+									if (DEBUG) {
+										fprintf(stderr, "BPyMenus error: Wrong 'Group' line: %s\n", fileName);
+									}
+									parserState = 0;
+								}
+								break;
+							case 6: /* optional elements */
+								/* # Submenu: 'submenu name' related_1word_arg */
+								nMatches = sscanf(line, "%[^']'%[^']'%s\n", head, middle, tail);
+								if ((nMatches == 3) && (strstr(head, "Submenu:") != NULL)) {
+									bpymenu_AddSubEntry(scriptMenu, middle, tail);
+								} else {
+									/* # Tooltip: 'tooltip for the menu */
+									nMatches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
+									if ((nMatches == 3)
+										&& ((strstr(head, "Tooltip:") != NULL) || (strstr(head, "Tip:") != NULL))) {
+										bpymenu_set_tooltip(scriptMenu, middle);
+									}
+									parserState = 0;
+								}
+								break;
+							default:
+								parserState = 0;
+								break;
+						}
+					}
+					/* close file stream */
+					fclose(currentFile);
+				} else {
+					/* open file failed */
+					if(DEBUG) {
+						fprintf(stderr, "BPyMenus error: Couldn't open %s.\n", dirEntry->d_name);
+					}
+				}
 			}
 		}
-
-		if( !res )
-			goto discard;
-
-		/* Now we're ready to get the registration info.  A little more structure
-		 * was imposed to the format, for speed. The registration lines must
-		 * appear between the first pair of triple double-quotes and
-		 * follow this order (the single-quotes are part of the format,
-		 * but as noted below, now the whole registration part can be commented
-		 * out so external Python tools can ignore them):
-		 * 
-		 * Name: 'script name for the menu'
-		 * Blender: <short int> (minimal Blender version)
-		 * Group: 'group name' (defines menu)
-		 * Submenu: 'submenu name' related_1word_arg
-		 * Tooltip: 'tooltip for the menu'
-		 *
-		 * notes:
-		 * - there may be more than one submenu line, or none:
-		 * submenus and the tooltip are optional;
-		 * - the Blender version is the same number reported by
-		 * Blender.Get('version') in BPython or G.version in C;
-		 * - NEW in 2.35: Michael Reimpell suggested and even provided
-		 * a patch (read but not used to keep changes to a minimum for
-		 * now, shame on me) to make registration code also accept
-		 * commented out registration lines, so that BPython menu
-		 * registration doesn't mess with Python documentation tools. */
-
-		/* first the name: */
-		res = fscanf( fp, "%[^']'%[^'\r\n]'\n", w, name );
-		if( ( res != 2 ) || !strstr(w, "Name") ) {
-			if( DEBUG )
-				printf( "BPyMenus error: wrong 'Name' line in %s.\n", pathstr );
-			goto discard;
-		}
-
-		/* minimal Blender version: */
-		res = fscanf( fp, "%s %d\n", w, &version );
-		if( ( res != 2 ) || !strstr(w, "Blender") ) {
-			if( DEBUG )
-				printf( "BPyMenus error: wrong 'Blender' line in %s.\n", pathstr );
-			goto discard;
-		}
-
-		line[0] = '\0';	/* used as group for this part */
-
-		/* the group: */
-		res = fscanf( fp, "%[^']'%[^'\r\n]'\n", w, line );
-		if( ( res != 2 ) || !strstr(w, "Group" ) ) {
-			if( DEBUG )
-				printf( "BPyMenus error: wrong 'Group' line in %s.\n", pathstr );
-			goto discard;
-		}
-
-		res = bpymenu_group_atoi( line );
-		if( res < 0 ) {
-			if( DEBUG )
-				printf( "BPyMenus error: unknown 'Group' %s in %s.\n", line, pathstr );
-			goto discard;
-		}
-
-		pymenu = bpymenu_AddEntry( res, ( short ) version, name, fname,
-					   whichdir, NULL );
-		if( !pymenu ) {
-			if( DEBUG )
-				printf( "BPyMenus error: couldn't create entry for %s.\n", pathstr );
-			fclose( fp );
-			closedir( dir );
-			return -2;
-		}
-
-		/* the (optional) submenu(s): */
-		while( fgets( line, 100, fp ) ) {
-			res = sscanf( line, "%[^']'%[^'\r\n]'%s\n", w, submenu,
-				      subarg );
-			if( ( res != 3 ) || !strstr( w, "Submenu" ) )
-				break;
-			bpymenu_AddSubEntry( pymenu, submenu, subarg );
-		}
-
-		/* the (optional) tooltip: */
-		res = sscanf( line, "%[^']'%[^'\r\n]'\n", w, tooltip );
-		if( ( res == 2 ) && (!strstr( w, "Tooltip") || !strstr( w, "Tip" ))) {
-			bpymenu_set_tooltip( pymenu, tooltip );
-		}
-
-	      discard:
-		fclose( fp );
-		continue;
+		/* close directory stream */
+		closedir(dir);
+	} else {
+		/* open directory stream failed */
+		fprintf(stderr, "opendir %s failed: %s\n", dirname, strerror(errno));
+		returnValue = -1;
 	}
-
-	closedir( dir );
-	return 0;
+	return returnValue;
 }
 
 static int bpymenu_GetStatMTime( char *name, int is_file, time_t * mtime )
