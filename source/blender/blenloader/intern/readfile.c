@@ -2753,6 +2753,7 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 					SpaceText *st= (SpaceText *)sl;
 
 					st->text= restore_pointer_by_name(newmain, (ID *)st->text);
+					if(st->text==NULL) st->text= newmain->text.first;
 				}
 				else if(sl->spacetype==SPACE_SCRIPT) {
 					SpaceScript *sc= (SpaceScript *)sl;

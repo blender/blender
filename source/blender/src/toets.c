@@ -950,8 +950,10 @@ int blenderqread(unsigned short event, short val)
 				return 0;
 			}
 			else if(G.qual==LR_ALTKEY) {
-				BIF_undo_menu();
-				return 0;
+				if(curarea->spacetype!=SPACE_TEXT) {
+					BIF_undo_menu();
+					return 0;
+				}
 			}
 		}
 		break;
