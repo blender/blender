@@ -117,6 +117,8 @@ void audio_mixdown()
 {
 	int file, c, totlen, totframe, i, oldcfra, cfra2;
 	char *buf;
+	Editing *ed;
+	Sequence *seq;
 
 	buf = MEM_mallocN(65536, "audio_mixdown");
 	makewavstring(buf);
@@ -170,6 +172,15 @@ void audio_mixdown()
 			set_timecursor(CFRA);
 		}
 		memset(buf+i, 0, 64);
+		ed= G.scene->ed;
+		if (ed) {
+			seq= ed->seqbasep->first;
+			while(seq) {
+				if ((seq->type == SEQ_SOUND) && (seq->ipo)
+				  &&(seq->startdisp<=G.scene->r.cfra+2) && (seq->enddisp>G.scene->r.cfra)) do_seq_ipo(seq);
+				seq= seq->next;
+			}
+		}		
 		audio_fill(buf+i, NULL, 64);
 		if (G.order == B_ENDIAN) {
 			swab(buf+i, buf+i, 64);
