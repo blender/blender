@@ -562,9 +562,9 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 {
 	int i, nids= BLI_countlist(lb);
 		
-	*nr= -1;
+	if (nr) *nr= -1;
 	
-	if (nids>MAX_IDPUP) {
+	if (nr && nids>MAX_IDPUP) {
 		BLI_dynstr_append(pupds, "DataBrowse %x-2");
 	} else {
 		ID *id;
@@ -572,8 +572,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 		for (i=0, id= lb->first; id; id= id->next, i++) {
 			char buf[32];
 			
-			if (id==link)
-				*nr= i+1;
+			if (nr && id==link) *nr= i+1;
 			
 			get_flags_for_id(id, buf);
 				
@@ -633,6 +632,7 @@ static void IPOnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, sho
 }
 
 // used by headerbuttons.c buttons.c editobject.c editseq.c
+// if nr==NULL no MAX_IDPUP, this for non-header browsing
 void IDnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds= BLI_dynstr_new();

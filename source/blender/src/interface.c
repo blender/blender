@@ -4299,7 +4299,7 @@ short pupmenu_col(char *instr, int maxrow)
 	MenuData *md;
 	
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
 	block->themecol= TH_MENU_ITEM;
 	
 	md= decompose_menu_string(instr);

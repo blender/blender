@@ -1022,9 +1022,9 @@ void add_sequence(int type)
 		break;
 	case 101:
 		/* new menu: */
-		IDnames_to_pupstring(&str, NULL, NULL, &G.main->scene, (ID *)G.scene, &nr);
-
-		event= pupmenu(str);
+		IDnames_to_pupstring(&str, NULL, NULL, &G.main->scene, (ID *)G.scene, NULL);
+		
+		event= pupmenu_col(str, 20);
 
 		if(event> -1) {
 			nr= 1;
