@@ -688,24 +688,24 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				uiBlockBeginAlign(block);
 				uiDefButF(block,BUTM,B_CONSTRAINT_REDRAW,"R",*xco, *yco-60,20,18,&(data->orglength),0.0,0,0,0,"Recalculate RLenght");
-				uiDefButF(block,NUM,B_CONSTRAINT_REDRAW,"Rest Length:",*xco+20, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Lenght at Rest Position");
+				uiDefButF(block,NUM,B_CONSTRAINT_REDRAW,"Rest Length:",*xco+18, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Lenght at Rest Position");
 				uiBlockEndAlign(block);
 
-				uiDefButF(block,NUM,B_CONSTRAINT_REDRAW,"Volume Variation:",*xco+20, *yco-82,237,18,&(data->bulge),0.0,100,0.5,0.5,"Factor between volume variation and stretching");
+				uiDefButF(block,NUM,B_CONSTRAINT_REDRAW,"Volume Variation:",*xco+18, *yco-82,237,18,&(data->bulge),0.0,100,0.5,0.5,"Factor between volume variation and stretching");
 
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Vol:",*xco+12, *yco-104,30,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"XZ",	 *xco+42, *yco-104,30,18, &data->volmode, 12.0, 0.0, 0, 0, "Keep Volume: Scaling X & Z");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	 *xco+72, *yco-104,20,18, &data->volmode, 12.0, 1.0, 0, 0, "Keep Volume: Scaling X");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	 *xco+92, *yco-104,20,18, &data->volmode, 12.0, 2.0, 0, 0, "Keep Volume: Scaling Z");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"NONE", *xco+112, *yco-104,50,18, &data->volmode, 12.0, 3.0, 0, 0, "Ignore Volume");
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Vol:",*xco+14, *yco-104,30,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"XZ",	 *xco+44, *yco-104,30,18, &data->volmode, 12.0, 0.0, 0, 0, "Keep Volume: Scaling X & Z");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	 *xco+74, *yco-104,20,18, &data->volmode, 12.0, 1.0, 0, 0, "Keep Volume: Scaling X");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	 *xco+94, *yco-104,20,18, &data->volmode, 12.0, 2.0, 0, 0, "Keep Volume: Scaling Z");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"NONE", *xco+114, *yco-104,50,18, &data->volmode, 12.0, 3.0, 0, 0, "Ignore Volume");
 				uiBlockEndAlign(block);
 
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Plane:",*xco+170, *yco-104,40,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	  *xco+210, *yco-104,20,18, &data->plane, 12.0, 0.0, 0, 0, "Keep X axis");
-				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	  *xco+230, *yco-104,20,18, &data->plane, 12.0, 2.0, 0, 0, "Keep Z axis");
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Plane:",*xco+175, *yco-104,40,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"X",	  *xco+215, *yco-104,20,18, &data->plane, 12.0, 0.0, 0, 0, "Keep X axis");
+				uiDefButI(block, ROW,B_CONSTRAINT_REDRAW,"Z",	  *xco+235, *yco-104,20,18, &data->plane, 12.0, 2.0, 0, 0, "Keep Z axis");
 				uiBlockEndAlign(block);
 				}
 			break;
@@ -727,8 +727,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}
 
 	if (con->type!=CONSTRAINT_TYPE_NULL) {
-		uiDefButF(block, NUMSLI, B_CONSTRAINT_REDRAW, "Influence ", *xco+15, *yco, 199, 19, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
-		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Edit", *xco+214, *yco, 41, 19, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
+		uiDefButF(block, NUMSLI, B_CONSTRAINT_REDRAW, "Influence ", *xco+17, *yco, 197, 19, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
+		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Edit", *xco+215, *yco, 41, 19, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
 		/* If this is on an object, add the constraint to the object */
 		uiButSetFunc (but, activate_constraint_ipo_func, con, NULL);
 		/* If this is on a bone, add the constraint to the action (if any) */
