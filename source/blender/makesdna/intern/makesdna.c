@@ -745,13 +745,13 @@ int calculate_structlens(void)
 					// has_pointer is set or alphalen != len
 					if (has_pointer || alphalen != len) {
 						if (alphalen % 8) {
-							printf("Sizeerror in struct: %s\n", types[structtype]);
+							printf("Sizeerror in struct: %s (add %d bytes)\n", types[structtype], alphalen%8);
 							dna_error = 1;
 						}
 					}
 					
 					if(len % 4) {
-						printf("Sizeerror in struct: %s\n", types[structtype]);
+						printf("Sizeerror in struct: %s (add %d bytes)\n", types[structtype], len%4);
 						dna_error = 1;
 					}
 					
