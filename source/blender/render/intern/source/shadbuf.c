@@ -374,7 +374,7 @@ float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 :
 {
 	float temp;
 	int *rz, ofs;
-	int zsamp;
+	int zsamp=0;
 	char *ct, *cz;
 
 	/* simpleclip */
