@@ -124,9 +124,11 @@ def Create(value):
   @return: The Button created.
   """
 
-def Button(name, event, x, y, width, height, tooltip = None):
+def Button_(name, event, x, y, width, height, tooltip = None):
   """
-  Create a new (push) Button object.
+  Create a new (push) Button object.  Please note there is no '_' character at the end of 'Button'.
+  This is due to a bug in our doc generation program.  Use Button(....) instead.
+  And stop laughing.
   @type name: string
   @param name: The string to display on the button.
   @type event: int
@@ -363,8 +365,7 @@ def Scrollbar(event, x, y, width, height, initial, min, max, realtime = 1,
   @return: The Button created.
   """
 
-def Number(name, event, x, y, width, height, initial, min, max, realtime = 1,
-           tooltip = None):
+def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
   """
   Create a new Number Button object.
   @type name: string
@@ -386,9 +387,6 @@ def Number(name, event, x, y, width, height, initial, min, max, realtime = 1,
   @param initial:  The initial value.
   @param min:  The minimum value.
   @param max:  The maximum value.
-  @type realtime: int
-  @param realtime: If non-zero (the default), the slider will emit events as
-      it is edited.
   @type tooltip: string
   @param tooltip: The button's tooltip (the string that appears when the mouse
       is kept over the button).
