@@ -762,6 +762,11 @@ int blenderqread(unsigned short event, short val)
 				set_faceselect();
 			if(G.f & G_VERTEXPAINT)
 				set_vpaint();
+			if(G.f & G_TEXTUREPAINT) {
+				G.f &= ~G_TEXTUREPAINT;
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
 			if(G.f & G_WEIGHTPAINT)
 				set_wpaint();
 			if(G.obpose)
