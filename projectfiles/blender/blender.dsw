@@ -441,7 +441,7 @@ Package=<4>
     Project_Dep_Name SND_Dummy
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name SND_fmod
+    Project_Dep_Name SND_OpenAL
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name PHY_Physics
@@ -555,7 +555,7 @@ Package=<4>
     Project_Dep_Name SND_Dummy
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name SND_fmod
+    Project_Dep_Name SND_OpenAL
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name GP_common
@@ -921,7 +921,7 @@ Package=<4>
     Project_Dep_Name BL_src
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name SND_fmod
+    Project_Dep_Name SND_OpenAL
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name PHY_Dummy
