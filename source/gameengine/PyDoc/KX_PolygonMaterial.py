@@ -6,6 +6,9 @@ class KX_PolygonMaterial:
 	
 	Materials define the render state to be applied to mesh objects.
 	
+	Warning:  Some of the methods/variables are CObjects.  If you mix these up,
+	you will crash blender.
+	
 	This example requires:
 		- PyOpenGL http://pyopengl.sourceforge.net/
 		- GLEWPy http://glewpy.sourceforge.net/
@@ -137,19 +140,17 @@ class KX_PolygonMaterial:
 			mat.setCustomMaterial(MyMaterial())
 			print mat.texture
 	
-	@bug: All attributes are read only.
-	
 	@ivar texture: Texture name
-	@type texture: string
+	@type texture: string (read only)
 	
 	@ivar gl_texture: OpenGL texture handle (eg for glBindTexture(GL_TEXTURE_2D, gl_texture)
-	@type gl_texture: integer
+	@type gl_texture: integer (read only)
 	
 	@ivar material: Material name
-	@type material: string
+	@type material: string (read only)
 	
 	@ivar tface: Texture face properties
-	@type tface: CObject
+	@type tface: CObject (read only)
 	
 	@ivar tile: Texture is tiling
 	@type tile: boolean
@@ -177,13 +178,13 @@ class KX_PolygonMaterial:
 	@ivar lightlayer: Light layers this material affects.
 	@type lightlayer: bitfield.
 	
-	@ivar triangle: Mesh data with this material is triangles.
+	@ivar triangle: Mesh data with this material is triangles.  It's probably not safe to change this.
 	@type triangle: boolean
 	
-	@ivar diffuse: The diffuse colour of the material.  black = [0.0, 0.0, 0.0, 1.0] white = [1.0, 1.0, 1.0, 1.0]
-	@type diffuse: list [r, g, b, a]
-	@ivar specular: The specular colour of the material. black = [0.0, 0.0, 0.0, 1.0] white = [1.0, 1.0, 1.0, 1.0]
-	@type specular: list [r, g, b, a] 
+	@ivar diffuse: The diffuse colour of the material.  black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0]
+	@type diffuse: list [r, g, b]
+	@ivar specular: The specular colour of the material. black = [0.0, 0.0, 0.0] white = [1.0, 1.0, 1.0]
+	@type specular: list [r, g, b] 
 	@ivar shininess: The shininess (specular exponent) of the material. 0.0 <= shininess <= 128.0
 	@type shininess: float
 	@ivar specularity: The amount of specular of the material. 0.0 <= specularity <= 1.0
@@ -230,6 +231,18 @@ class KX_PolygonMaterial:
 		"""
 		Sets the material state setup object.
 		
+		Using this method, you can extend or completely replace the gameengine material
+		to do your own advanced multipass effects.
+		
+		Use this method to register your material class.  Instead of the normal material,
+		your class's activate method will be called just before rendering the mesh.  
+		This should setup the texture, material, and any other state you would like.
+		It should return True to render the mesh, or False if you are finished.  You should
+		clean up any state Blender does not set before returning False.
+
+		Activate Method Definition::
+				def activate(self, rasty, cachingInfo, material):
+			
 		Example::
 			class PyMaterial:
 				def __init__(self):

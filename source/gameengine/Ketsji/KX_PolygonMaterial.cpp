@@ -268,6 +268,97 @@ PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
 
 int KX_PolygonMaterial::_setattr(const STR_String &attr, PyObject *pyvalue)
 {
+	if (PyFloat_Check(pyvalue))
+	{
+		float value = PyFloat_AsDouble(pyvalue);
+		if (attr == "shininess")
+		{
+			m_shininess = value;
+			return 0;
+		}
+		
+		if (attr == "specularity")
+		{
+			m_specularity = value;
+			return 0;
+		}
+	}
+	
+	if (PyInt_Check(pyvalue))
+	{
+		int value = PyInt_AsLong(pyvalue);
+		if (attr == "tile")
+		{
+			m_tile = value;
+			return 0;
+		}
+		
+		if (attr == "tilexrep")
+		{
+			m_tilexrep = value;
+			return 0;
+		}
+		
+		if (attr == "tileyrep")
+		{
+			m_tileyrep = value;
+			return 0;
+		}
+		
+		if (attr == "drawingmode")
+		{
+			m_drawingmode = value;
+			return 0;
+		}
+		
+		if (attr == "transparent")
+		{
+			m_transparant = value;
+			return 0;
+		}
+		
+		if (attr == "zsort")
+		{
+			m_zsort = value;
+			return 0;
+		}
+		
+		if (attr == "lightlayer")
+		{
+			m_lightlayer = value;
+			return 0;
+		}
+		
+		// This probably won't work...
+		if (attr == "triangle")
+		{
+			m_bIsTriangle = value;
+			return 0;
+		}
+	}
+	
+	if (PySequence_Check(pyvalue))
+	{
+		if (PySequence_Size(pyvalue) == 3)
+		{
+			MT_Vector3 value;
+			if (PyVecTo(pyvalue, value))
+			{
+				if (attr == "diffuse")
+				{
+					m_diffuse = value;
+					return 0;
+				}
+				
+				if (attr == "specular")
+				{
+					m_specular = value;
+					return 0;
+				}
+			}
+		}
+	}
+
 	return PyObjectPlus::_setattr(attr, pyvalue);
 }
 
