@@ -1279,7 +1279,7 @@ static int d3dda(Isect *is)
 }		
 
 
-static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr, int mask)
+static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr= is->vlr;
 	int flip= 0;
@@ -1335,13 +1335,13 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr, int mask)
 	if(is->mode==DDA_SHADOW_TRA) shade_color(shi, shr);
 	else {
 
-		shade_lamp_loop(shi, shr, mask);	
+		shade_lamp_loop(shi, shr);	
 
 		if(shi->matren->translucency!=0.0) {
 			ShadeResult shr_t;
 			VecMulf(shi->vn, -1.0);
 			VecMulf(vlr->n, -1.0);
-			shade_lamp_loop(shi, &shr_t, mask);
+			shade_lamp_loop(shi, &shr_t);
 			shr->diff[0]+= shi->matren->translucency*shr_t.diff[0];
 			shr->diff[1]+= shi->matren->translucency*shr_t.diff[1];
 			shr->diff[2]+= shi->matren->translucency*shr_t.diff[2];
@@ -1485,8 +1485,8 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 	isec.vlrorig= vlr;
 
 	if( d3dda(&isec) ) {
-	
-		shade_ray(&isec, &shi, &shr, mask);
+		shi.mask= mask;
+		shade_ray(&isec, &shi, &shr);
 		
 		if(depth>0) {
 
@@ -1494,7 +1494,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 				float f, f1, refract[3], tracol[3];
 				
 				refraction(refract, shi.vn, shi.view, shi.matren->ang);
-				traceray(depth-1, shi.co, refract, tracol, shi.vlr, mask);
+				traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask);
 				
 				f= shr.alpha; f1= 1.0-f;
 				shr.diff[0]= f*shr.diff[0] + f1*tracol[0];
@@ -1512,7 +1512,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 			if(f!=0.0) {
 			
 				reflection(ref, shi.vn, shi.view, NULL);			
-				traceray(depth-1, shi.co, ref, col, shi.vlr, mask);
+				traceray(depth-1, shi.co, ref, col, shi.vlr, shi.mask);
 			
 				f1= 1.0-f;
 
@@ -1675,7 +1675,7 @@ static float *jitter_plane(LampRen *lar, int xs, int ys)
 
 
 /* extern call from render loop */
-void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
+void ray_trace(ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr;
 	float i, f, f1, fr, fg, fb, vec[3], mircol[3], tracol[3];
@@ -1704,7 +1704,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 		accur[0]= accur[1]= accur[2]= 0.0;
 		
 		for(j=0; j<R.osa; j++) {
-			if(mask & 1<<j) {
+			if(shi->mask & 1<<j) {
 				
 				rco[0]= shi->co[0] + (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0];
 				rco[1]= shi->co[1] + (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1];
@@ -1715,7 +1715,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 					vec[1]= refract[1] + (jit[j][0]-0.5)*O.dxrefract[1] + (jit[j][1]-0.5)*O.dyrefract[1] ;
 					vec[2]= refract[2] + (jit[j][0]-0.5)*O.dxrefract[2] + (jit[j][1]-0.5)*O.dyrefract[2] ;
 
-					traceray(shi->matren->ray_depth_tra, rco, vec, tracol, shi->vlr, mask);
+					traceray(shi->matren->ray_depth_tra, rco, vec, tracol, shi->vlr, shi->mask);
 					
 					VECADD(accur, accur, tracol);
 					divr+= 1.0;
@@ -1776,7 +1776,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 			float refract[3];
 			
 			refraction(refract, shi->vn, shi->view, shi->matren->ang);
-			traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, mask);
+			traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask);
 			
 			f= shr->alpha; f1= 1.0-f;
 			shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
@@ -1798,7 +1798,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 				else
 					reflection(vec, shi->vn, shi->view, NULL);
 		
-				traceray(shi->matren->ray_depth, shi->co, vec, mircol, shi->vlr, mask);
+				traceray(shi->matren->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask);
 				
 				f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
 				shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
@@ -1838,7 +1838,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 		float col[4];
 		/* we got a face */
 		
-		shade_ray(is, &shi, &shr, 0);	// mask not needed
+		shade_ray(is, &shi, &shr);
 		
 		/* add color */
 		VECCOPY(col, shr.diff);
@@ -1896,7 +1896,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 		
 		if( d3dda(&isec)) {
 			float fac;
-			shade_ray(&isec, &shi, &shr_t, 0);	// mask not needed
+			shade_ray(&isec, &shi, &shr_t);
 			fac= isec.labda*isec.labda;
 			fac= 1.0;
 			accum[0]+= fac*(shr_t.diff[0]+shr_t.spec[0]);
@@ -2073,7 +2073,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0;
 	float maxdist = wrld->aodist;
-	int tot, actual;
+	int j=0, tot, actual=0;
 
 	VECCOPY(isec.start, shi->co);
 	isec.vlrorig= shi->vlr;
@@ -2106,11 +2106,19 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
 	tot= 2*wrld->aosamp*wrld->aosamp;
-	actual= 0;
-	
+
 	while(tot--) {
 		
 		if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) > bias) {
+			// only ao samples for mask
+			if(R.r.mode & R_OSA) {
+				j++;
+				if(j==R.osa) j= 0;
+				if(!(shi->mask & (1<<j))) {
+					vec+=3;
+					continue;
+				}
+			}
 			
 			actual++;
 			
@@ -2163,7 +2171,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 
 
 /* extern call from shade_lamp_loop */
-void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
+void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 {
 	Isect isec;
 	Material stored;
@@ -2197,7 +2205,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
 			fac= 0.0;
 			
 			for(j=0; j<R.osa; j++) {
-				if(mask & 1<<j) {
+				if(shi->mask & 1<<j) {
 					/* set up isec */
 					isec.start[0]= shi->co[0] + (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
 					isec.start[1]= shi->co[1] + (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;

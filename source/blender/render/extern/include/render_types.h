@@ -61,6 +61,7 @@ typedef struct ShadeInput
 	float vn[3], view[3], refcol[4], displace[3];
 	float xs, ys;	/* pixel to be rendered */
 	short osatex;
+	int mask;
 	
 } ShadeInput;
 

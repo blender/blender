@@ -1685,8 +1685,7 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 }
 
 
-/* mask is used to define the amount of rays/samples */
-void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
+void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 {
 	LampRen *lar;
 	Material *ma;
@@ -1744,7 +1743,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 				
 				/* single sided? */
 				if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.01) {
-					ray_shadow(shi, lar, shad, mask);
+					ray_shadow(shi, lar, shad);
 					shadfac[3]+= shad[3];
 					ir+= 1.0;
 				}
@@ -1941,7 +1940,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 					else if(lar->mode & LA_SHAD_RAY) {
 						// this extra 0.001 prevents boundary cases (shadow on smooth sphere)
 						if((shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2]) > -0.001) 
-							ray_shadow(shi, lar, shadfac, mask);
+							ray_shadow(shi, lar, shadfac);
 						else shadfac[3]= 0.0;
 					}
 
@@ -2376,6 +2375,9 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	shi.xs= x;
 	shi.ys= y;
 	
+	/* mask is used to indicate amount of samples (ray shad/mir and AO) */
+	shi.mask= mask;
+	
 	if(vlaknr==0) {	/* sky */
 		col[0]= 0.0; col[1]= 0.0; col[2]= 0.0; col[3]= 0.0;
 	}
@@ -2511,14 +2513,14 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		}
 		
 		/* ------  main shading loop */
-		shade_lamp_loop(&shi, &shr, mask);
+		shade_lamp_loop(&shi, &shr);
 		
 		if(shi.matren->translucency!=0.0) {
 			ShadeResult shr_t;
 			
 			VecMulf(shi.vn, -1.0);
 			VecMulf(shi.vlr->n, -1.0);
-			shade_lamp_loop(&shi, &shr_t, mask);
+			shade_lamp_loop(&shi, &shr_t);
 			shr.diff[0]+= shi.matren->translucency*shr_t.diff[0];
 			shr.diff[1]+= shi.matren->translucency*shr_t.diff[1];
 			shr.diff[2]+= shi.matren->translucency*shr_t.diff[2];
@@ -2528,7 +2530,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		
 		if(R.r.mode & R_RAYTRACE) {
 			if(shi.matren->ray_mirror!=0.0 || (shi.mat->mode & MA_RAYTRANSP && shr.alpha!=1.0)) {
-				ray_trace(&shi, &shr, mask);
+				ray_trace(&shi, &shr);
 			}
 		}
 		else {

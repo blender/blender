@@ -65,7 +65,7 @@ void add_halo_flare(void);
 void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3);
 
 void shade_color(struct ShadeInput *shi, ShadeResult *shr);
-void shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr, int mask);
+void shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr);
 
 float fresnel_fac(float *view, float *vn, float fresnel, float fac);
 void calc_R_ref(struct ShadeInput *shi);
@@ -73,8 +73,8 @@ float spec(float inp, int hard);
 
 /* -------- ray.c ------- */
 
-extern void ray_shadow(ShadeInput *, LampRen *, float *, int);
-extern void ray_trace(ShadeInput *, ShadeResult *, int);
+extern void ray_shadow(ShadeInput *, LampRen *, float *);
+extern void ray_trace(ShadeInput *, ShadeResult *);
 extern void ray_ao(ShadeInput *, World *, float *);
 
 /**
