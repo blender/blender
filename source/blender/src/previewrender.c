@@ -341,17 +341,30 @@ void BIF_all_preview_changed(void)
 	}
 }
 
-
+/* signal all previews in current screen of current type */
 void BIF_preview_changed(SpaceButs *sbuts)
 {
 	/* can be called when no buttonswindow visible */
 	if(sbuts) {
-		sbuts->cury= 0;
-		addafterqueue(sbuts->area->win, RENDERPREVIEW, 1);
+		ScrArea *sa;
+		short mainb= sbuts->mainb;
+		short tab= sbuts->tab[mainb];
+		
+		sa= G.curscreen->areabase.first;
+		while(sa) {
+			if(sa->spacetype==SPACE_BUTS) {
+				sbuts= sa->spacedata.first;
+				if(sbuts->mainb==mainb && sbuts->tab[mainb]==tab) {
+					sbuts->cury= 0;
+					addafterqueue(sbuts->area->win, RENDERPREVIEW, 1);
+				}
+			}
+			sa= sa->next;
+		}
 	}
 }
 
-/* is supposed to be called with correct panel offset matrix */
+/* is panel callback, supposed to be called with correct panel offset matrix */
 void BIF_previewdraw(void)
 {
 	SpaceButs *sbuts= curarea->spacedata.first;
