@@ -376,6 +376,9 @@ void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
 {
 	if (td && t->con.mode & CON_APPLY) {
 		float tmat[3][3];
+		float imat[3][3];
+
+		Mat3Inv(imat, td->axismtx);
 
 		if (!(t->con.mode & CON_AXIS0)) {
 			smat[0][0] = 1.0f;
@@ -388,7 +391,7 @@ void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
 		}
 
 		Mat3MulMat3(tmat, smat, td->axismtx);
-		Mat3MulMat3(smat, td->axismtx, tmat);
+		Mat3MulMat3(smat, imat, tmat);
 	}
 }
 /*

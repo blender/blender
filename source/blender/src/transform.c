@@ -1527,8 +1527,8 @@ int Warp(TransInfo *t, short mval[2])
 	Mat4MulVecfl(G.vd->viewmat, cursor);
 	
 	// amount of degrees for warp, 450 = allow to create 360 degree warp
-	circumfac= 450.0*(mval[1] - t->imval[1]) / (float)(curarea->winy);
-	circumfac+= 90.0;
+	circumfac= 450.0f*(mval[1] - t->imval[1]) / (float)(curarea->winy);
+	circumfac+= 90.0f;
 
 	snapGrid(t, &circumfac);
 	applyNumInput(&t->num, &circumfac);
@@ -1546,7 +1546,7 @@ int Warp(TransInfo *t, short mval[2])
 		sprintf(str, "Warp: %.3f", circumfac);
 	}
 	
-	circumfac*= -M_PI/360.0;
+	circumfac*= (float)(-M_PI/360.0);
 	
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -1565,8 +1565,8 @@ int Warp(TransInfo *t, short mval[2])
 			vec[0]= (-cursor[0]);
 			vec[1]= (vec[1]-cursor[1]);
 			
-			co= cos(phi0);
-			si= sin(phi0);
+			co= (float)cos(phi0);
+			si= (float)sin(phi0);
 			td->loc[0]= co*vec[0]-si*vec[1]+cursor[0];
 			td->loc[1]= si*vec[0]+co*vec[1]+cursor[1];
 			td->loc[2]= vec[2];
@@ -1764,12 +1764,17 @@ int Resize(TransInfo *t, short mval[2])
 			Mat3CpyMat3(tmat, mat);
 		}
 
+		if (t->con.applySize) {
+			t->con.applySize(t, td, tmat);
+		}
+
 		if (td->ext) {
 			float fsize[3];
 
 			if (t->flag & T_OBJECT) {
 				float obsizemat[3][3];
-				Mat3MulMat3(obsizemat, td->smtx, tmat);
+				// Reorient the size mat to fit the oriented object.
+				Mat3MulMat3(obsizemat, tmat, td->axismtx);
 				Mat3ToSize(obsizemat, fsize);
 			}
 			else {
@@ -1793,7 +1798,6 @@ int Resize(TransInfo *t, short mval[2])
 					
 				}
 				else {
-					// TEMPORARY NAIVE CODE
 					td->ext->size[0] = td->ext->isize[0] + td->ext->isize[0] * (fsize[0] - 1.0f) * td->factor;
 					td->ext->size[1] = td->ext->isize[1] + td->ext->isize[1] * (fsize[1] - 1.0f) * td->factor;
 					td->ext->size[2] = td->ext->isize[2] + td->ext->isize[2] * (fsize[2] - 1.0f) * td->factor;
@@ -2160,27 +2164,10 @@ void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	}
 }
 
-int Translation(TransInfo *t, short mval[2]) 
-{
-	float vec[3], tvec[3];
-	int i;
-	char str[200];
+void applyTranslation(TransInfo *t, float vec[3]) {
 	TransData *td = t->data;
-
-	window_to_3d(vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
-
-	if (t->con.mode & CON_APPLY) {
-		float pvec[3] = {0.0f, 0.0f, 0.0f};
-		t->con.applyVec(t, NULL, vec, tvec, pvec);
-		VECCOPY(vec, tvec);
-		headerTranslation(t, pvec, str);
-	}
-	else {
-		snapGrid(t, vec);
-		applyNumInput(&t->num, vec);
-		headerTranslation(t, vec, str);
-	}
-
+	float tvec[3];
+	int i;
 
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
@@ -2206,7 +2193,28 @@ int Translation(TransInfo *t, short mval[2])
 		}
 		else VecAddf(td->loc, td->iloc, tvec);
 	}
+}
 
+int Translation(TransInfo *t, short mval[2]) 
+{
+	float vec[3], tvec[3];
+	char str[200];
+
+	window_to_3d(vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+
+	if (t->con.mode & CON_APPLY) {
+		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		t->con.applyVec(t, NULL, vec, tvec, pvec);
+		VECCOPY(vec, tvec);
+		headerTranslation(t, pvec, str);
+	}
+	else {
+		snapGrid(t, vec);
+		applyNumInput(&t->num, vec);
+		headerTranslation(t, vec, str);
+	}
+
+	applyTranslation(t, vec);
 
 	recalcData(t);
 
