@@ -432,6 +432,8 @@ void join_mesh(void)
 	enter_editmode();
 	exit_editmode(1);	// freedata, but no undo
 	
+	test_scene_constraints(); // always call after delete object (stupid!)
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
 	makeDispList(ob);

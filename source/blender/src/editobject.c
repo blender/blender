@@ -248,6 +248,7 @@ void add_objectLamp(short type)
 	allqueue(REDRAWALL, 0);
 }
 
+// really bad, doesnt do constraints, that has been coded in test_scene_constraints();
 void free_and_unlink_base(Base *base)
 {
 	if (base==BASACT)
@@ -287,7 +288,8 @@ void delete_obj(int ok)
 	
 	if(islamp && G.vd->drawtype==OB_SHADED) reshadeall_displist();
 
-	test_scene_constraints();
+	test_scene_constraints(); // do because of delete obj
+	
 	allqueue(REDRAWVIEW3D, 0);
 	redraw_test_buttons(OBACT);
 	allqueue (REDRAWACTION, 0);
@@ -2272,6 +2274,9 @@ void convertmenu(void)
 			free_and_unlink_base(basedel);	
 		basedel = NULL;				
 	}
+	
+	test_scene_constraints();	// always call after delete object
+	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
