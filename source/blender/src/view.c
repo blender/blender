@@ -955,7 +955,8 @@ void centreview()	/* like a localview without local! */
 	max[0]= max[1]= max[2]= -1.0e10;
 
 	if(G.obedit) {
-		minmax_object(G.obedit, min, max);
+		minmax_verts(min, max);
+		//minmax_object(G.obedit, min, max);
 		
 		ok= 1;
 	}
@@ -1123,4 +1124,3 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 	v3d->view= 0;
 	if (v3d->persp>=2) v3d->persp= 0; /* switch out of camera mode */
 }
-

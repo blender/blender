@@ -44,6 +44,7 @@ void mergemenu(void);
 void delete_context_selected(void);
 void duplicate_context_selected(void);
 void toggle_shading(void);
+void minmax_verts(float *min, float *max);
 
 #endif /*  BSE_EDIT_H */
 
