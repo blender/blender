@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Hos, Robert Wenzlaff.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -1055,8 +1055,10 @@ void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, s
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if(RE_local_test_break()) break;
-
+		if(!(a%256)&&RE_local_test_break()) break;  /* Hos, RPW - fix slow render bug, */
+													/* !(loopvar%256) keeps checking for */
+													/* ESC too often and bogging down render */
+													/* (Based on discovery by Rob Haarsma) */
 		if(ys>har->maxy);
 		else if(ys<har->miny);
 		else {
@@ -1078,7 +1080,7 @@ void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, s
 				for(x=minx; x<=maxx; x++) {
 					
 					flarec= har->flarec;	/* har->pixels mag maar 1 x geteld worden */
-					
+
 					if( IS_A_POINTER_CODE(*rd)) {
 						xn= x-har->xs;
 						xsq= xn*xn;
@@ -1162,7 +1164,7 @@ void scanlinehalo(unsigned int *rectz, unsigned int *rectt, short ys)
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if(RE_local_test_break()) break;
+		if(!(a%256)&&RE_local_test_break()) break;/*Hos, RPW, fixes Slow Render Bug*/
 
 		if(ys>har->maxy);
 		else if(ys<har->miny);
@@ -1216,7 +1218,7 @@ void halovert()
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 
-		if(RE_local_test_break()) break;
+		if(!(a%256)&&RE_local_test_break()) break;/*Hos, RPW, fixes slow render bug */
 
 		if(har->maxy<0);
 		else if(R.recty<har->miny);
@@ -1270,7 +1272,7 @@ void halovert()
 					rectt+= R.rectx;
 					rectz+= R.rectx;
 					
-					if(RE_local_test_break()) break;
+					if(!(y%256)&&RE_local_test_break()) break;/*Hos,RPW, Fixes slow render bug */
 				}
 
 			}
@@ -2489,7 +2491,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			/* 1 is voor osa */
 		if(R.r.mode & R_EDGE) edge_enhance();
 		
-		if(RE_local_test_break()) break;
+		if(!(v%256)&&RE_local_test_break()) break; /*Hos,RPW, fixes slow render bug*/
 	}
 	if(R.flag & (R_ZTRA+R_HALO) ) {	 /* om de juiste zbuffer Z voor transp en halo's terug te halen */
 		xd= jit[0][0];
@@ -2621,7 +2623,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			}
 			rz+= R.rectx;
 		}
-		if(RE_local_test_break()) break;
+		if(!(y%256)&&RE_local_test_break()) break; /*Hos,RPW, fixes slow render bug */
 	}
 
 	if( (R.r.mode & R_EDGE) && RE_local_test_break()==0) {
@@ -2722,7 +2724,7 @@ void zbufshade(void)
 									R.rectot);
 		}
 		
-		if(RE_local_test_break()) break;
+		if(!(y%256)&&RE_local_test_break()) break; /*Hos,RPW, Fixes Slow render bug */
 	}
 
 	if(R.flag & R_ZTRA) endaccumbuf();
@@ -2785,7 +2787,7 @@ void renderhalo(HaloRen *har)	/* postprocess versie */
 	
 				rectt+= R.rectx;
 				
-				if(RE_local_test_break()) break;
+				if(!(y%256)&&RE_local_test_break()) break; /* Hos,RPW, fixes slow render bug */
 			}
 	
 		}

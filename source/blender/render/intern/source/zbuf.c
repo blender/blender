@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Hos, RPW.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -2121,7 +2121,7 @@ void zbuffer_abuf()
 					}
 				}
 			}
-			if(RE_local_test_break()) break;
+			if(!(v%256)&&RE_local_test_break()) break; /*RPW, HOS */
 		}
 		
 		if((R.r.mode & R_OSA)==0) break;
