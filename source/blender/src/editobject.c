@@ -199,13 +199,14 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 		ob= add_object(type);
 		base_init_from_view3d(BASACT, G.vd);
 		
+		/* only undo pushes on objects without editmode... */
 		if(type==OB_EMPTY) BIF_undo_push("Add Empty");
 		else if(type==OB_LAMP) {
 			BIF_undo_push("Add Lamp");
 			if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
 		}
 		else if(type==OB_LATTICE) BIF_undo_push("Add Lattice");
-		else BIF_undo_push("Add Camera");
+		else if(type==OB_CAMERA) BIF_undo_push("Add Camera");
 		
 		allqueue(REDRAWVIEW3D, 0);
 	}
