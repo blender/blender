@@ -52,6 +52,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_displist.h"
 #include "BKE_font.h"
@@ -308,6 +309,72 @@ void txt_export_to_object(struct Text *text)
 	make_editText();
 	exit_editmode(1);
 
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+
+void txt_export_to_objects(struct Text *text)
+{
+	ID *id;
+	Curve *cu;
+	struct TextLine *tmp, *curline;
+	int nchars;
+	int linNum = 0;
+
+	if(!text) return;
+
+	id = (ID *)text;
+
+	if (G.obedit && G.obedit->type==OB_FONT) return;
+	check_editmode(OB_FONT);
+
+	curline = text->lines.first;
+	while(curline){	
+	 	/*skip lines with no text, but still make space for them*/
+		if(curline->line[0] == '\0'){
+			linNum++;
+			curline = curline->next;
+			continue;
+		}
+			
+	
+		nchars = 0;	
+		add_object(OB_FONT);
+	
+		base_init_from_view3d(BASACT, G.vd);
+		G.obedit= BASACT->object;
+		where_is_object(G.obedit);
+		
+		
+		/* Do the translation */
+		
+		G.obedit->loc[1] -= linNum;
+	
+		/* End Translation */
+		
+			
+		cu= G.obedit->data;
+		
+		cu->vfont= get_builtin_font();
+		cu->vfont->id.us++;
+	
+		nchars = strlen(curline->line) + 1;
+	
+		if(cu->str) MEM_freeN(cu->str);
+	
+		cu->str= MEM_mallocN(nchars+4, "str");
+		
+		strcpy(cu->str, curline->line);
+		cu->len= strlen(curline->line);
+		cu->pos= cu->len;
+
+
+		make_editText();
+		exit_editmode(1);
+
+		linNum++;
+		curline = curline->next;
+	}
 	allqueue(REDRAWVIEW3D, 0);
 }
 

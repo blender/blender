@@ -108,6 +108,9 @@ void do_view3d_buttons(short event);
 
 void do_headerbuttons(short event);
 
+/* header_text.c */
+void do_text_editmenu_to3dmenu(void *arg, int event);
+
 /* header_info.c */
 void do_info_add_meshmenu(void *arg, int event);
 void do_info_add_curvemenu(void *arg, int event);

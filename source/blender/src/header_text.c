@@ -272,9 +272,6 @@ static void do_text_editmenu(void *arg, int event)
 	case 9:
 		txt_find_panel(st,0);
 		break;
-	case 10:
-		txt_export_to_object(text);
-		break;
 	default:
 		break;
 	}
@@ -456,6 +453,38 @@ static uiBlock *text_formatmenu(void *arg_unused)
 	return block;
 }
 
+
+/* action executed after clicking in Object to 3d Sub Menu */
+void do_text_editmenu_to3dmenu(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first;
+	Text *text= st->text;
+	
+	switch(event) {
+	case 1: txt_export_to_object(text); break;
+	case 2: txt_export_to_objects(text); break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+/* Object to 3d Sub Menu */
+static uiBlock *text_editmenu_to3dmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "do_text_editmenu_to3dmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_text_editmenu_to3dmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "One Object | Alt-M",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "One Object Per Line",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+
 /* Edit menu */
 static uiBlock *text_editmenu(void *arg_unused)
 {
@@ -480,7 +509,7 @@ static uiBlock *text_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find...|Alt Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert to 3D Text|Alt M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+	uiDefIconTextBlockBut(block, text_editmenu_to3dmenu, NULL, ICON_RIGHTARROW_THIN, "Text to 3d Object", 0, yco-=20, 120, 19, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
