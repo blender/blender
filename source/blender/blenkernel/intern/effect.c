@@ -358,7 +358,7 @@ static int linetriangle(float p1[3], float p2[3], float v0[3], float v1[3], floa
 	Crossf(p, d, e2);
 	a = INPR(e1, p);
 	if ((a > -0.000001) && (a < 0.000001)) return 0;
-	f = 1.0/a;
+	f = 1.0f/a;
 	
 	VECSUB(s, p1, v0);
 	
@@ -435,8 +435,8 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 
 				/* Limit minimum distance to vertex so that */
 				/* the force is not too big */
-				if (distance < 0.001) distance = 0.001;
-				f_force = (force_val)*(1/(1000 * pow((double)distance, (double)ffall_val)));
+				if (distance < 0.001) distance = 0.001f;
+				f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
 				force[0] += (vect_to_vert[0] * f_force );
 				force[1] += (vect_to_vert[1] * f_force );
 				force[2] += (vect_to_vert[2] * f_force );
@@ -475,8 +475,8 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 
 				/* Limit minimum distance to vertex so that */
 				/* the force is not too big */
-				if (distance < 0.001) distance = 0.001;
-				f_force = (force_val)*(1/(100 * pow((double)distance, (double)ffall_val)));
+				if (distance < 0.001) distance = 0.001f;
+				f_force = (force_val)*(1/(100 * (float)pow((double)distance, (double)ffall_val)));
 				speed[0] -= (force_vec[0] * f_force );
 				speed[1] -= (force_vec[1] * f_force );
 				speed[2] -= (force_vec[2] * f_force );
@@ -672,7 +672,7 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 		else 
 			perm_val = deflection_object->pd->pdef_perm;
 
-		perm_thresh =  BLI_drand() - perm_val;
+		perm_thresh =  (float)BLI_drand() - perm_val;
 		if (perm_thresh < 0 ) {
 			deflected = 0;
 		}
@@ -694,9 +694,9 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 		d_intersect_co[1] = opco[1] + (min_t * (npco[1] - opco[1]));
 		d_intersect_co[2] = opco[2] + (min_t * (npco[2] - opco[2]));
 		
-		d_i_co_above[0] = (d_intersect_co[0] + (0.001 * d_nvect[0]));
-		d_i_co_above[1] = (d_intersect_co[1] + (0.001 * d_nvect[1]));
-		d_i_co_above[2] = (d_intersect_co[2] + (0.001 * d_nvect[2]));
+		d_i_co_above[0] = (d_intersect_co[0] + (0.001f * d_nvect[0]));
+		d_i_co_above[1] = (d_intersect_co[1] + (0.001f * d_nvect[1]));
+		d_i_co_above[2] = (d_intersect_co[2] + (0.001f * d_nvect[2]));
 		mag_iv = Normalise(d_intersect_vect);
 		VECCOPY(npco, d_intersect_co);
 		
@@ -735,11 +735,11 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 		else 
 			rdamp_val = deflection_object->pd->pdef_rdamp;
 
-		damping = damping + ((1 - damping) * (BLI_drand()*rdamp_val));
+		damping = damping + ((1 - damping) * ((float)BLI_drand()*rdamp_val));
 		damping = damping * damping;
         ref_plane_mag = INPR(refl_vel,d_nvect);
 
-		if (damping > 0.999) damping = 0.999;
+		if (damping > 0.999) damping = 0.999f;
 
 		/* Now add in the damping force - only damp in the direction of */
 		/* the faces normal vector */
@@ -810,7 +810,7 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 
                 /*  Now just increase the distance a little to place */
                 /* the point the other side of the plane */
-                dist_to_plane *= 1.1;
+                dist_to_plane *= 1.1f;
                 npco[0]= npco[0] + (dist_to_plane * d_nvect[0]);
                 npco[1]= npco[1] + (dist_to_plane * d_nvect[1]);
                 npco[2]= npco[2] + (dist_to_plane * d_nvect[2]);
@@ -873,9 +873,9 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		get_effector(opco, new_force, new_speed, cur_time, par_layer);
 
 		/* new location */
-		pa->co[0]= opa->co[0] + deltalife * (opa->no[0] + new_speed[0] + 0.5*new_force[0]);
-		pa->co[1]= opa->co[1] + deltalife * (opa->no[1] + new_speed[1] + 0.5*new_force[1]);
-		pa->co[2]= opa->co[2] + deltalife * (opa->no[2] + new_speed[2] + 0.5*new_force[2]);
+		pa->co[0]= opa->co[0] + deltalife * (opa->no[0] + new_speed[0] + 0.5f*new_force[0]);
+		pa->co[1]= opa->co[1] + deltalife * (opa->no[1] + new_speed[1] + 0.5f*new_force[1]);
+		pa->co[2]= opa->co[2] + deltalife * (opa->no[2] + new_speed[2] + 0.5f*new_force[2]);
 
 		/* new speed */
 		pa->no[0]= opa->no[0] + deltalife*new_force[0];
@@ -981,7 +981,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 	}
 }
 
-void init_mv_jit(float *jit, int num,float seed2)
+void init_mv_jit(float *jit, int num,int seed2)
 {
 	float *jit2, x, rad1, rad2, rad3;
 	int i, num2;
@@ -1018,7 +1018,7 @@ void init_mv_jit(float *jit, int num,float seed2)
 }
 
 
-void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
+void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, int seed2)
 {
 	static float *jit=0;
 	static int jitlevel=1;
@@ -1230,7 +1230,7 @@ void build_particle_system(Object *ob)
 	}
 	
 	/* init */
-	give_mesh_mvert(me, totpart, co, no,paf->seed);
+	give_mesh_mvert(me, totpart, co, no, paf->seed);
 
 	printf("\n");
 	printf("Calculating particles......... \n");
