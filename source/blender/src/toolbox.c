@@ -1873,6 +1873,10 @@ static TBitem addmenu_meta[]= {
 {	0, "Meta Cube", 	4, NULL},
 {  -1, "", 			0, do_info_add_metamenu}};
 
+static TBitem addmenu_armature[]= {
+{	0, "Bones", 	8, NULL},
+{  -1, "", 			0, do_info_addmenu}};
+
 
 static TBitem tb_add[]= {
 {	0, "Mesh", 		0, addmenu_mesh},
@@ -2005,7 +2009,7 @@ void toolbox_n(void)
 			}
 			else if(G.obedit->type==OB_ARMATURE) {
 				menu1= tb_obdata;str1= "Armature";
-				menu2= tb_empty;
+				menu2= addmenu_armature;
 				menu3= tb__select;
 				menu4= tb_edit;
 				menu5= tb_transform_editmode2;

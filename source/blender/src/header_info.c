@@ -1172,16 +1172,15 @@ static uiBlock *info_addmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, info_add_curvemenu, NULL, ICON_RIGHTARROW_THIN, "Curve", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, info_add_surfacemenu, NULL, ICON_RIGHTARROW_THIN, "Surface", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, info_add_metamenu, NULL, ICON_RIGHTARROW_THIN, "Meta", 0, yco-=20, 120, 19, "");
-	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Text",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Empty",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice|",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Text|",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Empty|",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-//	uiDefBut(block, BUTM, 1, "Armature|",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "Adds an Armature");
-//	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera|",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp|",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "");
+	/* armature needs 3d window to draw */
+	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
 
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
