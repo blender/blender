@@ -536,52 +536,42 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 	MFace *mface;
 	TFace *tface;
 	DispList *dl;
-	float *v1, *v2, *v3, *v4, *extverts= NULL;
-	int a;
-	char col[4];
+	float *v1, *v2, *v3, *v4;
+	float *av1= NULL, *av2= NULL, *av3= NULL, *av4= NULL, *extverts= NULL; 
+	int a, activeFaceInSelection= 0;
+	extern short facesel_draw_edges;
 	
 	if(me==0 || me->tface==0) return;
 
-	glEnable(GL_DEPTH_TEST);
-	
-	/* Draw Faces, selected in the UV editor */
-	if(G.f & G_DRAWFACES) {
+	dl= find_displist(&ob->disp, DL_VERTS);
+	if (dl) extverts= dl->verts;
+
+	/* shadow view */
+	if(facesel_draw_edges>0){ 
+		if(facesel_draw_edges==2) glDisable(GL_DEPTH_TEST);
+		else glEnable(GL_DEPTH_TEST);
+		cpack(0x00);
+
 		mface= me->mface;
 		tface= me->tface;
-
-		BIF_GetThemeColor4ubv(TH_FACE_SELECT, col);
-			
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		glDepthMask(0); // disable write in zbuffer, needed for nice transp
-				
 		for(a=me->totface; a>0; a--, mface++, tface++) {
-			if(mface->v3 && (tface->flag & TF_SELECT)) {
-				if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
-				    (!mface->v4 || tface->flag & TF_SEL4)) {
-					glColor4ub(col[0], col[1], col[2], col[3]);
-					glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
-						glVertex3fv((me->mvert+mface->v1)->co);
-						glVertex3fv((me->mvert+mface->v2)->co);
-						glVertex3fv((me->mvert+mface->v3)->co);
-						if(mface->v4) glVertex3fv((me->mvert+mface->v4)->co);
-					glEnd();
-				}
-			}
+			v1= (me->mvert+mface->v1)->co;
+			v2= (me->mvert+mface->v2)->co;
+			v3= (me->mvert+mface->v3)->co;
+			v4= mface->v4?(me->mvert+mface->v4)->co: NULL;
+			glBegin(GL_LINE_LOOP);
+				glVertex3fv(v1);
+				glVertex3fv(v2);
+				glVertex3fv(v3);
+				if(v4) glVertex3fv(v4);
+			glEnd();
 		}
-
-		glDisable(GL_BLEND);
-		glDepthMask(1); // restore write in zbuffer
 	}
 
 	glDisable(GL_DEPTH_TEST);
 
 	mface= me->mface;
 	tface= me->tface;
-
-	dl= find_displist(&ob->disp, DL_VERTS);
-	if (dl) extverts= dl->verts;
-	
 	/* SELECT faces */
 	for(a=me->totface; a>0; a--, mface++, tface++) {
 		if(mface->v3==0) continue;
@@ -601,13 +591,8 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 			}
 
 			if(tface->flag & TF_ACTIVE) {
-				/* colors: R=x G=y */
-				cpack(0xFF);
-				glBegin(GL_LINE_STRIP); glVertex3fv(v1); if(v4) glVertex3fv(v4); else glVertex3fv(v3); glEnd();
-				cpack(0xFF00);
-				glBegin(GL_LINE_STRIP); glVertex3fv(v1); glVertex3fv(v2); glEnd();
-				cpack(0x0);
-				glBegin(GL_LINE_STRIP); glVertex3fv(v2); glVertex3fv(v3); if(v4) glVertex3fv(v4); glEnd();
+				activeFaceInSelection= (tface->flag & TF_SELECT);
+				av1= v1; av2= v2; av3= v3; av4= v4;
 			}
 			else {
 				cpack(0x0);
@@ -618,7 +603,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 					if(v4) glVertex3fv( v4 );
 				glEnd();
 			}
-			
+
 			if(tface->flag & TF_SELECT) {
 				cpack(0xFFFFFF);
 				setlinestyle(1);
@@ -631,6 +616,33 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 				setlinestyle(0);
 			}
 		}
+	}
+
+	/* draw active face on top */
+	/* colors: R=x G=y */
+	if(av1) {
+		cpack(0xFF);
+		glBegin(GL_LINE_STRIP);
+			glVertex3fv(av1);
+			if(av4) glVertex3fv(av4);
+			else glVertex3fv(av3);
+		glEnd();
+
+		cpack(0xFF00);
+		glBegin(GL_LINE_STRIP);
+			glVertex3fv(av1);
+			glVertex3fv(av2);
+		glEnd();
+
+		if(activeFaceInSelection) cpack(0x00FFFF);
+		else cpack(0xFF00FF);
+
+		glBegin(GL_LINE_STRIP);
+			glVertex3fv(av2);
+			glVertex3fv(av3);
+			if(av4) glVertex3fv(av4);
+		glEnd();
+		setlinestyle(0);
 	}
 
 	glEnable(GL_DEPTH_TEST);

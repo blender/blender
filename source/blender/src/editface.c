@@ -87,6 +87,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "render.h"
+#include "butspace.h"
 
 #include "TPT_DependKludge.h"
 
@@ -95,8 +96,399 @@
 #include "BSE_trans_types.h"
 #endif /* NAN_TPT */
 
-static float cumapsize= 1.0;
 TFace *lasttface=0;
+
+static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
+{
+	float min[3], max[3], *cursx;
+	int a;
+	TFace *tface;
+	MFace *mface;
+
+	switch (G.vd->around) 
+	{
+	case V3D_CENTRE: /* bounding box center */
+		min[0]= min[1]= min[2]= 1e20f;
+		max[0]= max[1]= max[2]= -1e20f; 
+
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(tface->flag & TF_SELECT && mface->v3) {
+				DO_MINMAX((me->mvert+mface->v1)->co, min, max);
+				DO_MINMAX((me->mvert+mface->v2)->co, min, max);
+				DO_MINMAX((me->mvert+mface->v3)->co, min, max);
+				if(mface->v4) DO_MINMAX((me->mvert+mface->v4)->co, min, max);
+			}
+		}
+		VecMidf(result, min, max);
+		break;
+	case V3D_CURSOR: /*cursor center*/ 
+		cursx= give_cursor();
+		/* shift to objects world */
+		result[0]= cursx[0]-ob->obmat[3][0];
+		result[1]= cursx[1]-ob->obmat[3][1];
+		result[2]= cursx[2]-ob->obmat[3][2];
+		break;
+	case V3D_LOCAL: /*object center*/
+	case V3D_CENTROID: /* multiple objects centers, only one object here*/
+	default:
+		result[0]= result[1]= result[2]= 0.0;
+		break;
+	}
+}
+
+static void uv_calc_map_matrix(float result[][4], Object *ob, float upangledeg, float sideangledeg, float radius)
+{
+	float rotup[4][4], rotside[4][4], viewmatrix[4][4], rotobj[4][4];
+	float sideangle= 0.0, upangle= 0.0;
+	int k;
+
+	/* get rotation of the current view matrix */
+	Mat4CpyMat4(viewmatrix,G.vd->viewmat);
+	/* but shifting */
+	for( k= 0; k< 4; k++) viewmatrix[3][k] =0.0;
+
+	/* get rotation of the current object matrix */
+	Mat4CpyMat4(rotobj,ob->obmat);
+	/* but shifting */
+	for( k= 0; k< 4; k++) rotobj[3][k] =0.0;
+
+	Mat4Clr(*rotup);
+	Mat4Clr(*rotside);
+
+	/* compensate front/side.. against opengl x,y,z world definition */
+	/* this is "kanonen gegen spatzen", a few plus minus 1 will do here */
+	/* i wanted to keep the reason here, so we're rotating*/
+	sideangle= M_PI * (sideangledeg + 180.0) /180.0;
+	rotside[0][0]= (float)cos(sideangle);
+	rotside[0][1]= -(float)sin(sideangle);
+	rotside[1][0]= (float)sin(sideangle);
+	rotside[1][1]= (float)cos(sideangle);
+	rotside[2][2]= 1.0f;
+      
+	upangle= M_PI * upangledeg /180.0;
+	rotup[1][1]= (float)cos(upangle)/radius;
+	rotup[1][2]= -(float)sin(upangle)/radius;
+	rotup[2][1]= (float)sin(upangle)/radius;
+	rotup[2][2]= (float)cos(upangle)/radius;
+	rotup[0][0]= (float)1.0/radius;
+
+	/* calculate transforms*/
+	Mat4MulSerie(result,rotup,rotside,viewmatrix,rotobj,NULL,NULL,NULL,NULL);
+}
+
+static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4], int projectionmode, float *source, float *min, float *max)
+{
+	float pv[3];
+
+	VecSubf(pv, source, shift);
+	Mat4MulVecfl(rotmat, pv);
+
+	switch(projectionmode) {
+	case B_UVAUTO_CYLINDER: 
+		tubemap(pv[0], pv[1], pv[2], &target[0],&target[1]);
+		/* split line is always zero */
+		if (target[0] >= 1.0f) target[0] -= 1.0f;  
+		break;
+
+	case B_UVAUTO_SPHERE: 
+		spheremap(pv[0], pv[1], pv[2], &target[0],&target[1]);
+		/* split line is always zero */
+		if (target[0] >= 1.0f) target[0] -= 1.0f;
+		break;
+
+	case 3: /* ortho special case for BOUNDS */
+		target[0] = -pv[0];
+		target[1] = pv[2];
+		break;
+
+	case 4: 
+		{
+		/* very special case for FROM WINDOW */
+		float pv4[4], dx, dy, x= 0.0, y= 0.0;
+
+		dx= G.vd->area->winx;
+		dy= G.vd->area->winy;
+
+		VecCopyf(pv4, source);
+        pv4[3] = 1.0;
+
+		/* rotmat is the object matrix in this case */
+        Mat4MulVec4fl(rotmat,pv4); 
+
+		/* almost project_short */
+	    Mat4MulVec4fl(G.vd->persmat,pv4);
+		if (fabs(pv[3]) > 0.00001) { /* avoid division by zero */
+			target[0] = dx/2.0 + (dx/2.0)*pv4[0]/pv4[3];
+			target[1] = dy/2.0 + (dy/2.0)*pv4[1]/pv4[3];
+		}
+		else {
+			/* scaling is lost but give a valid result */
+			target[0] = dx/2.0 + (dx/2.0)*pv4[0];
+			target[1] = dy/2.0 + (dy/2.0)*pv4[1];
+		}
+
+        /* G.vd->persmat seems to do this funky scaling */ 
+		if(dx > dy) {
+			y= (dx-dy)/2.0;
+			dy = dx;
+		}
+		else {
+			x= (dy-dx)/2.0;
+			dx = dy;
+		}
+		target[0]= (x + target[0])/dx;
+		target[1]= (y + target[1])/dy;
+
+		}
+		break;
+
+    default:
+		target[0] = 0.0;
+		target[1] = 1.0;
+	}
+
+	/* we know the values here and may need min_max later */
+	/* max requests independand from min; not fastest but safest */ 
+	if(min) {
+		min[0] = MIN2(target[0], min[0]);
+		min[1] = MIN2(target[1], min[1]);
+	}
+	if(max) {
+		max[0] = MAX2(target[0], max[0]);
+		max[1] = MAX2(target[1], max[1]);
+	}
+}
+
+void calculate_uv_map(unsigned short mapmode)
+{
+	Mesh *me;
+	TFace *tface;
+	MFace *mface;
+	Object *ob;
+	float dx, dy, rotatematrix[4][4], radius= 1.0, min[3], cent[3], max[3];
+	float fac= 1.0, upangledeg= 0.0, sideangledeg= 90.0;
+	int i, b, mi, a, n;
+	/* settings from buttonswindow */
+	extern float uv_calc_radius, uv_calc_cubesize;
+	extern short uv_calc_mapdir, uv_calc_mapalign;
+
+	if(uv_calc_mapdir==1)  {
+		upangledeg= 90.0;
+		sideangledeg= 0.0;
+	}
+	else {
+		upangledeg= 0.0;
+		if(uv_calc_mapalign==1) sideangledeg= 0.0;
+		else sideangledeg= 90.0;
+	}
+
+	me= get_mesh(ob=OBACT);
+	if(me==0 || me->tface==0) return;
+	if(me->totface==0) return;
+	
+	switch(mapmode) {
+	case B_UVAUTO_BOUNDS1:
+	case B_UVAUTO_BOUNDS2:
+	case B_UVAUTO_BOUNDS4:
+	case B_UVAUTO_BOUNDS8:
+		switch(mapmode) {
+		case B_UVAUTO_BOUNDS2: fac = 0.5; break;
+		case B_UVAUTO_BOUNDS4: fac = 0.25; break;
+		case B_UVAUTO_BOUNDS8: fac = 0.125; break;
+		}
+
+		min[0]= min[1]= 1.0;
+		max[0]= max[1]= 0.0;
+
+		uv_calc_center_vector(cent, ob, me);
+		uv_calc_map_matrix(rotatematrix, ob, upangledeg, sideangledeg, 1.0f);
+			
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(tface->flag & TF_SELECT && mface->v3) {
+				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,3,(me->mvert+mface->v1)->co,min,max);
+				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,3,(me->mvert+mface->v2)->co,min,max);
+				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,3,(me->mvert+mface->v3)->co,min,max);
+				if(mface->v4)
+					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,3,(me->mvert+mface->v4)->co,min,max);
+			}
+		}
+		
+		/* rescale UV to be in 0..1,1/2,1/4,1/8 */
+		dx= (max[0]-min[0]);
+		dy= (max[1]-min[1]);
+
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(tface->flag & TF_SELECT && mface->v3) {
+				if(mface->v4) b= 3; else b= 2;
+				for(; b>=0; b--) {
+					tface->uv[b][0]= ((tface->uv[b][0]-min[0])*fac)/dx;
+					tface->uv[b][1]= 1.0-fac+((tface->uv[b][1]-min[1])*fac)/dy;
+				}
+			}
+		}
+		break;
+
+	case B_UVAUTO_WINDOW:		
+		cent[0] = cent[1] = cent[2] = 0.0; 
+		Mat4CpyMat4(rotatematrix,ob->obmat);
+
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(tface->flag & TF_SELECT && mface->v3) {
+				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,4,(me->mvert+mface->v1)->co,NULL,NULL);
+				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,4,(me->mvert+mface->v2)->co,NULL,NULL);
+				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,4,(me->mvert+mface->v3)->co,NULL,NULL);
+				if(mface->v4)
+					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,4,(me->mvert+mface->v4)->co,NULL,NULL);
+			}
+		}
+		break;
+
+	case B_UVAUTO_STD8:
+	case B_UVAUTO_STD4:
+	case B_UVAUTO_STD2:
+	case B_UVAUTO_STD1:
+		switch(mapmode) {
+		case B_UVAUTO_STD8: fac = 0.125; break;
+		case B_UVAUTO_STD4: fac = 0.25; break;
+		case B_UVAUTO_STD2: fac = 0.5; break;
+		}
+
+		tface= me->tface;
+		for(a=0; a<me->totface; a++, tface++)
+			if(tface->flag & TF_SELECT) 
+				default_uv(tface->uv, fac);
+		break;
+
+	case B_UVAUTO_CYLINDER:
+	case B_UVAUTO_SPHERE:
+		uv_calc_center_vector(cent, ob, me);
+			
+		if(mapmode==B_UVAUTO_CYLINDER) radius = uv_calc_radius;
+
+		/* be compatible to the "old" sphere/cylinder mode */
+		if (uv_calc_mapdir== 2)
+			Mat4One(rotatematrix);
+		else 
+			uv_calc_map_matrix(rotatematrix,ob,upangledeg,sideangledeg,radius);
+
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(tface->flag & TF_SELECT && mface->v3) {
+				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,mapmode,(me->mvert+mface->v1)->co,NULL,NULL);
+				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,mapmode,(me->mvert+mface->v2)->co,NULL,NULL);
+				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,mapmode,(me->mvert+mface->v3)->co,NULL,NULL);
+				n = 3;       
+				if(mface->v4) {
+					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,mapmode,(me->mvert+mface->v4)->co,NULL,NULL);
+					n=4;
+				}
+
+				mi = 0;
+				for (i = 1; i < n; i++)
+					if (tface->uv[i][0] > tface->uv[mi][0]) mi = i;
+
+				for (i = 0; i < n; i++) {
+					if (i != mi) {
+						dx = tface->uv[mi][0] - tface->uv[i][0];
+						if (dx > 0.5) tface->uv[i][0] += 1.0;
+					} 
+				} 
+			}
+		}
+
+		break;
+
+	case B_UVAUTO_CUBE:
+		{
+		/* choose x,y,z axis for projetion depending on the largest normal */
+		/* component, but clusters all together around the center of map */
+		float no[3];
+		short cox, coy;
+		float *loc= ob->obmat[3];
+		MVert *mv= me->mvert;
+
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(tface->flag & TF_SELECT && mface->v3) {
+				CalcNormFloat((mv+mface->v1)->co, (mv+mface->v2)->co, (mv+mface->v3)->co, no);
+					
+				no[0]= fabs(no[0]);
+				no[1]= fabs(no[1]);
+				no[2]= fabs(no[2]);
+				
+				cox=0; coy= 1;
+				if(no[2]>=no[0] && no[2]>=no[1]);
+				else if(no[1]>=no[0] && no[1]>=no[2]) coy= 2;
+				else { cox= 1; coy= 2; }
+				
+				tface->uv[0][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v1)->co[cox]);
+				tface->uv[0][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v1)->co[coy]);
+				dx = floor(tface->uv[0][0]);
+				dy = floor(tface->uv[0][1]);
+				tface->uv[0][0] -= dx;
+				tface->uv[0][1] -= dy;
+				tface->uv[1][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v2)->co[cox]);
+				tface->uv[1][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v2)->co[coy]);
+				tface->uv[1][0] -= dx;
+				tface->uv[1][1] -= dy;
+				tface->uv[2][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v3)->co[cox]);
+				tface->uv[2][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v3)->co[coy]);
+				tface->uv[2][0] -= dx;
+				tface->uv[2][1] -= dy;
+				if(mface->v4) {
+					tface->uv[3][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v4)->co[cox]);
+					tface->uv[3][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v4)->co[coy]);
+					tface->uv[3][0] -= dx;
+					tface->uv[3][1] -= dy;
+				}
+			}
+		}
+		}
+		break; 
+	default:
+		return;
+	} /* end switch mapmode */
+
+	/* clipping and wrapping */
+	if(G.sima && G.sima->flag & SI_CLIP_UV) {
+		tface= me->tface;
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(!(tface->flag & TF_SELECT && mface->v3)) return;
+				
+			dx= dy= 0;
+			if(mface->v4) b= 3; else b= 2;
+			for(; b>=0; b--) {
+				while(tface->uv[b][0] + dx < 0.0) dx+= 0.5;
+				while(tface->uv[b][0] + dx > 1.0) dx-= 0.5;
+				while(tface->uv[b][1] + dy < 0.0) dy+= 0.5;
+				while(tface->uv[b][1] + dy > 1.0) dy-= 0.5;
+			}
+	
+			if(mface->v4) b= 3; else b= 2;
+			for(; b>=0; b--) {
+				tface->uv[b][0]+= dx;
+				CLAMP(tface->uv[b][0], 0.0, 1.0);
+				
+				tface->uv[b][1]+= dy;
+				CLAMP(tface->uv[b][1], 0.0, 1.0);
+			}
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
 
 void set_lasttface()
 {
@@ -349,7 +741,6 @@ void deselectall_tface()
 	}
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
-
 }
 
 void selectswap_tface(void)
@@ -453,7 +844,7 @@ void rotate_uv_tface()
  * @param	y	the y-coordinate to pick at
  * @return the face under the cursor (-1 if there was no face found)
  */
-unsigned int face_pick(Mesh *me, short x, short y)
+int face_pick(Mesh *me, short x, short y)
 {
 	unsigned int col;
 	int index;
@@ -497,8 +888,7 @@ void face_select()
 	TFace *tface, *tsel;
 	MFace *msel;
 	short mval[2];
-	int a;
-	unsigned int index;
+	int a, index;
 
 	/* Get the face under the cursor */
 	ob = OBACT;
@@ -519,39 +909,22 @@ void face_select()
 	tface = me->tface;
 	a = me->totface;
 	while (a--) {
-		if (G.qual & LR_SHIFTKEY) {
+		if (G.qual & LR_SHIFTKEY)
 			tface->flag &= ~TF_ACTIVE;
-		}
-		else {
+		else
 			tface->flag &= ~(TF_ACTIVE+TF_SELECT);
-			if (G.qual & LR_ALTKEY)
-				tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-		}
 		tface++;
 	}
 	
 	tsel->flag |= TF_ACTIVE;
 
-	if (G.qual & LR_ALTKEY) {
-		if(tsel->flag & TF_SELECT && !(~tsel->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-		   && (!msel->v4 || tsel->flag & TF_SEL4))
-			tsel->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-		else {
-			tsel->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
-			tsel->flag |= TF_SELECT;
-		}
-	}
-	else if (G.qual & LR_SHIFTKEY) {
-		if (tsel->flag & TF_SELECT) {
+	if (G.qual & LR_SHIFTKEY) {
+		if (tsel->flag & TF_SELECT)
 			tsel->flag &= ~TF_SELECT;
-		}
-		else {
+		else
 			tsel->flag |= TF_SELECT;
-		}
 	}
-	else {
-		tsel->flag |= TF_SELECT;
-	}
+	else tsel->flag |= TF_SELECT;
 	
 	lasttface = tsel;
 	
@@ -665,458 +1038,48 @@ float CalcNormUV(float *a, float *b, float *c)
 
 void uv_autocalc_tface()
 {
-	Mesh *me;
-	TFace *tface;
-	MFace *mface;
-	MVert *mv;
-	Object *ob;
-	float dx, dy, x, y, min[3], cent[3], max[3], no[3], *loc, mat[4][4];
-	float fac = 1.0;
-
-	int i, n, mi; /* strubi */
-	int a, b;
-	short cox, coy, mode, adr[2];
-	
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	
-	me= get_mesh(ob=OBACT);
-	if(me==0 || me->tface==0) return;
-	if(me->totface==0) return;
-	
+	short mode;
 	mode= pupmenu(MENUTITLE("UV Calculation")
-				  MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
-				  MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
-				  MENUSTRING("Sphere",	  UV_SPHERE_MAPPING) "|"
-				  MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
-				  MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
-				  MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
-				  MENUSTRING("Bounds to 1/1", UV_BOUNDS1_MAPPING) "|"
-				  MENUSTRING("Standard 1/8",  UV_STD8_MAPPING) "|"
-				  MENUSTRING("Standard 1/4",  UV_STD4_MAPPING) "|"
-				  MENUSTRING("Standard 1/2",  UV_STD2_MAPPING) "|"
-				  MENUSTRING("Standard 1/1",  UV_STD1_MAPPING) "|"
-				  MENUSTRING("From Window",   UV_WINDOW_MAPPING) "|"
-				  MENUSTRING("From Window To Sphere",  UV_SPHERE_EX) "|"
-				  MENUSTRING("From Window To Cylinder",  UV_CYL_EX)  );
-
+	              MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
+	              MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
+	              MENUSTRING("Sphere",        UV_SPHERE_MAPPING) "|"
+	              MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
+	              MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
+	              MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
+	              MENUSTRING("Bounds to 1/1", UV_BOUNDS1_MAPPING) "|"
+	              MENUSTRING("Standard 1/8",  UV_STD8_MAPPING) "|"
+	              MENUSTRING("Standard 1/4",  UV_STD4_MAPPING) "|"
+	              MENUSTRING("Standard 1/2",  UV_STD2_MAPPING) "|"
+	              MENUSTRING("Standard 1/1",  UV_STD1_MAPPING) "|"
+	              MENUSTRING("From Window",   UV_WINDOW_MAPPING) );
+	
+	
 	switch(mode) {
 	case UV_CUBE_MAPPING:
-		tface= me->tface;
-		mface= me->mface;
-		mv= me->mvert;
-		loc= ob->obmat[3];
-		
-		fbutton(&cumapsize, 0.0001, 100.0, "Cubemap size");
-		
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				if(mface->v3==0) continue;
-				
-				CalcNormFloat((mv+mface->v1)->co, (mv+mface->v2)->co, (mv+mface->v3)->co, no);
-				
-				no[0]= fabs(no[0]);
-				no[1]= fabs(no[1]);
-				no[2]= fabs(no[2]);
-				
-				cox=0; coy= 1;
-				if(no[2]>=no[0] && no[2]>=no[1]);
-				else if(no[1]>=no[0] && no[1]>=no[2]) coy= 2;
-				else { cox= 1; coy= 2;}
-				
-				tface->uv[0][0]= 0.5+0.5*cumapsize*(loc[cox] + (mv+mface->v1)->co[cox]);
-				tface->uv[0][1]= 0.5+0.5*cumapsize*(loc[coy] + (mv+mface->v1)->co[coy]);
-				dx = floor(tface->uv[0][0]);
-				dy = floor(tface->uv[0][1]);
-				tface->uv[0][0] -= dx;
-				tface->uv[0][1] -= dy;
-				tface->uv[1][0]= 0.5+0.5*cumapsize*(loc[cox] + (mv+mface->v2)->co[cox]);
-				tface->uv[1][1]= 0.5+0.5*cumapsize*(loc[coy] + (mv+mface->v2)->co[coy]);
-				tface->uv[1][0] -= dx;
-				tface->uv[1][1] -= dy;
-				tface->uv[2][0]= 0.5+0.5*cumapsize*(loc[cox] + (mv+mface->v3)->co[cox]);
-				tface->uv[2][1]= 0.5+0.5*cumapsize*(loc[coy] + (mv+mface->v3)->co[coy]);
-				tface->uv[2][0] -= dx;
-				tface->uv[2][1] -= dy;
-				if(mface->v4) {
-					tface->uv[3][0]= 0.5+0.5*cumapsize*(loc[cox] + (mv+mface->v4)->co[cox]);
-					tface->uv[3][1]= 0.5+0.5*cumapsize*(loc[coy] + (mv+mface->v4)->co[coy]);
-					tface->uv[3][0] -= dx;
-					tface->uv[3][1] -= dy;
-				}
-				
-			}
-		}
-
-	case UV_BOUNDS8_MAPPING:		
-		fac = 0.125;
-		goto bounds_mapping;
-	case UV_BOUNDS4_MAPPING:		
-		fac = 0.25;
-		goto bounds_mapping;
-	case UV_BOUNDS2_MAPPING:		
-		fac = 0.5;
-		goto bounds_mapping;
-	case UV_BOUNDS1_MAPPING:		
-		// fac = 1.0; was already initialized as 1.0
-	case UV_WINDOW_MAPPING:		
-	bounds_mapping:
-		mymultmatrix(ob->obmat);
-		MTC_Mat4SwapMat4(G.vd->persmat, mat);
-		mygetsingmatrix(G.vd->persmat);
-		
-		tface= me->tface;
-		mface= me->mface;
-
-		dx= curarea->winx;
-		dy= curarea->winy;
-
-		x= y= 0.0;
-		if (dx > dy) {
-			y= (dx-dy)/ 2.0;
-			dy= dx;
-		}
-		else {
-			x= (dy-dx)/ 2.0;
-			dx= dy;
-		}
-
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				
-				if(mface->v3==0) continue;
-				
-				project_short( (me->mvert+mface->v1)->co, adr);
-				if(adr[0]!=3200) {
-					tface->uv[0][0]= (x+((float)adr[0]))/dx;
-					tface->uv[0][1]= (y+((float)adr[1]))/dy;
-				}
-				project_short( (me->mvert+mface->v2)->co, adr);
-				if(adr[0]!=3200) {
-					tface->uv[1][0]= (x+((float)adr[0]))/dx;
-					tface->uv[1][1]= (y+((float)adr[1]))/dy;
-				}
-				project_short( (me->mvert+mface->v3)->co, adr);
-				if(adr[0]!=3200) {
-					tface->uv[2][0]= (x+((float)adr[0]))/dx;
-					tface->uv[2][1]= (y+((float)adr[1]))/dy;
-				}
-				if(mface->v4) {
-					project_short( (me->mvert+mface->v4)->co, adr);
-					if(adr[0]!=3200) {
-						tface->uv[3][0]= (x+((float)adr[0]))/dx;
-						tface->uv[3][1]= (y+((float)adr[1]))/dy;
-					}
-				}
-			}
-		}
-
-		//stop here if WINDOW_MAPPING:
-		if (mode == UV_WINDOW_MAPPING) break;
-
-		/* minmax */
-		min[0]= min[1]= 1.0;
-		max[0]= max[1]= 0.0;
-		tface= me->tface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				if(mface->v3==0) continue;
-				
-				if(mface->v4) b= 3; else b= 2;
-				for(; b>=0; b--) {
-					min[0]= MIN2(tface->uv[b][0], min[0]);
-					min[1]= MIN2(tface->uv[b][1], min[1]);
-					max[0]= MAX2(tface->uv[b][0], max[0]);
-					max[1]= MAX2(tface->uv[b][1], max[1]);
-				}
-			}
-		}
-		
-		dx= max[0]-min[0];
-		dy= max[1]-min[1];
-
-		tface= me->tface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				if(mface->v3==0) continue;
-				
-				if(mface->v4) b= 3; else b= 2;
-				for(; b>=0; b--) {
-					tface->uv[b][0]=  ((tface->uv[b][0] - min[0])* fac) / dx;
-					tface->uv[b][1]=  1.0 - fac + ((tface->uv[b][1] - min[1]) * fac) /dy;
-				}
-			}
-		}
-		break;
-
+		calculate_uv_map(B_UVAUTO_CUBE); break;
+	case UV_CYL_MAPPING:
+		calculate_uv_map(B_UVAUTO_CYLINDER); break;
+	case UV_SPHERE_MAPPING:
+		calculate_uv_map(B_UVAUTO_SPHERE); break;
+	case UV_BOUNDS8_MAPPING:
+		calculate_uv_map(B_UVAUTO_BOUNDS8); break;
+	case UV_BOUNDS4_MAPPING:
+		calculate_uv_map(B_UVAUTO_BOUNDS4); break;
+	case UV_BOUNDS2_MAPPING:
+		calculate_uv_map(B_UVAUTO_BOUNDS2); break;
+	case UV_BOUNDS1_MAPPING:
+		calculate_uv_map(B_UVAUTO_BOUNDS1); break;
 	case UV_STD8_MAPPING:
-		fac = 0.125;
-		goto standard_mapping;
+		calculate_uv_map(B_UVAUTO_STD8); break;
 	case UV_STD4_MAPPING:
-		fac = 0.25;
-		goto standard_mapping;
+		calculate_uv_map(B_UVAUTO_STD4); break;
 	case UV_STD2_MAPPING:
-		fac = 0.5;
-		goto standard_mapping;
+		calculate_uv_map(B_UVAUTO_STD2); break;
 	case UV_STD1_MAPPING:
-		fac = 1.0;
-
-	standard_mapping:	
-		tface= me->tface;
-		for(a=0; a<me->totface; a++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				default_uv(tface->uv, fac);
-			}
-		}
-		break;
-
-	case UV_SPHERE_MAPPING: 
-	case UV_CYL_MAPPING:		
-
-		/* calc centre */
-		
-		INIT_MINMAX(min, max);
-		
-		tface= me->tface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				if(mface->v3==0) continue;
-				
-				DO_MINMAX( (me->mvert+mface->v1)->co, min, max);
-				DO_MINMAX( (me->mvert+mface->v2)->co, min, max);
-				DO_MINMAX( (me->mvert+mface->v3)->co, min, max);
-				if(mface->v4) DO_MINMAX( (me->mvert+mface->v3)->co, min, max);
-			}
-		}
-		
-		VecMidf(cent, min, max);
-		
-		tface= me->tface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				if(mface->v3==0) continue;
-				
-				VecSubf(no, (me->mvert+mface->v1)->co, cent);
-				if(mode==UV_CYL_MAPPING) tubemap(no[0], no[1], no[2], tface->uv[0], &tface->uv[0][1]);
-				else spheremap(no[0], no[1], no[2], tface->uv[0], &tface->uv[0][1]);
-
-				VecSubf(no, (me->mvert+mface->v2)->co, cent);
-				if(mode==UV_CYL_MAPPING) tubemap(no[0], no[1], no[2], tface->uv[1], &tface->uv[1][1]);
-				else spheremap(no[0], no[1], no[2], tface->uv[1], &tface->uv[1][1]);
-
-				VecSubf(no, (me->mvert+mface->v3)->co, cent);
-				if(mode==UV_CYL_MAPPING) tubemap(no[0], no[1], no[2], tface->uv[2], &tface->uv[2][1]);
-				else spheremap(no[0], no[1], no[2], tface->uv[2], &tface->uv[2][1]);
-				n = 3;
-
-				if(mface->v4) {
-					VecSubf(no, (me->mvert+mface->v4)->co, cent);
-					if(mode==3) tubemap(no[0], no[1], no[2], tface->uv[3], &tface->uv[3][1]);
-					else spheremap(no[0], no[1], no[2], tface->uv[3], &tface->uv[3][1]);
-					n = 4;
-				}
-				mi = 0;
-				for (i = 1; i < n; i++)
-				{
-					if (tface->uv[i][0] > tface->uv[mi][0]) mi = i;
-				}
-				for (i = 0; i < n; i++)
-				{
-					if (i != mi) {
-						dx = tface->uv[mi][0] - tface->uv[i][0];
-						if (dx > 0.5) {
-							tface->uv[i][0] += 1.0;
-						}	
-					}	
-				}	
-			}
-		}
-		break;
-	case UV_CYL_EX:
-	case UV_SPHERE_EX:
-	{
-		float rotup[4][4],rotside[4][4], viewmatrix[4][4], finalmatrix[4][4],rotobj[4][4];
-		int k;
-		float upangle = 0.0, sideangle = 0.0, radius = 1.0;
-		static float upangledeg = 0.0, sideangledeg = 90.0;
-		short centermode;
- 
-		centermode = G.vd->around;
-		/* check if we can do this, do it, otherways tell the user we can't and quit */
-		switch (centermode)
-		{
-		case  V3D_CENTRE : /*bounding box center*/
-			INIT_MINMAX(min, max);
-
-			tface= me->tface;
-			mface= me->mface;
-			for(a=0; a<me->totface; a++, mface++, tface++) {
-				if(tface->flag & TF_SELECT) {
-					if(mface->v3==0) continue; /* this is not realy a face */
-
-					DO_MINMAX( (me->mvert+mface->v1)->co, min, max);
-					DO_MINMAX( (me->mvert+mface->v2)->co, min, max);
-					DO_MINMAX( (me->mvert+mface->v3)->co, min, max);
-					if(mface->v4) DO_MINMAX( (me->mvert+mface->v3)->co, min, max);
-				}
-			}
-			VecMidf(cent, min, max);
-		break;
-		case  V3D_CURSOR : /*cursor center*/ 
-		{
-			float *cursx;
-			cursx= give_cursor();
-			/* shift to objects world */
-			cent[0]= cursx[0]-ob->obmat[3][0];
-			cent[1]= cursx[1]-ob->obmat[3][1];
-			cent[2]= cursx[2]-ob->obmat[3][2];
-		}
-		break;
-		case  V3D_LOCAL : /*object center*/
-		case  V3D_CENTROID : /*median refers to multiple objects centers. only one object here*/
-			cent[0]= cent[1]= cent[2]= 0.0;
-		break;
-		default : /* covered all known modes, but if there was a new one */
-			/* say something to the user if we can't*/
-			okee("this operation center does not work here!");
-			return; 
-		}
-
-		if(mode==UV_CYL_EX){
-			static float cylradius = 1.0; /* static to remeber last user response */
-			if (fbutton(&cylradius, 0.1, 90.0, "radius") == 0) return;
-			radius = cylradius;
-		}
-
-		/* get rotation of the current view matrix */
-		Mat4CpyMat4(viewmatrix,G.vd->viewmat);
-		/* but shifting */
-		for( k= 0; k< 4; k++) {
-			viewmatrix[3][k] =0.0;
-		}
-
-		/* get rotation of the current object matrix */
-		Mat4CpyMat4(rotobj,ob->obmat);
-		/* but shifting */
-		for( k= 0; k< 4; k++){
-			rotobj[3][k] =0.0;
-		}
-
-   		/* never assume local variables to be zeroed */
-		Mat4Clr(*rotup);
-		Mat4Clr(*rotside);
-
-		/* need this to compensate front/side.. against opengl x,y,z world definition */
-		/* this is "kanonen gegen spatzen" i know, a few plus minus 1 will do here */
-		/* i wanted to keep the reason here, so we're rotating*/
-		/* debug helper if (fbutton(&sideangledeg, -180.0, 180, "Side angle") ==0) return; */
-		sideangle = M_PI * (sideangledeg + 180.0) /180.0;
-		rotside[0][0] = cos(sideangle);  rotside[0][1] = -sin(sideangle);
-		rotside[1][0] = sin(sideangle);       rotside[1][1] = cos(sideangle);
-		rotside[2][2] = 1.0;
-      
-		/* debug helper if (fbutton(&upangledeg, -90.0, 90.0, "Up angle") ==0) return; */
-		upangle = M_PI * upangledeg /180.0;
-		rotup[1][1] = cos(upangle)/radius;  rotup[1][2] = -sin(upangle)/radius;
-		rotup[2][1] = sin(upangle)/radius;      rotup[2][2] = cos(upangle)/radius;
-		rotup[0][0] = 1.0/radius;
-		/* calculate transforms*/
-		Mat4MulSerie(finalmatrix,rotup,rotside,viewmatrix,rotobj,NULL,NULL,NULL,NULL);
-		/* now finalmatrix holds what we want */
-
-		tface= me->tface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {   /* go for all faces of the given mesh */
-			if(tface->flag & TF_SELECT) { /* if this face is selected in UI */
-				if(mface->v3==0) continue; /* must be ploygon with more than 2 vertices */
-				/* repeating this for all 3(4) vertices sucks. better make function*/
-				VecSubf(no, (me->mvert+mface->v1)->co, cent); /* shift to make cent the origin */
-				Mat4MulVecfl(finalmatrix, no);
-				if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[0], &tface->uv[0][1]);
-				else spheremap(no[0], no[1], no[2], tface->uv[0], &tface->uv[0][1]);
-	
-				VecSubf(no, (me->mvert+mface->v2)->co, cent);
-				Mat4MulVecfl(finalmatrix, no);
-				if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[1], &tface->uv[1][1]);
-				else spheremap(no[0], no[1], no[2], tface->uv[1], &tface->uv[1][1]);
-        
-				VecSubf(no, (me->mvert+mface->v3)->co, cent);
-				Mat4MulVecfl(finalmatrix, no);
-				if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[2], &tface->uv[2][1]);
-				else spheremap(no[0], no[1], no[2], tface->uv[2], &tface->uv[2][1]);
-				n = 3;
-       
-				if(mface->v4) {
-        
-					VecSubf(no, (me->mvert+mface->v4)->co, cent);
-					Mat4MulVecfl(finalmatrix, no);
-					if(mode==UV_CYL_EX) tubemap(no[0], no[1], no[2], tface->uv[3], &tface->uv[3][1]);
-					else spheremap(no[0], no[1], no[2], tface->uv[3], &tface->uv[3][1]);
-				n = 4;
-				}
-				mi = 0; /* maximum index */
-
-				for (i = 1; i < n; i++) {
-					if (tface->uv[i][0] > tface->uv[mi][0]) mi = i;
-				}
-				for (i = 0; i < n; i++) {
-					if (i != mi) {
-						dx = tface->uv[mi][0] - tface->uv[i][0];
-						if (dx > 0.5) {
-							tface->uv[i][0] += 1.0;
-						} 
-					} 
-				} 
-			}
-		}
+		calculate_uv_map(B_UVAUTO_STD1); break;
+	case UV_WINDOW_MAPPING:
+		calculate_uv_map(B_UVAUTO_WINDOW); break;
 	}
-	    break;
-	default:
-		return;
-	} // end switch
-
-	/* clipping and wrapping */
-	if(G.sima && G.sima->flag & SI_CLIP_UV) {
-		tface= me->tface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT) {
-				if(mface->v3==0) continue;
-				
-				dx= dy= 0;
-				if(mface->v4) b= 3; else b= 2;
-				for(; b>=0; b--) {
-					while(tface->uv[b][0] + dx < 0.0) dx+= 0.5;
-					while(tface->uv[b][0] + dx > 1.0) dx-= 0.5;
-					while(tface->uv[b][1] + dy < 0.0) dy+= 0.5;
-					while(tface->uv[b][1] + dy > 1.0) dy-= 0.5;
-				}
-	
-				if(mface->v4) b= 3; else b= 2;
-				for(; b>=0; b--) {
-					tface->uv[b][0]+= dx;
-					CLAMP(tface->uv[b][0], 0.0, 1.0);
-					
-					tface->uv[b][1]+= dy;
-					CLAMP(tface->uv[b][1], 0.0, 1.0);
-				}
-			}
-		}
-	}
-
-	makeDispList(OBACT);
-
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
-	myloadmatrix(G.vd->viewmat);
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-
-	persp(PERSP_WIN);
-	
 }
 
 void set_faceselect()	/* toggle */
@@ -1421,8 +1384,7 @@ void face_draw()
 	Image *img=NULL, *img_old = NULL;
 	IMG_BrushPtr brush;
 	IMG_CanvasPtr canvas = 0;
-	int rowBytes;
-	unsigned int face_index;
+	int rowBytes, face_index;
 	char *warn_packed_file = 0;
 	float uv[2], uv_old[2];
 	extern VPaint Gvp;

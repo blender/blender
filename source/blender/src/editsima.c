@@ -1132,9 +1132,7 @@ void mouse_select_sima(void)
 			*flagpoin |= val;
 	}
 	
-	if(redraw || G.f & G_DRAWFACES) {
-		force_draw_plus(SPACE_VIEW3D);
-	}
+	if(redraw || G.f & G_DRAWFACES) force_draw();
 	else {
 		glDrawBuffer(GL_FRONT);
 		draw_tfaces();
@@ -1281,7 +1279,7 @@ void uvedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 
 		if(G.f & G_DRAWFACES) { /* full redraw only if necessary */
 			draw_sel_circle(0, 0, 0, 0, 0); /* signal */
-			force_draw_plus(SPACE_VIEW3D);
+			force_draw();
 		}
 		else { /* force_draw() is no good here... */
 			glDrawBuffer(GL_FRONT);

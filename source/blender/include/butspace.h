@@ -74,9 +74,6 @@ extern void do_mballbuts(unsigned short event);
 extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
 
-/* dont like it here , rather make a BIF_Buttons_Editing.h or so BM*/
-extern int Buttons_Editing_GetFaceShadows();
-
 /* shading */
 extern void material_panels(void);
 extern void do_matbuts(unsigned short event);
@@ -532,7 +529,6 @@ enum {
 	B_CONSTRAINT_ADD_DISTANCELIMIT
 };
 
-/*+++ BM */
 /* *********************** */
 #define B_UVAUTOCALCBUTS	3400
 enum {
@@ -558,10 +554,6 @@ enum {
 		B_UVAUTO_ALIGNY		
 };
 /* *********************** */
-/*--- BM */
-/* *********************** */
-
-
 
 /* *********************** */
 /*  BUTTON BUT: > 4000	   */

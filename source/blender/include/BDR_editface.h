@@ -37,6 +37,7 @@ struct TFace;
 struct Mesh;
 
 void set_lasttface(void);
+void calculate_uv_map(unsigned short mapmode);
 void default_uv(float uv[][2], float size);
 void default_tface(struct TFace *tface);
 void make_tfaces(struct Mesh *me);
@@ -46,7 +47,7 @@ void select_linked_tfaces(void);
 void deselectall_tface(void);
 void selectswap_tface(void);
 void rotate_uv_tface(void);
-unsigned int face_pick(struct Mesh *me, short x, short y);
+int face_pick(struct Mesh *me, short x, short y);
 void face_select(void);
 void face_borderselect(void);
 float CalcNormUV(float *a, float *b, float *c);

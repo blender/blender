@@ -158,7 +158,8 @@ static float extr_offs= 1.0;
 static float editbutweight=1.0;
 short editbutflag= 1;
 float doublimit= 0.001, editbutvweight=1, editbutsize=0.1;
-
+float uv_calc_radius= 1.0, uv_calc_cubesize= 1.0;
+short uv_calc_mapdir= 1, uv_calc_mapalign= 1, facesel_draw_edges= 0;
 
 
 /* *************************** MESH DECIMATE ******************************** */
@@ -2116,6 +2117,95 @@ static void editing_panel_mesh_texface(void)
 
 }
 
+void do_uvautocalculationbuts(unsigned short event)
+{   
+	switch(event) { 
+	case B_UVAUTO_STD1:
+	case B_UVAUTO_STD2:
+	case B_UVAUTO_STD4:
+	case B_UVAUTO_STD8:
+	case B_UVAUTO_CUBE:
+		calculate_uv_map(event);
+		break;
+	case B_UVAUTO_BOUNDS1:
+	case B_UVAUTO_BOUNDS2:
+	case B_UVAUTO_BOUNDS4:
+	case B_UVAUTO_BOUNDS8:
+	case B_UVAUTO_SPHERE:
+	case B_UVAUTO_CYLINDER:
+	case B_UVAUTO_WINDOW:
+		if(select_area(SPACE_VIEW3D)) calculate_uv_map(event);
+		break;
+	}
+}
+
+static void editing_panel_mesh_uvautocalculation(void)
+{
+	uiBlock *block;
+	int butH= 19, butHB= 20, row= 180, butS= 10;
+	
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_uvautocalculation", UI_EMBOSS, UI_HELV, curarea->win);
+	/* make this a tab of "Texture face" to save screen space*/
+	uiNewPanelTabbed("Texture face", "Editing"); 
+	if(uiNewPanel(curarea, block, "UV Calculation", "Editing", 960, 0, 318, 204)==0)
+		return;
+	
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_UVAUTO_STD1,"Standard 1/1",100,row,200,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping");
+	uiDefBut(block, BUT, B_UVAUTO_STD2,"1/2",100,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/2");
+	uiDefBut(block, BUT, B_UVAUTO_STD4,"1/4",166,row-butHB,67,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/4");
+	uiDefBut(block, BUT, B_UVAUTO_STD8,"1/8",234,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/8");
+	uiBlockEndAlign(block);
+	row-= 2*butHB+butS;
+
+	uiBlockBeginAlign(block); 
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS1,"Bounds 1/1",100,row,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/1");
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS2,"1/2",100,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/2");
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS4,"1/4",166,row-butHB,67,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/4");
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS8,"1/8",234,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/8");
+	uiDefBut(block, BUT, B_UVAUTO_WINDOW,"From Window",100,row-2*butH,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping from window");
+	uiBlockEndAlign(block);
+	row-= 3*butHB+butS;
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block,ROW,REDRAWVIEW3D,"No Edges",100,row,200,butH,&facesel_draw_edges, 2.0, 0, 0, 0,  "Draw edges in 3D view");
+	uiDefButS(block,ROW,REDRAWVIEW3D,"Draw Edges",100,row-butH,200,butH,&facesel_draw_edges, 2.0, 1.0, 0, 0,  "Draw edges in 3D view");
+	uiDefButS(block,ROW,REDRAWVIEW3D,"All Edges",100,row-2*butH,200,butH,&facesel_draw_edges, 2.0, 2.0, 0, 0,  "Draw edges in 3D view");
+	uiBlockEndAlign(block);
+	row-= 3*butHB+butS;
+
+	row= 180;
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_UVAUTO_CUBE,"Cube",315,row,200,butH, 0, 0, 0, 0, 0, "Applies cube UV mapping");
+	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Size:",315,row-butHB,200,butH, &uv_calc_cubesize, 0.0001, 100.0, 10, 0, "Defines the cubemap size");
+	uiBlockEndAlign(block);
+	row-= 2*butHB+butS;
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_UVAUTO_SPHERE,"Sphere",315,row,200,butH, 0, 0, 0, 0, 0, "Applies spherical UV mapping");
+	uiBlockEndAlign(block);
+	row-= butHB+butS;
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_UVAUTO_CYLINDER,"Cylinder",315,row,200,butH, 0, 0, 0, 0, 0, "Applies cylindrical UV mapping");
+	uiDefButF(block, NUM,B_UVAUTO_CYLRADIUS ,"Radius:",315,row-butHB,200,butH, &uv_calc_radius, 0.1, 100.0, 10, 0, "Defines the radius of the UV mapping cylinder");		
+	uiBlockEndAlign(block);
+	row-= 2*butHB+butS;
+
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW,B_UVAUTO_FACE,"View Aligns Face",315,row,200,butH, &uv_calc_mapdir,2.0, 1.0, 0.0,0.0, "View is on aequator for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_TOP,"VA Top",315,row-butHB,100,butH, &uv_calc_mapdir,2.0, 0.0, 0.0,0.0, "View is on poles for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_TOP,"Al Obj",415,row-butHB,100,butH, &uv_calc_mapdir,2.0, 2.0, 0.0,0.0, "Align to object for cylindrical and spherical UV mapping");
+	uiBlockEndAlign(block);
+	row-= 2*butHB+butS;
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW,B_UVAUTO_ALIGNX,"Polar ZX",315,row,100,butH, &uv_calc_mapalign,2.0, 0.0, 0.0,0.0, "Polar 0 is X for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_ALIGNY,"Polar ZY",415,row,100,butH, &uv_calc_mapalign,2.0, 1.0, 0.0,0.0, "Polar 0 is Y for cylindrical and spherical UV mapping");
+	uiBlockEndAlign(block);
+}
 
 /* this is a mode context sensitive system */
 
@@ -2141,8 +2231,10 @@ void editing_panels()
 			editing_panel_mesh_tools1(ob, ob->data); // no editmode!
 		}
 		else {
-			if(G.f & G_FACESELECT)
+			if(G.f & G_FACESELECT) {
 				editing_panel_mesh_texface();
+				editing_panel_mesh_uvautocalculation();
+			}
 			
 			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) )
 				editing_panel_mesh_paint();

@@ -315,6 +315,9 @@ void do_butspace(unsigned short event)
 	else if(event<=B_CONSTRAINTBUTS) {
 		do_constraintbuts(event);
 	}
+	else if(event<=B_UVAUTOCALCBUTS) {
+		do_uvautocalculationbuts(event);
+	}
 	else if(event==REDRAWVIEW3D) allqueue(event, 1);	// 1=do header too
 	else if(event>REDRAWVIEW3D) allqueue(event, 0);
 }
