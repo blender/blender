@@ -160,10 +160,10 @@ integrateMomentum(
 	}
 }
 
-void SM_Object::dynamicCollision(MT_Point3 local2, 
-	MT_Vector3 normal, 
+bool SM_Object::dynamicCollision(const MT_Point3 &local2, 
+	const MT_Vector3 &normal, 
 	MT_Scalar dist, 
-	MT_Vector3 rel_vel,
+	const MT_Vector3 &rel_vel,
 	MT_Scalar restitution,
 	MT_Scalar friction_factor,
 	MT_Scalar invMass
@@ -173,144 +173,131 @@ void SM_Object::dynamicCollision(MT_Point3 local2,
 	// Compute the point on obj1 closest to obj2 (= sphere with radius = 0)
 	// local1 is th point closest to obj2
 	// local2 is the local origin of obj2 
-	if (MT_EPSILON < dist) {
-		//printf("SM_Object::Boing: local2 = { %0.5f, %0.5f, %0.5f } (%0.5f)\n",
-		//	local2[0], local2[1], local2[2], local2.length());
-			
-		// the normal to the contact plane
-		normal /= dist;
 
-		// wr2 points from obj2's origin to the global contact point
-		// wr2 is only needed for rigid bodies (objects for which the 
-		// friction can change the angular momentum).
-		// vel2 is adapted to denote the velocity of the contact point 
-		// This should look familiar....
-		MT_Scalar  rel_vel_normal = normal.dot(rel_vel);
+	// This should look familiar....
+	MT_Scalar  rel_vel_normal = normal.dot(rel_vel);
 			
-		//printf("                 rel_vel = { %0.5f, %0.5f, %0.5f } (%0.5f)\n",
-		//	rel_vel[0], rel_vel[1], rel_vel[2], rel_vel.length());
-			
-		if (rel_vel_normal <= 0.0) {
-			if (-rel_vel_normal < ImpulseThreshold) {
-				restitution = 0.0;
-			}
+	if (rel_vel_normal <= 0.0) {
+		if (-rel_vel_normal < ImpulseThreshold) {
+			restitution = 0.0;
+		}
 				
-			MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal / invMass;
-			applyCenterImpulse( impulse * normal); 
+		MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal / invMass;
+		applyCenterImpulse( impulse * normal); 
 	   	
-// The friction part starts here!!!!!!!!
+		// The friction part starts here!!!!!!!!
 
-			// Compute the lateral component of the relative velocity
-			// lateral actually points in the opposite direction, i.e.,
-			// into the direction of the friction force.
+		// Compute the lateral component of the relative velocity
+		// lateral actually points in the opposite direction, i.e.,
+		// into the direction of the friction force.
 
 #if 0
-			// test - only do friction on the physics part of the 
-			// velocity.
-			vel1  -= obj1->m_combined_lin_vel;
-			vel2  -= obj2->m_combined_lin_vel;
+		// test - only do friction on the physics part of the 
+		// velocity.
+		vel1  -= obj1->m_combined_lin_vel;
+		vel2  -= obj2->m_combined_lin_vel;
 
-			// This should look familiar....
-			rel_vel        = vel2 - vel1;
-			rel_vel_normal = normal.dot(rel_vel);
+		// This should look familiar....
+		rel_vel        = vel2 - vel1;
+		rel_vel_normal = normal.dot(rel_vel);
 #endif
 				
-			MT_Vector3 lateral =  rel_vel - normal * rel_vel_normal;
-			//printf("                 lateral = { %0.5f, %0.5f, %0.5f } (%0.5f)\n",
-			//	lateral[0], lateral[1], lateral[2], lateral.length());
-				
-			//const SM_ShapeProps *shapeProps = obj2->getShapeProps();
+		MT_Vector3 lateral =  rel_vel - normal * rel_vel_normal;
+		//printf("                 lateral = { %0.5f, %0.5f, %0.5f } (%0.5f)\n",
+		//	lateral[0], lateral[1], lateral[2], lateral.length());
+			
+		//const SM_ShapeProps *shapeProps = obj2->getShapeProps();
 
-			if (m_shapeProps->m_do_anisotropic) {
+		if (m_shapeProps->m_do_anisotropic) {
 
-				// For anisotropic friction we scale the lateral component,
-				// rather than compute a direction-dependent fricition 
-				// factor. For this the lateral component is transformed to
-				// local coordinates.
+			// For anisotropic friction we scale the lateral component,
+			// rather than compute a direction-dependent fricition 
+			// factor. For this the lateral component is transformed to
+			// local coordinates.
 
-				MT_Matrix3x3 lcs(m_orn);
-				// We cannot use m_xform.getBasis() for the matrix, since 
-				// it might contain a non-uniform scaling. 
-				// OPT: it's a bit daft to compute the matrix since the 
-				// quaternion itself can be used to do the transformation.
+			MT_Matrix3x3 lcs(m_orn);
+			// We cannot use m_xform.getBasis() for the matrix, since 
+			// it might contain a non-uniform scaling. 
+			// OPT: it's a bit daft to compute the matrix since the 
+			// quaternion itself can be used to do the transformation.
 
-				MT_Vector3 loc_lateral = lateral * lcs;
-				// lcs is orthogonal so lcs.inversed() == lcs.transposed(),
-				// and lcs.transposed() * lateral == lateral * lcs.
+			MT_Vector3 loc_lateral = lateral * lcs;
+			// lcs is orthogonal so lcs.inversed() == lcs.transposed(),
+			// and lcs.transposed() * lateral == lateral * lcs.
 
-				const MT_Vector3& friction_scaling = 
-					m_shapeProps->m_friction_scaling; 
+			const MT_Vector3& friction_scaling = 
+				m_shapeProps->m_friction_scaling; 
 
-				// Scale the local lateral...
-				loc_lateral.scale(friction_scaling[0], 
-								friction_scaling[1], 
-								friction_scaling[2]);
-				// ... and transform it back to global coordinates
-				lateral = lcs * loc_lateral;
+			// Scale the local lateral...
+			loc_lateral.scale(friction_scaling[0], 
+							friction_scaling[1], 
+							friction_scaling[2]);
+			// ... and transform it back to global coordinates
+			lateral = lcs * loc_lateral;
+		}
+			
+		// A tiny Coulomb friction primer:
+		// The Coulomb friction law states that the magnitude of the
+		// maximum possible friction force depends linearly on the 
+		// magnitude of the normal force.
+		//
+		// F_max_friction = friction_factor * F_normal 
+		//
+		// (NB: independent of the contact area!!)
+		//
+		// The friction factor depends on the material. 
+		// We use impulses rather than forces but let us not be 
+		// bothered by this. 
+
+
+		MT_Scalar  rel_vel_lateral = lateral.length();
+		//printf("rel_vel = { %0.05f, %0.05f, %0.05f}\n", rel_vel[0], rel_vel[1], rel_vel[2]);
+		//printf("n.l = %0.15f\n", normal.dot(lateral)); /* Should be 0.0 */
+
+		if (rel_vel_lateral > MT_EPSILON) {
+			lateral /= rel_vel_lateral;
+
+			// Compute the maximum friction impulse
+			MT_Scalar max_friction = 
+				friction_factor * MT_max(MT_Scalar(0.0), impulse);
+
+			// I guess the GEN_max is not necessary, so let's check it
+
+			assert(impulse >= 0.0);
+
+			// Here's the trick. We compute the impulse to make the
+			// lateral velocity zero. (Make the objects stick together
+			// at the contact point. If this impulse is larger than
+			// the maximum possible friction impulse, then shrink its
+			// magnitude to the maximum friction.
+
+			if (isRigidBody()) {
+					
+				// For rigid bodies we take the inertia into account, 
+				// since the friction impulse is going to change the
+				// angular momentum as well.
+				MT_Vector3 temp = getInvInertia() * local2.cross(lateral);
+				MT_Scalar impulse_lateral = rel_vel_lateral /
+					(invMass + lateral.dot(temp.cross(local2)));
+
+				MT_Scalar friction = MT_min(impulse_lateral, max_friction);
+				applyImpulse(local2 + m_pos, -lateral * friction);
+			}
+			else {
+				MT_Scalar impulse_lateral = rel_vel_lateral / invMass;
+
+				MT_Scalar friction = MT_min(impulse_lateral, max_friction);
+				applyCenterImpulse( -friction * lateral);
 			}
 				
-			// A tiny Coulomb friction primer:
-			// The Coulomb friction law states that the magnitude of the
-			// maximum possible friction force depends linearly on the 
-			// magnitude of the normal force.
-			//
-			// F_max_friction = friction_factor * F_normal 
-			//
-			// (NB: independent of the contact area!!)
-			//
-			// The friction factor depends on the material. 
-			// We use impulses rather than forces but let us not be 
-			// bothered by this. 
 
+		}	
 
-			MT_Scalar  rel_vel_lateral = lateral.length();
-			//printf("rel_vel = { %0.05f, %0.05f, %0.05f}\n", rel_vel[0], rel_vel[1], rel_vel[2]);
-			//printf("n.l = %0.15f\n", normal.dot(lateral)); /* Should be 0.0 */
+		calcXform();
+		notifyClient();
 
-			if (rel_vel_lateral > MT_EPSILON) {
-				lateral /= rel_vel_lateral;
-
-				// Compute the maximum friction impulse
-				MT_Scalar max_friction = 
-					friction_factor * MT_max(MT_Scalar(0.0), impulse);
-
-				// I guess the GEN_max is not necessary, so let's check it
-
-				assert(impulse >= 0.0);
-
-				// Here's the trick. We compute the impulse to make the
-				// lateral velocity zero. (Make the objects stick together
-				// at the contact point. If this impulse is larger than
-				// the maximum possible friction impulse, then shrink its
-				// magnitude to the maximum friction.
-
-				if (isRigidBody()) {
-						
-					// For rigid bodies we take the inertia into account, 
-					// since the friction impulse is going to change the
-					// angular momentum as well.
-					MT_Vector3 temp = getInvInertia() * local2.cross(lateral);
-					MT_Scalar impulse_lateral = rel_vel_lateral /
-						(invMass + lateral.dot(temp.cross(local2)));
-
-					MT_Scalar friction = MT_min(impulse_lateral, max_friction);
-					applyImpulse(local2 + m_pos, -lateral * friction);
-				}
-				else {
-					MT_Scalar impulse_lateral = rel_vel_lateral / invMass;
-
-					MT_Scalar friction = MT_min(impulse_lateral, max_friction);
-					applyCenterImpulse( -friction * lateral);
-				}
-					
-
-			}	
-
-			calcXform();
-			notifyClient();
-
-		}
 	}
+	return false;
 }
 
 DT_Bool SM_Object::boing(
@@ -354,11 +341,20 @@ DT_Bool SM_Object::boing(
 	MT_Vector3 normal(local2 - local1);
 	MT_Scalar dist = normal.length();
 	
+	if (dist < MT_EPSILON)
+		return DT_CONTINUE;
+	
 	local1 -= obj1->m_pos, local2 -= obj2->m_pos;
 	
 	// Calculate collision parameters
 	MT_Vector3 rel_vel        = obj1->getVelocity(local1) + obj1->m_combined_lin_vel - 
 					obj2->getVelocity(local2) - obj2->m_combined_lin_vel;
+	
+	if (obj1->isRigidBody())
+		rel_vel += obj1->actualAngVelocity().cross(local1);
+
+	if (obj2->isRigidBody())
+		rel_vel -= obj2->actualAngVelocity().cross(local2);
 					
 	MT_Scalar restitution = 
 		MT_min(obj1->getMaterialProps()->m_restitution,
@@ -369,6 +365,8 @@ DT_Bool SM_Object::boing(
 				obj2->getMaterialProps()->m_friction);
 				
 	MT_Scalar invMass = obj1->getInvMass() + obj2->getInvMass();
+	
+	normal /= dist;
 	
 	// Calculate reactions
 	if (obj1->isDynamic())

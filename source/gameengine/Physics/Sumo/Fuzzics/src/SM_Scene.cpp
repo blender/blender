@@ -208,7 +208,7 @@ void SM_Scene::proceed(MT_Scalar timeStep, MT_Scalar subSampling) {
 #if 0
 	clearObjectCombinedVelocities();
 #endif
-	for (step = 0; step < 5 && DT_Test(m_scene, m_fixRespTable); step++)
+	if (DT_Test(m_scene, m_fixRespTable))
 		for (i = m_objectList.begin(); i != m_objectList.end(); ++i)
 			(*i)->relax(); 
 	

@@ -267,10 +267,10 @@ private:
 	actualAngVelocity(
 	) const ;
 	
-	void dynamicCollision(MT_Point3 local2, 
-		MT_Vector3 normal, 
+	bool dynamicCollision(const MT_Point3 &local2, 
+		const MT_Vector3 &normal, 
 		MT_Scalar dist, 
-		MT_Vector3 rel_vel,
+		const MT_Vector3 &rel_vel,
 		MT_Scalar restitution,
 		MT_Scalar friction_factor,
 		MT_Scalar invMass
