@@ -1180,7 +1180,8 @@ static void init_render_mball(Object *ob)
 		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 		Normalise(ver->n);
-
+		//if(ob->transflag & OB_NEG_SCALE) VecMulf(ver->n. -1.0);
+		
 		if(need_orco) ver->orco= data;
 	}
 
@@ -1194,7 +1195,10 @@ static void init_render_mball(Object *ob)
 		vlr->v3= RE_findOrAddVert(startvert+index[2]);
 		vlr->v4= 0;
 
-		vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+		if(ob->transflag & OB_NEG_SCALE) 
+			vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+		else
+			vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 
 		vlr->mat= ma;
 		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
@@ -1207,7 +1211,10 @@ static void init_render_mball(Object *ob)
 			*vlr1= *vlr;
 			vlr1->v2= vlr1->v3;
 			vlr1->v3= RE_findOrAddVert(startvert+index[3]);
-			vlr->len= CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
+			if(ob->transflag & OB_NEG_SCALE) 
+				vlr->len= CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
+			else
+				vlr->len= CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
 		}
 	}
 
