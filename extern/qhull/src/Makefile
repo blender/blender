@@ -52,7 +52,7 @@ install: all debug
 #	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/debug/lib$(LIBNAME).a $(NAN_QHULL)/lib/debug/
 ifeq ($(OS),darwin)
 	ranlib $(NAN_QHULL)/lib/lib$(LIBNAME).a
-	ranlib $(NAN_QHULL)/lib/debug/lib$(LIBNAME).a
+#	ranlib $(NAN_QHULL)/lib/debug/lib$(LIBNAME).a
 endif
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh ../include/qhull/*.h $(NAN_QHULL)/include/qhull
 
