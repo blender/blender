@@ -336,6 +336,9 @@ void butspace_context_switch(SpaceButs *buts, Base *new)
 			
 		}
 		else if(tab == TAB_SHADING_TEX) {
+			if(new->object->type==OB_LAMP) buts->texfrom= 2;
+			else if(new->object->type==OB_CAMERA) buts->texfrom= 1;
+			else buts->texfrom= 0;
 		}
 		else if(tab == TAB_SHADING_RAD) {
 		}
