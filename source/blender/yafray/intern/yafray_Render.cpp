@@ -811,9 +811,19 @@ void yafrayRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, 
 	char* matname = VLR_list[0]->mat->id.name;
 	bool shadow=VLR_list[0]->mat->mode & MA_TRACEBLE;
 	ostr <<" shadow=\""<< (shadow ? "on" : "off" )<<"\" ";
+	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
+		ostr << "caus_IOR=\"" << VLR_list[0]->mat->ang << "\" ";
 	if (strlen(matname)==0) matname = "blender_default"; else matname+=2;	//skip MA id
 	ostr << " shader_name=\"" << matname << "\" >\n";
-	ostr << "\t<attributes>\n\t</attributes>\n";
+	ostr << "\t<attributes>\n";
+	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
+	{
+			float tr=1.0-VLR_list[0]->mat->alpha;
+			ostr << "\t\t<caus_tcolor r=\"" << VLR_list[0]->mat->r * tr 
+					 << "\" g=\"" << VLR_list[0]->mat->g * tr 
+					 << "\" b=\"" << VLR_list[0]->mat->b * tr << "\" />\n";
+	}
+	ostr << "\t</attributes>\n";
 	xmlfile << ostr.str();
 
 	// if any face in the Blender mesh uses an orco texture, every face has orco coords,
@@ -1253,6 +1263,7 @@ void yafrayRender_t::writePathlight()
 {
 	ostr.str("");
 	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIpower << "\" ";
+	ostr << " depth=\"" << R.r.GIdepth << "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
 	if (R.r.GIcache)
 	{
 		switch (R.r.GIquality)
@@ -1266,7 +1277,7 @@ void yafrayRender_t::writePathlight()
 		float aspect = 1;
 		if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
 		float sbase = 2.0*atan(0.5/(mainCamLens/(aspect*32.0)))/float(R.r.xsch);
-		ostr << " depth=\"" << R.r.GIdepth << "\" cache=\"on\" use_QMC=\"on\" \n";
+		ostr << " cache=\"on\" use_QMC=\"on\" \n";
 		ostr << " cache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
 			1.0 - R.r.GIshadowquality << "\" search=\"85\" gradient=\"" <<
 			((R.r.GIgradient)? "on" : "off") << "\" >\n";

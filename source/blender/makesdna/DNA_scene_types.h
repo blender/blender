@@ -212,14 +212,12 @@ typedef struct RenderData {
 
 	/* yafray: global panel params */
 	short GIquality, GIcache, GImethod, GIgradient;
-	int GIdepth, GIpixelspersample;
-        int YF_numprocs;
+	int GIdepth, GIcausdepth, GIpixelspersample;
+  int YF_numprocs;
 	float GIshadowquality, GIpower, YF_gamma, YF_exposure;
 
 	char backbuf[160], pic[160], ftype[160];
         
-        int pad1;
-
 } RenderData;
 
 
