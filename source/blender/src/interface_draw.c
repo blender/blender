@@ -203,11 +203,18 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 
 #define MM_WHITE	BIF_ThemeColorShade(TH_BUT_NEUTRAL, 120)
 
-/* Used for the subtle sunken effect around buttons. This is hardcoded to 
- * white to make sure the highlight properly adds to the colour underneath
+/* Used for the subtle sunken effect around buttons.
+ * One option is to hardcode to white, with alpha, however it causes a 
+ * weird 'building up' efect, so it's commented out for now.
  */
+ 
+/*
 #define MM_WHITE_OP	glColor4ub(255, 255, 255, 60)
 #define MM_WHITE_TR	glColor4ub(255, 255, 255, 0)
+ */
+
+#define MM_WHITE_OP	BIF_ThemeColorShadeAlpha(TH_BACK, 55, -100)
+#define MM_WHITE_TR	BIF_ThemeColorShadeAlpha(TH_BACK, 55, -255)
 
 #define MM_LIGHT	BIF_ThemeColorShade(TH_BUT_OUTLINE, 45)
 #define MM_MEDIUM	BIF_ThemeColor(TH_BUT_OUTLINE)
@@ -1427,7 +1434,7 @@ static void ui_draw_text_icon(uiBut *but)
 			if (ok) glColor3ub(255, 255, 0);
 		}
 		
-		glRasterPos2f( x, (but->y1+but->y2- 9.0)/2.0);
+		glRasterPos2f( 0.375+floor(x), 0.375+floor((but->y1+but->y2- 9.0)/2.0));
 		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
 
 		/* part text right aligned */
