@@ -126,18 +126,19 @@ static void icon_draw_blended(Icon *icon, unsigned char blendcol[3])
 
 static void icon_draw_blended(Icon *icon, char *blendcol, int shade)
 {
-	float r, g, b;
+	/* commented out, for now only alpha (ton) */
+//	float r, g, b;
 	
-	r= (-shade + (float)blendcol[0])/180.0;
-	g= (-shade + (float)blendcol[1])/180.0;
-	b= (-shade + (float)blendcol[2])/180.0;
+//	r= (-shade + (float)blendcol[0])/180.0;
+//	g= (-shade + (float)blendcol[1])/180.0;
+//	b= (-shade + (float)blendcol[2])/180.0;
 	
 //	glPixelTransferf(GL_RED_SCALE, r>0.0?r:0.0);
 //	glPixelTransferf(GL_GREEN_SCALE, g>0.0?g:0.0);
 //	glPixelTransferf(GL_BLUE_SCALE, b>0.0?b:0.0);
 
 	if(shade < 0) {
-		r= (128+shade)/128.0;
+		float r= (128+shade)/128.0;
 		glPixelTransferf(GL_ALPHA_SCALE, r);
 	}
 

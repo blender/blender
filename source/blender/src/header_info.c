@@ -1398,17 +1398,11 @@ static void do_info_rendermenu(void *arg, int event)
 	case 1:
 		BIF_do_render(1);
 		break;
-	case 2:
-		if(select_area(SPACE_VIEW3D)) {
-			BIF_do_ogl_render(curarea->spacedata.first, 0 );
-		}
-			break;
-		case 3:
-		if(select_area(SPACE_VIEW3D)) {
-			BIF_do_ogl_render(curarea->spacedata.first, 1 );
-		}
-			break;
-		case 4:
+
+		/* note: dont use select_area() for setting active areas for opengl render */
+		/* its hackish and instable... code here was removed */
+	
+	case 4:
 		BIF_toggle_render_display();
 		break;
 	case 5:
@@ -1464,11 +1458,6 @@ static uiBlock *info_rendermenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Current Frame|F12",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Animation",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "OpenGL Preview Current Frame",0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "OpenGL Preview Animation",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

@@ -3100,27 +3100,20 @@ void view3d_buttons(void)
 
 		/* LOCK */
 		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene");
-		xco+= 14;
+		xco+= XIC+10;
 
 	}
-	else xco+= (10+1)*(XIC/2)+10+4;
-
-	/* VIEWMOVE */
-	/*
-	uiDefIconButI(block, TOG, B_VIEWTRANS, ICON_VIEWMOVE, xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Translates view (SHIFT+MiddleMouse)");
-	uiDefIconButI(block, TOG, B_VIEWZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (CTRL+MiddleMouse)");
-	*/
+	else xco+= (10+1)*(XIC/2)+10;
 	
 	if(G.obedit && (OBACT->type == OB_MESH || OBACT->type == OB_CURVE || OBACT->type == OB_SURF || OBACT->type == OB_LATTICE)) {
 		extern int prop_mode;
-		xco+= 14;
-		//uiDefIconButI(block, ICONTOG|BIT|14, B_PROPTOOL, ICON_GRID, xco+=XIC,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Toggles Proportional Vertex Editing (OKEY)");
 		if(G.f & G_PROPORTIONAL) {
 			uiDefIconTextButI(block, ICONTEXTROW,B_REDR, ICON_SHARPCURVE, propfalloff_pup(), xco,0,XIC+10,YIC, &(prop_mode), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
-			// uiDefIconButI(block, ROW, 0, ICON_SHARPCURVE, xco+=XIC,0,XIC,YIC, &prop_mode, 4.0, 0.0, 0, 0, "Sharp Proportional falloff (Hotkey: Shift O)");
-			// uiDefIconButI(block, ROW, 0, ICON_SMOOTHCURVE,	xco+=XIC,0,XIC,YIC, &prop_mode, 4.0, 1.0, 0, 0, "Smooth Proportional falloff (Hotkey: Shift O)");
+			xco+= XIC+20;
 		}
 	}
+
+	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
 	
 
 	/* Always do this last */
