@@ -1728,21 +1728,21 @@ static TBitem tb_mesh_edit_vertex[]= {
 {	0, "Separate|P", 			3, 		NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Smooth|W, 0", 			2, NULL},
-{	0, "Remove Doubles|Alt M", 			1, NULL},
+{	0, "Remove Doubles|W, 5", 			1, NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", 	0, NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_verticesmenu}};
 
 static TBitem tb_mesh_edit_edge[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
-{	0, "SEPR",					0, NULL},
-{	0, "Bevel", 				6, 		NULL},
+{	0, "SEPR",						0, NULL},
+{	0, "Bevel", 					6, 		NULL},
 {	0, "Loop Subdivide|Ctrl R", 		4, 		NULL},
 {	0, "Knife Subdivide...|Shift K", 	3, 		NULL},
 {	0, "SEPR", 								0, NULL},
-{	0, "Subdivide", 			2, 		NULL},
-{	0, "Subdivide Fractal", 	1, 		NULL},
-{	0, "Subdivide Smooth", 		0, 		NULL},
+{	0, "Subdivide|W, 1", 			2, 		NULL},
+{	0, "Subdivide Fractal|W, 2", 	1, 		NULL},
+{	0, "Subdivide Smooth|W, 3", 		0, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_edgesmenu}};
 
 static TBitem tb_mesh_edit_face[]= {
