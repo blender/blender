@@ -1350,9 +1350,7 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
     {
         if (obj->ipo == NULL)
         {
-            
-					Py_INCREF (Py_None);
-					return (Py_None);
+             obj->ipo = Ipo_CreatePyObject (object->ipo);
         }
         else
         {
