@@ -1066,10 +1066,14 @@ if sys.platform == 'darwin':
                                    sed s/DATE/`date +'%Y-%b-%d'`/ \
                                    > $TARGET")
     bundle.Command ('blender.app/Contents/MacOS/' + blender_app, blender_app,
+                    'strip -u -r $SOURCE && ' + \
                     'cp $SOURCE $TARGET && ' + \
+                    'cp bin/.blender/.bfont.ttf blender.app/Contents/Resources/ && ' + \
+                    'cp bin/.blender/.Blanguages blender.app/Contents/Resources/ && ' + \
+                    'cp -R bin/.blender/locale blender.app/Contents/Resources/ && ' + \
                     'chmod +x $TARGET && ' + \
-                    'find $SOURCE -name CVS -prune -exec rm -rf {} \; && ' +
-                    'find $SOURCE -name .DS_Store -exec rm -rf {} \;')
+                    'find blender.app -name CVS -prune -exec rm -rf {} \; && ' +
+                    'find blender.app -name .DS_Store -exec rm -rf {} \;')
 elif sys.platform=='win32':
     if user_options_dict['BUILD_BINARY']=='debug':
         browser = Environment()
