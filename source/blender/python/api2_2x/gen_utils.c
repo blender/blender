@@ -33,31 +33,53 @@
 #include <string.h>
 #include <Python.h>
 
+#include <BKE_global.h>
+#include <BKE_main.h>
 #include <DNA_ID.h>
+#include <DNA_object_types.h>
 #include <DNA_scriptlink_types.h>
 
+/*****************************************************************************/
+/* Description: This function returns true if both given strings are equal,  */
+/*              otherwise it returns false.                                  */
+/*****************************************************************************/
 int StringEqual (char * string1, char * string2)
 {
 	return (strcmp(string1, string2)==0);
 }
 
+/*****************************************************************************/
+/* Description: This function returns the name of the given ID struct        */
+/*              without the Object type identifying characters prepended.    */
+/*****************************************************************************/
 char * GetIdName (ID *id)
 {
 	return ((id->name)+2);
 }
 
+/*****************************************************************************/
+/* Description: This function sets an internal string with the given type    */
+/*              and error_msg arguments.                                     */
+/*****************************************************************************/
 PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg)
 {
 	PyErr_SetString (type, error_msg);
 	return (NULL);
 }
 
+/*****************************************************************************/
+/* Description: This function increments the reference count of the given    */
+/*              Python object.                                               */
+/*****************************************************************************/
 PyObject * PythonIncRef (PyObject *object)
 {
 	Py_INCREF (object);
 	return (object);
 }
 
+/*****************************************************************************/
+/* Description: This function maps the event identifier to a string.         */
+/*****************************************************************************/
 char * event_to_name(short event)
 {
 	switch (event)
@@ -72,4 +94,30 @@ char * event_to_name(short event)
 			return "Unknown";
 	}
 }	
+
+/*****************************************************************************/
+/* Description: Returns the object with the name specified by the argument   */
+/*              name. Note that the calling function has to remove the first */
+/*              two characters of the object name. These two characters      */
+/*              specify the type of the object (OB, ME, WO, ...)             */
+/*              The function will return NULL when no object with the given  */
+/*              name is found.                                               */
+/*****************************************************************************/
+struct Object * GetObjectByName (char * name)
+{
+	Object	* obj_iter;
+
+	obj_iter = G.main->object.first;
+	while (obj_iter)
+	{
+		if (StringEqual (name, GetIdName (&(obj_iter->id))))
+		{
+			return (obj_iter);
+		}
+		obj_iter = obj_iter->id.next;
+	}
+
+	/* There is no object with the given name */
+	return (NULL);
+}
 

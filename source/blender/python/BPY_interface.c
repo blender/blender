@@ -34,6 +34,8 @@
 #include <Python.h>
 #include <stdio.h>
 
+#include <MEM_guardedalloc.h>
+
 #include <BKE_text.h>
 #include <DNA_ID.h>
 #include <DNA_scriptlink_types.h>
@@ -43,6 +45,9 @@
 #include <BPY_extern.h>
 
 #include "api2_2x/interface.h"
+/* unfortunately the following #include is needed because of some missing */
+/* functionality in BKE/DNA */
+/* #include "api2_2x/gen_utils.h" */
 
 /*****************************************************************************/
 /* Structure definitions                                                     */
@@ -63,6 +68,8 @@ ScriptError g_script_error;
 /*****************************************************************************/
 PyObject * RunPython(Text *text, PyObject *globaldict);
 char *     GetName(Text *text);
+PyObject * CreateGlobalDictionary (void);
+void       ReleaseGlobalDictionary (PyObject * dict);
 
 /*****************************************************************************/
 /* Description: This function will initialise Python and all the implemented */
@@ -165,68 +172,41 @@ void BPY_do_all_scripts(short event)
 	return;
 }
 
-/*
- * Description: Execute a Python script when an event occurs. The following
- *              events are possible: frame changed, load script and redraw.
- *              Only events happening to one of the following object types are
- *              handled: Object, Lamp, Camera, Material, World and Scene
- * Notes:       The call to BLO_findstruct_offset needs to be removed.
- *              Somehow the object triggered by the event has to be retrieved.
- */   
+/*****************************************************************************/
+/* Description: Execute a Python script when an event occurs. The following  */
+/*              events are possible: frame changed, load script and redraw.  */
+/*              Only events happening to one of the following object types   */
+/*              are handled: Object, Lamp, Camera, Material, World and       */
+/*              Scene.                                                       */
+/*****************************************************************************/
 void BPY_do_pyscript(struct ID *id, short event)
 {
-	int            obj_id;
-	char           structname[10];
-	int            offset;
-	ScriptLink   * scriptlink;
+	ScriptLink     * scriptlink;
+	int              index;
+	PyObject       * dict;
 
 	printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);
 
-	/* First get the object type that the script is linked to. */
-	obj_id = MAKE_ID2(id->name[0], id->name[1]);
-	switch (obj_id)
-	{
-		case ID_OB:
-			sprintf (structname, "Object");
-			break;
-		case ID_LA:
-			sprintf (structname, "Lamp");
-			break;
-		case ID_CA:
-			sprintf (structname, "Camera");
-			break;
-		case ID_MA:
-			sprintf (structname, "Material");
-			break;
-		case ID_WO:
-			sprintf (structname, "World");
-			break;
-		case ID_SCE:
-			sprintf (structname, "Scene");
-			break;
-		default:
-			/* TODO: Do we need to generate a nice error message here? */
-			return;
-	}
+	scriptlink = setScriptLinks (id, event);
 
-/* TODO: Replace the following piece of code. See the Notes for info. */
-	/* Check if a script is provided */
-	offset = BLO_findstruct_offset (structname, "scriptlink");
-	if (offset < 0)
+	if (scriptlink == NULL)
 	{
-		printf ("Internal error, unable to find script link\n");
 		return;
 	}
-	scriptlink = (ScriptLink*) (((char*)id) + offset);
 
-	if (!scriptlink->totscript)
+	for (index=0 ; index<scriptlink->totscript ; index++)
 	{
-		/* no script provided */
-		return;
+		printf ("scriptnr: %d\tevent=%d, flag[index]=%d\n", index,
+				event, scriptlink->flag[index]);
+		if ((scriptlink->flag[index] == event) &&
+		    (scriptlink->scripts[index]!=NULL))
+		{
+			dict = CreateGlobalDictionary();
+			RunPython ((Text*) scriptlink->scripts[index], dict);
+			ReleaseGlobalDictionary (dict);
+		}
 	}
-	
-	/* Get all links from blender and set them in the Python environment */
-	setScriptLinks (id, event);
+
 	return;
 }
 
@@ -322,5 +302,26 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 char * GetName(Text *text)
 {
 	return (text->id.name+2);
+}
+
+/*****************************************************************************/
+/* Description: This function creates a new Python dictionary object.        */
+/*****************************************************************************/
+PyObject * CreateGlobalDictionary (void)
+{
+	PyObject *dict = PyDict_New();
+	PyDict_SetItemString (dict, "__builtins__", PyEval_GetBuiltins());
+	PyDict_SetItemString (dict, "__name__", PyString_FromString("__main__"));
+
+	return (dict);
+}
+
+/*****************************************************************************/
+/* Description: This function deletes a given Python dictionary object.      */
+/*****************************************************************************/
+void ReleaseGlobalDictionary (PyObject * dict)
+{
+	PyDict_Clear (dict);
+	Py_DECREF (dict);		/* Release dictionary. */
 }
 

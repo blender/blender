@@ -39,3 +39,8 @@ PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg);
 PyObject * PythonIncRef (PyObject *object);
 char * event_to_name(short event);
 
+/* The following functions may need to be moved to the respective BKE or */
+/* DNA modules. */
+
+struct Object * GetObjectByName (char * name);
+

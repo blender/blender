@@ -31,6 +31,8 @@
 
 #include <stdio.h>
 
+#include <Python.h>
+
 #include <BKE_global.h>
 #include <BKE_main.h>
 #include <DNA_ID.h>
@@ -39,87 +41,83 @@
 #include <DNA_material_types.h>
 #include <DNA_object_types.h>
 #include <DNA_scene_types.h>
+#include <DNA_scriptlink_types.h>
 #include <DNA_world_types.h>
 
-#include "datablock.h"
 #include "gen_utils.h"
 #include "modules.h"
 
 void initBlenderApi2_2x (void)
 {
 	printf ("initBlenderApi2_2x\n");
+	g_blenderdict = NULL;
 	initBlender ();
 }
 
-void setScriptLinks(ID *id, short event)
+ScriptLink * setScriptLinks(ID *id, short event)
 {
-	PyObject *link;
-	int       obj_id;
-
-	printf ("In setScriptLinks (id=?, event=%d)\n", event);
-	if (!g_blenderdict)
-	{
-		/* Not initialized yet. This can happen at first file load. */
-		return;
-	}
+	ScriptLink  * scriptlink;
+	PyObject    * link;
+	Object      * object;
+	int           obj_id;
 
 	obj_id = MAKE_ID2 (id->name[0], id->name[1]);
-	if (obj_id == ID_SCE)
+	printf ("In setScriptLinks (id=%s, event=%d)\n",id->name, event);
+
+	switch (obj_id)
 	{
-		Py_INCREF(Py_None);
-		link = Py_None;
+		case ID_OB:
+			object = GetObjectByName (GetIdName (id));
+			if (object == NULL)
+			{
+				return NULL;
+			}
+			link = ObjectCreatePyObject (object);
+			scriptlink = &(object->scriptlink);
+			break;
+		case ID_LA:
+			scriptlink = NULL;
+			Py_INCREF(Py_None);
+			link = Py_None;
+			break;
+		case ID_CA:
+			scriptlink = NULL;
+			Py_INCREF(Py_None);
+			link = Py_None;
+			break;
+		case ID_MA:
+			scriptlink = NULL;
+			Py_INCREF(Py_None);
+			link = Py_None;
+			break;
+		case ID_WO:
+			scriptlink = NULL;
+			Py_INCREF(Py_None);
+			link = Py_None;
+			break;
+		case ID_SCE:
+			scriptlink = NULL;
+			Py_INCREF(Py_None);
+			link = Py_None;
+			break;
+		default:
+			Py_INCREF(Py_None);
+			link = Py_None;
+			return NULL;
+	}
+
+	if (scriptlink == NULL)
+	{
+		/* This is probably not an internal error anymore :)
+TODO: Check this
+		printf ("Internal error, unable to create PyBlock for script link\n");
+		*/
+		Py_INCREF(Py_False);
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
+		return NULL;
 	}
 	else
 	{
-		link = Py_None;
-		switch (obj_id)
-		{
-			case ID_OB:
-				/* Create a new datablock of type: Object */
-				/*
-				link = ObjectCreatePyObject (G.main->object);
-				*/
-				break;
-			case ID_ME:
-				/* Create a new datablock of type: Mesh */
-				break;
-			case ID_LA:
-				/* Create a new datablock of type: Lamp */
-				break;
-			case ID_CA:
-				/* Create a new datablock of type: Camera */
-				break;
-			case ID_MA:
-				/* Create a new datablock of type: Material */
-				break;
-			case ID_WO:
-				/* Create a new datablock of type: World */
-				break;
-			case ID_IP:
-				/* Create a new datablock of type: Ipo */
-				break;
-			case ID_IM:
-				/* Create a new datablock of type: Image */
-				break;
-			case ID_TXT:
-				/* Create a new datablock of type: Text */
-				break;
-			default:
-				PythonReturnErrorObject (PyExc_SystemError,
-							"Unable to create block for data");
-				return;
-		}
-		/* link = DataBlockFromID(id); */
-	}
-
-	if (!link)
-	{
-		printf ("Internal error, unable to create PyBlock for script link\n");
-		printf ("This is a bug; please report to bugs@blender.nl");
-		Py_INCREF(Py_False);
-		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
-		return;
-	} else {
 		Py_INCREF(Py_True);
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
 	}
@@ -127,4 +125,6 @@ void setScriptLinks(ID *id, short event)
 	PyDict_SetItemString(g_blenderdict, "link", link);
 	PyDict_SetItemString(g_blenderdict, "event",
 			Py_BuildValue("s", event_to_name(event)));
+
+	return (scriptlink);
 }

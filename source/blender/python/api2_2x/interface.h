@@ -32,4 +32,4 @@
 #include <DNA_ID.h>
 
 void initBlenderApi2_2x (void);
-void setScriptLinks(ID *id, short event);
+ScriptLink * setScriptLinks(ID *id, short event);

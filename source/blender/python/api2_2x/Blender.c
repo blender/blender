@@ -239,6 +239,7 @@ void initBlender (void)
 	module = Py_InitModule3("Blender", Blender_methods, NULL);
 
 	dict = PyModule_GetDict (module);
+	g_blenderdict = dict;
 	PyDict_SetItemString (dict, "Object", initObject());
 }
 

@@ -131,7 +131,7 @@ PyObject *Object_Get(PyObject *self, PyObject *args)
 {
 	char            * name;
 	PyObject        * arg;
-	struct Object	* obj_iter;
+	struct Object	* object;
 	BlenObject      * blen_object;
 
 	printf ("In Object_Get()\n");
@@ -148,31 +148,18 @@ PyObject *Object_Get(PyObject *self, PyObject *args)
 		return (PythonReturnErrorObject (PyExc_AttributeError,
 					"expected string argument"));
 	}
+
 	name = PyString_AsString (arg);
+	object = GetObjectByName (name);
 
-	/* Use the name to search for the object requested. */
-	/* Should this lookup be a new function in blenkernel/intern/object.c? */
-	blen_object = NULL;
-	obj_iter = G.main->object.first;
-	while ((obj_iter) && (blen_object == NULL))
-	{
-		if (StringEqual (name, GetIdName (&(obj_iter->id))))
-		{
-			blen_object = (BlenObject*)PyObject_NEW
-				(BlenObject,
-				 &object_type);
-
-			blen_object->object = obj_iter;
-		}
-		obj_iter = obj_iter->id.next;
-	}
-
-	if (blen_object == NULL)
+	if (object == NULL)
 	{
 		/* No object exists with the name specified in the argument name. */
 		return (PythonReturnErrorObject (PyExc_AttributeError,
-					"expected string argument"));
+					"Unknown object specified."));
 	}
+	blen_object = (BlenObject*)PyObject_NEW (BlenObject, &object_type); 
+	blen_object->object = object;
 
 	return ((PyObject*)blen_object);
 }
