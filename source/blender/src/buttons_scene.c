@@ -913,9 +913,9 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	uiDefBut(block, LABEL, 0, "Fullscreen:",		xco, yco-=30, 100, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, TOG, 0, "Fullscreen", xco+70, yco, 68, 19, &G.scene->r.fullscreen, 0.0, 0.0, 0, 0, "Starts player in a new fullscreen display");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, 0, "X:",		xco+40, yco-=27, 100, 19,		&G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
-	uiDefButS(block, NUM, 0, "Freq:",	xco+140, yco, 100, 19, &G.scene->r.freqplay, 10.0, 120.0, 0, 0, "Displays clock frequency of fullscreen display. Click to change.");
-	uiDefButS(block, NUM, 0, "Y:",		xco+40, yco-=21, 100, 19, &G.scene->r.yplay, 10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "X:",		xco+40, yco-=27, 100, 19, &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "Y:",		xco+140, yco, 100, 19, &G.scene->r.yplay,    10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "Freq:",	xco+40, yco-=21, 100, 19, &G.scene->r.freqplay, 10.0, 2000.0, 0, 0, "Displays clock frequency of fullscreen display. Click to change.");
 	uiDefButS(block, NUM, 0, "Bits:",	xco+140, yco, 100, 19, &G.scene->r.depth, 8.0, 32.0, 800.0, 0, "Displays bit depth of full screen display. Click to change.");
 	uiBlockEndAlign(block);
 
