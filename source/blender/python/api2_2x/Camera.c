@@ -34,12 +34,6 @@
  * \ingroup scripts
  * \brief Blender.Camera Module and Camera Data PyObject implementation.
  *
- * Note: Parameters between "<" and ">" are optional.  But if one of them is
- * given, all preceding ones must be given, too.  Of course, this only relates
- * to the Python functions and methods described here and only inside Python
- * code. [ This will go to another file later, probably the main exppython
- * doc file].  XXX Better: put optional args with their default value:
- * (self, name = "MyName")
  */
 
 #include <BKE_main.h>
@@ -88,9 +82,12 @@ static PyObject *M_Camera_Get (PyObject *self, PyObject *args);
 /* Blender.Camera.__doc__                                                    */
 /*****************************************************************************/
 static char M_Camera_doc[] =
-"The Blender Camera module\n\n\
-This module provides access to **Camera Data** objects in Blender\n\n\
-Example::\n\n\
+"The Blender Camera module\n\
+\n\
+This module provides access to **Camera Data** objects in Blender\n\
+\n\
+Example::\n\
+\n\
   from Blender import Camera, Object, Scene\n\
   c = Camera.New('ortho')      # create new ortho camera data\n\
   c.lens = 35.0                # set lens value\n\
@@ -101,14 +98,18 @@ Example::\n\n\
   cur.setCurrentCamera(ob)     # make this camera the active\n";
 
 static char M_Camera_New_doc[] =
-"(type) - return a new Camera object of type \"type\", \
-which can be 'persp' or 'ortho'.\n\
-() - return a new Camera object of type 'persp'.";
+"Blender.Camera.New (type = 'persp', name = 'CamData'):\n\
+\n\
+(type) - Return a new Camera Data object of type \"type\",\n\
+         which can be 'persp' or 'ortho';\n\
+()     - Return a new Camera Data object of type 'persp'.";
 
 static char M_Camera_Get_doc[] =
-"(name) - return the camera with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all cameras in the\ncurrent scene.";
+"Blender.Camera.Get (name = None):\n\
+\n\
+(name) - Return the Camera Data object with the given 'name',\n\
+         None if not found;\n\
+()     - Return a list with all Camera Data objects in the current scene.";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Camera module:             */
@@ -120,6 +121,7 @@ struct PyMethodDef M_Camera_methods[] = {
   {"get",         M_Camera_Get,         METH_VARARGS, M_Camera_Get_doc},
   {NULL, NULL, 0, NULL}
 };
+
 /*****************************************************************************/
 /* Python BPy_Camera methods declarations:                                   */
 /*****************************************************************************/
@@ -150,8 +152,8 @@ static PyMethodDef BPy_Camera_methods[] = {
   {"getType", (PyCFunction)Camera_getType, METH_NOARGS,
       "() - Return Camera type - 'persp':0, 'ortho':1"},
   {"getMode", (PyCFunction)Camera_getMode, METH_NOARGS,
-      "() - Return Camera mode flags (or'ed value) -\n\t"
-      "'showLimits':1, 'showMist':2"},
+      "() - Return Camera mode flags (or'ed value) -\n"
+      "     'showLimits':1, 'showMist':2"},
   {"getLens", (PyCFunction)Camera_getLens, METH_NOARGS,
       "() - Return Camera lens value"},
   {"getClipStart", (PyCFunction)Camera_getClipStart, METH_NOARGS,
@@ -161,19 +163,19 @@ static PyMethodDef BPy_Camera_methods[] = {
   {"getDrawSize", (PyCFunction)Camera_getDrawSize, METH_NOARGS,
       "() - Return Camera draw size value"},
   {"setName", (PyCFunction)Camera_setName, METH_VARARGS,
-      "(str) - Change Camera Data name"},
+      "(s) - Set Camera Data name"},
   {"setType", (PyCFunction)Camera_setType, METH_VARARGS,
-      "(str) - Change Camera type, which can be 'persp' or 'ortho'"},
+      "(s) - Set Camera type, which can be 'persp' or 'ortho'"},
   {"setMode", (PyCFunction)Camera_setMode, METH_VARARGS,
-      "([str[,str]]) - Set Camera mode flag(s): 'showLimits' and 'showMist'"},
+      "(<s<,s>>) - Set Camera mode flag(s): 'showLimits' and 'showMist'"},
   {"setLens", (PyCFunction)Camera_setLens, METH_VARARGS,
-      "(float) - Change Camera lens value"},
+      "(f) - Set Camera lens value"},
   {"setClipStart", (PyCFunction)Camera_setClipStart, METH_VARARGS,
-      "(float) - Change Camera clip start value"},
+      "(f) - Set Camera clip start value"},
   {"setClipEnd", (PyCFunction)Camera_setClipEnd, METH_VARARGS,
-      "(float) - Change Camera clip end value"},
+      "(f) - Set Camera clip end value"},
   {"setDrawSize", (PyCFunction)Camera_setDrawSize, METH_VARARGS,
-      "(float) - Change Camera draw size value"},
+      "(f) - Set Camera draw size value"},
   {0}
 };
 
@@ -238,52 +240,50 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
   char        *type_str = "persp"; /* "persp" is type 0, "ortho" is type 1 */
   char        *name_str = "CamData";
   static char *kwlist[] = {"type_str", "name_str", NULL};
-  BPy_Camera    *pycam; /* for Camera Data object wrapper in Python */
+  PyObject    *pycam; /* for Camera Data object wrapper in Python */
   Camera      *blcam; /* for actual Camera Data we create in Blender */
   char        buf[21];
 
   printf ("In Camera_New()\n");
-
+	/* Parse the arguments passed in by the Python interpreter */
   if (!PyArg_ParseTupleAndKeywords(args, kwords, "|ss", kwlist,
                                    &type_str, &name_str))
   /* We expected string(s) (or nothing) as argument, but we didn't get that. */
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected zero, one or two strings as arguments"));
+    return EXPP_ReturnPyObjError (PyExc_AttributeError,
+            "expected zero, one or two strings as arguments");
 
   blcam = add_camera(); /* first create the Camera Data in Blender */
 
   if (blcam) /* now create the wrapper obj in Python */
-    pycam = (BPy_Camera *)PyObject_NEW(BPy_Camera, &Camera_Type);
+    pycam = Camera_CreatePyObject (blcam);
   else
-    return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                            "couldn't create Camera Data in Blender"));
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                            "couldn't create Camera Data in Blender");
 
 	/* let's return user count to zero, because ... */
-	blcam->id.us = 0; /* ... add_camera() right above incref'ed it */
+	blcam->id.us = 0; /* ... add_camera() incref'ed it */
 	/* XXX XXX Do this in other modules, too */
 
   if (pycam == NULL)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-                            "couldn't create Camera Data object"));
-
-  pycam->camera = blcam; /* link Python camera wrapper to Blender Camera */
+    return EXPP_ReturnPyObjError (PyExc_MemoryError,
+                            "couldn't create Camera PyObject");
 
   if (strcmp (type_str, "persp") == 0) /* default, no need to set, so */
     /*blcam->type = (short)EXPP_CAM_TYPE_PERSP*/; /* we comment this line */
   else if (strcmp (type_str, "ortho") == 0)
     blcam->type = (short)EXPP_CAM_TYPE_ORTHO;
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "unknown camera type"));
+    return EXPP_ReturnPyObjError (PyExc_AttributeError,
+            "unknown camera type");
 
-  if (strcmp(name_str, "CamData") == 0)
-    return (PyObject *)pycam;
+  if (strcmp (name_str, "CamData") == 0)
+    return pycam;
   else { /* user gave us a name for the camera, use it */
-    PyOS_snprintf(buf, sizeof(buf), "%s", name_str);
-    rename_id(&blcam->id, buf); /* proper way in Blender */
+    PyOS_snprintf (buf, sizeof(buf), "%s", name_str);
+    rename_id (&blcam->id, buf); /* proper way in Blender */
   }
 
-  return (PyObject *)pycam;
+  return pycam;
 }
 
 /**
@@ -292,11 +292,11 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
  * This is the .Get() function of the Blender.Camera submodule.  It searches
  * the list of current Camera Data objects and returns a Python wrapper for
  * the one with the name provided by the user.  If called with no arguments,
- * it returns a list of all current Camera Data object names in Blender.
- * \param <name> - string: The name of an existing Blender Camera Data object.
- * \return () - A list with the names of all current Camera Data objects;\n
- * \return (name) - A Python wrapper for the Camera Data called 'name'
+ * it returns a list with Python wrappers for all current Camera Data objects
  * in Blender.
+ * \param <name> - string: The name of an existing Blender Camera Data object.
+ * \return () - A list with wrappers for all current Camera Data objects;\n
+ * \return (name) - A wrapper for the Camera Data called 'name' in Blender.
  */
 
 static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
@@ -305,59 +305,62 @@ static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
   Camera *cam_iter;
 
   if (!PyArg_ParseTuple(args, "|s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-            "expected string argument (or nothing)"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected string argument (or nothing)");
 
   cam_iter = G.main->camera.first;
 
   if (name) { /* (name) - Search camera by name */
 
-    BPy_Camera *wanted_cam = NULL;
+    PyObject *wanted_cam = NULL;
 
-    while ((cam_iter) && (wanted_cam == NULL)) {
-      if (strcmp (name, cam_iter->id.name+2) == 0) {
-        wanted_cam = (BPy_Camera *)PyObject_NEW(BPy_Camera, &Camera_Type);
-        if (wanted_cam) wanted_cam->camera = cam_iter;
-      }
+    while (cam_iter && !wanted_cam) {
+
+		  if (strcmp (name, cam_iter->id.name+2) == 0) {
+        wanted_cam = Camera_CreatePyObject (cam_iter);
+				break;
+			}
+
       cam_iter = cam_iter->id.next;
     }
 
-    if (wanted_cam == NULL) { /* Requested camera doesn't exist */
+    if (!wanted_cam) { /* Requested camera doesn't exist */
       char error_msg[64];
       PyOS_snprintf(error_msg, sizeof(error_msg),
                       "Camera \"%s\" not found", name);
-      return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+      return EXPP_ReturnPyObjError (PyExc_NameError, error_msg);
     }
 
-    return (PyObject *)wanted_cam;
+    return wanted_cam;
   }
 
-  else { /* () - return a list of all cameras in the scene */
+  else { /* () - return a list of wrappers for all cameras in the scene */
     int index = 0;
-    PyObject *camlist, *pystr;
+    PyObject *cam_pylist, *pyobj;
 
-    camlist = PyList_New (BLI_countlist (&(G.main->camera)));
+    cam_pylist = PyList_New (BLI_countlist (&(G.main->camera)));
 
-    if (camlist == NULL)
-      return (PythonReturnErrorObject (PyExc_MemoryError,
-              "couldn't create PyList"));
+    if (!cam_pylist)
+      return PythonReturnErrorObject (PyExc_MemoryError,
+              "couldn't create PyList");
 
     while (cam_iter) {
-      pystr = PyString_FromString (cam_iter->id.name+2);
+      pyobj = Camera_CreatePyObject (cam_iter);
 
-      if (!pystr)
-        return (PythonReturnErrorObject (PyExc_MemoryError,
-                  "couldn't create PyString"));
+      if (!pyobj)
+        return PythonReturnErrorObject (PyExc_MemoryError,
+                  "couldn't create Camera PyObject");
 
-      PyList_SET_ITEM (camlist, index, pystr);
+      PyList_SET_ITEM (cam_pylist, index, pyobj);
 
       cam_iter = cam_iter->id.next;
       index++;
     }
 
-    return (camlist);
+    return cam_pylist;
   }
 }
+
 /*@}*/
 
 /**
@@ -365,7 +368,7 @@ static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
  *
  * This function is used by Blender_Init() in Blender.c to register the
  * Blender.Camera submodule in the main Blender module.
- * \return PyObject*: The initialized submodule.
+ * \return The initialized submodule.
  */
 
 PyObject *M_Camera_Init (void)
@@ -379,7 +382,7 @@ PyObject *M_Camera_Init (void)
   submodule = Py_InitModule3("Blender.Camera",
                   M_Camera_methods, M_Camera_doc);
 
-  return (submodule);
+  return submodule;
 }
 
 /* Three Python Camera_Type helper functions needed by the Object module: */
@@ -389,8 +392,8 @@ PyObject *M_Camera_Init (void)
  *
  * This is also used in Object.c when defining the object.data member variable
  * for an Object of type 'Camera'.
- * \param cam - Camera*: A pointer to an existing Blender Camera Data object.
- * \return PyObject*: The Camera Data wrapper created.
+ * \param cam - A pointer to an existing Blender Camera Data object.
+ * \return The Camera Data wrapper created.
  */
 
 PyObject *Camera_CreatePyObject (Camera *cam)
@@ -401,7 +404,7 @@ PyObject *Camera_CreatePyObject (Camera *cam)
 
   if (!pycam)
     return EXPP_ReturnPyObjError (PyExc_MemoryError,
-            "couldn't create BPy_Camera object");
+            "couldn't create BPy_Camera PyObject");
 
   pycam->camera = cam;
 
@@ -413,8 +416,8 @@ PyObject *Camera_CreatePyObject (Camera *cam)
  *
  * This is also used in Object.c when handling the object.data member variable
  * for an object of type 'Camera'.
- * \param pyobj - PyObject*: A pointer to a Camera PyObject.
- * \return int: True or false.
+ * \param pyobj - A pointer to a Camera PyObject.
+ * \return True or false.
  */
 
 int Camera_CheckPyObject (PyObject *pyobj)
@@ -427,8 +430,8 @@ int Camera_CheckPyObject (PyObject *pyobj)
  *
  * This is also used in Object.c when handling the object.data member variable
  * for an object of type 'Camera'.
- * \param pyobj - PyObject*: A pointer to a Camera PyObject.
- * \return Camera*: A pointer to the wrapped Blender Camera Data object.
+ * \param pyobj - A pointer to a Camera PyObject.
+ * \return A pointer to the wrapped Blender Camera Data object.
  */
 
 Camera *Camera_FromPyObject (PyObject *pyobj)
@@ -461,8 +464,8 @@ static PyObject *Camera_getName(BPy_Camera *self)
 
   if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get Camera.name attribute"));
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                                   "couldn't get Camera.name attribute");
 }
 
 /**
@@ -477,8 +480,8 @@ static PyObject *Camera_getType(BPy_Camera *self)
 
   if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get Camera.type attribute"));
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                                   "couldn't get Camera.type attribute");
 }
 
 /**
@@ -493,8 +496,8 @@ static PyObject *Camera_getMode(BPy_Camera *self)
 
   if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get Camera.Mode attribute"));
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                                   "couldn't get Camera.Mode attribute");
 }
 
 /**
@@ -509,8 +512,8 @@ static PyObject *Camera_getLens(BPy_Camera *self)
 
   if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get Camera.lens attribute"));
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                                   "couldn't get Camera.lens attribute");
 }
 
 /**
@@ -525,8 +528,8 @@ static PyObject *Camera_getClipStart(BPy_Camera *self)
 
   if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get Camera.clipStart attribute"));
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                                   "couldn't get Camera.clipStart attribute");
 }
 
 /**
@@ -540,8 +543,8 @@ static PyObject *Camera_getClipEnd(BPy_Camera *self)
 
   if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get Camera.clipEnd attribute"));
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                                   "couldn't get Camera.clipEnd attribute");
 }
 
 /**
@@ -555,8 +558,8 @@ static PyObject *Camera_getDrawSize(BPy_Camera *self)
 
   if (attr) return attr;
 
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-                                   "couldn't get Camera.drawSize attribute"));
+  return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+                                   "couldn't get Camera.drawSize attribute");
 }
 
 /**
@@ -570,8 +573,8 @@ static PyObject *Camera_setName(BPy_Camera *self, PyObject *args)
   char buf[21];
 
   if (!PyArg_ParseTuple(args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected string argument"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected string argument");
 
   PyOS_snprintf(buf, sizeof(buf), "%s", name);
 
@@ -591,16 +594,16 @@ static PyObject *Camera_setType(BPy_Camera *self, PyObject *args)
   char *type;
 
   if (!PyArg_ParseTuple(args, "s", &type))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected string argument"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected string argument");
 
   if (strcmp (type, "persp") == 0)
     self->camera->type = (short)EXPP_CAM_TYPE_PERSP;
   else if (strcmp (type, "ortho") == 0)
     self->camera->type = (short)EXPP_CAM_TYPE_ORTHO;  
   else
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-                                     "unknown camera type"));
+    return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                                     "unknown camera type");
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -624,14 +627,14 @@ static PyObject *Camera_setIntType(BPy_Camera *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument: 0 or 1"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected int argument: 0 or 1");
 
   if (value == 0 || value == 1)
     self->camera->type = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_ValueError,
-                                     "expected int argument: 0 or 1"));
+    return EXPP_ReturnPyObjError (PyExc_ValueError,
+                                     "expected int argument: 0 or 1");
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -654,8 +657,8 @@ static PyObject *Camera_setMode(BPy_Camera *self, PyObject *args)
   short flag = 0;
 
   if (!PyArg_ParseTuple(args, "|ss", &mode_str1, &mode_str2))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected one or two strings as arguments"));
+    return EXPP_ReturnPyObjError (PyExc_AttributeError,
+            "expected one or two strings as arguments");
   
   if (mode_str1 != NULL) {
     if (strcmp(mode_str1, "showLimits") == 0)
@@ -663,8 +666,8 @@ static PyObject *Camera_setMode(BPy_Camera *self, PyObject *args)
     else if (strcmp(mode_str1, "showMist") == 0)
       flag |= (short)EXPP_CAM_MODE_SHOWMIST;
     else
-      return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-                              "first argument is an unknown camera flag"));
+      return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                              "first argument is an unknown camera flag");
 
     if (mode_str2 != NULL) {
       if (strcmp(mode_str2, "showLimits") == 0)
@@ -672,8 +675,8 @@ static PyObject *Camera_setMode(BPy_Camera *self, PyObject *args)
       else if (strcmp(mode_str2, "showMist") == 0)
         flag |= (short)EXPP_CAM_MODE_SHOWMIST;
       else
-        return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-                              "second argument is an unknown camera flag"));
+        return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                              "second argument is an unknown camera flag");
     }
   }
 
@@ -698,14 +701,14 @@ static PyObject *Camera_setIntMode(BPy_Camera *self, PyObject *args)
   short value;
 
   if (!PyArg_ParseTuple(args, "h", &value))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected int argument in [0,3]"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected int argument in [0,3]");
 
   if (value >= 0 && value <= 3)
     self->camera->flag = value;
   else
-    return (EXPP_ReturnPyObjError (PyExc_ValueError,
-                                     "expected int argument in [0,3]"));
+    return EXPP_ReturnPyObjError (PyExc_ValueError,
+                                     "expected int argument in [0,3]");
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -721,9 +724,9 @@ static PyObject *Camera_setLens(BPy_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected float argument"));
-  
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected float argument");
+ 
   self->camera->lens = EXPP_ClampFloat (value,
                   EXPP_CAM_LENS_MIN, EXPP_CAM_LENS_MAX);
   
@@ -741,8 +744,8 @@ static PyObject *Camera_setClipStart(BPy_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected float argument"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected float argument");
 
   self->camera->clipsta = EXPP_ClampFloat (value,
                   EXPP_CAM_CLIPSTART_MIN, EXPP_CAM_CLIPSTART_MAX);
@@ -761,8 +764,8 @@ static PyObject *Camera_setClipEnd(BPy_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected float argument"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected float argument");
 
   self->camera->clipend = EXPP_ClampFloat (value,
                   EXPP_CAM_CLIPEND_MIN, EXPP_CAM_CLIPEND_MAX);
@@ -781,8 +784,8 @@ static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args)
   float value;
   
   if (!PyArg_ParseTuple(args, "f", &value))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-                                     "expected a float number as argument"));
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+                                     "expected a float number as argument");
 
   self->camera->drawsize = EXPP_ClampFloat (value,
                   EXPP_CAM_DRAWSIZE_MIN, EXPP_CAM_DRAWSIZE_MAX);
@@ -854,8 +857,8 @@ static PyObject *Camera_GetAttr (BPy_Camera *self, char *name)
   }
 
   if (!attr)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-                      "couldn't create PyObject"));
+    return EXPP_ReturnPyObjError (PyExc_MemoryError,
+                      "couldn't create PyObject");
 
   if (attr != Py_None) return attr; /* member attribute found, return it */
 
@@ -909,23 +912,23 @@ static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *value)
 
     if ((strcmp (name, "Types") == 0) || /* user tried to change a */
         (strcmp (name, "Modes") == 0))   /* constant dict type ... */
-      return (EXPP_ReturnIntError (PyExc_AttributeError,
-                   "constant dictionary -- cannot be changed"));
+      return EXPP_ReturnIntError (PyExc_AttributeError,
+                   "constant dictionary -- cannot be changed");
 
     else /* ... or no member with the given name was found */
-      return (EXPP_ReturnIntError (PyExc_KeyError,
-                   "attribute not found"));
+      return EXPP_ReturnIntError (PyExc_KeyError,
+                   "attribute not found");
   }
 
 /* valtuple won't be returned to the caller, so we need to DECREF it */
-  Py_DECREF(valtuple);
+  Py_DECREF (valtuple);
 
   if (error != Py_None) return -1;
 
 /* Py_None was incref'ed by the called Camera_set* function. We probably
  * don't need to decref Py_None (!), but since Python/C API manual tells us
  * to treat it like any other PyObject regarding ref counting ... */
-  Py_DECREF(Py_None);
+  Py_DECREF (Py_None);
   return 0; /* normal exit */
 }
 

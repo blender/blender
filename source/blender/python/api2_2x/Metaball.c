@@ -111,7 +111,7 @@ static PyObject *M_Metaball_Get(PyObject *self, PyObject *args)
 
   else { /* () - return a list of all mballs in the scene */
     int index = 0;
-    PyObject *mballlist, *pystr;
+    PyObject *mballlist, *pyobj;
 
     mballlist = PyList_New (BLI_countlist (&(G.main->mball)));
 
@@ -120,13 +120,13 @@ static PyObject *M_Metaball_Get(PyObject *self, PyObject *args)
 				       "couldn't create PyList"));
 
     while (mball_iter) {
-      pystr = PyString_FromString (mball_iter->id.name+2);
+      pyobj = Metaball_CreatePyObject (mball_iter);
 
-      if (!pystr)
+      if (!pyobj)
 	return (PythonReturnErrorObject (PyExc_MemoryError,
 					 "couldn't create PyString"));
 
-      PyList_SET_ITEM (mballlist, index, pystr);
+      PyList_SET_ITEM (mballlist, index, pyobj);
 
       mball_iter = mball_iter->id.next;
       index++;
@@ -1039,3 +1039,44 @@ static PyObject *MetaballRepr (C_Metaball *self)
   return PyString_FromString(self->metaball->id.name+2);
 }
 
+/* Three Python Metaball_Type helper functions needed by the Object module: */
+
+/*****************************************************************************/
+/* Function:    Metaball_CreatePyObject                                      */
+/* Description: This function will create a new C_Metaball from an existing  */
+/*              Blender metaball structure.                                  */
+/*****************************************************************************/
+PyObject *Metaball_CreatePyObject (MetaBall *metaball)
+{
+	C_Metaball *pymetaball;
+
+	pymetaball = (C_Metaball *)PyObject_NEW (C_Metaball, &Metaball_Type);
+
+	if (!pymetaball)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"couldn't create C_Metaball object");
+
+	pymetaball->metaball = metaball;
+
+	return (PyObject *)pymetaball;
+}
+
+/*****************************************************************************/
+/* Function:    Metaball_CheckPyObject                                       */
+/* Description: This function returns true when the given PyObject is of the */
+/*              type Metaball. Otherwise it will return false.               */
+/*****************************************************************************/
+int Metaball_CheckPyObject (PyObject *pyobj)
+{
+	return (pyobj->ob_type == &Metaball_Type);
+}
+
+/*****************************************************************************/
+/* Function:    Metaball_FromPyObject                                        */
+/* Description: This function returns the Blender metaball from the given    */
+/*              PyObject.                                                    */
+/*****************************************************************************/
+MetaBall *Metaball_FromPyObject (PyObject *pyobj)
+{
+	return ((C_Metaball *)pyobj)->metaball;
+}

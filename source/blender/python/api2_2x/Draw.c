@@ -38,16 +38,16 @@
 
 static void Button_dealloc(PyObject *self)
 {
-	Button *but= (Button*) self;
+	Button *but = (Button*)self;
 
-	if(but->type==3) MEM_freeN(but->val.asstr);
+	if(but->type == 3) MEM_freeN (but->val.asstr);
 		
-	PyMem_DEL(self);	
+	PyObject_DEL (self);	
 }
 
 static PyObject *Button_getattr(PyObject *self, char *name)
 {
-	Button *but= (Button*) self;
+	Button *but = (Button*)self;
 	
 	if(strcmp(name, "val") == 0) {
 		if (but->type==1)

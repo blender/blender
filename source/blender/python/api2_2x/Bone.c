@@ -146,7 +146,7 @@ static int BonePrint (C_Bone *bone, FILE *fp, int flags);
 /*****************************************************************************/
 /* Python TypeBone structure definition:                                     */
 /*****************************************************************************/
-static PyTypeObject Bone_Type =
+PyTypeObject Bone_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
@@ -680,9 +680,8 @@ static PyObject *BoneRepr (C_Bone *self)
 /**************************************************************************/
 static int BoneCmp (C_Bone *a, C_Bone *b)
 {
-  if (a<b) return -1;
-  else if (a==b) return 0;
-  else return 1;
+  Bone *pa = a->bone, *pb = b->bone;
+	return (pa == pb) ? 0:-1;
 }
 
 

@@ -152,9 +152,9 @@ static PyObject *IpoRepr (C_Ipo *self);
 /*****************************************************************************/
 /* Python Ipo_Type structure definition:                                  */
 /*****************************************************************************/
-static PyTypeObject Ipo_Type =
+PyTypeObject Ipo_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Ipo",                               /* tp_name */
   sizeof (C_Ipo),                      /* tp_basicsize */

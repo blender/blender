@@ -33,9 +33,7 @@
 #define EXPP_CAMERA_H
 
 #include <Python.h>
-
 #include <DNA_camera_types.h>
-
 #include "constant.h"
 #include "gen_utils.h"
 

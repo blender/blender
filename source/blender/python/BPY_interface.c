@@ -451,7 +451,7 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 /*#ifdef BLENDER_SANDBOX_MODE
 
 // IGNORE THIS ALL FOR A WHILE, IT'S VERY INCOMPLETE AND WILL CHANGE
-// CONSIDERABLY IN THE NEXT COMMIT.  THE ifdef won't stay, either.
+// CONSIDERABLY, SOON.  The #ifdef won't stay, either.
 
 // The import statement is a security risk, so we don't allow it in
 // SANDBOX MODE.  Instead, we import all needed modules ourselves and

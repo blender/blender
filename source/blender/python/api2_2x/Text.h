@@ -51,7 +51,7 @@
 #define EXPP_TEXT_MODE_FOLLOW TXT_FOLLOW
 
 /*****************************************************************************/
-/* Python API function prototypes for the Text module.                     */
+/* Python API function prototypes for the Text module.                       */
 /*****************************************************************************/
 static PyObject *M_Text_New (PyObject *self, PyObject *args,
                 PyObject *keywords);
@@ -62,7 +62,7 @@ static PyObject *M_Text_unlink (PyObject *self, PyObject *args);
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
 /* In Python these will be written to the console when doing a               */
-/* Blender.Text.__doc__                                                    */
+/* Blender.Text.__doc__                                                      */
 /*****************************************************************************/
 static char M_Text_doc[] =
 "The Blender Text module\n\n";
@@ -83,7 +83,7 @@ static char M_Text_unlink_doc[] =
 "(text) - remove text object 'text' from the text window";
 
 /*****************************************************************************/
-/* Python method structure definition for Blender.Text module:             */
+/* Python method structure definition for Blender.Text module:               */
 /*****************************************************************************/
 struct PyMethodDef M_Text_methods[] = {
   {"New",(PyCFunction)M_Text_New, METH_VARARGS|METH_KEYWORDS,
@@ -96,15 +96,16 @@ struct PyMethodDef M_Text_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python C_Text structure definition:                                     */
+/* Python C_Text structure definition:                                       */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
   Text *text;
+
 } C_Text;
 
 /*****************************************************************************/
-/* Python C_Text methods declarations:                                     */
+/* Python C_Text methods declarations:                                       */
 /*****************************************************************************/
 static PyObject *Text_getName(C_Text *self);
 static PyObject *Text_getFilename(C_Text *self);
@@ -116,7 +117,7 @@ static PyObject *Text_set(C_Text *self, PyObject *args);
 static PyObject *Text_asLines(C_Text *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Text methods table:                                            */
+/* Python C_Text methods table:                                              */
 /*****************************************************************************/
 static PyMethodDef C_Text_methods[] = {
  /* name, method, flags, doc */
@@ -140,7 +141,7 @@ static PyMethodDef C_Text_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python Text_Type callback function prototypes:                          */
+/* Python Text_Type callback function prototypes:                            */
 /*****************************************************************************/
 static void TextDeAlloc (C_Text *self);
 static int TextPrint (C_Text *self, FILE *fp, int flags);
@@ -150,7 +151,7 @@ static int TextCompare (C_Text *a, C_Text *b);
 static PyObject *TextRepr (C_Text *self);
 
 /*****************************************************************************/
-/* Python Text_Type structure definition:                                  */
+/* Python Text_Type structure definition:                                    */
 /*****************************************************************************/
 PyTypeObject Text_Type =
 {

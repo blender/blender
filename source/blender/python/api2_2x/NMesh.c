@@ -46,7 +46,7 @@ void mesh_update(Mesh *mesh)
 
 static void NMCol_dealloc(PyObject *self)
 {
-  PyMem_DEL(self); /* XXX PyObject_Del ?*/
+  PyObject_DEL(self); /* XXX PyObject_Del ?*/
 }
 
 static C_NMCol *newcol (char r, char g, char b, char a)
@@ -144,7 +144,7 @@ static void NMFace_dealloc (PyObject *self)
   Py_DECREF(mf->col);
   Py_XDECREF(mf->image);
 
-  PyMem_DEL(self);
+  PyObject_DEL(self);
 }
 
 static C_NMFace *new_NMFace(PyObject *vertexlist)
@@ -393,7 +393,7 @@ static PyObject *M_NMesh_Vert(PyObject *self, PyObject *args)
 
 static void NMVert_dealloc(PyObject *self)
 {
-  PyMem_DEL(self);
+  PyObject_DEL(self);
 }
 
 static PyObject *NMVert_getattr(PyObject *self, char *name)
@@ -545,7 +545,7 @@ static void NMesh_dealloc(PyObject *self)
   Py_DECREF(me->verts);
   Py_DECREF(me->faces);
   
-  PyMem_DEL(self);
+  PyObject_DEL(self);
 }
 
 static PyObject *NMesh_getSelectedFaces(PyObject *self, PyObject *args)

@@ -99,22 +99,22 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
   char *name = NULL;
   Lamp *lamp_iter;
 
-	if (!PyArg_ParseTuple(args, "|s", &name))
+  if (!PyArg_ParseTuple(args, "|s", &name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument (or nothing)"));
 
   lamp_iter = G.main->lamp.first;
 
-	if (name) { /* (name) - Search lamp by name */
+  if (name) { /* (name) - Search lamp by name */
 
     C_Lamp *wanted_lamp = NULL;
 
     while ((lamp_iter) && (wanted_lamp == NULL)) {
 
-			if (strcmp (name, lamp_iter->id.name+2) == 0)
+      if (strcmp (name, lamp_iter->id.name+2) == 0)
         wanted_lamp = (C_Lamp *)Lamp_CreatePyObject(lamp_iter);
 
-			lamp_iter = lamp_iter->id.next;
+      lamp_iter = lamp_iter->id.next;
     }
 
     if (wanted_lamp == NULL) { /* Requested lamp doesn't exist */
@@ -125,11 +125,11 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
     }
 
     return (PyObject *)wanted_lamp;
-	}
+  }
 
-	else { /* () - return a list of all lamps in the scene */
+  else { /* () - return a list of all lamps in the scene */
     int index = 0;
-    PyObject *lamplist, *pystr;
+    PyObject *lamplist, *pyobj;
 
     lamplist = PyList_New (BLI_countlist (&(G.main->lamp)));
 
@@ -137,46 +137,46 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
       return (PythonReturnErrorObject (PyExc_MemoryError,
               "couldn't create PyList"));
 
-		while (lamp_iter) {
-      pystr = PyString_FromString (lamp_iter->id.name+2);
+    while (lamp_iter) {
+      pyobj = Lamp_CreatePyObject (lamp_iter);
 
-			if (!pystr)
-				return (PythonReturnErrorObject (PyExc_MemoryError,
-									"couldn't create PyString"));
+      if (!pyobj)
+        return (PythonReturnErrorObject (PyExc_MemoryError,
+                  "couldn't create PyString"));
 
-			PyList_SET_ITEM (lamplist, index, pystr);
+      PyList_SET_ITEM (lamplist, index, pyobj);
 
       lamp_iter = lamp_iter->id.next;
       index++;
-		}
+    }
 
-		return (lamplist);
-	}
+    return lamplist;
+  }
 }
 
 static PyObject *M_Lamp_TypesDict (void)
 { /* create the Blender.Lamp.Types constant dict */
-	PyObject *Types = M_constant_New();
+  PyObject *Types = M_constant_New();
 
-	if (Types) {
-		C_constant *c = (C_constant *)Types;
+  if (Types) {
+    C_constant *c = (C_constant *)Types;
 
     constant_insert (c, "Lamp", PyInt_FromLong (EXPP_LAMP_TYPE_LAMP));
     constant_insert (c, "Sun",  PyInt_FromLong (EXPP_LAMP_TYPE_SUN));
     constant_insert (c, "Spot", PyInt_FromLong (EXPP_LAMP_TYPE_SPOT));
     constant_insert (c, "Hemi", PyInt_FromLong (EXPP_LAMP_TYPE_HEMI));
 
-	}
+  }
 
-	return Types;
+  return Types;
 }
 
 static PyObject *M_Lamp_ModesDict (void)
 { /* create the Blender.Lamp.Modes constant dict */
-	PyObject *Modes = M_constant_New();
+  PyObject *Modes = M_constant_New();
 
-	if (Modes) {
-		C_constant *c = (C_constant *)Modes;
+  if (Modes) {
+    C_constant *c = (C_constant *)Modes;
 
     constant_insert (c, "Shadows", PyInt_FromLong (EXPP_LAMP_MODE_SHADOWS));
     constant_insert (c, "Halo", PyInt_FromLong (EXPP_LAMP_MODE_HALO));
@@ -186,8 +186,8 @@ static PyObject *M_Lamp_ModesDict (void)
     constant_insert (c, "Sphere", PyInt_FromLong (EXPP_LAMP_MODE_SPHERE));
     constant_insert (c, "Square", PyInt_FromLong (EXPP_LAMP_MODE_SQUARE));
     constant_insert (c, "OnlyShadow",
-										PyInt_FromLong (EXPP_LAMP_MODE_ONLYSHADOW));
-	}
+                    PyInt_FromLong (EXPP_LAMP_MODE_ONLYSHADOW));
+  }
 
   return Modes;
 }
@@ -202,13 +202,13 @@ PyObject *M_Lamp_Init (void)
 
   Lamp_Type.ob_type = &PyType_Type;
 
-	Types = M_Lamp_TypesDict ();
-	Modes = M_Lamp_ModesDict ();
+  Types = M_Lamp_TypesDict ();
+  Modes = M_Lamp_ModesDict ();
 
   submodule = Py_InitModule3("Blender.Lamp", M_Lamp_methods, M_Lamp_doc);
 
-	if (Types) PyModule_AddObject(submodule, "Types", Types);
-	if (Modes) PyModule_AddObject(submodule, "Modes", Modes);
+  if (Types) PyModule_AddObject(submodule, "Types", Types);
+  if (Modes) PyModule_AddObject(submodule, "Modes", Modes);
 
   return (submodule);
 }
@@ -222,24 +222,24 @@ PyObject *M_Lamp_Init (void)
 /*****************************************************************************/
 PyObject *Lamp_CreatePyObject (Lamp *lamp)
 {
-	C_Lamp *pylamp;
-	float *rgb[3];
+  C_Lamp *pylamp;
+  float *rgb[3];
 
-	pylamp = (C_Lamp *)PyObject_NEW (C_Lamp, &Lamp_Type);
+  pylamp = (C_Lamp *)PyObject_NEW (C_Lamp, &Lamp_Type);
 
-	if (!pylamp)
-		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-						"couldn't create C_Lamp object");
+  if (!pylamp)
+    return EXPP_ReturnPyObjError (PyExc_MemoryError,
+            "couldn't create C_Lamp object");
 
-	pylamp->lamp = lamp;
+  pylamp->lamp = lamp;
 
-	rgb[0] = &lamp->r;
-	rgb[1] = &lamp->g;
-	rgb[2] = &lamp->b;
+  rgb[0] = &lamp->r;
+  rgb[1] = &lamp->g;
+  rgb[2] = &lamp->b;
 
-	pylamp->color = (C_rgbTuple *)rgbTuple_New(rgb);
+  pylamp->color = (C_rgbTuple *)rgbTuple_New(rgb);
 
-	return (PyObject *)pylamp;
+  return (PyObject *)pylamp;
 }
 
 /*****************************************************************************/
@@ -249,7 +249,7 @@ PyObject *Lamp_CreatePyObject (Lamp *lamp)
 /*****************************************************************************/
 int Lamp_CheckPyObject (PyObject *pyobj)
 {
-	return (pyobj->ob_type == &Lamp_Type);
+  return (pyobj->ob_type == &Lamp_Type);
 }
 
 /*****************************************************************************/
@@ -259,7 +259,7 @@ int Lamp_CheckPyObject (PyObject *pyobj)
 /*****************************************************************************/
 Lamp *Lamp_FromPyObject (PyObject *pyobj)
 {
-	return ((C_Lamp *)pyobj)->lamp;
+  return ((C_Lamp *)pyobj)->lamp;
 }
 
 /*****************************************************************************/
@@ -437,7 +437,7 @@ static PyObject *Lamp_getQuad2(C_Lamp *self)
 
 static PyObject *Lamp_getCol(C_Lamp *self)
 {
-	return rgbTuple_getCol(self->color);
+  return rgbTuple_getCol(self->color);
 }
 
 static PyObject *Lamp_setName(C_Lamp *self, PyObject *args)
@@ -568,8 +568,8 @@ static PyObject *Lamp_setSamples(C_Lamp *self, PyObject *args)
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument in [1,16]"));
 
-	self->lamp->samp = EXPP_ClampInt (value,
-									EXPP_LAMP_SAMPLES_MIN, EXPP_LAMP_SAMPLES_MAX);
+  self->lamp->samp = EXPP_ClampInt (value,
+                  EXPP_LAMP_SAMPLES_MIN, EXPP_LAMP_SAMPLES_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -582,9 +582,9 @@ static PyObject *Lamp_setBufferSize(C_Lamp *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "h", &value))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected int argument in [512, 5120]"));
-	
+  
   self->lamp->bufsize = EXPP_ClampInt (value,
-									EXPP_LAMP_BUFFERSIZE_MIN, EXPP_LAMP_BUFFERSIZE_MAX);
+                  EXPP_LAMP_BUFFERSIZE_MIN, EXPP_LAMP_BUFFERSIZE_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -599,7 +599,7 @@ static PyObject *Lamp_setHaloStep(C_Lamp *self, PyObject *args)
             "expected int argument in [0,12]"));
 
   self->lamp->shadhalostep = EXPP_ClampInt (value,
-									EXPP_LAMP_HALOSTEP_MIN, EXPP_LAMP_HALOSTEP_MAX);
+                  EXPP_LAMP_HALOSTEP_MIN, EXPP_LAMP_HALOSTEP_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -614,7 +614,7 @@ static PyObject *Lamp_setEnergy(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->energy = EXPP_ClampFloat (value,
-									EXPP_LAMP_ENERGY_MIN, EXPP_LAMP_ENERGY_MAX);
+                  EXPP_LAMP_ENERGY_MIN, EXPP_LAMP_ENERGY_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -629,7 +629,7 @@ static PyObject *Lamp_setDist(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->dist = EXPP_ClampFloat (value,
-									EXPP_LAMP_DIST_MIN, EXPP_LAMP_DIST_MAX);
+                  EXPP_LAMP_DIST_MIN, EXPP_LAMP_DIST_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -644,7 +644,7 @@ static PyObject *Lamp_setSpotSize(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->spotsize = EXPP_ClampFloat (value,
-									EXPP_LAMP_SPOTSIZE_MIN, EXPP_LAMP_SPOTSIZE_MAX);
+                  EXPP_LAMP_SPOTSIZE_MIN, EXPP_LAMP_SPOTSIZE_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -659,7 +659,7 @@ static PyObject *Lamp_setSpotBlend(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->spotblend = EXPP_ClampFloat (value,
-									EXPP_LAMP_SPOTBLEND_MIN, EXPP_LAMP_SPOTBLEND_MAX);
+                  EXPP_LAMP_SPOTBLEND_MIN, EXPP_LAMP_SPOTBLEND_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -674,7 +674,7 @@ static PyObject *Lamp_setClipStart(C_Lamp *self, PyObject *args)
             "expected float argument"));
   
   self->lamp->clipsta = EXPP_ClampFloat (value,
-									EXPP_LAMP_CLIPSTART_MIN, EXPP_LAMP_CLIPSTART_MAX);
+                  EXPP_LAMP_CLIPSTART_MIN, EXPP_LAMP_CLIPSTART_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -689,7 +689,7 @@ static PyObject *Lamp_setClipEnd(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->clipend = EXPP_ClampFloat (value,
-									EXPP_LAMP_CLIPEND_MIN, EXPP_LAMP_CLIPEND_MAX);
+                  EXPP_LAMP_CLIPEND_MIN, EXPP_LAMP_CLIPEND_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -704,7 +704,7 @@ static PyObject *Lamp_setBias(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->bias = EXPP_ClampFloat (value,
-									EXPP_LAMP_BIAS_MIN, EXPP_LAMP_BIAS_MAX);
+                  EXPP_LAMP_BIAS_MIN, EXPP_LAMP_BIAS_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -719,7 +719,7 @@ static PyObject *Lamp_setSoftness(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->soft = EXPP_ClampFloat (value,
-									EXPP_LAMP_SOFTNESS_MIN, EXPP_LAMP_SOFTNESS_MAX);
+                  EXPP_LAMP_SOFTNESS_MIN, EXPP_LAMP_SOFTNESS_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -734,7 +734,7 @@ static PyObject *Lamp_setHaloInt(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->haint = EXPP_ClampFloat (value,
-									EXPP_LAMP_HALOINT_MIN, EXPP_LAMP_HALOINT_MAX);
+                  EXPP_LAMP_HALOINT_MIN, EXPP_LAMP_HALOINT_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -749,7 +749,7 @@ static PyObject *Lamp_setQuad1(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->att1 = EXPP_ClampFloat (value,
-									EXPP_LAMP_QUAD1_MIN, EXPP_LAMP_QUAD1_MAX);
+                  EXPP_LAMP_QUAD1_MIN, EXPP_LAMP_QUAD1_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -764,14 +764,14 @@ static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args)
             "expected float argument"));
 
   self->lamp->att2 = EXPP_ClampFloat (value,
-									EXPP_LAMP_QUAD2_MIN, EXPP_LAMP_QUAD2_MAX);
+                  EXPP_LAMP_QUAD2_MIN, EXPP_LAMP_QUAD2_MAX);
 
   Py_INCREF(Py_None);
   return Py_None;
 }
 
 static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
-								PyObject *args)
+                PyObject *args)
 { /* for compatibility with old bpython */
   float value;
 
@@ -780,7 +780,7 @@ static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
             "expected float argument in [0.0, 1.0]"));
 
   value = EXPP_ClampFloat (value, EXPP_LAMP_COL_MIN,
-									EXPP_LAMP_COL_MAX);
+                  EXPP_LAMP_COL_MAX);
 
   if (!strcmp(key, "R"))
     self->lamp->r = value;
@@ -789,13 +789,13 @@ static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
   else if (!strcmp(key, "B"))
     self->lamp->b = value;
 
-	Py_INCREF(Py_None);
-	return Py_None;
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
 static PyObject *Lamp_setCol(C_Lamp *self, PyObject *args)
 {
-	return rgbTuple_setCol(self->color, args);
+  return rgbTuple_setCol(self->color, args);
 }
 
 /*****************************************************************************/
@@ -836,8 +836,8 @@ static PyObject *LampGetAttr (C_Lamp *self, char *name)
     attr = PyFloat_FromDouble(self->lamp->g);
   else if (strcmp(name, "B") == 0)
     attr = PyFloat_FromDouble(self->lamp->b);
-	else if (strcmp(name, "col") == 0)
-		attr = Lamp_getCol(self);
+  else if (strcmp(name, "col") == 0)
+    attr = Lamp_getCol(self);
   else if (strcmp(name, "energy") == 0)
     attr = PyFloat_FromDouble(self->lamp->energy);
   else if (strcmp(name, "dist") == 0)
@@ -992,8 +992,8 @@ static int LampSetAttr (C_Lamp *self, char *name, PyObject *value)
 /*****************************************************************************/
 static int LampCompare (C_Lamp *a, C_Lamp *b)
 {
-	Lamp *pa = a->lamp, *pb = b->lamp;
-	return (pa == pb) ? 0:-1;
+  Lamp *pa = a->lamp, *pb = b->lamp;
+  return (pa == pb) ? 0:-1;
 }
 
 /*****************************************************************************/

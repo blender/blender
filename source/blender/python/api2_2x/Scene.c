@@ -295,30 +295,30 @@ static PyObject *M_Scene_Get(PyObject *self, PyObject *args)
     return wanted_scene;
   }
 
-  else { /* () - return a list of all scenes in Blender */
+  else { /* () - return a list with wrappers for all scenes in Blender */
     int index = 0;
-    PyObject *scenelist, *pystr;
+    PyObject *sce_pylist, *pyobj;
 
-    scenelist = PyList_New (BLI_countlist (&(G.main->scene)));
+    sce_pylist = PyList_New (BLI_countlist (&(G.main->scene)));
 
-    if (scenelist == NULL)
+    if (sce_pylist == NULL)
       return (PythonReturnErrorObject (PyExc_MemoryError,
               "couldn't create PyList"));
 
     while (scene_iter) {
-      pystr = PyString_FromString (scene_iter->id.name+2);
+      pyobj = Scene_CreatePyObject (scene_iter);
 
-      if (!pystr)
+      if (!pyobj)
         return (PythonReturnErrorObject (PyExc_MemoryError,
                   "couldn't create PyString"));
 
-      PyList_SET_ITEM (scenelist, index, pystr);
+      PyList_SET_ITEM (sce_pylist, index, pyobj);
 
       scene_iter = scene_iter->id.next;
       index++;
     }
 
-    return scenelist;
+    return sce_pylist;
   }
 }
 

@@ -283,14 +283,14 @@ static int Buffer_ass_slice(PyObject *self, int begin, int end, PyObject *seq)
 
 static void Buffer_dealloc(PyObject *self)
 {
-  Buffer *buf= (Buffer *) self;
+  Buffer *buf = (Buffer *)self;
 
-  if (buf->parent) Py_DECREF(buf->parent);
-  else MEM_freeN(buf->buf.asvoid);
+  if (buf->parent) Py_DECREF (buf->parent);
+  else MEM_freeN (buf->buf.asvoid);
 
-  MEM_freeN(buf->dimensions);
+  MEM_freeN (buf->dimensions);
   
-  PyMem_DEL(self);  
+  PyObject_DEL (self);
 }
 
 static PyObject *Buffer_tolist(PyObject *self)

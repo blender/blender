@@ -94,7 +94,7 @@ static PyObject *M_Armature_Get(PyObject *self, PyObject *args)
 
   armature_iter = G.main->armature.first;
   
-	/* Use the name to search for the armature requested. */
+  /* Use the name to search for the armature requested. */
 
   if (name) { /* (name) - Search armature by name */
     wanted_armature = NULL;
@@ -121,9 +121,9 @@ static PyObject *M_Armature_Get(PyObject *self, PyObject *args)
   
   else
     {
-      /* Return a list of all armatures in the scene */
+      /* Return a list of with armatures in the scene */
       int index = 0;
-      PyObject *armlist, *pystr;
+      PyObject *armlist, *pyobj;
 
       armlist = PyList_New (BLI_countlist (&(G.main->armature)));
 
@@ -132,13 +132,13 @@ static PyObject *M_Armature_Get(PyObject *self, PyObject *args)
                 "couldn't create PyList"));
 
       while (armature_iter) {
-        pystr = PyString_FromString (armature_iter->id.name+2);
+        pyobj = M_ArmatureCreatePyObject (armature_iter);
 
-        if (!pystr)
+        if (!pyobj)
           return (PythonReturnErrorObject (PyExc_MemoryError,
                     "couldn't create PyString"));
   
-        PyList_SET_ITEM (armlist, index, pystr);
+        PyList_SET_ITEM (armlist, index, pyobj);
 
         armature_iter = armature_iter->id.next;
         index++;
@@ -345,11 +345,9 @@ static PyObject *ArmatureRepr (C_Armature *self)
 /*****************************************************************************/
 static int ArmatureCmp (C_Armature *a, C_Armature *b)
 {
-  if (a<b) return -1;
-  else if (a==b) return 0;
-  else return 1;
+  bArmature *pa = a->armature, *pb = b->armature;
+  return (pa == pb) ? 0:-1;
 }
-
 
 /*****************************************************************************/
 /* Function:    M_ArmatureCreatePyObject                                     */

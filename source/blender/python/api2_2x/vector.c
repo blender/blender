@@ -39,7 +39,7 @@
 
 static void Vector_dealloc(VectorObject *self)
 {
-	PyMem_DEL(self);
+	PyObject_DEL (self);
 }
 
 static PyObject *Vector_getattr(VectorObject *self, char *name)
@@ -195,7 +195,7 @@ PyTypeObject vector_Type =
 {
 	PyObject_HEAD_INIT(NULL)
 	0,								           /*ob_size*/
-	"Vector",						         /*tp_name*/
+	"vector",						         /*tp_name*/
 	sizeof(VectorObject),			   /*tp_basicsize*/
 	0,								           /*tp_itemsize*/
 	/* methods */
@@ -213,7 +213,7 @@ PyObject *newVectorObject(float *vec, int size)
 {
 	VectorObject *self;
 
-    vector_Type.ob_type = &PyType_Type;
+  vector_Type.ob_type = &PyType_Type;
 
 	self= PyObject_NEW(VectorObject, &vector_Type);
 	

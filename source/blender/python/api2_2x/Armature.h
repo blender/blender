@@ -137,7 +137,7 @@ static int ArmaturePrint (C_Armature *armature, FILE *fp, int flags);
 /*****************************************************************************/
 /* Python TypeArmature structure definition:                                 */
 /*****************************************************************************/
-static PyTypeObject Armature_Type =
+PyTypeObject Armature_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */

@@ -138,7 +138,7 @@ static PyObject *Buffer_repr(PyObject *self);
 PyTypeObject buffer_Type = {
   PyObject_HEAD_INIT(NULL)
   0,                            /*ob_size*/
-  "Buffer",                     /*tp_name*/
+  "buffer",                     /*tp_name*/
   sizeof(Buffer),               /*tp_basicsize*/
   0,                            /*tp_itemsize*/
   (destructor) Buffer_dealloc,  /*tp_dealloc*/

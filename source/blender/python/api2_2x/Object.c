@@ -567,13 +567,13 @@ static PyObject *Object_getData (C_Object *self)
     //#obj_id = MAKE_ID2 (id->name[0], id->name[1]);
     switch (self->object->type)//#obj_id)
     {
-        case ID_AR:
+        case OB_ARMATURE://#ID_AR:
             data_object = M_ArmatureCreatePyObject (self->object->data);
             break;
-				case OB_CAMERA://#ID_CA:
+        case OB_CAMERA://#ID_CA:
             data_object = Camera_CreatePyObject (self->object->data);
             break;
-        case ID_CU:
+        case OB_CURVE://#ID_CU:
             data_object = CurveCreatePyObject (self->object->data);
             break;
         case ID_IM:
@@ -581,12 +581,13 @@ static PyObject *Object_getData (C_Object *self)
             break;
         case ID_IP:
             break;
-        case ID_LA:
+        case OB_LAMP://#ID_LA:
             data_object = Lamp_CreatePyObject (self->object->data);
             break;
         case ID_MA:
             break;
-        case ID_ME:
+        case OB_MESH://#ID_ME:
+            data_object = NMesh_CreatePyObject (self->object->data);
             break;
         case ID_OB:
             data_object = M_ObjectCreatePyObject (self->object->data);
@@ -1291,7 +1292,7 @@ static PyObject* ObjectGetAttr (C_Object *obj, char *name)
     if (StringEqual (name, "drawMode"))
         return (Py_BuildValue ("b", object->dtx));
 
-		/* not an attribute, search the methods table */
+    /* not an attribute, search the methods table */
     return Py_FindMethod(C_Object_methods, (PyObject *)obj, name);
 }
 

@@ -37,28 +37,28 @@
 /*****************************************************************************/
 static PyObject *M_Ipo_New(PyObject *self, PyObject *args)
 {
-	Ipo *add_ipo(char *name, int idcode);
-	char*name = NULL;
-	int code = 0;
+        Ipo *add_ipo(char *name, int idcode);
+        char*name = NULL;
+        int code = 0;
   C_Ipo    *pyipo;
   Ipo      *blipo;
 
-	if (!PyArg_ParseTuple(args, "si", &name,&code))
+        if (!PyArg_ParseTuple(args, "si", &name,&code))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected string int arguments"));
+                         "expected string int arguments"));
 
 
   blipo = add_ipo(name,code);
 
   if (blipo) 
-		pyipo = (C_Ipo *)PyObject_NEW(C_Ipo, &Ipo_Type);
+                pyipo = (C_Ipo *)PyObject_NEW(C_Ipo, &Ipo_Type);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-																	 "couldn't create Ipo Data in Blender"));
+                            "couldn't create Ipo Data in Blender"));
 
   if (pyipo == NULL)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-																	 "couldn't create Ipo Data object"));
+                   "couldn't create Ipo Data object"));
 
   pyipo->ipo = blipo; 
 
@@ -77,57 +77,57 @@ static PyObject *M_Ipo_Get(PyObject *self, PyObject *args)
 {
   char   *name = NULL;
   Ipo *ipo_iter;
-  PyObject *ipolist, *pystr;
+  PyObject *ipolist, *pyobj;
   C_Ipo *wanted_ipo = NULL;
   char error_msg[64];
 
-	if (!PyArg_ParseTuple(args, "|s", &name))
+  if (!PyArg_ParseTuple(args, "|s", &name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected string argument (or nothing)"));
+                "expected string argument (or nothing)"));
 
   ipo_iter = G.main->ipo.first;
 
-	if (name) { /* (name) - Search ipo by name */
+  if (name) { /* (name) - Search ipo by name */
     while ((ipo_iter) && (wanted_ipo == NULL)) {
       if (strcmp (name, ipo_iter->id.name+2) == 0) {
         wanted_ipo = (C_Ipo *)PyObject_NEW(C_Ipo, &Ipo_Type);
-				if (wanted_ipo) wanted_ipo->ipo = ipo_iter;
+        if (wanted_ipo) wanted_ipo->ipo = ipo_iter;
       }
       ipo_iter = ipo_iter->id.next;
     }
 
     if (wanted_ipo == NULL) { /* Requested ipo doesn't exist */
       PyOS_snprintf(error_msg, sizeof(error_msg),
-										"Ipo \"%s\" not found", name);
+                            "Ipo \"%s\" not found", name);
       return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
     }
 
     return (PyObject *)wanted_ipo;
-	}
+  }
 
-	else { /* () - return a list of all ipos in the scene */
+  else { /* () - return a list with all ipos in the scene */
     int index = 0;
 
     ipolist = PyList_New (BLI_countlist (&(G.main->ipo)));
 
     if (ipolist == NULL)
       return (PythonReturnErrorObject (PyExc_MemoryError,
-																			 "couldn't create PyList"));
+                        "couldn't create PyList"));
 
-		while (ipo_iter) {
-      pystr = PyString_FromString (ipo_iter->id.name+2);
+    while (ipo_iter) {
+      pyobj = Ipo_CreatePyObject (ipo_iter);
+ 
+ 			if (!pyobj)
+        return (PythonReturnErrorObject (PyExc_MemoryError,
+                  "couldn't create PyString"));
 
-			if (!pystr)
-				return (PythonReturnErrorObject (PyExc_MemoryError,
-																				 "couldn't create PyString"));
-
-			PyList_SET_ITEM (ipolist, index, pystr);
+      PyList_SET_ITEM (ipolist, index, pyobj);
 
       ipo_iter = ipo_iter->id.next;
       index++;
 		}
 
-		return (ipolist);
+    return (ipolist);
 	}
 }
 
@@ -138,9 +138,10 @@ PyObject *M_Ipo_Init (void)
 {
   PyObject  *submodule;
 
+  Ipo_Type.ob_type = &PyType_Type;
+
   printf ("In M_Ipo_Init()\n");
-  submodule = Py_InitModule3("Blender.Ipo",
-														 M_Ipo_methods, M_Ipo_doc);
+  submodule = Py_InitModule3("Blender.Ipo", M_Ipo_methods, M_Ipo_doc);
 
   return (submodule);
 }
@@ -155,7 +156,7 @@ static PyObject *Ipo_getName(C_Ipo *self)
   if (attr) return attr;
 
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-																 "couldn't get Ipo.name attribute"));
+                                                                                                                                 "couldn't get Ipo.name attribute"));
 }
 static PyObject *Ipo_setName(C_Ipo *self, PyObject *args)
 {
@@ -164,7 +165,7 @@ static PyObject *Ipo_setName(C_Ipo *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args, "s", &name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected string argument"));
+                                                                                                                                         "expected string argument"));
 
   PyOS_snprintf(buf, sizeof(buf), "%s", name);
 
@@ -181,7 +182,7 @@ static PyObject *Ipo_getBlocktype(C_Ipo *self)
   if (attr) return attr;
 
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-																 "couldn't get Ipo.blocktype attribute"));
+                                                                                                                                 "couldn't get Ipo.blocktype attribute"));
 }
 
 
@@ -191,9 +192,9 @@ static PyObject *Ipo_setBlocktype(C_Ipo *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args, "i", &blocktype))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected string argument"));
+                                                                                                                                         "expected string argument"));
 
-	self->ipo->blocktype = (short)blocktype;
+        self->ipo->blocktype = (short)blocktype;
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -206,7 +207,7 @@ static PyObject *Ipo_getShowkey(C_Ipo *self)
   if (attr) return attr;
 
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-																 "couldn't get Ipo.showkey attribute"));
+                                                                                                                                 "couldn't get Ipo.showkey attribute"));
 }
 
 
@@ -216,9 +217,9 @@ static PyObject *Ipo_setShowkey(C_Ipo *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args, "i", &showkey))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected string argument"));
+                                                                                                                                         "expected string argument"));
 
-	self->ipo->showkey = (short)showkey;
+        self->ipo->showkey = (short)showkey;
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -231,7 +232,7 @@ static PyObject *Ipo_getPad(C_Ipo *self)
   if (attr) return attr;
 
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-																 "couldn't get Ipo.pad attribute"));
+                                                                                                                                 "couldn't get Ipo.pad attribute"));
 }
 
 
@@ -241,9 +242,9 @@ static PyObject *Ipo_setPad(C_Ipo *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args, "i", &pad))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected string argument"));
+                                                                                                                                         "expected string argument"));
 
-	self->ipo->pad = pad;
+        self->ipo->pad = pad;
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -251,7 +252,7 @@ static PyObject *Ipo_setPad(C_Ipo *self, PyObject *args)
 
 static PyObject *Ipo_getRctf(C_Ipo *self)
 {
-	PyObject* l = PyList_New(0);
+        PyObject* l = PyList_New(0);
   PyList_Append( l, PyFloat_FromDouble(self->ipo->cur.xmin));
   PyList_Append( l, PyFloat_FromDouble(self->ipo->cur.xmax));
   PyList_Append( l, PyFloat_FromDouble(self->ipo->cur.ymin));
@@ -263,15 +264,15 @@ static PyObject *Ipo_getRctf(C_Ipo *self)
 
 static PyObject *Ipo_setRctf(C_Ipo *self, PyObject *args)
 {
-	float v[4];
+        float v[4];
   if (!PyArg_ParseTuple(args, "ffff",v,v+1,v+2,v+3))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected 4 float argument"));
+                                                                                                                                         "expected 4 float argument"));
 
-	self->ipo->cur.xmin  = v[0];
-	self->ipo->cur.xmax  = v[1];
-	self->ipo->cur.ymin  = v[2];
-	self->ipo->cur.ymax  = v[3];
+        self->ipo->cur.xmin  = v[0];
+        self->ipo->cur.xmax  = v[1];
+        self->ipo->cur.ymin  = v[2];
+        self->ipo->cur.ymax  = v[3];
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -279,104 +280,104 @@ static PyObject *Ipo_setRctf(C_Ipo *self, PyObject *args)
 
 static PyObject *Ipo_getNcurves(C_Ipo *self)
 { 
-	int i = 0;
+        int i = 0;
 
-	IpoCurve *icu;
-	for (icu=self->ipo->curve.first; icu; icu=icu->next){
-		i++;
-	}
+        IpoCurve *icu;
+        for (icu=self->ipo->curve.first; icu; icu=icu->next){
+                i++;
+        }
 
   return (PyInt_FromLong(i) );
 }
 
 
 static PyObject *Ipo_getCurveBP(C_Ipo *self, PyObject *args)
-{ 	
-	struct BPoint *ptrbpoint;
-	int num = 0,i;
-	IpoCurve *icu;
-	PyObject* l;
+{       
+        struct BPoint *ptrbpoint;
+        int num = 0,i;
+        IpoCurve *icu;
+        PyObject* l;
 
   if (!PyArg_ParseTuple(args, "i",&num))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected int argument"));
-	icu =self->ipo->curve.first;
-	if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
-	for(i = 0;i<num;i++)
-		{
-			if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
-			icu=icu->next;
-		 
+                                                                                                                                         "expected int argument"));
+        icu =self->ipo->curve.first;
+        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+        for(i = 0;i<num;i++)
+                {
+                        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
+                        icu=icu->next;
+                 
     }
-	ptrbpoint = icu->bp;
-	if(!ptrbpoint)return EXPP_ReturnPyObjError(PyExc_TypeError,"No base point");
+        ptrbpoint = icu->bp;
+        if(!ptrbpoint)return EXPP_ReturnPyObjError(PyExc_TypeError,"No base point");
 
-	l = PyList_New(0);
-	for(i=0;i<4;i++)
-		PyList_Append( l, PyFloat_FromDouble(ptrbpoint->vec[i]));
-	return l;
+        l = PyList_New(0);
+        for(i=0;i<4;i++)
+                PyList_Append( l, PyFloat_FromDouble(ptrbpoint->vec[i]));
+        return l;
 }
 
 static PyObject *Ipo_getCurveBeztriple(C_Ipo *self, PyObject *args)
-{ 	
-	struct BezTriple *ptrbt;
-	int num = 0,pos,i,j;
-	IpoCurve *icu;
-	PyObject* l = PyList_New(0);
+{       
+        struct BezTriple *ptrbt;
+        int num = 0,pos,i,j;
+        IpoCurve *icu;
+        PyObject* l = PyList_New(0);
 
   if (!PyArg_ParseTuple(args, "ii",&num,&pos))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected int argument"));
-	icu =self->ipo->curve.first;
-	if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
-	for(i = 0;i<num;i++)
-		{
-			if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
-			icu=icu->next;
-		}
-	if (pos >= icu->totvert)
-		return EXPP_ReturnPyObjError(PyExc_TypeError,"Bad bezt number");
+                                                                                                                                         "expected int argument"));
+        icu =self->ipo->curve.first;
+        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+        for(i = 0;i<num;i++)
+                {
+                        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
+                        icu=icu->next;
+                }
+        if (pos >= icu->totvert)
+                return EXPP_ReturnPyObjError(PyExc_TypeError,"Bad bezt number");
 
-	ptrbt = icu->bezt + pos;
-	if(!ptrbt)
-		return EXPP_ReturnPyObjError(PyExc_TypeError,"No bez triple");
+        ptrbt = icu->bezt + pos;
+        if(!ptrbt)
+                return EXPP_ReturnPyObjError(PyExc_TypeError,"No bez triple");
 
-	for(i=0;i<3;i++)
-		for(j=0;j<3;j++)
-			PyList_Append( l, PyFloat_FromDouble(ptrbt->vec[i][j]));
-	return l;
+        for(i=0;i<3;i++)
+                for(j=0;j<3;j++)
+                        PyList_Append( l, PyFloat_FromDouble(ptrbt->vec[i][j]));
+        return l;
 }
 
 
 static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args)
-{ 	
-	struct BezTriple *ptrbt;
-	int num = 0,pos,i;
-	IpoCurve *icu;
-	PyObject *listargs=0;
+{       
+        struct BezTriple *ptrbt;
+        int num = 0,pos,i;
+        IpoCurve *icu;
+        PyObject *listargs=0;
 
   if (!PyArg_ParseTuple(args, "iiO",&num,&pos,&listargs))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected int argument"));
-	icu =self->ipo->curve.first;
-	if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
-	for(i = 0;i<num;i++)
-		{
-			if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
-			icu=icu->next;
-		}
-	if (pos >= icu->totvert)
-		return EXPP_ReturnPyObjError(PyExc_TypeError,"Bad bezt number");
+                                                                                                                                         "expected int argument"));
+        icu =self->ipo->curve.first;
+        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+        for(i = 0;i<num;i++)
+                {
+                        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
+                        icu=icu->next;
+                }
+        if (pos >= icu->totvert)
+                return EXPP_ReturnPyObjError(PyExc_TypeError,"Bad bezt number");
 
-	ptrbt = icu->bezt + pos;
-	if(!ptrbt)
-		return EXPP_ReturnPyObjError(PyExc_TypeError,"No bez triple");
-	
-	for(i=0;i<9;i++)
-		{
-			PyObject * xx = PyList_GetItem(listargs,i);
-			ptrbt->vec[i/3][i%3] = PyFloat_AsDouble(xx);
-		}
+        ptrbt = icu->bezt + pos;
+        if(!ptrbt)
+                return EXPP_ReturnPyObjError(PyExc_TypeError,"No bez triple");
+        
+        for(i=0;i<9;i++)
+                {
+                        PyObject * xx = PyList_GetItem(listargs,i);
+                        ptrbt->vec[i/3][i%3] = PyFloat_AsDouble(xx);
+                }
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -386,22 +387,22 @@ static PyObject *Ipo_setCurveBeztriple(C_Ipo *self, PyObject *args)
 
 
 static PyObject *Ipo_getCurvecurval(C_Ipo *self, PyObject *args)
-{ 	
-	int num = 0,i;
-	IpoCurve *icu;
+{       
+        int num = 0,i;
+        IpoCurve *icu;
 
   if (!PyArg_ParseTuple(args, "i",&num))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
-																	 "expected int argument"));
-	icu =self->ipo->curve.first;
-	if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
-	for(i = 0;i<num;i++)
-		{
-			if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
-			icu=icu->next;
-		 
+                                                                                                                                         "expected int argument"));
+        icu =self->ipo->curve.first;
+        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
+        for(i = 0;i<num;i++)
+                {
+                        if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
+                        icu=icu->next;
+                 
     }
-	return PyFloat_FromDouble(icu->curval);
+        return PyFloat_FromDouble(icu->curval);
 }
 
 
@@ -449,12 +450,53 @@ static int IpoPrint(C_Ipo *self, FILE *fp, int flags)
 }
 
 /*****************************************************************************/
-/* Function:    IpoRepr                                                   */
-/* Description: This is a callback function for the C_Ipo type. It        */
-/*              builds a meaninful string to represent ipo objects.       */
+/* Function:    IpoRepr                                                      */
+/* Description: This is a callback function for the C_Ipo type. It           */
+/*              builds a meaninful string to represent ipo objects.          */
 /*****************************************************************************/
 static PyObject *IpoRepr (C_Ipo *self)
 {
   return PyString_FromString(self->ipo->id.name+2);
 }
 
+/* Three Python Ipo_Type helper functions needed by the Object module: */
+
+/*****************************************************************************/
+/* Function:    Ipo_CreatePyObject                                           */
+/* Description: This function will create a new C_Ipo from an existing       */
+/*              Blender ipo structure.                                       */
+/*****************************************************************************/
+PyObject *Ipo_CreatePyObject (Ipo *ipo)
+{
+	C_Ipo *pyipo;
+
+	pyipo = (C_Ipo *)PyObject_NEW (C_Ipo, &Ipo_Type);
+
+	if (!pyipo)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+						"couldn't create C_Ipo object");
+
+	pyipo->ipo = ipo;
+
+	return (PyObject *)pyipo;
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_CheckPyObject                                            */
+/* Description: This function returns true when the given PyObject is of the */
+/*              type Ipo. Otherwise it will return false.                    */
+/*****************************************************************************/
+int Ipo_CheckPyObject (PyObject *pyobj)
+{
+	return (pyobj->ob_type == &Ipo_Type);
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_FromPyObject                                             */
+/* Description: This function returns the Blender ipo from the given         */
+/*              PyObject.                                                    */
+/*****************************************************************************/
+Ipo *Ipo_FromPyObject (PyObject *pyobj)
+{
+	return ((C_Ipo *)pyobj)->ipo;
+}

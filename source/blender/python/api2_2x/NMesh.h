@@ -73,7 +73,7 @@ PyTypeObject NMFace_Type;
 PyTypeObject NMVert_Type;
 PyTypeObject NMCol_Type;
 
-PyTypeObject Image_Type;
+extern PyTypeObject Image_Type;
 
 /* Globals */
 
