@@ -847,7 +847,6 @@ void ui_draw_panel(uiBlock *block)
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
-			BIF_ThemeColorShade(TH_PANEL, +100);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
 			//if(align) {

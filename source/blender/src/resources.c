@@ -480,7 +480,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.text, 	0, 0, 0, 255);
 	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
 	SETCOL(btheme->tv3d.header, 195, 195, 195, 255);
-	SETCOL(btheme->tv3d.panel, 	165, 165, 165, 100);
+	SETCOL(btheme->tv3d.panel, 	165, 165, 165, 150);
 	
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
 	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
@@ -513,7 +513,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tipo.grid, 	94, 94, 94, 255);
 	SETCOL(btheme->tipo.back, 	120, 120, 120, 255);
 	SETCOL(btheme->tipo.header, 195, 195, 195, 255);
-	SETCOL(btheme->tipo.panel,  255, 255, 255, 100);
+	SETCOL(btheme->tipo.panel,  255, 255, 255, 150);
 	SETCOL(btheme->tipo.shade1,  140, 140, 140, 100);
 	SETCOL(btheme->tipo.shade2,  0x7f, 0x70, 0x70, 100);
 	SETCOL(btheme->tipo.vertex, 0xff, 0x70, 0xff, 255);
