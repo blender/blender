@@ -96,6 +96,8 @@ install: package
 	@#echo "****> Install text"
 	@cp text/README $(DISTDIR)
 	@cp text/*.txt $(DISTDIR)
+	@echo "----> Make Config dir .blender"
+	@mkdir -p $(CONFDIR)
 	@# possible overruling .txt text documents
 	@[ ! -d $(CONFIG_GUESS)/text ] || \
 	    cp -f $(CONFIG_GUESS)/text/*.txt $(DISTDIR)
@@ -103,8 +105,8 @@ install: package
 ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
 		cp -r $(OCGDIR)/bin/.blender $(DISTDIR)
-	cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(DISTDIR)/.blender
-	cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(DISTDIR)/.blender
+	cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(CONFDIR)
+	cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(CONFDIR)
 endif
 
 	@echo "----> Copy blender$(EXT0) executable"
@@ -117,9 +119,6 @@ endif
 	@cp $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
     endif
     endif
-
-	@echo "----> Make Config dir .blender"
-	@mkdir -p $(CONFDIR)
 
 ifneq ($(NOPLUGINS),true)
 	@echo "----> Copy and compile plugins"
