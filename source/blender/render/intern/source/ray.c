@@ -42,6 +42,7 @@
 #include "BKE_global.h"
 
 #include "BLI_arithb.h"
+#include <BLI_rand.h>
 
 #include "render.h"
 #include "render_intern.h"
@@ -1507,96 +1508,122 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 
 /* **************** jitter blocks ********** */
 
-static float jit_cube2[2*2*2*3]={0.0};
-static float jit_cube3[3*3*3*3]={0.0};
-static float jit_cube4[4*4*4*3]={0.0};
-static float jit_cube5[5*5*5*3]={0.0};
+/* calc distributed planar energy */
 
-/* table around origin, -.5 to 0.5 */
-static float *jitter_plane(LampRen *lar, int xs, int ys)
+static void DP_energy(float *table, float *vec, int tot, float xsize, float ysize)
 {
-	extern float hashvectf[];
-	//extern char hash[];
-	float dsizex, dsizey, *fp, *hv;
-	int dit, x, y, resolx, resoly;
+	int x, y, a;
+	float *fp, force[3], result[3];
+	float dx, dy, dist, min;
 	
-	resolx= lar->ray_samp;
-	resoly= lar->ray_sampy;
+	min= MIN2(xsize, ysize);
+	min*= min;
+	result[0]= result[1]= 0.0;
 	
-	if(lar->jitter==NULL) {
-	
-		fp=lar->jitter= MEM_mallocN(4*resolx*resoly*3*sizeof(float), "lamp jitter tab");
-		
-		/* size of subpixel */
-		if(resolx>1) dsizex= 1.0/(resolx-1.0); else dsizex= 0.0;
-		if(resoly>1) dsizey= 1.0/(resoly-1.0); else dsizey= 0.0;
-		
-		for(dit=0; dit<4; dit++) {
-			hv= hashvectf;
-			for(x=0; x<resolx; x++) {
-				for(y=0; y<resoly; y++, fp+= 3, hv+=3) {
-					// exact location
-					fp[0]= -0.5 + x*dsizex; if(dit & 1) fp[0]+= 0.5*dsizex;
-					fp[1]= -0.5 + y*dsizey; if(dit<2) fp[1]+= 0.5*dsizey;
-					
-					// jitter
-					if(lar->ray_samp_type & LA_SAMP_JITTER) {
-						fp[0]+= 0.5*dsizex*hv[0];
-						fp[1]+= 0.5*dsizey*hv[1];
-					}
-					// distance check
-					if(lar->ray_samp_type & LA_SAMP_ROUND) {
-						fp[2]= fp[0]*fp[0] + fp[1]*fp[1];
-						if(resolx>2 && resoly>2 && fp[2]>0.6) fp[2]= 0.0;
-						else fp[2]= 1.0;
-					}
-					else fp[2]= 1.0;
-					
-					fp[0]*= lar->area_size;
-					fp[1]*= lar->area_sizey;
-					
+	for(y= -1; y<2; y++) {
+		dy= ysize*y;
+		for(x= -1; x<2; x++) {
+			dx= xsize*x;
+			fp= table;
+			for(a=0; a<tot; a++, fp+= 2) {
+				force[0]= vec[0] - fp[0]-dx;
+				force[1]= vec[1] - fp[1]-dy;
+				dist= force[0]*force[0] + force[1]*force[1];
+				if(dist < min && dist>0.0) {
+					result[0]+= force[0]/dist;
+					result[1]+= force[1]/dist;
 				}
 			}
 		}
 	}
-	
-	if(lar->ray_samp_type & LA_SAMP_DITHER)
-		return lar->jitter + 3*resolx*resoly*((xs & 1)+2*(ys & 1));
+	vec[0] += 0.1*min*result[0]/(float)tot;
+	vec[1] += 0.1*min*result[1]/(float)tot;
+	// cyclic clamping
+	vec[0]= vec[0] - xsize*floor(vec[0]/xsize + 0.5);
+	vec[1]= vec[1] - ysize*floor(vec[1]/ysize + 0.5);
+}
 
+
+float *test_jitter(int resol, int iter, float xsize, float ysize)
+{
+	static float jitter[2*256];
+	float *fp;
+	int x;
+	
+	/* fill table with random locations, area_size large */
+	fp= jitter;
+	for(x=0; x<resol*resol; x++, fp+=2) {
+		fp[0]= (BLI_frand()-0.5)*xsize;
+		fp[1]= (BLI_frand()-0.5)*ysize;
+	}
+	
+	while(iter--) {
+		fp= jitter;
+		for(x=0; x<resol*resol; x++, fp+=2) {
+			DP_energy(jitter, fp, resol*resol, xsize, ysize);
+		}
+	}
+	return jitter;
+}
+
+// random offset of 1 in 2
+static void jitter_plane_offset(float *jitter1, float *jitter2, int tot, float sizex, float sizey, float ofsx, float ofsy)
+{
+	float dsizex= sizex*ofsx;
+	float dsizey= sizey*ofsy;
+	float hsizex= 0.5*sizex, hsizey= 0.5*sizey;
+	int x;
+	
+	for(x=tot; x>0; x--, jitter1+=2, jitter2+=2) {
+		jitter2[0]= jitter1[0] + dsizex;
+		jitter2[1]= jitter1[1] + dsizey;
+		if(jitter2[0] > hsizex) jitter2[0]-= sizex;
+		if(jitter2[1] > hsizey) jitter2[1]-= sizey;
+	}
+}
+
+/* table around origin, -0.5*size to 0.5*size */
+static float *jitter_plane(LampRen *lar, int xs, int ys)
+{
+	float *fp;
+	int tot, x, iter=12;
+	
+	tot= lar->ray_totsamp;
+	
+	if(lar->jitter==NULL) {
+	
+		fp=lar->jitter= MEM_mallocN(4*tot*2*sizeof(float), "lamp jitter tab");
+		
+		/* fill table with random locations, area_size large */
+		for(x=0; x<tot; x++, fp+=2) {
+			fp[0]= (BLI_frand()-0.5)*lar->area_size;
+			fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
+		}
+		
+		while(iter--) {
+			fp= lar->jitter;
+			for(x=tot; x>0; x--, fp+=2) {
+				DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+			}
+		}
+		
+		jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.0);
+		jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.5);
+		jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0, 0.5);
+	}
+		
+	if(lar->ray_samp_type & LA_SAMP_JITTER) {
+		static float jitter[2*256];
+		jitter_plane_offset(lar->jitter, jitter, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
+		return jitter;
+	}
+	if(lar->ray_samp_type & LA_SAMP_DITHER) {
+		return lar->jitter + 2*tot*((xs & 1)+2*(ys & 1));
+	}
+	
 	return lar->jitter;
 }
 
-static void *jitter_cube(int resol)
-{
-	float dsize, *jit, *fp;
-	int x, y, z;
-	
-	if(resol<2) resol= 2;
-	if(resol>5) resol= 5;
-
-	switch (resol) {
-	case 2: jit= jit_cube2; break;
-	case 3: jit= jit_cube3; break;
-	case 4: jit= jit_cube4; break;
-	default: jit= jit_cube5; break;
-	}
-	if(jit[0]!=0.0) return jit;
-
-	dsize= 1.0/(resol-1.0);
-	fp= jit;
-	for(x=0; x<resol; x++) {
-		for(y=0; y<resol; y++) {
-			for(z=0; z<resol; z++, fp+= 3) {
-				fp[0]= -0.5 + x*dsize;
-				fp[1]= -0.5 + y*dsize;
-				fp[2]= -0.5 + z*dsize;
-			}
-		}
-	}
-	
-	return jit;
-
-}
 
 /* ***************** main calls ************** */
 
@@ -1846,7 +1873,6 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 }
 
 /* aolight: function to create random unit sphere vectors for total random sampling */
-#include <BLI_rand.h>
 void RandomSpherical(float *v)
 {
 	float r;
@@ -1860,6 +1886,7 @@ void RandomSpherical(float *v)
 	else v[2] = 1.f;
 }
 
+/* calc distributed spherical energy */
 static void DS_energy(float *sphere, int tot, float *vec)
 {
 	float *fp, fac, force[3], res[3];
@@ -2175,6 +2202,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
 		}
 	}
 	else {
+		/* area soft shadow */
 		float *jitlamp;
 		float vec[3];
 		int a, j=0;
@@ -2188,34 +2216,33 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
 		a= lar->ray_totsamp;
 		
 		while(a--) {
-			if(jitlamp[2]!=0.0) {
-				vec[0]= jitlamp[0];
-				vec[1]= jitlamp[1];
-				vec[2]= 0.0;
-				Mat3MulVecfl(lar->mat, vec);
-				
-				isec.end[0]= lampco[0]+vec[0];
-				isec.end[1]= lampco[1]+vec[1];
-				isec.end[2]= lampco[2]+vec[2];
-				
-				if(R.r.mode & R_OSA) {
-					isec.start[0]= shi->co[0] + (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
-					isec.start[1]= shi->co[1] + (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
-					isec.start[2]= shi->co[2] + (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
-					j++;
-					if(j>=R.osa) j= 0;
-				}
-				
-				if( d3dda(&isec) ) fac+= 1.0;
-				div+= 1.0;
+			
+			vec[0]= jitlamp[0];
+			vec[1]= jitlamp[1];
+			vec[2]= 0.0;
+			Mat3MulVecfl(lar->mat, vec);
+			
+			isec.end[0]= lampco[0]+vec[0];
+			isec.end[1]= lampco[1]+vec[1];
+			isec.end[2]= lampco[2]+vec[2];
+			
+			if(R.r.mode & R_OSA) {
+				isec.start[0]= shi->co[0] + (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
+				isec.start[1]= shi->co[1] + (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
+				isec.start[2]= shi->co[2] + (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
+				j++;
+				if(j>=R.osa) j= 0;
 			}
-			jitlamp+= 3;
+			
+			if( d3dda(&isec) ) fac+= 1.0;
+			
+			jitlamp+= 2;
 		}
 		// sqrt makes nice umbra effect
 		if(lar->ray_samp_type & LA_SAMP_UMBRA)
-			shadfac[3]= sqrt(1.0-fac/div);
+			shadfac[3]= sqrt(1.0-fac/((float)lar->ray_totsamp));
 		else
-			shadfac[3]= 1.0-fac/div;
+			shadfac[3]= 1.0-fac/((float)lar->ray_totsamp);
 	}
 
 	if(shi->matren->mode & MA_SHADOW_TRA) {

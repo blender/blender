@@ -2045,10 +2045,9 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		}
 		
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|1, 0,"Umbra",			100,110,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
-		uiDefButS(block, TOG|BIT|0, 0,"Clip circle",	200,110,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use circular sampling mask");
+		uiDefButS(block, TOG|BIT|1, 0,"Umbra",			100,110,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
 		uiDefButS(block, TOG|BIT|2, 0,"Dither",			100,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
-		uiDefButS(block, TOG|BIT|3, 0,"Jitter",			200,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use jittering for sampling");
+		uiDefButS(block, TOG|BIT|3, 0,"Noise",			200,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
 	}
 	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");
 
