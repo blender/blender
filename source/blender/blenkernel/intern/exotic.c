@@ -3550,7 +3550,13 @@ static void myfgets(char *str, int len, FILE *fp)
 		*str= c;
 		str++;
 		len--;
-		if(c == '\n' || c=='\r') break;
+		/* three types of enters, \n \r and \r\n  */
+		if(c == '\n') break;
+		if(c=='\r') {
+			c= getc(dxf_fp);				// read the linefeed from stream
+			if(c != 10) ungetc(c, dxf_fp);	// put back, if it's not one...
+			break;
+		}
 	}
 }
 
@@ -4505,16 +4511,15 @@ static void dxf_read_polyline(int noob) {
 				mface->v2= vids[1]-1;
 				mface->v3= vids[2]-1;
 	
-				if(vids[3])
+				if(vids[3] && vids[3]!=vids[0]) {
 					mface->v4= vids[3]-1;
+					test_index_mface(mface, 4);
+				}
+				else test_index_mface(mface, 3);
 	
 				mface->edcode= 3;
 				mface->mat_nr= 0;
 	
-				if(vids[3])
-					test_index_mface(mface, 4);
-				else 
-					test_index_mface(mface, 3);
 			} else {
 				error("Error parsing dxf, unknown polyline information near %d", dxf_line);
 			
@@ -4850,7 +4855,7 @@ static void dxf_read_3dface(int noob)
 	mface->mat_nr= 0;
 
 	test_index_mface(mface, nverts);
-	
+mface->v4= 0;
 	hasbumped=1;
 }
 
