@@ -463,7 +463,8 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 		 * should be explicit -zr 
 		 */
 	dlm= dl->mesh;
-	
+
+	if (me->orco) MEM_freeN(me->orco);
 	me->orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
 		
 	for(i=0; i<dlm->totvert; i++) {
