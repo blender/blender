@@ -3570,7 +3570,10 @@ int uiDoBlocks(ListBase *lb, int event)
 	
 	/* afterfunc is used for fileloading too, so after this call, the blocks pointers are invalid */
 	if(retval & UI_RETURN_OK) {
-		if(UIafterfunc) UIafterfunc(UIafterfunc_arg, UIafterval);
+		if(UIafterfunc) {
+			mywinset(curarea->win);
+			UIafterfunc(UIafterfunc_arg, UIafterval);
+		}
 		UIafterfunc= NULL;
 	}
 	
