@@ -137,6 +137,18 @@ LIB32=link.exe -lib
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Group "JoystickImp"
+
+# PROP Default_Filter "cpp"
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\Joystick\SCA_Joystick.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\Joystick\SCA_JoystickEvents.cpp
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.cpp
@@ -184,6 +196,14 @@ SOURCE=..\..\..\source\gameengine\GameLogic\SCA_IScene.cpp
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\GameLogic\SCA_ISensor.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\SCA_JoystickManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\SCA_JoystickSensor.cpp
 # End Source File
 # Begin Source File
 
@@ -249,6 +269,22 @@ SOURCE=..\..\..\source\gameengine\GameLogic\SCA_TimeEventManager.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Group "Joystick"
+
+# PROP Default_Filter "h"
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\Joystick\SCA_Joystick.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\Joystick\SCA_JoystickDefines.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\Joystick\SCA_JoystickPrivate.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.h
@@ -296,6 +332,14 @@ SOURCE=..\..\..\source\gameengine\GameLogic\SCA_IScene.h
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\GameLogic\SCA_ISensor.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\SCA_JoystickManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\GameLogic\SCA_JoystickSensor.h
 # End Source File
 # Begin Source File
 
