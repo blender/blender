@@ -858,7 +858,6 @@ libraries = (['blender_creator',
               'blender_imbuf',
               'blender_avi',
               'blender_blenlib',
-              'blender_python',
               'blender_makesdna',
               'blender_kernel',
               'blender_BSP',
@@ -910,7 +909,7 @@ if user_options_dict['BUILD_GAMEENGINE'] == 1:
                                'PHY_Physics'])
         link_env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
         link_env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
-
+link_env.Append (LIBS=['blender_python'])
 link_env.Append (LIBS=user_options_dict['PYTHON_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['PYTHON_LIBPATH'])
 link_env.Append (LINKFLAGS=user_options_dict['PYTHON_LINKFLAGS'])

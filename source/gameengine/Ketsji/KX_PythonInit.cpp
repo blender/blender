@@ -54,6 +54,7 @@
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
+#include "BPY_extern.h"
 
 static void setSandbox(TPythonSecurityLevel level);
 
@@ -628,7 +629,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	Py_SetProgramName(pname.Ptr());
 	Py_NoSiteFlag=1;
 	Py_FrozenFlag=1;
-	Py_Initialize();
+	BPY_start_python();
 	setSandbox(level);
 
 	PyObject* moduleobj = PyImport_AddModule("__main__");
@@ -639,7 +640,7 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 
 void exitGamePythonScripting()
 {
-	Py_Finalize();
+	BPY_end_python();
 }
 
 
