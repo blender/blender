@@ -2,9 +2,6 @@ import sys
 # Import the C flags set in the SConstruct file
 Import ('cflags')
 Import ('defines')
-Import ('platform_libs')
-Import ('platform_libpath')
-Import ('platform_linkflags')
 Import ('user_options_dict')
 
 if sys.platform=='win32':
@@ -33,7 +30,7 @@ makesdna_tool.Replace (PATH = user_options_dict['PATH'])
 
 makesdna_tool.Append (CCFLAGS = cflags)
 makesdna_tool.Append (CPPDEFINES = defines)
-makesdna_tool.Append (LINKFLAGS = platform_linkflags)
+makesdna_tool.Append (LINKFLAGS = user_options_dict['PLATFORM_LINKFLAGS'])
 makesdna_tool.Append (LIBPATH = '#'+user_options_dict['BUILD_DIR']+'/lib')
 makesdna_tool.Append (LIBS = 'blender_guardedalloc')
 makesdna_tool.Program (target = '#'+user_options_dict['BUILD_DIR']+'makesdna', source = source_files)

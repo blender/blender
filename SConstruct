@@ -81,11 +81,12 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     python_lib = ['python%d.%d' % sys.version_info[0:2]]
     python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
     python_include = [sysconfig.get_python_inc ()]
+    python_linkflags = Split (sysconfig.get_config_var('LINKFORSHARED'))
     # International support information
     ftgl_lib = ['ftgl']
     ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
     ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
-    freetype_env.ParseConfig ('pkg-config --cflags --libs freetype2')
+    freetype_env.ParseConfig ('freetype-config --cflags --libs')
     freetype_lib = freetype_env.Dictionary()['LIBS']
     freetype_libpath = freetype_env.Dictionary()['LIBPATH']
     freetype_include = freetype_env.Dictionary()['CPPPATH']
@@ -168,6 +169,7 @@ elif sys.platform == 'darwin':
     python_lib = ['python%d.%d' % sys.version_info[0:2]]
     python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
     python_include = [sysconfig.get_python_inc ()]
+    python_linkflags = Split (sysconfig.get_config_var('LINKFORSHARED'))
     # International stuff
     ftgl_lib = ['ftgl']
     ftgl_libpath = [darwin_precomp + '/ftgl/lib']
@@ -224,6 +226,7 @@ elif sys.platform == 'cygwin':
     python_include = sysconfig.get_python_inc ()
     python_libpath = sysconfig.get_python_lib (0, 1) + '/config'
     python_lib = 'python%d.%d' % sys.version_info[0:2]
+    python_linkflags = []
     # International stuff
     ftgl_lib = ['ftgl']
     ftgl_libpath = ['#../lib/windows/ftgl/lib']
@@ -324,6 +327,7 @@ elif sys.platform == 'win32':
     python_include = ['#../lib/windows/python/include/python2.2']
     python_libpath = ['#../lib/windows/python/lib']
     python_lib = ['python22']
+    python_linkflags = []
     # International stuff
     ftgl_lib = ['ftgl_static_ST']
     ftgl_libpath = ['#../lib/windows/ftgl/lib']
@@ -401,6 +405,7 @@ elif string.find (sys.platform, 'sunos') != -1:
     python_lib = ['python%d.%d' % sys.version_info[0:2]]
     python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
     python_include = [sysconfig.get_python_inc ()]
+    python_linkflags = []
     # International support information
     ftgl_lib = ['ftgl']
     ftgl_libpath = ['#../lib/solaris-2.8-sparc/ftgl/lib']
@@ -485,6 +490,7 @@ elif string.find (sys.platform, 'irix') != -1:
     python_libpath = [irix_precomp + '/python/lib/python2.2/config']
     python_include = [irix_precomp + '/python/include/python2.2']
     python_lib = ['python2.2']
+    python_linkflags = []
     # International support information
     ftgl_lib = ['ftgl']
     ftgl_libpath = [irix_precomp + '/ftgl/lib']
@@ -566,6 +572,7 @@ elif sys.platform=='openbsd3':
     python_lib = ['python%d.%d' % sys.version_info[0:2]]
     python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
     python_include = [sysconfig.get_python_inc ()]
+    python_linkflags = []
     # International support information
     ftgl_lib = ['ftgl']
     ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
@@ -627,9 +634,13 @@ else:
     config.write ("TARGET_AR = %r\n"%(env_dict['AR']))
     config.write ("PATH = %r\n"%(os.environ['PATH']))
     config.write ("\n# External library information.\n")
+    config.write ("PLATFORM_LIBS = %r\n"%(platform_libs))
+    config.write ("PLATFORM_LIBPATH = %r\n"%(platform_libpath))
+    config.write ("PLATFORM_LINKFLAGS = %r\n"%(platform_linkflags))
     config.write ("PYTHON_INCLUDE = %r\n"%(python_include))
     config.write ("PYTHON_LIBPATH = %r\n"%(python_libpath))
     config.write ("PYTHON_LIBRARY = %r\n"%(python_lib))
+    config.write ("PYTHON_LINKFLAGS = %r\n"%(python_linkflags))
     config.write ("SDL_CFLAGS = %r\n"%(sdl_cflags))
     config.write ("SDL_INCLUDE = %r\n"%(sdl_include))
     config.write ("SDL_LIBPATH = %r\n"%(sdl_libpath))
@@ -726,9 +737,13 @@ user_options.AddOptions (
         ('TARGET_CXX', 'C++ compiler for the target platform.'),
         ('TARGET_AR', 'Linker command for linking libraries.'),
         ('PATH', 'Standard search path'),
+        ('PLATFORM_LIBS', 'Platform specific libraries.'),
+        ('PLATFORM_LIBPATH', 'Platform specific library link path.'),
+        ('PLATFORM_LINKFLAGS', 'Platform specific linkflags'),
         ('PYTHON_INCLUDE', 'Include directory for Python header files.'),
         ('PYTHON_LIBPATH', 'Library path where the Python lib is located.'),
         ('PYTHON_LIBRARY', 'Python library name.'),
+        ('PYTHON_LINKFLAGS', 'Python specific linkflags.'),
         ('SDL_CFLAGS', 'Necessary CFLAGS when using sdl functionality.'),
         ('SDL_INCLUDE', 'Include directory for SDL header files.'),
         ('SDL_LIBPATH', 'Library path where the SDL library is located.'),
@@ -813,9 +828,6 @@ Export ('cflags')
 Export ('defines')
 Export ('window_system')
 Export ('extra_includes')
-Export ('platform_libs')
-Export ('platform_libpath')
-Export ('platform_linkflags')
 Export ('user_options_dict')
 Export ('library_env')
 
@@ -910,6 +922,7 @@ if user_options_dict['BUILD_GAMEENGINE'] == 1:
 
 link_env.Append (LIBS=user_options_dict['PYTHON_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['PYTHON_LIBPATH'])
+link_env.Append (LINKFLAGS=user_options_dict['PYTHON_LINKFLAGS'])
 link_env.Append (LIBS=user_options_dict['SDL_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['SDL_LIBPATH'])
 link_env.Append (LIBS=user_options_dict['PNG_LIBRARY'])
@@ -923,15 +936,15 @@ link_env.Append (LIBPATH=user_options_dict['Z_LIBPATH'])
 if user_options_dict['USE_OPENAL'] == 1:
     link_env.Append (LIBS=user_options_dict['OPENAL_LIBRARY'])
     link_env.Append (LIBPATH=user_options_dict['OPENAL_LIBPATH'])
-link_env.Append (LIBS=platform_libs)
-link_env.Append (LIBPATH=platform_libpath)
+link_env.Append (LIBS=user_options_dict['PLATFORM_LIBS'])
+link_env.Append (LIBPATH=user_options_dict['PLATFORM_LIBPATH'])
 if sys.platform == 'darwin':
     link_env.Append (LINKFLAGS=' -framework Carbon')
     link_env.Append (LINKFLAGS=' -framework AGL')
     if user_options_dict['USE_QUICKTIME'] == 1:
         link_env.Append (LINKFLAGS=' -framework QuickTime')
 else:
-    link_env.Append (LINKFLAGS=platform_linkflags)
+    link_env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
 
 link_env.BuildDir (root_build_dir, '.', duplicate=0)
 
