@@ -3762,4 +3762,5 @@ void draw_object_ext(Base *base)
 		G.zbuf= 0;
 		glDisable(GL_DEPTH_TEST);
 	}
+	curarea->win_swap= WIN_FRONT_OK;
 }

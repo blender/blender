@@ -436,7 +436,6 @@ void selectall_layer(int layernum)
 static void deselectall_except(Base *b)   /* deselect all except b */
 {
 	Base *base;
-	int redraw=0;
 
 	base= FIRSTBASE;
 	while(base) {
@@ -444,13 +443,10 @@ static void deselectall_except(Base *b)   /* deselect all except b */
 			if(b!=base) {
 				base->flag &= ~SELECT;
 				base->object->flag= base->flag;
-				redraw= 1;
 			}
 		}
 		base= base->next;
 	}
-	if(redraw) allqueue(REDRAWVIEW3D, 0);
-	countall();
 }
 
 #if 0
@@ -627,14 +623,14 @@ void mouse_select(void)
 			// copy
 			basact->object->flag= basact->flag;
 			
-			// for visual speed
-			draw_object_ext(basact);
-			if(oldbasact != basact) draw_object_ext(oldbasact);
-
 			if(oldbasact != basact) {
 				set_active_base(basact);
 			}
-			
+
+			// for visual speed
+			if(oldbasact != basact) draw_object_ext(oldbasact);
+			draw_object_ext(basact);
+
 			if(basact->object->type!=OB_MESH) {
 				if(G.f & G_WEIGHTPAINT) {
 					set_wpaint();	/* toggle */
@@ -646,7 +642,9 @@ void mouse_select(void)
 					set_faceselect();	/* toggle */
 				}
 			}
-			
+			/* also because multiple 3d windows can be open */
+			allqueue(REDRAWVIEW3D, 0);
+
 			allqueue(REDRAWBUTSLOGIC, 0);
 			allqueue(REDRAWDATASELECT, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);

@@ -206,7 +206,7 @@ void do_image_buttons(unsigned short event)
 	Image *ima;
 	ID *id, *idtest;
 	int nr;
-	char name[256], str[256];
+	char name[256];
 
 	if(curarea->win==0) return;
 
