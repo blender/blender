@@ -251,47 +251,48 @@ static PyObject *M_Mathutils_Rand( PyObject * self, PyObject * args )
 static PyObject *M_Mathutils_Vector( PyObject * self, PyObject * args )
 {
 	PyObject *listObject = NULL;
-	PyObject *checkOb = NULL;
-	PyObject *retval = NULL;
-	int x;
-	float *vec;
+	int size, i;
+	float vec[4];
 
-	if( !PyArg_ParseTuple( args, "|O!", &PyList_Type, &listObject ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"0 or 1 list expected" ) );
-
-	if( !listObject )
-		return ( PyObject * ) newVectorObject( NULL, 3 );
-
-	//2D 3D 4D supported
-	if( PyList_Size( listObject ) != 2 && PyList_Size( listObject ) != 3
-	    && PyList_Size( listObject ) != 4 )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"2D, 3D and 4D vectors supported\n" ) );
-
-	for( x = 0; x < PyList_Size( listObject ); x++ ) {
-		checkOb = PyList_GetItem( listObject, x );  /* borrowed refernce */
-		if( !PyInt_Check( checkOb ) && !PyFloat_Check( checkOb ) )
-			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-							"expected list of numbers\n" ) );
-	}
-
-	//allocate memory
-	vec = PyMem_Malloc( PyList_Size( listObject ) * sizeof( float ) );
-
-	//parse it all as floats
-	for( x = 0; x < PyList_Size( listObject ); x++ ) {
-		if( !PyArg_Parse
-		    ( PyList_GetItem( listObject, x ), "f", &vec[x] ) ) {
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-						      "python list not parseable\n" );
+	size = PySequence_Length(args);
+	if ( size == 1 ) {
+		listObject = PySequence_GetItem(args, 0);
+		if ( PySequence_Check(listObject) ) {
+			size = PySequence_Length(listObject);
+		} else {
+			goto bad_args;	// Single argument was not a sequence
 		}
+	} else if ( size == 0 ) {
+		return ( PyObject * ) newVectorObject( NULL, 3 );
+	} else {
+		Py_INCREF(args);
+		listObject = args;
 	}
+	if (size<2 || size>4) {
+		goto bad_args;		// Invalid vector size
+	}
+	for (i=0; i<size; i++) {
+		PyObject *v=PySequence_GetItem(listObject, i);
+		if (v==NULL) {
+			Py_DECREF(listObject);
+			return NULL;	// Failed to read sequence
+		}
+		PyObject *f=PyNumber_Float(v);
+		if(f==NULL) {
+			Py_DECREF(v);
+			goto bad_args;
+		}
+		vec[i]=PyFloat_AS_DOUBLE(f);
+		Py_DECREF(f);
+		Py_DECREF(v);
+	}
+	Py_DECREF(listObject);
+	return ( PyObject * ) newVectorObject( vec, size );
 
-	retval =  ( PyObject * ) newVectorObject( vec,
-						  PyList_Size( listObject ) );
-	PyMem_Free( vec );
-	return retval;
+bad_args:
+	Py_XDECREF(listObject);
+	PyErr_SetString( PyExc_TypeError, "2-4 floats expected (optionally in a sequence)");
+	return NULL;
 }
 
 //***************************************************************************
