@@ -1555,10 +1555,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						transform('s');
 #endif
 					}
-					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
+					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)){
 #ifdef NEWTRANSFORM
 						Transform(TFM_TOSPHERE);
 #endif
+					}
 					
 				}
 				else if(G.qual==LR_ALTKEY) {
