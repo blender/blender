@@ -1643,7 +1643,7 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	}
 
 	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
-		if(ma->fresnel_tra!=1.0) 
+		if(ma->fresnel_tra!=0.0) 
 			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 	}
 
@@ -2239,21 +2239,15 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if(i>0.0 && !(lar->mode & LA_NO_DIFF)) {
 			if(ma->mode & MA_SHADOW_TRA) {
 				add_to_diffuse(shr->diff, shi, is, i*shadfac[0]*lar->r, i*shadfac[1]*lar->g, i*shadfac[2]*lar->b);
-				//shr->diff[0]+= i*shadfac[0]*lar->r;
-				//shr->diff[1]+= i*shadfac[1]*lar->g;
-				//shr->diff[2]+= i*shadfac[2]*lar->b;
 			}
 			else {
 				add_to_diffuse(shr->diff, shi, is, i*lar->r, i*lar->g, i*lar->b);
-				//shr->diff[0]+= i*lar->r;
-				//shr->diff[1]+= i*lar->g;
-				//shr->diff[2]+= i*lar->b;
 			}
 		}
 	}
 
 	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
-		if(ma->fresnel_tra!=1.0) 
+		if(ma->fresnel_tra!=0.0) 
 			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 
 		if(ma->spectra!=0.0) {
@@ -2272,17 +2266,14 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	if(shr->spec[2]<0.0) shr->spec[2]= 0.0;
 
 	shr->diff[0]+= ma->r*ma->amb*shi->rad[0];
-	//shr->diff[0]*= ma->r;
 	shr->diff[0]+= ma->ambr;
 	if(shr->diff[0]<0.0) shr->diff[0]= 0.0;
 	
 	shr->diff[1]+= ma->g*ma->amb*shi->rad[1];
-	//shr->diff[1]*= ma->g;
 	shr->diff[1]+= ma->ambg;
 	if(shr->diff[1]<0.0) shr->diff[1]= 0.0;
 	
 	shr->diff[2]+= ma->b*ma->amb*shi->rad[2];
-	//shr->diff[2]*= ma->b;
 	shr->diff[2]+= ma->ambb;
 	if(shr->diff[2]<0.0) shr->diff[2]= 0.0;
 	

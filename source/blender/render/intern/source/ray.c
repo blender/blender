@@ -1144,7 +1144,7 @@ static int d3dda(Isect *is)
 	else {
 		static int coh_ocx1,coh_ocx2,coh_ocy1, coh_ocy2,coh_ocz1,coh_ocz2;
 		float dox, doy, doz;
-		int coherent=1, nodecount=0;
+		int coherent=1, nodecount=0, eqval;
 		
 		/* check coherence; 
 			coh_test: 0=don't, 1=check 
@@ -1238,46 +1238,62 @@ static int d3dda(Isect *is)
 			}
 
 			labdao= ddalabda;
-
-			if(labdax<labday) {
-				if(labday<labdaz) {
-					xo+=dx;
-					labdax+=ldx;
-				} else if(labdax<labdaz) {
-					xo+=dx;
-					labdax+=ldx;
-				} else {
-					zo+=dz;
-					labdaz+=ldz;
-					if(labdax==labdaz) {
-						xo+=dx;
-						labdax+=ldx;
+			
+			/* traversing ocree nodes need careful detection of smallest values, with proper
+			   exceptions for equal labdas */
+			eqval= (labdax==labday);
+			if(labday==labdaz) eqval += 2;
+			if(labdax==labdaz) eqval += 4;
+			
+			if(eqval) {	// only 4 cases exist!
+				if(eqval==7) {	// x=y=z
+					xo+=dx; labdax+=ldx;
+					yo+=dy; labday+=ldy;
+					zo+=dz; labdaz+=ldz;
+				}
+				else if(eqval==1) { // x=y 
+					if(labday < labdaz) {
+						xo+=dx; labdax+=ldx;
+						yo+=dy; labday+=ldy;
+					}
+					else {
+						zo+=dz; labdaz+=ldz;
 					}
 				}
-			} else if(labdax<labdaz) {
-				yo+=dy;
-				labday+=ldy;
-				if(labday==labdax) {
-					xo+=dx;
-					labdax+=ldx;
+				else if(eqval==2) { // y=z
+					if(labdax < labday) {
+						xo+=dx; labdax+=ldx;
+					}
+					else {
+						yo+=dy; labday+=ldy;
+						zo+=dz; labdaz+=ldz;
+					}
 				}
-			} else if(labday<labdaz) {
-				yo+=dy;
-				labday+=ldy;
-			} else if(labday<labdax) {
-				zo+=dz;
-				labdaz+=ldz;
-				if(labdaz==labday) {
-					yo+=dy;
-					labday+=ldy;
+				else { // x=z
+					if(labday < labdax) {
+						yo+=dy; labday+=ldy;
+					}
+					else {
+						xo+=dx; labdax+=ldx;
+						zo+=dz; labdaz+=ldz;
+					}
 				}
-			} else {
-				xo+=dx;
-				labdax+=ldx;
-				yo+=dy;
-				labday+=ldy;
-				zo+=dz;
-				labdaz+=ldz;
+			}
+			else {	// all three different, just three cases exist
+				eqval= (labdax<labday);
+				if(labday<labdaz) eqval += 2;
+				if(labdax<labdaz) eqval += 4;
+				
+				if(eqval==7 || eqval==5) { // x smallest
+					xo+=dx; labdax+=ldx;
+				}
+				else if(eqval==2 || eqval==6) { // y smallest
+					yo+=dy; labday+=ldy;
+				}
+				else { // z smallest
+					zo+=dz; labdaz+=ldz;
+				}
+				
 			}
 
 			ddalabda=MIN3(labdax,labday,labdaz);
