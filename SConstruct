@@ -5,7 +5,7 @@ import time
 import sys
 from distutils import sysconfig
 import SCons.Script
-from bs import *
+from tools.scons.bs import *
 
 bs_globals.arguments = ARGUMENTS
 
