@@ -132,3 +132,10 @@ def DrawProgressBar (done, text):
   @type text: string
   @param text: Info about what is currently being done "behind the scenes".
   """
+
+def GetCursorPos ():
+  """
+  Get the current 3d cursor position.
+  @rtype: list of three floats
+  @return: the current position: [x, y, z].
+  """

@@ -156,9 +156,13 @@ class NMVert:
   The NMVert object
   =================
     This object holds mesh vertex data.
+  @type co: list of three floats
   @cvar co: The vertex coordinates (x, y, z).
-  @cvar no: The vertex normal vector (nx, ny, nz). 
+  @type no: list of three floats
+  @cvar no: The vertex normal vector (x, y, z).
+  @type uvco: list of two floats
   @cvar uvco: The vertex texture "sticky" coordinates.
+  @type index: int
   @cvar index: The vertex index, if owned by a mesh.
   """
 
