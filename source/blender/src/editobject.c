@@ -288,6 +288,12 @@ void make_track(void)
 					data = con->data;
 					data->tar = BASACT->object;
 
+					/* Lamp and Camera track differently by default */
+					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+						data->reserved1 = TRACK_nZ;
+						data->reserved2 = UP_Y;
+					}
+
 					add_constraint_to_object(con, base->object);
 				}
 			}

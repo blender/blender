@@ -79,8 +79,8 @@ typedef struct bKinematicConstraint{
 
 typedef struct bTrackToConstraint{
 	Object		*tar;
-	int			reserved1;
-	int			reserved2;
+	int			reserved1; /* Track Axis */
+	int			reserved2; /* Up Axis */
 	char		subtarget[32];
 } bTrackToConstraint;
 
