@@ -7,6 +7,13 @@ from distutils import sysconfig
 # Build directory.
 root_build_dir = '..' + os.sep + 'build' + os.sep + sys.platform + os.sep
 
+# Create the build directory. SCons does this automatically, but since we
+# don't want to put scons-generated .sconsign files in the source tree, but in
+# the root_build_dir, we have to create that dir ourselves before SCons tries
+# to access/create the file containing .sconsign data.
+if os.path.isdir (root_build_dir) == False:
+    os.makedirs (root_build_dir)
+
 # User configurable options file. This can be controlled by the user by running
 # scons with the following argument: CONFIG=user_config_options_file
 config_file = ARGUMENTS.get('CONFIG', 'config.opts')
@@ -818,7 +825,7 @@ library_env.Replace (AR = user_options_dict['TARGET_AR'])
 library_env.Append (CCFLAGS = cflags)
 library_env.Append (CXXFLAGS = cxxflags)
 library_env.Append (CPPDEFINES = defines)
-library_env.SConsignFile (root_build_dir+'/scons-signatures')
+library_env.SConsignFile (root_build_dir+'scons-signatures')
 
 #-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files
