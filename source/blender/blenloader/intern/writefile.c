@@ -1593,6 +1593,9 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
 	char tempname[FILE_MAXDIR+FILE_MAXFILE];
 	int file, fout, write_user_block;
+#ifdef WIN32
+	char tmpdir[FILE_MAXDIR+FILE_MAXFILE];
+#endif
 	
 	sprintf(tempname, "%s@", dir);
 
@@ -1602,7 +1605,17 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 		return 0;
 	}
 	
+#ifdef WIN32
+	BLI_getInstallationDir(tmpdir);
+
+	if(BLI_exists(tmpdir))
+		strcat(tmpdir,".blender/");
+
+	BLI_make_file_string(G.sce, userfilename, tmpdir, ".B.blend");
+#else
 	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B.blend");
+#endif
+
 	write_user_block= BLI_streq(dir, userfilename);
 
 	fout= write_file_handle(file, write_user_block, write_flags);
