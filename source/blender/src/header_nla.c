@@ -82,17 +82,12 @@ void do_nla_buttons(unsigned short event)
 	case B_NLAHOME:
 		//	Find X extents
 		v2d= &(G.snla->v2d);
-
-		v2d->cur.xmin = G.scene->r.sfra;
-		v2d->cur.ymin=-SCROLLB;
 		
-//		if (!G.saction->action){
-			v2d->cur.xmax=G.scene->r.efra;
-//		}
-//		else
-//		{
-//			v2d->cur.xmax=calc_action_length(G.saction->action)+1;
-//		}
+		/* i tried to understand nla/action drawing to reveil a 'tot' rect, impossible code! (ton) */
+		v2d->cur.xmin = G.scene->r.sfra-5;
+		v2d->cur.xmax = G.scene->r.efra+5;
+		v2d->cur.ymin= -SCROLLB;
+		v2d->cur.ymax= 5; // at least stuff is visiable then?
 		
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
 		addqueue (curarea->win, REDRAW, 1);
