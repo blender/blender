@@ -4596,6 +4596,8 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 235) {
 		Tex *tex= main->tex.first;
 		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
 		
 		while(tex) {
 			if(tex->nabla==0.0) tex->nabla= 0.025;
@@ -4603,6 +4605,14 @@ static void do_versions(Main *main)
 		}
 		while(sce) {
 			sce->r.postsat= 1.0;
+			ed= sce->ed;
+			if(ed) {
+				WHILE_SEQ(&ed->seqbase) {
+					if(seq->type==SEQ_IMAGE || seq->type==SEQ_MOVIE) seq->flag |= SEQ_MAKE_PREMUL;
+				}
+				END_SEQ
+			}
+			
 			sce= sce->id.next;
 		}
 	}

@@ -161,6 +161,7 @@ typedef struct GlowVars {
 #define SEQ_OVERLAP		8
 #define SEQ_FILTERY		16
 #define SEQ_MUTE		32
+#define SEQ_MAKE_PREMUL	64
 
 /* seq->type WATCH IT: BIT 3!!! */
 #define SEQ_IMAGE		0

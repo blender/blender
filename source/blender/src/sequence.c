@@ -1899,9 +1899,14 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 
 							if(se->ibuf==0) se->ok= 0;
 							else {
-								if(se->ibuf->depth==32 && se->ibuf->zbuf==0) converttopremul(se->ibuf);
+								if(seq->flag & SEQ_MAKE_PREMUL) {
+									if(se->ibuf->depth==32 && se->ibuf->zbuf==0) converttopremul(se->ibuf);
+								}
 								seq->strip->orx= se->ibuf->x;
 								seq->strip->ory= se->ibuf->y;
+								if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
+								if(seq->mul==0.0) seq->mul= 1.0;
+								if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
 							}
 						}
 					}
@@ -1924,7 +1929,9 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 
 							if(se->ibuf==0) se->ok= 0;
 							else {
-								if(se->ibuf->depth==32) converttopremul(se->ibuf);
+								if(seq->flag & SEQ_MAKE_PREMUL) {
+									if(se->ibuf->depth==32) converttopremul(se->ibuf);
+								}
 								seq->strip->orx= se->ibuf->x;
 								seq->strip->ory= se->ibuf->y;
 								if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
