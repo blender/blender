@@ -1998,7 +1998,7 @@ void update_dup_subtarget(EditBone *dupBone)
 	char         *subname;
 
 
-	if ( (chan = get_pose_channel(OBACT->pose, dupBone->name)) )
+	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) )
 		if ( (conlist = &chan->constraints) )
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
@@ -2057,7 +2057,7 @@ void adduplicate_armature(void)
 				bPoseChannel *chanold, *channew;
 				ListBase     *listold, *listnew;
 
-				chanold = get_pose_channel (OBACT->pose, curBone->name);
+				chanold = verify_pose_channel (OBACT->pose, curBone->name);
 				if (chanold) {
 					listold = &chanold->constraints;
 					if (listold){
