@@ -45,12 +45,15 @@
 #include "SND_WaveCache.h"
 #include <stdio.h>
 
-#ifndef __APPLE__
-#include <malloc.h>
-#else // __APPLE__
-#include <sys/malloc.h>
-#endif // __APPLE__
-
+#ifdef __APPLE__
+# include <sys/malloc.h>
+#else
+# ifdef __FreeBSD__
+#  include <stdlib.h>
+# else
+#  include <malloc.h>
+# endif
+#endif
 
 SND_WaveCache::SND_WaveCache()
 {

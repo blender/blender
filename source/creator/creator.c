@@ -90,10 +90,9 @@
 #include <signal.h>
 
 #ifdef __FreeBSD__
-  #ifndef __OpenBSD__
-    #include <floatingpoint.h>
-    #include <sys/rtprio.h>
-  #endif
+# include <sys/types.h>
+# include <floatingpoint.h>
+# include <sys/rtprio.h>
 #endif
 
 // from buildinfo.c
