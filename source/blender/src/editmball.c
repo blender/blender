@@ -172,6 +172,10 @@ void add_primitiveMball(int dummy_argument)
 	ml->x= cent[0];
 	ml->y= cent[1];
 	ml->z= cent[2];
+	ml->quat[0]= 1.0;
+	ml->quat[1]= 0.0;
+	ml->quat[2]= 0.0;
+	ml->quat[3]= 0.0;
 	ml->rad= 2.0;
 	ml->lay= 1;
 	ml->s= 2.0;

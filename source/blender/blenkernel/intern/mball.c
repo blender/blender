@@ -1446,7 +1446,7 @@ float init_meta(Object *ob)	/* return totsize */
 	MetaBall *mb;
 	MetaElem *ml;
 	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], vec[3];
-	float temp1[4][4], temp2[4][4], max=0.0;
+	float temp1[4][4], temp2[4][4], temp3[4][4], max=0.0;
 	int a, obnr;
 	char obname[32];
 	
@@ -1485,10 +1485,16 @@ float init_meta(Object *ob)	/* return totsize */
 			}
 			while(ml) {
 				if(!(ml->flag & MB_HIDE)) {
+					/* Rotation of MetaElem is stored in quat */
+ 					QuatToMat4(ml->quat, temp3);
+
+					/* Translation of MetaElem */
 					Mat4One(temp2);
 					temp2[3][0]= ml->x;
 					temp2[3][1]= ml->y;
 					temp2[3][2]= ml->z;
+
+					Mat4MulMat4(temp1, temp3, temp2);
 				
 					/* make a copy because of duplicates */
 					mainb[a]= new_pgn_element(sizeof(MetaElem));
@@ -1500,9 +1506,9 @@ float init_meta(Object *ob)	/* return totsize */
 					
 					/* mat is the matrix to transform from mball into the basis-mball */
 					Mat4Invert(obinv, ob->obmat);
-					Mat4MulMat4(temp1, bob->obmat, obinv);
+					Mat4MulMat4(temp2, bob->obmat, obinv);
 					/* MetaBall transformation */
-					Mat4MulMat4(mat, temp2, temp1);
+					Mat4MulMat4(mat, temp1, temp2);
         
 					Mat4Invert(imat,mat);				
         

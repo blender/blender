@@ -50,9 +50,9 @@ typedef struct MetaElem {
 
 	short type, lay, flag, selcol;
 	float x, y, z;			/* Position of centre of MetaElem */
-	float expx, expy, expz;
-	float rad, rad2, s, len, maxrad2;
-	int pad;
+	float quat[4];			/* Rotation of MetaElem */
+	float expx, expy, expz;		/* dx, dy, dz parameters */
+	float rad, rad2, s, len;
 	
 	float *mat, *imat;
 	
@@ -103,7 +103,7 @@ typedef struct MetaBall {
 
 /* ml->flag */
 #define MB_NEGATIVE	2
-#define MB_HIDE		4
+#define MB_HIDE		8
 
 #endif
 

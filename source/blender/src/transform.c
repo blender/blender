@@ -494,7 +494,7 @@ static void createTransMBallVerts(void)
 	int propmode = G.f & G_PROPORTIONAL;
 
 	/* count totals */
-    for(ml= editelems.first; ml; ml= ml->next) {
+	for(ml= editelems.first; ml; ml= ml->next) {
 		if(ml->flag & SELECT) countsel++;
 		if(propmode) count++;
 	}
@@ -512,13 +512,15 @@ static void createTransMBallVerts(void)
 	Mat3Inv(smtx, mtx);
     
 	td = Trans.data;
-    for(ml= editelems.first; ml; ml= ml->next) {
+	for(ml= editelems.first; ml; ml= ml->next) {
 		if(propmode || (ml->flag & SELECT)) {
 			td->loc= &ml->x;
 			VECCOPY(td->iloc, td->loc);
 			VECCOPY(td->center, td->loc);
-			if(ml->flag & SELECT) td->flag= TD_SELECTED;
+
+			if(ml->flag & SELECT) td->flag= TD_SELECTED | TD_USEQUAT;
 			else td->flag= 0;
+
 			Mat3CpyMat3(td->smtx, smtx);
 			Mat3CpyMat3(td->mtx, mtx);
 
@@ -530,6 +532,9 @@ static void createTransMBallVerts(void)
 			tx->isize[0] = ml->expx;
 			tx->isize[1] = ml->expy;
 			tx->isize[2] = ml->expz;
+
+			tx->quat = ml->quat;
+			QUATCOPY(tx->iquat, ml->quat);
 
 			tx->rot = NULL;
 
@@ -2353,6 +2358,8 @@ void initRotation(TransInfo *t)
 
 static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 	float vec[3], totmat[3][3], smat[3][3];
+	float eul[3], fmat[3][3], quat[4];
+
 	if (t->flag & T_EDIT) {
 		Mat3MulMat3(totmat, mat, td->mtx);
 		Mat3MulMat3(smat, td->smtx, totmat);
@@ -2361,10 +2368,14 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		Mat3MulVecfl(smat, vec);
 		
 		VecAddf(td->loc, vec, t->center);
+
+		if(td->flag & TD_USEQUAT) {
+			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+			Mat3ToQuat(fmat, quat);	// Actual transform
+			QuatMul(td->ext->quat, quat, td->ext->iquat);
+		}
 	}
 	else {
-		float eul[3], fmat[3][3];
-		
 		/* translation */
 		VecSubf(vec, td->center, t->center);
 		Mat3MulVecfl(mat, vec);
@@ -2376,12 +2387,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		VecAddf(td->loc, td->iloc, vec);
 		
 		if(td->flag & TD_USEQUAT) {
-			float quat[4];
-			
 			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-			
 			Mat3ToQuat(fmat, quat);	// Actual transform
-			
 			QuatMul(td->ext->quat, quat, td->ext->iquat);
 		}
 		else if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
