@@ -86,10 +86,90 @@ make
 
 If you have any problems with the above post a message to the Forums on
 www.blender.org
+
 ----------------------WINDOWS TIPS--------------------------------------
+
+When building Blender on Windows you have three choices:
+METHOD 1. Build using the old NaN Makefiles.
+METHOD 2. Build using the new automake/autoconf files
+METHOD 3. Use Microsoft Visual Studio project files
+
+These directions are for method 3. Method 1 was used in Nan in combination 
+with Cygwin. I don't know if somebody ever tried method 2.
+
+EXTERNAL LIBARIES
+All external libraries that Blender depends on are found in CVS in 
+precompiled form. If you did not already do so, check out 
+blender/lib/windows from CVS. If you prefer to build or download those 
+libraries yourself, there are some directions below.
+
+INTERN LIBRARIES:
+The first thing you need to do is to build the Blender "intern" libraries.
+You need to have Python installed on your machine.
+
+Open the workspace in the $NANBLENDERHOME/intern/make/msvc_6_0 directory.
+Build the "build_install_all" project. This will build all the intern libraries
+and installs them in the $NANBLENDERHOME/lib/windows directory.
+
+If the post build step (copying the libraries to their destinations) fails,
+this is probably due to the fact that MSVC can't find the XCOPY command as 
+happened to me on an XP system. MSVC has it's own PATH that you can set through
+the options. Open options from the menu: Tools->Options. Go to the directories
+tab and select "Executable files" from the drop down menu. Now add you SYSTEM32
+directory.
+
+The last project build is the python_freeze project that will freeze python code
+for compilation and linking with Blender's C code. At the moment, this should be
+automatic except that batch file probably does not find Python. If this is the
+case, follow the same procedure as was mentioned above for the XCOPY command
+to add Python to your path.
+
+BUILDING BLENDER
+
+Open the workspace $NANBLENDERHOME/projectfiles/creator/blendercreator.dsw.
+This contains the following four main projects:
+blendercreator    Builds the creator
+blenderpublisher  Builds the publisher
+GP_ghost          Builds the stand-alone game player
+GP_axctl          Builds the ActiveX control
+
+Choose the project you want to build and hit F7. If all is well it should build
+with a lot of warnings but no errors.
+
+BUILDING/DOWNLOADING EXTERNAL LIBRARIES
+If you don't want to use the precompiled libraries you can download and/or
+build them yourself. Here are some directions.
+
+JPEG:
+BINARY LIBRARY:
+Go to sourceforge.net, navigate to the GnuWin32 project and download 
+libjpeg-6b-lib.zip. Rename the unzipped directory "jpeg" and copy it to the 
+$NANBLENDERHOME/lib/windows directory.
+FROM SOURCES:
+Download the jpeg sources from http://www.ijg.org/. Go into the source 
+directory and copy the file jconfig.vc to jconfig.h. Now start a command box
+and run nmake /f makefile.vc (assuming nmake is in your path, if not run the
+vcvars32.bat batch file located in the VC98/Bin directory of the MSVC 
+installation directory first).
+Copy these include files: jconfig.h, jerror.h, jmorecfg.h, jpeglib.h
+from the build directory to the lib tree in this directory:
+$NANBLENDERHOME/lib/windows/jpeg/include
+The file libjpeg.lib should be copied to:
+$NANBLENDERHOME/lib/windows/jpeg/lib
+
+PNG:
+Go to sourceforge.net, navigate to the GnuWin32 project and download 
+libpng-1.2.4-1-lib.zip. Rename the unzipped directory "png" and copy it to the 
+$NANBLENDERHOME/lib/windows directory.
+
+ZLIB:
+Go to sourceforge.net, navigate to the GnuWin32 project and download 
+zlib-1.1.4-lib.zip. Rename the unzipped directory "zlib" and copy it to the 
+$NANBLENDERHOME/lib/windows directory.
+
+
 If you have any problems with the above post a message to the Forums on
 www.blender.org
-
 
 ----------------------Mac OSX TIPS--------------------------------------
 When building Blender on OSX you have three choices:
@@ -186,4 +266,5 @@ If you want to build ODE yourself, you'll have to edit a config file of ODE firs
 go to $NANBLENDERHOME/source/ode/config and edit the file "user-settings" so 
 that platform is equal to osx (PLATFORM=osx).
 
-Success!
+If you have any problems with the above post a message to the Forums on
+www.blender.org
