@@ -1500,9 +1500,12 @@ void initWarp(TransInfo *t)
 			VECCOPY(min, t->data[i].center);
 		}
 	}
-	Mat4MulVecfl(G.obedit->obmat, min);
+
+	if (t->flag & T_EDIT) {
+		Mat3MulVecfl(G.obedit->obmat, min);
+		Mat3MulVecfl(G.obedit->obmat, max);
+	}
 	Mat4MulVecfl(G.vd->viewmat, min);
-	Mat4MulVecfl(G.obedit->obmat, max);
 	Mat4MulVecfl(G.vd->viewmat, max);
 	
 	t->center[0]= (min[0]+max[0])/2.0f;
@@ -1511,7 +1514,6 @@ void initWarp(TransInfo *t)
 	
 	t->val= (max[0]-min[0])/2.0f;	// t->val is free variable
 	
-	Mat4Invert(G.obedit->imat, G.obedit->obmat);
 }
 
 
@@ -1549,32 +1551,35 @@ int Warp(TransInfo *t, short mval[2])
 	circumfac*= (float)(-M_PI/360.0);
 	
 	for(i = 0 ; i < t->total; i++, td++) {
+		float loc[3];
 		if (td->flag & TD_NOACTION)
 			continue;
-		else {
-			/* translate point to centre, rotate in such a way that outline==distance */
-			
-			VECCOPY(vec, td->iloc);
-			Mat4MulVecfl(G.obedit->obmat, vec);
-			Mat4MulVecfl(G.vd->viewmat, vec);
-			
-			dist= vec[0]-cursor[0];
-			
-			phi0= (circumfac*dist/t->val);	// t->val is X dimension projected boundbox
-			
-			vec[0]= (-cursor[0]);
-			vec[1]= (vec[1]-cursor[1]);
-			
-			co= (float)cos(phi0);
-			si= (float)sin(phi0);
-			td->loc[0]= co*vec[0]-si*vec[1]+cursor[0];
-			td->loc[1]= si*vec[0]+co*vec[1]+cursor[1];
-			td->loc[2]= vec[2];
-			
-			Mat4MulVecfl(G.vd->viewinv, td->loc);
-			Mat4MulVecfl(G.obedit->imat, td->loc);
-			
-		}
+
+		/* translate point to centre, rotate in such a way that outline==distance */
+		
+		VECCOPY(vec, td->iloc);
+		Mat3MulVecfl(td->smtx, vec);
+		Mat4MulVecfl(G.vd->viewmat, vec);
+		
+		dist= vec[0]-cursor[0];
+		
+		phi0= (circumfac*dist/t->val);	// t->val is X dimension projected boundbox
+		
+		vec[0]= (-cursor[0]);
+		vec[1]= (vec[1]-cursor[1]);
+		
+		co= (float)cos(phi0);
+		si= (float)sin(phi0);
+		loc[0]= co*vec[0]-si*vec[1]+cursor[0];
+		loc[1]= si*vec[0]+co*vec[1]+cursor[1];
+		loc[2]= vec[2];
+		
+		Mat4MulVecfl(G.vd->viewinv, loc);
+		Mat3MulVecfl(td->mtx, loc);
+
+		VecSubf(loc, loc, td->iloc);
+		VecMulf(loc, td->factor);
+		VecAddf(td->loc, td->iloc, loc);
 	}
 
 	recalcData(t);

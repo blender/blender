@@ -1614,7 +1614,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case WKEY:
 				if((G.qual==LR_SHIFTKEY)) {
 #ifdef NEWTRANSFORM
-					if(G.obedit) Transform(TFM_WARP);
+					Transform(TFM_WARP);
 #else
 					transform('w');
 #endif
