@@ -592,9 +592,11 @@ float CalcNormUV(float *a, float *b, float *c)
 #define UV_CUBE_MAPPING 2
 #define UV_CYL_MAPPING 3
 #define UV_SPHERE_MAPPING 4
+#define UV_BOUNDS8_MAPPING 68
 #define UV_BOUNDS4_MAPPING 65
 #define UV_BOUNDS2_MAPPING 66
 #define UV_BOUNDS1_MAPPING 67
+#define UV_STD8_MAPPING 131
 #define UV_STD4_MAPPING 130
 #define UV_STD2_MAPPING 129
 #define UV_STD1_MAPPING 128
@@ -631,9 +633,11 @@ void uv_autocalc_tface()
 	mode= pupmenu(MENUTITLE("UV Calculation")
 	              MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
 	              MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
+	              MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/1", UV_BOUNDS1_MAPPING) "|"
+	              MENUSTRING("Standard 1/8",  UV_STD8_MAPPING) "|"
 	              MENUSTRING("Standard 1/4",  UV_STD4_MAPPING) "|"
 	              MENUSTRING("Standard 1/2",  UV_STD2_MAPPING) "|"
 	              MENUSTRING("Standard 1/1",  UV_STD1_MAPPING) "|"
@@ -687,6 +691,9 @@ void uv_autocalc_tface()
 			}
 		}
 
+	case UV_BOUNDS8_MAPPING:		
+		fac = 0.125;
+		goto bounds_mapping;
 	case UV_BOUNDS4_MAPPING:		
 		fac = 0.25;
 		goto bounds_mapping;
@@ -780,6 +787,9 @@ void uv_autocalc_tface()
 		}
 		break;
 
+	case UV_STD8_MAPPING:
+		fac = 0.125;
+		goto standard_mapping;
 	case UV_STD4_MAPPING:
 		fac = 0.25;
 		goto standard_mapping;
