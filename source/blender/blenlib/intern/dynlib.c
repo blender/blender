@@ -131,8 +131,9 @@ void *PIL_dynlib_find_symbol(PILdynlib* lib, char *symname) {
 
    size = strlen(symname) + 2 * sizeof(char);
    if (size < CHAR_MAX) {
-      name = MEM_mallocN(size, "temp string");
+      name = MEM_mallocN(size, symname);
       sprintf(&name, "_%s",symname);
+printf("\nouchie name =%s\n",name);
       cr = NSLookupSymbolInModule(lib->handle, name);
       free(name);
       return NSAddressOfSymbol(cr);
@@ -141,7 +142,14 @@ void *PIL_dynlib_find_symbol(PILdynlib* lib, char *symname) {
 }
 
 char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
-	return "Plugins are currently unsupported on OSX";
+    char *string;
+    int *errorNumber;
+    NSLinkEditErrors *c;
+    char *filename, *errorstr;
+
+    NSLinkEditError(&c,&errorNumber,&filename,&errorstr);
+    sprintf(string,"%d :%s: %s",errorNumber,filename,errorstr);
+	return string;
 }
 	
 void PIL_dynlib_close(PILdynlib *lib) {
