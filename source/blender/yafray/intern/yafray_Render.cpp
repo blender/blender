@@ -42,6 +42,7 @@ bool yafrayRender_t::exportScene()
 
 	if (!initExport())
 	{
+		G.afbreek = 1;
 		clearAll();
 		return false;
 	}

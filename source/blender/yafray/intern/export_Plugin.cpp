@@ -298,18 +298,18 @@ void yafrayPluginRender_t::displayImage()
 }
 
 
+#ifdef WIN32
+#define MAXPATHLEN MAX_PATH
+#else
+#include <sys/param.h>
+#endif
 static void adjustPath(string &path)
 {
 	// if relative, expand to full path
-	if ((path[0]=='/') && (path[1]=='/')) {
-		string basepath = G.sce;
-		// fwd slash valid for win32 as well
-		int ls = basepath.find_last_of("/");
-#ifdef WIN32
-		if (ls==-1) ls = basepath.find_last_of("\\");
-#endif
-		path = basepath.substr(0, ls) + path.substr(1, path.length());
-	}
+	char cpath[MAXPATHLEN];
+	strcpy(cpath, path.c_str());
+	BLI_convertstringcode(cpath, G.sce, 0);
+	path = cpath;
 #ifdef WIN32
 	// add drive char if not there
 	addDrive(path);
