@@ -2221,6 +2221,7 @@ void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					th_curcol_arr[1]= th_curcol_ptr[1];
 					th_curcol_arr[2]= th_curcol_ptr[2];
 					th_curcol_arr[3]= th_curcol_ptr[3];
+					addqueue(sa->win, REDRAW, 1);
 				}
 			}
 			else if(val==B_THEME_PASTE) {
