@@ -358,8 +358,8 @@ static int checktarga(TARGA *tga, unsigned char *mem)
 		return(0);
 	}
 	if (tga->mapsize && tga->mapbits > 32) return(0);
-	if (tga->xsize <= 0 || tga->xsize >= 4096) return(0);
-	if (tga->ysize <= 0 || tga->ysize >= 4096) return(0);
+	if (tga->xsize <= 0 || tga->xsize >= 8192) return(0);
+	if (tga->ysize <= 0 || tga->ysize >= 8192) return(0);
 	if (tga->pixsize > 32) return(0);
 	if (tga->pixsize == 0) return(0);
 	return(1);
