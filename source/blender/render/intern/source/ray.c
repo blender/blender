@@ -1860,18 +1860,147 @@ void RandomSpherical(float *v)
 	else v[2] = 1.f;
 }
 
+static void DS_energy(float *sphere, int tot, float *vec)
+{
+	float *fp, fac, force[3], res[3];
+	int a;
+	
+	res[0]= res[1]= res[2]= 0.0;
+	
+	for(a=0, fp=sphere; a<tot; a++, fp+=3) {
+		VecSubf(force, vec, fp);
+		fac= force[0]*force[0] + force[1]*force[1] + force[2]*force[2];
+		if(fac!=0.0) {
+			fac= 1.0/fac;
+			res[0]+= fac*force[0];
+			res[1]+= fac*force[1];
+			res[2]+= fac*force[2];
+		}
+	}
+
+	VecMulf(res, 0.5);
+	VecAddf(vec, vec, res);
+	Normalise(vec);
+	
+}
+
+static void DistributedSpherical(float *sphere, int tot, int iter)
+{
+	float *fp;
+	int a;
+
+	/* init */
+	fp= sphere;
+	for(a=0; a<tot; a++, fp+= 3) {
+		RandomSpherical(fp);
+	}
+	
+	while(iter--) {
+		for(a=0, fp= sphere; a<tot; a++, fp+= 3) {
+			DS_energy(sphere, tot, fp);
+		}
+	}
+}
+
+static float *sphere_sampler(int type, int resol, float *nrm)
+{
+	static float sphere[2*3*256], sphere1[2*3*256];
+	static int last_distr= 0, tot;
+	float *vec;
+	
+	if(resol>16) return sphere;
+	
+	tot= 2*resol*resol;
+
+	if (type & WO_AORNDSMP) {
+		int a;
+		
+		/* total random sampling */
+		vec= sphere;
+		for (a=0; a<tot; a++, vec+=3) {
+			RandomSpherical(vec);
+		}
+	} 
+	else {
+		float cosf, sinf, cost, sint;
+		float ang, *vec1;
+		int a;
+		
+		if(last_distr!=resol) DistributedSpherical(sphere, tot, 16);
+		last_distr= resol;
+		
+		// random rotation
+		ang= BLI_frand();
+		sinf= sin(ang); cosf= cos(ang);
+		ang= BLI_frand();
+		sint= sin(ang); cost= cos(ang);
+		
+		vec= sphere;
+		vec1= sphere1;
+		for (a=0; a<tot; a++, vec+=3, vec1+=3) {
+			vec1[0]= cost*cosf*vec[0] - sinf*vec[1] + sint*cosf*vec[2];
+			vec1[1]= cost*sinf*vec[0] + cosf*vec[1] + sint*sinf*vec[2];
+			vec1[2]= -sint*vec[0] + cost*vec[2];			
+		}
+		return sphere1;
+	}
+#if 0
+	{	/* stratified uniform sampling */
+		float gdiv = 1.0/resol;
+		float gdiv2p = gdiv*2.0*M_PI;
+		float d, z1, z2, sqz1, sz2, cz2;
+		float ru[3], rv[3];
+		int x, y;
+
+		last_distr= 0;
+		
+
+		/* calculate the two perpendicular vectors */
+		if ((nrm[0]==0.0) && (nrm[1]==0.0)) {
+			if (nrm[2]<0) ru[0]=-1; else ru[0]=1;
+			ru[1] = ru[2] = 0;
+			rv[0] = rv[2] = 0;
+			rv[1] = 1;
+		}
+		else {
+			ru[0] = nrm[1];
+			ru[1] = -nrm[0];
+			ru[2] = 0.0;
+			d = ru[0]*ru[0] + ru[1]*ru[1];
+			if (d!=0) {
+				d = 1.0/sqrt(d);
+				ru[0] *= d;
+				ru[1] *= d;
+			}
+			Crossf(rv, nrm, ru);
+		}
+
+		vec= sphere;
+		for (x=0; x<resol; x++) {
+			for (y=0; y<resol; y++, vec+=3) {
+				z1 = (x + BLI_frand()) * gdiv;
+				z2 = (y + BLI_frand()) * gdiv2p;
+				if ((sqz1 = 1.0-z1*z1)<0) sqz1=0; else sqz1=sqrt(sqz1);
+				sz2 = sin(z2);
+				cz2 = cos(z2);
+				vec[0] = sqz1*(cz2*ru[0] + sz2*rv[0]) + nrm[0]*z1;
+				vec[1] = sqz1*(cz2*ru[1] + sz2*rv[1]) + nrm[1]*z1;
+				vec[2] = sqz1*(cz2*ru[2] + sz2*rv[2]) + nrm[2]*z1;
+			}
+		}
+	}
+#endif	
+	return sphere;
+}
+
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
 void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 {
 	Isect isec;
-	float nrm[3], vec[3], ru[3], rv[3];
-	float d, z1, z2, sqz1, sz2, cz2, sh=0;
-	int grid = wrld->aosamp;
-	float gdiv = 1.0/grid;
-	float gdiv2p = gdiv*2.0*M_PI;
+	float *vec, *nrm, div, sh=0;
 	float maxdist = wrld->aodist;
-	int x, y;
+	int tot, actual;
 	int j=0;
 
 	VECCOPY(isec.start, shi->co);
@@ -1890,50 +2019,20 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 		R.wrld.zeng= G.scene->world->zeng;
 		R.wrld.zenb= G.scene->world->zenb;
 	}
-
-	/* calculate the two perpendicular vectors */
-	VECCOPY(nrm, shi->vn);
-	if ((nrm[0]==0.0) && (nrm[1]==0.0)) {
-		if (nrm[2]<0) ru[0]=-1; else ru[0]=1;
-		ru[1] = ru[2] = 0;
-		rv[0] = rv[2] = 0;
-		rv[1] = 1;
-	}
-	else {
-		ru[0] = nrm[1];
-		ru[1] = -nrm[0];
-		ru[2] = 0.0;
-		d = ru[0]*ru[0] + ru[1]*ru[1];
-		if (d!=0) {
-			d = 1.0/sqrt(d);
-			ru[0] *= d;
-			ru[1] *= d;
-		}
-		Crossf(rv, nrm, ru);
-	}
-
-	for (x=0;x<grid;x++) {
-		for (y=0;y<grid;y++) {
-			if (wrld->aomode & WO_AORNDSMP) {
-				/* total random sampling */
-				RandomSpherical(vec);
-				if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) < 0.0) {
-					vec[0] = -vec[0];
-					vec[1] = -vec[1];
-					vec[2] = -vec[2];
-				}
-			}
-			else {
-				/* stratified uniform sampling */
-				z1 = (x + BLI_frand()) * gdiv;
-				z2 = (y + BLI_frand()) * gdiv2p;
-				if ((sqz1 = 1.0-z1*z1)<0) sqz1=0; else sqz1=sqrt(sqz1);
-				sz2 = sin(z2);
-				cz2 = cos(z2);
-				vec[0] = sqz1*(cz2*ru[0] + sz2*rv[0]) + nrm[0]*z1;
-				vec[1] = sqz1*(cz2*ru[1] + sz2*rv[1]) + nrm[1]*z1;
-				vec[2] = sqz1*(cz2*ru[2] + sz2*rv[2]) + nrm[2]*z1;
-			}
+	
+	nrm= shi->vlr->n;
+	vec= sphere_sampler(wrld->aomode, wrld->aosamp, nrm);
+	
+	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
+	tot= 2*wrld->aosamp*wrld->aosamp;
+	actual= 0;
+	
+	while(tot--) {
+		
+		if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) > 0.0) {
+			
+			actual++;
+			
 			isec.end[0] = shi->co[0] - maxdist*vec[0];
 			isec.end[1] = shi->co[1] - maxdist*vec[1];
 			isec.end[2] = shi->co[2] - maxdist*vec[2];
@@ -1943,6 +2042,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 				isec.start[2]= shi->co[2] + (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
 				j = ((j+1) % R.osa);
 			}
+			
 			/* do the trace */
 			if (d3dda(&isec)) {
 				if (wrld->aomode & WO_AODIST) sh+=exp(-isec.labda*wrld->aodistfac); else sh+=1.0;
@@ -1970,15 +2070,17 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 				}
 			}
 		}
+		// samples
+		vec+= 3;
 	}
 	
-	gdiv= wrld->aoenergy/(float)(wrld->aosamp*wrld->aosamp);
-	shadfac[3] = wrld->aoenergy - (sh*gdiv);
+	div= wrld->aoenergy/(float)(actual);
+	shadfac[3] = wrld->aoenergy - (sh*div);
 	
 	if(wrld->aocolor!=WO_AOPLAIN) {
-		shadfac[0] *= gdiv;
-		shadfac[1] *= gdiv;
-		shadfac[2] *= gdiv;
+		shadfac[0] *= div;
+		shadfac[1] *= div;
+		shadfac[2] *= div;
 	}
 }
 
