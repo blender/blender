@@ -203,6 +203,7 @@ static void window_handle(Window *win, short event, short val)
 		win->handler(win, win->user_data, event, val, 0);
 	}
 }
+
 static void window_handle_ext(Window *win, short event, short val, short extra)
 {
 	if (win->handler) {
@@ -321,6 +322,7 @@ void window_make_active(Window *win) {
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 	}
 }
+
 void window_swap_buffers(Window *win) {
 	GHOST_SwapWindowBuffers(win->ghostwin);
 }
@@ -348,9 +350,11 @@ static int query_qual(char qual) {
 	
 	return val;
 }
+
 static int change_bit(int val, int bit, int to_on) {
 	return to_on?(val|bit):(val&~bit);
 }
+
 static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
 	GHOST_TEventType type= GHOST_GetEventType(evt);
 
@@ -442,20 +446,16 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) {
 			
 			break;
 		}
-	
-		case GHOST_kEventWheel:
-		{
+
+		case GHOST_kEventWheel:	{
 			GHOST_TEventWheelData* wheelData = (GHOST_TEventWheelData*) data;
-			if (wheelData->z > 0)
-			{
+			if (wheelData->z > 0) {
 				window_handle(win, WHEELUPMOUSE, 1);
-			}
-			else
-			{
+			} else {
 				window_handle(win, WHEELDOWNMOUSE, 1);
 			}
-			}
 			break;
+		}
 
 		case GHOST_kEventWindowDeactivate:
 		case GHOST_kEventWindowActivate: {
@@ -526,6 +526,7 @@ char *window_get_title(Window *win) {
 
 	return mem_title;
 }
+
 void window_set_title(Window *win, char *title) {
 	GHOST_SetTitle(win->ghostwin, title);
 }
@@ -533,17 +534,21 @@ void window_set_title(Window *win, char *title) {
 short window_get_qual(Window *win) {
 	return win->lqual;
 }
+
 short window_get_mbut(Window *win) {
 	return win->lmbut;
 }
+
 void window_get_mouse(Window *win, short *mval) {
 	mval[0]= win->lmouse[0];
 	mval[1]= win->lmouse[1];
 }
+
 void window_get_position(Window *win, int *posx_r, int *posy_r) {
 	*posx_r= win->position[0];
 	*posy_r= win->position[1];
 }
+
 void window_get_size(Window *win, int *width_r, int *height_r) {
 	*width_r= win->size[0];
 	*height_r= win->size[1];
@@ -556,6 +561,7 @@ void window_set_size(Window *win, int width, int height) {
 void window_lower(Window *win) {
 	GHOST_SetWindowOrder(win->ghostwin, GHOST_kWindowOrderBottom);
 }
+
 void window_raise(Window *win) {
 	GHOST_SetWindowOrder(win->ghostwin, GHOST_kWindowOrderTop);
 }

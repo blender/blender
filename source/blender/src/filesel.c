@@ -504,10 +504,13 @@ void test_flags_file(SpaceFile *sfile)
 				file->flags |= PSXFILE;
 			}
 		} else if (sfile->type==FILE_SPECIAL){
-			if(BLI_testextensie(file->relname, ".jpg") ||
+			if(		BLI_testextensie(file->relname, ".jpg") ||
 					BLI_testextensie(file->relname, ".tga") ||
 					BLI_testextensie(file->relname, ".rgb") ||
 					BLI_testextensie(file->relname, ".png") ||
+					BLI_testextensie(file->relname, ".bmp") ||
+					BLI_testextensie(file->relname, ".iff") ||
+					BLI_testextensie(file->relname, ".lbm") ||
 					BLI_testextensie(file->relname, ".sgi")) {
 				file->flags |= IMAGEFILE;			
 			}

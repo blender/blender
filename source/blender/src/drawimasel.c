@@ -30,6 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#define OLD_IMASEL	0
+
 #include <string.h>
 
 #ifdef HAVE_CONFIG_H
@@ -69,6 +71,64 @@
 
 /* GLOBALS */
 extern char *fsmenu;
+
+void rectwrite_imasel(int winxmin, int winymin, int winxmax, int winymax, int x1, int y1, int xim, int yim, float zoomx, float zoomy, unsigned int *rect)
+{
+	int cx, cy, oldxim, x2, y2;
+	
+	oldxim= xim;
+		
+	/* coordinaten hoe 't op scherm komt */
+	x2= x1+ zoomx*xim;
+	y2= y1+ zoomy*yim;
+
+	/* partiele clip */
+	if(x1<=winxmin) {
+		/* recten bij OpenGL mogen niet links/onder van windowrand beginnen */
+		cx= winxmin-x1+(int)zoomx;
+		/* zorg ervoor dat de rect pixelnauwkeurig wordt neergezet */
+		cx/= zoomx;
+		cx++;
+		x1+= zoomx*cx;
+		xim-= cx;
+		rect+= cx;
+	}
+	if(y1<=winymin) {
+		cy= winymin-y1+(int)zoomy;
+		cy/= zoomy;
+		cy++;
+		y1+= zoomy*cy;
+		rect+= cy*oldxim;
+		yim-= cy;
+	}
+	if(x2>=winxmax) {
+		cx= x2-winxmax;
+		cx/= zoomx;
+		xim-= cx+3;
+	}
+	if(y2>=winymax) {
+		cy= y2-winymax;
+		cy/= zoomy;
+		yim-= cy+3;
+	}
+	
+	if(xim<=0) return;
+	if(yim<=0) return;
+
+//	mywinset(curarea->win);
+	glScissor(winxmin, winymin, winxmax-winxmin+1, winymax-winymin+1);
+	
+	glPixelStorei(GL_UNPACK_ROW_LENGTH,  oldxim);
+	
+	glPixelZoom(zoomx,  zoomy);
+
+	glRasterPos2i(x1, y1);
+	glDrawPixels(xim, yim, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
+
+	glPixelZoom(1.0,  1.0);
+
+	glPixelStorei(GL_UNPACK_ROW_LENGTH,  0);
+}
 
 void viewgate(short sx, short sy, short ex, short ey) 
 {
@@ -302,7 +362,8 @@ void make_sima_area(SpaceImaSel *simasel)
 		
 		dm = 1;
 		if (simasel->curimay-2  < simasel->fesy) dm = 0;
-		if (simasel->curimay+80 > simasel->feey) dm = 0;
+		// let first row of icons remain selectable
+		if(OLD_IMASEL) if (simasel->curimay+80 > simasel->feey) dm = 0;
 		if (simasel->curimax+72 > simasel->feex) dm = 0;
 		
 		simasel->total_selected = 0;
@@ -324,8 +385,11 @@ void make_sima_area(SpaceImaSel *simasel)
 				simasel->curimay -= 100;
 				
 				dm = 1;
-				if (simasel->curimay+80 > simasel->feey) dm = 0;
-				if (simasel->curimay-8  < simasel->fesy) dm = 0;
+				// let icons that fall off (top/bottom) be selectable
+				if(OLD_IMASEL) {
+					if (simasel->curimay+80 > simasel->feey) dm = 0;
+					if (simasel->curimay-8  < simasel->fesy) dm = 0;
+				}
 				
 			}
 			ima = ima->next;
@@ -348,6 +412,7 @@ static void str_image_type(int ftype, char *name)
 	if( ftype & JPG )       { strcat(name, "jpeg ");  }
 	if( ftype & TGA )       { strcat(name, "targa "); }
 	if( ftype & PNG )       { strcat(name, "png "); }
+	if( ftype & BMP )       { strcat(name, "bmp "); }
 	if( ftype & AMI )       { strcat(name, "iff ");	  }
 }
 
@@ -529,7 +594,12 @@ void draw_sima_area(SpaceImaSel *simasel)
 				
 				if ((ima) && (ima->pict) && (ima->pict->rect)){
 					if ( (ey > simasel->fesy) && (sy < simasel->feey)){
-						lrectwrite(sx, sy, ex-1, ey-1, ima->pict->rect);
+						if(OLD_IMASEL) {
+							lrectwrite(sx, sy, ex-1, ey-1, ima->pict->rect);
+						} else
+							rectwrite_imasel(simasel->fesx, simasel->fesy,
+								curarea->winrct.xmax, curarea->winrct.ymax - 64, //simasel->feey*1.5,
+								sx, sy, ima->pict->x, ima->pict->y, 1.0, 1.0, ima->pict->rect);
 					}
 				}
 			
@@ -554,7 +624,12 @@ void draw_sima_area(SpaceImaSel *simasel)
 					/* glRecti(sx-7, sy-7,  ex+7, ey+7); */
 					uiEmboss(sx-1,sy-1, ex+1,ey+1, 0);
 				
-					lrectwrite(sx, sy, sx+ (ima->ex - ima->sx)-1, sy+ (ima->ey - ima->sy)-1, ima->pict->rect);
+					if(OLD_IMASEL) {
+						lrectwrite(sx, sy, sx+ (ima->ex - ima->sx)-1, sy+ (ima->ey - ima->sy)-1, ima->pict->rect);
+					} else
+						rectwrite_imasel(simasel->fesx, simasel->fesy,
+							curarea->winrct.xmax, curarea->winrct.ymax - 64, //simasel->feey*1.5,
+							sx, sy, ima->pict->x, ima->pict->y, 2.0, 2.0, ima->pict->rect);
 					
 					glPixelZoom(1.0,  1.0);
 				}

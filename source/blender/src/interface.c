@@ -3052,6 +3052,8 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		}
 
 		if(uevent->event==ESCKEY && uevent->val==1) return UI_RETURN_CANCEL;
+
+		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val==1) return UI_RETURN_OK;
 		
 		/* check outside */
 		if(block->direction==UI_RIGHT) count= 140; else count= 40;
