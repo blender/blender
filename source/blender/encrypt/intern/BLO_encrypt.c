@@ -50,6 +50,7 @@
 
 #include "GEN_messaging.h"
 
+#include "blenkey.h"
 #include "BLO_keyStore.h"
 #include "BLO_writeStreamGlue.h"
 #include "BLO_en_de_cryptHeader.h"

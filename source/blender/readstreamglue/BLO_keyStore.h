@@ -38,18 +38,6 @@
 extern "C" {
 #endif
 
-typedef unsigned char byte;
-
-typedef struct UserStructType {
-        char name[100];
-        char email[100];
-        char shopid[100];
-        unsigned long reldate;
-        int keytype;    /* 1 = Individual, 2 = Corporate, 3 = Unlimited */
-        int keylevel;   /* key disclosure level, starts at 1 */
-        int keyformat;  /* if we change the keyformat, up BLENKEYFORMAT */
-} UserStruct;
-
 	void
 keyStoreConstructor(
 	UserStruct *keyUserStruct,
