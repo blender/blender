@@ -37,11 +37,6 @@ SOURCEDIR = intern
 ALLDIRS = string ghost guardedalloc bmfont moto container memutil
 ALLDIRS += decimation iksolver bsp
 
-ifneq ($(EXPYTHON), true)
-    ALLDIRS += python/freeze
-endif
-
-
 all::
 	@for i in $(ALLDIRS); do \
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\

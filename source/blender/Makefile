@@ -38,12 +38,7 @@ DIRS += deflate inflate
 DIRS += writestreamglue readstreamglue writeblenfile readblenfile
 DIRS += avi imbuf img render radiosity blenlib blenkernel blenpluginapi
 DIRS += makesdna src renderconverter
-
-ifeq ($(EXPYTHON), true)
-    DIRS += python
-else
-    DIRS += bpython
-endif
+DIRS += python
 
 ifeq ($(INTERNATIONAL), true)
 	DIRS += ftfont

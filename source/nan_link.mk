@@ -81,9 +81,7 @@ endif
 ifeq ($(OS),irix)
     LLIBS = -lmovieGL -lGLU -lGL -lXmu -lXext -lX11 -lc -lm -ldmedia
     LLIBS += -lcl -laudio -ldb -lCio -lz
-    ifeq ($(EXPYTHON), true)
-        LLIBS += -lpthread
-    endif
+    LLIBS += -lpthread
     LLIBS += -woff 84,171
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
