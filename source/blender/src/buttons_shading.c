@@ -1904,7 +1904,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 100.0*grid, 100, 0, "Sets the distance value at which light intensity is half");
+	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 5000.0*grid, 100, 0, "Sets the distance value at which light intensity is half");
 
 	uiBlockBeginAlign(block);
 	if(la->type==LA_AREA) {
