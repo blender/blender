@@ -31,10 +31,6 @@
 * Convert Blender actuators for use in the GameEngine
 */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable : 4786) 
 #endif //WIN32
@@ -451,7 +447,6 @@ void BL_ConvertActuators(char* maggiename,
 				
 				if (cdActuatorType != KX_CDActuator::KX_CDACT_NODEF) 
 				{
-					SND_Scene* soundscene = scene->GetSoundScene();
 					SND_CDObject* pCD = SND_CDObject::Instance();
 					
 					if (pCD)
