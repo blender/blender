@@ -50,6 +50,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
+#include "DNA_userdef_types.h"
 
 #include "render_types.h"
 #include "render.h"
@@ -782,16 +783,23 @@ int get_avicodec_settings(void)
 	AVICOMPRESSOPTIONS *aopts[1] = {&opts};
 	AviCodecData *acd = G.scene->r.avicodecdata;
 	static PAVISTREAM psdummy;
+	UINT	uiFlags;
 
 	acd_to_opts(G.scene->r.avicodecdata);
 
 	psdummy = NewBall();
 
+	if(U.uiflag & ALLWINCODECS)
+		uiFlags = ICMF_CHOOSE_ALLCOMPRESSORS;
+	else
+		uiFlags = ICMF_CHOOSE_KEYFRAME | ICMF_CHOOSE_DATARATE;
+
 	if (psdummy == NULL) {
 		ret_val = 1;
 	} else {
 		if (!AVISaveOptions(NULL,
-				ICMF_CHOOSE_KEYFRAME | ICMF_CHOOSE_DATARATE,
+				uiFlags,
+//				ICMF_CHOOSE_KEYFRAME | ICMF_CHOOSE_DATARATE,
 //				ICMF_CHOOSE_ALLCOMPRESSORS,
 				1,
 				&psdummy,

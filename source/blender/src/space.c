@@ -1406,7 +1406,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		(short)(xpos+dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,1.0, 0, 0,"");
 
-	uiDefButI(block, ROW,B_USERPREF,"Language & Colors",
+	uiDefButI(block, ROW,B_USERPREF,"Language & Font",
 		(short)(xpos+2*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,2.0, 0, 0,"");
 
@@ -1458,69 +1458,72 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, TOG|BIT|1, 0, "Grab",
 			(xpos+edgespace+medprefbut+midspace),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
-			"Constrains objects to grid points when moving");
+			"Move objects to grid units");
 
 		uiDefButS(block, TOG|BIT|2, 0, "Rotate",
 			(xpos+edgespace+medprefbut+(2*midspace)+smallprefbut),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
-			"Constrains objects to grid points when rotating");
+			"Rotate objects to grid units");
 
 		uiDefButS(block, TOG|BIT|3, 0, "Size",
 			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
-			"Constrains objects to grid points when scaling");
+			"Scale objects to grid units");
 
 
 			
-		uiDefBut(block, LABEL,0,"Middle mouse button:",
-			(xpos+edgespace+(2*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
-			0, 0, 0, 0, 0, "");
 
 		uiBlockSetCol(block, BUTGREEN);
 
 		uiDefButS(block, TOGN|BIT|10, B_DRAWINFO, "Rotate View",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,(smallprefbut+2),buth,
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
 		uiDefButS(block, TOG|BIT|10, B_DRAWINFO, "Pan View",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
 		uiBlockSetCol(block, BUTGREY);
 		
+		uiDefBut(block, LABEL,0,"Middle mouse button:",
+			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
 		uiDefButS(block, TOG|BIT|12, 0, "Emulate 3 Buttons",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,medprefbut,buth,
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y1,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates a middle mouse button with ALT+LeftMouse");
 
 
 
 		uiDefBut(block, LABEL,0,"View rotation method:",
-			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiBlockSetCol(block, BUTGREEN);
 
 		uiDefButS(block, TOG|BIT|5, B_DRAWINFO, "Trackball",
-			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y2,(smallprefbut+2),buth,
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use trackball style rotation with middle mouse button");
 
 		uiDefButS(block, TOGN|BIT|5, B_DRAWINFO, "Turntable",
-			(xpos+edgespace+(4*midspace)+(4*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use turntable style rotation with middle mouse button");
 
 		uiBlockSetCol(block, BUTGREY);
 
+		uiDefBut(block, LABEL,0,"Mousewheel:",
+			(xpos+edgespace+(4*midspace)+(5*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
 		uiDefButS(block, TOG|BIT|2, 0, "Invert Wheel Zoom",
-			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y1,medprefbut,buth,
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y1,medprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Swaps mouse wheel zoom direction");
 
 
 		uiDefButI(block, NUM, 0, "Scroll Lines:",
-			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y1,medprefbut,buth,
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y2,medprefbut,buth,
 			&U.wheellinescroll, 0.0, 32.0, 0, 0,
 			"The number of lines scrolled at a time with the mouse wheel");
 
@@ -1630,7 +1633,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
 				&U.fontsize, 0, 0, 0, 0, "Current interface font size (points)");
 
-	/*
+/*
 			uiDefButS(block, MENU|SHO, B_SETENCODING, encoding_pup(),
 				(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
 				&U.encoding, 0, 0, 0, 0, "Current interface font encoding");
@@ -1639,7 +1642,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			uiDefBut(block, LABEL,0,"Translate:",
 				(xpos+edgespace+(2.1*medprefbut)+(2*midspace)),y3label,medprefbut,buth,
 				0, 0, 0, 0, 0, "");
-	*/
+*/
 
 			uiDefButS(block, TOG|BIT|0, B_SETTRANSBUTS, "Tooltips",
 				(xpos+edgespace+(2.2*medprefbut)+(3*midspace)),y1,smallprefbut,buth,
@@ -1714,16 +1717,34 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&U.console_buffer, 1.0, 4000.0, 0, 0, "Maximum number of internal console lines");
 */
 
+#ifdef _WIN32
+		uiDefBut(block, LABEL,0,"Win Codecs:",
+			(xpos+edgespace+(2*midspace)+(2*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|8, 0, "Enable all codecs",
+			(xpos+edgespace+(2*medprefbut)+(2*midspace)),y2,medprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0, "Allows all codecs for rendering (not guaranteed)");
+#endif
+
+		uiDefBut(block, LABEL,0,"Keyboard:",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
 		uiDefButS(block, TOG|BIT|9, B_U_CAPSLOCK, "Disable Caps Lock",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,medprefbut,buth,
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Disables the Caps Lock key when entering text");
 
 		uiDefButS(block, TOG|BIT|13, 0, "Emulate Numpad",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,medprefbut,buth,
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,medprefbut,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
 
+
+		uiDefBut(block, LABEL,0,"System:",
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
 
 		uiDefButI(block, TOG|BIT|USERDEF_DISABLE_SOUND_BIT, B_SOUNDTOGGLE, "Disable Sound",
 			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y2,medprefbut,buth,
@@ -1733,6 +1754,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y1,medprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Display only files with extensions in the image select window");
 
+
+		uiDefBut(block, LABEL,0,"OpenGL:",
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
 
 		uiDefButI(block, TOGN|BIT|USERDEF_DISABLE_MIPMAP_BIT, B_MIPMAPCHANGED, "Mipmaps",
 			(xpos+edgespace+(5*medprefbut)+(5*midspace)),y2,medprefbut,buth,

@@ -562,7 +562,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	else st->viewlines= 0;
 	
 	if(st->showlinenrs) {
-		cpack(C_DERK);
+		cpack(0x8c787c);
 		glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
 	}
 
@@ -578,10 +578,10 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	for (i=0; i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if(st->showlinenrs) {
 			if(((float)(i + linecount + 1)/10000.0) < 1.0) {
-				sprintf(linenr, "%04d", i + linecount + 1);
+				sprintf(linenr, "%4d", i + linecount + 1);
 				glRasterPos2i(TXT_OFFSET - 7, curarea->winy-st->lheight*(i+1));
 			} else {
-				sprintf(linenr, "%05d", i + linecount + 1);
+				sprintf(linenr, "%5d", i + linecount + 1);
 				glRasterPos2i(TXT_OFFSET - 11, curarea->winy-st->lheight*(i+1));
 			}
 			BMF_DrawString(spacetext_get_font(st), linenr);

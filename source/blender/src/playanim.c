@@ -461,7 +461,11 @@ void playanim(int argc, char **argv)
 			if (ibuf){
 				strcpy(ibuf->name, picture->name);
 				
-				while (pupdate_time()) PIL_sleep_ms(1);
+#ifdef _WIN32	
+			window_set_title(g_window, picture->name);
+#endif
+
+			while (pupdate_time()) PIL_sleep_ms(1);
 				ptottime -= swaptime;
 				toscreen(ibuf);
 			} /* else deleten */
