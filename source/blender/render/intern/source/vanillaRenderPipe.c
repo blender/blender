@@ -131,8 +131,11 @@ extern unsigned short usegamtab, shortcol[4],
 extern RE_APixstrExt *APixbufExt;/*Zbuffer: linked list of face, halo indices*/
 
 /* Globals : --------------------------------------------------------------- */
+							   /* we use three lines, for gaussian sample     */
+RE_COLBUFTYPE *AColourBuffer1; /* Buffer for colours of 1 line of pixels      */
+RE_COLBUFTYPE *AColourBuffer2; /* Buffer for colours of 1 line of pixels      */
+RE_COLBUFTYPE *AColourBuffer3; /* Buffer for colours of 1 line of pixels      */
 
-RE_COLBUFTYPE *AColourBuffer; /* Buffer for colours of 1 line of pixels      */
 static int     Aminy;         /* y value of first line in the accu buffer    */
 static int     Amaxy;         /* y value of last line in the accu buffer     */
                               /* -also used to clip when zbuffering          */
@@ -174,6 +177,7 @@ void integratePerSubStack(struct RE_faceField* stack,
 
 void zBufShadeAdvanced()
 {
+	RE_COLBUFTYPE *cycle;
     int      y, keepLooping = 1;
     float xjit = 0.0, yjit = 0.0;
 
@@ -229,13 +233,24 @@ void zBufShadeAdvanced()
 		calcZBufLine(y);
 
 		renderZBufLine(y);
-		transferColourBufferToOutput(y);
+		if(y) {
+			transferColourBufferToOutput(y-1);
 		
-		if(y & 1) RE_local_render_display(y-1, y, imageWidth, imageHeight, R.rectot);		
+			if((y & 1)==0) RE_local_render_display(y-2, y-1, imageWidth, imageHeight, R.rectot);		
+		}
+		
+		/* buffer cycling */
+		eraseColBuf(AColourBuffer3);
+		cycle= AColourBuffer3;
+		AColourBuffer3= AColourBuffer2;
+		AColourBuffer2= AColourBuffer1;
+		AColourBuffer1= cycle;
 
 		if(RE_local_test_break()) keepLooping = 0;
 		y++; 
     }
+	if(keepLooping) transferColourBufferToOutput(y-1);
+
 	freeRenderBuffers();
 
 	/* Edge rendering is done purely as a post-effect                        */
@@ -260,13 +275,15 @@ void zBufShadeAdvanced()
 
 void initRenderBuffers(int bwidth) 
 {
-
+	/* bwidth+4, as in rendercore.c. I think it's too much, but yah (ton) */
+    AColourBuffer1 = MEM_callocN(4 * sizeof(RE_COLBUFTYPE) * (bwidth+4), "Acolrow");
+    AColourBuffer2 = MEM_callocN(4 * sizeof(RE_COLBUFTYPE) * (bwidth+4), "Acolrow");
+    AColourBuffer3 = MEM_callocN(4 * sizeof(RE_COLBUFTYPE) * (bwidth+4), "Acolrow");
+	
     /* The +1 is needed because the fill-functions use a +1 offset when      */
     /* filling in pixels. Mind that also the buffer-clearing function needs  */
     /* this offset (done in calcZBufLine).                                   */
 	/* The offset is wrong: it shouldn't be there. I need to fix this still. */
-    AColourBuffer = MEM_callocN(4 * sizeof(RE_COLBUFTYPE) * bwidth, 
-                            "Acolrow");
 	zBufferWidth = bwidth + 1;
 	initZbuffer(bwidth + 1);
 
@@ -291,7 +308,9 @@ void initRenderBuffers(int bwidth)
 /* ------------------------------------------------------------------------- */
 
 void freeRenderBuffers(void) {	
-    if (AColourBuffer) MEM_freeN(AColourBuffer);
+    if (AColourBuffer1) MEM_freeN(AColourBuffer1);
+    if (AColourBuffer2) MEM_freeN(AColourBuffer2);
+    if (AColourBuffer3) MEM_freeN(AColourBuffer3);
 	freeZbuffer();
 } /* End of void freeZBuffers(void) */
 
@@ -791,12 +810,16 @@ void integratePerSubStack(struct RE_faceField* stack,
 /* distance, and then used for rendering pixels. zrow might be replaced by   */
 /* an RE_APixstrExt* array                                                   */
 /* - redo the numbering to something more logical                            */
-void renderZBufLine(int y) {
+
+void renderZBufLine(int y) 
+{
     int  zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE];
     RE_APixstrExt *ap;       /* iterator for the face-lists                  */
 	int apteller;
     int x;                   /* pixel counter                                */
-    RE_COLBUFTYPE *colbuf;   /* pointer into the line buffer                 */
+    RE_COLBUFTYPE *colbuf1;   /* pointer into the line buffer                 */
+    RE_COLBUFTYPE *colbuf2;   /* pointer into the line buffer                 */
+    RE_COLBUFTYPE *colbuf3;   /* pointer into the line buffer                 */
     RE_COLBUFTYPE *j = NULL; /* generic pixel pointer                        */
     int i;                   /* yet another counter                          */
     int stackDepth;          /* faces-behind-this-pixel counter              */
@@ -805,13 +828,15 @@ void renderZBufLine(int y) {
                             /* field is NOT readable.                        */
 	
     /* Prepare buffers and iterators */
-    colbuf    = AColourBuffer;
-    eraseColBuf(AColourBuffer);
+    colbuf1    = AColourBuffer1;
+    colbuf2    = AColourBuffer2;
+    colbuf3    = AColourBuffer3;
+	
     ap        = APixbufExt + (zBufferWidth * (y - Aminy));
 	apteller  = (zBufferWidth * (y - Aminy));
 	
     /* Rendering: give the right colour to this pixel (shade it) */
-	for( x = 0; x < bufferWidth; x++, ap++, colbuf+=4) {
+	for( x = 0; x < bufferWidth; x++, ap++, colbuf1+=4, colbuf2+=4, colbuf3+=4) {
 		if(ap->t[0]) {
             /* reset sample collector */
             j = sampcol;
@@ -831,27 +856,35 @@ void renderZBufLine(int y) {
   			integratePerSubStack(RE_OSAstack, RE_OSAstack_ptr, 
   								 x, y, osaNr); 
 			
-			/* d. Gamma corrected blending                                   */
-			sampleFloatColV2FloatColV(sampcol, colbuf, osaNr);
+			/* d. Gamma corrected blending and Gaussian                      */
+			sampleFloatColV2FloatColVFilter(sampcol, colbuf1, colbuf2, colbuf3, osaNr);
+			
 		} else {
 			/* Remember to do things back-to-front!                          */
 			
 			/* This is a bit dirty. Depending on sky-mode, the pixel is      */
 			/* blended in differently.                                       */
 			renderSkyPixelFloat(x, y);
-			cpFloatColV(collector, colbuf);
-
+			
+			j = sampcol;
+			for(i = 0; i < osaNr; i++, j+=4) { 
+				j[0]= collector[0]; j[1]= collector[1];
+				j[2]= collector[2]; j[3]= collector[3];
+			}
+			
+			sampleFloatColV2FloatColVFilter(sampcol, colbuf1, colbuf2, colbuf3, osaNr);
+			
+			
 			/* Spothalos are part of the normal pixelshader, so for covered  */
 			/* pixels they are handled ok. They are 'normally' alpha blended */
 			/* onto the existing colour in the collector.                    */
 			if(R.flag & R_LAMPHALO) {
 				renderSpotHaloPixel(x, y, collector);
-				addAlphaOverFloat(colbuf, collector);
+				addAlphaOverFloat(colbuf2+4, collector);
 			}
-			
 		}
     } /* End of pixel loop */
-    
+
 } /* End of void renderZBufLine(int y) */
 
 
@@ -1420,24 +1453,32 @@ void std_transFloatColV2CharColV( RE_COLBUFTYPE *buf, char *target)
   - key-alpha correction
     Key alpha means 'un-applying' the alpha. For fully covered pixels, this
 	operation has no effect.
+  
+  - XXX WARNING! Added the inverse render gamma here, so this cannot be used external
+	without setting Osa or Gamme flags off (ton)
 
 ---------------------------------------------------------------------------- */
 void transferColourBufferToOutput(int y)
 {
-    /* Copy the contents of AColourBuffer to R.rectot + y * R.rectx */
+    /* Copy the contents of AColourBuffer3 to R.rectot + y * R.rectx */
     int x = 0;
-    RE_COLBUFTYPE *buf = AColourBuffer;
+    RE_COLBUFTYPE *buf = AColourBuffer3+4;
     char *target = (char*) (R.rectot + (y * imageWidth));
 
 	/* Copy the first <imageWidth> pixels. We can do some more clipping on    */
 	/* the z buffer, I think.                                                 */
 	while (x < imageWidth) {
 
+		
+		/* invert gamma corrected additions */
+		if(osaNr!=1 && doGamma()) {
+			buf[0] = invGammaCorrect(buf[0]);
+			buf[1] = invGammaCorrect(buf[1]);
+			buf[2] = invGammaCorrect(buf[2]);
+		}			
+			
 		std_transFloatColV2CharColV(buf, target);
 		
-		/* old function was: leave it for test */
-/*  		cpFloatColV2CharColV(buf, target); */
-
 		/*
 		  Key-alpha mode:
 		  Need to un-apply alpha if alpha is non-full. For full alpha,
@@ -1458,11 +1499,12 @@ void transferColourBufferToOutput(int y)
 
 /* ------------------------------------------------------------------------- */
 
-void eraseColBuf(RE_COLBUFTYPE *buf) {
+void eraseColBuf(RE_COLBUFTYPE *buf) 
+{
     /* By definition, the buffer's length is 4 * R.rectx items */
     int i = 0;
-/*      while (i < 4 * R.rectx) { */
-    while (i < 4 * bufferWidth) {
+
+    while (i < 4 * (bufferWidth+3)) {
         *buf = RE_ZERO_COLOUR_FLOAT;
         buf++; i++;
     }

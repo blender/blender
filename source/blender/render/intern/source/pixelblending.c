@@ -562,45 +562,89 @@ void sampleShortColV2ShortColV(unsigned short *sample, unsigned short *dest, int
 
 /* ------------------------------------------------------------------------- */
 
-void sampleFloatColV2FloatColV(float *sample, float *dest, int osaNr)
+float *fmask1[9], *fmask2[9];
+
+/* filtered adding to scanlines */
+void add_filt_fmask(unsigned int mask, float *col, float *rb1, float *rb2, float *rb3)
+{
+	/* calc the value of mask */
+	float val, r, g, b, al;
+	unsigned int a, maskand, maskshift;
+	int j;
+	
+	al= col[3];
+	r= col[0];
+	g= col[1];
+	b= col[2];
+	
+	maskand= (mask & 255);
+	maskshift= (mask >>8);
+	
+	for(j=2; j>=0; j--) {
+		
+		a= j;
+		
+		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		if(val!=0.0) {
+			rb1[3]+= val*al;
+			rb1[0]+= val*r;
+			rb1[1]+= val*g;
+			rb1[2]+= val*b;
+		}
+		a+=3;
+		
+		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		if(val!=0.0) {
+			rb2[3]+= val*al;
+			rb2[0]+= val*r;
+			rb2[1]+= val*g;
+			rb2[2]+= val*b;
+		}
+		a+=3;
+		
+		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		if(val!=0.0) {
+			rb3[3]+= val*al;
+			rb3[0]+= val*r;
+			rb3[1]+= val*g;
+			rb3[2]+= val*b;
+		}
+		
+		rb1+= 4;
+		rb2+= 4;
+		rb3+= 4;
+	}
+}
+
+
+void sampleFloatColV2FloatColVFilter(float *sample, float *dest1, float *dest2, float *dest3, int osaNr)
 {
     float intcol[4] = {0};
     float *scol = sample; 
     int   a = 0;
 
-	if (doGamma()) {
-		/* use a LUT and interpolation to do the gamma correction */
-		for(a=0; a < osaNr; a++, scol+=4) {
-			intcol[0] += gammaCorrect( (scol[0]<1.0) ? scol[0]:1.0 ); 
-			intcol[1] += gammaCorrect( (scol[1]<1.0) ? scol[1]:1.0 ); 
-			intcol[2] += gammaCorrect( (scol[2]<1.0) ? scol[2]:1.0 ); 
-			intcol[3] += scol[3];
+	if(osaNr==1) {
+		dest2[4]= sample[0];
+		dest2[5]= sample[1];
+		dest2[6]= sample[2];
+		dest2[7]= sample[3];
+	}
+	else {
+		if (doGamma()) {
+			/* use a LUT and interpolation to do the gamma correction */
+			for(a=0; a < osaNr; a++, scol+=4) {
+				intcol[0] = gammaCorrect( (scol[0]<1.0) ? scol[0]:1.0 ); 
+				intcol[1] = gammaCorrect( (scol[1]<1.0) ? scol[1]:1.0 ); 
+				intcol[2] = gammaCorrect( (scol[2]<1.0) ? scol[2]:1.0 ); 
+				intcol[3] = scol[3];
+				add_filt_fmask(1<<a, intcol, dest1, dest2, dest3);
+			}
+		} 
+		else {
+			for(a=0; a < osaNr; a++, scol+=4) {
+				add_filt_fmask(1<<a, scol, dest1, dest2, dest3);
+			}
 		}
-
-		/* renormalise */
-		intcol[0] /= osaNr;
-		intcol[1] /= osaNr;
-		intcol[2] /= osaNr;
-		intcol[3] /= osaNr;
-
-	/* back to pixel values */
-		dest[0] = invGammaCorrect(intcol[0]);
-		dest[1] = invGammaCorrect(intcol[1]);
-		dest[2] = invGammaCorrect(intcol[2]);
-		dest[3] = intcol[3];
-	} else {
-		/* no gamma */
-		for(a=0; a < osaNr; a++, scol+=4) {
-			intcol[0] += (scol[0]<1.0) ? scol[0]:1.0 ; 
-			intcol[1] += (scol[1]<1.0) ? scol[1]:1.0 ;
-			intcol[2] += (scol[2]<1.0) ? scol[2]:1.0 ; 
-			intcol[3] += scol[3];
-		}
-    
-		dest[0]= intcol[0]/osaNr;
-		dest[1]= intcol[1]/osaNr;
-		dest[2]= intcol[2]/osaNr;
-		dest[3]= intcol[3]/osaNr;
 	}
 	
 } /* end void sampleFloatColVToFloatColV(unsigned short *, unsigned short *) */

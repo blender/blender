@@ -109,8 +109,8 @@
 
 
 /* from render.c */
-extern float fmask[256], centLut[16];
-extern unsigned short *mask1[9], *mask2[9], /*  *igamtab1, */ *igamtab2/*,  *gamtab */;
+extern float fmask[256], centLut[16], *fmask1[9], *fmask2[9];
+extern unsigned short *mask1[9], *mask2[9], *igamtab2;
 extern char cmask[256], *centmask;
 
 Material defmaterial;
@@ -184,7 +184,7 @@ float  calc_weight(float *weight, int i, int j)
 
 		weight[a]= 0.0;
 
-		/* gaussian weighting has been cancelled */
+		/* gaussian weighting */
 		if(R.r.mode & R_GAUSS) {
 			if(dist<R.r.gauss) {
 				x = dist*R.r.gauss;
@@ -205,8 +205,8 @@ void RE_init_filt_mask(void)
 {
 	static int firsttime=1;
 	static float lastgamma= 0.0;
-	float gamma, igamma;
-	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2;
+	float gamma, igamma, flweight[32];
+	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
 	int i, j, a;
 	unsigned short *m1, *m2, shweight[32];
 
@@ -214,6 +214,8 @@ void RE_init_filt_mask(void)
 		for(a=0; a<9;a++) {
 			mask1[a]= MEM_mallocN(256*sizeof(short), "initfilt");
 			mask2[a]= MEM_mallocN(256*sizeof(short), "initfilt");
+			fmask1[a]= MEM_mallocN(256*sizeof(float), "initfilt");
+			fmask2[a]= MEM_mallocN(256*sizeof(float), "initfilt");
 		}
 		for(a=0; a<256; a++) {
 			cmask[a]= 0;
@@ -290,6 +292,8 @@ void RE_init_filt_mask(void)
 	for(a=0; a<9;a++) {
 		memset(mask1[a], 0, 256*2);
 		memset(mask2[a], 0, 256*2);
+		memset(fmask1[a], 0, 256*4);
+		memset(fmask2[a], 0, 256*4);
 	}
 
 	/* calculate totw */
@@ -304,46 +308,65 @@ void RE_init_filt_mask(void)
 		for(i= -1; i<2; i++) {
 			/* calculate using jit, with offset the weights */
 
-			memset(weight, 0, 32*2);
+			memset(weight, 0, sizeof(weight));
 			calc_weight(weight, i, j);
 
 			for(a=0; a<16; a++) shweight[a]= weight[a]*(65535.0/totw);
+			for(a=0; a<16; a++) flweight[a]= weight[a]*(1.0/totw);
 
 			m1= mask1[ 3*(j+1)+i+1 ];
 			m2= mask2[ 3*(j+1)+i+1 ];
+			m3= fmask1[ 3*(j+1)+i+1 ];
+			m4= fmask2[ 3*(j+1)+i+1 ];
 
 			for(a=0; a<256; a++) {
 				if(a &   1) {
 					m1[a]+= shweight[0];
 					m2[a]+= shweight[8];
+					m3[a]+= flweight[0];
+					m4[a]+= flweight[8];
 				}
 				if(a &   2) {
 					m1[a]+= shweight[1];
 					m2[a]+= shweight[9];
+					m3[a]+= flweight[1];
+					m4[a]+= flweight[9];
 				}
 				if(a &   4) {
 					m1[a]+= shweight[2];
 					m2[a]+= shweight[10];
+					m3[a]+= flweight[2];
+					m4[a]+= flweight[10];
 				}
 				if(a &   8) {
 					m1[a]+= shweight[3];
 					m2[a]+= shweight[11];
+					m3[a]+= flweight[3];
+					m4[a]+= flweight[11];
 				}
 				if(a &  16) {
 					m1[a]+= shweight[4];
 					m2[a]+= shweight[12];
+					m3[a]+= flweight[4];
+					m4[a]+= flweight[12];
 				}
 				if(a &  32) {
 					m1[a]+= shweight[5];
 					m2[a]+= shweight[13];
+					m3[a]+= flweight[5];
+					m4[a]+= flweight[13];
 				}
 				if(a &  64) {
 					m1[a]+= shweight[6];
 					m2[a]+= shweight[14];
+					m3[a]+= flweight[6];
+					m4[a]+= flweight[14];
 				}
 				if(a & 128) {
 					m1[a]+= shweight[7];
 					m2[a]+= shweight[15];
+					m3[a]+= flweight[7];
+					m4[a]+= flweight[15];
 				}
 			}
 		}
@@ -432,6 +455,8 @@ void RE_free_filt_mask()
 	for(a=0; a<9; a++) {
 		MEM_freeN(mask1[a]);
 		MEM_freeN(mask2[a]);
+		MEM_freeN(fmask1[a]);
+		MEM_freeN(fmask2[a]);
 	}
 	MEM_freeN(gamtab);
 	MEM_freeN(igamtab1);
@@ -1176,7 +1201,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		if(G.scene->camera==0) {
 			error("No camera");
 			/* needed because R.rectx and R.recty can be unmatching R.rectot */
-			if(R.rectot) freeN(R.rectot);
+			if(R.rectot) MEM_freeN(R.rectot);
 			R.rectot= NULL;
 			
 			G.afbreek=1;

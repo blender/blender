@@ -1130,11 +1130,8 @@ static void render_panel_render(void)
 	uiDefButI(block, TOG|BIT|13,0,"Odd",	627,55,39,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
 	uiDefButI(block, TOG|BIT|7,0,"X",		668,55,19,20,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 	
-	if(G.scene->r.mode & R_UNIFIED) uiBlockBeginAlign(block);
-	else {
-		uiDefButI(block, TOG|BIT|17,0,"Gauss",	565,34,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gaussian sampling filter for antialiasing");
-		uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 100, 2, "Sets the Gaussian filter size");
-	}
+	uiDefButI(block, TOG|BIT|17,0,"Gauss",	565,34,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gaussian sampling filter for antialiasing");
+	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 100, 2, "Sets the Gaussian filter size");
 	
 	uiDefButI(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	565,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
 	uiDefButI(block, TOG|BIT|2, B_REDR, "Gamma",	627,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");

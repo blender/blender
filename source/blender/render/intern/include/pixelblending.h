@@ -68,10 +68,16 @@ int addUnderSampColF(float *sampcol, float *dest, int mask, int osaNr);
 void addOverSampColF(float *sampcol, float *dest, int mask, int osaNr);
 
 /**
- * Convert a series of oversampled pixels into a single pixel. 
+* add 1 pixel to into filtered three lines 
  * (float vecs to float vec)
  */
-void sampleFloatColV2FloatColV(float *sample, float *dest, int osaNr);
+void add_filt_fmask(unsigned int mask, float *col, float *rb1, float *rb2, float *rb3);
+
+/**
+ * Convert a series of oversampled pixels into filtered three lines 
+ * (float vecs to float vec)
+ */
+void sampleFloatColV2FloatColVFilter(float *sample, float *dest1, float *dest2, float *dest3, int osaNr);
 
 /**
  * Convert a series of oversampled pixels into a single pixel. Uses R.osa to
