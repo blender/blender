@@ -378,7 +378,6 @@ bool ODEPhysicsController::SynchronizeMotionStates(float time)
 
 
 
-
 // kinematic methods
 void ODEPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)
 {
@@ -474,7 +473,7 @@ void ODEPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,float
 {
   if (m_OdeDyna)
     {
-      dVector3 vel = {lin_velX,lin_velY,lin_velZ};
+      dVector3 vel = {lin_velX,lin_velY,lin_velZ, 1.0};
       if (local)
         {
           dMatrix3 worldmat;
@@ -610,6 +609,3 @@ void ODEPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 {
 
 }
-
-
-
