@@ -111,6 +111,45 @@ static MTex emptytex;
 static int packdummy = 0;
 
 
+static char *mapto_blendtype_pup(void)
+{
+	static char string[1024];
+	char formatstr[1024];
+	char tempstr[1024];
+	
+	strcpy(string, "Layer Blending Mode: %t");
+	strcpy(formatstr, "|%s %%x%d");
+	
+	sprintf(tempstr, formatstr, "Mix", MTEX_BLEND);
+	strcat(string, tempstr);
+	
+	//strcat(string, "|%l");
+	
+	sprintf(tempstr, formatstr, "Add", MTEX_ADD);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Lighten", MTEX_LIGHT);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Screen", MTEX_SCREEN);
+	strcat(string, tempstr);
+	
+	//strcat(string, "|%l");
+	
+	sprintf(tempstr, formatstr, "Subtract", MTEX_SUB);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Darken", MTEX_DARK);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Multiply", MTEX_MUL);
+	strcat(string, tempstr);
+
+	//strcat(string, "|%l");
+	
+	sprintf(tempstr, formatstr, "Difference", MTEX_DIFF);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Divide", MTEX_DIV);
+	strcat(string, tempstr);
+		
+	return (string);
+}
 /* *************************** TEXTURE ******************************** */
 
 Tex *cur_imatex=0;
@@ -2331,45 +2370,7 @@ void do_matbuts(unsigned short event)
 	}
 }
 
-static char *mapto_blendtype_pup(void)
-{
-	static char string[1024];
-	char formatstr[1024];
-	char tempstr[1024];
-	
-	strcpy(string, "Layer Blending Mode: %t");
-	strcpy(formatstr, "|%s %%x%d");
-	
-	sprintf(tempstr, formatstr, "Mix", MTEX_BLEND);
-	strcat(string, tempstr);
-	
-	//strcat(string, "|%l");
-	
-	sprintf(tempstr, formatstr, "Add", MTEX_ADD);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Lighten", MTEX_LIGHT);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Screen", MTEX_SCREEN);
-	strcat(string, tempstr);
-	
-	//strcat(string, "|%l");
-	
-	sprintf(tempstr, formatstr, "Subtract", MTEX_SUB);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Darken", MTEX_DARK);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Multiply", MTEX_MUL);
-	strcat(string, tempstr);
 
-	//strcat(string, "|%l");
-	
-	sprintf(tempstr, formatstr, "Difference", MTEX_DIFF);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Divide", MTEX_DIV);
-	strcat(string, tempstr);
-		
-	return (string);
-}
 
 static void material_panel_map_to(Material *ma)
 {
