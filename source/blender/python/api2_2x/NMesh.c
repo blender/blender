@@ -68,18 +68,18 @@
 
 /* EXPP Mesh defines */
 
-#define EXPP_NMESH_MODE_NOPUNOFLIP	ME_NOPUNOFLIP
+#define EXPP_NMESH_MODE_NOPUNOFLIP		ME_NOPUNOFLIP
 #define EXPP_NMESH_MODE_TWOSIDED		ME_TWOSIDED
-#define EXPP_NMESH_MODE_AUTOSMOOTH	ME_AUTOSMOOTH
+#define EXPP_NMESH_MODE_AUTOSMOOTH		ME_AUTOSMOOTH
 #define EXPP_NMESH_MODE_SUBSURF			ME_SUBSURF
 #define EXPP_NMESH_MODE_OPTIMAL			ME_OPT_EDGES
 
 #define NMESH_FRAME_MAX				18000
 #define NMESH_SMOOTHRESH			30
-#define NMESH_SMOOTHRESH_MIN	1
-#define NMESH_SMOOTHRESH_MAX	80
-#define NMESH_SUBDIV					1
-#define NMESH_SUBDIV_MIN			1
+#define NMESH_SMOOTHRESH_MIN			1
+#define NMESH_SMOOTHRESH_MAX			80
+#define NMESH_SUBDIV				1
+#define NMESH_SUBDIV_MIN			0
 #define NMESH_SUBDIV_MAX			6
 
 /* Globals */
@@ -224,7 +224,7 @@ static char NMesh_getSubDivLevels_doc[] =
 
 static char NMesh_setSubDivLevels_doc[] =
 	"([int, int]) - set the subdivision levels for [display, render] -- they are\n\
-clamped to the range [1,6].";
+clamped to the range [0,6].";
 
 static char M_NMesh_New_doc[] =
 	"() - returns a new, empty NMesh mesh object\n";
