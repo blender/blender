@@ -6599,10 +6599,12 @@ void renderbuts(void)
 #endif /* libquicktime */
 #endif /* WITH_QUICKTIME */
 		} else {
+#if defined (_WIN32) || defined (__APPLE__)
 			if(!have_avicodec)
 				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
 			else
 				uiDefBut(block, LABEL, 0, avicdname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+#endif
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
 	} else {
