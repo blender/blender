@@ -1286,11 +1286,12 @@ void space_sound_button_function(int event)
 	}
 }
 
-void drawinfospace(ScrArea *sa, void *spacedata)
+
+void drawinfospace(void)
 {
 	uiBlock *block;
 	float fac;
-	short xpos, ypos, buth, rspace, dx, y1, y2, y3;
+	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y2label, y3label, y4label;
 	short smallprefbut, medprefbut, largeprefbut, smfileselbut;
 	short edgespace, midspace;
 	char naam[32];
@@ -1305,356 +1306,442 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	
 	sprintf(naam, "infowin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->win);
-//	uiBlockSetEmboss(block, UI_EMBOSSM);
-	
 
-//	uiDefBut(block, LABEL,0,"Blender Settings",						1100,90,133,18, 0, 0, 0, 0, 0, "");
 
-	xpos = 45;
-	ypos = 12;
-	buth = 20;
-	rspace = 2;
+	dx= (1280-90)/6;	/* spacing for use in equally dividing 'tab' row */
 
-	dx= (1280-90)/6;
-	
+        xpos = 45;		/* left padding */
+	ypos = 72;		/* bottom padding for buttons */
+	ypostab = 18;		/* bottom padding for 'tab' row */
+
+
+	buth = 20;		/* standard button height */
+
+        smallprefbut = 94;	/* standard size for small preferences button */
+        medprefbut = 193;	/* standard size for medium preferences button */
+        largeprefbut = 292;	/* standard size for large preferences button */
+        smfileselbut = buth;	/* standard size for fileselect button (square) */
+
+        edgespace = 3;		/* space from edge of end 'tab' to edge of end button */
+        midspace = 5;		/* horizontal space between buttons */
+
+	rspace = 4;		/* default space between rows */
+
+	y1 = ypos;		/* bottom padding of 1st (bottom) button row */
+	y2 = ypos+buth+rspace;	/* bottom padding of 2nd button row */
+	y3 = ypos+2*(buth+rspace)+(3*rspace);	/* bottom padding of 3rd button row */
+	y4 = ypos+3*(buth+rspace)+(3*rspace);	/* bottom padding of 4th button row */
+
+	y2label = y2-2;		/* adjustments to offset the labels down to align better */
+	y3label = y3-(3*rspace)-2;	/* again for 3rd row */
+	y4label = y4-2;		/* again for 4th row */
+
+
+	/* set the colour to blue and draw the main 'tab' controls */
+
 	uiBlockSetCol(block, BUTBLUE);
 
 	uiDefButI(block, ROW,B_USERPREF,"View & Controls",
-		xpos,ypos,(short)dx,buth,
+		xpos,ypostab,(short)dx,buth,
 		&U.userpref,1.0,0.0, 0, 0,"");
-
-	uiDefButI(block, ROW,B_USERPREF,"Auto Save",
-		(short)(xpos+2*dx),ypos,(short)dx,buth,
+		
+	uiDefButI(block, ROW,B_USERPREF,"Edit Methods",
+		(short)(xpos+dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,1.0, 0, 0,"");
 
-	uiDefButI(block, ROW,B_USERPREF,"Edit Methods",
-		(short)(xpos+dx),ypos,(short)dx,buth,
+	uiDefButI(block, ROW,B_USERPREF,"Language & Colors",
+		(short)(xpos+2*dx),ypostab,(short)dx,buth,
 		&U.userpref,1.0,2.0, 0, 0,"");
 
-	uiDefButI(block, ROW,B_USERPREF,"File Paths",
-		(short)(xpos+3*dx),ypos,(short)dx,buth,
-		&U.userpref,1.0,4.0, 0, 0,"");
-
-	uiDefButI(block, ROW,B_USERPREF,"Language & Colors",
-		(short)(xpos+4*dx),ypos,(short)dx,buth,
-		&U.userpref,1.0,5.0, 0, 0,"");
+	uiDefButI(block, ROW,B_USERPREF,"Auto Save",
+		(short)(xpos+3*dx),ypostab,(short)dx,buth,
+		&U.userpref,1.0,3.0, 0, 0,"");
 
 	uiDefButI(block, ROW,B_USERPREF,"System & OpenGL",
-		(short)(xpos+5*dx),ypos,(short)dx,buth,
-		&U.userpref,1.0,3.0, 0, 0,"");
+		(short)(xpos+4*dx),ypostab,(short)dx,buth,
+		&U.userpref,1.0,4.0, 0, 0,"");
+
+	uiDefButI(block, ROW,B_USERPREF,"File Paths",
+		(short)(xpos+5*dx),ypostab,(short)dx,buth,
+		&U.userpref,1.0,5.0, 0, 0,"");
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 	uiBlockSetCol(block, BUTGREY);
 
-	xpos = 45;
-	ypos = 58;
-	buth = 20;
-	rspace = 4;
-
-	smallprefbut = 94;
-	medprefbut = 193;
-	largeprefbut = 292;
-	smfileselbut = buth;
-        
-	edgespace = 3;
-	midspace = 5;
-
-
-	y1 = ypos;
-	y2 = ypos+buth+rspace;
-	y3 = ypos+2*(buth+rspace);
+	/* end 'tab' controls */
 
         /* line 2: left x co-ord, top y co-ord, width, height */
 
-	if (U.userpref == 0) { /* view & ctrl */
+	if (U.userpref == 0) { /* view & controls */
+
+		uiDefBut(block, LABEL,0,"Display:",
+			xpos,y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|11, 0, "ToolTips",
+			(xpos+edgespace),y2,smallprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Displays tooltips (help tags) over buttons");
+
+		uiDefButS(block, TOG|BIT|4, B_DRAWINFO, "Object Info",
+			(xpos+edgespace+midspace+smallprefbut),y2,smallprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Displays current object name and frame number in the 3D viewport");
+
+		uiDefButS(block, TOG|BIT|4, 0, "Global Scene",
+			(xpos+edgespace),y1,medprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Forces the current Scene to be displayed in all Screens");
+
+
+		uiDefBut(block, LABEL,0,"Snap to grid:",
+			(xpos+edgespace+medprefbut),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|1, 0, "Grab",
+			(xpos+edgespace+medprefbut+midspace),y2,smallprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Constrains objects to grid points when moving");
+
+		uiDefButS(block, TOG|BIT|2, 0, "Rotate",
+			(xpos+edgespace+medprefbut+(2*midspace)+smallprefbut),y2,smallprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Constrains objects to grid points when rotating");
+
+		uiDefButS(block, TOG|BIT|3, 0, "Size",
+			(xpos+edgespace+medprefbut+(3*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Constrains objects to grid points when scaling");
+
+
+			
+		uiDefBut(block, LABEL,0,"Middle mouse button:",
+			(xpos+edgespace+(2*midspace)+(3*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
 
 		uiBlockSetCol(block, BUTGREEN);
-		uiDefButS(block, TOG|BIT|4, 0, "Scene Global",
-				 389,y2,86,20, &(U.flag), 0, 0, 0, 0,
-				 "Forces the current Scene to be displayed in all Screens");
-		uiDefButS(block, TOG|BIT|5, 0, "TrackBall",
-				 389,y1,86,20, &(U.flag), 0, 0, 0, 0,
-				 "Switches between trackball and turntable view rotation methods (MiddleMouse)");
-		uiDefButS(block, TOG|BIT|12, 0, "2-Mouse",
-				 478,y1,86,20, &(U.flag), 0, 0, 0, 0,
-				 "Maps ALT+LeftMouse to MiddleMouse button");
-		uiDefButS(block, TOG|BIT|9, B_U_CAPSLOCK, "NoCapsLock",
-				 478,y2,86,20, &(U.flag), 0, 0, 0, 0,
-				 "Deactives the CapsLock button (only applies to text input)");
-		uiDefButS(block, TOG|BIT|10, 0, "Viewmove",
-				 569,y2,78,20, &(U.flag), 0, 0, 0, 0,
-				 "Sets the default action for the middle mouse button");
 
-		uiDefButS(block, TOG|BIT|13, 0, "noNumpad",
-				 653,y1,76,20, &(U.flag), 0, 0, 0, 0, 
-				 "For laptops: keys 1 to 0 become numpad keys");
-		uiDefButS(block, TOG|BIT|11, 0, "ToolTips",
-				 653,y2,76,20, &(U.flag), 0, 0, 0, 0,
-				 "Enables/Disables tooltips");
-	
+		uiDefButS(block, TOGN|BIT|10, B_DRAWINFO, "Rotate View",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
-		uiDefButS(block, TOG|BIT|1, 0, "Grab Grid",	788,y2,106,20, &(U.flag), 0, 0, 0, 0, "Changes default step mode for grabbing");
-		uiDefButS(block, TOG|BIT|2, 0, "Rot",		842,y1,52,20, &(U.flag), 0, 0, 0, 0, "Changes default step mode for rotation");
-		uiDefButS(block, TOG|BIT|3, 0, "Size",		788,y1,52,20, &(U.flag), 0, 0, 0, 0, "Changes default step mode for scaling");
+		uiDefButS(block, TOG|BIT|10, B_DRAWINFO, "Pan View",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0, "Default action for the middle mouse button");
 
-		uiDefButI(block, NUM, 0, "WLines",
-				1153,y2,70,20, &U.wheellinescroll,
-				0.0, 32.0, 0, 0,
-				"Mousewheel: The number of lines that get scrolled");
-		uiDefButS(block, TOG|BIT|2, 0, "WZoom",
-				1081,y2,70,20, &(U.uiflag), 0, 0, 0, 0,
-				"Mousewheel: Swaps mousewheel zoom direction");
+		uiBlockSetCol(block, BUTGREY);
+		
+		uiDefButS(block, TOG|BIT|12, 0, "Emulate 3 Buttons",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,medprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Emulates a middle mouse button with ALT+LeftMouse");
 
-		uiDefButS(block, TOG|BIT|3, 0, "Exts",
-				1009,y2,70,20, &(U.uiflag), 0, 0, 0, 0,
-				"ImageSelecter: Filter only filenames with extensions");
 
-		uiDefButS(block, TOG|BIT|4, B_DRAWINFO, "DrawInfo",
-				937,y2,70,20, &(U.uiflag), 0, 0, 0, 0,
-				"3D View: Display active objectname and current framenumber");
-	} else if(U.userpref == 1) { /* autosave */
 
-		/* uiBlockSetCol(block, BUTBLUE); */
+		uiDefBut(block, LABEL,0,"View rotation method:",
+			(xpos+edgespace+(3*midspace)+(4*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiBlockSetCol(block, BUTGREEN);
+
+		uiDefButS(block, TOG|BIT|5, B_DRAWINFO, "Trackball",
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y2,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Use trackball style rotation with middle mouse button");
+
+		uiDefButS(block, TOGN|BIT|5, B_DRAWINFO, "Turntable",
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)+smallprefbut+2),y2,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Use turntable style rotation with middle mouse button");
+
+		uiBlockSetCol(block, BUTGREY);
+
+		uiDefButS(block, TOG|BIT|2, 0, "Invert Wheel Zoom",
+			(xpos+edgespace+(4*midspace)+(4*medprefbut)),y1,medprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Swaps mouse wheel zoom direction");
+
+
+		uiDefButI(block, NUM, 0, "Scroll Lines:",
+			(xpos+edgespace+(5*midspace)+(5*medprefbut)),y1,medprefbut,buth,
+			&U.wheellinescroll, 0.0, 32.0, 0, 0,
+			"The number of lines scrolled at a time with the mouse wheel");
+
+
+	} else if (U.userpref == 1) { /* edit methods */
+
+
+		uiDefBut(block, LABEL,0,"Material linked to:",
+			xpos,y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiBlockSetCol(block, BUTGREEN);
+
+		uiDefButS(block, TOGN|BIT|8, B_DRAWINFO, "ObData",
+			(xpos+edgespace),y2,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the obData block");
+
+		uiDefButS(block, TOG|BIT|8, B_DRAWINFO, "Object",
+			(xpos+edgespace+smallprefbut+2),y2,(smallprefbut+2),buth,
+			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the object block");
+
+		uiBlockSetCol(block, BUTGREY);
+
+
+
+		uiDefBut(block, LABEL,0,"Auto keyframe on:",
+			(xpos+edgespace+(2*medprefbut)+midspace),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|0, 0, "Action",
+			(xpos+edgespace+(2*medprefbut)+(2*midspace)),y2,smallprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in action ipo curve");
+
+		uiDefButS(block, TOG|BIT|1, 0, "Object",
+			(xpos+edgespace+(2*medprefbut)+(3*midspace)+smallprefbut),y2,smallprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in object ipo curve");
+
+
+
+                uiDefBut(block, LABEL,0,"Duplicate with object:",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|0, 0, "Mesh",
+			(xpos+edgespace+(4*midspace)+(3*medprefbut)+smallprefbut),y2,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes mesh data to be duplicated with Shift+D");
+		uiDefButS(block, TOG|BIT|9, 0, "Armature",
+			(xpos+edgespace+(4*midspace)+(3*medprefbut)+smallprefbut),y1,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes armature data to be duplicated with Shift+D");
+
+		uiDefButS(block, TOG|BIT|2, 0, "Surface",
+			(xpos+edgespace+(5*midspace)+(3*medprefbut)+(2*smallprefbut)),y2,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes surface data to be duplicated with Shift+D");
+		uiDefButS(block, TOG|BIT|5, 0, "Lamp",
+			(xpos+edgespace+(5*midspace)+(3*medprefbut)+(2*smallprefbut)),y1,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes lamp data to be duplicated with Shift+D");
+
+                uiDefButS(block, TOG|BIT|1, 0, "Curve",
+			(xpos+edgespace+(6*midspace)+(3*medprefbut)+(3*smallprefbut)),y2,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes curve data to be duplicated with Shift+D");
+		uiDefButS(block, TOG|BIT|7, 0, "Material",
+			(xpos+edgespace+(6*midspace)+(3*medprefbut)+(3*smallprefbut)),y1,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes material data to be duplicated with Shift+D");
+
+		uiDefButS(block, TOG|BIT|3, 0, "Text",
+			(xpos+edgespace+(7*midspace)+(3*medprefbut)+(4*smallprefbut)),y2,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes text data to be duplicated with Shift+D");
+		uiDefButS(block, TOG|BIT|8, 0, "Texture",
+			(xpos+edgespace+(7*midspace)+(3*medprefbut)+(4*smallprefbut)),y1,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes texture data to be duplicated with Shift+D");
+
+		uiDefButS(block, TOG|BIT|4, 0, "Metaball",
+			(xpos+edgespace+(8*midspace)+(3*medprefbut)+(5*smallprefbut)),y2,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes metaball data to be duplicated with Shift+D");
+		uiDefButS(block, TOG|BIT|6, 0, "Ipo",
+			(xpos+edgespace+(8*midspace)+(3*medprefbut)+(5*smallprefbut)),y1,smallprefbut,buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes ipo data to be duplicated with Shift+D");
+
+
+	} else if(U.userpref == 2) { /* language & colors */
+
+#ifdef INTERNATIONAL
+		char curfont[64];
+
+		sprintf(curfont, "Interface Font: ");
+		strcat(curfont,U.fontname);
+
+		uiDefBut(block, LABEL,0,curfont,
+			xpos,y2,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiBlockSetCol(block, BUTSALMON);
+
+		uiDefBut(block, BUT, B_LOADUIFONT, "Select Font",
+			(xpos+edgespace),y1,medprefbut,buth,
+			0, 0, 0, 0, 0, "Select a new font for the interface");
+
+		uiBlockSetCol(block, BUTGREY);
+
+
+		uiDefButI(block, MENU|INT, B_SETFONTSIZE, fontsize_pup(),
+			(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
+			&U.fontsize, 0, 0, 0, 0, "Current interface font size (points)");
+
+		uiDefButS(block, MENU|SHO, B_SETENCODING, encoding_pup(),
+			(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
+			&U.encoding, 0, 0, 0, 0, "Current interface font encoding");
+
+
+
+		uiDefBut(block, LABEL,0,"Translate:",
+			(xpos+edgespace+(3*medprefbut)+(2*midspace)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButS(block, TOG|BIT|0, B_SETTRANSBUTS, "Tooltips",
+			(xpos+edgespace+(3*medprefbut)+(3*midspace)),y2,smallprefbut,buth,
+			&(U.transopts), 0, 0, 0, 0, "Translate tooltips");
+
+		uiDefButS(block, TOG|BIT|1, B_SETTRANSBUTS, "Buttons",
+			(xpos+edgespace+(3*medprefbut)+(4*midspace)+smallprefbut),y2,smallprefbut,buth,
+			&(U.transopts), 0, 0, 0, 0, "Translate button labels");
+
+		uiDefButS(block, TOG|BIT|2, B_SETTRANSBUTS, "Toolbox",
+			(xpos+edgespace+(3*medprefbut)+(5*midspace)+(2*smallprefbut)),y2,smallprefbut,buth,
+			&(U.transopts), 0, 0, 0, 0, "Translate toolbox menu");
+
+		uiDefButS(block, MENU|SHO, B_SETLANGUAGE, language_pup(),
+			(xpos+edgespace+(3*medprefbut)+(3*midspace)),y1,medprefbut,buth,
+			&U.language, 0, 0, 0, 0, "Select interface language");
+			
+		/* uiDefButS(block, TOG|BIT|3, B_SETTRANSBUTS, "FTF All windows",
+			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y1,medprefbut,buth,
+			&(U.transopts), 0, 0, 0, 0,
+			"Use FTF drawing for fileselect and textwindow "
+			"(under construction)");
+		*/
+
+/* end of INTERNATIONAL */
+#endif
+
+	} else if(U.userpref == 3) { /* auto save */
+
 
 		uiDefButS(block, TOG|BIT|0, B_RESETAUTOSAVE, "Auto Save Temp Files",
 			(xpos+edgespace),y2,medprefbut,buth,
-			&(U.flag), 0, 0, 0, 0, "Enables/Disables automatically saving temporary files");
+			&(U.flag), 0, 0, 0, 0,
+			"Enables automatic saving of temporary files");
 
-		/* uiBlockSetCol(block, BUTGREY); */
 
 		uiBlockSetCol(block, BUTSALMON);
 
 		uiDefBut(block, BUT, B_LOADTEMP, "Open Recent",
 			(xpos+edgespace),y1,medprefbut,buth,
-			0, 0, 0, 0, 0, "Opens the most recently saved temporary file");
+			0, 0, 0, 0, 0,"Opens the most recently saved temporary file");
 
 		uiBlockSetCol(block, BUTGREY);
 
-                /* uiDefBut(block, TEX, 0, "Dir:",
-			45,y1,260,buth,
-			U.tempdir, 1.0, 63.0, 0, 0, "The directory for temp. files"); */
 
 		uiDefButI(block, NUM, B_RESETAUTOSAVE, "Minutes:",
 			(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
-			&(U.savetime), 1.0, 60.0, 0, 0, "The time in minutes to wait between temp. saves");
-
-		// uiBlockSetCol(block, BUTSALMON);
-
-
-
-		// uiBlockSetCol(block, BUTGREY);
+			&(U.savetime), 1.0, 60.0, 0, 0,
+			"The time (in minutes) to wait between automatic temporary saves");
 
 		uiDefButS(block, NUM, 0, "Versions:",
 			(xpos+edgespace+medprefbut+midspace),y1,medprefbut,buth,
-			&U.versions, 0.0, 32.0, 0, 0, "The number of old versions to maintain when saving");
-
-	} else if (U.userpref == 2) { // edit methods
-
-		uiDefButS(block, TOG|BIT|8, 0, "Material on Object",
-			(xpos+edgespace+medprefbut+midspace),y2,medprefbut,buth,
-			&(U.flag), 0, 0, 0, 0, "Sets whether Material data is linked to Object or ObjData");
-
-		uiDefButS(block, TOG|BIT|0, 0, "Auto Key Action",
-			(xpos+edgespace),y1,medprefbut,buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion for actions");
-		uiDefButS(block, TOG|BIT|1, 0, "Auto Key Object",
-			(xpos+edgespace),y2,medprefbut,buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion for objects");
-
-                uiDefBut(block, LABEL,0,"Duplicate With Object:",
-			(xpos+edgespace+(3*midspace)+(3*medprefbut)+smallprefbut),y3,(largeprefbut),buth,
-			0, 0, 0, 0, 0, "");
-
-		uiDefButS(block, TOG|BIT|0, 0, "Mesh",
-			(xpos+edgespace+(4*midspace)+(3*medprefbut)+smallprefbut),y2,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Mesh data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|9, 0, "Armature",
-			(xpos+edgespace+(4*midspace)+(3*medprefbut)+smallprefbut),y1,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Armature data to be duplicated with Shift+D");
-
-		uiDefButS(block, TOG|BIT|2, 0, "Surface",
-			(xpos+edgespace+(5*midspace)+(3*medprefbut)+(2*smallprefbut)),y2,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Surface data to be duplicated with Shift+D");
-         	uiDefButS(block, TOG|BIT|6, 0, "Ipo",
-			(xpos+edgespace+(5*midspace)+(3*medprefbut)+(2*smallprefbut)),y1,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Ipo data to be duplicated with Shift+D");
-
-                uiDefButS(block, TOG|BIT|1, 0, "Curve",
-			(xpos+edgespace+(6*midspace)+(3*medprefbut)+(3*smallprefbut)),y2,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Curve data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|7, 0, "Material",
-			(xpos+edgespace+(6*midspace)+(3*medprefbut)+(3*smallprefbut)),y1,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Material data to be duplicated with Shift+D");
-
-		uiDefButS(block, TOG|BIT|3, 0, "Text",
-			(xpos+edgespace+(7*midspace)+(3*medprefbut)+(4*smallprefbut)),y2,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Text data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|8, 0, "Texture",
-			(xpos+edgespace+(7*midspace)+(3*medprefbut)+(4*smallprefbut)),y1,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Texture data to be duplicated with Shift+D");
-
-		uiDefButS(block, TOG|BIT|4, 0, "Metaball",
-			(xpos+edgespace+(8*midspace)+(3*medprefbut)+(5*smallprefbut)),y2,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Metaball data to be duplicated with Shift+D");
-		uiDefButS(block, TOG|BIT|5, 0, "Lamp",
-			(xpos+edgespace+(8*midspace)+(3*medprefbut)+(5*smallprefbut)),y1,smallprefbut,buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes Lamp data to be duplicated with Shift+D");
+			&U.versions, 0.0, 32.0, 0, 0,
+			"The number of old versions to maintain when saving");
 
 
-	} else if (U.userpref == 3) { // system & opengl
+	} else if (U.userpref == 4) { /* system & opengl */
+
 
 /*
-		uiBlockSetCol(block, BUTGREY);
+		uiDefButS(block, TOG|BIT|5, 0, "Log Events to Console",
+			(xpos+edgespace),y2,largeprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0, "Display a list of input events in the console");
+
 		uiDefButS(block, MENU|SHO, B_CONSOLEOUT, consolemethod_pup(),
-			45,  y2, 260, buth,
-			&U.console_out, 0, 0, 0, 0, "Select Console method");
+			(xpos+edgespace), y1, largeprefbut,buth,
+			&U.console_out, 0, 0, 0, 0, "Select console output method");
 
-		uiDefButS(block, TOG|BIT|5, 0, "PrintEvents",
-				45,y1,130,buth,
-				&(U.uiflag), 0, 0, 0, 0,
-				"Console: Print inputevents to console");
-		uiDefButS(block, NUM, B_CONSOLENUMLINES, "Max Lines:",
-				175,y1,130,buth,
-				&U.console_buffer, 1.0, 4000.0, 0, 0,
-				"Console: Maximum number of Console lines");
+		uiDefButS(block, NUM, B_CONSOLENUMLINES, "Lines:",
+			(xpos+edgespace+largeprefbut+midspace),y1,smallprefbut,buth,
+			&U.console_buffer, 1.0, 4000.0, 0, 0, "Maximum number of internal console lines");
 */
-		uiBlockSetCol(block, BUTYELLOW);
 
-		uiDefButI(block, TOG|BIT|USERDEF_VERTEX_ARRAYS_BIT, 0, "Vertex arrays",
-				 400,y2,160,buth,
-				 &(U.gameflags), 0, 0, 0, 0, "Toggle between vertex arrays on (less reliable) and off (more reliable)");
-		uiDefButI(block, TOG|BIT|USERDEF_DISABLE_MIPMAP_BIT, B_MIPMAPCHANGED, "No Mipmaps",
-				560,y2,160,buth,
-				&(U.gameflags), 0, 0, 0, 0, "Toggle between Mipmap textures on (beautiful) and off (fast)");
-		uiDefButI(block, TOG|BIT|USERDEF_DISABLE_SOUND_BIT, B_SOUNDTOGGLE, "No sound",
-				 400,y1,160,buth,
-				 &(U.gameflags), 0, 0, 0, 0, "Toggle between sound on and sound off");
+		uiDefButS(block, TOG|BIT|9, B_U_CAPSLOCK, "Disable Caps Lock",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y2,medprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Disables the Caps Lock key when entering text");
 
-	} else if(U.userpref == 4) { //file paths
+		uiDefButS(block, TOG|BIT|13, 0, "Emulate Numpad",
+			(xpos+edgespace+(3*midspace)+(3*medprefbut)),y1,medprefbut,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
 
-		dx= (1280-90)/4;
+
+		uiDefButI(block, TOG|BIT|USERDEF_DISABLE_SOUND_BIT, B_SOUNDTOGGLE, "Disable Sound",
+			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y2,medprefbut,buth,
+			&(U.gameflags), 0, 0, 0, 0, "Disables sounds from being played");
+
+		uiDefButS(block, TOG|BIT|3, 0, "Filter File Extensions",
+			(xpos+edgespace+(4*medprefbut)+(4*midspace)),y1,medprefbut,buth,
+			&(U.uiflag), 0, 0, 0, 0, "Display only files with extensions in the image select window");
+
+
+		uiDefButI(block, TOGN|BIT|USERDEF_DISABLE_MIPMAP_BIT, B_MIPMAPCHANGED, "Mipmaps",
+			(xpos+edgespace+(5*medprefbut)+(5*midspace)),y2,medprefbut,buth,
+			&(U.gameflags), 0, 0, 0, 0, "Toggles between mipmap textures on (beautiful) and off (fast)");
+
+		uiDefButI(block, TOG|BIT|USERDEF_VERTEX_ARRAYS_BIT, 0, "Vertex Arrays",
+			(xpos+edgespace+(5*medprefbut)+(5*midspace)),y1,medprefbut,buth,
+			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
+
+
+	} else if(U.userpref == 5) { /* file paths */
 
 
 		uiDefBut(block, TEX, 0, "Fonts: ",
-				(xpos+edgespace),y2,(largeprefbut-smfileselbut),buth,
-				U.fontdir, 1.0, 63.0, 0, 0,
-				"The default directory to search for loading fonts");
+			(xpos+edgespace),y2,(largeprefbut-smfileselbut),buth,
+			U.fontdir, 1.0, 63.0, 0, 0,
+			"The default directory to search for loading fonts");
 		uiDefIconBut(block, BUT, B_FONTDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+largeprefbut-smfileselbut),y2,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default font path");
-
+			(xpos+edgespace+largeprefbut-smfileselbut),y2,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default font directory");
 
 		uiDefBut(block, TEX, 0, "Textures: ",
-				(xpos+edgespace+largeprefbut+midspace),y2,(largeprefbut-smfileselbut),buth,
-				U.textudir, 1.0, 63.0, 0, 0,
-				"The default directory to search for textures");
+			(xpos+edgespace+largeprefbut+midspace),y2,(largeprefbut-smfileselbut),buth,
+			U.textudir, 1.0, 63.0, 0, 0, "The default directory to search for textures");
 		uiDefIconBut(block, BUT, B_TEXTUDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+(2*largeprefbut)+midspace-smfileselbut),y2,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default texture path");
+			(xpos+edgespace+(2*largeprefbut)+midspace-smfileselbut),y2,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default texture location");
 
-		uiDefBut(block, TEX, 0, "TexPlugins: ",
-				(xpos+edgespace+(2*largeprefbut)+(2*midspace)),y2,(largeprefbut-smfileselbut),buth,
-				U.plugtexdir, 1.0, 63.0, 0, 0,
-				"The default directory to search for texture plugins");
+
+		uiDefBut(block, TEX, 0, "Tex Plugins: ",
+			(xpos+edgespace+(2*largeprefbut)+(2*midspace)),y2,(largeprefbut-smfileselbut),buth,
+			U.plugtexdir, 1.0, 63.0, 0, 0, "The default directory to search for texture plugins");
 		uiDefIconBut(block, BUT, B_PLUGTEXDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+(3*largeprefbut)+(2*midspace)-smfileselbut),y2,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default texture plugin path");
+			(xpos+edgespace+(3*largeprefbut)+(2*midspace)-smfileselbut),y2,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default texture plugin location");
 
-		uiDefBut(block, TEX, 0, "SeqPlugins: ",
-				(xpos+edgespace+(3*largeprefbut)+(3*midspace)),y2,(largeprefbut-smfileselbut),buth,
-				U.plugseqdir, 1.0, 63.0, 0, 0,
-				"The default directory to search for sequence plugins");
+		uiDefBut(block, TEX, 0, "Seq Plugins: ",
+			(xpos+edgespace+(3*largeprefbut)+(3*midspace)),y2,(largeprefbut-smfileselbut),buth,
+			U.plugseqdir, 1.0, 63.0, 0, 0, "The default directory to search for sequence plugins");
 		uiDefIconBut(block, BUT, B_PLUGSEQDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+(4*largeprefbut)+(3*midspace)-smfileselbut),y2,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default sequence plugin path");
+			(xpos+edgespace+(4*largeprefbut)+(3*midspace)-smfileselbut),y2,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default sequence plugin location");
 
 
 		uiDefBut(block, TEX, 0, "Render: ",
-				(xpos+edgespace),y1,(largeprefbut-smfileselbut),buth,
-				U.renderdir, 1.0, 63.0, 0, 0,
-				"The default directory for rendering output");
+			(xpos+edgespace),y1,(largeprefbut-smfileselbut),buth,
+			U.renderdir, 1.0, 63.0, 0, 0, "The default directory for rendering output");
 		uiDefIconBut(block, BUT, B_RENDERDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+largeprefbut-smfileselbut),y1,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default render path");
+			(xpos+edgespace+largeprefbut-smfileselbut),y1,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default render output location");
 
 		uiDefBut(block, TEX, 0, "Python: ",
-				(xpos+edgespace+largeprefbut+midspace),y1,(largeprefbut-smfileselbut),buth,
-				U.pythondir, 1.0, 63.0, 0, 0,
-				"The default directory to search for Python scripts");
+			(xpos+edgespace+largeprefbut+midspace),y1,(largeprefbut-smfileselbut),buth,
+			U.pythondir, 1.0, 63.0, 0, 0, "The default directory to search for Python scripts");
 		uiDefIconBut(block, BUT, B_PYTHONDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+(2*largeprefbut)+midspace-smfileselbut),y1,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default Python script path");
+			(xpos+edgespace+(2*largeprefbut)+midspace-smfileselbut),y1,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default Python script location");
+
 
 		uiDefBut(block, TEX, 0, "Sounds: ",
-				(xpos+edgespace+(2*largeprefbut)+(2*midspace)),y1,(largeprefbut-smfileselbut),buth,
-				U.sounddir, 1.0, 63.0, 0, 0,
-				"The default directory to search for sounds");
+			(xpos+edgespace+(2*largeprefbut)+(2*midspace)),y1,(largeprefbut-smfileselbut),buth,
+			U.sounddir, 1.0, 63.0, 0, 0, "The default directory to search for sounds");
 		uiDefIconBut(block, BUT, B_SOUNDDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+(3*largeprefbut)+(2*midspace)-smfileselbut),y1,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default sound path");
-				 
+			(xpos+edgespace+(3*largeprefbut)+(2*midspace)-smfileselbut),y1,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default sound location");
+
 		uiDefBut(block, TEX, 0, "Temp: ",
-				 (xpos+edgespace+(3*largeprefbut)+(3*midspace)),y1,(largeprefbut-smfileselbut),buth,
-				 U.tempdir, 1.0, 63.0, 0, 0, "The directory for storing temporary save files");
+			 (xpos+edgespace+(3*largeprefbut)+(3*midspace)),y1,(largeprefbut-smfileselbut),buth,
+			 U.tempdir, 1.0, 63.0, 0, 0, "The directory for storing temporary save files");
 		uiDefIconBut(block, BUT, B_TEMPDIRFILESEL, ICON_FILESEL,
-				(xpos+edgespace+(4*largeprefbut)+(3*midspace)-smfileselbut),y1,smfileselbut,buth,
-				0, 0, 0, 0, 0,
-				"Select default temporary save file path");
+			(xpos+edgespace+(4*largeprefbut)+(3*midspace)-smfileselbut),y1,smfileselbut,buth,
+			0, 0, 0, 0, 0, "Select the default temporary save file location");
 
-	} else if(U.userpref == 5) { //language & colors
-
-		dx= (1280-90)/6;
-#ifdef INTERNATIONAL
-		uiBlockSetCol(block, BUTSALMON);
-		uiDefBut(block, BUT, B_LOADUIFONT, "Load UI Font",
-			xpos,y2,(short)dx-10,buth,
-			0, 0, 0, 0, 0, "Load new font for the interface");
-
-		uiBlockSetCol(block, BUTGREY);
-		uiDefButS(block, MENU|SHO, B_SETLANGUAGE, language_pup(),
-			xpos + (short)dx,y2,(short)dx-10,buth,
-			&U.language, 0, 0, 0, 0, "Choose interface language");
-
-		uiDefButS(block, MENU|SHO, B_SETENCODING, encoding_pup(),
-			xpos,y1,(short)dx-10,buth,
-			&U.encoding, 0, 0, 0, 0, "Set font encoding");
-
-		uiDefButI(block, MENU|INT, B_SETFONTSIZE, fontsize_pup(),
-			xpos + (short)dx,y1,(short)dx-10,buth,
-			&U.fontsize, 0, 0, 0, 0, "Set font size");
-
-		uiDefBut(block, LABEL,0,U.fontname,
-			xpos,y3,(short)dx-10,buth,
-			0, 0, 0, 0, 0, "");
-
-		xpos = 320;
-		dx= (1280-90)/7.5;
-		uiDefButS(block, TOG|BIT|0, B_SETTRANSBUTS, "Translate Tooltips",
-			xpos + (short)dx,y2,(short)dx,buth,
-			&(U.transopts), 0, 0, 0, 0, "Apply translation to tooltips");
-		uiDefButS(block, TOG|BIT|1, B_SETTRANSBUTS, "Translate Buttons",
-			xpos + (short)dx,y1,(short)dx,buth,
-			&(U.transopts), 0, 0, 0, 0, "Apply translation to button titles");
-
-		uiDefButS(block, TOG|BIT|2, B_SETTRANSBUTS, "Translate Toolbox",
-			xpos + (short)2*dx,y2,(short)dx,buth,
-			&(U.transopts), 0, 0, 0, 0, "Apply translation to toolbox menu");
-
-		uiBlockSetCol(block, BUTSALMON);
-		uiDefButS(block, TOG|BIT|3, B_SETTRANSBUTS, "FTF All windows",
-				  xpos + (short)2*dx,y1,(short)dx,buth,
-				  &(U.transopts), 0, 0, 0, 0, 
-				  "Use FTF drawing for fileselect and textwindow "
-				  "(under construction)");
-/* end of INTERNATIONAL */
-#endif
 	}
 
 	uiDrawBlock(block);
