@@ -61,7 +61,7 @@ void free_editArmature(void){}
 
 
 void setscreen(struct bScreen *sc){}
-void force_draw_all(void){}
+void force_draw_all(int header){}
   /* otherwise the WHILE_SEQ doesn't work */
 	/* struct Sequence; */
 
