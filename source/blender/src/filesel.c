@@ -518,6 +518,9 @@ void test_flags_file(SpaceFile *sfile)
 					BLI_testextensie(file->relname, ".mv")) {
 				file->flags |= MOVIEFILE;			
 			}
+			else if(BLI_testextensie(file->relname, ".py")) {
+				file->flags |= PYSCRIPTFILE;			
+			}
 		}
 	}	
 }
@@ -859,6 +862,10 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 	}
 	else if(files->flags & MOVIEFILE) {
 		cpack(0x70A070);
+		glRects(x-14,  y,  x-8,  y+7);
+	}
+	else if(files->flags & PYSCRIPTFILE) {
+		cpack(0x4477dd);
 		glRects(x-14,  y,  x-8,  y+7);
 	}
 	
