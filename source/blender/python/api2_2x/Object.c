@@ -2336,25 +2336,29 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		Base *base;
 		int newLayer;
 		int local;
-		if( PyArg_Parse( value, "i", &newLayer ) ) {
-			/* uppper 2 bytes are for local view */
-			newLayer &= 0x00FFFFFF;
-			if( newLayer == 0 )	/* bail if nothing to do */
-				return ( 0 );
 
-			/* update any bases pointing to our object */
-			base = FIRSTBASE;
+		if( ! PyArg_Parse( value, "i", &newLayer ) ) {
+			return EXPP_ReturnIntError( PyExc_AttributeError,
+						    "expected int as bitmask" );
+		}
+
+		/* uppper 2 nibbles are for local view */
+		newLayer &= 0x00FFFFFF;
+		if( newLayer == 0 )	/* bail if nothing to do */
+			return ( 0 );
+		
+		/* update any bases pointing to our object */
+		base = FIRSTBASE;  /* first base in current scene */
+		while( base ){
 			if( base->object == obj->object ) {
 				local = base->lay &= 0xFF000000;
 				base->lay = local | newLayer;
 				object->lay = base->lay;
 			}
-			countall(  );
-		} else {
-			return EXPP_ReturnIntError( PyExc_AttributeError,
-						    "expected int as bitmask" );
+			base = base->next;
 		}
-
+		countall(  );
+		
 		return ( 0 );
 	}
 	if( StringEqual( name, "parent" ) ) {
