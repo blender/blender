@@ -84,7 +84,6 @@ static int bpymenu_group_atoi (char *str)
 	else if (!strcmp(str, "Animation")) return PYMENU_ANIMATION;
 	else if (!strcmp(str, "Materials")) return PYMENU_MATERIALS;
 	else if (!strcmp(str, "UV")) return PYMENU_UV;
-	else if (!strcmp(str, "Utils")) return PYMENU_UTILS;
 	else if (!strcmp(str, "Tools")) return PYMENU_TOOLS;
 	/* "Misc" or an inexistent group name: use misc */
 	else return PYMENU_MISC;
@@ -119,9 +118,6 @@ char *BPyMenu_group_itoa (short menugroup)
 			break;
 		case PYMENU_UV:
 			return "UV";
-			break;
-		case PYMENU_UTILS:
-			return "Utils";
 			break;
 		case PYMENU_TOOLS:
 			return "Tools";

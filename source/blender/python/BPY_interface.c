@@ -612,23 +612,35 @@ int BPY_menu_do_python(short menutype, int event)
 	if (G.obedit) exit_editmode(1);
 
 	/* let's find a proper area for an eventual script gui:
-	 * preference in order: Script, Buttons (if not a Wizards or Utils script),
-	 * Text, any closest bigger area */
-	if (curarea->spacetype != SPACE_SCRIPT) {
-		ScrArea *sa;
+	 * (still experimenting here, need definition on which win
+	 * each group will be put to code this properly) */
+	switch (menutype) {
 
-		sa = find_biggest_area_of_type(SPACE_SCRIPT);
+		case PYMENU_IMPORT: /* first 3 were handled in header_info.c */
+		case PYMENU_EXPORT:
+		case PYMENU_HELP: 
+		case PYMENU_WIZARDS:
+			break;
 
-		if (!sa) {
-			if ((menutype != PYMENU_WIZARDS) && (menutype != PYMENU_UTILS))
+		default:
+			if (curarea->spacetype != SPACE_SCRIPT) {
+				ScrArea *sa = NULL;
+
 				sa = find_biggest_area_of_type(SPACE_BUTS);
-		}
+				if (sa) {
+					if ((1.5 * sa->winx) < sa->winy) sa = NULL; /* too narrow? */
+				}
 
-		if (!sa) sa = find_biggest_area_of_type(SPACE_TEXT);
+				if (!sa) sa = find_biggest_area_of_type(SPACE_SCRIPT);
+				if (!sa) sa = find_biggest_area_of_type(SPACE_TEXT);
+				if (!sa) sa = find_biggest_area_of_type(SPACE_IMAGE); /* group UV */
+				if (!sa) sa = find_biggest_area_of_type(SPACE_VIEW3D);
 
-		if (!sa) sa = closest_bigger_area();
+				if (!sa) sa = find_biggest_area();
 
-		areawinset(sa->win);
+				areawinset(sa->win);
+			}
+			break;
 	}
 
 	script->id.us = 1;

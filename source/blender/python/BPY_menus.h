@@ -79,7 +79,6 @@ typedef struct BPyMenu {
 typedef enum {
 	PYMENU_WIZARDS, /* complex 'app' scripts */
 	PYMENU_UV, /* UV editing tools, to go in UV/Image editor space, 'UV' menu */
-	PYMENU_UTILS,
 	PYMENU_TOOLS,
 	PYMENU_MODIFIERS, /* modifies existing obj *data* */
 	PYMENU_MISC,
