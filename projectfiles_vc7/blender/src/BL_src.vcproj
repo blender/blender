@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include\;..\..\..\source\blender\img;..\..\..\source\blender\renderui;..\..\..\..\lib\windows\soundsystem\include\;..\..\..\..\lib\windows\python\include\python2.0\;..\..\..\..\lib\windows\bmfont\include;..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\renderconverter;..\..\..\source\blender\verify;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\ftfont;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\kernel\gen_system;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\include;..\..\..\source\blender;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\network;..\..\..\..\lib\windows\decimation\include;..\..\..\source\blender\blenpluginapi\;..\..\..\..\lib\windows\blenkey\include;..\..\..\..\lib\windows\ghost\include;..\..\..\..\lib\windows\bsp\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include\;..\..\..\source\blender\img;..\..\..\source\blender\renderui;..\..\..\..\lib\windows\soundsystem\include\;..\..\..\..\lib\windows\python\include\python2.0\;..\..\..\..\lib\windows\bmfont\include;..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\renderconverter;..\..\..\source\blender\verify;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\ftfont;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\kernel\gen_system;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenlib;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\include;..\..\..\source\blender;..\..\..\source\blender\makesdna;..\..\..\source\gameengine\network;..\..\..\..\lib\windows\decimation\include;..\..\..\source\blender\blenpluginapi\;..\..\..\..\lib\windows\blenkey\include;..\..\..\..\lib\windows\ghost\include;..\..\..\..\lib\windows\opennl\include;..\..\..\..\lib\windows\bsp\include;..\..\..\..\lib\windows\QTDevWin\CIncludes"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER=1;WITH_QUICKTIME;INTERNATIONAL"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -245,6 +245,21 @@
 				RelativePath="..\..\..\source\blender\src\editmesh.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\editmesh_add.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\editmesh_lib.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\editmesh_loop.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\editmesh_mods.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\editmesh_tools.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\editnla.c">
 			</File>
 			<File
@@ -347,6 +362,9 @@
 				RelativePath="..\..\..\source\blender\src\mainqueue.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\meshtools.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\mywindow.c">
 			</File>
 			<File
@@ -399,6 +417,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\toolbox.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\unwrapper.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\usiblender.c">

@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static_ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libopennl.lib libpng_st.lib libz_st.lib libmoto.lib PHY_Sumo.lib solid.lib qhull.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static_ST.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libopennl.lib libpng_st.lib libz_st.lib libmoto.lib PHY_Sumo.lib solid.lib qhull.lib python23.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"

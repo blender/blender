@@ -66,7 +66,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\blenkernel,..\..\..\source\blender\makesdna,..\..\..\source\blender\include,..\..\..\source\blender\blenlib,..\..\..\source\blender\imbuf,..\..\..\source\blender\img,..\..\..\..\lib\windows\bmfont\include,..\..\source\blender\misc,..\..\..\lib\windows\guardedalloc\include,..\..\source\blender\blenlib,..\..\source\kernel\gen_messaging,..\..\source\blender\include,..\..\source\blender,..\..\source\blender\makesdna,..\..\source\blender\blenkernel,..\..\source\blender\blenloader,..\..\source\blender\bpython\include,..\..\source\blender\imbuf,..\..\source\blender\render\extern\include,..\..\source\blender\radiosity\extern\include,..\..\source\kernel\gen_system,..\..\source\blender\renderconverter\,..\..\source\blender\renderui\,C:\blender\source\blender\python,C:\blender\intern\decimation\extern,C:\blender\intern\bsp\extern,C:\blender\intern\ghost,C:\blender\intern\SoundSystem,C:\blender\intern\bmfont,C:\blender\intern\moto\include,C:\blender\intern\string,C:\QT6 SDK (Win)\Interfaces &amp; Libraries\QTDevWin\CIncludes,C:\blender\intern\iksolver\extern,C:\blender\intern\guardedalloc,..\..\source\blender\python,../../../../lib/windows/bsp/include,..\..\..\source\blender\renderconverter,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\avi,..\..\..\source\kernel\gen_system,..\..\..\source\blender\blenloader,..\..\..\source\blender,..\..\..\source\blender\bpython\include,../../../source/gameengine\SoundSystem\,../../../../lib/windows/iksolver/include,..\..\..\source\blender\python"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.3;..\..\..\..\lib\windows\guardedalloc\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\imbuf;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\img;..\..\..\..\lib\windows\bmfont\include;..\..\source\blender\misc;..\..\..\lib\windows\guardedalloc\include;..\..\source\blender\blenlib;..\..\source\kernel\gen_messaging;..\..\source\blender\include;..\..\source\blender;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\bpython\include;..\..\source\blender\imbuf;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\blender\renderconverter\;..\..\source\blender\renderui\;C:\blender\source\blender\python;C:\blender\intern\decimation\extern;C:\blender\intern\bsp\extern;C:\blender\intern\ghost;C:\blender\intern\SoundSystem;C:\blender\intern\bmfont;C:\blender\intern\moto\include;C:\blender\intern\string;&quot;C:\QT6 SDK (Win)\Interfaces &amp; Libraries\QTDevWin\CIncludes&quot;;C:\blender\intern\iksolver\extern;C:\blender\intern\guardedalloc;..\..\source\blender\python;../../../../lib/windows/bsp/include;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\avi;..\..\..\source\kernel\gen_system;..\..\..\source\blender\blenloader;..\..\..\source\blender;..\..\..\source\blender\bpython\include;../../../source/gameengine\SoundSystem\;../../../../lib/windows/iksolver/include;..\..\..\source\blender\python"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -131,6 +131,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\CurNurb.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Curve.c">
@@ -241,6 +244,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\rgbTuple.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRadio.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRender.c">
 			</File>
 			<File
@@ -276,6 +282,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\CurNurb.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Curve.h">
@@ -384,6 +393,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\rgbTuple.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRadio.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRender.h">
