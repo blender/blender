@@ -1099,6 +1099,7 @@ static void init_render_displist_mesh(Object *ob)
 {
 	Mesh *me;
 	DispList *dl;
+	DispListMesh *dlm;
 	VlakRen *vlr;
 	Material *matar[32];
 	VertRen *ver, *v1, *v2, *v3, *v4;
@@ -1107,6 +1108,7 @@ static void init_render_displist_mesh(Object *ob)
 	int a, b, flipnorm= -1,  need_orco=0, startvert, p1, p2, p3, p4;
 	int old_totvert= R.totvert;
 	int old_totvlak= R.totvlak;
+	int i;
 
 	me= ob->data;
 
@@ -1135,187 +1137,109 @@ static void init_render_displist_mesh(Object *ob)
 
 	if((dl==0) || ((me->subdiv != me->subdivr))) {
 		/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
-		if(me->subdivdone!=me->subdivr) {
+		if((me->subdivdone-1)!=me->subdivr) {
+			DispList *dlVerts;
+
 			object_deform(ob);
-			subsurf_make_mesh(ob, me->subdivr);
-			me->subdivdone= me->subdivr;
-			dl = me->disp.first;
+
+			dlVerts= find_displist(&ob->disp, DL_VERTS);
+			dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, me->subdivr, me->flag);
+			dl= MEM_callocN(sizeof(*dl), "dl");
+			dl->type= DL_MESH;
+			dl->mesh= dlm;
+
+			free_displist_by_type(&me->disp, DL_MESH);
+			BLI_addtail(&me->disp, dl);
+
+			me->subdivdone= me->subdivr+1;	/* stupid hack, add one because otherwise old files will get
+											 * subdivdone==0, so me->subdivr==0 won't work. proper caching
+											 * will remove this hack.
+											 */
 		}
 	}
 
-	if(dl==0) return;
+	if(dl==0 || dl->type!=DL_MESH) return;
+	dlm= dl->mesh;
 
 	if(need_orco) {
 		make_orco_displist_mesh(ob, me->subdivr);
 		orco= me->orco;
 	}
 
-	while(dl) {
-		if(dl->type==DL_SURF) {
-			startvert= R.totvert;
-			a = dl->nr*dl->parts;
-			data= dl->verts;
-			nors= dl->nors;
-			
-			while(a--) {
-				ver= RE_findOrAddVert(R.totvert++);
-				VECCOPY(ver->co, data);
-				if(orco) {
-					ver->orco= orco;
-					orco+= 3;
-				}
-				else {
-					ver->orco= data;
-				}
-				
-				MTC_Mat4MulVecfl(mat, ver->co);
-				
-				xn= nors[0];
-				yn= nors[1];
-				zn= nors[2];
+	startvert= R.totvert;
+	
+	for (i=0; i<dlm->totvert; i++) {
+		MVert *mv= &dlm->mvert[i];
 		
-				/* transpose ! */
-				ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+		ver= RE_findOrAddVert(R.totvert++);
+		VECCOPY(ver->co, mv->co);
+		MTC_Mat4MulVecfl(mat, ver->co);
+		
+		xn= mv->no[0];
+		yn= mv->no[1];
+		zn= mv->no[2];
 
-				Normalise(ver->n);
-						
-				data+= 3;
-				nors+= 3;
-			}
+		/* transpose ! */
+		ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 
-			for(a=0; a<dl->parts; a++) {
+		Normalise(ver->n);
+		
+		if (orco)
+			ver->orco= &orco[i*3];
+	}
 
-				DL_SURFINDEX(dl->flag & DL_CYCLIC_V, dl->flag & DL_CYCLIC_U, dl->nr, dl->parts);
-				p1+= startvert;
-				p2+= startvert;
-				p3+= startvert;
-				p4+= startvert;
-
-				for(; b<dl->nr; b++) {
-					v1= RE_findOrAddVert(p1);
-					v2= RE_findOrAddVert(p2);
-					v3= RE_findOrAddVert(p3);
-					v4= RE_findOrAddVert(p4);
-
-					flen= CalcNormFloat4(v1->co, v3->co, v4->co, v2->co, n1);
-					if(flen!=0.0) {
-						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->ob= ob;
-						vlr->v1= v1;
-						vlr->v2= v3;
-						vlr->v3= v4;
-						vlr->v4= v2;
-						VECCOPY(vlr->n, n1);
-						vlr->len= flen;
-						vlr->lay= ob->lay;
-						
-						vlr->mat= matar[ dl->col];
-						vlr->ec= ME_V1V2+ME_V2V3;
-						vlr->flag= ME_SMOOTH;
-						
-						if(flipnorm== -1) flipnorm= mesh_test_flipnorm(ob, me->mface, vlr, imat);
-						
-						if(flipnorm) {
-							vlr->n[0]= -vlr->n[0];
-							vlr->n[1]= -vlr->n[1];
-							vlr->n[2]= -vlr->n[2];
-						}
-
-						/* vlr->flag |= R_NOPUNOFLIP; */
-						/* vlr->puno= 15; */
-						vlr->puno= 0;
-					}
-
-					p4= p3;
-					p3++;
-					p2= p1;
-					p1++;
-				}
-			}
-		} else if (dl->type==DL_MESH) {
-			DispListMesh *dlm= dl->mesh;
-			int i;
+	for (i=0; i<dlm->totface; i++) {
+		MFaceInt *mf= &dlm->mface[i];
+		
+		if (!mf->v3)
+			continue;
 			
-			startvert= R.totvert;
-			
-			for (i=0; i<dlm->totvert; i++) {
-				MVert *mv= &dlm->mvert[i];
-				
-				ver= RE_findOrAddVert(R.totvert++);
-				VECCOPY(ver->co, mv->co);
-				MTC_Mat4MulVecfl(mat, ver->co);
-				
-				xn= mv->no[0];
-				yn= mv->no[1];
-				zn= mv->no[2];
+		v1= RE_findOrAddVert(startvert+mf->v1);
+		v2= RE_findOrAddVert(startvert+mf->v2);
+		v3= RE_findOrAddVert(startvert+mf->v3);
 
-				/* transpose ! */
-				ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-
-				Normalise(ver->n);
-				
-				if (orco)
-					ver->orco= &orco[i*3];
-			}
-
-			for (i=0; i<dlm->totface; i++) {
-				MFaceInt *mf= &dlm->mface[i];
-				
-				if (!mf->v3)
-					continue;
-					
-				v1= RE_findOrAddVert(startvert+mf->v1);
-				v2= RE_findOrAddVert(startvert+mf->v2);
-				v3= RE_findOrAddVert(startvert+mf->v3);
-
-				if (mf->v4) {
-					v4= RE_findOrAddVert(startvert+mf->v4);
-					flen= CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, n1);
-				} else { 
-					v4= 0;
-					flen= CalcNormFloat(v1->co, v2->co, v3->co, n1);
-				}
-
-				if(flen!=0.0) {
-					vlr= RE_findOrAddVlak(R.totvlak++);
-					vlr->ob= ob;
-					vlr->v1= v1;
-					vlr->v2= v2;
-					vlr->v3= v3;
-					vlr->v4= v4;
-
-					VECCOPY(vlr->n, n1);
-					vlr->len= flen;
-					vlr->lay= ob->lay;
-						
-					vlr->mat= matar[mf->mat_nr];
-					vlr->flag= mf->flag;
-					if(dlm->flag & ME_OPT_EDGES) vlr->ec= mf->edcode;
-					else vlr->ec= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1; 
-					vlr->puno= mf->puno;
-					
-					if(flipnorm== -1) flipnorm= test_flipnorm(v1->co, v2->co, v3->co, vlr, imat);
-
-					if(flipnorm) {
-						vlr->n[0]= -vlr->n[0];
-						vlr->n[1]= -vlr->n[1];
-						vlr->n[2]= -vlr->n[2];
-					}
-					
-					if (dlm->tface) {
-						vlr->tface= &dlm->tface[i];
-						vlr->vcol= vlr->tface->col;
-					} else if (dlm->mcol)
-						vlr->vcol= (unsigned int *) &dlm->mcol[i*4];
-				}
-			}
+		if (mf->v4) {
+			v4= RE_findOrAddVert(startvert+mf->v4);
+			flen= CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, n1);
+		} else { 
+			v4= 0;
+			flen= CalcNormFloat(v1->co, v2->co, v3->co, n1);
 		}
-		
-		dl= dl->next;
+
+		if(flen!=0.0) {
+			vlr= RE_findOrAddVlak(R.totvlak++);
+			vlr->ob= ob;
+			vlr->v1= v1;
+			vlr->v2= v2;
+			vlr->v3= v3;
+			vlr->v4= v4;
+
+			VECCOPY(vlr->n, n1);
+			vlr->len= flen;
+			vlr->lay= ob->lay;
+				
+			vlr->mat= matar[mf->mat_nr];
+			vlr->flag= mf->flag;
+			if(dlm->flag & ME_OPT_EDGES) vlr->ec= mf->edcode;
+			else vlr->ec= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1; 
+			vlr->puno= mf->puno;
+			
+			if(flipnorm== -1) flipnorm= test_flipnorm(v1->co, v2->co, v3->co, vlr, imat);
+
+			if(flipnorm) {
+				vlr->n[0]= -vlr->n[0];
+				vlr->n[1]= -vlr->n[1];
+				vlr->n[2]= -vlr->n[2];
+			}
+			
+			if (dlm->tface) {
+				vlr->tface= &dlm->tface[i];
+				vlr->vcol= vlr->tface->col;
+			} else if (dlm->mcol)
+				vlr->vcol= (unsigned int *) &dlm->mcol[i*4];
+		}
 	}
 }
 
@@ -1515,7 +1439,7 @@ static void init_render_mesh(Object *ob)
 	int start, end, flipnorm, do_autosmooth=0;
 	
 	me= ob->data;
-	if (rendermesh_uses_displist(me) && me->subdivr>0) {
+	if (rendermesh_uses_displist(me)) {
 		init_render_displist_mesh(ob);
 		return;
 	}
@@ -2817,7 +2741,7 @@ void RE_freeRotateBlenderScene(void)
 				me->orco= 0;
 			}
 			if (rendermesh_uses_displist(me) && (me->subdiv!=me->subdivr)) {
-				makeDispList(ob);
+				makeDispList(ob);  /* XXX this should be replaced with proper caching */
 				me->subdivdone= 0;	/* needed to prevent multiple used meshes being recalculated */
 			}
 		}

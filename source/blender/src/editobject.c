@@ -1701,6 +1701,8 @@ void convertmenu(void)
 					error("No subdivision Mesh to convert available");
 				}
 				else if (oldme->flag&ME_SUBSURF) {
+					DispListMesh *dlm;
+
 					ob->flag |= OB_DONE;
 
 					ob1= copy_object(ob);
@@ -1725,8 +1727,10 @@ void convertmenu(void)
 						for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
 					}
 						
-					subsurf_to_mesh(ob, ob1->data);
-	
+					dlm= subsurf_make_dispListMesh_from_mesh(oldme, NULL, oldme->subdiv, oldme->flag);
+					displistmesh_to_mesh(dlm, ob1->data);
+					displistmesh_free(dlm);
+
 					tex_space_mesh(me);
 				}
 			}

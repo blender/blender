@@ -442,7 +442,6 @@ void tex_space_mesh(Mesh *me)
 void make_orco_displist_mesh(Object *ob, int subdivlvl)
 {
 	Mesh *me;
-	DispList *dl;
 	DispListMesh *dlm;
 	int i;
 	
@@ -453,20 +452,14 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 		cp_key(0, me->totvert, me->totvert, (char*) me->mvert->co, me->key, me->key->refkey, 0);
 	}
 
-		/* Rebuild the displist */
-	dl= subsurf_mesh_to_displist(me, NULL, (short)subdivlvl);
+	dlm= subsurf_make_dispListMesh_from_mesh(me, NULL, subdivlvl, me->flag);
 	
 		/* Restore correct key */
 	do_ob_key(ob);
 
-		/* XXX Assume dl is a DL_MESH (it is), 
-		 * should be explicit -zr 
-		 */
-	dlm= dl->mesh;
-
 	if (me->orco) MEM_freeN(me->orco);
 	me->orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
-		
+	
 	for(i=0; i<dlm->totvert; i++) {
 		float *fp= &me->orco[i*3];
 
@@ -477,7 +470,7 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 		fp[2]= (fp[2]-me->loc[2])/me->size[2];
 	}
 	
-	free_disp_elem(dl);
+	displistmesh_free(dlm);
 }
 
 void make_orco_mesh(Mesh *me)
@@ -1115,7 +1108,7 @@ void mcol_to_tface(Mesh *me, int freedata)
 }
 
 int mesh_uses_displist(Mesh *me) {
-	return (me->flag&ME_SUBSURF && (me->subdiv>0));
+	return (me->flag&ME_SUBSURF);
 }
 
 int rendermesh_uses_displist(Mesh *me) {

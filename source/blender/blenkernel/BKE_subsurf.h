@@ -34,11 +34,12 @@
 struct Mesh;
 struct Object;
 struct Displist;
+struct DispListMesh;
+struct ListBase;
 
-void subsurf_to_mesh(struct Object *oldob, struct Mesh *newme);
-void subsurf_make_mesh(struct Object *ob, short subdiv);
-void subsurf_make_editmesh(struct Object *ob);
-struct DispList* subsurf_mesh_to_displist(struct Mesh *me, struct DispList *dl, short subdiv);
+struct DispListMesh *subsurf_make_dispListMesh_from_editmesh(struct ListBase *verts, struct ListBase *edges, struct ListBase *faces, int subdivLevels, int flags);
+struct DispListMesh *subsurf_make_dispListMesh_from_mesh(struct Mesh *me, float *extverts, int subdivLevels, int flags);
+
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 
 #endif

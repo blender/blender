@@ -330,7 +330,7 @@ static HyperMesh *hypermesh_new(void) {
 	return hme;
 }
 
-static HyperMesh *hypermesh_from_mesh(Mesh *me, DispList *dlverts) {
+static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts) {
 	HyperMesh *hme= hypermesh_new();
 	HyperVert **vert_tbl;
 	MFace *mface= me->mface;
@@ -345,8 +345,8 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, DispList *dlverts) {
 	vert_tbl= MEM_mallocN(sizeof(*vert_tbl)*me->totvert, "vert_tbl");
 	
 	for (i= 0; i<me->totvert; i++) {
-		if (dlverts)
-			vert_tbl[i]= hypermesh_add_vert(hme, &dlverts->verts[i*3], NULL);
+		if (extverts)
+			vert_tbl[i]= hypermesh_add_vert(hme, &extverts[i*3], NULL);
 		else
 			vert_tbl[i]= hypermesh_add_vert(hme, me->mvert[i].co, NULL);
 	}
@@ -759,10 +759,9 @@ static int hypermesh_get_nlines(HyperMesh *hme) {
 }
 
 /* flag is me->flag, for handles and 'optim' */
-static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
+static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	int nverts= hypermesh_get_nverts(hme);
 	int nfaces= hypermesh_get_nfaces(hme) + hypermesh_get_nlines(hme);
-	DispList *dl= MEM_callocN(sizeof(*dl), "dl");
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm), "dlmesh");
 	HyperFace *f;
 	HyperVert *v;
@@ -785,9 +784,6 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	if (hme->orig_me==NULL && (flag & ME_OPT_EDGES)) {
 		handles= hypermesh_get_nverts_handles(hme);
 	}
-
-	dl->type= DL_MESH;
-	dl->mesh= dlm;
 	
 	dlm->totvert= nverts+handles;
 	dlm->totface= nfaces+handles;
@@ -919,12 +915,12 @@ static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	
 	displistmesh_calc_vert_normals(dlm);
 
-	return dl;
+	return dlm;
 }
 
 /* flag is me->flag, for handles and 'optim' */
-static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv, short flag) {
-	DispList *dl;
+static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short subdiv, short flag) {
+	DispListMesh *dlm;
 	int i;
 
 	for (i= 0; i<subdiv; i++) {
@@ -940,82 +936,32 @@ static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv, sho
 		hme= tmp;
 	}
 
-	dl= hypermesh_to_displist(hme, flag);
+	dlm= hypermesh_to_displistmesh(hme, flag);
 	hypermesh_free(hme);
 	
-	return dl;
+	return dlm;
 }
 
-void subsurf_make_editmesh(Object *ob) {
-	if (G.eded.first) {
-		Mesh *me= ob->data;
-		HyperMesh *hme= hypermesh_from_editmesh(G.edve.first, G.eded.first, G.edvl.first);
+DispListMesh *subsurf_make_dispListMesh_from_editmesh(ListBase *verts, ListBase *edges, ListBase *faces, int subdivLevels, int flags) {
+	if (subdivLevels<1) {
+		return displistmesh_from_editmesh(verts, edges, faces);
+	} else {
+		HyperMesh *hme= hypermesh_from_editmesh(verts->first, edges->first, faces->first);
+	
+		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags);
+	}
+}
+DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int subdivLevels, int flags) {
+	if (subdivLevels<1) {
+		return displistmesh_from_mesh(me, extverts);
+	} else {
+		HyperMesh *hme= hypermesh_from_mesh(me, extverts);
 
-		free_displist_by_type(&me->disp, DL_MESH);
-		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, me->subdiv, me->flag));
+		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags);
 	}
 }
 
-void subsurf_make_mesh(Object *ob, short subdiv) {
-	Mesh *me= ob->data;
-
-	if (me->totface) {
-		HyperMesh *hme= hypermesh_from_mesh(me, find_displist(&ob->disp, DL_VERTS));
-
-		free_displist_by_type(&me->disp, DL_MESH);
-		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, subdiv, me->flag));
-	}
-}
-
-void subsurf_to_mesh(Object *oldob, Mesh *me) {
-	Mesh *oldme= oldob->data;
-	
-	if (oldme->totface && oldme->subdiv) {
-		HyperMesh *hme= hypermesh_from_mesh(oldme, NULL);
-		DispList *dl= subsurf_subdivide_to_displist(hme, oldme->subdiv, oldme->flag);
-		DispListMesh *dlm= dl->mesh;
-		MFace *mfaces;
-		int i;
-	
-		if (dlm->totvert>65000)
-			error("Too many vertices");
-		else {
-			me->totface= dlm->totface;
-			me->totvert= dlm->totvert;
-	
-			me->mvert= MEM_dupallocN(dlm->mvert);
-			me->mface= mfaces= MEM_mallocN(sizeof(*mfaces)*me->totface, "me->mface");
-			me->tface= MEM_dupallocN(dlm->tface);
-			me->mcol= MEM_dupallocN(dlm->mcol);
-	
-			for (i=0; i<me->totface; i++) {
-				MFace *mf= &mfaces[i];
-				MFaceInt *oldmf= &dlm->mface[i];
-		
-				mf->v1= oldmf->v1;
-				mf->v2= oldmf->v2;
-				mf->v3= oldmf->v3;
-				mf->v4= oldmf->v4;
-				mf->flag= oldmf->flag;
-				mf->mat_nr= oldmf->mat_nr;
-				mf->puno= 0;
-				mf->edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
-			}
-		}
-		
-		free_disp_elem(dl);
-	}
-}
-
-DispList* subsurf_mesh_to_displist(Mesh *me, DispList *dl, short subdiv)
-{
-	HyperMesh *hme;
-	
-	hme= hypermesh_from_mesh(me, dl);
-
-	return subsurf_subdivide_to_displist(hme, subdiv, me->flag);
-}
-
+	// editarmature.c
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 
 {
 	/* Finds the subsurf limit positions for the verts in a mesh 

@@ -55,6 +55,7 @@ struct Curve;
 struct ListBase;
 struct Material;
 struct Bone;
+struct Mesh;
 struct TFace;
 
 typedef struct DispListMesh DispListMesh;
@@ -67,7 +68,13 @@ struct DispListMesh {
 	int flag;
 };
 
+void displistmesh_free(DispListMesh *dlm);
 void displistmesh_calc_vert_normals(DispListMesh *dlm);
+
+void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
+
+DispListMesh *displistmesh_from_editmesh(struct ListBase *verts, struct ListBase *edges, struct ListBase *faces);
+DispListMesh *displistmesh_from_mesh(struct Mesh *mesh, float *extverts);
 
 /*
  * All the different DispList.type's use the

@@ -106,7 +106,101 @@ struct _FastLamp {
 static FastLamp *fastlamplist= NULL;
 static float fviewmat[4][4];
 
-static void displistmesh_free(DispListMesh *dlm) {
+DispListMesh *displistmesh_from_editmesh(ListBase *verts, ListBase *edges, ListBase *faces) {
+	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
+	int i;
+	EditVert *eve, *evePrev;
+	EditEdge *eed;
+	EditVlak *evl;
+
+	dlm->flag= 0;
+	dlm->totvert= BLI_countlist(verts);
+	dlm->totface= BLI_countlist(edges)+BLI_countlist(faces);
+	dlm->mvert= MEM_callocN(sizeof(*dlm->mface)*dlm->totvert, "dlm->mvert");
+	dlm->mcol= NULL;
+	dlm->tface= NULL;
+	dlm->mface= MEM_mallocN(sizeof(*dlm->mface)*dlm->totface, "dlm->mface");
+
+	i=0;
+	for (eve= verts->first; eve; eve= eve->next, i++) {
+		MVert *mvNew= &dlm->mvert[i];
+		VECCOPY(mvNew->co, eve->co);
+		eve->prev= (void*) i;	/* hack to fetch indices */
+	}
+
+	i=0;
+	for (evl= faces->first; evl; evl= evl->next, i++) {
+		MFaceInt *mfNew= &dlm->mface[i];
+
+		mfNew->v1= (int) evl->v1->prev;
+		mfNew->v2= (int) evl->v2->prev;
+		mfNew->v3= (int) evl->v3->prev;
+		mfNew->v4= evl->v4?(int) evl->v4->prev:0;
+		mfNew->flag= evl->flag;
+		mfNew->mat_nr= evl->mat_nr;
+		mfNew->puno= 0;
+		mfNew->edcode= 0;
+
+		if (evl->v4 && !mfNew->v4) {
+			mfNew->v1^= mfNew->v3^= mfNew->v1^= mfNew->v3;
+			mfNew->v2^= mfNew->v4^= mfNew->v2^= mfNew->v4;
+		}
+	}
+	for (eed= edges->first; eed; eed= eed->next, i++) {
+		MFaceInt *mfNew= &dlm->mface[i];
+
+		mfNew->v1= (int) eed->v1->prev;
+		mfNew->v2= (int) eed->v2->prev;
+		mfNew->v3= 0;
+		mfNew->v4= 0;
+		mfNew->flag= 0;
+		mfNew->mat_nr= 0;
+		mfNew->puno= 0;
+		mfNew->edcode= 0;
+	}
+
+		/* restore prev links */
+	for (evePrev=NULL, eve= verts->first; eve; evePrev=eve, eve= eve->next)
+		eve->prev= evePrev;
+
+	displistmesh_calc_vert_normals(dlm);
+
+	return dlm;
+}
+DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts) {
+	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
+	int i;
+	dlm->flag= 0;
+	dlm->totvert= me->totvert;
+	dlm->totface= me->totface;
+	dlm->mvert= MEM_dupallocN(me->mvert);
+	dlm->mcol= me->mcol?MEM_dupallocN(me->mcol):NULL;
+	dlm->tface= me->tface?MEM_dupallocN(me->tface):NULL;
+	dlm->mface= MEM_mallocN(sizeof(*dlm->mface)*dlm->totface, "dlm->mface");
+
+	if (extverts) {
+		for (i=0; i<dlm->totvert; i++) {
+			VECCOPY(dlm->mvert[i].co, &extverts[i*3]);
+		}
+	}
+	for (i=0; i<dlm->totface; i++) {
+		MFace *mfOld= &((MFace*) me->mface)[i];
+		MFaceInt *mfNew= &dlm->mface[i];
+
+		mfNew->v1= mfOld->v1;
+		mfNew->v2= mfOld->v2;
+		mfNew->v3= mfOld->v3;
+		mfNew->v4= mfOld->v4;
+		mfNew->flag= mfOld->flag;
+		mfNew->mat_nr= mfOld->mat_nr;
+		mfNew->puno= 0;
+		mfNew->edcode= 0;
+	}
+
+	return dlm;
+}
+
+void displistmesh_free(DispListMesh *dlm) {
 	// also check on mvert and mface, can be NULL after decimator (ton)
 	if( dlm->mvert) MEM_freeN(dlm->mvert);
 	if (dlm->mface) MEM_freeN(dlm->mface);
@@ -162,6 +256,37 @@ void displistmesh_calc_vert_normals(DispListMesh *dlm) {
 	}
 	
 	MEM_freeN(tnorms);
+}
+
+void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) {
+	MFace *mfaces;
+	int i;
+	
+	if (dlm->totvert>65000) {
+		error("Too many vertices");
+	} else {
+		me->totface= dlm->totface;
+		me->totvert= dlm->totvert;
+	
+		me->mvert= MEM_dupallocN(dlm->mvert);
+		me->mface= mfaces= MEM_mallocN(sizeof(*mfaces)*me->totface, "me->mface");
+		me->tface= MEM_dupallocN(dlm->tface);
+		me->mcol= MEM_dupallocN(dlm->mcol);
+	
+		for (i=0; i<me->totface; i++) {
+			MFace *mf= &mfaces[i];
+			MFaceInt *oldmf= &dlm->mface[i];
+		
+			mf->v1= oldmf->v1;
+			mf->v2= oldmf->v2;
+			mf->v3= oldmf->v3;
+			mf->v4= oldmf->v4;
+			mf->flag= oldmf->flag;
+			mf->mat_nr= oldmf->mat_nr;
+			mf->puno= 0;
+			mf->edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
+		}
+	}
 }
 
 void free_disp_elem(DispList *dl)
@@ -1521,11 +1646,22 @@ void makeDispList(Object *ob)
 
 		if(ob->effect.first) object_wave(ob);
 		
-		if ((me->flag & ME_SUBSURF) && me->subdiv>0) {
-			if (ob==G.obedit)
-				subsurf_make_editmesh(ob);
-			else
-				subsurf_make_mesh(ob, me->subdiv);
+		if (me->flag & ME_SUBSURF) {
+			DispListMesh *dlm;
+
+			if (ob==G.obedit) {
+				dlm= subsurf_make_dispListMesh_from_editmesh(&G.edve, &G.eded, &G.edvl, me->subdiv, me->flag);
+			} else {
+				DispList *dlVerts= find_displist(&ob->disp, DL_VERTS);
+				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, me->subdiv, me->flag);
+			}
+
+			dl= MEM_callocN(sizeof(*dl), "dl");
+			dl->type= DL_MESH;
+			dl->mesh= dlm;
+
+			free_displist_by_type(&me->disp, DL_MESH);
+			BLI_addtail(&me->disp, dl);
 		}
 	}
 	else if(ob->type==OB_MBALL) {
