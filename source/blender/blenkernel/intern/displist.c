@@ -1,8 +1,6 @@
 
-/*  displist.c      GRAPHICS
+/*  displist.c
  * 
- *  
- *  maart 95
  * 
  * $Id$
  *
@@ -235,7 +233,7 @@ static void initfastshade(void)
 	if(G.scene->camera==0) G.scene->camera= scene_find_camera(G.scene);
 	if(G.scene->camera==0) return;
 
-	/* uit roteerscene gejat */
+	/* copied from 'roteerscene' (does that function still exist? (ton) */
 	where_is_object(G.scene->camera);
 	Mat4CpyMat4(R.viewinv, G.scene->camera->obmat);
 	Mat4Ortho(R.viewinv);
@@ -436,7 +434,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 				i= 1.0;
 				soft= 1.0;
 				if(t<fl->spotbl && fl->spotbl!=0.0) {
-					/* zachte gebied */
+					/* soft area */
 					i= t/fl->spotbl;
 					t= i*i;
 					soft= (3.0*t-2.0*t*i);
@@ -663,11 +661,11 @@ void shadeDispList(Object *ob)
 	Mat4Invert(tmat, mat);
 	Mat3CpyMat4(imat, tmat);
 	
-	/* we halen de dl_verts eruit, deform info */
+	/* we extract dl_verts, deform info */
 	dldeform= find_displist(&ob->disp, DL_VERTS);
 	if(dldeform) BLI_remlink(&ob->disp, dldeform);
 	
-	/* Metaballs hebben de standaard displist aan het Object zitten */
+	/* Metaballs have the standard displist in the Object */
 	if(ob->type!=OB_MBALL) freedisplist(&ob->disp);
 
 	if((R.flag & R_RENDERING)==0) {
@@ -783,7 +781,7 @@ void shadeDispList(Object *ob)
 				col2= dl->col2= MEM_mallocN(4*sizeof(int)*me->totface, "col2");
 			}
 			
-			/* even geen puno's */
+			/* no vertexnormals now */
 			mvert= me->mvert;
 			a= me->totvert;
 			while(FALSE || a--) {
@@ -887,7 +885,7 @@ void shadeDispList(Object *ob)
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 	
-		/* nu hebben we wel de normalen nodig */
+		/* now we need the normals */
 		cu= ob->data;
 		dl= cu->disp.first;
 		
@@ -911,7 +909,7 @@ void shadeDispList(Object *ob)
 
 			if(dl->type==DL_INDEX3) {
 				if(dl->nors) {
-					/* er is maar 1 normaal */
+					/* there's just one normal */
 					n1[0]= imat[0][0]*dl->nors[0]+imat[0][1]*dl->nors[1]+imat[0][2]*dl->nors[2];
 					n1[1]= imat[1][0]*dl->nors[0]+imat[1][1]*dl->nors[1]+imat[1][2]*dl->nors[2];
 					n1[2]= imat[2][0]*dl->nors[0]+imat[2][1]*dl->nors[1]+imat[2][2]*dl->nors[2];
@@ -955,7 +953,7 @@ void shadeDispList(Object *ob)
 		}
 	}
 	else if(ob->type==OB_MBALL) {
-		/* normalen zijn er al */
+		/* there are normals already */
 		dl= ob->disp.first;
 		
 		while(dl) {
@@ -1000,7 +998,7 @@ void shadeDispList(Object *ob)
 		}
 	}
 
-	/* deze was er tijdelijk uitgehaald */
+	/* this one was temporally removed */
 	if(dldeform) BLI_addtail(&ob->disp, dldeform);
 }
 
@@ -1018,11 +1016,11 @@ void reshadeall_displist(void)
 			
 			ob= base->object;
 			
-			/* we halen de dl_verts eruit, deform info */
+			/* we extract dl_verts, deform info */
 			dldeform= find_displist(&ob->disp, DL_VERTS);
 			if(dldeform) BLI_remlink(&ob->disp, dldeform);
 			
-			/* Metaballs hebben de standaard displist aan het Object zitten */
+			/* Metaballs have standard displist at the Object */
 			if(ob->type==OB_MBALL) shadeDispList(ob);
 			else freedisplist(&ob->disp);
 			
@@ -1073,7 +1071,7 @@ static void curve_to_displist(ListBase *nubase, ListBase *dispbase)
 		if(nu->hide==0) {
 			if((nu->type & 7)==CU_BEZIER) {
 				
-				/* tellen */
+				/* count */
 				len= 0;
 				a= nu->pntsu-1;
 				if(nu->flagu & 1) a++;
@@ -1093,7 +1091,7 @@ static void curve_to_displist(ListBase *nubase, ListBase *dispbase)
 				}
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListbez");
-				/* len+1 i.v.m. maakbez */
+				/* len+1 because of 'maakbez' function */
 				dl->verts= MEM_callocN( (len+1)*3*sizeof(float), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts= 1;
@@ -1210,7 +1208,7 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 			
 					colnr= dl->col;
 		
-					/* editverts en edges maken */
+					/* make editverts and edges */
 					f1= dl->verts;
 					a= dl->nr;
 					eve= v1= 0;
@@ -1245,7 +1243,7 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 
 		if(totvert && BLI_edgefill(0)!=0) {
 
-			/* vlakken tellen */
+			/* count faces (vlak in dutch!) */
 			tot= 0;
 			evl= fillvlakbase.first;
 			while(evl) {
@@ -1263,7 +1261,7 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 				dlnew->index= MEM_mallocN(tot*3*sizeof(int), "dlindex");
 				dlnew->verts= MEM_mallocN(totvert*3*sizeof(float), "dlverts");
 				
-				/* vertdata */
+				/* vert data */
 				f1= dlnew->verts;
 				totvert= 0;
 				eve= fillvertbase.first;
@@ -1271,14 +1269,14 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 					VECCOPY(f1, eve->co);
 					f1+= 3;
 	
-					/* indexnummer */
+					/* index number */
 					eve->vn= (EditVert *)totvert;
 					totvert++;
 					
 					eve= eve->next;
 				}
 				
-				/* indexdata */
+				/* index data */
 				evl= fillvlakbase.first;
 				index= dlnew->index;
 				while(evl) {
@@ -1299,7 +1297,7 @@ static void filldisplist(ListBase *dispbase, ListBase *to)
 		colnr++;
 	}
 	
-	/* poly's niet vrijgeven. nodig voor wireframe display */
+	/* do not free polys, needed for wireframe display */
 	
 	/* same as above ... */
 /*  	if(G.f & G_PLAYANIM == 0) waitcursor(0); */
@@ -1504,9 +1502,9 @@ void makeDispList(Object *ob)
 							if(nu->flagv & 1) dl->flag|= 2;
 						}
 						else {
-							dl->parts= nu->resolu;	/* andersom want makeNurbfaces gaat zo */
+							dl->parts= nu->resolu;	/* in reverse, because makeNurbfaces works that way */
 							dl->nr= nu->resolv;
-							if(nu->flagv & 1) dl->flag|= 1;	/* ook andersom ! */
+							if(nu->flagv & 1) dl->flag|= 1;	/* reverse too! */
 							if(nu->flagu & 1) dl->flag|= 2;
 						}
 						dl->col= nu->mat_nr;
@@ -1564,7 +1562,7 @@ void makeDispList(Object *ob)
 				if(ob->dt!=0) makebevelcurve(ob, &dlbev);
 			}
 
-			/* met bevellist werken */
+			/* work with bevellist */
 			widfac= cu->width-1.0;
 			bl= cu->bev.first;
 			nu= cu->nurb.first;
@@ -1591,7 +1589,7 @@ void makeDispList(Object *ob)
 					}
 				}
 				else {
-					/* voor iedere stuk van de bevel een aparte dispblok maken */
+					/* for each part of the bevel use a separate displblock */
 					dlb= dlbev.first;
 					while(dlb) {
 						dl= MEM_callocN(sizeof(DispList), "makeDispListbev1");
@@ -1611,9 +1609,9 @@ void makeDispList(Object *ob)
 						data= dl->verts;
 						bevp= (BevPoint *)(bl+1);
 						a= bl->nr;
-						while(a--) {	/* voor ieder punt van poly een bevelstuk maken */
+						while(a--) {	/* for each point of poly make a bevel piece */
 
-							/* roteer bevelstuk en schrijf in data */
+							/* rotate bevel piece and write in data */
 							fp1= dlb->verts;
 							b= dlb->nr;
 
@@ -1673,7 +1671,7 @@ typedef struct Sample{
 } Sample;
 
 typedef struct Segment{
-	/* coordinaten */
+	/* coordinates */
 	struct Segment * next, * prev;
 	float co[2];
 } Segment;
@@ -1706,9 +1704,9 @@ static Sample * outline(struct ImBuf * ibuf,
 	int startx = 0, starty = 0;
 	Sample * samp, * oldsamp;
 	
-	/* wat erin gaat:
-	 * 1 - plaatje waarvan outline berekent moet worden, 
-	 * 2 - pointer naar functie die bepaalt welke pixel in of uit is
+	/* input:
+	 * 1 - image 
+	 * 2 - pointer to function that defines which pixel 'in' or 'out' is
 	 */
 	
 	if (ibuf == 0) return (0);
@@ -1717,11 +1715,11 @@ static Sample * outline(struct ImBuf * ibuf,
 	if (in_or_out == 0) in_or_out = dflt_in_out;
 	in = in_or_out(ibuf, 0, 0);
 	
-	/* zoek naar eerste overgang en ga van daar uit 'zoeken' */	
+	/* search for first transition, and continue from there */	
 	for (y = 0; y < ibuf->y; y++) {
 		for (x = 0; x < ibuf->x; x++) {
 			if (in_or_out(ibuf, x, y) != in) {
-				/* eerste 'andere' punt gevonden !! */
+				/* found first 'other' point !! */
 				
 				if (x != startx) dir = 0;
 				else dir = 6;
@@ -1750,7 +1748,7 @@ static Sample * outline(struct ImBuf * ibuf,
 					}
 					
 					if (i >= 8) {
-						/* dit moet een losse punt geweest zijn */
+						/* this has to be a loose point */
 						break;
 					}
 					
@@ -1760,7 +1758,7 @@ static Sample * outline(struct ImBuf * ibuf,
 				} while(x != startx || y != starty);
 				
 				if (i >= 8) {
-					/* losse punten patch */
+					/* patch for loose points */
 					MEM_freeN(samp);
 				} else {
 					count = count - 1;
@@ -1771,7 +1769,7 @@ static Sample * outline(struct ImBuf * ibuf,
 			}
 		}
 	}
-	/* printf("geen overgang \n"); */
+	/* printf("no transition \n"); */
 	return(0);
 }
 
@@ -1782,7 +1780,7 @@ static Sample * outline(struct ImBuf * ibuf,
 /*******************************/
 
 
-static float DistToLine2D(short *v1, short *v2, short *v3)   /* met formule van Hesse :GEEN LIJNSTUK! */
+static float DistToLine2D(short *v1, short *v2, short *v3)   /* using Hesse formula :NO LINE PIECE! */
 {
 	float a[2],deler;
 
@@ -1864,7 +1862,7 @@ static void ibuf2wire(ListBase * wireframe, struct ImBuf * ibuf)
 	int count;
 	Sample * samp;
 	
-	/* eerst een lijst met samples maken */
+	/* first make a list of samples */
 	
 	samp = outline(ibuf, 0);
 	if (samp == 0) return;
@@ -1908,7 +1906,7 @@ void imagestodisplist(void)
 				if(ma && ma->mtex[0] && ma->mtex[0]->tex) {
 					tex= ma->mtex[0]->tex;
 					
-					/* dit zorgt voor correct laden van nieuwe imbufs */
+					/* this takes care of correct loading of new imbufs */
 					externtex(ma->mtex[0], vec);
 					
 					if(tex->type==TEX_IMAGE && tex->ima && tex->ima->ibuf) {				

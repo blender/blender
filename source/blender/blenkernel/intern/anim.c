@@ -83,8 +83,8 @@ void calc_curvepath(Object *ob)
 	int a, tot, cycl=0;
 	float *ft;
 	
-	/* in een pad zitten allemaal punten met gelijke afstand: path->len = aantal pt */
-	/* NU MET BEVELCURVE!!! */
+	/* in a path vertices are with equal differences: path->len = number of verts */
+	/* NOW WITH BEVELCURVE!!! */
 	
 	if(ob==0 || ob->type != OB_CURVE) return;
 	cu= ob->data;
@@ -105,7 +105,7 @@ void calc_curvepath(Object *ob)
 
 	cu->path=path= MEM_callocN(sizeof(Path), "path");
 	
-	/* als POLY: laatste punt != eerste punt */
+	/* if POLY: last vertice != first vertice */
 	cycl= (bl->poly!= -1);
 	
 	if(cycl) tot= bl->nr;
@@ -115,9 +115,9 @@ void calc_curvepath(Object *ob)
 	/* exception: vector handle paths and polygon paths should be subdivided at least a factor 6 (or more?) */
 	if(path->len<6*nu->pntsu) path->len= 6*nu->pntsu;
 	
-	dist= (float *)MEM_mallocN((tot+1)*4, "berekenpaddist");
+	dist= (float *)MEM_mallocN((tot+1)*4, "calcpathdist");
 
-		/* alle lengtes in *dist */
+		/* all lengths in *dist */
 	bevp= bevpfirst= (BevPoint *)(bl+1);
 	fp= dist;
 	*fp= 0;
@@ -141,8 +141,8 @@ void calc_curvepath(Object *ob)
 	
 	path->totdist= *fp;
 
-		/* de padpunten in path->data */
-		/* nu ook met TILT */
+		/* the path verts  in path->data */
+		/* now also with TILT value */
 	ft= path->data = (float *)MEM_callocN(16*path->len, "pathdata");
 	
 	bevp= bevpfirst;
@@ -157,7 +157,7 @@ void calc_curvepath(Object *ob)
 		
 		d= ((float)a)*fac;
 		
-		/* we zoeken plek 'd' in het array */
+		/* we're looking for location (distance) 'd' in the array */
 		while((d>= *fp) && fp<maxdist) {
 			fp++;
 			if(bevp<bevplast) bevp++;
@@ -201,7 +201,7 @@ int interval_test(int min, int max, int p1, int cycl)
 	return p1;
 }
 
-int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* geeft OK terug */
+int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
 {
 	Curve *cu;
 	Nurb *nu;
@@ -218,17 +218,17 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* geeft OK t
 	path= cu->path;
 	fp= path->data;
 	
-	/* cyclic testen */
+	/* test for cyclic */
 	bl= cu->bev.first;
 	if(bl && bl->poly> -1) cycl= 1;
 
-	/* ctime is van 0.0-1.0 */
+	/* ctime is between 0.0-1.0 */
 	ctime *= (path->len-1);
 	
 	s1= (int)floor(ctime);
 	fac= (float)(s1+1)-ctime;
 
-	/* path->len is gecorrigeerd voor cyclic, zie boven, is beetje warrig! */
+	/* path->len is corected for cyclic */
 	s0= interval_test(0, path->len-1-cycl, s1-1, cycl);
 	s1= interval_test(0, path->len-1-cycl, s1, cycl);
 	s2= interval_test(0, path->len-1-cycl, s1+1, cycl);
@@ -247,7 +247,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* geeft OK t
 		dir[1]= data[0]*p0[1] + data[1]*p1[1] + data[2]*p2[1] + data[3]*p3[1] ;
 		dir[2]= data[0]*p0[2] + data[1]*p1[2] + data[2]*p2[2] + data[3]*p3[2] ;
 		
-		/* compatible maken met vectoquat */
+		/* make compatible with vectoquat */
 		dir[0]= -dir[0];
 		dir[1]= -dir[1];
 		dir[2]= -dir[2];
@@ -255,7 +255,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* geeft OK t
 	
 	nu= cu->nurb.first;
 
-	/* zeker van zijn dat de eerste en laatste frame door de punten gaat */
+	/* make sure that first and last frame are included in the vectors here  */
 	if((nu->type & 7)==CU_POLY) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
 	else if((nu->type & 7)==CU_BEZIER) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
 	else if(s0==s1 || p2==p3) set_four_ipo(1.0f-fac, data, KEY_CARDINAL);
@@ -281,7 +281,7 @@ void frames_duplilist(Object *ob)
 
 	if(ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
 
-	/* dit om zeker van te zijn dat er iets gezbufferd wordt: in drawobject.c: dt==wire en boundboxclip */
+	/* this to make sure that something is z-buffered in drawobject.c */
 	if(G.background==0 && ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		DispList *dl;
@@ -305,7 +305,7 @@ void frames_duplilist(Object *ob)
 			newob= MEM_mallocN(sizeof(Object), "newobobj dupli");
 			memcpy(newob, ob, sizeof(Object));
 			
-			/* alleen de basis-ball behoeft een displist */
+			/*only the basis-ball gets a displist */
 			if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= 0;
 
 			BLI_addtail(&duplilist, newob);
@@ -313,7 +313,7 @@ void frames_duplilist(Object *ob)
 			where_is_object(newob);
 
 			newob->flag |= OB_FROMDUPLI;
-			newob->id.newid= (ID *)ob;	/* duplicator bewaren */
+			newob->id.newid= (ID *)ob;	/* store duplicator */
 		}
 	}
 
@@ -362,7 +362,7 @@ void vertex_duplilist(Scene *sce, Object *par)
 
 					for(a=0; a<totvert; a++, mvert++) {
 					
-						/* bereken de extra offset (tov. nulpunt parent) die de kinderen krijgen */
+						/* calc the extra offset for children (wrt. centre parent)  */
 						VECCOPY(vec, mvert->co);
 						Mat4MulVecfl(pmat, vec);
 						VecSubf(vec, vec, pmat[3]);
@@ -371,9 +371,9 @@ void vertex_duplilist(Scene *sce, Object *par)
 						newob= MEM_mallocN(sizeof(Object), "newobj dupli");
 						memcpy(newob, ob, sizeof(Object));
 						newob->flag |= OB_FROMDUPLI;
-						newob->id.newid= (ID *)par;	/* duplicator bewaren */
+						newob->id.newid= (ID *)par;	/* keep duplicator */
 						
-						/* alleen de basis-ball behoeft een displist */
+						/* only basis-ball gets displist */
 						if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= 0;
 						
 						VECCOPY(newob->obmat[3], vec);
@@ -448,9 +448,9 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 								newob= MEM_mallocN(sizeof(Object), "newobj dupli");
 								memcpy(newob, ob, sizeof(Object));
 								newob->flag |= OB_FROMDUPLI;
-								newob->id.newid= (ID *)par;	/* duplicator bewaren */
+								newob->id.newid= (ID *)par;	/* keep duplicator */
 
-								/* alleen de basis-ball behoeft een displist */
+								/* only basis-ball gets displist */
 								if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= 0;
 								
 								where_is_particle(paf, pa, ctime, vec);

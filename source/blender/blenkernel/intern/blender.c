@@ -1,7 +1,7 @@
 
 /*  blender.c   jan 94     MIXED MODEL
  * 
- * algemene hulp funkties en data
+ * common help functions and data
  * 
  * $Id$
  *
@@ -93,7 +93,7 @@ UserDef U;
 char versionstr[48]= "";
 
 /* ************************************************ */
-/* pushpop faciliteit: om tijdelijk data te bewaren */
+/* pushpop facility: to store data temporally, FIFO! */
 
 ListBase ppmain={0, 0};
 
@@ -162,7 +162,7 @@ void pushpop_test()
 
 
 
-/* ********** vrijgeven ********** */
+/* ********** free ********** */
 
 void free_blender(void)
 {
@@ -172,7 +172,7 @@ void free_blender(void)
 	IMB_freeImBufdata();		/* imbuf lib */
 }
 
-void duplicatelist(ListBase *list1, ListBase *list2)  /* kopie van 2 naar 1 */
+void duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
 {
 	struct Link *link1, *link2;
 	
@@ -217,10 +217,10 @@ static void clear_global(void) {
 
 	freeAllRad();
 	free_main(G.main); /* free all lib data */
-	freefastshade();	/* anders oude lampgegevens */
+	freefastshade();	/* othwerwise old lamp settings stay active */
 
 
-	/* hangende vars voorkomen */	
+	/* prevent hanging vars */	
 	R.backbuf= 0;
 	
 	/* force all queues to be left */
@@ -271,7 +271,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	
 	G.scene= G.curscreen->scene;
 	
-		/* weinig DispListen, wel text_to_curve */
+		/* few DispLists, but do text_to_curve */
 	// this should be removed!!! But first a better displist system (ton)
 	for (ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->type==OB_FONT) {
@@ -295,7 +295,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename) {
 	}
 	
 	strcpy(G.sce, filename);
-	strcpy(G.main->name, filename); /* is gegarandeerd current file */
+	strcpy(G.main->name, filename); /* is guaranteed current file */
 	
 	MEM_freeN(bfd);
 }

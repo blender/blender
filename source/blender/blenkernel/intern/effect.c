@@ -1,6 +1,5 @@
-/*  effect.c        MIX MODEL
+/*  effect.c 
  * 
- *  dec 95
  * 
  * $Id$
  *
@@ -166,7 +165,7 @@ Effect *copy_effect(Effect *eff)
 
 void copy_act_effect(Object *ob)
 {
-	/* return de aktieve eff gekopieerd */
+	/* return a copy of the active effect */
 	Effect *effn, *eff;
 	
 	eff= ob->effect.first;
@@ -183,7 +182,7 @@ void copy_act_effect(Object *ob)
 		eff= eff->next;
 	}
 	
-	/* als tie hier komt: new effect */
+	/* when it comes here: add new effect */
 	eff= add_effect(EFF_BUILD);
 	BLI_addtail(&ob->effect, eff);
 			
@@ -244,7 +243,7 @@ Particle *new_particle(PartEff *paf)
 	static Particle *pa;
 	static int cur;
 
-	/* afspraak: als paf->keys==0: alloc */	
+	/* we agree: when paf->keys==0: alloc */	
 	if(paf->keys==0) {
 		pa= paf->keys= MEM_callocN( paf->totkey*paf->totpart*sizeof(Particle), "particlekeys" );
 		cur= 0;
@@ -279,7 +278,7 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 		return;
 	}
 	
-	/* eerst op zoek naar de eerste particlekey */
+	/* first find the first particlekey */
 	a= (int)((paf->totkey-1)*(ctime-pa->time)/pa->lifetime);
 	if(a>=paf->totkey) a= paf->totkey-1;
 	
@@ -351,14 +350,14 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 	damp= 1.0f-paf->damp;
 	pa= part;
 	
-	/* startsnelheid: random */
+	/* start speed: random */
 	if(paf->randfac!=0.0) {
 		pa->no[0]+= (float)(paf->randfac*( BLI_drand() -0.5));
 		pa->no[1]+= (float)(paf->randfac*( BLI_drand() -0.5));
 		pa->no[2]+= (float)(paf->randfac*( BLI_drand() -0.5));
 	}
 	
-	/* startsnelheid: texture */
+	/* start speed: texture */
 	if(mtex && paf->texfac!=0.0) {
 		particle_tex(mtex, paf, pa->co, pa->no);
 	}
@@ -371,20 +370,20 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		
 	b= paf->totkey-1;
 	while(b--) {
-		/* nieuwe tijd */
+		/* new time */
 		pa->time= opa->time+deltalife;
 
-		/* nieuwe plek */
+		/* new location */
 		pa->co[0]= opa->co[0] + deltalife*opa->no[0];
 		pa->co[1]= opa->co[1] + deltalife*opa->no[1];
 		pa->co[2]= opa->co[2] + deltalife*opa->no[2];
 
-		/* nieuwe snelheid */
+		/* new speed */
 		pa->no[0]= opa->no[0] + deltalife*force[0];
 		pa->no[1]= opa->no[1] + deltalife*force[1];
 		pa->no[2]= opa->no[2] + deltalife*force[2];
 
-		/* snelheid: texture */
+		/* speed: texture */
 		if(mtex && paf->texfac!=0.0) {
 			particle_tex(mtex, paf, pa->co, pa->no);
 		}
@@ -396,11 +395,11 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 	
 		opa= pa;
 		pa++;
-		/* opa wordt onderin ook gebruikt */
+		/* opa is used later on too! */
 	}
 
 	if(deform) {
-		/* alle keys deformen */
+		/* deform all keys */
 		pa= part;
 		b= paf->totkey;
 		while(b--) {
@@ -583,7 +582,7 @@ void build_particle_system(Object *ob)
 	
 	disable_speed_curve(1);
 	
-	/* alle particles genereren */
+	/* generate all particles */
 	if(paf->keys) MEM_freeN(paf->keys);
 	paf->keys= 0;
 	new_particle(paf);	
@@ -595,11 +594,11 @@ void build_particle_system(Object *ob)
 	sfraont= ob->sf;
 	ob->sf= 0.0;
 	
-	/* mult generaties? */
+	/* mult generations? */
 	totpart= paf->totpart;
 	for(a=0; a<PAF_MAXMULT; a++) {
 		if(paf->mult[a]!=0.0) {
-			/* interessante formule! opdezewijze is na 'x' generaties het totale aantal paf->totpart */
+			/* interessant formula! this way after 'x' generations the total is paf->totpart */
 			totpart= (int)(totpart / (1.0+paf->mult[a]*paf->child[a]));
 		}
 		else break;
@@ -608,14 +607,14 @@ void build_particle_system(Object *ob)
 	ftime= paf->sta;
 	dtime= (paf->end - paf->sta)/totpart;
 	
-	/* hele hiera onthouden */
+	/* remember full hierarchy */
 	par= ob;
 	while(par) {
 		pushdata(par, sizeof(Object));
 		par= par->parent;
 	}
 
-	/* alles op eerste frame zetten */
+	/* set it all at first frame */
 	G.scene->r.cfra= cfralast= (int)floor(ftime);
 	par= ob;
 	while(par) {
@@ -638,7 +637,7 @@ void build_particle_system(Object *ob)
 	
 	BLI_srand(paf->seed);
 	
-	/* gaat anders veuls te hard */
+	/* otherwise it goes way too fast */
 	force[0]= paf->force[0]*0.05f;
 	force[1]= paf->force[1]*0.05f;
 	force[2]= paf->force[2]*0.05f;
@@ -654,15 +653,15 @@ void build_particle_system(Object *ob)
 		pa= new_particle(paf);
 		pa->time= ftime;
 		
-		/* ob op juiste tijd zetten */
+		/* set ob at correct time */
 		
 		if((paf->flag & PAF_STATIC)==0) {
 		
-			cur= (int)floor(ftime) + 1 ;		/* + 1 heeft een reden: (obmat/prevobmat) anders beginnen b.v. komeetstaartjes te laat */
+			cur= (int)floor(ftime) + 1 ;		/* + 1 has a reason: (obmat/prevobmat) otherwise comet-tails start too late */
 			if(cfralast != cur) {
 				G.scene->r.cfra= cfralast= cur;
 	
-				/* later bijgevoegd: blur? */
+				/* added later: blur? */
 				bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
 				
 				par= ob;
@@ -679,7 +678,7 @@ void build_particle_system(Object *ob)
 				Mat3CpyMat4(imat, ob->imat);
 			}
 		}
-		/* coordinaat ophalen */
+		/* get coordinates */
 		if(paf->flag & PAF_FACE) give_mesh_mvert(me, a, co, no);
 		else {
 			mvert= me->mvert + (a % me->totvert);
@@ -696,18 +695,18 @@ void build_particle_system(Object *ob)
 			VECCOPY(vec, co);
 			Mat4MulVecfl(prevobmat, vec);
 			
-			/* eerst even startsnelheid: object */
+			/* first start speed: object */
 			VecSubf(pa->no, pa->co, vec);
 			VecMulf(pa->no, paf->obfac);
 			
-			/* nu juiste interframe co berekenen */	
+			/* calculate the correct inter-frame */	
 			fac= (ftime- (float)floor(ftime));
 			pa->co[0]= fac*pa->co[0] + (1.0f-fac)*vec[0];
 			pa->co[1]= fac*pa->co[1] + (1.0f-fac)*vec[1];
 			pa->co[2]= fac*pa->co[2] + (1.0f-fac)*vec[2];
 		}
-		
-		/* startsnelheid: normaal */
+
+		/* start speed: normal */
 		if(paf->normfac!=0.0) {
 			/* sp= mvert->no; */
 				/* transpose ! */
@@ -736,16 +735,16 @@ void build_particle_system(Object *ob)
 	give_mesh_mvert(0, 0, 0, 0);
 
 
-	/* hele hiera terug */
+	/* put hierarchy back */
 	par= ob;
 	while(par) {
 		popfirst(par);
-		/* geen ob->ipo doen: insertkey behouden */
+		/* do not do ob->ipo: keep insertkey */
 		do_ob_key(par);
 		par= par->parent;
 	}
 
-	/* restore: NA popfirst */
+	/* restore: AFTER popfirst */
 	ob->sf= sfraont;
 
 	disable_speed_curve(0);
@@ -758,10 +757,10 @@ void build_particle_system(Object *ob)
 
 void calc_wave_deform(WaveEff *wav, float ctime, float *co)
 {
-	/* co is in lokale coords */
+	/* co is in local coords */
 	float lifefac, x, y, amplit;
 	
-	/* mag eigenlijk niet voorkomen */
+	/* actually this should not happen */
 	if((wav->flag & (WAV_X+WAV_Y))==0) return;	
 
 	lifefac= wav->height;
@@ -787,7 +786,7 @@ void calc_wave_deform(WaveEff *wav, float ctime, float *co)
 	}
 	else amplit= y;
 	
-	/* zo maaktie mooie cirkels */
+	/* this way it makes nice circles */
 	amplit-= (ctime-wav->timeoffs)*wav->speed;
 
 	if(wav->flag & WAV_CYCL) {
@@ -814,7 +813,7 @@ void object_wave(Object *ob)
 	float *fp, ctime;
 	int a, first;
 	
-	/* is er een mave */
+	/* is there a wave */
 	wav= ob->effect.first;
 	while(wav) {
 		if(wav->type==EFF_WAVE) break;
@@ -838,7 +837,7 @@ void object_wave(Object *ob)
 		while(wav) {
 			if(wav->type==EFF_WAVE) {
 				
-				/* voorberekenen */
+				/* precalculate */
 				wav->minfac= (float)(1.0/exp(wav->width*wav->narrow*wav->width*wav->narrow));
 				if(wav->damp==0) wav->damp= 10.0f;
 				

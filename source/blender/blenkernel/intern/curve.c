@@ -1,7 +1,6 @@
 
-/*  curve.c      MIXED MODEL
+/*  curve.c 
  * 
- *  maart 95
  *  
  * $Id$
  *
@@ -203,7 +202,7 @@ Curve *copy_curve(Curve *cu)
 	cun->bev.first= cun->bev.last= 0;
 	cun->path= 0;
 
-	/* ook single user ipo */
+	/* single user ipo too */
 	if(cun->ipo) cun->ipo= copy_ipo(cun->ipo);
 
 	id_us_plus((ID *)cun->vfont);
@@ -217,9 +216,9 @@ void make_local_curve(Curve *cu)
 	Curve *cun;
 	int local=0, lib=0;
 	
-	/* - zijn er alleen lib users: niet doen
-	 * - zijn er alleen locale users: flag zetten
-	 * - mixed: copy
+	/* - when there are only lib users: don't do
+	 * - when there are only local users: set flag
+	 * - mixed: do a copy
 	 */
 	
 	if(cu->id.lib==0) return;
@@ -523,10 +522,10 @@ void minmaxNurb(Nurb *nu, float *min, float *max)
 
 }
 
-/* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline berekeningen ~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline calculations ~~~~~~~~~~~ */
 
 
-/* voor de goede orde: eigenlijk horen hier doubles gebruikt te worden */
+/* actually, doubles should be used here as much as possible */
 
 void extend_spline(float * pnts, int in, int out)
 {
@@ -542,13 +541,13 @@ void extend_spline(float * pnts, int in, int out)
 	for (k = 3; k > 0; k--){
 		pnts = _pnts;
 
-		/* punten kopieren naar add */
+		/* copy points to 'add' */
 		for (i = 0; i < in; i++){
 			add[i] = *pnts;
 			pnts += 3;
 		}
 
-		/* inverse forward differencen */
+		/* inverse forward differencing */
 		for (i = 0; i < in2; i++){
 			for (j = in2; j > i; j--){
 				add[j] -= add[j - 1];
@@ -572,8 +571,8 @@ void extend_spline(float * pnts, int in, int out)
 
 
 void calcknots(float *knots, short aantal, short order, short type)
-/* knots: aantal pnts NIET gecorrigeerd voor cyclic */
-/* aantal, order, type;	 0: uniform, 1: endpoints, 2: bezier */
+/* knots: number of pnts NOT corrected for cyclic */
+/* type;	 0: uniform, 1: endpoints, 2: bezier */
 {
 	float k;
 	int a, t;
@@ -611,14 +610,14 @@ void calcknots(float *knots, short aantal, short order, short type)
 }
 
 void makecyclicknots(float *knots, short pnts, short order)
-/* pnts, order: aantal pnts NIET gecorrigeerd voor cyclic */
+/* pnts, order: number of pnts NOT corrected for cyclic */
 {
 	int a, b, order2, c;
 
 	if(knots==0) return;
         order2=order-1;
 
-	/* eerst lange rijen (order -1) dezelfde knots aan uiteinde verwijderen */
+	/* do first long rows (order -1), remove identical knots at endpoints */
 	if(order>2) {
 		b= pnts+order2;
 		for(a=1; a<order2; a++) {
@@ -672,7 +671,7 @@ void basisNurb(float t, short order, short pnts, float *knots, float *basis, int
 	if(t < knots[0]) t= knots[0];
 	else if(t > knots[opp2]) t= knots[opp2];
 
-	/* dit stuk is order '1' */
+	/* this part is order '1' */
         o2 = order + 1;
 	for(i=0;i<opp2;i++) {
 		if(knots[i]!=knots[i+1] && t>= knots[i] && t<=knots[i+1]) {
@@ -690,10 +689,8 @@ void basisNurb(float t, short order, short pnts, float *knots, float *basis, int
 		else basis[i]= 0.0;
 	}
 	basis[i]= 0.0;
-
-	/* printf("u %f\n", t); for(k=0;k<orderpluspnts;k++) printf(" %2.2f",basis[k]); printf("\n");    */
 	
-	/* dit is order 2,3,... */
+	/* this is order 2,3,... */
 	for(j=2; j<=order; j++) {
 
 		if(i2+j>= orderpluspnts) i2= opp2-j;
@@ -726,7 +723,7 @@ void basisNurb(float t, short order, short pnts, float *knots, float *basis, int
 
 
 void makeNurbfaces(Nurb *nu, float *data) 
-/* data  moet 3*4*resolu*resolv lang zijn en op nul staan */
+/* data  has to be 3*4*resolu*resolv in size, and zero-ed */
 {
 	BPoint *bp;
 	float *basisu, *basis, *basisv, *sum, *fp, *in;
@@ -739,7 +736,7 @@ void makeNurbfaces(Nurb *nu, float *data)
 	if(nu->orderv>nu->pntsv) return;
 	if(data==0) return;
 
-	/* alloceren en vars goedzetten */
+	/* allocate and initialize */
 	len= nu->pntsu*nu->pntsv;
 	if(len==0) return;
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbfaces1");
@@ -781,7 +778,7 @@ void makeNurbfaces(Nurb *nu, float *data)
 	jstart= (int *)MEM_mallocN(sizeof(float)*resolv, "makeNurbfaces4");
 	jend= (int *)MEM_mallocN(sizeof(float)*resolv, "makeNurbfaces5");
 
-	/* voorberekenen basisv en jstart,jend */
+	/* precalculation of basisv and jstart,jend */
 	if(nu->flagv & 1) cycl= nu->orderv-1; 
 	else cycl= 0;
 	v= vstart;
@@ -807,7 +804,7 @@ void makeNurbfaces(Nurb *nu, float *data)
 			jsta= jstart[resolv];
 			jen= jend[resolv];
 
-			/* bereken sum */
+			/* calculate sum */
 			sumdiv= 0.0;
 			fp= sum;
 
@@ -842,7 +839,7 @@ void makeNurbfaces(Nurb *nu, float *data)
 				}
 			}
 
-			/* een! (1.0) echt punt nu */
+			/* one! (1.0) real point now */
 			fp= sum;
 			for(j= jsta; j<=jen; j++) {
 
@@ -872,7 +869,7 @@ void makeNurbfaces(Nurb *nu, float *data)
 		u+= ustep;
 	}
 
-	/* vrijgeven */
+	/* free */
 	MEM_freeN(sum);
 	MEM_freeN(basisu);
 	MEM_freeN(basisv);
@@ -882,7 +879,7 @@ void makeNurbfaces(Nurb *nu, float *data)
 
 
 void makeNurbcurve_forw(Nurb *nu, float *data)
-/* *data: moet 3*4*pntsu*resolu lang zijn en op nul staan */
+/* *data: has to be 3*4*pntsu*resolu in size and zero-ed */
 {
 	BPoint *bp;
 	float *basisu, *sum, *fp,  *in;
@@ -893,7 +890,7 @@ void makeNurbcurve_forw(Nurb *nu, float *data)
 	if(nu->knotsu==0) return;
 	if(data==0) return;
 
-	/* alloceren en vars goedzetten */
+	/* allocate and init */
 	len= nu->pntsu;
 	if(len==0) return;
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbcurve1");
@@ -915,29 +912,29 @@ void makeNurbcurve_forw(Nurb *nu, float *data)
 	for (k = nu->orderu - 1; k < nu->pntsu; k++){
 
 		wanted = (int)((nu->knotsu[k+1] - nu->knotsu[k]) / ustep);
-		org = 4;	/* gelijk aan order */
+		org = 4;	/* equal to order */
 		if (org > wanted) org = wanted;
 
 		for (j = org; j > 0; j--){
 
 			basisNurb(u, nu->orderu, nu->pntsu, nu->knotsu, basisu, &istart, &iend);
-			/* bereken sum */
+			/* calc sum */
 			sumdiv= 0.0;
 			fp= sum;
 			for(i= istart; i<=iend; i++, fp++) {
-				/* hier nog rationele component doen */
+				/* do the rational component */
 				*fp= basisu[i];
 				sumdiv+= *fp;
 			}
 			if(sumdiv!=0.0) if(sumdiv<0.999 || sumdiv>1.001) {
-				/* is dit normaliseren ook nodig? */
+				/* is this normalizing needed? */
 				fp= sum;
 				for(i= istart; i<=iend; i++, fp++) {
 					*fp/= sumdiv;
 				}
 			}
 
-			/* een! (1.0) echt punt nu */
+			/* one! (1.0) real point */
 			fp= sum;
 			bp= nu->bp+ istart;
 			for(i= istart; i<=iend; i++, bp++, fp++) {
@@ -961,14 +958,14 @@ void makeNurbcurve_forw(Nurb *nu, float *data)
 		}
 	}
 
-	/* vrijgeven */
+	/* free */
 	MEM_freeN(sum);
 	MEM_freeN(basisu);
 }
 
 
 void makeNurbcurve(Nurb *nu, float *data, int dim)
-/* data moet dim*4*pntsu*resolu lang zijn en op nul staan */
+/* data has to be dim*4*pntsu*resolu in size and zero-ed */
 {
 	BPoint *bp;
 	float u, ustart, uend, ustep, sumdiv;
@@ -979,7 +976,7 @@ void makeNurbcurve(Nurb *nu, float *data, int dim)
 	if(nu->orderu>nu->pntsu) return;
 	if(data==0) return;
 
-	/* alloceren en vars goedzetten */
+	/* allocate and initialize */
 	len= nu->pntsu;
 	if(len==0) return;
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbcurve1");
@@ -1005,7 +1002,7 @@ void makeNurbcurve(Nurb *nu, float *data, int dim)
 	while(resolu--) {
 
 		basisNurb(u, nu->orderu, (short)(nu->pntsu+cycl), nu->knotsu, basisu, &istart, &iend);
-		/* bereken sum */
+		/* calc sum */
 		sumdiv= 0.0;
 		fp= sum;
 		bp= nu->bp+ istart-1;
@@ -1018,14 +1015,14 @@ void makeNurbcurve(Nurb *nu, float *data, int dim)
 			sumdiv+= *fp;
 		}
 		if(sumdiv!=0.0) if(sumdiv<0.999 || sumdiv>1.001) {
-			/* is dit normaliseren ook nodig? */
+			/* is normalizing needed? */
 			fp= sum;
 			for(i= istart; i<=iend; i++, fp++) {
 				*fp/= sumdiv;
 			}
 		}
 
-		/* een! (1.0) echt punt nu */
+		/* one! (1.0) real point */
 		fp= sum;
 		bp= nu->bp+ istart-1;
 		for(i= istart; i<=iend; i++, fp++) {
@@ -1049,7 +1046,7 @@ void makeNurbcurve(Nurb *nu, float *data, int dim)
 		u+= ustep;
 	}
 
-	/* vrijgeven */
+	/* free */
 	MEM_freeN(sum);
 	MEM_freeN(basisu);
 }
@@ -1091,7 +1088,7 @@ void make_orco_surf(Curve *cu)
 	float *data;
 
 
-	/* eerst voorspellen hoelang datablok moet worden */
+	/* first calculate the size of the datablock */
 	nu= cu->nurb.first;
 	while(nu) {
 #ifdef STRUBI
@@ -1114,7 +1111,7 @@ See also blenderWorldManipulation.c: init_render_surf()
 #endif
 		nu= nu->next;
 	}
-				/* makeNurbfaces wil nullen */
+				/* makeNurbfaces wants zeros */
 	data= cu->orco= MEM_callocN(3*sizeof(float)*tot, "make_orco");
 
 	nu= cu->nurb.first;
@@ -1259,7 +1256,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 		dl->parts= 1;
 		dl->nr= nr;
 
-		/* eerst cirkel maken */
+		/* first make circle */
 		fp= dl->verts;
 		hoek= -0.5*M_PI;
 		dhoek= (float)(M_PI/(nr-2));
@@ -1324,13 +1321,13 @@ int cu_isectLL(float *v1, float *v2, float *v3, float *v4, short cox, short coy,
 
 short bevelinside(BevList *bl1,BevList *bl2)
 {
-	/* is bl2 INSIDE bl1 ? met links-rechts methode en "labda's" */
-	/* geeft als correct gat 1 terug  */
+	/* is bl2 INSIDE bl1 ? with left-right method and "labda's" */
+	/* returns '1' if correct hole  */
 	BevPoint *bevp, *prevbevp;
 	float min,max,vec[3],hvec1[3],hvec2[3],lab,mu;
 	int nr, links=0,rechts=0,mode;
 
-	/* neem eerste vertex van het mogelijke gat */
+	/* take first vertex of possible hole */
 
 	bevp= (BevPoint *)(bl2+1);
 	hvec1[0]= bevp->x; 
@@ -1339,8 +1336,8 @@ short bevelinside(BevList *bl1,BevList *bl2)
 	VECCOPY(hvec2,hvec1);
 	hvec2[0]+=1000;
 
-	/* test deze met alle edges van mogelijk omringende poly */
-	/* tel aantal overgangen links en rechts */
+	/* test it with all edges of potential surounding poly */
+	/* count number of transitions left-right  */
 
 	bevp= (BevPoint *)(bl1+1);
 	nr= bl1->nr;
@@ -1355,10 +1352,10 @@ short bevelinside(BevList *bl1,BevList *bl2)
 		}
 		if(min!=max) {
 			if(min<=hvec1[1] && max>=hvec1[1]) {
-				/* er is een overgang, snijpunt berekenen */
+				/* there's a transition, calc intersection point */
 				mode= cu_isectLL(&(prevbevp->x),&(bevp->x),hvec1,hvec2,0,1,&lab,&mu,vec);
-				/* als lab==0.0 of lab==1.0 dan snijdt de edge exact de overgang
-				 * alleen toestaan voor lab= 1.0 (of andersom,  maakt niet uit)
+				/* if lab==0.0 or lab==1.0 then the edge intersects exactly a transition
+			           only allow for one situation: we choose lab= 1.0
 				 */
 				if(mode>=0 && lab!=0.0) {
 					if(vec[0]<hvec1[0]) links++;
@@ -1390,7 +1387,7 @@ int vergxcobev(const void *a1, const void *a2)
 	return 0;
 }
 
-/* deze kan niet zomaar door atan2 vervangen worden, maar waarom? */
+/* this function cannot be replaced with atan2, but why? */
 
 void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *sina, float *cosa)
 {
@@ -1416,7 +1413,6 @@ void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *sina, flo
 	x3= x1-x2;
 	y3= y1-y2;
 	if(x3==0 && y3==0) {
-		/* printf("x3 en y3  nul \n"); */
 		x3= y1;
 		y3= -x1;
 	} else {
@@ -1438,14 +1434,14 @@ void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *data_a)
 	
 	last= nu->bezt+(nu->pntsu-1);
 	
-	/* een punt terug */
+	/* returns a point */
 	if(prevbezt==nu->bezt) {
 		if(nu->flagu & 1) pprev= last;
 		else pprev= prevbezt;
 	}
 	else pprev= prevbezt-1;
 	
-	/* een punt verder */
+	/* next point */
 	if(bezt==last) {
 		if(nu->flagu & 1) next= nu->bezt;
 		else next= bezt;
@@ -1465,10 +1461,12 @@ void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *data_a)
 
 void makeBevelList(Object *ob)
 {
-	/* - alle curves omzetten in poly's, met aangegeven resol en vlaggen voor dubbele punten
-       - eventueel intelligent punten verwijderen (geval Nurb) 
-       - scheiden in verschillende blokken met Boundbox
-       - Autogat detectie */
+	/*
+	 - convert all curves to polys, with indication of resol and flags for double-vertices
+	 - possibly; do a smart vertice removal (in case Nurb)
+	 - separate in individual blicks with BoundBox
+	 - AutoHole detection
+	*/
 	Curve *cu;
 	Nurb *nu;
 	BezTriple *bezt, *prevbezt;
@@ -1479,10 +1477,10 @@ void makeBevelList(Object *ob)
 	struct bevelsort *sortdata, *sd, *sd1;
 	int a, b, len, nr, poly;
 
-	/* deze fie moet object hebben in verband met tflag en upflag */
+	/* this function needs an object, because of tflag and upflag */
 	cu= ob->data;
 
-	/* STAP 1: POLY'S MAKEN */
+	/* STEP 1: MAKE POLYS  */
 
 	BLI_freelistN(&(cu->bev));
 	if(ob==G.obedit) nu= editNurb.first;
@@ -1516,7 +1514,7 @@ void makeBevelList(Object *ob)
 			}
 			else if((nu->type & 7)==CU_BEZIER) {
 	
-				len= nu->resolu*(nu->pntsu+ (nu->flagu & 1) -1)+1;	/* voor laatste punt niet cyclic */
+				len= nu->resolu*(nu->pntsu+ (nu->flagu & 1) -1)+1;	/* in case last point is not cyclic */
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
 				BLI_addtail(&(cu->bev), bl);
 	
@@ -1555,7 +1553,7 @@ void makeBevelList(Object *ob)
 						v1= prevbezt->vec[1];
 						v2= bezt->vec[0];
 						
-						/* altijd alle drie doen: anders blijft data hangen */
+						/* always do all three, to prevent data hanging around */
 						maakbez(v1[0], v1[3], v2[0], v2[3], data, nu->resolu);
 						maakbez(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu);
 						maakbez(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu);
@@ -1567,7 +1565,7 @@ void makeBevelList(Object *ob)
 						}
 						
 						
-						/* met handlecodes dubbele punten aangeven */
+						/* indicate with handlecodes double points */
 						if(prevbezt->h1==prevbezt->h2) {
 							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->f1= 1;
 						}
@@ -1599,7 +1597,7 @@ void makeBevelList(Object *ob)
 				MEM_freeN(data);
 				MEM_freeN(data_a);
 				
-				if((nu->flagu & 1)==0) {	    /* niet cyclic: endpoint */
+				if((nu->flagu & 1)==0) {	    /* not cyclic: endpoint */
 					bevp->x= prevbezt->vec[1][0];
 					bevp->y= prevbezt->vec[1][1];
 					bevp->z= prevbezt->vec[1][2];
@@ -1618,7 +1616,7 @@ void makeBevelList(Object *ob)
 					else bl->poly= -1;
 					bevp= (BevPoint *)(bl+1);
 	
-					data= MEM_callocN(4*sizeof(float)*len, "makeBevelList4");    /* moet op nul staan */
+					data= MEM_callocN(4*sizeof(float)*len, "makeBevelList4");    /* has to be zero-ed */
 					makeNurbcurve(nu, data, 4);
 					
 					v1= data;
@@ -1639,7 +1637,7 @@ void makeBevelList(Object *ob)
 		nu= nu->next;
 	}
 
-	/* STAP 2: DUBBELE PUNTEN EN AUTOMATISCHE RESOLUTIE, DATABLOKKEN VERKLEINEN */
+	/* STEP 2: DOUBLE POINTS AND AUTOMATIC RESOLUTION, REDUCE DATABLOCKS */
 	bl= cu->bev.first;
 	while(bl) {
 		nr= bl->nr;
@@ -1664,12 +1662,12 @@ void makeBevelList(Object *ob)
 	while(bl) {
 		blnext= bl->next;
 		if(bl->flag) {
-			nr= bl->nr- bl->flag+1;	/* +1 want vectorbezier zet ook flag */
+			nr= bl->nr- bl->flag+1;	/* +1 because vectorbezier sets flag too */
 			blnew= MEM_mallocN(sizeof(BevList)+nr*sizeof(BevPoint), "makeBevelList");
 			memcpy(blnew, bl, sizeof(BevList));
 			blnew->nr= 0;
 			BLI_remlink(&(cu->bev), bl);
-			BLI_insertlinkbefore(&(cu->bev),blnext,blnew);	/* zodat bevlijst met nurblijst gelijk loopt */
+			BLI_insertlinkbefore(&(cu->bev),blnext,blnew);	/* to make sure bevlijst is tuned with nurblist */
 			bevp0= (BevPoint *)(bl+1);
 			bevp1= (BevPoint *)(blnew+1);
 			nr= bl->nr;
@@ -1687,20 +1685,20 @@ void makeBevelList(Object *ob)
 		bl= blnext;
 	}
 
-	/* STAP 3: POLY'S TELLEN EN AUTOGAT */
+	/* STEP 3: COUNT POLYS TELLEN AND AUTOHOLE */
 	bl= cu->bev.first;
 	poly= 0;
 	while(bl) {
 		if(bl->poly>=0) {
 			poly++;
 			bl->poly= poly;
-			bl->gat= 0;
+			bl->gat= 0;	/* 'gat' is dutch for hole */
 		}
 		bl= bl->next;
 	}
 	
 
-	/* meest linkse punten vinden, tevens richting testen */
+	/* find extreme left points, also test (turning) direction */
 	if(poly>0) {
 		sd= sortdata= MEM_mallocN(sizeof(struct bevelsort)*poly, "makeBevelList5");
 		bl= cu->bev.first;
@@ -1742,9 +1740,9 @@ void makeBevelList(Object *ob)
 
 		sd= sortdata+1;
 		for(a=1; a<poly; a++, sd++) {
-			bl= sd->bl;	    /* is bl een gat? */
+			bl= sd->bl;	    /* is bl a hole? */
 			sd1= sortdata+ (a-1);
-			for(b=a-1; b>=0; b--, sd1--) {	/* alle polys links ervan */
+			for(b=a-1; b>=0; b--, sd1--) {	/* all polys to the left */
 				if(bevelinside(sd1->bl, bl)) {
 					bl->gat= 1- sd1->bl->gat;
 					break;
@@ -1752,7 +1750,7 @@ void makeBevelList(Object *ob)
 			}
 		}
 
-		/* draairichting */
+		/* turning direction */
 		if((cu->flag & CU_3D)==0) {
 			sd= sortdata;
 			for(a=0; a<poly; a++, sd++) {
@@ -1772,11 +1770,11 @@ void makeBevelList(Object *ob)
 		MEM_freeN(sortdata);
 	}
 
-	/* STAP 4: COSINUSSEN */
+	/* STEP 4: COSINES */
 	bl= cu->bev.first;
 	while(bl) {
 	
-		if(bl->nr==2) {	/* 2 pnt, apart afhandelen: KAN DAT NIET AFGESCHAFT? */
+		if(bl->nr==2) {	/* 2 pnt, treat separate */
 			bevp2= (BevPoint *)(bl+1);
 			bevp1= bevp2+1;
 
@@ -1852,7 +1850,7 @@ void makeBevelList(Object *ob)
 				bevp1= bevp2;
 				bevp2++;
 			}
-			/* niet cyclic gevallen corrigeren */
+			/* correct non-cyclic cases */
 			if(bl->poly== -1) {
 				if(bl->nr>2) {
 					bevp= (BevPoint *)(bl+1);
@@ -1877,7 +1875,7 @@ void makeBevelList(Object *ob)
 
 /*
  *   handlecodes:
- *		1: niets,  1:auto,  2:vector,  3:aligned
+ *		1: nothing,  1:auto,  2:vector,  3:aligned
  */
 
 
@@ -1981,7 +1979,7 @@ void calchandleNurb(BezTriple *bezt,BezTriple *prev, BezTriple *next, int mode)
 	len1= VecLenf(p2, p2-3);
 	if(len1==0.0) len1=1.0;
 	if(len2==0.0) len2=1.0;
-	if(bezt->f1 & 1) { /* volgorde van berekenen */
+	if(bezt->f1 & 1) { /* order of calculation */
 		if(bezt->h2==HD_ALIGN) {	/* aligned */
 			len= len2/len1;
 			p2[3]= p2[0]+len*(p2[0]-p2[-3]);
@@ -2011,7 +2009,7 @@ void calchandleNurb(BezTriple *bezt,BezTriple *prev, BezTriple *next, int mode)
 	}
 }
 
-void calchandlesNurb(Nurb *nu) /* wel eerst (zonodig) de handlevlaggen zetten */
+void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 {
 	BezTriple *bezt, *prev, *next;
 	short a;
@@ -2041,13 +2039,13 @@ void calchandlesNurb(Nurb *nu) /* wel eerst (zonodig) de handlevlaggen zetten */
 
 void testhandlesNurb(Nurb *nu)
 {
-	/* Te gebruiken als er iets an de handles is veranderd.
-	 * Loopt alle BezTriples af met de volgende regels:
-     * FASE 1: types veranderen?
-     *  Autocalchandles: worden ligned als NOT(000 || 111)
-     *  Vectorhandles worden 'niets' als (selected en andere niet) 
-     * FASE 2: handles herbereken
-     */
+    /* use when something has changed with handles.
+    it treats all BezTriples with the following rules:
+    PHASE 1: do types have to be altered?
+       Auto handles: become aligned when selection status is NOT(000 || 111)
+       Vector handles: become 'nothing' when (one half selected AND other not)
+    PHASE 2: recalculate handles
+    */
 	BezTriple *bezt;
 	short flag, a;
 
@@ -2084,7 +2082,7 @@ void testhandlesNurb(Nurb *nu)
 
 void autocalchandlesNurb(Nurb *nu, int flag)
 {
-	/* Kijkt naar de coordinaten van de handles en berekent de soort */
+	/* checks handle coordinates and calculates type */
 	
 	BezTriple *bezt2, *bezt1, *bezt0;
 	int i, align, leftsmall, rightsmall;
@@ -2100,10 +2098,10 @@ void autocalchandlesNurb(Nurb *nu, int flag)
 		
 		align= leftsmall= rightsmall= 0;
 		
-		/* linker handle: */
+		/* left handle: */
 		if(flag==0 || (bezt1->f1 & flag) ) {
 			bezt1->h1= 0;
-			/* afstand te klein: vectorhandle */
+			/* distance too short: vectorhandle */
 			if( VecLenf( bezt1->vec[1], bezt0->vec[1] ) < 0.0001) {
 				bezt1->h1= HD_VECT;
 				leftsmall= 1;
@@ -2114,16 +2112,16 @@ void autocalchandlesNurb(Nurb *nu, int flag)
 					align= 1;
 					bezt1->h1= HD_ALIGN;
 				}
-				/* of toch vector handle? */
+				/* or vector handle? */
 				if(DistVL2Dfl(bezt1->vec[0], bezt1->vec[1], bezt0->vec[1]) < 0.0001)
 					bezt1->h1= HD_VECT;
 				
 			}
 		}
-		/* rechter handle: */
+		/* right handle: */
 		if(flag==0 || (bezt1->f3 & flag) ) {
 			bezt1->h2= 0;
-			/* afstand te klein: vectorhandle */
+			/* distance too short: vectorhandle */
 			if( VecLenf( bezt1->vec[1], bezt2->vec[1] ) < 0.0001) {
 				bezt1->h2= HD_VECT;
 				rightsmall= 1;
@@ -2132,7 +2130,7 @@ void autocalchandlesNurb(Nurb *nu, int flag)
 				/* aligned handle? */
 				if(align) bezt1->h2= HD_ALIGN;
 
-				/* of toch vector handle? */
+				/* or vector handle? */
 				if(DistVL2Dfl(bezt1->vec[2], bezt1->vec[1], bezt2->vec[1]) < 0.0001)
 					bezt1->h2= HD_VECT;
 				
@@ -2141,7 +2139,7 @@ void autocalchandlesNurb(Nurb *nu, int flag)
 		if(leftsmall && bezt1->h2==HD_ALIGN) bezt1->h2= 0;
 		if(rightsmall && bezt1->h1==HD_ALIGN) bezt1->h1= 0;
 		
-		/* onzalige combinatie: */
+		/* undesired combination: */
 		if(bezt1->h1==HD_ALIGN && bezt1->h2==HD_VECT) bezt1->h1= 0;
 		if(bezt1->h2==HD_ALIGN && bezt1->h1==HD_VECT) bezt1->h2= 0;
 		
@@ -2168,7 +2166,7 @@ void sethandlesNurb(short code)
 {
 	/* code==1: set autohandle */
 	/* code==2: set vectorhandle */
-	/* als code==3 (HD_ALIGN) toggelt het, vectorhandles worden HD_FREE */
+	/* if code==3 (HD_ALIGN) it toggle, vectorhandles become HD_FREE */
 	Nurb *nu;
 	BezTriple *bezt;
 	short a, ok=0;
@@ -2196,7 +2194,7 @@ void sethandlesNurb(short code)
 		}
 	}
 	else {
-		/* is er 1 handle NIET vrij: alles vrijmaken, else ALIGNED maken */
+		/* there is 1 handle not FREE: FREE it all, else make ALIGNED  */
 		
 		nu= editNurb.first;
 		while(nu) {
@@ -2269,7 +2267,7 @@ void switchdirectionNurb(Nurb *nu)
 		a= nu->pntsu;
 		bezt1= nu->bezt;
 		bezt2= bezt1+(a-1);
-		if(a & 1) a+= 1;	/* bij oneven ook van middelste inhoud swappen */
+		if(a & 1) a+= 1;	/* if odd, also swap middle content */
 		a/= 2;
 		while(a>0) {
 			if(bezt1!=bezt2) SWAP(BezTriple, *bezt1, *bezt2);
@@ -2305,7 +2303,7 @@ void switchdirectionNurb(Nurb *nu)
 			bp2--;
 		}
 		if((nu->type & 7)==CU_NURBS) {
-			/* de knots omkeren */
+			/* inverse knots */
 			a= KNOTSU(nu);
 			fp1= nu->knotsu;
 			fp2= fp1+(a-1);
@@ -2316,7 +2314,7 @@ void switchdirectionNurb(Nurb *nu)
 				fp1++; 
 				fp2--;
 			}
-			/* en weer in stijgende lijn maken */
+			/* and make in increasing order again */
 			a= KNOTSU(nu);
 			fp1= nu->knotsu;
 			fp2=tempf= MEM_mallocN(sizeof(float)*a, "switchdirect");
