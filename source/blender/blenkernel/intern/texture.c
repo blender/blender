@@ -629,10 +629,6 @@ void init_render_texture(Tex *tex)
 		tex->extend= TEX_CLIP;
 		
 		if(tex->env) {
-			/* temporal solution: layer 21 is to indicate an anvmap object */
-			tex->env->notlay |= (1<<20);
-			if(tex->env->object) tex->env->object->lay |= (1<<20);
-			
 			if(R.flag & R_RENDERING) {
 				if(tex->env->stype==ENV_ANIM) RE_free_envmapdata(tex->env);
 			}

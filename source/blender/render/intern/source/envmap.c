@@ -203,13 +203,16 @@ void envmap_renderdata(EnvMap *env)
 {
 	static RE_Render envR;
 	static Object *camera;
+	int cuberes;
 	
 	if(env) {
 		envR= R;
 		camera= G.scene->camera;
 		
-		env->cuberes &= 0xFFFC;
-		R.rectx= R.r.xsch= R.recty= R.r.ysch= env->cuberes;
+		cuberes = (env->cuberes * R.r.size) / 100;
+		cuberes &= 0xFFFC;
+		env->lastsize= R.r.size;
+		R.rectx= R.r.xsch= R.recty= R.r.ysch= cuberes;
 		R.afmx= R.afmy= R.r.xsch/2;
 		R.xstart= R.ystart= -R.afmx;
 		R.xend= R.yend= R.xstart+R.rectx-1;
@@ -381,6 +384,18 @@ void env_layerflags(unsigned int notlay)
 	}
 }
 
+void env_hideobject(Object *ob)
+{
+	VlakRen *vlr = NULL;
+	int a;
+	
+	for(a=0; a<R.totvlak; a++) {
+		if((a & 255)==0) vlr= R.blovl[a>>8];
+		else vlr++;
+		if(vlr->ob == ob) vlr->flag &= ~R_VISIBLE;
+	}
+}
+
 /* ------------------------------------------------------------------------- */
 
 void env_set_imats()
@@ -443,6 +458,7 @@ void render_envmap(EnvMap *env)
 		init_render_world();
 		setzbufvlaggen(RE_projectverto);
 		env_layerflags(env->notlay);
+		env_hideobject(env->object);
 		env_set_imats();
 				
 		if(RE_local_test_break()==0) {
@@ -492,29 +508,53 @@ void render_envmap(EnvMap *env)
 void make_envmaps()
 {
 	Tex *tex;
-	int do_init= 0;
+	int do_init= 0, depth= 0;
 	
-	tex= G.main->tex.first;
-	while(tex) {
-		if(tex->id.us && tex->type==TEX_ENVMAP) {
-			if(tex->env && tex->env->object) {
-				if(tex->env->object->lay & G.scene->lay) {
-					if(tex->env->stype!=ENV_LOAD) {
-						
-						if(tex->env->ok==0) {
-							do_init= 1;
-							render_envmap(tex->env);
-						}
-						else if((R.r.mode & R_OSA) && tex->env->ok==ENV_NORMAL) {
-							do_init= 1;
-							RE_free_envmapdata(tex->env);
-							render_envmap(tex->env);
+	if (!(R.r.mode & R_ENVMAP)) return;
+
+
+	/* 5 = hardcoded max recursion level */
+	while(depth<5) {
+		tex= G.main->tex.first;
+		while(tex) {
+			if(tex->id.us && tex->type==TEX_ENVMAP) {
+				if(tex->env && tex->env->object) {
+					if(tex->env->object->lay & G.scene->lay) {
+						if(tex->env->stype!=ENV_LOAD) {
+							
+							/* decide if to render an envmap (again) */
+							if(tex->env->depth >= depth) {
+								
+								/* set 'recalc' to make sure it does an entire loop of recalcs */
+								
+								if(tex->env->ok) {
+										/* free when OSA, and old one isn't OSA */
+									if((R.r.mode & R_OSA) && tex->env->ok==ENV_NORMAL) 
+										RE_free_envmapdata(tex->env);
+										/* free when size larger */
+									else if(tex->env->lastsize < R.r.size) 
+										RE_free_envmapdata(tex->env);
+										/* free when env is in recalcmode */
+									else if(tex->env->recalc)
+										RE_free_envmapdata(tex->env);
+								}
+								
+								if(tex->env->ok==0 && depth==0) tex->env->recalc= 1;
+								
+								if(tex->env->ok==0) {
+									do_init= 1;
+									render_envmap(tex->env);
+									
+									if(depth==tex->env->depth) tex->env->recalc= 0;
+								}
+							}
 						}
 					}
 				}
 			}
+			tex= tex->id.next;
 		}
-		tex= tex->id.next;
+		depth++;
 	}
 
 	if(do_init) {

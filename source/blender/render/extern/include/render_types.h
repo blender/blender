@@ -35,6 +35,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_object_types.h"
 
 /* Definitely weird: this equals 1<<21... so wtf?*/
 #define MAXVERT (2<<20)
@@ -190,6 +191,7 @@ typedef struct VlakRen
 	char flag, ec;
 	unsigned int lay;
 	RadFace *radface;
+	Object *ob;
 } VlakRen;
 
 

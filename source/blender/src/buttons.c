@@ -272,6 +272,8 @@ char texstr[15][8]= {"None"  , "Clouds" , "Wood",
 #define B_PACKIMA		1355
 #define B_TEXSETFRAMES	1356
 
+#define B_ENV_FREE_ALL	1357
+
 /* *********************** */
 #define B_ANIMBUTS		1500
 
@@ -3560,6 +3562,19 @@ void do_texbuts(unsigned short event)
 			BIF_preview_changed(G.buts);
 		}
 		break;
+	case B_ENV_FREE_ALL:
+		tex= G.main->tex.first;
+		while(tex) {
+			if(tex->id.us && tex->type==TEX_ENVMAP) {
+				if(tex->env) {
+					if(tex->env->stype!=ENV_LOAD) RE_free_envmapdata(tex->env);
+				}
+			}
+			tex= tex->id.next;
+		}
+		allqueue(REDRAWBUTSTEX, 0);
+		BIF_preview_changed(G.buts);
+		break;
 	case B_ENV_SAVE:
 		if(tex->env && tex->env->ok) {
 			sa= closest_bigger_area();
@@ -3917,8 +3932,10 @@ void texbuts(void)
 		}
 		else if(tex->type==TEX_ENVMAP) {
 			
-			if(tex->env==0) tex->env= RE_add_envmap();
-				
+			if(tex->env==0) {
+				tex->env= RE_add_envmap();
+				tex->env->object= OBACT;
+			}
 			if(tex->env) {
 				env= tex->env;
 				
@@ -3957,15 +3974,17 @@ void texbuts(void)
 					uiDefBut(block, BUT, B_ENV_FREE, "Free Data", 350,137,107,24, 0, 0, 0, 0, 0, "Release all images associated with environment map");
 					uiBlockSetCol(block, BUTGREY);
 					uiDefBut(block, BUT, B_ENV_SAVE, "Save EnvMap", 461,137,115,24, 0, 0, 0, 0, 0, "Save environment map");
+					uiBlockSetCol(block, BUTSALMON);
+					uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 600,137,160,24, 0, 0, 0, 0, 0, "Frees all rendered environment maps");
 				}
 				uiBlockSetCol(block, BUTGREY);
-				uiDefIDPoinBut(block, test_obpoin_but, B_ENV_OB, "Ob:",	  350,95,206,24, &(env->object), "Object name");
-				uiBlockSetCol(block, BUTGREY);
-				uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 350,68,122,24, &env->clipsta, 0.01, 50.0, 100, 0, "Set start value for clipping");
-				uiDefButF(block, NUM, 0, 	"ClipEnd", 475,68,142,24, &env->clipend, 0.1, 5000.0, 1000, 0, "Set end value for clipping");
-				if(env->stype!=ENV_LOAD) uiDefButI(block, NUM, B_ENV_FREE, 	"CubeRes", 620,68,140,24, &env->cuberes, 50, 1000.0, 0, 0, "Set the resolution in pixels");
-	
-				uiDefButF(block, NUM, B_MATPRV, "Filter :",	558,95,201,24, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjust sharpness or blurriness of the reflection"),
+				uiDefIDPoinBut(block, test_obpoin_but, B_ENV_OB, "Ob:",	  350,95,166,24, &(env->object), "Object name");
+				uiDefButF(block, NUM, B_MATPRV, "Filter :",				  518,95,121,24, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjust sharpness or blurriness of the reflection"),
+				uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				  639,95,120,24, &env->depth, 0, 5.0, 0, 0, "Number of times a map gets rendered again, for recursive mirror effect"),
+
+				uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		350,68,122,24, &env->clipsta, 0.01, 50.0, 100, 0, "Set start value for clipping");
+				uiDefButF(block, NUM, 0, 	"ClipEnd", 					475,68,142,24, &env->clipend, 0.1, 5000.0, 1000, 0, "Set end value for clipping");
+				if(env->stype!=ENV_LOAD) uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 620,68,140,24, &env->cuberes, 50, 2048.0, 0, 0, "Set the resolution in pixels");
 	
 				uiDefBut(block, LABEL, 0, "Don't render layer:",		772,100,140,22, 0, 0.0, 0.0, 0, 0, "");	
 				xco= 772;
@@ -6628,9 +6647,10 @@ void renderbuts(void)
  	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369,142,192,47, 0, 0, 0, 0, 0, "Start the rendering");
 	
 	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block, TOG|BIT|1,0,"Shadows",	565,167,122,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButS(block, TOG|BIT|10,0,"Pano",565,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButS(block, TOG|BIT|8,0,"Radio",626,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButS(block, TOG|BIT|1,0,"Shadow",	565,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButS(block, TOG|BIT|4,0,"EnvMap",	626,167,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButS(block, TOG|BIT|10,0,"Pano",	565,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButS(block, TOG|BIT|8,0,"Radio",	626,142,61,22, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	
 	uiDefButS(block, ROW,B_DIFF,"100%",			565,114,121,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
 	uiDefButS(block, ROW,B_DIFF,"75%",			565,90,36,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");

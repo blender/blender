@@ -166,7 +166,7 @@ typedef struct RenderData {
 	 * 1: do shadows                                                         
 	 * 2: do gamma correction                                                
 	 * 3: ortho (not used?)                                                  
-	 * 4: trace (not used?)                                                  
+	 * 4: do envmap                                                 
 	 * 5: edge shading                                                       
 	 * 6: field rendering                                                    
 	 * 7: Disables time difference in field calculations                     
@@ -268,7 +268,7 @@ typedef struct Scene {
 #define R_SHADOW		0x0002	
 #define R_GAMMA			0x0004
 #define R_ORTHO			0x0008
-#define R_TRACE			0x0010
+#define R_ENVMAP		0x0010
 #define R_EDGE			0x0020
 #define R_FIELDS		0x0040
 #define R_FIELDSTILL	0x0080

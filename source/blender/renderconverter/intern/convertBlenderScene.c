@@ -1194,6 +1194,7 @@ static void init_render_displist_mesh(Object *ob)
 					flen= CalcNormFloat4(v1->co, v3->co, v4->co, v2->co, n1);
 					if(flen!=0.0) {
 						vlr= RE_findOrAddVlak(R.totvlak++);
+						vlr->ob= ob;
 						vlr->v1= v1;
 						vlr->v2= v3;
 						vlr->v3= v4;
@@ -1272,6 +1273,7 @@ static void init_render_displist_mesh(Object *ob)
 
 				if(flen!=0.0) {
 					vlr= RE_findOrAddVlak(R.totvlak++);
+					vlr->ob= ob;
 					vlr->v1= v1;
 					vlr->v2= v2;
 					vlr->v3= v3;
@@ -1445,6 +1447,7 @@ static void init_render_mball(Object *ob)
 	for(a=0; a<dl->parts; a++, index+=4) {
 
 		vlr= RE_findOrAddVlak(R.totvlak++);
+		vlr->ob= ob;
 		vlr->v1= RE_findOrAddVert(startvert+index[0]);
 		vlr->v2= RE_findOrAddVert(startvert+index[1]);
 		vlr->v3= RE_findOrAddVert(startvert+index[2]);
@@ -1648,6 +1651,7 @@ static void init_render_mesh(Object *ob)
 						if(mface->v3) {
 
 							vlr= RE_findOrAddVlak(R.totvlak++);
+							vlr->ob= ob;
 							vlr->v1= RE_findOrAddVert(vertofs+mface->v1);
 							vlr->v2= RE_findOrAddVert(vertofs+mface->v2);
 							vlr->v3= RE_findOrAddVert(vertofs+mface->v3);
@@ -1727,6 +1731,7 @@ static void init_render_mesh(Object *ob)
 						}
 						else if(mface->v2 && (ma->mode & MA_WIRE)) {
 							vlr= RE_findOrAddVlak(R.totvlak++);
+							vlr->ob= ob;
 							vlr->v1= RE_findOrAddVert(vertofs+mface->v1);
 							vlr->v2= RE_findOrAddVert(vertofs+mface->v2);
 							vlr->v3= vlr->v2;
@@ -2119,6 +2124,7 @@ static void init_render_surf(Object *ob)
 
 //					if(flen!=0.0) {
 						vlr= RE_findOrAddVlak(R.totvlak++);
+						vlr->ob= ob;
 						vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 						VECCOPY(vlr->n, n1);
 						vlr->len= flen;
@@ -2255,6 +2261,7 @@ static void init_render_surf(Object *ob)
 					flen= CalcNormFloat4(v1->co, v3->co, v4->co, v2->co, n1);
 					if(flen!=0.0) {
 						vlr= RE_findOrAddVlak(R.totvlak++);
+						vlr->ob= ob;
 						vlr->v1= v1;
 						vlr->v2= v3;
 						vlr->v3= v4;
@@ -2492,6 +2499,7 @@ static void init_render_curve(Object *ob)
 					for(; b<bl->nr; b++) {
 
 						vlr= RE_findOrAddVlak(R.totvlak++);
+						vlr->ob= ob;
 						vlr->v1= RE_findOrAddVert(p2);
 						vlr->v2= RE_findOrAddVert(p1);
 						vlr->v3= RE_findOrAddVert(p3);

@@ -113,8 +113,10 @@ typedef struct EnvMap {
 	short type, stype;
 	float clipsta, clipend;
 	unsigned int notlay;
-	int cuberes;
+	short cuberes, depth;
 	short ok, lastframe;
+	short recalc, lastsize;
+	int pad1;
 } EnvMap;
 
 typedef struct Tex {
