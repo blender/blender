@@ -155,12 +155,9 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 		gamma))  + 0.5;
 
 	rect = (uchar *) ibuf->rect;
-	for (i = ibuf->x * ibuf->y ; i>0 ; i--){
-		rect ++;
-		/* put a warning in gcc : operation may be undefined :  */
-		/* it is true it's rather convoluted even by C standards ;) */
-		*rect ++ = gam[*rect]; /*FIXME*/
-		*rect ++ = gam[*rect]; /*FIXME*/
-		*rect ++ = gam[*rect]; /*FIXME*/
+	for (i = ibuf->x * ibuf->y ; i>0 ; i--, rect+=4){
+		rect[0] = gam[rect[0]];
+		rect[1] = gam[rect[1]];
+		rect[2] = gam[rect[2]];
 	}
 }
