@@ -459,6 +459,9 @@ void rad_collect_meshes()
 						rp->emit[1]*= rp->ref[1];
 						rp->emit[2]*= rp->ref[2];
 
+// uncommented, this is not satisfying, but i leave it in code for now (ton)						
+//						if(ma->translucency!=0.0) rn->f |= RAD_TWOSIDED;
+
 						nodevert= (VeNoCo **)&(rn->v1);
 						for(b=0; b<rp->type; b++) {
 							rp->cent[0]+= (*nodevert)->v[0];

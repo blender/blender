@@ -524,6 +524,7 @@ void rad_init_energy()
 void progressiverad()
 {
 	RPatch *shoot;
+	float unshot[3];
 	int it= 0;
 
 	rad_printstatus();
@@ -539,8 +540,16 @@ void progressiverad()
 		
 		drawpatch_ext(shoot, 0x88FF00);
 
+		if(shoot->first->f & RAD_TWOSIDED) {
+			VECCOPY(unshot, shoot->unshot);
+			VecMulf(shoot->norm, -1.0);
+			if(makeformfactors(shoot))
+				applyformfactors(shoot);
+			VecMulf(shoot->norm, -1.0);
+			VECCOPY(shoot->unshot, unshot);
+		}
+	
 		if( makeformfactors(shoot) ) {
-		
 			applyformfactors(shoot);
 	
 			it++;

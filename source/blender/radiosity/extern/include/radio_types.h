@@ -70,6 +70,7 @@ typedef struct RadView {
 #define RAD_SHOOT		2
 #define RAD_SUBDIV		4
 #define RAD_BACKFACE	8
+#define RAD_TWOSIDED	16
 
 
 typedef struct RNode {					/* length: 76 */

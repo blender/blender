@@ -127,9 +127,8 @@ static void backface_test_rr(VlakRen *shoot)
 	for(a=0; a<R.totvlak; a++) {
 		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
 		if(vlr->radface) {
-			rf= vlr->radface;
 			if(vlr!=shoot) {
-		
+				rf= vlr->radface;
 				VecSubf(tvec, shoot->radface->cent, rf->cent);
 				
 				if( tvec[0]*rf->norm[0]+ tvec[1]*rf->norm[1]+ tvec[2]*rf->norm[2] < 0.0) {		
@@ -244,7 +243,8 @@ static void applyformfactors_rr(VlakRen *shoot)
 				r= (*fp)*unr*ref[0];
 				g= (*fp)*ung*ref[1];
 				b= (*fp)*unb*ref[2];
-	
+				
+				// if(rf->flag & RAD_BACKFACE) {
 				
 				rf->totrad[0]+= r;
 				rf->totrad[1]+= g;
@@ -267,21 +267,32 @@ static void progressiverad_rr()
 {
 	extern void RE_local_timecursor(int);	// RE_callbacks.c
 	VlakRen *shoot;
+	float unshot[3];
 	int it= 0;
 	
 	shoot= findshoot_rr();
 	while( shoot ) {
-	
-		/* backfaces receive no energy, but are zbuffered */
+		
+		/* backfaces receive no energy, but are zbuffered... */
 		backface_test_rr(shoot);
+		
+		/* ...unless it's two sided */
+		if(shoot->radface->flag & RAD_TWOSIDED) {
+			VECCOPY(unshot, shoot->radface->unshot);
+			VecMulf(shoot->radface->norm, -1.0);
+			makeformfactors_rr(shoot);
+			applyformfactors_rr(shoot);
+			VecMulf(shoot->radface->norm, -1.0);
+			VECCOPY(shoot->radface->unshot, unshot);
+		}
+
 		/* hemi-zbuffers */
 		makeformfactors_rr(shoot);
 		/* based at RG.formfactors array, distribute shoot energy over other faces */
 		applyformfactors_rr(shoot);
-	
+		
 		it++;
 		RE_local_timecursor(it);
-		// printf("\r Radiosity step %d", it); fflush(stdout);
 		
 		clear_backface_test_rr();
 		
@@ -359,7 +370,9 @@ printf(" Rad elems: %d emittors %d\n", RG.totelem, RG.totpatch);
 				RG.min[b]= MIN2(RG.min[b], rf->cent[b]);
 				RG.max[b]= MAX2(RG.max[b], rf->cent[b]);
 			}
-			
+
+// uncommented; this isnt satisfying, but i leave it in the code for now (ton)			
+//			if(vlr->mat->translucency!=0.0) rf->flag |= RAD_TWOSIDED;
 			
 			vlr->radface= rf++;
 		}
