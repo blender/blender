@@ -3787,19 +3787,11 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 
-	/* swap mouse buttons based on user preference */
-	if (U.flag & USER_LMOUSESELECT) {
-		if (evt->event == LEFTMOUSE) {
-			event = RIGHTMOUSE;
-		} else if (evt->event == RIGHTMOUSE) {
-			event = LEFTMOUSE;
-		}
-	}
-
 	if (U.flag & USER_NONUMPAD) {
 		event= convert_for_nonumpad(event);
 	}
 	
+	/* keep leftmouse select for outliner, regardless of user pref */ 
 	if(soops->type==SO_OUTLINER) {
 		switch(event) {
 		case LEFTMOUSE:
@@ -3825,7 +3817,16 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		}
 	}
-	else {
+	else {	
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (evt->event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+			} else if (evt->event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+			}
+		}
+	
 		switch(event) {
 		case LEFTMOUSE:
 			gesture();
