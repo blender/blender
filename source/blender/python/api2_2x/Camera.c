@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Johnny Matthews
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -35,6 +35,10 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
+#include <BIF_editview.h>
+#include <BSE_editipo.h>
+#include <BIF_space.h>
+#include <mydevice.h>
 
 #include <Python.h>
 
@@ -44,6 +48,9 @@
 #include "Camera.h"
 #include "Ipo.h"
 
+
+#define IPOKEY_LENS 0
+#define IPOKEY_CLIPPING 1
 
 /*****************************************************************************/
 /* Python API function prototypes for the Camera module.                     */
@@ -119,6 +126,7 @@ static PyObject *Camera_setScale( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_getScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_addScriptLink( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_clearScriptLinks( BPy_Camera * self );
+static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args );
 
 Camera *GetCameraByName( char *name );
 
@@ -151,6 +159,8 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "(Blender Ipo) - Set Camera Ipo"},
 	{"clearIpo", ( PyCFunction ) Camera_clearIpo, METH_NOARGS,
 	 "() - Unlink Ipo from this Camera."},
+	 {"insertIpoKey", ( PyCFunction ) Camera_insertIpoKey, METH_VARARGS,
+	 "( Camera IPO type ) - Inserts a key into IPO"},
 	{"setName", ( PyCFunction ) Camera_setName, METH_VARARGS,
 	 "(s) - Set Camera Data name"},
 	{"setType", ( PyCFunction ) Camera_setType, METH_VARARGS,
@@ -346,6 +356,9 @@ PyObject *Camera_Init( void )
 
 	submodule = Py_InitModule3( "Blender.Camera",
 				    M_Camera_methods, M_Camera_doc );
+
+	PyModule_AddIntConstant( submodule, "LENS",     IPOKEY_LENS );
+	PyModule_AddIntConstant( submodule, "CLIPPING", IPOKEY_CLIPPING );
 
 	return submodule;
 }
@@ -941,4 +954,34 @@ static PyObject *Camera_repr( BPy_Camera * self )
 {
 	return PyString_FromFormat( "[Camera \"%s\"]",
 				    self->camera->id.name + 2 );
+}
+
+/*
+ * Camera_insertIpoKey()
+ *  inserts Camera IPO key for LENS and CLIPPING
+ */
+
+static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args )
+{
+	int key = 0;
+
+	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument" ) );
+
+	if (key == IPOKEY_LENS){
+		insertkey((ID *)self->camera, CAM_LENS);     
+	}
+	else if (key == IPOKEY_CLIPPING){
+		insertkey((ID *)self->camera, CAM_STA);
+		insertkey((ID *)self->camera, CAM_END);   
+	}
+
+	allspace(REMAKEIPO, 0);
+	EXPP_allqueue(REDRAWIPO, 0);
+	EXPP_allqueue(REDRAWVIEW3D, 0);
+	EXPP_allqueue(REDRAWACTION, 0);
+	EXPP_allqueue(REDRAWNLA, 0);
+
+	return EXPP_incr_ret( Py_None );
 }
