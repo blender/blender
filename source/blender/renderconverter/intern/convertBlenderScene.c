@@ -2684,7 +2684,8 @@ void RE_freeRotateBlenderScene(void)
 				MEM_freeN(me->orco);
 				me->orco= 0;
 			}
-			if (mesh_uses_displist(me) && (me->subdiv!=me->subdivr)) {
+			if (mesh_uses_displist(me) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) ) ) { 
+			    /* Need to recalc for effects since they are time dependant */
 				makeDispList(ob);  /* XXX this should be replaced with proper caching */
 				me->subdivdone= 0;	/* needed to prevent multiple used meshes being recalculated */
 			}
