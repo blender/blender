@@ -1,4 +1,10 @@
 /**
+ * ------------------------------------------------------------
+ * This is the old 'Ika' system of Blender (until 2.14)
+ * it should be removed entirely from the tree, so I'll also leave comments
+ * not translated... (ton)
+ * ------------------------------------------------------------
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****

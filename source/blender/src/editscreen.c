@@ -105,10 +105,10 @@
 
 /* TIPS:
  * 
- * - LET OP DE EDGES,  VERTICES ERVAN MOETEN IN VOLGORDE
-	 (laagste pointer eerst). Anders onvoorspelbare effecten!
- * - probleem: flags zijn nog niet echt netjes. Altijd na gebruik
-	 op nul zetten.
+ * - WATCH THE EDGES,  VERTICES HAVE TO BE IN ORDER...
+	 (lowest pointer first). Otherwise unpredictable effects!
+ * - problem: flags here are not nicely implemented. After usage
+	 always reset to zero.
  */
 
 static void testareas(void);
@@ -184,12 +184,12 @@ void setcursor_space(int spacetype, short cur)
 
 /* *********  IN/OUT  ************* */
 
-void getmouseco_sc(short *mval)		/* screen coordinaten */
+void getmouseco_sc(short *mval)		/* screen coordinates */
 {
 	getmouse(mval);
 }
 
-void getmouseco_areawin(short *mval)		/* interne area coordinaten */
+void getmouseco_areawin(short *mval)		/* internal area coordinates */
 {
 	getmouseco_sc(mval);
 	
@@ -199,7 +199,7 @@ void getmouseco_areawin(short *mval)		/* interne area coordinaten */
 	}
 }
 
-void getmouseco_headwin(short *mval)		/* interne area coordinaten */
+void getmouseco_headwin(short *mval)		/* internal area coordinates */
 {
 	getmouseco_sc(mval);
 	
@@ -470,11 +470,11 @@ static void scrarea_dispatch_header_events(ScrArea *sa)
 		}
 	}
 
-	/* test: bestaat window nog */	
+	/* test: does window still exist? */	
 	tempsa= areawinar[sa->headwin];
 	if(tempsa==0) return;
 	
-	/* dit onderscheid loopt niet lekker... */
+	/* this functional separation does not work as well as i expected... */
 	if(do_change) scrarea_do_headchange(sa);
 	if(do_redraw) scrarea_do_headdraw(sa);
 }
@@ -503,7 +503,7 @@ static void scrarea_dispatch_events(ScrArea *sa)
 		if(winqueue_break) return;
 	}
 
-	/* test: bestaat window nog */	
+	/* test: does window still exist */	
 	tempsa= areawinar[sa->win];
 	if(tempsa==0) return;
 
@@ -534,8 +534,8 @@ void markdirty_all()
 
 int is_allowed_to_change_screen(bScreen *new)
 {
-	/* niet als curscreen is full
-	 * niet als obedit && old->scene!=new->scene
+	/* not when curscreen is full
+	 * not when obedit && old->scene!=new->scene
 	 */
 	
 	if(new==0) return 0;
@@ -806,7 +806,7 @@ unsigned short screen_qread(short *val, char *ascii)
 
 unsigned short extern_qread_ext(short *val, char *ascii)
 {
-	/* bewaart de laatste INPUTCHANGE en de laatste REDRAW */
+	/* stores last INPUTCHANGE and last REDRAW */
 	unsigned short event;
 	
 	event= screen_qread(val, ascii);
@@ -863,7 +863,7 @@ static void screen_dispatch_events(void) {
 				
 		winqueue_break= 0;
 		for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-				/* bewust eerst header afhandelen, dan rest. Header is soms init */
+				/* first check header, then rest. Header sometimes has initialization code */
 			if (sa->headwin && bwin_qtest(sa->headwin)) {
 				scrarea_dispatch_header_events(sa);
 				events_remaining= 1;
@@ -1219,12 +1219,12 @@ static void removedouble_scrverts(void)
 		verg= verg->next;
 	}
 	
-	/* vervang pointers in edges en vlakken */
+	/* replace pointers in edges and faces */
 	se= G.curscreen->edgebase.first;
 	while(se) {
 		if(se->v1->newv) se->v1= se->v1->newv;
 		if(se->v2->newv) se->v2= se->v2->newv;
-		/* edges zijn veranderd: dus.... */
+		/* edges changed: so.... */
 		sortscrvert(&(se->v1), &(se->v2));
 		se= se->next;
 	}
@@ -1237,7 +1237,7 @@ static void removedouble_scrverts(void)
 		sa= sa->next;
 	}
 	
-	/* verwijderen */
+	/* remove */
 	verg= G.curscreen->vertbase.first;
 	while(verg) {
 		v1= verg->next;
@@ -1255,7 +1255,7 @@ static void removenotused_scrverts(void)
 	ScrVert *sv, *svn;
 	ScrEdge *se;
 
-	/* ga ervan uit dat de edges goed zijn */
+	/* we assume edges are ok */
 	
 	se= G.curscreen->edgebase.first;
 	while(se) {
@@ -1280,7 +1280,7 @@ static void removedouble_scredges(void)
 {
 	ScrEdge *verg, *se, *sn;
 	
-	/* vergelijken */
+	/* compare */
 	verg= G.curscreen->edgebase.first;
 	while(verg) {
 		se= verg->next;
@@ -1302,7 +1302,7 @@ static void removenotused_scredges(void)
 	ScrArea *sa;
 	int a=0;
 	
-	/* zet flag als edge gebruikt wordt in area */
+	/* sets flags when edge is used in area */
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		se= screen_findedge(G.curscreen, sa->v1, sa->v2);
@@ -1359,7 +1359,7 @@ void calc_arearcts(ScrArea *sa)
 	}
 	if(sa->winrct.ymin>sa->winrct.ymax) sa->winrct.ymin= sa->winrct.ymax;
 	
-	/* als speedup voor berekeningen */
+	/* for speedup */
 	sa->winx= sa->winrct.xmax-sa->winrct.xmin+1;
 	sa->winy= sa->winrct.ymax-sa->winrct.ymin+1;
 }
@@ -1371,7 +1371,7 @@ static void openheadwin(ScrArea *sa)
 
 	glMatrixMode(GL_MODELVIEW);
 	
-	areawinar[sa->headwin]= sa;	/* anders doet addqueue het niet */
+	areawinar[sa->headwin]= sa;	/* oterwise addqueue does not work */
 	addqueue(sa->headwin, CHANGED, 1);
 }
 
@@ -1380,7 +1380,7 @@ static void openareawin(ScrArea *sa)
 	sa->win= myswinopen(G.curscreen->mainwin, 
 		sa->winrct.xmin, sa->winrct.xmax, sa->winrct.ymin, sa->winrct.ymax);
 
-	areawinar[sa->win]= sa;	/* anders doet addqueue het niet */
+	areawinar[sa->win]= sa;	/* otherwise addqueue does not work */
 	addqueue(sa->win, CHANGED, 1);
 }
 
@@ -1451,8 +1451,8 @@ static void testareas(void)
 {
 	ScrArea *sa;
 
-	/* testen of header er moet zijn, of weg moet, of verplaatst */
-	/* testen of window er moet zijn, of weg moet, of verplaatst */
+	/* test for header, if removed, or moved */
+	/* testen for window, if removed, or moved */
 
 	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		rcti oldhr= sa->headrct;
@@ -1490,14 +1490,14 @@ static void testareas(void)
 		areawinar[sa->win]= sa;
 	}
 	
-		/* test of winakt in orde is */	
+		/* test if winakt is OK */	
 	if( areawinar[G.curscreen->winakt]==0) G.curscreen->winakt= 0;
 }
 
 static ScrArea *test_edge_area(ScrArea *sa, ScrEdge *se)
 {
-	/* test of edge in area ligt, zo niet, 
-	   vind een area die 'm wel heeft */
+	/* test if edge is in area, if not, 
+	   then find an area that has it */
   
 	ScrEdge *se1=0, *se2=0, *se3=0, *se4=0;
 	
@@ -1511,7 +1511,7 @@ static ScrArea *test_edge_area(ScrArea *sa, ScrEdge *se)
 		
 		sa= G.curscreen->areabase.first;
 		while(sa) {
-			/* een beetje optimaliseren? */
+			/* a bit optimise? */
 			if(se->v1==sa->v1 || se->v1==sa->v2 || se->v1==sa->v3 || se->v1==sa->v4) {
 				se1= screen_findedge(G.curscreen, sa->v1, sa->v2);
 				se2= screen_findedge(G.curscreen, sa->v2, sa->v3);
@@ -1523,7 +1523,7 @@ static ScrArea *test_edge_area(ScrArea *sa, ScrEdge *se)
 		}
 	}
 
-	return sa;	/* is keurig 0 als niet gevonden */
+	return sa;	/* is null when not find */
 }
 
 ScrArea *closest_bigger_area(void)
@@ -1543,7 +1543,7 @@ ScrArea *closest_bigger_area(void)
 		if(sa!=curarea) {
 			if(sa->winy>=curarea->winy) {
 			
-				/* mimimum van vier hoekpunten */
+				/* mimimum of the 4 corners */
 				vec[0]= sa->v1->vec.x; vec[1]= sa->v1->vec.y;
 				len= VecLenf(vec, cent);
 				vec[0]= sa->v2->vec.x; vec[1]= sa->v2->vec.y;
@@ -1555,13 +1555,13 @@ ScrArea *closest_bigger_area(void)
 				
 				len= MIN4(len, len1, len2, len3);
 				
-				/* plus centrum */
+				/* plus centre */
 				vec[0]= (sa->v2->vec.x+sa->v3->vec.x)/2;
 				vec[1]= (sa->v1->vec.y+sa->v2->vec.y)/2;
 
 				len+= 0.5*VecLenf(vec, cent);
 				
-				/* min afmeting */
+				/* min size */
 				len-= sa->winy+sa->winx;
 				
 				if(len<dist) {
@@ -1577,7 +1577,7 @@ ScrArea *closest_bigger_area(void)
 	else return curarea;
 }
 
-/* ************ SCREENBEHEER ************** */
+/* ************ SCREEN MANAGEMENT ************** */
 
 static int statechanged= 0;
 void BIF_wait_for_statechange(void)
@@ -1644,10 +1644,10 @@ void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char a
 	mainqenter_ext(evt, val, ascii);
 }
 
-static bScreen *addscreen(char *name)		/* gebruik de setprefsize() als je anders dan fullscreen wilt */
+static bScreen *addscreen(char *name)		/* use setprefsize() if you want something else than a full windpw */
 {
-	/* deze functie zet de variabele G.curscreen
-	 * omdat alle hulpfuncties moeten weten welk screen
+	/* this function sets variabele G.curscreen,
+	 * that global is about used everywhere!
 	 */
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
@@ -1726,7 +1726,7 @@ void setscreen(bScreen *sc)
 	ScrArea *sa;
 	short mval[2];
 	
-	if(sc->full) {				/* vind de bijhorende full */
+	if(sc->full) {				/* find associated full */
 		sc1= G.main->screen.first;
 		while(sc1) {
 			sa= sc1->areabase.first;
@@ -1739,7 +1739,7 @@ void setscreen(bScreen *sc)
 		if(sc1==0) printf("setscreen error\n");
 	}
 
-	/* G.curscreen de-activeren */
+	/* de-activate G.curscreen */
 	if (G.curscreen && G.curscreen != sc) {
 		sa= G.curscreen->areabase.first;
 		while(sa) {
@@ -1785,7 +1785,7 @@ void setscreen(bScreen *sc)
 			if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;
 
-				/* patch als deze in oude files zit */
+				/* patch for old files */
 				if (soops->v2d.cur.xmin==soops->v2d.cur.xmax) {
 					extern void init_v2d_oops(View2D*);
 					init_v2d_oops(&soops->v2d);
@@ -1805,20 +1805,20 @@ void setscreen(bScreen *sc)
 	mainqenter(DRAWEDGES, 1);
 	dodrawscreen= 1;		/* patch! even gets lost,,,? */
 
-	winqueue_break= 1;		/* overal uit de queue's gaan */
+	winqueue_break= 1;		/* means leave queue everywhere */
 }
 
 static void splitarea(ScrArea *sa, char dir, float fac);
 
-void area_fullscreen(void)	/* met curarea */
+void area_fullscreen(void)	/* with curarea */
 {
-	/* deze funktie toggelt: als area full is wordt de parent weer zichtbaar */
+	/* this function toggles: if area is full then the parent will be restored */
 	bScreen *sc, *oldscreen;
 	ScrArea *newa, *old;
 	short headertype, fulltype;
 	
 	if(curarea->full) {
-		sc= curarea->full;	/* de oude screen */
+		sc= curarea->full;	/* the old screen */
 		fulltype = sc->full;
 
 		// refuse to go out of SCREENAUTOPLAY as long as G_FLAGS_AUTOPLAY
@@ -1827,7 +1827,7 @@ void area_fullscreen(void)	/* met curarea */
 		if (fulltype != SCREENAUTOPLAY || (G.flags & G_FLAGS_AUTOPLAY) == 0) {
 			sc->full= 0;
 		
-			/* vind oude area */
+			/* find old area */
 			old= sc->areabase.first;
 			while(old) {
 				if(old->full) break;
@@ -1858,7 +1858,7 @@ void area_fullscreen(void)	/* met curarea */
 		
 	}
 	else {
-		/* is er maar 1 area? */
+		/* is there only 1 area? */
 		if(G.curscreen->areabase.first==G.curscreen->areabase.last) return;
 		if(curarea->spacetype==SPACE_INFO) return;
 		
@@ -1866,16 +1866,16 @@ void area_fullscreen(void)	/* met curarea */
 		
 		old= curarea;		
 		oldscreen= G.curscreen;
-		sc= addscreen("temp");		/* deze zet G.curscreen */
+		sc= addscreen("temp");		/* this sets G.curscreen */
 
 		splitarea( (ScrArea *)sc->areabase.first, 'h', 0.99);
 		newa= sc->areabase.first;
 		newspace(newa->next, SPACE_INFO);
 		
 		curarea= old;
-		G.curscreen= oldscreen;	/* moet voor setscreen */
+		G.curscreen= oldscreen;	/* needed because of setscreen */
 		
-		/* area kopieeren */
+		/* vopy area */
 		copy_areadata(newa, curarea);
 		
 		curarea->full= oldscreen;
@@ -1911,12 +1911,12 @@ static void area_autoplayscreen(void)
 			
 			old= curarea;		
 			oldscreen= G.curscreen;
-			sc= addscreen("temp");		/* deze zet G.curscreen */
+			sc= addscreen("temp");		/* this sets G.curscreen */
 	
 			newa= sc->areabase.first;
 			
 			curarea= old;
-			G.curscreen= oldscreen;	/* moet voor setscreen */
+			G.curscreen= oldscreen;	/* because of setscreen */
 			
 			/* copy area settings */
 			copy_areadata(newa, curarea);
@@ -1937,10 +1937,10 @@ static void copy_screen(bScreen *to, bScreen *from)
 	ScrEdge *se;
 	ScrArea *sa;
 	ListBase lbase;
-	
-	/* alles van to vrijgeven */
+
+	/* free 'to' */
 	free_screen(to);
-	winqueue_break= 1;	/* overal uit queue's gaan */
+	winqueue_break= 1;	/* leave queues everywhere */
 	
 	duplicatelist(&to->vertbase, &from->vertbase);
 	duplicatelist(&to->edgebase, &from->edgebase);
@@ -1978,7 +1978,7 @@ static void copy_screen(bScreen *to, bScreen *from)
 		sa= sa->next;
 	}
 	
-	/* op nul zetten (nodig?) */
+	/* put at zero (needed?) */
 	s1= from->vertbase.first;
 	while(s1) {
 		s1->newv= 0;
@@ -1992,10 +1992,10 @@ void duplicate_screen(void)
 	
 	if(G.curscreen->full != SCREENNORMAL) return;
 	
-	/* nieuw screen maken: */
+	/* make new screen: */
 
 	oldscreen= G.curscreen;
-	sc= addscreen(oldscreen->id.name+2);	/* deze zet G.curscreen */
+	sc= addscreen(oldscreen->id.name+2);	/* this sets G.curscreen */
 	copy_screen(sc, oldscreen);
 
 	G.curscreen= oldscreen;
@@ -2004,7 +2004,7 @@ void duplicate_screen(void)
 }
 
 
-/* ************ END SCREENBEHEER ************** */
+/* ************ END SCREEN MANAGEMENT ************** */
 /* ************  JOIN/SPLIT/MOVE ************** */
 
 static void joinarea(ScrArea *sa, ScrEdge *onedge)
@@ -2017,8 +2017,8 @@ static void joinarea(ScrArea *sa, ScrEdge *onedge)
 	sa= test_edge_area(sa, onedge);
 	if (sa==0) return;
 
-	/* welke edges kunnen ermee? */
-	/* vind richtingen met zelfde edge */
+	/* which edges? */
+	/* find directions with same edge */
 	sa2= G.curscreen->areabase.first;
 	while(sa2) {
 		if(sa2 != sa) {
@@ -2052,7 +2052,7 @@ static void joinarea(ScrArea *sa, ScrEdge *onedge)
 	
 	
 	if(sa2) {
-		/* nieuwe area is oude sa */
+		/* new area is old sa */
 		if(sa2==left) {
 			sa->v1= sa2->v1;
 			sa->v2= sa2->v2;
@@ -2078,7 +2078,7 @@ static void joinarea(ScrArea *sa, ScrEdge *onedge)
 			screen_addedge(G.curscreen, sa->v3, sa->v4);
 		}
 	
-		/* edge en area weg */
+		/* remove edge and area */
 		/* remlink(&G.curscreen->edgebase, setest); */
 		/* freeN(setest); */
 		del_area(sa2);
@@ -2087,7 +2087,7 @@ static void joinarea(ScrArea *sa, ScrEdge *onedge)
 		
 		removedouble_scredges();
 		removenotused_scredges();
-		removenotused_scrverts();	/* moet als laatste */
+		removenotused_scrverts();	/* as last */
 		
 		testareas();
 		mainqenter(DRAWEDGES, 1);
@@ -2097,16 +2097,16 @@ static void joinarea(ScrArea *sa, ScrEdge *onedge)
 }
 
 static short testsplitpoint(ScrArea *sa, char dir, float fac)
-/* return 0: geen split mogelijk */
-/* else return (integer) screencoordinaat splitpunt */
+/* return 0: no split possible */
+/* else return (integer) screencoordinate split point */
 {
 	short x, y;
 	
-	/* area groot genoeg? */
+	/* area big enough? */
 	if(sa->v4->vec.x- sa->v1->vec.x <= 2*AREAMINX) return 0;
 	if(sa->v2->vec.y- sa->v1->vec.y <= 2*AREAMINY) return 0;
 
-	/* voor zekerheid */
+	/* to be sure */
 	if(fac<0.0) fac= 0.0;
 	if(fac>1.0) fac= 1.0;
 	
@@ -2152,54 +2152,54 @@ static void splitarea(ScrArea *sa, char dir, float fac)
 	areawinset(sa->win);
 	
 	if(dir=='h') {
-		/* nieuwe vertices */
+		/* new vertices */
 		sv1= screen_addvert(sc, sa->v1->vec.x, split);
 		sv2= screen_addvert(sc, sa->v4->vec.x, split);
 		
-		/* nieuwe edges */
+		/* new edges */
 		screen_addedge(sc, sa->v1, sv1);
 		screen_addedge(sc, sv1, sa->v2);
 		screen_addedge(sc, sa->v3, sv2);
 		screen_addedge(sc, sv2, sa->v4);
 		screen_addedge(sc, sv1, sv2);
 		
-		/* nieuwe areas: boven */
+		/* new areas: top */
 		newa= screen_addarea(sc, sv1, sa->v2, sa->v3, sv2, sa->headertype, sa->spacetype);
 		copy_areadata(newa, sa);
 
-		/* area onder */
+		/* area below */
 		sa->v2= sv1;
 		sa->v3= sv2;
 		
 	}
 	else {
-		/* nieuwe vertices */
+		/* new vertices */
 		sv1= screen_addvert(sc, split, sa->v1->vec.y);
 		sv2= screen_addvert(sc, split, sa->v2->vec.y);
 		
-		/* nieuwe edges */
+		/* new edges */
 		screen_addedge(sc, sa->v1, sv1);
 		screen_addedge(sc, sv1, sa->v4);
 		screen_addedge(sc, sa->v2, sv2);
 		screen_addedge(sc, sv2, sa->v3);
 		screen_addedge(sc, sv1, sv2);
 		
-		/* nieuwe areas: links */
+		/* new areas: left */
 		newa= screen_addarea(sc, sa->v1, sa->v2, sv2, sv1, sa->headertype, sa->spacetype);
 		copy_areadata(newa, sa);
 
-		/* area rechts */
+		/* area right */
 		sa->v1= sv1;		
 		sa->v2= sv2;
 	}
 	
-	/* dubbele vertices en edges verwijderen */
+	/* remove double vertices en edges */
 	removedouble_scrverts();
 	removedouble_scredges();
 	removenotused_scredges();
 	
 	mainqenter(DRAWEDGES, 1);
-	dodrawscreen= 1;		/* patch! even gets lost,,,? */
+	dodrawscreen= 1;		/* patch! event gets lost,,,? */
 	testareas();
 }
 
@@ -2232,9 +2232,9 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 	dir= scredge_is_horizontal(onedge)?'v':'h';
 	
 	mywinset(G.curscreen->mainwin);
-	/* hoort al goede matrix te hebben */
+	/* should already have a good matrix */
 
-	/* rekening houden met grid en minsize */
+	/* keep track of grid and minsize */
 	while(ok==0) {
 		getmouseco_sc(mval);
 		
@@ -2287,7 +2287,7 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 	if(ok==1) {
 		splitarea(sa, dir, fac);
 		mainqenter(DRAWEDGES, 1);
-		dodrawscreen= 1;		/* patch! even gets lost,,,? */
+		dodrawscreen= 1;		/* patch! event gets lost,,,? */
 	}
 }
 
@@ -2335,8 +2335,8 @@ static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 	int oneselected;
 	char dir;
 	
-	/* select connected, alleen in de juiste richting */
-	/* 'dir' is de richting van de EDGE */
+	/* select connected, only in the right direction */
+	/* 'dir' is the direction of EDGE */
 
 	if(edge->v1->vec.x==edge->v2->vec.x) dir= 'v';
 	else dir= 'h';
@@ -2371,8 +2371,8 @@ static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 }
 
 void test_scale_screen(bScreen *sc)
-/* testen of screenvertices vergroot/verkleind moeten worden */
-/* testen of offset nog klopt */
+/* test if screen vertices should be scaled */
+/* also check offset */
 {
 	ScrVert *sv=0;
 	ScrEdge *se;
@@ -2523,12 +2523,12 @@ static void moveareas(ScrEdge *edge)
 		}
 	}
 
-	/* nu zijn alle vertices met 'flag==1' degene die verplaatst kunnen worden. */
-	/* we lopen de areas af en testen vrije ruimte met MINSIZE */
+	/* now all verices with 'flag==1' are the ones that can be moved. */
+	/* we check all areas and test for free space with MINSIZE */
 	bigger= smaller= 10000;
 	sa= G.curscreen->areabase.first;
 	while(sa) {
-		if(dir=='h') {	/* als top of down edge select, test hoogte */
+		if(dir=='h') {	/* if top or down edge selected, test height */
 			if(sa->headertype) {
 				headery= HEADERY;
 				areaminy= AREAMINY;
@@ -2540,7 +2540,7 @@ static void moveareas(ScrEdge *edge)
 
 			if(sa->v1->flag && sa->v4->flag) {
 				int y1;
-				if(sa->v2->vec.y==G.curscreen->sizey-1)	/* bovenste edge */
+				if(sa->v2->vec.y==G.curscreen->sizey-1)	/* top edge */
 					y1= sa->v2->vec.y - sa->v1->vec.y-headery-EDGEWIDTH;
 				else 
 					y1= sa->v2->vec.y - sa->v1->vec.y-areaminy;
@@ -2548,14 +2548,14 @@ static void moveareas(ScrEdge *edge)
 			}
 			else if(sa->v2->flag && sa->v3->flag) {
 				int y1;
-				if(sa->v1->vec.y==0)	/* onderste edge */
+				if(sa->v1->vec.y==0)	/* bottom edge */
 					y1= sa->v2->vec.y - sa->v1->vec.y-headery-EDGEWIDTH;
 				else
 					y1= sa->v2->vec.y - sa->v1->vec.y-areaminy;
 				smaller= MIN2(smaller, y1);
 			}
 		}
-		else {	/* als left of right edge select, test breedte */
+		else {	/* if left or right edge selected, test width */
 			if(sa->v1->flag && sa->v2->flag) {
 				int x1= sa->v4->vec.x - sa->v1->vec.x-AREAMINX;
 				bigger= MIN2(bigger, x1);
@@ -2602,7 +2602,7 @@ static void moveareas(ScrEdge *edge)
 	if (doit==1) {
 		for (v1= G.curscreen->vertbase.first; v1; v1= v1->next) {
 			if (v1->flag) {
-					/* zo is AREAGRID netjes */
+					/* that way a nice AREAGRID  */
 				if((dir=='v') && v1->vec.x>0 && v1->vec.x<G.curscreen->sizex-1) {
 					v1->vec.x+= delta;
 					if(delta != bigger && delta != -smaller) v1->vec.x-= (v1->vec.x % AREAGRID);
@@ -2628,7 +2628,7 @@ static void moveareas(ScrEdge *edge)
 	
 	glDrawBuffer(GL_BACK);
 	mainqenter(DRAWEDGES, 1);
-	dodrawscreen= 1;		/* patch! even gets lost,,,? */
+	dodrawscreen= 1;		/* patch! event gets lost,,,? */
 }
 
 static void scrollheader(ScrArea *area)
@@ -2666,8 +2666,8 @@ static void scrollheader(ScrArea *area)
 
 int select_area(int spacetype)
 {
-	/* vanuit editroutines aanroepen, als er meer area's
-	 * zijn van type 'spacetype' kan er een area aangegeven worden
+	/* call from edit routines, when there are more areas
+	 * of type 'spacetype', you can indicate an area manually
 	 */
 	ScrArea *sa, *sact = NULL;
 	int tot=0;
@@ -2789,9 +2789,9 @@ static void drawscredge(ScrEdge *se)
 	v1= &(se->v1->vec);
 	v2= &(se->v2->vec);
 	
-	/* borders screen niet tekenen */
-	/* vanwege resolutie verschillen (PC/SGI files) de linit een
-	 * beetje afronden?
+	/* do not draw borders screen© */
+	/* bcause of different framebuffer resoltions (PC/SGI etc files) 
+	 * a bit rounding here? should be looked at further...
 	 */
 	se->border= 1;
 	if(v1->x<=1 && v2->x<=1) return;

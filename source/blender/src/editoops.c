@@ -146,7 +146,7 @@ void swap_select_all_oops(void)
 		oops= oops->next;
 	}
 	
-	oops_to_select_objects();	/* ook redr */
+	oops_to_select_objects();	/* also redraw */
 	
 	G.soops->lockpoin= 0;
 }
@@ -170,7 +170,7 @@ static void deselect_all_oops(void)
 	G.soops->lockpoin= 0;
 }
 
-void set_select_flag_oops(void)	/* alle areas */
+void set_select_flag_oops(void)	/* all areas */
 {
 	SpaceOops *so;
 	ScrArea *sa;
@@ -186,7 +186,7 @@ void set_select_flag_oops(void)	/* alle areas */
 	if(G.soops) G.soops->lockpoin= 0;
 }
 
-void deselect_all_area_oops(void)	/* alle areas */
+void deselect_all_area_oops(void)	/* all areas */
 {
 	SpaceOops *so;
 	Oops *oops;
@@ -223,7 +223,7 @@ void transform_oops(int mode)
 	
 	if(G.soops==0) return;	
 		
-	/* welke oopsen doen mee */
+	/* which oopses... */
 	oops= G.soops->oops.first;
 	while(oops) {
 		if(oops->hide==0) {	
@@ -433,7 +433,7 @@ void mouse_select_oops(void)
 	
 	if(G.soops==0) return;	
 		
-	/* welke oopsen doen mee */
+	/* which oopses... */
 	oops= G.soops->oops.first;
 
 	oops= find_nearest_oops();
@@ -463,7 +463,7 @@ void mouse_select_oops(void)
 		G.soops->lockpoin= oops;
 	}
 	
-	oops_to_select_objects();	/* ook redr */
+	oops_to_select_objects();	/* also redraw */
 	scrarea_queue_headredraw(curarea);
 	
 	force_draw();
@@ -512,7 +512,7 @@ void borderselect_oops(void)
 			oops= oops->next;
 		}
 
-		oops_to_select_objects();	/* ook redr */
+		oops_to_select_objects();	/* also redraw */
 	}
 }
 
@@ -562,7 +562,7 @@ void select_linked_oops(void)
 		oops= oops->next;
 	}
 	
-	oops_to_select_objects();	/* ook redr */
+	oops_to_select_objects();	/* also redraw */
 	
 }
 
@@ -600,7 +600,7 @@ void select_backlinked_oops(void)
 		oops= oops->next;
 	}
 	
-	oops_to_select_objects();	/* ook redr */
+	oops_to_select_objects();	/* also redraw */
 	
 }
 

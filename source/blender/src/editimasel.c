@@ -262,7 +262,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	case MOUSEX:
 	case MOUSEY:
-		getmouseco_areawin(mval);	/* lokaal screen */
+		getmouseco_areawin(mval);	/* local screen coordinates */
 		calc_hilite(simasel);
 		if (simasel->mouse_move_redraw ){
 			simasel->mouse_move_redraw = 0;

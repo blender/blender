@@ -30,6 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/* main mesh editing routines. please note that 'vlak' is used here to denote a 'face'. */
+/* at that time for me a face was something at the frontside of a human head! (ton) */
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -106,7 +109,7 @@ static float convex(float *v1, float *v2, float *v3, float *v4);
 /* extern ListBase fillvertbase, filledgebase; */ /* scanfill.c, in
     the lib... already in BLI_blenlib.h */
 
-/*  voor debug:
+/*  for debug:
 #define free(a)			freeN(a)
 #define malloc(a)		mallocN(a, "malloc")
 #define calloc(a, b)	callocN((a)*(b), "calloc")
@@ -162,7 +165,7 @@ static short icovlak[20][3] = {
 
 /* ***************** HASH ********************* */
 
-/* HASH struct voor snel opzoeken edges */
+/* HASH struct quickly finding of edges */
 struct HashEdge {
 	struct EditEdge *eed;
 	struct HashEdge *next;
@@ -268,12 +271,6 @@ EditEdge *findedgelist(EditVert *v1, EditVert *v2)
 		v1= v3;
 	}
 	
-	/* eerst even op de flip-plek kijken */
-	
-/* 	he= hashedgetab + EDHASH(v2->hash, v1->hash); */
-/* 	if(he->eed && he->eed->v1==v1 && he->eed->v2==v2) return he->eed; */
-	
-	
 	he= hashedgetab + EDHASH(v1->hash, v2->hash);
 	
 	while(he) {
@@ -287,17 +284,9 @@ EditEdge *findedgelist(EditVert *v1, EditVert *v2)
 
 static void insert_hashedge(EditEdge *eed)
 {
-	/* er van uitgaande dat eed nog niet in lijst zit, en eerst een find is gedaan */
+	/* assuming that eed is not in the list yet, and that a find has been done before */
 	
 	struct HashEdge *first, *he;
-
-	/* eerst even op de flip-plek kijken */
-/* 	he= hashedgetab + EDHASH(eed->v2->hash, eed->v1->hash); */
-
-/* 	if(he->eed==0) { */
-/* 		he->eed= eed; */
-/* 		return; */
-/* 	} */
 
 	first= hashedgetab + EDHASH(eed->v1->hash, eed->v2->hash);
 
@@ -314,34 +303,16 @@ static void insert_hashedge(EditEdge *eed)
 
 static void remove_hashedge(EditEdge *eed)
 {
-	/* er van uitgaande dat eed in lijst zit */
+	/* assuming eed is in the list */
 	
 	struct HashEdge *first, *he, *prev=NULL;
-
-
-	/* eerst even op de flip-plek kijken */
-/* 	first= hashedgetab + EDHASH(eed->v2->hash, eed->v1->hash); */
-
-/* 	if(first->eed==eed) { */
-		/* uit lijst verwijderen */
-		
-/* 		if(first->next) { */
-/* 			he= first->next; */
-/* 			first->eed= he->eed; */
-/* 			first->next= he->next; */
-/* 			free(he); */
-/* 		} */
-/* 		else first->eed= 0; */
-
-/* 		return; */
-/* 	} */
 
 
 	he=first= hashedgetab + EDHASH(eed->v1->hash, eed->v2->hash);
 
 	while(he) {
 		if(he->eed == eed) {
-			/* uit lijst verwijderen */
+			/* remove from list */
 			if(he==first) {
 				if(first->next) {
 					he= first->next;
@@ -366,35 +337,20 @@ void free_hashedgetab(void)
 {
 	struct HashEdge *he, *first, *hen;
 	int a;
-/* 	int test[30], nr, toted=0; */
-	
-	/* for(a=0; a<30; a++) test[a]=0; */
 	
 	if(hashedgetab) {
 	
 		first= hashedgetab;
 		for(a=0; a<EDHASHSIZE; a++, first++) {
 			he= first->next;
-			/* nr= 0; */
-			/* if(first->eed) toted++; */
-			/* if(first->eed) nr++; */
 			while(he) {
 				hen= he->next;
 				free(he);
 				he= hen;
-				/* nr++; */
 			}
-			/* if(nr>29) nr= 29; */
-			/* test[nr]++; */
 		}
 		MEM_freeN(hashedgetab);
 		hashedgetab= 0;
-
-		/* printf("toted %d\n", toted); */
-		/* toted= 0; */
-		/* for(a=0; a<30; a++) { */
-		/* 	printf("tab %d %d\n", a, test[a]); */
-		/* } */
 	}
 }
 
@@ -415,7 +371,7 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2)
 	if(v1==v2) return 0;
 	if(v1==0 || v2==0) return 0;
 	
-	/* opzoeken in hashlijst */
+	/* find in hashlist */
 	eed= findedgelist(v1, v2);
 	
 	if(eed==0) {
@@ -463,7 +419,7 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	EditEdge *e1, *e2=0, *e3=0, *e4=0;
 	
 
-	/* voeg vlak toe aan lijst en doe meteen de edges */
+	/* add face to list and do the edges */
 	e1= addedgelist(v1, v2);
 	if(v3) e2= addedgelist(v2, v3);
 	if(v4) e3= addedgelist(v3, v4); else e3= addedgelist(v3, v1);
@@ -689,9 +645,13 @@ static void edge_drawflags(void)
 	EditEdge *eed, *e1, *e2, *e3, *e4;
 	EditVlak *evl;
 	
-	/* - tel aantal keren in vlakken gebruikt: 0 en 1 is tekenen
-	 * - edges meer dan 1 keer: in *vn zit pointer naar (eerste) vlak
-	 * - loop alle vlakken af, is normaal te afwijkend: tekenen (flag wordt 1)
+	/* - count number of times edges are used in faces: 0 en 1 time means draw edge
+	 * - edges more than 1 time used: in *vn is pointer to first face
+	 * - check all faces, when normal differs to much: draw (flag becomes 1)
+	 */
+
+	/* later on: added flags for 'cylinder' and 'sphere' intersection tests in old
+	   game engine (2.04)
 	 */
 	
 	recalc_editnormals();
@@ -699,7 +659,7 @@ static void edge_drawflags(void)
 	/* init */
 	eve= G.edve.first;
 	while(eve) {
-		eve->f1= 1;		/* wordt bij test op nul gezet */
+		eve->f1= 1;		/* during test it's set at zero */
 		eve= eve->next;
 	}
 	eed= G.eded.first;
@@ -741,7 +701,7 @@ static void edge_drawflags(void)
 	}	
 	else {
 		
-		/* single-edges afvangen voor cylinder flag */
+		/* handle single-edges for 'test cylinder flag' (old engine) */
 		
 		eed= G.eded.first;
 		while(eed) {
@@ -749,7 +709,7 @@ static void edge_drawflags(void)
 			eed= eed->next;
 		}
 
-		/* alle vlakken, alle edges met flag==2: vergelijk normaal */
+		/* all faces, all edges with flag==2: compare normal */
 		evl= G.edvl.first;
 		while(evl) {
 			if(evl->e1->f==2) edge_normal_compare(evl->e1, evl);
@@ -773,7 +733,7 @@ static void edge_drawflags(void)
 	}
 }
 
-static int contrpuntnorm(float *n, float *puno)
+static int contrpuntnorm(float *n, float *puno)  /* dutch: check vertex normal */
 {
 	float inp;
 
@@ -792,7 +752,7 @@ void vertexnormals(int testflip)
 	EditVlak *evl;	
 	float n1[3], n2[3], n3[3], n4[3], co[4], fac1, fac2, fac3, fac4, *temp;
 	float *f1, *f2, *f3, *f4, xn, yn, zn;
-	float opp, len;
+	float len;
 	
 	if(G.obedit && G.obedit->type==OB_MESH) {
 		me= G.obedit->data;
@@ -802,7 +762,7 @@ void vertexnormals(int testflip)
 	if(G.totvert==0) return;
 
 	if(G.totface==0) {
-		/* namaak puno's voor halopuno! */
+		/* fake vertex normals for 'halo puno'! */
 		eve= G.edve.first;
 		while(eve) {
 			VECCOPY(eve->no, eve->co);
@@ -819,7 +779,7 @@ void vertexnormals(int testflip)
 		eve= eve->next;
 	}
 	
-	/* berekenen cos hoeken en oppervlakte en optellen bij puno */
+	/* calculate cosine angles and add to vertex normal */
 	evl= G.edvl.first;
 	while(evl) {
 		VecSubf(n1, evl->v2->co, evl->v1->co);
@@ -831,14 +791,9 @@ void vertexnormals(int testflip)
 			VecSubf(n3, evl->v1->co, evl->v3->co);
 			Normalise(n3);
 			
-			/* opp= AreaT3Dfl(evl->v1->co, evl->v2->co, evl->v3->co); */
-			/* if(opp!=0.0) opp=1.0/opp;  */
-			/* opp= sqrt(opp); */
-			/* for smooth subdivide...*/
-			opp= 1.0;
-			co[0]= opp*saacos(-n3[0]*n1[0]-n3[1]*n1[1]-n3[2]*n1[2]);
-			co[1]= opp*saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			co[2]= opp*saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+			co[0]= saacos(-n3[0]*n1[0]-n3[1]*n1[1]-n3[2]*n1[2]);
+			co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+			co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
 			
 		}
 		else {
@@ -847,15 +802,10 @@ void vertexnormals(int testflip)
 			Normalise(n3);
 			Normalise(n4);
 			
-			/* opp= AreaQ3Dfl(evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co); */
-			/* if(opp!=0.0) opp=1.0/opp;  */
-			/* opp= sqrt(opp); */
-			/* for smooth subdivide...*/
-			opp= 1.0;
-			co[0]= opp*saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
-			co[1]= opp*saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			co[2]= opp*saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-			co[3]= opp*saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
+			co[0]= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
+			co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+			co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+			co[3]= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
 		}
 		
 		temp= evl->v1->no;
@@ -887,7 +837,7 @@ void vertexnormals(int testflip)
 		evl= evl->next;
 	}
 
-	/* normaliseren puntnormalen */
+	/* normalise vertex normals */
 	eve= G.edve.first;
 	while(eve) {
 		len= Normalise(eve->no);
@@ -898,7 +848,7 @@ void vertexnormals(int testflip)
 		eve= eve->next;
 	}
 	
-	/* puntnormaal omklap-vlaggen voor bij shade */
+	/* vertex normal flip-flags for shade (render) */
 	evl= G.edvl.first;
 	while(evl) {
 		evl->f=0;			
@@ -928,7 +878,7 @@ void vertexnormals(int testflip)
 				}
 			}
 		}
-		/* proj voor cubemap! */
+		/* projection for cubemap! */
 		xn= fabs(evl->n[0]);
 		yn= fabs(evl->n[1]);
 		zn= fabs(evl->n[2]);
@@ -996,7 +946,7 @@ void make_editMesh(void)
 
 	if(G.obedit==0) return;
 
-	/* ivm reload */
+	/* because of reload */
 	free_editMesh();
 	
 	me= get_mesh(G.obedit);
@@ -1023,7 +973,7 @@ void make_editMesh(void)
 		tot= actkey->totelem;
 	}
 
-	/* editverts aanmaken */
+	/* make editverts */
 	mvert= me->mvert;
 
 	evlist= (EditVert **)MEM_mallocN(tot*sizeof(void *),"evlist");
@@ -1060,7 +1010,7 @@ void make_editMesh(void)
 	else {
 		unsigned int *mcol;
 		
-		/* edges en vlakken maken */
+		/* make edges and faces */
 		mface= me->mface;
 		tface= me->tface;
 		mcol= (unsigned int *)me->mcol;
@@ -1126,12 +1076,6 @@ static void fix_faceindices(MFace *mface, EditVlak *evl, int nr)
 	float tmpuv[2];
 	unsigned int tmpcol;
 
-/*
-mface =  ((MFace *) me->mface) + index;
-	tface =  ((TFace *) me->tface) + index;
-
-*/
-
 	/* first test if the face is legal */
 
 	if(mface->v3 && mface->v3==mface->v4) {
@@ -1150,7 +1094,7 @@ mface =  ((MFace *) me->mface) + index;
 		nr--;
 	}
 
-	/* voorkom dat een nul op de verkeerde plek staat */
+	/* prevent a zero index value at the wrong location */
 	if(nr==2) {
 		if(mface->v2==0) SWAP(int, mface->v1, mface->v2);
 	}
@@ -1248,7 +1192,7 @@ void load_editMesh(void)
 	
 	ototvert= me->totvert;
 	
-	/* zijn er keys? */
+	/* are there keys? */
 	if(me->key) {
 		actkey= me->key->block.first;
 		while(actkey) {
@@ -1259,7 +1203,7 @@ void load_editMesh(void)
 
 	
 	if(actkey && me->key->refkey!=actkey) {
-		/* aktieve key && niet de refkey: alleen vertices */
+		/* active key && not the refkey: only vertices */
 				
 		if(G.totvert) {
 			if(actkey->data) MEM_freeN(actkey->data);
@@ -1276,8 +1220,8 @@ void load_editMesh(void)
 		}
 	}
 	else if(me->key && actkey==0) {
-		/* er zijn keys, alleen veranderingen in mverts schrijven */
-		/* als aantal vertices verschillen, beetje onvoorspelbaar */
+		/* there are keys, only write changes in mverts */
+		/* a bit unpredictable when the amount of vertices differ */
 			
 		eve= G.edve.first;
 		mvert= me->mvert;
@@ -1288,15 +1232,15 @@ void load_editMesh(void)
 		}
 	}
 	else {
-		/* als er keys zijn: de refkey, anders gewoon de me */
+		/* when there are keys: the refkey, otherise the mesh */
 		
-		/* deze telt ook of edges niet in vlakken zitten: */
-		/* eed->f==0 niet in vlak, f==1 is tekenen */
-		/* eed->f1 : flag voor dynaface (cylindertest) */
-		/* eve->f1 : flag voor dynaface (sphere test) */
+		/* this one also tests of edges are not in faces: */
+		/* eed->f==0: not in face, f==1: draw it */
+		/* eed->f1 : flag for dynaface (cylindertest, old engine) */
+		/* eve->f1 : flag for dynaface (sphere test, old engine) */
 		edge_drawflags();
 	
-		/* LET OP: op evl->f de punoflag */
+		/* WATCH IT: in evl->f is punoflag (for vertex normal) */
 		vertexnormals( (me->flag & ME_NOPUNOFLIP)==0 );
 	
 		eed= G.eded.first;
@@ -1305,10 +1249,10 @@ void load_editMesh(void)
 			eed= eed->next;
 		}
 	
-		/* nieuw Face blok */
+		/* new Face block */
 		if(G.totface==0) mface= 0;
 		else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh1");
-		/* nieuw Vertex blok */
+		/* nieuw Vertex block */
 		if(G.totvert==0) mvert= 0;
 		else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh2");
 
@@ -1327,29 +1271,19 @@ void load_editMesh(void)
 		me->totvert= G.totvert;
 		me->totface= G.totface;
 		
-		/* de vertices, gebruik ->vn als teller */
+		/* the vertices, abuse ->vn as counter */
 		eve= G.edve.first;
 		a=0;
 
-
-
 		while(eve) {
 			VECCOPY(mvert->co, eve->co);
-			mvert->mat_nr= 255;  /* waarvoor ook al weer, haloos? */
+			mvert->mat_nr= 255;  /* what was this for, halos? */
 			
-			/* puno */
+			/* vertex normal */
 			VECCOPY(nor, eve->no);
 			VecMulf(nor, 32767.0);
 			VECCOPY(mvert->no, nor);
 #ifdef __NLA
-/*			OLD VERSION */
-/*			mvert->totweight = eve->totweight;
-			if (eve->dw){
-				int	cv;
-				mvert->dw = BLI_callocN (sizeof(MDeformWeight)*eve->totweight, "deformWeight");
-				memcpy (mvert->dw, eve->dw, sizeof(MDeformWeight)*eve->totweight);
-			}
-*/
 			/* NEW VERSION */
 			if (dvert){
 				dvert->totweight=eve->totweight;
@@ -1361,7 +1295,7 @@ void load_editMesh(void)
 			}
 #endif
 
-			eve->vn= (EditVert *)(long)(a++);  /* teller */
+			eve->vn= (EditVert *)(long)(a++);  /* counter */
 			
 			mvert->flag= 0;
 			if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
@@ -1381,7 +1315,7 @@ void load_editMesh(void)
 		}
 #endif
 
-		/* de vlakken */
+		/* the faces */
 		evl= G.edvl.first;
 		i = 0;
 		while(evl) {
@@ -1410,12 +1344,7 @@ void load_editMesh(void)
 				}
 			}
 			
-			/* dyna cilinder flag minder kritisch testen: 'dubbel' in vlakken laten zitten. 
-			 * gaat anders fout bij scherpe hoeken (inpspeed voor een wel, ander niet!)
-			 * Mogelijk oplossen door volgorde aan te passen: sphere-cyl-face. Kost te veel?
-			 */
-
-			/* letop: evl->e1->f==0 is losse edge */ 
+			/* watch: evl->e1->f==0 means loose edge */ 
 			
 			if(evl->e1->f==1) {
 				mface->edcode |= ME_V1V2; 
@@ -1439,7 +1368,7 @@ void load_editMesh(void)
 				evl->e4->f= 2;
 			}
 			
-			/* geen index '0' op plek 3 of 4 */
+			/* no index '0' at location 3 or 4 */
 			if(evl->v4) fix_faceindices(mface, evl, 4);
 			else fix_faceindices(mface, evl, 3);
 			
@@ -1447,7 +1376,7 @@ void load_editMesh(void)
 			evl= evl->next;
 		}
 		
-		/* losse edges als vlak toevoegen */
+		/* add loose edges as a face */
 		eed= G.eded.first;
 		while(eed) {
 			if( eed->f==0 ) {
@@ -1464,7 +1393,7 @@ void load_editMesh(void)
 		tex_space_mesh(me);
 		if(actkey) mesh_to_key(me, actkey);
 		
-		/* texmesh: ahv ->tface alles opnieuw maken */
+		/* texmesh: using ->tface remake all */
 		if(me->tface && me->totface) {
 			TFace *tfn, *tf;
 			
@@ -1498,7 +1427,7 @@ void load_editMesh(void)
 			/* me->tface= 0; */
 		}
 		
-		/* mcol: ahv indexnrs opnieuw maken */
+		/* mcol: using index numbers make again */
 		if(me->mcol && me->totface) {
 			unsigned int *mcn, *mc;
 			
@@ -1523,14 +1452,14 @@ void load_editMesh(void)
 	
 	if(actkey) do_spec_key(me->key);
 	
-	/* voor zekerheid: ->vn pointers wissen */
+	/* te be sure: clear ->vn pointers */
 	eve= G.edve.first;
 	while(eve) {
 		eve->vn= 0;
 		eve= eve->next;
 	}
 
-	/* displisten van alle users, ook deze */
+	/* displists of all users, including this one */
 	freedisplist(&me->disp);
 	freedisplist(&G.obedit->disp);
 	
@@ -1589,7 +1518,7 @@ void make_sticky(void)
 				if(me->msticky) MEM_freeN(me->msticky);
 				me->msticky= MEM_mallocN(me->totvert*sizeof(MSticky), "sticky");
 				
-				/* stukje roteerscene */		
+				/* like convert to render data */		
 				R.r= G.scene->r;
 				R.r.xsch= (R.r.size*R.r.xsch)/100;
 				R.r.ysch= (R.r.size*R.r.ysch)/100;
@@ -1640,7 +1569,7 @@ void fasterdraw(void)
 
 	if(G.obedit) return;
 
-	/* vlaggen resetten */
+	/* reset flags */
 	me= G.main->mesh.first;
 	while(me) {
 		me->flag &= ~ME_ISDONE;
@@ -1678,7 +1607,7 @@ void fasterdraw(void)
 		base= base->next;
 	}
 
-	/* belangrijk?: vlaggen weer resetten */
+	/* important?: reset flags again */
 	me= G.main->mesh.first;
 	while(me) {
 		me->flag &= ~ME_ISDONE;
@@ -1781,25 +1710,25 @@ void deselectall_mesh(void)	/* toggle */
 }
 
 
-void righthandfaces(int select)	/* maakt vlakken rechtsdraaiend */
+void righthandfaces(int select)	/* makes faces righthand turning */
 {
 	EditEdge *eed, *ed1, *ed2, *ed3, *ed4;
 	EditVlak *evl, *startvl;
 	float maxx, nor[3], cent[3];
 	int totsel, found, foundone, direct, turn;
 
-   /* op basis selectconnected om losse objecten te onderscheiden */
+   /* based at a select-connected to witness loose objects */
 
-	/* tel per edge hoeveel vlakken het heeft */
+	/* count per edge the amount of faces */
 
-	/* vind het meest linkse, voorste, bovenste vlak */
+	/* find the ultimate left, front, upper face */
 
-	/* zet normaal naar buiten en de eerste richtings vlaggen in de edges */
+	/* put normal to the outside, and set the first direction flags in edges */
 
-	/* loop object af en zet richtingen / richtingsvlaggen: alleen bij edges van 1 of 2 vlakken */
-	/* dit is in feit de select connected */
-
-	/* indien nog (selected) vlakken niet gedaan: opnieuw vind de meest linkse ... */
+	/* then check the object, and set directions / direction-flags: but only for edges with 1 or 2 faces */
+	/* this is in fact the 'select connected' */
+	
+	/* in case (selected) faces were not done: start over with 'find the ultimate ...' */
 
 	waitcursor(1);
 
@@ -1810,7 +1739,7 @@ void righthandfaces(int select)	/* maakt vlakken rechtsdraaiend */
 		eed= eed->next;
 	}
 
-	/* vlakken en edges tellen */
+	/* count faces and edges */
 	totsel= 0;
 	evl= G.edvl.first;
 	while(evl) {
@@ -1828,7 +1757,7 @@ void righthandfaces(int select)	/* maakt vlakken rechtsdraaiend */
 	}
 
 	while(totsel>0) {
-		/* van buiten naar binnen */
+		/* from the outside to the inside */
 
 		evl= G.edvl.first;
 		startvl= 0;
@@ -1847,11 +1776,11 @@ void righthandfaces(int select)	/* maakt vlakken rechtsdraaiend */
 			evl= evl->next;
 		}
 		
-		/* eerste vlak goedzetten: normaal berekenen */
+		/* set first face correct: calc normal */
 		CalcNormFloat(startvl->v1->co, startvl->v2->co, startvl->v3->co, nor);
 		CalcCent3f(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
 		
-		/* eerste normaal staat zus of zo */
+		/* first normal is oriented this way or the other */
 		if(select) {
 			if(select==2) {
 				if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] > 0.0) flipvlak(startvl);
@@ -1884,7 +1813,7 @@ void righthandfaces(int select)	/* maakt vlakken rechtsdraaiend */
 		startvl->f= 0;
 		totsel--;
 
-		/* de normalen testen */
+		/* test normals */
 		found= 1;
 		direct= 1;
 		while(found) {
@@ -1972,18 +1901,18 @@ void righthandfaces(int select)	/* maakt vlakken rechtsdraaiend */
 
 static EditVert *findnearestvert(short sel)
 {
-	/* als sel==1 krijgen vertices met flag==1 een nadeel */
+	/* if sel==1 the vertices with flag==1 get a disadvantage */
 	EditVert *eve,*act=0;
 	static EditVert *acto=0;
 	short dist=100,temp,mval[2];
 
 	if(G.edve.first==0) return 0;
 
-	/* projektie doen */
+	/* do projection */
 	calc_meshverts_ext();	/* drawobject.c */
 	
-	/* er wordt geteld van acto->next tot last en van first tot acto */
-	/* bestaat acto ? */
+	/* we count from acto->next to last, and from first to acto */
+	/* does acto exist? */
 	eve= G.edve.first;
 	while(eve) {
 		if(eve==acto) break;
@@ -1993,7 +1922,7 @@ static EditVert *findnearestvert(short sel)
 
 	if(acto==0) return 0;
 
-	/* is er een aangegeven vertex? deel 1 */
+	/* is there an indicated vertex? part 1 */
 	getmouseco_areawin(mval);
 	eve= acto->next;
 	while(eve) {
@@ -2008,7 +1937,7 @@ static EditVert *findnearestvert(short sel)
 		}
 		eve= eve->next;
 	}
-	/* is er een aangegeven vertex? deel 2 */
+	/* is there an indicated vertex? part 2 */
 	if(dist>3) {
 		eve= G.edve.first;
 		while(eve) {
@@ -2030,11 +1959,11 @@ static EditVert *findnearestvert(short sel)
 	return act;
 }
 
-static void tekenvertices_special(int mode, EditVert *act)
+static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 {
-	/* voor speciale gevallen:
-	 * mode 0: deselect geselecteerde, teken ze,  behalve act
-	 * mode 1: teken alleen act
+	/* for special cases:
+	 * mode 0: deselect the selected ones, draw then, except act
+	 * mode 1: only draw act
 	 */
 	ScrArea *tempsa, *sa;
 	View3D *vd;
@@ -2042,7 +1971,7 @@ static void tekenvertices_special(int mode, EditVert *act)
 	float mat[4][4];
 	int doit=0;
 	
-	/* eerst testen of er wel special vertices zijn */
+	/* first test if there are special vertices */
 	
 	eve= (EditVert *)G.edve.first;
 	while(eve) {
@@ -2073,7 +2002,7 @@ static void tekenvertices_special(int mode, EditVert *act)
 	
 	glDrawBuffer(GL_FRONT);
 
-	/* alle views aflopen */
+	/* check all views */
 	tempsa= curarea;
 	sa= G.curscreen->areabase.first;
 	while(sa) {
@@ -2187,7 +2116,7 @@ void selectconnected_mesh(void)
 		return;
 	}
 
-	/* testflaggen wissen */
+	/* clear test flags */
 	eve= G.edve.first;
 	while(eve) {
 		eve->f&= ~2;
@@ -2229,9 +2158,9 @@ void selectconnected_mesh(void)
 
 short extrudeflag(short flag,short type)
 {
-	/* als type=1 worden oude extrudevlakken verwijderd (ivm spin etc) */
-	/* alle verts met (flag & 'flag') extrude */
-	/* van oude wordt flag 'flag' gewist, van nieuwe gezet */
+	/* when type=1 old extrusion faces are removed (for spin etc) */
+	/* all verts with (flag & 'flag'): extrude */
+	/* from old verts, 'flag' is cleared, in new ones it is set */
 
 	EditVert *eve, *v1, *v2, *v3, *v4, *nextve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
@@ -2240,14 +2169,14 @@ short extrudeflag(short flag,short type)
 
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
 
-	/* de vert flag f1 wissen, hiermee test op losse geselecteerde vert */
+	/* clear vert flag f1, we use this to detext a loose selected vertice */
 	eve= G.edve.first;
 	while(eve) {
 		if(eve->f & flag) eve->f1= 1;
 		else eve->f1= 0;
 		eve= eve->next;
 	}
-	/* de edges tellerflag wissen, als selected op 1 zetten */
+	/* clear edges counter flag, if selected we set it at 1 */
 	eed= G.eded.first;
 	while(eed) {
 		if( (eed->v1->f & flag) && (eed->v2->f & flag) ) {
@@ -2257,13 +2186,12 @@ short extrudeflag(short flag,short type)
 		}
 		else eed->f= 0;
 		
-		eed->f1= 1;		/* aangeven is 'oude' edge (er worden in deze routine nieuwe gemaakt */
+		eed->f1= 1;		/* this indicates it is an 'old' edge (in this routine we make new ones) */
 		
 		eed= eed->next;
 	}
 
-
-	/* in alle vlak sel een dupl.flag zetten en bijhorende edgeflags ophogen */
+	/* we set a flag in all selected faces, and increase the associated edge counters */
 
 	evl= G.edvl.first;
 	while(evl) {
@@ -2321,27 +2249,26 @@ short extrudeflag(short flag,short type)
 	}	
 
 
-	/* de stand van zaken nu:
-		eve->f1==1: losse selected vertex 
+	/* the current state now is:
+		eve->f1==1: loose selected vertex 
 
-		eed->f==0 : edge niet selected, geen extrude
-		eed->f==1 : edge selected, komt niet in vlak voor, extrude
-		eed->f==2 : edge selected, komt 1 keer in vlak voor, extrude
-		eed->f==3 : edge selected, komt in meer vlakken voor, geen extrude
+		eed->f==0 : edge is not selected, no extrude
+		eed->f==1 : edge selected, is not part of a face, extrude
+		eed->f==2 : edge selected, is part of 1 face, extrude
+		eed->f==3 : edge selected, is part of more faces, no extrude
 		
-		eed->f1==0: nieuwe edge
-		eed->f1==1: edge selected,  komt in selected vlak voor,  als f==3: remove
-		eed->f1==2: edge selected, komt in NIET selected vlak voor
+		eed->f1==0: new edge
+		eed->f1==1: edge selected, is part of selected face, when eed->f==3: remove
+		eed->f1==2: edge selected, is not part of a selected face
 					
-					
-		evl->f==1 : vlak dupliceren
+		evl->f==1 : duplicate this face
 	*/
 
-	/* alle geselecteerde vertices kopieeren, */
-	/* de pointer naar nieuwe vert in oude struct schrijven op eve->vn */
+	/* copy all selected vertices, */
+	/* write pointer to new vert in old struct at eve->vn */
 	eve= G.edve.last;
 	while(eve) {
-		eve->f&= ~128;  /* wissen voor test later op losse verts */
+		eve->f&= ~128;  /* clear, for later test for loose verts */
 		if(eve->f & flag) {
 			sel= 1;
 			v1= addvertlist(0);
@@ -2357,13 +2284,13 @@ short extrudeflag(short flag,short type)
 
 	if(sel==0) return 0;
 
-	/* alle edges met eed->f==1 of eed->f==2 worden vlakken */
-	/* als deloud==1 worden edges eed->f>2 verwijderd */
+	/* all edges with eed->f==1 or eed->f==2 become faces */
+	/* if deloud==1 then edges with eed->f>2 are removed */
 	eed= G.eded.last;
 	while(eed) {
 		nexted= eed->prev;
 		if( eed->f<3) {
-			eed->v1->f|=128;  /* =geen losse vert! */
+			eed->v1->f|=128;  /* = no loose vert! */
 			eed->v2->f|=128;
 		}
 		if( (eed->f==1 || eed->f==2) ) {
@@ -2388,7 +2315,7 @@ short extrudeflag(short flag,short type)
 			eed= nexted;
 		}
 	}
-	/* de vlakken dupliceren, eventueel oude verwijderen  */
+	/* duplicate faces, if necessart remove old ones  */
 	evl= G.edvl.first;
 	while(evl) {
 		nextvl= evl->next;
@@ -2409,9 +2336,9 @@ short extrudeflag(short flag,short type)
 		}
 		evl= nextvl;
 	}
-	/* alle verts met eve->vn!=0 
-		als eve->f1==1: edge maken
-		als flag!=128 :als deloud==1:  verwijderen
+	/* for all vertices with eve->vn!=0 
+		if eve->f1==1: make edge
+		if flag!=128 : if deloud==1: remove
 	*/
 	eve= G.edve.last;
 	while(eve) {
@@ -2432,26 +2359,12 @@ short extrudeflag(short flag,short type)
 		eve= nextve;
 	}
 
-	/* debug temp: testen op consistente:
-	evl= G.edvl.first;
-	while(evl) {
-		e1= findedgelist(evl->v1, evl->v2);
-		e2= findedgelist(evl->v2, evl->v3);
-		e3= findedgelist(evl->v3, evl->v1);
-		if(e1==0 || e2==0 || e3==0) {
-			error("edge not in edgelist");
-			break;
-		} 
-		evl= evl->next;
-	}
-	*/
-
 	return 1;
 }
 
 void rotateflag(short flag, float *cent, float rotmat[][3])
 {
-	/* alle verts met (flag & 'flag') rotate */
+	/* all verts with (flag & 'flag') rotate */
 
 	EditVert *eve;
 
@@ -2472,7 +2385,7 @@ void rotateflag(short flag, float *cent, float rotmat[][3])
 
 void translateflag(short flag, float *vec)
 {
-	/* alle verts met (flag & 'flag') translate */
+	/* all verts with (flag & 'flag') translate */
 
 	EditVert *eve;
 
@@ -2487,9 +2400,9 @@ void translateflag(short flag, float *vec)
 	}
 }
 
-short removedoublesflag(short flag, float limit)		/* return aantal */
+short removedoublesflag(short flag, float limit)		/* return amount */
 {
-	/* alle verts met (flag & 'flag') worden getest */
+	/* all verts with (flag & 'flag') are being evaluated */
 	EditVert *eve, *v1, *nextve;
 	EditEdge *eed, *e1, *nexted;
 	EditVlak *evl, *nextvl;
@@ -2498,7 +2411,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 	float dist;
 	int a, b, test, aantal;
 
-	/* flag 128 wordt gewist, aantal tellen */
+	/* flag 128 is cleared, count */
 	eve= G.edve.first;
 	aantal= 0;
 	while(eve) {
@@ -2508,7 +2421,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 	}
 	if(aantal==0) return 0;
 
-	/* geheugen reserveren en qsorten */
+	/* allocate memory and qsort */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
 	eve= G.edve.first;
 	while(eve) {
@@ -2521,18 +2434,18 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 	}
 	qsort(sortblock, aantal, sizeof(struct xvertsort), vergxco);
 
-	/* testen op doubles */
+	/* test for doubles */
 	sb= sortblock;
 	for(a=0; a<aantal; a++) {
 		eve= sb->v1;
 		if( (eve->f & 128)==0 ) {
 			sb1= sb+1;
 			for(b=a+1; b<aantal; b++) {
-				/* eerste test: simpel dist */
+				/* first test: simpel dist */
 				dist= sb1->x - sb->x;
 				if(dist > limit) break;
 				
-				/* tweede test: is vertex toegestaan */
+				/* second test: is vertex allowed */
 				v1= sb1->v1;
 				if( (v1->f & 128)==0 ) {
 					
@@ -2555,7 +2468,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 	}
 	MEM_freeN(sortblock);
 
-	/* edges testen en opnieuw invoegen */
+	/* test edges and insert again */
 	eed= G.eded.first;
 	while(eed) {
 		eed->f= 0;
@@ -2581,7 +2494,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 		eed= nexted;
 	}
 
-	/* eerst aantal testvlakken tellen */
+	/* first count amount of test faces */
 	evl= (struct EditVlak *)G.edvl.first;
 	aantal= 0;
 	while(evl) {
@@ -2595,7 +2508,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 		evl= evl->next;
 	}
 
-	/* vlakken testen op dubbele punten en eventueel verwijderen */
+	/* test faces for double vertices, and if needed remove them */
 	evl= (struct EditVlak *)G.edvl.first;
 	while(evl) {
 		nextvl= evl->next;
@@ -2640,7 +2553,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 			}
 			
 			if(test==0) {
-				/* edgepointers goedzetten */
+				/* set edge pointers */
 				evl->e1= findedgelist(evl->v1, evl->v2);
 				evl->e2= findedgelist(evl->v2, evl->v3);
 				if(evl->v4==0) {
@@ -2656,8 +2569,8 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 		evl= nextvl;
 	}
 
-	/* dubbele vlakken: sortblock */
-	/* opnieuw tellen, nu alle selected vlakken */
+	/* double faces: sort block */
+	/* count again, now all selected faces */
 	aantal= 0;
 	evl= G.edvl.first;
 	while(evl) {
@@ -2670,7 +2583,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 	}
 
 	if(aantal) {
-		/* dubbele vlakken: sortblock */
+		/* double faces: sort block */
 		vsb= vlsortblock= MEM_mallocN(sizeof(struct vlaksort)*aantal, "sortremovedoub");
 		evl= G.edvl.first;
 		while(evl) {
@@ -2694,10 +2607,10 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 
 				for(b=a+1; b<aantal; b++) {
 				
-					/* eerste test: zelfde poin? */
+					/* first test: same pointer? */
 					if(vsb->x != vsb1->x) break;
 					
-					/* tweede test: is test toegestaan */
+					/* second test: is test permitted? */
 					evl= vsb1->evl;
 					if( (evl->f & 128)==0 ) {
 						if( comparevlak(evl, vsb->evl)) evl->f |= 128;
@@ -2711,7 +2624,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 		
 		MEM_freeN(vlsortblock);
 		
-		/* dubbele vlakken eruit */
+		/* remove double faces */
 		evl= (struct EditVlak *)G.edvl.first;
 		while(evl) {
 			nextvl= evl->next;
@@ -2723,7 +2636,7 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 		}
 	}
 	
-	/* dubbele vertices eruit */
+	/* remove double vertices */
 	a= 0;
 	eve= (struct EditVert *)G.edve.first;
 	while(eve) {
@@ -2739,19 +2652,18 @@ short removedoublesflag(short flag, float limit)		/* return aantal */
 		}
 		eve= nextve;
 	}
-	return a;	/* aantal */
+	return a;	/* amount */
 }
 
 void xsortvert_flag(int flag)
-//short flag;
 {
-	/* alle verts met (flag & 'flag') worden gesorteerd */
+	/* all verts with (flag & 'flag') are sorted */
 	EditVert *eve;
 	struct xvertsort *sortblock, *sb;
 	ListBase tbase;
 	int aantal;
 	
-	/* aantal tellen */
+	/* count */
 	eve= G.edve.first;
 	aantal= 0;
 	while(eve) {
@@ -2760,7 +2672,7 @@ void xsortvert_flag(int flag)
 	}
 	if(aantal==0) return;
 
-	/* geheugen reserveren en qsorten */
+	/* allocate memory and sort */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
 	eve= G.edve.first;
 	while(eve) {
@@ -2773,7 +2685,7 @@ void xsortvert_flag(int flag)
 	}
 	qsort(sortblock, aantal, sizeof(struct xvertsort), vergxco);
 	
-	/* tijdelijke listbase maken */
+	/* make temporal listbase */
 	tbase.first= tbase.last= 0;
 	sb= sortblock;
 	while(aantal--) {
@@ -2791,12 +2703,13 @@ void xsortvert_flag(int flag)
 
 void hashvert_flag(int flag)
 {
+	/* switch vertex order using hash table */
 	EditVert *eve;
 	struct xvertsort *sortblock, *sb, onth, *newsort;
 	ListBase tbase;
 	int aantal, a, b;
 	
-	/* aantal tellen */
+	/* count */
 	eve= G.edve.first;
 	aantal= 0;
 	while(eve) {
@@ -2805,7 +2718,7 @@ void hashvert_flag(int flag)
 	}
 	if(aantal==0) return;
 
-	/* geheugen reserveren */
+	/* allocate memory */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
 	eve= G.edve.first;
 	while(eve) {
@@ -2829,7 +2742,7 @@ void hashvert_flag(int flag)
 		}
 	}
 
-	/* tijdelijke listbase maken */
+	/* make temporal listbase */
 	tbase.first= tbase.last= 0;
 	sb= sortblock;
 	while(aantal--) {
@@ -2877,7 +2790,7 @@ static void uv_quart(float *uv, float *uv1)
 
 static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4)
 {
-	/* deze vreemde fie alleen bij de subdiv te gebruiken, de 'w' in de naam slaat nergens op! */
+	/* this weird function only to be used for subdivide, the 'w' in the name has no meaning! */
 	float *uv, uvo[4][2];
 	unsigned int *col, colo[4], col1, col2;
 	int a, v;
@@ -3054,8 +2967,9 @@ static void smooth_subdiv_quad(EditVlak *evl, float *vec)
 
 void subdivideflag(int flag, float rad, int beauty)
 {
-	/* divide alle vlakken met (vertflag & flag) */
-	/* als rad>0.0 zet dan nieuw vert op afstand rad van 0,0,0 */
+	/* subdivide all with (vertflag & flag) */
+	/* if rad>0.0 it's a 'sphere' subdivide */
+	/* if rad<0.0 it's a fractal subdivide */
 	extern float doublimit;
 	EditVert *eve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
@@ -3081,14 +2995,14 @@ void subdivideflag(int flag, float rad, int beauty)
 		eed= eed->next;
 	}
 	
-	/* als beauty: opp testen en edgeflags wissen van 'lelijke' edges */
+	/* if beauty: test for area and clear edge flags of 'ugly' edges */
 	if(beauty & B_BEAUTY) {
 		evl= G.edvl.first;
 		while(evl) {
 			if( vlakselectedAND(evl, flag) ) {
 				if(evl->v4) {
 				
-					/* opp */
+					/* area */
 					len1= AreaQ3Dfl(evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
 					if(len1 <= doublimit) {
 						evl->e1->f = 0;
@@ -3112,7 +3026,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				}
 				else {
 
-					/* opp */
+					/* area */
 					len1= AreaT3Dfl(evl->v1->co, evl->v2->co, evl->v3->co);
 					if(len1 <= doublimit) {
 						evl->e1->f = 0;
@@ -3147,7 +3061,7 @@ void subdivideflag(int flag, float rad, int beauty)
 			
 	}
 	
-	/* nieuw punt maken en in edge wegschrijven, flag wissen! is voor vlakkenmaak stuk nodig */
+	/* make new normal and put in edge, clear flag! needed for face creation part below */
 	eed= G.eded.first;
 	while(eed) {
 		if(eed->f & flag) {
@@ -3156,13 +3070,13 @@ void subdivideflag(int flag, float rad, int beauty)
 			vec[1]= (eed->v1->co[1]+eed->v2->co[1])/2.0;
 			vec[2]= (eed->v1->co[2]+eed->v2->co[2])/2.0;
 
-			if(rad > 0.0) {   /* perf sph */
+			if(rad > 0.0) {   /* subdivide sphere */
 				Normalise(vec);
 				vec[0]*= rad;
 				vec[1]*= rad;
 				vec[2]*= rad;
 			}
-			else if(rad< 0.0) {  /* fract */
+			else if(rad< 0.0) {  /* fractal subdivide */
 				fac= rad* VecLenf(eed->v1->co, eed->v2->co);
 				vec1[0]= fac*BLI_drand();
 				vec1[1]= fac*BLI_drand();
@@ -3181,12 +3095,12 @@ void subdivideflag(int flag, float rad, int beauty)
 		}
 		else eed->vn= 0;
 		
-		eed->f= 0; /* moet! */
+		eed->f= 0; /* needed! */
 		
 		eed= eed->next;
 	}
 
-	/* alle vlakken testen op subdiv edges, 8 of 16 gevallen! */
+	/* test all faces for subdivide edges, there are 8 or 16 cases (ugh)! */
 
 	evl= G.edvl.last;
 	while(evl) {
@@ -3220,7 +3134,7 @@ void subdivideflag(int flag, float rad, int beauty)
 					if((test & 6)==6) addvlak_subdiv(evl, 3, 3+4, 2+4, 0, 0);
 					if((test & 5)==5) addvlak_subdiv(evl, 1, 1+4, 3+4, 0, 0);
 
-					if(test==7) {  /* vier nieuwe vlakken, oude vernieuwt */
+					if(test==7) {  /* four new faces, old face renews */
 						evl->v1= e1->vn;
 						evl->v2= e2->vn;
 						evl->v3= e3->vn;
@@ -3263,7 +3177,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				}
 				else {
 					if(test==15) {
-						/* nog een nieuw punt toevoegen */
+						/* add a new point */
 						CalcCent4f(vec, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);
 						
 						if(beauty & B_SMOOTH) {
@@ -3283,7 +3197,6 @@ void subdivideflag(int flag, float rad, int beauty)
 						set_wuv(4, evl, 1, 1+4, 9, 4+4);
 					}
 					else {
-						/* kleine hoekpunten */
 						if((test & 3)==3) addvlak_subdiv(evl, 1+4, 2, 2+4, 0, 0);
 						if((test & 6)==6) addvlak_subdiv(evl, 2+4, 3, 3+4, 0, 0);
 						if((test & 12)==12) addvlak_subdiv(evl, 3+4, 4, 4+4, 0, 0);
@@ -3405,12 +3318,12 @@ void subdivideflag(int flag, float rad, int beauty)
 		evl= evl->prev;
 	}
 
-	/* alle oude edges verwijderen, eventueel nog nieuwe maken */
+	/* remove all old edges, if needed make new ones */
 	eed= G.eded.first;
 	while(eed) {
 		nexted= eed->next;
 		if( eed->vn ) {
-			if(eed->f==0) {  /* niet gebruikt in vlak */
+			if(eed->f==0) {  /* not used in face */
 				addedgelist(eed->v1,eed->vn);
 				addedgelist(eed->vn,eed->v2);
 			}
@@ -3426,13 +3339,13 @@ void subdivideflag(int flag, float rad, int beauty)
 
 void adduplicateflag(int flag)
 {
-	/* oude verts hebben flag 128 gezet en flag 'flag' gewist
-	   nieuwe verts hebben flag 'flag' gezet */
+	/* old verts have flag 128 set, and flag 'flag' cleared
+	   new verts have flag 'flag' set */
 	EditVert *eve, *v1, *v2, *v3, *v4;
 	EditEdge *eed;
 	EditVlak *evl;
 
-	/* eerst vertices */
+	/* vertices first */
 	eve= G.edve.last;
 	while(eve) {
 		eve->f&= ~128;
@@ -3465,7 +3378,7 @@ void adduplicateflag(int flag)
 		eed= eed->next;
 	}
 
-	/* tenslotte de vlakken dupliceren */
+	/* then dupicate faces */
 	evl= G.edvl.first;
 	while(evl) {
 		if( (evl->v1->f & 128) && (evl->v2->f & 128) && (evl->v3->f & 128) ) {
@@ -3491,8 +3404,8 @@ void adduplicateflag(int flag)
 
 static void delvlakflag(int flag)
 {
-	/* alle vlak 3/4 verts flag + edges + losse vertices deleten */
-	/* van alle verts wordt 'flag' gewist */
+	/* delete all faces with 'flag', including edges and loose vertices */
+	/* in vertices the 'flag' is cleared */
 	EditVert *eve,*nextve;
 	EditEdge *eed, *nexted;
 	EditVlak *evl,*nextvl;
@@ -3520,7 +3433,7 @@ static void delvlakflag(int flag)
 		}
 		evl= nextvl;
 	}
-	/* alle vlakken 1, 2 (3) verts select edges behouden */
+	/* all faces with 1, 2 (3) vertices selected: make sure we keep the edges */
 	evl= G.edvl.first;
 	while(evl) {
 		evl->e1->f= 0;
@@ -3533,7 +3446,7 @@ static void delvlakflag(int flag)
 		evl= evl->next;
 	}
 	
-	/* alle edges testen op vertices met flag en wissen */
+	/* test all edges for vertices with 'flag', and clear */
 	eed= G.eded.first;
 	while(eed) {
 		nexted= eed->next;
@@ -3547,7 +3460,7 @@ static void delvlakflag(int flag)
 		}
 		eed= nexted;
 	}
-	/* vertices met flag nog gezet zijn losse en worden verwijderd */
+	/* vertices with 'flag' now are the loose ones, and will be removed */
 	eve= G.edve.first;
 	while(eve) {
 		nextve= eve->next;
@@ -3577,7 +3490,7 @@ void extrude_mesh(void)
 		error("Can't extrude");
 	}
 	else {
-		countall();  /* voor G.totvert in calc_meshverts() */
+		countall();  /* for G.totvert in calc_meshverts() */
 		calc_meshverts();
 		transform('d');
 	}
@@ -3593,7 +3506,7 @@ void adduplicate_mesh(void)
 	adduplicateflag(1);
 	waitcursor(0);
 
-	countall();  /* voor G.totvert in calc_meshverts() */
+	countall();  /* for G.totvert in calc_meshverts() */
 	transform('d');
 }
 
@@ -3606,9 +3519,9 @@ void split_mesh(void)
 
 	waitcursor(1);
 
-	/* eerst duplicate maken */
+	/* make duplicate first */
 	adduplicateflag(1);
-	/* oude vlakken hebben 3x flag 128 gezet, deze deleten */
+	/* old faces have 3x flag 128 set, delete them */
 	delvlakflag(128);
 
 	waitcursor(0);
@@ -3642,15 +3555,15 @@ void separate_mesh(void)
 		return;
 	}
 	
-	/* we gaan de zaak als volgt neppen:
-	 * 1. duplicate object: dit wordt de nieuwe,  oude pointer onthouden
-	 * 2: split doen als modig.
-	 * 3. alle NIET geselecteerde verts, edges, vlakken apart zetten
-	 * 4. loadobeditdata(): dit is de nieuwe ob
+	/* we are going to abuse the system as follows:
+	 * 1. add a duplicate object: this will be the new one, we remember old pointer
+	 * 2: then do a split if needed.
+	 * 3. put apart: all NOT selected verts, edges, faces
+	 * 4. call loadobeditdata(): this will be the new object
 	 * 5. freelist en oude verts, eds, vlakken weer terughalen
 	 */
 	
-	/* alleen obedit geselecteerd */
+	/* make only obedit selected */
 	base= FIRSTBASE;
 	while(base) {
 		if(base->lay & G.vd->lay) {
@@ -3660,7 +3573,7 @@ void separate_mesh(void)
 		base= base->next;
 	}
 	
-	/* testen of split */
+	/* testen for split */
 	ok= 0;
 	eed= G.eded.first;
 	while(eed) {
@@ -3672,13 +3585,13 @@ void separate_mesh(void)
 		eed= eed->next;
 	}
 	if(ok) {
-		/* SPLIT: eerst duplicate maken */
+		/* SPLIT: first make duplicate */
 		adduplicateflag(1);
-		/* SPLIT: oude vlakken hebben 3x flag 128 gezet, deze deleten */
+		/* SPLIT: old faces have 3x flag 128 set, delete these ones */
 		delvlakflag(128);
 	}
 	
-	/* apart zetten: alles wat maar enigszins NIET select is */
+	/* set apart: everything that is not selected */
 	edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
 	eve= G.edve.first;
 	while(eve) {
@@ -3713,15 +3626,15 @@ void separate_mesh(void)
 	
 	trans[0]=trans[1]=trans[2]=trans[3]=trans[4]=trans[5]= 0.0;
 	trans[6]=trans[7]=trans[8]= 1.0;
-	G.qual |= LR_ALTKEY;	/* patch om zeker te zijn van gelinkte dupli */
+	G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
 	adduplicate(trans);
 	G.qual &= ~LR_ALTKEY;
 	
-	G.obedit= BASACT->object;	/* basact wordt in adduplicate() gezet */
+	G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
 
 	men= copy_mesh(me);
 	set_mesh(G.obedit, men);
-	/* omdat nieuwe mesh een kopie is: aantal users verlagen */
+	/* because new mesh is a copy: reduce user count */
 	men->id.us--;
 	
 	load_editMesh();
@@ -3758,7 +3671,6 @@ void separate_mesh(void)
 void extrude_repeat_mesh(int steps, float offs)
 {
 	float dvec[3], tmat[3][3], bmat[3][3];
-/* 	float phi; */
 	short a,ok;
 
 	TEST_EDITMESH
@@ -3773,10 +3685,8 @@ void extrude_repeat_mesh(int steps, float offs)
 	dvec[1]*= offs;
 	dvec[2]*= offs;
 
-	/* base correctie */
+	/* base correction */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
-	/* phi= ((struct ObData *)G.obedit->d)->vv->ws; */
-	/* Mat3MulFloat(bmat, phi); */
 	Mat3Inv(tmat, bmat);
 	Mat3MulVecfl(tmat, dvec);
 
@@ -3807,7 +3717,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	
 	waitcursor(1);
 
-	/* imat en centrum en afmeting */
+	/* imat and centre and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
 	Mat3Inv(imat,bmat);
 
@@ -3861,7 +3771,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 
 	waitcursor(0);
 	if(ok==0) {
-		/* geen of alleen losse verts select, dups verwijderen */
+		/* no vertices or only loose ones selected, remove duplicates */
 		eve= G.edve.first;
 		while(eve) {
 			nextve= eve->next;
@@ -3887,31 +3797,31 @@ void screw_mesh(int steps,int turns)
 
 	TEST_EDITMESH
 
-	/* eerste voorwaarde: frontview! */
+	/* first condition: we need frontview! */
 	if(G.vd->view!=1) {
 		error("Only in frontview!");
 		return;
 	}
 
-	/* flags wissen */
+	/* clear flags */
 	eve= G.edve.first;
 	while(eve) {
 		eve->f1= 0;
 		eve= eve->next;
 	}
-	/* edges zetten flags in verts */
+	/* edges set flags in verts */
 	eed= G.eded.first;
 	while(eed) {
 		if(eed->v1->f & 1) {
 			if(eed->v2->f & 1) {
-				/* oppassen f1 is een byte */
+				/* watch: f1 is a byte */
 				if(eed->v1->f1<2) eed->v1->f1++;
 				if(eed->v2->f1<2) eed->v2->f1++;
 			}
 		}
 		eed= eed->next;
 	}
-	/* vind twee vertices met eve->f1==1, meer of minder is fout */
+	/* find two vertices with eve->f1==1, more or less is wrong */
 	eve= G.edve.first;
 	while(eve) {
 		if(eve->f1==1) {
@@ -3929,7 +3839,7 @@ void screw_mesh(int steps,int turns)
 		return;
 	}
 
-	/* bereken dvec */
+	/* calculate dvec */
 	dvec[0]= ( (v1->co[0]- v2->co[0]) )/(steps);
 	dvec[1]= ( (v1->co[1]- v2->co[1]) )/(steps);
 	dvec[2]= ( (v1->co[2]- v2->co[2]) )/(steps);
@@ -3980,7 +3890,7 @@ void addvert_mesh(void)
 		if(v1->f & 1) break;
 		v1= v1->next;
 	}
-	eve= v1;	/* voorkomen dat er nog meer select zijn */
+	eve= v1;	/* prevent there are more selected */
 	while(eve) {
 		eve->f&= ~1;
 		eve= eve->next;
@@ -4018,7 +3928,7 @@ void addedgevlak_mesh(void)
 
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
-	/* hoeveel geselecteerd ? */
+	/* how many selected ? */
 	eve= G.edve.first;
 	while(eve) {
 		if(eve->f & 1) {
@@ -4213,7 +4123,7 @@ void delete_mesh(void)
 			}
 			evl= nextvl;
 		}
-		/* om losse vertices te wissen: */
+		/* to remove loose vertices: */
 		eed= G.eded.first;
 		while(eed) {
 			if( eed->v1->f & 1) eed->v1->f-=1;
@@ -4278,7 +4188,7 @@ void add_primitiveMesh(int type)
 	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
-	/* als geen obedit: nieuw object en in editmode gaan */
+	/* if no obedit: new object and enter editmode */
 	if(G.obedit==0) {
 		/* add_object actually returns an object ! :-)
 		But it also stores the added object struct in
@@ -4303,9 +4213,9 @@ void add_primitiveMesh(int type)
 		eve= eve->next;
 	}
 
-	totoud= tot; /* onthouden en terugzetten als cube/plane */
+	totoud= tot; /* store, and restore when cube/plane */
 	
-	/* imat en centrum en afmeting */
+	/* imat and centre and size */
 	Mat3CpyMat4(mat, G.obedit->obmat);
 
 	curs= give_cursor();
@@ -4323,7 +4233,7 @@ void add_primitiveMesh(int type)
 		Mat3Inv(imat, mat);
 	}
 	
-	/* ext==extrudeflag, tot==aantal verts in basis */
+	/* ext==extrudeflag, tot==amount of vertices in basis */
 
 	switch(type) {
 	case 0:		/* plane */
@@ -4397,10 +4307,10 @@ void add_primitiveMesh(int type)
 	phi= .25*M_PI;
 
 
-	if(type<10) {	/* alles behalve grid of sphere */
+	if(type<10) {	/* all types except grid, sphere... */
 		if(ext==0 && type!=7) d= 0;
 	
-		/* de vertices */
+		/* vertices */
 		vtop= vdown= v1= v2= 0;
 		for(b=0; b<=ext; b++) {
 			for(a=0; a<tot; a++) {
@@ -4420,7 +4330,7 @@ void add_primitiveMesh(int type)
 			}
 			d= -d;
 		}
-		/* centrum vertices */
+		/* centre vertices */
 		if(fill && type>1) {
 			VECCOPY(vec,cent);
 			vec[2]-= -d;
@@ -4439,7 +4349,7 @@ void add_primitiveMesh(int type)
 		if(vtop) vtop->f= 1;
 		if(vdown) vdown->f= 1;
 	
-		/* boven en ondervlak */
+		/* top and bottom face */
 		if(fill) {
 			if(tot==4 && (type==0 || type==1)) {
 				v3= v1->next->next;
@@ -4466,7 +4376,7 @@ void add_primitiveMesh(int type)
 				}
 			}
 		}
-		else if(type==4) {  /* wel edges bij circle */
+		else if(type==4) {  /* we need edges for a circle */
 			v3= v1;
 			for(a=1;a<tot;a++) {
 				addedgelist(v3,v3->next);
@@ -4474,7 +4384,7 @@ void add_primitiveMesh(int type)
 			}
 			addedgelist(v3,v1);
 		}
-		/* zijvlakken */
+		/* side faces */
 		if(ext) {
 			v3= v1;
 			v4= v2;
@@ -4498,14 +4408,14 @@ void add_primitiveMesh(int type)
 		
 	}
 	else if(type==10) {	/*  grid */
-		/* alle flags wissen */
+		/* clear flags */
 		eve= G.edve.first;
 		while(eve) {
 			eve->f= 0;
 			eve= eve->next;
 		}
 		dia= G.vd->grid;
-		/* eerst een segment: de X as */
+		/* one segment first: de X as */
 		phi= -1.0; 
 		phid= 2.0/((float)tot-1);
 		for(a=0;a<tot;a++) {
@@ -4518,7 +4428,7 @@ void add_primitiveMesh(int type)
 			if (a) addedgelist(eve->prev,eve);
 			phi+=phid;
 		}
-		/* extruden en transleren */
+		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
 		vec[1]= dia*phid;
 		Mat3MulVecfl(imat, vec);
@@ -4530,14 +4440,14 @@ void add_primitiveMesh(int type)
 	else if(type==11) {	/*  UVsphere */
 		float tmat[3][3];
 		
-		/* alle flags wissen */
+		/* clear all flags */
 		eve= G.edve.first;
 		while(eve) {
 			eve->f= 0;
 			eve= eve->next;
 		}
 		
-		/* eerst een segment */
+		/* one segment first */
 		phi= 0; 
 		phid/=2;
 		for(a=0; a<=tot; a++) {
@@ -4552,7 +4462,7 @@ void add_primitiveMesh(int type)
 			phi+= phid;
 		}
 		
-		/* extruden en roteren */
+		/* extrude and rotate */
 		phi= M_PI/seg;
 		q[0]= cos(phi);
 		q[3]= sin(phi);
@@ -4570,7 +4480,7 @@ void add_primitiveMesh(int type)
 	else if(type==12) {	/* Icosphere */
 		EditVert *eva[12];
 
-		/* alle flags wissen */
+		/* clear all flags */
 		eve= G.edve.first;
 		while(eve) {
 			eve->f= 0;
@@ -4593,7 +4503,7 @@ void add_primitiveMesh(int type)
 
 		dia*=200;
 		for(a=1; a<subdiv; a++) subdivideflag(2, dia, 0);
-		/* nu pas met imat */
+		/* and now do imat */
 		eve= G.edve.first;
 		while(eve) {
 			if(eve->f & 2) {
@@ -4628,7 +4538,7 @@ void add_primitiveMesh(int type)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWHEADERS, 0);
-	allqueue(REDRAWINFO, 1); 	/* 1, want header->win==0! */	
+	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
 	allqueue(REDRAWBUTSEDIT, 0);
 	makeDispList(G.obedit);
 
@@ -4645,7 +4555,7 @@ void vertexsmooth(void)
 
 	if(G.obedit==0) return;
 
-	/* aantal tellen */
+	/* count */
 	eve= G.edve.first;
 	while(eve) {
 		if(eve->f & 1) teller++;
@@ -4940,45 +4850,8 @@ if(evl1->v1== *v2) {
 }
 
 
-/* ook weer twee zeer vreemde 'patch' functies om de uv van tfaces te bewaren */
-/*
-static float *set_correct_uv(EditVert *eve,  EditVlak **evla)
-{
-	
-	if(eve== evla[1]->v3) return evla[1]->uv[2];
-	if(eve== evla[0]->v3) return evla[0]->uv[2];
-	if(eve== evla[1]->v2) return evla[1]->uv[1];
-	if(eve== evla[0]->v2) return evla[0]->uv[1];
-	if(eve== evla[1]->v1) return evla[1]->uv[0];
-	if(eve== evla[0]->v1) return evla[0]->uv[0];
-	return 0;
-}
-
-crazy code commented out..
-static void restore_wuv(EditVlak *evl, void **evla)
-{
-	int *lp;
-	
-	lp= (int *)set_correct_uv(evl->v1, (EditVlak **)evla);
-	((int *)(evl->uv[0]))[0]= lp[0];
-	((int *)(evl->uv[0]))[4]= lp[4];
-	
-	lp= (int *)set_correct_uv(evl->v2, (EditVlak **)evla);
-	((int *)(evl->uv[1]))[0]= lp[0];
-	((int *)(evl->uv[1]))[4]= lp[4];
-
-	lp= (int *)set_correct_uv(evl->v3, (EditVlak **)evla);
-	((int *)(evl->uv[2]))[0]= lp[0];
-	((int *)(evl->uv[2]))[4]= lp[4];
-	
-}
-*/
-
 
 /* Helper functions for edge/quad edit features*/
-/*
-
-*/
 
 static void untag_edges(EditVlak *f)
 {
@@ -5206,11 +5079,11 @@ void edge_flip(void)
 
 	int totedge, ok;
 	
-	/* - alle geselecteerde edges met 2 vlakken
-	 * - vind die vlakken: opslaan in edges (extra datablok)
+	/* - all selected edges with two faces
+	 * - find the faces: store them in edges (using datablock)
 	 * - per edge: - test convex
 	 *			   - test edge: flip?
-						- zoja: remedge,  addedge, alle randedges nieuwe vlakpointers
+						- if true: remedge,  addedge, all edges at the edge get new face pointers
 	 */
 
 	totedge = count_edges(G.eded.first);
@@ -5311,19 +5184,19 @@ void beauty_fill(void)
     float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
     int totedge, ok, notbeauty=8, onedone;
 
-    /* - alle geselecteerde edges met 2 vlakken
-     * - vind die vlakken: opslaan in edges (extra datablok)
-     * - per edge: - test convex
-     *             - test edge: flip?
-                        - zoja: remedge,  addedge, alle randedges nieuwe vlakpointers
-     */
-
+	/* - all selected edges with two faces
+		* - find the faces: store them in edges (using datablock)
+		* - per edge: - test convex
+		*			   - test edge: flip?
+		*               - if true: remedge,  addedge, all edges at the edge get new face pointers
+		*/
+	
     totedge = count_edges(G.eded.first);
     if(totedge==0) return;
 
     if(okee("Beauty Fill")==0) return;
 
-    /* tempblok met vlakpointers */
+    /* temp block with face pointers */
     evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
 
     while (notbeauty) {
@@ -5331,7 +5204,7 @@ void beauty_fill(void)
 
         ok = collect_quadedges(evlar, G.eded.first, G.edvl.first);
 
-        /* gaatie */
+        /* there we go */
         onedone= 0;
 
         eed= G.eded.first;
@@ -5342,7 +5215,7 @@ void beauty_fill(void)
 
                 evla = (EVPtr *) eed->vn;
 
-                /* geen van de vlakken mag al gedaan zijn */
+                /* none of the faces should be treated before */
                 ok= 1;
                 evl= evla[0];
                 if(evl->e1->f1 || evl->e2->f1 || evl->e3->f1) ok= 0;
@@ -5373,9 +5246,8 @@ void beauty_fill(void)
                             dia2.v2= v4;
                         }
 
-                        /* testregel:
-                         * de oppervlakte gedeeld door de totale edgelengte
-                         *
+                        /* testing rule:
+                         * the area divided by the total edge lengths
                          */
 
                         len1= VecLenf(v1->co, v2->co);
@@ -5508,7 +5380,7 @@ void join_mesh(void)
 	ob= OBACT;
 	if(!ob || ob->type!=OB_MESH) return;
 	
-	/* tellen */
+	/* count */
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -5524,22 +5396,22 @@ void join_mesh(void)
 		base= base->next;
 	}
 	
-	/* zodoende is het aktieve object altijd select */ 
+	/* that way the active object is always selected */ 
 	if(ok==0) return;
 	
 	if(totvert==0 || totvert>65000) return;
 	
 	if(okee("Join selected Meshes")==0) return;
 	
-	/* nieuwe materiaal indexen en hoofdarray */
+	/* new material indices and material array */
 	matar= MEM_callocN(sizeof(void *)*MAXMAT, "join_mesh");
 	totcol= ob->totcol;
 	
-	/* obact materials in nieuw hoofdarray, is mooiere start! */
+	/* obact materials in new main array, is nicer start! */
 	for(a=1; a<=ob->totcol; a++) {
 		matar[a-1]= give_current_material(ob, a);
 		id_us_plus((ID *)matar[a-1]);
-		/* id->us ophogen: wordt ook verlaagd */
+		/* increase id->us : will be lowered later */
 	}
 	
 	base= FIRSTBASE;
@@ -5612,7 +5484,7 @@ void join_mesh(void)
 
 	vertofs= 0;
 	
-	/* alle geselecteerde meshes invers transformen in obact */
+	/* inverse transorm all selected meshes in this object */
 	Mat4Invert(imat, ob->obmat);
 	
 	base= FIRSTBASE;
@@ -5630,24 +5502,6 @@ void join_mesh(void)
 #ifdef __NLA
 					copy_dverts(dvert, me->dvert, me->totvert);
 
-						/* >>>>> FIXME: Ensure that deformation groups are updated correctly */
-					/* OLD VERSION */
-					/*
-					for (i=0; i<me->totvert; i++){
-						for (j=0; j<mvert[i].totweight; j++){
-							//	Find the old vertex group
-							odg = BLI_findlink (&base->object->defbase, mvert[i].dw[j].def_nr);
-
-							//	Search for a match in the new object
-							for (dg=ob->defbase.first, index=0; dg; dg=dg->next, index++){
-								if (!strcmp(dg->name, odg->name)){
-									mvert[i].dw[j].def_nr = index;
-									break;
-								}
-							}
-						}
-					}
-					*/
 					/* NEW VERSION */
 					if (dvertmain){
 						for (i=0; i<me->totvert; i++){
@@ -5669,7 +5523,7 @@ void join_mesh(void)
 
 #endif
 					if(base->object != ob) {
-						/* let op: matmul omkeren is ECHT fout */
+						/* watch this: switch matmul order really goes wrong */
 						Mat4MulMat4(cmat, base->object->obmat, imat);
 						
 						a= me->totvert;
@@ -5687,7 +5541,7 @@ void join_mesh(void)
 				}
 				if(me->totface) {
 				
-					/* mapping maken voor materialen */
+					/* make mapping for materials */
 					memset(map, 0, 4*MAXMAT);
 					for(a=1; a<=base->object->totcol; a++) {
 						ma= give_current_material(base->object, a);
@@ -5748,7 +5602,7 @@ void join_mesh(void)
 	me->totvert= totvert;
 	me->totface= totface;
 	
-	/* oude material array */
+	/* old material array */
 	for(a=1; a<=ob->totcol; a++) {
 		ma= ob->mat[a-1];
 		if(ma) ma->id.us--;
@@ -5770,7 +5624,7 @@ void join_mesh(void)
 	ob->totcol= me->totcol= totcol;
 	ob->colbits= 0;
 	
-	/* andere mesh gebruikers */
+	/* other mesh users */
 	test_object_materials((ID *)me);
 	
 	enter_editmode();
@@ -5800,8 +5654,6 @@ void clever_numbuts_mesh(void)
 	do_clever_numbuts("Active Vertex", 3, REDRAW);
 }
 
-/* never used, see CVS */
-/*  static void insert_radiogour(char *str) */
 
 static void permutate(void *list, int num, int size, int *index)
 {
@@ -5901,7 +5753,7 @@ void vertices_to_sphere(void)
 	Mat3CpyMat4(bmat, ob->obmat);
 	Mat3Inv(imat, bmat);
 
-	/* centrum */
+	/* centre */
 	curs= give_cursor();
 	cent[0]= curs[0]-ob->obmat[3][0];
 	cent[1]= curs[1]-ob->obmat[3][1];
@@ -5956,7 +5808,7 @@ void fill_mesh(void)
 
 	waitcursor(1);
 
-	/* alle selected vertices kopieeren */
+	/* copy all selected vertices */
 	eve= G.edve.first;
 	while(eve) {
 		if(eve->f & 1) {
@@ -5967,7 +5819,7 @@ void fill_mesh(void)
 		}
 		eve= eve->next;
 	}
-	/* alle selected edges kopieeren */
+	/* copy all selected edges */
 	eed= G.eded.first;
 	while(eed) {
 		if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
@@ -5977,9 +5829,9 @@ void fill_mesh(void)
 		}
 		eed= eed->next;
 	}
-	/* van alle selected vlakken vertices en edges verwijderen om dubbels te voorkomen */
-	/* alle edges tellen punten op, vlakken trekken af,
-	   edges met vertices ->h<2 verwijderen */
+	/* from all selected faces: remove vertices and edges verwijderen to prevent doubles */
+	/* all edges add values, faces subtract,
+	   then remove edges with vertices ->h<2 */
 	evl= G.edvl.first;
 	ok= 0;
 	while(evl) {
@@ -5994,7 +5846,7 @@ void fill_mesh(void)
 		}
 		evl= nextvl;
 	}
-	if(ok) {	/* er zijn vlakken geselecteerd */
+	if(ok) {	/* there are faces selected */
 		eed= filledgebase.first;
 		while(eed) {
 			nexted= eed->next;
@@ -6005,8 +5857,6 @@ void fill_mesh(void)
 		}
 	}
 
-	/* tijd=clock(); */
-	
 	/* to make edgefill work */
 	BLI_setScanFillObjectRef(G.obedit);
 	BLI_setScanFillColourRef(&G.obedit->actcol);
@@ -6057,10 +5907,10 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 	if(me->totvert==0) return;
 
 	testflip= (me->flag & ME_NOPUNOFLIP)==0;
-	if((me->flag & ME_TWOSIDED)==0) testflip= 0;	/* grote hoeken */
+	if((me->flag & ME_TWOSIDED)==0) testflip= 0;	/* large angles */
 	
 	if(me->totface==0) {
-		/* namaak puno's voor halopuno! */
+		/* fake vertex normals for 'halopuno' (render option) */
 		mvert= me->mvert;
 		for(a=0; a<me->totvert; a++, mvert++) {
 			VECCOPY(n1, mvert->co);
@@ -6074,7 +5924,7 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 
 	normals= MEM_callocN(me->totvert*3*sizeof(float), "normals");
 	
-	/* berekenen cos hoeken en oppervlakte en optellen bij puno */
+	/* calculate cosine angles, and add to vertex normal */
 	mface= me->mface;
 	mvert= me->mvert;
 	for(a=0; a<me->totface; a++, mface++) {
@@ -6149,7 +5999,7 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 		}
 	}
 
-	/* normaliseren puntnormalen */
+	/* normalize vertex normals */
 	mvert= me->mvert;
 	for(a=0; a<me->totvert; a++, mvert++) {
 		len= Normalise(normals+3*a);
@@ -6163,7 +6013,7 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 		}
 	}
 	
-	/* puntnormaal omklap-vlaggen voor bij shade */
+	/* vertex normal flipping flags, for during render */
 	mface= me->mface;
 	mvert= me->mvert;
 	for(a=0; a<me->totface; a++, mface++) {
@@ -6209,7 +6059,7 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 				}
 			}
 		}
-		/* proj voor cubemap! */
+		/* proj for cubemap! */
 		xn= fabs(vnor[0]);
 		yn= fabs(vnor[1]);
 		zn= fabs(vnor[2]);

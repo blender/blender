@@ -269,7 +269,7 @@ void select_linked_tfaces()
 	while(doit) {
 		doit= 0;
 		
-		/* select connected: array vullen */
+		/* select connected: fill array */
 		tface= me->tface;
 		mface= me->mface;
 		a= me->totface;
@@ -286,7 +286,7 @@ void select_linked_tfaces()
 			tface++; mface++;
 		}
 		
-		/* omgekeerd: vanuit array vlakken selecteren */
+		/* reverse: using array select the faces */
 
 		tface= me->tface;
 		mface= me->mface;

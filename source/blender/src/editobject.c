@@ -182,7 +182,7 @@ float prop_cent[3];
 
 float centre[3], centroid[3];
 
-void add_object_draw(int type)	/* voor toolbox */
+void add_object_draw(int type)	/* for toolbox */
 {
 	Object *ob;
 	
@@ -215,7 +215,7 @@ void add_object_draw(int type)	/* voor toolbox */
 	allqueue(REDRAWNLA, 0);
 	deselect_all_area_oops();
 	set_select_flag_oops();
-	allqueue(REDRAWINFO, 1); 	/* 1, want header->win==0! */
+	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 
 }
 
@@ -280,6 +280,8 @@ void make_track(void)
 	/* Not yet */
 	notice ("Make Track no longer supported.  Use constraints instead.");
 	return;
+
+	/* hrms, i would suppose then just to add a constraint for the user. be nice! (ton) */
 #endif
 
 	if(okee("Make Track")==0) return;
@@ -475,7 +477,7 @@ void clear_object(char mode)
 
 void reset_slowparents(void)
 {
-	/* terug op correcte plek */
+	/* back to original locations */
 	Base *base;
 	
 	base= FIRSTBASE;
@@ -517,7 +519,7 @@ void make_vertex_parent(void)
 	Object *par, *ob;
 	int a, v1=0, v2=0, v3=0, nr=1;
 	
-	/* er moet 1 of 3 vertices select zijn */
+	/* we need 1 ot 3 selected vertices */
 	
 	if(G.obedit->type==OB_MESH) {
 		eve= G.edve.first;
@@ -597,7 +599,7 @@ void make_vertex_parent(void)
 						ob->par2= v2-1;
 						ob->par3= v3-1;
 
-						/* inverse parent matrix berekenen */
+						/* inverse parent matrix */
 						what_does_parent(ob);
 						Mat4Invert(ob->parentinv, workob.obmat);
 						clear_workob();
@@ -606,7 +608,7 @@ void make_vertex_parent(void)
 						ob->partype= PARVERT1;
 						ob->par1= v1-1;
 
-						/* inverse parent matrix berekenen */
+						/* inverse parent matrix */
 						what_does_parent(ob);
 						Mat4Invert(ob->parentinv, workob.obmat);
 						clear_workob();
@@ -771,7 +773,7 @@ void make_parent(void)
 				base= base->next;
 			}
 			
-			/* nu gaan we alle objecten clearparentandkeeptransformen */
+			/* now we'll clearparentandkeeptransform all objects */
 			base= FIRSTBASE;
 			while(base) {
 				if TESTBASELIB(base) {
@@ -843,9 +845,9 @@ void make_parent(void)
 						
 						base->object->parent= par;
 						
-						/* inverse parent matrix berekenen? */
+						/* calculate inverse parent matrix? */
 						if( (qual & LR_SHIFTKEY) ) {
-							/* niet dus... */
+							/* not... */
 							Mat4One(base->object->parentinv);
 							memset(base->object->loc, 0, 3*sizeof(float));
 						}
@@ -936,7 +938,7 @@ void enter_editmode(void)
 		make_editArmature();
 		allqueue (REDRAWVIEW3D,0);
 	}
-	else if(ob->type==OB_IKA) {	/* grabtype */
+	else if(ob->type==OB_IKA) {	/* grab type */
 		base= FIRSTBASE;
 		while(base) {
 			if TESTBASE(base) {
@@ -993,7 +995,7 @@ void make_displists_by_parent(Object *ob) {
 			makeDispList(base->object);
 }
 
-void exit_editmode(int freedata)	/* freedata==0 bij render */
+void exit_editmode(int freedata)	/* freedata==0 at render */
 {
 	Base *base;
 	Object *ob;
@@ -1003,7 +1005,7 @@ void exit_editmode(int freedata)	/* freedata==0 bij render */
 
 	if(G.obedit->type==OB_MESH) {
 
-		/* tijdelijk */
+		/* temporal */
 		countall();
 		if(G.totvert>65000) {
 			error("too many vertices");
@@ -1038,17 +1040,17 @@ void exit_editmode(int freedata)	/* freedata==0 bij render */
 
 	ob= G.obedit;
 	
-	/* obedit moet 0 zijn voor curve-extrude, niet voor smeshes */
+	/* obedit has to be 0 for curve-extrude, not for smeshes */
 	if(ob->type==OB_CURVE) G.obedit= 0;
 	G.obedit= 0;
 	makeDispList(ob);
 	
 	
 
-	/* heeft dit nog invloed op andere bases? */
+	/* has this influence at other objects? */
 	if(ob->type==OB_CURVE) {
 
-		/* test of ob als bevelcurve of textoncurve wordt gebruikt */
+		/* test if ob is use as bevelcurve r textoncurve */
 		base= FIRSTBASE;
 		while(base) {
 			if ELEM(base->object->type, OB_CURVE, OB_FONT) {
@@ -1133,7 +1135,7 @@ void docentre(void)
 		}
 	}
 	
-	/* vlaggen resetten */
+	/* reset flags */
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
@@ -1194,7 +1196,7 @@ void docentre(void)
 						base->object->loc[1]+= centn[1];
 						base->object->loc[2]+= centn[2];
 						
-						/* andere users? */
+						/* other users? */
 						ob= G.main->object.first;
 						while(ob) {
 							if((ob->flag & OB_DONE)==0) {
@@ -1225,10 +1227,10 @@ void docentre(void)
 						}
 					}
 				
-					/* displisten van alle users, ook deze base */
+					/* displist of all users, also this one */
 					makeDispList(base->object);
 					
-					/* DOEN: alle users aflopen... */
+					/* DO: check all users... */
 					tex_space_mesh(me);
 		
 				}
@@ -1301,15 +1303,15 @@ void docentre(void)
 	
 				}
 				else if(base->object->type==OB_FONT) {
-					/* uit de bb halen */
+					/* get from bb */
 					
 					cu= base->object->data;
 					if(cu->bb==0) return;
 					
 					cu->xof= -0.5*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
-					cu->yof= -0.5 -0.5*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is de hoogte van de bovenste regel */
+					cu->yof= -0.5 -0.5*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height of above line */
 					
-					/* klopt niet helemaal, een keer goed doen! */
+					/* not really ok, do this better once! */
 					cu->xof /= cu->fsize;
 					cu->yof /= cu->fsize;
 					
@@ -1545,18 +1547,8 @@ void special_editmenu(void)
 		if(nr>0) waitcursor(0);
 		
 	}
-/*	else if (G.obedit->type==OB_ARMATURE){
-		nr= pupmenu("Specials%t|");
-		if (nr>0) waitcursor (1);
-		switch (nr){
-		case 1:
-		}
-		if (nr>0) waitcursor (0);
-	}
-*/
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		/* nr= pupmenu("Specials%t|Subdivide%x1|Hide%x5|Reveal%x6|Select swap%x7"); */
 		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2");
 		
 		switch(nr) {
@@ -1617,9 +1609,9 @@ void convertmenu(void)
 	}
 	if(ok==0) return;
 
-	/* denk aan meerdere users! */
+	/* don't forget multiple users! */
 
-	/* vlaggen resetten */
+	/* reset flags */
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
@@ -1645,7 +1637,7 @@ void convertmenu(void)
 
 					basen= MEM_mallocN(sizeof(Base), "duplibase");
 					*basen= *base;
-					BLI_addhead(&G.scene->base, basen);	/* addhead: anders oneindige lus */
+					BLI_addhead(&G.scene->base, basen);	/* addhead: otherwise eternal loop */
 					basen->object= ob1;
 					basen->flag &= ~SELECT;
 						
@@ -1680,7 +1672,7 @@ void convertmenu(void)
 						cu->vfont->id.us--;
 						cu->vfont= 0;
 					}
-					/* andere users */
+					/* other users */
 					if(cu->id.us>1) {
 						ob1= G.main->object.first;
 						while(ob1) {
@@ -1699,9 +1691,9 @@ void convertmenu(void)
 					dl= cu->disp.first;
 					if(dl==0) makeDispList(ob);
 
-					nurbs_to_mesh(ob); /* doet ook users */
+					nurbs_to_mesh(ob); /* also does users */
 
-					/* texspace en normalen */
+					/* texspace and normals */
 					BASACT= base;
 					enter_editmode();
 					exit_editmode(1);
@@ -1721,7 +1713,7 @@ void convertmenu(void)
 
 						basen= MEM_mallocN(sizeof(Base), "duplibase");
 						*basen= *base;
-						BLI_addhead(&G.scene->base, basen);	/* addhead: anders oneindige lus */
+						BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
 						basen->object= ob1;
 						basen->flag &= ~SELECT;
 						
@@ -2148,7 +2140,7 @@ void linkmenu()
 			}
 			if(sce==0 || sce->id.lib) return;
 			
-			/* denk eraan: is verderop nog nodig */
+			/* remember: is needed below */
 			event= 1;
 		}
 	}
@@ -2163,13 +2155,13 @@ void linkmenu()
 				
 				if(event==1) {		/* to scene */
 					
-					/* testen of het soms al gelinkt is */
+					/* test if already linked */
 					sbase= sce->base.first;
 					while(sbase) {
 						if(sbase->object==base->object) break;
 						sbase= sbase->next;
 					}
-					if(sbase) {	/* eruit */
+					if(sbase) {	/* remove */
 						base= base->next;
 						continue;
 					}
@@ -2191,7 +2183,7 @@ void linkmenu()
 							id_us_plus(id);
 							obt->data= id;
 							
-							/* als aantal mat indices veranderd zijn: */
+							/* if amount of material indices changed: */
 							test_object_materials(obt->data);
 						}
 					}
@@ -2205,17 +2197,17 @@ void linkmenu()
 				}
 				else if(event==3) {  /* materials */
 					
-					/* alleen als obt geen materiaal heeft: arrays maken */
-					/* van ob naar obt! */
+					/* only if obt has no material: make arrays */
+					/* from ob to obt! */
 					
 					obmatarar= give_matarar(ob);
 					matarar= give_matarar(obt);
 					totcolp= give_totcolp(obt);
 
-					/* als 1 van de 2 nul is: geen renderbaar object */						
+					/* if one of the two is zero: no render-able object */						
 					if( matarar && obmatarar) {
 						
-						/* voorzichtig met users! Dus eerst kopie orig: */
+						/* take care of users! so first a copy of original: */
 
 						if(ob->totcol) {
 							matar1= MEM_dupallocN(ob->mat);
@@ -2225,23 +2217,23 @@ void linkmenu()
 							matar1= matar2= 0;
 						}
 						
-						/* alles van obt los linken */
+						/* remove links from obt */
 						for(a=0; a<obt->totcol; a++) {
 							if(obt->mat[a]) obt->mat[a]->id.us--;
 							if( (*matarar)[a]) (*matarar)[a]->id.us--;
 						}
 						
-						/* vrijgeven */
+						/* free */
 						if(obt->mat) MEM_freeN(obt->mat);
 						if(*matarar) MEM_freeN(*matarar);
 						
-						/* hangen kopie er aan */
+						/* connect a copy */
 						obt->mat= matar1;
 						*matarar= matar2;
 						obt->totcol= ob->totcol;
 						*totcolp= ob->totcol;
 					
-						/* users ophogen */
+						/* increase users */
 						for(a=0; a<obt->totcol; a++) {
 							if(obt->mat[a]) id_us_plus((ID *)obt->mat[a]);
 							if( (*matarar)[a]) id_us_plus((ID *)(*matarar)[a]);
@@ -2249,7 +2241,7 @@ void linkmenu()
 
 						obt->colbits= ob->colbits;
 						
-						/* als aantal mat indices veranderd zijn: */
+						/* if amount of material indices changed: */
 						test_object_materials(obt->data);
 					}
 				}
@@ -2281,15 +2273,15 @@ void make_duplilist_real()
 				ob= duplilist.first;
 				while(ob) {
 					
-					/* font dupli's kunnen totcol hebben zonder mat, halen ze van parent af
-					 * dit zou netter moeten
+					/* font duplis can have a totcol without material, we get them from parent
+					 * should be implemented better...
 					 */
 					if(ob->mat==0) ob->totcol= 0;
 					
 					basen= MEM_dupallocN(base);
 					basen->flag &= ~OB_FROMDUPLI;
-					BLI_addhead(&G.scene->base, basen);	/* addhead: anders oneindige lus */
-					ob->ipo= 0;		/* zeker weten dat de apply werkt */
+					BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
+					ob->ipo= 0;		/* make sure apply works */
 					ob->parent= ob->track= 0;
 					ob->disp.first= ob->disp.last= 0;
 					ob->transflag &= ~OB_DUPLI;
@@ -2368,7 +2360,7 @@ void apply_object()
 				
 				where_is_object(ob);
 				
-				/* texspace en normalen */
+				/* texspace and normals */
 				BASACT= base;
 				enter_editmode();
 				exit_editmode(1);
@@ -2435,7 +2427,7 @@ void apply_object()
 				
 				where_is_object(ob);
 				
-				/* texspace en normalen */
+				/* texspace and normals */
 				BASACT= base;
 				enter_editmode();
 				exit_editmode(1);
@@ -2450,7 +2442,7 @@ void apply_object()
 
 
 
-/* ************ ALGEMENE  *************** */
+/* ************ GENERAL  *************** */
 
 static Object *is_a_parent_selected_int(Object *startob, Object *ob, GHash *done_hash) {
 	if (ob!=startob && TESTBASE(ob))
@@ -2527,7 +2519,7 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 			Object *ob= base->object;
 			Object *parsel= is_a_parent_selected(ob);
 			
-			/* hier ook parentkey? */
+			/* parentkey here? */
 
 			if(parsel) {
 				if(base->flag & SELECT) {
@@ -2543,7 +2535,6 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 			}
 			
 			/* updates? */
-				/* ivm automatische portals */
 			if(ob->type==OB_IKA) {
 				Ika *ika= ob->data;
 				if(ika->parent && parsel) base->flag |= BA_WHERE_UPDATE;
@@ -2643,13 +2634,13 @@ void ob_to_transob(Object *ob, TransOb *tob)
 
 	VECCOPY(tob->olddsize, ob->dsize);
 
-	/* alleen object, geen parent */
+	/* only object, not parent */
 	object_to_mat3(ob, tob->obmat);
 	Mat3Inv(tob->obinv, tob->obmat);
 	
 	Mat3CpyMat4(totmat, ob->obmat);
 
-	/* dit is totmat zonder obmat: dus parmat */
+	/* this is totmat without obmat: so a parmat */
 	Mat3MulMat3(tob->parmat, totmat, tob->obinv);
 	Mat3Inv(tob->parinv, tob->parmat);
 
@@ -2681,11 +2672,9 @@ void ob_to_transob(Object *ob, TransOb *tob)
 			VECCOPY(tob->oldeff, tob->eff);
 			tob->flag |= TOB_IKA;
 
-			/* zodat alleen eff update wordt */
 			tob->loc= 0;
 		}
 		
-		/* set_ika_undo_vals(); */
 	}
 }
 
@@ -2742,7 +2731,7 @@ void make_trans_objects()
 	INIT_MINMAX(min, max);
 	centroid[0]=centroid[1]=centroid[2]= 0.0;
 	
-	/* aantal tellen */	
+	/* count */	
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
@@ -2754,7 +2743,7 @@ void make_trans_objects()
 			else {
 				if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
 					elems.first= elems.last= 0;
-					make_ipokey_transform(ob, &elems, 1); /* '1' alleen selected keys */
+					make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
 					
 					pushdata(&elems, sizeof(ListBase));
 					
@@ -2776,7 +2765,7 @@ void make_trans_objects()
 	reset_slowparents();
 
 
-	/* dit hieronder wel doen als tottrans==0, i.v.m. vrijgeven pushpop en ipokeys */
+	/*also do this below when tottrans==0, because of freeing pushpop and ipokeys */
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -2795,7 +2784,7 @@ void make_trans_objects()
 			}
 			else {
 
-				/* van belang! (o.a. bevobj) */
+				/* is needed! (bevobj) */
 				if(base->flag & SELECT) ob->flag|= SELECT; else ob->flag &= ~SELECT;
 	
 				if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
@@ -2824,7 +2813,7 @@ void make_trans_objects()
 							ob_to_transob(ob, tob);
 							DO_MINMAX(tob->obvec, min, max);
 							
-							/* doet ook tob->flag en oldvals, moet NA ob_to_transob()! */
+							/* also does tob->flag and oldvals, needs to be after ob_to_transob()! */
 							set_ipo_pointers_transob(ik, tob);
 							
 							tob++;
@@ -2861,7 +2850,7 @@ void make_trans_objects()
 		base= base->next;
 	}
 	
-	pushpop_test();	/* alleen voor debug & zekerheid */
+	pushpop_test();	/* only for debug & to be sure */
 	
 	if(tottrans==0) return;
 	
@@ -3036,7 +3025,7 @@ void make_trans_verts(float *min, float *max, int mode)
 		}
 	}
 	
-	/* cent enz berekenen */
+	/* cent etc */
 	tv= transvmain;
 	for(a=0; a<tottrans; a++, tv++) {
 		if(tv->flag) {
@@ -3239,7 +3228,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 	int doit,redrawipo=0;
 
 	
-	/* displaylisten e.d. */
+	/* displaylists etc. */
 	
 	if(G.obedit) {
 		if(G.obedit->type==OB_MBALL) {
@@ -3307,7 +3296,6 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 
 				if(ob->type==OB_IKA) {
 					ika= ob->data;					
-					/* vooral voor ika NIET in GRABEFF mode, updaten van globale effector */
 					VecMat4MulVecfl(ika->effg, ob->obmat, ika->eff);
 					itterate_ika(ob);
 				}
@@ -3344,7 +3332,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 					makeDispList(ob);
 			}
 			
-			where_is_object(ob);	/* altijd ivm track eytc */
+			where_is_object(ob);	/* always do, for track etc. */
 
 			/* Set autokey if necessary */
 			if ((U.uiflag & KEYINSERTOBJ) && (!canceled) && (base->flag & SELECT)){
@@ -3396,7 +3384,7 @@ void calc_trans_verts(void)
 		Nurb *nu= editNurb.first;
 		while(nu) {
 			test2DNurb(nu);
-			testhandlesNurb(nu); /* test ook op bezier */
+			testhandlesNurb(nu); /* test for bezier too */
 			nu= nu->next;
 		}
 		makeDispList(G.obedit);
@@ -3408,7 +3396,7 @@ static int test_midtog_proj(short xn, short yn, short *mval)
 {
 	float x,y,z;
 
-	/* welke beweging is het grootst? die wordt het */
+	/* which movement is the largest? that'll be the one */
 	xn= (xn-mval[0]);
 	yn= (yn-mval[1]);
 	x = fabs(G.vd->persinv[0][0]*xn + G.vd->persinv[1][0]*yn);
@@ -3422,7 +3410,7 @@ static int test_midtog_proj(short xn, short yn, short *mval)
 
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert)
 {
-	/* fac1 is voor 'niets', fac2 voor CTRL fac3 voor SHIFT */
+	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
 	int ctrl;
 
 	if(invert) {
@@ -3448,15 +3436,11 @@ void compatible_eul(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
 	
-	/* verschillen van ong 360 graden eerst corrigeren */
+	/* correct differences of about 360 degrees first */
 
 	dx= eul[0] - oldrot[0];
 	dy= eul[1] - oldrot[1];
 	dz= eul[2] - oldrot[2];
-
-/* printf("komt binnen: \n"); */
-/* PRINT3(f, f, f, eul[0], eul[1], eul[2]); */
-/* PRINT3(f, f, f, dx, dy, dz); */
 
 	while( fabs(dx) > 5.1) {
 		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
@@ -3471,10 +3455,7 @@ void compatible_eul(float *eul, float *oldrot)
 		dz= eul[2] - oldrot[2];
 	}
 	
-/* PRINT3(f, f, f, oldrot[0], oldrot[1], oldrot[2]); */
-	
-
-	/* is 1 van de asrotaties groter dan 180 graden en de andere klein? GEEN ELSEIF!! */	
+	/* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */	
 	if( fabs(dx) > 3.2 && fabs(dy)<1.6 && fabs(dz)<1.6 ) {
 		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
 	}
@@ -3484,14 +3465,15 @@ void compatible_eul(float *eul, float *oldrot)
 	if( fabs(dz) > 3.2 && fabs(dx)<1.6 && fabs(dy)<1.6 ) {
 		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
 	}
+
+	return; /* <- intersting to find out who did that! */
 	
-return;
-	/* opnieuw berekenen */
+	/* calc again */
 	dx= eul[0] - oldrot[0];
 	dy= eul[1] - oldrot[1];
 	dz= eul[2] - oldrot[2];
 
-	/* dit is een bijzonder geval, voor x-z getest */
+	/* special case, tested for x-z  */
 	
 	if( (fabs(dx) > 3.1 && fabs(dz) > 1.5 ) || ( fabs(dx) > 1.5 && fabs(dz) > 3.1 ) ) {
 		if(dx > 0.0) eul[0] -= M_PI; else eul[0]+= M_PI;
@@ -3510,8 +3492,6 @@ return;
 		if(dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
 	}
 
-/* PRINT3(f, f, f, eul[0], eul[1], eul[2]); */
-/* printf("\n"); */
 }
 
 void headerprint(char *str)
@@ -3582,9 +3562,7 @@ int cylinder_intersect_test(void)
 	
 	VecSubf(rc, oldloc, base);
 	
-	/* als we nou speed normaliseren (kan van te voren! */
-
-	/* en de axis ook alvast */
+	/* the axis */
 	len2= Normalise(axis);
 	
 	Crossf(n, speed, axis);
@@ -3604,12 +3582,12 @@ int cylinder_intersect_test(void)
 	labdacor= t-s;
 	labda= t+s;
 
-	/* twee gevallen waarbij geen snijpunt is */
+	/* two cases with no intersection point */
 	if(labdacor>=1.0 && labda>=1.0) return 0;
 	if(labdacor<=0.0 && labda<=0.0) return 0;
 	
-	/* normaalvector berekenen */
-	/* snijpunt: */
+	/* calc normal */
+	/* intersection: */
 	
 	rc[0]= oldloc[0] + labdacor*speed[0] - base[0];
 	rc[1]= oldloc[1] + labdacor*speed[1] - base[1];
@@ -3655,14 +3633,14 @@ int sphere_intersect_test(void)
 	
 	if(disc>=0.0) {
 		disc= sqrt(disc);
-		labdacor= (-bsq - disc)/len;	/* intrede */
+		labdacor= (-bsq - disc)/len;	/* entry point */
 		labda= (-bsq + disc)/len;
 		
 		printf("var1: %f, var2: %f, var3: %f\n", labdacor, labda, editbutsize);
 	}
 	else return 0;
 
-	/* snijpunt en normaal */
+	/* intersection and normal */
 	rc[0]= oldloc[0] + labdacor*speed[0] - base[0];
 	rc[1]= oldloc[1] + labdacor*speed[1] - base[1];
 	rc[2]= oldloc[2] + labdacor*speed[2] - base[2];
@@ -3777,7 +3755,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 	/* form duplicate routines */
 	if(mode=='d') mode= 'g';
 
-	/* kan floating exception veroorzaken op alpha */
+	/* this can cause floating exception at dec alpha */
 	d_dvec[0]= d_dvec[1]= d_dvec[2]= 0.0;
 	dvec[0]= dvec[1]= dvec[2]= 0.0;
 	
@@ -3788,11 +3766,11 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 	}
 	if(mode=='w' && G.obedit==0) return;
 	
-	/* welke data wordt behandeld? */
+	/* what data will be involved? */
 	if(G.obedit) {
 		if(mode=='N') vertexnormals(0);
 	
-		/* min en max zijn nodig voor de warp */
+		/* min en max needed for warp */
 		if(mode=='G' || mode=='R' || mode=='C') make_trans_verts(min, max, 1);
 		else make_trans_verts(min, max, 0);
 	}
@@ -3849,13 +3827,13 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 		VECCOPY (centre, centroid);
 	}
 
-	/* moving: onderscheid i.v.m. drawobj */
+	/* moving: is shown in drawobject() */
 	if(G.obedit) G.moving= 2;
 	else G.moving= 1;
 	
 	areawinset(curarea->win);
 	
-	/* de persinv is vervuild met translatie, niet gebruiken!! */
+	/* the persinv is polluted with translation, do not use!! */
 	Mat3CpyMat4(persmat, G.vd->persmat);
 	Mat3Inv(persinv, persmat);
 	
@@ -3877,9 +3855,9 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 		project_short_noclip(vec, mval);
 	}
 	else {
-		/* voor pannen vanuit cameraview */
+		/* voor panning from cameraview */
 		if( G.vd->camera==OBACT && G.vd->persp>1) {
-			/* 6.0 = 6 grideenheden */
+			/* 6.0 = 6 grid units */
 			centre[0]+= -6.0*rot2[0];
 			centre[1]+= -6.0*rot2[1];
 			centre[2]+= -6.0*rot2[2];
@@ -3939,7 +3917,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 		centre[1]= (min[1]+max[1])/2.0;
 		centre[2]= (min[2]+max[2])/2.0;
 
-			/* middelpunt is cursor */
+			/* cursor is centre */
 		curs= give_cursor();
 		VECCOPY(axis, curs);
 		Mat4MulVecfl(G.vd->viewmat, axis);
@@ -3967,7 +3945,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 		if(mval[0]!=xo || mval[1]!=yo || firsttime) {
 			if(firsttime) {
 				
-				/* niet zo netjes, maar toch! */
+				/* not really nice, but who cares! */
 				oldval[0]= oldval[1]= oldval[2]= MAXFLOAT;
 				
 				/* proportional precalc */
@@ -3985,7 +3963,6 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 			if(mode=='g' || mode=='G') {
 				
 				keyflags |= KEYFLAG_LOC;
-				/* if(G.edve.first) sphere_intersect_test(); */
 				
 				if(midtog) {
 					if(cameragrab) {
@@ -3993,7 +3970,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 						dvec[0]-= dx1*G.vd->viewinv[2][0];
 						dvec[1]-= dx1*G.vd->viewinv[2][1];
 						dvec[2]-= dx1*G.vd->viewinv[2][2];
-						firsttime= 1;	/* blijftie lopen */
+						firsttime= 1;	/* so it keeps going */
 					}
 					else {
 						window_to_3d(dvec, mval[0]-xn, mval[1]-yn);
@@ -4142,10 +4119,10 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					
 					for(a=0; a<tottrans; a++, tob++, tv++) {
 						if(transmain) {
-							/* rotatie in drie stappen:
-							 * 1. editrot corrigeren voor parent
-							 * 2. hier de euler uit destilleren. Deze stap moet omdat de MatToEul nogal zwak is
-							 * 3. deze vermenigvuldigen met eigen rot, euler berekenen.
+							/* rotation in three steps:
+							 * 1. editrot correction for parent
+							 * 2. distill from this the euler. Always do this step because MatToEul is pretty weak
+							 * 3. multiply with its own rotation, calculate euler.
 							 */
 						
 							/* Roll around local axis */
@@ -4180,11 +4157,11 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 								}
 							
 								/* 3 */
-								/* we werken even met de rot+drot */
+								/* we now work with rot+drot */
 								
 							if(tob->ob->transflag & OB_QUAT || !tob->rot)
 							{
-								/* drot+rot NOG DOEN! */
+								/* drot+rot TO DO! */
 								Mat3ToQuat(smat, quat);	// Original
 								QuatMul(tob->quat, quat, tob->oldquat);
 								
@@ -4195,7 +4172,6 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 									}
 									else {
 										/* VecSubf(rot, eul, tob->olddrot); */
-//										VecSubf(rot, eul, tob->olddrot);
 									}
 	
 									/* VecMulf(rot, 9.0/M_PI_2); */
@@ -4208,7 +4184,6 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 								}
 								else {
 									/* QuatSub(tob->quat, quat, tob->oldquat); */
-//									QuatSub(tob->quat, quat, tob->oldquat);
 								}
 							}
 							else {
@@ -4219,8 +4194,8 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 
 								Mat3ToEul(totmat, eul);
 
-								/* Eul mag niet te gek afwijken van oude eul.
-								 * Dit is alleen nog maar getest voor dx && dz
+								/* Eul is not allowed to differ too much from old eul.
+								 * This has only been tested for dx && dz
 								 */
 								
 								compatible_eul(eul, tob->oldrot);
@@ -4255,11 +4230,11 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 							}
 							
 							if(G.vd->around!=V3D_LOCAL && (!G.obpose))  {
-									/* translatie */
+									/* translation */
 									VecSubf(vec, tob->obvec, centre);
 									Mat3MulVecfl(mat, vec);
 									VecAddf(vec, vec, centre);
-									/* vec is nu de plek waar het object moet komen */
+									/* vec now is the location where the object has to be */
 									VecSubf(vec, vec, tob->obvec);
 									Mat3MulVecfl(tob->parinv, vec);
 									
@@ -4348,7 +4323,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					if(proj==2) size[1]=size[0]= 1.0;
 				}
 
-/* X en Y flip, twee methodes: bij  |**| commentaar weghalen maakt flips lokaal */
+/* X en Y flip, there are 2 methods: at  |**| removing comments makes flips local */
 
 /**/			/* if(transvmain) { */
 	
@@ -4384,14 +4359,12 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					
 					for(a=0; a<tottrans; a++, tob++, tv++) {
 						if(transmain) {
-							/* size moet lokaal t.o.v. ouder EN van eigen rotatie */
-							/* lokaal tov. ouder: */
-
-							
+							/* size local with respect to parent AND own rotation */
+							/* local wrt parent: */
 							
 							Mat3MulSerie(smat, tob->parmat, mat, tob->parinv, 0, 0,0 ,0, 0);
 							
-							/* lokaal tov. eigen rot: */
+							/* local wrt own rotation: */
 							Mat3MulSerie(totmat, tob->obmat, smat, tob->obinv, 0, 0, 0,0 ,0);
 
 							/* XXX this can yield garbage in case of inverted sizes (< 0.0)
@@ -4401,7 +4374,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 								sizelo[1]= size[1];
 								sizelo[2]= size[2];
 							} else { 	
-							/* dan klopt de vorige berekening van de juiste size niet meer precies */
+							/* in this case the previous calculation of the size is wrong */
 								sizelo[0]= totmat[0][0];	
 								sizelo[1]= totmat[1][1];	
 								sizelo[2]= totmat[2][2];
@@ -4419,9 +4392,9 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 
 
 							/* what you see is what you want; not what you get! */
-							/* correctie voor delta size */
+							/* correction for delta size */
 							if(tob->flag & TOB_IPO) {
-								/* deltasize berekenen (gelijk voor size en dsize) */
+								/* calculate delta size (equal for size and dsize) */
 								
 								vec[0]= (tob->oldsize[0]+tob->olddsize[0])*(sizelo[0] -1.0);
 								vec[1]= (tob->oldsize[1]+tob->olddsize[1])*(sizelo[1] -1.0);
@@ -4439,11 +4412,11 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 							}
 							
 							if(G.vd->around!=V3D_LOCAL && !G.obpose) {
-								/* translatie */
+								/* translation */
 								VecSubf(vec, tob->obvec, centre);
 								Mat3MulVecfl(mat, vec);
 								VecAddf(vec, vec, centre);
-								/* vec is nu de plek waar het object moet komen */
+								/* vec is the location where the object has to be */
 								VecSubf(vec, vec, tob->obvec);
 								Mat3MulVecfl(tob->parinv, vec);
 
@@ -4535,7 +4508,7 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 				
 				omtrekfac= startomtrekfac+ 0.05*( mval[1] - yn)*Normalise(dvec);
 	
-				/* berekenen hoek voor print */
+				/* calc angle for print */
 				dist= max[0]-centre[0];
 				phi0= 360*omtrekfac*dist/(rad*M_PI);
 				
@@ -4548,14 +4521,14 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 				sprintf(str, "Warp %3.3f", phi0); 
 				headerprint(str);
 	
-				/* elke vertex moet apart geroteerd */
+				/* each vertex transform individually */
 				tob= transmain;
 				tv= transvmain;
 					
 				for(a=0; a<tottrans; a++, tob++, tv++) {
 					if(transvmain) {
 						
-						/* punt transleren naar centre, zodanig roteren dat omtrekafstand==afstand */
+						/* translate point to centre, rotate in such a way that outline==distance */
 						
 						VECCOPY(vec, tv->oldloc);
 						Mat4MulVecfl(G.obedit->obmat, vec);
@@ -4812,14 +4785,14 @@ void rightmouse_transform(void)
 
 
 void single_object_users(int flag)	
-	/* hierna wel clear_id_newpoins() aanroepen */
+	/* after this call clear_id_newpoins() */
 {
 	Base *base;
 	Object *ob, *obn;
 	
 	clear_sca_new_poins();	/* sensor/contr/act */
 
-	/* dupliceren */
+	/* duplicate */
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
@@ -4839,7 +4812,7 @@ void single_object_users(int flag)
 	ID_NEW(G.scene->camera);
 	if(G.vd) ID_NEW(G.vd->camera);
 	
-	/* evt object pointers */
+	/* object pointers */
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
@@ -5021,7 +4994,7 @@ void single_mat_users(int flag)
 			for(a=1; a<=ob->totcol; a++) {
 				ma= give_current_material(ob, a);
 				if(ma) {
-					/* hier niet LIB_NEW testen: deze fie geeft gegarandeerde single_users! */
+					/* do not test for LIB_NEW: this functions guaranteed delivers single_users! */
 					
 					if(ma->id.us>1) {
 						man= copy_material(ma);
@@ -5075,7 +5048,7 @@ void do_single_tex_user(Tex **from)
 
 void single_tex_users_expand()
 {
-	/* alleen als 'ouder' blokken LIB_NEW zijn */
+	/* only when 'parent' blocks are LIB_NEW */
 	Material *ma;
 	Lamp *la;
 	World *wo;
@@ -5119,7 +5092,7 @@ void single_tex_users_expand()
 
 void single_mat_users_expand(void)
 {
-	/* alleen als 'ouder' blokken LIB_NEW zijn */
+	/* only when 'parent' blocks are LIB_NEW */
 
 	Object *ob;
 	Mesh *me;
@@ -5192,7 +5165,7 @@ void single_user(void)
 		else if(nr==3) {
 			single_object_users(1);
 			single_obdata_users(1);
-			single_mat_users(1); /* ook tex */
+			single_mat_users(1); /* also tex */
 			
 		}
 		else if(nr==4) {
@@ -5219,7 +5192,7 @@ void make_local(void)
 	ID *id;
 	int a, b, mode;
 	
-	/* LETOP: de functie new_id(..) voegt het id blok opnieuw in!!! */
+	/* WATCH: the function new_id(..) re-inserts the id block!!! */
 	
 	if(G.scene->id.lib) return;
 	
@@ -5245,7 +5218,7 @@ void make_local(void)
 		base= base->next;
 	}
 	
-	/* evt object pointers */
+	/* maybe object pointers */
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
@@ -5398,14 +5371,14 @@ void adduplicate(float *dtrans)
 			
 			basen= MEM_mallocN(sizeof(Base), "duplibase");
 			*basen= *base;
-			BLI_addhead(&G.scene->base, basen);	/* addhead: anders oneindige lus */
+			BLI_addhead(&G.scene->base, basen);	/* addhead: prevent eternal loop */
 			basen->object= obn;
 			base->flag &= ~SELECT;
 			basen->flag &= ~OB_FROMGROUP;
 			
 			if(BASACT==base) BASACT= basen;
 
-			/* duplicates ahv userflags */
+			/* duplicates using userflags */
 			
 			if(dupflag & DUPIPO) {
 				id= (ID *)obn->ipo;
@@ -5559,7 +5532,7 @@ void adduplicate(float *dtrans)
 		base= base->next;
 	}
 	
-	/* evt object pointers */
+	/* check object pointers */
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
@@ -5592,7 +5565,7 @@ void adduplicate(float *dtrans)
 		base= base->next;
 	}
 
-	/* materialen */
+	/* materials */
 	if( dupflag & DUPMAT) {
 		mao= G.main->mat.first;
 		while(mao) {
@@ -5634,8 +5607,8 @@ void adduplicate(float *dtrans)
 	set_active_base(BASACT);
 	
 	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWACTION, 0);	/* ook oops */
-	allqueue(REDRAWIPO, 0);	/* ook oops */
+	allqueue(REDRAWACTION, 0);	/* also oops */
+	allqueue(REDRAWIPO, 0);	/* also oops */
 }
 
 
@@ -5708,7 +5681,7 @@ void selectlinks(void)
 
 void image_aspect(void)
 {
-	/* alle geselecteerde objecten die imap hebben: scalen in ima verhouding */
+	/* all selected objects with an image map: scale in image aspect */
 	Base *base;
 	Object *ob;
 	Material *ma;
@@ -5914,7 +5887,7 @@ void auto_timeoffs(void)
 	if(BASACT==0) return;
 	if(button(&offset, 0, 1000,"Total time")==0) return;
 
-	/* maak array van alle bases, xco yco (scherm) */
+	/* make array of all bases, xco yco (screen) */
 	base= FIRSTBASE;
 	while(base) {
 		if(TESTBASELIB(base)) {
@@ -5957,8 +5930,8 @@ void texspace_edit(void)
 	Base *base;
 	int nr=0;
 	
-	/* eerst testen of van de zichtbare en geselecteerde ob's
-	 * wel de texspacedraw aanstaat:
+	/* first test if from visible and selected objects
+	 * texspacedraw is set:
 	 */
 	
 	if(G.obedit) return;
@@ -5975,7 +5948,6 @@ void texspace_edit(void)
 		return;
 	}
 	
-	/* nr= pupmenu("Texture space %t|Grabber%x1|Size%x2|Rotate%x3"); */
 	nr= pupmenu("Texture space %t|Grabber%x1|Size%x2");
 	if(nr<1) return;
 	
@@ -5999,7 +5971,7 @@ void texspace_edit(void)
 
 void first_base(void)
 {
-	/* maakt de select bases los en insert ze aan begin */
+	/* inserts selected Bases in beginning of list, sometimes useful for operation order */
 	Base *base, *next;
 	
 	if(okee("make first base")==0) return;

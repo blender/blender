@@ -131,7 +131,7 @@ void add_primitiveMball(int dummy_argument)
 	
 	check_editmode(OB_MBALL);
 
-	/* als geen obedit: nieuw object en in editmode gaan */
+	/* if no obedit: new object and enter editmode */
 	if(G.obedit==0) {
 		add_object(OB_MBALL);
 		base_init_from_view3d(BASACT, G.vd);
@@ -143,14 +143,14 @@ void add_primitiveMball(int dummy_argument)
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	}
 	
-	/* deselecteren */
+	/* deselect */
 	ml= editelems.first;
 	while(ml) {
 		ml->flag &= ~SELECT;
 		ml= ml->next;
 	}
 	
-	/* imat en centrum en afmeting */
+	/* imat and centre and size */
 	Mat3CpyMat4(mat, G.obedit->obmat);
 
 	curs= give_cursor();
@@ -218,7 +218,7 @@ void mouse_mball()
 	
 	hits= selectprojektie(buffer, 0, 0, 0, 0);
 
-	/* bestaat startelem? */
+	/* does startelem exist? */
 	ml= editelems.first;
 	while(ml) {
 		if(ml==startelem) break;

@@ -178,7 +178,7 @@ void load_editLatt(void)
 	
 	lt= G.obedit->data;
 	
-	/* zijn er keys? */
+	/* are there keys? */
 	if(lt->key) {
 		actkey= lt->key->block.first;
 		while(actkey) {
@@ -188,7 +188,7 @@ void load_editLatt(void)
 	}
 
 	if(actkey) {
-		/* aktieve key: vertices */
+		/* active key: vertices */
 		tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 		
 		if(actkey->data) MEM_freeN(actkey->data);
@@ -259,14 +259,14 @@ void deselectall_Latt(void)
 
 static BPoint *findnearestLattvert(int sel)
 {
-	/* sel==1: selected krijgen een nadeel */
-	/* in bp wordt nearest weggeschreven */
+	/* sel==1: selected get a disadvantage */
+	/* in bp nearest is written */
 	BPoint *bp1, *bp;
 	short dist= 100, temp, mval[2], a;
 
 	bp= 0;
 
-	/* projektie doen */
+	/* do projection */
 	calc_lattverts_ext();	/* drawobject.c */
 	
 	getmouseco_areawin(mval);

@@ -192,7 +192,7 @@ void insert_meshkey(Mesh *me)
 	
 	sort_keys(me->key);
 
-	/* curent actief: */
+	/* curent active: */
 	kkb= key->block.first;
 	while(kkb) {
 		kkb->flag &= ~SELECT;
@@ -272,7 +272,7 @@ void insert_lattkey(Lattice *lt)
 	
 	sort_keys(lt->key);
 
-	/* curent actief: */
+	/* curent active: */
 	kkb= key->block.first;
 	while(kkb) {
 		kkb->flag &= ~SELECT;
@@ -292,7 +292,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 	float *fp;
 	int a, tot;
 	
-	/* tellen */
+	/* count */
 	tot= count_curveverts(nurb);
 	if(tot==0) return;
 	
@@ -315,7 +315,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 				fp+= 3;
 				VECCOPY(fp, bezt->vec[2]);
 				fp+= 3;
-				fp+= 3;	/* alfa's */
+				fp+= 3;	/* alphas */
 				bezt++;
 			}
 		}
@@ -361,7 +361,7 @@ void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
 				fp+= 3;
 				VECCOPY(bezt->vec[2], fp);
 				fp+= 3;
-				fp+= 3;	/* alfa's */
+				fp+= 3;	/* alphas */
 				
 				tot-= 3;
 				bezt++;
@@ -415,7 +415,7 @@ void insert_curvekey(Curve *cu)
 	
 	sort_keys(cu->key);
 
-	/* curent actief: */
+	/* curent active: */
 	kkb= key->block.first;
 	while(kkb) {
 		kkb->flag &= ~SELECT;
@@ -457,7 +457,7 @@ void showkeypos(Key *key, KeyBlock *kb)
 	Curve *cu;
 	int tot;
 	
-	/* vanuit ipo */
+	/* from ipo */
 	ob= OBACT;
 	if(ob==0) return;
 	
@@ -483,7 +483,6 @@ void showkeypos(Key *key, KeyBlock *kb)
 			tot= count_curveverts(&cu->nurb);
 			cp_cu_key(cu, kb, 0, tot);
 
-/*			make_displists_by_obdata(me);	*/
 			make_displists_by_obdata(cu);
 		}
 		
@@ -541,7 +540,7 @@ void delete_key(void)
 		else if(GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= 0;
 
 		free_libblock_us(&(G.main->key), key);
-		scrarea_queue_headredraw(curarea);	/* ipo ook weg */
+		scrarea_queue_headredraw(curarea);	/* ipo remove too */
 	}
 	else do_spec_key(key);
 	
@@ -568,7 +567,7 @@ void move_keys(void)
 	key= (Key *)G.sipo->from;
 	if(key==0) return;
 	
-	/* welke keys doen mee */
+	/* which keys are involved */
 	kb= key->block.first;
 	while(kb) {
 		if(kb->flag & SELECT) tot++;
@@ -650,7 +649,7 @@ void move_keys(void)
 	sort_keys(key);
 	do_spec_key(key);
 	
-	/* voor boundbox */
+	/* for boundbox */
 	editipo_changed(G.sipo, 0);
 
 	MEM_freeN(transmain);	
