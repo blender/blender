@@ -183,9 +183,9 @@ CollapseEdge(
 	} else {
 		// the edge could not be collapsed at the moment - so
 		// we adjust it's priority and add it back to the heap.
-		m_heap->Remove(edges.begin(),0);
+		m_heap->Remove(&edges[0],0);
 		edges[heap_top].HeapKey() = - MT_INFINITY;
-		m_heap->Insert(edges.begin(),heap_top);
+		m_heap->Insert(&edges[0],heap_top);
 	}
 
 	//clear all the temporary buffers
@@ -274,7 +274,7 @@ BuildHeap(
 		heap_vector.push_back(i);
 	}
 	
-	m_heap->MakeHeap(edge_set.begin());
+	m_heap->MakeHeap(&edge_set[0]);
 
 	return true;
 }
@@ -304,7 +304,7 @@ UpdateHeap(
 	// inser the new elements into the heap
 
 	for (; edge_it != end_it; ++edge_it) {		
-		m_heap->Insert(edge_set.begin(),*edge_it);
+		m_heap->Insert(&edge_set[0],*edge_it);
 	}
 
 
@@ -315,7 +315,7 @@ UpdateHeap(
 
 	for (; edge_it != end_it; ++edge_it) {
 		LOD_Edge &e = edge_set[*edge_it];
-		m_heap->Remove(edge_set.begin(),e.HeapPos());
+		m_heap->Remove(&edge_set[0],e.HeapPos());
 
 		e.HeapPos() = 0xffffffff;
 
