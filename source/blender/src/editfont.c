@@ -234,7 +234,7 @@ static int insert_into_textbuf(Curve *cu, char c)
 }
 
 
-static VFont *get_builtin_font(void)
+VFont *get_builtin_font(void)
 {
 	VFont *vf;
 	

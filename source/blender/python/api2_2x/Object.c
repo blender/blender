@@ -45,6 +45,7 @@
 #include <BSE_edit.h>
 #include <BKE_property.h>
 #include <BKE_mball.h>
+#include <BKE_font.h>
 #include <BIF_editview.h>
 
 #include "Ipo.h"
@@ -150,7 +151,9 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearScriptLinks( BPy_Object * self );
-
+/* fixme: save for separate commit. 06-mar-05
+static PyObject *Object_setDupliVerts ( BPy_Object * self );
+*/
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
 /*****************************************************************************/
@@ -306,6 +309,12 @@ works only if self and the object specified are of the same type."},
 	{"clearScriptLinks", ( PyCFunction ) Object_clearScriptLinks,
 	 METH_NOARGS,
 	 "() - Delete all scriptlinks from this object."},
+#if 0
+/* fixme:save for separate commit. 6-mar-05 stivs */
+	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
+	 METH_NOARGS,
+	 "() - setDupliVerts."},
+#endif
 	{NULL, NULL, 0, NULL}
 };
 
@@ -370,7 +379,8 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 		type = OB_CAMERA;
 	else if( strcmp( str_type, "Curve" ) == 0 )
 		type = OB_CURVE;
-/*	else if (strcmp (str_type, "Text") == 0)	type = OB_FONT; */
+	else if (strcmp (str_type, "Text") == 0)	
+		type = OB_FONT;
 /*	else if (strcmp (str_type, "Ika") == 0)		type = OB_IKA; */
 	else if( strcmp( str_type, "Lamp" ) == 0 )
 		type = OB_LAMP;
@@ -1224,6 +1234,8 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		data = ( void * ) Lattice_FromPyObject( py_data );
 	if( Metaball_CheckPyObject( py_data ) )
 		data = ( void * ) Metaball_FromPyObject( py_data );
+	if( Text3d_CheckPyObject( py_data ) )
+		data = ( void * ) Text3d_FromPyObject( py_data );
 
 	/* have we set data to something good? */
 	if( !data ) {
@@ -1261,7 +1273,7 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		}
 		break;
 	case ID_CU:
-		if( self->object->type != OB_CURVE ) {
+		if( self->object->type != OB_CURVE && self->object->type != OB_FONT ) {
 			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 							"The 'link' object is incompatible with the base object" ) );
 		}
@@ -2002,6 +2014,24 @@ static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args )
 	else
 		return NULL;
 }
+
+#if 0
+
+/* fixme: save this for next commit 6-mar-05 stivs */
+
+/****
+ * Set dupliverts 
+ * 
+ ***/
+
+static PyObject *Object_setDupliVerts ( BPy_Object * self ) {
+	Object *obj = self->object;
+	if (obj) {
+		obj->transflag|= (char)16;
+	}
+	return Py_None;
+}
+#endif
 
 /*****************************************************************************/
 /* Function:	Object_CreatePyObject					 */

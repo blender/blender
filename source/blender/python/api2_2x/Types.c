@@ -74,6 +74,7 @@ void types_InitAll( void )
 	RenderData_Type.ob_type = &PyType_Type;
 	Scene_Type.ob_type = &PyType_Type;
 	Text_Type.ob_type = &PyType_Type;
+	Text3d_Type.ob_type = &PyType_Type;
 	Texture_Type.ob_type = &PyType_Type;
 	Wave_Type.ob_type = &PyType_Type;
 	World_Type.ob_type = &PyType_Type;
@@ -134,6 +135,7 @@ PyObject *Types_Init( void )
 	PyDict_SetItemString( dict, "ImageType", ( PyObject * ) & Image_Type );
 	PyDict_SetItemString( dict, "LampType", ( PyObject * ) & Lamp_Type );
 	PyDict_SetItemString( dict, "TextType", ( PyObject * ) & Text_Type );
+	PyDict_SetItemString( dict, "Text3dType", ( PyObject * ) & Text3d_Type );
 	PyDict_SetItemString( dict, "MaterialType",
 			      ( PyObject * ) & Material_Type );
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -25,36 +25,40 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Alex Mole
+ * Contributor(s): Joilnen Leite
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_TYPES_H
-#define EXPP_TYPES_H
+#ifndef EXPP_TEXT3D_H
+#define EXPP_TEXT3D_H
 
-#include "Python.h"
+#include <Python.h>
+#include <stdio.h>
 
-extern PyTypeObject Action_Type, Armature_Type;
-extern PyTypeObject BezTriple_Type, Bone_Type, Build_Type, Button_Type;
-extern PyTypeObject Camera_Type;
-extern PyTypeObject CurNurb_Type;
-extern PyTypeObject Curve_Type;
-extern PyTypeObject Effect_Type;
-extern PyTypeObject Image_Type, Ipo_Type, IpoCurve_Type;
-extern PyTypeObject Lamp_Type, Lattice_Type;
-extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
-extern PyTypeObject NMFace_Type, NMVert_Type, NMCol_Type, NMesh_Type;
-extern PyTypeObject Object_Type;
-extern PyTypeObject Particle_Type;
-extern PyTypeObject Scene_Type, RenderData_Type;
-extern PyTypeObject Text_Type, Text3d_Type, Texture_Type;
-extern PyTypeObject Wave_Type, World_Type;
-extern PyTypeObject property_Type;
-extern PyTypeObject buffer_Type, constant_Type, euler_Type;
-extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
+#include <BLI_arithb.h>
+#include <BLI_blenlib.h>
+#include <BKE_main.h>
+#include <BKE_global.h>
+#include <BKE_object.h>
+#include <BKE_library.h>
+#include <BKE_curve.h>
 
-PyObject *Types_Init( void );
-void types_InitAll( void );
+#include <DNA_curve_types.h>
 
-#endif				/* EXPP_TYPES_H */
+#include"gen_utils.h"
+
+extern PyTypeObject Text3d_Type;
+
+#define BPy_Text3d_Check(v) ((v)->ob_type==&Text3d_Type)
+typedef Curve Text3d; 
+
+/* Python BPy_Text3d structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	Text3d * curve;
+} BPy_Text3d;
+
+
+#endif				/* EXPP_TEXT3D_H */
+

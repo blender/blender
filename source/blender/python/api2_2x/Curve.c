@@ -76,8 +76,8 @@ static PyObject *M_Curve_Get( PyObject * self, PyObject * args );
 /*****************************************************************************/
 /*  Python BPy_Curve instance methods declarations:                          */
 /*****************************************************************************/
-static PyObject *Curve_getName( BPy_Curve * self );
-static PyObject *Curve_setName( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getName( BPy_Curve * self );
+PyObject *Curve_setName( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getPathLen( BPy_Curve * self );
 static PyObject *Curve_setPathLen( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getTotcol( BPy_Curve * self );
@@ -446,7 +446,7 @@ PyObject *Curve_Init( void )
 /*****************************************************************************/
 
 
-static PyObject *Curve_getName( BPy_Curve * self )
+PyObject *Curve_getName( BPy_Curve * self )
 {
 	PyObject *attr = PyString_FromString( self->curve->id.name + 2 );
 
@@ -457,7 +457,7 @@ static PyObject *Curve_getName( BPy_Curve * self )
 					"couldn't get Curve.name attribute" ) );
 }
 
-static PyObject *Curve_setName( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setName( BPy_Curve * self, PyObject * args )
 {
 	char *name;
 	char buf[50];
