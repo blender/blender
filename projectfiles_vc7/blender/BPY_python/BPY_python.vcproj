@@ -160,6 +160,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lattice.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Library.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\MTex.c">
 			</File>
 			<File
