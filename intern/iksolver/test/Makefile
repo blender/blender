@@ -53,6 +53,10 @@ ifeq ($(OS),$(findstring $(OS), "beos darwin linux freebsd openbsd"))
     LLIBS = -L/usr/X11R6/lib -lglut -pthread
 endif
 
+ifeq ($(OS),$(findstring $(OS), "solaris"))
+    LLIBS = -L/usr/openwin/lib -lglut -lX11 -lGL -lGLU -lXmu
+endif
+
 all debug:: $(LIBS) $(DIR)/$(DEBUG_DIR)iksolvertest
 
 $(DIR)/$(DEBUG_DIR)iksolvertest:
