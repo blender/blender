@@ -1038,7 +1038,13 @@ void do_global_buttons(unsigned short event)
 		else if(ipo->blocktype==ID_WO) ( (World *)from)->ipo= 0;
 		else if(ipo->blocktype==ID_CA) ( (Camera *)from)->ipo= 0;
 		else if(ipo->blocktype==ID_SO) ( (bSound *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_AC) get_hilighted_action_channel((bAction*)from)->ipo= 0;
+		else if(ipo->blocktype==ID_AC) {
+			bAction *act = (bAction*) from;
+			bActionChannel *chan = 
+				get_hilighted_action_channel((bAction*)from);
+			chan->ipo->id.us--;
+			BLI_freelinkN (&act->chanbase, chan);
+		}
 		else if(ipo->blocktype==IPO_CO) ((Object *)from)->activecon->ipo= 0;
 
 		else error("Warn bugs@blender.nl!");
