@@ -4,8 +4,6 @@ kx_blenderhook_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('python_include')
-Import ('solid_include')
 Import ('user_options_dict')
 kx_blenderhook_env.Append (CCFLAGS = cflags)
 kx_blenderhook_env.Append (CXXFLAGS = cxxflags)
@@ -26,7 +24,6 @@ kx_blenderhook_env.Append (CPPPATH=['.',
                                     '#intern/string',
                                     '#intern/guardedalloc',
                                     '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
-                                    python_include,
                                     '#intern/bmfont',
                                     '#source/gameengine/Converter',
                                     '#source/blender/imbuf',
@@ -47,8 +44,10 @@ kx_blenderhook_env.Append (CPPPATH=['.',
                                     '#source/gameengine/Network/LoopBackNetwork',
                                     '#intern/SoundSystem',
                                     '#source/blender/misc',
-                                    '#source/blender/blenloader',
-                                    solid_include,
+                                    '#source/blender/blenloader'
                                     ])
+
+kx_blenderhook_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
+kx_blenderhook_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
 
 kx_blenderhook_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_blenderhook', source=source_files)

@@ -4,7 +4,6 @@ kx_network_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('python_include')
 Import ('user_options_dict')
 kx_network_env.Append (CCFLAGS = cflags)
 kx_network_env.Append (CXXFLAGS = cxxflags)
@@ -20,11 +19,12 @@ source_files = ['KX_NetworkEventManager.cpp',
 kx_network_env.Append (CPPPATH = ['.',
                                   '#source/kernel/gen_system',
                                   '#intern/string',
-                                  python_include,
                                   '#source/gameengine/Ketsji',
                                   '#source/gameengine/GameLogic',
                                   '#source/gameengine/Expressions',
                                   '#source/gameengine/Network',
                                  ])
+
+kx_network_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 
 kx_network_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_network', source=source_files)

@@ -16,6 +16,7 @@ include_paths = ['.',
 ftf_env = Environment()
 ftf_env.Append(CPPPATH = extra_includes)
 ftf_env.Append(CPPPATH = include_paths)
+ftf_env.Prepend (CPPPATH = user_options_dict['FREETYPE_INCLUDE'])
 ftf_env.Append(CCFLAGS = cflags)
 ftf_env.Append(CXXFLAGS = cxxflags)
 ftf_env.Append(CPPDEFINES = defines)

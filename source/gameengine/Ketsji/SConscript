@@ -4,8 +4,6 @@ ketsji_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('python_include')
-Import ('solid_include')
 Import ('user_options_dict')
 ketsji_env.Append (CCFLAGS = cflags)
 ketsji_env.Append (CXXFLAGS = cxxflags)
@@ -63,7 +61,7 @@ source_files = ['KX_WorldIpoController.cpp',
 
 if user_options_dict['USE_PHYSICS'] == 'solid':
     source_files += ['KX_SumoPhysicsController.cpp']
-    ketsji_env.Append (CPPPATH = [solid_include])
+    ketsji_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
 
 if user_options_dict['USE_PHYSICS'] == 'ode':
     source_files += ['KX_OdePhysicsController.cpp']
@@ -103,8 +101,9 @@ ketsji_env.Append (CPPPATH = ['.',
                               '#source/gameengine/Physics/Sumo/Fuzzics/include',
                               '#source/gameengine/Network/LoopBackNetwork',
                               '#source/blender/misc',
-                              '#source/blender/blenloader',
-                              python_include
+                              '#source/blender/blenloader'
                              ])
+
+ketsji_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 
 ketsji_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_ketsji', source=source_files)

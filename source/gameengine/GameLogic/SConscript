@@ -4,7 +4,6 @@ sca_gamelogic_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('python_include')
 Import ('user_options_dict')
 sca_gamelogic_env.Append (CCFLAGS = cflags)
 sca_gamelogic_env.Append (CXXFLAGS = cxxflags)
@@ -42,8 +41,8 @@ sca_gamelogic_env.Append (CPPPATH=['.',
                                    '#/source/kernel/gen_system',
                                    '#/intern/string',
                                    '#/source/gameengine/Expressions',
-                                   '#/intern/moto/include',
-                                   python_include,
-                                  ])
+                                   '#/intern/moto/include'])
+
+sca_gamelogic_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 
 sca_gamelogic_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/SCA_GameLogic', source=source_files)

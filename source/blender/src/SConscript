@@ -4,13 +4,10 @@ src_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('python_include')
-Import ('sdl_cflags')
-Import ('sdl_include')
 Import ('extra_includes')
 Import ('user_options_dict')
 src_env.Append (CCFLAGS = cflags)
-src_env.Append (CCFLAGS = sdl_cflags)
+src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
 src_env.Append (CXXFLAGS = cxxflags)
 src_env.Append (CPPDEFINES = defines)
 
@@ -136,9 +133,10 @@ src_env.Append (CPPPATH = ['#/intern/guardedalloc',
                            '../readstreamglue',
                            '../img',
                            '../quicktime',
-                           '#/intern/ghost',
-                           python_include,
-                           sdl_include])
+                           '#/intern/ghost'])
+
+src_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
+src_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
 
 if user_options_dict['USE_INTERNATIONAL'] == 1:
     src_env.Append (CPPPATH=['../ftfont'])

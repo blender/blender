@@ -4,7 +4,6 @@ expressions_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('python_include')
 Import ('user_options_dict')
 expressions_env.Append (CCFLAGS = cflags)
 expressions_env.Append (CXXFLAGS = cxxflags)
@@ -32,7 +31,8 @@ source_files = ['BoolValue.cpp',
 
 expressions_env.Append (CPPPATH = ['.',
                                    '#source/kernel/gen_system',
-                                   '#intern/string',
-                                   python_include])
+                                   '#intern/string'])
+
+expressions_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 
 expressions_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_expressions', source=source_files)
