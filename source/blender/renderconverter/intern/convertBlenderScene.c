@@ -3143,7 +3143,7 @@ void displace_render_face(VlakRen *vlr, float scale)
 		/* I don't think this is used, but seting it just in case */
 		
 	/* Displace the verts, flag is set when done */
-	if (! (vlr->v1->flag)){		/
+	if (! (vlr->v1->flag)){		
 		if (hasuv)	{
 			shi.uv[0] = 2*vlr->tface->uv[0][0]-1.0f; /* shi.uv and tface->uv are */
 			shi.uv[1]=  2*vlr->tface->uv[0][1]-1.0f; /* scalled differently 	 */
