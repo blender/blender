@@ -162,7 +162,7 @@ void tbox_setinfo(int x, int y)
 	keystr = NULL;
 
 /* main menu entries: defined in BIF_toolbox.h */
-
+	
 	if(x==0) {
 		switch(y) {
 			case TBOX_MAIN_FILE:		tbstr= "FILE";		break;
