@@ -134,14 +134,11 @@ ifeq ($(CCC),g++)
     # deliberately enable char-subscript warnings
     LEVEL_2_CPP_WARNINGS += -Wshadow
     LEVEL_2_CPP_WARNINGS += -Wpointer-arith
-    LEVEL_2_CPP_WARNINGS += -Wbad-function-cast
     LEVEL_2_CPP_WARNINGS += -Wcast-qual
     LEVEL_2_CPP_WARNINGS += -Wcast-align
     # deliberately disable aggregate-return warnings
     LEVEL_2_CPP_WARNINGS += -Wstrict-prototypes
     LEVEL_2_CPP_WARNINGS += -Wmissing-prototypes
-    LEVEL_2_CPP_WARNINGS += -Wmissing-declarations
-    LEVEL_2_CPP_WARNINGS += -Wnested-externs
     LEVEL_2_CPP_WARNINGS += -Wredundant-decls 
     LEVEL_2_CPP_WARNINGS += -Wreorder
     LEVEL_2_CPP_WARNINGS += -Wctor-dtor-privacy
