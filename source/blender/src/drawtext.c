@@ -324,8 +324,8 @@ static void draw_cursor(SpaceText *st) {
 		if(i) glRecti(x, curarea->winy-st->lheight*(h)-2, i, curarea->winy-st->lheight*(h+1)-2);
 
 	}
-
-	glColor3f(0.0, 0.0, 0.0);
+	
+	BIF_ThemeColor(TH_TEXT);
 }
 
 static void calc_text_rcts(SpaceText *st)
@@ -571,7 +571,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 		glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
 	}
 
-	glColor3f(0.0, 0.0, 0.0);
+	BIF_ThemeColor(TH_TEXT);
 
 	draw_cursor(st);
 
