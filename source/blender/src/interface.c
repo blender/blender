@@ -2844,11 +2844,37 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 		}
 	}
 
-	/* no frontbuffer draw anymore, redraw is fast enuf */
+	/* check for a 'found one' to prevent going to 'frontbuffer' mode.
+		this slows done gfx quite some, and at OSX the 'finish' forces a swapbuffer */
 	if(foundone) {
-		addqueue(block->win, REDRAW, 1);
+		glDrawBuffer(GL_FRONT);
+		
+		/* draw */
+		but= block->buttons.first;
+		while(but) {
+			if(but->type==LINK && but->link) {
+				line= but->link->lines.first;
+				while(line) {
+					if(line==act) {
+						if((line->flag & UI_SELECT)==0) {
+							line->flag |= UI_SELECT;
+							ui_draw_linkline(but, line);
+						}
+					}
+					else if(line->flag & UI_SELECT) {
+						line->flag &= ~UI_SELECT;
+						ui_draw_linkline(but, line);
+					}
+					line= line->next;
+				}
+			}
+			but= but->next;
+		}
+		glFlush();
+		glDrawBuffer(GL_BACK);
 	}
 }
+
 
 /* only to be used to prevent an 'outside' event when using nested pulldowns */
 /* four checks:
