@@ -1235,8 +1235,25 @@ static PyObject *Ipo_DeleteBezPoints( BPy_Ipo * self, PyObject * args )
 }
 
 
+/*
+ * Ipo_getCurveBP()
+ * this method is UNSUPPORTED.
+ * Calling this method throws a TypeError Exception.
+ *
+ * it looks like the original intent was to return the first point
+ * of a BPoint Ipo curve.  However, BPoint ipos are not currently
+ * implemented.
+ */
+
 static PyObject *Ipo_getCurveBP( BPy_Ipo * self, PyObject * args )
 {
+
+	/* unsupported method */
+	return EXPP_ReturnPyObjError( PyExc_NotImplementedError,
+								  "bpoint ipos are not supported");
+
+#if 0
+
 	struct BPoint *ptrbpoint;
 	int num = 0, i;
 	IpoCurve *icu;
@@ -1265,6 +1282,7 @@ static PyObject *Ipo_getCurveBP( BPy_Ipo * self, PyObject * args )
 	for( i = 0; i < 4; i++ )
 		PyList_Append( l, PyFloat_FromDouble( ptrbpoint->vec[i] ) );
 	return l;
+#endif
 }
 
 static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args )

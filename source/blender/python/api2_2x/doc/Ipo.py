@@ -178,13 +178,11 @@ class Ipo:
     
   def getCurveBP(curvepos):
     """
-    Gets the basepoint of a curve of the ipo.
-    @type curvepos: int
-    @param curvepos: the position of the curve.
-    @rtype: a list of 4 floats
-    @return: the coordinates of the basepoint, or an error is raised.
+    This method is unsupported.  BPoint Ipo curves are not implemented.
+    Calling this method throws a NotImplementedError exception.
+    @raise NotImplementedError: this method B{always} raises an exception
     """
-    
+ 
   def getBeztriple(curvepos,pointpos):
     """
     Gets a beztriple of the Ipo.
