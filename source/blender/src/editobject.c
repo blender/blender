@@ -5704,10 +5704,14 @@ void transform(int mode)
 					if (G.obedit && (G.f & G_PROPORTIONAL)) {
 						if(event==GKEY) mode= 'G';
 						else if(event==RKEY) mode= 'R';
+						else if(event==SKEY && G.qual == LR_ALTKEY) mode= 'N';
+						else if(event==SKEY && G.qual == LR_CTRLKEY) mode= 'S';
 						else if(event==SKEY) mode= 'C';
 					} else {
 						if(event==GKEY) mode= 'g';
 						else if(event==RKEY) mode= 'r';
+						else if(event==SKEY && G.qual==LR_ALTKEY && G.obedit) mode= 'N';
+						else if(event==SKEY && G.qual==LR_CTRLKEY && G.obedit) mode= 'S';
 						else if(event==SKEY) mode= 's';
 					}
 
