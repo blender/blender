@@ -1,6 +1,3 @@
-#
-# $Id$
-#
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -29,37 +26,9 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
-#
+# Bounces make to subdirectories.
 
-LIBNAME = render
-DIR = $(OCGDIR)/blender/$(LIBNAME)
+SOURCEDIR = source/blender/yafray
+DIRS = intern
 
-include nan_compile.mk
-
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-    CCFLAGS += -funsigned-char
-endif
-
-CFLAGS += $(LEVEL_1_C_WARNINGS)
-
-# first /include is my own includes, second is the external interface. 
-# The external modules follow after. There should be a nicer way to say this.
-CPPFLAGS += -I../include 
-CPPFLAGS += -I../../extern/include 
-CPPFLAGS += -I../../../radiosity/extern/include 
-CPPFLAGS += -I../../../blenlib
-CPPFLAGS += -I../../../imbuf
-CPPFLAGS += -I../../../makesdna
-CPPFLAGS += -I../../../blenkernel
-CPPFLAGS += -I../../../quicktime
-CPPFLAGS += -I../../../yafray
-CPPFLAGS += -I../../../../kernel/gen_messaging
-CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-# not very neat: the rest of blender..
-CPPFLAGS += -I../../../include 
-
-ifeq ($(WITH_QUICKTIME), true)
-	CPPFLAGS += -DWITH_QUICKTIME
-endif
-
+include nan_subdirs.mk

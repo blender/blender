@@ -134,6 +134,7 @@ PYPLAYERLIB ?= $(PYLIB)
     COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
     COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
     COMLIB += $(NAN_PNG)/lib/libpng.a
+    COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a
   ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
   endif
