@@ -367,20 +367,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		CValue* propval = GetParent()->GetProperty(m_propname);
 		if (propval)
 		{
-			float target = propval->GetNumber(); 
-			float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
-			if (target > m_localtime)
-			{
-				m_localtime += delta_time;
-				if (m_localtime > target)
-					m_localtime = target;
-			}
-			else
-			{
-				m_localtime -= delta_time;
-				if (m_localtime < target)
-					m_localtime = target;
-			}
+			m_localtime = propval->GetNumber(); 
 	
 			CIpoAction ipoaction(
 				(KX_GameObject*) GetParent(),
