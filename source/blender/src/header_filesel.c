@@ -124,9 +124,11 @@ void file_buttons(void)
 	
 	/* SORT TYPE */
 	xco+=XIC;
+	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTTIME,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 1.0, 0, 0, "Sorts files by time");
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
+	uiBlockEndAlign(block);
 
 	cpack(0x0);
 	glRasterPos2i(xco+=XIC+10,	5);
@@ -137,14 +139,16 @@ void file_buttons(void)
 	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
 	uiDefIconButS(block, TOG|BIT|3, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
 
-	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC,0,90,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
+	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+10,0,90,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
 
-	xco+=90;
+	xco+=80;
 
 	if(sfile->type==FILE_LOADLIB) {
+		uiBlockBeginAlign(block);
 		uiDefButS(block, TOGN|BIT|2, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Copies selected data into current project");
 		uiDefButS(block, TOG|BIT|2, B_REDR, "Link",	xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Creates a link to selected data from current project");
-		uiDefButS(block, TOGN|BIT|4, B_REDR, "Autosel", xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
+		uiBlockEndAlign(block);
+		uiDefButS(block, TOGN|BIT|4, B_REDR, "AutoSelect", xco+=110,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
 	}
 
 	if(sfile->type==FILE_UNIX) {
