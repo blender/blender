@@ -63,6 +63,7 @@ extern "C"
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "BLO_readfile.h"
+#include "BLO_readblenfile.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
@@ -175,14 +176,19 @@ char *get_filename(int argc, char **argv) {
 
 BlendFileData *load_game_data(char *progname, char *filename) {
 	BlendReadError error;
-	BlendFileData *bfd;
+	BlendFileData *bfd = NULL;
 	
 	/* try to load ourself, will only work if we are a runtime */
-	bfd= BLO_read_from_file(progname, &error);
-	
-	if (!bfd) {
+	if (blo_is_a_runtime(progname)) {
+		bfd= blo_read_runtime(progname, &error);
+	}
+	if (bfd) {
+		bfd->type= BLENFILETYPE_RUNTIME;
+		strcpy(bfd->main->name, progname);
+	} else {
 		if (filename) {
-			bfd= BLO_read_from_file(filename, &error);
+			return load_game_data(filename, NULL);
+//			bfd= BLO_read_from_file(filename, &error);
 		}
 	}
 	
@@ -566,7 +572,7 @@ int main(int argc, char** argv)
 						{
 							system->processEvents(false);
 							system->dispatchEvents();
-							if (exitcode = app.getExitRequested())
+							if ((exitcode = app.getExitRequested()))
 							{
 								run = false;
 								exitstring = app.getExitString();

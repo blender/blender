@@ -161,7 +161,7 @@ blo_read_runtime(
 		*error_r= BRE_NOT_A_BLEND;
 		goto cleanup;
 	} else {	
-		printf("starting to read runtime from %s at datastart %d\n", path, datastart);
+		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);
 		lseek(fd, datastart, SEEK_SET);
 		bfd = blo_read_blendafterruntime(fd, actualsize-datastart, error_r);
 	}

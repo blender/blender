@@ -251,12 +251,6 @@ BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r) {
 			strcpy(bfd->main->name, file);
 		}
 		blo_freefiledata(fd);			
-	} else if (blo_is_a_runtime(file)) {
-		bfd= blo_read_runtime(file, error_r);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_RUNTIME;
-			strcpy(bfd->main->name, file);
-		}
 	}
 
 	return bfd;	
