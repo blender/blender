@@ -59,7 +59,10 @@ bool yafrayRender_t::exportScene()
 	clearAll();
 
 	if(!finishExport())
+	{
 		G.afbreek = 1;	//stop render and anim if doing so
+		return false;
+	}
 	else return true;
 }
 

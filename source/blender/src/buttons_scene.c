@@ -1220,11 +1220,7 @@ static void render_panel_yafrayGI()
 		if (G.scene->r.GIpower==0) G.scene->r.GIpower=1;
 		uiDefButF(block, NUM, 0, "Power:", 5,35,154,20, &G.scene->r.GIpower, 0.01, 100.0, 0, 0, "GI lighting intensity scale, 1 is normal");
 	}
-	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,154,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
-	uiDefButF(block, NUMSLI, 0, "Exp ", 159,10,154,20, &G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
         
-  uiDefButI(block, NUM, 0, "Processors:", 159,35,154,20,
-				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
 	if (G.scene->r.GImethod==2) {
 		if (G.scene->r.GIdepth==0) G.scene->r.GIdepth=2;
@@ -1242,6 +1238,26 @@ static void render_panel_yafrayGI()
 	}
 }
 
+/* yafray: global  options panel */
+static void render_panel_yafrayGlobal()
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_yafrayGlobal", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Render", "Render");
+	if(uiNewPanel(curarea, block, "YafRay", "Render", 320, 0, 318, 204)==0) return;
+
+	// label to force a boundbox for buttons not to be centered
+	uiDefBut(block, LABEL, 0, " ", 305,180,10,10, 0, 0, 0, 0, 0, "");
+
+	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,154,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
+	uiDefButF(block, NUMSLI, 0, "Exp ", 159,10,154,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
+        
+  uiDefButI(block, NUM, 0, "Processors:", 159,35,154,20,
+				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
+
+}
+
 
 void render_panels()
 {
@@ -1253,6 +1269,7 @@ void render_panels()
 	/* yafray: GI panel only available when yafray enabled for rendering */
 	if (G.scene->r.mode & R_YAFRAY) {
 		if (G.scene->r.YF_gamma==0.0) G.scene->r.YF_gamma=1.0;
+		render_panel_yafrayGlobal();
 		render_panel_yafrayGI();
 	}
 

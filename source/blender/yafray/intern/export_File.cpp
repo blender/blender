@@ -239,7 +239,7 @@ void yafrayFileRender_t::writeTextures()
 {
 	for (map<string, pair<Material*, MTex*> >::const_iterator blendtex=used_textures.begin();
 						blendtex!=used_textures.end();++blendtex) {
-		Material* matr = blendtex->second.first;
+		//Material* matr = blendtex->second.first;
 		MTex* mtex = blendtex->second.second;
 		Tex* tex = mtex->tex;
 		switch (tex->type) {
@@ -921,7 +921,7 @@ void yafrayFileRender_t::writeAllObjects()
 		writeObject(obj, all_objects[obj], obmat);
 
 		// all others instances of first
-		for (int curmtx=16;curmtx<dupMtx->second.size();curmtx+=16) {	// number of 4x4 matrices
+		for (unsigned int curmtx=16;curmtx<dupMtx->second.size();curmtx+=16) {	// number of 4x4 matrices
 
 			// new mtx
 			for (int i=0;i<4;i++)
@@ -954,6 +954,21 @@ void yafrayFileRender_t::writeAllObjects()
 
 }
 
+void yafrayFileRender_t::writeAreaLamp(LampRen* lamp,int num)
+{
+	if(lamp->area_shape != LA_AREA_SQUARE) return;
+	float *a=lamp->area[0],*b=lamp->area[1],*c=lamp->area[2],*d=lamp->area[3];
+	ostr.str("");
+	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\"off\" " <<endl;
+	ostr << "\tpower=\"" << lamp->energy <<"\">" <<endl;
+	ostr << "\t<color r=\""<<lamp->r<<"\" g=\""<<lamp->g<<"\" b=\""<<lamp->b<<"\"/>"<<endl;
+	ostr << "\t<a x=\""<<a[0]<<"\" y=\""<<a[1]<<"\" z=\""<<a[2]<<"\"/>"<<endl;
+	ostr << "\t<b x=\""<<b[0]<<"\" y=\""<<b[1]<<"\" z=\""<<b[2]<<"\"/>"<<endl;
+	ostr << "\t<c x=\""<<c[0]<<"\" y=\""<<c[1]<<"\" z=\""<<c[2]<<"\"/>"<<endl;
+	ostr << "\t<d x=\""<<d[0]<<"\" y=\""<<d[1]<<"\" z=\""<<d[2]<<"\"/>"<<endl;
+	ostr << "</light>"<<endl<<endl;
+	xmlfile << ostr.str();
+}
 
 void yafrayFileRender_t::writeLamps()
 {
@@ -962,6 +977,7 @@ void yafrayFileRender_t::writeLamps()
 	{
 		ostr.str("");
 		LampRen* lamp = R.la[i];
+		if(lamp->type==LA_AREA) {writeAreaLamp(lamp,i);continue;}
 		// TODO: add decay setting in yafray
 		ostr << "<light type=\"";
 		if (lamp->type==LA_LOCAL)
@@ -970,12 +986,6 @@ void yafrayFileRender_t::writeLamps()
 			ostr << "spotlight";
 		else if (lamp->type==LA_SUN)	// for now, hemi == sun
 			ostr << "sunlight";
-		/* TODO
-		else if (lamp->type==LA_AREA) {
-			// new blender area light
-			ostr << "arealight";
-		}
-		*/
 		else {
 			// possibly unknown type, ignore
 			cout << "Unknown Blender lamp type: " << lamp->type << endl;
