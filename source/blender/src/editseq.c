@@ -836,7 +836,7 @@ static int event_to_efftype(int event)
 	if(event==8) return SEQ_ALPHAUNDER;
 	if(event==9) return SEQ_OVERDROP;
 	if(event==10) return SEQ_PLUGIN;
-	if(event==13) return SEQ_SWEEP;
+	if(event==13) return SEQ_WIPE;
 	if(event==14) return SEQ_GLOW;
 	return 0;
 }
@@ -901,8 +901,8 @@ static int add_seq_effect(int type)
 	seq->type= event_to_efftype(type);
 
 	/* Allocate variable structs for effects with settings */
-	if(seq->type==SEQ_SWEEP){
-		init_sweep_effect(seq);
+	if(seq->type==SEQ_WIPE){
+		init_wipe_effect(seq);
 	}
 	else if(seq->type==SEQ_GLOW){
 		init_glow_effect(seq);
@@ -1004,7 +1004,7 @@ void add_sequence(int type)
 		case SEQ_OVERDROP:
 			event = 9;
 			break;
-		case SEQ_SWEEP:
+		case SEQ_WIPE:
 			event = 13;
 			break;
 		case SEQ_GLOW:
@@ -1016,7 +1016,7 @@ void add_sequence(int type)
 		}
 	}
 	else {
-		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Sweep%x13|Glow%x14");
+		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Wipe%x13|Glow%x14");
 	}
 
 	if(event<1) return;
@@ -1113,7 +1113,7 @@ void change_sequence(void)
 	if(last_seq==0) return;
 
 	if(last_seq->type & SEQ_EFFECT) {
-		event= pupmenu("Change Effect%t|Switch A <-> B %x1|Switch B <-> C %x10|Plugin%x11|Recalculate%x12|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Sweep%x13|Glow%x14");
+		event= pupmenu("Change Effect%t|Switch A <-> B %x1|Switch B <-> C %x10|Plugin%x11|Recalculate%x12|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Wipe%x13|Glow%x14");
 		if(event>0) {
 			if(event==1) {
 				SWAP(Sequence *, last_seq->seq1, last_seq->seq2);
@@ -1132,8 +1132,8 @@ void change_sequence(void)
 				last_seq->type= event_to_efftype(event);
 
 				switch(last_seq->type){
-					case SEQ_SWEEP:
-						init_sweep_effect(last_seq);
+					case SEQ_WIPE:
+						init_wipe_effect(last_seq);
 						break;
 					case SEQ_GLOW:
 						init_glow_effect(last_seq);

@@ -994,10 +994,10 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
    float halfx = xo/2;
    float halfy = yo/2;
    float widthf,output=0;
-   SweepVars *sweep = (SweepVars *)seq->effectdata;
+   WipeVars *wipe = (WipeVars *)seq->effectdata;
    int width;
 
- 	angle = sweep->angle;
+ 	angle = wipe->angle;
  	if(angle < 0){
  		x = xo-x;
  		//y = yo-y
@@ -1005,16 +1005,16 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
  	angle = pow(fabs(angle)/45,log(xo)/log(2));
 
 	posy = facf0 * yo;
-	if(sweep->forward){
+	if(wipe->forward){
 		posx = facf0 * xo;
 		posy = facf0 * yo;
 	} else{
 		posx = xo - facf0 * xo;
 		posy = yo - facf0 * yo;
 	}
-   switch (sweep->sweeptype) {
+   switch (wipe->wipetype) {
        case DO_SINGLE_WIPE:
-         width = (int)(sweep->edgeWidth*((xo+yo)/2.0));
+         width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
          hwidth = (float)width/2.0;       
                 
          if (angle == 0.0)angle = 0.000001;
@@ -1026,7 +1026,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
          	 b1 = b2;
          	 b2 = temp1;
          }
-         if(sweep->forward){	 
+         if(wipe->forward){	 
 		     if(b1 < b2)
 				output = in_band(width,hyp,facf0,1,1);
 	         else
@@ -1042,9 +1042,9 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 	 
 	 
 	  case DO_DOUBLE_WIPE:
-		 if(!sweep->forward)facf0 = 1-facf0;   // Go the other direction
+		 if(!wipe->forward)facf0 = 1-facf0;   // Go the other direction
 
-	     width = (int)(sweep->edgeWidth*((xo+yo)/2.0));  // calculate the blur width
+	     width = (int)(wipe->edgeWidth*((xo+yo)/2.0));  // calculate the blur width
 	     hwidth = (float)width/2.0;       
 	     if (angle == 0)angle = 0.000001;
 	     b1 = posy/2 - (-angle)*posx/2;
@@ -1074,7 +1074,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 				 else
 				 	 output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
 		     }
-		     if(!sweep->forward)output = 1-output;
+		     if(!wipe->forward)output = 1-output;
 	 break;     
 	 case DO_CLOCK_WIPE:
 	 	 	/*
@@ -1084,10 +1084,10 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 	 	 		temp4: angle of high side of blur
 	 	 	*/
 	  	 	output = 1-facf0;
-	 	 	widthf = sweep->edgeWidth*2*3.14159;
+	 	 	widthf = wipe->edgeWidth*2*3.14159;
 	 	 	temp1 = 2 * 3.14159 * facf0;
 	 	 	
- 	 		if(sweep->forward){
+ 	 		if(wipe->forward){
  	 			temp1 = 2*3.14159-temp1;
  	 		}
  	 		
@@ -1102,7 +1102,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 	 	 	else if(x >= 0 && y <= 0)
 	 	 		temp2 = 2*3.14159 - temp2;
 	 	  	
- 	 		if(sweep->forward){
+ 	 		if(wipe->forward){
 	 	 		temp3 = temp1-(widthf/2)*facf0;
 	 	 		temp4 = temp1+(widthf/2)*(1-facf0);
  	 		}
@@ -1125,7 +1125,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 	 	 	}
 			if(output != output)
 				output = 1;
-			if(sweep->forward)
+			if(wipe->forward)
 				output = 1 - output;
   	break;
 	/* BOX WIPE IS NOT WORKING YET */
@@ -1134,7 +1134,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
      /* case DO_BOX_WIPE: 
 		 if(invert)facf0 = 1-facf0;
 
-	     width = (int)(sweep->edgeWidth*((xo+yo)/2.0));
+	     width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
 	     hwidth = (float)width/2.0;       
 	     if (angle == 0)angle = 0.000001;
 	     b1 = posy/2 - (-angle)*posx/2;
@@ -1195,10 +1195,10 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
       	 if(xo > yo) yo = xo;
       	 else xo = yo;
       	 
-		if(!sweep->forward)
+		if(!wipe->forward)
 			facf0 = 1-facf0;
 
-	     width = (int)(sweep->edgeWidth*((xo+yo)/2.0));
+	     width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
 	     hwidth = (float)width/2.0; 
 	     
       	 temp1 = (halfx-(halfx)*facf0);     
@@ -1210,7 +1210,7 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 		 else
 		 	 output = in_band(hwidth,fabs(temp2-pointdist),facf0,1,1);
 		 
-		if(!sweep->forward)
+		if(!wipe->forward)
 			output = 1-output;
 			
 	 break;
@@ -1220,13 +1220,13 @@ float check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
    return output;
 }
 
-void init_sweep_effect(Sequence *seq)
+void init_wipe_effect(Sequence *seq)
 {
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
-	seq->effectdata = MEM_callocN(sizeof(struct SweepVars), "sweepvars");
+	seq->effectdata = MEM_callocN(sizeof(struct WipeVars), "wipevars");
 }
 
-void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
+void do_wipe_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
 {
 	int xo, yo;
 	char *rt1, *rt2, *rt;
@@ -1598,7 +1598,7 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 		fac= seq->facf0;
 		facf= seq->facf1;
 	}
-	else if ( seq->type==SEQ_CROSS || seq->type==SEQ_GAMCROSS || seq->type==SEQ_PLUGIN || seq->type==SEQ_SWEEP) {
+	else if ( seq->type==SEQ_CROSS || seq->type==SEQ_GAMCROSS || seq->type==SEQ_PLUGIN || seq->type==SEQ_WIPE) {
 		fac= (float)(cfra - seq->startdisp);
 		facf= (float)(fac+0.5);
 		fac /= seq->len;
@@ -1636,8 +1636,8 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 	case SEQ_ALPHAUNDER:
 		do_alphaunder_effect(fac, facf, x, y, se1->ibuf->rect, se2->ibuf->rect, se->ibuf->rect);
 		break;
-	case SEQ_SWEEP:
-		do_sweep_effect(seq, fac, facf, x, y, se1->ibuf->rect, se2->ibuf->rect, se->ibuf->rect);
+	case SEQ_WIPE:
+		do_wipe_effect(seq, fac, facf, x, y, se1->ibuf->rect, se2->ibuf->rect, se->ibuf->rect);
 		break;
 	case SEQ_GLOW:
 		do_glow_effect(seq, fac, facf, x, y, se1->ibuf->rect, se2->ibuf->rect, se->ibuf->rect);

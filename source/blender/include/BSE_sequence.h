@@ -95,13 +95,13 @@ void do_mul_effect(float facf0, float facf1,
 				   int x, int y,
 				   unsigned int *rect1, unsigned int *rect2,
 				   unsigned int *out);
-/* Sweep effect */
+/* Wipe effect */
 enum {DO_SINGLE_WIPE, DO_DOUBLE_WIPE, DO_BOX_WIPE, DO_CROSS_WIPE,
       DO_IRIS_WIPE,DO_CLOCK_WIPE};
 float in_band(float width,float dist, float perc,int side,int dir);
 float check_zone(int x, int y, int xo, int yo, struct Sequence *seq, float facf0);
-void init_sweep_effect(struct Sequence *seq);
-void do_sweep_effect(struct Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out);
+void init_wipe_effect(struct Sequence *seq);
+void do_wipe_effect(struct Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out);
 
 /* Glow effect */
 enum {

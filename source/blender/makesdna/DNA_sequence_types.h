@@ -139,13 +139,13 @@ typedef struct Editing {
 } Editing;
 
 /* ************* Effect Variable Structs ********* */
-typedef struct SweepVars {
+typedef struct WipeVars {
 	float edgeWidth,angle;
 	short forward,spad1,spad2,spad3;
 	int ipad1;
 	float fpad1,fpad2;
-	short sweeptype;
-} SweepVars;
+	short wipetype;
+} WipeVars;
 
 typedef struct GlowVars {	
 	float fMini;	/*	Minimum intensity to trigger a glow */
@@ -183,7 +183,7 @@ typedef struct GlowVars {
 #define SEQ_MUL			14
 #define SEQ_OVERDROP	15
 #define SEQ_PLUGIN		24
-#define SEQ_SWEEP		25
+#define SEQ_WIPE		25
 #define SEQ_GLOW		26
 
 #endif

@@ -120,7 +120,7 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_ALPHAOVER) return "ALPHAOVER";
 	else if(seq->type==SEQ_ALPHAUNDER) return "ALPHAUNDER";
 	else if(seq->type==SEQ_OVERDROP) return "OVER DROP";
-	else if(seq->type==SEQ_SWEEP) return "SWEEP";
+	else if(seq->type==SEQ_WIPE) return "WIPE";
 	else if(seq->type==SEQ_GLOW) return "GLOW";
 	else if(seq->type==SEQ_PLUGIN) {
 		if(seq->plugin && seq->plugin->doit) return seq->plugin->pname;
@@ -166,7 +166,7 @@ static unsigned int seq_color(Sequence *seq)
 		return 0x9080A0;
 	case SEQ_OVERDROP:
 		return 0x5080B0;
-	case SEQ_SWEEP:
+	case SEQ_WIPE:
 		return 0x2080B0;
 	case SEQ_GLOW:
 		return 0x0080B0;
@@ -710,21 +710,21 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefBut(block, LABEL, 0, "Type: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
-		if(last_seq->type==SEQ_SWEEP){
-			SweepVars *sweep = (SweepVars *)last_seq->effectdata;
+		if(last_seq->type==SEQ_WIPE){
+			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
 			char formatstring[1024];
 			strcpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5");
-			uiDefButS(block, MENU,SEQ_BUT_EFFECT | B_NOP, formatstring,	10,90,220,22, &sweep->sweeptype, 0, 0, 0, 0, "What type of sweep should be performed");
-			uiDefButF(block, NUM,SEQ_BUT_EFFECT| B_NOP,"Blur:",	10,65,220,22, &sweep->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
-			switch(sweep->sweeptype){ /*Skip Types that do not require angle*/
+			uiDefButS(block, MENU,SEQ_BUT_EFFECT | B_NOP, formatstring,	10,90,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
+			uiDefButF(block, NUM,SEQ_BUT_EFFECT| B_NOP,"Blur:",	10,65,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
+			switch(wipe->wipetype){ /*Skip Types that do not require angle*/
 				case DO_IRIS_WIPE:
 				case DO_CLOCK_WIPE:
 				break;
 				
 				default:
-					uiDefButF(block, NUM,SEQ_BUT_EFFECT| B_NOP,"Angle:",	10,40,220,22, &sweep->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
+					uiDefButF(block, NUM,SEQ_BUT_EFFECT| B_NOP,"Angle:",	10,40,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
 			}
-			uiDefButS(block, TOG,SEQ_BUT_EFFECT| B_NOP,"Wipe In",  10,15,220,22, &sweep->forward,0,0, 0, 0, "Controls Primary Direction of Sweep");				
+			uiDefButS(block, TOG,SEQ_BUT_EFFECT| B_NOP,"Wipe In",  10,15,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
 		}
 		else if(last_seq->type==SEQ_GLOW){
 			GlowVars *glow = (GlowVars *)last_seq->effectdata;

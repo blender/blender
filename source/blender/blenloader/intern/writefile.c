@@ -1050,8 +1050,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					if(seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
 					if(seq->effectdata) {
 						switch(seq->type){
-							case SEQ_SWEEP:
-								writestruct(wd, DATA, "SweepVars", 1, seq->effectdata);
+							case SEQ_WIPE:
+								writestruct(wd, DATA, "WipeVars", 1, seq->effectdata);
 								break;
 							case SEQ_GLOW:
 								writestruct(wd, DATA, "GlowVars", 1, seq->effectdata);
