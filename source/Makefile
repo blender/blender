@@ -303,6 +303,7 @@ ifeq ($(OS),irix)
 endif
 
 ifeq ($(OS),linux)
+    BINTARGETS = blenderdynamic 
   ifeq ($(CPU),alpha)
     BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer

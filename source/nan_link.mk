@@ -102,12 +102,12 @@ ifeq ($(OS),linux)
     SADD = $(NAN_MESA)/lib/libGL.a $(NAN_MESA)/lib/libGLU.a
     DYNLDFLAGS = -shared $(LDFLAGS)
   endif
-  ifeq ($(CPU),powerpc)
-    COMMENT = "MESA 3.1"
+  ifeq ($(CPU),$(findstring $(CPU), "powerpc sparc64"))
     LLIBS = -L/usr/X11R6/lib/ -lXmu -lXext -lX11 -lc -ldl -lm -lutil
     DADD = -lGL -lGLU
     SADD = /usr/lib/libGL.a /usr/lib/libGLU.a
     LOPTS = -export-dynamic
+	DYNLDFLAGS = -shared $(LDFLAGS)
   endif
     LLIBS += -lz
 endif

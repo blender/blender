@@ -39,8 +39,10 @@ TEMPSETTINGS = ./user-settings
 all:
 	[ -d $(DISTDIR)/lib ] || mkdir $(DISTDIR)/lib
 	# prepare settings for patching, clean in case of interruption
+    ifeq ($(OS),$(findstring $(OS), "darwin windows"))
 	[ ! -f $(TEMPSETTINGS) ] || mv $(TEMPSETTINGS) $(USERSETTINGS) 
 	cp $(USERSETTINGS) $(TEMPSETTINGS)
+    endif
     ifeq ($(OS),freebsd)
 	(grep FreeBSD $(DISTDIR)/Makefile >/dev/null ; \
 	    [ $$? -eq 0 ] || patch < patchfile.FreeBSD )
@@ -57,7 +59,9 @@ all:
 	$(MAKE) -C $(DISTDIR)
     endif
 	# restore settings
+    ifeq ($(OS),$(findstring $(OS), "darwin windows"))
 	mv $(TEMPSETTINGS) $(USERSETTINGS)
+    endif
 
 # fake debug target
 debug:
