@@ -1248,7 +1248,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[0]);
+				BIF_setSingleAxisConstraint(v3d->twmat[0], " ");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 		case MAN_TRANS_Y:
@@ -1257,7 +1257,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[1]);
+				BIF_setSingleAxisConstraint(v3d->twmat[1], " ");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 		case MAN_TRANS_Z:
@@ -1266,7 +1266,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[2]);
+				BIF_setSingleAxisConstraint(v3d->twmat[2], " ");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 			
@@ -1279,7 +1279,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[0]);
+				BIF_setSingleAxisConstraint(v3d->twmat[0], " ");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		case MAN_SCALE_Y:
@@ -1288,7 +1288,7 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[1]);
+				BIF_setSingleAxisConstraint(v3d->twmat[1], " ");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		case MAN_SCALE_Z:
@@ -1297,20 +1297,20 @@ int BIF_do_manipulator(ScrArea *sa)
 				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1]);
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[2]);
+				BIF_setSingleAxisConstraint(v3d->twmat[2], " ");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		
 		case MAN_ROT_X:
-			BIF_setSingleAxisConstraint(v3d->twmat[0]);
+			BIF_setSingleAxisConstraint(v3d->twmat[0], " ");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_Y:
-			BIF_setSingleAxisConstraint(v3d->twmat[1]);
+			BIF_setSingleAxisConstraint(v3d->twmat[1], " ");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_Z:
-			BIF_setSingleAxisConstraint(v3d->twmat[2]);
+			BIF_setSingleAxisConstraint(v3d->twmat[2], " ");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_T:

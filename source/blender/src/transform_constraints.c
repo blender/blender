@@ -554,7 +554,8 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	}
 }
 
-void BIF_setSingleAxisConstraint(float vec[3]) {
+/* text is optional, for header print */
+void BIF_setSingleAxisConstraint(float vec[3], char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 	float space[3][3], v[3];
 	
@@ -576,6 +577,8 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 
 	startConstraint(t);
 
+	if(text) strncpy(t->con.text, text, 49);	// 50 in struct
+	
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
 	t->con.applySize = applyAxisConstraintSize;

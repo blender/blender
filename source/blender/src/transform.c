@@ -2526,6 +2526,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		sprintf(&tvec[20], "%.4f", vec[1]);
 		sprintf(&tvec[40], "%.4f", vec[2]);
 	}
+	printf(" idxmax %d\n", t->num.idx_max);
 
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
