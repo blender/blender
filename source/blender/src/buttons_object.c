@@ -1104,7 +1104,6 @@ void object_panel_draw(Object *ob)
 	uiBlock *block;
 	int xco, a, dx, dy;
 	
-	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Draw", "Object", 320, 0, 318, 204)==0) return;
 
@@ -1112,13 +1111,21 @@ void object_panel_draw(Object *ob)
 	xco= 151;
 	dx= 32;
 	dy= 30;
-	for(a=0; a<10; a++) {
-		/* the (a+10) evaluates correctly because of
-           precedence... brackets aren't a bad idea though */
-		uiDefButI(block, TOG|BIT|(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
-		uiDefButI(block, TOG|BIT|a, B_OBLAY+a, "",(short)(xco+a*(dx/2)), (short)(180+dy/2), (short)(dx/2), (short)(1+dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
-		if(a==4) xco+= 5;
-	}
+
+	uiBlockBeginAlign(block);
+	for(a=0; a<5; a++)
+		uiDefButI(block, TOG|BIT|(a), B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+	for(a=0; a<5; a++)
+		uiDefButI(block, TOG|BIT|(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+		
+	xco+= 5;
+	uiBlockBeginAlign(block);
+	for(a=5; a<10; a++)
+		uiDefButI(block, TOG|BIT|(a), B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+	for(a=5; a<10; a++)
+		uiDefButI(block, TOG|BIT|(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+
+	uiBlockEndAlign(block);
 
 	id= ob->data;
 	if(id && id->lib) uiSetButLock(1, "Can't edit library data");
@@ -1127,9 +1134,10 @@ void object_panel_draw(Object *ob)
 	uiDefButC(block, MENU, REDRAWVIEW3D, "Drawtype%t|Bounds %x1|Wire %x2|Solid %x3|Shaded %x4",	
 																28,180,100,18, &ob->dt, 0, 0, 0, 0, "Sets the drawing type of the active object");
 	uiDefBut(block, LABEL, 0, "Draw Extra",						28,160,100,18, 0, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
 	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Bounds",		28, 140, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
 	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder",
-																28, 120, 100, 18, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
+															28, 120, 100, 18, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
 	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Wire",		28, 100, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
 	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Axis",		28, 80, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's centre and axis");
 	uiDefButC(block, TOG|BIT|2, REDRAWVIEW3D, "TexSpace",	28, 60, 100, 18, &ob->dtx, 0, 0, 0, 0, "Displays the active object's texture space");
@@ -1332,8 +1340,10 @@ void object_panel_effects(Object *ob)
 	/* EFFECTS */
 	
 	if (ob->type == OB_MESH) {
+		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT, B_NEWEFFECT, "NEW Effect", 550,187,124,27, 0, 0, 0, 0, 0, "Create a new effect");
 		uiDefBut(block, BUT, B_DELEFFECT, "Delete", 676,187,62,27, 0, 0, 0, 0, 0, "Delete the effect");
+		uiBlockEndAlign(block);
 	}
 
 	/* select effs */
@@ -1371,24 +1381,24 @@ void object_panel_effects(Object *ob)
 			WaveEff *wav;
 			
 			wav= (WaveEff *)eff;
-			
+			uiBlockBeginAlign(block);
 			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "X",		782,135,54,23, &wav->flag, 0, 0, 0, 0, "Enable X axis");
 			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Y",		840,135,47,23, &wav->flag, 0, 0, 0, 0, "Enable Y axis");
-			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Cycl",		890,135,111,23, &wav->flag, 0, 0, 0, 0, "Enable cyclic wave efefct");
-			
+			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Cycl",	890,135,111,23, &wav->flag, 0, 0, 0, 0, "Enable cyclic wave efefct");
+			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CALCEFFECT, "Sta x:",		550,135,113,24, &wav->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Sta y:",		665,135,104,24, &wav->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
-			
+			uiBlockBeginAlign(block);
 			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Speed:",	550,100,216,20, &wav->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
 			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Heigth:",	550,80,216,20, &wav->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");
 			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Width:",	550,60,216,20, &wav->width, 0.0, 5.0, 0, 0, "Specify the width of the wave");
 			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Narrow:",	550,40,216,20, &wav->narrow, 0.0, 10.0, 0, 0, "Specify how narrow the wave follows");
-
+			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CALCEFFECT, "Time sta:",	780,100,219,20, &wav->timeoffs, -1000.0, 1000.0, 100, 0, "Specify startingframe of the wave");
 
 			uiDefButF(block, NUM, B_CALCEFFECT, "Lifetime:",	780,80,219,20, &wav->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Damptime:",	780,60,219,20, &wav->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
-
+			uiBlockEndAlign(block);
 		}
 		else if(eff->type==EFF_PARTICLE) {
 			PartEff *paf;
@@ -1398,9 +1408,10 @@ void object_panel_effects(Object *ob)
 			uiDefBut(block, BUT, B_RECALCAL, "RecalcAll", 741,187,67,27, 0, 0, 0, 0, 0, "Update the particle system");
 			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Static",	825,187,67,27, &paf->flag, 0, 0, 0, 0, "Make static particles");
 			
-			uiDefButI(block, NUM, B_CALCEFFECT, "Tot:",		550,146,91,20, &paf->totpart, 1.0, 100000.0, 0, 0, "Set the total number of particles");
+			uiBlockBeginAlign(block);
+			uiDefButI(block, NUM, B_CALCEFFECT, "Tot:",			550,146,91,20, &paf->totpart, 1.0, 100000.0, 0, 0, "Set the total number of particles");
 			if(paf->flag & PAF_STATIC) {
-				uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",		644,146,84,20, &paf->staticstep, 1.0, 100.0, 10, 0, "");
+				uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",	644,146,84+97,20, &paf->staticstep, 1.0, 100.0, 10, 0, "");
 			}
 			else {
 				uiDefButF(block, NUM, B_CALCEFFECT, "Sta:",		644,146,84,20, &paf->sta, -250.0, 9000.0, 100, 0, "Specify the startframe");
@@ -1410,19 +1421,21 @@ void object_panel_effects(Object *ob)
 			uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",		922,146,80,20, &paf->totkey, 1.0, 32.0, 0, 0, "Specify the number of key positions");
 			
 			uiDefButS(block, NUM, B_REDR,		"CurMul:",		550,124,91,20, &paf->curmult, 0.0, 3.0, 0, 0, "Multiply the particles");
-			uiDefButS(block, NUM, B_CALCEFFECT, "Mat:",		644,124,84,20, paf->mat+paf->curmult, 1.0, 8.0, 0, 0, "Specify the material used for the particles");
+			uiDefButS(block, NUM, B_CALCEFFECT, "Mat:",			644,124,84,20, paf->mat+paf->curmult, 1.0, 8.0, 0, 0, "Specify the material used for the particles");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Mult:",		730,124,98,20, paf->mult+paf->curmult, 0.0, 1.0, 10, 0, "Probability \"dying\" particle spawns a new one.");
-			uiDefButS(block, NUM, B_CALCEFFECT, "Child:",	922,124,80,20, paf->child+paf->curmult, 1.0, 600.0, 100, 0, "Specify the number of children of a particle that multiply itself");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		831,124,89,20, paf->life+paf->curmult, 1.0, 600.0, 100, 0, "Specify the lifespan of the next generation particles");
-
+			uiDefButS(block, NUM, B_CALCEFFECT, "Child:",		922,124,80,20, paf->child+paf->curmult, 1.0, 600.0, 100, 0, "Specify the number of children of a particle that multiply itself");
+			
+			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CALCEFFECT, "Randlife:",	550,96,96,20, &paf->randlife, 0.0, 2.0, 10, 0, "Give the particlelife a random variation");
 			uiDefButI(block, NUM, B_CALCEFFECT, "Seed:",		652,96,80,20, &paf->seed, 0.0, 255.0, 0, 0, "Set an offset in the random table");
 
+			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Face",		735,96,46,20, &paf->flag, 0, 0, 0, 0, "Emit particles also from faces");
+			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "Bspline",	782,96,54,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
+			uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",				837,96,45,20, &paf->stype, 0, 0, 0, 0, "Give the particles a rotation direction");
 			uiDefButF(block, NUM, B_DIFF,			"VectSize",		885,96,116,20, &paf->vectsize, 0.0, 1.0, 10, 0, "Set the speed for Vect");	
-			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Face",				735,96,46,20, &paf->flag, 0, 0, 0, 0, "Emit particles also from faces");
-			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "Bspline",			782,96,54,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
-			uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",					837,96,45,20, &paf->stype, 0, 0, 0, 0, "Give the particles a rotation direction");
-			
+
+			uiBlockBeginAlign(block);
 			uiBlockSetCol(block, TH_BUT_SETTING2);
 			uiDefButF(block, NUM, B_CALCEFFECT, "Norm:",		550,67,96,20, &paf->normfac, -2.0, 2.0, 10, 0, "Let the mesh give the particle a starting speed");
 			uiDefButF(block, NUM, B_CALCEFFECT, "Ob:",		649,67,86,20, &paf->obfac, -1.0, 1.0, 10, 0, "Let the object give the particle a starting speed");
@@ -1431,20 +1444,25 @@ void object_panel_effects(Object *ob)
 			uiDefButF(block, NUM, B_CALCEFFECT, "Damp:",		913,67,89,20, &paf->damp, 0.0, 1.0, 10, 0, "Specify the damping factor");
 			uiBlockSetCol(block, TH_AUTO);
 			
-			uiDefButF(block, NUM, B_CALCEFFECT, "X:",			550,31,72,20, paf->force, -1.0, 1.0, 1, 0, "Specify the X axis of a continues force");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",			624,31,78,20, paf->force+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a continues force");
-			uiDefBut(block, LABEL, 0, "Force:",						550,9,72,20, 0, 1.0, 0, 0, 0, "");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",			623,9,79,20, paf->force+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a continues force");
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_CALCEFFECT, "X:",		550,31,72,20, paf->force, -1.0, 1.0, 1, 0, "Specify the X axis of a continues force");
+			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		624,31,78,20, paf->force+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a continues force");
+			uiDefBut(block, LABEL, 0, "Force:",				550,9,72,20, 0, 1.0, 0, 0, 0, "");
+			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		623,9,79,20, paf->force+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a continues force");
 
-			uiDefBut(block, LABEL, 0, "Texture:",				722,9,74,20, 0, 1.0, 0, 0, 0, "");
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_CALCEFFECT, "X:",		722,31,74,20, paf->defvec, -1.0, 1.0, 1, 0, "Specify the X axis of a force, determined by the texture");
+			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		798,31,74,20, paf->defvec+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a force, determined by the texture");
+			uiDefBut(block, LABEL, 0, "Texture:",			722,9,74,20, 0, 1.0, 0, 0, 0, "");
+			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		797,9,75,20, paf->defvec+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a force, determined by the texture");
+			uiBlockEndAlign(block);
+
 			uiDefButS(block, ROW, B_CALCEFFECT, "Int",		875,9,32,43, &paf->texmap, 14.0, 0.0, 0, 0, "Use texture intensity as a factor for texture force");
+
+			uiBlockBeginAlign(block);
 			uiDefButS(block, ROW, B_CALCEFFECT, "RGB",		911,31,45,20, &paf->texmap, 14.0, 1.0, 0, 0, "Use RGB values as a factor for particle speed");
 			uiDefButS(block, ROW, B_CALCEFFECT, "Grad",		958,31,44,20, &paf->texmap, 14.0, 2.0, 0, 0, "Use texture gradient as a factor for particle speed");
-
 			uiDefButF(block, NUM, B_CALCEFFECT, "Nabla:",		911,9,91,20, &paf->nabla, 0.0001, 1.0, 1, 0, "Specify the dimension of the area for gradient calculation");
-			uiDefButF(block, NUM, B_CALCEFFECT, "X:",			722,31,74,20, paf->defvec, -1.0, 1.0, 1, 0, "Specify the X axis of a force, determined by the texture");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",			798,31,74,20, paf->defvec+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a force, determined by the texture");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",			797,9,75,20, paf->defvec+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a force, determined by the texture");
 
 		}
 	}
@@ -1458,42 +1476,45 @@ static void object_panel_anim(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim settings", "Object", 0, 0, 318, 204)==0) return;
 	
-	uiDefButC(block, ROW,REDRAWVIEW3D,"TrackX",	27,190,58,17, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		85,190,19,17, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		104,190,19,17, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-X",		124,190,24,17, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-Y",		150,190,24,17, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-Z",		177,190,24,17, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,17, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,17, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		297,190,19,17, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
-
+	uiBlockBeginAlign(block);
+	uiDefButC(block, ROW,REDRAWVIEW3D,"TrackX",	27,190,58,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"-Z",		177,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+	uiBlockBeginAlign(block);
+	uiDefButC(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		297,190,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
+	uiBlockBeginAlign(block);
 	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Draw Key",		25,160,70,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
-	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,20, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
-	uiDefButS(block, TOG|BIT|4, 0, "SlowPar",			261,160,56,20, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
-	uiDefButC(block, TOG|BIT|7, REDRAWVIEW3D, "Powertrack",	180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
-
+	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
+	uiDefButC(block, TOG|BIT|7, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
+	uiDefButS(block, TOG|BIT|4, 0, "SlowPar",					261,160,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
+	uiBlockBeginAlign(block);
 	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "DupliFrames",	24,128,88,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
 	uiDefButC(block, TOG|BIT|4, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
+	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
 	uiDefButC(block, TOG|BIT|6, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
-
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,18, &ob->dupsta, 1.0, 17999.0, 0, 0, "Specify startframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,83,140,19, &ob->dupend, 1.0, 18000.0, 0, 0, "Specify endframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		169,104,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, 17999.0, 0, 0, "Specify startframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		169,105,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, 18000.0, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		169,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
-
+	uiBlockBeginAlign(block);
 	uiDefButC(block, TOG|BIT|2, REDRAWALL, "Offs Ob",			23,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
 	uiDefButC(block, TOG|BIT|6, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
 	uiDefButC(block, TOG|BIT|7, REDRAWALL, "Offs Particle",		141,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
-
-	sprintf(str, "%.4f", prspeed);
-	uiDefBut(block, LABEL, 0, str,							247,40,63,31, 0, 1.0, 0, 0, 0, "");
-	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			246,17,67,31, 0, 0, 0, 0, 0, "Print objectspeed");
-
+	
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			23,17,114,30, &ob->sf, -9000.0, 9000.0, 100, 0, "Specify an offset in frames");
 	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,17,104,31, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
-		
+	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			246,17,67,31, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiBlockEndAlign(block);
+	
+	sprintf(str, "%.4f", prspeed);
+	uiDefBut(block, LABEL, 0, str,							247,40,63,31, 0, 1.0, 0, 0, 0, "");
 	
 }
 

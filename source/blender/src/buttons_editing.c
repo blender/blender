@@ -649,22 +649,25 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_font_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Font", "Editing", 640, 0, 318, 204)==0) return;
-	
+	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_MAKEFONT, "Left",		484,139,53,18, &cu->spacemode, 0.0,0.0, 0, 0, "");
-	uiDefButS(block, ROW,B_MAKEFONT, "Middle",	604,139,61,18, &cu->spacemode, 0.0,1.0, 0, 0, "");
 	uiDefButS(block, ROW,B_MAKEFONT, "Right",		540,139,62,18, &cu->spacemode, 0.0,2.0, 0, 0, "");
+	uiDefButS(block, ROW,B_MAKEFONT, "Middle",		604,139,61,18, &cu->spacemode, 0.0,1.0, 0, 0, "");
 	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		665,139,61,18, &cu->spacemode, 0.0,3.0, 0, 0, "");
-
+	uiBlockEndAlign(block);
+	
 	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	484,115,243,19, &cu->textoncurve, "");
 	uiDefBut(block, TEX,REDRAWVIEW3D, "Ob Family:",	484,85,243,19, cu->family, 0.0, 20.0, 0, 0, "");
 
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,B_MAKEFONT, "Size:",		482,56,121,19, &cu->fsize, 0.1,10.0, 10, 0, "");
 	uiDefButF(block, NUM,B_MAKEFONT, "Linedist:",	605,56,121,19, &cu->linedist, 0.0,10.0, 10, 0, "");
 	uiDefButF(block, NUM,B_MAKEFONT, "Spacing:",	482,34,121,19, &cu->spacing, 0.0,10.0, 10, 0, "");
 	uiDefButF(block, NUM,B_MAKEFONT, "Y offset:",	605,34,121,19, &cu->yof, -50.0,50.0, 10, 0, "");
 	uiDefButF(block, NUM,B_MAKEFONT, "Shear:",	482,12,121,19, &cu->shear, -1.0,1.0, 10, 0, "");
 	uiDefButF(block, NUM,B_MAKEFONT, "X offset:",	605,12,121,19, &cu->xof, -50.0,50.0, 10, 0, "");
-
+	uiBlockBeginAlign(block);
+	
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		623,163,103,23, 0, 0, 0, 0, 0, "");
 	
 	G.buts->texnr= give_vfontnr(cu->vfont);
@@ -861,34 +864,41 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_curve_tools", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Curve Tools", "Editing", 640, 0, 318, 204)==0) return;
 	
+	uiDefBut(block, LABEL, 0, "Make Knots",562,173,102, 18, 0, 0, 0, 0, 0, "");
+
 	if(ob->type==OB_CURVE) {
 		uiDefBut(block, LABEL, 0, "Convert",	463,173,72, 18, 0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT,B_CONVERTPOLY,"Poly",		467,152,72, 18, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT,B_CONVERTBEZ,"Bezier",	467,132,72, 18, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT,B_CONVERTBSPL,"Bspline",	467,112,72, 18, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT,B_CONVERTCARD,"Cardinal",	467,92,72, 18, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT,B_CONVERTNURB,"Nurb",		467,72,72, 18, 0, 0, 0, 0, 0, "");
 	}
-	uiDefBut(block, LABEL, 0, "Make Knots",562,173,102, 18, 0, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_UNIFU,"Uniform U",	565,152,102, 18, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT,B_UNIFV,"V",			670,152,50, 18, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, BUT,B_ENDPU,"Endpoint U",	565,132,102, 18, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT,B_BEZU,"Bezier U",	565,112,102, 18, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT,B_UNIFV,"V",		670,152,50, 18, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT,B_ENDPV,"V",		670,132,50, 18, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, BUT,B_BEZV,"V",		670,112,50, 18, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT,B_ENDPV,"V",			670,132,50, 18, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT,B_BEZU,"Bezier U",		565,112,102, 18, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT,B_BEZV,"V",				670,112,50, 18, 0, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
 
 	uiDefBut(block, BUT,B_SETWEIGHT,"Set Weight",	465,11,95,49, 0, 0, 0, 0, 0, "");
 
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,0,"Weight:",	564,36,102,22, &editbutweight, 0.01, 10.0, 10, 0, "");
 	uiDefBut(block, BUT,B_SETW1,"1.0",		669,36,50,22, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, BUT,B_SETW2,"sqrt(2)/4",564,11,57,20, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, BUT,B_SETW3,"0.25",		621,11,43,20, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, BUT,B_SETW4,"sqrt(0.5)",664,11,57,20, 0, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
 	
 	if(ob==G.obedit) {
 		nu= lastnu;
 		if(nu==NULL) nu= editNurb.first;
 		if(nu) {
+			uiBlockBeginAlign(block);
 			sp= &(nu->orderu); 
 			uiDefButS(block, NUM, B_SETORDER, "Order U:", 565,91,102, 18, sp, 2.0, 6.0, 0, 0, "");
 			sp= &(nu->orderv); 
@@ -914,11 +924,12 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 	if(ob->type==OB_SURF) {
 		uiDefBut(block, BUT, B_SPINNURB, "Spin",	 400,160,150,20, 0, 0, 0, 0, 0, "");
 	}
-	
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_HIDE,		"Hide",			400,120,150,18, 0, 0, 0, 0, 0, "Hides selected faces");
 	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		400,100,150,18, 0, 0, 0, 0, 0, "Reveals selected faces");
 	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	400,80,150,18, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
-
+	uiBlockEndAlign(block);
+	
 	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 40, 150, 19, &editbutsize, 0.001, 1.0, 10, 0, "");
 }
 
@@ -933,11 +944,13 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 	uiDefButS(block, TOG|BIT|5, 0, "UV Orco",					600,160,150,19, &cu->flag, 0, 0, 0, 0, "");
 	if(ob->type==OB_SURF) 
 		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "");
-
+	
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 150, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
 	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
 	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		600, 75, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
-
+	uiBlockEndAlign(block);
+	
 	if(ob->type==OB_SURF) {
 		if(cu->key) {
 			/* uiDefButS(block, NUM, B_DIFF, "Slurph:",			600,25,140,19, &(cu->key->slurph), -500.0, 500.0,0,0); ,""*/
@@ -950,6 +963,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		if(ob->type==OB_CURVE) {
 			static float prlen;
 			char str[32];
+			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, 9000.0, 0, 0, "");
 			uiDefButS(block, TOG|BIT|3, B_RECALCPATH, "CurvePath",	600,30,75,19 , &cu->flag, 0, 0, 0, 0, "");
 			uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "CurveFollow",675,30,75,19, &cu->flag, 0, 0, 0, 0, "");
@@ -957,16 +971,19 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 			uiDefBut(block, BUT, B_PRINTLEN,		"PrintLen",	600,10,75,19, 0, 0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, str,						675,10,75,19, 0, 1.0, 0, 0, 0, "");
 		}
+
+		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_MAKEDISP, "DefResolU:",	760,160,120,19, &cu->resolu, 1.0, 128.0, 0, 0, "");
 		uiDefBut(block, BUT, B_SETRESOLU, "Set",		880,160,30,19, 0, 0, 0, 0, 0, "");
 		
-		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "");
-
-		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "BevOb:",		760,10,150,19, &cu->bevobj, "");
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		760,90,150,19, &cu->width, 0.0, 2.0, 1, 0, "");
 		uiDefButF(block, NUM, B_MAKEDISP, "Ext1:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "");
 		uiDefButF(block, NUM, B_MAKEDISP, "Ext2:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "");
+		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "");
+		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "BevOb:",		760,10,150,19, &cu->bevobj, "");
 
+		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButS(block, TOG|BIT|2, B_MAKEDISP, "Back",	760,130,50,19, &cu->flag, 0, 0, 0, 0, "");
 		uiDefButS(block, TOG|BIT|1, B_MAKEDISP, "Front",810,130,50,19, &cu->flag, 0, 0, 0, 0, "");
@@ -992,27 +1009,20 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Camera", "Editing", 320, 0, 318, 204)==0) return;
 
-
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:", 470,178,160,20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
+
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,REDRAWVIEW3D, "ClipSta:", 470,147,160,20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "ClipEnd:", 470,125,160,20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
+	uiBlockEndAlign(block);
+	
 	uiDefButF(block, NUM,REDRAWVIEW3D, "DrawSize:", 470,90,160,20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
 
 	uiDefButS(block, TOG, REDRAWVIEW3D, "Ortho", 470,49,61,40, &cam->type, 0, 0, 0, 0, "Render orthogonally");
-
+	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|0,REDRAWVIEW3D, "ShowLimits", 533,69,97,20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
 	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D, "Show Mist", 533,49,97,20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
-	
-	if(G.special1 & G_HOLO) {
-		if(cam->netend==0.0) cam->netend= EFRA;
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Anim len",		670,80,100,20, &cam->netend, 1.0, 2500.0, 0, 0, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Path len:",		670,160,100,20, &cam->hololen, 0.1, 25.0, 10, 0, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Shear fac:",		670,140,100,20, &cam->hololen1, 0.1, 5.0, 10, 0, "");
-		uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Holo 1",	670,120,100,20, &cam->flag, 0.0, 0.0, 0, 0, "");
-		uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Holo 2",	670,100,100,20, &cam->flag, 0.0, 0.0, 0, 0, "");
-		
-	}
-
+	uiBlockEndAlign(block);
 }
 
 /* *************************** MBALL ******************************** */
@@ -1035,10 +1045,12 @@ static void editing_panel_mball_type(Object *ob, MetaBall *mb)
 	if(uiNewPanel(curarea, block, "MetaBall", "Editing", 320, 0, 318, 204)==0) return;
 	
 	if (ob==find_basis_mball(ob)) {
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Wiresize:",	470,178,250,19, &mb->wiresize, 0.05, 1.0, 0, 0, "");
 		uiDefButF(block, NUMSLI, 0, "Rendersize:",			470,158,250,19, &mb->rendersize, 0.05, 1.0, 0, 0, "");
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Threshold:", 470,138,250,19, &mb->thresh, 0.0001, 5.0, 0, 0, "");
 
+		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefBut(block, LABEL, 0, "Update:",		471,108,120,19, 0, 0, 0, 0, 0, "");
 		uiDefButS(block, ROW, B_DIFF, "Always",	471, 85, 120, 19, &mb->flag, 0.0, 0.0, 0, 0, "");
@@ -1057,6 +1069,7 @@ static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 	if( uiNewPanel(curarea, block, "MetaBall tools", "Editing", 640, 0, 318, 204)==0) return;
 	
 	if(ob==G.obedit && lastelem) {
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "Stiffness:", 750,178,250,19, &lastelem->s, 0.0, 10.0, 0, 0, "");
 		if(lastelem->type!=MB_BALL)
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "dx:",		750,158,250,19, &lastelem->expx, 0.0, 20.0, 0, 0, "");
@@ -1065,14 +1078,18 @@ static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 
 		if((lastelem->type==MB_CUBE)||(lastelem->type==MB_ELIPSOID))
 		uiDefButF(block, NUMSLI, B_RECALCMBALL, "dz:",		750,118,250,19, &lastelem->expz, 0.0, 20.0, 0, 0, "");
-
-		uiDefButS(block, TOG|BIT|1, B_RECALCMBALL, "Negative",753,16,60,19, &lastelem->flag, 0, 0, 0, 0, "");
-
+		uiBlockEndAlign(block);
+		
 		uiDefButS(block, ROW, B_RECALCMBALL, "Ball",			753,83,60,19, &lastelem->type, 1.0, 0.0, 0, 0, "");
+		uiBlockBeginAlign(block);
 		uiDefButS(block, ROW, B_RECALCMBALL, "Tube",			753,62,60,19, &lastelem->type, 1.0, 4.0, 0, 0, "");
 		uiDefButS(block, ROW, B_RECALCMBALL, "Plane",			814,62,60,19, &lastelem->type, 1.0, 5.0, 0, 0, "");
 		uiDefButS(block, ROW, B_RECALCMBALL, "Elipsoid",		876,62,60,19, &lastelem->type, 1.0, 6.0, 0, 0, "");
 		uiDefButS(block, ROW, B_RECALCMBALL, "Cube",			938,62,60,19, &lastelem->type, 1.0, 7.0, 0, 0, "");
+		uiBlockEndAlign(block);
+
+		uiDefButS(block, TOG|BIT|1, B_RECALCMBALL, "Negative",753,16,60,19, &lastelem->flag, 0, 0, 0, 0, "");
+
 	}
 
 }
@@ -1123,22 +1140,25 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 
 	uiSetButLock(lt->key!=0, "Not with VertexKeys");
 	uiSetButLock(ob==G.obedit, "Unable to perform function in EditMode");
-	uiDefButS(block, NUM, B_RESIZELAT,	"U:",			470,178,100,19, &lt->pntsu, 1.0, 64.0, 0, 0, "");
-	uiDefButS(block, NUM, B_RESIZELAT,	"V:",			470,158,100,19, &lt->pntsv, 1.0, 64.0, 0, 0, "");
-	uiDefButS(block, NUM, B_RESIZELAT,	"W:",			470,138,100,19, &lt->pntsw, 1.0, 64.0, 0, 0, "");
-	uiClearButLock();
-	
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_RESIZELAT,	"U:",				470, 178,100,19, &lt->pntsu, 1.0, 64.0, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_LINEAR, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_CARDINAL, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_BSPLINE, 0, 0, "");
 
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_RESIZELAT,	"V:",				470, 158,100,19, &lt->pntsv, 1.0, 64.0, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 158, 40, 19, &lt->typev, 2.0, (float)KEY_LINEAR, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 158, 40, 19, &lt->typev, 2.0, (float)KEY_CARDINAL, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 158, 40, 19, &lt->typev, 2.0, (float)KEY_BSPLINE, 0, 0, "");
 
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_RESIZELAT,	"W:",				470, 138,100,19, &lt->pntsw, 1.0, 64.0, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 138, 40, 19, &lt->typew, 3.0, (float)KEY_LINEAR, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		612, 138, 40, 19, &lt->typew, 3.0, (float)KEY_CARDINAL, 0, 0, "");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 138, 40, 19, &lt->typew, 3.0, (float)KEY_BSPLINE, 0, 0, "");
+	uiBlockEndAlign(block);
 	
 	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		470,101,99,32, 0, 0, 0, 0, 0, "");
 
@@ -1306,8 +1326,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
-		
+	
 	uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D, "Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
+	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	uiDefButI(block, TOG|BIT|ARM_DRAWXRAYBIT,REDRAWVIEW3D, "X-Ray", bx,by-92,97,20, &arm->flag, 0, 0, 0, 0, "Draw armature in front of shaded objects");
@@ -1364,8 +1385,9 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 				but=uiDefButI(block, TOG|BIT|BONE_IK_TOPARENTBIT, REDRAWVIEW3D, "IK", bx+300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "IK link to parent");
 				uiButSetFunc(but, attach_bone_to_parent_cb, curBone, NULL);
 			}
-
+			
 			/* Dist and weight buttons */
+			uiBlockBeginAlign(block);
 			but=uiDefButS(block, MENU, REDRAWVIEW3D,
 							"Skinnable %x0|"
 							"Unskinnable %x1|"
@@ -1395,6 +1417,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 						110, 18, &curBone->weight, 0.0F, 1000.0F, 
 						10.0F, 0.0F, "Bone deformation weight");
 			
+			uiBlockEndAlign(block);
 			by-=42;	
 		}
 	}
@@ -1758,10 +1781,10 @@ static void editing_panel_links(Object *ob)
 	uiDefBut(block, BUT,B_MATWICH,	"?",		423,123,31,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
 	
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_MATNEW,	"New",		292,101,80,20, 0, 0, 0, 0, 0, "Adds a new Material index");
-	uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,101,80,20, 0, 0, 0, 0, 0, "Deletes this Material index");
-	uiDefBut(block, BUT,B_MATSEL,	"Select",	292,76,80,22, 0, 0, 0, 0, 0, "In EditMode, selects faces that have the active index");
-	uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	374,76,80,22, 0, 0, 0, 0, 0, "Deselects everything with current indexnumber");
+	uiDefBut(block, BUT,B_MATNEW,	"New",		292,98,80,20, 0, 0, 0, 0, 0, "Adds a new Material index");
+	uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,98,80,20, 0, 0, 0, 0, 0, "Deletes this Material index");
+	uiDefBut(block, BUT,B_MATSEL,	"Select",	292,76,80,20, 0, 0, 0, 0, 0, "In EditMode, selects faces that have the active index");
+	uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	374,76,80,20, 0, 0, 0, 0, 0, "Deselects everything with current indexnumber");
 	uiDefBut(block, BUT,B_MATASS,	"Assign",	292,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
 
 	uiBlockBeginAlign(block);
@@ -1972,29 +1995,33 @@ static void editing_panel_mesh_texface(void)
 
 	set_lasttface();	// checks for ob type
 	if(lasttface) {
-		
+	
+		uiBlockBeginAlign(block);
 		uiDefButS(block, TOG|BIT|2, B_REDR_3D_IMA, "Tex",	600,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face with texture");
 		uiDefButS(block, TOG|BIT|7, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use tilemode for face");
 		uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Light",	720,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use light for face");
 		uiDefButS(block, TOG|BIT|10, REDRAWVIEW3D, "Invisible",780,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Make face invisible");
 		uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Collision", 840,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use face for collision detection");
-
-		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "Shared",	600,140,60,19, &lasttface->mode, 0, 0, 0, 0, "Blend vertex colours across face when vertices are shared");
-		uiDefButS(block, TOG|BIT|9, REDRAWVIEW3D, "Twoside",	660,140,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face twosided");
-		uiDefButS(block, TOG|BIT|11, REDRAWVIEW3D, "ObColor",720,140,60,19, &lasttface->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colours");
-
-		uiDefButS(block, TOG|BIT|8, B_TFACE_HALO, "Halo",	600,120,60,19, &lasttface->mode, 0, 0, 0, 0, "Screen aligned billboard");
-		uiDefButS(block, TOG|BIT|12, B_TFACE_BILLB, "Billboard",660,120,60,19, &lasttface->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
-		uiDefButS(block, TOG|BIT|13, REDRAWVIEW3D, "Shadow", 720,120,60,19, &lasttface->mode, 0, 0, 0, 0, "Face is used for shadow");
-		uiDefButS(block, TOG|BIT|14, REDRAWVIEW3D, "Text", 780,120,60,19, &lasttface->mode, 0, 0, 0, 0, "Enable bitmap text on face");
-
-		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,100,60,19, &lasttface->transp, 2.0, 0.0, 0, 0, "Render colour of textured face as colour");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,100,60,19, &lasttface->transp, 2.0, 1.0, 0, 0, "Render face transparent and add colour of face");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",		720,100,60,19, &lasttface->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
-		/* uiDefButC(block, ROW, REDRAWVIEW3D, "Sub",	780,100,60,19, &lasttface->transp, 2.0, 3.0, 0, 0); ,""*/
-		uiBlockSetCol(block, TH_AUTO);
 		
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "Shared",	600,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Blend vertex colours across face when vertices are shared");
+		uiDefButS(block, TOG|BIT|9, REDRAWVIEW3D, "Twoside",660,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face twosided");
+		uiDefButS(block, TOG|BIT|11, REDRAWVIEW3D, "ObColor",720,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colours");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|8, B_TFACE_HALO, "Halo",	600,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Screen aligned billboard");
+		uiDefButS(block, TOG|BIT|12, B_TFACE_BILLB, "Billboard",660,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
+		uiDefButS(block, TOG|BIT|13, REDRAWVIEW3D, "Shadow", 720,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Face is used for shadow");
+		uiDefButS(block, TOG|BIT|14, REDRAWVIEW3D, "Text", 780,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Enable bitmap text on face");
+
+		uiBlockBeginAlign(block);
+		uiBlockSetCol(block, TH_BUT_SETTING1);
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &lasttface->transp, 2.0, 0.0, 0, 0, "Render colour of textured face as colour");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &lasttface->transp, 2.0, 1.0, 0, 0, "Render face transparent and add colour of face");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &lasttface->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+
+		uiBlockSetCol(block, TH_AUTO);
+		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT, B_COPY_TF_MODE, "Copy DrawMode", 600,7,117,28, 0, 0, 0, 0, 0, "Copy the drawmode");
 		uiDefBut(block, BUT, B_COPY_TF_UV, "Copy UV+tex",	  721,7,85,28, 0, 0, 0, 0, 0, "Copy UV information and textures");
 		uiDefBut(block, BUT, B_COPY_TF_COL, "Copy VertCol",	  809,7,103,28, 0, 0, 0, 0, 0, "Copy vertex colours");

@@ -1420,19 +1420,23 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		
 		id= (ID *)vd->bgpic->ima;
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
-		if(strp[0])
-			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	10,140,20,19, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
-		MEM_freeN(strp);
+		if(strp[0]) {
+			uiBlockBeginAlign(block);
+			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	10,130,20,20, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
 		
-		if(vd->bgpic->ima)  {
-			uiDefBut(block, TEX,	    0,"BGpic: ",		30,140,260,19,&vd->bgpic->ima->name,0.0,100.0, 0, 0, "The Selected BackGroundPic");
-			uiDefIconBut(block, BUT, B_BGPICCLEAR, ICON_X, 	290,140,20,19, 0, 0, 0, 0, 0, "Remove background image link");
+			if(vd->bgpic->ima)  {
+				uiDefBut(block, TEX,	    0,"BGpic: ",		30,130,260,20,&vd->bgpic->ima->name,0.0,100.0, 0, 0, "The Selected BackGroundPic");
+				uiDefIconBut(block, BUT, B_BGPICCLEAR, ICON_X, 	290,130,20,20, 0, 0, 0, 0, 0, "Remove background image link");
+			}
+			uiBlockEndAlign(block);
 		}
-		uiDefBut(block, BUT,	    B_LOADBGPIC, "LOAD",	10,120,100,19, 0, 0, 0, 0, 0, "Specify the BackGroundPic");
-		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,120,190,19,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
+		MEM_freeN(strp);
+
+		uiDefBut(block, BUT,	    B_LOADBGPIC, "LOAD",	10,100,100,20, 0, 0, 0, 0, 0, "Specify the BackGroundPic");
+		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,100,190,20,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
 		
-		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,100,140,19,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
-		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,100,140,19,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
+		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,70,140,20,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
+		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,70,140,20,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
 
 		/* There is a bug here ... (what bug? where? what is this? - zr) */
 		/* (ton) the use of G.buts->texnr is hackish */
@@ -1440,12 +1444,12 @@ static void view3d_panel_background(cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		id= (ID *)vd->bgpic->tex;
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(G.buts->texnr));
 		if (strp[0]) 
-			uiDefButS(block, MENU, B_BGPICTEX, strp,		10, 80, 20,19, &(G.buts->texnr), 0, 0, 0, 0, "Select texture for animated backgroundimage");
+			uiDefButS(block, MENU, B_BGPICTEX, strp,			10, 50, 20,20, &(G.buts->texnr), 0, 0, 0, 0, "Select texture for animated backgroundimage");
 		MEM_freeN(strp);
 		
 		if (id) {
-			uiDefBut(block, TEX, B_IDNAME, "TE:",			30,80,260,19, id->name+2, 0.0, 18.0, 0, 0, "");
-			uiDefIconBut(block, BUT, B_BGPICTEXCLEAR, ICON_X, 290,80,20,19, 0, 0, 0, 0, 0, "Remove background texture link");
+			uiDefBut(block, TEX, B_IDNAME, "TE:",				30,50,260,20, id->name+2, 0.0, 18.0, 0, 0, "");
+			uiDefIconBut(block, BUT, B_BGPICTEXCLEAR, ICON_X, 	290,50,20,20, 0, 0, 0, 0, 0, "Remove background texture link");
 		}
 	}
 }

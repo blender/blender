@@ -1233,18 +1233,21 @@ int movetolayer_buts(unsigned int *lay)
 	dx= (sizex-5)/12;
 	dy= sizey/2;
 	
-	for(a=0; a<10; a++) {
+	uiBlockBeginAlign(block);
+	for(a=0; a<5; a++) 
 		uiDefButI(block, TOGR|BIT|a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
-		if(a==4) x1+= 5;
-	}
-	x1-= 5;
-
-	for(a=0; a<10; a++) {
+	for(a=0; a<5; a++) 
 		uiDefButI(block, TOGR|BIT|(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
-		if(a==4) x1+= 5;
-	}
-	x1-= 5;
+	x1+= 5;
 	
+	uiBlockBeginAlign(block);
+	for(a=5; a<10; a++) 
+		uiDefButI(block, TOGR|BIT|a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+	for(a=5; a<10; a++) 
+		uiDefButI(block, TOGR|BIT|(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
+
+	x1-= 5;
 	uiDefBut(block, BUT, 1, "OK", (short)(x1+10*dx+10), (short)y1, (short)(3*dx), (short)(2*dy), NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 2);
