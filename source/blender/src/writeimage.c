@@ -32,12 +32,17 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"  // ImBuf{}
+
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h" // EnvMap{}
 #include "DNA_image_types.h" // Image{}
+
+#include "BKE_global.h"		// struct G
 #include "BKE_utildefines.h" // ELEM
+
 #include "BIF_writeimage.h"
-#include "render.h"
+
+#include "render.h"			// RE_make_existing_file
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -49,27 +54,27 @@ int BIF_write_ibuf(ImBuf *ibuf, char *name)
 
 	/* to be used for e.g. envmap, not rendered images */
 	
-	if(R.r.imtype== R_IRIS) ibuf->ftype= IMAGIC;
-	else if ((R.r.imtype==R_PNG)) {
+	if(G.scene->r.imtype== R_IRIS) ibuf->ftype= IMAGIC;
+	else if ((G.scene->r.imtype==R_PNG)) {
 		ibuf->ftype= PNG;
 	}
-	else if ((R.r.imtype==R_BMP)) {
+	else if ((G.scene->r.imtype==R_BMP)) {
 		ibuf->ftype= BMP;
 	}
-	else if ((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {
+	else if ((G.scene->r.imtype==R_TARGA) || (G.scene->r.imtype==R_PNG)) {
 		// fall back to Targa if PNG writing is not supported
 		ibuf->ftype= TGA;
 	}
-	else if(R.r.imtype==R_RAWTGA) {
+	else if(G.scene->r.imtype==R_RAWTGA) {
 		ibuf->ftype= RAWTGA;
 	}
-	else if(R.r.imtype==R_HAMX) {
+	else if(G.scene->r.imtype==R_HAMX) {
 		ibuf->ftype= AN_hamx;
 	}
-	else if ELEM(R.r.imtype, R_JPEG90, R_MOVIE) {
-		if(R.r.quality < 10) R.r.quality= 90;
+	else if ELEM(G.scene->r.imtype, R_JPEG90, R_MOVIE) {
+		if(G.scene->r.quality < 10) G.scene->r.quality= 90;
 
-		ibuf->ftype= JPG|R.r.quality;
+		ibuf->ftype= JPG|G.scene->r.quality;
 	}
 	else ibuf->ftype= TGA;
 	

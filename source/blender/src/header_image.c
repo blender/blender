@@ -66,6 +66,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
+
 #include "BLI_blenlib.h"
 #include "BIF_drawimage.h"
 #include "BIF_editsima.h"
@@ -76,8 +77,10 @@
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_writeimage.h"
+
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -338,7 +341,9 @@ void do_image_buttons(unsigned short event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				activate_fileselect(FILE_SPECIAL, "Save in same type", name, save_paint);
+				char str[32];	// sufficient for message
+				save_image_filesel_str(str);
+				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
 			}
 		}
 		break;
@@ -353,8 +358,8 @@ static void do_image_viewmenu(void *arg, int event)
 
 	switch(event) {
 	case 0: /* Update Automatically */
-		if(BTST(G.sima->lock, 0)) G.sima->lock = BCLR(G.sima->lock, 0);
-		else G.sima->lock = BSET(G.sima->lock, 0);
+		if(G.sima->lock) G.sima->lock = 0;
+		else G.sima->lock = 1;
 		break;
 	case 1: /* View All */
 		do_image_buttons(B_SIMAGEHOME);
@@ -395,7 +400,7 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	if(BTST(G.sima->lock, 0)) {
+	if(G.sima->lock) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -529,7 +534,7 @@ static uiBlock *image_image_rtmappingmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_image_rtmappingmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_image_image_rtmappingmenu, NULL);
 	
-	if (BTST(G.sima->image->flag, 4)) {
+	if (G.sima->image->flag & IMA_REFLECT) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Co-ordinates",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Reflection",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	} else {
@@ -603,15 +608,17 @@ static void do_image_imagemenu(void *arg, int event)
 		allqueue(REDRAWHEADERS, 0);
 		break;
 	case 4: /* Texture Painting */
-		if(BTST(G.sima->flag, 3)) G.sima->flag = BCLR(G.sima->flag, 3);
-		else G.sima->flag = BSET(G.sima->flag, 3);
+		if(G.sima->flag & SI_DRAWTOOL) G.sima->flag &= ~SI_DRAWTOOL;
+		else G.sima->flag |= SI_DRAWTOOL;
 		break;
 	case 5: /* Save Painted Image */
 		ima = G.sima->image;
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				activate_fileselect(FILE_SPECIAL, "Save As Same Type", name, save_paint);
+				char str[32];	// sufficient for message
+				save_image_filesel_str(str);
+				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
 			}
 		}
 		break;
@@ -645,11 +652,12 @@ static uiBlock *image_imagemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_imagemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_imagemenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if (G.sima->image) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 		
@@ -661,9 +669,8 @@ static uiBlock *image_imagemenu(void *arg_unused)
 			
 		uiDefBut(block, SEPR, 0, "",        0, yco-=7, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-		if(BTST(G.sima->flag, 3)) {
+		if(G.sima->flag & SI_DRAWTOOL) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Texture Painting", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Painted Image...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		} else {
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Texture Painting", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 		}
@@ -799,12 +806,12 @@ static void do_image_uvsmenu(void *arg, int event)
 	switch(event)
 	{
 	case 1: /* UVs Constrained Rectangular */
-		if(BTST(G.sima->flag, 0)) G.sima->flag = BCLR(G.sima->flag, 0);
-		else G.sima->flag = BSET(G.sima->flag, 0);
+		if(G.sima->flag & SI_BE_SQUARE) G.sima->flag &= ~SI_BE_SQUARE;
+		else G.sima->flag |= SI_BE_SQUARE;
 		break;
 	case 2: /* UVs Clipped to Image Size */
-		if(BTST(G.sima->flag, 2)) G.sima->flag = BCLR(G.sima->flag, 2);
-		else G.sima->flag = BSET(G.sima->flag, 2);
+		if(G.sima->flag & SI_CLIP_UV) G.sima->flag &= ~SI_CLIP_UV;
+		else G.sima->flag |= SI_CLIP_UV;
 		break;
 	case 3: /* Limit Stitch UVs */
 		stitch_uv_tface(1);
@@ -819,8 +826,8 @@ static void do_image_uvsmenu(void *arg, int event)
 			G.f |= G_PROPORTIONAL;
 		break;
 	case 7: /* UVs Snap to Pixel */
-		if(BTST(G.sima->flag, 7)) G.sima->flag = BCLR(G.sima->flag, 7);
-		else G.sima->flag = BSET(G.sima->flag, 7);
+		if(G.sima->flag & SI_NOPIXELSNAP) G.sima->flag &= ~SI_NOPIXELSNAP;
+		else G.sima->flag |= SI_NOPIXELSNAP;
 		break;
 	}
 }
@@ -835,13 +842,13 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	if(BTST(G.sima->flag, 7)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	if(G.sima->flag & SI_NOPIXELSNAP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 
-	if(BTST(G.sima->flag, 0)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	if(G.sima->flag & SI_BE_SQUARE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	
-	if(BTST(G.sima->flag, 2)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	if(G.sima->flag & SI_CLIP_UV) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
