@@ -1,5 +1,5 @@
 /* 
- *
+ * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -283,6 +283,12 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	"(evt) string: FrameChanged or Redraw."},
 	{"clearScriptLinks", (PyCFunction)Lamp_clearScriptLinks, METH_NOARGS,
 			"() - Delete all scriptlinks from this lamp."},
+  {"getIpo", (PyCFunction)Lamp_getIpo, METH_NOARGS,
+   "() - get IPO for this lamp"},
+  {"clearIpo", (PyCFunction)Lamp_clearIpo, METH_NOARGS,
+   "() - unlink the IPO for this lamp"},
+  {"setIpo", (PyCFunction)Lamp_setIpo, METH_VARARGS,
+   "( lamp-ipo ) - link an IPO to this lamp"},
   {NULL, NULL, 0, NULL}
 };
 
