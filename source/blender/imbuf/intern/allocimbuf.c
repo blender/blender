@@ -121,7 +121,7 @@ void IMB_freeImBuf(struct ImBuf * ibuf)
 	}
 }
 
-static short addzbufImBuf(struct ImBuf * ibuf)
+short addzbufImBuf(struct ImBuf * ibuf)
 {
 	int size;
 

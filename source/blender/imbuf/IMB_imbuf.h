@@ -184,7 +184,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);
  *
  * @attention Defined in allocimbuf.c
  */
-static short addzbufImBuf(struct ImBuf * ibuf);
+short addzbufImBuf(struct ImBuf * ibuf);
 
 /**
  *
