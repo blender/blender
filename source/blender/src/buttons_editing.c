@@ -86,6 +86,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_vfontdata.h"
+#include "BLI_editVert.h"
 
 #include "BSE_filesel.h"
 
@@ -161,6 +162,7 @@ float doublimit= 0.001, editbutvweight=1, editbutsize=0.1;
 float uv_calc_radius= 1.0, uv_calc_cubesize= 1.0;
 short uv_calc_mapdir= 1, uv_calc_mapalign= 1, facesel_draw_edges= 0;
 
+extern ListBase editNurb;
 
 /* *************************** MESH DECIMATE ******************************** */
 
@@ -373,6 +375,256 @@ static void decimate_apply(void)
 		}
 		else error("Not a decimated Mesh");
 	}
+}
+
+/* *************** */
+
+void do_common_editbuts(unsigned short event) // old name, is a mix of object and editing events.... 
+{
+	EditMesh *em = G.editMesh;
+	EditVlak *evl;
+	Base *base;
+	Object *ob;
+	Mesh *me;
+	Nurb *nu;
+	Curve *cu;
+	BezTriple *bezt;
+	BPoint *bp;
+	unsigned int local;
+	int a, bit, index= -1;
+
+	switch(event) {
+		
+	case B_MATWICH:
+		if(G.obedit && G.obedit->actcol>0) {
+			if(G.obedit->type == OB_MESH) {
+				evl= em->faces.first;
+				while(evl) {
+					if( vlakselectedAND(evl, 1) ) {
+						if(index== -1) index= evl->mat_nr;
+						else if(index!=evl->mat_nr) {
+							error("Mixed colors");
+							return;
+						}
+					}
+					evl= evl->next;
+				}
+			}
+			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+				nu= editNurb.first;
+				while(nu) {
+					if( isNurbsel(nu) ) {
+						if(index== -1) index= nu->mat_nr;
+						else if(index!=nu->mat_nr) {
+							error("Mixed colors");
+							return;
+						}
+					}
+					nu= nu->next;
+				}				
+			}
+			if(index>=0) {
+				G.obedit->actcol= index+1;
+				scrarea_queue_winredraw(curarea);
+			}
+		}
+		break;
+	case B_MATNEW:
+		new_material_to_objectdata((G.scene->basact) ? (G.scene->basact->object) : 0);
+		scrarea_queue_winredraw(curarea);
+		allqueue(REDRAWVIEW3D_Z, 0);
+		break;
+	case B_MATDEL:
+		delete_material_index();
+		scrarea_queue_winredraw(curarea);
+		allqueue(REDRAWVIEW3D_Z, 0);
+		break;
+	case B_MATASS:
+		if(G.obedit && G.obedit->actcol>0) {
+			if(G.obedit->type == OB_MESH) {
+				undo_push_mesh("Assign material index");
+				evl= em->faces.first;
+				while(evl) {
+					if( vlakselectedAND(evl, 1) )
+						evl->mat_nr= G.obedit->actcol-1;
+					evl= evl->next;
+				}
+				allqueue(REDRAWVIEW3D_Z, 0);
+				makeDispList(G.obedit);
+			}
+			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+				nu= editNurb.first;
+				while(nu) {
+					if( isNurbsel(nu) )
+						nu->mat_nr= G.obedit->actcol-1;
+					nu= nu->next;
+				}
+			}
+		}
+		break;
+	case B_MATSEL:
+	case B_MATDESEL:
+		if(G.obedit) {
+			if(G.obedit->type == OB_MESH) {
+				if (event==B_MATSEL) {
+					editmesh_select_by_material(G.obedit->actcol-1);
+				} else {
+					editmesh_deselect_by_material(G.obedit->actcol-1);
+				}
+				allqueue(REDRAWVIEW3D, 0);
+			}
+			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+				nu= editNurb.first;
+				while(nu) {
+					if(nu->mat_nr==G.obedit->actcol-1) {
+						if(nu->bezt) {
+							a= nu->pntsu;
+							bezt= nu->bezt;
+							while(a--) {
+								if(bezt->hide==0) {
+									if(event==B_MATSEL) {
+										bezt->f1 |= 1;
+										bezt->f2 |= 1;
+										bezt->f3 |= 1;
+									}
+									else {
+										bezt->f1 &= ~1;
+										bezt->f2 &= ~1;
+										bezt->f3 &= ~1;
+									}
+								}
+								bezt++;
+							}
+						}
+						else if(nu->bp) {
+							a= nu->pntsu*nu->pntsv;
+							bp= nu->bp;
+							while(a--) {
+								if(bp->hide==0) {
+									if(event==B_MATSEL) bp->f1 |= 1;
+									else bp->f1 &= ~1;
+								}
+								bp++;
+							}
+						}
+					}
+					nu= nu->next;
+				}
+				allqueue(REDRAWVIEW3D, 0);
+			}
+		}
+		break;
+	case B_HIDE:
+		if(G.obedit) {
+			if(G.obedit->type == OB_MESH) hide_mesh(0);
+			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) hideNurb(0);
+		}
+		break;
+	case B_REVEAL:
+		if(G.obedit) {
+			if(G.obedit->type == OB_MESH) reveal_mesh();
+			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) revealNurb();
+		}
+		else if(G.f & G_FACESELECT) reveal_tface();
+		
+		break;
+	case B_SELSWAP:
+		if(G.obedit) {
+			if(G.obedit->type == OB_MESH) selectswap_mesh();
+			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) selectswapNurb();
+		}
+		break;
+	case B_AUTOTEX:
+		ob= OBACT;
+		if(ob && G.obedit==0) {
+			if(ob->type==OB_MESH) tex_space_mesh(ob->data);
+			else if(ob->type==OB_MBALL) ;
+			else tex_space_curve(ob->data);
+		}
+		break;
+	case B_DOCENTRE:
+		docentre();
+		break;
+	case B_DOCENTRENEW:
+		docentre_new();
+		break;
+	case B_DOCENTRECURSOR:
+		docentre_cursor();
+		break;
+	case B_SETSMOOTH:
+	case B_SETSOLID:
+		if(G.obedit) {
+			if(G.obedit->type == OB_MESH) {
+				evl= em->faces.first;
+				if (event == B_SETSMOOTH) undo_push_mesh("Set Smooth");
+				else if (event==B_SETSOLID) undo_push_mesh("Set Solid");
+				while(evl) {
+					if( vlakselectedAND(evl, 1) ) {
+						if(event==B_SETSMOOTH) evl->flag |= ME_SMOOTH;
+						else evl->flag &= ~ME_SMOOTH;
+					}
+					evl= evl->next;
+				}
+
+				makeDispList(G.obedit);
+				allqueue(REDRAWVIEW3D, 0);
+			}
+			else {
+				nu= editNurb.first;
+				while(nu) {
+					if(isNurbsel(nu)) {
+						if(event==B_SETSMOOTH) nu->flag |= ME_SMOOTH;
+						else nu->flag &= ~ME_SMOOTH;
+					}
+					nu= nu->next;
+				}
+				
+			}
+		}
+		else {
+			base= FIRSTBASE;
+			while(base) {
+				if(TESTBASELIB(base)) {
+					if(base->object->type==OB_MESH) {
+						me= base->object->data;
+						mesh_set_smooth_flag(me, (event==B_SETSMOOTH));
+						makeDispList(base->object);
+					}
+					else if ELEM(base->object->type, OB_SURF, OB_CURVE) {
+						cu= base->object->data;
+						nu= cu->nurb.first;
+						while(nu) {
+							if(event==B_SETSMOOTH) nu->flag |= ME_SMOOTH;
+							else nu->flag &= ~ME_SMOOTH;
+							nu= nu->next;
+						}
+					}
+				}
+				base= base->next;
+			}
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+
+	default:
+		if(event>=B_OBLAY && event<=B_OBLAY+31) {
+			local= BASACT->lay & 0xFF000000;
+			BASACT->lay -= local;
+			if(BASACT->lay==0 || (G.qual & LR_SHIFTKEY)==0) {
+				bit= event-B_OBLAY;
+				BASACT->lay= 1<<bit;
+				scrarea_queue_winredraw(curarea);
+			}
+			BASACT->lay += local;
+			/* optimal redraw */
+			if( (OBACT->lay & G.vd->lay) && (BASACT->lay & G.vd->lay) );
+			else if( (OBACT->lay & G.vd->lay)==0 && (BASACT->lay & G.vd->lay)==0 );
+			else allqueue(REDRAWVIEW3D, 0);
+			
+			OBACT->lay= BASACT->lay;
+		}
+	}
+
 }
 
 /* *************************** MESH  ******************************** */
