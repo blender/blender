@@ -40,6 +40,7 @@
 #include <DNA_curve_types.h>
 #include <DNA_effect_types.h>
 #include <DNA_armature_types.h>
+#include <DNA_image_types.h>
 
 /*****************************************************************************/
 /* Global variables                                                          */
@@ -99,9 +100,13 @@ struct Effect * EffectFromPyObject (PyObject *py_obj);
 int             EffectCheckPyObject (PyObject *py_obj);
 */
 
+/* Image */
+PyObject * M_Image_Init (void);
+PyObject * ImageCreatePyObject (Image *image);
+int        Image_checkPyObject (PyObject *pyobj);
+
 /* Init functions for other modules */
 PyObject * M_Window_Init (void);
-PyObject * M_Image_Init (void);
 PyObject * M_Draw_Init (void);
 PyObject * M_BGL_Init (void);
 PyObject * M_Text_Init (void);

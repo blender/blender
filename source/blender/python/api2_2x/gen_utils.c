@@ -188,4 +188,3 @@ int EXPP_check_sequence_consistency(PyObject *seq, PyTypeObject *against)
 	}
 	return 1;
 }
-

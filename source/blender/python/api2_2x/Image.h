@@ -33,136 +33,27 @@
 #define EXPP_IMAGE_H
 
 #include <Python.h>
-#include <stdio.h>
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_image.h>
-#include <BLI_blenlib.h>
 #include <DNA_image_types.h>
 
-#include "gen_utils.h"
-#include "modules.h"
 
 /*****************************************************************************/
-/* Python C_Image defaults:                                                 */
-/*****************************************************************************/
-#define EXPP_IMAGE_REP      1
-#define EXPP_IMAGE_REP_MIN  1
-#define EXPP_IMAGE_REP_MAX 16
-
-/*****************************************************************************/
-/* Python API function prototypes for the Image module.                     */
-/*****************************************************************************/
-static PyObject *M_Image_New (PyObject *self, PyObject *args,
-                PyObject *keywords);
-static PyObject *M_Image_Get (PyObject *self, PyObject *args);
-static PyObject *M_Image_Load (PyObject *self, PyObject *args);
-
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.Image.__doc__                                                    */
-/*****************************************************************************/
-char M_Image_doc[] =
-"The Blender Image module\n\n";
-
-char M_Image_New_doc[] =
-"() - return a new Image object -- unimplemented";
-
-char M_Image_Get_doc[] =
-"(name) - return the image with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all images in the\ncurrent scene.";
-
-char M_Image_Load_doc[] =
-"(filename) - return image from file filename as Image Object, \
-returns None if not found.\n";
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.Image module:             */
-/*****************************************************************************/
-struct PyMethodDef M_Image_methods[] = {
-  {"New",(PyCFunction)M_Image_New, METH_VARARGS|METH_KEYWORDS,
-          M_Image_New_doc},
-  {"Get",         M_Image_Get,         METH_VARARGS, M_Image_Get_doc},
-  {"get",         M_Image_Get,         METH_VARARGS, M_Image_Get_doc},
-  {"Load",        M_Image_Load,        METH_VARARGS, M_Image_Load_doc},
-  {NULL, NULL, 0, NULL}
-};
-
-/*****************************************************************************/
-/* Python C_Image structure definition:                                     */
+/* Python C_Image structure definition                                       */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
   Image *image;
+
 } C_Image;
 
-/*****************************************************************************/
-/* Python C_Image methods declarations:                                     */
-/*****************************************************************************/
-static PyObject *Image_getName(C_Image *self);
-static PyObject *Image_getFilename(C_Image *self);
-static PyObject *Image_setName(C_Image *self, PyObject *args);
-static PyObject *Image_setXRep(C_Image *self, PyObject *args);
-static PyObject *Image_setYRep(C_Image *self, PyObject *args);
+PyTypeObject Image_Type; /* The Image PyType Object */ 
+
+#define C_Image_Check(v)  ((v)->ob_type == &Image_Type) /* for type checking */
 
 /*****************************************************************************/
-/* Python C_Image methods table:                                            */
+/* Module Blender.Image - public functions                                   */
 /*****************************************************************************/
-static PyMethodDef C_Image_methods[] = {
- /* name, method, flags, doc */
-  {"getName", (PyCFunction)Image_getName, METH_NOARGS,
-          "() - Return Image Data name"},
-  {"getFilename", (PyCFunction)Image_getFilename, METH_VARARGS,
-          "() - Return Image Data filename"},
-  {"setName", (PyCFunction)Image_setName, METH_VARARGS,
-          "(str) - Change Image Data name"},
-  {"setXRep", (PyCFunction)Image_setXRep, METH_VARARGS,
-          "(int) - Change Image Data x repetition value"},
-  {"setYRep", (PyCFunction)Image_setYRep, METH_VARARGS,
-          "(int) - Change Image Data y repetition value"},
-  {0}
-};
-
-/*****************************************************************************/
-/* Python Image_Type callback function prototypes:                          */
-/*****************************************************************************/
-static void ImageDeAlloc (C_Image *self);
-static int ImagePrint (C_Image *self, FILE *fp, int flags);
-static int ImageSetAttr (C_Image *self, char *name, PyObject *v);
-static PyObject *ImageGetAttr (C_Image *self, char *name);
-static int ImageCompare (C_Image *a, C_Image *b);
-static PyObject *ImageRepr (C_Image *self);
-
-/*****************************************************************************/
-/* Python Image_Type structure definition:                                  */
-/*****************************************************************************/
-PyTypeObject Image_Type =
-{
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,                                     /* ob_size */
-  "Image",                               /* tp_name */
-  sizeof (C_Image),                      /* tp_basicsize */
-  0,                                     /* tp_itemsize */
-  /* methods */
-  (destructor)ImageDeAlloc,              /* tp_dealloc */
-  (printfunc)ImagePrint,                 /* tp_print */
-  (getattrfunc)ImageGetAttr,             /* tp_getattr */
-  (setattrfunc)ImageSetAttr,             /* tp_setattr */
-  (cmpfunc)ImageCompare,                 /* tp_compare */
-  (reprfunc)ImageRepr,                   /* tp_repr */
-  0,                                     /* tp_as_number */
-  0,                                     /* tp_as_sequence */
-  0,                                     /* tp_as_mapping */
-  0,                                     /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                     /* tp_doc */ 
-  0,0,0,0,0,0,
-  C_Image_methods,                       /* tp_methods */
-  0,                                     /* tp_members */
-};
+PyObject *M_Image_Init (void);
+PyObject *Image_CreatePyObject (Image *image);
+int       Image_CheckPyObject (PyObject *pyobj);
 
 #endif /* EXPP_IMAGE_H */

@@ -59,9 +59,12 @@
 #include "DNA_armature_types.h"
 #include "mydevice.h"
 
-#include "gen_utils.h"
+#include "Material.h"
+#include "Image.h"
 #include "vector.h"
 #include "constant.h"
+#include "gen_utils.h"
+
 
 /* EXPP PyType Objects */
 
@@ -69,6 +72,8 @@ PyTypeObject NMesh_Type;
 PyTypeObject NMFace_Type;
 PyTypeObject NMVert_Type;
 PyTypeObject NMCol_Type;
+
+PyTypeObject Image_Type;
 
 /* Globals */
 
@@ -80,6 +85,9 @@ static PyObject *g_nmeshmodule = NULL;
 #define C_NMFace_Check(v)      ((v)->ob_type == &NMFace_Type)
 #define C_NMVert_Check(v)      ((v)->ob_type == &NMVert_Type)
 #define C_NMCol_Check(v)       ((v)->ob_type == &NMCol_Type)
+
+static char M_NMesh_doc[] =
+"The Blender.NMesh module";
 
 static char M_NMesh_Col_doc[]=
 "([r, g, b, a]) - Get a new mesh color\n\n\
@@ -179,7 +187,7 @@ typedef struct {
 	short mode;
 	short flag;
 	unsigned char transp;
-	PyObject *image; /* Image; was DataBlock *tpage -- PyObj is wrong, change it*/
+	C_Image *image;
 	char mat_nr, smooth;
 
 } C_NMFace; /* an NMesh face */

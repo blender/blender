@@ -142,6 +142,7 @@ static void NMFace_dealloc (PyObject *self)
   Py_DECREF(mf->v);
   Py_DECREF(mf->uv);
   Py_DECREF(mf->col);
+  Py_XDECREF(mf->image);
 
   PyMem_DEL(self);
 }
@@ -298,7 +299,9 @@ static int NMFace_setattr(PyObject *self, char *name, PyObject *v)
   }
 	else if (strcmp(name, "image") == 0) {
     PyObject *img;
-    PyArg_Parse(v, "O", &img);
+    if (!PyArg_Parse(v, "O!", &Image_Type, &img))
+			  return EXPP_ReturnIntError(PyExc_TypeError,
+							"expected image object");
 
 		if (img == Py_None) {
       mf->image = NULL;
@@ -306,9 +309,7 @@ static int NMFace_setattr(PyObject *self, char *name, PyObject *v)
 			return 0;
     }
 
-		// XXX if PyType ... XXXXXXX
-
-    mf->image = img;
+    mf->image = (C_Image *)img;
 
     return 0;
   }
@@ -686,7 +687,8 @@ static PyObject *NMesh_update(PyObject *self, PyObject *args)
 
 
 /** Implementation of the python method getVertexInfluence for an NMesh object.
- * This method returns a list of pairs (string,float) with bone nemaes and influences that this vertex receives.
+ * This method returns a list of pairs (string,float) with bone nemaes and
+ * influences that this vertex receives.
  * @author Jordi Rovira i Bonet
  */
 static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
@@ -694,61 +696,60 @@ static PyObject *NMesh_getVertexInfluences(PyObject *self, PyObject *args)
   int index;
   PyObject* influence_list = NULL;
 
-  // Get a reference to the mesh object wrapped in here.
-  Mesh *me= ((C_NMesh*)self)->mesh;
+  /* Get a reference to the mesh object wrapped in here. */
+  Mesh *me = ((C_NMesh*)self)->mesh;
 
-  // Parse the parameters: only on integer (vertex index)
+  /* Parse the parameters: only on integer (vertex index) */
   if (!PyArg_ParseTuple(args, "i", &index))
         return EXPP_ReturnPyObjError (PyExc_TypeError,
                  "expected int argument (index of the vertex)");
 
-  // Proceed only if we have vertex deformation information and index is valid
-  if (me->dvert)
-    if ((index>=0) && (index<me->totvert))
-      {
-	int i;
-	MDeformWeight *sweight = NULL;
+  /* Proceed only if we have vertex deformation information and index is valid*/
+  if (me->dvert) {
+		if ((index >= 0) && (index < me->totvert)) {
+
+			int i;
+			MDeformWeight *sweight = NULL;
 	
-	// Number of bones influencig the vertex
-	int totinfluences=me->dvert[index].totweight;
+    	/* Number of bones influencig the vertex */
+	    int totinfluences=me->dvert[index].totweight;
 	
-	// Build the list only with weights and names of the influent bones
-	influence_list = PyList_New(totinfluences);
+ 	/* Build the list only with weights and names of the influent bones */
+	    influence_list = PyList_New(totinfluences);
 
-	//Get the reference of the first wwight structure
-	sweight = me->dvert[index].dw;      
-	for (i=0; i<totinfluences; i++) {
+	/* Get the reference of the first wwight structure */
+    	sweight = me->dvert[index].dw;      
 
-	  // Some check that should always be true
-	  assert(sweight->data);
+			for (i=0; i<totinfluences; i++) {
 
-	  //Add the weight and the name of the bone, which is used to identify it
-	  PyList_SetItem(influence_list, i, Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
+	  /* Some check that should always be true */
+/*    	  assert(sweight->data);*/
 
-	  //Next weight
-	  sweight++;
-	}
-      }
+	  /*Add the weight and the name of the bone, which is used to identify it*/
+    	  PyList_SetItem(influence_list, i,
+						Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
+
+	  /* Next weight */
+    	  sweight++;
+			}
+		}
     else influence_list = PyList_New(0);
+	}
   else influence_list = PyList_New(0);
 
-  // Return the list. !QUESTION! Should i reincrement the number of references like i'm doing?
-  return EXPP_incr_ret(influence_list);
-
+  /* Return the list. !QUESTION! Should i reincrement the number of
+	 * references like i'm doing? */
+  return influence_list; /* No need to incref it */
 }
-
-
 
 Mesh *Mesh_fromNMesh(C_NMesh *nmesh)
 {
   Mesh *mesh = NULL;
   mesh = add_mesh(); /* us == 1, should we zero it for all added objs ? */
 
-  if (!mesh) {
+  if (!mesh)
     EXPP_ReturnPyObjError(PyExc_RuntimeError,
              "FATAL: could not create mesh object");
-		return NULL;
-	}
 
   convert_NMeshToMesh(mesh, nmesh);
   mesh_update(mesh);
@@ -757,8 +758,15 @@ Mesh *Mesh_fromNMesh(C_NMesh *nmesh)
 }
 
 PyObject *NMesh_link(PyObject *self, PyObject *args) 
-{
-// XXX  return DataBlock_link(self, args);
+{/*
+	C_Object *bl_obj;
+
+	if (!PyArg_ParseTuple(args, "O!", &Object_Type, bl_obj))
+			return EXPP_ReturnPyErrorObj (PyExc_TypeError,
+						"NMesh can only be linked to Objects");
+
+	bl_obj->data = (PyObject *)self;  do this function later */
+
 	return EXPP_incr_ret(Py_None);
 }
 
@@ -880,7 +888,7 @@ static C_NMFace *nmface_from_data(C_NMesh *mesh, int vidxs[4],
     }
 
     if (tface->tpage) /* pointer to image per face: */
-      newf->image = NULL;// XXX Image_Get(tface->tpage);
+      newf->image = (C_Image *)Image_CreatePyObject (tface->tpage);
     else
       newf->image = NULL;
 
@@ -1055,7 +1063,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
                         (PyObject *)nmface_from_shortdata(me, oldmf, oldtf, oldmc));
       }
     }
-    me->materials = NULL;// XXX PyList_fromMaterialList(oldmesh->mat, oldmesh->totcol);
+    me->materials = EXPP_PyList_fromMaterialList(oldmesh->mat, oldmesh->totcol);
   }
 
   return (PyObject *)me;  
@@ -1188,7 +1196,7 @@ static int assignFaceUV(TFace *tf, C_NMFace *nmface)
   }
   if (nmface->image) /* image assigned ? */
   {
-    tf->tpage = nmface->image; 
+    tf->tpage = nmface->image->image;
   }
   else
     tf->tpage = 0;
@@ -1319,7 +1327,7 @@ Material **nmesh_updateMaterials(C_NMesh *nmesh)
   }
 
   if (len > 0) {
-    matlist = newMaterialList_fromPyList(nmesh->materials);
+    matlist = EXPP_newMaterialList_fromPyList(nmesh->materials);
     if (mesh->mat)
       MEM_freeN(mesh->mat);
     mesh->mat = matlist;
@@ -1332,36 +1340,38 @@ Material **nmesh_updateMaterials(C_NMesh *nmesh)
 
 PyObject *NMesh_assignMaterials_toObject(C_NMesh *nmesh, Object *ob)
 {
-//  DataBlock *block;
-//  Material *ma;
-//  int i;
-//  short old_matmask;
+  C_Material *pymat;
+  Material *ma;
+  int i;
+  short old_matmask;
 
-  //old_matmask = ob->colbits; // HACK: save previous colbits
-  //ob->colbits = 0;           // make assign_material work on mesh linked material
+  old_matmask = ob->colbits; /*@ HACK: save previous colbits */
+  ob->colbits = 0;  /* make assign_material work on mesh linked material */
 
-//  for (i = 0; i < PySequence_Length(nmesh->materials); i++) {
-//    block= (DataBlock *) PySequence_GetItem(nmesh->materials, i);
-    
-  //  if (DataBlock_isType(block, ID_MA)) {
-    //  ma = (Material *) block->data;
-   //   assign_material(ob, ma, i+1); // XXX don't use this function anymore
-//    } else {
-  //    PyErr_SetString(PyExc_TypeError, 
-    //  "Material type in attribute list 'materials' expected!");
-      //Py_DECREF(block);
-     // return NULL;
-//    } 
-    
-    //Py_DECREF(block);
-  //}
-  //ob->colbits = old_matmask; // HACK
+  for (i = 0; i < PySequence_Length(nmesh->materials); i++) {
+    pymat = (C_Material *)PySequence_GetItem(nmesh->materials, i);
 
-//  ob->actcol = 1;
-  return EXPP_incr_ret(Py_None);
+    if (Material_CheckPyObject ((PyObject *)pymat)) {
+      ma = pymat->material;
+      assign_material(ob, ma, i+1);/*@ XXX don't use this function anymore*/
+    }
+
+		else {
+      Py_DECREF (pymat);
+      return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"Material type in attribute list 'materials' expected!");
+    } 
+
+    Py_DECREF (pymat);
+  }
+
+	ob->colbits = old_matmask; /*@ HACK */
+
+  ob->actcol = 1;
+  return EXPP_incr_ret (Py_None);
 }
 
-static int convert_NMeshToMesh(Mesh *mesh, C_NMesh *nmesh)
+static int convert_NMeshToMesh (Mesh *mesh, C_NMesh *nmesh)
 {
   MFace *newmf;
   TFace *newtf;
@@ -1378,7 +1388,7 @@ static int convert_NMeshToMesh(Mesh *mesh, C_NMesh *nmesh)
   mesh->tface = NULL;
   mesh->mat = NULL;
 
-  // material assignment moved to PutRaw
+  /*@ material assignment moved to PutRaw */
   mesh->totvert = PySequence_Length(nmesh->verts);
   if (mesh->totvert) {
     if (nmesh->flags&NMESH_HASVERTUV)
@@ -1572,11 +1582,12 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
 }
 
 #undef MethodDef
-#define MethodDef(func) {#func, M_NMesh_##func, METH_VARARGS, M_NMesh_##func##_doc}
+#define MethodDef(func) \
+  {#func, M_NMesh_##func, METH_VARARGS, M_NMesh_##func##_doc}
 
 static struct PyMethodDef M_NMesh_methods[] = {
-// These should be: Mesh.Col, Mesh.Vert, Mesh.Face in fure
-// -- for ownership reasons
+/*@ These should be: Mesh.Col, Mesh.Vert, Mesh.Face in fure */
+/* -- for ownership reasons */
   MethodDef(Col),
   MethodDef(Vert),
   MethodDef(Face),
@@ -1590,48 +1601,79 @@ static struct PyMethodDef M_NMesh_methods[] = {
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(dict, name) \
        constant_insert(dict, #name, PyInt_FromLong(TF_##name))
+/* Set constants for face drawing mode -- see drawmesh.c */
 
-/*@ set constants for face drawing mode -- see drawmesh.c */
-
-static void init_NMeshConst(C_constant *d)
+static PyObject *M_NMesh_FaceModesDict (void)
 {
-  constant_insert(d, "BILLBOARD", PyInt_FromLong(TF_BILLBOARD2));
-  constant_insert(d, "ALL", PyInt_FromLong(0xffff));
-  constant_insert(d, "HALO", PyInt_FromLong(TF_BILLBOARD));
-  EXPP_ADDCONST(d, DYNAMIC);
-  EXPP_ADDCONST(d, INVISIBLE);
-  EXPP_ADDCONST(d, LIGHT);
-  EXPP_ADDCONST(d, OBCOL);
-  EXPP_ADDCONST(d, SHADOW);
-  EXPP_ADDCONST(d, SHAREDVERT);
-  EXPP_ADDCONST(d, SHAREDCOL);
-  EXPP_ADDCONST(d, TEX);
-  EXPP_ADDCONST(d, TILES);
-  EXPP_ADDCONST(d, TWOSIDE);
-/* transparent modes */
-  EXPP_ADDCONST(d, SOLID);
-  EXPP_ADDCONST(d, ADD);
-  EXPP_ADDCONST(d, ALPHA);
-  EXPP_ADDCONST(d, SUB);
-/* TFACE flags */
-  EXPP_ADDCONST(d, SELECT);
-  EXPP_ADDCONST(d, HIDE);
-  EXPP_ADDCONST(d, ACTIVE);
+	PyObject *FM = M_constant_New();
+
+	if (FM) {
+		C_constant *d = (C_constant *)FM;
+
+    constant_insert(d, "BILLBOARD", PyInt_FromLong(TF_BILLBOARD2));
+    constant_insert(d, "ALL", PyInt_FromLong(0xffff));
+    constant_insert(d, "HALO", PyInt_FromLong(TF_BILLBOARD));
+    EXPP_ADDCONST(d, DYNAMIC);
+    EXPP_ADDCONST(d, INVISIBLE);
+    EXPP_ADDCONST(d, LIGHT);
+    EXPP_ADDCONST(d, OBCOL);
+    EXPP_ADDCONST(d, SHADOW);
+    EXPP_ADDCONST(d, SHAREDVERT);
+    EXPP_ADDCONST(d, SHAREDCOL);
+    EXPP_ADDCONST(d, TEX);
+    EXPP_ADDCONST(d, TILES);
+    EXPP_ADDCONST(d, TWOSIDE);
+	}
+
+	return FM;
+}
+
+static PyObject *M_NMesh_FaceFlagsDict (void)
+{
+	PyObject *FF = M_constant_New();
+
+	if (FF) {
+		C_constant *d = (C_constant *)FF;
+
+    EXPP_ADDCONST(d, SELECT);
+    EXPP_ADDCONST(d, HIDE);
+    EXPP_ADDCONST(d, ACTIVE);
+	}
+
+	return FF;
+}
+
+static PyObject *M_NMesh_FaceTranspModesDict (void)
+{
+	PyObject *FTM = M_constant_New();
+
+	if (FTM) {
+		C_constant *d = (C_constant *)FTM;
+
+    EXPP_ADDCONST(d, SOLID);
+    EXPP_ADDCONST(d, ADD);
+    EXPP_ADDCONST(d, ALPHA);
+    EXPP_ADDCONST(d, SUB);
+	}
+
+	return FTM;
 }
 
 PyObject *M_NMesh_Init (void) 
 {
-  PyObject *mod = Py_InitModule("Blender.NMesh", M_NMesh_methods);
-  PyObject *dict = PyModule_GetDict(mod);
-  PyObject *d = M_constant_New();
+  PyObject *submodule;
 
-	PyDict_SetItemString(dict, "Const" , d);
-  init_NMeshConst((C_constant *)d);
+  PyObject *FaceFlags = M_NMesh_FaceFlagsDict ();
+  PyObject *FaceModes = M_NMesh_FaceModesDict ();
+  PyObject *FaceTranspModes = M_NMesh_FaceTranspModesDict ();
 
-  g_nmeshmodule = mod;
-  return mod;
+	submodule = Py_InitModule3("Blender.NMesh", M_NMesh_methods, M_NMesh_doc);
+
+	if (FaceFlags) PyModule_AddObject (submodule, "FaceFlags" , FaceFlags);
+	if (FaceModes) PyModule_AddObject (submodule, "FaceModes" , FaceModes);
+	if (FaceTranspModes)
+					PyModule_AddObject (submodule, "FaceTranspModes" , FaceTranspModes);
+
+  g_nmeshmodule = submodule;
+  return submodule;
 }
-
-/* Unimplemented stuff: */
-
-Material **newMaterialList_fromPyList (PyObject *list) { return NULL; }
