@@ -490,7 +490,6 @@ char *BLI_gethome(void) {
 	#else /* Windows */
 		char * ret;
 		static char dir[512];
-		char tmpdir[512];
 
 		/* Check for %HOME% env var */
 
@@ -673,14 +672,14 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 
 	if (strlen(string)) {
 		if (string[0] == '/' || string[0] == '\\') { 
-			strncpy(dir, string, (FILE_MAXDIR+FILE_MAXFILE)-1);
+			BLI_strncpy(dir, string, FILE_MAXDIR);
 		} else if (string[1] == ':' && string[2] == '\\') {
-            strncpy(dir, string, (FILE_MAXDIR+FILE_MAXFILE)-1);
+            BLI_strncpy(dir, string, FILE_MAXDIR);
         } else {
             BLI_getwdN(dir);
             strcat(dir,"/");
             strcat(dir,string);
-            strncpy(string,dir,FILE_MAXDIR-1);
+            BLI_strncpy(string,dir,FILE_MAXDIR+FILE_MAXFILE);
         }
 
         BLI_make_exist(dir);
@@ -699,14 +698,12 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 	    len = FILE_MAXFILE - strlen(string);
 
 	    if (len < 0)
-		strncpy(file,string + abs(len),FILE_MAXFILE-1);
+		BLI_strncpy(file,string + abs(len),FILE_MAXFILE);
 	    else
-		strncpy(file,string,FILE_MAXFILE-1);
+		BLI_strncpy(file,string,FILE_MAXFILE);
 	    
-	    file[FILE_MAXFILE-1] = 0;
-
             if (strrchr(string,'\\')){
-		strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE-1);
+		BLI_strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE);
 	    }
 
             if (a = strlen(dir)) {
@@ -717,7 +714,7 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 			a = strlen(dir) - 1;
 			while(a>0 && dir[a] != '\\') a--;
 			dir[a + 1] = 0;
-			strncpy(file, string + strlen(dir),FILE_MAXFILE-1);
+			BLI_strncpy(file, string + strlen(dir),FILE_MAXFILE);
 		}
 		
 	}
