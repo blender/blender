@@ -135,7 +135,7 @@ static char NMesh_removeVertsFromGroup_doc[] =
 mesh that has been linked to an object. If no list is given this will remove\n\
 all vertex point associations with the group passed";
 
-static char NMesh_returnVertsFromGroup_doc[] =
+static char NMesh_getVertsFromGroup_doc[] =
 "By passing a python list of vertex indices and a named group, this will\n\
 return a python list representing the indeces that are a part of this vertex.\n\
 group. If no association was found for the index passed nothing will be\n\
@@ -295,7 +295,7 @@ static PyObject *NMesh_addVertGroup(PyObject *self, PyObject *args);
 static PyObject *NMesh_removeVertGroup(PyObject *self, PyObject *args);
 static PyObject *NMesh_assignVertsToGroup(PyObject *self, PyObject *args);
 static PyObject *NMesh_removeVertsFromGroup(PyObject *self, PyObject *args);
-static PyObject *NMesh_returnVertsFromGroup(PyObject *self, PyObject *args);
+static PyObject *NMesh_getVertsFromGroup(PyObject *self, PyObject *args);
 
 
 #endif /* EXPP_NMESH_H */

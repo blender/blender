@@ -201,7 +201,7 @@ class NMFace:
   @cvar transp: Transparency mode bit vector
      (see L{NMesh.FaceTranspModes<FaceTranspModes>}).
   @cvar uv: List of per-face UV coordinates: [(u0, v0), (u1, v1), ...].
-  @cvar normal: The normalized vector for this face: [x,y,z].
+  @cvar normal: (or just B{no}) The normal vector for this face: [x,y,z].
   @warn: Assigning uv textures to mesh faces in Blender works like this:
     1. Select your mesh.
     2. Enter face select mode (press f) and select at least some face(s).
@@ -379,45 +379,40 @@ class NMesh:
        - "SubSurf"
     """
 
-  def addVertGroup(groupName):
+  def addVertGroup(group):
     """
-    Add a named and empty vertex (deform) group to a mesh that has been linked 
-    to an object.
-    @type groupName: string
+    Add a named and empty vertex (deform) group to the object this nmesh is
+    linked to. If this nmesh was newly created or accessed with GetRaw, it must
+    first be linked to an object (with object.link or NMesh.PutRaw) so the
+    method knows which object to update.\n
+    This is because vertex groups in Blender are stored in I{the object} --
+    not in the mesh, which may be linked to more than one object. For this
+    reason, it's better to use "mesh = object.getData()" than
+    "mesh = NMesh.GetRaw(meshName)" to access an existing mesh.
+    @type group: string
+    @param group: the name for the new group.
     """
 
-  def removeVertGroup(groupName):
+  def removeVertGroup(group):
     """
-    Remove a named vertex (deform)group from a mesh that has been linked to
-    an object.  Will remove all verts assigned to group, if any.
-    @type groupName: string
+    Remove a named vertex (deform) group from the object linked to this nmesh.
+    All vertices assigned to the group will be removed (just from the group,
+    not deleted from the mesh), if any. If this nmesh was newly created, it
+    must first be linked to an object (read the comment in L{addVertGroup} for
+    more info).
+    @type group: string
+    @param group: the name of a vertex group.
     """
 
-  def assignVertsToGroup(groupName, vertList, weight, assignmode):
+  def assignVertsToGroup(group, vertList, weight, assignmode = 'replace'):
     """
-    Adds an array (a python list) of vertex points to a named vertex group associated 
-    with a mesh. The vertex list is a list of vertex indeces from the mesh.  The vertex list
-    will have an associated wieght assigned to them. This weight represents the amount of 
-    influence this group has over these vertex points. Weights should be in the range of 
-    0.0 - 1.0.  The assignmode can be either 'add', 'subtract', or 'replace'. If the vertex
-    in the list is not assigned to the group already, 'add' creates a new association with 
-    between this vertex and the group with the weight specified, otherwise the weight given
-    is added to the current weight of an existing association between the vertex and group.
-    'subtract' will attempt to subtract the weight passed from a vertex already associated 
-    with a group, else it does nothing. 'replace' attempts to replace a weight with the 
-    new weight value for an already associated vertex/group, else it does nothing. You should
-    assign vertex points to groups only when the mesh has all its vertex points add to it.
-    @type groupName: string
-    @type vertList: python list (integers)
-    @type weight: float
-    @type assignmode: string
-    @param assignmode: Three choices:
-           - 'add'
-           - 'substract'
-           - 'replace'	
+    Adds an array (a python list) of vertex points to a named vertex group
+    associated with a mesh. The vertex list is a list of vertex indices from
+    the mesh. You should assign vertex points to groups only when the mesh has
+    all its vertex points added to it and is already linked to an object.
 
-  I{B{Example:}}
-  The example here adds a new set of vertex indeces to a sphere primative::
+    I{B{Example:}}
+    The example here adds a new set of vertex indices to a sphere primitive::
      import Blender
      sphere = Blender.Object.Get('Sphere')
      mesh = sphere.getData()
@@ -427,35 +422,65 @@ class NMesh:
          if x % 3 == 0:
              vertList.append(x)
      mesh.assignVertsToGroup('firstGroup', vertList, 0.5, 'add')
+
+    @type group: string
+    @param group: the name of the group.
+    @type vertList: list of ints
+    @param vertList: a list of vertex indices.
+    @type weight: float
+    @param weight: the deform weight for (which means: the amount of influence
+        the group has over) the given vertices. It should be in the range
+        [0.0, 1.0]. If weight <= 0, the given vertices are removed from the
+        group.  If weight > 1, it is clamped.
+    @type assignmode: string
+    @param assignmode: Three choices:
+        - 'add'
+        - 'substract'
+        - 'replace'\n
+	
+        'B{add}': if the vertex in the list is not assigned to the group
+        already, this creates a new association between this vertex and the
+        group with the weight specified, otherwise the weight given is added to
+        the current weight of an existing association between the vertex and
+        group.\n
+        'B{subtract}' will attempt to subtract the weight passed from a vertex
+        already associated with a group, else it does nothing.\n
+        'B{replace}' attempts to replace a weight with the new weight value
+        for an already associated vertex/group, else it does nothing. 
+       """
+
+  def removeVertsFromGroup(group, vertList = None):
+    """
+    Remove a list of vertices from the given group.  If this nmesh was newly
+    created, it must first be linked to an object (check L{addVertGroup}).
+    @type group: string
+    @param group: the name of a vertex group
+    @type vertList: list of ints
+    @param vertList: a list of vertex indices to be removed from the given
+        'group'.  If None, all vertices are removed -- the group is emptied.
     """
 
-  def removeVertsFromGroup(groupName, (optional)vertList):
+  def getVertsFromGroup(group, weightsFlag = 0, vertList = None):
     """
-    Will remove an array (a python list) of vertex points from a named group in a mesh 
-    that has been linked to an object. If no list is given this will remove all vertex 
-    point associations with the group passed.
-    @type groupName: string
-    @type vertList: python list (integers) 
-    """
+    Return a list of vertex indices associated with the passed group. This
+    method can be used to test whether a vertex index is part of a group and
+    if so, what its weight is. 
 
-  def returnVertsFromGroup(groupName, (optional)weightsFlag, (optional)vertList):
-    """
-    The function will return a list of vertex indeces associated with the passed group. 
-    The weightsFlag should be either 0 or 1. The default is 0, however if 1 is passed the 
-    weight is returned along with the index. A vertex list can also be passed as a 3rd 
-    parameter. In this case only those vertex points that are both in the list passed and
-    in the group passed are returned. The method can be used to test whether a vertex index
-    is part of a group and if so, what it's weight is. 
-    @type groupName: string
-    @type weightsFlag: int
-    @type vertList: python list (integers) 
+    I{B{Example:}}
+    Append this to the example from L{assignVertsToGroup}::
+     # ...
+     print "Vertex indices from group %s :" % groupName
+     print mesh.getVertsFromGroup('firstGroup')
+     print "Again, with weights:"
+     print mesh.getVertsFromGroup('firstGroup',1)
+     print "Again, with weights and restricted to the given indices:"
+     print mesh.getVertsFromGroup('firstGroup',1,[1,2,3,4,5,6])     
 
-  I{B{Examples:}}
-  Here is an example::
-     ...same as example in assignVertsToGroup...
-     returnVertList = mesh.returnVertsFromGroup('firstGroup')
-        or
-     returnVertList = mesh.returnVertsFromGroup('firstGroup',1)
-        or 
-     returnVertList = mesh.returnVertsFromGroup('firstGorup',1,[1,2,3,4,5,6])     
-    """
+    @type group: string
+    @param group: the group name.
+    @type weightsFlag: bool
+    @param weightsFlag: if 1, the weight is returned along with the index. 
+    @type vertList: list of ints
+    @param vertList: if given, only those vertex points that are both in the
+        list and group passed in are returned.
+   """
