@@ -4123,20 +4123,20 @@ static void do_versions(Main *main)
 		
 		while(tex) {	
 			/* copied from kernel texture.c */
-			
-			/* musgrave */
-			tex->mg_H = 1.0;
-			tex->mg_lacunarity = 2.0;
-			tex->mg_octaves = 2.0;
-			tex->mg_offset = 1.0;
-			tex->mg_gain = 1.0;
-			tex->ns_outscale = 1.0;
-			/* distnoise */
-			tex->dist_amount = 1.0;
-			/* voronoi */
-			tex->vn_w1 = 1.0;
-			tex->vn_mexp = 2.5;
-			
+			if(tex->ns_outscale==0.0) {
+				/* musgrave */
+				tex->mg_H = 1.0;
+				tex->mg_lacunarity = 2.0;
+				tex->mg_octaves = 2.0;
+				tex->mg_offset = 1.0;
+				tex->mg_gain = 1.0;
+				tex->ns_outscale = 1.0;
+				/* distnoise */
+				tex->dist_amount = 1.0;
+				/* voronoi */
+				tex->vn_w1 = 1.0;
+				tex->vn_mexp = 2.5;
+			}
 			tex= tex->id.next;
 		}
 		
