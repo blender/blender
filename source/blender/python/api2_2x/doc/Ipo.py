@@ -55,6 +55,12 @@ class Ipo:
 		@rtype: string
 		@return: the name of the Ipo.
     """
+  def getCurves():
+    """
+		Gets all the IpoCurves of the Ipo.
+		@rtype: list
+		@return: A list (possibly void) containing all the IpoCurves associated to the Ipo object.
+    """
   def getCurve(curvename):
     """
 		Returns the IpoCurve with the given name.
