@@ -1011,7 +1011,8 @@ static int calc_filesel_regel(SpaceFile *sfile, int nr, int *valx, int *valy)
 
 	/* amount of lines */
 	val= (textrct.ymax-textrct.ymin)/FILESEL_DY;
-	coll= nr/val;
+	if (val == 0) coll = 0;
+        else coll= nr/val;
 	nr -= coll*val;
 	
 	*valy= textrct.ymax-FILESEL_DY+3 - nr*FILESEL_DY;
