@@ -4,6 +4,8 @@
 
 using namespace std;
 
+static string command_path = "";
+
 #ifdef WIN32 
 
 #include<windows.h>
@@ -16,7 +18,6 @@ using namespace std;
 #define FILE_MAXFILE 80
 #endif
 
-static string command_path = "";
 
 static string find_path()
 {
@@ -67,6 +68,32 @@ static int createDir(char* name)
 	}
 }
 
+#else
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+static string unixYafrayPath()
+{
+	static char *alternative[]=
+	{
+		"/usr/local/bin/",
+		"/usr/bin/",
+		"/bin/",
+		NULL
+	};
+
+	for(int i=0;alternative[i]!=NULL;++i)
+	{
+		string fp=string(alternative[i])+"yafray";
+		struct stat st;
+		if(stat(alternative[i],&st)<0) continue;
+		if(st.st_mode&S_IXOTH) return alternative[i];
+	}
+	return "";
+}
+
 #endif
 
 bool yafrayFileRender_t::initExport()
@@ -108,8 +135,8 @@ bool yafrayFileRender_t::initExport()
 			return false;
 		}
 		GetShortPathName((LPCTSTR)(yafray_path.c_str()), path, FILE_MAXDIR+FILE_MAXFILE);
-		command_path = string(path);
-		cout << "yafray path found: " << command_path << endl;
+		command_path = string(path) + "\\";
+		cout << "Yafray found at : " << command_path << endl;
 	}
 	// if no export dir set, or could not create, try to create one in the yafray dir, unless it already exists
 	if (dir_failed) 
@@ -117,6 +144,12 @@ bool yafrayFileRender_t::initExport()
 		string ybdir = command_path + "\\YBtest";
 		if (createDir(const_cast<char*>(ybdir.c_str()))==0) dir_failed=true; else dir_failed=false;
 		xmlpath = ybdir;
+	}
+#else
+	if(command_path=="")
+	{
+		command_path = unixYafrayPath();
+		if(command_path.size()) cout<<"Yafray found at : "<<command_path<<endl;
 	}
 #endif
 
@@ -1180,11 +1213,8 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 {
 	char yfr[8];
 	sprintf(yfr, "%d ", R.r.YF_numprocs);
-#ifdef WIN32
-	string command = command_path + "\\yafray -c " + yfr + "\"" + xmlpath + "\"";
-#else
-	string command = string("yafray -c ") + yfr + "\"" + xmlpath + "\"";
-#endif
+	string command = command_path + "yafray -c " + yfr + "\"" + xmlpath + "\"";
 	return system(command.c_str())==0;
 }
+
 
