@@ -425,25 +425,29 @@ void initTrans (TransInfo *t)
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
 void postTrans (TransInfo *t) 
 {
-	TransData *td;
-	int a;
-	
 	G.moving = 0; // Set moving flag off (display as usual)
 
 	stopConstraint(t);
+	/* Not needed anymore but will keep there in case it will be
 	t->con.drawExtra = NULL;
 	t->con.applyVec	= NULL;
 	t->con.applySize= NULL;
 	t->con.applyRot	= NULL;
 	t->con.mode		= 0;
+	*/
 
-	/* since ipokeys are optional on objects, we mallocced them per trans-data */
-	for(a=0, td= t->data; a<t->total; a++, td++) {
-		if(td->tdi) MEM_freeN(td->tdi);
-	}
 	
-	MEM_freeN(t->data);
-	t->data = NULL;
+	/* postTrans can be called when nothing is selected, so data is NULL already */
+	if (t->data) {
+		TransData *td;
+		int a;
+
+		/* since ipokeys are optional on objects, we mallocced them per trans-data */
+		for(a=0, td= t->data; a<t->total; a++, td++) {
+			if(td->tdi) MEM_freeN(td->tdi);
+		}
+		MEM_freeN(t->data);
+	}
 
 	if (t->ext) MEM_freeN(t->ext);
 	

@@ -244,16 +244,16 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 
 /* ************************** CONVERSIONS ************************* */
 
-static void createTransTexspace(void)
+static void createTransTexspace(TransInfo *t)
 {
 	TransData *td;
 	Object *ob;
 	ID *id;
 	
 	ob= OBACT;
-	Trans.total = 1;
-	td= Trans.data= MEM_callocN(sizeof(TransData), "TransTexspace");
-	td->ext= Trans.ext= MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
+	t->total = 1;
+	td= t->data= MEM_callocN(sizeof(TransData), "TransTexspace");
+	td->ext= t->ext= MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
 	
 	td->flag= TD_SELECTED;
 	VECCOPY(td->center, ob->obmat[3]);
@@ -370,14 +370,12 @@ static void add_pose_transdata(ListBase *lb, Object *ob, TransData **tdp)
 	}
 }
 
-static void createTransPose(void)
+static void createTransPose(TransInfo *t)
 {
 	bArmature *arm;
 	TransData *td;
 	TransDataExtension *tdx;
 	int i;
-	
-	Trans.total= 0;	// to be able to return
 	
 	/* check validity of state */
 	arm=get_armature (G.obpose);
@@ -404,29 +402,29 @@ static void createTransPose(void)
 	where_is_armature (G.obpose);
 	
 	/* count total */
-	count_bone_select(&arm->bonebase, &Trans.total);
+	count_bone_select(&arm->bonebase, &t->total);
 	
-	if(Trans.total==0 && Trans.mode==TFM_TRANSLATION) {
-		Trans.mode= TFM_ROTATION;
-		count_bone_select(&arm->bonebase, &Trans.total);
+	if(t->total==0 && t->mode==TFM_TRANSLATION) {
+		t->mode= TFM_ROTATION;
+		count_bone_select(&arm->bonebase, &t->total);
 	}		
-	if(Trans.total==0) return;
+	if(t->total==0) return;
 	
 	/* init trans data */
-    td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
-    tdx = Trans.ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransPoseBoneExt");
-	for(i=0; i<Trans.total; i++, td++, tdx++) {
+    td = t->data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
+    tdx = t->ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransPoseBoneExt");
+	for(i=0; i<t->total; i++, td++, tdx++) {
 		td->ext= tdx;
 		td->tdi = NULL;
 		td->val = NULL;
 	}	
 	/* recursive fill trans data */
-	td= Trans.data;
+	td= t->data;
 	add_pose_transdata(&arm->bonebase, G.obpose, &td);
 	
 }
 
-static void createTransArmatureVerts(void)
+static void createTransArmatureVerts(TransInfo *t)
 {
 	EditBone *ebo;
 	TransData *td;
@@ -435,19 +433,19 @@ static void createTransArmatureVerts(void)
 	Trans.total = 0;
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
-			Trans.total++;
+			t->total++;
 		}
 		if (ebo->flag & BONE_ROOTSEL){
-			Trans.total++;
+			t->total++;
 		}
 	}
 
-    if (!Trans.total) return;
+    if (!t->total) return;
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditBone");
+    td = t->data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
@@ -484,14 +482,14 @@ static void createTransArmatureVerts(void)
 	}
 }
 
-static void createTransMBallVerts(void)
+static void createTransMBallVerts(TransInfo *t)
 {
  	MetaElem *ml;
 	TransData *td;
 	TransDataExtension *tx;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
-	int propmode = Trans.flag & T_PROP_EDIT;
+	int propmode = t->flag & T_PROP_EDIT;
 
 	/* count totals */
 	for(ml= editelems.first; ml; ml= ml->next) {
@@ -502,16 +500,15 @@ static void createTransMBallVerts(void)
 	/* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 	
-	if(propmode) Trans.total = count; 
-	else Trans.total = countsel;
+	if(propmode) t->total = count; 
+	else t->total = countsel;
 	
-	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(MBall EditMode)");
-	tx = Trans.ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "MetaElement_TransExtension");
+	td = t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(MBall EditMode)");
+	tx = t->ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
     
-	td = Trans.data;
 	for(ml= editelems.first; ml; ml= ml->next) {
 		if(propmode || (ml->flag & SELECT)) {
 			td->loc= &ml->x;
@@ -588,7 +585,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 	}
 }
 
-static void createTransCurveVerts(void)
+static void createTransCurveVerts(TransInfo *t)
 {
 	TransData *td = NULL;
   	Nurb *nu;
@@ -597,7 +594,7 @@ static void createTransCurveVerts(void)
 	float mtx[3][3], smtx[3][3];
 	int a;
 	int count=0, countsel=0;
-	int propmode = Trans.flag & T_PROP_EDIT;
+	int propmode = t->flag & T_PROP_EDIT;
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
 	for(nu= editNurb.first; nu; nu= nu->next) {
@@ -624,13 +621,13 @@ static void createTransCurveVerts(void)
 	if (countsel==0) return;
 	
 	if(propmode) Trans.total = count; 
-	else Trans.total = countsel;
-	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Curve EditMode)");
+	else t->total = countsel;
+	t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Curve EditMode)");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    td = Trans.data;
+    td = t->data;
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
@@ -718,14 +715,14 @@ static void createTransCurveVerts(void)
 	}
 }
 
-static void createTransLatticeVerts(void)
+static void createTransLatticeVerts(TransInfo *t)
 {
 	TransData *td = NULL;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
 	int a;
 	int count=0, countsel=0;
-	int propmode = Trans.flag & T_PROP_EDIT;
+	int propmode = t->flag & T_PROP_EDIT;
 
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
@@ -738,14 +735,14 @@ static void createTransLatticeVerts(void)
  	/* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 	
-	if(propmode) Trans.total = count; 
-	else Trans.total = countsel;
-	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Lattice EditMode)");
+	if(propmode) t->total = count; 
+	else t->total = countsel;
+	t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Lattice EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	td = Trans.data;
+	td = t->data;
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
@@ -902,7 +899,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->val = NULL;
 }
 
-static void createTransEditVerts(void)
+static void createTransEditVerts(TransInfo *t)
 {
 	TransData *tob = NULL;
 	EditMesh *em = G.editMesh;
@@ -911,7 +908,7 @@ static void createTransEditVerts(void)
 	float mtx[3][3], smtx[3][3];
 	float *vectors = NULL;
 	int count=0, countsel=0;
-	int propmode = Trans.flag & T_PROP_EDIT;
+	int propmode = t->flag & T_PROP_EDIT;
 		
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
@@ -953,19 +950,19 @@ static void createTransEditVerts(void)
 	if (countsel==0) return;
 	
 	if(propmode) {
-		Trans.total = count; 
+		t->total = count; 
 	
 		/* allocating scratch arrays */
 		vectors = (float *)malloc(Trans.total * 3 * sizeof(float));
 		nears = (EditVert**)malloc(Trans.total * sizeof(EditVert*));
 	}
-	else Trans.total = countsel;
-	tob= Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Mesh EditMode)");
+	else t->total = countsel;
+	tob= t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(Trans.total, vectors, nears);
+	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
 	
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
@@ -975,7 +972,10 @@ static void createTransEditVerts(void)
 				if(eve->f1) tob->flag |= TD_SELECTED;
 				if(propmode) {
 					if (eve->f2) {
-						tob->dist= VecLength(E_VEC(eve));
+						float vec[3];
+						VECCOPY(vec, E_VEC(eve));
+						Mat3MulVecfl(mtx, vec);
+						tob->dist= VecLength(vec);
 					}
 					else {
 						tob->flag |= TD_NOTCONNECTED;
@@ -1301,7 +1301,7 @@ static void clear_trans_object_base_flags(void)
 }
 
 
-static void createTransObject(void)
+static void createTransObject(TransInfo *t)
 {
 	TransData *td = NULL;
 	TransDataExtension *tx;
@@ -1313,7 +1313,7 @@ static void createTransObject(void)
 	/* hackish... but we have to do it somewhere */
 	reset_slowparents();
 	
-	set_trans_object_base_flags(&Trans);
+	set_trans_object_base_flags(t);
 	
 	/* count */	
 	for(base= FIRSTBASE; base; base= base->next) {
@@ -1337,14 +1337,14 @@ static void createTransObject(void)
 		}
 	}
 
-	if(!Trans.total) {
+	if(!t->total) {
 		/* clear here, main transform function escapes too */
 		clear_trans_object_base_flags();
 		return;
 	}
 	
-	td = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
-	tx = Trans.ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransObExtension");
+	td = t->data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
+	tx = t->ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransObExtension");
 
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
@@ -1417,35 +1417,35 @@ static void createTransData(TransInfo *t)
 {
 	if (t->context == CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
-		createTransTexspace();
+		createTransTexspace(t);
 	}
 	else if (G.obpose) {
 		t->flag |= T_POSE;
-		createTransPose();
+		createTransPose(t);
 	}
 	else if (G.obedit) {
 		t->ext = NULL;
 		if (G.obedit->type == OB_MESH) {
 			if(t->mode==TFM_SHRINKFATTEN) vertexnormals(0);
-			createTransEditVerts();	
+			createTransEditVerts(t);	
    		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
-			createTransCurveVerts();
+			createTransCurveVerts(t);
 		}
 		else if (G.obedit->type==OB_LATTICE) {
-			createTransLatticeVerts();
+			createTransLatticeVerts(t);
 		}
 		else if (G.obedit->type==OB_MBALL) {
-			createTransMBallVerts();
+			createTransMBallVerts(t);
 		}
 		else if (G.obedit->type==OB_ARMATURE) {
-			createTransArmatureVerts();
+			createTransArmatureVerts(t);
   		}					  		
 		else {
 			printf("not done yet! only have mesh surface curve\n");
 		}
-		
-		if(t->flag & T_PROP_EDIT) {
+
+		if(t->data && t->flag & T_PROP_EDIT) {
 			if (ELEM(G.obedit->type, OB_CURVE, OB_MESH)) {
 				sort_trans_data(t);	// makes selected become first in array
 				set_prop_dist(t, 0);
@@ -1460,7 +1460,7 @@ static void createTransData(TransInfo *t)
 		t->flag |= T_EDIT;
 	}
 	else {
-		createTransObject();
+		createTransObject(t);
 		t->flag |= T_OBJECT;
 	}
 
@@ -1510,8 +1510,10 @@ void Transform(int mode, int context)
 
 	createTransData(&Trans);			// make TransData structs from selection
 
-	if (Trans.total == 0)
+	if (Trans.total == 0) {
+		postTrans(&Trans);
 		return;
+	}
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
