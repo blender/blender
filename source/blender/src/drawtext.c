@@ -1036,6 +1036,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWHEADERS, 0);
 				}
 			}
+			else if (event==OKEY) {
+				if (G.qual & LR_ALTKEY) {
+					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+				}
+			}
 		}
 		return;
 	}
