@@ -1759,13 +1759,14 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 	EditEdge *eed, *ed1, *ed2, *ed3, *ed4;
 	EditVlak *evl, *startvl;
 	float maxx, nor[3], cent[3];
-	int totsel, found, foundone, direct, turn;
+	int totsel, found, foundone, direct, turn, tria_nr;
 
    /* based at a select-connected to witness loose objects */
 
 	/* count per edge the amount of faces */
 
-	/* find the ultimate left, front, upper face */
+	/* find the ultimate left, front, upper face (not manhattan dist!!) */
+	/* also evaluate both triangle cases in quad, since these can be non-flat */
 
 	/* put normal to the outside, and set the first direction flags in edges */
 
@@ -1804,26 +1805,43 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 		/* from the outside to the inside */
 
 		evl= em->faces.first;
-		startvl= 0;
+		startvl= NULL;
 		maxx= -1.0e10;
+		tria_nr= 0;
 
 		while(evl) {
 			if(evl->f) {
 				CalcCent3f(cent, evl->v1->co, evl->v2->co, evl->v3->co);
-				cent[0]= fabs(cent[0])+fabs(cent[1])+fabs(cent[2]);
+				cent[0]= cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
 				
 				if(cent[0]>maxx) {
 					maxx= cent[0];
 					startvl= evl;
+					tria_nr= 0;
+				}
+				if(evl->v4) {
+					CalcCent3f(cent, evl->v1->co, evl->v3->co, evl->v4->co);
+					cent[0]= cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
+					
+					if(cent[0]>maxx) {
+						maxx= cent[0];
+						startvl= evl;
+						tria_nr= 1;
+					}
 				}
 			}
 			evl= evl->next;
 		}
 		
 		/* set first face correct: calc normal */
-		CalcNormFloat(startvl->v1->co, startvl->v2->co, startvl->v3->co, nor);
-		CalcCent3f(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
 		
+		if(tria_nr==1) {
+			CalcNormFloat(startvl->v1->co, startvl->v3->co, startvl->v4->co, nor);
+			CalcCent3f(cent, startvl->v1->co, startvl->v3->co, startvl->v4->co);
+		} else {
+			CalcNormFloat(startvl->v1->co, startvl->v2->co, startvl->v3->co, nor);
+			CalcCent3f(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
+		}
 		/* first normal is oriented this way or the other */
 		if(select) {
 			if(select==2) {
