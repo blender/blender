@@ -183,7 +183,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 		if (blenderscene->world)
 		{
 			
-			switch (blenderscene->world->pad1)
+			switch (blenderscene->world->physicsEngine)
 			{
 				
 			case 1:

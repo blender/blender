@@ -92,6 +92,9 @@ typedef struct World {
 	
 	short dofsta, dofend, dofmin, dofmax;
 
+	int physicsEngine;
+	int pad;
+
 	struct Ipo *ipo;
 	struct MTex *mtex[8];
 
