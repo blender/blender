@@ -271,7 +271,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
   else if (strcmp (str_type, "Lattice") == 0) type = OB_LATTICE;
 /*	else if (strcmp (str_type, "Mball") == 0)	type = OB_MBALL; */
   else if (strcmp (str_type, "Mesh") == 0)	  type = OB_MESH;
-/*	else if (strcmp (str_type, "Surf") == 0)	type = OB_SURF; */
+	else if (strcmp (str_type, "Surf") == 0)	type = OB_SURF; 
 /*	else if (strcmp (str_type, "Wave") == 0)	type = OB_WAVE; */
   else if (strcmp (str_type, "Empty") == 0)   type = OB_EMPTY;
   else
@@ -1325,6 +1325,7 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 		case OB_CAMERA: /* we can probably add the other types, too */
 		case OB_ARMATURE:
 		case OB_CURVE:
+		case OB_SURF:
 		case OB_LATTICE:
 			oldid = (ID*) self->object->data;
 			id = (ID*) object->object->data;
