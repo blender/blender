@@ -161,15 +161,15 @@ readStreamGlue(
 				break;
 			case READBLENFILE:
 			case WRITEBLENFILE:
-				(*control)->begin = readStreamGlueLoopBack_begin;
-				(*control)->process = readStreamGlueLoopBack_process;
-				(*control)->end = readStreamGlueLoopBack_end;
+				(struct readStreamGlueLoopBackStruct *)(*control)->begin = readStreamGlueLoopBack_begin;
+				(struct readStreamGlueLoopBackStruct *)(*control)->process = readStreamGlueLoopBack_process;
+				(struct readStreamGlueLoopBackStruct *)(*control)->end = readStreamGlueLoopBack_end;
 				break;
 			case INFLATE:
 			case DEFLATE:
-				(*control)->begin = BLO_inflate_begin;
-				(*control)->process = BLO_inflate_process;
-				(*control)->end = BLO_inflate_end;
+				(struct readStreamGlueLoopBackStruct *)(*control)->begin = BLO_inflate_begin;
+				(struct readStreamGlueLoopBackStruct *)(*control)->process = BLO_inflate_process;
+				(struct readStreamGlueLoopBackStruct *)(*control)->end = BLO_inflate_end;
 				break;
 			default:
 				err = BRS_SETFUNCTION(BRS_READSTREAMGLUE) |
