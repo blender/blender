@@ -91,6 +91,7 @@ typedef struct QuicktimeExport {
 	ImageDescription	**anImageDescription;
 
 	ImBuf		*ibuf;	//imagedata for Quicktime's Gworld
+	ImBuf		*ibuf2;	//copy of renderdata, to be Y-flipped
 
 } QuicktimeExport;
 
@@ -252,7 +253,7 @@ static void QT_CreateMyVideoTrack(void)
 {
 	OSErr err = noErr;
 	Rect trackFrame;
-	MatrixRecord myMatrix;
+//	MatrixRecord myMatrix;
 
 	trackFrame.top = 0;
 	trackFrame.left = 0;
@@ -265,10 +266,10 @@ static void QT_CreateMyVideoTrack(void)
 							kNoVolume);
 	CheckError( GetMoviesError(), "NewMovieTrack error" );
 
-	SetIdentityMatrix(&myMatrix);
-	ScaleMatrix(&myMatrix, fixed1, Long2Fix(-1), 0, 0);
-	TranslateMatrix(&myMatrix, 0, Long2Fix(trackFrame.bottom));
-	SetMovieMatrix(qtexport->theMovie, &myMatrix);
+//	SetIdentityMatrix(&myMatrix);
+//	ScaleMatrix(&myMatrix, fixed1, Long2Fix(-1), 0, 0);
+//	TranslateMatrix(&myMatrix, 0, Long2Fix(trackFrame.bottom));
+//	SetMovieMatrix(qtexport->theMovie, &myMatrix);
 
 	qtexport->theMedia = NewTrackMedia (qtexport->theTrack,
 							VideoMediaType,
@@ -307,6 +308,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame)
 	OSErr err = noErr;
 
 	qtexport->ibuf = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
+	qtexport->ibuf2 = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
 
 	err = NewGWorldFromPtr( &qtexport->theGWorld,
 							k32ARGBPixelFormat,
@@ -335,36 +337,37 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	OSErr	err = noErr;
 	Rect	imageRect;
 
-	register int		index;
-	register int		boxsize;
-	register uint32_t	*readPos;
-	register uint32_t	*changePos;
-	Ptr					myPtr;
+	int		index;
+	int		boxsize;
+	unsigned char *from, *to;
 
 	short	syncFlag;
 	long	dataSize;
 	Handle	compressedData;
+	Ptr		myPtr;
+
+
+	//copy and flip renderdata
+	memcpy(qtexport->ibuf2->rect, R.rectot, 4*R.rectx*R.recty);
+	IMB_flipy(qtexport->ibuf2);
 
 	//get pointers to parse bitmapdata
 	myPtr = GetPixBaseAddr(qtexport->thePixMap);
 	imageRect = (**qtexport->thePixMap).bounds;
 
+	from = (unsigned char *) qtexport->ibuf2->rect;
+	to = (unsigned char *) myPtr;
+
+	//parse RGBA bitmap into Quicktime's ARGB GWorld
 	boxsize = R.rectx * R.recty;
-	readPos = (uint32_t *) R.rectot;
-	changePos = (uint32_t *) myPtr;
+	for( index = 0; index < boxsize; index++) {
+		to[0] = from[3];
+		to[1] = from[0];
+		to[2] = from[1];
+		to[3] = from[2];
+		to +=4, from += 4;
+	}
 
-	//parse render bitmap into Quicktime's GWorld
-#ifdef __APPLE__
-	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
-		*( changePos ) = ( ( *readPos & 0xFFFFFFFF ) >> 8 ) |
-                         ( ( *readPos << 24 ) & 0xFF );
-#endif
-
-#ifdef _WIN32
-	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
-		*( changePos ) = ( ( *readPos & 0xFFFFFFFF ) << 8 ) |
-						 ( ( *readPos >> 24 ) & 0xFF );
-#endif
 	err = SCCompressSequenceFrame(qtdata->theComponent,
 		qtexport->thePixMap,
 		&imageRect,
@@ -393,8 +396,14 @@ static void QT_EndAddVideoSamplesToMedia (void)
 	SCCompressSequenceEnd(qtdata->theComponent);
 
 	UnlockPixels(qtexport->thePixMap);
-	if (qtexport->theGWorld) DisposeGWorld (qtexport->theGWorld);
-	if (qtexport->ibuf) IMB_freeImBuf(qtexport->ibuf);
+	if (qtexport->theGWorld)
+		DisposeGWorld (qtexport->theGWorld);
+
+	if (qtexport->ibuf)
+		IMB_freeImBuf(qtexport->ibuf);
+
+	if (qtexport->ibuf2)
+		IMB_freeImBuf(qtexport->ibuf2);
 } 
 
 
@@ -465,9 +474,12 @@ void start_qt(void) {
 		CheckError(err, "FsPathMakeRef error");
 		err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &qtexport->theSpec, NULL);
 		CheckError(err, "FsGetCatalogInfoRef error");
-#else
+#endif
+#ifdef _WIN32
 		qtname = get_valid_qtname(name);
 		sprintf(theFullPath, "%s", qtname);
+		strcpy(name, qtname);
+		MEM_freeN(qtname);
 		
 		CopyCStringToPascal(theFullPath, qtexport->qtfilename);
 		err = FSMakeFSSpec(0, 0L, qtexport->qtfilename, &qtexport->theSpec);
@@ -483,20 +495,9 @@ void start_qt(void) {
 
 		if(err != noErr) {
 			G.afbreek = 1;
-#ifdef __APPLE__
 			error("Unable to create Quicktime movie: %s\n", name);
-#else
-			error("Unable to create Quicktime movie: %s\n", qtname);
-			MEM_freeN(qtname);
-#endif
 		} else {
-
-#ifdef __APPLE__
 			printf("Created QuickTime movie: %s\n", name);
-#else
-			printf("Created QuickTime movie: %s\n", qtname);
-			MEM_freeN(qtname);
-#endif
 
 			QT_CreateMyVideoTrack();
 		}
