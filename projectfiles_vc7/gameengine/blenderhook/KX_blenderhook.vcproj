@@ -26,6 +26,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\blenderhook\debug\KX_blenderhook.pch"
 				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\blenderhook\debug\"

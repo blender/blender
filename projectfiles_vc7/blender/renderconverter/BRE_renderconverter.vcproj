@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\yafray;..\..\..\source\blender\radiosity\extern\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\misc;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\yafray;..\..\..\source\blender\radiosity\extern\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
