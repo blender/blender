@@ -99,7 +99,7 @@ void undo_editmode_menu(void)				// history menu
 #define MAXUNDONAME	64
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
-	Object *ob;
+	ID id;		// copy of editmode object ID
 	void *undodata;
 	char name[MAXUNDONAME];
 	void (*freedata)(void *);
@@ -133,7 +133,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 
 	/* prevent two same undocalls */
 	if(curundo && strcmp("Original", name)==0) {
-		if(curundo->ob==G.obedit) {
+		if( strcmp(curundo->id.name, G.obedit->id.name)==0 ) {
 			return;
 		}
 	}
@@ -174,7 +174,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	/* copy  */
 	curundo->undodata= curundo->from_editmode();
 	
-	curundo->ob= G.obedit;
+	curundo->id= G.obedit->id;
 }
 
 
@@ -187,7 +187,7 @@ static void undo_clean_stack(void)
 	uel= undobase.first; 
 	while(uel) {
 		next= uel->next;
-		if(uel->ob!=G.obedit) {
+		if(strcmp(curundo->id.name, G.obedit->id.name)!=0) {
 			mixed= 1;
 			BLI_remlink(&undobase, uel);
 			uel->freedata(uel->undodata);

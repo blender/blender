@@ -1715,7 +1715,7 @@ void outliner_operation_menu(ScrArea *sa)
 	
 	if(scenelevel) {
 		if(objectlevel || datalevel || idlevel) error("Mixed selection");
-		else pupmenu("Scene Operations%t|Delete");
+		//else pupmenu("Scene Operations%t|Delete");
 	}
 	else if(objectlevel) {
 		short event= pupmenu("Object Operations%t|Select%x1|Deselect%x2|Delete%x4");
