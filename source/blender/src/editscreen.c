@@ -2899,6 +2899,16 @@ void drawscreen(void)
 		drawscredge_area(sa);
 		sa= sa->next;
 	}
+
+	glDrawBuffer(GL_FRONT);
+
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		drawscredge_area(sa);
+		sa= sa->next;
+	}
+
+	glDrawBuffer(GL_BACK);
 }
 
 /* ********************************* */
