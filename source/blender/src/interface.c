@@ -511,7 +511,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 			if(dir2==UI_RIGHT) block->safety.xmax= block->maxx+3; 
 			if(dir2==UI_LEFT) block->safety.xmin= block->minx-3; 
 		}
-		block->direction= dir1|dir2;
+		block->direction= dir1;
 	}
 	else {
 		block->safety.xmin= block->minx-40;
