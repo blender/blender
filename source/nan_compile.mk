@@ -114,7 +114,8 @@ ifeq ($(OS),irix)
     CC	= cc
     CCC	= CC
     CFLAGS	+= -n32 -mips3 -Xcpluscomm
-   CCFLAGS	+= -n32 -mips3 -Xcpluscomm -LANG:std
+    CCFLAGS	+= -n32 -mips3 -Xcpluscomm -LANG:std
+    CCFLAGS	+= -LANG:libc_in_namespace_std=off
     REL_CFLAGS	+= -n32 -mips3 -O2 -OPT:Olimit=0
     REL_CCFLAGS += -n32 -mips3 -O2 -OPT:Olimit=0
     OPENGL_HEADERS = /usr/include
