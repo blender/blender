@@ -13,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -22,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readblenfile\,..\..\..\source\blender\streamglue\,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll/BLO_readblenfile_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll/BLO_readblenfile_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll\BLO_readblenfile_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll\BLO_readblenfile_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -58,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,15 +67,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readblenfile\,..\..\..\source\blender\streamglue\,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll_debug/BLO_readblenfile_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll_debug/BLO_readblenfile_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readblenfile_stub\mtdll_debug\BLO_readblenfile_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\mtdll_debug\BLO_readblenfile_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,15 +112,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readblenfile\,..\..\..\source\blender\streamglue\,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readblenfile_stub\debug/BLO_readblenfile_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readblenfile_stub\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readblenfile_stub\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readblenfile_stub\debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\debug/BLO_readblenfile_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readblenfile_stub\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readblenfile_stub\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -129,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readblenfile_stub\debug\BLO_readblenfile_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\debug\BLO_readblenfile_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -148,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readblenfile_stub"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readblenfile_stub"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,16 +157,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readblenfile\,..\..\..\source\blender\streamglue\,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readblenfile\,$(SolutionDir)source\blender\streamglue\,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readblenfile_stub/BLO_readblenfile_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readblenfile_stub/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readblenfile_stub/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readblenfile_stub/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readblenfile_stub/BLO_readblenfile_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readblenfile_stub\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readblenfile_stub\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -174,7 +174,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readblenfile_stub\BLO_readblenfile_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readblenfile_stub\BLO_readblenfile_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -197,14 +197,14 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\readblenfile\stub\BLO_readblenfileSTUB.c">
+				RelativePath="$(SolutionDir)source\blender\readblenfile\stub\BLO_readblenfileSTUB.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\readblenfile\BLO_readblenfile.h">
+				RelativePath="$(SolutionDir)source\blender\readblenfile\BLO_readblenfile.h">
 			</File>
 		</Filter>
 	</Files>

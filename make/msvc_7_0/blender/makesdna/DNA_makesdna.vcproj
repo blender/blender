@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\makesdna\mtdll_debug"
+			OutputDirectory="$(SolutionDir)source\blender\makesdna\intern"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\makesdna\mtdll_debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\makesdna\mtdll_debug/DNA_makesdna.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\makesdna\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\makesdna\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\makesdna\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\makesdna\mtdll_debug/DNA_makesdna.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\makesdna\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\makesdna\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\makesdna\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -41,19 +41,19 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="libguardedalloc.a"
-				OutputFile="..\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
+				OutputFile="$(SolutionDir)source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\guardedalloc\lib"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="DNA_makesdna.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="..\..\..\..\obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="CD ..\..\..\source\blender\makesdna\intern\
+				CommandLine="CD $(SolutionDir)source\blender\makesdna\intern\
 DNA_makesdna.exe dna.c
 "/>
 			<Tool
@@ -71,8 +71,8 @@ DNA_makesdna.exe dna.c
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\makesdna"
+			OutputDirectory="$(SolutionDir)source\blender\makesdna\intern"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\makesdna"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -80,17 +80,17 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\makesdna/DNA_makesdna.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\makesdna/"
-				ObjectFile="..\..\..\..\obj\windows\blender\makesdna/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\makesdna/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\makesdna/DNA_makesdna.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\makesdna\release\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\makesdna\release"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\makesdna\release"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -99,21 +99,22 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.a BLI_blenlib.lib odbc32.lib odbccp32.lib"
-				OutputFile="..\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				OutputFile="$(SolutionDir)source\blender\makesdna\intern\release\DNA_makesdna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\guardedalloc\lib,..\..\..\..\obj\windows\blender\blenlib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)obj\windows\intern\guardedalloc\release&quot;;&quot;$(SolutionDir)obj\windows\blender\blenlib&quot;"
 				IgnoreDefaultLibraryNames="libc.lib"
 				ProgramDatabaseFile="DNA_makesdna.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="..\..\..\..\obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building DNA"
-				CommandLine="CD ..\..\..\..\source\blender\makesdna\intern\
+				CommandLine="copy $(SolutionDir)source\blender\makesdna\intern\release\DNA_makesdna.exe $(SolutionDir)source\blender\makesdna\intern\DNA_makesdna.exe
+CD $(SolutionDir)source\blender\makesdna\intern\
 DNA_makesdna.exe dna.c
 "/>
 			<Tool
@@ -131,8 +132,8 @@ DNA_makesdna.exe dna.c
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\makesdna\mtdll"
+			OutputDirectory="$(SolutionDir)source\blender\makesdna\intern"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\makesdna\mtdll"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -140,17 +141,17 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\makesdna\mtdll/DNA_makesdna.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\makesdna\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\makesdna\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\makesdna\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\makesdna\mtdll/DNA_makesdna.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\makesdna\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\makesdna\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\makesdna\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -160,18 +161,18 @@ DNA_makesdna.exe dna.c
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="libguardedalloc.a"
-				OutputFile="..\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
+				OutputFile="$(SolutionDir)source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\guardedalloc\lib,..\..\..\..\obj\windows\blender\blenlib"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib,$(SolutionDir)obj\windows\blender\blenlib"
 				ProgramDatabaseFile="DNA_makesdna.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="..\..\..\..\obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="CD ..\..\..\..\source\blender\makesdna\intern\
+				CommandLine="CD $(SolutionDir)source\blender\makesdna\intern\
 DNA_makesdna.exe dna.c
 "/>
 			<Tool
@@ -189,8 +190,8 @@ DNA_makesdna.exe dna.c
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\source\blender\makesdna\intern"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\makesdna\debug"
+			OutputDirectory="$(SolutionDir)source\blender\makesdna\intern"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\makesdna\debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -198,16 +199,16 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\makesdna\debug/DNA_makesdna.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\makesdna\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\makesdna\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\makesdna\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\makesdna\debug/DNA_makesdna.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\makesdna\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\makesdna\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\makesdna\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -218,21 +219,21 @@ DNA_makesdna.exe dna.c
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="libguardedalloc.a BLI_blenlib.lib odbc32.lib odbccp32.lib"
-				OutputFile="..\..\..\..\source\blender\makesdna\intern/DNA_makesdna.exe"
+				OutputFile="$(SolutionDir)source\blender\makesdna\intern/DNA_makesdna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\guardedalloc\lib,..\..\..\..\obj\windows\blender\blenlib\debug"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\guardedalloc\lib,$(SolutionDir)obj\windows\blender\blenlib\debug"
 				IgnoreDefaultLibraryNames="libc.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="DNA_makesdna.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="..\..\..\..\obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\blender\makesdna\intern/DNA_makesdna.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building DNA"
-				CommandLine="CD ..\..\..\..\source\blender\makesdna\intern\
+				CommandLine="CD $(SolutionDir)source\blender\makesdna\intern\
 DNA_makesdna.exe dna.c
 "/>
 			<Tool
@@ -254,155 +255,155 @@ DNA_makesdna.exe dna.c
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\intern\makesdna.c">
+				RelativePath="$(SolutionDir)source\blender\makesdna\intern\makesdna.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_ID.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_ID.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_action_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_action_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_actuator_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_actuator_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_armature_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_armature_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_base_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_base_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_bgpic_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_bgpic_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_camera_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_camera_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_controller_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_controller_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_curve_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_curve_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_effect_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_effect_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_fileglobal_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_fileglobal_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_group_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_group_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_ika_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_ika_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_image_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_image_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_ipo_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_ipo_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_key_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_key_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_lamp_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_lamp_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_lattice_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_lattice_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_listBase.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_listBase.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_material_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_material_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_memHead.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_memHead.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_mesh_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_mesh_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_meta_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_meta_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_nla_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_nla_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_object_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_object_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_old_game.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_old_game.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_oops_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_oops_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_packedFile_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_packedFile_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_property_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_property_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_radio_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_radio_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_scene_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_scene_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_screen_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_screen_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_scriptlink_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_scriptlink_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_sdna_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_sdna_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_sensor_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_sensor_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_sequence_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_sequence_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_sound_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_sound_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_space_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_space_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_spaceimasel_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_spaceimasel_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_text_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_text_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_texture_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_texture_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_userdef_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_userdef_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_vec_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_vec_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_vfont_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_vfont_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_view2d_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_view2d_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_view3d_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_view3d_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_wave_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_wave_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\DNA_world_types.h">
+				RelativePath="$(SolutionDir)source\blender\makesdna\DNA_world_types.h">
 			</File>
 		</Filter>
 		<Filter

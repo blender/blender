@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BLO_writestreamglue_stub"
+	ProjectGUID="{B92DF135-41E6-488A-8535-36D56FC351B8}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\deflate,..\..\..\..\source\blender\encrypt,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\writeblenfile,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\deflate,$(SolutionDir)source\blender\encrypt,$(SolutionDir)source\blender\sign,$(SolutionDir)source\blender\writeblenfile,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll/BLO_writestreamglue_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll/BLO_writestreamglue_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -38,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll\BLO_writestreamglue_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll\BLO_writestreamglue_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,15 +67,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\deflate,..\..\..\..\source\blender\encrypt,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\writeblenfile,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\deflate,$(SolutionDir)source\blender\encrypt,$(SolutionDir)source\blender\sign,$(SolutionDir)source\blender\writeblenfile,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\debug/BLO_writestreamglue_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\writestreamglue_stub\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\writestreamglue_stub\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\debug/BLO_writestreamglue_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\writestreamglue_stub\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\writestreamglue_stub\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -83,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\debug\BLO_writestreamglue_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\debug\BLO_writestreamglue_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,15 +112,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\deflate,..\..\..\..\source\blender\encrypt,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\writeblenfile,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\deflate,$(SolutionDir)source\blender\encrypt,$(SolutionDir)source\blender\sign,$(SolutionDir)source\blender\writeblenfile,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll_debug/BLO_writestreamglue_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll_debug/BLO_writestreamglue_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -128,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\mtdll_debug\BLO_writestreamglue_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\mtdll_debug\BLO_writestreamglue_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\writestreamglue_stub"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\writestreamglue_stub"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,16 +157,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\deflate,..\..\..\..\source\blender\encrypt,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\writeblenfile,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\deflate,$(SolutionDir)source\blender\encrypt,$(SolutionDir)source\blender\sign,$(SolutionDir)source\blender\writeblenfile,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\writestreamglue_stub/BLO_writestreamglue_stub.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\writestreamglue_stub/"
-				ObjectFile="..\..\..\..\obj\windows\blender\writestreamglue_stub/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\writestreamglue_stub/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub/BLO_writestreamglue_stub.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\writestreamglue_stub\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\writestreamglue_stub\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -173,7 +174,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\writestreamglue_stub\BLO_writestreamglue_stub.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\writestreamglue_stub\BLO_writestreamglue_stub.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,16 +197,16 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\writestreamglue\stub\BLO_getPubKeySTUB.c">
+				RelativePath="$(SolutionDir)source\blender\writestreamglue\stub\BLO_getPubKeySTUB.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\writestreamglue\stub\BLO_keyStoreSTUB.c">
+				RelativePath="$(SolutionDir)source\blender\writestreamglue\stub\BLO_keyStoreSTUB.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\writestreamglue\stub\BLO_streamGlueControlSTUB.c">
+				RelativePath="$(SolutionDir)source\blender\writestreamglue\stub\BLO_streamGlueControlSTUB.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\writestreamglue\stub\BLO_writeStreamGlueSTUB.c">
+				RelativePath="$(SolutionDir)source\blender\writestreamglue\stub\BLO_writeStreamGlueSTUB.c">
 			</File>
 		</Filter>
 		<Filter

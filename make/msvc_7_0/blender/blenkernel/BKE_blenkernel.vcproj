@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenkernel\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenkernel\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenkernel\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenkernel\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blenloader,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\blenlib,..\../../../source/gameengine\SoundSystem\,..\../../../../lib/windows/iksolver/include,..\../../../../lib/windows/bsp/include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blenloader,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source/gameengine\SoundSystem\,$(SolutionDir)lib/windows/iksolver/include,$(SolutionDir)lib/windows/bsp/include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/BKE_blenkernel.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenkernel\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenkernel\mtdll_debug/BKE_blenkernel.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenkernel\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenkernel\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenkernel\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -38,7 +38,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenkernel\mtdll_debug\BKE_blenkernel.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\blenkernel\mtdll_debug\BKE_blenkernel.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenkernel\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenkernel\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenkernel\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenkernel\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +66,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\../../../../lib/windows/bsp/include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\blenlib,..\../../../source/gameengine\SoundSystem\,..\../../../../lib/windows/iksolver/include"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="$(SolutionDir)lib/windows/bsp/include;$(SolutionDir)intern\guardedalloc;$(SolutionDir)source\blender\renderconverter;$(SolutionDir)source\blender\render\extern\include;$(SolutionDir)source\blender\avi;$(SolutionDir)source\blender\imbuf;$(SolutionDir)source\kernel\gen_system;$(SolutionDir)source\blender\blenloader;$(SolutionDir)source\blender;$(SolutionDir)source\blender\include;$(SolutionDir)source\blender\blenkernel;$(SolutionDir)source\blender\makesdna;$(SolutionDir)source\blender\bpython\include;$(SolutionDir)source\blender\blenlib;$(SolutionDir)source/gameengine\SoundSystem\;$(SolutionDir)intern/iksolver/extern"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenkernel\debug/BKE_blenkernel.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenkernel\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenkernel\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenkernel\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenkernel\debug/BKE_blenkernel.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenkernel\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenkernel\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenkernel\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenkernel\debug\BKE_blenkernel.lib"
+				OutputFile="$(SolutionDir)lib\windows\blender\blenkernel\debug\BKE_blenkernel.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenkernel"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenkernel"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenkernel"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenkernel"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,17 +112,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\../../../../lib/windows/bsp/include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\blenlib,..\../../../source/gameengine\SoundSystem\,..\../../../../lib/windows/iksolver/include"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)inter\bsp\extern&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source/gameengine\SoundSystem\&quot;;&quot;$(SolutionDir)intern\iksolver\extern&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenkernel/BKE_blenkernel.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenkernel/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenkernel/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenkernel/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenkernel/BKE_blenkernel.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenkernel\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenkernel\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenkernel\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -130,7 +130,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenkernel\BKE_blenkernel.lib"
+				OutputFile="$(SolutionDir)lib\windows\blender\blenkernel\BKE_blenkernel.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -149,8 +149,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenkernel\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenkernel\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenkernel\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenkernel\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -158,24 +158,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\source\gameengine\soundsystem\snd_blenderwavecache,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\blenlib,..\../../../source/gameengine\SoundSystem\,..\../../../../lib/windows/iksolver/include,..\../../../../lib/windows/bsp/include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\gameengine\soundsystem\snd_blenderwavecache,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\blenlib,$(SolutionDir)../../../source/gameengine\SoundSystem\,$(SolutionDir)../../../../lib/windows/iksolver/include,$(SolutionDir)../../../../lib/windows/bsp/include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenkernel\mtdll/BKE_blenkernel.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenkernel\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenkernel\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenkernel\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenkernel\mtdll/BKE_blenkernel.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenkernel\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenkernel\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenkernel\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenkernel\mtdll\BKE_blenkernel.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\blenkernel\mtdll\BKE_blenkernel.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -198,407 +198,407 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\action.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\action.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\anim.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\anim.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\armature.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\armature.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\blender.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\blender.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\bmfont.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\bmfont.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\constraint.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\constraint.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\curve.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\curve.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\deform.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\deform.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\displist.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\displist.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\effect.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\effect.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\exotic.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\exotic.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\font.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\font.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\group.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\group.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\ika.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\ika.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\image.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\image.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\ipo.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\ipo.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\key.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\key.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\lattice.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\lattice.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\library.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\library.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\material.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\material.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\mball.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\mball.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\mesh.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\mesh.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\nla.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\nla.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\object.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\object.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\packedFile.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\packedFile.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\property.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\property.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\sca.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\sca.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\scene.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\scene.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\screen.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\screen.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\sound.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\sound.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\subsurf.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\subsurf.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\text.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\text.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\texture.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\texture.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\world.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\world.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\intern\writeavi.c">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\intern\writeavi.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_ID.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_ID.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_action.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_action.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_actuator_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_actuator_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_anim.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_anim.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_armature.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_armature.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_armature_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_armature_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_avi.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_avi.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_avi_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_avi_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_bad_level_calls.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_bad_level_calls.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_base_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_base_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_bgpic_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_bgpic_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_blender.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_blender.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_blenkernel.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_blenkernel.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_blenkernel_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_blenkernel_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_bmfont.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_bmfont.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_bmfont_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_bmfont_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_booleanops.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_booleanops.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_camera_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_camera_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_cfraElem_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_cfraElem_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_controller_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_controller_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_curve.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_curve.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_curve_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_curve_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_displist.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_displist.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_editmesh.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_editmesh.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_effect.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_effect.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_effect_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_effect_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_endian.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_endian.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_event_codes.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_event_codes.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_exotic.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_exotic.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_fastLamp_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_fastLamp_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_fileglobal_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_fileglobal_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_font.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_font.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_genfile.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_genfile.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_global.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_global.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_group.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_group.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_group_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_group_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_halo_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_halo_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_ika.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_ika.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_ika_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_ika_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_image.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_image.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_image_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_image_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_imbuf_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_imbuf_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_ipo.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_ipo.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_ipo_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_ipo_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_key.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_key.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_key_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_key_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_lamp_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_lamp_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_lampren_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_lampren_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_lattice_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_lattice_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_library.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_library.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_main.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_main.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_materail_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_materail_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_material.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_material.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_material_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_material_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_mball.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_mball.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_mesh.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_mesh.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_mesh_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_mesh_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_meta_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_meta_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_object.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_object.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_object_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_object_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_old_game.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_old_game.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_oops_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_oops_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_osa_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_osa_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_packedFile.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_packedFile.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_plugin_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_plugin_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_property.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_property.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_property_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_property_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_pymain.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_pymain.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_readfile.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_readfile.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_render.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_render.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_sca.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_sca.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_scene.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_scene.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_scene_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_scene_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_screen.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_screen.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_screen_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_screen_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_scriptlink_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_scriptlink_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_sdna_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_sdna_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_sensor_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_sensor_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_sequence_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_sequence_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_sound.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_sound.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_sound_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_sound_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_space_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_space_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_spaceimasel_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_spaceimasel_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_strings.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_strings.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_text.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_text.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_text_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_text_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_texture.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_texture.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_texture_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_texture_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_userdef_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_userdef_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_utildefines.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_utildefines.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_vfont_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_vfont_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_view2d_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_view2d_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_view3d_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_view3d_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_vlakren_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_vlakren_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_wave_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_wave_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenkernel\BKE_world.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_world.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_world_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_world_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_writefile.h">
+				RelativePath="$(SolutionDir)source\blender\blenkernel\BKE_writefile.h">
 			</File>
 		</Filter>
 	</Files>

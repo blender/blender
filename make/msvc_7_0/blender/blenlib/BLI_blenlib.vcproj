@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BLI_blenlib"
+	ProjectGUID="{4C9DE808-E6B5-4889-986C-2556C93ADD3F}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenlib\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenlib\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenlib\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenlib\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +22,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenlib\mtdll/BLI_blenlib.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenlib\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenlib\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenlib\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenlib\mtdll/BLI_blenlib.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenlib\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenlib\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenlib\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenlib\mtdll\BLI_blenlib.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\blenlib\mtdll\BLI_blenlib.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenlib\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenlib\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenlib\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenlib\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +67,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenlib\debug/BLI_blenlib.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenlib\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenlib\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenlib\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenlib\debug/BLI_blenlib.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenlib\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenlib\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenlib\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -84,7 +85,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenlib\debug\BLI_blenlib.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\blenlib\debug\BLI_blenlib.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,8 +104,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenlib"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenlib"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenlib"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenlib"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,17 +113,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenlib/BLI_blenlib.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenlib/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenlib/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenlib/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenlib/BLI_blenlib.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenlib\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenlib\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenlib\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -130,7 +131,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenlib\BLI_blenlib.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\blenlib\BLI_blenlib.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -149,8 +150,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\blenlib\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\blenlib\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\blenlib\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\blenlib\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -158,16 +159,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\blenlib\mtdll_debug/BLI_blenlib.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\blenlib\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\blenlib\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\blenlib\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\blenlib\mtdll_debug/BLI_blenlib.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\blenlib\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\blenlib\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\blenlib\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -175,7 +176,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\blenlib\mtdll_debug\BLI_blenlib.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\blenlib\mtdll_debug\BLI_blenlib.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -198,170 +199,176 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_dynstr.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_dynstr.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_ghash.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_ghash.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_linklist.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_linklist.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_memarena.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_memarena.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\arithb.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\arithb.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\dynlib.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\dynlib.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\fileops.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\fileops.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\gsqueue.c">
+				RelativePath="..\..\..\..\source\blender\blenlib\intern\freetypefont.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\matrixops.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\gsqueue.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\noise.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\matrixops.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\psfont.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\noise.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\rand.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\psfont.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\rct.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\rand.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\scanfill.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\rct.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\storage.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\scanfill.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\time.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\storage.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\util.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\time.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\vectorops.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\util.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\winstuff.c">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\vectorops.c">
+			</File>
+			<File
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\winstuff.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_arithb.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_arithb.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_blenlib.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_blenlib.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_callbacks.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_callbacks.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_callbacks.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_callbacks.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_editVert.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_editVert.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_fileops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_fileops.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_fileops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_fileops.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_ghash.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_ghash.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_linklist.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_linklist.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_listBase.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_listBase.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_memHead.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_memHead.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_memarena.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_memarena.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_noise.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_noise.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_objfnt.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_objfnt.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_objfnt.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_objfnt.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_objfnt_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_objfnt_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_packedFile_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_packedFile_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_psfont.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_psfont.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_psfont.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_psfont.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_rct.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_rct.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_scanfill.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_scanfill.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_scanfill.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_scanfill.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_storage.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_storage.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_storage.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_storage.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_storage_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_storage_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\intern\BLI_util.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_util.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_util.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\intern\BLI_util.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\BLI_vec_types.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_vec_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\BLI_winstuff.h">
+				RelativePath="..\..\..\..\source\blender\blenlib\BLI_vfontdata.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\MTC_matrixops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\BLI_winstuff.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\MTC_vectorops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\MTC_matrixops.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\PIL_dynlib.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\MTC_vectorops.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenlib\PIL_time.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\PIL_dynlib.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\matrixops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\PIL_time.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\vectorops.h">
+				RelativePath="$(SolutionDir)source\blender\blenlib\matrixops.h">
+			</File>
+			<File
+				RelativePath="$(SolutionDir)source\blender\blenlib\vectorops.h">
 			</File>
 		</Filter>
 	</Files>

@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BL_src"
+	ProjectGUID="{DDECAF43-CF76-471C-B7A1-12289BBCA182}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\src"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\src"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\src"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\src"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\blender\img,..\..\..\source\blender\renderui,..\..\..\..\source\gameengine\soundsystem\,..\..\..\..\lib\windows\python\include\python2.0\,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\verify,..\..\..\..\source\blender\readstreamglue,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenloader,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\radiosity\extern\include,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\include,..\..\..\..\source\blender,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\network,..\..\..\..\..\lib\windows\decimation\include,..\..\..\..\source\blender\blenpluginapi\,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\..\lib\windows\ghost\include,..\..\..\..\..\lib\windows\bsp\include"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,_CONSOLE,GAMEBLENDER"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\img&quot;;&quot;$(SolutionDir)source\blender\renderui&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\&quot;;&quot;$(SolutionDir)lib\windows\python\include\python2.0\&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\verify&quot;;&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_openal&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)intern\decimation\extern&quot;;&quot;$(SolutionDir)source\blender\blenpluginapi\&quot;;&quot;$(SolutionDir)intern\keymaker&quot;;&quot;$(SolutionDir)intern\ghost&quot;;&quot;$(SolutionDir)intern\bsp\extern&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)lib\windows\gettext\include&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CONSOLE;WITH_QUICKTIME;INTERNATIONAL"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\src/BL_src.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\src/"
-				ObjectFile="..\..\..\..\obj\windows\blender\src/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\src/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\src/BL_src.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\src\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\src\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\src\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -38,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\src\BL_src.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\src\BL_src.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\src\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\src\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\src\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\src\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,15 +67,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\blender\img,..\..\..\source\blender\renderui,..\..\..\..\source\gameengine\soundsystem\,..\..\..\..\lib\windows\python\include\python2.0\,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\verify,..\..\..\..\source\blender\readstreamglue,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenloader,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\radiosity\extern\include,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\include,..\..\..\..\source\blender,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\network,..\..\..\..\..\lib\windows\decimation\include,..\..\..\..\source\blender\blenpluginapi\,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\..\lib\windows\ghost\include,..\..\..\..\..\lib\windows\bsp\include"
-				PreprocessorDefinitions="WIN32,_LIB,_CONSOLE,GAMEBLENDER"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\img&quot;;&quot;$(SolutionDir)source\blender\renderui&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\&quot;;&quot;$(SolutionDir)lib\windows\python\include\python2.0\&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\renderconverter&quot;;&quot;$(SolutionDir)source\blender\verify&quot;;&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_openal&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)intern\decimation\extern&quot;;&quot;$(SolutionDir)source\blender\blenpluginapi\&quot;;&quot;$(SolutionDir)intern\keymaker&quot;;&quot;$(SolutionDir)intern\ghost&quot;;&quot;$(SolutionDir)intern\bsp\extern&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)lib\windows\gettext\include&quot;;&quot;$(SolutionDir)lib\windows\freetype\include&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;;&quot;$(SolutionDir)source\blender\ftfont&quot;"
+				PreprocessorDefinitions="WIN32,_LIB,_CONSOLE,WITH_QUICKTIME,INTERNATIONAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\src\debug/BL_src.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\src\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\src\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\src\debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\src\debug/BL_src.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\src\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\src\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\src\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -84,7 +85,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\src\debug\BL_src.lib"
+				OutputFile="$(SolutionDir)lib\windows\blender\src\debug\BL_src.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -107,260 +108,263 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\src\B.blend.c">
+				RelativePath="$(SolutionDir)source\blender\src\B.blend.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\Bfont.c">
+				RelativePath="$(SolutionDir)source\blender\src\Bfont.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\blenderbuttons.c">
+				RelativePath="$(SolutionDir)source\blender\src\blenderbuttons.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\booleanops.c">
+				RelativePath="$(SolutionDir)source\blender\src\booleanops.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\booleanops_mesh.c">
+				RelativePath="$(SolutionDir)source\blender\src\booleanops_mesh.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\buttons.c">
+				RelativePath="$(SolutionDir)source\blender\src\buttons.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\cmap.tga.c">
+				RelativePath="$(SolutionDir)source\blender\src\cmap.tga.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\cmovie.tga.c">
+				RelativePath="$(SolutionDir)source\blender\src\cmovie.tga.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\makesdna\intern\dna.c">
+				RelativePath="..\..\..\..\source\blender\makesdna\dna.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawaction.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawaction.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawimage.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawimage.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawimasel.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawimasel.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawipo.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawipo.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawmesh.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawmesh.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawnla.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawnla.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawobject.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawobject.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawoops.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawoops.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawscene.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawscene.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawseq.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawseq.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawsound.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawsound.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawtext.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawtext.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\drawview.c">
+				RelativePath="$(SolutionDir)source\blender\src\drawview.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\edit.c">
+				RelativePath="$(SolutionDir)source\blender\src\edit.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editaction.c">
+				RelativePath="$(SolutionDir)source\blender\src\editaction.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editarmature.c">
+				RelativePath="$(SolutionDir)source\blender\src\editarmature.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editconstraint.c">
+				RelativePath="$(SolutionDir)source\blender\src\editconstraint.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editcurve.c">
+				RelativePath="$(SolutionDir)source\blender\src\editcurve.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editdeform.c">
+				RelativePath="$(SolutionDir)source\blender\src\editdeform.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editface.c">
+				RelativePath="$(SolutionDir)source\blender\src\editface.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editfont.c">
+				RelativePath="$(SolutionDir)source\blender\src\editfont.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editgroup.c">
+				RelativePath="$(SolutionDir)source\blender\src\editgroup.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editika.c">
+				RelativePath="$(SolutionDir)source\blender\src\editika.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editimasel.c">
+				RelativePath="$(SolutionDir)source\blender\src\editimasel.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editipo.c">
+				RelativePath="$(SolutionDir)source\blender\src\editipo.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editkey.c">
+				RelativePath="$(SolutionDir)source\blender\src\editkey.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editlattice.c">
+				RelativePath="$(SolutionDir)source\blender\src\editlattice.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editmball.c">
+				RelativePath="$(SolutionDir)source\blender\src\editmball.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editmesh.c">
+				RelativePath="$(SolutionDir)source\blender\src\editmesh.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editnla.c">
+				RelativePath="$(SolutionDir)source\blender\src\editnla.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editobject.c">
+				RelativePath="$(SolutionDir)source\blender\src\editobject.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editoops.c">
+				RelativePath="$(SolutionDir)source\blender\src\editoops.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editsca.c">
+				RelativePath="$(SolutionDir)source\blender\src\editsca.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editscreen.c">
+				RelativePath="$(SolutionDir)source\blender\src\editscreen.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editseq.c">
+				RelativePath="$(SolutionDir)source\blender\src\editseq.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editsima.c">
+				RelativePath="$(SolutionDir)source\blender\src\editsima.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editsound.c">
+				RelativePath="$(SolutionDir)source\blender\src\editsound.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\editview.c">
+				RelativePath="$(SolutionDir)source\blender\src\editview.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\eventdebug.c">
+				RelativePath="$(SolutionDir)source\blender\src\eventdebug.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\filesel.c">
+				RelativePath="$(SolutionDir)source\blender\src\filesel.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\ghostwinlay.c">
+				RelativePath="$(SolutionDir)source\blender\src\ghostwinlay.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\glutil.c">
+				RelativePath="$(SolutionDir)source\blender\src\glutil.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\headerbuttons.c">
+				RelativePath="$(SolutionDir)source\blender\src\headerbuttons.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\imasel.c">
+				RelativePath="$(SolutionDir)source\blender\src\imasel.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\interface.c">
+				RelativePath="$(SolutionDir)source\blender\src\interface.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\keyval.c">
+				RelativePath="$(SolutionDir)source\blender\src\keyval.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\mainqueue.c">
+				RelativePath="..\..\..\..\source\blender\src\language.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\mywindow.c">
+				RelativePath="$(SolutionDir)source\blender\src\mainqueue.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\oops.c">
+				RelativePath="$(SolutionDir)source\blender\src\mywindow.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\playanim.c">
+				RelativePath="$(SolutionDir)source\blender\src\oops.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\blenpluginapi\intern\pluginapi.c">
+				RelativePath="$(SolutionDir)source\blender\src\playanim.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\poseobject.c">
+				RelativePath="$(SolutionDir)source\blender\blenpluginapi\intern\pluginapi.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\previewrender.c">
+				RelativePath="$(SolutionDir)source\blender\src\poseobject.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\renderwin.c">
+				RelativePath="$(SolutionDir)source\blender\src\previewrender.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\resources.c">
+				RelativePath="$(SolutionDir)source\blender\src\renderwin.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\scrarea.c">
+				RelativePath="$(SolutionDir)source\blender\src\resources.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\screendump.c">
+				RelativePath="$(SolutionDir)source\blender\src\scrarea.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\sequence.c">
+				RelativePath="$(SolutionDir)source\blender\src\screendump.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\space.c">
+				RelativePath="$(SolutionDir)source\blender\src\sequence.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\spacetypes.c">
+				RelativePath="$(SolutionDir)source\blender\src\space.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\splash.jpg.c">
+				RelativePath="$(SolutionDir)source\blender\src\spacetypes.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\swapbuffers.c">
+				RelativePath="$(SolutionDir)source\blender\src\splash.jpg.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\toets.c">
+				RelativePath="$(SolutionDir)source\blender\src\swapbuffers.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\toolbox.c">
+				RelativePath="$(SolutionDir)source\blender\src\toets.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\usiblender.c">
+				RelativePath="$(SolutionDir)source\blender\src\toolbox.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\view.c">
+				RelativePath="$(SolutionDir)source\blender\src\usiblender.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\vpaint.c">
+				RelativePath="$(SolutionDir)source\blender\src\view.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\writeavicodec.c">
+				RelativePath="$(SolutionDir)source\blender\src\vpaint.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\writeimage.c">
+				RelativePath="$(SolutionDir)source\blender\src\writeavicodec.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\writemovie.c">
+				RelativePath="$(SolutionDir)source\blender\src\writeimage.c">
+			</File>
+			<File
+				RelativePath="$(SolutionDir)source\blender\src\writemovie.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\include\BIF_previewrender.h">
+				RelativePath="$(SolutionDir)source\blender\include\BIF_previewrender.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\include\BIF_resources.h">
+				RelativePath="$(SolutionDir)source\blender\include\BIF_resources.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\include\BIF_spacetypes.h">
+				RelativePath="$(SolutionDir)source\blender\include\BIF_spacetypes.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\src\sound.h">
+				RelativePath="$(SolutionDir)source\blender\src\sound.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\src\winlay.h">
+				RelativePath="$(SolutionDir)source\blender\src\winlay.h">
 			</File>
 		</Filter>
 	</Files>

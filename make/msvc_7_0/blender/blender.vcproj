@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\obj\windows\blender"
-			IntermediateDirectory="..\..\..\obj\windows\blender"
+			OutputDirectory="$(SolutionDir)obj\windows\blender"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\blender\misc,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\blenlib,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\include,..\..\..\source\blender,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenloader,..\..\..\source\blender\bpython\include,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\radiosity\extern\include,..\..\..\source\kernel\gen_system,..\..\..\source\blender\renderconverter\,..\..\source\blender\renderui\"
-				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\kernel\gen_messaging&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\renderconverter\&quot;;&quot;$(SolutionDir)source\blender\renderui\&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;"
+				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;INTERNATIONAL"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\obj\windows\blender/blender.pch"
-				AssemblerListingLocation="..\..\..\obj\windows\blender/"
-				ObjectFile="..\..\..\obj\windows\blender/"
-				ProgramDataBaseFileName="..\..\..\obj\windows\blender/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender/blender.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -39,17 +39,17 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odelib.lib openal_static.lib libguardedalloc.a libbsp.a libbmfont.a libghost.a libstring.a ws2_32.lib dxguid.lib opengl32.lib libjpeg.a glu32.lib vfw32.lib libdecimation.a libblenkey.a libeay32.lib libiksolver.a libpng.a libz.a libmoto.a"
-				OutputFile="..\..\..\obj\windows\blender.exe"
+				AdditionalDependencies="odelib.lib openal_static.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.a glu32.lib vfw32.lib blenderqt.lib libdecimation.lib libblenkey.lib libeay32.lib libiksolver.lib libpng.a libz.a libmoto.lib BPY_python.lib BPY_frozen.lib freetype2ST.lib ftgl_static_ST.lib FTF_ttfont.lib gnu_gettext.lib qtmlClient.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\lib\windows\ode\lib,..\..\..\..\lib\windows\bsp\lib,..\..\..\..\lib\windows\moto\lib,..\..\..\..\lib\windows\bmfont\lib,..\..\..\..\lib\windows\ghost\lib,..\..\..\lib\windows\python\frozen,..\..\..\..\lib\windows\guardedalloc\lib,..\..\..\..\lib\windows\string\lib,..\..\..\..\lib\windows\python\lib,..\..\..\..\lib\windows\iksolver\lib,..\..\..\..\lib\windows\decimation\lib,..\..\..\..\lib\windows\openal\lib,..\..\..\..\lib\windows\jpeg\lib,..\..\..\..\lib\windows\blenkey\lib,..\..\..\..\lib\windows\openssl\lib,..\..\..\..\lib\windows\zlib\lib\,..\..\..\..\lib\windows\png\lib\"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)lib\windows\ode\lib&quot;;&quot;$(SolutionDir)lib\windows\bsp\lib&quot;;&quot;$(SolutionDir)lib\windows\moto\lib&quot;;&quot;$(SolutionDir)lib\windows\bmfont\lib&quot;;&quot;$(SolutionDir)lib\windows\ghost\lib&quot;;&quot;$(SolutionDir)lib\windows\python\frozen&quot;;&quot;$(SolutionDir)lib\windows\guardedalloc\lib&quot;;&quot;$(SolutionDir)lib\windows\string\lib&quot;;&quot;$(SolutionDir)lib\windows\python\lib&quot;;&quot;$(SolutionDir)lib\windows\iksolver\lib&quot;;&quot;$(SolutionDir)lib\windows\decimation\lib&quot;;&quot;$(SolutionDir)lib\windows\openal\lib&quot;;&quot;$(SolutionDir)lib\windows\jpeg\lib&quot;;&quot;$(SolutionDir)lib\windows\blenkey\lib&quot;;&quot;$(SolutionDir)lib\windows\openssl\lib&quot;;&quot;$(SolutionDir)lib\windows\zlib\lib\&quot;;&quot;$(SolutionDir)lib\windows\png\lib\&quot;;&quot;$(SolutionDir)lib\windows\bpython&quot;;&quot;$(SolutionDir)lib\windows\freetype\lib&quot;;&quot;$(SolutionDir)lib\windows\quicktime\lib&quot;;&quot;$(SolutionDir)lib\windows\ftfont\lib&quot;;&quot;$(SolutionDir)lib\windows\ftgl\lib&quot;;&quot;$(SolutionDir)lib\windows\gettext\lib&quot;;&quot;$(SolutionDir)lib\windows\blenderqt\lib&quot;"
 				IgnoreDefaultLibraryNames="msvcprt.lib,glut32.lib,libcd.lib,libc.lib,libcpd.lib,libcp.lib,libcmtd.lib"
-				ProgramDatabaseFile="..\..\..\obj\windows\blender/blender.pdb"
+				ProgramDatabaseFile="$(SolutionDir)obj\windows\blender/blender.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="..\..\..\obj\windows\blender/blender.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\blender/blender.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -67,8 +67,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\obj\windows\blender\debug"
-			IntermediateDirectory="..\..\..\obj\windows\blender\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -76,15 +76,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\blender\misc,..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\blenlib,..\..\..\source\kernel\gen_messaging,..\..\..\source\blender\include,..\..\..\source\blender,..\..\..\source\blender\makesdna,..\..\..\source\blender\blenkernel,..\..\..\source\blender\blenloader,..\..\..\source\blender\bpython\include,..\..\..\source\blender\render\extern\include,..\..\..\source\blender\radiosity\extern\include,..\..\..\source\kernel\gen_system,..\..\..\source\blender\renderconverter\,..\..\source\blender\renderui\"
-				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\kernel\gen_messaging&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;;&quot;$(SolutionDir)source\blender\bpython\include&quot;;&quot;$(SolutionDir)source\blender\render\extern\include&quot;;&quot;$(SolutionDir)source\blender\radiosity\extern\include&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\blender\renderconverter\&quot;;&quot;$(SolutionDir)source\blender\renderui\&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)lib\windows\ftgl\include&quot;"
+				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;INTERNATIONAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\obj\windows\blender\debug/blender.pch"
-				AssemblerListingLocation="..\..\..\obj\windows\blender\debug/"
-				ObjectFile="..\..\..\obj\windows\blender\debug/"
-				ProgramDataBaseFileName="..\..\..\obj\windows\blender\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\debug/blender.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -94,18 +94,18 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odelib.lib openal_static.lib libguardedalloc.a libbsp.a libbmfont.a libghost.a libstring.a ws2_32.lib dxguid.lib opengl32.lib libjpeg.a glu32.lib vfw32.lib libdecimation.a libblenkey.a libeay32.lib libiksolver.a libpng.a libz.a libmoto.a"
-				OutputFile="..\..\..\obj\windows\debug\blender.exe"
+				AdditionalDependencies="odelib.lib openal_static.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.a glu32.lib vfw32.lib blenderqt.lib libdecimation.lib libblenkey.lib libeay32.lib libiksolver.lib libpng.a libz.a libmoto.lib BPY_python.lib BPY_frozen.lib freetype2ST.lib ftgl_static_ST.lib FTF_ttfont.lib gnu_gettext.lib qtmlClient.lib"
+				OutputFile="$(SolutionDir)obj\windows\debug\blender.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\lib\windows\ode\lib,..\..\..\..\lib\windows\bsp\lib\debug,..\..\..\..\lib\windows\moto\lib\debug,..\..\..\..\lib\windows\bmfont\lib\debug,..\..\..\..\lib\windows\ghost\lib\debug,..\..\..\lib\windows\python\frozen,..\..\..\..\lib\windows\guardedalloc\lib\debug,..\..\..\..\lib\windows\string\lib\debug,..\..\..\..\lib\windows\python\lib,..\..\..\..\lib\windows\iksolver\lib\debug,..\..\..\..\lib\windows\decimation\lib\debug,..\..\..\..\lib\windows\openal\lib,..\..\..\..\lib\windows\jpeg\lib,..\..\..\..\lib\windows\blenkey\lib\debug,..\..\..\..\lib\windows\openssl\lib,..\..\..\..\lib\windows\zlib\lib\,..\..\..\..\lib\windows\png\lib\"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)lib\windows\ode\lib&quot;;&quot;$(SolutionDir)lib\windows\bsp\lib\debug&quot;;&quot;$(SolutionDir)lib\windows\moto\lib\debug&quot;;&quot;$(SolutionDir)lib\windows\bmfont\lib\debug&quot;;&quot;$(SolutionDir)lib\windows\ghost\lib\debug&quot;;&quot;$(SolutionDir)lib\windows\bpython\frozen\lib\debug&quot;;&quot;$(SolutionDir)lib\windows\guardedalloc\lib&quot;;&quot;$(SolutionDir)lib\windows\string\lib&quot;;&quot;$(SolutionDir)lib\windows\python\lib&quot;;&quot;$(SolutionDir)lib\windows\iksolver\lib&quot;;&quot;$(SolutionDir)lib\windows\decimation\lib&quot;;&quot;$(SolutionDir)lib\windows\openal\lib&quot;;&quot;$(SolutionDir)lib\windows\jpeg\lib&quot;;&quot;$(SolutionDir)lib\windows\blenkey\lib&quot;;&quot;$(SolutionDir)lib\windows\openssl\lib&quot;;&quot;$(SolutionDir)lib\windows\zlib\lib\&quot;;&quot;$(SolutionDir)lib\windows\png\lib\&quot;;&quot;$(SolutionDir)lib\windows\bpython\debug&quot;;&quot;$(SolutionDir)lib\windows\freetype\lib&quot;;&quot;$(SolutionDir)lib\windows\quicktime\lib&quot;;&quot;$(SolutionDir)lib\windows\ftfont\lib\debug&quot;;&quot;$(SolutionDir)lib\windows\ftgl\lib&quot;;&quot;$(SolutionDir)lib\windows\gettext\lib&quot;;&quot;$(SolutionDir)lib\windows\blenderqt\lib\debug&quot;"
 				IgnoreDefaultLibraryNames="glut32.lib,libcd.lib,libc.lib,libcpd.lib,libcp.lib,libcmt.lib,libcpmt.lib,msvcprtd.lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="..\..\..\obj\windows\blender\debug/blender.pdb"
+				ProgramDatabaseFile="$(SolutionDir)obj\windows\blender\debug/blender.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName="..\..\..\obj\windows\blender\debug/blender.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\blender\debug/blender.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -127,10 +127,10 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\source\creator\creator.c">
+				RelativePath="$(SolutionDir)source\creator\creator.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\icons\winblender.rc">
+				RelativePath="$(SolutionDir)source\icons\winblender.rc">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -149,10 +149,10 @@
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 			<File
-				RelativePath="..\..\..\source\icons\winblender.ico">
+				RelativePath="$(SolutionDir)source\icons\winblender.ico">
 			</File>
 			<File
-				RelativePath="..\..\..\source\icons\winblenderfile.ico">
+				RelativePath="$(SolutionDir)source\icons\winblenderfile.ico">
 			</File>
 		</Filter>
 		<Filter

@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\avi\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\avi\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\avi\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\avi\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\jpeg\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\avi\mtdll_debug/BL_avi.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\avi\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\avi\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\avi\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\avi\mtdll_debug/BL_avi.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\avi\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\avi\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\avi\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -38,7 +38,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\avi\mtdll_debug\BL_avi.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\avi\mtdll_debug\BL_avi.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\avi\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\avi\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\avi\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\avi\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +66,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc;$(SolutionDir)source\blender\blenlib;$(SolutionDir)source\blender\avi;$(SolutionDir)source\blender\include;$(SolutionDir)lib\windows\jpeg\include;$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\avi\debug/BL_avi.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\avi\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\avi\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\avi\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\avi\debug/BL_avi.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\avi\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\avi\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\avi\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\avi\debug\BL_avi.lib"
+				OutputFile="$(SolutionDir)lib\windows\blender\avi\debug\BL_avi.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\avi"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\avi"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\avi"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\avi"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,17 +112,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\jpeg\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\avi/BL_avi.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\avi/"
-				ObjectFile="..\..\..\..\obj\windows\blender\avi/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\avi/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\avi/BL_avi.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\avi\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\avi\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\avi\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -130,7 +130,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\avi\BL_avi.lib"
+				OutputFile="$(SolutionDir)lib\windows\blender\avi\BL_avi.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -149,8 +149,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\avi\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\avi\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\avi\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\avi\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -158,24 +158,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\jpeg\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\avi\mtdll/BL_avi.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\avi\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\avi\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\avi\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\avi\mtdll/BL_avi.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\avi\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\avi\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\avi\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\avi\mtdll\BL_avi.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\avi\mtdll\BL_avi.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -198,50 +198,47 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\avi.c">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\avi.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\avirgb.c">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\avirgb.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\codecs.c">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\codecs.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\endian.c">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\endian.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\mjpeg.c">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\mjpeg.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\options.c">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\options.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\rgb32.c">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\rgb32.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\AVI_avi.h">
+				RelativePath="$(SolutionDir)source\blender\avi\AVI_avi.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\avi_intern.h">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\avi_intern.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\avirgb.h">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\avirgb.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\endian.h">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\endian.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\avi\intern\jmf.h">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\mjpeg.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\mjpeg.h">
-			</File>
-			<File
-				RelativePath="..\..\..\..\source\blender\avi\intern\rgb32.h">
+				RelativePath="$(SolutionDir)source\blender\avi\intern\rgb32.h">
 			</File>
 		</Filter>
 	</Files>

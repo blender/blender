@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\decrypt\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\decrypt\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\decrypt\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\decrypt\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..source\blender\writestream,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\decrypt\mtdll/BLO_decrypt.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\decrypt\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\decrypt\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\decrypt\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\decrypt\mtdll/BLO_decrypt.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\decrypt\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\decrypt\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\decrypt\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -38,7 +38,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\decrypt\mtdll\BLO_decrypt.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\decrypt\mtdll\BLO_decrypt.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\decrypt\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\decrypt\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\decrypt\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\decrypt\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,15 +66,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\decrypt\debug/BLO_decrypt.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\decrypt\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\decrypt\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\decrypt\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\decrypt\debug/BLO_decrypt.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\decrypt\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\decrypt\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\decrypt\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -83,7 +83,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\decrypt\debug\BLO_decrypt.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\decrypt\debug\BLO_decrypt.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +102,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\decrypt\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\decrypt\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\decrypt\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\decrypt\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,15 +111,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..source\blender\writestream,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\decrypt\mtdll_debug/BLO_decrypt.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\decrypt\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\decrypt\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\decrypt\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\decrypt\mtdll_debug/BLO_decrypt.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\decrypt\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\decrypt\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\decrypt\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -128,7 +128,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\decrypt\mtdll_debug\BLO_decrypt.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\decrypt\mtdll_debug\BLO_decrypt.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +147,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\decrypt"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\decrypt"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\decrypt"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\decrypt"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,16 +156,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..source\blender\writestream,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\writestream,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)intern\keymaker,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\decrypt/BLO_decrypt.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\decrypt/"
-				ObjectFile="..\..\..\..\obj\windows\blender\decrypt/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\decrypt/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\decrypt/BLO_decrypt.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\decrypt\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\decrypt\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\decrypt\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -173,7 +173,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\decrypt\BLO_decrypt.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\decrypt\BLO_decrypt.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,7 +196,7 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\decrypt\intern\BLO_decrypt.c">
+				RelativePath="$(SolutionDir)source\blender\decrypt\intern\BLO_decrypt.c">
 			</File>
 		</Filter>
 		<Filter

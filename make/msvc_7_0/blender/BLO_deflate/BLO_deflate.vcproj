@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BLO_deflate"
+	ProjectGUID="{8128F7DB-4957-4C17-BDB7-B4900C82BC7E}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\deflate\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\deflate\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\deflate\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\deflate\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\deflate\mtdll/BLO_deflate.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\deflate\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\deflate\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\deflate\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\deflate\mtdll/BLO_deflate.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\deflate\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\deflate\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\deflate\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -38,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\deflate\mtdll\BLO_deflate.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\deflate\mtdll\BLO_deflate.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\deflate\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\deflate\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\deflate\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\deflate\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,15 +67,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\deflate\;$(SolutionDir)source\blender\inflate\;$(SolutionDir)lib\windows\zlib\include;$(SolutionDir)source\blender\writestreamglue;$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\deflate\debug/BLO_deflate.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\deflate\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\deflate\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\deflate\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\deflate\debug/BLO_deflate.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\deflate\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\deflate\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\deflate\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -83,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\deflate\debug\BLO_deflate.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\deflate\debug\BLO_deflate.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\deflate\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\deflate\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\deflate\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\deflate\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,15 +112,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\deflate\mtdll_debug/BLO_deflate.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\deflate\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\deflate\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\deflate\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\deflate\mtdll_debug/BLO_deflate.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\deflate\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\deflate\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\deflate\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -128,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\deflate\mtdll_debug\BLO_deflate.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\deflate\mtdll_debug\BLO_deflate.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\deflate"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\deflate"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\deflate"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\deflate"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,16 +157,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\deflate\,..\..\..\..\source\blender\inflate\,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\writestreamglue,..\..\..\..\source\blender\readstreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\deflate\,$(SolutionDir)source\blender\inflate\,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\writestreamglue,$(SolutionDir)source\blender\readstreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\deflate/BLO_deflate.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\deflate/"
-				ObjectFile="..\..\..\..\obj\windows\blender\deflate/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\deflate/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\deflate/BLO_deflate.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\deflate\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\deflate\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\deflate\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -173,7 +174,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\deflate\BLO_deflate.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\deflate\BLO_deflate.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,14 +197,14 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\deflate\intern\BLO_deflate.c">
+				RelativePath="$(SolutionDir)source\blender\deflate\intern\BLO_deflate.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\deflate\BLO_deflate.h">
+				RelativePath="$(SolutionDir)source\blender\deflate\BLO_deflate.h">
 			</File>
 		</Filter>
 	</Files>

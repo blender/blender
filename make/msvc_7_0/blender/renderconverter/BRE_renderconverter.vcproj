@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BRE_renderconverter"
+	ProjectGUID="{7C0EAF66-4FAE-4AFD-A4B7-301B3E86F8A2}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\renderconverter"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\renderconverter"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\renderconverter"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\renderconverter"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,17 +22,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\include,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\renderconverter/BRE_renderconverter.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\renderconverter/"
-				ObjectFile="..\..\..\..\obj\windows\blender\renderconverter/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\renderconverter/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\renderconverter/BRE_renderconverter.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\renderconverter\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\renderconverter\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\renderconverter\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -39,7 +40,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\renderconverter\BRE_renderconverter.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\renderconverter\BRE_renderconverter.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -58,8 +59,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\render\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\render\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\render\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\render\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,16 +68,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\bpython\include,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\renderconverter,..\..\..\..\source\blender\include,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\makesdna,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\render\debug/BRE_renderconverter.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\render\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\render\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\render\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\render\debug/BRE_renderconverter.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\render\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\render\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\render\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -85,7 +86,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\renderconverter\debug\BRE_renderconverter.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\renderconverter\debug\BRE_renderconverter.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -108,14 +109,14 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\renderconverter\intern\convertBlenderScene.c">
+				RelativePath="$(SolutionDir)source\blender\renderconverter\intern\convertBlenderScene.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\renderconverter\RE_renderconverter.h">
+				RelativePath="$(SolutionDir)source\blender\renderconverter\RE_renderconverter.h">
 			</File>
 		</Filter>
 	</Files>

@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BL_imbuf"
+	ProjectGUID="{E9C8BA7E-46C9-44D1-992D-8CA33F5C3888}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\imbuf\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\imbuf\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\imbuf\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\imbuf\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,15 +22,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\png\include,..\..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)lib\windows\jpeg\include&quot;;&quot;$(SolutionDir)lib\windows\zlib\include&quot;;&quot;$(SolutionDir)lib\windows\png\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\imbuf\debug/BL_imbuf.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\imbuf\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\imbuf\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\imbuf\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\imbuf\debug/BL_imbuf.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\imbuf\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\imbuf\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\imbuf\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -38,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\imbuf\debug\BL_imbuf.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\imbuf\debug\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\imbuf\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\imbuf\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\imbuf\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\imbuf\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,15 +67,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\png\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\jpeg\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)lib\windows\png\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\imbuf\mtdll_debug/BL_imbuf.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\imbuf\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\imbuf\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\imbuf\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\imbuf\mtdll_debug/BL_imbuf.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\imbuf\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\imbuf\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\imbuf\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -82,7 +83,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\imbuf\mtdll_debug\BL_imbuf.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\imbuf\mtdll_debug\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -101,8 +102,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\imbuf\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\imbuf\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\imbuf\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\imbuf\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -110,24 +111,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\png\include,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\jpeg\include,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)lib\windows\png\include,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\imbuf\mtdll/BL_imbuf.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\imbuf\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\imbuf\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\imbuf\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\imbuf\mtdll/BL_imbuf.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\imbuf\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\imbuf\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\imbuf\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\imbuf\mtdll\BL_imbuf.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\imbuf\mtdll\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -146,8 +147,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\imbuf"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\imbuf"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\imbuf"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\imbuf"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -155,17 +156,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\avi,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\jpeg\include,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\png\include,..\..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\avi&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)lib\windows\jpeg\include&quot;;&quot;$(SolutionDir)lib\windows\zlib\include&quot;;&quot;$(SolutionDir)lib\windows\png\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)lib\windows\quicktime\include&quot;;&quot;$(SolutionDir)source\blender\quicktime&quot;"
+				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\imbuf/BL_imbuf.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\imbuf/"
-				ObjectFile="..\..\..\..\obj\windows\blender\imbuf/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\imbuf/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\imbuf/BL_imbuf.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\imbuf\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\imbuf\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\imbuf\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -173,7 +174,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\imbuf\BL_imbuf.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\imbuf\BL_imbuf.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,146 +197,152 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\allocimbuf.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\allocimbuf.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\amiga.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\amiga.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\anim.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\anim.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\antialias.c">
+				RelativePath="..\..\..\..\source\blender\imbuf\intern\anim5.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\bitplanes.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\antialias.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\bmp_decode.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\bitplanes.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\cmap.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\bmp_decode.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\cspace.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\cmap.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\data.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\cspace.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\dither.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\data.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\divers.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\dither.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\filter.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\divers.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\ham.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\filter.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\hamx.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\ham.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\iff.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\hamx.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\imageprocess.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\iff.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\iris.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\imageprocess.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\jpeg.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\iris.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\png_decode.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\jpeg.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\png_encode.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\png_decode.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\readimage.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\png_encode.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\rectop.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\readimage.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\rotate.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\rectop.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\scaling.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\rotate.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\targa.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\scaling.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\util.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\targa.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\writeimage.c">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\util.c">
+			</File>
+			<File
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\writeimage.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_allocimbuf.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_allocimbuf.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_amiga.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_amiga.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_bitplanes.h">
+				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_anim5.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_bmp.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_bitplanes.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_cmap.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_bmp.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_divers.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_cmap.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_filter.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_divers.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_ham.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_filter.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_hamx.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_ham.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_iff.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_hamx.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\IMB_imbuf.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_iff.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\IMB_imbuf_types.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\IMB_imbuf.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_iris.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\IMB_imbuf_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_jpeg.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_iris.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_png.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_jpeg.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\IMB_targa.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_png.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\imbuf.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\IMB_targa.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\imbuf_patch.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\imbuf.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\imbuf\intern\matrix.h">
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\imbuf_patch.h">
+			</File>
+			<File
+				RelativePath="$(SolutionDir)source\blender\imbuf\intern\matrix.h">
 			</File>
 		</Filter>
 	</Files>

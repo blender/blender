@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BPY_python"
+	ProjectGUID="{9AA4E95C-6E41-4C0F-81F4-AB181DD4805B}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\blender\bpython\debug"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\blender\bpython\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\bpython\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\bpython\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\..\..\..\lib\windows\bmfont\include,..\..\..\source\blender\renderconverter,..\..\..\..\..\..\source\blender\render\extern\include,..\..\..\..\..\..\source\blender\avi,..\..\..\..\..\..\source\blender\blenloader,..\..\..\..\..\..\source\blender,..\..\..\..\..\..\source\blender\include,..\..\..\..\..\..\source\blender\blenkernel,..\..\..\..\..\..\source\blender\makesdna,..\..\..\..\..\..\source\blender\blenlib,..\..\..\..\..\..\source\blender\bpython\include,..\..\..\..\..\..\source\blender\blenlib\intern"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\guardedalloc,$(SolutionDir)intern\bmfont,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\blenlib\intern"
 				PreprocessorDefinitions="WIN32,_LIB,FUTURE_PYTHON_API"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\blender\bpython\debug/BPY_python.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\blender\bpython\debug/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\blender\bpython\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\blender\bpython\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\bpython\debug/BPY_python.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\bpython\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\bpython\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\bpython\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -40,7 +41,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\blender\bpython\debug\BPY_python.lib"
+				OutputFile="$(SolutionDir)lib\windows\bpython\debug\BPY_python.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -58,8 +59,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\blender\bpython"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\blender\bpython"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\bpython"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\bpython"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,17 +68,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\source\blender\renderconverter,..\..\..\..\..\..\source\blender\render\extern\include,..\..\..\..\..\..\source\blender\avi,..\..\..\..\..\..\source\blender\blenloader,..\..\..\..\..\..\source\blender,..\..\..\..\..\..\source\blender\include,..\..\..\..\..\..\source\blender\blenkernel,..\..\..\..\..\..\source\blender\makesdna,..\..\..\..\..\..\source\blender\blenlib,..\..\..\..\..\..\source\blender\bpython\include,..\..\..\..\..\..\source\blender\blenlib\intern"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\bmfont,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\renderconverter,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\avi,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\bpython\include,$(SolutionDir)source\blender\blenlib\intern"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB,FUTURE_PYTHON_API"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\blender\bpython/BPY_python.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\blender\bpython/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\blender\bpython/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\blender\bpython/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\bpython/BPY_python.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\bpython\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\bpython\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\bpython\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -85,7 +86,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\blender\bpython\BPY_python.lib"
+				OutputFile="$(SolutionDir)lib\windows\bpython\BPY_python.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -108,122 +109,122 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_constobject.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_constobject.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_image.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_image.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_ipo.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_ipo.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_links.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_links.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_main.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_main.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_object.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_object.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_scene.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_scene.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_text.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_text.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_tools.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_tools.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\b_import.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_import.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\b_interface.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_interface.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_blender.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_blender.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_datablock.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_datablock.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_draw.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_draw.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_matrix.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_matrix.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_nmesh.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_nmesh.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_vector.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_vector.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_window.c">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_window.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_constobject.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_constobject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\include\BPY_extern.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\include\BPY_extern.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_listbase_macro.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_listbase_macro.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_macros.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_macros.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_main.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_main.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_modules.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_modules.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\include\BPY_objtypes.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\include\BPY_objtypes.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_tools.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_tools.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_types.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\BPY_window.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\BPY_window.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\api.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\api.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\b_import.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_import.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\b_interface.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\b_interface.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_datablock.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_datablock.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_nmesh.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_nmesh.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\blender\bpython\intern\opy_vector.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\opy_vector.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\blender\bpython\intern\py_general.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_general.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\blender\bpython\intern\py_gui.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_gui.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\blender\bpython\intern\py_object_types.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_object_types.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\blender\bpython\intern\py_objects.h">
+				RelativePath="$(SolutionDir)source\blender\bpython\intern\py_objects.h">
 			</File>
 		</Filter>
 	</Files>

@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BLO_readstreamglue"
+	ProjectGUID="{1FBE0676-6FCB-4D72-8A1E-EB73E2B9D3BF}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readstreamglue"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readstreamglue"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readstreamglue"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readstreamglue"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readstreamglue,..\..\..\source\blender\readstreamglue\stubs,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender\inflate,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\verify,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readstreamglue/BLO_readstreamglue.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readstreamglue/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readstreamglue/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readstreamglue/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readstreamglue/BLO_readstreamglue.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readstreamglue\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readstreamglue\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readstreamglue\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -38,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readstreamglue\BLO_readstreamglue.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readstreamglue\BLO_readstreamglue.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readstreamglue\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readstreamglue\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,15 +67,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\lib\windows\zlib\include,..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readstreamglue,..\..\..\source\blender\readstreamglue\stubs,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender\inflate,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\verify,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readstreamglue\mtdll_debug/BLO_readstreamglue.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readstreamglue\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readstreamglue\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readstreamglue\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll_debug/BLO_readstreamglue.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -83,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readstreamglue\mtdll_debug\BLO_readstreamglue.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll_debug\BLO_readstreamglue.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readstreamglue\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readstreamglue\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,16 +112,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readstreamglue,..\..\..\source\blender\readstreamglue\stubs,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender\inflate,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\verify,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\readstreamglue\stubs,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)source\blender\blenloader,$(SolutionDir)source\blender\inflate,$(SolutionDir)source\blender\decrypt,$(SolutionDir)source\blender\verify,$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readstreamglue\mtdll/BLO_readstreamglue.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readstreamglue\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readstreamglue\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readstreamglue\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll/BLO_readstreamglue.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -128,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readstreamglue\mtdll\BLO_readstreamglue.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readstreamglue\mtdll\BLO_readstreamglue.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\readstreamglue\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\readstreamglue\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\readstreamglue\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\readstreamglue\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,15 +157,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\lib\windows\zlib\include,..\..\..\..\source\kernel\gen_messaging,..\..\..\..\source\blender\readstreamglue,..\..\..\source\blender\readstreamglue\stubs,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\source\blender\blenloader,..\..\..\..\source\blender\inflate,..\..\..\..\source\blender\decrypt,..\..\..\..\source\blender\verify,..\..\..\..\..\lib\windows\blenkey\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging;$(SolutionDir)source\blender\readstreamglue;$(SolutionDir)source\blender\readstreamglue\stubs;$(SolutionDir)lib\windows\zlib\include;$(SolutionDir)source\blender\blenloader;$(SolutionDir)source\blender\inflate;$(SolutionDir)source\blender\decrypt;$(SolutionDir)source\blender\verify;$(SolutionDir)intern\keymaker"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\readstreamglue\debug/BLO_readstreamglue.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\readstreamglue\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\readstreamglue\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\readstreamglue\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\readstreamglue\debug/BLO_readstreamglue.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\readstreamglue\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\readstreamglue\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\readstreamglue\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -173,7 +174,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\readstreamglue\debug\BLO_readstreamglue.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\readstreamglue\debug\BLO_readstreamglue.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,13 +197,13 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\readstreamglue\intern\BLO_keyStore.c">
+				RelativePath="$(SolutionDir)source\blender\readstreamglue\intern\BLO_keyStore.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\readstreamglue\intern\BLO_readStreamGlue.c">
+				RelativePath="$(SolutionDir)source\blender\readstreamglue\intern\BLO_readStreamGlue.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\readstreamglue\intern\BLO_readStreamGlueLoopBack.c">
+				RelativePath="$(SolutionDir)source\blender\readstreamglue\intern\BLO_readStreamGlueLoopBack.c">
 			</File>
 		</Filter>
 		<Filter

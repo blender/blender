@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BL_img"
+	ProjectGUID="{37964135-3262-470F-82E6-1998A6F6AFED}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\img"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\img"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\img"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\img"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -27,17 +28,17 @@
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\img/BL_img.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\img/"
-				ObjectFile="..\..\..\..\obj\windows\blender\img/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\img/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\img/BL_img.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\img\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\img\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\img\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\img\BL_img.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\img\BL_img.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -56,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\img\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\img\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\img\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\img\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -69,11 +70,11 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\img\debug/BL_img.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\img\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\img\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\img\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\img\debug/BL_img.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\img\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\img\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\img\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"/>
@@ -81,7 +82,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\img\debug\BL_img.lib"
+				OutputFile="$(SolutionDir)lib\windows\blender\img\debug\BL_img.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -104,25 +105,25 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\img\intern\IMG_Api.cpp">
+				RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Api.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\img\intern\IMG_BrushRGBA32.cpp">
+				RelativePath="$(SolutionDir)source\blender\img\intern\IMG_BrushRGBA32.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\img\intern\IMG_CanvasRGBA32.cpp">
+				RelativePath="$(SolutionDir)source\blender\img\intern\IMG_CanvasRGBA32.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\img\intern\IMG_Line.cpp">
+				RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Line.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\img\intern\IMG_Pixmap.cpp">
+				RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Pixmap.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\img\intern\IMG_PixmapRGBA32.cpp">
+				RelativePath="$(SolutionDir)source\blender\img\intern\IMG_PixmapRGBA32.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\img\intern\IMG_Rect.cpp">
+				RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Rect.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -132,38 +133,38 @@
 				Name="intern"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_BrushRGBA32.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_BrushRGBA32.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_CanvasRGBA32.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_CanvasRGBA32.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_Color.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Color.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_Line.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Line.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_MemPtr.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_MemPtr.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_Pixmap.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Pixmap.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_PixmapRGBA32.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_PixmapRGBA32.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_Rect.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Rect.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\blender\img\intern\IMG_Types.h">
+					RelativePath="$(SolutionDir)source\blender\img\intern\IMG_Types.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="extern"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\blender\img\IMG_Api.h">
+					RelativePath="$(SolutionDir)source\blender\img\IMG_Api.h">
 				</File>
 			</Filter>
 		</Filter>

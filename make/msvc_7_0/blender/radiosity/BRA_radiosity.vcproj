@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BRA_radiosity"
+	ProjectGUID="{54592B50-935C-4E30-9214-05C2B28C89CD}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\radiosity"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\radiosity"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\radiosity"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\radiosity"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,17 +22,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\radiosity\extern\include,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\radiosity\extern\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\radiosity/BRA_radiosity.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\radiosity/"
-				ObjectFile="..\..\..\..\obj\windows\blender\radiosity/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\radiosity/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\radiosity/BRA_radiosity.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\radiosity\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\radiosity\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\radiosity\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -39,7 +40,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\radiosity\BRA_radiosity.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\radiosity\BRA_radiosity.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -58,8 +59,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\radiosity\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\radiosity\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\radiosity\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\radiosity\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,16 +68,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\imbuf,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\render\extern\include,..\..\..\..\source\blender\radiosity\extern\include,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\render\extern\include,$(SolutionDir)source\blender\radiosity\extern\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\makesdna"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\radiosity\debug/BRA_radiosity.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\radiosity\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\radiosity\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\radiosity\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\radiosity\debug/BRA_radiosity.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\radiosity\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\radiosity\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\radiosity\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -85,7 +86,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\radiosity\debug\BRA_radiosity.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\radiosity\debug\BRA_radiosity.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -108,32 +109,32 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\intern\source\raddisplay.c">
+				RelativePath="$(SolutionDir)source\blender\radiosity\intern\source\raddisplay.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\intern\source\radfactors.c">
+				RelativePath="$(SolutionDir)source\blender\radiosity\intern\source\radfactors.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\intern\source\radio.c">
+				RelativePath="$(SolutionDir)source\blender\radiosity\intern\source\radio.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\intern\source\radnode.c">
+				RelativePath="$(SolutionDir)source\blender\radiosity\intern\source\radnode.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\intern\source\radpostprocess.c">
+				RelativePath="$(SolutionDir)source\blender\radiosity\intern\source\radpostprocess.c">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\intern\source\radpreprocess.c">
+				RelativePath="$(SolutionDir)source\blender\radiosity\intern\source\radpreprocess.c">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\extern\include\radio.h">
+				RelativePath="$(SolutionDir)source\blender\radiosity\extern\include\radio.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\blender\radiosity\extern\include\radio_types.h">
+				RelativePath="$(SolutionDir)source\blender\radiosity\extern\include\radio_types.h">
 			</File>
 		</Filter>
 	</Files>

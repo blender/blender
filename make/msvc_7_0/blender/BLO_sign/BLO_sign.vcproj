@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="BLO_sign"
+	ProjectGUID="{9A534FAE-E3D0-4B23-983A-AA8CA942C30C}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\sign\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\sign\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\sign\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\sign\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,15 +22,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\verify,..\..\..\..\source\blender\writestreamglue"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)source\kernel\gen_messaging&quot;;&quot;$(SolutionDir)lib\windows\zlib\include&quot;;&quot;$(SolutionDir)lib\windows\openssl\include&quot;;&quot;$(SolutionDir)intern\keymaker&quot;;&quot;$(SolutionDir)source\blender\readstreamglue&quot;;&quot;$(SolutionDir)source\blender\sign&quot;;&quot;$(SolutionDir)source\blender\verify&quot;;&quot;$(SolutionDir)source\blender\writestreamglue&quot;"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\sign\debug/BLO_sign.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\sign\debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\sign\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\sign\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\sign\debug/BLO_sign.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\sign\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\sign\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\sign\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -38,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\sign\debug\BLO_sign.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\sign\debug\BLO_sign.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\sign\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\sign\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\sign\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\sign\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +67,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\verify,..\..\..\..\source\blender\writestreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)intern\keymaker,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\sign,$(SolutionDir)source\blender\verify,$(SolutionDir)source\blender\writestreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\sign\mtdll/BLO_sign.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\sign\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\blender\sign\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\sign\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\sign\mtdll/BLO_sign.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\sign\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\sign\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\sign\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -83,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\sign\mtdll\BLO_sign.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\sign\mtdll\BLO_sign.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\sign\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\sign\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\sign\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\sign\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,15 +112,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\verify,..\..\..\..\source\blender\writestreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)intern\keymaker,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\sign,$(SolutionDir)source\blender\verify,$(SolutionDir)source\blender\writestreamglue"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\sign\mtdll_debug/BLO_sign.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\sign\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\blender\sign\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\sign\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\sign\mtdll_debug/BLO_sign.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\sign\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\sign\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\sign\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -128,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\sign\mtdll_debug\BLO_sign.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\sign\mtdll_debug\BLO_sign.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\blender\sign"
-			IntermediateDirectory="..\..\..\..\obj\windows\blender\sign"
+			OutputDirectory="$(SolutionDir)obj\windows\blender\sign"
+			IntermediateDirectory="$(SolutionDir)obj\windows\blender\sign"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,16 +157,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\source\kernel\gen_messaging,..\..\..\..\..\lib\windows\zlib\include,..\..\..\..\..\lib\windows\openssl\include,..\..\..\..\..\lib\windows\blenkey\include,..\..\..\..\source\blender\readstreamglue,..\..\..\..\source\blender\sign,..\..\..\..\source\blender\verify,..\..\..\..\source\blender\writestreamglue"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_messaging,$(SolutionDir)lib\windows\zlib\include,$(SolutionDir)lib\windows\openssl\include,$(SolutionDir)intern\keymaker,$(SolutionDir)source\blender\readstreamglue,$(SolutionDir)source\blender\sign,$(SolutionDir)source\blender\verify,$(SolutionDir)source\blender\writestreamglue"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\blender\sign/BLO_sign.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\blender\sign/"
-				ObjectFile="..\..\..\..\obj\windows\blender\sign/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\blender\sign/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\blender\sign/BLO_sign.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\blender\sign\"
+				ObjectFile="$(SolutionDir)obj\windows\blender\sign\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\blender\sign\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -173,7 +174,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\blender\sign\BLO_sign.lib"
+				OutputFile="$(SolutionDir)obj\windows\blender\sign\BLO_sign.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,7 +197,7 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\blender\sign\intern\BLO_sign.c">
+				RelativePath="$(SolutionDir)source\blender\sign\intern\BLO_sign.c">
 			</File>
 		</Filter>
 		<Filter
