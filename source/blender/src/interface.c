@@ -939,6 +939,7 @@ static int ui_do_but_MENU(uiBut *but)
 
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
+	ui_block_flush_back(but->block);	// flush because this button creates own blocks loop
 
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
@@ -1660,6 +1661,7 @@ static int ui_do_but_ICONROW(uiBut *but)
 	
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
+	ui_block_flush_back(but->block);	// flush because this button creates own blocks loop
 	
 	/* here we go! */
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
@@ -1694,6 +1696,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
+	ui_block_flush_back(but->block);	// flush because this button creates own blocks loop
 
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;

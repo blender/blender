@@ -1049,32 +1049,55 @@ static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y
 
 /* *************** BASIC ROUNDED THEME ***************** */
 
-static void round_button(float x1, float y1, float x2, float y2, float asp, int colorid)
+static void round_button(float x1, float y1, float x2, float y2, float asp, 
+						 int colorid, int round, int menudeco, int curshade)
 {
 	float rad;
+	char col[4];
 	
 	rad= (y2-y1)/2.0;
 	if(rad>7.0) rad= 7.0;
 	
-	/* the shaded round_box version (0.1 is shade factor) */
-	//gl_round_box_shade(GL_POLYGON, x1, y1, x2, y2, rad, 0.1);
-	
+	uiSetRoundBox(round);
 	gl_round_box(GL_POLYGON, x1, y1, x2, y2, rad);
 
-	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
+	if(menudeco) {
+		uiSetRoundBox(round & ~9);
+		BIF_ThemeColorShade(colorid, curshade-20);
+		gl_round_box(GL_POLYGON, x2-menudeco, y1, x2, y2, rad);
+	}
 	
-	glEnable( GL_LINE_SMOOTH );
+	/* fake AA */
+	uiSetRoundBox(round);
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+	BIF_GetThemeColor3ubv(colorid, col);
+		
+	if(col[0]<100) col[0]= 0; else col[0]-= 100;
+	if(col[1]<100) col[1]= 0; else col[1]-= 100;
+	if(col[2]<100) col[2]= 0; else col[2]-= 100;
+	col[3]= 80;
+	glColor4ubv(col);
+	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad - asp);
+	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad + asp);
+	col[3]= 180;
+	glColor4ubv(col);
 	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad);
-	glDisable( GL_LINE_SMOOTH );
+
 	glDisable( GL_BLEND );
 }
 
 /* button in midst of alignment row */
-static void round_button_mid(float x1, float y1, float x2, float y2, float asp, int colorid, int align)
+static void round_button_mid(float x1, float y1, float x2, float y2, float asp, 
+							 int colorid, int align, int menudeco, int curshade)
 {
 	glRectf(x1, y1, x2, y2);
+	
+	if(menudeco) {
+		BIF_ThemeColorShade(colorid, curshade-20);
+		glRectf(x2-menudeco, y1, x2, y2);
+	}
 	
 	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
 	// we draw full outline, its not AA, and it works better button mouse-over hilite
@@ -1091,103 +1114,76 @@ static void round_button_mid(float x1, float y1, float x2, float y2, float asp, 
 static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 	int align= (flag & UI_BUT_ALIGN);
-	int round_align_fix= 0;
+	int curshade= 0, menudeco= 0;
+	
+	if(type==ICONROW || type==ICONTEXTROW) menudeco= 9;
+	else if((type==MENU || type==BLOCK) && x2-x1>24) menudeco= 16;
 	
 	/* paper */
 	if(flag & UI_SELECT) {
-		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, -40);
-		else BIF_ThemeColorShade(colorid, -30);
+		if(flag & UI_ACTIVE) curshade= -40;
+		else curshade= -30;
 	}
 	else {
-		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, +30);
-		else BIF_ThemeColorShade(colorid, +20);
+		if(flag & UI_ACTIVE) curshade= 30;
+		else curshade= +20;
 	}
 	
+	BIF_ThemeColorShade(colorid, curshade);
+
 	if(align) {
 		switch(align) {
 		case UI_BUT_ALIGN_TOP:
-			uiSetRoundBox(12);
-			round_align_fix= 4;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 12, menudeco, curshade);
 			break;
 		case UI_BUT_ALIGN_DOWN:
-			uiSetRoundBox(3);
-			round_align_fix= 2;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 3, menudeco, curshade);
 			break;
 		case UI_BUT_ALIGN_LEFT:
-			uiSetRoundBox(6);
-			round_align_fix= 6;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 6, menudeco, curshade);
 			break;
 		case UI_BUT_ALIGN_RIGHT:
-			uiSetRoundBox(9);
-			round_align_fix= 0;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 9, menudeco, curshade);
 			break;
 			
 		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
-			uiSetRoundBox(1);
-			round_align_fix= 0;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 1, menudeco, curshade);
 			break;
 		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
-			uiSetRoundBox(2);
-			round_align_fix= 2;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 2, menudeco, curshade);
 			break;
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
-			uiSetRoundBox(8);
-			round_align_fix= 0;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 8, menudeco, curshade);
 			break;
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
-			uiSetRoundBox(4);
-			round_align_fix= 4;
-			round_button(x1, y1, x2, y2, asp, colorid);
+			round_button(x1, y1, x2, y2, asp, colorid, 4, menudeco, curshade);
 			break;
 			
 		default:
-			round_align_fix= 0;
-			round_button_mid(x1, y1, x2, y2, asp, colorid, align);
+			round_button_mid(x1, y1, x2, y2, asp, colorid, align, menudeco, curshade);
 			break;
 		}
 	} 
 	else {
-		uiSetRoundBox(15);
-		round_align_fix= 6;
-		round_button(x1, y1, x2, y2, asp, colorid);
+		round_button(x1, y1, x2, y2, asp, colorid, 15, menudeco, curshade);
 	}
-	
+
 	/* special type decorations */
 	switch(type) {
 	case NUM:
-		if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, -60);
-		else BIF_ThemeColorShade(colorid, -30);
+		BIF_ThemeColorShade(colorid, curshade-60);
 		ui_default_num_arrows(x1, y1, x2, y2);
 		break;
 
 	case ICONROW: 
 	case ICONTEXTROW: 
-		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
-		else BIF_ThemeColorShade(colorid, -10);
-		// assuming its not inside alignment...
-		uiSetRoundBox(round_align_fix);
-		gl_round_box(GL_POLYGON, x2-9, y1+asp, x2-asp, y2-asp, 7.0);
-
-		BIF_ThemeColorShade(colorid, -60);
+		BIF_ThemeColorShade(colorid, curshade-60);
 		ui_default_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
-		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
-		else BIF_ThemeColorShade(colorid, -10);
-		// assuming its not inside alignment...
-		if(x2-x1 > 24) {
-			uiSetRoundBox(round_align_fix);
-			gl_round_box(GL_POLYGON, x2-16, y1+asp, x2-asp, y2-asp, 7.0);
-		}
-		BIF_ThemeColorShade(colorid, -60);
+	case BLOCK: 
+		BIF_ThemeColorShade(colorid, curshade-60);
 		ui_default_menu_arrows(x1, y1, x2, y2);
 		break;
 	}
@@ -1268,6 +1264,7 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 		break;
 		
 	case MENU: 
+	case BLOCK: 
 		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
 		else BIF_ThemeColorShade(colorid, -10);
 		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
@@ -1717,7 +1714,7 @@ void ui_draw_but(uiBut *but)
 	
 	if(but==NULL) return;
 
-	/* signal for flush buttons and menus */
+	/* signal for frontbuf flush buttons and menus, not when normal drawing */
 	if(but->block->in_use) ui_block_set_flush(but->block, but);
 		
 	switch (but->type) {
