@@ -1181,14 +1181,13 @@ void do_material_tex(ShadeInput *shi)
 						if(Talpha) Tin= Ta;
 						else Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 					}
-					
+
 					if(mtex->maptoneg & MAP_DISPLACE) {
-						factt= 1.0-mtex->varfac; facmm= mtex->varfac;
+						factt= (0.5-Tin)*mtex->varfac; facmm= 1.0-factt;
 					}
 					else {
-						factt= mtex->varfac; facmm= 1.0-mtex->varfac;
+						factt= (Tin-0.5)*mtex->varfac; facmm= 1.0-factt;
 					}
-					factt*= (Tin-0.5);
 					
 					if(mtex->blendtype==MTEX_BLEND) {
 						shi->displace[0]= factt*shi->vn[0] + facmm*shi->displace[0];

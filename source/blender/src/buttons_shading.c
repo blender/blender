@@ -2130,7 +2130,7 @@ static void material_panel_map_to(Material *ma)
 	uiDefButS(block, TOG3|BIT|7, B_MATPRV, "Alpha",	1020,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 	uiDefButS(block, TOG3|BIT|6, B_MATPRV, "Emit",	1080,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
 	uiDefButS(block, TOG3|BIT|10, B_MATPRV, "Translu",1140,160,65,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
-	uiDefButS(block, TOG|BIT|12, B_MATPRV, "Disp",	1205,160,55,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+	uiDefButS(block, TOG3|BIT|12, B_MATPRV, "Disp",	1205,160,55,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,120,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
