@@ -788,13 +788,13 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		/* Clear displase vec for preview */
 		shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
 		
-		/* normals flipped in render... */
-		if(mat->mapto & MAP_NORM) VecMulf(shi->vn, -1.0);
+		/* normals flipped in render for smooth... */
+		if(smooth && (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
 		
 		do_material_tex(shi);
 
 		/* normals flipped in render... */
-		if(mat->mapto & MAP_NORM) VecMulf(shi->vn, -1.0);
+		if(smooth && (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
 	
 		if(mat->texco & TEXCO_REFL) {
 			/* normals in render are pointing different... rhm */
