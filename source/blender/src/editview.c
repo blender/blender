@@ -67,18 +67,19 @@
 #include "BKE_armature.h"
 #include "BKE_lattice.h"
 
-#include "BIF_gl.h"
-#include "BIF_mywindow.h"
-#include "BIF_space.h"
-#include "BIF_screen.h"
 #include "BIF_butspace.h"
+#include "BIF_editarmature.h"
 #include "BIF_editgroup.h"
 #include "BIF_editmesh.h"
 #include "BIF_editoops.h"
 #include "BIF_editsima.h"
 #include "BIF_editview.h"
+#include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_editarmature.h"
+#include "BIF_interface.h"
+#include "BIF_mywindow.h"
+#include "BIF_space.h"
+#include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
 #include "BDR_editobject.h"	/* For headerprint */
@@ -853,6 +854,60 @@ void set_active_object(Object *ob)
 	}
 }
 
+/* The max number of menu items in an object select menu */
+#define SEL_MENU_SIZE 22
+
+static Base *mouse_select_menu(unsigned int *buffer, int hits, short *mval)
+{
+	Base *baseList[SEL_MENU_SIZE]={NULL}; /*baseList is used to store all possible bases to bring up a menu */
+	Base *base;
+	short baseCount = 0;
+	char menuText[20 + SEL_MENU_SIZE*32] = "Select Object%t";	// max ob name = 22
+	char str[32];
+	
+	for(base=FIRSTBASE; base; base= base->next) {
+		if(base->lay & G.vd->lay) {
+			baseList[baseCount] = NULL;
+			
+			/* two selection methods, the CTRL select uses max dist of 15 */
+			if(buffer) {
+				int a;
+				for(a=0; a<hits; a++) {
+					/* index was converted */
+					if(base->selcol==buffer[ (4 * a) + 3 ]) baseList[baseCount] = base;
+				}
+			}
+			else {
+				int temp, dist=15;
+				
+				project_short(base->object->obmat[3], &base->sx);
+				
+				temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
+				if(temp<dist ) baseList[baseCount] = base;
+			}
+			
+			if(baseList[baseCount]) {
+				if (baseCount < SEL_MENU_SIZE) {
+					baseList[baseCount] = base;
+					sprintf(str, "|%s %%x%d", base->object->id.name+2, baseCount+1);	// max ob name == 22
+					strcat(menuText, str);
+					baseCount++;
+				}
+			}
+		}
+	}
+	
+	if(baseCount<=1) return baseList[0];
+	else {
+		baseCount = pupmenu(menuText);
+		
+		if (baseCount != -1) { /* If nothing is selected then dont do anything */
+			return baseList[baseCount-1];
+		}
+		else return NULL;
+	}
+}
+
 void mouse_select(void)
 {
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
@@ -865,32 +920,33 @@ void mouse_select(void)
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 
 	getmouseco_areawin(mval);
-
+	
+	/* This block uses the control key to make the object selected by its centre point rather then its contents */
 	if(G.obedit==0 && (G.qual & LR_CTRLKEY)) {
-
-		base= startbase;
-		while(base) {
-			
-			if(base->lay & G.vd->lay) {
-				
-				project_short(base->object->obmat[3], &base->sx);
-				
-				temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
-				if(base==BASACT) temp+=10;
-				if(temp<dist ) {
-					basact= base;
-					dist= temp;
-				}
-			}
-			base= base->next;
-			
-			if(base==0) base= FIRSTBASE;
-			if(base==startbase) break;
-		}
-
-		/* complete redraw when: */
-		if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) allqueue(REDRAWVIEW3D, 1);
 		
+		if(G.qual & LR_ALTKEY) basact= mouse_select_menu(NULL, 0, mval);
+		else {
+			base= startbase;
+			while(base) {
+				
+				if(base->lay & G.vd->lay) {
+					
+					project_short(base->object->obmat[3], &base->sx);
+					
+					temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
+					if(base==BASACT) temp+=10;
+					if(temp<dist ) {
+						
+						dist= temp;
+						basact= base;
+					}
+				}
+				base= base->next;
+				
+				if(base==0) base= FIRSTBASE;
+				if(base==startbase) break;
+			}
+		}
 	}
 	else {
 		hits= selectprojektie(buffer, mval[0]-7, mval[1]-7, mval[0]+7, mval[1]+7);
@@ -898,19 +954,25 @@ void mouse_select(void)
 
 		if(hits>0) {
 
-			base= startbase;
-			while(base) {
-				if(base->lay & G.vd->lay) {
-					for(a=0; a<hits; a++) {
-						/* index was converted */
-						if(base->selcol==buffer[ (4 * a) + 3 ]) basact= base;
+			if(G.qual & LR_ALTKEY) basact= mouse_select_menu(buffer, hits, mval);
+			else {
+				base= startbase;
+				while(base) {
+					if(base->lay & G.vd->lay) {
+						for(a=0; a<hits; a++) {
+							/* index was converted */
+							if(base->selcol==buffer[ (4 * a) + 3 ]) {
+								basact= base;
+							}
+						}
 					}
+					
+					if(basact) break;
+					
+					base= base->next;
+					if(base==0) base= FIRSTBASE;
+					if(base==startbase) break;
 				}
-				if(basact) break;
-				
-				base= base->next;
-				if(base==0) base= FIRSTBASE;
-				if(base==startbase) break;
 			}
 		}
 	}
