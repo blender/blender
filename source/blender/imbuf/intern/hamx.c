@@ -536,7 +536,7 @@ short imb_enc_anim(struct ImBuf *ibuf, int file)
 /*  struct ImBuf *ibuf; */
 /*  int file; */
 {
-	int step, steps, size, i, skip;
+	int step, size, i, skip, steps = 0;
 	uchar *buf1, *crect, *_buf1, *_buf2, *bufend;
 	short ok = TRUE;
 
@@ -555,6 +555,7 @@ short imb_enc_anim(struct ImBuf *ibuf, int file)
 		steps = 2;
 		break;
 	}
+        if (steps == 0) return 0;
 
 	size = ((ibuf->x + 1)* (ibuf->y + 1)) / steps + 1024;
 	if ((_buf1  = malloc(size)) == 0) return(0);
