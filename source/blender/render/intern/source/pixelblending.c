@@ -399,21 +399,6 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
     float m; /* weiging factor of destination */
     float c; /* intermediate colour           */
 
-    /* 1. copy source straight away if dest has zero alpha */
-	/* 2. copy dest straight away if dest has full alpha   */
-	/* I am not sure whether (2) is correct. It seems to   */
-	/* me that this should not happen if float colours     */
-	/* aren't clipped at 1.0 .                             */
-	/* I'll keep the code, but disabled....                */
-    if ( (dest[3] < RE_EMPTY_COLOUR_FLOAT) 
-		/*   || source[3] > RE_FULL_COLOUR_FLOAT */ ) {
-        dest[0] = source[0];
-        dest[1] = source[1];
-        dest[2] = source[2];
-        dest[3] = source[3];
-        return;
-    }
-
     /* Addfac is a number between 0 and 1: rescale */
     /* final target is to diminish the influence of dest when addfac rises */
     m = 1.0 - ( source[3] * ((255.0 - addfac) / 255.0));
@@ -883,12 +868,6 @@ void addalphaAddfacshort(unsigned short *doel,
 						 short addfac)    
 {
 	int c, mul;
-
-	if( doel[3]==0) {
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		*((unsigned int *)(doel+2))= *((unsigned int *)(bron+2));
-		return;
-	}
 
 	mul= 0xFFFF - (bron[0]*(255-addfac))/255;
 	

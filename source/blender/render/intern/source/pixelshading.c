@@ -418,6 +418,7 @@ void renderSkyPixelFloat(float x, float y)
 	case RE_ALPHA_SKY:
 		/* Fill in the sky as if it were a normal face. */
 		shadeSkyPixel(x, y);
+		collector[3]= 0.0;
 		break;
 	default:
 		; /* Error: illegal alpha blending state */
