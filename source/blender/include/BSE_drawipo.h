@@ -55,7 +55,7 @@ void ipoco_to_areaco_noclip	(struct View2D *v2d, float *vec, short *mval);
 
 void view2d_zoom			(struct View2D *v2d, float factor, int winx, int winy);
 void test_view2d			(struct View2D *v2d, int winx, int winy);
-void calc_scrollrcts		(struct View2D *v2d, int winx, int winy);
+void calc_scrollrcts		(struct ScrArea *sa, struct View2D *v2d, int winx, int winy);
 
 int in_ipo_buttons(void);
 void drawscroll(int disptype);

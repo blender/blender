@@ -537,7 +537,7 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 	
-	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+	calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 	
 	/* clear all, becomes the color for left part */
 	BIF_GetThemeColor3fv(TH_HEADER, col);

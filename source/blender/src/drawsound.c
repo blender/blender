@@ -200,7 +200,7 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+	calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	

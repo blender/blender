@@ -2224,7 +2224,7 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	int sizey;
 	short ofsx, ofsy;
 	
-	calc_scrollrcts(G.v2d, sa->winx, sa->winy);
+	calc_scrollrcts(sa, G.v2d, sa->winx, sa->winy);
 
 	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	

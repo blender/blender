@@ -612,7 +612,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 
-	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+	calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 
 	/* background color for entire window (used in lefthand part tho) */
 	BIF_GetThemeColor3fv(TH_HEADER, col);

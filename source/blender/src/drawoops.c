@@ -405,7 +405,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	if(soops->type==SO_OUTLINER) draw_outliner(sa, soops);
 	else {
 		boundbox_oops();
-		calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+		calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 
 		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 

@@ -3992,7 +3992,7 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 	
 	if(soops->type==SO_OUTLINER) {
 		/* outliner space is window size */
-		calc_scrollrcts(v2d, sa->winx, sa->winy);
+		calc_scrollrcts(sa, v2d, sa->winx, sa->winy);
 		
 		v2d->tot.xmax= 0.0;
 		v2d->tot.ymax= 0.0;

@@ -565,21 +565,21 @@ void test_view2d(View2D *v2d, int winx, int winy)
 }
 
 
-void calc_scrollrcts(View2D *v2d, int winx, int winy)
+void calc_scrollrcts(ScrArea *sa, View2D *v2d, int winx, int winy)
 {
 	v2d->mask.xmin= v2d->mask.ymin= 0;
 	v2d->mask.xmax= winx;
 	v2d->mask.ymax= winy;
 	
-	if(curarea->spacetype==SPACE_ACTION) {
+	if(sa->spacetype==SPACE_ACTION) {
 		v2d->mask.xmin+= ACTWIDTH;
 		v2d->hor.xmin+=ACTWIDTH;
 	}
-	else if(curarea->spacetype==SPACE_NLA){
+	else if(sa->spacetype==SPACE_NLA){
 		v2d->mask.xmin+= NLAWIDTH;
 		v2d->hor.xmin+=NLAWIDTH;
 	}
-	else if(curarea->spacetype==SPACE_IPO) {
+	else if(sa->spacetype==SPACE_IPO) {
 		v2d->mask.xmax-= IPOBUTX;
 		
 		if(v2d->mask.xmax<IPOBUTX)
@@ -1642,7 +1642,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);	/* for panel handler to work */
 	
 	v2d->hor.xmax+=IPOBUTX;
-	calc_scrollrcts(G.v2d, sa->winx, sa->winy);
+	calc_scrollrcts(sa, G.v2d, sa->winx, sa->winy);
 
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0); 
