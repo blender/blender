@@ -374,10 +374,6 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     /* Create a Python object from it. */
     blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
     blen_object->object = object;
-    blen_object->data = NULL;
-    blen_object->parent = NULL;
-    blen_object->track = NULL;
-    blen_object->ipo = NULL;
 
     return ((PyObject*)blen_object);
 }
@@ -406,10 +402,6 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
         }
         blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
         blen_object->object = object;
-        blen_object->parent = NULL;
-        blen_object->data = NULL;
-        blen_object->track = NULL;
-        blen_object->ipo = NULL;
 
         return ((PyObject*)blen_object);
     }
@@ -435,10 +427,6 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
             object = (Object*)link;
             blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type);
             blen_object->object = object;
-            blen_object->parent = NULL;
-            blen_object->data = NULL;
-            blen_object->track = NULL;
-            blen_object->ipo = NULL;
 
             PyList_SetItem (obj_list, index, (PyObject*)blen_object);
             index++;
@@ -486,10 +474,6 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
             return (Py_None);
         }
         blen_object->object = G.scene->basact->object;
-        blen_object->data = NULL;
-        blen_object->parent = NULL;
-        blen_object->track = NULL;
-        blen_object->ipo = NULL;
         PyList_Append (list, (PyObject*)blen_object);
     }
 
@@ -508,10 +492,6 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
                 return (Py_None);
             }
             blen_object->object = base_iter->object;
-            blen_object->data = NULL;
-            blen_object->parent = NULL;
-            blen_object->track = NULL;
-            blen_object->ipo = NULL;
             PyList_Append (list, (PyObject*)blen_object);
         }
         base_iter = base_iter->next;
@@ -573,7 +553,6 @@ static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
 
     /* Remove the link only, the object is still in the scene. */
     self->object->parent = NULL;
-    self->parent = NULL;
 
     if (mode == 2)
     {
@@ -593,13 +572,6 @@ static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
 static PyObject *Object_getData (BPy_Object *self)
 {
     PyObject  * data_object;
-
-    /* If there's a valid PyObject already, then just return that one. */
-    if (self->data != NULL)
-    {
-        Py_INCREF (self->data);
-        return (self->data);
-    }
 
     /* If there's no data associated to the Object, then there's nothing to */
     /* return. */
@@ -656,8 +628,6 @@ static PyObject *Object_getData (BPy_Object *self)
     }
     else
     {
-        self->data = data_object;
-        Py_INCREF (data_object);
         return (data_object);
     }
 }
@@ -759,9 +729,6 @@ static PyObject *Object_getParent (BPy_Object *self)
 {
     PyObject *attr;
 
-    if (self->parent)
-        return EXPP_incr_ret ((PyObject*) self->parent);
-
     if (self->object->parent == NULL)
         return EXPP_incr_ret (Py_None);
 
@@ -769,7 +736,6 @@ static PyObject *Object_getParent (BPy_Object *self)
 
     if (attr)
     {
-        self->parent = (struct BPy_Object*)attr;
         return (attr);
     }
 
@@ -781,9 +747,6 @@ static PyObject *Object_getTracked (BPy_Object *self)
 {
     PyObject    *attr;
 
-    if (self->track)
-        return EXPP_incr_ret ((PyObject*)self->track);
-
     if (self->object->track == NULL)
         return EXPP_incr_ret (Py_None);
     
@@ -791,7 +754,6 @@ static PyObject *Object_getTracked (BPy_Object *self)
 
     if (attr)
     {
-        self->track = (struct BPy_Object*)attr;
         return (attr);
     }
 
@@ -880,7 +842,6 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
                 "Linking this object type is not supported"));
     }
     self->object->data = data;
-    self->data = py_data;
     id_us_plus (id);
     if (oldid)
     {
@@ -941,9 +902,7 @@ static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
                 "parenting loop detected - parenting failed"));
         }
         child->partype = PAROBJECT;
-        child->parent = parent;
         py_obj_child = (BPy_Object *) py_child;
-        py_obj_child->parent = (struct BPy_Object *)self;
         if (noninverse == 1)
         {
             /* Parent inverse = unity */
@@ -1170,13 +1129,9 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
     {
         case OB_MESH:
             oldid = (ID*) self->object->data;
-            id = (ID*) object->data;
-            self->object->data = object->data;
-            if (self->data != NULL)
-            {
-                Py_DECREF (self->data);
-                self->data = NULL;
-            }
+            id = (ID*) object->object->data;
+            self->object->data = object->object->data;
+
             id_us_plus (id);
             if (oldid)
             {
@@ -1387,42 +1342,11 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
     {
         if (object->ipo == NULL)
         {
-            /* There's no ipo in the object, so we need to return Py_None */
-            /* However, if there's already some kind of reference in the */
-            /* Python object, we also need to free that one. */
-            if (obj->ipo != NULL)
-            {
-                Py_DECREF (obj->ipo);
-            }
-
-            /* There's no ipo, so this needs to be NULL always. */
-            obj->ipo = NULL;
-
+            /* There's no ipo linked to the object, return Py_None. */
             Py_INCREF (Py_None);
             return (Py_None);
         }
-        if (obj->ipo == NULL)
-        {
-            if (object->ipo == NULL)
-            {
-                /* There's no ipo linked to the object, return Py_None. */
-                Py_INCREF (Py_None);
-                return (Py_None);
-            }
-            obj->ipo = Ipo_CreatePyObject (object->ipo);
-        }
-        else
-        {
-            if (Ipo_FromPyObject (obj->ipo) != object->ipo)
-            {
-                /* The ipo object has changed, so decref the original */
-                /* py_ipo object, and create a new one. */
-                Py_DECREF (obj->ipo);
-                obj->ipo = Ipo_CreatePyObject (object->ipo);
-            }
-        }
-        Py_INCREF (obj->ipo);
-        return (obj->ipo);
+        return (Ipo_CreatePyObject (object->ipo));
     }
     if (StringEqual (name, "mat"))
         return (Object_getMatrix (obj));

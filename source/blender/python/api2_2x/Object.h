@@ -71,22 +71,6 @@ struct BPy_Object;
 typedef struct {
     PyObject_HEAD
     struct Object   * object;
-
-    /* points to the data. This only is set when there's a valid PyObject */
-    /* that points to the linked data. */
-    PyObject        * data;
-
-    /* points to the parent object. This is only set when there's a valid */
-    /* PyObject (already created at some point). */
-    struct BPy_Object * parent;
-
-    /* points to the object that is tracking this object. This is only set */
-    /* when there's a valid PyObject (already created at some point). */
-    struct BPy_Object * track;
-    
-    /* points to the ipo object. This is only set when there's a valid */
-    /* PyObject (already created at some point). */
-    PyObject        * ipo;
 } BPy_Object;
 
 #endif /* EXPP_OBJECT_H */
