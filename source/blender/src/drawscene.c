@@ -64,6 +64,9 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 {
 	bScreen *sc;
 	
+	if( G.obedit) exit_editmode(2);
+	if(G.obpose) exit_posemode(1);
+
 	G.scene= sce;
 
 	sc= G.main->screen.first;

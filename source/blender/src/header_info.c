@@ -422,9 +422,6 @@ void do_info_buttons(unsigned short event)
 		break;
 	case B_INFOSCE:		/* menu select scene */
 
-		if( G.obedit) {
-			exit_editmode(2);
-		}
 		if( G.curscreen->scenenr== -2) {
 			if(curarea->winy <50) {
 				sa= closest_bigger_area();
