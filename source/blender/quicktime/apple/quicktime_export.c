@@ -170,7 +170,6 @@ OSErr SaveExporterSettingsToMem (QuicktimeCodecData *qcd)
 	QTAtomContainer		myContainer = NULL;
 	ComponentResult		myErr = noErr;
 	Ptr					myPtr;
-	Handle				myHandle;
 	long				mySize = 0;
 
 	// check if current scene already has qtcodec settings, and erase them
@@ -197,9 +196,7 @@ OSErr SaveExporterSettingsToMem (QuicktimeCodecData *qcd)
 
 	// lock and convert the atomcontainer to a *valid* pointer
 	QTLockContainer(myContainer);
-	myHandle = (Handle) myContainer;
-	HLockHi(myHandle);
-	myPtr = *myHandle;
+	myPtr = *(Handle)myContainer;
 
 	// copy the Quicktime data into the blender qtcodecdata struct
 	if (myPtr) {
@@ -214,8 +211,6 @@ OSErr SaveExporterSettingsToMem (QuicktimeCodecData *qcd)
 	QTUnlockContainer(myContainer);
 
 bail:
-	if (myHandle != NULL)
-		DisposeHandle(myHandle);
 	if (myContainer != NULL)
 		QTDisposeAtomContainer(myContainer);
 		
