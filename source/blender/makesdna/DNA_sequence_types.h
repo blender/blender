@@ -119,7 +119,7 @@ typedef struct Sequence {
 	int curpos;				/* last sample position in audio_fill() */
 	int pad;
 
-	void *varstr;			/* Struct pointer for effect settings */
+	void *effectdata;			/* Struct pointer for effect settings */
 
 } Sequence;
 #
@@ -140,7 +140,7 @@ typedef struct Editing {
 
 /* ************* Effect Variable Structs ********* */
 typedef struct SweepVars {
-	short sweeptype;	
+	short sweeptype;
 } SweepVars;
 
 

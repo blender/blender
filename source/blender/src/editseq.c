@@ -901,7 +901,7 @@ static int add_seq_effect(int type)
 
 	/* Allocate variable structs for effects with settings */
 	if(seq->type==SEQ_SWEEP){
-		seq->varstr = MEM_callocN(sizeof(struct SweepVars), "sweepvars");
+		seq->effectdata = MEM_callocN(sizeof(struct SweepVars), "sweepvars");
 	}
 
 	if(seq->type==SEQ_ALPHAUNDER || seq->type==SEQ_ALPHAOVER) {

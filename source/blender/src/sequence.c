@@ -225,7 +225,7 @@ void free_sequence(Sequence *seq)
 	extern Sequence *last_seq;
 
 	if(seq->strip) free_strip(seq->strip);
-	if(seq->varstr) MEM_freeN(seq->varstr);
+	if(seq->effectdata) MEM_freeN(seq->effectdata);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
 
@@ -962,14 +962,14 @@ int check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
    float posx, posy;
    float halfx = xo/2;
    float halfy = yo/2;
-   SweepVars *sweep = (SweepVars *)seq->varstr;
+   SweepVars *sweep = (SweepVars *)seq->effectdata;
 
 	//printf("facf0: %f xo: %d\n", facf0, x);
 	posx = facf0 * xo;
 	posy = facf0 * yo;
 
    switch (sweep->sweeptype) {
-      case DO_LEFT_RIGHT:      	
+      case DO_LEFT_RIGHT:
          if (x > posx) return 1;
          return 0;
          break;
@@ -1023,19 +1023,19 @@ int check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 	 break;
       case DO_HORZ_VERT_OUT:
          if (posy < posx) posx = posy;
-         if (((x > (halfx - posx/2)) && (x < (halfx + posx/2))) || 
+         if (((x > (halfx - posx/2)) && (x < (halfx + posx/2))) ||
              ((y > (halfy - posx/2)) && (y < (halfy + posx/2)))) return 0;
          return 1;
 	 break;
       case DO_HORZ_VERT_IN:
          if (posy < posx) posx = posy;
-         if ((x <posx/2) || ((xo - x) <  posx/2) || (y < posx/2) || 
+         if ((x <posx/2) || ((xo - x) <  posx/2) || (y < posx/2) ||
 	     ((yo - y) < posx/2)) return 0;
          return 1;
 	 break;
       case DO_LEFT_DOWN_RIGHT_UP_OUT:
          if (posy < posx) posx = posy;
-         if (((x - halfx + y - halfy) < posx) && 
+         if (((x - halfx + y - halfy) < posx) &&
              ((halfx -x + halfy -y ) < posx)) return 0;
          return 1;
 	 break;
@@ -1046,7 +1046,7 @@ int check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 	 break;
       case DO_LEFT_UP_RIGHT_DOWN_OUT:
          if (posy < posx) posx = posy;
-         if (((x - halfx + yo - y - halfy) < posx) && 
+         if (((x - halfx + yo - y - halfy) < posx) &&
              ((halfx - x + halfy - yo + y ) < posx)) return 0;
          return 1;
 	 break;
@@ -1057,9 +1057,9 @@ int check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 	 break;
       case DO_DIAG_OUT:
          if (posy < posx) posx = posy;
-         if ((((x - halfx + y - halfy) < posx) && 
-             ((halfx -x + halfy -y ) < posx)) && 
-             (((x - halfx + yo - y - halfy) < posx)) && 
+         if ((((x - halfx + y - halfy) < posx) &&
+             ((halfx -x + halfy -y ) < posx)) &&
+             (((x - halfx + yo - y - halfy) < posx)) &&
              ((halfx -x + halfy -yo + y) < posx)) return 0;
          return 1;
 	 break;
@@ -1090,7 +1090,7 @@ int check_zone(int x, int y, int xo, int yo, Sequence *seq, float facf0) {
 
 void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
 {
-	int xo, yo;	
+	int xo, yo;
 	char *rt1, *rt2, *rt;
 	rt1 = (char *)rect1;
 	rt2 = (char *)rect2;
@@ -1099,9 +1099,9 @@ void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsi
 	xo = x;
 	yo = y;
 	for(y=0;y<yo;y++) {
-	
+
       for(x=0;x<xo;x++) {
-      			
+
 			if (check_zone(x,y,xo,yo,seq,facf0)) {
 				if (rt1) {
 					rt[0] = rt1[0];
@@ -1115,7 +1115,7 @@ void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsi
 					rt[3] = 255;
 				}
 			} else {
-				if (rt2) {					
+				if (rt2) {
 					rt[0] = rt2[0];
 					rt[1] = rt2[1];
 					rt[2] = rt2[2];
@@ -1127,7 +1127,7 @@ void do_sweep_effect(Sequence *seq, float facf0, float facf1, int x, int y, unsi
 					rt[3] = 255;
 				}
 			}
-			
+
 			rt+=4;
 			if(rt1 !=NULL){
 				rt1+=4;

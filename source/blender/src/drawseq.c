@@ -603,7 +603,7 @@ static void draw_extra_seqinfo(void)
 
 #define SEQ_BUT_PLUGIN	1
 #define SEQ_BUT_MOVIE	2
-#define SEQ_BUT_IMAGE	3
+#define SEQ_BUT_EFFECT	3
 
 void do_seqbuttons(short val)
 {
@@ -623,7 +623,10 @@ void do_seqbuttons(short val)
 			se->ibuf= 0;
 		}
 		break;
-	case SEQ_BUT_IMAGE:
+	case SEQ_BUT_EFFECT:
+		new_stripdata(last_seq);
+		calc_sequence(last_seq);
+		allqueue(REDRAWSEQ, 0);
 		break;
 	}
 
@@ -705,12 +708,12 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefBut(block, TEX, 0, "Stripname: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
 		if(last_seq->type==SEQ_SWEEP){
-			SweepVars *sweep = (SweepVars *)last_seq->varstr;
+			SweepVars *sweep = (SweepVars *)last_seq->effectdata;
 			char formatstring[1024];
 
 			strcpy(formatstring, "Select Sweep Type %t|Left to Right %x0|Right to Left %x1|Bottom to Top %x2|Top to Bottom %x3|Top left to Bottom right%x4|Bottom right to Top left %x5|Bottom left to Top right %x6|Top right to Bottom left %x7|Horizontal out %x8|Horizontal in %x9|Vertical out %x10|Vertical in %x11|Hor/Vert out %x12|Hor/Vert in %x13|Bottom left to Top right out %x14|Top left to Bottom right in %x15|Top left to Bottom right out %x16|Bottom left to Top right in %x17|Diagonal out %x18|Diagonal in %x19|Diagonal out 2 %x20|Diagonal in 2 %x21|");
 
-			uiDefButS(block, MENU,SEQ_BUT_MOVIE, formatstring,	10,90,220,22, &sweep->sweeptype, 0, 0, 0, 0, "What type of sweep should be performed");
+			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,90,220,22, &sweep->sweeptype, 0, 0, 0, 0, "What type of sweep should be performed");
 		}
 
 	}

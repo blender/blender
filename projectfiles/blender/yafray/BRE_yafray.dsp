@@ -66,7 +66,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\imbuf" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"..\..\..\obj\windows\blender\render\debug/BRE_yafray.pch" /YX /Fo"..\..\..\obj\windows\blender\render\debug/" /Fd"..\..\..\obj\windows\blender\render\debug/" /J /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\imbuf" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"..\..\..\obj\windows\blender\render\debug/BRE_yafray.pch" /YX /Fo"..\..\..\obj\windows\blender\render\debug/" /Fd"..\..\..\obj\windows\blender\render\debug/" /J /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
 BSC32=bscmake.exe
