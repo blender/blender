@@ -185,8 +185,8 @@ int FTF_TTFont::SetFont(char* str, int size)
 		fontl = new FTGLPixmapFont(str);
 		
 		success = fonts->FaceSize(size-2<8?8:size-2);
-		success = fontm->FaceSize(size);
-		success = fontl->FaceSize(size+2);
+		success = fontm->FaceSize(size-1<8?8:size-1);
+		success = fontl->FaceSize(size);
 		if(!success) return 0;
 
 		success = fonts->CharMap(ft_encoding_unicode);
@@ -238,8 +238,8 @@ void FTF_TTFont::SetEncoding(char* str)
 void FTF_TTFont::SetSize(int size)
 {
 	fonts->FaceSize(size-2<8?8:size-2);
-	fontm->FaceSize(size);
-	fontl->FaceSize(size+2);
+	fontm->FaceSize(size-1<8?8:size-1);
+	fontl->FaceSize(size);
 
 	font_size = size;
 }

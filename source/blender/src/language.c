@@ -212,7 +212,7 @@ void start_interface_font(void) {
 		}
 	} else {
 		U.language= 0;
-		U.fontsize= 10;
+		U.fontsize= 11;
 		U.encoding= 0;
 
 #if defined (__APPLE__)

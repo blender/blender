@@ -466,7 +466,6 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	
 	ui_graphics_to_window(block->win, &block->minx, &block->miny);
 	ui_graphics_to_window(block->win, &block->maxx, &block->maxy);
-
 }
 
 
@@ -598,7 +597,7 @@ void uiDrawBlock(uiBlock *block)
 	}
 
 	ui_draw_links(block);
-	
+
 	uiPanelPop(block); // matrix restored
 }
 
@@ -1695,7 +1694,7 @@ static int ui_do_but_BLOCK(uiBut *but)
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);	
 
-	block= but->block_func(0);
+	block= but->block_func(but->poin);
 
 	block->xofs = -2;	/* for proper alignment */
 	ui_positionblock(block, but);
@@ -2353,6 +2352,24 @@ static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
 	
 	return 0;
 }
+
+
+static void ui_set_ftf_font(uiBlock *block)
+{
+
+#ifdef INTERNATIONAL
+	if(block->aspect<1.15) {
+		FTF_SetFontSize('l');
+	}
+	else if(block->aspect<1.59) {
+		FTF_SetFontSize('m');
+	}
+	else {
+		FTF_SetFontSize('s');
+	}
+#endif
+}
+
 
 /* return: 
  * UI_NOTHING	pass event to other ui's
@@ -3055,21 +3072,6 @@ static void ui_set_but_val(uiBut *but, double value)
 
 }
 
-static void ui_set_ftf_font(uiBlock *block)
-{
-
-	if(block->aspect<1.05) {
-		FTF_SetFontSize('l');
-	}
-	else if(block->aspect<1.59) {
-		FTF_SetFontSize('m');
-	}
-	else {
-		FTF_SetFontSize('s');
-	}
-
-}
-
 void uiSetCurFont(uiBlock *block, int index)
 {
 	
@@ -3765,7 +3767,7 @@ short pupmenu(char *instr)
 	short a, startx, starty, endx, endy, boxh=TBOXH, x1, y1;
 	static char laststring[UI_MAX_NAME_STR];
 	MenuData *md;
-	
+
 	/* block stuff first, need to know the font */
 	block= uiNewBlock(&listb, "menu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
