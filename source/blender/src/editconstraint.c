@@ -113,8 +113,8 @@ static int is_child_of_ex(Object *owner, const char *ownersubstr, Object *parent
 				else
 					return 1;
 			}
-			curob=curob->parent;
 		}
+		curob=curob->parent;
 	}
 
 
