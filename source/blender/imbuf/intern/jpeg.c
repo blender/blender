@@ -342,7 +342,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 	}
 	
 	return(ibuf);
-}	
+}
 
 ImBuf * imb_ibJpegImageFromFilename (char * filename, int flags)
 {
@@ -504,8 +504,11 @@ static int save_stdjpeg(char * name, struct ImBuf * ibuf)
 	fclose(outfile);
 	jpeg_destroy_compress(cinfo);
 
-	if (jpeg_failed) remove(name);
-	return(jpeg_failed);
+	if (jpeg_failed) {
+		remove(name);
+		return 0;
+	}
+	return 1;
 }
 
 
@@ -534,16 +537,18 @@ static int save_vidjpeg(char * name, struct ImBuf * ibuf)
 	fclose(outfile);
 	jpeg_destroy_compress(cinfo);
 
-	if (jpeg_failed) remove(name);
-	return(jpeg_failed);
+	if (jpeg_failed) {
+		remove(name);
+		return 0;
+	}
+	return 1;
 }
 
 static int save_jstjpeg(char * name, struct ImBuf * ibuf)
 {
 	char fieldname[1024];
 	struct ImBuf * tbuf;
-	int oldy;
-/*  	extern rectcpy(); */
+	int oldy, returnval;
 
 	tbuf = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 24, IB_rect, 0);
 	tbuf->ftype = ibuf->ftype;
@@ -554,26 +559,24 @@ static int save_jstjpeg(char * name, struct ImBuf * ibuf)
 	ibuf->y /= 2;
 
 	/* extra argument assumed to be 0 (nzc) */
-/*  	rectop(tbuf, ibuf, 0, 0, 0, 0, 32767, 32767, rectcpy); */
 	IMB_rectop(tbuf, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
 	sprintf(fieldname, "%s.jf0", name);
 
-	if (save_vidjpeg(fieldname, tbuf) == 0) {
-	/* extra argument assumed to be 0 (nzc) */
-/*  		rectop(tbuf, ibuf, 0, 0, tbuf->x, 0, 32767, 32767, rectcpy); */
-		IMB_rectop(tbuf, ibuf, 0, 0, tbuf->x, 0, 32767, 32767, IMB_rectcpy, 0);
+	returnval = save_vidjpeg(fieldname, tbuf) ;
+        if (returnval == 1) {
+		/* extra argument assumed to be 0 (nzc) */
+		IMB_rectop(tbuf, ibuf, 0, 0, tbuf->x, 0, 32767, 32767, 
+			IMB_rectcpy, 0);
 		sprintf(fieldname, "%s.jf1", name);
-		save_vidjpeg(fieldname, tbuf);
+		returnval = save_vidjpeg(fieldname, tbuf);
 	}
 
 	ibuf->y = oldy;
 	ibuf->x /= 2;
 	IMB_freeImBuf(tbuf);
 
-	/* no return value was given, assuming 0 */
-	return 0;
+	return returnval;
 }
-
 
 static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 {
@@ -600,8 +603,11 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 	fclose(outfile);
 	jpeg_destroy_compress(cinfo);
 
-	if (jpeg_failed) remove(name);
-	return(jpeg_failed);
+	if (jpeg_failed) {
+		remove(name);
+		return 0;
+	}
+	return 1;
 }
 
 int imb_savejpeg(struct ImBuf * ibuf, char * name, int flags)
