@@ -70,6 +70,8 @@ struct PyMethodDef M_Object_methods[] = {
                     M_Object_Get_doc},
     {"get",         (PyCFunction)M_Object_Get,         METH_VARARGS,
                     M_Object_Get_doc},
+    {"GetSelected", (PyCFunction)M_Object_GetSelected, METH_VARARGS,
+                    M_Object_GetSelected_doc},
     {"getSelected", (PyCFunction)M_Object_GetSelected, METH_VARARGS,
                     M_Object_GetSelected_doc},
     {NULL, NULL, 0, NULL}
@@ -89,6 +91,7 @@ static PyObject *Object_getInverseMatrix (BPy_Object *self);
 static PyObject *Object_getLocation (BPy_Object *self, PyObject *args);
 static PyObject *Object_getMaterials (BPy_Object *self);
 static PyObject *Object_getMatrix (BPy_Object *self);
+static PyObject *Object_getName (BPy_Object *self);
 static PyObject *Object_getParent (BPy_Object *self);
 static PyObject *Object_getTracked (BPy_Object *self);
 static PyObject *Object_getType (BPy_Object *self);
@@ -101,6 +104,7 @@ static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args);
 static PyObject *Object_setEuler (BPy_Object *self, PyObject *args);
 static PyObject *Object_setLocation (BPy_Object *self, PyObject *args);
 static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args);
+static PyObject *Object_setName (BPy_Object *self, PyObject *args);
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 
 /*****************************************************************************/
@@ -135,6 +139,8 @@ data.\nCurrently, this is only supported for a Mesh"},
         "Returns list of materials assigned to the object"},
     {"getMatrix",        (PyCFunction)Object_getMatrix,        METH_NOARGS,
         "Returns the object matrix"},
+    {"getName",          (PyCFunction)Object_getName,          METH_NOARGS,
+        "Returns the name of the object"},
     {"getParent",        (PyCFunction)Object_getParent,        METH_NOARGS,
         "Returns the object's parent object"},
     {"getTracked",       (PyCFunction)Object_getTracked,       METH_NOARGS,
@@ -173,6 +179,8 @@ triple."},
     {"setMaterials",     (PyCFunction)Object_setMaterials,     METH_VARARGS,
         "Sets materials. The argument must be a list of valid material\n\
 objects."},
+    {"setName",          (PyCFunction)Object_setName,          METH_VARARGS,
+        "Sets the name of the object"},
     {"shareFrom",        (PyCFunction)Object_shareFrom,        METH_VARARGS,
         "Link data of self with object specified in the argument. This\n\
 works only if self and the object specified are of the same type."},
@@ -368,6 +376,8 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     blen_object->object = object;
     blen_object->data = NULL;
     blen_object->parent = NULL;
+    blen_object->track = NULL;
+    blen_object->ipo = NULL;
 
     return ((PyObject*)blen_object);
 }
@@ -399,6 +409,8 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
         blen_object->object = object;
         blen_object->parent = NULL;
         blen_object->data = NULL;
+        blen_object->track = NULL;
+        blen_object->ipo = NULL;
 
         return ((PyObject*)blen_object);
     }
@@ -483,6 +495,9 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
             }
             blen_object->object = base_iter->object;
             blen_object->data = NULL;
+            blen_object->parent = NULL;
+            blen_object->track = NULL;
+            blen_object->ipo = NULL;
             PyList_Append (list, (PyObject*)blen_object);
         }
         base_iter = base_iter->next;
@@ -533,6 +548,7 @@ static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
         sort_baselist (G.scene);
     }
 
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
@@ -702,6 +718,16 @@ static PyObject *Object_getMatrix (BPy_Object *self)
     return (newMatrixObject (ob->obmat));
 }
 
+static PyObject *Object_getName (BPy_Object *self)
+{
+    PyObject *attr = Py_BuildValue ("s", self->object->id.name);
+
+    if (attr) return (attr);
+
+    return (PythonReturnErrorObject (PyExc_RuntimeError,
+            "couldn't get the name of the Object"));
+}
+
 static PyObject *Object_getParent (BPy_Object *self)
 {
     PyObject *attr;
@@ -846,8 +872,8 @@ static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
     BPy_Object    * py_obj_child;
     Object      * child;
     Object      * parent;
-    int           noninverse;
-    int           fast;
+    int           noninverse = 0;
+    int           fast = 0;
     int           i;
 
     /* Check if the arguments passed to makeParent are valid. */
@@ -1070,9 +1096,33 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
             "setMaterials: not yet implemented"));
 }
 
+static PyObject *Object_setName (BPy_Object *self, PyObject *args)
+{
+    char  * name;
+    int     length;
+
+    if (!PyArg_Parse (args, "s#", &name, &length))
+    {
+        return (PythonReturnErrorObject (PyExc_AttributeError,
+                "expected a String as argument"));
+    }
+
+    if (length > 23)
+    {
+        return (PythonReturnErrorObject (PyExc_AttributeError,
+                "name argument may not exceed 23 characters"));
+    }
+
+    free (self->object->id.name);
+    strncpy (self->object->id.name, name, length);
+
+    Py_INCREF (Py_None);
+    return (Py_None);
+}
+
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 {
-    BPy_Object        * object;
+    BPy_Object      * object;
     ID              * id;
     ID              * oldid;
 
@@ -1126,6 +1176,8 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
                     "type not supported");
             return (NULL);
     }
+
+    Py_INCREF (Py_None);
     return (Py_None);
 }
 
@@ -1277,14 +1329,25 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
         return (Object_getData (obj));
     if (StringEqual (name, "ipo"))
     {
-        printf ("This is not implemented yet.\n");
-        return (Py_None);
+        if (obj->ipo == NULL)
+        {
+            obj->ipo = Ipo_CreatePyObject (object->ipo);
+        }
+        else
+        {
+            if (Ipo_FromPyObject (obj->ipo) != object->ipo)
+            {
+                /* The ipo object has changed, so decref the original */
+                /* py_ipo object, and create a new one. */
+                Py_DECREF (obj->ipo);
+                obj->ipo = Ipo_CreatePyObject (object->ipo);
+            }
+        }
+        Py_INCREF (obj->ipo);
+        return (obj->ipo);
     }
     if (StringEqual (name, "mat"))
-    {
-        printf ("This is not implemented yet. (matrix)\n");
-        return (Py_None);
-    }
+        return (Object_getMatrix (obj));
     if (StringEqual (name, "matrix"))
         return (Object_getMatrix (obj));
     if (StringEqual (name, "colbits"))
@@ -1293,6 +1356,8 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
         return (Py_BuildValue ("b", object->dt));
     if (StringEqual (name, "drawMode"))
         return (Py_BuildValue ("b", object->dtx));
+    if (StringEqual (name, "name"))
+        return (Py_BuildValue ("s", object->id.name));
 
     /* not an attribute, search the methods table */
     return Py_FindMethod(BPy_Object_methods, (PyObject *)obj, name);
@@ -1452,6 +1517,13 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
     if (StringEqual (name, "drawMode"))
     {
         if (Object_setDrawMode (obj, value) != Py_None)
+            return (-1);
+        else
+            return (0);
+    }
+    if (StringEqual (name, "name"))
+    {
+        if (Object_setName (obj, value) != Py_None)
             return (-1);
         else
             return (0);

@@ -83,6 +83,10 @@ typedef struct {
     /* points to the object that is tracking this object. This is only set */
     /* when there's a valid PyObject (already created at some point). */
     struct BPy_Object * track;
+    
+    /* points to the ipo object. This is only set when there's a valid */
+    /* PyObject (already created at some point). */
+    PyObject        * ipo;
 } BPy_Object;
 
 #endif /* EXPP_OBJECT_H */
