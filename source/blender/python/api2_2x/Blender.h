@@ -93,10 +93,10 @@ char Blender_Quit_doc[] =
 /* Python method structure definition.                                       */
 /*****************************************************************************/
 struct PyMethodDef Blender_methods[] = {
-	{"Set",    &Blender_Set, METH_VARARGS, Blender_Set_doc},
-	{"Get",    &Blender_Get, METH_VARARGS, Blender_Get_doc},
-	{"Redraw", &Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
-	{"Quit",   &Blender_Quit, METH_NOARGS, Blender_Quit_doc},
+	{"Set",    Blender_Set, METH_VARARGS, Blender_Set_doc},
+	{"Get",    Blender_Get, METH_VARARGS, Blender_Get_doc},
+	{"Redraw", Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
+	{"Quit",   (PyCFunction)Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"ReleaseGlobalDict", &Blender_ReleaseGlobalDict,
 					METH_VARARGS, Blender_ReleaseGlobalDict_doc},
 	{NULL, NULL}

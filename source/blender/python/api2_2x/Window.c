@@ -29,9 +29,133 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "Window.h"
-#include "vector.h"
+#include <Python.h>
+#include <stdio.h>
+
+#include <BKE_global.h>
 #include <BKE_library.h>
+#include <BKE_object.h> /* for during_script() */
+#include <BIF_usiblender.h>
+#include <BIF_mywindow.h>
+#include <BSE_headerbuttons.h>
+#include <BSE_filesel.h>
+#include <BIF_screen.h>
+#include <BIF_space.h>
+#include <BIF_drawtext.h>
+#include <mydevice.h>
+#include <DNA_view3d_types.h>
+#include <DNA_screen_types.h>
+#include <DNA_space_types.h>
+#include <DNA_text_types.h>
+
+#include "gen_utils.h"
+#include "modules.h"
+#include "matrix.h"
+#include "vector.h"
+
+
+/* See Draw.c */
+extern int EXPP_disable_force_draw;
+
+/* Callback used by the file and image selector access functions */
+static PyObject *(*EXPP_FS_PyCallback)(PyObject *arg) = NULL;
+
+/*****************************************************************************/
+/* Python API function prototypes for the Window module.										 */
+/*****************************************************************************/
+PyObject *M_Window_Redraw (PyObject *self, PyObject *args);
+static PyObject *M_Window_RedrawAll (PyObject *self, PyObject *args);
+static PyObject *M_Window_QRedrawAll (PyObject *self, PyObject *args);
+static PyObject *M_Window_DrawProgressBar (PyObject *self, PyObject *args);
+static PyObject *M_Window_GetCursorPos (PyObject *self);
+static PyObject *M_Window_SetCursorPos (PyObject *self, PyObject *args);
+static PyObject *M_Window_GetViewVector (PyObject *self);
+static PyObject *M_Window_GetViewMatrix (PyObject *self);
+static PyObject *M_Window_FileSelector (PyObject *self, PyObject *args);
+static PyObject *M_Window_ImageSelector (PyObject *self, PyObject *args);
+
+/*****************************************************************************/
+/* The following string definitions are used for documentation strings.			 */
+/* In Python these will be written to the console when doing a							 */
+/* Blender.Window.__doc__																										 */
+/*****************************************************************************/
+static char M_Window_doc[] =
+"The Blender Window module\n\n";
+
+static char M_Window_Redraw_doc[] =
+"() - Force a redraw of a specific Window Type (see Window.Types)";
+
+static char M_Window_RedrawAll_doc[] =
+"() - Redraw all windows";
+
+static char M_Window_QRedrawAll_doc[] =
+"() - Redraw all windows by queue event";
+
+static char M_Window_FileSelector_doc[] =
+"(callback [, title, filename]) - Open a file selector window.\n\
+The selected file name is used as argument to a function callback f(name)\n\
+that you must provide. 'title' is optional and defaults to 'SELECT FILE'.\n\
+'filename' is optional and defaults to Blender.Get('filename').\n\n\
+Example:\n\n\
+import Blender\n\n\
+def my_function(filename):\n\
+	print 'The selected file was: ', filename\n\n\
+Blender.Window.FileSelector(my_function, 'SAVE FILE')\n";
+
+static char M_Window_ImageSelector_doc[] =
+"(callback [, title, filename]) - Open an image selector window.\n\
+The selected file name is used as argument to a function callback f(name)\n\
+that you must provide. 'title' is optional and defaults to 'SELECT IMAGE'.\n\
+'filename' is optional and defaults to Blender.Get('filename').\n\n\
+Example:\n\n\
+import Blender\n\n\
+def my_function(filename):\n\
+	print 'The selected image file was: ', filename\n\n\
+Blender.Window.ImageSelector(my_function, 'LOAD IMAGE')\n";
+
+static char M_Window_DrawProgressBar_doc[] =
+"(done, text) - Draw a progress bar.\n\
+'done' is a float value <= 1.0, 'text' contains info about what is\n\
+currently being done.";
+
+static char M_Window_GetCursorPos_doc[] =
+"() - Get the current 3d cursor position as a list of three floats.";
+
+static char M_Window_SetCursorPos_doc[] =
+"([f,f,f]) - Set the current 3d cursor position from a list of three floats.";
+
+static char M_Window_GetViewVector_doc[] =
+"() - Get the current 3d view vector as a list of three floats [x,y,z].";
+
+static char M_Window_GetViewMatrix_doc[] =
+"() - Get the current 3d view matrix.";
+
+/*****************************************************************************/
+/* Python method structure definition for Blender.Window module:						 */
+/*****************************************************************************/
+struct PyMethodDef M_Window_methods[] = {
+	{"Redraw",		 M_Window_Redraw,			METH_VARARGS, M_Window_Redraw_doc},
+	{"RedrawAll",  M_Window_RedrawAll,	METH_VARARGS, M_Window_RedrawAll_doc},
+	{"QRedrawAll", M_Window_QRedrawAll, METH_VARARGS, M_Window_QRedrawAll_doc},
+	{"FileSelector", M_Window_FileSelector, METH_VARARGS,
+		M_Window_FileSelector_doc},
+	{"ImageSelector", (PyCFunction)M_Window_ImageSelector, METH_VARARGS,
+		M_Window_ImageSelector_doc},
+	{"DrawProgressBar", M_Window_DrawProgressBar,  METH_VARARGS,
+		M_Window_DrawProgressBar_doc},
+	{"drawProgressBar", M_Window_DrawProgressBar,  METH_VARARGS,
+		M_Window_DrawProgressBar_doc},
+	{"GetCursorPos", (PyCFunction)M_Window_GetCursorPos,	METH_NOARGS,
+		M_Window_GetCursorPos_doc},
+	{"SetCursorPos", M_Window_SetCursorPos,  METH_VARARGS,
+		M_Window_SetCursorPos_doc},
+	{"GetViewVector", (PyCFunction)M_Window_GetViewVector,	METH_NOARGS,
+		M_Window_GetViewVector_doc},
+	{"GetViewMatrix", (PyCFunction)M_Window_GetViewMatrix,	METH_NOARGS,
+		M_Window_GetViewMatrix_doc},
+	{NULL, NULL, 0, NULL}
+};
+
 
 /* Many parts of the code here come from the older bpython implementation
  * (file opy_window.c) */
@@ -40,8 +164,9 @@
 /* Function:							M_Window_Redraw																		 */
 /* Python equivalent:			Blender.Window.Redraw															 */
 /*****************************************************************************/
+/* not static so py_slider_update in Draw.[ch] can use it */
 PyObject *M_Window_Redraw(PyObject *self, PyObject *args)
-{ /* not static so py_slider_update in Draw.[ch] can use it */
+{ 
 	ScrArea *tempsa, *sa;
 	SpaceText *st;
 	int wintype = SPACE_VIEW3D;
@@ -82,9 +207,10 @@ PyObject *M_Window_Redraw(PyObject *self, PyObject *args)
 
 		if (curarea != tempsa) areawinset (tempsa->win);
 
-		if (curarea->headwin) scrarea_do_headdraw (curarea);
-
-		screen_swapbuffers();
+		if (curarea) { /* is null if Blender is in bg mode */
+			if (curarea->headwin) scrarea_do_headdraw (curarea);
+			screen_swapbuffers();
+		}
 	}
 
 	Py_INCREF(Py_None);
@@ -135,14 +261,16 @@ static void getSelectedFile(char *name)
 static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 {
 	char *title = "SELECT FILE";
+	char *filename = G.sce;
 	SpaceScript *sc;
 	Script *script = G.main->script.last;
 	int startspace = 0;
 
-	if (!PyArg_ParseTuple(args, "O!|s", &PyFunction_Type, &EXPP_FS_PyCallback,
-				&title))
+	if (!PyArg_ParseTuple(args, "O!|ss",
+			&PyFunction_Type, &EXPP_FS_PyCallback, &title, &filename))
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-		"\nexpected a callback function (and optionally a string) as argument(s)"));
+		"\nexpected a callback function (and optionally one or two strings) "
+		"as argument(s)"));
 
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
@@ -167,7 +295,7 @@ static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 
 	script->flags |= SCRIPT_FILESEL;
 
-	activate_fileselect(FILE_BLENDER, title, G.sce, getSelectedFile);
+	activate_fileselect(FILE_BLENDER, title, filename, getSelectedFile);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -176,14 +304,16 @@ static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 static PyObject *M_Window_ImageSelector(PyObject *self, PyObject *args)
 {
 	char *title = "SELECT IMAGE";
+	char *filename = G.sce;
 	SpaceScript *sc;
 	Script *script = G.main->script.last;
 	int startspace = 0;
 
-	if (!PyArg_ParseTuple(args, "O!|s", &PyFunction_Type, &EXPP_FS_PyCallback,
-				&title))
+	if (!PyArg_ParseTuple(args, "O!|ss",
+			&PyFunction_Type, &EXPP_FS_PyCallback, &title, &filename))
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-		"\nexpected a callback function (and optionally a string) as argument(s)"));
+		"\nexpected a callback function (and optionally one or two strings) "
+		"as argument(s)"));
 
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
@@ -209,7 +339,7 @@ static PyObject *M_Window_ImageSelector(PyObject *self, PyObject *args)
 
 	script->flags |= SCRIPT_FILESEL; /* same flag as filesel */
 
-	activate_imageselect(FILE_BLENDER, title, G.sce, getSelectedFile);
+	activate_imageselect(FILE_BLENDER, title, filename, getSelectedFile);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -223,13 +353,13 @@ static PyObject *M_Window_DrawProgressBar(PyObject *self, PyObject *args)
 {
 	float done;
 	char *info = NULL;
-	int retval;
+	int retval = 0;
 
 	if(!PyArg_ParseTuple(args, "fs", &done, &info))
 		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 						"expected a float and a string as arguments"));
 
-	retval = progress_bar(done, info);
+	if (!G.background) retval = progress_bar(done, info);
 
 	return Py_BuildValue("i", retval);
 }

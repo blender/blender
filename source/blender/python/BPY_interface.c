@@ -655,10 +655,20 @@ int BPY_menu_do_python(short menutype, int event)
 	else {
 		Py_DECREF (py_res);
 		script->flags &=~SCRIPT_RUNNING;
+
 		if (!script->flags) {
 			ReleaseGlobalDictionary(py_dict);
 			script->py_globaldict = NULL;
 			free_libblock(&G.main->script, script);
+
+			/* special case: called from the menu in the Scripts window
+			 * we have to change sc->script pointer, since it'll be freed here.*/
+			if (curarea->spacetype == SPACE_SCRIPT) {
+				SpaceScript *sc = curarea->spacedata.first;
+				sc->script = G.main->script.first; /* can be null, which is ok ... */
+				/* ... meaning no other script is running right now. */
+			}
+	
 		}
 	}
 

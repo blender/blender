@@ -8,6 +8,8 @@ Window
 
 This module provides access to B{Window} functions in Blender.
 
+B{New}: file and image selectors accept a filename now.
+
 Example:
 --------
 
@@ -83,7 +85,7 @@ def QRedrawAll ():
   Redraw all windows by queue event.
   """
 
-def FileSelector (callback, title = 'SELECT FILE'):
+def FileSelector (callback, title = 'SELECT FILE', filename = '<default>'):
   """
   Open the file selector window in Blender.  After the user selects a filename,
   it is passed as parameter to the function callback given to FileSelector().
@@ -100,9 +102,11 @@ def FileSelector (callback, title = 'SELECT FILE'):
   @type title: string
   @param title: The string that appears in the button to confirm the selection
       and return from the file selection window.
+  @type filename: string
+  @param filename: A filename.  This defaults to Blender.Get('filename').
   """
 
-def ImageSelector (callback, title = 'SELECT IMAGE'):
+def ImageSelector (callback, title = 'SELECT IMAGE', filename = '<default>'):
   """
   Open the image selector window in Blender.  After the user selects a filename,
   it is passed as parameter to the function callback given to ImageSelector().
@@ -119,6 +123,8 @@ def ImageSelector (callback, title = 'SELECT IMAGE'):
   @type title: string
   @param title: The string that appears in the button to confirm the selection
       and return from the image selection window.
+  @type filename: string
+  @param filename: A filename.  This defaults to Blender.Get('filename').
   """
 
 def DrawProgressBar (done, text):
