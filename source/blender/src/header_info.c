@@ -201,7 +201,7 @@ void write_videoscape_fs()
 	}
 	else {
 		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
-		activate_fileselect(FILE_SPECIAL, "Saave Videoscape", videosc_dir,
+		activate_fileselect(FILE_SPECIAL, "Save Videoscape", videosc_dir,
 										write_videoscape);
 	}
 }
