@@ -1143,17 +1143,6 @@ Ipo_addCurve (BPy_Ipo * self, PyObject * args)
   void allqueue (unsigned short event, short val);
   int param = 0, ok = 0, ipofound = 0;
   char *s = 0;
-  ID id;
-  struct Lamp * la = 0;
-  struct Camera * ca = 0;
-  struct Object * ob = 0;
-  struct Tex * tex = 0;
-  struct World * wo = 0;
-  struct Material * mat = 0;
-  struct Key * ke = 0;
-  /*struct bAction * ac = 0;*/
-  struct Curve * cu = 0;
-  /*struct Sequence * seq = 0;*/
   Ipo *ipo = 0;
   IpoCurve *icu = 0;
   Link *link;
@@ -1305,6 +1294,7 @@ GetIpoCurveName(IpoCurve * icu)
 	return getname_co_ei(icu->adrcode);
       }
     }
+    return NULL;
 }
 
 static PyObject *
