@@ -1019,7 +1019,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case KKEY:
 				if(G.obedit) {
 					if (G.qual & LR_SHIFTKEY ){
-						if (G.obedit->type==OB_MESH) KnifeSubdivide();
+						if (G.obedit->type==OB_MESH) KnifeSubdivide(KNIFE_PROMPT);
 					}
 					else if(G.obedit->type==OB_SURF) printknots();
 				}

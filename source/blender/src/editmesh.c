@@ -6862,7 +6862,7 @@ It is up to the caller to free the block when done with it,
 this doesn't belong here.....
  */
 
-CutCurve *get_mouse_trail(int *len){
+CutCurve *get_mouse_trail(int *len, char mode){
 
 	CutCurve *curve,*temp;
 	short event, val, ldown=0, restart=0, rubberband=0;
@@ -6880,6 +6880,8 @@ CutCurve *get_mouse_trail(int *len){
 	glDrawBuffer(GL_FRONT);
 
 	persp(PERSP_WIN);
+	
+	headerprint("LMB to draw, Enter to finish, ESC to abort.");
 
 	event=extern_qread(&val);
 	while((event != RETKEY ) && (event != RIGHTMOUSE) ){  
@@ -6980,17 +6982,17 @@ CutCurve *get_mouse_trail(int *len){
 	
 	Currently mapped to KKey when in MeshEdit mode.
 	Usage:
-		Hit K, 
+		Hit Shift K, Select Centers or Exact
 		Hold LMB down to draw path, hit RETKEY.
 		ESC cancels as expected.
    
 	Contributed by Robert Wenzlaff (Det. Thorn).
 */
 
-void KnifeSubdivide(){
+void KnifeSubdivide(char mode){
 
 	int oldcursor, len=0;
-	short isect=0, mode=0;
+	short isect=0;
 	CutCurve *curve;		
 	EditEdge *eed; 	
 	
@@ -7001,10 +7003,10 @@ void KnifeSubdivide(){
 	set_cursor(CURSOR_PENCIL); 
 	
 	calc_meshverts_ext();  /*Update screen coords for current window */
+		
+	if (mode==KNIFE_PROMPT) mode=pupmenu("Cut Type %t|Exact Line%x1|Centers%x2|");
 	
-	curve=get_mouse_trail(&len);
-	
-	if (curve) mode=pupmenu("Cut Type %t|Intersect%x1|50%%x2|");
+	curve=get_mouse_trail(&len, TRAIL_MIXED);
 	
 	if (curve && len && mode){
 		eed= G.eded.first;		
