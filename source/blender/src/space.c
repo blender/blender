@@ -1249,6 +1249,8 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						transform('N'); /* scale along normal */
 					else if(G.qual==LR_CTRLKEY)
 						transform('S');
+					else if(G.qual==LR_SHIFTKEY)
+						snapmenu();
 					else if((G.qual==0))
 						transform('s');
 				}
@@ -1261,7 +1263,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					transform('s');
 				break;
 			case TKEY:
-				if(G.obedit)
+				if(G.obedit){
 					if((G.qual==LR_CTRLKEY) && G.obedit->type==OB_MESH) {
 						convert_to_triface(0);
 						allqueue(REDRAWVIEW3D, 0);
@@ -1272,6 +1274,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_tilt();
 					else if((G.qual==0))
 						transform('t');
+				}
 				else if(G.qual==LR_CTRLKEY) {
 					make_track();
 				}
