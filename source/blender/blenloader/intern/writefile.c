@@ -1499,6 +1499,7 @@ static void write_global(WriteData *wd)
 	fg.displaymode= R.displaymode;
 	fg.winpos= R.winpos;
 	fg.fileflags= G.fileflags;
+	fg.globalf= G.f;
 	
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }

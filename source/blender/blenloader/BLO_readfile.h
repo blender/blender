@@ -82,6 +82,7 @@ typedef struct BlendFileData {
 	int winpos;
 	int fileflags;
 	int displaymode;
+	int globalf;
 
 	struct bScreen*	curscreen;
 	struct Scene*	curscene;

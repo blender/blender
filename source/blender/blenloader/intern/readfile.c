@@ -2791,10 +2791,11 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 
 static void link_global(FileData *fd, BlendFileData *bfd, FileGlobal *fg)
 {
+	// this is nonsense... will get rid of it once (ton) 
 	bfd->winpos= fg->winpos;
 	bfd->fileflags= fg->fileflags;
 	bfd->displaymode= fg->displaymode;
-	
+	bfd->globalf= fg->globalf;
 	bfd->curscreen= newlibadr(fd, 0, fg->curscreen);
 }
 

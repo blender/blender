@@ -42,6 +42,8 @@ typedef struct FileGlobal {
 	void *curscreen;
 	short displaymode, winpos;
 	int fileflags;
+	int globalf;
+	int pad;
 } FileGlobal;
 
 #endif
