@@ -2016,7 +2016,7 @@ void drawview3d_render(struct View3D *v3d)
 		ob= ob->id.next;
 	}
 
-	/* first deaw set */
+	/* first draw set */
 	if(G.scene->set) {
 	
 		/* patch: color remains constant */ 

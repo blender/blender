@@ -1682,7 +1682,8 @@ static void add_bone_input (Object *ob)
 			Mat4One (bone->obmat);
 			bone->size[0]=bone->size[1]=bone->size[2]=1.0F;
 
-			force_draw();
+			force_draw_plus(SPACE_BUTS);
+			
 			while(qtest()) {
 				event= extern_qread(&val);
 				if(val) {
