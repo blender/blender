@@ -272,70 +272,7 @@ static PyObject *Ipo_getNcurves(BPy_Ipo *self)
 }
 
 
-	 char*nametab_ob[24] = {"LocX","LocY","LocZ","dLocX","dLocY","dLocZ","RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ","dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
-	char*nametab_ca[3] = {"Lens","ClSta","ClEnd"};
-	char*nametab_wo[29] = {"HorR","HorG","HorB","ZenR","ZenG","ZenB","Expos","Misi","MisDi","MisSta","MisHi","StaR","StaG","StaB","StarDi","StarSi","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
-	char*nametab_ma[32] = {"R","G","B","SpecR","SpecG","SpecB","MirR","MirG","MirB","Ref","Alpha","Emit","Amb","Spec","Hard","SpTra","Ang","Mode","HaSize","OfsX","OfsY","OfsZ","SizeX","SizeY","SizeZ","TexR","TexG","TexB","DefVar","Col","Nor","Var"};
 
-
-
-int num_from_type(char*type,int ipotype)
-{
-	int i = 0,typenumber = -1,tabsize;
-	if (ipotype == ID_OB)
-		{
-			tabsize = 24;
-	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab_ob[i],type))
-			typenumber=i+1;
-
-		}
-	if (ipotype == ID_CA)
-		{
-			tabsize = 3;
-	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab_ca[i],type))
-			typenumber=i+1;
-		}
-	if (ipotype == ID_WO)
-		{
-			tabsize = 29;
-	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab_wo[i],type))
-			typenumber=i+1;
-		}
-	if (ipotype == ID_MA)
-		{
-			tabsize = 32;
-	for(i = 0;i<tabsize;i++)
-		if(!strcmp(nametab_ma[i],type))
-			typenumber=i+1;
-		}
-
-	return typenumber;
-}
-
-char* type_from_num(int num,int ipotype)
-{
-	
-	if (ipotype == ID_CA)
-		{
-	return nametab_ca[num-1];
-		}
-	if (ipotype == ID_OB)
-		{
-	return nametab_ob[num-1];
-		}
-	if (ipotype == ID_WO)
-		{
-	return nametab_wo[num-1];
-		}
-	if (ipotype == ID_MA)
-		{
-	return nametab_ma[num-1];
-		}
-	return 0;
-}
 
 
 static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args)
@@ -345,10 +282,10 @@ static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args)
 	int typenumber = -1;
 	char*type = 0;
 	static char *name="mmmppp";
-
+	puts("kkk");
 	if (!PyArg_ParseTuple(args, "s",&type))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
-	typenumber = num_from_type(type,self->ipo->blocktype);
+	typenumber = self->ipo->blocktype;
 	if (typenumber == -1)
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown type"));
 
@@ -364,6 +301,12 @@ static PyObject *Ipo_addCurve(BPy_Ipo *self, PyObject *args)
 	return IpoCurve_CreatePyObject (ptr);
 }
 
+void GetIpoCurveName(IpoCurve *icu,char*s);
+void getname_mat_ei(int nr, char *str);
+void getname_world_ei(int nr, char *str);
+void getname_cam_ei(int nr, char *str);
+void getname_ob_ei(int nr, char *str);
+
 static PyObject *Ipo_getCurve(BPy_Ipo *self, PyObject *args)
 {
 	//int num = 0 , i = 0;
@@ -372,20 +315,36 @@ static PyObject *Ipo_getCurve(BPy_Ipo *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "s",&str))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected string argument"));
  for (icu=self->ipo->curve.first; icu; icu=icu->next){
-	 if (!strcmp(type_from_num(icu->adrcode, icu->blocktype),str))return IpoCurve_CreatePyObject(icu);
+	 char str1[80];
+	 GetIpoCurveName(icu,str1);
+	 if (!strcmp(str1,str))return IpoCurve_CreatePyObject(icu);
         }
 
   Py_INCREF(Py_None);
   return Py_None;
 }
 
+
+void GetIpoCurveName(IpoCurve *icu,char*s)
+{
+	switch (icu->blocktype)
+				{
+				case ID_MA : {getname_mat_ei(icu->adrcode,s);break;}
+				case ID_WO : {getname_world_ei(icu->adrcode,s);break;}
+				case ID_CA : {getname_cam_ei(icu->adrcode,s);break;}
+				case ID_OB : {getname_ob_ei(icu->adrcode,s);break;}
+				}
+}
+
+
 static PyObject *Ipo_getCurves(BPy_Ipo *self)
 {
   PyObject *attr = PyList_New(0);
   IpoCurve *icu;
-        for (icu=self->ipo->curve.first; icu; icu=icu->next){
-        PyList_Append(attr, IpoCurve_CreatePyObject(icu));
-        }
+	for (icu=self->ipo->curve.first; icu; icu=icu->next)
+		{
+			PyList_Append(attr, IpoCurve_CreatePyObject(icu));
+		}
 	return attr;
 }
 
@@ -553,28 +512,36 @@ static PyObject *Ipo_getCurvecurval(BPy_Ipo *self, PyObject *args)
 	IpoCurve *icu;
 	char*stringname = 0;
 
-  if (!PyArg_ParseTuple(args, "i",&numcurve))
-  if (!PyArg_ParseTuple(args, "s",&stringname))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int or string argument"));
 	icu =self->ipo->curve.first;
 	if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"No IPO curve"));
-	if (!stringname)
-	for(i = 0;i<numcurve;i++)
-		{
-			puts(type_from_num(icu->adrcode,icu->blocktype));
-			if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
-			icu=icu->next;
-                 
+
+	if (PyNumber_Check(PySequence_GetItem(args,0)))// args is an integer
+		{ 
+			if (!PyArg_ParseTuple(args, "i",&numcurve))
+				return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int or string argument"));
+			for(i = 0;i<numcurve;i++)
+				{
+					if(!icu) return (EXPP_ReturnPyObjError (PyExc_TypeError,"Bad ipo number"));
+					icu=icu->next;
+				}
 		}
-	else
-		while (icu){
-			if (!strcmp(type_from_num(icu->adrcode,icu->blocktype),stringname))break;
-			icu=icu->next;
+
+	else // args is a string
+		{	
+if (!PyArg_ParseTuple(args, "s",&stringname))
+				return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected int or string argument"));
+			while (icu)
+				{
+					char str1[10];
+					GetIpoCurveName(icu,str1);
+					if (!strcmp(str1,stringname))break;
+					icu=icu->next;
+				}
 		}
+	
 	if (icu) return PyFloat_FromDouble(icu->curval);
-	else { Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
   return Py_None;
-	}
 }
 
 

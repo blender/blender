@@ -270,9 +270,10 @@ if (strcmp (name, "bezierPoints") == 0)return IpoCurve_setPoints(self,value);
 /*****************************************************************************/
 static PyObject *IpoCurveRepr (C_IpoCurve *self)
 {
-	char*type_from_num(int,int);
-	char s[1024];	
-	sprintf(s,"IpoCurve %s \n",type_from_num(self->ipocurve->adrcode,self->ipocurve->blocktype));
+	void GetIpoCurveName(IpoCurve *icu,char*s);
+	char s[100],s1[100];
+	GetIpoCurveName(self->ipocurve,s1);
+	sprintf(s,"IpoCurve %s \n",s1);
   return PyString_FromString(s);
 }
 
