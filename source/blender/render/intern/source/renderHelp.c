@@ -185,8 +185,10 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 		}
 
 		projectfunc(vec, hoco);
-
-		if(R.r.mode & R_PANORAMA) hoco[3]*= 2.0;	/* asking for troubles! */
+		
+		/* we clip halos less critical, but not for the Z */
+		hoco[0]*= 0.5;
+		hoco[1]*= 0.5;
 		
 		if( panotestclip(hoco) ) {
 			har->miny= har->maxy= -10000;	/* that way render clips it */
@@ -196,7 +198,9 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 		}
 		else /* do the projection...*/
 		{
-			if(R.r.mode & R_PANORAMA) hoco[3]*= 0.5;	/* asking for troubles! */
+			/* bring back hocos */
+			hoco[0]*= 2.0;
+			hoco[1]*= 2.0;
 			
 			zn= hoco[3];
 			har->xs= 0.5*R.rectx*(1.0+hoco[0]/zn); /* the 0.5 negates the previous 2...*/
