@@ -907,7 +907,7 @@ static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int s
 		}
 	}
 	if(set) {
-		mainqenter(F5KEY, 1);	// force shading buttons
+		extern_set_butspace(F5KEY);	// force shading buttons
 		BIF_all_preview_changed();
 		allqueue(REDRAWBUTSSHADING, 1);
 		allqueue(REDRAWOOPS, 0);
@@ -948,7 +948,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 				sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 1;
 			}
-			mainqenter(F6KEY, 1);	// force shading buttons texture
+			extern_set_butspace(F6KEY);	// force shading buttons texture
 			wrld->texact= te->index;
 		}
 		else if(tselemp->id == (ID *)(G.scene->world)) {
@@ -962,7 +962,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 				sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 2;
 			}
-			mainqenter(F6KEY, 1);	// force shading buttons texture
+			extern_set_butspace(F6KEY);	// force shading buttons texture
 			la->texact= te->index;
 		}
 		else {
@@ -978,7 +978,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 				//sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 0;
 			}
-			mainqenter(F6KEY, 1);	// force shading buttons texture
+			extern_set_butspace(F6KEY);	// force shading buttons texture
 			ma->texact= te->index;
 			
 			/* also set active material */
@@ -1002,7 +1002,7 @@ static int tree_element_active_lamp(SpaceOops *soops, TreeElement *te, int set)
 	if(ob!=OBACT) return 0;	// just paranoia
 	
 	if(set) {
-		mainqenter(F5KEY, 1);
+		extern_set_butspace(F5KEY);
 		BIF_all_preview_changed();
 		allqueue(REDRAWBUTSSHADING, 1);
 		allqueue(REDRAWOOPS, 0);
@@ -1017,12 +1017,25 @@ static int tree_element_active_world(SpaceOops *soops, TreeElement *te, int set)
 {
 	TreeElement *tep;
 	TreeStoreElem *tselem=NULL;
+	Scene *sce=NULL;
 	
 	tep= te->parent;
-	if(tep) tselem= TREESTORE(tep);
+	if(tep) {
+		tselem= TREESTORE(tep);
+		sce= (Scene *)tselem->id;
+	}
+	
+	if(set) {	// make new scene active
+		if(sce && G.scene != sce) {
+			if(G.obedit) exit_editmode(2);
+			if(G.obpose) exit_posemode(1);
+			set_scene(sce);
+		}
+	}
+	
 	if(tep==NULL || tselem->id == (ID *)G.scene) {
 		if(set) {
-			mainqenter(F8KEY, 1);
+			extern_set_butspace(F8KEY);
 		}
 		else {
 			return 1;
@@ -1257,7 +1270,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 						if(G.obedit) exit_editmode(2);
 						else {
 							enter_editmode();
-							mainqenter(F9KEY, 1);
+							extern_set_butspace(F9KEY);
 						}
 					}
 					else if(te->idcode==ID_AR) {
@@ -1616,8 +1629,13 @@ static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb,
 	for(te=lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		if(tselem->flag & TSE_SELECTED) {
-			if(tselem->type==0 && te->idcode==ID_OB) 
+			if(tselem->type==0 && te->idcode==ID_OB) {
+				// when objects selected in other scenes... dunno if that should be allowed
+				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
+				if(sce && G.scene != sce) set_scene(sce);
+				
 				operation_cb(te, tselem);
+			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
 			outliner_do_object_operation(soops, &te->subtree, operation_cb);
@@ -1644,7 +1662,10 @@ void outliner_operation_menu(ScrArea *sa)
 			char *str="";
 			
 			if(event==1) {
+				Scene *sce= G.scene;	// to be able to delete, scenes are set...
 				outliner_do_object_operation(soops, &soops->tree, object_select_cb);
+				if(G.scene != sce) set_scene(sce);
+				
 				str= "Select Objects";
 			}
 			else if(event==2) {

@@ -50,6 +50,7 @@
 #include "BKE_mesh.h"
 
 #include "BIF_editdeform.h"
+#include "BIF_editmesh.h"
 #include "BIF_toolbox.h"
 
 #include "BSE_edit.h"
@@ -76,8 +77,8 @@ void sel_verts_defgroup (int select)
 			if (eve->totweight){
 				for (i=0; i<eve->totweight; i++){
 					if (eve->dw[i].def_nr == (ob->actdef-1)){
-						if (select) eve->f |= 1;
-						else eve->f &= ~1;
+						if (select) eve->f |= SELECT;
+						else eve->f &= ~SELECT;
 						break;
 					}
 				}
@@ -88,6 +89,7 @@ void sel_verts_defgroup (int select)
 		break;
 	}
 	countall();
+	EM_select_flush();	// vertices to edges/faces
 
 }
 
