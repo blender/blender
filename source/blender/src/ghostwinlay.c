@@ -67,6 +67,9 @@
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #include <Carbon/Carbon.h>
+
+/*declarations*/
+int checkAppleVideoCard();
 #endif
 ///
 
@@ -104,7 +107,9 @@ struct _Window {
    blender to start maximised if all the followings are true :
 		- Renderer is OpenGL capable
 		- Hardware acceleration
-		- VRAM > 8 Mo
+		- VRAM > 16 Mo
+		
+   we will bail out if VRAM is less than 8Mo
 		*/
 		
 static int macPrefState = 0;
@@ -128,7 +133,7 @@ int checkAppleVideoCard() {
 				theErr = CGLDescribeRenderer (rend, j, kCGLRPVideoMemory, &value); 
 				if (value > maxvram)
 					maxvram = value;
-				if ((theErr == 0) && (value >= 10000000)) {
+				if ((theErr == 0) && (value >= 20000000)) {
 					theErr = CGLDescribeRenderer (rend, j, kCGLRPAccelerated, &value); 
 					if ((theErr == 0) && (value != 0)) {
 						theErr = CGLDescribeRenderer (rend, j, kCGLRPCompliant, &value); 
