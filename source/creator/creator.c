@@ -429,9 +429,11 @@ int main(int argc, char **argv)
 		 * so we provide the BPY_ function below to append the user defined
 		 * pythondir to Python's sys.path at this point.  Simply putting
 		 * BIF_init() before BPY_start_python() crashes Blender at startup.
+		 * Update: now this function also inits the bpymenus, which also depend
+		 * on U.pythondir.
 		 */
 
-		BPY_syspath_append_pythondir();
+		BPY_post_start_python();
 	}
 	else {
 		BPY_start_python();

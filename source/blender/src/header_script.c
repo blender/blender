@@ -66,13 +66,82 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"
-#include "BPY_extern.h"
 #include "BSE_filesel.h"
+
+#include "BPY_extern.h"
+#include "BPY_menus.h"
 
 #include "blendef.h"
 #include "mydevice.h"
 
 /* ********************** SCRIPT ****************************** */
+
+/* action executed after clicking in Scripts menu */
+static void do_scripts_submenus(void *int_arg, int event)
+{
+	SpaceScript *sc= curarea->spacedata.first;
+	Script *script= sc->script;
+	ScrArea *sa;
+	int menutype = (int)int_arg;
+
+	BPY_menu_do_python (menutype, event);
+
+	//allqueue(REDRAWSCRIPT, 0);
+}
+
+static uiBlock *script_scripts_submenus(void *int_menutype)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+	BPyMenu *pym;
+	int i = 0, menutype = (int)int_menutype;
+
+	if ((menutype < 0) || (menutype > PYMENU_TOTAL)) return;
+
+	block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_scripts_submenus, int_menutype);
+	//uiBlockSetXOfs(block, -50);  // offset to parent button
+
+	for (pym = BPyMenuTable[menutype]; pym; pym = pym->next, i++) {
+		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+	}
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+/* Scripts menu */
+static uiBlock *script_scriptsmenu(void *arg_unused)
+{
+	//SpaceScript *sc= curarea->spacedata.first;
+	//Script *script= sc->script;
+	uiBlock *block;
+	short yco = 0, menuwidth = 120;
+	int i;
+
+	block= uiNewBlock(&curarea->uiblocks, "script_scriptsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	//uiBlockSetButmFunc(block, do_script_scriptsmenu, NULL);
+
+	for (i = 0; i < PYMENU_TOTAL; i++) {
+		uiDefIconTextBlockBut(block, script_scripts_submenus, (void *)i, ICON_RIGHTARROW_THIN, BPyMenu_group_itoa(i), 0, yco-=20, menuwidth, 19, "");
+	}
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
 void do_script_buttons(unsigned short event)
 {	
 	SpaceScript *sc= curarea->spacedata.first;
@@ -121,7 +190,7 @@ void script_buttons(void)
 {
 	uiBlock *block;
 	SpaceScript *sc= curarea->spacedata.first;
-	short xco = 8;
+	short xco = 8, xmax;
 	char naam[256];
 	
 	if (!sc || sc->spacetype != SPACE_SCRIPT) return;
@@ -138,9 +207,34 @@ void script_buttons(void)
 			windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0,
 			SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu"
 			" of available types.");
+	xco += XIC+14;
+
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if(curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
+	} else {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+				xco,2,XIC,YIC-2,
+				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
+	}
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	xco+=XIC;
+
+	/* pull down menus */
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+		xmax= GetButStringLength("Scripts");
+		uiDefBlockBut(block,script_scriptsmenu, NULL, "Scripts", xco, 0, xmax, 20, "");
+		xco+=xmax;
+	}
+
+	uiBlockSetEmboss(block, UI_EMBOSSX);
+	xco += 10;
 
 	/* FULL WINDOW */
-	xco= 25;
 	if(curarea->full)
 		uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0,
 			  0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
@@ -149,7 +243,7 @@ void script_buttons(void)
 				0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 
 	/* STD SCRIPT BUTTONS */
-	xco+= 2*XIC;
+	xco += 2*XIC;
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SCRIPTBROWSE, (ID*)sc->script, 0, &(sc->menunr), 0, 0, 0, 0, 0);
 
 	/* always as last  */
@@ -157,6 +251,7 @@ void script_buttons(void)
 
 	uiDrawBlock(block);
 }
+
 
 /* ********************** SCRIPT ****************************** */
 

@@ -41,12 +41,14 @@
 #include <MEM_guardedalloc.h>
 #include <BLI_blenlib.h> /* for BLI_last_slash() */
 
+#include <BIF_interface.h> /* for pupmenu */
 #include <BIF_space.h>
 #include <BIF_screen.h>
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_main.h>
 #include <BKE_text.h>
+#include <BKE_utildefines.h>
 #include <DNA_camera_types.h>
 #include <DNA_ID.h>
 #include <DNA_lamp_types.h>
@@ -62,6 +64,7 @@
 #include <DNA_userdef_types.h> /* for U.pythondir */
 
 #include "BPY_extern.h"
+#include "BPY_menus.h"
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
 
@@ -135,6 +138,9 @@ void BPY_end_python(void)
   }
 
   Py_Finalize();
+
+	BPyMenu_RemoveAllEntries(); /* freeing bpymenu mem */
+
   return;
 }
 
@@ -198,7 +204,7 @@ void init_syspath(void)
   else
     printf ("Warning: could not determine argv[0] path\n");
 
-  if (U.pythondir) {
+  if (U.pythondir && strcmp(U.pythondir, "")) {
     p = Py_BuildValue("s", U.pythondir);
     syspath_append(p);  /* append to module search path */
   }
@@ -256,15 +262,17 @@ void init_syspath(void)
 }
 
 /*****************************************************************************/
-/* Description: This function adds the user defined folder for Python        */
-/*              scripts to sys.path.  This is done in init_syspath, too, but */
-/*              when Blender's main() runs BPY_start_python(), U.pythondir   */
-/*              isn't set yet, so we provide this function to be executed    */
-/*              after U.pythondir is defined.                                */
+/* Description: This function finishes Python initialization in Blender.     */
+/*              Because U.pythondir (user defined dir for scripts) isn't     */
+/*              initialized when BPY_start_Python needs to be executed, we   */
+/*              postpone adding U.pythondir to sys.path and also BPyMenus    */
+/*              (mechanism to register scripts in Blender menus) for when    */
+/*              that dir info is available.                                  */
 /*****************************************************************************/
-void BPY_syspath_append_pythondir(void)
+void BPY_post_start_python(void)
 {
   syspath_append(Py_BuildValue("s", U.pythondir));
+	BPyMenu_Init(); /* get dynamic menus (registered scripts) data */
 }
 
 /*****************************************************************************/
@@ -304,9 +312,14 @@ PyObject *traceback_getFilename(PyObject *tb)
 /* Description: Blender Python error handler. This catches the error and     */
 /* stores filename and line number in a global                               */
 /*****************************************************************************/
-void BPY_Err_Handle(Text *text)
+void BPY_Err_Handle(char *script_name)
 {
   PyObject *exception, *err, *tb, *v;
+
+	if (!script_name) {
+		printf("Error: script has NULL name\n");
+		return;
+	}
 
   PyErr_Fetch(&exception, &err, &tb);
 
@@ -315,7 +328,7 @@ void BPY_Err_Handle(Text *text)
     return;
   }
 
-  strcpy(g_script_error.filename, GetName(text));
+  strcpy(g_script_error.filename, script_name);
 
   if (exception && PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
     /* no traceback available when SyntaxError */
@@ -350,7 +363,7 @@ void BPY_Err_Handle(Text *text)
       v = PyObject_GetAttrString(tb, "tb_next");
 
       if (v == Py_None || strcmp(PyString_AsString(traceback_getFilename(v)),
-                              GetName(text))) {
+                              script_name)) {
         break;
       }
 
@@ -378,7 +391,7 @@ void BPY_Err_Handle(Text *text)
 int BPY_txt_do_python(struct SpaceText* st)
 {
   PyObject *py_dict, *py_result;
-	BPy_constant *tracer;
+	BPy_constant *info;
 	Script *script = G.main->script.first;
 
   if (!st->text) return 0;
@@ -415,14 +428,13 @@ int BPY_txt_do_python(struct SpaceText* st)
 
 	script->py_globaldict = py_dict;
 
-/* We will insert a constant dict at this script's namespace, with the name
- * of the script.  Later more info can be added, if necessary. */
-	tracer = (BPy_constant *)M_constant_New(); /*create a constant object*/
-	if (tracer) {
-		constant_insert(tracer, "name", PyString_FromString(script->id.name+2));
+	info = (BPy_constant *)M_constant_New();
+	if (info) {
+		constant_insert(info, "name", PyString_FromString(script->id.name+2));
+		Py_INCREF (Py_None);
+		constant_insert(info, "arg", Py_None);
+		PyDict_SetItemString(py_dict, "__script__", (PyObject *)info);
 	}
-
-	PyDict_SetItemString(py_dict, "__script__", (PyObject *)tracer);
 
   clearScriptLinks ();
 
@@ -430,11 +442,130 @@ int BPY_txt_do_python(struct SpaceText* st)
 
 	if (!py_result) { /* Failed execution of the script */
 
-    BPY_Err_Handle(st->text);
+    BPY_Err_Handle(GetName(st->text));
 		ReleaseGlobalDictionary(py_dict);
 		free_libblock(&G.main->script, script);
-    BPY_end_python();
-    BPY_start_python();
+    //BPY_end_python();
+    //BPY_start_python();
+
+    return 0;
+	}
+	else {
+		Py_DECREF (py_result);
+		script->flags &=~SCRIPT_RUNNING;
+		if (!script->flags) {
+			ReleaseGlobalDictionary(py_dict);
+			script->py_globaldict = NULL;
+			free_libblock(&G.main->script, script);
+		}
+	}
+
+  return 1; /* normal return */
+}
+
+/*****************************************************************************/
+/* Description: This function executes the script chosen from a menu.        */
+/* Notes:       It is called by the ui code in src/header_???.c when a user  */
+/*              clicks on a menu entry that refers to a script.              */
+/*              Scripts are searched in the BPyMenuTable, using the given    */
+/*              menutype and event values to know which one was chosen.      */
+/*****************************************************************************/
+int BPY_menu_do_python(short menutype, int event)
+{
+  PyObject *py_dict, *py_result, *pyarg = NULL;
+	BPy_constant *info;
+	BPyMenu *pym;
+	BPySubMenu *pysm;
+	FILE *fp = NULL;
+	char filestr[FILE_MAXDIR+FILE_MAXFILE];
+	Script *script = G.main->script.first;
+
+	if ((menutype < 0) || (menutype > PYMENU_TOTAL) || (event < 0))
+		return 0;
+
+	pym = BPyMenuTable[menutype];
+
+	while (event--) {
+		if (pym) pym = pym->next;
+		else break;
+	}
+
+	if (!pym) return 0;
+
+/* if there are submenus, let the user choose one from a pupmenu that we
+ * create here.*/
+	pysm = pym->submenus;
+	if (pysm) {
+		char *pupstr; 
+		int arg;
+
+		pupstr = BPyMenu_CreatePupmenuStr(pym, menutype);
+
+		if (pupstr) {
+			arg = pupmenu(pupstr);
+			MEM_freeN(pupstr);
+
+			if (arg >= 0) {
+				while (arg--) pysm = pysm->next;
+				pyarg = PyString_FromString(pysm->arg);
+			}
+			else return 0;
+		}
+	}
+
+	if (!pyarg) {/* no submenus */
+		Py_INCREF (Py_None);
+		pyarg = Py_None;
+	}
+
+	BLI_make_file_string(NULL, filestr, U.pythondir, pym->filename);
+	fp = fopen(filestr, "r");
+	if (!fp) { /* later also support userhome/.blender/scripts/ or whatever */
+		printf("Error loading script: couldn't open file %s\n", filestr);
+		return 0;
+	}
+
+	/* Create a new script structure and initialize it: */
+	script = alloc_libblock(&G.main->script, ID_SCRIPT, pym->name);
+
+	if (!script) {
+		printf("couldn't allocate memory for Script struct!");
+		fclose(fp);
+		return 0;
+	}
+
+	script->id.us = 1;
+	script->filename = NULL; /* it's a Blender Text script */
+	script->flags = SCRIPT_RUNNING;
+	script->py_draw = NULL;
+	script->py_event = NULL;
+	script->py_button = NULL;
+
+	py_dict = CreateGlobalDictionary();
+
+	script->py_globaldict = py_dict;
+
+	info = (BPy_constant *)M_constant_New();
+	if (info) {
+		constant_insert(info, "name", PyString_FromString(script->id.name+2));
+		constant_insert(info, "arg", pyarg);
+		PyDict_SetItemString(py_dict, "__script__", (PyObject *)info);
+	}
+
+  clearScriptLinks ();
+
+	py_result = PyRun_File(fp, pym->filename, Py_file_input, py_dict, py_dict);
+
+	fclose(fp);
+
+	if (!py_result) { /* Failed execution of the script */
+
+    BPY_Err_Handle(script->id.name+2);
+		PyErr_Print();
+		ReleaseGlobalDictionary(py_dict);
+		free_libblock(&G.main->script, script);
+  //  BPY_end_python();
+  //  BPY_start_python();
 
     return 0;
 	}
@@ -595,7 +726,7 @@ void BPY_do_pyscript(struct ID *id, short event)
       if (!ret)
       {
           /* Failed execution of the script */
-          BPY_Err_Handle ((Text*) scriptlink->scripts[index]);
+          BPY_Err_Handle (scriptlink->scripts[index]->name+2);
           BPY_end_python ();
           BPY_start_python ();
       }

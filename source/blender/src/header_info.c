@@ -108,6 +108,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BPY_extern.h"
+#include "BPY_menus.h"
 
 #include "render.h" // for R - should use BKE_bad_level_calls.h instead?
 
@@ -661,16 +662,13 @@ static void do_info_file_importmenu(void *arg, int event)
 	ScrArea *sa;
 
 	if(curarea->spacetype==SPACE_INFO) {
-		sa= closest_bigger_area();
+		sa= find_biggest_area_of_type(SPACE_SCRIPT);
+		if (!sa) sa= closest_bigger_area();
 		areawinset(sa->win);
 	}
 
-	/* these are no defines, easier this way, the codes are in the function below */
-	switch(event) {
-									
-	case 0:
-		break;
-	}
+	BPY_menu_do_python(PYMENU_IMPORT, event);
+
 	allqueue(REDRAWINFO, 0);
 }
 
@@ -678,14 +676,19 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
+	BPyMenu *pym;
+	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_importmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
-	
-	// uiDefBut(block, BUTM, 1, "Python scripts go here somehow!",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
+
+	for (pym = BPyMenuTable[PYMENU_IMPORT]; pym; pym = pym->next, i++) {
+		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+	}
+
+	//uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 
@@ -701,8 +704,12 @@ static void do_info_file_exportmenu(void *arg, int event)
 		areawinset(sa->win);
 	}
 
+	/* events >=3 are registered bpython scripts */
+	if (event >= 3) BPY_menu_do_python(PYMENU_EXPORT, event - 3);
+
 	/* these are no defines, easier this way, the codes are in the function below */
-	switch(event) {
+
+	else switch(event) {
 									
 	case 0:
 		write_vrml_fs();
@@ -720,22 +727,30 @@ static void do_info_file_exportmenu(void *arg, int event)
 static uiBlock *info_file_exportmenu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco = 20;
+	short yco = 20, menuwidth = 120;
+	BPyMenu *pym;
+	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "exportmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_exportmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
 	
-	uiDefBut(block, BUTM, 1, "VRML 1.0...|Ctrl F2",		0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "DXF...|Shift F2",		0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefBut(block, BUTM, 1, "Videoscape...|Alt W",		0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefBut(block, BUTM, 1, "VRML 1.0...|Ctrl F2",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, 1, "DXF...|Shift F2",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefBut(block, BUTM, 1, "Videoscape...|Alt W",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+/* note that we acount for the 3 previous entries with i+3: */
+	for (pym = BPyMenuTable[PYMENU_EXPORT]; pym; pym = pym->next, i++) {
+		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+3, pym->tooltip?pym->tooltip:pym->filename);
+	}
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 
 	return block;
 }
-
 
 static void do_info_filemenu(void *arg, int event)
 {
@@ -857,7 +872,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Append...|Shift F1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-//	uiDefIconTextBlockBut(block, info_file_importmenu, NULL, ICON_RIGHTARROW_THIN, "Import", 0, yco-=20, menuwidth, 19, "");
+	uiDefIconTextBlockBut(block, info_file_importmenu, NULL, ICON_RIGHTARROW_THIN, "Import", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, info_file_exportmenu, NULL, ICON_RIGHTARROW_THIN, "Export", 0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

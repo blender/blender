@@ -11,6 +11,7 @@ python_env.Append (CXXFLAGS = cxxflags)
 python_env.Append (CPPDEFINES = defines)
 
 source_files = ['BPY_interface.c',
+                'BPY_menus.c',
                 'api2_2x/Blender.c',
                 'api2_2x/Sys.c',
                 'api2_2x/Registry.c',
