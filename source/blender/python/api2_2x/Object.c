@@ -1111,7 +1111,7 @@ static PyObject *Object_setLocation (BPy_Object *self, PyObject *args)
 
     self->object->loc[0] = loc1;
     self->object->loc[1] = loc2;
-    self->object->loc[2] = loc2;
+    self->object->loc[2] = loc3;
 
     Py_INCREF (Py_None);
     return (Py_None);
