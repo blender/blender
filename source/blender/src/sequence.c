@@ -1504,7 +1504,7 @@ void init_glow_effect(Sequence *seq)
 	seq->effectdata = MEM_callocN(sizeof(struct GlowVars), "glowvars");
 
 	glow = (GlowVars *)seq->effectdata;
-	glow->fMini = 0.5;
+	glow->fMini = 0.25;
 	glow->fClamp = 1.0;
 	glow->fBoost = 0.5;
 	glow->dDist = 3.0;
