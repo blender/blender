@@ -1105,8 +1105,8 @@ static void init_render_displist_mesh(Object *ob)
 	float xn, yn, zn;
 	float mat[4][4], imat[3][3], *data, *nors, *orco=0, n1[3], flen;
 	int a, b, flipnorm= -1,  need_orco=0, startvert, p1, p2, p3, p4;
-	int old_totvert= R.totvert, numvert=0;
-	int old_totvlak= R.totvlak, numface=0;
+	int old_totvert= R.totvert;
+	int old_totvlak= R.totvlak;
 
 	me= ob->data;
 
@@ -1153,7 +1153,7 @@ static void init_render_displist_mesh(Object *ob)
 	while(dl) {
 		if(dl->type==DL_SURF) {
 			startvert= R.totvert;
-			numvert = a = dl->nr*dl->parts;
+			a = dl->nr*dl->parts;
 			data= dl->verts;
 			nors= dl->nors;
 			
@@ -1201,7 +1201,6 @@ static void init_render_displist_mesh(Object *ob)
 
 					flen= CalcNormFloat4(v1->co, v3->co, v4->co, v2->co, n1);
 					if(flen!=0.0) {
-						numface++;
 						vlr= RE_findOrAddVlak(R.totvlak++);
 						vlr->ob= ob;
 						vlr->v1= v1;
@@ -1240,7 +1239,6 @@ static void init_render_displist_mesh(Object *ob)
 			int i;
 			
 			startvert= R.totvert;
-			numvert=dlm->totvert;
 			
 			for (i=0; i<dlm->totvert; i++) {
 				MVert *mv= &dlm->mvert[i];
@@ -1283,7 +1281,6 @@ static void init_render_displist_mesh(Object *ob)
 				}
 
 				if(flen!=0.0) {
-					numface++;
 					vlr= RE_findOrAddVlak(R.totvlak++);
 					vlr->ob= ob;
 					vlr->v1= v1;
@@ -1320,14 +1317,6 @@ static void init_render_displist_mesh(Object *ob)
 		
 		dl= dl->next;
 	}
-	
-	/* Test to see if there are displacement chanels */
-	if(test_for_displace(ob)) {
-		do_displacement(ob, old_totvlak, numface, old_totvert, numvert );
-	}
-	
-	normalenrender(old_totvert, old_totvlak);
-
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1524,8 +1513,6 @@ static void init_render_mesh(Object *ob)
 	float *extverts=0, *orco;
 	int a, a1, ok, do_puno, need_orco=0, totvlako, totverto, vertofs;
 	int start, end, flipnorm, do_autosmooth=0;
-	short displace_chanels=0;
-	int startface, numface=0;
 	
 	me= ob->data;
 	if (rendermesh_uses_displist(me) && me->subdivr>0) {
@@ -1749,11 +1736,6 @@ static void init_render_mesh(Object *ob)
 		}
 	}
 	
-	if(test_for_displace(ob)) {
-		do_displacement(ob, totvlako, end, totverto, me->totvert );
-		do_puno=1;
-	}
-	
 	if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
 		autosmooth(totverto, totvlako, me->smoothresh);
 		do_puno= 1;
@@ -1923,7 +1905,6 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		}
 
 	}
-
 
 	/* set flag for spothalo en initvars */
 	if(la->type==LA_SPOT && (la->mode & LA_HALO)) {
@@ -2738,6 +2719,10 @@ static void init_render_curve(Object *ob)
 static void init_render_object(Object *ob)
 {
 	float mat[4][4];
+	int startface, startvert;
+	
+	startface=R.totvlak;
+	startvert=R.totvert;
 
 	ob->flag |= OB_DONE;
 
@@ -2759,6 +2744,9 @@ static void init_render_object(Object *ob)
 			MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 		MTC_Mat4Invert(ob->imat, mat);
 	}
+	
+	if (test_for_displace( ob ) ) 
+		do_displacement(ob, startface, R.totvlak-startface, startvert, R.totvert-startvert);
 }
 
 void RE_freeRotateBlenderScene(void)
@@ -2861,8 +2849,8 @@ static void check_non_flat_quads(void)
 	for(a=R.totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(a);
 		
-		/* Face is divided along edge with the least displace gradient */
-		/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 */
+		/* Face is divided along edge with the least gradient 		*/
+		/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 	*/
 		/* 		4---3		4---3 */
 		/*		|\ 1|	or  |1 /| */
 		/*		|0\ |		|/ 0| */
@@ -3202,13 +3190,15 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 							    vlr->n);
 		
 	}
+	
+	normalenrender(startvert, startface);
 }
 
 void displace_render_face(VlakRen *vlr, float scale)
 {
 	ShadeInput shi;
 	VertRen vr;
-	float samp1,samp2, samp3, samp4 ;
+	float samp1,samp2, samp3, samp4;
 
 	/* set up shadeinput struct for multitex() */
 	
@@ -3267,9 +3257,9 @@ void displace_render_vert(ShadeInput *shi, VertRen *vr, float scale)
 	do_material_tex(shi);
 
 	/* 0.25 could become button once?  */
-	vr->co[0] += 0.25 * shi->displace[0] * scale ; 
-	vr->co[1] += 0.25 * shi->displace[1] * scale ; 
-	vr->co[2] += 0.25 * shi->displace[2] * scale ; 
+	vr->co[0] += 0.5 * shi->displace[0] * scale ; 
+	vr->co[1] += 0.5 * shi->displace[1] * scale ; 
+	vr->co[2] += 0.5 * shi->displace[2] * scale ; 
 	
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
 	   different material... */
