@@ -769,6 +769,76 @@ static void createTransLatticeVerts(void)
 	}
 } 
 
+/* proportional distance based on connectivity  */
+/* WARN evil abuse of ->vn pointer to store a float */
+#define E_GETFLOAT(a)		*((float *)&(a))
+static void editmesh_set_connectivity_distance(void)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed;
+	float len;
+	int total= 0, done= 1;
+	
+	/* f2 flag is used for 'selection' */
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f & SELECT) eve->f2= 1;
+		else eve->f2 = 0;
+		eve->vn= NULL;
+		total++;
+	}
+	if(total==0) return;
+
+	/* need flag f1 here too */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f1= 0;
+	}
+
+	/* a floodfill routine, should escape with maxdist, does manhattan dist */
+	while(done) {
+		done= 0;
+		
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->h==0) {
+				EditVert *v1= eed->v1, *v2= eed->v2;
+				
+				if(v1->f2 + v2->f2 == 1) {
+					eed->f1= 1;	// signal for next loop
+					
+					/* calc distance */
+					len= VecLenf(v1->co, v2->co);
+					if(v1->f2==0) {
+						if(v1->vn==NULL) // copy value
+							E_GETFLOAT(v1->vn) = len + E_GETFLOAT(v2->vn);
+						else  // avarage out
+							E_GETFLOAT(v1->vn) = 0.5*(E_GETFLOAT(v1->vn) + len + E_GETFLOAT(v2->vn));
+					}
+					else {
+						if(v2->vn==NULL)
+							E_GETFLOAT(v2->vn) = len + E_GETFLOAT(v1->vn);
+						else
+							E_GETFLOAT(v2->vn) = 0.5*(E_GETFLOAT(v2->vn) + len + E_GETFLOAT(v1->vn));
+					}
+				}
+			}
+		}
+		/* set flags in 2nd loop to floodfill distances nicer */
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->f1) {
+				done= 1;
+				eed->f1= 0;
+				eed->v1->f2= eed->v2->f2= 1;
+			}
+		}
+	}
+	
+	/* set unused or clipped away vertices on huge dist */
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f2==0) E_GETFLOAT(eve->vn)= 10000000.0f;
+	}
+}
+
+
 static void VertsToTransData(TransData *td, EditVert *eve)
 {
 	td->flag = 0;
@@ -845,13 +915,16 @@ static void createTransEditVerts(void)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
+	if(propmode) editmesh_set_connectivity_distance();
+	
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
 				VertsToTransData(tob, eve);
 
 				if(eve->f1) tob->flag |= TD_SELECTED;
-
+				if(propmode) tob->dist= 0.5*E_GETFLOAT(eve->vn);	// times 0.5, correct for manhattan 
+				
 				Mat3CpyMat3(tob->smtx, smtx);
 				Mat3CpyMat3(tob->mtx, mtx);
 
@@ -859,6 +932,7 @@ static void createTransEditVerts(void)
 			}
 		}	
 	}
+
 }
 
 /* **************** IpoKey stuff, for Object TransData ********** */
@@ -1310,7 +1384,12 @@ static void createTransData(TransInfo *t)
 		}
 		
 		if(G.f & G_PROPORTIONAL) {
-			if (G.obedit->type==OB_CURVE) {
+			if (G.obedit->type==OB_MESH) {
+				sort_trans_data(t);	// makes selected become first in array
+				set_prop_dist(t, 0);
+				sort_trans_data_dist(t);
+			}
+			else if (G.obedit->type==OB_CURVE) {
 				sort_trans_data(t);	// makes selected become first in array
 				set_prop_dist(t, 0);
 				sort_trans_data_dist(t);

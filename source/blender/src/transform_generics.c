@@ -709,7 +709,7 @@ void calculatePropRatio(TransInfo *t)
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
 			}
-			else if (td->dist > t->propsize) {
+			else if (td->dist > t->propsize || td->rdist > t->propsize) {
 				/* 
 				   The elements are sorted according to their dist member in the array,
 				   that means we can stop when it finds one element outside of the propsize.
@@ -736,7 +736,7 @@ void calculatePropRatio(TransInfo *t)
 					td->factor = dist;
 					break;
 				case PROP_CONST:
-					td->factor = 1;
+					td->factor = 1.0f;
 					//td->factor = (float)sqrt(2*dist - dist * dist);
 					break;
 				default:

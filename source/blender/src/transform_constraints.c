@@ -219,7 +219,9 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		if(in[0]!=0.0f || in[1]!=0.0f || in[2]!=0.0) {
 			Projf(vec, in, n);
 			factor = Normalise(vec);
-			factor /= Inpf(axis, vec);
+			// prevent NaN for 0.0/0.0
+			if(factor!=0.0f)
+				factor /= Inpf(axis, vec);
 
 			VecMulf(axis, factor);
 			VECCOPY(out, axis);
