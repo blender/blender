@@ -120,8 +120,8 @@ ifeq ($(OS),linux)
     CFLAGS	+= -pipe -fPIC
     CCFLAGS	+= -pipe -fPIC
 #    CCFLAGS	+= -pipe
-    REL_CFLAGS	+= -O3
-    REL_CCFLAGS	+= -O3
+    REL_CFLAGS	+= -O2
+    REL_CCFLAGS	+= -O2
     NAN_DEPEND = true
   ifeq ($(CPU),alpha)
     CFLAGS += -mieee
