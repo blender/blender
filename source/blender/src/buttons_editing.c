@@ -896,7 +896,7 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiDefBut(block, BUT,B_SETWEIGHT,"Set Weight",	465,11,95,49, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,0,"Weight:",		565,36,102,22, &editbutweight, 0.01, 10.0, 10, 0, "");
+	uiDefButF(block, NUM,0,"Weight:",		565,36,102,22, &editbutweight, 0.01, 100.0, 10, 0, "");
 	uiDefBut(block, BUT,B_SETW1,"1.0",		670,36,50,22, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, BUT,B_SETW2,"sqrt(2)/4",565,11,55,20, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, BUT,B_SETW3,"0.25",		620,11,45,20, 0, 0, 0, 0, 0, "");

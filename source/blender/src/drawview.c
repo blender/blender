@@ -1147,14 +1147,14 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
 			if(totw==tot)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 80, 300, 19, &(ve_median[3]), -10.0, 10.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 80, 300, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
 		}
 		else {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
 			if(totw==tot)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 80, 300, 19, &(ve_median[3]), -10.0, 10.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 80, 300, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
 		}
 		uiBlockEndAlign(block);
 	}
