@@ -61,6 +61,7 @@
 #include "BKE_screen.h"
 #include "BKE_object.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
 
 #include "blendef.h"
