@@ -337,6 +337,38 @@ int getConstraintSpaceDimension(TransInfo *t)
 */
 }
 
+void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]) {
+	strcpy(t->con.text, text);
+	Mat3CpyMat3(t->con.mtx, space);
+	t->con.mode = mode;
+	getConstraintMatrix(t);
+
+	VECCOPY(t->con.center, t->center);
+	if (G.obedit) {
+		Mat4MulVecfl(G.obedit->obmat, t->con.center);
+	}
+
+	t->con.applyVec = applyAxisConstraintVec;
+	t->con.applySize = applyAxisConstraintSize;
+	t->con.applyRot = applyAxisConstraintRot;
+	t->redraw = 1;
+}
+
+void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
+	if (G.obedit) {
+		float obmat[3][3];
+		Mat3CpyMat4(obmat, G.obedit->obmat);
+		setConstraint(t, obmat, mode, text);
+	}
+	else {
+		if (t->total == 1) {
+			float obmat[3][3];
+			Mat3CpyMat4(obmat, t->data->ob->obmat);
+			setConstraint(t, obmat, mode, text);
+		}
+	}
+}
+
 void BIF_setSingleAxisConstraint(float vec[3]) {
 	TransInfo *t = BIF_GetTransInfo();
 	float space[3][3], v[3];
@@ -364,29 +396,13 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	t->redraw = 1;
 }
 
-void setConstraint(TransInfo *t, float space[3][3], int mode) {
-	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = mode;
-	getConstraintMatrix(t);
-
-	VECCOPY(t->con.center, t->center);
-	if (G.obedit) {
-		Mat4MulVecfl(G.obedit->obmat, t->con.center);
-	}
-
-	t->con.applyVec = applyAxisConstraintVec;
-	t->con.applySize = applyAxisConstraintSize;
-	t->con.applyRot = applyAxisConstraintRot;
-	t->redraw = 1;
-}
-
 void BIF_drawConstraint()
 {
 	int i = -1;
 	TransInfo *t = BIF_GetTransInfo();
 	TransCon *tc = &(t->con);
 
-	if (tc->mode == 0)
+	if (!(tc->mode & CON_APPLY))
 		return;
 
 	if (tc->mode & CON_SELECT) {
@@ -544,25 +560,31 @@ void setNearestAxis(TransInfo *t)
 	if (len[0] < len[1] && len[0] < len[2]) {
 		if (G.qual == LR_CTRLKEY) {
 			t->con.mode |= (CON_AXIS1|CON_AXIS2);
+			strcpy(t->con.text, "locking global X");
 		}
 		else {
 			t->con.mode |= CON_AXIS0;
+			strcpy(t->con.text, "along global X");
 		}
 	}
 	else if (len[1] < len[0] && len[1] < len[2]) {
 		if (G.qual == LR_CTRLKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS2);
+			strcpy(t->con.text, "locking global Y");
 		}
 		else {
 			t->con.mode |= CON_AXIS1;
+			strcpy(t->con.text, "along global Y");
 		}
 	}
 	else if (len[2] < len[1] && len[2] < len[0]) {
 		if (G.qual == LR_CTRLKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS1);
+			strcpy(t->con.text, "locking global Z");
 		}
 		else {
 			t->con.mode |= CON_AXIS2;
+			strcpy(t->con.text, "along global Z");
 		}
 	}
 	getConstraintMatrix(t);

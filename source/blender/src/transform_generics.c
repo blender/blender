@@ -635,7 +635,7 @@ void calculatePropRatio(TransInfo *t)
 
 	if (G.f & G_PROPORTIONAL) {
 		for(i = 0 ; i < t->total; i++, td++) {
-			if (td->dist == 0.0f) {
+			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
 			}
 			else if (td->dist > t->propsize) {

@@ -1196,6 +1196,7 @@ void Transform(int mode)
 	short pmval[2] = {0, 0}, mval[2], val;
 	float mati[3][3];
 	unsigned short event;
+	char cmode = '\0';
 
 	/*joeedh -> hopefully may be what makes the old transform() constant*/
 	/* ton: I doubt, but it doesnt harm for now. shouldnt be needed though */
@@ -1313,24 +1314,72 @@ void Transform(int mode)
 						restoreTransObjects(&Trans);
 					break;
 				case XKEY:
-					if (G.qual == 0)
-						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0));
-					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1|CON_AXIS2));
-					break;
+					if (cmode == 'X') {
+						Trans.con.mode &= ~CON_APPLY;
+						cmode = '\0';
+					}
+					else if(cmode == 'x') {
+						if (G.qual == 0)
+							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS0), "along local X");
+						else if (G.qual == LR_CTRLKEY)
+							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS1|CON_AXIS2), "locking local X");
+
+						cmode = 'X';
+					}
+					else {
+						if (G.qual == 0)
+							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0), "along global X");
+						else if (G.qual == LR_CTRLKEY)
+							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1|CON_AXIS2), "locking global X");
+
+						cmode = 'x';
+					}
 					Trans.redraw = 1;
+					break;
 				case YKEY:
-					if (G.qual == 0)
-						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1));
-					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS2));
-					break;
+					if (cmode == 'Y') {
+						Trans.con.mode &= ~CON_APPLY;
+						cmode = '\0';
+					}
+					else if(cmode == 'y') {
+						if (G.qual == 0)
+							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS1), "along global Y");
+						else if (G.qual == LR_CTRLKEY)
+							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS0|CON_AXIS2), "locking global Y");
+
+						cmode = 'Y';
+					}
+					else {
+						if (G.qual == 0)
+							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1), "along local Y");
+						else if (G.qual == LR_CTRLKEY)
+							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS2), "locking local Y");
+
+						cmode = 'y';
+					}
 					Trans.redraw = 1;
+					break;
 				case ZKEY:
-					if (G.qual == 0)
-						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS2));
-					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS1));
+					if (cmode == 'Z') {
+						Trans.con.mode &= ~CON_APPLY;
+						cmode = '\0';
+					}
+					else if(cmode == 'z') {
+						if (G.qual == 0)
+							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS2), "along local Z");
+						else if (G.qual == LR_CTRLKEY)
+							setLocalConstraint(&Trans, (CON_APPLY|CON_AXIS0|CON_AXIS1), "locking local Z");
+
+						cmode = 'Z';
+					}
+					else {
+						if (G.qual == 0)
+							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS2), "along global Z");
+						else if (G.qual == LR_CTRLKEY)
+							setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS1), "locking global Z");
+
+						cmode = 'z';
+					}
 					Trans.redraw = 1;
 					break;
 				case OKEY:
@@ -1395,7 +1444,7 @@ void Transform(int mode)
 		if(mode==TFM_RESIZE) cmode= 's';
 		else if(mode==TFM_ROTATION) cmode= 'r';
 		/* aftertrans does displists, ipos and action channels */
-		special_aftertrans_update(cmode, 0, ret_val == TRANS_CANCEL, 0 /*keyflags*/);
+		special_aftertrans_update(cmode, 0, (short)(ret_val == TRANS_CANCEL), 0 /*keyflags*/);
 		
 		if(G.obedit==NULL && G.obpose==NULL)
 			clear_trans_object_base_flags();
@@ -1965,7 +2014,7 @@ int Translation(TransInfo *t, short mval[2])
 {
 	float vec[3], tvec[3];
 	int i;
-	char str[70];
+	char str[200];
 	TransData *td = t->data;
 
 	window_to_3d(vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
@@ -1985,11 +2034,17 @@ int Translation(TransInfo *t, short mval[2])
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, "Dx: %s   Dy: %s  Dz: %s %s", &c[0], &c[20], &c[40], t->proptext);
+		if (t->con.mode & CON_APPLY)
+			sprintf(str, "Dx: %s   Dy: %s  Dz: %s %s %s", &c[0], &c[20], &c[40], t->con.text, t->proptext);
+		else 
+			sprintf(str, "Dx: %s   Dy: %s  Dz: %s %s", &c[0], &c[20], &c[40], t->proptext);
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Dx: %.4f   Dy: %.4f  Dz: %.4f %s", vec[0], vec[1], vec[2], t->proptext);
+		if (t->con.mode & CON_APPLY)
+			sprintf(str, "Dx: %.4f   Dy: %.4f  Dz: %.4f %s %s", vec[0], vec[1], vec[2], t->con.text, t->proptext);
+		else
+			sprintf(str, "Dx: %.4f   Dy: %.4f  Dz: %.4f %s", vec[0], vec[1], vec[2], t->proptext);
 	}
 
 
