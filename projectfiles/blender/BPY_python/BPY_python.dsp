@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /w /W0 /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.3" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\img" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\source\blender\bpython\include" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\blender\radiosity\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /I "C:\blender\source\blender\python" /I "C:\blender\intern\decimation\extern" /I "C:\blender\intern\bsp\extern" /I "C:\blender\intern\ghost" /I "C:\blender\intern\SoundSystem" /I "C:\blender\intern\bmfont" /I "C:\blender\intern\moto\include" /I "C:\blender\intern\string" /I "C:\QT6 SDK (Win)\Interfaces & Libraries\QTDevWin\CIncludes" /I "C:\blender\intern\iksolver\extern" /I "C:\blender\intern\guardedalloc" /I "..\..\source\blender\python" /I "../../../../lib/windows/bsp/include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\bpython\include" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /I "..\..\..\source\blender\python" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MT /w /W0 /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.3" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\source\blender\bpython\include" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\blender\radiosity\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /I "C:\blender\source\blender\python" /I "C:\blender\intern\decimation\extern" /I "C:\blender\intern\bsp\extern" /I "C:\blender\intern\ghost" /I "C:\blender\intern\SoundSystem" /I "C:\blender\intern\bmfont" /I "C:\blender\intern\moto\include" /I "C:\blender\intern\string" /I "C:\QT6 SDK (Win)\Interfaces & Libraries\QTDevWin\CIncludes" /I "C:\blender\intern\iksolver\extern" /I "C:\blender\intern\guardedalloc" /I "..\..\source\blender\python" /I "../../../../lib/windows/bsp/include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\bpython\include" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /I "..\..\..\source\blender\python" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -239,6 +239,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Scene.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\sceneRadio.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\sceneRender.c
 # End Source File
 # Begin Source File
@@ -424,6 +428,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\rgbTuple.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Scene.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\sceneRadio.h
 # End Source File
 # Begin Source File
 
