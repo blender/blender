@@ -79,7 +79,7 @@ typedef struct MSticky {
 
 /* medge->flag (1=SELECT)*/
 #define ME_EDGEDRAW		2
-
+#define ME_SEAM         4
 
 /* puno = vertexnormal (mface) */
 #define ME_FLIPV1		1

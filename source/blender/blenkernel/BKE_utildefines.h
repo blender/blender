@@ -81,6 +81,8 @@
 
 #define INIT_MINMAX(min, max) (min)[0]= (min)[1]= (min)[2]= 1.0e30; (max)[0]= (max)[1]= (max)[2]= -1.0e30;
 
+#define INIT_MINMAX2(min, max) (min)[0]= (min)[1]= 1.0e30; (max)[0]= (max)[1]= -1.0e30;
+
 #define DO_MINMAX(vec, min, max) if( (min)[0]>(vec)[0] ) (min)[0]= (vec)[0]; \
 							  if( (min)[1]>(vec)[1] ) (min)[1]= (vec)[1]; \
 							  if( (min)[2]>(vec)[2] ) (min)[2]= (vec)[2]; \

@@ -316,9 +316,8 @@ void draw_tfaces(void)
 	Mesh *me;
 	int a;
 	char col1[4], col2[4];
+	float pointsize= BIF_GetThemeValuef(TH_VERTEX_SIZE);
  	
- 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
-
 	if(G.f & G_FACESELECT) {
 		me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
 		if(me && me->tface) {
@@ -460,16 +459,16 @@ void draw_tfaces(void)
 				setlinestyle(0);
 			}
 
-            /* to make sure vertices markers are visible, draw them last */
-			/* we draw selected over unselected, so two loops */
-			BIF_GetThemeColor3ubv(TH_VERTEX, col1);
-			glColor4ubv(col1);
+            /* unselected uv's */
+			BIF_ThemeColor(TH_VERTEX);
+ 			glPointSize(pointsize);
+
+			bglBegin(GL_POINTS);
 			tface= me->tface;
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
 				if(mface->v3  && (tface->flag & TF_SELECT) ) {
-					bglBegin(GL_POINTS);
 					
 					if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
@@ -477,20 +476,46 @@ void draw_tfaces(void)
 					if(mface->v4) {
 						if(tface->flag & TF_SEL4); else bglVertex2fv(tface->uv[3]);
 					}
-					bglEnd();
 				}
 				tface++;
 				mface++;
 			}
-			/* selected */
-			BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col2);
-			glColor4ubv(col2);
+			bglEnd();
+
+			/* pinned uv's */
+			/* give odd pointsizes odd pin pointsizes */
+ 	        glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
+			cpack(0xFF);
+
+			bglBegin(GL_POINTS);
 			tface= me->tface;
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
 				if(mface->v3  && (tface->flag & TF_SELECT) ) {
-					bglBegin(GL_POINTS);
+					
+					if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
+					if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
+					if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
+					if(mface->v4) {
+						if(tface->unwrap & TF_PIN4) bglVertex2fv(tface->uv[3]);
+					}
+				}
+				tface++;
+				mface++;
+			}
+			bglEnd();
+
+			/* selected uv's */
+			BIF_ThemeColor(TH_VERTEX_SELECT);
+ 	        glPointSize(pointsize);
+
+			bglBegin(GL_POINTS);
+			tface= me->tface;
+			mface= me->mface;
+			a= me->totface;
+			while(a--) {
+				if(mface->v3  && (tface->flag & TF_SELECT) ) {
 					
 					if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
@@ -498,11 +523,11 @@ void draw_tfaces(void)
 					if(mface->v4) {
 						if(tface->flag & TF_SEL4) bglVertex2fv(tface->uv[3]);
 					}
-					bglEnd();
 				}
 				tface++;
 				mface++;
 			}
+			bglEnd();
 		}
 	}
 	glPointSize(1.0);

@@ -79,6 +79,7 @@
 #include "BSE_trans_types.h"
 
 #include "BDR_editobject.h"
+#include "BDR_unwrapper.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -1680,5 +1681,36 @@ void toggle_uv_select(int mode)
 		break;
 	}
 	allqueue(REDRAWIMAGE, 0);
+}
+
+void pin_tface_uv(int mode)
+{
+	Mesh *me;
+	TFace *tface;
+	MFace *mface;
+	int a;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	me= get_mesh(OBACT);
+	
+	mface= me->mface;
+	tface= me->tface;
+	for(a=me->totface; a>0; a--, tface++, mface++) {
+		if(mode ==1){
+			if(tface->flag & TF_SEL1) tface->unwrap |= TF_PIN1;
+			if(tface->flag & TF_SEL2) tface->unwrap |= TF_PIN2;
+			if(tface->flag & TF_SEL3) tface->unwrap |= TF_PIN3;
+			if(mface->v4)
+				if(tface->flag & TF_SEL4) tface->unwrap |= TF_PIN4;
+		}
+		else if (mode ==0){
+			if(tface->flag & TF_SEL1) tface->unwrap &= ~TF_PIN1;
+			if(tface->flag & TF_SEL2) tface->unwrap &= ~TF_PIN2;
+			if(tface->flag & TF_SEL3) tface->unwrap &= ~TF_PIN3;
+			if(mface->v4)
+				if(tface->flag & TF_SEL4) tface->unwrap &= ~TF_PIN4;
+		}
+	}
+	scrarea_queue_winredraw(curarea);
 }
 

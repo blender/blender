@@ -2490,6 +2490,26 @@ static void drawmeshwire(Object *ob)
 			}
 			glEnd();
 		}
+
+		if(handles==0 && G.f & G_DRAWSEAMS) {
+			BIF_ThemeColor(TH_EDGE_SEAM);
+			glLineWidth(2);
+
+			glBegin(GL_LINES);
+			eed= em->edges.first;
+			while(eed) {
+				if(eed->h==0 && eed->seam) {
+					glVertex3fv(eed->v1->co);
+					glVertex3fv(eed->v2->co);
+				}
+				eed= eed->next;
+			}
+			glEnd();
+
+			cpack(0x0);
+			glLineWidth(1);
+		}
+
 		if(ob!=G.obedit) return;
 		
 		calc_meshverts();
@@ -3405,7 +3425,7 @@ static int ob_from_decimator(Object *ob)
 }
 
 /* true or false */
-static void bPolygonOffset(short val) 
+void bPolygonOffset(short val) 
 {
 	static float winmat[16], ofs=0.0;
 

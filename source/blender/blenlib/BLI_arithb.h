@@ -749,7 +749,22 @@ triatoquat(
 MinMaxRGB(
 	short c[]
 );
-
+	float
+Vec2Lenf(
+	float *v1,
+	float *v2
+);
+	void 
+Vec2Mulf(
+	float *v1, 
+	float f
+);
+	void 
+Vec2Addf(
+	float *v,
+	float *v1, 
+	float *v2
+);
 
 #ifdef __cplusplus
 }

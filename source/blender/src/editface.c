@@ -96,7 +96,9 @@
 #include "BSE_trans_types.h"
 #endif /* NAN_TPT */
 
-TFace *lasttface=0;
+#include "BDR_unwrapper.h"
+
+TFace *lasttface=NULL;
 
 static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 {
@@ -651,7 +653,7 @@ void select_linked_tfaces()
 	Mesh *me;
 	TFace *tface;
 	MFace *mface;
-	int a, doit=1;
+	int a, doit=1, mark=0;
 	char *cpmain;
 	
 	me= get_mesh(OBACT);
@@ -669,7 +671,7 @@ void select_linked_tfaces()
 		while(a--) {
 			if(tface->flag & TF_HIDE);
 			else if(tface->flag & TF_SELECT) {
-				if( mface->v3) {
+				if(mface->v3) {
 					cpmain[mface->v1]= 1;
 					cpmain[mface->v2]= 1;
 					cpmain[mface->v3]= 1;
@@ -686,18 +688,30 @@ void select_linked_tfaces()
 		a= me->totface;
 		while(a--) {
 			if(tface->flag & TF_HIDE);
-			else if((tface->flag & TF_SELECT)==0) {
-				if( mface->v3) {
+			else if(mface->v3 && ((tface->flag & TF_SELECT)==0)) {
+				mark= 0;
+
+				if(!(tface->unwrap & TF_SEAM1))
+					if(cpmain[mface->v1] && cpmain[mface->v2])
+						mark= 1;
+				if(!(tface->unwrap & TF_SEAM2))
+					if(cpmain[mface->v2] && cpmain[mface->v3])
+						mark= 1;
+				if(!(tface->unwrap & TF_SEAM3)) {
 					if(mface->v4) {
-						if(cpmain[mface->v4]) {
-							tface->flag |= TF_SELECT;
-							doit= 1;
-						}
+						if(cpmain[mface->v3] && cpmain[mface->v4])
+							mark= 1;
 					}
-					if( cpmain[mface->v1] || cpmain[mface->v2] || cpmain[mface->v3] ) {
-						tface->flag |= TF_SELECT;
-						doit= 1;
-					}
+					else if(cpmain[mface->v3] && cpmain[mface->v1])
+						mark= 1;
+				}
+				if(mface->v4 && !(tface->unwrap & TF_SEAM4))
+					if(cpmain[mface->v4] && cpmain[mface->v1])
+						mark= 1;
+
+				if(mark) {
+					tface->flag |= TF_SELECT;
+					doit= 1;
 				}
 			}
 			tface++; mface++;
@@ -708,7 +722,6 @@ void select_linked_tfaces()
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
-	
 }
 
 void deselectall_tface()
@@ -1024,6 +1037,7 @@ float CalcNormUV(float *a, float *b, float *c)
 #define UV_STD2_MAPPING 129
 #define UV_STD1_MAPPING 128
 #define UV_WINDOW_MAPPING 5
+#define UV_LSCM_MAPPING 6
 #define UV_CYL_EX 32
 #define UV_SPHERE_EX 34
 
@@ -1043,6 +1057,7 @@ void uv_autocalc_tface()
 	              MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
 	              MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
 	              MENUSTRING("Sphere",        UV_SPHERE_MAPPING) "|"
+	              MENUSTRING("LSCM",          UV_LSCM_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
@@ -1079,6 +1094,8 @@ void uv_autocalc_tface()
 		calculate_uv_map(B_UVAUTO_STD1); break;
 	case UV_WINDOW_MAPPING:
 		calculate_uv_map(B_UVAUTO_WINDOW); break;
+	case UV_LSCM_MAPPING:
+		unwrap_lscm(); break;
 	}
 }
 
@@ -1104,7 +1121,10 @@ void set_faceselect()	/* toggle */
 
 	if(G.f & G_FACESELECT) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
-		if(me) set_lasttface();
+		if(me) {
+			set_lasttface();
+			set_seamtface(); /* set TF_SEAM flags in tface */
+		}
 	}
 	else if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
 		if(me) reveal_tface();

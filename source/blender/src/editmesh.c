@@ -363,7 +363,7 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 	
 	/* find in hashlist */
 	eed= findedgelist(v1, v2);
-	
+
 	if(eed==NULL) {
 
 		eed= (EditEdge *)calloc(sizeof(EditEdge), 1);
@@ -372,11 +372,12 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 		BLI_addtail(&em->edges, eed);
 		eed->dir= swap;
 		insert_hashedge(eed);
-	}
-
-	/* copy crease data, seam flag? */
-	if(example) {
-		eed->crease = example->crease;
+		/* copy edge data:
+		   rule is to do this with addedgelist call, before addvlaklist */
+		if(example) {
+			eed->crease= example->crease;
+			eed->seam = example->seam;
+		}
 	}
 
 	return eed;
@@ -452,15 +453,14 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	EditEdge *e1, *e2=0, *e3=0, *e4=0;
-	
 
 	/* add face to list and do the edges */
-	e1= addedgelist(v1, v2, example?example->e1:NULL);
-	e2= addedgelist(v2, v3, example?example->e2:NULL);
-	if(v4) e3= addedgelist(v3, v4, example?example->e3:NULL); 
-	else e3= addedgelist(v3, v1, example?example->e3:NULL);
-	if(v4) e4= addedgelist(v4, v1, example?example->e4:NULL);
-	
+	e1= addedgelist(v1, v2, NULL);
+	e2= addedgelist(v2, v3, NULL);
+	if(v4) e3= addedgelist(v3, v4, NULL); 
+	else e3= addedgelist(v3, v1, NULL);
+	if(v4) e4= addedgelist(v4, v1, NULL);
+
 	if(v1==v2 || v2==v3 || v1==v3) return NULL;
 	if(e2==0) return NULL;
 
@@ -480,7 +480,7 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 		evl->tf= example->tf;
 		evl->flag= example->flag;
 	}
-	else { 
+	else {
 		if (G.obedit && G.obedit->actcol)
 			evl->mat_nr= G.obedit->actcol-1;
 		default_uv(evl->tf.uv, 1.0);
@@ -488,7 +488,7 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 		/* Initialize colors */
 		evl->tf.col[0]= evl->tf.col[1]= evl->tf.col[2]= evl->tf.col[3]= vpaint_get_current_col();
 	}
-	
+
 	BLI_addtail(&em->faces, evl);
 
 	if(evl->v4) CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, evl->n);
@@ -1023,6 +1023,7 @@ void make_editMesh_real(Mesh *me)
 			for(a=0; a<me->totedge; a++, medge++) {
 				eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
 				eed->crease= ((float)medge->crease)/255.0;
+				if(medge->flag & ME_SEAM) eed->seam= 1;
 			}
 
 		}
@@ -1341,7 +1342,8 @@ void load_editMesh_real(Mesh *me, int undo)
 			medge->v2= (unsigned int) eed->v2->vn;
 			if(eed->f<2) medge->flag = ME_EDGEDRAW;
 			medge->crease= (char)(255.0*eed->crease);
-			
+			if(eed->seam) medge->flag |= ME_SEAM;
+
 			medge++;
 			eed= eed->next;
 		}
@@ -3686,8 +3688,11 @@ short extrudeflag(short flag,short type)
 			if(eed->dir==1) evl2= addvlaklist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
 			else evl2= addvlaklist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
 			if (smooth) evl2->flag |= ME_SMOOTH;
-			
-			/* new edges, needs copied from old edge. actually we should find face that has this edge */
+
+			/* Needs smarter adaption of existing creases.
+			 * If addedgelist is used, make sure seams are set to 0 on these
+			 * new edges, since we do not want to add any seams on extrusion.
+			 */
 			evl2->e1->crease= eed->crease;
 			evl2->e2->crease= eed->crease;
 			evl2->e3->crease= eed->crease;
@@ -3876,7 +3881,6 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 
 				if(eed->v1->f & 128) eed->v1= eed->v1->vn;
 				if(eed->v2->f & 128) eed->v2= eed->v2->vn;
-
 				e1= addedgelist(eed->v1, eed->v2, eed);
 				
 				if(e1) e1->f= 1;
@@ -4187,12 +4191,30 @@ static void uv_quart(float *uv, float *uv1)
 	uv[1]= (uv1[1]+uv1[3]+uv1[5]+uv1[7])/4.0;
 }
 
-static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4)
+static void vlak_pin_vertex(EditVlak *evl, EditVert *vertex)
+{
+	if(evl->v1 == vertex) evl->tf.unwrap |= TF_PIN1;
+	else if(evl->v2 == vertex) evl->tf.unwrap |= TF_PIN2;
+	else if(evl->v3 == vertex) evl->tf.unwrap |= TF_PIN3;
+	else if(evl->v4 && vertex && evl->v4 == vertex) evl->tf.unwrap |= TF_PIN4;
+}
+
+static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4, EditVlak *evlpin)
 {
 	/* this weird function only to be used for subdivide, the 'w' in the name has no meaning! */
 	float *uv, uvo[4][2];
 	unsigned int *col, colo[4], col1, col2;
 	int a, v;
+
+	/* recover pinning */
+	if(evlpin){
+		evl->tf.unwrap= 0;
+		if(evlpin->tf.unwrap & TF_PIN1) vlak_pin_vertex(evl, evlpin->v1);
+		if(evlpin->tf.unwrap & TF_PIN2) vlak_pin_vertex(evl, evlpin->v2);
+		if(evlpin->tf.unwrap & TF_PIN3) vlak_pin_vertex(evl, evlpin->v3);
+		if(evlpin->tf.unwrap & TF_PIN4) vlak_pin_vertex(evl, evlpin->v4);
+	}
+
 						/* Numbers corespond to verts (corner points), 	*/
 						/* edge->vn's (center edges), the Center 	*/
 	memcpy(uvo, evl->tf.uv, sizeof(uvo));	/* And the quincunx points of a face 		*/
@@ -4311,7 +4333,7 @@ static EditVert *vert_from_number(EditVlak *evl, int nr)
 	return NULL;
 }
 
-static void addvlak_subdiv(EditVlak *evl, int val1, int val2, int val3, int val4, EditVert *eve)
+static void addvlak_subdiv(EditVlak *evl, int val1, int val2, int val3, int val4, EditVert *eve, EditVlak *evlpin)
 {
 	EditVlak *w;
 	EditVert *v1, *v2, *v3, *v4;
@@ -4330,8 +4352,8 @@ static void addvlak_subdiv(EditVlak *evl, int val1, int val2, int val3, int val4
 	
 	w= addvlaklist(v1, v2, v3, v4, evl);
 	if(w) {
-		if(evl->v4) set_wuv(4, w, val1, val2, val3, val4);
-		else set_wuv(3, w, val1, val2, val3, val4);
+		if(evl->v4) set_wuv(4, w, val1, val2, val3, val4, evlpin);
+		else set_wuv(3, w, val1, val2, val3, val4, evlpin);
 	}
 }
 
@@ -4404,7 +4426,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	extern float doublimit;
 	EditVert *eve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
-	EditVlak *evl;
+	EditVlak *evl, evlpin;
 	float fac, vec[3], vec1[3], len1, len2, len3, percent;
 	short test;
 	
@@ -4534,6 +4556,9 @@ void subdivideflag(int flag, float rad, int beauty)
 
 	evl= em->faces.last;
 	while(evl) {
+
+		evlpin= *evl; /* make a copy of evl to recover uv pinning later */
+
 		if( vlakselectedOR(evl, flag) ) {
 			e1= evl->e1;
 			e2= evl->e2;
@@ -4542,67 +4567,79 @@ void subdivideflag(int flag, float rad, int beauty)
 
 			test= 0;
 			if(e1 && e1->vn) { 
-				test+= 1; 
+				test+= 1;
 				e1->f= 1;
+				/* add edges here, to copy correct edge data */
+				eed= addedgelist(e1->v1, e1->vn, e1);
+				eed= addedgelist(e1->vn, e1->v2, e1);
 			}
-			if(e2 && e2->vn) { 
-				test+= 2; 
+			if(e2 && e2->vn) {
+				test+= 2;
 				e2->f= 1;
+				/* add edges here, to copy correct edge data */
+				eed= addedgelist(e2->v1, e2->vn, e2);
+				eed= addedgelist(e2->vn, e2->v2, e2);
 			}
-			if(e3 && e3->vn) { 
-				test+= 4; 
+			if(e3 && e3->vn) {
+				test+= 4;
 				e3->f= 1;
+				/* add edges here, to copy correct edge data */
+				eed= addedgelist(e3->v1, e3->vn, e3);
+				eed= addedgelist(e3->vn, e3->v2, e3);
 			}
-			if(e4 && e4->vn) { 
-				test+= 8; 
+			if(e4 && e4->vn) {
+				test+= 8;
 				e4->f= 1;
+				/* add edges here, to copy correct edge data */
+				eed= addedgelist(e4->v1, e4->vn, e4);
+				eed= addedgelist(e4->vn, e4->v2, e4);
 			}
 			if(test) {
 				if(evl->v4==0) {  /* All the permutations of 3 edges*/
-					if((test & 3)==3) addvlak_subdiv(evl, 2, 2+4, 1+4, 0, 0);
-					if((test & 6)==6) addvlak_subdiv(evl, 3, 3+4, 2+4, 0, 0);
-					if((test & 5)==5) addvlak_subdiv(evl, 1, 1+4, 3+4, 0, 0);
+					if((test & 3)==3) addvlak_subdiv(evl, 2, 2+4, 1+4, 0, 0, &evlpin);
+					if((test & 6)==6) addvlak_subdiv(evl, 3, 3+4, 2+4, 0, 0, &evlpin);
+					if((test & 5)==5) addvlak_subdiv(evl, 1, 1+4, 3+4, 0, 0, &evlpin);
 
 					if(test==7) {  /* four new faces, old face renews */
 						evl->v1= e1->vn;
 						evl->v2= e2->vn;
 						evl->v3= e3->vn;
-						set_wuv(3, evl, 1+4, 2+4, 3+4, 0);
+						set_wuv(3, evl, 1+4, 2+4, 3+4, 0, &evlpin);
 					}
 					else if(test==3) {
-						addvlak_subdiv(evl, 1+4, 2+4, 3, 0, 0);
+						addvlak_subdiv(evl, 1+4, 2+4, 3, 0, 0, &evlpin);
 						evl->v2= e1->vn;
-						set_wuv(3, evl, 1, 1+4, 3, 0);
+						set_wuv(3, evl, 1, 1+4, 3, 0, &evlpin);
 					}
 					else if(test==6) {
-						addvlak_subdiv(evl, 2+4, 3+4, 1, 0, 0);
+						addvlak_subdiv(evl, 2+4, 3+4, 1, 0, 0, &evlpin);
 						evl->v3= e2->vn;
-						set_wuv(3, evl, 1, 2, 2+4, 0);
+						set_wuv(3, evl, 1, 2, 2+4, 0, &evlpin);
 					}
 					else if(test==5) {
-						addvlak_subdiv(evl, 3+4, 1+4, 2, 0, 0);
+						addvlak_subdiv(evl, 3+4, 1+4, 2, 0, 0, &evlpin);
 						evl->v1= e3->vn;
-						set_wuv(3, evl, 3+4, 2, 3, 0);
+						set_wuv(3, evl, 3+4, 2, 3, 0, &evlpin);
 					}
 					else if(test==1) {
-						addvlak_subdiv(evl, 1+4, 2, 3, 0, 0);
+						addvlak_subdiv(evl, 1+4, 2, 3, 0, 0, &evlpin);
 						evl->v2= e1->vn;
-						set_wuv(3, evl, 1, 1+4, 3, 0);
+						set_wuv(3, evl, 1, 1+4, 3, 0, &evlpin);
 					}
 					else if(test==2) {
-						addvlak_subdiv(evl, 2+4, 3, 1, 0, 0);
+						addvlak_subdiv(evl, 2+4, 3, 1, 0, 0, &evlpin);
 						evl->v3= e2->vn;
-						set_wuv(3, evl, 1, 2, 2+4, 0);
+						set_wuv(3, evl, 1, 2, 2+4, 0, &evlpin);
 					}
 					else if(test==4) {
-						addvlak_subdiv(evl, 3+4, 1, 2, 0, 0);
+						addvlak_subdiv(evl, 3+4, 1, 2, 0, 0, &evlpin);
 						evl->v1= e3->vn;
-						set_wuv(3, evl, 3+4, 2, 3, 0);
+						set_wuv(3, evl, 3+4, 2, 3, 0, &evlpin);
 					}
-					evl->e1= addedgelist(evl->v1, evl->v2, evl->e1);
-					evl->e2= addedgelist(evl->v2, evl->v3, evl->e2);
-					evl->e3= addedgelist(evl->v3, evl->v1, evl->e3);
-					
+					evl->e1= addedgelist(evl->v1, evl->v2, NULL);
+					evl->e2= addedgelist(evl->v2, evl->v3, NULL);
+					evl->e3= addedgelist(evl->v3, evl->v1, NULL);
+
 				}
 				else {  /* All the permutations of 4 faces */
 					if(test==15) {
@@ -4615,170 +4652,170 @@ void subdivideflag(int flag, float rad, int beauty)
 						eve= addvertlist(vec);
 						
 						eve->f |= flag;
-						
-						addvlak_subdiv(evl, 2, 2+4, 9, 1+4, eve);
-						addvlak_subdiv(evl, 3, 3+4, 9, 2+4, eve);
-						addvlak_subdiv(evl, 4, 4+4, 9, 3+4, eve);
+
+						addvlak_subdiv(evl, 2, 2+4, 9, 1+4, eve, &evlpin);
+						addvlak_subdiv(evl, 3, 3+4, 9, 2+4, eve, &evlpin);
+						addvlak_subdiv(evl, 4, 4+4, 9, 3+4, eve, &evlpin);
 
 						evl->v2= e1->vn;
 						evl->v3= eve;
 						evl->v4= e4->vn;
-						set_wuv(4, evl, 1, 1+4, 9, 4+4);
+						set_wuv(4, evl, 1, 1+4, 9, 4+4, &evlpin);
 					}
-					else { 
-						if(((test & 3)==3)&&(test!=3)) addvlak_subdiv(evl, 1+4, 2, 2+4, 0, 0);
-						if(((test & 6)==6)&&(test!=6)) addvlak_subdiv(evl, 2+4, 3, 3+4, 0, 0);
-						if(((test & 12)==12)&&(test!=12)) addvlak_subdiv(evl, 3+4, 4, 4+4, 0, 0);
-						if(((test & 9)==9)&&(test!=9)) addvlak_subdiv(evl, 4+4, 1, 1+4, 0, 0);
-						
+					else {
+						if(((test & 3)==3)&&(test!=3)) addvlak_subdiv(evl, 1+4, 2, 2+4, 0, 0, &evlpin);
+						if(((test & 6)==6)&&(test!=6)) addvlak_subdiv(evl, 2+4, 3, 3+4, 0, 0, &evlpin);
+						if(((test & 12)==12)&&(test!=12)) addvlak_subdiv(evl, 3+4, 4, 4+4, 0, 0, &evlpin);
+						if(((test & 9)==9)&&(test!=9)) addvlak_subdiv(evl, 4+4, 1, 1+4, 0, 0, &evlpin);
+
 						if(test==1) { /* Edge 1 has new vert */
-							addvlak_subdiv(evl, 1+4, 2, 3, 0, 0);
-							addvlak_subdiv(evl, 1+4, 3, 4, 0, 0);
+							addvlak_subdiv(evl, 1+4, 2, 3, 0, 0, &evlpin);
+							addvlak_subdiv(evl, 1+4, 3, 4, 0, 0, &evlpin);
 							evl->v2= e1->vn;
 							evl->v3= evl->v4;
 							evl->v4= 0;
-							set_wuv(4, evl, 1, 1+4, 4, 0);
+							set_wuv(4, evl, 1, 1+4, 4, 0, &evlpin);
 						}
 						else if(test==2) { /* Edge 2 has new vert */
-							addvlak_subdiv(evl, 2+4, 3, 4, 0, 0);
-							addvlak_subdiv(evl, 2+4, 4, 1, 0, 0);
+							addvlak_subdiv(evl, 2+4, 3, 4, 0, 0, &evlpin);
+							addvlak_subdiv(evl, 2+4, 4, 1, 0, 0, &evlpin);
 							evl->v3= e2->vn;
 							evl->v4= 0;
-							set_wuv(4, evl, 1, 2, 2+4, 0);
+							set_wuv(4, evl, 1, 2, 2+4, 0, &evlpin);
 						}
 						else if(test==4) { /* Edge 3 has new vert */
-							addvlak_subdiv(evl, 3+4, 4, 1, 0, 0);
-							addvlak_subdiv(evl, 3+4, 1, 2, 0, 0);
+							addvlak_subdiv(evl, 3+4, 4, 1, 0, 0, &evlpin);
+							addvlak_subdiv(evl, 3+4, 1, 2, 0, 0, &evlpin);
 							evl->v1= evl->v2;
 							evl->v2= evl->v3;
 							evl->v3= e3->vn;
 							evl->v4= 0;
-							set_wuv(4, evl, 2, 3, 3+4, 0);
+							set_wuv(4, evl, 2, 3, 3+4, 0, &evlpin);
 						}
 						else if(test==8) { /* Edge 4 has new vert */
-							addvlak_subdiv(evl, 4+4, 1, 2, 0, 0);
-							addvlak_subdiv(evl, 4+4, 2, 3, 0, 0);
+							addvlak_subdiv(evl, 4+4, 1, 2, 0, 0, &evlpin);
+							addvlak_subdiv(evl, 4+4, 2, 3, 0, 0, &evlpin);
 							evl->v1= evl->v3;
 							evl->v2= evl->v4;
 							evl->v3= e4->vn;
 							evl->v4= 0;
-							set_wuv(4, evl, 3, 4, 4+4, 0);
+							set_wuv(4, evl, 3, 4, 4+4, 0, &evlpin);
 						}
 						else if(test==3) { /*edge 1&2 */
-							/* make new vert in center of new edge */	
+							/* make new vert in center of new edge */
 							vec[0]=(e1->vn->co[0]+e2->vn->co[0])/2;
 							vec[1]=(e1->vn->co[1]+e2->vn->co[1])/2;
 							vec[2]=(e1->vn->co[2]+e2->vn->co[2])/2;
 							eve= addvertlist(vec);
 							eve->f |= flag;
 							/* Add new faces */
-							addvlak_subdiv(evl, 4, 10, 2+4, 3, eve);
-							addvlak_subdiv(evl, 4, 1, 1+4, 10, eve);	
+							addvlak_subdiv(evl, 4, 10, 2+4, 3, eve, &evlpin);
+							addvlak_subdiv(evl, 4, 1, 1+4, 10, eve, &evlpin);
 							/* orig face becomes small corner */
 							evl->v1=e1->vn;
 							//evl->v2=evl->v2;
 							evl->v3=e2->vn;
 							evl->v4=eve;
-							
-							set_wuv(4, evl, 1+4, 2, 2+4, 10);
+
+							set_wuv(4, evl, 1+4, 2, 2+4, 10, &evlpin);
 						}
 						else if(test==6) { /* 2&3 */
-							/* make new vert in center of new edge */	
+							/* make new vert in center of new edge */
 							vec[0]=(e2->vn->co[0]+e3->vn->co[0])/2;
 							vec[1]=(e2->vn->co[1]+e3->vn->co[1])/2;
 							vec[2]=(e2->vn->co[2]+e3->vn->co[2])/2;
 							eve= addvertlist(vec);
 							eve->f |= flag;
 							/*New faces*/
-							addvlak_subdiv(evl, 1, 11, 3+4, 4, eve);
-							addvlak_subdiv(evl, 1, 2, 2+4, 11, eve);
+							addvlak_subdiv(evl, 1, 11, 3+4, 4, eve, &evlpin);
+							addvlak_subdiv(evl, 1, 2, 2+4, 11, eve, &evlpin);
 							/* orig face becomes small corner */
 							evl->v1=e2->vn;
 							evl->v2=evl->v3;
 							evl->v3=e3->vn;
 							evl->v4=eve;
-							
-							set_wuv(4, evl, 2+4, 3, 3+4, 11);
+
+							set_wuv(4, evl, 2+4, 3, 3+4, 11, &evlpin);
 						}
 						else if(test==12) { /* 3&4 */
-							/* make new vert in center of new edge */	
+							/* make new vert in center of new edge */
 							vec[0]=(e3->vn->co[0]+e4->vn->co[0])/2;
 							vec[1]=(e3->vn->co[1]+e4->vn->co[1])/2;
 							vec[2]=(e3->vn->co[2]+e4->vn->co[2])/2;
 							eve= addvertlist(vec);
 							eve->f |= flag;
 							/*New Faces*/
-							addvlak_subdiv(evl, 2, 12, 4+4, 1, eve);
-							addvlak_subdiv(evl, 2, 3, 3+4, 12, eve); 
+							addvlak_subdiv(evl, 2, 12, 4+4, 1, eve, &evlpin);
+							addvlak_subdiv(evl, 2, 3, 3+4, 12, eve, &evlpin);
 							/* orig face becomes small corner */
 							evl->v1=e3->vn;
 							evl->v2=evl->v4;
 							evl->v3=e4->vn;
 							evl->v4=eve;
-							
-							set_wuv(4, evl, 3+4, 4, 4+4, 12);
+
+							set_wuv(4, evl, 3+4, 4, 4+4, 12, &evlpin);
 						}
 						else if(test==9) { /* 4&1 */
-							/* make new vert in center of new edge */	
+							/* make new vert in center of new edge */
 							vec[0]=(e1->vn->co[0]+e4->vn->co[0])/2;
 							vec[1]=(e1->vn->co[1]+e4->vn->co[1])/2;
 							vec[2]=(e1->vn->co[2]+e4->vn->co[2])/2;
 							eve= addvertlist(vec);
 							eve->f |= flag;
 							/*New Faces*/
-							addvlak_subdiv(evl, 3, 13, 1+4, 2, eve);
-							addvlak_subdiv(evl, 3, 4,  4+4, 13, eve);
+							addvlak_subdiv(evl, 3, 13, 1+4, 2, eve, &evlpin);
+							addvlak_subdiv(evl, 3, 4,  4+4,13, eve, &evlpin);
 							/* orig face becomes small corner */
 							evl->v2=evl->v1;
 							evl->v1=e4->vn;
 							evl->v3=e1->vn;
 							evl->v4=eve;
-							
-							set_wuv(4, evl, 4+4, 1, 1+4, 13);
+
+							set_wuv(4, evl, 4+4, 1, 1+4, 13, &evlpin);
 						}
 						else if(test==5) { /* 1&3 */
-							addvlak_subdiv(evl, 1+4, 2, 3, 3+4, 0);
+							addvlak_subdiv(evl, 1+4, 2, 3, 3+4, 0, &evlpin);
 							evl->v2= e1->vn;
 							evl->v3= e3->vn;
-							set_wuv(4, evl, 1, 1+4, 3+4, 4);
+							set_wuv(4, evl, 1, 1+4, 3+4, 4, &evlpin);
 						}
 						else if(test==10) { /* 2&4 */
-							addvlak_subdiv(evl, 2+4, 3, 4, 4+4, 0);
+							addvlak_subdiv(evl, 2+4, 3, 4, 4+4, 0, &evlpin);
 							evl->v3= e2->vn;
 							evl->v4= e4->vn;
-							set_wuv(4, evl, 1, 2, 2+4, 4+4);
+							set_wuv(4, evl, 1, 2, 2+4, 4+4, &evlpin);
 						}/* Unfortunately, there is no way to avoid tris on 1 or 3 edges*/
 						else if(test==7) { /*1,2&3 */
-							addvlak_subdiv(evl, 1+4, 2+4, 3+4, 0, 0);
+							addvlak_subdiv(evl, 1+4, 2+4, 3+4, 0, 0, &evlpin);
 							evl->v2= e1->vn;
 							evl->v3= e3->vn;
-							set_wuv(4, evl, 1, 1+4, 3+4, 4);
+							set_wuv(4, evl, 1, 1+4, 3+4, 4, &evlpin);
 						}
 						
 						else if(test==14) { /* 2,3&4 */
-							addvlak_subdiv(evl, 2+4, 3+4, 4+4, 0, 0);
+							addvlak_subdiv(evl, 2+4, 3+4, 4+4, 0, 0, &evlpin);
 							evl->v3= e2->vn;
 							evl->v4= e4->vn;
-							set_wuv(4, evl, 1, 2, 2+4, 4+4);
+							set_wuv(4, evl, 1, 2, 2+4, 4+4, &evlpin);
 						}
 						else if(test==13) {/* 1,3&4 */
-							addvlak_subdiv(evl, 3+4, 4+4, 1+4, 0, 0);
+							addvlak_subdiv(evl, 3+4, 4+4, 1+4, 0, 0, &evlpin);
 							evl->v4= e3->vn;
 							evl->v1= e1->vn;
-							set_wuv(4, evl, 1+4, 3, 3, 3+4);
+							set_wuv(4, evl, 1+4, 3, 3, 3+4, &evlpin);
 						}
 						else if(test==11) { /* 1,2,&4 */
-							addvlak_subdiv(evl, 4+4, 1+4, 2+4, 0, 0);
+							addvlak_subdiv(evl, 4+4, 1+4, 2+4, 0, 0, &evlpin);
 							evl->v1= e4->vn;
 							evl->v2= e2->vn;
-							set_wuv(4, evl, 4+4, 2+4, 3, 4);
+							set_wuv(4, evl, 4+4, 2+4, 3, 4, &evlpin);
 						}
 					}
-					evl->e1= addedgelist(evl->v1, evl->v2, evl->e1);
-					evl->e2= addedgelist(evl->v2, evl->v3, evl->e2);					
-					if(evl->v4) evl->e3= addedgelist(evl->v3, evl->v4, evl->e3);
-					else evl->e3= addedgelist(evl->v3, evl->v1, evl->e3);
-					if(evl->v4) evl->e4= addedgelist(evl->v4, evl->v1, evl->e4);
+					evl->e1= addedgelist(evl->v1, evl->v2, NULL);
+					evl->e2= addedgelist(evl->v2, evl->v3, NULL);
+					if(evl->v4) evl->e3= addedgelist(evl->v3, evl->v4, NULL);
+					else evl->e3= addedgelist(evl->v3, evl->v1, NULL);
+					if(evl->v4) evl->e4= addedgelist(evl->v4, evl->v1, NULL);
 					else evl->e4= NULL;
 				}
 			}
@@ -8900,6 +8937,7 @@ void bevel_mesh(float bsize, int allfaces)
 #endif
 			}
 
+			/* Needs better adaption of creases? */
    			addedgelist(evl->e1->v1->vn, evl->e1->v2->vn, evl->e1);
    			addedgelist(evl->e2->v1->vn,evl->e2->v2->vn, evl->e2);   			
    			addedgelist(evl->e3->v1->vn,evl->e3->v2->vn, evl->e3);   			
@@ -9832,3 +9870,58 @@ void editmesh_deselect_by_material(int index) {
 		}
 	}
 }
+
+void editmesh_mark_seam(int clear)
+{
+	EditMesh *em= G.editMesh;
+	EditEdge *eed;
+	Mesh *me= G.obedit->data;
+
+	/* auto-enable seams drawing */
+	if(clear==0) {
+		if(!(G.f & G_DRAWSEAMS)) {
+			G.f |= G_DRAWSEAMS;
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		if(!me->medge)
+			me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
+	}
+
+	if(clear) {
+		eed= em->edges.first;
+		while(eed) {
+			if((eed->h==0) && (eed->v1->f & 1) && (eed->v2->f & 1)) {
+				eed->seam = 0;
+			}
+			eed= eed->next;
+		}
+	}
+	else {
+		eed= em->edges.first;
+		while(eed) {
+			if((eed->h==0) && (eed->v1->f & 1) && (eed->v2->f & 1)) {
+				eed->seam = 1;
+			}
+			eed= eed->next;
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+void Edge_Menu() {
+	short ret;
+
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2");
+
+	switch(ret)
+	{
+	case 1:
+		editmesh_mark_seam(0);
+		break;
+	case 2:
+		editmesh_mark_seam(1);
+		break;
+	}
+}
+

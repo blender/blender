@@ -45,4 +45,5 @@ void stitch_uv_tface(int mode);
 void unlink_selection(void);
 void select_linked_tface_uv(void);
 void toggle_uv_select(int mode);
+void pin_tface_uv(int mode);
 

@@ -1,9 +1,4 @@
 /**
- * blenlib/BLI_editVert.h    mar 2001 Nzc
- *
- * Some editing types needed in the lib (unfortunately) for
- * scanfill.c
- *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -35,49 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef BLI_EDITVERT_H
-#define BLI_EDITVERT_H
+#ifndef BDR_UNWRAPPER_H
+#define BDR_UNWRAPPER_H
 
-typedef struct EditVert
-{
-	struct EditVert *next, *prev, *vn;
-	float no[3];
-	float co[3];
-	short xs, ys;
-	unsigned char f, h, f1, hash;
-	int	totweight;				/* __NLA */
-	struct MDeformWeight *dw;	/* __NLA */
-	int keyindex; /* lets hold on to this so that maybe we can have a hope
-				   * of restoring any key information if the number/order
-				   * of verts change.
-				   */
+void set_seamtface(); /* set TF_SEAM flags in tfaces */
+void unwrap_lscm(); /* unwrap selected tfaces */
 
-} EditVert;
-
-typedef struct EditEdge
-{
-	struct EditEdge *next, *prev;
-	struct EditVert *v1, *v2, *vn;
-	short f, f1;
-	unsigned char h, dir, seam;
-	float crease;
-} EditEdge;
-
-typedef struct EditVlak
-{
-	struct EditVlak *next, *prev;
-	struct EditVert *v1, *v2, *v3, *v4;
-	struct EditEdge *e1, *e2, *e3, *e4;
-	float n[3];
-	struct TFace tf;	/* a copy of original tface. */
-	unsigned char mat_nr, flag;
-	unsigned char f, f1;
-} EditVlak;
-
-typedef struct EditMesh
-{
-	ListBase verts, edges, faces;
-} EditMesh;
-
-#endif
+#endif /* BDR_UNWRAPPER_H */
 

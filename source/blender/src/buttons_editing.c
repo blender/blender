@@ -137,6 +137,7 @@
 #include "BDR_editface.h"
 #include "BDR_editobject.h"
 #include "BDR_vpaint.h"
+#include "BDR_unwrapper.h"
 
 #include "BSE_drawview.h"
 #include "BSE_editipo.h"
@@ -2037,25 +2038,24 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_tools1", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Mesh Tools 1", "Editing", 960, 0, 318, 204)==0) return;
 
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",	1091, 200, 166, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_HIDE,		"Hide",		1091,155,77,24, 0, 0, 0, 0, 0, "Hides selected faces");
-	uiDefBut(block, BUT,B_REVEAL,	"Reveal",	1171,155,86,24, 0, 0, 0, 0, 0, "Reveals selected faces");
+	uiDefBut(block, BUT,B_DOCENTRE, "Centre",		1091, 200, 166, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_HIDE,		"Hide",			1091, 180,  77, 19, 0, 0, 0, 0, 0, "Hides selected faces");
+	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		1171, 180,  86, 19, 0, 0, 0, 0, 0, "Reveals selected faces");
+	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091, 160, 166, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091,130,166,24, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
-
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 110, 164, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
-	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	1090,90,164,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
-	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,70,164,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
-	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	1090,50,164,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
-	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 1090,30,164,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
-	uiDefButI(block, TOG|BIT|11, 0, "All edges",				1090,10,164,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
+	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 131, 166, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
+	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,110,166,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",		1090,88,166,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 	1090,66,166,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
+	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	1090,44,166,19, &G.f, 0, 0, 0, 0, "Displays creased edges using hilights");
+	uiDefButI(block, TOG|BIT|20, REDRAWVIEW3D, "Draw Seams",	1090,22,166,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
+	uiDefButI(block, TOG|BIT|11, 0, "All Edges",				1090, 0,166,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 	uiBlockEndAlign(block);
 
 }
-
 
 static void editing_panel_links(Object *ob)
 {
@@ -2365,7 +2365,6 @@ static void editing_panel_mesh_paint(void)
 
 }
 
-
 static void editing_panel_mesh_texface(void)
 {
 	uiBlock *block;
@@ -2403,9 +2402,9 @@ static void editing_panel_mesh_texface(void)
 
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT, B_COPY_TF_MODE, "Copy DrawMode", 600,7,117,28, 0, 0, 0, 0, 0, "Copy the drawmode");
-		uiDefBut(block, BUT, B_COPY_TF_UV, "Copy UV+tex",	  721,7,85,28, 0, 0, 0, 0, 0, "Copy UV information and textures");
-		uiDefBut(block, BUT, B_COPY_TF_COL, "Copy VertCol",	  809,7,103,28, 0, 0, 0, 0, 0, "Copy vertex colours");
+		uiDefBut(block, BUT, B_COPY_TF_MODE, "Copy DrawMode", 600,7,117,28, 0, 0, 0, 0, 0, "Copy the drawmode from active face to selected faces");
+		uiDefBut(block, BUT, B_COPY_TF_UV, "Copy UV+tex",	  721,7,85,28, 0, 0, 0, 0, 0, "Copy UV information and textures from active face to selected faces");
+		uiDefBut(block, BUT, B_COPY_TF_COL, "Copy VertCol",	  809,7,103,28, 0, 0, 0, 0, 0, "Copy vertex colours from active face to selected faces");
 	}
 
 }
@@ -2429,6 +2428,9 @@ void do_uvautocalculationbuts(unsigned short event)
 	case B_UVAUTO_WINDOW:
 		if(select_area(SPACE_VIEW3D)) calculate_uv_map(event);
 		break;
+	case B_UVAUTO_LSCM:
+		unwrap_lscm();
+		break;
 	}
 }
 
@@ -2444,28 +2446,34 @@ static void editing_panel_mesh_uvautocalculation(void)
 		return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_STD1,"Standard 1/1",100,row,200,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping");
-	uiDefBut(block, BUT, B_UVAUTO_STD2,"1/2",100,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/2");
-	uiDefBut(block, BUT, B_UVAUTO_STD4,"1/4",166,row-butHB,67,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/4");
-	uiDefBut(block, BUT, B_UVAUTO_STD8,"1/8",234,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/8");
+	uiDefBut(block, BUT, B_UVAUTO_LSCM,"LSCM Unwrap",100,row,200,butH, 0, 0, 0, 0, 0, "Applies conformal UV mapping, preserving local angles");
+	uiBlockEndAlign(block);
+	row-= butHB+butS;
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_UVAUTO_STD1,"Standard",100,row,100,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping");
+	uiDefBut(block, BUT, B_UVAUTO_STD2,"/2",200,row,33,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/2");
+	uiDefBut(block, BUT, B_UVAUTO_STD4,"/4",233,row,34,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/4");
+	uiDefBut(block, BUT, B_UVAUTO_STD8,"/8",267,row,33,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/8");
+	uiBlockEndAlign(block);
+	row-= butHB+butS;
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS1,"Bounds",100,row,100,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/1");
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS2,"/2",200,row,33,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/2");
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS4,"/4",233,row,34,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/4");
+	uiDefBut(block, BUT, B_UVAUTO_BOUNDS8,"/8",267,row,33,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/8");
+	uiDefBut(block, BUT, B_UVAUTO_WINDOW,"From Window",100,row-butH,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping from window");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS1,"Bounds 1/1",100,row,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/1");
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS2,"1/2",100,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/2");
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS4,"1/4",166,row-butHB,67,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/4");
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS8,"1/8",234,row-butHB,66,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/8");
-	uiDefBut(block, BUT, B_UVAUTO_WINDOW,"From Window",100,row-2*butH,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping from window");
+	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	100,row,200,butH, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButI(block,TOG|BIT|18,REDRAWVIEW3D,"Draw Edges",100,row-butHB,200,butH,&G.f, 2.0, 0, 0, 0,  "Displays edges of visible faces");
+ 	uiDefButI(block,TOG|BIT|21,REDRAWVIEW3D,"Draw Hidden Edges",100,row-2*butHB,200,butH,&G.f, 2.0, 1.0, 0, 0,  "Displays edges of hidden faces");
+	uiDefButI(block,TOG|BIT|20,REDRAWVIEW3D,"Draw Seams",100,row-3*butHB,200,butH,&G.f, 2.0, 2.0, 0, 0,  "Displays UV unwrapping seams");
 	uiBlockEndAlign(block);
-	row-= 3*butHB+butS;
-
-	uiBlockBeginAlign(block);
-	uiDefButS(block,ROW,REDRAWVIEW3D,"No Edges",100,row,200,butH,&facesel_draw_edges, 2.0, 0, 0, 0,  "Don't draw edges of deselected faces in 3D view");
-	uiDefButS(block,ROW,REDRAWVIEW3D,"Draw Edges",100,row-butH,200,butH,&facesel_draw_edges, 2.0, 1.0, 0, 0,  "Draw edges of deselected faces z-buffered in 3D view");
-	uiDefButS(block,ROW,REDRAWVIEW3D,"All Edges",100,row-2*butH,200,butH,&facesel_draw_edges, 2.0, 2.0, 0, 0,  "Draw all edges of deselected faces in 3D view");
-	uiBlockEndAlign(block);
-	row-= 3*butHB+butS;
+	row-= 4*butHB+butS;
 
 	row= 180;
 

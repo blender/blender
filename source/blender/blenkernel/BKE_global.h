@@ -187,6 +187,8 @@ typedef struct Global {
 #define G_NOFROZEN	(1 << 17) // frozen modules inactive
 #define G_DRAWEDGES	(1 << 18)
 #define G_DRAWCREASES	(1 << 19)
+#define G_DRAWSEAMS     (1 << 20)
+#define G_HIDDENEDGES   (1 << 21)
 
 /* G.fileflags */
 

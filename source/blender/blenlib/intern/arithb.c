@@ -2181,6 +2181,27 @@ void MinMaxRGB(short c[])
 	else if(c[2]<0) c[2]=0;
 }
 
+float Vec2Lenf(float *v1, float *v2)
+{
+	float x, y;
+
+	x = v1[0]-v2[0];
+	y = v1[1]-v2[1];
+	return (float)sqrt(x*x+y*y);
+}
+
+void Vec2Mulf(float *v1, float f)
+{
+	v1[0]*= f;
+	v1[1]*= f;
+}
+
+void Vec2Addf(float *v, float *v1, float *v2)
+{
+	v[0]= v1[0]+ v2[0];
+	v[1]= v1[1]+ v2[1];
+}
+
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 {
 	int i;

@@ -176,8 +176,9 @@ struct _HyperVert {
 	LinkNode *edges, *faces;
 };
 
-/* hyper edge flag */
+/* hyper edge flags */
 #define DR_OPTIM	1
+#define HE_SEAM     2
 
 struct _HyperEdge {
 	HyperEdge *next;
@@ -200,6 +201,7 @@ struct _HyperFace {
 
 	unsigned char (*vcol)[4];
 	float (*uvco)[2];
+	short unwrap;
 		
 		/* for getting back tface, matnr, etc */
 	union {
@@ -342,7 +344,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevel
 	MFace *mface= me->mface;
 	MEdge *medge= me->medge;
 	float creasefac= ((float)subdivLevels)/255.0; // in Mesh sharpness is byte
-	int i, j;
+	int i, j, flag;
 
 	hme->orig_me= me;
 	if (me->tface)
@@ -362,8 +364,11 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevel
 	if(medge) {
 		for (i=0; i<me->totedge; i++) {
 			MEdge *med= &medge[i];
+
+			flag= DR_OPTIM;
+			if(med->flag & ME_SEAM) flag |= HE_SEAM;
 			
-			hypermesh_add_edge(hme, vert_tbl[med->v1], vert_tbl[med->v2], DR_OPTIM, 
+			hypermesh_add_edge(hme, vert_tbl[med->v1], vert_tbl[med->v2], flag, 
 				creasefac*((float)med->crease) );
 		}
 	}
@@ -395,6 +400,8 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevel
 				f->vcol= BLI_memarena_alloc(hme->arena, sizeof(*f->vcol)*nverts);
 				for (j=0; j<nverts; j++)
 					*((unsigned int*) f->vcol[j])= tf->col[j];
+
+				f->unwrap= tf->unwrap;
 			} else if (hme->hasvcol) {
 				MCol *mcol= &me->mcol[i*4];
 			
@@ -418,6 +425,7 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	EditEdge *ee;
 	EditVlak *ef;
 	float creasefac= (float)subdivLevels;
+	int flag;
 
 		/* we only add vertices with edges, 'f1' is a free flag */
 		/* added: check for hide flag in vertices */
@@ -437,8 +445,10 @@ static HyperMesh *hypermesh_from_editmesh(EditMesh *em, int subdivLevels) {
 				ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
 				ee->v2->f1= 0;
 			}
-				
-			hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, DR_OPTIM, 
+
+			flag= DR_OPTIM;
+			if(ee->seam) flag |= HE_SEAM;
+			hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, flag, 
 				creasefac*ee->crease);
 		}
 	}
@@ -743,6 +753,13 @@ static void hypermesh_subdivide(HyperMesh *me, HyperMesh *nme) {
 				Vec2Cpy(nf->uvco[1], uvco_edge[j]);
 				Vec2Cpy(nf->uvco[2], uvco_mid);
 				Vec2Cpy(nf->uvco[3], uvco_edge[last]);
+
+				if(j==0 && (f->unwrap & ((f->nverts==4)?TF_PIN4:TF_PIN3)))
+					nf->unwrap= TF_PIN1;
+				else if(j==1 && f->unwrap & TF_PIN1) nf->unwrap= TF_PIN1;
+				else if(j==2 && f->unwrap & TF_PIN2) nf->unwrap= TF_PIN1;
+				else if(j==3 && f->unwrap & TF_PIN3) nf->unwrap= TF_PIN1;
+				else nf->unwrap= 0;
 			}
 		}
 	}
@@ -956,8 +973,8 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 		med->v1= (int) e->v[0]->nmv;
 		med->v2= (int) e->v[1]->nmv;
 
-		/* flag only for optimal */
-		if(e->flag) med->flag = ME_EDGEDRAW;
+		if(e->flag & DR_OPTIM) med->flag |= ME_EDGEDRAW;
+		if(e->flag & HE_SEAM) med->flag |= ME_SEAM;
 	}
 	
 	/* and we add the handles (med is re-used) */
@@ -1036,6 +1053,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 			tf->transp= origtf->transp;
 			tf->mode= origtf->mode;
 			tf->tile= origtf->tile;
+			tf->unwrap= f->unwrap;
 		} else if (hme->hasvcol) {
 			MCol *mcolbase= &dlm->mcol[i*4];
 			

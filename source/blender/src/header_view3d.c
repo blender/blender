@@ -1938,6 +1938,12 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	case 6:
 		bevel_menu();
 		break;
+	case 7: /* Mark Seam */
+		editmesh_mark_seam(0);
+		break;
+	case 8: /* Clear Seam */
+		editmesh_mark_seam(1);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1963,6 +1969,11 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Fractal|W, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Smooth|W, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mark Seam|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Seam|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

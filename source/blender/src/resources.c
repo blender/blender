@@ -428,6 +428,10 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge; break;
 			case TH_EDGE_SELECT:
 				cp= ts->edge_select; break;
+			case TH_EDGE_SEAM:
+				cp= ts->edge_seam; break;
+			case TH_EDGE_FACESEL:
+				cp= ts->edge_facesel; break;
 			case TH_FACE:
 				cp= ts->face; break;
 			case TH_FACE_SELECT:
@@ -502,6 +506,8 @@ void BIF_InitTheme(void)
 	btheme->tv3d.vertex_size= 2;
 	SETCOL(btheme->tv3d.edge, 	0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.edge_select, 0x90, 0x90, 0x30, 255);
+	SETCOL(btheme->tv3d.edge_seam, 230, 150, 50, 255);
+	SETCOL(btheme->tv3d.edge_facesel, 75, 75, 75, 255);
 	SETCOL(btheme->tv3d.face, 	0, 50, 150, 30);
 	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
 
@@ -648,6 +654,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
 			sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE); strcat(cp, str);
 			sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT); strcat(cp, str);
+			sprintf(str, "Edge Seam %%x%d|", TH_EDGE_SEAM); strcat(cp, str);
+			sprintf(str, "Edge UV Face Select %%x%d|", TH_EDGE_FACESEL); strcat(cp, str);
 			sprintf(str, "Face %%x%d|", TH_FACE); strcat(cp, str);
 			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
 		}

@@ -68,7 +68,9 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 
+#include "BIF_resources.h"
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 
@@ -83,8 +85,6 @@
 
 //#include "glext.h"
 /* some local functions */
-static void draw_hide_tfaces(Object *ob, Mesh *me);
-
 #if defined(GL_EXT_texture_object) && (!defined(__sun__) || (!defined(__sun))) && !defined(__APPLE__)
 
 	/* exception for mesa... not according th opengl specs */
@@ -496,42 +496,6 @@ void spack(unsigned int ucol)
 	glColor3ub(cp[3], cp[2], cp[1]);
 }
 
-static void draw_hide_tfaces(Object *ob, Mesh *me)
-{
-	TFace *tface;
-	MFace *mface;
-	float *v1, *v2, *v3, *v4;
-	int a;
-	
-	if(me==0 || me->tface==0) return;
-
-	mface= me->mface;
-	tface= me->tface;
-
-	cpack(0x0);
-	setlinestyle(1);
-	for(a=me->totface; a>0; a--, mface++, tface++) {
-		if(mface->v3==0) continue;
-		
-		if( (tface->flag & TF_HIDE)) {
-
-			v1= (me->mvert+mface->v1)->co;
-			v2= (me->mvert+mface->v2)->co;
-			v3= (me->mvert+mface->v3)->co;
-			if(mface->v4) v4= (me->mvert+mface->v4)->co; else v4= 0;
-		
-			glBegin(GL_LINE_LOOP);
-				glVertex3fv( v1 );
-				glVertex3fv( v2 );
-				glVertex3fv( v3 );
-				if(mface->v4) glVertex3fv( v4 );
-			glEnd();			
-		}
-	}
-	setlinestyle(0);
-}
-
-
 void draw_tfaces3D(Object *ob, Mesh *me)
 {
 	MFace *mface;
@@ -540,26 +504,42 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 	float *v1, *v2, *v3, *v4;
 	float *av1= NULL, *av2= NULL, *av3= NULL, *av4= NULL, *extverts= NULL; 
 	int a, activeFaceInSelection= 0;
-	extern short facesel_draw_edges;
+	extern void bPolygonOffset(short val);
 	
 	if(me==0 || me->tface==0) return;
 
 	dl= find_displist(&ob->disp, DL_VERTS);
 	if (dl) extverts= dl->verts;
 
-	/* shadow view */
-	if(facesel_draw_edges>0){ 
-		if(facesel_draw_edges==2) glDisable(GL_DEPTH_TEST);
-		else glEnable(GL_DEPTH_TEST);
-		cpack(0x00);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	bPolygonOffset(1);
+
+	/* Draw (Hidden) Edges */
+	if(G.f & G_DRAWEDGES || G.f & G_HIDDENEDGES){ 
+		BIF_ThemeColor(TH_EDGE_FACESEL);
 
 		mface= me->mface;
 		tface= me->tface;
 		for(a=me->totface; a>0; a--, mface++, tface++) {
-			v1= (me->mvert+mface->v1)->co;
-			v2= (me->mvert+mface->v2)->co;
-			v3= (me->mvert+mface->v3)->co;
-			v4= mface->v4?(me->mvert+mface->v4)->co: NULL;
+			if(mface->v3==0) continue;
+			if(tface->flag & TF_HIDE) {
+				if(!(G.f & G_HIDDENEDGES)) continue;
+			}
+			else if(!(G.f & G_DRAWEDGES)) continue;
+			
+			if(extverts) {
+				v1= extverts+3*mface->v1;
+				v2= extverts+3*mface->v2;
+				v3= extverts+3*mface->v3;
+				v4= mface->v4?(extverts+3*mface->v4):NULL;
+			} else {
+				v1= (me->mvert+mface->v1)->co;
+				v2= (me->mvert+mface->v2)->co;
+				v3= (me->mvert+mface->v3)->co;
+				v4= mface->v4?(me->mvert+mface->v4)->co:NULL;
+			}
+
 			glBegin(GL_LINE_LOOP);
 				glVertex3fv(v1);
 				glVertex3fv(v2);
@@ -569,17 +549,101 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		}
 	}
 
-	glDisable(GL_DEPTH_TEST);
+	if(G.f & G_DRAWSEAMS) {
+		BIF_ThemeColor(TH_EDGE_SEAM);
+		glLineWidth(2);
 
+		glBegin(GL_LINES);
+		mface= me->mface;
+		tface= me->tface;
+		for(a=me->totface; a>0; a--, mface++, tface++) {
+			if(mface->v3==0) continue;
+			if(tface->flag & TF_HIDE) continue;
+
+			if(extverts) {
+				v1= extverts+3*mface->v1;
+				v2= extverts+3*mface->v2;
+				v3= extverts+3*mface->v3;
+				v4= mface->v4?(extverts+3*mface->v4):NULL;
+			} else {
+				v1= (me->mvert+mface->v1)->co;
+				v2= (me->mvert+mface->v2)->co;
+				v3= (me->mvert+mface->v3)->co;
+				v4= mface->v4?(me->mvert+mface->v4)->co:NULL;
+			}
+
+			if(tface->unwrap & TF_SEAM1) {
+				glVertex3fv(v1);
+				glVertex3fv(v2);
+			}
+
+			if(tface->unwrap & TF_SEAM2) {
+				glVertex3fv(v2);
+				glVertex3fv(v3);
+			}
+
+			if(tface->unwrap & TF_SEAM3) {
+				glVertex3fv(v3);
+				if(v4) glVertex3fv(v4);
+				else glVertex3fv(v1);
+			}
+
+			if(v4 && tface->unwrap & TF_SEAM4) {
+				glVertex3fv(v4);
+				glVertex3fv(v1);
+			}
+		}
+		glEnd();
+
+		glLineWidth(1);
+	}
+
+	/* Draw Selected Faces in transparent purple */
+	if(G.f & G_DRAWFACES) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		BIF_ThemeColor4(TH_FACE_SELECT);
+
+		mface= me->mface;
+		tface= me->tface;
+		for(a=me->totface; a>0; a--, mface++, tface++) {
+			if(mface->v3==0) continue;
+			if(tface->flag & TF_HIDE) continue;
+		
+			if(tface->flag & TF_SELECT) {
+				if(extverts) {
+					v1= extverts+3*mface->v1;
+					v2= extverts+3*mface->v2;
+					v3= extverts+3*mface->v3;
+					v4= mface->v4?(extverts+3*mface->v4):NULL;
+				} else {
+					v1= (me->mvert+mface->v1)->co;
+					v2= (me->mvert+mface->v2)->co;
+					v3= (me->mvert+mface->v3)->co;
+					v4= mface->v4?(me->mvert+mface->v4)->co:NULL;
+				}
+	
+				glBegin(v4?GL_QUADS:GL_TRIANGLES);
+					glVertex3fv( v1 );
+					glVertex3fv( v2 );
+					glVertex3fv( v3 );
+					if(v4) glVertex3fv( v4 );
+				glEnd();
+			}
+		}
+		glDisable(GL_BLEND);
+	}
+	
+	/* Draw Stippled Outline for selected faces */
 	mface= me->mface;
 	tface= me->tface;
-	/* SELECT faces */
+	bPolygonOffset(1);
 	for(a=me->totface; a>0; a--, mface++, tface++) {
 		if(mface->v3==0) continue;
 		if(tface->flag & TF_HIDE) continue;
 		
-		if( tface->flag & (TF_ACTIVE|TF_SELECT) ) {
-			if (extverts) {
+		if(tface->flag & (TF_ACTIVE|TF_SELECT) ) {
+			if(extverts) {
 				v1= extverts+3*mface->v1;
 				v2= extverts+3*mface->v2;
 				v3= extverts+3*mface->v3;
@@ -619,7 +683,7 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		}
 	}
 
-	/* draw active face on top */
+	/* Draw Active Face on top */
 	/* colors: R=x G=y */
 	if(av1) {
 		cpack(0xFF);
@@ -646,7 +710,10 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		setlinestyle(0);
 	}
 
-	glEnable(GL_DEPTH_TEST);
+	/* We added 2 offsets, so go back 2, and disable */
+	bPolygonOffset(-1);
+	bPolygonOffset(-1);
+	bPolygonOffset(0);
 }
 
 static int set_gl_light(Object *ob)
@@ -998,16 +1065,13 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 				glEnd();
 			}
 		}
-		
+
 		/* switch off textures */
 		set_tpage(0);
 	}
-
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
 	
-	draw_hide_tfaces(ob, me);
-
 	if(ob==OBACT && (G.f & G_FACESELECT)) {
 		draw_tfaces3D(ob, me);
 	}

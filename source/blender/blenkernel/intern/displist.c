@@ -277,12 +277,17 @@ void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me)
 	} else {
 		me->totface= dlm->totface;
 		me->totvert= dlm->totvert;
-	
+
 		me->mvert= MEM_dupallocN(dlm->mvert);
 		me->mface= mfaces= MEM_mallocN(sizeof(*mfaces)*me->totface, "me->mface");
 		me->tface= MEM_dupallocN(dlm->tface);
 		me->mcol= MEM_dupallocN(dlm->mcol);
-	
+
+		if(dlm->medge) {
+			me->totedge= dlm->totedge;
+			me->medge= MEM_dupallocN(dlm->medge);
+		}
+
 		for (i=0; i<me->totface; i++) {
 			MFace *mf= &mfaces[i];
 			MFace *oldmf= &dlm->mface[i];

@@ -53,7 +53,7 @@ typedef struct TFace {
 	float uv[4][2];		/* when you change this: also do function set_correct_uv in editmesh.c, and there are more locations that use the size of this part */
 	unsigned int col[4];
 	char flag, transp;
-	short mode, tile, pad;
+	short mode, tile, unwrap;
 } TFace;
 
 typedef struct Mesh {
@@ -152,6 +152,16 @@ typedef struct Mesh {
 #define TF_ADD		1
 #define TF_ALPHA	2
 #define TF_SUB		3
+
+/* tface->unwrap */
+#define TF_SEAM1	1
+#define TF_SEAM2	2
+#define TF_SEAM3	4
+#define TF_SEAM4	8
+#define TF_PIN1	    16
+#define TF_PIN2	    32
+#define TF_PIN3	    64
+#define TF_PIN4	    128
 
 #define MESH_MAX_VERTS 2000000000L
 

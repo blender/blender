@@ -128,6 +128,7 @@
 #include "BDR_editface.h"
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
+#include "BDR_unwrapper.h"
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
 
@@ -1015,11 +1016,15 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							extrude_ika(ob, 1);
 					}
 				}
-            if (G.qual == LR_SHIFTKEY) {
-               if (G.obedit && G.obedit->type==OB_MESH) {
-                  transform('e');
-               }
-            }
+				else if (G.qual==LR_CTRLKEY) {
+					if(G.obedit && G.obedit->type==OB_MESH)
+						Edge_Menu();
+				}
+				else if (G.qual==LR_SHIFTKEY) {
+					if (G.obedit && G.obedit->type==OB_MESH) {
+						transform('e');
+					}
+				}
 				break;
 			case FKEY:
 				if(G.obedit) {
@@ -3419,6 +3424,10 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else
 					toggle_uv_select('f');
 				break;
+			case EKEY :
+				if (okee("LSCM unwrap"))
+					unwrap_lscm();
+				break;
 			case GKEY:
 				if((G.qual==0))
 					transform_tface_uv('g');
@@ -3456,6 +3465,12 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						G.f |= G_PROPORTIONAL;
 				}
+				break;
+			case PKEY:
+				if(G.qual==LR_ALTKEY)
+					pin_tface_uv(0);
+				else
+					pin_tface_uv(1);
 				break;
 			case RKEY:
 				if((G.qual==0))

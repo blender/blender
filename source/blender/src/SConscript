@@ -101,6 +101,7 @@ source_files = ['B.blend.c',
                 'swapbuffers.c',
                 'toets.c',
                 'toolbox.c',
+                'unwrapper.c',
                 'usiblender.c',
                 'view.c',
                 'vpaint.c',
@@ -128,7 +129,8 @@ src_env.Append (CPPPATH = ['#/intern/guardedalloc',
                            '../readstreamglue',
                            '../img',
                            '../quicktime',
-                           '#/intern/ghost'])
+                           '#/intern/ghost',
+                           '#/intern/opennl/extern'])
 
 src_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 src_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])

@@ -62,6 +62,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BDR_drawmesh.h"
+#include "BDR_unwrapper.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -816,8 +817,6 @@ static uiBlock *image_uvs_transformmenu(void *arg_unused)
 
 static void do_image_uvsmenu(void *arg, int event)
 {
-	ScrArea *sa;
-
 	/* events >=20 are registered bpython scripts */
 	if (event >= 20) BPY_menu_do_python(PYMENU_UV, event - 20);
 
@@ -847,6 +846,16 @@ static void do_image_uvsmenu(void *arg, int event)
 		if(G.sima->flag & SI_NOPIXELSNAP) G.sima->flag &= ~SI_NOPIXELSNAP;
 		else G.sima->flag |= SI_NOPIXELSNAP;
 		break;
+    case 8:
+		pin_tface_uv(1);
+		break;
+    case 9:
+		pin_tface_uv(0);
+		break;
+    case 10:
+		if (okee("LSCM unwrap"))
+			unwrap_lscm();
+		break;
 	}
 }
 
@@ -870,6 +879,12 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	
 	if(G.sima->flag & SI_CLIP_UV) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Layout Clipped to Image Size|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpin|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pin|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "LSCM Unwrap|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 

@@ -143,6 +143,7 @@
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
+#include "BDR_unwrapper.h"
 
 #include "render.h"
 #include <time.h>
@@ -1097,8 +1098,11 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 		load_editMesh();	/* makes new displist */
 
 		if(freedata) free_editMesh();
-		
-		if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);
+
+		if(G.f & G_FACESELECT) {
+			set_seamtface();
+			allqueue(REDRAWIMAGE, 0);
+		}
 
 		build_particle_system(G.obedit);
 	}

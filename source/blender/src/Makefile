@@ -85,6 +85,8 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_DECIMATION)/include
 CPPFLAGS += -I$(NAN_BSP)/include
 
+CPPFLAGS += -I$(NAN_OPENNL)/include
+
 CPPFLAGS += -I../readstreamglue
 CPPFLAGS += -I../include
 
