@@ -2170,9 +2170,9 @@ static void editing_panel_mesh_uvautocalculation(void)
 	row-= 3*butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block,ROW,REDRAWVIEW3D,"No Edges",100,row,200,butH,&facesel_draw_edges, 2.0, 0, 0, 0,  "Draw edges in 3D view");
-	uiDefButS(block,ROW,REDRAWVIEW3D,"Draw Edges",100,row-butH,200,butH,&facesel_draw_edges, 2.0, 1.0, 0, 0,  "Draw edges in 3D view");
-	uiDefButS(block,ROW,REDRAWVIEW3D,"All Edges",100,row-2*butH,200,butH,&facesel_draw_edges, 2.0, 2.0, 0, 0,  "Draw edges in 3D view");
+	uiDefButS(block,ROW,REDRAWVIEW3D,"No Edges",100,row,200,butH,&facesel_draw_edges, 2.0, 0, 0, 0,  "Don't draw edges of deselected faces in 3D view");
+	uiDefButS(block,ROW,REDRAWVIEW3D,"Draw Edges",100,row-butH,200,butH,&facesel_draw_edges, 2.0, 1.0, 0, 0,  "Draw edges of deselected faces z-buffered in 3D view");
+	uiDefButS(block,ROW,REDRAWVIEW3D,"All Edges",100,row-2*butH,200,butH,&facesel_draw_edges, 2.0, 2.0, 0, 0,  "Draw all edges of deselected faces in 3D view");
 	uiBlockEndAlign(block);
 	row-= 3*butHB+butS;
 
@@ -2197,7 +2197,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_UVAUTO_FACE,"View Aligns Face",315,row,200,butH, &uv_calc_mapdir,2.0, 1.0, 0.0,0.0, "View is on aequator for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_FACE,"View Aligns Face",315,row,200,butH, &uv_calc_mapdir,2.0, 1.0, 0.0,0.0, "View is on equator for cylindrical and spherical UV mapping");
 	uiDefButS(block, ROW,B_UVAUTO_TOP,"VA Top",315,row-butHB,100,butH, &uv_calc_mapdir,2.0, 0.0, 0.0,0.0, "View is on poles for cylindrical and spherical UV mapping");
 	uiDefButS(block, ROW,B_UVAUTO_TOP,"Al Obj",415,row-butHB,100,butH, &uv_calc_mapdir,2.0, 2.0, 0.0,0.0, "Align to object for cylindrical and spherical UV mapping");
 	uiBlockEndAlign(block);
