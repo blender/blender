@@ -2557,7 +2557,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_UVAUTO_CUBE,"Cube",315,row,200,butH, 0, 0, 0, 0, 0, "Applies cube UV mapping");
-	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Size:",315,row-butHB,200,butH, &uv_calc_cubesize, 0.0001, 100.0, 10, 0, "Defines the cubemap size");
+	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Size:",315,row-butHB,200,butH, &uv_calc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
@@ -2568,7 +2568,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_UVAUTO_CYLINDER,"Cylinder",315,row,200,butH, 0, 0, 0, 0, 0, "Applies cylindrical UV mapping");
-	uiDefButF(block, NUM,B_UVAUTO_CYLRADIUS ,"Radius:",315,row-butHB,200,butH, &uv_calc_radius, 0.1, 100.0, 10, 0, "Defines the radius of the UV mapping cylinder");
+	uiDefButF(block, NUM,B_UVAUTO_CYLRADIUS ,"Radius:",315,row-butHB,200,butH, &uv_calc_radius, 0.1, 100.0, 10, 3, "Defines the radius of the UV mapping cylinder");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 

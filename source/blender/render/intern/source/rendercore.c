@@ -1245,7 +1245,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					float shad[4];
 					
 					/* single sided? */
-					if( vlr->n[0]*lv[0] + vlr->n[1]*lv[1] + vlr->n[2]*lv[2] > -0.01) {
+					if( shi->facenor[0]*lv[0] + shi->facenor[1]*lv[1] + shi->facenor[2]*lv[2] > -0.01) {
 						ray_shadow(shi, lar, shad);
 						shadfac[3]+= shad[3];
 						ir+= 1.0;
@@ -1760,7 +1760,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		}
 	}
 	else {
-		VECCOPY(shi->vn, vlr->n);
+		VECCOPY(shi->vn, shi->facenor);
 	}
 
 	/* texture coordinates. shi->dxuv shi->dyuv have been set */
@@ -1958,10 +1958,14 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		shi.har= shi.mat->har;
 		if((shi.mat->mode & MA_RAYMIRROR)==0) shi.ray_mirror= 0.0;
 		shi.osatex= (shi.mat->texco & TEXCO_OSA);
-
+		
+		/* copy the face normal (needed because it gets flipped for tracing */
+		VECCOPY(shi.facenor, vlr->n);
+		shi.puno= vlr->puno;
+		
 		v1= vlr->v1;
-		dvlak= v1->co[0]*vlr->n[0]+v1->co[1]*vlr->n[1]+v1->co[2]*vlr->n[2];
-
+		dvlak= v1->co[0]*shi.facenor[0]+v1->co[1]*shi.facenor[1]+v1->co[2]*shi.facenor[2];
+		
 		/* COXYZ AND VIEW VECTOR  */
 		shi.view[0]= (x+(R.xstart)+bluroffsx +0.5);
 
@@ -1983,7 +1987,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 			shi.view[2]= -panosi*u + panoco*v;
 		}
 
-		deler= vlr->n[0]*shi.view[0] + vlr->n[1]*shi.view[1] + vlr->n[2]*shi.view[2];
+		deler= shi.facenor[0]*shi.view[0] + shi.facenor[1]*shi.view[1] + shi.facenor[2]*shi.view[2];
 		if (deler!=0.0) fac= zcor= dvlak/deler;
 		else fac= zcor= 0.0;
 		
@@ -1993,8 +1997,8 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		
 		/* pixel dx/dy for render coord */
 		if(shi.osatex || (R.r.mode & R_SHADOW) ) {
-			float u= dvlak/(deler-vlr->n[0]);
-			float v= dvlak/(deler- R.ycor*vlr->n[1]);
+			float u= dvlak/(deler-shi.facenor[0]);
+			float v= dvlak/(deler- R.ycor*shi.facenor[1]);
 
 			shi.dxco[0]= shi.co[0]- (shi.view[0]-1.0)*u;
 			shi.dxco[1]= shi.co[1]- (shi.view[1])*u;
@@ -2094,13 +2098,13 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 			ShadeResult shr_t;
 			
 			VecMulf(shi.vn, -1.0);
-			VecMulf(shi.vlr->n, -1.0);
+			VecMulf(shi.facenor, -1.0);
 			shade_lamp_loop(&shi, &shr_t);
 			shr.diff[0]+= shi.translucency*shr_t.diff[0];
 			shr.diff[1]+= shi.translucency*shr_t.diff[1];
 			shr.diff[2]+= shi.translucency*shr_t.diff[2];
 			VecMulf(shi.vn, -1.0);
-			VecMulf(shi.vlr->n, -1.0);
+			VecMulf(shi.facenor, -1.0);
 		}
 		
 		if(R.r.mode & R_RAYTRACE) {

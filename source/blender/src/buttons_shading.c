@@ -1154,7 +1154,7 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 2048.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
 
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjusts sharpness or blurriness of the reflection"),
+		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
 		uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
 		uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
 		uiDefButF(block, NUM, 0, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 5000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
@@ -1278,7 +1278,7 @@ static void texture_panel_image(Tex *tex)
 
 	/* crop extend clip */
 	
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",			10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Sets the filter size used by mipmap and interpol");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter :",			10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 3, "Sets the filter size used by mipmap and interpol");
 	uiDefButS(block, TOG|BIT|11, B_NOP, "Normal Map",	160,92,150,19, &tex->imaflag, 0.1, 25.0, 0, 0, "Use image RGB values for normal mapping");
 
 	uiBlockBeginAlign(block);

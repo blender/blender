@@ -1283,7 +1283,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr= is->vlr;
 	float l;
-	int osatex= 0, flip= 0;
+	int osatex= 0;
 	
 	/* set up view vector */
 	VECCOPY(shi->view, is->vec);
@@ -1303,12 +1303,15 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	/* face normal, check for flip */
 	l= vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2];
 	if(l<0.0) {	
-		flip= 1;
-		vlr->n[0]= -vlr->n[0];
-		vlr->n[1]= -vlr->n[1];
-		vlr->n[2]= -vlr->n[2];
+		shi->facenor[0]= -vlr->n[0];
+		shi->facenor[1]= -vlr->n[1];
+		shi->facenor[2]= -vlr->n[2];
 		// only flip lower 4 bits
-		vlr->puno= vlr->puno ^ 15;
+		shi->puno= vlr->puno ^ 15;
+	}
+	else {
+		VECCOPY(shi->facenor, vlr->n);
+		shi->puno= vlr->puno;
 	}
 	
 	// Osa structs we leave unchanged now
@@ -1317,7 +1320,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shi->dxco[0]= shi->dxco[1]= shi->dxco[2]= 0.0;
 	shi->dyco[0]= shi->dyco[1]= shi->dyco[2]= 0.0;
 	
-	// but, set O structs zero where it can confuse texture code
+	// but, set Osa stuff to zero where it can confuse texture code
 	if(shi->mat->texco & (TEXCO_NORM|TEXCO_REFL) ) {
 		shi->dxno[0]= shi->dxno[1]= shi->dxno[2]= 0.0;
 		shi->dyno[0]= shi->dyno[1]= shi->dyno[2]= 0.0;
@@ -1343,25 +1346,18 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		if(shi->translucency!=0.0) {
 			ShadeResult shr_t;
 			VecMulf(shi->vn, -1.0);
-			VecMulf(vlr->n, -1.0);
+			VecMulf(shi->facenor, -1.0);
 			shade_lamp_loop(shi, &shr_t);
 			shr->diff[0]+= shi->translucency*shr_t.diff[0];
 			shr->diff[1]+= shi->translucency*shr_t.diff[1];
 			shr->diff[2]+= shi->translucency*shr_t.diff[2];
 			VecMulf(shi->vn, -1.0);
-			VecMulf(vlr->n, -1.0);
+			VecMulf(shi->facenor, -1.0);
 		}
 	}
 	
 	SWAP(int, osatex, shi->osatex);  // XXXXX!!!!
 
-	if(flip) {	
-		vlr->n[0]= -vlr->n[0];
-		vlr->n[1]= -vlr->n[1];
-		vlr->n[2]= -vlr->n[2];
-		// only flip lower 4 bits
-		vlr->puno= vlr->puno ^ 15;
-	}
 }
 
 static void refraction(float *refract, float *n, float *view, float index)
@@ -1717,7 +1713,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			fb= shi->mirb;
 
 			if(vlr->flag & R_SMOOTH) 
-				reflection(vec, shi->vn, shi->view, vlr->n);
+				reflection(vec, shi->vn, shi->view, shi->facenor);
 			else
 				reflection(vec, shi->vn, shi->view, NULL);
 	
@@ -1999,7 +1995,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	}
 	else {
 		bias= 0.0;
-		nrm= shi->vlr->n;
+		nrm= shi->facenor;
 	}
 	
 	vec= sphere_sampler(wrld->aomode, wrld->aosamp, floor(shi->xs+0.5), floor(shi->ys+0.5) );
