@@ -7,7 +7,7 @@ Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
-__author__ = "Campbell Barton"
+__author__ = "Campbell Barton, Jiri Hnidek"
 __url__ = ["blender", "elysiun"]
 __version__ = "0.9"
 
@@ -62,10 +62,18 @@ def stripPath(path):
 #==================#
 # Apply Transform  #
 #==================#
-def apply_transform(vert, matrix):
+def apply_transform(vert, matrix_4x4):
 	vertCopy = Mathutils.CopyVec(vert)
 	vertCopy.resize4D()
-	return Mathutils.VecMultMat(vertCopy, matrix)
+	return Mathutils.VecMultMat(vertCopy, matrix_4x4)
+
+#=================================#
+# Apply Transform (normal vector) #
+#=================================#
+def apply_normal_transform(norm, matrix_3x3):
+	vertCopy = Mathutils.CopyVec(norm)
+	vertCopy.resize3D()
+	return Mathutils.VecMultMat(vertCopy, matrix_3x3)
 
 from Blender import *
 
@@ -148,12 +156,17 @@ def save_obj(filename):
 		file.write('o %s_%s\n' % (ob.getName(), m.name)) # Write Object name
   
 		# Works 100% Yay
-		matrix = ob.getMatrix('worldspace')
+		matrix_4x4 = ob.getMatrix('worldspace')
+
+		# matrix for transformation of normal vectors
+		matrix_3x3 = Mathutils.Matrix([matrix_4x4[0][0], matrix_4x4[0][1], matrix_4x4[0][2]],
+			[matrix_4x4[1][0], matrix_4x4[1][1], matrix_4x4[1][2]],
+			[matrix_4x4[2][0], matrix_4x4[2][1], matrix_4x4[2][2]])
   
 		# Vert
 		for v in m.verts:
 			# Transform the vert
-			vTx = apply_transform(v.co, matrix)
+			vTx = apply_transform(v.co, matrix_4x4)
 			file.write('v %s %s %s\n' % (vTx[0], vTx[1], vTx[2]))
   
 		# UV
@@ -168,7 +181,7 @@ def save_obj(filename):
 		for f1 in m.faces:
 			for v in f1.v:
 				# Transform the normal
-				noTx = apply_transform(v.no, matrix)
+				noTx = apply_normal_transform(v.no, matrix_3x3)
 				noTx.normalize()
 				file.write('vn %s %s %s\n' % (noTx[0], noTx[1], noTx[2]))
 
