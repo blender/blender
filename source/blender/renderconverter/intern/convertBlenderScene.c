@@ -2404,11 +2404,9 @@ static void init_render_curve(Object *ob)
 
 				}
 
-				/* make double points: SPLIT POLY */
-				if(dlb->nr==4 && cu->bevobj==NULL) {
-					split_u_renderfaces(startvlak, startvert, bl->nr, 1, bl->poly>0);
-					split_u_renderfaces(startvlak, startvert, bl->nr, 2, bl->poly>0);
-				}
+				/* here was split_u before, for split off standard bevels, not needed anymore */
+				/* but it could check on the bevel-curve BevPoints for u-split though... */
+				
 				/* make double points: SPLIT BEVELS */
 				bevp= (BevPoint *)(bl+1);
 				for(a=0; a<bl->nr; a++) {

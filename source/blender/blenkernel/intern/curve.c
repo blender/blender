@@ -1217,6 +1217,8 @@ void makebevelcurve(Object *ob, ListBase *disp)
 						dlnew->verts= MEM_mallocN(3*sizeof(float)*dl->parts*dl->nr, "makebevelcurve1");
 						memcpy(dlnew->verts, dl->verts, 3*sizeof(float)*dl->parts*dl->nr);
 						
+						if(dlnew->type==DL_SEGM) dlnew->flag |= (DL_FRONT_CURVE|DL_BACK_CURVE);
+						
 						BLI_addtail(disp, dlnew);
 						fp= dlnew->verts;
 						nr= dlnew->parts*dlnew->nr;
@@ -1238,7 +1240,9 @@ void makebevelcurve(Object *ob, ListBase *disp)
 		BLI_addtail(disp, dl);
 		dl->type= DL_SEGM;
 		dl->parts= 1;
+		dl->flag= DL_FRONT_CURVE|DL_BACK_CURVE;
 		dl->nr= 2;
+		
 		fp= dl->verts;
 		fp[0]= fp[1]= 0.0;
 		fp[2]= -cu->ext1;
@@ -1247,38 +1251,72 @@ void makebevelcurve(Object *ob, ListBase *disp)
 	}
 	else {
 		nr= 4+2*cu->bevresol;
-
-		dl= MEM_callocN(sizeof(DispList), "makebevelcurve3");
-		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve3");
+		
+		/* bevel now in three parts, for proper vertex normals */
+		/* part 1 */
+		nr= 2+ cu->bevresol;
+		
+		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p1");
+		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p1");
 		BLI_addtail(disp, dl);
 		dl->type= DL_SEGM;
 		dl->parts= 1;
+		dl->flag= DL_BACK_CURVE;
 		dl->nr= nr;
 
-		/* first make circle */
+		/* half a circle */
 		fp= dl->verts;
 		hoek= -0.5*M_PI;
-		dhoek= (float)(M_PI/(nr-2));
+		dhoek= (0.5*M_PI/(nr-1));
+		
 		for(a=0; a<nr; a++) {
 			fp[0]= 0.0;
 			fp[1]= (float)(cos(hoek)*(cu->ext2));
-			fp[2]= (float)(sin(hoek)*(cu->ext2));
+			fp[2]= (float)(sin(hoek)*(cu->ext2)) - cu->ext1;
 			hoek+= dhoek;
 			fp+= 3;
-			if(cu->ext1!=0.0 && a==((nr/2)-1) ) {
-				VECCOPY(fp, fp-3);
-				fp+=3;
-				a++;
-			}
 		}
-		if(cu->ext1==0.0) dl->nr--;
-		else {
+		
+		/* part 2, sidefaces */
+		if(cu->ext1!=0.0) {
+			nr= 2;
+			
+			dl= MEM_callocN(sizeof(DispList), "makebevelcurve p2");
+			dl->verts= MEM_callocN(nr*3*sizeof(float), "makebevelcurve p2");
+			BLI_addtail(disp, dl);
+			dl->type= DL_SEGM;
+			dl->parts= 1;
+			dl->nr= nr;
+			
 			fp= dl->verts;
-			for(a=0; a<nr; a++) {
-				if(a<=(nr/2-1)) fp[2]-= (cu->ext1);
-				else fp[2]+= (cu->ext1);
-				fp+= 3;
-			}
+			fp[1]= cu->ext2;
+			fp[2]= -cu->ext1;
+			fp[4]= cu->ext2;
+			fp[5]= cu->ext1;
+		}
+		
+		/* part 3 */
+		nr= 2+ cu->bevresol;
+		
+		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p3");
+		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p3");
+		BLI_addtail(disp, dl);
+		dl->type= DL_SEGM;
+		dl->flag= DL_FRONT_CURVE;
+		dl->parts= 1;
+		dl->nr= nr;
+		
+		/* half a circle */
+		fp= dl->verts;
+		hoek= 0.0;
+		dhoek= (0.5*M_PI/(nr-1));
+		
+		for(a=0; a<nr; a++) {
+			fp[0]= 0.0;
+			fp[1]= (float)(cos(hoek)*(cu->ext2));
+			fp[2]= (float)(sin(hoek)*(cu->ext2)) + cu->ext1;
+			hoek+= dhoek;
+			fp+= 3;
 		}
 	}
 

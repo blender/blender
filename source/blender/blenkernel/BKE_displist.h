@@ -50,6 +50,8 @@
 /* dl->flag */
 #define DL_CYCL_U		1
 #define DL_CYCL_V		2
+#define DL_FRONT_CURVE	4
+#define DL_BACK_CURVE	8
 
 /* prototypes */
 

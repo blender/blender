@@ -607,6 +607,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							else nu->flag &= ~ME_SMOOTH;
 							nu= nu->next;
 						}
+						makeDispList(base->object);
 					}
 				}
 				base= base->next;

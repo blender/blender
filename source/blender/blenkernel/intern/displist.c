@@ -1608,15 +1608,14 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 	int a, dpoly;
 	
 	front.first= front.last= back.first= back.last= 0;
-	
 	if(cu->flag & CU_3D) return;
 	if( (cu->flag & (CU_FRONT+CU_BACK))==0 ) return;
 	
 	dl= dispbase->first;
 	while(dl) {
 		if(dl->type==DL_SURF) {
-			if(dl->flag == DL_CYCL_V) {
-				if(cu->flag & CU_BACK) {
+			if( (dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U)==0 ) {
+				if( (cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE) ) {
 					dlnew= MEM_callocN(sizeof(DispList), "filldisp");
 					BLI_addtail(&front, dlnew);
 					dlnew->verts= fp1= MEM_mallocN(sizeof(float)*3*dl->parts, "filldisp1");
@@ -1635,7 +1634,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 						fp+= dpoly;
 					}
 				}
-				if(cu->flag & CU_FRONT) {
+				if( (cu->flag & CU_FRONT) && (dl->flag & DL_FRONT_CURVE) ) {
 					dlnew= MEM_callocN(sizeof(DispList), "filldisp");
 					BLI_addtail(&back, dlnew);
 					dlnew->verts= fp1= MEM_mallocN(sizeof(float)*3*dl->parts, "filldisp1");
@@ -1917,7 +1916,7 @@ void makeDispList(Object *ob)
 			else curve_to_displist(&cu->nurb, dispbase);
 			if(cu->flag & CU_PATH) makeBevelList(ob);
 		}
-		else if(cu->ext1==0.0 && cu->ext2==0.0 && cu->bevobj==0 && cu->width==1.0) {
+		else if(cu->ext1==0.0 && cu->ext2==0.0 && cu->bevobj==NULL && cu->width==1.0) {
 			curve_to_displist(&cu->nurb, dispbase);
 			if(cu->flag & CU_PATH) makeBevelList(ob);
 		}
@@ -1925,7 +1924,7 @@ void makeDispList(Object *ob)
 			
 			makeBevelList(ob);
 
-			dlbev.first= dlbev.last= 0;
+			dlbev.first= dlbev.last= NULL;
 			if(cu->ext1!=0.0 || cu->ext2!=0.0 || cu->bevobj) {
 				if(ob->dt!=0) makebevelcurve(ob, &dlbev);
 			}
@@ -1939,8 +1938,12 @@ void makeDispList(Object *ob)
 					dl= MEM_callocN(sizeof(DispList), "makeDispListbev");
 					dl->verts= MEM_callocN(3*sizeof(float)*bl->nr, "dlverts");
 					BLI_addtail(dispbase, dl);
+					
 					if(bl->poly!= -1) dl->type= DL_POLY;
 					else dl->type= DL_SEGM;
+					
+					if(dl->type==DL_SEGM) dl->flag = (DL_FRONT_CURVE|DL_BACK_CURVE);
+					
 					dl->parts= 1;
 					dl->nr= bl->nr;
 					dl->col= nu->mat_nr;
@@ -1966,13 +1969,15 @@ void makeDispList(Object *ob)
 						/* dl->type= dlb->type; */
 
 						dl->type= DL_SURF;
-						dl->flag= 0;
+						
+						dl->flag= dlb->flag & (DL_FRONT_CURVE|DL_BACK_CURVE);
 						if(dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
 						if(bl->poly>=0) dl->flag |= DL_CYCL_V;
-
+						
 						dl->parts= bl->nr;
 						dl->nr= dlb->nr;
 						dl->col= nu->mat_nr;
+						dl->rt= nu->flag;
 
 						data= dl->verts;
 						bevp= (BevPoint *)(bl+1);

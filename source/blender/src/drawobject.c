@@ -1501,7 +1501,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 	
 	if(lb==0) return;
 	
-	glShadeModel(GL_SMOOTH);
 	glEnable(GL_LIGHTING);
 	
 	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
@@ -1516,6 +1515,9 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 		case DL_SURF:
 
 			set_gl_material(dl->col+1);
+			
+			if(dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
+			else glShadeModel(GL_FLAT);
 
 			for(a=0; a<dl->parts; a++) {
 				
