@@ -1,3 +1,4 @@
+#!/usr/bin/python
 csg_env = Environment()
 
 # Import the C flags set in the SConstruct file

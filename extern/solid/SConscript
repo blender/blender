@@ -1,13 +1,15 @@
+#!/usr/bin/python
 import sys
 solid_env = Environment()
 
 # Import the C flags set in the SConstruct file
-#Import ('cflags')
+Import ('cflags')
 #Import ('cxxflags')
 #Import ('defines')
 Import ('user_options_dict')
+#defines = ['QHULL', '_LIB']
 defines = ['USE_DOUBLES','QHULL', '_LIB']
-cflags = []
+#cflags = []
 cxxflags = []
 
 if sys.platform=='win32':

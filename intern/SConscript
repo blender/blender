@@ -1,3 +1,4 @@
+#!/usr/bin/python
 SConscript(['SoundSystem/SConscript',
             'string/SConscript',
             'ghost/SConscript',

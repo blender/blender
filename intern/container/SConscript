@@ -1,3 +1,4 @@
+#!/usr/bin/python
 Import ('user_options_dict')
 Import ('library_env')
 

@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys
 
 Import ('user_options_dict')
@@ -26,6 +27,7 @@ source_files = ['KX_WorldIpoController.cpp',
                 'KX_RaySensor.cpp',
                 'KX_RayEventManager.cpp',
                 'KX_RadarSensor.cpp',
+                'KX_PyMath.cpp',
                 'KX_PythonInit.cpp',
                 'KX_PyConstraintBinding.cpp',
                 'KX_PositionInterpolator.cpp',
