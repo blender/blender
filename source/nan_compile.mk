@@ -56,16 +56,6 @@ REL_CCFLAGS	+= -DNDEBUG
 DBG_CFLAGS	+= -g
 DBG_CCFLAGS	+= -g
 
-# Support for new transform code ---------------------------------------
-ifeq ($(NAN_NEW_TRANSFORM), true)
-  	CPPFLAGS += -DNEWTRANSFORM
-endif
-
-# Support for new subsurf code -----------------------------------------
-ifeq ($(NAN_NEW_SUBSURF), true)
-  	CPPFLAGS += -DUSE_CCGSUBSURFLIB
-endif
-
 # OS dependent parts ---------------------------------------------------
 
 ifeq ($(OS),beos)
