@@ -173,7 +173,6 @@ void planeProjection(TransInfo *t, float in[3], float out[3]) {
 	factor = Normalise(vec);
 	angle = Inpf(vec, norm);
 
-
 	if (angle * angle >= 0.000001f) {
 		factor /= angle;
 
@@ -184,25 +183,34 @@ void planeProjection(TransInfo *t, float in[3], float out[3]) {
 	}
 }
 
+/*
+ * Generic callback for constant spacial constraints applied to linear motion
+ * 
+ * The IN vector in projected into the constrained space and then further
+ * projected along the view vector.
+ * (in perspective mode, the view vector is relative to the position on screen)
+ *
+ */
+
 void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[3])
 {
 	VECCOPY(out, in);
-	if (!td && t->con.mode & APPLYCON) {
+	if (!td && t->con.mode & CON_APPLY) {
 		Mat3MulVecfl(t->con.imtx, out);
-		if (!(out[0] == out[1] == out[2] == 0.0f)) {
+		if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 			if (getConstraintSpaceDimension(t) == 2) {
 				planeProjection(t, in, out);
 			}
 			else if (getConstraintSpaceDimension(t) == 1) {
 				float c[3];
 
-				if (t->con.mode & CONAXIS0) {
+				if (t->con.mode & CON_AXIS0) {
 					VECCOPY(c, t->con.mtx[0]);
 				}
-				else if (t->con.mode & CONAXIS1) {
+				else if (t->con.mode & CON_AXIS1) {
 					VECCOPY(c, t->con.mtx[1]);
 				}
-				else if (t->con.mode & CONAXIS2) {
+				else if (t->con.mode & CON_AXIS2) {
 					VECCOPY(c, t->con.mtx[2]);
 				}
 				axisProjection(t, c, in, out);
@@ -210,13 +218,13 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 		}
 		
 		/* THIS IS NO GOOD, only works with global axis constraint */
-		if (t->num.flags & NULLONE && !(t->con.mode & CONAXIS0))
+		if (t->num.flags & NULLONE && !(t->con.mode & CON_AXIS0))
 			out[0] = 1.0f;
 
-		if (t->num.flags & NULLONE && !(t->con.mode & CONAXIS1))
+		if (t->num.flags & NULLONE && !(t->con.mode & CON_AXIS1))
 			out[1] = 1.0f;
 
-		if (t->num.flags & NULLONE && !(t->con.mode & CONAXIS2))
+		if (t->num.flags & NULLONE && !(t->con.mode & CON_AXIS2))
 			out[2] = 1.0f;
 	}
 }
@@ -236,20 +244,20 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
 
 void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
 {
-	if (!td && t->con.mode & APPLYCON) {
-		int mode = t->con.mode & (CONAXIS0|CONAXIS1|CONAXIS2);
+	if (!td && t->con.mode & CON_APPLY) {
+		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
 
 		switch(mode) {
-		case CONAXIS0:
-		case (CONAXIS1|CONAXIS2):
+		case CON_AXIS0:
+		case (CON_AXIS1|CON_AXIS2):
 			VECCOPY(vec, t->con.mtx[0]);
 			break;
-		case CONAXIS1:
-		case (CONAXIS0|CONAXIS2):
+		case CON_AXIS1:
+		case (CON_AXIS0|CON_AXIS2):
 			VECCOPY(vec, t->con.mtx[1]);
 			break;
-		case CONAXIS2:
-		case (CONAXIS0|CONAXIS1):
+		case CON_AXIS2:
+		case (CON_AXIS0|CON_AXIS1):
 			VECCOPY(vec, t->con.mtx[2]);
 			break;
 		}
@@ -271,13 +279,13 @@ int getConstraintSpaceDimension(TransInfo *t)
 {
 	int n = 0;
 
-	if (t->con.mode & CONAXIS0)
+	if (t->con.mode & CON_AXIS0)
 		n++;
 
-	if (t->con.mode & CONAXIS1)
+	if (t->con.mode & CON_AXIS1)
 		n++;
 
-	if (t->con.mode & CONAXIS2)
+	if (t->con.mode & CON_AXIS2)
 		n++;
 
 	return n;
@@ -296,7 +304,7 @@ void BIF_setSingleAxisConstraint(float vec[3]) {
 	Crossf(space[2], vec, space[1]);
 
 	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = (CONAXIS0|APPLYCON);
+	t->con.mode = (CON_AXIS0|CON_APPLY);
 	getConstraintMatrix(t);
 
 	VECCOPY(t->con.center, t->center);
@@ -333,29 +341,21 @@ void BIF_drawConstraint()
 	if (tc->mode == 0)
 		return;
 
-	if (!(tc->mode & APPLYCON)) {
-		i = nearestAxisIndex(t);
-	}
-
-	if (tc->mode & CONAXIS0) {
-		if (i == 0)
-			drawLine(tc->center, tc->mtx[0], 255 - 'x');
-		else
+	if (tc->mode & CON_SELECT) {
 			drawLine(tc->center, tc->mtx[0], 'x');
-	}
-	if (tc->mode & CONAXIS1) {
-		if (i == 1)
-			drawLine(tc->center, tc->mtx[1], 255 - 'y');
-		else
 			drawLine(tc->center, tc->mtx[1], 'y');
-	}
-	if (tc->mode & CONAXIS2) {
-		if (i == 2)
-			drawLine(tc->center, tc->mtx[2], 255 - 'z');
-		else
 			drawLine(tc->center, tc->mtx[2], 'z');
 	}
 
+	if (tc->mode & CON_AXIS0) {
+		drawLine(tc->center, tc->mtx[0], 255 - 'x');
+	}
+	if (tc->mode & CON_AXIS1) {
+		drawLine(tc->center, tc->mtx[1], 255 - 'y');
+	}
+	if (tc->mode & CON_AXIS2) {
+		drawLine(tc->center, tc->mtx[2], 255 - 'z');
+	}
 }
 
 /* called from drawview.c, as an extra per-window draw option */
@@ -385,45 +385,72 @@ void getConstraintMatrix(TransInfo *t)
 {
 	Mat3Inv(t->con.imtx, t->con.mtx);
 
-	if (!(t->con.mode & CONAXIS0)) {
+	if (!(t->con.mode & CON_AXIS0)) {
 		t->con.imtx[0][0]		=
 			t->con.imtx[0][1]	=
 			t->con.imtx[0][2]	= 0.0f;
 	}
 
-	if (!(t->con.mode & CONAXIS1)) {
+	if (!(t->con.mode & CON_AXIS1)) {
 		t->con.imtx[1][0]		=
 			t->con.imtx[1][1]	=
 			t->con.imtx[1][2]	= 0.0f;
 	}
 
-	if (!(t->con.mode & CONAXIS2)) {
+	if (!(t->con.mode & CON_AXIS2)) {
 		t->con.imtx[2][0]		=
 			t->con.imtx[2][1]	=
 			t->con.imtx[2][2]	= 0.0f;
 	}
 }
 
-void selectConstraint(TransInfo *t)
+void initSelectConstraint(TransInfo *t)
 {
 	Mat3One(t->con.mtx);
 	Mat3One(t->con.imtx);
-	t->con.mode |= CONAXIS0;
-	t->con.mode |= CONAXIS1;
-	t->con.mode |= CONAXIS2;
-	t->con.mode &= ~APPLYCON;
+	t->con.mode |= CON_APPLY;
+	t->con.mode |= CON_SELECT;
 	VECCOPY(t->con.center, t->center);
 	if (G.obedit) {
 		Mat4MulVecfl(G.obedit->obmat, t->con.center);
 	}
+	setNearestAxis(t);
+	t->con.applyVec = applyAxisConstraintVec;
+	t->con.applyRot = applyAxisConstraintRot;
 }
 
-int nearestAxisIndex(TransInfo *t)
+void selectConstraint(TransInfo *t) {
+	if (t->con.mode & CON_SELECT) {
+		setNearestAxis(t);
+	}
+}
+
+void postSelectConstraint(TransInfo *t)
+{
+	t->con.mode &= ~CON_AXIS0;
+	t->con.mode &= ~CON_AXIS1;
+	t->con.mode &= ~CON_AXIS2;
+	t->con.mode &= ~CON_SELECT;
+
+	setNearestAxis(t);
+
+	t->con.mode |= CON_APPLY;
+	VECCOPY(t->con.center, t->center);
+
+	getConstraintMatrix(t);
+	t->redraw = 1;
+}
+
+void setNearestAxis(TransInfo *t)
 {
 	short coord[2];
 	float mvec[3], axis[3], center[3], proj[3];
 	float len[3];
 	int i;
+
+	t->con.mode &= ~CON_AXIS0;
+	t->con.mode &= ~CON_AXIS1;
+	t->con.mode &= ~CON_AXIS2;
 
 	VECCOPY(center, t->center);
 	if (G.obedit) {
@@ -454,40 +481,28 @@ int nearestAxisIndex(TransInfo *t)
 	}
 
 	if (len[0] < len[1] && len[0] < len[2]) {
-		return 0;
+		if (G.qual == LR_CTRLKEY) {
+			t->con.mode |= (CON_AXIS1|CON_AXIS2);
+		}
+		else {
+			t->con.mode |= CON_AXIS0;
+		}
 	}
 	else if (len[1] < len[0] && len[1] < len[2]) {
-		return 1;
+		if (G.qual == LR_CTRLKEY) {
+			t->con.mode |= (CON_AXIS0|CON_AXIS2);
+		}
+		else {
+			t->con.mode |= CON_AXIS1;
+		}
 	}
 	else if (len[2] < len[1] && len[2] < len[0]) {
-		return 2;
+		if (G.qual == LR_CTRLKEY) {
+			t->con.mode |= (CON_AXIS0|CON_AXIS1);
+		}
+		else {
+			t->con.mode |= CON_AXIS2;
+		}
 	}
-	return -1;
-}
-
-void chooseConstraint(TransInfo *t)
-{
-	t->con.mode &= ~CONAXIS0;
-	t->con.mode &= ~CONAXIS1;
-	t->con.mode &= ~CONAXIS2;
-
-	switch(nearestAxisIndex(t)) {
-	case 0:
-		t->con.mode |= CONAXIS0;
-		break;
-	case 1:
-		t->con.mode |= CONAXIS1;
-		break;
-	case 2:
-		t->con.mode |= CONAXIS2;
-		break;
-	}
-
-	t->con.mode |= APPLYCON;
-	VECCOPY(t->con.center, t->center);
-
 	getConstraintMatrix(t);
-	t->con.applyVec = applyAxisConstraintVec;
-	t->con.applyRot = applyAxisConstraintRot;
-	t->redraw = 1;
 }

@@ -46,13 +46,13 @@ void drawPropCircle();
 
 void getConstraintMatrix(TransInfo *t);
 
+void initSelectConstraint(TransInfo *t);
 void selectConstraint(TransInfo *t);
-
-void chooseConstraint(TransInfo *t);
+void postSelectConstraint(TransInfo *t);
 
 int getConstraintSpaceDimension(TransInfo *t);
 
-int nearestAxisIndex(TransInfo *t);
+void setNearestAxis(TransInfo *t);
 
 #endif
 

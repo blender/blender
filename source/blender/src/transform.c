@@ -1243,6 +1243,7 @@ void Transform(int mode)
 			pmval[0] = mval[0];
 			pmval[1] = mval[1];
 
+			selectConstraint(&Trans);
 			if (Trans.transform) {
 				Trans.transform(&Trans, mval);
 			}
@@ -1258,7 +1259,7 @@ void Transform(int mode)
 			if(val) {
 				switch (event){
 				case MIDDLEMOUSE:
-					selectConstraint(&Trans);
+					initSelectConstraint(&Trans);
 					Trans.redraw = 1;
 					break;
 				case ESCKEY:
@@ -1281,23 +1282,23 @@ void Transform(int mode)
 					break;
 				case XKEY:
 					if (G.qual == 0)
-						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0));
+						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, mati, (APPLYCON|CONAXIS1|CONAXIS2));
+						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1|CON_AXIS2));
 					break;
 					Trans.redraw = 1;
 				case YKEY:
 					if (G.qual == 0)
-						setConstraint(&Trans, mati, (APPLYCON|CONAXIS1));
+						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS1));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0|CONAXIS2));
+						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS2));
 					break;
 					Trans.redraw = 1;
 				case ZKEY:
 					if (G.qual == 0)
-						setConstraint(&Trans, mati, (APPLYCON|CONAXIS2));
+						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS2));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&Trans, mati, (APPLYCON|CONAXIS0|CONAXIS1));
+						setConstraint(&Trans, mati, (CON_APPLY|CON_AXIS0|CON_AXIS1));
 					Trans.redraw = 1;
 					break;
 				case OKEY:
@@ -1331,7 +1332,7 @@ void Transform(int mode)
 			else {
 				switch (event){
 				case MIDDLEMOUSE:
-					chooseConstraint(&Trans);
+					postSelectConstraint(&Trans);
 					Trans.redraw = 1;
 					break;
 				case LEFTMOUSE:

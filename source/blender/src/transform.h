@@ -133,10 +133,11 @@ typedef struct TransInfo {
 #define TFM_SHEAR			5
 #define TFM_LAMP_ENERGY		6
 
-#define APPLYCON		1
-#define CONAXIS0		2
-#define CONAXIS1		4
-#define CONAXIS2		8
+#define CON_APPLY		1
+#define CON_AXIS0		2
+#define CON_AXIS1		4
+#define CON_AXIS2		8
+#define CON_SELECT		16
 
 #define PROP_SHARP		0
 #define PROP_SMOOTH		1
