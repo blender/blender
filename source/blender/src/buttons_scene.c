@@ -435,6 +435,7 @@ static void output_pic(char *name)
 {
 	strcpy(G.scene->r.pic, name);
 	allqueue(REDRAWBUTSSCENE, 0);
+	BIF_undo_push("Change output picture directory");
 }
 
 static void backbuf_pic(char *name)
@@ -449,6 +450,7 @@ static void backbuf_pic(char *name)
 		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
 	}
+	BIF_undo_push("Change background picture");
 }
 
 static void ftype_pic(char *name)
@@ -464,6 +466,7 @@ static void scene_change_set(Scene *sc, Scene *set) {
 		
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Change set Scene");
 	}
 }
 
@@ -789,7 +792,6 @@ void do_render_panels(unsigned short event)
 		break;
 	case B_CLEARSET:
 		scene_change_set(G.scene, NULL);
-		BIF_undo_push("Clear set");
 		break;
 	}
 }

@@ -6211,6 +6211,7 @@ void transform(int mode)
 						if(cameragrab) {
 							dvec[0]= dvec[1]= dvec[2]= 0.0;
 						}
+						if(mode == 'n') mode= 'g';
 					}
 					else
 						axismode = 0;
