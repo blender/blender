@@ -79,6 +79,7 @@ typedef struct OopsLink {
 #define TSE_CLOSED		1
 #define TSE_LASTCLICKED	2
 
+/* TreeStoreElem types in BIF_outliner.h */
 
 #endif
 

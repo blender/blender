@@ -103,9 +103,6 @@
 
 #define TREESTORE(a) soops->treestore->data+(a)->store_index
 
-/* fake ID to get NLA inside diagram */
-static ID nlaid= {NULL, NULL, NULL, NULL, "NLNLA", 0, 0, 0};
-
 /* ******************** PERSISTANT DATA ***************** */
 
 /* for now only called after reading file or undo step */
@@ -186,7 +183,8 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	tselem= ts->data+ts->usedelem;
 	
 	tselem->type= type;
-	tselem->nr= nr;
+	if(tselem->type) tselem->nr= nr; // we're picky! :)
+	else tselem->nr= 0;
 	tselem->id= id;
 	tselem->flag= TSE_CLOSED;
 	te->store_index= ts->usedelem;
@@ -220,7 +218,8 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 	}
 }
 
-static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, TreeElement *parent, short index)
+static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
+										 TreeElement *parent, short type, short index)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -232,13 +231,13 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	/* add to the visual tree */
 	BLI_addtail(lb, te);
 	/* add to the storage */
-	check_persistant(soops, te, idv, 0, 0);
+	check_persistant(soops, te, idv, type, index);
 	tselem= TREESTORE(te);	
 	
 	te->parent= parent;
 	te->index= index;	// for (ID *) arays
 	
-	if(idv) {
+	if(idv && type==0) {
 		ID *id= idv;
 
 		/* tuck pointer back in object, to construct hierarchy */
@@ -249,86 +248,87 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_SCE:
 			{
 				Scene *sce= (Scene *)id;
-				outliner_add_element(soops, &te->subtree, sce->world, te, 0);
+				outliner_add_element(soops, &te->subtree, sce->world, te, 0, 0);
 			}
 			break;
 		case ID_OB:
 			{
 				Object *ob= (Object *)id;
-				outliner_add_element(soops, &te->subtree, ob->data, te, 0);
-				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0);
-				outliner_add_element(soops, &te->subtree, ob->action, te, 0);
-				if(ob->nlastrips.first) {
-					//bActionStrip *strip;
-					//TreeElement *tenla= outliner_add_element(soops, &te->subtree, &nlaid, te, 0);
-					//for (strip=ob->nlastrips.first; strip; strip=strip->next) {
-					//	outliner_add_element(soops, &tenla->subtree, strip->act, tenla, 0);
-					//}
+				outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, ob->action, te, 0, 0);
+				if(0 && ob->nlastrips.first) {
+					bActionStrip *strip;
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_NLA, 0);
+					int a= 0;
+					for (strip=ob->nlastrips.first; strip; strip=strip->next, a++) {
+						outliner_add_element(soops, &tenla->subtree, strip->act, tenla, 0, a);
+					}
 				}
 				for(a=0; a<ob->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, ob->mat[a], te, a);
+					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
 			}
 			break;
 		case ID_ME:
 			{
 				Mesh *me= (Mesh *)id;
-				outliner_add_element(soops, &te->subtree, me->ipo, te, 0);
-				outliner_add_element(soops, &te->subtree, me->key, te, 0);
+				outliner_add_element(soops, &te->subtree, me->ipo, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, me->key, te, 0, 0);
 				for(a=0; a<me->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, me->mat[a], te, a);
+					outliner_add_element(soops, &te->subtree, me->mat[a], te, 0, a);
 			}
 			break;
 		case ID_CU:
 			{
 				Curve *cu= (Curve *)id;
 				for(a=0; a<cu->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, cu->mat[a], te, a);
+					outliner_add_element(soops, &te->subtree, cu->mat[a], te, 0, a);
 			}
 			break;
 		case ID_MB:
 			{
 				MetaBall *mb= (MetaBall *)id;
 				for(a=0; a<mb->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, mb->mat[a], te, a);
+					outliner_add_element(soops, &te->subtree, mb->mat[a], te, 0, a);
 			}
 			break;
 		case ID_MA:
 			{
 				Material *ma= (Material *)id;
 			
-				outliner_add_element(soops, &te->subtree, ma->ipo, te, 0);
+				outliner_add_element(soops, &te->subtree, ma->ipo, te, 0, 0);
 				for(a=0; a<8; a++) {
-					if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, a);
+					if(ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
 				}
 			}
 			break;
 		case ID_CA:
 			{
 				Camera *ca= (Camera *)id;
-				outliner_add_element(soops, &te->subtree, ca->ipo, te, 0);
+				outliner_add_element(soops, &te->subtree, ca->ipo, te, 0, 0);
 			}
 			break;
 		case ID_LA:
 			{
 				Lamp *la= (Lamp *)id;
-				outliner_add_element(soops, &te->subtree, la->ipo, te, 0);
+				outliner_add_element(soops, &te->subtree, la->ipo, te, 0, 0);
 				for(a=0; a<6; a++) {
-					if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, a);
+					if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
 				}
 			}
 			break;
 		case ID_WO:
 			{
 				World *wrld= (World *)id;
-				outliner_add_element(soops, &te->subtree, wrld->ipo, te, 0);
+				outliner_add_element(soops, &te->subtree, wrld->ipo, te, 0, 0);
 				for(a=0; a<6; a++) {
-					if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, a);
+					if(wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
 				}
 			}
 		case ID_KE:
 			{
 				Key *key= (Key *)id;
-				outliner_add_element(soops, &te->subtree, key->ipo, te, 0);
+				outliner_add_element(soops, &te->subtree, key->ipo, te, 0, 0);
 			}
 			break;
 		case ID_AC:
@@ -340,7 +340,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				tselem= TREESTORE(parent);
 				if(GS(tselem->id->name)!=ID_NLA) { // dont expand NLA
 					for (chan=act->chanbase.first; chan; chan=chan->next, a++) {
-						outliner_add_element(soops, &te->subtree, chan->ipo, te, a);
+						outliner_add_element(soops, &te->subtree, chan->ipo, te, 0, a);
 					}
 				}
 			}
@@ -390,43 +390,54 @@ static void outliner_build_tree(SpaceOops *soops)
 	/* option 1: all scenes */
 	if(soops->outlinevis == SO_ALL_SCENES) {
 		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
-			te= outliner_add_element(soops, &soops->tree, sce, NULL, 0);
+			te= outliner_add_element(soops, &soops->tree, sce, NULL, 0, 0);
 			tselem= TREESTORE(te);
 
 			if((tselem->flag & TSE_CLOSED)==0) {
 				for(base= sce->base.first; base; base= base->next) {
-					outliner_add_element(soops, &te->subtree, base->object, te, 0);
+					outliner_add_element(soops, &te->subtree, base->object, te, 0, 0);
 				}
 				outliner_make_hierarchy(soops, &te->subtree);
 			}
 		}
 	}
 	else if(soops->outlinevis == SO_CUR_SCENE) {
-		outliner_add_element(soops, &soops->tree, G.scene->world, NULL, 0);
+		outliner_add_element(soops, &soops->tree, G.scene->world, NULL, 0, 0);
 		
 		for(base= G.scene->base.first; base; base= base->next) {
-			outliner_add_element(soops, &soops->tree, base->object, NULL, 0);
+			outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
 	}
 	else if(soops->outlinevis == SO_VISIBLE) {
 		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->lay & G.scene->lay)
-				outliner_add_element(soops, &soops->tree, base->object, NULL, 0);
+				outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
+	}
+	else if(soops->outlinevis == SO_SAME_TYPE) {
+		Object *ob= OBACT;
+		if(ob) {
+			for(base= G.scene->base.first; base; base= base->next) {
+				if(base->object->type==ob->type) {
+					outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+				}
+			}
+			outliner_make_hierarchy(soops, &soops->tree);
+		}
 	}
 	else if(soops->outlinevis == SO_SELECTED) {
 		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->lay & G.scene->lay) {
 				if(base==BASACT || (base->flag & SELECT))
-					outliner_add_element(soops, &soops->tree, base->object, NULL, 0);
+					outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 			}
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
 	}
 	else {
-		outliner_add_element(soops, &soops->tree, OBACT, NULL, 0);
+		outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
 	}
 	
 }
@@ -939,7 +950,7 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 			/* active blocks get white circle */
 			active= 0;
 			if(GS(tselem->id->name)==ID_OB) active= (OBACT==(Object *)tselem->id);
-			else if(G.obpose && G.obedit->data==tselem->id) active= 1;
+			else if(G.obpose && G.obpose->data==tselem->id) active= 1;
 			else if(G.obedit && G.obedit->data==tselem->id) active= 1;
 			else active= tree_element_active(soops, te, 0);
 			
@@ -997,19 +1008,20 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 				else BIF_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
 				col[3]= 100;
 				glColor4ubv(col);
-				//glRecti(0, *starty, soops->v2d.cur.xmax, *starty+OL_H); 
 			}
+		}
+		else if(G.obpose && G.obpose->data==tselem->id) {
+			glColor4ub(255, 255, 255, 100);
+			active= 2;
 		}
 		else if(G.obedit && G.obedit->data==tselem->id) {
 			glColor4ub(255, 255, 255, 100);
 			active= 2;
-			//glRecti(0, *starty, soops->v2d.cur.xmax, *starty+OL_H); 
 		}
 		else {
 			if(tree_element_active(soops, te, 0)) {
 				glColor4ub(220, 220, 255, 100);
 				active= 2;
-				//glRecti(0, *starty, soops->v2d.cur.xmax, *starty+OL_H); 
 			}
 		}
 		

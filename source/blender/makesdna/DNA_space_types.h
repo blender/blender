@@ -474,6 +474,7 @@ typedef struct SpaceImaSel {
 #define SO_VISIBLE		2
 #define SO_SELECTED		3
 #define SO_ACTIVE		4
+#define SO_SAME_TYPE	5
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1

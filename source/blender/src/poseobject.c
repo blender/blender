@@ -125,6 +125,7 @@ void enter_posemode(void)
 		/*		make_poseMesh();	*/
 		allqueue(REDRAWHEADERS, 0);	
 		allqueue(REDRAWBUTSALL, 0);	
+		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	default:
@@ -219,6 +220,7 @@ void exit_posemode (int freedata)
 		
 		countall();
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWHEADERS, 0);	
 		allqueue(REDRAWBUTSALL, 0);	
 	}

@@ -366,7 +366,7 @@ void oops_buttons(void)
 		}
 	}
 	else {
-		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Selected %x3|Active %x4",	 xco, 0, 100, 20,  &soops->outlinevis, 0, 0, 0, 0, "");
+		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Same Types %x5|Selected %x3|Active %x4",	 xco, 0, 100, 20,  &soops->outlinevis, 0, 0, 0, 0, "");
 	}
 	
 	/* always do as last */

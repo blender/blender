@@ -45,6 +45,10 @@ typedef struct TreeElement {
 /* TreeElement->flag */
 #define TE_ACTIVE	1
 
+/* TreeStoreElem types */
+#define TE_NLA		1
+
+
 extern void draw_outliner(struct ScrArea *sa, struct SpaceOops *so);
 extern void outliner_free_tree(struct ListBase *lb);
 extern void outliner_mouse_event(struct ScrArea *sa, short event);
