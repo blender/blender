@@ -2294,7 +2294,10 @@ static void material_panel_material(Object *ob, Material *ma)
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
 	/* indicate which one is linking a material */
+	if( id == NULL ) return;
+
 	uiBlockBeginAlign(block);
+
 	uiSetButLock(id->lib!=0, "Can't edit library data");
 	
 	strncpy(str, id->name, 2);
