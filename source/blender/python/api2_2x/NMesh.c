@@ -960,6 +960,11 @@ static PyObject *NMesh_setMode (PyObject *self, PyObject *args)
 
 static struct PyMethodDef NMesh_methods[] =
 {
+  MethodDef(addVertGroup),
+  MethodDef(removeVertGroup),
+  MethodDef(assignVertsToGroup),
+  MethodDef(removeVertsFromGroup),
+  MethodDef(returnVertsFromGroup),
   MethodDef(hasVertexColours),
   MethodDef(hasFaceUV),
   MethodDef(hasVertexUV),
@@ -1811,7 +1816,6 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
 
   if (!mesh) {
     ob = add_object(OB_MESH);
-
     if (!ob) {
       PyErr_SetString(PyExc_RuntimeError,
              "Fatal: could not create mesh object");
@@ -1822,8 +1826,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   }
 
   else if (mesh->id.us == 0) {
-    ob = add_object(OB_EMPTY); /* we already have a mesh */
-
+    ob = add_object(OB_MESH); // we already have a mesh
     if (!ob) {
       PyErr_SetString(PyExc_RuntimeError,
              "Fatal: could not create mesh object");
@@ -1831,10 +1834,11 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
     }
 
     ob->type = OB_MESH;
-    set_mesh(ob, mesh); /* also does id.us++ */
+    set_mesh(ob, mesh); // also does id.us++ 
   }
 
-  if (name) new_id(&(G.main->mesh), &mesh->id, name);
+  if (name)
+    new_id(&(G.main->mesh), &mesh->id, name);
   else if (nmesh->name && nmesh->name != Py_None)
     new_id(&(G.main->mesh), &mesh->id, PyString_AsString(nmesh->name));
 
@@ -1871,7 +1875,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   // each bit indicates the binding PER MATERIAL 
 
   if (ob) { // we created a new object
-    nmesh->object = ob; /* linking so vgrouping methods know which obj to work on */
+    nmesh->object = ob; // linking so vgrouping methods know which obj to work on
     NMesh_assignMaterials_toObject(nmesh, ob);
     EXPP_synchronizeMaterialLists (ob, ob->data);
     return Object_CreatePyObject(ob);
@@ -1881,6 +1885,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
     EXPP_incr_mats_us (mesh->mat, PyList_Size (nmesh->materials));
     return EXPP_incr_ret (Py_None);
   }
+
 }
 
 #undef MethodDef
@@ -2044,4 +2049,379 @@ Mesh *Mesh_FromPyObject (PyObject *pyobj, Object *ob)
   }
 
   return NULL;
+}
+
+static PyObject *NMesh_addVertGroup (PyObject *self, PyObject *args)
+{
+
+	char* groupStr;
+	struct Object* object;
+	int nIndex;
+	bDeformGroup* pGroup;
+
+	if (!PyArg_ParseTuple(args, "s", &groupStr))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                 "expected string argument");
+
+	if(((BPy_NMesh*)self)->object == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, 
+			"mesh must be linked to an object first...");
+
+	object = ((BPy_NMesh*)self)->object;
+	
+	add_defgroup_name (object, groupStr);
+
+	allqueue (REDRAWBUTSALL, 1);
+	
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *NMesh_removeVertGroup (PyObject *self, PyObject *args)
+{
+
+	char* groupStr;
+	struct Object* object;
+	int nIndex;
+	bDeformGroup* pGroup;
+
+	if (!PyArg_ParseTuple(args, "s", &groupStr))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+                 "expected string argument");
+
+	if(((BPy_NMesh*)self)->object == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, 
+			"mesh must be linked to an object first...");
+
+	object = ((BPy_NMesh*)self)->object;
+
+
+	pGroup = get_named_vertexgroup(object, groupStr);
+	if(pGroup == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+				 "group does not exist!");
+
+	nIndex = get_defgroup_num(object, pGroup);
+	if(nIndex == -1)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+				 "no deform groups assigned to mesh");
+	nIndex++;
+	object->actdef = nIndex;
+
+	del_defgroup(object);
+
+	allqueue (REDRAWBUTSALL, 1);
+	
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *NMesh_assignVertsToGroup (PyObject *self, PyObject *args)
+{
+	//listObject is an integer list of vertex indeces to add to group
+	//groupStr = group name
+	//weight is a float defining the weight this group has on this vertex
+	//assignmode = "replace", "add", "subtract"
+	//              replace weight - add addition weight to vertex for this group
+	//				- remove group influence from this vertex
+
+	char* groupStr;
+	char* assignmodeStr;
+	int nIndex;	
+	int* assignmode;
+	float* weight;
+	struct Object* object;
+	bDeformGroup* pGroup;
+	PyObject* listObject; 
+	int* tempInt;
+	int x;
+
+	if (!PyArg_ParseTuple(args, "sO!fs", &groupStr, &PyList_Type, &listObject, 
+		 &weight, &assignmodeStr))
+	{
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+            "expected string & type_List &  float & string argument");
+	}
+
+	if(((BPy_NMesh*)self)->object == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, 
+			"mesh must be linked to an object first...");
+
+	object = ((BPy_NMesh*)self)->object;
+	
+	if(object->data == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                 "object contains no data...");
+
+	pGroup = get_named_vertexgroup(object, groupStr);
+	if(pGroup == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, "group does not exist!");
+
+	nIndex = get_defgroup_num(object, pGroup);
+		if(nIndex == -1)
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+					 "no deform groups assigned to mesh");
+
+	if(STREQ(assignmodeStr, "replace"))
+		assignmode = 1;
+	else if(STREQ(assignmodeStr, "add"))
+		assignmode = 2;
+	else if(STREQ(assignmodeStr, "subtract"))
+		assignmode = 3;
+	else
+		return EXPP_ReturnPyObjError (PyExc_ValueError, "bad assignment mode");
+
+
+	//makes a set of dVerts corresponding to the mVerts
+	if (!((Mesh*)object->data)->dvert)
+	{
+		create_dverts((Mesh*)object->data);
+		printf("Creating dVerts...\n");
+	}
+
+	//loop list adding verts to group
+	for(x = 0; x < PyList_Size(listObject); x++)
+	{
+		if(!(PyArg_Parse((PyList_GetItem(listObject, x)), "i", &tempInt)))
+			return EXPP_ReturnPyObjError (PyExc_TypeError, "python list integer not parseable");
+
+		if(tempInt < 0 || tempInt >= ((Mesh*)object->data)->totvert)
+			return EXPP_ReturnPyObjError (PyExc_ValueError, "bad vertex index in list");
+
+		add_vert_defnr(object, nIndex, tempInt, weight, assignmode);
+	}
+
+	//enter editmode
+	if((G.obedit == 0))					
+	{	
+		BASACT->object = object;
+		G.obedit= BASACT->object;
+	}
+
+	//update the mesh
+	make_editMesh();
+	load_editMesh();
+
+	//exit editmode
+	G.obedit= 0;	
+
+	allqueue (REDRAWVIEW3D, 1);
+
+
+	return EXPP_incr_ret (Py_None);
+}
+
+
+static PyObject *NMesh_removeVertsFromGroup (PyObject *self, PyObject *args)
+{
+	//not passing a list will remove all verts from group
+
+	char* groupStr;
+	int nIndex;	
+	struct Object* object;
+	bDeformGroup* pGroup;
+	PyObject* listObject; 
+	int* tempInt;
+	int x;
+
+	listObject = (void*)-2054456;	//uninitialized
+
+	if (!PyArg_ParseTuple(args, "s|O!", &groupStr, &PyList_Type, &listObject))
+	{
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected string & optional type_List argument");
+	}
+
+	if(((BPy_NMesh*)self)->object == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, 
+			"mesh must be linked to an object first...");
+
+	object = ((BPy_NMesh*)self)->object;
+	
+	if(object->data == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                 "object contains no data...");
+
+	if ((!((Mesh*)object->data)->dvert))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                 "this mesh contains no deform vertices...'");
+
+	pGroup = get_named_vertexgroup(object, groupStr);
+	if(pGroup == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, "group does not exist!");
+
+	nIndex = get_defgroup_num(object, pGroup);
+		if(nIndex == -1)
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+					 "no deform groups assigned to mesh");
+
+	if(listObject == (void*)-2054456)	//if uninitialized
+	{
+		//enter editmode
+		if((G.obedit == 0))					
+		{	
+			//set current object
+			BASACT->object = object;
+			G.obedit= BASACT->object;
+		}
+		//set current vertex group
+		nIndex++;
+		object->actdef = nIndex;
+
+		//clear all dVerts in active group
+		remove_verts_defgroup (1);
+
+		//exit editmode
+		G.obedit = 0;
+	}
+	else
+	{
+		if(G.obedit != 0)		//remove_vert_def_nr doesn't like it if your in editmode
+			G.obedit = 0;		
+	
+		//loop list adding verts to group
+		for(x = 0; x < PyList_Size(listObject); x++)
+		{
+			if(!(PyArg_Parse((PyList_GetItem(listObject, x)), "i", &tempInt)))
+				return EXPP_ReturnPyObjError (PyExc_TypeError, "python list integer not parseable");
+
+			if(tempInt < 0 || tempInt >= ((Mesh*)object->data)->totvert)
+				return EXPP_ReturnPyObjError (PyExc_ValueError, "bad vertex index in list");
+
+			remove_vert_def_nr (object, nIndex, tempInt);
+		}
+	}
+
+	return EXPP_incr_ret (Py_None);
+}
+
+static PyObject *NMesh_returnVertsFromGroup (PyObject *self, PyObject *args)
+{
+	//not passing a list will return all verts from group
+	//passing indecies not part of the group will not return data in pyList
+	//can be used as a index/group check for a vertex
+
+	char* groupStr;
+	int nIndex;	
+	int weightRet;
+	struct Object* object;
+	bDeformGroup* pGroup;
+	MVert *mvert;
+	MDeformWeight *newdw;
+	MDeformVert *dvert;
+	float weight;
+	int i, k, l1, l2, count;
+	int num = 0;
+	PyObject* tempVertexList;
+	PyObject* vertexList;
+	PyObject* listObject; 
+	int* tempInt;
+	int x;
+
+	listObject = (void*)-2054456;	//can't use NULL macro because compiler thinks
+									//it's a 0 and we need to check 0 index vertex pos
+	l1 = FALSE;
+	l2 = FALSE;
+	weightRet = 0;
+
+	if (!PyArg_ParseTuple(args, "s|iO!", &groupStr, &weightRet, &PyList_Type, &listObject))
+        return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected string & optional int and optional type_List argument");
+
+	if(weightRet < 0 || weightRet > 1)
+		return EXPP_ReturnPyObjError (PyExc_ValueError, 
+			"return weights flag must be 0 or 1...");
+
+	if(((BPy_NMesh*)self)->object == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, 
+			"mesh must be linked to an object first...");
+
+	object = ((BPy_NMesh*)self)->object;
+	
+	if(object->data == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                 "object contains no data...");
+
+	if ((!((Mesh*)object->data)->dvert))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                 "this mesh contains no deform vertices...'");
+
+	pGroup = get_named_vertexgroup(object, groupStr);
+	if(pGroup == NULL)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError, "group does not exist!");
+
+	nIndex = get_defgroup_num(object, pGroup);
+		if(nIndex == -1)
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+					 "no deform groups assigned to mesh");
+	//temporary list
+	tempVertexList = PyList_New(((Mesh*)object->data)->totvert); 
+	count = 0;
+
+	if(listObject == -2054456) //do entire group
+	{	
+		for(k = 0; k < ((Mesh*)object->data)->totvert ; k++)
+		{
+			dvert = ((Mesh*)object->data)->dvert + k;
+
+			for (i=0 ; i < dvert->totweight; i++)
+			{
+				if (dvert->dw[i].def_nr == nIndex) 
+				{
+					mvert = ((Mesh*)object->data)->mvert + k;
+					weight = dvert->dw[i].weight;
+					//printf("index =%3d weight:%10f\n", k, weight);
+					
+					if(weightRet == 1)
+						PyList_SetItem(tempVertexList, count, Py_BuildValue("(i,f)", k, weight));
+					else if (weightRet == 0)
+						PyList_SetItem(tempVertexList, count, Py_BuildValue("i", k));
+
+					count++;
+				}
+			}
+		}
+	}
+	else	//do single vertex
+	{
+		//loop list adding verts to group
+		for(x = 0; x < PyList_Size(listObject); x++)
+		{
+			if(!(PyArg_Parse((PyList_GetItem(listObject, x)), "i", &tempInt)))
+				return EXPP_ReturnPyObjError (PyExc_TypeError, "python list integer not parseable");
+
+			if(tempInt < 0 || tempInt >= ((Mesh*)object->data)->totvert)
+				return EXPP_ReturnPyObjError (PyExc_ValueError, "bad vertex index in list");
+
+			num = tempInt;
+			dvert = ((Mesh*)object->data)->dvert + num;
+			for (i=0 ; i < dvert->totweight; i++)
+			{
+				l1 = TRUE;
+				if (dvert->dw[i].def_nr == nIndex) 
+				{
+					l2 = TRUE;
+					mvert = ((Mesh*)object->data)->mvert + num;
+
+					weight = dvert->dw[i].weight;
+					//printf("index =%3d weight:%10f\n", num, weight);
+
+					if(weightRet == 1)
+						PyList_SetItem(tempVertexList, count, Py_BuildValue("(i,f)", num, weight));
+					else if (weightRet == 0)
+						PyList_SetItem(tempVertexList, count, Py_BuildValue("i", num));
+					
+					count++;
+				}
+				if(l2 == FALSE)
+					printf("vertex at index %d is not part of passed group...\n", tempInt);
+			}
+			if(l1 == FALSE)
+				printf("vertex at index %d is not assigned to a vertex group...\n", tempInt);
+
+			l1 = l2 = FALSE;	//reset flags
+		}
+	}
+	//only return what we need
+	vertexList = PyList_GetSlice(tempVertexList, 0, count);
+
+	return (vertexList);
 }
