@@ -52,16 +52,19 @@ typedef struct TreeElement {
 #define TE_ICONROW	2
 
 /* TreeStoreElem types */
-#define TE_NLA				1
-#define TE_NLA_ACTION		2
-#define TE_DEFGROUP_BASE	3
-#define TE_DEFGROUP			4
-#define TE_BONE				5
-#define TE_CONSTRAINT_BASE	6
-#define TE_CONSTRAINT		7
-#define TE_HOOKS_BASE		8
-#define TE_HOOK				9
-#define TE_SCRIPT_BASE		10
+#define TSE_NLA				1
+#define TSE_NLA_ACTION		2
+#define TSE_DEFGROUP_BASE	3
+#define TSE_DEFGROUP			4
+#define TSE_BONE				5
+#define TSE_CONSTRAINT_BASE	6
+#define TSE_CONSTRAINT		7
+#define TSE_HOOKS_BASE		8
+#define TSE_HOOK				9
+#define TSE_SCRIPT_BASE		10
+
+/* button events */
+#define OL_NAMEBUTTON		1
 
 extern void draw_outliner(struct ScrArea *sa, struct SpaceOops *so);
 extern void outliner_free_tree(struct ListBase *lb);
@@ -73,6 +76,7 @@ extern void outliner_one_level(struct ScrArea *sa, int add);
 extern void outliner_select(struct ScrArea *sa);
 extern void outliner_toggle_selected(struct ScrArea *sa);
 extern void outliner_operation_menu(struct ScrArea *sa);
+extern void outliner_page_up_down(struct ScrArea *sa, int up);
 
 #endif
 

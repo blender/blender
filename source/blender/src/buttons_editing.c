@@ -1683,6 +1683,36 @@ static void validate_editbonebutton_cb(void *bonev, void *arg2_unused)
 	validate_editbonebutton(curBone);
 }
 
+/* called from outliner now, can be used for buttons in posemode too */
+/* current Armature should be active Object */
+/* after this function, the Bones in Armature are re-allocced! */
+void rename_bone_ext(char *oldname, char *newname)
+{
+	EditBone *ebone;
+	int temp_editmode= 0;
+
+	/* since the naming functions work only on editArmature, we have to... */
+	if(G.obedit!=OBACT) exit_editmode(2);
+	if(G.obedit==NULL) {
+		G.obedit= OBACT;
+		make_editArmature();
+		temp_editmode= 1;
+	}
+	
+	/* now find the eBone with oldname */
+	for(ebone= G.edbo.first; ebone; ebone= ebone->next)
+		if(strcmp(ebone->name, oldname)==0) break;
+
+	if(ebone) {
+		strcpy(ebone->oldname, oldname);
+		strcpy(ebone->name, newname);
+		validate_editbonebutton(ebone); // does exit_editmode... tsk, so armature bones pointers are invalid now
+	}
+	if(temp_editmode) exit_editmode(2);
+	
+}
+
+
 static void armature_rest_pos_func(void *notused1, void *notused2) 
 {
 	clear_object_constraint_status(OBACT);

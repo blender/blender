@@ -1421,7 +1421,7 @@ static void ui_draw_text_icon(uiBut *but)
 	if (but->type == ICONTEXTROW) {
 		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
 	}
-	else if(but->drawstr[0]!=0) {
+	else {
 
 		// text button cursor
 		if(but->pos != -1) {
@@ -1429,86 +1429,90 @@ static void ui_draw_text_icon(uiBut *but)
 			
 			pos= but->pos+strlen(but->str);
 			if(pos >= but->ofs) {
-				ch= but->drawstr[pos];
-				but->drawstr[pos]= 0;
-	
-				t= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + 3;
-	
-				but->drawstr[pos]= ch;
+				if(but->drawstr[0]!=0) {
+					ch= but->drawstr[pos];
+					but->drawstr[pos]= 0;
+		
+					t= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + 3;
+		
+					but->drawstr[pos]= ch;
+				}
+				else t= 3;
+				
 				glColor3ub(255,0,0);
-	
 				glRects(but->x1+t, but->y1+2, but->x1+t+3, but->y2-2);
 			}	
 		}
-		// cut string in 2 parts
-		cpoin= strchr(but->drawstr, '|');
-		if(cpoin) *cpoin= 0;
+		if(but->drawstr[0]!=0) {
+			// cut string in 2 parts
+			cpoin= strchr(but->drawstr, '|');
+			if(cpoin) *cpoin= 0;
 
-		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accomodate it */
-		
-		if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
-			ui_draw_icon(but, but->icon);
-
-			if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		else {
-			if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
-			else x= (but->x1+but->x2-but->strwidth+1)/2.0;
-		}
-		
-		/* text color, with pulldown item exception */
-		if(but->dt==UI_EMBOSSP) {
-			if(but->flag & (UI_SELECT|UI_ACTIVE)) {		
-				BIF_ThemeColor(TH_MENU_TEXT_HI);
-			} else {
-				BIF_ThemeColor(TH_MENU_TEXT);
-			}
-		}
-		else {
-			if(but->flag & UI_SELECT) {		
-				BIF_ThemeColor(TH_BUT_TEXT_HI);
-			} else {
-				BIF_ThemeColor(TH_BUT_TEXT);
-			}
-		}
-
-		/* tog3 button exception */
-		if(but->type==TOG3 && (but->flag & UI_SELECT)) {
-			int ok= 0;
+			/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
+			and offset the text label to accomodate it */
 			
-			if( but->pointype==CHA ) {
-				if( BTST( *(but->poin+2), but->bitnr )) ok= 1;
+			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
+				ui_draw_icon(but, but->icon);
+
+				if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
+				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
-			else if( but->pointype ==SHO ) {
-				short *sp= (short *)but->poin;
-				if( BTST( sp[1], but->bitnr )) ok= 1;
+			else {
+				if(but->flag & UI_TEXT_LEFT) x= but->x1+4.0;
+				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
 			
-			ui_tog3_invert(but->x1,but->y1,but->x2,but->y2, ok);
-			if (ok) glColor3ub(255, 255, 0);
-		}
+			/* text color, with pulldown item exception */
+			if(but->dt==UI_EMBOSSP) {
+				if(but->flag & (UI_SELECT|UI_ACTIVE)) {		
+					BIF_ThemeColor(TH_MENU_TEXT_HI);
+				} else {
+					BIF_ThemeColor(TH_MENU_TEXT);
+				}
+			}
+			else {
+				if(but->flag & UI_SELECT) {		
+					BIF_ThemeColor(TH_BUT_TEXT_HI);
+				} else {
+					BIF_ThemeColor(TH_BUT_TEXT);
+				}
+			}
+
+			/* tog3 button exception */
+			if(but->type==TOG3 && (but->flag & UI_SELECT)) {
+				int ok= 0;
+				
+				if( but->pointype==CHA ) {
+					if( BTST( *(but->poin+2), but->bitnr )) ok= 1;
+				}
+				else if( but->pointype ==SHO ) {
+					short *sp= (short *)but->poin;
+					if( BTST( sp[1], but->bitnr )) ok= 1;
+				}
+				
+				ui_tog3_invert(but->x1,but->y1,but->x2,but->y2, ok);
+				if (ok) glColor3ub(255, 255, 0);
+			}
+			
+			/* LABEL button exception */
+			if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
 		
-		/* LABEL button exception */
-		if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
-	
-		ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
-		BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
+			ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
+			BIF_DrawString(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS));
 
-		/* part text right aligned */
-		if(cpoin) {
-			len= BIF_GetStringWidth(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
-			ui_rasterpos_safe( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0, but->aspect);
-			BIF_DrawString(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
-			*cpoin= '|';
+			/* part text right aligned */
+			if(cpoin) {
+				len= BIF_GetStringWidth(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
+				ui_rasterpos_safe( but->x2 - len*but->aspect-3, (but->y1+but->y2- 9.0)/2.0, but->aspect);
+				BIF_DrawString(but->font, cpoin+1, (U.transopts & USER_TR_BUTTONS));
+				*cpoin= '|';
+			}
+		}
+		/* if there's no text label, then check to see if there's an icon only and draw it */
+		else if( but->flag & UI_HAS_ICON ) {
+			ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
 		}
 	}
-	/* if there's no text label, then check to see if there's an icon only and draw it */
-	else if( but->flag & UI_HAS_ICON ) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
-	}
-
 }
 
 static void ui_draw_but_COL(uiBut *but)

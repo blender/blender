@@ -1321,13 +1321,13 @@ static int ui_do_but_TEX(uiBut *but)
 
 		if(ascii) {
 			if(len < but->max) {
- 					for(x= but->max; x>but->pos; x--)
- 						str[x]= str[x-1];
- 					str[but->pos]= ascii;
- 					but->pos++; 
- 					len++;
- 					str[len]= '\0';
- 					dodraw= 1;
+				for(x= but->max; x>but->pos; x--)
+					str[x]= str[x-1];
+				str[but->pos]= ascii;
+				but->pos++; 
+				len++;
+				str[len]= '\0';
+				dodraw= 1;
 			}
 		}
 		else if(val) {
@@ -3027,9 +3027,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			}
 			if(event && uevent->val) {
 	
-				but= block->buttons.first;
-				while(but) {
-					
+				for(but= block->buttons.first; but; but= but->next) {
 					but->flag &= ~UI_MOUSE_OVER;
 		
 					if(but->flag & UI_ACTIVE) {
@@ -3051,7 +3049,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 							break;
 						}
 					}
-					but= but->next;
 				}
 	
 				/* nothing done */
@@ -3090,9 +3087,8 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			
 			if(get_qual() & LR_ALTKEY) act+= 10;
 			
-			but= block->buttons.first;
 			count= 0;
-			while(but) {
+			for(but= block->buttons.first; but; but= but->next) {
 				int doit= 0;
 				
 				if(but->type!=LABEL && but->type!=SEPR) count++;
@@ -3118,16 +3114,17 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					but->flag &= ~UI_ACTIVE;
 					ui_draw_but(but);
 				}
-				but= but->next;
 			}
 		}
-		
 		break;
-		
+	case BUT_ACTIVATE:
+		for(but= block->buttons.first; but; but= but->next) {
+			if(but->retval==uevent->val) but->flag |= UI_ACTIVE;
+		}
+		break;
 	default:
 
-		but= block->buttons.first;
-		while(but) {
+		for(but= block->buttons.first; but; but= but->next) {
 		
 			but->flag &= ~UI_MOUSE_OVER;
 			
@@ -3173,8 +3170,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				}
 				if(but->flag & UI_ACTIVE) active= 1;
 			}
-			
-			but= but->next;
 		}
 		
 		/* if there are no active buttons... otherwise clear lines */
@@ -3187,14 +3182,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	if( (block->flag & UI_BLOCK_LOOP) && uevent->event==MIDDLEMOUSE) uevent->event= LEFTMOUSE;
 
 	/* the final dobutton */
-	but= block->buttons.first;
-	while(but) {
+	for(but= block->buttons.first; but; but= but->next) {
 		if(but->flag & UI_ACTIVE) {
 			
 			/* UI_BLOCK_RET_1: not return when val==0 */
 			
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
-				if ELEM3(uevent->event, LEFTMOUSE, PADENTER, RETKEY) {
+				if ELEM4(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE) {
 					/* when mouse outside, don't do button */
 					if(inside || uevent->event!=LEFTMOUSE) {
 						butevent= ui_do_button(block, but, uevent);
@@ -3216,8 +3210,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				}
 			}
 		}
-		
-		but= but->next;
 	}
 
 	/* flush to frontbuffer */

@@ -64,6 +64,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_screen.h"
@@ -74,6 +75,7 @@
 #include "BIF_drawtext.h"
 #include "BIF_editaction.h"
 #include "BIF_editarmature.h"
+#include "BIF_editdeform.h"
 #include "BIF_editnla.h"
 #include "BIF_editview.h"
 #include "BIF_editconstraint.h"
@@ -235,6 +237,20 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 	}
 }
 
+static TreeElement *outliner_find_tree_element(ListBase *lb, int store_index)
+{
+	TreeElement *te= lb->first, *tes;
+	while(te) {
+		if(te->store_index==store_index) return te;
+		tes= outliner_find_tree_element(&te->subtree, store_index);
+		if(tes) return tes;
+		te= te->next;
+	}
+	return NULL;
+}
+
+
+
 static ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode)
 {
 	TreeStoreElem *tselem;
@@ -315,7 +331,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 	tselem= TREESTORE(te);
 	
 	/* sorting rules; only object lists or deformgroups */
-	if( (tselem->type==TE_DEFGROUP) || (tselem->type==0 && te->idcode==ID_OB)) {
+	if( (tselem->type==TSE_DEFGROUP) || (tselem->type==0 && te->idcode==ID_OB)) {
 		
 		/* count first */
 		for(te= lb->first; te; te= te->next) totelem++;
@@ -329,7 +345,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 				tp->te= te;
 				tp->name= te->name;
 				tp->idcode= te->idcode;
-				if(tselem->type) tp->idcode= 0;	// dont sort this
+				if(tselem->type && tselem->type!=TSE_DEFGROUP) tp->idcode= 0;	// dont sort this
 				tp->id= tselem->id;
 			}
 			
@@ -389,7 +405,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				Scene *sce= (Scene *)id;
 				outliner_add_element(soops, &te->subtree, sce->world, te, 0, 0);
 				if(sce->scriptlink.scripts) {
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, sce, te, TE_SCRIPT_BASE, 0);
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_SCRIPT_BASE, 0);
 					int a= 0;
 					tenla->name= "Scripts";
 					for (a=0; a<sce->scriptlink.totscript; a++) {
@@ -412,12 +428,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if(ob->constraints.first) {
 					bConstraint *con;
 					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_CONSTRAINT_BASE, 0);
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
 					int a= 0;
 					
 					tenla->name= "Constraints";
 					for(con= ob->constraints.first; con; con= con->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TE_CONSTRAINT, a);
+						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_CONSTRAINT, a);
 						ten->name= con->name;
 						ten->directdata= con;
 						outliner_add_element(soops, &ten->subtree, con->ipo, ten, 0, 0);
@@ -427,29 +443,30 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if(ob->hooks.first) {
 					ObHook *hook;
 					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_HOOKS_BASE, 0);
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_HOOKS_BASE, 0);
 					int a= 0;
 					
 					tenla->name= "Hooks";
 					for(hook=ob->hooks.first; hook; hook= hook->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, hook->parent, tenla, TE_HOOK, a);
+						ten= outliner_add_element(soops, &tenla->subtree, hook->parent, tenla, TSE_HOOK, a);
 						if(ten) ten->name= hook->name;
 					}
 				}
 				if(ob->defbase.first) {
 					bDeformGroup *defgroup;
 					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_DEFGROUP_BASE, 0);
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_DEFGROUP_BASE, 0);
 					int a= 0;
 					
 					tenla->name= "Vertex Groups";
 					for (defgroup=ob->defbase.first; defgroup; defgroup=defgroup->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TE_DEFGROUP, a);
+						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_DEFGROUP, a);
 						ten->name= defgroup->name;
+						ten->directdata= defgroup;
 					}
 				}
 				if(ob->scriptlink.scripts) {
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_SCRIPT_BASE, 0);
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_SCRIPT_BASE, 0);
 					int a= 0;
 					
 					tenla->name= "Scripts";
@@ -460,12 +477,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if(ob->nlastrips.first) {
 					bActionStrip *strip;
 					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TE_NLA, 0);
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_NLA, 0);
 					int a= 0;
 					
 					tenla->name= "NLA strips";
 					for (strip=ob->nlastrips.first; strip; strip=strip->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TE_NLA_ACTION, a);
+						ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TSE_NLA_ACTION, a);
 						if(ten) ten->directdata= strip;
 					}
 				}
@@ -575,7 +592,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
 							  TreeElement *parent, int *a)
 {
-	TreeElement *te= outliner_add_element(soops, lb, id, parent, TE_BONE, *a);
+	TreeElement *te= outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
 
 	(*a)++;
 	te->name= curBone->name;
@@ -738,7 +755,7 @@ void outliner_toggle_visible(struct ScrArea *sa)
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 1);
 
-	scrarea_queue_redraw(curarea);
+	scrarea_queue_redraw(sa);
 }
 
 void outliner_toggle_selected(struct ScrArea *sa)
@@ -750,7 +767,7 @@ void outliner_toggle_selected(struct ScrArea *sa)
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 1);
 	
-	scrarea_queue_redraw(curarea);
+	scrarea_queue_redraw(sa);
 }
 
 
@@ -787,9 +804,20 @@ void outliner_one_level(struct ScrArea *sa, int add)
 		if(level) outliner_openclose_level(soops, &soops->tree, 1, level-1, 0);
 	}
 	
-	scrarea_queue_redraw(curarea);
+	scrarea_queue_redraw(sa);
 }
 
+void outliner_page_up_down(ScrArea *sa, int up)
+{
+	SpaceOops *soops= sa->spacedata.first;
+	int dy= soops->v2d.mask.ymax-soops->v2d.mask.ymin;
+	
+	if(up == -1) dy= -dy;
+	soops->v2d.cur.ymin+= dy;
+	soops->v2d.cur.ymax+= dy;
+	
+	scrarea_queue_redraw(sa);
+}
 
 /* **** do clicks on items ******* */
 
@@ -1157,13 +1185,13 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 {
 	
 	switch(tselem->type) {
-		case TE_NLA_ACTION:
+		case TSE_NLA_ACTION:
 			return tree_element_active_nla_action(te, tselem, set);
-		case TE_DEFGROUP:
+		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(te, tselem, set);
-		case TE_BONE:
+		case TSE_BONE:
 			return tree_element_active_bone(te, tselem, set);
-		case TE_HOOK: // actually object
+		case TSE_HOOK: // actually object
 			if(set) tree_element_active_object(soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
 			break;
@@ -1203,38 +1231,47 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 		/* name and first icon */
 		else if(mval[0]>te->xs && mval[0]<te->xend) {
 			
-			/* always makes active object */
-			tree_element_active_object(soops, te);
-			
-			if(tselem->type==0) { // the lib blocks
-				/* editmode? */
-				if(te->idcode==ID_SCE) {
-					if(G.scene!=(Scene *)tselem->id) {
+			/* activate a name button? */
+			if(G.qual & LR_CTRLKEY) {
+				if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_HOOKS_BASE, TSE_SCRIPT_BASE)) 
+					error("Cannot edit builtin name");
+				else {
+					tselem->flag |= TSE_TEXTBUT;
+				}
+			}
+			else {
+				/* always makes active object */
+				tree_element_active_object(soops, te);
+				
+				if(tselem->type==0) { // the lib blocks
+					/* editmode? */
+					if(te->idcode==ID_SCE) {
+						if(G.scene!=(Scene *)tselem->id) {
+							if(G.obedit) exit_editmode(2);
+							if(G.obpose) exit_posemode(1);
+							set_scene((Scene *)tselem->id);
+						}
+					}
+					else if(ELEM4(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT)) {
+						if(G.obpose) exit_posemode(1);
+						if(G.obedit) exit_editmode(2);
+						else {
+							enter_editmode();
+							mainqenter(F9KEY, 1);
+						}
+					}
+					else if(te->idcode==ID_AR) {
 						if(G.obedit) exit_editmode(2);
 						if(G.obpose) exit_posemode(1);
-						set_scene((Scene *)tselem->id);
+						else enter_posemode();
 					}
-				}
-				else if(ELEM4(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT)) {
-					if(G.obpose) exit_posemode(1);
-					if(G.obedit) exit_editmode(2);
-					else {
-						enter_editmode();
-						mainqenter(F9KEY, 1);
+					else {	// rest of types
+						tree_element_active(soops, te, 1);
 					}
+					
 				}
-				else if(te->idcode==ID_AR) {
-					if(G.obedit) exit_editmode(2);
-					if(G.obpose) exit_posemode(1);
-					else enter_posemode();
-				}
-				else {	// rest of types
-					tree_element_active(soops, te, 1);
-				}
-				
+				else tree_element_type_active(soops, te, tselem, 1);
 			}
-			else tree_element_type_active(soops, te, tselem, 1);
-			
 			return 1;
 		}
 	}
@@ -1652,7 +1689,8 @@ void outliner_operation_menu(ScrArea *sa)
 	else if(datalevel) {
 		if(datalevel==-1) error("Mixed selection");
 		else {
-			pupmenu("Data Operations%t|Delete");
+			error("Not yet...");
+			//pupmenu("Data Operations%t|Delete");
 		}
 	}
 	else error("Nothing selected");
@@ -1666,21 +1704,21 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 {
 	if(tselem->type) {
 		switch( tselem->type) {
-			case TE_NLA:
+			case TSE_NLA:
 				BIF_draw_icon(ICON_NLA); break;
-			case TE_NLA_ACTION:
+			case TSE_NLA_ACTION:
 				BIF_draw_icon(ICON_ACTION); break;
-			case TE_DEFGROUP_BASE:
+			case TSE_DEFGROUP_BASE:
 				BIF_draw_icon(ICON_VERTEXSEL); break;
-			case TE_BONE:
+			case TSE_BONE:
 				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
-			case TE_CONSTRAINT_BASE:
+			case TSE_CONSTRAINT_BASE:
 				BIF_draw_icon(ICON_CONSTRAINT); break;
-			case TE_HOOKS_BASE:
+			case TSE_HOOKS_BASE:
 				BIF_draw_icon(ICON_HOOK); break;
-			case TE_HOOK:
+			case TSE_HOOK:
 				BIF_draw_icon(ICON_OBJECT); break;
-			case TE_SCRIPT_BASE:
+			case TSE_SCRIPT_BASE:
 				BIF_draw_icon(ICON_TEXT); break;
 			default:
 				BIF_draw_icon(ICON_DOT); break;
@@ -1996,8 +2034,91 @@ static void outliner_back(SpaceOops *soops)
 	}
 }
 
+static char bone_newname[40];	// temp storage for bone rename, bones are 32 max.
+
+static void namebutton_cb(void *voidp, void *arg2_unused)
+{
+	SpaceOops *soops= voidp;
+	TreeStore *ts= soops->treestore;
+	TreeStoreElem *tselem;
+	int a;
+	
+	if(ts) {
+		/* only one namebutton can exist */
+		for(a=0, tselem= ts->data; a<ts->usedelem; a++, tselem++) {
+			if(tselem->flag & TSE_TEXTBUT) {
+				if(tselem->type==0) {
+					test_idbutton(tselem->id->name+2);	// library.c, unique name and alpha sort
+				}
+				else {
+					TreeElement *te= outliner_find_tree_element(&soops->tree, a);
+					
+					if(te) {
+						switch(tselem->type) {
+						case TSE_DEFGROUP:
+							unique_vertexgroup_name(te->directdata, (Object *)tselem->id); //	id = object
+							break;
+						case TSE_NLA_ACTION:
+							test_idbutton(tselem->id->name+2);
+							break;
+						case TSE_BONE:
+							{
+								Bone *bone= te->directdata;
+								// always make current object active
+								tree_element_active_object(soops, te);
+
+								// dangerous call, it re-allocs the Armature bones, exits editmode too
+								rename_bone_ext(bone->name, bone_newname);
+								allqueue(REDRAWOOPS, 0);
+								allqueue(REDRAWVIEW3D, 1);
+								allqueue(REDRAWBUTSEDIT, 0);
+								break;
+							}
+						}
+					}
+				}
+				tselem->flag &= ~TSE_TEXTBUT;
+			}
+		}
+		scrarea_queue_redraw(curarea);
+	}
+}
+
+void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
+{
+	uiBut *bt;
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	int dx, len;
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(tselem->flag & TSE_TEXTBUT) {
+			
+			// darn bones have complex renaming conventions... cannot edit name itself in button
+			if(tselem->type==TSE_BONE) {
+				strncpy(bone_newname, te->name, 32); // bone_newname is global
+				te->name= bone_newname;
+				len= 24;
+			}
+			else len= 19;
+			
+			dx= BIF_GetStringWidth(G.font, te->name, 0);
+			if(dx<50) dx= 50;
+			
+			bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  te->xs+2*OL_X-4, te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len, 0, 0, "");
+			uiButSetFunc(bt, namebutton_cb, soops, NULL);
+
+			// signal for button to open
+			addqueue(curarea->win, BUT_ACTIVATE, OL_NAMEBUTTON);
+		}
+		if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
+	}
+}
+
 void draw_outliner(ScrArea *sa, SpaceOops *soops)
 {
+	uiBlock *block;
 	int sizey;
 	short ofsx, ofsy;
 	
@@ -2029,13 +2150,23 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 		G.v2d->cur.ymin= -(G.v2d->mask.ymax-G.v2d->mask.ymin);
 	}
 
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	myortho2(G.v2d->cur.xmin-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-0.375, G.v2d->cur.ymax-0.375);
 
 	/* draw outliner stuff */
 	outliner_back(soops);
 	outliner_draw_tree(soops);
+
+	/* restore viewport */
+	mywinset(sa->win);
 	
-	/* drawoopsspace handles sliders and restores view */
+	/* ortho corrected */
+	myortho2(G.v2d->cur.xmin-SCROLLB-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-0.375, G.v2d->cur.ymax-0.375);
+	
+	block= uiNewBlock(&curarea->uiblocks, "outliner buttons", UI_EMBOSS, UI_HELV, sa->win);
+	outliner_buttons(block, soops, &soops->tree);
+	uiDrawBlock(block);
+	
+	/* drawoopsspace handles sliders */
 }
 
 

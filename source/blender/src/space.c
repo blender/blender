@@ -3785,7 +3785,7 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if(val==0) return;
 
-	if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+	if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
 
 	if (U.flag & USER_NONUMPAD) {
 		event= convert_for_nonumpad(event);
@@ -3795,7 +3795,7 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(soops->type==SO_OUTLINER) {
 		switch(event) {
 		case LEFTMOUSE:
-			outliner_mouse_event(sa, event);
+			outliner_mouse_event(sa, event);			
 			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
@@ -3815,6 +3815,12 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case HOMEKEY:
 			outliner_show_hierarchy(sa);
+			break;
+		case PAGEUPKEY:
+			outliner_page_up_down(sa, 1);
+			break;
+		case PAGEDOWNKEY:
+			outliner_page_up_down(sa, -1);
 			break;
 			
 		case RETKEY:

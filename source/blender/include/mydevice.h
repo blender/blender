@@ -188,6 +188,9 @@
 #define UNKNOWNKEY	171
 #define COMMANDKEY	172
 
+/* used as fake leftmouse event, special handled in interface.c */
+#define BUT_ACTIVATE	200
+
 /* **************** BLENDER QUEUE EVENTS ********************* */
 
 #define CHANGED				0x4000
