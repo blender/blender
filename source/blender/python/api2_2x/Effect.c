@@ -271,6 +271,7 @@ int EffectSetAttr (BPy_Effect *self, char *name, PyObject *value)
 /* Description: This is a callback function for the BPy_Effect type. It        */
 /*              builds a meaninful string to 'print' effcte objects.         */
 /*****************************************************************************/
+/*
 int EffectPrint(BPy_Effect *self, FILE *fp, int flags) 
 { 
 if (self->effect->type == EFF_BUILD)puts("Effect Build");
@@ -279,12 +280,13 @@ if (self->effect->type == EFF_WAVE)puts("Effect Wave");
  
   return 0;
 }
-
+*/
 /*****************************************************************************/
 /* Function:    EffectRepr                                                   */
 /* Description: This is a callback function for the BPy_Effect type. It        */
 /*              builds a meaninful string to represent effcte objects.       */
 /*****************************************************************************/
+
 PyObject *EffectRepr (BPy_Effect *self) 
 {
 char*str="";

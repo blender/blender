@@ -186,7 +186,7 @@ static PyMethodDef BPy_Metaball_methods[] = {
 /* Python Metaball_Type callback function prototypes:                          */
 /*****************************************************************************/
 static void MetaballDeAlloc (BPy_Metaball *self);
-static int MetaballPrint (BPy_Metaball *self, FILE *fp, int flags);
+//static int MetaballPrint (BPy_Metaball *self, FILE *fp, int flags);
 static int MetaballSetAttr (BPy_Metaball *self, char *name, PyObject *v);
 static PyObject *MetaballGetAttr (BPy_Metaball *self, char *name);
 static PyObject *MetaballRepr (BPy_Metaball *self);

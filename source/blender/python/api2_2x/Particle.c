@@ -137,7 +137,7 @@ PyTypeObject Particle_Type =
   0,                                    
 
   (destructor)ParticleDeAlloc,           
-  (printfunc)ParticlePrint,               
+  0,               
   (getattrfunc)ParticleGetAttr,           
   (setattrfunc)ParticleSetAttr,        
   0,                                     
@@ -573,8 +573,6 @@ PyObject *Particle_setForce(BPy_Particle *self,PyObject *args)
 	val[0] = PyFloat_AsDouble(PyTuple_GetItem(args,0));
 	val[1] = PyFloat_AsDouble(PyTuple_GetItem(args,1));
 	val[2] = PyFloat_AsDouble(PyTuple_GetItem(args,2));
-	printf("In Particle_setForce %f %f %f \n",val[0],val[1],val[2]);
-	printf("%d  %d \n",PyTuple_Check(args),PyTuple_Size(args));
 	/*
 	if (!PyArg_ParseTuple(args, "fff", val,val+1,val+2 ))
     return(EXPP_ReturnPyObjError(PyExc_AttributeError,\
@@ -859,12 +857,13 @@ int ParticleSetAttr (BPy_Particle *self, char *name, PyObject *value)
 /* Description: This is a callback function for the BPy_Particle type. It      */
 /*              particles a meaninful string to 'print' particle objects.    */
 /*****************************************************************************/
+/*
 int ParticlePrint(BPy_Particle *self, FILE *fp, int flags) 
 { 
   printf("Hi, I'm a particle!");	
   return 0;
 }
-
+*/
 /*****************************************************************************/
 /* Function:    ParticleRepr                                                 */
 /* Description: This is a callback function for the BPy_Particle type. It      */

@@ -72,7 +72,7 @@ PyObject *M_Effect_Get (PyObject *self, PyObject *args);
 /* Python Effect_Type callback function prototypes:                          */
 /*****************************************************************************/
 void EffectDeAlloc (BPy_Effect *msh);
-int EffectPrint (BPy_Effect *msh, FILE *fp, int flags);
+//int EffectPrint (BPy_Effect *msh, FILE *fp, int flags);
 int EffectSetAttr (BPy_Effect *msh, char *name, PyObject *v);
 PyObject *EffectGetAttr (BPy_Effect *msh, char *name);
 PyObject *EffectRepr (BPy_Effect *msh);
@@ -91,7 +91,7 @@ static PyTypeObject Effect_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)EffectDeAlloc,              /* tp_dealloc */
-  (printfunc)EffectPrint,                 /* tp_print */
+  0,                 /* tp_print */
   (getattrfunc)EffectGetAttr,             /* tp_getattr */
   (setattrfunc)EffectSetAttr,             /* tp_setattr */
   0,                                      /* tp_compare */

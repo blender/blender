@@ -107,7 +107,7 @@ PyObject *Particle_setDefvec(BPy_Particle *self,PyObject*a);
 /* Python Particle_Type callback function prototypes:                        */
 /*****************************************************************************/
 void ParticleDeAlloc (BPy_Particle *msh);
-int ParticlePrint (BPy_Particle *msh, FILE *fp, int flags);
+//int ParticlePrint (BPy_Particle *msh, FILE *fp, int flags);
 int ParticleSetAttr (BPy_Particle *msh, char *name, PyObject *v);
 PyObject *ParticleGetAttr (BPy_Particle *msh, char *name);
 PyObject *ParticleRepr (BPy_Particle *msh);

@@ -144,7 +144,7 @@ static PyMethodDef C_Ipo_methods[] = {
 /* Python Ipo_Type callback function prototypes:                          */
 /*****************************************************************************/
 static void IpoDeAlloc (C_Ipo *self);
-static int IpoPrint (C_Ipo *self, FILE *fp, int flags);
+//static int IpoPrint (C_Ipo *self, FILE *fp, int flags);
 static int IpoSetAttr (C_Ipo *self, char *name, PyObject *v);
 static PyObject *IpoGetAttr (C_Ipo *self, char *name);
 static PyObject *IpoRepr (C_Ipo *self);
@@ -161,7 +161,7 @@ PyTypeObject Ipo_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)IpoDeAlloc,              /* tp_dealloc */
-  (printfunc)IpoPrint,                 /* tp_print */
+  0,                 /* tp_print */
   (getattrfunc)IpoGetAttr,             /* tp_getattr */
   (setattrfunc)IpoSetAttr,             /* tp_setattr */
   0,                                      /* tp_compare */

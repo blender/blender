@@ -442,12 +442,13 @@ static int IpoSetAttr (C_Ipo *self, char *name, PyObject *value)
 /* Description: This is a callback function for the C_Ipo type. It        */
 /*              builds a meaninful string to 'print' ipo objects.         */
 /*****************************************************************************/
+/*
 static int IpoPrint(C_Ipo *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Ipo \"%s\"]", self->ipo->id.name+2);
   return 0;
 }
-
+*/
 /*****************************************************************************/
 /* Function:    IpoRepr                                                      */
 /* Description: This is a callback function for the C_Ipo type. It           */
@@ -455,7 +456,7 @@ static int IpoPrint(C_Ipo *self, FILE *fp, int flags)
 /*****************************************************************************/
 static PyObject *IpoRepr (C_Ipo *self)
 {
-  return PyString_FromString(self->ipo->id.name+2);
+  return PyString_FromFormat("[Ipo \"%s\"]", self->ipo->id.name+2);
 }
 
 /* Three Python Ipo_Type helper functions needed by the Object module: */

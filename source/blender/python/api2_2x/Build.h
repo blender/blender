@@ -111,7 +111,7 @@ static PyMethodDef BPy_Build_methods[] = {
 /* Python Build_Type callback function prototypes:                           */
 /*****************************************************************************/
 void BuildDeAlloc (BPy_Build *msh);
-int BuildPrint (BPy_Build *msh, FILE *fp, int flags);
+//int BuildPrint (BPy_Build *msh, FILE *fp, int flags);
 int BuildSetAttr (BPy_Build *msh, char *name, PyObject *v);
 PyObject *BuildGetAttr (BPy_Build *msh, char *name);
 PyObject *BuildRepr (BPy_Build *msh);

@@ -73,7 +73,7 @@ PyTypeObject World_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)World_DeAlloc,             /* tp_dealloc */
-  (printfunc)World_Print,                /* tp_print */
+  0,                /* tp_print */
   (getattrfunc)World_GetAttr,            /* tp_getattr */
   (setattrfunc)World_SetAttr,            /* tp_setattr */
   (cmpfunc)World_Compare,                /* tp_compare */
@@ -838,11 +838,13 @@ static int World_Compare (BPy_World *a, BPy_World *b)
  * World.  It builds a string with the name of the wrapped Blender World.
  */
 
+/*
 static int World_Print(BPy_World *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[World \"%s\"]", self->world->id.name+2);
   return 0;
 }
+*/
 
 /**
  * \brief The World PyType repr callback
@@ -853,7 +855,7 @@ static int World_Print(BPy_World *self, FILE *fp, int flags)
 
 static PyObject *World_Repr (BPy_World *self)
 {
-  return PyString_FromString(self->world->id.name+2);
+  return PyString_FromFormat("[World \"%s\"]", self->world->id.name+2);
 }
 
 /*@}*/

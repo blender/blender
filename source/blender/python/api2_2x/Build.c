@@ -44,7 +44,7 @@ PyTypeObject Build_Type =
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)BuildDeAlloc,              /* tp_dealloc */
-  (printfunc)BuildPrint,                 /* tp_print */
+  0,                 /* tp_print */
   (getattrfunc)BuildGetAttr,             /* tp_getattr */
   (setattrfunc)BuildSetAttr,             /* tp_setattr */
   0,                                      /* tp_compare */
@@ -72,7 +72,6 @@ int type =   EFF_BUILD;
   BPy_Effect    *pyeffect; 
   Effect      *bleffect = 0; 
   
-  printf ("In Effect_New()\n");
 
   bleffect = add_effect(type);
   if (bleffect == NULL) 
@@ -104,7 +103,6 @@ PyObject *M_Build_Get(PyObject *self, PyObject *args)
   Effect *eff;
   BPy_Build *wanted_eff;
   int num,i;
-  printf ("In Effect_Get()\n");
   if (!PyArg_ParseTuple(args, "si", &name, &num ))
     return(EXPP_ReturnPyObjError(PyExc_AttributeError,\
 				 "expected string int argument"));
@@ -267,11 +265,12 @@ int BuildSetAttr (BPy_Build *self, char *name, PyObject *value)
 /* Description: This is a callback function for the BPy_Build type. It         */
 /*              builds a meaninful string to 'print' build objects.          */
 /*****************************************************************************/
+/*
 int BuildPrint(BPy_Build *self, FILE *fp, int flags) 
 { 
   return 0;
 }
-
+*/
 /*****************************************************************************/
 /* Function:    BuildRepr                                                    */
 /* Description: This is a callback function for the BPy_Build type. It         */
@@ -279,14 +278,13 @@ int BuildPrint(BPy_Build *self, FILE *fp, int flags)
 /*****************************************************************************/
 PyObject *BuildRepr (BPy_Build *self) 
 {
-  return 0;
+  return PyString_FromString("Build effect");
 }
 
 PyObject* BuildCreatePyObject (struct Effect *build)
 {
  BPy_Build    * blen_object;
 
-    printf ("In BuildCreatePyObject\n");
 
     blen_object = (BPy_Build*)PyObject_NEW (BPy_Build, &Build_Type);
 

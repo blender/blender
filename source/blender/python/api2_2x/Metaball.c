@@ -44,7 +44,7 @@ PyTypeObject Metaball_Type =
 		0,                                      /* tp_itemsize */
 		/* methods */
 		(destructor)MetaballDeAlloc,              /* tp_dealloc */
-		(printfunc)MetaballPrint,                 /* tp_print */
+		0,                 /* tp_print */
 		(getattrfunc)MetaballGetAttr,             /* tp_getattr */
 		(setattrfunc)MetaballSetAttr,             /* tp_setattr */
 		0,                                      /* tp_compare */
@@ -671,13 +671,14 @@ static void MetaballDeAlloc (BPy_Metaball *self)
 {
   PyObject_DEL (self);
 }
-
+/*
 static int MetaballPrint (BPy_Metaball *self, FILE *fp, int flags)
 {
   fprintf(fp, "[MetaBall \"%s\"]", self->metaball->id.name+2);
   return 0;
 
 }
+*/
 /*****************************************************************************/
 /* Function:    MetaballGetAttr                                              */
 /* Description: This is a callback function for the BPy_Metaball type. It is   */
@@ -739,6 +740,6 @@ static int MetaballSetAttr (BPy_Metaball *self, char *name, PyObject *value)
 /*****************************************************************************/
 static PyObject *MetaballRepr (BPy_Metaball *self)
 {
-  return PyString_FromString(self->metaball->id.name+2);
+  return PyString_FromFormat("[Metaball \"%s\"]", self->metaball->id.name+2);
 }
 
