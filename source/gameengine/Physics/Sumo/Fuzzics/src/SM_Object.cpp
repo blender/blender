@@ -223,6 +223,8 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 			applyCenterImpulse( impulse * normal ); 
 		}
 	   	
+		MT_Vector3 external = m_combined_lin_vel + m_combined_ang_vel.cross(local2);
+		MT_Vector3 lateral =  rel_vel - external - normal * (rel_vel_normal - external.dot(normal));
 #if 0
 		// test - only do friction on the physics part of the 
 		// velocity.
@@ -240,7 +242,6 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 		 * lateral actually points in the opposite direction, i.e.,
 		 * into the direction of the friction force.
 		 */
-		MT_Vector3 lateral =  rel_vel - normal * rel_vel_normal;
 		if (m_shapeProps->m_do_anisotropic) {
 
 			/**
@@ -451,7 +452,7 @@ DT_Bool SM_Object::fix(
 	
 	if (normal.dot(normal) < MT_EPSILON)
 		return DT_CONTINUE;
-
+		
 	// This distinction between dynamic and non-dynamic objects should not be 
 	// necessary. Non-dynamic objects are assumed to have infinite mass.
 	if (obj1->isDynamic()) {
@@ -1020,23 +1021,16 @@ SM_Object::
 getVelocity(
 	const MT_Point3& local
 ) const {
-	// For displaced objects the velocity is faked using the previous state. 
-	// Dynamic objects get their own velocity, not the faked velocity.
-	// (Dynamic objects shouldn't be displaced in the first place!!)
-/* FIXME: -KM- Valgrind report:
-==17624== Use of uninitialised value of size 8
-==17624==    at 0x831F925: MT_Vector3::dot(MT_Vector3 const&) const (MT_Tuple3.h:60)
-==17624==    by 0x82E4574: SM_Object::getVelocity(MT_Point3 const&) const (MT_Matrix3x3.h:81)
-==17624==    by 0x82E324D: SM_Object::boing(void*, void*, void*, DT_CollData const*) (SM_Object.cpp:319)
-==17624==    by 0x83E7308: DT_Encounter::exactTest(DT_RespTable const*, int&) const (in /home/kester/blender-src/DEBUG/blender)
-*/
-	return m_prev_kinematic && !isDynamic() ? 
-		(m_xform(local) - m_prev_xform(local)) / m_timeStep :
-		actualLinVelocity() +	actualAngVelocity().cross(local);
-
-		//m_lin_vel +	m_ang_vel.cross(m_xform.getBasis() * local);
+	if (m_prev_kinematic && !isDynamic())
+	{
+		// For displaced objects the velocity is faked using the previous state. 
+		// Dynamic objects get their own velocity, not the faked velocity.
+		// (Dynamic objects shouldn't be displaced in the first place!!)
+		return (m_xform(local) - m_prev_xform(local)) / m_timeStep;
+	}
+	
 	// NB: m_xform.getBasis() * local == m_xform(local) - m_xform.getOrigin()
-
+	return actualLinVelocity() + actualAngVelocity().cross(local);
 }
 
 
