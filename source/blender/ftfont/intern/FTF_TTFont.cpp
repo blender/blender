@@ -100,6 +100,7 @@ FTF_TTFont::FTF_TTFont(void)
 #endif
 
 	font=NULL;
+	fontm= fonts= fontl= NULL;
 	font_size=FONT_SIZE_DEFAULT;
 	strcpy(encoding_name, SYSTEM_ENCODING_DEFAULT);
 

@@ -569,6 +569,8 @@ void exit_usiblender(void)
 		mainwindow_close();
 	}
 
+	FTF_End();
+
 	if (G.undo_clear) G.undo_clear();
 
 	BLI_freelistN(&U.themes);

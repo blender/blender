@@ -45,34 +45,45 @@
 
 #define FTF_EXPORT
 
-static FTF_TTFont ttfont;
+static FTF_TTFont *_FTF_GetFont(void) { 
+	static FTF_TTFont *theFont = NULL; 
+	
+	if (!theFont) { 
+		theFont = new FTF_TTFont(); 
+	} 
+	
+	return theFont; 
+}
 
+FTF_EXPORT void FTF_End(void) { 
+	delete _FTF_GetFont(); 
+}
 
 FTF_EXPORT void FTF_SetSize(int size)
 {
-	ttfont.SetSize(size);
+	_FTF_GetFont()->SetSize(size);
 }
 
 FTF_EXPORT int FTF_GetSize(void)
 {
-	return ttfont.GetSize();
+	return _FTF_GetFont()->GetSize();
 }
 
 
 FTF_EXPORT int FTF_Ascender(void)
 {
-	return ttfont.Ascender();
+	return _FTF_GetFont()->Ascender();
 }
 
 FTF_EXPORT int FTF_Descender(void)
 {
-	return ttfont.Descender();
+	return _FTF_GetFont()->Descender();
 }
 
 
 FTF_EXPORT void FTF_TransConvString(char* str, char* ustr, unsigned int flag)
 {
-	ttfont.TransConvString(str, ustr, flag);
+	_FTF_GetFont()->TransConvString(str, ustr, flag);
 }
 
 /*
@@ -87,7 +98,7 @@ FTF_EXPORT float FTF_DrawCharacter(char c, unsigned int flag)
 /* does color too, using glGet */
 FTF_EXPORT float FTF_DrawString(char* str, unsigned int flag)
 {
-	return ttfont.DrawString(str, flag);
+	return _FTF_GetFont()->DrawString(str, flag);
 }
 
 
@@ -106,7 +117,7 @@ FTF_EXPORT float FTF_GetCharacterWidth(char c, unsigned int flag)
   */
 FTF_EXPORT float FTF_GetStringWidth(char* str, unsigned int flag)
 {
-  return ttfont.GetStringWidth(str, flag);
+  return _FTF_GetFont()->GetStringWidth(str, flag);
 }
 
 
@@ -116,7 +127,7 @@ FTF_EXPORT float FTF_GetStringWidth(char* str, unsigned int flag)
   */
 FTF_EXPORT void FTF_GetBoundingBox(char* str, float *llx, float *lly, float *llz, float *urx, float *ury, float *urz, unsigned int flag)
 {
-  ttfont.GetBoundingBox(str, llx, lly, llz, urx, ury, urz, flag);
+  _FTF_GetFont()->GetBoundingBox(str, llx, lly, llz, urx, ury, urz, flag);
 }
 
 /**
@@ -125,14 +136,14 @@ FTF_EXPORT void FTF_GetBoundingBox(char* str, float *llx, float *lly, float *llz
   */
 FTF_EXPORT int FTF_SetFont(char* str, int size)
 {
-  return ttfont.SetFont(str, size);
+  return _FTF_GetFont()->SetFont(str, size);
 }
 
 /* added bt ton */
 
 FTF_EXPORT void FTF_SetFontSize(char size)
 {
-  ttfont.SetFontSize( size);
+  _FTF_GetFont()->SetFontSize( size);
 }
 
 /**
@@ -141,7 +152,7 @@ FTF_EXPORT void FTF_SetFontSize(char size)
   */
 FTF_EXPORT void FTF_SetLanguage(char* str)
 {
-  ttfont.SetLanguage(str);
+  _FTF_GetFont()->SetLanguage(str);
 }
 
 /**
@@ -150,5 +161,5 @@ FTF_EXPORT void FTF_SetLanguage(char* str)
   */
 FTF_EXPORT void FTF_SetEncoding(char* str)
 {
-  ttfont.SetEncoding(str);
+  _FTF_GetFont()->SetEncoding(str);
 }
