@@ -350,7 +350,9 @@ void drawLine(float *center, float *dir, char axis, short options)
 void initTrans (TransInfo *t)
 {
 
-	G.moving = 1; // Set moving flag on (display object in white)
+	/* moving: is shown in drawobject() (transform color) */
+	if(G.obedit) G.moving= 2;
+	else G.moving= 1;
 
 	t->data = NULL;
 	t->ext = NULL;
