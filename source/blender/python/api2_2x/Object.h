@@ -89,7 +89,11 @@ The active object is the first in the list, if visible";
 /*****************************************************************************/
 typedef struct {
     PyObject_HEAD
-    struct Object    *object;
+    struct Object   * object;
+
+    /* points to the data. This only is set when there's a valid PyObject */
+    /* that points to the linked data. */
+    PyObject        * data;
 } C_Object;
 
 /*****************************************************************************/

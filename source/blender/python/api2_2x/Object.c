@@ -172,6 +172,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     /* Create a Python object from it. */
     blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
     blen_object->object = object;
+    blen_object->data = NULL;
 
     return ((PyObject*)blen_object);
 }
@@ -203,6 +204,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
         }
         blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
         blen_object->object = object;
+        blen_object->data = NULL;
 
         return ((PyObject*)blen_object);
     }
@@ -267,14 +269,15 @@ PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
             return (Py_None);
         }
         blen_object->object = G.scene->basact->object;
+        blen_object->data = NULL;
         PyList_Append (list, (PyObject*)blen_object);
     }
 
     base_iter = G.scene->base.first;
     while (base_iter)
     {
-        if (((G.scene->basact->flag & SELECT) &&
-             (G.scene->basact->lay & G.vd->lay)) &&
+        if (((base_iter->flag & SELECT) &&
+             (base_iter->lay & G.vd->lay)) &&
             (base_iter != G.scene->basact))
         {
             blen_object = (C_Object*)PyObject_NEW (C_Object, &object_type); 
@@ -285,6 +288,7 @@ PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
                 return (Py_None);
             }
             blen_object->object = base_iter->object;
+            blen_object->data = NULL;
             PyList_Append (list, (PyObject*)blen_object);
         }
         base_iter = base_iter->next;
@@ -344,6 +348,13 @@ static PyObject *Object_getData (C_Object *self)
     int         obj_id;
     ID        * id;
 
+    /* If there's a valid PyObject already, then just return that one. */
+    if (self->data != NULL)
+    {
+        Py_INCREF (self->data);
+        return (self->data);
+    }
+
     /* If there's no data associated to the Object, then there's nothing to */
     /* return. */
     if (self->object->data == NULL)
@@ -352,29 +363,52 @@ static PyObject *Object_getData (C_Object *self)
         return (Py_None);
     }
 
+    data_object = NULL;
+
     id = (ID*)self->object;
     obj_id = MAKE_ID2 (id->name[0], id->name[1]);
     switch (obj_id)
     {
         case ID_CA:
+            data_object = Camera_createPyObject (self->object->data);
+            break;
         case ID_CU:
+            data_object = CurveCreatePyObject (self->object->data);
+            break;
         case ID_IM:
+            break;
         case ID_IP:
+            break;
         case ID_LA:
+            data_object = Lamp_createPyObject (self->object->data);
+            break;
         case ID_MA:
+            break;
         case ID_ME:
+            break;
         case ID_OB:
             data_object = M_ObjectCreatePyObject (self->object->data);
-            Py_INCREF (data_object);
-            return (data_object);
+            break;
         case ID_SCE:
+            break;
         case ID_TXT:
+            break;
         case ID_WO:
+            break;
         default:
-            Py_INCREF (Py_None);
-            return (Py_None);
+            break;
     }
-    return (Py_None);
+    if (data_object == NULL)
+    {
+        Py_INCREF (Py_None);
+        return (Py_None);
+    }
+    else
+    {
+        self->data = data_object;
+        Py_INCREF (data_object);
+        return (data_object);
+    }
 }
 
 static PyObject *Object_getDeformData (C_Object *self)
@@ -450,10 +484,11 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
         return (PythonReturnErrorObject (PyExc_AttributeError,
             "expected an object as argument"));
     }
-    /* TODO: remove the Object type here, add the correct functions when */
-    /*       ready. */
-    if (M_ObjectCheckPyObject (py_data))
-        data = (void*) M_ObjectFromPyObject (py_data);
+    if (Camera_checkPyObject (py_data))
+        data = (void*) Camera_fromPyObject (py_data);
+    if (Lamp_checkPyObject (py_data))
+        data = (void*) Lamp_fromPyObject (py_data);
+    /* TODO: add the (N)Mesh check and from functions here when finished. */
 
     oldid = (ID*) self->object->data;
     id = (ID*) data;
@@ -487,6 +522,7 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
                 "Linking this object type is not supported"));
     }
     self->object->data = data;
+    self->data = py_data;
     id_us_plus (id);
     if (oldid)
     {
