@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "..\..\..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\Network" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "..\..\..\..\..\lib\windows\python\include\python2.3" /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\Network" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -68,7 +68,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GR /GX /Zi /Od /I "..\..\..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\Network" /D "WIN32" /D "_MBCS" /D "_LIB" /U "_DEBUG" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GR /GX /Zi /Od /I "..\..\..\..\..\lib\windows\python\include\python2.3" /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\Network" /D "WIN32" /D "_MBCS" /D "_LIB" /U "_DEBUG" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
