@@ -367,7 +367,11 @@ void ui_block_flush_back(uiBlock *block)
 		glReadBuffer(GL_BACK);
 		glDrawBuffer(GL_FRONT);
 		glRasterPos2i(minx, miny);
+#ifdef __sun__		
+		myglCopyPixels(minx, miny+1, sizex, sizey, GL_COLOR);
+#else
 		myglCopyPixels(minx, miny, sizex, sizey, GL_COLOR);
+#endif
 		glEnable(GL_DITHER);
 		glFlush();
 		glDrawBuffer(GL_BACK);
