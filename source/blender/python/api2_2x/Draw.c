@@ -1,4 +1,5 @@
 /* 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -24,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -106,6 +107,7 @@ static PyObject *Method_String (PyObject * self, PyObject * args);
 static PyObject *Method_GetStringWidth (PyObject * self, PyObject * args);
 static PyObject *Method_Text (PyObject * self, PyObject * args);
 static PyObject *Method_PupMenu (PyObject * self, PyObject * args);
+/* next two by Campbell: */
 static PyObject *Method_PupIntInput (PyObject * self, PyObject * args);
 static PyObject *Method_PupFloatInput (PyObject * self, PyObject * args);
 

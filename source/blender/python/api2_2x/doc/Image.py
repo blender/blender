@@ -104,6 +104,15 @@ class Image:
     This is for texture tiling.
     @rtype: int
     """
+  def reload():
+    """
+    Reloads this image from the filesystem.  If used within a loop you need to
+    redraw the Window to see the change in the image, e.g. with
+    Window.RedrawAll().
+    @warn: if the image file is corrupt or still being written, it will be
+       replaced by a blank image in Blender, but no error will be returned.
+    @returns: None
+    """
 
   def setName(name):
     """
