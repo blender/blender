@@ -80,10 +80,6 @@ endif
 ifeq ($(OS),irix)
     LLIBS = -lmovieGL -lGLU -lGL -lXmu -lXext -lX11 -lc -lm -ldmedia
     LLIBS += -lcl -laudio -ldb -lCio -lz -woff 84,171
-    ifeq ($(INTERNATIONAL), true)
-       LLIBS += -L$(NAN_FREETYPE)/lib32 -lfreetype
-       LLIBS += -L$(NAN_ICONV)/lib32 -lintl
-    endif
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 
