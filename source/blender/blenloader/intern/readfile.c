@@ -3702,7 +3702,7 @@ static void do_versions(Main *main)
 
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->audio.mixrate = 44100;
-			sce->audio.flag |= (AUDIO_SYNC + AUDIO_SCRUB);
+			sce->audio.flag |= AUDIO_SCRUB;
 		}
 		// init new shader vars
 		for (ma= main->mat.first; ma; ma= ma->id.next) {
