@@ -86,9 +86,6 @@
 #include "BDR_editcurve.h"
 #include "BDR_editobject.h"
 
-/*  #include "graphics.h"  */
-#include "interface.h" /* MAART: for NUM and FLO types, + pupmenu */
-/*  #include "edit.h" */
 #include "mydevice.h"
 #include "blendef.h"
 

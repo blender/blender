@@ -112,7 +112,6 @@
 #include "render.h" // for R - should use BKE_bad_level_calls.h instead?
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 extern char versionstr[]; /* from blender.c */

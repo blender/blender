@@ -85,7 +85,6 @@
 /* 'old' stuff": defines and types, and own include -------------------- */
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 #include "BKE_ipo.h"

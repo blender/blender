@@ -74,7 +74,6 @@
 #include "nla.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 void do_action_buttons(unsigned short event)

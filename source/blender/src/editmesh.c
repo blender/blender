@@ -94,7 +94,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "interface.h" /* MAART: for NUM and FLO types */
 #include "nla.h"		/* For __NLA : Important - Do not remove! */
 #include "render.h"
 

@@ -78,7 +78,6 @@
 #include "BSE_filesel.h"
 #include "BDR_editobject.h"
 
-#include "interface.h"
 #include "blendef.h"
 #include "mydevice.h"
 

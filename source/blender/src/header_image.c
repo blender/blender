@@ -82,7 +82,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 #include "TPT_DependKludge.h"

@@ -82,7 +82,6 @@
 
 #include "mydevice.h"
 #include "blendef.h" 
-#include "interface.h"
 
 #define TEXTXLOC	38
 

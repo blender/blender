@@ -80,7 +80,6 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-#include "interface.h"
 
 static int is_uv_tface_editing_allowed(void)
 {

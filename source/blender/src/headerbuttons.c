@@ -169,7 +169,6 @@
 
 #include "BPY_extern.h" // Blender Python library
 
-#include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "render.h"

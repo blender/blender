@@ -93,7 +93,6 @@
 
 #include "BDR_editobject.h"
 
-#include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "nla.h"

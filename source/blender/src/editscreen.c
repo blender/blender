@@ -98,7 +98,6 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_view.h"
 
-#include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "render.h"

@@ -70,6 +70,7 @@
 #include "BIF_drawscene.h"
 #include "BIF_mywindow.h"
 #include "BIF_toolbox.h"
+#include "BIF_interface.h"
 
 #include "BDR_editobject.h"
 
@@ -78,7 +79,6 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-#include "interface.h"
 
 
 typedef struct TransOops {

@@ -68,7 +68,6 @@
 #include "BSE_sequence.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 static int viewmovetemp = 0;

@@ -65,7 +65,6 @@
 #include "BIF_glutil.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
-#include "BIF_interface.h"
 #include "BIF_mywindow.h"
 
 /*  #include "BIF_drawoops.h" bad name :(*/
@@ -73,7 +72,6 @@
 
 #include "BSE_drawipo.h"
 #include "BSE_drawoops.h"
-#include "interface.h"
 
 float oopscalex;
 

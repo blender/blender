@@ -89,7 +89,6 @@
 #include "BSE_editaction.h"
 
 #include "mydevice.h"
-#include "interface.h"
 #include "blendef.h"
 #include "nla.h"
 

@@ -87,9 +87,6 @@
 #include "blendef.h"
 #include "render.h"
 
-/*  #include "graphics.h" */
-// #include "blendef.h"
-#include "interface.h"
 #include "TPT_DependKludge.h"
 
 #ifdef NAN_TPT

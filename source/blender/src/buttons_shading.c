@@ -97,7 +97,6 @@
 #include "BIF_writeimage.h"
 #include "BIF_toets.h"
 
-#include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "radio.h"

@@ -78,7 +78,6 @@
 #include "BSE_editnla_types.h"
 
 #include "mydevice.h"
-#include "interface.h"
 #include "ipo.h" /* retains old stuff */
 #include "blendef.h"
 

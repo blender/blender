@@ -70,7 +70,6 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_sequence.h"
 
-#include "interface.h" /* for INT and FLO types */
 #include "blendef.h"
 #include "render.h"
 

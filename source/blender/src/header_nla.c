@@ -68,7 +68,6 @@
 //#include "nla.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 void do_nla_buttons(unsigned short event)

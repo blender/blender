@@ -147,8 +147,6 @@
 #include "nla.h"
 
 #include "blendef.h"
-/*  #include "graphics.h" */
-#include "interface.h"
 
 #include "BKE_constraint.h"
 #include "BIF_editconstraint.h"

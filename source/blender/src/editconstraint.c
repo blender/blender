@@ -61,7 +61,6 @@
 
 #include "BSE_editaction.h"
 
-#include "interface.h"
 #include "blendef.h"
 #include "nla.h"
 

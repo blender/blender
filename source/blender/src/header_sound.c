@@ -73,7 +73,6 @@
 #include "BSE_headerbuttons.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 void do_sound_buttons(unsigned short event)

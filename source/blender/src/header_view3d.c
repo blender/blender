@@ -103,7 +103,6 @@
 #include "BIF_gl.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 #include "butspace.h"
 

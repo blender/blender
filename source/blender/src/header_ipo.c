@@ -77,7 +77,6 @@
 #include "nla.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 static int viewmovetemp = 0;

@@ -31,6 +31,7 @@
  */
 
 #define PY_TOOLBOX 1
+
 #include <math.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -100,8 +101,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-
-#include "interface.h"
 #include "render.h"
 
 

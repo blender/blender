@@ -72,7 +72,6 @@
 #include "BDR_editcurve.h"
 
 #include "blendef.h"
-#include "interface.h"
 
 /* Local function prototypes */
 static void draw_nlastrips(SpaceNla *snla);

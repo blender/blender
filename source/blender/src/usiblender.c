@@ -109,7 +109,6 @@
 #include "BPY_extern.h"
 #include "blendef.h"
 
-#include "interface.h"
 #include "radio.h"
 #include "render.h"
 #include "datatoc.h"

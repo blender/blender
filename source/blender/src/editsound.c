@@ -73,7 +73,6 @@
 
 #include "blendef.h"
 
-#include "interface.h"
 #include "mydevice.h"
 
 #include "SND_C-api.h"

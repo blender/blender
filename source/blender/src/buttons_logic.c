@@ -86,7 +86,6 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-#include "interface.h"
 #include "nla.h"	/* For __NLA : Important, do not remove */
 #include "butspace.h" // own module
 

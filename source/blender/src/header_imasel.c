@@ -65,7 +65,6 @@
 #include "BKE_main.h"
 #include "BSE_headerbuttons.h"
 
-#include "interface.h"
 #include "blendef.h"
 
 

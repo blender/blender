@@ -131,7 +131,6 @@
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
 
-#include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "datatoc.h"

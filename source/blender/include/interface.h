@@ -33,112 +33,174 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+#include "BIF_resources.h"
+
 /* general defines */
 
 #define UI_MAX_DRAW_STR	400
 #define UI_MAX_NAME_STR	64
 #define UI_ARRAY	29
 
-/* block->font, for now: bold = medium+1 */
-#define UI_HELV			0
-#define UI_HELVB		1
 
-/* Button types */
-#define CHA	32
-#define SHO	64
-#define INT	96
-#define FLO	128
-#define FUN	192
-#define BIT	256
-
-#define BUTPOIN	(128+64+32)
-
-#define BUT	(1<<9)
-#define ROW	(2<<9)
-#define TOG	(3<<9)
-#define SLI	(4<<9)
-#define	NUM	(5<<9)
-#define TEX	(6<<9)
-#define TOG3	(7<<9)
-#define TOGR	(8<<9)
-#define TOGN	(9<<9)
-#define LABEL	(10<<9)
-#define MENU	(11<<9)
-#define ICONROW	(12<<9)
-#define ICONTOG	(13<<9)
-#define NUMSLI	(14<<9)
-#define COL		(15<<9)
-#define IDPOIN	(16<<9)
-#define HSVSLI 	(17<<9)
-#define SCROLL	(18<<9)
-#define BLOCK	(19<<9)
-#define BUTM	(20<<9)
-#define SEPR	(21<<9)
-#define LINK	(22<<9)
-#define INLINK	(23<<9)
-#define KEYEVT	(24<<9)
-#define ICONTEXTROW (25<<9)
-
-#define BUTTYPE	(31<<9)
-
-#define MAXBUTSTR	20
-
-
-/* return from uiDoBlock */
-#define UI_CONT				0
-#define UI_NOTHING			1
-#define UI_RETURN_CANCEL	2
-#define UI_RETURN_OK		4
-#define UI_RETURN_OUT		8
-#define UI_RETURN			14
-#define UI_EXIT_LOOP		16
 
 /* uiBut->flag */
 #define UI_SELECT		1
 #define UI_MOUSE_OVER	2
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
-#define UI_TEXT_LEFT	16
-/* definitions for icons (and their alignment) in buttons */
-#define UI_ICON_LEFT		32
-#define UI_ICON_RIGHT		64
+
 /* definitions for icons (and their alignment) in buttons */
 
-/* uiBlock->flag */
-#define UI_BLOCK_LOOP		1
-#define UI_BLOCK_REDRAW		2
-#define UI_BLOCK_RET_1		4
-#define UI_BLOCK_BUSY		8
-#define UI_BLOCK_NUMSELECT	16
-#define UI_BLOCK_ENTER_OK	32
+
+/* block->frontbuf: (only internal here), to nice localize the old global var uiFrontBuf */
+#define UI_NEED_DRAW_FRONT 		1
+#define UI_HAS_DRAW_FRONT 		2
 
 
-/* uiBlock->dt */
-#define UI_EMBOSSX		0	/* Rounded embossed button */
-#define UI_EMBOSSW		1	/* Flat bordered button */
-#define UI_EMBOSSN		2	/* No border */
-#define UI_EMBOSSF		3	/* Square embossed button */
-#define UI_EMBOSSM		4	/* Colored Border */
-#define UI_EMBOSSP		5	/* Borderless coloured button */
-#define UI_EMBOSSA		6	/* same as EMBOSSX but with arrows to simulate */
-#define UI_EMBOSSTABL	7
-#define UI_EMBOSSTABM	8
-#define UI_EMBOSSTABR	9
-#define UI_EMBOSST		10
-#define UI_EMBOSSMB		11	/* emboss menu button */
+/* internal panel drawing defines */
+#define PNL_GRID	4
+#define PNL_DIST	8
+#define PNL_SAFETY 	8
+#define PNL_HEADER  20
 
-/* uiBlock->direction */
-#define UI_TOP		0
-#define UI_DOWN		1
-#define UI_LEFT		2
-#define UI_RIGHT	3
+/* panel->flag */
+#define PNL_SELECT	1
+#define PNL_CLOSEDX	2
+#define PNL_CLOSEDY	4
+#define PNL_CLOSED	6
+#define PNL_TABBED	8
+#define PNL_OVERLAP	16
 
-/* uiBlock->autofill */
-#define UI_BLOCK_COLLUMNS	1
-#define UI_BLOCK_ROWS		2
 
-#define UI_PNL_TRANSP	0
-#define UI_PNL_SOLID	1
+
+typedef struct {
+	short xim, yim;
+	unsigned int *rect;
+	short xofs, yofs;
+} uiIconImage;
+
+typedef struct {
+	short mval[2];
+	short qual, val;
+	int event;
+} uiEvent;
+
+typedef struct {
+	void *xl, *large, *medium, *small;
+} uiFont;
+
+typedef struct uiLinkLine uiLinkLine;
+struct uiLinkLine {				/* only for draw/edit */
+	uiLinkLine *next, *prev;
+
+	short flag, pad;
+	
+	uiBut *from, *to;	
+};
+
+typedef struct {
+	void **poin;		/* pointer to original pointer */
+	void ***ppoin;		/* pointer to original pointer-array */
+	short *totlink;		/* if pointer-array, here is the total */
+	
+	short maxlink, pad;
+	short fromcode, tocode;
+	
+	ListBase lines;
+} uiLink;
+
+struct uiBut {
+	uiBut *next, *prev;
+	short type, pointype, bit, bitnr, retval, flag, strwidth, ofs, pos;
+
+	char *str;
+	char strdata[UI_MAX_NAME_STR];
+	char drawstr[UI_MAX_DRAW_STR];
+	
+	float x1, y1, x2, y2;
+
+	char *poin;
+	float min, max;
+	float a1, a2, rt[4];
+	float aspect;
+
+	void (*func)(void *, void *);
+	void *func_arg1;
+	void *func_arg2;
+
+	void (*embossfunc)(BIFColorID, float, float, float, float, float, int);
+
+	uiLink *link;
+	
+	char *tip, *lockstr;
+
+	BIFColorID col;
+	void *font;
+
+	BIFIconID icon;
+	short lock, win;
+	short iconadd;
+
+		/* IDPOIN data */
+	uiIDPoinFuncFP idpoin_func;
+	ID **idpoin_idpp;
+
+		/* BLOCK data */
+	uiBlockFuncFP block_func;
+
+		/* BUTM data */
+	void (*butm_func)(void *arg, int event);
+	void *butm_func_arg;
+	
+		/* pointer back */
+	uiBlock *block;
+};
+
+struct uiBlock {
+	uiBlock *next, *prev;
+	
+	ListBase buttons;
+	Panel *panel;
+	
+	char name[UI_MAX_NAME_STR];
+	
+	float winmat[4][4];
+	
+	float minx, miny, maxx, maxy;
+	float aspect;
+
+	void (*butm_func)(void *arg, int event);
+	void *butm_func_arg;
+
+	void (*func)(void *arg1, void *arg2);
+	void *func_arg1;
+	void *func_arg2;
+	
+	/* extra draw function for custom blocks */
+	void (*drawextra)();
+
+	BIFColorID col;
+	short font;	/* indices */
+	int afterval;
+	void *curfont;
+	
+	short autofill, flag, win, winq, direction, dt, frontbuf, auto_open;  //frontbuf see below
+	void *saveunder;
+	
+	float xofs, yofs;  	// offset to parent button
+	rctf parentrct;		// for pulldowns, rect the mouse is allowed outside of menu (parent button)
+};
+
+/* interface.c */
+extern void ui_check_but(uiBut *but);
+extern void ui_autofill(uiBlock *block);
+
+/* interface_panel.c */
+extern void ui_draw_panel(uiBlock *block);
+extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
+
+
+
 
 #endif
 

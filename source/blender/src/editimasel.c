@@ -71,7 +71,6 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-#include "interface.h"
 
 #define XIC 20
 #define YIC 21

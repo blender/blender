@@ -102,7 +102,6 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "render.h"
-#include "interface.h"
 #include "nla.h"
 
 

@@ -106,7 +106,6 @@
 
 #include "BPY_extern.h" // Blender Python library
 
-#include "interface.h"
 #include "blendef.h"
 #include "mydevice.h"
 #include "butspace.h"  // event codes

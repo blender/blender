@@ -76,7 +76,6 @@
 
 #include "BIF_butspace.h"
 
-#include "interface.h"
 #include "mydevice.h"
 #include "blendef.h"
 

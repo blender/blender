@@ -94,7 +94,6 @@
 #include "BSE_headerbuttons.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "render.h"
 
 #include "IMB_imbuf.h"

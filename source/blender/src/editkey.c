@@ -87,7 +87,6 @@
 #include "blendef.h"
 #include "mydevice.h"
 #include "ipo.h"
-#include "interface.h"
 
 extern ListBase editNurb; /* in editcurve.c */
 

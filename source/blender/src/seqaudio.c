@@ -82,7 +82,6 @@
 #include "BSE_seqaudio.h"
 
 #include "mydevice.h"
-#include "interface.h"
 #include "blendef.h"
 #include "render.h"
 

@@ -94,7 +94,6 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-#include "interface.h" /*  for button types, pupmenu */
 
 Sequence *last_seq=0;
 char last_imagename[80]= "/";

@@ -70,7 +70,6 @@
 #include "BSE_headerbuttons.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 void do_file_buttons(short event)

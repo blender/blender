@@ -67,7 +67,6 @@
 #include "BSE_drawoops.h"
 #include "BSE_headerbuttons.h"
 
-#include "interface.h"
 #include "blendef.h"
 
 static int viewmovetemp = 0;

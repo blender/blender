@@ -65,7 +65,6 @@
 #include "BSE_drawimasel.h"
 #include "BSE_filesel.h"
 
-#include "interface.h"
 #include "blendef.h"
 #include "mydevice.h"
 

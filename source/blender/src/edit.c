@@ -91,8 +91,8 @@
 
 /* old stuff */
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
+
 /*#include "armature.h"*/
 /*  #include "edit.h" */
 #include "nla.h"

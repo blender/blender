@@ -52,7 +52,6 @@
 #include "BIF_toolbox.h"
 #include "BIF_editgroup.h"
 
-#include "interface.h"
 #include "blendef.h"
 #include "mydevice.h"
 

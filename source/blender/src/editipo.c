@@ -117,7 +117,6 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-#include "interface.h"
 #include "render.h"
 
 /* forwards */

@@ -73,7 +73,6 @@
 #include "BSE_filesel.h"
 
 #include "blendef.h"
-#include "interface.h"
 #include "mydevice.h"
 
 void do_text_buttons(unsigned short event)
