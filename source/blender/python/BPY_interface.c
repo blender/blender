@@ -70,6 +70,7 @@
 #include "BPY_menus.h"
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
+#include "api2_2x/modules.h"
 
 /* bpy_registryDict is declared in api2_2x/Registry.h and defined
  * here.	This Python dictionary will be used to store data that scripts
@@ -438,8 +439,6 @@ int BPY_txt_do_python_Text(struct Text* text)
 		PyDict_SetItemString(py_dict, "__script__", (PyObject *)info);
 	}
 
-	clearScriptLinks ();
-
 	py_result = RunPython (text, py_dict); /* Run the script */
 
 	if (!py_result) { /* Failed execution of the script */
@@ -598,8 +597,6 @@ int BPY_menu_do_python(short menutype, int event)
 		constant_insert(info, "arg", pyarg);
 		PyDict_SetItemString(py_dict, "__script__", (PyObject *)info);
 	}
-
-	clearScriptLinks ();
 
 	/* Previously we used PyRun_File to run directly the code on a FILE object,
 	 * but as written in the Python/C API Ref Manual, chapter 2,
@@ -803,40 +800,86 @@ void BPY_do_all_scripts(short event)
 /*							are handled: Object, Lamp, Camera, Material, World and			 */
 /*							Scene.																											 */
 /*****************************************************************************/
-void BPY_do_pyscript(struct ID *id, short event)
+
+static ScriptLink *ID_getScriptlink(ID *id)
 {
-	ScriptLink	* scriptlink;
-	int						index;
-	PyObject		* dict;
-	PyObject		* ret;
+	switch (MAKE_ID2 (id->name[0], id->name[1])) {
+	case ID_OB:
+		return &((Object*)id)->scriptlink;
+	case ID_LA:
+		return &((Lamp*)id)->scriptlink;
+	case ID_CA:
+		return &((Camera*)id)->scriptlink;
+	case ID_MA:
+		return &((Material*)id)->scriptlink;
+	case ID_WO:
+		return &((World*)id)->scriptlink;
+	case ID_SCE:
+		return &((Scene*)id)->scriptlink;
+	default:
+		return NULL;
+	}
+}
 
-	scriptlink = setScriptLinks (id, event);
+static PyObject *ID_asPyObject(ID *id)
+{
+	switch (MAKE_ID2 (id->name[0], id->name[1])) {
+	case ID_OB:
+		return Object_CreatePyObject((Object*) id);
+	case ID_LA:
+		return Lamp_CreatePyObject((Lamp*) id);
+	case ID_CA:
+		return Camera_CreatePyObject((Camera*) id);
+	case ID_MA:
+		return Material_CreatePyObject((Material*) id);
+	case ID_WO:
+		return World_CreatePyObject((World*) id);
+	case ID_SCE:
+		return Scene_CreatePyObject((Scene*) id);
+	default:
+		return NULL;
+	}
+}
 
-	if (scriptlink == NULL) return;
+void BPY_do_pyscript(ID *id, short event)
+{
+	ScriptLink *scriptlink = ID_getScriptlink(id);
 
-	for (index = 0; index < scriptlink->totscript; index++)
-	{
-		if ((scriptlink->flag[index] == event) &&
-				(scriptlink->scripts[index] != NULL))
-		{
-			dict = CreateGlobalDictionary();
-			ret = RunPython ((Text*) scriptlink->scripts[index], dict);
-			ReleaseGlobalDictionary (dict);
-			if (!ret)
-			{
+	if (scriptlink && scriptlink->totscript) {
+		PyObject *dict;
+		PyObject *ret;
+		int index;
+
+			// set globals in Blender module to identify scriptlink
+		Py_INCREF(Py_True);
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
+		PyDict_SetItemString(g_blenderdict, "link", ID_asPyObject(id));
+		PyDict_SetItemString(g_blenderdict, "event", 
+			PyString_FromString(event_to_name(event)));
+
+		for (index = 0; index < scriptlink->totscript; index++) {
+			if ((scriptlink->flag[index] == event) &&
+					(scriptlink->scripts[index] != NULL)) {
+				dict = CreateGlobalDictionary();
+				ret = RunPython ((Text*) scriptlink->scripts[index], dict);
+				ReleaseGlobalDictionary (dict);
+				if (!ret) {
 					/* Failed execution of the script */
 					BPY_Err_Handle (scriptlink->scripts[index]->name+2);
 					BPY_end_python ();
 					BPY_start_python ();
-			}
-			else
-			{
+				} else {
 					Py_DECREF (ret);
+				}
 			}
 		}
-	}
 
-	return;
+			// cleanup bylink flag and clear link so PyObject can be released
+		Py_INCREF(Py_False);
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
+		Py_INCREF(Py_None);
+		PyDict_SetItemString(g_blenderdict, "link", Py_None);
+	}
 }
 
 /*****************************************************************************/

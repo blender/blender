@@ -211,6 +211,13 @@ void M_Blender_Init (void)
 
 	dict = PyModule_GetDict (module);
 	g_blenderdict = dict;
+
+	Py_INCREF(Py_False);
+	PyDict_SetItemString(dict, "bylink", Py_False);
+	Py_INCREF(Py_None);
+	PyDict_SetItemString(dict, "link", Py_None);
+	PyDict_SetItemString(dict, "event", PyString_FromString(""));
+
 	PyDict_SetItemString (dict, "Types",		Types_Init());
 	PyDict_SetItemString (dict, "sys",			sys_Init());
 	PyDict_SetItemString (dict, "Registry", Registry_Init());

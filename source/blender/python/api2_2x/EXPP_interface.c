@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -36,18 +36,6 @@
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_main.h>
-#include <BPI_script.h>
-
-#include <DNA_ID.h>
-#include <DNA_camera_types.h>
-#include <DNA_lamp_types.h>
-#include <DNA_material_types.h>
-#include <DNA_object_types.h>
-#include <DNA_scene_types.h>
-#include <DNA_screen_types.h>
-#include <DNA_scriptlink_types.h>
-#include <DNA_space_types.h>
-#include <DNA_world_types.h>
 
 #include "EXPP_interface.h"
 #include "gen_utils.h"
@@ -55,130 +43,6 @@
 
 void initBlenderApi2_2x (void)
 {
-  //printf ("initBlenderApi2_2x\n");
-  g_blenderdict = NULL;
-  M_Blender_Init ();
-}
-
-void discardFromBDict (char *key)
-{
-  PyObject *oldval = PyDict_GetItemString(g_blenderdict, key);
-  if (oldval) { Py_DECREF(oldval); }
-}
-
-void clearScriptLinks (void)
-{
-    discardFromBDict ("bylink");
-    Py_INCREF (Py_False);
-    PyDict_SetItemString (g_blenderdict, "bylink", Py_False);
-    /* Old API meant link could be unset. Or even valid when bylink is false.
-     * This way, you can import it and check its value afterwards, ignoring
-     * bylink. */
-    discardFromBDict ("link");
-    Py_INCREF (Py_None);
-    PyDict_SetItemString (g_blenderdict, "link", Py_None);
-}
-
-ScriptLink * setScriptLinks(ID *id, short event)
-{
-  ScriptLink  * scriptlink;
-  PyObject    * link;
-  Object      * object;
-  Lamp        * lamp;
-  Camera      * camera;
-  Material    * material;
-  Scene       * scene;
-  World       * world;
-  int           obj_id;
-
-  obj_id = MAKE_ID2 (id->name[0], id->name[1]);
-
-  switch (obj_id)
-  {
-    case ID_OB:
-      object = GetObjectByName (GetIdName (id));
-      if (object == NULL)
-      {
-        return NULL;
-      }
-      link = Object_CreatePyObject (object);
-      scriptlink = &(object->scriptlink);
-      break;
-    case ID_LA:
-      lamp = GetLampByName (GetIdName (id));
-      if (lamp == NULL)
-      {
-          return NULL;
-      }
-      link = Lamp_CreatePyObject (lamp);
-      scriptlink = &(lamp->scriptlink);
-      break;
-    case ID_CA:
-      camera = GetCameraByName (GetIdName (id));
-      if (camera == NULL)
-      {
-          return NULL;
-      }
-      link = Camera_CreatePyObject (camera);
-      scriptlink = &(camera->scriptlink);
-      break;
-    case ID_MA:
-      material = GetMaterialByName (GetIdName (id));
-      if (material == NULL)
-      {
-          return NULL;
-      }
-      link = Material_CreatePyObject (material);
-      scriptlink = &(material->scriptlink);
-      break;
-    case ID_WO:
-      world = GetWorldByName (GetIdName (id));
-      if (world == NULL)
-      {
-          return NULL;
-      }
-      link = World_CreatePyObject (world);
-      scriptlink = &(world->scriptlink);
-      break;
-    case ID_SCE:
-      scene = GetSceneByName (GetIdName (id));
-      if (scene == NULL)
-      {
-          return NULL;
-      }
-      link = Scene_CreatePyObject (scene);
-      scriptlink = &(scene->scriptlink);
-      break;
-    default:
-      //Py_INCREF(Py_None);
-      //link = Py_None;
-      return NULL;
-  }
-
-  discardFromBDict ("bylink");
-
-  if (scriptlink == NULL)
-  {
-    /* This is probably not an internal error anymore :)
-TODO: Check this */
-    printf ("Internal error, unable to create PyBlock for script link\n");
-
-    Py_INCREF(Py_False);
-    PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
-    return NULL;
-  }
-  else
-  {
-    Py_INCREF(Py_True);
-    PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
-  }
-
-  discardFromBDict ("link");
-  PyDict_SetItemString(g_blenderdict, "link", link);
-
-  discardFromBDict ("event");
-  PyDict_SetItemString(g_blenderdict, "event",
-      Py_BuildValue("s", event_to_name(event)));
-
-  return (scriptlink);
+	g_blenderdict = NULL;
+	M_Blender_Init ();
 }
