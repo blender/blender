@@ -147,7 +147,7 @@ ifeq ($(INTERNATIONAL), true)
         else
           COMLIB += $(NAN_GETTEXT)/lib/gnu_gettext.lib
           COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
-          COMLIB += $(NAN_FREETYPE)/lib/freetype211ST.lib
+          COMLIB += $(NAN_FREETYPE)/lib/freetype214ST.lib
           COMLIB += $(NAN_ICONV)/lib/iconv.lib
         endif
     else
