@@ -41,6 +41,7 @@ void draw_tfaces(void);
 void image_changed(struct SpaceImage *sima, int dotile);
 void image_home(void);
 void image_viewmove(void);
+void image_viewzoom(unsigned short event);
 void rectwrite_part(int winxmin, int winymin, int winxmax, int winymax, int x1, int y1, int xim, int yim, float zoomx, float zoomy, unsigned int *rect);
 void uvco_to_areaco(float *vec, short *mval);
 void uvco_to_areaco_noclip(float *vec, short *mval);
