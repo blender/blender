@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.6 2003/05/09 20:20:40 sgefant Exp $
+# $Id: Makefile,v 1.7 2003/05/12 18:12:25 sgefant Exp $
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -46,10 +46,10 @@ all::
 	@chmod +x $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/$(APPLICATION)
 ifeq ($(APPLICATION), blender)
 	@echo "---> copying message files"
-	@cp -R ../../bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@cp -R $(NANBLENDERHOME)/bin/.blender/locale $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 	@echo "---> copying .Blanguages and .bfont.ttf"
-	@cp ../../bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
-	@cp ../../bin/.blender/.bfont.ttf $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(DIR)/bin/$(APPLICATION).app/Contents/Resources
+	@cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(DIR)/bin/$(APPLICATION).app/Contents/Resources
 endif
 	@echo "---> removing CVS directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
