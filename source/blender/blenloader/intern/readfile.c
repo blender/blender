@@ -48,6 +48,7 @@
 #include <stdlib.h> // for getenv atoi
 #include <fcntl.h> // for open
 #include <string.h> // for strcasecmp strrchr strncmp strstr
+#include <math.h> // for fabs
 
 #ifndef WIN32 
     #include <unistd.h> // for read close
@@ -2698,7 +2699,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	
 	ID *id;
 	ListBase *lb;
-	char *str;
+	char *str = NULL;
 	
 	if(bhead->code==ID_ID) {
 		ID *linkedid= (ID *)(bhead + 1); /*  BHEAD+DATA dependancy */
@@ -4862,13 +4863,12 @@ static void give_base_to_objects(Scene *sce, ListBase *lb)
 }
 #endif
 
-static void append_named_part(SpaceFile *sfile, Main *mainvar, Scene *scene, char *name, int idcode)
+static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *name, int idcode)
 {
 	Object *ob;
 	Base *base;
 	BHead *bhead;
 	ID *id;
-	FileData *fd= (FileData*) sfile->libfiledata;
 	int afbreek=0;
 
 	bhead = blo_firstbhead(fd);
@@ -4933,6 +4933,38 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 	}
 }
 
+/* this is a version of BLO_library_append needed by the BPython API, so
+ * scripts can load data from .blend files -- see Blender.Library module.*/
+
+/* append to G.scene */
+void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode)
+{
+	ListBase mainlist;
+	Main *mainl;
+	FileData *fd = (FileData *)bh;
+
+	mainlist.first= mainlist.last= G.main;
+	G.main->next= NULL;
+
+	/* make mains */
+	blo_split_main(&mainlist);
+
+	/* which one do we need? */
+	mainl = blo_find_main(&mainlist, dir);
+
+	append_named_part(fd, mainl, G.scene, name, idcode);
+
+	/* make main consistant */
+	expand_main(fd, mainl);
+
+	/* do this when expand found other libs */
+	read_libraries(fd, &mainlist);
+
+	blo_join_main(&mainlist);
+	G.main= mainlist.first;
+
+	lib_link_all(fd, G.main);
+}
 
 	/* append to G.scene */
 void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
@@ -4977,12 +5009,12 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	mainl = blo_find_main(&mainlist, dir);
 
 	if(totsel==0) {
-		append_named_part(sfile, mainl, G.scene, sfile->file, idcode);
+		append_named_part(fd, mainl, G.scene, sfile->file, idcode);
 	}
 	else {
 		for(a=0; a<sfile->totfile; a++) {
 			if(sfile->filelist[a].flags & ACTIVE) {
-				append_named_part(sfile, mainl, G.scene, sfile->filelist[a].relname, idcode);
+				append_named_part(fd, mainl, G.scene, sfile->filelist[a].relname, idcode);
 			}
 		}
 	}
@@ -5029,7 +5061,7 @@ static int mainvar_count_libread_blocks(Main *mainvar)
 
 static void read_libraries(FileData *basefd, ListBase *mainlist)
 {
-	Main *main= mainlist->first;
+	Main *mainl= mainlist->first;
 	Main *mainptr;
 	ListBase *lbarray[30];
 	int a, doit= 1;
@@ -5038,7 +5070,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		doit= 0;
 		
 		/* test 1: read libdata */
-		mainptr= main->next;
+		mainptr= mainl->next;
 		
 		while(mainptr) {
 			int tot= mainvar_count_libread_blocks(mainptr);
@@ -5092,7 +5124,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 			mainptr= mainptr->next;
 		}
 	}
-	mainptr= main->next;
+	mainptr= mainl->next;
 	while(mainptr) {
 		/* test if there are unread libblocks */
 		a= set_listbasepointers(mainptr, lbarray);

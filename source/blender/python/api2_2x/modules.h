@@ -192,5 +192,6 @@ PyObject * Draw_Init (void);
 PyObject * BGL_Init (void);
 PyObject * Mathutils_Init (void);
 PyObject * NLA_Init (void);
+PyObject * Library_Init (void);
 
 #endif /* EXPP_modules_h */

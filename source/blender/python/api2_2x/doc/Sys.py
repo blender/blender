@@ -6,6 +6,8 @@ The Blender.sys submodule.
 sys
 ===
 
+B{New}: L{time}
+
 This module provides a minimal set of helper functions and data.  Its purpose
 is to avoid the need for the standard Python module 'os', in special 'os.path',
 though it is only meant for the simplest cases.
@@ -62,4 +64,12 @@ def splitext (path):
   @param path: a path name
   @rtype: list with two strings
   @return: (root, ext)
+  """
+
+def time ():
+  """
+  Get the current time in seconds since a fixed value.  Successive calls to
+  this function are garanteed to return values greater than the previous call.
+  @rtype: float
+  @return: the elapsed time in seconds.
   """

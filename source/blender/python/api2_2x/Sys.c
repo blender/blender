@@ -30,6 +30,7 @@
 */
 
 #include "BKE_utildefines.h"
+#include "PIL_time.h"
 
 #include "Sys.h"
 
@@ -168,3 +169,10 @@ static PyObject *M_sys_splitext (PyObject *self, PyObject *args)
 
 	return Py_BuildValue("ss", path, ext);
 }
+
+static PyObject *M_sys_time (PyObject *self)
+{
+	double t = PIL_check_seconds_timer();
+	return Py_BuildValue("d", t);
+}
+

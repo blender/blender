@@ -29,6 +29,7 @@ The Blender Python API Reference
   - L{Ipo}
   - L{Lamp}
   - L{Lattice}
+  - L{Library}
   - L{Material}
   - L{Mathutils}
   - L{Metaball}

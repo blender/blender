@@ -43,6 +43,7 @@
 static PyObject *M_sys_basename (PyObject *self, PyObject *args);
 static PyObject *M_sys_dirname (PyObject *self, PyObject *args);
 static PyObject *M_sys_splitext (PyObject *self, PyObject *args);
+static PyObject *M_sys_time (PyObject *self);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -65,6 +66,11 @@ static char M_sys_splitext_doc[]="(path) - Split 'path' in root and \
 extension:\n/this/that/file.ext -> ('/this/that/file','.ext').\n\
 Return the pair (root, extension).";
 
+static char M_sys_time_doc[]="() - Return a float representing time elapsed \
+in seconds.\n\
+Each successive call is garanteed to return values greater than or\n\
+equal to the previous call.";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.sys module:                */
 /*****************************************************************************/
@@ -72,6 +78,7 @@ struct PyMethodDef M_sys_methods[] = {
   {"basename",    M_sys_basename,        METH_VARARGS, M_sys_basename_doc},
   {"dirname",     M_sys_dirname,         METH_VARARGS, M_sys_dirname_doc},
   {"splitext",    M_sys_splitext,        METH_VARARGS, M_sys_splitext_doc},
+  {"time", (PyCFunction)M_sys_time,      METH_NOARGS,  M_sys_time_doc},
   {NULL, NULL, 0, NULL}
 };
 

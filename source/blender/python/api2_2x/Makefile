@@ -50,6 +50,7 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../include
 CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I$(NAN_BMFONT)/include

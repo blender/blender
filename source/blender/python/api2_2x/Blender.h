@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -51,7 +51,7 @@
 PyObject *M_Window_Redraw(PyObject *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python API function prototypes for the Blender module.                    */
+/* Python API function prototypes for the Blender module.										 */
 /*****************************************************************************/
 PyObject *Blender_Set (PyObject *self, PyObject *args);
 PyObject *Blender_Get (PyObject *self, PyObject *args);
@@ -60,9 +60,9 @@ PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args);
 PyObject *Blender_Quit(PyObject *self);
 
 /*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.__doc__                                                           */
+/* The following string definitions are used for documentation strings.			 */
+/* In Python these will be written to the console when doing a							 */
+/* Blender.__doc__																													 */
 /*****************************************************************************/
 char Blender_Set_doc[] =
 "(request, data) - Update settings in Blender\n\
@@ -90,15 +90,15 @@ char Blender_Quit_doc[] =
 "() - Quit Blender. Experimental, please use with caution.";
 
 /*****************************************************************************/
-/* Python method structure definition.                                       */
+/* Python method structure definition.																			 */
 /*****************************************************************************/
 struct PyMethodDef Blender_methods[] = {
-	{"Set",    Blender_Set, METH_VARARGS, Blender_Set_doc},
-	{"Get",    Blender_Get, METH_VARARGS, Blender_Get_doc},
+	{"Set",		 Blender_Set, METH_VARARGS, Blender_Set_doc},
+	{"Get",		 Blender_Get, METH_VARARGS, Blender_Get_doc},
 	{"Redraw", Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
-	{"Quit",   (PyCFunction)Blender_Quit, METH_NOARGS, Blender_Quit_doc},
+	{"Quit",	 (PyCFunction)Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"ReleaseGlobalDict", &Blender_ReleaseGlobalDict,
-					METH_VARARGS, Blender_ReleaseGlobalDict_doc},
+		METH_VARARGS, Blender_ReleaseGlobalDict_doc},
 	{NULL, NULL}
 };
 
