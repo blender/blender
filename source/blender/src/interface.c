@@ -39,6 +39,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -228,6 +229,15 @@ struct uiBlock {
 #define PNL_DIST	8
 #define PNL_SAFETY 	8
 #define PNL_HEADER  20
+
+/* panel->flag */
+#define PNL_SELECT	1
+#define PNL_CLOSEDX	2
+#define PNL_CLOSEDY	4
+#define PNL_CLOSED	6
+#define PNL_TABBED	8
+#define PNL_OVERLAP	16
+
 
 /* ************ GLOBALS ************* */
 
@@ -4583,12 +4593,19 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				inside= 1;
 		}
 		else if(block->panel->paneltab==NULL) {
+		
+			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) inside= 1;
 			
-			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) {
-				inside= 1;
-			}
-			else if(uevent->event==LEFTMOUSE) {
-				if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) ) {
+			/* clicked at panel header? */
+			if(uevent->event==LEFTMOUSE) {
+				if( block->panel->flag & PNL_CLOSEDX) {
+					if(block->minx <= uevent->mval[0] && block->minx+PNL_HEADER >= uevent->mval[0]) 
+						inside= 2;
+				}
+				else if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) )
+					inside= 2;
+				
+				if(inside==2) {
 					uiPanelPop(block); 	// pop matrix; no return without pop!
 					ui_do_panel(block, uevent);
 					return UI_EXIT_LOOP;	// exit loops because of moving panels
@@ -6435,11 +6452,12 @@ static void ui_draw_panel(uiBlock *block)
 {
 	if(block->panel->paneltab) return;
 	
-	if(block->panel->flag & PNL_CLOSED) {
+	if(block->panel->flag & PNL_CLOSEDY) {
 		uiSetRoundBox(15);
 		glColor3ub(160, 160, 167);
 		uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
-	
+		
+		// title
 		glColor3ub(255,255,255);
 		glRasterPos2f(block->minx+40, block->maxy+5);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
@@ -6452,6 +6470,39 @@ static void ui_draw_panel(uiBlock *block)
 		if(block->panel->flag & PNL_OVERLAP) {
 			glColor3ub(240, 240, 240);
 			uiRoundRect(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
+		}
+	
+	}
+	else if(block->panel->flag & PNL_CLOSEDX) {
+		char str[4];
+		int a, end, ofs;
+		
+		uiSetRoundBox(15);
+		glColor3ub(160, 160, 167);
+		uiRoundBox(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
+	
+		// title, only capitals for now
+		glColor3ub(255,255,255);
+		str[1]= 0;
+		end= strlen(block->panel->panelname);
+		ofs= 20;
+		for(a=0; a<end; a++) {
+			str[0]= block->panel->panelname[a];
+			if( isupper(str[0]) ) {
+				glRasterPos2f(block->minx+5, block->maxy-ofs);
+				BIF_DrawString(block->curfont, str, 0, 0);
+				ofs+= 15;
+			}
+		}
+		
+		//  border
+		if(block->panel->flag & PNL_SELECT) {
+			glColor3ub(64, 64, 64);
+			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
+		}
+		if(block->panel->flag & PNL_OVERLAP) {
+			glColor3ub(240, 240, 240);
+			uiRoundRect(block->minx, block->miny, block->minx+PNL_HEADER, block->maxy+PNL_HEADER, 10);
 		}
 	
 	}
@@ -6501,8 +6552,10 @@ static void ui_draw_panel(uiBlock *block)
 
 	/* draw close icon */
 
-	if(block->panel->flag & PNL_CLOSED)
+	if(block->panel->flag & PNL_CLOSEDY)
 		ui_draw_tria(block->minx+6, block->maxy+3, block->aspect, 'h');
+	else if(block->panel->flag & PNL_CLOSEDX)
+		ui_draw_tria(block->minx+4, block->maxy+2, block->aspect, 'h');
 	else
 		ui_draw_tria(block->minx+6, block->maxy+3, block->aspect, 'v');
 
@@ -6531,10 +6584,18 @@ static void ui_redraw_select_panel(ScrArea *sa)
 change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
 {
-	if(pa->flag & PNL_CLOSED) return pa->ofsy+pa->sizey;
-	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSED)) return pa->ofsy+pa->sizey;
+	if(pa->flag & PNL_CLOSEDY) return pa->ofsy+pa->sizey;
+	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDY)) return pa->ofsy+pa->sizey;
 	else return pa->ofsy;
 }
+
+static int get_panel_real_ofsx(Panel *pa)
+{
+	if(pa->flag & PNL_CLOSEDX) return pa->ofsx+PNL_HEADER;
+	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDX)) return pa->ofsx+PNL_HEADER;
+	else return pa->ofsx+pa->sizex;
+}
+
 
 typedef struct PanelSort {
 	Panel *pa, *orig;
@@ -6582,6 +6643,18 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 
 	if(tot==0) return 0;
 
+	/* extra; change close direction? */
+	for(pa= sa->panels.first; pa; pa= pa->next) {
+		if(pa->active && pa->paneltab==NULL) {
+			if( (pa->flag & PNL_CLOSEDX) && (sbuts->align==BUT_VERTICAL) )
+				pa->flag ^= PNL_CLOSED;
+			
+			else if( (pa->flag & PNL_CLOSEDY) && (sbuts->align==BUT_HORIZONTAL) )
+				pa->flag ^= PNL_CLOSED;
+			
+		}
+	}
+
 	panelsort= MEM_callocN( tot*sizeof(PanelSort), "panelsort");
 	
 	/* fill panelsort array */
@@ -6599,9 +6672,9 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 	else
 		qsort(panelsort, tot, sizeof(PanelSort), find_leftmost_panel);
 
-	ps= panelsort;
-
+	
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
+	ps= panelsort;
 	ps->pa->ofsx= 0;
 	ps->pa->ofsy= 0;
 	
@@ -6613,7 +6686,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-PNL_DIST;
 		}
 		else {
-			psnext->pa->ofsx = ps->pa->ofsx + ps->pa->sizex+PNL_DIST;
+			psnext->pa->ofsx = get_panel_real_ofsx(ps->pa)+PNL_DIST;
 			psnext->pa->ofsy = ps->pa->ofsy;
 		}
 	}
@@ -6753,14 +6826,17 @@ static void check_panel_overlap(ScrArea *sa, Panel *panel)
 		pa->flag &= ~PNL_OVERLAP;
 		if(panel && (pa != panel)) {
 			if(pa->paneltab==NULL && pa->active) {
-				float safe= 0.2;
+				float safex= 0.2, safey= 0.2;
 				
-				if(pa->flag & PNL_CLOSED) safe= 0.05;
+				if( pa->flag & PNL_CLOSEDX) safex= 0.05;
+				else if(pa->flag & PNL_CLOSEDY) safey= 0.05;
+				else if( panel->flag & PNL_CLOSEDX) safex= 0.05;
+				else if(panel->flag & PNL_CLOSEDY) safey= 0.05;
 				
-				if( pa->ofsx > panel->ofsx- 0.2*panel->sizex)
-				if( pa->ofsx+pa->sizex < panel->ofsx+ 1.2*panel->sizex)
-				if( pa->ofsy > panel->ofsy- safe*panel->sizey)
-				if( pa->ofsy+pa->sizey < panel->ofsy+ (1.0+safe)*panel->sizey)
+				if( pa->ofsx > panel->ofsx- safex*panel->sizex)
+				if( pa->ofsx+pa->sizex < panel->ofsx+ (1.0+safex)*panel->sizex)
+				if( pa->ofsy > panel->ofsy- safey*panel->sizey)
+				if( pa->ofsy+pa->sizey < panel->ofsy+ (1.0+safey)*panel->sizey)
 					pa->flag |= PNL_OVERLAP;
 			}
 		}
@@ -7020,11 +7096,19 @@ static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 	/* mouse coordinates in panel space! */
 
 	if(uevent->event==LEFTMOUSE && block->panel->paneltab==NULL) {
+		int button= 0;
 		
 		/* check open/closed button */
-		if(uevent->mval[0] >= block->minx && uevent->mval[0] <= block->minx+PNL_ICON+3) {
+		if(block->panel->flag & PNL_CLOSEDX) {
+			if(uevent->mval[1] >= block->maxy) button= 1;
+		}
+		else if(uevent->mval[0] <= block->minx+PNL_ICON+3) button= 1;
+		
+		if(button) {
+			if(block->panel->flag & PNL_CLOSED) block->panel->flag &= ~PNL_CLOSED;
+			else if(sbuts->align==BUT_HORIZONTAL) block->panel->flag |= PNL_CLOSEDX;
+			else block->panel->flag |= PNL_CLOSEDY;
 			
-			block->panel->flag ^= PNL_CLOSED;
 			for(pa= curarea->panels.first; pa; pa= pa->next) {
 				if(pa->paneltab==block->panel) {
 					if(block->panel->flag & PNL_CLOSED) pa->flag |= PNL_CLOSED;
