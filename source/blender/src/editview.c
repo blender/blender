@@ -1064,7 +1064,9 @@ void mouse_select(void)
 				if(donearest) {
 					unsigned int min= 0xFFFFFFFF;
 					int selcol= 0, notcol=0;
-					if(BASACT) notcol= BASACT->selcol;
+					
+					/* prevent not being able to select active object... */
+					if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;
 					
 					for(a=0; a<hits; a++) {
 						/* index was converted */
