@@ -1268,16 +1268,19 @@ def appit(target, source, env):
 		commands.getoutput(cmd)
 		cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
 		commands.getoutput(cmd)
-		cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
-		commands.getoutput(cmd)
+		if  user_options_dict['BUILD_BINARY'] == 'debug':
+			print "building debug"
+		else :
+			cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
+			commands.getoutput(cmd)
 		cmd = '%s.app/Contents/Resources/'%target
 		shutil.copy('bin/.blender/.bfont.ttf', cmd)
 		shutil.copy('bin/.blender/.Blanguages', cmd)
 		cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
 		commands.getoutput(cmd)
-		cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target + \
+		cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target
 		commands.getoutput(cmd)
-		cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target + \
+		cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target
 		commands.getoutput(cmd)
 		cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
 		commands.getoutput(cmd)
@@ -1302,7 +1305,7 @@ def appit(target, source, env):
 			cmd = 'cp %s %s.app/Contents/MacOS/%s'%(target, target, target)
 			commands.getoutput(cmd)
 			if  user_options_dict['BUILD_BINARY'] == 'debug':
-				print "building debug"
+				print "building debug player"
 			else :
 				cmd = 'strip -u -r %s.app/Contents/MacOS/%s'%(target, target)
 				commands.getoutput(cmd)
@@ -1311,9 +1314,9 @@ def appit(target, source, env):
 			shutil.copy('bin/.blender/.Blanguages', cmd)
 			cmd = 'cp -R bin/.blender/locale %s.app/Contents/Resources/'%target
 			commands.getoutput(cmd)
-			cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target + \
+			cmd = 'cp -R release/bpydata %s.app/Contents/Resources/'%target
 			commands.getoutput(cmd)
-			cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target + \
+			cmd = 'cp -R release/scripts %s.app/Contents/Resources/'%target
 			commands.getoutput(cmd)
 			cmd = 'cp -R release/plugins %s.app/Contents/Resources/'%target 
 			commands.getoutput(cmd)
