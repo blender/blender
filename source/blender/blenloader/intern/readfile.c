@@ -5217,7 +5217,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 	}
 }
 
-#if 0
+
 static void give_base_to_objects(Scene *sce, ListBase *lb)
 {
 	Object *ob;
@@ -5229,28 +5229,22 @@ static void give_base_to_objects(Scene *sce, ListBase *lb)
 
 		if(ob->id.us==0) {
 
-			if(ob->id.flag & LIB_NEEDLINK) {
+			if( ob->id.flag & LIB_INDIRECT ) {
+				base= MEM_callocN( sizeof(Base), "add_ext_base");
+				BLI_addtail(&(sce->base), base);
+				base->lay= ob->lay;
+				base->object= ob;
+				ob->id.us= 1;
 
-				ob->id.flag -= LIB_NEEDLINK;
+				ob->id.flag -= LIB_INDIRECT;
+				ob->id.flag |= LIB_EXTERN;
 
-				if( ob->id.flag & LIB_INDIRECT ) {
-
-					base= MEM_callocN( sizeof(Base), "add_ext_base");
-					BLI_addtail(&(sce->base), base);
-					base->lay= ob->lay;
-					base->object= ob;
-					ob->id.us= 1;
-
-					ob->id.flag -= LIB_INDIRECT;
-					ob->id.flag |= LIB_EXTERN;
-
-				}
 			}
 		}
 		ob= ob->id.next;
 	}
 }
-#endif
+
 
 static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *name, int idcode, short flag)
 {
@@ -5435,10 +5429,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	lib_link_all(fd, G.main);
 
 	/* give a base to loose objects */
-	/* give_base_to_objects(G.scene, &(G.main->object)); */
+	give_base_to_objects(G.scene, &(G.main->object));
 	/* has been removed... erm, why? (ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
-
+	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
+	
 	/* patch to prevent switch_endian happens twice */
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata((FileData*) sfile->libfiledata);
