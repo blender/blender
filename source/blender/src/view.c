@@ -23,6 +23,8 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
+ * Trackball math (in calctrackballvec())  Copyright (C) Silicon Graphics, Inc.
+ *
  * The Original Code is: all of this file.
  *
  * Contributor(s): none yet.
@@ -324,6 +326,9 @@ void sdrawbox(short x1, short y1, short x2, short y2)
 
 	glEnd();
 }
+
+/* the central math in this function was copied from trackball.cpp, sample code from the 
+   Developers Toolbox series by SGI. */
 
 /* trackball: better one than a full spherical solution */
 

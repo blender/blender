@@ -2392,19 +2392,24 @@ void addsegment_nurb()
 
 				/* now join the knots */
 				if((nu1->type & 7)==4) {
-					fp= MEM_mallocN(sizeof(float)*KNOTSU(nu1), "addsegment3");
-					memcpy(fp, nu1->knotsu, sizeof(float)*a);
-					MEM_freeN(nu1->knotsu);
-					nu1->knotsu= fp;
-					
-					
-					offset= nu1->knotsu[a-1] +1.0;
-					fp= nu1->knotsu+a;
-					for(a=0; a<nu2->pntsu; a++, fp++) {
-						if(nu2->knotsu) 
-							*fp= offset+nu2->knotsu[a+1];
-						else 
-							*fp = offset;
+					if(nu1->knotsu==NULL) {
+						makeknots(nu1, 1, nu1->flagu>>1);
+					}
+					else {
+						fp= MEM_mallocN(sizeof(float)*KNOTSU(nu1), "addsegment3");
+						memcpy(fp, nu1->knotsu, sizeof(float)*a);
+						MEM_freeN(nu1->knotsu);
+						nu1->knotsu= fp;
+						
+						
+						offset= nu1->knotsu[a-1] +1.0;
+						fp= nu1->knotsu+a;
+						for(a=0; a<nu2->pntsu; a++, fp++) {
+							if(nu2->knotsu) 
+								*fp= offset+nu2->knotsu[a+1];
+							else 
+								*fp = offset;
+						}
 					}
 				}
 				freeNurb(nu2);
