@@ -6,7 +6,7 @@
 	<string>6.0</string>
 
 	<key>CFBundleExecutable</key>
-	<string>blenderpublisher</string>
+	<string>blender</string>
 
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
@@ -14,12 +14,12 @@
 	<string>????</string>
 
 	<key>CFBundleIconFile</key>
-	<string>blender publisher icon.icns</string>
+	<string>blender icon.icns</string>
 
 	<key>CFBundleName</key>
-	<string>BlenderPublisher</string>
+	<string>Blender</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nantechnologies.blenderpublisher</string>
+	<string>com.nantechnologies.blender</string>
 	
 	<key>CFBundleVersion</key>
 	<string>VERSION, DATE, Copyright NaN Technologies BV</string>
