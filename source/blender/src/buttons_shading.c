@@ -875,6 +875,7 @@ static void texture_panel_distnoise(Tex *tex)
 
 static void texture_panel_voronoi(Tex *tex)
 {
+	char dm_menu[256];
 	uiBlock *block;
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_voronoi", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Voronoi", "Texture", 640, 0, 318, 204)==0) return;
@@ -889,7 +890,6 @@ static void texture_panel_voronoi(Tex *tex)
 	uiBlockEndAlign(block);
 
 	/* distance metric */
-	static char dm_menu[256];
 	sprintf(dm_menu, "Distance Metric %%t|Actual Distance %%x%d|Distance Squared %%x%d|Manhattan %%x%d|Chebychev %%x%d|Minkovsky 1/2 %%x%d|Minkovsky 4 %%x%d|Minkovsky %%x%d", TEX_DISTANCE, TEX_DISTANCE_SQUARED, TEX_MANHATTAN, TEX_CHEBYCHEV, TEX_MINKOVSKY_HALF, TEX_MINKOVSKY_FOUR, TEX_MINKOVSKY);
 	uiDefBut(block, LABEL, 0, "Distance Metric", 10, 160, 200, 19, 0, 0, 0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, dm_menu, 10, 140, 200, 19, &tex->vn_distm, 0,0,0,0, "Sets the distance metric to be used");
