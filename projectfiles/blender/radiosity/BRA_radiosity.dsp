@@ -110,6 +110,10 @@ SOURCE=..\..\..\source\blender\radiosity\intern\source\radpostprocess.c
 
 SOURCE=..\..\..\source\blender\radiosity\intern\source\radpreprocess.c
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\radiosity\intern\source\radrender.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
