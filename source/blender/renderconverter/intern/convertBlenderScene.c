@@ -3050,10 +3050,10 @@ void do_displacement(Object *ob, int startface, int numface, int startvert, int 
 		bb=cu->bb;
 		texflag=cu->texflag;
 	}
-	else if (ob->type == OB_MBALL) {
+	else if (ob->type == OB_MBALL) { /* Metaballs have bb but don't seem to use it */
 		mb=(MetaBall *)(ob->data);
-		if ( mb->bb == NULL) tex_space_mball(ob);
-		bb=mb->bb;
+		if ( ob->bb == NULL) tex_space_mball(ob);
+		bb=ob->bb;
 		texflag=mb->texflag;
 	}
 	else bb=ob->bb; /* Need to test? */	
@@ -3111,7 +3111,7 @@ void displace_render_face(VlakRen *vlr, float *scale)
 							    nor);
 								
 	xn= vlr->n[0]*nor[0]+vlr->n[1]*nor[1]+vlr->n[2]*nor[2];
-	if (xn<0.0) flipnorm=1;
+	//if (xn<0.0) flipnorm=1;
 	
 	//printf("before vlr->n=%f, %f, %f flipn=%i\n", vlr->n[0], vlr->n[1], vlr->n[2], flipnorm);
 	
