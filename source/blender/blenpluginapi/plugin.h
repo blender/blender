@@ -69,6 +69,7 @@ void plugin_getinfo(PluginInfo *);
 
 /* *************** defines for button types ************** */
 
+#define CHA	32
 #define INT	96
 #define FLO	128
 
@@ -76,6 +77,7 @@ void plugin_getinfo(PluginInfo *);
 #define	NUM	(5<<9)
 #define LABEL	(10<<9)
 #define NUMSLI	(14<<9)
+#define COL	(15<<9)
 
 
 /* *************** API functions ******************** */
