@@ -1644,10 +1644,10 @@ static void testareas(void)
 	
 	sa= G.curscreen->areabase.first;
 	while(sa) {
-		next= sa->next;
-		
 		rcti oldhr= sa->headrct;
 		rcti oldwr= sa->winrct;
+		
+		next= sa->next;
 		
 		calc_arearcts(sa);
 		
