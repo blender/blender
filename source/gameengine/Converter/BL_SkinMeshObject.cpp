@@ -142,7 +142,7 @@ void BL_SkinMeshObject::Bucketize(double* oglmatrix,void* clientobj,bool useObje
 	ms.m_RGBAcolor = rgbavec;
 	ms.m_pDeformer = ((BL_DeformableGameObject*)clientobj)->m_pDeformer;
 	
-	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();it++)
+	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();it++)
 	{
 
 		RAS_MaterialBucket* materialbucket = (*it);

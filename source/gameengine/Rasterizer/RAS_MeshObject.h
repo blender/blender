@@ -41,10 +41,14 @@
 #include <set>
 
 #include "RAS_Polygon.h"
+#include "RAS_MaterialBucket.h"
 #include "MT_Transform.h"
 
 #include "GEN_HashedPtr.h"
 
+/**
+ * This class holds an array of vertices and indicies.
+ */
 class KX_ArrayOptimizer
 {
 public:
@@ -63,6 +67,9 @@ public:
 	int							m_index1;
 };
 
+/**
+ * This struct holds a triangle.
+ */
 struct	RAS_TriangleIndex
 {
 public:
@@ -72,6 +79,11 @@ public:
 	bool	m_collider;
 };
 
+/**
+ * This class looks horribly broken.  Only m_matid is used, and
+ * m_matid is a (int) RAS_IPolyMaterial*.  
+ * --> m_matid == lhs.m_matid should be *m_matid == *lhs.m_matid
+ */
 class	RAS_MatArrayIndex
 {
 public:
@@ -124,9 +136,8 @@ class RAS_MeshObject
 	
 protected:
 	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
-	typedef set<class RAS_MaterialBucket*> BucketMaterialSet;
 	
-	BucketMaterialSet			m_materials;
+	RAS_MaterialBucket::Set			m_materials;
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
 	RAS_MeshObject(int lightlayer);
@@ -178,8 +189,8 @@ public:
 
 	void				ClearArrayData();
 	
-	BucketMaterialSet::iterator GetFirstMaterial();
-	BucketMaterialSet::iterator GetLastMaterial();
+	RAS_MaterialBucket::Set::iterator GetFirstMaterial();
+	RAS_MaterialBucket::Set::iterator GetLastMaterial();
 	
 	virtual RAS_TexVert*	GetVertex(
 								short array,

@@ -97,7 +97,7 @@ void RAS_MaterialBucket::ClearScheduledPolygons()
 
 	
 
-RAS_IPolyMaterial* RAS_MaterialBucket::GetPolyMaterial()
+RAS_IPolyMaterial* RAS_MaterialBucket::GetPolyMaterial() const
 { 
 	return m_material;
 }
@@ -137,7 +137,7 @@ void RAS_MaterialBucket::MarkVisibleMeshSlot(KX_MeshSlot& ms,
 
 
 
-bool RAS_MaterialBucket::IsTransparant()
+bool RAS_MaterialBucket::IsTransparant() const
 {	
 	return (m_material->IsTransparant());
 }

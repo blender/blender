@@ -43,6 +43,9 @@
 
 class RAS_IRasterizer;
 
+/**
+ * Material properties.
+ */
 class RAS_IPolyMaterial
 {
 	//todo: remove these variables from this interface/protocol class
@@ -104,6 +107,7 @@ public:
 	virtual void Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const {}
 
 	bool				Equals(const RAS_IPolyMaterial& lhs) const;
+	bool				Less(const RAS_IPolyMaterial& rhs) const;
 	int					GetLightLayer();
 	bool				IsTransparant();
 	bool				UsesTriangles();
@@ -116,6 +120,11 @@ public:
 inline  bool operator ==( const RAS_IPolyMaterial & rhs,const RAS_IPolyMaterial & lhs)
 {
 	return ( rhs.Equals(lhs));
+}
+
+inline  bool operator < ( const RAS_IPolyMaterial & lhs, const RAS_IPolyMaterial & rhs)
+{
+	return lhs.Less(rhs);
 }
 
 #endif //__RAS_IPOLYGONMATERIAL

@@ -51,7 +51,9 @@ typedef vector< KX_IndexArray* > vecIndexArrays;
 typedef vector<RAS_TexVert> KX_VertexArray;
 
 
-
+/**
+ * KX_VertexIndex
+ */
 struct KX_VertexIndex {
 public:
 	KX_VertexIndex(int size);
@@ -62,7 +64,9 @@ public:
 };
 
 
-
+/**
+ * KX_MeshSlot.
+ */
 class KX_MeshSlot
 {
 public:
@@ -86,7 +90,9 @@ inline bool operator <( const KX_MeshSlot& rhs,const KX_MeshSlot& lhs)
 	return ( rhs.Less(lhs));
 }
 
-
+/**
+ * Contains a list of meshs with the same material properties.
+ */
 class RAS_MaterialBucket
 {
 	typedef std::set<KX_MeshSlot> T_MeshSlotList;
@@ -108,8 +114,8 @@ public:
 	void	SchedulePolygons(int drawingmode);
 	void	ClearScheduledPolygons();
 	
-	RAS_IPolyMaterial*		GetPolyMaterial();
-	bool	IsTransparant();
+	RAS_IPolyMaterial*		GetPolyMaterial() const;
+	bool	IsTransparant() const;
 		
 	static void	StartFrame();
 	static void EndFrame();
@@ -120,6 +126,16 @@ public:
 								bool visible,
 								bool color,
 								const MT_Vector4& rgbavec);
+	
+	struct less
+	{
+		bool operator()(const RAS_MaterialBucket* x, const RAS_MaterialBucket* y) const 
+		{ 
+			return *x->GetPolyMaterial() < *y->GetPolyMaterial(); 
+		}
+	};
+	
+	typedef set<RAS_MaterialBucket*, less> Set;
 };
 
 #endif //__KX_BUCKET

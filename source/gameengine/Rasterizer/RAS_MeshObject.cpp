@@ -108,7 +108,7 @@ RAS_MaterialBucket* RAS_MeshObject::GetMaterialBucket(unsigned int matid)
 {
 	if (m_materials.size() > 0 && (matid < m_materials.size()))
 	{
-		BucketMaterialSet::const_iterator it = m_materials.begin();
+		RAS_MaterialBucket::Set::const_iterator it = m_materials.begin();
 		while (matid--) ++it;
 		return *it;
 	}
@@ -270,7 +270,7 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 	{
 		if ((*it).m_arrayindex1 == ao->m_index1 &&
 			((*it).m_array == vtxarray) && 
-			(RAS_IPolyMaterial*) (*it).m_matid == mat
+			(*(RAS_IPolyMaterial*) (*it).m_matid) == *mat
 			)
 		{
 			return (*it).m_index;
@@ -396,7 +396,7 @@ void RAS_MeshObject::Bucketize(double* oglmatrix,
 	ms.m_bObjectColor = useObjectColor;
 	ms.m_RGBAcolor = rgbavec;
 	
-	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
+	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
 		bucket->SchedulePolygons(0);
@@ -421,7 +421,7 @@ void RAS_MeshObject::MarkVisible(double* oglmatrix,
 	ms.m_RGBAcolor = rgbavec;
 	ms.m_bObjectColor= useObjectColor;
 
-	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
+	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
 		bucket->SchedulePolygons(0);
@@ -440,7 +440,7 @@ void RAS_MeshObject::RemoveFromBuckets(double* oglmatrix,
 	ms.m_mesh = this;
 	ms.m_OpenGLMatrix = oglmatrix;
 
-	for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
+	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
 //		RAS_IPolyMaterial* polymat = bucket->GetPolyMaterial();
@@ -562,7 +562,7 @@ void RAS_MeshObject::SchedulePolygons(int drawingmode,RAS_IRasterizer* rasty)
 
 	if (m_bModified)
 	{
-		for (BucketMaterialSet::iterator it = m_materials.begin();it!=m_materials.end();++it)
+		for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 		{
 			RAS_MaterialBucket* bucket = *it;
 

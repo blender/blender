@@ -79,7 +79,20 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 	);
 }
 
-
+bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
+{
+	return (
+			this->m_materialname	<		rhs.m_materialname ||
+			this->m_texturename	<		rhs.m_texturename ||
+			this->m_lightlayer	<		rhs.m_lightlayer ||
+			this->m_tile		<		rhs.m_tile ||
+			this->m_tilexrep	<		rhs.m_tilexrep ||
+			this->m_tileyrep	<		rhs.m_tileyrep ||
+			this->m_transparant	<		rhs.m_transparant ||
+			this->m_drawingmode	<		rhs.m_drawingmode ||
+			this->m_bIsTriangle	<		rhs.m_bIsTriangle
+	);
+}
 
 int RAS_IPolyMaterial::GetLightLayer()
 {
