@@ -143,6 +143,10 @@ SOURCE=..\..\..\source\blender\src\cmovie.tga.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\cursors.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\makesdna\intern\dna.c
 # End Source File
 # Begin Source File
@@ -504,6 +508,10 @@ SOURCE=..\..\..\source\blender\src\writemovie.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BIF_butspace.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_cursors.h
 # End Source File
 # Begin Source File
 
