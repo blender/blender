@@ -4799,6 +4799,16 @@ void do_text_buttons(unsigned short event)
 		allqueue(REDRAWHEADERS, 0);
 		break;
 */		 
+	case B_TEXTLINENUM:
+		if(st->showlinenrs)
+			st->showlinenrs = 0;
+		else
+			st->showlinenrs = 1;
+
+		allqueue(REDRAWTEXT, 0);
+		allqueue(REDRAWHEADERS, 0);
+		break;
+
 	case B_TEXTFONT:
 		switch(st->font_id) {
 		case 0:
@@ -4835,6 +4845,11 @@ void text_buttons(void)
 	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
 		
+	if(st->showlinenrs)
+		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_SHORTDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Hide line numbers");
+	else
+		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Display line numbers");
+
 
 	/* STD TEXT BUTTONS */
 	if (!BPY_spacetext_is_pywin(st)) {
