@@ -419,7 +419,7 @@ void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 
 
 	/* rotate maxz */
-	if(shi->co[2]==0) doclip= 0;	/* for when halo at sky */
+	if(shi->co[2]==0.0) doclip= 0;	/* for when halo at sky */
 	else {
 		p1[0]= shi->co[0]-lar->co[0];
 		p1[1]= shi->co[1]-lar->co[1];
@@ -584,15 +584,16 @@ static void renderspothalo(ShadeInput *shi, float *col)
 			}
 
 			spothalo(lar, shi, &i);
-			
 			if(i>0.0) {
 				col[3]+= i;
 				col[0]+= i*lar->r;
 				col[1]+= i*lar->g;
-				col[2]+= i*lar->b;
+				col[2]+= i*lar->b;			
 			}
 		}
 	}
+	/* clip alpha, is needed for unified 'alpha threshold' (vanillaRenderPipe.c) */
+	if(col[3]>1.0) col[3]= 1.0;
 }
 
 void render_lighting_halo(HaloRen *har, float *colf)
