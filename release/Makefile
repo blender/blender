@@ -104,14 +104,6 @@ install: package
 #@cp -r python $(DISTDIR)/python
 #@rm -fr $(DISTDIR)/python/CVS
 
-    ifneq ($(NOPLUGINS),true)
-	@echo "----> Copy and compile plugins"
-	@cp -r plugins $(DISTDIR)/plugins
-	@chmod 755 $(DISTDIR)/plugins/bmake
-	@$(MAKE) -C $(DISTDIR)/plugins all > /dev/null || exit 1;
-	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \
-	     $(DISTDIR)/plugins/*/*.o
-    endif
 	@echo "----> Copy blender$(EXT0) executable"
     ifeq ($(TYPE),-static)
 	@cp $(OCGDIR)/bin/blenderstatic$(EXT0) $(DISTDIR)/blender$(EXT0)
@@ -121,6 +113,14 @@ install: package
     else
 	@cp $(OCGDIR)/bin/blender$(EXT0) $(DISTDIR)/blender$(EXT0)
     endif
+    endif
+    ifneq ($(NOPLUGINS),true)
+	@echo "----> Copy and compile plugins"
+	@cp -r plugins $(DISTDIR)/plugins
+	@chmod 755 $(DISTDIR)/plugins/bmake
+	@$(MAKE) -C $(DISTDIR)/plugins all  > /dev/null || exit 1;
+	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \
+             $(DISTDIR)/plugins/*/*.o
     endif
     ifneq ($(NOSTRIP),true)
 	@echo "----> Strip blender executable"

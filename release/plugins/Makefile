@@ -32,11 +32,11 @@
 all: textures sequences
 
 textures:
-	cd texture; make;
+	$(MAKE) -C texture
 
 sequences:
-	cd sequence; make;
+	$(MAKE) -C sequence
 
 clean:
-	cd texture; make clean;
-	cd sequence; make clean;
+	$(MAKE) -C texture clean
+	$(MAKE) -C sequence clean
