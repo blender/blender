@@ -55,7 +55,7 @@ extern       void allqueue(unsigned short event, short val);
 extern       void allspace(unsigned short event, short val);
 extern       void copy_view3d_lock(short val);
 extern       void drawemptyspace(struct ScrArea *sa, void *spacedata);
-extern       void drawinfospace(void);
+extern       void drawinfospace(struct ScrArea *sa, void *spacedata);
 extern       void duplicatespacelist(struct ScrArea *area, struct ListBase *lb1, struct ListBase *lb2);
 extern       void extern_set_butspace(int fkey);
 extern       void force_draw(void);

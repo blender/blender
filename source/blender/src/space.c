@@ -1291,7 +1291,7 @@ void space_sound_button_function(int event)
 }
 
 
-void drawinfospace(void)
+void drawinfospace(ScrArea *sa, void *spacedata)
 {
 	uiBlock *block;
 	float fac;

@@ -38,6 +38,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
+#include <freetype/ttnameid.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -179,6 +180,12 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	FT_GlyphSlot  glyph;
 	FT_UInt		glyph_index;
 	FT_Outline	ftoutline;
+    FT_CharMap  found = 0;
+	FT_CharMap  charmap;
+	FT_UShort my_platform_id = TT_PLATFORM_MICROSOFT;
+	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
+	int         n;
+
 
 	float scale= 1. / 1024.; //needs text_height from metrics to make a standard linedist
 	float dx, dy;
@@ -198,10 +205,26 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
 	if(err) return NULL;
 
+    for ( n = 0; n < face->num_charmaps; n++ )
+    {
+      charmap = face->charmaps[n];
+      if ( charmap->platform_id == my_platform_id &&
+           charmap->encoding_id == my_encoding_id )
+      {
+        found = charmap;
+        break;
+      }
+    }
+
+    if ( !found ) { return NULL; }
+
+    /* now, select the charmap for the face object */
+    err = FT_Set_Charmap( face, found );
+    if ( err ) { return NULL; }
+
+
 	// allocate blender font
 	vfd= MEM_callocN(sizeof(*vfd), "FTVFontData");
-
-//FT_Set_Charmap(face, ft_encoding_symbol);
 
 	// extract generic ascii character range (needs international support, dynamic loading of chars, etcetc)
 	for(i = myMIN_ASCII; i <= myMAX_ASCII; i++) {
@@ -387,6 +410,11 @@ static int check_freetypefont(PackedFile * pf)
 	FT_Face			face;
 	FT_GlyphSlot	glyph;
 	FT_UInt			glyph_index;
+	FT_CharMap  charmap;
+	FT_CharMap  found;
+	FT_UShort my_platform_id = TT_PLATFORM_MICROSOFT;
+	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
+	int         n;
 
 	int success = 0;
 
@@ -400,6 +428,23 @@ static int check_freetypefont(PackedFile * pf)
 	    error("This is not a valid font");
 	}
 	else {
+		for ( n = 0; n < face->num_charmaps; n++ )
+		{
+		  charmap = face->charmaps[n];
+		  if ( charmap->platform_id == my_platform_id &&
+			   charmap->encoding_id == my_encoding_id )
+		  {
+			found = charmap;
+			break;
+		  }
+		}
+
+		if ( !found ) { return 0; }
+
+		/* now, select the charmap for the face object */
+		err = FT_Set_Charmap( face, found );
+		if ( err ) { return 0; }
+
 		glyph_index = FT_Get_Char_Index( face, 'A' );
 		err = FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_BITMAP );
 		if(err) success = 0;
