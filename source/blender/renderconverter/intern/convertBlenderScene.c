@@ -1114,33 +1114,23 @@ static void init_render_displist_mesh(Object *ob)
 	dl= me->disp.first;
 
 	/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
-#if 1
-	if((dl==0) || ((me->subdiv != me->subdivr))){
-		object_deform(ob);
-		subsurf_make_mesh(ob, me->subdivr);
-		dl = me->disp.first;
-		
+
+	if((dl==0) || ((me->subdiv != me->subdivr))) {
+		/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
+		if(me->subdivdone!=me->subdivr) {
+			object_deform(ob);
+			subsurf_make_mesh(ob, me->subdivr);
+			me->subdivdone= me->subdivr;
+			dl = me->disp.first;
+		}
 	}
-	else{
-		makeDispList(ob);
-		dl= me->disp.first;
-	}
-#else
-	tempdiv = me->subdiv;
-	me->subdiv = me->subdivr;
-	makeDispList(ob);
-	dl= me->disp.first;
-#endif
+
 	if(dl==0) return;
 
 	if(need_orco) {
 		make_orco_displist_mesh(ob, me->subdivr);
 		orco= me->orco;
 	}
-
-#if 0
-	me->subdiv = tempdiv;
-#endif
 
 	while(dl) {
 		if(dl->type==DL_SURF) {
@@ -1767,8 +1757,8 @@ static void init_render_mesh(Object *ob)
 /* If lar takes more lamp data, the decoupling will be better. */
 void RE_add_render_lamp(Object *ob, int doshadbuf)
 {
-	Lamp *la, **temp;
-	LampRen *lar;
+	Lamp *la;
+	LampRen *lar, **temp;
 	float mat[4][4], hoek, xn, yn;
 	int c;
 	static int rlalen=LAMPINITSIZE; /*number of currently allocated lampren pointers*/
@@ -2770,8 +2760,9 @@ void RE_freeRotateBlenderScene(void)
 				MEM_freeN(me->orco);
 				me->orco= 0;
 			}
-			if (rendermesh_uses_displist(me) && (me->subdiv!=me->subdivr)){
+			if (rendermesh_uses_displist(me) && (me->subdiv!=me->subdivr)) {
 				makeDispList(ob);
+				me->subdivdone= 0;	/* needed to prevent multiple used meshes being recalculated */
 			}
 		}
 		else if(ob->type==OB_MBALL) {

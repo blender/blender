@@ -143,9 +143,9 @@ typedef struct Mesh {
 	float rot[3];
 	
 	short smoothresh, flag;
-	short subdiv, subdivr;
+	short subdiv, subdivr, subdivdone;
 	short totcol;
-	short reserved1, reserved2, reserved3;	/* Padding */
+	short reserved1, reserved2;	/* Padding */
 
 	float cubemapsize, rtf;
 
