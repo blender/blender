@@ -4332,42 +4332,148 @@ void draw_object_ext(Base *base)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-/* two options, facecolors or black */
-static void bbs_mesh_solid(Object *ob, int facecol)
+static void bbs_mesh_verts(Object *ob, int offset)
 {
+	EditVert *eve;
+	int a= offset;
 	
-	if(ob==G.obedit) {
+	bglBegin(GL_POINTS);
+	for(eve= G.editMesh->verts.first; eve; eve= eve->next, a++) {
+		if(eve->h==0) {
+			cpack( index_to_framebuffer(a) );
+			bglVertex3fv(eve->co);
+		}
+	}
+	bglEnd();
+}		
+
+/* two options, edgecolors or black */
+static int bbs_mesh_wire(Object *ob, int offset)
+{
+	EditEdge *eed;
+	Mesh *me= ob->data;
+	DispList *dl= find_displist(&me->disp, DL_MESH);
+	DispListMesh *dlm= NULL;
+	int index, b, retval, optimal=0;
+
+	if(dl) dlm= dl->mesh;
+	if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) optimal= 1;
+	
+	if(dlm && optimal) {
+		MEdge *medge= dlm->medge;
+		MVert *mvert= dlm->mvert;
 		
+		// tuck original indices in vn
+		for(b=0, eed= G.editMesh->edges.first; eed; eed= eed->next, b++) eed->vn= (EditVert *)(b+offset);
+		retval= b+offset;
+		glBegin(GL_LINES);
+		for (b=0; b<dlm->totedge; b++, medge++) {
+			if(medge->flag & ME_EDGEDRAW) {
+				eed= dlm->editedge[b];
+				if(eed) {
+					
+					index= (int)eed->vn;
+					cpack(index_to_framebuffer(index));
+					
+					glVertex3fv(mvert[medge->v1].co); 
+					glVertex3fv(mvert[medge->v2].co);
+				}
+			}
+		}
+		glEnd();
+	}
+	else {
+		index= offset;
+		cpack(0);
+		glBegin(GL_LINES);
+		for(eed= G.editMesh->edges.first; eed; eed= eed->next, index++) {
+			if(eed->h==0) {
+
+				cpack(index_to_framebuffer(index));
+
+				glVertex3fv(eed->v1->co);
+				glVertex3fv(eed->v2->co);
+			}
+		}
+		glEnd();
+		retval= index;
+	}
+	return retval;
+}		
+		
+/* two options, facecolors or black */
+static int bbs_mesh_solid(Object *ob, int facecol)
+{
+	int glmode, a;
+	
+	cpack(0);
+
+	if(ob==G.obedit) {
+		Mesh *me= ob->data;
+		EditFace *efa;
+		DispList *dl= find_displist(&me->disp, DL_MESH);
+		DispListMesh *dlm= NULL;
+		int b;
+		
+		if(dl) dlm= dl->mesh;
+		a= 1; // color indices start with 1
+
+		if(dlm) {
+			MFace *mface;
+			efa= dlm->editface[0];
+			
+			for(b=0, mface= dlm->mface; b<dlm->totface; b++, mface++) {
+				if(mface->v3) {
+					if(facecol) {
+						if( efa != dlm->editface[b] ) {
+							efa= dlm->editface[b];
+							a++;
+						}
+						cpack(index_to_framebuffer(a));
+					}
+					
+					glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
+					glVertex3fv(dlm->mvert[mface->v1].co);
+					glVertex3fv(dlm->mvert[mface->v2].co);
+					glVertex3fv(dlm->mvert[mface->v3].co);
+					if (mface->v4) glVertex3fv(dlm->mvert[mface->v4].co);
+					glEnd();
+				}
+			}
+		}
+		else {
+			
+			glBegin(GL_QUADS);
+			glmode= GL_QUADS;
+			for(efa= G.editMesh->faces.first; efa; efa= efa->next, a++) {
+				if(efa->h==0) {
+					if(efa->v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
+					else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
+
+					if(facecol) {
+						int i= index_to_framebuffer(a);
+						cpack(i);
+					}
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+				}
+			}
+			glEnd();
+		}
+		if(facecol) return a;
 	}
 	else {
 		Mesh *me= ob->data;
 		MVert *mvert;
 		MFace *mface;
-		int a, glmode, totface, div;
+		int a, totface;
 		
-		/* experiment with drawing subsurf while painting, but this whole displist system works against me (ton) */
-/*		if(mesh_uses_displist(me)) {
-			DispList *dl= find_displist(&me->disp, DL_MESH);
-			DispListMesh *dlm= dl->mesh;
-			
-			if(dlm==NULL) return;
-			
-			mvert= dlm->mvert;
-			mface= dlm->mface;
-			totface= dlm->totface;
-			
-			div= me->subdiv; // restore original indices
-		}
-		else {
-*/
-			mvert= me->mvert;
-			mface= me->mface;
-			totface= me->totface;
-			
-			div= 0;
-/*		} */
+		mvert= me->mvert;
+		mface= me->mface;
+		totface= me->totface;
 		
-		cpack(0);
 		glBegin(GL_QUADS);
 		glmode= GL_QUADS;
 		
@@ -4378,7 +4484,7 @@ static void bbs_mesh_solid(Object *ob, int facecol)
 				else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
 					
 				if(facecol) {
-					int i= index_to_framebuffer( (a>>div)+1);
+					int i= index_to_framebuffer(a+1);
 					cpack(i);
 				}
 				
@@ -4390,21 +4496,36 @@ static void bbs_mesh_solid(Object *ob, int facecol)
 		}
 		glEnd();
 	}
+	return 1;
 }
 
 void draw_object_backbufsel(Object *ob)
 {
-	Mesh *me;
+	extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
 	
 	mymultmatrix(ob->obmat);
 
 	glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	
+
 	switch( ob->type) {
 	case OB_MESH:
-		me= ob->data;
-		bbs_mesh_solid(ob, 1);	// 1= facecol
+		if(G.obedit) {
+
+			em_solidoffs= bbs_mesh_solid(ob, G.scene->selectmode & SCE_SELECT_FACE);
+			
+			bglPolygonOffset(1.0);
+			
+			// we draw edges in face mode too, for looptool
+			if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) 
+				em_wireoffs= bbs_mesh_wire(ob, em_solidoffs);
+			else em_wireoffs= em_solidoffs;
+			
+			if(G.scene->selectmode & SCE_SELECT_VERTEX) bbs_mesh_verts(ob, em_wireoffs);
+			bglPolygonOffset(0.0);
+		}
+		else bbs_mesh_solid(ob, 1);	// 1= facecol, faceselect
+		
 		break;
 	case OB_CURVE:
 	case OB_SURF:

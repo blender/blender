@@ -887,20 +887,16 @@ static void drawviewborder(void)
 void backdrawview3d(int test)
 {
 	struct Base *base;
-	int tel=1;
 
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT));
+	else if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT));
 	else {
 		G.vd->flag &= ~V3D_NEEDBACKBUFDRAW;
 		return;
 	}
 
-	if(G.vd->flag & V3D_NEEDBACKBUFDRAW); else return;
-	if(G.obedit) {
-		G.vd->flag &= ~V3D_NEEDBACKBUFDRAW;
-		return;
-	}
-	
+	if( !(G.vd->flag & V3D_NEEDBACKBUFDRAW) ) return;
+
 	if(test) {
 		if(qtest()) {
 			addafterqueue(curarea->win, BACKBUFDRAW, 1);
@@ -930,38 +926,12 @@ void backdrawview3d(int test)
 	
 	G.f |= G_BACKBUFSEL;
 	
-	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
-		base= (G.scene->basact);
-		if(base && (base->lay & G.vd->lay)) {
-			draw_object_backbufsel(base->object);
-		}
+	base= (G.scene->basact);
+	if(base && (base->lay & G.vd->lay)) {
+		draw_object_backbufsel(base->object);
 	}
-	else {
 
-		base= (G.scene->base.first);
-		while(base) {
-			
-			/* each base, because of multiple windows */
-			base->selcol= 0x070707 | ( ((tel & 0xF00)<<12) + ((tel & 0xF0)<<8) + ((tel & 0xF)<<4) );
-			tel++;
-	
-			if(base->lay & G.vd->lay) {
-				
-				if(test) {
-					if(qtest()) {
-						addafterqueue(curarea->win, BACKBUFDRAW, 1);
-						break;
-					}
-				}
-				
-				cpack(base->selcol);
-				draw_object(base);
-			}
-			base= base->next;
-		}
-	}
-	
-	if(base==0) G.vd->flag &= ~V3D_NEEDBACKBUFDRAW;
+	G.vd->flag &= ~V3D_NEEDBACKBUFDRAW;
 
 	G.f &= ~G_BACKBUFSEL;
 	G.zbuf= FALSE; 
@@ -1941,6 +1911,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
 		addafterqueue(curarea->win, BACKBUFDRAW, 1);
 	}
+	// test for backbuf select
+	if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
+		addafterqueue(curarea->win, BACKBUFDRAW, 1);
+	}
+
 
 	/* scene redraw script link */
 	if(G.scene->scriptlink.totscript && !during_script()) {

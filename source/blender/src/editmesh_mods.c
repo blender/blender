@@ -90,6 +90,8 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BSE_view.h"
 #include "BSE_edit.h"
 
+#include "IMB_imbuf.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 #include "render.h"  // externtex, badlevel call (ton)
@@ -98,6 +100,130 @@ editmesh_mods.c, UI level access, no geometry changes
 
 
 /* ****************************** SELECTION ROUTINES **************** */
+
+int em_solidoffs=0, em_wireoffs=0;	// set in drawobject.c ... for colorindices
+
+/* copied from vpaint */
+static unsigned int sample_backbuf(int x, int y)
+{
+	unsigned int col;
+	
+	if(x>=curarea->winx || y>=curarea->winy) return 0;
+	
+	x+= curarea->winrct.xmin;
+	y+= curarea->winrct.ymin;
+	
+#ifdef __APPLE__
+	glReadBuffer(GL_AUX0);
+#endif
+	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
+	glReadBuffer(GL_BACK);	
+	
+	if(G.order==B_ENDIAN) SWITCH_INT(col);
+	
+	return framebuffer_to_index(col);
+}
+
+static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax)
+{
+	unsigned int *dr, *buf;
+	int a;
+	short xminc, yminc, xmaxc, ymaxc;
+	
+	/* clip */
+	if(xmin<0) xminc= 0; else xminc= xmin;
+	if(xmax>=curarea->winx) xmaxc= curarea->winx-1; else xmaxc= xmax;
+	if(xminc > xmaxc) return NULL;
+
+	if(ymin<0) yminc= 0; else yminc= ymin;
+	if(ymax>=curarea->winy) ymaxc= curarea->winy-1; else ymaxc= ymax;
+	if(yminc > ymaxc) return NULL;
+	
+	buf= MEM_mallocN( (xmaxc-xminc+1)*(ymaxc-yminc+1)*sizeof(int), "sample rect");
+	
+#ifdef __APPLE__
+	glReadBuffer(GL_AUX0);
+#endif
+	glReadPixels(curarea->winrct.xmin+xminc, curarea->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, buf);
+	glReadBuffer(GL_BACK);	
+
+	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr((xmaxc-xminc+1)*(ymaxc-yminc+1), buf);
+
+	a= (xmaxc-xminc+1)*(ymaxc-yminc+1);
+	dr= buf;
+	while(a--) {
+		*dr= framebuffer_to_index(*dr);
+		dr++;
+	}
+	
+	/* put clipped result back, if needed */
+	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) return buf;
+	else {
+		unsigned int *buf1= MEM_callocN( (xmax-xmin+1)*(ymax-ymin+1)*sizeof(int), "sample rect2");
+		unsigned int *rd;
+		short xs, ys;
+
+		rd= buf;
+		dr= buf1;
+		
+		for(ys= ymin; ys<=ymax; ys++) {
+			for(xs= xmin; xs<=xmax; xs++, dr++) {
+				if( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
+					*dr= *rd;
+					rd++;
+				}
+			}
+		}
+		MEM_freeN(buf);
+		return buf1;
+	}
+	
+	return buf;
+}
+
+
+/* smart function to sample a rect spiralling outside, nice for backbuf selection */
+static unsigned int sample_backbuf_rect(unsigned int *buf, int size, int min, int max, short *dist)
+{
+	unsigned int *bufmin, *bufmax;
+	int a, b, rc, nr, amount, dirvec[4][2];
+	short distance=0;
+	
+	amount= (size-1)/2;
+	rc= 0;
+	
+	dirvec[0][0]= 1; dirvec[0][1]= 0;
+	dirvec[1][0]= 0; dirvec[1][1]= -size;
+	dirvec[2][0]= -1; dirvec[2][1]= 0;
+	dirvec[3][0]= 0; dirvec[3][1]= size;
+	
+	bufmin= buf;
+	bufmax= buf+ size*size;
+	buf+= amount*size+ amount;
+	
+	for(nr=1; nr<=size; nr++) {
+		
+		for(a=0; a<2; a++) {
+			for(b=0; b<nr; b++, distance++) {
+				
+				if(*buf && *buf>=min && *buf<max ) {
+					*dist= (short) sqrt( (float)distance );
+					return *buf - min+1;	// messy yah, but indices start at 1
+				}
+				
+				buf+= (dirvec[rc][0]+dirvec[rc][1]);
+				
+				if(buf<bufmin || buf>=bufmax) {
+					return 0;
+				}
+			}
+			rc++;
+			rc &= 3;
+		}
+	}
+	return 0;
+}
+
 
 // caching
 
@@ -180,24 +306,6 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 		myglReadPixels(xs, ys, &zvali);
 		zval= ((float)zvali)/((float)0xFFFFFFFF);
 		if( vec4[2] <= zval) return 1;
-/*
-		myglReadPixels(xs+1, ys, &zvali);
-		zval= ((float)zvali)/((float)0xFFFFFFFF);
-		if( vec4[2] <= zval) return 1;
-
-		myglReadPixels(xs, ys+1, &zvali);
-		zval= ((float)zvali)/((float)0xFFFFFFFF);
-		if( vec4[2] <= zval) return 1;
-
-		myglReadPixels(xs-1, ys, &zvali);
-		zval= ((float)zvali)/((float)0xFFFFFFFF);
-		if( vec4[2] <= zval) return 1;
-
-		myglReadPixels(xs, ys-1, &zvali);
-		zval= ((float)zvali)/((float)0xFFFFFFFF);
-		if( vec4[2] <= zval) return 1;
-*/		
-		// printf("my proj %f zbuf %x %f mydiff %f\n", vec4[2], zvali, zval, vec4[2]-zval);
 	}
 	else {
 		glReadPixels(curarea->winrct.xmin+xs,  curarea->winrct.ymin+ys, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,  &zval);
@@ -209,7 +317,7 @@ int EM_zbuffer_visible(float *co, short xs, short ys)
 }
 
 
-static EditVert *findnearestvert(short *dist, short sel)
+static EditVert *findnearestvert_f(short *dist, short sel)
 {
 	static EditVert *acto= NULL;
 	EditMesh *em = G.editMesh;
@@ -273,6 +381,33 @@ static EditVert *findnearestvert(short *dist, short sel)
 	return act;
 }
 
+/* backbuffer version */
+EditVert *findnearestvert(short *dist, short sel)
+{
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		EditVert *eve=NULL;
+		unsigned int *buf;
+		int a=1, index;
+		short mval[2], distance=255;
+		
+		getmouseco_areawin(mval);
+		
+		// sample colorcode 
+		buf= read_backbuf(mval[0]-25, mval[1]-25, mval[0]+24, mval[1]+24);
+		if(buf) {
+			index= sample_backbuf_rect(buf, 50, em_wireoffs, 0xFFFFFF, &distance); // globals, set in drawobject.c
+			MEM_freeN(buf);
+			if(distance < *dist) {
+				if(index>0) for(eve= G.editMesh->verts.first; eve; eve= eve->next, a++) if(index==a) break;
+				if(eve) *dist= distance;
+			}
+		}
+		return eve;
+	}
+	else return findnearestvert_f(dist, sel);
+}
+
+
 /* more samples */
 int EM_zbuffer_edge_visible(float *v1, float *v2, short *val1, short *val2)
 {
@@ -306,7 +441,7 @@ static float dist_mval_edge(short *mval, EditEdge *eed)
 	return PdistVL2Dfl(mval2, v1, v2);
 }
 
-EditEdge *findnearestedge(short *dist)
+static EditEdge *findnearestedge_f(short *dist)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *closest, *eed;
@@ -352,8 +487,36 @@ EditEdge *findnearestedge(short *dist)
 	return closest;
 }
 
+/* backbuffer version */
+EditEdge *findnearestedge(short *dist)
+{
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		EditEdge *eed=NULL;
+		unsigned int *buf;
+		int a=1, index;
+		short mval[2], distance=255;
+		
+		getmouseco_areawin(mval);
+		// sample colorcode 
 
-static EditFace *findnearestface(short *dist)
+		buf= read_backbuf(mval[0]-25, mval[1]-25, mval[0]+24, mval[1]+24);
+		if(buf) {
+			index= sample_backbuf_rect(buf, 50, em_solidoffs, em_wireoffs, &distance); // global, set in drawobject.c
+			MEM_freeN(buf);
+
+			if(distance < *dist) {
+				if(index>0 && index<=em_wireoffs) for(eed= G.editMesh->edges.first; eed; eed= eed->next, a++) if(index==a) break;
+				if(eed) *dist= distance;
+			}
+		}
+		
+		return eed;
+	}
+	else return findnearestedge_f(dist);
+}
+
+
+static EditFace *findnearestface_f(short *dist)
 {
 	static EditFace *acto= NULL;
 	EditMesh *em = G.editMesh;
@@ -413,6 +576,36 @@ static EditFace *findnearestface(short *dist)
 	return act;
 }
 
+static EditFace *findnearestface(short *dist)
+{
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		EditFace *efa=NULL;
+		int a=1, index;
+		short mval[2], distance;
+
+		calc_mesh_facedots_ext();	// shouldnt be needed each click
+		getmouseco_areawin(mval);
+
+		// sample colorcode 
+		index= sample_backbuf(mval[0], mval[1]);
+		
+		if(index && index<=em_solidoffs) {
+			for(efa= G.editMesh->faces.first; efa; efa= efa->next, a++) if(index==a) break;
+			if(efa) {
+				distance= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
+
+				if(G.scene->selectmode == SCE_SELECT_FACE || distance<*dist) {	// only faces, no dist check
+					*dist= distance;
+					return efa;
+				}
+			}
+		}
+		
+		return NULL;
+	}
+	else return findnearestface_f(dist);
+}
+
 /* for interactivity, frontbuffer draw in current window */
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
@@ -467,13 +660,40 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 	/* edge selected */
 	if(eed) {
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
-			if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
-			else BIF_ThemeColor(TH_WIRE);
+			Mesh *me= G.obedit->data;
+			DispList *dl= find_displist(&me->disp, DL_MESH);
+			DispListMesh *dlm= NULL;
+			int optimal=0;
 			
-			glBegin(GL_LINES);
-			glVertex3fv(eed->v1->co);
-			glVertex3fv(eed->v2->co);
-			glEnd();
+			if(dl) dlm= dl->mesh;
+			if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) optimal= 1;
+			
+			if(dlm && optimal) {
+				MEdge *medge= dlm->medge;
+				MVert *mvert= dlm->mvert;
+				int b;
+				
+				if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
+				else BIF_ThemeColor(TH_WIRE);
+
+				glBegin(GL_LINES);
+				for (b=0; b<dlm->totedge; b++, medge++) {
+					if(medge->flag & ME_EDGEDRAW) {
+						if(eed == dlm->editedge[b]) {
+							glVertex3fv(mvert[medge->v1].co); 
+							glVertex3fv(mvert[medge->v2].co);
+						}
+					}
+				}
+				glEnd();
+			}
+			else {
+				
+				glBegin(GL_LINES);
+				glVertex3fv(eed->v1->co);
+				glVertex3fv(eed->v2->co);
+				glEnd();
+			}
 		}
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
