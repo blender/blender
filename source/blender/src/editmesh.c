@@ -2474,23 +2474,25 @@ void loop(int mode)
 							}
 						}
 						else{	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
-							if(evl->v1->f & 16){
-								cen[a][0]= evl->v1->co[0];
-								cen[a][1]= evl->v1->co[1];
-								cen[a][2]= evl->v1->co[2];
-								evl->v1->f &= ~16;
-							}
-							else if(evl->v2->f & 16){
-								cen[a][0]= evl->v2->co[0];
-								cen[a][1]= evl->v2->co[1];
-								cen[a][2]= evl->v2->co[2];
-								evl->v2->f &= ~16;
-							}
-							else if(evl->v3->f & 16){
-								cen[a][0]= evl->v3->co[0];
-								cen[a][1]= evl->v3->co[1];
-								cen[a][2]= evl->v3->co[2];
-								evl->v3->f &= ~16;
+							if(a!=2){
+								if(evl->v1->f & 16){
+									cen[a][0]= evl->v1->co[0];
+									cen[a][1]= evl->v1->co[1];
+									cen[a][2]= evl->v1->co[2];
+									evl->v1->f &= ~16;
+								}
+								else if(evl->v2->f & 16){
+									cen[a][0]= evl->v2->co[0];
+									cen[a][1]= evl->v2->co[1];
+									cen[a][2]= evl->v2->co[2];
+									evl->v2->f &= ~16;
+								}
+								else if(evl->v3->f & 16){
+									cen[a][0]= evl->v3->co[0];
+									cen[a][1]= evl->v3->co[1];
+									cen[a][2]= evl->v3->co[2];
+									evl->v3->f &= ~16;
+								}
 							}
 						}
 							
