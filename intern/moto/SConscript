@@ -4,7 +4,8 @@ Import ('library_env')
 
 moto_env = library_env.Copy ()
 
-source_files = ['intern/MT_CmMatrix4x4.cpp',
+source_files = ['intern/MT_Assert.cpp',
+		'intern/MT_CmMatrix4x4.cpp',
                 'intern/MT_Matrix3x3.cpp',
                 'intern/MT_Matrix4x4.cpp',
                 'intern/MT_Plane3.cpp',

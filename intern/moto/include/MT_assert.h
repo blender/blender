@@ -35,11 +35,13 @@
 #ifdef	MT_NDEBUG
 
 #define MT_assert(predicate) ((void)0)
+#define BREAKPOINT() ((void)0)
 
 #else 
 
 #include <signal.h>
 #include <stdlib.h>
+#include <assert.h>
 
 // BREAKPOINT() will cause a break into the debugger
 #if defined(__i386) && defined(__GNUC__)
@@ -62,6 +64,11 @@
 #define BREAKPOINT() \
 	abort();
 #endif
+
+
+#if defined(WIN32) && !defined(__GNUC__)
+#define MT_assert(predicate) assert(predicate)
+#else
 	
 // So it can be used from C
 #ifdef __cplusplus
@@ -85,6 +92,7 @@ MT_CDECL int MT_QueryAssert(char *file, int line, char *predicate, int *do_asser
 		BREAKPOINT();									\
 	}											\
 }
+#endif /* windows */
 
 #endif /* MT_NDEBUG */
 
