@@ -38,9 +38,53 @@
 
 #else 
 
-#include <assert.h>
+#include <signal.h>
+#include <stdlib.h>
 
-#define MT_assert(predicate) assert(predicate)
+// BREAKPOINT() will cause a break into the debugger
+#if defined(__i386) && defined(__GNUC__)
+// gcc on intel...
+#define BREAKPOINT() \
+	asm("int $3")
+#elif defined(_MSC_VER)
+// Visual C++ (on Intel)
+#define BREAKPOINT() \
+	{ _asm int 3 }
+#elif defined(SIGTRAP)
+// POSIX compatible...
+#define BREAKPOINT() \
+	raise(SIGTRAP);
+#else
+// FIXME: Don't know how to do a decent break!
+// Add some code for your cpu type, or get a posix
+// system.
+// abort instead
+#define BREAKPOINT() \
+	abort();
+#endif
+	
+// So it can be used from C
+#ifdef __cplusplus
+#define MT_CDECL extern "C"
+#else
+#define MT_CDECL
+#endif
+
+// Ask the user if they wish to abort/break, ignore, or ignore for good.
+// file, line, predicate form the message to ask, *do_assert should be set
+// to 0 to ignore.
+// returns 1 to break, false to ignore
+MT_CDECL int MT_QueryAssert(char *file, int line, char *predicate, int *do_assert);
+
+// Abort the program if predicate is not true
+#define MT_assert(predicate) 									\
+{ 												\
+	static int do_assert = 1; 								\
+	if (!(predicate) && MT_QueryAssert(__FILE__, __LINE__, #predicate, &do_assert))		\
+	{											\
+		BREAKPOINT();									\
+	}											\
+}
 
 #endif /* MT_NDEBUG */
 
