@@ -172,7 +172,7 @@ int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
 	fontl= NULL;
 
 	if(datasize) font = new FTGLPixmapFont(str, datasize);
-	else font = new FTGLPixmapFont(str);
+	else font = new FTGLPixmapFont( (char *)str);
 
 	err = font->Error();
 
@@ -184,9 +184,9 @@ int FTF_TTFont::SetFont(const unsigned char* str, int datasize, int fontsize)
 		fontm= font;
 
 		if(datasize) fonts = new FTGLPixmapFont(str, datasize);
-		else fonts = new FTGLPixmapFont(str);
+		else fonts = new FTGLPixmapFont((char *)str);
 		if(datasize) fontl = new FTGLPixmapFont(str, datasize);
-		else fontl = new FTGLPixmapFont(str);
+		else fontl = new FTGLPixmapFont((char *)str);
 		
 		success = fonts->FaceSize(fontsize-2<8?8:fontsize-2);
 		success = fontm->FaceSize(fontsize-1<8?8:fontsize-1);
