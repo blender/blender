@@ -227,10 +227,10 @@ all debug::
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /usr/freeware
     export NAN_GETTEXT ?= /usr/freeware
-    export NAN_SDL ?= $(shell sdl-config --prefix)
-    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
-    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
-
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_SDLLIBS ?= -L$(NAN_SDL)/lib -lSDL
+    export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include/SDL
+ 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
