@@ -272,6 +272,72 @@ void screen_swapbuffers(void)
 		drawmode= drawmode_default;
 	}
 	
+	{
+		static int count = 3000;
+
+		count = (++count)%5200;
+
+		if (count==51) {
+			void mainqenter(unsigned short event, short val);
+			markdirty_all();
+			mainqenter(0x4001, 1);
+		} else if (count<51) {
+			extern double BLI_drand(void);
+			float aspect = (float) G.curscreen->sizex/G.curscreen->sizey;
+			extern signed char monkeyf[][4];
+			extern signed char monkeyv[][3];
+			extern int monkeyo, monkeynv, monkeynf;
+			float fac, x = (BLI_drand()*2-1)*.9, y = (BLI_drand()*2-1)*.9;
+
+			float (*verts)[3] = malloc(sizeof(*verts)*monkeynv*2);
+			int i;
+
+			for (i=0; i<monkeynv; i++) {
+				float *v = verts[i];
+				v[0]= (monkeyv[i][0]+127)/128.0, v[1]= monkeyv[i][1]/128.0, v[2]= monkeyv[i][2]/128.0;
+			}
+
+			areawinset(1);
+
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(-1, 1, -1, 1, -1, 1);
+			glScalef(1, aspect, 1);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glTranslatef(x, y, 0);
+			glScalef(.5, .5, .5);
+
+			fac = (BLI_drand()+.1)*.5;
+			glScalef(fac, fac, fac);
+
+			glColor3f(BLI_drand(),BLI_drand(),BLI_drand());
+			glBegin(GL_QUADS);
+			for (i=0; i<monkeynf; i++) {
+				int i0 = monkeyf[i][0]+i-monkeyo;
+				float *v0 = verts[i0];
+				int i1 = monkeyf[i][1]+i-monkeyo;
+				float *v1 = verts[i1];
+				int i2 = monkeyf[i][2]+i-monkeyo;
+				float *v2 = verts[i2];
+				int i3 = monkeyf[i][3]+i-monkeyo;
+				float *v3 = verts[i3];
+				
+				glVertex3fv(v0); glVertex3fv(v1); glVertex3fv(v2); glVertex3fv(v3);
+				glVertex2f(-v0[0],v0[1]); 
+				glVertex2f(-v1[0],v1[1]); 
+				glVertex2f(-v2[0],v2[1]); 
+				glVertex2f(-v3[0],v3[1]); 
+			}
+			glEnd();
+
+			free(verts);
+
+			myswapbuffers();
+			myswapbuffers();
+		}
+	}
+
 	tempsa= curarea;
 	areawinset(1);
 	
