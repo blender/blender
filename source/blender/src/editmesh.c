@@ -7317,6 +7317,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 	}
 
 	glFinish();
+	glDrawBuffer(GL_BACK);
 	persp(PERSP_VIEW);
 
 	*len=i;
@@ -7354,7 +7355,7 @@ void KnifeSubdivide(char mode){
 	
 	calc_meshverts_ext();  /*Update screen coords for current window */
 		
-	if (mode==KNIFE_PROMPT) mode=pupmenu("Cut Type %t|Exact Line%x1|Centers%x2|");
+	if (mode==KNIFE_PROMPT) mode=pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2|");
 	
 	curve=get_mouse_trail(&len, TRAIL_MIXED);
 	
@@ -7378,8 +7379,6 @@ void KnifeSubdivide(char mode){
 		if (mode==1) subdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD);
 		else if (mode==2) subdivideflag(1, 0, B_KNIFE);
 		
-		addqueue(curarea->win,  REDRAW, 1);
-		
 		eed=G.eded.first;
 		while(eed){
 			eed->f=0;
@@ -7387,7 +7386,9 @@ void KnifeSubdivide(char mode){
 			eed=eed->next;
 		}	
 	}
-	/* Return ot old cursor and flags...*/
+	/* Return to old cursor and flags...*/
+	
+	addqueue(curarea->win,  REDRAW, 0);
 	set_cursor(oldcursor);
 	if (curve) MEM_freeN(curve);
 }
@@ -7505,8 +7506,8 @@ void LoopMenu(){ /* Called by KKey */
 
 	short ret;
 	
-	ret=pupmenu("Loop/Cut Menu %t|Loop Select %x1|Loop Cut %x2|"
-				"Knife (Exact) %x3|Knife (Centers)%x4|");
+	ret=pupmenu("Loop/Cut Menu %t|Face Loop Select %x1|Face Loop Cut %x2|"
+				"Knife (Exact) %x3|Knife (Midpoints)%x4|");
 				
 	switch (ret){
 		case 1:
