@@ -48,10 +48,8 @@
 
 class KX_CameraActuator : public SCA_IActuator
 {
-
-private :
 	Py_Header;
-	
+private :
 	/** Object that will be tracked. */
 	const CValue *m_ob;
 

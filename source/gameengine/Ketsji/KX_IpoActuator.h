@@ -40,7 +40,7 @@
 class KX_IpoActuator : public SCA_IActuator
 {
 	Py_Header;
-
+protected:
 	bool	m_bNegativeEvent;
 
 	/** Begin frame of the ipo. */

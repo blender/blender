@@ -60,6 +60,10 @@ protected:
 	int				m_lightlayer;
 	bool				m_bIsTriangle;
 	
+	unsigned int			m_polymatid;
+	
+	static unsigned int		m_newpolymatid;
+	
 public:
 
 	MT_Vector3			m_diffuse;

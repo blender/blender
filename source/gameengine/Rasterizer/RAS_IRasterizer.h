@@ -299,13 +299,21 @@ public:
 		float frustfar,
 		bool perspective = true
 	)=0;
-
+	/**
+	 * Sets the specular colour component of the lighting equation.
+	 */
 	virtual void	SetSpecularity(float specX,
 								   float specY,
 								   float specZ,
 								   float specval)=0;
-
+	
+	/**
+	 * Sets the specular exponent component of the lighting equation.
+	 */
 	virtual void	SetShinyness(float shiny)=0;
+	/**
+	 * Sets the diffuse colour component of the lighting equation.
+	 */
 	virtual void	SetDiffuse(float difX,
 							   float difY,
 							   float difZ,

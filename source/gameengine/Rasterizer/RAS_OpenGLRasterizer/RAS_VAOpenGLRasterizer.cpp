@@ -183,8 +183,6 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		glColor3d(0,0,0);
 	}
 	// use glDrawElements to draw each vertexarray
-	static bool doWarning = true;
-	
 	for (vt=0;vt<vertexarrays.size();vt++)
 	{
 		vertexarray = &((*vertexarrays[vt]) [0]);
@@ -193,7 +191,7 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		int numverts = vertexarrays[vt]->size();
 
 		if (!numindices)
-			break;
+			continue;
 		
 		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
 		glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());

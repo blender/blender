@@ -57,7 +57,8 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_transparant(transparant),
 		m_zsort(zsort),
 		m_lightlayer(lightlayer),
-		m_bIsTriangle(bIsTriangle)
+		m_bIsTriangle(bIsTriangle),
+		m_polymatid(m_newpolymatid++)
 {
 	m_shininess = 35.0;
 	m_specular = MT_Vector3(0.5,0.5,0.5);
@@ -84,48 +85,10 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 
 bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
 {
-	/**
-	 * @warning STL requires lhs.Less(rhs) == rhs.Less(lhs) implies lhs.Equals(rhs).
-	 * This function *must* return different values for lhs.Less(rhs) and rhs.Less(lhs) if
-	 * !lhs.Equals(rhs) !!
-	 */
-	if (m_materialname.hash() < rhs.m_materialname.hash())
-		return true;
-	   
-	if (m_materialname.hash() > rhs.m_materialname.hash() ||
-	    m_texturename.hash()  >  rhs.m_texturename.hash())
+	if (Equals(rhs))
 		return false;
-	   
-	if (m_texturename.hash() < rhs.m_texturename.hash() ||
-	    m_lightlayer          < rhs.m_lightlayer)
-		return true;
-	
-	if (m_lightlayer > rhs.m_lightlayer ||
-	    m_bIsTriangle > rhs.m_bIsTriangle)
-		return false;
-	
-	if (m_bIsTriangle < rhs.m_bIsTriangle ||
-	    m_drawingmode <  rhs.m_drawingmode)
-		return true;
-	
-	if (m_drawingmode > rhs.m_drawingmode ||
-	    m_transparant > !rhs.m_transparant)
-		return false;
-	
-	if (m_transparant < rhs.m_transparant ||
-	    m_tileyrep < rhs.m_tileyrep)
-	    	return true;
-	
-	if (m_tileyrep > rhs.m_tileyrep ||
-	    m_tilexrep > rhs.m_tilexrep)
-	    	return false;
-	
-	if (m_tilexrep < rhs.m_tilexrep ||
-	    m_tile < rhs.m_tile)
-	    	return true;
-	
-	return !(m_tile > rhs.m_tile ||
-		m_zsort > rhs.m_zsort);
+		
+	return m_polymatid < rhs.m_polymatid;
 }
 
 int RAS_IPolyMaterial::GetLightLayer() const
@@ -167,3 +130,5 @@ const STR_String& RAS_IPolyMaterial::GetTextureName() const
 {
 	return m_texturename;
 }
+
+unsigned int RAS_IPolyMaterial::m_newpolymatid = 0;

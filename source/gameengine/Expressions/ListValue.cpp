@@ -28,8 +28,6 @@ int listvalue_bufferlen(PyObject* list)
 	return ( ((CListValue*)list)->GetCount());
 }
 
-
-
 PyObject* listvalue_buffer_item(PyObject* list,int index)
 {
 	if (index >= 0 && index < ((CListValue*) list)->GetCount())
@@ -45,6 +43,19 @@ PyObject* listvalue_buffer_item(PyObject* list,int index)
 	return NULL;
 }
 
+PyObject* listvalue_mapping_subscript(PyObject* list,PyObject* pyindex)
+{
+	if (PyString_Check(pyindex))
+	{
+		STR_String  index(PyString_AsString(pyindex));
+		CValue *item = ((CListValue*) list)->FindValue(index);
+		if (item)
+			return (PyObject*) item;
+			
+	}
+	Py_Error(PyExc_IndexError, "Python ListIndex out of range");
+	Py_Return;
+}
 
 
 /* just slice it into a python list... */
@@ -157,7 +168,7 @@ static PySequenceMethods listvalue_as_sequence = {
 /* Is this one used ? */
 static PyMappingMethods instance_as_mapping = {
 	(inquiry)listvalue_bufferlen, /*mp_length*/
-	0,//(binaryfunc)instance_subscript, /*mp_subscript*/
+	(binaryfunc)listvalue_mapping_subscript, /*mp_subscript*/
 	0,//(objobjargproc)instance_ass_subscript, /*mp_ass_subscript*/
 };
 

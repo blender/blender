@@ -39,6 +39,7 @@
 class SCA_ILogicBrick : public CValue
 {
 	Py_Header;
+protected:
 	SCA_IObject*		m_gameobj;
 	int					m_Execute_Priority;
 	int					m_Execute_Ueber_Priority;
@@ -48,7 +49,6 @@ class SCA_ILogicBrick : public CValue
 	STR_String			m_text;
 	STR_String			m_name;
 	//unsigned long		m_drawcolor;
-protected:
 	void RegisterEvent(CValue* eventval);
 	void RemoveEvent();
 	CValue* GetEvent();

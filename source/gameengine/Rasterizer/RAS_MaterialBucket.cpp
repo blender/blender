@@ -257,9 +257,9 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 	if (m_meshSlots.begin()== m_meshSlots.end())
 		return;
 		
-	rendertools->SetViewMat(cameratrans);
+	//rendertools->SetViewMat(cameratrans);
 
-	rasty->SetMaterial(*m_material);
+	//rasty->SetMaterial(*m_material);
 	
 	if (m_meshSlots.size() >0)
 	{

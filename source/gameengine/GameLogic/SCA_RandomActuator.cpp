@@ -495,7 +495,7 @@ PyObject* SCA_RandomActuator::PySetBoolBernouilli(PyObject* self,
 		return NULL;
 	}
 	
-	m_distribution = KX_RANDOMACT_BOOL_CONST;
+	m_distribution = KX_RANDOMACT_BOOL_BERNOUILLI;
 	m_parameter1 = paraArg;	
 	enforceConstraints();
 	Py_Return;

@@ -41,7 +41,7 @@
 class KX_ConstraintActuator : public SCA_IActuator
 {
 	Py_Header;
-	
+protected:	
 	// Damp time (int),
 	int m_dampTime;
 	// min (float),

@@ -686,7 +686,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_Ex(const vecVertexArray & vertexarray
 		numindices = indexarray.size();
 		
 		if (!numindices)
-			break;
+			continue;
 		
 		int vindex=0;
 		switch (mode)
@@ -777,7 +777,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_Ex(const vecVertexArray & vertexarray
 							mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
 							mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
 							mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
-							mv4 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
+							mv4 = MT_Point3(vertexarray[(indexarray[vindex+3])].getLocalXYZ());
 							
 							fnor = (((mv2-mv1).cross(mv3-mv2))+((mv4-mv3).cross(mv1-mv4))).safe_normalized();
 

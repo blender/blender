@@ -41,6 +41,7 @@
 class KX_GameActuator : public SCA_IActuator
 {
 	Py_Header;
+protected:
 	int							m_mode;
 	bool						m_restart;
 	STR_String					m_filename;

@@ -77,6 +77,29 @@ KX_RadarSensor::~KX_RadarSensor()
 	
 }
 
+CValue* KX_RadarSensor::GetReplica()
+{
+	KX_RadarSensor* replica = new KX_RadarSensor(*this);
+	replica->m_colliders = new CListValue();
+	replica->m_bCollision = false;
+	replica->m_bTriggered= false;
+	replica->m_hitObject = NULL;
+	replica->m_bLastTriggered = false;
+	// this will copy properties and so on...
+	CValue::AddDataToReplica(replica);
+	
+	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_clientobject, KX_ClientObjectInfo::RADAR);
+	
+	replica->m_sumoObj = new SM_Object(DT_NewCone(m_coneradius, m_coneheight),NULL,NULL,NULL);
+	replica->m_sumoObj->setMargin(m_Margin);
+	replica->m_sumoObj->setClientObject(replica->m_client_info);
+	
+	replica->SynchronizeTransform();
+	
+	return replica;
+}
+
+
 /**
  *	Transforms the collision object. A cone is not correctly centered
  *	for usage.  */

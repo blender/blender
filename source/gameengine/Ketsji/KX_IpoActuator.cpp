@@ -428,6 +428,10 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 		METH_VARARGS, SetType_doc},
 	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, 
 		METH_VARARGS, GetType_doc},	
+	{"setForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPySetForceIpoActsLocal,
+		METH_VARARGS, SetForceIpoActsLocal_doc},
+	{"getForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPyGetForceIpoActsLocal,
+		METH_VARARGS, GetForceIpoActsLocal_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -494,6 +498,8 @@ PyObject* KX_IpoActuator::PySetProperty(PyObject* self,
 		return NULL;
 	}
 
+	m_propname = propertyName;
+	
 	Py_Return;
 }
 
