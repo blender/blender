@@ -253,6 +253,7 @@ Bone *get_first_selected_bone (void)
 
 void clever_numbuts_posearmature (void)
 {
+	/* heh -- 'clever numbuts'! */
 	bArmature *arm;
 	Bone *bone;
 	bPoseChannel *chan;
