@@ -957,7 +957,7 @@ static PyObject *Object_getBoundBox (BPy_Object *self)
 		float tmpvec[4];  /* tmp vector for homogenous coords math */
 		int i;
 		float *from;
-		float *to;
+		//float *to;
 
 		bbox = PyList_New(8);
 		if (!bbox)

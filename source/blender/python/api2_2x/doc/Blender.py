@@ -63,7 +63,7 @@ The Blender Python API Reference
 
 @author: The Blender Python Team
 @requires: Blender 2.33 or newer.
-@version: 2.33
+@version: 2.33a
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}

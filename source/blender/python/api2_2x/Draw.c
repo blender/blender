@@ -106,6 +106,8 @@ static PyObject *Method_String (PyObject * self, PyObject * args);
 static PyObject *Method_GetStringWidth (PyObject * self, PyObject * args);
 static PyObject *Method_Text (PyObject * self, PyObject * args);
 static PyObject *Method_PupMenu (PyObject * self, PyObject * args);
+static PyObject *Method_PupIntInput (PyObject * self, PyObject * args);
+static PyObject *Method_PupFloatInput (PyObject * self, PyObject * args);
 
 static uiBlock *Get_uiBlock (void);
 static void py_slider_update (void *butv, void *data2_unused);
@@ -245,10 +247,25 @@ Valid format codes are\n\
 	%xN - The option should set the integer N in the button value.\n\n\
 Ex: Draw.PupMenu('OK?%t|QUIT BLENDER') # should be familiar ...";
 
+static char Method_PupIntInput_doc[] =
+"(text, default, min, max) - Display an int pop-up input.\n\
+(text) - text string to display at the button;\n\
+(default, min, max) - the default, min and max int values for the button;\n\
+Return the value selected or None";
+
+static char Method_PupFloatInput_doc[] =
+"(text, default, min, max, clickStep, floatLen) - Display a float pop-up input.\n\
+(text) - text string to display at the button;\n\
+(default, min, max) - the default, min and max float values for the button;\n\
+(clickStep) - float increment/decrement for each click on the button arrows;\n\
+(floatLen) - an integer defining the precision (number of decimal places) of \n\
+the float value show.\n\
+Return the value selected or None";
+
 static char Method_Exit_doc[] = "() - Exit the windowing interface";
 
 /*
-* here we engage in some macro trickery to define the PyBethodDef table
+* here we engage in some macro trickery to define the PyMethodDef table
 */
 
 #define _MethodDef(func, prefix) \
@@ -272,6 +289,8 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef (GetStringWidth),
 	MethodDef (Text),
 	MethodDef (PupMenu),
+	MethodDef (PupIntInput),
+	MethodDef (PupFloatInput),
 	MethodDef (Exit),
 	MethodDef (Redraw),
 	MethodDef (Draw),
@@ -1060,6 +1079,47 @@ static PyObject *Method_PupMenu (PyObject *self, PyObject *args)
 	if (ret) return ret;
 
 	return EXPP_ReturnPyObjError (PyExc_MemoryError, "couldn't create a PyInt");
+}
+
+static PyObject *Method_PupIntInput (PyObject *self, PyObject *args)
+{
+	char *text;
+	int min, max;
+	short var;
+	PyObject *ret;
+	
+	if (!PyArg_ParseTuple (args, "s|hii", &text, &var, &min, &max))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected 1 string and 3 int arguments");
+	
+	if (button(&var, min, max, text) == 0) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	ret = PyInt_FromLong (var);
+	if (ret) return ret;
+		
+	return EXPP_ReturnPyObjError (PyExc_MemoryError, "couldn't create a PyInt");
+}
+
+static PyObject *Method_PupFloatInput (PyObject *self, PyObject *args)
+{
+	char *text;
+	float min, max, var, a1, a2;
+	PyObject *ret;
+
+	if (!PyArg_ParseTuple (args, "s|fffff", &text, &var, &min, &max, &a1, &a2))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected 1 string and 5 float arguments");
+
+	if(fbutton(&var, min, max, a1, a2, text)==0) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	ret = PyFloat_FromDouble (var);
+	if (ret) return ret;
+
+	return EXPP_ReturnPyObjError (PyExc_MemoryError, "couldn't create a PyFloat");
 }
 
 PyObject *Draw_Init (void)
