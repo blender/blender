@@ -1745,6 +1745,30 @@ void convertmenu(void)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+void flip_subdivison(Object *ob, int level)
+{
+	Base *base;
+	Mesh *me, *tme;
+	short i, j;
+
+	me = ob->data;
+
+	if (level == 0)
+	{
+		if(me->flag & ME_SUBSURF)
+			me->flag &= ~ME_SUBSURF;
+		else
+			me->flag |= ME_SUBSURF;
+	} else {
+		me->subdiv = level;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	makeDispList(ob);
+}
+ 
 void copymenu_properties(Object *ob)
 {	
 	bProperty *prop, *propn, *propc;

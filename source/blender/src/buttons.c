@@ -217,6 +217,7 @@ char texstr[15][8]= {"None"  , "Clouds" , "Wood",
 #define B_LAMPREDRAW	1101
 #define B_COLLAMP		1102
 #define B_TEXCLEARLAMP	1103
+#define B_SBUFF			1104
 
 /* *********************** */
 #define B_MATBUTS		1300
@@ -4844,6 +4845,15 @@ void do_lampbuts(unsigned short event)
 			BIF_preview_changed(G.buts);
 		}
 		break;
+      case B_SBUFF: 
+		{ 
+			la= G.buts->lockpoin; 
+			la->bufsize = la->bufsize&=(~15); 
+			allqueue(REDRAWBUTSLAMP, 0); 
+			allqueue(REDRAWOOPS, 0); 
+			/*la->bufsize = la->bufsize % 64;*/ 
+		} 
+		break; 
 	}
 	
 	if(event) freefastshade();
@@ -4899,11 +4909,10 @@ void lampbuts(void)
 #endif
 	
 	uiBlockSetCol(block, BUTGREY);
-	uiDefButS(block, ROW,B_DIFF,"BufSi 512",	203,30,89,19,	&la->bufsize,2.0,512.0, 0, 0, "Set the size of the shadow buffer");
-	uiDefButS(block, ROW,B_DIFF,"768",		293,30,48,19,	&la->bufsize,2.0,768.0, 0, 0, "Set the size of the shadow buffer");
-	uiDefButS(block, ROW,B_DIFF,"1024",		203,10,43,19,	&la->bufsize,2.0,1024.0, 0, 0, "Set the size of the shadow buffer");
-	uiDefButS(block, ROW,B_DIFF,"1536",		248,10,45,19,	&la->bufsize,2.0,1536.0, 0, 0, "Set the size of the shadow buffer");
-	uiDefButS(block, ROW,B_DIFF,"2560",		293,10,48,19,	&la->bufsize,2.0,2560.0, 0, 0, "Set the size of the shadow buffer");
+	uiDefButS(block, NUM,B_SBUFF,"ShadowBuffSize:",	203,30,140,19,	&la->bufsize,512,5120, 0, 0, "Set the size of the shadow buffer");
+	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	346,30,146,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Set the shadow map clip start");
+	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	346,9,146,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Set the shadow map clip end");
+
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	346,30,146,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Set the shadow map clip start");
 	uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	346,9,146,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Set the shadow map clip end");
 
