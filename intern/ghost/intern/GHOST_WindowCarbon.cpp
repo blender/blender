@@ -50,10 +50,11 @@ AGLContext GHOST_WindowCarbon::s_firstaglCtx = NULL;
 const GHOST_TInt32 GHOST_WindowCarbon::s_sizeRectSize = 16;
 #endif //GHOST_DRAW_CARBON_GUTTER
 
-static const GLint sPreferredFormatWindow[7] = {
+static const GLint sPreferredFormatWindow[9] = {
 AGL_RGBA,			GL_TRUE,
 AGL_DOUBLEBUFFER,	GL_TRUE,
 AGL_DEPTH_SIZE,		16,
+AGL_AUX_BUFFERS,     1,
 AGL_NONE,
 };
 
@@ -532,7 +533,7 @@ void GHOST_WindowCarbon::loadCursor(bool visible, GHOST_TStandardCursor cursor) 
 		switch (cursor) {
 		default:
 		GCMAP( GHOST_kStandardCursorDefault,				kThemeArrowCursor);
-		GCMAP( GHOST_kStandardCursorRightArrow,				kThemeArrowCursor);
+		GCMAP( GHOST_kStandardCursorRightArrow,				kThemeAliasArrowCursor);
 		GCMAP( GHOST_kStandardCursorLeftArrow,				kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorInfo, 					kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorDestroy,				kThemeArrowCursor);
