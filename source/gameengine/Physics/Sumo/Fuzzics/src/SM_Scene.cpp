@@ -196,18 +196,15 @@ void SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
 
 	m_lastTime += MT_Scalar(num_samples)*subStep;
 	
-	// Apply a forcefield (such as gravity)
-	for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
-		(*i)->applyForceField(m_forceField);
-		//(*i)->setTimeStep(timeStep);
-	}
-	
 	// Do the integration steps per object.
 	int step;
 	for (step = 0; step != num_samples; ++step) {
 
 		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
 			(*i)->beginFrame();
+			// Apply a forcefield (such as gravity)
+			(*i)->applyForceField(m_forceField);
+			//(*i)->setTimeStep(timeStep);
 			(*i)->integrateForces(subStep);
 			// And second we update the object positions by performing
 			// an integration step for each object
@@ -225,23 +222,22 @@ void SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
 		// new forces, velocities set externally. 
 		// The collsion and friction impulses are computed here. 
 		DT_Test(m_scene, m_respTable);
-	}
 
 	// clear the user set velocities.
 #if 0
 	clearObjectCombinedVelocities();
 #endif
-	DT_Test(m_scene, m_fixRespTable);
-	
-	// Finish this timestep by saving al state information for the next
-	// timestep and clearing the accumulated forces. 
-	for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
-		(*i)->relax();
-		(*i)->proceedKinematic(timeStep);
-		(*i)->saveReactionForce(timeStep);
-		(*i)->clearForce();
+		DT_Test(m_scene, m_fixRespTable);
+		
+		// Finish this timestep by saving al state information for the next
+		// timestep and clearing the accumulated forces. 
+		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) {
+			(*i)->relax();
+			(*i)->proceedKinematic(subStep);
+			(*i)->saveReactionForce(subStep);
+			(*i)->clearForce();
+		}
 	}
-
 	// For each pair of object that collided, call the corresponding callback.
 	// Additional collisions of a pair within the same time step are ignored.
 
