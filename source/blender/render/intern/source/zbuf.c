@@ -1569,25 +1569,30 @@ static void clipp(float *v1, float *v2, int b1, int *b2, int *b3, int a)
 static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 {
 	float dz,dw, u1=0.0, u2=1.0;
-	float dx, dy;
+	float dx, dy, v13;
 
 	dz= v2[2]-v1[2];
 	dw= v2[3]-v1[3];
+
+	/* this 1.01 is for clipping x and y just a tinsy larger. that way it is
+	   filled in with zbufwire correctly when rendering in parts. otherwise
+	   you see line endings at edges... */
 
 	if(cliptestf(-dz-dw, v1[3]+v1[2], &u1,&u2)) {
 		if(cliptestf(dz-dw, v1[3]-v1[2], &u1,&u2)) {
 
 			dx= v2[0]-v1[0];
-			dz= v2[3]-v1[3];
-		
-			if(cliptestf(-dx-dz, v1[0]+v1[3], &u1,&u2)) {
-				if(cliptestf(dx-dz, v1[3]-v1[0], &u1,&u2)) {
+			dz= 1.01*(v2[3]-v1[3]);
+			v13= 1.01*v1[3];
+			
+			if(cliptestf(-dx-dz, v1[0]+v13, &u1,&u2)) {
+				if(cliptestf(dx-dz, v13-v1[0], &u1,&u2)) {
 
 					dy= v2[1]-v1[1];
 				
-					if(cliptestf(-dy-dz,v1[1]+v1[3],&u1,&u2)) {
-						if(cliptestf(dy-dz,v1[3]-v1[1],&u1,&u2)) {
-						
+					if(cliptestf(-dy-dz, v1[1]+v13, &u1,&u2)) {
+						if(cliptestf(dy-dz, v13-v1[1], &u1,&u2)) {
+							
 							if(u2<1.0) {
 								v2[0]= v1[0]+u2*dx;
 								v2[1]= v1[1]+u2*dy;
