@@ -581,10 +581,10 @@ static void edge_drawflags(void)
 	if(G.f & G_ALLEDGES) {
 		efa= em->faces.first;
 		while(efa) {
-			if(efa->e1->f2>=2) efa->e1->f= 1;
-			if(efa->e2->f2>=2) efa->e2->f= 1;
-			if(efa->e3->f2>=2) efa->e3->f= 1;
-			if(efa->e4 && efa->e4->f>=2) efa->e4->f= 1;
+			if(efa->e1->f2>=2) efa->e1->f2= 1;
+			if(efa->e2->f2>=2) efa->e2->f2= 1;
+			if(efa->e3->f2>=2) efa->e3->f2= 1;
+			if(efa->e4 && efa->e4->f>=2) efa->e4->f2= 1;
 			
 			efa= efa->next;
 		}		
