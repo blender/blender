@@ -2523,8 +2523,8 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	// added this for panels in windows with buttons... 
 	// maybe speed optimize should require test
 	if((block->flag & UI_BLOCK_LOOP)==0) {
-		bwin_load_winmatrix(block->win, block->winmat);
-		glLoadIdentity();
+		//bwin_load_winmatrix(block->win, block->winmat);
+		//glLoadIdentity();
 	}
 
 	Mat4CpyMat4(UIwinmat, block->winmat);
