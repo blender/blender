@@ -160,7 +160,7 @@ all debug::
     export NAN_PNG ?= /usr/local
     export NAN_SDL ?= /usr/local
     export NAN_ODE ?= $(LCGDIR)/ode
-    export NAN_OPENSSL ?= /usr/local
+    export NAN_OPENSSL ?= /usr
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr
