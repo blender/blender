@@ -49,6 +49,7 @@ CPPFLAGS += -I../../include
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../avi
+CPPFLAGS += -I../../quicktime
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # This is not really needed, but until /include is cleaned, it must be

@@ -52,6 +52,7 @@ CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../makesdna
 CPPFLAGS += -I../../../blenkernel
+CPPFLAGS += -I../../../quicktime
 CPPFLAGS += -I../../../../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # not very neat: the rest of blender..
