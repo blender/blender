@@ -13,7 +13,6 @@ Import ('extra_includes')
 
 soundsys_env.Append (CCFLAGS = cflags)
 soundsys_env.Append (CXXFLAGS = cxxflags)
-soundsys_env.Append (CPPDEFINES = defines)
 
 source_files = ['dummy/SND_DummyDevice.cpp',
                 'intern/SND_AudioDevice.cpp',
@@ -39,7 +38,9 @@ if use_openal == 'true':
     source_files += ['openal/SND_OpenALDevice.cpp',
                      'openal/pthread_cancel.cpp']
     if sys.platform=='win32':
-        cflags += ' /D_LIB'
+        defines += ['_LIB']
+        soundsys_env.Append(CPPDEFINES = defines)
+        
 
 if use_fmod == 'true':
     source_files += ['fmod/SND_FmodDevice.cpp']

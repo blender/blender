@@ -1,0 +1,23 @@
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('extra_includes')
+Import ('defines')
+
+source_files = ['intern/FTF_Api.cpp',
+                'intern/FTF_TTFont.cpp']
+
+include_paths = ['.',
+                 'intern',
+                 '../blenlib',
+                 '../makesdna']
+                 
+print defines
+
+ftf_env = Environment()
+ftf_env.Append(CPPPATH = extra_includes)
+ftf_env.Append(CPPPATH = include_paths)
+ftf_env.Append(CCFLAGS = cflags)
+ftf_env.Append(CXXFLAGS = cxxflags)
+ftf_env.Append(CPPDEFINES = defines)
+ftf_env.Library (target='#/lib/blender_FTF', source=source_files)

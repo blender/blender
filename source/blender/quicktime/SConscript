@@ -1,0 +1,27 @@
+quicktime_env = Environment ()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('extra_includes')
+Import ('defines')
+quicktime_env.Append (CCFLAGS = cflags)
+quicktime_env.Append (CXXFLAGS = cxxflags)
+quicktime_env.Append (CPPPATH = extra_includes)
+quicktime_env.Append (CPPDEFINES = defines)
+
+source_files = ['apple/quicktime_import.c',
+                'apple/quicktime_export.c']
+
+quicktime_env.Append (CPPPATH = ['.',
+                                 '../makesdna',
+                                 '#/intern/guardedalloc',
+                                 '../blenlib',
+                                 '../blenkernel',
+                                 '../avi',
+                                 '../imbuf',
+                                 '../imbuf/intern',
+                                 '../readstreamglue',
+                                 '../render/extern/include'])
+
+quicktime_env.Library (target='#/lib/blender_quicktime', source=source_files)

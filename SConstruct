@@ -119,6 +119,7 @@ elif sys.platform == 'win32':
     cxxflags = []
     defines = ['WIN32', 'NDEBUG', '_CONSOLE', 'FTGL_STATIC_LIBRARY']
     defines += ['GAME_BLENDER=0', 'INTERNATIONAL', 'WITH_QUICKTIME']
+    defines += ['_LIB', 'WITH_FREETYPE2']
     warn_flags = []
     platform_libs = ['SDL', 'freetype2ST', 'ftgl_static_ST', 'gnu_gettext',
                      'qtmlClient', 'odelib', 'openal_static', 'soundsystem',
@@ -170,9 +171,10 @@ elif sys.platform == 'win32':
     sdl_cflags = ''
     window_system = 'WIN32'
     # Python lib name
-    python_libpath = '#../lib/windows/python/include'
+    python_include = '#../lib/windows/python/include/python2.2'
     python_libpath = '#../lib/windows/python/lib'
     python_lib = 'python22'
+    link_env.Append (CPPDEFINES = defines)
 
 elif string.find (sys.platform, 'sunos') != -1:
     window_system = 'X11'
