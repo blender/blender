@@ -68,6 +68,7 @@ void types_InitAll(void)
 	NMesh_Type.ob_type = &PyType_Type;
 	Object_Type.ob_type = &PyType_Type;
 	Particle_Type.ob_type = &PyType_Type;
+	RenderData_Type.ob_type = &PyType_Type;
 	Scene_Type.ob_type = &PyType_Type;
 	Text_Type.ob_type = &PyType_Type;
 	Texture_Type.ob_type = &PyType_Type;
@@ -100,6 +101,7 @@ PyObject *Types_Init (void)
 	/* Blender Object Data Types */
 
 	PyDict_SetItemString(dict, "SceneType",		(PyObject *)&Scene_Type);
+	PyDict_SetItemString(dict, "RenderDataType", (PyObject *)&RenderData_Type);
 
 	PyDict_SetItemString(dict, "NMeshType",		 (PyObject *)&NMesh_Type);
 	PyDict_SetItemString(dict, "NMFaceType",	 (PyObject *)&NMFace_Type);

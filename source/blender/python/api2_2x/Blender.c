@@ -237,4 +237,7 @@ void M_Blender_Init (void)
 	PyDict_SetItemString (dict, "Noise",		Noise_Init());
 	PyDict_SetItemString (dict, "Mathutils",Mathutils_Init());
 	PyDict_SetItemString (dict, "Library",  Library_Init());
+
+	PyModule_AddIntConstant(module, "TRUE",  1);
+	PyModule_AddIntConstant(module, "FALSE",  0);
 }

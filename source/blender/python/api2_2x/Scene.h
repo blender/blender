@@ -35,33 +35,22 @@
 #include <Python.h>
 #include <DNA_scene_types.h>
 
-#include "constant.h"
-#include "gen_utils.h"
-#include "sceneRender.h"
-
 /* The Scene PyType Object defined in Scene.c */
 PyTypeObject Scene_Type;
 
 #define BPy_Scene_Check(v) \
-    ((v)->ob_type == &Scene_Type) /* for type checking */
+    ((v)->ob_type == &Scene_Type) 
 
-/*****************************************************************************/
-/* Python BPy_Scene structure definition:                                   */
-/*****************************************************************************/
+//---------------------------Python BPy_Scene structure definition------------------------------------------------------
 typedef struct {
   PyObject_HEAD
   Scene *scene;
-
 } BPy_Scene;
-
-/*****************************************************************************/
-/* Python Scene_Type helper functions needed by Blender (the Init function) */
-/* and Object modules.                                                       */
-/*****************************************************************************/
+//---------------------------Python BPy_Scene visible prototypes------------------------------------------------------
+// Python Scene_Type helper functions needed by Blender (the Init function) and Object modules. 
 PyObject *Scene_Init (void);
 PyObject *Scene_CreatePyObject (Scene *cam);
 Scene    *Scene_FromPyObject (PyObject *pyobj);
 int       Scene_CheckPyObject (PyObject *pyobj);
-
 
 #endif /* EXPP_SCENE_H */

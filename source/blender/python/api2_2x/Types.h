@@ -44,7 +44,7 @@ extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
 extern PyTypeObject NMFace_Type, NMVert_Type, NMCol_Type, NMesh_Type;
 extern PyTypeObject Object_Type;
 extern PyTypeObject Particle_Type;
-extern PyTypeObject Scene_Type;
+extern PyTypeObject Scene_Type, RenderData_Type;
 extern PyTypeObject Text_Type, Texture_Type;
 extern PyTypeObject Wave_Type, World_Type;
 
