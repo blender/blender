@@ -21,7 +21,7 @@ The Blender Python API Reference
 
   - L{Armature}
      - L{Bone}
-     - L{NLA} (new)
+     - L{NLA}
   - L{BGL}
   - L{Camera}
   - L{Curve}
@@ -31,22 +31,22 @@ The Blender Python API Reference
   - L{Ipo}
   - L{Lamp}
   - L{Lattice}
-  - L{Library} (new)
+  - L{Library}
   - L{Material}
-  - L{Mathutils} (new)
+  - L{Mathutils}
   - L{Metaball}
   - L{NMesh}
-  - L{Noise} (new)
+  - L{Noise}
   - L{Object}
   - L{Registry}
   - L{Scene}
-     - L{Render} (new)
+     - L{Render}
   - L{Text}
   - L{Texture}
   - L{Types}
   - L{Window}
   - L{World}
-  - L{sys<Sys>} (added time function)
+  - L{sys<Sys>}
 
  Introduction:
  -------------

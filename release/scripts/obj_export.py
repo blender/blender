@@ -65,7 +65,9 @@ from Blender import *
 NULL_MAT = '(null)' 
 
 def save_obj(filename): 
-    
+
+   if filename.find('.obj', -4) <= 0: filename += '.obj' # for safety
+
    file = open(filename, "w") 
     
    # Write Header 

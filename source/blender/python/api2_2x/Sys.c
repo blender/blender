@@ -29,10 +29,67 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "BKE_utildefines.h"
-#include "PIL_time.h"
+#include <BKE_utildefines.h>
+#include <BLI_blenlib.h>
+#include <PIL_time.h>
+#include <Python.h>
+#include "gen_utils.h"
+#include "modules.h"
 
-#include "Sys.h"
+/*****************************************************************************/
+/* Python API function prototypes for the sys module.                        */
+/*****************************************************************************/
+static PyObject *M_sys_basename (PyObject *self, PyObject *args);
+static PyObject *M_sys_dirname (PyObject *self, PyObject *args);
+static PyObject *M_sys_splitext (PyObject *self, PyObject *args);
+static PyObject *M_sys_exists (PyObject *self, PyObject *args);
+static PyObject *M_sys_time (PyObject *self);
+
+/*****************************************************************************/
+/* The following string definitions are used for documentation strings.      */
+/* In Python these will be written to the console when doing a               */
+/* Blender.sys.__doc__                                                       */
+/*****************************************************************************/
+static char M_sys_doc[] =
+"The Blender.sys submodule\n\
+\n\
+This is a minimal system module to supply simple functionality available\n\
+in the default Python module os.";
+
+static char M_sys_basename_doc[] =
+"(path) - Split 'path' in dir and filename.\n\
+Return the filename.";
+
+static char M_sys_dirname_doc[] =
+"(path) - Split 'path' in dir and filename.\n\
+Return the dir.";
+
+static char M_sys_splitext_doc[] =
+"(path) - Split 'path' in root and extension:\n\
+/this/that/file.ext -> ('/this/that/file','.ext').\n\
+Return the pair (root, extension).";
+
+static char M_sys_time_doc[] =
+"() - Return a float representing time elapsed in seconds.\n\
+Each successive call is garanteed to return values greater than or\n\
+equal to the previous call.";
+
+static char M_sys_exists_doc[] =
+"(path) - Return 1 if given pathname (file or dir) exists, 0 otherwise.";
+
+/*****************************************************************************/
+/* Python method structure definition for Blender.sys module:                */
+/*****************************************************************************/
+struct PyMethodDef M_sys_methods[] = {
+  {"basename",    M_sys_basename,        METH_VARARGS, M_sys_basename_doc},
+  {"dirname",     M_sys_dirname,         METH_VARARGS, M_sys_dirname_doc},
+  {"splitext",    M_sys_splitext,        METH_VARARGS, M_sys_splitext_doc},
+  {"exists",      M_sys_exists,          METH_VARARGS, M_sys_exists_doc},
+  {"time", (PyCFunction)M_sys_time,      METH_NOARGS,  M_sys_time_doc},
+  {NULL, NULL, 0, NULL}
+};
+
+/* Module Functions */
 
 static PyObject *g_sysmodule = NULL; /* pointer to Blender.sys module */
 
@@ -176,3 +233,18 @@ static PyObject *M_sys_time (PyObject *self)
 	return Py_BuildValue("d", t);
 }
 
+static PyObject *M_sys_exists (PyObject *self, PyObject *args)
+{
+	char *fname = NULL;
+	int i = 0;
+
+	if (!PyArg_ParseTuple(args, "s", &fname))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+							"expected string (file path) argument");
+
+	i = BLI_exists(fname);
+
+	if (i) return Py_BuildValue("i", 1); /* path was found */
+
+	return Py_BuildValue("i", 0); /* path doesn't exist */
+}

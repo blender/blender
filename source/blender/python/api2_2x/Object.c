@@ -35,9 +35,11 @@
 
 #include "Object.h"
 #include "NLA.h"
-#include "blendef.h"
-#include "DNA_scene_types.h"
-#include "BSE_edit.h"
+#include <blendef.h>
+#include <DNA_scene_types.h>
+#include <BSE_edit.h>
+#include <BKE_mball.h>
+#include <BIF_editview.h>
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.					 */

@@ -333,7 +333,9 @@ def motion2bvh(frame, chennelList, nodeObjectList):
   return motionData
 
 def saveBVH(filename):
-  
+
+  if filename.find('.bvh', -4) <= 0: filename += '.bvh' # for safety
+
   # Here we store a serialized list of blender objects as they appier
   # in the hierarchy, this is refred to when writing motiondata
   nodeObjectList = []
