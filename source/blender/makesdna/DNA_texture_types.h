@@ -59,7 +59,7 @@ typedef struct MTex {
 	
 	float colfac, norfac, varfac;
 	float dispfac; 
-	short pad1, pad2; 
+	float warpfac; 
 	
 } MTex;
 

@@ -2622,7 +2622,10 @@ static void material_panel_map_to(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",			155,80,155,19, &(mtex->norfac), 0.0, 25.0, 0, 0, "Sets the amount the texture affects normal values");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",			155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Disp ",			155,40,155,19, &(mtex->dispfac), 0.0, 1.0, 0, 0, "Sets the amount the texture displaces the surface");
-	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, TOG|BIT|13, B_MATPRV, "Warp",		155,10,40,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture warp texture coordinates of next channels");
+	uiDefButF(block, NUMSLI, B_MATPRV, "fac ",			195,10,115,19, &(mtex->warpfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects texture coordinates of next channels");
 }
 
 

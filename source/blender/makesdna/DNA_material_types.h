@@ -209,6 +209,7 @@ typedef struct Material {
 #define MAP_TRANSLU		1024
 #define MAP_AMB			2048
 #define MAP_DISPLACE	4096
+#define MAP_WARP		8192
 
 /* pr_type */
 #define MA_FLAT			0

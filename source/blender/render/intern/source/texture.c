@@ -1310,8 +1310,8 @@ void do_material_tex(ShadeInput *shi)
 	Tex *tex;
 	float *co = NULL, *dx = NULL, *dy = NULL;
 	float fact, facm, factt, facmm, stencilTin=1.0;
-	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], Tnor=1.0;
-	int tex_nr, rgbnor= 0;
+	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3], Tnor=1.0;
+	int tex_nr, rgbnor= 0, warpdone=0;
 
 	/* here: test flag if there's a tex (todo) */
 	
@@ -1374,12 +1374,17 @@ void do_material_tex(ShadeInput *shi)
 			else continue;	// can happen when texco defines disappear and it renders old files
 			
 			/* de pointer defines if bumping happens */
-			if(mtex->mapto & (MAP_NORM|MAP_DISPLACE)) {
+			if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP)) {
 				tex->nor= norvec;
 				norvec[0]= norvec[1]= norvec[2]= 0.0;
 			}
 			else tex->nor= NULL;
-
+			
+			if(warpdone) {
+				VECADD(tempvec, co, warpvec);
+				co= tempvec;
+			}
+			
 			if(tex->type==TEX_IMAGE) {
 
 				/* new: first swap coords, then map, then trans/scale */
@@ -1512,6 +1517,14 @@ void do_material_tex(ShadeInput *shi)
 						tex->nor[2]= f2*co-f1*si;
 					}
 				}
+				// warping, local space
+				if(mtex->mapto & MAP_WARP) {
+					warpvec[0]= mtex->warpfac*tex->nor[0];
+					warpvec[1]= mtex->warpfac*tex->nor[1];
+					warpvec[2]= mtex->warpfac*tex->nor[2];
+					warpdone= 1;
+				}
+				
 				// rotate to global coords
 				if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
 					if(shi->vlr && shi->vlr->ob) {
