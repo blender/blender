@@ -2098,18 +2098,21 @@ void beauty_fill(void)
         eed= em->edges.first;
         while(eed) {
             nexted= eed->next;
-
-            if(eed->f2==2) {
+			
+			/* f2 is set in collect_quadedges() */
+            if(eed->f2==2 && eed->h==0) {
 
                 efaa = (EVPtr *) eed->vn;
 
-                /* none of the faces should be treated before */
+                /* none of the faces should be treated before, nor be part of fgon */
                 ok= 1;
                 efa= efaa[0];
                 if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
+				if(efa->fgonf) ok= 0;
                 efa= efaa[1];
                 if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
-
+				if(efa->fgonf) ok= 0;
+				
                 if(ok) {
                     /* test convex */
                     givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
