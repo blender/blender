@@ -1717,6 +1717,11 @@ float VecLenf( float *v1, float *v2)
 	return (float)sqrt(x*x+y*y+z*z);
 }
 
+float VecLength(float *v)
+{
+	return (float) sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]
+}
+
 void VecAddf(float *v, float *v1, float *v2)
 {
 	v[0]= v1[0]+ v2[0];

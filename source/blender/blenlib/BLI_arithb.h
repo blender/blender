@@ -453,6 +453,10 @@ VecLenf(
 	float *v1, 
 	float *v2
 );
+    float 
+VecLength(
+	float *v
+);
 	void 
 VecMulf(
 	float *v1, 
