@@ -1953,6 +1953,9 @@ void do_lampbuts(unsigned short event)
 	case B_SHADRAY:
 		la= G.buts->lockpoin; 
 		la->mode &= ~LA_SHAD;
+		/* yafray: 'softlight' uses it's own shadbuf. flag.
+		   Must be cleared here too when switching from ray shadow */
+		la->mode &= ~LA_YF_SOFT;
 		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	}
@@ -2088,8 +2091,9 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_spot", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Shadow and Spot", "Lamp", 640, 0, 318, 204)==0) return;
 
-	// hemis and ray shadow dont work at all...
-	if(la->type==LA_HEMI) return;
+	/* hemis and ray shadow dont work at all... */
+	/* yafray: ignore photonlight as well */
+	if ((la->type==LA_HEMI) || (la->type==LA_YF_PHOTON)) return;
 
 	if(G.vd) grid= G.vd->grid; 
 	if(grid<1.0) grid= 1.0;
@@ -2155,6 +2159,90 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 
 }
 
+/* yafray: adaptation of lamp_panel_spot above with yafray specific parameters */
+static void lamp_panel_yafray(Object *ob, Lamp *la)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_yafray", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Yafray: Shadow and Photons", "Lamp", 640, 0, 318, 204)==0) return;
+
+	/* hemis not used in yafray */
+	if(la->type==LA_HEMI) return;
+	
+	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	
+		/* photonlight params */
+	if (la->type==LA_YF_PHOTON) {
+		uiBlockSetCol(block, TH_BUT_SETTING1);
+		uiDefButS(block, TOG|BIT|0, B_DIFF,"Use QMC",10,180,80,19,&la->YF_useqmc, 0, 0, 0, 0, "Use QMC sampling (sometimes visible patterns)");
+		uiBlockSetCol(block, TH_AUTO);
+		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"Angle ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the photonlight beam in degrees");
+		uiDefButI(block, NUM,B_DIFF,"photons:", 10,150,290,19,	&la->YF_numphotons, 10000, 100000000, 0, 0, "Maximum number of photons to shoot");
+		uiDefButI(block, NUM,B_DIFF,"search:", 10,130,290,19,	&la->YF_numsearch, 100, 1000, 0, 0, "Number of photons to mix (blur)");
+		uiDefButS(block, NUM,B_DIFF,"depth:", 10,100,290,19,	&la->YF_phdepth, 1, 100, 0, 0, "Maximum caustic bounce depth");
+		uiDefButF(block, NUM,B_DIFF,"Blur:", 10,70,290,19,	&la->YF_causticblur, 0.01, 1.0, 1, 0, "Amount of caustics blurring (also depends on search)");
+		return;
+	}
+
+	uiBlockSetCol(block, TH_BUT_SETTING1);
+	
+	uiBlockBeginAlign(block);
+	
+	/* in yafray arealights always cast shadows, so ray shadow flag not needed */
+	if (la->type!=LA_AREA)
+		uiDefButS(block, TOG|BIT|13, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
+	
+	/* in yafray the regular lamp can use shadowbuffers (softlight), used by spot with halo as well */
+	/* to prevent clash with blender shadowbuf flag, a special flag is used for yafray */
+	if (la->type==LA_LOCAL)
+		uiDefButS(block, TOG|BIT|14, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets light produce shadows using shadow buffer");
+	uiBlockEndAlign(block);
+	
+	/* shadowbuffers used only for 'softlight' & spotlight with halo */
+	if (((la->type==LA_LOCAL) && (la->mode & LA_YF_SOFT)) || ((la->type==LA_SPOT) && (la->mode & LA_HALO))) {
+		/* Shadow buffer size can be anything in yafray, but reasonable minimum is 128 */
+		/* Maximum is 1024, since zbuf in yafray is float, no multiple of 16 restriction */
+		uiDefButS(block, NUM,B_DIFF,"ShadowBufferSize:", 100,110,200,19,	&la->YF_bufsize, 128, 1024, 0, 0, "Sets the size of the shadow buffer");
+
+		/* samples & halostep params only used for spotlight with halo */
+		if ((la->type==LA_SPOT) && (la->mode & LA_HALO)) {
+			uiDefButS(block, NUM,B_DIFF,"Samples:",		100,30,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
+			uiDefButS(block, NUM,B_DIFF,"Halo step:",	200,30,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
+		}
+		uiDefButF(block, NUM,B_DIFF,"Bias:",			100,10,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+		/* here can use the Blender soft param, since for yafray it has the same function as in Blender */
+		uiDefButF(block, NUM,B_DIFF,"Soft:",			200,10,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
+	}
+	else if ((la->type==LA_LOCAL) && (la->mode & LA_SHAD_RAY)) {
+		/* for spherelight, light radius */
+		uiDefButF(block, NUM,B_DIFF,"Radius:",			200,10,100,19,	&la->YF_ltradius, 0.0,100.0, 100, 0, "Sets the radius of the lightsource, 0 is same as pointlight");
+	}
+	
+	if (la->type==LA_SPOT) {
+
+		uiDefButS(block, TOG|BIT|1, B_LAMPREDRAW,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
+
+		uiBlockSetCol(block, TH_AUTO);
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
+		uiDefButF(block, NUMSLI,B_MATPRV,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
+		uiBlockEndAlign(block);
+	
+		if (la->mode & LA_HALO) uiDefButF(block, NUMSLI,0,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
+	}
+	else if ((la->type==LA_AREA) || ((la->type==LA_LOCAL) && (la->mode & LA_SHAD_RAY))) {
+		/* area samples param also used for 'spherelight' */
+		uiBlockBeginAlign(block);
+		uiBlockSetCol(block, TH_AUTO);
+		
+		uiDefButS(block, NUM,B_DIFF,"Samples:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
+
+		/* shadow sampling types not used in yafray, removed */
+	}
+	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");	
+
+}
 
 static void lamp_panel_lamp(Object *ob, Lamp *la)
 {
@@ -2251,6 +2339,9 @@ static void lamp_panel_preview(Object *ob, Lamp *la)
 	uiDefButS(block, ROW,B_LAMPREDRAW,"Spot",	200,125,80,25,&la->type,1.0,(float)LA_SPOT, 0, 0, "Creates a directional cone light source");
 	uiDefButS(block, ROW,B_LAMPREDRAW,"Sun",	200,100,80,25,&la->type,1.0,(float)LA_SUN, 0, 0, "Creates a constant direction parallel ray light source");
 	uiDefButS(block, ROW,B_LAMPREDRAW,"Hemi",	200,75,80,25,&la->type,1.0,(float)LA_HEMI, 0, 0, "Creates a 180 degree constant light source");
+	/* yafray: extra type, photonlight */
+	if (G.scene->r.renderer==R_YAFRAY)
+		uiDefButS(block, ROW,B_LAMPREDRAW,"Photon",	200,50,80,25,&la->type,1.0,(float)LA_YF_PHOTON, 0, 0, "Creates a special caustics photon 'light', not a real lightsource, use with other lights");
 }
 
 
@@ -2960,7 +3051,20 @@ void lamp_panels()
 
 	lamp_panel_preview(ob, ob->data);
 	lamp_panel_lamp(ob, ob->data);
-	lamp_panel_spot(ob, ob->data);
+	/* switch to yafray lamp panel if yafray enabled */
+	if (G.scene->r.renderer==R_INTERN)
+		lamp_panel_spot(ob, ob->data);
+	else {
+		/* init vars */
+		Lamp* lp = ob->data;
+		if (lp->YF_numphotons==0) lp->YF_numphotons=1000;
+		if (lp->YF_numsearch==0) lp->YF_numsearch=10;
+		if (lp->YF_phdepth==0) lp->YF_phdepth=1;
+		if (lp->YF_causticblur==0.0) lp->YF_causticblur=0.001;
+		if (lp->YF_bufsize==0) lp->YF_bufsize=128;
+		/* spherelight radius default is zero, so nothing to do */
+		lamp_panel_yafray(ob, lp);
+	}
 	lamp_panel_texture(ob, ob->data);
 	lamp_panel_mapto(ob, ob->data);
 

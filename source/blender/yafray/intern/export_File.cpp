@@ -640,10 +640,10 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 				// bumpmapping
 				if ((mtex->mapto & MAP_NORM) || (mtex->maptoneg & MAP_NORM)) {
 					// for yafray, bump factor is negated (unless negative option of 'Nor', is not affected by 'Neg')
-					// scaled down quite a bit for yafray when image type, otherwise used directly
+					// scaled down quite a bit for yafray
 					float nf = -mtex->norfac;
 					if (mtex->maptoneg & MAP_NORM) nf *= -1.f;
-					if (tex->type==TEX_IMAGE) nf *= 2e-3f;
+					if (tex->type==TEX_IMAGE) nf/=60.f; else nf/=30.f;
 					ostr << "\t\t<normal value=\"" << nf << "\" />\n";
 
 				}
@@ -1050,7 +1050,7 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4]
 	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << power << "\" ";
 	if (!R.r.GIphotons) {
 		int psm=0, sm = lamp->ray_totsamp;
-		if (sm>=64) psm = sm/4;
+		if (sm>=25) psm = sm/5;
 		ostr << "samples=\"" << sm << "\" psamples=\"" << psm << "\" ";
 	}
 	ostr << ">\n";
@@ -1088,49 +1088,107 @@ void yafrayFileRender_t::writeLamps()
 	{
 		ostr.str("");
 		LampRen* lamp = R.la[i];
+		
 		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i, iview);  continue; }
+		
 		// TODO: add decay setting in yafray
 		ostr << "<light type=\"";
-		if (lamp->type==LA_LOCAL)
-			ostr << "pointlight";
+		bool is_softL=false, is_sphereL=false;
+		if (lamp->type==LA_LOCAL) {
+			if (lamp->mode & LA_YF_SOFT) {
+				// shadowmapped omnidirectional light
+				ostr << "softlight";
+				is_softL = true;
+			}
+			else if ((lamp->mode & LA_SHAD_RAY) && (lamp->YF_ltradius>0.0)) {
+				// area sphere, only when ray shadows enabled and radius>0.0
+				ostr << "spherelight";
+				is_sphereL = true;
+			}
+			else ostr << "pointlight";
+		}
 		else if (lamp->type==LA_SPOT)
 			ostr << "spotlight";
-		else if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))	// for now, hemi same as sun
+		else if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))	// hemi exported as sun
 			ostr << "sunlight";
+		else if (lamp->type==LA_YF_PHOTON)
+			ostr << "photonlight";
 		else {
 			// possibly unknown type, ignore
 			cout << "Unknown Blender lamp type: " << lamp->type << endl;
 			continue;
 		}
-		ostr << "\" name=\"LAMP" << i+1;	//no name available here, create one
+		
+		//no name available here, create one
+		ostr << "\" name=\"LAMP" << i+1;
 		// color already premultiplied by energy, so only need distance here
-		float pwr;
-		if (lamp->mode & LA_SPHERE) {
-			// best approx. as used in LFexport script (LF d.f.m. 4pi?)
-			pwr = lamp->dist*(lamp->dist+1)*(0.25/M_PI);
-			//decay = 2;
-		}
-		else {
-			if ((lamp->type==LA_LOCAL) || (lamp->type==LA_SPOT)) {
+		float pwr = 1;	// default for sun/hemi, distance irrelevant
+		if ((lamp->type!=LA_SUN) && (lamp->type!=LA_HEMI)) {
+			if (lamp->mode & LA_SPHERE) {
+				// best approx. as used in LFexport script (LF d.f.m. 4pi?)
+				pwr = lamp->dist*(lamp->dist+1)*(0.25/M_PI);
+				//decay = 2;
+			}
+			else {
 				pwr = lamp->dist;
 				//decay = 1;
 			}
-			else pwr = 1;	// sun/hemi distance irrelevant
 		}
-		ostr << "\" power=\"" << pwr;
-		string lpmode="off";
-		// shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag
-		if (R.r.mode & R_SHADOW)
-			if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
-		ostr << "\" cast_shadows=\"" << lpmode << "\"";
+		ostr << "\" power=\"" << pwr << "\"";
+		
+		// cast_shadows flag not used with softlight, spherelight or photonlight
+		if ((!is_softL) && (!is_sphereL) && (lamp->type!=LA_YF_PHOTON)) {
+			string lpmode="off";
+			// shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag
+			if (R.r.mode & R_SHADOW)
+				if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
+			ostr << " cast_shadows=\"" << lpmode << "\"";
+		}
+		
 		// spot specific stuff
+		bool has_halo = ((lamp->type==LA_SPOT) && (lamp->mode & LA_HALO) && (lamp->haint>0.0));
 		if (lamp->type==LA_SPOT) {
 			// conversion already changed spotsize to cosine of half angle
 			float ld = 1-lamp->spotsi;	//convert back to blender slider setting
 			if (ld!=0) ld = 1.f/ld;
-			ostr << " size=\"" << acos(lamp->spotsi)*180.0/M_PI << "\""
-					<< " blend=\"" << lamp->spotbl*ld << "\""
-					<< " beam_falloff=\"2\"";	// no Blender equivalent (yet)
+			ostr	<< " size=\"" << acos(lamp->spotsi)*180.0/M_PI << "\""
+						<< " blend=\"" << lamp->spotbl*ld << "\""
+						<< " beam_falloff=\"2\"";	// no Blender equivalent (yet)
+			// halo params
+			if (has_halo) {
+				ostr << "\n\thalo=\"on\" " << "res=\"" << lamp->YF_bufsize << "\"\n";
+				int hsmp = ((12-lamp->shadhalostep)*16)/12;
+				hsmp = (hsmp+1)*16;	// makes range (16, 272) for halostep(12, 0), good enough?
+				ostr << "\tsamples=\"" << hsmp <<  "\" shadow_samples=\"" << (lamp->samp*lamp->samp) << "\"\n";
+				ostr << "\thalo_blur=\"0\" shadow_blur=\"" << (lamp->soft*0.01f) << "\"\n";
+				ostr << "\tfog_density=\"" << (lamp->haint*0.2f) << "\"";
+			}
+		}
+		else if (is_softL) {
+			// softlight
+			ostr	<< " res=\"" << lamp->YF_bufsize << "\""
+						<< " radius=\"" << lamp->soft << "\""
+						<< " bias=\"" << lamp->bias << "\"";
+		}
+		else if (is_sphereL) {
+			// spherelight
+			int psm=0, sm = lamp->samp*lamp->samp;
+			if (sm>=25) psm = sm/5;
+			ostr	<< " radius=\"" << lamp->YF_ltradius << "\""
+						<< " samples=\"" << sm << "\""
+						<< " psamples=\"" << psm << "\""
+						<< " qmc_method=\"1\"";
+		}
+		else if (lamp->type==LA_YF_PHOTON) {
+			string qmc="off";
+			if (lamp->YF_useqmc) qmc="on";
+			ostr	<< "\n\tphotons=\"" << lamp->YF_numphotons << "\""
+						<< " search=\"" << lamp->YF_numsearch << "\""
+						<< " depth=\"" << lamp->YF_phdepth << "\""
+						<< " use_QMC=\"" << qmc << "\""
+						<< " angle=\"" << acos(lamp->spotsi)*180.0/M_PI << "\"";
+			float cl = lamp->YF_causticblur/sqrt((float)lamp->YF_numsearch);
+			ostr	<< "\n\tfixedradius=\"" << lamp->YF_causticblur << "\" cluster=\"" << cl << "\"";
 		}
 		ostr << " >\n";
 
@@ -1146,11 +1204,13 @@ void yafrayFileRender_t::writeLamps()
 			ostr << "\t<from x=\"" << -lpvec[0] << "\" y=\"" << -lpvec[1] << "\" z=\"" << -lpvec[2] << "\" />\n";
 		else
 			ostr << "\t<from x=\"" << lpco[0] << "\" y=\"" << lpco[1] << "\" z=\"" << lpco[2] << "\" />\n";		
-		// 'to' for spot, already calculated by Blender
-		if (lamp->type==LA_SPOT)
+		// 'to' for spot/photonlight, already calculated by Blender
+		if ((lamp->type==LA_SPOT) || (lamp->type==LA_YF_PHOTON)) {
 			ostr << "\t<to x=\"" << lpco[0] + lpvec[0]
 							<< "\" y=\"" << lpco[1] + lpvec[1]
 							<< "\" z=\"" << lpco[2] + lpvec[2] << "\" />\n";
+			if (has_halo) ostr << "\t<fog r=\"1\" g=\"1\" b=\"1\" />\n";
+		}
 
 		// color
 		// rgb in LampRen is premultiplied by energy, power is compensated for that above

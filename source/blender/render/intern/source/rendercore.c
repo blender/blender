@@ -1901,6 +1901,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shadfac[3]= ir= 0.0;
 		for(a=0; a<R.totlamp; a++) {
 			lar= R.la[a];
+			/* yafray: ignore shading by photonlights, not used in Blender */
+			if (lar->type==LA_YF_PHOTON) continue;
 			
 			if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
 			
@@ -1996,6 +1998,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];
+		/* yafray: ignore shading by photonlights, not used in Blender */
+		if (lar->type==LA_YF_PHOTON) continue;
 
 		/* test for lamp layer */
 		if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;

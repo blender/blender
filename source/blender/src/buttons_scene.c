@@ -1278,8 +1278,8 @@ static void render_panel_yafrayGI()
 	if (G.scene->r.GImethod==2) 
 	{
 		if (G.scene->r.GIdepth==0) G.scene->r.GIdepth=2;
-		uiDefButI(block, NUM, B_DIFF, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 8.0, 10, 10, "Number of bounces of the indirect light");
-		uiDefButI(block, NUM, B_DIFF, "CDepth:", 180,150,110,20, &G.scene->r.GIcausdepth, 1.0, 8.0, 10, 10, "Number of bounces inside objects (for caustics)");
+		uiDefButI(block, NUM, B_DIFF, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 100.0, 10, 10, "Number of bounces of the indirect light");
+		uiDefButI(block, NUM, B_DIFF, "CDepth:", 180,150,110,20, &G.scene->r.GIcausdepth, 1.0, 100.0, 10, 10, "Number of bounces inside objects (for caustics)");
 		uiDefButS(block,TOG|BIT|0, B_REDR, "Cache",70,125,89,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache irradiance samples (faster)");
 		uiDefButS(block,TOG|BIT|0, B_REDR, "Photons",180,125,89,20, &G.scene->r.GIphotons, 0, 0, 0, 0, "Use global photons to help in GI");
 		if (G.scene->r.GIcache) 

@@ -63,6 +63,11 @@ typedef struct Lamp {
 	/* texact is for buttons */
 	short texact, shadhalostep;
 	
+	/* yafray: photonlight params */
+	int YF_numphotons, YF_numsearch;
+	short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
+	float YF_causticblur, YF_ltradius;
+	
 	struct MTex *mtex[8];
 	struct Ipo *ipo;
 	
@@ -77,6 +82,8 @@ typedef struct Lamp {
 #define LA_SPOT			2
 #define LA_HEMI			3
 #define LA_AREA			4
+/* yafray: extra lamp type used for caustic photonmap */
+#define LA_YF_PHOTON	5
 
 /* mode */
 #define LA_SHAD			1
@@ -89,10 +96,13 @@ typedef struct Lamp {
 #define LA_SQUARE		128
 #define LA_TEXTURE		256
 #define LA_OSATEX		512
-#define LA_DEEP_SHADOW  1024
+#define LA_DEEP_SHADOW	1024
 #define LA_NO_DIFF		2048
 #define LA_NO_SPEC		4096
 #define LA_SHAD_RAY		8192
+/* yafray: lamp shadowbuffer flag, softlight */
+/* Since it is used with LOCAL lamp, can't use LA_SHAD */
+#define LA_YF_SOFT		16384
 
 /* area shape */
 #define LA_AREA_SQUARE	0

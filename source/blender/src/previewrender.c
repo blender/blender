@@ -442,7 +442,8 @@ static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char 
 		}
 	}
 
-	if(la->type==LA_SPOT) {
+	/* yafray: preview shade as spot, sufficient */
+	if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {
 
 		
 		if(la->mode & LA_SQUARE) {

@@ -265,6 +265,11 @@ typedef struct LampRen
 	float mat[3][3];	/* 3x3 part from lampmat x viewmat */
 	float area[8][3], areasize;
 	
+	/* yafray: photonlight params */
+	int YF_numphotons, YF_numsearch;
+	short YF_phdepth, YF_useqmc, YF_bufsize;
+	float YF_causticblur, YF_ltradius;
+	
 	struct LampRen *org;
 	struct MTex *mtex[8];
 } LampRen;

@@ -529,7 +529,8 @@ static void drawlamp(Object *ob)
 	
 	setlinestyle(4);
 	
-	if(la->type==LA_SPOT) {
+	/* yafray: for photonlight also draw lightcone as for spot */
+	if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {
 		
 		lvec[0]=lvec[1]= 0.0; 
 		lvec[2] = 1.0;

@@ -1656,6 +1656,17 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		area_lamp_vectors(lar);
 	}
 	else lar->ray_totsamp= 0;
+	
+	/* yafray: photonlight and other params */
+	if (R.r.renderer==R_YAFRAY) {
+		lar->YF_numphotons = la->YF_numphotons;
+		lar->YF_numsearch = la->YF_numsearch;
+		lar->YF_phdepth = la->YF_phdepth;
+		lar->YF_useqmc = la->YF_useqmc;
+		lar->YF_causticblur = la->YF_causticblur;
+		lar->YF_ltradius = la->YF_ltradius;
+		lar->YF_bufsize = la->YF_bufsize;
+	}
 
 	lar->spotsi= la->spotsize;
 	if(lar->mode & LA_HALO) {

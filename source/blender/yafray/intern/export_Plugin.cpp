@@ -638,10 +638,10 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 				{
 					// for yafray, bump factor is negated (unless negative option of 'Nor', 
 					// is not affected by 'Neg')
-					// scaled down quite a bit for yafray when image type, otherwise used directly
+					// scaled down quite a bit for yafray
 					float nf = -mtex->norfac;
 					if (mtex->maptoneg & MAP_NORM) nf *= -1.f;
-					if (tex->type==TEX_IMAGE) nf *= 2e-3f;
+					if (tex->type==TEX_IMAGE) nf/=60.f; else nf/=30.f;
 					mparams["normal"]=yafray::parameter_t(nf);
 				}
 
@@ -1100,53 +1100,112 @@ void yafrayPluginRender_t::writeLamps()
 		yafray::paramMap_t params;
 		string type="";
 		LampRen* lamp = R.la[i];
+		
 		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i, iview);  continue; }
+		
 		// TODO: add decay setting in yafray
-		if (lamp->type==LA_LOCAL)
-			params["type"]=yafray::parameter_t("pointlight");
+		bool is_softL=false, is_sphereL=false;
+		if (lamp->type==LA_LOCAL) {
+			if (lamp->mode & LA_YF_SOFT) {
+				// shadowmapped omnidirectional light
+				params["type"] = yafray::parameter_t("softlight");
+				is_softL = true;
+			}
+			else if ((lamp->mode & LA_SHAD_RAY) && (lamp->YF_ltradius>0.0)) {
+				// area sphere, only when ray shadows enabled and radius>0.0
+				params["type"] = yafray::parameter_t("spherelight");
+				is_sphereL = true;
+			}
+			else params["type"] = yafray::parameter_t("pointlight");
+		}
 		else if (lamp->type==LA_SPOT)
-			params["type"]=yafray::parameter_t("spotlight");
-		else if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))	// for now, hemi same as sun
-			params["type"]=yafray::parameter_t("sunlight");
-		else 
-		{
+			params["type"] = yafray::parameter_t("spotlight");
+		else if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))	// hemi exported as sun
+			params["type"] = yafray::parameter_t("sunlight");
+		else if (lamp->type==LA_YF_PHOTON)
+			params["type"] = yafray::parameter_t("photonlight");
+		else {
 			// possibly unknown type, ignore
 			cout << "Unknown Blender lamp type: " << lamp->type << endl;
 			continue;
 		}
+		
 		//no name available here, create one
 		char temp[16];
 		sprintf(temp,"LAMP%d",i+1);
-		params["name"]=yafray::parameter_t(temp);
+		params["name"] = yafray::parameter_t(temp);
 		// color already premultiplied by energy, so only need distance here
-		float pwr;
-		if (lamp->mode & LA_SPHERE) 
-		{
-			// best approx. as used in LFexport script (LF d.f.m. 4pi?)
-			pwr = lamp->dist*(lamp->dist+1)*(0.25/M_PI);
-			//decay = 2;
-		}
-		else 
-		{
-			if ((lamp->type==LA_LOCAL) || (lamp->type==LA_SPOT)) 
+		float pwr = 1;	// default for sun/hemi, distance irrelevant
+		if ((lamp->type!=LA_SUN) && (lamp->type!=LA_HEMI)) {
+			if (lamp->mode & LA_SPHERE) {
+				// best approx. as used in LFexport script (LF d.f.m. 4pi?)
+				pwr = lamp->dist*(lamp->dist+1)*(0.25/M_PI);
+				//decay = 2;
+			}
+			else {
 				pwr = lamp->dist;
-			else pwr = 1;	// sun/hemi distance irrelevent.
+				//decay = 1;
+			}
 		}
-		params["power"]=yafray::parameter_t(pwr);
-		string lpmode="off";
-		// shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag
-		if (R.r.mode & R_SHADOW)
-			if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
-		params["cast_shadows"]=yafray::parameter_t(lpmode);
+		params["power"] = yafray::parameter_t(pwr);
+		
+		// cast_shadows flag not used with softlight, spherelight or photonlight
+		if ((!is_softL) && (!is_sphereL) && (lamp->type!=LA_YF_PHOTON)) {
+			string lpmode="off";
+			// shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag
+			if (R.r.mode & R_SHADOW)
+				if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
+			params["cast_shadows"] = yafray::parameter_t(lpmode);
+		}
+		
 		// spot specific stuff
-		if (lamp->type==LA_SPOT) 
-		{
+		bool has_halo = ((lamp->type==LA_SPOT) && (lamp->mode & LA_HALO) && (lamp->haint>0.0));
+		if (lamp->type==LA_SPOT) {
 			// conversion already changed spotsize to cosine of half angle
 			float ld = 1-lamp->spotsi;	//convert back to blender slider setting
 			if (ld!=0) ld = 1.f/ld;
-			params["size"]=yafray::parameter_t(acos(lamp->spotsi)*180.0/M_PI);
-			params["blend"]=yafray::parameter_t(lamp->spotbl*ld);
-			params["beam_falloff"]=yafray::parameter_t(2.0);
+			params["size"] = yafray::parameter_t(acos(lamp->spotsi)*180.0/M_PI);
+			params["blend"] = yafray::parameter_t(lamp->spotbl*ld);
+			params["beam_falloff"] = yafray::parameter_t(2.0);
+			// halo params
+			if (has_halo) {
+				params["halo"] = yafray::parameter_t("on");
+				params["res"] = yafray::parameter_t(lamp->YF_bufsize);
+				int hsmp = ((12-lamp->shadhalostep)*16)/12;
+				hsmp = (hsmp+1)*16;	// makes range (16, 272) for halostep(12, 0), good enough?
+				params["samples"] = yafray::parameter_t(hsmp);
+				params["shadow_samples"] = yafray::parameter_t(lamp->samp*lamp->samp);
+				params["halo_blur"] = yafray::parameter_t(0.0);
+				params["shadow_blur"] = yafray::parameter_t(lamp->soft*0.01f);
+				params["fog_density"] = yafray::parameter_t(lamp->haint*0.2f);
+			}
+		}
+		else if (is_softL) {
+			// softlight
+			params["res"] = yafray::parameter_t(lamp->YF_bufsize);
+			params["radius"] = yafray::parameter_t(lamp->soft);
+			params["bias"] = yafray::parameter_t(lamp->bias);
+		}
+		else if (is_sphereL) {
+			// spherelight
+			int psm=0, sm = lamp->samp*lamp->samp;
+			if (sm>=25) psm = sm/5;
+			params["radius"] = yafray::parameter_t(lamp->YF_ltradius);
+			params["samples"] = yafray::parameter_t(sm);
+			params["psamples"] = yafray::parameter_t(psm);
+			params["qmc_method"] = yafray::parameter_t(1);
+		}
+		else if (lamp->type==LA_YF_PHOTON) {
+			string qmc="off";
+			if (lamp->YF_useqmc) qmc="on";
+			params["photons"] = yafray::parameter_t(lamp->YF_numphotons);
+			params["search"] = yafray::parameter_t(lamp->YF_numsearch);
+			params["depth"] = yafray::parameter_t(lamp->YF_phdepth);
+			params["use_QMC"] = yafray::parameter_t(qmc);
+			params["angle"] = yafray::parameter_t(acos(lamp->spotsi)*180.0/M_PI);
+			float cl = lamp->YF_causticblur/sqrt((float)lamp->YF_numsearch);
+			params["fixedradius"] = yafray::parameter_t(lamp->YF_causticblur);
+			params["cluster"] = yafray::parameter_t(cl);
 		}
 
 		// transform lamp co & vec back to world
@@ -1161,14 +1220,17 @@ void yafrayPluginRender_t::writeLamps()
 			params["from"] = yafray::parameter_t(yafray::point3d_t(-lpvec[0], -lpvec[1], -lpvec[2]));
 		else
 			params["from"] = yafray::parameter_t(yafray::point3d_t(lpco[0], lpco[1], lpco[2]));
-		// 'to' for spot, already calculated by Blender
-		if (lamp->type==LA_SPOT)
-			params["to"]=yafray::parameter_t(yafray::point3d_t(lpco[0] + lpvec[0],
-																												 lpco[1] + lpvec[1],
-																												 lpco[2] + lpvec[2]));
+		// 'to' for spot/photonlight, already calculated by Blender
+		if ((lamp->type==LA_SPOT) || (lamp->type==LA_YF_PHOTON)) {
+			params["to"] = yafray::parameter_t(yafray::point3d_t(lpco[0] + lpvec[0],
+																													 lpco[1] + lpvec[1],
+																													 lpco[2] + lpvec[2]));
+			if (has_halo) params["fog"] = yafray::parameter_t(yafray::color_t(1.0, 1.0, 1.0));
+		}
+		
 		// color
 		// rgb in LampRen is premultiplied by energy, power is compensated for that above
-		params["color"]=yafray::parameter_t(yafray::color_t(lamp->r,lamp->g,lamp->b));
+		params["color"] = yafray::parameter_t(yafray::color_t(lamp->r, lamp->g, lamp->b));
 		yafrayGate->addLight(params);
 	}
 }
