@@ -2133,19 +2133,17 @@ void curvebuts(void)
 		
 		if(ob==G.obedit) {
 			nu= lastnu;
-			if(nu==0) nu= editNurb.first;
-			if(nu) sp= &(nu->orderu); 
-			else sp= 0;
-			uiDefButS(block, NUM, B_SETORDER, "Order U:", 565,91,102, 18, sp, 2.0, 6.0, 0, 0, "");
-			if(nu) sp= &(nu->orderv); 
-			else sp= 0;
-			uiDefButS(block, NUM, B_SETORDER, "V:",	 670,91,50, 18, sp, 2.0, 6.0, 0, 0, "");
-			if(nu) sp= &(nu->resolu); 
-			else sp= 0;
-			uiDefButS(block, NUM, B_MAKEDISP, "Resol U:", 565,70,102, 18, sp, 1.0, 128.0, 0, 0, "");
-			if(nu) sp= &(nu->resolv); 
-			else sp= 0;
-			uiDefButS(block, NUM, B_MAKEDISP, "V:", 670,70,50, 18, sp, 1.0, 128.0, 0, 0, "");
+			if(nu==NULL) nu= editNurb.first;
+			if(nu) {
+				sp= &(nu->orderu); 
+				uiDefButS(block, NUM, B_SETORDER, "Order U:", 565,91,102, 18, sp, 2.0, 6.0, 0, 0, "");
+				sp= &(nu->orderv); 
+				uiDefButS(block, NUM, B_SETORDER, "V:",	 670,91,50, 18, sp, 2.0, 6.0, 0, 0, "");
+				sp= &(nu->resolu); 
+				uiDefButS(block, NUM, B_MAKEDISP, "Resol U:", 565,70,102, 18, sp, 1.0, 128.0, 0, 0, "");
+				sp= &(nu->resolv); 
+				uiDefButS(block, NUM, B_MAKEDISP, "V:", 670,70,50, 18, sp, 1.0, 128.0, 0, 0, "");
+			}
 		}
 
 		uiBlockSetCol(block, BUTSALMON);
