@@ -345,7 +345,7 @@ static PyObject *Vector_repr (VectorObject *self)
 		PyString_ConcatAndDel (&str1, str2);
 	}
 
-	sprintf(ftoa, "%.4f]\n", self->vec[maxindex]);
+	sprintf(ftoa, "%.4f]", self->vec[maxindex]);
 	str2 = PyString_FromString (ftoa);
 	if (!str1 || !str2) goto error; 
 	PyString_ConcatAndDel (&str1, str2);

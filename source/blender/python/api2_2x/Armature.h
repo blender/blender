@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jordi Rovira i Bonet
+ * Contributor(s): Jordi Rovira i Bonet, Joseph gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -35,13 +35,13 @@
 #include <Python.h>
 #include <DNA_armature_types.h>
 
-/*****************************************************************************/
-/* Python BPy_Armature structure definition:                                 */
-/*****************************************************************************/
-
+//---------------------Python BPy_Armature structure definition------------------------------
 typedef struct {
   PyObject_HEAD
   bArmature *armature;
 } BPy_Armature;
+
+//--------------------visible prototypes------------------------------------------------------------
+PyObject *Armature_Init (void);
 
 #endif /* EXPP_ARMATURE_H */

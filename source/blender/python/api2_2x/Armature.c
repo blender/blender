@@ -32,77 +32,50 @@
 #include "Armature.h"
 #include "Bone.h"
 #include "NLA.h"
-
 #include <stdio.h>
-
 #include <BKE_main.h>
 #include <BKE_global.h>
 #include <BKE_object.h>
 #include <BKE_armature.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
+#include <MEM_guardedalloc.h>
 #include <BLI_arithb.h>
-
 #include "constant.h"
 #include "gen_utils.h"
 #include "modules.h"
 #include "Types.h"
 
-/*****************************************************************************/
-/* Python API function prototypes for the Armature module.                   */
-/*****************************************************************************/
-static PyObject *M_Armature_New (PyObject * self, PyObject * args,
-				 PyObject * keywords);
+//--------------------------- Python API function prototypes for the Armature module-----------
+static PyObject *M_Armature_New (PyObject * self, PyObject * args);
 static PyObject *M_Armature_Get (PyObject * self, PyObject * args);
-PyObject *Armature_Init (void);
-
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.      */
-/* In Python these will be written to the console when doing a               */
-/* Blender.Armature.__doc__                                                  */
-/*****************************************************************************/
+//--------------------------- Python API Doc Strings for the Armature module----------------------
 static char M_Armature_doc[] = "The Blender Armature module\n\n\
-This module provides control over **Armature Data** objects in Blender.\n";
-
+  This module provides control over **Armature Data** objects in Blender.\n";
 static char M_Armature_New_doc[] = "(name) - return a new Armature datablock of \n\
-          optional name 'name'.";
-
+  optional name 'name'.";
 static char M_Armature_Get_doc[] =
   "(name) - return the armature with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all armatures in the\ncurrent scene.";
-
+  returns None if not found.\n If 'name' is not specified, it returns a list of all armatures in the\ncurrent scene.";
 static char M_Armature_get_doc[] = "(name) - DEPRECATED. Use 'Get' instead. \
-return the armature with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all armatures in the\ncurrent scene.";
-
-/*****************************************************************************/
-/* Python method structure definition for Blender.Armature module:           */
-/*****************************************************************************/
+  return the armature with the name 'name', returns None if not found.\n If 'name' is not specified, \
+  it returns a list of all armatures in the\ncurrent scene.";
+//----------------Python method structure definition for Blender.Armature module---------------
 struct PyMethodDef M_Armature_methods[] = {
-  {"New", (PyCFunction) M_Armature_New, METH_VARARGS | METH_KEYWORDS,
-   M_Armature_New_doc},
+  {"New", (PyCFunction) M_Armature_New, METH_VARARGS,  M_Armature_New_doc},
   {"Get", M_Armature_Get, METH_VARARGS, M_Armature_Get_doc},
   {"get", M_Armature_Get, METH_VARARGS, M_Armature_get_doc},
   {NULL, NULL, 0, NULL}
 };
-
-/*****************************************************************************/
-/* Python BPy_Armature methods declarations:                                 */
-/*****************************************************************************/
+//----------------Python BPy_Armature methods declarations--------------------------------------------
 static PyObject *Armature_getName (BPy_Armature * self);
 static PyObject *Armature_getBones (BPy_Armature * self);
 static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args);
 static PyObject *Armature_setName (BPy_Armature * self, PyObject * args);
 static PyObject *Armature_drawAxes (BPy_Armature * self, PyObject * args);
 static PyObject *Armature_drawNames (BPy_Armature * self, PyObject * args);
-
-/*****************************************************************************/
-/* Python BPy_Armature methods table:                                        */
-/*****************************************************************************/
+//----------------Python BPy_Armature methods table---------------------------------------------------
 static PyMethodDef BPy_Armature_methods[] = {
-  /* name, method, flags, doc */
   {"getName", (PyCFunction) Armature_getName, METH_NOARGS,
    "() - return Armature name"},
   {"getBones", (PyCFunction) Armature_getBones, METH_NOARGS,
@@ -117,21 +90,14 @@ static PyMethodDef BPy_Armature_methods[] = {
   	"will draw the names of each bone in armature"},
   {NULL, NULL, 0, NULL}
 };
-
-/*****************************************************************************/
-/* Python TypeArmature callback function prototypes:                         */
-/*****************************************************************************/
+//----------------Python TypeArmature callback function prototypes------------------------------
 static void Armature_dealloc (BPy_Armature * armature);
 static PyObject *Armature_getAttr (BPy_Armature * armature, char *name);
-static int Armature_setAttr (BPy_Armature * armature, char *name,
-			     PyObject * v);
+static int Armature_setAttr (BPy_Armature * armature, char *name, PyObject * v);
 static int Armature_compare (BPy_Armature * a1, BPy_Armature * a2);
 static PyObject *Armature_repr (BPy_Armature * armature);
-
 static int doesBoneName_exist(char *name, bArmature* arm);
-/*****************************************************************************/
-/* Python TypeArmature structure definition:                                 */
-/*****************************************************************************/
+//---------------- Python TypeArmature structure definition:-------------------------------------------
 PyTypeObject Armature_Type = {
   PyObject_HEAD_INIT (NULL) 0,	/* ob_size */
   "Blender Armature",		/* tp_name */
@@ -154,136 +120,7 @@ PyTypeObject Armature_Type = {
   BPy_Armature_methods,		/* tp_methods */
   0,				/* tp_members */
 };
-
-
-/*****************************************************************************/
-/* Function:              M_Armature_New                                     */
-/* Python equivalent:     Blender.Armature.New                               */
-/*****************************************************************************/
-static PyObject *
-M_Armature_New (PyObject * self, PyObject * args, PyObject * keywords)
-{
-  char        *name_str = "ArmatureData";
-  BPy_Armature  *py_armature; /* for Armature Data object wrapper in Python */
-  bArmature   *bl_armature; /* for actual Armature Data we create in Blender */
-  char        buf[21];
-
-  if (!PyArg_ParseTuple(args, "|s", &name_str))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-           "expected string or empty argument"));
-
-  bl_armature = add_armature(); /* first create in Blender */
-  
-  if (bl_armature){
-    /* return user count to zero because add_armature() inc'd it */
-    bl_armature->id.us = 0;
-    /* now create the wrapper obj in Python */
-    py_armature = (BPy_Armature *)PyObject_NEW(BPy_Armature, &Armature_Type);
-  }
-  else{
-    return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-           "couldn't create Armature Data in Blender"));
-  }
-
-  if (py_armature == NULL)
-    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
-           "couldn't create ArmaturePyObject"));
-
-  /* link Python armature wrapper with Blender Armature: */
-  py_armature->armature = bl_armature;
-
-  if (strcmp(name_str, "ArmatureData") == 0)
-    return (PyObject *)py_armature;
-  else { /* user gave us a name for the armature, use it */
-    PyOS_snprintf(buf, sizeof(buf), "%s", name_str);
-    rename_id(&bl_armature->id, buf);
-  }
-
-  return (PyObject *)py_armature;
-}
-
-/*****************************************************************************/
-/* Function:              M_Armature_Get                                     */
-/* Python equivalent:     Blender.Armature.Get                               */
-/*****************************************************************************/
-static PyObject *
-M_Armature_Get (PyObject * self, PyObject * args)
-{
-  char *name = NULL;
-  bArmature *armature_iter;
-  BPy_Armature *wanted_armature;
-
-  if (!PyArg_ParseTuple (args, "|s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,
-				   "expected string argument (or nothing)"));
-
-  armature_iter = G.main->armature.first;
-
-  /* Use the name to search for the armature requested. */
-
-  if (name)
-    {				/* (name) - Search armature by name */
-      wanted_armature = NULL;
-
-      while ((armature_iter) && (wanted_armature == NULL))
-	{
-
-	  if (strcmp (name, armature_iter->id.name + 2) == 0)
-	    {
-	      wanted_armature =
-		(BPy_Armature *) PyObject_NEW (BPy_Armature, &Armature_Type);
-	      if (wanted_armature)
-		wanted_armature->armature = armature_iter;
-	    }
-
-	  armature_iter = armature_iter->id.next;
-	}
-
-      if (wanted_armature == NULL)
-	{			/* Requested Armature doesn't exist */
-	  char error_msg[64];
-	  PyOS_snprintf (error_msg, sizeof (error_msg),
-			 "Armature \"%s\" not found", name);
-	  return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
-	}
-
-      return (PyObject *) wanted_armature;
-    }
-
-  else
-    {
-      /* Return a list of with armatures in the scene */
-      int index = 0;
-      PyObject *armlist, *pyobj;
-
-      armlist = PyList_New (BLI_countlist (&(G.main->armature)));
-
-      if (armlist == NULL)
-	return (PythonReturnErrorObject (PyExc_MemoryError,
-					 "couldn't create PyList"));
-
-      while (armature_iter)
-	{
-	  pyobj = Armature_CreatePyObject (armature_iter);
-
-	  if (!pyobj)
-	    return (PythonReturnErrorObject (PyExc_MemoryError,
-					     "couldn't create PyString"));
-
-	  PyList_SET_ITEM (armlist, index, pyobj);
-
-	  armature_iter = armature_iter->id.next;
-	  index++;
-	}
-
-      return (armlist);
-    }
-
-}
-
-/*****************************************************************************/
-/* Function:              Armature_Init                                      */
-/*****************************************************************************/
+//-------------------Blender Armature Module Init------------------------------------------------------
 PyObject *
 Armature_Init (void)
 {
@@ -302,23 +139,8 @@ Armature_Init (void)
 
   return (submodule);
 }
-
-/*****************************************************************************/
-/* Python BPy_Armature methods:                                              */
-/*****************************************************************************/
-static PyObject *
-Armature_getName (BPy_Armature * self)
-{
-  PyObject *attr = PyString_FromString (self->armature->id.name + 2);
-
-  if (attr)
-    return attr;
-
-  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-				 "couldn't get Armature.name attribute"));
-}
-
-
+//--------------------------Blender Armature Module internal callbacks------------------------------
+//------------------append_childrenToList-------------------------------------------------------------------
 static void
 append_childrenToList(Bone *parent, PyObject *listbones)
 {
@@ -331,29 +153,8 @@ append_childrenToList(Bone *parent, PyObject *listbones)
 			append_childrenToList(child, listbones);
 		}
 	}
-
 }
-
-static PyObject *
-Armature_getBones (BPy_Armature * self)
-{
-
-  PyObject *listbones = NULL;
-  Bone *parent = NULL;
-  
-  listbones = PyList_New(0);
-
-  //append root bones
-  for (parent = self->armature->bonebase.first; parent; parent = parent->next){
-      PyList_Append (listbones, Bone_CreatePyObject (parent));
-	  if(parent->childbase.first){	 //has children?
-			append_childrenToList(parent, listbones);
-	  }
-  }
-
-  return listbones;
-}
-
+//------------------unique_BoneName----------------------------------------------------------------------
 static void
 unique_BoneName(char *name, bArmature* arm)
 {
@@ -376,7 +177,7 @@ unique_BoneName(char *name, bArmature* arm)
 	}
   }
 }
-
+//------------------doesBoneName_exist----------------------------------------------------------------------
 static int 
 doesBoneName_exist(char *name, bArmature* arm)
 {
@@ -393,7 +194,7 @@ doesBoneName_exist(char *name, bArmature* arm)
   }
   return 0;
 }
-
+//------------------testChildInChildbase----------------------------------------------------------------------
 static int 
 testChildInChildbase(Bone *bone, Bone *test)
 {
@@ -411,12 +212,11 @@ testChildInChildbase(Bone *bone, Bone *test)
 	}
 	return 0;
 }
-
+//------------------testBoneInArmature----------------------------------------------------------------------
 static int
 testBoneInArmature(bArmature *arm, Bone *test)
 {
 	Bone *root;
-
 	for(root = arm->bonebase.first; root; root = root->next){
 		if(root == test){
 			return 1;
@@ -428,128 +228,52 @@ testBoneInArmature(bArmature *arm, Bone *test)
 			}
 		}
 	}
-
 	return 0;
 }
-
-static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args)
+//-----------------testChildNameInChildbase------------------------------------------------------------------
+static Bone *
+testChildNameInChildbase(Bone *bone, char *name)
 {
-	BPy_Bone* py_bone = NULL;
-	float M_boneObjectspace[4][4];
-	float iM_parentRest[4][4];
-	
-	if (!PyArg_ParseTuple(args, "O!", &Bone_Type, &py_bone))
-		return (EXPP_ReturnPyObjError (PyExc_TypeError, 
-			"expected bone object argument (or nothing)"));
-
-	if(py_bone != NULL)
-		if(!py_bone->bone)
-			return (EXPP_ReturnPyObjError (PyExc_TypeError, "bone contains no data!"));
-
-	//make sure the name is unique for this armature
-	unique_BoneName(py_bone->bone->name, self->armature);
-
-	//if bone has a parent....	
-	if(py_bone->bone->parent){
-
-		//then check to see if parent has been added to the armature - bone loop test
-		if(!testBoneInArmature(self->armature, py_bone->bone->parent))
-			return (EXPP_ReturnPyObjError (PyExc_TypeError, 
-			   "cannot parent to a bone not yet added to armature!"));
-		
-		//add to parent's childbase
-		BLI_addtail (&py_bone->bone->parent->childbase, py_bone->bone);
-
-		//get the worldspace coords for the parent
-		get_objectspace_bone_matrix(py_bone->bone->parent, M_boneObjectspace, 0,0);
-
-		// Invert the parent rest matrix
-		Mat4Invert (iM_parentRest, M_boneObjectspace);
-
-		//transformation of local bone
-		Mat4MulVecfl(iM_parentRest, py_bone->bone->head);
-		Mat4MulVecfl(iM_parentRest, py_bone->bone->tail);
-
-	}else //no parent....
-		BLI_addtail (&self->armature->bonebase,py_bone->bone);
-
-	precalc_bonelist_irestmats(&self->armature->bonebase);
-
-   	Py_INCREF(Py_None);
-	return Py_None;
+	Bone *child;
+	Bone *test;
+	for(child = bone->childbase.first; child; child = child->next){
+		if(BLI_streq(child->name, name)){
+			return child;
+		}else{
+			if(child->childbase.first != NULL){
+				test = testChildNameInChildbase(child, name);
+				if(test)	return test;
+			}
+		}
+	}
+	return NULL;
 }
-
-static PyObject *
-Armature_setName (BPy_Armature * self, PyObject * args)
+//----------------testBoneNameInArmature------------------------------------------------------------------
+static Bone *
+testBoneNameInArmature(bArmature *arm, char *name)
 {
-  char *name;
-  char buf[21];
-
-  if (!PyArg_ParseTuple (args, "s", &name))
-    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-				   "expected string argument"));
-
-  PyOS_snprintf (buf, sizeof (buf), "%s", name);
-
-  rename_id (&self->armature->id, buf);
-
-  Py_INCREF (Py_None);
-  return Py_None;
+	Bone *bone;
+	Bone *test;
+	for(bone = arm->bonebase.first; bone; bone = bone->next){
+		if(BLI_streq(bone->name, name)){
+			return bone; //found it
+		}else{
+			if(bone->childbase.first != NULL){
+				test = testChildNameInChildbase(bone, name);
+				if(test)	return test;
+			}
+		}
+	}
+	return NULL;
 }
-
-static PyObject *
-Armature_drawAxes (BPy_Armature * self, PyObject * args)
-{
-	int toggle;
-
-	if (!PyArg_ParseTuple (args, "i", &toggle))
-		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-					"expected 1 or 0 as integer"));
-
-	if(toggle)
-		self->armature->flag |= ARM_DRAWAXES;
-	else
-		self->armature->flag &= ~ARM_DRAWAXES;
-
-	Py_INCREF (Py_None);
-	return Py_None;
-}
-
-static PyObject *
-Armature_drawNames (BPy_Armature * self, PyObject * args)
-{
-	int toggle;
-
-	if (!PyArg_ParseTuple (args, "i", &toggle))
-		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-					"expected 1 or 0 as integer"));
-
-	if(toggle)
-		self->armature->flag |= ARM_DRAWNAMES;
-	else
-		self->armature->flag &= ~ARM_DRAWNAMES;
-
-	Py_INCREF (Py_None);
-	return Py_None;
-}
-
-/*****************************************************************************/
-/* Function:    Armature_dealloc                                             */
-/* Description: This is a callback function for the BPy_Armature type. It is */
-/*              the destructor function.                                     */
-/*****************************************************************************/
+//-------------------BPy_Armature internal methods--------------------------------------------------
+//------------------dealloc--------------------------------------------------------------------------------------
 static void
 Armature_dealloc (BPy_Armature * self)
 {
   PyObject_DEL (self);
 }
-
-/*****************************************************************************/
-/* Function:    Armature_getAttr                                             */
-/* Description: This is a callback function for the BPy_Armature type. It is */
-/*              the function that accesses BPy_Armature member variables and */
-/*              methods.                                                     */
-/*****************************************************************************/
+//-----------------getattr-----------------------------------------------------------------------------------------
 static PyObject *
 Armature_getAttr (BPy_Armature * self, char *name)
 {
@@ -575,14 +299,7 @@ Armature_getAttr (BPy_Armature * self, char *name)
   /* not an attribute, search the methods table */
   return Py_FindMethod (BPy_Armature_methods, (PyObject *) self, name);
 }
-
-/*****************************************************************************/
-/* Function:    Armature_setAttr                                             */
-/* Description: This is a callback function for the BPy_Armature type. It is */
-/*              the function that changes Armature Data members values. If   */
-/*              this data is linked to a Blender Armature, it also gets      */
-/*              updated.                                                     */
-/*****************************************************************************/
+//-----------------setattr-----------------------------------------------------------------------------------------
 static int
 Armature_setAttr (BPy_Armature * self, char *name, PyObject * value)
 {
@@ -613,37 +330,21 @@ Armature_setAttr (BPy_Armature * self, char *name, PyObject * value)
   Py_DECREF (Py_None);		/* was incref'ed by the called Armature_set* function */
   return 0;			/* normal exit */
 }
-
-/*****************************************************************************/
-/* Function:    Armature_repr                                                */
-/* Description: This is a callback function for the BPy_Armature type. It    */
-/*              builds a meaninful string to represent armature objects.     */
-/*****************************************************************************/
+//-----------------repr-----------------------------------------------------------------------------------------
 static PyObject *
 Armature_repr (BPy_Armature * self)
 {
   return PyString_FromFormat ("[Armature \"%s\"]",
 			      self->armature->id.name + 2);
 }
-
-/*****************************************************************************/
-/* Function:    Armature_compare                                             */
-/* Description: This is a callback function for the BPy_Armature type. It    */
-/*              compares the two armatures: translate comparison to the      */
-/*              C pointers.                                                  */
-/*****************************************************************************/
+//-----------------compare-----------------------------------------------------------------------------------------
 static int
 Armature_compare (BPy_Armature * a, BPy_Armature * b)
 {
   bArmature *pa = a->armature, *pb = b->armature;
   return (pa == pb) ? 0 : -1;
 }
-
-/*****************************************************************************/
-/* Function:    Armature_CreatePyObject                                      */
-/* Description: This function will create a new BlenArmature from an         */
-/*              existing Armature structure.                                 */
-/*****************************************************************************/
+//-----------------Armature_CreatePyObject-------------------------------------------------------------------
 PyObject *
 Armature_CreatePyObject (struct bArmature * obj)
 {
@@ -660,23 +361,13 @@ Armature_CreatePyObject (struct bArmature * obj)
 
   return ((PyObject *) blen_armature);
 }
-
-/*****************************************************************************/
-/* Function:    Armature_CheckPyObject                                       */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Armature. Otherwise it will return false.               */
-/*****************************************************************************/
+//-----------------Armature_CheckPyObject -------------------------------------------------------------------
 int
 Armature_CheckPyObject (PyObject * py_obj)
 {
   return (py_obj->ob_type == &Armature_Type);
 }
-
-/*****************************************************************************/
-/* Function:    Armature_FromPyObject                                        */
-/* Description: This function returns the Blender armature from the given    */
-/*              PyObject.                                                    */
-/*****************************************************************************/
+//-----------------Armature_FromPyObject -------------------------------------------------------------------
 struct bArmature *
 Armature_FromPyObject (PyObject * py_obj)
 {
@@ -685,3 +376,263 @@ Armature_FromPyObject (PyObject * py_obj)
   blen_obj = (BPy_Armature *) py_obj;
   return (blen_obj->armature);
 }
+//-----------------Blender Module function prototypes-------------------------------------------------
+//----------------Blender.Armature.New()-------------------------------------------------------------------
+static PyObject *
+M_Armature_New (PyObject * self, PyObject * args)
+{
+  char        *name_str = "ArmatureData";
+  BPy_Armature  *py_armature; /* for Armature Data object wrapper in Python */
+  bArmature   *bl_armature; /* for actual Armature Data we create in Blender */
+  char        buf[21];
+
+  if (!PyArg_ParseTuple(args, "|s", &name_str))
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+           "expected string or empty argument"));
+
+  bl_armature = add_armature(); /* first create in Blender */
+  
+  if (bl_armature){
+    /* return user count to zero because add_armature() inc'd it */
+    bl_armature->id.us = 0;
+    /* now create the wrapper obj in Python */
+    py_armature = (BPy_Armature *)PyObject_NEW(BPy_Armature, &Armature_Type);
+  }else{
+    return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+           "couldn't create Armature Data in Blender"));
+  }
+
+  if (py_armature == NULL)
+    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+           "couldn't create ArmaturePyObject"));
+
+  /* link Python armature wrapper with Blender Armature: */
+  py_armature->armature = bl_armature;
+
+  if (strcmp(name_str, "ArmatureData") == 0)
+    return (PyObject *)py_armature;
+  else { /* user gave us a name for the armature, use it */
+    PyOS_snprintf(buf, sizeof(buf), "%s", name_str);
+    rename_id(&bl_armature->id, buf);
+  }
+
+  return (PyObject *)py_armature;
+}
+//----------------Blender.Armature.Get()-------------------------------------------------------------------
+static PyObject *
+M_Armature_Get (PyObject * self, PyObject * args)
+{
+	char *name = NULL;
+	bArmature *armature_iter;
+	BPy_Armature *wanted_armature;
+
+	if (!PyArg_ParseTuple (args, "|s", &name))
+	return (EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected string argument (or nothing)"));
+
+	armature_iter = G.main->armature.first;
+
+	/* Use the name to search for the armature requested. */
+
+	if (name){				/* (name) - Search armature by name */
+		wanted_armature = NULL;
+		while ((armature_iter) && (wanted_armature == NULL)){
+			if (strcmp (name, armature_iter->id.name + 2) == 0) {
+				wanted_armature =
+					(BPy_Armature *) PyObject_NEW (BPy_Armature, &Armature_Type);
+				if (wanted_armature)
+					wanted_armature->armature = armature_iter;
+			}
+			armature_iter = armature_iter->id.next;
+		}
+
+		if (wanted_armature == NULL){			/* Requested Armature doesn't exist */
+			char error_msg[64];
+			PyOS_snprintf (error_msg, sizeof (error_msg),
+				"Armature \"%s\" not found", name);
+			return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+		}
+		return (PyObject *) wanted_armature;
+	}else{
+		/* Return a list of with armatures in the scene */
+		int index = 0;
+		PyObject *armlist, *pyobj;
+
+		armlist = PyList_New (BLI_countlist (&(G.main->armature)));
+
+		if (armlist == NULL)
+			return (PythonReturnErrorObject (PyExc_MemoryError,
+						"couldn't create PyList"));
+
+		while (armature_iter){
+			pyobj = Armature_CreatePyObject (armature_iter);
+
+			if (!pyobj)
+			return (PythonReturnErrorObject (PyExc_MemoryError,
+							"couldn't create PyString"));
+
+			PyList_SET_ITEM (armlist, index, pyobj);
+			armature_iter = armature_iter->id.next;
+			index++;
+		}
+	return (armlist);
+	}
+}
+//--------------------------Python BPy_Armature methods------------------------------------------
+//---------------------BPy_Armature.getName()-------------------------------------------------------
+static PyObject *
+Armature_getName (BPy_Armature * self)
+{
+  PyObject *attr = PyString_FromString (self->armature->id.name + 2);
+
+  if (attr)
+    return attr;
+
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+				 "couldn't get Armature.name attribute"));
+}
+//---------------------BPy_Armature.getBones()-------------------------------------------------------
+static PyObject *
+Armature_getBones (BPy_Armature * self)
+{
+
+  PyObject *listbones = NULL;
+  Bone *parent = NULL;
+  
+  listbones = PyList_New(0);
+
+  //append root bones
+  for (parent = self->armature->bonebase.first; parent; parent = parent->next){
+      PyList_Append (listbones, Bone_CreatePyObject (parent));
+	  if(parent->childbase.first){	 //has children?
+			append_childrenToList(parent, listbones);
+	  }
+  }
+
+  return listbones;
+}
+//---------------------BPy_Armature.addBone()-------------------------------------------------------
+static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args)
+{
+	BPy_Bone* py_bone = NULL;
+	float M_boneObjectspace[4][4];
+	float iM_parentRest[4][4];
+	Bone *blen_bone;
+	char *parent_str = "";
+	Bone *parent;
+	
+	if (!PyArg_ParseTuple(args, "O!", &Bone_Type, &py_bone))
+		return (EXPP_ReturnPyObjError (PyExc_TypeError, 
+			"expected bone object argument (or nothing)"));
+
+	if(py_bone->bone != NULL)
+		return EXPP_ReturnPyObjError (PyExc_TypeError, "this bone has already been linked to an armature");
+
+	//check to see if we can parent this bone if it will be attempted otherwise exit
+	if(!BLI_streq(py_bone->parent, parent_str)){     //parenting being attempted
+		//get parent if exists in this armature
+		parent = testBoneNameInArmature(self->armature, py_bone->parent);
+		if(!parent){ //could find the parent's name
+			return (EXPP_ReturnPyObjError (PyExc_TypeError, 
+			   "cannot find parent's name in armature - check to see if name of parent is correct"));
+		}
+	}else{ //no parent for this bone
+		parent = NULL;
+	}
+
+	//create a bone struct
+	blen_bone = (Bone*)MEM_callocN(sizeof(Bone), "DefaultBone");
+
+	//set the bone struct pointer
+	py_bone->bone = blen_bone;
+	//update the bonestruct data from py data
+	if(!updateBoneData(py_bone, parent))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError , "bone struct empty");
+
+	//make sure the name is unique for this armature
+	unique_BoneName(py_bone->bone->name, self->armature);
+
+	//if bone has a parent....	
+	if(py_bone->bone->parent){
+
+		//then check to see if parent has been added to the armature - bone loop test
+		if(!testBoneInArmature(self->armature, py_bone->bone->parent))
+			return (EXPP_ReturnPyObjError (PyExc_TypeError, 
+			   "cannot parent to a bone not yet added to armature!"));
+		
+		//add to parent's childbase
+		BLI_addtail (&py_bone->bone->parent->childbase, py_bone->bone);
+
+		//get the worldspace coords for the parent
+		get_objectspace_bone_matrix(py_bone->bone->parent, M_boneObjectspace, 0,0);
+
+		// Invert the parent rest matrix
+		Mat4Invert (iM_parentRest, M_boneObjectspace);
+
+		//transformation of local bone
+		Mat4MulVecfl(iM_parentRest, py_bone->bone->head);
+		Mat4MulVecfl(iM_parentRest, py_bone->bone->tail);
+
+	}else //no parent....
+		BLI_addtail (&self->armature->bonebase,py_bone->bone);
+
+	precalc_bonelist_irestmats(&self->armature->bonebase);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+//---------------------BPy_Armature.setName()-------------------------------------------------------
+static PyObject *
+Armature_setName (BPy_Armature * self, PyObject * args)
+{
+  char *name;
+  char buf[21];
+
+  if (!PyArg_ParseTuple (args, "s", &name))
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+				   "expected string argument"));
+
+  PyOS_snprintf (buf, sizeof (buf), "%s", name);
+
+  rename_id (&self->armature->id, buf);
+
+  Py_INCREF (Py_None);
+  return Py_None;
+}
+//---------------------BPy_Armature.drawAxes()-------------------------------------------------------
+static PyObject *
+Armature_drawAxes (BPy_Armature * self, PyObject * args)
+{
+	int toggle;
+
+	if (!PyArg_ParseTuple (args, "i", &toggle))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+					"expected 1 or 0 as integer"));
+
+	if(toggle)
+		self->armature->flag |= ARM_DRAWAXES;
+	else
+		self->armature->flag &= ~ARM_DRAWAXES;
+
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+//---------------------BPy_Armature.drawNames()-------------------------------------------------------
+static PyObject *
+Armature_drawNames (BPy_Armature * self, PyObject * args)
+{
+	int toggle;
+
+	if (!PyArg_ParseTuple (args, "i", &toggle))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+					"expected 1 or 0 as integer"));
+
+	if(toggle)
+		self->armature->flag |= ARM_DRAWNAMES;
+	else
+		self->armature->flag &= ~ARM_DRAWNAMES;
+
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
