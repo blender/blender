@@ -514,7 +514,13 @@ void do_update_for_newframe(int mute)
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	clear_all_constraints();
 	do_all_keys();
+
 	do_all_actions();
+	rebuild_all_armature_displists();
+	/* so nice, better do it twice */
+	do_all_actions();
+	rebuild_all_armature_displists();
+
 	do_all_ikas();
 
 	test_all_displists();
