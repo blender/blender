@@ -1214,6 +1214,59 @@ static void texture_rgb_blend(float *in, float *tex, float *out, float fact, flo
 
 }
 
+static float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip)
+{
+	float in=0.0, facm, col;
+	
+	fact*= facg;
+	facm= 1.0-fact;
+	if(flip) SWAP(float, fact, facm);
+
+	switch(blendtype) {
+	case MTEX_BLEND:
+		in= fact*tex + facm*out;
+		break;
+
+	case MTEX_MUL:
+		facm= 1.0-facg;
+		in= (facm+fact*tex)*out;
+		break;
+
+	case MTEX_SCREEN:
+		facm= 1.0-facg;
+		in= 1.0-(facm+fact*(1.0-tex))*(1.0-out);
+		break;
+
+	case MTEX_SUB:
+		fact= -fact;
+	case MTEX_ADD:
+		in= fact*tex + out;
+		break;
+
+	case MTEX_DIV:
+		if(tex!=0.0)
+			in= facm*out + fact*out/tex;
+		break;
+
+	case MTEX_DIFF:
+		in= facm*out + fact*fabs(tex-out);
+		break;
+
+	case MTEX_DARK:
+		col= fact*tex;
+		if(col < out) in= col; else in= out;
+		break;
+
+	case MTEX_LIGHT:
+		col= fact*tex;
+		if(col > out) in= col; else in= out;
+		break;
+	}
+	
+	return in;
+}
+
+
 void do_material_tex(ShadeInput *shi)
 {
 	Object *ob;
@@ -1222,7 +1275,7 @@ void do_material_tex(ShadeInput *shi)
 	MTex *mtex;
 	Tex *tex;
 	float *co = NULL, *dx = NULL, *dy = NULL;
-	float fact, facm, factt, facmm, facmul = 0.0, stencilTin=1.0;
+	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], Tnor=1.0;
 	int tex_nr, rgbnor= 0;
 
@@ -1539,125 +1592,76 @@ void do_material_tex(ShadeInput *shi)
 					else Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 				}
 
-				fact= Tin*mtex->varfac;
-				facm= 1.0-fact;
-				if(mtex->blendtype==MTEX_MUL) facmul= 1.0-mtex->varfac;
-				if(mtex->blendtype==MTEX_SUB) fact= -fact;
-
 				if(mtex->mapto & MAP_REF) {
-					if(mtex->maptoneg & MAP_REF) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
+					int flip= mtex->maptoneg & MAP_REF;
 
-					if(mtex->blendtype==MTEX_BLEND)
-						shi->matren->ref= factt*mtex->def_var+ facmm*mat_ref->ref;
-					else if(mtex->blendtype==MTEX_MUL)
-						shi->matren->ref= (facmul+factt)*mat_ref->ref;
-					else {
-						shi->matren->ref= factt+mat_ref->ref;
-						if(shi->matren->ref<0.0) shi->matren->ref= 0.0;
-					}
+					shi->matren->ref= texture_value_blend(mtex->def_var, mat_ref->ref, Tin, mtex->varfac, mtex->blendtype, flip);
+
+					if(shi->matren->ref<0.0) shi->matren->ref= 0.0;
 					mat_ref= shi->matren;
 				}
 				if(mtex->mapto & MAP_SPEC) {
-					if(mtex->maptoneg & MAP_SPEC) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
+					int flip= mtex->maptoneg & MAP_SPEC;
+					
+					shi->matren->spec= texture_value_blend(mtex->def_var, mat_ref->spec, Tin, mtex->varfac, mtex->blendtype, flip);
 
-					if(mtex->blendtype==MTEX_BLEND)
-						shi->matren->spec= factt*mtex->def_var+ facmm*mat_spec->spec;
-					else if(mtex->blendtype==MTEX_MUL)
-						shi->matren->spec= (facmul+factt)*mat_spec->spec;
-					else {
-						shi->matren->spec= factt+mat_spec->spec;
-						if(shi->matren->spec<0.0) shi->matren->spec= 0.0;
-					}
+					if(shi->matren->spec<0.0) shi->matren->spec= 0.0;
 					mat_spec= shi->matren;
 				}
 				if(mtex->mapto & MAP_EMIT) {
-					if(mtex->maptoneg & MAP_EMIT) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
+					int flip= mtex->maptoneg & MAP_EMIT;
 
-					if(mtex->blendtype==MTEX_BLEND)
-						shi->matren->emit= factt*mtex->def_var+ facmm*mat_emit->emit;
-					else if(mtex->blendtype==MTEX_MUL)
-						shi->matren->emit= (facmul+factt)*mat_emit->emit;
-					else {
-						shi->matren->emit= factt+mat_emit->emit;
-						if(shi->matren->emit<0.0) shi->matren->emit= 0.0;
-					}
+					shi->matren->emit= texture_value_blend(mtex->def_var, mat_ref->emit, Tin, mtex->varfac, mtex->blendtype, flip);
+
+					if(shi->matren->emit<0.0) shi->matren->emit= 0.0;
 					mat_emit= shi->matren;
 				}
 				if(mtex->mapto & MAP_ALPHA) {
-					if(mtex->maptoneg & MAP_ALPHA) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
+					int flip= mtex->maptoneg & MAP_ALPHA;
 
-					if(mtex->blendtype==MTEX_BLEND)
-						shi->matren->alpha= factt*mtex->def_var+ facmm*mat_alpha->alpha;
-					else if(mtex->blendtype==MTEX_MUL)
-						shi->matren->alpha= (facmul+factt)*mat_alpha->alpha;
-					else {
-						shi->matren->alpha= factt+mat_alpha->alpha;
-						if(shi->matren->alpha<0.0) shi->matren->alpha= 0.0;
-						else if(shi->matren->alpha>1.0) shi->matren->alpha= 1.0;
-					}
+					shi->matren->alpha= texture_value_blend(mtex->def_var, mat_ref->alpha, Tin, mtex->varfac, mtex->blendtype, flip);
+						
+					if(shi->matren->alpha<0.0) shi->matren->alpha= 0.0;
+					else if(shi->matren->alpha>1.0) shi->matren->alpha= 1.0;
 					mat_alpha= shi->matren;
 				}
 				if(mtex->mapto & MAP_HAR) {
-					if(mtex->maptoneg & MAP_HAR) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
-
-					if(mtex->blendtype==MTEX_BLEND) {
-						shi->matren->har= 128.0*factt*mtex->def_var+ facmm*mat_har->har;
-					} else if(mtex->blendtype==MTEX_MUL) {
-						shi->matren->har= (facmul+factt)*mat_har->har;
-					} else {
-						shi->matren->har= 128.0*factt+mat_har->har;
-						if(shi->matren->har<1) shi->matren->har= 1;
-					}
+					int flip= mtex->maptoneg & MAP_HAR;
+					float har;  // have to map to 0-1
+					
+					har= ((float)mat_ref->har)/128.0;
+					har= 128.0*texture_value_blend(mtex->def_var, har, Tin, mtex->varfac, mtex->blendtype, flip);
+					
+					if(har<1.0) shi->matren->har= 1; 
+					else if(har>511.0) shi->matren->har= 511;
+					else shi->matren->har= (int)har;
 					mat_har= shi->matren;
 				}
 				if(mtex->mapto & MAP_RAYMIRR) {
-					if(mtex->maptoneg & MAP_RAYMIRR) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
+					int flip= mtex->maptoneg & MAP_RAYMIRR;
 
-					if(mtex->blendtype==MTEX_BLEND)
-						shi->matren->ray_mirror= factt*mtex->def_var+ facmm*mat_ray_mirr->ray_mirror;
-					else if(mtex->blendtype==MTEX_MUL)
-						shi->matren->ray_mirror= (facmul+factt)*mat_ray_mirr->ray_mirror;
-					else {
-						shi->matren->ray_mirror= factt+mat_ray_mirr->ray_mirror;
-						if(shi->matren->ray_mirror<0.0) shi->matren->ray_mirror= 0.0;
-						else if(shi->matren->ray_mirror>1.0) shi->matren->ray_mirror= 1.0;
-					}
+					shi->matren->ray_mirror= texture_value_blend(mtex->def_var, mat_ref->ray_mirror, Tin, mtex->varfac, mtex->blendtype, flip);
+
+					if(shi->matren->ray_mirror<0.0) shi->matren->ray_mirror= 0.0;
+					else if(shi->matren->ray_mirror>1.0) shi->matren->ray_mirror= 1.0;
 					mat_ray_mirr= shi->matren;
 				}
 				if(mtex->mapto & MAP_TRANSLU) {
-					if(mtex->maptoneg & MAP_TRANSLU) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
+					int flip= mtex->maptoneg & MAP_TRANSLU;
 
-					if(mtex->blendtype==MTEX_BLEND)
-						shi->matren->translucency= factt*mtex->def_var+ facmm*mat_translu->translucency;
-					else if(mtex->blendtype==MTEX_MUL)
-						shi->matren->translucency= (facmul+factt)*mat_translu->translucency;
-					else {
-						shi->matren->translucency= factt+mat_translu->translucency;
-						if(shi->matren->translucency<0.0) shi->matren->translucency= 0.0;
-						else if(shi->matren->translucency>1.0) shi->matren->translucency= 1.0;
-					}
+					shi->matren->translucency= texture_value_blend(mtex->def_var, mat_ref->translucency, Tin, mtex->varfac, mtex->blendtype, flip);
+
+					if(shi->matren->translucency<0.0) shi->matren->translucency= 0.0;
+					else if(shi->matren->translucency>1.0) shi->matren->translucency= 1.0;
 					mat_translu= shi->matren;
 				}
 				if(mtex->mapto & MAP_AMB) {
-					if(mtex->maptoneg & MAP_AMB) {factt= facm; facmm= fact;}
-					else {factt= fact; facmm= facm;}
+					int flip= mtex->maptoneg & MAP_AMB;
 
-					if(mtex->blendtype==MTEX_BLEND)
-						shi->matren->amb= factt*mtex->def_var+ facmm*mat_translu->amb;
-					else if(mtex->blendtype==MTEX_MUL)
-						shi->matren->amb= (facmul+factt)*mat_translu->amb;
-					else {
-						shi->matren->amb= factt+mat_translu->amb;
-						if(shi->matren->amb<0.0) shi->matren->amb= 0.0;
-						else if(shi->matren->amb>1.0) shi->matren->amb= 1.0;
-					}
+					shi->matren->amb= texture_value_blend(mtex->def_var, mat_ref->amb, Tin, mtex->varfac, mtex->blendtype, flip);
+
+					if(shi->matren->amb<0.0) shi->matren->amb= 0.0;
+					else if(shi->matren->amb>1.0) shi->matren->amb= 1.0;
 					mat_amb= shi->matren;
 				}
 			}
@@ -1754,7 +1758,8 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 			facm= 1.0-mtex->colfac;
 		}
 		else fact*= 256;
-
+		/* note: halo colors are still 0-255, should map that for new mixing functions... */
+		
 		if(mtex->blendtype==MTEX_SUB) fact= -fact;
 
 		if(mtex->blendtype==MTEX_BLEND) {
@@ -1793,7 +1798,7 @@ void do_sky_tex(float *lo)
 {
 	World *wrld_hor, *wrld_zen;
 	MTex *mtex;
-	float *co, fact, facm, factt, facmm, facmul = 0.0, stencilTin=1.0;
+	float *co, fact, stencilTin=1.0;
 	float tempvec[3], texvec[3], dxt[3], dyt[3];
 	int tex_nr, rgb= 0, ok;
 	
@@ -1907,6 +1912,7 @@ void do_sky_tex(float *lo)
 			
 			/* colour mapping */
 			if(mtex->mapto & (WOMAP_HORIZ+WOMAP_ZENUP+WOMAP_ZENDOWN)) {
+				float tcol[3];
 				
 				if(rgb==0) {
 					Tr= mtex->r;
@@ -1914,28 +1920,11 @@ void do_sky_tex(float *lo)
 					Tb= mtex->b;
 				}
 				else Tin= 1.0;
-
-				fact= Tin*mtex->colfac;
-				facm= 1.0-fact;
-				if(mtex->blendtype==MTEX_MUL) facm= 1.0-mtex->colfac;
-				if(mtex->blendtype==MTEX_SUB) fact= -fact;
+				
+				tcol[0]= Tr; tcol[1]= Tg; tcol[2]= Tb;
 
 				if(mtex->mapto & WOMAP_HORIZ) {
-					if(mtex->blendtype==MTEX_BLEND) {
-						R.wrld.horr= (fact*Tr + facm*wrld_hor->horr);
-						R.wrld.horg= (fact*Tg + facm*wrld_hor->horg);
-						R.wrld.horb= (fact*Tb + facm*wrld_hor->horb);
-					}
-					else if(mtex->blendtype==MTEX_MUL) {
-						R.wrld.horr= (facm+fact*Tr)*wrld_hor->horr;
-						R.wrld.horg= (facm+fact*Tg)*wrld_hor->horg;
-						R.wrld.horb= (facm+fact*Tb)*wrld_hor->horb;
-					}
-					else {
-						R.wrld.horr= (fact*Tr + wrld_hor->horr);
-						R.wrld.horg= (fact*Tg + wrld_hor->horg);
-						R.wrld.horb= (fact*Tb + wrld_hor->horb);
-					}
+					texture_rgb_blend(&R.wrld.horr, tcol, &wrld_hor->horr, Tin, mtex->colfac, mtex->blendtype, 0);
 					wrld_hor= &R.wrld;
 				}
 				if(mtex->mapto & (WOMAP_ZENUP+WOMAP_ZENDOWN)) {
@@ -1949,22 +1938,7 @@ void do_sky_tex(float *lo)
 					else ok= 1;
 					
 					if(ok) {
-					
-						if(mtex->blendtype==MTEX_BLEND) {
-							R.wrld.zenr= (fact*Tr + facm*wrld_zen->zenr);
-							R.wrld.zeng= (fact*Tg + facm*wrld_zen->zeng);
-							R.wrld.zenb= (fact*Tb + facm*wrld_zen->zenb);
-						}
-						else if(mtex->blendtype==MTEX_MUL) {
-							R.wrld.zenr= (facm+fact*Tr)*wrld_zen->zenr;
-							R.wrld.zeng= (facm+fact*Tg)*wrld_zen->zeng;
-							R.wrld.zenb= (facm+fact*Tb)*wrld_zen->zenb;
-						}
-						else {
-							R.wrld.zenr= (fact*Tr + wrld_zen->zenr);
-							R.wrld.zeng= (fact*Tg + wrld_zen->zeng);
-							R.wrld.zenb= (fact*Tb + wrld_zen->zenb);
-						}
+						texture_rgb_blend(&R.wrld.zenr, tcol, &wrld_hor->zenr, Tin, mtex->colfac, mtex->blendtype, 0);
 						wrld_zen= &R.wrld;
 					}
 					else {
@@ -1978,20 +1952,7 @@ void do_sky_tex(float *lo)
 			if(mtex->mapto & WOMAP_BLEND) {
 				if(rgb) Tin= (0.35*Tr+0.45*Tg+0.2*Tb);
 				
-				fact= Tin*mtex->varfac;
-				facm= 1.0-fact;
-				if(mtex->blendtype==MTEX_MUL) facmul= 1.0-mtex->varfac;
-				if(mtex->blendtype==MTEX_SUB) fact= -fact;
-
-				factt= fact; facmm= facm;
-				
-				if(mtex->blendtype==MTEX_BLEND)
-					R.inprz= factt*mtex->def_var+ facmm*R.inprz;
-				else if(mtex->blendtype==MTEX_MUL)
-					R.inprz= (facmul+factt)*R.inprz;
-				else {
-					R.inprz= factt+R.inprz;
-				}
+				R.inprz= texture_value_blend(mtex->def_var, R.inprz, Tin, mtex->varfac, mtex->blendtype, 0);
 			}
 		}
 	}
@@ -2006,7 +1967,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 	LampRen *la_col;
 	MTex *mtex;
 	Tex *tex;
-	float *co = NULL, *dx = NULL, *dy = NULL, fact, facm, stencilTin=1.0;
+	float *co = NULL, *dx = NULL, *dy = NULL, fact, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3];
 	int tex_nr, rgb= 0;
 	
@@ -2139,6 +2100,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 			
 			/* mapping */
 			if(mtex->mapto & LAMAP_COL) {
+				float col[3];
 				
 				if(rgb==0) {
 					Tr= mtex->r;
@@ -2150,30 +2112,13 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi)
 				}
 				else Tin= Ta;
 
-				Tr*= la->energy;
-				Tg*= la->energy;
-				Tb*= la->energy;
+				/* lamp colors were premultiplied with this */
+				col[0]= Tr*la->energy;
+				col[1]= Tg*la->energy;
+				col[2]= Tb*la->energy;
+				
+				texture_rgb_blend(&la->r, col, &la_col->r, Tin, mtex->colfac, mtex->blendtype, 0);
 
-				fact= Tin*mtex->colfac;
-				facm= 1.0-fact;
-				if(mtex->blendtype==MTEX_MUL) facm= 1.0-mtex->colfac;
-				if(mtex->blendtype==MTEX_SUB) fact= -fact;
-
-				if(mtex->blendtype==MTEX_BLEND) {
-					la->r= (fact*Tr + facm*la_col->r);
-					la->g= (fact*Tg + facm*la_col->g);
-					la->b= (fact*Tb + facm*la_col->b);
-				}
-				else if(mtex->blendtype==MTEX_MUL) {
-					la->r= (facm+fact*Tr)*la_col->r;
-					la->g= (facm+fact*Tg)*la_col->g;
-					la->b= (facm+fact*Tb)*la_col->b;
-				}
-				else {
-					la->r= (fact*Tr + la_col->r);
-					la->g= (fact*Tg + la_col->g);
-					la->b= (fact*Tb + la_col->b);
-				}
 				la_col= la; /* makes sure first run uses la->org, then la */
 			}
 			

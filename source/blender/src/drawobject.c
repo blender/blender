@@ -3345,6 +3345,38 @@ static int ob_from_decimator(Object *ob)
 	return 0;
 }
 
+/* true or false */
+static void bPolygonOffset(short val) 
+{
+	static float winmat[16], ofs=0.0;
+
+	if(val) {
+		// glEnable(GL_POLYGON_OFFSET_FILL);
+		// glPolygonOffset(-1.0, -1.0);
+
+		/* hack below is to mimic polygon offset */
+		glMatrixMode(GL_PROJECTION);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
+		
+		if(winmat[15]>0.5) ofs= 0.00005*G.vd->dist;  // ortho tweaking
+		else ofs= 0.001;
+		if(val== -1) ofs= -ofs;
+		
+		winmat[14]-= ofs;
+		glLoadMatrixf(winmat);
+		glMatrixMode(GL_MODELVIEW);
+	}
+	else {
+
+		glMatrixMode(GL_PROJECTION);
+		winmat[14]+= ofs;
+		glLoadMatrixf(winmat);
+		glMatrixMode(GL_MODELVIEW);
+	}
+}
+
+
+
 /* draws wire outline */
 static void drawSolidSelect(Object *ob, ListBase *lb) 
 {
@@ -3356,7 +3388,7 @@ static void drawSolidSelect(Object *ob, ListBase *lb)
 		
 		if(ob->type==OB_MESH) drawmeshwire(ob);
 		else drawDispListwire(lb);
-	
+		
 		glLineWidth(1.0);
 		glDepthMask(1);
 	}
@@ -3387,7 +3419,6 @@ static void draw_solid_select(Object *ob)
 
 static void drawWireExtra(Object *ob, ListBase *lb) 
 {
-	float winmat[16], ofs;
 
 	if(ob!=G.obedit && (ob->flag & SELECT)) {
 		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
@@ -3395,26 +3426,12 @@ static void drawWireExtra(Object *ob, ListBase *lb)
 	}
 	else BIF_ThemeColor(TH_WIRE);
 
-	// glPolygonOffset(-1.0, -1.0);
-
-	/* hack below is to mimic polygon offset */
-	glMatrixMode(GL_PROJECTION);
-	glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
+	bPolygonOffset(1);
 	
-	if(winmat[15]>0.5) ofs= 0.00005*G.vd->dist;  // ortho tweaking
-	else ofs= 0.001;
-	winmat[14]-= ofs;
-	glLoadMatrixf(winmat);
-	glMatrixMode(GL_MODELVIEW);
-
 	if(ob->type==OB_MESH) drawmeshwire(ob);
 	else drawDispListwire(lb);
 
-	glMatrixMode(GL_PROJECTION);
-	winmat[14]+= ofs;
-	glLoadMatrixf(winmat);
-	glMatrixMode(GL_MODELVIEW);
-
+	bPolygonOffset(0);
 }
 
 static void draw_extra_wire(Object *ob) 

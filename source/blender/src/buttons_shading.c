@@ -1620,11 +1620,11 @@ static void world_panel_mapto(World *wrld)
 	
 	uiDefButF(block, COL, B_MTEXCOL, "",				920,105,163,19, &(mtex->r), 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of red the intensity texture blends");
-	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of green the intensity texture blends");
-	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			920,40,163,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of blue the intensity texture blends");
+	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			920,40,163,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Sets the amount the texture blends with the basic value");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
@@ -1634,10 +1634,19 @@ static void world_panel_mapto(World *wrld)
 	uiDefButS(block, TOG|BIT|3, B_MATPRV, "ZenDo",		1179,180,86,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,130,48,19, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,130,44,19, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Sets texture to multiply the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,130,41,19, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,130,40,19, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,133,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,133,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Sets texture to multiply the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,133,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,133,40,18, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
+
+	uiDefButS(block, ROW, B_MATPRV, "Div",			1087,115,60,18, &(mtex->blendtype), 9.0, (float)MTEX_DIV, 0, 0, "Sets texture to divide the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Screen",			1147,115,60,18, &(mtex->blendtype), 9.0, (float)MTEX_SCREEN, 0, 0, "Sets texture to screen the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Diff",			1207,115,59,18, &(mtex->blendtype), 9.0, (float)MTEX_DIFF, 0, 0, "Sets texture to difference the values or colour");
+
+	uiDefButS(block, ROW, B_MATPRV, "Light",			1087,98,90,18, &(mtex->blendtype), 9.0, (float)MTEX_LIGHT, 0, 0, "Sets texture to choose the lighter value");
+	uiDefButS(block, ROW, B_MATPRV, "Dark",			1177,98,89,18, &(mtex->blendtype), 9.0, (float)MTEX_DARK, 0, 0, "Sets texture to choose the darker");
+
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Col  ",		1087,50,179,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Nor  ",		1087,30,179,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
@@ -1962,20 +1971,28 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	
 	uiDefButF(block, COL, B_MTEXCOL, "",				920,105,163,19, &(mtex->r), 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of red the intensity texture blends");
-	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of green the intensity texture blends");
-	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			920,40,163,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of blue the intensity texture blends");
+	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			920,80,163,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			920,60,163,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			920,40,163,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Sets the amount the texture blends with the basic value");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		920,10,163,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
 	
 	/* MAP TO */
 	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Col",		920,180,81,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic colour of the lamp");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,130,48,19, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,130,44,19, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Sets texture to multiply the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,130,41,19, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
-	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,130,40,19, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Mix",			1087,133,48,18, &(mtex->blendtype), 9.0, (float)MTEX_BLEND, 0, 0, "Sets texture to blend the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Mul",			1136,133,44,18, &(mtex->blendtype), 9.0, (float)MTEX_MUL, 0, 0, "Sets texture to multiply the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Add",			1182,133,41,18, &(mtex->blendtype), 9.0, (float)MTEX_ADD, 0, 0, "Sets texture to add the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Sub",			1226,133,40,18, &(mtex->blendtype), 9.0, (float)MTEX_SUB, 0, 0, "Sets texture to subtract the values or colour");
+
+	uiDefButS(block, ROW, B_MATPRV, "Div",			1087,115,60,18, &(mtex->blendtype), 9.0, (float)MTEX_DIV, 0, 0, "Sets texture to divide the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Screen",		1147,115,60,18, &(mtex->blendtype), 9.0, (float)MTEX_SCREEN, 0, 0, "Sets texture to screen the values or colour");
+	uiDefButS(block, ROW, B_MATPRV, "Diff",			1207,115,59,18, &(mtex->blendtype), 9.0, (float)MTEX_DIFF, 0, 0, "Sets texture to difference the values or colour");
+
+	uiDefButS(block, ROW, B_MATPRV, "Light",		1087,98,90,18, &(mtex->blendtype), 9.0, (float)MTEX_LIGHT, 0, 0, "Sets texture to choose the lighter value");
+	uiDefButS(block, ROW, B_MATPRV, "Dark",			1177,98,89,18, &(mtex->blendtype), 9.0, (float)MTEX_DARK, 0, 0, "Sets texture to choose the darker");
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",		1087,50,179,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",		1087,30,179,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
@@ -2361,14 +2378,14 @@ static void material_panel_map_to(Material *ma)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	900,120,54,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
-	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		956,120,39,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
-	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		997,120,71,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
+	uiDefButS(block, TOG|BIT|1, B_MATPRV, "Stencil",	900,132,54,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButS(block, TOG|BIT|2, B_MATPRV, "Neg",		956,132,39,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "No RGB",		997,132,71,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
 
-	uiDefButF(block, COL, B_MTEXCOL, "",				900,100,168,18, &(mtex->r), 0, 0, 0, 0, "Browses existing datablocks");
-	
 	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_MTEXCOL, "",				900,100,168,20, &(mtex->r), 0, 0, 0, 0, "");
+	
 	if(ma->colormodel==MA_HSV) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButF(block, HSVSLI, B_MATPRV, "H ",			900,80,168,19, &(mtex->r), 0.0, 0.9999, B_MTEXCOL, 0, "");
@@ -2377,13 +2394,13 @@ static void material_panel_map_to(Material *ma)
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	else {
-		uiDefButF(block, NUMSLI, B_MATPRV, "R ",			900,80,168,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of red the intensity texture blends");
-		uiDefButF(block, NUMSLI, B_MATPRV, "G ",			900,60,168,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of green the intensity texture blends");
-		uiDefButF(block, NUMSLI, B_MATPRV, "B ",			900,40,168,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "Sets the amount of blue the intensity texture blends");
+		uiDefButF(block, NUMSLI, B_MATPRV, "R ",			900,80,168,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+		uiDefButF(block, NUMSLI, B_MATPRV, "G ",			900,60,168,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+		uiDefButF(block, NUMSLI, B_MATPRV, "B ",			900,40,168,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		900,10,168,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Sets the amount the texture blends with the basic value");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		900,10,168,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the texture uses to mix with (not RGB)");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);

@@ -739,7 +739,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 
 	/* start speed: texture */
 	if(mtex && paf->texfac!=0.0) {
-	/*	particle_tex(mtex, paf, pa->co, pa->no);  */
+		particle_tex(mtex, paf, pa->co, pa->no);
 	}
 
 	if(paf->totkey>1) deltalife= pa->lifetime/(paf->totkey-1);

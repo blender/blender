@@ -571,11 +571,6 @@ void ima_ibuf_is_nul(Tex *tex)
 			}
 			else if(tex->imaflag & TEX_ANTIALI) IMB_antialias(ima->ibuf);
 		}
-		
-		if(tex->imaflag & TEX_LASOPPATCH) {
-			do_laseroptics_patch(ima->ibuf);
-		}
-		
 	}
 	
 	if(ima->ibuf==0) ima->ok= 0;
