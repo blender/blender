@@ -40,10 +40,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "IMB_imbuf.h"
 #include "PIL_time.h"
 

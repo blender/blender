@@ -35,10 +35,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"

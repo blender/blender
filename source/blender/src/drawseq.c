@@ -34,10 +34,6 @@
 #include <config.h>
 #endif
 
-#ifdef _WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include <string.h>
 #include <math.h>
 

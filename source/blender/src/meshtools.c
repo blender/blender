@@ -52,11 +52,7 @@ void sort_faces(void);
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 #include "MEM_guardedalloc.h"
-
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

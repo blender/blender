@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif				/* WIN32 */
-
 #include <BDR_drawmesh.h> /* free_realtime_image */
 #include <BKE_main.h>
 #include <BKE_global.h>

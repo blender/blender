@@ -37,7 +37,6 @@
 #ifndef WIN32
 #include <unistd.h>
 #else
-#include "BLI_winstuff.h"
 #include <io.h>
 #endif
 

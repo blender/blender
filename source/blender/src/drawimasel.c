@@ -43,7 +43,6 @@
 #endif
 
 #ifdef _WIN32
-#include "BLI_winstuff.h"
 #pragma warning (once : 4761)
 #endif
 

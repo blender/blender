@@ -36,7 +36,6 @@
 
 #ifdef _WIN32
 #pragma warning (once : 4761)
-#include "BLI_winstuff.h"
 #endif
 
 #include "BMF_Api.h"

@@ -35,7 +35,6 @@
 #include "BLI_blenlib.h"
 
 #ifdef WIN32
-#include "BLI_winstuff.h"
 #include <io.h>
 #endif
 

@@ -41,9 +41,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"

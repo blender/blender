@@ -43,10 +43,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */

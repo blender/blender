@@ -207,11 +207,6 @@ static int started;
 #define SETCURRENTPOINT	(256+33)
 #define WHAT0		(0)
 
-/* some dirt for windows */
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 static char oneline[LINELEN];
 static objfnt *fnt;
 

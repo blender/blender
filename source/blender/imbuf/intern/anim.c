@@ -59,7 +59,6 @@
 #include <dirent.h>
 #else
 #include <io.h>
-#include "BLI_winstuff.h"
 #endif
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail

@@ -38,10 +38,6 @@
 #include <config.h>
 #endif
 
-#ifdef _WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "BMF_Api.h"
 
 #include "BLI_blenlib.h"

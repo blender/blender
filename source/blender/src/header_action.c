@@ -43,10 +43,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_ipo_types.h"

@@ -42,10 +42,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"

@@ -44,9 +44,6 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 #include "MEM_guardedalloc.h"
 
 

@@ -28,10 +28,6 @@
  */
 
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 

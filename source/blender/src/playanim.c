@@ -45,7 +45,6 @@
 #include <sys/wait.h>
 #else
 #include <io.h>
-#include "BLI_winstuff.h"
 #endif   
 #include "MEM_guardedalloc.h"
 

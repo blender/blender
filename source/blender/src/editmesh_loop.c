@@ -40,9 +40,6 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include <string.h>
 #include <math.h>
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 #include "MEM_guardedalloc.h"
 
 

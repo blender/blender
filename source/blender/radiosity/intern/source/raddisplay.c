@@ -47,10 +47,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "BLI_blenlib.h"
 
 #include "DNA_screen_types.h"

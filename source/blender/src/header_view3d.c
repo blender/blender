@@ -42,10 +42,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "BMF_Api.h"
 #include "BIF_language.h"
 #ifdef INTERNATIONAL

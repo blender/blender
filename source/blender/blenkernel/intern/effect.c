@@ -35,10 +35,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "MEM_guardedalloc.h"
 #include "DNA_listBase.h"
 #include "DNA_effect_types.h"

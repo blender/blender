@@ -39,10 +39,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "MEM_guardedalloc.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"

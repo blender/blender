@@ -58,10 +58,6 @@
 #include <unistd.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include <stdio.h>
 #include "BLI_arithb.h"
 

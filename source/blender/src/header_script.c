@@ -41,10 +41,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "BLI_blenlib.h"
 
 #include "BSE_headerbuttons.h"

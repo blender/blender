@@ -46,10 +46,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
 #include <strings.h>
 #endif

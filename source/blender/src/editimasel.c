@@ -39,9 +39,7 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#else
+#ifndef WIN32
 #include <sys/times.h>
 #endif
 

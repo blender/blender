@@ -44,9 +44,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
 #include "MEM_guardedalloc.h"
 
 

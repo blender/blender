@@ -41,7 +41,6 @@
 #include <unistd.h>
 #else
 #include <io.h>
-#include "BLI_winstuff.h"
 #endif
 #include <stdlib.h>
 #include "MEM_guardedalloc.h"

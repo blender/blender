@@ -46,7 +46,6 @@
 #include <unistd.h>
 #else
 #include <io.h>
-#include "BLI_winstuff.h"
 #endif   
 
 #include <fcntl.h>

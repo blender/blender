@@ -63,10 +63,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
