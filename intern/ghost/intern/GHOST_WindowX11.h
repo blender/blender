@@ -290,3 +290,4 @@ private :
 
 
 #endif // _GHOST_WINDOWX11_H_
+

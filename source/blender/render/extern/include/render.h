@@ -288,3 +288,4 @@ int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
 #endif
 
 #endif /* RENDER_H */
+

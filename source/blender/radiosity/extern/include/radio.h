@@ -168,3 +168,4 @@ extern void drawpatch_ext(RPatch *patch, unsigned int col);
 extern void RAD_drawall(int depth_is_on);
 
 #endif /* RADIO_H */
+

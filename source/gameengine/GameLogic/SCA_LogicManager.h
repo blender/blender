@@ -152,3 +152,4 @@ public:
 };
 
 #endif //__KX_LOGICMANAGER
+

@@ -323,3 +323,4 @@ void BLI_setScanFillColourRef(char* c);
 #endif
 
 #endif
+

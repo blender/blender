@@ -65,3 +65,4 @@ void draw_object_ext(struct Base *base);
 #endif
 
 #endif  /*  BDR_DRAWOBJECT_H */
+

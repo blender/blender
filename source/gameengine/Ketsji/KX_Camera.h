@@ -111,4 +111,6 @@ public:
 	/** Gets all camera data. */
 	RAS_CameraData*		GetCameraData();
 };
+
 #endif //__KX_CAMERA
+

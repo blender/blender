@@ -74,4 +74,6 @@ public:
 	KX_PYMETHOD(KX_NetworkMessageActuator, SetBody);
 
 };
+
 #endif //__KX_NETWORKMESSAGEACTUATOR_H
+

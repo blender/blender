@@ -47,12 +47,12 @@ public:
 	virtual void	SetDrawingMode(int drawingmode);
 
 	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
-							const vecIndexArrays & indexarrays,
-							int mode,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
-							bool useObjectColor,
-							const MT_Vector4& rgbacolor);
+		const vecIndexArrays & indexarrays,
+		int mode,
+		class RAS_IPolyMaterial* polymat,
+		class RAS_IRenderTools* rendertools,
+		bool useObjectColor,
+		const MT_Vector4& rgbacolor);
 
 
 	virtual void	EnableTextures(bool enable);
@@ -60,3 +60,4 @@ public:
 };
 
 #endif //__KX_VERTEXARRAYOPENGLRASTERIZER
+

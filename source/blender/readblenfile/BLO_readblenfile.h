@@ -81,3 +81,4 @@ extern char *headerMagic;
 #endif
 
 #endif /* BLO_READBLENFILE_H */
+

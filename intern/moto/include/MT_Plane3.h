@@ -133,7 +133,5 @@ public :
 #include "MT_Plane3.inl"
 #endif
 
-
 #endif
-
 

@@ -67,3 +67,4 @@
 #endif /* BMF_MINIMAL */
 
 #endif /* __BMF_SETTINGS_H */
+

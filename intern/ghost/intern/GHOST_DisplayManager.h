@@ -140,3 +140,4 @@ protected:
 
 
 #endif // _GHOST_DISPLAY_MANAGER_H_
+

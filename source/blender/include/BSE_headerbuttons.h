@@ -82,3 +82,4 @@ void buttons_active_id(struct ID **id, struct ID **idfrom);
 void do_headerbuttons(short event);
 
 #endif /*  BSE_HEADERBUTTONS_H */
+

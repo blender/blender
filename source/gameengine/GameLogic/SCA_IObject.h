@@ -119,8 +119,6 @@ public:
 	PyObject* _getattr(char* attr);
 	
 };
+
 #endif //SCA_IOBJECT_H
-
-
-
 

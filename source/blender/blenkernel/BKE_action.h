@@ -233,6 +233,6 @@ enum	{
 			PCHAN_DONE		=	0x00000400
 
 };
-#endif
 
+#endif
 

@@ -39,3 +39,4 @@
 void end_latt_deform(void);
 
 #endif /* EDITLATTICE_EXT_H */
+

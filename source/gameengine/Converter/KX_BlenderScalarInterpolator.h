@@ -66,5 +66,5 @@ public:
 	KX_IScalarInterpolator *GetScalarInterpolator(BL_IpoChannel channel);	
 };
 
-
 #endif //__KX_SCALARINTERPOLATOR_H
+

@@ -126,3 +126,4 @@ int Cholesky_upper_factorization(SPDMatrix &A, SymmMatrix &L)
 
 #endif
 // CHOLESKY_H
+

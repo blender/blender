@@ -56,3 +56,4 @@ inline MT_OStream& GEN_endl(MT_OStream& os) { return std::endl(os); }
 #endif
 
 #endif
+

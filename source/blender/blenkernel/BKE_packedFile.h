@@ -59,3 +59,4 @@ int unpackImage(struct Image * ima, int how);
 void unpackAll(int how);
 	
 #endif
+

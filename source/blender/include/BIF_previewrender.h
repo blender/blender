@@ -35,4 +35,3 @@ void    BIF_preview_changed	(struct SpaceButs *area);
 void	BIF_previewrender	(struct SpaceButs *area);
 void	BIF_previewdraw		(struct SpaceButs *area);
 
-  

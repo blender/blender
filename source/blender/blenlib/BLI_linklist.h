@@ -58,3 +58,4 @@ void	BLI_linklist_free		(struct LinkNode *list, LinkNodeFreeFP freefunc);
 void	BLI_linklist_apply		(struct LinkNode *list, LinkNodeApplyFP applyfunc);
 
 #endif
+

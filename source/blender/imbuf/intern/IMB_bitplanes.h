@@ -42,3 +42,4 @@ void imb_longtobp(struct ImBuf *ibuf);
 unsigned int **imb_copyplanelist(struct ImBuf *ibuf);
 
 #endif
+

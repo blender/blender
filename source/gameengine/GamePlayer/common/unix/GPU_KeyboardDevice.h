@@ -60,5 +60,5 @@ public:
 		convert_x_keycode_to_kx_keycode(unsigned int key);
 };
 
-
 #endif  // _GPU_KEYBOARDDEVICE_H
+

@@ -196,5 +196,5 @@ istream& operator>>(istream &s, Fortran_Sparse_Vector<T> &A)
 
 } // namespace TNT
 
-#endif
-// FSPVEC_H
+#endif // FSPVEC_H
+

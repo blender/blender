@@ -126,3 +126,4 @@ short pupmenu(char *instr);
 short pupmenu_col(char *instr, int maxrow);
 
 #endif /*  BIF_INTERFACE_H */
+

@@ -42,3 +42,4 @@ short imb_encodebodyh(struct ImBuf *ibuf, int file);
 short imb_encodebodyv(struct ImBuf *ibuf, int file);
 
 #endif
+

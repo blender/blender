@@ -79,3 +79,4 @@ MT_Point2 MT_lerp(const MT_Point2& p1, const MT_Point2& p2, MT_Scalar t);
 #endif
 
 #endif
+

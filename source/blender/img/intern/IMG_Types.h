@@ -46,3 +46,4 @@ typedef enum {
 } TVisibility;
 
 #endif // _H_IMG_Types
+

@@ -61,3 +61,4 @@ extern void				IMG_CanvasDrawLineUV(IMG_CanvasPtr canvas, IMG_BrushPtr brush, fl
 #endif
 
 #endif // _H_IMG_API
+

@@ -83,3 +83,4 @@ class KX_TrackToActuator : public SCA_IActuator
 }; /* end of class KX_TrackToActuator : public KX_EditObjectActuator */
 
 #endif
+

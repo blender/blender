@@ -142,5 +142,3 @@ public:
 
 #endif //__KX_TOUCHSENSOR
 
-
-

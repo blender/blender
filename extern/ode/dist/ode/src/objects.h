@@ -87,5 +87,5 @@ struct dxWorld : public dBase {
   dReal global_cfm;		// global costraint force mixing parameter
 };
 
-
 #endif
+

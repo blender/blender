@@ -215,3 +215,4 @@ inline void	IMG_PixmapRGBA32::getColor(TPixelRGBA32 p, IMG_ColorRGBA& c) const
 }
 
 #endif /* _H_IMG_PixmapRGBA32 */
+

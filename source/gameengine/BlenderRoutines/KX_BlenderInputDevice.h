@@ -212,9 +212,5 @@ public:
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val)=0;
 
 };                                                                                                                 
-
-
-                                                                                                                   
-
-
 #endif //__KX_BLENDERINPUTDEVICE
+

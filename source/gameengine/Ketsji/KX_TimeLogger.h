@@ -105,3 +105,4 @@ protected:
 };
 
 #endif // __KX_TIME_LOGGER_H
+

@@ -41,3 +41,4 @@ unsigned short imb_start_iff(struct ImBuf *ibuf, int file);
 unsigned short imb_update_iff(int file, int code);
 
 #endif
+

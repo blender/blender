@@ -298,5 +298,5 @@ typedef short IPO_Channel;
 #define IPO_EDIT		4
 #define IPO_LOCK		8
 
-
 #endif
+

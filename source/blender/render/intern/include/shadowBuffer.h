@@ -77,3 +77,4 @@ RE_DECLARE_HANDLE(RE_ShadowBufferHandle);
 #endif
 
 #endif /* SHADOWBUFFER_H */
+

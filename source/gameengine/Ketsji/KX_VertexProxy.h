@@ -67,4 +67,6 @@ public:
 	KX_PYMETHOD(KX_VertexProxy,SetNormal);
 
 };
+
 #endif //__KX_VERTEXPROXY
+

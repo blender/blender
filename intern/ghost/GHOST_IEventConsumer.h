@@ -64,3 +64,4 @@ public:
 };
 
 #endif // _GHOST_EVENT_CONSUMER_H_
+

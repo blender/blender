@@ -84,5 +84,5 @@ public:
 	virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
 };
 
-
 #endif // _GHOST_ITIMER_TASK_H_
+

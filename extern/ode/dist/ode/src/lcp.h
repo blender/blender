@@ -56,3 +56,4 @@ void dSolveLCP (int n, dReal *A, dReal *x, dReal *b, dReal *w,
 
 
 #endif
+

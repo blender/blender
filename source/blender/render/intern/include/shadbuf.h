@@ -73,3 +73,4 @@ float shadow_halo(LampRen *lar, float *p1, float *p2);
 #endif
 
 #endif /* SHADBUF_EXT_H */
+

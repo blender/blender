@@ -259,4 +259,6 @@ typedef struct EditIpo {
 #define CO_ORIENT_Z	8
 #define CO_ROLL		9
 */
+
 #endif /* IPO_H */
+

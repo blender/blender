@@ -146,5 +146,3 @@ private:
 
 #endif //__ODE_PHYSICSCONTROLLER_H
 
-
-

@@ -33,15 +33,15 @@
 #define __KX_CONVERTSENSOR_H
 
 void BL_ConvertSensors(struct Object* blenderobject,
-					   class KX_GameObject* gameobj,
-					   class SCA_LogicManager* logicmgr,
-					   class KX_Scene* kxscene,
-					   class SCA_IInputDevice* keydev,
-					   int & executePriority ,
-					   int activeLayerBitInfo,
-					   bool isInActiveLayer,
-					   class RAS_ICanvas* canvas, 
-					   class KX_BlenderSceneConverter* converter);
-					   
+	   class KX_GameObject* gameobj,
+	   class SCA_LogicManager* logicmgr,
+	   class KX_Scene* kxscene,
+	   class SCA_IInputDevice* keydev,
+	   int & executePriority ,
+	   int activeLayerBitInfo,
+	   bool isInActiveLayer,
+	   class RAS_ICanvas* canvas, 
+	   class KX_BlenderSceneConverter* converter);
 
 #endif //__KX_CONVERTSENSOR_H
+

@@ -67,3 +67,4 @@ void do_ob_key(struct Object *ob);
 void do_spec_key(struct Key *key);
 	
 #endif
+

@@ -54,3 +54,4 @@ extern int datatoc_cmovie_tga_size;
 extern char datatoc_cmovie_tga[];
 
 #endif /* DATATOC_H */
+

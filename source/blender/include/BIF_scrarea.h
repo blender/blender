@@ -48,4 +48,6 @@ int		scrarea_get_win_height	(struct ScrArea *sa);
 
 #ifdef __cplusplus
 }
+
 #endif
+

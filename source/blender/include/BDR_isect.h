@@ -90,3 +90,4 @@ void addisfaces(struct EditVlak *evl);
 void intersect_mesh(void);        
 
 #endif /*  BDR_ISECT_H */
+

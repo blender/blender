@@ -467,5 +467,6 @@ void SVD_a( MaTRiX &a, VecToR &w,  MaTRiX &v) {
 }
 
 }
+
 #endif
 

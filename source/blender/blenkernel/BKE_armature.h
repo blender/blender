@@ -118,4 +118,6 @@ void GB_validate_defgroups (struct Mesh *mesh, struct ListBase *defbase);
 #ifdef __cplusplus
 }
 #endif
+
 #endif
+

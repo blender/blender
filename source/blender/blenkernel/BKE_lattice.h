@@ -57,3 +57,4 @@ void outside_lattice(struct Lattice *lt);
 
 
 #endif
+

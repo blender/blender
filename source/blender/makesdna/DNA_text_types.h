@@ -76,5 +76,5 @@ typedef struct Text {
 #define TXT_READONLY            0x0100
 #define TXT_FOLLOW              0x0200 	// always follow cursor (console)
 
-
 #endif
+

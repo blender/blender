@@ -52,3 +52,4 @@ public:
 };
 
 #endif //__KX_MOTIONSTATE
+

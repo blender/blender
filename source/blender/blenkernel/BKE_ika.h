@@ -57,3 +57,4 @@ void init_skel_deform(struct Object *par, struct Object *ob);
 void calc_skel_deform(struct Ika *ika, float *co);
 
 #endif
+

@@ -58,5 +58,5 @@ protected:
 
 };
 
-
 #endif //_GPW_SYSTEM_H_
+

@@ -326,3 +326,4 @@ inline GHOST_WindowManager* GHOST_System::getWindowManager() const
 }
 
 #endif // _GHOST_SYSTEM_H_
+

@@ -62,3 +62,4 @@ void inner_play_anim_loop(int init, int mode);
 int play_anim(int mode);
 
 #endif /* BSE_DRAWVIEW_H */
+

@@ -42,3 +42,4 @@ void imb_losecmapbits(struct ImBuf *ibuf, unsigned int *coltab);
 short *imb_coldeltatab(unsigned char *coltab, short mincol, short maxcol, short cbits);
 
 #endif
+

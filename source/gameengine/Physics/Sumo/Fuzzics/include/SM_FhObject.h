@@ -18,9 +18,9 @@ public:
 	SM_Object         *getClientObject() const { return m_client_object; }
 
 	static void ray_hit(void *client_data,  
-						void *object1,
-						void *object2,
-						const DT_CollData *coll_data);
+		void *object1,
+		void *object2,
+		const DT_CollData *coll_data);
 
 private:
 	MT_Vector3      m_ray;
@@ -29,8 +29,4 @@ private:
 };
 
 #endif
-
-
-
-
 

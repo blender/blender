@@ -122,5 +122,6 @@ enum {
 	ACT_FLAG_LOCKINPUT	= 0x00000002,
 	ACT_FLAG_KEYUP		= 0x00000004
 };
+
 #endif
 

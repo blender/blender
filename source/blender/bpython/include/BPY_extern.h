@@ -58,3 +58,4 @@ int BPY_call_importloader(char *name);
 int BPY_spacetext_is_pywin(struct SpaceText *st);
 void BPY_spacetext_do_pywin_draw(struct SpaceText *st);
 void BPY_spacetext_do_pywin_event(struct SpaceText *st, unsigned short event, short val);
+

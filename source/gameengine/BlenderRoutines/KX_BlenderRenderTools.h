@@ -96,5 +96,5 @@ public:
 															   void* tface);
 };
 
-
 #endif //__KX_BLENDERRENDERTOOLS
+

@@ -52,3 +52,4 @@ void write_vrml(char *str);
 void write_videoscape(char *str);
 
 #endif
+

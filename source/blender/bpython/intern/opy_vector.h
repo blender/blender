@@ -60,4 +60,3 @@ PyObject *newMatrixObject(Matrix4Ptr mat);
 void init_py_matrix(void);
 void init_py_vector(void);
 
-

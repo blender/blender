@@ -68,3 +68,4 @@ protected:
 };
 
 #endif // _GHOST_EVENT_PRINTER_H_
+

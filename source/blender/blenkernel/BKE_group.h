@@ -56,3 +56,4 @@ void set_group_key_name(struct Group *group, char *name);
 void set_group_key_frame(struct Group *group, float frame);
 
 #endif
+

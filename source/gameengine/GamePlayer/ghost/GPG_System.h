@@ -52,5 +52,5 @@ public:
 	virtual double GetTimeInSeconds();
 };
 
-
 #endif // _GPG_SYSTEM_H_
+

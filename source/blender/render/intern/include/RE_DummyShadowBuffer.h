@@ -68,3 +68,4 @@ class RE_DummyShadowBuffer : public RE_ShadowBuffer {
 };
 
 #endif /*  RE_SHADOWBUFFER_H */
+

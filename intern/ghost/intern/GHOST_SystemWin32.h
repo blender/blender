@@ -276,3 +276,4 @@ inline void GHOST_SystemWin32::storeModifierKeys(const GHOST_ModifierKeys& keys)
 }
 
 #endif // _GHOST_SYSTEM_WIN32_H_
+

@@ -49,4 +49,6 @@ public:
 	virtual void	RegisterSensor(SCA_ISensor* sensor);
 	//SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 };
+
 #endif //__KX_PROPERTYEVENTMANAGER
+

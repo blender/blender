@@ -66,5 +66,3 @@ public:
 
 #endif //_DUMMYPHYSICSENVIRONMENT
 
-
-	

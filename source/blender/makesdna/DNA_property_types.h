@@ -65,3 +65,4 @@ typedef struct bProperty {
 #define MAX_PROPSTRING	128
 
 #endif
+

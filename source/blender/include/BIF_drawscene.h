@@ -31,3 +31,4 @@
  */
 struct Scene;
 void set_scene(struct Scene *sce);
+

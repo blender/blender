@@ -55,3 +55,4 @@ void drawimasel(void);
 /*  void select_ima_files(SpaceImaSel *simasel); */
 
 #endif  /*  BSE_DRAWIMASEL_H */
+

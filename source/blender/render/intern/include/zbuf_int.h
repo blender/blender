@@ -197,7 +197,3 @@ unsigned int         calcHaloDist(HaloRen *har);
 
 #endif /* ZBUF_INT_H */
 
-
-
-
-

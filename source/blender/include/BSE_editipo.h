@@ -140,3 +140,4 @@ void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, int val);
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
 
 #endif /*  BSE_EDITIPO_H */
+

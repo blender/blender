@@ -91,3 +91,4 @@ extern float turbulence(float noisesize, float x, float y, float z, int depth);
 extern float turbulence1(float noisesize, float x, float y, float z, int depth);
 
 #endif /* PLUGIN_H */
+

@@ -158,5 +158,6 @@ public:
 	int					GetPlaystate() const;
 	
 };
+
 #endif //__SND_SOUNDOBJECT_H
 

@@ -200,3 +200,4 @@ inline  STR_String operator+(const char  *lhs, rcSTR_String   rhs)	{ return STR_
 
 
 #endif //_STR_String_H_
+

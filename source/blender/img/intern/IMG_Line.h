@@ -138,5 +138,5 @@ inline void IMG_Line::getPoint(float t, TInt32& x, TInt32& y) const
 	y = (TInt32) (((float)m_ys) + (t * (m_ye - m_ys)));
 }
 
-
 #endif // _H_IMG_Line
+

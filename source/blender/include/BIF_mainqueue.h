@@ -44,3 +44,4 @@ void			mainqenter_ext	(unsigned short event, short val, char ascii);
 void			mainqpushback	(unsigned short event, short val, char ascii);
 
 #endif /* BIF_MAINQUEUE_H */
+

@@ -44,3 +44,4 @@ struct KX_ClientObjectInfo
 };
 
 #endif //__KX_CLIENTOBJECT_INFO_H
+

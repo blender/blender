@@ -50,3 +50,4 @@ typedef struct View2D {
 #define V2D_LOCKZOOM_Y	0x0200
 
 #endif
+

@@ -50,3 +50,4 @@ void free_duplilist(void);
 void make_duplilist(struct Scene *sce, struct Object *ob);
 	
 #endif
+

@@ -102,3 +102,4 @@ extern pschar charlist[NASCII];
 /*  char *asciiname(void); */
 
 #endif
+

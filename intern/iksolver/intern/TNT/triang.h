@@ -661,10 +661,5 @@ std::ostream& operator<<(std::ostream &s,
 
 } // namespace TNT
 
-
-
-
-
-#endif 
-//TRIANG_H
+#endif //TRIANG_H
 

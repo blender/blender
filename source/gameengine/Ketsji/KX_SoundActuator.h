@@ -102,5 +102,6 @@ public:
 	KX_PYMETHOD(KX_SoundActuator,SetVelocity);
 	KX_PYMETHOD(KX_SoundActuator,SetOrientation);
 };
+
 #endif //__KX_SOUNDACTUATOR
 

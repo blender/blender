@@ -80,12 +80,3 @@ private :
 
 #endif //__SND_DEVICEMANAGER_H
 
-
-
-
-
-
-
-
-
-		

@@ -97,5 +97,5 @@ float IPO_GetFloatValue(struct Ipo *ipo,
 						short c,
 						float ctime);
 
-
 #endif
+

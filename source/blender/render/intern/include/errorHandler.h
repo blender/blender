@@ -67,3 +67,4 @@ void RE_error(int errType, char* fname);
 void RE_error_int(int errType, char* fname, int valye);
 
 #endif /* ERRORHANDLER_H */
+

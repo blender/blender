@@ -101,5 +101,5 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USERDEF_VRML_AUTOSCALE	2
 #define USERDEF_VRML_TWOSIDED	4
 
-
 #endif
+

@@ -64,3 +64,4 @@ BLI_vfontdata_from_psfont(
 	struct PackedFile *pf);
 
 #endif
+

@@ -37,3 +37,4 @@
 int BLO_findstruct_offset(char *structname, char *member);// used by py_main.c
 
 #endif
+

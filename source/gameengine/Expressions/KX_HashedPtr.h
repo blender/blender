@@ -51,3 +51,4 @@ public:
 };
 
 #endif //__KX_HASHEDPTR
+

@@ -54,3 +54,4 @@ void scene_deselect_all(struct Scene *sce);
 void scene_select_base(struct Scene *sce, struct Base *selbase);
 
 #endif
+

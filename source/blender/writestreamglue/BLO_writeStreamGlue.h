@@ -88,3 +88,4 @@ writeStreamGlue(
 #endif
 
 #endif /* BLO_WRITESTREAMGLUE_H */
+

@@ -41,3 +41,4 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags);
 short imb_saveiris(struct ImBuf * ibuf, int file, int flags);
 
 #endif
+

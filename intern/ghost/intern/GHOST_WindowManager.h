@@ -163,3 +163,4 @@ protected:
 };
 
 #endif // _GHOST_WINDOW_MANAGER_H_
+

@@ -46,3 +46,4 @@ void	BIF_write_homefile		(void);
 void	BIF_write_autosave		(void);
 
 #endif
+

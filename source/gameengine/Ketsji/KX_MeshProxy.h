@@ -63,4 +63,6 @@ public:
 	KX_PYMETHOD(KX_MeshProxy,GetVertexArrayLength);
 	KX_PYMETHOD(KX_MeshProxy,GetVertex);
 };
+
 #endif //__KX_MESHPROXY
+

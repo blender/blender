@@ -86,3 +86,4 @@ public:
 };
 
 #endif // _GHOST_IEVENT_H_
+

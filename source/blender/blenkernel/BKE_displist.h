@@ -115,3 +115,4 @@ void reshadeall_displist(void);
 void test_all_displists(void);
 
 #endif
+

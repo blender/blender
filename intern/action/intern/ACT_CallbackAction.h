@@ -122,3 +122,4 @@ inline void ACT_CallbackAction::doUndo()
 
 
 #endif // _H_ACT_CALLBACK_ACTION_H
+

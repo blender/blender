@@ -40,3 +40,4 @@ struct ImBuf;
 short imb_converttoham(struct ImBuf *ibuf);
 
 #endif
+

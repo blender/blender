@@ -86,3 +86,4 @@ typedef struct VPaint {
 } VPaint;
 
 #endif /* BSE_TRANS_TYPES_H */
+

@@ -48,4 +48,6 @@ public:
 	virtual ~KX_BlenderSystem() {};
 	virtual double GetTimeInSeconds();
 };
+
 #endif //__KX_BLENDERSYSTEM
+

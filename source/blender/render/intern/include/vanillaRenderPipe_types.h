@@ -83,8 +83,5 @@ struct RE_faceField {
 	int mask;
 };
 
-
-
 #endif /* VANILLARENDERPIPE_TYPES_H */
-
 

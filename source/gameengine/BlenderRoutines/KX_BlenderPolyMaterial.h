@@ -96,3 +96,4 @@ inline RAS_IPolyMaterial::TCachingInfo KX_BlenderPolyMaterial::GetCachingInfo(vo
 }
 
 #endif // __KX_BLENDERPOLYMATERIAL
+

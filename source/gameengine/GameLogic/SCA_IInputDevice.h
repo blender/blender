@@ -305,3 +305,4 @@ public:
 };
 
 #endif	//KX_INPUTDEVICE_H
+

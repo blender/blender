@@ -77,3 +77,4 @@ int doGamma(void);
 void setDoGamma(int);
 
 #endif
+

@@ -205,3 +205,4 @@ extern void IK_FreeChain(IK_Chain_ExternPtr);
 #endif
 
 #endif // NAN_INCLUDED_IK_solver_h
+

@@ -73,6 +73,3 @@ typedef struct {
 	
 #endif /* ZBUF_TYPES_H */
 
-
-
-

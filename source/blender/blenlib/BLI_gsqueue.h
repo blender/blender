@@ -93,3 +93,4 @@ void		BLI_qsueue_pushback	(GSQueue *gq, void *item);
 void		BLI_gsqueue_free	(GSQueue *gq);
 
 #endif /* BLI_GSQUEUE_H */
+

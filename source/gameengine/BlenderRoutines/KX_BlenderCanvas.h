@@ -162,4 +162,6 @@ private:
 	/** Blender area the game engine is running within */
 	struct ScrArea* m_area;
 };
+
 #endif // __KX_BLENDERCANVAS
+

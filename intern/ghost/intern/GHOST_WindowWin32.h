@@ -274,3 +274,4 @@ protected:
 };
 
 #endif // _GHOST_WINDOW_WIN32_H_
+

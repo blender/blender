@@ -128,3 +128,4 @@ public:
 };
 
 #endif //__SCA_ISENSOR
+

@@ -232,5 +232,5 @@ int LU_solve(const MaTRiX &A, const VecToRSubscripts &indx, VecToR &b)
 
 } // namespace TNT
 
-#endif
-// LU_H
+#endif // LU_H
+

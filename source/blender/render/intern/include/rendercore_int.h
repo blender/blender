@@ -50,6 +50,5 @@ void    halovert(void);
 void    renderhalo(HaloRen *har);	/* postprocess versie */
 void scanlinehaloPS(unsigned int *rectz, long *rectdelta, unsigned int *rectt, short ys);
 
-
 #endif /* RENDER_INT_H */
 

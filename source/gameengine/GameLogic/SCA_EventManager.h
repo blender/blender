@@ -66,4 +66,6 @@ public:
 protected:
 	EVENT_MANAGER_TYPE		m_mgrtype;
 };
+
 #endif
+

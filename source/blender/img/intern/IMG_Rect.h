@@ -198,3 +198,4 @@ inline bool IMG_Rect::isInside(TInt32 x, TInt32 y) const
 }
 
 #endif // _H_IMG_Rect
+

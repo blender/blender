@@ -189,3 +189,4 @@ void blendOverFloatRow(int type, float* dest, float* source,
 void std_transFloatColV2CharColV( RE_COLBUFTYPE *buf, char *target);
 
 #endif /* VANILLARENDERPIPE_INT_H */
+

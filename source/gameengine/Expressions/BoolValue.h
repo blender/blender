@@ -49,3 +49,4 @@ private:
 };
 
 #endif // !defined _BOOLVALUE_H
+

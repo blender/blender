@@ -50,15 +50,17 @@ public:
 	dictobj: python dictionary (for pythoncontrollers)
 	*/
 	virtual void ConvertScene(const STR_String& scenename,
-						class KX_Scene* destinationscene,
-						PyObject* dictobj,
-						class SCA_IInputDevice* keyinputdev,
-						class RAS_IRenderTools* rendertools, 
-						class RAS_ICanvas*  canvas)=0;
+		class KX_Scene* destinationscene,
+		PyObject* dictobj,
+		class SCA_IInputDevice* keyinputdev,
+		class RAS_IRenderTools* rendertools, 
+		class RAS_ICanvas*  canvas)=0;
 	
 	virtual void	SetAlwaysUseExpandFraming(bool to_what) = 0;
 
 	virtual void	SetNewFileName(const STR_String& filename) = 0;
 	virtual bool	TryAndLoadNewFile() = 0;
 };
+
 #endif //__KX_ISCENECONVERTER_H
+

@@ -118,3 +118,4 @@ class SCA_MouseSensor : public SCA_ISensor
 };
 
 #endif //__KX_MOUSESENSOR
+

@@ -160,3 +160,4 @@ typedef struct Material {
 #define MA_DARK			1
 
 #endif
+

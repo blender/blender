@@ -46,3 +46,4 @@ extern void build_particle_system(Object *ob);
 void set_buildvars(Object *ob, int *start, int *end);
 
 #endif
+

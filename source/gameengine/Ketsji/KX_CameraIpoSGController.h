@@ -89,3 +89,4 @@ public:
 };
 
 #endif // KX_CAMERAIPOSGCONTROLLER_H
+

@@ -113,3 +113,4 @@ class KX_SceneActuator : public SCA_IActuator
 }; /* end of class KXSceneActuator */
 
 #endif
+

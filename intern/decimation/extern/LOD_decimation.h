@@ -115,5 +115,3 @@ extern int LOD_FreeDecimationData(LOD_Decimation_InfoPtr);
 
 #endif // NAN_INCLUDED_LOD_decimation_h
 
-
-

@@ -47,5 +47,5 @@ public:
 	virtual double GetTimeInSeconds();
 };
 
-
 #endif  // __GPU_SYSTEM_H
+

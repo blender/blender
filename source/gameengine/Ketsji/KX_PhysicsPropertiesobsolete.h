@@ -58,3 +58,4 @@ struct KX_MaterialProps {
 };
 
 #endif //KX_PROPSH
+

@@ -188,3 +188,4 @@ enum SAMPLE_FLAGS_BITS {
 /* to DNA_sound_types.h*/
 
 #endif
+

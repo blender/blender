@@ -174,5 +174,5 @@ private :
 	MEM_SmartPtr<IK_ConjugateGradientSolver> m_grad_solver;
 };
 
-
 #endif
+

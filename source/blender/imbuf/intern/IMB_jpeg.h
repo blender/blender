@@ -43,3 +43,4 @@ struct ImBuf * imb_ibJpegImageFromFilename (char * filename, int flags);
 struct ImBuf * imb_ibJpegImageFromMemory (unsigned char * buffer, int size, int flags);
 
 #endif
+

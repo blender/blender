@@ -44,5 +44,5 @@ void *dna_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflag
 struct SDNA *dna_sdna_from_data(void *data, int datalen, int do_endian_swap);
 void dna_freestructDNA(struct SDNA *sdna);
 
-	
 #endif
+

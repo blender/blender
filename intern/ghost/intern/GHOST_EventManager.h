@@ -155,3 +155,4 @@ protected:
 };
 
 #endif // _GHOST_EVENT_MANAGER_H_
+

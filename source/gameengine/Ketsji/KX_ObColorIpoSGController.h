@@ -75,3 +75,4 @@ public:
 };
 
 #endif // KX_OBCOLORIPOSGCONTROLLER_H
+

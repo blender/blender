@@ -60,5 +60,5 @@ public:
 //	NG_NetworkDeviceInterface* m_ndi;
 };
 
-
 #endif  // __GPC_SYSTEM_H
+

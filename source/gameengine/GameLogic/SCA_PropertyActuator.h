@@ -113,4 +113,6 @@ public:
 	/* 5. - ... setObject, getObject, setProp2, getProp2, setMode, getMode*/
 	
 };
+
 #endif //__KX_PROPERTYACTUATOR_DOC
+

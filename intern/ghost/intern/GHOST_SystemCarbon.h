@@ -249,3 +249,4 @@ protected:
 };
 
 #endif // _GHOST_SYSTEM_CARBON_H_
+

@@ -135,4 +135,3 @@ protected:
 	SND_IAudioDevice* m_audiodevice;
 };
 
-

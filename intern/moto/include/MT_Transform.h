@@ -166,7 +166,3 @@ inline MT_Transform operator*(const MT_Transform& t1, const MT_Transform& t2) {
 
 #endif
 
-
-
-
-

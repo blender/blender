@@ -81,4 +81,6 @@ public:
 	int			GetPlaystate() const;
 	
 };
+
 #endif //__SND_CDOBJECT_H
+

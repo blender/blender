@@ -48,3 +48,4 @@
 #define CHANNEL_FILTER_LA		0x00040000	/* Show lamp keys */
 
 #endif /* BSE_EDITACTION_TYPES_H */
+

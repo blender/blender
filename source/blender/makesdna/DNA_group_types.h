@@ -95,6 +95,5 @@ typedef struct Group {
 	
 } Group;
 
-
-
 #endif
+

@@ -273,3 +273,4 @@ protected:
 };
 
 #endif // _GPC_CANVAS_H_
+

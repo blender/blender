@@ -35,20 +35,20 @@
 struct Object;
 
 void BL_ConvertIpos(struct Object* blenderobject,
-					class KX_GameObject* gameobj, 
-					class KX_BlenderSceneConverter *converter
-					);
+	class KX_GameObject* gameobj, 
+	class KX_BlenderSceneConverter *converter);
 
 void BL_ConvertLampIpos(struct Lamp* blenderlight,
-						class KX_GameObject* lightobj, 
-						class KX_BlenderSceneConverter *converter);
+	class KX_GameObject* lightobj, 
+	class KX_BlenderSceneConverter *converter);
 
 void BL_ConvertWorldIpos(struct World* blenderworld, 
-						class KX_BlenderSceneConverter *converter);
+	class KX_BlenderSceneConverter *converter);
 
 void BL_ConvertCameraIpos(struct Camera* blendercamera,
-						class KX_GameObject* cameraobj, 
-						class KX_BlenderSceneConverter *converter);
+	class KX_GameObject* cameraobj, 
+	class KX_BlenderSceneConverter *converter);
 
 
 #endif //__KX_IPOCONVERT_H
+

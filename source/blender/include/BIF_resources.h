@@ -319,3 +319,4 @@ void	BIF_draw_icon_blended	(BIFIconID icon, BIFColorID color, BIFColorShade shad
 void	BIF_set_color			(BIFColorID color, BIFColorShade shade);
 
 #endif /*  BIF_ICONS_H */
+

@@ -92,3 +92,4 @@ public:
 };
 
 #endif //__SND_WAVESLOT_H
+

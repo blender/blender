@@ -94,7 +94,5 @@ typedef struct MetaBall {
 /* ml->flag */
 #define MB_NEGATIVE	2
 
-
-
-
 #endif
+

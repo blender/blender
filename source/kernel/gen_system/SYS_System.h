@@ -68,3 +68,4 @@ extern void SYS_WriteCommandLineString(SYS_SystemHandle sys, const char *paramna
 #endif
 
 #endif //__SYSTEM_INCLUDE
+

@@ -107,3 +107,4 @@ protected:
 };
 
 #endif // __BMF_BITMAP_FONT_H
+

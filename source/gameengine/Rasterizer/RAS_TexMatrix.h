@@ -43,3 +43,4 @@
 void RAS_CalcTexMatrix(RAS_TexVert p[3],MT_Point3& origin,MT_Vector3& udir,MT_Vector3& vdir);
 
 #endif //__RASTEXMATRIX
+

@@ -36,3 +36,4 @@ private:
 };
 
 #endif // !defined _ERRORVALUE_H
+

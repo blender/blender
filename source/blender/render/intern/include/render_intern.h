@@ -57,4 +57,6 @@
 typedef struct { 
 	int a, b, c, d;
 } byte16;
+
 #define COPY_16(a,b)		(*((byte16 *)(a))= *((byte16 *)(b)))
+

@@ -58,3 +58,4 @@ public:
 };
 
 #endif  // __GPU_CANVAS_H
+

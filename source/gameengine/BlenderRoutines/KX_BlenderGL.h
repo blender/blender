@@ -61,6 +61,5 @@ void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int
 }
 #endif //__cplusplus
 
-
 #endif //__BLENDERGL
 

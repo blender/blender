@@ -89,11 +89,9 @@ typedef char *fch_;                // (in/out) single character
 typedef char *cfch_;               // (in) single character
 
 
-
 #ifndef TNT_SUBSCRIPT_TYPE
 #define TNT_SUBSCRIPT_TYPE TNT::Fortran_integer
 #endif
 
+#endif // FORTRAN_H
 
-#endif
-// FORTRAN_H

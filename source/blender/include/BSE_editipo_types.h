@@ -260,3 +260,4 @@ typedef struct EditIpo {
 */
 
 #endif /*  BSE_EDITIPO_TYPES_H */
+

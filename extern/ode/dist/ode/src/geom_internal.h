@@ -79,6 +79,5 @@ struct dxGeom {		// a dGeomID is a pointer to this
 
 #define CLASSDATA(geomptr) (((char*)geomptr) + SIZEOF_DXGEOM)
 
-
-
 #endif
+

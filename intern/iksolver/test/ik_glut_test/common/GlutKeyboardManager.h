@@ -102,5 +102,5 @@ private :
 	static MEM_SmartPtr<GlutKeyboardManager> m_s_instance;
 };	
 
-
 #endif
+

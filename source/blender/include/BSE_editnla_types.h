@@ -40,3 +40,4 @@
 #define ACTIVE_ARMATURE(base) ((base)->object->type==OB_ARMATURE && (base)->object->action)
 
 #endif /* BSE_EDITNLA_TYPES_H */
+

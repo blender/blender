@@ -791,6 +791,7 @@ public:
     { return dGeomTransformGetInfo (_id); }
 };
 
+#endif
 
 #endif
-#endif
+

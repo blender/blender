@@ -57,5 +57,3 @@ private:
 
 #endif
 
-
-

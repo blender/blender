@@ -188,5 +188,5 @@ std::ostream& operator<<(std::ostream &s, const Transpose_View<Matrix> &A)
 
 } // namespace TNT
 
-#endif
-// TRANSV_H
+#endif // TRANSV_H
+

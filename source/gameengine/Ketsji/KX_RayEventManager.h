@@ -49,4 +49,6 @@ public:
 	virtual void NextFrame(double curtime,double deltatime);
 	virtual void	RegisterSensor(SCA_ISensor* sensor);
 };
+
 #endif //__KX_RAYEVENTMGR
+

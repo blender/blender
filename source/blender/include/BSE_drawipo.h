@@ -61,3 +61,4 @@ struct EditIpo *select_proj_ipo(struct rctf *rectf, int event);
 
 
 #endif  /*  BSE_DRAWIPO_H */
+

@@ -42,3 +42,4 @@ short imb_enc_anim(struct ImBuf *ibuf, int file);
 void imb_convhamx(struct ImBuf *ibuf, unsigned char coltab[][4], short *deltab);
 
 #endif
+

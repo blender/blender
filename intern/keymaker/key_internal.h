@@ -87,3 +87,4 @@ char *CryptDatablock(byte *CryptKey, int keylen, char *KeyDataString);
 char *RSACryptKey(RSA *rsa, byte *CryptKey, int KeyLen);
 void add_to_datablock(char **DataString, char *HexString, char *TypeString);
 void LoadRSAprivKey(RSA *Priv);
+

@@ -131,3 +131,4 @@ protected:
 };
 
 #endif // __KX_TIME_CATEGORY_LOGGER_H
+

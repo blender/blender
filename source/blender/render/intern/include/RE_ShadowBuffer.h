@@ -59,3 +59,4 @@ class RE_ShadowBuffer {
 };
 
 #endif /*  RE_SHADOWBUFFER_H */
+

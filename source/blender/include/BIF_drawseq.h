@@ -39,3 +39,4 @@ void drawseq(struct Sequence *seq);
 void set_special_seq_update(int val);
 
 #endif
+

@@ -61,3 +61,4 @@ struct RAS_LightObject
 };
 
 #endif //__RAS_LIGHTOBJECT_H
+

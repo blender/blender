@@ -38,3 +38,4 @@ void   BLI_builddir(char *dirname, char *relname);
 int    BLI_compare(struct direntry *entry1, struct direntry *entry2);
 
 #endif /* BLI_STORAGE_H */
+

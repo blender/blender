@@ -72,3 +72,4 @@ protected:
 
 
 #endif // _GHOST_EVENT_CURSOR_H_
+

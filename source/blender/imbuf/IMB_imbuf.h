@@ -477,3 +477,4 @@ void IMB_freezbufImBuf(struct ImBuf * ibuf);
 void IMB_rectfill(unsigned int *drect, unsigned int *srect, int x, int value);
 
 #endif
+

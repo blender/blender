@@ -81,4 +81,6 @@ private:
 	MT_Scalar		m_dopplervelocity;	/* factor for the reference velocity (for Dopplereffect) */
 	MT_Scalar		m_scale;
 };
+
 #endif //__SND_SOUNDLISTENER_H
+

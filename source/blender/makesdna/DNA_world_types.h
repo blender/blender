@@ -117,3 +117,4 @@ typedef struct World {
 #define WOMAP_ZENDOWN	8
 
 #endif
+

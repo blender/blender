@@ -114,5 +114,5 @@ private :
 	MEM_SmartPtr<LOD_ExternBufferEditor> m_extern_editor;
 };
 
-
 #endif
+

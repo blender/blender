@@ -188,3 +188,4 @@ struct BitMapHeader
 };
 
 #endif	/* IMBUF_H */
+

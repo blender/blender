@@ -247,6 +247,3 @@ private :
 
 #endif
 
-
-
-

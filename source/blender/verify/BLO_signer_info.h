@@ -45,3 +45,4 @@ struct BLO_SignerInfo {
 struct BLO_SignerInfo *BLO_getSignerInfo(void);
 int BLO_isValidSignerInfo(struct BLO_SignerInfo *info);
 void BLO_clrSignerInfo(struct BLO_SignerInfo *info);
+

@@ -495,5 +495,5 @@ std::ostream& operator<<(std::ostream &s, const Region2D<Array2D> &A)
 
 } // namespace TNT
 
-#endif
-// REGION2D_H
+#endif // REGION2D_H
+

@@ -137,7 +137,5 @@ typedef struct {
 	short mode, tile;
 } FaceData;
 
-
-
-
 #endif
+

@@ -50,3 +50,4 @@ void	set_active_object(struct Object *ob);
 void	set_render_border(void);
 
 #endif
+

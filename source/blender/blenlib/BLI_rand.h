@@ -66,3 +66,4 @@ void	BLI_storerand	(unsigned int loc_r[2]);
 void	BLI_restorerand	(unsigned int loc[2]);
 
 #endif
+

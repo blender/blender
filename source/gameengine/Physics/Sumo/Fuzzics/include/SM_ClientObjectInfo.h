@@ -13,3 +13,4 @@ struct SM_ClientObjectInfo
 };
 
 #endif //__SM_CLIENTOBJECT_INFO_H
+

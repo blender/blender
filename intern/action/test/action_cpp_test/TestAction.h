@@ -55,3 +55,4 @@ protected:
 };
 
 #endif // _H_ACT_TESTACTION
+

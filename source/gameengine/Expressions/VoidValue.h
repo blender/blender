@@ -66,3 +66,4 @@ public:
 };
 
 #endif // !defined _VOIDVALUE_H
+

@@ -56,3 +56,4 @@ void				BLI_memarena_free	(struct MemArena *ma);
 void*				BLI_memarena_alloc	(struct MemArena *ma, int size);
 
 #endif
+

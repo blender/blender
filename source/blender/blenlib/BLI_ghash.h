@@ -57,3 +57,4 @@ unsigned int	BLI_ghashutil_strhash	(void *key);
 int				BLI_ghashutil_strcmp	(void *a, void *b);
 
 #endif
+

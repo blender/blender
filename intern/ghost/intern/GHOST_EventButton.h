@@ -71,3 +71,4 @@ protected:
 };
 
 #endif // _GHOST_EVENT_BUTTON_H_
+

@@ -122,5 +122,5 @@ public:
 								const MT_Vector4& rgbavec);
 };
 
-
 #endif //__KX_BUCKET
+

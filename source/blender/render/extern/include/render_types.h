@@ -254,3 +254,4 @@ typedef struct LampRen
 } LampRen;
 
 #endif /* RENDER_TYPES_H */
+

@@ -57,3 +57,4 @@ struct BLO_in_de_flateHeaderStruct {
 #endif
 
 #endif /* BLO_IN_DE_FLATE_H */
+

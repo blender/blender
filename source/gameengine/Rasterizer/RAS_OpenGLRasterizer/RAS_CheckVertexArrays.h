@@ -35,3 +35,4 @@
 bool RAS_SystemSupportsVertexArrays();
 
 #endif //__RAS_CHECKVERTEXARRAYS
+

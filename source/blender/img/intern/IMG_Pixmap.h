@@ -184,3 +184,4 @@ inline void	IMG_Pixmap::getPixelAddress(float u, float v, TUns32& x, TUns32& y) 
 }
 
 #endif // _H_IMG_Pixmap
+

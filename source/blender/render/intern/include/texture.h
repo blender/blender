@@ -75,12 +75,3 @@ int wood(struct Tex *tex, float *texvec);
 
 #endif /* TEXTURE_EXT_H */
 
-
-
-
-
-
-
-
-
-

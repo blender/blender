@@ -350,5 +350,5 @@ struct GHOST_TimerTaskHandle__;
 typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__* task, GHOST_TUns64 time);
 #endif
 
-
 #endif // _GHOST_TYPES_H_
+

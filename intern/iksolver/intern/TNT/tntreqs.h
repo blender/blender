@@ -53,8 +53,6 @@
 *
 */
 
-
-
 // The requirements for a bare-bones vector class:
 //
 //
@@ -100,3 +98,4 @@
 //  o) support () indexing
 //  o) I/O 
 //
+

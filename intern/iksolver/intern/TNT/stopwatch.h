@@ -110,6 +110,4 @@ class stopwatch {
 } // namespace TNT
 
 #endif
-    
-
-            
+ 

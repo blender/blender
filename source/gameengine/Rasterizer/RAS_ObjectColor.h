@@ -39,3 +39,4 @@ struct	RAS_ObjectColor {
 };
 
 #endif //__RAS_OBJECTCOLOR_H
+

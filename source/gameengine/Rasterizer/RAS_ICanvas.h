@@ -169,4 +169,6 @@ public:
 		const char* filename
 	)=0;
 };
+
 #endif //__RAS_ICANVAS
+

@@ -47,3 +47,4 @@ public:
 };
 
 #endif // !defined(AFX_IFEXPR_H__1F691841_C5C7_11D1_A863_0000B4542BD8__INCLUDED_)
+

@@ -36,3 +36,4 @@
 char *key_event_to_string(unsigned short event);
 
 #endif
+

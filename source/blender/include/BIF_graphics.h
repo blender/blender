@@ -54,3 +54,4 @@ void set_cursor(int curs);
 int get_cursor(void);
 
 #endif /* BIF_GRAPHICS_H */
+

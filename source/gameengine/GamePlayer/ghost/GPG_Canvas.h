@@ -62,3 +62,4 @@ public:
 };
 
 #endif // _GPG_CANVAS_H_
+

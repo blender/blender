@@ -256,6 +256,5 @@ struct dxJointNull : public dxJoint {
 };
 extern struct dxJoint::Vtable __dnull_vtable;
 
-
-
 #endif
+

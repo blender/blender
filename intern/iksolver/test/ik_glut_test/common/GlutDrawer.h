@@ -96,5 +96,5 @@ private :
 	static MEM_SmartPtr<GlutDrawManager> m_s_instance;
 };	
 
-
 #endif
+

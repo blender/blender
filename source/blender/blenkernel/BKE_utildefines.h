@@ -296,5 +296,5 @@
 /* useless game shit */
 #define MA_FH_NOR	2
 
-
 #endif
+

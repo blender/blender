@@ -62,3 +62,4 @@ int nextcwedge (int edge, int face);
 void BKE_freecubetable(void);
 
 #endif
+

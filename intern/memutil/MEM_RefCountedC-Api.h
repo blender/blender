@@ -88,3 +88,4 @@ extern int	MEM_RefCountedDecRef(MEM_TRefCountedObjectPtr shared);
 #endif
 
 #endif // _H_MEM_REF_COUNTED_C_API
+

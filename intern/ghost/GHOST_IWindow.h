@@ -239,3 +239,4 @@ public:
 };
 
 #endif // _GHOST_IWINDOW_H_
+

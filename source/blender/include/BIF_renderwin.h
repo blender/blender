@@ -47,3 +47,4 @@ void BIF_renderwin_set_custom_cursor(unsigned char mask[16][2], unsigned char bi
 
 void BIF_swap_render_rects(void);
 void BIF_toggle_render_display(void);
+

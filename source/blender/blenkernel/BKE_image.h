@@ -65,3 +65,4 @@ void makemipmap(struct Image *ima);
 #endif
 
 #endif
+

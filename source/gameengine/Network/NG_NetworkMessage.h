@@ -128,3 +128,4 @@ public:
 };
 
 #endif //NG_NETWORKMESSAGE_H
+

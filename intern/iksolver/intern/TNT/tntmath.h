@@ -171,7 +171,5 @@ inline double pythag(double a, double b)
 
 } /* namespace TNT */
 
-
-#endif
-/* TNTMATH_H */
+#endif /* TNTMATH_H */
 

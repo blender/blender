@@ -172,5 +172,5 @@ protected:
 	BMF_Font* m_font;
 };
 
-
 #endif  // __GPC_RENDERTOOLS_H
+

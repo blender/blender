@@ -59,3 +59,4 @@
 #define lrectwrite(a, b, c, d, rect)	{glRasterPos2i(a,  b);glDrawPixels((c)-(a)+1, (d)-(b)+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);}
 
 #endif /* #ifdef BIF_GL_H */
+

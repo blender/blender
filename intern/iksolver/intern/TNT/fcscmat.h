@@ -189,9 +189,7 @@ ostream& operator<<(ostream &s, const Fortran_Sparse_Col_Matrix<T> &A)
 }
 
 
-
 } // namespace TNT
 
-#endif  
-/* FCSCMAT_H */
+#endif  /* FCSCMAT_H */
 

@@ -76,4 +76,6 @@ public:
 	virtual PyObject*  _getattr(char *attr);
 	
 };
+
 #endif //__KX_RAYSENSOR_H
+

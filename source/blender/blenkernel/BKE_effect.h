@@ -63,3 +63,4 @@ void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
 void object_wave(struct Object *ob);                            
 
 #endif
+

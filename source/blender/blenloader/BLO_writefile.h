@@ -38,3 +38,4 @@ int BLO_write_file(char *dir, int write_flags, char **error_r);
 void BLO_write_runtime(char *file, char *exename);
 
 #endif
+

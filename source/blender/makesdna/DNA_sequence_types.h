@@ -156,3 +156,4 @@ typedef struct Editing {
 #define SEQ_PLUGIN		24
 
 #endif
+

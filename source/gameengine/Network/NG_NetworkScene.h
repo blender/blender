@@ -100,3 +100,4 @@ protected:
 };
 
 #endif //__NG_NETWORKSCENE_H
+

@@ -68,3 +68,4 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 void view3d_align_axis_to_vector(struct View3D *v3d, int axisidx, float vec[3]);
 
 #endif
+

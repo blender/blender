@@ -36,3 +36,4 @@ void mouse_select_sima(void);
 void select_swap_tface_uv(void);
 void tface_do_clip(void);
 void transform_tface_uv(int mode);
+

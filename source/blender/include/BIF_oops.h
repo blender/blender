@@ -66,3 +66,4 @@ void test_oopslink(struct OopsLink *ol);
 void test_oopslinko(struct OopsLink *ol);
 
 #endif
+

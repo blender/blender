@@ -92,3 +92,4 @@ extern		 void mainwindow_make_active(void);
 extern		 void mainwindow_close(void);
 
 #endif
+

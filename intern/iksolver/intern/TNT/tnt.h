@@ -117,11 +117,5 @@
 
 #include "tntmath.h"
 
+#endif // TNT_H
 
-
-
-
-
-
-#endif
-// TNT_H

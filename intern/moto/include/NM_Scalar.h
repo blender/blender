@@ -157,10 +157,3 @@ inline NM_Scalar<T> pow(const NM_Scalar<T>& x, const NM_Scalar<T>& y) {
                         fabs(y.getValue()) * x.getError() + 1.0);
 }
 
-
-
-
-
-
-
-

@@ -51,5 +51,5 @@ void		exitGamePythonScripting();
 void		exitGamePythonScripting();
 void PHY_SetActiveScene(class KX_Scene* scene);
 
-
 #endif //__KX_PYTHON_INIT
+

@@ -52,3 +52,4 @@ PIL_dynlib_close(
 	PILdynlib* lib);
 
 #endif /* __PIL_DYNLIB_H__ */
+

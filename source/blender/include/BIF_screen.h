@@ -122,3 +122,4 @@ void screen_draw_info_text(struct bScreen *sc, char *text);
 #endif
 
 #endif /* BIF_SCREEN_H */
+

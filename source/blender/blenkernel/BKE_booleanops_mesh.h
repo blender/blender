@@ -116,7 +116,5 @@ NewBooleanMeshTest(
 	int op_type
 );
 
-
-
-
 #endif
+

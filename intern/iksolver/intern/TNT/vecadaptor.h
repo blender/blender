@@ -319,3 +319,4 @@ std::istream& operator>>(std::istream &s, Vector_Adaptor<BBVec> &A)
 } // namespace TNT
 
 #endif
+

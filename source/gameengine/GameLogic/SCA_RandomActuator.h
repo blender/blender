@@ -142,3 +142,4 @@ class SCA_RandomActuator : public SCA_IActuator
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 
 #endif
+

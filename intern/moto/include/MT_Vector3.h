@@ -116,3 +116,4 @@ MT_Scalar  MT_triple(const MT_Vector3& v1, const MT_Vector3& v2,
 #endif
 
 #endif
+

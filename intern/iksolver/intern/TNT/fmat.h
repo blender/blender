@@ -605,5 +605,6 @@ inline Fortran_Matrix<T> operator*(const Fortran_Matrix<T>  &A, const T &x)
 } 
 
 }  // namespace TNT
-#endif
-// FMAT_H
+
+#endif // FMAT_H
+

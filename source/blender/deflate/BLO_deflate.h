@@ -56,3 +56,4 @@ BLO_deflate(
 #endif
 
 #endif /* BLO_DEFLATE_H */
+

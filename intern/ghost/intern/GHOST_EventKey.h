@@ -85,3 +85,4 @@ protected:
 };
 
 #endif // _GHOST_EVENT_KEY_H_
+

@@ -95,5 +95,5 @@ void insertFlatObjectNoOsa(RE_APixstrExt* ap,
 						   int dist, 
 						   int mask);
 
-
 #endif
+

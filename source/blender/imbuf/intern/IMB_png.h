@@ -41,3 +41,4 @@ int imb_is_a_png(void *buf);
 struct ImBuf *imb_png_decode(unsigned char *mem, int size, int flags);
 
 #endif
+

@@ -197,6 +197,5 @@ typedef struct IpoCurve {
 #define HD_VECT		2
 #define HD_ALIGN	3
 
-
-
 #endif
+

@@ -39,5 +39,5 @@ void prepareScene(void);
 void finalizeScene(void);
 void doClipping( void (*projectfunc)(float *, float *) );
 
-
 #endif
+

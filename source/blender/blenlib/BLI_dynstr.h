@@ -87,3 +87,4 @@ char*	BLI_dynstr_get_cstring			(DynStr *ds);
 void	BLI_dynstr_free					(DynStr *ds);
 
 #endif
+

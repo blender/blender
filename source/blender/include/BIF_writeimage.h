@@ -40,3 +40,4 @@ int BIF_write_ibuf(struct ImBuf *ibuf, char *name);
 void BIF_save_envmap(struct EnvMap *env, char *str);
 
 #endif
+

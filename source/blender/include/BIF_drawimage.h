@@ -47,3 +47,4 @@ void uvco_to_areaco_noclip(float *vec, short *mval);
 void what_image(struct SpaceImage *sima);
 
 #endif
+

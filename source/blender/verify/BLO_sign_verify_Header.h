@@ -75,3 +75,4 @@ struct BLO_SignerHeaderStruct {
 #endif
 
 #endif /* BLO_SIGN_VERIFY_H */
+

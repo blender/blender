@@ -36,3 +36,4 @@ void rem_selected_from_group(void);
 void group_menu(void);
 void prev_group_key(struct Group *group);
 void next_group_key(struct Group *group);
+

@@ -525,11 +525,7 @@ void vectorscale(
             A[i] *= B;
 }
 
-
-
-
-
 }   /* namespace TNT */
 
-#endif
-// VEC_H
+#endif // VEC_H
+

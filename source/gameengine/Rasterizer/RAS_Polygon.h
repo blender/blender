@@ -89,4 +89,6 @@ public:
 	RAS_MaterialBucket*	GetMaterial();
 
 };
+
 #endif
+

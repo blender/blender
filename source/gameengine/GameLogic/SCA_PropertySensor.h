@@ -106,4 +106,6 @@ public:
 	KX_PYMETHOD_DOC(SCA_PropertySensor,SetValue);
 	
 };
+
 #endif
+

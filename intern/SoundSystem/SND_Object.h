@@ -52,4 +52,6 @@ public:
 	SND_Object() {};
 	virtual ~SND_Object() {};
 };
+
 #endif //__SND_OBJECT_H
+

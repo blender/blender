@@ -42,4 +42,6 @@ public:
 	virtual ~KX_EmptyObject() {};
 	
 };
+
 #endif //__KX_EMPTYOBJECT
+

@@ -84,5 +84,3 @@ private:
 
 #endif //_SUMOPhysicsEnvironment
 
-
-	

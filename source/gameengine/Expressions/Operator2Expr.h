@@ -57,3 +57,4 @@ private:
 };
 
 #endif // !defined _OPERATOR2EXPR_H
+

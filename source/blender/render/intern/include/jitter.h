@@ -48,3 +48,4 @@ void initjit(float *jit, int num);
 #endif
 
 #endif
+

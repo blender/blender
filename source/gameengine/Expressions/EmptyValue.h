@@ -37,3 +37,4 @@ public:
 };
 
 #endif // !defined _EMPTYVALUE_H
+

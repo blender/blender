@@ -75,3 +75,4 @@ typedef struct RE_APixstrExtMain
 } RE_APixstrExtMain;
 
 #endif
+

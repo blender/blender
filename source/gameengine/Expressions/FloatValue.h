@@ -46,3 +46,4 @@ protected:
 };
 
 #endif // !defined _FLOATVALUE_H
+

@@ -91,4 +91,3 @@ class RE_BasicShadowBuffer : public RE_ShadowBuffer {
 
 #endif /* RE_BASICSHADOWBUFFER_H */
 
-

@@ -180,5 +180,3 @@ void       mesh_update(Mesh *me);
 /* blender's program name */
 extern char bprogname[];  /* init in creator.c */
 
-
-

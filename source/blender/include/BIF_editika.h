@@ -35,3 +35,4 @@ void draw_ika_nrs(struct Object *ob, int type);
 int extrude_ika(struct Object *ob, int add);
 void delete_skeleton(void);
 void make_skeleton(void);
+

@@ -72,3 +72,4 @@ void set_sca_new_poins(void);
 void sca_remove_ob_poin(struct Object *obt, struct Object *ob);                    
 
 #endif
+

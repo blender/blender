@@ -49,3 +49,4 @@ void imb_freeplanesImBuf(struct ImBuf *ibuf);
 short imb_addcmapImBuf(struct ImBuf *ibuf);
 
 #endif
+

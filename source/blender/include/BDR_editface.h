@@ -54,3 +54,4 @@ void set_faceselect(void);
 void face_draw(void);   
 
 #endif /* BDR_EDITFACE_H */
+

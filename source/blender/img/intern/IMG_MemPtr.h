@@ -112,3 +112,4 @@ public:
 };
 
 #endif // _H_IMG_MemPtr
+

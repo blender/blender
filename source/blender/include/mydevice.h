@@ -240,3 +240,4 @@
 #define REDRAWNLA			0x4035
 
 #endif	/* !__MYDEVICE_H__ */
+

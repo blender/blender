@@ -150,3 +150,4 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 };
 
 #endif //__KX_MOUSESENSOR
+

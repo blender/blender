@@ -138,3 +138,4 @@ inline bool ACT_Action::getIsApplied() const
 }
 
 #endif // _H_ACT_ACTION_H_
+

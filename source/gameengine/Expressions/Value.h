@@ -462,6 +462,5 @@ protected:
 	STR_String*					m_pstrNewName;				    // Identification
 };
 
-
-
 #endif // !defined _VALUEBASECLASS_H
+

@@ -183,3 +183,4 @@ extern void rectop(struct ImBuf *dbuf,
 				   int value);
 
 #endif /* IFF_H */
+

@@ -91,3 +91,4 @@ PyObject *newNMesh(Mesh *oldmesh);
 Mesh *Mesh_fromNMesh(NMesh *nmesh);
 PyObject *NMesh_assignMaterials_toObject(NMesh *nmesh, Object *ob);
 Material **nmesh_updateMaterials(NMesh *nmesh);
+

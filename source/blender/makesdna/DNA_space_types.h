@@ -469,3 +469,4 @@ typedef struct SpaceImaSel {
 #define IMS_INFILESLI		4
 
 #endif
+

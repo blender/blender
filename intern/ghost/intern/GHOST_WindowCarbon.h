@@ -271,3 +271,4 @@ protected:
 };
 
 #endif // _GHOST_WINDOW_CARBON_H_
+

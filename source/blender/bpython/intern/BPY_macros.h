@@ -266,3 +266,4 @@ static PyObject *type##_clrIpo(PyObject *self, PyObject *args)        \
 #define PYBLOCK_AS_LAMP(x) PYBLOCK_AS(Lamp, x)
 #define PYBLOCK_AS_IPO(x) PYBLOCK_AS(Ipo, x)
 #define PYBLOCK_AS_DATA(x) PYBLOCK_AS(void, x)
+

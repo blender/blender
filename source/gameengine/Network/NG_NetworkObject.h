@@ -45,3 +45,4 @@ public:
 };
 
 #endif //NG_NETWORKOBJECT_H
+

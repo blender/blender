@@ -58,4 +58,6 @@ public:
 	virtual PyObject*  _getattr(char *attr);
 
 };
+
 #endif //KX_NEARSENSOR_H
+

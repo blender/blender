@@ -114,6 +114,5 @@ protected:
 	void ShowCursor(void);
 };
 
-
-
 #endif // _GPW_CANVAS_H_
+

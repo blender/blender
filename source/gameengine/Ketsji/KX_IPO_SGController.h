@@ -108,4 +108,6 @@ public:
 		m_modified = true;
 	}
 };
+
 #endif //__IPO_SGCONTROLLER_H
+

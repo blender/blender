@@ -115,3 +115,4 @@ int count_mask(unsigned short mask);
 #define POINTER_TO_CODE(a)			(-(long)(a))
 
 #endif /* RENDER_EXT_H */
+

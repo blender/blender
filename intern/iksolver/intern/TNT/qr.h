@@ -257,5 +257,5 @@ int QR_solve(const MaTRiX &A, const Vector &c, /*const*/ Vector &d,
 
 } // namespace TNT
 
-#endif
-// QR_H
+#endif // QR_H
+

@@ -46,3 +46,4 @@ void draw_action_channel(struct gla2DDrawInfo *di, struct bAction *act, int flag
 void draw_object_channel(struct gla2DDrawInfo *di, struct Object *ob, int flags, float ypos);
 
 #endif  /*  BDR_DRAWACTION_H */
+

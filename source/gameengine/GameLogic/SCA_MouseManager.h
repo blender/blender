@@ -70,3 +70,4 @@ public:
 };
 
 #endif //__KX_MOUSEMANAGER
+

@@ -190,3 +190,4 @@ extern void	ACT_ActionStackRedo(ACT_ActionStackPtr stack);
 #endif
 
 #endif // _H_ACT_ACTION_C_API
+

@@ -205,5 +205,5 @@ void addalphaAddfacshort(unsigned short *doel,
 						 unsigned short *bron,
 						 short addfac);    
 
-
 #endif /* PIXELBLENDING_EXT_H */
+

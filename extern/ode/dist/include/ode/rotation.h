@@ -62,3 +62,4 @@ void dWtoDQ (const dVector3 w, const dQuaternion q, dVector4 dq);
 #endif
 
 #endif
+

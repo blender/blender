@@ -56,4 +56,6 @@ public:
 	int					GetId();
 	void				SetId(int id);
 };
+
 #endif //__SND_OBJECT_H
+

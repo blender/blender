@@ -84,3 +84,4 @@ typedef struct Image {
 #define IMA_COLCYCLE	4	/* Depreciated */
 
 #endif
+

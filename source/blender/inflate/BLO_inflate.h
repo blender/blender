@@ -78,3 +78,4 @@ BLO_inflate_end(
 #endif
 
 #endif /* BLO_INFLATE_H */
+

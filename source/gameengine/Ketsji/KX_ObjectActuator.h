@@ -137,4 +137,6 @@ public:
 	KX_PYMETHOD(KX_ObjectActuator,GetAngularVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetAngularVelocity);
 };
+
 #endif //__KX_OBJECTACTUATOR
+

@@ -39,3 +39,4 @@ typedef struct _TBcallback {
 
 typedef TBcallback * (*Tbox_callbackfunc)(int l, int x);
 void tboxSetCallback(Tbox_callbackfunc f);
+

@@ -218,3 +218,4 @@ protected :
 };
 
 #endif //__SG_IOBJECT
+

@@ -45,3 +45,4 @@ public:
 };
 
 #endif //__GEN_HASHEDPTR
+

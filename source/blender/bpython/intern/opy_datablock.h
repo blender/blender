@@ -191,3 +191,4 @@ struct Material;
 struct 
 Material **newMaterialList_fromPyList(PyObject *list);
 PyObject  *PyList_fromMaterialList(struct Material **matlist, int len);
+

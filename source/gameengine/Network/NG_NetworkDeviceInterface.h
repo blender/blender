@@ -83,3 +83,4 @@ public:
 };
 
 #endif //NG_NETWORKDEVICEINTERFACE_H
+

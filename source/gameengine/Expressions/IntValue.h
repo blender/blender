@@ -58,3 +58,4 @@ private:
 };
 
 #endif // !defined _INTVALUE_H
+

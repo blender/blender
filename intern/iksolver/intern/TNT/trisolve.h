@@ -212,5 +212,5 @@ VecToR linear_solve(/*const*/ UnitUpperTriangularView<MaTriX> &A,
 
 } // namespace TNT
 
-#endif
-// TRISLV_H
+#endif // TRISLV_H
+

@@ -46,5 +46,5 @@ public:
 	bool Initialize(HDC hdc, int width, int height);
 };
 
-
 #endif  // __GPW_ENGINE_H
+

@@ -38,3 +38,4 @@ void do_gamebuts(unsigned short event);
 void gamebuts(void);
 
 #endif
+

@@ -38,3 +38,4 @@ extern void do_blenderbuttons(unsigned short event);
 extern void redraw_test_buttons(struct Base *new);
 
 #endif
+

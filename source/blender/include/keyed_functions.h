@@ -65,4 +65,3 @@
 int make_beautiful_animation(void *vp);
 int calc_memleak (void* ptr);
 
-

@@ -67,5 +67,3 @@ struct Bone;
 /* interface crap */
 struct uiBut;
 
-
-

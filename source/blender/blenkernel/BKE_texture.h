@@ -82,4 +82,6 @@ void do_lamp_tex(struct LampRen *la, float *lavec);
 void externtex(struct MTex *mtex, float *vec);
 void externtexcol(struct MTex *mtex, float *orco, char *col);
 void render_realtime_texture(void);           
+
 #endif
+

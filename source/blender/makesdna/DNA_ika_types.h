@@ -87,5 +87,5 @@ typedef struct Ika {
 #define IK_GRABEFF		1
 #define IK_XYCONSTRAINT	2
 
-
 #endif
+

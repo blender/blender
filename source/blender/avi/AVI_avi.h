@@ -306,3 +306,4 @@ AviError AVI_print_error (AviError error);
 void AVI_set_debug (int mode);
 
 #endif /* __AVI_H__ */
+

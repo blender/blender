@@ -83,5 +83,5 @@ inline GPC_PolygonMaterial::TCachingInfo GPC_PolygonMaterial::GetCachingInfo(voi
 	return GetTFace();
 }
 
-
 #endif  // __GPC_POLYGONMATERIAL_H
+

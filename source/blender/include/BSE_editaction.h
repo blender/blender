@@ -54,3 +54,4 @@ void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
 
 #endif /* BSE_EDITACTION_H */
+

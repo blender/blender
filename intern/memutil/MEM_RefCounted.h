@@ -116,5 +116,5 @@ inline int MEM_RefCounted::decRef()
 	return m_refCount;
 }
 
-
 #endif // _H_MEM_REF_COUNTED
+

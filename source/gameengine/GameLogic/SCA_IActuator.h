@@ -78,4 +78,6 @@ public:
 	bool IsNegativeEvent() const;
 	virtual ~SCA_IActuator();
 };
+
 #endif //__KX_IACTUATOR
+

@@ -57,3 +57,4 @@ void winqreadfilespace(unsigned short event, short val, char ascii);
 void main_to_filelist(struct SpaceFile *sfile);   
 
 #endif
+

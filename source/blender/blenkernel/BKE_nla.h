@@ -43,4 +43,3 @@ void copy_actionstrip (struct bActionStrip **dst, struct bActionStrip **src);
 
 #endif
 
-

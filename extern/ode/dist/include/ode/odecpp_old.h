@@ -311,6 +311,7 @@ public:
     { return dGeomGetRotation (_id); }
 };
 
+#endif
 
 #endif
-#endif
+

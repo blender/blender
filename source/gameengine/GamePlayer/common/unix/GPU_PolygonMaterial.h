@@ -55,3 +55,4 @@ public:
 };
 
 #endif  // __GPU_POLYGONMATERIAL_H
+

@@ -93,5 +93,6 @@ public:
 	KX_PYMETHOD(KX_CDActuator,SetGain);
 	KX_PYMETHOD(KX_CDActuator,GetGain);
 };
+
 #endif //__KX_CDACTUATOR
 

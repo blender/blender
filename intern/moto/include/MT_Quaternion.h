@@ -108,5 +108,3 @@ MT_Quaternion operator*(const MT_Vector3& w, const MT_Quaternion& q);
 
 #endif
 
-
-

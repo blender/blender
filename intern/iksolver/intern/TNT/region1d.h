@@ -399,5 +399,5 @@ std::ostream& operator<<(std::ostream &s, const_Region1D<Array1D> &A)
 
 } // namespace TNT
 
-#endif
-// const_Region1D_H
+#endif // const_Region1D_H
+

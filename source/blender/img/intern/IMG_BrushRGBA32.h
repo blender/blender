@@ -132,3 +132,4 @@ inline void IMG_BrushRGBA32::getColor(IMG_ColorRGB& c) const
 
 
 #endif // _H_IMG_BrushRGBA32
+

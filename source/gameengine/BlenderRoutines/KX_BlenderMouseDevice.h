@@ -45,4 +45,6 @@ public:
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val);
 	virtual void	NextFrame();
 };
+
 #endif //__KX_BLENDERMOUSEDEVICE
+

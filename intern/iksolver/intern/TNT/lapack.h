@@ -213,13 +213,5 @@ int eigenvalue_solve(const Fortran_Matrix<double> &A,
     return (info==0 ? 0: 1);
 }
 
-
-
-
-
-#endif
-// LAPACK_H
-
-
-
+#endif // LAPACK_H
 

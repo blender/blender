@@ -68,6 +68,3 @@ private:
 
 #endif //_ODEPHYSICSENVIRONMENT
 
-
-	
-

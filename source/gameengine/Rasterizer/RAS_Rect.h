@@ -95,5 +95,5 @@ public:
 	}
 };
 
-
 #endif // _RAS_RECT
+

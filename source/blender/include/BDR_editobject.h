@@ -114,6 +114,5 @@ void texspace_edit(void);
 void first_base(void);
 void make_displists_by_obdata(void *obdata);
 
-
 #endif /*  BDR_EDITOBJECT_H */
 

@@ -94,3 +94,4 @@ struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);
 
 #endif /* __WINSTUFF_H__ */
+

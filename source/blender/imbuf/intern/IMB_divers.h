@@ -40,3 +40,4 @@ struct ImBuf;
 void imb_checkncols(struct ImBuf *ibuf);
 
 #endif
+

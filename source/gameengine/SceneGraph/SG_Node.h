@@ -205,4 +205,6 @@ private:
 	SG_Node* m_SGparent;
 
 };
+
 #endif //__SG_NODE_H
+

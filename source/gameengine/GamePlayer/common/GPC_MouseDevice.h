@@ -101,5 +101,5 @@ protected:
 	virtual bool ConvertEvent(KX_EnumInputs kxevent, int eventval);
 };
 
-
 #endif  // __GPC_MOUSE_DEVICE_H
+

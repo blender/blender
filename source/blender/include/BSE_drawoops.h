@@ -47,3 +47,4 @@ void draw_oops(struct Oops *oops, struct uiBlock *block);
 void drawoopsspace(void);
 
 #endif /* BSE_DRAWOOPS */
+

@@ -66,3 +66,4 @@ private:
 };
 
 #endif //__SND_WAVECACHE_H
+

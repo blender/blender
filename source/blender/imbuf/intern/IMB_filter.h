@@ -40,3 +40,4 @@ struct ImBuf;
 void imb_filterx(struct ImBuf *ibuf);
 
 #endif
+

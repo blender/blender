@@ -71,39 +71,32 @@ struct KX_ObjectProperties
 
 
 void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
-							 RAS_MeshObject* meshobj,
-							 KX_Scene* kxscene,
-							struct	PHY_ShapeProps* shapeprops,
-							struct	PHY_MaterialProps*	smmaterial,
-							struct	KX_ObjectProperties*	objprop);
+	RAS_MeshObject* meshobj,
+	KX_Scene* kxscene,
+	struct	PHY_ShapeProps* shapeprops,
+	struct	PHY_MaterialProps*	smmaterial,
+	struct	KX_ObjectProperties*	objprop);
 
 
 #endif //USE_ODE
 
 
 void	KX_ConvertDynamoObject(KX_GameObject* gameobj,
-							 RAS_MeshObject* meshobj,
-							 KX_Scene* kxscene,
-							struct	PHY_ShapeProps* shapeprops,
-							struct	PHY_MaterialProps*	smmaterial,
-							struct	KX_ObjectProperties*	objprop);
-
-
+	RAS_MeshObject* meshobj,
+	KX_Scene* kxscene,
+	struct	PHY_ShapeProps* shapeprops,
+	struct	PHY_MaterialProps*	smmaterial,
+	struct	KX_ObjectProperties*	objprop);
 
 #ifdef USE_SUMO_SOLID
 
-
-
-
-
 void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
-							class	RAS_MeshObject* meshobj,
-							class	KX_Scene* kxscene,
-							struct	PHY_ShapeProps* shapeprops,
-							struct	PHY_MaterialProps*	smmaterial,
-							struct	KX_ObjectProperties*	objprop);
+	class	RAS_MeshObject* meshobj,
+	class	KX_Scene* kxscene,
+	struct	PHY_ShapeProps* shapeprops,
+	struct	PHY_MaterialProps*	smmaterial,
+	struct	KX_ObjectProperties*	objprop);
 #endif
 
-
-
 #endif //KX_CONVERTPHYSICSOBJECTS
+

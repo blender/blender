@@ -43,3 +43,4 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags);
 short imb_savetarga(struct ImBuf * ibuf, int file, int flags);
 
 #endif
+

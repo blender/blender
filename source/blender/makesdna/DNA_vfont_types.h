@@ -57,3 +57,4 @@ typedef struct VFont {
 #define FO_DUPLI		4
 
 #endif
+

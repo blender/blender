@@ -83,5 +83,5 @@ public:
 	virtual bool ConvertEvent(int incode, int val);
 };
 
-
 #endif  // _GPC_KEYBOARDDEVICE_H
+

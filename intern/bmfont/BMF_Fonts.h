@@ -74,3 +74,4 @@ typedef enum
 typedef struct BMF_Font BMF_Font;
 
 #endif /* __BMF_FONTS_H */
+

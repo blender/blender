@@ -52,3 +52,4 @@
 void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int type);
 
 #endif
+

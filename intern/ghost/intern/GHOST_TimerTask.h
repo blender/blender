@@ -191,5 +191,5 @@ protected:
 	GHOST_TUns32 m_auxData;
 };
 
-
 #endif // _GHOST_TIMER_TASK_H_
+

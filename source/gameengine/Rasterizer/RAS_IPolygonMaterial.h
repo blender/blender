@@ -119,5 +119,5 @@ inline  bool operator ==( const RAS_IPolyMaterial & rhs,const RAS_IPolyMaterial 
 	return ( rhs.Equals(lhs));
 }
 
-
 #endif //__RAS_IPOLYGONMATERIAL
+

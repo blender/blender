@@ -83,6 +83,5 @@ inline MT_Scalar MT_random() {
     return MT_Scalar(MT_rand()) / MT_Scalar(MT_RAND_MAX);
 }
 
-
 #endif
 

@@ -45,5 +45,5 @@
  */
 void zBufShadeAdvanced(void);
 
-
 #endif /* VANILLARENDERPIPE_EXT_H */
+

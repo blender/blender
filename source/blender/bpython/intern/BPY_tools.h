@@ -35,3 +35,4 @@ extern PyObject *BPY_err_ret_ob (PyObject *type, char *err);
 extern int py_err_ret_int (PyObject *type, char *err);
 extern int BPY_check_sequence_consistency (PyObject *seq, PyTypeObject *against);
 extern int BPY_parsefloatvector(PyObject *vec, float *ptr, int n);
+

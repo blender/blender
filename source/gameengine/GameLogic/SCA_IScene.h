@@ -59,4 +59,6 @@ public:
 	void			AddDebugProperty(class CValue* debugprop,
 									 const STR_String &name);
 };
+
 #endif //__KX_ISCENE_H
+

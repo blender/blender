@@ -649,13 +649,7 @@ inline void matmultdiag(
 	}
 }
 
-
-
-
 } // namespace TNT
 
+#endif // CMAT_H
 
-
-
-#endif
-// CMAT_H

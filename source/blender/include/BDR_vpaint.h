@@ -56,3 +56,4 @@ void wpaint_undo (void);
 void copy_wpaint_undo (struct MDeformVert *dverts, int dcount);
 
 #endif /*  BDR_VPAINT_H */
+

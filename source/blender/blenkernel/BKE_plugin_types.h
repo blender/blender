@@ -68,3 +68,4 @@ typedef struct _PluginInfo {
 } PluginInfo;
 
 #endif
+

@@ -77,3 +77,4 @@ struct dirlink
 };
 
 #endif /* BLI_STORAGE_TYPES_H */
+

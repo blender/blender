@@ -63,3 +63,4 @@ class SCA_RandomNumberGenerator {
 };
 
 #endif /* __KX_RANDOMNUMBERGENERATOR */
+

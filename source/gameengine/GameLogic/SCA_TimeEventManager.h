@@ -51,4 +51,6 @@ public:
 	void			AddTimeProperty(CValue* timeval);
 	void			RemoveTimeProperty(CValue* timeval);
 };
+
 #endif //__KX_TIMEEVENTMANAGER
+

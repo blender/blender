@@ -140,5 +140,5 @@ inline void	IMG_ColorRGBA::blendColor(const IMG_ColorRGBA& c)
 #endif
 }
 
-
 #endif /* _H_IMG_Color */
+

@@ -202,4 +202,6 @@ protected:
 	);
 
 };
+
 #endif //__SG_SPATIAL_H
+

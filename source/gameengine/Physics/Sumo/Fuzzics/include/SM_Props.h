@@ -58,3 +58,4 @@ struct SM_MaterialProps {
 };
 
 #endif //SM_PROPSH
+

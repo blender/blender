@@ -84,3 +84,4 @@ void syspath_append(PyObject *dir);
 void init_syspath(void);
 void set_scriptlinks(ID *id, short event);
 void release_scriptlinks(ID *id);
+

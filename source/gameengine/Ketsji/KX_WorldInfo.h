@@ -63,3 +63,4 @@ public:
 };
 
 #endif //__KX_WORLDINFO_H
+

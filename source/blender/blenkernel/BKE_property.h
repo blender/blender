@@ -52,3 +52,4 @@ void set_property_valstr(struct bProperty *prop, char *str);
 void cp_property(struct bProperty *prop1, struct bProperty *prop2);
 	
 #endif
+

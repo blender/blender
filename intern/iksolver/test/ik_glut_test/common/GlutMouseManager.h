@@ -112,5 +112,5 @@ private :
 	static MEM_SmartPtr<GlutMouseManager> m_s_instance;
 };	
 
-
 #endif
+

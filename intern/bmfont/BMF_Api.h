@@ -127,3 +127,4 @@ void BMF_DrawStringTexture(BMF_Font* font, char* string, float x, float y, float
 #endif
 
 #endif /* __BMF_API_H */
+

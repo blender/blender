@@ -48,3 +48,4 @@ struct chartrans *text_to_curve(struct Object *ob, int mode);
 void font_duplilist(struct Object *par);
 
 #endif
+

@@ -61,5 +61,5 @@ private:
 	void AddEventHandlers();
 };
 
-
 #endif  // __GPU_ENGINE_H
+

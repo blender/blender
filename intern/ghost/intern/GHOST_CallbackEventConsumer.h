@@ -75,3 +75,4 @@ protected:
 };
 
 #endif // _GHOST_CALLBACK_EVENT_CONSUMER_H_
+

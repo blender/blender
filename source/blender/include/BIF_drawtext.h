@@ -49,3 +49,4 @@ void free_txt_data(void);
 void pop_space_text(struct SpaceText *st);
 
 #endif
+

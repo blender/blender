@@ -91,3 +91,4 @@ void clever_numbuts_curve(void);
 int bezt_compare (const void *e1, const void *e2);
 
 #endif  /*  BDR_EDITCURVE_H */
+

@@ -94,3 +94,4 @@ typedef struct Lamp {
 #define MAXLAMP		256
 
 #endif
+

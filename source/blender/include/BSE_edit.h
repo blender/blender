@@ -42,3 +42,4 @@ void countall(void);
 void snapmenu(void); 
 
 #endif /*  BSE_EDIT_H */
+

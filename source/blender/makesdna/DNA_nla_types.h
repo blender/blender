@@ -67,5 +67,6 @@ typedef struct bActionStrip {
 #define ACTSTRIP_USESTRIDEBIT		1
 #define ACTSTRIP_BLENDTONEXTBIT		2
 #define ACTSTRIP_HOLDLASTFRAMEBIT	3
+
 #endif
 

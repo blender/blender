@@ -72,3 +72,4 @@ Window*	winlay_get_active_window(void);
 void	winlay_process_events	(int wait_for_event);
 
 void	winlay_get_screensize	(int *width_r, int *height_r);
+

@@ -106,4 +106,6 @@ class KX_ConstraintActuator : public SCA_IActuator
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetLimit);
 
 };
+
 #endif //__KX_CONSTRAINTACTUATOR
+

@@ -67,3 +67,4 @@ protected:
 };
 
 #endif //_GPW_KEYBOARDDEVICE_H_
+

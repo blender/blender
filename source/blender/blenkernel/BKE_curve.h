@@ -84,3 +84,4 @@ void swapdata(void *adr1, void *adr2, int len);
 void switchdirectionNurb( struct Nurb *nu);
 
 #endif
+

@@ -44,3 +44,4 @@ void test_actionpoin_but(char *name, ID **idpp);	/* __ NLA */
 void clever_numbuts_buts();
 
 #endif  /*  BSE_BUTTONS_H */
+

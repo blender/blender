@@ -55,3 +55,4 @@ public:
 };
 
 #endif //_GPG_KEYBOARDDEVICE_H_
+

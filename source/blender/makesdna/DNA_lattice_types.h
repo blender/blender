@@ -63,3 +63,4 @@ typedef struct Lattice {
 #define LT_OUTSIDE	2
 
 #endif
+

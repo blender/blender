@@ -120,5 +120,5 @@ enum {
 		BONE_ISMUSCLEBIT
 };
 
-
 #endif
+

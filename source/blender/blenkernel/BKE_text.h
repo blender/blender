@@ -126,3 +126,4 @@ int		txt_add_char		(struct Text *text, char add);
 #endif
 
 #endif
+

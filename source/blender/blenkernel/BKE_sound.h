@@ -49,3 +49,4 @@ void sound_free_sample(struct bSample* sample);
 void sound_free_sound(struct bSound* sound);
 
 #endif
+

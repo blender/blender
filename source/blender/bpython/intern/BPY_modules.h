@@ -43,5 +43,3 @@ void init_py_matrix(void);
 void init_Datablockmodules(PyObject *dict);
 void initGUI(void);
 
-
-
