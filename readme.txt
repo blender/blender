@@ -18,7 +18,7 @@ Then edit source/nan_definitions.mk to fit your environment.
 After that cd $NANBLENDERHOME/intern 
 make
 make install
-Then cd $NANBLENDERHOME/intern/python and follow the instructions 
+Then cd $NANBLENDERHOME/intern/python and follow the instructions in README
 Then cd $NANBLENDERHOME/source
 make
 
