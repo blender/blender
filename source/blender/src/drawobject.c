@@ -259,7 +259,7 @@ void helpline(float *vec)
 	
 	glDrawBuffer(GL_FRONT);
 	
-	cpack(0);
+	BIF_ThemeColor(TH_WIRE);
 
 	setlinestyle(3);
 	glBegin(GL_LINE_STRIP); 
@@ -437,7 +437,7 @@ static void tekenshadbuflimits(Lamp *la, float mat[][4])
 
 	glPointSize(3.0);
 	glBegin(GL_POINTS);
-	cpack(0);
+	BIF_ThemeColor(TH_WIRE);
 	glVertex3fv(sta);
 	glVertex3fv(end);
 	glEnd();
@@ -2410,7 +2410,7 @@ static void drawmeshwire(Object *ob)
 				drawDispListwire(&me->disp);
 			}
 		}
-		cpack(0x0);
+		BIF_ThemeColor(TH_WIRE);
 		
 		if(handles==0 && (G.f & G_DRAWEDGES)) {	/* Use edge Highlighting */
 			char col[4];
@@ -2421,9 +2421,9 @@ static void drawmeshwire(Object *ob)
 			glBegin(GL_LINES);
 			while(eed) {
 				if(eed->h==0) {
-					if(eed->v1->f & 1) glColor3ub(col[0], col[1], col[2]); else cpack(0x0);
+					if(eed->v1->f & 1) glColor3ub(col[0], col[1], col[2]); else BIF_ThemeColor(TH_WIRE);
 					glVertex3fv(eed->v1->co);
-					if(eed->v2->f & 1) glColor3ub(col[0], col[1], col[2]); else cpack(0x0);
+					if(eed->v2->f & 1) glColor3ub(col[0], col[1], col[2]); else BIF_ThemeColor(TH_WIRE);
 					glVertex3fv(eed->v2->co);
 				}
 				eed= eed->next;
@@ -2893,7 +2893,7 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 	
 	/* then DispList */
 	
-	cpack(0);
+	BIF_ThemeColor(TH_WIRE);
 	cu= ob->data;
 	drawDispList(ob, dt);
 
@@ -2904,7 +2904,7 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 	
 		if(cu->bev.first==0) makeBevelList(ob);
 		
-		cpack(0x0);
+		BIF_ThemeColor(TH_WIRE);
 		bl= cu->bev.first;
 		nu= nurb;
 		while(nu && bl) {
@@ -3070,7 +3070,7 @@ static void drawmball(Object *ob, int dt)
 	mb= ob->data;
 
 	if(ob==G.obedit) {
-		cpack(0x0);
+		BIF_ThemeColor(TH_WIRE);
 		if((G.f & G_PICKSEL)==0 ) drawDispList(ob, dt);
 		ml= editelems.first;
 	}
