@@ -1661,33 +1661,31 @@ static void direct_link_text(FileData *fd, Text *text)
 	
 	text->compiled= NULL;
 		
+/*
 	if(text->flags & TXT_ISEXT) {
-		/* not implemented yet... */
-		/* reopen_text(text); */
+		reopen_text(text);
 	} else {
+*/
 
-		if(text->lines.first==0) return;
-	
-		link_list(fd, &text->lines);
-	
-		text->curl= newdataadr(fd, text->curl);
-		text->sell= newdataadr(fd, text->sell);
-	
-		ln= text->lines.first;
-		while(ln) {
-			ln->line= newdataadr(fd, ln->line);
-	
-			if (ln->len != (int) strlen(ln->line)) {
-				printf("Error loading text, line lengths differ\n");
-				ln->len = strlen(ln->line);
-			}
-	
-			ln= ln->next;
+	link_list(fd, &text->lines);
+
+	text->curl= newdataadr(fd, text->curl);
+	text->sell= newdataadr(fd, text->sell);
+
+	ln= text->lines.first;
+	while(ln) {
+		ln->line= newdataadr(fd, ln->line);
+
+		if (ln->len != (int) strlen(ln->line)) {
+			printf("Error loading text, line lengths differ\n");
+			ln->len = strlen(ln->line);
 		}
-			
-		text->flags |= TXT_ISTMP;
+
+		ln= ln->next;
 	}
-	
+
+	text->flags = (text->flags|TXT_ISTMP) & ~TXT_ISEXT;
+
 	text->id.us= 1;
 }
 
