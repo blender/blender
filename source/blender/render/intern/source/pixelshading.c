@@ -438,7 +438,7 @@ void shadeSkyPixel(float fx, float fy)
 
 	/* 1. Do a backbuffer image: */ 
 	if(R.r.bufflag & 1) {
-		fillBackgroundImage(fx, fy);
+		if(R.backbuf) fillBackgroundImage(fx, fy);
 		return;
 	} else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/*

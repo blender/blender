@@ -292,7 +292,7 @@ void scanlinesky(char *rect, int y)
 
 
 	if(R.r.bufflag & 1) {
-		if(R.backbuf->ok) {
+		if(R.backbuf && R.backbuf->ok) {
 			if(R.backbuf->ibuf==0) {
 				R.backbuf->ibuf= IMB_loadiffname(R.backbuf->name, IB_rect);
 				if(R.backbuf->ibuf==0) {

@@ -204,6 +204,7 @@ float  calc_weight(float *weight, int i, int j)
 void RE_init_filt_mask(void)
 {
 	static int firsttime=1;
+	static int lastosa=0;
 	static float lastgamma= 0.0;
 	float gamma, igamma, flweight[32];
 	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
@@ -211,6 +212,8 @@ void RE_init_filt_mask(void)
 	unsigned short *m1, *m2, shweight[32];
 
 	if(firsttime) {
+		firsttime= 0;
+		
 		for(a=0; a<9;a++) {
 			mask1[a]= MEM_mallocN(256*sizeof(short), "initfilt");
 			mask2[a]= MEM_mallocN(256*sizeof(short), "initfilt");
@@ -236,7 +239,8 @@ void RE_init_filt_mask(void)
 		gamtab= MEM_mallocN(65536*sizeof(short), "initGaus2");
 		igamtab1= MEM_mallocN(256*sizeof(short), "initGaus2");
 		igamtab2= MEM_mallocN(65536*sizeof(short), "initGaus2");
-
+		
+		return;	// this case is called on startup
 	}
 
 	if(R.r.alphamode==R_ALPHAKEY) gamma= 1.0;	/* gamma correction of alpha is nasty */
@@ -279,173 +283,171 @@ void RE_init_filt_mask(void)
 		}
 	}
 
-	if(firsttime) {
-		firsttime= 0;
-		return;
-	}
-
-	val= 1.0/((float)R.osa);
-	for(a=0; a<256; a++) {
-		fmask[a]= ((float)cmask[a])*val;
-	}
-
-	for(a=0; a<9;a++) {
-		memset(mask1[a], 0, 256*2);
-		memset(mask2[a], 0, 256*2);
-		memset(fmask1[a], 0, 256*4);
-		memset(fmask2[a], 0, 256*4);
-	}
-
-	/* calculate totw */
-	totw= 0.0;
-	for(j= -1; j<2; j++) {
-		for(i= -1; i<2; i++) {
-			totw+= calc_weight(weight, i, j);
+	if(R.osa && lastosa!=R.osa) {
+		lastosa= R.osa;
+		
+		val= 1.0/((float)R.osa);
+		for(a=0; a<256; a++) {
+			fmask[a]= ((float)cmask[a])*val;
 		}
-	}
 
-	for(j= -1; j<2; j++) {
-		for(i= -1; i<2; i++) {
-			/* calculate using jit, with offset the weights */
+		for(a=0; a<9;a++) {
+			memset(mask1[a], 0, 256*2);
+			memset(mask2[a], 0, 256*2);
+			memset(fmask1[a], 0, 256*4);
+			memset(fmask2[a], 0, 256*4);
+		}
 
-			memset(weight, 0, sizeof(weight));
-			calc_weight(weight, i, j);
+		/* calculate totw */
+		totw= 0.0;
+		for(j= -1; j<2; j++) {
+			for(i= -1; i<2; i++) {
+				totw+= calc_weight(weight, i, j);
+			}
+		}
 
-			for(a=0; a<16; a++) shweight[a]= weight[a]*(65535.0/totw);
-			for(a=0; a<16; a++) flweight[a]= weight[a]*(1.0/totw);
+		for(j= -1; j<2; j++) {
+			for(i= -1; i<2; i++) {
+				/* calculate using jit, with offset the weights */
 
-			m1= mask1[ 3*(j+1)+i+1 ];
-			m2= mask2[ 3*(j+1)+i+1 ];
-			m3= fmask1[ 3*(j+1)+i+1 ];
-			m4= fmask2[ 3*(j+1)+i+1 ];
+				memset(weight, 0, sizeof(weight));
+				calc_weight(weight, i, j);
 
-			for(a=0; a<256; a++) {
-				if(a &   1) {
-					m1[a]+= shweight[0];
-					m2[a]+= shweight[8];
-					m3[a]+= flweight[0];
-					m4[a]+= flweight[8];
-				}
-				if(a &   2) {
-					m1[a]+= shweight[1];
-					m2[a]+= shweight[9];
-					m3[a]+= flweight[1];
-					m4[a]+= flweight[9];
-				}
-				if(a &   4) {
-					m1[a]+= shweight[2];
-					m2[a]+= shweight[10];
-					m3[a]+= flweight[2];
-					m4[a]+= flweight[10];
-				}
-				if(a &   8) {
-					m1[a]+= shweight[3];
-					m2[a]+= shweight[11];
-					m3[a]+= flweight[3];
-					m4[a]+= flweight[11];
-				}
-				if(a &  16) {
-					m1[a]+= shweight[4];
-					m2[a]+= shweight[12];
-					m3[a]+= flweight[4];
-					m4[a]+= flweight[12];
-				}
-				if(a &  32) {
-					m1[a]+= shweight[5];
-					m2[a]+= shweight[13];
-					m3[a]+= flweight[5];
-					m4[a]+= flweight[13];
-				}
-				if(a &  64) {
-					m1[a]+= shweight[6];
-					m2[a]+= shweight[14];
-					m3[a]+= flweight[6];
-					m4[a]+= flweight[14];
-				}
-				if(a & 128) {
-					m1[a]+= shweight[7];
-					m2[a]+= shweight[15];
-					m3[a]+= flweight[7];
-					m4[a]+= flweight[15];
+				for(a=0; a<16; a++) shweight[a]= weight[a]*(65535.0/totw);
+				for(a=0; a<16; a++) flweight[a]= weight[a]*(1.0/totw);
+
+				m1= mask1[ 3*(j+1)+i+1 ];
+				m2= mask2[ 3*(j+1)+i+1 ];
+				m3= fmask1[ 3*(j+1)+i+1 ];
+				m4= fmask2[ 3*(j+1)+i+1 ];
+
+				for(a=0; a<256; a++) {
+					if(a &   1) {
+						m1[a]+= shweight[0];
+						m2[a]+= shweight[8];
+						m3[a]+= flweight[0];
+						m4[a]+= flweight[8];
+					}
+					if(a &   2) {
+						m1[a]+= shweight[1];
+						m2[a]+= shweight[9];
+						m3[a]+= flweight[1];
+						m4[a]+= flweight[9];
+					}
+					if(a &   4) {
+						m1[a]+= shweight[2];
+						m2[a]+= shweight[10];
+						m3[a]+= flweight[2];
+						m4[a]+= flweight[10];
+					}
+					if(a &   8) {
+						m1[a]+= shweight[3];
+						m2[a]+= shweight[11];
+						m3[a]+= flweight[3];
+						m4[a]+= flweight[11];
+					}
+					if(a &  16) {
+						m1[a]+= shweight[4];
+						m2[a]+= shweight[12];
+						m3[a]+= flweight[4];
+						m4[a]+= flweight[12];
+					}
+					if(a &  32) {
+						m1[a]+= shweight[5];
+						m2[a]+= shweight[13];
+						m3[a]+= flweight[5];
+						m4[a]+= flweight[13];
+					}
+					if(a &  64) {
+						m1[a]+= shweight[6];
+						m2[a]+= shweight[14];
+						m3[a]+= flweight[6];
+						m4[a]+= flweight[14];
+					}
+					if(a & 128) {
+						m1[a]+= shweight[7];
+						m2[a]+= shweight[15];
+						m3[a]+= flweight[7];
+						m4[a]+= flweight[15];
+					}
 				}
 			}
 		}
+
+		/* centmask: the correct subpixel offset per mask */
+
+		fpx1= MEM_mallocN(256*sizeof(float), "initgauss4");
+		fpx2= MEM_mallocN(256*sizeof(float), "initgauss4");
+		fpy1= MEM_mallocN(256*sizeof(float), "initgauss4");
+		fpy2= MEM_mallocN(256*sizeof(float), "initgauss4");
+		for(a=0; a<256; a++) {
+			fpx1[a]= fpx2[a]= 0.0;
+			fpy1[a]= fpy2[a]= 0.0;
+			if(a & 1) {
+				fpx1[a]+= jit[0][0];
+				fpy1[a]+= jit[0][1];
+				fpx2[a]+= jit[8][0];
+				fpy2[a]+= jit[8][1];
+			}
+			if(a & 2) {
+				fpx1[a]+= jit[1][0];
+				fpy1[a]+= jit[1][1];
+				fpx2[a]+= jit[9][0];
+				fpy2[a]+= jit[9][1];
+			}
+			if(a & 4) {
+				fpx1[a]+= jit[2][0];
+				fpy1[a]+= jit[2][1];
+				fpx2[a]+= jit[10][0];
+				fpy2[a]+= jit[10][1];
+			}
+			if(a & 8) {
+				fpx1[a]+= jit[3][0];
+				fpy1[a]+= jit[3][1];
+				fpx2[a]+= jit[11][0];
+				fpy2[a]+= jit[11][1];
+			}
+			if(a & 16) {
+				fpx1[a]+= jit[4][0];
+				fpy1[a]+= jit[4][1];
+				fpx2[a]+= jit[12][0];
+				fpy2[a]+= jit[12][1];
+			}
+			if(a & 32) {
+				fpx1[a]+= jit[5][0];
+				fpy1[a]+= jit[5][1];
+				fpx2[a]+= jit[13][0];
+				fpy2[a]+= jit[13][1];
+			}
+			if(a & 64) {
+				fpx1[a]+= jit[6][0];
+				fpy1[a]+= jit[6][1];
+				fpx2[a]+= jit[14][0];
+				fpy2[a]+= jit[14][1];
+			}
+			if(a & 128) {
+				fpx1[a]+= jit[7][0];
+				fpy1[a]+= jit[7][1];
+				fpx2[a]+= jit[15][0];
+				fpy2[a]+= jit[15][1];
+			}
+		}
+
+		for(a= (1<<R.osa)-1; a>0; a--) {
+			val= count_mask(a);
+			i= 8+(15.9*(fpy1[a & 255]+fpy2[a>>8])/val);
+			CLAMP(i, 0, 15);
+			j= 8+(15.9*(fpx1[a & 255]+fpx2[a>>8])/val);
+			CLAMP(j, 0, 15);
+			i= j + (i<<4);
+			centmask[a]= i;
+		}
+
+		MEM_freeN(fpx1);
+		MEM_freeN(fpx2);
+		MEM_freeN(fpy1);
+		MEM_freeN(fpy2);
 	}
-
-	/* centmask: the correct subpixel offset per mask */
-
-	fpx1= MEM_mallocN(256*sizeof(float), "initgauss4");
-	fpx2= MEM_mallocN(256*sizeof(float), "initgauss4");
-	fpy1= MEM_mallocN(256*sizeof(float), "initgauss4");
-	fpy2= MEM_mallocN(256*sizeof(float), "initgauss4");
-	for(a=0; a<256; a++) {
-		fpx1[a]= fpx2[a]= 0.0;
-		fpy1[a]= fpy2[a]= 0.0;
-		if(a & 1) {
-			fpx1[a]+= jit[0][0];
-			fpy1[a]+= jit[0][1];
-			fpx2[a]+= jit[8][0];
-			fpy2[a]+= jit[8][1];
-		}
-		if(a & 2) {
-			fpx1[a]+= jit[1][0];
-			fpy1[a]+= jit[1][1];
-			fpx2[a]+= jit[9][0];
-			fpy2[a]+= jit[9][1];
-		}
-		if(a & 4) {
-			fpx1[a]+= jit[2][0];
-			fpy1[a]+= jit[2][1];
-			fpx2[a]+= jit[10][0];
-			fpy2[a]+= jit[10][1];
-		}
-		if(a & 8) {
-			fpx1[a]+= jit[3][0];
-			fpy1[a]+= jit[3][1];
-			fpx2[a]+= jit[11][0];
-			fpy2[a]+= jit[11][1];
-		}
-		if(a & 16) {
-			fpx1[a]+= jit[4][0];
-			fpy1[a]+= jit[4][1];
-			fpx2[a]+= jit[12][0];
-			fpy2[a]+= jit[12][1];
-		}
-		if(a & 32) {
-			fpx1[a]+= jit[5][0];
-			fpy1[a]+= jit[5][1];
-			fpx2[a]+= jit[13][0];
-			fpy2[a]+= jit[13][1];
-		}
-		if(a & 64) {
-			fpx1[a]+= jit[6][0];
-			fpy1[a]+= jit[6][1];
-			fpx2[a]+= jit[14][0];
-			fpy2[a]+= jit[14][1];
-		}
-		if(a & 128) {
-			fpx1[a]+= jit[7][0];
-			fpy1[a]+= jit[7][1];
-			fpx2[a]+= jit[15][0];
-			fpy2[a]+= jit[15][1];
-		}
-	}
-
-	for(a= (1<<R.osa)-1; a>0; a--) {
-		val= count_mask(a);
-		i= 8+(15.9*(fpy1[a & 255]+fpy2[a>>8])/val);
-		CLAMP(i, 0, 15);
-		j= 8+(15.9*(fpx1[a & 255]+fpx2[a>>8])/val);
-		CLAMP(j, 0, 15);
-		i= j + (i<<4);
-		centmask[a]= i;
-	}
-
-	MEM_freeN(fpx1);
-	MEM_freeN(fpx2);
-	MEM_freeN(fpy1);
-	MEM_freeN(fpy2);
-
 }
 
 void RE_free_filt_mask()
@@ -1130,12 +1132,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 				// error() doesnt work with render window open
 				//error("No backbuf there!");
 				printf("Error: No backbuf %s\n", name);
-				G.afbreek= 1;
-				return;
 			}
 		}
 	}
-	
 	
 	usegamtab= 0; /* see also further */
 	
@@ -1144,7 +1143,6 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		if(R.osa>16) R.osa= 16;
 		
 		init_render_jit(R.osa);
-		RE_init_filt_mask();
 		
 		/* this value sometimes is reset temporally, for example in transp zbuf */
 		if(R.r.mode & R_GAMMA) {
@@ -1152,6 +1150,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		}
 	}
 	else R.osa= 0;
+	
+	/* always call, it does gamma tables used by alphaunder, but call after R.osa and jit was set */
+	RE_init_filt_mask();
 	
 	/* when rendered without camera object */
 	/* it has to done here because of envmaps */
