@@ -3198,6 +3198,7 @@ static void draw_bb_quadric(BoundBox *bb, short type)
 	cent[1]= (bb->vec[0][1] + bb->vec[2][1])/2.0;
 	cent[2]= (bb->vec[0][2] + bb->vec[1][2])/2.0;
 	
+	glPushMatrix();
 	if(type==OB_BOUND_SPHERE) {
 		glTranslatef(cent[0], cent[1], cent[2]);
 		glScalef(size[0], size[1], size[2]);
@@ -3213,6 +3214,7 @@ static void draw_bb_quadric(BoundBox *bb, short type)
 		glScalef(size[0], size[1], 2.0*size[2]);
 		gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
 	}
+	glPopMatrix();
 	
 	gluDeleteQuadric(qobj); 
 }
