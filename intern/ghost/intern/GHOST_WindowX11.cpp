@@ -390,6 +390,9 @@ setState(
 
 }
 
+#include <iostream>
+using namespace std;
+
 	GHOST_TSuccess 
 GHOST_WindowX11::
 setOrder(
@@ -399,13 +402,15 @@ setOrder(
 		XWindowAttributes attr;	  
 		Atom atom;
 
+		/* We use both XRaiseWindow and _NET_ACTIVE_WINDOW, since some
+		   window managers ignore the former (e.g. kwin from kde) and others
+		   don't implement the latter (e.g. fluxbox pre 0.9.9) */
+
+		XRaiseWindow(m_display, m_window);
+
 		atom = XInternAtom(m_display, "_NET_ACTIVE_WINDOW", True);
 
-		if(atom == None) {
-			/* XRaiseWindow might be ignored, only use it if no other choice */
-			XRaiseWindow(m_display, m_window);
-		}
-		else {
+		if (atom != None) {
 			Window root;
 			XEvent xev;
 			long eventmask;
