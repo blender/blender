@@ -2413,7 +2413,7 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 			}
 			ok= 1;
 		}
-		if(val && event==ESCKEY) {
+		if(val && (event==ESCKEY || event==RIGHTMOUSE)) {
 			ok= -1;
 		}
 		glFlush();
