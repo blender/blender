@@ -153,7 +153,6 @@ extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* m
  */
 void space_mipmap_button_function(int event);
 
-
 unsigned short convert_for_nonumpad(unsigned short event);
 void free_soundspace(SpaceSound *ssound);
 
@@ -572,17 +571,17 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case MIDDLEMOUSE:
 				/* use '&' here, because of alt+leftmouse which emulates middlemouse */
 				if(U.flag & VIEWMOVE) {
-					if((G.qual & LR_SHIFTKEY))
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(0);
-					else if(G.qual & LR_CTRLKEY)
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
-					else
+					else if((G.qual==0) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
 						viewmove(1);
 				}
 				else {
-					if((G.qual & LR_SHIFTKEY))
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(1);
-					else if(G.qual & LR_CTRLKEY)
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
 					else
 						viewmove(0);
@@ -705,19 +704,19 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case MIDDLEMOUSE:
 				/* use '&' here, because of alt+leftmouse which emulates middlemouse */
 				if(U.flag & VIEWMOVE) {
-					if((G.qual & LR_SHIFTKEY))
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(0);
-					else if(G.qual & LR_CTRLKEY)
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
-					else
+					else if((G.qual==0) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
 						viewmove(1);
 				}
 				else {
-					if((G.qual & LR_SHIFTKEY))
+					if((G.qual==LR_SHIFTKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
 						viewmove(1);
-					else if(G.qual & LR_CTRLKEY)
+					else if((G.qual==LR_CTRLKEY) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
 						viewmove(2);
-					else
+					else if((G.qual==0) || ((U.flag & TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
 						viewmove(0);
 				}
 				break;
