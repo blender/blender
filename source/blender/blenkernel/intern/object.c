@@ -159,6 +159,19 @@ static void free_hooks(ListBase *lb)
 	}
 }
 
+static void copy_hooks(ListBase *new, ListBase *old)
+{
+	ObHook *hook, *hookn;
+	new->first= new->last= NULL;
+	
+	for(hook= old->first; hook; hook= hook->next) {
+		hookn= MEM_dupallocN(hook);
+		hookn->indexar= MEM_dupallocN(hookn->indexar);
+		BLI_addtail(new, hookn);
+	}
+
+}
+
 /* do not free object itself */
 void free_object(Object *ob)
 {
@@ -733,6 +746,7 @@ void base_init_from_view3d(Base *base, View3D *v3d)
 	v3d->viewquat[0]= -v3d->viewquat[0];
 }
 
+
 Object *copy_object(Object *ob)
 {
 	Object *obn;
@@ -765,6 +779,8 @@ Object *copy_object(Object *ob)
 	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
 	copy_constraints (&obn->constraints, &ob->constraints);
 
+	copy_hooks( &obn->hooks, &ob->hooks);
+	
 	actcon = clone_constraint_channels (&obn->constraintChannels, &ob->constraintChannels, ob->activecon);
 	/* If the active constraint channel was in this list, update it */
 	if (actcon)
@@ -779,7 +795,6 @@ Object *copy_object(Object *ob)
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
 	obn->disp.first= obn->disp.last= NULL;
-	obn->hooks.first= obn->hooks.last= NULL;
 	obn->soft= NULL;
 	
 	return obn;

@@ -6706,6 +6706,21 @@ void single_object_users(int flag)
 		if(ob->id.lib==0) {
 			if( (base->flag & flag)==flag) {
 				
+				relink_constraints(&base->object->constraints);
+				bPoseChannel *chan;
+				if (base->object->pose){
+					for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
+						relink_constraints(&chan->constraints);
+					}
+				}
+				if(base->object->hooks.first) {
+					ObHook *hook= base->object->hooks.first;
+					while(hook) {
+						ID_NEW(hook->parent);
+						hook= hook->next;
+					}
+				}
+				
 				ID_NEW(ob->parent);
 				ID_NEW(ob->track);
 				
@@ -7247,8 +7262,6 @@ void adduplicate(float *dtrans)
 {
 	Base *base, *basen;
 	Object *ob, *obn;
-	Ika *ika;
-	Deform *def;
 	Material ***matarar, *ma, *mao;
 	ID *id;
 	bConstraintChannel *chan;
@@ -7436,30 +7449,22 @@ void adduplicate(float *dtrans)
 	while(base) {
 		if TESTBASELIB(base) {
 			
-			{
+			if (base->object->pose){
 				bPoseChannel *chan;
-
-				relink_constraints(&base->object->constraints);
-				if (base->object->pose){
-					for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
-						relink_constraints(&chan->constraints);
-					}
+				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
+				}
+			}
+			if(base->object->hooks.first) {
+				ObHook *hook= base->object->hooks.first;
+				while(hook) {
+					ID_NEW(hook->parent);
+					hook= hook->next;
 				}
 			}
 			ID_NEW(base->object->parent);
 			ID_NEW(base->object->track);
 			
-			if(base->object->type==OB_IKA) {
-				ika= base->object->data;
-				ID_NEW(ika->parent);
-				
-				a= ika->totdef;
-				def= ika->def;
-				while(a--) {
-					ID_NEW(def->ob);
-					def++;
-				}
-			}
 		}
 		base= base->next;
 	}

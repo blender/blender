@@ -1376,13 +1376,19 @@ static void tree_element_show_hierarchy(SpaceOops *soops, ListBase *lb)
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		
-		if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)
-		   && subtree_has_objects(soops, &te->subtree))
-			tselem->flag &= ~TSE_CLOSED;
-		else
-			tselem->flag |= TSE_CLOSED;
-		
-		tree_element_show_hierarchy(soops, &te->subtree);
+		if(tselem->type==0) {
+			if(te->idcode==ID_SCE) {
+				if(tselem->id!=(ID *)G.scene) tselem->flag |= TSE_CLOSED;
+					else tselem->flag &= ~TSE_CLOSED;
+			}
+			else if(te->idcode==ID_OB) {
+				if(subtree_has_objects(soops, &te->subtree)) tselem->flag &= ~TSE_CLOSED;
+				else tselem->flag |= TSE_CLOSED;
+			}
+		}
+		else tselem->flag |= TSE_CLOSED;
+
+		if(tselem->flag & TSE_CLOSED); else tree_element_show_hierarchy(soops, &te->subtree);
 	}
 	
 }
