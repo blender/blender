@@ -3802,11 +3802,17 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */
 			break;
+		case RIGHTMOUSE:
+			outliner_select(sa);
+			break;
 			
 		case AKEY:
-			outliner_toggle_visible(sa);
+			outliner_toggle_selected(sa);
 			break;
-		
+		case WKEY:
+			outliner_operation_menu(sa);
+			break;
+			
 		case HOMEKEY:
 			outliner_show_hierarchy(sa);
 			break;

@@ -76,7 +76,9 @@
 #include "BIF_editarmature.h"
 #include "BIF_editnla.h"
 #include "BIF_editview.h"
+#include "BIF_editconstraint.h"
 #include "BIF_gl.h"
+#include "BIF_graphics.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_outliner.h"
@@ -87,6 +89,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #ifdef INTERNATIONAL
 #include "FTF_Api.h"
@@ -94,6 +97,7 @@
 
 #include "BDR_editobject.h"
 #include "BSE_drawipo.h"
+#include "BSE_edit.h"
 #include "BSE_editaction.h"
 
 #include "blendef.h"
@@ -112,40 +116,45 @@
 
 /* ******************** PERSISTANT DATA ***************** */
 
-/* for now only called after reading file or undo step */
 static void outliner_storage_cleanup(SpaceOops *soops)
 {
 	TreeStore *ts= soops->treestore;
 	
-	if(ts && (soops->storeflag & SO_TREESTORE_CLEANUP)) {
-		TreeStoreElem *tselem= ts->data;
+	if(ts) {
+		TreeStoreElem *tselem;
 		int a, unused= 0;
 		
-		for(a=0; a<ts->usedelem; a++, tselem++) {
-			if(tselem->id==NULL) unused++;
-		}
-		
-		if(unused) {
-			if(ts->usedelem == unused) {
-				MEM_freeN(ts->data);
-				ts->data= NULL;
-				ts->usedelem= ts->totelem= 0;
+		/* each element used once, for ID blocks with more users to have each a treestore */
+		for(a=0, tselem= ts->data; a<ts->usedelem; a++, tselem++) tselem->used= 0;
+
+		/* cleanup only after reading file or undo step */
+		if(soops->storeflag & SO_TREESTORE_CLEANUP) {
+			
+			for(a=0, tselem= ts->data; a<ts->usedelem; a++, tselem++) {
+				if(tselem->id==NULL) unused++;
 			}
-			else {
-				TreeStoreElem *tsnewar, *tsnew;
-				
-				tsnew=tsnewar= MEM_mallocN((ts->usedelem-unused)*sizeof(TreeStoreElem), "new tselem");
-				tselem= ts->data;
-				for(a=0; a<ts->usedelem; a++, tselem++) {
-					if(tselem->id) {
-						*tsnew= *tselem;
-						tsnew++;
-					}
+
+			if(unused) {
+				if(ts->usedelem == unused) {
+					MEM_freeN(ts->data);
+					ts->data= NULL;
+					ts->usedelem= ts->totelem= 0;
 				}
-				MEM_freeN(ts->data);
-				ts->data= tsnewar;
-				ts->usedelem-= unused;
-				ts->totelem= ts->usedelem;
+				else {
+					TreeStoreElem *tsnewar, *tsnew;
+					
+					tsnew=tsnewar= MEM_mallocN((ts->usedelem-unused)*sizeof(TreeStoreElem), "new tselem");
+					for(a=0, tselem= ts->data; a<ts->usedelem; a++, tselem++) {
+						if(tselem->id) {
+							*tsnew= *tselem;
+							tsnew++;
+						}
+					}
+					MEM_freeN(ts->data);
+					ts->data= tsnewar;
+					ts->usedelem-= unused;
+					ts->totelem= ts->usedelem;
+				}
 			}
 		}
 	}
@@ -166,9 +175,10 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	/* check if 'te' is in treestore */
 	tselem= ts->data;
 	for(a=0; a<ts->usedelem; a++, tselem++) {
-		if(tselem->id==id) {
+		if(tselem->id==id && tselem->used==0) {
 			if(type==0 ||(tselem->type==type && tselem->nr==nr)) {
 				te->store_index= a;
+				tselem->used= 1;
 				return;
 			}
 		}
@@ -423,7 +433,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					tenla->name= "Hooks";
 					for(hook=ob->hooks.first; hook; hook= hook->next, a++) {
 						ten= outliner_add_element(soops, &tenla->subtree, hook->parent, tenla, TE_HOOK, a);
-						ten->name= hook->name;
+						if(ten) ten->name= hook->name;
 					}
 				}
 				if(ob->defbase.first) {
@@ -593,6 +603,8 @@ static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
 				BLI_remlink(lb, te);
 				tep= (TreeElement *)ob->parent->id.newid;
 				BLI_addtail(&tep->subtree, te);
+				// set correct parent pointers
+				for(te=tep->subtree.first; te; te= te->next) te->parent= tep;
 			}
 		}
 		te= ten;
@@ -604,7 +616,7 @@ static void outliner_build_tree(SpaceOops *soops)
 	Scene *sce;
 	Base *base;
 	Object *ob;
-	TreeElement *te;
+	TreeElement *te, *ten;
 	TreeStoreElem *tselem;
 	
 	outliner_free_tree(&soops->tree);
@@ -620,7 +632,8 @@ static void outliner_build_tree(SpaceOops *soops)
 			tselem= TREESTORE(te);
 
 			for(base= sce->base.first; base; base= base->next) {
-				outliner_add_element(soops, &te->subtree, base->object, te, 0, 0);
+				ten= outliner_add_element(soops, &te->subtree, base->object, te, 0, 0);
+				ten->directdata= base;
 			}
 			outliner_make_hierarchy(soops, &te->subtree);
 		}
@@ -629,7 +642,8 @@ static void outliner_build_tree(SpaceOops *soops)
 		outliner_add_element(soops, &soops->tree, G.scene->world, NULL, 0, 0);
 		
 		for(base= G.scene->base.first; base; base= base->next) {
-			outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+			ten= outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+			ten->directdata= base;
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
 	}
@@ -645,7 +659,8 @@ static void outliner_build_tree(SpaceOops *soops)
 		if(ob) {
 			for(base= G.scene->base.first; base; base= base->next) {
 				if(base->object->type==ob->type) {
-					outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+					ten= outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+					ten->directdata= base;
 				}
 			}
 			outliner_make_hierarchy(soops, &soops->tree);
@@ -654,14 +669,17 @@ static void outliner_build_tree(SpaceOops *soops)
 	else if(soops->outlinevis == SO_SELECTED) {
 		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->lay & G.scene->lay) {
-				if(base==BASACT || (base->flag & SELECT))
-					outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+				if(base==BASACT || (base->flag & SELECT)) {
+					ten= outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
+					ten->directdata= base;
+				}
 			}
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
 	}
 	else {
-		outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
+		ten= outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
+		if(ten) ten->directdata= BASACT;
 	}
 	
 	outliner_sort(soops, &soops->tree);
@@ -682,7 +700,7 @@ static int outliner_count_levels(SpaceOops *soops, ListBase *lb, int curlevel)
 	return level;
 }
 
-static int outliner_has_one_closed(SpaceOops *soops, ListBase *lb, int curlevel)
+static int outliner_has_one_flag(SpaceOops *soops, ListBase *lb, short flag, short curlevel)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -690,24 +708,24 @@ static int outliner_has_one_closed(SpaceOops *soops, ListBase *lb, int curlevel)
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->flag & TSE_CLOSED) return curlevel;
+		if(tselem->flag & flag) return curlevel;
 		
-		level= outliner_has_one_closed(soops, &te->subtree, curlevel+1);
+		level= outliner_has_one_flag(soops, &te->subtree, flag, curlevel+1);
 		if(level) return level;
 	}
 	return 0;
 }
 
-static void outliner_open_close(SpaceOops *soops, ListBase *lb, int open)
+static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short set)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(open) tselem->flag &= ~TSE_CLOSED;
-		else tselem->flag |= TSE_CLOSED;
-		outliner_open_close(soops, &te->subtree, open);
+		if(set==0) tselem->flag &= ~flag;
+		else tselem->flag |= flag;
+		outliner_set_flag(soops, &te->subtree, flag, set);
 	}
 }
 
@@ -715,13 +733,26 @@ void outliner_toggle_visible(struct ScrArea *sa)
 {
 	SpaceOops *soops= sa->spacedata.first;
 	
-	if( outliner_has_one_closed(soops, &soops->tree, 1))
-		outliner_open_close(soops, &soops->tree, 1);
+	if( outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1))
+		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 0);
 	else 
-		outliner_open_close(soops, &soops->tree, 0);
+		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 1);
 
 	scrarea_queue_redraw(curarea);
 }
+
+void outliner_toggle_selected(struct ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+	
+	if( outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
+		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
+	else 
+		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 1);
+	
+	scrarea_queue_redraw(curarea);
+}
+
 
 static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curlevel, int level, int open)
 {
@@ -747,7 +778,7 @@ void outliner_one_level(struct ScrArea *sa, int add)
 	SpaceOops *soops= sa->spacedata.first;
 	int level;
 	
-	level= outliner_has_one_closed(soops, &soops->tree, 1);
+	level= outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1);
 	if(add==1) {
 		if(level) outliner_openclose_level(soops, &soops->tree, 1, level, 1);
 	}
@@ -778,12 +809,13 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 	if(ob==NULL) return;
 	
 	sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
-	if(G.scene != sce) {
+	if(sce && G.scene != sce) {
 		if(G.obedit) exit_editmode(2);
+		if(G.obpose) exit_posemode(1);
 		set_scene(sce);
 	}
 	
-	/* find associated base */
+	/* find associated base in current scene */
 	for(base= FIRSTBASE; base; base= base->next) 
 		if(base->object==ob) break;
 	if(base) {
@@ -811,6 +843,7 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 	}
 	
 	if(ob!=G.obedit) exit_editmode(2);
+	if(ob!=G.obpose) exit_posemode(1);
 }
 
 static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int set)
@@ -1157,7 +1190,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			/* all below close/open? */
 			if( (G.qual & LR_SHIFTKEY) ) {
 				tselem->flag &= ~TSE_CLOSED;
-				outliner_open_close(soops, &te->subtree, outliner_has_one_closed(soops, &te->subtree, 1));
+				outliner_set_flag(soops, &te->subtree, TSE_CLOSED, !outliner_has_one_flag(soops, &te->subtree, TSE_CLOSED, 1));
 			}
 			else {
 				if(tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
@@ -1178,10 +1211,12 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 				if(te->idcode==ID_SCE) {
 					if(G.scene!=(Scene *)tselem->id) {
 						if(G.obedit) exit_editmode(2);
+						if(G.obpose) exit_posemode(1);
 						set_scene((Scene *)tselem->id);
 					}
 				}
 				else if(ELEM4(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT)) {
+					if(G.obpose) exit_posemode(1);
 					if(G.obedit) exit_editmode(2);
 					else {
 						enter_editmode();
@@ -1310,6 +1345,320 @@ void outliner_show_hierarchy(struct ScrArea *sa)
 	tree_element_show_hierarchy(so, &so->tree);
 	scrarea_queue_redraw(sa);
 }
+
+static void do_outliner_select(SpaceOops *soops, ListBase *lb, float y1, float y2, short *selecting)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	if(y1>y2) SWAP(float, y1, y2);
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		
+		if(te->ys + OL_H < y1) return;
+		if(te->ys < y2) {
+			if((te->flag & TE_ICONROW)==0) {
+				if(*selecting == -1) {
+					if( tselem->flag & TSE_SELECTED) *selecting= 0;
+					else *selecting= 1;
+				}
+				if(*selecting) tselem->flag |= TSE_SELECTED;
+				else tselem->flag &= ~TSE_SELECTED;
+			}
+		}
+		if((tselem->flag & TSE_CLOSED)==0) do_outliner_select(soops, &te->subtree, y1, y2, selecting);
+	}
+}
+
+/* its own redraw loop... urm */
+void outliner_select(struct ScrArea *sa )
+{
+	SpaceOops *so= sa->spacedata.first;
+	float fmval[2], y1, y2;
+	short mval[2], yo=-1, selecting= -1;
+	
+	getmouseco_areawin(mval);
+	fmval[0]= mval[0];
+	fmval[1]= mval[1];
+	areamouseco_to_ipoco(&so->v2d, mval, fmval, fmval+1);
+	y1= fmval[1];
+
+	while (get_mbut() & R_MOUSE) {
+		getmouseco_areawin(mval);
+		fmval[0]= mval[0];
+		fmval[1]= mval[1];
+		areamouseco_to_ipoco(&so->v2d, mval, fmval, fmval+1);
+		y2= fmval[1];
+		if(yo!=mval[1]) {
+			do_outliner_select(so, &so->tree, y1, y2, &selecting);
+			yo= mval[1];
+			scrarea_do_windraw(sa);
+			screen_swapbuffers();
+		
+			y1= y2;
+		}
+	}
+	
+}
+
+/* ************ SELECTION OPERATIONS ********* */
+
+static int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0; // globals, euh... you can do better
+
+static void set_operation_types(SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(tselem->flag & TSE_SELECTED) {
+			if(tselem->type) {
+				if(datalevel==0) datalevel= tselem->type;
+				else if(datalevel!=tselem->type) datalevel= -1;
+			}
+			else {
+				int idcode= GS(tselem->id->name);
+				switch(idcode) {
+					case ID_SCE:
+						scenelevel= 1;
+						break;
+					case ID_OB:
+						objectlevel= 1;
+						break;
+						
+					case ID_ME: case ID_CU: case ID_MB: case ID_LT:
+					case ID_LA: case ID_AR: case ID_CA:
+						idlevel= -2;
+						break;
+						
+					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
+					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
+					case ID_NLA: case ID_TXT:
+						if(idlevel==0) idlevel= idcode;
+						else if(idlevel!=idcode) idlevel= -1;
+							break;
+				}
+			}
+		}
+		if((tselem->flag & TSE_CLOSED)==0) set_operation_types(soops, &te->subtree);
+	}
+}
+
+static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep)
+{
+	Material **matar=NULL;
+	int a, totcol=0;
+	
+	if( GS(tsep->id->name)==ID_OB) {
+		Object *ob= (Object *)tsep->id;
+		totcol= ob->totcol;
+		matar= ob->mat;
+	}
+	else if( GS(tsep->id->name)==ID_ME) {
+		Mesh *me= (Mesh *)tsep->id;
+		totcol= me->totcol;
+		matar= me->mat;
+	}
+	else if( GS(tsep->id->name)==ID_CU) {
+		Curve *cu= (Curve *)tsep->id;
+		totcol= cu->totcol;
+		matar= cu->mat;
+	}
+	else if( GS(tsep->id->name)==ID_MB) {
+		MetaBall *mb= (MetaBall *)tsep->id;
+		totcol= mb->totcol;
+		matar= mb->mat;
+	}
+
+	for(a=0; a<totcol; a++) {
+		if(a==te->index && matar[a]) {
+			matar[a]->id.us--;
+			matar[a]= NULL;
+		}
+	}
+}
+
+static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep)
+{
+	MTex **mtex= NULL;
+	int tottex= 0;
+	int a;
+	
+	if( GS(tsep->id->name)==ID_MA) {
+		Material *ma= (Material *)tsep->id;
+		mtex= ma->mtex;
+		tottex= 8;
+	}
+	else if( GS(tsep->id->name)==ID_LA) {
+		Lamp *la= (Lamp *)tsep->id;
+		mtex= la->mtex;
+		tottex= 6;
+	}
+	else if( GS(tsep->id->name)==ID_WO) {
+		World *wrld= (World *)tsep->id;
+		mtex= wrld->mtex;
+		tottex= 6;
+	}
+	for(a=0; a<tottex; a++) {
+		if(a==te->index && mtex[a]) {
+			if(mtex[a]->tex) {
+				mtex[a]->tex->id.us--;
+				mtex[a]->tex= NULL;
+			}
+		}
+	}
+}
+
+static void outliner_do_libdata_operation(SpaceOops *soops, ListBase *lb, 
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *))
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te=lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(tselem->flag & TSE_SELECTED) {
+			if(tselem->type==0) {
+				TreeStoreElem *tsep= TREESTORE(te->parent);
+				operation_cb(te, tsep);
+			}
+		}
+		if((tselem->flag & TSE_CLOSED)==0) {
+			outliner_do_libdata_operation(soops, &te->subtree, operation_cb);
+		}
+	}
+}
+
+/* */
+
+static void object_select_cb(TreeElement *te, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	base->flag |= SELECT;
+	base->object->flag |= SELECT;
+}
+
+static void object_deselect_cb(TreeElement *te, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	base->flag &= ~SELECT;
+	base->object->flag &= ~SELECT;
+}
+
+static void object_delete_cb(TreeElement *te, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	if(base) {
+		// check also library later
+		if(G.obpose==base->object) exit_posemode(1);
+		if(G.obedit==base->object) exit_editmode(2);
+		
+		if(base==BASACT) {
+			G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
+		}
+		
+		free_and_unlink_base(base);
+		te->directdata= NULL;
+		tselem->id= NULL;
+	}
+}
+
+
+static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb, 
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *))
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te=lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(tselem->flag & TSE_SELECTED) {
+			if(tselem->type==0 && te->idcode==ID_OB) 
+				operation_cb(te, tselem);
+		}
+		if((tselem->flag & TSE_CLOSED)==0) {
+			outliner_do_object_operation(soops, &te->subtree, operation_cb);
+		}
+	}
+}
+
+void outliner_operation_menu(ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+	
+	// globals
+	scenelevel= objectlevel= idlevel= datalevel=0;
+	
+	set_operation_types(soops, &soops->tree);
+	
+	if(scenelevel) {
+		if(objectlevel || datalevel || idlevel) error("Mixed selection");
+		else pupmenu("Scene Operations%t|Delete");
+	}
+	else if(objectlevel) {
+		short event= pupmenu("Object Operations%t|Select%x1|Deselect%x2|Delete%x4");
+		if(event>0) {
+			char *str="";
+			
+			if(event==1) {
+				outliner_do_object_operation(soops, &soops->tree, object_select_cb);
+				str= "Select Objects";
+			}
+			else if(event==2) {
+				outliner_do_object_operation(soops, &soops->tree, object_deselect_cb);
+				str= "Deselect Objects";
+			}
+			else if(event==4) {
+				outliner_do_object_operation(soops, &soops->tree, object_delete_cb);
+				str= "Delete Objects";
+			}
+			
+			countall();
+			test_scene_constraints(); // for delete
+			
+			BIF_undo_push(str);
+			allqueue(REDRAWALL, 0); // yah... to be sure :)
+		}
+	}
+	else if(idlevel) {
+		if(idlevel==-1 || datalevel) error("Mixed selection");
+		else if(idlevel==-2) error("No operations available");
+		else {
+			short event= pupmenu("Data Operations%t|Unlink");
+			
+			if(event==1) {
+				switch(idlevel) {
+					case ID_MA:
+						outliner_do_libdata_operation(soops, &soops->tree, unlink_material_cb);
+						allqueue(REDRAWBUTSSHADING, 1);
+						break;
+					case ID_TE:
+						outliner_do_libdata_operation(soops, &soops->tree, unlink_texture_cb);
+						allqueue(REDRAWBUTSSHADING, 1);
+						break;
+					default:
+						error("Not yet...");
+				}
+				allqueue(REDRAWOOPS, 0);
+			}
+		}
+	}
+	else if(datalevel) {
+		if(datalevel==-1) error("Mixed selection");
+		else {
+			pupmenu("Data Operations%t|Delete");
+		}
+	}
+	else error("Nothing selected");
+	
+}
+
 
 /* ***************** DRAW *************** */
 
@@ -1492,7 +1841,10 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		
 		/* open/close icon, only when sublevels, except for scene */
 		if(te->subtree.first || te->idcode==ID_SCE) {
-			glRasterPos2i(startx, *starty+2); // icons a bit higher
+			if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE))
+				glRasterPos2i(startx, *starty+2); // icons a bit higher
+			else
+				glRasterPos2i(startx+5, *starty+2); // icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
 				BIF_draw_icon(ICON_TRIA_CLOSED);
 			else
@@ -1571,10 +1923,31 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 			outliner_draw_hierarchy(soops, &te->subtree, startx+OL_X, starty);
 	}
 	
+	/* vertical line */
 	te= lb->last;
 	if(te->parent || lb->first!=lb->last) {
 		tselem= TREESTORE(te);
-		if(tselem->type==0 && te->idcode==ID_OB) glRecti(startx, y1+OL_H, startx+1, y2);
+		if(tselem->type==0 && te->idcode==ID_OB) {
+			
+			glRecti(startx, y1+OL_H, startx+1, y2);
+		}
+	}
+}
+
+static void outliner_draw_selection(SpaceOops *soops, ListBase *lb, int *starty) 
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		
+		/* selection status */
+		if(tselem->flag & TSE_SELECTED) {
+			glRecti(0, *starty+1, (int)soops->v2d.mask.xmax, *starty+OL_H-1);
+		}
+		*starty-= OL_H;
+		if((tselem->flag & TSE_CLOSED)==0) outliner_draw_selection(soops, &te->subtree, starty);
 	}
 }
 
@@ -1588,13 +1961,19 @@ static void outliner_draw_tree(SpaceOops *soops)
 #endif
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
+
+	// selection first
+	glColor3ub(125, 150, 175);
+	starty= soops->v2d.tot.ymax-OL_H;
+	outliner_draw_selection(soops, &soops->tree, &starty);
 	
-	//BIF_ThemeColorShade(TH_BACK, -20);
+	// black hierarchy lines
 	glColor3ub(0,0,0);
 	starty= soops->v2d.tot.ymax-OL_H/2;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
 	
+	// items themselves
 	starty= soops->v2d.tot.ymax-OL_H;
 	startx= 0;
 	for(te= soops->tree.first; te; te= te->next) {
@@ -1616,7 +1995,6 @@ static void outliner_back(SpaceOops *soops)
 		ystart-= 2*OL_H;
 	}
 }
-
 
 void draw_outliner(ScrArea *sa, SpaceOops *soops)
 {

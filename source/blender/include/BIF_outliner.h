@@ -33,6 +33,7 @@
 #ifndef BIF_OUTLINER_H
 #define BIF_OUTLINER_H
 
+struct TreeStoreElem;
 
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
@@ -43,7 +44,7 @@ typedef struct TreeElement {
 	short idcode;		// from TreeStore id
 	short xend;		// width of item display, for select
 	char *name;
-	void *directdata;	// Armature Bones, ...
+	void *directdata;	// Armature Bones, Base, ...
 }  TreeElement;
 
 /* TreeElement->flag */
@@ -69,6 +70,9 @@ extern void outliner_toggle_visible(struct ScrArea *sa);
 extern void outliner_show_active(struct ScrArea *sa);
 extern void outliner_show_hierarchy(struct ScrArea *sa);
 extern void outliner_one_level(struct ScrArea *sa, int add);
+extern void outliner_select(struct ScrArea *sa);
+extern void outliner_toggle_selected(struct ScrArea *sa);
+extern void outliner_operation_menu(struct ScrArea *sa);
 
 #endif
 

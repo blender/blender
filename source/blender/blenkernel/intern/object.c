@@ -349,10 +349,18 @@ void unlink_object(Object *ob)
 				else if(sl->spacetype==SPACE_OOPS) {
 					SpaceOops *so= (SpaceOops *)sl;
 					Oops *oops;
+
 					oops= so->oops.first;
 					while(oops) {
 						if(oops->id==(ID *)ob) oops->id= NULL;
 						oops= oops->next;
+					}
+					if(so->treestore) {
+						TreeStoreElem *tselem= so->treestore->data;
+						int a;
+						for(a=0; a<so->treestore->usedelem; a++, tselem++) {
+							if(tselem->id==(ID *)ob) tselem->id= NULL;
+						}
 					}
 				}
 			}

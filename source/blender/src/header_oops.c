@@ -169,7 +169,7 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hierarchy|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Active|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	}
