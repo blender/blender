@@ -559,6 +559,16 @@ static void show_splash(void)
 
 /* Functions for user preferences fileselect windows */
 
+/* yafray: export dir select */
+void filesel_u_yfexportdir(char *name)
+{
+	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	BLI_split_dirfile(name, dir, file);
+
+	strcpy(U.yfexportdir, dir);
+	allqueue(REDRAWALL, 0);
+}
+
 void filesel_u_fontdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
@@ -1437,6 +1447,16 @@ void do_global_buttons(unsigned short event)
 
 	/* Fileselect windows for user preferences file paths */
 
+	/* yafray: xml export dir. select */
+	case B_YAFRAYDIRFILESEL:	/* space.c */
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+
+		activate_fileselect(FILE_SPECIAL, "SELECT YFEXPORT PATH", U.yfexportdir, filesel_u_yfexportdir);
+		break;
+
 	case B_FONTDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
@@ -1481,7 +1501,7 @@ void do_global_buttons(unsigned short event)
 
 		activate_fileselect(FILE_SPECIAL, "SELECT RENDER PATH", U.renderdir, filesel_u_renderdir);
 		break;
-	
+
 	case B_PYTHONDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();

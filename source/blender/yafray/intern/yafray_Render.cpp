@@ -43,13 +43,16 @@ bool yafrayRender_t::exportScene()
 	}
 
 	string xmlpath = U.yfexportdir;
+
 #ifdef WIN32
-	imgout = xmlpath + "\\YBtest.tga";
-	xmlpath += "\\YBtest.xml";
+	string DLM = "\\";
 #else
-	imgout = xmlpath + "/YBtest.tga";
-	xmlpath += "/YBtest.xml";
+	string DLM = "/";
 #endif
+	if (xmlpath.find_last_of(DLM)!=(xmlpath.length()-1)) xmlpath += DLM;
+
+	imgout = xmlpath + "YBtest.tga";
+	xmlpath += "YBtest.xml";
 
 	maxraydepth = 5;	// will be set to maximum depth used in blender materials
 
@@ -521,14 +524,16 @@ void yafrayRender_t::writeMaterialsAndModulators()
 		ostr << "\t\t<emit value=\"" << matr->emit << "\" />\n";
 
 		// reflection/refraction
+		if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
+			ostr << "\t\t<IOR value=\"" << matr->ang << "\" />\n";
 		if (matr->mode & MA_RAYMIRROR) {
 			float rf = matr->ray_mirror;
 			// blender uses mir color for reflection as well
-			ostr << "\t\t<reflected r=\"" << matr->mirr*rf << "\" g=\"" << matr->mirg*rf << "\" b=\"" << matr->mirb*rf << "\" />\n";
+			ostr << "\t\t<reflected r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
+			ostr << "\t\t<min_refle value=\""<< rf << "\" />\n";
 			if (matr->ray_depth) maxraydepth = matr->ray_depth;
 		}
 		if (matr->mode & MA_RAYTRANSP) {
-			ostr << "\t\t<IOR value=\"" << matr->ang << "\" />\n";
 			// blender refraction color always white?
 			//ostr << "\t\t<transmitted r=\"" << matr->r << "\" g=\"" << matr->g << "\" b=\"" << matr->b << "\" />\n";
 			ostr << "\t\t<transmitted r=\"1\" g=\"1\" b=\"1\" />\n";
@@ -703,6 +708,8 @@ void yafrayRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, 
 	// since we write a shader with every face, simply use the material of the first face
 	// if this is an empty string, assume default mat
 	char* matname = VLR_list[0]->mat->id.name;
+	bool shadow=VLR_list[0]->mat->mode & MA_TRACEBLE;
+	ostr <<" shadow=\""<< (shadow ? "on" : "off" )<<"\" ";
 	if (strlen(matname)==0) matname = "blender_default"; else matname+=2;	//skip MA id
 	ostr << " shader_name=\"" << matname << "\" >\n";
 	ostr << "\t<attributes>\n\t</attributes>\n";

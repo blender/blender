@@ -1,4 +1,4 @@
-/* $Id$ 
+/* $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -299,6 +299,8 @@
 #define B_PYTHONDIRFILESEL  335
 #define B_SOUNDDIRFILESEL  	336
 #define B_TEMPDIRFILESEL  	337
+/* yafray: for exportdir select */
+#define B_YAFRAYDIRFILESEL	338
 /* END Definitions for the fileselect buttons in user prefs */
 
 /* IMAGE: 350 */

@@ -2416,11 +2416,14 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	} else if(U.userpref == 5) { /* file paths */
 
-		/* yafray: (temporary) path button for yafray xml export, without fileselect */
+		/* yafray: (temporary) path button for yafray xml export, now with fileselect */
 		uiDefBut(block, TEX, 0, "YFexport: ",
-			(xpos+edgespace), y2+buth+rspace, largeprefbut, buth,
+			(xpos+edgespace), y2+buth+rspace, largeprefbut-smfileselbut, buth,
 			U.yfexportdir, 1.0, 63.0, 0, 0,
 			"The default directory for yafray xml export (must exist!)");
+		uiDefIconBut(block, BUT, B_YAFRAYDIRFILESEL, ICON_FILESEL,
+			(xpos+edgespace+largeprefbut-smfileselbut), y2+buth+rspace, smfileselbut, buth,
+			0, 0, 0, 0, 0, "Select the default yafray export directory");
 
 		uiDefBut(block, TEX, 0, "Fonts: ",
 			(xpos+edgespace),y2,(largeprefbut-smfileselbut),buth,
