@@ -6423,6 +6423,16 @@ static char *imagetype_pup(void)
 }
 
 
+static char *avicodec_str(void)
+{
+	static char string[1024];
+
+	sprintf(string, "Codec: %s", G.scene->r.avicodecdata->avicodecname);
+
+	return string;
+}
+
+
 void renderbuts(void)
 {
 	ID *id;
@@ -6577,10 +6587,12 @@ void renderbuts(void)
 		if(G.scene->r.imtype == R_QUICKTIME) {
 #ifdef WITH_QUICKTIME
 #if defined (_WIN32) || defined (__APPLE__)
+			glColor3f(0.65, 0.65, 0.7);
+			glRecti(892,yofs+46,892+225,yofs+45+20);
 			if(!have_qtcodec)
-				uiDefBut(block, LABEL, 0, "Codec: not set",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Codec: not set",  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			else
-				uiDefBut(block, LABEL, 0, qtcdname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, qtcdname,  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
 #else /* libquicktime */
 			if (!G.scene->r.qtcodecdata) G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData), "QtCodecData");
@@ -6600,10 +6612,12 @@ void renderbuts(void)
 #endif /* WITH_QUICKTIME */
 		} else {
 #ifdef _WIN32
+			glColor3f(0.65, 0.65, 0.7);
+			glRecti(892,yofs+46,892+225,yofs+45+20);
 			if(G.scene->r.avicodecdata == NULL)
-				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+43,225,20, 0, 0, 0, 0, 0, "");
 			else
-				uiDefBut(block, LABEL, 0, G.scene->r.avicodecdata->avicodecname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, avicodec_str(),  892,yofs+43,225,20, 0, 0, 0, 0, 0, "");
 #endif
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}

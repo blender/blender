@@ -920,6 +920,7 @@ static void ui_draw_but_BUTM(uiBut *but)
 	float x;
 	short len;
 	char *cpoin;
+	int sel;
 	
 	but->embossfunc(but->col, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
 	
@@ -930,11 +931,17 @@ static void ui_draw_but_BUTM(uiBut *but)
 		if(cpoin) *cpoin= 0;
 
 		if(but->embossfunc==ui_emboss_P) {
-			if(but->flag & UI_ACTIVE) glColor3ub(255,255,255);
-			else glColor3ub(0,0,0);
+			if(but->flag & UI_ACTIVE) {
+				glColor3ub(255,255,255);
+				sel = 1;
+			} else {
+				glColor3ub(0,0,0);
+				sel = 0;
+			}
 		}
 		else {
 			glColor3ub(0,0,0);
+			sel = 0;
 		}
 
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
@@ -953,10 +960,10 @@ static void ui_draw_but_BUTM(uiBut *but)
 #ifdef INTERNATIONAL
 		if(G.ui_international == TRUE) {
 			if(U.transopts & TR_BUTTONS) {	// BUTTON TEXTS
-				FTF_DrawString(but->drawstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
+				FTF_DrawString(but->drawstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, sel);
 			}
 			else {
-				FTF_DrawString(but->drawstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, but->flag & UI_ACTIVE);
+				FTF_DrawString(but->drawstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, sel);
 			}
 		}
 		else {
