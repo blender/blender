@@ -189,7 +189,7 @@ static void ui_paste_under(uiSaveUnder *su)
 	
 	if(su) {
 		glDisable(GL_DITHER);
-		glRasterPos2f( su->x-0.5,  su->y-0.5 );
+		glRasterPos2f( su->x,  su->y );
 		glDrawPixels(su->sx, su->sy, GL_RGBA, GL_UNSIGNED_BYTE, su->rect);
 		glEnable(GL_DITHER);
 
