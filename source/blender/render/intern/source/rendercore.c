@@ -1881,7 +1881,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 			i*= lampdist*ma->ref;
 		}
 
-		/* shadow and spec, only when inp>0 */
+		/* shadow and spec, (lampdist==0 outside spot) */
 		if(lampdist> 0.0) {
 			
 			if(i>0.0 && (R.r.mode & R_SHADOW)) {
@@ -1891,7 +1891,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 						shadfac[3] = testshadowbuf(lar->shb, shi->co, inp);
 					}
 					else if(lar->mode & LA_SHAD_RAY) {
-						ray_shadow(shi, lar, shadfac, mask);
+						// this extra check prevents boundary cases (shadow on smooth sphere)
+						if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.001) 
+							ray_shadow(shi, lar, shadfac, mask);
 					}
 
 					/* warning, here it skips the loop */
