@@ -33,7 +33,7 @@
 
 include nan_definitions.mk
 
-LIBNAME = soundsystem
+LIBNAME = SoundSystem
 SOURCEDIR = intern/SoundSystem
 DIR = $(OCGDIR)/$(SOURCEDIR)
 DIRS = intern
@@ -62,11 +62,11 @@ install: all debug
 	@[ -d $(NAN_SOUNDSYSTEM)/include ] || mkdir $(NAN_SOUNDSYSTEM)/include
 	@[ -d $(NAN_SOUNDSYSTEM)/lib ] || mkdir $(NAN_SOUNDSYSTEM)/lib
 	@[ -d $(NAN_SOUNDSYSTEM)/lib/debug ] || mkdir $(NAN_SOUNDSYSTEM)/lib/debug
-	@../tools/cpifdiff.sh $(DIR)/libsoundsystem.a $(NAN_SOUNDSYSTEM)/lib/
-	@../tools/cpifdiff.sh $(DIR)/debug/libsoundsystem.a $(NAN_SOUNDSYSTEM)/lib/debug/
+	@../tools/cpifdiff.sh $(DIR)/libSoundSystem.a $(NAN_SOUNDSYSTEM)/lib/
+	@../tools/cpifdiff.sh $(DIR)/debug/libSoundSystem.a $(NAN_SOUNDSYSTEM)/lib/debug/
 ifeq ($(OS),darwin)
-	ranlib $(NAN_SOUNDSYSTEM)/lib/libsoundsystem.a
-	ranlib $(NAN_SOUNDSYSTEM)/lib/debug/libsoundsystem.a
+	ranlib $(NAN_SOUNDSYSTEM)/lib/libSoundSystem.a
+	ranlib $(NAN_SOUNDSYSTEM)/lib/debug/libSoundSystem.a
 endif
 	@../tools/cpifdiff.sh *.h $(NAN_SOUNDSYSTEM)/include/
 
