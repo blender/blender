@@ -95,6 +95,10 @@ SOURCE=..\..\..\source\blender\src\Bfont.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\bfont.ttf.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\blenderbuttons.c
 # End Source File
 # Begin Source File
