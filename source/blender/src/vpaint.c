@@ -231,7 +231,7 @@ void make_vertexcol()	/* single ob */
 	 */
 	
 	if(G.obedit) {
-		error("Unable to perform function in EditMode");
+		error("Unable to perform function in Edit Mode");
 		return;
 	}
 	
@@ -795,7 +795,7 @@ void weight_paint(void)
 		return;
 	}
 	if(me==0 || me->totface==0) return;
-	if(ob->lay & G.vd->lay); else error("Active object not in this layer!");
+	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
 	persp(PERSP_VIEW);
 	/* imat for normals */
@@ -951,7 +951,7 @@ void vertex_paint()
 	ob= OBACT;
 	me= get_mesh(ob);
 	if(me==0 || me->totface==0) return;
-	if(ob->lay & G.vd->lay); else error("Active object not in this layer!");
+	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
 	if(me->tface==NULL && me->mcol==NULL) make_vertexcol();
 

@@ -127,7 +127,7 @@ void audio_mixdown()
 
 	if(file == -1) 
 	{
-		error("Cannot open output file!");
+		error("Can't open output file");
 		return;
 	}
 

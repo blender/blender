@@ -236,7 +236,7 @@ extern int undo_push(char *);
 		Base *nbase= base->next;
 
 		if TESTBASE(base) {
-			if(ok==0 &&  (ok=okee("ERASE SELECTED"))==0) return;
+			if(ok==0 &&  (ok=okee("Erase selected"))==0) return;
 			
 			free_and_unlink_base(base);
 		}
@@ -362,7 +362,7 @@ void clear_parent(void)
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 
-	mode= pupmenu("OK? %t|Clear Parent %x1| ... and keep transform (clr track) %x2|Clear parent inverse %x3");
+	mode= pupmenu("OK? %t|Clear Parent %x1|Clear and Keep Transformation (Clear Track) %x2|Clear Parent Inverse %x3");
 	
 	if(mode<1) return;
 
@@ -409,7 +409,7 @@ void clear_track(void)
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 
-	mode= pupmenu("OK? %t|Clear Track %x1| ... and keep transform %x2");
+	mode= pupmenu("OK? %t|Clear Track %x1| Clear Track and Keep Transform %x2");
 
 	if(mode<1) return;
 
@@ -519,7 +519,7 @@ void set_slowparent(void)
 {
 	Base *base;
 
-	if( okee("Set Slow parent")==0 ) return;
+	if( okee("Set slow parent")==0 ) return;
 
 	base= FIRSTBASE;
 	while(base) {
@@ -594,7 +594,7 @@ void make_vertex_parent(void)
 	}
 	
 	if( !(v1 && v2==0 && v3==0) && !(v1 && v2 && v3) ) {
-		error("select 1 or 3 vertices");
+		error("Select either 1 or 3 vertices to parent to");
 		return;
 	}
 	
@@ -687,7 +687,7 @@ void make_parent(void)
 	if(par->type==OB_IKA) {
 		
 		if(qual & LR_SHIFTKEY)
-			mode= pupmenu("Make Parent without inverse%t|Use Vertex %x1|Use Limb %x2|Use Skeleton %x3");
+			mode= pupmenu("Make Parent Without Inverse%t|Use Vertex %x1|Use Limb %x2|Use Skeleton %x3");
 		else 
 			mode= pupmenu("Make Parent %t|Use Vertex %x1|Use Limb %x2|Use Skeleton %x3");
 		
@@ -724,7 +724,7 @@ void make_parent(void)
 			if TESTBASELIB(base) {
 				if(base->object->type==OB_IKA && base->object!=par && mode==PARVERT1 ) {
 					if(effchild==0) {
-						if(okee("Effector as Child")) effchild= 1;
+						if(okee("Effector as child")) effchild= 1;
 						else effchild= 2;
 					}
 				}
@@ -831,13 +831,13 @@ void make_parent(void)
 	}
 		else {
 		if(qual & LR_SHIFTKEY) {
-			if(okee("Make Parent without inverse")==0) return;
+			if(okee("Make parent without inverse")==0) return;
 		}
 		else {
 			if(qual & LR_ALTKEY) {
-				if(okee("Make VertexParent")==0) return;
+				if(okee("Make vertex parent")==0) return;
 			}
-			else if(okee("Make Parent")==0) return;
+			else if(okee("Make parent")==0) return;
 
 			/* test effchild */
 			base= FIRSTBASE;
@@ -991,7 +991,7 @@ void enter_editmode(void)
 	
 	id= ob->data;
 	if(id->lib) {
-		error("Can't edit libdata");
+		error("Can't edit library data");
 		return;
 	}
 	
@@ -999,7 +999,7 @@ void enter_editmode(void)
 		me= get_mesh(ob);
 		if( me==0 ) return;
 		if(me->id.lib) {
-			error("Can't edit libdata");
+			error("Can't edit library data");
 			return;
 		}
 		ok= 1;
@@ -1012,7 +1012,7 @@ void enter_editmode(void)
 		arm=base->object->data;
 		if (!arm) return;
 		if (arm->id.lib){
-			error("Can't edit libdata");
+			error("Can't edit library data");
 			return;
 		}
 		ok=1;
@@ -1091,7 +1091,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render */
 		countall();
 
 		if(G.totvert>MESH_MAX_VERTS) {
-			error("too many vertices");
+			error("Too many vertices");
 			return;
 		}
 		load_editMesh();	/* makes new displist */
@@ -1239,7 +1239,7 @@ void docentre(void)
 				if(G.obedit==0 && (me=get_mesh(base->object)) ) {
 					
 					if(me->key) {
-						error("Mesh with vertexkey!");
+						error("Can't change the center of a mesh with vertex keys");
 						return;
 					}
 					
@@ -1412,7 +1412,7 @@ void docentre_new(void)
 	if(G.scene->id.lib) return;
 
 	if(G.obedit) {
-		error("Unable to perform function in EditMode");
+		error("Unable to center new in Edit Mode");
 	}
 	else {
 		centremode= 1;
@@ -1426,7 +1426,7 @@ void docentre_cursor(void)
 	if(G.scene->id.lib) return;
 
 	if(G.obedit) {
-		error("Unable to perform function in EditMode");
+		error("Unable to center cursor in Edit Mode");
 	}
 	else {
 		centremode= 2;
@@ -1569,7 +1569,7 @@ void special_editmenu(void)
  							if (ret==0) {
 								error("An internal error occurred -- sorry!");
  							} else if(ret==-1) {
-								error("Boolean ops with faceless meshes is not allowed");
+								error("Selected meshes must have faces to perform boolean operations");
 							}
 
 							waitcursor(0);
@@ -1587,7 +1587,7 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
 		if(nr>0) waitcursor(1);
 		
 		switch(nr) {
@@ -1610,8 +1610,8 @@ void special_editmenu(void)
 			mergemenu();
 			break;
 		case 5:
-			undo_push_mesh("Rem Doubles");
-			notice("Removed: %d", removedoublesflag(1, doublimit));
+			undo_push_mesh("Remove Doubles");
+			notice("Removed %d Vertices", removedoublesflag(1, doublimit));
 			break;
 		case 6:
 			hide_mesh(0);
@@ -1682,7 +1682,7 @@ void convertmenu(void)
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_MBALL) {
-		nr= pupmenu("Convert MetaBall to%t|Mesh (keep original)");
+		nr= pupmenu("Convert Metaball to%t|Mesh (keep original)");
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_CURVE) {
@@ -1690,11 +1690,11 @@ void convertmenu(void)
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_SURF) {
-		nr= pupmenu("Convert Nurbs Surf to%t|Mesh");
+		nr= pupmenu("Convert Nurbs Surface to%t|Mesh");
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_MESH && mesh_uses_displist((Mesh*) ob->data)) {
-		nr= pupmenu("Convert SubSurf to%t|Mesh (keep original)");
+		nr= pupmenu("Convert SubSurf to%t|Mesh (Keep Original)");
 		if(nr>0) ok= 1;
 	}
 	if(ok==0) return;
@@ -1872,7 +1872,7 @@ void copymenu_properties(Object *ob)
 	}
 	
 	if(tot==0) {
-		error("No properties in Object");
+		error("No properties in the active object to copy");
 		return;
 	}
 	
@@ -2274,7 +2274,7 @@ void make_links(short event)
 				sce= sce->id.next;
 			}
 			if(sce==G.scene) {
-				error("This is current scene");
+				error("This is the current scene");
 				return;
 			}
 			if(sce==0 || sce->id.lib) return;
@@ -2400,7 +2400,7 @@ void make_duplilist_real()
 	Object *ob;
 	extern ListBase duplilist;
 	
-	if(okee("Make dupli's real")==0) return;
+	if(okee("Make dupli objects real")==0) return;
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -2469,7 +2469,7 @@ void apply_object()
 		return;
 	}
 
-	if(okee("Apply size/rot")==0) return;
+	if(okee("Apply size and rotation")==0) return;
 
 	base= FIRSTBASE;
 	while(base) {
@@ -2481,11 +2481,11 @@ void apply_object()
 				me= ob->data;
 				
 				if(me->id.us>1) {
-					error("Can't do multi user mesh");
+					error("Can't apply to a multi user mesh");
 					return;
 				}
 				if(me->key) {
-					error("Can't do key && mesh");
+					error("Can't apply to a mesh with vertex keys");
 					return;
 				}
 				
@@ -2512,7 +2512,7 @@ void apply_object()
 				object_to_mat3(ob, mat);
 				arm= ob->data;
 				if(arm->id.us>1) {
-					error("Can't do multi user armature");
+					error("Can't apply to a multi user armature");
 					return;
 				}
 
@@ -2529,11 +2529,11 @@ void apply_object()
 				cu= ob->data;
 				
 				if(cu->id.us>1) {
-					error("Can't do multi user curve");
+					error("Can't apply to a multi user curve");
 					return;
 				}
 				if(cu->key) {
-					error("Can't do keys");
+					error("Can't apply to a curve with vertex keys");
 					return;
 				}
 				
@@ -4438,9 +4438,9 @@ static char *transform_mode_to_string(int mode)
                case 'g':       return("Grab"); break;
                case 's':       return("Scale"); break;
                case 'r':       return("Rotate"); break;
-               case 'G':       return("Grab proportional"); break;
-               case 'C':       return("Scale proportional"); break;
-               case 'R':       return("Rotate proportional"); break;
+               case 'G':       return("Grab Proportional"); break;
+               case 'C':       return("Scale Proportional"); break;
+               case 'R':       return("Rotate Proportional"); break;
                case 'S':       return("Shear"); break;
                case 'N':       return("Shrink/Fatten"); break;
                case 'w':       return("Warp"); break;
@@ -4668,7 +4668,7 @@ void transform(int mode)
 	}
 	
 	if((mode=='r' || mode=='s' || mode=='S') && xc==32000) {
-		error("centre far out of view");
+		error("Centre far out of view");
 		fout= 1;
 	}
 
@@ -7079,7 +7079,7 @@ void select_select_keys(void)
 	
 	if(G.scene->id.lib) return;
 
-	if(okee("show and select all keys")==0) return;
+	if(okee("Show and select all keys")==0) return;
 
 	base= FIRSTBASE;
 	while(base) {
@@ -7200,7 +7200,7 @@ void texspace_edit(void)
 		return;
 	}
 	
-	nr= pupmenu("Texture space %t|Grabber%x1|Size%x2");
+	nr= pupmenu("Texture Space %t|Grab/Move%x1|Size%x2");
 	if(nr<1) return;
 	
 	base= FIRSTBASE;
@@ -7226,7 +7226,7 @@ void first_base(void)
 	/* inserts selected Bases in beginning of list, sometimes useful for operation order */
 	Base *base, *next;
 	
-	if(okee("make first base")==0) return;
+	if(okee("Make first base")==0) return;
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -7454,7 +7454,7 @@ void mirrormenu(void){
 		mirror_object(mode); /* separating functionality from interface | call*/
 	}
 	else {
-		mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
+		mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y Local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
 
 		if (mode==-1) return; /* return */
 		mirror_edit(mode); /* separating functionality from interface | call*/

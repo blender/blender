@@ -429,7 +429,7 @@ void assign_verts_defgroup (void)
 
 	dg=BLI_findlink(&ob->defbase, ob->actdef-1);
 	if (!dg){
-		error ("No vertex group active");
+		error ("No vertex group is active");
 		return;
 	}
 
@@ -522,7 +522,7 @@ void remove_verts_defgroup (int allverts)
 
 	dg=BLI_findlink(&ob->defbase, ob->actdef-1);
 	if (!dg){
-		error ("No vertex group active");
+		error ("No vertex group is active");
 		return;
 	}
 

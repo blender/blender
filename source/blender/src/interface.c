@@ -4232,7 +4232,7 @@ short pupmenu(char *instr)
 	if(strncmp(laststring, instr, UI_MAX_NAME_STR-1)!=0) lastselected= 0;
 	BLI_strncpy(laststring, instr, UI_MAX_NAME_STR);
 	
-	startx= mval[0]-width/2;
+	startx= mval[0]-(0.8*(width));
 	if(lastselected>=0 && lastselected<md->nitems) {
 		starty= mval[1]-height+boxh/2+lastselected*boxh;
 	}

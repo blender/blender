@@ -120,7 +120,7 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 	}
 	else {
 		if (event == QKEY)
-			if (val && okee("QUIT BLENDER")) exit_usiblender();
+			if (val && okee("Quit Blender")) exit_usiblender();
 	}
 
 	return;

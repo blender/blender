@@ -278,7 +278,7 @@ static void convert_nla(short mval[2])
 		return;
 	
 	if (base->object->type==OB_ARMATURE){
-		event = pupmenu("Convert%t|Action to NLAstrip%x1");
+		event = pupmenu("Convert%t|Action to NLA Strip%x1");
 		switch (event){
 		case 1:
 			if (base->object->action){
@@ -428,12 +428,12 @@ static void add_nlablock(short mval[2])
 	
 	/* Make sure we have an armature */
 	if (!base){
-		error ("Not an armature!");
+		error ("Not an armature");
 		return;
 	}
 	
 	/* Popup action menu */
-	IDnames_to_pupstring(&str, "Add action", NULL, &G.main->action, (ID *)G.scene, &nr);
+	IDnames_to_pupstring(&str, "Add Action", NULL, &G.main->action, (ID *)G.scene, &nr);
 	
 	if(strncmp(str+13, "DataBrow", 8)==0) {
 		MEM_freeN(str);
@@ -1536,8 +1536,8 @@ void clever_numbuts_nla(void){
 	add_numbut(but++, NUM|FLO, "Action Start:", 1.0, 18000.0, &strip->actstart, "First frame of the action to map to the playrange");
 	add_numbut(but++, NUM|FLO, "Action End:", 1.0, 18000.0, &strip->actend, "Last frame of the action to map to the playrange");
 	add_numbut(but++, LABEL, "Blending:", 1.0, 18000.0, 0, 0);
-	add_numbut(but++, NUM|FLO, "Blendin:", 0.0, 18000.0, &strip->blendin, "Number of frames of ease-in");
-	add_numbut(but++, NUM|FLO, "Blendout:", 0.0, 18000.0, &strip->blendout, "Number of frames of ease-out");
+	add_numbut(but++, NUM|FLO, "Blend In:", 0.0, 18000.0, &strip->blendin, "Number of frames of ease-in");
+	add_numbut(but++, NUM|FLO, "Blend Out:", 0.0, 18000.0, &strip->blendout, "Number of frames of ease-out");
 	add_numbut(but++, LABEL, "Options:", 1.0, 18000.0, 0, 0);
 	add_numbut(but++, NUM|FLO, "Repeat:", 0.0001, 18000.0, &strip->repeat, "Number of times the action should repeat");
 	add_numbut(but++, NUM|FLO, "Stride:", 0.0001, 1000.0, &strip->stridelen, "Distance covered by one complete cycle of the action specified in the Action Range");

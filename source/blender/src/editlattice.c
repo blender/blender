@@ -81,7 +81,7 @@ void apply_lattice(void)
 	Base *base;
 	Object *par;
 	
-	if(okee("Apply Lattice Deform")==0) return;
+	if(okee("Apply lattice deformation")==0) return;
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -221,7 +221,7 @@ void load_editLatt(void)
 
 void remake_editLatt(void)
 {
-	if(okee("Reload Original data")==0) return;
+	if(okee("Reload original data")==0) return;
 	
 	make_editLatt();
 	allqueue(REDRAWVIEW3D, 0);

@@ -464,25 +464,25 @@ int save_image_filesel_str(char *str)
 {
 	switch(G.scene->r.imtype) {
 	case R_PNG:
-		strcpy(str, "SAVE PNG"); return 1;
+		strcpy(str, "Save PNG"); return 1;
 	case R_BMP:
-		strcpy(str, "SAVE BMP"); return 1;
+		strcpy(str, "Save BMP"); return 1;
 	case R_TARGA:
-		strcpy(str, "SAVE TARGA"); return 1;
+		strcpy(str, "Save Targa"); return 1;
 	case R_RAWTGA:
-		strcpy(str, "SAVE RAW TARGA"); return 1;
+		strcpy(str, "Save Raw Targa"); return 1;
 	case R_IRIS:
-		strcpy(str, "SAVE IRIS"); return 1;
+		strcpy(str, "Save IRIS"); return 1;
 	case R_IRIZ:
-		strcpy(str, "SAVE IRIS"); return 1;
+		strcpy(str, "Save IRIS"); return 1;
 	case R_HAMX:
-		strcpy(str, "SAVE HAMX"); return 1;
+		strcpy(str, "Save HAMX"); return 1;
 	case R_FTYPE:
-		strcpy(str, "SAVE FTYPE"); return 1;
+		strcpy(str, "Save Ftype"); return 1;
 	case R_JPEG90:
-		strcpy(str, "SAVE JPEG"); return 1;
+		strcpy(str, "Save JPEG"); return 1;
 	default:
-		strcpy(str, "SAVE IMAGE"); return 0;
+		strcpy(str, "Save Image"); return 0;
 	}	
 }
 
@@ -540,11 +540,11 @@ int blenderqread(unsigned short event, short val)
 				areawinset(sa->win);
 			}
 			
-			activate_fileselect(FILE_BLENDER, "LOAD FILE", G.sce, BIF_read_file);
+			activate_fileselect(FILE_BLENDER, "Open File", G.sce, BIF_read_file);
 			return 0;
 		}
 		else if(G.qual==LR_SHIFTKEY) {
-			activate_fileselect(FILE_LOADLIB, "LOAD LIBRARY", G.lib, 0);
+			activate_fileselect(FILE_LOADLIB, "Load Library", G.lib, 0);
 			return 0;
 		}
 		break;
@@ -552,7 +552,7 @@ int blenderqread(unsigned short event, short val)
 		if(G.qual==0) {
 			strcpy(dir, G.sce);
 			untitled(dir);
-			activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
+			activate_fileselect(FILE_BLENDER, "Save File", dir, BIF_write_file);
 			return 0;
 		}
 		else if(G.qual==LR_CTRLKEY) {
@@ -581,7 +581,7 @@ int blenderqread(unsigned short event, short val)
 			ob= OBACT;
 			if(ob) strcpy(str, ob->id.name);
 
-			activate_fileselect(FILE_MAIN, "DATA SELECT", str, 0);
+			activate_fileselect(FILE_MAIN, "Data Select", str, 0);
 			return 0;
 		}
 		else if(G.qual==0) {
@@ -844,7 +844,7 @@ int blenderqread(unsigned short event, short val)
 			if(G.qual==LR_CTRLKEY) {
 				strcpy(dir, G.sce);
 				if (untitled(dir)) {
-					activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
+					activate_fileselect(FILE_BLENDER, "Save File", dir, BIF_write_file);
 				} else {
 					BIF_write_file(dir);
 					free_filesel_spec(dir);
@@ -913,7 +913,7 @@ int blenderqread(unsigned short event, short val)
 	case UKEY:
 		if(textediting==0) {
 			if(G.qual==LR_CTRLKEY) {
-				if(okee("SAVE USER DEFAULTS")) {
+				if(okee("Save user defaults")) {
 					BIF_write_homefile();
 				}
 				return 0;
@@ -926,7 +926,7 @@ int blenderqread(unsigned short event, short val)
 			if(G.qual==LR_CTRLKEY) {
 				strcpy(dir, G.sce);
 				if (untitled(dir)) {
-					activate_fileselect(FILE_BLENDER, "SAVE FILE", dir, BIF_write_file);
+					activate_fileselect(FILE_BLENDER, "Save File", dir, BIF_write_file);
 				} else {
 					BIF_write_file(dir);
 					free_filesel_spec(dir);

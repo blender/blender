@@ -160,12 +160,12 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 
 	
 	if (G.obedit){
-		error ("Not in editmode");
+		error ("Actions can't be baked in Edit Mode");
 		return NULL;
 	}
 
 	if (!arm){
-		error ("Must have an armature selected");
+		error ("Select an armature before baking");
 		return NULL;
 	}
 	/* Get a new action */
@@ -236,7 +236,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 		}
 	}
 
-	notice ("Made new action \"%s\"", newname);
+	notice ("Made a new action named \"%s\"", newname);
 	G.scene->r.cfra = oldframe;
 	armob->action = temp;
 	return result;
@@ -799,7 +799,7 @@ void copy_posebuf (void)
 
 	ob=G.obpose;
 	if (!ob){
-		error ("Copybuf is empty");
+		error ("Copy buffer is empty");
 		return;
 	}
 
@@ -936,7 +936,7 @@ void paste_posebuf (int flip){
 		return;
 
 	if (!g_posebuf){
-		error ("Copybuf is empty");
+		error ("Copy buffer is empty");
 		return;
 	};
 	
@@ -1061,7 +1061,7 @@ static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *c
 		return;
 	}
 	if (act->id.lib){
-		error ("Can't pose libactions");
+		error ("Can't pose library actions");
 		return;
 	}
 	act->achan=achan;
@@ -2179,9 +2179,9 @@ static void clever_keyblock_names(Key *key, short* mval){
 
     add_numbut(but++, TEX, "KB: ", 0, 24, str, 
                "Does this really need a tool tip?");
-	add_numbut(but++, NUM|FLO, "Slider min:", 
+	add_numbut(but++, NUM|FLO, "Slider Min:", 
 			   -10000, kb->slidermax, &kb->slidermin, 0);
-	add_numbut(but++, NUM|FLO, "Slider max:", 
+	add_numbut(but++, NUM|FLO, "Slider Max:", 
 			   kb->slidermin, 10000, &kb->slidermax, 0);
 
     if (do_clever_numbuts(str, but, REDRAW)) {

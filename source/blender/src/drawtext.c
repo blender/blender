@@ -678,8 +678,8 @@ void txt_write_file(Text *text)
 	/* Should we ask to save over? */
 	if (text->flags & TXT_ISTMP) {
 		if (BLI_exists(text->name)) {
-			if (!okee("Save over?")) return;
-		} else if (!okee("Create new file?")) return;
+			if (!okee("Save over")) return;
+		} else if (!okee("Create new file")) return;
 
 		text->flags ^= TXT_ISTMP;
 	}
@@ -996,7 +996,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				allqueue(REDRAWHEADERS, 0);
 				break;
 			case 1:
-				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+				activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 				break;
 			}
 		}
@@ -1011,12 +1011,12 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWHEADERS, 0);
 					break;
 				case 1:
-					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+					activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 					break;
 				}
 			} 
 			else if (event==QKEY) {
-					if(okee("QUIT BLENDER")) exit_usiblender();
+					if(okee("Quit Blender")) exit_usiblender();
 			}
 			else if (event==NKEY) {
 				if (G.qual & LR_ALTKEY) {
@@ -1029,7 +1029,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else if (event==OKEY) {
 				if (G.qual & LR_ALTKEY) {
-					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+					activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 				}
 			}
 		}
@@ -1067,7 +1067,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 
 				case 1:
-					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+					activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 					break;
 					
 				case 3:
@@ -1156,7 +1156,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWHEADERS, 0);
 					break;
 				case 1:
-					activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+					activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 					break;
 				case 3:
 					text->flags |= TXT_ISMEM;
@@ -1202,7 +1202,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break; /* BREAK N */
 		case OKEY:
 			if (G.qual == LR_ALTKEY) {
-				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs);
+				activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 			}
 			break; /* BREAK O */
 		case PKEY:
@@ -1212,13 +1212,13 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break; /* BREAK P */
 		case QKEY:
-			if(okee("QUIT BLENDER")) exit_usiblender();
+			if(okee("Quit Blender")) exit_usiblender();
 			break; /* BREAK Q */
 		case RKEY:
 			if (G.qual == LR_ALTKEY) {
 			    if (text->compiled) BPY_free_compiled_text(text);
 			        text->compiled = NULL;
-				if (okee("Reopen Text")) {
+				if (okee("Reopen text")) {
 					if (!reopen_text(text))
 						error("Could not reopen file");
 				}

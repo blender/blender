@@ -2105,7 +2105,7 @@ void add_vert_ipo()
 	
 	ei= get_editipo();
 	if(ei==0) {
-		error("Too many editipo's");
+		error("Too many EditIpos");
 		return;
 	}
 	
@@ -2621,7 +2621,7 @@ void mouse_select_ipo()
 				if(actkb) {
 					ok= TRUE;
 					if(G.obedit && (actkb->flag & 1)==0) {
-						ok= okee("Copy Key after leaving EditMode");
+						ok= okee("Copy key after leaving Edit Mode");
 					}
 					if(ok) {
 						/* also does all keypos */
@@ -3091,7 +3091,7 @@ void set_ipotype()
 		key= (Key *)G.sipo->from;
 		if(key==0) return;
 		
-		event= pupmenu("Key Type %t|Linear %x1|Cardinal %x2|B spline %x3");
+		event= pupmenu("Key Type %t|Linear %x1|Cardinal %x2|B Spline %x3");
 		if(event < 1) return;
 		
 		kb= key->block.first;
@@ -3327,7 +3327,7 @@ void copy_editipo()
 		}
 	}
 	
-	if(totipocopybuf==0) error("Copybuf is empty");
+	if(totipocopybuf==0) error("Copy buffer is empty");
 }
 
 void paste_editipo()
@@ -3556,9 +3556,9 @@ void insertkey_editipo()
 	short event;
 	
 	if(G.sipo->showkey)
-		event= pupmenu("Insert KeyVertices %t|Current frame %x1|Selected Keys %x2");
+		event= pupmenu("Insert Key Vertices %t|Current Frame %x1|Selected Keys %x2");
 	else 
-		event= pupmenu("Insert KeyVertices %t|Current frame %x1");
+		event= pupmenu("Insert Key Vertices %t|Current Frame %x1");
 	
 	if(event<1) return;
 	
@@ -3664,7 +3664,7 @@ void common_insertkey()
 				id= G.buts->lockpoin;
 				ma= G.buts->lockpoin;
 				if(id) {
-					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|HaSize%x2|Mode %x3|All Color%x10|Ofs%x12|Size%x13|All Mapping%x11");
+					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|Ofs%x12|Size%x13|All Mapping%x11");
 					if(event== -1) return;
 					
 					map= texchannel_to_adrcode(ma->texact);
@@ -3719,7 +3719,7 @@ void common_insertkey()
 				id= G.buts->lockpoin;
 				wo= G.buts->lockpoin;
 				if(id) {
-					event= pupmenu("Insert Key %t|ZenRGB%x0|HorRGB%x1|Mist%x2|stars %x3|Ofs%x12|Size%x13");
+					event= pupmenu("Insert Key %t|Zenith RGB%x0|Horizon RGB%x1|Mist%x2|Stars %x3|Offset%x12|Size%x13");
 					if(event== -1) return;
 					
 					map= texchannel_to_adrcode(wo->texact);
@@ -3763,7 +3763,7 @@ void common_insertkey()
 				id= G.buts->lockpoin;
 				la= G.buts->lockpoin;
 				if(id) {
-					event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spotsi%x2|Ofs%x12|Size%x13");
+					event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spot Size%x2|Offset%x12|Size%x13");
 					if(event== -1) return;
 					
 					map= texchannel_to_adrcode(la->texact);
@@ -5011,7 +5011,7 @@ void ipo_record()
 	if(G.sipo->from==0) return;
 	if(SFRA>=EFRA) return;
 	
-	anim= pupmenu("Record Mouse %t|Still %x1|Play anim %x2");
+	anim= pupmenu("Record Mouse %t|Still %x1|Play Animation %x2");
 	if(anim < 1) return;
 	if(anim!=2) anim= 0;
 
@@ -5027,7 +5027,7 @@ void ipo_record()
 			if(ei1==0) ei1= ei;
 			else if(ei2==0) ei2= ei;
 			else {
-				error("Max 2 visible curves");
+				error("Maximum 2 visible curves");
 				return;
 			}
 		}
@@ -5120,7 +5120,7 @@ void ipo_record()
 				sfra= MIN2(sfra, cfra);
 				efra= MAX2(efra, cfra);
 			}
-			else sprintf(str, "Mouse Recording. Use CTRL to start. LeftMouse or Space to end");
+			else sprintf(str, "Mouse Recording. Use Ctrl to start. LeftMouse or Space to end");
 			
 			do_ob_key(OBACT);
 

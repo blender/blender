@@ -361,7 +361,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			strcpy(name, simasel->dir);
 			strcat(name, simasel->hilite_ima->file_name);
 
-			if( okee("Remove %s", name) ) {
+			if( okee("Delete %s", name) ) {
 				ret = BLI_delete(name, 0, 0);
 				if (ret) {
 					error("Command failed, see console");

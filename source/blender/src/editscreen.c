@@ -664,9 +664,9 @@ static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt
 			int edgeop;
 		
 			if (!actarea->headertype) {
-				edgeop= pupmenu("Split Area|Join Areas|Add header");
+				edgeop= pupmenu("Split Area|Join Areas|Add Header");
 			} else {
-				edgeop= pupmenu("Split Area|Join Areas|No header");
+				edgeop= pupmenu("Split Area|Join Areas|No Header");
 			}
 
 			if (edgeop==1) {
@@ -1058,7 +1058,7 @@ void screenmain(void)
 		else if (event==QKEY) {
 			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
 			else {
-				if(val && okee("QUIT BLENDER")) exit_usiblender();
+				if(val && okee("Quit Blender")) exit_usiblender();
 				towin= 0;
 			}
 		}
@@ -2842,7 +2842,7 @@ int select_area(int spacetype)
 				G.curscreen->winakt= sa->win;
 				areawinset(G.curscreen->winakt);
 			} else {
-				error("wrong window");
+				error("Wrong window");
 				return 0;
 			}
 		}

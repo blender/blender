@@ -370,7 +370,7 @@ void insert_meshkey(Mesh *me, short offline)
 
 		if (!offline) /* interactive */
 			rel = pupmenu("Insert Vertex Keys %t|"
-										"Relative keys %x1|Absolute keys %x2");
+										"Relative Keys %x1|Absolute Keys %x2");
 		else /* we were called from a script */
 			rel = offline;
 

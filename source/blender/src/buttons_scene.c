@@ -1114,7 +1114,7 @@ static void render_panel_format(void)
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_format", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Format", "Render", 960, 0, 318, 204)==0) return;
 
-	uiDefBlockBut(block, framing_render_menu, NULL, "Game framing settings |>> ", 892, 169, 227, 20, "Display game framing settings");
+	uiDefIconTextBlockBut(block, framing_render_menu, NULL, ICON_BLOCKBUT_CORNER, "Game framing settings", 892, 169, 227, 20, "Display game framing settings");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeX:",	892 ,136,112,27, &G.scene->r.xsch, 4.0, 10000.0, 0, 0, "The image width in pixels");

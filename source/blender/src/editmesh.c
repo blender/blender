@@ -1541,7 +1541,7 @@ void make_sticky(void)
 	if(G.scene->camera==0) return;
 	
 	if(G.obedit) {
-		error("Unable to perform function in EditMode");
+		error("Unable to make sticky in Edit Mode");
 		return;
 	}
 	base= FIRSTBASE;
@@ -1690,7 +1690,7 @@ void convert_to_triface(int all)
 	EditMesh *em = G.editMesh;
 	EditVlak *evl, *evln, *next;
 	
-	undo_push_mesh("Convert to triangles");
+	undo_push_mesh("Convert Quads to Triangles");
 	
 	evl= em->faces.first;
 	while(evl) {
@@ -1736,8 +1736,8 @@ void deselectall_mesh(void)	/* toggle */
 			eve= eve->next;
 		}
 		
-		if (a) undo_push_mesh("Deselect all");
-		else undo_push_mesh("Select all");
+		if (a) undo_push_mesh("Deselect All");
+		else undo_push_mesh("Select All");
 		
 		eve= em->verts.first;
 		while(eve) {
@@ -2214,8 +2214,8 @@ void loopoperations(char mode)
 
 	if ((G.obedit==0) || (em->faces.first==0)) return;
 	
-	if(mode==LOOP_CUT)undo_push_mesh("Faceloop Subdivide");
-	else if(mode==LOOP_SELECT)undo_push_mesh("Faceloop Select");	
+	if(mode==LOOP_CUT)undo_push_mesh("Face Loop Subdivide");
+	else if(mode==LOOP_SELECT)undo_push_mesh("Select Face Loop");	
 
 	SetBlenderCursor(BC_VLOOPCURSOR);
 
@@ -3240,7 +3240,7 @@ void edge_select(void)
 		if( (G.qual & LR_SHIFTKEY)==0) {
 			EditVert *eve;			
 			
-			undo_push_mesh("Edge select");
+			undo_push_mesh("Select Edge");
 			/* deselectall */
 			for(eve= em->verts.first; eve; eve= eve->next) eve->f&= ~1;
 
@@ -3339,7 +3339,7 @@ void mouse_mesh(void)
 			
 			glDrawBuffer(GL_FRONT);
 
-			undo_push_mesh("Vertex select");
+			undo_push_mesh("Select Vertex");
 
 			if( (act->f & 1)==0) act->f+= 1;
 			else if(G.qual & LR_SHIFTKEY) act->f-= 1;
@@ -3430,11 +3430,11 @@ void selectconnected_mesh(int qual)
 	
 	act= findnearestvert(sel-2);
 	if(act==0) {
-		error(" Nothing indicated ");
+		error("Nothing indicated ");
 		return;
 	}
 	
-	undo_push_mesh("Select linked");
+	undo_push_mesh("Select Linked");
 	/* clear test flags */
 	eve= em->verts.first;
 	while(eve) {
@@ -4888,7 +4888,7 @@ void extrude_mesh(void)
 	a= extrudeflag(1,1);
 	waitcursor(0);
 	if(a==0) {
-		error("No valid vertices selected");
+		error("No valid vertices are selected");
 	}
 	else {
 		countall();  /* for G.totvert in calc_meshverts() */
@@ -4937,7 +4937,7 @@ void separatemenu(void)
 {
 	short event;
 
-	event = pupmenu("Separate (No undo!) %t|Selected%x1|All loose parts%x2");
+	event = pupmenu("Separate (No undo!) %t|Selected%x1|All Loose Parts%x2");
 	
 	if (event==0) return;
 	waitcursor(1);
@@ -5125,7 +5125,7 @@ void separate_mesh_loose(void)
 		
 		me= get_mesh(G.obedit);
 		if(me->key) {
-			error("Can't separate with vertex keys");
+			error("Can't separate a mesh with vertex keys");
 			return;
 		}		
 		
@@ -5316,7 +5316,7 @@ void extrude_repeat_mesh(int steps, float offs)
 	for(a=0;a<steps;a++) {
 		ok= extrudeflag(1,1);
 		if(ok==0) {
-			error("No valid vertices selected");
+			error("No valid vertices are selected");
 			break;
 		}
 		translateflag(1, dvec);
@@ -5385,7 +5385,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 		if(mode==0) ok= extrudeflag(1,1);
 		else adduplicateflag(1);
 		if(ok==0) {
-			error("No valid vertices selected");
+			error("No valid vertices are selected");
 			break;
 		}
 		rotateflag(1, cent, bmat);
@@ -5425,7 +5425,7 @@ void screw_mesh(int steps,int turns)
 
 	/* first condition: we need frontview! */
 	if(G.vd->view!=1) {
-		error("Only in frontview!");
+		error("Must be in Front View");
 		return;
 	}
 	
@@ -5463,7 +5463,7 @@ void screw_mesh(int steps,int turns)
 		eve= eve->next;
 	}
 	if(v1==0 || v2==0) {
-		error("No curve selected");
+		error("No curve is selected");
 		return;
 	}
 
@@ -5576,7 +5576,7 @@ void addedgevlak_mesh(void)
 		return;
 	}
 	if(aantal<2 || aantal>4) {
-		error("Can't make edge/face");
+		error("Incorrect number of vertices to make edge/face");
 		return;
 	}
 
@@ -5588,7 +5588,7 @@ void addedgevlak_mesh(void)
 			evl= addvlaklist(neweve[0], neweve[1], neweve[2], 0, NULL);
 
 		}
-		else error("Already a face");
+		else error("The selected vertices already form a face");
 	}
 	else if(aantal==4) {
 		if(exist_vlak(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
@@ -5605,7 +5605,7 @@ void addedgevlak_mesh(void)
 				evl= addvlaklist(neweve[0], neweve[2], neweve[1], neweve[3], NULL);
 
 		}
-		else error("Already a face");
+		else error("The selected vertices already form a face");
 	}
 	
 	if(evl) {	// now we're calculating direction of normal
@@ -5681,7 +5681,7 @@ void delete_mesh(void)
 
 	TEST_EDITMESH
 	
-	event= pupmenu("ERASE %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5");
+	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5");
 	if(event<1) return;
 
 	if(event==10 ) {
@@ -6642,13 +6642,13 @@ void join_triangles(void)
 	totedge = count_edges(em->edges.first);
 	if(totedge==0) return;
 
-	undo_push_mesh("Join triangles");
+	undo_push_mesh("Convert Triangles to Quads");
 	
 	evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "jointris");
 
 	ok = collect_quadedges(evlar, em->edges.first, em->faces.first);
 	if (G.f & G_DEBUG) {
-		printf("edges selected: %d\n", ok);
+		printf("Edges selected: %d\n", ok);
 	}	
 
 	eed= em->edges.first;
@@ -6738,7 +6738,7 @@ void edge_flip(void)
 	totedge = count_edges(em->edges.first);
 	if(totedge==0) return;
 
-	undo_push_mesh("Flip edges");
+	undo_push_mesh("Flip Triangle Edges");
 	
 	/* temporary array for : edge -> face[1], face[2] */
 	evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "edgeflip");
@@ -6846,7 +6846,7 @@ void beauty_fill(void)
     totedge = count_edges(em->edges.first);
     if(totedge==0) return;
 
-    if(okee("Beauty Fill")==0) return;
+    if(okee("Beauty fill")==0) return;
     
     undo_push_mesh("Beauty Fill");
 
@@ -7054,7 +7054,7 @@ void join_mesh(void)
 	}
 	
 	if(haskey) {
-		error("Join with vertex keys not supported");
+		error("Can't join meshes with vertex keys");
 		return;
 	}
 	/* that way the active object is always selected */ 
@@ -7062,7 +7062,7 @@ void join_mesh(void)
 	
 	if(totvert==0 || totvert>MESH_MAX_VERTS) return;
 	
-	if(okee("Join selected Meshes")==0) return;
+	if(okee("Join selected meshes")==0) return;
 	
 	/* new material indices and material array */
 	matar= MEM_callocN(sizeof(void *)*MAXMAT, "join_mesh");
@@ -7371,7 +7371,7 @@ void sort_faces(void)
 	if(G.obedit) return;
 	if(ob->type!=OB_MESH) return;
 	
-	if(okee("Sort Faces in Z")==0) return;
+	if(okee("Sort faces in Z axis")==0) return;
 	me= ob->data;
 	if(me->totface==0) return;
 
@@ -8344,7 +8344,7 @@ void undo_pop_mesh(int steps)  /* steps == 1 is one step */
                allqueue(REDRAWVIEW3D, 0);
                makeDispList(G.obedit);
                G.undo_edit_level--;
-       } else error("Can't undo");
+       } else error("No more steps to undo");
 }
 
 
@@ -8357,7 +8357,7 @@ void undo_redo_mesh(void)
                make_editMesh_real((Mesh*)G.undo_edit[G.undo_edit_level+1].datablock);
                allqueue(REDRAWVIEW3D, 0);
                makeDispList(G.obedit);
-       } else error("Can't redo");
+       } else error("No more steps to redo");
 }
 
 void undo_clear_mesh(void)
@@ -8383,7 +8383,7 @@ void undo_menu_mesh(void)
 
 	TEST_EDITMESH
 
-	strcpy(menu, "UNDO %t|%l");
+	strcpy(menu, "Undo %t|%l");
 	strcat(menu, "|All changes%x1|%l");
 	
 	for (i=G.undo_edit_level; i>=0; i--) {
@@ -9103,7 +9103,7 @@ void bevel_menu()
 
 	window_to_3d(centre, mval[0], mval[1]);
 
-	if(button(&recurs, 1, 4, "Recurs:")==0) return;
+	if(button(&recurs, 1, 4, "Recursion:")==0) return;
 
 	for (nr=0; nr<recurs-1; nr++) {
 		if (nr==0) fac += 1.0/3.0; else fac += 1.0/(3 * nr * 2.0);
@@ -9459,7 +9459,7 @@ void vertex_loop_select()
 
 	short mvalo[2] = {0,0}, mval[2];
 
-	undo_push_mesh("Vertex Loop Select");
+	undo_push_mesh("Select Vertex Loop");
 	SetBlenderCursor(BC_VLOOPCURSOR);
 	for(search=em->edges.first;search;search=search->next)
 		numEdges++;

@@ -1186,7 +1186,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					switch (G.obedit->type){
 					case OB_ARMATURE:
 						if(G.qual==LR_CTRLKEY){
-							if (okee("Recalc bone roll angles")) {
+							if (okee("Recalculate bone roll angles")) {
 								auto_align_armature();
 								allqueue(REDRAWVIEW3D, 0);
 							}
@@ -1194,15 +1194,15 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						break;
 					case OB_MESH: 
 						if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)) {
-							if(okee("Recalc normals inside")) {
-								undo_push_mesh("Recalc normals inside");
+							if(okee("Recalculate normals inside")) {
+								undo_push_mesh("Recalculate normals inside");
 								righthandfaces(2);
 								allqueue(REDRAWVIEW3D, 0);
 							}
 						}
 						else if(G.qual==LR_CTRLKEY){
-							if(okee("Recalc normals outside")) {
-								undo_push_mesh("Recalc normals outside");
+							if(okee("Recalculate normals outside")) {
+								undo_push_mesh("Recalculate normals outside");
 								righthandfaces(1);
 								allqueue(REDRAWVIEW3D, 0);
 							}

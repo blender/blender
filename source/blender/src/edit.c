@@ -1193,7 +1193,7 @@ void mergemenu(void)
 	extern float doublimit;
 	short event;
 
-	event = pupmenu("MERGE %t|At Center%x1|At Cursor%x2");
+	event = pupmenu("Merge %t|At Center%x1|At Cursor%x2");
 
 	if (event==-1) return; /* Return if the menu is closed without any choices */
 
@@ -1204,7 +1204,7 @@ void mergemenu(void)
 	else
 		snap_sel_to_curs(); /*Merge at Cursor*/
 
-	notice("Removed: %d", removedoublesflag(1, doublimit));
+	notice("Removed %d Vertices", removedoublesflag(1, doublimit));
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
 }
@@ -1226,10 +1226,9 @@ void duplicate_context_selected(void) {
 		else if(G.obedit->type==OB_MBALL) adduplicate_mball();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
 	}
-	else if(G.obpose){
-		error ("Duplicate not possible in posemode.");
+	else if(!(G.obpose)){
+		adduplicate(0);
 	}
-	else adduplicate(0);
 }
 
 void toggle_shading(void) {

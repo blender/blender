@@ -1320,9 +1320,9 @@ void do_viewbuts(unsigned short event)
 		else name= G.ima;
 		
 		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_bgpic_image);
+			activate_imageselect(FILE_SPECIAL, "Select Image", name, load_bgpic_image);
 		else
-			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_bgpic_image);
+			activate_fileselect(FILE_SPECIAL, "Select Image", name, load_bgpic_image);
 		break;
 		
 	case B_BLENDBGPIC:

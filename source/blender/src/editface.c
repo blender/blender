@@ -778,7 +778,7 @@ void rotate_uv_tface()
 	me= get_mesh(OBACT);
 	if(me==0 || me->tface==0) return;
 	
-	mode= pupmenu("OK? %t|Rot UV %x1|Rot VertexCol %x2");
+	mode= pupmenu("Rotate %t|UV Co-ordinates %x1|Vertex Colors %x2");
 	
 	if(mode<1) return;
 	
@@ -893,7 +893,7 @@ void face_select()
 	/* Get the face under the cursor */
 	ob = OBACT;
 	if (!(ob->lay & G.vd->lay)) {
-		error("Active object not in this layer!");
+		error("The active object is not in this layer");
 	}
 	me = get_mesh(ob);
 	getmouseco_areawin(mval);
@@ -1394,16 +1394,16 @@ void face_draw()
 		error("No active object"); return;
 	}
 	if (!(ob->lay & G.vd->lay)) {
-		error("Active object not in this layer"); return;
+		error("The active object is not in this layer"); return;
 	}
 	me = get_mesh(ob);
 	if (!me) {
-		error("Active object does not have a mesh"); return;
+		error("The active object does not have a mesh obData"); return;
 	}
 
 	brush = IMG_BrushCreate(Gvp.size, Gvp.size, Gvp.r, Gvp.g, Gvp.b, Gvp.a);
 	if (!brush) {
-		error("Can not create brush"); return;
+		error("Can't create brush"); return;
 	}
 
 	persp(PERSP_VIEW);
@@ -1516,7 +1516,7 @@ void face_draw()
 	}
 
 	if (warn_packed_file) {
-		error("Painting in packed images not supported: %s", warn_packed_file);
+		error("Painting in packed images is not supported: %s", warn_packed_file);
 	}
 
 	persp(PERSP_WIN);
@@ -1543,7 +1543,7 @@ void get_same_uv(void)
 	
 	ob = OBACT;
 	if (!(ob->lay & G.vd->lay)) {
-		error("Active object not in this layer!");
+		error("The active object is not in this layer");
 		return;
 	}
 	me = get_mesh(ob);
@@ -1565,7 +1565,7 @@ void get_same_uv(void)
 	}		
 	
 	if(!foundtex) {
-		error("No active face or active face has no UV-texture");
+		error("No active face, or active face has no UV texture");
 		return;
 	}
 

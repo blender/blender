@@ -595,7 +595,7 @@ void remake_editText(void)
 {
 	Curve *cu;
 		
-	if(okee("Reload Original text")==0) return;
+	if(okee("Reload original text")==0) return;
 	
 	BLI_strncpy(textbuf, oldstr, MAXTEXT);
 	cu= G.obedit->data;

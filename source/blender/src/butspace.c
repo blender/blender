@@ -132,7 +132,7 @@ void test_obpoin_but(char *name, ID **idpp)
 	ID *id;
 	
 	if(idpp == (ID **)&(emptytex.object)) {
-		error("You must add a Texture first!");
+		error("You must add a texture first");
 		*idpp= 0;
 		return;
 	}
@@ -153,7 +153,7 @@ void test_obcurpoin_but(char *name, ID **idpp)
 	ID *id;
 	
 	if(idpp == (ID **)&(emptytex.object)) {
-		error("You must add a Texture first!");
+		error("You must add a texture first");
 		*idpp= 0;
 		return;
 	}
@@ -162,7 +162,7 @@ void test_obcurpoin_but(char *name, ID **idpp)
 	while(id) {
 		if( strcmp(name, id->name+2)==0 ) {
 			if (((Object *)id)->type != OB_CURVE) {
-				error ("Bevel object must be a Curve.");
+				error ("Bevel object must be a curve");
 				break;
 			} 
 			*idpp= id;

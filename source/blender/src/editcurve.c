@@ -366,7 +366,7 @@ void make_editNurb()
 void remake_editNurb()
 {
 
-	if(okee("Reload Original data")==0) return;
+	if(okee("Reload original data")==0) return;
 	
 	make_editNurb();
 	allqueue(REDRAWVIEW3D, 0);
@@ -391,7 +391,7 @@ void separate_nurb()
 	
 	cu= G.obedit->data;
 	if(cu->key) {
-		error("Can't separate with vertex keys");
+		error("Can't separate a curve with vertex keys");
 		return;
 	}
 	
@@ -2159,7 +2159,7 @@ void merge_2_nurb(Nurb *nu1, Nurb *nu2)
 	}
 	
 	if( nu1->pntsv != nu2->pntsv ) {
-		error("resolution doesn't match");
+		error("Resolution doesn't match");
 		return;
 	}
 	
@@ -2234,7 +2234,7 @@ void merge_nurb()
 	
 	if(nsortbase.first == nsortbase.last) {
 		BLI_freelistN(&nsortbase);
-		error("Too few selections");
+		error("Too few selections to merge");
 		return;
 	}
 	
@@ -2257,7 +2257,7 @@ void merge_nurb()
 	}
 	
 	if(ok==0) {
-		error("resolution doesn't match");
+		error("Resolution doesn't match");
 		BLI_freelistN(&nsortbase);
 		return;
 	}
@@ -3011,8 +3011,8 @@ void delNurb()
 	if(G.obedit==0 ) return;
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
-	if(G.obedit->type==OB_SURF) event= pupmenu("ERASE %t|Selected%x0|All%x2");
-	else event= pupmenu("ERASE %t|Selected%x0|Segment%x1|All%x2");
+	if(G.obedit->type==OB_SURF) event= pupmenu("Erase %t|Selected%x0|All%x2");
+	else event= pupmenu("Erase %t|Selected%x0|Segment%x1|All%x2");
 
 	if(event== -1) return;
 
@@ -3288,9 +3288,9 @@ void join_curve(int type)
 	tempbase.first= tempbase.last= 0;
 	
 	if(type==OB_SURF) {
-		if(okee("Join selected Nurbs")==0) return;
+		if(okee("Join selected NURBS")==0) return;
 	}
-	else if(okee("Join selected Curves")==0) return;
+	else if(okee("Join selected curves")==0) return;
 	
 	/* trasnform all selected curves inverse in obact */
 	Mat4Invert(imat, ob->obmat);
@@ -3924,7 +3924,7 @@ void clever_numbuts_curve()
 			add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bezt->vec[1]+1, 0);
 			add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bezt->vec[1]+2, 0);
 			VECCOPY(old, bezt->vec[1]);
-			do_clever_numbuts("Active BezierPoint", 3, REDRAW);
+			do_clever_numbuts("Active Bezier Point", 3, REDRAW);
 			
 			VecSubf(delta, bezt->vec[1], old);
 			VecAddf(bezt->vec[0], bezt->vec[0], delta);
@@ -3936,14 +3936,14 @@ void clever_numbuts_curve()
 			add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bezt->vec[0]+1, 0);
 			add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bezt->vec[0]+2, 0);
 		
-			do_clever_numbuts("Active HandlePoint", 3, REDRAW);
+			do_clever_numbuts("Active Handle Point", 3, REDRAW);
 		}
 		else if(bezt->f3 & 1) {
 			add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, bezt->vec[2], 0);
 			add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bezt->vec[2]+1, 0);
 			add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bezt->vec[2]+2, 0);
 		
-			do_clever_numbuts("Active HandlePoint", 3, REDRAW);
+			do_clever_numbuts("Active Handle Point", 3, REDRAW);
 		}
 	}
 

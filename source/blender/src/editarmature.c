@@ -683,7 +683,7 @@ void delete_armature(void)
 	EditBone	*curBone, *next;
 	
 	TEST_EDITARMATURE;
-	if(okee("Erase selected")==0) return;
+	if(okee("Erase selected armature")==0) return;
 	
 	for (curBone=G.edbo.first;curBone;curBone=next){
 		next=curBone->next;
@@ -732,7 +732,7 @@ static void delete_bone(EditBone* exBone)
 
 void remake_editArmature(void)
 {
-	if(okee("Reload Original data")==0) return;
+	if(okee("Reload original data")==0) return;
 	
 	make_editArmature();
 	allqueue(REDRAWVIEW3D, 0);
@@ -1786,7 +1786,7 @@ void join_armature(void)
 	if(ob->type!=OB_ARMATURE) return;
 	
 	/*	Make sure the user wants to continue*/
-	if(okee("Join selected Armatures")==0) return;
+	if(okee("Join selected armatures")==0) return;
 	
 	/*	Put the active armature into editmode and join the bones from the other one*/
 #if 1
@@ -1917,7 +1917,7 @@ void extrude_armature(void)
 	TEST_EDITARMATURE;
 	
 	
-	if(okee("Extrude Bone Segments")==0) return;
+	if(okee("Extrude bone segments")==0) return;
 	
 	/* Duplicate the necessary bones */
 	for (curbone = G.edbo.first; ((curbone) && (curbone!=first)); curbone=curbone->next){

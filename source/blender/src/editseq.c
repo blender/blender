@@ -296,7 +296,7 @@ static void shuffle_seq(Sequence *test)
 	calc_sequence(test);
 	while( test_overlap_seq(test) ) {
 		if(test->machine >= MAXSEQ) {
-			error("No space to add sequence ");
+			error("There is no more space to add a sequence strip");
 			
 			BLI_remlink(ed->seqbasep, test);
 			free_sequence(test);
@@ -520,7 +520,7 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	/* is it a movie? */
 	anim = openanim(str, IB_rect);
 	if(anim==0) {
-		error("Not a movie");
+		error("The selected file is not a movie");
 		return;
 	}
 	
@@ -574,7 +574,7 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 		return 0;
 	}
 	if (sound->sample->bits != 16) {
-		error("Only 16 bit audio supported");
+		error("Only 16 bit audio is supported");
 		return 0;
 	}
 	sound->id.us=1;
@@ -857,7 +857,7 @@ static int add_seq_effect(int type)
 	seq= ed->seqbasep->first;
 	while(seq) {
 		if(seq->flag & SELECT) {
-			if (seq->type == SEQ_SOUND) { error("Cannot apply effects to audio sequence"); return 0; }		
+			if (seq->type == SEQ_SOUND) { error("Can't apply effects to audio sequence strips"); return 0; }		
 			if(seq != seq2) {
 				if(seq1==0) seq1= seq;
 				else if(seq3==0) seq3= seq;
@@ -872,7 +872,7 @@ static int add_seq_effect(int type)
 	
 	if(type==10) {	/* plugin: minimal 1 select */
 		if(seq2==0)  {
-			error("Need minimum one active sequence");
+			error("Need at least one selected sequence strip");
 			return 0;
 		}
 		if(seq1==0) seq1= seq2;
@@ -880,7 +880,7 @@ static int add_seq_effect(int type)
 	}
 	else {
 		if(seq1==0 || seq2==0) {
-			error("Need 2 selected sequences");
+			error("Need 2 selected sequence strips");
 			return 0;
 		}
 		if(seq3==0) seq3= seq2;
@@ -1000,7 +1000,7 @@ void add_sequence(int type)
 		}
 	}
 	else {
-		event= pupmenu("Add sequence%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|GammaCross%x3|Add%x4|Sub%x5|Mul%x6|AlphaOver%x7|AlphaUnder%x8|AlphaOverDrop%x9");
+		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9");
 	}
 
 	if(event<1) return;
@@ -1014,11 +1014,11 @@ void add_sequence(int type)
 	switch(event) {
 	case 1:
 		
-		activate_fileselect(FILE_SPECIAL, "SELECT IMAGES", last_imagename, add_image_strips);
+		activate_fileselect(FILE_SPECIAL, "Select Images", last_imagename, add_image_strips);
 		break;
 	case 102:
 		
-		activate_fileselect(FILE_SPECIAL, "SELECT MOVIE", last_imagename, add_movie_strip);
+		activate_fileselect(FILE_SPECIAL, "Select Movie", last_imagename, add_movie_strip);
 		break;
 	case 101:
 		/* new menu: */
@@ -1071,9 +1071,9 @@ void add_sequence(int type)
 	case 9:
 	case 10:
 		
-		if(last_seq==0) error("Need minimum one active sequence");
+		if(last_seq==0) error("Need at least one active sequence strip");
 		else if(event==10) {
-			activate_fileselect(FILE_SPECIAL, "SELECT PLUGIN", U.plugseqdir, load_plugin_seq);
+			activate_fileselect(FILE_SPECIAL, "Select Plugin", U.plugseqdir, load_plugin_seq);
 		}
 		else {
 			if( add_seq_effect(event) ) transform_seq('g');
@@ -1082,7 +1082,7 @@ void add_sequence(int type)
 		break;
 	case 103:
 		if (!last_sounddir[0]) strcpy(last_sounddir, U.sounddir);
-		activate_fileselect(FILE_SPECIAL, "SELECT WAV", last_sounddir, add_sound_strip);
+		activate_fileselect(FILE_SPECIAL, "Select Wav", last_sounddir, add_sound_strip);
 		break;
 	}	
 }
@@ -1095,7 +1095,7 @@ void change_sequence(void)
 	if(last_seq==0) return;
 
 	if(last_seq->type & SEQ_EFFECT) {
-		event= pupmenu("Change effect%t|Switch a-b %x1|Switch b-c %x10|Plugin%x11|Recalculate%x12|Cross%x2|GammaCross%x3|Add%x4|Sub%x5|Mul%x6|AlphaOver%x7|AlphaUnder%x8|AlphaOverdrop%x9");
+		event= pupmenu("Change Effect%t|Switch A <-> B %x1|Switch B <-> C %x10|Plugin%x11|Recalculate%x12|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9");
 		if(event>0) {
 			if(event==1) {
 				SWAP(Sequence *, last_seq->seq1, last_seq->seq2);
@@ -1104,7 +1104,7 @@ void change_sequence(void)
 				SWAP(Sequence *, last_seq->seq2, last_seq->seq3);
 			}
 			else if(event==11) {
-				activate_fileselect(FILE_SPECIAL, "SELECT PLUGIN", U.plugseqdir, change_plugin_seq);				
+				activate_fileselect(FILE_SPECIAL, "Select Plugin", U.plugseqdir, change_plugin_seq);				
 			}
 			else if(event==12);	/* recalculate: only new_stripdata */
 			else {
@@ -1119,7 +1119,7 @@ void change_sequence(void)
 	}
 	else if(last_seq->type == SEQ_IMAGE) {
 		if(okee("Change images")) {
-			activate_fileselect(FILE_SPECIAL, "SELECT IMAGES", last_imagename, reload_image_strip);
+			activate_fileselect(FILE_SPECIAL, "Select Images", last_imagename, reload_image_strip);
 		}
 	}
 	else if(last_seq->type == SEQ_MOVIE) {
@@ -1408,7 +1408,7 @@ void touch_seq_files(void)
 	ed= G.scene->ed;
 	if(ed==0) return;
 	
-	if(okee("Touch & print selected Movies")==0) return;
+	if(okee("Touch and print selected movies")==0) return;
 	
 	waitcursor(1);
 	
@@ -1494,13 +1494,13 @@ void make_meta(void)
 	while(seq) {
 		if(seq->flag & SELECT) {
 			tot++;
-			if (seq->type == SEQ_SOUND) { error("Cannot make Meta from audio"); return; }
+			if (seq->type == SEQ_SOUND) { error("Can't make Meta Strip from audio"); return; }
 		}
 		seq= seq->next;
 	}
 	if(tot < 2) return;
 	
-	if(okee("Make Meta")==0) return;
+	if(okee("Make Meta Strip")==0) return;
 	
 	/* test relationships */
 	seq= ed->seqbasep->first;
@@ -1521,7 +1521,7 @@ void make_meta(void)
 		seq= seq->next;
 	}
 	if(tot==0) {
-		error("Select all related strips");
+		error("Please select all related strips");
 		return;
 	}
 
