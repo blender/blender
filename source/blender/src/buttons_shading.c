@@ -117,37 +117,32 @@ static char *mapto_blendtype_pup(void)
 	char formatstr[1024];
 	char tempstr[1024];
 	
-	strcpy(string, "Layer Blending Mode: %t");
+	strcpy(string, "Blending Mode: %t");
 	strcpy(formatstr, "|%s %%x%d");
 	
 	sprintf(tempstr, formatstr, "Mix", MTEX_BLEND);
 	strcat(string, tempstr);
-	
-	//strcat(string, "|%l");
-	
+
 	sprintf(tempstr, formatstr, "Add", MTEX_ADD);
 	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Lighten", MTEX_LIGHT);
+	sprintf(tempstr, formatstr, "Subtract", MTEX_SUB);
+	strcat(string, tempstr);
+
+	sprintf(tempstr, formatstr, "Multiply", MTEX_MUL);
 	strcat(string, tempstr);
 	sprintf(tempstr, formatstr, "Screen", MTEX_SCREEN);
 	strcat(string, tempstr);
-	
-	//strcat(string, "|%l");
-	
-	sprintf(tempstr, formatstr, "Subtract", MTEX_SUB);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Darken", MTEX_DARK);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Multiply", MTEX_MUL);
-	strcat(string, tempstr);
-
-	//strcat(string, "|%l");
 	
 	sprintf(tempstr, formatstr, "Difference", MTEX_DIFF);
 	strcat(string, tempstr);
 	sprintf(tempstr, formatstr, "Divide", MTEX_DIV);
 	strcat(string, tempstr);
-		
+	
+	sprintf(tempstr, formatstr, "Darken", MTEX_DARK);
+	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Lighten", MTEX_LIGHT);
+	strcat(string, tempstr);
+
 	return (string);
 }
 /* *************************** TEXTURE ******************************** */
@@ -2765,7 +2760,7 @@ static void material_panel_ramps(Material *ma)
 		uiDefBut(block, LABEL, 0, "Factor",190,30,120,20, NULL, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButC(block, MENU, B_MATPRV, "Shader %x0|Energy %x1|Normal %x2|Result %x3",10,10,90,20, inputc, 0, 0, 0, 0, "Input for Ramp");
-		uiDefButC(block, MENU, B_MATPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2",110,10,90,20, methodc, 0, 0, 0, 0, "Blending method for Ramp (uses alpha in Colorband)");
+		uiDefButC(block, MENU, B_MATPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",110,10,90,20, methodc, 0, 0, 0, 0, "Blending method for Ramp (uses alpha in Colorband)");
 		uiDefButF(block, NUMSLI, B_MATPRV, "", 190,10,120,20, facp, 0.0, 1.0, 100, 0, "Blending factor (also uses alpha in Colorband)");
 	}
 }

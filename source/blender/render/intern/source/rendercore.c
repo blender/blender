@@ -1653,6 +1653,70 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	shr->alpha= ma->alpha;
 }
 
+/* r g b = 1 value, col = vector */
+static void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
+{
+	float tmp, facm= 1.0-fac;
+	
+	switch (type) {
+	case MA_RAMP_BLEND:
+		*r = facm*(*r) + fac*col[0];
+		*g = facm*(*g) + fac*col[1];
+		*b = facm*(*b) + fac*col[2];
+		break;
+	case MA_RAMP_ADD:
+		*r += fac*col[0];
+		*g += fac*col[1];
+		*b += fac*col[2];
+		break;
+	case MA_RAMP_MULT:
+		*r *= (facm + fac*col[0]);
+		*g *= (facm + fac*col[1]);
+		*b *= (facm + fac*col[2]);
+		break;
+	case MA_RAMP_SCREEN:
+		*r = 1.0-(facm + (1.0 - col[0]))*(1.0 - *r);
+		*g = 1.0-(facm + (1.0 - col[1]))*(1.0 - *g);
+		*b = 1.0-(facm + (1.0 - col[2]))*(1.0 - *b);
+		break;
+	case MA_RAMP_SUB:
+		*r -= fac*col[0];
+		*g -= fac*col[1];
+		*b -= fac*col[2];
+		break;
+	case MA_RAMP_DIV:
+		if(col[0]!=0.0)
+			*r = facm*(*r) + fac*(*r)/col[0];
+		if(col[1]!=0.0)
+			*g = facm*(*g) + fac*(*g)/col[1];
+		if(col[2]!=0.0)
+			*b = facm*(*b) + fac*(*b)/col[2];
+		break;
+	case MA_RAMP_DIFF:
+		*r = facm*(*r) + fac*fabs(*r-col[0]);
+		*g = facm*(*g) + fac*fabs(*g-col[1]);
+		*b = facm*(*b) + fac*fabs(*b-col[2]);
+		break;
+	case MA_RAMP_DARK:
+		tmp= fac*col[0];
+		if(tmp < *r) *r= tmp; 
+		tmp= fac*col[1];
+		if(tmp < *g) *g= tmp; 
+		tmp= fac*col[2];
+		if(tmp < *b) *b= tmp; 
+		break;
+	case MA_RAMP_LIGHT:
+		tmp= fac*col[0];
+		if(tmp > *r) *r= tmp; 
+		tmp= fac*col[1];
+		if(tmp > *g) *g= tmp; 
+		tmp= fac*col[2];
+		if(tmp > *b) *b= tmp; 
+		break;
+	}
+
+}
+
 /* ramp for at end of shade */
 void ramp_diffuse_result(float *diff, ShadeInput *shi)
 {
@@ -1667,28 +1731,8 @@ void ramp_diffuse_result(float *diff, ShadeInput *shi)
 			
 			/* blending method */
 			fac= col[3]*ma->rampfac_col;
-			switch(ma->rampblend_col) {
-			case MA_RAMP_BLEND:
-				diff[0]= (1.0-fac)*diff[0] + fac*col[0];
-				diff[1]= (1.0-fac)*diff[1] + fac*col[1];
-				diff[2]= (1.0-fac)*diff[2] + fac*col[2];
-				break;
-			case MA_RAMP_ADD:
-				diff[0]+= fac*col[0];
-				diff[1]+= fac*col[1];
-				diff[2]+= fac*col[2];
-				break;
-			case MA_RAMP_MULT:
-				diff[0]*= (1.0-fac + fac*col[0]);
-				diff[1]*= (1.0-fac + fac*col[1]);
-				diff[2]*= (1.0-fac + fac*col[2]);
-				break;
-			case MA_RAMP_SUB:
-				diff[0]-= fac*col[0];
-				diff[1]-= fac*col[1];
-				diff[2]-= fac*col[2];
-				break;
-			}
+			
+			ramp_blend(ma->rampblend_col, diff, diff+1, diff+2, fac, col);
 		}
 	}
 }
@@ -1697,7 +1741,7 @@ void ramp_diffuse_result(float *diff, ShadeInput *shi)
 void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b)
 {
 	Material *ma= shi->matren;
-	float col[4], fac=0;
+	float col[4], colt[3], fac=0;
 	
 	if(ma->ramp_col && (ma->mode & MA_RAMP_COL)) {
 		
@@ -1726,33 +1770,14 @@ void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, fl
 			
 			/* blending method */
 			fac= col[3]*ma->rampfac_col;
-			switch(ma->rampblend_col) {
-			case MA_RAMP_BLEND:
-				col[0]= (1.0-fac)*ma->r + fac*col[0];
-				col[1]= (1.0-fac)*ma->g + fac*col[1];
-				col[2]= (1.0-fac)*ma->b + fac*col[2];
-				break;
-			case MA_RAMP_ADD:
-				col[0]= ma->r + fac*col[0];
-				col[1]= ma->g + fac*col[1];
-				col[2]= ma->b + fac*col[2];
-				break;
-			case MA_RAMP_MULT:
-				col[0]= ma->r*(1.0-fac + fac*col[0]);
-				col[1]= ma->g*(1.0-fac + fac*col[1]);
-				col[2]= ma->b*(1.0-fac + fac*col[2]);
-				break;
-			case MA_RAMP_SUB:
-				col[0]= ma->r - fac*col[0];
-				col[1]= ma->g - fac*col[1];
-				col[2]= ma->b - fac*col[2];
-				break;
-			}
-			
+			colt[0]= ma->r; colt[1]= ma->g; colt[2]= ma->b;
+
+			ramp_blend(ma->rampblend_col, colt, colt+1, colt+2, fac, col);
+
 			/* output to */
-			diff[0] += r * col[0];
-			diff[1] += g * col[1];
-			diff[2] += b * col[2];
+			diff[0] += r * colt[0];
+			diff[1] += g * colt[1];
+			diff[2] += b * colt[2];
 		}
 	}
 	else {
@@ -1774,28 +1799,8 @@ void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 		
 		/* blending method */
 		fac= col[3]*ma->rampfac_spec;
-		switch(ma->rampblend_spec) {
-		case MA_RAMP_BLEND:
-			*specr= (1.0-fac)*(*specr) + fac*col[0];
-			*specg= (1.0-fac)*(*specg) + fac*col[1];
-			*specb= (1.0-fac)*(*specb) + fac*col[2];
-			break;
-		case MA_RAMP_ADD:
-			*specr += fac*col[0];
-			*specg += fac*col[1];
-			*specb += fac*col[2];
-			break;
-		case MA_RAMP_MULT:
-			*specr *= (1.0-fac + fac*col[0]);
-			*specg *= (1.0-fac + fac*col[1]);
-			*specb *= (1.0-fac + fac*col[2]);
-			break;
-		case MA_RAMP_SUB:
-			*specr -= fac*col[0];
-			*specg -= fac*col[1];
-			*specb -= fac*col[2];
-			break;
-		}
+		
+		ramp_blend(ma->rampblend_spec, specr, specg, specb, fac, col);
 		
 	}
 }
@@ -1807,6 +1812,10 @@ void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 	float col[4];
 	float fac=0.0;
 	
+	spec[0]= ma->specr;
+	spec[1]= ma->specg;
+	spec[2]= ma->specb;
+
 	/* MA_RAMP_IN_RESULT is exception */
 	if(ma->ramp_spec && (ma->rampin_spec!=MA_RAMP_IN_RESULT)) {
 		
@@ -1827,33 +1836,8 @@ void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 		
 		/* blending method */
 		fac= col[3]*ma->rampfac_spec;
-		switch(ma->rampblend_spec) {
-		case MA_RAMP_BLEND:
-			spec[0]= (1.0-fac)*ma->specr + fac*col[0];
-			spec[1]= (1.0-fac)*ma->specg + fac*col[1];
-			spec[2]= (1.0-fac)*ma->specb + fac*col[2];
-			break;
-		case MA_RAMP_ADD:
-			spec[0]= ma->specr + fac*col[0];
-			spec[1]= ma->specg + fac*col[1];
-			spec[2]= ma->specb + fac*col[2];
-			break;
-		case MA_RAMP_MULT:
-			spec[0]= ma->specr*fac*col[0];
-			spec[1]= ma->specg*fac*col[1];
-			spec[2]= ma->specb*fac*col[2];
-			break;
-		case MA_RAMP_SUB:
-			spec[0]= ma->specr - fac*col[0];
-			spec[1]= ma->specg - fac*col[1];
-			spec[2]= ma->specb - fac*col[2];
-			break;
-		}
-	}
-	else {
-		spec[0]= ma->specr;
-		spec[1]= ma->specg;
-		spec[2]= ma->specb;
+		
+		ramp_blend(ma->rampblend_spec, spec, spec+1, spec+2, fac, col);
 	}
 }
 
