@@ -444,7 +444,7 @@ static PyObject *World_setIpo( BPy_World * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "null ipo!" );
 
-	if( ipo->blocktype != ID_CA )
+	if( ipo->blocktype != ID_WO )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "this ipo is not a World type ipo" );
 
