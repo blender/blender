@@ -2658,12 +2658,14 @@ int bone_looper(Object *ob, Bone *bone, void *data,
 
 int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
     /* This group creates a vertex group to ob that has the
-     * same name as bone. Is such a vertex group aleady exist
-     * the routine exits.
+     * same name as bone (provided the bone is skinnable). 
+	 * If such a vertex group aleady exist the routine exits.
      */
-    if (!get_named_vertexgroup(ob,bone->name)) {
-        add_defgroup_name(ob, bone->name);
-        return 1;
+	if ( bone_skinnable(ob, bone, NULL) ) {
+		if (!get_named_vertexgroup(ob,bone->name)) {
+			add_defgroup_name(ob, bone->name);
+			return 1;
+		}
     }
     return 0;
 }
@@ -2925,8 +2927,10 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 
 	/* Prompt the user on whether/how they want the vertex groups
 	 * added to the child mesh */
-	mode= pupmenu("Vertex Groups from Bones? %t|No Thanks %x1|Empty %x2|"
-				  "Closest Bone %x3");
+    mode= pupmenu("Create Vertex Groups? %t|"
+				  "Don't Create Groups %x1|"
+				  "Name Groups %x2|"
+                  "Create From Closest Bones %x3");
 	switch (mode){
 	case 2:
 		/* Traverse the bone list, trying to create empty vertex 
