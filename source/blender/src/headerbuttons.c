@@ -289,7 +289,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 	oldcol= uiBlockGetCol(block);
 
 	if(id && pin) {
-		uiDefIconButS(block, ICONTOG, pin, ICON_PIN_DEHLT,	(short)xco,0,XIC,YIC, pinpoin, 0, 0, 0, 0, "Pin this data block; no update according Object selection");
+		uiDefIconButS(block, ICONTOG, pin, ICON_PIN_DEHLT,	(short)xco,0,XIC,YIC, pinpoin, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
 		xco+= XIC;
 	}
 	if(browse) {
@@ -363,7 +363,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 					IDnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin);
 			}
 			
-			uiDefButS(block, MENU, browse, str, (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browse Datablock or Add NEW");
+			uiDefButS(block, MENU, browse, str, (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses existing choices or adds NEW");
 			
 			uiClearButLock();
 		
@@ -374,17 +374,17 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			if ELEM3(G.buts->mainb, BUTS_MAT, BUTS_TEX, BUTS_WORLD) {
 				uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
 				if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
-				uiDefButS(block, MENU, browse, "ADD NEW %x 32767",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browse Datablock");
+				uiDefButS(block, MENU, browse, "ADD NEW %x 32767",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 				uiClearButLock();
 			} else if (G.buts->mainb == BUTS_SOUND) {
-				uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browse Datablock");
+				uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short) xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 			}
 		}
 		else if(curarea->spacetype==SPACE_TEXT) {
-			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766 | ADD NEW %x 32767", (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browse Datablock");
+			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766 | ADD NEW %x 32767", (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 		}
 		else if(curarea->spacetype==SPACE_SOUND) {
-			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browse Datablock");
+			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",(short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 		}
 		else if(curarea->spacetype==SPACE_NLA) {
 		}
@@ -392,14 +392,14 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
 			if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 
-			uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browse Datablock");
+			uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 			uiClearButLock();
 		}
 		else if(curarea->spacetype==SPACE_IPO) {
 			uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
 			if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 
-			uiDefButS(block, MENU, browse, "ADD NEW %x 32767", (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browse Datablock");
+			uiDefButS(block, MENU, browse, "ADD NEW %x 32767", (short)xco,0,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 			uiClearButLock();
 		}
 	}
@@ -430,7 +430,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 		if( GS(id->name)==ID_IP) len= 110;
 		else len= 120;
 		
-		but= uiDefBut(block, TEX, B_IDNAME, str1,(short)xco, 0, (short)len, YIC, id->name+2, 0.0, 19.0, 0, 0, "Datablock name");
+		but= uiDefBut(block, TEX, B_IDNAME, str1,(short)xco, 0, (short)len, YIC, id->name+2, 0.0, 19.0, 0, 0, "Displays current Datablock name. Click to change.");
 		uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
 
 		uiClearButLock();
@@ -439,8 +439,8 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 		
 		if(id->lib) {
 			
-			if(parid && parid->lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Indirect Library Datablock");
-			else uiDefIconBut(block, BUT, lib, ICON_PARLIB,	(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Library DataBlock, press to make local");
+			if(parid && parid->lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays name of the current Indirect Library Datablock. Click to change.");
+			else uiDefIconBut(block, BUT, lib, ICON_PARLIB,	(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays current Library Datablock name. Click to make local.");
 			
 			xco+= XIC;
 		}
@@ -452,11 +452,11 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			sprintf(str1, "%d", id->us);
 			if(id->us<100) {
 				
-				uiDefBut(block, BUT, users, str1,	(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Number of users,  press to make single-user");
+				uiDefBut(block, BUT, users, str1,	(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 				xco+= XIC;
 			}
 			else {
-				uiDefBut(block, BUT, users, str1,	(short)xco, 0, XIC+10, YIC, 0, 0, 0, 0, 0, "Number of users,  press to make single-user");
+				uiDefBut(block, BUT, users, str1,	(short)xco, 0, XIC+10, YIC, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 				xco+= XIC+10;
 			}
 			
@@ -469,7 +469,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 			uiSetButLock (pin && *pinpoin, "Can't unlink pinned data");
 			if(parid && parid->lib);
 			else {
-				uiDefIconBut(block, BUT, del, ICON_X,	(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Delete link to this Datablock");
+				uiDefIconBut(block, BUT, del, ICON_X,	(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Deletes link to this Datablock");
 				xco+= XIC;
 			}
 
@@ -479,14 +479,14 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 		if(autobut) {
 			if(parid && parid->lib);
 			else {
-				uiDefIconBut(block, BUT, autobut, ICON_AUTO,(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Automatic name");
+				uiDefIconBut(block, BUT, autobut, ICON_AUTO,(short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Generates an automatic name");
 				xco+= XIC;
 			}
 			
 			
 		}
 		if(keepbut) {
-			uiDefBut(block, BUT, keepbut, "F", (short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Keep Datablock");	
+			uiDefBut(block, BUT, keepbut, "F", (short)xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Saves this datablock even if it has no users");	
 			xco+= XIC;
 		}
 	}
@@ -2564,7 +2564,7 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 	uiBlockSetXOfs(block,-40);  // offset to parent button
 
 	/* flags are case-values */
-	uiDefBut(block, BUTM, 1, "Compress File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_COMPRESS_BIT, "Use file compression");
+	uiDefBut(block, BUTM, 1, "Compress File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_COMPRESS_BIT, "Enables file compression");
 /*
 	uiDefBut(block, BUTM, 1, "Sign File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_SIGN_BIT, "Add signature to file");
 	uiDefBut(block, BUTM, 1, "Lock File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_LOCK_BIT, "Protect the file from editing by others");
@@ -2599,15 +2599,15 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 	uiBlockSetEmboss(block, UI_EMBOSSW);
 
 	uiDefBut(block, LABEL, 0, "Size options:",		xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,    &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "X screen/window resolution");
-	uiDefButS(block, NUM, 0, "Y:",		xco+19, yco-=20, 95, 19, &G.scene->r.yplay, 10.0, 2000.0, 0, 0, "Y screen/window resolution");
+	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,    &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "Y:",		xco+19, yco-=20, 95, 19, &G.scene->r.yplay, 10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
 
 	uiDefBut(block, SEPR, 0, "",		xco, yco-=4, 114, 4, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefBut(block, LABEL, 0, "Fullscreen options:",		xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, TOG, 0, "Fullscreen", xco + 19, yco-=20, 95, 19, &G.scene->r.fullscreen, 0.0, 0.0, 0, 0, "Starts player in a new fullscreen display");
-	uiDefButS(block, NUM, 0, "Freq:",	xco+19, yco-=20, 95, 19, &G.scene->r.freqplay, 10.0, 120.0, 0, 0, "Clock frequency of fullscreen display");
-	uiDefButS(block, NUM, 0, "Bits:",	xco+19, yco-=20, 95, 19, &G.scene->r.depth, 1.0, 32.0, 0, 0, "Bit depth of full screen disply");
+	uiDefButS(block, NUM, 0, "Freq:",	xco+19, yco-=20, 95, 19, &G.scene->r.freqplay, 10.0, 120.0, 0, 0, "Displays clock frequency of fullscreen display. Click to change.");
+	uiDefButS(block, NUM, 0, "Bits:",	xco+19, yco-=20, 95, 19, &G.scene->r.depth, 1.0, 32.0, 0, 0, "Displays bit depth of full screen display. Click to change.");
 
 	uiDefBut(block, SEPR, 0, "",		xco, yco-=4, 114, 4, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -2621,7 +2621,7 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 	 */
 	uiDefBut(block, LABEL, 0, "Stereo options", xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, ROW, 0, "no stereo", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 1.0, 0, 0, "Disables stereo");
-	uiDefButS(block, ROW, 0, "h/w pageflip", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 2.0, 0, 0, "Enables h/w pageflip stereo method");
+	uiDefButS(block, ROW, 0, "h/w pageflip", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 2.0, 0, 0, "Enables hardware pageflip stereo method");
 	uiDefButS(block, ROW, 0, "syncdoubling", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 3.0, 0, 0, "Enables syncdoubling stereo method");
 #if 0
 	// future
@@ -2646,9 +2646,9 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 
 	/* flags are defines */
 	uiDefBut(block, LABEL, 0, "VRML 2.0 options", xco, yco, 125, 19,   NULL, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, TOG|BIT|0, 0, "SepLayers", xco, yco-=20, 75, 19,		  &U.vrmlflag, 0.0, 0.0, 0, 0, "Separate Empties, Lamps, etc. into Layers");
-	uiDefButS(block, TOG|BIT|1, 0, "Scale 1/100", xco, yco-=20, 75, 19,   &U.vrmlflag, 0.0, 0.0, 0, 0, "Scale scene by 1/100 (3DS VRML)");
-	uiDefButS(block, TOG|BIT|2, 0, "Two Sided", xco, yco-=20, 75, 19,   &U.vrmlflag, 0.0, 0.0, 0, 0, "Import two sided faces");
+	uiDefButS(block, TOG|BIT|0, 0, "SepLayers", xco, yco-=20, 75, 19,		  &U.vrmlflag, 0.0, 0.0, 0, 0, "Separates Empties, Lamps, etc. into Layers");
+	uiDefButS(block, TOG|BIT|1, 0, "Scale 1/100", xco, yco-=20, 75, 19,   &U.vrmlflag, 0.0, 0.0, 0, 0, "Scales scene by 1/100 (3DS VRML)");
+	uiDefButS(block, TOG|BIT|2, 0, "Two Sided", xco, yco-=20, 75, 19,   &U.vrmlflag, 0.0, 0.0, 0, 0, "Enables import of two sided faces");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -2664,31 +2664,31 @@ static uiBlock *info_filemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "filemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_filemenu, NULL);
 	
-	uiDefBut(block, BUTM, 1, "New|Ctrl X",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Start a new project (and delete the current)");
-	uiDefBut(block, BUTM, 1, "Open|F1",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Open a new file");
-	uiDefBut(block, BUTM, 1, "Reopen Last|Ctrl O",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Revert to the last version saved to file");
-	uiDefBut(block, BUTM, 1, "Append|Shift F1",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Append contents of a file to the current project");
+	uiDefBut(block, BUTM, 1, "New|Ctrl X",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Starts a new project (WARNING! Closes current project!)");
+	uiDefBut(block, BUTM, 1, "Open|F1",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Opens a new file");
+	uiDefBut(block, BUTM, 1, "Reopen Last|Ctrl O",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Reverts to the last version saved to file");
+	uiDefBut(block, BUTM, 1, "Append|Shift F1",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Appends contents of a file to the current project");
 	uiDefBlockBut(block, info_file_importmenu, NULL, "Import Settings|>>", 0, xco-=20, 160, 19, "");
 
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Save As|F2",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Save to a new file");
-	uiDefBut(block, BUTM, 1, "Save|Ctrl W",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Save to the current file");
+	uiDefBut(block, BUTM, 1, "Save As|F2",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Saves to a new file");
+	uiDefBut(block, BUTM, 1, "Save|Ctrl W",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Saves to the current file");
 
-	uiDefBlockBut(block, info_file_optionsmenu, NULL, "File options|>>", 0, xco-=20, 160, 19, "Click to open the File Options menu");
+	uiDefBlockBut(block, info_file_optionsmenu, NULL, "File options|>>", 0, xco-=20, 160, 19, "Opens the File Options menu");
 
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefBut(block, BUTM, 1, "Save Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 22, "Create a runtime executable with the current project");
+	uiDefBut(block, BUTM, 1, "Save Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 22, "Creates a runtime executable with the current project");
 #ifdef _WIN32
-	uiDefBut(block, BUTM, 1, "Save dynamic Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 23, "Create a dynamic runtime executable with the current project (requieres extenal python20.dll)");
+	uiDefBut(block, BUTM, 1, "Save dynamic Runtime",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 23, "Creates a dynamic runtime executable with the current project (requieres extenal python20.dll)");
 #endif
-	uiDefBlockBut(block, info_runtime_optionsmenu, NULL, "Runtime options|>>", 0, xco-=20, 160, 19, "Click to open the File Options menu");
+	uiDefBlockBut(block, info_runtime_optionsmenu, NULL, "Runtime options|>>", 0, xco-=20, 160, 19, "Opens the File Options menu");
 
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Save Image|F3",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "Save the image in the render buffer to a file");
-	uiDefBut(block, BUTM, 1, "Save VRML 1.0|Ctrl F2",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "Save the current scene to a file in VRML 1.0 format");
-	uiDefBut(block, BUTM, 1, "Save DXF|Shift F2",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "Save the current scene to a file in DXF format");
-	uiDefBut(block, BUTM, 1, "Save VideoScape|Alt W",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "Save the current scene to a file in VideoScape format");
+	uiDefBut(block, BUTM, 1, "Save Image|F3",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "Saves the rendered image to a file");
+	uiDefBut(block, BUTM, 1, "Save VRML 1.0|Ctrl F2",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "Saves the current scene to a file in VRML 1.0 format");
+	uiDefBut(block, BUTM, 1, "Save DXF|Shift F2",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "Saves the current scene to a file in DXF format");
+	uiDefBut(block, BUTM, 1, "Save VideoScape|Alt W",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "Saves the current scene to a file in VideoScape format");
 
 
 	/*
@@ -2707,13 +2707,13 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 1, 0, "");
 
 #ifdef EXPERIMENTAL_MENUS
-	uiDefBut(block, BUTM, 1, "Pack Data",						0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefBut(block, BUTM, 1, "Pack Data",						0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "Saves a copy of all packed external files inside the project file");
+	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "Removes all packed files from the project and saves them to the current directory");
 	uiDefBut(block, BUTM, 1, "Advanced Unpack",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6, 160, 6, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "Quit | Q",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "Quit Blender immediately");
+	uiDefBut(block, BUTM, 1, "Quit | Q",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "Quits Blender immediately (WARNING! Save your project first!)");
 #else /* EXPERIMENTAL_MENUS */
-	uiDefBut(block, BUTM, 1, "Quit | Q",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "Quit Blender immediately");
+	uiDefBut(block, BUTM, 1, "Quit | Q",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "Quits Blender immediately (WARNING! Save your project first!)");
 #endif /* EXPERIMENTAL_MENUS */
 	uiBlockSetDirection(block, UI_DOWN);
 
@@ -2858,22 +2858,22 @@ static uiBlock *info_editmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_editmenu, NULL);
 
-	uiDefBut(block, BUTM, 1, "(De)Select All|A",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "Select all objects in the scene or empty the selection");
-	uiDefBut(block, BUTM, 1, "Border Select|B",		0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "Select objects in a rectangular area (press B again to activate circle select in edit mode)");
+	uiDefBut(block, BUTM, 1, "(De)Select All|A",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "Toggles between selecting all objects in the scene and selecting no objects");
+	uiDefBut(block, BUTM, 1, "Border Select|B",		0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "Selects objects in a rectangular area (press B again to activate circle select in edit mode)");
 
 	/* uiDefBut(block, BUTM, 1, "Circle Select",		0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "Select objects in a circular area"); */
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Duplicate|Shift D",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "Duplicate the selected object(s)");
-	uiDefBut(block, BUTM, 1, "Delete|X",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "Delete the selected object(s)");
-	uiDefBut(block, BUTM, 1, "Edit Mode|Tab",		0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "Toggle between object and edit mode");
+	uiDefBut(block, BUTM, 1, "Duplicate|Shift D",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "Creates a copy of the selected object(s)");
+	uiDefBut(block, BUTM, 1, "Delete|X",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "Deletes the selected object(s)");
+	uiDefBut(block, BUTM, 1, "Edit Mode|Tab",		0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "Toggles the current object between object mode and edit mode");
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Grabber|G",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "Move the selected object(s)");
-	uiDefBut(block, BUTM, 1, "Rotate|R",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "Rotate the selected object(s)");
-	uiDefBut(block, BUTM, 1, "Scale|S",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "Scale the selected object(s)");
+	uiDefBut(block, BUTM, 1, "Grabber|G",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "Moves the selected object(s)");
+	uiDefBut(block, BUTM, 1, "Rotate|R",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "Rotates the selected object(s)");
+	uiDefBut(block, BUTM, 1, "Scale|S",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "Scales the selected object(s)");
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Shear|Ctrl S",		0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "Shear the selected object(s)");
-	uiDefBut(block, BUTM, 1, "Warp/Bend|Shift W",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 10, "Warp or bend the selected objects");
-	uiDefBut(block, BUTM, 1, "Snap Menu|Shift S",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 11, "Activate the snap menu");
+	uiDefBut(block, BUTM, 1, "Shear|Ctrl S",		0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "Shears the selected object(s)");
+	uiDefBut(block, BUTM, 1, "Warp/Bend|Shift W",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 10, "Warps or bends the selected objects");
+	uiDefBut(block, BUTM, 1, "Snap Menu|Shift S",	0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 11, "Activates the snap menu");
 	
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
@@ -2984,28 +2984,28 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 
 #ifdef EXPERIMENTAL_MENUS
 	/* Maarten's proposal for a new Add Mesh menu */
-	uiDefBut(block, BUTM, 1, "Line|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Add a Mesh Line");
-	uiDefBut(block, BUTM, 1, "Circle|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Add a Mesh Circle");
+	uiDefBut(block, BUTM, 1, "Line|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Adds a Mesh Line");
+	uiDefBut(block, BUTM, 1, "Circle|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Adds a Mesh Circle");
 	uiDefBut(block, SEPR, 0, "",						0, xco-=6,  160, 6,  NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Plane|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Add a Mesh Plane");
-	uiDefBut(block, BUTM, 1, "Cube|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Add a Mesh Cube");
-	uiDefBut(block, BUTM, 1, "UVsphere",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Add a Mesh Sphere");
-	uiDefBut(block, BUTM, 1, "IcoSphere|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Add a Mesh Isocohedron Sphere");
-	uiDefBut(block, BUTM, 1, "Cylinder With Caps|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "Add a Mesh Cylinder with caps");
-	uiDefBut(block, BUTM, 1, "Cylinder Without Caps|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "Add a Mesh Cylinder without caps");
-	uiDefBut(block, BUTM, 1, "Cone|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "Add a Mesh Cone");
-	uiDefBut(block, BUTM, 1, "Grid|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "Add a Mesh Grid");
+	uiDefBut(block, BUTM, 1, "Plane|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Adds a Mesh Plane");
+	uiDefBut(block, BUTM, 1, "Cube|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Adds a Mesh Cube");
+	uiDefBut(block, BUTM, 1, "UVsphere",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Adds a Mesh Sphere");
+	uiDefBut(block, BUTM, 1, "IcoSphere|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Adds a Mesh Isocohedron Sphere");
+	uiDefBut(block, BUTM, 1, "Cylinder With Caps|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "Adds a Mesh Cylinder with caps");
+	uiDefBut(block, BUTM, 1, "Cylinder Without Caps|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "Adds a Mesh Cylinder without caps");
+	uiDefBut(block, BUTM, 1, "Cone|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "Adds a Mesh Cone");
+	uiDefBut(block, BUTM, 1, "Grid|",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "Adds a Mesh Grid");
 #else /* EXPERIMENTAL_MENUS */
-	uiDefBut(block, BUTM, 1, "Plane|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Add a Mesh Plane");
-	uiDefBut(block, BUTM, 1, "Cube|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Add a Mesh Cube");
-	uiDefBut(block, BUTM, 1, "Circle|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Add a Mesh Circle");
-	uiDefBut(block, BUTM, 1, "UVsphere",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Add a Mesh Sphere");
-	uiDefBut(block, BUTM, 1, "IcoSphere|",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Add a Mesh Isocohedron Sphere");
-	uiDefBut(block, BUTM, 1, "Cylinder|",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Add a Mesh Cylinder");
-	uiDefBut(block, BUTM, 1, "Tube|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "Add a Mesh Tube");
-	uiDefBut(block, BUTM, 1, "Cone|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "Add a Mesh Cone");
+	uiDefBut(block, BUTM, 1, "Plane|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Adds a Mesh Plane");
+	uiDefBut(block, BUTM, 1, "Cube|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Adds a Mesh Cube");
+	uiDefBut(block, BUTM, 1, "Circle|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Adds a Mesh Circle");
+	uiDefBut(block, BUTM, 1, "UVsphere",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Adds a Mesh Sphere");
+	uiDefBut(block, BUTM, 1, "IcoSphere|",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Adds a Mesh Isocohedron Sphere");
+	uiDefBut(block, BUTM, 1, "Cylinder|",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Adds a Mesh Cylinder with closed ends");
+	uiDefBut(block, BUTM, 1, "Tube|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "Adds a Mesh Tube with open ends");
+	uiDefBut(block, BUTM, 1, "Cone|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "Adds a Mesh Cone");
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6,  160, 6,  NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Grid|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "Add a Mesh Grid");
+	uiDefBut(block, BUTM, 1, "Grid|",				0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "Adds a Mesh Grid");
 #endif /* EXPERIMENTAL_MENUS */
 
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -3053,11 +3053,11 @@ static uiBlock *info_add_curvemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "add_curvemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_curvemenu, NULL);
 
-	uiDefBut(block, BUTM, 1, "Bezier Curve|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Add a Bezier curve");
-	uiDefBut(block, BUTM, 1, "Bezier Circle|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Add a Bezier circle");
-	uiDefBut(block, BUTM, 1, "NURBS Curve|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Add a NURB curve");
-	uiDefBut(block, BUTM, 1, "NURBS Circle",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Add a NURB circle");
-	uiDefBut(block, BUTM, 1, "Path|",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Add a path");
+	uiDefBut(block, BUTM, 1, "Bezier Curve|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Adds a Bezier Curve");
+	uiDefBut(block, BUTM, 1, "Bezier Circle|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Adds a Bezier Circle");
+	uiDefBut(block, BUTM, 1, "NURBS Curve|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Adds a NURBS Curve");
+	uiDefBut(block, BUTM, 1, "NURBS Circle",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Adds a NURBS Circle");
+	uiDefBut(block, BUTM, 1, "Path|",			0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Adds a Path");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -3109,12 +3109,12 @@ static uiBlock *info_add_surfacemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "add_surfacemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_surfacemenu, NULL);
 
-	uiDefBut(block, BUTM, 1, "NURBS Curve|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Add a curve");
-	uiDefBut(block, BUTM, 1, "NURBS Circle|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Add a circle");
-	uiDefBut(block, BUTM, 1, "NURBS Surface|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Add a surface");
-	uiDefBut(block, BUTM, 1, "NURBS Tube",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Add a tube");
-	uiDefBut(block, BUTM, 1, "NURBS Sphere|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Add a sphere");
-	uiDefBut(block, BUTM, 1, "NURBS Donut|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Add a donut");
+	uiDefBut(block, BUTM, 1, "NURBS Curve|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Adds a NURBS Curve");
+	uiDefBut(block, BUTM, 1, "NURBS Circle|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Adds a NURBS Circle");
+	uiDefBut(block, BUTM, 1, "NURBS Surface|",	0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Adds a NURBS Surface");
+	uiDefBut(block, BUTM, 1, "NURBS Tube",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "Adds a NURBS Tube");
+	uiDefBut(block, BUTM, 1, "NURBS Sphere|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "Adds a NURBS Sphere");
+	uiDefBut(block, BUTM, 1, "NURBS Donut|",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "Adds a NURBS Donut (Torus)");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -3179,20 +3179,20 @@ static uiBlock *info_addmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "addmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_addmenu, NULL);
 
-	uiDefBlockBut(block, info_add_meshmenu, NULL, "Mesh|>>", 0, xco-=20, 120, 19, "Click to open the Add Mesh menu");
-	uiDefBlockBut(block, info_add_curvemenu, NULL, "Curve|>>", 0, xco-=20, 120, 19, "Click to open the Add Curve menu");
-	uiDefBlockBut(block, info_add_surfacemenu, NULL, "Surface|>>", 0, xco-=20, 120, 19, "Click to open the Add Surface menu");
+	uiDefBlockBut(block, info_add_meshmenu, NULL, "Mesh|>>", 0, xco-=20, 120, 19, "Opens the Add Mesh menu");
+	uiDefBlockBut(block, info_add_curvemenu, NULL, "Curve|>>", 0, xco-=20, 120, 19, "Opens the Add Curve menu");
+	uiDefBlockBut(block, info_add_surfacemenu, NULL, "Surface|>>", 0, xco-=20, 120, 19, "Opens the Add Surface menu");
 
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Text|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefBut(block, BUTM, 1, "Metaball|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefBut(block, BUTM, 1, "Empty|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefBut(block, BUTM, 1, "Text|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "Adds a Text object");
+	uiDefBut(block, BUTM, 1, "Metaball|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "Adds a Metaball");
+	uiDefBut(block, BUTM, 1, "Empty|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "Adds an Empty object");
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Camera|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefBut(block, BUTM, 1, "Lamp|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "");
-//	uiDefBut(block, BUTM, 1, "Armature|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefBut(block, BUTM, 1, "Camera|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "Adds a Camera");
+	uiDefBut(block, BUTM, 1, "Lamp|",				0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "Adds a Lamp");
+//	uiDefBut(block, BUTM, 1, "Armature|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "Adds an Armature");
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Lattice|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefBut(block, BUTM, 1, "Lattice|",			0, xco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "Adds a Lattice");
 	
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
@@ -3242,18 +3242,18 @@ static uiBlock *info_viewmenu(void *arg_unused)
 
 	// uiBlockSetCol(block, BUTBLUE);
 	
-	uiDefBut(block, BUTM, 1, "Front|NumPad 1",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Right|NumPad 3",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefBut(block, BUTM, 1, "Top|NumPad 7",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefBut(block, BUTM, 1, "Camera|NumPad 0",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefBut(block, BUTM, 1, "Front|NumPad 1",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 0, "Sets current viewport to Front view");
+	uiDefBut(block, BUTM, 1, "Right|NumPad 3",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 1, "Sets current viewport to Right view");
+	uiDefBut(block, BUTM, 1, "Top|NumPad 7",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 2, "Sets current viewport to Top view");
+	uiDefBut(block, BUTM, 1, "Camera|NumPad 0",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 3, "Sets current viewport to Camera view");
 
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Zoom In|NumPad +",	0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 4, "");
-	uiDefBut(block, BUTM, 1, "Zoom Out|NumPad -",	0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefBut(block, BUTM, 1, "Zoom In|NumPad +",	0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 4, "Zooms In current viewport");
+	uiDefBut(block, BUTM, 1, "Zoom Out|NumPad -",	0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 5, "Zooms Out current viewport");
 	
 	uiDefBut(block, SEPR, 0, "",					0, xco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Center|C",			0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 6, "");
-	uiDefBut(block, BUTM, 1, "View All|Home",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefBut(block, BUTM, 1, "Center|C",			0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 6, "Centers selected item in current viewport");
+	uiDefBut(block, BUTM, 1, "View All|Home",		0, xco-=20, 140, 19, NULL, 0.0, 0.0, 0, 7, "Zooms In or Out to fit all objects in current viewport");
 	
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 50);
@@ -3284,7 +3284,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	uiBlockSetCol(block, BUTBLUE);
 	uiBlockSetDirection(block, UI_DOWN);
 #if GAMEBLENDER == 1
-	uiDefBut(block, BUTM, B_STARTGAME, "Start Game|P", 
+	uiDefBut(block, BUTM, B_STARTGAME, "Starts Game|P", 
 			 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 0, 0, 
 			 "Start the game (press the Escape key to stop)");
 	
@@ -3295,17 +3295,17 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_game_menu, NULL);
 	uiDefBut(block, BUTM, 1, "Enable All Frames",
 			 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT,
-			 "Toggle between draw all frames on (no frames dropped) and off (full speed)");
+			 "Toggles between draw all frames on (no frames dropped) and off (full speed)");
 	uiDefBut(block, BUTM, 1, "Show framerate and profile",
 			 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_FRAMERATE_BIT,
-			 "Toggle between showing and not showing the framerate and profile");
+			 "Toggles between showing and not showing the framerate and profile");
 	uiDefBut(block, BUTM, 1, "Show debug properties",
 			 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS_BIT,
-			 "Toggle between showing and not showing debug properties");
+			 "Toggles between showing and not showing debug properties");
 	uiDefBut(block, SEPR, 0, "",				-20, yco-=6, 180, 6, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, 1, "Autostart",
 			 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, G_FILE_AUTOPLAY_BIT,
-			 "Toggle between automatic game start on and off");
+			 "Toggles between automatic game start on and off");
 	
 	uiTextBoundsBlock(block, 50);
 	/* Toggle buttons */
@@ -3370,8 +3370,8 @@ static uiBlock *info_toolsmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_toolsmenu, NULL);
 	// uiBlockSetCol(block, BUTBLUE);
 	
-	uiDefBut(block, BUTM, 1, "Pack Data",						0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefBut(block, BUTM, 1, "Pack Data",						0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "Saves a copy of all packed external files inside the project file");
+	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "Removes all packed files from the project and saves them to the current directory");
 	uiDefBut(block, BUTM, 1, "Advanced Unpack",					0, xco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiBlockSetDirection(block, UI_DOWN);
@@ -3496,11 +3496,11 @@ void info_buttons(void)
 	if(U.uiflag & FLIPINFOMENU) {
 		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "View pulldown menus");/* dir   */
+				&(U.uiflag), 0, 0, 0, 0, "Enables display of pulldown menus");/* dir   */
 	} else {
 		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "Hide pulldown menus");/* dir   */
+				&(U.uiflag), 0, 0, 0, 0, "Hides pulldown menus");/* dir   */
 	}
 	xco+=XIC;
 
@@ -3541,7 +3541,7 @@ void info_buttons(void)
 		
 	if (G.fileflags & G_AUTOPACK) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconBut(block, LABEL, 0, ICON_PACKAGE, xco, 0, XIC, YIC, &G.fileflags, 0.0, 0.0, 0, 0, "This is a Packed file. See File menu.");
+		uiDefIconBut(block, LABEL, 0, ICON_PACKAGE, xco, 0, XIC, YIC, &G.fileflags, 0.0, 0.0, 0, 0, "Indicates this is a Packed file. See File menu.");
 		xco += XIC;
 		uiBlockSetEmboss(block, UI_EMBOSSX);
 	}
@@ -3550,7 +3550,7 @@ void info_buttons(void)
 	
 	if (curarea->full == 0) {
 		curarea->butspacetype= SPACE_INFO;
-		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 		
 		/* STD SCREEN BUTTONS */
 //		xco+= XIC;
@@ -3566,7 +3566,7 @@ void info_buttons(void)
 	info_text(xco+24, 6);
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+1, 0,XIC,YIC, 0, 0, 0, 0, 0, "");
+	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+1, 0,XIC,YIC, 0, 0, 0, 0, 0, "Click to display Splash Screen");
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 
 /*
@@ -3580,17 +3580,17 @@ void info_buttons(void)
 	if(curarea->headbutlen + 4*XIC < curarea->winx) {
 		uiDefIconBut(block, BUT, B_FILEMENU, ICON_HELP,
 			(short)(curarea->winx-XIC-2), 0,XIC,YIC,
-			0, 0, 0, 0, 0, "Toolbox menu, hotkey: SPACE");
+			0, 0, 0, 0, 0, "Displays Toolbox menu (SPACE)");
 
 #ifdef _WIN32	// FULLSCREEN
 	if(U.uiflag & FLIPFULLSCREEN) {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				0, 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
+				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir   */
 	} else {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_FULLSCREEN,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				0, 0, 0, 0, 0, "Toggle Blender fullscreen");/* dir   */
+				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir   */
 	}
 #endif
 /*
@@ -3650,15 +3650,15 @@ void seq_buttons()
 
 	curarea->butspacetype= SPACE_SEQ;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 	
 	/* HOME */
-	uiDefIconBut(block, BUT, B_SEQHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");	
+	uiDefIconBut(block, BUT, B_SEQHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");	
 	xco+= XIC;
 	
 	/* IMAGE */
@@ -3666,8 +3666,8 @@ void seq_buttons()
 
 	/* ZOOM and BORDER */
 	xco+= XIC;
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zoom view to area");
+	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (CTRL+MiddleMouse)");
+	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
 
 	/* CLEAR MEM */
 	xco+= XIC;
@@ -3991,15 +3991,15 @@ void nla_buttons(void)
 	uiBlockSetCol(block, BUTCHOKE);
 
 	curarea->butspacetype= SPACE_NLA;
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 	
 	/* HOME */
-	uiDefIconBut(block, BUT, B_NLAHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");	
+	uiDefIconBut(block, BUT, B_NLAHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");	
 	xco+= XIC;
 	
 	/* IMAGE */
@@ -4012,7 +4012,7 @@ void nla_buttons(void)
 
 	/* draw LOCK */
 	xco+= XIC/2;
-	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.snla->lock), 0, 0, 0, 0, "Lock redraw of other windows while editing");
+	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.snla->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
 
 	uiDrawBlock(block);}
 
@@ -4040,13 +4040,13 @@ void action_buttons(void)
 	uiBlockSetCol(block, BUTPINK);
 
 	curarea->butspacetype= SPACE_ACTION;
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
-	uiDefIconBut(block, BUT, B_ACTHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
+	uiDefIconBut(block, BUT, B_ACTHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 
 	
 	/* NAME ETC */
@@ -4057,14 +4057,14 @@ void action_buttons(void)
 
 #ifdef __NLA_BAKE
 	/* Draw action baker */
-	uiDefBut(block, BUT, B_ACTBAKE, "Bake", xco+=XIC, 0, 64, YIC, 0, 0, 0, 0, 0, "Generate an action with the constraint effects converted into ipo keys");
+	uiDefBut(block, BUT, B_ACTBAKE, "Bake", xco+=XIC, 0, 64, YIC, 0, 0, 0, 0, 0, "Generates an Action with the constraint effects converted into ipo keys");
 	xco+=64;
 #endif
 	uiClearButLock();
 
 	/* draw LOCK */
 	xco+= XIC/2;
-	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.saction->lock), 0, 0, 0, 0, "Lock redraw of other windows while editing");
+	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.saction->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
 
 
 	/* always as last  */
@@ -4086,39 +4086,39 @@ void view3d_buttons(void)
 
 	curarea->butspacetype= SPACE_VIEW3D;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 	
 	/* HOME */
-	uiDefIconBut(block, BUT, B_HOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");	
+	uiDefIconBut(block, BUT, B_HOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");	
 
 	xco+= XIC+8;
 	if(G.vd->localview==0) {
 		/* LAYERS */
 		for(a=0; a<10; a++) {
-			uiDefButI(block, TOG|BIT|(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Layers");
-			uiDefButI(block, TOG|BIT|a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Layers");
+			uiDefButI(block, TOG|BIT|(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButI(block, TOG|BIT|a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
 			if(a==4) xco+= 5;
 		}
 		xco+= (a-2)*(XIC/2)+5;
 
 		/* LOCK */
-		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Lock layers and used Camera to Scene");
+		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene");
 		xco+= XIC;
 
 	}
 	else xco+= (10+2)*(XIC/2)+10;
 	
 	/* LOCALVIEW */
-	uiDefIconButS(block, ICONROW, B_LOCALVIEW, ICON_LOCALVIEW,	xco+=XIC,0,XIC,YIC, &(G.vd->localview), 0.0, 1.0, 0, 0, "Local View (NumPad /)");
+	uiDefIconButS(block, ICONROW, B_LOCALVIEW, ICON_LOCALVIEW,	xco+=XIC,0,XIC,YIC, &(G.vd->localview), 0.0, 1.0, 0, 0, "Toggles Local View (NumPad /)");
 	
 	/* PERSP */
 	xco+= XIC/2;
-	uiDefIconButS(block, ICONROW, B_PERSP, ICON_ORTHO,	xco+=XIC,0,XIC,YIC, &(G.vd->persp), 0.0, 2.0, 0, 0, "Perspective mode (NumPad 5, Numpad 0)");
+	uiDefIconButS(block, ICONROW, B_PERSP, ICON_ORTHO,	xco+=XIC,0,XIC,YIC, &(G.vd->persp), 0.0, 2.0, 0, 0, "Toggles Perspective mode (NumPad 5, Numpad 0)");
 	
 	xco+= XIC/2;
 	/* VIEW */
@@ -4128,23 +4128,23 @@ void view3d_buttons(void)
 	else if(G.vd->view==3) G.vd->viewbut= 3;
 	else G.vd->viewbut= 0;
 	
-	uiDefIconButS(block, ICONROW, B_VIEWBUT, ICON_VIEW_AXIS_NONE2, xco+=XIC,0,XIC,YIC, &G.vd->viewbut, 0.0, 3.0, 0, 0, "Top/Front or Side views (Numpad 7, 1, 3)");
+	uiDefIconButS(block, ICONROW, B_VIEWBUT, ICON_VIEW_AXIS_NONE2, xco+=XIC,0,XIC,YIC, &G.vd->viewbut, 0.0, 3.0, 0, 0, "Selects Top, Front or Side views (Numpad 7, 1, 3)");
 	
 	/* DRAWTYPE */
 	xco+= XIC/2;
-	uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco+=XIC,0,XIC,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Drawtype: boundbox/wire/solid/shaded (ZKEY, SHIFT+Z)");
+	uiDefIconButS(block, ICONROW, B_REDR, ICON_BBOX,	xco+=XIC,0,XIC,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Sets view draw mode to Boundbox, Wire, Solid, or Shaded (ZKEY, SHIFT+Z)");
 
 	/* VIEWMOVE */
 	xco+= XIC/2;
-	uiDefIconButI(block, TOG, B_VIEWTRANS, ICON_VIEWMOVE,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Translate view (SHIFT+MiddleMouse)");
-	uiDefIconButI(block, TOG, B_VIEWZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
+	uiDefIconButI(block, TOG, B_VIEWTRANS, ICON_VIEWMOVE,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Translates view (SHIFT+MiddleMouse)");
+	uiDefIconButI(block, TOG, B_VIEWZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (CTRL+MiddleMouse)");
 
 	/* around */
 	xco+= XIC/2;
-	uiDefIconButS(block, ROW, 1, ICON_ROTATE,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 0.0, 0, 0, "Rotation/Scaling around boundbox center (COMMAKEY)");
-	uiDefIconButS(block, ROW, 1, ICON_ROTATECENTER,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 3.0, 0, 0, "Rotation/Scaling around median point");
-	uiDefIconButS(block, ROW, 1, ICON_CURSOR,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 1.0, 0, 0, "Rotation/Scaling around cursor (DOTKEY)");
-	uiDefIconButS(block, ROW, 1, ICON_ROTATECOLLECTION,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 2.0, 0, 0, "Rotation/Scaling around individual centers");
+	uiDefIconButS(block, ROW, 1, ICON_ROTATE,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 0.0, 0, 0, "Enables Rotation or Scaling around boundbox center (COMMAKEY)");
+	uiDefIconButS(block, ROW, 1, ICON_ROTATECENTER,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 3.0, 0, 0, "Enables Rotation or Scaling around median point");
+	uiDefIconButS(block, ROW, 1, ICON_CURSOR,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 1.0, 0, 0, "Enables Rotation or Scaling around cursor (DOTKEY)");
+	uiDefIconButS(block, ROW, 1, ICON_ROTATECOLLECTION,	xco+=XIC,0,XIC,YIC, &G.vd->around, 3.0, 2.0, 0, 0, "Enables Rotation or Scaling around individual object centers");
 
 	/* mode */
 	G.vd->flag &= ~V3D_MODE;
@@ -4163,23 +4163,23 @@ void view3d_buttons(void)
 	/*	If there is a posable object hilighted & selected, display this button */
 	if (OBACT){
 		if (OBACT->type==OB_ARMATURE){
-			uiDefIconButS(block, ICONTOG|BIT|7, B_POSEMODE, ICON_POSE_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "PoseMode (CTRL+TAB)");
+			uiDefIconButS(block, ICONTOG|BIT|7, B_POSEMODE, ICON_POSE_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Toggles PoseMode (CTRL+TAB)");
 		}
 	}
-	uiDefIconButS(block, ICONTOG|BIT|4, B_EDITMODE, ICON_EDITMODE_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "EditMode (TAB)");
+	uiDefIconButS(block, ICONTOG|BIT|4, B_EDITMODE, ICON_EDITMODE_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Toggles EditMode (TAB)");
 	if (!G.obpose && !G.obedit)
 	{
 		xco+= XIC/2;
 		/* Only if mesh is selected */
 		if (OBACT && OBACT->type == OB_MESH){
-			uiDefIconButS(block, ICONTOG|BIT|5, B_VPAINT, ICON_VPAINT_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "VertexPaint Mode (VKEY)");
+			uiDefIconButS(block, ICONTOG|BIT|5, B_VPAINT, ICON_VPAINT_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Toggles VertexPaint Mode (VKEY)");
 			/* Only if deformable mesh is selected */
 			if ((((Mesh*)(OBACT->data))->dvert))
-				uiDefIconButS(block, ICONTOG|BIT|9, B_WPAINT, ICON_WPAINT_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "WeightPaint Mode");
+				uiDefIconButS(block, ICONTOG|BIT|9, B_WPAINT, ICON_WPAINT_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Toggles WeightPaint Mode");
 #ifdef NAN_TPT
-			uiDefIconButS(block, ICONTOG|BIT|8, B_TEXTUREPAINT, ICON_TPAINT_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "TexturePaint Mode");
+			uiDefIconButS(block, ICONTOG|BIT|8, B_TEXTUREPAINT, ICON_TPAINT_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Toggles TexturePaint Mode");
 #endif /* NAN_TPT */
-			uiDefIconButS(block, ICONTOG|BIT|6, B_FACESEL, ICON_FACESEL_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "FaceSelect Mode (FKEY)");
+			uiDefIconButS(block, ICONTOG|BIT|6, B_FACESEL, ICON_FACESEL_DEHLT,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Toggles FaceSelect Mode (FKEY)");
 		}
 	}
 	if (G.obpose){
@@ -4190,35 +4190,35 @@ void view3d_buttons(void)
 			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the current pose to the buffer");
 			uiSetButLock(G.obpose->id.lib!=0, "Can't edit library data");
 			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the pose from the buffer");
-			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the flipped pose from the buffer");
+			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the mirrored pose from the buffer");
 		}
 		else {
 			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the current pose to the buffer");
 			uiSetButLock(G.obpose->id.lib!=0, "Can't edit library data");
 			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the pose from the buffer");
-			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the flipped pose from the buffer");
+			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the mirrored pose from the buffer");
 		}
 //		xco+=XIC/2;	//	Used in action window
 	}
 	if(G.vd->bgpic) {
 		xco+= XIC/2;
-		uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_IMAGE_COL,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Display Background picture");
+		uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_IMAGE_COL,	xco+=XIC,0,XIC,YIC, &G.vd->flag, 0, 0, 0, 0, "Displays a Background picture");
 	}
 	if(G.obedit) {
 		extern int prop_mode;
 		xco+= XIC/2;
-		uiDefIconButI(block, ICONTOG|BIT|14, B_PROPTOOL, ICON_GRID,	xco+=XIC,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Proportional vertex editing (OKEY)");
+		uiDefIconButI(block, ICONTOG|BIT|14, B_PROPTOOL, ICON_GRID,	xco+=XIC,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Toggles Proportional Vertex Editing (OKEY)");
 		if(G.f & G_PROPORTIONAL) {
-			uiDefIconButI(block, ROW, 0, ICON_SHARPCURVE,	xco+=XIC,0,XIC,YIC, &prop_mode, 4.0, 0.0, 0, 0, "Sharp falloff (SHIFT+OKEY)");
-			uiDefIconButI(block, ROW, 0, ICON_SMOOTHCURVE,	xco+=XIC,0,XIC,YIC, &prop_mode, 4.0, 1.0, 0, 0, "Smooth falloff (SHIFT+OKEY)");
+			uiDefIconButI(block, ROW, 0, ICON_SHARPCURVE,	xco+=XIC,0,XIC,YIC, &prop_mode, 4.0, 0.0, 0, 0, "Enables Sharp falloff (SHIFT+OKEY)");
+			uiDefIconButI(block, ROW, 0, ICON_SMOOTHCURVE,	xco+=XIC,0,XIC,YIC, &prop_mode, 4.0, 1.0, 0, 0, "Enables Smooth falloff (SHIFT+OKEY)");
 		}
 	}
 	
 	xco+=XIC;
-	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Render this view. (Hold SHIFT for Anim render)");
+	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Renders this view (Hold SHIFT for Anim render)");
 	xco+=XIC;
 #if GAMEBLENDER == 1
-	uiDefIconBut(block, BUT, B_STARTGAME, ICON_GAME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Start game (PKEY)");
+	uiDefIconBut(block, BUT, B_STARTGAME, ICON_GAME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Starts game (PKEY)");
 #endif
 
 	/* Always do this last */
@@ -4361,35 +4361,35 @@ void ipo_buttons(void)
 
 	curarea->butspacetype= SPACE_IPO;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	test_editipo();	/* test if current editipo is OK, make_editipo sets v2d->cur */
 
 		/* FULL WINDOW en HOME */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
-	uiDefIconBut(block, BUT, B_IPOHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");
-	uiDefIconButS(block, ICONTOG, B_IPOSHOWKEY, ICON_KEY_DEHLT,	xco+=XIC,0,XIC,YIC, &G.sipo->showkey, 0, 0, 0, 0, "Toggles curve/key display (KKEY)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
+	uiDefIconBut(block, BUT, B_IPOHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
+	uiDefIconButS(block, ICONTOG, B_IPOSHOWKEY, ICON_KEY_DEHLT,	xco+=XIC,0,XIC,YIC, &G.sipo->showkey, 0, 0, 0, 0, "Toggles between Curve and Key display (KKEY)");
 
 	/* mainmenu, only when data is there and no pin */
 	uiSetButLock(G.sipo->pin, "Can't change because of pinned data");
 	
 	ob= OBACT;
 	xco+= XIC/2;
-	uiDefIconButS(block, ROW, B_IPOMAIN, ICON_OBJECT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_OB, 0, 0, "Display Object Ipos ");
+	uiDefIconButS(block, ROW, B_IPOMAIN, ICON_OBJECT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_OB, 0, 0, "Displays Object Ipos");
 	
 	if(ob && give_current_material(ob, ob->actcol)) {
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_MA, 0, 0, "Display Material Ipos ");
+		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_MA, 0, 0, "Displays Material Ipos");
 		if(G.sipo->blocktype==ID_MA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Channel Number of the active Material texture");
+			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
 			xco-= 4;
 		}
 	}
 	if(G.scene->world) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_WORLD,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_WO, 0, 0, "Display World Ipos");
 		if(G.sipo->blocktype==ID_WO) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Channel Number of the active World texture");
+			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
 			xco-= 4;
 		}
 	}
@@ -4403,24 +4403,24 @@ void ipo_buttons(void)
 	if(ob && ob->type==OB_LAMP) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_LAMP,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_LA, 0, 0, "Display Lamp Ipos");
 		if(G.sipo->blocktype==ID_LA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Channel Number of the active Lamp texture");
+			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
 			xco-= 4;
 		}
 	}
 	
 	if(ob) {
 		if ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)
-			uiDefIconButS(block, ROW, B_IPOMAIN, ICON_EDIT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_KE, 0, 0, "Display VertexKeys Ipos");
+			uiDefIconButS(block, ROW, B_IPOMAIN, ICON_EDIT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_KE, 0, 0, "Displays VertexKeys Ipos");
 		if (ob->action)
-			uiDefIconButS(block, ROW, B_IPOMAIN, ICON_ACTION,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_AC, 0, 0, "Display Action Ipos");
+			uiDefIconButS(block, ROW, B_IPOMAIN, ICON_ACTION,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_AC, 0, 0, "Displays Action Ipos");
 #ifdef __CON_IPO
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_CONSTRAINT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)IPO_CO, 0, 0, "Display Constraint Ipos");
+		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_CONSTRAINT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)IPO_CO, 0, 0, "Displays Constraint Ipos");
 #endif
 	}
-	uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SEQUENCE,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SEQ, 0, 0, "Display Sequence Ipos");
+	uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SEQUENCE,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SEQ, 0, 0, "Displays Sequence Ipos");
 
 	if(G.buts && G.buts->mainb == BUTS_SOUND && G.buts->lockpoin) 
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SOUND,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SO, 0, 0, "Display Sound Ipos");
+		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SOUND,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SO, 0, 0, "Displays Sound Ipos");
 
 	
 	uiClearButLock();
@@ -4455,11 +4455,11 @@ void ipo_buttons(void)
 
 	uiClearButLock();
 	/* ZOOM en BORDER */
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zoom view to area");
+	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (CTRL+MiddleMouse)");
+	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
 	
 	/* draw LOCK */
-	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.sipo->lock), 0, 0, 0, 0, "Lock redraw of other windows while editing");
+	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.sipo->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
 
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
@@ -4739,15 +4739,15 @@ void buts_buttons(void)
 
 	curarea->butspacetype= SPACE_BUTS;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 
 	/* HOME */
-	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");
+	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 	
 	/* choice menu */
 	xco+= 2*XIC;
@@ -4785,14 +4785,14 @@ void buts_buttons(void)
 	
 		/* COPY PASTE */
 		if(curarea->headertype==HEADERTOP) {
-			uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copy Material to the buffer");
+			uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 			uiSetButLock(id && id->lib, "Can't edit library data");
-			uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Paste Material from the buffer");
+			uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
 		}
 		else {
-			uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copy Material to the buffer");
+			uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 			uiSetButLock(id && id->lib, "Can't edit library data");
-			uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Paste Material from the buffer");
+			uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
 		}
 		xco+=XIC;
 
@@ -4820,7 +4820,7 @@ void buts_buttons(void)
 			
 			if(G.scene->group) {
 				Group *group= G.scene->group;
-				but= uiDefBut(block, TEX, B_IDNAME, "GR:",	xco, 0, 135, YIC, group->id.name+2, 0.0, 19.0, 0, 0, "Active Group name");
+				but= uiDefBut(block, TEX, B_IDNAME, "GR:",	xco, 0, 135, YIC, group->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Group name. Click to change.");
 				uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
 				xco+= 135;
 			}
@@ -4885,7 +4885,7 @@ void buts_buttons(void)
 			xco+= XIC;
 		}
 		if(ob) {
-			but= uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 0, 135, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Active Object name");
+			but= uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 0, 135, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
 			uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
 			xco+= 135;
 		}
@@ -4901,10 +4901,10 @@ void buts_buttons(void)
 				sprintf(str, "BO:%s", ((Bone*)data)->name);
 #if 0
 					/* XXXXX, not idname... but check redrawing */
-				but= uiDefBut(block, TEX, 1, "BO:",	xco, 0, 135, YIC, ((Bone*)data)->name, 0.0, 19.0, 0, 0, "Active Bone name");
+				but= uiDefBut(block, TEX, 1, "BO:",	xco, 0, 135, YIC, ((Bone*)data)->name, 0.0, 19.0, 0, 0, "Displays Active Bone name. Click to change.");
 				uiButSetFunc(but, validate_bonebutton, data, NULL);
 #else
-				but= uiDefBut(block, LABEL, 1, str,	xco, 0, 135, YIC, ((Bone*)data)->name, 0.0, 19.0, 0, 0, "Active Bone name");
+				but= uiDefBut(block, LABEL, 1, str,	xco, 0, 135, YIC, ((Bone*)data)->name, 0.0, 19.0, 0, 0, "Displays Active Bone name. Click to change.");
 #endif
 				xco+= 135;
 			}
@@ -4912,24 +4912,24 @@ void buts_buttons(void)
 	}
 	else if(G.buts->mainb==BUTS_SCRIPT) {
 		if(ob)
-			uiDefIconButS(block, ROW, B_REDR, ICON_OBJECT, xco,0,XIC,YIC, &G.buts->scriptblock,  2.0, (float)ID_OB, 0, 0, "Display Object script links");
+			uiDefIconButS(block, ROW, B_REDR, ICON_OBJECT, xco,0,XIC,YIC, &G.buts->scriptblock,  2.0, (float)ID_OB, 0, 0, "Displays Object script links");
 
 		if(ob && give_current_material(ob, ob->actcol))
-			uiDefIconButS(block, ROW, B_REDR, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_MA, 0, 0, "Display Material script links ");
+			uiDefIconButS(block, ROW, B_REDR, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_MA, 0, 0, "Displays Material script links ");
 
 		if(G.scene->world) 
-			uiDefIconButS(block, ROW, B_REDR, ICON_WORLD,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_WO, 0, 0, "Display World script links");
+			uiDefIconButS(block, ROW, B_REDR, ICON_WORLD,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_WO, 0, 0, "Displays World script links");
 	
 		if(ob && ob->type==OB_CAMERA)
-			uiDefIconButS(block, ROW, B_REDR, ICON_CAMERA,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_CA, 0, 0, "Display Camera script links");
+			uiDefIconButS(block, ROW, B_REDR, ICON_CAMERA,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_CA, 0, 0, "Displays Camera script links");
 
 		if(ob && ob->type==OB_LAMP)
-			uiDefIconButS(block, ROW, B_REDR, ICON_LAMP,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_LA, 0, 0, "Display Lamp script links");
+			uiDefIconButS(block, ROW, B_REDR, ICON_LAMP,	xco+=XIC,0,XIC,YIC, &G.buts->scriptblock, 2.0, (float)ID_LA, 0, 0, "Displays Lamp script links");
 
 		xco+= 20;
 	}
 	
-	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Current Frame");
+	uiDefButS(block, NUM, B_NEWFRAME, "",	(short)(xco+20),0,60,YIC, &(G.scene->r.cfra), 1.0, 18000.0, 0, 0, "Displays Current Frame of animation. Click to change.");
 	xco+= 80;
 
 	G.buts->mainbo= G.buts->mainb;
@@ -4978,18 +4978,18 @@ void file_buttons(void)
 	uiBlockSetCol(block, BUTGREY);
 
 	curarea->butspacetype= SPACE_FILE;
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 	
 	/* SORT TYPE */
 	xco+=XIC;
-	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 0.0, 0, 0, "Sort files alphabetically");
-	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTTIME,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 1.0, 0, 0, "Sort files by time");
-	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 2.0, 0, 0, "Sort files by size");	
+	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
+	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTTIME,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 1.0, 0, 0, "Sorts files by time");
+	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
 
 	cpack(0x0);
 	glRasterPos2i(xco+=XIC+10,  5);
@@ -5012,14 +5012,14 @@ void file_buttons(void)
 	xco+= BMF_GetStringWidth(G.font, sfile->title);
 #endif
 	
-	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggle long info");
-	uiDefIconButS(block, TOG|BIT|3, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hide dot files");
+	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
+	uiDefIconButS(block, TOG|BIT|3, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
 
 	xco+=XIC+10;
 
 	if(sfile->type==FILE_LOADLIB) {
-		uiDefButS(block, TOGN|BIT|2, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Causes selected data to be copied into current file");
-		uiDefButS(block, TOG|BIT|2, B_REDR, "Link",	xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Causes selected data to be linked by current file");
+		uiDefButS(block, TOGN|BIT|2, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Copies selected data into current project");
+		uiDefButS(block, TOG|BIT|2, B_REDR, "Link",	xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Creates a link to selected data from current project");
 	}
 
 	if(sfile->type==FILE_UNIX) {
@@ -5099,37 +5099,37 @@ void oops_buttons(void)
 
 	curarea->butspacetype= SPACE_OOPS;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 	
 	/* HOME */
-	uiDefIconBut(block, BUT, B_OOPSHOME, ICON_HOME,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");	
+	uiDefIconBut(block, BUT, B_OOPSHOME, ICON_HOME,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");	
 	xco+= XIC;
 	
 	/* ZOOM and BORDER */
 	xco+= XIC;
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	(short)(xco+=XIC),0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Zoom view to area");
+	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	(short)(xco+=XIC),0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (CTRL+MiddleMouse)");
+	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
 
 	/* VISIBLE */
 	xco+= XIC;
-	uiDefButS(block, TOG|BIT|10,B_NEWOOPS, "lay",		(short)(xco+=XIC),0,XIC+10,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Objects based on layer");
-	uiDefIconButS(block, TOG|BIT|0, B_NEWOOPS, ICON_SCENE_HLT,	(short)(xco+=XIC+10),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Scene data");
-	uiDefIconButS(block, TOG|BIT|1, B_NEWOOPS, ICON_OBJECT_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Object data");
-	uiDefIconButS(block, TOG|BIT|2, B_NEWOOPS, ICON_MESH_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Mesh data");
-	uiDefIconButS(block, TOG|BIT|3, B_NEWOOPS, ICON_CURVE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Curve/Surface/Font data");
-	uiDefIconButS(block, TOG|BIT|4, B_NEWOOPS, ICON_MBALL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Metaball data");
-	uiDefIconButS(block, TOG|BIT|5, B_NEWOOPS, ICON_LATTICE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Lattice data");
-	uiDefIconButS(block, TOG|BIT|6, B_NEWOOPS, ICON_LAMP_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Lamp data");
-	uiDefIconButS(block, TOG|BIT|7, B_NEWOOPS, ICON_MATERIAL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Material data");
-	uiDefIconButS(block, TOG|BIT|8, B_NEWOOPS, ICON_TEXTURE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Texture data");
-	uiDefIconButS(block, TOG|BIT|9, B_NEWOOPS, ICON_IPO_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Ipo data");
-	uiDefIconButS(block, TOG|BIT|12, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Image data");
-	uiDefIconButS(block, TOG|BIT|11, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Display Library data");
+	uiDefButS(block, TOG|BIT|10,B_NEWOOPS, "lay",		(short)(xco+=XIC),0,XIC+10,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Objects based on layer");
+	uiDefIconButS(block, TOG|BIT|0, B_NEWOOPS, ICON_SCENE_HLT,	(short)(xco+=XIC+10),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Scene data");
+	uiDefIconButS(block, TOG|BIT|1, B_NEWOOPS, ICON_OBJECT_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Object data");
+	uiDefIconButS(block, TOG|BIT|2, B_NEWOOPS, ICON_MESH_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Mesh data");
+	uiDefIconButS(block, TOG|BIT|3, B_NEWOOPS, ICON_CURVE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Curve/Surface/Font data");
+	uiDefIconButS(block, TOG|BIT|4, B_NEWOOPS, ICON_MBALL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Metaball data");
+	uiDefIconButS(block, TOG|BIT|5, B_NEWOOPS, ICON_LATTICE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lattice data");
+	uiDefIconButS(block, TOG|BIT|6, B_NEWOOPS, ICON_LAMP_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lamp data");
+	uiDefIconButS(block, TOG|BIT|7, B_NEWOOPS, ICON_MATERIAL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Material data");
+	uiDefIconButS(block, TOG|BIT|8, B_NEWOOPS, ICON_TEXTURE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Texture data");
+	uiDefIconButS(block, TOG|BIT|9, B_NEWOOPS, ICON_IPO_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Ipo data");
+	uiDefIconButS(block, TOG|BIT|12, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Image data");
+	uiDefIconButS(block, TOG|BIT|11, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Library data");
 
 	/* name */
 	if(G.soops->lockpoin) {
@@ -5274,17 +5274,17 @@ void text_buttons(void)
 
 	curarea->butspacetype= SPACE_TEXT;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 		
 	if(st->showlinenrs)
-		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_SHORTDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Hide line numbers");
+		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_SHORTDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Hides line numbers");
 	else
-		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Display line numbers");
+		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays line numbers");
 
 
 	/* STD TEXT BUTTONS */
@@ -5297,16 +5297,16 @@ void text_buttons(void)
 			if (st->text->flags & TXT_ISDIRTY && (st->text->flags & TXT_ISEXT || !(st->text->flags & TXT_ISMEM)))
 				uiDefIconBut(block, BUT,0, ICON_ERROR, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "The text has been changed");
 			if (st->text->flags & TXT_ISEXT) 
-				uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Store text in .blend file");
+				uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Stores text in project file");
 			else 
-				uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Don't store text in .blend file");
+				uiDefBut(block, BUT,B_TEXTSTORE, ICON(),	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Disables storing of text in project file");
 			xco+=10;
 		}
 		*/		
 
 		xco+=XIC;
 		if(st->font_id>1) st->font_id= 0;
-		uiDefButI(block, MENU, B_TEXTFONT, "Screen 12 %x0|Screen 15%x1", xco,0,100,YIC, &st->font_id, 0, 0, 0, 0, "Font display menu");
+		uiDefButI(block, MENU, B_TEXTFONT, "Screen 12 %x0|Screen 15%x1", xco,0,100,YIC, &st->font_id, 0, 0, 0, 0, "Displays available fonts");
 		xco+=100;
 	}
 	
@@ -5531,13 +5531,13 @@ void sound_buttons(void)
 
 	curarea->butspacetype= SPACE_SOUND;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
-	uiDefIconBut(block, BUT, B_SOUNDHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
+	uiDefIconBut(block, BUT, B_SOUNDHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 
 	xco= std_libbuttons(block, xco+40, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
 
@@ -5854,17 +5854,17 @@ void image_buttons(void)
 
 	curarea->butspacetype= SPACE_IMAGE;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 
 	/* FULL WINDOW */
 	xco= 25;
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Restore smaller windows (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Make fullscreen window (CTRL+Down arrow)");
+	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 	
 	/* HOME*/
-	uiDefIconBut(block, BUT, B_SIMAGEHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Home (HOMEKEY)");
-	uiDefIconButS(block, TOG|BIT|0, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Keep UV polygons square while editing");
-	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Clip UV with image size");		
+	uiDefIconBut(block, BUT, B_SIMAGEHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
+	uiDefIconButS(block, TOG|BIT|0, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles constraining UV polygons to squares while editing");
+	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");		
 
 	xco= std_libbuttons(block, xco+40, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
@@ -5872,43 +5872,43 @@ void image_buttons(void)
 		if (G.sima->image->packedfile) {
 			headerbuttons_packdummy = 1;
 		}
-		uiDefIconButI(block, TOG|BIT|0, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this Image");
+		uiDefIconButI(block, TOG|BIT|0, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Toggles packed status of this Image");
 		xco += XIC;
 	}
 	
 	uiBlockSetCol(block, BUTSALMON);
-	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Load image - thumbnail view");
+	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Loads image - thumbnail view");
 
 	uiBlockSetCol(block, BUTGREY);
-	uiDefBut(block, BUT, B_SIMAGELOAD1, "",		(short)(xco+=2*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Load image - file select view");
+	uiDefBut(block, BUT, B_SIMAGELOAD1, "",		(short)(xco+=2*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Loads image - file select view");
 	xco+=XIC/2;
 
 	if (G.sima->image) {
 		uiBlockSetCol(block, BUTSALMON);
-		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco+=XIC,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replace current image - thumbnail view");
+		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco+=XIC,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - thumbnail view");
 		
 		uiBlockSetCol(block, BUTGREY);
-		uiDefBut(block, BUT, B_SIMAGEREPLACE1, "",	(short)(xco+=3*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Replace current image - file select view");
+		uiDefBut(block, BUT, B_SIMAGEREPLACE1, "",	(short)(xco+=3*XIC+2),0,10,YIC, 0, 0, 0, 0, 0, "Replaces current image - file select view");
 		xco+=XIC/2;
 	
-		uiDefIconButS(block, TOG|BIT|4, 0, ICON_ENVMAP, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Use this image as a reflection map (UV coordinates are ignored)");
+		uiDefIconButS(block, TOG|BIT|4, 0, ICON_ENVMAP, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Uses this image as a reflection map (Ignores UV Coordinates)");
 		xco+=XIC/2;
 
 		uiDefIconButS(block, TOG|BIT|0, B_SIMAGEDRAW1, ICON_GRID, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "");
-		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "");
-		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "");
+		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
+		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 	
-		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", xco+=XIC,0,(short)(2*XIC),YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "");
-		uiDefButS(block, NUM, B_TWINANIM, "",	(short)(xco+=2*XIC),0,XIC,YIC, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "");
-		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twend, 0.0, 128.0, 0, 0, "");
+		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", xco+=XIC,0,(short)(2*XIC),YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
+		uiDefButS(block, NUM, B_TWINANIM, "",	(short)(xco+=2*XIC),0,XIC,YIC, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture. Click to change.");
+		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture. Click to change.");
 //		uiDefButS(block, TOG|BIT|2, 0, "Cycle", xco+=XIC,0,2*XIC,YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "");
-		uiDefButS(block, NUM, 0, "Speed", xco+=(2*XIC),0,4*XIC,YIC, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Speed of the animation in frames per second");
+		uiDefButS(block, NUM, 0, "Speed", xco+=(2*XIC),0,4*XIC,YIC, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second. Click to change.");
 
 #ifdef NAN_TPT
 		xco+= 4*XIC;
-		uiDefIconButS(block, ICONTOG|BIT|3, B_SIMAGEPAINTTOOL, ICON_TPAINT_DEHLT, xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "TexturePaint Mode");
+		uiDefIconButS(block, ICONTOG|BIT|3, B_SIMAGEPAINTTOOL, ICON_TPAINT_DEHLT, xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables TexturePaint Mode");
 		if (G.sima->image && G.sima->image->ibuf && (G.sima->image->ibuf->userflags & IB_BITMAPDIRTY)) {
-			uiDefBut(block, BUT, B_SIMAGESAVE, "Save",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Save image");
+			uiDefBut(block, BUT, B_SIMAGESAVE, "Save",		xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Saves image");
 			xco += XIC;
 		}
 #endif /* NAN_TPT */
@@ -5917,7 +5917,7 @@ void image_buttons(void)
 
 	/* draw LOCK */
 	xco+= XIC/2;
-	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	(short)(xco+=XIC),0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Lock redraw of other windows while editing");
+	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	(short)(xco+=XIC),0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
 
 	
 	/* Always do this last */
@@ -5973,7 +5973,7 @@ void imasel_buttons(void)
 
 	curarea->butspacetype= SPACE_IMASEL;
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Current Window Type ");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 6,0,XIC,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 	
 	/* FULL WINDOW */
 	xco= 25;
@@ -5990,10 +5990,10 @@ void imasel_buttons(void)
 	}
 	uiDefIconBut(block, BUT, B_IMASELREMOVEBIP, ICON_BPIBFOLDER_X, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "");/* remove  */
 	
-	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* dir   */
-	uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_INFO, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* info  */
+	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of directory information");/* dir   */
+	uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_INFO, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of selected image information");/* info  */
 	uiDefIconButS(block, TOG|BIT|2, B_REDR, ICON_IMAGE_COL, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* image */
-	uiDefIconButS(block, TOG|BIT|3, B_REDR, ICON_MAGNIFY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* magnify */
+	uiDefIconButS(block, TOG|BIT|3, B_REDR, ICON_MAGNIFY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles magnified view of thumbnail of images under mouse pointer");/* magnify */
 	
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
