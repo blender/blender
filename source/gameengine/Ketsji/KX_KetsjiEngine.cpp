@@ -102,9 +102,10 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
  *	Constructor of the Ketsji Engine
  */
 KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
-:	m_bInitialized(false),
-	m_activecam(0),
-	m_rasterizer(NULL)
+:
+	m_rasterizer(NULL),
+	m_bInitialized(false),
+	m_activecam(0)
 {
 	m_kxsystem = system;
 	m_bFixedTime = false;
@@ -587,6 +588,8 @@ void KX_KetsjiEngine::DoSound(KX_Scene* scene)
 	m_logger->StartLog(tc_sound, m_kxsystem->GetTimeInSeconds(), true);
 
 	KX_Camera* cam = scene->GetActiveCamera();
+	if (!cam)
+		return;
 	MT_Point3 listenerposition = cam->NodeGetWorldPosition();
 	MT_Vector3 listenervelocity = cam->GetLinearVelocity();
 	MT_Matrix3x3 listenerorientation = cam->NodeGetWorldOrientation();
@@ -734,6 +737,9 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 {
 	float left, right, bottom, top, nearfrust, farfrust;
 	KX_Camera* cam = scene->GetActiveCamera();
+	
+	if (!cam)
+		return;
 
 	m_rasterizer->DisplayFog();
 
@@ -998,8 +1004,8 @@ void KX_KetsjiEngine::RemoveScene(const STR_String& scenename)
 	}
 	else
 	{
-		STR_String tmpname = scenename;
-		printf("warning: scene %s does not exist, not removed!\n",tmpname.Ptr());
+//		STR_String tmpname = scenename;
+		std::cout << "warning: scene " << scenename << " does not exist, not removed!" << std::endl;
 	}
 }
 

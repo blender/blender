@@ -618,7 +618,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_CONSTRAINT:
 			{
 				float min = 0.0, max = 0.0;
-				int locrot;
+				KX_ConstraintActuator::KX_CONSTRAINTTYPE locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_NODEF;
 				bConstraintActuator *conact 
 					= (bConstraintActuator*) bact->data;
 				/* convert settings... degrees in the ui become radians  */ 

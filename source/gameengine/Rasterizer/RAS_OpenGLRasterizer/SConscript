@@ -3,7 +3,7 @@ Import ('library_env')
 
 ras_openglrasterizer_env = library_env.Copy ()
 
-source_files = ['RAS_CheckVertexArrays.cpp',
+source_files = ['RAS_GLExtensionManager.cpp',
                 'RAS_OpenGLRasterizer.cpp',
                 'RAS_VAOpenGLRasterizer.cpp']
 

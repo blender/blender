@@ -56,10 +56,10 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 									 const STR_String &propName,
 									 PyTypeObject* T)
 	: SCA_IActuator(gameobj, T),
-	  m_distribution(mode),
 	  m_propname(propName),
 	  m_parameter1(para1),
-	  m_parameter2(para2) 
+	  m_parameter2(para2),
+	  m_distribution(mode)
 {
 	m_base = new SCA_RandomNumberGenerator(seed);
 	m_counter = 0;
@@ -94,7 +94,7 @@ bool SCA_RandomActuator::Update(double curtime,double deltatime)
 	RemoveAllEvents();
 
 
-	CValue *tmpval;
+	CValue *tmpval = NULL;
 
 	if (bNegativeEvent)
 		return false; // do nothing on negative events
@@ -241,7 +241,15 @@ bool SCA_RandomActuator::Update(double curtime,double deltatime)
 	}
 	break;
 	default:
-		; /* unknown distribution... */
+	{
+		/* unknown distribution... */
+		static bool randomWarning = false;
+		if (!randomWarning) {
+			randomWarning = true;
+			std::cout << "RandomActuator '" << GetName() << "' has an unknown distribution." << std::endl;
+		}
+		return false;
+	}
 	}
 
 	/* Round up: assign it */

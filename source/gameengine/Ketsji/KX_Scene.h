@@ -466,10 +466,7 @@ public:
 		return m_physicsEnvironment;
 	}
 
-	void SetPhysicsEnvironment(class PHY_IPhysicsEnvironment*	physEnv)
-	{
-		m_physicsEnvironment = physEnv;
-	}
+	void SetPhysicsEnvironment(class PHY_IPhysicsEnvironment*	physEnv);
 
 	void	SetGravity(const MT_Vector3& gravity);
 };

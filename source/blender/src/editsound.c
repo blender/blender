@@ -991,7 +991,7 @@ void sound_init_audio(void)
 	hSystem = SYS_GetSystem();
 	noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
 	
-	if (1)/*(noaudio) intrr: disable game engine audio (openal) */
+	if (noaudio)/*(noaudio) intrr: disable game engine audio (openal) */
 		SND_SetDeviceType(snd_e_dummydevice);
 
 	ghAudioDeviceInterface = SND_GetAudioDevice();

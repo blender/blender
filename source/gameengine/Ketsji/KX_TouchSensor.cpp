@@ -37,13 +37,13 @@
 #include "SCA_LogicManager.h"
 #include "KX_GameObject.h"
 #include "KX_TouchEventManager.h"
+#include "SM_Object.h"
+#include "KX_SumoPhysicsController.h"
 #include <iostream>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
-#ifdef PHYSICS_NOT_YET
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -84,78 +84,81 @@ bool KX_TouchSensor::Evaluate(CValue* event)
 	return result;
 }
 
-KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj,SM_Object* sumoObj,bool bFindMaterial,const STR_String& touchedpropname,PyTypeObject* T)
+KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj,/*SM_Object* sumoObj,*/bool bFindMaterial,const STR_String& touchedpropname,PyTypeObject* T)
 :SCA_ISensor(gameobj,eventmgr,T),
 m_touchedpropname(touchedpropname),
 m_bFindMaterial(bFindMaterial),
-m_sumoObj(sumoObj),
+m_eventmgr(eventmgr),
+/*m_sumoObj(sumoObj),*/
 m_bCollision(false),
 m_bTriggered(false),
 m_bLastTriggered(false)
 {
-	m_eventmgr = eventmgr;
 	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
+//	m_resptable = touchmgr->GetResponseTable();
 	
-	m_resptable = touchmgr->GetResponseTable();
-	
-	m_solidHandle = m_sumoObj->getObjectHandle();
+//	m_solidHandle = m_sumoObj->getObjectHandle();
 
 	m_hitObject =  NULL;
 	m_colliders = new CListValue();
+	
+	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
+	client_info->m_clientobject = gameobj;
+	client_info->m_auxilary_info = NULL;
+	
+	KX_SumoPhysicsController *sphy = dynamic_cast<KX_SumoPhysicsController *>(gameobj->GetPhysicsController());
+	if (sphy)
+		m_sumoObj = sphy->GetSumoObject();
+
 }
 
 
 KX_TouchSensor::~KX_TouchSensor()
 {
-	DT_ClearObjectResponse(m_resptable,m_solidHandle);
+	//DT_ClearObjectResponse(m_resptable,m_solidHandle);
 	m_colliders->Release();
 }
 
 void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 {
+	KX_GameObject *gameobj = static_cast<KX_GameObject *>(parent);
+	KX_SumoPhysicsController *sphy = dynamic_cast<KX_SumoPhysicsController *>(((KX_GameObject*)parent)->GetPhysicsController());
+	if (sphy)
+		m_sumoObj = sphy->GetSumoObject();
 
-	m_sumoObj = ((KX_GameObject*)parent)->GetSumoObject();
-	m_solidHandle = m_sumoObj->getObjectHandle();
-
-	m_client_info.m_clientobject = NULL;//parent;
-	m_client_info.m_auxilary_info = NULL;
+//	m_solidHandle = m_sumoObj->getObjectHandle();
+	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
+	client_info->m_clientobject = parent;
+	client_info->m_auxilary_info = NULL;
 	SCA_ISensor::ReParent(parent);
 }
 
-
-void KX_TouchSensor::RegisterSumo()
+void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 {
+	if (m_sumoObj)
+	{
+		touchman->GetSumoScene()->requestCollisionCallback(*m_sumoObj);
+		// collision
+		// Deprecated	
 
-		if (m_sumoObj)
-		{
-			// collision
-			DT_SetObjectResponse(
-				m_resptable,
-				m_solidHandle,
-				collisionResponse,
-				DT_SIMPLE_RESPONSE,
-				this);
-
-		}
-
+	}
 }
 
-void    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData * coll_data)
+DT_Bool    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData * coll_data)
 {
 	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;
 	KX_GameObject* parent = (KX_GameObject*)GetParent();
 
 	// need the mapping from SM_Objects to gameobjects now
 	
-	SM_ClientObjectInfo* client_info =(SM_ClientObjectInfo*) (obj1 == m_sumoObj? 
+	KX_ClientObjectInfo* client_info =(KX_ClientObjectInfo*) (obj1 == m_sumoObj? 
 					((SM_Object*)obj2)->getClientObject() : 
 					((SM_Object*)obj1)->getClientObject());
-
 
 	KX_GameObject* gameobj = ( client_info ? 
 			(KX_GameObject*)client_info->m_clientobject : 
 			NULL);
-
+	
 	if (gameobj && (gameobj != parent))
 	{
 		if (!m_colliders->SearchValue(gameobj))
@@ -185,11 +188,13 @@ void    KX_TouchSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData 
 		{
 			m_bTriggered = true;
 			m_hitObject = gameobj;
+			//printf("KX_TouchSensor::HandleCollision\n");
 		}
 		
 	} 
-	
+	return DT_CONTINUE;
 }
+
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
@@ -322,10 +327,11 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				 * - this also doesn't work (obviously) for multi-materials... 
 				 */
 				KX_GameObject* gameob = (KX_GameObject*) m_colliders->GetValue(i);
-				SM_Object* smob = (SM_Object*) gameob->GetSumoObject();
+				KX_SumoPhysicsController* spc = dynamic_cast<KX_SumoPhysicsController*>(gameob->GetPhysicsController());
+				SM_Object* smob = spc?spc->GetSumoObject():NULL;
 				
 				if (smob) {
-					SM_ClientObjectInfo* cl_inf = (SM_ClientObjectInfo*) smob->getClientObject();
+					KX_ClientObjectInfo* cl_inf = (KX_ClientObjectInfo*) smob->getClientObject();
 					
 					if (m_touchedpropname == ((char*)cl_inf->m_auxilary_info)) {
 						newList->Add(m_colliders->GetValue(i)->AddRef());
@@ -392,6 +398,5 @@ PyObject* KX_TouchSensor::PySetTouchMaterial(PyObject* self, PyObject* args, PyO
 	Py_Return;
 }
 
-#endif //#ifdef PHYSICS_NOT_YET
 
 /* eof */

@@ -51,6 +51,11 @@
 #include "KX_Camera.h"
 #include "KX_MouseFocusSensor.h"
 
+#include "KX_ClientObjectInfo.h"
+#include "SM_Object.h"
+#include "SM_Scene.h"
+#include "SumoPhysicsEnvironment.h"
+
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
@@ -233,23 +238,23 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * ignore-object. We don't ignore anything... */
 	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
 	
+	SumoPhysicsEnvironment *spe = dynamic_cast<SumoPhysicsEnvironment* > (m_kxscene->GetPhysicsEnvironment());
+	SM_Scene *sumoScene = spe->GetSumoScene();
 
-	//SM_Object* hitSMObj = m_sumoScene->rayTest(NULL, 
-	//										   frompoint3,
-	//										   topoint3,
-	//										   resultpoint, 
-	//										   resultnormal);
-	
-	KX_GameObject* hitKXObj = 0;
+	SM_Object* hitSMObj = sumoScene->rayTest(NULL, 
+						frompoint3,
+						topoint3,
+						resultpoint, 
+						resultnormal);
 	
 	/* all this casting makes me nervous... */
-	//SM_ClientObjectInfo* client_info 
-	//	= ( hitSMObj ?
-	//		(SM_ClientObjectInfo*) ((SM_Object*)hitSMObj)->getClientObject() :
-	//		NULL);
-	//KX_GameObject* hitKXObj = ( client_info ? 
-	//							(KX_GameObject*)client_info->m_clientobject : 
-	//							NULL);
+	KX_ClientObjectInfo* client_info 
+		= ( hitSMObj ?
+			(KX_ClientObjectInfo*) ((SM_Object*)hitSMObj)->getClientObject() :
+			NULL);
+	KX_GameObject* hitKXObj = ( client_info ? 
+								(KX_GameObject*)client_info->m_clientobject : 
+								NULL);
 		
 	
 	/* Is this me? In the ray test, there are a lot of extra checks

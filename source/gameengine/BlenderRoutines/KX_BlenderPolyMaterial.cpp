@@ -88,14 +88,20 @@ void KX_BlenderPolyMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cach
 			rasty->EnableTextures(false);
 		}
 		
-		//TF_TWOSIDE == 512, todo, make this a ketsji enum
-		if(m_drawingmode & 512)
+		if(m_drawingmode & RAS_IRasterizer::KX_TWOSIDE)
 		{
 			rasty->SetCullFace(false);
 		}
 		else
 		{
 			rasty->SetCullFace(true);
+		}
+
+		if (m_drawingmode & RAS_IRasterizer::KX_LINES) {
+			rasty->SetLines(true);
+		}
+		else {
+			rasty->SetLines(false);
 		}
 	}
 

@@ -55,11 +55,12 @@ private:
 
 	double		        m_ipotime;
 public:
-	KX_CameraIpoSGController() : m_ipotime(0.0),
-								m_modify_lens(false),
-								m_modify_clipstart(false),
-								m_modify_clipend(false),
-								m_modified(true)
+	KX_CameraIpoSGController() : 
+				m_modify_lens(false),
+				m_modify_clipstart(false),
+				m_modify_clipend(false),
+				m_modified(true),
+				m_ipotime(0.0)
 		{}
 
 	~KX_CameraIpoSGController();

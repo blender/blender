@@ -38,11 +38,40 @@
 #include "KX_TouchEventManager.h"
 #include "KX_Scene.h" // needed to create a replica
 
+#include "SM_Object.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
+							 KX_GameObject* gameobj,
+							 void *vshape,
+							 double margin,
+							 double resetmargin,
+							 bool bFindMaterial,
+							 const STR_String& touchedpropname,
+							 class KX_Scene* scene,
+							 PyTypeObject* T)
+			 :KX_TouchSensor(eventmgr,
+							 gameobj,
+							 bFindMaterial,
+							 touchedpropname,
+							 /* scene, */
+							 T),
+			 m_Margin(margin),
+			 m_ResetMargin(resetmargin)
 
-#ifdef PHYSICS_NOT_YET
+{
+	m_client_info = new KX_ClientObjectInfo(gameobj);
+	m_client_info->m_type = KX_ClientObjectInfo::NEAR;
+	
+	DT_ShapeHandle shape = (DT_ShapeHandle) vshape;
+	m_sumoObj = new SM_Object(shape,NULL,NULL,NULL);
+	m_sumoObj->setMargin(m_Margin);
+	m_sumoObj->setClientObject(m_client_info);
+	
+	SynchronizeTransform();
+}
 
 KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 KX_GameObject* gameobj,
@@ -56,20 +85,27 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 gameobj,
 							 bFindMaterial,
 							 touchedpropname,
-							 scene,
+							 /* scene, */
 							 T),
 			 m_Margin(margin),
-			 m_ResetMargin(resetmargin),
-			 m_sumoScene(sumoscene)
+			 m_ResetMargin(resetmargin)
 
 {
-	m_client_info.m_type = 4;
-	m_client_info.m_clientobject = gameobj;
-	m_client_info.m_auxilary_info = NULL;
-	sumoObj->setClientObject(&m_client_info);
+	m_client_info = new KX_ClientObjectInfo(gameobj);
+	m_client_info->m_type = KX_ClientObjectInfo::NEAR;
+	m_client_info->m_auxilary_info = NULL;
+	
+	m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
+	m_sumoObj->setMargin(m_Margin);
+	m_sumoObj->setClientObject(m_client_info);
+	
+	SynchronizeTransform();
 }
 
-
+void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)
+{
+	touchman->GetSumoScene()->addSensor(*m_sumoObj);
+}
 
 CValue* KX_NearSensor::GetReplica()
 {
@@ -82,6 +118,16 @@ CValue* KX_NearSensor::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	
+	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_clientobject);
+	replica->m_client_info->m_type = KX_ClientObjectInfo::NEAR;
+	replica->m_client_info->m_auxilary_info = NULL;
+	
+	replica->m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
+	replica->m_sumoObj->setMargin(m_Margin);
+	replica->m_sumoObj->setClientObject(replica->m_client_info);
+	
+	replica->SynchronizeTransform();
+	
 	return replica;
 }
 
@@ -89,42 +135,11 @@ CValue* KX_NearSensor::GetReplica()
 
 void KX_NearSensor::ReParent(SCA_IObject* parent)
 {
-	DT_ShapeHandle shape = DT_Sphere(0.0);
-				
-	// this sumoObject is not deleted by a gameobj, so delete it ourself
-	// later (memleaks)!
-
-	SM_Object* sumoObj = new SM_Object(shape,NULL,NULL,NULL);
-	sumoObj->setMargin(m_Margin);
-
-	//sumoObj->setPosition(gameobj->NodeGetWorldPosition());
-	//sumoobj->setPosition(m_sumoObj->getPosition());
-	//sumoobj->setOrientation(m_sumoObj->getOrientation());
-	//newobj->setRigidBody(this->m_sumoObj->isRigidBody());
-
-	m_sumoObj = sumoObj;
-	m_solidHandle = m_sumoObj->getObjectHandle();
-
-	double radius = m_sumoObj->getMargin();
-	sumoObj->setMargin(m_sumoObj->getMargin());
-	
-	m_client_info.m_type = 4;
-	m_client_info.m_clientobject = parent;
-	m_client_info.m_auxilary_info = NULL;
-	sumoObj->setClientObject(&m_client_info);
-
-	//m_sumoScene->add(*newobj);
-	
-	if (m_sumoObj)
-	{
-		DT_SetObjectResponse(m_resptable,
-			m_sumoObj->getObjectHandle(),
-			collisionResponse,
-			DT_SIMPLE_RESPONSE,
-			this);
-	}
-
 	SCA_ISensor::ReParent(parent);
+	
+	m_client_info->m_clientobject = static_cast<KX_GameObject*>(parent); 
+	
+	SynchronizeTransform();
 }
 
 
@@ -133,19 +148,20 @@ KX_NearSensor::~KX_NearSensor()
 {
 	// for nearsensor, the sensor is the 'owner' of sumoobj
 	// for touchsensor, it's the parent
-
-	m_sumoScene->remove(*m_sumoObj);
+	static_cast<KX_TouchEventManager*>(m_eventmgr)->GetSumoScene()->remove(*m_sumoObj);
 
 	if (m_sumoObj)
 		delete m_sumoObj;
+		
+	if (m_client_info)
+		delete m_client_info;
 }
-
 
 
 bool KX_NearSensor::Evaluate(CValue* event)
 {
 	bool result = false;
-	KX_GameObject* parent = (KX_GameObject*)GetParent();
+	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
 
 	if (m_bTriggered != m_bLastTriggered)
 	{
@@ -172,28 +188,27 @@ bool KX_NearSensor::Evaluate(CValue* event)
 
 
 
-void KX_NearSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData * coll_data)
+DT_Bool KX_NearSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData * coll_data)
 {
-	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;
-	KX_GameObject* parent = (KX_GameObject*)GetParent();
-
+	KX_TouchEventManager* toucheventmgr = static_cast<KX_TouchEventManager*>(m_eventmgr);
+	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
+	
 	// need the mapping from SM_Objects to gameobjects now
 	
-	SM_ClientObjectInfo* client_info =(SM_ClientObjectInfo*) (obj1 == m_sumoObj? 
+	KX_ClientObjectInfo* client_info =static_cast<KX_ClientObjectInfo*> (obj1 == m_sumoObj? 
 					((SM_Object*)obj2)->getClientObject() : 
 					((SM_Object*)obj1)->getClientObject());
 
 	KX_GameObject* gameobj = ( client_info ? 
-			(KX_GameObject*)client_info->m_clientobject : 
+			static_cast<KX_GameObject*>(client_info->m_clientobject) : 
 			NULL);
-
+	
 	if (gameobj && (gameobj != parent))
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());
-		
 		// only take valid colliders
-		if (client_info->m_type == 1)
+		if (client_info->m_type == KX_ClientObjectInfo::ACTOR)
 		{
 			if ((m_touchedpropname.Length() == 0) || 
 				(gameobj->GetProperty(m_touchedpropname)))
@@ -202,10 +217,9 @@ void KX_NearSensor::HandleCollision(void* obj1,void* obj2,const DT_CollData * co
 				m_hitObject = gameobj;
 			}
 		}
-	} else
-	{
-		
 	}
+	
+	return DT_CONTINUE;
 }
 
 
@@ -262,4 +276,3 @@ KX_NearSensor::_getattr(char* attr)
   _getattr_up(KX_TouchSensor);
 }
 
-#endif //PHYSICS_NOT_YET

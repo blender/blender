@@ -44,7 +44,6 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-
 KX_ObjectActuator::
 KX_ObjectActuator(
 	SCA_IObject* gameobj,
@@ -64,8 +63,8 @@ KX_ObjectActuator(
 	m_drot(drot),
 	m_linear_velocity(linV),
 	m_angular_velocity(angV),
-	m_active_combined_velocity (false),
-	m_bitLocalFlag (flag)
+	m_bitLocalFlag (flag),
+	m_active_combined_velocity (false)
 {
 }
 
@@ -83,6 +82,11 @@ bool KX_ObjectActuator::Update(double curtime,double deltatime)
 		// it should reconcile the externally set velocity with it's 
 		// own velocity.
 		if (m_active_combined_velocity) {
+			static bool update_resolve_warning = 0;
+			if (!update_resolve_warning) {
+				update_resolve_warning = 1;
+				std::cout << "FIXME: KX_ObjectActuator::Update ResolveCombinedVelocities undefined!" << std::endl;
+			}
 			//if (parent->GetSumoObject()) {
 				//parent->GetPhysicsController()->ResolveCombinedVelocities(
 				//	m_linear_velocity,

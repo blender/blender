@@ -33,7 +33,7 @@
 #define _SUMOPhysicsEnvironment
 
 #include "PHY_IPhysicsEnvironment.h"
-#include "solid.h"
+#include <SOLID/SOLID.h>
 
 /**
 *	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
@@ -45,7 +45,6 @@ class SumoPhysicsEnvironment : public PHY_IPhysicsEnvironment
 	class SM_Scene*	m_sumoScene;
 	
 	DT_SceneHandle		m_solidScene;
-	DT_RespTableHandle	m_respTable;
 
 public:
 	SumoPhysicsEnvironment();

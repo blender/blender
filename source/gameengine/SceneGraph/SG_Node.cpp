@@ -55,8 +55,8 @@ SG_Node::SG_Node(
 	const SG_Node & other
 ) :
 	SG_Spatial(other),
-	m_SGparent(other.m_SGparent),
-	m_children(other.m_children)
+	m_children(other.m_children),
+	m_SGparent(other.m_SGparent)
 {
 	// nothing to do
 }

@@ -50,9 +50,9 @@ SCA_PythonController* SCA_PythonController::m_sCurrentController = NULL;
 SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj,
 										   PyTypeObject* T)
 	: SCA_IController(gameobj, T),
-	m_pythondictionary(NULL),
 	m_bytecode(NULL),
-	m_bModified(true)
+	m_bModified(true),
+	m_pythondictionary(NULL)
 {
 }
 
@@ -285,10 +285,8 @@ PyObject* SCA_PythonController::PyGetActuators(PyObject* self,
 								   PyObject* args, 
 								   PyObject* kwds)
 {
-	int index;
-	
 	PyObject* resultlist = PyList_New(m_linkedactuators.size());
-	for (index=0;index<m_linkedactuators.size();index++)
+	for (unsigned int index=0;index<m_linkedactuators.size();index++)
 	{
 		PyList_SetItem(resultlist,index,m_linkedactuators[index]->AddRef());
 	}
@@ -310,8 +308,7 @@ SCA_PythonController::PyGetSensor(PyObject* self,
 		return NULL;
 	}
 	
-	int index;
-	for (index=0;index<m_linkedsensors.size();index++)
+	for (unsigned int index=0;index<m_linkedsensors.size();index++)
 	{
 		SCA_ISensor* sensor = m_linkedsensors[index];
 		STR_String realname = sensor->GetName();
@@ -341,8 +338,7 @@ SCA_PythonController::PyGetActuator(PyObject* self,
 		return NULL;
 	}
 	
-	int index;
-	for (index=0;index<m_linkedactuators.size();index++)
+	for (unsigned int index=0;index<m_linkedactuators.size();index++)
 	{
 		SCA_IActuator* actua = m_linkedactuators[index];
 		STR_String realname = actua->GetName();
@@ -363,10 +359,8 @@ SCA_PythonController::PyGetSensors(PyObject* self,
 								 PyObject* args, 
 								 PyObject* kwds)
 {
-	int index;
-	
 	PyObject* resultlist = PyList_New(m_linkedsensors.size());
-	for (index=0;index<m_linkedsensors.size();index++)
+	for (unsigned int index=0;index<m_linkedsensors.size();index++)
 	{
 		PyList_SetItem(resultlist,index,m_linkedsensors[index]->AddRef());
 	}

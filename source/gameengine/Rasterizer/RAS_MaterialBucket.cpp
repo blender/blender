@@ -173,6 +173,8 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 		
 		rendertools->SetClientObject((*m_meshSlots.begin()).m_clientObj);
 	}
+	
+	//printf("RAS_MatBucket::Render: %d m_meshSlots\n", m_meshSlots.size());
 
 	bool dolights = m_material->GetDrawingMode()&16;
 
@@ -191,6 +193,7 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 	for (T_MeshSlotList::const_iterator it = m_meshSlots.begin();
 	! (it == m_meshSlots.end());it++)
 	{
+		//printf("RAS_MatBucket::Render: (%p) %s MeshSlot %s\n", this, it->m_mesh->m_class?"Skin":"Mesh", (const char *)(*it).m_mesh->GetName());
 		if ((*it).m_bVisible)
 		{
 			rendertools->SetClientObject((*it).m_clientObj);
@@ -245,6 +248,7 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 			
 			rendertools->PopMatrix();
 		}
+		//printf("gets here\n");
 	}
 }
 

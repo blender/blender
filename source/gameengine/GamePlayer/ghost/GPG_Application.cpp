@@ -153,6 +153,7 @@ bool GPG_Application::startWindow(STR_String& title,
 	 * so that the client rectangle has the size requested.
 	 */
 	m_mainWindow->setClientSize(windowWidth, windowHeight);
+	m_mainWindow->setCursorVisibility(false);
 
 	success = initEngine(m_mainWindow, stereoMode);
 	if (success) {
@@ -179,6 +180,7 @@ bool GPG_Application::startFullScreen(
 	setting.frequency = frequency;
 
 	fSystem->beginFullScreen(setting, &m_mainWindow, stereoVisual);
+	m_mainWindow->setCursorVisibility(false);
 
 	success = initEngine(m_mainWindow, stereoMode);
 	if (success) {

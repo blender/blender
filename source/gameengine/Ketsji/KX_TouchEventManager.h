@@ -37,19 +37,30 @@
 #include "KX_GameObject.h"
 
 #include <vector>
-using namespace std;
 
 class KX_TouchEventManager : public SCA_EventManager
 {
 	class SCA_LogicManager* m_logicmgr;
+	SM_Scene *m_scene;
+
+	static DT_Bool KX_TouchEventManager::collisionResponse(void *client_data, 
+							void *object1,
+							void *object2,
+							const DT_CollData *coll_data);
+	
+	virtual DT_Bool HandleCollision(void* obj1,void* obj2,
+						 const DT_CollData * coll_data); 
+	
 
 public:
-	KX_TouchEventManager(class SCA_LogicManager* logicmgr);
+	KX_TouchEventManager(class SCA_LogicManager* logicmgr,  
+		SM_Scene *scene);
 	virtual void NextFrame(double curtime,double deltatime);
 	virtual void	EndFrame();
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void RegisterSensor(SCA_ISensor* sensor);
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
+	SM_Scene *GetSumoScene() { return m_scene; }
 };
 
 #endif //__KX_TOUCHEVENTMANAGER

@@ -49,6 +49,7 @@
 #include "RAS_BucketManager.h"
 
 
+
 RAS_BucketManager::RAS_BucketManager()
 {
 
@@ -63,11 +64,7 @@ RAS_BucketManager::~RAS_BucketManager()
 void RAS_BucketManager::Renderbuckets(
 	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
 {
-	int numbuckets = m_MaterialBuckets.size();
-		
-	//default_gl_light();
-
-	int i;
+	std::vector<RAS_MaterialBucket*>::iterator bucket;
 	
 	rasty->EnableTextures(false);
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
@@ -76,84 +73,66 @@ void RAS_BucketManager::Renderbuckets(
 	rasty->ClearCachingInfo();
 
 	RAS_MaterialBucket::StartFrame();
-
-	for (i=0;i<numbuckets;i++)
+	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); bucket++)
 	{
-		RAS_MaterialBucket** bucketptr = m_MaterialBuckets.at(i);
-		if (bucketptr)
-		{
-			(*bucketptr)->ClearScheduledPolygons();
-		}
+		(*bucket)->ClearScheduledPolygons();
+	}
+	for (bucket = m_AlphaBuckets.begin(); bucket != m_AlphaBuckets.end(); bucket++)
+	{
+		(*bucket)->ClearScheduledPolygons();
 	}
 
-	vector<RAS_MaterialBucket*> alphabuckets;
-
-	// if no visibility method is define, everything is drawn
-	
-	for (i=0;i<numbuckets;i++)
-	{
-		RAS_MaterialBucket** bucketptr = m_MaterialBuckets.at(i);
-		if (bucketptr)
-		{
-			if (!(*bucketptr)->IsTransparant())
-			{
-				(*bucketptr)->Render(cameratrans,rasty,rendertools);
-			} else
-			{
-				alphabuckets.push_back(*bucketptr);
-			}
-		}
-	}
+	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); bucket++)
+		(*bucket)->Render(cameratrans,rasty,rendertools);
 	
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
 	
-	int numalphabuckets = alphabuckets.size();
-	for (vector<RAS_MaterialBucket*>::const_iterator it=alphabuckets.begin();
-	!(it==alphabuckets.end());it++)
+	for (bucket = m_AlphaBuckets.begin(); bucket != m_AlphaBuckets.end(); bucket++)
 	{
-		(*it)->Render(cameratrans,rasty,rendertools);
+		(*bucket)->Render(cameratrans,rasty,rendertools);
 	}
 
-	alphabuckets.clear();	
-
-
-	RAS_MaterialBucket::EndFrame();
-
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
+	
+	RAS_MaterialBucket::EndFrame();
 }
 
 RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material)
 {
-
-	RAS_MaterialBucket** bucketptr = 	m_MaterialBuckets[*material];
-	RAS_MaterialBucket* bucket=NULL;
-	if (!bucketptr)
+	std::vector<RAS_MaterialBucket*>::iterator it;
+	for (it = m_MaterialBuckets.begin(); it != m_MaterialBuckets.end(); it++)
 	{
-		bucket = new RAS_MaterialBucket(material);
-		m_MaterialBuckets.insert(*material,bucket);
-
-	} else
-	{
-		bucket = *bucketptr;
+		if (*(*it)->GetPolyMaterial() == *material)
+			return *it;
 	}
-
+	
+	for (it = m_AlphaBuckets.begin(); it != m_AlphaBuckets.end(); it++)
+	{
+		if (*(*it)->GetPolyMaterial() == *material)
+			return *it;
+	}
+	
+	RAS_MaterialBucket *bucket = new RAS_MaterialBucket(material);
+	if (bucket->IsTransparant())
+		m_AlphaBuckets.push_back(bucket);
+	else
+		m_MaterialBuckets.push_back(bucket);
+	
 	return bucket;
 }
 
 void RAS_BucketManager::RAS_BucketManagerClearAll()
 {
-
-	int numbuckets = m_MaterialBuckets.size();
-	for (int i=0;i<numbuckets;i++)
+	std::vector<RAS_MaterialBucket*>::iterator it;
+	for (it = m_MaterialBuckets.begin(); it != m_MaterialBuckets.end(); it++)
 	{
-		RAS_MaterialBucket** bucketptr = m_MaterialBuckets.at(i);
-		if (bucketptr)
-		{
-			delete (*bucketptr);
-			*bucketptr=NULL;
-
-		}
+		delete (*it);
 	}
-	m_MaterialBuckets.clear();
+	for (it = m_AlphaBuckets.begin(); it != m_AlphaBuckets.end(); it++)
+	{
+		delete(*it);
+	}
 	
+	m_MaterialBuckets.clear();
+	m_AlphaBuckets.clear();
 }

@@ -62,6 +62,11 @@
 #include "STR_String.h"
 #include "RAS_BucketManager.h" // for polymaterial (needed for textprinting)
 
+#include "SM_Scene.h"
+#include "SumoPhysicsEnvironment.h"
+#include "KX_SumoPhysicsController.h"
+#include "KX_Scene.h"
+
 KX_BlenderRenderTools::KX_BlenderRenderTools()
 {
 }
@@ -174,29 +179,32 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		if (objectdrawmode & RAS_IPolyMaterial::SHADOW)
 		{
 			// shadow must be cast to the ground, physics system needed here!
-			// KX_GameObject* gameobj = (KX_GameObject*) this->m_clientobject;
 			MT_Point3 frompoint(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
+			KX_GameObject *gameobj = (KX_GameObject*) this->m_clientobject;
 			MT_Vector3 direction = MT_Vector3(0,0,-1);
 
 			
 			direction.normalize();
 			direction *= 100000;
 
-			// MT_Point3 topoint = frompoint + direction;
+			MT_Point3 topoint = frompoint + direction;
 			MT_Point3 resultpoint;
 			MT_Vector3 resultnormal;
 
 			//todo:
 			//use physics abstraction
-
+			KX_Scene* kxscene = (KX_Scene*) m_auxilaryClientInfo;
+			SumoPhysicsEnvironment *spe = dynamic_cast<SumoPhysicsEnvironment *>( kxscene->GetPhysicsEnvironment());
+			SM_Scene *scene = spe->GetSumoScene();
+			KX_SumoPhysicsController *spc = dynamic_cast<KX_SumoPhysicsController *>( gameobj->GetPhysicsController());
+			KX_GameObject *parent = gameobj->GetParent();
+			if (!spc && parent)
+				spc = dynamic_cast<KX_SumoPhysicsController *>(parent->GetPhysicsController());
+			if (parent)
+				parent->Release();
+			SM_Object *thisObj = spc?spc->GetSumoObject():NULL;
 			
-			//SM_Scene* scene = (SM_Scene*) m_auxilaryClientInfo;
-
-			//SM_Object* hitObj = scene->rayTest(gameobj->GetSumoObject(),frompoint,topoint,
-			//									 resultpoint, resultnormal);
-
-			
-			if (0) //hitObj)
+			if (scene->rayTest(thisObj, frompoint, topoint, resultpoint, resultnormal))
 			{
 				MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
 				MT_Vector3 dir = -(left.cross(resultnormal)).normalized();
@@ -204,19 +212,17 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 				// for the up vector, we take the 'resultnormal' returned by the physics
 				
 				double maat[16]={
-					left[0], left[1],left[2], 0,
-					dir[0], dir[1],dir[2],0,
-					resultnormal[0],resultnormal[1],resultnormal[2],0,
-					0,0,0,1};
+					        left[0],        left[1],        left[2], 0,
+					         dir[0],         dir[1],         dir[2], 0,
+					resultnormal[0],resultnormal[1],resultnormal[2], 0,
+					              0,              0,              0, 1};
 				glTranslated(resultpoint[0],resultpoint[1],resultpoint[2]);
+				//glMultMatrixd(oglmatrix);
 				glMultMatrixd(maat);
-					//	glMultMatrixd(oglmatrix);
 			} else
 			{
 				glMultMatrixd(oglmatrix);
 			}
-
-			
 		} else
 		{
 

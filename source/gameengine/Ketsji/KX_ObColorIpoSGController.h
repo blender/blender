@@ -48,9 +48,9 @@ private:
 
 	double		        m_ipotime;
 public:
-	KX_ObColorIpoSGController() : m_ipotime(0.0),
-
-								m_modified(true)
+	KX_ObColorIpoSGController() : 
+				m_modified(true),
+				m_ipotime(0.0)
 		{}
 	virtual ~KX_ObColorIpoSGController();
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);

@@ -51,22 +51,23 @@ public:
 						float	stride,
 						PyTypeObject* T=&Type) 
 		: SCA_IActuator(gameobj,T),
+		
+		m_blendframe(0),
+		m_lastpos(0, 0, 0),
+		m_flag(0),
 		m_starttime (starttime),
 		m_endtime(endtime) ,
 		m_localtime(starttime),
 		m_lastUpdate(-1),
-		m_propname(propname), 
-		m_action(action),
 		m_playtype(playtype),
-		m_flag(0),
 		m_blendin(blendin),
-		m_blendframe(0),
-		m_pose(NULL),
-		m_userpose(NULL),
-		m_blendpose(NULL),
 		m_priority(priority),
 		m_stridelength(stride),
-		m_lastpos(0, 0, 0)
+		m_pose(NULL),
+		m_blendpose(NULL),
+		m_userpose(NULL),
+		m_propname(propname), 
+		m_action(action)
 	{
 	};
 	virtual ~BL_ActionActuator();

@@ -13,6 +13,9 @@ cxxflags = []
 if sys.platform=='win32':
     defines += ['WIN32','NDEBUG', '_WINDOWS', '_LIB']
     cflags += ['/MT', '/W3', '/GX', '/O2']
+elif sys.platform=='linux2' or sys.platform=='linux-i386':
+    defines += ['NDEBUG']
+    cflags += ['-O2']
 else:
     print "################################################"
     print 

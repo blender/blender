@@ -38,33 +38,60 @@
 #include <config.h>
 #endif
 
-#ifdef PHYSICS_NOT_YET
+#include "SM_Object.h"
 
 KX_TouchEventManager::KX_TouchEventManager(class SCA_LogicManager* logicmgr,
-										   DT_RespTableHandle resphandle,
-										   DT_SceneHandle scenehandle)
+	SM_Scene *scene)
 	: SCA_EventManager(TOUCH_EVENTMGR),
-	  m_resphandle(resphandle),
-	  m_scenehandle(scenehandle),
-	  m_logicmgr(logicmgr) {}
+	  m_logicmgr(logicmgr),
+	  m_scene(scene)
+{
+	//m_scene->addTouchCallback(STATIC_RESPONSE, KX_TouchEventManager::collisionResponse, this);
+	m_scene->addTouchCallback(OBJECT_RESPONSE, KX_TouchEventManager::collisionResponse, this);
+	m_scene->addTouchCallback(SENSOR_RESPONSE, KX_TouchEventManager::collisionResponse, this);
+}
+
+DT_Bool KX_TouchEventManager::HandleCollision(void* object1,void* object2,
+						 const DT_CollData * coll_data)
+{
+	SM_Object * obj1 = (SM_Object *) object1;
+	SM_Object * obj2 = (SM_Object *) object2;
+
+	for ( vector<SCA_ISensor*>::iterator it = m_sensors.begin(); !(it==m_sensors.end()); it++)
+	{
+		KX_GameObject* gameobj = ((KX_GameObject*)((KX_TouchSensor*)*it)->GetParent());
+		KX_ClientObjectInfo *client_info = (KX_ClientObjectInfo *) obj1->getClientObject();
+// Enable these printfs to create excesive debug info
+//		printf("KX_TEM::HC: Sensor %s\tGO: %p o1: %s (%p)", (const char *) (*it)->GetName(), gameobj, (const char *) ((KX_GameObject *) client_info->m_clientobject)->GetName(), client_info->m_clientobject);
+		if (client_info && client_info->m_clientobject == gameobj)
+			((KX_TouchSensor*)*it)->HandleCollision(object1,object2,coll_data);
+
+		client_info = (KX_ClientObjectInfo *) obj2->getClientObject();
+//		printf(" o2: %s (%p)\n", (const char *) ((KX_GameObject *) client_info->m_clientobject)->GetName(), client_info->m_clientobject);
+		if (client_info && client_info->m_clientobject == gameobj)
+			 ((KX_TouchSensor*)*it)->HandleCollision(object1,object2,coll_data);
+
+	}
+	
+	return DT_CONTINUE;
+}
+
+DT_Bool KX_TouchEventManager::collisionResponse(void *client_data, 
+							void *object1,
+							void *object2,
+							const DT_CollData *coll_data)
+{
+	KX_TouchEventManager *touchmgr = (KX_TouchEventManager *) client_data;
+	touchmgr->HandleCollision(object1, object2, coll_data);
+	return DT_CONTINUE;
+}
 
 void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 {
-
-
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
 	m_sensors.push_back(touchsensor);
 
-	touchsensor->RegisterSumo();//this,m_resphandle);
-
-	//KX_GameObject* gameobj = ((KX_GameObject*)sensor->GetParent());
-//	SM_Object* smobj = touchsensor->GetSumoObject();//gameobj->GetSumoObject();
-//	if (smobj)
-//	{
-//		smobj->calcXform();
-//		DT_AddObject(m_scenehandle,
-//				 smobj->getObjectHandle()); 
-//	}
+	touchsensor->RegisterSumo(this);
 }
 
 
@@ -89,10 +116,7 @@ void KX_TouchEventManager::NextFrame(double curtime,double deltatime)
 		vector<SCA_ISensor*>::iterator it;
 		
 		for (it = m_sensors.begin();!(it==m_sensors.end());it++)
-			((KX_TouchSensor*)*it)->SynchronizeTransform();
-		
-		if (DT_Test(m_scenehandle,m_resphandle))
-			int i = 0;
+			static_cast<KX_TouchSensor*>(*it)->SynchronizeTransform();
 		
 		for (it = m_sensors.begin();!(it==m_sensors.end());it++)
 			(*it)->Activate(m_logicmgr,NULL);
@@ -107,14 +131,10 @@ void KX_TouchEventManager::RemoveSensor(class SCA_ISensor* sensor)
 	std::find(m_sensors.begin(), m_sensors.end(), sensor);
 	if (!(i == m_sensors.end()))
 	{
-		//std::swap(*i, m_sensors.back());
-		//m_sensors.pop_back();
-		//SM_Object* smobj = ((KX_TouchSensor*)*i)->GetSumoObject();
-		//DT_RemoveObject(m_scenehandle,
-		//		 smobj->getObjectHandle()); 
+		std::swap(*i, m_sensors.back());
+		m_sensors.pop_back();
 	}
 	// remove the sensor forever :)
 	SCA_EventManager::RemoveSensor(sensor);
 }
 
-#endif

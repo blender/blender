@@ -74,6 +74,9 @@ extern void do_mballbuts(unsigned short event);
 extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
 
+/* dont like it here , rather make a BIF_Buttons_Editing.h or so BM*/
+extern int Buttons_Editing_GetFaceShadows();
+
 /* shading */
 extern void material_panels(void);
 extern void do_matbuts(unsigned short event);
@@ -97,6 +100,9 @@ extern void do_scriptbuts(unsigned short event);
 /* ipowindow */
 extern void do_ipobuts(unsigned short event);	// drawipo.c (bad! ton)
 
+/* uvautocalculation */
+void do_uvautocalculationbuts(unsigned short event);
+void get_uvautocalculationsettings(float *radius,float *cubesize, int *mapdir, int *mapalign);
 /* butspace.c */
 void test_meshpoin_but(char *name, struct ID **idpp);
 void test_obpoin_but(char *name, struct ID **idpp);
@@ -337,6 +343,14 @@ enum {
 #define B_VERTEXSMOOTH	2080
 #define B_MAKESTICKY	2082
 #define B_MAKEVERTCOL	2083
+#define B_CHROMADEPTH	2084
+#define B_ISDEFLECTOR   2085
+#define B_PDEFDAMPING   2086
+#define B_GRAVITY       2087
+#define B_GRAVSTRENGTH  2088
+#define B_GRAVPOWER     2089
+#define B_PDEFRDAMP     2090
+#define B_PDEFPERM      2091
 
 /* *********************** */
 #define B_CURVEBUTS		2200
@@ -415,6 +429,12 @@ enum {
 #define B_DEL_ACT		2711
 
 #define B_SOUNDACT_BROWSE	2712
+
+#define B_SETSECTOR			2713
+#define B_SETPROP			2714
+#define B_SETACTOR			2715
+#define B_SETMAINACTOR		2716
+#define B_SETDYNA			2717
 
 /* *********************** */
 #define B_FPAINTBUTS	2900
@@ -508,8 +528,37 @@ enum {
 	B_CONSTRAINT_ADD_LOCLIKE,
 	B_CONSTRAINT_ADD_ACTION,
 	B_CONSTRAINT_ADD_LOCKTRACK,
-	B_CONSTRAINT_ADD_FOLLOWPATH
+	B_CONSTRAINT_ADD_FOLLOWPATH,
+	B_CONSTRAINT_ADD_DISTANCELIMIT
 };
+
+/*+++ BM */
+/* *********************** */
+#define B_UVAUTOCALCBUTS	3400
+enum {
+	B_UVAUTO_REDRAW = 3301,
+		B_UVAUTO_SPHERE,
+		B_UVAUTO_CYLINDER,
+		B_UVAUTO_CYLRADIUS,
+		B_UVAUTO_WINDOW,
+		B_UVAUTO_CUBE,
+		B_UVAUTO_CUBESIZE,
+		B_UVAUTO_STD1,
+		B_UVAUTO_STD2,
+		B_UVAUTO_STD4,
+		B_UVAUTO_STD8,
+		B_UVAUTO_BOUNDS1,
+		B_UVAUTO_BOUNDS2,
+		B_UVAUTO_BOUNDS4,
+		B_UVAUTO_BOUNDS8,
+		B_UVAUTO_TOP,
+		B_UVAUTO_FACE,
+		B_UVAUTO_OBJECT,
+		B_UVAUTO_ALIGNX,
+		B_UVAUTO_ALIGNY		
+};
+/* *********************** */
+/*--- BM */
 /* *********************** */
 
 

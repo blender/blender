@@ -183,8 +183,6 @@ bool KX_CameraActuator::Update(double curtime,double deltatime)
 	MT_Point3 lookat = ((KX_GameObject*)m_ob)->NodeGetWorldPosition();
 	MT_Matrix3x3 actormat = ((KX_GameObject*)m_ob)->NodeGetWorldOrientation();
 
-
-
 	float fp1[3], fp2[3], rc[3];
 	float inp, fac; //, factor = 0.0; /* some factor...                                    */
 	float mindistsq, maxdistsq, distsq;

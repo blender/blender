@@ -95,7 +95,7 @@ public:
 			KX_WIREFRAME,
 			KX_SOLID,
 			KX_SHADED,
-			KX_TEXTURED 
+			KX_TEXTURED
 	};
 
 	enum
@@ -195,6 +195,7 @@ public:
 
 	virtual void	EnableTextures(bool enable);
 	virtual void	SetCullFace(bool enable);
+	virtual void	SetLines(bool enable);
 
 	virtual MT_Matrix4x4 GetFrustumMatrix(
 							float left,

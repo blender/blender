@@ -64,6 +64,18 @@ typedef struct BoundBox {
 	float vec[8][3];
 } BoundBox;
 
+/* OcInfo and LBuf structs are for the Enji gameengine */
+
+typedef struct OcInfo {
+	float dvec[3];
+	float size[3];
+} OcInfo;
+
+typedef struct LBuf {
+	short tot, max;
+	int pad;
+	struct Object **ob;
+} LBuf;
 
 typedef struct Object {
 	ID id;
@@ -153,6 +165,7 @@ typedef struct Object {
 	 * bit 8: Friction is anisotropic
 	 * bit 9: Object is a ghost
 	 * bit 10: Do rigid body dynamics.
+	 * bit 11: Use bounding object for physics
 	 */
 	int gameflag;
 	/**
@@ -165,6 +178,13 @@ typedef struct Object {
 
 	ListBase constraints;
 	ListBase nlastrips;
+
+	struct Life *life;
+
+	LBuf lbuf;
+	LBuf port;
+
+	float toonedge, pad2;
 } Object;
 
 /* this work object is defined in object.c */
@@ -250,6 +270,11 @@ extern Object workob;
 #define OB_SOLID		3
 #define OB_SHADED		4
 #define OB_TEXTURE		5
+#define OB_TOON_MONO    6
+#define OB_TOON_COLOR   7
+#define OB_TOON_TRANSP  8
+#define OB_TOON_FLAT    9
+#define OB_TOON_SMOOTH  10
 
 /* dtx: flags */
 #define OB_AXIS			2
@@ -291,6 +316,7 @@ extern Object workob;
 #define OB_ANISOTROPIC_FRICTION 256
 #define OB_GHOST			512
 #define OB_RIGID_BODY		1024
+#define OB_BOUNDS		2048
 
 #define OB_COLLISION_RESPONSE	4096
 #define OB_SECTOR		8192

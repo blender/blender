@@ -62,7 +62,6 @@
 #include "KX_ConvertControllers.h"
 #include "KX_ConvertSensors.h"
 
-#include "KX_GameObject.h"
 #include "SCA_LogicManager.h"
 #include "SCA_EventManager.h"
 #include "SCA_TimeEventManager.h"
@@ -71,6 +70,7 @@
 #include "KX_EmptyObject.h"
 #include "MT_Point3.h"
 #include "MT_Transform.h"
+#include "MT_MinMax.h"
 #include "SCA_IInputDevice.h"
 #include "RAS_TexMatrix.h"
 #include "RAS_ICanvas.h"
@@ -175,9 +175,9 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 	unsigned int temp=0;
 	unsigned char *cp= (unsigned char *)&temp;
 	cp[3]=255;
-	cp[2]= col.r;
+	cp[0]= col.r;
 	cp[1]= col.g;
-	cp[0]= col.b;
+	cp[2]= col.b;
 	return temp;
 }
 
@@ -580,7 +580,7 @@ void my_tex_space_mesh(Mesh *me)
 
 	my_boundbox_mesh(me, loc, size);
 	
-	if(me->texflag & ME_AUTOSPACE) {
+	if(me->texflag & AUTOSPACE) {
 		if(me->key) {
 			kb= me->key->refkey;
 			if (kb) {
@@ -650,9 +650,9 @@ void my_get_local_bounds(Object *ob, float *centre, float *size)
 		size[1]= 0.5*fabs(bb->vec[0][1] - bb->vec[2][1]);
 		size[2]= 0.5*fabs(bb->vec[0][2] - bb->vec[1][2]);
 					
-		centre[0]= (bb->vec[0][0] + bb->vec[4][0])/2.0;
-		centre[1]= (bb->vec[0][1] + bb->vec[2][1])/2.0;
-		centre[2]= (bb->vec[0][2] + bb->vec[1][2])/2.0;
+		centre[0]= 0.5*(bb->vec[0][0] + bb->vec[4][0]);
+		centre[1]= 0.5*(bb->vec[0][1] + bb->vec[2][1]);
+		centre[2]= 0.5*(bb->vec[0][2] + bb->vec[1][2]);
 					}
 }
 	
@@ -699,13 +699,42 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
 	objprop.m_dynamic_parent=NULL;
 	objprop.m_isdeformable = ((blenderobject->gameflag2 & 2)) != 0;
-	objprop.m_implicitsphere = false;
-	objprop.m_implicitbox = false;
+	objprop.m_boundclass = objprop.m_dyna?KX_BOUNDSPHERE:KX_BOUNDMESH;
 	
-	if (blenderobject->dtx & OB_BOUNDBOX)
+	KX_BoxBounds bb;
+	my_get_local_bounds(blenderobject,objprop.m_boundobject.box.m_center,bb.m_extends);
+	if (blenderobject->gameflag & OB_BOUNDS)
 	{
-		objprop.m_implicitsphere = (blenderobject->boundtype == OB_BOUND_SPHERE);
-		objprop.m_implicitbox = (blenderobject->boundtype == OB_BOUND_BOX);
+		switch (blenderobject->boundtype)
+		{
+			case OB_BOUND_BOX:
+				objprop.m_boundclass = KX_BOUNDBOX;
+				//mmm, has to be divided by 2 to be proper extends
+				objprop.m_boundobject.box.m_extends[0]=2.f*bb.m_extends[0];
+				objprop.m_boundobject.box.m_extends[1]=2.f*bb.m_extends[1];
+				objprop.m_boundobject.box.m_extends[2]=2.f*bb.m_extends[2];
+				break;
+			case OB_BOUND_SPHERE:
+			{
+				objprop.m_boundclass = KX_BOUNDSPHERE;
+				objprop.m_boundobject.c.m_radius = MT_max(bb.m_extends[0], MT_max(bb.m_extends[1], bb.m_extends[2]));
+				break;
+			}
+			case OB_BOUND_CYLINDER:
+			{
+				objprop.m_boundclass = KX_BOUNDCYLINDER;
+				objprop.m_boundobject.c.m_radius = MT_max(bb.m_extends[0], bb.m_extends[1]);
+				objprop.m_boundobject.c.m_height = 2.f*bb.m_extends[2];
+				break;
+			}
+			case OB_BOUND_CONE:
+			{
+				objprop.m_boundclass = KX_BOUNDCONE;
+				objprop.m_boundobject.c.m_radius = MT_max(bb.m_extends[0], bb.m_extends[1]);
+				objprop.m_boundobject.c.m_height = 2.f*bb.m_extends[2];
+				break;
+			}
+		}
 	}
 
 	// get Root Parent of blenderobject
@@ -723,13 +752,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
 	objprop.m_concave = (blenderobject->boundtype & 4) != 0;
-	
-	
-	my_get_local_bounds(blenderobject,objprop.m_boundingbox.m_center,objprop.m_boundingbox.m_extends);
-	//mmm, has to be divided by 2 to be proper extends
-	objprop.m_boundingbox.m_extends[0]*=2.f;
-	objprop.m_boundingbox.m_extends[1]*=2.f;
-	objprop.m_boundingbox.m_extends[2]*=2.f;
 	
 	switch (physics_engine)
 		{

@@ -38,10 +38,13 @@
 #include "RAS_MaterialBucket.h"
 #include "GEN_Map.h"
 
+#include <vector>
+
 class RAS_BucketManager
 {
-
-	GEN_Map<class RAS_IPolyMaterial,class RAS_MaterialBucket*> m_MaterialBuckets;
+	//GEN_Map<class RAS_IPolyMaterial,class RAS_MaterialBucket*> m_MaterialBuckets;
+	std::vector<class RAS_MaterialBucket*> m_MaterialBuckets;
+	std::vector<class RAS_MaterialBucket*> m_AlphaBuckets;
 
 public:
 	RAS_BucketManager();

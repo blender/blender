@@ -63,6 +63,8 @@
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_library.h"
 #include "BKE_global.h"
@@ -86,7 +88,6 @@
 #include "mydevice.h"
 #include "nla.h"	/* For __NLA : Important, do not remove */
 #include "butspace.h" // own module
-
 
 /* internals */
 
@@ -346,7 +347,31 @@ void do_logic_buts(unsigned short event)
 	if(ob==0) return;
 	
 	switch(event) {
+
+	case B_SETSECTOR:
+		/* check for inconsistant types */
+		ob->gameflag &= ~(OB_PROP|OB_MAINACTOR|OB_DYNAMIC|OB_ACTOR);
+		ob->dtx |= OB_BOUNDBOX;
+		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 		
+	case B_SETPROP:
+		/* check for inconsistant types */
+		ob->gameflag &= ~(OB_SECTOR|OB_MAINACTOR|OB_DYNAMIC|OB_ACTOR);
+		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+
+	case B_SETACTOR:
+	case B_SETDYNA:
+	case B_SETMAINACTOR:
+		ob->gameflag &= ~(OB_SECTOR|OB_PROP);
+		allqueue(REDRAWBUTSGAME, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+
+
 	case B_ADD_PROP:
 		prop= new_property(PROP_FLOAT);
 		make_unique_prop_names(prop->name);
@@ -2246,11 +2271,127 @@ static uiBlock *actuator_menu(void *arg_unused)
 	return block;
 }
 
+
+void buttons_enji(uiBlock *block, Object *ob)
+{
+	uiDefBut(block, TOG|INT|BIT|13, B_SETSECTOR, "Sector",
+			 10,205,65,19, &ob->gameflag, 0, 0, 0, 0, 
+			 "All game elements should be in the Sector boundbox");
+	uiDefBut(block, TOG|INT|BIT|14, B_SETPROP, "Prop",
+			 75,205,65,19, &ob->gameflag, 0, 0, 0, 0, 
+			 "An Object fixed within a sector");
+	uiBlockSetCol(block, BUTPURPLE);
+	uiDefBut(block, TOG|INT|BIT|2, B_SETACTOR, "Actor",
+			 140,205,65,19, &ob->gameflag, 0, 0, 0, 0, 
+			 "Objects that are evaluated by the engine ");
+	if(ob->gameflag & OB_ACTOR) {	
+		uiDefBut(block, TOG|INT|BIT|0, B_SETDYNA, "Dynamic",
+				 205,205,75,19, &ob->gameflag, 0, 0, 0, 0, 
+				 "Motion defined by laws of physics");
+		uiDefBut(block, TOG|INT|BIT|15, B_SETMAINACTOR, "MainActor",
+				 280,205,70,19, &ob->gameflag, 0, 0, 0, 0, "");
+		
+		if(ob->gameflag & OB_DYNAMIC) {
+			uiDefBut(block, TOG|INT|BIT|6, B_DIFF, "Do Fh",
+					 10,185,50,19, &ob->gameflag, 0, 0, 0, 0, 
+					 "Use Fh settings in Materials");
+			uiDefBut(block, TOG|INT|BIT|7, B_DIFF, "Rot Fh",
+					 60,185,50,19, &ob->gameflag, 0, 0, 0, 0, 
+					 "Use face normal to rotate Object");
+		
+			uiBlockSetCol(block, BUTGREY);
+			uiDefBut(block, NUM|FLO, B_DIFF, "Mass:",
+					 110, 185, 120, 19, &ob->mass, 0.01, 100.0, 10, 0, 
+					 "The mass of the Object");
+			uiDefBut(block, NUM|FLO, REDRAWVIEW3D, "Size:",
+					 230, 185, 120, 19, &ob->inertia, 0.01, 10.0, 10, 0, 
+					 "Bounding sphere size");
+			uiDefBut(block, NUM|FLO, B_DIFF, "Damp:",
+					 10, 165, 100, 19, &ob->damping, 0.0, 1.0, 10, 0, 
+					 "General movement damping");
+			uiDefBut(block, NUM|FLO, B_DIFF, "RotDamp:",
+					 110, 165, 120, 19, &ob->rdamping, 0.0, 1.0, 10, 0, 
+					 "General rotation damping");
+		}
+	}
+
+}
+
+void buttons_ketsji(uiBlock *block, Object *ob)
+{
+	uiDefButI(block, TOG|BIT|2, B_REDR, "Actor",
+			  10,205,75,19, &ob->gameflag, 0, 0, 0, 0,
+			  "Objects that are evaluated by the engine ");
+	if(ob->gameflag & OB_ACTOR) {	
+		uiDefButI(block, TOG|BIT|9, B_REDR, "Ghost", 85,205,65,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Objects that don't restitute collisions (like a ghost)");
+		uiDefButI(block, TOG|BIT|0, B_REDR, "Dynamic", 150,205,65,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Motion defined by laws of physics");
+	
+		if(ob->gameflag & OB_DYNAMIC) {
+			uiDefButI(block, TOG|BIT|10, B_REDR, "Rigid Body", 215,205,135,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Enable rolling physics");
+			uiDefButI(block, TOG|BIT|6, B_DIFF, "Do Fh", 10,185,50,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Use Fh settings in Materials");
+			uiDefButI(block, TOG|BIT|7, B_DIFF, "Rot Fh", 60,185,50,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Use face normal to rotate Object");
+			uiDefButF(block, NUM, B_DIFF, "Mass:", 110, 185, 80, 19, 
+					  &ob->mass, 0.01, 100.0, 10, 0, 
+					  "The mass of the Object");
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Size:", 190, 185, 80, 19, 
+					  &ob->inertia, 0.01, 10.0, 10, 0, 
+					  "Bounding sphere size");
+			uiDefButF(block, NUM, B_DIFF, "Form:", 270, 185, 80, 19, 
+					  &ob->formfactor, 0.01, 100.0, 10, 0, 
+					  "Form factor");
+
+			uiDefButF(block, NUM, B_DIFF, "Damp:", 10, 165, 100, 19, 
+					  &ob->damping, 0.0, 1.0, 10, 0, 
+					  "General movement damping");
+			uiDefButF(block, NUM, B_DIFF, "RotDamp:", 110, 165, 120, 19, 
+					  &ob->rdamping, 0.0, 1.0, 10, 0, 
+					  "General rotation damping");
+			uiDefButI(block, TOG|BIT|8, B_REDR, "Anisotropic", 
+					  230, 165, 120, 19,
+					  &ob->gameflag, 0.0, 1.0, 10, 0,
+					  "Enable anisotropic friction");			
+		}
+
+		if (ob->gameflag & OB_ANISOTROPIC_FRICTION) {
+			uiDefButF(block, NUM, B_DIFF, "x friction:", 10, 145, 114, 19,
+					  &ob->anisotropicFriction[0], 0.0, 1.0, 10, 0,
+					  "Relative friction coefficient in the x-direction.");
+			uiDefButF(block, NUM, B_DIFF, "y friction:", 124, 145, 113, 19,
+					  &ob->anisotropicFriction[1], 0.0, 1.0, 10, 0,
+					  "Relative friction coefficient in the y-direction.");
+			uiDefButF(block, NUM, B_DIFF, "z friction:", 237, 145, 113, 19,
+					  &ob->anisotropicFriction[2], 0.0, 1.0, 10, 0,
+					  "Relative friction coefficient in the z-direction.");
+		}
+	}
+
+	if (!(ob->gameflag & OB_GHOST)) {
+		uiDefButI(block, TOG|BIT|11, B_REDR, "Bounds", 10, 125, 75, 19,
+				&ob->gameflag, 0, 0,0, 0,
+				"Specify a bounds object for physics");
+		if (ob->gameflag & OB_BOUNDS) {
+			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder%x4",
+				85, 125, 100, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
+		}
+	}
+}
+
 /* never used, see CVS 1.134 for the code */
 /*  static FreeCamera *new_freecamera(void) */
 
 /* never used, see CVS 1.120 for the code */
 /*  static uiBlock *freecamera_menu(void) */
+
 
 void logic_buts(void)
 {
@@ -2262,10 +2403,14 @@ void logic_buts(void)
 	bActuator *act;
 	uiBlock *block;
 	uiBut *but;
+	World *wrld;
 	int a;
 	short xco, yco, count, width, ycoo;
 	char *pupstr, name[32];
 	int butreturn = 0;
+
+	wrld= G.scene->world;
+	if(wrld==0) return;
 
 	ob= OBACT;
 
@@ -2277,47 +2422,13 @@ void logic_buts(void)
 	
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 
-	uiDefButI(block, TOG|BIT|2, B_REDR, "Actor",
-			 25,205,60,19, &ob->gameflag, 0, 0, 0, 0,
-			 "Objects that are evaluated by the engine ");
-
-	if(ob->gameflag & OB_ACTOR) {	
-		uiDefButI(block, TOG|BIT|9, B_REDR, "Ghost",			85,205,65,19, &ob->gameflag, 0, 0, 0, 0, "Objects that don't restitute collisions (like a ghost)");
-		uiDefButI(block, TOG|BIT|0, B_REDR, "Dynamic",		150,205,65,19, &ob->gameflag, 0, 0, 0, 0, "Motion defined by laws of physics");
-	
-		if(ob->gameflag & OB_DYNAMIC) {
-				
-			uiDefButI(block, TOG|BIT|10, B_REDR, "Rigid Body",	215,205,135,19, &ob->gameflag, 0, 0, 0, 0, "");
-
-			uiDefButI(block, TOG|BIT|6, B_DIFF, "Do Fh",		10,185,50,19, &ob->gameflag, 0, 0, 0, 0, "Use Fh settings in Materials");
-			uiDefButI(block, TOG|BIT|7, B_DIFF, "Rot Fh",	60,185,50,19, &ob->gameflag, 0, 0, 0, 0, "Use face normal to rotate Object");
-	
-			uiDefButF(block, NUM, B_DIFF, "Mass:",			110, 185, 80, 19, &ob->mass, 0.01, 100.0, 10, 0, "The mass of the Object");
-			uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",		190, 185, 80, 19, &ob->inertia, 0.01, 10.0, 10, 0, "Bounding sphere size");
-			uiDefButF(block, NUM, B_DIFF, "Form:",			270, 185, 80, 19, &ob->formfactor, 0.01, 100.0, 10, 0, "Form factor");
-
-			uiDefButF(block, NUM, B_DIFF, "Damp:",			10, 165, 100, 19, &ob->damping, 0.0, 1.0, 10, 0, "General movement damping");
-			uiDefButF(block, NUM, B_DIFF, "RotDamp:",		110, 165, 120, 19, &ob->rdamping, 0.0, 1.0, 10, 0, "General rotation damping");
-			uiDefButI(block, TOG|BIT|8, B_REDR, "Anisotropic",		230, 165, 120, 19,
-					 &ob->gameflag, 0.0, 1.0, 10, 0,
-					 "Enable anisotropic friction");			
-		}
-	}
-
-	if (ob->gameflag & OB_ANISOTROPIC_FRICTION) {
-		uiDefButF(block, NUM, B_DIFF, "x friction:",			10, 145, 114, 19,
-				 &ob->anisotropicFriction[0], 0.0, 1.0, 10, 0,
-				 "Relative friction coefficient in the x-direction.");
-		uiDefButF(block, NUM, B_DIFF, "y friction:",			124, 145, 113, 19,
-				 &ob->anisotropicFriction[1], 0.0, 1.0, 10, 0,
-				 "Relative friction coefficient in the y-direction.");
-		uiDefButF(block, NUM, B_DIFF, "z friction:",			237, 145, 113, 19,
-				 &ob->anisotropicFriction[2], 0.0, 1.0, 10, 0,
-				 "Relative friction coefficient in the z-direction.");
-	}
-	
+	if (wrld->physicsEngine == 1)
+		buttons_enji(block, ob);
+	if ( (wrld->physicsEngine == 4) || (wrld->physicsEngine == 2) )
+		buttons_ketsji(block, ob);
+			
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT, B_ADD_PROP, "ADD property",		10, 110, 340, 24,
+	uiDefBut(block, BUT, B_ADD_PROP, "ADD property",		10, 90, 340, 24,
 			 NULL, 0.0, 100.0, 100, 0,
 			 "");
 	
@@ -2327,10 +2438,10 @@ void logic_buts(void)
 	prop= ob->prop.first;
 	while(prop) {
 		
-		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(90-20*a), 40, 19, NULL, 0.0, 0.0, 1, (float)a, "");
+		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(70-20*a), 40, 19, NULL, 0.0, 0.0, 1, (float)a, "");
 		uiButSetFunc(but, del_property, prop, NULL);
-		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(90-20*a), 60, 19, &prop->type, 0, 0, 0, 0, "");
-		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(90-20*a), 105, 19, prop->name, 0, 31, 0, 0, "");
+		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(70-20*a), 60, 19, &prop->type, 0, 0, 0, 0, "");
+		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(70-20*a), 105, 19, prop->name, 0, 31, 0, 0, "");
 		uiButSetFunc(but, make_unique_prop_names_cb, prop->name, (void*) 1);
 		
 		if (strcmp(prop->name, "Text") == 0) {
@@ -2340,19 +2451,19 @@ void logic_buts(void)
 		}
 
 		if(prop->type==PROP_BOOL) {
-			uiDefButI(block, TOG|BIT|0, B_REDR, "True",		215, (short)(90-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
-			uiDefButI(block, TOGN|BIT|0, B_REDR, "False",	270, (short)(90-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
+			uiDefButI(block, TOG|BIT|0, B_REDR, "True",		215, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
+			uiDefButI(block, TOGN|BIT|0, B_REDR, "False",	270, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
 		}
 		else if(prop->type==PROP_INT) 
-			uiDefButI(block, NUM, butreturn, "",			215, (short)(90-20*a), 110, 19, &prop->data, -10000, 10000, 0, 0, "");
+			uiDefButI(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, &prop->data, -10000, 10000, 0, 0, "");
 		else if(prop->type==PROP_FLOAT) 
-			uiDefButF(block, NUM, butreturn, "",			215, (short)(90-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 100, 0, "");
+			uiDefButF(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 100, 0, "");
 		else if(prop->type==PROP_STRING) 
-			uiDefBut(block, TEX, butreturn, "",				215, (short)(90-20*a), 110, 19, prop->poin, 0, 127, 0, 0, "");
+			uiDefBut(block, TEX, butreturn, "",				215, (short)(70-20*a), 110, 19, prop->poin, 0, 127, 0, 0, "");
 		else if(prop->type==PROP_TIME) 
-			uiDefButF(block, NUM, butreturn, "",			215, (short)(90-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 0, 0, "");
+			uiDefButF(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 0, 0, "");
 		
-		uiDefButS(block, TOG|BIT|0, 0, "D",		325, (short)(90-20*a), 20, 19, &prop->flag, 0, 0, 0, 0, "Print Debug info");
+		uiDefButS(block, TOG|BIT|0, 0, "D",		325, (short)(70-20*a), 20, 19, &prop->flag, 0, 0, 0, 0, "Print Debug info");
 		
 		a++;
 		prop= prop->next;

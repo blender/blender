@@ -73,6 +73,8 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
 
+#include "SM_Scene.h"
+#include "SumoPhysicsEnvironment.h"
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
@@ -95,23 +97,20 @@ SG_Callbacks KX_Scene::m_callbacks = SG_Callbacks(KX_SceneReplicationFunc,KX_Sce
 // (defined in KX_PythonInit.cpp)
 extern bool gUseVisibilityTemp;
 
-
-
-
 KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SCA_IInputDevice* mousedevice,
 				   class NG_NetworkDeviceInterface *ndi,
 				   class SND_IAudioDevice* adi,
 				   const STR_String& sceneName): 
 
-	m_mousemgr(NULL),
 	m_keyboardmgr(NULL),
-	m_active_camera(NULL),
-	m_ueberExecutionPriority(0),
-	m_adi(adi),
+	m_mousemgr(NULL),
+	m_physicsEnvironment(0),
 	m_sceneName(sceneName),
+	m_adi(adi),
 	m_networkDeviceInterface(ndi),
-	m_physicsEnvironment(0)
+	m_active_camera(NULL),
+	m_ueberExecutionPriority(0)
 {
 		
 
@@ -130,11 +129,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_keyboardmgr = new SCA_KeyboardManager(m_logicmgr,keyboarddevice);
 	m_mousemgr = new SCA_MouseManager(m_logicmgr,mousedevice);
 	
-//	m_solidScene = DT_CreateScene();
-//	m_respTable = DT_CreateRespTable();
-
 	SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
-	//KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, m_respTable, m_solidScene);
 	SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);
 	SCA_RandomEventManager* rndmgr = new SCA_RandomEventManager(m_logicmgr);
 	KX_RayEventManager* raymgr = new KX_RayEventManager(m_logicmgr);
@@ -145,14 +140,11 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_logicmgr->RegisterEventManager(propmgr);
 	m_logicmgr->RegisterEventManager(m_keyboardmgr);
 	m_logicmgr->RegisterEventManager(m_mousemgr);
-	//m_logicmgr->RegisterEventManager(touchmgr);
 	m_logicmgr->RegisterEventManager(m_timemgr);
 	m_logicmgr->RegisterEventManager(rndmgr);
 	m_logicmgr->RegisterEventManager(raymgr);
 	m_logicmgr->RegisterEventManager(netmgr);
 
-	//m_sumoScene = new SM_Scene();
-	//m_sumoScene->setSecondaryRespTable(m_respTable);
 	m_soundScene = new SND_Scene(adi);
 	assert (m_networkDeviceInterface != NULL);
 	m_networkScene = new NG_NetworkScene(m_networkDeviceInterface);
@@ -169,6 +161,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 KX_Scene::~KX_Scene()
 {
+	
 //	int numobj = m_objectlist->GetCount();
 
 	//int numrootobjects = GetRootParentList()->GetCount();
@@ -708,6 +701,11 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 		newobj->Release();
 	if (m_euthanasyobjects->RemoveValue(newobj))
 		newobj->Release();
+		
+	if (newobj == m_active_camera)
+	{
+		m_active_camera = NULL;
+	}
 }
 
 
@@ -978,4 +976,16 @@ void KX_Scene::SetNetworkScene(NG_NetworkScene *newScene)
 void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 {
 	GetPhysicsEnvironment()->setGravity(gravity[0],gravity[1],gravity[2]);
+}
+
+void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)
+{
+	SumoPhysicsEnvironment *sme = dynamic_cast<SumoPhysicsEnvironment *>(physEnv);
+	m_physicsEnvironment = physEnv;
+	if (sme)
+	{
+		KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, sme->GetSumoScene());
+		m_logicmgr->RegisterEventManager(touchmgr);
+		return;
+	}
 }

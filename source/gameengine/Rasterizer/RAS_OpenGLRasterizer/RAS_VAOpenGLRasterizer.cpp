@@ -1,33 +1,61 @@
+/**
+ * $Id$
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. The Blender
+ * Foundation also sells licenses for use in proprietary software under
+ * the Blender License.  See http://www.blender.org/BL/ for information
+ * about this.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#ifdef WIN32
-
 #include "RAS_VAOpenGLRasterizer.h"
+
+#ifdef WIN32
 #include <windows.h>
-#include "GL/gl.h"
-
-typedef void (APIENTRY *GLLOCKARRAYSEXTPTR)(GLint first,GLsizei count);
-typedef void (APIENTRY *GLUNLOCKARRAYSEXTPTR)(void);
-void APIENTRY RAS_lockfunc(GLint first,GLsizei count) {};
-void APIENTRY RAS_unlockfunc() {};
-GLLOCKARRAYSEXTPTR glLockArraysEXT=RAS_lockfunc;
-GLUNLOCKARRAYSEXTPTR glUnlockArraysEXT=RAS_unlockfunc;
-
-
-
+#endif // WIN32
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 #include "STR_String.h"
 #include "RAS_TexVert.h"
 #include "MT_CmMatrix4x4.h"
 #include "RAS_IRenderTools.h" // rendering text
 
+#include "RAS_GLExtensionManager.h"
 	
+
+using namespace RAS_GL;
+
 RAS_VAOpenGLRasterizer::RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas)
 :RAS_OpenGLRasterizer(canvas)
 {
-	int i = 0;
 }
 
 
@@ -38,7 +66,7 @@ RAS_VAOpenGLRasterizer::~RAS_VAOpenGLRasterizer()
 
 
 
-bool RAS_VAOpenGLRasterizer::Init()
+bool RAS_VAOpenGLRasterizer::Init(void)
 {
 	
 	bool result = RAS_OpenGLRasterizer::Init();
@@ -48,15 +76,7 @@ bool RAS_VAOpenGLRasterizer::Init()
 		// if possible, add extensions to other platforms too, if this
 		// rasterizer becomes messy just derive one for each platform 
 		// (ie. KX_Win32Rasterizer, KX_LinuxRasterizer etc.)
-		
-		glUnlockArraysEXT = reinterpret_cast<GLUNLOCKARRAYSEXTPTR>(wglGetProcAddress("glUnlockArraysEXT"));
-		if (!glUnlockArraysEXT)
-			result = false;
-		
-		glLockArraysEXT = reinterpret_cast<GLLOCKARRAYSEXTPTR>(wglGetProcAddress("glLockArraysEXT"));
-		if (!glLockArraysEXT)
-			result=false;
-		
+
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glDisableClientState(GL_NORMAL_ARRAY);
@@ -149,7 +169,7 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		}
 	}
 	const RAS_TexVert* vertexarray;
-	int numindices,vt;
+	unsigned int numindices, vt;
 	if (drawmode != GL_LINES)
 	{
 		if (useObjectColor)
@@ -177,14 +197,10 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		if (!numindices)
 			break;
 		
-		mypointer = (unsigned char*)(vertexarray);
-		glVertexPointer(3,GL_FLOAT,vtxstride,mypointer);
-		mypointer+= 3*sizeof(float);
-		glTexCoordPointer(2,GL_FLOAT,vtxstride,mypointer);
-		mypointer+= 2*sizeof(float);
-		glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,mypointer);
-		mypointer += sizeof(int);
-		glNormalPointer(GL_SHORT,vtxstride,mypointer);
+		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
+		glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());
+		glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,&vertexarray->getRGBA());
+		glNormalPointer(GL_SHORT,vtxstride,vertexarray->getNormal());
 		glLockArraysEXT(0,numverts);
 		// here the actual drawing takes places
 		glDrawElements(drawmode,numindices,GL_UNSIGNED_INT,&(indexarray[0]));
@@ -212,5 +228,3 @@ bool RAS_VAOpenGLRasterizer::Stereo()
 	return false;
 }
 
-
-#endif //WIN32

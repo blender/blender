@@ -36,8 +36,10 @@
 #include <config.h>
 #endif
 
-KX_TimeLogger::KX_TimeLogger(unsigned int maxNumMeasurements)
-: m_maxNumMeasurements(maxNumMeasurements), m_logging(false), m_logStart(0)
+KX_TimeLogger::KX_TimeLogger(unsigned int maxNumMeasurements) : 
+	m_maxNumMeasurements(maxNumMeasurements), 
+	m_logStart(0),
+	m_logging(false)
 {
 }
 
@@ -108,7 +110,7 @@ double KX_TimeLogger::GetAverage(void) const
 
 	unsigned int numMeasurements = m_measurements.size();
 	if (numMeasurements > 1) {
-		for (int i = 1; i < numMeasurements; i++) {
+		for (unsigned int i = 1; i < numMeasurements; i++) {
 			avg += m_measurements[i];
 		}
 		avg /= (float)numMeasurements - 1;

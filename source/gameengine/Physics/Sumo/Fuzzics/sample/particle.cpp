@@ -17,7 +17,7 @@
 #include "SM_FhObject.h"
 #include "SM_Scene.h"
 
-#include "solid.h"
+#include <SOLID/SOLID.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

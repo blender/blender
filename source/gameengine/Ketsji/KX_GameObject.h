@@ -217,7 +217,7 @@ public:
 	 * instance allocated on the heap. Ownership of the new 
 	 * object belongs with the caller.
 	 */
-		CValue*				
+	virtual	CValue*				
 	GetReplica(
 	);
 	
@@ -225,7 +225,7 @@ public:
 	 * Inherited from CValue -- Makes sure any internal 
 	 * data owned by this class is deep copied. Called internally
 	 */
-		void				
+	virtual	void				
 	ProcessReplica(
 		KX_GameObject* replica
 	);
@@ -340,6 +340,9 @@ public:
 		m_pSGNode = node; 
 	}
 	
+	/**
+	 * Deprecated & broken
+	 */
 		bool						
 	IsDynamic(
 	) const { 
@@ -549,6 +552,7 @@ public:
 	 */
 	void Resume(void);
 	
+	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
 	/**
 	 * @section Python interface functions.
 	 */

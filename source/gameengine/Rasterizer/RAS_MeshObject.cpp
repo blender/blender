@@ -68,7 +68,8 @@ KX_ArrayOptimizer::~KX_ArrayOptimizer()
 
 RAS_MeshObject::RAS_MeshObject(int lightlayer)
 	: m_bModified(true),
-	m_lightlayer(lightlayer)
+	m_lightlayer(lightlayer),
+	m_class(0)
 {
 }
 
@@ -86,7 +87,7 @@ RAS_MeshObject::~RAS_MeshObject()
 
 
 
-int RAS_MeshObject::GetLightLayer()
+unsigned int RAS_MeshObject::GetLightLayer()
 {
 	return m_lightlayer;
 }
@@ -100,13 +101,13 @@ int RAS_MeshObject::NumMaterials()
 
 	
 	
-const STR_String& RAS_MeshObject::GetMaterialName(int matid)
+const STR_String& RAS_MeshObject::GetMaterialName(unsigned int matid)
 { 
 	if (m_materials.size() > 0 && (matid < m_materials.size()))
 	{
 		BucketMaterialSet::iterator it = m_materials.begin();
 
-		for (int i = 1; i < m_materials.size(); i++)
+		for (unsigned int i = 1; i < m_materials.size(); i++)
 		{
 			it++;
 		}
@@ -118,7 +119,7 @@ const STR_String& RAS_MeshObject::GetMaterialName(int matid)
 
 
 
-RAS_MaterialBucket* RAS_MeshObject::GetMaterialBucket(int matid)
+RAS_MaterialBucket* RAS_MeshObject::GetMaterialBucket(unsigned int matid)
 {
 	RAS_MaterialBucket* bucket = NULL;
 	
@@ -181,12 +182,12 @@ const STR_String& RAS_MeshObject::GetName()
 
 
 
-const STR_String& RAS_MeshObject::GetTextureName(int matid)
+const STR_String& RAS_MeshObject::GetTextureName(unsigned int matid)
 { 
 	if (m_materials.size() > 0 && (matid < m_materials.size()))
 	{
 		BucketMaterialSet::iterator it = m_materials.begin();
-		for (int i = 1; i < m_materials.size(); i++)
+		for (unsigned int i = 1; i < m_materials.size(); i++)
 		{
 			it++;
 		}
@@ -321,7 +322,7 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 	idx.m_array = vtxarray;
 	idx.m_index = numverts;
 	idx.m_matid = (int) mat;
-	m_xyz_index_to_vertex_index_mapping[orgindex].push_back(idx);
+	m_xyz_index_to_vertex_index_mapping[orgindex].push_back(idx); 
 	
 	return numverts;
 }
@@ -354,8 +355,8 @@ int RAS_MeshObject::GetVertexArrayLength(RAS_IPolyMaterial* mat)
 
 	
 
-RAS_TexVert* RAS_MeshObject::GetVertex(int matid,
-									   int index)
+RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
+									   unsigned int index)
 {
 	RAS_TexVert* vertex = NULL;
 	
@@ -368,7 +369,7 @@ RAS_TexVert* RAS_MeshObject::GetVertex(int matid,
 			const vecVertexArray & vertexvec = GetVertexCache(mat);
 			vector<KX_VertexArray*>::const_iterator it = vertexvec.begin();
 			
-			for (int len = 0; it != vertexvec.end(); it++)
+			for (unsigned int len = 0; it != vertexvec.end(); it++)
 			{
 				if (index < len + (*it)->size())
 				{
@@ -521,7 +522,7 @@ int	RAS_MeshObject::FindVertexArray(int numverts,
 	
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(polymat);
 
-	for (int i=0;i<ao->m_VertexArrayCache1.size();i++)
+	for (unsigned int i=0;i<ao->m_VertexArrayCache1.size();i++)
 	{
 		if ( (ao->m_TriangleArrayCount[i] + (numverts-2)) < BUCKET_MAX_TRIANGLES) 
 		{
@@ -531,10 +532,6 @@ int	RAS_MeshObject::FindVertexArray(int numverts,
 					ao->m_TriangleArrayCount[array]+=numverts-2;
 					break;
 				}
-		}
-		else
-		{
-			int i=0;
 		}
 	}
 

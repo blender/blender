@@ -81,6 +81,7 @@ extern "C"
 #include "RAS_IRasterizer.h"
 
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 
 #ifdef WIN32
 #ifdef NDEBUG
@@ -92,6 +93,8 @@ extern "C"
 const int kMinWindowWidth = 100;
 const int kMinWindowHeight = 100;
 
+char bprogname[FILE_MAXDIR+FILE_MAXFILE];
+
 void usage(char* program)
 {
 	char * consoleoption;
@@ -101,18 +104,19 @@ void usage(char* program)
 	consoleoption = "";
 #endif
 	
-	printf("usage:   %s [-p l t w h] [-f fw fh fb ff] %s[-g gamengineoptions] "
+	printf("usage:   %s -w [-p l t w h] %s[-g gamengineoptions] "
 		"-s stereomode filename.blend\n", program, consoleoption);
+	printf("  -w: display in a window\n");
 	printf("  -p: specify window position\n");
 	printf("       l = window left coordinate\n");
 	printf("       t = window top coordinate\n");
 	printf("       w = window width\n");
 	printf("       h = window height\n");
-	printf("  -f: start game in full screen mode\n");
+/*	printf("  -f: start game in full screen mode\n");
 	printf("       fw = full screen mode pixel width\n");
 	printf("       fh = full screen mode pixel height\n");
 	printf("       fb = full screen mode bits per pixel\n");
-	printf("       ff = full screen mode frequency\n");
+	printf("       ff = full screen mode frequency\n"); */
 	printf("  -s: start player in stereo\n");
 	printf("       stereomode = hwpageflip or syncdoubling depending on the type of stereo you want\n");
 #ifdef _WIN32
@@ -204,8 +208,8 @@ int main(int argc, char** argv)
 	int i;
 	bool error = false;
 	SYS_SystemHandle syshandle = SYS_GetSystem();
-	bool fullScreen = false;
-	bool fullScreenParFound = false;
+	bool fullScreen = true;
+	bool fullScreenParFound = true;
 	bool windowParFound = false;
 	bool closeConsole = true;
 	int stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
@@ -215,8 +219,8 @@ int main(int argc, char** argv)
 	int windowTop = 100;
 	int windowWidth = 640;
 	int windowHeight = 480;
-	int fullScreenWidth = 640;
-	int fullScreenHeight= 480;
+	GHOST_TUns32 fullScreenWidth = 0;
+	GHOST_TUns32 fullScreenHeight= 0;
 	int fullScreenBpp = 16;
 	int fullScreenFrequency = 60;
 	
@@ -225,6 +229,7 @@ int main(int argc, char** argv)
 	signal (SIGFPE, SIG_IGN);
 #endif /* __alpha__ */
 #endif /* __linux__ */
+	BLI_where_am_i(bprogname, argv[0]);
 	
 #ifdef __APPLE__
     // Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
@@ -315,24 +320,12 @@ int main(int argc, char** argv)
 				}
 				break;
 				
-			case 'f':
+			case 'w':
 				// Parse window position and size options
 				{
-					fullScreen = true;
-					i++;
-					if ((i + 4) < argc)
-					{
-						fullScreenWidth = atoi(argv[i++]);
-						fullScreenHeight = atoi(argv[i++]);
-						fullScreenBpp = atoi(argv[i++]);
-						fullScreenFrequency = atoi(argv[i]);
+					fullScreen = false;
 						fullScreenParFound = true;
-					}
-					else
-					{
-						error = true;
-						printf("error: too few options for fullscreen argument.\n");
-					}
+					i++;
 				}
 				break;
 			case 'c':
@@ -403,6 +396,7 @@ int main(int argc, char** argv)
 			GHOST_ISystem* system = GHOST_ISystem::getSystem();
 			assertd(system);
 			
+			system->getMainDisplayDimensions(fullScreenWidth, fullScreenHeight);
 			// process first batch of events. If the user
 			// drops a file on top off the blenderplayer icon, we 
 			// recieve an event with the filename
@@ -570,7 +564,7 @@ int main(int argc, char** argv)
 						bool run = true;
 						while (run)
 						{
-							system->processEvents(true);
+							system->processEvents(false);
 							system->dispatchEvents();
 							if (exitcode = app.getExitRequested())
 							{

@@ -66,8 +66,8 @@ public:
 						class BL_SkinMeshObject *mesh)
 						:BL_MeshDeformer(bmeshobj, mesh),
 						m_armobj(NULL),
-						m_defbase(&bmeshobj->defbase),
-						m_lastUpdate(-1)
+						m_lastUpdate(-1),
+						m_defbase(&bmeshobj->defbase)
 	{
 		/* Build all precalculatable matrices for bones */
 

@@ -62,5 +62,4 @@ CValue*		BL_DeformableGameObject::GetReplica()
 
 	ProcessReplica(replica);
 	return replica;
-
 }

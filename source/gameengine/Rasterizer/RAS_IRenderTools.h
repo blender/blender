@@ -64,8 +64,8 @@ public:
 	
 	RAS_IRenderTools(
 	) :
-		m_modified(true),
-		m_clientobject(NULL)	
+		m_clientobject(NULL),
+		m_modified(true)
 	{
 	};
 

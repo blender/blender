@@ -297,15 +297,13 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					(blendertouchsensor->name ? blendertouchsensor->name: ""));
 					
 					
-					//if (gameobj->GetSumoObject())
-					//{	
-					//	gamesensor = 0;
-							//new KX_TouchSensor(eventmgr,
-							//gameobj,
-							//gameobj->GetSumoObject(),
-							//bFindMaterial,
-							//touchPropOrMatName);
-					//}
+					if (gameobj->GetPhysicsController())
+					{	
+						gamesensor = new KX_TouchSensor(eventmgr,
+							gameobj,
+							bFindMaterial,
+							touchPropOrMatName);
+					}
 					
 				}
 				
@@ -324,15 +322,13 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						touchpropertyname = (char*) (blendertouchsensor->ma->id.name+2);
 					}
 					bool bFindMaterial = true;
-					//if (gameobj->GetSumoObject())
-					//{
-					//	gamesensor = 0;
-						//new KX_TouchSensor(eventmgr,
-						//	gameobj,
-						//	gameobj->GetSumoObject(),
-						//	bFindMaterial,
-						//	touchpropertyname);
-					//}
+					if (gameobj->GetPhysicsController())
+					{	
+						gamesensor = new KX_TouchSensor(eventmgr,
+							gameobj,
+							bFindMaterial,
+							touchpropertyname);
+					}
 				}
 				break;
 			}
@@ -380,7 +376,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					//sumoObj->setMargin(blendernearsensor->dist);
 					//sumoObj->setPosition(gameobj->NodeGetWorldPosition());
 					bool bFindMaterial = false;
-					gamesensor = 0;//new KX_NearSensor(eventmgr,gameobj,blendernearsensor->dist,blendernearsensor->resetdist,bFindMaterial,nearpropertyname,kxscene);
+					gamesensor = new KX_NearSensor(eventmgr,gameobj,blendernearsensor->dist,blendernearsensor->resetdist,bFindMaterial,nearpropertyname,kxscene);
 					
 				}
 				break;
@@ -514,7 +510,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			
 		case SENS_RADAR:
 			{
-				/*
+				
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
 				if (eventmgr)
 				{
@@ -540,14 +536,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					//MT_Scalar coneradius = coneheight * (factor / 2);
 					MT_Scalar coneradius = coneheight * factor;
 					
-					DT_ShapeHandle shape = DT_Cone(coneradius,coneheight);
 					
 					// this sumoObject is not deleted by a gameobj, so delete it ourself
 					// later (memleaks)!
-					SM_Object* sumoObj = new SM_Object(shape,NULL,NULL,NULL);
-					sumoObj->setMargin(0.0);
-					
-					sumoObj->setPosition(gameobj->NodeGetWorldPosition());
 					MT_Scalar smallmargin = 0.0;
 					MT_Scalar largemargin = 0.1;
 					
@@ -560,13 +551,12 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						radaraxis,
 						smallmargin,
 						largemargin,
-						sumoObj,
 						bFindMaterial,
 						radarpropertyname,
 						kxscene);
 						
 				}
-			*/
+			
 				break;
 			}
 		case SENS_RAY:
@@ -586,15 +576,13 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					int axis = blenderraysensor->axisflag;
 
 					
-					gamesensor = 0;
-					/*new KX_RaySensor(eventmgr,
+					gamesensor = new KX_RaySensor(eventmgr,
 												  gameobj,
 												  checkname,
 												  bFindMaterial,
 												  distance,
 												  axis,
-												  kxscene->GetSumoScene());
-				*/
+												  kxscene);
 
 				}
 				break;

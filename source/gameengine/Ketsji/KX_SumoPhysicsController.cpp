@@ -1,4 +1,7 @@
+
+#ifdef WIN32
 #pragma warning (disable : 4786)
+#endif
 
 #include "KX_SumoPhysicsController.h"
 #include "SG_Spatial.h"
@@ -107,7 +110,7 @@ SG_Controller*	KX_SumoPhysicsController::GetReplica(SG_Node* destnode)
 	//parentcontroller is here be able to avoid collisions between parent/child
 
 	PHY_IPhysicsController* parentctrl = NULL;
-
+	
 	if (destnode != destnode->GetRootSGParent())
 	{
 		KX_GameObject* clientgameobj = (KX_GameObject*) destnode->GetRootSGParent()->GetSGClientObject();
@@ -123,7 +126,7 @@ SG_Controller*	KX_SumoPhysicsController::GetReplica(SG_Node* destnode)
 			childit!= destnode->GetSGChildren().end();
 			++childit
 				) {
-				KX_GameObject* clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+				KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
 				if (clientgameobj)
 				{
 					parentctrl = (KX_SumoPhysicsController*)clientgameobj->GetPhysicsController();
@@ -145,8 +148,7 @@ void	KX_SumoPhysicsController::SetObject (SG_IObject* object)
 	// cheating here...
 	KX_GameObject* gameobj = (KX_GameObject*)	object->GetSGClientObject();
 	gameobj->SetPhysicsController(this);
-
-
+	GetSumoObject()->setClientObject(gameobj->getClientInfo());
 }
 
 

@@ -33,6 +33,7 @@
 
 LIBNAME = sumo
 DIR = $(OCGDIR)/gameengine/blphys/$(LIBNAME)
+DIRS = Fuzzics
 
 include nan_compile.mk
 
@@ -42,7 +43,10 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
-CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_SUMO)/include -I$(NAN_MOTO)/include
+CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_SUMO) -I$(NAN_MOTO)/include
+CPPFLAGS += -I$(NAN_SOLID)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../Physics/common
 CPPFLAGS += -I../../Physics/Dummy
+
+include nan_subdirs.mk

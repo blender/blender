@@ -53,11 +53,12 @@ private:
 	double		        m_ipotime;
 
 public:
-	KX_WorldIpoController() : m_ipotime(0.0),
-							  m_modify_mist_color(false),
-							  m_modify_mist_start(false),
-							  m_modify_mist_dist(false),
-							  m_modified(true)
+	KX_WorldIpoController() : 
+				m_modify_mist_color(false),
+				m_modify_mist_start(false),
+				m_modify_mist_dist(false),
+				m_modified(true),
+				m_ipotime(0.0)
 		{}
 
 	virtual ~KX_WorldIpoController();

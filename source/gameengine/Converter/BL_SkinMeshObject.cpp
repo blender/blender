@@ -66,7 +66,7 @@ int BL_SkinMeshObject::FindOrAddDeform(int vtxarray, int mv, struct MDeformVert 
 	int numvert = ao->m_MvertArrayCache1[vtxarray]->size();
 	
 	/* Check to see if this has already been pushed */
-	for (int i=0; i<ao->m_MvertArrayCache1[vtxarray]->size(); i++){
+	for (size_t i=0; i<ao->m_MvertArrayCache1[vtxarray]->size(); i++){
 		if (mv == (*ao->m_MvertArrayCache1[vtxarray])[i])
 			return i;
 	}
@@ -84,7 +84,7 @@ int	BL_SkinMeshObject::FindVertexArray(int numverts,RAS_IPolyMaterial* polymat)
 	BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(polymat);
 
 
-	for (int i=0;i<ao->m_VertexArrayCache1.size();i++)
+	for (size_t i=0;i<ao->m_VertexArrayCache1.size();i++)
 	{
 		if ( (ao->m_TriangleArrayCount[i] + (numverts-2)) < BUCKET_MAX_TRIANGLES) 
 		{

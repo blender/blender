@@ -49,11 +49,12 @@ public:
 	void RecalcNormals();
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map){};
 	BL_MeshDeformer(struct Object* obj, class BL_SkinMeshObject *meshobj):
-		m_transverts(NULL),
-		m_tvtot(0),
-		m_transnors(NULL),
 		m_pMeshObject(meshobj),
-		m_bmesh((struct Mesh*)(obj->data)){};
+		m_bmesh((struct Mesh*)(obj->data)),
+		m_transnors(NULL),
+		m_transverts(NULL),
+		m_tvtot(0)
+	{};
 	virtual ~BL_MeshDeformer();
 	virtual void SetSimulatedTime(double time){};
 	virtual bool Apply(class RAS_IPolyMaterial *mat);

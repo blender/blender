@@ -38,8 +38,8 @@
 KX_IPhysicsController::KX_IPhysicsController(bool dyna,void* userdata)
 
 :	m_bDyna(dyna),
-	m_userdata(userdata),
-	m_suspendDynamics(false) 
+	m_suspendDynamics(false),
+	m_userdata(userdata)
 {
 };
 

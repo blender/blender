@@ -1,3 +1,5 @@
+import sys
+
 Import ('user_options_dict')
 Import ('library_env')
 
@@ -59,6 +61,7 @@ if user_options_dict['USE_PHYSICS'] == 'solid':
 
 if user_options_dict['USE_PHYSICS'] == 'ode':
     source_files += ['KX_OdePhysicsController.cpp']
+    ketsji_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
 
 ketsji_env.Append (CPPPATH = ['.',
                               '#source/kernel/gen_system',
@@ -90,7 +93,7 @@ ketsji_env.Append (CPPPATH = ['.',
                               '#source/gameengine/Physics/common',
                               '#source/gameengine/Physics/BlOde',
                               '#source/gameengine/Physics/Dummy',
-                              '#source/gameengine/Physics/Sumo/',
+                              '#source/gameengine/Physics/Sumo',
                               '#source/gameengine/Physics/Sumo/include',
                               '#source/gameengine/Physics/Sumo/Fuzzics/include',
                               '#source/gameengine/Network/LoopBackNetwork',
@@ -98,6 +101,8 @@ ketsji_env.Append (CPPPATH = ['.',
                               '#source/blender/blenloader'
                              ])
 
+if sys.platform == 'win32':
+    ketsji_env.Append (CXXFLAGS = ['/GR'])
 ketsji_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 
 ketsji_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_ketsji', source=source_files)

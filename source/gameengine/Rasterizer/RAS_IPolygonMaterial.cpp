@@ -67,7 +67,6 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 {
 	return (
-			this->m_texturename	==		lhs.m_texturename &&
 			this->m_tile		==		lhs.m_tile &&
 			this->m_tilexrep	==		lhs.m_tilexrep &&
 			this->m_tileyrep	==		lhs.m_tileyrep &&
@@ -75,7 +74,8 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 			this->m_drawingmode	==		lhs.m_drawingmode &&
 			this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
 			this->m_lightlayer  ==		lhs.m_lightlayer &&
-			this->m_materialname ==		lhs.m_materialname
+			this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
+			this->m_materialname.hash() ==		lhs.m_materialname.hash()
 	);
 }
 

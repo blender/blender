@@ -72,8 +72,8 @@ BL_ActionActuator::~BL_ActionActuator()
 }
 
 void BL_ActionActuator::ProcessReplica(){
-	bPose *oldpose = m_pose;
-	bPose *oldbpose = m_blendpose;
+//	bPose *oldpose = m_pose;
+//	bPose *oldbpose = m_blendpose;
 	
 	m_pose = NULL;
 	m_blendpose = NULL;
@@ -99,7 +99,6 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 {
 	bool bNegativeEvent = false;
 	bool bPositiveEvent = false;
-	int numevents = m_events.size();
 	bool keepgoing = true;
 	bool wrap = false;
 	bool apply=true;
@@ -114,7 +113,6 @@ bool BL_ActionActuator::Update(double curtime,double deltatime)
 		i--;
 		if ((*i)->GetNumber() == 0.0f)
 		{
-			int ka=0;
 			bNegativeEvent = true;
 		}
 		else

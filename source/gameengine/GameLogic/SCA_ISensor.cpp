@@ -156,6 +156,10 @@ PyMethodDef SCA_ISensor::Methods[] = {
 	 METH_VARARGS, GetUseNegPulseMode_doc},
 	{"setUseNegPulseMode", (PyCFunction) SCA_ISensor::sPySetUseNegPulseMode, 
 	 METH_VARARGS, SetUseNegPulseMode_doc},
+	{"getInvert", (PyCFunction) SCA_ISensor::sPyGetInvert, 
+	 METH_VARARGS, GetInvert_doc},
+	{"setInvert", (PyCFunction) SCA_ISensor::sPySetInvert, 
+	 METH_VARARGS, SetInvert_doc},
 	{NULL,NULL} //Sentinel
 };
 

@@ -74,7 +74,7 @@ public:
 	mutable bool  		    m_bObjectColor;
 	mutable MT_Vector4		m_RGBAcolor;
 	
-	KX_MeshSlot() :m_bVisible(true), m_pDeformer(NULL) {}
+	KX_MeshSlot() :m_pDeformer(NULL), m_bVisible(true) {}
 	//	KX_MeshSlot() :m_bVisible(true) {}
 	
 	bool					Less(const KX_MeshSlot& lhs) const;

@@ -44,7 +44,7 @@ class KX_RaySensor : public SCA_ISensor
 	STR_String		m_propertyname;
 	bool			m_bFindMaterial;
 	double			m_distance;
-	class KX_Scene* m_ketsjiScene;
+	class KX_Scene* m_scene;
 	bool			m_bTriggered;
 	int				m_axis;
 	bool			m_rayHit;

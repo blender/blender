@@ -50,9 +50,10 @@ public:
 		struct bArmature *arm,
 		struct bPose *pose) :
 	KX_GameObject(sgReplicationInfo,callbacks),
+		m_armature(arm),
 		m_pose(pose),
 		m_mrdPose(NULL),
-		m_armature(arm),
+		m_lastframe(0.),
 		m_activeAct(NULL),
 		m_activePriority(999)
 	{}

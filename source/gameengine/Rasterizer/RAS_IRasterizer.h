@@ -70,6 +70,11 @@ public:
 			KX_DEPTHMASK_DISABLED
 	};
 
+	enum    { 	 
+			KX_TWOSIDE = 512, 	 
+			KX_LINES = 32768 	 
+	};
+
 	enum	{
 			RAS_STEREO_NOSTEREO = 1,
 			RAS_STEREO_QUADBUFFERED,
@@ -162,6 +167,7 @@ public:
 	virtual void	EnableTextures(bool enable)=0;
 	
 	virtual void	SetCullFace(bool enable)=0;
+	virtual void    SetLines(bool enable)=0;
 
 	virtual double	GetTime()=0;
 

@@ -38,7 +38,12 @@
 #include "SCA_ISensor.h"
 #include "ListValue.h"
 
+#include <SOLID/SOLID.h>
+#include "SM_Scene.h"
+
 #include "KX_ClientObjectInfo.h"
+
+class KX_TouchEventManager;
 
 class KX_TouchSensor : public SCA_ISensor
 {
@@ -52,10 +57,9 @@ protected:
 	bool					m_bFindMaterial;
 	class SCA_EventManager*	m_eventmgr;
 	
-	//class SM_Object*		m_sumoObj;
-	//DT_ObjectHandle			m_solidHandle;
-	//SM_ClientObjectInfo		m_client_info;
-	//DT_RespTableHandle		m_resptable;
+	class SM_Object*		m_sumoObj;
+	DT_ObjectHandle			m_solidHandle;
+	DT_RespTableHandle		m_resptable;
 
 
 	bool					m_bCollision;
@@ -67,7 +71,7 @@ protected:
 public:
 	KX_TouchSensor(class SCA_EventManager* eventmgr,
 		class KX_GameObject* gameobj,
-		class SM_Object* sumoObj,
+		/*class SM_Object* sumoObj,*/
 		bool fFindMaterial,
 		const STR_String& touchedpropname,
 		PyTypeObject* T=&Type) ;
@@ -88,25 +92,15 @@ public:
 	virtual bool Evaluate(CValue* event);
 	virtual void ReParent(SCA_IObject* parent);
 	
-/*	static void collisionResponse(void *client_data, 
-								  void *object1,
-								  void *object2,
-								  const DT_CollData *coll_data)	{
-		class KX_TouchSensor* sensor = (class KX_TouchSensor*) client_data;
-		sensor->HandleCollision(object1,object2,coll_data);
-	}
-	
+	virtual void RegisterSumo(KX_TouchEventManager* touchman);
 
-	
-	void RegisterSumo();
-
-  	virtual void HandleCollision(void* obj1,void* obj2,
+	virtual DT_Bool HandleCollision(void* obj1,void* obj2,
 						 const DT_CollData * coll_data); 
 
 
-  //	SM_Object*	GetSumoObject() { return m_sumoObj; };
+	SM_Object*	GetSumoObject() { return m_sumoObj; };
 
-  */
+  
 
 	virtual bool IsPositiveTrigger() {
 		bool result = m_bTriggered;
@@ -115,7 +109,7 @@ public:
 	}
 
 	
-	void EndFrame();
+	virtual void EndFrame();
 
 	// todo: put some info for collision maybe
 

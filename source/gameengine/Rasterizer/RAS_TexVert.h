@@ -42,14 +42,16 @@ static MT_Point2 g_pt2;
 
 #define TV_CALCFACENORMAL 0x0001
 
+#define RAS_TexVert_INLINE 1
+
 class RAS_TexVert
 {
 	
-	float			m_localxyz[3];	// 3*4=12 = 24
-	float			m_uv1[2];		// 2*4=8 = 24 + 16 = 40
-	unsigned int	m_rgba;			//4 = 40 + 4 = 44
-	short			m_normal[3];	//3*2=6 = 50 
-	short			m_flag;			//32 bytes total size, fits nice = 52 = not fit nice
+	float			m_localxyz[3];	// 3*4 = 12 = 24
+	float			m_uv1[2];	// 2*4 =  8 = 24 + 16 = 40
+	unsigned int	m_rgba;			// 4   = 40 + 4 = 44
+	short			m_normal[3];	// 3*2 =  6 = 50 
+	short			m_flag;		// 32 bytes total size, fits nice = 52 = not fit nice
 
 
 public:
@@ -64,11 +66,28 @@ public:
 	~RAS_TexVert() {};
 
 	// leave multiline for debugging
+#ifdef RAS_TexVert_INLINE
+	const float* getUV1 () const { 
+		return m_uv1;
+	};
+	
+	const float* getLocalXYZ() const { 
+		return m_localxyz;
+	};
+	
+	const short* getNormal() const {
+		return m_normal;
+	}
+	
+	const unsigned int& getRGBA() const {
+		return m_rgba;
+	}
+#else
 	const float* getUV1 () const;
-
-	//const float* getUV1 () const { 
-	//	return m_uv1;
-	//};
+	const short*		getNormal() const;
+	const float*		getLocalXYZ() const;
+	const unsigned int&	getRGBA() const;
+#endif
 
 	const MT_Point3&	xyz();
 
@@ -77,14 +96,7 @@ public:
 	void				SetRGBA(const unsigned int rgba);
 	void				SetNormal(const MT_Vector3& normal);
 	void				SetFlag(const short flag);
-	// leave multiline for debugging
-	const short*		getNormal() const;
-	//const float* getLocalXYZ() const { 
-	//	return m_localxyz;
-	//};
-
-	const float*		getLocalXYZ() const;
-	const unsigned int&	getRGBA() const;
+	
 	// compare two vertices, and return TRUE if both are almost identical (they can be shared)
 	bool				closeTo(const RAS_TexVert* other);
 
@@ -92,6 +104,7 @@ public:
 								const MT_Point2& otheruv,
 								const unsigned int otherrgba,
 								short othernormal[3]) const;
+	void getOffsets(void*&xyz, void *&uv1, void *&rgba, void *&normal) const;
 };
 
 #endif //__RAS_TEXVERT

@@ -47,13 +47,13 @@ class RAS_IPolyMaterial
 {
 	//todo: remove these variables from this interface/protocol class
 protected:
-	STR_HashedString    m_texturename;
-	STR_String          m_materialname; //also needed for touchsensor  
-	int					m_tile;
-	int					m_tilexrep,m_tileyrep;
-	int					m_drawingmode;	// tface->mode
-	int					m_transparant;
-	int					m_lightlayer;
+	STR_HashedString		m_texturename;
+	STR_HashedString		m_materialname; //also needed for touchsensor  
+	int				m_tile;
+	int				m_tilexrep,m_tileyrep;
+	int				m_drawingmode;	// tface->mode
+	int				m_transparant;
+	int				m_lightlayer;
 	bool				m_bIsTriangle;
 	
 public:

@@ -52,11 +52,6 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 
 
 
-const float* RAS_TexVert::getUV1 () const
-{
-	return m_uv1;
-}
-
 
 
 const MT_Point3& RAS_TexVert::xyz()
@@ -97,8 +92,14 @@ void RAS_TexVert::SetNormal(const MT_Vector3& normal)
 }
 
 
-
+#ifndef RAS_TexVert_INLINE
 // leave multiline for debugging
+const float* RAS_TexVert::getUV1 () const
+{
+	return m_uv1;
+}
+
+
 const short* RAS_TexVert::getNormal() const
 {
 	return m_normal;
@@ -118,7 +119,7 @@ const unsigned int& RAS_TexVert::getRGBA() const
 	return m_rgba;
 }
 
-
+#endif
 
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)
@@ -152,4 +153,12 @@ bool RAS_TexVert::closeTo(const MT_Point3& otherxyz,
 short RAS_TexVert::getFlag() const
 {
 	return m_flag;
+}
+
+void RAS_TexVert::getOffsets(void* &xyz, void* &uv1, void* &rgba, void* &normal) const
+{
+	xyz = (void *) m_localxyz;
+	uv1 = (void *) m_uv1;
+	rgba = (void *) m_rgba;
+	normal = (void *) m_normal;
 }

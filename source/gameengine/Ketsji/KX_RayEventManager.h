@@ -44,8 +44,8 @@ class KX_RayEventManager : public SCA_EventManager
 	class SCA_LogicManager* m_logicmgr;
 public:
 	KX_RayEventManager(class SCA_LogicManager* logicmgr)
-		: m_logicmgr(logicmgr),
-		SCA_EventManager(RAY_EVENTMGR)
+		: SCA_EventManager(RAY_EVENTMGR),
+		  m_logicmgr(logicmgr)
 	{}
 	virtual void NextFrame(double curtime,double deltatime);
 	virtual void	RegisterSensor(SCA_ISensor* sensor);

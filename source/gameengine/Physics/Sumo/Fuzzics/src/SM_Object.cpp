@@ -2,6 +2,34 @@
  * $Id$
  * Copyright (C) 2001 NaN Technologies B.V.
  * The basic physics object.
+ *
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. The Blender
+ * Foundation also sells licenses for use in proprietary software under
+ * the Blender License.  See http://www.blender.org/BL/ for information
+ * about this.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -17,25 +45,29 @@
 #include "SM_Object.h"
 #include "SM_Scene.h"
 #include "SM_FhObject.h"
+#include "SM_Debug.h"
 
 #include "MT_MinMax.h"
 
 
 // Tweak parameters
-static MT_Scalar ImpulseThreshold = 0.5;
-
+static const MT_Scalar ImpulseThreshold = 0.5;
+static const MT_Scalar FixThreshold = 0.01;
+static const MT_Scalar FixVelocity = 0.01;
 SM_Object::SM_Object(
 	DT_ShapeHandle shape, 
 	const SM_MaterialProps *materialProps,
 	const SM_ShapeProps *shapeProps,
-	SM_Object *dynamicParent
-) :
+	SM_Object *dynamicParent)  :
+	
+	m_dynamicParent(dynamicParent),
+	m_client_object(0),
+	
 	m_shape(shape),
 	m_materialProps(materialProps),
 	m_materialPropsBackup(0),
 	m_shapeProps(shapeProps),
 	m_shapePropsBackup(0),
-	m_dynamicParent(dynamicParent),
 	m_object(DT_CreateObject(this, shape)),
 	m_margin(0.0),
 	m_scaling(1.0, 1.0, 1.0),
@@ -48,22 +80,21 @@ SM_Object::SM_Object(
 	m_ang_mom(0.0, 0.0, 0.0),
 	m_force(0.0, 0.0, 0.0),
 	m_torque(0.0, 0.0, 0.0),
-	m_client_object(0),
-	m_fh_object(0),
-
+	m_error(0.0, 0.0, 0.0),
 	m_combined_lin_vel (0.0, 0.0, 0.0),
-	m_combined_ang_vel (0.0, 0.0, 0.0)
+	m_combined_ang_vel (0.0, 0.0, 0.0),
+	m_fh_object(0)
 {
 	m_xform.setIdentity();
 	m_xform.getValue(m_ogl_matrix);
 	if (shapeProps && 
 		(shapeProps->m_do_fh || shapeProps->m_do_rot_fh)) {
-		MT_Vector3 ray(0.0, 0.0, -10.0);
-		m_fh_object = new SM_FhObject(ray, this);
+		DT_Vector3 zero = {0., 0., 0.}, ray = {0.0, 0.0, -10.0};
+		m_fh_object = new SM_FhObject(DT_NewLineSegment(zero, ray), MT_Vector3(ray), this);
+		//printf("SM_Object:: WARNING! fh disabled.\n");
 	}
 	m_suspended = false;
 }
-
 
 	void 
 SM_Object::
@@ -129,9 +160,228 @@ integrateMomentum(
 	}
 }
 
+void SM_Object::dynamicCollision(MT_Point3 local2, 
+	MT_Vector3 normal, 
+	MT_Scalar dist, 
+	MT_Vector3 rel_vel,
+	MT_Scalar restitution,
+	MT_Scalar friction_factor,
+	MT_Scalar invMass
+)
+{
+	// Same again but now obj1 is non-dynamic
+	// Compute the point on obj1 closest to obj2 (= sphere with radius = 0)
+	// local1 is th point closest to obj2
+	// local2 is the local origin of obj2 
+	if (MT_EPSILON < dist) {
+		//printf("SM_Object::Boing: local2 = { %0.5f, %0.5f, %0.5f } (%0.5f)\n",
+		//	local2[0], local2[1], local2[2], local2.length());
+			
+		// the normal to the contact plane
+		normal /= dist;
 
-void SM_Object::boing(
+		// wr2 points from obj2's origin to the global contact point
+		// wr2 is only needed for rigid bodies (objects for which the 
+		// friction can change the angular momentum).
+		// vel2 is adapted to denote the velocity of the contact point 
+		// This should look familiar....
+		MT_Scalar  rel_vel_normal = normal.dot(rel_vel);
+			
+		//printf("                 rel_vel = { %0.5f, %0.5f, %0.5f } (%0.5f)\n",
+		//	rel_vel[0], rel_vel[1], rel_vel[2], rel_vel.length());
+			
+		if (rel_vel_normal <= 0.0) {
+			if (-rel_vel_normal < ImpulseThreshold) {
+				restitution = 0.0;
+			}
+				
+			MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal / invMass;
+			applyCenterImpulse( impulse * normal); 
+	   	
+// The friction part starts here!!!!!!!!
+
+			// Compute the lateral component of the relative velocity
+			// lateral actually points in the opposite direction, i.e.,
+			// into the direction of the friction force.
+
+#if 0
+			// test - only do friction on the physics part of the 
+			// velocity.
+			vel1  -= obj1->m_combined_lin_vel;
+			vel2  -= obj2->m_combined_lin_vel;
+
+			// This should look familiar....
+			rel_vel        = vel2 - vel1;
+			rel_vel_normal = normal.dot(rel_vel);
+#endif
+				
+			MT_Vector3 lateral =  rel_vel - normal * rel_vel_normal;
+			//printf("                 lateral = { %0.5f, %0.5f, %0.5f } (%0.5f)\n",
+			//	lateral[0], lateral[1], lateral[2], lateral.length());
+				
+			//const SM_ShapeProps *shapeProps = obj2->getShapeProps();
+
+			if (m_shapeProps->m_do_anisotropic) {
+
+				// For anisotropic friction we scale the lateral component,
+				// rather than compute a direction-dependent fricition 
+				// factor. For this the lateral component is transformed to
+				// local coordinates.
+
+				MT_Matrix3x3 lcs(m_orn);
+				// We cannot use m_xform.getBasis() for the matrix, since 
+				// it might contain a non-uniform scaling. 
+				// OPT: it's a bit daft to compute the matrix since the 
+				// quaternion itself can be used to do the transformation.
+
+				MT_Vector3 loc_lateral = lateral * lcs;
+				// lcs is orthogonal so lcs.inversed() == lcs.transposed(),
+				// and lcs.transposed() * lateral == lateral * lcs.
+
+				const MT_Vector3& friction_scaling = 
+					m_shapeProps->m_friction_scaling; 
+
+				// Scale the local lateral...
+				loc_lateral.scale(friction_scaling[0], 
+								friction_scaling[1], 
+								friction_scaling[2]);
+				// ... and transform it back to global coordinates
+				lateral = lcs * loc_lateral;
+			}
+				
+			// A tiny Coulomb friction primer:
+			// The Coulomb friction law states that the magnitude of the
+			// maximum possible friction force depends linearly on the 
+			// magnitude of the normal force.
+			//
+			// F_max_friction = friction_factor * F_normal 
+			//
+			// (NB: independent of the contact area!!)
+			//
+			// The friction factor depends on the material. 
+			// We use impulses rather than forces but let us not be 
+			// bothered by this. 
+
+
+			MT_Scalar  rel_vel_lateral = lateral.length();
+			//printf("rel_vel = { %0.05f, %0.05f, %0.05f}\n", rel_vel[0], rel_vel[1], rel_vel[2]);
+			//printf("n.l = %0.15f\n", normal.dot(lateral)); /* Should be 0.0 */
+
+			if (rel_vel_lateral > MT_EPSILON) {
+				lateral /= rel_vel_lateral;
+
+				// Compute the maximum friction impulse
+				MT_Scalar max_friction = 
+					friction_factor * MT_max(MT_Scalar(0.0), impulse);
+
+				// I guess the GEN_max is not necessary, so let's check it
+
+				assert(impulse >= 0.0);
+
+				// Here's the trick. We compute the impulse to make the
+				// lateral velocity zero. (Make the objects stick together
+				// at the contact point. If this impulse is larger than
+				// the maximum possible friction impulse, then shrink its
+				// magnitude to the maximum friction.
+
+				if (isRigidBody()) {
+						
+					// For rigid bodies we take the inertia into account, 
+					// since the friction impulse is going to change the
+					// angular momentum as well.
+					MT_Vector3 temp = getInvInertia() * local2.cross(lateral);
+					MT_Scalar impulse_lateral = rel_vel_lateral /
+						(invMass + lateral.dot(temp.cross(local2)));
+
+					MT_Scalar friction = MT_min(impulse_lateral, max_friction);
+					applyImpulse(local2 + m_pos, -lateral * friction);
+				}
+				else {
+					MT_Scalar impulse_lateral = rel_vel_lateral / invMass;
+
+					MT_Scalar friction = MT_min(impulse_lateral, max_friction);
+					applyCenterImpulse( -friction * lateral);
+				}
+					
+
+			}	
+
+			calcXform();
+			notifyClient();
+
+		}
+	}
+}
+
+DT_Bool SM_Object::boing(
 	void *client_data,  
+	void *object1,
+	void *object2,
+	const DT_CollData *coll_data
+){
+	//if (!coll_data)
+	//	return DT_CONTINUE;
+
+	SM_Scene  *scene = (SM_Scene *)client_data; 
+	SM_Object *obj1  = (SM_Object *)object1;  
+	SM_Object *obj2  = (SM_Object *)object2;  
+	
+	scene->addPair(obj1, obj2); // Record this collision for client callbacks
+	
+	// If one of the objects is a ghost then ignore it for the dynamics
+	if (obj1->isGhost() || obj2->isGhost()) {
+		return DT_CONTINUE;
+	}
+
+	// Objects do not collide with parent objects
+	if (obj1->getDynamicParent() == obj2 || obj2->getDynamicParent() == obj1) {
+		return DT_CONTINUE;
+	}
+	
+	if (!obj2->isDynamic()) {
+		std::swap(obj1, obj2);
+	}
+
+	if (!obj2->isDynamic()) {
+		return DT_CONTINUE;
+	}
+
+	// Get collision data from SOLID
+	DT_Vector3 p1, p2;
+	if (!DT_GetPenDepth(obj1->getObjectHandle(), obj2->getObjectHandle(), p1, p2))
+		return DT_CONTINUE;
+	MT_Point3 local1(p1), local2(p2);
+	MT_Vector3 normal(local2 - local1);
+	MT_Scalar dist = normal.length();
+	
+	local1 -= obj1->m_pos, local2 -= obj2->m_pos;
+	
+	// Calculate collision parameters
+	MT_Vector3 rel_vel        = obj1->getVelocity(local1) + obj1->m_combined_lin_vel - 
+					obj2->getVelocity(local2) - obj2->m_combined_lin_vel;
+					
+	MT_Scalar restitution = 
+		MT_min(obj1->getMaterialProps()->m_restitution,
+				obj2->getMaterialProps()->m_restitution);
+	
+	MT_Scalar friction_factor = 
+		MT_min(obj1->getMaterialProps()->m_friction, 
+				obj2->getMaterialProps()->m_friction);
+				
+	MT_Scalar invMass = obj1->getInvMass() + obj2->getInvMass();
+	
+	// Calculate reactions
+	if (obj1->isDynamic())
+		obj1->dynamicCollision(local1, normal, dist, rel_vel, restitution, friction_factor, invMass);
+		
+	if (obj2->isDynamic())
+		obj2->dynamicCollision(local2, -normal, dist, -rel_vel, restitution, friction_factor, invMass);
+	
+	return DT_CONTINUE;
+}
+
+DT_Bool SM_Object::fix(
+	void *client_data,
 	void *object1,
 	void *object2,
 	const DT_CollData *coll_data
@@ -140,247 +390,80 @@ void SM_Object::boing(
 	SM_Object *obj1  = (SM_Object *)object1;  
 	SM_Object *obj2  = (SM_Object *)object2;  
 	
-	scene->addPair(obj1, obj2); // Record this collision for client callbacks
-	
-
 	// If one of the objects is a ghost then ignore it for the dynamics
 	if (obj1->isGhost() || obj2->isGhost()) {
-		return;
+		return DT_CONTINUE;
 	}
 
+	if (obj1->getDynamicParent() == obj2 || obj2->getDynamicParent() == obj1) {
+		return DT_CONTINUE;
+	}
 	
 	if (!obj2->isDynamic()) {
 		std::swap(obj1, obj2);
 	}
 
 	if (!obj2->isDynamic()) {
-		return;
+		return DT_CONTINUE;
 	}
 
 	// obj1 points to a dynamic object
-
+	DT_Vector3 p1, p2;
+	if (!DT_GetPenDepth(obj1->getObjectHandle(), obj2->getObjectHandle(), p1, p2))
+		return DT_CONTINUE;
+	MT_Point3 local1(p1), local2(p2);
+	// Get collision data from SOLID
+	MT_Vector3 normal(local2 - local1);
 
 	// This distinction between dynamic and non-dynamic objects should not be 
 	// necessary. Non-dynamic objects are assumed to have infinite mass.
-
 	if (obj1->isDynamic()) {
-		// normal to the contact plane 
-		MT_Vector3 normal = obj2->m_pos - obj1->m_pos;
-		MT_Scalar  dist = normal.length(); 
-		
-		if (MT_EPSILON < dist && dist <= obj1->getMargin() + obj2->getMargin())
-		{
-			normal /= dist;
-			// relative velocity of the contact points
-			MT_Vector3 rel_vel       = obj2->actualLinVelocity() - obj1->actualLinVelocity();
-			// relative velocity projected onto the normal
-			MT_Scalar rel_vel_normal = normal.dot(rel_vel);
-			
-			// if the objects are approaching eachother...
-			if (rel_vel_normal < 0.0) {
-				MT_Scalar restitution;
-				// ...and the approaching velocity is large enough... 
-				if (-rel_vel_normal > ImpulseThreshold) {
-					// ...this must be a true collision.
-					restitution = 
-						MT_min(obj1->getMaterialProps()->m_restitution,
-								obj2->getMaterialProps()->m_restitution);
-				}
-				else {
-					// otherwise, it is a resting contact, and thus the 
-					// relative velocity must be made zero
-					restitution = 0.0;
-					// We also need to interfere with the positions of the
-					// objects, otherwise they might drift into eachother. 
-					MT_Vector3 penalty = normal * 
-						(0.5 * (obj1->getMargin() + obj2->getMargin() - dist));
-					obj1->m_pos -= penalty;
-					obj2->m_pos += penalty;
-				}
-				
-				// Compute the impulse necessary to yield the desired relative velocity...
-                MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal /
-                    (obj1->getInvMass() + obj2->getInvMass());
-               
-				// ... and apply it.
-				obj1->applyCenterImpulse(-impulse * normal);
-				obj2->applyCenterImpulse( impulse * normal);
-            }
+		MT_Vector3 error = normal * 0.5f;
+		obj1->m_error += error;
+		obj2->m_error -= error;
+		// Remove the velocity component in the normal direction
+		// Calculate collision parameters
+		MT_Vector3 rel_vel = obj1->getLinearVelocity() - obj2->getLinearVelocity();
+		if (normal.length() > FixThreshold && rel_vel.length() < FixVelocity) {
+			normal.normalize();
+			MT_Scalar  rel_vel_normal = 0.49*(normal.dot(rel_vel));
+
+			obj1->addLinearVelocity(-rel_vel_normal*normal);
+			obj2->addLinearVelocity(rel_vel_normal*normal);
 		}
 	}
 	else {
 		// Same again but now obj1 is non-dynamic
+		obj2->m_error -= normal;
+		MT_Vector3 rel_vel = obj2->getLinearVelocity();
+		if (normal.length() > FixThreshold && rel_vel.length() < FixVelocity) {
+			// Calculate collision parameters
+			normal.normalize();
+			MT_Scalar  rel_vel_normal = -0.99*(normal.dot(rel_vel));
 
-		// Compute the point on obj1 closest to obj2 (= sphere with radius = 0)
-		MT_Point3 local1, local2;
-		MT_Scalar dist = DT_GetClosestPair(obj1->m_object, obj2->m_object,
-										   local1.getValue(), local2.getValue());
-		
-        // local1 is th point closest to obj2
-        // local2 is the local origin of obj2 
-
-		if (MT_EPSILON < dist && dist <= obj2->getMargin()) {
-			MT_Point3 world1 = obj1->getWorldCoord(local1);
-			MT_Point3 world2 = obj2->getWorldCoord(local2);
-			MT_Vector3 vel1  = obj1->getVelocity(local1) + obj1->m_combined_lin_vel;
-			MT_Vector3 vel2  = obj2->getVelocity(local2) + obj2->m_combined_lin_vel;
-            
-            // the normal to the contact plane
-			MT_Vector3 normal = world2 - world1; 
-			normal /= dist;
-
-			// wr2 points from obj2's origin to the global contact point
-			// wr2 is only needed for rigid bodies (objects for which the 
-			// friction can change the angular momentum).
-			// vel2 is adapted to denote the velocity of the contact point 
-			MT_Vector3 wr2;
-			if (obj2->isRigidBody()) {
-				wr2 = -obj2->getMargin() * normal;
-				vel2 += obj2->actualAngVelocity().cross(wr2);
-			}
-
-
-			// This should look familiar....
-			MT_Vector3 rel_vel        = vel2 - vel1;
-			MT_Scalar  rel_vel_normal = normal.dot(rel_vel);
-			
-			if (rel_vel_normal < 0.0) {
-				MT_Scalar restitution;
-				if (-rel_vel_normal > ImpulseThreshold) {
-					restitution = 
-						MT_min(obj1->getMaterialProps()->m_restitution,
-								obj2->getMaterialProps()->m_restitution);
-				}
-				else {
-					restitution = 0.0;
-					// We fix drift by moving obj2 only, since obj1 was 
-					// non-dynamic.
-					obj2->m_pos += normal * (obj2->getMargin() - dist);
-
-				}
-				
-				MT_Scalar impulse = -(1.0 + restitution) * rel_vel_normal /
-					(obj1->getInvMass() + obj2->getInvMass());
-
-
-				obj2->applyCenterImpulse( impulse * normal);
-	   	
-// The friction part starts here!!!!!!!!
-
-				// Compute the lateral component of the relative velocity
-				// lateral actually points in the opposite direction, i.e.,
-				// into the direction of the friction force.
-
-#if 1
-				// test - only do friction on the physics part of the 
-				// velocity.
-				vel1  -= obj1->m_combined_lin_vel;
-				vel2  -= obj2->m_combined_lin_vel;
-
-				// This should look familiar....
-				rel_vel        = vel2 - vel1;
-				rel_vel_normal = normal.dot(rel_vel);
-#endif
-				
-				MT_Vector3 lateral = normal * rel_vel_normal - rel_vel;
-				
-				const SM_ShapeProps *shapeProps = obj2->getShapeProps();
-				
-				if (shapeProps->m_do_anisotropic) {
-
-					// For anisotropic friction we scale the lateral component,
-					// rather than compute a direction-dependent fricition 
-					// factor. For this the lateral component is transformed to
-					// local coordinates.
-
-					MT_Matrix3x3 lcs(obj2->m_orn);
-					// We cannot use m_xform.getBasis() for the matrix, since 
-					// it might contain a non-uniform scaling. 
-					// OPT: it's a bit daft to compute the matrix since the 
-					// quaternion itself can be used to do the transformation.
-
-					MT_Vector3 loc_lateral = lateral * lcs;
-					// lcs is orthogonal so lcs.inversed() == lcs.transposed(),
-					// and lcs.transposed() * lateral == lateral * lcs.
-
-					const MT_Vector3& friction_scaling = 
-						shapeProps->m_friction_scaling; 
-					
-					// Scale the local lateral...
-					loc_lateral.scale(friction_scaling[0], 
-									  friction_scaling[1], 
-									  friction_scaling[2]);
-					// ... and transform it back to global coordinates
-					lateral = lcs * loc_lateral;
-				}
-				
-				// A tiny Coulomb friction primer:
-				// The Coulomb friction law states that the magnitude of the
-				// maximum possible friction force depends linearly on the 
-				// magnitude of the normal force.
-				//
-				// F_max_friction = friction_factor * F_normal 
-				//
-				// (NB: independent of the contact area!!)
-				//
-				// The friction factor depends on the material. 
-				// We use impulses rather than forces but let us not be 
-				// bothered by this. 
-
-
-				MT_Scalar  rel_vel_lateral = lateral.length();
-				
-				if (rel_vel_lateral > MT_EPSILON) {
-					lateral /= rel_vel_lateral;
-					
-					MT_Scalar friction_factor = 
-						MT_min(obj1->getMaterialProps()->m_friction, 
-								obj2->getMaterialProps()->m_friction);
-					
-					// Compute the maximum friction impulse
-
-					MT_Scalar max_friction = 
-						friction_factor * MT_max(0.0, impulse);
-					
-					// I guess the GEN_max is not necessary, so let's check it
-
-					assert(impulse >= 0.0);
-
-					// Here's the trick. We compute the impulse to make the
-					// lateral velocity zero. (Make the objects stick together
-					// at the contact point. If this impulse is larger than
-					// the maximum possible friction impulse, then shrink its
-					// magnitude to the maximum friction.
-
-					if (obj2->isRigidBody()) {
-						
-						// For rigid bodies we take the inertia into account, 
-						// since the friciton impulse is going to change the
-						// angular momentum as well.
-						MT_Scalar impulse_lateral = rel_vel_lateral /
-							(obj1->getInvMass() + obj2->getInvMass() +
-							 ((obj2->getInvInertia() * wr2.cross(lateral)).cross(wr2)).dot(lateral));
-						MT_Scalar friction = MT_min(impulse_lateral, max_friction);
-						obj2->applyImpulse(world2 + wr2,  friction * lateral);
-					}
-					else {
-						MT_Scalar impulse_lateral = rel_vel_lateral /
-							(obj1->getInvMass() + obj2->getInvMass());
-						
-						MT_Scalar friction = MT_min(impulse_lateral, max_friction);
-						obj2->applyCenterImpulse( friction * lateral);
-					}
-				}	
-				
-				obj2->calcXform();
-				obj2->notifyClient();		
-			}
+			obj2->addLinearVelocity(rel_vel_normal*normal);
 		}
 	}
+	
+	return DT_CONTINUE;
 }
 
-
-
+void SM_Object::relax(void)
+{ 
+	if (m_error.fuzzyZero())
+		return;
+	//std::cout << "SM_Object::relax: { " << m_error << " }" << std::endl;
+	
+	m_pos += m_error; 
+	m_error.setValue(0., 0., 0.); 
+/*	m_pos.getValue(pos);
+	DT_SetPosition(m_object, pos); 
+	m_xform.setOrigin(m_pos); 
+	m_xform.getValue(m_ogl_matrix); */
+	calcXform();
+	notifyClient();
+}
+	
 SM_Object::SM_Object(
 ) {
 	// warning no initialization of variables done by moto.
@@ -388,8 +471,11 @@ SM_Object::SM_Object(
 
 SM_Object::
 ~SM_Object() { 
-	delete m_fh_object;
-	DT_DeleteObject(m_object); 
+	if (m_fh_object)
+		delete m_fh_object;
+	
+	DT_DestroyObject(m_object);
+	m_object = NULL;
 }
 
 	bool 
@@ -489,14 +575,35 @@ registerCallback(
 	void 
 SM_Object::
 calcXform() {
+#ifdef SM_DEBUG_XFORM
+	printf("SM_Object::calcXform m_pos = { %-0.5f, %-0.5f, %-0.5f }\n",
+		m_pos[0], m_pos[1], m_pos[2]);
+	printf("                     m_orn = { %-0.5f, %-0.5f, %-0.5f, %-0.5f }\n",
+		m_orn[0], m_orn[1], m_orn[2], m_orn[3]);
+	printf("                 m_scaling = { %-0.5f, %-0.5f, %-0.5f }\n",
+		m_scaling[0], m_scaling[1], m_scaling[2]);
+#endif
 	m_xform.setOrigin(m_pos);
 	m_xform.setBasis(MT_Matrix3x3(m_orn, m_scaling));
 	m_xform.getValue(m_ogl_matrix);
+	
+	/* Blender has been known to crash here.
+	   This usually means SM_Object *this has been deleted more than once. */
 	DT_SetMatrixd(m_object, m_ogl_matrix);
 	if (m_fh_object) {
 		m_fh_object->setPosition(m_pos);
 		m_fh_object->calcXform();
 	}
+#ifdef SM_DEBUG_XFORM
+	printf("\n               | %-0.5f %-0.5f %-0.5f %-0.5f |\n",
+		m_ogl_matrix[0], m_ogl_matrix[4], m_ogl_matrix[ 8], m_ogl_matrix[12]);
+	printf(  "               | %-0.5f %-0.5f %-0.5f %-0.5f |\n",
+		m_ogl_matrix[1], m_ogl_matrix[5], m_ogl_matrix[ 9], m_ogl_matrix[13]);
+	printf(  "m_ogl_matrix = | %-0.5f %-0.5f %-0.5f %-0.5f |\n",
+		m_ogl_matrix[2], m_ogl_matrix[6], m_ogl_matrix[10], m_ogl_matrix[14]);
+	printf(  "               | %-0.5f %-0.5f %-0.5f %-0.5f |\n\n",
+		m_ogl_matrix[3], m_ogl_matrix[7], m_ogl_matrix[11], m_ogl_matrix[15]);
+#endif
 }
 
 // Call callbacks to notify the client of a change of placement
@@ -561,7 +668,7 @@ setMargin(
 	MT_Scalar margin
 ) {
 	m_margin = margin;
-    DT_SetMargin(m_object, margin);
+	DT_SetMargin(m_object, margin);
 }
 
 	MT_Scalar 
@@ -841,11 +948,18 @@ getVelocity(
 	// For displaced objects the velocity is faked using the previous state. 
 	// Dynamic objects get their own velocity, not the faked velocity.
 	// (Dynamic objects shouldn't be displaced in the first place!!)
-
+/* FIXME: -KM- Valgrind report:
+==17624== Use of uninitialised value of size 8
+==17624==    at 0x831F925: MT_Vector3::dot(MT_Vector3 const&) const (MT_Tuple3.h:60)
+==17624==    by 0x82E4574: SM_Object::getVelocity(MT_Point3 const&) const (MT_Matrix3x3.h:81)
+==17624==    by 0x82E324D: SM_Object::boing(void*, void*, void*, DT_CollData const*) (SM_Object.cpp:319)
+==17624==    by 0x83E7308: DT_Encounter::exactTest(DT_RespTable const*, int&) const (in /home/kester/blender-src/DEBUG/blender)
+*/
 	return m_prev_kinematic && !isDynamic() ? 
 		(m_xform(local) - m_prev_xform(local)) / m_timeStep :
-		m_lin_vel +	m_ang_vel.cross(m_xform.getBasis() * local);
+		m_lin_vel +	m_ang_vel.cross(local);
 
+	//	m_lin_vel +	m_ang_vel.cross(m_xform.getBasis() * local);
 	// NB: m_xform.getBasis() * local == m_xform(local) - m_xform.getOrigin()
 
 }
@@ -896,21 +1010,6 @@ SM_Object::
 getShapeHandle(
 ) const { 
 	return m_shape;
-}
-
-	void  
-SM_Object::
-setClientObject(
-	void *clientobj
-) {
-	m_client_object = clientobj;
-}
-
-	void *
-SM_Object::
-getClientObject(
-){ 
-	return m_client_object;
 }
 
 	SM_Object *

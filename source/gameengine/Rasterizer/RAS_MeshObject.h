@@ -66,7 +66,9 @@ public:
 struct	RAS_TriangleIndex
 {
 public:
-	int		m_index[3];
+	int	m_index[3];
+	int	m_array;
+	RAS_IPolyMaterial*	m_matid;
 	bool	m_collider;
 };
 
@@ -131,12 +133,14 @@ public:
 	vector<RAS_IPolyMaterial*>				m_sortedMaterials;
 	vector<vector<RAS_MatArrayIndex> >		m_xyz_index_to_vertex_index_mapping;
 	vector<RAS_TriangleIndex >				m_triangle_indices;
+	
+	int							m_class;
 
-	int					GetLightLayer();
+	unsigned int				GetLightLayer();
 	int					NumMaterials();
-	const STR_String&	GetMaterialName(int matid);
-	RAS_MaterialBucket*	GetMaterialBucket(int matid);
-	const STR_String&	GetTextureName(int matid);
+	const STR_String&	GetMaterialName(unsigned int matid);
+	RAS_MaterialBucket*	GetMaterialBucket(unsigned int matid);
+	const STR_String&	GetTextureName(unsigned int matid);
 	virtual void		AddPolygon(RAS_Polygon* poly);
 	void				UpdateMaterialList();
 	
@@ -217,8 +221,8 @@ public:
 	int					GetVertexArrayLength(RAS_IPolyMaterial* mat);
 
 	RAS_TexVert*		GetVertex(
-							int matid,
-							int index
+							unsigned int matid,
+							unsigned int index
 						);
 
 	const vecIndexArrays& GetIndexCache (RAS_IPolyMaterial* mat);

@@ -41,6 +41,9 @@
 #include "KX_GameObject.h"
 #include "KX_Scene.h"
 
+#include "SumoPhysicsEnvironment.h"
+#include "KX_SumoPhysicsController.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -57,10 +60,10 @@ KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 					m_propertyname(propname),
 					m_bFindMaterial(bFindMaterial),
 					m_distance(distance),
-					m_axis(axis),
-					m_ketsjiScene(ketsjiScene),
-					m_rayHit(false),
+					m_scene(ketsjiScene),
 					m_bTriggered(false),
+					m_axis(axis),
+					m_rayHit(false),
 					m_hitObject(NULL)
 
 				
@@ -139,56 +142,78 @@ bool KX_RaySensor::Evaluate(CValue* event)
 		}
 	case 3: // -X
 		{
-			todir[0] = invmat[0][0] * -1;
-			todir[1] = invmat[0][1] * -1;
-			todir[2] = invmat[0][2] * -1;
+			todir[0] = -invmat[0][0];
+			todir[1] = -invmat[0][1];
+			todir[2] = -invmat[0][2];
 			break;
 		}
 	case 4: // -Y
 		{
-			todir[0] = invmat[1][0] * -1;
-			todir[1] = invmat[1][1] * -1;
-			todir[2] = invmat[1][2] * -1;
+			todir[0] = -invmat[1][0];
+			todir[1] = -invmat[1][1];
+			todir[2] = -invmat[1][2];
 			break;
 		}
 	case 5: // -Z
 		{
-			todir[0] = invmat[2][0] * -1;
-			todir[1] = invmat[2][1] * -1;
-			todir[2] = invmat[2][2] * -1;
+			todir[0] = -invmat[2][0];
+			todir[1] = -invmat[2][1];
+			todir[2] = -invmat[2][2];
 			break;
 		}
 	}
 	todir.normalize();
 	m_rayDirection = todir;
-	
-
 
 	MT_Point3 topoint = frompoint + (m_distance) * todir;
 	MT_Point3 resultpoint;
 	MT_Vector3 resultnormal;
 	bool ready = false;
-	/*
-	do {
+	SumoPhysicsEnvironment *spe = dynamic_cast<SumoPhysicsEnvironment *>(m_scene->GetPhysicsEnvironment());
+	SM_Scene *scene = spe->GetSumoScene();
+	KX_SumoPhysicsController *spc = dynamic_cast<KX_SumoPhysicsController *>(obj->GetPhysicsController());
+	KX_GameObject *parent = obj->GetParent();
+	if (!spc && parent)
+		spc = dynamic_cast<KX_SumoPhysicsController *>(parent->GetPhysicsController());
+	if (parent)
+		parent->Release();
+	SM_Object *thisObj = spc?spc->GetSumoObject():NULL;
 	
-		
-		
-		SM_Object* hitObj = m_sumoScene->rayTest(obj->GetSumoObject(),
-												 frompoint,
-												 topoint,
-												 resultpoint,
-												 resultnormal);
+	do {
+		SM_Object* hitObj = scene->rayTest(thisObj,
+			frompoint,
+			topoint,
+			resultpoint,
+			resultnormal);
+			
 		if (hitObj)
 		{
-			KX_ClientObjectInfo* info = (SM_ClientObjectInfo*)hitObj->getClientObject();
-			SCA_IObject* hitgameobj = (SCA_IObject*)info->m_clientobject;
+	
+			KX_ClientObjectInfo* info = (KX_ClientObjectInfo*)hitObj->getClientObject();
 			bool bFound = false;
-
-			if (hitgameobj == obj)
+			
+			if (!info)
+			{
+				std::cout<< "WARNING:  Ray sensor " << GetName() << " cannot sense SM_Object " << hitObj << " - no client info.\n" << std::endl;
+				ready = true;
+				break;
+			} 
+			
+			SCA_IObject *hitgameobj = (SCA_IObject*)info->m_clientobject;
+			
+			if (hitgameobj == obj || info->m_type > KX_ClientObjectInfo::ACTOR)
 			{
 				// false hit
-				MT_Scalar marg = obj->GetSumoObject()->getMargin() ;
-				frompoint = resultpoint + marg * todir;
+				KX_SumoPhysicsController *hitspc = dynamic_cast<KX_SumoPhysicsController *> (static_cast<KX_GameObject*> (hitgameobj) ->GetPhysicsController());
+				if (hitspc)
+				{
+					MT_Scalar marg = hitspc->GetSumoObject()->getMargin();
+					if (hitspc->GetSumoObject()->getShapeProps())
+						marg += hitspc->GetSumoObject()->getShapeProps()->m_radius;
+					frompoint = resultpoint + marg * todir;
+				} else {
+					ready = true;
+				}
 			}
 			else
 			{
@@ -208,10 +233,7 @@ bool KX_RaySensor::Evaluate(CValue* event)
 					}
 					else
 					{
-						if (hitgameobj->GetProperty(m_propertyname) != NULL)
-						{
-							bFound = true;
-						}
+						bFound = hitgameobj->GetProperty(m_propertyname) != NULL;
 					}
 				}
 
@@ -231,7 +253,7 @@ bool KX_RaySensor::Evaluate(CValue* event)
 		}
 	}
 	while (!ready);
-	*/
+	
 	
 	
 	/* now pass this result to some controller */

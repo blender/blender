@@ -68,7 +68,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     # SOLID library information
     solid_lib = []                                              # TODO
     solid_libpath = []                                          # TODO
-    solid_include = ['#extern/solid/include']
+    solid_include = ['#extern/solid']
     qhull_lib = []                                              # TODO
     qhull_libpath = []                                          # TODO
     qhull_include = ['#extern/qhull/include']
@@ -156,7 +156,7 @@ elif sys.platform == 'darwin':
     # SOLID library information
     solid_lib = []                                              # TODO
     solid_libpath = []                                          # TODO
-    solid_include = ['#extern/solid/include']
+    solid_include = ['#extern/solid']
     qhull_lib = []                                              # TODO
     qhull_libpath = []                                          # TODO
     qhull_include = ['#extern/qhull/include']
@@ -247,8 +247,8 @@ elif sys.platform == 'win32':
     use_openal = 'true'
     use_fmod = 'false'
     use_quicktime = 'true'
-    use_sumo = 'false'
-    use_ode = 'true'
+    use_sumo = 'true'
+    use_ode = 'false'
     use_buildinfo = 'false'
     build_blender_dynamic = 'true'
     build_blender_static = 'false'
@@ -313,7 +313,7 @@ elif sys.platform == 'win32':
     # SOLID library information
     solid_lib = ['extern/solid']
     solid_libpath = ['#../lib/windows/solid/lib']
-    solid_include = ['#../lib/windows/solid/include']
+    solid_include = ['#extern/solid']
     qhull_lib = ['qhull']
     qhull_libpath = ['#../lib/windows/qhull/lib']
     qhull_include = ['#extern/qhull/include']
@@ -391,7 +391,7 @@ elif string.find (sys.platform, 'sunos') != -1:
     # SOLID library information
     solid_lib = []                                              # TODO
     solid_libpath = []                                          # TODO
-    solid_include = ['#extern/solid/include']
+    solid_include = ['#extern/solid']
     qhull_lib = []                                              # TODO
     qhull_libpath = []                                          # TODO
     qhull_include = ['#extern/qhull/include']
@@ -558,7 +558,7 @@ elif sys.platform=='openbsd3':
     # SOLID library information
     solid_lib = []                     # TODO
     solid_libpath = []        # TODO
-    solid_include = ['#extern/solid/include']
+    solid_include = ['#extern/solid']
     qhull_lib = []       # TODO
     qhull_libpath = []  # TODO
     qhull_include = ['#extern/qhull/include']
@@ -617,10 +617,10 @@ else:
     config.write ("BUILD_DIR = %r\n"%(root_build_dir))
     config.write ("USE_INTERNATIONAL = %r\n"%(use_international))
     config.write ("BUILD_GAMEENGINE = %r\n"%(use_gameengine))
-    if use_sumo == 'true':
-        config.write ("USE_PHYSICS = 'solid'\n")
-    else:
+    if use_ode == 'true':
         config.write ("USE_PHYSICS = 'ode'\n")
+    else:
+        config.write ("USE_PHYSICS = 'solid'\n")
     config.write ("USE_OPENAL = %r\n"%(use_openal))
     config.write ("USE_FMOD = %r\n"%(use_fmod))
     config.write ("USE_QUICKTIME = %r\n"%(use_quicktime))
@@ -903,9 +903,7 @@ if user_options_dict['BUILD_GAMEENGINE'] == 1:
                            'NG_network',
                            'NG_loopbacknetwork'])
     if user_options_dict['USE_PHYSICS'] == 'solid':
-        link_env.Append (LIBS=['PHY_Sumo'])
-        link_env.Append (LIBS=['extern_qhull',
-                               'extern_solid'])
+        link_env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
     else:
         link_env.Append (LIBS=['PHY_Ode',
                                'PHY_Physics'])

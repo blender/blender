@@ -135,8 +135,8 @@ KX_SCA_ReplaceMeshActuator::KX_SCA_ReplaceMeshActuator(SCA_IObject *gameobj,
 													   PyTypeObject* T) : 
 
 	SCA_IActuator(gameobj, T),
-	m_scene(scene),
-	m_mesh(mesh)
+	m_mesh(mesh),
+	m_scene(scene)
 {
 } /* End of constructor */
 

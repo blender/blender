@@ -65,7 +65,7 @@ BL_SkinDeformer::~BL_SkinDeformer()
 
 bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 {
-	int			i, j, index;
+	size_t			i, j, index;
 	vecVertexArray	array;
 #ifdef __NLA_OLDDEFORM
 	vecMVertArray	mvarray;

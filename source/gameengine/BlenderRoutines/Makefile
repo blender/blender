@@ -39,7 +39,7 @@ include nan_compile.mk
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
-CPPFLAGS += -I$(NAN_SUMO)/include
+CPPFLAGS += -I$(NAN_SUMO)/include -I$(NAN_SOLID)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
@@ -65,6 +65,9 @@ CPPFLAGS += -I../SceneGraph
 CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../Network
 CPPFLAGS += -I../Network/LoopBackNetwork
+CPPFLAGS += -I../Physics/common
+CPPFLAGS += -I../Physics/Sumo
+
 ifeq ($(OS),windows)
     CPPFLAGS += -I../../blender
 endif

@@ -50,13 +50,6 @@ SCA_LogicManager::SCA_LogicManager()
 
 SCA_LogicManager::~SCA_LogicManager()
 {
-	for (vector<SCA_EventManager*>::iterator it = m_eventmanagers.begin();!(it==m_eventmanagers.end());it++)
-	{
-		delete (*it);
-	}
-	m_eventmanagers.clear();
-	m_sensorcontrollermapje.clear();
-
 	int numgameobj = m_mapStringToGameObjects.size();
 	for (int i = 0; i < numgameobj; i++)
 	{
@@ -73,6 +66,12 @@ SCA_LogicManager::~SCA_LogicManager()
 		delete controllerarray;
 	}
 	*/
+	for (vector<SCA_EventManager*>::iterator it = m_eventmanagers.begin();!(it==m_eventmanagers.end());it++)
+	{
+		delete (*it);
+	}
+	m_eventmanagers.clear();
+	m_sensorcontrollermapje.clear();
 }
 
 

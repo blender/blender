@@ -35,12 +35,21 @@
 /**
  * Client Type and Additional Info. This structure can be use instead of a bare void* pointer, for safeness, and additional info for callbacks
  */
-
 struct KX_ClientObjectInfo
 {
-	int			m_type;
+	enum {
+		STATIC,
+		ACTOR,
+		RESERVED1,
+		RADAR,
+		NEAR
+	}		m_type;
 	void*		m_clientobject;
 	void*		m_auxilary_info;
+public:
+	KX_ClientObjectInfo(void *clientobject) :
+		m_clientobject(clientobject) 
+	{}
 };
 
 #endif //__KX_CLIENTOBJECT_INFO_H

@@ -48,17 +48,6 @@ class SumoPhysicsController : public PHY_IPhysicsController , public SM_Callback
 							 
 {
 
-	class SM_Object*	m_sumoObj;
-	class SM_Scene*		m_sumoScene; // needed for replication
-	DT_SceneHandle		m_solidscene;
-	bool				m_bFirstTime;
-	bool				m_bDyna;
-
-	float						m_friction;
-	float						m_restitution;
-
-
-	bool						m_suspendDynamics;
 
 public:
 	SumoPhysicsController(
@@ -149,6 +138,17 @@ public:
 
 
 private:
+	class SM_Object*	m_sumoObj;
+	class SM_Scene*		m_sumoScene; // needed for replication
+	DT_SceneHandle		m_solidscene;
+	bool				m_bFirstTime;
+	bool				m_bDyna;
+
+	float						m_friction;
+	float						m_restitution;
+
+
+	bool						m_suspendDynamics;
 
 	bool						m_firstTime;
 	bool						m_bFullRigidBody;

@@ -40,8 +40,10 @@
 
 KX_PhysicsObjectWrapper::KX_PhysicsObjectWrapper(
 						PHY_IPhysicsController* ctrl,
-						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T)
-: m_ctrl(ctrl),m_physenv(physenv),PyObjectPlus(T)
+						PHY_IPhysicsEnvironment* physenv,PyTypeObject *T) :
+					PyObjectPlus(T),
+					m_ctrl(ctrl),
+					m_physenv(physenv)
 {
 }
 

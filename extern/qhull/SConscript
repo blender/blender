@@ -1,10 +1,17 @@
+import sys
+
 qhull_env = Environment()
 
 # Import the C flags set in the SConstruct file
 Import ('cflags')
 Import ('defines')
 Import ('user_options_dict')
-qhull_env.Append (CCFLAGS = cflags)
+if sys.platform=='linux2' or sys.platform=='linux-i386':
+	qhull_env.Append (CCFLAGS = ['-O2', '-ansi'])
+elif sys.platform=='sunos':
+	qhull_env.Append (CCFLAGS = ['Xc', '-v', '-fast'])
+else:
+	qhull_env.Append (CCFLAGS = cflags)
 qhull_env.Append (CPPDEFINES = defines)
 
 source_files = ['src/geom.c',

@@ -1,3 +1,34 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. The Blender
+ * Foundation also sells licenses for use in proprietary software under
+ * the Blender License.  See http://www.blender.org/BL/ for information
+ * about this.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
 #include "SM_FhObject.h"
 #include "MT_MinMax.h"
 
@@ -5,52 +36,82 @@
 #include <config.h>
 #endif
 
-void SM_FhObject::ray_hit(void *client_data,
+SM_FhObject::SM_FhObject(DT_ShapeHandle rayshape, MT_Vector3 ray, SM_Object *parent_object) :
+		SM_Object(rayshape, NULL, NULL, NULL),
+		m_ray(ray),
+		m_ray_direction(ray.normalized()),
+		m_parent_object(parent_object) 
+{
+}
+
+SM_FhObject::~SM_FhObject()
+{
+}
+
+DT_Bool SM_FhObject::ray_hit(void *client_data,
 						  void *client_object1,
 						  void *client_object2,
-						  const DT_CollData *coll_data) {
+						  const DT_CollData *coll_data) 
+{
 
+	SM_FhObject *fh_object  = dynamic_cast<SM_FhObject *>((SM_Object *)client_object2);
+	if (!fh_object)
+	{
+		std::swap(client_object1, client_object2);
+		fh_object  = dynamic_cast<SM_FhObject *>((SM_Object *)client_object2);
+	}
+	
 	SM_Object   *hit_object = (SM_Object *)client_object1;
 	const SM_MaterialProps *matProps = hit_object->getMaterialProps();
-
+	
 	if ((matProps == 0) || (matProps->m_fh_distance < MT_EPSILON)) {
-		return;
+		return DT_CONTINUE;
 	}
 
-	SM_FhObject         *fh_object  = (SM_FhObject *)client_object2;
-	SM_Object           *cl_object  = fh_object->getClientObject();
+	SM_Object           *cl_object  = fh_object->getParentObject();
+	
+	assert(fh_object);
 
 	if (hit_object == cl_object) {
 		// Shot myself in the foot...
-		return;
+		return DT_CONTINUE;
 	}
 
 	const SM_ShapeProps *shapeProps = cl_object->getShapeProps();
 
 	// Exit if the client object is not dynamic.
 	if (shapeProps == 0) {
-		return;
+		return DT_CONTINUE;
 	}
 
 	MT_Point3 lspot; 
 	MT_Vector3 normal; 
 	
-	if (DT_ObjectRayTest(hit_object->getObjectHandle(), 
-						 fh_object->getPosition().getValue(), 
-						 fh_object->getSpot().getValue(),
-						 lspot.getValue(), normal.getValue())) {
-		
-		const MT_Vector3& ray_dir = fh_object->getRayDirection();
-		MT_Scalar dist = MT_distance(fh_object->getPosition(), 
-									 hit_object->getWorldCoord(lspot)) - 
-			cl_object->getMargin();
-
-		normal.normalize();
+	DT_Vector3 from, to, dnormal;
+	DT_Scalar dlspot;
+	fh_object->getPosition().getValue(from);
+	fh_object->getSpot().getValue(to);
 	
+	
+	if (DT_ObjectRayCast(hit_object->getObjectHandle(), 
+						 from, 
+						 to,
+						 1.,
+						 &dlspot, 
+						 dnormal)) {
+		
+		lspot = fh_object->getPosition() + (fh_object->getSpot() - fh_object->getPosition()) * dlspot;
+		const MT_Vector3& ray_dir = fh_object->getRayDirection();
+		MT_Scalar dist = MT_distance(fh_object->getPosition(), lspot) - 
+			cl_object->getMargin() - shapeProps->m_radius;
+
+		normal = MT_Vector3(dnormal).safe_normalized();
+		
 		if (dist < matProps->m_fh_distance) {
 			
 			if (shapeProps->m_do_fh) {
-				MT_Vector3 rel_vel = cl_object->getLinearVelocity()	- hit_object->getVelocity(lspot);
+				lspot -= hit_object->getPosition();
+				MT_Vector3 rel_vel = cl_object->getLinearVelocity() - hit_object->getVelocity(lspot);
 				MT_Scalar rel_vel_ray = ray_dir.dot(rel_vel);
 				MT_Scalar spring_extent = 1.0 - dist / matProps->m_fh_distance; 
 				
@@ -84,7 +145,7 @@ void SM_FhObject::ray_hit(void *client_data,
 				
 				if (rel_vel_lateral > MT_EPSILON) {
 					MT_Scalar friction_factor = matProps->m_friction;
-					MT_Scalar max_friction = friction_factor * MT_max(0.0, i_spring);
+					MT_Scalar max_friction = friction_factor * MT_max(MT_Scalar(0.0), i_spring);
 					
 					MT_Scalar rel_mom_lateral = rel_vel_lateral / 
 						cl_object->getInvMass();
@@ -113,6 +174,8 @@ void SM_FhObject::ray_hit(void *client_data,
 			}
 		}
 	}	
+	
+	return DT_CONTINUE;
 }
 
 

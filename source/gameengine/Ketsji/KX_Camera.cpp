@@ -64,7 +64,7 @@ MT_Transform KX_Camera::GetWorldToCamera() const
 	
 	trans.setBasis(NodeGetWorldOrientation());
 	trans.setOrigin(NodeGetWorldPosition());
-
+	
 	camtrans.invert(trans);
 	
 	return camtrans;
@@ -95,8 +95,8 @@ const MT_Point3 KX_Camera::GetCameraLocation()
 	//return m_trans1.getOrigin();
 	//return MT_Point3(0,0,0);   <-----
 	/* .... I want it in world coords */
-	MT_Transform trans;
-	trans.setBasis(NodeGetWorldOrientation());
+	//MT_Transform trans;
+	//trans.setBasis(NodeGetWorldOrientation());
 	
 	return NodeGetWorldPosition();		
 }

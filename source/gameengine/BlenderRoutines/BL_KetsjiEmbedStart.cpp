@@ -53,12 +53,8 @@
 #include "KX_PyConstraintBinding.h"
 
 #include "RAS_OpenGLRasterizer.h"
-#include "RAS_CheckVertexArrays.h"
-
-
-#ifdef WIN32
 #include "RAS_VAOpenGLRasterizer.h"
-#endif
+#include "RAS_GLExtensionManager.h"
 
 #include "NG_LoopBackNetworkDeviceInterface.h"
 #include "SND_DeviceManager.h"
@@ -102,6 +98,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	strcpy (pathname, maggie->name);
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
+	
+	RAS_GLExtensionManager *extman = new RAS_GLExtensionManager(SYS_GetCommandLineInt(SYS_GetSystem(), "show_extensions", 1));
+	extman->LinkExtensions();
 
 	do
 	{
@@ -121,17 +120,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		RAS_IRasterizer* rasterizer = NULL;
 		
 		// let's see if we want to use vertexarrays or not
-#ifdef WIN32
 		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
 		bool useVertexArrays = (usevta > 0);
 		
-		if (useVertexArrays && RAS_SystemSupportsVertexArrays())
+		if (useVertexArrays && extman->QueryVersion(1, 1))
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
-#else
-		rasterizer = new RAS_OpenGLRasterizer(canvas);
-#endif
 		
 		// create the inputdevices
 		KX_BlenderKeyboardDevice* keyboarddevice = new KX_BlenderKeyboardDevice();
@@ -374,5 +369,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		}
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
+	if (extman)
+	{
+		delete extman;
+		extman = NULL;
+	}
 	if (bfd) BLO_blendfiledata_free(bfd);
 }

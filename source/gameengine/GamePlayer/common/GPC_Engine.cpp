@@ -245,13 +245,13 @@ float GPC_Engine::DetermineProgress(void)
 	
 void GPC_Engine::UpdateLoadingAnimation(void)
 {
-	int delta;
+	//int delta;
 
 	float progress = DetermineProgress();
 
 	if(progress > m_previousProgress)
 	{
-		delta = progress - m_previousProgress;
+//		delta = progress - m_previousProgress;
 		m_previousProgress = progress;
 		if(m_previousProgress > 1.0)
 			m_previousProgress = 1.0;  // limit to 1.0 (has to change !)

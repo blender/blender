@@ -46,11 +46,11 @@
 /* ------------------------------------------------------------------------- */
 
 SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,CValue* sourceObj,const STR_String& propname,const STR_String& expr,int acttype,PyTypeObject* T )
-:  SCA_IActuator(gameobj,T),
-m_propname(propname),
-m_exprtxt(expr),
-m_type(acttype),
-m_sourceObj(sourceObj)
+   :	SCA_IActuator(gameobj,T),
+	m_type(acttype),
+	m_propname(propname),
+	m_exprtxt(expr),
+	m_sourceObj(sourceObj)
 {
 }
 

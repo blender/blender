@@ -34,7 +34,6 @@
 #endif
 
 #ifdef WIN32
-
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif
 
@@ -171,120 +170,92 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 											class RAS_IRenderTools* rendertools,
 											class RAS_ICanvas* canvas)
 {
-	//find out which physics engine
-	Scene *blenderscene = GetSceneForName2(m_maggie, scenename);
+//find out which physics engine
+  Scene *blenderscene = GetSceneForName2(m_maggie, scenename);
 
-	e_PhysicsEngine physics_engine = UseSumo;
+  e_PhysicsEngine physics_engine = UseSumo;
 
-	if (blenderscene)
+  /* FIXME: Force physics engine = sumo.
+     This isn't really a problem - no other physics engines are available. 
+  if (blenderscene)
 	{
-		int i=0;
+	  int i=0;
 		
-		if (blenderscene->world)
+	  if (blenderscene->world)
 		{
-			
-			switch (blenderscene->world->physicsEngine)
+		  switch (blenderscene->world->physicsEngine)
 			{
-				
-			case 1:
-				{
-					physics_engine = UseNone;
-					break;
-				};
-			case 2:
-				{
-					physics_engine = UseSumo;
-					break;
-				}
-			case 3:
-				{
-					physics_engine = UseODE;
-					break;
-				}
+                                
 			case 4:
-				{
-					physics_engine = UseDynamo;
-					break;
-				}
-			default:
-				{
-					physics_engine = UseODE;
-				}
+			  {
+				physics_engine = UseODE;
+				break;
+			  }
+			case 3:
+			  {
+				physics_engine = UseDynamo;
+				break;
+			  }
+			case 2:
+			  {
+				physics_engine = UseSumo;
+				break;
+			  };
+			case 0:
+			  {
+				physics_engine = UseNone;
+			  }
 			}
+		  
 		}
 	}
-
-	switch (physics_engine)
+*/
+  switch (physics_engine)
 	{
 
-	case UseSumo:
-		{
 #ifdef USE_SUMO_SOLID
-
-			PHY_IPhysicsEnvironment* physEnv = 
-				new SumoPhysicsEnvironment();
-#else
-			physics_engine = UseNone;
-			
-			PHY_IPhysicsEnvironment* physEnv = 
-				new DummyPhysicsEnvironment();
-
+	case UseSumo:
+		destinationscene ->SetPhysicsEnvironment(new SumoPhysicsEnvironment());
+		break;
 #endif
-			destinationscene ->SetPhysicsEnvironment(physEnv);
-			break;
-		}
-	case UseODE:
-		{
 #ifdef USE_ODE
-
-			PHY_IPhysicsEnvironment* physEnv = 
-				new ODEPhysicsEnvironment();
-#else
-			PHY_IPhysicsEnvironment* physEnv = 
-				new DummyPhysicsEnvironment();
-
+	case UseODE:
+		destinationscene ->SetPhysicsEnvironment(new ODEPhysicsEnvironment());
+		break;
 #endif //USE_ODE
 
-			destinationscene ->SetPhysicsEnvironment(physEnv);
-			break;
-		}
 	case UseDynamo:
-		{
-		}
+	  {
+	  }
 
 	case UseNone:
-		{
-		};
+	  {
+	  }
 	default:
-		{
-			physics_engine = UseNone;
-			
-			PHY_IPhysicsEnvironment* physEnv = 
-				new DummyPhysicsEnvironment();
-			destinationscene ->SetPhysicsEnvironment(physEnv);
-
-		}
+		physics_engine = UseNone;
+		destinationscene ->SetPhysicsEnvironment(new DummyPhysicsEnvironment());
+		break;
 	}
 
-	BL_ConvertBlenderObjects(m_maggie,
-							 scenename,
-							 destinationscene,
-							 m_ketsjiEngine,
-							 physics_engine,
-							 dictobj,
-							 keyinputdev,
-							 rendertools,
-							 canvas,
-							 this,
-							 m_alwaysUseExpandFraming
-							 );
+  BL_ConvertBlenderObjects(m_maggie,
+						   scenename,
+						   destinationscene,
+						   m_ketsjiEngine,
+						   physics_engine,
+						   dictobj,
+						   keyinputdev,
+						   rendertools,
+						   canvas,
+						   this,
+						   m_alwaysUseExpandFraming
+						   );
 
-	m_map_blender_to_gameactuator.clear();
-	m_map_blender_to_gamecontroller.clear();
+  m_map_blender_to_gameactuator.clear();
+  m_map_blender_to_gamecontroller.clear();
 
-	m_map_blender_to_gameobject.clear();
-	m_map_mesh_to_gamemesh.clear();
-	m_map_gameobject_to_blender.clear();
+  m_map_blender_to_gameobject.clear();
+  m_map_mesh_to_gamemesh.clear();
+  m_map_gameobject_to_blender.clear();
 }
 
 

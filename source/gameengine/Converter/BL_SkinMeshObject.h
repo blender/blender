@@ -114,7 +114,7 @@ public:
 
 	int FindVertexArray(int numverts,RAS_IPolyMaterial* polymat);
 	BL_SkinMeshObject(int lightlayer) : RAS_MeshObject (lightlayer)
-	{};
+	{ m_class = 1;};
 
 	virtual ~BL_SkinMeshObject(){
 	};

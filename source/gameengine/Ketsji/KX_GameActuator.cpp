@@ -113,6 +113,7 @@ bool KX_GameActuator::Update(double curtime, double deltatime)
 			{
 				STR_String exitstring = "restarting game";
 				m_ketsjiengine->RequestExit(KX_EXIT_REQUEST_RESTART_GAME);
+				m_ketsjiengine->SetNameNextGame(m_filename);
 				m_scene->AddDebugProperty((this)->GetParent(), exitstring);
 			}
 			break;
@@ -146,7 +147,7 @@ bool KX_GameActuator::Update(double curtime, double deltatime)
 PyTypeObject KX_GameActuator::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 		0,
-		"KX_SceneActuator",
+		"KX_GameActuator",
 		sizeof(KX_GameActuator),
 		0,
 		PyDestructor,
@@ -177,9 +178,39 @@ PyParentObject KX_GameActuator::Parents[] =
 
 PyMethodDef KX_GameActuator::Methods[] =
 {
+	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, GetFile_doc},
+	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, SetFile_doc},
 	{NULL,NULL} //Sentinel
 };
 
+/* getFile */
+char KX_GameActuator::GetFile_doc[] = 
+"getFile()\n"
+"get the name of the file to start.\n";
+PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* kwds)
+{	
+	return PyString_FromString(m_filename);
+}
+
+/* setFile */
+char KX_GameActuator::SetFile_doc[] =
+"setFile(name)\n"
+"set the name of the file to start.\n";
+PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* kwds)
+{
+	char* new_file;
+	
+	if (!PyArg_ParseTuple(args, "s", &new_file))
+	{
+		return NULL;
+	}
+	
+	m_filename = STR_String(new_file);
+
+	Py_Return;
+
+}
+	
 
 
 PyObject* KX_GameActuator::_getattr(char* attr)

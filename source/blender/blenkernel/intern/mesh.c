@@ -217,7 +217,7 @@ Mesh *add_mesh()
 	
 	me->size[0]= me->size[1]= me->size[2]= 1.0;
 	me->smoothresh= 30;
-	me->texflag= ME_AUTOSPACE;
+	me->texflag= AUTOSPACE;
 	me->flag= ME_TWOSIDED;
 	me->subdiv= 1;
 	me->subdivr = 1;
@@ -398,7 +398,7 @@ void tex_space_mesh(Mesh *me)
 
 	boundbox_mesh(me, loc, size);
 
-	if(me->texflag & ME_AUTOSPACE) {
+	if(me->texflag & AUTOSPACE) {
 		if(me->key) {
 			kb= me->key->refkey;
 			if (kb) {

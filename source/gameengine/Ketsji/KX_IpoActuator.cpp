@@ -89,7 +89,6 @@ public:
 
 };
 
-
 KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   const STR_String& propname,
 							   float starttime,
@@ -100,16 +99,16 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   bool force_ipo_local,
 							   PyTypeObject* T) 
 	: SCA_IActuator(gameobj,T),
-	m_starttime (starttime),
-	m_endtime(endtime) ,
-	m_localtime(starttime),
-	m_recurse(recurse),
-	m_type((IpoActType)acttype) ,
-	m_direction(1),
 	m_bNegativeEvent(false),
+	m_starttime (starttime),
+	m_endtime(endtime),
+	m_recurse(recurse),
+	m_localtime(starttime),
+	m_direction(1),
 	m_propname(propname),
 	m_ipo_as_force(ipo_as_force),
-	m_force_ipo_local(force_ipo_local)
+	m_force_ipo_local(force_ipo_local),
+	m_type((IpoActType)acttype)
 {
 	// intentionally empty
 }

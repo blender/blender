@@ -46,8 +46,8 @@
 SCA_KeyboardManager::SCA_KeyboardManager(SCA_LogicManager* logicmgr,
 										 SCA_IInputDevice* inputdev)
 	:	SCA_EventManager(KEYBOARD_EVENTMGR),
-		m_logicmanager(logicmgr),
-		m_inputDevice(inputdev)
+		m_inputDevice(inputdev),
+		m_logicmanager(logicmgr)
 {
 }
 
@@ -70,7 +70,7 @@ void SCA_KeyboardManager::NextFrame(double curtime,double deltatime)
 {
 	//const SCA_InputEvent& event =	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode)=0;
   //	cerr << "SCA_KeyboardManager::NextFrame"<< endl;
-	for (int i=0;i<m_sensors.size();i++)
+	for (unsigned int i=0;i<m_sensors.size();i++)
 	{
 		SCA_KeyboardSensor* keysensor = (SCA_KeyboardSensor*)m_sensors[i];
 		keysensor->Activate(m_logicmanager,NULL);

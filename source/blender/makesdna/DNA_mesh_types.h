@@ -100,7 +100,7 @@ typedef struct Mesh {
 /* **************** MESH ********************* */
 
 /* texflag */
-#define ME_AUTOSPACE	1
+#define AUTOSPACE	1
 
 /* me->flag */
 #define ME_ISDONE		1

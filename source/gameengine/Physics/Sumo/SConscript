@@ -1,3 +1,4 @@
+import sys
 Import ('user_options_dict')
 Import ('library_env')
 
@@ -15,6 +16,9 @@ phy_sumo_env.Append (CPPPATH = ['.',
                                 '#/intern/moto/include'
                                ])
 
-phy_sumo_env.Append (CPPPATH = user_options_dict['solid_include'])
+phy_sumo_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
+
+if sys.platform=='win32':
+    phy_sumo_env.Append (CXXFLAGS = ['/GR'])
 
 phy_sumo_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Sumo', source=source_files)

@@ -62,18 +62,18 @@ class KX_RadarSensor : public KX_NearSensor
 	MT_Point3       m_cone_target;
 	
 public:
-	KX_RadarSensor(class SCA_EventManager* eventmgr,
-		class KX_GameObject* gameobj,
+
+	KX_RadarSensor(SCA_EventManager* eventmgr,
+		KX_GameObject* gameobj,
 			double coneradius,
 			double coneheight,
 			int	axis,
 			double margin,
 			double resetmargin,
-			class SM_Object* sumoObj,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
-			class SM_Scene* sumoscene,
-			PyTypeObject* T=&Type);
+			class KX_Scene* kxscene,
+			PyTypeObject* T = &Type);
 	KX_RadarSensor();
 	virtual ~KX_RadarSensor();
 	virtual void SynchronizeTransform();

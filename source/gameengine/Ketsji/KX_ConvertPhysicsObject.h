@@ -32,21 +32,34 @@
 #ifndef KX_CONVERTPHYSICSOBJECTS
 #define KX_CONVERTPHYSICSOBJECTS
 
-
+/* These are defined by the build system... */
 //#define USE_SUMO_SOLID
-//solid is not available yet
-
-#define USE_ODE
+//#define USE_ODE
 
 class RAS_MeshObject;
 class KX_Scene;
 
+typedef enum {
+	KX_BOUNDBOX,
+	KX_BOUNDSPHERE,
+	KX_BOUNDCYLINDER,
+	KX_BOUNDCONE,
+	KX_BOUNDMESH
+} KX_BoundBoxClass;
 
-struct KX_Bounds
+struct KX_BoxBounds
 {
 	float m_center[3];
 	float m_extends[3];
 };
+
+/* Cone/Cylinder */
+struct KX_CBounds
+{
+	float m_radius;
+	float m_height;
+};
+
 
 struct KX_ObjectProperties
 {
@@ -59,9 +72,11 @@ struct KX_ObjectProperties
 	bool	m_isactor;
 	bool	m_concave;
 	bool	m_isdeformable;
-	bool	m_implicitsphere ;
-	bool	m_implicitbox;
-	KX_Bounds	m_boundingbox;
+	KX_BoundBoxClass	m_boundclass;
+	union {
+		KX_BoxBounds	box;
+		KX_CBounds	c;
+	} m_boundobject;
 };
 
 #ifdef USE_ODE

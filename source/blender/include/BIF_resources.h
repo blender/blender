@@ -258,8 +258,72 @@ typedef enum {
 #define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
 } BIFIconID;
 
+typedef enum {
+#define BIFCOLORSHADE_FIRST     (COLORSHADE_DARK)
+        COLORSHADE_DARK,
+        COLORSHADE_GREY,
+        COLORSHADE_MEDIUM,
+        COLORSHADE_HILITE,
+        COLORSHADE_LIGHT,
+        COLORSHADE_WHITE,
+#define BIFCOLORSHADE_LAST      (COLORSHADE_WHITE)
+#define BIFNCOLORSHADES         (BIFCOLORSHADE_LAST-BIFCOLORSHADE_FIRST + 1)
+} BIFColorShade;
 
-/* ---------- theme ----------- */
+typedef enum {
+#define BIFCOLORID_FIRST	(BUTGREY)
+	BUTGREY = 0,
+	BUTGREEN,
+	BUTBLUE,
+	BUTSALMON,
+	MIDGREY,
+	BUTPURPLE,
+	BUTYELLOW,
+	REDALERT,
+	BUTRUST,
+	BUTWHITE,
+	BUTDBLUE,
+	BUTPINK,
+	BUTDPINK,
+	BUTMACTIVE,
+
+	BUTIPO,
+	BUTAUDIO,
+	BUTCAMERA,
+	BUTRANDOM,
+	BUTEDITOBJECT,
+	BUTPROPERTY,
+	BUTSCENE,
+	BUTMOTION,
+	BUTMESSAGE,
+	BUTACTION,
+	BUTCD,
+	BUTGAME,
+	BUTVISIBILITY,
+	BUTYUCK,
+	BUTSEASICK,
+	BUTCHOKE,
+	BUTIMPERIAL,
+
+	BUTTEXTCOLOR,
+	BUTTEXTPRESSED,
+	BUTSBACKGROUND,
+	
+	VIEWPORTBACKCOLOR,
+	VIEWPORTGRIDCOLOR,
+	VIEWPORTACTIVECOLOR,
+	VIEWPORTSELECTEDCOLOR,
+	VIEWPORTUNSELCOLOR,
+	
+	EDITVERTSEL, 
+	EDITVERTUNSEL, 
+	EDITEDGESEL, 
+	EDITEDGEUNSEL,
+	
+#define BIFCOLORID_LAST		(EDITEDGEUNSEL)
+#define BIFNCOLORIDS		(BIFCOLORID_LAST-BIFCOLORID_FIRST + 1)
+
+} BIFColorID;
 
 enum {
 	TH_AUTO,	/* for buttons, to signal automatic color assignment */
@@ -355,6 +419,8 @@ void 	BIF_InitTheme(void);
 void 	BIF_SetTheme(struct ScrArea *sa);
 void	BIF_resources_init		(void);
 void	BIF_resources_free		(void);
+void	BIF_colors_init			(void);
+void	BIF_load_ui_colors		(void);
 
 
 // icon API
@@ -367,5 +433,7 @@ void	BIF_draw_icon_blended	(BIFIconID icon, int colorid, int shade);
 char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 char 	*BIF_ThemeColorsPup(int spacetype);
 
+
+void	BIF_def_color			(BIFColorID colorid, unsigned char r, unsigned char g, unsigned char b);
 
 #endif /*  BIF_ICONS_H */

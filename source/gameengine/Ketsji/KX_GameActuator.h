@@ -78,7 +78,8 @@ class KX_GameActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject*  _getattr(char *attr);
-
+	KX_PYMETHOD_DOC(KX_GameActuator,GetFile);
+	KX_PYMETHOD_DOC(KX_GameActuator,SetFile);
 	
 }; /* end of class KX_GameActuator */
 

@@ -1,9 +1,40 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. The Blender
+ * Foundation also sells licenses for use in proprietary software under
+ * the Blender License.  See http://www.blender.org/BL/ for information
+ * about this.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
 #ifndef SM_OBJECT_H
 #define SM_OBJECT_H
 
 #include <vector>
 
-#include "solid.h"
+#include <SOLID/SOLID.h>
 
 #include "SM_Callback.h"
 #include "SM_MotionState.h"
@@ -15,6 +46,7 @@ class SM_FhObject;
 // Properties of dynamic objects
 struct SM_ShapeProps {
 	MT_Scalar  m_mass;                  // Total mass
+	MT_Scalar  m_radius;                // Bound sphere size
 	MT_Scalar  m_inertia;               // Inertia, should be a tensor some time 
 	MT_Scalar  m_lin_drag;              // Linear drag (air, water) 0 = concrete, 1 = vacuum 
 	MT_Scalar  m_ang_drag;              // Angular drag
@@ -36,6 +68,7 @@ struct SM_MaterialProps {
 };
 
 
+
 class SM_Object : public SM_MotionState {
 public:
     SM_Object() ;
@@ -45,7 +78,6 @@ public:
 		const SM_ShapeProps *shapeProps,
 		SM_Object *dynamicParent
 	);
-	
     virtual ~SM_Object();
 
 	bool isDynamic() const;  
@@ -89,7 +121,7 @@ public:
     void setMargin(MT_Scalar margin) ;
 
     MT_Scalar getMargin() const ;
-
+    
     const SM_MaterialProps *getMaterialProps() const ;
 
 	const SM_ShapeProps *getShapeProps() const ;
@@ -164,7 +196,8 @@ public:
     void applyAngularImpulse(const MT_Vector3& impulse);
 
     MT_Point3 getWorldCoord(const MT_Point3& local) const;
-
+    MT_Point3 getLocalCoord(const MT_Point3& world) const;
+    
 	MT_Vector3 getVelocity(const MT_Point3& local) const;
 
 
@@ -180,9 +213,6 @@ public:
 	DT_ObjectHandle getObjectHandle() const ;
 	DT_ShapeHandle getShapeHandle() const ;
 
-	void  setClientObject(void *clientobj) ;
-	void *getClientObject()	;
-
 	SM_Object *getDynamicParent() ;
 
 	void integrateForces(MT_Scalar timeStep);
@@ -192,10 +222,9 @@ public:
 
 	bool isRigidBody() const ;
 
-
 	// This is the callback for handling collisions of dynamic objects
 	static 
-		void 
+		DT_Bool 
 	boing(
 		void *client_data,  
 		void *object1,
@@ -203,6 +232,26 @@ public:
 		const DT_CollData *coll_data
 	);
 
+	static 
+		DT_Bool 
+	fix(
+		void *client_data,  
+		void *object1,
+		void *object2,
+		const DT_CollData *coll_data
+	);
+	
+	
+	void *getClientObject() { return m_client_object; }
+	void setClientObject(void *client_object) { m_client_object = client_object; }
+	
+	void relax();
+	
+	void backup() {
+		m_pos = m_prev_state.getPosition();
+		m_orn = m_prev_state.getOrientation();
+		m_xform = m_prev_xform;
+	}
 private:
 
 	// return the actual linear_velocity of this object this 
@@ -217,11 +266,20 @@ private:
 		MT_Vector3
 	actualAngVelocity(
 	) const ;
+	
+	void dynamicCollision(MT_Point3 local2, 
+		MT_Vector3 normal, 
+		MT_Scalar dist, 
+		MT_Vector3 rel_vel,
+		MT_Scalar restitution,
+		MT_Scalar friction_factor,
+		MT_Scalar invMass
+	);
 
 	typedef std::vector<SM_Callback *> T_CallbackList;
 
 
-    T_CallbackList          m_callbackList;    // Each object can have multiple callbacks from the client (=game engine)
+	T_CallbackList          m_callbackList;    // Each object can have multiple callbacks from the client (=game engine)
 	SM_Object              *m_dynamicParent;   // Collisions between parent and children are ignored
 
     // as the collision callback now has only information
@@ -229,7 +287,7 @@ private:
 	// can identify it's clientdata after a collision
 	void                   *m_client_object;
 
-    DT_ShapeHandle          m_shape;                 // Shape for collision detection
+	DT_ShapeHandle          m_shape;                 // Shape for collision detection
 
 	// Material and shape properties are not owned by this class.
 
@@ -237,7 +295,7 @@ private:
 	const SM_MaterialProps *m_materialPropsBackup;   // Backup in case the object temporarily becomes a ghost.
 	const SM_ShapeProps    *m_shapeProps;           
 	const SM_ShapeProps    *m_shapePropsBackup;      // Backup in case the object's dynamics is temporarily suspended
-    DT_ObjectHandle         m_object;                // A handle to the corresponding object in SOLID.
+	DT_ObjectHandle         m_object;                // A handle to the corresponding object in SOLID.
 	MT_Scalar               m_margin;                // Offset for the object's shape (also for collision detection)
 	MT_Vector3              m_scaling;               // Non-uniform scaling of the object's shape
 
@@ -258,6 +316,8 @@ private:
 	MT_Vector3              m_ang_mom;               // Angular momentum (angualr velocity times inertia)
 	MT_Vector3              m_force;                 // Force on center of mass (afffects linear momentum)
 	MT_Vector3              m_torque;                // Torque around center of mass (affects angualr momentum)
+	
+	MT_Vector3              m_error;                 // Error in position:- amount object must be moved to prevent intersection with scene
 
 	// Here are the values of externally set linear and angular
 	// velocity. These are updated from the outside

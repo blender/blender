@@ -295,12 +295,9 @@ PyObject* KX_SceneActuator::PySetScene(PyObject* self,
 		return NULL;
 	}
 
-	if (m_KetsjiEngine->FindScene(scene_name))
-	{
-		/* Scene switch is done by name. */
-		m_nextSceneName = scene_name;
-	}
-	
+	/* Scene switch is done by name. */
+	m_nextSceneName = scene_name;
+
 	Py_Return;
 }
 

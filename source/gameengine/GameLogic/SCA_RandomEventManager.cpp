@@ -45,8 +45,8 @@ using namespace std;
 #endif
 
 SCA_RandomEventManager::SCA_RandomEventManager(class SCA_LogicManager* logicmgr)
-		: m_logicmgr(logicmgr),
-		SCA_EventManager(RANDOM_EVENTMGR)
+		: SCA_EventManager(RANDOM_EVENTMGR),
+		m_logicmgr(logicmgr)
 {
 }
 

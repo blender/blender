@@ -38,6 +38,8 @@
 #include <config.h>
 #endif
 
+#include <SOLID/SOLID.h>
+
 const MT_Scalar UpperBoundForFuzzicsIntegrator = 0.01;
 // At least 100Hz (isn't this CPU hungry ?)
 
@@ -46,11 +48,8 @@ SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 {
 	// seperate collision scene for events
 	m_solidScene = DT_CreateScene();
-	m_respTable = DT_CreateRespTable();
 
 	m_sumoScene = new SM_Scene();
-	m_sumoScene->setSecondaryRespTable(m_respTable);
-	
 }
 
 
@@ -58,9 +57,8 @@ SumoPhysicsEnvironment::SumoPhysicsEnvironment()
 SumoPhysicsEnvironment::~SumoPhysicsEnvironment()
 {
 	delete m_sumoScene;
-
-	DT_DeleteScene(m_solidScene);
-	DT_DeleteRespTable(m_respTable);
+	DT_DestroyScene(m_solidScene);
+	//DT_DestroyRespTable(m_respTable);
 }
 
 void SumoPhysicsEnvironment::proceed(double timeStep)
@@ -94,13 +92,28 @@ void		SumoPhysicsEnvironment::removeConstraint(int constraintid)
 	}
 }
 
-PHY_IPhysicsController* SumoPhysicsEnvironment::rayTest(void* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+PHY_IPhysicsController* SumoPhysicsEnvironment::rayTest(void* ignoreClient, 
+	float fromX,float fromY,float fromZ, 
+	float toX,float toY,float toZ, 
+	float& hitX,float& hitY,float& hitZ,
+	float& normalX,float& normalY,float& normalZ)
 {
 	//collision detection / raytesting
-	//m_sumoScene->rayTest(ignoreclient,from,to,result,normal);
+	MT_Point3 hit, normal;
+	/* FIXME: Return type is not a PHY_IPhysicsController */
+	PHY_IPhysicsController *ret = (PHY_IPhysicsController *) m_sumoScene->rayTest(ignoreClient,MT_Point3(fromX, fromY, fromZ),MT_Point3(toX, toY, toZ), hit, normal);
+	
+	hitX = hit[0];
+	hitY = hit[1];
+	hitZ = hit[2];
 
-	return NULL;
+	normalX = normal[0];
+	normalY = normal[1];
+	normalZ = normal[2];
+	
+	assert(false);
+	
+	return ret;
 }
 
 

@@ -55,11 +55,12 @@ private:
 
 	double		        m_ipotime;
 public:
-	KX_LightIpoSGController() : m_ipotime(0.0),
-								m_modify_energy(false),
-								m_modify_color(false),
-								m_modify_dist(false),
-								m_modified(true)
+	KX_LightIpoSGController() : 
+				m_modify_energy(false),
+				m_modify_color(false),
+				m_modify_dist(false),
+				m_modified(true),
+				m_ipotime(0.0)
 		{}
 
 	virtual ~KX_LightIpoSGController();

@@ -52,8 +52,8 @@
 SCA_MouseManager::SCA_MouseManager(SCA_LogicManager* logicmgr,
 								   SCA_IInputDevice* mousedev)
 	:	SCA_EventManager(MOUSE_EVENTMGR),
-		m_logicmanager(logicmgr),
-		m_mousedevice (mousedev)
+		m_mousedevice (mousedev),
+		m_logicmanager(logicmgr)
 {
 	m_xpos = 0;
 	m_ypos = 0;
@@ -78,7 +78,7 @@ void SCA_MouseManager::NextFrame(double curtime,double deltatime)
 {
 	if (m_mousedevice)
 	{
-		for (int i = 0; i < m_sensors.size(); i++)
+		for (unsigned int i = 0; i < m_sensors.size(); i++)
 		{
 			SCA_MouseSensor* mousesensor = (SCA_MouseSensor*) m_sensors[i];
 			// (0,0) is the Upper Left corner in our local window

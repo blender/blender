@@ -34,11 +34,12 @@
 
 enum	e_PhysicsEngine
 {
-		UseNone=1,
-		UseSumo,
-		UseODE,
-		UseDynamo,
-		NoSelection
+		NoSelection = -1,
+		UseNone     =  0,
+		UseEnji     =  1,
+		UseSumo     =  2,
+		UseDynamo   =  3,
+		UseODE      =  4
 };
 
 #endif //__KX_PHYSICSENGINEENUMS

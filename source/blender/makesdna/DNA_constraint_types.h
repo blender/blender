@@ -79,8 +79,8 @@ typedef struct bKinematicConstraint{
 
 typedef struct bTrackToConstraint{
 	Object		*tar;
-	int			reserved1; /* Track Axis */
-	int			reserved2; /* Up Axis */
+	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags, not sure if that's what they were intented for anyway. Not sure either if it would create backward incompatibility if I were to rename them. - theeth*/
+	int			reserved2;
 	char		subtarget[32];
 } bTrackToConstraint;
 
@@ -126,12 +126,25 @@ typedef struct bFollowPathConstraint{
 	int			upflag;
 } bFollowPathConstraint;
 
+/* Distance Limiting constraints */
+typedef struct bDistanceLimitConstraint{
+	Object	*tar;
+	char		subtarget[32];
+	float		pad1;
+	float		pad2;
+	float		distance;
+	float		offset[3];
+} bDistanceLimitConstraint;	
+
+
 /* Zero-target constraints */
 typedef struct bRotationConstraint{
 	float xmin, xmax;
 	float ymin, ymax;
 	float zmin, zmax;
 } bRotationConstraint;
+
+
 
 /* bConstraint.type */
 #define CONSTRAINT_TYPE_NULL		0
@@ -148,6 +161,7 @@ typedef struct bRotationConstraint{
 #define CONSTRAINT_TYPE_PYTHON		11	/* Unimplemented */
 #define CONSTRAINT_TYPE_ACTION		12
 #define CONSTRAINT_TYPE_LOCKTRACK	13	/* New Tracking constraint that locks an axis in place - theeth */
+#define CONSTRAINT_TYPE_DISTANCELIMIT	14 
 
 /* bConstraint.flag */
 #define CONSTRAINT_EXPAND		0x00000001
@@ -167,6 +181,39 @@ typedef struct bRotationConstraint{
 #define LOCLIKE_X		0x00000001
 #define LOCLIKE_Y		0x00000002
 #define LOCLIKE_Z		0x00000004
+#define LOCSPACE		0x00000008
+
+/* Tracking flags */
+#define LOCK_X		0x00000000
+#define LOCK_Y		0x00000001
+#define LOCK_Z		0x00000002
+
+#define UP_X		0x00000000
+#define UP_Y		0x00000001
+#define UP_Z		0x00000002
+
+#define TRACK_X		0x00000000
+#define TRACK_Y		0x00000001
+#define TRACK_Z		0x00000002
+#define TRACK_nX	0x00000003
+#define TRACK_nY	0x00000004
+#define TRACK_nZ	0x00000005
+
+/* Tracking flags */
+#define LOCK_X		0x00000000
+#define LOCK_Y		0x00000001
+#define LOCK_Z		0x00000002
+
+#define UP_X		0x00000000
+#define UP_Y		0x00000001
+#define UP_Z		0x00000002
+
+#define TRACK_X		0x00000000
+#define TRACK_Y		0x00000001
+#define TRACK_Z		0x00000002
+#define TRACK_nX	0x00000003
+#define TRACK_nY	0x00000004
+#define TRACK_nZ	0x00000005
 
 /* Tracking flags */
 #define LOCK_X		0x00000000

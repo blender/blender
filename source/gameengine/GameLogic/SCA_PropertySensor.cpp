@@ -53,12 +53,12 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 									 KX_PROPSENSOR_TYPE checktype,
 									 PyTypeObject* T )
 	: SCA_ISensor(gameobj,eventmgr,T),
-	  m_checkpropname(propname),
+	  m_checktype(checktype),
 	  m_checkpropval(propval),
 	  m_checkpropmaxval(propmaxval),
-	  m_checktype(checktype),
-	  m_range_expr(NULL),
-	  m_lastresult(false)
+	  m_checkpropname(propname),
+	  m_lastresult(false),
+	  m_range_expr(NULL)
 {
 	m_recentresult=false;
 	//CParser pars;

@@ -44,17 +44,18 @@
 #include "KX_IPO_SGController.h"
 #include "KX_ScalarInterpolator.h"
 #include "KX_GameObject.h"
+#include "KX_IPhysicsController.h"
 
 // All objects should start on frame 1! Will we ever need an object to 
 // start on another frame, the 1.0 should change.
 KX_IpoSGController::KX_IpoSGController() 
-: m_ipotime(1.0),
-  m_modify_position(false),
+: m_modify_position(false),
   m_modify_orientation(false),
   m_modify_scaling(false),
-  m_modified(true),
   m_ipo_as_force(false),
-  m_force_ipo_acts_local(false)
+  m_force_ipo_acts_local(false),
+  m_modified(true),
+  m_ipotime(1.0)
 {
 	m_sumo_object = NULL;
 	m_game_object = NULL;
@@ -121,6 +122,11 @@ bool KX_IpoSGController::Update(double currentTime)
 					m_sumo_object->calcXform();
 				}
 				*/
+				if (m_game_object && ob) {
+					m_game_object->GetPhysicsController()->ApplyForce(m_force_ipo_acts_local ?
+						ob->GetWorldOrientation() * m_ipo_xform.GetPosition() :
+						m_ipo_xform.GetPosition(), false);
+				}
 
 			} else {
 				ob->SetLocalPosition(m_ipo_xform.GetPosition());
@@ -137,6 +143,11 @@ bool KX_IpoSGController::Update(double currentTime)
 					m_sumo_object->calcXform();
 				}
 				*/
+				if (m_game_object && ob) {
+					m_game_object->ApplyTorque(m_force_ipo_acts_local ?
+						ob->GetWorldOrientation() * m_ipo_xform.GetEulerAngles() :
+						m_ipo_xform.GetEulerAngles(), false);
+				}
 
 			} else {
 				ob->SetLocalOrientation(MT_Matrix3x3(m_ipo_xform.GetEulerAngles()));

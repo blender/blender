@@ -47,16 +47,16 @@ SumoPhysicsController::SumoPhysicsController(
 
 				bool dyna) 
 		: 
+		m_sumoObj(sumoObj) , 
 		m_sumoScene(sumoScene),
 		m_solidscene(solidscene),
-		m_sumoObj(sumoObj) , 
 		m_bFirstTime(true),
-		m_MotionState(motionstate),
-		m_bDyna(dyna)
+		m_bDyna(dyna),
+		m_MotionState(motionstate)
 {
 	if (m_sumoObj)
 	{
-		m_sumoObj->setClientObject(this);
+		//m_sumoObj->setClientObject(this);
 		//if it is a dyna, register for a callback
 		m_sumoObj->registerCallback(*this);
 	}
@@ -70,12 +70,6 @@ SumoPhysicsController::~SumoPhysicsController()
 	{
 		m_sumoScene->remove(*m_sumoObj);
 		
-		
-		DT_ObjectHandle objhandle = (DT_ObjectHandle) m_sumoObj->getObjectHandle();
-		if (objhandle)
-		{
-			DT_RemoveObject(m_solidscene,objhandle);
-		}
 		delete m_sumoObj;
 	}
 }
@@ -169,6 +163,7 @@ void		SumoPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlo
 		MT_Vector3 dloc(dlocX,dlocY,dlocZ);
 
 		MT_Point3 newpos = m_sumoObj->getPosition();
+		
 		newpos += (local ? mat * dloc : dloc);
 		m_sumoObj->setPosition(newpos);
 	}
@@ -184,7 +179,7 @@ void		SumoPhysicsController::RelativeRotate(const float drot[9],bool local)
 		GetWorldOrientation(currentOrn);
 
 		m_sumoObj->setOrientation(m_sumoObj->getOrientation()*(local ? 
-		drotmat.getRotation() : (currentOrn.inverse() * drotmat * currentOrn)).getRotation());
+		drotmat : (currentOrn.inverse() * drotmat * currentOrn)).getRotation());
 	}
 
 }
@@ -395,22 +390,13 @@ void		SumoPhysicsController::PostProcessReplica(class PHY_IMotionState* motionst
 	
 	m_sumoObj->setRigidBody(orgsumoobject->isRigidBody());
 	
-	double radius = orgsumoobject->getMargin();
 	m_sumoObj->setMargin(orgsumoobject->getMargin());
 	m_sumoObj->setPosition(orgsumoobject->getPosition());
 	m_sumoObj->setOrientation(orgsumoobject->getOrientation());
+	//if it is a dyna, register for a callback
+	m_sumoObj->registerCallback(*this);
+	
 	m_sumoScene->add(* (m_sumoObj));
-
-	if (m_sumoObj)
-	{
-		m_sumoObj->setClientObject(this);
-		//if it is a dyna, register for a callback
-		m_sumoObj->registerCallback(*this);
-	}
-
-
-	DT_AddObject(m_solidscene,m_sumoObj->getObjectHandle());
-
 }
 
 void			SumoPhysicsController::SetSimulatedTime(float time)

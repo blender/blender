@@ -66,14 +66,15 @@ KX_GameObject::KX_GameObject(
 	PyTypeObject* T
 ) : 
 	SCA_IObject(T),
-	m_bUseObjectColor(false),
 	m_bDyna(false),
 	m_bSuspendDynamics(false),
-	m_pPhysicsController1(NULL),
-	m_bVisible(true)
+	m_bUseObjectColor(false),
+	m_bVisible(true),
+	m_pPhysicsController1(NULL)
 {
 	m_ignore_activity_culling = false;
-	m_pClient_info = new KX_ClientObjectInfo();
+	m_pClient_info = new KX_ClientObjectInfo(this);
+	m_pClient_info->m_type = KX_ClientObjectInfo::ACTOR;
 	m_pSGNode = new SG_Node(this,sgReplicationInfo,callbacks);
 	
 	// define the relationship between this node and it's parent.
@@ -198,7 +199,7 @@ CValue* KX_GameObject::GetReplica()
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	ProcessReplica(replica);
-
+	
 	return replica;
 }
 
@@ -222,14 +223,11 @@ void KX_GameObject::ApplyTorque(const MT_Vector3& torque,bool local)
 
 void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 {
-	if (this->IsDynamic()) 
+	if (m_pPhysicsController1) // (IsDynamic())
 	{
 		m_pPhysicsController1->RelativeTranslate(dloc,local);
 	}
-	else
-	{
-		GetSGNode()->RelativeTranslate(dloc,GetSGNode()->GetSGParent(),local);
-	}
+	GetSGNode()->RelativeTranslate(dloc,GetSGNode()->GetSGParent(),local);
 }
 
 
@@ -237,12 +235,14 @@ void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 {
 	MT_Matrix3x3 rotmat(drot);
+	rotmat.transpose();
 	
-	if (this->IsDynamic()) //m_pPhysicsController)
-		m_pPhysicsController1->RelativeRotate(rotmat.transposed(),local);
-	else
-		// in worldspace
-		GetSGNode()->RelativeRotate(rotmat.transposed(),local);
+	//if (m_pPhysicsController1) // (IsDynamic())
+	//	m_pPhysicsController1->RelativeRotate(rotmat_,local); 
+	// in worldspace
+	GetSGNode()->RelativeRotate(rotmat,local);
+	if (m_pPhysicsController1)
+		m_pPhysicsController1->setOrientation(NodeGetWorldOrientation().getRotation());
 }
 
 
@@ -273,7 +273,7 @@ void KX_GameObject::Bucketize()
 {
 	double* fl = GetOpenGLMatrix();
 
-	for (int i=0;i<m_meshes.size();i++)
+	for (size_t i=0;i<m_meshes.size();i++)
 		m_meshes[i]->Bucketize(fl, this, m_bUseObjectColor, m_objectColor);
 }
 
@@ -283,7 +283,7 @@ void KX_GameObject::RemoveMeshes()
 {
 	double* fl = GetOpenGLMatrix();
 
-	for (int i=0;i<m_meshes.size();i++)
+	for (size_t i=0;i<m_meshes.size();i++)
 		m_meshes[i]->RemoveFromBuckets(fl, this);
 
 	//note: meshes can be shared, and are deleted by KX_BlenderSceneConverter
@@ -315,7 +315,7 @@ void KX_GameObject::UpdateTransform()
 
 void KX_GameObject::SetDebugColor(unsigned int bgra)
 {
-	for (int i=0;i<m_meshes.size();i++)
+	for (size_t i=0;i<m_meshes.size();i++)
 		m_meshes[i]->DebugColor(bgra);	
 }
 
@@ -411,9 +411,9 @@ KX_GameObject::MarkVisible(
 	 * determined on this level. Maybe change this to mesh level
 	 * later on? */
 	
-	for (int i=0;i<m_meshes.size();i++)
+	double* fl = GetOpenGLMatrix();
+	for (size_t i=0;i<m_meshes.size();i++)
 	{
-		double* fl = GetOpenGLMatrix();
 		m_meshes[i]->MarkVisible(fl,this,visible,m_bUseObjectColor,m_objectColor);
 	}
 }
@@ -425,9 +425,9 @@ KX_GameObject::MarkVisible(
 	void
 	)
 {
-	for (int i=0;i<m_meshes.size();i++)
+	double* fl = GetOpenGLMatrix();
+	for (size_t i=0;i<m_meshes.size();i++)
 	{
-		double* fl = GetOpenGLMatrix();
 		m_meshes[i]->MarkVisible(fl,
 					 this,
 					 m_bVisible,
@@ -439,8 +439,8 @@ KX_GameObject::MarkVisible(
 
 void KX_GameObject::addLinearVelocity(const MT_Vector3& lin_vel,bool local)
 {
-//	if (m_pPhysicsController1)
-//		m_pPhysicsController1->AddLinearVelocity(lin_vel,local);
+	if (m_pPhysicsController1)
+		m_pPhysicsController1->SetLinearVelocity(lin_vel + m_pPhysicsController1->GetLinearVelocity(),local);
 }
 
 
@@ -972,7 +972,6 @@ PyObject* KX_GameObject::PyGetOrientation(PyObject* self,
 	int row,col;
 	const MT_Matrix3x3& orient = NodeGetWorldOrientation();
 	
-	int index = 0;
 	for (row=0;row<3;row++)
 	{
 		PyObject* veclist = PyList_New(3);

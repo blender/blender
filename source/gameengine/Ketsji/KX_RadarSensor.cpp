@@ -39,11 +39,8 @@
 /**
  * 	RadarSensor constructor. Creates a near-sensor derived class, with a cone collision shape.
  */
-
-#ifdef PHYSICS_NOT_YET
-
-KX_RadarSensor::KX_RadarSensor(class SCA_EventManager* eventmgr,
-		class KX_GameObject* gameobj,
+KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
+		KX_GameObject* gameobj,
 			double coneradius,
 			double coneheight,
 			int	axis,
@@ -57,20 +54,21 @@ KX_RadarSensor::KX_RadarSensor(class SCA_EventManager* eventmgr,
 			: KX_NearSensor(
 				eventmgr,
 				gameobj,
+				DT_NewCone(coneradius,coneheight),
 				margin,
 				resetmargin,
 				bFindMaterial,
 				touchedpropname,
 				kxscene,
 				T),
-				m_coneheight(coneheight),
 				m_coneradius(coneradius),
+				m_coneheight(coneheight),
 				m_axis(axis)
 {
-	m_client_info.m_type = 3;
-	m_client_info.m_clientobject = gameobj;
-	m_client_info.m_auxilary_info = NULL;
-	sumoObj->setClientObject(&m_client_info);
+	m_client_info->m_type = KX_ClientObjectInfo::RADAR;
+	//m_client_info->m_clientobject = gameobj;
+	//m_client_info->m_auxilary_info = NULL;
+	//sumoObj->setClientObject(&m_client_info);
 }
 			
 
@@ -221,4 +219,3 @@ PyObject* KX_RadarSensor::PyGetConeHeight(PyObject* self,
 }
 
 
-#endif //PHYSICS_NOT_YET

@@ -29,7 +29,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+#ifdef WIN32
 #pragma warning (disable : 4786)
+#endif
 
 // defines USE_ODE to choose physics engine
 #include "KX_ConvertPhysicsObject.h"
@@ -63,7 +65,6 @@
 // USE_SUMO_SOLID is defined in headerfile KX_ConvertPhysicsObject.h
 #ifdef USE_SUMO_SOLID
 
-
 #include "SumoPhysicsEnvironment.h"
 #include "KX_SumoPhysicsController.h"
 
@@ -83,16 +84,15 @@ void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,DT_S
 DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj);
 
 
-void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
-							class	RAS_MeshObject* meshobj,
-							class	KX_Scene* kxscene,
-							PHY_ShapeProps* kxshapeprops,
-							PHY_MaterialProps*	kxmaterial,
-							struct	KX_ObjectProperties*	objprop)
+void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
+				RAS_MeshObject* meshobj,
+				KX_Scene* kxscene,
+				PHY_ShapeProps* kxshapeprops,
+				PHY_MaterialProps*	kxmaterial,
+				struct	KX_ObjectProperties*	objprop)
 
 
 {
-
 	SM_ShapeProps* smprop = new SM_ShapeProps;
 
 	smprop->m_ang_drag = kxshapeprops->m_ang_drag;
@@ -105,6 +105,7 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 	smprop->m_inertia = kxshapeprops->m_inertia;
 	smprop->m_lin_drag = kxshapeprops->m_lin_drag;
 	smprop->m_mass = kxshapeprops->m_mass;
+	smprop->m_radius = objprop->m_radius;
 
 
 	SM_MaterialProps* smmaterial = new SM_MaterialProps;
@@ -116,55 +117,48 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 	smmaterial->m_friction = kxmaterial->m_friction;
 	smmaterial->m_restitution = kxmaterial->m_restitution;
 
-	class SumoPhysicsEnvironment* sumoEnv =
+	SumoPhysicsEnvironment* sumoEnv =
 		(SumoPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
 
 	SM_Scene*	sceneptr = sumoEnv->GetSumoScene();
-
-
 
 	SM_Object*	sumoObj=NULL;
 
 	if (objprop->m_dyna)
 	{
-		
-		DT_ShapeHandle shape	=	DT_Sphere(0.0);
-
-		if (objprop->m_ghost)
+		DT_ShapeHandle shape = NULL;
+		switch (objprop->m_boundclass)
 		{
-
-			sumoObj					=	new SM_Object(shape,NULL,smprop,NULL);
-		} else
-		{
-			sumoObj					=	new SM_Object(shape,smmaterial,smprop,NULL);
+			case KX_BOUNDBOX:
+				shape = DT_NewBox(objprop->m_boundobject.box.m_extends[0], objprop->m_boundobject.box.m_extends[1], objprop->m_boundobject.box.m_extends[2]);
+				break;
+			case KX_BOUNDCYLINDER:
+				shape = DT_NewCylinder(objprop->m_radius, objprop->m_boundobject.c.m_height);
+				break;
+			case KX_BOUNDCONE:
+				shape = DT_NewCone(objprop->m_radius, objprop->m_boundobject.c.m_height);
+				break;
+/* Enabling this allows you to use dynamic mesh objects.  It's disabled 'cause it's really slow. */
+			case KX_BOUNDMESH:
+				if (meshobj && meshobj->NumPolygons() > 0)
+				{
+					if ((shape = CreateShapeFromMesh(meshobj)))
+						break;
+				}
+				/* If CreateShapeFromMesh fails, fall through and use sphere */
+			default:
+			case KX_BOUNDSPHERE:
+				shape = DT_NewSphere(objprop->m_radius);
+				break;
+				
 		}
 		
-		double radius = 		objprop->m_radius;
+		sumoObj = new SM_Object(shape, !objprop->m_ghost?smmaterial:NULL,smprop,NULL);
 		
-		MT_Scalar margin = radius;//0.5;
-		sumoObj->setMargin(margin);
+		sumoObj->setRigidBody(objprop->m_angular_rigidbody?true:false);
 		
-		//if (bRigidBody) 
-		//{
-			if (objprop->m_in_active_layer)
-			{
-				DT_AddObject(sumoEnv->GetSolidScene(),
-					sumoObj->getObjectHandle());
-			}
-		//}
-		
-		if (objprop->m_angular_rigidbody)
-		{
-			sumoObj->setRigidBody(true);
-		} else
-		{
-			sumoObj->setRigidBody(false);
-		}
-
-		bool isDynamic = true;
-		bool isActor = true;
-
-		BL_RegisterSumoObject(gameobj,sceneptr,sumoEnv->GetSolidScene(),sumoObj,NULL,isDynamic,isActor);
+		objprop->m_isactor = objprop->m_dyna = true;
+		BL_RegisterSumoObject(gameobj,sceneptr,sumoEnv->GetSolidScene(),sumoObj,NULL,true, true);
 		
 	} 
 	else {
@@ -172,20 +166,40 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 		if (meshobj)
 		{
 			int numpolys = meshobj->NumPolygons();
-
 			{
 
 				DT_ShapeHandle complexshape=0;
 
-				if (objprop->m_implicitbox)
+				switch (objprop->m_boundclass)
 				{
-					complexshape = DT_Box(objprop->m_boundingbox.m_extends[0],objprop->m_boundingbox.m_extends[1],objprop->m_boundingbox.m_extends[2]);
-				} else
-				{
-					if (numpolys>0)
-					{
-						complexshape	= 	CreateShapeFromMesh(meshobj);
-					}
+					case KX_BOUNDBOX:
+						complexshape = DT_NewBox(objprop->m_boundobject.box.m_extends[0], objprop->m_boundobject.box.m_extends[1], objprop->m_boundobject.box.m_extends[2]);
+						break;
+					case KX_BOUNDSPHERE:
+						complexshape = DT_NewSphere(objprop->m_boundobject.c.m_radius);
+						break;
+					case KX_BOUNDCYLINDER:
+						complexshape = DT_NewCylinder(objprop->m_boundobject.c.m_radius, objprop->m_boundobject.c.m_height);
+						break;
+					case KX_BOUNDCONE:
+						complexshape = DT_NewCone(objprop->m_boundobject.c.m_radius, objprop->m_boundobject.c.m_height);
+						break;
+					default:
+					case KX_BOUNDMESH:
+						if (numpolys>0)
+						{
+							complexshape = CreateShapeFromMesh(meshobj);
+							//std::cout << "Convert Physics Mesh: " << meshobj->GetName() << std::endl;
+/*							if (!complexshape) 
+							{
+								// Something has to be done here - if the object has no polygons, it will not be able to have
+								//   sensors attached to it. 
+								DT_Vector3 pt = {0., 0., 0.};
+								complexshape = DT_NewSphere(1.0);
+								objprop->m_ghost = evilObject = true;
+							} */
+						}
+						break;
 				}
 				
 				if (complexshape)
@@ -209,21 +223,7 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 					}
 				
 					
-					if (objprop->m_ghost)
-					{
-						sumoObj	= new SM_Object(complexshape,NULL,NULL, dynamicParent);	
-					} else
-					{
-						sumoObj	= new SM_Object(complexshape,smmaterial,NULL, dynamicParent);	
-					}
-					
-					if (objprop->m_in_active_layer)
-					{
-						DT_AddObject(sumoEnv->GetSolidScene(),
-							sumoObj->getObjectHandle());
-					}
-					
-					
+					sumoObj	= new SM_Object(complexshape,!objprop->m_ghost?smmaterial:NULL,NULL, dynamicParent);	
 					const STR_String& matname=meshobj->GetMaterialName(0);
 
 					
@@ -232,7 +232,6 @@ void	KX_ConvertSumoObject(	class	KX_GameObject* gameobj,
 						matname.ReadPtr(),
 						objprop->m_dyna,
 						objprop->m_isactor);
-
 				}
 			}
 		}
@@ -264,35 +263,34 @@ void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,DT_S
 		KX_SumoPhysicsController* physicscontroller = new KX_SumoPhysicsController(sumoScene,solidscene,sumoObj,motionstate,isDynamic);
 		gameobj->SetPhysicsController(physicscontroller);
 		physicscontroller->setClientInfo(gameobj);
+		
+		if (!gameobj->getClientInfo())
+			std::cout << "BL_RegisterSumoObject: WARNING: Object " << gameobj->GetName() << " has no client info" << std::endl;
+		sumoObj->setClientObject(gameobj->getClientInfo());
 
 		gameobj->GetSGNode()->AddSGController(physicscontroller);
 
-		//gameobj->GetClientInfo()->m_type = (isActor ? 1 : 0);
+		gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
 		//gameobj->GetClientInfo()->m_clientobject = gameobj;
 
 		// store materialname in auxinfo, needed for touchsensors
-		//gameobj->GetClientInfo()->m_auxilary_info = (matname? (void*)(matname+2) : NULL);
+		gameobj->getClientInfo()->m_auxilary_info = (matname? (void*)(matname+2) : NULL);
 
 		physicscontroller->SetObject(gameobj->GetSGNode());
-				
+		
 		//gameobj->SetDynamicsScaling(MT_Vector3(1.0, 1.0, 1.0));
 
 };
 
-
-
 DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 {
 
-	DT_ShapeHandle* shapeptr = map_gamemesh_to_sumoshape[GEN_HashedPtr(meshobj)];
+	DT_ShapeHandle *shapeptr = map_gamemesh_to_sumoshape[GEN_HashedPtr(meshobj)];
 	if (shapeptr)
 	{
 		return *shapeptr;
 	}
 	
-	// todo: shared meshes
-	DT_ShapeHandle shape = DT_NewComplexShape();
-	int p=0;
 	int numpolys = meshobj->NumPolygons();
 	if (!numpolys)
 	{
@@ -300,38 +298,80 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 	}
 	int numvalidpolys = 0;
 
-
-
-	for (p=0;p<meshobj->m_triangle_indices.size();p++)
+	for (int p=0; p<numpolys; p++)
 	{
-		RAS_TriangleIndex& idx = meshobj->m_triangle_indices[p];
-		
-		// only add polygons that have the collisionflag set
-		if (idx.m_collider)
-		{
-			DT_Begin();
-			for (int v=0;v<3;v++)
-			{
-				int num = meshobj->m_xyz_index_to_vertex_index_mapping[idx.m_index[v]].size();
-				if (num != 1)
-				{
-					int i=0;
-				}
-				RAS_MatArrayIndex& vertindex = meshobj->m_xyz_index_to_vertex_index_mapping[idx.m_index[v]][0];
-
-				numvalidpolys++;
+		RAS_Polygon* poly = meshobj->GetPolygon(p);
 	
-				{
-					const MT_Point3& pt = meshobj->GetVertex(vertindex.m_array, 
-													  vertindex.m_index,
-													  (RAS_IPolyMaterial*)vertindex.m_matid)->xyz();
-					DT_Vertex(pt[0],pt[1],pt[2]);
-				}
-			}
-			DT_End();
+		// only add polygons that have the collisionflag set
+		if (poly->IsCollider())
+		{
+			numvalidpolys++;
+			break;
 		}
 	}
+	
+	if (numvalidpolys < 1)
+		return NULL;
+	
+	DT_ShapeHandle shape = DT_NewComplexShape(NULL);
+	
+	
+	numvalidpolys = 0;
 
+	for (int p2=0; p2<numpolys; p2++)
+	{
+		RAS_Polygon* poly = meshobj->GetPolygon(p2);
+	
+		// only add polygons that have the collisionflag set
+		if (poly->IsCollider())
+		{   /* We have to tesselate here because SOLID can only raycast triangles */
+		    DT_Begin();
+			DT_Vector3 pt;
+			/* V1 */
+			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+				poly->GetVertexIndexBase().m_indexarray[0],
+				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
+			DT_Vertex(pt);
+			/* V2 */
+			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+				poly->GetVertexIndexBase().m_indexarray[1],
+				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
+			DT_Vertex(pt);
+			/* V3 */
+			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+				poly->GetVertexIndexBase().m_indexarray[2],
+				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
+			DT_Vertex(pt);
+			
+			numvalidpolys++;
+		    DT_End();
+			
+			if (poly->VertexCount() == 4)
+			{
+			    DT_Begin();
+				/* V1 */
+				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+					poly->GetVertexIndexBase().m_indexarray[0],
+					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
+				DT_Vertex(pt);
+				/* V3 */
+				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+					poly->GetVertexIndexBase().m_indexarray[2],
+					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
+				DT_Vertex(pt);
+				/* V4 */
+				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+					poly->GetVertexIndexBase().m_indexarray[3],
+					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
+				DT_Vertex(pt);
+			
+				numvalidpolys++;
+			    DT_End();
+			}
+	
+		}
+	}
+	
 	DT_EndComplexShape();
 
 	if (numvalidpolys > 0)
@@ -340,7 +380,7 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 		return shape;
 	}
 
-	// memleak... todo: delete shape
+	delete shape;
 	return NULL;
 }
 
