@@ -57,7 +57,6 @@ void where_is_particle(struct PartEff *paf, struct Particle *pa, float ctime, fl
 void particle_tex(struct MTex *mtex, struct PartEff *paf, float *co, float *no);
 void make_particle_keys(int depth, int nr, struct PartEff *paf, struct Particle *part, float *force, int deform, struct MTex *mtex, unsigned int par_layer);
 void init_mv_jit(float *jit, int num,int seed2);
-void give_mesh_mvert(struct Mesh *me, int nr, float *co, short *no,int seed2);
 void build_particle_system(struct Object *ob);
 void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
 int object_wave(struct Object *ob);                            

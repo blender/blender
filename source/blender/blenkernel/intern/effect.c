@@ -1022,7 +1022,7 @@ void init_mv_jit(float *jit, int num,int seed2)
 }
 
 
-void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, int seed2)
+static void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, int seed2)
 {
 	static float *jit=0;
 	static int jitlevel=1;
