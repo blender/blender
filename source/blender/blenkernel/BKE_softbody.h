@@ -46,29 +46,23 @@ typedef struct BodySpring {
 	float len, strength;
 } BodySpring;
 
-typedef struct SoftBody {
-	int totpoint, totspring;
-	
-	BodyPoint *bpoint;
-	BodySpring *bspring;
-	
-	float ctime;	// last time calculated
-} SoftBody;
+struct Object;
+struct SoftBody;
 
-/* temporal data, nothing saved in file */
-extern void free_softbody(SoftBody *sb);
+/* allocates and initializes general main data */
+extern struct SoftBody	*sbNew(void);
 
-/* makes totally fresh start situation */
-extern void object_to_softbody(Object *ob,float ctime);
+/* frees internal data and softbody itself */
+extern void				sbFree(struct SoftBody *sb);
 
-/* copy original (but new) situation in softbody, as result of matrices or deform */
-void object_update_softbody(Object *ob);
+/* go one step in simulation, copy result in displist vertices */
+extern void				sbObjectStep(struct Object *ob, float framnr);
 
-/* copies softbody result back to object (in displist) */
-extern void softbody_to_object(Object *ob);
+/* makes totally fresh start situation, resets time */
+extern void				sbObjectToSoftbody(struct Object *ob);
 
-/* go one step in simulation */
-extern void object_softbody_step(Object *ob, float ctime);
+/* resets all motion and time */
+extern void				sbObjectReset(struct Object *ob);
 
 #endif
 

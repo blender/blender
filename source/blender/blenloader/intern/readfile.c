@@ -119,6 +119,7 @@
 #include "BKE_object.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
+#include "BKE_softbody.h"	// sbNew()
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 
@@ -2316,7 +2317,13 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 
 	ob->pd= newdataadr(fd, ob->pd);
-	ob->soft= NULL;
+	ob->soft= newdataadr(fd, ob->soft);
+	if(ob->soft) {
+		SoftBody *sb= ob->soft;		// init all stuff so it gets rebuilt nicely
+		sb->totpoint= sb->totspring= 0;
+		sb->bpoint= NULL; 
+		sb->bspring= NULL;
+	}
 	
 	link_list(fd, &ob->prop);
 	prop= ob->prop.first;
@@ -4625,6 +4632,7 @@ static void do_versions(Main *main)
 		}
 	}
 	if(main->versionfile <= 236) {
+		Object *ob;
 		Scene *sce= main->scene.first;
 		Camera *cam= main->camera.first;
 		bScreen *sc;
@@ -4652,6 +4660,26 @@ static void do_versions(Main *main)
 					}
 				}
 			}
+		}
+		/* temporal copy */
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			if(ob->softflag && ob->soft==NULL) {
+				SoftBody *sb;
+				ob->soft=sb= sbNew();
+				
+				sb->goalspring= ob->sb_goalspring; 
+				sb->goalfrict= ob->sb_goalfrict;  
+				sb->inspring= ob->sb_inspring;	 
+				sb->infrict= ob->sb_infrict;  
+				sb->nodemass= ob->sb_nodemass;
+				sb->grav= ob->sb_grav;   
+				sb->mingoal= ob->sb_mingoal;  
+				sb->maxgoal= ob->sb_maxgoal;
+				sb->mediafrict= ob->sb_mediafrict; 
+				sb->rklimit= ob->softtime;
+				
+				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+ 			}
 		}
 	}
 	

@@ -264,19 +264,17 @@ int mesh_modifier(Object *ob, char mode)
 		
 		if(ob->effect.first) done |= object_wave(ob);
 
-		if((ob->softflag & 0x01) && !(ob->softflag & 0x08)) {
-			float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
+		if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
 			done= 1;
-			object_softbody_step(ob, ctime);
+			sbObjectStep(ob, (float)G.scene->r.cfra);
 		}
 
-		/* deform: input mesh, output ob dl_verts. is used by subsurf (output should be in mesh ton!) */
+		/* object_deform: output for mesh is in mesh->mvert */
 		done |= object_deform(ob);	
 
-		if((ob->softflag & 0x01) && (ob->softflag & 0x08)) {
-			float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
+		if((ob->softflag & OB_SB_ENABLE) && (ob->softflag & OB_SB_POSTDEF)) {
 			done= 1;
-			object_softbody_step(ob, ctime);
+			sbObjectStep(ob, (float)G.scene->r.cfra);
 		}
 		
 		/* put deformed vertices in dl->verts, optional subsurf will replace that */

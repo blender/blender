@@ -3361,6 +3361,7 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 
 static char *view3d_modeselect_pup(void)
 {
+	Object *ob= OBACT;
 	static char string[1024];
 	char formatstr[1024];
 	char tempstr[1024];
@@ -3371,16 +3372,18 @@ static char *view3d_modeselect_pup(void)
 	sprintf(tempstr, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT);
 	strcat(string, tempstr);
 	
+	if(ob==NULL) return string;
+	
 	/* if active object is editable */
-	if (OBACT && ((OBACT->type == OB_MESH) || (OBACT->type == OB_ARMATURE)
-		|| (OBACT->type == OB_CURVE) || (OBACT->type == OB_SURF) || (OBACT->type == OB_FONT)
-		|| (OBACT->type == OB_MBALL) || (OBACT->type == OB_LATTICE))) {
+	if ( ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE)
+		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
+		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
 		sprintf(tempstr, formatstr, "Edit Mode", V3D_EDITMODE_SEL, ICON_EDITMODE_HLT);
 		strcat(string, tempstr);
 	}
 
-	if (OBACT && OBACT->type == OB_MESH) {
+	if (ob->type == OB_MESH) {
 	
 		sprintf(tempstr, formatstr, "UV Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
 		strcat(string, tempstr);
@@ -3390,7 +3393,7 @@ static char *view3d_modeselect_pup(void)
 		strcat(string, tempstr);
 
 	
-		if ( ((Mesh*)(OBACT->data))->dvert)  {
+		if ( ((Mesh*)(ob->data))->dvert)  {
 			sprintf(tempstr, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
 			strcat(string, tempstr);
 		}
@@ -3398,7 +3401,7 @@ static char *view3d_modeselect_pup(void)
 
 	
 	/* if active object is an armature */
-	if (OBACT && OBACT->type==OB_ARMATURE) {
+	if (ob->type==OB_ARMATURE) {
 		sprintf(tempstr, formatstr, "Pose Mode", V3D_POSEMODE_SEL, ICON_POSE_HLT);
 		strcat(string, tempstr);
 	}
@@ -4087,11 +4090,6 @@ void view3d_buttons(void)
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 						 "Pastes the mirrored pose from the buffer");
 		}
-	}
-    {
-	extern short SB_ENABLE;
-	xco+= XIC+8;
-	uiDefButS(block, TOG|BIT|1, B_DIFF, "Soft",	xco,0,XIC*3,YIC, &SB_ENABLE, 0, 0, 0, 0, "Force Softbodies to goal");
 	}
 
 	/* Always do this last */

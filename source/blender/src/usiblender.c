@@ -160,9 +160,10 @@ static void init_userdef_file(void)
 	}
 	/* transform widget settings */
 	if(U.tw_hotspot==0) {
+		U.tw_flag= U_TW_ABSOLUTE;
 		U.tw_hotspot= 14;
-		U.tw_size= 15;			// percentage of window size
-		U.tw_handlesize= 25;	// percentage of widget radius
+		U.tw_size= 20;			// percentage of window size
+		U.tw_handlesize= 20;	// percentage of widget radius
 	}
 	
 	if (G.main->versionfile <= 191) {

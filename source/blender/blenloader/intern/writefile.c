@@ -683,6 +683,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			write_nlastrips(wd, &ob->nlastrips);
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
+			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
 			
 			for(hook= ob->hooks.first; hook; hook= hook->next) {
 				writestruct(wd, DATA, "ObHook", 1, hook);

@@ -507,7 +507,7 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 
 }
 
-
+/* Mesh now applies on mesh itself, others do displist */
 static int _object_deform(Object *ob, int applyflag)
 {
 	Mesh *me;

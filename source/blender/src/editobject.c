@@ -1537,13 +1537,8 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 	/* displist make is different in editmode */
 	if(freedata) G.obedit= NULL;
 
-// need to be here since 
-// makeDispList(ob); calls 
-// int mesh_modifier(Object *ob, char mode)..
-// calling object_softbody_step(ob, ctime);
-// needs a valid *up to date* softbody object or NULL pointer at "soft" member  
-// anyhow *new* dependacy graph should take care for that :)
-	if(ob->softflag & 0x01) object_to_softbody(ob,1.0f);
+	/* total remake of softbody data */
+	if(ob->softflag & OB_SB_ENABLE) sbObjectToSoftbody(ob);
 	
 	makeDispList(ob);
 
@@ -1582,8 +1577,6 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 		allqueue(REDRAWOOPS, 0);
 	}
 	scrarea_queue_headredraw(curarea);
-// faaaaar to late
-//	if(ob->softflag & 0x01) object_to_softbody(ob);
 	
 	if(G.obedit==NULL && freedata==2) 
 		BIF_undo_push("Editmode");

@@ -51,7 +51,8 @@ struct BoundBox;
 struct Path;
 struct Material;
 struct bConstraintChannel;
-struct SoftBody;
+struct BodyPoint;
+struct BodySpring;
 
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
@@ -89,6 +90,31 @@ typedef struct PartDeflect {
 	float f_strength;    /* The strength of the force (+ or - )       */
 	float f_power;       /* The power law - real gravitation is 2 (square)  */
 } PartDeflect;
+
+typedef struct SoftBody {
+	/* dynamic data */
+	int totpoint, totspring;
+	struct BodyPoint *bpoint;		/* not saved in file */
+	struct BodySpring *bspring;		/* not saved in file */
+	float ctime;					/* last time calculated */
+	
+	/* part of UI: */
+	float nodemass;		/* softbody mass of *vertex* */
+	float grav;			/* softbody amount of gravitaion to apply */
+	float mediafrict;	/* friction to env */
+	float rklimit;		/* error limit for ODE solver */
+	
+	float goalspring;	/* softbody goal springs */
+	float goalfrict;	/* softbody goal springs friction */
+	float mingoal;		/* quick limits for goal */
+	float maxgoal;
+	
+	float inspring;		/* softbody inner springs */
+	float infrict;		/* softbody inner springs friction */
+ 	
+	float pad;
+	
+} SoftBody;
 
 typedef struct Object {
 	ID id;
@@ -150,7 +176,7 @@ typedef struct Object {
 	 * For a Sphere, the form factor is by default = 0.4
 	 */
 
-	float formfactor, softtime;		/* springf temp for softbody */
+	float formfactor, softtime;		/* softtime temp for softbody, remove it before release! */
 	float rdamping, sizefac;
 	
 	char dt, dtx;
@@ -194,7 +220,7 @@ typedef struct Object {
 	ListBase hooks;
 	
 	PartDeflect *pd;		/* particle deflector/attractor/collision data */
-	struct SoftBody *soft;	/* only runtime, not saved in file! */
+	struct SoftBody *soft;	/* if exists, saved in file */
 	struct Life *life;
 
 	LBuf lbuf;
@@ -386,6 +412,14 @@ extern Object workob;
 #define OB_ADDCONT		512
 #define OB_ADDACT		1024
 #define OB_SHOWCONT		2048
+
+/* ob->softflag */
+#define OB_SB_ENABLE	1
+#define OB_SB_GOAL		2
+#define OB_SB_EDGES		4
+#define OB_SB_QUADS		8
+#define OB_SB_POSTDEF	16
+
 
 #ifdef __cplusplus
 }

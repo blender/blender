@@ -222,7 +222,7 @@ void free_object(Object *ob)
 	BPY_free_scriptlink(&ob->scriptlink);
 	
 	if(ob->pd) MEM_freeN(ob->pd);
-	if(ob->soft) free_softbody(ob->soft);
+	if(ob->soft) sbFree(ob->soft);
 }
 
 void unlink_object(Object *ob)
