@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -84,119 +84,119 @@ static int viewmovetemp = 0;
 
 void do_ipo_buttons(short event)
 {
-  EditIpo *ei;
-  View2D *v2d;
-  rcti rect;
-  float xmin, ymin, dx, dy;
-  int a, val, first;
-  short mval[2];
+	EditIpo *ei;
+	View2D *v2d;
+	rcti rect;
+	float xmin, ymin, dx, dy;
+	int a, val, first;
+	short mval[2];
 
-  if(curarea->win==0) return;
+	if(curarea->win==0) return;
 
-  switch(event) {
-  case B_IPOHOME:
+	switch(event) {
+	case B_IPOHOME:
 
-    /* boundbox */
+		/* boundbox */
 
-    v2d= &(G.sipo->v2d);
-    first= 1;
+		v2d= &(G.sipo->v2d);
+		first= 1;
 
-    ei= G.sipo->editipo;
-    if(ei==0) return;
-    for(a=0; a<G.sipo->totipo; a++, ei++) {
-      if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-      
-        boundbox_ipocurve(ei->icu);
-        
-        if(first) {
-          v2d->tot= ei->icu->totrct;
-          first= 0;
-        }
-        else BLI_union_rctf(&(v2d->tot), &(ei->icu->totrct));
-      }
-    }
+		ei= G.sipo->editipo;
+		if(ei==0) return;
+		for(a=0; a<G.sipo->totipo; a++, ei++) {
+			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+			
+				boundbox_ipocurve(ei->icu);
+				
+				if(first) {
+					v2d->tot= ei->icu->totrct;
+					first= 0;
+				}
+				else BLI_union_rctf(&(v2d->tot), &(ei->icu->totrct));
+			}
+		}
 
-    /* speciale home */
-    if(G.qual & LR_SHIFTKEY) {
-      v2d->tot.xmin= SFRA;
-      v2d->tot.xmax= EFRA;
-    }
+		/* speciale home */
+		if(G.qual & LR_SHIFTKEY) {
+			v2d->tot.xmin= SFRA;
+			v2d->tot.xmax= EFRA;
+		}
 
-    /* zoom out a bit */
-    dx= 0.10*(v2d->tot.xmax-v2d->tot.xmin);
-    dy= 0.10*(v2d->tot.ymax-v2d->tot.ymin);
-    
-    if(dx<v2d->min[0]) dx= v2d->min[0];
-    if(dy<v2d->min[1]) dy= v2d->min[1];
-    
-    v2d->cur.xmin= v2d->tot.xmin- dx;
-    v2d->cur.xmax= v2d->tot.xmax+ dx;
-    v2d->cur.ymin= v2d->tot.ymin- dy;
-    v2d->cur.ymax= v2d->tot.ymax+ dy;
+		/* zoom out a bit */
+		dx= 0.10*(v2d->tot.xmax-v2d->tot.xmin);
+		dy= 0.10*(v2d->tot.ymax-v2d->tot.ymin);
+		
+		if(dx<v2d->min[0]) dx= v2d->min[0];
+		if(dy<v2d->min[1]) dy= v2d->min[1];
+		
+		v2d->cur.xmin= v2d->tot.xmin- dx;
+		v2d->cur.xmax= v2d->tot.xmax+ dx;
+		v2d->cur.ymin= v2d->tot.ymin- dy;
+		v2d->cur.ymax= v2d->tot.ymax+ dy;
 
-    test_view2d(G.v2d, curarea->winx, curarea->winy);
-    scrarea_queue_winredraw(curarea);
-    break;
-  case B_IPOBORDER:
-    val= get_border(&rect, 2);
-    if(val) {
-      mval[0]= rect.xmin;
-      mval[1]= rect.ymin;
-      areamouseco_to_ipoco(G.v2d, mval, &xmin, &ymin);
-      mval[0]= rect.xmax;
-      mval[1]= rect.ymax;
-      areamouseco_to_ipoco(G.v2d, mval, &(G.v2d->cur.xmax), &(G.v2d->cur.ymax));
-      G.v2d->cur.xmin= xmin;
-      G.v2d->cur.ymin= ymin;
-      
-      test_view2d(G.v2d, curarea->winx, curarea->winy);
-      scrarea_queue_winredraw(curarea);
-    }
-    break;
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
+		break;
+	case B_IPOBORDER:
+		val= get_border(&rect, 2);
+		if(val) {
+			mval[0]= rect.xmin;
+			mval[1]= rect.ymin;
+			areamouseco_to_ipoco(G.v2d, mval, &xmin, &ymin);
+			mval[0]= rect.xmax;
+			mval[1]= rect.ymax;
+			areamouseco_to_ipoco(G.v2d, mval, &(G.v2d->cur.xmax), &(G.v2d->cur.ymax));
+			G.v2d->cur.xmin= xmin;
+			G.v2d->cur.ymin= ymin;
+			
+			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			scrarea_queue_winredraw(curarea);
+		}
+		break;
 
-  case B_IPOPIN:
-    allqueue (REDRAWIPO, 0);
-    break;
+	case B_IPOPIN:
+		allqueue (REDRAWIPO, 0);
+		break;
 
-  case B_IPOCOPY:
-    copy_editipo();
-    break;
-  case B_IPOPASTE:
-    paste_editipo();
-    break;
-  case B_IPOCONT:
-    set_exprap_ipo(IPO_HORIZ);
-    break;
-  case B_IPOEXTRAP:
-    set_exprap_ipo(IPO_DIR);
-    break;
-  case B_IPOCYCLIC:
-    set_exprap_ipo(IPO_CYCL);
-    break;
-  case B_IPOCYCLICX:
-    set_exprap_ipo(IPO_CYCLX);
-    break;
-  case B_IPOMAIN:
-    make_editipo();
-    scrarea_queue_winredraw(curarea);
-    scrarea_queue_headredraw(curarea);
+	case B_IPOCOPY:
+		copy_editipo();
+		break;
+	case B_IPOPASTE:
+		paste_editipo();
+		break;
+	case B_IPOCONT:
+		set_exprap_ipo(IPO_HORIZ);
+		break;
+	case B_IPOEXTRAP:
+		set_exprap_ipo(IPO_DIR);
+		break;
+	case B_IPOCYCLIC:
+		set_exprap_ipo(IPO_CYCL);
+		break;
+	case B_IPOCYCLICX:
+		set_exprap_ipo(IPO_CYCLX);
+		break;
+	case B_IPOMAIN:
+		make_editipo();
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
 
-    break;
-  case B_IPOSHOWKEY:
-    /* reverse value because of winqread */
-    G.sipo->showkey= 1-G.sipo->showkey;
-    ipo_toggle_showkey();
-    scrarea_queue_headredraw(curarea);
-    scrarea_queue_winredraw(curarea);
-    allqueue(REDRAWVIEW3D, 0);
-    break;
-  case B_VIEW2DZOOM:
-    viewmovetemp= 0;
-    view2dzoom(event);
-    scrarea_queue_headredraw(curarea);
-    break;
-      
-  } 
+		break;
+	case B_IPOSHOWKEY:
+		/* reverse value because of winqread */
+		G.sipo->showkey= 1-G.sipo->showkey;
+		ipo_toggle_showkey();
+		scrarea_queue_headredraw(curarea);
+		scrarea_queue_winredraw(curarea);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_VIEW2DZOOM:
+		viewmovetemp= 0;
+		view2dzoom(event);
+		scrarea_queue_headredraw(curarea);
+		break;
+			
+	} 
 }
 
 void ipo_buttons(void)
@@ -234,14 +234,14 @@ void ipo_buttons(void)
 	if(ob && give_current_material(ob, ob->actcol)) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_MA, 0, 0, "Displays Material Ipos");
 		if(G.sipo->blocktype==ID_MA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
+			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
 			xco-= 4;
 		}
 	}
 	if(G.scene->world) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_WORLD,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_WO, 0, 0, "Display World Ipos");
 		if(G.sipo->blocktype==ID_WO) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
+			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
 			xco-= 4;
 		}
 	}
@@ -255,7 +255,7 @@ void ipo_buttons(void)
 	if(ob && ob->type==OB_LAMP) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_LAMP,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_LA, 0, 0, "Display Lamp Ipos");
 		if(G.sipo->blocktype==ID_LA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
+			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
 			xco-= 4;
 		}
 	}
@@ -301,8 +301,8 @@ void ipo_buttons(void)
 	/* EXTRAP */
 	uiDefIconBut(block, BUT, B_IPOCONT, ICON_CONSTANT,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to constant");
 	uiDefIconBut(block, BUT, B_IPOEXTRAP, ICON_LINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to extrapolation");
-	uiDefIconBut(block, BUT, B_IPOCYCLIC, ICON_CYCLIC,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic");
-	uiDefIconBut(block, BUT, B_IPOCYCLICX, ICON_CYCLICLINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic extrapolation");
+	uiDefIconBut(block, BUT, B_IPOCYCLIC, ICON_CYCLIC,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,	"Sets the extend mode to cyclic");
+	uiDefIconBut(block, BUT, B_IPOCYCLICX, ICON_CYCLICLINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,	"Sets the extend mode to cyclic extrapolation");
 	xco+= XIC/2;
 
 	uiClearButLock();

@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -75,22 +75,22 @@ static int viewmovetemp = 0;
 
 void do_seq_buttons(short event)
 {
-  Editing *ed;
+	Editing *ed;
 
-  ed= G.scene->ed;
-  if(ed==0) return;
+	ed= G.scene->ed;
+	if(ed==0) return;
 
-  switch(event) {
-  case B_SEQHOME:
-    G.v2d->cur= G.v2d->tot;
-    test_view2d(G.v2d, curarea->winx, curarea->winy);
-    scrarea_queue_winredraw(curarea);
-    break;
-  case B_SEQCLEAR:
-    free_imbuf_seq();
-    allqueue(REDRAWSEQ, 1);
-    break;
-  }
+	switch(event) {
+	case B_SEQHOME:
+		G.v2d->cur= G.v2d->tot;
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
+		break;
+	case B_SEQCLEAR:
+		free_imbuf_seq();
+		allqueue(REDRAWSEQ, 1);
+		break;
+	}
 }
 
 void seq_buttons()
@@ -99,9 +99,9 @@ void seq_buttons()
 	short xco;
 	char naam[20];
 	uiBlock *block;
-	
+
 	sseq= curarea->spacedata.first;
-	
+
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
 	uiBlockSetCol(block, BUTPURPLE);

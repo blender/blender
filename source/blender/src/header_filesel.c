@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -75,22 +75,22 @@
 
 void do_file_buttons(short event)
 {
-  SpaceFile *sfile;
-  
-  if(curarea->win==0) return;
-  sfile= curarea->spacedata.first;
-  
-  switch(event) {
-  case B_SORTFILELIST:
-    sort_filelist(sfile);
-    scrarea_queue_winredraw(curarea);
-    break;
-  case B_RELOADDIR:
-    freefilelist(sfile);
-    scrarea_queue_winredraw(curarea);
-    break;
-  }
-  
+	SpaceFile *sfile;
+
+	if(curarea->win==0) return;
+	sfile= curarea->spacedata.first;
+
+	switch(event) {
+	case B_SORTFILELIST:
+		sort_filelist(sfile);
+		scrarea_queue_winredraw(curarea);
+		break;
+	case B_RELOADDIR:
+		freefilelist(sfile);
+		scrarea_queue_winredraw(curarea);
+		break;
+	}
+	
 }
 
 void file_buttons(void)
@@ -123,7 +123,7 @@ void file_buttons(void)
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
 
 	cpack(0x0);
-	glRasterPos2i(xco+=XIC+10,  5);
+	glRasterPos2i(xco+=XIC+10,	5);
 
 	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & TR_BUTTONS), 0);
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & TR_BUTTONS));
@@ -143,16 +143,15 @@ void file_buttons(void)
 
 		filesel_statistics(sfile, &totfile, &selfile, &totlen, &sellen);
 		
-		sprintf(naam, "Free: %.3f Mb   Files: (%d) %d    (%.3f) %.3f Mb", 
-					df, selfile,totfile, sellen, totlen);
-		
+		sprintf(naam, "Free: %.3f Mb   Files: (%d) %d    (%.3f) %.3f Mb", df, selfile,totfile, sellen, totlen);
+
 		cpack(0x0);
-		glRasterPos2i(xco,  5);
+		glRasterPos2i(xco,	5);
 
 		BIF_DrawString(uiBlockGetCurFont(block), naam, 0, 0);
 	}
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
-	
+
 	uiDrawBlock(block);
 }

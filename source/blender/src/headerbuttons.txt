@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -193,7 +193,7 @@ static void check_packAll(void);
 static void unique_bone_name(Bone *bone, bArmature *arm);
 static int bonename_exists(Bone *orig, char *name, ListBase *list);
 
-static 	void test_idbutton_cb(void *namev, void *arg2_unused)
+static	void test_idbutton_cb(void *namev, void *arg2_unused)
 {
 	char *name= namev;
 	test_idbutton(name+2);
@@ -206,19 +206,19 @@ static 	void test_idbutton_cb(void *namev, void *arg2_unused)
 #include "SYS_System.h"
 
 static int std_libbuttons(uiBlock *block, 
-						  int xco, int pin, short *pinpoin, 
-						  int browse, ID *id, ID *parid, 
-						  short *menupoin, int users, 
-						  int lib, int del, int autobut, int keepbut);
+							int xco, int pin, short *pinpoin, 
+							int browse, ID *id, ID *parid, 
+							short *menupoin, int users, 
+							int lib, int del, int autobut, int keepbut);
 
 
 extern char versionstr[]; /* from blender.c */
-/*  extern                void add_text_fs(char *file);  *//* from text.c, BIF_text.h*/
+/*	extern								void add_text_fs(char *file);  *//* from text.c, BIF_text.h*/
 
  /* WATCH IT:  always give all headerbuttons for same window the same name
-  *			event B_REDR is a standard redraw
-  *
-  */
+	*			event B_REDR is a standard redraw
+	*
+	*/
 
 
 /* View3d->modeselect 
@@ -241,7 +241,7 @@ extern char versionstr[]; /* from blender.c */
 
 static int viewmovetemp=0;
 
-/*  extern void info_buttons(); in BSE_headerbuttons.c */
+/*	extern void info_buttons(); in BSE_headerbuttons.c */
 
 extern char videosc_dir[];	/* exotic.c */
 
@@ -561,7 +561,7 @@ static void show_splash(void)
 	extern char * build_type;
 
 	string = &buffer[0];
-	sprintf(string,"Built on %s %s     Version %s %s", build_date, build_time, build_platform, build_type);
+	sprintf(string,"Built on %s %s		 Version %s %s", build_date, build_time, build_platform, build_type);
 #endif
 
 	splash((void *)datatoc_splash_jpg, datatoc_splash_jpg_size, string);
@@ -790,7 +790,7 @@ void do_global_buttons(unsigned short event)
 				idtest= idtest->next;
 			}
 			if(idtest==0) {	/* new mat */
-				if(id)  idtest= (ID *)copy_material((Material *)id);
+				if(id)	idtest= (ID *)copy_material((Material *)id);
 				else {
 					idtest= (ID *)add_material("Material");
 				}
@@ -912,7 +912,7 @@ void do_global_buttons(unsigned short event)
 				idtest= idtest->next;
 			}
 			if(idtest==0) {	/* new tex */
-				if(id)  idtest= (ID *)copy_texture((Tex *)id);
+				if(id)	idtest= (ID *)copy_texture((Tex *)id);
 				else idtest= (ID *)add_texture("Tex");
 				idtest->us--;
 			}
@@ -1252,7 +1252,7 @@ void do_global_buttons(unsigned short event)
 				idtest= idtest->next;
 			}
 			if(idtest==0) {	/* new tex */
-				if(id)  idtest= (ID *)copy_texture((Tex *)id);
+				if(id)	idtest= (ID *)copy_texture((Tex *)id);
 				else idtest= (ID *)add_texture("Tex");
 				idtest->us--;
 			}
@@ -1347,7 +1347,7 @@ void do_global_buttons(unsigned short event)
 				idtest= idtest->next;
 			}
 			if(idtest==0) {	/* new tex */
-				if(id)  idtest= (ID *)copy_texture((Tex *)id);
+				if(id)	idtest= (ID *)copy_texture((Tex *)id);
 				else idtest= (ID *)add_texture("Tex");
 				idtest->us--;
 			}
@@ -1413,7 +1413,7 @@ void do_global_buttons(unsigned short event)
 		SYS_WriteCommandLineInt(SYS_GetSystem(), "noaudio", (U.gameflags & USERDEF_DISABLE_SOUND));
 		break;
 	case B_SHOWSPLASH:
-	     	show_splash();
+				show_splash();
 		break;
 	case B_MIPMAPCHANGED:
 		set_mipmap(!(U.gameflags & USERDEF_DISABLE_SOUND));
@@ -1422,7 +1422,7 @@ void do_global_buttons(unsigned short event)
 	case B_NEWSPACE:
 		newspace(curarea, curarea->butspacetype);
 		break;
-	case B_LOADTEMP: 	/* is button from space.c */
+	case B_LOADTEMP:	/* is button from space.c */
 		BIF_read_autosavefile();
 		break;
 
@@ -1430,11 +1430,11 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWINFO, 0);
 		break;
 
-	case B_DRAWINFO: 	/* is button from space.c  *info* */
+	case B_DRAWINFO:	/* is button from space.c  *info* */
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 
-	case B_FLIPINFOMENU: 	/* is button from space.c  *info* */
+	case B_FLIPINFOMENU:	/* is button from space.c  *info* */
 		scrarea_queue_headredraw(curarea);
 		break;
 
@@ -1450,7 +1450,7 @@ void do_global_buttons(unsigned short event)
 
 	/* Fileselect windows for user preferences file paths */
 
-	case B_FONTDIRFILESEL: 	/* is button from space.c  *info* */
+	case B_FONTDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1459,7 +1459,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT FONT PATH", U.fontdir, filesel_u_fontdir);
 		break;
 
-	case B_TEXTUDIRFILESEL: 	/* is button from space.c  *info* */
+	case B_TEXTUDIRFILESEL:		/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1468,7 +1468,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT TEXTURE PATH", U.textudir, filesel_u_textudir);
 		break;
 	
-	case B_PLUGTEXDIRFILESEL: 	/* is button form space.c  *info* */
+	case B_PLUGTEXDIRFILESEL:		/* is button form space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1477,7 +1477,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT TEX PLUGIN PATH", U.plugtexdir, filesel_u_plugtexdir);
 		break;
 	
-	case B_PLUGSEQDIRFILESEL: 	/* is button from space.c  *info* */
+	case B_PLUGSEQDIRFILESEL:		/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1486,7 +1486,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT SEQ PLUGIN PATH", U.plugseqdir, filesel_u_plugseqdir);
 		break;
 	
-	case B_RENDERDIRFILESEL: 	/* is button from space.c  *info* */
+	case B_RENDERDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1495,7 +1495,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT RENDER PATH", U.renderdir, filesel_u_renderdir);
 		break;
 	
-	case B_PYTHONDIRFILESEL: 	/* is button from space.c  *info* */
+	case B_PYTHONDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1504,7 +1504,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT SCRIPT PATH", U.pythondir, filesel_u_pythondir);
 		break;
 
-	case B_SOUNDDIRFILESEL: 	/* is button from space.c  *info* */
+	case B_SOUNDDIRFILESEL:		/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1513,7 +1513,7 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "SELECT SOUND PATH", U.sounddir, filesel_u_sounddir);
 		break;
 
-	case B_TEMPDIRFILESEL: 	/* is button from space.c  *info* */
+	case B_TEMPDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1526,7 +1526,7 @@ void do_global_buttons(unsigned short event)
 
 
 #ifdef INTERNATIONAL
-	case B_LOADUIFONT: 	/* is button from space.c  *info* */
+	case B_LOADUIFONT:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();
 			areawinset(sa->win);
@@ -1535,21 +1535,21 @@ void do_global_buttons(unsigned short event)
 		activate_fileselect(FILE_SPECIAL, "LOAD UI FONT", buf, set_interface_font);
 		break;
 
-	case B_SETLANGUAGE: 	/* is button from space.c  *info* */
+	case B_SETLANGUAGE:		/* is button from space.c  *info* */
 		lang_setlanguage();
 		allqueue(REDRAWALL, 0);
 		break;
 
-	case B_SETFONTSIZE: 	/* is button from space.c  *info* */
+	case B_SETFONTSIZE:		/* is button from space.c  *info* */
 		FTF_SetSize(U.fontsize);
 		allqueue(REDRAWALL, 0);
 		break;
 		
-	case B_SETTRANSBUTS: 	/* is button from space.c  *info* */
+	case B_SETTRANSBUTS:	/* is button from space.c  *info* */
 		allqueue(REDRAWALL, 0);
 		break;
 
-	case B_DOLANGUIFONT: 	/* is button from space.c  *info* */
+	case B_DOLANGUIFONT:	/* is button from space.c  *info* */
 		if(U.transopts & TR_ALL)
 			start_interface_font();
 		else
@@ -2113,7 +2113,7 @@ Scene *copy_scene(Scene *sce, int level)
 	G.scene= scen;
 	single_object_users(0);
 
-	/*  camera */
+	/*	camera */
 	ID_NEW(G.scene->camera);
 		
 	/* level 2 */
@@ -2296,7 +2296,7 @@ void do_info_buttons(unsigned short event)
 }
 
 /* strubi shamelessly abused the status line as a progress bar... 
-   feel free to kill him after release */
+	 feel free to kill him after release */
 
 static int	g_progress_bar = 0;
 static char *g_progress_info = 0;
@@ -2377,7 +2377,7 @@ static void check_packAll()
 			break;
 		}
 		ima= ima->id.next;
-   	}
+		}
 	
 	if (ima == 0 || okee("Some images are painted on. These changes will be lost. Continue ?")) {
 		packAll();
@@ -2491,7 +2491,7 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "runtime_options", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_optionsmenu, NULL);
-	uiBlockSetXOfs(block,-40);  // offset to parent button
+	uiBlockSetXOfs(block,-40);	// offset to parent button
 	uiBlockSetCol(block, MENUCOL);
 	
 	/* flags are case-values */
@@ -2530,7 +2530,7 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 	uiBlockSetEmboss(block, UI_EMBOSSW);
 
 	uiDefBut(block, LABEL, 0, "Size options:",		xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,    &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,		&G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
 	uiDefButS(block, NUM, 0, "Y:",		xco+19, yco-=20, 95, 19, &G.scene->r.yplay, 10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
 
 	uiDefBut(block, SEPR, 0, "",		xco, yco-=4, 114, 4, NULL, 0.0, 0.0, 0, 0, "");
@@ -2545,10 +2545,10 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 	/* stereo settings */
 	/* can't use any definition from the game engine here so hardcode it. Change it here when it changes there!
 	 * RAS_IRasterizer has definitions:
-	 * RAS_STEREO_NOSTEREO     1
+	 * RAS_STEREO_NOSTEREO		 1
 	 * RAS_STEREO_QUADBUFFERED 2
-	 * RAS_STEREO_ABOVEBELOW   3
-	 * RAS_STEREO_INTERLACED   4   future
+	 * RAS_STEREO_ABOVEBELOW	 3
+	 * RAS_STEREO_INTERLACED	 4	 future
 	 */
 	uiDefBut(block, LABEL, 0, "Stereo options", xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, ROW, 0, "no stereo", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 1.0, 0, 0, "Disables stereo");
@@ -2573,7 +2573,7 @@ static void do_info_file_importmenu(void *arg, int event)
 
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
-	              	
+									
 	case 0:
 		break;
 	}
@@ -2609,7 +2609,7 @@ static void do_info_file_exportmenu(void *arg, int event)
 
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
-	              	
+									
 	case 0:
 		write_vrml_fs();
 		break;
@@ -2836,7 +2836,7 @@ static void do_info_add_meshmenu(void *arg, int event)
 
 static uiBlock *info_add_meshmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	
@@ -2852,7 +2852,7 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cylinder|",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tube|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cone|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,  160, 6,  NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	160, 6,  NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grid|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -2893,7 +2893,7 @@ static void do_info_add_curvemenu(void *arg, int event)
 
 static uiBlock *info_add_curvemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	
@@ -2950,7 +2950,7 @@ static void do_info_add_surfacemenu(void *arg, int event)
 
 static uiBlock *info_add_surfacemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	
@@ -3003,7 +3003,7 @@ static void do_info_add_metamenu(void *arg, int event)
 
 static uiBlock *info_add_metamenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short xco= 0;
 	
@@ -3073,7 +3073,7 @@ static void do_info_addmenu(void *arg, int event)
 
 static uiBlock *info_addmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 
@@ -3120,7 +3120,7 @@ static void do_info_gamemenu(void *arg, int event)
 
 static uiBlock *info_gamemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -3137,7 +3137,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	if(G.fileflags & (1 << G_FILE_ENABLE_ALL_FRAMES_BIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
 	} else {
-	       	uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
+					uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
 	}
 
 	if(G.fileflags & (1 << G_FILE_SHOW_FRAMERATE_BIT)) {
@@ -3187,23 +3187,23 @@ static void do_info_timelinemenu(void *arg, int event)
 		/* Show and select Keyframes */
 		if (!ob) error("Select an object before showing and selecting its keyframes");
 		else select_select_keys();
-  		break;
-  	case 3:
+			break;
+		case 3:
 		/* select next keyframe */
 		if (!ob) error("Select an object before selecting its next keyframe");
 		else nextkey_obipo(1);
-  		break;
-  	case 4:
+			break;
+		case 4:
 		/* select previous keyframe */
 		if (!ob) error("Select an object before selecting its previous keyframe");
 		else nextkey_obipo(-1);
 		break;
-  	case 5:
+		case 5:
 		/* next keyframe */
 		if (!ob) error("Select an object before going to its next keyframe");
 		else movekey_obipo(1);
-  		break;
-  	case 6:
+			break;
+		case 6:
 		/* previous keyframe */
 		if (!ob) error("Select an object before going to its previous keyframe");
 		else movekey_obipo(-1);
@@ -3213,7 +3213,7 @@ static void do_info_timelinemenu(void *arg, int event)
 		CFRA++;
 		update_for_newframe();
 		break;
-  	case 8:
+		case 8:
 		/* previous frame */
 		CFRA--;
 		if(CFRA<1) CFRA=1;
@@ -3246,7 +3246,7 @@ static void do_info_timelinemenu(void *arg, int event)
 
 static uiBlock *info_timelinemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -3316,13 +3316,13 @@ static void do_info_rendermenu(void *arg, int event)
 		if(select_area(SPACE_VIEW3D)) {
 			BIF_do_ogl_render(curarea->spacedata.first, 0 );
 		}
-  		break;
-  	case 3:
+			break;
+		case 3:
 		if(select_area(SPACE_VIEW3D)) {
 			BIF_do_ogl_render(curarea->spacedata.first, 1 );
 		}
-  		break;
-  	case 4:
+			break;
+		case 4:
 		BIF_toggle_render_display();
 		break;
 	case 5:
@@ -3359,7 +3359,7 @@ static void do_info_rendermenu(void *arg, int event)
 
 		break;
 
-  	case 7:
+		case 7:
 		extern_set_butspace(F10KEY);
 		break;
 	}
@@ -3368,7 +3368,7 @@ static void do_info_rendermenu(void *arg, int event)
 
 static uiBlock *info_rendermenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -3410,10 +3410,10 @@ static void do_info_help_websitesmenu(void *arg, int event)
 {
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
-	case 0: /*  */
+	case 0: /*	*/
 
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -3475,7 +3475,7 @@ static void do_info_helpmenu(void *arg, int event)
 
 static uiBlock *info_helpmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -3528,12 +3528,12 @@ static void info_text(int x, int y)
 
 
 	if(G.obedit) {
-		sprintf(infostr,"Ve:%d-%d Fa:%d-%d  Mem:%.2fM  ",
+		sprintf(infostr,"Ve:%d-%d Fa:%d-%d	Mem:%.2fM  ",
 		G.totvertsel, G.totvert, G.totfacesel, G.totface,
 		(mem_in_use>>10)/1024.0);
 	}
 	else {
-		sprintf(infostr,"Ve:%d Fa:%d  Ob:%d-%d La:%d  Mem:%.2fM   ",
+		sprintf(infostr,"Ve:%d Fa:%d	Ob:%d-%d La:%d	Mem:%.2fM		",
 			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp,  (mem_in_use>>10)/1024.0);
 	}
 	ob= OBACT;
@@ -3541,7 +3541,7 @@ static void info_text(int x, int y)
 		strcat(infostr, ob->id.name+2);
 	}
 
-	if  (g_progress_bar) {
+	if	(g_progress_bar) {
 		hsize = 4 + (138.0 * g_done);
 		fac1 = 0.5 * g_done; // do some rainbow colours on progress
 		fac2 = 1.0;
@@ -3563,7 +3563,7 @@ static void info_text(int x, int y)
 	swatch_color= hsv_to_cpack(fac1, fac2, fac3);
 
 	cpack( swatch_color );
-	glRecti(x-24,  y-4,  x-24+hsize,  y+13);
+	glRecti(x-24,  y-4,  x-24+hsize,	y+13);
 
 	glColor3ub(0, 0, 0);
 
@@ -3571,7 +3571,7 @@ static void info_text(int x, int y)
 
 	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS), 0);
 		
-	glRasterPos2i(x+120,  y);
+	glRasterPos2i(x+120,	y);
 
 	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS), 0);
 }
@@ -3600,11 +3600,11 @@ void info_buttons(void)
 	if(U.uiflag & FLIPINFOMENU) {
 		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "Enables display of pulldown menus");/* dir   */
+				&(U.uiflag), 0, 0, 0, 0, "Enables display of pulldown menus");/* dir	 */
 	} else {
 		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "Hides pulldown menus");/* dir   */
+				&(U.uiflag), 0, 0, 0, 0, "Hides pulldown menus");/* dir		*/
 	}
 	xco+=XIC;
 
@@ -3690,11 +3690,11 @@ void info_buttons(void)
 	if(U.uiflag & FLIPFULLSCREEN) {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir   */
+				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/
 	} else {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_FULLSCREEN,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir   */
+				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/
 	}
 #endif
 	
@@ -3798,7 +3798,7 @@ void do_layer_buttons(short event)
 		}
 		if(G.qual & LR_SHIFTKEY) {
 			if(G.vd->lay & (1<<event)) G.vd->lay -= (1<<event);
-			else  G.vd->lay += (1<<event);
+			else	G.vd->lay += (1<<event);
 		}
 		do_view3d_buttons(event+B_LAY);
 	}
@@ -3839,7 +3839,7 @@ static void do_view3d_view_cameracontrolsmenu(void *arg, int event)
 
 static uiBlock *view3d_view_cameracontrolsmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -3925,7 +3925,7 @@ static void do_view3d_viewmenu(void *arg, int event)
 
 static uiBlock *view3d_viewmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -4385,7 +4385,7 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 static void do_view3d_edit_object_transformmenu(void *arg, int event)
 {
 	switch(event) {
-	case 0: /*  clear origin */
+	case 0: /*	clear origin */
 		clear_object('o');
 		break;
 	case 1: /* clear size */
@@ -4440,7 +4440,7 @@ static void do_view3d_edit_object_parentmenu(void *arg, int event)
 	case 1: /* make parent */
 		make_parent();
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -4470,7 +4470,7 @@ static void do_view3d_edit_object_trackmenu(void *arg, int event)
 	case 1: /* make track */
 		make_track();
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -4502,7 +4502,7 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 	
 	switch(event) {
 	 
-	case 0: /* transform  properties*/
+	case 0: /* transform	properties*/
 			blenderqread(NKEY, 1);
 		break;
 	case 1: /* delete */
@@ -4625,7 +4625,7 @@ static void do_view3d_edit_propfalloffmenu(void *arg, int event)
 	case 1: /* proportional edit - smooth*/
 		prop_mode = 1;
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -4654,7 +4654,7 @@ static void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 	extern float doublimit;
 	
 	switch(event) {
-	   
+		 
 	case 0: /* make vertex parent */
 		make_parent();
 		break;
@@ -4711,7 +4711,7 @@ static void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	short randfac;
 
 	switch(event) {
-	   
+		 
 	case 0: /* subdivide smooth */
 		subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
 		break;
@@ -4774,7 +4774,7 @@ static void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 	case 4: /* Flip triangle edges */
 		edge_flip();
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -4813,7 +4813,7 @@ static void do_view3d_edit_mesh_normalsmenu(void *arg, int event)
 	case 2: /* recalculate outside */
 		righthandfaces(1);
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -4841,7 +4841,7 @@ static uiBlock *view3d_edit_mesh_normalsmenu(void *arg_unused)
 static void do_view3d_edit_meshmenu(void *arg, int event)
 {
 	switch(event) {
-	              	
+									
 	case 0: /* Undo Editing */
 		remake_editMesh();
 		break;
@@ -4996,7 +4996,7 @@ static void do_view3d_edit_curve_controlpointsmenu(void *arg, int event)
 	case 5: /* make vertex parent */
 		make_parent();
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -5038,7 +5038,7 @@ static void do_view3d_edit_curve_segmentsmenu(void *arg, int event)
 	case 1: /* switch direction */
 		switchdirectionNurb2();
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -5300,7 +5300,7 @@ static void do_view3d_edit_text_charsmenu(void *arg, int event)
 	case 16: /* spanish exclamation mark */
 		do_textedit(0,0,161);
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -5349,7 +5349,7 @@ static uiBlock *view3d_edit_text_charsmenu(void *arg_unused)
 static void do_view3d_edit_textmenu(void *arg, int event)
 {
 	switch(event) {
-	              	
+									
 	case 0: /* Undo Editing */
 		remake_editText();
 		break;
@@ -5401,7 +5401,7 @@ static uiBlock *view3d_edit_textmenu(void *arg_unused)
 static void do_view3d_edit_latticemenu(void *arg, int event)
 {
 	switch(event) {
-	              	
+									
 	case 0: /* Undo Editing */
 		remake_editLatt();
 		break;
@@ -5561,7 +5561,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 {
 	switch(event) {
-	case 0: /*  clear origin */
+	case 0: /*	clear origin */
 		clear_object('o');
 		break;
 	case 1: /* clear size */
@@ -5700,7 +5700,7 @@ static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 	set_lasttface();
 	
 	switch(event) {
-	case 0: /*  textured */
+	case 0: /*	textured */
 		lasttface->mode ^= TF_TEX;
 		break;
 	case 1: /* tiled*/
@@ -5817,7 +5817,7 @@ static uiBlock *view3d_facesel_propertiesmenu(void *arg_unused)
 
 static void do_view3d_faceselmenu(void *arg, int event)
 {
-	/* code copied from buttons.c :(  
+	/* code copied from buttons.c :(	
 		would be nice if it was split up into functions */
 	Mesh *me;
 	Object *ob;
@@ -6193,10 +6193,10 @@ void do_view3d_buttons(short event)
 		if (curarea->spacetype==SPACE_VIEW3D) {
 			BIF_do_ogl_render(curarea->spacedata.first, G.qual!=0 );
 		}
-	 	break;
+		break;
 	case B_STARTGAME:
 		if (select_area(SPACE_VIEW3D)) {
-	    	start_game();
+				start_game();
 		}
 		break;
 	case B_VIEWZOOM:
@@ -6819,14 +6819,14 @@ void ipo_buttons(void)
 	if(ob && give_current_material(ob, ob->actcol)) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_MA, 0, 0, "Displays Material Ipos");
 		if(G.sipo->blocktype==ID_MA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
+			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
 			xco-= 4;
 		}
 	}
 	if(G.scene->world) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_WORLD,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_WO, 0, 0, "Display World Ipos");
 		if(G.sipo->blocktype==ID_WO) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
+			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
 			xco-= 4;
 		}
 	}
@@ -6840,7 +6840,7 @@ void ipo_buttons(void)
 	if(ob && ob->type==OB_LAMP) {
 		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_LAMP,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_LA, 0, 0, "Display Lamp Ipos");
 		if(G.sipo->blocktype==ID_LA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "", 	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
+			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
 			xco-= 4;
 		}
 	}
@@ -6886,8 +6886,8 @@ void ipo_buttons(void)
 	/* EXTRAP */
 	uiDefIconBut(block, BUT, B_IPOCONT, ICON_CONSTANT,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to constant");
 	uiDefIconBut(block, BUT, B_IPOEXTRAP, ICON_LINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to extrapolation");
-	uiDefIconBut(block, BUT, B_IPOCYCLIC, ICON_CYCLIC,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic");
-	uiDefIconBut(block, BUT, B_IPOCYCLICX, ICON_CYCLICLINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,  "Sets the extend mode to cyclic extrapolation");
+	uiDefIconBut(block, BUT, B_IPOCYCLIC, ICON_CYCLIC,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,	"Sets the extend mode to cyclic");
+	uiDefIconBut(block, BUT, B_IPOCYCLICX, ICON_CYCLICLINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,	"Sets the extend mode to cyclic extrapolation");
 	xco+= XIC/2;
 
 	uiClearButLock();
@@ -7072,7 +7072,7 @@ void buttons_active_id(ID **id, ID **idfrom)
 			*id= (ID *)ob;
 		}
 	}
-	else if(G.buts->mainb==CONTEXT_TYPES  || G.buts->mainb==CONTEXT_EDITING) {
+	else if(G.buts->mainb==CONTEXT_TYPES	|| G.buts->mainb==CONTEXT_EDITING) {
 		if(ob && ob->data) {
 			*id= ob->data;
 		}
@@ -7097,7 +7097,7 @@ void buttons_active_id(ID **id, ID **idfrom)
 		} else {
 			*id = G.main->sound.first;
 		}
-		//  printf("id:    %d\n\n", *id);
+		//	printf("id:		 %d\n\n", *id);
 #endif
 	}
 }
@@ -7398,7 +7398,7 @@ void buts_buttons(void)
 			}
 			
 			xco= std_libbuttons(block, xco, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
- 				
+				
 			xco+= XIC;
 		}
 		if(ob) {
@@ -7506,7 +7506,7 @@ void file_buttons(void)
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
 
 	cpack(0x0);
-	glRasterPos2i(xco+=XIC+10,  5);
+	glRasterPos2i(xco+=XIC+10,	5);
 
 	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & TR_BUTTONS), 0);
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & TR_BUTTONS));
@@ -7526,11 +7526,11 @@ void file_buttons(void)
 
 		filesel_statistics(sfile, &totfile, &selfile, &totlen, &sellen);
 		
-		sprintf(naam, "Free: %.3f Mb   Files: (%d) %d    (%.3f) %.3f Mb", 
+		sprintf(naam, "Free: %.3f Mb	 Files: (%d) %d		 (%.3f) %.3f Mb", 
 					df, selfile,totfile, sellen, totlen);
 		
 		cpack(0x0);
-		glRasterPos2i(xco,  5);
+		glRasterPos2i(xco,	5);
 
 		BIF_DrawString(uiBlockGetCurFont(block), naam, 0, 0);
 	}
@@ -7628,7 +7628,7 @@ void oops_buttons(void)
 		else strcpy(naam, oops->id->name);
 		
 		cpack(0x0);
-		glRasterPos2i(xco+=XIC+10,  5);
+		glRasterPos2i(xco+=XIC+10,	5);
 		BMF_DrawString(uiBlockGetCurFont(block), naam);
 
 	}
@@ -7807,7 +7807,7 @@ void text_buttons(void)
 
 
 
-/* ******************** TEXT  ********************** */
+/* ******************** TEXT	********************** */
 /* ******************** SOUND ********************** */
 
 void load_space_sound(char *str)	/* called from fileselect */
@@ -8476,14 +8476,14 @@ void imasel_buttons(void)
 	xco+=XIC;
 	if (simasel->title){
 		xco+=25;
-		glRasterPos2i(xco,  4);
+		glRasterPos2i(xco,	4);
 		BMF_DrawString(G.font, simasel->title);
 		xco+=BMF_GetStringWidth(G.fonts, simasel->title);
 		xco+=25;
 	}
 	uiDefIconBut(block, BUT, B_IMASELREMOVEBIP, ICON_BPIBFOLDER_X, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "");/* remove  */
 	
-	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of directory information");/* dir   */
+	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of directory information");/* dir		*/
 	uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_INFO, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of selected image information");/* info  */
 	uiDefIconButS(block, TOG|BIT|2, B_REDR, ICON_IMAGE_COL, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* image */
 	uiDefIconButS(block, TOG|BIT|3, B_REDR, ICON_MAGNIFY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles magnified view of thumbnail of images under mouse pointer");/* magnify */

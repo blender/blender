@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -74,31 +74,31 @@ static int viewmovetemp = 0;
 
 void do_oops_buttons(short event)
 {
-  float dx, dy;
-  
-  if(curarea->win==0) return;
+	float dx, dy;
+	
+	if(curarea->win==0) return;
 
-  switch(event) {
-  case B_OOPSHOME:
-    boundbox_oops();
-    G.v2d->cur= G.v2d->tot;
-    dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);
-    dy= 0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin);
-    G.v2d->cur.xmin-= dx;
-    G.v2d->cur.xmax+= dx;
-    G.v2d->cur.ymin-= dy;
-    G.v2d->cur.ymax+= dy;   
-    test_view2d(G.v2d, curarea->winx, curarea->winy);
-    scrarea_queue_winredraw(curarea);
-    break;
-    
-  case B_NEWOOPS:
-    scrarea_queue_winredraw(curarea);
-    scrarea_queue_headredraw(curarea);
-    G.soops->lockpoin= 0;
-    break;
-  }
-  
+	switch(event) {
+	case B_OOPSHOME:
+		boundbox_oops();
+		G.v2d->cur= G.v2d->tot;
+		dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);
+		dy= 0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin);
+		G.v2d->cur.xmin-= dx;
+		G.v2d->cur.xmax+= dx;
+		G.v2d->cur.ymin-= dy;
+		G.v2d->cur.ymax+= dy;		
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
+		break;
+
+	case B_NEWOOPS:
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+		G.soops->lockpoin= 0;
+		break;
+	}
+
 }
 
 void oops_buttons(void)
@@ -156,7 +156,7 @@ void oops_buttons(void)
 		else strcpy(naam, oops->id->name);
 		
 		cpack(0x0);
-		glRasterPos2i(xco+=XIC+10,  5);
+		glRasterPos2i(xco+=XIC+10,	5);
 		BMF_DrawString(uiBlockGetCurFont(block), naam);
 
 	}

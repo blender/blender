@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -77,93 +77,93 @@
 
 void do_sound_buttons(unsigned short event)
 {
-  ID *id, *idtest;
-  int nr;
-  char name[256];
+	ID *id, *idtest;
+	int nr;
+	char name[256];
 
-  switch(event) {
+	switch(event) {
 
-  case B_SOUNDBROWSE: 
-    if(G.ssound->sndnr== -2) {
-      activate_databrowse((ID *)G.ssound->sound, ID_SO, 0,
-                      B_SOUNDBROWSE, &G.ssound->sndnr, do_sound_buttons);
-      return;
-    }
-    if (G.ssound->sndnr < 0) break;
-    if (G.ssound->sndnr == 32766) {
-      if (G.ssound && G.ssound->sound) strcpy(name, G.ssound->sound->name);
-      else strcpy(name, U.sounddir);
-      activate_fileselect(FILE_SPECIAL, "SELECT WAV FILE", name,
-                      load_space_sound);
-    } else {
-      nr= 1;
-      id= (ID *)G.ssound->sound;
+	case B_SOUNDBROWSE: 
+		if(G.ssound->sndnr== -2) {
+			activate_databrowse((ID *)G.ssound->sound, ID_SO, 0,
+											B_SOUNDBROWSE, &G.ssound->sndnr, do_sound_buttons);
+			return;
+		}
+		if (G.ssound->sndnr < 0) break;
+		if (G.ssound->sndnr == 32766) {
+			if (G.ssound && G.ssound->sound) strcpy(name, G.ssound->sound->name);
+			else strcpy(name, U.sounddir);
+			activate_fileselect(FILE_SPECIAL, "SELECT WAV FILE", name,
+											load_space_sound);
+		} else {
+			nr= 1;
+			id= (ID *)G.ssound->sound;
 
-      idtest= G.main->sound.first;
-      while(idtest) {
-        if(nr==G.ssound->sndnr) {
-          break;
-        }
-        nr++;
-        idtest= idtest->next;
-      }
+			idtest= G.main->sound.first;
+			while(idtest) {
+				if(nr==G.ssound->sndnr) {
+					break;
+				}
+				nr++;
+				idtest= idtest->next;
+			}
 
-      if(idtest==0) { /* no new */
-        return;
-      }
+			if(idtest==0) { /* no new */
+				return;
+			}
 
-      if(idtest!=id) {
-        G.ssound->sound= (bSound *)idtest;
-        if(idtest->us==0) idtest->us= 1;
-        allqueue(REDRAWSOUND, 0);
-      }
-    }
+			if(idtest!=id) {
+				G.ssound->sound= (bSound *)idtest;
+				if(idtest->us==0) idtest->us= 1;
+				allqueue(REDRAWSOUND, 0);
+			}
+		}
 
-    break;
-  case B_SOUNDBROWSE2:  
-    id = (ID *)G.buts->lockpoin;
-    if(G.buts->texnr == -2) {
-      activate_databrowse(id, ID_SO, 0, B_SOUNDBROWSE2,
-                      &G.buts->texnr, do_sound_buttons);
-      return;
-    }
-    if (G.buts->texnr < 0) break;
-    if (G.buts->texnr == 32766) {
-      if (id) strcpy(name, ((bSound *)id)->name);
-      else strcpy(name, U.sounddir);
-      activate_fileselect(FILE_SPECIAL, "SELECT WAV FILE",
-                      name, load_sound_buttons);
-    } else {
-      nr= 1;
+		break;
+	case B_SOUNDBROWSE2:	
+		id = (ID *)G.buts->lockpoin;
+		if(G.buts->texnr == -2) {
+			activate_databrowse(id, ID_SO, 0, B_SOUNDBROWSE2,
+											&G.buts->texnr, do_sound_buttons);
+			return;
+		}
+		if (G.buts->texnr < 0) break;
+		if (G.buts->texnr == 32766) {
+			if (id) strcpy(name, ((bSound *)id)->name);
+			else strcpy(name, U.sounddir);
+			activate_fileselect(FILE_SPECIAL, "SELECT WAV FILE",
+											name, load_sound_buttons);
+		} else {
+			nr= 1;
 
-      idtest= G.main->sound.first;
-      while (idtest) {
-        if(nr == G.buts->texnr) {
-          break;
-        }
-        nr++;
-        idtest = idtest->next;
-      }
+			idtest= G.main->sound.first;
+			while (idtest) {
+				if(nr == G.buts->texnr) {
+					break;
+				}
+				nr++;
+				idtest = idtest->next;
+			}
 
-      if (idtest == 0) {  /* geen new */
-        return;
-      }
+			if (idtest == 0) {	/* geen new */
+				return;
+			}
 
-      if (idtest != id) {
-        G.buts->lockpoin = (bSound *)idtest;
-        if(idtest->us==0) idtest->us= 1;
-        //allqueue(REDRAWBUTSSOUND, 0);
-        BIF_preview_changed(G.buts);
-      }
-    }
-    break;
+			if (idtest != id) {
+				G.buts->lockpoin = (bSound *)idtest;
+				if(idtest->us==0) idtest->us= 1;
+				//allqueue(REDRAWBUTSSOUND, 0);
+				BIF_preview_changed(G.buts);
+			}
+		}
+		break;
 
-  case B_SOUNDHOME:
-    G.v2d->cur= G.v2d->tot;
-    test_view2d(G.v2d, curarea->winx, curarea->winy);
-    scrarea_queue_winredraw(curarea);
-    break;
-  }
+	case B_SOUNDHOME:
+		G.v2d->cur= G.v2d->tot;
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
+		break;
+	}
 }
 
 void sound_buttons(void)
@@ -226,35 +226,35 @@ void sound_buttons(void)
 
 void load_space_sound(char *str)
 {
-  bSound *sound;
+	bSound *sound;
 
-  sound= sound_new_sound(str);
-  if (sound) {
-    if (G.ssound) {
-      G.ssound->sound= sound;
-    }
-  } else {
-    error("Not a valid sample: %s", str);
-  }
+	sound= sound_new_sound(str);
+	if (sound) {
+		if (G.ssound) {
+			G.ssound->sound= sound;
+		}
+	} else {
+		error("Not a valid sample: %s", str);
+	}
 
-  allqueue(REDRAWSOUND, 0);
-  allqueue(REDRAWBUTSLOGIC, 0);
+	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWBUTSLOGIC, 0);
 }
 
 void load_sound_buttons(char *str)
 {
-  bSound *sound;
+	bSound *sound;
 
-  sound= sound_new_sound(str);
-  if (sound) {
-    if (curarea && curarea->spacetype==SPACE_BUTS) {
-//      if (G.buts->mainb == BUTS_SOUND) {
-//        G.buts->lockpoin = sound;
-//      }
-    }
-  } else {
-    error("Not a valid sample: %s", str);
-  }
+	sound= sound_new_sound(str);
+	if (sound) {
+		if (curarea && curarea->spacetype==SPACE_BUTS) {
+//			if (G.buts->mainb == BUTS_SOUND) {
+//				G.buts->lockpoin = sound;
+//			}
+		}
+	} else {
+		error("Not a valid sample: %s", str);
+	}
 
-  //allqueue(REDRAWBUTSSOUND, 0);
+	//allqueue(REDRAWBUTSSOUND, 0);
 }

@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -122,106 +122,106 @@ static float g_done;
 
 int start_progress_bar(void)
 {
-  g_progress_bar = 1;
-  return 1;   // we never fail (yet)
+	g_progress_bar = 1;
+	return 1;		// we never fail (yet)
 }
 
 void end_progress_bar(void)
 {
-  g_progress_bar = 0;
+	g_progress_bar = 0;
 }
 
 static void update_progress_bar(float done, char *info)
 {
-  g_done = done;
-  g_progress_info = info;
+	g_done = done;
+	g_progress_info = info;
 }
 
 /** Progress bar
-  'done': a value between 0.0 and 1.0, showing progress
-  'info': a info text what is currently being done
+	'done': a value between 0.0 and 1.0, showing progress
+	'info': a info text what is currently being done
 
-  Make sure that the progress bar is always called with:
-  done = 0.0 first
-    and
-  done = 1.0 last -- or alternatively use:
+	Make sure that the progress bar is always called with:
+	done = 0.0 first
+		and
+	done = 1.0 last -- or alternatively use:
 
-  start_progressbar();
-  do_stuff_and_callback_progress_bar();
-  end_progressbar();
+	start_progressbar();
+	do_stuff_and_callback_progress_bar();
+	end_progressbar();
 */
 
 int progress_bar(float done, char *busy_info)
 {
-  ScrArea *sa;
-  short val; 
+	ScrArea *sa;
+	short val; 
 
-  /* User break (ESC) */
-  while (qtest()) {
-    if (extern_qread(&val) == ESCKEY) 
-      return 0;
-  }
-  if (done == 0.0) {
-    start_progress_bar();
-  } else if (done > 0.99) {
-    end_progress_bar();
-  }
+	/* User break (ESC) */
+	while (qtest()) {
+		if (extern_qread(&val) == ESCKEY) 
+			return 0;
+	}
+	if (done == 0.0) {
+		start_progress_bar();
+	} else if (done > 0.99) {
+		end_progress_bar();
+	}
 
-  sa= G.curscreen->areabase.first;
-  while(sa) {
-    if (sa->spacetype == SPACE_INFO) {
-      update_progress_bar(done, busy_info);
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		if (sa->spacetype == SPACE_INFO) {
+			update_progress_bar(done, busy_info);
 
-      curarea = sa;
+			curarea = sa;
 
-      scrarea_do_headdraw(curarea);
-      areawinset(curarea->win);
-      sa->head_swap= WIN_BACK_OK;
-      screen_swapbuffers();
-    }
-    sa = sa->next;
-  }
-  return 1;
+			scrarea_do_headdraw(curarea);
+			areawinset(curarea->win);
+			sa->head_swap= WIN_BACK_OK;
+			screen_swapbuffers();
+		}
+		sa = sa->next;
+	}
+	return 1;
 }
 /* -- End of progress bar definitions ------- */
 
-extern char videosc_dir[];  /* exotic.c */
+extern char videosc_dir[];	/* exotic.c */
 
 void write_videoscape_fs()
 {
-  if(G.obedit) {
-    error("Can't save Videoscape. Press TAB to leave EditMode");
-  }
-  else {
-    if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
-    activate_fileselect(FILE_SPECIAL, "SAVE VIDEOSCAPE", videosc_dir,
+	if(G.obedit) {
+		error("Can't save Videoscape. Press TAB to leave EditMode");
+	}
+	else {
+		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
+		activate_fileselect(FILE_SPECIAL, "SAVE VIDEOSCAPE", videosc_dir,
 										write_videoscape);
-  }
+	}
 }
 
 void write_vrml_fs()
 {
-  if(G.obedit) {
-    error("Can't save VRML. Press TAB to leave EditMode");
-  }
-  else {
-    if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
-  
-    activate_fileselect(FILE_SPECIAL, "SAVE VRML1", videosc_dir, write_vrml);
-  }  
+	if(G.obedit) {
+		error("Can't save VRML. Press TAB to leave EditMode");
+	}
+	else {
+		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
+	
+		activate_fileselect(FILE_SPECIAL, "SAVE VRML1", videosc_dir, write_vrml);
+	}  
 }
 
 void write_dxf_fs()
 {
-  if(G.obedit) {
-    error("Can't save DXF. Press TAB to leave EditMode");
-  }
-  else {
+	if(G.obedit) {
+		error("Can't save DXF. Press TAB to leave EditMode");
+	}
+	else {
 
-    if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
+		if(videosc_dir[0]==0) strcpy(videosc_dir, G.sce);
 
-    activate_fileselect(FILE_SPECIAL, "SAVE DXF", videosc_dir, write_dxf);  
-  }
+		activate_fileselect(FILE_SPECIAL, "SAVE DXF", videosc_dir, write_dxf);	
+	}
 }
 /* ------------ */
 
@@ -280,290 +280,290 @@ int buttons_do_unpack()
 
 Scene *copy_scene(Scene *sce, int level)
 {
-  /* level 0: al objects shared
-   * level 1: al object-data shared
-   * level 2: full copy
-   */
-  Scene *scen;
-  Base *base, *obase;
+	/* level 0: al objects shared
+	 * level 1: al object-data shared
+	 * level 2: full copy
+	 */
+	Scene *scen;
+	Base *base, *obase;
 
-  /* level 0 */
-  scen= copy_libblock(sce);
-  duplicatelist(&(scen->base), &(sce->base));
-  
-  clear_id_newpoins();
-  
-  id_us_plus((ID *)scen->world);
-  id_us_plus((ID *)scen->set);
+	/* level 0 */
+	scen= copy_libblock(sce);
+	duplicatelist(&(scen->base), &(sce->base));
+	
+	clear_id_newpoins();
+	
+	id_us_plus((ID *)scen->world);
+	id_us_plus((ID *)scen->set);
 
-  scen->ed= 0;
-  scen->radio= 0;
+	scen->ed= 0;
+	scen->radio= 0;
 
-  obase= sce->base.first;
-  base= scen->base.first;
-  while(base) {
-    base->object->id.us++;
-    if(obase==sce->basact) scen->basact= base;
+	obase= sce->base.first;
+	base= scen->base.first;
+	while(base) {
+		base->object->id.us++;
+		if(obase==sce->basact) scen->basact= base;
 
-    obase= obase->next;
-    base= base->next;
-  }
+		obase= obase->next;
+		base= base->next;
+	}
 
-  if(level==0) return scen;
+	if(level==0) return scen;
 
-  /* level 1 */
-  G.scene= scen;
-  single_object_users(0);
+	/* level 1 */
+	G.scene= scen;
+	single_object_users(0);
 
-  /*  camera */
-  ID_NEW(G.scene->camera);
+	/*	camera */
+	ID_NEW(G.scene->camera);
 
-  /* level 2 */
-  if(level>=2) {
-    if(scen->world) {
-      scen->world->id.us--;
-      scen->world= copy_world(scen->world);
-    }
-    single_obdata_users(0);
-    single_mat_users_expand();
-    single_tex_users_expand();
-  }
+	/* level 2 */
+	if(level>=2) {
+		if(scen->world) {
+			scen->world->id.us--;
+			scen->world= copy_world(scen->world);
+		}
+		single_obdata_users(0);
+		single_mat_users_expand();
+		single_tex_users_expand();
+	}
 
-  clear_id_newpoins();
+	clear_id_newpoins();
 
-  BPY_copy_scriptlink(&sce->scriptlink);
+	BPY_copy_scriptlink(&sce->scriptlink);
 
-  // make a private copy of the avicodecdata
+	// make a private copy of the avicodecdata
 
-  if (sce->r.avicodecdata) {
+	if (sce->r.avicodecdata) {
 
-    scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
-    scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
-    scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
-  }
+		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
+		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
+		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
+	}
 
-  // make a private copy of the qtcodecdata
+	// make a private copy of the qtcodecdata
 
-  if (sce->r.qtcodecdata) {
-    scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
-    scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
-  }
+	if (sce->r.qtcodecdata) {
+		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
+	}
 
-  return scen;
+	return scen;
 }
 
 void do_info_buttons(unsigned short event)
 {
-  bScreen *sc, *oldscreen;
-  Scene *sce, *sce1;
-  ScrArea *sa;
-  int nr;
+	bScreen *sc, *oldscreen;
+	Scene *sce, *sce1;
+	ScrArea *sa;
+	int nr;
 
-  switch(event) {
+	switch(event) {
 
-  case B_INFOSCR:   /* menu select screen */
+	case B_INFOSCR:		/* menu select screen */
 
-    if( G.curscreen->screennr== -2) {
-      if(curarea->winy <50) {
-        sa= closest_bigger_area();
-        areawinset(sa->win);
-      }
-      activate_databrowse((ID *)G.curscreen, ID_SCR, 0, B_INFOSCR,
-                      &G.curscreen->screennr, do_info_buttons);
-      return;
-    }
-    if( G.curscreen->screennr < 0) return;
+		if( G.curscreen->screennr== -2) {
+			if(curarea->winy <50) {
+				sa= closest_bigger_area();
+				areawinset(sa->win);
+			}
+			activate_databrowse((ID *)G.curscreen, ID_SCR, 0, B_INFOSCR,
+											&G.curscreen->screennr, do_info_buttons);
+			return;
+		}
+		if( G.curscreen->screennr < 0) return;
 
-    sc= G.main->screen.first;
-    nr= 1;
-    while(sc) {
-      if(nr==G.curscreen->screennr) {
-        if(is_allowed_to_change_screen(sc)) setscreen(sc);
-        else error("Unable to perform function in EditMode");
-        break;
-      }
-      nr++;
-      sc= sc->id.next;
-    }
-    /* last item: NEW SCREEN */
-    if(sc==0) {
-      duplicate_screen();
-    }
-    break;
-  case B_INFODELSCR:
+		sc= G.main->screen.first;
+		nr= 1;
+		while(sc) {
+			if(nr==G.curscreen->screennr) {
+				if(is_allowed_to_change_screen(sc)) setscreen(sc);
+				else error("Unable to perform function in EditMode");
+				break;
+			}
+			nr++;
+			sc= sc->id.next;
+		}
+		/* last item: NEW SCREEN */
+		if(sc==0) {
+			duplicate_screen();
+		}
+		break;
+	case B_INFODELSCR:
 /*do this event only with buttons, so it can never be called with full-window*/
 
-    if(G.curscreen->id.prev) sc= G.curscreen->id.prev;
-    else if(G.curscreen->id.next) sc= G.curscreen->id.next;
-    else return;
-    if(okee("Delete current screen")) {
-      /* find new G.curscreen */
+		if(G.curscreen->id.prev) sc= G.curscreen->id.prev;
+		else if(G.curscreen->id.next) sc= G.curscreen->id.next;
+		else return;
+		if(okee("Delete current screen")) {
+			/* find new G.curscreen */
 
-      oldscreen= G.curscreen;
-      setscreen(sc);    /* this test if sc has a full */
-      unlink_screen(oldscreen);
-      free_libblock(&G.main->screen, oldscreen);
-    }
-    scrarea_queue_headredraw(curarea);
+			oldscreen= G.curscreen;
+			setscreen(sc);		/* this test if sc has a full */
+			unlink_screen(oldscreen);
+			free_libblock(&G.main->screen, oldscreen);
+		}
+		scrarea_queue_headredraw(curarea);
 
-    break;
-  case B_INFOSCE:   /* menu select scene */
+		break;
+	case B_INFOSCE:		/* menu select scene */
 
-    if( G.obedit) {
-      error("Unable to perform function in EditMode");
-      return;
-    }
-    if( G.curscreen->scenenr== -2) {
-      if(curarea->winy <50) {
-        sa= closest_bigger_area();
-        areawinset(sa->win);
-      }
-      activate_databrowse((ID *)G.scene, ID_SCE, 0, B_INFOSCE,
-                      &G.curscreen->scenenr, do_info_buttons);
-      return;
-    }
-    if( G.curscreen->scenenr < 0) return;
+		if( G.obedit) {
+			error("Unable to perform function in EditMode");
+			return;
+		}
+		if( G.curscreen->scenenr== -2) {
+			if(curarea->winy <50) {
+				sa= closest_bigger_area();
+				areawinset(sa->win);
+			}
+			activate_databrowse((ID *)G.scene, ID_SCE, 0, B_INFOSCE,
+											&G.curscreen->scenenr, do_info_buttons);
+			return;
+		}
+		if( G.curscreen->scenenr < 0) return;
 
-    sce= G.main->scene.first;
-    nr= 1;
-    while(sce) {
-      if(nr==G.curscreen->scenenr) {
-        if(sce!=G.scene) set_scene(sce);
-        break;
-      }
-      nr++;
-      sce= sce->id.next;
-    }
-    /* last item: NEW SCENE */
-    if(sce==0) {
-      nr= pupmenu("Add scene%t|Empty|Link Objects|Link ObData|Full Copy");
-      if(nr<= 0) return;
-      if(nr==1) {
-        sce= add_scene(G.scene->id.name+2);
-        sce->r= G.scene->r;
+		sce= G.main->scene.first;
+		nr= 1;
+		while(sce) {
+			if(nr==G.curscreen->scenenr) {
+				if(sce!=G.scene) set_scene(sce);
+				break;
+			}
+			nr++;
+			sce= sce->id.next;
+		}
+		/* last item: NEW SCENE */
+		if(sce==0) {
+			nr= pupmenu("Add scene%t|Empty|Link Objects|Link ObData|Full Copy");
+			if(nr<= 0) return;
+			if(nr==1) {
+				sce= add_scene(G.scene->id.name+2);
+				sce->r= G.scene->r;
 #ifdef _WIN32
-        if (sce->r.avicodecdata) {
-          sce->r.avicodecdata = MEM_dupallocN(G.scene->r.avicodecdata);
-          sce->r.avicodecdata->lpFormat = MEM_dupallocN(G.scene->r.avicodecdata->lpFormat);
-          sce->r.avicodecdata->lpParms = MEM_dupallocN(G.scene->r.avicodecdata->lpParms);
-        }
+				if (sce->r.avicodecdata) {
+					sce->r.avicodecdata = MEM_dupallocN(G.scene->r.avicodecdata);
+					sce->r.avicodecdata->lpFormat = MEM_dupallocN(G.scene->r.avicodecdata->lpFormat);
+					sce->r.avicodecdata->lpParms = MEM_dupallocN(G.scene->r.avicodecdata->lpParms);
+				}
 #endif
 #ifdef WITH_QUICKTIME
-        if (sce->r.qtcodecdata) {
-          sce->r.qtcodecdata = MEM_dupallocN(G.scene->r.qtcodecdata);
-          sce->r.qtcodecdata->cdParms = MEM_dupallocN(G.scene->r.qtcodecdata->cdParms);
-        }
+				if (sce->r.qtcodecdata) {
+					sce->r.qtcodecdata = MEM_dupallocN(G.scene->r.qtcodecdata);
+					sce->r.qtcodecdata->cdParms = MEM_dupallocN(G.scene->r.qtcodecdata->cdParms);
+				}
 #endif
-      }
-      else sce= copy_scene(G.scene, nr-2);
+			}
+			else sce= copy_scene(G.scene, nr-2);
 
-      set_scene(sce);
-    }
-    BIF_preview_changed(G.buts);
+			set_scene(sce);
+		}
+		BIF_preview_changed(G.buts);
 
-    break;
-  case B_INFODELSCE:
+		break;
+	case B_INFODELSCE:
 
-    if(G.scene->id.prev) sce= G.scene->id.prev;
-    else if(G.scene->id.next) sce= G.scene->id.next;
-    else return;
-    if(okee("Delete current scene")) {
+		if(G.scene->id.prev) sce= G.scene->id.prev;
+		else if(G.scene->id.next) sce= G.scene->id.next;
+		else return;
+		if(okee("Delete current scene")) {
 
-      /* check all sets */
-      sce1= G.main->scene.first;
-      while(sce1) {
-        if(sce1->set == G.scene) sce1->set= 0;
-        sce1= sce1->id.next;
-      }
+			/* check all sets */
+			sce1= G.main->scene.first;
+			while(sce1) {
+				if(sce1->set == G.scene) sce1->set= 0;
+				sce1= sce1->id.next;
+			}
 
-      /* check all sequences */
-      clear_scene_in_allseqs(G.scene);
+			/* check all sequences */
+			clear_scene_in_allseqs(G.scene);
 
-      /* al screens */
-      sc= G.main->screen.first;
-      while(sc) {
-        if(sc->scene == G.scene) sc->scene= sce;
-        sc= sc->id.next;
-      }
-      free_libblock(&G.main->scene, G.scene);
-      set_scene(sce);
-    }
+			/* al screens */
+			sc= G.main->screen.first;
+			while(sc) {
+				if(sc->scene == G.scene) sc->scene= sce;
+				sc= sc->id.next;
+			}
+			free_libblock(&G.main->scene, G.scene);
+			set_scene(sce);
+		}
 
-    break;
-  case B_FILEMENU:
-    tbox_setmain(9);
-    toolbox();
-    break;
-  }
+		break;
+	case B_FILEMENU:
+		tbox_setmain(9);
+		toolbox();
+		break;
+	}
 }
 
 static void check_packAll()
 {
-  // first check for dirty images
-  Image *ima;
+	// first check for dirty images
+	Image *ima;
 
-  ima = G.main->image.first;
-  while (ima) {
-    if (ima->ibuf && (ima->ibuf->userflags &= IB_BITMAPDIRTY)) {
-      break;
-    }
-    ima= ima->id.next;
-    }
-  
-  if (ima == 0 || okee("Some images are painted on. These changes will be lost. Continue ?")) {
-    packAll();
-    G.fileflags |= G_AUTOPACK;
-  }
+	ima = G.main->image.first;
+	while (ima) {
+		if (ima->ibuf && (ima->ibuf->userflags &= IB_BITMAPDIRTY)) {
+			break;
+		}
+		ima= ima->id.next;
+		}
+	
+	if (ima == 0 || okee("Some images are painted on. These changes will be lost. Continue ?")) {
+		packAll();
+		G.fileflags |= G_AUTOPACK;
+	}
 }
 
 int write_runtime(char *str, char *exename)
 {
-  char *freestr= NULL;
-  char *ext = 0;
+	char *freestr= NULL;
+	char *ext = 0;
 
 #ifdef _WIN32
-  ext = ".exe";
+	ext = ".exe";
 #endif
 
 #ifdef __APPLE__
-  ext = ".app";
+	ext = ".app";
 #endif
-  if (ext && (!BLI_testextensie(str, ext))) {
-    freestr= MEM_mallocN(strlen(str) + strlen(ext) + 1, "write_runtime_check");
-    strcpy(freestr, str);
-    strcat(freestr, ext);
-    str= freestr;
-  }
+	if (ext && (!BLI_testextensie(str, ext))) {
+		freestr= MEM_mallocN(strlen(str) + strlen(ext) + 1, "write_runtime_check");
+		strcpy(freestr, str);
+		strcat(freestr, ext);
+		str= freestr;
+	}
 
-  if (!BLI_exists(str) || saveover(str))
-    BLO_write_runtime(str, exename);
+	if (!BLI_exists(str) || saveover(str))
+		BLO_write_runtime(str, exename);
 
-  if (freestr)
-    MEM_freeN(freestr);
+	if (freestr)
+		MEM_freeN(freestr);
  
-  return 0;
+	return 0;
 }
 
 static void write_runtime_check_dynamic(char *str) 
 {
-  write_runtime(str, "blenderdynplayer.exe");
+	write_runtime(str, "blenderdynplayer.exe");
 }
 
 static void write_runtime_check(char *str) 
 {
-  char player[128];
+	char player[128];
 
-  strcpy(player, "blenderplayer");
+	strcpy(player, "blenderplayer");
 
 #ifdef _WIN32
-  strcat(player, ".exe");
+	strcat(player, ".exe");
 #endif
 
 #ifdef __APPLE__
-  strcat(player, ".app");
+	strcat(player, ".app");
 #endif
 
-  write_runtime(str, player);
+	write_runtime(str, player);
 }
 /* end keyed functions */
 
@@ -585,7 +585,7 @@ static uiBlock *info_file_optionsmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "runtime_options", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_file_optionsmenu, NULL);
-	uiBlockSetXOfs(block,-40);  // offset to parent button
+	uiBlockSetXOfs(block,-40);	// offset to parent button
 	uiBlockSetCol(block, MENUCOL);
 	
 	/* flags are case-values */
@@ -624,7 +624,7 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 	uiBlockSetEmboss(block, UI_EMBOSSW);
 
 	uiDefBut(block, LABEL, 0, "Size options:",		xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,    &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,		&G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
 	uiDefButS(block, NUM, 0, "Y:",		xco+19, yco-=20, 95, 19, &G.scene->r.yplay, 10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
 
 	uiDefBut(block, SEPR, 0, "",		xco, yco-=4, 114, 4, NULL, 0.0, 0.0, 0, 0, "");
@@ -639,10 +639,10 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 	/* stereo settings */
 	/* can't use any definition from the game engine here so hardcode it. Change it here when it changes there!
 	 * RAS_IRasterizer has definitions:
-	 * RAS_STEREO_NOSTEREO     1
+	 * RAS_STEREO_NOSTEREO		 1
 	 * RAS_STEREO_QUADBUFFERED 2
-	 * RAS_STEREO_ABOVEBELOW   3
-	 * RAS_STEREO_INTERLACED   4   future
+	 * RAS_STEREO_ABOVEBELOW	 3
+	 * RAS_STEREO_INTERLACED	 4	 future
 	 */
 	uiDefBut(block, LABEL, 0, "Stereo options", xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, ROW, 0, "no stereo", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 1.0, 0, 0, "Disables stereo");
@@ -667,7 +667,7 @@ static void do_info_file_importmenu(void *arg, int event)
 
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
-	              	
+									
 	case 0:
 		break;
 	}
@@ -703,7 +703,7 @@ static void do_info_file_exportmenu(void *arg, int event)
 
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
-	              	
+									
 	case 0:
 		write_vrml_fs();
 		break;
@@ -927,7 +927,7 @@ static void do_info_add_meshmenu(void *arg, int event)
 
 static uiBlock *info_add_meshmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	
@@ -943,7 +943,7 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cylinder|",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tube|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cone|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,  160, 6,  NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	160, 6,  NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grid|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -984,7 +984,7 @@ static void do_info_add_curvemenu(void *arg, int event)
 
 static uiBlock *info_add_curvemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	
@@ -1041,7 +1041,7 @@ static void do_info_add_surfacemenu(void *arg, int event)
 
 static uiBlock *info_add_surfacemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	
@@ -1094,7 +1094,7 @@ static void do_info_add_metamenu(void *arg, int event)
 
 static uiBlock *info_add_metamenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short xco= 0;
 	
@@ -1164,7 +1164,7 @@ static void do_info_addmenu(void *arg, int event)
 
 static uiBlock *info_addmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 
@@ -1211,7 +1211,7 @@ static void do_info_gamemenu(void *arg, int event)
 
 static uiBlock *info_gamemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -1228,7 +1228,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	if(G.fileflags & (1 << G_FILE_ENABLE_ALL_FRAMES_BIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
 	} else {
-	       	uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
+					uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
 	}
 
 	if(G.fileflags & (1 << G_FILE_SHOW_FRAMERATE_BIT)) {
@@ -1278,23 +1278,23 @@ static void do_info_timelinemenu(void *arg, int event)
 		/* Show and select Keyframes */
 		if (!ob) error("Select an object before showing and selecting its keyframes");
 		else select_select_keys();
-  		break;
-  	case 3:
+			break;
+		case 3:
 		/* select next keyframe */
 		if (!ob) error("Select an object before selecting its next keyframe");
 		else nextkey_obipo(1);
-  		break;
-  	case 4:
+			break;
+		case 4:
 		/* select previous keyframe */
 		if (!ob) error("Select an object before selecting its previous keyframe");
 		else nextkey_obipo(-1);
 		break;
-  	case 5:
+		case 5:
 		/* next keyframe */
 		if (!ob) error("Select an object before going to its next keyframe");
 		else movekey_obipo(1);
-  		break;
-  	case 6:
+			break;
+		case 6:
 		/* previous keyframe */
 		if (!ob) error("Select an object before going to its previous keyframe");
 		else movekey_obipo(-1);
@@ -1304,7 +1304,7 @@ static void do_info_timelinemenu(void *arg, int event)
 		CFRA++;
 		update_for_newframe();
 		break;
-  	case 8:
+		case 8:
 		/* previous frame */
 		CFRA--;
 		if(CFRA<1) CFRA=1;
@@ -1337,7 +1337,7 @@ static void do_info_timelinemenu(void *arg, int event)
 
 static uiBlock *info_timelinemenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -1408,13 +1408,13 @@ static void do_info_rendermenu(void *arg, int event)
 		if(select_area(SPACE_VIEW3D)) {
 			BIF_do_ogl_render(curarea->spacedata.first, 0 );
 		}
-  		break;
-  	case 3:
+			break;
+		case 3:
 		if(select_area(SPACE_VIEW3D)) {
 			BIF_do_ogl_render(curarea->spacedata.first, 1 );
 		}
-  		break;
-  	case 4:
+			break;
+		case 4:
 		BIF_toggle_render_display();
 		break;
 	case 5:
@@ -1451,7 +1451,7 @@ static void do_info_rendermenu(void *arg, int event)
 
 		break;
 
-  	case 7:
+		case 7:
 		extern_set_butspace(F10KEY);
 		break;
 	}
@@ -1460,7 +1460,7 @@ static void do_info_rendermenu(void *arg, int event)
 
 static uiBlock *info_rendermenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -1502,10 +1502,10 @@ static void do_info_help_websitesmenu(void *arg, int event)
 {
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
-	case 0: /*  */
+	case 0: /*	*/
 
 		break;
-  	}
+		}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1567,7 +1567,7 @@ static void do_info_helpmenu(void *arg, int event)
 
 static uiBlock *info_helpmenu(void *arg_unused)
 {
-/*  	static short tog=0; */
+/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
@@ -1618,12 +1618,12 @@ static void info_text(int x, int y)
 
 
 	if(G.obedit) {
-		sprintf(infostr,"Ve:%d-%d Fa:%d-%d  Mem:%.2fM  ",
+		sprintf(infostr,"Ve:%d-%d Fa:%d-%d	Mem:%.2fM  ",
 		G.totvertsel, G.totvert, G.totfacesel, G.totface,
 		(mem_in_use>>10)/1024.0);
 	}
 	else {
-		sprintf(infostr,"Ve:%d Fa:%d  Ob:%d-%d La:%d  Mem:%.2fM   ",
+		sprintf(infostr,"Ve:%d Fa:%d	Ob:%d-%d La:%d	Mem:%.2fM	  ",
 			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp,  (mem_in_use>>10)/1024.0);
 	}
 	ob= OBACT;
@@ -1631,7 +1631,7 @@ static void info_text(int x, int y)
 		strcat(infostr, ob->id.name+2);
 	}
 
-	if  (g_progress_bar) {
+	if	(g_progress_bar) {
 		hsize = 4 + (138.0 * g_done);
 		fac1 = 0.5 * g_done; // do some rainbow colours on progress
 		fac2 = 1.0;
@@ -1653,7 +1653,7 @@ static void info_text(int x, int y)
 	swatch_color= hsv_to_cpack(fac1, fac2, fac3);
 
 	cpack( swatch_color );
-	glRecti(x-24,  y-4,  x-24+hsize,  y+13);
+	glRecti(x-24,  y-4,  x-24+hsize,	y+13);
 
 	glColor3ub(0, 0, 0);
 
@@ -1661,7 +1661,7 @@ static void info_text(int x, int y)
 
 	BIF_DrawString(G.font, headerstr, (U.transopts & TR_MENUS), 0);
 		
-	glRasterPos2i(x+120,  y);
+	glRasterPos2i(x+120,	y);
 
 	BIF_DrawString(G.font, infostr, (U.transopts & TR_MENUS), 0);
 }
@@ -1680,11 +1680,11 @@ void info_buttons(void)
 	if(U.uiflag & FLIPINFOMENU) {
 		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "Enables display of pulldown menus");/* dir   */
+				&(U.uiflag), 0, 0, 0, 0, "Enables display of pulldown menus");/* dir	 */
 	} else {
 		uiDefIconButS(block, TOG|BIT|6, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
-				&(U.uiflag), 0, 0, 0, 0, "Hides pulldown menus");/* dir   */
+				&(U.uiflag), 0, 0, 0, 0, "Hides pulldown menus");/* dir		*/
 	}
 	xco+=XIC;
 
@@ -1770,11 +1770,11 @@ void info_buttons(void)
 	if(U.uiflag & FLIPFULLSCREEN) {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_WINDOW,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir   */
+				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/
 	} else {
 		uiDefIconBut(block, BUT, B_FLIPFULLSCREEN, ICON_WINDOW_FULLSCREEN,
 				(short)(curarea->winx-(XIC*2)-2), 0,XIC,YIC,
-				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir   */
+				0, 0, 0, 0, 0, "Toggles Blender to fullscreen mode");/* dir		*/
 	}
 #endif
 	

@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -87,268 +87,268 @@
 
 #include "TPT_DependKludge.h"
 
-void load_space_image(char *str)  /* called from fileselect */
+void load_space_image(char *str)	/* called from fileselect */
 {
-  Image *ima=0;
+	Image *ima=0;
  
-  if(G.obedit) {
-    error("Can't perfom this in editmode");
-    return;
-  }
+	if(G.obedit) {
+		error("Can't perfom this in editmode");
+		return;
+	}
 
-  ima= add_image(str);
-  if(ima) {
+	ima= add_image(str);
+	if(ima) {
 
-    G.sima->image= ima;
+		G.sima->image= ima;
 
-    free_image_buffers(ima);  /* force read again */
-    ima->ok= 1;
-    image_changed(G.sima, 0);
+		free_image_buffers(ima);	/* force read again */
+		ima->ok= 1;
+		image_changed(G.sima, 0);
 
-  }
+	}
 
-  allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWIMAGE, 0);
 }
 
 void image_replace(Image *old, Image *new)
 {
-  TFace *tface;
-  Mesh *me;
-  int a, rep=0;
+	TFace *tface;
+	Mesh *me;
+	int a, rep=0;
  
-  new->tpageflag= old->tpageflag;
-  new->twsta= old->twsta;
-  new->twend= old->twend;
-  new->xrep= old->xrep;
-  new->yrep= old->yrep;
+	new->tpageflag= old->tpageflag;
+	new->twsta= old->twsta;
+	new->twend= old->twend;
+	new->xrep= old->xrep;
+	new->yrep= old->yrep;
  
-  me= G.main->mesh.first;
-  while(me) {
+	me= G.main->mesh.first;
+	while(me) {
 
-    if(me->tface) {
-      tface= me->tface;
-      a= me->totface;
-      while(a--) {
-        if(tface->tpage==old) {
-          tface->tpage= new;
-          rep++;
-        }
-        tface++;
-      }
-    }
-    me= me->id.next;
+		if(me->tface) {
+			tface= me->tface;
+			a= me->totface;
+			while(a--) {
+				if(tface->tpage==old) {
+					tface->tpage= new;
+					rep++;
+				}
+				tface++;
+			}
+		}
+		me= me->id.next;
  
-  }
-  if(rep) {
-    if(new->id.us==0) new->id.us= 1;
-  }
-  else error("Nothing replaced");
+	}
+	if(rep) {
+		if(new->id.us==0) new->id.us= 1;
+	}
+	else error("Nothing replaced");
 }
 
-void replace_space_image(char *str)   /* called from fileselect */
+void replace_space_image(char *str)		/* called from fileselect */
 {
-  Image *ima=0;
+	Image *ima=0;
 
-  if(G.obedit) {
-    error("Can't perfom this in editmode");
-    return;
-  }
+	if(G.obedit) {
+		error("Can't perfom this in editmode");
+		return;
+	}
 
-  ima= add_image(str);
-  if(ima) {
+	ima= add_image(str);
+	if(ima) {
  
-    if(G.sima->image != ima) {
-      image_replace(G.sima->image, ima);
-    }
+		if(G.sima->image != ima) {
+			image_replace(G.sima->image, ima);
+		}
  
-    G.sima->image= ima;
+		G.sima->image= ima;
 
-    free_image_buffers(ima);  /* force read again */
-    ima->ok= 1;
-    /* replace also assigns: */
-    image_changed(G.sima, 0);
+		free_image_buffers(ima);	/* force read again */
+		ima->ok= 1;
+		/* replace also assigns: */
+		image_changed(G.sima, 0);
 
-  }
-  allqueue(REDRAWIMAGE, 0);
+	}
+	allqueue(REDRAWIMAGE, 0);
 }
 
 void save_paint(char *name)
 {
-  char str[FILE_MAXDIR+FILE_MAXFILE];
-  Image *ima = G.sima->image;
-  ImBuf *ibuf;
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+	Image *ima = G.sima->image;
+	ImBuf *ibuf;
 
-  if (ima  && ima->ibuf) {
-    BLI_strncpy(str, name, sizeof(str));
+	if (ima  && ima->ibuf) {
+		BLI_strncpy(str, name, sizeof(str));
 
-    BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 
-    if (saveover(str)) {
-      ibuf = IMB_dupImBuf(ima->ibuf);
+		if (saveover(str)) {
+			ibuf = IMB_dupImBuf(ima->ibuf);
 
-      if (ibuf) {
-        if (BIF_write_ibuf(ibuf, str)) {
-          BLI_strncpy(ima->name, name, sizeof(ima->name));
-          ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
-          allqueue(REDRAWHEADERS, 0);
-          allqueue(REDRAWBUTSSHADING, 0);
-        } else {
-          error("Couldn't write image: %s", str);
-        }
+			if (ibuf) {
+				if (BIF_write_ibuf(ibuf, str)) {
+					BLI_strncpy(ima->name, name, sizeof(ima->name));
+					ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
+					allqueue(REDRAWHEADERS, 0);
+					allqueue(REDRAWBUTSSHADING, 0);
+				} else {
+					error("Couldn't write image: %s", str);
+				}
 
-        IMB_freeImBuf(ibuf);
-      }
-    }
-  }
+				IMB_freeImBuf(ibuf);
+			}
+		}
+	}
 }
 
 void do_image_buttons(unsigned short event)
 {
-  Image *ima;
-  ID *id, *idtest;
-  int nr;
-  char name[256], str[256];
+	Image *ima;
+	ID *id, *idtest;
+	int nr;
+	char name[256], str[256];
 
-  if(curarea->win==0) return;
+	if(curarea->win==0) return;
 
-  switch(event) {
-  case B_SIMAGEHOME:
-    image_home();
-    break;
+	switch(event) {
+	case B_SIMAGEHOME:
+		image_home();
+		break;
 
-  case B_SIMABROWSE:  
-    if(G.sima->imanr== -2) {
-      activate_databrowse((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
-                      &G.sima->imanr, do_image_buttons);
-      return;
-    }
-    if(G.sima->imanr < 0) break;
-  
-    nr= 1;
-    id= (ID *)G.sima->image;
+	case B_SIMABROWSE:	
+		if(G.sima->imanr== -2) {
+			activate_databrowse((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
+											&G.sima->imanr, do_image_buttons);
+			return;
+		}
+		if(G.sima->imanr < 0) break;
+	
+		nr= 1;
+		id= (ID *)G.sima->image;
 
-    idtest= G.main->image.first;
-    while(idtest) {
-      if(nr==G.sima->imanr) {
-        break;
-      }
-      nr++;
-      idtest= idtest->next;
-    }
-    if(idtest==0) { /* no new */
-      return;
-    }
-  
-    if(idtest!=id) {
-      G.sima->image= (Image *)idtest;
-      if(idtest->us==0) idtest->us= 1;
-      allqueue(REDRAWIMAGE, 0);
-    }
-    /* also when image is the same: assign! 0==no tileflag: */
-    image_changed(G.sima, 0);
+		idtest= G.main->image.first;
+		while(idtest) {
+			if(nr==G.sima->imanr) {
+				break;
+			}
+			nr++;
+			idtest= idtest->next;
+		}
+		if(idtest==0) { /* no new */
+			return;
+		}
+	
+		if(idtest!=id) {
+			G.sima->image= (Image *)idtest;
+			if(idtest->us==0) idtest->us= 1;
+			allqueue(REDRAWIMAGE, 0);
+		}
+		/* also when image is the same: assign! 0==no tileflag: */
+		image_changed(G.sima, 0);
 
-    break;
-  case B_SIMAGELOAD:
-  case B_SIMAGELOAD1:
-    
-    if(G.sima->image) strcpy(name, G.sima->image->name);
-    else strcpy(name, U.textudir);
-    
-    if(event==B_SIMAGELOAD)
-      activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name,
-                      load_space_image);
-    else
-      activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name,
-                      load_space_image);
-    break;
-  case B_SIMAGEREPLACE:
-  case B_SIMAGEREPLACE1:
-    
-    if(G.sima->image) strcpy(name, G.sima->image->name);
-    else strcpy(name, U.textudir);
-    
-    if(event==B_SIMAGEREPLACE)
-      activate_imageselect(FILE_SPECIAL, "REPLACE IMAGE", name,
-                      replace_space_image);
-    else
-      activate_fileselect(FILE_SPECIAL, "REPLACE IMAGE", name,
-                      replace_space_image);
-    break;
-  case B_SIMAGEDRAW:
-    
-    if(G.f & G_FACESELECT) {
-      make_repbind(G.sima->image);
-      image_changed(G.sima, 1);
-    }
-    allqueue(REDRAWVIEW3D, 0);
-    allqueue(REDRAWIMAGE, 0);
-    break;
+		break;
+	case B_SIMAGELOAD:
+	case B_SIMAGELOAD1:
+		
+		if(G.sima->image) strcpy(name, G.sima->image->name);
+		else strcpy(name, U.textudir);
+		
+		if(event==B_SIMAGELOAD)
+			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name,
+											load_space_image);
+		else
+			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name,
+											load_space_image);
+		break;
+	case B_SIMAGEREPLACE:
+	case B_SIMAGEREPLACE1:
+		
+		if(G.sima->image) strcpy(name, G.sima->image->name);
+		else strcpy(name, U.textudir);
+		
+		if(event==B_SIMAGEREPLACE)
+			activate_imageselect(FILE_SPECIAL, "REPLACE IMAGE", name,
+											replace_space_image);
+		else
+			activate_fileselect(FILE_SPECIAL, "REPLACE IMAGE", name,
+											replace_space_image);
+		break;
+	case B_SIMAGEDRAW:
+		
+		if(G.f & G_FACESELECT) {
+			make_repbind(G.sima->image);
+			image_changed(G.sima, 1);
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		break;
 
-  case B_SIMAGEDRAW1:
-    image_changed(G.sima, 2);   /* 2: only tileflag */
-    allqueue(REDRAWVIEW3D, 0);
-    allqueue(REDRAWIMAGE, 0);
-    break;
-    
-  case B_TWINANIM:
-    ima = G.sima->image;
-    if (ima) {
-      if(ima->flag & IMA_TWINANIM) {
-        nr= ima->xrep*ima->yrep;
-        if(ima->twsta>=nr) ima->twsta= 1;
-        if(ima->twend>=nr) ima->twend= nr-1;
-        if(ima->twsta>ima->twend) ima->twsta= 1;
-        allqueue(REDRAWIMAGE, 0);
-      }
-    }
-    break;
+	case B_SIMAGEDRAW1:
+		image_changed(G.sima, 2);		/* 2: only tileflag */
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_TWINANIM:
+		ima = G.sima->image;
+		if (ima) {
+			if(ima->flag & IMA_TWINANIM) {
+				nr= ima->xrep*ima->yrep;
+				if(ima->twsta>=nr) ima->twsta= 1;
+				if(ima->twend>=nr) ima->twend= nr-1;
+				if(ima->twsta>ima->twend) ima->twsta= 1;
+				allqueue(REDRAWIMAGE, 0);
+			}
+		}
+		break;
 
-  case B_CLIP_UV:
-    tface_do_clip();
-    allqueue(REDRAWIMAGE, 0);
-    allqueue(REDRAWVIEW3D, 0);
-    break;
+	case B_CLIP_UV:
+		tface_do_clip();
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 
-  case B_SIMAGEPAINTTOOL:
-    // check for packed file here
-    allqueue(REDRAWIMAGE, 0);
-    allqueue(REDRAWVIEW3D, 0);
-    break;
-  case B_SIMAPACKIMA:
-    ima = G.sima->image;
-    if (ima) {
-      if (ima->packedfile) {
-        if (G.fileflags & G_AUTOPACK) {
-          if (okee("Disable AutoPack ?")) {
-            G.fileflags &= ~G_AUTOPACK;
-          }
-        }
-        
-        if ((G.fileflags & G_AUTOPACK) == 0) {
-          unpackImage(ima, PF_ASK);
-        }
-      } else {
-        if (ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY)) {
-          error("Can't pack painted image. Save image first.");
-        } else {
-          ima->packedfile = newPackedFile(ima->name);
-        }
-      }
-      allqueue(REDRAWBUTSSHADING, 0);
-      allqueue(REDRAWHEADERS, 0);
-    }
-    break;
-  case B_SIMAGESAVE:
-    ima = G.sima->image;
-    if (ima) {
-      strcpy(name, ima->name);
-      if (ima->ibuf) {
-        save_image_filesel_str(str);
-        activate_fileselect(FILE_SPECIAL, str, name, save_paint);
-      }
-    }
-    break;
-  }
+	case B_SIMAGEPAINTTOOL:
+		// check for packed file here
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_SIMAPACKIMA:
+		ima = G.sima->image;
+		if (ima) {
+			if (ima->packedfile) {
+				if (G.fileflags & G_AUTOPACK) {
+					if (okee("Disable AutoPack ?")) {
+						G.fileflags &= ~G_AUTOPACK;
+					}
+				}
+				
+				if ((G.fileflags & G_AUTOPACK) == 0) {
+					unpackImage(ima, PF_ASK);
+				}
+			} else {
+				if (ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY)) {
+					error("Can't pack painted image. Save image first.");
+				} else {
+					ima->packedfile = newPackedFile(ima->name);
+				}
+			}
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWHEADERS, 0);
+		}
+		break;
+	case B_SIMAGESAVE:
+		ima = G.sima->image;
+		if (ima) {
+			strcpy(name, ima->name);
+			if (ima->ibuf) {
+				save_image_filesel_str(str);
+				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
+			}
+		}
+		break;
+	}
 }
 
 /* This should not be a stack var! */

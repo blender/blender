@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -71,30 +71,30 @@
 
 void do_imasel_buttons(short event)
 {
-  SpaceImaSel *simasel;
-  char name[256];
-  
-  simasel= curarea->spacedata.first;
-  
-  if(curarea->win==0) return;
+	SpaceImaSel *simasel;
+	char name[256];
+	
+	simasel= curarea->spacedata.first;
+	
+	if(curarea->win==0) return;
 
-  switch(event) {
-  case B_IMASELHOME:
-    break;
-    
-  case B_IMASELREMOVEBIP:
-    
-    if(bitset(simasel->fase, IMS_FOUND_BIP)){
-    
-      strcpy(name, simasel->dir);
-      strcat(name, ".Bpib");
-    
-      remove(name);
-    
-      simasel->fase &= ~ IMS_FOUND_BIP;
-    }
-    break;
-  }
+	switch(event) {
+	case B_IMASELHOME:
+		break;
+		
+	case B_IMASELREMOVEBIP:
+		
+		if(bitset(simasel->fase, IMS_FOUND_BIP)){
+		
+			strcpy(name, simasel->dir);
+			strcat(name, ".Bpib");
+		
+			remove(name);
+		
+			simasel->fase &= ~ IMS_FOUND_BIP;
+		}
+		break;
+	}
 }
 
 void imasel_buttons(void)
@@ -122,14 +122,14 @@ void imasel_buttons(void)
 	xco+=XIC;
 	if (simasel->title){
 		xco+=25;
-		glRasterPos2i(xco,  4);
+		glRasterPos2i(xco,	4);
 		BMF_DrawString(G.font, simasel->title);
 		xco+=BMF_GetStringWidth(G.fonts, simasel->title);
 		xco+=25;
 	}
 	uiDefIconBut(block, BUT, B_IMASELREMOVEBIP, ICON_BPIBFOLDER_X, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "");/* remove  */
 	
-	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of directory information");/* dir   */
+	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of directory information");/* dir		*/
 	uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_INFO, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of selected image information");/* info  */
 	uiDefIconButS(block, TOG|BIT|2, B_REDR, ICON_IMAGE_COL, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* image */
 	uiDefIconButS(block, TOG|BIT|3, B_REDR, ICON_MAGNIFY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles magnified view of thumbnail of images under mouse pointer");/* magnify */

@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -80,78 +80,78 @@
 void do_action_buttons(unsigned short event)
 {
 
-  switch(event){
+	switch(event){
 #ifdef __NLA_BAKE
-  case B_ACTBAKE:
-    bake_action_with_client (G.saction->action, OBACT, 0.01);
-    break;
+	case B_ACTBAKE:
+		bake_action_with_client (G.saction->action, OBACT, 0.01);
+		break;
 #endif
-  case B_ACTCONT:
-    set_exprap_action(IPO_HORIZ);
-    break;
-//  case B_ACTEXTRAP:
-//    set_exprap_ipo(IPO_DIR);
-//    break;
-  case B_ACTCYCLIC:
-    set_exprap_action(IPO_CYCL);
-    break;
-//  case B_ACTCYCLICX:
-//    set_exprap_ipo(IPO_CYCLX);
-//    break;
-  case B_ACTHOME:
-    //  Find X extents
-    //v2d= &(G.saction->v2d);
+	case B_ACTCONT:
+		set_exprap_action(IPO_HORIZ);
+		break;
+//	case B_ACTEXTRAP:
+//		set_exprap_ipo(IPO_DIR);
+//		break;
+	case B_ACTCYCLIC:
+		set_exprap_action(IPO_CYCL);
+		break;
+//	case B_ACTCYCLICX:
+//		set_exprap_ipo(IPO_CYCLX);
+//		break;
+	case B_ACTHOME:
+		//	Find X extents
+		//v2d= &(G.saction->v2d);
 
-    G.v2d->cur.xmin = 0;
-    G.v2d->cur.ymin=-SCROLLB;
-    
-    if (!G.saction->action){  // here the mesh rvk?
-      G.v2d->cur.xmax=100;
-    }
-    else {
-      float extra;
-      G.v2d->cur.xmin= calc_action_start(G.saction->action);
-      G.v2d->cur.xmax= calc_action_end(G.saction->action);
-      extra= 0.05*(G.v2d->cur.xmax - G.v2d->cur.xmin);
-      G.v2d->cur.xmin-= extra;
-      G.v2d->cur.xmax+= extra;
-    }
+		G.v2d->cur.xmin = 0;
+		G.v2d->cur.ymin=-SCROLLB;
 
-    G.v2d->tot= G.v2d->cur;
-    test_view2d(G.v2d, curarea->winx, curarea->winy);
+		if (!G.saction->action){	// here the mesh rvk?
+			G.v2d->cur.xmax=100;
+		}
+		else {
+			float extra;
+			G.v2d->cur.xmin= calc_action_start(G.saction->action);
+			G.v2d->cur.xmax= calc_action_end(G.saction->action);
+			extra= 0.05*(G.v2d->cur.xmax - G.v2d->cur.xmin);
+			G.v2d->cur.xmin-= extra;
+			G.v2d->cur.xmax+= extra;
+		}
+
+		G.v2d->tot= G.v2d->cur;
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
 
 
-    addqueue (curarea->win, REDRAW, 1);
+		addqueue (curarea->win, REDRAW, 1);
 
-    break;
-  case B_ACTCOPY:
-    copy_posebuf();
-    allqueue(REDRAWVIEW3D, 1);
-    break;
-  case B_ACTPASTE:
-    paste_posebuf(0);
-    allqueue(REDRAWVIEW3D, 1);
-    break;
-  case B_ACTPASTEFLIP:
-    paste_posebuf(1);
-    allqueue(REDRAWVIEW3D, 1);
-    break;
+		break;
+	case B_ACTCOPY:
+		copy_posebuf();
+		allqueue(REDRAWVIEW3D, 1);
+		break;
+	case B_ACTPASTE:
+		paste_posebuf(0);
+		allqueue(REDRAWVIEW3D, 1);
+		break;
+	case B_ACTPASTEFLIP:
+		paste_posebuf(1);
+		allqueue(REDRAWVIEW3D, 1);
+		break;
 
-  case B_ACTPIN:  /* __PINFAKE */
-/*    if (G.saction->flag & SACTION_PIN){
-      if (G.saction->action)
-        G.saction->action->id.us ++;
+	case B_ACTPIN:	/* __PINFAKE */
+/*		if (G.saction->flag & SACTION_PIN){
+			if (G.saction->action)
+				G.saction->action->id.us ++;
 
-    }
-    else {
-      if (G.saction->action)
-        G.saction->action->id.us --;
-    }
-*/    /* end PINFAKE */
-    allqueue(REDRAWACTION, 1);
-    break;
+		}
+		else {
+			if (G.saction->action)
+				G.saction->action->id.us --;
+		}
+*/		/* end PINFAKE */
+		allqueue(REDRAWACTION, 1);
+		break;
 
-  }
+	}
 }
 
 void action_buttons(void)

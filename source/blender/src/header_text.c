@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -78,109 +78,109 @@
 
 void do_text_buttons(unsigned short event)
 {
-  SpaceText *st= curarea->spacedata.first;
-  ID *id, *idtest;
-  int nr= 1;
-  Text *text;
-    
-  if (!st) return;
-  if (st->spacetype != SPACE_TEXT) return;
-  
-  switch (event) {
-  case B_TEXTBROWSE:
-    if (st->menunr==-2) {
-      activate_databrowse((ID *)st->text, ID_TXT, 0, B_TEXTBROWSE,
-                      &st->menunr, do_text_buttons);
-      break;
-    }
-    if(st->menunr < 0) break;
-      
-    text= st->text;
+	SpaceText *st= curarea->spacedata.first;
+	ID *id, *idtest;
+	int nr= 1;
+	Text *text;
+		
+	if (!st) return;
+	if (st->spacetype != SPACE_TEXT) return;
+	
+	switch (event) {
+	case B_TEXTBROWSE:
+		if (st->menunr==-2) {
+			activate_databrowse((ID *)st->text, ID_TXT, 0, B_TEXTBROWSE,
+											&st->menunr, do_text_buttons);
+			break;
+		}
+		if(st->menunr < 0) break;
+			
+		text= st->text;
 
-    nr= 1;
-    id= (ID *)text;
-    
-    if (st->menunr==32767) {
-      st->text= (Text *)add_empty_text();
+		nr= 1;
+		id= (ID *)text;
+		
+		if (st->menunr==32767) {
+			st->text= (Text *)add_empty_text();
 
-      st->top= 0;
-      
-      allqueue(REDRAWTEXT, 0);
-      allqueue(REDRAWHEADERS, 0); 
-    }
-    else if (st->menunr==32766) {
-      activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs); 
-      return;
-    }
-    else {    
-      idtest= G.main->text.first;
-      while(idtest) {
-        if(nr==st->menunr) {
-          break;
-        }
-        nr++;
-        idtest= idtest->next;
-      }
-      if(idtest==0) { /* new text */
-        activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE",
-                        G.sce, add_text_fs); 
-        return;
-      }
-      if(idtest!=id) {
-        st->text= (Text *)idtest;
-        st->top= 0;
-        
-        pop_space_text(st);
-      
-        allqueue(REDRAWTEXT, 0);
-        allqueue(REDRAWHEADERS, 0);
-      }
-    }
-    break;
-        
-  case B_TEXTDELETE:
-    
-    text= st->text;
-    if (!text) return;
-    
-    BPY_clear_bad_scriptlinks(text);
-    free_text_controllers(text);
-    
-    unlink_text(text);
-    free_libblock(&G.main->text, text);
-    
-    break;
-    
+			st->top= 0;
+			
+			allqueue(REDRAWTEXT, 0);
+			allqueue(REDRAWHEADERS, 0); 
+		}
+		else if (st->menunr==32766) {
+			activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE", G.sce, add_text_fs); 
+			return;
+		}
+		else {		
+			idtest= G.main->text.first;
+			while(idtest) {
+				if(nr==st->menunr) {
+					break;
+				}
+				nr++;
+				idtest= idtest->next;
+			}
+			if(idtest==0) { /* new text */
+				activate_fileselect(FILE_SPECIAL, "LOAD TEXT FILE",
+												G.sce, add_text_fs); 
+				return;
+			}
+			if(idtest!=id) {
+				st->text= (Text *)idtest;
+				st->top= 0;
+				
+				pop_space_text(st);
+			
+				allqueue(REDRAWTEXT, 0);
+				allqueue(REDRAWHEADERS, 0);
+			}
+		}
+		break;
+				
+	case B_TEXTDELETE:
+		
+		text= st->text;
+		if (!text) return;
+		
+		BPY_clear_bad_scriptlinks(text);
+		free_text_controllers(text);
+		
+		unlink_text(text);
+		free_libblock(&G.main->text, text);
+		
+		break;
+		
 /*
-  case B_TEXTSTORE:
-    st->text->flags ^= TXT_ISEXT;
-    
-    allqueue(REDRAWHEADERS, 0);
-    break;
-*/     
-  case B_TEXTLINENUM:
-    if(st->showlinenrs)
-      st->showlinenrs = 0;
-    else
-      st->showlinenrs = 1;
+	case B_TEXTSTORE:
+		st->text->flags ^= TXT_ISEXT;
+		
+		allqueue(REDRAWHEADERS, 0);
+		break;
+*/		 
+	case B_TEXTLINENUM:
+		if(st->showlinenrs)
+			st->showlinenrs = 0;
+		else
+			st->showlinenrs = 1;
 
-    allqueue(REDRAWTEXT, 0);
-    allqueue(REDRAWHEADERS, 0);
-    break;
+		allqueue(REDRAWTEXT, 0);
+		allqueue(REDRAWHEADERS, 0);
+		break;
 
-  case B_TEXTFONT:
-    switch(st->font_id) {
-    case 0:
-      st->lheight= 12; break;
-    case 1:
-      st->lheight= 15; break;
-    }
+	case B_TEXTFONT:
+		switch(st->font_id) {
+		case 0:
+			st->lheight= 12; break;
+		case 1:
+			st->lheight= 15; break;
+		}
 
-    allqueue(REDRAWTEXT, 0);
-    allqueue(REDRAWHEADERS, 0);
+		allqueue(REDRAWTEXT, 0);
+		allqueue(REDRAWHEADERS, 0);
 
-    break;
-  }
+		break;
+	}
 }
 
 void text_buttons(void)

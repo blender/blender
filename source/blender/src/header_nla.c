@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -73,28 +73,28 @@
 
 void do_nla_buttons(unsigned short event)
 {
-  View2D  *v2d;
+	View2D *v2d;
 
-  switch(event){
-  case B_NLAHOME:
-    //  Find X extents
-    v2d= &(G.snla->v2d);
+	switch(event){
+	case B_NLAHOME:
+		//	Find X extents
+		v2d= &(G.snla->v2d);
 
-    v2d->cur.xmin = G.scene->r.sfra;
-    v2d->cur.ymin=-SCROLLB;
-    
-//    if (!G.saction->action){
-      v2d->cur.xmax=G.scene->r.efra;
-//    }
-//    else
-//    {
-//      v2d->cur.xmax=calc_action_length(G.saction->action)+1;
-//    }
-    
-    test_view2d(G.v2d, curarea->winx, curarea->winy);
-    addqueue (curarea->win, REDRAW, 1);
-    break;
-  }
+		v2d->cur.xmin = G.scene->r.sfra;
+		v2d->cur.ymin=-SCROLLB;
+		
+//		if (!G.saction->action){
+			v2d->cur.xmax=G.scene->r.efra;
+//		}
+//		else
+//		{
+//			v2d->cur.xmax=calc_action_length(G.saction->action)+1;
+//		}
+		
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		addqueue (curarea->win, REDRAW, 1);
+		break;
+	}
 }
 
 void nla_buttons(void)

@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -95,254 +95,254 @@ static int bonename_exists(Bone *orig, char *name, ListBase *list);
 
 void clear_matcopybuf(void)
 {
-  memset(&matcopybuf, 0, sizeof(Material));
+	memset(&matcopybuf, 0, sizeof(Material));
 }
 
 void free_matcopybuf(void)
 {
-  extern MTex mtexcopybuf;  /* buttons.c */
-  int a;
+	extern MTex mtexcopybuf;	/* buttons.c */
+	int a;
+
+	for(a=0; a<8; a++) {
+		if(matcopybuf.mtex[a]) {
+			MEM_freeN(matcopybuf.mtex[a]);
+			matcopybuf.mtex[a]= 0;
+		}
+	}
  
-  for(a=0; a<8; a++) {
-    if(matcopybuf.mtex[a]) {
-      MEM_freeN(matcopybuf.mtex[a]);
-      matcopybuf.mtex[a]= 0;
-    }
-  }
- 
-  default_mtex(&mtexcopybuf);
+	default_mtex(&mtexcopybuf);
 }
 
 void do_buts_buttons(short event)
 {
-  static short matcopied=0;
-  MTex *mtex;
-  Material *ma;
-  ID id;
-  int a;
-  
-  if(curarea->win==0) return;
+	static short matcopied=0;
+	MTex *mtex;
+	Material *ma;
+	ID id;
+	int a;
+	
+	if(curarea->win==0) return;
 
-  switch(event) {
-  case B_BUTSHOME:
-    uiSetPanel_view2d(curarea);
-    G.v2d->cur= G.v2d->tot;
-    test_view2d(G.v2d, curarea->winx, curarea->winy);
-    scrarea_queue_winredraw(curarea);
-    break;
-  case B_BUTSPREVIEW:
-      BIF_preview_changed(G.buts);
-      scrarea_queue_headredraw(curarea);
-      scrarea_queue_winredraw(curarea);
-    break;
-  case B_MATCOPY:
-    if(G.buts->lockpoin) {
-      
-      if(matcopied) free_matcopybuf();
-      
-      memcpy(&matcopybuf, G.buts->lockpoin, sizeof(Material));
-      for(a=0; a<8; a++) {
-        mtex= matcopybuf.mtex[a];
-        if(mtex) {
-          matcopybuf.mtex[a]= MEM_dupallocN(mtex);
-        }
-      }
-      matcopied= 1;
-    }
-    break;
-  case B_MATPASTE:
-    if(matcopied && G.buts->lockpoin) {
-      ma= G.buts->lockpoin;
-      /* free current mat */
-      for(a=0; a<8; a++) {
-        mtex= ma->mtex[a];
-        if(mtex && mtex->tex) mtex->tex->id.us--;
-        if(mtex) MEM_freeN(mtex);
-      }
-      
-      id= (ma->id);
-      memcpy(G.buts->lockpoin, &matcopybuf, sizeof(Material));
-      (ma->id)= id;
-      
-      for(a=0; a<8; a++) {
-        mtex= ma->mtex[a];
-        if(mtex) {
-          ma->mtex[a]= MEM_dupallocN(mtex);
-          if(mtex->tex) id_us_plus((ID *)mtex->tex);
-        }
-      }
-      BIF_preview_changed(G.buts);
-      scrarea_queue_winredraw(curarea);
-    }
-    break;
-  case B_MESHTYPE:
-    allqueue(REDRAWBUTSEDIT, 0);
-    allqueue(REDRAWVIEW3D, 0);
-    break;
-  }
+	switch(event) {
+	case B_BUTSHOME:
+		uiSetPanel_view2d(curarea);
+		G.v2d->cur= G.v2d->tot;
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
+		break;
+	case B_BUTSPREVIEW:
+			BIF_preview_changed(G.buts);
+			scrarea_queue_headredraw(curarea);
+			scrarea_queue_winredraw(curarea);
+		break;
+	case B_MATCOPY:
+		if(G.buts->lockpoin) {
+
+			if(matcopied) free_matcopybuf();
+
+			memcpy(&matcopybuf, G.buts->lockpoin, sizeof(Material));
+			for(a=0; a<8; a++) {
+				mtex= matcopybuf.mtex[a];
+				if(mtex) {
+					matcopybuf.mtex[a]= MEM_dupallocN(mtex);
+				}
+			}
+			matcopied= 1;
+		}
+		break;
+	case B_MATPASTE:
+		if(matcopied && G.buts->lockpoin) {
+			ma= G.buts->lockpoin;
+			/* free current mat */
+			for(a=0; a<8; a++) {
+				mtex= ma->mtex[a];
+				if(mtex && mtex->tex) mtex->tex->id.us--;
+				if(mtex) MEM_freeN(mtex);
+			}
+			
+			id= (ma->id);
+			memcpy(G.buts->lockpoin, &matcopybuf, sizeof(Material));
+			(ma->id)= id;
+			
+			for(a=0; a<8; a++) {
+				mtex= ma->mtex[a];
+				if(mtex) {
+					ma->mtex[a]= MEM_dupallocN(mtex);
+					if(mtex->tex) id_us_plus((ID *)mtex->tex);
+				}
+			}
+			BIF_preview_changed(G.buts);
+			scrarea_queue_winredraw(curarea);
+		}
+		break;
+	case B_MESHTYPE:
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	}
 }
 
 void buttons_active_id(ID **id, ID **idfrom)
 {
-  Object *ob= OBACT;
-  Material *ma;
+	Object *ob= OBACT;
+	Material *ma;
 
-  *id= NULL;
-  *idfrom= (ID *)ob;
-  
-  if(G.buts->mainb==CONTEXT_SCENE) {
-    *id= (ID *)G.scene;
-    
-  }
-  else if(G.buts->mainb==CONTEXT_SHADING) {
-    int tab= G.buts->tab[CONTEXT_SHADING];
-    
-    if(tab==TAB_SHADING_LAMP) {
-      if(ob && ob->type==OB_LAMP) {
-        *id= ob->data;
-      }
-    }
-    else if(tab==TAB_SHADING_MAT) {
-      if(ob && (ob->type<OB_LAMP) && ob->type) {
-        *id= (ID *)give_current_material(ob, ob->actcol);
-        *idfrom= material_from(ob, ob->actcol);
-      }
-    }
-    else if(tab==TAB_SHADING_WORLD) {
-      *id= (ID *)G.scene->world;
-      *idfrom= (ID *)G.scene;
-    }
-    else if(tab==TAB_SHADING_TEX) {
-      MTex *mtex;
-      
-      if(G.buts->mainbo==G.buts->mainb && G.buts->tabo!=tab) {
-        if(G.buts->tabo==TAB_SHADING_LAMP) G.buts->texfrom= 2;
-        else if(G.buts->tabo==TAB_SHADING_WORLD) G.buts->texfrom= 1;
-        else if(G.buts->tabo==TAB_SHADING_MAT) G.buts->texfrom= 0;
-      }
-  
-      if(G.buts->texfrom==0) {
-        if(ob && ob->type<OB_LAMP && ob->type) {
-          ma= give_current_material(ob, ob->actcol);
-          *idfrom= (ID *)ma;
-          if(ma) {
-            mtex= ma->mtex[ ma->texact ];
-            if(mtex) *id= (ID *)mtex->tex;
-          }
-        }
-      }
-      else if(G.buts->texfrom==1) {
-        World *wrld= G.scene->world;
-        *idfrom= (ID *)wrld;
-        if(wrld) {
-          mtex= wrld->mtex[ wrld->texact];
-          if(mtex) *id= (ID *)mtex->tex;
-        }
-      }
-      else if(G.buts->texfrom==2) {
-        Lamp *la;
-        if(ob && ob->type==OB_LAMP) {
-          la= ob->data;
-          *idfrom= (ID *)la;
-          mtex= la->mtex[ la->texact];
-          if(mtex) *id= (ID *)mtex->tex;
-        }
-      }
-    }
-  }
-  else if(G.buts->mainb==CONTEXT_OBJECT || G.buts->mainb==CONTEXT_LOGIC) {
-    if(ob) {
-      *idfrom= (ID *)G.scene;
-      *id= (ID *)ob;
-    }
-  }
-  else if(G.buts->mainb==CONTEXT_EDITING) {
-    if(ob && ob->data) {
-      *id= ob->data;
-    }
-  }
-  else if (G.buts->mainb == BUTS_SOUND) {
+	*id= NULL;
+	*idfrom= (ID *)ob;
+	
+	if(G.buts->mainb==CONTEXT_SCENE) {
+		*id= (ID *)G.scene;
+		
+	}
+	else if(G.buts->mainb==CONTEXT_SHADING) {
+		int tab= G.buts->tab[CONTEXT_SHADING];
+		
+		if(tab==TAB_SHADING_LAMP) {
+			if(ob && ob->type==OB_LAMP) {
+				*id= ob->data;
+			}
+		}
+		else if(tab==TAB_SHADING_MAT) {
+			if(ob && (ob->type<OB_LAMP) && ob->type) {
+				*id= (ID *)give_current_material(ob, ob->actcol);
+				*idfrom= material_from(ob, ob->actcol);
+			}
+		}
+		else if(tab==TAB_SHADING_WORLD) {
+			*id= (ID *)G.scene->world;
+			*idfrom= (ID *)G.scene;
+		}
+		else if(tab==TAB_SHADING_TEX) {
+			MTex *mtex;
+			
+			if(G.buts->mainbo==G.buts->mainb && G.buts->tabo!=tab) {
+				if(G.buts->tabo==TAB_SHADING_LAMP) G.buts->texfrom= 2;
+				else if(G.buts->tabo==TAB_SHADING_WORLD) G.buts->texfrom= 1;
+				else if(G.buts->tabo==TAB_SHADING_MAT) G.buts->texfrom= 0;
+			}
+	
+			if(G.buts->texfrom==0) {
+				if(ob && ob->type<OB_LAMP && ob->type) {
+					ma= give_current_material(ob, ob->actcol);
+					*idfrom= (ID *)ma;
+					if(ma) {
+						mtex= ma->mtex[ ma->texact ];
+						if(mtex) *id= (ID *)mtex->tex;
+					}
+				}
+			}
+			else if(G.buts->texfrom==1) {
+				World *wrld= G.scene->world;
+				*idfrom= (ID *)wrld;
+				if(wrld) {
+					mtex= wrld->mtex[ wrld->texact];
+					if(mtex) *id= (ID *)mtex->tex;
+				}
+			}
+			else if(G.buts->texfrom==2) {
+				Lamp *la;
+				if(ob && ob->type==OB_LAMP) {
+					la= ob->data;
+					*idfrom= (ID *)la;
+					mtex= la->mtex[ la->texact];
+					if(mtex) *id= (ID *)mtex->tex;
+				}
+			}
+		}
+	}
+	else if(G.buts->mainb==CONTEXT_OBJECT || G.buts->mainb==CONTEXT_LOGIC) {
+		if(ob) {
+			*idfrom= (ID *)G.scene;
+			*id= (ID *)ob;
+		}
+	}
+	else if(G.buts->mainb==CONTEXT_EDITING) {
+		if(ob && ob->data) {
+			*id= ob->data;
+		}
+	}
+	else if (G.buts->mainb == BUTS_SOUND) {
 #if 0
-    ID * search;
+		ID * search;
 
-    if (G.buts->lockpoin) {
-      search = G.main->sound.first;
-      while (search) {
-        if (search == G.buts->lockpoin) {
-          break;
-        }
-        search = search->next;
-      }
-      if (search == NULL) {
-        *id = G.main->sound.first;
-      } else {
-        *id = search;
-      }
-    } else {
-      *id = G.main->sound.first;
-    }
-    //  printf("id:    %d\n\n", *id);
+		if (G.buts->lockpoin) {
+			search = G.main->sound.first;
+			while (search) {
+				if (search == G.buts->lockpoin) {
+					break;
+				}
+				search = search->next;
+			}
+			if (search == NULL) {
+				*id = G.main->sound.first;
+			} else {
+				*id = search;
+			}
+		} else {
+			*id = G.main->sound.first;
+		}
+		//	printf("id:		 %d\n\n", *id);
 #endif
-  }
+	}
 }
 
 static void validate_bonebutton(void *bonev, void *data2_unused){
-  Bone *bone= bonev;
-  bArmature *arm;
+	Bone *bone= bonev;
+	bArmature *arm;
 
-  arm = get_armature(G.obpose);
-  unique_bone_name(bone, arm);
+	arm = get_armature(G.obpose);
+	unique_bone_name(bone, arm);
 }
 
 static int bonename_exists(Bone *orig, char *name, ListBase *list)
 {
-  Bone *curbone;
-  
-  for (curbone=list->first; curbone; curbone=curbone->next){
-    /* Check this bone */
-    if (orig!=curbone){
-      if (!strcmp(curbone->name, name))
-        return 1;
-    }
-    
-    /* Check Children */
-    if (bonename_exists(orig, name, &curbone->childbase))
-      return 1;
-  }
-  
-  return 0;
+	Bone *curbone;
+	
+	for (curbone=list->first; curbone; curbone=curbone->next){
+		/* Check this bone */
+		if (orig!=curbone){
+			if (!strcmp(curbone->name, name))
+				return 1;
+		}
+		
+		/* Check Children */
+		if (bonename_exists(orig, name, &curbone->childbase))
+			return 1;
+	}
+	
+	return 0;
 
 }
 
 static void unique_bone_name (Bone *bone, bArmature *arm)
 {
-  char    tempname[64];
-  char    oldname[64];
-  int     number;
-  char    *dot;
+	char		tempname[64];
+	char		oldname[64];
+	int			number;
+	char		*dot;
 
-  if (!arm)
-    return;
+	if (!arm)
+		return;
 
-  strcpy(oldname, bone->name);
+	strcpy(oldname, bone->name);
 
-  /* See if we even need to do this */
-  if (!bonename_exists(bone, bone->name, &arm->bonebase))
-    return;
+	/* See if we even need to do this */
+	if (!bonename_exists(bone, bone->name, &arm->bonebase))
+		return;
 
-  /* Strip off the suffix */
-  dot=strchr(bone->name, '.');
-  if (dot)
-    *dot=0;
-  
-  for (number = 1; number <=999; number++){
-    sprintf (tempname, "%s.%03d", bone->name, number);
-    
-    if (!bonename_exists(bone, tempname, &arm->bonebase)){
-      strcpy (bone->name, tempname);
-      return;
-    }
-  }
+	/* Strip off the suffix */
+	dot=strchr(bone->name, '.');
+	if (dot)
+		*dot=0;
+	
+	for (number = 1; number <=999; number++){
+		sprintf (tempname, "%s.%03d", bone->name, number);
+		
+		if (!bonename_exists(bone, tempname, &arm->bonebase)){
+			strcpy (bone->name, tempname);
+			return;
+		}
+	}
 }
 
 static uiBlock *sbuts_context_menu(void *arg_unused)
@@ -543,7 +543,7 @@ moved to buttonswin!
 			}
 			
 			xco= std_libbuttons(block, xco, 0, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
- 				
+				
 			xco+= XIC;
 		}
 		if(ob) {
