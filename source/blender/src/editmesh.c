@@ -7820,35 +7820,17 @@ void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float *v4, f
 
 }
 
-// Detects a quad partial wrapping after the resize
-char detect_partial_wrap(float *v1, float *v2, float *v3, float no[3]) {
-	float tri_no[3], a[3], c[3];
 
+char detect_wrap(float *o_v1, float *o_v2, float *v1, float *v2, float *no) {
+	float o_a[3], a[3], o_c[3], c[3];
+
+	VecSubf(o_a, o_v1, o_v2);
 	VecSubf(a, v1, v2);
-	VecSubf(c, v3, v2);
 
-	Crossf(tri_no, c, a);
+	Crossf(o_c, o_a, no);
+	Crossf(c, a, no);
 
-	if (Inpf(no, tri_no) < 0)
-		return 1;
-	else
-		return 0;
-}
-
-char detect_axial_quad_wrap(float *orig_edge_v1, float *orig_edge_v2, float *edge_v1, float *edge_v2, float *other_edge_v1, float *other_edge_v2) {
-	float orig_mid[3], mid[3], other_mid[3], vec1[3], vec2[3];
-
-	VecAddf(orig_mid, orig_edge_v1, orig_edge_v2);
-	VecAddf(mid, edge_v1, edge_v2);
-	VecAddf(other_mid, other_edge_v1, other_edge_v2);
-
-	VecSubf(vec1, orig_mid, mid); 
-	VecSubf(vec2, other_mid, mid); 
-
-	if (vec2[0] == 0 && vec2[1] == 0 && vec2[2] == 0)
-		return 0;
-
-	if (Inpf(vec1, vec2) >= 0)
+	if (Inpf(c, o_c) <= 0)
 		return 1;
 	else
 		return 0;
@@ -7859,85 +7841,78 @@ char detect_axial_quad_wrap(float *orig_edge_v1, float *orig_edge_v2, float *edg
 void fix_bevel_quad_wrap(float *o_v1, float *o_v2, float *o_v3, float *o_v4, float *v1, float *v2, float *v3, float *v4, float d, float no[3]) {
 	float vec[3];
 	char wrap[4];
-	char Axis1, Axis2;
+	
 	// Quads can wrap partially. Watch out
-	wrap[0] = detect_partial_wrap(v4, v1, v2, no);
-	wrap[1] = detect_partial_wrap(v1, v2, v3, no);
-	wrap[2] = detect_partial_wrap(v2, v3, v4, no);
-	wrap[3] = detect_partial_wrap(v3, v4, v1, no);
+	wrap[0] = detect_wrap(o_v1, o_v2, v1, v2, no); // Edge 1-2
+	wrap[1] = detect_wrap(o_v2, o_v3, v2, v3, no); // Edge 2-3
+	wrap[2] = detect_wrap(o_v3, o_v4, v3, v4, no); // Edge 3-4
+	wrap[3] = detect_wrap(o_v4, o_v1, v4, v1, no); // Edge 4-1
 
-	if (wrap[0] == 1 && wrap[1] == 1 && wrap[2] == 0 && wrap[3] == 0) {
+	// Edge 1 inverted
+	if (wrap[0] == 1 && wrap[1] == 0 && wrap[2] == 0 && wrap[3] == 0) {
 		fix_bevel_wrap(vec, o_v2, o_v3, o_v4, o_v1, d, no);
 		VECCOPY(v1, vec);
 		VECCOPY(v2, vec);
 	}
-	else if (wrap[0] == 0 && wrap[1] == 1 && wrap[2] == 1 && wrap[3] == 0) {
+	// Edge 2 inverted
+	else if (wrap[0] == 0 && wrap[1] == 1 && wrap[2] == 0 && wrap[3] == 0) {
 		fix_bevel_wrap(vec, o_v3, o_v4, o_v1, o_v2, d, no);
 		VECCOPY(v2, vec);
 		VECCOPY(v3, vec);
 	}
-	else if (wrap[0] == 0 && wrap[1] == 0 && wrap[2] == 1 && wrap[3] == 1) {
+	// Edge 3 inverted
+	else if (wrap[0] == 0 && wrap[1] == 0 && wrap[2] == 1 && wrap[3] == 0) {
 		fix_bevel_wrap(vec, o_v4, o_v1, o_v2, o_v3, d, no);
 		VECCOPY(v3, vec);
 		VECCOPY(v4, vec);
 	}
-	else if (wrap[0] == 1 && wrap[1] == 0 && wrap[2] == 0 && wrap[3] == 1) {
+	// Edge 4 inverted
+	else if (wrap[0] == 0 && wrap[1] == 0 && wrap[2] == 0 && wrap[3] == 1) {
 		fix_bevel_wrap(vec, o_v1, o_v2, o_v3, o_v4, d, no);
 		VECCOPY(v4, vec);
 		VECCOPY(v1, vec);
 	}
-	else if (wrap[0] == 1 && wrap[1] == 1 && wrap[2] == 1 && wrap[3] == 1){
-		// even though the whole face could be inverted, doesn't mean it's inverted on all axis
-		Axis1 = detect_axial_quad_wrap(o_v1, o_v2, v1, v2, v3, v4);
-		Axis2 = detect_axial_quad_wrap(o_v2, o_v3, v2, v3, v4, v1);
-
-		// Inverted on one of the axis
-		if (Axis1==1 && Axis2==0) {
-			VecAddf(vec, v2, v3);
-			VecMulf(vec, 0.5);
-			VECCOPY(v2, vec);
-			VECCOPY(v3, vec);
-			VecAddf(vec, v1, v4);
-			VecMulf(vec, 0.5);
-			VECCOPY(v1, vec);
-			VECCOPY(v4, vec);
-		}
-		// Inverted on the other axis
-		else if (Axis1==0 && Axis2==1) {
-			VecAddf(vec, v1, v2);
-			VecMulf(vec, 0.5);
-			VECCOPY(v1, vec);
-			VECCOPY(v2, vec);
-			VecAddf(vec, v3, v4);
-			VecMulf(vec, 0.5);
-			VECCOPY(v3, vec);
-			VECCOPY(v4, vec);
-		}
-		// Totally inverted
-		else if (Axis1==1 && Axis2==1) {
-			VecAddf(vec, v1, v2);
-			VecAddf(vec, vec, v3);
-			VecAddf(vec, vec, v4);
-			VecMulf(vec, 0.25);
-			VECCOPY(v1, vec);
-			VECCOPY(v2, vec);
-			VECCOPY(v3, vec);
-			VECCOPY(v4, vec);
-		}
+	// Edge 2 and 4 inverted
+	else if (wrap[0] == 0 && wrap[1] == 1 && wrap[2] == 0 && wrap[3] == 1) {
+		VecAddf(vec, v2, v3);
+		VecMulf(vec, 0.5);
+		VECCOPY(v2, vec);
+		VECCOPY(v3, vec);
+		VecAddf(vec, v1, v4);
+		VecMulf(vec, 0.5);
+		VECCOPY(v1, vec);
+		VECCOPY(v4, vec);
 	}
-	printf("\n");
+	// Edge 1 and 3 inverted
+	else if (wrap[0] == 1 && wrap[1] == 0 && wrap[2] == 1 && wrap[3] == 0) {
+		VecAddf(vec, v1, v2);
+		VecMulf(vec, 0.5);
+		VECCOPY(v1, vec);
+		VECCOPY(v2, vec);
+		VecAddf(vec, v3, v4);
+		VecMulf(vec, 0.5);
+		VECCOPY(v3, vec);
+		VECCOPY(v4, vec);
+	}
+	// Totally inverted
+	else if (wrap[0] == 1 && wrap[1] == 1 && wrap[2] == 1 && wrap[3] == 1) {
+		VecAddf(vec, v1, v2);
+		VecAddf(vec, vec, v3);
+		VecAddf(vec, vec, v4);
+		VecMulf(vec, 0.25);
+		VECCOPY(v1, vec);
+		VECCOPY(v2, vec);
+		VECCOPY(v3, vec);
+		VECCOPY(v4, vec);
+	}
 
 }
 
 // Detects and fix a tri wrapping after the resize
-// Arguments are the orginal verts followed by the final verts
-void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float *v2, float *v3) {
-	float a[3], b[3];
-
-	VecSubf(a, o_v1, v1);
-	VecSubf(b, v2, v1);
-
-	if (Inpf(a, b) >= 0) {
+// Arguments are the orginal verts followed by the final verts and the normal
+// Triangles cannot wrap partially (not in this situation
+void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float *v2, float *v3, float *no) {
+	if (detect_wrap(o_v1, o_v2, v1, v2, no)) {
 		float vec[3];
 		VecAddf(vec, o_v1, o_v2);
 		VecAddf(vec, vec, o_v3);
@@ -7968,7 +7943,7 @@ void bevel_shrink_faces(float d, int flag)
 			bevel_displace_vec(vec, v3, v1, v2, d, no);
 			VECCOPY(evl->v1->co, vec);
 
-			fix_bevel_tri_wrap(v1, v2, v3, evl->v1->co, evl->v2->co, evl->v3->co);
+			fix_bevel_tri_wrap(v1, v2, v3, evl->v1->co, evl->v2->co, evl->v3->co, no);
 		} else {
 			VECCOPY(v4, evl->v4->co);
 			bevel_displace_vec(vec, v1, v2, v3, d, no);
@@ -8006,7 +7981,7 @@ void bevel_shrink_draw(float d, int flag)
 			bevel_displace_vec(vec, v3, v1, v2, d, no);
 			VECCOPY(fv1, vec);
 
-			fix_bevel_tri_wrap(v1, v2, v3, fv1, fv2, fv3);
+			fix_bevel_tri_wrap(v1, v2, v3, fv1, fv2, fv3, no);
 
 			glBegin(GL_LINES);
 			glVertex3fv(fv1);
@@ -8473,14 +8448,17 @@ void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 void bevel_menu()
 {
 	EditVlak *evl;
-	char Finished = 0, Canceled = 0;
+	char Finished = 0, Canceled = 0, str[100];
 	short mval[2], oval[2], curval[2], event = 0, recurs = 1;
 	float vec[3], d, drawd, centre[3];
-	char str[100];
 
 	getmouseco_areawin(mval);
-	curval[0] = oval[0] = mval[0];
-	curval[1] = oval[1] = mval[1];
+	oval[0] = mval[0]; oval[1] = mval[1];
+
+	// Silly hackish code to initialise the variable (warning if not done)
+	// while still drawing in the first iteration (and without using another variable)
+	curval[0] = mval[0] + 1; curval[1] = mval[1] + 1;
+
 	window_to_3d(centre, mval[0], mval[1]);
 
 	if(button(&recurs, 1, 4, "Recurs:")==0) return;
@@ -8505,7 +8483,9 @@ void bevel_menu()
 
 			drawd = d;
 			for (nr=0; nr<recurs-1; nr++) {
-				if (nr==0) drawd += drawd/3; else drawd += drawd/2;
+				float tmp_d = d;
+				if (nr==0) tmp_d /= 3; else tmp_d /= 2;
+				drawd += tmp_d;
 			}
 
 			/*------------- Preview lines--------------- */
@@ -8570,5 +8550,6 @@ void bevel_menu()
 	}
 	if (Canceled==0) {
 		bevel_mesh_recurs(d, recurs, 1);
+		righthandfaces(1);
 	}
 }
