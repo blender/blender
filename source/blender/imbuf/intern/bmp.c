@@ -138,8 +138,8 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 
 	/* printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
 		depth, bmi.biBitCount); */
-	printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
-		depth, bmi.biBitCount);
+	/* printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, 
+		depth, bmi.biBitCount); */
 	if (flags & IB_test) {
 		ibuf = IMB_allocImBuf(x, y, depth, 0, 0);
 	} else {
