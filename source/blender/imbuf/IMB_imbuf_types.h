@@ -111,6 +111,15 @@ typedef enum {
 #define TGA	    (1 << 28)
 #define JPG		(1 << 27)
 #define BMP		(1 << 26)
+#ifdef WITH_QUICKTIME
+#define QUICKTIME	(1 << 25)
+#endif
+#ifdef WITH_FREEIMAGE
+#define FREEIMAGE	(1 << 24)
+#endif
+#ifdef WITH_IMAGEMAGICK
+#define IMAGEMAGICK	(1 << 23)
+#endif
 
 #define RAWTGA	(TGA | 1)
 

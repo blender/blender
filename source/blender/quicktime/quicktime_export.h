@@ -1,7 +1,4 @@
-/**
- * Functions for writing windows avi-format files.
- *
- * $Id$
+/* $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -30,15 +27,28 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * 
  */
 
-#ifdef _WIN32
+#ifndef __QUICKTIME_EXPORT_H__
+#define __QUICKTIME_EXPORT_H__
 
-void start_avi_codec(void);
-void append_avi_codec(int frame);
-void end_avi_codec(void);
-int get_avicodec_settings(void);
+#if defined (_WIN32) || (__APPLE__)
 
-#endif
+// quicktime movie output functions
 
+void start_qt(void);					//for initrender.c
+void append_qt(int frame);
+void end_qt(void);
+
+int get_qtcodec_settings(void);			//for buttons.c
+void free_qtcodecdataExt(void);			//usiblender.c
+
+void makeqtstring (char *string);		//for playanim.c
+
+int G_have_quicktime; //unused, is located in blenlib/BKE_global.h
+
+int have_qtcodec;
+
+#endif //(_WIN32) || (__APPLE__)
+
+#endif  // __QUICKTIME_IMP_H__

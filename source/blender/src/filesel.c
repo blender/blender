@@ -513,22 +513,86 @@ void test_flags_file(SpaceFile *sfile)
 				file->flags |= PSXFILE;
 			}
 		} else if (sfile->type==FILE_SPECIAL){
-			if(		BLI_testextensie(file->relname, ".jpg") ||
-					BLI_testextensie(file->relname, ".tga") ||
-					BLI_testextensie(file->relname, ".rgb") ||
-					BLI_testextensie(file->relname, ".png") ||
-/*					BLI_testextensie(file->relname, ".bmp") || */
-					BLI_testextensie(file->relname, ".iff") ||
-					BLI_testextensie(file->relname, ".lbm") ||
-					BLI_testextensie(file->relname, ".sgi")) {
-				file->flags |= IMAGEFILE;			
-			}
-			else if(BLI_testextensie(file->relname, ".avi") ||
-					BLI_testextensie(file->relname, ".mv")) {
-				file->flags |= MOVIEFILE;			
-			}
-			else if(BLI_testextensie(file->relname, ".py")) {
+			if(BLI_testextensie(file->relname, ".py")) {
 				file->flags |= PYSCRIPTFILE;			
+			} else if( BLI_testextensie(file->relname, ".ttf")
+					|| BLI_testextensie(file->relname, ".pfb")
+					|| BLI_testextensie(file->relname, ".otc")) {
+				file->flags |= FTFONTFILE;			
+			} else if (G.have_quicktime){
+				if(		BLI_testextensie(file->relname, ".jpg")
+					||	BLI_testextensie(file->relname, ".jpeg")
+					||	BLI_testextensie(file->relname, ".tga")
+					||	BLI_testextensie(file->relname, ".rgb")
+					||	BLI_testextensie(file->relname, ".bmp")
+					||	BLI_testextensie(file->relname, ".png")
+					||	BLI_testextensie(file->relname, ".iff")
+					||	BLI_testextensie(file->relname, ".lbm")
+					||	BLI_testextensie(file->relname, ".gif")
+					||	BLI_testextensie(file->relname, ".psd")
+					||	BLI_testextensie(file->relname, ".tif")
+					||	BLI_testextensie(file->relname, ".tiff")
+					||	BLI_testextensie(file->relname, ".pct")
+					||	BLI_testextensie(file->relname, ".pict")
+					||	BLI_testextensie(file->relname, ".pntg") //macpaint
+					||	BLI_testextensie(file->relname, ".qtif")
+#ifdef WITH_FREEIMAGE
+				||	BLI_testextensie(file->relname, ".jng")
+				||	BLI_testextensie(file->relname, ".mng")
+				||	BLI_testextensie(file->relname, ".pbm")
+				||	BLI_testextensie(file->relname, ".pgm")
+				||	BLI_testextensie(file->relname, ".ppm")
+				||	BLI_testextensie(file->relname, ".wbmp")
+				||	BLI_testextensie(file->relname, ".cut")
+				||	BLI_testextensie(file->relname, ".ico")
+				||	BLI_testextensie(file->relname, ".koala")
+				||	BLI_testextensie(file->relname, ".pcd")
+				||	BLI_testextensie(file->relname, ".pcx")
+				||	BLI_testextensie(file->relname, ".ras")
+#endif
+					||	BLI_testextensie(file->relname, ".sgi")) {
+					file->flags |= IMAGEFILE;			
+				}
+				else if(BLI_testextensie(file->relname, ".avi")
+					||	BLI_testextensie(file->relname, ".flc")
+					||	BLI_testextensie(file->relname, ".mov")
+					||	BLI_testextensie(file->relname, ".movie")
+					||	BLI_testextensie(file->relname, ".mv")) {
+					file->flags |= MOVIEFILE;			
+				}
+			} else { // no quicktime
+				if(BLI_testextensie(file->relname, ".jpg")
+					||	BLI_testextensie(file->relname, ".tga")
+					||	BLI_testextensie(file->relname, ".rgb")
+					||	BLI_testextensie(file->relname, ".bmp")
+					||	BLI_testextensie(file->relname, ".png")
+					||	BLI_testextensie(file->relname, ".iff")
+					||	BLI_testextensie(file->relname, ".lbm")
+#ifdef WITH_FREEIMAGE
+				||	BLI_testextensie(file->relname, ".jng")
+				||	BLI_testextensie(file->relname, ".mng")
+				||	BLI_testextensie(file->relname, ".pbm")
+				||	BLI_testextensie(file->relname, ".pgm")
+				||	BLI_testextensie(file->relname, ".ppm")
+				||	BLI_testextensie(file->relname, ".wbmp")
+				||	BLI_testextensie(file->relname, ".cut")
+				||	BLI_testextensie(file->relname, ".ico")
+				||	BLI_testextensie(file->relname, ".koala")
+				||	BLI_testextensie(file->relname, ".pcd")
+				||	BLI_testextensie(file->relname, ".pcx")
+				||	BLI_testextensie(file->relname, ".ras")
+				||	BLI_testextensie(file->relname, ".gif")
+				||	BLI_testextensie(file->relname, ".psd")
+				||	BLI_testextensie(file->relname, ".tif")
+				||	BLI_testextensie(file->relname, ".tiff")
+#endif
+					||	BLI_testextensie(file->relname, ".sgi")) {
+					file->flags |= IMAGEFILE;			
+				}
+				else if(BLI_testextensie(file->relname, ".avi")
+					||	BLI_testextensie(file->relname, ".mv")) {
+					file->flags |= MOVIEFILE;			
+				}
 			}
 		}
 	}	
@@ -875,6 +939,10 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 	}
 	else if(files->flags & PYSCRIPTFILE) {
 		cpack(0x4477dd);
+		glRects(x-14,  y,  x-8,  y+7);
+	}
+	else if(files->flags & FTFONTFILE) {
+		cpack(0xff2371);
 		glRects(x-14,  y,  x-8,  y+7);
 	}
 	

@@ -81,6 +81,8 @@
 #include "BSE_drawview.h"
 #include "BSE_sequence.h"
 
+#include "quicktime_export.h"
+
 /* this module */
 #include "render.h"
 #include "render_intern.h"
@@ -1259,6 +1261,10 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	} else if (R.r.imtype == R_AVICODEC) {
 		start_avi_codec();
 #endif
+#if WITH_QUICKTIME
+	} else if (R.r.imtype == R_QUICKTIME) {
+		start_qt();
+#endif
 	} else if ELEM4(R.r.imtype, R_AVIRAW, R_AVIJPEG, R_MOVIE, R_AVICODEC) {
 		if ELEM(R.r.imtype, R_MOVIE, R_AVICODEC) {
 			printf("Selected movie format not supported on this platform,\nusing RAW AVI instead\n");
@@ -1284,6 +1290,10 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 #ifdef _WIN32
 			} else if (R.r.imtype == R_AVICODEC) {
 				append_avi_codec((G.scene->r.cfra));
+#endif
+#ifdef WITH_QUICKTIME
+			} else if (R.r.imtype == R_QUICKTIME) {
+				append_qt((G.scene->r.cfra));
 #endif
 			} else if ELEM4(R.r.imtype, R_AVIRAW, R_AVIJPEG, R_MOVIE, R_AVICODEC) {
 				append_avi((G.scene->r.cfra));
@@ -1320,6 +1330,10 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 #ifdef _WIN32
 	} else if (R.r.imtype == R_AVICODEC) {
 		end_avi_codec();
+#endif
+#ifdef WITH_QUICKTIME
+	} else if (R.r.imtype == R_QUICKTIME) {
+		end_qt();
 #endif
 	} else if ELEM4(R.r.imtype, R_AVIRAW, R_AVIJPEG, R_MOVIE, R_AVICODEC) {
 		end_avi();

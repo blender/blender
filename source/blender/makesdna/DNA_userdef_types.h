@@ -49,7 +49,14 @@ typedef struct UserDef {
 	short versions, vrmlflag;	// tmp for export, will be replaced by strubi
 	int gameflags;
 	int wheellinescroll;
-	short uiflag, pad2;
+	short uiflag, language;
+	int userpref;
+	short console_buffer;	//console vars here for tuhopuu compat, --phase
+	short console_out;
+	int fontsize;
+	short encoding;
+	short transopts;
+	char fontname[64];
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
@@ -79,7 +86,16 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define WHEELZOOMDIR	4
 #define FILTERFILEEXTS	8
 
+/* transopts */
+
+#define	TR_TOOLTIPS		1
+#define	TR_BUTTONS		2
+#define TR_MENUS		4
+#define TR_FILESELECT	8
+#define TR_TEXTEDIT		16
+
 /* dupflag */
+
 #define DUPMESH			1
 #define DUPCURVE		2
 #define DUPSURF			4
@@ -93,15 +109,14 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define	DUPACT			1024
 
 /* gameflags */
+
 #define USERDEF_VERTEX_ARRAYS_BIT        0
 #define USERDEF_DISABLE_SOUND_BIT        1
 #define USERDEF_DISABLE_MIPMAP_BIT       2
 
-
 #define USERDEF_VERTEX_ARRAYS        (1 << USERDEF_VERTEX_ARRAYS_BIT)
 #define USERDEF_DISABLE_SOUND        (1 << USERDEF_DISABLE_SOUND_BIT)
 #define USERDEF_DISABLE_MIPMAP       (1 << USERDEF_DISABLE_MIPMAP_BIT)
-
 
 /* vrml flag */
 

@@ -114,6 +114,10 @@ typedef struct Global {
 	struct	Object	*obpose;		/* Current posable object */
 	struct	ListBase edbo;			/* Armature Editmode bones */
  
+	/* Rob's variables */
+	int have_quicktime;
+	int ui_international;
+
     /* this variable is written to / read from FileGlobal->fileflags */
     int fileflags;
     

@@ -418,6 +418,12 @@ static void str_image_type(int ftype, char *name)
 	if( ftype & PNG )       { strcat(name, "png "); }
 	if( ftype & BMP )       { strcat(name, "bmp "); }
 	if( ftype & AMI )       { strcat(name, "iff ");	  }
+#ifdef WITH_QUICKTIME
+	if( ftype & QUICKTIME ) { strcat(name, "quicktime "); }
+#endif
+#ifdef WITH_FREEIMAGE
+	if( ftype & FREEIMAGE ) { strcat(name, "freeimage "); }
+#endif
 }
 
 void draw_sima_area(SpaceImaSel *simasel)
@@ -572,7 +578,7 @@ void draw_sima_area(SpaceImaSel *simasel)
 						glRecti(sx, sy,  ex, ey); uiEmboss(sx,sy, ex,ey, 1);
 					}
 					if (ima->disksize/1000 > 1000){ sprintf(infostr,  "%s  %.2fMb  x%i y%i  %i bits ",ima->file_name,(ima->disksize/1024)/1024.0, ima->orgx, ima->orgy, ima->orgd);
-					}else{ sprintf(infostr,  "%s  %dKb  x%i y%i  %i bits ",  ima->file_name,ima->disksize/1024,          ima->orgx, ima->orgy, ima->orgd);
+					}else{ sprintf(infostr,  "%s  %dKb  %ix%i  %i bits ",  ima->file_name,ima->disksize/1024,          ima->orgx, ima->orgy, ima->orgd);
 					}	
 					if (ima->anim == 1){ strcat (infostr, "movie"); }else{
 						str_image_type(ima->ibuf_type, naam);

@@ -48,6 +48,15 @@
 #endif   
 #include "MEM_guardedalloc.h"
 
+#ifdef WITH_QUICKTIME
+#ifdef _WIN32
+#include <QTML.h>
+#endif /* _WIN32 */
+#if defined (_WIN32) || defined (__APPLE__)
+#include <Movies.h>
+#endif /* _WIN32 || __APPLE__ */
+#endif /* WITH_QUICKTIME */
+
 #include "PIL_time.h"
 
 #include <math.h>
@@ -348,6 +357,22 @@ void playanim(int argc, char **argv)
 		} else break;
 	}
 	
+#ifdef WITH_QUICKTIME
+#if defined (_WIN32) || defined (__APPLE__)
+	/* Initialize QuickTime */
+#ifdef _WIN32	
+	if (InitializeQTML(0) != noErr)
+		G.have_quicktime = FALSE;
+	else
+		G.have_quicktime = TRUE;
+#endif /* _WIN32 */
+	if (EnterMovies() != noErr)
+		G.have_quicktime = FALSE;
+	else
+#endif /* _WIN32 || __APPLE__ */
+		G.have_quicktime = TRUE;
+#endif /* WITH_QUICKTIME */
+
 	if (argc > 1) strcpy(name,argv[1]);
 	else {
 		BLI_getwdN(name);
@@ -713,4 +738,14 @@ void playanim(int argc, char **argv)
 		}
 		picture = picture->next;
 	}
+#ifdef WITH_QUICKTIME
+#if defined (_WIN32) || defined (__APPLE__)
+	if(G.have_quicktime) {
+		ExitMovies();
+#ifdef _WIN32
+		TerminateQTML();
+#endif /* _WIN32 */
+	}
+#endif /* _WIN32 || __APPLE__ */
+#endif /* WITH_QUICKTIME */
 }

@@ -93,7 +93,6 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 #ifndef IMB_IMBUF_H
 #define IMB_IMBUF_H
 
@@ -232,19 +231,27 @@ void IMB_close_anim(struct anim * anim);
  *
  * @attention Defined in anim.c
  */
+
+int ismovie(char *name);
+
+/**
+ *
+ * @attention Defined in anim.c
+ */
+
 struct ImBuf * IMB_anim_absolute(struct anim * anim, int position);
 
 /**
  *
  * @attention Defined in anim.c
  */
-void IMB_free_anim(struct anim * anim);
+void IMB_free_anim_ibuf(struct anim * anim);
 
 /**
  *
  * @attention Defined in anim.c
  */
-int IMB_isanim(char * name);
+void IMB_free_anim(struct anim * anim);
 
 /**
  *
@@ -322,6 +329,18 @@ int IMB_ispic(char *name);
 
 /**
  *
+ * @attention Defined in util.c
+ */
+int IMB_isanim(char * name);
+
+/**
+ *
+ * @attention Defined in util.c
+ */
+int imb_get_anim_type(char * name);
+
+/**
+ *
  * @attention Defined in divers.c
  */
 void IMB_de_interlace(struct ImBuf *ibuf);
@@ -333,6 +352,14 @@ void IMB_de_interlace(struct ImBuf *ibuf);
  * @attention Defined in imageprocess.c
  */
 void IMB_convert_rgba_to_abgr(int size, unsigned int *rect);
+
+/**
+ * Change the ordering of the colour bytes pointed to by rect from
+ * rgba to abgr. size * 4 colour bytes are reordered.
+ *
+ * @attention Defined in imageprocess.c
+ */
+void IMB_convert_bgra_to_rgba(int size, unsigned int *rect);
 
 /**
  *
@@ -468,4 +495,3 @@ void IMB_freezbufImBuf(struct ImBuf * ibuf);
 void IMB_rectfill(unsigned int *drect, unsigned int *srect, int x, int value);
 
 #endif
-

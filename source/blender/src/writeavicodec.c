@@ -761,7 +761,7 @@ void append_avi_codec(int frame)
 }
 
 
-int get_codec_settings(void)
+int get_avicodec_settings(void)
 {
 	int ret_val = 0;
 	AVICOMPRESSOPTIONS *aopts[1] = {&opts};

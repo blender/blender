@@ -116,6 +116,16 @@
 
 #include "PIL_time.h"
 
+#ifdef WITH_QUICKTIME
+#include "quicktime_export.h"
+#ifdef _WIN32
+#include <QTML.h>
+#endif /* _WIN32 */
+#if defined (_WIN32) || defined (__APPLE__)
+#include <Movies.h>
+#endif /* _WIN32 || __APPLE__ */
+#endif /* WITH_QUICKTIME */
+
 /***/
 
 void BIF_read_file(char *name)
@@ -501,6 +511,18 @@ void exit_usiblender(void)
 
 	sound_exit_audio();
 		
+#if defined(_WIN32) || defined(__APPLE__)
+#ifdef WITH_QUICKTIME
+    if(G.have_quicktime) {
+		free_qtcodecdataExt();
+        ExitMovies();
+#ifdef _WIN32
+        TerminateQTML();
+#endif /* _WIN32 */
+    }
+#endif /* WITH_QUICKTIME */
+#endif /* _WIN32 || __APPLE__ */
+
 	BPY_end_python();
 
 	if (!G.background) {

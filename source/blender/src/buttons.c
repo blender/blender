@@ -149,6 +149,9 @@
 #include "BIF_previewrender.h"
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
+#ifdef WITH_QUICKTIME
+#include "quicktime_export.h"
+#endif
 
 /* 'old' stuff": defines and types ------------------------------------- */
 #include "blendef.h"
@@ -265,6 +268,7 @@ char texstr[15][8]= {"None"  , "Clouds" , "Wood",
 #define B_ENV_OB		1354
 
 #define B_PACKIMA		1355
+#define B_TEXSETFRAMES	1356
 
 /* *********************** */
 #define B_ANIMBUTS		1500
@@ -3267,7 +3271,16 @@ void do_texbuts(unsigned short event)
 		sa= closest_bigger_area();
 		areawinset(sa->win);
 		if(tex->ima) name= tex->ima->name;
-		else name= U.textudir;
+#ifdef _WIN32
+		else {
+			if (strcmp (U.textudir, "/") == 0)
+				name= G.sce;
+			else
+				name= U.textudir;
+		}
+#else
+		else name = U.textudir;
+#endif
 		
 		if(event==B_LOADTEXIMA)
 			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_tex_image);
@@ -3357,6 +3370,11 @@ void do_texbuts(unsigned short event)
 			allqueue(REDRAWIMAGE, 0);
 			BIF_preview_changed(G.buts);
 		}
+		break;
+
+	case B_TEXSETFRAMES:
+		if(tex->ima->anim) tex->frames = IMB_anim_get_duration(tex->ima->anim);
+		allqueue(REDRAWBUTSTEX, 0);
 		break;
 
 	case B_PACKIMA:
@@ -3832,6 +3850,7 @@ void texbuts(void)
 	
 			/* printen aantal frames anim */
 			if(tex->ima && tex->ima->anim) {
+				uiDefBut(block, BUT, B_TEXSETFRAMES, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "Paste number of frames in Frames: button");
 				sprintf(str, "%d frs  ", IMB_anim_get_duration(tex->ima->anim));
 				uiDefBut(block, LABEL, 0, str,      834, 110, 90, 18, 0, 0, 0, 0, 0, "");
 				sprintf(str, "%d cur  ", tex->ima->lastframe);
@@ -5930,7 +5949,12 @@ void do_renderbuts(unsigned short event)
 		allqueue(REDRAWALL, 0);
 		break;
 	case B_PLAYANIM:
-		makeavistring(file);
+#ifdef WITH_QUICKTIME
+		if(G.scene->r.imtype == R_QUICKTIME) 
+			makeqtstring(file);
+		else
+#endif
+			makeavistring(file);
 		if(BLI_exist(file)) {
 			run_playanim(file);
 		}
@@ -5987,18 +6011,78 @@ void do_renderbuts(unsigned short event)
 		allqueue(REDRAWBUTSRENDER, 0);
 		allqueue(REDRAWVIEWCAM, 0);
 		break;
-#ifdef _WIN32
+
+#ifdef WITH_QUICKTIME
 	case B_FILETYPEMENU:
 		allqueue(REDRAWBUTSRENDER, 0);
+#if defined (_WIN32) || defined (__APPLE__)
 		// fall through to codec settings if this is the first
 		// time R_AVICODEC is selected for this scene.
-		if ((G.scene->r.imtype != R_AVICODEC) || (G.scene->r.avicodecdata)) {
-			break;
+		if (((G.scene->r.imtype == R_AVICODEC) 
+			 && (G.scene->r.avicodecdata == NULL)) ||
+			((G.scene->r.imtype == R_QUICKTIME) 
+			 && (have_qtcodec == FALSE))) {
+		} else {
+		  break;
 		}
+#else /* libquicktime */
+		if(G.scene->r.imtype == R_QUICKTIME) {
+		  /* i'm not sure if this should be here... */
+		  /* set default quicktime codec */
+		  if (!G.scene->r.qtcodecdata) {
+			G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData), 
+												 "QtCodecData");
+			qtcodec_idx = 1;
+		  }
+			
+		  qt_init_codecs();
+		  if (qtcodec_idx < 1) qtcodec_idx = 1;	
+			
+		  G.scene->r.qtcodecdata->fourcc = 
+			qtcodecidx_to_fcc(qtcodec_idx-1);
+		  qt_init_codecdata(G.scene->r.qtcodecdata);
+/* I'm not sure if this is really needed, so don't remove it yet */
+#if 0
+		  /* get index of codec that can handle a given fourcc */
+		  if (qtcodec_idx < 1)
+			qtcodec_idx = get_qtcodec_idx(G.scene->r.qtcodecdata->fourcc)+1;
+
+		  /* no suitable codec found, alert user */
+		  if (qtcodec_idx < -1) {
+			error("no suitable codec found!");
+			qtcodec_idx = 1;
+		  }
+#endif /* 0 */
+		}
+#endif /*_WIN32 || __APPLE__ */
+
 	case B_SELECTCODEC:
-		get_codec_settings();
+#if defined (_WIN32) || defined (__APPLE__)
+		if ((G.scene->r.imtype == R_QUICKTIME)) /* || (G.scene->r.qtcodecdata)) */
+			get_qtcodec_settings();
+#ifdef _WIN32
+		else
+			get_avicodec_settings();
+#endif /* _WIN32 */
+#else /* libquicktime */
+		  if (!G.scene->r.qtcodecdata) {
+			G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData), 
+												 "QtCodecData");
+			qtcodec_idx = 1;
+		  }
+		if (qtcodec_idx < 1) {
+			qtcodec_idx = 1;
+			qt_init_codecs();
+		}
+
+		G.scene->r.qtcodecdata->fourcc = qtcodecidx_to_fcc(qtcodec_idx-1);
+		/* if the selected codec differs from the previous one, reinit it */
+		qt_init_codecdata(G.scene->r.qtcodecdata);	
+		allqueue(REDRAWBUTSRENDER, 0);
+#endif /* _WIN32 || __APPLE__ */
 		break;
-#endif
+#endif /* WITH_QUICKTIME */
+
 	case B_PR_FULL:
 		G.scene->r.xsch= 1280;
 		G.scene->r.ysch= 1024;
@@ -6202,7 +6286,7 @@ uiBlock *edge_render_menu(void *arg_unused)
 		  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
 
-	uiDefButI(block, NUM, 0,"AntiShift",
+	uiDefButS(block, NUM, 0,"AntiShift",
 		  365,70,140,19,
 		  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
 		  "For unified renderer: reduce intensity on boundaries "
@@ -6285,22 +6369,49 @@ static char *imagetype_pup(void)
 	strcat(formatstring, "|%s %%x%d");	// add space for AVI Codec
 #endif
 
-	sprintf(string, formatstring,
-		"AVI Raw",        R_AVIRAW,
-		"AVI Jpeg",       R_AVIJPEG,
-#ifdef _WIN32
-		"AVI Codec",      R_AVICODEC,
+#ifdef WITH_QUICKTIME
+	if(G.have_quicktime)
+		strcat(formatstring, "|%s %%x%d");	// add space for Quicktime
 #endif
-		"Targa",          R_TARGA,
-		"Targa Raw",      R_RAWTGA,
-		"PNG",            R_PNG,
-		"Jpeg",           R_JPEG90,
-		"HamX",           R_HAMX,
-		"Iris",           R_IRIS,
-		"Iris + Zbuffer", R_IRIZ,
-		"Ftype",          R_FTYPE,
-		"Movie",          R_MOVIE
-	);
+
+	if(G.have_quicktime) {
+		sprintf(string, formatstring,
+			"AVI Raw",        R_AVIRAW,
+			"AVI Jpeg",       R_AVIJPEG,
+#ifdef _WIN32
+			"AVI Codec",      R_AVICODEC,
+#endif
+#ifdef WITH_QUICKTIME
+			"QuickTime",      R_QUICKTIME,
+#endif
+			"Targa",          R_TARGA,
+			"Targa Raw",      R_RAWTGA,
+			"PNG",            R_PNG,
+			"Jpeg",           R_JPEG90,
+			"HamX",           R_HAMX,
+			"Iris",           R_IRIS,
+			"Iris + Zbuffer", R_IRIZ,
+			"Ftype",          R_FTYPE,
+			"Movie",          R_MOVIE
+		);
+	} else {
+		sprintf(string, formatstring,
+			"AVI Raw",        R_AVIRAW,
+			"AVI Jpeg",       R_AVIJPEG,
+#ifdef _WIN32
+			"AVI Codec",      R_AVICODEC,
+#endif
+			"Targa",          R_TARGA,
+			"Targa Raw",      R_RAWTGA,
+			"PNG",            R_PNG,
+			"Jpeg",           R_JPEG90,
+			"HamX",           R_HAMX,
+			"Iris",           R_IRIS,
+			"Iris + Zbuffer", R_IRIZ,
+			"Ftype",          R_FTYPE,
+			"Movie",          R_MOVIE
+		);
+	}
 
 	return (string);
 }
@@ -6452,16 +6563,38 @@ void renderbuts(void)
 
 	if(G.scene->r.quality==0) G.scene->r.quality= 90;
 
-#ifdef _WIN32
-	if (G.scene->r.imtype == R_AVICODEC) {
-#else
+#ifdef WITH_QUICKTIME
+	if (G.scene->r.imtype == R_AVICODEC || G.scene->r.imtype == R_QUICKTIME) {
+#else /* WITH_QUICKTIME */
 	if (0) {
 #endif
-		uiDefBut(block, BUT,B_SELECTCODEC, "Select Codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI Codec");
+		if(G.scene->r.imtype == R_QUICKTIME) {
+#ifdef WITH_QUICKTIME
+#if defined (_WIN32) || defined (__APPLE__)
+			uiDefBut(block, BUT,B_SELECTCODEC, "Codec settings",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime Codec");
+#else /* libquicktime */
+			if (!G.scene->r.qtcodecdata) G.scene->r.qtcodecdata = MEM_callocN(sizeof(QtCodecData), "QtCodecData");
+			uiDefButI(block, MENU, B_SELECTCODEC, qtcodecs_pup(), 892,yofs, 112, 20, &qtcodec_idx, 0, 0, 0, 0, "Codec");
+			/* make sure the codec stored in G.scene->r.qtcodecdata matches the selected
+			 * one, especially if it's not set.. */
+			if (!G.scene->r.qtcodecdata->fourcc) {
+				G.scene->r.qtcodecdata->fourcc = qtcodecidx_to_fcc(qtcodec_idx-1);
+				qt_init_codecdata(G.scene->r.qtcodecdata);	
+			}
+			
+			yofs -= 22;
+			uiDefBlockBut(block, qtcodec_menu, NULL, "Codec Settings |>> ", 892,yofs, 227, 20, "Edit Codec settings for QuickTime");
+			yofs +=22;
+
+#endif /* libquicktime */
+#endif /* WITH_QUICKTIME */
+		} else {
+			uiDefBut(block, BUT,B_SELECTCODEC, "Codec settings",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI Codec");
+		}
 	} else {
 		uiDefButS(block, NUM,0, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
-	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   1007,yofs,112,20, &G.scene->r.frs_sec, 1.0, 120.0, 0, 0, "Frames per second, for AVI and Sequence window grid");
+	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second, for AVI and Sequence window grid");
 
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	692,10,94,24, &G.scene->r.sfra,1.0,18000.0, 0, 0, "The start frame of the animation");
 	uiDefButS(block, NUM,REDRAWSEQ,"End:",	790,10,95,24, &G.scene->r.efra,1.0,18000.0, 0, 0, "The end  frame of the animation");

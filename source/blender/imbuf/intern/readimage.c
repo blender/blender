@@ -46,9 +46,16 @@
 #include "IMB_hamx.h"
 #include "IMB_jpeg.h"
 #include "IMB_bmp.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "BKE_global.h"
+#ifdef WITH_QUICKTIME
+#if defined(_WIN32) || defined (__APPLE__)
+#include "quicktime_import.h"
+#elif defined (__linux__)
+#include "quicktime_import_linux.h"
+#endif
+#endif
+#ifdef WITH_FREEIMAGE
+#include "IMB_freeimage.h"
 #endif
 
 /* actually hard coded endianness */
@@ -58,7 +65,7 @@
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
-#if defined(__sgi) || defined (__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 #define GET_ID GET_BIG_LONG
 #define LITTLE_LONG SWAP_LONG
 #else
@@ -104,23 +111,49 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 			if (GET_ID(mem) == FORM){
 				if (GET_ID(mem+2) == ILBM){
 					return (imb_loadamiga(mem, flags));
-				} else if (GET_ID(mem+5) == ILBM){			/* animations */
+				} else if (GET_ID(mem+5) == ILBM){			/* animaties */
 					return (imb_loadamiga(mem+3, flags));
 				} else if (GET_ID(mem+2) == ANIM){
 					return (imb_loadanim(mem, flags));
 				}
 			}
 		}
-	
-		ibuf = imb_png_decode((uchar *)mem, size, flags);
-		if (ibuf) return(ibuf);
+
+		/* let quicktime handle png's, skips error messages ;)
+		 * but only on windows
+		 */
+#ifdef _WIN32
+		if(G.have_quicktime == FALSE) {
+#else
+		if(1) {
+#endif
+			ibuf = imb_png_decode((uchar *)mem, size, flags);
+			if (ibuf) return(ibuf);
+		}
 
 		ibuf = imb_bmp_decode((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 
 		ibuf = imb_loadtarga((uchar *)mem, flags);
 		if (ibuf) return(ibuf);
-	
+
+#ifdef WITH_QUICKTIME
+#if defined(_WIN32) || defined (__APPLE__)
+		if(G.have_quicktime) {
+			ibuf = imb_quicktime_decode((uchar *)mem, size, flags);
+			if (ibuf) return(ibuf);
+		}
+#endif
+#endif	
+#ifdef WITH_FREEIMAGE
+		ibuf = imb_freeimage_decode((uchar *)mem, size, flags);
+		if (ibuf) return(ibuf);
+#endif	
+#ifdef WITH_IMAGEMAGICK
+		ibuf = imb_imagick_decode((uchar *)mem, size, flags);
+		if (ibuf) return(ibuf);
+#endif	
+
 		if (IB_verbose) fprintf(stderr, "Unknown fileformat\n");
 	}
 	
@@ -154,7 +187,7 @@ struct ImBuf *IMB_loadiffmem(int *mem, int flags) {
 		if (GET_ID(mem) == FORM){
 			if (GET_ID(mem+2) == ILBM){
 				return (imb_loadamiga(mem, flags));
-			} else if (GET_ID(mem+5) == ILBM){			/* animations */
+			} else if (GET_ID(mem+5) == ILBM){			/* animaties */
 				return (imb_loadamiga(mem+3, flags));
 			} else if (GET_ID(mem+2) == ANIM){
 				return (imb_loadanim(mem, flags));

@@ -94,6 +94,17 @@
   #endif
 #endif
 
+#ifdef WITH_QUICKTIME
+#	ifdef _WIN32
+#		include <QTML.h>
+#	endif /* _WIN32 */
+#	if defined (_WIN32) || defined (__APPLE__)
+#		include <Movies.h>
+#	elif defined (__linux__)
+#		include <quicktime/lqt.h>
+#	endif /* __linux__ */
+#endif /* WITH_QUICKTIME */
+
 // from buildinfo.c
 extern char * build_date;
 extern char * build_time;
@@ -161,6 +172,8 @@ static void print_help(void)
 				printf ("  -R\t\tRegister .blend extension\n");
 #endif
 }
+
+
 double PIL_check_seconds_timer(void);
 extern void winlay_get_screensize(int *width_r, int *height_r);
 int main(int argc, char **argv)	
@@ -375,7 +388,28 @@ int main(int argc, char **argv)
 
 	RE_init_filt_mask();
 	
-	/* OK we zijn er klaar voor */
+#ifdef WITH_QUICKTIME
+#ifdef _WIN32
+        if (InitializeQTML(0) != noErr)
+            G.have_quicktime = FALSE;
+        else
+            G.have_quicktime = TRUE;
+#endif /* _WIN32 */
+
+        /* Initialize QuickTime */
+#if defined(_WIN32) || defined (__APPLE__)
+        if (EnterMovies() != noErr)
+            G.have_quicktime = FALSE;
+        else
+#endif /* _WIN32 || __APPLE__ */
+#ifdef __linux__
+			/* inititalize quicktime codec registry */
+			lqt_registry_init();
+#endif
+			G.have_quicktime = TRUE;
+#endif /* WITH_QUICKTIME */
+
+		/* OK we zijn er klaar voor */
 
 	for(a=1; a<argc; a++) {
 		if (G.afbreek==1) break;

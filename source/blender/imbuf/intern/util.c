@@ -34,6 +34,9 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_userdef_types.h"
+#include "BKE_global.h"
+
 #include "imbuf.h"
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
@@ -43,9 +46,20 @@
 #include "IMB_png.h"
 #include "IMB_bmp.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "IMB_anim.h"
+
+#ifdef WITH_QUICKTIME
+#include "quicktime_import.h"
 #endif
+#ifdef WITH_FREEIMAGE
+#include "IMB_freeimage.h"
+#endif
+#ifdef WITH_IMAGEMAGICK
+#include "IMB_imagemagick.h"
+#endif
+
+
+#define UTIL_DEBUG 0
 
 /* from misc_util: flip the bytes from x  */
 #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1])
@@ -53,11 +67,13 @@
 /* this one is only def-ed once, strangely... */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
 
-int IMB_ispic(char *name)
+int IMB_ispic_name(char *name)
 {
 	struct stat st;
 	int fp, buf[10];
 	int ofs = 0;
+
+	if(UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
 	
 	if (ib_stat(name,&st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) == S_IFREG){
@@ -84,15 +100,177 @@ int IMB_ispic(char *name)
 					/* if ((BIG_LONG(buf[0]) == 0x10000000) && ((BIG_LONG(buf[1]) & 0xf0ffffff) == 0)) return(TIM); */
 
 				}
-				if (imb_is_a_png(buf))		return(PNG);
-				if (imb_is_a_targa(buf))	return(TGA);
+				if (imb_is_a_png(buf)) return(PNG);
+				if (imb_is_a_targa(buf)) return(TGA);
 /*
-				if (imb_is_a_bmp(buf))		return(BMP);
+				if (imb_is_a_bmp(buf)) return(BMP);
 */
+
+#ifdef WITH_QUICKTIME
+#if defined(_WIN32) || defined(__APPLE__)
+				if(G.have_quicktime) {
+					if (imb_is_a_quicktime(name)) return(QUICKTIME);
+				}
+#endif
+#endif
+
+#ifdef WITH_FREEIMAGE
+				if (imb_is_a_freeimage(name)) return(FREEIMAGE);
+#endif
+
+#ifdef WITH_IMAGEMAGICK
+				if (imb_is_imagick(name)) return(IMAGEMAGICK);
+#endif
+
 				return(FALSE);
 			}
 			close(fp);
 		}
 	}
 	return(FALSE);
+}
+
+
+
+int IMB_ispic(char *filename)
+{
+	if(U.uiflag & FILTERFILEEXTS) {
+		if (G.have_quicktime){
+			if(		BLI_testextensie(filename, ".jpg")
+				||	BLI_testextensie(filename, ".jpeg")
+				||	BLI_testextensie(filename, ".tga")
+				||	BLI_testextensie(filename, ".rgb")
+				||	BLI_testextensie(filename, ".bmp")
+				||	BLI_testextensie(filename, ".png")
+				||	BLI_testextensie(filename, ".iff")
+				||	BLI_testextensie(filename, ".lbm")
+				||	BLI_testextensie(filename, ".gif")
+				||	BLI_testextensie(filename, ".psd")
+				||	BLI_testextensie(filename, ".tif")
+				||	BLI_testextensie(filename, ".tiff")
+				||	BLI_testextensie(filename, ".pct")
+				||	BLI_testextensie(filename, ".pict")
+				||	BLI_testextensie(filename, ".pntg") //macpaint
+				||	BLI_testextensie(filename, ".qtif")
+#if defined(WITH_FREEIMAGE) || defined (WITH_IMAGEMAGICK) //nasty for now
+				||	BLI_testextensie(filename, ".jng")
+				||	BLI_testextensie(filename, ".mng")
+				||	BLI_testextensie(filename, ".pbm")
+				||	BLI_testextensie(filename, ".pgm")
+				||	BLI_testextensie(filename, ".ppm")
+				||	BLI_testextensie(filename, ".wbmp")
+				||	BLI_testextensie(filename, ".cut")
+				||	BLI_testextensie(filename, ".ico")
+				||	BLI_testextensie(filename, ".koa")
+				||	BLI_testextensie(filename, ".koala")
+				||	BLI_testextensie(filename, ".pcd")
+				||	BLI_testextensie(filename, ".pcx")
+				||	BLI_testextensie(filename, ".ras")
+#endif
+				||	BLI_testextensie(filename, ".sgi")) {
+				return IMB_ispic_name(filename);
+			} else {
+				return(FALSE);			
+			}
+		} else { // no quicktime
+			if(		BLI_testextensie(filename, ".jpg")
+				||	BLI_testextensie(filename, ".jpeg")
+				||	BLI_testextensie(filename, ".tga")
+				||	BLI_testextensie(filename, ".rgb")
+				||	BLI_testextensie(filename, ".bmp")
+				||	BLI_testextensie(filename, ".png")
+				||	BLI_testextensie(filename, ".iff")
+				||	BLI_testextensie(filename, ".lbm")
+#if defined(WITH_FREEIMAGE) || defined (WITH_IMAGEMAGICK) //nasty for now
+				||	BLI_testextensie(filename, ".jng")
+				||	BLI_testextensie(filename, ".mng")
+				||	BLI_testextensie(filename, ".pbm")
+				||	BLI_testextensie(filename, ".pgm")
+				||	BLI_testextensie(filename, ".ppm")
+				||	BLI_testextensie(filename, ".wbmp")
+				||	BLI_testextensie(filename, ".cut")
+				||	BLI_testextensie(filename, ".ico")
+				||	BLI_testextensie(filename, ".koa")
+				||	BLI_testextensie(filename, ".koala")
+				||	BLI_testextensie(filename, ".pcd")
+				||	BLI_testextensie(filename, ".pcx")
+				||	BLI_testextensie(filename, ".ras")
+				||	BLI_testextensie(filename, ".gif")
+				||	BLI_testextensie(filename, ".psd")
+				||	BLI_testextensie(filename, ".tif")
+				||	BLI_testextensie(filename, ".tiff")
+#endif
+			||	BLI_testextensie(filename, ".sgi")) {
+				return IMB_ispic_name(filename);
+			}
+			else  {
+				return(FALSE);
+			}
+		}
+	} else { // no FILTERFILEEXTS
+		return IMB_ispic_name(filename);
+	}
+}
+
+
+
+static int isavi (char *name) {
+    return AVI_is_avi (name);
+}
+
+#ifdef WITH_QUICKTIME
+static int isqtime (char *name) {
+	return anim_is_quicktime (name);
+}
+#endif
+
+int imb_get_anim_type(char * name) {
+	int type;
+	struct stat st;
+
+	if(UTIL_DEBUG) printf("in getanimtype: %s\n", name);
+
+    if (ib_stat(name,&st) == -1) return(0);
+    if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
+	
+	if (isavi(name)) return (ANIM_AVI);
+
+	if (ismovie(name)) return (ANIM_MOVIE);
+#ifdef WITH_QUICKTIME
+	if (isqtime(name)) return (ANIM_QTIME);
+#endif
+	type = IMB_ispic(name);
+	if (type == ANIM) return (ANIM_ANIM5);
+	if (type) return(ANIM_SEQUENCE);
+	return(0);
+}
+ 
+int IMB_isanim(char *filename) {
+	int type;
+	
+	if(U.uiflag & FILTERFILEEXTS) {
+		if (G.have_quicktime){
+			if(		BLI_testextensie(filename, ".avi")
+				||	BLI_testextensie(filename, ".flc")
+				||	BLI_testextensie(filename, ".mov")
+				||	BLI_testextensie(filename, ".movie")
+				||	BLI_testextensie(filename, ".mv")) {
+				type = imb_get_anim_type(filename);
+			} else {
+				return(FALSE);			
+			}
+		} else { // no quicktime
+			if(		BLI_testextensie(filename, ".avi")
+				||	BLI_testextensie(filename, ".mv")) {
+				type = imb_get_anim_type(filename);
+			}
+			else  {
+				return(FALSE);
+			}
+		}
+	} else { // no FILTERFILEEXTS
+		type = imb_get_anim_type(filename);
+	}
+	
+	return (type && type!=ANIM_SEQUENCE);
 }
