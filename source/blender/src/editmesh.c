@@ -1192,7 +1192,7 @@ void load_editMesh(void)
 			i = 0;
 			mvert = me->mvert;
 			while(eve) {
-				if (eve->keyindex >= 0) { // old vertex
+				if (eve->keyindex >= 0 && eve->keyindex < currkey->totelem) { // valid old vertex
 					if(currkey == actkey) {
 						if (actkey == me->key->refkey) {
 							VECCOPY(fp, mvert->co);

@@ -2470,6 +2470,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						force_draw_plus(SPACE_IPO, 1);
 						force_draw_plus(SPACE_BUTS, 1);
 					}
+					else PIL_sleep_ms(30);
 					
 				} while(get_mbut() & mousebut);
 			}

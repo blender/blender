@@ -1797,6 +1797,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						update_for_newframe();
 						force_draw_all(0); /* To make constraint sliders redraw */
 					}
+					else PIL_sleep_ms(30);
 				
 				} while(get_mbut() & mousebut);
 			}

@@ -85,6 +85,9 @@
 
 #include "SYS_System.h"
 
+#include "PIL_time.h"
+
+
 /* this might move to the external header */
 void* sound_get_libraryinterface(void);
 
@@ -145,6 +148,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					update_for_newframe();
 					force_draw_plus(SPACE_VIEW3D, 1);
 				}
+				else PIL_sleep_ms(30);
 			
 			} while(get_mbut() & mousebut);
 			ssound->flag &= ~SND_CFRA_NUM;

@@ -312,6 +312,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						force_draw_plus(SPACE_VIEW3D, 1);
 						force_draw_plus(SPACE_IPO, 1);
 					}
+					else PIL_sleep_ms(30);
 					
 				} while(get_mbut() & mousebut);
 			}
