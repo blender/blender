@@ -52,6 +52,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BKE_utildefines.h"
+
 #include "BIF_gl.h"
 #include "BIF_resources.h"
 

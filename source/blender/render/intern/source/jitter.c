@@ -40,12 +40,8 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 #include "render.h"
-#include "render_intern.h"
 #include "jitter.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 float jit[64][2];
 

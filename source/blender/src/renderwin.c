@@ -72,7 +72,9 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
+#include "BIF_resources.h"
 #include "BIF_toets.h"
 
 #include "BDR_editobject.h"
@@ -111,6 +113,9 @@
 /* forces draw of alpha */
 #define RW_FLAGS_ALPHA		(1<<4)
 
+/* space for info text */
+#define RW_HEADERY		18
+
 typedef struct {
 	Window *win;
 
@@ -125,6 +130,8 @@ typedef struct {
 	float pan_mouse_start[2], pan_ofs_start[2];
 
 	char *info_text;
+	char *render_text, *render_text_spare;
+	
 } RenderWin;
 
 static RenderWin *render_win= NULL;
@@ -142,6 +149,7 @@ static RenderWin *renderwin_alloc(Window *win)
 	rw->flags= 0;
 	rw->zoomofs[0]= rw->zoomofs[1]= 0;
 	rw->info_text= NULL;
+	rw->render_text= rw->render_text_spare= NULL;
 
 	rw->lmouse[0]= rw->lmouse[1]= 0;
 	rw->mbut[0]= rw->mbut[1]= rw->mbut[2]= 0;
@@ -167,6 +175,7 @@ static void renderwin_get_disprect(RenderWin *rw, float disprect_r[2][2])
 	int w, h;
 
 	window_get_size(rw->win, &w, &h);
+	h-= RW_HEADERY;
 
 	display_w= R.rectx*rw->zoom;
 	display_h= R.recty*rw->zoom;
@@ -204,6 +213,7 @@ static int renderwin_win_to_ndc(RenderWin *rw, int win_co[2], float ndc_r[2])
 	int w, h;
 
 	window_get_size(rw->win, &w, &h);
+	h-= RW_HEADERY;
 
 	ndc_r[0]=  ((float)(win_co[0]*2)/(w-1) - 1.0);
 	ndc_r[1]=  ((float)(win_co[1]*2)/(h-1) - 1.0);
@@ -225,6 +235,8 @@ static void renderwin_reset_view(RenderWin *rw)
 
 	/* now calculate a zoom for when image is larger than window */
 	window_get_size(rw->win, &w, &h);
+	h-= RW_HEADERY;
+	
 		/* at this point the r.rectx/y values are not correct yet */
 	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
 	recty= (G.scene->r.size*G.scene->r.ysch)/100;
@@ -239,6 +251,34 @@ static void renderwin_reset_view(RenderWin *rw)
 	renderwin_queue_redraw(rw);
 }
 
+static void renderwin_draw_render_info(RenderWin *rw)
+{
+	/* render text is added to top */
+	if(RW_HEADERY) {
+		float colf[3];
+		rcti rect;
+		
+		window_get_size(rw->win, &rect.xmax, &rect.ymax);
+		rect.xmin= 0;
+		rect.ymin= rect.ymax-RW_HEADERY;
+		glEnable(GL_SCISSOR_TEST);
+		glaDefine2DArea(&rect);
+		
+		/* clear header rect */
+		BIF_SetTheme(NULL);	// sets view3d theme by default
+		BIF_GetThemeColor3fv(TH_HEADER, colf);
+		glClearColor(colf[0], colf[1], colf[2], 1.0); 
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		if(rw->render_text) {
+			BIF_ThemeColor(TH_TEXT);
+			glRasterPos2i(12, 5);
+			BMF_DrawString(G.fonts, rw->render_text);
+		}
+	}	
+	
+}
+
 static void renderwin_draw(RenderWin *rw, int just_clear)
 {
 	float disprect[2][2];
@@ -246,9 +286,14 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 
 	rect.xmin= rect.ymin= 0;
 	window_get_size(rw->win, &rect.xmax, &rect.ymax);
+	rect.ymax-= RW_HEADERY;
+	
 	renderwin_get_disprect(rw, disprect);
 	
 	window_make_active(rw->win);
+	
+	/* do this first, so window ends with correct scissor */
+	renderwin_draw_render_info(rw);
 	
 	glEnable(GL_SCISSOR_TEST);
 	glaDefine2DArea(&rect);
@@ -279,6 +324,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		glPixelZoom(1.0, 1.0);
 	}
 	
+	/* info text is overlayed on bottom */
 	if (rw->info_text) {
 		float w;
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -291,7 +337,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		glRasterPos2i(10, 10);
 		BMF_DrawString(G.font, rw->info_text);
 	}
-
+	
 	window_swap_buffers(rw->win);
 }
 
@@ -330,6 +376,7 @@ static void renderwin_mouse_moved(RenderWin *rw)
 		int w, h;
 
 		window_get_size(rw->win, &w, &h);
+		h-= RW_HEADERY;
 		renderwin_win_to_ndc(rw, rw->lmouse, ndc);
 
 		rw->zoomofs[0]= -0.5*ndc[0]*(w-R.rectx*rw->zoom)/rw->zoom;
@@ -370,6 +417,13 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 {
 	RenderWin *rw= user_data;
 
+	// added this for safety, while render it's just creating bezerk results
+	if(R.flag & R_RENDERING) {
+		if(evt==ESCKEY && val) 
+			rw->flags|= RW_FLAGS_ESCAPE;
+		return;
+	}
+	
 	if (evt==RESHAPE) {
 		renderwin_reshape(rw);
 	} 
@@ -492,7 +546,7 @@ static void open_renderwin(int winpos[2], int winsize[2])
 	char *title;
 	
 	title= renderwin_get_title(0);	/* 0 = no swap */
-	win= window_open(title, winpos[0], winpos[1], winsize[0], winsize[1], 0);
+	win= window_open(title, winpos[0], winpos[1], winsize[0], winsize[1]+RW_HEADERY, 0);
 
 	render_win= renderwin_alloc(win);
 
@@ -504,7 +558,7 @@ static void open_renderwin(int winpos[2], int winsize[2])
 	winlay_process_events(0);
 	
 	/* mywindow has to know about it too */
-	mywindow_build_and_set_renderwin(winpos[0], winpos[1], winsize[0], winsize[1]);
+	mywindow_build_and_set_renderwin(winpos[0], winpos[1], winsize[0], winsize[1]+RW_HEADERY);
 	/* and we should be able to draw 3d in it */
 	init_gl_stuff();
 	
@@ -561,7 +615,7 @@ static void renderwin_init_display_cb(void)
 	if (G.afbreek == 0) {
 		int rendersize[2], renderpos[2];
 
-		calc_renderwin_rectangle(R.winpos, renderpos, rendersize);
+		calc_renderwin_rectangle(G.winpos, renderpos, rendersize);
 
 		if (!render_win) {
 			open_renderwin(renderpos, rendersize);
@@ -572,6 +626,7 @@ static void renderwin_init_display_cb(void)
 
 			window_get_position(render_win->win, &win_x, &win_y);
 			window_get_size(render_win->win, &win_w, &win_h);
+			win_h-= RW_HEADERY;
 
 				/* XXX, this is nasty and I guess bound to cause problems,
 				 * but to ensure the window is at the user specified position
@@ -616,7 +671,9 @@ static void renderwin_clear_display_cb(short ignore)
 * ... better is to make this an optimization of a more clear
 * implementation. the bug shows up when you do something like
 * open the window, then draw part of the progress, then get
-* a redraw event. whatever can go wrong will.
+* a redraw event. whatever can go wrong will. -zr
+*
+* Note: blocked queue handling while rendering to prevent that (ton)
 */
 
 /* in render window; display a couple of scanlines of rendered image (see callback below) */
@@ -627,9 +684,12 @@ static void renderwin_progress(RenderWin *rw, int start_y, int nlines, int rect_
 
 	win_rct.xmin= win_rct.ymin= 0;
 	window_get_size(rw->win, &win_rct.xmax, &win_rct.ymax);
+	win_rct.ymax-= RW_HEADERY;
+	
 	renderwin_get_disprect(rw, disprect);
-
-	window_make_active(rw->win);
+	
+	/* for efficiency & speed; not drawing in Blender UI while rendering */
+	//window_make_active(rw->win);
 
 	glEnable(GL_SCISSOR_TEST);
 	glaDefine2DArea(&win_rct);
@@ -717,29 +777,87 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 	}
 }
 
+/* in 3d view; display stats of rendered image */
+static void renderview_draw_render_info(char *str)
+{
+	if (render_view3d) {
+		View3D *v3d= render_view3d;
+		rcti vb, win_rct;
+		
+		calc_viewborder(v3d, &vb);
+		
+		bwin_get_rect(v3d->area->win, &win_rct);
+		glaDefine2DArea(&win_rct);
+		
+		glDrawBuffer(GL_FRONT);
+		
+		/* clear header rect */
+		BIF_ThemeColor(TH_HEADER);
+		glRecti(vb.xmin, vb.ymax, vb.xmax, vb.ymax+RW_HEADERY);
+		
+		if(str) {
+			BIF_ThemeColor(TH_TEXT);
+			glRasterPos2i(vb.xmin+12, vb.ymax+5);
+			BMF_DrawString(G.fonts, str);
+		}
+		
+		glFlush();
+		glDrawBuffer(GL_BACK);
+
+		v3d->area->win_swap= WIN_FRONT_OK;
+		
+	}
+}
+
+
 /* -------------- callbacks for render loop: interactivity ----------------------- */
 
 
-/* callback for print info in top header in interface */
+/* callback for print info in top header of renderwin */
+/* time is only not zero on last call, we then don't update the other stats */ 
 static void printrenderinfo_cb(double time, int sample)
 {
 	extern int mem_in_use;
-	extern char info_time_str[32];	// header_info.c
-	float megs_used_memory= mem_in_use/(1024.0*1024.0);
+	static int totvert=0, totvlak=0, tothalo=0, totlamp=0;
+	static float megs_used_memory=0.0;
 	char str[300], *spos= str;
 		
-	timestr(time, info_time_str);
-	spos+= sprintf(spos, "RENDER  Fra:%d  Ve:%d Fa:%d La:%d", (G.scene->r.cfra), R.totvert, R.totvlak, R.totlamp);
-	spos+= sprintf(spos, "Mem:%.2fM Time:%s ", megs_used_memory, info_time_str);
-
-	if (R.r.mode & R_FIELDS) {
-		spos+= sprintf(spos, "Field %c ", (R.flag&R_SEC_FIELD)?'B':'A');
-	}
-	if (sample!=-1) {
-		spos+= sprintf(spos, "Sample: %d    ", sample);
+	if(time==0.0) {
+		megs_used_memory= mem_in_use/(1024.0*1024.0);
+		totvert= R.totvert;
+		totvlak= R.totvlak;
+		totlamp= R.totlamp;
+		tothalo= R.tothalo;
 	}
 	
-	screen_draw_info_text(G.curscreen, str);
+	if(tothalo)
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM", (G.scene->r.cfra), totvert, totvlak, tothalo, totlamp, megs_used_memory);
+	else 
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM", (G.scene->r.cfra), totvert, totvlak, totlamp, megs_used_memory);
+
+	if(time==0.0) {
+		if (R.r.mode & R_FIELDS) {
+			spos+= sprintf(spos, "Field %c ", (R.flag&R_SEC_FIELD)?'B':'A');
+		}
+		if (sample!=-1) {
+			spos+= sprintf(spos, "Sample: %d    ", sample);
+		}
+	}
+	else {
+		extern char info_time_str[32];	// header_info.c
+		timestr(time, info_time_str);
+		spos+= sprintf(spos, " Time:%s ", info_time_str);
+	}
+	
+	if(render_win) {
+		if(render_win->render_text) MEM_freeN(render_win->render_text);
+		render_win->render_text= BLI_strdup(str);
+		glDrawBuffer(GL_FRONT);
+		renderwin_draw_render_info(render_win);
+		glFlush();
+		glDrawBuffer(GL_BACK);
+	}
+	else renderview_draw_render_info(str);
 }
 
 /* -------------- callback system to allow ESC from rendering ----------------------- */
@@ -854,7 +972,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	/* we set this flag to prevent renderwindow queue to execute another render */
 	R.flag= R_RENDERING;
 
-	if (R.displaymode == R_DISPLAYWIN || force_dispwin) {
+	if (G.displaymode == R_DISPLAYWIN || force_dispwin) {
 		RE_set_initrenderdisplay_callback(NULL);
 		RE_set_clearrenderdisplay_callback(renderwin_clear_display_cb);
 		RE_set_renderdisplay_callback(renderwin_progress_display_cb);
@@ -895,10 +1013,8 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	}
 
 	if(anim) update_for_newframe_muted();  // only when anim, causes redraw event which frustrates dispview
-	R.flag= 0;
 	
 	if (render_win) window_set_cursor(render_win->win, CURSOR_STD);
-	waitcursor(0);
 
 	free_filesel_spec(G.scene->r.pic);
 
@@ -907,8 +1023,18 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	
 	/* in dispiew it will destroy the image otherwise
 	   window_make_active() raises window at osx and sends redraws */
-	if(R.displaymode==R_DISPLAYWIN) mainwindow_make_active();
-
+	if(G.displaymode==R_DISPLAYWIN) {
+		mainwindow_make_active();
+	
+		/* after an envmap creation...  */
+		if(R.flag & R_REDRAW_PRV) {
+			BIF_all_preview_changed();
+		}
+		allqueue(REDRAWBUTSSCENE, 0);	// visualize fbuf for example
+	}
+	
+	R.flag= 0;
+	waitcursor(0);	// waitcursor checks rendering R.flag...
 }
 
 /* finds area with a 'dispview' set */
@@ -986,6 +1112,22 @@ void BIF_do_ogl_render(View3D *ogl_render_view3d, int anim)
 	G.scene->r.scemode &= ~R_OGL;
 }
 
+void BIF_redraw_render_rect(void)
+{
+	
+	/* redraw */
+	if (G.displaymode == R_DISPLAYWIN) {
+		// don't open render_win if rendering has been
+	    // canceled or the render_win has been actively closed
+		if (render_win) {
+			renderwin_queue_redraw(render_win);
+		}
+	} else {
+		renderview_init_display_cb();
+		renderview_progress_display_cb(0, R.recty-1, R.rectx, R.recty, R.rectot);
+	}
+}	
+
 void BIF_swap_render_rects(void)
 {
 	unsigned int *temp;
@@ -1009,19 +1151,20 @@ void BIF_swap_render_rects(void)
 	temp= R.rectot;
 	R.rectot= R.rectspare;
 	R.rectspare= temp;
+	
+	if (G.displaymode == R_DISPLAYWIN) {
+		if (render_win) {
+			char *tmp= render_win->render_text_spare;
+			render_win->render_text_spare= render_win->render_text;
+			render_win->render_text= tmp;
+			
+			window_set_title(render_win->win, renderwin_get_title(1));
+			
+		}
+	}
 
 	/* redraw */
-	if (R.displaymode == R_DISPLAYWIN) {
-		// don't open render_win if rendering has been
-	    // canceled or the render_win has been actively closed
-		if (render_win) {
-			window_set_title(render_win->win, renderwin_get_title(1));
-			renderwin_queue_redraw(render_win);
-		}
-	} else {
-		renderview_init_display_cb();
-		renderview_progress_display_cb(0, R.recty-1, R.rectx, R.recty, R.rectot);
-	}
+	BIF_redraw_render_rect();
 }				
 
 /* called from usiblender.c too, to free and close renderwin */
@@ -1030,6 +1173,8 @@ void BIF_close_render_display(void)
 	if (render_win) {
 
 		if (render_win->info_text) MEM_freeN(render_win->info_text);
+		if (render_win->render_text) MEM_freeN(render_win->render_text);
+		if (render_win->render_text_spare) MEM_freeN(render_win->render_text_spare);
 
 		window_destroy(render_win->win); /* ghost close window */
 		MEM_freeN(render_win);
@@ -1045,7 +1190,7 @@ void BIF_toggle_render_display(void)
 	ScrArea *sa= find_dispimage_v3d();
 	
 	if(R.rectot==NULL);		// do nothing
-	else if (render_win && R.displaymode==R_DISPLAYWIN) {
+	else if (render_win && G.displaymode==R_DISPLAYWIN) {
 		if(render_win->active) {
 			mainwindow_raise();
 			mainwindow_make_active();
@@ -1057,13 +1202,13 @@ void BIF_toggle_render_display(void)
 			render_win->active= 1;
 		}
 	} 
-	else if (sa && R.displaymode==R_DISPLAYVIEW) {
+	else if (sa && G.displaymode==R_DISPLAYVIEW) {
 		View3D *vd= sa->spacedata.first;
 		vd->flag &= ~V3D_DISPIMAGE;
 		scrarea_queue_winredraw(sa);
 	} 
 	else {
-		if (R.displaymode == R_DISPLAYWIN) {
+		if (G.displaymode == R_DISPLAYWIN) {
 			renderwin_init_display_cb();
 		} else {
 			if (render_win) {

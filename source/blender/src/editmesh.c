@@ -93,7 +93,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"
 
 /* own include */
 #include "editmesh.h"

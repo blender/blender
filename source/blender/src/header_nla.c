@@ -58,14 +58,17 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_utildefines.h"
+
 #include "BIF_interface.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_editnla.h"
 
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
 

@@ -46,6 +46,7 @@ void BIF_do_ogl_render(struct View3D *v3d, int anim);
 void BIF_renderwin_set_for_ogl_render(void);
 void BIF_renderwin_set_custom_cursor(unsigned char mask[16][2], unsigned char bitmap[16][2]);
 
+void BIF_redraw_render_rect(void);
 void BIF_swap_render_rects(void);
 void BIF_toggle_render_display(void);
 

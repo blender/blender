@@ -127,7 +127,7 @@ static float matbuf[MAXMATBUF][2][4];
 
 static void init_gl_materials(Object *ob)
 {
- 	extern Material defmaterial;
+	extern Material defmaterial;	// render module abuse...
 	Material *ma;
 	int a;
 	

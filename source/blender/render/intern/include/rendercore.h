@@ -54,20 +54,36 @@ typedef struct ShadeResult
 
 } ShadeResult;
 
-float   mistfactor(float *co);	/* dist en hoogte, return alpha */
+typedef struct PixStr
+{
+	struct PixStr *next;
+	int vlak0, vlak;
+	unsigned int z;
+	unsigned int mask;
+	short aantal, ronde;
+} PixStr;
 
-void 	render_lighting_halo(struct HaloRen *har, float *colf);
-unsigned int    calchalo_z(struct HaloRen *har, unsigned int zz);
-void add_halo_flare(void);
+/* ------------------------------------------------------------------------- */
 
-void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3);
+typedef struct PixStrMain
+{
+	struct PixStr *ps;
+	struct PixStrMain *next;
+} PixStrMain;
 
-void shade_color(struct ShadeInput *shi, ShadeResult *shr);
-void shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr);
 
-float fresnel_fac(float *view, float *vn, float fresnel, float fac);
-void calc_R_ref(struct ShadeInput *shi);
-float spec(float inp, int hard);
+float   mistfactor(float *co);	/* dist and height, return alpha */
+
+void	add_halo_flare(void);
+
+void	shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3);
+
+void	shade_color(struct ShadeInput *shi, ShadeResult *shr);
+void	shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr);
+
+float	fresnel_fac(float *view, float *vn, float fresnel, float fac);
+void	calc_R_ref(struct ShadeInput *shi);
+float	spec(float inp, int hard);
 
 /* -------- ray.c ------- */
 
@@ -76,36 +92,12 @@ extern void ray_trace(ShadeInput *, ShadeResult *);
 extern void ray_ao(ShadeInput *, World *, float *);
 
 /**
- * Apply the background (sky). Depending on the active alphamode and
- * worldmode, different filling strategies are applied.
- * Active alphamode = R.r.alphamode
- * Active worldmode = R.wrld.mode
- * <LI>
- * <IT> R_ALPHAPREMUL - do not fill sky, but apply alpha to colours
- * <IT> R_ALPHAKEY    - do not fill sky, do not apply alpha to colours
- * <IT> R_ADDSKY      - fill skycolour in the background, blend
- *                      transparent colours with the background
- * (there's also a world dependency here?
- *   <LI>
- *   <IT> R.wrld.mode == WO_MIST
- *   <IT> R.r.bufflag == 1, R.flag == R_SEC_FIELD
- *   <IT> R.wrld.skytype == ( WO_SKYBLEND ^ WO_SKYTEX)
- *   <IT>   R.wrld.skytype == WO_SKYPAPER
- *   <IT> R.r.mode == R_PANORAMA )
- *   </LI>
- * </LI>
- * @param rect
- * @param y 
- */
-void scanlinesky(char *rect, int y);
-
-/**
- * Do z buffer stuff.
+ * Do z buffer and shade
  */
 void zbufshade(void);
 
 /**
- * Insert transparent faces into the z buffer?
+ * zbuffer and shade, anti aliased
  */
 void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 
@@ -113,20 +105,6 @@ void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
  * Also called in: zbuf.c
  */
 void *shadepixel(float x, float y, int vlaknr, int mask, float *col);
-void shadepixel_short(float x, float y, int vlaknr, int mask, unsigned short *shortcol);
-
-/**
- * Shade the pixel at xn, yn for halo har, and write the result to col. 
- * Also called in: previewrender.c
- * @param har    The halo to be rendered on this location
- * @param col    [unsigned int 3] The destination colour vector 
- * @param zz     Some kind of distance
- * @param dist   Square of the distance of this coordinate to the halo's center
- * @param x      [f] Pixel x relative to center
- * @param y      [f] Pixel y relative to center
- * @param flarec Flare counter? Always har->flarec...
- */
-/*  void shadehalo(struct HaloRen *har, char *col, unsigned int zz, float dist, float x, float y, short flarec); */
 
 /**
  * A cryptic but very efficient way of counting the number of bits that 

@@ -34,7 +34,6 @@
 #define BIF_MESHTOOLS_H
 
 extern void join_mesh(void);
-extern void make_sticky(void);
 
 extern void fasterdraw(void);
 extern void slowerdraw(void);

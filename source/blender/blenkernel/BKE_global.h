@@ -93,6 +93,8 @@ typedef struct Global {
     
     short machine, afbreek, moving, colact, zbuf;
     short qual, background, imagewin, animspeed;
+	short winpos, displaymode;	/* used to be in Render */
+	
 	/**
 	 * The current version of Blender.
 	 */

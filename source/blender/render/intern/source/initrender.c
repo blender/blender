@@ -86,17 +86,20 @@
 #include "quicktime_export.h"
 #endif
 
+#include "SDL_thread.h"
+
 /* this module */
 #include "render.h"
-#include "render_intern.h"
 
 #include "RE_callbacks.h"
 #include "zbuf.h"
 #include "rendercore.h" /* part handler for the old renderer, shading functions */
+#include "pixelshading.h"
 #include "renderPreAndPost.h"
 #include "vanillaRenderPipe.h"
 #include "renderHelp.h"
 #include "jitter.h"
+#include "gammaCorrectionTables.h"
 
 /* Own includes */
 #include "initrender.h"
@@ -104,72 +107,16 @@
 /* yafray: include for yafray export/render */
 #include "YafRay_Api.h"
 
-/* Some crud :/ */
-#define ELEM3(a, b, c, d)       ( ELEM(a, b, c) || (a)==(d) )
 
-
-/* from render.c */
-extern float fmask[256], centLut[16], *fmask1[9], *fmask2[9];
-extern unsigned short *mask1[9], *mask2[9], *igamtab2;
-extern char cmask[256], *centmask;
+float centLut[16], *fmask1[9], *fmask2[9];
+unsigned short *gamtab, *igamtab2, *igamtab1;
+char cmask[256], *centmask;
 
 Material defmaterial;
-short pa; /* pa is global part, for print */
-short allparts[65][4];
-int qscount;
-
-/* ********************* *********************** */
-
-
-void init_def_material(void)
-{
-	Material *ma;
-
-	ma= &defmaterial;
-	
-	init_material(&defmaterial);
-
-	init_render_material(ma);
-}
-
-void RE_init_render_data(void)
-{
-	memset(&R, 0, sizeof(RE_Render));
-	memset(&O, 0, sizeof(Osa));
-	O.dxwin[0]= 1.0;
-	O.dywin[1]= 1.0;
-	
-	R.blove= (VertRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blove");
-	R.blovl= (VlakRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blovl");
-	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Bloha");
-	R.la= (LampRen **)MEM_mallocN(LAMPINITSIZE*sizeof(void *),"renderlamparray");
-
-	init_def_material();
-}
-
-void RE_free_render_data()
-{
-	MEM_freeN(R.blove);
-	R.blove= 0;
-	MEM_freeN(R.blovl);
-	R.blovl= 0;
-	MEM_freeN(R.bloha);
-	R.bloha= 0;
-	MEM_freeN(R.la);
-	R.la= 0;
-	if(R.rectot) MEM_freeN(R.rectot);
-	if(R.rectz) MEM_freeN(R.rectz);
-	if(R.rectspare) MEM_freeN(R.rectspare);
-	R.rectot= 0;
-	R.rectz= 0;
-	R.rectspare= 0;
-
-	end_render_material(&defmaterial);
-}
 
 /* ****************** GAMMA, MASKS and LUTS **************** */
 
-float  calc_weight(float *weight, int i, int j)
+static float calc_weight(float *weight, int i, int j)
 {
 	float x, y, dist, totw= 0.0, fac;
 	int a;
@@ -201,23 +148,20 @@ float  calc_weight(float *weight, int i, int j)
 	return totw;
 }
 
-void RE_init_filt_mask(void)
+static void init_filt_mask(void)
 {
 	static int firsttime=1;
 	static int lastosa=0;
 	static int lastgauss=0;
 	static float lastgamma= 0.0;
-	float gamma, igamma, flweight[32];
+	float gamma, igamma, flweight[32], fmask[256];
 	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
 	int i, j, a;
-	unsigned short *m1, *m2, shweight[32];
 
 	if(firsttime) {
 		firsttime= 0;
 		
 		for(a=0; a<9;a++) {
-			mask1[a]= MEM_mallocN(256*sizeof(short), "initfilt");
-			mask2[a]= MEM_mallocN(256*sizeof(short), "initfilt");
 			fmask1[a]= MEM_mallocN(256*sizeof(float), "initfilt");
 			fmask2[a]= MEM_mallocN(256*sizeof(float), "initfilt");
 		}
@@ -294,10 +238,8 @@ void RE_init_filt_mask(void)
 		}
 
 		for(a=0; a<9;a++) {
-			memset(mask1[a], 0, 256*2);
-			memset(mask2[a], 0, 256*2);
-			memset(fmask1[a], 0, 256*4);
-			memset(fmask2[a], 0, 256*4);
+			memset(fmask1[a], 0, 256*sizeof(float));
+			memset(fmask2[a], 0, 256*sizeof(float));
 		}
 
 		/* calculate totw */
@@ -315,60 +257,41 @@ void RE_init_filt_mask(void)
 				memset(weight, 0, sizeof(weight));
 				calc_weight(weight, i, j);
 
-				for(a=0; a<16; a++) shweight[a]= weight[a]*(65535.0/totw);
 				for(a=0; a<16; a++) flweight[a]= weight[a]*(1.0/totw);
 
-				m1= mask1[ 3*(j+1)+i+1 ];
-				m2= mask2[ 3*(j+1)+i+1 ];
 				m3= fmask1[ 3*(j+1)+i+1 ];
 				m4= fmask2[ 3*(j+1)+i+1 ];
 
 				for(a=0; a<256; a++) {
 					if(a &   1) {
-						m1[a]+= shweight[0];
-						m2[a]+= shweight[8];
 						m3[a]+= flweight[0];
 						m4[a]+= flweight[8];
 					}
 					if(a &   2) {
-						m1[a]+= shweight[1];
-						m2[a]+= shweight[9];
 						m3[a]+= flweight[1];
 						m4[a]+= flweight[9];
 					}
 					if(a &   4) {
-						m1[a]+= shweight[2];
-						m2[a]+= shweight[10];
 						m3[a]+= flweight[2];
 						m4[a]+= flweight[10];
 					}
 					if(a &   8) {
-						m1[a]+= shweight[3];
-						m2[a]+= shweight[11];
 						m3[a]+= flweight[3];
 						m4[a]+= flweight[11];
 					}
 					if(a &  16) {
-						m1[a]+= shweight[4];
-						m2[a]+= shweight[12];
 						m3[a]+= flweight[4];
 						m4[a]+= flweight[12];
 					}
 					if(a &  32) {
-						m1[a]+= shweight[5];
-						m2[a]+= shweight[13];
 						m3[a]+= flweight[5];
 						m4[a]+= flweight[13];
 					}
 					if(a &  64) {
-						m1[a]+= shweight[6];
-						m2[a]+= shweight[14];
 						m3[a]+= flweight[6];
 						m4[a]+= flweight[14];
 					}
 					if(a & 128) {
-						m1[a]+= shweight[7];
-						m2[a]+= shweight[15];
 						m3[a]+= flweight[7];
 						m4[a]+= flweight[15];
 					}
@@ -452,13 +375,11 @@ void RE_init_filt_mask(void)
 	}
 }
 
-void RE_free_filt_mask()
+static void free_filt_mask()
 {
 	int a;
 
 	for(a=0; a<9; a++) {
-		MEM_freeN(mask1[a]);
-		MEM_freeN(mask2[a]);
 		MEM_freeN(fmask1[a]);
 		MEM_freeN(fmask2[a]);
 	}
@@ -469,9 +390,9 @@ void RE_free_filt_mask()
 	MEM_freeN(centmask);
 }
 
-/* add stuff */
+/* unused */
 
-
+#if 0
 void defaultlamp()
 {
 	LampRen *lar;
@@ -489,7 +410,59 @@ void defaultlamp()
 	lar->b= 1.0;
 	lar->lay= 65535;
 }
+#endif
 
+
+
+/* ********************* init calls *********************** */
+
+
+static void init_def_material(void)
+{
+	Material *ma;
+	
+	ma= &defmaterial;
+	
+	init_material(&defmaterial);
+	
+	init_render_material(ma);
+}
+
+void RE_init_render_data(void)
+{
+	memset(&R, 0, sizeof(RE_Render));
+	
+	R.blove= (VertRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blove");
+	R.blovl= (VlakRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blovl");
+	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Bloha");
+	R.la= (LampRen **)MEM_mallocN(LAMPINITSIZE*sizeof(void *),"renderlamparray");
+	
+	init_def_material();
+	init_filt_mask();
+}
+
+void RE_free_render_data()
+{
+	MEM_freeN(R.blove);
+	R.blove= NULL;
+	MEM_freeN(R.blovl);
+	R.blovl= NULL;
+	MEM_freeN(R.bloha);
+	R.bloha= NULL;
+	MEM_freeN(R.la);
+	R.la= NULL;
+	if(R.rectot) MEM_freeN(R.rectot);
+	if(R.rectftot) MEM_freeN(R.rectftot);
+	if(R.rectz) MEM_freeN(R.rectz);
+	if(R.rectspare) MEM_freeN(R.rectspare);
+	R.rectot= NULL;
+	R.rectftot= NULL;
+	R.rectz= NULL;
+	R.rectspare= NULL;
+	
+	end_render_material(&defmaterial);
+	free_filt_mask();
+}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -601,13 +574,41 @@ void RE_setwindowclip(int mode, int jmode)
 
 /* ~~~~~~~~~~~~~~~~ PARTS ~~~~~~~~~~~~~~~~~~~~~~ */
 
-#define PART_EMPTY	-2
-
-void initparts()
+/** 
+* Part as in part-rendering. An image rendered in parts is rendered
+* to a list of parts, with x,y size, and a pointer to the render
+* output stored per part. Internal!
+*/
+typedef struct Part
 {
+	struct Part *next, *prev;
+	unsigned int *rect;		// color 4x8 bits
+	float *rectf;			// color 4x32 bits
+	unsigned int *rectz;	// zbuffer
+
+	short minx, miny, maxx, maxy, x, y;
+} Part;
+
+static void freeparts(void)
+{
+	Part *part= R.parts.first;
+	while(part) {
+		if(part->rect) MEM_freeN(part->rect);
+		if(part->rectz) MEM_freeN(part->rectz);
+		if(part->rectf) MEM_freeN(part->rectf);
+		part= part->next;
+	}
+	BLI_freelistN(&R.parts);
+}
+
+static void initparts(void)
+{
+	Part *pa;
 	short nr, xd, yd, xpart, ypart, xparts, yparts;
 	short a, xminb, xmaxb, yminb, ymaxb;
 
+	freeparts();
+	
 	if(R.r.mode & R_BORDER) {
 		xminb= R.r.border.xmin*R.rectx;
 		xmaxb= R.r.border.xmax*R.rectx;
@@ -629,9 +630,6 @@ void initparts()
 	xparts= R.r.xparts;	/* for border */
 	yparts= R.r.yparts;
 
-	for(nr=0;nr<xparts*yparts;nr++)
-		allparts[nr][0]= PART_EMPTY;	/* clear array */
-
 	xpart= R.rectx/xparts;
 	ypart= R.recty/yparts;
 
@@ -645,82 +643,108 @@ void initparts()
 		xpart= (xmaxb-xminb)/xparts;
 		ypart= (ymaxb-yminb)/yparts;
 	}
-
+	
 	for(nr=0; nr<xparts*yparts; nr++) {
-
+		pa= MEM_callocN(sizeof(Part), "new part");
+		
 		if(R.r.mode & R_PANORAMA) {
-			allparts[nr][0]= 0;
-			allparts[nr][1]= 0;
-			allparts[nr][2]= R.rectx;
-			allparts[nr][3]= R.recty;
+			pa->minx= pa->miny= 0;
+			pa->maxx= pa->x= R.rectx;
+			pa->maxy= pa->y= R.recty;
 		}
 		else {
 			xd= (nr % xparts);
 			yd= (nr-xd)/xparts;
 
-			allparts[nr][0]= xminb+ xd*xpart;
-			allparts[nr][1]= yminb+ yd*ypart;
-			if(xd<R.r.xparts-1) allparts[nr][2]= allparts[nr][0]+xpart;
-			else allparts[nr][2]= xmaxb;
-			if(yd<R.r.yparts-1) allparts[nr][3]= allparts[nr][1]+ypart;
-			else allparts[nr][3]= ymaxb;
+			pa->minx= xminb+ xd*xpart;
+			pa->miny= yminb+ yd*ypart;
+			if(xd<R.r.xparts-1) pa->maxx= pa->minx+xpart;
+			else pa->maxx= xmaxb;
+			if(yd<R.r.yparts-1) pa->maxy= pa->miny+ypart;
+			else pa->maxy= ymaxb;
 
-			if(allparts[nr][2]-allparts[nr][0]<=0) allparts[nr][0]= PART_EMPTY;
-			if(allparts[nr][3]-allparts[nr][1]<=0) allparts[nr][0]= PART_EMPTY;
-			
-			/* gauss needs 1 pixel extra to work */
-			if(xparts*yparts>1 && (R.r.mode & R_GAUSS)) {
-				allparts[nr][0]-= 1;
-				allparts[nr][1]-= 1;
-				allparts[nr][2]+= 1;
-				allparts[nr][3]+= 1;
-			}
+			pa->x= pa->maxx-pa->minx;
+			pa->y= pa->maxy-pa->miny;
 		}
+		
+		if(pa->x>0 && pa->y>0) {
+			/* Gauss needs 1 pixel extra to work */
+			if(xparts*yparts>1 && (R.r.mode & R_GAUSS)) {
+				pa->minx-= 1;
+				pa->miny-= 1;
+				pa->maxx+= 1;
+				pa->maxy+= 1;
+				pa->x+= 2;
+				pa->y+= 2;
+			}
+			BLI_addtail(&R.parts, pa);
+		}
+		else MEM_freeN(pa);
 	}
 	
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-short setpart(short nr)	/* return 0 if incorrect part */
+static void setpart(Part *pa)
 {
 
-	if(allparts[nr][0]== PART_EMPTY) return 0;
-
-	R.xstart= allparts[nr][0]-R.afmx;
-	R.ystart= allparts[nr][1]-R.afmy;
-	R.xend= allparts[nr][2]-R.afmx;
-	R.yend= allparts[nr][3]-R.afmy;
-	R.rectx= R.xend-R.xstart;
-	R.recty= R.yend-R.ystart;
-
-	return 1;
+	R.xstart= pa->minx-R.afmx;
+	R.ystart= pa->miny-R.afmy;
+	R.xend= pa->maxx-R.afmx;
+	R.yend= pa->maxy-R.afmy;
+	R.rectx= pa->x;
+	R.recty= pa->y;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void addparttorect(short nr, Part *part)
+static void addparttorect(Part *pa)
 {
-	unsigned int *rt, *rp;
+	float *rf, *rfp;
+	unsigned int *rt, *rtp, *rz, *rzp;
 	int y, heigth, len, copylen;
 
-	/* the right offset in rectot */
+	/* calc the right offset in rects, zbuffer cannot exist... */
 
-	rp= part->rect;
-	copylen=len= (allparts[nr][2]-allparts[nr][0]);
-	heigth= (allparts[nr][3]-allparts[nr][1]);
+	rtp= pa->rect;
+	rzp= pa->rectz;
+	rfp= pa->rectf;
+	
+	copylen=len= pa->x;
+	heigth= pa->y;
 	
 	if(R.r.mode & R_GAUSS) {
-		rp+= 1+len;
+		
+		rtp+= 1+len;
+		if(rzp) rzp+= 1+len;
+		if(rfp) rfp+= 4*(1+len);
+		
 		copylen= len-2;
 		heigth -= 2;
-		rt= R.rectot+ (allparts[nr][1] + 1)*R.rectx+ (allparts[nr][0]+1);
+		rt= R.rectot+ (pa->miny + 1)*R.rectx+ (pa->minx+1);
+		rz= R.rectz+ (pa->miny + 1)*R.rectx+ (pa->minx+1);
+		rf= R.rectftot+ 4*( (pa->miny + 1)*R.rectx + (pa->minx+1) );
 	}
-	else rt= R.rectot+ allparts[nr][1]*R.rectx+ allparts[nr][0];
-
+	else {
+		rt= R.rectot+ pa->miny*R.rectx+ pa->minx;
+		rz= R.rectz+ pa->miny*R.rectx+ pa->minx;
+		rf= R.rectftot+ 4*(pa->miny*R.rectx+ pa->minx);
+	}
 
 	for(y=0; y<heigth; y++) {
-		memcpy(rt, rp, 4*copylen);
+		memcpy(rt, rtp, 4*copylen);
 		rt+= R.rectx;
-		rp+= len;
+		rtp+= len;
+		
+		if(rzp) {
+			memcpy(rz, rzp, 4*copylen);
+			rz+= R.rectx;
+			rzp+= len;
+		}
+		if(rfp) {
+			memcpy(rf, rfp, 16*copylen);
+			rf+= 4*R.rectx;
+			rfp+= 4*len;
+		}
 	}
 }
 
@@ -728,7 +752,7 @@ void addparttorect(short nr, Part *part)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
  
-void add_to_blurbuf(int blur)
+static void add_to_blurbuf(int blur)
 {
 	static unsigned int *blurrect= 0;
 	int tot, gamval;
@@ -797,7 +821,7 @@ void yafrayRender()
 	R.flag |= R_RENDERING;	/* !!! */
 
 	if (R.rectz) MEM_freeN(R.rectz);
-	R.rectz = 0;
+	R.rectz = NULL;
 
 	// switch must be done before prepareScene()
 	if (!R.r.YFexportxml)
@@ -815,39 +839,70 @@ void yafrayRender()
 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void render() {
-	/* yafray: render, see above */
-	if (R.r.renderer==R_YAFRAY)
-		yafrayRender();
-	else
-		oldRenderLoop();
+
+// exported to other files, belongs in include... later
+SDL_mutex *render_abuf_lock=NULL, *load_ibuf_lock=NULL;
+
+
+static void renderloop_setblending(void)
+{
+	
+	/* this value should only be set here. do_gamma is for gammablended adding of subpixels */
+	do_gamma= 0;
+	if(R.r.mode & R_GAMMA) {
+		if((R.r.mode & R_OSA)) do_gamma= 1;
+	}
+	
+	/* always call, it does gamma tables used by alphaunder, but call after R.osa and jit was set */
+	init_filt_mask();
+	
+	switch (R.r.alphamode) {
+		case R_ALPHAKEY:	
+			setSkyBlendingMode(RE_ALPHA_KEY);
+			break;
+		case R_ALPHAPREMUL:	
+			setSkyBlendingMode(RE_ALPHA_PREMUL);
+			break;
+		default:
+			setSkyBlendingMode(RE_ALPHA_SKY);		
+	}
+	
+	/* SHould use slider when the gamma button is pressed. */
+	if (do_gamma) {		
+		makeGammaTables(2.0);
+	} else {
+		makeGammaTables(1.0);
+	}
+	
 }
 
-
-void oldRenderLoop(void)  /* here the PART and FIELD loops */
+static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 {
-	Part *part;
-	unsigned int *rt, *rt1, *rt2;
-	int len, y;
-	short blur, a,fields,fi,parts;  /* pa is a global because of print */
+	Part *pa;
+	int blur, fields, fi, totparts, nr;
 
-	if (R.rectz) MEM_freeN(R.rectz);
-	R.rectz = 0;
+	/* create mutexes for threaded render */
+	render_abuf_lock = SDL_CreateMutex();
+	load_ibuf_lock = SDL_CreateMutex();
 
+	if(R.rectz) MEM_freeN(R.rectz);
+	R.rectz = NULL;
+	if(R.rectftot) MEM_freeN(R.rectftot);
+	R.rectftot = NULL;
+	
 	/* FIELD LOOP */
+	totparts= R.r.xparts*R.r.yparts;
 	fields= 1;
-	parts= R.r.xparts*R.r.yparts;
 
 	if(R.r.mode & R_FIELDS) {
 		fields= 2;
-		R.rectf1= R.rectf2= 0;	/* field rects */
+		R.rectf1= R.rectf2= NULL;	/* field rects */
 		R.r.ysch/= 2;
 		R.afmy/= 2;
 		R.r.yasp*= 2;
 		R.ycor= ( (float)R.r.yasp)/( (float)R.r.xasp);
 
 	}
-
 	
 	for(fi=0; fi<fields; fi++) {
 
@@ -874,7 +929,7 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 			if(R.r.mode & R_MBLUR) set_mblur_offs(R.osa-blur);
 
 			initparts(); /* always do, because of border */
-			setpart(0);
+			setpart(R.parts.first);
 
 			RE_local_init_render_display();
 			RE_local_clear_render_display(R.win);
@@ -882,20 +937,18 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 
 			prepareScene();
 
-			/* PARTS */
-			R.parts.first= R.parts.last= 0;
-			for(pa=0; pa<parts; pa++) {
+			/* PARTS LOOP */
+			nr= 0;
+			for(pa= R.parts.first; pa; pa= pa->next, nr++) {
 
 				if(RE_local_test_break()) break;
 
-				if(pa) {	/* because case pa==0 has been done */
-					if(setpart(pa)==0) break;
-				}
+				setpart(pa);
 
 				if(R.r.mode & R_MBLUR) RE_setwindowclip(0, blur);
 				else RE_setwindowclip(0,-1);
 
-				if(R.r.mode & R_PANORAMA) setPanoRot(pa);
+				if(R.r.mode & R_PANORAMA) setPanoRot(nr);
 
 				/* HOMOGENIC COORDINATES AND ZBUF AND CLIP OPTIMISATION (per part) */
 				/* There may be some interference with z-coordinate    */
@@ -903,10 +956,13 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 
 				doClipping(RE_projectverto);
 				if(RE_local_test_break()) break;
-
-
+				
 				/* rectot is for result and integer face indices */
-				R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+				if(R.rectot) MEM_freeN(R.rectot);
+				R.rectot= MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+				
+				if(R.rectftot) MEM_freeN(R.rectftot);
+				if(R.r.mode & R_FBUF) R.rectftot= MEM_callocN(4*sizeof(float)*R.rectx*R.recty, "rectftot");
 				
 				if(R.r.mode & R_MBLUR) {
 					RE_local_printrenderinfo(0.0, R.osa - blur);
@@ -928,17 +984,14 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 				if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP));
 				else {
 					/* HANDLE PART OR BORDER */
-					if(parts>1 || (R.r.mode & R_BORDER)) {
+					if(totparts>1 || (R.r.mode & R_BORDER)) {
 
-						part= MEM_callocN(sizeof(Part), "part");
-						BLI_addtail(&R.parts, part);
-						part->rect= R.rectot;
+						pa->rect= R.rectot;
 						R.rectot= NULL;
-
-						if (R.rectz) {
-							MEM_freeN(R.rectz);
-							R.rectz= NULL;
-						}
+						pa->rectf= R.rectftot;
+						R.rectftot= NULL;
+						pa->rectz= R.rectz;
+						R.rectz= NULL;
 					}
 				}
 
@@ -955,36 +1008,31 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 
 				if(R.r.mode & R_PANORAMA) R.rectx*= R.r.xparts;
 
-				if(parts>1 || (R.r.mode & R_BORDER)) {
+				if(totparts>1 || (R.r.mode & R_BORDER)) {
+					int a;
+					
 					if(R.rectot) MEM_freeN(R.rectot);
+					if(R.rectftot) MEM_freeN(R.rectftot);
+					if(R.rectz) MEM_freeN(R.rectz);
 					
-					R.rectot=(unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+					R.rectot= MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+					R.rectz= MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectz");
+					if(R.r.mode & R_FBUF) R.rectftot= MEM_callocN(4*sizeof(float)*R.rectx*R.recty, "rectftot");
+					else R.rectftot= NULL;
 					
-					part= R.parts.first;
-					for(pa=0; pa<parts; pa++) {
-						if(allparts[pa][0]== PART_EMPTY) break;
-						if(part==0) break;
+					for(a=0, pa= R.parts.first; pa; pa= pa->next, a++) {
 						
-						if(R.r.mode & R_PANORAMA) {
-							if(pa) {
-								allparts[pa][0] += pa*R.r.xsch;
-								allparts[pa][2] += pa*R.r.xsch;
-							}
+						if(R.r.mode & R_PANORAMA) {		// pano is fake parts...
+							pa->minx += a*R.r.xsch;
+							pa->maxx += a*R.r.xsch;
 						}
-						addparttorect(pa, part);
-						
-						part= part->next;
+						addparttorect(pa);
 					}
-					
-					part= R.parts.first;
-					while(part) {
-						MEM_freeN(part->rect);
-						part= part->next;
-					}
-					BLI_freelistN(&R.parts);
 				}
 			}
-
+			
+			freeparts();
+			
 			if( (R.flag & R_HALO)) {
 				if(RE_local_test_break()==0) add_halo_flare();
 			}
@@ -1006,7 +1054,7 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 		if(R.r.mode & R_FIELDS) {
 			if(R.flag & R_SEC_FIELD) R.rectf2= R.rectot;
 			else R.rectf1= R.rectot;
-			R.rectot= 0;
+			R.rectot= NULL;
 		}
 
 		if(RE_local_test_break()) break;
@@ -1021,8 +1069,11 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 
 		if(R.rectot) MEM_freeN(R.rectot);	/* happens when a render has been stopped */
 		R.rectot=(unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-
+		
 		if(RE_local_test_break()==0) {
+			unsigned int *rt, *rt1, *rt2;
+			int len, a;
+			
 			rt= R.rectot;
 
 			if(R.r.mode & R_ODDFIELD) {
@@ -1045,48 +1096,58 @@ void oldRenderLoop(void)  /* here the PART and FIELD loops */
 				rt2+= R.rectx;
 			}
 		}
+		
+		if(R.rectf1) MEM_freeN(R.rectf1);
+		R.rectf1= NULL;
+		if(R.rectf2) MEM_freeN(R.rectf2);
+		R.rectf2= NULL;
+		/* fbuf and zbuf free, image size differs now */
+		if(R.rectftot) MEM_freeN(R.rectftot);
+		R.rectftot= NULL;
+		if(R.rectz) MEM_freeN(R.rectz);
+		R.rectz= NULL;
+		
 	}
-
-	/* R.rectx= R.r.xsch; */
-	/* if(R.r.mode & R_PANORAMA) R.rectx*= R.r.xparts; */
-	/* R.recty= R.r.ysch; */
 
 	/* if border: still do skybuf */
 	if(R.r.mode & R_BORDER) {
 		if( (R.r.mode & R_MOVIECROP)==0) {
 			if(R.r.bufflag & 1) {
+				unsigned int *rt;
+				int x, y;
+				
 				R.xstart= -R.afmx;
 				R.ystart= -R.afmy;
 				rt= R.rectot;
-				for(y=0; y<R.recty; y++, rt+= R.rectx) scanlinesky((char *)rt, y);
+				for(y=0; y<R.recty; y++) {
+					for(x=0; x<R.rectx; x++, rt++) {
+						if(*rt==0) fillBackgroundImageChar((char *)rt, x, y);
+					}
+				}
 			}
 		}
 	}
 
 	set_mblur_offs(0);
 
-	/* FREE */
+	/* mutexes free */
+	SDL_DestroyMutex(load_ibuf_lock);
+	SDL_DestroyMutex(render_abuf_lock);
+	load_ibuf_lock= NULL;
+	render_abuf_lock= NULL;
+}
 
-	/* zbuf test */
-
-	/* don't free R.rectz, only when its size is not the same as R.rectot */
-
-	if (R.rectz && parts == 1 && (R.r.mode & R_FIELDS) == 0);
-	else {
-		if(R.rectz) MEM_freeN(R.rectz);
-		R.rectz= 0;
-	}
-
-	if(R.rectf1) MEM_freeN(R.rectf1);
-	R.rectf1= 0;
-	if(R.rectf2) MEM_freeN(R.rectf2);
-	R.rectf2= 0;
+void render() {
+	/* yafray: render, see above */
+	if (R.r.renderer==R_YAFRAY)
+		yafrayRender();
+	else
+		mainRenderLoop();
 }
 
 
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-extern unsigned short usegamtab;
+
 void RE_initrender(struct View3D *ogl_render_view3d)
 {
 	double start_time;
@@ -1163,23 +1224,16 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		}
 	}
 	
-	usegamtab= 0; /* see also further */
-	
 	if(R.r.mode & (R_OSA|R_MBLUR)) {
 		R.osa= R.r.osa;
 		if(R.osa>16) R.osa= 16;
 		
 		init_render_jit(R.osa);
 		
-		/* this value sometimes is reset temporally, for example in transp zbuf */
-		if(R.r.mode & R_GAMMA) {
-			if((R.r.mode & R_OSA)) usegamtab= 1;
-		}
 	}
 	else R.osa= 0;
 	
-	/* always call, it does gamma tables used by alphaunder, but call after R.osa and jit was set */
-	RE_init_filt_mask();
+	renderloop_setblending();	// alpha, sky, gamma
 	
 	/* when rendered without camera object */
 	/* it has to done here because of envmaps */
@@ -1205,14 +1259,15 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		if(R.rectot) MEM_freeN(R.rectot);
 		R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 		
+		if(R.rectftot) MEM_freeN(R.rectftot);
+		R.rectftot= NULL;
+		
 		RE_local_timecursor((G.scene->r.cfra));
 		
 		if(RE_local_test_break()==0) do_render_seq();
 		
 		/* display */
-		if(R.rectot) RE_local_render_display(0, R.recty-1,
-											 R.rectx, R.recty,
-											 R.rectot);
+		if(R.rectot) RE_local_render_display(0, R.recty-1, R.rectx, R.recty,R.rectot);
 	}
 	else if(R.r.scemode & R_OGL) {
 		R.rectx= R.r.xsch;
@@ -1220,6 +1275,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		
 		if(R.rectot) MEM_freeN(R.rectot);
 		R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+		
+		if(R.rectftot) MEM_freeN(R.rectftot);
+		R.rectftot= NULL;
 		
 		RE_local_init_render_display();
 		drawview3d_render(ogl_render_view3d);
@@ -1232,8 +1290,11 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		if(G.scene->camera==0) {
 			error("No camera");
 			/* needed because R.rectx and R.recty can be unmatching R.rectot */
+			
 			if(R.rectot) MEM_freeN(R.rectot);
 			R.rectot= NULL;
+			if(R.rectftot) MEM_freeN(R.rectftot);
+			R.rectftot= NULL;
 			
 			G.afbreek=1;
 			return;
@@ -1252,22 +1313,16 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	/* display again: fields/seq/parts/pano etc */
 	if(R.rectot) {
 		RE_local_init_render_display();
-		RE_local_render_display(0, R.recty-1,
-			R.rectx, R.recty,
-			R.rectot);
+		RE_local_render_display(0, R.recty-1, R.rectx, R.recty, R.rectot);
 	}
 	else RE_local_clear_render_display(R.win);
 	
 	if ((G.scene->r.scemode & R_OGL)==0) /* header gets scrabled if renderwindow holds OGL context */	
 		RE_local_printrenderinfo((PIL_check_seconds_timer() - start_time), -1);
 	
-	/* restore variables */
-	//R.osatex= 0;
-	//R.vlr= 0;	
-	///* at cubemap */
 	
 	/* these flags remain on, until reset in caller to render (renderwin.c) */
-	R.flag &= (R_RENDERING|R_ANIMRENDER);
+	R.flag &= (R_RENDERING|R_ANIMRENDER|R_REDRAW_PRV);
 }
 
 void RE_animrender(struct View3D *ogl_render_view3d)
@@ -1285,8 +1340,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 	if(G.scene->r.scemode & R_OGL) R.r.mode &= ~R_PANORAMA;
 	
-	// these calculations apply for
-	// all movie formats
+	// these calculations apply for all movie formats
 	R.rectx= (R.r.size*R.r.xsch)/100;
 	R.recty= (R.r.size*R.r.ysch)/100;
 	if(R.r.mode & R_PANORAMA) {
@@ -1295,7 +1349,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	}
 	if(R.r.mode & R_MOVIECROP) {
 		initparts();
-		setpart(0);		// this will adjust r.rectx
+		setpart(R.parts.first);		// this will adjust r.rectx
 	}
 
 	if (0) {
@@ -1358,7 +1412,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 	}
 
-	(G.scene->r.cfra)= cfrao;
+	G.scene->r.cfra= cfrao;
 
 	/* restore time */
 	if(R.r.mode & (R_FIELDS|R_MBLUR)) {

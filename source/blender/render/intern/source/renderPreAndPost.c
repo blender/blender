@@ -35,7 +35,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "render.h"
-#include "render_intern.h"
 #include "renderPreAndPost.h"
 #include "RE_callbacks.h"
 
@@ -56,11 +55,6 @@ void prepareScene()
 	int a;
 	extern void makeoctree(void);
 	
-	if(R.rectot) MEM_freeN(R.rectot);
-	R.rectot= 0;
-	if(R.rectz) MEM_freeN(R.rectz);
-	R.rectz= 0;
-
 	RE_local_get_renderdata();
 
 	/* SHADOW BUFFER */

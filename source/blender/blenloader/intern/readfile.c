@@ -106,32 +106,34 @@
 
 #include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) open_plugin_seq set_rects_butspace check_imasel_copy
 
+#include "BKE_armature.h"	//	for precalc_bonelist_irestmats
+#include "BKE_action.h"
 #include "BKE_constraint.h"
-#include "BKE_utildefines.h" // SWITCH_INT WHILE_SEQ END_SEQ DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
-#include "BKE_main.h" // for Main
+#include "BKE_curve.h"
+#include "BKE_effect.h" // for give_parteff
 #include "BKE_global.h" // for G
 #include "BKE_property.h" // for get_property
 #include "BKE_library.h" // for wich_libbase
-#include "BKE_texture.h" // for open_plugin_tex
-#include "BKE_effect.h" // for give_parteff
-#include "BKE_sca.h" // for init_actuator
+#include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
-#include "BKE_armature.h"	//	for precalc_bonelist_irestmats
-#include "BKE_action.h"
 #include "BKE_object.h"
+#include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
+#include "BKE_texture.h" // for open_plugin_tex
+#include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 
 #include "BIF_butspace.h" // for do_versions, patching event codes
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
+#include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
+
 #include "readfile.h"
 
 #include "genfile.h"
 
-#include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
-
 #include "mydevice.h"
+#include "blendef.h"
 
 /*
  Remark: still a weak point is the newadress() function, that doesnt solve reading from
@@ -2012,7 +2014,6 @@ static void direct_link_material(FileData *fd, Material *ma)
 	ma->ramp_col= newdataadr(fd, ma->ramp_col);
 	ma->ramp_spec= newdataadr(fd, ma->ramp_spec);
 	
-	ma->ren= NULL;	/* should not be needed, nevertheless... */
 }
 
 /* ************ READ MESH ***************** */
@@ -4594,10 +4595,23 @@ static void do_versions(Main *main)
 	}
 	if(main->versionfile <= 235) {
 		Tex *tex= main->tex.first;
+		Scene *sce= main->scene.first;
 		
 		while(tex) {
 			if(tex->nabla==0.0) tex->nabla= 0.025;
 			tex= tex->id.next;
+		}
+		while(sce) {
+			sce->r.postsat= 1.0;
+			sce= sce->id.next;
+		}
+	}
+	if(main->versionfile <= 236) {
+		Scene *sce= main->scene.first;
+		
+		while(sce) {
+			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
+			sce= sce->id.next;
 		}
 	}
 	

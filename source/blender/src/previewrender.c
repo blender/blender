@@ -61,6 +61,7 @@
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_image_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_space_types.h"
@@ -407,7 +408,7 @@ static void sky_preview_pixel(float lens, int x, int y, char *rect)
 
 static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char *rect)
 {
-	float inpr, i, t, dist, distkw, vec[3];
+	float inpr, i, t, dist, distkw, vec[3], lacol[3];
 	int col;
 	
 	shi->co[0]= (float)x/(PR_RECTX/4);
@@ -420,7 +421,11 @@ static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char 
 	VECCOPY(shi->view, vec);
 	dist= Normalise(shi->view);
 
-	if(la->mode & LA_TEXTURE) do_lamp_tex(la, vec, shi);
+	lacol[0]= la->r;
+	lacol[1]= la->g;
+	lacol[2]= la->b;
+	
+	if(la->mode & LA_TEXTURE) do_lamp_tex(la, vec, shi, lacol);
 
 	if(la->type==LA_SUN || la->type==LA_HEMI) {
 		dist= 1.0;
@@ -471,13 +476,13 @@ static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char 
 	}
 	else if ELEM(la->type, LA_LOCAL, LA_AREA) dist*= shi->view[2];
 	
-	col= 255.0*dist*la->r;
+	col= 255.0*dist*lacol[0];
 	if(col<=0) rect[0]= 0; else if(col>=255) rect[0]= 255; else rect[0]= col;
 
-	col= 255.0*dist*la->g;
+	col= 255.0*dist*lacol[1];
 	if(col<=0) rect[1]= 0; else if(col>=255) rect[1]= 255; else rect[1]= col;
 
-	col= 255.0*dist*la->b;
+	col= 255.0*dist*lacol[2];
 	if(col<=0) rect[2]= 0; else if(col>=255) rect[2]= 255; else rect[2]= col;
 }
 
@@ -492,9 +497,9 @@ static void init_previewhalo(HaloRen *har, Material *mat)
 	har->radsq= PR_RECTX*PR_RECTX/4.0;
 	har->alfa= mat->alpha;
 	har->add= 255.0*mat->add;
-	har->r= 255.0*mat->r;
-	har->g= 255.0*mat->g; 
-	har->b= 255.0*mat->b;
+	har->r= mat->r;
+	har->g= mat->g; 
+	har->b= mat->b;
 	har->xs= PR_RECTX/2.0;
 	har->ys= PR_RECTX/2.0;
 	har->zs= har->zd= 0;
@@ -520,7 +525,7 @@ static void init_previewhalo(HaloRen *har, Material *mat)
 
 static void halo_preview_pixel(HaloRen *har, int startx, int endx, int y, char *rect)
 {
-	float dist, xn, yn, xsq, ysq;
+	float dist, xn, yn, xsq, ysq, colf[4];
 	int x;
 	char front[4];
 	
@@ -536,10 +541,8 @@ static void halo_preview_pixel(HaloRen *har, int startx, int endx, int y, char *
 		xsq= xn*xn;
 		dist= xsq+ysq;
 
-		
-		
 		if(dist<har->radsq) {
-			RE_shadehalo(har, front, 0, dist, xn, yn, har->flarec);
+			RE_shadehalo(har, front, colf, 0, dist, xn, yn, har->flarec);
 			RE_addalphaAddfac(rect, front, har->add);
 		}
 		rect+= 4;
@@ -591,12 +594,12 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 	R.rectot= rectot;
 }
 
-extern float Tin, Tr, Tg, Tb, Ta; /* texture.c */
 static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 {
-	float i, v1, xsq, ysq, texvec[3], dummy[3];
+	float i, v1, xsq, ysq, texvec[3];
+	float tin=1.0, tr, tg, tb, ta;
 	int rgbnor, tracol, skip=0;
-		
+	
 	if(tex->type==TEX_IMAGE) {
 		v1= 1.0/PR_RECTX;
 		
@@ -637,12 +640,12 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 			}
 			else {
 				skip= 1;
-				Ta= 0.0;
+				ta= 0.0;
 			}
 		}
 		else {
 			skip= 1;
-			Ta= 0.0;
+			ta= 0.0;
 		}
 	}
 	else {
@@ -653,44 +656,32 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 		texvec[2]= 0.0;
 	}
 	
-	/* does not return Tin */
-	if(tex->type==TEX_STUCCI) {
-		tex->nor= dummy;
-		dummy[0]= 1.0;
-		dummy[1]= dummy[2]= 0.0;
-	}
-	
-	if(skip==0) rgbnor= multitex(tex, texvec, NULL, NULL, 0);
+	if(skip==0) rgbnor= multitex_ext(tex, texvec, &tin, &tr, &tg, &tb, &ta);
 	else rgbnor= 1;
 	
 	if(rgbnor & 1) {
 		
-		v1= 255.0*Tr;
+		v1= 255.0*tr;
 		rect[0]= CLAMPIS(v1, 0, 255);
-		v1= 255.0*Tg;
+		v1= 255.0*tg;
 		rect[1]= CLAMPIS(v1, 0, 255);
-		v1= 255.0*Tb;
+		v1= 255.0*tb;
 		rect[2]= CLAMPIS(v1, 0, 255);
 		
-		if(Ta!=1.0) {
+		if(ta!=1.0) {
 			tracol=  64+100*(abs(x)>abs(y));
-			tracol= (1.0-Ta)*tracol;
+			tracol= (1.0-ta)*tracol;
 			
-			rect[0]= tracol+ (rect[0]*Ta) ;
-			rect[1]= tracol+ (rect[1]*Ta) ;
-			rect[2]= tracol+ (rect[2]*Ta) ;
+			rect[0]= tracol+ (rect[0]*ta) ;
+			rect[1]= tracol+ (rect[1]*ta) ;
+			rect[2]= tracol+ (rect[2]*ta) ;
 					
 		}
 	}
 	else {
-	
-		if(tex->type==TEX_STUCCI) {
-			Tin= 0.5 + 0.7*tex->nor[0];
-			CLAMP(Tin, 0.0, 1.0);
-		}
-		rect[0]= 255.0*Tin;
-		rect[1]= 255.0*Tin;
-		rect[2]= 255.0*Tin;
+		rect[0]= 255.0*tin;
+		rect[1]= 255.0*tin;
+		rect[2]= 255.0*tin;
 	}
 }
 
@@ -740,13 +731,22 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 	int temp, a;
 	char tracol;
 		
-	mat= shi->matren;
+	mat= shi->mat;
 
+	// copy all relevant material vars, note, keep this synced with render_types.h
+	memcpy(&shi->r, &mat->r, 23*sizeof(float));
+	// set special cases:
+	shi->har= mat->har;
+	if((mat->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0;
+	
 	v1= 1.0/PR_RECTX;
 	shi->view[0]= v1*x;
 	shi->view[1]= v1*y;
 	shi->view[2]= 1.0;
 	Normalise(shi->view);
+	
+	shi->xs= (float)x;
+	shi->ys= (float)y;
 	
 	shi->refcol[0]= shi->refcol[1]= shi->refcol[2]= shi->refcol[3]= 0.0;
 
@@ -824,7 +824,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		
 	}
 	/* set it here, because ray_mirror will affect it */
-	alpha= mat->alpha;
+	alpha= shi->alpha;
 
 	if(mat->mapto & MAP_DISPLACE) { /* Quick hack of fake displacement preview */
 		shi->vn[0]-=2.0*shi->displace[2];
@@ -838,13 +838,13 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			alpha*= fresnel_fac(shi->view, shi->vn, mat->fresnel_tra_i, mat->fresnel_tra);
 
 	if(mat->mode & MA_SHLESS) {
-		temp= 255.0*(mat->r);
+		temp= 255.0*(shi->r);
 		if(temp>255) rect[0]= 255; else if(temp<0) rect[0]= 0; else rect[0]= temp;
 
-		temp= 255.0*(mat->g);
+		temp= 255.0*(shi->g);
 		if(temp>255) rect[1]= 255; else if(temp<0) rect[1]= 0; else rect[1]= temp;
 
-		temp= 255.0*(mat->b);
+		temp= 255.0*(shi->b);
 		if(temp>255) rect[2]= 255; else if(temp<0) rect[2]= 0; else rect[2]= temp;
 	}
 	else {
@@ -864,22 +864,22 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			is= shi->vn[0]*lv[0]+shi->vn[1]*lv[1]+shi->vn[2]*lv[2];
 			if(is<0.0) is= 0.0;
 			
-			if(mat->spec)  {
+			if(shi->spec>0.0)  {
 				
 				if(is>0.0) {
 					/* specular shaders */
 					float specfac;
 					
 					if(mat->spec_shader==MA_SPEC_PHONG) 
-						specfac= Phong_Spec(shi->vn, lv, shi->view, mat->har);
+						specfac= Phong_Spec(shi->vn, lv, shi->view, shi->har);
 					else if(mat->spec_shader==MA_SPEC_COOKTORR) 
-						specfac= CookTorr_Spec(shi->vn, lv, shi->view, mat->har);
+						specfac= CookTorr_Spec(shi->vn, lv, shi->view, shi->har);
 					else if(mat->spec_shader==MA_SPEC_BLINN) 
-						specfac= Blinn_Spec(shi->vn, lv, shi->view, mat->refrac, (float)mat->har);
+						specfac= Blinn_Spec(shi->vn, lv, shi->view, mat->refrac, (float)shi->har);
 					else 
 						specfac= Toon_Spec(shi->vn, lv, shi->view, mat->param[2], mat->param[3]);
 				
-					inprspec= specfac*mat->spec;
+					inprspec= specfac*shi->spec;
 					
 					if(mat->mode & MA_RAMP_SPEC) {
 						float spec[3];
@@ -889,9 +889,9 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 						isb+= inprspec*spec[2];
 					}
 					else {	
-						isr+= inprspec*mat->specr;
-						isg+= inprspec*mat->specg;
-						isb+= inprspec*mat->specb;
+						isr+= inprspec*shi->specr;
+						isg+= inprspec*shi->specg;
+						isb+= inprspec*shi->specb;
 					}
 				}
 			}
@@ -900,7 +900,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			else if(mat->diff_shader==MA_DIFF_TOON) is= Toon_Diff(shi->vn, lv, shi->view, mat->param[0], mat->param[1]);
 			// else Lambert
 			
-			inp= (mat->ref*is + mat->emit);
+			inp= (shi->refl*is + shi->emit);
 			
 			if(a==0) la= pr1_col;
 			else la= pr2_col;
@@ -924,7 +924,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			/* scale */
 			div= (0.85*shi->ref[1]);
 			
-			shi->refcol[0]= mat->ray_mirror*fresnel_fac(shi->view, shi->vn, mat->fresnel_mir_i, mat->fresnel_mir);
+			shi->refcol[0]= shi->ray_mirror*fresnel_fac(shi->view, shi->vn, mat->fresnel_mir_i, mat->fresnel_mir);
 			/* not real 'alpha', but mirror overriding transparency */
 			if(mat->mode & MA_RAYTRANSP) {
 				float fac= sqrt(shi->refcol[0]);
@@ -953,40 +953,40 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		if(mat->mode & MA_RAMP_SPEC) ramp_spec_result(&isr, &isg, &isb, shi);
 		
 		if(shi->refcol[0]==0.0) {
-			a= 255.0*(diff[0] +mat->ambr +isr);
+			a= 255.0*(diff[0] +shi->ambr +isr);
 			if(a>255) a=255; else if(a<0) a= 0;
 			rect[0]= a;
-			a= 255.0*(diff[1] +mat->ambg +isg);
+			a= 255.0*(diff[1] +shi->ambg +isg);
 			if(a>255) a=255; else if(a<0) a= 0;
 			rect[1]= a;
-			a= 255*(diff[2] +mat->ambb +isb);
+			a= 255*(diff[2] +shi->ambb +isb);
 			if(a>255) a=255; else if(a<0) a= 0;
 			rect[2]= a;
 		}
 		else {
-			a= 255.0*( mat->mirr*shi->refcol[1] + (1.0 - mat->mirr*shi->refcol[0])*(diff[0] +mat->ambr) +isr);
+			a= 255.0*( shi->mirr*shi->refcol[1] + (1.0 - shi->mirr*shi->refcol[0])*(diff[0] +shi->ambr) +isr);
 			if(a>255) a=255; else if(a<0) a= 0;
 			rect[0]= a;
-			a= 255.0*( mat->mirg*shi->refcol[2] + (1.0 - mat->mirg*shi->refcol[0])*(diff[1] +mat->ambg) +isg);
+			a= 255.0*( shi->mirg*shi->refcol[2] + (1.0 - shi->mirg*shi->refcol[0])*(diff[1] +shi->ambg) +isg);
 			if(a>255) a=255; else if(a<0) a= 0;
 			rect[1]= a;
-			a= 255.0*( mat->mirb*shi->refcol[3] + (1.0 - mat->mirb*shi->refcol[0])*(diff[2] +mat->ambb) +isb);
+			a= 255.0*( shi->mirb*shi->refcol[3] + (1.0 - shi->mirb*shi->refcol[0])*(diff[2] +shi->ambb) +isb);
 			if(a>255) a=255; else if(a<0) a= 0;
 			rect[2]= a;
 		}
 	}
 
 		/* ztra shade */
-	if(mat->spectra!=0.0) {
+	if(shi->spectra!=0.0) {
 		inp = MAX3(isr, isg, isb);
-		inp *= mat->spectra;
+		inp *= shi->spectra;
 		if(inp>1.0) inp= 1.0;
 		alpha= (1.0-inp)*alpha+inp;
 	}
 
 	if(alpha!=1.0) {
 		if(mat->mode & MA_RAYTRANSP) {
-			refraction_prv(&x, &y, shi->vn, mat->ang);
+			refraction_prv(&x, &y, shi->vn, shi->ang);
 		}
 		
 		tracol=  previewback(mat->pr_back, x, y) & 255;
@@ -1091,8 +1091,8 @@ void BIF_previewrender(SpaceButs *sbuts)
 			}
 		}
 		shi.vlr= 0;
+		
 		shi.mat= mat;
-		shi.matren= mat->ren;
 		
 		if(mat->mode & MA_HALO) init_previewhalo(&har, mat);
 	}
@@ -1293,7 +1293,6 @@ void BIF_previewrender(SpaceButs *sbuts)
 	}
 	else if(la) {
 		if(R.totlamp) {
-			if(R.la[0]->org) MEM_freeN(R.la[0]->org);
 			MEM_freeN(R.la[0]);
 		}
 		R.totlamp= 0;

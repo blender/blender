@@ -70,6 +70,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 
 #include "BIF_space.h"
 #include "BIF_interface.h"

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 Import ('user_options_dict')
 Import ('library_env')
+Import ('sdl_env')
 
 render_env = library_env.Copy ()
 
@@ -9,6 +10,7 @@ source_files = ['intern/source/RE_callbacks.c',
                 'intern/source/envmap.c',
                 'intern/source/errorHandler.c',
                 'intern/source/gammaCorrectionTables.c',
+                'intern/source/imagetexture.c',
                 'intern/source/initrender.c',
                 'intern/source/jitter.c',
                 'intern/source/pixelblending.c',
@@ -36,6 +38,7 @@ render_env.Append (CPPPATH = ['intern/include',
                               '../quicktime',
                               '../include',
                               '../../kernel/gen_messaging',
-                              '../yafray'])
+                              '../yafray'] +
+			      sdl_env['CPPPATH'])
 
 render_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_render', source=source_files)

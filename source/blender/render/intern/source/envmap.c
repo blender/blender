@@ -49,6 +49,8 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BKE_utildefines.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"        /* for rectcpy */
 
@@ -58,38 +60,24 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BIF_space.h"
-#include "BIF_toolbox.h"
-
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_world.h"   // init_render_world
 #include "BKE_image.h"   // BKE_write_ibuf 
 
+#include "MTC_matrixops.h"
 
 /* this module */
 #include "RE_callbacks.h"
 #include "render.h"
-#include "render_intern.h"
 #include "envmap.h"
 #include "mydevice.h"
-#include "rendercore.h" /* calls zbufShade(DA).... I want to replace this with my own :)*/
+#include "rendercore.h" 
 #include "renderHelp.h"
-#include "MTC_matrixops.h"
+#include "texture.h"
 #include "zbuf.h"
 
-/* ------------------------------------------------------------------------- */
-
-void envmap_split_ima(EnvMap *env);
-void envmap_renderdata(EnvMap *env);
-void envmap_transmatrix(float mat[][4], int part);
-void env_rotate_scene(float mat[][4], int mode);
-void env_layerflags(unsigned int notlay);
-void env_set_imats(void);
-void render_envmap(EnvMap *env);
-int envcube_isect(float *vec, float *answ);
-static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int face);
 
 /* ------------------------------------------------------------------------- */
 
@@ -156,7 +144,7 @@ void RE_free_envmap(EnvMap *env)
 
 /* ------------------------------------------------------------------------- */
 
-void envmap_split_ima(EnvMap *env)
+static void envmap_split_ima(EnvMap *env)
 {
 	ImBuf *ibuf;
 	Image *ima;
@@ -168,7 +156,7 @@ void envmap_split_ima(EnvMap *env)
 	dx= env->ima->ibuf->y;
 	dx/= 2;
 	if(3*dx != env->ima->ibuf->x) {
-		error("Incorrect envmap size");
+		printf("Incorrect envmap size\n");
 		env->ok= 0;
 		env->ima->ok= 0;
 	}
@@ -199,7 +187,7 @@ void envmap_split_ima(EnvMap *env)
 /* ------------------------------------------------------------------------- */
 /* ****************** RENDER ********************** */
 
-void envmap_renderdata(EnvMap *env)
+static void envmap_renderdata(EnvMap *env)
 {
 	static RE_Render envR;
 	static Object *camera;
@@ -245,7 +233,7 @@ void envmap_renderdata(EnvMap *env)
 
 /* ------------------------------------------------------------------------- */
 
-void envmap_transmatrix(float mat[][4], int part)
+static void envmap_transmatrix(float mat[][4], int part)
 {
 	float tmat[4][4], eul[3], rotmat[4][4];
 	
@@ -277,7 +265,7 @@ void envmap_transmatrix(float mat[][4], int part)
 
 /* ------------------------------------------------------------------------- */
 
-void env_rotate_scene(float mat[][4], int mode)
+static void env_rotate_scene(float mat[][4], int mode)
 {
 	VlakRen *vlr = NULL;
 	VertRen *ver = NULL;
@@ -366,7 +354,7 @@ void env_rotate_scene(float mat[][4], int mode)
 
 /* ------------------------------------------------------------------------- */
 
-void env_layerflags(unsigned int notlay)
+static void env_layerflags(unsigned int notlay)
 {
 	VlakRen *vlr = NULL;
 	int a;
@@ -392,7 +380,7 @@ void env_hideobject(Object *ob)
 
 /* ------------------------------------------------------------------------- */
 
-void env_set_imats()
+static void env_set_imats()
 {
 	Base *base;
 	float mat[4][4];
@@ -409,7 +397,7 @@ void env_set_imats()
 
 /* ------------------------------------------------------------------------- */
 
-void render_envmap(EnvMap *env)
+static void render_envmap(EnvMap *env)
 {
 	/* only the cubemap is implemented */
 	ImBuf *ibuf;
@@ -420,6 +408,11 @@ void render_envmap(EnvMap *env)
 	/* need a recalc: ortho-render has no correct viewinv */
 	MTC_Mat4Invert(oldviewinv, R.viewmat);
 
+	/* do first, envmap_renderdata copies entire R struct */
+	if(R.rectz) MEM_freeN(R.rectz); R.rectz= NULL;
+	if(R.rectot) MEM_freeN(R.rectot); R.rectot= NULL;
+	if(R.rectftot) MEM_freeN(R.rectftot); R.rectftot= NULL;
+	
 	/* setup necessary globals */
 	envmap_renderdata(env);
 	
@@ -480,8 +473,9 @@ void render_envmap(EnvMap *env)
 
 	}
 	
-	if(R.rectz) MEM_freeN(R.rectz); R.rectz= 0;
-	if(R.rectot) MEM_freeN(R.rectot); R.rectot= 0;
+	if(R.rectz) MEM_freeN(R.rectz); R.rectz= NULL;
+	if(R.rectot) MEM_freeN(R.rectot); R.rectot= NULL;
+	if(R.rectftot) MEM_freeN(R.rectftot); R.rectftot= NULL;
 	
 	if(RE_local_test_break()) RE_free_envmapdata(env);
 	else {
@@ -557,7 +551,7 @@ void make_envmaps()
 	if(do_init) {
 		RE_local_init_render_display();
 		RE_local_clear_render_display(R.win);
-		allqueue(REDRAWBUTSSHADING, 0);			// bad!
+		R.flag |= R_REDRAW_PRV;
 	}	
 	// restore
 	R.r.mode |= trace;
@@ -566,7 +560,7 @@ void make_envmaps()
 
 /* ------------------------------------------------------------------------- */
 
-int envcube_isect(float *vec, float *answ)
+static int envcube_isect(float *vec, float *answ)
 {
 	float labda;
 	int face;
@@ -639,17 +633,16 @@ static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int fac
 
 /* ------------------------------------------------------------------------- */
 
-extern float Tin, Ta, Tr, Tg, Tb; /* texture.c */
-int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
+int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
-	float fac, vec[3], sco[3], col[20], dxts[3], dyts[3];
+	float fac, vec[3], sco[3], dxts[3], dyts[3];
 	int face, face1;
 	
 	env= tex->env;
 	if(env==0 || env->object==0) {
-		Tin= 0.0;
+		texres->tin= 0.0;
 		return 0;
 	}
 	if(env->stype==ENV_LOAD) {
@@ -662,7 +655,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 
 	if(env->ok==0) {
 		
-		Tin= 0.0;
+		texres->tin= 0.0;
 		return 0;
 	}
 	
@@ -674,16 +667,17 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 	tex->ima= env->cube[face];
 	
 	if(osatex) {
+
 		MTC_Mat4Mul3Vecfl(env->object->imat, dxt);
 		MTC_Mat4Mul3Vecfl(env->object->imat, dyt);
 		
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
-		imagewraposa(tex, sco, dxts, dyts);
+		imagewraposa(tex, sco, dxts, dyts, texres);
 		
 		/* edges? */
 		
-		if(Ta<1.0) {
-			col[0]= Ta; col[1]= Tr; col[2]= Tg; col[3]= Tb;
+		if(texres->ta<1.0) {
+			TexResult texr1, texr2;
 	
 			VecAddf(vec, vec, dxt);
 			face1= envcube_isect(vec, sco);
@@ -692,12 +686,11 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 			if(face!=face1) {
 				tex->ima= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, sco, dxts, dyts);
-				col[4]= Ta; col[5]= Tr; col[6]= Tg; col[7]= Tb;
+				imagewraposa(tex, sco, dxts, dyts, &texr1);
 			}
-			else col[4]= col[5]= col[6]= col[7]= 0.0;
+			else texr1.tr= texr1.tg= texr1.tb= texr1.ta= 0.0;
 			
-			/* here was the nasty bug! col[5,6,7] were not zero-ed. FPE! */
+			/* here was the nasty bug! results were not zero-ed. FPE! */
 			
 			VecAddf(vec, vec, dyt);
 			face1= envcube_isect(vec, sco);
@@ -706,23 +699,23 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex)
 			if(face!=face1) {
 				tex->ima= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, sco, dxts, dyts);
-				col[8]= Ta; col[9]= Tr; col[10]= Tg; col[11]= Tb;
+				imagewraposa(tex, sco, dxts, dyts, &texr2);
 			}
-			else col[8]= col[9]= col[10]= col[11]= 0.0;
+			else texr2.tr= texr2.tg= texr2.tb= texr2.ta= 0.0;
 			
-			fac= (col[0]+col[4]+col[8]);
-			fac= 1.0/fac;
-			
-			Tr= fac*(col[0]*col[1] + col[4]*col[5] + col[8]*col[9] );
-			Tg= fac*(col[0]*col[2] + col[4]*col[6] + col[8]*col[10] );
-			Tb= fac*(col[0]*col[3] + col[4]*col[7] + col[8]*col[11] );
-			Ta= 1.0;
-
+			fac= (texres->ta+texr1.ta+texr2.ta);
+			if(fac!=0.0) {
+				fac= 1.0/fac;
+				
+				texres->tr= fac*(texres->ta*texres->tr + texr1.ta*texr1.tr + texr2.ta*texr2.tr );
+				texres->tg= fac*(texres->ta*texres->tg + texr1.ta*texr1.tg + texr2.ta*texr2.tg );
+				texres->tb= fac*(texres->ta*texres->tb + texr1.ta*texr1.tb + texr2.ta*texr2.tb );
+			}
+			texres->ta= 1.0;
 		}
 	}
 	else {
-		imagewrap(tex, sco);
+		imagewrap(tex, sco, texres);
 	}
 	
 	tex->ima= env->ima;

@@ -40,8 +40,11 @@
  * environment map as texture. 
  * (initrender.c)
  */
+
+struct TexResult;
+
 void make_envmaps(void);
-int     envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex);
+int     envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
 
 #endif /* ENVMAP_EXT_H */
 

@@ -61,6 +61,7 @@
 #include "BKE_scene.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_space.h"
 #include "BIF_screen.h"

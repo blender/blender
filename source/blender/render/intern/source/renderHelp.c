@@ -38,16 +38,12 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "BKE_utildefines.h"
 #include "BLI_arithb.h"
 
 #include "render.h" 
-#include "render_intern.h"
 #include "renderHelp.h"
 #include "zbuf.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 static float panovco, panovsi;
 static float panophi=0.0;

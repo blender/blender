@@ -47,18 +47,12 @@ void free_image(struct Image *me);
 void free_image_buffers(struct Image *ima);
 struct Image *add_image(char *name);
 void free_unused_animimages(void);
+
 void makepicstring(char *string, int frame);
 struct anim *openanim(char * name, int flags);
-int calcimanr(int cfra, struct Tex *tex);
-void do_laseroptics_patch(struct ImBuf *ibuf);
-void de_interlace_ng(struct ImBuf *ibuf);
-void de_interlace_st(struct ImBuf *ibuf);
-void load_image(struct Image * ima, int flags, char *relabase, int framenum);
 void ima_ibuf_is_nul(struct Tex *tex);
-int imagewrap(struct Tex *tex, float *texvec);
-int imagewraposa(struct Tex *tex, float *texvec, float *dxt, float *dyt);
+void load_image(struct Image * ima, int flags, char *relabase, int framenum);
 void converttopremul(struct ImBuf *ibuf);
-void makemipmap(struct Image *ima);
 
 #ifdef __cplusplus
 }

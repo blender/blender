@@ -41,43 +41,34 @@
 #include "MTC_matrixops.h"
 #include "MEM_guardedalloc.h"
 
-#include "BKE_global.h"
-
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_global.h"
+#include "BKE_utildefines.h"
+
 #include "radio_types.h"
 #include "radio.h"  /* needs RG, some root data for radiosity                */
 
+#include "SDL_thread.h"
+
 #include "render.h"
-#include "render_intern.h"
 #include "RE_callbacks.h"
-#include "old_zbuffer_types.h"
+
 /* local includes */
-/* can be removed when the old renderer disappears */
 #include "rendercore.h"  /* shade_pixel and count_mask */
 #include "pixelblending.h"
 #include "jitter.h"
 
 /* own includes */
 #include "zbuf.h"
-#include "zbuf_int.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
-/* crud */
-#define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )  
 /*-----------------------------------------------------------*/ 
 /* Globals for this file                                     */
+/* main reason for globals; unified zbuffunc() with simple args */
 /*-----------------------------------------------------------*/ 
-
-extern float centLut[16];
-extern char *centmask;
-
-float *vlzp[32][3], labda[3][2], vez[400], *p[40];
 
 float Zmulx; /* Half the screenwidth, in pixels. (used in render.c, */
              /* zbuf.c)                                             */
@@ -88,13 +79,11 @@ float Zjitx; /* Jitter offset in x. When jitter is disabled, this   */
 float Zjity; /* Jitter offset in y. When jitter is disabled, this   */
              /* should be 0.5. (used in render.c, zbuf.c)           */
 
-unsigned int Zvlnr, Zsample;
-VlakRen *Zvlr;
-void (*zbuffunc)(float *, float *, float *);
-void (*zbuflinefunc)(float *, float *);
+unsigned int Zsample;
+void (*zbuffunc)(unsigned int, float *, float *, float *);
+void (*zbuflinefunc)(unsigned int, float *, float *);
 
 APixstr       *APixbuf;      /* Zbuffer: linked list of face indices       */
-unsigned short        *Acolrow;      /* Zbuffer: colour buffer, one line high      */
 int           *Arectz;       /* Zbuffer: distance buffer, almost obsolete  */
 int            Aminy;        /* y value of first line in the accu buffer   */
 int            Amaxy;        /* y value of last line in the accu buffer    */
@@ -118,6 +107,63 @@ void fillrect(unsigned int *rect, int x, unsigned int y, unsigned int val)
 		drect++;
 	}
 }
+
+/**
+* Tests whether this coordinate is 'inside' or 'outside' of the view
+ * volume? By definition, this is in [0, 1]. 
+ * @param p vertex z difference plus coordinate difference?
+ * @param q origin z plus r minus some coordinate?
+ * @param u1 [in/out] clip fraction for ?
+ * @param u2 [in/out]
+ * @return 0 if point is outside, or 1 if the point lies on the clip
+ *         boundary 
+ */
+static short cliptestf(float p, float q, float *u1, float *u2)
+{
+	float r;
+	
+	if(p<0.0) {
+		if(q<p) return 0;
+		else if(q<0.0) {
+			r= q/p;
+			if(r>*u2) return 0;
+			else if(r>*u1) *u1=r;
+		}
+	}
+	else {
+		if(p>0.0) {
+			if(q<0.0) return 0;
+			else if(q<p) {
+				r= q/p;
+				if(r<*u1) return 0;
+				else if(r<*u2) *u2=r;
+			}
+		}
+		else if(q<0.0) return 0;
+	}
+	return 1;
+}
+
+int RE_testclip(float *v)
+{
+	float abs4;	/* WATCH IT: this function should do the same as cliptestf, otherwise troubles in zbufclip()*/
+	short c=0;
+	
+	abs4= fabs(v[3]);
+	
+	if(v[2]< -abs4) c=16;			/* this used to be " if(v[2]<0) ", see clippz() */
+	else if(v[2]> abs4) c+= 32;
+	
+	if( v[0]>abs4) c+=2;
+	else if( v[0]< -abs4) c+=1;
+	
+	if( v[1]>abs4) c+=4;
+	else if( v[1]< -abs4) c+=8;
+	
+	return c;
+}
+
+
 
 /* *************  ACCUMULATION ZBUF ************ */
 
@@ -176,8 +222,17 @@ APixstr *addpsA(void)
 	return prev;
 }
 
-/* fills in color, with window coordinate, from Aminy->Amaxy */
-void zbufinvulAc(float *v1, float *v2, float *v3)  
+/**
+ * Fill the z buffer for accumulation (transparency)
+ *
+ * This is one of the z buffer fill functions called in zbufclip() and
+ * zbufwireclip(). 
+ *
+ * @param v1 [4 floats, world coordinates] first vertex
+ * @param v2 [4 floats, world coordinates] second vertex
+ * @param v3 [4 floats, world coordinates] third vertex
+ */
+void zbufinvulAc(unsigned int zvlnr, float *v1, float *v2, float *v3)  
 {
 	APixstr *ap, *apofs, *apn;
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
@@ -341,14 +396,14 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 			if(zverg< *rz) {
 				apn= ap;
 				while(apn) {	/* loop unrolled */
-					if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
-					if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
-					if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
-					if(apn->p[1]==Zvlnr) {apn->mask[1]|= mask; break; }
-					if(apn->p[2]==0) {apn->p[2]= Zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
-					if(apn->p[2]==Zvlnr) {apn->mask[2]|= mask; break; }
-					if(apn->p[3]==0) {apn->p[3]= Zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
-					if(apn->p[3]==Zvlnr) {apn->mask[3]|= mask; break; }
+					if(apn->p[0]==0) {apn->p[0]= zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
+					if(apn->p[0]==zvlnr) {apn->mask[0]|= mask; break; }
+					if(apn->p[1]==0) {apn->p[1]= zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
+					if(apn->p[1]==zvlnr) {apn->mask[1]|= mask; break; }
+					if(apn->p[2]==0) {apn->p[2]= zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
+					if(apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
+					if(apn->p[3]==0) {apn->p[3]= zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
+					if(apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
 					if(apn->next==0) apn->next= addpsA();
 					apn= apn->next;
 				}				
@@ -399,14 +454,14 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 			if(zverg< *rz) {
 				apn= ap;
 				while(apn) {	/* loop unrolled */
-					if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
-					if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
-					if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
-					if(apn->p[1]==Zvlnr) {apn->mask[1]|= mask; break; }
-					if(apn->p[2]==0) {apn->p[2]= Zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
-					if(apn->p[2]==Zvlnr) {apn->mask[2]|= mask; break; }
-					if(apn->p[3]==0) {apn->p[3]= Zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
-					if(apn->p[3]==Zvlnr) {apn->mask[3]|= mask; break; }
+					if(apn->p[0]==0) {apn->p[0]= zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
+					if(apn->p[0]==zvlnr) {apn->mask[0]|= mask; break; }
+					if(apn->p[1]==0) {apn->p[1]= zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
+					if(apn->p[1]==zvlnr) {apn->mask[1]|= mask; break; }
+					if(apn->p[2]==0) {apn->p[2]= zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
+					if(apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
+					if(apn->p[3]==0) {apn->p[3]= zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
+					if(apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
 					if(apn->next==0) apn->next= addpsA();
 					apn= apn->next;
 				}
@@ -423,7 +478,7 @@ void zbufinvulAc(float *v1, float *v2, float *v3)
 	}
 }
 
-void zbuflineAc(float *vec1, float *vec2)
+void zbuflineAc(unsigned int zvlnr, float *vec1, float *vec2)
 {
 	APixstr *ap, *apn;
 	unsigned int *rectz;
@@ -480,14 +535,14 @@ void zbuflineAc(float *vec1, float *vec2)
 				
 					apn= ap;
 					while(apn) {	/* loop unrolled */
-						if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
-						if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
-						if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
-						if(apn->p[1]==Zvlnr) {apn->mask[1]|= mask; break; }
-						if(apn->p[2]==0) {apn->p[2]= Zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
-						if(apn->p[2]==Zvlnr) {apn->mask[2]|= mask; break; }
-						if(apn->p[3]==0) {apn->p[3]= Zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
-						if(apn->p[3]==Zvlnr) {apn->mask[3]|= mask; break; }
+						if(apn->p[0]==0) {apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
+						if(apn->p[0]==zvlnr) {apn->mask[0]|= mask; break; }
+						if(apn->p[1]==0) {apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
+						if(apn->p[1]==zvlnr) {apn->mask[1]|= mask; break; }
+						if(apn->p[2]==0) {apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
+						if(apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
+						if(apn->p[3]==0) {apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
+						if(apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
 						if(apn->next==0) apn->next= addpsA();
 						apn= apn->next;
 					}				
@@ -547,14 +602,14 @@ void zbuflineAc(float *vec1, float *vec2)
 					
 					apn= ap;
 					while(apn) {	/* loop unrolled */
-						if(apn->p[0]==0) {apn->p[0]= Zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
-						if(apn->p[0]==Zvlnr) {apn->mask[0]|= mask; break; }
-						if(apn->p[1]==0) {apn->p[1]= Zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
-						if(apn->p[1]==Zvlnr) {apn->mask[1]|= mask; break; }
-						if(apn->p[2]==0) {apn->p[2]= Zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
-						if(apn->p[2]==Zvlnr) {apn->mask[2]|= mask; break; }
-						if(apn->p[3]==0) {apn->p[3]= Zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
-						if(apn->p[3]==Zvlnr) {apn->mask[3]|= mask; break; }
+						if(apn->p[0]==0) {apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
+						if(apn->p[0]==zvlnr) {apn->mask[0]|= mask; break; }
+						if(apn->p[1]==0) {apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
+						if(apn->p[1]==zvlnr) {apn->mask[1]|= mask; break; }
+						if(apn->p[2]==0) {apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
+						if(apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
+						if(apn->p[3]==0) {apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
+						if(apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
 						if(apn->next==0) apn->next= addpsA();
 						apn= apn->next;
 					}	
@@ -572,7 +627,16 @@ void zbuflineAc(float *vec1, float *vec2)
 
 /* *************  NORMAL ZBUFFER ************ */
 
-void hoco_to_zco(float *zco, float *hoco)
+/**
+ * Convert a homogenous coordinate to a z buffer coordinate. The
+ * function makes use of Zmulx, Zmuly, the x and y scale factors for
+ * the screen, and Zjitx, Zjity, the pixel offset. (These are declared
+													* in render.c) The normalised z coordinate must fall on [0, 1]. 
+ * @param zco  [3, 4 floats] pointer to the resulting z buffer coordinate
+ * @param hoco [4 floats] pointer to the homogenous coordinate of the
+ * vertex in world space.
+ */
+static void hoco_to_zco(float *zco, float *hoco)
 {
 	float deler;
 
@@ -582,8 +646,7 @@ void hoco_to_zco(float *zco, float *hoco)
 	zco[2]= 0x7FFFFFFF *(hoco[2]/deler);
 }
 
-void zbufline(vec1, vec2)
-float *vec1, *vec2;
+void zbufline(unsigned int zvlnr, float *vec1, float *vec2)
 {
 	unsigned int *rectz, *rectp;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -635,7 +698,7 @@ float *vec1, *vec2;
 			if(x>=0 && y>=0 && y<R.recty) {
 				if(vergz<*rectz) {
 					*rectz= vergz;
-					*rectp= Zvlnr;
+					*rectp= zvlnr;
 				}
 			}
 			
@@ -684,7 +747,7 @@ float *vec1, *vec2;
 			if(x>=0 && y>=0 && x<R.rectx) {
 				if(vergz<*rectz) {
 					*rectz= vergz;
-					*rectp= Zvlnr;
+					*rectp= zvlnr;
 				}
 			}
 			
@@ -694,10 +757,60 @@ float *vec1, *vec2;
 	}
 }
 
-
-void zbufclipwire(VlakRen *vlr)
+static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 {
-	float *f1, *f2, *f3, *f4= 0,  deler;
+	float dz,dw, u1=0.0, u2=1.0;
+	float dx, dy, v13;
+	
+	dz= v2[2]-v1[2];
+	dw= v2[3]-v1[3];
+	
+	/* this 1.01 is for clipping x and y just a tinsy larger. that way it is
+		filled in with zbufwire correctly when rendering in parts. otherwise
+		you see line endings at edges... */
+	
+	if(cliptestf(-dz-dw, v1[3]+v1[2], &u1,&u2)) {
+		if(cliptestf(dz-dw, v1[3]-v1[2], &u1,&u2)) {
+			
+			dx= v2[0]-v1[0];
+			dz= 1.01*(v2[3]-v1[3]);
+			v13= 1.01*v1[3];
+			
+			if(cliptestf(-dx-dz, v1[0]+v13, &u1,&u2)) {
+				if(cliptestf(dx-dz, v13-v1[0], &u1,&u2)) {
+					
+					dy= v2[1]-v1[1];
+					
+					if(cliptestf(-dy-dz, v1[1]+v13, &u1,&u2)) {
+						if(cliptestf(dy-dz, v13-v1[1], &u1,&u2)) {
+							
+							if(u2<1.0) {
+								v2[0]= v1[0]+u2*dx;
+								v2[1]= v1[1]+u2*dy;
+								v2[2]= v1[2]+u2*dz;
+								v2[3]= v1[3]+u2*dw;
+							}
+							if(u1>0.0) {
+								v1[0]= v1[0]+u1*dx;
+								v1[1]= v1[1]+u1*dy;
+								v1[2]= v1[2]+u1*dz;
+								v1[3]= v1[3]+u1*dw;
+							}
+							return 1;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	return 0;
+}
+
+
+void zbufclipwire(unsigned int zvlnr, VlakRen *vlr)
+{
+	float vez[20], *f1, *f2, *f3, *f4= 0,  deler;
 	int c1, c2, c3, c4, ec, and, or;
 
 	/* edgecode: 1= draw */
@@ -735,7 +848,7 @@ void zbufclipwire(VlakRen *vlr)
 				if( clipline(vez, vez+4)) {
 					hoco_to_zco(vez, vez);
 					hoco_to_zco(vez+4, vez+4);
-					zbuflinefunc(vez, vez+4);
+					zbuflinefunc(zvlnr, vez, vez+4);
 				}
 			}
 			if(ec & ME_V2V3) {
@@ -744,7 +857,7 @@ void zbufclipwire(VlakRen *vlr)
 				if( clipline(vez, vez+4)) {
 					hoco_to_zco(vez, vez);
 					hoco_to_zco(vez+4, vez+4);
-					zbuflinefunc(vez, vez+4);
+					zbuflinefunc(zvlnr, vez, vez+4);
 				}
 			}
 			if(vlr->v4) {
@@ -754,7 +867,7 @@ void zbufclipwire(VlakRen *vlr)
 					if( clipline(vez, vez+4)) {
 						hoco_to_zco(vez, vez);
 						hoco_to_zco(vez+4, vez+4);
-						zbuflinefunc(vez, vez+4);
+						zbuflinefunc(zvlnr, vez, vez+4);
 					}
 				}
 				if(ec & ME_V4V1) {
@@ -763,7 +876,7 @@ void zbufclipwire(VlakRen *vlr)
 					if( clipline(vez, vez+4)) {
 						hoco_to_zco(vez, vez);
 						hoco_to_zco(vez+4, vez+4);
-						zbuflinefunc(vez, vez+4);
+						zbuflinefunc(zvlnr, vez, vez+4);
 					}
 				}
 			}
@@ -774,7 +887,7 @@ void zbufclipwire(VlakRen *vlr)
 					if( clipline(vez, vez+4)) {
 						hoco_to_zco(vez, vez);
 						hoco_to_zco(vez+4, vez+4);
-						zbuflinefunc(vez, vez+4);
+						zbuflinefunc(zvlnr, vez, vez+4);
 					}
 				}
 			}
@@ -804,24 +917,30 @@ void zbufclipwire(VlakRen *vlr)
 		vez[13]= Zmuly*(1.0+f4[1]/deler)+ Zjity;
 		vez[14]= 0x7FFFFFFF *(f4[2]/deler);
 
-		if(ec & ME_V3V4)  zbuflinefunc(vez+8, vez+12);
-		if(ec & ME_V4V1)  zbuflinefunc(vez+12, vez);
+		if(ec & ME_V3V4)  zbuflinefunc(zvlnr, vez+8, vez+12);
+		if(ec & ME_V4V1)  zbuflinefunc(zvlnr, vez+12, vez);
 	}
 	else {
-		if(ec & ME_V3V1)  zbuflinefunc(vez+8, vez);
+		if(ec & ME_V3V1)  zbuflinefunc(zvlnr, vez+8, vez);
 	}
 
-	if(ec & ME_V1V2)  zbuflinefunc(vez, vez+4);
-	if(ec & ME_V2V3)  zbuflinefunc(vez+4, vez+8);
-	
-
+	if(ec & ME_V1V2)  zbuflinefunc(zvlnr, vez, vez+4);
+	if(ec & ME_V2V3)  zbuflinefunc(zvlnr, vez+4, vez+8);
 
 }
 
-void zbufinvulGLinv(v1,v2,v3) 
-float *v1,*v2,*v3;
-/* fills in R.rectot the value of Zvlnr using R.rectz */
-/* INVERSE Z COMPARISION: BACKSIDE GETS VISIBLE */
+/**
+ * Fill the z buffer, but invert z order, and add the face index to
+ * the corresponing face buffer.
+ *
+ * This is one of the z buffer fill functions called in zbufclip() and
+ * zbufwireclip(). 
+ *
+ * @param v1 [4 floats, world coordinates] first vertex
+ * @param v2 [4 floats, world coordinates] second vertex
+ * @param v3 [4 floats, world coordinates] third vertex
+ */
+static void zbufinvulGLinv(unsigned int zvlnr, float *v1, float *v2, float *v3) 
 {
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp;
@@ -947,7 +1066,7 @@ float *v1,*v2,*v3;
 	rectx= R.rectx;
 	rectzofs= (int *)(R.rectz+rectx*my2);
 	rectpofs= (R.rectot+rectx*my2);
-	zvlak= Zvlnr;
+	zvlak= zvlnr;
 
 	xs3= 0;		/* flag */
 	if(dx0>dx1) {
@@ -1038,7 +1157,20 @@ float *v1,*v2,*v3;
 	}
 }
 
-void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the value Zvlnr using R.rectz */
+/**
+* Fill the z buffer, and add the face index to
+ * the corresponing face buffer.  Writes into R.rectz and R.rectot. It
+ * assumes that zvlnr is set to the face index of the face under
+ * consideration. zvlnr is written into R.rectot. R.rectz
+ *
+ * This is one of the z buffer fill functions called in zbufclip() and
+ * zbufwireclip(). 
+ *
+ * @param v1 [4 floats, world coordinates] first vertex
+ * @param v2 [4 floats, world coordinates] second vertex
+ * @param v3 [4 floats, world coordinates] third vertex
+ */
+static void zbufinvulGL(unsigned int zvlnr, float *v1, float *v2, float *v3)
 {
 	double x0,y0,z0;
 	double x1,y1,z1,x2,y2,z2,xx1;
@@ -1155,7 +1287,7 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 	rectx= R.rectx;
 	rectzofs= (int *)(R.rectz+rectx*my2);
 	rectpofs= (R.rectot+rectx*my2);
-	zvlak= Zvlnr;
+	zvlak= zvlnr;
 
 	xs3= 0;		/* flag */
 	if(dx0>dx1) {
@@ -1248,8 +1380,18 @@ void zbufinvulGL(float *v1, float *v2, float *v3)  /* fills in R.rectot the valu
 	}
 }
 
+/**
+ * Fill the z buffer. The face buffer is not operated on!
+ *
+ * This is one of the z buffer fill functions called in zbufclip() and
+ * zbufwireclip(). 
+ *
+ * @param v1 [4 floats, world coordinates] first vertex
+ * @param v2 [4 floats, world coordinates] second vertex
+ * @param v3 [4 floats, world coordinates] third vertex
+ */
 
-void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* only fills in R.rectz */
+static void zbufinvulGL_onlyZ(unsigned int zvlnr, float *v1, float *v2, float *v3) 
 {
 	double x0,y0,z0,x1,y1,z1,x2,y2,z2,xx1;
 	double zxd,zyd,zy0,tmp;
@@ -1469,65 +1611,27 @@ void zbufinvulGL_onlyZ(float *v1, float *v2, float *v3)   /* only fills in R.rec
 	}
 }
 
-void print3floats(float *v1, float *v2, float *v3)
-{
-	printf("1  %f %f %f %f\n", v1[0], v1[1], v1[2], v1[3]);
-	printf("2  %f %f %f %f\n", v2[0], v2[1], v2[2], v2[3]);
-	printf("3  %f %f %f %f\n", v3[0], v3[1], v3[2], v3[3]);
-}
 
-static short cliptestf(float p, float q, float *u1, float *u2)
-{
-	float r;
+/**
+ * (clip pyramid)
+ * Sets labda: flag, and parametrize the clipping of vertices in
+ * viewspace coordinates. labda = -1 means no clipping, labda in [0,
+	 * 1] means a clipping.
+ * Note: uses globals.
+ * @param v1 start coordinate s
+ * @param v2 target coordinate t
+ * @param b1 
+ * @param b2 
+ * @param b3
+ * @param a index for coordinate (x, y, or z)
+ */
 
-	if(p<0.0) {
-		if(q<p) return 0;
-		else if(q<0.0) {
-			r= q/p;
-			if(r>*u2) return 0;
-			else if(r>*u1) *u1=r;
-		}
-	}
-	else {
-		if(p>0.0) {
-			if(q<0.0) return 0;
-			else if(q<p) {
-				r= q/p;
-				if(r<*u1) return 0;
-				else if(r<*u2) *u2=r;
-			}
-		}
-		else if(q<0.0) return 0;
-	}
-	return 1;
-}
-
-int RE_testclip(float *v)
-{
-	float abs4;	/* WATCH IT: this function should do the same as cliptestf, otherwise troubles in zbufclip()*/
-	short c=0;
-
-	abs4= fabs(v[3]);
-
-	if(v[2]< -abs4) c=16;			/* this used to be " if(v[2]<0) ", see clippz() */
-	else if(v[2]> abs4) c+= 32;
-
-	if( v[0]>abs4) c+=2;
-	else if( v[0]< -abs4) c+=1;
-
-	if( v[1]>abs4) c+=4;
-	else if( v[1]< -abs4) c+=8;
-
-	return c;
-}
-
-
-static void clipp(float *v1, float *v2, int b1, int *b2, int *b3, int a)
+static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a)
 {
 	float da,db,u1=0.0,u2=1.0;
 
-	labda[b1][0]= -1.0;
-	labda[b1][1]= -1.0;
+	labda[0]= -1.0;
+	labda[1]= -1.0;
 
 	da= v2[a]-v1[a];
 	db= v2[3]-v1[3];
@@ -1543,92 +1647,58 @@ static void clipp(float *v1, float *v2, int b1, int *b2, int *b3, int a)
 		if(cliptestf(da-db, v1[3]-v1[a], &u1,&u2)) {
 			*b3=1;
 			if(u2<1.0) {
-				labda[b1][1]= u2;
+				labda[1]= u2;
 				*b2=1;
 			}
-			else labda[b1][1]=1.0;  /* u2 */
+			else labda[1]=1.0;  /* u2 */
 			if(u1>0.0) {
-				labda[b1][0]= u1;
+				labda[0]= u1;
 				*b2=1;
-			} else labda[b1][0]=0.0;
+			} else labda[0]=0.0;
 		}
 	}
 }
 
-static int clipline(float *v1, float *v2)	/* return 0: do not draw */
+/**
+ * (make vertex pyramide clip)
+ * Checks labda and uses this to make decision about clipping the line
+ * segment from v1 to v2. labda is the factor by which the vector is
+ * cut. ( calculate s + l * ( t - s )). The result is appended to the
+ * vertex list of this face.
+ * 
+ * 
+ * @param v1 start coordinate s
+ * @param v2 target coordinate t
+ * @param b1 
+ * @param b2 
+ * @param clve vertex vector.
+ */
+
+static void makevertpyra(float *vez, float *labda, float **trias, float *v1, float *v2, int *b1, int *clve)
 {
-	float dz,dw, u1=0.0, u2=1.0;
-	float dx, dy, v13;
+	float l1, l2, *adr;
 
-	dz= v2[2]-v1[2];
-	dw= v2[3]-v1[3];
-
-	/* this 1.01 is for clipping x and y just a tinsy larger. that way it is
-	   filled in with zbufwire correctly when rendering in parts. otherwise
-	   you see line endings at edges... */
-
-	if(cliptestf(-dz-dw, v1[3]+v1[2], &u1,&u2)) {
-		if(cliptestf(dz-dw, v1[3]-v1[2], &u1,&u2)) {
-
-			dx= v2[0]-v1[0];
-			dz= 1.01*(v2[3]-v1[3]);
-			v13= 1.01*v1[3];
-			
-			if(cliptestf(-dx-dz, v1[0]+v13, &u1,&u2)) {
-				if(cliptestf(dx-dz, v13-v1[0], &u1,&u2)) {
-
-					dy= v2[1]-v1[1];
-				
-					if(cliptestf(-dy-dz, v1[1]+v13, &u1,&u2)) {
-						if(cliptestf(dy-dz, v13-v1[1], &u1,&u2)) {
-							
-							if(u2<1.0) {
-								v2[0]= v1[0]+u2*dx;
-								v2[1]= v1[1]+u2*dy;
-								v2[2]= v1[2]+u2*dz;
-								v2[3]= v1[3]+u2*dw;
-							}
-							if(u1>0.0) {
-								v1[0]= v1[0]+u1*dx;
-								v1[1]= v1[1]+u1*dy;
-								v1[2]= v1[2]+u1*dz;
-								v1[3]= v1[3]+u1*dw;
-							}
-							return 1;
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	return 0;
-}
-
-
-static void maakvertpira(float *v1, float *v2, int *b1, int b2, int *clve)
-{
-	float l1,l2,*adr;
-
-	l1= labda[b2][0];
-	l2= labda[b2][1];
+	l1= labda[0];
+	l2= labda[1];
 
 	if(l1!= -1.0) {
 		if(l1!= 0.0) {
 			adr= vez+4*(*clve);
-			p[*b1]=adr;
+			trias[*b1]=adr;
 			(*clve)++;
 			adr[0]= v1[0]+l1*(v2[0]-v1[0]);
 			adr[1]= v1[1]+l1*(v2[1]-v1[1]);
 			adr[2]= v1[2]+l1*(v2[2]-v1[2]);
 			adr[3]= v1[3]+l1*(v2[3]-v1[3]);
-		} else p[*b1]= v1;
+		} 
+		else trias[*b1]= v1;
+		
 		(*b1)++;
 	}
 	if(l2!= -1.0) {
 		if(l2!= 1.0) {
 			adr= vez+4*(*clve);
-			p[*b1]=adr;
+			trias[*b1]=adr;
 			(*clve)++;
 			adr[0]= v1[0]+l2*(v2[0]-v1[0]);
 			adr[1]= v1[1]+l2*(v2[1]-v1[1]);
@@ -1672,10 +1742,13 @@ void projectvert(float *v1, float *adr)
 	adr[3]= x*R.winmat[0][3]+ y*R.winmat[1][3]+ z*R.winmat[2][3]+ R.winmat[3][3];
 }
 
+/* do zbuffering and clip, f1 f2 f3 are hocos, c1 c2 c3 are clipping flags */
 
-void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
+void zbufclip(unsigned int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3)
 {
 	float deler;
+	float *vlzp[32][3], labda[3][2];
+	float vez[400], *trias[40];
 
 	if(c1 | c2 | c3) {	/* not in middle */
 		if(c1 & c2 & c3) {	/* completely out */
@@ -1712,9 +1785,9 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 							else if (b==1) arg= 0;
 							else arg= 1;
 							
-							clipp(vlzp[v][0],vlzp[v][1],0,&b2,&b3, arg);
-							clipp(vlzp[v][1],vlzp[v][2],1,&b2,&b3, arg);
-							clipp(vlzp[v][2],vlzp[v][0],2,&b2,&b3, arg);
+							clippyra(labda[0], vlzp[v][0],vlzp[v][1], &b2,&b3, arg);
+							clippyra(labda[1], vlzp[v][1],vlzp[v][2], &b2,&b3, arg);
+							clippyra(labda[2], vlzp[v][2],vlzp[v][0], &b2,&b3, arg);
 
 							if(b2==0 && b3==1) {
 								/* completely 'in' */;
@@ -1723,9 +1796,9 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 								/* completely 'out' */;
 							} else {
 								b1=0;
-								maakvertpira(vlzp[v][0],vlzp[v][1],&b1,0,&clve);
-								maakvertpira(vlzp[v][1],vlzp[v][2],&b1,1,&clve);
-								maakvertpira(vlzp[v][2],vlzp[v][0],&b1,2,&clve);
+								makevertpyra(vez, labda[0], trias, vlzp[v][0],vlzp[v][1], &b1,&clve);
+								makevertpyra(vez, labda[1], trias, vlzp[v][1],vlzp[v][2], &b1,&clve);
+								makevertpyra(vez, labda[2], trias, vlzp[v][2],vlzp[v][0], &b1,&clve);
 
 								/* after front clip done: now set clip flags */
 								if(b==0) {
@@ -1742,9 +1815,9 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 								vlzp[v][0]=0;
 								if(b1>2) {
 									for(b3=3; b3<=b1; b3++) {
-										vlzp[clvl][0]= p[0];
-										vlzp[clvl][1]= p[b3-2];
-										vlzp[clvl][2]= p[b3-1];
+										vlzp[clvl][0]= trias[0];
+										vlzp[clvl][1]= trias[b3-2];
+										vlzp[clvl][2]= trias[b3-1];
 										clvl++;
 									}
 								}
@@ -1768,7 +1841,7 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 			}
 			for(b=1;b<clvl;b++) {
 				if(vlzp[b][0]) {
-					zbuffunc(vlzp[b][0],vlzp[b][1],vlzp[b][2]);
+					zbuffunc(zvlnr, vlzp[b][0],vlzp[b][1],vlzp[b][2]);
 				}
 			}
 			return;
@@ -1792,7 +1865,7 @@ void zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3)
 	vez[9]= Zmuly*(1.0+f3[1]/deler)+ Zjity;
 	vez[10]= 0x7FFFFFFF *(f3[2]/deler);
 
-	zbuffunc(vez,vez+4,vez+8);
+	zbuffunc(zvlnr, vez,vez+4,vez+8);
 }
 
 /* ***************** ZBUFFER MAIN ROUTINES **************** */
@@ -1802,15 +1875,13 @@ void zbufferall(void)
 {
 	VlakRen *vlr= NULL;
 	Material *ma=0;
-	int v;
+	unsigned int v, zvlnr;
 	short transp=0, env=0, wire=0;
 
 	Zmulx= ((float)R.rectx)/2.0;
 	Zmuly= ((float)R.recty)/2.0;
 
 	fillrect(R.rectz, R.rectx, R.recty, 0x7FFFFFFF);
-
-	Zvlnr= 0;
 
 	zbuffunc= zbufinvulGL;
 	zbuflinefunc= zbufline;
@@ -1832,15 +1903,15 @@ void zbufferall(void)
 			}
 			
 			if(transp==0) {
-				if(env) Zvlnr= 0;
-				else Zvlnr= v+1;
+				if(env) zvlnr= 0;
+				else zvlnr= v+1;
 				
-				if(wire) zbufclipwire(vlr);
+				if(wire) zbufclipwire(zvlnr, vlr);
 				else {
-					zbufclip(vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
+					zbufclip(zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 					if(vlr->v4) {
-						if(Zvlnr) Zvlnr+= 0x800000;
-						zbufclip(vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+						if(zvlnr) zvlnr+= 0x800000;
+						zbufclip(zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 					}
 				}
 			}
@@ -1859,14 +1930,14 @@ static int hashlist_projectvert(float *v1, float *hoco)
 	
 	buck= &bucket[ (((long)v1)/16) & 255 ];
 	if(buck->vert==v1) {
-		COPY_16(hoco, buck->hoco);
+		QUATCOPY(hoco, buck->hoco);
 		return buck->clip;
 	}
 	
 	projectvert(v1, hoco);
 	buck->clip = RE_testclip(hoco);
 	buck->vert= v1;
-	COPY_16(buck->hoco, hoco);
+	QUATCOPY(buck->hoco, hoco);
 	return buck->clip;
 }
 
@@ -1874,7 +1945,7 @@ static int hashlist_projectvert(float *v1, float *hoco)
 void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 {
 	float hoco[4][4];
-	int a;
+	unsigned int a, zvlnr;
 	int c1, c2, c3, c4= 0;
 	unsigned int *rectoto, *rectzo;
 	int rectxo, rectyo;
@@ -1913,9 +1984,9 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 			rn= *re;
 			if( (rn->f & RAD_SHOOT)==0 ) {    /* no shootelement */
 				
-				if( rn->f & RAD_TWOSIDED) Zvlnr= a;
-				else if( rn->f & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	
-				else Zvlnr= a;
+				if( rn->f & RAD_TWOSIDED) zvlnr= a;
+				else if( rn->f & RAD_BACKFACE) zvlnr= 0xFFFFFF;	
+				else zvlnr= a;
 				
 				c1= hashlist_projectvert(rn->v1, hoco[0]);
 				c2= hashlist_projectvert(rn->v2, hoco[1]);
@@ -1925,9 +1996,9 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 					c4= hashlist_projectvert(rn->v4, hoco[3]);
 				}
 	
-				zbufclip(hoco[0], hoco[1], hoco[2], c1, c2, c3);
+				zbufclip(zvlnr, hoco[0], hoco[1], hoco[2], c1, c2, c3);
 				if(rn->v4) {
-					zbufclip(hoco[0], hoco[2], hoco[3], c1, c3, c4);
+					zbufclip(zvlnr, hoco[0], hoco[2], hoco[3], c1, c3, c4);
 				}
 			}
 		}
@@ -1944,9 +2015,9 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 				rf= vlr->radface;
 				if( (rf->flag & RAD_SHOOT)==0 ) {    /* no shootelement */
 					
-					if( rf->flag & RAD_TWOSIDED) Zvlnr= totface;
-					else if( rf->flag & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	/* receives no energy, but is zbuffered */
-					else Zvlnr= totface;
+					if( rf->flag & RAD_TWOSIDED) zvlnr= totface;
+					else if( rf->flag & RAD_BACKFACE) zvlnr= 0xFFFFFF;	/* receives no energy, but is zbuffered */
+					else zvlnr= totface;
 					
 					c1= hashlist_projectvert(vlr->v1->co, hoco[0]);
 					c2= hashlist_projectvert(vlr->v2->co, hoco[1]);
@@ -1956,9 +2027,9 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 						c4= hashlist_projectvert(vlr->v4->co, hoco[3]);
 					}
 		
-					zbufclip(hoco[0], hoco[1], hoco[2], c1, c2, c3);
+					zbufclip(zvlnr, hoco[0], hoco[1], hoco[2], c1, c2, c3);
 					if(vlr->v4) {
-						zbufclip(hoco[0], hoco[2], hoco[3], c1, c3, c4);
+						zbufclip(zvlnr, hoco[0], hoco[2], hoco[3], c1, c3, c4);
 					}
 				}
 				totface++;
@@ -2002,8 +2073,8 @@ void zbuffershad(LampRen *lar)
 		}
 		
 		if(ok && (vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
-			zbufclip(vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
-			if(vlr->v4) zbufclip(vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+			zbufclip(0, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
+			if(vlr->v4) zbufclip(0, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 		}
 	}
 }
@@ -2016,7 +2087,6 @@ void zbuffershad(LampRen *lar)
 void bgnaccumbuf(void)
 {
 	
-	Acolrow= MEM_mallocN(4*sizeof(short)*R.rectx, "Acolrow");
 	Arectz= MEM_mallocN(sizeof(int)*ABUFPART*R.rectx, "Arectz");
 	APixbuf= MEM_mallocN(ABUFPART*R.rectx*sizeof(APixstr), "APixbuf");
 
@@ -2032,7 +2102,6 @@ void bgnaccumbuf(void)
 void endaccumbuf(void)
 {
 	
-	MEM_freeN(Acolrow);
 	MEM_freeN(Arectz);
 	MEM_freeN(APixbuf);
 	freepsA();
@@ -2040,7 +2109,11 @@ void endaccumbuf(void)
 
 /* ------------------------------------------------------------------------ */
 
-void copyto_abufz(int sample)
+/**
+ * Copy results from the solid face z buffering to the transparent
+ * buffer.
+ */
+static void copyto_abufz(int sample)
 {
 	PixStr *ps;
 	int x, y, *rza;
@@ -2078,11 +2151,16 @@ void copyto_abufz(int sample)
 
 /* ------------------------------------------------------------------------ */
 
-void zbuffer_abuf()
+/**
+* Do accumulation z buffering.
+ */
+static void zbuffer_abuf()
 {
-	float vec[3], hoco[4], mul, zval, fval;
 	Material *ma=0;
-	int v, len;
+	VlakRen *vlr=NULL;
+	float vec[3], hoco[4], mul, zval, fval;
+	unsigned int v, zvlnr;
+	int len;
 	
 	Zjitx= Zjity= -0.5;
 	Zmulx= ((float)R.rectx)/2.0;
@@ -2106,20 +2184,20 @@ void zbuffer_abuf()
 		
 		for(v=0; v<R.totvlak; v++) {
 			if((v & 255)==0) {
-				Zvlr= R.blovl[v>>8];
+				vlr= R.blovl[v>>8];
 			}
-			else Zvlr++;
+			else vlr++;
 			
-			ma= Zvlr->mat;
+			ma= vlr->mat;
 
 			if(ma->mode & (MA_ZTRA)) {
 
 						/* a little advantage for transp rendering (a z offset) */
 				if( ma->zoffs != 0.0) {
 					mul= 0x7FFFFFFF;
-					zval= mul*(1.0+Zvlr->v1->ho[2]/Zvlr->v1->ho[3]);
+					zval= mul*(1.0+vlr->v1->ho[2]/vlr->v1->ho[3]);
 
-					VECCOPY(vec, Zvlr->v1->co);
+					VECCOPY(vec, vlr->v1->co);
 					/* z is negative, otherwise its being clipped */ 
 					vec[2]-= ma->zoffs;
 					RE_projectverto(vec, hoco);
@@ -2129,16 +2207,16 @@ void zbuffer_abuf()
 				}
 				else Azvoordeel= 0;
 				
-				Zvlnr= v+1;
+				zvlnr= v+1;
 		
-				if(Zvlr->flag & R_VISIBLE) {
+				if(vlr->flag & R_VISIBLE) {
 					
-					if(ma->mode & (MA_WIRE)) zbufclipwire(Zvlr);
+					if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
 					else {
-						zbufclip(Zvlr->v1->ho, Zvlr->v2->ho, Zvlr->v3->ho, Zvlr->v1->clip, Zvlr->v2->clip, Zvlr->v3->clip);
-						if(Zvlr->v4) {
-							Zvlnr+= 0x800000;
-							zbufclip(Zvlr->v1->ho, Zvlr->v3->ho, Zvlr->v4->ho, Zvlr->v1->clip, Zvlr->v3->clip, Zvlr->v4->clip);
+						zbufclip(zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
+						if(vlr->v4) {
+							zvlnr+= 0x800000;
+							zbufclip(zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 						}
 					}
 				}
@@ -2161,7 +2239,10 @@ int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-void shadetrapixel(float x, float y, int face, int mask, unsigned short *shortcol)
+/**
+* Shade this face at this location in SCS.
+ */
+static void shadetrapixel(float x, float y, int face, int mask, float *fcol)
 {
 	
 	if( (face & 0x7FFFFF) > R.totvlak) {
@@ -2170,44 +2251,64 @@ void shadetrapixel(float x, float y, int face, int mask, unsigned short *shortco
 	}
 	if(R.r.mode & R_OSA) {
 		VlakRen *vlr= RE_findOrAddVlak( (face-1) & 0x7FFFFF);
-		int intcol[4]={0,0,0,0};
-		int a, tot=0;
+		float accumcol[4]={0,0,0,0}, tot=0.0;
+		int a;
 		
 		if(vlr->flag & R_FULL_OSA) {
 			for(a=0; a<R.osa; a++) {
 				if(mask & (1<<a)) {
-					shadepixel_short(x+jit[a][0], y+jit[a][1], face, 1<<a, shortcol);
-					intcol[0]+= shortcol[0];
-					intcol[1]+= shortcol[1];
-					intcol[2]+= shortcol[2];
-					intcol[3]+= shortcol[3];
-					tot++;
+					shadepixel(x+jit[a][0], y+jit[a][1], face, 1<<a, fcol);
+					accumcol[0]+= fcol[0];
+					accumcol[1]+= fcol[1];
+					accumcol[2]+= fcol[2];
+					accumcol[3]+= fcol[3];
+					tot+= 1.0;
 				}
 			}
-			shortcol[0]= intcol[0]/tot;
-			shortcol[1]= intcol[1]/tot;
-			shortcol[2]= intcol[2]/tot;
-			shortcol[3]= intcol[3]/tot;
+			tot= 1.0/tot;
+			fcol[0]= accumcol[0]*tot;
+			fcol[1]= accumcol[1]*tot;
+			fcol[2]= accumcol[2]*tot;
+			fcol[3]= accumcol[3]*tot;
 		}
 		else {
+			extern float centLut[16];
+			extern char *centmask;
+			
 			int b= centmask[mask];
 			x= x+centLut[b & 15];
 			y= y+centLut[b>>4];
-			shadepixel_short(x, y, face, mask, shortcol);
+			shadepixel(x, y, face, mask, fcol);
 	
 		}
 	}
-	else shadepixel_short(x, y, face, mask, shortcol);
+	else shadepixel(x, y, face, mask, fcol);
 }
 
-extern unsigned short usegamtab;
-void abufsetrow(int y)
+static int addtosampcol(float *sampcol, float *fcol, int mask)
 {
+	int a, retval = R.osa;
+	
+	for(a=0; a < R.osa; a++) {
+		if(mask & (1<<a)) addAlphaUnderFloat(sampcol, fcol);
+		if(sampcol[3]>0.999) retval--;
+		sampcol+= 4;
+	}
+	return retval;
+}
+
+/*
+ * renders when needed the Abuffer with faces stored in pixels, returns 1 scanline rendered
+ */
+
+void abufsetrow(float *acolrow, int y)
+{
+	extern SDL_mutex *render_abuf_lock; // initrender.c
 	APixstr *ap, *apn;
-	float ys;
-	int x, part, a, zrow[100][3], totvlak, alpha[32], tempgam, nr, intcol[4];
-	int sval, tempRf;
-	unsigned short *col, shortcol[4], tempcol[4], sampcol[16*4], *scol;
+	float *col, fcol[4], tempcol[4], sampcol[16*4], *scol, accumcol[4];
+	float ys, fac, alpha[32];
+	int x, part, a, zrow[100][3], totvlak, nr;
+	int sval;
 	
 	if(y<0) return;
 	if(R.osa>16) {
@@ -2216,16 +2317,24 @@ void abufsetrow(int y)
 		return;
 	}
 
-   tempRf= R.flag;
-   R.flag &= ~R_LAMPHALO;
+	//R.flag &= ~R_LAMPHALO;
 
 	/* alpha LUT */
 	if(R.r.mode & R_OSA ) {
-		x= (65536/R.osa);
+		fac= (1.0/(float)R.osa);
 		for(a=0; a<=R.osa; a++) {
-			alpha[a]= a*x;
+			alpha[a]= (float)a*fac;
 		}
 	}
+
+	if(R.r.mode & R_THREADS) {
+		/* lock thread if... */
+		if(y>Aminy+2 && y<Amaxy-2);
+		else {
+			if(render_abuf_lock) SDL_mutexP(render_abuf_lock);
+		}
+	}
+	
 	/* does a pixbuf has to be created? */
 	if(y<Aminy || y>Amaxy) {
 		part= (y/ABUFPART);
@@ -2237,12 +2346,10 @@ void abufsetrow(int y)
 	}
 	
 	/* render row */
-	col= Acolrow;
-	memset(col, 0, 2*4*R.rectx);
-	ap= APixbuf+R.rectx*(y-Aminy);
+	col= acolrow;
+	memset(col, 0, 4*sizeof(float)*R.rectx);
+	ap= APixbuf + R.rectx*(y-Aminy);
 	ys= y;
-	tempgam= usegamtab;
-	usegamtab= 0;
 	
 	for(x=0; x<R.rectx; x++, col+=4, ap++) {
 		if(ap->p[0]) {
@@ -2264,21 +2371,21 @@ void abufsetrow(int y)
 			}
 			if(totvlak==1) {
 				
-				shadetrapixel((float)x, (float)y, ap->p[0], ap->mask[0], shortcol);
+				shadetrapixel((float)x, (float)y, ap->p[0], ap->mask[0], fcol);
 	
 				nr= count_mask(ap->mask[0]);
 				if( (R.r.mode & R_OSA) && nr<R.osa) {
-					a= alpha[ nr ];
-					col[0]= (shortcol[0]*a)>>16;
-					col[1]= (shortcol[1]*a)>>16;
-					col[2]= (shortcol[2]*a)>>16;
-					col[3]= (shortcol[3]*a)>>16;
+					fac= alpha[ nr ];
+					col[0]= (fcol[0]*fac);
+					col[1]= (fcol[1]*fac);
+					col[2]= (fcol[2]*fac);
+					col[3]= (fcol[3]*fac);
 				}
 				else {
-					col[0]= shortcol[0];
-					col[1]= shortcol[1];
-					col[2]= shortcol[2];
-					col[3]= shortcol[3];
+					col[0]= fcol[0];
+					col[1]= fcol[1];
+					col[2]= fcol[2];
+					col[3]= fcol[3];
 				}
 			}
 			else {
@@ -2300,13 +2407,13 @@ void abufsetrow(int y)
 				while(totvlak>0) {
 					totvlak--;
 					
-					shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], shortcol);
+					shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], fcol);
 					
 					a= count_mask(zrow[totvlak][2]);
 					if( (R.r.mode & R_OSA ) && a<R.osa) {
 						if(totvlak>0) {
-							memset(sampcol, 0, 4*2*R.osa);
-							sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
+							memset(sampcol, 0, 4*sizeof(float)*R.osa);
+							sval= addtosampcol(sampcol, fcol, zrow[totvlak][2]);
 
 							/* sval==0: alpha completely full */
 							while( (sval != 0) && (totvlak>0) ) {
@@ -2314,44 +2421,48 @@ void abufsetrow(int y)
 								if(a==R.osa) break;
 								totvlak--;
 							
-								shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], shortcol);
-								sval= addtosampcol(sampcol, shortcol, zrow[totvlak][2]);
+								shadetrapixel((float)x, (float)y, zrow[totvlak][1], zrow[totvlak][2], fcol);
+								sval= addtosampcol(sampcol, fcol, zrow[totvlak][2]);
 							}
 							scol= sampcol;
-							intcol[0]= scol[0]; intcol[1]= scol[1];
-							intcol[2]= scol[2]; intcol[3]= scol[3];
+							accumcol[0]= scol[0]; accumcol[1]= scol[1];
+							accumcol[2]= scol[2]; accumcol[3]= scol[3];
 							scol+= 4;
 							for(a=1; a<R.osa; a++, scol+=4) {
-								intcol[0]+= scol[0]; intcol[1]+= scol[1];
-								intcol[2]+= scol[2]; intcol[3]+= scol[3];
+								accumcol[0]+= scol[0]; accumcol[1]+= scol[1];
+								accumcol[2]+= scol[2]; accumcol[3]+= scol[3];
 							}
-							tempcol[0]= intcol[0]/R.osa;
-							tempcol[1]= intcol[1]/R.osa;
-							tempcol[2]= intcol[2]/R.osa;
-							tempcol[3]= intcol[3]/R.osa;
+							tempcol[0]= accumcol[0]/R.osa;
+							tempcol[1]= accumcol[1]/R.osa;
+							tempcol[2]= accumcol[2]/R.osa;
+							tempcol[3]= accumcol[3]/R.osa;
 							
-							addAlphaUnderShort(col, tempcol);
+							addAlphaUnderFloat(col, tempcol);
 							
 						}
 						else {
-							a= alpha[a];
-							shortcol[0]= (shortcol[0]*a)>>16;
-							shortcol[1]= (shortcol[1]*a)>>16;
-							shortcol[2]= (shortcol[2]*a)>>16;
-							shortcol[3]= (shortcol[3]*a)>>16;
-							addAlphaUnderShort(col, shortcol);
+							fac= alpha[a];
+							fcol[0]= (fcol[0]*fac);
+							fcol[1]= (fcol[1]*fac);
+							fcol[2]= (fcol[2]*fac);
+							fcol[3]= (fcol[3]*fac);
+							addAlphaUnderFloat(col, fcol);
 						}
 					}	
-					else addAlphaUnderShort(col, shortcol);
+					else addAlphaUnderFloat(col, fcol);
 							
-					if(col[3]>=0xFFF0) break;
+					if(col[3]>=0.999) break;
 				}
 			}
 		}
 	}
 	
-	usegamtab= tempgam;
-	R.flag= tempRf;
+	if(R.r.mode & R_THREADS) {
+		if(y>Aminy+2 && y<Amaxy-2);
+		else {
+			if(render_abuf_lock) SDL_mutexV(render_abuf_lock);
+		}
+	}
 }
 
 /* end of zbuf.c */

@@ -52,7 +52,7 @@ void makeshadowbuf(LampRen *lar);
  * @param inp The inproduct between viewvector and ?
  *
  */
-float testshadowbuf(struct ShadBuf *shb, float *rco, float inp);	
+float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp);	
 
 /**
  * Determines the shadow factor for lamp <lar>, between <p1>

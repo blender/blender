@@ -195,10 +195,9 @@ int BPY_call_importloader(char *name)
 #define INT	96
 	/* struct EnvMap; */
 	/* struct Tex; */
-float Ta, Tb, Tg, Tin, Tr;
 
 void do_material_tex(ShadeInput *shi){}
-void externtex(struct MTex *mtex, float *vec){}
+void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta){}
 void init_render_textures(void){}
 void end_render_textures(void){}
 
@@ -210,9 +209,7 @@ int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt){
    return 0;
 }
 
-void    RE_calc_R_ref(void){}
 char texstr[20][12];	/* buttons.c */
-Osa O;
 
 /* editsca.c */
 void make_unique_prop_names(char *str) {}

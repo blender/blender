@@ -101,7 +101,7 @@
 #include "BPY_extern.h"
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"
+#include "render.h"		/* R.flag */
 
 #include "winlay.h"
 

@@ -93,7 +93,6 @@ typedef struct Material {
 	
 	struct MTex *mtex[10];
 	struct Ipo *ipo;
-	struct Material *ren;
 	
 	/* dynamic properties */
 	float friction, fh, reflect;

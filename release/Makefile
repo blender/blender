@@ -145,6 +145,7 @@ endif
 
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"
+	@rm -fr $(DISTDIR)/blender$(EXT0)/Contents/MacOS/.blender
 	@mv $(DISTDIR)/.blender $(DISTDIR)/blender$(EXT0)/Contents/MacOS/
     endif
 

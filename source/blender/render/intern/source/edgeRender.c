@@ -60,11 +60,11 @@
 
 #include "MEM_guardedalloc.h"
 #include "MTC_vectorops.h"
+#include "BKE_utildefines.h"
 
 #include "RE_callbacks.h"
 #include "edgeRender.h"
 #include "render.h"
-#include "render_intern.h"
 #include "zbuf.h" /* for zbufclipwire and zbufclip */
 #include "jitter.h"
 
@@ -79,18 +79,12 @@ char edgeRender_c[] = "$Id$";
 #endif
 
 /* ------------------------------------------------------------------------- */
-/* the lazy way: */
-#define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
-
-/* ------------------------------------------------------------------------- */
 
  /* These function pointers are used for z buffer filling.    */
-extern void (*zbuffunc)(float *, float *, float *);
-extern void (*zbuflinefunc)(float *, float *); 
+extern void (*zbuffunc)(unsigned int, float *, float *, float *);
+extern void (*zbuflinefunc)(unsigned int, float *, float *); 
 extern float Zmulx, Zmuly;   /* Some kind of scale?                          */
 extern float Zjitx,Zjity;    /* The x,y values for jitter offset             */
-extern unsigned int Zvlnr;           /* Face rendering pointer and counter: these    */
-extern VlakRen *Zvlr;        /* are used for 'caching' render results.       */
 
 /* ------------------------------------------------------------------------- */
 
@@ -148,12 +142,12 @@ void renderEdges(char * colourRect);
 /**
  * Buffer an edge between these two vertices in the e.r. distance buffer.
  */
-void fillEdgeRenderEdge(float *vec1, float *vec2);
+static void fillEdgeRenderEdge(unsigned int, float *vec1, float *vec2);
 
 /**
  * Buffer a face between these two vertices in the e.r. distance buffer.
  */
-void fillEdgeRenderFace(float *v1, float *v2, float *v3);
+static void fillEdgeRenderFace(unsigned int, float *v1, float *v2, float *v3);
 
 /**
  * Compose the edge render colour buffer.
@@ -598,6 +592,8 @@ void calcEdgeRenderColBuf(char* colTargetBuffer)
 /* rendering, this should be ok.                                             */
 int zBufferEdgeRenderObjects(void)
 {
+	VlakRen *vlr= NULL;
+	unsigned int zvlnr;
     int keepLooping; 
     int faceCounter; /* counter for face number */
     Material *ma;
@@ -607,30 +603,30 @@ int zBufferEdgeRenderObjects(void)
     faceCounter = 0;
 			
     while ( (faceCounter < R.totvlak) && keepLooping) {
-	    if((faceCounter & 255)==0) { Zvlr= R.blovl[faceCounter>>8]; }
-	    else Zvlr++;
+	    if((faceCounter & 255)==0) { vlr= R.blovl[faceCounter>>8]; }
+	    else vlr++;
         
-	    ma= Zvlr->mat;
+	    ma= vlr->mat;
 
 	    /*exp*/
 	    mat_cache = ma;
 
 	    /* face number is used in the fill functions */
-	    Zvlnr = faceCounter + 1; 
+	    zvlnr = faceCounter + 1; 
         
-	    if(Zvlr->flag & R_VISIBLE) {
+	    if(vlr->flag & R_VISIBLE) {
 			
 		    /* here we cull all transparent faces if mode == 0 */
 		    if (selectmode || !(ma->mode & MA_ZTRA)) {
 			    /* here we can add all kinds of extra selection criteria */
-			    if(ma->mode & (MA_WIRE)) zbufclipwire(Zvlr);
+			    if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
 			    else {
-				    zbufclip(Zvlr->v1->ho,   Zvlr->v2->ho,   Zvlr->v3->ho, 
-					     Zvlr->v1->clip, Zvlr->v2->clip, Zvlr->v3->clip);
-				    if(Zvlr->v4) {
-					    Zvlnr+= 0x800000; /* in a sense, the 'adjoint' face */
-					    zbufclip(Zvlr->v1->ho,   Zvlr->v3->ho,   Zvlr->v4->ho, 
-						     Zvlr->v1->clip, Zvlr->v3->clip, Zvlr->v4->clip);
+				    zbufclip(zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
+					     vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
+				    if(vlr->v4) {
+					    zvlnr+= 0x800000; /* in a sense, the 'adjoint' face */
+					    zbufclip(zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
+						     vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 				    }
 			    }
 		    }
@@ -643,7 +639,7 @@ int zBufferEdgeRenderObjects(void)
 
 /* ------------------------------------------------------------------------- */
 
-void fillEdgeRenderFace(float *v1, float *v2, float *v3)  
+static void fillEdgeRenderFace(unsigned int zvlnr, float *v1, float *v2, float *v3)  
 {
 	/* Coordinates of the vertices are specified in ZCS */
 	double z0; /* used as temp var*/
@@ -851,7 +847,7 @@ void fillEdgeRenderFace(float *v1, float *v2, float *v3)
 
 /* ------------------------------------------------------------------------- */
 
-void fillEdgeRenderEdge(float *vec1, float *vec2)
+static void fillEdgeRenderEdge(unsigned int zvlnr, float *vec1, float *vec2)
 {
 	int start, end, x, y, oldx, oldy, ofs;
 	int dz, vergz/*  , mask */;

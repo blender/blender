@@ -31,12 +31,6 @@
 #ifndef BLENDEF_H
 #define BLENDEF_H
 
-#ifdef WIN32
-#else
-#ifndef __BeOS
-#define O_BINARY	0
-#endif
-#endif
 
 /* **************** MAX ********************* */
 
@@ -53,46 +47,19 @@
 #define MAXFLOAT  ((float)3.40282347e+38)
 #endif
 
+/* also fill in structs itself, dna cannot handle defines, duplicate with utildefines.h still */
+#ifndef FILE_MAXDIR
+#define FILE_MAXDIR			160
+#define FILE_MAXFILE		80
+#endif
+
+
 #include <float.h>	
 
 
 
 
 /* **************** GENERAL ********************* */
-
-#define VECCOPY(v1,v2) 		{*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
-#define QUATCOPY(v1,v2) 	{*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2); *(v1+3)= *(v2+3);}
-
-#define VECADD(v1,v2,v3) 	{*(v1)= *(v2) + *(v3); *(v1+1)= *(v2+1) + *(v3+1); *(v1+2)= *(v2+2) + *(v3+2);}
-#define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
-
-#define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
-#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
-#define CLAMPIS(a, b, c)	((a)<(b) ? (b) : (a)>(c) ? (c) : (a))
-#define CLAMPTEST(a, b, c)	if((b)<(c)) {CLAMP(a, b, c);} else {CLAMP(a, c, b);}
-
-#define IS_EQ(a,b) ((fabs((double)(a)-(b)) >= (double) FLT_EPSILON) ? 0 : 1)
-
-#define INIT_MINMAX(min, max) (min)[0]= (min)[1]= (min)[2]= 1.0e30; (max)[0]= (max)[1]= (max)[2]= -1.0e30;
-#define DO_MINMAX(vec, min, max) if( (min)[0]>(vec)[0] ) (min)[0]= (vec)[0]; \
-							  if( (min)[1]>(vec)[1] ) (min)[1]= (vec)[1]; \
-							  if( (min)[2]>(vec)[2] ) (min)[2]= (vec)[2]; \
-							  if( (max)[0]<(vec)[0] ) (max)[0]= (vec)[0]; \
-							  if( (max)[1]<(vec)[1] ) (max)[1]= (vec)[1]; \
-							  if( (max)[2]<(vec)[2] ) (max)[2]= (vec)[2]; \
-
-#define DO_MINMAX2(vec, min, max) if( (min)[0]>(vec)[0] ) (min)[0]= (vec)[0]; \
-							  if( (min)[1]>(vec)[1] ) (min)[1]= (vec)[1]; \
-							  if( (max)[0]<(vec)[0] ) (max)[0]= (vec)[0]; \
-							  if( (max)[1]<(vec)[1] ) (max)[1]= (vec)[1];
-
-#define MINSIZE(val, size)	( ((val)>=0.0) ? (((val)<(size)) ? (size): (val)) : ( ((val)>(-size)) ? (-size) : (val)))
-
-#define BTST(a,b)	( ( (a) & 1<<(b) )!=0 )
-#define BCLR(a,b)	( (a) & ~(1<<(b)) )
-#define BSET(a,b)	( (a) | 1<<(b) )
-/* bit-row */
-#define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )
 
 // return values
 
@@ -101,8 +68,6 @@
 #define RET_CANCEL 2
 #define RET_YES (1 == 1)
 #define RET_NO (1 == 0)
-
-#define LONGCOPY(a, b, c)	{int lcpc=c, *lcpa=(int *)a, *lcpb=(int *)b; while(lcpc-->0) *(lcpa++)= *(lcpb++);}
 
 #if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 /* big endian */
@@ -139,9 +104,6 @@
 #define ISPOIN3(a, b, c, d)		( (a->b) && (a->c) && (a->d) )
 #define ISPOIN4(a, b, c, d, e)	( (a->b) && (a->c) && (a->d) && (a->e) )
 
-
-#define KNOTSU(nu)	    ( (nu)->orderu+ (nu)->pntsu+ (nu->orderu-1)*((nu)->flagu & 1) )
-#define KNOTSV(nu)	    ( (nu)->orderv+ (nu)->pntsv+ (nu->orderv-1)*((nu)->flagv & 1) )
 
 /* psfont */
 #define FNT_PDRAW 1
@@ -397,64 +359,9 @@
 #define B_PERCENTSUBD		0x40
 
 
-/* ***************** DISPLIST ***************** */
-
-#define DL_POLY			0
-#define DL_SEGM			1
-#define DL_SURF			2
-#define DL_TRIA			3
-#define DL_INDEX3		4
-#define DL_INDEX4		5
-#define DL_VERTCOL		6
-#define DL_VERTS		7
-#define DL_NORS			8
-
-#define DL_SURFINDEX(cyclu, cyclv, sizeu, sizev)	    \
-							    \
-    if( (cyclv)==0 && a==(sizev)-1) break;		    \
-    if(cyclu) {						    \
-	p1= sizeu*a;					    \
-	p2= p1+ sizeu-1;				    \
-	p3= p1+ sizeu;					    \
-	p4= p2+ sizeu;					    \
-	b= 0;						    \
-    }							    \
-    else {						    \
-	p2= sizeu*a;					    \
-	p1= p2+1;					    \
-	p4= p2+ sizeu;					    \
-	p3= p1+ sizeu;					    \
-	b= 1;						    \
-    }							    \
-    if( (cyclv) && a==sizev-1) {			    \
-	p3-= sizeu*sizev;				    \
-	p4-= sizeu*sizev;				    \
-    }
-
 /* DISPLAYMODE */
 #define R_DISPLAYVIEW	0
 #define R_DISPLAYWIN	1
 #define R_DISPLAYAUTO	2
-
-
-
-#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
-#define RCOMP	3
-#define GCOMP	2
-#define BCOMP	1
-#define ACOMP	0
-
-#else
-
-#define RCOMP	0
-#define GCOMP	1
-#define BCOMP	2
-#define ACOMP	3
-#endif
-
-#ifdef GS
-#undef GS
-#endif
-#define GS(a)	(*((short *)(a)))
 
 #endif

@@ -48,6 +48,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
@@ -65,7 +66,6 @@
 
 #include "BSE_filesel.h"
 
-#include "render.h"
 #include "mydevice.h"
 
 static unsigned int *dumprect=0;

@@ -2492,3 +2492,38 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b= (float)(((col)>>16)&0xFF);
 	*b /= 255.0f;
 }
+
+
+/* *************** PROJECTIONS ******************* */
+
+void tubemap(float x, float y, float z, float *u, float *v)
+{
+	float len;
+	
+	*v = (z + 1.0) / 2.0;
+	
+	len= sqrt(x*x+y*y);
+	if(len>0) {
+		*u = (1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0;
+	}
+}
+
+/* ------------------------------------------------------------------------- */
+
+void spheremap(float x, float y, float z, float *u, float *v)
+{
+	float len;
+	
+	len= sqrt(x*x+y*y+z*z);
+	if(len>0.0) {
+		
+		if(x==0.0 && y==0.0) *u= 0.0;	/* othwise domain error */
+		else *u = (1.0 - atan2(x,y)/M_PI )/2.0;
+		
+		z/=len;
+		*v = 1.0- saacos(z)/M_PI;
+	}
+}
+
+/* ------------------------------------------------------------------------- */
+

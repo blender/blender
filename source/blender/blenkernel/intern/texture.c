@@ -65,7 +65,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "BKE_osa_types.h"
 #include "BKE_plugin_types.h"
 
 #include "BKE_bad_level_calls.h"
@@ -80,8 +79,6 @@
 #include "BKE_texture.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"
-
-
 
 
 /* ------------------------------------------------------------------------- */
@@ -241,14 +238,11 @@ ColorBand *add_colorband()
 
 int do_colorband(ColorBand *coba, float in, float out[4])
 {
-	/* These vars form the texture channel, in render/intern/texture.c */
-	extern int Talpha;
 	CBData *cbd1, *cbd2, *cbd0, *cbd3;
 	float fac, mfac, t[4];
 	int a;
 	
 	if(coba->tot==0) return 0;
-	Talpha= 1;
 	
 	cbd1= coba->data;
 	if(coba->tot==1) {

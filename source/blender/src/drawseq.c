@@ -56,9 +56,10 @@
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_plugin_types.h"
+#include "BKE_scene.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"

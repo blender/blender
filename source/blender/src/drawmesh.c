@@ -68,6 +68,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_property.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_resources.h"
 #include "BIF_gl.h"
@@ -785,7 +786,7 @@ static int set_gl_light(Object *ob)
 
 static Material *give_current_material_or_def(Object *ob, int matnr)
 {
-	extern Material defmaterial;
+	extern Material defmaterial;	// render module abuse...
 	Material *ma= give_current_material(ob, matnr);
 
 	return ma?ma:&defmaterial;

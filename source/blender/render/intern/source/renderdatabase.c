@@ -59,18 +59,17 @@
 
 #include <math.h>
 #include <string.h>
+
 #include "MEM_guardedalloc.h"
+#include "BKE_utildefines.h"
 #include "BLI_arithb.h"
 
+#include "DNA_material_types.h" 
 #include "DNA_texture_types.h" 
+
 #include "BKE_texture.h" 
 
 #include "render.h"
-#include "render_intern.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -176,16 +175,12 @@ VlakRen *RE_findOrAddVlak(int nr)
 
 /* ------------------------------------------------------------------------- */
 
-extern float Tin, Tr, Tg, Tb;
-HaloRen *RE_inithalo(Material *ma, 
-				  float *vec, 
-				  float *vec1, 
-				  float *orco, 
-				  float hasize, 
-				  float vectsize)
+HaloRen *RE_inithalo(Material *ma,   float *vec,   float *vec1, 
+				  float *orco,   float hasize,   float vectsize, int seed)
 {
 	HaloRen *har;
 	MTex *mtex;
+	float tin, tr, tg, tb, ta;
 	float xn, yn, zn, texvec[3], hoco[4], hoco1[4];
 
 	if(hasize==0) return 0;
@@ -213,7 +208,7 @@ HaloRen *RE_inithalo(Material *ma,
 		har->ys= 0.5*R.recty*(hoco[1]/zn);
 		har->zs= 0x7FFFFF*(1.0+hoco[2]/zn);
 
-      har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
+		har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
 
 		xn=  har->xs - 0.5*R.rectx*(hoco1[0]/hoco1[3]);
 		yn=  har->ys - 0.5*R.recty*(hoco1[1]/hoco1[3]);
@@ -233,13 +228,13 @@ HaloRen *RE_inithalo(Material *ma,
 	if(ma->mode & MA_HALO_XALPHA) har->type |= HA_XALPHA;
 
 	har->alfa= ma->alpha;
-	har->r= 255.0*ma->r;
-	har->g= 255.0*ma->g;
-	har->b= 255.0*ma->b;
-	har->add= 255.0*ma->add;
-	har->mat= ma->ren;
+	har->r= ma->r;
+	har->g= ma->g;
+	har->b= ma->b;
+	har->add= (255.0*ma->add);
+	har->mat= ma;
 	har->hard= ma->har;
-	har->seed= ma->ren->seed1 % 256;
+	har->seed= seed % 256;
 
 	if(ma->mode & MA_STAR) har->starpoints= ma->starc;
 	if(ma->mode & MA_HALO_LINES) har->linec= ma->linec;
@@ -270,19 +265,19 @@ HaloRen *RE_inithalo(Material *ma,
 				}
 			}
 
-			externtex(mtex, texvec);
+			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta);
 
-			yn= Tin*mtex->colfac;
-			zn= Tin*mtex->varfac;
+			yn= tin*mtex->colfac;
+			zn= tin*mtex->varfac;
 
 			if(mtex->mapto & MAP_COL) {
 				zn= 1.0-yn;
-				har->r= 255.0*(yn*Tr+ zn*ma->r);
-				har->g= 255.0*(yn*Tg+ zn*ma->g);
-				har->b= 255.0*(yn*Tb+ zn*ma->b);
+				har->r= (yn*tr+ zn*ma->r);
+				har->g= (yn*tg+ zn*ma->g);
+				har->b= (yn*tb+ zn*ma->b);
 			}
 			if(mtex->texco & 16) {
-				har->alfa= 255.0*Tin;
+				har->alfa= tin;
 			}
 		}
 	}

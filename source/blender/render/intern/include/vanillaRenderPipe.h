@@ -45,5 +45,15 @@
  */
 void zBufShadeAdvanced(void);
 
+/**
+ * Copy the colour buffer output to R.rectot, to line y.
+ */
+void transferColourBufferToOutput(float *buf, int y);
+/**
+ * using default transforms for brightness, gamma, hue, saturation etc. 
+ */
+void std_floatcol_to_charcol(float *buf, char *target);
+
+
 #endif /* VANILLARENDERPIPE_EXT_H */
 

@@ -44,7 +44,6 @@
 #include <butspace.h>
 #include <BKE_bad_level_calls.h>
 #include "sceneRender.h"
-#include "render_types.h"
 #include "blendef.h"
 #include "Scene.h"
 #include "gen_utils.h"
@@ -792,30 +791,30 @@ PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected a list" ) );
 
-	R.winpos = 0;
+	G.winpos = 0;
 	for( x = 0; x < PyList_Size( list ); x++ ) {
 		if( !PyArg_Parse( PyList_GetItem( list, x ), "s", &loc ) ) {
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 						      "python list not parseable\n" );
 		}
 		if( strcmp( loc, "SW" ) == 0 || strcmp( loc, "sw" ) == 0 )
-			R.winpos |= 1;
+			G.winpos |= 1;
 		else if( strcmp( loc, "S" ) == 0 || strcmp( loc, "s" ) == 0 )
-			R.winpos |= 2;
+			G.winpos |= 2;
 		else if( strcmp( loc, "SE" ) == 0 || strcmp( loc, "se" ) == 0 )
-			R.winpos |= 4;
+			G.winpos |= 4;
 		else if( strcmp( loc, "W" ) == 0 || strcmp( loc, "w" ) == 0 )
-			R.winpos |= 8;
+			G.winpos |= 8;
 		else if( strcmp( loc, "C" ) == 0 || strcmp( loc, "c" ) == 0 )
-			R.winpos |= 16;
+			G.winpos |= 16;
 		else if( strcmp( loc, "E" ) == 0 || strcmp( loc, "e" ) == 0 )
-			R.winpos |= 32;
+			G.winpos |= 32;
 		else if( strcmp( loc, "NW" ) == 0 || strcmp( loc, "nw" ) == 0 )
-			R.winpos |= 64;
+			G.winpos |= 64;
 		else if( strcmp( loc, "N" ) == 0 || strcmp( loc, "n" ) == 0 )
-			R.winpos |= 128;
+			G.winpos |= 128;
 		else if( strcmp( loc, "NE" ) == 0 || strcmp( loc, "ne" ) == 0 )
-			R.winpos |= 256;
+			G.winpos |= 256;
 		else
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
 						      "list contains unknown string\n" );
@@ -828,7 +827,7 @@ PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 //------------------------------------Render.EnableDispView() -----------
 PyObject *M_Render_EnableDispView( PyObject * self )
 {
-	R.displaymode = R_DISPLAYVIEW;
+	G.displaymode = R_DISPLAYVIEW;
 	allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
@@ -837,7 +836,7 @@ PyObject *M_Render_EnableDispView( PyObject * self )
 //------------------------------------Render.EnableDispWin() ------------
 PyObject *M_Render_EnableDispWin( PyObject * self )
 {
-	R.displaymode = R_DISPLAYWIN;
+	G.displaymode = R_DISPLAYWIN;
 	allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
@@ -919,14 +918,14 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 		}
 	}
 	if( BLI_exist( file ) ) {
-		calc_renderwin_rectangle( R.winpos, pos, size );
+		calc_renderwin_rectangle( G.winpos, pos, size );
 		sprintf( str, "%s -a -p %d %d \"%s\"", bprogname, pos[0],
 			 pos[1], file );
 		system( str );
 	} else {
 		makepicstring( file, self->renderContext->sfra );
 		if( BLI_exist( file ) ) {
-			calc_renderwin_rectangle( R.winpos, pos, size );
+			calc_renderwin_rectangle( G.winpos, pos, size );
 			sprintf( str, "%s -a -p %d %d \"%s\"", bprogname,
 				 pos[0], pos[1], file );
 			system( str );

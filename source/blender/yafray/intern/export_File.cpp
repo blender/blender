@@ -1032,7 +1032,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	// Export orco coords test.
 	// Previously was done by checking orco pointer, however this can be non-null but still not initialized.
 	// Test the rendermaterial texco flag instead.
-	bool EXPORT_ORCO = ((face0mat->ren->texco & TEXCO_ORCO)!=0);
+	bool EXPORT_ORCO = ((face0mat->texco & TEXCO_ORCO)!=0);
 
 	string has_orco = "off";
 	if (EXPORT_ORCO) has_orco = "on";

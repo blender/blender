@@ -109,7 +109,7 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"
+#include "render.h"		// R.flag
 
 static int tbx1, tbx2, tby1, tby2, tbfontyofs, tbmain=0;
 static int tbmemx=TBOXX/2, tbmemy=(TBOXEL-0.5)*TBOXH, tboldwin, addmode= 0;

@@ -39,19 +39,6 @@
 /* local includes */
 #include "vanillaRenderPipe_types.h"
 
-/* own include */
-#include "pixelblending_types.h"
-
-/**
- * Samples pixel, depending on R.osa setting
- */
-int addtosampcol(unsigned short *sampcol, unsigned short *shortcol, int mask);
-
-/**
- * Samples pixel, bring your own R.osa setting
- */
-int addToSampCol(unsigned short *sampcol, unsigned short *shortcol, int mask, int osaNr);
-
 /**
  * Halo-add pixel, bring your own R.osa setting, and add factor
  */

@@ -126,13 +126,8 @@
 #include "butspace.h"  // event codes
 
 /* Modules used */
-#include "render.h"
+#include "render.h"		// for ogl render
 #include "radio.h"
-
-/* for physics in animation playback */
-#ifdef NAN_LINEAR_PHYSICS
-#include "sumo.h"
-#endif
 
 /* locals */
 void drawname(Object *ob);
@@ -2234,253 +2229,6 @@ double key_to_swaptime(int key)
 	return speed_to_swaptime(G.animspeed);
 }
 
-#ifdef NAN_LINEAR_PHYSICS
-
-void sumo_callback(void *obp)
-{
-	Object *ob= obp;
-	SM_Vector3 vec;
-	float matf[3][3];
-	int i, j;
-
-    SM_GetMatrixf(ob->sumohandle, ob->obmat[0]);
-
-	VECCOPY(ob->loc, ob->obmat[3]);
-	
-    for (i = 0; i < 3; ++i) {
-        for (j = 0; j < 3; ++j) {
-            matf[i][j] = ob->obmat[i][j];
-        }
-    }
-    Mat3ToEul(matf, ob->rot);
-}
-
-/* for test and fun, i've written the next functions to play with dynamics
-   using a variant of play-anim... was never released nor really tested (ton) */
-
-void init_anim_sumo(void)
-{
-	extern Material defmaterial;
-	Base *base;
-    Mesh *me;
-	Object *ob;
-    Material *mat;
-	MFace *mface;
-	MVert *mvert;
-    float centre[3], size[3];
-	int a;
-    SM_ShapeHandle shape;
-	SM_SceneHandle scene;
-    SM_Material material;
-    SM_MassProps massprops;
-    SM_Vector3 vec;
-    SM_Vector3 scaling;
-	
-	scene= SM_CreateScene();
-	G.scene->sumohandle = scene;
-	
-	vec[0]=  0.0;
-	vec[1]=  0.0;
-	vec[2]= -9.8;
-	SM_SetForceField(scene, vec);
-	
-    /* ton: cylinders & cones are still Y-axis up, will be Z-axis later */
-    /* ton: write location/rotation save and restore */
-	
-	base= FIRSTBASE;
-	while (base) {
-		if (G.vd->lay & base->lay) {
-            ob= base->object;
-			 
-            /* define shape, for now only meshes take part in physics */
-            get_local_bounds(ob, centre, size);
-            
-            if (ob->type==OB_MESH) {
-                me= ob->data;
-                
-                if (ob->gameflag & OB_DYNAMIC) {
-                    if (me->sumohandle)
-                        shape= me->sumohandle;
-                    else {
-                        /* make new handle */
-                        switch(ob->boundtype) {
-                        case OB_BOUND_BOX:
-                            shape= SM_Box(2.0*size[0], 2.0*size[1], 2.0*size[2]);
-                            break;
-                        case OB_BOUND_SPHERE:
-                            shape= SM_Sphere(size[0]);
-                            break;
-                        case OB_BOUND_CYLINDER:
-                            shape= SM_Cylinder(size[0], 2.0*size[2]);
-                            break;
-                        case OB_BOUND_CONE:
-                            shape= SM_Cone(size[0], 2.0*size[2]);
-                            break;
-                        }
-                        
-						me->sumohandle= shape;
-					}
-                    /* sumo material properties */
-                	mat= give_current_material(ob, 0);
-                	if(mat==NULL)
-                        mat= &defmaterial;
-                    
-                	material.restitution= mat->reflect;
-                	material.static_friction= mat->friction;
-                	material.dynamic_friction= mat->friction;
-                    
-                	/* sumo mass properties */
-                	massprops.mass= ob->mass;
-                	massprops.center[0]= 0.0;
-                	massprops.center[1]= 0.0;
-                	massprops.center[2]= 0.0;
-
-                	massprops.inertia[0]= 0.5*ob->mass;
-                	massprops.inertia[1]= 0.5*ob->mass;
-                	massprops.inertia[2]= 0.5*ob->mass;
-
-                	massprops.orientation[0]= 0.0;
-                	massprops.orientation[1]= 0.0;
-                	massprops.orientation[2]= 0.0;
-                	massprops.orientation[3]= 1.0;
-
-                	ob->sumohandle = SM_CreateObject(ob, shape, &material, 
-                                                     &massprops, sumo_callback);
-					SM_AddObject(scene, ob->sumohandle);
-					
-                    scaling[0] = ob->size[0];
-                    scaling[1] = ob->size[1];
-                    scaling[2] = ob->size[2];
-					SM_SetMatrixf(ob->sumohandle, ob->obmat[0]);
-					SM_SetScaling(ob->sumohandle, scaling);
-
-				}
- 				else {
- 					if(me->sumohandle) shape= me->sumohandle;
-					else {
-						/* make new handle */
-            			shape= SM_NewComplexShape();
-						
-						mface= me->mface;
-						mvert= me->mvert;
-						for(a=0; a<me->totface; a++,mface++) {
-							if(mface->v3) {
-								SM_Begin();
-								SM_Vertex( (mvert+mface->v1)->co[0], (mvert+mface->v1)->co[1], (mvert+mface->v1)->co[2]);
-								SM_Vertex( (mvert+mface->v2)->co[0], (mvert+mface->v2)->co[1], (mvert+mface->v2)->co[2]);
-								SM_Vertex( (mvert+mface->v3)->co[0], (mvert+mface->v3)->co[1], (mvert+mface->v3)->co[2]);
-								if(mface->v4)
-									SM_Vertex( (mvert+mface->v4)->co[0], (mvert+mface->v4)->co[1], (mvert+mface->v4)->co[2]);
-								SM_End();
-							}
-						}
-						
-						SM_EndComplexShape();
-						
-						me->sumohandle= shape;
-					}
-                    /* sumo material properties */
-                	mat= give_current_material(ob, 0);
-                	if(mat==NULL)
-                        mat= &defmaterial;
-                	material.restitution= mat->reflect;
-                	material.static_friction= mat->friction;
-                	material.dynamic_friction= mat->friction;
-
-                	/* sumo mass properties */
-                	massprops.mass= ob->mass;
-                	massprops.center[0]= 0.0;
-                	massprops.center[1]= 0.0;
-                	massprops.center[2]= 0.0;
-
-                	massprops.inertia[0]= 0.5*ob->mass;
-                	massprops.inertia[1]= 0.5*ob->mass;
-                	massprops.inertia[2]= 0.5*ob->mass;
-
-                	massprops.orientation[0]= 0.0;
-                	massprops.orientation[1]= 0.0;
-                	massprops.orientation[2]= 0.0;
-                	massprops.orientation[3]= 1.0;
-
-                	ob->sumohandle= SM_CreateObject(ob, shape, &material, NULL, NULL);
-					SM_AddObject(scene, ob->sumohandle);
-
-                    scaling[0] = ob->size[0];
-                    scaling[1] = ob->size[1];
-                    scaling[2] = ob->size[2];
-					SM_SetMatrixf(ob->sumohandle, ob->obmat[0]);
-					SM_SetScaling(ob->sumohandle, scaling);
-				}
-            }
-        }    	
-    	base= base->next;
-    }
-}
-
-/* update animated objects */
-void update_anim_sumo(void)
-{
-    SM_Vector3 scaling;
-
-	Base *base;
-	Object *ob;
-	Mesh *me;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if(G.vd->lay & base->lay) {
-			ob= base->object;
-			
-			if(ob->sumohandle) {
-				if((ob->gameflag & OB_DYNAMIC)==0) {
-					/* maybe: optimise, check for anim */
-                    scaling[0] = ob->size[0];
-                    scaling[1] = ob->size[1];
-                    scaling[2] = ob->size[2];
-					SM_SetMatrixf(ob->sumohandle, ob->obmat[0]);
-					SM_SetScaling(ob->sumohandle, scaling);
-				}
-			}				
-		}
-		base= base->next;
-	}
-
-}
-
-void end_anim_sumo(void)
-{
-	Base *base;
-	Object *ob;
-	Mesh *me;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if(G.vd->lay & base->lay) {
-			ob= base->object;
-			
-            if(ob->type==OB_MESH) {
-				if(ob->sumohandle) {
-					SM_RemoveObject(G.scene->sumohandle, ob->sumohandle);
-					SM_DeleteObject(ob->sumohandle);
-					ob->sumohandle= NULL;
-				}
-				me= ob->data;
-				if(me->sumohandle) {
-					SM_DeleteShape(me->sumohandle);
-					me->sumohandle= NULL;
-				}
-			}
-		}
-		base= base->next;
-	}
-	if(G.scene->sumohandle) {
-		SM_DeleteScene(G.scene->sumohandle);
-		G.scene->sumohandle= NULL;
-	}
-}
-
-#endif
-
 void inner_play_anim_loop(int init, int mode)
 {
 	ScrArea *sa;
@@ -2494,9 +2242,7 @@ void inner_play_anim_loop(int init, int mode)
 		swaptime= speed_to_swaptime(G.animspeed);
 		tottime= 0.0;
 		curmode= mode;
-#ifdef NAN_LINEAR_PHYSICS
-        init_anim_sumo();
-#endif        
+
 		return;
 	}
 
@@ -2511,11 +2257,7 @@ void inner_play_anim_loop(int init, int mode)
 	update_for_newframe_muted();
 
 	//test_all_displists();
-#ifdef NAN_LINEAR_PHYSICS	
-	update_anim_sumo();
-	
-	SM_Proceed(G.scene->sumohandle, swaptime, 40, NULL);
-#endif
+
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if(sa==oldsa) {
@@ -2639,9 +2381,7 @@ int play_anim(int mode)
 	allqueue (REDRAWACTION, 0);
 	/* for the time being */
 	update_for_newframe_muted();
-#ifdef NAN_LINEAR_PHYSICS	
-	end_anim_sumo();
-#endif
+
 	waitcursor(0);
 	G.f &= ~G_PLAYANIM;
 	

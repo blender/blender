@@ -111,8 +111,6 @@
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 
-#include "render.h" // for R - should use BKE_bad_level_calls.h instead?
-
 #include "blendef.h"
 #include "mydevice.h"
 
@@ -1524,7 +1522,7 @@ static void run_playanim(char *file)
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	int pos[2], size[2];
 
-	calc_renderwin_rectangle(R.winpos, pos, size);
+	calc_renderwin_rectangle(G.winpos, pos, size);
 
 	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
 	system(str);

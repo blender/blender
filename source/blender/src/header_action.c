@@ -74,6 +74,7 @@
 #include "BKE_main.h"
 #include "BKE_constraint.h"
 #include "BKE_armature.h"
+#include "BKE_utildefines.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_editaction.h"

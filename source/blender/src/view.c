@@ -81,7 +81,7 @@
 #include "blendef.h"
 
 /* Modules used */
-#include "render.h"
+#include "render.h"		/* R. stuff for ogl view render */
 
 #define TRACKBALLSIZE  (1.1)
 #define BL_NEAR_CLIP 0.001

@@ -42,38 +42,32 @@
 
 #include "MTC_matrixops.h"
 #include "MEM_guardedalloc.h"
-#include "BLI_arithb.h"
 
 #include "DNA_lamp_types.h"
+#include "BKE_utildefines.h"
+#include "BLI_arithb.h"
 
 #include "render.h"
-#include "render_intern.h"
 
 #include "shadbuf.h"
 #include "renderHelp.h"
 #include "jitter.h"
 #include "zbuf.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+/* XXX, could be better implemented...
+*/
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#define RCOMP	3
+#define GCOMP	2
+#define BCOMP	1
+#define ACOMP	0
+#else
+#define RCOMP	0
+#define GCOMP	1
+#define BCOMP	2
+#define ACOMP	3
 #endif
 
-/* if defined: objects don't cast shadows anymore                            */
-/*  #define RE_NO_SHADOWS */
-
-/* unused? */
-static int bias= 0x00500000;
-/* crud */
-#define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
-
-/* ------------------------------------------------------------------------- */
-
-void lrectreadRectz(int x1, int y1, int x2, int y2, char *r1);
-int sizeoflampbuf(struct ShadBuf *shb);
-int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr);
-float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs);
-float readshadowbuf_halo(struct ShadBuf *shb, int xs, int ys, int zs);
-float *give_jitter_tab(int samp);
 /* ------------------------------------------------------------------------- */
 
 
@@ -138,7 +132,7 @@ void RE_initshadowbuf(LampRen *lar, float mat[][4])
 /* ------------------------------------------------------------------------- */
 
 
-void lrectreadRectz(int x1, int y1, int x2, int y2, char *r1) /* reads part from rectz in r1 */
+static void lrectreadRectz(int x1, int y1, int x2, int y2, char *r1) /* reads part from rectz in r1 */
 {
 	unsigned int len4, *rz;	
 
@@ -154,8 +148,8 @@ void lrectreadRectz(int x1, int y1, int x2, int y2, char *r1) /* reads part from
 	}
 }
 
-
-int sizeoflampbuf(struct ShadBuf *shb)
+#if 0
+static int sizeoflampbuf(struct ShadBuf *shb)
 {
 	int num,count=0;
 	char *cp;
@@ -167,8 +161,9 @@ int sizeoflampbuf(struct ShadBuf *shb)
 	
 	return 256*count;
 }
+#endif
 
-float *give_jitter_tab(int samp)
+static float *give_jitter_tab(int samp)
 {
 	/* these are all possible jitter tables, takes up some
 	 * 12k, not really bad!
@@ -345,7 +340,7 @@ void makeshadowbuf(LampRen *lar)
 	/* printf("lampbuf %d\n", sizeoflampbuf(shb)); */
 }
 
-int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
+static int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
 {
 	/* return a 1 if fully compressed shadbuf-tile && z==const */
 	static int *rz;
@@ -372,7 +367,7 @@ int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
 	return 0;
 }
 
-float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 : fully in light */
+static float readshadowbuf(struct ShadBuf *shb, int bias, int xs, int ys, int zs)	/* return 1.0 : fully in light */
 {
 	float temp;
 	int *rz, ofs;
@@ -435,12 +430,13 @@ float readshadowbuf(struct ShadBuf *shb, int xs, int ys, int zs)	/* return 1.0 :
 	}
 }
 
-
-float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0: no shadow at all */
+/* the externally called shadow testing (reading) function */
+/* return 1.0: no shadow at all */
+float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp)
 {
 	float fac, co[4], dx[3], dy[3], aantal=0;
 	float xs1,ys1, siz, *j, xres, yres;
-	int xs,ys, zs;
+	int xs,ys, zs, bias;
 	short a,num;
 	
 	/* if(inp <= 0.0) return 1.0; */
@@ -477,20 +473,20 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 	bias= (1.5-inp*inp)*shb->bias;
 
 	if(num==1) {
-		return readshadowbuf(shb,(int)xs1, (int)ys1, zs);
+		return readshadowbuf(shb, bias, (int)xs1, (int)ys1, zs);
 	}
 
-	co[0]= rco[0]+O.dxco[0];
-	co[1]= rco[1]+O.dxco[1];
-	co[2]= rco[2]+O.dxco[2];
+	co[0]= rco[0]+dxco[0];
+	co[1]= rco[1]+dxco[1];
+	co[2]= rco[2]+dxco[2];
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
 	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
 	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
 
-	co[0]= rco[0]+O.dyco[0];
-	co[1]= rco[1]+O.dyco[1];
-	co[2]= rco[2]+O.dyco[2];
+	co[0]= rco[0]+dyco[0];
+	co[1]= rco[1]+dyco[1];
+	co[2]= rco[2]+dyco[2];
 	co[3]= 1.0;
 	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
 	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
@@ -512,7 +508,7 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 			if(firstreadshadbuf(shb, (int)(xs1+xres), (int)ys1, 1)) {
 				if(firstreadshadbuf(shb, (int)xs1, (int)(ys1+yres), 1)) {
 					if(firstreadshadbuf(shb, (int)(xs1+xres), (int)(ys1+yres), 1)) {
-						return readshadowbuf(shb,(int)xs1, (int)ys1, zs);
+						return readshadowbuf(shb, bias,(int)xs1, (int)ys1, zs);
 					}
 				}
 			}
@@ -526,7 +522,7 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 		ys= ys1 + yres*(j[1] + 0.5);
 		j+=2;
 		
-		aantal+= readshadowbuf(shb, xs, ys, zs);
+		aantal+= readshadowbuf(shb, bias, xs, ys, zs);
 	}
 
 	/* Renormalizes for the sample number: */
@@ -535,13 +531,16 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 
 /* different function... sampling behind clipend can be LIGHT, bias is negative! */
 /* return: light */
-float readshadowbuf_halo(struct ShadBuf *shb, int xs, int ys, int zs)
+static float readshadowbuf_halo(struct ShadBuf *shb, int xs, int ys, int zs)
 {
 	float temp;
 	int *rz, ofs;
-	int zbias, zsamp;
+	int bias, zbias, zsamp;
 	char *ct, *cz;
 
+	/* negative! The other side is more important */
+	bias= -shb->bias;
+	
 	/* simpleclip */
 	if(xs<0 || ys<0) return 0.0;
 	if(xs>=shb->size || ys>=shb->size) return 0.0;
@@ -616,8 +615,6 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	int dx = 0, dy = 0;
 	
 	siz= 0.5*(float)shb->size;
-	/* negative! The other side is more important */
-	bias= -shb->bias;
 	
 	co[0]= p1[0];
 	co[1]= p1[1];

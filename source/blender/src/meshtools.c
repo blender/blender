@@ -35,7 +35,6 @@
 meshtools.c: no editmode, tools operating on meshes
 
 void join_mesh(void);
-void make_sticky(void);
 
 void fasterdraw(void);
 void slowerdraw(void);
@@ -90,8 +89,6 @@ void sort_faces(void);
 
 #include "mydevice.h"
 #include "blendef.h"
-
-#include "render.h" // bad level call (ton)
 
 /* * ********************** no editmode!!! *********** */
 
@@ -439,75 +436,6 @@ void join_mesh(void)
 	BIF_undo_push("Join Mesh");
 }
 
-
-void make_sticky(void)
-{
-	Object *ob;
-	Base *base;
-	MVert *mvert;
-	Mesh *me;
-	MSticky *ms;
-	float ho[4], mat[4][4];
-	int a;
-	
-	if(G.scene->camera==0) return;
-	
-	if(G.obedit) {
-		error("Unable to make sticky in Edit Mode");
-		return;
-	}
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASELIB(base) {
-			if(base->object->type==OB_MESH) {
-				ob= base->object;
-				
-				me= ob->data;
-				mvert= me->mvert;
-				if(me->msticky) MEM_freeN(me->msticky);
-				me->msticky= MEM_mallocN(me->totvert*sizeof(MSticky), "sticky");
-				
-				/* like convert to render data */		
-				R.r= G.scene->r;
-				R.r.xsch= (R.r.size*R.r.xsch)/100;
-				R.r.ysch= (R.r.size*R.r.ysch)/100;
-				
-				R.afmx= R.r.xsch/2;
-				R.afmy= R.r.ysch/2;
-				
-				R.ycor= ( (float)R.r.yasp)/( (float)R.r.xasp);
-		
-				R.rectx= R.r.xsch; 
-				R.recty= R.r.ysch;
-				R.xstart= -R.afmx; 
-				R.ystart= -R.afmy;
-				R.xend= R.xstart+R.rectx-1;
-				R.yend= R.ystart+R.recty-1;
-		
-				where_is_object(G.scene->camera);
-				Mat4CpyMat4(R.viewinv, G.scene->camera->obmat);
-				Mat4Ortho(R.viewinv);
-				Mat4Invert(R.viewmat, R.viewinv);
-				
-				RE_setwindowclip(1, -1);
-		
-				where_is_object(ob);
-				Mat4MulMat4(mat, ob->obmat, R.viewmat);
-		
-				ms= me->msticky;
-				for(a=0; a<me->totvert; a++, ms++, mvert++) {
-					VECCOPY(ho, mvert->co);
-					Mat4MulVecfl(mat, ho);
-					RE_projectverto(ho, ho);
-					ms->co[0]= ho[0]/ho[3];
-					ms->co[1]= ho[1]/ho[3];
-				}
-			}
-		}
-		base= base->next;
-	}
-	allqueue(REDRAWBUTSEDIT, 0);
-}
 
 void fasterdraw(void)
 {

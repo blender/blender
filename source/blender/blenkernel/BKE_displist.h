@@ -53,6 +53,30 @@
 #define DL_FRONT_CURVE	4
 #define DL_BACK_CURVE	8
 
+/* This should, of course, become a function */
+#define DL_SURFINDEX(cyclu, cyclv, sizeu, sizev)	    \
+\
+if( (cyclv)==0 && a==(sizev)-1) break;		    \
+if(cyclu) {						    \
+	p1= sizeu*a;					    \
+		p2= p1+ sizeu-1;				    \
+			p3= p1+ sizeu;					    \
+				p4= p2+ sizeu;					    \
+					b= 0;						    \
+}							    \
+else {						    \
+	p2= sizeu*a;					    \
+		p1= p2+1;					    \
+			p4= p2+ sizeu;					    \
+				p3= p1+ sizeu;					    \
+					b= 1;						    \
+}							    \
+if( (cyclv) && a==sizev-1) {			    \
+	p3-= sizeu*sizev;				    \
+		p4-= sizeu*sizev;				    \
+}
+
+
 /* prototypes */
 
 struct Object;

@@ -144,15 +144,17 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BLI_linklist.h"
 
 #include "BKE_action.h"
-#include "BKE_utildefines.h" // for KNOTSU KNOTSV WHILE_SEQ END_SEQ defines
 #include "BKE_bad_level_calls.h" // build_seqar (from WHILE_SEQ) free_oops error
+#include "BKE_curve.h"
 #include "BKE_constraint.h"
-#include "BKE_main.h" // G.main
 #include "BKE_global.h" // for G
-#include "BKE_screen.h" // for waitcursor
-#include "BKE_packedFile.h" // for packAll
 #include "BKE_library.h" // for  set_listbasepointers
+#include "BKE_main.h" // G.main
+#include "BKE_packedFile.h" // for packAll
+#include "BKE_screen.h" // for waitcursor
+#include "BKE_scene.h" // for do_seq
 #include "BKE_sound.h" /* ... and for samples */
+#include "BKE_utildefines.h" // for defines
 
 #include "GEN_messaging.h"
 
@@ -1494,8 +1496,8 @@ static void write_global(WriteData *wd)
 
 	fg.curscreen= G.curscreen;
 	fg.curscene= G.scene;
-	fg.displaymode= R.displaymode;
-	fg.winpos= R.winpos;
+	fg.displaymode= G.displaymode;
+	fg.winpos= G.winpos;
 	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
 	fg.globalf= G.f;
 

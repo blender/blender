@@ -34,6 +34,7 @@
 #ifndef BSE_SEQUENCE_H
 #define BSE_SEQUENCE_H
 
+
 struct PluginSeq;
 struct StripElem;
 struct Strip;

@@ -1016,6 +1016,7 @@ if bs_globals.enable_clean==0: # only read SConscripts when not cleaning, this t
 	Export ('extra_includes')
 	Export ('user_options_dict')
 	Export ('library_env')
+	Export ('sdl_env')
 	
 	BuildDir (bs_globals.root_build_dir+'/extern', 'extern', duplicate=0)
 	SConscript (bs_globals.root_build_dir+'extern/SConscript')

@@ -35,7 +35,6 @@
 #include "gammaCorrectionTables.h"
 #include <stdlib.h>
 #include <math.h>
-#include "render_intern.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -65,7 +64,7 @@ static float inv_colour_step;
 static float valid_gamma;
 static float valid_inv_gamma;
 static int   gamma_table_initialised = 0;
-static int   do_gamma;
+int   do_gamma=0;
 /* ------------------------------------------------------------------------- */
 
 float gammaCorrect(float c)
@@ -153,19 +152,5 @@ int gammaTableIsInitialised(void)
 }
 
 /* ------------------------------------------------------------------------- */
-int doGamma()
-{
-	return do_gamma;
-}
-
-/* ------------------------------------------------------------------------- */
-
-/**
- * Set/unset performing gamma corrections.
- */
-void setDoGamma(int i)
-{
-	do_gamma = i;
-}
 
 /* eof */

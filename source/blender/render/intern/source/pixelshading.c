@@ -45,6 +45,7 @@
 #include "MTC_vectorops.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
@@ -56,11 +57,11 @@
 
 #include "render.h"
 #include "texture.h"
-#include "render_intern.h"
 
 #include "vanillaRenderPipe_types.h"
 #include "pixelblending.h"
 #include "rendercore.h" /* for some shading functions... */
+#include "shadbuf.h"
 #include "zbufferdatastruct.h"
 
 #include "renderHelp.h"
@@ -69,13 +70,6 @@
 #include "errorHandler.h"
 #include "pixelshading.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-
-/* The collector is the communication channel with the render pipe.          */
-extern RE_COLBUFTYPE  collector[4];  /* used throughout as pixel colour accu */
 
 /* ton: 
   - unified render now uses face render routines from rendercore.c
@@ -83,16 +77,15 @@ extern RE_COLBUFTYPE  collector[4];  /* used throughout as pixel colour accu */
 
 /* ------------------------------------------------------------------------- */
 
-void *renderPixel(float x, float y, int *obdata, int mask)
+void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int mask)
 {
     void* data = NULL;
     
     if (obdata[3] & RE_POLY) {
-        /* face pixels aren't rendered in floats yet, so we wrap it here */
 		data = shadepixel(x, y, obdata[1], mask, collector);
     }
     else if (obdata[3] & RE_HALO) {
-        data = renderHaloPixel(x, y, obdata[1]);
+        data = renderHaloPixel(collector, x, y, obdata[1]);
     }
 	else if( obdata[1] == 0 ) {	
 		/* for lamphalo, but doesn't seem to be called? Actually it is, and  */
@@ -126,7 +119,7 @@ static unsigned int calcHaloZ(HaloRen *har, unsigned int zz)
 	return zz;
 }
 
-void *renderHaloPixel(float x, float y, int haloNr) 
+void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) 
 {
     HaloRen *har = NULL;
     float dist = 0.0;
@@ -144,8 +137,8 @@ void *renderHaloPixel(float x, float y, int haloNr)
     dist = ((x - har->xs) * (x - har->xs)) 
         +  ((y - har->ys) * (y - har->ys) * R.ycor * R.ycor) ;
 
-    collector[0] = RE_ZERO_COLOUR_FLOAT; collector[1] = RE_ZERO_COLOUR_FLOAT; 
-    collector[2] = RE_ZERO_COLOUR_FLOAT; collector[3] = RE_ZERO_COLOUR_FLOAT;
+    collector[0] = 0.0f; collector[1] = 0.0f; 
+    collector[2] = 0.0f; collector[3] = 0.0f;
 
     if (dist < har->radsq) {
         shadeHaloFloat(har, collector, zz, dist, 
@@ -159,14 +152,184 @@ void *renderHaloPixel(float x, float y, int haloNr)
 /* ------------------------------------------------------------------------- */
 
 extern float hashvectf[];
-void shadeHaloFloat(HaloRen *har, 
-					float *col, unsigned int zz, 
-					float dist, float xn, 
-					float yn, short flarec)
+
+static void render_lighting_halo(HaloRen *har, float *colf)
+{
+	LampRen *lar;
+	float i, inp, inpr, rco[3], dco[3], lv[3], lampdist, ld, t, *vn;
+	float ir, ig, ib, shadfac, soft, lacol[3];
+	int a;
+	
+	ir= ig= ib= 0.0;
+	
+	VECCOPY(rco, har->co);	
+	dco[0]=dco[1]=dco[2]= 1.0/har->rad;
+	
+	vn= har->no;
+	
+	for(a=0; a<R.totlamp; a++) {
+		lar= R.la[a];
+		
+		/* test for lamplayer */
+		if(lar->mode & LA_LAYER) if((lar->lay & har->lay)==0) continue;
+		
+		/* lampdist cacluation */
+		if(lar->type==LA_SUN || lar->type==LA_HEMI) {
+			VECCOPY(lv, lar->vec);
+			lampdist= 1.0;
+		}
+		else {
+			lv[0]= rco[0]-lar->co[0];
+			lv[1]= rco[1]-lar->co[1];
+			lv[2]= rco[2]-lar->co[2];
+			ld= sqrt(lv[0]*lv[0]+lv[1]*lv[1]+lv[2]*lv[2]);
+			lv[0]/= ld;
+			lv[1]/= ld;
+			lv[2]/= ld;
+			
+			/* ld is re-used further on (texco's) */
+			
+			if(lar->mode & LA_QUAD) {
+				t= 1.0;
+				if(lar->ld1>0.0)
+					t= lar->dist/(lar->dist+lar->ld1*ld);
+				if(lar->ld2>0.0)
+					t*= lar->distkw/(lar->distkw+lar->ld2*ld*ld);
+				
+				lampdist= t;
+			}
+			else {
+				lampdist= (lar->dist/(lar->dist+ld));
+			}
+			
+			if(lar->mode & LA_SPHERE) {
+				t= lar->dist - ld;
+				if(t<0.0) continue;
+				
+				t/= lar->dist;
+				lampdist*= (t);
+			}
+			
+		}
+		
+		lacol[0]= lar->r;
+		lacol[1]= lar->g;
+		lacol[2]= lar->b;
+		
+		if(lar->mode & LA_TEXTURE) {
+			ShadeInput shi;
+			VECCOPY(shi.co, rco);
+			shi.osatex= 0;
+			do_lamp_tex(lar, lv, &shi, lacol);
+		}
+		
+		if(lar->type==LA_SPOT) {
+			
+			if(lar->mode & LA_SQUARE) {
+				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0) {
+					float x, lvrot[3];
+					
+					/* rotate view to lampspace */
+					VECCOPY(lvrot, lv);
+					MTC_Mat3MulVecfl(lar->imat, lvrot);
+					
+					x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
+					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
+					
+					inpr= 1.0/(sqrt(1.0+x*x));
+				}
+				else inpr= 0.0;
+			}
+			else {
+				inpr= lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2];
+			}
+			
+			t= lar->spotsi;
+			if(inpr<t) continue;
+			else {
+				t= inpr-t;
+				i= 1.0;
+				soft= 1.0;
+				if(t<lar->spotbl && lar->spotbl!=0.0) {
+					/* soft area */
+					i= t/lar->spotbl;
+					t= i*i;
+					soft= (3.0*t-2.0*t*i);
+					inpr*= soft;
+				}
+				if(lar->mode & LA_ONLYSHADOW) {
+					/* if(ma->mode & MA_SHADOW) { */
+					/* dot product positive: front side face! */
+					inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
+					if(inp>0.0) {
+						/* testshadowbuf==0.0 : 100% shadow */
+						shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp);
+						if( shadfac>0.0 ) {
+							shadfac*= inp*soft*lar->energy;
+							ir -= shadfac;
+							ig -= shadfac;
+							ib -= shadfac;
+							
+							continue;
+						}
+					}
+					/* } */
+				}
+				lampdist*=inpr;
+			}
+			if(lar->mode & LA_ONLYSHADOW) continue;
+			
+		}
+		
+		/* dot product and  reflectivity*/
+		
+		inp= 1.0-fabs(vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2]);
+		
+		/* inp= cos(0.5*M_PI-acos(inp)); */
+		
+		i= inp;
+		
+		if(lar->type==LA_HEMI) {
+			i= 0.5*i+0.5;
+		}
+		if(i>0.0) {
+			i*= lampdist;
+		}
+		
+		/* shadow  */
+		if(i> -0.41) {			/* heuristic valua! */
+			shadfac= 1.0;
+			if(lar->shb) {
+				shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp);
+				if(shadfac==0.0) continue;
+				i*= shadfac;
+			}
+		}
+		
+		if(i>0.0) {
+			ir+= i*lacol[0];
+			ig+= i*lacol[1];
+			ib+= i*lacol[2];
+		}
+	}
+	
+	if(ir<0.0) ir= 0.0;
+	if(ig<0.0) ig= 0.0;
+	if(ib<0.0) ib= 0.0;
+
+	colf[0]*= ir;
+	colf[1]*= ig;
+	colf[2]*= ib;
+	
+}
+
+
+
+void shadeHaloFloat(HaloRen *har,  float *col, unsigned int zz, 
+					float dist, float xn,  float yn, short flarec)
 {
 	/* fill in col */
-	/* migrate: fill collector */
-	float t, zn, radist, ringf=0.0, linef=0.0, alpha, si, co, colf[4];
+	float t, zn, radist, ringf=0.0, linef=0.0, alpha, si, co;
 	int a;
    
 	if(R.wrld.mode & WO_MIST) {
@@ -306,59 +469,53 @@ void shadeHaloFloat(HaloRen *har,
 	/* The colour is either the rgb spec-ed by the user, or extracted from   */
 	/* the texture                                                           */
 	if(har->tex) {
-		colf[0]= har->r; colf[1]= har->g; colf[2]= har->b;
-		colf[3]= dist;
-		do_halo_tex(har, xn, yn, colf);
-		colf[0]*= colf[3];
-		colf[1]*= colf[3];
-		colf[2]*= colf[3];
+		col[0]= har->r; 
+		col[1]= har->g; 
+		col[2]= har->b;
+		col[3]= dist;
+		
+		do_halo_tex(har, xn, yn, col);
+		
+		col[0]*= col[3];
+		col[1]*= col[3];
+		col[2]*= col[3];
 		
 	}
 	else {
-		colf[0]= dist*har->r;
-		colf[1]= dist*har->g;
-		colf[2]= dist*har->b;
-		if(har->type & HA_XALPHA) colf[3]= dist*dist;
-		else colf[3]= dist;
+		col[0]= dist*har->r;
+		col[1]= dist*har->g;
+		col[2]= dist*har->b;
+		if(har->type & HA_XALPHA) col[3]= dist*dist;
+		else col[3]= dist;
 	}
 
 	if(har->mat && har->mat->mode & MA_HALO_SHADE) {
 		/* we test for lights because of preview... */
-		if(R.totlamp) render_lighting_halo(har, colf);
+		if(R.totlamp) render_lighting_halo(har, col);
 	}
 
-	/* Next, we do the line and ring factor modifications. It seems we do    */
-	/* uchar calculations, but it's basically doing float arith with a 255   */
-	/* scale factor.                                                         */
+	/* Next, we do the line and ring factor modifications. */
 	if(linef!=0.0) {
 		Material *ma= har->mat;
 		
-		colf[0]+= 255.0*linef * ma->specr;
-		colf[1]+= 255.0*linef * ma->specg;
-		colf[2]+= 255.0*linef * ma->specb;
+		col[0]+= linef * ma->specr;
+		col[1]+= linef * ma->specg;
+		col[2]+= linef * ma->specb;
 		
-		if(har->type & HA_XALPHA) colf[3]+= linef*linef;
-		else colf[3]+= linef;
+		if(har->type & HA_XALPHA) col[3]+= linef*linef;
+		else col[3]+= linef;
 	}
 	if(ringf!=0.0) {
 		Material *ma= har->mat;
 
-		colf[0]+= 255.0*ringf * ma->mirr;
-		colf[1]+= 255.0*ringf * ma->mirg;
-		colf[2]+= 255.0*ringf * ma->mirb;
+		col[0]+= ringf * ma->mirr;
+		col[1]+= ringf * ma->mirg;
+		col[2]+= ringf * ma->mirb;
 		
-		if(har->type & HA_XALPHA) colf[3]+= ringf*ringf;
-		else colf[3]+= ringf;
+		if(har->type & HA_XALPHA) col[3]+= ringf*ringf;
+		else col[3]+= ringf;
 	}
-
-	/* convert to [0.0; 1.0] range */
-	col[0] = colf[0] / 255.0;
-	col[1] = colf[1] / 255.0;
-	col[2] = colf[2] / 255.0;
-	col[3] = colf[3];
-
-} /* end of shadeHaloFloat() */
-
+}
 
 /* ------------------------------------------------------------------------- */
 /*
@@ -390,7 +547,7 @@ enum RE_SkyAlphaBlendingType getSkyBlendingMode() {
 }
 
 /* This one renders into collector, as always.                               */
-void renderSkyPixelFloat(float x, float y)
+void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
 {
 
 	switch (keyingType) {
@@ -418,7 +575,7 @@ void renderSkyPixelFloat(float x, float y)
 		break;
 	case RE_ALPHA_SKY:
 		/* Fill in the sky as if it were a normal face. */
-		shadeSkyPixel(x, y);
+		shadeSkyPixel(collector, x, y);
 		collector[3]= 0.0;
 		break;
 	default:
@@ -431,9 +588,9 @@ void renderSkyPixelFloat(float x, float y)
 /*
   Stuff the sky colour into the collector.
  */
-void shadeSkyPixel(float fx, float fy) 
+void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy) 
 {
-	float view[3];
+	float view[3], dxyview[2];
 	
 	/*
 	  The rules for sky:
@@ -445,7 +602,7 @@ void shadeSkyPixel(float fx, float fy)
 
 	/* 1. Do a backbuffer image: */ 
 	if(R.r.bufflag & 1) {
-		if(R.backbuf) fillBackgroundImage(fx, fy);
+		if(R.backbuf) fillBackgroundImage(collector, fx, fy);
 		return;
 	} else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/*
@@ -458,7 +615,7 @@ void shadeSkyPixel(float fx, float fy)
 		collector[0] = R.wrld.horr;
 		collector[1] = R.wrld.horg;
 		collector[2] = R.wrld.horb;
-		collector[3] = RE_UNITY_COLOUR_FLOAT;
+		collector[3] = 1.0f;
 	} else {
 		/*
 		  3. Which type(s) is(are) this (these)? This has to be done when no simple
@@ -486,8 +643,8 @@ void shadeSkyPixel(float fx, float fy)
 			
 			fac= Normalise(view);
 			if(R.wrld.skytype & WO_SKYTEX) {
-				O.dxview= 1.0/fac;
-				O.dyview= R.ycor/fac;
+				dxyview[0]= 1.0/fac;
+				dxyview[1]= R.ycor/fac;
 			}
 		}
 		
@@ -504,16 +661,15 @@ void shadeSkyPixel(float fx, float fy)
 		}
 	
 		/* get sky colour in the collector */
-		shadeSkyPixelFloat(fy, view);
+		shadeSkyPixelFloat(collector, view, dxyview);
+		collector[3] = 1.0f;
 	}
-
-	
 }
 
-/* Only line number is important here. Result goes to collector[4] */
-void shadeSkyPixelFloat(float y, float *view)
+/* Only view vector is important here. Result goes to colf[3] */
+void shadeSkyPixelFloat(float *colf, float *view, float *dxyview)
 {
-	float lo[3];
+	float lo[3], zen[3], hor[3], blend, blendm;
 	
 	/* Why is this setting forced? Seems silly to me. It is tested in the texture unit. */
 	R.wrld.skytype |= WO_ZENUP;
@@ -521,19 +677,22 @@ void shadeSkyPixelFloat(float y, float *view)
 	/* Some view vector stuff. */
 	if(R.wrld.skytype & WO_SKYREAL) {
 	
-		R.inprz= view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2];
+		blend= view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2];
 
-		if(R.inprz<0.0) R.wrld.skytype-= WO_ZENUP;
-		R.inprz= fabs(R.inprz);
+		if(blend<0.0) R.wrld.skytype-= WO_ZENUP;
+		blend= fabs(blend);
 	}
 	else if(R.wrld.skytype & WO_SKYPAPER) {
-		R.inprz= 0.5+ 0.5*view[1];
+		blend= 0.5+ 0.5*view[1];
 	}
 	else {
 		/* the fraction of how far we are above the bottom of the screen */
-		R.inprz= fabs(0.5+ view[1]);
+		blend= fabs(0.5+ view[1]);
 	}
 
+	hor[0]= R.wrld.horr; hor[1]= R.wrld.horr; hor[2]= R.wrld.horb;
+	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zenr; zen[2]= R.wrld.zenb;
+	
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and colour blend are added.           */
 	if(R.wrld.skytype & WO_SKYTEX) {
@@ -545,33 +704,23 @@ void shadeSkyPixelFloat(float y, float *view)
 			SWAP(float, lo[1],  lo[2]);
 			
 		}
-
-		/* sky texture? I wonder how this manages to work... */
-		/* Does this communicate with R.wrld.hor{rgb}? Yes.  */
-		do_sky_tex(lo);
-		/* internally, T{rgb} are used for communicating colours in the      */
-		/* texture pipe, externally, this particular routine uses the        */
-		/* R.wrld.hor{rgb} thingies.                                         */
-		
+		do_sky_tex(lo, dxyview, hor, zen, &blend);
 	}
 
-	/* Why are this R. members? because textures need it (ton) */
-	if(R.inprz>1.0) R.inprz= 1.0;
-	R.inprh= 1.0-R.inprz;
+	if(blend>1.0) blend= 1.0;
+	blendm= 1.0-blend;
 
 	/* No clipping, no conversion! */
 	if(R.wrld.skytype & WO_SKYBLEND) {
-		collector[0] = (R.inprh*R.wrld.horr + R.inprz*R.wrld.zenr);
-		collector[1] = (R.inprh*R.wrld.horg + R.inprz*R.wrld.zeng);
-		collector[2] = (R.inprh*R.wrld.horb + R.inprz*R.wrld.zenb);
+		colf[0] = (blendm*hor[0] + blend*zen[0]);
+		colf[1] = (blendm*hor[1] + blend*zen[1]);
+		colf[2] = (blendm*hor[2] + blend*zen[2]);
 	} else {
 		/* Done when a texture was grabbed. */
-		collector[0]= R.wrld.horr;
-		collector[1]= R.wrld.horg;
-		collector[2]= R.wrld.horb;
+		colf[0]= hor[0];
+		colf[1]= hor[1];
+		colf[2]= hor[2];
 	}
-
-	collector[3]= RE_UNITY_COLOUR_FLOAT;
 }
 
 
@@ -583,30 +732,25 @@ void shadeSkyPixelFloat(float y, float *view)
   should be really easy. I hope I understand the way ImBuf works
   correctly. (nzc)
 */
-void fillBackgroundImage(float x, float y)
+void fillBackgroundImageChar(char *col, float x, float y)
 {
 
 	int iy, ix;
 	unsigned int* imBufPtr;
-	char *colSource;
 	
 	/* This double check is bad... */
 	if (!(R.backbuf->ok)) {
 		/* Something went sour here... bail... */
-		collector[0] = 0.0;
-		collector[1] = 0.0;
-		collector[2] = 0.0;
-		collector[3] = 1.0;
+		col[0] = 0;
+		col[1] = 0;
+		col[2] = 0;
+		col[3] = 255;
 		return;
 	}
 	/* load image if not already done?*/
 	if(R.backbuf->ibuf==0) {
-		R.backbuf->ibuf= IMB_loadiffname(R.backbuf->name, IB_rect);
-		if(R.backbuf->ibuf==0) {
-			/* load failed .... keep skipping */
-			R.backbuf->ok= 0;
-			return;
-		}
+		R.backbuf->ok= 0;
+		return;
 	}
 
 	/* Now for the real extraction: */
@@ -629,10 +773,17 @@ void fillBackgroundImage(float x, float y)
 		+ (iy * R.backbuf->ibuf->x)
 		+ ix;
 
-	colSource = (char*) imBufPtr;
+	*( (int *)col) = *imBufPtr;
+	
+}
 
-	cpCharColV2FloatColV(colSource, collector);
-
+void fillBackgroundImage(RE_COLBUFTYPE *collector, float x, float y)
+{
+	char col[4];
+	
+	fillBackgroundImageChar(col, x, y);
+	cpCharColV2FloatColV(col, collector);
+	
 }
 
 /* eof */

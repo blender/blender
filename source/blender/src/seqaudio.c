@@ -82,7 +82,7 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"
+#include "render.h"	// RE_make_existing_file()
 
 
 void audio_fill(void *mixdown, Uint8 *sstream, int len);

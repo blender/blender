@@ -173,7 +173,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"
 #include "nla.h"	/* __NLA : To be removed later */
 #include "butspace.h"  // test_idbutton
 

@@ -153,6 +153,8 @@
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
 
+#include "RE_renderconverter.h"		// make_sticky
+
 #include "butspace.h" // own module
 
 static int decim_faces=0;
@@ -441,6 +443,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		new_material_to_objectdata((G.scene->basact) ? (G.scene->basact->object) : 0);
 		scrarea_queue_winredraw(curarea);
 		BIF_undo_push("New material");
+		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWVIEW3D_Z, 0);
 		allqueue(REDRAWOOPS, 0);
 		break;
@@ -448,6 +451,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		delete_material_index();
 		scrarea_queue_winredraw(curarea);
 		BIF_undo_push("Delete material index");
+		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWVIEW3D_Z, 0);
 		allqueue(REDRAWOOPS, 0);
 		break;
@@ -1899,7 +1903,8 @@ void do_meshbuts(unsigned short event)
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case B_MAKESTICKY:
-			make_sticky();
+			RE_make_sticky();
+			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		
 		case B_MAKEEDGES:

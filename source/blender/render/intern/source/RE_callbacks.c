@@ -34,7 +34,6 @@
 #include <stdlib.h> /* for NULL??? */
 #include <stdio.h>
 #include "render.h"
-#include "render_intern.h"
 #include "RE_callbacks.h"
 
 #ifdef HAVE_CONFIG_H

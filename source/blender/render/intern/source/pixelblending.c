@@ -39,13 +39,11 @@
 
 /* global includes */
 #include "render.h"
-#include "render_intern.h"
 
 /* local includes */
 #include "vanillaRenderPipe_types.h"
 
 /* own includes */
-#include "pixelblending_types.h"
 #include "pixelblending.h"
 #include "gammaCorrectionTables.h"
 
@@ -62,6 +60,17 @@
 /* For now, we just keep alpha clipping. We run into thresholding and        */
 /* blending difficulties otherwise. Be careful here.                         */
 #define RE_ALPHA_CLIPPING
+
+
+
+/* Threshold for a 'full' pixel: pixels with alpha above this level are      */
+/* considered opaque This is the decimal value for 0xFFF0 / 0xFFFF           */
+#define RE_FULL_COLOUR_FLOAT 0.9998
+/* Threshold for an 'empty' pixel: pixels with alpha above this level are    */
+/* considered completely transparent. This is the decimal value              */
+/* for 0x000F / 0xFFFF                                                       */
+#define RE_EMPTY_COLOUR_FLOAT 0.0002
+
 
 /* functions --------------------------------------------------------------- */
 
@@ -103,7 +112,7 @@ void applyKeyAlphaCharCol(char* target) {
 		}
 	}
 
-} /* end of void applyKeyAlphaCharCol(char* target) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -116,7 +125,7 @@ void addAddSampColF(float *sampvec, float *source, int mask, int osaNr,
 		if(mask & (1<<a)) addalphaAddfacFloat(sampvec, source, addfac);
 		sampvec+= 4;
 	}
-} /* end of void addAddSampColF(float, float, int, int) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -128,7 +137,7 @@ void addOverSampColF(float *sampvec, float *source, int mask, int osaNr)
 		if(mask & (1<<a)) addAlphaOverFloat(sampvec, source);
 		sampvec+= 4;
 	}
-} /* end of void addOverSampColF(float, float, int, int) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -142,35 +151,7 @@ int addUnderSampColF(float *sampvec, float *source, int mask, int osaNr)
 		sampvec+= 4;
 	}
 	return retval;
-} /* end of int addToSampColF(float, float, int, int) */
-
-/* ------------------------------------------------------------------------- */
-
-int addToSampCol(unsigned short *sampcol, unsigned short *shortcol, int mask, int osaNr)
-{
-	int a, retval = osaNr;
-	
-	for(a=0; a < osaNr; a++) {
-		if(mask & (1<<a)) addAlphaUnderShort(sampcol, shortcol);
-		if(sampcol[3]>0xFFF0) retval--;
-		sampcol+= 4;
-	}
-	return retval;
-} /* end of int addToSampCol(unsigned short, uhost, int, int) */
-
-/* ------------------------------------------------------------------------- */
-
-int addtosampcol(unsigned short *sampcol, unsigned short *shortcol, int mask)
-{
-	int a, retval = R.osa;
-	
-	for(a=0; a < R.osa; a++) {
-		if(mask & (1<<a)) addAlphaUnderShort(sampcol, shortcol);
-		if(sampcol[3]>0xFFF0) retval--;
-		sampcol+= 4;
-	}
-	return retval;
-} /* end of int addtosampcol(unsigned short *sampcol, unsigned short *shortcol, int mask) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -179,12 +160,6 @@ void addAlphaOverShort(unsigned short *doel, unsigned short *bron)
 {
 	unsigned int c;
 	unsigned int mul;
-
-	if( doel[3]==0 || bron[3]>=0xFFF0) {	/* has been tested */
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		*((unsigned int *)(doel+2))= *((unsigned int *)(bron+2));
-		return;
-	}
 
 	mul= 0xFFFF-bron[3];
 
@@ -201,7 +176,7 @@ void addAlphaOverShort(unsigned short *doel, unsigned short *bron)
 	if(c>=0xFFF0) doel[3]=0xFFF0; 
 	else doel[3]= c;
 
-} /* end of void addAlphaOverShort(unsigned short *doel, unsigned short *bron) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -233,8 +208,8 @@ void addAlphaUnderShort(unsigned short *doel, unsigned short *bron)
 	if(c>=0xFFF0) doel[3]=0xFFF0;
 	else doel[3]= c;
 
-} /* end of void addAlphaUnderShort(unsigned short *doel, unsigned short *bron) */
-  
+}
+
 /* ------------------------------------------------------------------------- */
 
 void addAlphaOverFloat(float *dest, float *source)
@@ -257,8 +232,7 @@ void addAlphaOverFloat(float *dest, float *source)
 	c= (mul*dest[3]) + source[3];
        dest[3]= c;
 
-} /* end of void addAlphaOverFloat(float *doel, float *bron) */
-
+}
 
 
 /* ------------------------------------------------------------------------- */
@@ -291,7 +265,7 @@ void addAlphaUnderFloat(float *dest, float *source)
 	c= (mul*source[3]) + dest[3];
        dest[3]= c;
 
-} /* end of void addAlphaUnderFloat(float *doel, float *bron) */
+} 
 
 /* ------------------------------------------------------------------------- */
 
@@ -301,7 +275,7 @@ void cpShortColV2CharColV(unsigned short *source, char *dest)
     dest[1] = source[1]>>8;
     dest[2] = source[2]>>8;
     dest[3] = source[3]>>8;
-} /* end of void cpShortColV2CharColV(unsigned short *source, char *dest) */
+} 
 /* ------------------------------------------------------------------------- */
 
 void cpCharColV2ShortColV(char *source, unsigned short *dest)
@@ -310,7 +284,7 @@ void cpCharColV2ShortColV(char *source, unsigned short *dest)
     dest[1] = source[1]<<8;
     dest[2] = source[2]<<8;
     dest[3] = source[3]<<8;
-} /* end of void cpShortColV2CharColV(char *source, unsigned short *dest) */
+} 
 
 /* ------------------------------------------------------------------------- */
 
@@ -320,7 +294,7 @@ void cpIntColV2CharColV(unsigned int *source, char *dest)
     dest[1] = source[1]>>24;
     dest[2] = source[2]>>24;
     dest[3] = source[3]>>24;
-} /* end of void cpIntColV2CharColV(unsigned int *source, char *dest) */
+} 
 
 /* ------------------------------------------------------------------------- */
 
@@ -330,7 +304,8 @@ void cpCharColV2FloatColV(char *source, float *dest)
     dest[1] = source[1]/255.0;  
     dest[2] = source[2]/255.0;
     dest[3] = source[3]/255.0;
-} /* end of void cpCharColV2FloatColV(char *source, float *dest) */
+} 
+
 /* ------------------------------------------------------------------------- */
 
 void cpShortColV2FloatColV(unsigned short *source, float *dest)
@@ -339,7 +314,7 @@ void cpShortColV2FloatColV(unsigned short *source, float *dest)
     dest[1] = source[1]/65535.0;  
     dest[2] = source[2]/65535.0;
     dest[3] = source[3]/65535.0;
-} /* end of void cpShortColV2FloatColV(char *source, float *dest) */
+} 
 
 /* ------------------------------------------------------------------------- */
 
@@ -362,7 +337,7 @@ void cpFloatColV2CharColV(float* source, char *dest)
   else if (source[3] > 1.0) dest[3] = 255;
   else dest[3] = (char) (source[3] * 255.0);
 
-} /* end of void cpFloatColV2CharColV(float* source, char *dest) */
+} 
 
 /* ------------------------------------------------------------------------- */
 
@@ -372,7 +347,7 @@ void cpShortColV(unsigned short *source, unsigned short *dest)
     dest[1] = source[1];
     dest[2] = source[2];
     dest[3] = source[3];
-} /* end of void cpShortColV(unsigned short *source, unsigned short *dest) */
+}
 
 /* ------------------------------------------------------------------------- */
 void cpFloatColV(float *source, float *dest)
@@ -381,7 +356,7 @@ void cpFloatColV(float *source, float *dest)
     dest[1] = source[1];
     dest[2] = source[2];
     dest[3] = source[3];
-} /* end of void cpFloatColV(float *source, float *dest) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -391,7 +366,7 @@ void cpCharColV(char *source, char *dest)
     dest[1] = source[1];
     dest[2] = source[2];
     dest[3] = source[3];
-} /* end of void cpCharColV(char *source, char *dest) */
+}
 
 /* ------------------------------------------------------------------------- */
 void addalphaAddfacFloat(float *dest, float *source, char addfac)
@@ -432,7 +407,7 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 #endif
        dest[3]= c;
 
-} /* end of void addalphaAddfacFloat(unsigned short *doel, unsigned short *bron, char addfac_help) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -468,7 +443,7 @@ void addalphaAddfacShort(unsigned short *doel, unsigned short *bron, char addfac
     if(c > 65535.0) doel[3] = 65535; 
     else doel[3]=  floor(c);
 
-} /* end of void addalphaAddfacShort(unsigned short *doel, unsigned short *bron, char addfac_help) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -520,7 +495,7 @@ void addHaloToHaloShort(unsigned short *d, unsigned short *s)
 
     if( c[3] > 65535.0 ) d[3] = 65535; else d[3]=  floor(c[3]);
 
-} /* end of void addHaloToHaloShort(unsigned short *dest, unsigned short *source, char addfac) */
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -542,17 +517,15 @@ void sampleShortColV2ShortColV(unsigned short *sample, unsigned short *dest, int
     dest[2]= intcol[2]/osaNr;
     dest[3]= intcol[3]/osaNr;
     
-} /* end of void sampleShortColVToShortColV(unsigned short *sample, unsigned short *dest) */
-
+}
 
 /* ------------------------------------------------------------------------- */
-
-float *fmask1[9], *fmask2[9];
 
 /* filtered adding to scanlines */
 void add_filt_fmask(unsigned int mask, float *col, float *rb1, float *rb2, float *rb3)
 {
 	/* calc the value of mask */
+	extern float *fmask1[], *fmask2[];
 	float val, r, g, b, al;
 	unsigned int a, maskand, maskshift;
 	int j;
@@ -615,7 +588,7 @@ void sampleFloatColV2FloatColVFilter(float *sample, float *dest1, float *dest2, 
 		dest2[7]= sample[3];
 	}
 	else {
-		if (doGamma()) {
+		if (do_gamma) {
 			/* use a LUT and interpolation to do the gamma correction */
 			for(a=0; a < osaNr; a++, scol+=4) {
 				intcol[0] = gammaCorrect( (scol[0]<1.0) ? scol[0]:1.0 ); 

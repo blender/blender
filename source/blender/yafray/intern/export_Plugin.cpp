@@ -1167,7 +1167,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	// Export orco coords test.
 	// Previously was done by checking orco pointer, however this can be non-null but still not initialized.
 	// Test the rendermaterial texco flag instead.
-	bool has_orco = ((face0mat->ren->texco & TEXCO_ORCO)!=0);
+	bool has_orco = ((face0mat->texco & TEXCO_ORCO)!=0);
 
 	bool no_auto = true;	//in case non-mesh, or mesh has no autosmooth
 	float sm_angle = 0.1f;

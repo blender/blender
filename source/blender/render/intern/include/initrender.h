@@ -42,16 +42,7 @@
 
 /* Functions */
 
-void init_def_material(void);
-void init_render_jit(int nr);
-float  calc_weight(float *weight, int i, int j);
-void defaultlamp(void);
 void schrijfplaatje(char *name);
-void initparts(void);
-short setpart(short nr); /* return 0 als geen goede part */
-void addparttorect(short nr, Part *part);
-void add_to_blurbuf(int blur);
-void oldRenderLoop(void); /* Calls the old renderer. Contains the PART and FIELD loops. */
 void render(void);  /* Switch between the old and the unified renderer. */
 /*  void write_screendump(char *name); not here !*/
 

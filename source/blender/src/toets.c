@@ -97,7 +97,7 @@
 #include "BSE_headerbuttons.h"
 
 #include "blendef.h"
-#include "render.h"
+#include "render.h"		// darn schrijfplaatje() (ton)
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -106,7 +106,7 @@
 
 #include "BIF_poseobject.h"
 
-/* only used in toets.c */
+/* only used in toets.c and initrender.c */
 /* this function doesn't really belong here */
 /* ripped from render module */
 void schrijfplaatje(char *name);

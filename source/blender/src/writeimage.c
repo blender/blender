@@ -42,7 +42,7 @@
 
 #include "BIF_writeimage.h"
 
-#include "render.h"			// RE_make_existing_file
+#include "render.h"			// RE_make_existing_file, R. stuff
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

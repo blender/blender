@@ -521,18 +521,24 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	int a, back;
 
 	if(ma==0) return;
+	
 	shi.mat= ma;
-	shi.matren= ma->ren;
 	shi.vlr= NULL;	// have to do this!
-	ma= shi.matren;
+	
+	// copy all relevant material vars, note, keep this synced with render_types.h
+	memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));
+	// set special cases:
+	shi.har= shi.mat->har;
+	
 	shi.osatex= 0;  // also prevents reading vlr
+	
 	VECCOPY(shi.vn, nor);
 	
 	if(ma->mode & MA_VERTEXCOLP) {
 		if(vertcol) {
-			ma->r= vertcol[3]/255.0;
-			ma->g= vertcol[2]/255.0;
-			ma->b= vertcol[1]/255.0;
+			shi.r= vertcol[3]/255.0;
+			shi.g= vertcol[2]/255.0;
+			shi.b= vertcol[1]/255.0;
 		}
 	}
 	
@@ -565,24 +571,19 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			shi.ref[2]= (-1.0+inp*shi.vn[2]);
 		}
 
-		if(ma->mode & MA_VERTEXCOLP) {
-			shi.mat->r= ma->r;
-			shi.mat->g= ma->g;
-			shi.mat->b= ma->b;
-		}
 		do_material_tex(&shi);
 	}
 
 	if(ma->mode & MA_SHLESS) {
 		if(vertcol && (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP))== MA_VERTEXCOL ) {
-			col1[3]= vertcol[3]*ma->r;
-			col1[2]= vertcol[2]*ma->g;
-			col1[1]= vertcol[1]*ma->b;
+			col1[3]= vertcol[3]*shi.r;
+			col1[2]= vertcol[2]*shi.g;
+			col1[1]= vertcol[1]*shi.b;
 		}
 		else {
-			col1[3]= (255.0*ma->r);
-			col1[2]= (255.0*ma->g);
-			col1[1]= (255.0*ma->b);
+			col1[3]= (255.0*shi.r);
+			col1[2]= (255.0*shi.g);
+			col1[1]= (255.0*shi.b);
 		}
 		if(col2) {
 			col2[3]= col1[3];
@@ -593,14 +594,14 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	}
 
 	if( vertcol && (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP))== MA_VERTEXCOL ) {
-		diff1[0]= diff2[0]= ma->r*(ma->emit+vertcol[3]/255.0);
-		diff1[1]= diff2[1]= ma->g*(ma->emit+vertcol[2]/255.0);
-		diff1[2]= diff2[2]= ma->b*(ma->emit+vertcol[1]/255.0);
+		diff1[0]= diff2[0]= shi.r*(shi.emit+vertcol[3]/255.0);
+		diff1[1]= diff2[1]= shi.g*(shi.emit+vertcol[2]/255.0);
+		diff1[2]= diff2[2]= shi.b*(shi.emit+vertcol[1]/255.0);
 	}
 	else {
-		diff1[0]= diff2[0]= ma->r*ma->emit;
-		diff1[1]= diff2[1]= ma->g*ma->emit;
-		diff1[2]= diff2[2]= ma->b*ma->emit;
+		diff1[0]= diff2[0]= shi.r*shi.emit;
+		diff1[1]= diff2[1]= shi.g*shi.emit;
+		diff1[2]= diff2[2]= shi.b*shi.emit;
 	}
 	
 	shi.view[0]= 0.0;
@@ -679,7 +680,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			back= 1;
 			is= -is;
 		}
-		inp= is*lampdist*ma->ref;
+		inp= is*lampdist*shi.refl;
 
 		if(back==0) {
 			add_to_diffuse(diff1, &shi, is, inp*fl->r, inp*fl->g, inp*fl->b);
@@ -692,20 +693,20 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			//diff2[1]+= inp*fl->g;
 			//diff2[2]+= inp*fl->b;
 		}
-		if(ma->spec && (fl->mode & LA_NO_SPEC)==0) {
+		if(shi.spec!=0.0 && (fl->mode & LA_NO_SPEC)==0) {
 			float specfac;
 			
 			if(ma->spec_shader==MA_SPEC_PHONG) 
-				specfac= Phong_Spec(nor, lv, shi.view, ma->har);
+				specfac= Phong_Spec(nor, lv, shi.view, shi.har);
 			else if(ma->spec_shader==MA_SPEC_COOKTORR) 
-				specfac= CookTorr_Spec(nor, lv, shi.view, ma->har);
+				specfac= CookTorr_Spec(nor, lv, shi.view, shi.har);
 			else if(ma->spec_shader==MA_SPEC_BLINN) 
-				specfac= Blinn_Spec(nor, lv, shi.view, ma->refrac, (float)ma->har);
+				specfac= Blinn_Spec(nor, lv, shi.view, ma->refrac, (float)shi.har);
 			else 
 				specfac= Toon_Spec(nor, lv, shi.view, ma->param[2], ma->param[3]);
 			
 			if(specfac>0) {
-				t= specfac*ma->spec*lampdist;
+				t= specfac*shi.spec*lampdist;
 				if(back==0) {
 					if(ma->mode & MA_RAMP_SPEC) {
 						float spec[3];
@@ -715,9 +716,9 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 						isb+= t*(fl->b * spec[2]);
 					}
 					else {
-						isr+= t*(fl->r * ma->specr);
-						isg+= t*(fl->g * ma->specg);
-						isb+= t*(fl->b * ma->specb);
+						isr+= t*(fl->r * shi.specr);
+						isg+= t*(fl->g * shi.specg);
+						isb+= t*(fl->b * shi.specb);
 					}
 				}
 				else if(col2) {
@@ -729,9 +730,9 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 						isb1+= t*(fl->b * spec[2]);
 					}
 					else {
-						isr1+= t*(fl->r * ma->specr);
-						isg1+= t*(fl->g * ma->specg);
-						isb1+= t*(fl->b * ma->specb);
+						isr1+= t*(fl->r * shi.specr);
+						isg1+= t*(fl->g * shi.specg);
+						isb1+= t*(fl->b * shi.specb);
 					}
 				}
 			}
@@ -742,13 +743,13 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(diff1, &shi);
 	if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(&isr, &isg, &isb, &shi);
 
-	a= 256*(diff1[0] + ma->ambr +isr);
+	a= 256*(diff1[0] + shi.ambr +isr);
 	if(a>255) col1[3]= 255; 
 	else col1[3]= a;
-	a= 256*(diff1[1] + ma->ambg +isg);
+	a= 256*(diff1[1] + shi.ambg +isg);
 	if(a>255) col1[2]= 255; 
 	else col1[2]= a;
-	a= 256*(diff1[2] + ma->ambb +isb);
+	a= 256*(diff1[2] + shi.ambb +isb);
 	if(a>255) col1[1]= 255; 
 	else col1[1]= a;
 
@@ -756,13 +757,13 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 		if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(diff2, &shi);
 		if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(&isr1, &isg1, &isb1, &shi);
 		
-		a= 256*(diff2[0] + ma->ambr +isr1);
+		a= 256*(diff2[0] + shi.ambr +isr1);
 		if(a>255) col2[3]= 255; 
 		else col2[3]= a;
-		a= 256*(diff2[1] + ma->ambg +isg1);
+		a= 256*(diff2[1] + shi.ambg +isg1);
 		if(a>255) col2[2]= 255; 
 		else col2[2]= a;
-		a= 256*(diff2[2] + ma->ambb +isb1);
+		a= 256*(diff2[2] + shi.ambb +isb1);
 		if(a>255) col2[1]= 255; 
 		else col2[1]= a;
 	}
@@ -935,7 +936,7 @@ void shadeDispList(Object *ob)
 		ma= give_current_material(ob, a+1);
 		if(ma) {
 			init_render_material(ma);
-			if(ma->ren->texco & TEXCO_ORCO) need_orco= 1;
+			if(ma->texco & TEXCO_ORCO) need_orco= 1;
 		}
 	}
 
@@ -2263,7 +2264,7 @@ void imagestodisplist(void)
 	ListBase _wireframe, *wireframe;
 	DispList *dl;
 	Segment *seg;
-	float *data, xfac, yfac, xsi, ysi, vec[3];
+	float *data, xfac, yfac, xsi, ysi, vec[3], dum;
 	int tot;
 	
 	_wireframe.first= 0;
@@ -2285,7 +2286,7 @@ void imagestodisplist(void)
 					tex= ma->mtex[0]->tex;
 					
 					/* this takes care of correct loading of new imbufs */
-					externtex(ma->mtex[0], vec);
+					externtex(ma->mtex[0], vec, &dum, &dum, &dum, &dum, &dum);
 					
 					if(tex->type==TEX_IMAGE && tex->ima && tex->ima->ibuf) {				
 						

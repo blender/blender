@@ -51,14 +51,48 @@
 
 /* ------------------------------------------------------------------------- */
 
+/* localized texture result data */
+typedef struct TexResult {
+	float tin, tr, tg, tb, ta;
+	int talpha;
+	float *nor;
+} TexResult;
+
 /* localized renderloop data */
 typedef struct ShadeInput
 {
-	struct Material *mat, *matren;
+	struct Material *mat;
 	struct VlakRen *vlr;
 	float co[3];
+	
+	/* copy from material, keep synced so we can do memcopy */
+	/* current size: 23*4 */
+	float r, g, b;
+	float specr, specg, specb;
+	float mirr, mirg, mirb;
+	float ambr, ambb, ambg;
+	
+	float amb, emit, ang, spectra, ray_mirror;
+	float alpha, refl, spec, zoffs, add;
+	float translucency;
+	/* end direct copy from material */
+	
+	/* individual copies: */
+	int har;
+	
+	/* texture coordinates */
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
 	float vn[3], view[3], refcol[4], displace[3];
+	/* dx/dy OSA coordinates */
+	float dxco[3], dyco[3];
+	float dxlo[3], dylo[3], dxgl[3], dygl[3], dxuv[3], dyuv[3];
+	float dxref[3], dyref[3], dxorn[3], dyorn[3];
+	float dxno[3], dyno[3], dxview, dyview;
+	float dxlv[3], dylv[3];
+	float dxwin[3], dywin[3];
+	float dxsticky[3], dysticky[3];
+	float dxrefract[3], dyrefract[3];
+	
 	float xs, ys;	/* pixel to be rendered */
 	short osatex;
 	int mask;
@@ -69,7 +103,7 @@ typedef struct ShadeInput
 /* here only stuff to initalize the render itself */
 typedef struct RE_Render
 {
-	float grvec[3], inprz, inprh;
+	float grvec[3];
 	float imat[3][3];
 
 	float viewmat[4][4], viewinv[4][4];
@@ -113,6 +147,7 @@ typedef struct RE_Render
 	unsigned int *rectspare; /*  */
 	/* for 8 byte systems! */
 	long *rectdaps;
+	float *rectftot;	/* original full color buffer */
 	
 	short win, winpos, winx, winy, winxof, winyof;
 	short winpop, displaymode, sparex, sparey;
@@ -125,17 +160,6 @@ typedef struct RE_Render
 
 /* ------------------------------------------------------------------------- */
 
-/** 
- * Part as in part-rendering. An image rendered in parts is rendered
- * to a list of parts, with x,y size, and a pointer to the render
- * output stored per part. Internal!
- */
-typedef struct Part
-{
-	struct Part *next, *prev;
-	unsigned int *rect;
-	short x, y;
-} Part;
 
 typedef struct ShadBuf {
 	short samp, shadhalostep;
@@ -186,14 +210,14 @@ typedef struct RadFace {
 typedef struct VlakRen
 {
 	struct VertRen *v1, *v2, *v3, *v4;
+	unsigned int lay;
+	unsigned int raycount;
 	float n[3];
 	struct Material *mat;
 	struct TFace *tface;
 	unsigned int *vcol;
 	char snproj, puno;
 	char flag, ec;
-	unsigned int lay;
-	unsigned int raycount;
 	RadFace *radface;
 	Object *ob;
 } VlakRen;
@@ -202,12 +226,12 @@ typedef struct VlakRen
 
 typedef struct HaloRen
 {	
-    float alfa, xs, ys, rad, radsq, sin, cos, co[3], no[3];
-    unsigned int zs, zd;
-    unsigned int zBufDist;/* depth in the z-buffer coordinate system */
     short miny, maxy;
-    short hard, b, g, r;
-    char starpoints, add, type, tex;
+    float alfa, xs, ys, rad, radsq, sin, cos, co[3], no[3];
+	float hard, b, g, r;
+    unsigned int zs, zd;
+    unsigned int zBufDist;	/* depth in the z-buffer coordinate system */
+    char starpoints, type, add, tex;
     char linec, ringc, seed;
 	short flarec; /* used to be a char. why ?*/
     float hasize;
@@ -274,9 +298,9 @@ typedef struct LampRen
 	/* ray optim */
 	VlakRen *vlr_last;
 	
-	struct LampRen *org;
 	struct MTex *mtex[MAX_MTEX];
 } LampRen;
+
 
 #endif /* RENDER_TYPES_H */
 

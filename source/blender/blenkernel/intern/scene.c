@@ -169,15 +169,14 @@ Scene *add_scene(char *name)
 	sce->r.framelen= 1.0;
 	sce->r.frs_sec= 25;
 
+	sce->r.postgamma= 1.0;
+	sce->r.posthue= 1.0;
+	sce->r.postmul= 1.0;
+	
 	sce->r.xplay= 640;
 	sce->r.yplay= 480;
 	sce->r.freqplay= 60;
 	sce->r.depth= 32;
-
-	if (sce->r.avicodecdata) {
-printf("this is not good\n");
-	}
-//	sce->r.imtype= R_TARGA;
 
 	sce->r.stereomode = 1;  // no stereo
 

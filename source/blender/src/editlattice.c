@@ -58,6 +58,7 @@
 #include "BKE_displist.h"
 #include "BKE_lattice.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_space.h"
 #include "BIF_screen.h"
@@ -73,8 +74,6 @@
 
 #include "blendef.h"
 #include "mydevice.h"
-
-#include "render.h"
 
 #include "BKE_armature.h"
 

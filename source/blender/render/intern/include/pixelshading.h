@@ -51,12 +51,13 @@
  * mask is pixel coverage in bits
  * @return pointer to the object
  */
-void *renderPixel(float x, float y, int *t, int mask);
+void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *t, int mask);
 
-void *renderHaloPixel(float x, float y, int haloNr) ;
+void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) ;
 
 
 void setSkyBlendingMode(enum RE_SkyAlphaBlendingType mode);
+
 void shadeHaloFloat(HaloRen *har, 
 					float *col, unsigned int zz, 
 					float dist, float xn, 
@@ -69,13 +70,14 @@ enum RE_SkyAlphaBlendingType getSkyBlendingMode(void);
 /**
  * Render the sky at pixel (x, y).
  */
-void renderSkyPixelFloat(float x, float y);
+void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y);
 
 /* used by shadeSkyPixel: */
-void shadeSkyPixelFloat(float y, float *view);
+void shadeSkyPixelFloat(float *colf, float *view, float *dxyview);
 void renderSpotHaloPixel(float x, float y, float *target);
-void shadeSkyPixel(float fx, float fy);
-void fillBackgroundImage(float x, float y);
+void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy);
+void fillBackgroundImage(RE_COLBUFTYPE *collector, float x, float y);
+void fillBackgroundImageChar(char *col, float x, float y);
 
 /* ------------------------------------------------------------------------- */
 

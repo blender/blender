@@ -35,6 +35,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
+
 #include "MEM_guardedalloc.h"
 #include "DNA_listBase.h"
 #include "DNA_effect_types.h"
@@ -70,6 +74,9 @@
 #include "BKE_object.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+
+#include "render.h"  // externtex, bad level call (ton)
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -311,39 +318,38 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 
 void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 {				
-	extern float Tin, Tr, Tg, Tb;
-	extern void externtex(struct MTex *mtex, float *vec);
+	float tin, tr, tg, tb, ta;
 	float old;
 	
-	externtex(mtex, co);
+	externtex(mtex, co, &tin, &tr, &tg, &tb, &ta);
 
 	if(paf->texmap==PAF_TEXINT) {
-		Tin*= paf->texfac;
-		no[0]+= Tin*paf->defvec[0];
-		no[1]+= Tin*paf->defvec[1];
-		no[2]+= Tin*paf->defvec[2];
+		tin*= paf->texfac;
+		no[0]+= tin*paf->defvec[0];
+		no[1]+= tin*paf->defvec[1];
+		no[2]+= tin*paf->defvec[2];
 	}
 	else if(paf->texmap==PAF_TEXRGB) {
-		no[0]+= (Tr-0.5f)*paf->texfac;
-		no[1]+= (Tg-0.5f)*paf->texfac;
-		no[2]+= (Tb-0.5f)*paf->texfac;
+		no[0]+= (tr-0.5f)*paf->texfac;
+		no[1]+= (tg-0.5f)*paf->texfac;
+		no[2]+= (tb-0.5f)*paf->texfac;
 	}
 	else {	/* PAF_TEXGRAD */
 		
-		old= Tin;
+		old= tin;
 		co[0]+= paf->nabla;
-		externtex(mtex, co);
-		no[0]+= (old-Tin)*paf->texfac;
+		externtex(mtex, co, &tin, &tr, &tg, &tb, &ta);
+		no[0]+= (old-tin)*paf->texfac;
 		
 		co[0]-= paf->nabla;
 		co[1]+= paf->nabla;
-		externtex(mtex, co);
-		no[1]+= (old-Tin)*paf->texfac;
+		externtex(mtex, co, &tin, &tr, &tg, &tb, &ta);
+		no[1]+= (old-tin)*paf->texfac;
 		
 		co[1]-= paf->nabla;
 		co[2]+= paf->nabla;
-		externtex(mtex, co);
-		no[2]+= (old-Tin)*paf->texfac;
+		externtex(mtex, co, &tin, &tr, &tg, &tb, &ta);
+		no[2]+= (old-tin)*paf->texfac;
 		
 	}
 }

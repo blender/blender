@@ -45,9 +45,9 @@
 #include <BLI_rand.h>
 
 #include "render.h"
-#include "render_intern.h"
 #include "rendercore.h"
 #include "pixelblending.h"
+#include "pixelshading.h"
 #include "jitter.h"
 #include "texture.h"
 
@@ -74,8 +74,6 @@ typedef struct Octree {
 	float ocfacx,ocfacy,ocfacz;
 	float min[3], max[3];
 	int ocres;
-	/* for optimize, last intersected face */
-	VlakRen *vlr_last;
 
 } Octree;
 
@@ -87,6 +85,9 @@ typedef struct Isect {
 	float ddalabda;
 	float col[4];		/* RGBA for shadow_tra */
 	int lay;			/* -1 default, set for layer lamps */
+	short vlrisect;		/* flag whether vlrcontr was done or not */
+	/* for optimize, last intersected face */
+	VlakRen *vlr_last;
 } Isect;
 
 typedef struct Branch
@@ -148,47 +149,36 @@ static void calc_ocval_face(float *v1, float *v2, float *v3, float *v4, short x,
 
 }
 
-static void calc_ocval_ray(OcVal *ov, float x1, float y1, float z1, 
-											  float x2, float y2, float z2)
+static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1, float *vec2)
 {
-	static float ox1, ox2, oy1, oy2, oz1, oz2;
+	int ocmin, ocmax;
 	
-	if(ov==NULL) {
-		ox1= x1; ox2= x2;
-		oy1= y1; oy2= y2;
-		oz1= z1; oz2= z2;
+	if(vec1[0]<vec2[0]) {
+		ocmin= OCVALRES*(vec1[0] - xo);
+		ocmax= OCVALRES*(vec2[0] - xo);
+	} else {
+		ocmin= OCVALRES*(vec2[0] - xo);
+		ocmax= OCVALRES*(vec1[0] - xo);
 	}
-	else {
-		int ocmin, ocmax;
-		
-		if(ox1<ox2) {
-			ocmin= OCVALRES*(ox1 - ((int)x1));
-			ocmax= OCVALRES*(ox2 - ((int)x1));
-		} else {
-			ocmin= OCVALRES*(ox2 - ((int)x1));
-			ocmax= OCVALRES*(ox1 - ((int)x1));
-		}
-		ov->ocx= BROW(ocmin, ocmax);
+	ov->ocx= BROW(ocmin, ocmax);
 
-		if(oy1<oy2) {
-			ocmin= OCVALRES*(oy1 - ((int)y1));
-			ocmax= OCVALRES*(oy2 - ((int)y1));
-		} else {
-			ocmin= OCVALRES*(oy2 - ((int)y1));
-			ocmax= OCVALRES*(oy1 - ((int)y1));
-		}
-		ov->ocy= BROW(ocmin, ocmax);
-
-		if(oz1<oz2) {
-			ocmin= OCVALRES*(oz1 - ((int)z1));
-			ocmax= OCVALRES*(oz2 - ((int)z1));
-		} else {
-			ocmin= OCVALRES*(oz2 - ((int)z1));
-			ocmax= OCVALRES*(oz1 - ((int)z1));
-		}
-		ov->ocz= BROW(ocmin, ocmax);
-		
+	if(vec1[1]<vec2[1]) {
+		ocmin= OCVALRES*(vec1[1] - yo);
+		ocmax= OCVALRES*(vec2[1] - yo);
+	} else {
+		ocmin= OCVALRES*(vec2[1] - yo);
+		ocmax= OCVALRES*(vec1[1] - yo);
 	}
+	ov->ocy= BROW(ocmin, ocmax);
+
+	if(vec1[2]<vec2[2]) {
+		ocmin= OCVALRES*(vec1[2] - zo);
+		ocmax= OCVALRES*(vec2[2] - zo);
+	} else {
+		ocmin= OCVALRES*(vec2[2] - zo);
+		ocmax= OCVALRES*(vec1[2] - zo);
+	}
+	ov->ocz= BROW(ocmin, ocmax);
 }
 
 /* ************* octree ************** */
@@ -451,7 +441,7 @@ void freeoctree(void)
 		printf("branches %d nodes %d\n", branchcount, nodecount);
 		printf("raycount %d \n", raycount);	
 		printf("ray coherent %d \n", coherent_ray);
-	//	printf("accepted %d rejected %d\n", accepted, rejected);
+		printf("accepted %d rejected %d\n", accepted, rejected);
 	}
 	branchcount= 0;
 	nodecount= 0;
@@ -483,7 +473,6 @@ void makeoctree()
 	/* fill main octree struct */
 	g_oc.ocres= R.r.ocres;
 	ocres2= g_oc.ocres*g_oc.ocres;
-	g_oc.vlr_last= NULL;
 	INIT_MINMAX(g_oc.min, g_oc.max);
 	
 	/* first min max octree space */
@@ -710,11 +699,8 @@ static short intersection(Isect *is)
 	VertRen *v1,*v2,*v3,*v4=NULL;
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22,r0,r1,r2;
 	float m0, m1, m2, divdet, det1;
-	static short vlrisect=0;
 	short ok=0;
-
-	is->vlr->raycount= raycount;
-
+	
 	v1= is->vlr->v1; 
 	v2= is->vlr->v2; 
 	if(is->vlr->v4) {
@@ -811,7 +797,6 @@ static short intersection(Isect *is)
 			/* for mirror: large faces can be filled in too often, this prevents
 			   a face being detected too soon... */
 			if(is->labda > is->ddalabda) {
-				is->vlr->raycount= 0;
 				return 0;
 			}
 		}
@@ -819,7 +804,7 @@ static short intersection(Isect *is)
 		/* when a shadow ray leaves a face, it can be little outside the edges of it, causing
 		intersection to be detected in its neighbour face */
 		
-		if(is->vlrcontr && vlrisect);	// optimizing, the tests below are not needed
+		if(is->vlrcontr && is->vlrisect);	// optimizing, the tests below are not needed
 		else if(is->labda< .1) {
 			VlakRen *vlr= is->vlrorig;
 			short de= 0;
@@ -838,10 +823,10 @@ static short intersection(Isect *is)
 				
 				if(is->vlrcontr==NULL) {
 					is->vlrcontr= vlr;
-					vlrisect= intersection2(vlr, -r0, -r1, -r2, is->start[0], is->start[1], is->start[2]);
+					is->vlrisect= intersection2(vlr, -r0, -r1, -r2, is->start[0], is->start[1], is->start[2]);
 				}
 
-				if(vlrisect) return 1;
+				if(is->vlrisect) return 1;
 				return 0;
 			}
 		}
@@ -853,23 +838,20 @@ static short intersection(Isect *is)
 }
 
 /* check all faces in this node */
-static int testnode(Isect *is, Node *no, int x, int y, int z)
+static int testnode(Isect *is, Node *no, OcVal ocval)
 {
 	VlakRen *vlr;
-	short nr=0, ocvaldone=0;
-	OcVal ocval, *ov;
+	short nr=0;
+	OcVal *ov;
 	
 	if(is->mode==DDA_SHADOW) {
 		
 		vlr= no->v[0];
 		while(vlr) {
 		
-			if(raycount != vlr->raycount) {
+			if(is->vlrorig != vlr) {
+
 				if(is->lay & vlr->lay) {
-					if(ocvaldone==0) {
-						calc_ocval_ray(&ocval, (float)x, (float)y, (float)z, 0.0, 0.0, 0.0);
-						ocvaldone= 1;
-					}
 					
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
@@ -877,7 +859,7 @@ static int testnode(Isect *is, Node *no, int x, int y, int z)
 						is->vlr= vlr;
 	
 						if(intersection(is)) {
-							g_oc.vlr_last= vlr;
+							is->vlr_last= vlr;
 							return 1;
 						}
 					}
@@ -904,12 +886,7 @@ static int testnode(Isect *is, Node *no, int x, int y, int z)
 		vlr= no->v[0];
 		while(vlr) {
 			
-			if(raycount != vlr->raycount) {
-				
-				if(ocvaldone==0) {
-					calc_ocval_ray(&ocval, (float)x, (float)y, (float)z, 0.0, 0.0, 0.0);
-					ocvaldone= 1;
-				}
+			if(is->vlrorig != vlr) {
 				
 				ov= no->ov+nr;
 				if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
@@ -942,81 +919,59 @@ static int testnode(Isect *is, Node *no, int x, int y, int z)
 /* find the Node for the octree coord x y z */
 static Node *ocread(int x, int y, int z)
 {
-	static int mdiff=0, xo, yo, zo;
 	Branch *br;
-	int oc1, diff;
-
-	/* outside of octree check, reset */
-	if( x >= g_oc.ocres) {
-		xo= g_oc.ocres; yo= g_oc.ocres; zo= g_oc.ocres;
-		return NULL;
+	int oc1;
+	
+	x<<=2;
+	y<<=1;
+	
+	br= g_oc.adrbranch[0];
+	
+	if(g_oc.ocres==512) {
+		oc1= ((x & 1024)+(y & 512)+(z & 256))>>8;
+		br= br->b[oc1];
+		if(br==NULL) {
+			return NULL;
+		}
+	}
+	if(g_oc.ocres>=256) {
+		oc1= ((x & 512)+(y & 256)+(z & 128))>>7;
+		br= br->b[oc1];
+		if(br==NULL) {
+			return NULL;
+		}
+	}
+	if(g_oc.ocres>=128) {
+		oc1= ((x & 256)+(y & 128)+(z & 64))>>6;
+		br= br->b[oc1];
+		if(br==NULL) {
+			return NULL;
+		}
 	}
 	
-	diff= (xo ^ x) | (yo ^ y) | (zo ^ z);
-
-	if(diff>mdiff) {
-		
-		xo=x; yo=y; zo=z;
-		x<<=2;
-		y<<=1;
-		
-		br= g_oc.adrbranch[0];
-		
-		if(g_oc.ocres==512) {
-			oc1= ((x & 1024)+(y & 512)+(z & 256))>>8;
-			br= br->b[oc1];
-			if(br==NULL) {
-				mdiff= 255;
-				return NULL;
-			}
-		}
-		if(g_oc.ocres>=256) {
-			oc1= ((x & 512)+(y & 256)+(z & 128))>>7;
-			br= br->b[oc1];
-			if(br==NULL) {
-				mdiff= 127;
-				return NULL;
-			}
-		}
-		if(g_oc.ocres>=128) {
-			oc1= ((x & 256)+(y & 128)+(z & 64))>>6;
-			br= br->b[oc1];
-			if(br==NULL) {
-				mdiff= 63;
-				return NULL;
-			}
-		}
-		
-		oc1= ((x & 128)+(y & 64)+(z & 32))>>5;
+	oc1= ((x & 128)+(y & 64)+(z & 32))>>5;
+	br= br->b[oc1];
+	if(br) {
+		oc1= ((x & 64)+(y & 32)+(z & 16))>>4;
 		br= br->b[oc1];
 		if(br) {
-
-			oc1= ((x & 64)+(y & 32)+(z & 16))>>4;
+			oc1= ((x & 32)+(y & 16)+(z & 8))>>3;
 			br= br->b[oc1];
 			if(br) {
-				oc1= ((x & 32)+(y & 16)+(z & 8))>>3;
+				oc1= ((x & 16)+(y & 8)+(z & 4))>>2;
 				br= br->b[oc1];
 				if(br) {
-					oc1= ((x & 16)+(y & 8)+(z & 4))>>2;
+					oc1= ((x & 8)+(y & 4)+(z & 2))>>1;
 					br= br->b[oc1];
 					if(br) {
-						oc1= ((x & 8)+(y & 4)+(z & 2))>>1;
-						br= br->b[oc1];
-						if(br) {
-							mdiff=0;
-							oc1= ((x & 4)+(y & 2)+(z & 1));
-							return (Node *)br->b[oc1];
-						}
-						else mdiff=1;
+						oc1= ((x & 4)+(y & 2)+(z & 1));
+						return (Node *)br->b[oc1];
 					}
-					else mdiff=3;
 				}
-				else mdiff=7;
 			}
-			else mdiff=15;
 		}
-		else mdiff=31;
 	}
+	
 	return NULL;
 }
 
@@ -1081,9 +1036,10 @@ static int do_coherence_test(int ocx1, int ocx2, int ocy1, int ocy2, int ocz1, i
 static int d3dda(Isect *is)	
 {
 	Node *no;
+	OcVal ocval;
+	float vec1[3], vec2[3];
 	float u1,u2,ox1,ox2,oy1,oy2,oz1,oz2;
 	float labdao,labdax,ldx,labday,ldy,labdaz,ldz, ddalabda;
-	float vec1[3], vec2[3];
 	int dx,dy,dz;	
 	int xo,yo,zo,c1=0;
 	int ocx1,ocx2,ocy1, ocy2,ocz1,ocz2;
@@ -1092,17 +1048,15 @@ static int d3dda(Isect *is)
 	if(branchcount==0) return 0;
 	
 	/* do this before intersect calls */
-	raycount++;
-	is->vlrorig->raycount= raycount;
 	is->vlrcontr= NULL;	/*  to check shared edge */
 
 	/* only for shadow! */
 	if(is->mode==DDA_SHADOW) {
 	
 		/* check with last intersected shadow face */
-		if(g_oc.vlr_last!=NULL && g_oc.vlr_last!=is->vlrorig) {
-			if(is->lay & g_oc.vlr_last->lay) {
-				is->vlr= g_oc.vlr_last;
+		if(is->vlr_last!=NULL && is->vlr_last!=is->vlrorig) {
+			if(is->lay & is->vlr_last->lay) {
+				is->vlr= is->vlr_last;
 				VECSUB(is->vec, is->end, is->start);
 				if(intersection(is)) return 1;
 			}
@@ -1143,7 +1097,7 @@ static int d3dda(Isect *is)
 	if(c1==0) return 0;
 
 	/* reset static variables in ocread */
-	ocread(g_oc.ocres, 0, 0);
+	//ocread(g_oc.ocres, 0, 0);
 
 	/* setup 3dda to traverse octree */
 	ox1= (is->start[0]-g_oc.min[0])*g_oc.ocfacx;
@@ -1166,10 +1120,12 @@ static int d3dda(Isect *is)
 	if(ocx1==ocx2 && ocy1==ocy2 && ocz1==ocz2) {
 		no= ocread(ocx1, ocy1, ocz1);
 		if(no) {
-			/* no calc, this is store */
-			calc_ocval_ray(NULL, ox1, oy1, oz1, ox2, oy2, oz2);
+			/* exact intersection with node */
+			vec1[0]= ox1; vec1[1]= oy1; vec1[2]= oz1;
+			vec2[0]= ox2; vec2[1]= oy2; vec2[2]= oz2;
+			calc_ocval_ray(&ocval, (float)ocx1, (float)ocy1, (float)ocz1, vec1, vec2);
 			is->ddalabda= 1.0;
-			if( testnode(is, no, ocx1, ocy1, ocz1) ) return 1;
+			if( testnode(is, no, ocval) ) return 1;
 		}
 	}
 	else {
@@ -1225,7 +1181,7 @@ static int d3dda(Isect *is)
 		}
 		
 		xo=ocx1; yo=ocy1; zo=ocz1;
-		ddalabda= MIN3(labdax,labday,labdaz);
+		labdao= ddalabda= MIN3(labdax,labday,labdaz);
 		
 		vec2[0]= ox1;
 		vec2[1]= oy1;
@@ -1241,15 +1197,14 @@ static int d3dda(Isect *is)
 				
 				/* calculate ray intersection with octree node */
 				VECCOPY(vec1, vec2);
-					// dox,y,z is negative
+				// dox,y,z is negative
 				vec2[0]= ox1-ddalabda*dox;
 				vec2[1]= oy1-ddalabda*doy;
 				vec2[2]= oz1-ddalabda*doz;
-				/* no calc, this is store */
-				calc_ocval_ray(NULL, vec1[0], vec1[1], vec1[2], vec2[0], vec2[1], vec2[2]);
-				
+				calc_ocval_ray(&ocval, (float)xo, (float)yo, (float)zo, vec1, vec2);
+							   
 				is->ddalabda= ddalabda;
-				if( testnode(is, no, xo,yo,zo) ) return 1;
+				if( testnode(is, no, ocval) ) return 1;
 			}
 
 			labdao= ddalabda;
@@ -1319,7 +1274,7 @@ static int d3dda(Isect *is)
 	}
 	
 	/* reached end, no intersections found */
-	g_oc.vlr_last= NULL;
+	is->vlr_last= NULL;
 	return 0;
 }		
 
@@ -1342,7 +1297,8 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 	shi->vlr= vlr;
 	shi->mat= vlr->mat;
-	shi->matren= shi->mat->ren;
+	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
+	shi->har= shi->mat->har;
 	
 	/* face normal, check for flip */
 	l= vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2];
@@ -1358,10 +1314,13 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	// Osa structs we leave unchanged now
 	SWAP(int, osatex, shi->osatex);
 	
+	shi->dxco[0]= shi->dxco[1]= shi->dxco[2]= 0.0;
+	shi->dyco[0]= shi->dyco[1]= shi->dyco[2]= 0.0;
+	
 	// but, set O structs zero where it can confuse texture code
-	if(shi->matren->texco & (TEXCO_NORM|TEXCO_REFL) ) {
-		O.dxno[0]= O.dxno[1]= O.dxno[2]= 0.0;
-		O.dyno[0]= O.dyno[1]= O.dyno[2]= 0.0;
+	if(shi->mat->texco & (TEXCO_NORM|TEXCO_REFL) ) {
+		shi->dxno[0]= shi->dxno[1]= shi->dxno[2]= 0.0;
+		shi->dyno[0]= shi->dyno[1]= shi->dyno[2]= 0.0;
 	}
 
 	if(vlr->v4) {
@@ -1374,26 +1333,28 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		shade_input_set_coords(shi, is->u, is->v, 0, 1, 2);
 	}
 	
-	SWAP(int, osatex, shi->osatex);
+	// SWAP(int, osatex, shi->osatex);  XXXXX!!!!
 
 	if(is->mode==DDA_SHADOW_TRA) shade_color(shi, shr);
 	else {
 
 		shade_lamp_loop(shi, shr);	
 
-		if(shi->matren->translucency!=0.0) {
+		if(shi->translucency!=0.0) {
 			ShadeResult shr_t;
 			VecMulf(shi->vn, -1.0);
 			VecMulf(vlr->n, -1.0);
 			shade_lamp_loop(shi, &shr_t);
-			shr->diff[0]+= shi->matren->translucency*shr_t.diff[0];
-			shr->diff[1]+= shi->matren->translucency*shr_t.diff[1];
-			shr->diff[2]+= shi->matren->translucency*shr_t.diff[2];
+			shr->diff[0]+= shi->translucency*shr_t.diff[0];
+			shr->diff[1]+= shi->translucency*shr_t.diff[1];
+			shr->diff[2]+= shi->translucency*shr_t.diff[2];
 			VecMulf(shi->vn, -1.0);
 			VecMulf(vlr->n, -1.0);
 		}
 	}
 	
+	SWAP(int, osatex, shi->osatex);  // XXXXX!!!!
+
 	if(flip) {	
 		vlr->n[0]= -vlr->n[0];
 		vlr->n[1]= -vlr->n[1];
@@ -1499,20 +1460,20 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		
 		if(depth>0) {
 
-			if(shi.matren->mode & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha!=1.0) {
+			if(shi.mat->mode & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha!=1.0) {
 				float f, f1, refract[3], tracol[3];
 				
-				if(shi.matren->mode & MA_RAYTRANSP) {
+				if(shi.mat->mode & MA_RAYTRANSP) {
 					/* odd depths: use normal facing viewer, otherwise flip */
 					if(traflag & RAY_TRAFLIP) {
 						float norm[3];
 						norm[0]= - shi.vn[0];
 						norm[1]= - shi.vn[1];
 						norm[2]= - shi.vn[2];
-						refraction(refract, norm, shi.view, shi.matren->ang);
+						refraction(refract, norm, shi.view, shi.ang);
 					}
 					else {
-						refraction(refract, shi.vn, shi.view, shi.matren->ang);
+						refraction(refract, shi.vn, shi.view, shi.ang);
 					}
 					traflag |= RAY_TRA;
 					traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask, osatex, traflag ^ RAY_TRAFLIP);
@@ -1532,9 +1493,9 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 				shr.alpha= 1.0;
 			}
 
-			if(shi.matren->mode & MA_RAYMIRROR) {
-				f= shi.matren->ray_mirror;
-				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.matren->fresnel_mir_i, shi.matren->fresnel_mir);
+			if(shi.mat->mode & MA_RAYMIRROR) {
+				f= shi.ray_mirror;
+				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.mat->fresnel_mir_i, shi.mat->fresnel_mir);
 			}
 			else f= 0.0;
 			
@@ -1551,9 +1512,9 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 				//col[1]+= shr.spec[1];
 				//col[2]+= shr.spec[2];
 				
-				fr= shi.matren->mirr;
-				fg= shi.matren->mirg;
-				fb= shi.matren->mirb;
+				fr= shi.mirr;
+				fg= shi.mirg;
+				fb= shi.mirb;
 		
 				col[0]= f*fr*(1.0-shr.spec[0])*col[0] + f1*shr.diff[0] + shr.spec[0];
 				col[1]= f*fg*(1.0-shr.spec[1])*col[1] + f1*shr.diff[1] + shr.spec[1];
@@ -1576,8 +1537,8 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		
 		VECCOPY(shi.view, vec);
 		Normalise(shi.view);
-
-		RE_sky(shi.view, col);	
+		
+		shadeSkyPixelFloat(col, shi.view, NULL);
 	}
 }
 
@@ -1666,7 +1627,7 @@ static float *jitter_plane(LampRen *lar, int xs, int ys)
 	tot= lar->ray_totsamp;
 	
 	if(lar->jitter==NULL) {
-	
+		lar->jitter= (float *)4;	// mislead thread quickly (tsk!)
 		fp=lar->jitter= MEM_mallocN(4*tot*2*sizeof(float), "lamp jitter tab");
 		
 		/* fill table with random locations, area_size large */
@@ -1688,13 +1649,25 @@ static float *jitter_plane(LampRen *lar, int xs, int ys)
 	}
 		
 	if(lar->ray_samp_type & LA_SAMP_JITTER) {
-		static int xold=0, yold=0;
-		/* new OSA allows to enter this function many times for 1 pixel */
-		if(xold!=xs || yold!=ys) {
-			jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
-			xold= xs; yold= ys;
+		/* made it threadsafe */
+		if(ys & 1) {
+			static int xold=0, yold=0;
+
+			if(xold!=xs || yold!=ys) {
+				jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
+				xold= xs; yold= ys;
+			}
+			return lar->jitter+2*tot;
 		}
-		return lar->jitter+2*tot;
+		else {
+			static int xold=0, yold=0;
+			
+			if(xold!=xs || yold!=ys) {
+				jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
+				xold= xs; yold= ys;
+			}
+			return lar->jitter+4*tot;
+		}
 	}
 	if(lar->ray_samp_type & LA_SAMP_DITHER) {
 		return lar->jitter + 2*tot*((xs & 1)+2*(ys & 1));
@@ -1714,19 +1687,19 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	float i, f, f1, fr, fg, fb, vec[3], mircol[3], tracol[3];
 	int do_tra, do_mir;
 	
-	do_tra= ((shi->matren->mode & (MA_RAYTRANSP|MA_ZTRA)) && shr->alpha!=1.0);
-	do_mir= ((shi->matren->mode & MA_RAYMIRROR) && shi->matren->ray_mirror!=0.0);
+	do_tra= ((shi->mat->mode & (MA_RAYTRANSP|MA_ZTRA)) && shr->alpha!=1.0);
+	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0);
 	vlr= shi->vlr;
 	
 	if(do_tra) {
 		float refract[3];
 		
-		if(shi->matren->mode & MA_RAYTRANSP) {
-			refraction(refract, shi->vn, shi->view, shi->matren->ang);
-			traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0, RAY_TRA|RAY_TRAFLIP);
+		if(shi->mat->mode & MA_RAYTRANSP) {
+			refraction(refract, shi->vn, shi->view, shi->ang);
+			traceray(shi->mat->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0, RAY_TRA|RAY_TRAFLIP);
 		}
 		else
-			traceray(shi->matren->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, shi->mask, 0, 0);
+			traceray(shi->mat->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, shi->mask, 0, 0);
 		
 		f= shr->alpha; f1= 1.0-f;
 		shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
@@ -1737,18 +1710,18 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 	if(do_mir) {
 	
-		i= shi->matren->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->matren->fresnel_mir_i, shi->matren->fresnel_mir);
+		i= shi->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->mat->fresnel_mir_i, shi->mat->fresnel_mir);
 		if(i!=0.0) {
-			fr= shi->matren->mirr;
-			fg= shi->matren->mirg;
-			fb= shi->matren->mirb;
+			fr= shi->mirr;
+			fg= shi->mirg;
+			fb= shi->mirb;
 
 			if(vlr->flag & R_SMOOTH) 
 				reflection(vec, shi->vn, shi->view, vlr->n);
 			else
 				reflection(vec, shi->vn, shi->view, NULL);
 	
-			traceray(shi->matren->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask, shi->osatex, 0);
+			traceray(shi->mat->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask, shi->osatex, 0);
 			
 			f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
 			shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
@@ -1928,9 +1901,31 @@ static void DistributedSpherical(float *sphere, int tot, int iter)
 	}
 }
 
+
+static float *threadsafe_table_sphere(int test, int xs, int ys)
+{
+	static float sphere1[2*3*256];
+	static float sphere2[2*3*256];
+	static int xs1=-1, xs2=-1, ys1=-1, ys2=-1;
+	
+	if(ys & 1) {
+		if(xs==xs1 && ys==ys1) return sphere1;
+		if(test) return NULL;
+		xs1= xs; ys1= ys;
+		return sphere1;
+	}
+	else  {
+		if(xs==xs2 && ys==ys2) return sphere2;
+		if(test) return NULL;
+		xs2= xs; ys2= ys;
+		return sphere2;
+	}
+}
+
 static float *sphere_sampler(int type, int resol, int xs, int ys)
 {
-	static float sphere[2*3*256], sphere1[2*3*256];
+	static float sphere[2*3*256];
+	float *sphere1;
 	int tot;
 	float *vec;
 	
@@ -1948,16 +1943,19 @@ static float *sphere_sampler(int type, int resol, int xs, int ys)
 		}
 	} 
 	else {
-		static int last_distr= 0, xold=0xffff, yold=0;
+		static int last_distr= 0;
 		float cosf, sinf, cost, sint;
 		float ang, *vec1;
 		int a;
 		
-		if(last_distr!=resol) DistributedSpherical(sphere, tot, 16);
-		last_distr= resol;
+		if(last_distr!=resol) {
+			last_distr= resol;
+			DistributedSpherical(sphere, tot, 16);
+		}
 		
-		if(xold!=xs || yold!=ys) {
-			xold=xs; yold=ys;
+		sphere1= threadsafe_table_sphere(1, xs, ys);
+		if(sphere1==NULL) {
+			sphere1= threadsafe_table_sphere(0, xs, ys);
 			
 			// random rotation
 			ang= BLI_frand();
@@ -1988,21 +1986,12 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	int j=0, tot, actual=0, skyadded=0;
 
 	isec.vlrorig= shi->vlr;
+	isec.vlr_last= NULL;
 	isec.mode= DDA_SHADOW;
 	isec.lay= -1;
 
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0;
 
-	/* if sky texture used, these values have to be reset back to original */
-	if(wrld->aocolor==WO_AOSKYCOL && G.scene->world) {
-		R.wrld.horr= G.scene->world->horr;
-		R.wrld.horg= G.scene->world->horg;
-		R.wrld.horb= G.scene->world->horb;
-		R.wrld.zenr= G.scene->world->zenr;
-		R.wrld.zeng= G.scene->world->zeng;
-		R.wrld.zenb= G.scene->world->zenb;
-	}
-	
 	// bias prevents smoothed faces to appear flat
 	if(shi->vlr->flag & R_SMOOTH) {
 		bias= G.scene->world->aobias;
@@ -2060,7 +2049,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 					shadfac[2]+= (1.0-fac)*R.wrld.horb + fac*R.wrld.zenb;
 				}
 				else {
-					RE_sky(view, skycol);
+					shadeSkyPixelFloat(skycol, view, NULL);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];
@@ -2089,16 +2078,18 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 {
 	Isect isec;
-	Material stored;
 	float lampco[3];
 
-	if(shi->matren->mode & MA_SHADOW_TRA) {
-		isec.mode= DDA_SHADOW_TRA;
-		/* needed to prevent shade_ray changing matren (textures) */
-		stored= *(shi->matren);
-	}
+	/* setup isec */
+	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= DDA_SHADOW_TRA;
 	else isec.mode= DDA_SHADOW;
+	
 	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
+
+	/* only when not mir tracing, first hit optimm */
+	if(shi->depth==0) isec.vlr_last= lar->vlr_last;
+	else isec.vlr_last= NULL;
+	isec.vlrorig= shi->vlr;
 	
 	shadfac[3]= 1.0;	// 1=full light
 	
@@ -2111,15 +2102,12 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		VECCOPY(lampco, lar->co);
 	}
 	
-	/* only when not tracing, first hit optimm */
-	if(shi->depth==0) g_oc.vlr_last= lar->vlr_last;
-	
 	/* transp-shadow and soft not implemented yet */
 	if(lar->ray_totsamp<2 ||  isec.mode == DDA_SHADOW_TRA) {
-		/* set up isec */
+		
+		/* set up isec vec */
 		VECCOPY(isec.start, shi->co);
 		VECCOPY(isec.end, lampco);
-		isec.vlrorig= shi->vlr;
 
 		if(isec.mode==DDA_SHADOW_TRA) {
 			isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
@@ -2142,8 +2130,6 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		float fac=0.0, div=0.0, vec[3];
 		int a, j= -1, mask;
 		
-		isec.vlrorig= shi->vlr;
-
 		fac= 0.0;
 		jitlamp= jitter_plane(lar, floor(shi->xs+0.5), floor(shi->ys+0.5));
 
@@ -2188,13 +2174,8 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			shadfac[3]= 1.0-fac/div;
 	}
 
-	if(shi->matren->mode & MA_SHADOW_TRA) {
-		/* needed to prevent shade_ray changing matren (textures) */
-		*(shi->matren)= stored;
-	}
-	
 	/* for first hit optim, set last interesected shadow face */
-	if(shi->depth==0) lar->vlr_last= g_oc.vlr_last;
+	if(shi->depth==0) lar->vlr_last= isec.vlr_last;
 
 }
 

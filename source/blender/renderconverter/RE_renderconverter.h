@@ -86,7 +86,12 @@ extern "C" {
 	void RE_make_stars(void (*initfunc)(void),
 					   void (*vertexfunc)(float*),
 					   void (*termfunc)(void));
-		
+	
+	/**
+	 * called by meshtools 
+	 */
+	void RE_make_sticky(void);
+
 
 #ifdef __cplusplus
 }

@@ -64,14 +64,15 @@
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
-#include "BIF_keyval.h"
-#include "BIF_mainqueue.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_mywindow.h"
-#include "BIF_space.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_keyval.h"
+#include "BIF_mainqueue.h"
+#include "BIF_mywindow.h"
+#include "BIF_resources.h"
+#include "BIF_renderwin.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
 #include "BIF_toolbox.h"
 
 #include "BIF_butspace.h"
@@ -85,7 +86,6 @@
 #include "DNA_image_types.h"
 #include "BKE_writeavi.h"
 #include "BKE_image.h"
-#include "BIF_renderwin.h"
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
 #include "BIF_editsound.h"
@@ -475,7 +475,7 @@ static void run_playanim(char *file) {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	int pos[2], size[2];
 
-	calc_renderwin_rectangle(R.winpos, pos, size);
+	calc_renderwin_rectangle(G.winpos, pos, size);
 
 	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
 	system(str);
@@ -793,6 +793,21 @@ void do_render_panels(unsigned short event)
 	case B_CLEARSET:
 		scene_change_set(G.scene, NULL);
 		break;
+	case B_FBUF_REDO:
+		if(R.rectftot) {
+			/* copy is needed... not so nice, but how better? */
+			R.r.postgamma= G.scene->r.postgamma;
+			R.r.postigamma= 1.0/R.r.postgamma;
+			R.r.postadd= G.scene->r.postadd;
+			R.r.postmul= G.scene->r.postmul;
+			R.r.posthue= G.scene->r.posthue;
+			R.r.postsat= G.scene->r.postsat;
+			R.r.dither_intensity= G.scene->r.dither_intensity;
+			
+			RE_floatbuffer_to_output();
+			BIF_redraw_render_rect();
+		}
+		break;
 	}
 }
 
@@ -843,13 +858,17 @@ static uiBlock *post_render_menu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "post render", UI_EMBOSS, UI_HELV, curarea->win);
 		
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-10, 10, 200, 80, NULL, 0, 0, 0, 0, "");
-	
-	uiDefButF(block, NUMSLI, 0,"Add:",		0,60,180,19,  &G.scene->r.postadd, -1.0, 1.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0,"Mul:",		0,40,180,19,  &G.scene->r.postmul, 0.01, 4.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0,"Gamma:",		0,20,180,19,  &G.scene->r.postgamma, 0.2, 2.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",			-10, -10, 200, 120, NULL, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, 0, "Add:",		0,80,180,19, &G.scene->r.postadd, -1.0, 1.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Mul:",		0,60,180,19,  &G.scene->r.postmul, 0.01, 4.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Gamma:",	0,40,180,19,  &G.scene->r.postgamma, 0.1, 4.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Hue:",		0,20,180,19,  &G.scene->r.posthue, -0.5, 0.5, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Sat:",		0, 0,180,19,  &G.scene->r.postsat, 0.0, 4.0, 0, 0, "");
 
 	uiBlockSetDirection(block, UI_TOP);
+	
+	addqueue(curarea->win, UI_BUT_EVENT, B_FBUF_REDO);
 	
 	return block;
 }
@@ -1039,41 +1058,47 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|0, 0,"Backbuf",	10, 94, 60, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
+	uiDefButS(block, TOG|BIT|0, B_NOP,"Backbuf",	10, 94, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
+	uiDefButI(block, TOG|BIT|19, B_NOP,"Threads",	10, 68, 80, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable/Disable render in two threads");	
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
 	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
-			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &R.winpos, 0, 0, 0, 0, "Render window placement on screen");
+			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Passepartout", 72, 30, 122, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Draws darkened passepartout in camera view");
-	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &R.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
-	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &R.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
+	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
+	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
 	uiBlockEndAlign(block);
 
-	uiDefButS(block, TOG|BIT|4, 0, "Extensions",	250, 10, 60, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
+	uiDefButS(block, TOG|BIT|4, 0, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",		205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|5, 0,"Edge",	155, 94, 44, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon shading");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 200, 94, 110, 20, "Display edge settings");
-	uiBlockEndAlign(block);
+	uiDefButI(block, TOG|BIT|5, 0,"Edge",	100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display edge settings");
 
-	/* unified render buttons */
-	if(G.scene->r.mode & R_UNIFIED) {
-		uiDefBlockBut(block, post_render_menu, NULL, "Post process", 200, 68, 110, 20, "Only for unified render");
-		if (G.scene->r.mode & R_GAMMA) {
-			uiDefButF(block, NUMSLI, 0,"Gamma:",		10, 68, 142, 20,
-					 &(G.scene->r.gamma), 0.2, 5.0, B_GAMMASLI, 0,
-					 "The gamma value for blending oversampled images (1.0 = no correction).");
-		}
-	}
+	/* postprocess render buttons */
+	uiBlockBeginAlign(block);
+	if(R.rectftot)
+		uiDefIconTextButI(block, TOG|BIT|18, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
+	else
+		uiDefButI(block, TOG|BIT|18, 0,"Fbuf",	100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
+	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 170, 68, 140, 20, "Applies on RGBA floats while render or with Fbuf available");
+	uiBlockEndAlign(block);
+	
+	/* removed, for time being unified and normal render will use same gamma for blending (2.0) */
+	//if (G.scene->r.mode & R_GAMMA) {
+	//	uiDefButF(block, NUMSLI, 0,"Gamma:",		10, 68, 142, 20,
+	//			 &(G.scene->r.gamma), 0.2, 5.0, B_GAMMASLI, 0,
+	//			 "The gamma value for blending oversampled images (1.0 = no correction).");
+	//}
 }
 
 static void render_panel_render(void)

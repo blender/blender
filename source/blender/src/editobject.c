@@ -60,6 +60,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_ika_types.h"
@@ -68,6 +69,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
@@ -80,7 +82,6 @@
 #include "DNA_userdef_types.h"
 #include "DNA_property_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_constraint_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -153,7 +154,6 @@
 #include "BDR_editcurve.h"
 #include "BDR_unwrapper.h"
 
-#include "render.h"
 #include <time.h>
 #include "mydevice.h"
 #include "nla.h"

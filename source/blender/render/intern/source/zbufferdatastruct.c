@@ -62,7 +62,6 @@
 #include "MEM_guardedalloc.h"
 #include "zbufferdatastruct.h"
 #include "render.h"
-#include "render_intern.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -184,6 +183,11 @@ void insertObject(int apteller,
 	/* Guard the insertion if needed? */
   	RE_APixstrExt* apn = &APixbufExt[apteller]; 
 	int all_subpixels= 0;
+	
+	//if(obtype==RE_POLY) {
+	//	VlakRen *vlr= RE_findOrAddVlak( (obindex-1) & 0x7FFFFF);
+	//	if(vlr->flag & R_FULL_OSA) all_subpixels= 1;
+	//}
 	
 	while(apn) {
 		if(apn->t[0] == RE_NONE) {

@@ -59,9 +59,7 @@
 
 #include "BPY_extern.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "render.h"
 
 void free_material(Material *ma)
 {
@@ -69,9 +67,6 @@ void free_material(Material *ma)
 	MTex *mtex;
 
 	BPY_free_scriptlink(&ma->scriptlink);
-	
-	if(ma->ren) MEM_freeN(ma->ren);
-	ma->ren= NULL;
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
@@ -543,15 +538,9 @@ void init_render_material(Material *ma)
 	MTex *mtex;
 	int a, needuv=0;
 	
-	if(ma->ren) return;
-
 	if(ma->flarec==0) ma->flarec= 1;
 
-	ma->ren= MEM_mallocN(sizeof(Material), "initrendermaterial");
-	memcpy(ma->ren, ma, sizeof(Material));
-	
 	/* add all texcoflags from mtex */
-	ma= ma->ren;
 	ma->texco= 0;
 	ma->mapto= 0;
 	for(a=0; a<MAX_MTEX; a++) {
@@ -584,9 +573,6 @@ void init_render_material(Material *ma)
 	}
 	if(needuv) ma->texco |= NEED_UV;
 	
-	// optimize, render only checks for ray_mirror value */
-	if((ma->mode & MA_RAYMIRROR)==0) ma->ray_mirror= 0.0;
-	
 	// since the raytracer doesnt recalc O structs for each ray, we have to preset them all
 	if(ma->mode & (MA_RAYMIRROR|MA_RAYTRANSP|MA_SHADOW_TRA)) { 
 		ma->texco |= NEED_UV|TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM;
@@ -613,10 +599,7 @@ void init_render_materials()
 
 void end_render_material(Material *ma)
 {
-	
-	if(ma->ren) MEM_freeN(ma->ren);
-	ma->ren= 0;
-
+	/* XXXX obsolete? check! */
 	if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
 		if( !(ma->mode & MA_HALO) ) {
 			ma->r= ma->g= ma->b= 1.0;
@@ -748,8 +731,6 @@ void delete_material_index()
 		}
 		obt= obt->id.next;
 	}
-	allqueue(REDRAWBUTSMAT, 0);
-	
 
 	/* check indices from mesh */
 

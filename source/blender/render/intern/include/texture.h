@@ -35,12 +35,32 @@
 #ifndef TEXTURE_EXT_H
 #define TEXTURE_EXT_H
 
+#define BRICONT		texres->tin= (texres->tin-0.5)*tex->contrast+tex->bright-0.5; \
+if(texres->tin<0.0) texres->tin= 0.0; else if(texres->tin>1.0) texres->tin= 1.0;
+
+#define BRICONTRGB	texres->tr= tex->rfac*((texres->tr-0.5)*tex->contrast+tex->bright-0.5); \
+if(texres->tr<0.0) texres->tr= 0.0; \
+texres->tg= tex->gfac*((texres->tg-0.5)*tex->contrast+tex->bright-0.5); \
+if(texres->tg<0.0) texres->tg= 0.0; \
+texres->tb= tex->bfac*((texres->tb-0.5)*tex->contrast+tex->bright-0.5); \
+if(texres->tb<0.0) texres->tb= 0.0; 
+
+
 struct HaloRen;
 struct ShadeInput;
+struct TexResult;
+struct Tex;
+
+/* texture.h */
 
 void do_halo_tex(struct HaloRen *har, float xn, float yn, float *colf);
+void do_sky_tex(float *lo, float *dxyview, float *hor, float *zen, float *blend);
 void render_realtime_texture(struct ShadeInput *shi);           
 
+/* imagetexture.h */
+
+int imagewraposa(struct Tex *tex, float *texvec, float *dxt, float *dyt, struct TexResult *texres);
+int imagewrap(struct Tex *tex, float *texvec, struct TexResult *texres);
 
 #endif /* TEXTURE_EXT_H */
 

@@ -133,12 +133,8 @@ void    RE_free_envmap(struct EnvMap *env);
 struct EnvMap *RE_copy_envmap(struct EnvMap *env);
 void    RE_free_envmapdata(struct EnvMap *env);
 int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
-void    RE_calc_R_ref(void);
 extern char texstr[20][12];	/* buttons.c */
 
-/* memory for O is declared in the render module... */
-#include "BKE_osa_types.h"
-extern Osa O;
 
 /* editsca.c */
 void make_unique_prop_names(char *str);

@@ -112,7 +112,7 @@ void zbuffershad(struct LampRen *lar);
  * Also called in: render.c
  * @param y the line number to set
  */
-void abufsetrow(int y);
+void abufsetrow(float *acolrow, int y);
 
 
 /**
@@ -165,12 +165,12 @@ int vergzvlak(const void *x1, const void *x2);
  * @param c2 
  * @param c3
  */
-void  zbufclip(float *f1, float *f2, float *f3, int c1, int c2, int c3);
+void  zbufclip(unsigned int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
 
 /**
  * same, for edges
  */
-void         zbufclipwire(struct VlakRen *vlr); 
+void         zbufclipwire(unsigned int zvlnr, struct VlakRen *vlr); 
 
 #ifdef __cplusplus
 }

@@ -44,6 +44,12 @@
 #define TRUE 1
 #endif
 
+/* also fill in structs itself, dna cannot handle defines, duplicate in blendef.h still */
+#ifndef FILE_MAXDIR
+#define FILE_MAXDIR			160
+#define FILE_MAXFILE		80
+#endif
+
 #define ELEM(a, b, c)           ( (a)==(b) || (a)==(c) )
 #define ELEM3(a, b, c, d)       ( ELEM(a, b, c) || (a)==(d) )
 #define ELEM4(a, b, c, d, e)    ( ELEM(a, b, c) || ELEM(a, d, e) )
@@ -67,18 +73,6 @@
 #define MAX3(x,y,z)             MAX2( MAX2((x),(y)) , (z) )
 #define MAX4(x,y,z,a)           MAX2( MAX2((x),(y)) , MAX2((z),(a)) )
 
-#define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
-
-#define ABS(a)					( (a)<0 ? (-(a)) : (a) )
-
-#define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
-#define QUATCOPY(v1,v2)         {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2); *(v1+3)= *(v2+3);}
-
-#define VECADD(v1,v2,v3) 	{*(v1)= *(v2) + *(v3); *(v1+1)= *(v2+1) + *(v3+1); *(v1+2)= *(v2+2) + *(v3+2);}
-#define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
-
-#define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
-
 #define INIT_MINMAX(min, max) (min)[0]= (min)[1]= (min)[2]= 1.0e30; (max)[0]= (max)[1]= (max)[2]= -1.0e30;
 
 #define INIT_MINMAX2(min, max) (min)[0]= (min)[1]= 1.0e30; (max)[0]= (max)[1]= -1.0e30;
@@ -95,17 +89,32 @@
 							  if( (max)[0]<(vec)[0] ) (max)[0]= (vec)[0]; \
 							  if( (max)[1]<(vec)[1] ) (max)[1]= (vec)[1];
 
-/* interferes elsewhere */
-/* also fill in structs itself, dna cannot handle defines */
-#define FILE_MAXDIR			160
-#define FILE_MAXFILE		80
+#define MINSIZE(val, size)	( ((val)>=0.0) ? (((val)<(size)) ? (size): (val)) : ( ((val)>(-size)) ? (-size) : (val)))
+
+/* some math and copy defines */
+
+#define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+
+#define ABS(a)					( (a)<0 ? (-(a)) : (a) )
+
+#define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
+#define QUATCOPY(v1,v2)         {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2); *(v1+3)= *(v2+3);}
+#define LONGCOPY(a, b, c)	{int lcpc=c, *lcpa=(int *)a, *lcpb=(int *)b; while(lcpc-->0) *(lcpa++)= *(lcpb++);}
+
+
+#define VECADD(v1,v2,v3) 	{*(v1)= *(v2) + *(v3); *(v1+1)= *(v2+1) + *(v3+1); *(v1+2)= *(v2+2) + *(v3+2);}
+#define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
+
+#define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
 
 
 /* some misc stuff.... */
 #define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
+#define CLAMPIS(a, b, c) ((a)<(b) ? (b) : (a)>(c) ? (c) : (a))
+#define CLAMPTEST(a, b, c)	if((b)<(c)) {CLAMP(a, b, c);} else {CLAMP(a, c, b);}
 
-#define KNOTSU(nu)        ( (nu)->orderu+ (nu)->pntsu+ (nu->orderu-1)*((nu)->flagu & 1) )
-#define KNOTSV(nu)        ( (nu)->orderv+ (nu)->pntsv+ (nu->orderv-1)*((nu)->flagv & 1) )  
+#define IS_EQ(a,b) ((fabs((double)(a)-(b)) >= (double) FLT_EPSILON) ? 0 : 1)
+
 
 /* this weirdo pops up in two places ... */
 #if !defined(WIN32) && !defined(__BeOS)
@@ -146,28 +155,6 @@
 
 #define ENDB MAKE_ID('E','N','D','B')
 
-/* This should, of course, become a function */
-#define DL_SURFINDEX(cyclu, cyclv, sizeu, sizev)	    \
-							    \
-    if( (cyclv)==0 && a==(sizev)-1) break;		    \
-    if(cyclu) {						    \
-	p1= sizeu*a;					    \
-	p2= p1+ sizeu-1;				    \
-	p3= p1+ sizeu;					    \
-	p4= p2+ sizeu;					    \
-	b= 0;						    \
-    }							    \
-    else {						    \
-	p2= sizeu*a;					    \
-	p1= p2+1;					    \
-	p4= p2+ sizeu;					    \
-	p3= p1+ sizeu;					    \
-	b= 1;						    \
-    }							    \
-    if( (cyclv) && a==sizev-1) {			    \
-	p3-= sizeu*sizev;				    \
-	p4-= sizeu*sizev;				    \
-    }
 
 /* This one rotates the bytes in an int */
 #define SWITCH_INT(a) { \
@@ -176,131 +163,19 @@
     s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
     s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
 
-/* More brain damage. Only really used by packedFile.c  */
-// return values
-#define RET_OK 0
-#define RET_ERROR 1
-/* and these aren't used at all */
-/*  #define RET_CANCEL 2 */
-/*  #define RET_YES (1 == 1) */
-/*  #define RET_NO (1 == 0) */
 
-/* sequence related defines */
-#define WHILE_SEQ(base)	{											\
-							int totseq_, seq_; Sequence **seqar;	\
-							build_seqar( base,  &seqar, &totseq_);	\
-							for(seq_ = 0; seq_ < totseq_; seq_++) {	\
-									seq= seqar[seq_];
-								
-
-#define END_SEQ					}						\
-							if(seqar) MEM_freeN(seqar);		\
-							}
-
-
-/* not really sure about these...  some kind of event codes ?*/ 
-/* INFO: 300 */
-/* pas op: ook in filesel.c en editobject.c */
-#define B_INFOSCR		301
-#define B_INFODELSCR	302
-#define B_INFOSCE		304
-#define B_INFODELSCE	305
-#define B_FILEMENU		306
-#define B_PACKFILE		307
-
-/* From iff.h, but seemingly detached from anything else... To which
- * encoding scheme do they belong? */
-#define AMI	    (1 << 31)
-#define CDI	    (1 << 30)
-#define Anim	(1 << 29)
-#define TGA	    (1 << 28)
-#define JPG		(1 << 27)
-#define TIM	    (1 << 26)
-
-#define TIM_CLUT	(010)
-#define TIM_4		(TIM | TIM_CLUT | 0)
-#define TIM_8		(TIM | TIM_CLUT | 1)
-#define TIM_16		(TIM | 2)
-#define TIM_24		(TIM | 3)
-
-#define RAWTGA	(TGA | 1)
-
-#define JPG_STD	(JPG | (0 << 8))
-#define JPG_VID	(JPG | (1 << 8))
-#define JPG_JST	(JPG | (2 << 8))
-#define JPG_MAX	(JPG | (3 << 8))
-#define JPG_MSK	(0xffffff00)
-
-#define AM_ham	    (0x0800 | AMI)
-#define AM_hbrite   (0x0080 | AMI)
-#define AM_lace	    (0x0004 | AMI)
-#define AM_hires    (0x8000 | AMI)
-#define AM_hblace   (AM_hbrite | AM_lace)
-#define AM_hilace   (AM_hires | AM_lace)
-#define AM_hamlace  (AM_ham | AM_lace)
-
-#define RGB888	1
-#define RGB555	2
-#define DYUV	3
-#define CLUT8	4
-#define CLUT7	5
-#define CLUT4	6
-#define CLUT3	7
-#define RL7	8
-#define RL3	9
-#define MPLTE	10
-
-#define DYUV1	0
-#define DYUVE	1
-
-#define CD_rgb8		(RGB888 | CDI)
-#define CD_rgb5		(RGB555 | CDI)
-#define CD_dyuv		(DYUV | CDI)
-#define CD_clut8	(CLUT8 | CDI)
-#define CD_clut7	(CLUT7 | CDI)
-#define CD_clut4	(CLUT4 | CDI)
-#define CD_clut3	(CLUT3 | CDI)
-#define CD_rl7		(RL7 | CDI)
-#define CD_rl3		(RL3 | CDI)
-#define CD_mplte	(MPLTE | CDI)
-
-#define C233	1
-#define YUVX	2
-#define HAMX	3
-#define TANX	4
-
-#define AN_c233			(Anim | C233)
-#define AN_yuvx			(Anim | YUVX)
-#define AN_hamx			(Anim | HAMX)
-#define AN_tanx			(Anim | TANX)
-
-#define IMAGIC 	0732
-
-/* This used to reside in render.h. It does some texturing. */
-#define BRICON		Tin= (Tin-0.5)*tex->contrast+tex->bright-0.5; \
-					if(Tin<0.0) Tin= 0.0; else if(Tin>1.0) Tin= 1.0;
-
-#define BRICONRGB	Tr= tex->rfac*((Tr-0.5)*tex->contrast+tex->bright-0.5); \
-					if(Tr<0.0) Tr= 0.0; \
-					Tg= tex->gfac*((Tg-0.5)*tex->contrast+tex->bright-0.5); \
-					if(Tg<0.0) Tg= 0.0; \
-					Tb= tex->bfac*((Tb-0.5)*tex->contrast+tex->bright-0.5); \
-					if(Tb<0.0) Tb= 0.0; 
-
-/* mystifying stuff from blendef... */
-#define SELECT			1
-#define ACTIVE			2
-#define NOT_YET			0
-
-/* ???? */
+/* Bit operations */
 #define BTST(a,b)     ( ( (a) & 1<<(b) )!=0 )   
 #define BSET(a,b)     ( (a) | 1<<(b) )
+#define BCLR(a,b)	( (a) & ~(1<<(b)) )
+/* bit-row */
+#define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )
 
-/* needed for material.c*/
-#define REDRAWBUTSMAT         0x4015
 
-/* useless game shit */
-#define MA_FH_NOR	2
+#ifdef GS
+#undef GS
+#endif
+#define GS(a)	(*((short *)(a)))
 
 #endif
 

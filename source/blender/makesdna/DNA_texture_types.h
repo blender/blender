@@ -151,7 +151,7 @@ typedef struct Tex {
 	short extend, len;
 	float checkerdist, nabla;
 	short frames, offset, sfra, fie_ima;
-	float norfac, *nor;
+	float norfac;
 	
 	struct Ipo *ipo;
 	struct Image *ima;

@@ -274,6 +274,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_SELECTCODEC   1639
 #define B_RTCHANGED		1640
 #define B_SWITCHRENDER	1641
+#define B_FBUF_REDO		1642
 
 #ifdef __NLA
 /* *********************** */

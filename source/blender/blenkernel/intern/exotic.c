@@ -123,6 +123,8 @@
 
 #include "BPY_extern.h"
 
+#include "blendef.h"
+
 static int is_dxf(char *str);
 static void dxf_read(char *filename);
 static int is_stl(char *str);

@@ -40,9 +40,6 @@
 /* fixes. I think it is risky to always include it...                        */
 /* ------------------------------------------------------------------------- */
 
-/* fix for OSA and defmaterial extern */
-#include "BKE_osa_types.h"
-#include "DNA_material_types.h"
 
 #ifdef __cplusplus
 extern "C" { 
@@ -69,8 +66,6 @@ extern "C" {
 /* ------------------------------------------------------------------------- */
 
 extern RE_Render         R;           /* rendercore.c */
-extern Osa               O;           /* rendercore.c */
-extern Material          defmaterial; /* initrender.c */
 extern unsigned short   *igamtab1;    /* initrender.c */
 extern unsigned short   *gamtab;      /* initrender.c */
 
@@ -80,7 +75,7 @@ struct View3D;
 /* Function definitions                                                      */
 /*                                                                           */
 /* All functions that need to be externally visible must be declared here.   */
-/* Currently, this interface contains 29 functions and 11 callbacks.         */
+/* Currently, this interface contains 38 functions and 11 callbacks.         */
 /* ------------------------------------------------------------------------- */
 
 
@@ -88,11 +83,12 @@ struct View3D;
 /* shadbuf.c (1)                                                           */
 /* ------------------------------------------------------------------------- */
 
+/* only for renderconvertor */
 void RE_initshadowbuf(struct LampRen *lar, float mat[][4]);
 
 
 /* ------------------------------------------------------------------------- */
-/* initrender (14)                                                           */
+/* initrender (9)                                                           */
 /* ------------------------------------------------------------------------- */
 
 struct View3D;
@@ -107,7 +103,7 @@ struct View3D;
 void    RE_initrender(struct View3D *ogl_render_view3d);
 
 /**
- *
+ * only for renderconvertor
  */
 void    RE_setwindowclip(int mode, int jmode);
 
@@ -117,12 +113,12 @@ void    RE_setwindowclip(int mode, int jmode);
  */
 void    RE_animrender(struct View3D *ogl_render_view3d);
 void    RE_free_render_data(void);
-void    RE_free_filt_mask(void);
-void    RE_init_filt_mask(void);
 void    RE_init_render_data(void);
+		/* jitterate is used by blenkernel effect */
 void    RE_jitterate1(float *jit1, float *jit2, int num, float rad1);
 void    RE_jitterate2(float *jit1, float *jit2, int num, float rad2);
 void    RE_make_existing_file(char *name);
+void    RE_floatbuffer_to_output(void);
 
 /* ------------------------------------------------------------------------- */
 /* zbuf (2)                                                                  */
@@ -151,7 +147,7 @@ void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_t
 
 
 /* ------------------------------------------------------------------------- */
-/* texture                                                                    */
+/* texture  (9)                                                                  */
 /* ------------------------------------------------------------------------- */
 struct MTex;
 struct Tex;
@@ -161,17 +157,11 @@ void end_render_textures(void);
 void init_render_texture(struct Tex *tex);
 void end_render_texture(struct Tex *tex);
 
-void tubemap(float x, float y, float z, float *adr1, float *adr2);
-void spheremap(float x, float y, float z, float *adr1, float *adr2);
-
 void do_material_tex(ShadeInput *shi);
-void externtex(struct MTex *mtex, float *vec);
-void externtexcol(struct MTex *mtex, float *orco, char *col);
-void do_lamp_tex(struct LampRen *la, float *lavec, ShadeInput *shi);
-void do_sky_tex(float *);
+void do_lamp_tex(struct LampRen *la, float *lavec, ShadeInput *shi, float *fcol);
 
-int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex);
-
+int multitex_ext(struct Tex *tex, float *texvec, float *tin, float *tr, float *tg, float *tb, float *ta);
+void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta);
 
 /* ------------------------------------------------------------------------- */
 /* envmap (4)                                                                   */
@@ -186,7 +176,7 @@ struct EnvMap *RE_add_envmap(void);
 struct EnvMap *RE_copy_envmap(struct EnvMap *env);
 
 /* --------------------------------------------------------------------- */
-/* rendercore (2)                                                        */
+/* rendercore (10)                                                        */
 /* --------------------------------------------------------------------- */
 float Phong_Spec(float *n, float *l, float *v, int hard);
 float CookTorr_Spec(float *n, float *l, float *v, int hard);
@@ -206,9 +196,8 @@ void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 struct VlakRen *RE_findOrAddVlak(int nr);
 struct VertRen *RE_findOrAddVert(int nr);
 struct HaloRen *RE_findOrAddHalo(int nr);
-HaloRen *RE_inithalo(Material *ma, float *vec, float *vec1, float *orco, float hasize, 
-					float vectsize);
-
+HaloRen *RE_inithalo(struct Material *ma, float *vec, float *vec1, float *orco, float hasize, 
+					float vectsize, int seed);
 
 /**
 	* callbacks (11):
@@ -255,13 +244,13 @@ int RE_testclip(float *v);
 /* patch for the external if, to support the split for the ui */
 void RE_addalphaAddfac(char *doel, char *bron, char addfac);
 void RE_sky_char(float *view, char *col); 
-void RE_sky(float *view, float *col); 
 void RE_renderflare(struct HaloRen *har); 
 /**
 	* Shade the pixel at xn, yn for halo har, and write the result to col. 
 	* Also called in: previewrender.c
 	* @param har    The halo to be rendered on this location
-	* @param col    [unsigned int 3] The destination colour vector 
+	* @param col    [char 4] The destination colour vector 
+	* @param colf   [float 4] destination colour vector (need both)
 	* @param zz     Some kind of distance
 	* @param dist   Square of the distance of this coordinate to the halo's center
 	* @param x      [f] Pixel x relative to center
@@ -269,7 +258,7 @@ void RE_renderflare(struct HaloRen *har);
 	* @param flarec Flare counter? Always har->flarec...
 	*/
 void RE_shadehalo(struct HaloRen *har,
-				char *col,
+				char *col, float *colf, 
 				unsigned int zz,
 				float dist,
 				float x,

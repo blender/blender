@@ -783,6 +783,10 @@ Vec2Addf(
 	float *v2
 );
 
+void tubemap(float x, float y, float z, float *u, float *v);
+void spheremap(float x, float y, float z, float *u, float *v);
+			  
+			  
 #ifdef __cplusplus
 }
 #endif

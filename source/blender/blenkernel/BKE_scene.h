@@ -40,6 +40,21 @@ struct Base;
 struct AviCodecData;
 struct QuicktimeCodecData;
 
+/* sequence related defines */
+#define WHILE_SEQ(base)	{											\
+	int totseq_, seq_; Sequence **seqar;	\
+		build_seqar( base,  &seqar, &totseq_);	\
+			for(seq_ = 0; seq_ < totseq_; seq_++) {	\
+				seq= seqar[seq_];
+				
+				
+#define END_SEQ					}						\
+				if(seqar) MEM_freeN(seqar);		\
+}
+
+
+
+
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 void free_scene(struct Scene *me);

@@ -65,6 +65,7 @@
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"
@@ -101,7 +102,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"
 #include "nla.h"
 
 

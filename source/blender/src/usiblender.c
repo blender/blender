@@ -116,7 +116,7 @@
 #include "blendef.h"
 
 #include "radio.h"
-#include "render.h"
+#include "render.h"		// RE_ free stuff
 #include "datatoc.h"
 
 #include "SYS_System.h"
@@ -616,7 +616,6 @@ void exit_usiblender(void)
 #endif	
 	
 	RE_free_render_data();
-	RE_free_filt_mask();
 	
 	free_txt_data();
 

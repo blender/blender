@@ -798,7 +798,7 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 	HaloRen *har;
 	float xn, yn, zn, nor[3], view[3];
 	float *orco, vec[3], hasize, mat[4][4], imat[3][3];
-	int start, end, a, ok;
+	int start, end, a, ok, seed= ma->seed1;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
@@ -812,8 +812,6 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 	set_buildvars(ob, &start, &end);
 	mvert+= start;
 	if(extverts) extverts+= 3*start;
-
-	ma->ren->seed1= ma->seed1;
 
 	for(a=start; a<end; a++, mvert++) {
 		ok= 1;
@@ -849,12 +847,12 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 				else hasize*= zn*zn*zn*zn;
 			}
 
-			if(orco) har= RE_inithalo(ma, vec, 0, orco, hasize, 0);
-			else har= RE_inithalo(ma, vec, 0, mvert->co, hasize, 0);
+			if(orco) har= RE_inithalo(ma, vec, 0, orco, hasize, 0, seed);
+			else har= RE_inithalo(ma, vec, 0, mvert->co, hasize, 0, seed);
 			if(har) har->lay= ob->lay;
 		}
 		if(orco) orco+= 3;
-		ma->ren->seed1++;
+		seed++;
 	}
 }
 
@@ -867,7 +865,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	HaloRen *har=0;
 	Material *ma=0;
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
-	int a, mat_nr=1;
+	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
 	if(pa==NULL) {
@@ -877,7 +875,6 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	}
 
 	ma= give_render_material(ob, 1);
-	if(ma==NULL) ma= &defmaterial;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
@@ -890,7 +887,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
 	ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, ptime);
-	ma->ren->seed1= ma->seed1;
+	seed= ma->seed1;
 
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
 
@@ -912,7 +909,6 @@ static void render_particle_system(Object *ob, PartEff *paf)
 				if(pa->mat_nr != mat_nr) {
 					mat_nr= pa->mat_nr;
 					ma= give_render_material(ob, mat_nr);
-					if(ma==0) ma= &defmaterial;
 				}
 
 				if(ma->ipo) {
@@ -943,9 +939,9 @@ static void render_particle_system(Object *ob, PartEff *paf)
 					else hasize*= zn*zn*zn*zn;
 				}
 
-				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize);
+				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
 				else {
-					har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0);
+					har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0, seed);
 					if(har && ma->mode & MA_HALO_SHADE) {
 						VecSubf(har->no, vec, vec1);
 						Normalise(har->no);
@@ -954,7 +950,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 				if(har) har->lay= ob->lay;
 			}
 		}
-		ma->ren->seed1++;
+		seed++;
 	}
 
 	/* restore material */
@@ -977,7 +973,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	VlakRen *vlr;
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
 	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
-	int a, mat_nr=1;
+	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
 	if(pa==NULL || (paf->flag & PAF_ANIMATED)) {
@@ -987,7 +983,6 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	}
 
 	ma= give_render_material(ob, 1);
-	if(ma==NULL) ma= &defmaterial;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
@@ -999,7 +994,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
 	ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, ptime);
-	ma->ren->seed1= ma->seed1;
+	seed= ma->seed1;
 
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
 
@@ -1026,7 +1021,6 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			if(pa->mat_nr != mat_nr) {
 				mat_nr= pa->mat_nr;
 				ma= give_render_material(ob, mat_nr);
-				if(ma==0) ma= &defmaterial;
 			}
 
 			if(ma->mode & MA_WIRE) {
@@ -1085,9 +1079,9 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					else hasize*= zn*zn*zn*zn;
 				}
 
-				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize);
+				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
 				else {
-					har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0);
+					har= RE_inithalo(ma, vec, 0, pa->co, hasize, 0, seed);
 					if(har && (ma->mode & MA_HALO_SHADE)) {
 						VecSubf(har->no, vec, vec1);
 						Normalise(har->no);
@@ -1099,7 +1093,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			
 			VECCOPY(vec1, vec);
 		}
-		ma->ren->seed1++;
+		seed++;
 	}
 
 }
@@ -1167,7 +1161,9 @@ static void sort_halos(void)
 
 static Material *give_render_material(Object *ob, int nr)
 {
+	extern Material defmaterial;	// initrender.c
 	Object *temp;
+	Material *ma;
 
 	if(ob->flag & OB_FROMDUPLI) {
 		temp= (Object *)ob->id.newid;
@@ -1176,7 +1172,10 @@ static Material *give_render_material(Object *ob, int nr)
 		}
 	}
 
-	return give_current_material(ob, nr);
+	ma= give_current_material(ob, nr);
+	if(ma==NULL) ma= &defmaterial;
+	
+	return ma;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1197,10 +1196,9 @@ static void init_render_mball(Object *ob)
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
 	ma= give_render_material(ob, 1);
-	if(ma==0) ma= &defmaterial;
 
 	need_orco= 0;
-	if(ma->ren->texco & TEXCO_ORCO) {
+	if(ma->texco & TEXCO_ORCO) {
 		need_orco= 1;
 	}
 
@@ -1328,7 +1326,7 @@ static void init_render_mesh(Object *ob)
 		for(a=1; a<=ob->totcol; a++) {
 			ma= give_render_material(ob, a);
 			if(ma) {
-				if(ma->ren->texco & TEXCO_ORCO) {
+				if(ma->texco & TEXCO_ORCO) {
 					need_orco= 1;
 					break;
 				}
@@ -1398,8 +1396,6 @@ static void init_render_mesh(Object *ob)
 	orco= me->orco;
 
 	ma= give_render_material(ob, 1);
-	if(ma==0) ma= &defmaterial;
-
 
 	if(ma->mode & MA_HALO) {
 		make_render_halos(ob, me, totvert, mvert, ma, extverts);
@@ -1444,7 +1440,6 @@ static void init_render_mesh(Object *ob)
 		for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
 
 			ma= give_render_material(ob, a1+1);
-			if(ma==0) ma= &defmaterial;
 			
 			/* test for 100% transparant */
 			ok= 1;
@@ -1804,14 +1799,12 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 				lar->mode &= ~LA_SHAD_RAY;
 		}
 	}
-	
-	lar->org= MEM_dupallocN(lar);
-
 }
 
 /* ------------------------------------------------------------------------- */
 static void init_render_surf(Object *ob)
 {
+	extern Material defmaterial;	// initrender.c
 	Nurb *nu=0;
 	Curve *cu;
 	ListBase displist;
@@ -1840,8 +1833,7 @@ static void init_render_surf(Object *ob)
 	matar[0]= &defmaterial;
 	for(a=0; a<ob->totcol; a++) {
 		matar[a]= give_render_material(ob, a+1);
-		if(matar[a]==0) matar[a]= &defmaterial;
-		if(matar[a] && matar[a]->ren->texco & TEXCO_ORCO) {
+		if(matar[a] && matar[a]->texco & TEXCO_ORCO) {
 			need_orco= 1;
 		}
 	}
@@ -2185,8 +2177,8 @@ static void init_render_surf(Object *ob)
 
 static void init_render_curve(Object *ob)
 {
+	extern Material defmaterial;	// initrender.c
 	Ika *ika=0;
-
 	Lattice *lt=0;
 	Curve *cu;
 	VertRen *ver;
@@ -2228,8 +2220,7 @@ static void init_render_curve(Object *ob)
 	matar[0]= &defmaterial;
 	for(a=0; a<ob->totcol; a++) {
 		matar[a]= give_render_material(ob, a+1);
-		if(matar[a]==0) matar[a]= &defmaterial;
-		if(matar[a]->ren->texco & TEXCO_ORCO) {
+		if(matar[a]->texco & TEXCO_ORCO) {
 			need_orco= 1;
 		}
 	}
@@ -2681,7 +2672,6 @@ void RE_freeRotateBlenderScene(void)
 			MEM_freeN(shb->cbuf);
 			MEM_freeN(R.la[a]->shb);
 		}
-		if(R.la[a]->org) MEM_freeN(R.la[a]->org);
 		if(R.la[a]->jitter) MEM_freeN(R.la[a]->jitter);
 		MEM_freeN(R.la[a]);
 	}
@@ -2897,9 +2887,6 @@ void RE_rotateBlenderScene(void)
 	float mat[4][4];
 
 	if(G.scene->camera==0) return;
-
-	O.dxwin[0]= 0.5/(float)R.r.xsch;
-	O.dywin[1]= 0.5/(float)R.r.ysch;
 
 	slurph_opt= 0;
 
@@ -3123,6 +3110,78 @@ void RE_rotateBlenderScene(void)
 	set_normalflags();
 }
 
+/* **************************************************************** */
+/*                sticky texture coords                             */
+/* **************************************************************** */
+
+void RE_make_sticky(void)
+{
+	Object *ob;
+	Base *base;
+	MVert *mvert;
+	Mesh *me;
+	MSticky *ms;
+	float ho[4], mat[4][4];
+	int a;
+	
+	if(G.scene->camera==0) return;
+	
+	if(G.obedit) {
+		error("Unable to make sticky in Edit Mode");
+		return;
+	}
+	base= FIRSTBASE;
+	while(base) {
+		if TESTBASELIB(base) {
+			if(base->object->type==OB_MESH) {
+				ob= base->object;
+				
+				me= ob->data;
+				mvert= me->mvert;
+				if(me->msticky) MEM_freeN(me->msticky);
+				me->msticky= MEM_mallocN(me->totvert*sizeof(MSticky), "sticky");
+				
+				/* like convert to render data */		
+				R.r= G.scene->r;
+				R.r.xsch= (R.r.size*R.r.xsch)/100;
+				R.r.ysch= (R.r.size*R.r.ysch)/100;
+				
+				R.afmx= R.r.xsch/2;
+				R.afmy= R.r.ysch/2;
+				
+				R.ycor= ( (float)R.r.yasp)/( (float)R.r.xasp);
+				
+				R.rectx= R.r.xsch; 
+				R.recty= R.r.ysch;
+				R.xstart= -R.afmx; 
+				R.ystart= -R.afmy;
+				R.xend= R.xstart+R.rectx-1;
+				R.yend= R.ystart+R.recty-1;
+				
+				where_is_object(G.scene->camera);
+				Mat4CpyMat4(R.viewinv, G.scene->camera->obmat);
+				Mat4Ortho(R.viewinv);
+				Mat4Invert(R.viewmat, R.viewinv);
+				
+				RE_setwindowclip(1, -1);
+				
+				where_is_object(ob);
+				Mat4MulMat4(mat, ob->obmat, R.viewmat);
+				
+				ms= me->msticky;
+				for(a=0; a<me->totvert; a++, ms++, mvert++) {
+					VECCOPY(ho, mvert->co);
+					Mat4MulVecfl(mat, ho);
+					RE_projectverto(ho, ho);
+					ms->co[0]= ho[0]/ho[3];
+					ms->co[1]= ho[1]/ho[3];
+				}
+			}
+		}
+		base= base->next;
+	}
+}
+
 
 /* **************************************************************** */
 /*                Displacement mapping                              */
@@ -3136,7 +3195,7 @@ static short test_for_displace(Object *ob)
 	for (i=1; i<=ob->totcol; i++) {
 		ma=give_render_material(ob, i);
 		/* ma->mapto is ORed total of all mapto channels */
-		if(ma && (ma->ren->mapto & MAP_DISPLACE)) return 1;
+		if(ma && (ma->mapto & MAP_DISPLACE)) return 1;
 	}
 	return 0;
 }
@@ -3185,10 +3244,10 @@ static void displace_render_face(VlakRen *vlr, float *scale)
 	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
-	shi.matren= shi.mat->ren;	/* material temp block where output is written into */
+
 	
 	/* UV coords must come from face */
-	hasuv = vlr->tface && (shi.matren->texco & TEXCO_UV);
+	hasuv = vlr->tface && (shi.mat->texco & TEXCO_UV);
 	if (hasuv) shi.uv[2]=0.0f; 
 	/* I don't think this is used, but seting it just in case */
 	
@@ -3244,7 +3303,7 @@ static void displace_render_face(VlakRen *vlr, float *scale)
 
 static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 {
-	short texco= shi->matren->texco;
+	short texco= shi->mat->texco;
 	float sample=0;
 	/* shi->co is current render coord, just make sure at least some vector is here */
 	VECCOPY(shi->co, vr->co);

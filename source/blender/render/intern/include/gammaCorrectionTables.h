@@ -67,12 +67,7 @@ float invGammaCorrect(float col);
 /**
  * Tell whether or not to do gamma.
  */
-int doGamma(void);
-
-/**
- * Set/unset performing gamma corrections.
- */
-void setDoGamma(int);
+extern int do_gamma;
 
 #endif
 

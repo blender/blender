@@ -91,6 +91,7 @@
 #include "BIF_mainqueue.h" // mainqenter for onload script
 #include "mydevice.h"
 #include "nla.h"
+#include "blendef.h"
 
 Global G;
 UserDef U;
@@ -318,8 +319,8 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		G.scene= curscene;
 	}
 	else {
-		R.winpos= bfd->winpos;
-		R.displaymode= bfd->displaymode;
+		G.winpos= bfd->winpos;
+		G.displaymode= bfd->displaymode;
 		G.fileflags= bfd->fileflags;
 		G.curscreen= bfd->curscreen;
 		G.scene= G.curscreen->scene;

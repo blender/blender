@@ -34,6 +34,9 @@
 #ifndef BKE_PACKEDFILE_H
 #define BKE_PACKEDFILE_H
 
+#define RET_OK 0
+#define RET_ERROR 1
+
 struct PackedFile;
 struct VFont;
 struct bSample;

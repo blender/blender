@@ -95,7 +95,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"  // externtex, badlevel call (ton)
+#include "render.h"  // externtex
 
 #include "editmesh.h"
 
@@ -2158,7 +2158,6 @@ void vertexsmooth(void)
 void vertexnoise(void)
 {
 	EditMesh *em = G.editMesh;
-	extern float Tin;
 	Material *ma;
 	Tex *tex;
 	EditVert *eve;
@@ -2189,10 +2188,9 @@ void vertexnoise(void)
 				VecAddf(eve->co, eve->co, vec);
 			}
 			else {
-				
-				externtex(ma->mtex[0], eve->co);
-			
-				eve->co[2]+= 0.05*Tin;
+				float tin, dum;
+				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum);
+				eve->co[2]+= 0.05*tin;
 			}
 		}
 		eve= eve->next;

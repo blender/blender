@@ -67,6 +67,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BIF_drawimage.h"

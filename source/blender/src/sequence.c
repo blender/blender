@@ -74,7 +74,7 @@
 #include "BSE_sequence.h"
 
 #include "blendef.h"
-#include "render.h"
+#include "render.h"		// talks to entire render API, and igamtab
 
 Sequence *seq_arr[MAXSEQ+1];
 int seqrectx, seqrecty;
@@ -628,7 +628,6 @@ void do_cross_effect(float facf0, float facf1, int x, int y, unsigned int *rect1
 
 void do_gammacross_effect(float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
 {
-/*  	extern unsigned short *igamtab1, *gamtab; render.h */
 	int fac1, fac2, col;
 	int xo;
 	char *rt1, *rt2, *rt;
@@ -1949,11 +1948,11 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						oldcfra= CFRA; CFRA= seq->sfra + se->nr;
 						waitcursor(1);
 
-						rectot= R.rectot; R.rectot= 0;
+						rectot= R.rectot; R.rectot= NULL;
 						oldx= R.rectx; oldy= R.recty;
 						/* needed because current 3D window cannot define the layers, like in a background render */
 						vd= G.vd;
-						G.vd= 0;
+						G.vd= NULL;
 
 						RE_initrender(NULL);
 						if (!G.background) {
@@ -1970,7 +1969,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 							se->ibuf->zbuf= (int *)R.rectz;
 							/* make sure ibuf frees it */
 							se->ibuf->mall |= IB_zbuf;
-							R.rectz= 0;
+							R.rectz= NULL;
 						}
 
 						/* and restore */

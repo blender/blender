@@ -42,6 +42,9 @@ struct ListBase;
 struct BezTriple;
 struct BevList;
 
+#define KNOTSU(nu)	    ( (nu)->orderu+ (nu)->pntsu+ (nu->orderu-1)*((nu)->flagu & 1) )
+#define KNOTSV(nu)	    ( (nu)->orderv+ (nu)->pntsv+ (nu->orderv-1)*((nu)->flagv & 1) )
+
 
 int copyintoExtendedArray(float *old, int oldx, int oldy, float *newp, int newx, int newy);
 void unlink_curve( struct Curve *cu);

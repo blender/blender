@@ -178,6 +178,8 @@ typedef struct RenderData {
 	 * 14: motion blur
 	 * 15: use unified renderer for this pic
 	 * 16: enable raytracing
+	 * 17: gauss sampling for subpixels
+	 * 18: keep float buffer after render
 	 */
 	int mode;
 
@@ -208,9 +210,9 @@ typedef struct RenderData {
 	 * The gamma for the normal rendering. Used when doing
 	 * oversampling, to correctly blend subpixels to pixels.  */
 	float gamma, gauss;
-	/** post-production settings. Don't really belong here */
-	float postmul, postgamma, postadd, postigamma;
-
+	/** post-production settings. */
+	float postmul, postgamma, postadd, postigamma, posthue, postsat;
+	
 	/* Dither noise intensity */
 	float dither_intensity;
 	float pad_dither;
@@ -298,6 +300,8 @@ typedef struct Scene {
 #define R_UNIFIED       0x8000
 #define R_RAYTRACE      0x10000
 #define R_GAUSS      	0x20000
+#define R_FBUF			0x40000
+#define R_THREADS		0x80000
 
 /* yafray: renderer flag (not only exclusive to yafray) */
 #define R_INTERN	0
@@ -347,6 +351,7 @@ typedef struct Scene {
 #define R_LAMPHALO		8
 #define R_RENDERING		16
 #define R_ANIMRENDER	32
+#define R_REDRAW_PRV	64
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1

@@ -359,7 +359,7 @@ int main(int argc, char **argv)
 
 		/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
-		/* must be called here because R.winpos from default file */
+		/* init struct R, Osa, defmaterial, filters */
 	RE_init_render_data();
 
 	if(G.background==0) {
@@ -470,8 +470,6 @@ int main(int argc, char **argv)
 	 * on U.pythondir.
 	 */
 	BPY_post_start_python();
-
-	RE_init_filt_mask();
 
 #ifdef WITH_QUICKTIME
 
