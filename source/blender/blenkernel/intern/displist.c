@@ -179,11 +179,18 @@ DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts)
 {
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
 	int i;
+	
+	if (!me->medge) {
+		make_edges(me);
+	}
+
 	dlm->totvert= me->totvert;
+	dlm->totedge= me->totedge;
 	dlm->totface= me->totface;
 	dlm->mvert= MEM_dupallocN(me->mvert);
 	dlm->mcol= me->mcol?MEM_dupallocN(me->mcol):NULL;
 	dlm->tface= me->tface?MEM_dupallocN(me->tface):NULL;
+	dlm->medge= MEM_mallocN(sizeof(*dlm->medge)*dlm->totedge, "dlm->totedge");
 	dlm->mface= MEM_mallocN(sizeof(*dlm->mface)*dlm->totface, "dlm->mface");
 
 	if (extverts) {
@@ -203,6 +210,10 @@ DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts)
 		mfNew->mat_nr= mfOld->mat_nr;
 		mfNew->puno= 0;
 		mfNew->edcode= 0;
+	}
+	for (i=0; i<dlm->totedge; i++) {
+		dlm->medge[i] = me->medge[i];
+		dlm->medge[i].flag |= ME_EDGEDRAW;
 	}
 
 	displistmesh_calc_normals(dlm);
