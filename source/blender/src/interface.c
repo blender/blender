@@ -115,6 +115,7 @@ static uiBut *UIbuttip;
 /* ************* PROTOTYPES ***************** */
 
 static void ui_set_but_val(uiBut *but, double value);
+static void ui_set_ftf_font(uiBlock *block);
 
 /* ****************************** */
 
