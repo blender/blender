@@ -1141,6 +1141,9 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							undo_push_mesh("Mirror");
 							mirrormenu();
 						}
+						else {
+							mirrormenu();
+						}
 					}
 				}
 				else if((G.qual==0)){
