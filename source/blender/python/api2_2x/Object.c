@@ -324,7 +324,7 @@ PyObject *M_Object_Init (void)
 }
 
 /*****************************************************************************/
-/* Python C_Camera methods:                                                  */
+/* Python C_Object methods:                                                  */
 /*****************************************************************************/
 static PyObject *Object_clrParent (C_Object *self, PyObject *args)
 {
@@ -386,7 +386,7 @@ static PyObject *Object_getData (C_Object *self)
             data_object = M_ArmatureCreatePyObject (self->object->data);
             break;
         case ID_CA:
-            data_object = Camera_createPyObject (self->object->data);
+            data_object = Camera_CreatePyObject (self->object->data);
             break;
         case ID_CU:
             data_object = CurveCreatePyObject (self->object->data);
@@ -591,8 +591,8 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
         return (PythonReturnErrorObject (PyExc_AttributeError,
             "expected an object as argument"));
     }
-    if (Camera_checkPyObject (py_data))
-        data = (void*) Camera_fromPyObject (py_data);
+    if (Camera_CheckPyObject (py_data))
+        data = (void*) Camera_FromPyObject (py_data);
     if (Lamp_checkPyObject (py_data))
         data = (void*) Lamp_fromPyObject (py_data);
     /* TODO: add the (N)Mesh check and from functions here when finished. */
@@ -1106,8 +1106,8 @@ static PyObject* ObjectGetAttr (C_Object *obj, char *name)
     if (StringEqual (name, "drawMode"))
         return (Py_BuildValue ("b", object->dtx));
 
-    printf ("Unknown variable.\n");
-    return (Py_None);
+		/* not an attribute, search the methods table */
+    return Py_FindMethod(C_Object_methods, (PyObject *)obj, name);
 }
 
 /*****************************************************************************/

@@ -48,21 +48,20 @@ typedef struct {
 
 } C_Material;
 
-PyTypeObject Material_Type; /* The Image PyType Object */
+PyTypeObject Material_Type; /* The Material PyType Object */
 
 #define C_Material_Check(v) \
-    ((v)->ob_type == &Image_Type) /* for type checking */
+    ((v)->ob_type == &Material_Type) /* for type checking */
 
 /*****************************************************************************/
 /* Module Blender.Material - public functions                                */
 /*****************************************************************************/
 PyObject *M_Material_Init (void);
 PyObject *Material_CreatePyObject (Material *mat);
-int Material_CheckPyObject (PyObject *pyobj);
-
+int       Material_CheckPyObject (PyObject *pyobj);
 
 /* Some functions needed by NMesh.c */
-PyObject *EXPP_PyList_fromMaterialList (Material **matlist, int len);
+PyObject  *EXPP_PyList_fromMaterialList (Material **matlist, int len);
 Material **EXPP_newMaterialList_fromPyList (PyObject *list);
 Material **EXPP_newMaterialList(int len);
 

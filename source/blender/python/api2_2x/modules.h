@@ -71,9 +71,9 @@ PyObject *      M_Material_Init (void);
 
 /* Camera Data */
 PyObject * M_Camera_Init (void);
-PyObject * Camera_createPyObject (struct Camera *cam);
-Camera   * Camera_fromPyObject   (PyObject *pyobj);
-int        Camera_checkPyObject  (PyObject *pyobj);
+PyObject * Camera_CreatePyObject (struct Camera *cam);
+Camera   * Camera_FromPyObject   (PyObject *pyobj);
+int        Camera_CheckPyObject  (PyObject *pyobj);
 
 /* Lamp Data */
 PyObject * M_Lamp_Init (void);
