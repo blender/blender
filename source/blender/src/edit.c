@@ -342,7 +342,6 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	glDrawBuffer(GL_FRONT);
 
 	/* draw circle */
-
 	if(mvalo && no_mvalo==0) {
 		fdrawXORcirc(mvalo[0], mvalo[1], rado);
 	}
@@ -393,15 +392,16 @@ void circle_selectCB(select_CBfunc callback)
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || rado!=rad || firsttime) {
 			firsttime= 0;
 			
+			if(selecting) {
+				callback(selecting, obj, mval, rad);
+			}
+
 			draw_sel_circle(mval, mvalo, rad, rado, selecting);
 		
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
 			rado= rad;
 
-			if(selecting) {
-				callback(selecting, obj, mval, rad);
-			}
 		}
 		event= extern_qread(&val);
 		if (event) {

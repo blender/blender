@@ -72,6 +72,7 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+#include "BIF_glutil.h"
 #include "BIF_gl.h"
 
 #include "BDR_vpaint.h"
@@ -828,9 +829,6 @@ void weight_paint(void)
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
-			if(firsttime) draw_sel_circle(mval, 0, Gvp.size, Gvp.size, 0);
-			else draw_sel_circle(mval, mvalo, Gvp.size, Gvp.size, 0);
-
 			firsttime= 0;
 			
 			/* which faces are involved */
@@ -912,11 +910,16 @@ void weight_paint(void)
 		else BIF_wait_for_statechange();
 		
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-//			makeDispList(ob);
+
 			scrarea_do_windraw(curarea);
+
+			/* draw circle in backbuf! */
+			persp(PERSP_WIN);
+			fdrawXORcirc((float)mval[0], (float)mval[1], Gvp.size);
+			persp(PERSP_VIEW);
+
 			screen_swapbuffers();
 			backdrawview3d(0);
-			draw_sel_circle(mval, 0, Gvp.size, Gvp.size, 0);
 	
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
@@ -927,9 +930,6 @@ void weight_paint(void)
 		MEM_freeN(me->mcol);
 		me->mcol= 0;
 	}
-	
-	/* clear circle */
-	draw_sel_circle(0, mvalo, 0, Gvp.size, 1);
 	
 	makeDispList(ob);
 	
@@ -992,9 +992,6 @@ void vertex_paint()
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
-			if(firsttime) draw_sel_circle(mval, 0, Gvp.size, Gvp.size, 0);
-			else draw_sel_circle(mval, mvalo, Gvp.size, Gvp.size, 0);
-
 			firsttime= 0;
 
 			/* which faces are involved */
@@ -1081,32 +1078,31 @@ void vertex_paint()
 			
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
-		}
-		else BIF_wait_for_statechange();
-		
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			do_shared_vertexcol(me);
 			if(me->tface) {
 				mcol_to_tface(me, 0);
 			}
 	
 			scrarea_do_windraw(curarea);
+
+			/* draw circle in backbuf! */
+			persp(PERSP_WIN);
+			fdrawXORcirc((float)mval[0], (float)mval[1], Gvp.size);
+			persp(PERSP_VIEW);
+
 			screen_swapbuffers();
-			draw_sel_circle(mval, 0, Gvp.size, Gvp.size, 0);
 			backdrawview3d(0);
-	
+			
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
 		}
+		else BIF_wait_for_statechange();
 	}
 	
 	if(me->tface) {
 		MEM_freeN(me->mcol);
 		me->mcol= 0;
 	}
-	
-	/* clear circle */
-	draw_sel_circle(0, mvalo, 0, Gvp.size, 1);
 	
 	allqueue(REDRAWVIEW3D, 0);
 }
