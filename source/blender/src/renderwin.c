@@ -552,8 +552,20 @@ static void renderwin_init_display_cb(void)
 				 * and size we reopen the window all the time... we need
 				 * a ghost _set_position to fix this -zr
 				 */
-			BIF_close_render_display();
-			open_renderwin(renderpos, rendersize);
+				 
+				 /* XXX, well... it is nasty yes, and reopens windows each time on
+				    subsequent renders. Better rule is to make it reopen only only
+				    size change, and use the preferred position only on open_renderwin
+					cases (ton)
+				 */
+			if(rendersize[0]!= win_w || rendersize[1]!= win_h) {
+				BIF_close_render_display();
+				open_renderwin(renderpos, rendersize);
+			}
+			else {
+				window_raise(render_win->win);
+				window_make_active(render_win->win);
+			}
 
 			renderwin_reset_view(render_win);
 			render_win->flags&= ~RW_FLAGS_ESCAPE;
