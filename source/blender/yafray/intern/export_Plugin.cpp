@@ -1272,7 +1272,8 @@ void yafrayPluginRender_t::writePathlight()
 		}
 		float aspect = 1;
 		if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
-		float sbase = 2.0*atan(0.5/(mainCamLens/(aspect*32.0)))/float(R.r.xsch);
+		//float sbase = 2.0*atan(0.5/(mainCamLens/(aspect*32.0)))/float(R.r.xsch);
+		float sbase = 2.0/float(R.r.xsch);
 		params["cache"]=yafray::parameter_t("on");
 		params["use_QMC"]=yafray::parameter_t("on");
 		params["threshold"]=yafray::parameter_t(R.r.GIrefinement);

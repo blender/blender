@@ -1257,7 +1257,8 @@ void yafrayFileRender_t::writePathlight()
 		}
 		float aspect = 1;
 		if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
-		float sbase = 2.0*atan(0.5/(mainCamLens/(aspect*32.0)))/float(R.r.xsch);
+		//float sbase = 2.0*atan(0.5/(mainCamLens/(aspect*32.0)))/float(R.r.xsch);
+		float sbase = 2.0/float(R.r.xsch);
 		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" <<R.r.GIrefinement<<"\""<<endl;
 		ostr << " cache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
 			1.0 - R.r.GIshadowquality << "\" grid=\"82\" search=\"35\" gradient=\"" <<
