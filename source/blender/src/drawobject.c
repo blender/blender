@@ -1038,7 +1038,7 @@ void tekenvertices(short sel)
 	char col[3];
 	
 	/* draws in zbuffer mode twice, to show invisible vertices transparent */
-	
+
 	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	if(sel) BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
 	else BIF_GetThemeColor3ubv(TH_VERTEX, col);
@@ -1745,13 +1745,6 @@ static void drawmeshsolid(Object *ob, float *nors)
 		
 		glDisable(GL_LIGHTING);
 		glShadeModel(GL_FLAT);
-		
-		//if(ob==G.obedit) {
-		//	calc_meshverts();
-		
-		//	tekenvertices(0);
-		//	tekenvertices(1);
-		//}
 	}
 	else {		/* [nors] should never be zero, but is weak code... the displist 
 				   system needs a make over (ton)

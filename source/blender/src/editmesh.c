@@ -1991,72 +1991,6 @@ static EditVert *findnearestvert(short sel)
 	return act;
 }
 
-static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
-{
-	/* hackish routine for visual speed:
-	 * mode 0: deselect the selected ones, draw then, except act
-	 * mode 1: only draw act
-	 */
-	EditVert *eve;
-	
-	if(mode==0) {
-		eve= (EditVert *)G.edve.first;
-		while(eve) {
-			if(eve->h==0) {
-				if(mode==0) {
-					if(eve!=act && eve->f & 1) {
-						eve->f -= 1;
-					}
-				}
-			}
-			eve= eve->next;
-		}
-	}
-
-	if(G.f & (G_FACESELECT|G_DRAWFACES|G_DRAWEDGES)) {
-		/* update full view later on */
-		allqueue(REDRAWVIEW3D, 0);
-	}
-	
-	glDrawBuffer(GL_FRONT);
-
-	/* only this view */
-
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-
-	if(mode==0) {
-		/* zbuffering is off outside of internal drawing loops... */
-		if(G.vd->drawtype > OB_WIRE) {
-			G.zbuf= 1;
-			glEnable(GL_DEPTH_TEST);
-		}
-		tekenvertices(0);
-		glDisable(GL_DEPTH_TEST);
-	}
-	else {
-		/* only draw active vertex */
-		float size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
-		char col[3];
-		
-		if(act->f & 1) BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
-		else BIF_GetThemeColor3ubv(TH_VERTEX, col);
-		glPointSize(size);
-		glColor3ub(col[0], col[1], col[2]);
-	
-		glBegin(GL_POINTS);
-		glVertex3fv(act->co);
-		glEnd();
-	
-		glPointSize(1.0);
-	}
-	
-	myloadmatrix(G.vd->viewmat);
-
-	glFinish();
-	glDrawBuffer(GL_BACK);
-	
-}
 
 static EditEdge *findnearestedge()
 {
@@ -2651,6 +2585,65 @@ void edge_select(void)
 	}
 }
 
+static void draw_vertices_special(int mode, EditVert *act) /* teken = draw */
+{
+	/* (only this view, no other windows) */
+	/* hackish routine for visual speed:
+	 * mode 0: deselect the selected ones, draw then, except act
+	 * mode 1: only draw act
+	 */
+	EditVert *eve;
+	float size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
+	char col[3];
+	
+	glPointSize(size);
+
+	persp(PERSP_VIEW);
+	glPushMatrix();
+	mymultmatrix(G.obedit->obmat);
+
+	if(mode==0) {
+		BIF_GetThemeColor3ubv(TH_VERTEX, col);
+		
+		/* set zbuffer on, its default off outside main drawloops */
+		if(G.vd->drawtype > OB_WIRE) {
+			G.zbuf= 1;
+			glEnable(GL_DEPTH_TEST);
+		}
+
+		glBegin(GL_POINTS);
+		eve= (EditVert *)G.edve.first;
+		while(eve) {
+			if(eve->h==0) {
+				if(eve!=act && (eve->f & 1)) {
+					eve->f -= 1;
+					glVertex3fv(act->co);
+				}
+			}
+			eve= eve->next;
+		}
+		glEnd();
+		
+		glDisable(GL_DEPTH_TEST);
+		G.zbuf= 0;
+	}
+	
+	/* draw active vertex */
+	if(act->f & 1) BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
+	else BIF_GetThemeColor3ubv(TH_VERTEX, col);
+	
+	glColor3ub(col[0], col[1], col[2]);
+
+	glBegin(GL_POINTS);
+	glVertex3fv(act->co);
+	glEnd();
+	
+	glPointSize(1.0);
+	glPopMatrix();
+
+	
+}
+
 void mouse_mesh(void)
 {
 	EditVert *act=0;
@@ -2663,15 +2656,29 @@ void mouse_mesh(void)
 		act= findnearestvert(1);
 		if(act) {
 			
-			if((G.qual & LR_SHIFTKEY)==0) {
-				undo_push_mesh("Vertex select");
-				tekenvertices_special(0, act);
-			}
+			glDrawBuffer(GL_FRONT);
+
 			if( (act->f & 1)==0) act->f+= 1;
 			else if(G.qual & LR_SHIFTKEY) act->f-= 1;
-	
-			tekenvertices_special(1, act);
+
+			if((G.qual & LR_SHIFTKEY)==0) {
+				undo_push_mesh("Vertex select");
+				draw_vertices_special(0, act);
+			}
+			else draw_vertices_special(1, act);
+
 			countall();
+
+			glFinish();
+			glDrawBuffer(GL_BACK);
+			
+			/* signal that frontbuf differs from back */
+			curarea->win_swap= WIN_FRONT_OK;
+			
+			if(G.f & (G_FACESELECT|G_DRAWFACES|G_DRAWEDGES)) {
+				/* update full view later on */
+				allqueue(REDRAWVIEW3D, 0);
+			}
 		}
 	
 		rightmouse_transform();
