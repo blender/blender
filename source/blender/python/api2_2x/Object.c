@@ -1144,21 +1144,6 @@ static PyObject *Object_setDeltaLocation (BPy_Object *self, PyObject *args)
 
 static PyObject *Object_setDrawMode (BPy_Object *self, PyObject *args)
 {
-	char	dt;
-
-	if (!PyArg_ParseTuple (args, "b", &dt))
-	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
-				"expected an integer as argument"));
-	}
-	self->object->dt = dt;
-
-	Py_INCREF (Py_None);
-	return (Py_None);
-}
-
-static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args)
-{ 
 	char	dtx;
 
 	if (!PyArg_ParseTuple (args, "b", &dtx))
@@ -1167,6 +1152,21 @@ static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args)
 				"expected an integer as argument"));
 	}
 	self->object->dtx = dtx;
+
+	Py_INCREF (Py_None);
+	return (Py_None);
+}
+
+static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args)
+{ 
+	char	dt;
+
+	if (!PyArg_ParseTuple (args, "b", &dt))
+	{
+		return (PythonReturnErrorObject (PyExc_AttributeError,
+				"expected an integer as argument"));
+	}
+	self->object->dt = dt;
 
 	Py_INCREF (Py_None);
 	return (Py_None);
