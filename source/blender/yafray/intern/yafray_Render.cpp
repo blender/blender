@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------------------------------
-// YafRay XML export
+// YafRay export
 //
 // For anyone else looking at this, this was designed for a tabspacing of 2 (YafRay/Jandro standard :)
 //----------------------------------------------------------------------------------------------------
@@ -124,13 +124,15 @@ bool yafrayRender_t::getAllMatTexObs()
 		if (vlr->ob) {
 			int nv = 0;	// number of vertices
 			if (vlr->v4) nv=4; else if (vlr->v3) nv=3;
-			if (nv) all_objects[vlr->ob].push_back(vlr);
-			if (vlr->tface) {
-				Image* fc_img = (Image*)vlr->tface->tpage;
-				if (fc_img) {
-					Material* fmat = vlr->mat;
-					// only save if TexFace enabled
-					if (fmat && (fmat->mode & MA_FACETEXTURE)) imagetex[fc_img] = fmat;
+			if (nv) {
+				all_objects[vlr->ob].push_back(vlr);
+				if (vlr->tface) {
+					Image* fc_img = (Image*)vlr->tface->tpage;
+					if (fc_img) {
+						Material* fmat = vlr->mat;
+						// only save if TexFace enabled
+						if (fmat && (fmat->mode & MA_FACETEXTURE)) imagetex[fc_img] = fmat;
+					}
 				}
 			}
 		}
@@ -151,7 +153,7 @@ bool yafrayRender_t::getAllMatTexObs()
 
 		// if the name reference list is empty, return now, something was seriously wrong
 		if (dup_srcob.empty()) {
-		  // error() doesn't work to well, when switching from Blender to console at least, so use stdout instead
+			// error() doesn't work to well, when switching from Blender to console at least, so use stdout instead
 			cout << "ERROR: Duplilist non_empty, but no srcobs\n";
 			return false;
 		}

@@ -1313,7 +1313,7 @@ static void render_panel_yafrayGI()
 			if (G.scene->r.GIpixelspersample==0) G.scene->r.GIpixelspersample=10;
 			uiDefButI(block, NUM, B_DIFF, "Prec:",	5,60,75,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
 			if (G.scene->r.GIrefinement==0) G.scene->r.GIrefinement=1.0;
-			uiDefButF(block, NUM, B_DIFF, "Ref:", 80,60,75,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
+			uiDefButF(block, NUM, B_DIFF, "Ref:", 84,60,75,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
 		}
 		if (G.scene->r.GIphotons) 
 		{

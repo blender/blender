@@ -346,6 +346,10 @@ static string noise2string(short nbtype)
 
 void yafrayPluginRender_t::writeTextures()
 {
+	// used to keep track of images already written
+	// (to avoid duplicates if also in imagetex for material TexFace texture)
+	map<Image*, bool> dupimg;
+
 	string ts;
 	yafray::paramMap_t params;
 	list<yafray::paramMap_t> lparams;
@@ -407,8 +411,9 @@ void yafrayPluginRender_t::writeTextures()
 			{
 				Image* ima = tex->ima;
 				if (ima) {
-					// remove from imagetex list to avoid possible duplicates when TexFace used
-					imagetex.erase(ima);
+					// remember image to avoid duplicates later if also in imagetex
+					// (formerly done by removing from imagetex, but need image/material link)
+					dupimg[ima] = true;
 					params["type"] = yafray::parameter_t("image");
 					params["name"] = yafray::parameter_t(ima->id.name);
 					string texpath = ima->name;
@@ -529,13 +534,16 @@ void yafrayPluginRender_t::writeTextures()
 		for (map<Image*, Material*>::const_iterator imgtex=imagetex.begin();
 					imgtex!=imagetex.end();++imgtex)
 		{
-			params.clear();
-			params["name"] = yafray::parameter_t(imgtex->first->id.name);
-			params["type"] = yafray::parameter_t("image");
-			string texpath(imgtex->first->name);
-			adjustPath(texpath);
-			params["filename"] = yafray::parameter_t(texpath);
-			yafrayGate->addShader(params, lparams);
+			// skip if already written above
+			if (dupimg.find(imgtex->first)==dupimg.end()) {
+				params.clear();
+				params["name"] = yafray::parameter_t(imgtex->first->id.name);
+				params["type"] = yafray::parameter_t("image");
+				string texpath(imgtex->first->name);
+				adjustPath(texpath);
+				params["filename"] = yafray::parameter_t(texpath);
+				yafrayGate->addShader(params, lparams);
+			}
 		}
 	}
 

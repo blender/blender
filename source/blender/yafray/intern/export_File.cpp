@@ -342,6 +342,10 @@ static string noise2string(short nbtype)
 
 void yafrayFileRender_t::writeTextures()
 {
+	// used to keep track of images already written
+	// (to avoid duplicates if also in imagetex for material TexFace texture)
+	map<Image*, bool> dupimg;
+
 	string ts;
 	for (map<string, MTex*>::const_iterator blendtex=used_textures.begin();
 						blendtex!=used_textures.end();++blendtex) {
@@ -489,8 +493,9 @@ void yafrayFileRender_t::writeTextures()
 			case TEX_IMAGE: {
 				Image* ima = tex->ima;
 				if (ima) {
-					// remove from imagetex list to avoid possible duplicates when TexFace used
-					imagetex.erase(ima);
+					// remember image to avoid duplicates later if also in imagetex
+					// (formerly done by removing from imagetex, but need image/material link)
+					dupimg[ima] = true;
 					ostr.str("");
 					// use image name instead of texname here
 					ostr << "<shader type=\"image\" name=\"" << ima->id.name << "\" >\n";
@@ -536,14 +541,17 @@ void yafrayFileRender_t::writeTextures()
 		for (map<Image*, Material*>::const_iterator imgtex=imagetex.begin();
 					imgtex!=imagetex.end();++imgtex)
 		{
-			ostr.str("");
-			ostr << "<shader type=\"image\" name=\"" << imgtex->first->id.name << "\" >\n";
-			ostr << "\t<attributes>\n";
-			string texpath(imgtex->first->name);
-			adjustPath(texpath);
-			ostr << "\t\t<filename value=\"" << texpath << "\" />\n";
-			ostr << "\t</attributes>\n</shader>\n\n";
-			xmlfile << ostr.str();
+			// skip if already written above
+			if (dupimg.find(imgtex->first)==dupimg.end()) {
+				ostr.str("");
+				ostr << "<shader type=\"image\" name=\"" << imgtex->first->id.name << "\" >\n";
+				ostr << "\t<attributes>\n";
+				string texpath(imgtex->first->name);
+				adjustPath(texpath);
+				ostr << "\t\t<filename value=\"" << texpath << "\" />\n";
+				ostr << "\t</attributes>\n</shader>\n\n";
+				xmlfile << ostr.str();
+			}
 		}
 	}
 
