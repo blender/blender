@@ -251,8 +251,6 @@ BuildEdges(
 	vector<BSP_MFace>::iterator f_it_begin = FaceSet().begin();
 	vector<BSP_MFace>::iterator f_it = FaceSet().begin();
 
-	vector<BSP_MVertex> & vertex_set = VertexSet();
-
 	vector<BSP_EdgeInd> dummy;
 
 	for (;f_it != f_it_end; ++f_it) {

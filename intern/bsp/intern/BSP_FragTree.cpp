@@ -65,10 +65,6 @@ New(
 	vector<BSP_MVertex> verts = mesh->VertexSet();
 	const BSP_MFace & f0 = mesh->FaceSet()[0]; 	
 
-	const MT_Vector3 & p1 = verts[f0.m_verts[0]].m_pos;
-	const MT_Vector3 & p2 = verts[f0.m_verts[1]].m_pos;
-	const MT_Vector3 & p3 = verts[f0.m_verts[2]].m_pos;
-		
 	MT_Plane3 plane = f0.m_plane;
 
 	MEM_SmartPtr<BSP_FragTree> output(new BSP_FragTree(mesh));
