@@ -2110,11 +2110,11 @@ static TBitem tb_transform_mirror[]= {
 {  -1, "", 			0, do_view3d_edit_mesh_mirrormenu}};
 
 static TBitem tb_transform_editmode1[]= {
-{	0, "Grab/Move|G", 	0, NULL},
+{	0, "Grab/Move|G", 	'g', NULL},
 {	0, "Grab/Move on Axis| ", 	0, tb_transform_moveaxis},
-{	0, "Rotate|R", 		1, NULL},
+{	0, "Rotate|R", 		'r', NULL},
 {	0, "Rotate on Axis", 	0, tb_transform_rotateaxis},
-{	0, "Scale|S", 		2, NULL},
+{	0, "Scale|S", 		's', NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
 {	0, "Mirror", 	0, tb_transform_mirror},
@@ -2126,7 +2126,7 @@ static TBitem tb_transform_editmode1[]= {
 {	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
 {	0, "Proportional Edit|O", 	'o', 		NULL},
-{  -1, "", 			0, tb_do_transform}};
+{  -1, "", 			0, tb_do_hotkey}};
 
 
 static TBitem tb_transform_editmode2[]= {

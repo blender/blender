@@ -405,6 +405,8 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 
 static void do_ipo_viewmenu(void *arg, int event)
 {
+	extern int play_anim(int mode);
+	
 	switch(event)
 	{
 	case 1:
@@ -425,6 +427,12 @@ static void do_ipo_viewmenu(void *arg, int event)
 	case 5:
 		mainqenter(PADMINUS,1);
 		break;
+	case 6: /* Play Back Animation */
+			play_anim(0);
+			break;
+	case 7: /* Play Back Animation in All */
+			play_anim(1);
+			break;	
 	}
 }
 
@@ -449,6 +457,13 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
@@ -456,8 +471,6 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	if (ei != NULL && (ei->flag & IPO_EDIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	}
-
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,20, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
