@@ -1047,7 +1047,7 @@ def system_libs(env):
 	else:
 		env.Append (LINKFLAGS=user_options_dict['PLATFORM_LINKFLAGS'])
 	if sys.platform == 'win32':
-		env.Append (RES = ['source/icons/winblender.rc'])
+		env.RES(['source/icons/winblender.rc'])
 	env.BuildDir (root_build_dir, '.', duplicate=0)
 
 def buildinfo(env, build_type):
