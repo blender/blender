@@ -586,6 +586,12 @@ static void drawlamp(Object *ob)
 				fdrawbox(-la->area_size*0.5, -la->area_size*0.5, la->area_size*0.5, la->area_size*0.5);
 			else if(la->area_shape==LA_AREA_RECT) 
 				fdrawbox(-la->area_size*0.5, -la->area_sizey*0.5, la->area_size*0.5, la->area_sizey*0.5);
+			setlinestyle(3);
+			glBegin(GL_LINE_STRIP); 
+			glVertex3f(0.0,0.0,0.0);
+			glVertex3f(0.0,0.0,-la->dist);
+			glEnd();
+			setlinestyle(0);
 		}
 		else if(la->mode & LA_SPHERE) {
 
