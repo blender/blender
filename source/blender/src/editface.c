@@ -633,6 +633,7 @@ void uv_autocalc_tface()
 	mode= pupmenu(MENUTITLE("UV Calculation")
 	              MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
 	              MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
+                      MENUSTRING("Sphere",	  UV_SPHERE_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
