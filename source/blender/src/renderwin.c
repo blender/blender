@@ -108,6 +108,8 @@
 */
 #define RW_FLAGS_PIXEL_EXAMINING	(1<<3)
 
+/* forces draw of alpha */
+#define RW_FLAGS_ALPHA		(1<<4)
 
 typedef struct {
 	Window *win;
@@ -259,7 +261,21 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		glRectfv(disprect[0], disprect[1]);
 	} else {
 		glPixelZoom(rw->zoom, rw->zoom);
-		glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, R.rectot);
+		if(rw->flags & RW_FLAGS_ALPHA) {
+			char *rect= (char *)R.rectot;
+			
+			glColorMask(1, 0, 0, 0);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, rect+3);
+			glColorMask(0, 1, 0, 0);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, rect+2);
+			glColorMask(0, 0, 1, 0);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, rect+1);
+			glColorMask(1, 1, 1, 1);
+			
+		}
+		else {
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, R.rectot);
+		}
 		glPixelZoom(1.0, 1.0);
 	}
 	
@@ -393,6 +409,10 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 				rw->active= 0;
 			}
 		} 
+		else if( evt==AKEY) {
+			rw->flags ^= RW_FLAGS_ALPHA;
+			renderwin_queue_redraw(render_win);
+		}
 		else if (evt==JKEY) {
 			if(R.flag==0) BIF_swap_render_rects();
 		} 
@@ -578,6 +598,8 @@ static void renderwin_init_display_cb(void)
 			render_win->flags&= ~RW_FLAGS_ESCAPE;
 			render_win->active= 1;
 		}
+		/* make sure we are in normal draw again */
+		render_win->flags &= ~RW_FLAGS_ALPHA;
 	}
 }
 

@@ -137,6 +137,8 @@
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
 
+#include "PIL_time.h"
+
 #include "BPY_extern.h"
 
 #include "mydevice.h"
