@@ -65,6 +65,7 @@ int HexToIntCp(char **from);
 int Hex5ToInt(byte a, byte b, byte c, byte d, byte e);
 int Hex5ToIntFp(FILE *fh, int *newlinetracker);
 int Hex5ToIntCp(char **from);
+void pub_priv_test(char *HexPriv, char *HexPub);
 int main(int argc, char **argv);
 
 /* keyloader only internal prototypes */
