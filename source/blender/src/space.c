@@ -1220,7 +1220,6 @@ void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceIpo *sipo= curarea->spacedata.first;
 	View2D *v2d= &sipo->v2d;
 	float dx, dy;
@@ -1903,7 +1902,7 @@ void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
+
 	if(val) {
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 
@@ -1942,7 +1941,6 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceButs *sbuts= curarea->spacedata.first;
 	ScrArea *sa2, *sa3d;
 	int doredraw= 0;
@@ -2101,7 +2099,6 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceSeq *sseq= curarea->spacedata.first;
 	View2D *v2d= &sseq->v2d;
 	extern Sequence *last_seq;
@@ -2485,7 +2482,6 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceImage *sima= curarea->spacedata.first;
 	View2D *v2d= &sima->v2d;
 #ifdef NAN_TPT
@@ -2639,7 +2635,6 @@ void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceOops *soops= curarea->spacedata.first;
 	View2D *v2d= &soops->v2d;
 	float dx, dy;

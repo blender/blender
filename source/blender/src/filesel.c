@@ -1178,10 +1178,13 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	}
 
 	menu= fsmenu_build_menu();
-	uiDefButS(block, MENU,	3, menu, scrollrct.xmin, filebuty1, scrollrct.xmax-scrollrct.xmin, 21, &sfile->menu, 0, 0, 0, 0, "");
+	if(menu[0])	// happens when no .Bfs is there, and first time browse
+		uiDefButS(block, MENU,	3, menu, scrollrct.xmin, filebuty1, scrollrct.xmax-scrollrct.xmin, 21, &sfile->menu, 0, 0, 0, 0, "");
 	MEM_freeN(menu);
 
 	uiDefBut(block, BUT,		4, "P", scrollrct.xmin, filebuty2, scrollrct.xmax-scrollrct.xmin, 21, 0, 0, 0, 0, 0, "Move to the parent directory (PKEY)");
+
+	uiDrawBlock(block);
 
 	draw_filescroll(sfile);
 	draw_filetext(sfile);
@@ -1189,7 +1192,6 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	/* others diskfree etc ? */
 	scrarea_queue_headredraw(curarea);	
 	
-	uiDrawBlock(block);
 	
 	curarea->win_swap= WIN_BACK_OK;
 }
