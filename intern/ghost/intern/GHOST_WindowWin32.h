@@ -249,7 +249,7 @@ protected:
 	 */
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
 
-	virtual setWindowCustomCursorShape(
+	virtual GHOST_TSuccess setWindowCustomCursorShape(
 		GHOST_TUns8 *bitmap, 
 		GHOST_TUns8 *mask, 
 		int sizex, 
