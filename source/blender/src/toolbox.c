@@ -75,12 +75,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_gl.h"
-#include "BIF_graphics.h"
-#include "BIF_mainqueue.h"
-#include "BIF_interface.h"
-#include "BIF_toolbox.h"
-#include "BIF_mywindow.h"
+#include "BIF_editnla.h"
 #include "BIF_editarmature.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
@@ -89,11 +84,17 @@
 #include "BIF_editlattice.h"
 #include "BIF_editsima.h"
 #include "BIF_editoops.h"
+#include "BIF_gl.h"
+#include "BIF_graphics.h"
 #include "BIF_imasel.h"
+#include "BIF_mainqueue.h"
+#include "BIF_interface.h"
+#include "BIF_toolbox.h"
+#include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_tbcallback.h"
-#include "BIF_editnla.h"
+#include "BIF_transform.h"
 
 #include "BDR_editobject.h"
 #include "BDR_editcurve.h"
@@ -1987,13 +1988,13 @@ static void tb_do_transform(void *arg, int event)
 	switch(event)
 	{
 		case 0: /* Grab/move */
-			transform('g');
+			Transform(TFM_TRANSLATION);
 			break;
 		case 1: /* Rotate */
-			transform('r');
+			Transform(TFM_ROTATION);
 			break;
 		case 2: /* Scale */
-			transform('s');
+			Transform(TFM_RESIZE);
 			break;
 		case 3: /* transform properties */
 			add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
@@ -2005,7 +2006,7 @@ static void tb_do_transform(void *arg, int event)
 			transform('N');
 			break;
 		case 6: /* Shear */
-			transform('S');
+			Transform(TFM_SHEAR);
 			break;
 		case 7: /* Warp */
 			transform('w');

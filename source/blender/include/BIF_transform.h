@@ -33,7 +33,7 @@
 #ifndef BIF_TRANSFORM_H
 #define BIF_TRANSFORM_H
 
-#define NEWTRANSFORM	1
+// #define NEWTRANSFORM	1
 
 /* ******************** Macros & Prototypes *********************** */
 
@@ -45,6 +45,13 @@
 #define TFM_TOSPHERE		4
 #define TFM_SHEAR			5
 #define TFM_LAMP_ENERGY		6
+
+	// not sure if adding modes is the right way... context detecting could be done different (ton)
+#define TFM_TEX				32
+#define TFM_TEX_TRANSLATION	33
+#define TFM_TEX_ROTATION	34
+#define TFM_TEX_RESIZE		35
+
 
 #define PROP_SHARP		0
 #define PROP_SMOOTH		1

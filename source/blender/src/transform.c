@@ -149,6 +149,55 @@ static int allocTransData(void)
 	return count;
 }
 
+void createTransTexspace(void)
+{
+	TransData *td;
+	Object *ob;
+	ID *id;
+	
+	
+	ob= OBACT;
+	Trans.total = 1;
+	td= Trans.data= MEM_callocN(sizeof(TransData), "TransTexspace");
+	td->ext= MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
+	
+	td->flag= TD_SELECTED;
+	VECCOPY(td->center, ob->obmat[3]);
+	td->ob = ob;
+	
+	Mat3CpyMat4(td->mtx, ob->obmat);
+	Mat3Inv(td->smtx, td->mtx);
+	
+	id= ob->data;
+	if(id==0);
+	else if( GS(id->name)==ID_ME) {
+		Mesh *me= ob->data;
+		me->texflag &= ~AUTOSPACE;
+		td->loc= me->loc;
+		td->ext->rot= me->rot;
+		td->ext->size= me->size;
+	}
+	else if( GS(id->name)==ID_CU) {
+		Curve *cu= ob->data;
+		cu->texflag &= ~CU_AUTOSPACE;
+		td->loc= cu->loc;
+		td->ext->rot= cu->rot;
+		td->ext->size= cu->size;
+	}
+	else if( GS(id->name)==ID_MB) {
+		MetaBall *mb= ob->data;
+		mb->texflag &= ~MB_AUTOSPACE;
+		td->loc= mb->loc;
+		td->ext->rot= mb->rot;
+		td->ext->size= mb->size;
+	}
+	
+	VECCOPY(td->iloc, td->loc);
+	VECCOPY(td->ext->irot, td->ext->rot);
+	VECCOPY(td->ext->isize, td->ext->size);
+}
+
+
 /* ********************* pose mode ************* */
 
 /* callback, make sure it's identical structured as next one */
@@ -1078,9 +1127,13 @@ static void createTransObject(void)
 	}
 }
 
-static void createTransData(void) 
+static void createTransData(TransInfo *t) 
 {
-	if (G.obpose) {
+	if( t->mode & TFM_TEX) {
+		createTransTexspace();
+		t->mode &= ~TFM_TEX;	// now becoming normal grab/rot/scale
+	}
+	else if (G.obpose) {
 		createTransPose();
 	}
 	else if (G.obedit) {
@@ -1142,14 +1195,15 @@ void Transform(int mode)
 	
 	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
-	initTrans(&Trans);					// data, mouse, vectors
+	initTrans(&Trans);					// internal data, mouse, vectors
 
-	createTransData();					// make TransData structs from selection
+	createTransData(&Trans);			// make TransData structs from selection
 
 	if (Trans.total == 0)
 		return;
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
+	/* EVIL2: we gave as argument also texture space context bit... was cleared */
 	mode= Trans.mode;
 	
 	calculatePropRatio(&Trans);
@@ -1281,13 +1335,15 @@ void Transform(int mode)
 					break;
 				case LEFTMOUSE:
 				case RIGHTMOUSE:
-					ret_val = TRANS_CONFIRM;
+					/* commented out, doesn't work for actions started with menu */
+					// ret_val = TRANS_CONFIRM;
 					break;
 				}
 			}
 		}
 	}
-
+	
+	
 	if(ret_val == TRANS_CANCEL) {
 		restoreTransObjects(&Trans);
 	}

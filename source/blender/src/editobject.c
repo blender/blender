@@ -7941,13 +7941,13 @@ void texspace_edit(void)
 	}
 	
 
-	transmode= TRANS_TEX;
+	//transmode= TRANS_TEX;
 	
-	if(nr==1) transform('g');
-	else if(nr==2) transform('s');
-	else if(nr==3) transform('r');
+	if(nr==1) Transform(TFM_TEX_TRANSLATION);
+	else if(nr==2) Transform(TFM_TEX_RESIZE);
+	else if(nr==3) Transform(TFM_TEX_ROTATION);
 	
-	transmode= 0;
+	//transmode= 0;
 }
 
 void first_base(void)
