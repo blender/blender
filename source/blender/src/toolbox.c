@@ -1645,7 +1645,7 @@ static TBitem tb_curve_select[]= {
 {	0, "SEPR", 				0, NULL},
 {	0, "(De)select All|A", 	2, NULL},
 {	0, "Inverse", 			3, NULL},
-{	0, "Row", 			5, NULL},
+{	0, "Row|Shift R", 			5, NULL},
 {  -1, "", 				0, do_view3d_select_curvemenu}};
 
 static TBitem tb__select[]= {
@@ -1661,8 +1661,8 @@ static TBitem tb_edit[]= {
 {  -1, "", 			0, tb_do_hotkey}};
 
 static TBitem tb_curve_edit_seg[]= {
-{	0, "Subdivide", 		0, NULL},
-{	0, "Switch Direction", 	1, NULL},
+{	0, "Subdivide|W, 1", 		0, NULL},
+{	0, "Switch Direction|W, 2", 	1, NULL},
 {  -1, "", 			0, do_view3d_edit_curve_segmentsmenu}};
 
 static TBitem tb_curve_edit_cv[]= {
@@ -1726,10 +1726,10 @@ static TBitem tb_mesh_edit_face[]= {
 
 
 static TBitem tb_mesh_edit_normal[]= {
-{	0, "Recalculate Outside", 	2, 		NULL},
-{	0, "Recalculate Inside", 	1, 		NULL},
+{	0, "Recalculate Outside|Ctrl N", 	2, 		NULL},
+{	0, "Recalculate Inside|Ctrl Shift N", 	1, 		NULL},
 {	0, "SEPR",					0, NULL},
-{	0, "Flip", 				0, 		NULL},
+{	0, "Flip|W, 9", 				0, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_normalsmenu}};
 
 static TBitem tb_mesh_edit[]= {
@@ -1809,7 +1809,7 @@ static TBitem tb_curve_hide[]= {
 static TBitem tb_curve[]= {
 {	0, "Insert Keyframe|I", 		'i', 		NULL},
 {	0, "SEPR", 						0, NULL},
-{	0, "Show/Hide Points", 	0, 		tb_curve_hide},
+{	0, "Show/Hide Control Points", 	0, 		tb_curve_hide},
 {  -1, "", 			0, tb_do_hotkey}};
 
 static TBitem tb_obdata[]= {
@@ -1854,10 +1854,10 @@ static void tb_do_view_dt(void *arg, int event){
 
 static TBitem tb_view_dt[]= {
 {	ICON_BBOX, "Bounding Box", 	1, NULL},
-{	ICON_WIRE, "Wireframe", 	2, NULL},
-{	ICON_SOLID, "Solid", 		3, NULL},
-{	ICON_SMOOTH, "Shaded", 		5, NULL},
-{	ICON_POTATO, "Textured", 	5, NULL},
+{	ICON_WIRE, "Wireframe|Z", 	2, NULL},
+{	ICON_SOLID, "Solid|Z", 		3, NULL},
+{	ICON_SMOOTH, "Shaded|Ctrl Z", 		4, NULL},
+{	ICON_POTATO, "Textured|Alt Z", 	5, NULL},
 {  -1, "", 			0, tb_do_view_dt}};
 
 static TBitem tb_view_alignview[]= {
@@ -1937,9 +1937,9 @@ static void tb_do_transform_clearapply(void *arg, int event)
 }
 
 static TBitem tb_transform_clearapply[]= {
-{	0, "Clear Location", 		0, NULL},
-{	0, "Clear Rotation", 		1, NULL},
-{	0, "Clear Size", 			2, NULL},
+{	0, "Clear Location|Alt G", 		0, NULL},
+{	0, "Clear Rotation|Alt R", 		1, NULL},
+{	0, "Clear Size|Alt S", 			2, NULL},
 {	0, "SEPR", 					0, NULL},
 {	0, "Apply Size/Rotation|Ctrl A", 3, NULL},
 {	0, "Apply Deformation|Shift Ctrl A", 4, NULL},
@@ -2207,7 +2207,7 @@ void toolbox_n(void)
 				menu5= tb_transform_editmode1;
 			}
 			else if(G.obedit->type==OB_SURF) {
-				menu1= tb_obdata; str1= "Surface";
+				menu1= tb_curve; str1= "Surface";
 				menu2= addmenu_surf; 
 				menu3= tb_curve_select;
 				menu4= tb_curve_edit;
