@@ -49,25 +49,15 @@
 #include "BKE_utildefines.h" /* FILE_MAXDIR + FILE_MAXFILE */
 
 int BLI_getInstallationDir( char * str ) {
-	LONG lresult;
-	HKEY hkey = 0;
-	LONG type;
-	char buffer[FILE_MAXDIR+FILE_MAXFILE];
-	DWORD size;
+	char dir[FILE_MAXDIR];
+	char file[FILE_MAXFILE];
 	
-	size = sizeof(buffer);
-
-	lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation\\Blender", 0, 
-		KEY_ALL_ACCESS, &hkey);
-
-	if (lresult == ERROR_SUCCESS) {
-		lresult = RegQueryValueEx(hkey, "Inst_Dir", 0, NULL, (LPBYTE)buffer, &size);
-		strcpy(str, buffer);
-		RegCloseKey(hkey);
-		return 1;
-	}
-	else
-		return 0;
+	GetModuleFileName(NULL,str,FILE_MAXDIR+FILE_MAXFILE);
+	BLI_split_dirfile(str,dir,file);
+	
+	strcpy(str,dir);
+	
+	return 1;
 }
 
 
@@ -75,21 +65,8 @@ void RegisterBlendExtension(char * str) {
 	LONG lresult;
 	HKEY hkey = 0;
 	DWORD dwd = 0;
-	char *dir;
 	char buffer[128];
 	
-	/* Add installation dir to registry --aphex */
-
-	strncpy(dir, str, strlen(str)-11);
-
-	lresult = RegCreateKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\BlenderFoundation\\Blender", 0, 
-		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
-
-	if (lresult == ERROR_SUCCESS) {
-		lresult = RegSetValueEx(hkey, "Inst_Dir", 0, REG_SZ, dir, strlen(dir)+1);
-		RegCloseKey(hkey);
-	}
-
 	lresult = RegCreateKeyEx(HKEY_CLASSES_ROOT, "blendfile\\shell\\open\\command", 0,
 		"", REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
 
