@@ -139,6 +139,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Effect.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\euler.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\EXPP_interface.c
 # End Source File
 # Begin Source File
@@ -171,6 +175,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Material.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Mathutils.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\matrix.c
 # End Source File
 # Begin Source File
@@ -192,6 +200,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Object.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Particle.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\quat.c
 # End Source File
 # Begin Source File
 
@@ -299,6 +311,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Effect.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\euler.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\EXPP_interface.h
 # End Source File
 # Begin Source File
@@ -331,6 +347,14 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Material.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Mathutils.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\matrix.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Metaball.h
 # End Source File
 # Begin Source File
@@ -352,6 +376,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Object.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Particle.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\quat.h
 # End Source File
 # Begin Source File
 
