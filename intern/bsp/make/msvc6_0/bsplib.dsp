@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /Ob2 /I "../../../../../lib/windows/memutil/include" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /Ob2 /I "../../../../../lib/windows/memutil/include" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /I"..\..\..\container" /I"..\..\..\moto\include" /I"..\..\..\memutil" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x413 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -70,7 +70,7 @@ PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\.
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/memutil" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /I "../../../../../lib/windows/memutil/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/memutil" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /I "../../../../../lib/windows/memutil/include" /I"..\..\..\container" /I"..\..\..\moto\include" /I"..\..\..\memutil" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
 BSC32=bscmake.exe
