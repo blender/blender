@@ -64,8 +64,8 @@ else
     CPPFLAGS += -I../../../../gameengine/SoundSystem/SND_Dummy
 endif
 
-CPPFLAGS += -I../../../../sumo/Fuzzics/include
-CPPFLAGS += -I../../../../sumo/include
+CPPFLAGS += -I$(NAN_FUZZICS)/include
+CPPFLAGS += -I$(NAN_SUMO)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
 
