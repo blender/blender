@@ -50,8 +50,6 @@ void helpline(float *vec);
 void drawaxes(float size);
 void drawcamera(struct Object *ob);
 
-extern int subsurf_optimal(struct Object *ob);
-
 void calc_mesh_facedots_ext(void);
 void calc_lattverts_ext(void);
 void calc_meshverts_ext(void);
