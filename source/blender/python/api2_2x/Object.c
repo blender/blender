@@ -56,6 +56,8 @@
 #include "DNA_oops_types.h" 
 #include "DNA_space_types.h"
 
+#include <string.h>
+
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
 /*****************************************************************************/
@@ -131,6 +133,8 @@ static PyObject *Object_makeDisplayList( BPy_Object * self );
 static PyObject *Object_link( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParent( BPy_Object * self, PyObject * args );
 static PyObject *Object_materialUsage( BPy_Object * self, PyObject * args );
+static PyObject *Object_getDupliVerts ( BPy_Object * self );
+
 static PyObject *Object_setDeltaLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setDrawMode( BPy_Object * self, PyObject * args );
 static PyObject *Object_setDrawType( BPy_Object * self, PyObject * args );
@@ -155,9 +159,7 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearScriptLinks( BPy_Object * self );
-/* fixme: save for separate commit. 06-mar-05
-static PyObject *Object_setDupliVerts ( BPy_Object * self );
-*/
+static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args );
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
 /*****************************************************************************/
@@ -224,6 +226,8 @@ automatic when the script finishes."},
 	 "Returns type of string of Object"},
 	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_NOARGS,
 	 "Returns the object's bounding box"},
+	{"getDupliVerts", ( PyCFunction ) Object_getDupliVerts,
+	 METH_NOARGS, "Returns state of duplicates propertie"},
 	{"makeDisplayList", ( PyCFunction ) Object_makeDisplayList,
 	 METH_NOARGS,
 	 "Update this object's Display List. Some changes like turning \n\
@@ -313,12 +317,8 @@ works only if self and the object specified are of the same type."},
 	{"clearScriptLinks", ( PyCFunction ) Object_clearScriptLinks,
 	 METH_NOARGS,
 	 "() - Delete all scriptlinks from this object."},
-#if 0
-/* fixme:save for separate commit. 6-mar-05 stivs */
 	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
-	 METH_NOARGS,
-	 "() - setDupliVerts."},
-#endif
+	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2019,23 +2019,27 @@ static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args )
 		return NULL;
 }
 
-#if 0
+static PyObject *Object_getDupliVerts ( BPy_Object * self ) {
+	if (self->object->transflag & OB_DUPLIVERTS)
+		return EXPP_incr_ret_True ();
+	else
+		return EXPP_incr_ret_False();
+}
 
-/* fixme: save this for next commit 6-mar-05 stivs */
-
-/****
- * Set dupliverts 
- * 
- ***/
-
-static PyObject *Object_setDupliVerts ( BPy_Object * self ) {
-	Object *obj = self->object;
-	if (obj) {
-		obj->transflag|= (char)16;
+static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args ) {
+	int setting= NULL;
+	if( !PyArg_ParseTuple( args, "i", &setting ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a string") );
+	}
+	if (self && self->object) {
+		if (setting)
+			self->object->transflag |= OB_DUPLIVERTS;
+		else 
+			self->object->transflag &= ~OB_DUPLIVERTS;
 	}
 	return Py_None;
 }
-#endif
 
 /*****************************************************************************/
 /* Function:	Object_CreatePyObject					 */
@@ -2518,3 +2522,4 @@ static PyObject *Object_repr( BPy_Object * self )
 	return PyString_FromFormat( "[Object \"%s\"]",
 				    self->object->id.name + 2 );
 }
+
