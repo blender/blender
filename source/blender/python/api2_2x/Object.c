@@ -698,9 +698,6 @@ static PyObject *Object_getEuler (BPy_Object *self)
 static PyObject *Object_getInverseMatrix (BPy_Object *self)
 {
     float     inverse[4][4];
-    Object  * ob;
-
-    ob = self->object;
 
     Mat4Invert (inverse, self->object->obmat);
 
@@ -1363,7 +1360,7 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
     if (StringEqual (name, "drawMode"))
         return (Py_BuildValue ("b", object->dtx));
     if (StringEqual (name, "name"))
-        return (Py_BuildValue ("s", object->id.name));
+        return (Py_BuildValue ("s", object->id.name+2));
 
     /* not an attribute, search the methods table */
     return Py_FindMethod(BPy_Object_methods, (PyObject *)obj, name);
