@@ -1,5 +1,5 @@
 /*
- *
+ * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -206,27 +206,45 @@ BezTriple_setPoints (C_BezTriple * self, PyObject * args)
   int i;
   struct BezTriple *bezt = self->beztriple;
   PyObject *popo = 0;
+
   if (!PyArg_ParseTuple (args, "O", &popo))
     return (EXPP_ReturnPyObjError
-	    (PyExc_TypeError, "expected tuple argument"));
+	    (PyExc_TypeError, "expected sequence argument"));
+
   if (PySequence_Check (popo) == 0)
     {
-      puts ("error in   BezTriple_setPoints");
+      puts ("error in BezTriple_setPoints - expected sequence");
       Py_INCREF (Py_None);
       return Py_None;
     }
+
+  {
+    /*
+       some debug stuff 
+       this will become an overloaded args check
+     */
+    int size = PySequence_Size (popo);
+    printf ("\n dbg: sequence size is %d\n", size);
+  }
+
   for (i = 0; i < 2; i++)
     {
-      PyObject *o = PySequence_GetItem( popo, i );
-      if( !o )
-	printf("\n bad o. o no!\n");
+      PyObject *o = PySequence_GetItem (popo, i);
+      if (!o)
+	printf ("\n bad o. o no!\n");
 
-	       /*      bezt->vec[1][i] = PyFloat_AsDouble (PyTuple_GetItem (popo, i));*/
-      bezt->vec[1][i] = PyFloat_AsDouble ( o );
+      /*   bezt->vec[1][i] = PyFloat_AsDouble (PyTuple_GetItem (popo, i)); */
+      bezt->vec[1][i] = PyFloat_AsDouble (o);
       bezt->vec[0][i] = bezt->vec[1][i] - 1;
       bezt->vec[2][i] = bezt->vec[1][i] + 1;
     }
 
+  /* experimental fussing with handles - ipo.c: calchandles_ipocurve */
+  if (bezt->vec[0][0] > bezt->vec[1][0])
+    bezt->vec[0][0] = bezt->vec[1][0];
+
+  if (bezt->vec[2][0] < bezt->vec[1][0])
+    bezt->vec[2][0] = bezt->vec[1][0];
 
   Py_INCREF (Py_None);
   return Py_None;
@@ -259,9 +277,21 @@ BezTripleGetAttr (C_BezTriple * self, char *name)
 static int
 BezTripleSetAttr (C_BezTriple * self, char *name, PyObject * value)
 {
+#if 0
+  /*
+     this does not work at the moment:  Wed Apr  7  2004
+     when the necessary code to make pt act like a sequence is
+     available, it will be reenabled
+   */
+
   if (strcmp (name, "pt") == 0)
     BezTriple_setPoints (self, value);
+
   return 0;			/* normal exit */
+#endif
+
+  return (EXPP_ReturnIntError (PyExc_AttributeError,
+			       "cannot set a read-only attribute"));
 }
 
 /*****************************************************************************/

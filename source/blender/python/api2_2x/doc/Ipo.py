@@ -260,22 +260,22 @@ class BezTriple:
   """
   The BezTriple object
   ====================
-  This object gives access to generic data from all beztriple objects in Blender.
-  @cvar name: The Curve Data name.
-  @cvar bezierPoints : The list of the Bezier points.
+  This object gives access to generic data from all beztriple objects in Blender.  If an attribute is listed as being 'read-only' that means you cannot write to it.  Use the set*() methods instead.
+  @cvar pt : a list of the [x,y] coordinates for knot point of this BezTriple.  read-only.
+  @cvar vec : a list of the 3 points [ handle, knot, handle ] that comprise a BezTriple.  See the getTriple() method for an example of the format.  read-only.
   """
 
   def getPoints():
     """
-		Returns the xy coordinates of the Bezier point.
+		Returns the xy coordinates of the Bezier knot point.
 		@rtype: list of floats
 		@return: list of the x and y coordinates of the Bezier point.
     """
 
   def setPoints(newval):
     """
-		Sets the point xy coordinates.
-		@type newval: tuple of (at least) 2 floats
+		Sets the point xy coordinates of the Bezier knot point.
+		@type newval: tuple of 2 floats
 		@param newval: the x and y coordinates of the new Bezier point.
 		@rtype: PyNone
 		@return: PyNone
