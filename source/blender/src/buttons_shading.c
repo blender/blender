@@ -2291,8 +2291,8 @@ static void material_panel_shading(Material *ma)
 		
 		/* default shading variables */
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, 0, "RayMir ",			9,55,154,19, &(ma->ray_mirror), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
-		uiDefButS(block, NUM, 0, "Depth:",				163,55,80,19, &(ma->ray_depth), 0.0, 6.0, 0, 0, "Sets the amount of light the material emits");
+		uiDefButF(block, NUMSLI, 0, "RayMir ",			9,55,154,19, &(ma->ray_mirror), 0.0, 1.0, 0, 0, "Sets the amount mirror reflection for raytrace");
+		uiDefButS(block, NUM, 0, "Depth:",				163,55,80,19, &(ma->ray_depth), 0.0, 6.0, 0, 0, "Amount of inter-reflections calculated maximal ");
 		uiBlockEndAlign(block);
 		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,30,117,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		133,30,110,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
