@@ -459,7 +459,7 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 							float mtime;
 							
 							where_is_particle(paf, pa, pa->time, vec1);
-							mtime= pa->time+pa->lifetime+paf->staticstep-1;
+							mtime= pa->time+pa->lifetime;
 							
 							for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
 								newob= new_dupli_object(&duplilist, ob, par);
@@ -470,11 +470,11 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 								/* to give ipos in object correct offset */
 								where_is_object_time(newob, ctime-pa->time);
 
-								where_is_particle(paf, pa, ctime-0.5, vec);	// makes sure there's always a vec
+								where_is_particle(paf, pa, ctime, vec);	// makes sure there's always a vec
 								Mat4MulVecfl(par->obmat, vec);
 								
 								if(paf->stype==PAF_VECT) {
-									where_is_particle(paf, pa, ctime+0.5, vec1); // makes sure there's always a vec
+									where_is_particle(paf, pa, ctime+1.0, vec1); // makes sure there's always a vec
 									Mat4MulVecfl(par->obmat, vec1);
 
 									VecSubf(vec1, vec1, vec);

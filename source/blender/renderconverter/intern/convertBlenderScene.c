@@ -1285,12 +1285,9 @@ static void init_render_mesh(Object *ob)
 
 	paf = give_parteff(ob);
 	if(paf) {
-		mesh_modifier(ob, 's');
-		
+		/* warning; build_particle_system does modifier calls itself */
 		if(paf->flag & PAF_STATIC) render_static_particle_system(ob, paf);
 		else render_particle_system(ob, paf);
-		
-		mesh_modifier(ob, 'e');  // end
 		return;
 	}
 

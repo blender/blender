@@ -53,22 +53,23 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 
-#include "BKE_utildefines.h"
+#include "BKE_action.h"
 #include "BKE_bad_level_calls.h"
-#include "BKE_global.h"
-#include "BKE_material.h"
-#include "BKE_effect.h"
-#include "BKE_key.h"
-#include "BKE_ipo.h"
-#include "BKE_screen.h"
-#include "BKE_main.h"
 #include "BKE_blender.h"
-#include "BKE_object.h"
+#include "BKE_constraint.h"
+#include "BKE_deform.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
-#include "BKE_action.h"
-#include "BKE_constraint.h"
+#include "BKE_material.h"
+#include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -286,6 +287,7 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 	/* first find the first particlekey */
 	a= (int)((paf->totkey-1)*(ctime-pa->time)/pa->lifetime);
 	if(a>=paf->totkey) a= paf->totkey-1;
+	else if(a<0) a= 0;
 	
 	pa+= a;
 	
@@ -1132,7 +1134,7 @@ void build_particle_system(Object *ob)
 	int armature_parent;
 	float framelenont, ftime, dtime, force[3], imat[3][3], vec[3];
 	float fac, prevobmat[4][4], sfraont, co[3];
-	int deform=0, a, b, c, cur, cfraont, cfralast, totpart;
+	int deform=0, a, cur, cfraont, cfralast, totpart;
 	short no[3];
 
 	if(ob->type!=OB_MESH) return;
@@ -1150,6 +1152,9 @@ void build_particle_system(Object *ob)
 	waitcursor(1);
 
 	disable_speed_curve(1);
+	
+	/* warning! we cannot call this when modifier is active! */
+	mesh_modifier(ob, 's');
 
 	/* generate all particles */
 	if(paf->keys) MEM_freeN(paf->keys);
@@ -1235,24 +1240,29 @@ void build_particle_system(Object *ob)
 	
 	/* init */
 	give_mesh_mvert(me, totpart, co, no, paf->seed);
-
-	printf("\n");
-	printf("Calculating particles......... \n");
-
+	
+	if(G.f & G_DEBUG) {
+		printf("\n");
+		printf("Calculating particles......... \n");
+	}
 	for(a=0; a<totpart; a++, ftime+=dtime) {
 		
 		pa= new_particle(paf);
 		pa->time= ftime;
 		
-		c = totpart/100;
-		if (c==0){
-			c = 1;
-		}
+		if(G.f & G_DEBUG) {
+			int b, c;
+			
+			c = totpart/100;
+			if (c==0){
+				c = 1;
+			}
 
-		b=(a%c);
-		if (b==0) {
-			printf("\r Particle: %d / %d ", a, totpart);
-			fflush(stdout);
+			b=(a%c);
+			if (b==0) {
+				printf("\r Particle: %d / %d ", a, totpart);
+				fflush(stdout);
+			}
 		}
 		/* set ob at correct time */
 		
@@ -1334,9 +1344,10 @@ void build_particle_system(Object *ob)
 		make_particle_keys(0, a, paf, pa, force, deform, mtexmove, ob->lay);
 	}
 	
-	printf("\r Particle: %d / %d \n", totpart, totpart);
-	fflush(stdout);
-	
+	if(G.f & G_DEBUG) {
+		printf("\r Particle: %d / %d \n", totpart, totpart);
+		fflush(stdout);
+	}	
 	if(deform) end_latt_deform();
 		
 	/* restore */
@@ -1373,6 +1384,8 @@ void build_particle_system(Object *ob)
 
 	if(ma) do_mat_ipo(ma);	// set back on current time
 	disable_speed_curve(0);
+	
+	mesh_modifier(ob, 'e');
 
 	waitcursor(0);
 
