@@ -351,12 +351,6 @@ Package=<4>
     Project_Dep_Name BLI_blenlib
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name SND_sound
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name SND_Dummy
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name SND_OpenAL
     End Project Dependency
     Begin Project Dependency
@@ -441,9 +435,6 @@ Package=<4>
     Project_Dep_Name SG_SceneGraph
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name SND_sound
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name SYS_system
     End Project Dependency
     Begin Project Dependency
@@ -466,9 +457,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BLO_writestreamglue_stub
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name SND_Dummy
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name SND_OpenAL
@@ -645,42 +633,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SND_Dummy"="..\gameengine\sound\dummy\SND_Dummy.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "SND_openal"="..\gameengine\sound\openal\SND_openal.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "SND_sound"="..\gameengine\sound\SND_sound.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "SYS_system"="..\kernel\system\SYS_system.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -793,12 +745,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name SG_SceneGraph
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name SND_Dummy
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name SND_sound
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name SYS_system

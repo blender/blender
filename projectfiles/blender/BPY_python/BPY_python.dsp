@@ -91,6 +91,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Armature.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\BezTriple.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\BGL.c
 # End Source File
 # Begin Source File
@@ -144,6 +148,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Image.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Ipo.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Ipocurve.c
 # End Source File
 # Begin Source File
 
@@ -219,6 +227,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Armature.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\BezTriple.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\BGL.h
 # End Source File
 # Begin Source File
@@ -276,6 +288,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Image.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Ipo.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Ipocurve.h
 # End Source File
 # Begin Source File
 
