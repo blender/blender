@@ -1131,7 +1131,6 @@ void build_particle_system(Object *ob)
 	MVert *mvert;
 	MTex *mtexmove=0;
 	Material *ma;
-	int armature_parent;
 	float framelenont, ftime, dtime, force[3], imat[3][3], vec[3];
 	float fac, prevobmat[4][4], sfraont, co[3];
 	int deform=0, a, cur, cfraont, cfralast, totpart;
@@ -1199,16 +1198,9 @@ void build_particle_system(Object *ob)
 	/* set it all at first frame */
 	G.scene->r.cfra= cfralast= (int)floor(ftime);
 	par= ob;
-	armature_parent = 0;
 	while(par) {
 		/* do_ob_ipo(par); */
 		do_ob_key(par);
-		/* Just checking whether theres an armature in the */
-		/* parent chain of the emitter, so we know whether */
-		/* to recalculate the armatures */
-		if(par->type==OB_ARMATURE) {
-			armature_parent = 1;
-		}
 		par= par->parent;
 	}
 	
@@ -1274,12 +1266,6 @@ void build_particle_system(Object *ob)
 	
 				/* added later: blur? */
 				bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
-				
-				/* Update the armatures */
-				if (armature_parent) {
-					do_all_actions();
-					rebuild_all_armature_displists();
-				}
 
 				par= ob;
 				while(par) {
@@ -1355,13 +1341,6 @@ void build_particle_system(Object *ob)
 	G.scene->r.framelen= framelenont;
 	give_mesh_mvert(0, 0, 0, 0,paf->seed);
 
-	/*Restore armature settings*/
-	if((paf->flag & PAF_STATIC)==0) {
-		if (armature_parent) {
-			do_all_actions();
-			rebuild_all_armature_displists();
-		}
-	}
 	/* put hierarchy back */
 	par= ob;
 	while(par) {
