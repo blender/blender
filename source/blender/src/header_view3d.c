@@ -3363,8 +3363,8 @@ static char *around_pup(void)
 	strcat(string, "|3D Cursor %x1");
 	strcat(string, "|Individual Object Centers %x2");
 	strcat(string, "|%l");
-	strcat(string, "|Median Point, only Ob Centers %x4");
-	strcat(string, "|3D Cursor, only Ob Centers %x5");
+	strcat(string, "|Median Point (Only Object Centers) %x4");
+	strcat(string, "|3D Cursor (Only Object Centers) %x5");
 	return (string);
 }
 

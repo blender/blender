@@ -1467,7 +1467,12 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
-	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
+	
+	if (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
+		if(uiNewPanel(curarea, block, "Paint", "View3d", 10, 230, 318, 204)==0) return;
+	} else {
+		if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
+	}
 	
 	if((G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
 		uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 18.0, 0, 0, "");
