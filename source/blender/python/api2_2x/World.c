@@ -687,12 +687,38 @@ return (py_obj->ob_type == &World_Type);
 }
 
 
-struct World* World_FromPyObject (PyObject *py_obj)
+World* World_FromPyObject (PyObject *py_obj)
 {
  BPy_World    * blen_obj;
 
     blen_obj = (BPy_World*)py_obj;
     return (blen_obj->world);
 
+}
+
+/*****************************************************************************/
+/* Description: Returns the object with the name specified by the argument   */
+/*              name. Note that the calling function has to remove the first */
+/*              two characters of the object name. These two characters      */
+/*              specify the type of the object (OB, ME, WO, ...)             */
+/*              The function will return NULL when no object with the given  */
+/*              name is found.                                               */
+/*****************************************************************************/
+World * GetWorldByName (char * name)
+{
+	World	* world_iter;
+
+	world_iter = G.main->world.first;
+	while (world_iter)
+	{
+		if (StringEqual (name, GetIdName (&(world_iter->id))))
+		{
+			return (world_iter);
+		}
+		world_iter = world_iter->id.next;
+	}
+
+	/* There is no object with the given name */
+	return (NULL);
 }
 

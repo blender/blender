@@ -1253,6 +1253,32 @@ struct Object* Object_FromPyObject (PyObject *py_obj)
 }
 
 /*****************************************************************************/
+/* Description: Returns the object with the name specified by the argument   */
+/*              name. Note that the calling function has to remove the first */
+/*              two characters of the object name. These two characters      */
+/*              specify the type of the object (OB, ME, WO, ...)             */
+/*              The function will return NULL when no object with the given  */
+/*              name is found.                                               */
+/*****************************************************************************/
+Object * GetObjectByName (char * name)
+{
+	Object	* obj_iter;
+
+	obj_iter = G.main->object.first;
+	while (obj_iter)
+	{
+		if (StringEqual (name, GetIdName (&(obj_iter->id))))
+		{
+			return (obj_iter);
+		}
+		obj_iter = obj_iter->id.next;
+	}
+
+	/* There is no object with the given name */
+	return (NULL);
+}
+
+/*****************************************************************************/
 /* Function:    Object_dealloc                                               */
 /* Description: This is a callback function for the BlenObject type. It is   */
 /*              the destructor function.                                     */
@@ -1351,13 +1377,15 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
     if (StringEqual (name, "Layer"))
 			return (PyInt_FromLong(object->lay));
     if (StringEqual (name, "parent"))
-			if (object->parent)
-        return (Object_CreatePyObject (object->parent));
-			else 
-				{
-					Py_INCREF (Py_None);
-					return (Py_None);
-				}
+    {
+        if (object->parent)
+            return (Object_CreatePyObject (object->parent));
+        else 
+		{
+			Py_INCREF (Py_None);
+			return (Py_None);
+		}
+    }
 
     if (StringEqual (name, "track"))
 			return (Object_CreatePyObject (object->track));
@@ -1371,7 +1399,9 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
             /* However, if there's already some kind of reference in the */
             /* Python object, we also need to free that one. */
             if (obj->ipo != NULL)
+            {
                 Py_DECREF (obj->ipo);
+            }
 
             /* There's no ipo, so this needs to be NULL always. */
             obj->ipo = NULL;
@@ -1612,3 +1642,4 @@ static PyObject *Object_repr (BPy_Object *self)
 {
   return PyString_FromFormat("[Object \"%s\"]", self->object->id.name+2);
 }
+

@@ -79,10 +79,14 @@ ScriptLink * setScriptLinks(ID *id, short event)
   ScriptLink  * scriptlink;
   PyObject    * link;
   Object      * object;
+  Lamp        * lamp;
+  Camera      * camera;
+  Material    * material;
+  Scene       * scene;
+  World       * world;
   int           obj_id;
 
   obj_id = MAKE_ID2 (id->name[0], id->name[1]);
-  //printf ("In setScriptLinks (id=%s, event=%d)\n",id->name, event);
 
   switch (obj_id)
   {
@@ -96,29 +100,49 @@ ScriptLink * setScriptLinks(ID *id, short event)
       scriptlink = &(object->scriptlink);
       break;
     case ID_LA:
-      scriptlink = NULL;
-      Py_INCREF(Py_None);
-      link = Py_None;
+      lamp = GetLampByName (GetIdName (id));
+      if (lamp == NULL)
+      {
+          return NULL;
+      }
+      link = Lamp_CreatePyObject (lamp);
+      scriptlink = &(lamp->scriptlink);
       break;
     case ID_CA:
-      scriptlink = NULL;
-      Py_INCREF(Py_None);
-      link = Py_None;
+      camera = GetCameraByName (GetIdName (id));
+      if (camera == NULL)
+      {
+          return NULL;
+      }
+      link = Camera_CreatePyObject (camera);
+      scriptlink = &(camera->scriptlink);
       break;
     case ID_MA:
-      scriptlink = NULL;
-      Py_INCREF(Py_None);
-      link = Py_None;
+      material = GetMaterialByName (GetIdName (id));
+      if (material == NULL)
+      {
+          return NULL;
+      }
+      link = Material_CreatePyObject (material);
+      scriptlink = &(material->scriptlink);
       break;
     case ID_WO:
-      scriptlink = NULL;
-      Py_INCREF(Py_None);
-      link = Py_None;
+      world = GetWorldByName (GetIdName (id));
+      if (world == NULL)
+      {
+          return NULL;
+      }
+      link = World_CreatePyObject (world);
+      scriptlink = &(world->scriptlink);
       break;
     case ID_SCE:
-      scriptlink = NULL;
-      Py_INCREF(Py_None);
-      link = Py_None;
+      scene = GetSceneByName (GetIdName (id));
+      if (scene == NULL)
+      {
+          return NULL;
+      }
+      link = Scene_CreatePyObject (scene);
+      scriptlink = &(scene->scriptlink);
       break;
     default:
       //Py_INCREF(Py_None);
@@ -131,9 +155,9 @@ ScriptLink * setScriptLinks(ID *id, short event)
   if (scriptlink == NULL)
   {
     /* This is probably not an internal error anymore :)
-TODO: Check this
+TODO: Check this */
     printf ("Internal error, unable to create PyBlock for script link\n");
-    */
+
     Py_INCREF(Py_False);
     PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
     return NULL;

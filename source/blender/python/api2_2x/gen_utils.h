@@ -63,10 +63,4 @@ int EXPP_ReturnIntError (PyObject *type, char *error_msg);
 int EXPP_check_sequence_consistency (PyObject *seq, PyTypeObject *against);
 PyObject *EXPP_tuple_repr(PyObject *self, int size);
 
-/* The following functions may need to be moved to the respective BKE or */
-/* DNA modules. */
-
-struct Object * GetObjectByName (char * name);
-
-
 #endif /* EXPP_gen_utils_h */

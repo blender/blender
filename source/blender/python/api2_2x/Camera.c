@@ -218,6 +218,32 @@ Camera *Camera_FromPyObject (PyObject *pyobj)
 }
 
 /*****************************************************************************/
+/* Description: Returns the object with the name specified by the argument   */
+/*              name. Note that the calling function has to remove the first */
+/*              two characters of the object name. These two characters      */
+/*              specify the type of the object (OB, ME, WO, ...)             */
+/*              The function will return NULL when no object with the given  */
+/*              name is found.                                               */
+/*****************************************************************************/
+Camera * GetCameraByName (char * name)
+{
+	Camera	* cam_iter;
+
+	cam_iter = G.main->camera.first;
+	while (cam_iter)
+	{
+		if (StringEqual (name, GetIdName (&(cam_iter->id))))
+		{
+			return (cam_iter);
+		}
+		cam_iter = cam_iter->id.next;
+	}
+
+	/* There is no camera with the given name */
+	return (NULL);
+}
+
+/*****************************************************************************/
 /* Python BPy_Camera methods:                                                */
 /*****************************************************************************/
 static PyObject *Camera_getName(BPy_Camera *self)

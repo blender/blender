@@ -290,6 +290,32 @@ Lamp *Lamp_FromPyObject (PyObject *pyobj)
 }
 
 /*****************************************************************************/
+/* Description: Returns the lamp with the name specified by the argument     */
+/*              name. Note that the calling function has to remove the first */
+/*              two characters of the lamp name. These two characters        */
+/*              specify the type of the object (OB, ME, WO, ...)             */
+/*              The function will return NULL when no lamp with the given    */
+/*              name is found.                                               */
+/*****************************************************************************/
+Lamp * GetLampByName (char * name)
+{
+	Lamp    * lamp_iter;
+
+    lamp_iter = G.main->lamp.first;
+	while (lamp_iter)
+	{
+		if (StringEqual (name, GetIdName (&(lamp_iter->id))))
+		{
+			return lamp_iter;
+		}
+		lamp_iter = lamp_iter->id.next;
+	}
+
+	/* There is no lamp with the given name */
+	return NULL;
+}
+
+/*****************************************************************************/
 /* Python BPy_Lamp methods:                                                  */
 /*****************************************************************************/
 static PyObject *Lamp_getName(BPy_Lamp *self)

@@ -584,6 +584,32 @@ int Material_CheckPyObject (PyObject *pyobj)
 }
 
 /*****************************************************************************/
+/* Description: Returns the object with the name specified by the argument   */
+/*              name. Note that the calling function has to remove the first */
+/*              two characters of the object name. These two characters      */
+/*              specify the type of the object (OB, ME, WO, ...)             */
+/*              The function will return NULL when no object with the given  */
+/*              name is found.                                               */
+/*****************************************************************************/
+Material * GetMaterialByName (char * name)
+{
+	Material	* mat_iter;
+
+	mat_iter = G.main->mat.first;
+	while (mat_iter)
+	{
+		if (StringEqual (name, GetIdName (&(mat_iter->id))))
+		{
+			return (mat_iter);
+		}
+		mat_iter = mat_iter->id.next;
+	}
+
+	/* There is no material with the given name */
+	return (NULL);
+}
+
+/*****************************************************************************/
 /* Python BPy_Material methods:                                                */
 /*****************************************************************************/
 static PyObject *Material_getName(BPy_Material *self)

@@ -46,6 +46,7 @@
 #include <DNA_meta_types.h>
 #include <DNA_image_types.h>
 #include <DNA_text_types.h>
+#include <DNA_world_types.h>
 
 /*****************************************************************************/
 /* Global variables                                                          */
@@ -67,12 +68,14 @@ PyObject * Object_Init (void);
 PyObject * Object_CreatePyObject (struct Object *obj);
 Object   * Object_FromPyObject (PyObject *py_obj);
 int        Object_CheckPyObject (PyObject *py_obj);
+Object   * GetObjectByName (char * name);
 
 /* Scene */
 PyObject * Scene_Init (void);
 PyObject * Scene_CreatePyObject (struct Scene *sce);
 Scene    * Scene_FromPyObject   (PyObject *pyobj);
 int        Scene_CheckPyObject  (PyObject *pyobj);
+Scene    * GetSceneByName (char * name);
 
 /* Types */
 PyObject * Types_Init (void);
@@ -93,18 +96,21 @@ int        EXPP_releaseMaterialList (Material **matlist, int len);
 int        EXPP_synchronizeMaterialLists (Object *object, void *data);
 void       EXPP_incr_mats_us (Material **matlist, int len);
 PyObject * EXPP_PyList_fromMaterialList(Material **matlist, int len);
+Material * GetMaterialByName (char * name);
 
 /* Camera Data */
 PyObject * Camera_Init (void);
 PyObject * Camera_CreatePyObject (struct Camera *cam);
 Camera   * Camera_FromPyObject   (PyObject *pyobj);
 int        Camera_CheckPyObject  (PyObject *pyobj);
+Camera   * GetCameraByName (char * name);
 
 /* Lamp Data */
 PyObject * Lamp_Init (void);
 PyObject * Lamp_CreatePyObject (struct Lamp *lamp);
 Lamp     * Lamp_FromPyObject   (PyObject *pyobj);
 int        Lamp_CheckPyObject  (PyObject *pyobj);
+Lamp     * GetLampByName (char * name);
 
 /* Curve Data */
 PyObject * Curve_Init (void);
@@ -154,10 +160,16 @@ int        Image_CheckPyObject (PyObject *pyobj);
 PyObject * Text_Init (void);
 PyObject * Text_CreatePyObject (Text *txt);
 
+/* World */
+PyObject * World_Init (void);
+PyObject * World_CreatePyObject (struct World *world);
+int        World_CheckPyObject (PyObject *py_obj);
+World    * World_FromPyObject (PyObject *py_obj);
+World    * GetWorldByName (char * name);
+
 /* Init functions for other modules */
 PyObject * Window_Init (void);
 PyObject * Draw_Init (void);
 PyObject * BGL_Init (void);
-PyObject * World_Init (void);
 
 #endif /* EXPP_modules_h */

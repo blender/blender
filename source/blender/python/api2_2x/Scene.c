@@ -364,6 +364,32 @@ Scene *Scene_FromPyObject (PyObject *pyobj)
 }
 
 /*****************************************************************************/
+/* Description: Returns the object with the name specified by the argument   */
+/*              name. Note that the calling function has to remove the first */
+/*              two characters of the object name. These two characters      */
+/*              specify the type of the object (OB, ME, WO, ...)             */
+/*              The function will return NULL when no object with the given  */
+/*              name is found.                                               */
+/*****************************************************************************/
+Scene * GetSceneByName (char * name)
+{
+	Scene	* scene_iter;
+
+	scene_iter = G.main->scene.first;
+	while (scene_iter)
+	{
+		if (StringEqual (name, GetIdName (&(scene_iter->id))))
+		{
+			return (scene_iter);
+		}
+		scene_iter = scene_iter->id.next;
+	}
+
+	/* There is no object with the given name */
+	return (NULL);
+}
+
+/*****************************************************************************/
 /* Python BPy_Scene methods:                                                 */
 /*****************************************************************************/
 static PyObject *Scene_getName(BPy_Scene *self)

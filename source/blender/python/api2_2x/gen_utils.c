@@ -143,32 +143,6 @@ char * event_to_name(short event)
 }	
 
 /*****************************************************************************/
-/* Description: Returns the object with the name specified by the argument   */
-/*              name. Note that the calling function has to remove the first */
-/*              two characters of the object name. These two characters      */
-/*              specify the type of the object (OB, ME, WO, ...)             */
-/*              The function will return NULL when no object with the given  */
-/*              name is found.                                               */
-/*****************************************************************************/
-struct Object * GetObjectByName (char * name)
-{
-	Object	* obj_iter;
-
-	obj_iter = G.main->object.first;
-	while (obj_iter)
-	{
-		if (StringEqual (name, GetIdName (&(obj_iter->id))))
-		{
-			return (obj_iter);
-		}
-		obj_iter = obj_iter->id.next;
-	}
-
-	/* There is no object with the given name */
-	return (NULL);
-}
-
-/*****************************************************************************/
 /* Description: Checks whether all objects in a PySequence are of a same     */
 /*              given type.  Returns 0 if not, 1 on success.                 */
 /*****************************************************************************/

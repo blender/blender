@@ -96,7 +96,6 @@ PyObject *blender_import(PyObject *self, PyObject *args);
 /*****************************************************************************/
 void BPY_start_python(void)
 {
-  //printf ("In BPY_start_python\n");
 /* TODO: Shouldn't "blender" be replaced by PACKAGE ?? (config.h) */
   Py_SetProgramName("blender");
 
@@ -116,7 +115,6 @@ void BPY_start_python(void)
 /*****************************************************************************/
 void BPY_end_python(void)
 {
-  //printf ("In BPY_end_python\n");
   Py_Finalize();
   return;
 }
@@ -214,7 +212,6 @@ void BPY_syspath_append_pythondir(void)
 /*****************************************************************************/
 int BPY_Err_getLinenumber(void)
 {
-  //printf ("In BPY_Err_getLinenumber\n");
   return g_script_error.lineno;
 }
 
@@ -223,7 +220,6 @@ int BPY_Err_getLinenumber(void)
 /*****************************************************************************/
 const char *BPY_Err_getFilename(void)
 {
-  //printf ("In BPY_Err_getFilename\n");
   return g_script_error.filename;
 }
 
@@ -321,8 +317,6 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
   PyObject *dict, *ret;
   PyObject *main_dict = PyModule_GetDict(PyImport_AddModule("__main__"));
 
-  //printf ("\nIn BPY_txt_do_python\n");
-
   if (!st->text) return NULL;
 
 /* The EXPP_releaseGlobalDict global variable controls whether we should run
@@ -401,7 +395,6 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 /*****************************************************************************/
 void BPY_free_compiled_text(struct Text* text)
 {
-  //printf ("In BPY_free_compiled_text\n");
   if (!text->compiled) return;
   Py_DECREF((PyObject*) text->compiled);
   text->compiled = NULL;
@@ -419,7 +412,6 @@ void BPY_free_compiled_text(struct Text* text)
 /*****************************************************************************/
 void BPY_clear_bad_scriptlinks(struct Text *byebye)
 {
-  //printf ("In BPY_clear_bad_scriptlinks\n");
 /*
   BPY_clear_bad_scriptlist(getObjectList(), byebye);
   BPY_clear_bad_scriptlist(getLampList(), byebye);
@@ -441,8 +433,6 @@ void BPY_clear_bad_scriptlinks(struct Text *byebye)
 /*****************************************************************************/
 void BPY_do_all_scripts(short event)
 {
-  /*printf ("In BPY_do_all_scripts(event=%d)\n",event);*/
-
   DoAllScriptsFromList (&(G.main->object), event);
   DoAllScriptsFromList (&(G.main->lamp), event);
   DoAllScriptsFromList (&(G.main->camera), event);
@@ -468,16 +458,12 @@ void BPY_do_pyscript(struct ID *id, short event)
   PyObject    * dict;
   PyObject    * ret;
 
-  /*printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);*/
-
   scriptlink = setScriptLinks (id, event);
 
   if (scriptlink == NULL) return;
 
   for (index = 0; index < scriptlink->totscript; index++)
   {
-    /*printf ("scriptnr: %d\tevent=%d, flag[index]=%d\n", index,
-			event, scriptlink->flag[index]);*/
     if ((scriptlink->flag[index] == event) &&
         (scriptlink->scripts[index] != NULL))
     {
@@ -507,8 +493,6 @@ void BPY_do_pyscript(struct ID *id, short event)
 /*****************************************************************************/
 void BPY_free_scriptlink(struct ScriptLink *slink)
 {
-  //printf ("In BPY_free_scriptlink\n");
-
   if (slink->totscript) {
     if(slink->flag) MEM_freeN(slink->flag);
     if(slink->scripts) MEM_freeN(slink->scripts); 
@@ -524,8 +508,6 @@ void BPY_free_scriptlink(struct ScriptLink *slink)
 void BPY_copy_scriptlink(struct ScriptLink *scriptlink)
 {
   void *tmp;
-
-  //printf ("In BPY_copy_scriptlink\n");
 
   if (scriptlink->totscript) {
 
@@ -565,8 +547,6 @@ int BPY_call_importloader(char *name)
 PyObject * RunPython(Text *text, PyObject *globaldict)
 {
   char *buf = NULL;
-
-  printf("Run Python script \"%s\" ...\n", GetName(text));
 
 /* The script text is compiled to Python bytecode and saved at text->compiled
  * to speed-up execution if the user executes the script multiple times */
