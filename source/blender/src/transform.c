@@ -1256,6 +1256,9 @@ void Transform(int mode)
 	case TFM_SHEAR:
 		initShear(&Trans);
 		break;
+	case TFM_WARP:
+		initWarp(&Trans);
+		break;
 	}
 
 	// Emptying event queue
@@ -1291,6 +1294,12 @@ void Transform(int mode)
 
 			if(val) {
 				switch (event){
+					// enforce redraw of transform when modifiers are used
+				case LEFTCTRLKEY:
+				case RIGHTCTRLKEY:
+					Trans.redraw = 1;
+					break;
+					
 				case MIDDLEMOUSE:
 					initSelectConstraint(&Trans);
 					Trans.redraw = 1;
@@ -1461,36 +1470,116 @@ void Transform(int mode)
 
 /* ************************** WRAP *************************** */
 
-void initWrap(TransInfo *t) 
+/* warp is done fully in view space */
+void initWarp(TransInfo *t) 
 {
-	float min[3], max[3], loc[3];
+	float max[3], min[3];
 	int i;
+	
 	calculateCenterCursor(t);
+	t->idx_max = 0;
 	t->num.idx_max = 0;
-	t->transform = Wrap;
-
+	t->transform = Warp;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 5.0f;
+	t->snap[2] = 1.0f;
+	
+	t->fac = (float)(t->center2d[0] - t->imval[0]);
+	
+	/* we need min/max in view space */
 	for(i = 0; i < t->total; i++) {
-		VECCOPY(loc, t->data[i].iloc);
-		if (G.obedit) {
-			Mat4MulVecfl(G.obedit->obmat, loc);
-		}
-		Mat4MulVecfl(G.vd->viewmat, loc);
-		if (i) {
-			MinMax3(min, max, loc);
-		}
+		if (i)
+			MinMax3(min, max, t->data[i].center);
 		else {
-			VECCOPY(max, loc);
-			VECCOPY(min, loc);
+			VECCOPY(max, t->data[i].center);
+			VECCOPY(min, t->data[i].center);
 		}
 	}
-
-
-	t->fac = (float)(t->center2d[0] - t->imval[0]);
+	Mat4MulVecfl(G.obedit->obmat, min);
+	Mat4MulVecfl(G.vd->viewmat, min);
+	Mat4MulVecfl(G.obedit->obmat, max);
+	Mat4MulVecfl(G.vd->viewmat, max);
+	
+	t->center[0]= (min[0]+max[0])/2.0;
+	t->center[1]= (min[1]+max[1])/2.0;
+	t->center[2]= (min[2]+max[2])/2.0;
+	
+	t->val= (max[0]-min[0])/2.0;	// t->val is free variable
+	
+	Mat4Invert(G.obedit->imat, G.obedit->obmat);
 }
 
 
-int Wrap(TransInfo *t, short mval[2])
+int Warp(TransInfo *t, short mval[2])
 {
+	TransData *td = t->data;
+	float vec[3], circumfac, dist, phi0, co, si, *curs, cursor[3];
+	int i;
+	char str[50];
+	
+	curs= give_cursor();
+	VECCOPY(cursor, curs);
+	Mat4MulVecfl(G.vd->viewmat, cursor);
+	
+	// amount of degrees for warp, 450 = allow to create 360 degree warp
+	circumfac= 450.0*(mval[1] - t->imval[1]) / (float)(curarea->winy);
+	circumfac+= 90.0;
+
+	snapGrid(t, &circumfac);
+	applyNumInput(&t->num, &circumfac);
+	
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+		
+		outputNumInput(&(t->num), c);
+		
+		sprintf(str, "Warp: %s", c);
+	}
+	else {
+		/* default header print */
+		sprintf(str, "Warp: %.3f", circumfac);
+	}
+	
+	circumfac*= -M_PI/360.0;
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			continue;
+		else {
+			/* translate point to centre, rotate in such a way that outline==distance */
+			
+			VECCOPY(vec, td->iloc);
+			Mat4MulVecfl(G.obedit->obmat, vec);
+			Mat4MulVecfl(G.vd->viewmat, vec);
+			
+			dist= vec[0]-cursor[0];
+			
+			phi0= (circumfac*dist/t->val);	// t->val is X dimension projected boundbox
+			
+			vec[0]= (-cursor[0]);
+			vec[1]= (vec[1]-cursor[1]);
+			
+			co= cos(phi0);
+			si= sin(phi0);
+			td->loc[0]= co*vec[0]-si*vec[1]+cursor[0];
+			td->loc[1]= si*vec[0]+co*vec[1]+cursor[1];
+			td->loc[2]= vec[2];
+			
+			Mat4MulVecfl(G.vd->viewinv, td->loc);
+			Mat4MulVecfl(G.obedit->imat, td->loc);
+			
+		}
+	}
+
+	recalcData(t);
+	
+	headerprint(str);
+	
+	force_draw(0);
+	
+	helpline(curs);
+	
 	return 1;
 }
 
@@ -1509,12 +1598,12 @@ void initShear(TransInfo *t)
 
 int Shear(TransInfo *t, short mval[2]) 
 {
+	TransData *td = t->data;
 	float vec[3];
 	float smat[3][3], tmat[3][3], totmat[3][3], persmat[3][3], persinv[3][3];
 	float value;
 	int i;
 	char str[50];
-	TransData *td = t->data;
 
 	Mat3CpyMat4(persmat, G.vd->viewmat);
 	Mat3Inv(persinv, persmat);

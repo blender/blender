@@ -164,8 +164,8 @@ typedef struct TransInfo {
 
 void Transform(int mode);
 
-void initWrap(TransInfo *t);
-int Wrap(TransInfo *t, short mval[2]);
+void initWarp(TransInfo *t);
+int Warp(TransInfo *t, short mval[2]);
 
 void initShear(TransInfo *t);
 int Shear(TransInfo *t, short mval[2]);

@@ -1613,7 +1613,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case WKEY:
 				if((G.qual==LR_SHIFTKEY)) {
+#ifdef NEWTRANSFORM
+					if(G.obedit) Transform(TFM_WARP);
+#else
 					transform('w');
+#endif
 				}
 				else if(G.qual==LR_ALTKEY) {
 					/* if(G.obedit && G.obedit->type==OB_MESH) write_videoscape(); */
