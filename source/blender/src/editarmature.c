@@ -683,7 +683,7 @@ void delete_armature(void)
 	EditBone	*curBone, *next;
 	
 	TEST_EDITARMATURE;
-	if(okee("Erase selected armature")==0) return;
+	if(okee("Erase selected bone")==0) return;
 	
 	for (curBone=G.edbo.first;curBone;curBone=next){
 		next=curBone->next;
