@@ -428,10 +428,20 @@ static void draw_bgpic(void)
 
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	 
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	
 	glaDefine2DArea(&curarea->winrct);
 	glPixelZoom(zoomx, zoomy);
 	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, bgpic->rect);
 	glPixelZoom(1.0, 1.0);
+	
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
