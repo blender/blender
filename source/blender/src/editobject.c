@@ -5305,8 +5305,7 @@ void transform(int mode)
 						if(tv->nor) {
 							dot= tv->nor[0]*dvecp[0] + tv->nor[1]*dvecp[1] + tv->nor[2]*dvecp[2];
 							apply_keyb_grid(&dot, 0.0, G.vd->grid, 0.1*G.vd->grid, gridflag & USER_AUTOGRABGRID);
-							dvec[0] = dot;
-							dvec[1] = dvec[2] = 0.0;
+							/* do not change dvec here, for d_dvec (hold shift) to keep working */
 						}
 					}
 
@@ -5359,9 +5358,9 @@ void transform(int mode)
 
 					if(mode=='n' && tv->nor) {
 						if (typemode)
-							sprintf(str, "D: >%.4f< Along faces normal", dvec[0]);
+							sprintf(str, "D: >%.4f< Along faces normal", dot);
 						else
-							sprintf(str, "D: %.4f Along faces normal", dvec[0]);
+							sprintf(str, "D: %.4f Along faces normal", dot);
 					}
 					else {
 						if (typemode){
