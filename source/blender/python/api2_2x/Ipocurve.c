@@ -348,7 +348,7 @@ IpoCurve_getName (C_IpoCurve * self)
     "RotX","RotY","RotZ","dRotX","dRotY","dRotZ","SizeX","SizeY","SizeZ",
     "dSizeX","dSizeY","dSizeZ","Layer","Time","ColR","ColG","ColB","ColA"};
     
-  const char * ac_nametab[5] = {"QuatW", "QuatX", "QuatY", "QuatZ","TotIpo"};
+  const char * ac_nametab[5] = {"QuatW", "QuatX", "QuatY", "QuatZ"};
   
   switch (objectType) {
   case ID_OB: {
@@ -370,9 +370,6 @@ IpoCurve_getName (C_IpoCurve * self)
     
     case 25: case 26: case 27: case 28:
       return PyString_FromString(ac_nametab[trackType-25]);
-      break;
-    case 10:
-      return PyString_FromString(ac_nametab[4]);
       break;
     default:
       return PyString_FromString("Index out of range");
