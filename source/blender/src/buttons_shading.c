@@ -2042,7 +2042,7 @@ static void material_panel_texture(Material *ma)
 	MTex *mtex;
 	ID *id;
 	int loos;
-	int a, xco;
+	int a;
 	char str[64], *strp;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
@@ -2050,22 +2050,31 @@ static void material_panel_texture(Material *ma)
 
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
-	xco= 665;
+
 	for(a= 0; a<8; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
 		str[10]= 0;
 		uiDefButC(block, ROW, B_MATPRV_DRAW, str,	10, 180-22*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
-		xco+= 65;
 	}
+
+	/* SEPTEX */
+	uiBlockSetCol(block, TH_AUTO);
 	
+	for(a= 0; a<8; a++) {
+		mtex= ma->mtex[a];
+		if(mtex && mtex->tex) {
+			if(ma->septex & (1<<a)) strcpy(str, "Off");
+			else strcpy(str, "On");
+			uiDefButC(block, TOG|BIT|a, B_MATPRV_DRAW, str,	-24, 180-22*a, 32, 20, &ma->septex, 0.0, 0.0, 0, 0, "Disable or enable this channel");
+		}
+	}
 	
 	uiDefIconBut(block, BUT, B_MTEXCOPY, ICON_COPYUP,	100,180,23,21, 0, 0, 0, 0, 0, "Copy the mapping settings to the buffer");
 	uiDefIconBut(block, BUT, B_MTEXPASTE, ICON_PASTEUP,	125,180,23,21, 0, 0, 0, 0, 0, "Paste the mapping settings from the buffer");
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButC(block, TOG, B_MATPRV, "SepTex", 		160, 180, 100, 20, &(ma->septex), 0, 0, 0, 0, "Render only use active texture channel");
 	
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==0) {
@@ -2095,6 +2104,9 @@ static void material_panel_texture(Material *ma)
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEAR, "Clear", 122, 130, 72, 20, 0, 0, 0, 0, 0, "Erase link to datablock");
 	}
+	
+	// force no centering
+	uiDefBut(block, LABEL, 0, " ", 250, 10, 25, 20, 0, 0, 0, 0, 0, "");
 	
 	uiBlockSetCol(block, TH_AUTO);
 }

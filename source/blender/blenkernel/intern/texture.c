@@ -1333,17 +1333,18 @@ void do_material_tex()
 	Tex *tex;
 	float *co = NULL, *dx = NULL, *dy = NULL, fact, 
 		facm, factt, facmm, facmul = 0.0, stencilTin=1.0;
-	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3];
+	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], Tnor=1.0;
 	int tex_nr, rgbnor= 0;
 
 	/* here: test flag if there's a tex (todo) */
 	
 	mat_col=mat_colspec=mat_colmir=mat_ref=mat_spec=mat_har=mat_emit=mat_alpha= R.mat;
 	
-	tex_nr= 0;
-	if(R.mat->septex) tex_nr= R.mat->texact;
-	
-	for(; tex_nr<8; tex_nr++) {
+	for(tex_nr=0; tex_nr<8; tex_nr++) {
+		
+		/* separate tex switching */
+		if(R.mat->septex & (1<<tex_nr)) continue;
+		
 		if(R.mat->mtex[tex_nr]) {
 			mtex= R.mat->mtex[tex_nr];
 			
@@ -1505,6 +1506,7 @@ void do_material_tex()
 			}
 			else {
 				if(rgbnor & TEX_RGB) Ta*= stencilTin;
+				else if(rgbnor & TEX_NOR) Tnor*= stencilTin;
 				else Tin*= stencilTin;
 			}
 
@@ -1614,9 +1616,9 @@ void do_material_tex()
 					if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
 
-					R.vn[0]+= tex->norfac*tex->nor[0];
-					R.vn[1]+= tex->norfac*tex->nor[1];
-					R.vn[2]+= tex->norfac*tex->nor[2];
+					R.vn[0]+= Tnor*tex->norfac*tex->nor[0];
+					R.vn[1]+= Tnor*tex->norfac*tex->nor[1];
+					R.vn[2]+= Tnor*tex->norfac*tex->nor[2];
 					
 					Normalise(R.vn);
 					
