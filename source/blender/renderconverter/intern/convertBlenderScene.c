@@ -2428,7 +2428,6 @@ static void init_render_curve(Object *ob)
 
 	while(dl) {
 		if(dl->type==DL_INDEX3) {
-
 			startvert= R.totvert;
 			data= dl->verts;
 
@@ -2437,13 +2436,17 @@ static void init_render_curve(Object *ob)
 			n[2]= ob->imat[2][2];
 			Normalise(n);
 
+			/* copy first, rotate later for comparision trick */
 			for(a=0; a<dl->nr; a++, data+=3) {
-
 				ver= RE_findOrAddVert(R.totvert++);
 				VECCOPY(ver->co, data);
-				MTC_Mat4MulVecfl(mat, ver->co);
 
-				VECCOPY(ver->n, n);
+				if(vlr->v1->co[2] < 0.0) {
+					VECCOPY(vlr->n, n);
+				}
+				else {
+					vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
+				}
 			}
 
 			startvlak= R.totvlak;
@@ -2455,16 +2458,29 @@ static void init_render_curve(Object *ob)
 				vlr->v1= RE_findOrAddVert(startvert+index[0]);
 				vlr->v2= RE_findOrAddVert(startvert+index[1]);
 				vlr->v3= RE_findOrAddVert(startvert+index[2]);
-				vlr->v4= 0;
-
-				VECCOPY(vlr->n, n);
-
+				vlr->v4= NULL;
+				
+				if(vlr->v1->co[2] < 0.0) {
+					VECCOPY(vlr->n, n);
+				}
+				else {
+					vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
+				}
+				
 				vlr->mat= matar[ dl->col ];
 				vlr->flag= 0;
+				if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
+					vlr->flag |= R_NOPUNOFLIP;
+				}
 				vlr->ec= 0;
 				vlr->lay= ob->lay;
 			}
-
+			/* rotate verts */
+			for(a=0; a<dl->nr; a++, data+=3) {
+				ver= RE_findOrAddVert(startvert+a);
+				MTC_Mat4MulVecfl(mat, ver->co);
+			}
+			
 		}
 		dl= dl->next;
 	}
