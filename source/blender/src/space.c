@@ -2128,8 +2128,13 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	fac= ((float)curarea->winx)/1280.0f;
-	myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
+	if(curarea->winx<=1280.0) {
+		fac= ((float)curarea->winx)/1280.0f;
+		myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
+	}
+	else {
+		myortho2(0.0, (float)curarea->winx, 0.0, (float)curarea->winy);
+	}
 	
 	sprintf(naam, "infowin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->win);
