@@ -41,6 +41,9 @@
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
 #endif
 
 #include "MEM_guardedalloc.h"
