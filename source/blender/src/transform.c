@@ -1232,6 +1232,7 @@ static void createTransData(TransInfo *t)
 	}
 	else if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
+			if(t->mode==TFM_SHRINKFATTEN) vertexnormals(0);
 			createTransEditVerts();	
    		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
@@ -2618,7 +2619,7 @@ int Translation(TransInfo *t, short mval[2])
 
 void initShrinkFatten(TransInfo *t) 
 {
-	if (G.obedit->type != OB_MESH) {
+	if (G.obedit==NULL || G.obedit->type != OB_MESH) {
 		initTransModeFlags(t, TFM_RESIZE);
 		initResize(t);
 		return;
