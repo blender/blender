@@ -172,6 +172,8 @@ int BIF_read_homefile(void)
 	BIF_InitTheme();	// sets default again
 
 	if (success) {
+		mainwindow_set_filename_to_title(tstr);
+
 		G.save_over = 0;
 
 		/*  disable autoplay in .B.blend... */
