@@ -3740,13 +3740,13 @@ int my_clock(void)
 	return (int)ftime;
 }
 
-#define XROT		0x01
-#define YROT		0x02
-#define ZROT		0x04
-#define ROTLOCAL	0x80
-#define XROTLOCAL	(XROT|ROTLOCAL)
-#define YROTLOCAL	(YROT|ROTLOCAL)
-#define ZROTLOCAL	(ZROT|ROTLOCAL)
+#define XTRANS		0x01
+#define YTRANS		0x02
+#define ZTRANS		0x04
+#define TRANSLOCAL	0x80
+#define XTRANSLOCAL	(XTRANS|TRANSLOCAL)
+#define YTRANSLOCAL	(YTRANS|TRANSLOCAL)
+#define ZTRANSLOCAL	(ZTRANS|TRANSLOCAL)
 
 void view_editmove(unsigned char event)
 {
@@ -3824,7 +3824,17 @@ char *transform_mode_to_string(int mode)
        }
 }
 
-void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
+/* 
+'g' 'G' -> Grab / Grab with PET
+'r' 'R' -> Rotate / Rotate with PET
+'s' 'C' -> Scale / Scale with PET
+'S'		-> Shear
+'t'		-> Tilt
+'w'		-> Warp
+'N'		-> Shrink/Fatten
+'V'		-> Snap vertice
+*/
+void transform(int mode)
 {
 	short canceled = 0;
 	TransOb *tob;
@@ -3836,12 +3846,32 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 	float *curs, dx1, dx2, dy1, dy2, eul[3], quat[4], rot[3], phi0, phi1, deler, rad = 0.0;
 	float sizefac, size[3], sizelo[3], smat[3][3], xref=1.0, yref=1.0, zref= 1.0;
 	float si, co, dist, startomtrekfac = 0.0, omtrekfac, oldval[3];
-	int rotmode=0, time, fast=0, a, midtog=0, firsttime=1, proj= 0, fout= 0, cameragrab= 0, gridflag;
+	int axismode=0, time, fast=0, a, midtog=0, firsttime=1, proj= 0, fout= 0, cameragrab= 0, gridflag;
 	unsigned short event=0;
 	short mval[2], afbreek=0, doit, xn, yn, xc, yc, xo, yo = 0, val;
 	char str[100];
 	int	keyflags = 0;
 		
+	if (mode % 'x' == 0)
+		axismode = XTRANSLOCAL;
+	else if (mode % 'X' == 0)
+		axismode = XTRANS;
+	else if (mode % 'y' == 0)
+		axismode = YTRANSLOCAL;
+	else if (mode % 'Y' == 0)
+		axismode = YTRANS;
+	else if (mode % 'z' == 0)
+		axismode = ZTRANSLOCAL;
+	else if (mode % 'Z' == 0)
+		axismode = ZTRANS;
+	
+	if (mode % 'g' == 0)
+		mode = 'g';
+	else if (mode % 'r' == 0)
+		mode = 'r';
+	else if (mode % 's' == 0)
+		mode = 's';
+
 	if(G.obedit && (G.f & G_PROPORTIONAL)) {
 		if(mode=='g') mode= 'G';
 		if(mode=='r') mode= 'R';
@@ -4198,11 +4228,11 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 							dy1= dy2;
 							oldval[2]= phi;
 							doit= 1;
-							if(rotmode) {
+							if(axismode) {
 
-								if(rotmode==XROT) vec[0]= -1.0; else vec[0]= 0.0;
-								if(rotmode==YROT) vec[1]= 1.0; else vec[1]= 0.0;
-								if(rotmode==ZROT) vec[2]= -1.0; else vec[2]= 0.0;
+								if(axismode==XTRANS) vec[0]= -1.0; else vec[0]= 0.0;
+								if(axismode==YTRANS) vec[1]= 1.0; else vec[1]= 0.0;
+								if(axismode==ZTRANS) vec[2]= -1.0; else vec[2]= 0.0;
 							
 								VecRotToMat3(vec, phi, mat);
 							}
@@ -4226,19 +4256,19 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 						
 							/* Roll around local axis */
 							if (mode=='r' || mode=='R'){
-								if (tob && rotmode){
-									if (rotmode == XROTLOCAL){ 
+								if (tob && axismode){
+									if (axismode == XTRANSLOCAL){ 
 										VECCOPY(vec, tob->axismat[0]);
 									}
-									if (rotmode == YROTLOCAL){
+									if (axismode == YTRANSLOCAL){
 										VECCOPY(vec, tob->axismat[1]);
 									}
-									if (rotmode == ZROTLOCAL){
+									if (axismode == ZTRANSLOCAL){
 										VECCOPY(vec, tob->axismat[2]);
 									}
 									
 									/* Correct the vector */
-									if ((rotmode & ROTLOCAL) && ((G.vd->viewmat[0][2] * vec[0]+G.vd->viewmat[1][2] * vec[1]+G.vd->viewmat[2][2] * vec[2])>0)){
+									if ((axismode & TRANSLOCAL) && ((G.vd->viewmat[0][2] * vec[0]+G.vd->viewmat[1][2] * vec[1]+G.vd->viewmat[2][2] * vec[2])>0)){
 										vec[0]*=-1;
 										vec[1]*=-1;
 										vec[2]*=-1;
@@ -4376,13 +4406,13 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					}
 					
 					if(midtog) sprintf(str, "Rotx: %.2f  Roty: %.2f", 180.0*phi0/M_PI, 180.0*phi1/M_PI);
-					else if(rotmode) {
-						if(rotmode==XROT) sprintf(str, "Rot X: %.2f", 180.0*phi/M_PI);
-						else if(rotmode==YROT) sprintf(str, "Rot Y: %.2f", 180.0*phi/M_PI);
-						else if(rotmode==ZROT) sprintf(str, "Rot Z: %.2f", 180.0*phi/M_PI);
-						else if(rotmode==XROTLOCAL) sprintf(str, "Local Rot X: %.2f", 180.0*phi/M_PI);
-						else if(rotmode==YROTLOCAL) sprintf(str, "Local Rot Y: %.2f", 180.0*phi/M_PI);
-						else if(rotmode==ZROTLOCAL) sprintf(str, "Local Rot Z: %.2f", 180.0*phi/M_PI);
+					else if(axismode) {
+						if(axismode==XTRANS) sprintf(str, "Rot X: %.2f", 180.0*phi/M_PI);
+						else if(axismode==YTRANS) sprintf(str, "Rot Y: %.2f", 180.0*phi/M_PI);
+						else if(axismode==ZTRANS) sprintf(str, "Rot Z: %.2f", 180.0*phi/M_PI);
+						else if(axismode==XTRANSLOCAL) sprintf(str, "Local Rot X: %.2f", 180.0*phi/M_PI);
+						else if(axismode==YTRANSLOCAL) sprintf(str, "Local Rot Y: %.2f", 180.0*phi/M_PI);
+						else if(axismode==ZTRANSLOCAL) sprintf(str, "Local Rot Z: %.2f", 180.0*phi/M_PI);
 					}
 					else sprintf(str, "Rot: %.2f", 180.0*phi/M_PI);
 					headerprint(str);
@@ -4730,37 +4760,37 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 					break;
 				
 				case XKEY:
-					if (rotmode==XROT)
-						rotmode=XROTLOCAL;
-					else if (rotmode==XROTLOCAL)
-						rotmode=0;
+					if (axismode==XTRANS)
+						axismode=XTRANSLOCAL;
+					else if (axismode==XTRANSLOCAL)
+						axismode=0;
 					else{
 						xref= -xref;
-						rotmode= XROT;
+						axismode= XTRANS;
 					}
 					firsttime=1;
 					break;
 					
 				case YKEY:
-					if (rotmode==YROT)
-						rotmode=YROTLOCAL;
-					else if (rotmode==YROTLOCAL)
-						rotmode=0;
+					if (axismode==YTRANS)
+						axismode=YTRANSLOCAL;
+					else if (axismode==YTRANSLOCAL)
+						axismode=0;
 					else{
 						yref= -yref;
-						rotmode= YROT;
+						axismode= YTRANS;
 					}
 					firsttime=1;
 					break;
 					
 				case ZKEY:
-					if (rotmode==ZROT)
-						rotmode=ZROTLOCAL;
-					else if (rotmode==ZROTLOCAL)
-						rotmode=0;
+					if (axismode==ZTRANS)
+						axismode=ZTRANSLOCAL;
+					else if (axismode==ZTRANSLOCAL)
+						axismode=0;
 					else{
 						zref= -zref;
-						rotmode= ZROT;
+						axismode= ZTRANS;
 					}
 					firsttime=1;
 					break;
