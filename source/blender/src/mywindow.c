@@ -490,7 +490,7 @@ void mywindow(float x1, float x2, float y1, float y2, float n, float f)
 
 /* apple seems to round colors to below and up on some configs */
 
-unsigned int index_to_framebuffer(int index)
+static unsigned int index_to_framebuffer(int index)
 {
 	unsigned int i= index;
 
@@ -520,7 +520,7 @@ unsigned int index_to_framebuffer(int index)
 
 /* this is the old method as being in use for ages.... seems to work? colors are rounded to lower values */
 
-unsigned int index_to_framebuffer(int index)
+static unsigned int index_to_framebuffer(int index)
 {
 	unsigned int i= index;
 	
@@ -551,6 +551,11 @@ unsigned int index_to_framebuffer(int index)
 }
 
 #endif
+
+void set_framebuffer_index_color(int index)
+{
+	cpack(index_to_framebuffer(index));
+}
 
 int framebuffer_to_index(unsigned int col)
 {

@@ -125,7 +125,7 @@ void getmouse(short *mval);
 void warp_pointer(int x, int y);
 
 int framebuffer_to_index(unsigned int col);
-unsigned int index_to_framebuffer(int index);
+void set_framebuffer_index_color(int index);
 
 int mywin_inmenu(void);
 void mywin_getmenu_rect(int *x, int *y, int *sx, int *sy);

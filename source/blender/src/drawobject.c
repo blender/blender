@@ -3656,7 +3656,7 @@ static int bbs_mesh_verts(Object *ob, int offset)
 	bglBegin(GL_POINTS);
 	for(eve= G.editMesh->verts.first; eve; eve= eve->next, a++) {
 		if(eve->h==0) {
-			cpack( index_to_framebuffer(a) );
+			set_framebuffer_index_color(a);
 			if(optimal && eve->ssco) bglVertex3fv(eve->ssco);
 			else bglVertex3fv(eve->co);
 		}
@@ -3691,9 +3691,7 @@ static int bbs_mesh_wire(Object *ob, int offset)
 			if(medge->flag & ME_EDGEDRAW) {
 				eed= dlm->editedge[b];
 				if(eed && eed->h==0) {
-					
-					index= (int)eed->vn;
-					cpack(index_to_framebuffer(index));
+					set_framebuffer_index_color((int)eed->vn);
 					
 					glVertex3fv(mvert[medge->v1].co); 
 					glVertex3fv(mvert[medge->v2].co);
@@ -3709,7 +3707,7 @@ static int bbs_mesh_wire(Object *ob, int offset)
 		for(eed= G.editMesh->edges.first; eed; eed= eed->next, index++) {
 			if(eed->h==0) {
 
-				cpack(index_to_framebuffer(index));
+				set_framebuffer_index_color(index);
 
 				glVertex3fv(eed->v1->co);
 				glVertex3fv(eed->v2->co);
@@ -3751,7 +3749,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 				if(mface->v3) {
 					if(facecol) {
 						efa= dlm->editface[b];
-						cpack(index_to_framebuffer((int)efa->prev));
+						set_framebuffer_index_color((int)efa->prev);
 					}
 					
 					glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
@@ -3771,7 +3769,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 					if(efa->h==0) {
 						if(efa->fgonf==EM_FGON);
 						else {
-							cpack(index_to_framebuffer((int)efa->prev));
+							set_framebuffer_index_color((int)efa->prev);
 							bglVertex3fv(efa->cent);
 						}
 					}
@@ -3793,8 +3791,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 					else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
 
 					if(facecol) {
-						int i= index_to_framebuffer(a);
-						cpack(i);
+						set_framebuffer_index_color(a);
 					}
 					glVertex3fv(efa->v1->co);
 					glVertex3fv(efa->v2->co);
@@ -3831,8 +3828,7 @@ static int bbs_mesh_solid(Object *ob, int facecol)
 			if(mface->v3) {
 				if(facecol) {
 					if(hastface && tface->flag & TF_HIDE) continue;
-					i= index_to_framebuffer(a+1);
-					cpack(i);
+					set_framebuffer_index_color(a+1);
 				}
 
 				if(mface->v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
