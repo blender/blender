@@ -2652,10 +2652,22 @@ static void edge_rotate(EditEdge *eed)
 	}
 	
 	/* copy flags and material */
-	newFace[0]->flag= face[0]->flag;
-	newFace[1]->flag= face[1]->flag;
-	newFace[0]->mat_nr= face[0]->mat_nr;
-	newFace[1]->mat_nr= face[1]->mat_nr;
+
+	newFace[0]->mat_nr     = face[0]->mat_nr;
+	newFace[0]->tf.flag    = face[0]->tf.flag;
+	newFace[0]->tf.transp  = face[0]->tf.transp;
+	newFace[0]->tf.mode    = face[0]->tf.mode;
+	newFace[0]->tf.tile    = face[0]->tf.tile;
+	newFace[0]->tf.unwrap  = face[0]->tf.unwrap;
+	newFace[0]->tf.tpage   = face[0]->tf.tpage;
+
+	newFace[1]->mat_nr     = face[1]->mat_nr;
+	newFace[1]->tf.flag    = face[1]->tf.flag;
+	newFace[1]->tf.transp  = face[1]->tf.transp;
+	newFace[1]->tf.mode    = face[1]->tf.mode;
+	newFace[1]->tf.tile    = face[1]->tf.tile;
+	newFace[1]->tf.unwrap  = face[1]->tf.unwrap;
+	newFace[1]->tf.tpage   = face[1]->tf.tpage;
 
 	/* redo the vertex selection */
 	faces[0][(p1+1)%fac1]->f |= SELECT;
