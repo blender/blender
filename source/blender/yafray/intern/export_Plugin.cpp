@@ -183,7 +183,7 @@ bool yafrayPluginRender_t::initExport()
 			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(handle) << endl;
 			return false;
 		}
-		yafrayGate = constructor(1, YafrayPluginPath());
+		yafrayGate = constructor(R.r.YF_numprocs, YafrayPluginPath());
 		
 		cout << "YafRay plugin loaded" << endl;
 		plugin_loaded = true;
