@@ -82,6 +82,7 @@
 #include "BIF_editview.h"
 #include "BIF_poseobject.h"
 #include "BIF_editarmature.h"
+#include "BIF_editaction.h"
 
 #include "BSE_edit.h"
 #include "BSE_drawipo.h"
@@ -108,14 +109,10 @@ static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *c
 static void flip_name (char *name);
 static void mouse_actionchannels(bAction *act, short *mval, 
                                  short *mvalo, int selectmode);
-static void borderselect_action(void);
 static void mouse_action(int selectmode);
 static void mouse_mesh_action(int selectmode, Key *key);
 static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **conchan);
-static void sethandles_actionchannel_keys(int code);
 static void delete_actionchannels(void);
-static void delete_actionchannel_keys(void);
-static void duplicate_actionchannel_keys(void);
 static void transform_actionchannel_keys(char mode);
 static void transform_meshchannel_keys(char mode, Key *key);
 static void select_poseelement_by_name (char *name, int select);
@@ -312,14 +309,14 @@ static void meshkey_do_redraw(Key *key)
 
 }
 
-static void duplicate_meshchannel_keys(Key *key)
+void duplicate_meshchannel_keys(Key *key)
 {
 	duplicate_ipo_keys(key->ipo);
 	transform_meshchannel_keys ('g', key);
 }
 
 
-static void duplicate_actionchannel_keys(void)
+void duplicate_actionchannel_keys(void)
 {
 	bAction *act;
 	bActionChannel *chan;
@@ -642,7 +639,7 @@ static void mouse_mesh_action(int selectmode, Key *key)
     }
 }
 
-static void borderselect_action(void)
+void borderselect_action(void)
 { 
 	rcti rect;
 	rctf rectf;
@@ -699,7 +696,7 @@ static void borderselect_action(void)
 	}
 }
 
-static void borderselect_mesh(Key *key)
+void borderselect_mesh(Key *key)
 { 
 	rcti     rect;
 	int      val, adrcodemax, adrcodemin;
@@ -1747,7 +1744,7 @@ static void mouse_actionchannels(bAction *act, short *mval,
 	allqueue (REDRAWNLA, 0);
 }
 
-static void delete_meshchannel_keys(Key *key)
+void delete_meshchannel_keys(Key *key)
 {
 	if (!okee("Erase selected keys"))
 		return;
@@ -1757,7 +1754,7 @@ static void delete_meshchannel_keys(Key *key)
 	meshkey_do_redraw(key);
 }
 
-static void delete_actionchannel_keys(void)
+void delete_actionchannel_keys(void)
 {
 	bAction *act;
 	bActionChannel *chan;
@@ -1848,14 +1845,14 @@ static void delete_actionchannels (void)
 
 }
 
-static void sethandles_meshchannel_keys(int code, Key *key)
+void sethandles_meshchannel_keys(int code, Key *key)
 {
     sethandles_ipo_keys(key->ipo, code);
 
 	meshkey_do_redraw(key);
 }
 
-static void sethandles_actionchannel_keys(int code)
+void sethandles_actionchannel_keys(int code)
 {
 	bAction *act;
 	bActionChannel *chan;
@@ -1882,7 +1879,7 @@ static void sethandles_actionchannel_keys(int code)
 	allqueue(REDRAWNLA, 0);
 }
 
-static void set_ipotype_actionchannels(void) {
+void set_ipotype_actionchannels(int ipotype) {
 
 	bAction *act; 
 	bActionChannel *chan;
@@ -1894,11 +1891,18 @@ static void set_ipotype_actionchannels(void) {
 	if (!act)
 		return;
 
-	/* Present a popup menu asking the user what type
-	 * of IPO curve he/she/GreenBTH wants. ;)
-	 */
-	event= pupmenu("Channel Ipo Type %t|Constant %x1|Linear %x2|Bezier %x3");
-	if(event < 1) return;
+	if (ipotype == SET_IPO_POPUP) {
+		/* Present a popup menu asking the user what type
+		 * of IPO curve he/she/GreenBTH wants. ;)
+		 */
+		event
+			=  pupmenu("Channel Ipo Type %t|"
+					   "Constant %x1|"
+					   "Linear %x2|"
+					   "Bezier %x3");
+		if(event < 1) return;
+		ipotype = event;
+	}
 	
 	/* Loop through the channels and for the selected ones set
 	 * the type for each Ipo curve in the channel Ipo (based on
@@ -1907,7 +1911,7 @@ static void set_ipotype_actionchannels(void) {
 	for (chan = act->chanbase.first; chan; chan=chan->next){
 		if (chan->flag & ACHAN_SELECTED){
 			if (chan->ipo)
-				setipotype_ipo(chan->ipo, event);
+				setipotype_ipo(chan->ipo, ipotype);
 		}
 	}
 
@@ -2290,7 +2294,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* to do */
 			}
 			else {
-				set_ipotype_actionchannels();
+				set_ipotype_actionchannels(SET_IPO_POPUP);
 			}
 			break;
 
