@@ -3019,7 +3019,13 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 
 	for (base= FIRSTBASE; base; base= base->next) {
 		base->flag &= ~(BA_PARSEL+BA_WASSEL);
-			
+
+		/* Recalculate the pose if necessary, regardless of
+		 * whether the layer is visible or not.
+		 */
+		if (pose_do_update_flag(base->object))
+			base->flag |= BA_WHERE_UPDATE;
+
 		if( (base->lay & G.vd->lay) && base->object->id.lib==0) {
 			Object *ob= base->object;
 			Object *parsel= is_a_parent_selected(ob);
@@ -3038,9 +3044,6 @@ static void setbaseflags_for_editing(int mode)	/* 0,'g','r','s' */
 				if(ob->track && TESTBASE(ob->track) && (base->flag & SELECT)==0)  
 					base->flag |= BA_PARSEL;
 			}
-
-			if (pose_do_update_flag(base->object))
-				base->flag |= BA_WHERE_UPDATE;
 
 			/* updates? */
 			if(ob->type==OB_IKA) {
