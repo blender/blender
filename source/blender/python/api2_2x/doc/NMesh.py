@@ -281,11 +281,11 @@ class NMesh :
     @param frame: The Scene frame where the mesh key should be inserted.  If
         None, the current frame is used.
     @warn: This and L{removeAllKeys} were included in this release only to
-        make accessing vertex keys possible, but are not a proper solution.
-        For example, it seems that 'frame' should be kept in the range [1, 100]
+        make accessing vertex keys possible, but may not be a proper solution
+        and may be substituted by something better later.  For example, it
+        seems that 'frame' should be kept in the range [1, 100]
         (the curves can be manually tweaked in the Ipo Curve Editor window in
-        Blender itself later).  In the future a complete Key module should be
-        created.
+        Blender itself later).
     """
 
   def removeAllKeys():
