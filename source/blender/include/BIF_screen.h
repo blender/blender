@@ -61,6 +61,8 @@ void scrarea_queue_redraw(struct ScrArea *area);
 void scrarea_queue_winredraw(struct ScrArea *area);
 void scrarea_queue_headredraw(struct ScrArea *area);
 
+int blender_test_break(void);
+
 void duplicate_screen(void);
 void init_screen_cursors(void);
 void set_timecursor(int nr);

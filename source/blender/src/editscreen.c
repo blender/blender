@@ -826,6 +826,30 @@ unsigned short extern_qread(short *val)
 	return extern_qread_ext(val, &ascii);
 }
 
+int blender_test_break(void)
+{
+	if (!G.background) {
+		static double ltime= 0;
+		double curtime= PIL_check_seconds_timer();
+
+			/* only check for breaks every 10 milliseconds
+			 * if we get called more often.
+			 */
+		if ((curtime-ltime)>.001) {
+			ltime= curtime;
+
+			while(qtest()) {
+				short val;
+				if (extern_qread(&val) == ESCKEY) {
+					G.afbreek= 1;
+				}
+			}
+		}
+	}
+
+	return (G.afbreek==1);
+}
+
 void reset_autosave(void) {
 	window_set_timer(mainwin, U.savetime*60*1000, AUTOSAVE_FILE);
 }
