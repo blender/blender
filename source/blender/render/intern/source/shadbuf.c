@@ -472,8 +472,9 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float inp)  	/* return 1.0:
 	num= shb->samp*shb->samp;
 	fac= shb->soft;
 	
-	
-	bias= (1.1-inp*inp)*shb->bias;
+	/* with inp==1.0, bias is half the size. correction value was 1.1, giving errors 
+	   on cube edges, with one side being almost frontal lighted (ton)  */
+	bias= (1.5-inp*inp)*shb->bias;
 
 	if(num==1) {
 		return readshadowbuf(shb,(int)xs1, (int)ys1, zs);
