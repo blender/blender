@@ -3912,6 +3912,11 @@ static void do_versions(Main *main)
 
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->blockscale==0.0) sl->blockscale= 0.7;
+					/* added: 5x better zoom in for action */
+					if(sl->spacetype==SPACE_ACTION) {
+						SpaceAction *sac= (SpaceAction *)sl;
+						sac->v2d.maxzoom= 50;
+					}
 				}
 			}
 		}

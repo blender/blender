@@ -3000,8 +3000,8 @@ void init_actionspace(ScrArea *sa)
 	saction->v2d.max[0]= 32000.0;
 	saction->v2d.max[1]= 1000.0;
 	
-	saction->v2d.minzoom= 0.01f;
-	saction->v2d.maxzoom= 10;
+	saction->v2d.minzoom= 0.01;
+	saction->v2d.maxzoom= 50;
 
 	saction->v2d.scroll= R_SCROLL+B_SCROLL;
 	saction->v2d.keepaspect= 0;
