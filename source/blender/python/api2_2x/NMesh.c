@@ -2597,9 +2597,7 @@ static PyObject *NMesh_renameVertGroup (PyObject *self, PyObject *args)
 			"Couldn't find the expected vertex group");
 
 	//set name
-	tempStr = PyString_FromStringAndSize(newGr, 32);
-	newGr = PyString_AsString(tempStr);
-	memcpy (defGroup->name, newGr, 32);
+	PyOS_snprintf(defGroup->name, 32, newGr);
 	unique_vertexgroup_name(defGroup, ((BPy_NMesh*)self)->object);
 
 	return EXPP_incr_ret (Py_None);
