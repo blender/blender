@@ -1515,7 +1515,7 @@ ImBuf *give_ibuf_seq(int cfra)
 	MEM_freeN(seqar);	
 	
 	if(!seqfirst) return 0;
-	if(!seqfirst->curelem==0) return 0;
+	if(!seqfirst->curelem) return 0;
 	return seqfirst->curelem->ibuf;
 
 }
