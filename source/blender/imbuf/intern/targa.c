@@ -289,6 +289,12 @@ short imb_savetarga(struct ImBuf * ibuf, int file, int flags)
 
 	if (flags & IB_ttob) buf[17] ^= 0x20;
 
+        /* Don't forget to indicate that your 32 bit
+         * targa uses 8 bits for the alpha channel! */
+        if (ibuf->depth==32) {
+           buf[17] |= 0x08;
+        }
+
 	if (write(file, buf, 18) != 18) return (0);
 	if (ibuf->cmap){
 		for (i = 0 ; i<ibuf->maxcol ; i++){
