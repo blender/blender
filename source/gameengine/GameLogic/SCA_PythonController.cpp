@@ -66,6 +66,13 @@ SCA_PythonController::~SCA_PythonController()
 		//printf("released python byte script\n");
 		Py_DECREF(m_bytecode);
 	}
+	
+	if (m_pythondictionary)
+	{
+		// break any circular references in the dictionary
+		PyDict_Clear(m_pythondictionary);
+		Py_DECREF(m_pythondictionary);
+	}
 }
 
 
@@ -73,8 +80,21 @@ SCA_PythonController::~SCA_PythonController()
 CValue* SCA_PythonController::GetReplica()
 {
 	SCA_PythonController* replica = new SCA_PythonController(*this);
-	replica->m_bytecode = NULL;
-	replica->m_bModified = true;
+	// Copy the compiled bytecode if possible.
+	Py_XINCREF(replica->m_bytecode);
+	replica->m_bModified = replica->m_bytecode == NULL;
+	
+	// The replica->m_pythondictionary is stolen - replace with a copy.
+	if (m_pythondictionary)
+		replica->m_pythondictionary = PyDict_Copy(m_pythondictionary);
+		
+	/*
+	// The other option is to incref the replica->m_pythondictionary -
+	// the replica objects can then share data.
+	if (m_pythondictionary)
+		Py_INCREF(replica->m_pythondictionary);
+	*/
+	
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
@@ -85,7 +105,7 @@ CValue* SCA_PythonController::GetReplica()
 
 void SCA_PythonController::SetScriptText(const STR_String& text)
 { 
-	m_scriptText = text;
+	m_scriptText = "import GameLogic\n" + text;
 	m_bModified = true;
 }
 
@@ -100,7 +120,12 @@ void SCA_PythonController::SetScriptName(const STR_String& name)
 
 void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 {
-	m_pythondictionary = pythondictionary;
+	if (m_pythondictionary)
+	{
+		PyDict_Clear(m_pythondictionary);
+		Py_DECREF(m_pythondictionary);
+	}
+	m_pythondictionary = PyDict_Copy(pythondictionary); /* new reference */
 }
 
 
@@ -190,21 +215,6 @@ PyMethodDef SCA_PythonController::Methods[] = {
 };
 
 
-
-	/* XXX, function should be removed and PyDict_Copy used
-	 * once we switch to all builds using Python 2.0 - zr */
-static PyObject *myPyDict_Copy(PyObject *odict)
-{
-	PyObject *ndict= PyDict_New();
-	PyObject *key, *val;
-	int ppos= 0;
-	
-	while (PyDict_Next(odict, &ppos, &key, &val))
-		PyDict_SetItem(ndict, key, val);
-	
-	return ndict;
-}
-
 void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 {
 	m_sCurrentController = this;
@@ -220,16 +230,13 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		}
 		// recompile the scripttext into bytecode
 		m_bytecode = Py_CompileString(m_scriptText.Ptr(), m_scriptName.Ptr(), Py_file_input);
-		if (m_bytecode)
-		{
-			// store the
-			PyRun_SimpleString("import GameLogic\n");
-		} else
+		if (!m_bytecode)
 		{
 			// didn't compile, so instead of compile, complain
 			// something is wrong, tell the user what went wrong
 			printf("PYTHON SCRIPT ERROR:\n");
-			PyRun_SimpleString(m_scriptText.Ptr());
+			//PyRun_SimpleString(m_scriptText.Ptr());
+			PyErr_Print();
 			return;
 		}
 		m_bModified=false;
@@ -252,13 +259,18 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * break it by hand, then DECREF (which in this case
 		 * should always ensure excdict is cleared).
 		 */
-	PyObject *excdict= myPyDict_Copy(m_pythondictionary);
+/*	PyObject *excdict= myPyDict_Copy(m_pythondictionary);
 	struct _object* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
 		excdict, 
 		excdict
 		);
 	PyDict_Clear(excdict);
-	Py_DECREF(excdict);
+	Py_DECREF(excdict);*/
+	
+	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
+		m_pythondictionary, 
+		m_pythondictionary
+		);
 	
 	if (resultobj)
 	{
@@ -267,7 +279,8 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	{
 		// something is wrong, tell the user what went wrong
 		printf("PYTHON SCRIPT ERROR:\n");
-		PyRun_SimpleString(m_scriptText.Ptr());
+		PyErr_Print();
+		//PyRun_SimpleString(m_scriptText.Ptr());
 	}
 
 	m_sCurrentController = NULL;
