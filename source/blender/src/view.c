@@ -550,6 +550,9 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 	
 	lens= G.vd->lens;	
 	
+	near= G.vd->near;
+	far= G.vd->far;
+
 	if(G.vd->persp==2) {
 		near= G.vd->near;
 		far= G.vd->far;
@@ -579,9 +582,6 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 				}
 			}
 		}
-	}else{
-		near= G.vd->near*G.vd->dist;
-		far= G.vd->far*G.vd->dist;
 	}
 	
 	if(v3d_windowmode) {
