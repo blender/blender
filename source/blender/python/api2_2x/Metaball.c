@@ -31,6 +31,10 @@
 
 #include "Metaball.h"
 
+#ifndef FP_INFINITE
+#define FP_INFINTE 1
+#endif
+
 /*****************************************************************************/
 /* Function:              M_Metaball_New                                     */
 /* Python equivalent:     Blender.Metaball.New                               */
