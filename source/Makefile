@@ -113,7 +113,7 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
     GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
     GRPLIB += $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libbpython.a
-    GRPLIB += $(NAN_PYTHON)/frozen/libfrozen.a
+    GRPLIB +=  $(OCGDIR)/blender/bpython/$(DEBUG_DIR)libfrozen.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
