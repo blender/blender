@@ -2232,7 +2232,7 @@ void loopoperations(char mode)
 	short lastface=0, foundedge=0, c=0, tri=0, side=1, totface=0, searching=1, event=0, noface=1;
 	short skip,nextpos,percentfaces;
 
-	int i=0,ect=0,j=0,k=0,cut,smooth,timesthrough = 0;
+	int i=0,ect=0,j=0,k=0,cut,smooth,timesthrough=0,inset = 0;
 
 	float percentcut, outcut;
 
@@ -2243,7 +2243,7 @@ void loopoperations(char mode)
 	if(mode==LOOP_CUT)undo_push_mesh("Faceloop Subdivide");
 	else if(mode==LOOP_SELECT)undo_push_mesh("Faceloop Select");	
 
-	SetBlenderCursor(BC_VLOOPCURSOR);	
+	SetBlenderCursor(BC_VLOOPCURSOR);
 
 	start=NULL;
 	oldstart=NULL;
@@ -2286,8 +2286,7 @@ void loopoperations(char mode)
 				
 		/* Did we find anything that is selectable? */
 		if(start && !noface && (oldstart==NULL || start!=oldstart)){
-			
-						
+					
 			/* If we stay in the neighbourhood of this edge, we don't have to recalculate the loop everytime*/
 			oldstart=start;	
 			
@@ -2638,7 +2637,7 @@ void loopoperations(char mode)
 			event= extern_qread(&val);	/* extern_qread stores important events for the mainloop to handle */
 
 			/* val==0 on key-release event */
-			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY || event == MIDDLEMOUSE || event == BKEY)){
+			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY || event == MIDDLEMOUSE)){
 				searching=0;
 			}
 		}	
@@ -2646,7 +2645,7 @@ void loopoperations(char mode)
 	}/*while(event!=ESCKEY && event!=RIGHTMOUSE && event!=LEFTMOUSE && event!=RETKEY){*/
 	
 	/*----------Select Loop------------*/
-	if(mode==LOOP_SELECT && start!=NULL && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE)){
+	if(mode==LOOP_SELECT && start!=NULL && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE || event == BKEY)){
 				
 		/* If this is a unmodified select, clear the selection */
 		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
@@ -2808,7 +2807,7 @@ void loopoperations(char mode)
 			
 			/* For the % calculation */
 			short mval[2];			
-			float labda, rc[2], len;
+			float labda, rc[2], len, slen;
 			float v1[2], v2[2], v3[2];
 
 			/*------------- Percent Cut Preview Lines--------------- */
@@ -2831,114 +2830,256 @@ void loopoperations(char mode)
 						glVertex3fv(eed->v2->co);
 						
 						glEnd();
+
+						glPointSize(5);
+						glBegin(GL_POINTS);
+						glColor3ub(255,0,255);
+						
+						if(eed->f & 32)
+							glVertex3fv(eed->v2->co);			
+						else
+							glVertex3fv(eed->v1->co);
+						glEnd();
+
+
+						/*Get Starting Edge Length*/
+						slen = sqrt((eed->v1->co[0]-eed->v2->co[0])*(eed->v1->co[0]-eed->v2->co[0])+
+									(eed->v1->co[1]-eed->v2->co[1])*(eed->v1->co[1]-eed->v2->co[1])+
+									(eed->v1->co[2]-eed->v2->co[2])*(eed->v1->co[2]-eed->v2->co[2]));
 					}
 				}
 				
-				glColor3ub(0,255,255);
-				if(evl->f & 8)
-				{
-					float cen[2][3];
-					int a=0;					
-					
-					evl->v1->f &= ~8;
-					evl->v2->f &= ~8;
-					evl->v3->f &= ~8;
-					if(evl->v4)evl->v4->f &= ~8;
-					
-					if(evl->e1->f & 8){
-						float pct;
-						if(evl->e1->f & 32)
-							pct = 1-percentcut;
-						else
-							pct = percentcut;
-						cen[a][0]= evl->e1->v1->co[0] - ((evl->e1->v1->co[0] - evl->e1->v2->co[0]) * (pct));
-						cen[a][1]= evl->e1->v1->co[1] - ((evl->e1->v1->co[1] - evl->e1->v2->co[1]) * (pct));
-						cen[a][2]= evl->e1->v1->co[2] - ((evl->e1->v1->co[2] - evl->e1->v2->co[2]) * (pct));
-						evl->e1->v1->f |= 8;
-						evl->e1->v2->f |= 8;
-						a++;
-					}
-					if((evl->e2->f & 8) && a!=2)
+				if(!inset){
+					glColor3ub(0,255,255);
+					if(evl->f & 8)
 					{
-						float pct;
-						if(evl->e2->f & 32)
-							pct = 1-percentcut;
-						else
-							pct = percentcut;
-						cen[a][0]= evl->e2->v1->co[0] - ((evl->e2->v1->co[0] - evl->e2->v2->co[0]) * (pct));
-						cen[a][1]= evl->e2->v1->co[1] - ((evl->e2->v1->co[1] - evl->e2->v2->co[1]) * (pct));
-						cen[a][2]= evl->e2->v1->co[2] - ((evl->e2->v1->co[2] - evl->e2->v2->co[2]) * (pct));
-
-						evl->e2->v1->f |= 8;
-						evl->e2->v2->f |= 8;
+						float cen[2][3];
+						int a=0;					
 						
-						a++;
-					}
-					if((evl->e3->f & 8) && a!=2){
-						float pct;
-						if(evl->e3->f & 32)
-							pct = 1-percentcut;
-						else
-							pct = percentcut;
-						cen[a][0]= evl->e3->v1->co[0] - ((evl->e3->v1->co[0] - evl->e3->v2->co[0]) * (pct));
-						cen[a][1]= evl->e3->v1->co[1] - ((evl->e3->v1->co[1] - evl->e3->v2->co[1]) * (pct));
-						cen[a][2]= evl->e3->v1->co[2] - ((evl->e3->v1->co[2] - evl->e3->v2->co[2]) * (pct));
-
-						evl->e3->v1->f |= 8;
-						evl->e3->v2->f |= 8;
+						evl->v1->f &= ~8;
+						evl->v2->f &= ~8;
+						evl->v3->f &= ~8;
+						if(evl->v4)evl->v4->f &= ~8;
 						
-						a++;
-					}
-						
-					if(evl->e4){
-						if((evl->e4->f & 8) && a!=2){
+						if(evl->e1->f & 8){
 							float pct;
-							if(evl->e4->f & 32)
+							if(evl->e1->f & 32)
 								pct = 1-percentcut;
 							else
 								pct = percentcut;
-							cen[a][0]= evl->e4->v1->co[0] - ((evl->e4->v1->co[0] - evl->e4->v2->co[0]) * (pct));
-							cen[a][1]= evl->e4->v1->co[1] - ((evl->e4->v1->co[1] - evl->e4->v2->co[1]) * (pct));
-							cen[a][2]= evl->e4->v1->co[2] - ((evl->e4->v1->co[2] - evl->e4->v2->co[2]) * (pct));
-
-							evl->e4->v1->f |= 8;
-							evl->e4->v2->f |= 8;
-						
+							cen[a][0]= evl->e1->v1->co[0] - ((evl->e1->v1->co[0] - evl->e1->v2->co[0]) * (pct));
+							cen[a][1]= evl->e1->v1->co[1] - ((evl->e1->v1->co[1] - evl->e1->v2->co[1]) * (pct));
+							cen[a][2]= evl->e1->v1->co[2] - ((evl->e1->v1->co[2] - evl->e1->v2->co[2]) * (pct));
+							evl->e1->v1->f |= 8;
+							evl->e1->v2->f |= 8;
 							a++;
 						}
-					}
-					else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
-						if(!(evl->v1->f & 8) && evl->v1->h==0){
-							cen[a][0]= evl->v1->co[0];
-							cen[a][1]= evl->v1->co[1];
-							cen[a][2]= evl->v1->co[2];
-							a++;								
+						if((evl->e2->f & 8) && a!=2)
+						{
+							float pct;
+							if(evl->e2->f & 32)
+								pct = 1-percentcut;
+							else
+								pct = percentcut;
+							cen[a][0]= evl->e2->v1->co[0] - ((evl->e2->v1->co[0] - evl->e2->v2->co[0]) * (pct));
+							cen[a][1]= evl->e2->v1->co[1] - ((evl->e2->v1->co[1] - evl->e2->v2->co[1]) * (pct));
+							cen[a][2]= evl->e2->v1->co[2] - ((evl->e2->v1->co[2] - evl->e2->v2->co[2]) * (pct));
+
+							evl->e2->v1->f |= 8;
+							evl->e2->v2->f |= 8;
+							
+							a++;
 						}
-						else if(!(evl->v2->f & 8) && evl->v2->h==0){
-							cen[a][0]= evl->v2->co[0];
-							cen[a][1]= evl->v2->co[1];
-							cen[a][2]= evl->v2->co[2];
-							a++;								
+						if((evl->e3->f & 8) && a!=2){
+							float pct;
+							if(evl->e3->f & 32)
+								pct = 1-percentcut;
+							else
+								pct = percentcut;
+							cen[a][0]= evl->e3->v1->co[0] - ((evl->e3->v1->co[0] - evl->e3->v2->co[0]) * (pct));
+							cen[a][1]= evl->e3->v1->co[1] - ((evl->e3->v1->co[1] - evl->e3->v2->co[1]) * (pct));
+							cen[a][2]= evl->e3->v1->co[2] - ((evl->e3->v1->co[2] - evl->e3->v2->co[2]) * (pct));
+
+							evl->e3->v1->f |= 8;
+							evl->e3->v2->f |= 8;
+							
+							a++;
 						}
-						else if(!(evl->v3->f & 8) && evl->v3->h==0){
-							cen[a][0]= evl->v3->co[0];
-							cen[a][1]= evl->v3->co[1];
-							cen[a][2]= evl->v3->co[2];
-							a++;													
+							
+						if(evl->e4){
+							if((evl->e4->f & 8) && a!=2){
+								float pct;
+								if(evl->e4->f & 32)
+									pct = 1-percentcut;
+								else
+									pct = percentcut;
+								cen[a][0]= evl->e4->v1->co[0] - ((evl->e4->v1->co[0] - evl->e4->v2->co[0]) * (pct));
+								cen[a][1]= evl->e4->v1->co[1] - ((evl->e4->v1->co[1] - evl->e4->v2->co[1]) * (pct));
+								cen[a][2]= evl->e4->v1->co[2] - ((evl->e4->v1->co[2] - evl->e4->v2->co[2]) * (pct));
+
+								evl->e4->v1->f |= 8;
+								evl->e4->v2->f |= 8;
+							
+								a++;
+							}
 						}
-					}
-					
-					if(a==2){
-						glBegin(GL_LINES);
+						else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
+							if(!(evl->v1->f & 8) && evl->v1->h==0){
+								cen[a][0]= evl->v1->co[0];
+								cen[a][1]= evl->v1->co[1];
+								cen[a][2]= evl->v1->co[2];
+								a++;								
+							}
+							else if(!(evl->v2->f & 8) && evl->v2->h==0){
+								cen[a][0]= evl->v2->co[0];
+								cen[a][1]= evl->v2->co[1];
+								cen[a][2]= evl->v2->co[2];
+								a++;								
+							}
+							else if(!(evl->v3->f & 8) && evl->v3->h==0){
+								cen[a][0]= evl->v3->co[0];
+								cen[a][1]= evl->v3->co[1];
+								cen[a][2]= evl->v3->co[2];
+								a++;													
+							}
+						}
 						
-						glVertex3fv(cen[0]);
-						glVertex3fv(cen[1]);	
-											
-						glEnd();
-					}					
+						if(a==2){
+							glBegin(GL_LINES);
+							
+							glVertex3fv(cen[0]);
+							glVertex3fv(cen[1]);	
+												
+							glEnd();
+						}	
+					}
 				}/* end preview line drawing */			
+				else{
+					glColor3ub(0,128,255);
+					if(evl->f & 8)
+					{
+						float cen[2][3];
+						int a=0;					
+						
+						evl->v1->f &= ~8;
+						evl->v2->f &= ~8;
+						evl->v3->f &= ~8;
+						if(evl->v4)evl->v4->f &= ~8;
+						
+						if(evl->e1->f & 8){							
+							float nlen,npct;
+							
+							nlen = sqrt((evl->e1->v1->co[0] - evl->e1->v2->co[0])*(evl->e1->v1->co[0] - evl->e1->v2->co[0])+
+										(evl->e1->v1->co[1] - evl->e1->v2->co[1])*(evl->e1->v1->co[1] - evl->e1->v2->co[1])+
+										(evl->e1->v1->co[2] - evl->e1->v2->co[2])*(evl->e1->v1->co[2] - evl->e1->v2->co[2]));
+							npct = (percentcut*slen)/nlen;
+							if(npct >= 1) npct = 1;
+							if(evl->e1->f & 32)	npct = 1-npct;
+
+							cen[a][0]= evl->e1->v1->co[0] - ((evl->e1->v1->co[0] - evl->e1->v2->co[0]) * (npct));
+							cen[a][1]= evl->e1->v1->co[1] - ((evl->e1->v1->co[1] - evl->e1->v2->co[1]) * (npct));
+							cen[a][2]= evl->e1->v1->co[2] - ((evl->e1->v1->co[2] - evl->e1->v2->co[2]) * (npct));
+
+							evl->e1->f1 = 32768*(npct);
+							evl->e1->v1->f |= 8;
+							evl->e1->v2->f |= 8;
+							a++;
+						}
+						if((evl->e2->f & 8) && a!=2)
+						{
+							float nlen,npct;
+							
+							nlen = sqrt((evl->e2->v1->co[0] - evl->e2->v2->co[0])*(evl->e2->v1->co[0] - evl->e2->v2->co[0])+
+										(evl->e2->v1->co[1] - evl->e2->v2->co[1])*(evl->e2->v1->co[1] - evl->e2->v2->co[1])+
+										(evl->e2->v1->co[2] - evl->e2->v2->co[2])*(evl->e2->v1->co[2] - evl->e2->v2->co[2]));
+							npct = (percentcut*slen)/nlen;
+							if(npct >= 1) npct = 1;
+							if(evl->e2->f & 32)	npct = 1-npct;
+
+							cen[a][0]= evl->e2->v1->co[0] - ((evl->e2->v1->co[0] - evl->e2->v2->co[0]) * (npct));
+							cen[a][1]= evl->e2->v1->co[1] - ((evl->e2->v1->co[1] - evl->e2->v2->co[1]) * (npct));
+							cen[a][2]= evl->e2->v1->co[2] - ((evl->e2->v1->co[2] - evl->e2->v2->co[2]) * (npct));
+
+							evl->e2->f1 = 32768*(npct);								
+							evl->e2->v1->f |= 8;
+							evl->e2->v2->f |= 8;
+							a++;
+						}
+						if((evl->e3->f & 8) && a!=2){
+							float nlen,npct;
+							
+							nlen = sqrt((evl->e3->v1->co[0] - evl->e3->v2->co[0])*(evl->e3->v1->co[0] - evl->e3->v2->co[0])+
+										(evl->e3->v1->co[1] - evl->e3->v2->co[1])*(evl->e3->v1->co[1] - evl->e3->v2->co[1])+
+										(evl->e3->v1->co[2] - evl->e3->v2->co[2])*(evl->e3->v1->co[2] - evl->e3->v2->co[2]));
+							npct = (percentcut*slen)/nlen;
+							if(npct >= 1) npct = 1;
+							if(evl->e3->f & 32)	npct = 1-npct;
+
+							cen[a][0]= evl->e3->v1->co[0] - ((evl->e3->v1->co[0] - evl->e3->v2->co[0]) * (npct));
+							cen[a][1]= evl->e3->v1->co[1] - ((evl->e3->v1->co[1] - evl->e3->v2->co[1]) * (npct));
+							cen[a][2]= evl->e3->v1->co[2] - ((evl->e3->v1->co[2] - evl->e3->v2->co[2]) * (npct));
+
+							evl->e3->f1 = 32768*(npct);								
+							evl->e3->v1->f |= 8;
+							evl->e3->v2->f |= 8;
+							a++;
+						}
+							
+						if(evl->e4){
+							if((evl->e4->f & 8) && a!=2){
+								float nlen,npct;
+								
+								nlen = sqrt((evl->e4->v1->co[0] - evl->e4->v2->co[0])*(evl->e4->v1->co[0] - evl->e4->v2->co[0])+
+											(evl->e4->v1->co[1] - evl->e4->v2->co[1])*(evl->e4->v1->co[1] - evl->e4->v2->co[1])+
+											(evl->e4->v1->co[2] - evl->e4->v2->co[2])*(evl->e4->v1->co[2] - evl->e4->v2->co[2]));
+							npct = (percentcut*slen)/nlen;
+							if(npct >= 1) npct = 1;
+							if(evl->e4->f & 32)	npct = 1-npct;
+
+								cen[a][0]= evl->e4->v1->co[0] - ((evl->e4->v1->co[0] - evl->e4->v2->co[0]) * (npct));
+								cen[a][1]= evl->e4->v1->co[1] - ((evl->e4->v1->co[1] - evl->e4->v2->co[1]) * (npct));
+								cen[a][2]= evl->e4->v1->co[2] - ((evl->e4->v1->co[2] - evl->e4->v2->co[2]) * (npct));
+
+								evl->e4->f1 = 32768*(npct);									
+								evl->e4->v1->f |= 8;
+								evl->e4->v2->f |= 8;
+								a++;
+							}
+						}
+						else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
+							if(!(evl->v1->f & 8) && evl->v1->h==0){
+								cen[a][0]= evl->v1->co[0];
+								cen[a][1]= evl->v1->co[1];
+								cen[a][2]= evl->v1->co[2];
+								a++;								
+							}
+							else if(!(evl->v2->f & 8) && evl->v2->h==0){
+								cen[a][0]= evl->v2->co[0];
+								cen[a][1]= evl->v2->co[1];
+								cen[a][2]= evl->v2->co[2];
+								a++;								
+							}
+							else if(!(evl->v3->f & 8) && evl->v3->h==0){
+								cen[a][0]= evl->v3->co[0];
+								cen[a][1]= evl->v3->co[1];
+								cen[a][2]= evl->v3->co[2];
+								a++;													
+							}
+						}
+						
+						if(a==2){
+							glBegin(GL_LINES);
+							
+							glVertex3fv(cen[0]);
+							glVertex3fv(cen[1]);	
+												
+							glEnd();
+						}	
+					}
+				}
 			}
 			/* restore matrix transform */
+	
 			glPopMatrix();
 
 			/*--------- END Preview Lines------------*/
@@ -2948,17 +3089,39 @@ void loopoperations(char mode)
 				event= extern_qread(&val);	/* extern_qread stores important events for the mainloop to handle */
 				/* val==0 on key-release event */
 		
-	
 				if(val && (event==SKEY))
 				{
 					if(smooth)smooth = 0;
 					else smooth = 1;
 				}
-	
-				if(val && (event==LEFTMOUSE || event==RETKEY))
+
+				if(val && (event==PKEY))
+				{
+					if(inset)inset = 0;
+					else inset = 1;
+				}
+
+				if(val && (event==FKEY))
+				{
+						int ct;
+						for(ct = 0; ct < ect; ct++){
+							if(tagged[ct]->f & 32) 
+								tagged[ct]->f &= ~32;
+							else
+								tagged[ct]->f |= 32;
+						}
+				}
+
+				if(val && (event == MIDDLEMOUSE))
+				{
+					cut = 2;
+					searching=0;
+				}
+				else if(val && (event==LEFTMOUSE || event==RETKEY))
 				{
 					searching=0;
 				}
+
 				if(val && (event==ESCKEY || event==RIGHTMOUSE ))
 				{
 					searching=0;
@@ -2984,6 +3147,8 @@ void loopoperations(char mode)
 			len= rc[0]*rc[0]+ rc[1]*rc[1];
 				
 			labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;
+
+
 			if(labda<=0.0) labda=0.0;
 			else if(labda>=1.0)labda=1.0;
 						
@@ -2991,33 +3156,58 @@ void loopoperations(char mode)
 			
 			if(start->f & 32)
 				percentcut = 1.0-percentcut;
-		
-		if (G.qual & LR_CTRLKEY)
-			percentcut = (int)(percentcut*100.0)/100.0;		
 
+		if(cut == 2){
+			percentcut = 0.5;
+		}
+
+		if (G.qual & LR_SHIFTKEY){
+
+			percentcut = (int)(percentcut*100.0)/100.0;	
+		}
+		else if (G.qual & LR_CTRLKEY)
+			percentcut = (int)(percentcut*10.0)/10.0;		
+	
 		outcut = (percentcut*100.0);
-		if(smooth)
-			sprintf(mesg,"Cut: %0.2f%%, Smooth (skey): ON",outcut);
+
+		/* Build the Header Line */ 
+
+		if(inset)
+			sprintf(mesg,"Cut: %0.2f% ",slen*percentcut);
 		else
-			sprintf(mesg,"Cut: %0.2f%%, Smooth (skey): OFF",outcut);
-		headerprint(mesg);
-		screen_swapbuffers();
+			sprintf(mesg,"Cut: %0.2f%% ",outcut);
 		
+
+		if(smooth)
+			sprintf(mesg,"%s| (f)lip side | (s)mooth on  |",mesg);
+		else
+			sprintf(mesg,"%s| (f)lip side | (s)mooth off |",mesg);
+
+		if(inset)
+			sprintf(mesg,"%s (p)roportional on ",mesg);
+		else
+			sprintf(mesg,"%s (p)roportional off",mesg);
+		
+		headerprint(mesg);
+
+		screen_swapbuffers();		
 	}			
 	
 	if(cut){
 		/* Now that we have selected a cut %, mark the edges for cutting. */
-		for(eed = G.eded.first; eed; eed=eed->next){		
-			   	if(percentcut == 1.0)
-					percentcut = 0.9999;
-				else if(percentcut == 0.0)
-					percentcut = 0.0001;
-				if(eed->f & 8){
-					if(eed->f & 32) /* Need to offset by a const. (0.5/32768) for consistant roundoff */
-						eed->f1 = 32768*(1.0-percentcut - 0.0000153); 
-					else
-						eed->f1 = 32768*(percentcut + 0.0000153); 
-				}				
+		if(!inset){
+			for(eed = G.eded.first; eed; eed=eed->next){		
+			   		if(percentcut == 1.0)
+						percentcut = 0.9999;
+					else if(percentcut == 0.0)
+						percentcut = 0.0001;
+					if(eed->f & 8){
+						if(eed->f & 32)/* Need to offset by a const. (0.5/32768) for consistant roundoff */
+							eed->f1 = 32768*(1.0-percentcut - 0.0000153);
+						else
+							eed->f1 = 32768*(percentcut + 0.0000153);
+					}				
+			}
 		}
 	/*-------------------------------------*/
 
@@ -3063,6 +3253,7 @@ void loopoperations(char mode)
 	SetBlenderCursor(SYSCURSOR);
 	addqueue(curarea->win, REDRAW, 1); 
 }
+
 
 void edge_select(void)
 {
