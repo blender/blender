@@ -2741,6 +2741,7 @@ void mouse_mesh(void)
 				/* update full view later on */
 				allqueue(REDRAWVIEW3D, 0);
 			}
+			else allqueue(REDRAWVIEW3D, curarea->win);	// all windows except this one
 		}
 	
 		rightmouse_transform();
