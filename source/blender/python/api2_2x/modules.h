@@ -46,7 +46,7 @@ PyObject *ObjectCreatePyObject (struct Object *obj);
 PyObject *M_NMesh_Init (void);
 PyObject *M_Camera_Init (void);
 PyObject *M_Lamp_Init (void);
-/*PyObject *M_Curve_Init (void);*/
+PyObject *M_Curve_Init (void);
 PyObject *M_Image_Init (void);
 PyObject *M_Window_Init (void);
 PyObject *M_Draw_Init (void);
