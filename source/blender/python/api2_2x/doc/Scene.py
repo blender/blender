@@ -155,6 +155,17 @@ class Scene:
     Make this Scene the currently active one in Blender.
     """
 
+  def update(full = 0):
+    """
+    Update this Scene in Blender.
+    @type full: int
+    @param full: A bool to control the level of updating:
+        - 0: sort the base list of objects.
+        - 1: sort and also regroup, do ipos, ikas, keys, script links, etc.
+    @warn: When in doubt, try with I{full = 0} first, since it is faster.
+        The "full" update is a recent addition to this method.
+    """
+
   def link(object):
     """
     Link an Object to this Scene.

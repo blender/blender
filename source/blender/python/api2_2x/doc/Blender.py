@@ -52,7 +52,7 @@ The Blender Python API Reference
  open-source language.
 
 @author: The Blender Python Team
-@requires: Blender 2.28 pre-release or newer.
+@requires: Blender 2.28 (already updated for 2.28a) or newer.
 @version: 0.1
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}

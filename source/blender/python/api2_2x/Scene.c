@@ -116,7 +116,7 @@ static PyObject *Scene_endFrame(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_currentFrame(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args);
 static PyObject *Scene_makeCurrent(BPy_Scene *self);
-static PyObject *Scene_update(BPy_Scene *self);
+static PyObject *Scene_update(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_link(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_unlink(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_getRenderdir(BPy_Scene *self);
@@ -158,8 +158,10 @@ static PyMethodDef BPy_Scene_methods[] = {
 					"A tuple (start, end, current) is returned in any case."},
   {"makeCurrent", (PyCFunction)Scene_makeCurrent, METH_NOARGS,
           "() - Make self the current scene"},
-  {"update", (PyCFunction)Scene_update, METH_NOARGS,
-          "() - Update scene self"},
+  {"update", (PyCFunction)Scene_update, METH_VARARGS,
+          "(full = 0) - Update scene self.\n"
+					"full = 0: sort the base list of objects."
+					"full = 1: full update -- also regroups, does ipos, ikas, keys"},
   {"link", (PyCFunction)Scene_link, METH_VARARGS,
           "(obj) - Link Object obj to this scene"},
   {"unlink", (PyCFunction)Scene_unlink, METH_VARARGS,
@@ -524,11 +526,30 @@ static PyObject *Scene_makeCurrent (BPy_Scene *self)
   return Py_None;
 }
 
-static PyObject *Scene_update (BPy_Scene *self)
+static PyObject *Scene_update (BPy_Scene *self, PyObject *args)
 {
   Scene *scene = self->scene;
+	int full = 0;
 
-  if (scene) sort_baselist (scene);
+  if (!scene)
+      return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+              "Blender Scene was deleted!");
+
+  if (!PyArg_ParseTuple (args, "|i", &full))
+      return EXPP_ReturnPyObjError (PyExc_TypeError,
+              "expected nothing or int (0 or 1) argument");
+
+  if (!full)
+		sort_baselist (scene);
+
+	else if (full == 1)
+			set_scene_bg (scene);
+
+	else
+		return EXPP_ReturnPyObjError (PyExc_ValueError,
+						"in method scene.update(full), full should be:\n"
+						"0: to only sort scene elements (old behavior); or\n"
+						"1: for a full update (regroups, does ipos, ikas, keys, etc.)");
 
   Py_INCREF (Py_None);
   return Py_None;
