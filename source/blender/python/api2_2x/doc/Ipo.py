@@ -18,13 +18,14 @@ Example::
 	
 """
 
-def New (name,idcode):
+def New (type, name):
   """
   Creates a new Ipo.
+  @type type: string
   @type name: string
-  @type idcode: int
-  @param name: The Ipo's name
-  @param idcode: The Ipo's blocktype. Depends to the object the ipo will be linked.
+  @param type: The Ipo's blocktype. Depends on the object the ipo will be linked to. \
+  Currently supported types are Object, Camera, World, Material.
+  @param name: The name for this Ipo.
   @rtype: Blender Ipo
   @return: The created Ipo.
   """

@@ -46,7 +46,7 @@ static PyObject *M_Ipo_New(PyObject *self, PyObject *args)
   Ipo      *blipo;
 
   if (!PyArg_ParseTuple(args, "ss", &code,&name))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string int arguments"));
+    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected string string arguments"));
 
   if (!strcmp(code,"Object"))idcode = ID_OB;
   if (!strcmp(code,"Camera"))idcode = ID_CA;
