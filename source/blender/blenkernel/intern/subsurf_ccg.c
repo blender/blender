@@ -103,7 +103,7 @@ static CCGSubSurf *_getSubSurf(SubSurf *ss, int subdivLevels) {
 
 	ifc.vertUserSize = 4;
 	ifc.edgeUserSize = 4;
-	ifc.faceUserSize = 0;
+	ifc.faceUserSize = 4;
 	ifc.vertDataSize= 12;
 	ifc.vertDataZero= _subsurfNew_meshIFC_vertDataZero;
 	ifc.vertDataEqual= _subsurfNew_meshIFC_vertDataEqual;
@@ -179,7 +179,8 @@ static int getEdgeIndex(CCGSubSurf *ss, CCGEdge *e, int x, int edgeSize) {
 		return edgeBase + x-1;
 	}
 }
-static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int faceBase, int edgeSize, int gridSize) {
+static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edgeSize, int gridSize) {
+	int faceBase = *((int*) ccgSubSurf_getFaceUserData(ss, f));
 	int numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
 
 	if (x==gridSize-1 && y==gridSize-1) {
@@ -214,7 +215,7 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int fac
 		return faceBase + 1 + (gridSize-2)*numVerts + S*(gridSize-2)*(gridSize-2) + (y-1)*(gridSize-2) + (x-1);
 	}
 }
-static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges, int doHandles) {
+static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges) {
 	CCGSubSurf *ss= ssm->subSurf;
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm), "dlm");
 	int edgeSize= ccgSubSurf_getEdgeSize(ss);
@@ -234,26 +235,16 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges, in
 	}
 
 	dlm->totvert= ccgSubSurf_getNumFinalVerts(ss);
-	if (doHandles) {
-		dlm->totvert+= ccgSubSurf_getNumVerts(ss);
-	}
-
-	dlm->totface= 0;
-	ei= ccgSubSurf_getEdgeIterator(ss);
-	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
-		CCGEdge *e= ccgEdgeIterator_getCurrent(ei);
-		if (!ccgSubSurf_getEdgeNumFaces(ss, e)) {
-			dlm->totface+= edgeSize-1;
-		}
-	}
-	ccgEdgeIterator_free(ei);
-	dlm->totface+= ccgSubSurf_getNumFinalFaces(ss);
-	if (doHandles) {
-		dlm->totface+= ccgSubSurf_getNumVerts(ss);
-	}
+	dlm->totedge= ccgSubSurf_getNumFinalEdges(ss);
+	dlm->totface= ccgSubSurf_getNumFinalFaces(ss);
 
 	dlm->mvert= MEM_callocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
+	dlm->medge= MEM_callocN(dlm->totedge*sizeof(*dlm->medge), "dlm->medge");
 	dlm->mface= MEM_callocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
+	if (ssm->controlType==SUBSURF_CONTROLTYPE_EDITMESH) {
+		dlm->editedge= MEM_callocN(dlm->totedge*sizeof(EditEdge *), "dlm->editface");
+		dlm->editface= MEM_mallocN(dlm->totface*sizeof(EditFace *), "dlm->editedge");
+	}
 	if ((ssm->controlType==SUBSURF_CONTROLTYPE_MESH) && ssm->me->tface) {
 		dlm->tface= MEM_callocN(dlm->totface*sizeof(*dlm->tface), "dlm->tface");
 		dlm->mcol= NULL;
@@ -265,24 +256,20 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges, in
 		dlm->mcol= NULL;
 	}
 
-	i=0;
-	if (doHandles) {
-		vi= ccgSubSurf_getVertIterator(ss);
-		for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
-			CCGVert *v= ccgVertIterator_getCurrent(vi);
-			Vec3Cpy(dlm->mvert[i].co, ccgSubSurf_getVertLevelData(ss, v, 0));
-			i++;
-		}
-		ccgVertIterator_free(vi);
-	}
-
 		// load vertices
 
-	vertBase = i;
+	vertBase = i = 0;
 	vi= ccgSubSurf_getVertIterator(ss);
 	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
 		Vec3Cpy(dlm->mvert[i].co, ccgSubSurf_getVertData(ss, v));
+
+		if (ssm->controlType==SUBSURF_CONTROLTYPE_EDITMESH) {
+			EditVert *ev = ccgSubSurf_getVertVertHandle(ss, v);
+			
+			ev->ssco = dlm->mvert[i].co;
+		}
+
 		*((int*) ccgSubSurf_getVertUserData(ss, v)) = i++;
 	}
 	ccgVertIterator_free(vi);
@@ -302,7 +289,7 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges, in
 	}
 	ccgEdgeIterator_free(ei);
 
-	faceIndexBase = i;
+	faceIndexBase = faceBase = i;
 	fi= ccgSubSurf_getFaceIterator(ss);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f= ccgFaceIterator_getCurrent(fi);
@@ -323,43 +310,84 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges, in
 				}
 			}
 		}
+
+		*((int*) ccgSubSurf_getFaceUserData(ss, f)) = faceBase;
+		faceBase += 1 + numVerts*((gridSize-2) + (gridSize-2)*(gridSize-2));
 	}
 	ccgFaceIterator_free(fi);
 
 		// load edges
 
 	i=0;
-	if (doHandles) {
-		vi= ccgSubSurf_getVertIterator(ss);
-		for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
-			CCGVert *v= ccgVertIterator_getCurrent(vi);
-			mf= &dlm->mface[i];
-			mf->v1= i;
-			mf->v2= vertBase + i;
-			mf->edcode= ME_V1V2;
-			i++;
-		}
-		ccgVertIterator_free(vi);
-	}
 	ei= ccgSubSurf_getEdgeIterator(ss);
 	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
 		CCGEdge *e= ccgEdgeIterator_getCurrent(ei);
-		if (!ccgSubSurf_getEdgeNumFaces(ss, e)) {
-			for (x=0; x<edgeSize-1; x++) {
-				mf= &dlm->mface[i];
-				mf->v1= getEdgeIndex(ss, e, x, edgeSize);
-				mf->v2= getEdgeIndex(ss, e, x+1, edgeSize);
-				mf->edcode= ME_V1V2;
-				i++;
+		for (x=0; x<edgeSize-1; x++) {
+			MEdge *med= &dlm->medge[i];
+			med->v1= getEdgeIndex(ss, e, x, edgeSize);
+			med->v2= getEdgeIndex(ss, e, x+1, edgeSize);
+			med->flag = ME_EDGEDRAW;
+
+			if (ssm->controlType==SUBSURF_CONTROLTYPE_EDITMESH) {
+				EditEdge *ee = ccgSubSurf_getEdgeEdgeHandle(ss, e);
+
+				dlm->editedge[i] = ee;
+
+				if (ee->seam) {
+					med->flag |= ME_SEAM;
+				}
+			} else {
+				int edgeIdx = (int) ccgSubSurf_getEdgeEdgeHandle(ss, e);
+
+					/* Edges created by lib have handle of -1 */
+				if (edgeIdx!=-1 && ssm->me->medge) {
+					MEdge *origMed = &ssm->me->medge[edgeIdx];
+
+					med->flag |= (origMed->flag&ME_SEAM);
+				}
 			}
+
+			i++;
 		}
 	}
 	ccgEdgeIterator_free(ei);
 
+	fi= ccgSubSurf_getFaceIterator(ss);
+	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
+		CCGFace *f= ccgFaceIterator_getCurrent(fi);
+		int numVerts= ccgSubSurf_getFaceNumVerts(ss, f);
+
+		for (k=0; k<numVerts; k++) {
+			for (x=0; x<gridSize-1; x++) {
+				MEdge *med= &dlm->medge[i];
+				med->v1= getFaceIndex(ss, f, k, x, 0, edgeSize, gridSize);
+				med->v2= getFaceIndex(ss, f, k, x+1, 0, edgeSize, gridSize);
+				i++;
+			}
+
+			for (x=1; x<gridSize-1; x++) {
+				for (y=0; y<gridSize-1; y++) {
+					MEdge *med;
+					
+					med= &dlm->medge[i];
+					med->v1= getFaceIndex(ss, f, k, x, y, edgeSize, gridSize);
+					med->v2= getFaceIndex(ss, f, k, x, y+1, edgeSize, gridSize);
+					i++;
+
+					med= &dlm->medge[i];
+					med->v1= getFaceIndex(ss, f, k, y, x, edgeSize, gridSize);
+					med->v2= getFaceIndex(ss, f, k, y+1, x, edgeSize, gridSize);
+					i++;
+				}
+			}
+		}
+	}
+	ccgFaceIterator_free(fi);
+
 		// load faces
 
+	i= 0;
 	fi= ccgSubSurf_getFaceIterator(ss);
-	faceBase= faceIndexBase;
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f= ccgFaceIterator_getCurrent(fi);
 		int numVerts= ccgSubSurf_getFaceNumVerts(ss, f);
@@ -426,13 +454,17 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges, in
 			for (y=0; y<gridSize-1; y++) {
 				for (x=0; x<gridSize-1; x++) {
 					mf= &dlm->mface[i];
-					mf->v1= getFaceIndex(ss, f, S, x+0, y+1, faceBase, edgeSize, gridSize);
-					mf->v2= getFaceIndex(ss, f, S, x+1, y+1, faceBase, edgeSize, gridSize);
-					mf->v3= getFaceIndex(ss, f, S, x+1, y+0, faceBase, edgeSize, gridSize);
-					mf->v4= getFaceIndex(ss, f, S, x+0, y+0, faceBase, edgeSize, gridSize);
+					mf->v1= getFaceIndex(ss, f, S, x+0, y+1, edgeSize, gridSize);
+					mf->v2= getFaceIndex(ss, f, S, x+1, y+1, edgeSize, gridSize);
+					mf->v3= getFaceIndex(ss, f, S, x+1, y+0, edgeSize, gridSize);
+					mf->v4= getFaceIndex(ss, f, S, x+0, y+0, edgeSize, gridSize);
 					mf->mat_nr= mat_nr;
 					mf->flag= flag;
 					mf->edcode= 0;
+
+					if (ssm->controlType==SUBSURF_CONTROLTYPE_EDITMESH) {
+						dlm->editface[i] = ccgSubSurf_getFaceFaceHandle(ss, f);
+					}
 
 					if (doOptEdges) {
 						if (x+1==gridSize-1)
@@ -484,8 +516,6 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges, in
 				}
 			}
 		}
-
-		faceBase += 1 + numVerts*((gridSize-2) + (gridSize-2)*(gridSize-2));
 	}
 	ccgFaceIterator_free(fi);
 
@@ -508,11 +538,19 @@ static void subSurf_sync(SubSurf *ss) {
 			}
 		}
 
-		for (i=0; i<ss->me->totface; i++) {
-			MFace *mf = &((MFace*) ss->me->mface)[i];
+		if (ss->me->medge) {
+			for (i=0; i<ss->me->totedge; i++) {
+				MEdge *med = &ss->me->medge[i];
 
-			if (!mf->v3) {
-				ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) mf->v1, (CCGVertHDL) mf->v2);
+				ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) med->v1, (CCGVertHDL) med->v2);
+			}
+		} else {
+			for (i=0; i<ss->me->totface; i++) {
+				MFace *mf = &((MFace*) ss->me->mface)[i];
+
+				if (!mf->v3) {
+					ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) mf->v1, (CCGVertHDL) mf->v2);
+				}
 			}
 		}
 
@@ -560,7 +598,7 @@ DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(EditMesh *em, int subd
 
 	subSurf_sync(ss);
 
-	dlm= subSurf_createDispListMesh(ss, (flags&ME_OPT_EDGES)?1:0, (flags&ME_OPT_EDGES)?1:0);
+	dlm= subSurf_createDispListMesh(ss, (flags&ME_OPT_EDGES)?1:0);
 
 	subSurf_free(ss);
 
@@ -573,7 +611,7 @@ DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(Mesh *me, float *extverts,
 
 	subSurf_sync(ss);
 
-	dlm= subSurf_createDispListMesh(ss, (flags&ME_OPT_EDGES)?1:0, 0);
+	dlm= subSurf_createDispListMesh(ss, (flags&ME_OPT_EDGES)?1:0);
 	
 	subSurf_free(ss);
 	
