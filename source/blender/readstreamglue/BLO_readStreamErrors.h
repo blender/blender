@@ -45,7 +45,7 @@ extern "C" {
 #define BRS_SETSPECERR(x)	(  (int)(x) << 7)
 #define BRS_GETSPECERR(x)	(( (int)(x) >> 7) & 7)
 
-// FUNCTION
+/* FUNCTION */
 #define BRS_READSTREAMGLUE	1
 #define BRS_READSTREAMLOOP	2
 #define BRS_KEYSTORE		3
@@ -54,7 +54,7 @@ extern "C" {
 #define BRS_DECRYPT			6
 #define BRS_VERIFY			7
 
-// GENeric errors
+/* GENeric errors */
 #define BRS_MALLOC			1
 #define BRS_NULL			2
 #define BRS_MAGIC			3
@@ -63,22 +63,22 @@ extern "C" {
 #define BRS_DATALEN			6
 #define BRS_STUB			7
 
-// READSTREAMGLUE specific
+/* READSTREAMGLUE specific */
 #define BRS_UNKNOWN			1
 
-// READSTREAMFILE specific
+/* READSTREAMFILE specific */
 #define BRS_NOTABLEND		1
 #define BRS_READERROR		2
 
-// INFLATE specific
+/* INFLATE specific */
 #define BRS_INFLATEERROR	1
 
-// DECRYPT specific
+/* DECRYPT specific */
 #define BRS_RSANEWERROR		1
 #define BRS_DECRYPTERROR	2
 #define BRS_NOTOURPUBKEY	3
 
-// VERIFY specific
+/* VERIFY specific */
 #define BRS_RSANEWERROR		1
 #define BRS_SIGFAILED		2
 
