@@ -117,7 +117,6 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em)
 	MFace *mfNew;
 	int i;
 
-	dlm->flag= 0;
 	dlm->totvert= BLI_countlist(&em->verts);
 	dlm->totface= BLI_countlist(&em->edges)+BLI_countlist(&em->faces);
 	dlm->mvert= MEM_callocN(sizeof(*dlm->mface)*dlm->totvert, "dlm->mvert");
@@ -178,7 +177,6 @@ DispListMesh *displistmesh_from_mesh(Mesh *me, float *extverts)
 {
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
 	int i;
-	dlm->flag= 0;
 	dlm->totvert= me->totvert;
 	dlm->totface= me->totface;
 	dlm->mvert= MEM_dupallocN(me->mvert);
@@ -1764,9 +1762,9 @@ void makeDispList(Object *ob)
 
 		if (mesh_uses_displist(me)) {  /* subsurf */
 			if (ob==G.obedit) {
-				me->derived= subsurf_make_derived_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
+				me->derived= subsurf_make_derived_from_editmesh(em, me->subdiv, me->subsurftype);
 			} else {
-				me->derived= subsurf_make_derived_from_mesh(me, me->subdiv, me->flag);
+				me->derived= subsurf_make_derived_from_mesh(me, me->subdiv);
 			}
 		}
 

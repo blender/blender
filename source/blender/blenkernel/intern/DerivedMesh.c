@@ -1161,9 +1161,9 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 		} else {
 			*needsFree = 1;
 			if(G.obedit && me==G.obedit->data) {
-				return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->flag, me->subsurftype);
+				return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype);
 			} else {
-				return subsurf_make_derived_from_mesh(me, me->subdivr, me->flag);
+				return subsurf_make_derived_from_mesh(me, me->subdivr);
 			}
 		}
 	}

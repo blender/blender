@@ -435,7 +435,7 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 		cp_key(0, me->totvert, me->totvert, (char*) me->mvert->co, me->key, me->key->refkey, 0);
 	}
 
-	dm= subsurf_make_derived_from_mesh(me, subdivlvl, me->flag);
+	dm= subsurf_make_derived_from_mesh(me, subdivlvl);
 	dlm= dm->convertToDispListMesh(dm);
 	dm->release(dm);
 	

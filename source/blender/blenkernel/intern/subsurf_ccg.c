@@ -240,7 +240,7 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 		return faceBase + 1 + (gridSize-2)*numVerts + S*(gridSize-2)*(gridSize-2) + (y-1)*(gridSize-2) + (x-1);
 	}
 }
-static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges) {
+static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm) {
 	CCGSubSurf *ss= ssm->subSurf;
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm), "dlm");
 	int edgeSize= ccgSubSurf_getEdgeSize(ss);
@@ -253,12 +253,6 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges) {
 	CCGEdgeIterator *ei;
 	CCGFaceIterator *fi;
 	
-	if (doOptEdges) {
-		dlm->flag= ME_OPT_EDGES;
-	} else {
-		dlm->flag= 0;
-	}
-
 	dlm->totvert= ccgSubSurf_getNumFinalVerts(ss);
 	dlm->totedge= ccgSubSurf_getNumFinalEdges(ss);
 	dlm->totface= ccgSubSurf_getNumFinalFaces(ss);
@@ -491,12 +485,10 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges) {
 						dlm->editface[i] = ccgSubSurf_getFaceFaceHandle(ss, f);
 					}
 
-					if (doOptEdges) {
-						if (x+1==gridSize-1)
-							mf->edcode|= ME_V2V3;
-						if (y+1==gridSize-1)
-							mf->edcode|= ME_V1V2;
-					}
+					if (x+1==gridSize-1)
+						mf->edcode|= ME_V2V3;
+					if (y+1==gridSize-1)
+						mf->edcode|= ME_V1V2;
 
 					for (j=0; j<4; j++) {
 						int fx= x + (j==1||j==2);
@@ -633,26 +625,26 @@ static void subSurf_sync(SubSurf *ss) {
 	ccgSubSurf_processSync(ss->subSurf);
 }
 
-DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags) {
+DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels) {
 	SubSurf *ss= subSurf_fromEditmesh(em, subdivLevels);
 	DispListMesh *dlm;
 
 	subSurf_sync(ss);
 
-	dlm= subSurf_createDispListMesh(ss, (flags&ME_OPT_EDGES)?1:0);
+	dlm= subSurf_createDispListMesh(ss);
 
 	subSurf_free(ss);
 
 	return dlm;
 }
 
-DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels, int flags) {
+DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels) {
 	SubSurf *ss= subSurf_fromMesh(me, subdivLevels);
 	DispListMesh *dlm;
 
 	subSurf_sync(ss);
 
-	dlm= subSurf_createDispListMesh(ss, (flags&ME_OPT_EDGES)?1:0);
+	dlm= subSurf_createDispListMesh(ss);
 	
 	subSurf_free(ss);
 	

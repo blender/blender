@@ -922,7 +922,7 @@ static int hypermesh_get_nedges(HyperMesh *hme) {
 }
 
 /* flag is me->flag, for 'optim' */
-static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
+static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme) {
 	int nverts= hypermesh_get_nverts(hme);
 	int nedges= hypermesh_get_nedges(hme);
 	int nfaces= hypermesh_get_nfaces(hme);
@@ -957,11 +957,6 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 	if (hme->orig_me==NULL) {
 		dlm->editedge= MEM_callocN(dlm->totedge*sizeof(EditEdge *), "dlm->editface");
 		dlm->editface= MEM_mallocN(dlm->totface*sizeof(EditFace *), "dlm->editedge");
-	}
-	if (hme->orig_me) {
-		dlm->flag= hme->orig_me->flag;
-	} else {
-		dlm->flag= flag;
 	}
 	
 	if (hme->hasuvco)
@@ -1071,8 +1066,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 }
 
 /* flag is me->flag, and 'optim' */
-static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short subdiv,
-												short flag, short type) {
+static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short subdiv, short type) {
 	DispListMesh *dlm;
 	int i;
 
@@ -1089,46 +1083,46 @@ static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short sub
 		hme= tmp;
 	}
 
-	dlm= hypermesh_to_displistmesh(hme, flag);
+	dlm= hypermesh_to_displistmesh(hme);
 	hypermesh_free(hme);
 	
 	return dlm;
 }
 
-static DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags, short type) {
+static DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, short type) {
 	if (subdivLevels<1) {
 		return displistmesh_from_editmesh(em);
 #ifdef USE_CCGSUBSURFLIB
 	} else if (type==ME_CCG_SUBSURF) {
-		return subsurf_ccg_make_dispListMesh_from_editmesh(em, subdivLevels, flags);
+		return subsurf_ccg_make_dispListMesh_from_editmesh(em, subdivLevels);
 #endif
 	} else {
 		HyperMesh *hme= hypermesh_from_editmesh(em, subdivLevels);
 	
-		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags, type);
+		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, type);
 	}
 }
 
-DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, int flags, short type) {
-	return derivedmesh_from_displistmesh(em, subsurf_make_dispListMesh_from_editmesh(em, subdivLevels, flags, type));
+DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, short type) {
+	return derivedmesh_from_displistmesh(em, subsurf_make_dispListMesh_from_editmesh(em, subdivLevels, type));
 }
 
-static DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels, int flags) {
+static DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels) {
 	if (subdivLevels<1) {
 		return displistmesh_from_mesh(me, NULL);
 #ifdef USE_CCGSUBSURFLIB
 	} else if (me->subsurftype==ME_CCG_SUBSURF) {
-		return subsurf_ccg_make_dispListMesh_from_mesh(me, subdivLevels, flags);
+		return subsurf_ccg_make_dispListMesh_from_mesh(me, subdivLevels);
 #endif
 	} else {
 		HyperMesh *hme= hypermesh_from_mesh(me, subdivLevels);
 
-		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags, me->subsurftype);
+		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, me->subsurftype);
 	}
 }
 
-DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels, int flags) {
-	return derivedmesh_from_displistmesh(NULL, subsurf_make_dispListMesh_from_mesh(me, subdivLevels, flags));
+DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels) {
+	return derivedmesh_from_displistmesh(NULL, subsurf_make_dispListMesh_from_mesh(me, subdivLevels));
 }
 
 	// editarmature.c

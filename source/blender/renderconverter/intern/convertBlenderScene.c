@@ -1482,9 +1482,6 @@ static void init_render_mesh(Object *ob)
 						flag= mface->flag;
 						edcode= mface->edcode;
 						
-						/* cannot use edges data for render, this has no vcol or tface... */
-						if(dlm && (dlm->flag & ME_OPT_EDGES)==0) edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
-						
 						if(v3) {
 							float len;
 							

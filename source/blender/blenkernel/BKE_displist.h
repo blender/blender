@@ -100,7 +100,6 @@ struct DispListMesh {
 	struct EditEdge **editedge;	// added for subsurf, drawobject.c
 	struct EditFace **editface;	// added for subsurf, drawobject.c
 	float *nors; // facenormals
-	int flag;
 };
 
 void displistmesh_free(DispListMesh *dlm);
