@@ -985,6 +985,6 @@ void BIF_toggle_render_display(void)
 void BIF_renderwin_set_custom_cursor(unsigned char mask[16][2], unsigned char bitmap[16][2])
 {
 	if (render_win) {
-		window_set_custom_cursor(render_win->win, mask, bitmap);
+		window_set_custom_cursor(render_win->win, mask, bitmap, 7, 7);
 	}
 }

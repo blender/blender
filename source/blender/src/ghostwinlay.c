@@ -326,8 +326,9 @@ void window_set_cursor(Window *win, int curs) {
 	}
 }
 
-void window_set_custom_cursor(Window *win, unsigned char mask[16][2], unsigned char bitmap[16][2]) {
-	GHOST_SetCustomCursorShape(win->ghostwin, bitmap, mask, 7, 7);
+void window_set_custom_cursor(Window *win, unsigned char mask[16][2], 
+					unsigned char bitmap[16][2], int hotx, int hoty) {
+	GHOST_SetCustomCursorShape(win->ghostwin, bitmap, mask, hotx, hoty);
 }
 
 void window_make_active(Window *win) {

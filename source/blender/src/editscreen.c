@@ -3068,7 +3068,7 @@ void set_timecursor(int nr)
 	}
 
 	curcursor= CURSOR_NONE;
-	window_set_custom_cursor(mainwin, mask, bitmap);
+	window_set_custom_cursor(mainwin, mask, bitmap, 7, 7);
 	BIF_renderwin_set_custom_cursor(mask, bitmap);
 }
 

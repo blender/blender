@@ -7376,7 +7376,7 @@ void KnifeSubdivide(char mode){
 	oldcursor=get_cursor();
 	//set_cursor(CURSOR_PENCIL); 
 	win=winlay_get_active_window();
-	window_set_custom_cursor(win, mask, bitmap);
+	window_set_custom_cursor(win, mask, bitmap, 0, 15);
 	//GHOST_SetCustomCursorShape(win->ghostwin, mask, bitmap, 0, 15);
 	
 	curve=get_mouse_trail(&len, TRAIL_MIXED);
