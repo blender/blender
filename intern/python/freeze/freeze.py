@@ -40,6 +40,8 @@ Options:
 
 -d:           Debugging mode for the module finder.
 
+-D:			  Do not check for existence of Python directories (HACK).
+
 -q:           Make the module finder totally quiet.
 
 -h:           Print this help message.
@@ -109,6 +111,7 @@ def main():
     path = sys.path[:]
     modargs = 0
     debug = 1
+    do_not_check_dirs = 0
     odir = ''
     win = sys.platform[:3] == 'win'
 
@@ -142,7 +145,7 @@ def main():
 
     # Now parse the command line with the extras inserted.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'a:de:hmo:p:P:I:qs:wx:l:')
+        opts, args = getopt.getopt(sys.argv[1:], 'a:dDe:hmo:p:P:I:qs:wx:l:')
     except getopt.error, msg:
         usage('getopt error: ' + str(msg))
 
@@ -179,6 +182,8 @@ def main():
             addn_link.append(a)
         if o == '-a':
             apply(modulefinder.AddPackagePath, tuple(string.split(a,"=", 2)))
+        if o == '-D':
+			do_not_check_dirs = 1
 
     # default prefix and exec_prefix
     if not exec_prefix:
@@ -223,11 +228,12 @@ def main():
     # sanity check of directories and files
     check_dirs = [prefix, exec_prefix, binlib, incldir]
     if not win: check_dirs = check_dirs + extensions # These are not directories on Windows.
-    for dir in check_dirs:
-        if not os.path.exists(dir):
-            usage('needed directory %s not found' % dir)
-        if not os.path.isdir(dir):
-            usage('%s: not a directory' % dir)
+    if not do_not_check_dirs:
+	    for dir in check_dirs:
+	        if not os.path.exists(dir):
+		        usage('needed directory %s not found' % dir)
+			if not os.path.isdir(dir):
+				usage('%s: not a directory' % dir)
     if win:
         files = supp_sources + extensions # extensions are files on Windows.
     else:
