@@ -31,19 +31,15 @@
  * Ketsji scene. Holds references to all scene data.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#include "KX_Scene.h"
 #include "MT_assert.h"
 
 #include "KX_KetsjiEngine.h"
 #include "RAS_IPolygonMaterial.h"
-#include "KX_Scene.h"
 #include "ListValue.h"
 #include "SCA_LogicManager.h"
 #include "SCA_TimeEventManager.h"

@@ -32,10 +32,10 @@
 #ifndef __KX_BLENDERSCENECONVERTER_H
 #define __KX_BLENDERSCENECONVERTER_H
 
+#include "KX_HashedPtr.h"
 #include "GEN_Map.h"
 
 #include "KX_ISceneConverter.h"
-#include "KX_HashedPtr.h"
 #include "KX_IpoConvert.h"
 
 class KX_WorldInfo;

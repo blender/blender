@@ -32,6 +32,7 @@
 #ifndef __BLENDER_CONVERT
 #define __BLENDER_CONVERT
 
+#include "GEN_HashedPtr.h"
 #include "STR_String.h"
 #include "KX_Python.h"
 #include "KX_PhysicsEngineEnums.h"

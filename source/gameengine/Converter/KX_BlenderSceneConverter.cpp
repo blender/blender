@@ -29,17 +29,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 #endif
 
-
 #include "KX_Scene.h"
 #include "KX_GameObject.h"
+#include "KX_BlenderSceneConverter.h"
 #include "KX_IpoConvert.h"
 #include "RAS_MeshObject.h"
 #include "KX_PhysicsEngineEnums.h"

@@ -33,6 +33,7 @@
 #ifndef BL_ACTIONACTUATOR
 #define BL_ACTIONACTUATOR
 
+#include "GEN_HashedPtr.h"
 #include "SCA_IActuator.h"
 #include "MT_Point3.h"
 

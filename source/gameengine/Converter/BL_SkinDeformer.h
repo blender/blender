@@ -37,6 +37,7 @@
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
+#include "GEN_HashedPtr.h"
 #include "BL_MeshDeformer.h"
 #include "BL_ArmatureObject.h"
 

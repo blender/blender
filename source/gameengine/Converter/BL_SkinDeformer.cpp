@@ -30,21 +30,17 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#include "BL_SkinDeformer.h"
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 #include "RAS_IPolygonMaterial.h"
 #include "BL_SkinMeshObject.h"
 
 //#include "BL_ArmatureController.h"
-#include "BL_SkinDeformer.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_mesh_types.h"

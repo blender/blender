@@ -51,10 +51,6 @@
 
 #include "KX_MotionState.h" // bridge between motionstate and scenegraph node
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef USE_ODE
 
 #include "KX_OdePhysicsController.h"
