@@ -2507,16 +2507,22 @@ static uiBlock *view3d_edit_curvemenu(void *arg_unused)
 static void do_view3d_edit_metaballmenu(void *arg, int event)
 {
 	switch(event) {
-	case 1: /* duplicate */
+	case 1: /* undo */
+		BIF_undo();
+		break;
+	case 2: /* redo */
+		BIF_redo();
+		break;
+	case 3: /* duplicate */
 		duplicate_context_selected();
 		break;
-	case 2: /* delete */
+	case 4: /* delete */
 		delete_context_selected();
 		break;
-	case 3: /* Shear */
+	case 5: /* Shear */
 		transform('S');
 		break;
-	case 4: /* Warp */
+	case 6: /* Warp */
 		transform('w');
 		break;
 	}
@@ -2531,14 +2537,18 @@ static uiBlock *view3d_edit_metaballmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_metaballmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_metaballmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|Ctrl Z",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo Editing|Shift Ctrl Z",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBlockBut(block, editmode_undohistorymenu, NULL, ICON_RIGHTARROW_THIN, "Undo History", 0, yco-=20, 120, 19, "");
+	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Warp|Shift W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Warp|Shift W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
