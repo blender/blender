@@ -4015,7 +4015,7 @@ void do_matbuts(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		allqueue(REDRAWBUTSMAT, 0);
 		allqueue(REDRAWIPO, 0);
-		BIF_previewdraw(G.buts);
+		BIF_preview_changed(G.buts);
 		break;
 	case B_MATFROM:
 
