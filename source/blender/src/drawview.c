@@ -126,6 +126,8 @@
 #include "mydevice.h"
 #include "butspace.h"  // event codes
 
+#include "transform_constraints.h"
+
 /* Modules used */
 #include "render.h"		// for ogl render
 #include "radio.h"
@@ -1908,7 +1910,13 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		base= base->next;
 	}
 
-	if(G.moving) constline_callback();
+	if(G.moving) {
+		constline_callback();
+#ifdef NEWTRANSFORM
+		drawConstraint();
+		drawPropCircle();
+#endif
+	}
 
 	/* duplis, draw as last to make sure the displists are ok */
 	base= G.scene->base.first;

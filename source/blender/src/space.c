@@ -145,6 +145,8 @@
 #include "blendef.h"
 #include "datatoc.h"
 
+#include "transform.h"
+
 #include "TPT_DependKludge.h"
 #ifdef NAN_TPT
 #include "BSE_trans_types.h"
@@ -1208,10 +1210,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual & LR_ALTKEY) rem_selected_from_group(); */
 				if((G.qual==LR_SHIFTKEY))
 					select_group_menu();
-				else if(G.qual==LR_ALTKEY)
-					clear_object('g');
-				else if((G.qual==0))
+				else if(G.qual==LR_ALTKEY) {
+					if(okee("Clear location")) {
+						clear_object('g');
+					}
+				} else if((G.qual==0))
+#ifdef NEWTRANSFORM
+					Transform(TRANSLATION);
+#else
 					transform('g');
+#endif
 				break;
 			case HKEY:
 				if(G.obedit) {
@@ -1402,24 +1410,29 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case OKEY:
 				ob= OBACT;
-				if(G.obedit) {
+				if (G.qual==LR_SHIFTKEY) {
 					extern int prop_mode;
-
-					if (G.qual==LR_SHIFTKEY) {
-						prop_mode= !prop_mode;
-						allqueue(REDRAWHEADERS, 0);
-					}
-					else if((G.qual==0)) {
-						G.f ^= G_PROPORTIONAL;
-						allqueue(REDRAWHEADERS, 0);
-					}
+#ifdef NEWTRANSFORM
+					prop_mode = (prop_mode+1)%5;
+#else
+					prop_mode= !prop_mode;
+#endif
+					allqueue(REDRAWHEADERS, 0);
 				}
-				else if((G.qual==LR_SHIFTKEY)) {
+				else if((G.qual==0)) {
+					G.f ^= G_PROPORTIONAL;
+					allqueue(REDRAWHEADERS, 0);
+				}
+				else if((G.qual==LR_CTRLKEY)) {
 					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, -1);
 					}
 				}
-				else if(G.qual==LR_ALTKEY) clear_object('o');
+				else if(G.qual==LR_ALTKEY) {
+					if(okee("Clear origin")) {
+						clear_object('o');
+					}
+				}
 				break;
 
 			case PKEY:
@@ -1443,9 +1456,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case RKEY:
 				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0))
 					rotate_uv_tface();
-				else if(G.qual==LR_ALTKEY)
-					clear_object('r');
-				else if (G.obedit) {
+				else if(G.qual==LR_ALTKEY) {
+					if(okee("Clear rotation")) {
+						clear_object('r');
+					}
+				} else if (G.obedit) {
 					if((G.qual==LR_SHIFTKEY)) {
 						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF)					
 							selectrow_nurb();
@@ -1457,29 +1472,60 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							loopoperations(LOOP_CUT);
 					}
 					else if((G.qual==0))
+#ifdef NEWTRANSFORM
+						Transform(ROTATION);
+#else
 						transform('r');
+#endif
 				}
 				else if((G.qual==0))
+#ifdef NEWTRANSFORM
+					Transform(ROTATION);
+#else
 					transform('r');
+#endif
 				break;
 			case SKEY:
 				if(G.obedit) {
 					if(G.qual==LR_ALTKEY)
 						transform('N'); /* scale along normal */
 					else if(G.qual==LR_CTRLKEY)
+#ifdef NEWTRANSFORM
+						Transform(SHEAR);
+					else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
+						Transform(SHEAR);
+#else
 						transform('S');
+#endif
 					else if(G.qual==LR_SHIFTKEY)
 						snapmenu();
-					else if((G.qual==0))
+					else if(G.qual==0)
+#ifdef NEWTRANSFORM
+						Transform(RESIZE);
+					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
+						Transform(TOSPHERE);
+#else
 						transform('s');
+#endif
 				}
 				else if(G.qual==LR_ALTKEY) {
-					clear_object('s');
+					if(okee("Clear size")) {
+						clear_object('s');
+					}
 				}
-				else if((G.qual==LR_SHIFTKEY))
+				else if(G.qual==LR_SHIFTKEY) {
 					snapmenu();
+				}
 				else if((G.qual==0))
+#ifdef NEWTRANSFORM
+					Transform(RESIZE);
+				else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
+					Transform(TOSPHERE);
+				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
+					Transform(SHEAR);
+#else
 					transform('s');
+#endif
 				break;
 			case TKEY:
 				if(G.obedit){

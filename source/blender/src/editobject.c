@@ -160,6 +160,8 @@
 
 #include "blendef.h"
 
+#include "transform.h"
+
 #include "BIF_poseobject.h"
 
 /*  extern Lattice *copy_lattice(Lattice *lt); */
@@ -760,7 +762,7 @@ void make_track(void)
 		allqueue(REDRAWOOPS, 0);
 		sort_baselist(G.scene);
 	}
-	BIF_undo_push("make Track");
+	BIF_undo_push("Make Track");
 }
 
 void apply_obmat(Object *ob)
@@ -885,8 +887,6 @@ void clear_object(char mode)
 	else if(mode=='s') str= "Clear size";
 	else if(mode=='o') str= "Clear origin";
 	else return;
-	
-	if(okee(str)==0) return;
 	
 	if (G.obpose){
 
@@ -4142,16 +4142,18 @@ void make_trans_verts(float *min, float *max, int mode)
 
 void draw_prop_circle()
 {
-	float tmat[4][4], imat[4][4];
-	
-	if(G.moving) {
+	if (G.f & G_PROPORTIONAL) {
+		float tmat[4][4], imat[4][4];
 
-		BIF_ThemeColor(TH_GRID);
+		if(G.moving) {
 
-		mygetmatrix(tmat);
-		Mat4Invert(imat, tmat);
+			BIF_ThemeColor(TH_GRID);
 
- 		drawcircball(prop_cent, prop_size, imat);
+			mygetmatrix(tmat);
+			Mat4Invert(imat, tmat);
+
+	 		drawcircball(prop_cent, prop_size, imat);
+		}
 	}
 }
 
@@ -6080,7 +6082,7 @@ void transform(int mode)
 						dist= vec[0]-centre[0];
 
 						if ((typemode) && (addvec[0]))
-							phi0= (Dist1*addvec[0]*M_PI/(360.0*dist)) - 0.5*M_PI;
+							phi0= (dist*addvec[0]*M_PI/(360.0*Dist1)) - 0.5*M_PI;
 						else
 							phi0= (circumfac*dist/rad) - 0.5*M_PI;
 
@@ -6685,6 +6687,7 @@ void transform(int mode)
 	special_aftertrans_update(mode, a & 1, canceled, keyflags);
 
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	scrarea_queue_headredraw(curarea);
 
 	clearbaseflags_for_editing();
@@ -6722,7 +6725,11 @@ void std_rmouse_transform(void (*xf_func)(int))
 	while(get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
+#ifdef NEWTRANSFORM
+			Transform(TRANSLATION);
+#else
 			xf_func('g');
+#endif
 			while(get_mbut() & mousebut) BIF_wait_for_statechange();
 			return;
 		}
@@ -7827,7 +7834,7 @@ void select_select_keys(void)
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
 
-	BIF_undo_push("Selet keys");
+	BIF_undo_push("Select keys");
 
 }
 
