@@ -28,7 +28,7 @@
  *
  *
  * Contributor(s): Michel Selten, Willian Germano, Jacques Guignot,
- * Joseph Gilbert, Stephen Swaney, Bala Gi
+ * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -108,7 +108,7 @@ static PyObject *Object_getInverseMatrix (BPy_Object *self);
 static PyObject *Object_getIpo (BPy_Object *self);
 static PyObject *Object_getLocation (BPy_Object *self, PyObject *args);
 static PyObject *Object_getMaterials (BPy_Object *self);
-static PyObject *Object_getMatrix (BPy_Object *self);
+static PyObject *Object_getMatrix (BPy_Object *self, PyObject *args);
 static PyObject *Object_getName (BPy_Object *self);
 static PyObject *Object_getParent (BPy_Object *self);
 static PyObject *Object_getSize (BPy_Object *self, PyObject *args);
@@ -176,8 +176,8 @@ hierarchy (faster)"},
 	"Returns the object's location (x, y, z)"},
   {"getMaterials", (PyCFunction)Object_getMaterials, METH_NOARGS,
 	"Returns list of materials assigned to the object"},
-  {"getMatrix", (PyCFunction)Object_getMatrix, METH_NOARGS,
-	"Returns the object matrix"},
+  {"getMatrix", (PyCFunction)Object_getMatrix, METH_VARARGS,
+	"Returns the object matrix - worlspace or localspace (default)"},
   {"getName", (PyCFunction)Object_getName, METH_NOARGS,
 	"Returns the name of the object"},
   {"getParent", (PyCFunction)Object_getParent, METH_NOARGS,
@@ -871,13 +871,27 @@ static PyObject *Object_getMaterials (BPy_Object *self)
 										  self->object->totcol));
 }
 
-static PyObject *Object_getMatrix (BPy_Object *self)
+static PyObject *Object_getMatrix (BPy_Object *self, PyObject *args)
 {
-	PyObject * matrix;
+	PyObject  *matrix;
+	char *space = "localspace";	 /* default to local */
 
+	if (!PyArg_ParseTuple(args, "|s", &space)){
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"expected a string or nothing"));
+	}
+	//new matrix
 	matrix = newMatrixObject(NULL, 4, 4);
-	object_to_mat4(self->object, *((MatrixObject*)matrix)->matrix);
 
+	if (BLI_streq(space, "worldspace")){  	/* Worldspace matrix */
+		where_is_object(self->object);
+		Mat4CpyMat4(*((MatrixObject*)matrix)->matrix, self->object->obmat);
+	} else if (BLI_streq(space, "localspace")) { /* Localspace matrix*/
+		object_to_mat4(self->object, *((MatrixObject*)matrix)->matrix);
+	} else {
+		return (EXPP_ReturnPyObjError (PyExc_RuntimeError, 
+			"correct  	spaces are 'worldspace' and 'localspace', none defaults to localespace"));
+	}
 	return matrix;
 }
 
@@ -2048,10 +2062,12 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
 		}
 		return (Ipo_CreatePyObject (object->ipo));
 	}
-	if (StringEqual (name, "mat"))
-		return (Object_getMatrix (obj));
-	if (StringEqual (name, "matrix"))
-		return (Object_getMatrix (obj));
+	if (StringEqual (name, "mat") || StringEqual (name, "matrix"))
+		return (Object_getMatrix (obj, Py_BuildValue("(s)","localspace")));
+	if (StringEqual (name, "matrixWorld"))
+		return (Object_getMatrix (obj, Py_BuildValue("(s)","worldspace")));
+	if (StringEqual (name, "matrixLocal"))
+		return (Object_getMatrix (obj, Py_BuildValue("(s)","localspace")));
 	if (StringEqual (name, "colbits"))
 		return (Py_BuildValue ("h", object->colbits));
 	if (StringEqual (name, "drawType"))
