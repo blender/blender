@@ -255,11 +255,41 @@ static PyObject *NMFace_getattr(PyObject *self, char *name)
 		return Py_BuildValue("i", mf->transp);
 	else if (strcmp(name, "uv") == 0)
 		return Py_BuildValue("O", mf->uv);
-
+	else if (strcmp(name, "normal") == 0)
+	{
+		if(EXPP_check_sequence_consistency(mf->v, &NMVert_Type))
+		{
+			float fNormal[3] = {0.0,0.0,0.0};
+			int nSize = PyList_Size(mf->v);
+			if(nSize == 4)
+			{
+				CalcNormFloat4(	&((BPy_NMVert*)(PyList_GetItem(mf->v, 0)))->co,
+								&((BPy_NMVert*)(PyList_GetItem(mf->v, 1)))->co,
+								&((BPy_NMVert*)(PyList_GetItem(mf->v, 2)))->co,
+								&((BPy_NMVert*)(PyList_GetItem(mf->v, 3)))->co,
+								&fNormal);
+				return Py_BuildValue("[f,f,f]",fNormal[0],fNormal[1],fNormal[2]);
+			}
+			else if(nSize == 3)
+			{
+				CalcNormFloat(	&((BPy_NMVert*)(PyList_GetItem(mf->v, 0)))->co,
+								&((BPy_NMVert*)(PyList_GetItem(mf->v, 1)))->co,
+								&((BPy_NMVert*)(PyList_GetItem(mf->v, 2)))->co,
+								&fNormal);
+				return Py_BuildValue("[f,f,f]",fNormal[0],fNormal[1],fNormal[2]);
+			}
+			else
+				return EXPP_ReturnPyObjError (PyExc_AttributeError,
+										"face must contain either 3 or 4 verts");
+		}
+		else
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+										"this face does not contain a series of NMVerts");
+	}
 	else if (strcmp(name, "__members__") == 0)
-		return Py_BuildValue("[s,s,s,s,s,s,s,s,s,s]",
+		return Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s]",
 										"v", "col", "mat", "materialIndex", "smooth",
-										"image", "mode", "flag", "transp", "uv");
+										"image", "mode", "flag", "transp", "uv", "normal");
 	return Py_FindMethod(NMFace_methods, (PyObject*)self, name);
 }
 

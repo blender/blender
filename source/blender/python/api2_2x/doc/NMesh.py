@@ -201,6 +201,7 @@ class NMFace:
   @cvar transp: Transparency mode bit vector
      (see L{NMesh.FaceTranspModes<FaceTranspModes>}).
   @cvar uv: List of per-face UV coordinates: [(u0, v0), (u1, v1), ...].
+  @cvar normal: The normalized vector for this face: [x,y,z].
   @warn: Assigning uv textures to mesh faces in Blender works like this:
     1. Select your mesh.
     2. Enter face select mode (press f) and select at least some face(s).
