@@ -26,7 +26,10 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): 
+ * - Martin DeMello
+ *   Added dxf_read_arc, dxf_read_ellipse and dxf_read_lwpolyline
+ *   Copyright (C) 2004 by Etheract Software Labs
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  *  
@@ -78,10 +81,6 @@
 #include <fcntl.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32 
 #include <unistd.h>
 #else
@@ -123,14 +122,10 @@
 #include "BKE_curve.h"
 
 #include "BPY_extern.h"
-/***/
 
 static int is_dxf(char *str);
 static void dxf_read(char *filename);
 static int is_stl(char *str);
-
-/***/
-
 
 static int is_stl_ascii(char *str)
 {	
@@ -3627,6 +3622,11 @@ static int is_dxf(char *str)
 
 	PPS... I decided to do the same thing with everything.
 	Now it is all really nasty and should be rewritten. 
+	--
+	
+	Added circular and elliptical arcs and lwpolylines.
+	These are all self-contained and have the size known
+	in advance, and so I haven't used the held state. -- martin
 */
 
 static void dxf_add_mat (Object *ob, Mesh *me, float color[3], char *layer) 
@@ -3678,6 +3678,47 @@ static float zerovec[3]= {0.0, 0.0, 0.0};
 
 #define reset_vars cent[0]= cent[1]= cent[2]=0.0; strcpy(layname, ""); color[0]= color[1]= color[2]= -1.0
 
+
+static void dxf_get_mesh(Mesh** m, Object** o, int noob)
+{
+	Mesh *me = NULL;
+	Object *ob;
+	
+        if (!noob) {
+                *o = add_object(OB_MESH);
+                ob = *o;
+
+                if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
+                else if (strlen(layname)) new_id(&G.main->object, (ID *)ob, 
+			layname);
+
+                if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
+                else ob->lay= G.scene->lay;
+
+                *m = ob->data;
+                me= *m;
+
+                vcenter= ob->loc;
+	} else {
+		*o = NULL;
+		*m = add_mesh(); G.totmesh++;
+
+		me = *m;
+		ob = *o;
+		
+		((ID *)me)->us=0;
+
+		if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
+		else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
+
+		vcenter = zerovec;
+	}
+	me->totvert=0;
+	me->totface=0;
+	me->mvert=NULL;
+	me->mface=NULL;
+}
+
 static void dxf_read_point(int noob) {	
 	/* Blender vars */
 	Object *ob;
@@ -3707,32 +3748,9 @@ static void dxf_read_point(int noob) {
 		read_group(id, val);								
 	}
 
-	if (noob) {
-		ob= NULL;
-		me= add_mesh(); G.totmesh++;
-		((ID *)me)->us=0;
-
-		if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
-		else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
-
-		vcenter= zerovec;
-	} else {
-		ob= add_object(OB_MESH);
-		if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-		else if (strlen(layname)) new_id(&G.main->object, (ID *)ob, layname);
-	
-		if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-		else ob->lay= G.scene->lay;
-
-		me= ob->data;
-		
-		vcenter= ob->loc;
-	}
-	me->totvert= 1; /* Its a line dude */
-	me->totface= 0;
-											
+	dxf_get_mesh(&me, &ob, noob);
+	me->totvert= 1;
 	me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
-	me->mface= NULL;
 					
 	dxf_add_mat (ob, me, color, layname);					
 
@@ -3823,39 +3841,13 @@ static void dxf_read_line(int noob) {
 
 	/* Check to see if we need to make a new object */
 
-	if(!lwasline || strcmp(layname, oldllay)!=0) dxf_close_line();
+	if(!lwasline || strcmp(layname, oldllay)!=0) 
+		dxf_close_line();
 	if(linemhold != NULL && linemhold->totvert>MESH_MAX_VERTS) 
 		dxf_close_line();
 					
 	if (linemhold==NULL) {
-		if (noob) {
-			ob= NULL;
-			me= add_mesh(); G.totmesh++;
-			((ID *)me)->us=0;
-		
-			if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
-			else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
-		
-			vcenter= zerovec;
-		} else {
-			ob= add_object(OB_MESH);
-			if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-			else if (strlen(layname)) new_id(&G.main->object, (ID *)ob, layname);
-		
-			if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-			else ob->lay= G.scene->lay;
-		
-			me= ob->data;
-			
-			vcenter= ob->loc;
-		}
-		
-		me->totvert=0;
-		me->totface=0;
-		me->mvert=NULL;
-		me->mface=NULL;
-
-		strcpy(oldllay, layname);		
+		dxf_get_mesh(&me, &ob, noob);
 
 		if(ob) VECCOPY(ob->loc, cent);
 
@@ -3889,8 +3881,8 @@ static void dxf_read_line(int noob) {
 	ftmp=NULL;
 	
 	mvert= &me->mvert[(me->totvert-2)];
+
 	VecSubf(mvert->co, cent, vcenter);
-	
 	mvert++;
 	if (vspace) { VECCOPY(mvert->co, epoint);
 	} else VecSubf(mvert->co, epoint, vcenter);
@@ -3926,6 +3918,321 @@ static void dxf_close_2dpoly(void)
         tex_space_mesh(p2dhold->data);
 
         p2dhold=NULL;
+}
+
+static void dxf_read_ellipse(int noob) 
+{
+
+	/*
+   * The Parameter option of the ELLIPSE command uses the following equation to define an elliptical arc.
+   *
+   *    p(u)=c+a*cos(u)+b*sin(u)
+   *
+	 * The variables a, b, c are determined when you select the endpoints for the
+	 * first axis and the distance for the second axis. a is the negative of 1/2
+	 * of the major axis length, b is the negative of 1/2 the minor axis length,
+	 * and c is the center point (2-D) of the ellipse.
+   *
+	 * Because this is actually a vector equation and the variable c is actually
+	 * a point with X and Y values, it really should be written as:
+   *
+   *   p(u)=(Cx+a*cos(u))*i+(Cy+b*sin(u))*j
+   *
+   * where
+   *
+   *   Cx is the X value of the point c
+   *   Cy is the Y value of the point c
+   *   a is -(1/2 of the major axis length)
+   *   b is -(1/2 of the minor axis length)
+   *   i and j represent unit vectors in the X and Y directions
+	 *
+	 * http://astronomy.swin.edu.au/~pbourke/geomformats/dxf2000/ellipse_command39s_parameter_option_dxf_06.htm
+	 * (reproduced with permission)
+	 * 
+	 * NOTE: The start and end angles ('parameters') are in radians, whereas those for the circular arc are 
+	 * in degrees. The 'sense' of u appears to be determined by the extrusion direction (see more detailed comment
+	 * in the code)
+	 *
+	 * TODO: The code is specific to ellipses in the x-y plane right now.
+	 * 
+	 */
+	
+	/* Entity specific vars */
+	float epoint[3]={0.0, 0.0, 0.0};
+	float center[3]={0.0, 0.0, 0.0};
+	float extrusion[3]={0.0, 0.0, 1.0}; 
+	float axis_endpoint[3] = {0.0, 0.0, 0.0}; /* major axis endpoint */
+	short vspace=0; /* Whether or not coords are relative */
+	float a, b, x, y, z;
+	float phid = 0.0f, phi = 0.0f, theta = 0.0f;
+	float start_angle = 0.0f;
+	float end_angle = 2*M_PI;
+	float axis_ratio = 1.0f;
+	float temp;
+	int v, tot;
+	int isArc=0;
+	/* Blender vars */
+	Object *ob;
+	Mesh *me;
+	MVert *mvert;
+	MFace *mface;
+	
+	reset_vars;
+	read_group(id, val);								
+	while(id!=0) {
+	  if (id==8) {
+	    BLI_strncpy(layname, val, sizeof(layname));
+	  } else if (id==10) {
+	    center[0]= (float) atof(val);
+	  } else if (id==20) {
+	    center[1]= (float) atof(val);
+	  } else if (id==30) {
+	    center[2]= (float) atof(val);
+	  } else if (id==11) {
+	    axis_endpoint[0]= (float) atof(val);
+	  } else if (id==21) {
+	    axis_endpoint[1]= (float) atof(val);
+	  } else if (id==31) {
+	    axis_endpoint[2]= (float) atof(val);
+	  } else if (id==40) {
+	    axis_ratio = (float) atof(val);
+		} else if (id==41) {
+			printf("dxf: start = %f", atof(val) * 180/M_PI);
+	    start_angle = -atof(val) + M_PI_2;
+	  } else if (id==42) {
+			printf("dxf: end = %f", atof(val) * 180/M_PI);
+			end_angle = -atof(val) + M_PI_2; 
+	  } else if (id==62) {
+	    int colorid= atoi(val);
+	    CLAMP(colorid, 1, 255);
+	    dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
+	  } else if (id==67) {
+	    vspace= atoi(val);
+	  } else if (id==100) {
+	    isArc = 1;
+	  } else if (id==210) {
+			extrusion[0] = atof(val);
+		} else if (id==220) {
+			extrusion[1] = atof(val);
+		} else if (id==230) {
+			extrusion[2] = atof(val);
+		}
+	  read_group(id, val);
+	}
+
+	if(!lwasline || strcmp(layname, oldllay)!=0) dxf_close_line();
+	if(linemhold != NULL && linemhold->totvert>MESH_MAX_VERTS) 
+	  dxf_close_line();
+
+	/* The 'extrusion direction' seems akin to a face normal, 
+	 * insofar as it determines the direction of increasing phi.
+	 * This is again x-y plane specific; it should be fixed at 
+	 * some point. */
+	
+	if (extrusion[2] < 0) {
+		temp = start_angle;
+		start_angle = M_PI - end_angle;
+		end_angle = M_PI - temp;
+	}
+	
+	if(end_angle > start_angle)
+	  end_angle -= 2 * M_PI;
+
+	phi = start_angle;
+	
+	x = axis_endpoint[0]; 
+	y = axis_endpoint[1];
+	z = axis_endpoint[2];
+	a = sqrt(x*x + y*y + z*z);
+	b = a * axis_ratio;
+
+	theta = atan2(y, x);
+
+	x = a * sin(phi);
+	y = b * cos(phi);	
+
+#ifndef DEBUG_CENTRE
+	epoint[0] = center[0] + x*cos(theta) - y*sin(theta);
+	epoint[1] = center[1] + x*sin(theta) + y*cos(theta);
+	epoint[2] = center[2];
+	
+
+	cent[0]= epoint[0];
+	cent[1]= epoint[1];
+	cent[2]= epoint[2];
+#else
+	cent[0]= center[0];
+	cent[1]= center[1];
+	cent[2]= center[2];
+#endif
+	
+	dxf_get_mesh(&me, &ob, noob);
+	strcpy(oldllay, layname);		
+	if(ob) VECCOPY(ob->loc, cent);
+	dxf_add_mat (ob, me, color, layname);
+
+	tot = 32; /* # of line segments to divide the arc into */
+
+	phid = (end_angle - start_angle)/tot; 
+
+	me->totvert += tot+1;
+	me->totface += tot+1;
+	
+	me->mvert = (MVert*) MEM_callocN(me->totvert*sizeof(MVert), "mverts");
+	me->mface = (MFace*) MEM_callocN(me->totface*sizeof(MVert), "mface");
+
+	printf("vertex and face buffers allocated\n");
+
+	for(v = 0; v <= tot; v++) {
+
+		x = a * sin(phi);
+		y = b * cos(phi);	
+	  epoint[0] = center[0] + x*cos(theta) - y*sin(theta);
+	  epoint[1] = center[1] + x*sin(theta) + y*cos(theta);
+	  epoint[2] = center[2];
+	  
+	  mvert= &me->mvert[v];
+		
+		if (vspace) {
+			VECCOPY(mvert->co, epoint);
+		}	else {
+			VecSubf(mvert->co, epoint, vcenter);
+		}
+
+		if (v > 0) {
+			mface= &(((MFace*)me->mface)[v-1]);
+			mface->v1 = v-1;
+			mface->v2 = v;
+  	  mface->edcode = 1;
+	    mface->mat_nr = 0;
+		}
+	  
+	  hasbumped = 1;
+
+	  VECCOPY(cent, epoint);	  
+	  phi+=phid;
+	}
+}
+
+static void dxf_read_arc(int noob) 
+{
+	/* Entity specific vars */
+	float epoint[3]={0.0, 0.0, 0.0};
+	float center[3]={0.0, 0.0, 0.0};
+	float extrusion[3]={0.0, 0.0, 1.0};
+	short vspace=0; /* Whether or not coords are relative */
+	float dia = 0.0f;
+	float phid = 0.0f, phi = 0.0f;
+	float start_angle = 0.0f;
+	float end_angle = 2*M_PI;
+	float temp;
+	int v, tot = 32;
+	int isArc=0;
+	/* Blender vars */
+	Object *ob;
+	Mesh *me;
+	MVert *mvert;
+	MFace *mface;
+	
+	reset_vars;
+	read_group(id, val);								
+	while(id!=0) {
+	  if (id==8) {
+	    BLI_strncpy(layname, val, sizeof(layname));
+	  } else if (id==10) {
+	    center[0]= (float) atof(val);
+	  } else if (id==20) {
+	    center[1]= (float) atof(val);
+	  } else if (id==30) {
+	    center[2]= (float) atof(val);
+	  } else if (id==40) {
+	    dia = (float) atof(val);
+	  } else if (id==62) {
+	    int colorid= atoi(val);
+	    
+	    CLAMP(colorid, 1, 255);
+	    dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
+	  } else if (id==67) {
+	    vspace= atoi(val);
+	  } else if (id==100) {
+	    isArc = 1;
+	  } else if (id==50) {
+	    start_angle = (90 - atoi(val)) * M_PI/180.0;
+	  } else if (id==51) {
+	    end_angle = (90 - atoi(val)) * M_PI/180.0;
+	  } else if (id==210) {
+			extrusion[0] = atof(val);
+		} else if (id==220) {
+			extrusion[1] = atof(val);
+		} else if (id==230) {
+			extrusion[2] = atof(val);
+		}
+	  read_group(id, val);
+	}
+
+	if(!lwasline || strcmp(layname, oldllay)!=0) dxf_close_line();
+	if(linemhold != NULL && linemhold->totvert>MESH_MAX_VERTS) 
+	  dxf_close_line();
+	
+	/* Same xy-plane-specific extrusion direction code as in read_ellipse
+	 * (read_arc and read_ellipse should ideally be rewritten to share code)
+	 */
+	
+	if (extrusion[2] < 0) {
+		temp = start_angle;
+		start_angle = M_PI - end_angle;
+		end_angle = M_PI - temp;
+	}
+	
+	phi = start_angle;
+	if(end_angle > start_angle)
+	  end_angle -= 2 * M_PI;
+
+	cent[0]= center[0]+dia*sin(phi);
+	cent[1]= center[1]+dia*cos(phi);
+	cent[2]= center[2];
+
+	dxf_get_mesh(&me, &ob, noob);
+	strcpy(oldllay, layname);		
+	if(ob) VECCOPY(ob->loc, cent);
+	dxf_add_mat (ob, me, color, layname);
+
+	tot = 32; /* # of line segments to divide the arc into */
+	phid = (end_angle - start_angle)/tot; /* fix so that arcs have the same 'resolution' as circles? */
+
+	me->totvert += tot+1;
+	me->totface += tot+1;
+	
+	me->mvert = (MVert*) MEM_callocN(me->totvert*sizeof(MVert), "mverts");
+	me->mface = (MFace*) MEM_callocN(me->totface*sizeof(MVert), "mface");
+
+	for(v = 0; v <= tot; v++) { 
+
+	  epoint[0]= center[0]+dia*sin(phi);
+	  epoint[1]= center[1]+dia*cos(phi);
+	  epoint[2]= center[2];
+
+		mvert= &me->mvert[v];
+		
+		if (vspace) {
+			VECCOPY(mvert->co, epoint);
+		}	else {
+			VecSubf(mvert->co, epoint, vcenter);
+		}
+
+		if (v > 0) {
+			mface= &(((MFace*)me->mface)[v-1]);
+			mface->v1 = v-1;
+			mface->v2 = v;
+  	  mface->edcode = 1;
+	    mface->mat_nr = 0;
+		}
+	  
+	  hasbumped=1;
+
+	  VECCOPY(cent, epoint);	  
+	  phi+=phid;
+	}
 }
 
 static void dxf_read_polyline(int noob) {	
@@ -4208,6 +4515,115 @@ static void dxf_read_polyline(int noob) {
 	}
 }
 
+static void dxf_read_lwpolyline(int noob) {	
+	/* Entity specific vars */
+	short vspace=0; /* Whether or not coords are relative */
+	int flag=0;
+	int nverts=0;
+	int v;
+	
+	/* Blender vars */
+	Object *ob;
+	Mesh *me;
+	float vert[3];
+	
+	MVert *mvert;
+	MFace *mface;
+	
+	reset_vars;
+
+	id = -1;
+
+	/* block structure is
+	 * {...}
+	 * 90 => nverts
+	 * 70 => flags
+	 * nverts.times { 10 => x, 20 => y }
+	 */
+	while(id!=70)	{
+		read_group(id, val);								
+		if (id==8) {
+			BLI_strncpy(layname, val, sizeof(layname));
+		} else if (id==38) {
+			vert[2]= (float) atof(val);
+		} else if (id==60) {
+			/* short invisible= atoi(val); */
+		} else if (id==62) {
+			int colorid= atoi(val);
+							
+			CLAMP(colorid, 1, 255);
+			dxf_col_to_rgb(colorid, &color[0], &color[1], &color[2]);
+		} else if (id==67) {
+			vspace= atoi(val);
+		} else if (id==70) {
+			flag= atoi(val);			
+		} else if (id==90) {
+			nverts= atoi(val);
+		}
+	} 
+	
+	if (nverts == 0)
+		return;
+
+	dxf_get_mesh(&me, &ob, noob);
+	strcpy(oldllay, layname);		
+	if(ob) VECCOPY(ob->loc, cent);
+	dxf_add_mat (ob, me, color, layname);
+
+	me->totvert += nverts;
+	me->totface += nverts;
+	me->mvert = (MVert*) MEM_callocN(me->totvert*sizeof(MVert), "mverts");
+	me->mface = (MFace*) MEM_callocN(me->totface*sizeof(MVert), "mface");
+
+	for (v = 0; v < nverts; v++) {
+		read_group(id,val);
+		if (id == 10) {
+			vert[0]= (float) atof(val);
+		} else {
+			error("Error parsing dxf, expected (10, <x>) at line %d", dxf_line);	
+		}
+
+		read_group(id,val);
+		if (id == 20) {
+			vert[1]= (float) atof(val);
+		} else {
+			error("Error parsing dxf, expected (20, <y>) at line %d", dxf_line);	
+		}
+		
+		mvert = &me->mvert[v];
+
+		if (vspace) { 
+			VECCOPY(mvert->co, vert);
+		} else {
+			VecSubf(mvert->co, vert, vcenter);
+		}
+
+		if (v > 0) {
+			mface= &(((MFace*)me->mface)[v-1]);
+			mface->v1 = v-1;
+			mface->v2 = v;
+  	  mface->edcode = 1;
+	    mface->mat_nr = 0;
+		}
+	}
+
+	/* flag & 1 -> closed polyline 
+   * TODO: give the polyline actual 2D faces if it is closed */
+
+	if (flag&1) {
+	  printf ("closed\n");	
+		if(me->mface) {
+			printf("adding face %d 0\n", nverts-1);
+			mface= &(((MFace*)me->mface)[nverts - 1]);
+			mface->v1 = nverts-1;
+			mface->v2 = 0;
+  	  mface->edcode = 1;
+	    mface->mat_nr = 0;
+		}
+	}  
+}
+
+
 	/* 3D Face state vars */
 static Object *f3dhold=NULL;
 static Mesh *f3dmhold=NULL;
@@ -4424,7 +4840,6 @@ static void dxf_read(char *filename)
 	
 	dxf_fp= fopen(filename, "r");
 	if (dxf_fp==NULL) return;
-
 	while (1) {	
 		read_group(id, val);
 		if (group_is(0, "EOF")) break;
@@ -4443,6 +4858,7 @@ static void dxf_read(char *filename)
 				if (group_is(0, "BLOCK")) {
 					while(group_isnt(0, "ENDBLK")) {
 						read_group(id, val);
+
 						if(id==2) {
 							BLI_strncpy(entname, val, sizeof(entname));
 						} else if (id==3) {
@@ -4456,8 +4872,17 @@ static void dxf_read(char *filename)
 							/* Now the object def should follow */
 							while(group_isnt(0, "ENDBLK")) {
 								read_group(id, val);
+
 								if(group_is(0, "POLYLINE")) {
 									dxf_read_polyline(1);
+									if(error_exit) return;
+									lwasf3d=0;
+									lwasline=0;
+
+									while(group_isnt(0, "SEQEND")) read_group(id, val);						
+									
+								}	else if(group_is(0, "LWPOLYLINE")) {
+									dxf_read_lwpolyline(1);
 									if(error_exit) return;
 									lwasf3d=0;
 									lwasline=0;
@@ -4486,6 +4911,10 @@ static void dxf_read(char *filename)
 									lwasf3d=1;
 									lwasp2d=0;
 									lwasline=0;
+								} else if (group_is(0, "CIRCLE")) {
+									dxf_read_arc(1);
+								} else if (group_is(0, "ELLIPSE")) {
+									dxf_read_ellipse(1);
 								} else if (group_is(0, "ENDBLK")) { 
 									break;
 								}
@@ -4494,7 +4923,8 @@ static void dxf_read(char *filename)
 							break;
 						}
 					}
-					while(id!=0) read_group(id, val);
+					while(id!=0) read_group(id, val); 
+
 				} else if(group_is(0, "ENDSEC")) {
 					break;
 				}
@@ -4516,6 +4946,7 @@ static void dxf_read(char *filename)
 					void *obdata;
 					
 					read_group(id, val);
+
 					while(id!=0) {
 						if(id==2) {
 							BLI_strncpy(obname, val, sizeof(obname));
@@ -4540,6 +4971,7 @@ static void dxf_read(char *filename)
 						}
 						
 						read_group(id, val);
+
 					}
 			
 					if(strlen(obname)==0) {
@@ -4613,6 +5045,14 @@ static void dxf_read(char *filename)
 					lwasline=0;
 
 					while(group_isnt(0, "SEQEND")) read_group(id, val);						
+
+				} else if(group_is(0, "LWPOLYLINE")) {
+					dxf_read_lwpolyline(0);
+					if(error_exit) return;
+					lwasf3d=0;
+					lwasline=0;
+					//while(group_isnt(0, "SEQEND")) read_group(id, val);						
+					
 				} else if(group_is(0, "ATTRIB")) {
 					while(group_isnt(0, "SEQEND")) read_group(id, val);						
 					lwasf3d=0;
@@ -4636,6 +5076,10 @@ static void dxf_read(char *filename)
 					lwasline=0;
 					lwasp2d=0;
 					lwasf3d=1;
+				} else if (group_is(0, "CIRCLE") || group_is(0, "ARC")) {
+				  dxf_read_arc(0);
+				} else if (group_is(0, "ELLIPSE")) {
+				  dxf_read_ellipse(0);
 				} else if(group_is(0, "ENDSEC")) {
 					break;
 				}
