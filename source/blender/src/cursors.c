@@ -110,7 +110,7 @@ void SetBlenderCursor(short curs){
 		set_cursor(CURSOR_STD);
 	}
 	else if ( (U.curssize==0) || (BlenderCursor[curs]->big_bm == NULL) ) {
-		printf("setting small cursor\n");
+		/*printf("setting small cursor\n");*/
 		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
 			BlenderCursor[curs]->small_bm, BlenderCursor[curs]->small_mask, 
 			BlenderCursor[curs]->small_sizex,BlenderCursor[curs]->small_sizey,
@@ -119,7 +119,7 @@ void SetBlenderCursor(short curs){
 			);
 	}
 	else {
-		printf("setting big cursor\n");
+		/*printf("setting big cursor\n");*/
 		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
 			BlenderCursor[curs]->big_bm, BlenderCursor[curs]->big_mask, 
 			BlenderCursor[curs]->big_sizex,BlenderCursor[curs]->big_sizey,

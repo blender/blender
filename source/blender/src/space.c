@@ -916,6 +916,14 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case BKEY:
 				if((G.qual==LR_SHIFTKEY))
 					set_render_border();
+				else if((G.qual==LR_ALTKEY)){
+					if(G.obedit && G.obedit->type==OB_MESH) {
+						/* Loop Select Operations */
+						/*   Vertexloop */
+						/*   Faceloop   */						
+						vertex_loop_select(); 
+					}
+				}
 				else if((G.qual==0))
 					borderselect();
 				break;

@@ -2242,7 +2242,9 @@ void loopoperations(char mode)
 	
 	if(mode==LOOP_CUT)undo_push_mesh("Faceloop Subdivide");
 	else if(mode==LOOP_SELECT)undo_push_mesh("Faceloop Select");	
-		
+
+	SetBlenderCursor(BC_VLOOPCURSOR);	
+
 	start=NULL;
 	oldstart=NULL;
 
@@ -2636,7 +2638,7 @@ void loopoperations(char mode)
 			event= extern_qread(&val);	/* extern_qread stores important events for the mainloop to handle */
 
 			/* val==0 on key-release event */
-			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY || event == MIDDLEMOUSE)){
+			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY || event == MIDDLEMOUSE || event == BKEY)){
 				searching=0;
 			}
 		}	
@@ -3058,6 +3060,7 @@ void loopoperations(char mode)
 		free(percentfacesloop);
 	
 	/* send event to redraw this window, does header too */	
+	SetBlenderCursor(SYSCURSOR);
 	addqueue(curarea->win, REDRAW, 1); 
 }
 
@@ -9397,6 +9400,13 @@ void vertex_loop_select()
 				choosing=0;
 				cancel = 1;
 				break;
+			}
+			if(val && (event==BKEY && G.qual==LR_ALTKEY ))
+			{			
+				
+				SetBlenderCursor(SYSCURSOR);
+				loopoperations(LOOP_SELECT);
+				return;
 			}
 		}
 	}
