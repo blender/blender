@@ -39,26 +39,13 @@ endif
 include nan_definitions.mk
 
 DIRS = creator blender kernel gameengine
-ifneq ($(OS),darwin)
+ifneq ($(OS),$(findstring $(OS), "darwin freebsd"))
     DIRS += ode
 endif
 
 ifeq ($(OS),windows)
     DIRS += icons
 endif
-
-# Commented out by mein this is the moble phone stuff.
-#ifeq ($(OS),solaris)
-#  ifeq ($(CPU),sparc)
-#    DIRS += ssr
-#  endif
-#endif
-#
-#ifeq ($(OS),freebsd)
-#  ifeq ($(OS_VERSION),4.5)
-#    DIRS += ssr
-#  endif
-#endif
 
 ########## buildinfo kludge ###################
 CPPFLAGS += -I../Physics/common
@@ -316,7 +303,7 @@ ifeq ($(OS),freebsd)
     BINTARGETS += blenderssr
   endif
   endif
-    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    PYLIB = /usr/local/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS) 
 endif
 

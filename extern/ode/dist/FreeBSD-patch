@@ -1,0 +1,20 @@
+diff -u -w -r1.2 Makefile
+--- Makefile	4 Nov 2002 21:55:48 -0000	1.2
++++ Makefile	4 Jan 2003 20:18:18 -0000
+@@ -243,13 +243,13 @@
+ 	-$(DEL_CMD) $(ODE_OBJECTS) $(ODE_TEST_EXE) $(ODE_LIB) $(DRAWSTUFF_OBJECTS) $(DRAWSTUFF_TEST_EXE) $(DRAWSTUFF_LIB) ode/test/*$(OBJ) drawstuff/dstest/*$(OBJ) $(CONFIGURATOR_EXE) $(CONFIG_H)
+ 
+ %$(OBJ): %.c
+-	$(CC) $(C_FLAGS) $(C_INC)$(INCPATH) $(DEFINES) $(C_OPT)1 $(C_OUT)$@ $<
++	$(CC) $(C_FLAGS) $(C_INC)$(INCPATH) -I/usr/X11R6/include $(DEFINES) $(C_OPT)1 $(C_OUT)$@ $<
+ 
+ %$(OBJ): %.cpp
+-	$(CC) $(C_FLAGS) $(C_INC)$(INCPATH) $(DEFINES) $(C_OPT)$(OPT) $(C_OUT)$@ $<
++	$(CC) $(C_FLAGS) $(C_INC)$(INCPATH) -I/usr/X11R6/include $(DEFINES) $(C_OPT)$(OPT) $(C_OUT)$@ $<
+ 
+ %.exe: %$(OBJ)
+-	$(CC) $(C_EXEOUT)$@ $< $(ODE_LIB) $(DRAWSTUFF_LIB) $(RESOURCE_FILE) $(LINK_OPENGL) $(LINK_MATH)
++	$(CC) $(C_EXEOUT)$@ $< $(ODE_LIB) $(DRAWSTUFF_LIB) $(RESOURCE_FILE) $(LINK_OPENGL) $(LINK_MATH) -lXext
+ 
+ # windows specific rules
+ 

@@ -100,7 +100,13 @@ all debug::
     export NAN_SOLID ?= $(SRCHOME)/sumo/SOLID-3.0
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
+
+  ifeq ($(OS),freebsd)
+    export NAN_ODE ?= $(LCGDIR)/ode
+  else
     export NAN_ODE ?= $(SRCHOME)/ode
+  endif
+
   ifeq ($(OS),freebsd)
     export NAN_OPENSSL ?= /usr
   else

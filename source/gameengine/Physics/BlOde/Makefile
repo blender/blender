@@ -52,4 +52,4 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../Physics/common
 CPPFLAGS += -I../../Physics/Dummy
 # nlin: fix this, should put in NAN_ODE dir
-CPPFLAGS += -I./ode/ode/include
+#CPPFLAGS += -I./ode/ode/include
