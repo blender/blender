@@ -9467,6 +9467,7 @@ short sharesFace(EditEdge* e1, EditEdge* e2)
 }
 /* This function selects a vertex loop based on a each succesive edge having a valance of 4
    and not sharing a face with the previous edge */
+    
 void vertex_loop_select() 
 {
 	EditMesh *em = G.editMesh;
@@ -9474,7 +9475,7 @@ void vertex_loop_select()
 	EditEdge *search=NULL,*startEdge=NULL,*valSearch = NULL,*nearest = NULL,*compEdge;
 	EditEdge *EdgeVal[5] = {NULL,NULL,NULL,NULL,NULL};
 	short numEdges=0,curEdge = 0,looking = 1,edgeValCount = 0,i=0,looped = 0,choosing = 1,event,noloop=0,cancel=0, val;
-
+	short protect = 0;
 	short mvalo[2] = {0,0}, mval[2];
 
 	undo_push_mesh("Select Vertex Loop");
@@ -9484,7 +9485,6 @@ void vertex_loop_select()
 
 	/* start with v1 and go in one direction. */
 	while(choosing){
-
 		getmouseco_areawin(mval);
 		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
 
@@ -9504,6 +9504,7 @@ void vertex_loop_select()
 				v2 = startEdge->v2;
 				looking = 1;
 				while(looking){
+					if(protect++ > numEdges) break;
 					/*Find Edges that have v1*/
 					edgeValCount = -1;
 					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
@@ -9551,7 +9552,10 @@ void vertex_loop_select()
 				}	
 				compEdge = nearest;
 				looking = 1;
+				protect = 0;
 				while(looking/* && !looped*/){
+					if(protect++ > numEdges) break;
+					
 					/*Find Edges that have v1*/
 					edgeValCount = -1;
 					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
@@ -9616,7 +9620,6 @@ void vertex_loop_select()
 		}
 
 		screen_swapbuffers();
-
 
 		while(qtest()) 
 		{
