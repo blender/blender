@@ -703,7 +703,6 @@ static int test_break(void)
 			// render_win can be closed in winlay_process_events()
 			if (render_win == 0 || (render_win->flags & RW_FLAGS_ESCAPE)) {
 				G.afbreek= 1;
-				printf("break true\n");
 			}
 		}
 	}
