@@ -19,7 +19,8 @@ SConscript(['blenloader/SConscript',
             'python/SConscript',
             'makesdna/SConscript',
             'src/SConscript',
-            'renderconverter/SConscript'])
+            'renderconverter/SConscript',
+            'yafray/SConscript'])
 
 if use_international == 'true':
     SConscript (['ftfont/SConscript'])

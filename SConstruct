@@ -247,6 +247,7 @@ SConscript(['intern/SConscript',
 libpath = (['lib'])
 
 libraries = (['blender_render',
+              'blender_yafray',
               'blender_blendersrc',
               'blender_renderconverter',
               'blender_blenloader',

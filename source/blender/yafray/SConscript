@@ -1,0 +1,20 @@
+yafray_env = Environment()
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('cxxflags')
+Import ('defines')
+yafray_env.Append (CCFLAGS = cflags)
+yafray_env.Append (CXXFLAGS = cxxflags)
+yafray_env.Append (CPPDEFINES = defines)
+
+source_files = ['intern/yafray_Render.cpp']
+
+yafray_env.Append (CPPPATH = ['#/intern/guardedalloc',
+                              '../blenlib',
+                              '../makesdna',
+                              '../blenkernel',
+                              '../imbuf',
+                              '../render/extern/include'])
+
+yafray_env.Library (target='#/lib/blender_yafray', source=source_files)

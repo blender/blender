@@ -40,6 +40,7 @@ render_env.Append (CPPPATH = ['intern/include',
                               '../imbuf',
                               '../quicktime',
                               '../include',
-                              '../../kernel/gen_messaging'])
+                              '../../kernel/gen_messaging',
+                              '../yafray'])
 
 render_env.Library (target='#/lib/blender_render', source=source_files)
