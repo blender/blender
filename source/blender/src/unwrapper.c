@@ -1276,7 +1276,9 @@ void unwrap_lscm(void)
 	if(dopack) pack_seam_groups(me, groups, totgroup);
 	
 	MEM_freeN(groups);
-	
+
+	BIF_undo_push("UV lscm unwrap");
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -1401,6 +1403,8 @@ void select_linked_tfaces_with_seams()
 	}
 	free_hash_edge_table(htable);
 	
+	BIF_undo_push("Select linked UV face");
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }

@@ -1692,6 +1692,7 @@ void editmesh_mark_seam(int clear)
 			}
 			eed= eed->next;
 		}
+		BIF_undo_push("Mark Seam");
 	}
 	else {
 		eed= em->edges.first;
@@ -1701,6 +1702,7 @@ void editmesh_mark_seam(int clear)
 			}
 			eed= eed->next;
 		}
+		BIF_undo_push("Clear Seam");
 	}
 
 	allqueue(REDRAWVIEW3D, 0);

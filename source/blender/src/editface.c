@@ -467,7 +467,7 @@ void calculate_uv_map(unsigned short mapmode)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(!(tface->flag & TF_SELECT && mface->v3)) return;
+			if(!(tface->flag & TF_SELECT && mface->v3)) continue;
 				
 			dx= dy= 0;
 			if(mface->v4) b= 3; else b= 2;
@@ -488,6 +488,8 @@ void calculate_uv_map(unsigned short mapmode)
 			}
 		}
 	}
+
+	BIF_undo_push("UV calculation");
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
@@ -608,12 +610,11 @@ void reveal_tface()
 		tface++;
 	}
 
-	BIF_undo_push("Reveil UV face");
+	BIF_undo_push("Reveal UV face");
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
-
-
 
 void hide_tface()
 {
@@ -774,7 +775,7 @@ void selectswap_tface(void)
 		tface++;
 	}
 
-	BIF_undo_push("Select swap UV face");
+	BIF_undo_push("Select inverse UV face");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -1003,6 +1004,9 @@ void face_borderselect()
 		
 		MEM_freeN(rectm);
 		MEM_freeN(selar);
+
+		BIF_undo_push("Border Select UV face");
+
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 	}
@@ -1099,9 +1103,6 @@ void uv_autocalc_tface()
 	case UV_LSCM_MAPPING:
 		unwrap_lscm(); break;
 	}
-	
-	if(mode>0) BIF_undo_push("UV calculation");
-
 }
 
 void set_faceselect()	/* toggle */
@@ -1615,8 +1616,6 @@ void get_same_uv(void)
 		else tface->flag &= ~TF_SELECT;
 		tface++;
 	}
-	
-
 	
 	/* image window redraw */
 	BIF_undo_push("Get same UV");

@@ -342,6 +342,7 @@ void clear_vpaint()
 		*to= paintcol;
 		to++; 
 	}
+	BIF_undo_push("Clear vertex colors");
 	allqueue(REDRAWVIEW3D, 0);
 	if(me->tface) mcol_to_tface(me, 1);
 }
@@ -372,6 +373,7 @@ void clear_vpaint_selectedfaces()
 			tf[i].col[3] = paintcol;
 		}
 	}
+	BIF_undo_push("Clear vertex colors");
 	allqueue(REDRAWVIEW3D, 0);
 }
 
