@@ -26,33 +26,12 @@ http://www.mesa3d.org
 *********************************************************************
 *********************************************************************
 We are in the process of moving things over to automake/autoconf
-The old makefiles are still in place and will work.  If you want to
-get a working blender skip down to the next section and use this readme as
-a guide.
+The old makefiles are still in place and will work.  
+If you want to get a working blender skip down to the next section 
+and use this readme as a guide.
 
-If you want to play with the new autoconf environment you need to do the 
-following, inside this dir:
-./bootstrap
-mkdir ../newdir
-cd ../newdir
-../blender/configure
-
-Take a look at INSTALL for options you can give to configure.
-About half of the intern directory is done so you won't get very far.
-If you want to work on fixing it you need to edit Makefile.am's and 
-configure.ac
-after editing those files you need to run bootstrap again.
-
-TODO to finish up the intern dir
-Square away how ghost works.
-(i.e. would be nice if under windows you could choose X11 or normal windows
-libs, same with macos.. right now its a cludge and it doesn't do one explicitly
-probably involves changing the way configure.ac picks stuff)
-
-Get intern/python figured out.
-fix the following in configure.ac
-	--with-mozilla=dir	(get it so nspr is autodetected here)
-	--with-nspr=dir		(incase in different dir)
+If you want to play with the new autoconf environment take a look at 
+doc/autoconfig.txt
 
 *********************************************************************
 *********************************************************************
