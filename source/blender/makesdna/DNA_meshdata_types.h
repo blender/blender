@@ -59,7 +59,7 @@ typedef struct MVert {
 } MVert;
 
 typedef struct MCol {
-	char a, r, g, b;
+	char a, b, g, r;
 } MCol;
 
 typedef struct MSticky {
