@@ -22,7 +22,10 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
+ *
+ * The Object module provides generic access to Objects of various types via
+ * the Python interface.
+ *
  *
  * Contributor(s): Michel Selten
  *
@@ -418,8 +421,6 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
     BPy_Object        * blen_object;
     PyObject        * list;
     Base            * base_iter;
-
-    printf ("In Object_GetSelected()\n");
 
     list = PyList_New (0);
     if ((G.scene->basact) &&
@@ -1019,12 +1020,16 @@ static PyObject *Object_setDeltaLocation (BPy_Object *self, PyObject *args)
     float   dloc1;
     float   dloc2;
     float   dloc3;
+    int     status;
 
-    if (!PyArg_ParseTuple (args, "fff", &dloc1, &dloc2, &dloc3))
-    {
-        return (PythonReturnErrorObject (PyExc_AttributeError,
-                "expected three float arguments"));
-    }
+    if (PyObject_Length (args) == 3)
+        status = PyArg_ParseTuple (args, "fff", &dloc1, &dloc2, &dloc3);
+    else
+        status = PyArg_ParseTuple (args, "(fff)", &dloc1, &dloc2, &dloc3);
+
+    if (!status)
+        return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                "expected list argument of 3 floats");
 
     self->object->dloc[0] = dloc1;
     self->object->dloc[1] = dloc2;
@@ -1069,12 +1074,16 @@ static PyObject *Object_setEuler (BPy_Object *self, PyObject *args)
     float   rot1;
     float   rot2;
     float   rot3;
+    int     status;
 
-    if (!PyArg_ParseTuple (args, "fff", &rot1, &rot2, &rot3))
-    {
-        return (PythonReturnErrorObject (PyExc_AttributeError,
-                "expected three float arguments"));
-    }
+    if (PyObject_Length (args) == 3)
+        status = PyArg_ParseTuple (args, "fff", &rot1, &rot2, &rot3);
+    else
+        status = PyArg_ParseTuple (args, "(fff)", &rot1, &rot2, &rot3);
+
+    if (!status)
+        return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                "expected list argument of 3 floats");
 
     self->object->rot[0] = rot1;
     self->object->rot[1] = rot2;
@@ -1089,16 +1098,20 @@ static PyObject *Object_setLocation (BPy_Object *self, PyObject *args)
     float   loc1;
     float   loc2;
     float   loc3;
+    int     status;
 
-    if (!PyArg_ParseTuple (args, "fff", &loc1, &loc2, &loc3))
-    {
-        return (PythonReturnErrorObject (PyExc_AttributeError,
-                "expected three float arguments"));
-    }
+    if (PyObject_Length (args) == 3)
+        status = PyArg_ParseTuple (args, "fff", &loc1, &loc2, &loc3);
+    else
+        status = PyArg_ParseTuple (args, "(fff)", &loc1, &loc2, &loc3);
+
+    if (!status)
+        return EXPP_ReturnPyObjError (PyExc_AttributeError,
+                "expected list argument of 3 floats");
 
     self->object->loc[0] = loc1;
     self->object->loc[1] = loc2;
-    self->object->loc[2] = loc3;
+    self->object->loc[2] = loc2;
 
     Py_INCREF (Py_None);
     return (Py_None);
@@ -1454,8 +1467,19 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
 /*****************************************************************************/
 static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 {
-    struct Object    * object;
+    PyObject        * valtuple;
+    struct Object   * object;
     struct Ika      * ika;
+
+    /* First put the value(s) in a tuple. For some variables, we want to */
+    /* pass the values to a function, and these functions only accept */
+    /* PyTuples. */
+    valtuple = Py_BuildValue ("(O)", value);
+    if (!valtuple)
+    {
+        return EXPP_ReturnIntError(PyExc_MemoryError,
+                         "Object_setAttr: couldn't create PyTuple");
+    }
 
     object = obj->object;
     if (StringEqual (name, "LocX"))
@@ -1466,7 +1490,7 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
         return (!PyArg_Parse (value, "f", &(object->loc[2])));
     if (StringEqual (name, "loc"))
     {
-        if (Object_setLocation (obj, value) != Py_None)
+        if (Object_setLocation (obj, valtuple) != Py_None)
             return (-1);
         else
             return (0);
@@ -1479,7 +1503,7 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
         return (!PyArg_Parse (value, "f", &(object->dloc[2])));
     if (StringEqual (name, "dloc"))
     {
-        if (Object_setDeltaLocation (obj, value) != Py_None)
+        if (Object_setDeltaLocation (obj, valtuple) != Py_None)
             return (-1);
         else
             return (0);
@@ -1492,7 +1516,7 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
         return (!PyArg_Parse (value, "f", &(object->rot[2])));
     if (StringEqual (name, "rot"))
     {
-        if (Object_setEuler (obj, value) != Py_None)
+        if (Object_setEuler (obj, valtuple) != Py_None)
             return (-1);
         else
             return (0);
@@ -1592,21 +1616,21 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
         return (!PyArg_Parse (value, "h", &(object->colbits)));
     if (StringEqual (name, "drawType"))
     {
-        if (Object_setDrawType (obj, value) != Py_None)
+        if (Object_setDrawType (obj, valtuple) != Py_None)
             return (-1);
         else
             return (0);
     }
     if (StringEqual (name, "drawMode"))
     {
-        if (Object_setDrawMode (obj, value) != Py_None)
+        if (Object_setDrawMode (obj, valtuple) != Py_None)
             return (-1);
         else
             return (0);
     }
     if (StringEqual (name, "name"))
     {
-        if (Object_setName (obj, value) != Py_None)
+        if (Object_setName (obj, valtuple) != Py_None)
             return (-1);
         else
             return (0);
