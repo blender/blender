@@ -2877,6 +2877,7 @@ void RE_rotateBlenderScene(void)
 
 	/* layers: render in foreground current 3D window */
 	lay= G.scene->lay;
+	if(G.vd) lay= G.vd->lay;
 	sce= G.scene;
 
 	base= G.scene->base.first;
