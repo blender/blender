@@ -1946,8 +1946,12 @@ void insert_vert_ipo(IpoCurve *icu, float x, float y)
 	int a = 0, h1, h2;
 	
 	memset(&beztr, 0, sizeof(BezTriple));
+	beztr.vec[0][0]= x; // set all three points, for nicer start position
+	beztr.vec[0][1]= y;
 	beztr.vec[1][0]= x;
 	beztr.vec[1][1]= y;
+	beztr.vec[2][0]= x;
+	beztr.vec[2][1]= y;
 	beztr.hide= IPO_BEZ;
 	beztr.f1= beztr.f2= beztr.f3= SELECT;
 	beztr.h1= beztr.h2= HD_AUTO;

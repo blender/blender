@@ -643,7 +643,7 @@ void add_primitiveMesh(int type)
 		}
 		dia= G.vd->grid;
 		/* one segment first: de X as */
-		phi= -1.0; 
+		phi= 1.0; 
 		phid= 2.0/((float)tot-1);
 		for(a=0;a<tot;a++) {
 			vec[0]= cent[0]+dia*phi;
@@ -653,7 +653,7 @@ void add_primitiveMesh(int type)
 			eve= addvertlist(vec);
 			eve->f= 1+2+4;
 			if (a) addedgelist(eve->prev, eve, NULL);
-			phi+=phid;
+			phi-=phid;
 		}
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
