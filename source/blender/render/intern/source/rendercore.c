@@ -1933,6 +1933,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 						// this extra 0.001 prevents boundary cases (shadow on smooth sphere)
 						if((shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2]) > -0.001) 
 							ray_shadow(shi, lar, shadfac, mask);
+						else shadfac[3]= 0.0;
 					}
 
 					/* warning, here it skips the loop */
