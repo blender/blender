@@ -2547,7 +2547,8 @@ void loop(int mode)
 		evl=evl->next;
 	}
 	
-	/* send event to redraw this window, does header too */
+	countall();
+	/* send event to redraw this window, does header too */	
 	addqueue(curarea->win, REDRAW, 1); 
 }
 
