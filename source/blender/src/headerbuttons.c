@@ -497,7 +497,7 @@ static int std_libbuttons(uiBlock *block, int xco, int pin, short *pinpoin, int 
 	return xco;
 }
 
-void update_for_newframe(void)
+void do_update_for_newframe(int mute)
 {
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWACTION,0);
@@ -518,6 +518,18 @@ void update_for_newframe(void)
 	do_all_ikas();
 
 	test_all_displists();
+	
+	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) audiostream_scrub( CFRA );
+}
+
+void update_for_newframe(void)
+{
+	do_update_for_newframe(0);
+}
+
+void update_for_newframe_muted(void)
+{
+	do_update_for_newframe(1);
 }
 
 static void show_splash(void)
@@ -1057,7 +1069,7 @@ void do_global_buttons(unsigned short event)
 				}
 				else if(ipo->blocktype==ID_SEQ) {
 					seq= (Sequence *)from;
-					if(seq->type & SEQ_EFFECT) {
+					if((seq->type & SEQ_EFFECT)||(seq->type == SEQ_SOUND)) {
 						id_us_plus(idtest);
 						seq->ipo= ipo;
 					}

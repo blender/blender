@@ -128,6 +128,7 @@
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
 #include "BSE_buttons.h"
+#include "BSE_seqaudio.h"
 
 #include "BIF_gl.h"
 #include "BIF_editarmature.h"	
@@ -542,7 +543,10 @@ enum B_SOUND_BUTTONS {
 		B_SOUND_COPY_SOUND,
 		B_SOUND_LOOPSTART,
 		B_SOUND_LOOPEND,
-		B_SOUND_BIDIRECTIONAL
+		B_SOUND_BIDIRECTIONAL,
+		B_SOUND_RECALC,
+		B_SOUND_RATECHANGED,
+		B_SOUND_MIXDOWN
 };
 
 /* *********************** */
@@ -4543,6 +4547,32 @@ void do_soundbuts(unsigned short event)
 			}
 			break;
 		}
+	case B_SOUND_RECALC:
+		{
+			waitcursor(1);
+			sound = G.main->sound.first;
+			while (sound)
+			{
+				MEM_freeN(sound->stream);
+				sound->stream = 0;
+				audio_makestream(sound);
+				sound = (bSound *) sound->id.next;
+			}
+			waitcursor(0);
+			allqueue(REDRAWSEQ, 0);
+			break;
+		}
+	case B_SOUND_RATECHANGED:
+		{
+			allqueue(REDRAWBUTSSOUND, 0);
+			allqueue(REDRAWSEQ, 0);
+			break;
+		}		
+	case B_SOUND_MIXDOWN:
+		{
+			audio_mixdown();
+			break;
+		}				
 	case B_SOUND_LOOPSTART:
 		{
 #ifdef SOUND_UNDER_DEVELOPMENT
@@ -4590,23 +4620,24 @@ void soundbuts(void)
 	int mixrate;
 	
 	sound = G.buts->lockpoin;
+	if ((sound) && (sound->flags & SOUND_FLAGS_SEQUENCE)) sound = 0;
 	yco = 195;
 
+	xco = xcostart;
+	sprintf(str, "buttonswin %d", curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
+		
 	if (sound)
 	{
 		sound_initialize_sample(sound);
 
 		sample = sound->sample;
 
-		xco = xcostart;
-		sprintf(str, "buttonswin %d", curarea->win);
-		block= uiNewBlock(&curarea->uiblocks, str, UI_EMBOSSX, UI_HELV, curarea->win);
-		
 		uiSetButLock(sound->id.lib!=0, "Can't edit library data");
 
 		/* sound settings ------------------------------------------------------------------ */
 
-		uiDefBut(block, LABEL, 0, "Sound settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Game sounds",xco,yco,195,20, 0, 0, 0, 0, 0, "");
 
 		yco -= 30;
 		uiBlockSetCol(block, BUTGREEN);
@@ -4627,7 +4658,7 @@ void soundbuts(void)
 			
 			uiDefBut(block, LABEL, 0, "Sample: ",xco,yco,195,20, 0, 0, 0, 0, 0, "");
 			xco +=55;
-			sprintf(sampleinfo, "%s, %d bit, %d Hz, %d samples", ch, sound->sample->bits, sound->sample->rate, sound->sample->len);
+			sprintf(sampleinfo, "%s, %d bit, %d Hz, %d samples", ch, sound->sample->bits, sound->sample->rate, (sound->sample->len/(sound->sample->bits/8)/sound->sample->channels));
 			uiDefBut(block, LABEL, 0, sampleinfo,xco,yco,295,20, 0, 0, 0, 0, 0, "");
 		}
 		else
@@ -4691,7 +4722,7 @@ void soundbuts(void)
 		
 		xco = xcostart;
 		yco -= 45;
-		uiDefBut(block, LABEL, 0, "Parameter settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Game sound settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
 
 		yco -= 30;
 		uiBlockSetCol(block, BUTGREY);
@@ -4776,19 +4807,19 @@ void soundbuts(void)
 		yco = 195;
 		uiBlockSetCol(block, BUTGREY);
 		mixrate = sound_get_mixrate();
-		sprintf(mixrateinfo, "Mixrate: %d Hz", mixrate);
+		sprintf(mixrateinfo, "Game Mixrate: %d Hz", mixrate);
 		uiDefBut(block, LABEL, 0, mixrateinfo, xco,yco,295,20, 0, 0, 0, 0, 0, "");
 
 		yco -= 30;
 
-		uiDefBut(block, LABEL, 0, "Listener settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Game listener settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
 
 		yco -= 30;
 		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Volume: ",
 			xco,yco,195,24,&G.listener->gain, 0.0, 1.0, 1.0, 0, "Sets the maximum volume for the overall sound");
 		
 		yco -= 30;
-		uiDefBut(block, LABEL, 0, "Doppler effect settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Game Doppler effect settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
 		/*
 		yco -= 30;
 		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Scale: ",
@@ -4820,6 +4851,47 @@ void soundbuts(void)
 		*/
 		uiDrawBlock(block);
 	}
+	/* audio sequence engine settings ------------------------------------------------------------------ */
+
+	draw_buttons_edge(curarea->win, 1000);
+	
+	xco = xcostart + 1010;
+	yco = 195;
+
+	uiDefBut(block, LABEL, 0, "Audio sequencer settings", xco,yco,295,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 25;
+	sprintf(mixrateinfo, "Mixing/Sync (latency: %d ms)", (int)( (((float)U.mixbufsize)/(float)G.scene->audio.mixrate)*1000.0 ) );
+	uiDefBut(block, LABEL, 0, mixrateinfo, xco,yco,295,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 25;		
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButI(block, ROW, B_SOUND_RATECHANGED, "44.1 kHz",	xco,yco,75,20, &G.scene->audio.mixrate, 2.0, 44100.0, 0, 0, "Mix at 44.1 kHz");
+	uiDefButI(block, ROW, B_SOUND_RATECHANGED, "48.0 kHz",		xco+80,yco,75,20, &G.scene->audio.mixrate, 2.0, 48000.0, 0, 0, "Mix at 48 kHz");
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block, BUT, B_SOUND_RECALC, "Recalc",		xco+160,yco,75,20, 0, 0, 0, 0, 0, "Recalculate samples");
+
+	yco -= 25;
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	xco,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for animation sync");
+	uiDefButS(block, TOG|BIT|2, B_SOUND_CHANGED, "Scrub",		xco+120,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Scrub when changing frames");
+
+	yco -= 25;
+	uiDefBut(block, LABEL, 0, "Main mix", xco,yco,295,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 25;		
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Main (dB): ",
+		xco,yco,235,24,&G.scene->audio.main, -24.0, 6.0, 0, 0, "Set the audio master gain/attenuation in dB");
+
+	yco -= 25;
+	uiDefButS(block, TOG|BIT|0, 0, "Mute",	xco,yco,235,24, &G.scene->audio.flag, 0, 0, 0, 0, "Mute audio from sequencer");		
+	
+	yco -= 35;
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block, BUT, B_SOUND_MIXDOWN, "MIXDOWN",	xco,yco,235,24, 0, 0, 0, 0, 0, "Create WAV file from sequenced audio");
+	
+	uiDrawBlock(block);
 }
 
 /* ************************ LAMP *************************** */

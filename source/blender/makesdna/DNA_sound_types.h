@@ -73,6 +73,7 @@ typedef struct bSound {
 	ID id;
 	char name[160];
 	struct bSample *sample;
+	void *stream;
 	struct PackedFile *packedfile;
 	struct PackedFile *newpackedfile;
 	void *snd_sound;
@@ -101,12 +102,12 @@ typedef struct bSound {
 	 */
 	float distance;
 	int flags;
+	int streamlen;
 //	unsigned int loopstart;
 //	unsigned int loopend;
 	char channels;
 	char highprio;
-	char pad[6];
-	
+	char pad[10];
 } bSound;
 
 typedef struct bSoundListener {
@@ -169,7 +170,8 @@ enum SOUND_FLAGS_BITS {
 	SOUND_FLAGS_FIXED_PANNING_BIT,
 	SOUND_FLAGS_3D_BIT,
 	SOUND_FLAGS_BIDIRECTIONAL_LOOP_BIT,
-	SOUND_FLAGS_PRIORITY_BIT
+	SOUND_FLAGS_PRIORITY_BIT,
+	SOUND_FLAGS_SEQUENCE_BIT
 };
 
 #define SOUND_FLAGS_LOOP 			(1 << SOUND_FLAGS_LOOP_BIT)
@@ -178,6 +180,7 @@ enum SOUND_FLAGS_BITS {
 #define SOUND_FLAGS_3D				(1 << SOUND_FLAGS_3D_BIT)
 #define SOUND_FLAGS_BIDIRECTIONAL_LOOP (1 << SOUND_FLAGS_BIDIRECTIONAL_LOOP_BIT)
 #define SOUND_FLAGS_PRIORITY		(1 << SOUND_FLAGS_PRIORITY_BIT)
+#define SOUND_FLAGS_SEQUENCE		(1 << SOUND_FLAGS_SEQUENCE_BIT)
 
 enum SAMPLE_FLAGS_BITS {
 	SAMPLE_NEEDS_SAVE_BIT = 0

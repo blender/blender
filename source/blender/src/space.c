@@ -1780,7 +1780,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 #ifdef _WIN32
 		uiDefBut(block, LABEL,0,"Win Codecs:",
-			(xpos+edgespace+(2*midspace)+(2*medprefbut)),y3label,medprefbut,buth,
+			(xpos+edgespace+(1*midspace)+(1*medprefbut)),y3label,medprefbut,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiDefButS(block, TOG|BIT|8, 0, "Enable all codecs",
@@ -1828,6 +1828,14 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgespace+(5*medprefbut)+(5*midspace)),y1,medprefbut,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
 
+		uiDefBut(block, LABEL,0,"Audio:",
+			(xpos+edgespace+(2*midspace)+(2*medprefbut)),y3label,medprefbut,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefButI(block, ROW, 0, "Mixing buffer 256", (xpos+edgespace+(2*midspace)+(2*medprefbut)),y2,medprefbut,buth, &U.mixbufsize, 2.0, 256.0, 0, 0, "Set audio buffer size to 256 samples");
+		uiDefButI(block, ROW, 0, "512",	(xpos+edgespace+(2*midspace)+(2*medprefbut)),y1,61,buth, &U.mixbufsize, 2.0, 512.0, 0, 0, "Set audio buffer size to 512 samples");	
+		uiDefButI(block, ROW, 0, "1024", (xpos+edgespace+(2*midspace)+(2*medprefbut))+61+midspace,y1,61,buth, &U.mixbufsize, 2.0, 1024.0, 0, 0, "Set audio buffer size to 1024 samples");		
+		uiDefButI(block, ROW, 0, "2048", (xpos+edgespace+(2*midspace)+(2*medprefbut))+2*(61+midspace),y1,61,buth, &U.mixbufsize, 2.0, 2048.0, 0, 0, "Set audio buffer size to 2048 samples");			
 
 	} else if(U.userpref == 5) { /* file paths */
 
@@ -2132,6 +2140,7 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 						CFRA= cfra;
 						force_draw();
+						update_for_newframe();	/* for audio scrubbing */						
 					}
 				
 				} while(get_mbut()&L_MOUSE);

@@ -2244,6 +2244,13 @@ static void lib_link_scene(FileData *fd, Main *main)
 				WHILE_SEQ(ed->seqbasep) {
 					if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 					if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
+					if(seq->sound) {
+						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
+						if (seq->sound) {
+							seq->sound->id.us++;
+							seq->sound->flags |= SOUND_FLAGS_SEQUENCE;
+						}
+					}
 					seq->anim= 0;
 				}
 				END_SEQ
@@ -2350,6 +2357,24 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 						}
 					}
 				}
+				else if(seq->type==SEQ_SOUND) {
+					/* only first stripelem is in file */
+					se= newdataadr(fd, seq->strip->stripdata);
+					
+					if(se) {
+						seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+						*seq->strip->stripdata= *se;
+						MEM_freeN(se);
+						
+						se= seq->strip->stripdata;
+											
+						for(a=0; a<seq->strip->len; a++, se++) {
+							se->ok= 2; /* why? */
+							se->ibuf= 0;
+							se->nr= a + 1;
+						}
+					}
+				}				
 				else if(seq->len>0) 
 					seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
@@ -2576,11 +2601,11 @@ static void lib_link_sound(FileData *fd, Main *main)
 		if(sound->id.flag & LIB_NEEDLINK) {
 			sound->id.flag -= LIB_NEEDLINK;
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo);
+			sound->stream = 0;
 		}
 		sound= sound->id.next;
 	}
 }
-
 /* ***************** READ GROUP *************** */
 
 static void direct_link_group(FileData *fd, Group *group)
@@ -3667,6 +3692,14 @@ static void do_versions(Main *main)
 					}
 				}
 			}
+		}
+	}	
+	if(main->versionfile <= 227) {
+		Scene *sce;
+
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			sce->audio.mixrate = 44100;
+			sce->audio.flag |= (AUDIO_SYNC + AUDIO_SCRUB);
 		}
 	}	
 

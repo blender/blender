@@ -140,7 +140,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case DKEY:
 			if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
 				duplicate_nlachannel_keys();
-				update_for_newframe();
+				update_for_newframe_muted();
 			}
 			break;
 		case DELKEY:
@@ -149,17 +149,17 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				delete_nlachannel_keys ();
 			else
 				delete_nlachannels();
-			update_for_newframe();
+			update_for_newframe_muted();
 			break;
 		case GKEY:
 			if (mval[0]>=NLAWIDTH)
 				transform_nlachannel_keys ('g');
-			update_for_newframe();
+			update_for_newframe_muted();
 			break;
 		case SKEY:
 			if (mval[0]>=NLAWIDTH)
 				transform_nlachannel_keys ('s');
-			update_for_newframe();
+			update_for_newframe_muted();
 			break;
 		case BKEY:
 			borderselect_nla();
@@ -1566,7 +1566,7 @@ void clever_numbuts_nla(void){
 		strip->blendout = (strip->end-strip->start-strip->blendin);
 	
 	
-	update_for_newframe();
+	update_for_newframe_muted();
 	allqueue (REDRAWNLA, 0);
 	allqueue (REDRAWVIEW3D, 0);
 }	

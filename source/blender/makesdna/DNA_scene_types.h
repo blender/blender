@@ -92,6 +92,12 @@ typedef struct QuicktimeCodecData {
 	char			qtcodecname[128];
 } QuicktimeCodecData;
 
+typedef struct AudioData {
+	int mixrate;
+	float main;		/* Main mix in dB */
+	short flag;
+	short pad[3];
+} AudioData;
 
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
@@ -243,6 +249,7 @@ typedef struct Scene {
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */
 	struct RenderData r;
+	struct AudioData audio;	
 	
 	ScriptLink scriptlink;
 } Scene;
@@ -353,6 +360,11 @@ typedef struct Scene {
 #define F_SCENE			1
 #define F_SET			2
 #define F_DUPLI			3
+
+/* audio->flag */
+#define AUDIO_MUTE		1
+#define AUDIO_SYNC		2
+#define AUDIO_SCRUB		4
 
 #ifdef __cplusplus
 }

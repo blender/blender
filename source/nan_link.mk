@@ -150,3 +150,4 @@ ifeq ($(OS),windows)
 	endif
 endif
 
+LLIBS += $(NAN_SDLLIBS)

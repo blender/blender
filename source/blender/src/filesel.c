@@ -595,6 +595,9 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".mv")) {
 					file->flags |= MOVIEFILE;			
 				}
+				else if(BLI_testextensie(file->relname, ".wav")) {
+					file->flags |= SOUNDFILE;
+				}				
 			}
 		}
 	}	
@@ -943,6 +946,10 @@ static void printregel(SpaceFile *sfile, struct direntry *files, int x, int y)
 		cpack(0x4477dd);
 		glRects(x-14,  y,  x-8,  y+7);
 	}
+	else if(files->flags & SOUNDFILE) {
+		cpack(0xa0a000);
+		glRects(x-14,  y,  x-8,  y+7);
+	}	
 	else if(files->flags & FTFONTFILE) {
 		cpack(0xff2371);
 		glRects(x-14,  y,  x-8,  y+7);

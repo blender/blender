@@ -70,6 +70,7 @@
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
 #include "BSE_sequence.h"
+#include "BSE_seqaudio.h"
 
 int no_rightbox=0, no_leftbox= 0;
 
@@ -99,6 +100,7 @@ static char *give_seqname(Sequence *seq)
 	}
 	else if(seq->type==SEQ_SCENE) return "SCENE";
 	else if(seq->type==SEQ_MOVIE) return "MOVIE";
+	else if(seq->type==SEQ_SOUND) return "AUDIO";	
 	else if(seq->type<SEQ_EFFECT) return seq->strip->dir;
 	else if(seq->type==SEQ_CROSS) return "CROSS";
 	else if(seq->type==SEQ_GAMCROSS) return "GAMMA CROSS";
@@ -115,7 +117,6 @@ static char *give_seqname(Sequence *seq)
 	else return "EFFECT";
 	
 }
-
 static void draw_cfra_seq(void)
 {
 	glColor3ub(0x30, 0x90, 0x50);
@@ -155,12 +156,13 @@ static unsigned int seq_color(Sequence *seq)
 		return 0x5080B0;
 	case SEQ_PLUGIN:
 		return 0x906000;
+	case SEQ_SOUND:
+		if(seq->flag & SEQ_MUTE) return 0x707060; else return 0x787850;
 	default:
 		return 0x906060;
 	}
 	
 }
-
 static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, float y2)
 {
 	Sequence *seq;
@@ -182,6 +184,32 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 		x1+= dx;
 	}
 	END_SEQ
+}
+
+void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2)
+{
+	float f, height, midy;
+	int offset, sofs, eofs;
+	signed short* s;
+	bSound *sound;
+
+	audio_makestream(seq->sound);
+	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
+	sound = seq->sound;
+	sofs = ((int)( (((float)(seq->startdisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
+	eofs = ((int)( (((float)(seq->enddisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);	
+	
+	for (f=x1; f<=x2; f+=0.2) {
+		offset = (int) ((float)sofs + ((f-x1)/(x2-x1)) * (float)(eofs-sofs)) & (~3);
+		if (offset >= sound->streamlen) offset = sound->streamlen-1;
+		s = (signed short*)(((Uint8*)sound->stream) + offset);
+		midy = (y1+y2)/2;
+		height = ( ( ((float)s[0]/32768 + (float)s[1]/32768)/2 ) * (y2-y1) )/2;
+		glBegin(GL_LINES);
+		glVertex2f(f, midy-height);
+		glVertex2f(f, midy+height);
+		glEnd();
+	}
 }
 
 void drawseq(Sequence *seq)
@@ -217,6 +245,7 @@ void drawseq(Sequence *seq)
 	
 	cpack(body);
 	glRectf(x1,  y1,  x2,  y2);
+	if (seq->type == SEQ_SOUND) drawseqwave(seq, x1, y1, x2, y2);
 	EmbossBoxf(x1, y1, x2, y2, seq->flag & 1, dark, light);
 	
 	v1[1]= y1;
@@ -288,7 +317,13 @@ void drawseq(Sequence *seq)
 				sprintf(str, "%d %s: %d-%d", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine);
 		}
 		else if(seq->name[2]) sprintf(str, "%s", seq->name+2);
-		else sprintf(str, "%d %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
+		else {
+			if (seq->type == SEQ_SOUND) {
+				sprintf(str, "%d %s", seq->len, seq->strip->stripdata->name);
+			} else {
+				sprintf(str, "%d %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);			
+			}
+		}
 
 		strp= str;
 		
@@ -309,17 +344,15 @@ void drawseq(Sequence *seq)
 	}
 
 	if(seq->type < SEQ_EFFECT) {
-
 		/* decoration: triangles */
 		x1= seq->startdisp;
 		x2= seq->enddisp;
-		
+
 		body+= 0x101010;
 		dark= 0x202020;
 		light= 0xB0B0B0;
 		
 		/* left triangle */
-		
 		if(seq->flag & SEQ_LEFTSEL) {
 			cpack(body+0x20);
 			if(G.moving) {
@@ -346,16 +379,17 @@ void drawseq(Sequence *seq)
 			cpack(dark);
 			glVertex2fv(v1);
 		glEnd();
+	}
 
-		if(G.moving || (seq->flag & SEQ_LEFTSEL)) {
-			cpack(0xFFFFFF);
-			glRasterPos3f(x1,  y1+0.2, 0.0);
-			sprintf(str, "%d", seq->startdisp);
-			BMF_DrawString(G.font, str);
-		}
+	if(G.moving || (seq->flag & SEQ_LEFTSEL)) {
+		cpack(0xFFFFFF);
+		glRasterPos3f(x1,  y1+0.2, 0.0);
+		sprintf(str, "%d", seq->startdisp);
+		BMF_DrawString(G.font, str);
+	}
 		
 		/* right triangle */
-		
+	if(seq->type < SEQ_EFFECT) {		
 		dark= 0x202020;
 		light= 0xB0B0B0;
 
@@ -383,15 +417,13 @@ void drawseq(Sequence *seq)
 			cpack(light);
 			glVertex2fv(v2);
 		glEnd();
+	}
 
-		if(G.moving || (seq->flag & SEQ_RIGHTSEL)) {
-			cpack(0xFFFFFF);
-			glRasterPos3f(x2-seq->handsize/2,  y1+0.2, 0.0);
-			sprintf(str, "%d", seq->enddisp-1);
-			BMF_DrawString(G.font, str);
-		}
-
-		
+	if(G.moving || (seq->flag & SEQ_RIGHTSEL)) {
+		cpack(0xFFFFFF);
+		glRasterPos3f(x2-seq->handsize/2,  y1+0.2, 0.0);
+		sprintf(str, "%d", seq->enddisp-1);
+		BMF_DrawString(G.font, str);
 	}
 }
 
@@ -530,6 +562,19 @@ static void draw_extra_seqinfo(void)
 		glRasterPos3f(xco,  0.3, 0.0);
 		BMF_DrawString(G.font, str);
 	}
+	else if(last_seq->type==SEQ_SOUND) {
+	
+		sta= last_seq->startofs;
+		end= last_seq->len-1-last_seq->endofs;
+	
+		sprintf(str, "%s   %s%s  First: %d at %d     Last: %d at %d     Cur: %d     Gain: %.2f dB     Pan: %.2f", 
+				last_seq->name+2, last_seq->strip->dir, last_seq->strip->stripdata->name, 
+				sta, last_seq->startdisp, end, last_seq->enddisp-1,  (G.scene->r.cfra)-last_seq->startdisp,
+				last_seq->level, last_seq->pan);
+		
+		glRasterPos3f(xco,  0.3, 0.0);
+		BMF_DrawString(G.font, str);
+	}	
 }
 
 void drawseqspace(ScrArea *sa, void *spacedata)

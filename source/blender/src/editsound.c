@@ -175,7 +175,6 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 void sound_initialize_sounds(void)
 {
-#if GAMEBLENDER == 1
 	bSound* sound;
 
 	/* clear the soundscene */
@@ -189,7 +188,6 @@ void sound_initialize_sounds(void)
 		sound_sample_is_null(sound);
 		sound = (bSound *) sound->id.next;
 	}
-#endif
 }
 
 
@@ -197,7 +195,6 @@ void sound_initialize_sounds(void)
 bSound* sound_make_copy(bSound* originalsound)
 {
 	bSound* sound = NULL;
-#if GAMEBLENDER == 1
 	char name[160];
 	int len;
 	
@@ -240,7 +237,6 @@ bSound* sound_make_copy(bSound* originalsound)
 			sound->flags &= ~SOUND_FLAGS_3D;
 	}
 	
-#endif
 	return sound;
 }
 
@@ -251,7 +247,6 @@ void sound_initialize_sample(bSound* sound)
 	if (sound && sound->sample == NULL)
 		sound_sample_is_null(sound);
 }
-
 
 
 void sound_read_wav_data(bSound* sound, PackedFile* pf)
@@ -267,22 +262,22 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 	
 	/* prepare for the worst... */
 	sound->sample->type = SAMPLE_INVALID;
-	
+
 	rewindPackedFile(pf);
-	
+
 	/* check to see if it is a file in "RIFF WAVE fmt" format */
 	if (readPackedFile(pf, buffer, 16) != 16)
 	{
 		if (G.f & G_DEBUG) printf("File too short\n");
 		return;
 	}
-	
+
 	if(!(memcmp(buffer, "RIFF", 4) && memcmp(&(buffer[8]), "WAVEfmt ", 8)))
 	{
 		readPackedFile(pf, &i, 4);// start of data
 		if(G.order==B_ENDIAN)
 			SWITCH_INT(i);
-		
+
 		/* read the sampleformat */
 		readPackedFile(pf, &shortbuf, 2);
 		if(G.order==B_ENDIAN)
@@ -294,9 +289,10 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 			p_i[0]= p_i[1];
 			p_i[1]= s_i;
 		}
-		
+
 		/* read the number of channels */
 		readPackedFile(pf, &shortbuf, 2);
+
 		if(G.order==B_ENDIAN)
 		{
 			/* was SWITCH_SHORT before */
@@ -306,7 +302,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 			p_i[0]= p_i[1];
 			p_i[1]= s_i;
 		}
-		
+
 		/* check the number of channels */
 		if(shortbuf != 1 && shortbuf != 2)
 		{
@@ -317,6 +313,8 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 		
 		/* read the samplerate */
 		readPackedFile(pf, &longbuf, 4);
+
+
 		if(G.order==B_ENDIAN)
 			SWITCH_INT(longbuf);
 		rate = longbuf;
@@ -324,6 +322,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 		/* read the bitrate */
 		// Ton's way
 		readPackedFile(pf, &temp, 4);
+
 		if(G.order==B_ENDIAN)
 			SWITCH_INT(temp);
 
@@ -331,6 +330,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 			bits= 8*temp/(rate * channels);
 		
 		// Frank's way
+
 		readPackedFile(pf, &shortbuf, 2);
 		readPackedFile(pf, &shortbuf, 2);
 		if(G.order==B_ENDIAN)
@@ -346,7 +346,6 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 		
 		seekPackedFile(pf, i-16, SEEK_CUR);
 		readPackedFile(pf, buffer, 4);
-		
 		/* check if we have a 'data' chunk */
 		while(memcmp(buffer, "data", 4)!=0)
 		{
@@ -357,7 +356,6 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 				SWITCH_INT(i);
 
 			seekPackedFile(pf, i, SEEK_CUR);
-			
 			if (readPackedFile(pf, buffer, 4) != 4)
 				break;
 		}
@@ -374,17 +372,18 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 			if(G.order==B_ENDIAN) SWITCH_INT(longbuf);
 			
 			/* handle 8 and 16 bit samples differently */
-			if (bits == 8)
-				data = (char *)MEM_mallocN(2 * longbuf, "sample data");
-			else if (bits == 16)
+			/* intrr: removed, longbuf is length in bytes, not samples */
+			if (bits == 16)
 				data = (char *)MEM_mallocN(longbuf, "sample data");
+			else 
+				data = (char *)MEM_mallocN(longbuf*2, "sample data");
 
-			len = longbuf;
+			len = longbuf /*/ 4.0*/; /* for some strange reason the sample length is off by a factor of 4... */
+			/* intrr's comment: Funny eh, how one 16-bit stereo sample is 4 bytes? :-) */
 			
 			if(data)
 			{
 				readPackedFile(pf, data, len);
-				
 				/* data is only used to draw! */
 				if (bits == 8)
 				{
@@ -397,19 +396,9 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 				{
 					if(G.order==B_ENDIAN)
 					{
-						temps= (short *)data;
-						for(i=0; i< len / 2; i++, temps++)
-						{
-							/* was SWITCH_SHORT before */
-							char s_i, *p_i;
-							p_i= (char *)&(temps);
-							s_i= p_i[0];
-							p_i[0]= p_i[1];
-							p_i[1]= s_i;
-						}
+						swab(data, data, len);
 					}
 				}
-				
 				/* fill the sound with the found data */
 				sample = sound->sample;
 				sample->channels = channels;
@@ -434,7 +423,6 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 {
 	int filetype = SAMPLE_INVALID;
-#if GAMEBLENDER == 1
 	int i;
 	char buffer[25];
 	short shortbuf;
@@ -509,7 +497,6 @@ int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 		if (G.f & G_DEBUG) printf("Unsupported sound format: %s\n", sound->name);
 	}
 	
-#endif
 	return filetype;
 }
 
@@ -574,7 +561,6 @@ int check_filetype(bSound* sound, PackedFile* pf)
 int sound_load_sample(bSound* sound)
 {
 	int result = FALSE;
-#if GAMEBLENDER == 1
 	PackedFile* pf;
 	int freePF = FALSE;
 	int buffer = -1;
@@ -652,8 +638,6 @@ int sound_load_sample(bSound* sound)
 		result = TRUE;
 	}
 
-#endif
-
 	return result;
 }
 
@@ -662,10 +646,10 @@ int sound_load_sample(bSound* sound)
 bSound* sound_new_sound(char* name)
 {
 	bSound *sound = NULL;
-#if GAMEBLENDER == 1
 	int len, file;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
-	
+
+	if (!G.scene->audio.mixrate) G.scene->audio.mixrate = 44100;
 	/* convert the name to absolute path */
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
@@ -676,6 +660,7 @@ bSound* sound_new_sound(char* name)
 	if (file != -1)
 	{
 		close(file);
+
 
 		/* do some name magic */
 		len = strlen(name);
@@ -707,7 +692,6 @@ bSound* sound_new_sound(char* name)
 		}
 	}
 	
-#endif 
 	return (sound);
 }
 
@@ -716,7 +700,6 @@ bSound* sound_new_sound(char* name)
 int sound_set_sample(bSound *sound, bSample *sample)
 {
 	int result = TRUE;
-#if GAMEBLENDER == 1
 	/* decrease the usernumber for this sample */
 	if (sound->sample)
 		sound->sample->id.us--;
@@ -752,8 +735,6 @@ int sound_set_sample(bSound *sound, bSample *sample)
 			}
 		}
 	}
-
-#endif 
 
 	return result;
 }
@@ -999,7 +980,6 @@ static void sound_init_listener(void)
 
 void sound_init_audio(void)
 {
-#if GAMEBLENDER == 1
 	int noaudio;
 	SYS_SystemHandle hSystem = NULL;
 	ghAudioDeviceInterface = NULL;
@@ -1007,14 +987,13 @@ void sound_init_audio(void)
 	hSystem = SYS_GetSystem();
 	noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
 	
-	if (noaudio)
+	if (1)/*(noaudio) intrr: disable game engine audio (openal) */
 		SND_SetDeviceType(snd_e_dummydevice);
 
 	ghAudioDeviceInterface = SND_GetAudioDevice();
 	ghSoundScene = SND_CreateScene(ghAudioDeviceInterface);
 
 	sound_init_listener();
-#endif 
 }
 
 
@@ -1035,9 +1014,7 @@ static void sound_exit_listener(void)
 
 void sound_exit_audio(void)
 {
-#if GAMEBLENDER == 1
 	SND_DeleteScene(ghSoundScene);
 	SND_ReleaseDevice();
 	sound_exit_listener();
-#endif 
 }

@@ -36,6 +36,9 @@
 
 #include "DNA_listBase.h"
 
+/* needed for sound support */
+#include "DNA_sound_types.h"
+
 struct Ipo;
 struct Scene;
 
@@ -111,9 +114,12 @@ typedef struct Sequence {
 	/* meta */
 	ListBase seqbase;
 	
+	struct bSound *sound;	/* the linked "bSound" object */
+	float level, pan;		/* level in dB (0=full), pan -1..1 */
+	int curpos;				/* last sample position in audio_fill() */
+	int pad;
+	
 } Sequence;
-
-
 #
 #
 typedef struct MetaStack {
@@ -137,12 +143,14 @@ typedef struct Editing {
 #define SEQ_RIGHTSEL	4
 #define SEQ_OVERLAP		8
 #define SEQ_FILTERY		16
+#define SEQ_MUTE		32
 
 /* seq->type WATCH IT: BIT 3!!! */
 #define SEQ_IMAGE		0
 #define SEQ_META		1
 #define SEQ_SCENE		2
 #define SEQ_MOVIE		3
+#define SEQ_SOUND		4
 
 #define SEQ_EFFECT		8
 #define SEQ_CROSS		8

@@ -1234,6 +1234,9 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 		
 		/* set at zero because free_imbuf_seq... */
 		seq->curelem= 0;
+
+		if ((seq->type == SEQ_SOUND) && (seq->ipo)
+		  &&(seq->startdisp<=cfra+2) && (seq->enddisp>cfra)) do_seq_ipo(seq);
 		
 		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
 		
@@ -1256,6 +1259,9 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						se->ibuf= se->se1->ibuf;
 					}
 				}
+				else if(seq->type == SEQ_SOUND) {
+					se->ok= 2;
+				}				
 				else if(seq->type & SEQ_EFFECT) {
 				
 					/* test if image is too small: reload */
@@ -1371,7 +1377,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						
 						RE_initrender(NULL);
 						if (!G.background) {
-							if(R.r.mode & R_FIELDS) update_for_newframe();
+							if(R.r.mode & R_FIELDS) update_for_newframe_muted();
 							R.flag= 0;
 							
 							free_filesel_spec(G.scene->r.pic);
@@ -1476,7 +1482,7 @@ ImBuf *give_ibuf_seq(int cfra)
 		seq= seqar[seqnr];		
 
 		se= seq->curelem;
-		if(se) {
+		if((seq->type != SEQ_SOUND) && (se)) {
 			if(seq->type==SEQ_META) {
 				
 				/* bottom strip! */
@@ -1508,7 +1514,8 @@ ImBuf *give_ibuf_seq(int cfra)
 	
 	MEM_freeN(seqar);	
 	
-	if(seqfirst->curelem==0) return 0;
+	if(!seqfirst) return 0;
+	if(!seqfirst->curelem==0) return 0;
 	return seqfirst->curelem->ibuf;
 
 }

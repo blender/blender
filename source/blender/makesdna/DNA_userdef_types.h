@@ -53,6 +53,7 @@ typedef struct UserDef {
 	int userpref;
 	short console_buffer;	//console vars here for tuhopuu compat, --phase
 	short console_out;
+	int mixbufsize;
 	int fontsize;
 	short encoding;
 	short transopts;

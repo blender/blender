@@ -396,6 +396,7 @@ typedef struct SpaceImaSel {
 #define MOVIEFILE			32
 #define PYSCRIPTFILE		64
 #define FTFONTFILE			128
+#define SOUNDFILE			256
 
 #define SCROLLH	16			/* height scrollbar */
 #define SCROLLB	16			/* width scrollbar */

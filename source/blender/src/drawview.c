@@ -97,6 +97,8 @@
 #include "BSE_view.h"
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_seqaudio.h"
+
 
 #include "RE_renderconverter.h"
 
@@ -1192,6 +1194,8 @@ int update_time(void)
 	static double ltime;
 	double time;
 
+	if ((U.mixbufsize)&&(audiostream_pos() != CFRA)&&(G.scene->audio.flag & AUDIO_SYNC)) return 0;
+
 	time = PIL_check_seconds_timer();
 	
 	tottime += (time - ltime);
@@ -1566,12 +1570,17 @@ void inner_play_anim_loop(int init, int mode)
 	tottime -= swaptime;
 	while (update_time()) PIL_sleep_ms(1);
 
-	if(CFRA==EFRA) {
+	if(CFRA>=EFRA) {
 		if (tottime > 0.0) tottime = 0.0;
 		CFRA= SFRA;
+		audiostream_stop();
+		audiostream_start( CFRA );
 	}
-	else CFRA++;
-	
+	else
+	{
+		if (U.mixbufsize && (G.scene->audio.flag & AUDIO_SYNC)) CFRA = audiostream_pos();
+		else CFRA++;
+	};	
 }
 
 int play_anim(int mode)
@@ -1594,6 +1603,8 @@ int play_anim(int mode)
 
 	cfraont= CFRA;
 	oldsa= curarea;
+
+	audiostream_start( CFRA );
 	
 	inner_play_anim_loop(1, mode);	/* 1==init */
 
@@ -1649,6 +1660,7 @@ int play_anim(int mode)
 	do_all_actions();
 	do_all_ikas();
 
+	audiostream_stop();
 
 	if(oldsa!=curarea) areawinset(oldsa->win);
 	
@@ -1668,7 +1680,7 @@ int play_anim(int mode)
 	allqueue(REDRAWNLA, 0);
 	allqueue (REDRAWACTION, 0);
 	/* for the time being */
-	update_for_newframe();
+	update_for_newframe_muted();
 #ifdef NAN_LINEAR_PHYSICS	
 	end_anim_sumo();
 #endif

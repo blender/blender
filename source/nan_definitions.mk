@@ -79,6 +79,8 @@ all debug::
     else
       export NAN_FTGL ?= $(LCGDIR)/ftgl
     endif
+	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
 
   # Platform Dependent settings go below:

@@ -1915,12 +1915,12 @@ static Ipo *get_ipo(ID *from, short type, int make)
 	else if( type==ID_SEQ) {
 		seq= (Sequence *)from;
 
-		if(seq->type & SEQ_EFFECT) {
+		if((seq->type & SEQ_EFFECT)||(seq->type == SEQ_SOUND)) {
 			ipo= seq->ipo;
 			if(make && ipo==0) ipo= seq->ipo= add_ipo("SeqIpo", ID_SEQ);
 		}
 		else return 0;
-	}	
+	}		
 	else if( type==ID_CU) {
 		cu= (Curve *)from;
 		if(cu->id.lib) return 0;

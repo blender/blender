@@ -801,7 +801,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		RE_initrender(ogl_render_view3d);
 	}
 
-	if(anim) update_for_newframe();  // only when anim, causes redraw event which frustrates dispview
+	if(anim) update_for_newframe_muted();  // only when anim, causes redraw event which frustrates dispview
 	R.flag= 0;
 	
 	if (render_win) window_set_cursor(render_win->win, CURSOR_STD);

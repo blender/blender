@@ -230,7 +230,9 @@ int BIF_read_homefile(void)
 			U.transopts |= TR_ALL;
 		}
 #endif
-
+		if (G.main->versionfile <= 227) {
+			U.mixbufsize= 2048;
+		}		
 		space_set_commmandline_options();
 
 		reset_autosave();
