@@ -359,9 +359,9 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				 */
  			    /* friction in moving media */
 			    kd= sb->mediafrict* rescale_friction_to_framerate;  
-				bp->force[0] -= kd * (bp->vec[0] - speed[0]/rescale_friction_to_framerate);
-				bp->force[1] -= kd * (bp->vec[1] - speed[1]/rescale_friction_to_framerate);
-				bp->force[2] -= kd * (bp->vec[2] - speed[2]/rescale_friction_to_framerate);
+				bp->force[0] -= kd * (bp->vec[0] + speed[0]/rescale_friction_to_framerate);
+				bp->force[1] -= kd * (bp->vec[1] + speed[1]/rescale_friction_to_framerate);
+				bp->force[2] -= kd * (bp->vec[2] + speed[2]/rescale_friction_to_framerate);
 				/* now we'll have nice centrifugal effect for vortex */
 
 			}
@@ -1156,42 +1156,43 @@ void sbObjectStep(Object *ob, float framenr)
 					printf("%d heun integration loops/frame \n",loops);
 			}
 		}
-		else
-        /* do brute force explicit euler */
-		/* inner intagration loop */
-		/* */
-		// loop n times so that n*h = duration of one frame := 1
-		// x(t+h) = x(t) + h*v(t);
-		// v(t+h) = v(t) + h*f(x(t),t);
-	    timescale = (int)(sb->rklimit * ABS(dtime)); 
-		for(t=1 ; t <= timescale; t++) {
-			if (ABS(dtime) > 15 ) break;
-			
-			/* the *goal* mesh must use the n*h timing too !
-			use *cheap* linear intepolation for that  */
-			interpolate_exciter(ob,timescale,t);			
-			if (timescale > 0 ) {
-				forcetime = dtime/timescale;
-
-				/* does not fit the concept sloving ODEs :) */
-				/*			softbody_apply_goal(ob,forcetime );  */
+		else{
+			/* do brute force explicit euler */
+			/* inner intagration loop */
+			/* */
+			// loop n times so that n*h = duration of one frame := 1
+			// x(t+h) = x(t) + h*v(t);
+			// v(t+h) = v(t) + h*f(x(t),t);
+			timescale = (int)(sb->rklimit * ABS(dtime)); 
+			for(t=1 ; t <= timescale; t++) {
+				if (ABS(dtime) > 15 ) break;
 				
-				/* explicit Euler integration */
-				/* we are not controling a nuclear power plant! 
-				so rought *almost* physical behaviour is acceptable.
-				in cases of *mild* stiffnes cranking up timscale -> decreasing stepsize *h*
-				avoids instability	*/
-				softbody_calc_forces(ob,forcetime);
-				softbody_apply_forces(ob,forcetime,0, NULL);
-				softbody_apply_goalsnap(ob);
-
-				//	if (0){
+				/* the *goal* mesh must use the n*h timing too !
+				use *cheap* linear intepolation for that  */
+				interpolate_exciter(ob,timescale,t);			
+				if (timescale > 0 ) {
+					forcetime = dtime/timescale;
+					
+					/* does not fit the concept sloving ODEs :) */
+					/*			softbody_apply_goal(ob,forcetime );  */
+					
+					/* explicit Euler integration */
+					/* we are not controling a nuclear power plant! 
+					so rought *almost* physical behaviour is acceptable.
+					in cases of *mild* stiffnes cranking up timscale -> decreasing stepsize *h*
+					avoids instability	*/
+					softbody_calc_forces(ob,forcetime);
+					softbody_apply_forces(ob,forcetime,0, NULL);
+					softbody_apply_goalsnap(ob);
+					
+					//	if (0){
 					/* ok here comes the überhammer
 					use a semi implicit euler integration to tackle *all* stiff conditions 
 					but i doubt the cost/benifit holds for most of the cases
 					-- to be coded*/
-				//	}
-				
+					//	}
+					
+				}
 			}
 		}
 		
