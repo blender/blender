@@ -1304,30 +1304,6 @@ static BPy_NMFace *nmface_from_data(BPy_NMesh *mesh, int vidxs[4],
 	return newf;
 }
 
-static BPy_NMFace *nmface_from_shortdata(BPy_NMesh *mesh,
-								MFace *face, TFace *tface, MCol *col) 
-{
-	int vidxs[4];
-	vidxs[0] = face->v1;
-	vidxs[1] = face->v2;
-	vidxs[2] = face->v3;
-	vidxs[3] = face->v4;
-
-	return nmface_from_data(mesh, vidxs, face->mat_nr, face->flag, tface, col);
-}
-
-static BPy_NMFace *nmface_from_intdata(BPy_NMesh *mesh,
-								MFace *face, TFace *tface, MCol *col) 
-{
-	int vidxs[4];
-	vidxs[0] = face->v1;
-	vidxs[1] = face->v2;
-	vidxs[2] = face->v3;
-	vidxs[3] = face->v4;
-
-	return nmface_from_data(mesh, vidxs, face->mat_nr, face->flag, tface, col);
-}
-
 static BPy_NMVert *nmvert_from_data(BPy_NMesh *me,
 								MVert *vert, MSticky *st, float *co, int idx, char flag)
 {
@@ -1390,7 +1366,6 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 	else {
 		MVert *mverts;
 		MSticky *msticky;
-		MFace *mfaceints;
 		MFace *mfaces;
 		TFace *tfaces;
 		MCol *mcols;
@@ -1403,7 +1378,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 			msticky = NULL;
 			mfaces = NULL;
 			mverts = dlm->mvert;
-			mfaceints = dlm->mface;
+			mfaces = dlm->mface;
 			tfaces = dlm->tface;
 			mcols = dlm->mcol;
 
@@ -1418,7 +1393,6 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 			me->subdiv[1] = oldmesh->subdivr;
 			me->smoothresh = oldmesh->smoothresh;
 
-			mfaceints = NULL;
 			msticky = oldmesh->msticky;
 			mverts = oldmesh->mvert;
 			mfaces = oldmesh->mface;
@@ -1450,17 +1424,15 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 		for (i = 0; i < totface; i++) {
 			TFace *oldtf = tfaces?&tfaces[i]:NULL;
 			MCol *oldmc = mcols?&mcols[i*4]:NULL;
+			MFace *oldmf = &mfaces[i];
+			int vidxs[4];
+			vidxs[0] = oldmf->v1;
+			vidxs[1] = oldmf->v2;
+			vidxs[2] = oldmf->v3;
+			vidxs[3] = oldmf->v4;
 
-			if (mfaceints) {			
-				MFace *oldmf = &mfaceints[i];
-				PyList_SetItem (me->faces, i,
-										(PyObject *)nmface_from_intdata(me, oldmf, oldtf, oldmc));
-			}
-			else {
-				MFace *oldmf = &mfaces[i];
-				PyList_SetItem (me->faces, i,
-								(PyObject *)nmface_from_shortdata(me, oldmf, oldtf, oldmc));
-			}
+			PyList_SetItem (me->faces, i,
+									(PyObject *)nmface_from_data(me, vidxs, oldmf->mat_nr, oldmf->flag, oldtf, oldmc));
 		}
 		me->materials = EXPP_PyList_fromMaterialList(oldmesh->mat, oldmesh->totcol);
 	}

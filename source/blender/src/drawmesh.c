@@ -780,7 +780,6 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 	if(dt > OB_SOLID) {
 		bProperty *prop = get_property(ob, "Text");
-		MFace *mfaceint= NULL;
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 		MVert *mvert=NULL;
 		int totface;
@@ -796,7 +795,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			else {
 				totface= dlm->totface;
 				mvert= dlm->mvert;
-				mfaceint= dlm->mface;
+				mface= dlm->mface;
 				tface= dlm->tface;
 			}
 		} 
@@ -813,26 +812,14 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		for (a=0; a<totface; a++, tface++) {
 			int v1idx, v2idx, v3idx, v4idx, mf_smooth, matnr, badtex;
 			float *v1, *v2, *v3, *v4;
+			MFace *mf= &mface[a];
 
-			if (mfaceint) {
-				MFace *mf= &mfaceint[a];
-
-				v1idx= mf->v1;
-				v2idx= mf->v2;
-				v3idx= mf->v3;
-				v4idx= mf->v4;
-				mf_smooth= mf->flag & ME_SMOOTH;
-				matnr= mf->mat_nr;
-			} else {
-				MFace *mf= &mface[a];
-
-				v1idx= mf->v1;
-				v2idx= mf->v2;
-				v3idx= mf->v3;
-				v4idx= mf->v4;
-				mf_smooth= mf->flag & ME_SMOOTH;
-				matnr= mf->mat_nr;
-			}
+			v1idx= mf->v1;
+			v2idx= mf->v2;
+			v3idx= mf->v3;
+			v4idx= mf->v4;
+			mf_smooth= mf->flag & ME_SMOOTH;
+			matnr= mf->mat_nr;
 			
 			if(v3idx==0) continue;
 			if(tface->flag & TF_HIDE) continue;
