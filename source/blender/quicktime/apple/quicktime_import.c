@@ -101,7 +101,6 @@ void quicktime_exit(void)
 int anim_is_quicktime (char *name)
 {
 	FSSpec	theFSSpec;
-	Str255  dst;
 	char	theFullPath[255];
 
 	Boolean						isMovieFile = false;
@@ -110,6 +109,8 @@ int anim_is_quicktime (char *name)
 #ifdef __APPLE__
 	FInfo						myFinderInfo;
 	FSRef						myRef;
+#else
+	Str255  dst;
 #endif
 	OSErr						err = noErr;
 			
@@ -244,7 +245,9 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 	ImBuf *ibuf = NULL;
 	unsigned int *rect;
+#ifdef _WIN32
 	unsigned char *crect;
+#endif
 
 	if (anim == NULL) {
 		return (NULL);
@@ -314,7 +317,7 @@ int GetFirstVideoMedia(struct anim *anim)
 
 		if (anim->qtime->theMedia)
 			GetMediaHandlerDescription(anim->qtime->theMedia,&mediaType, nil, nil);
-		if (mediaType = VideoMediaType) return 1;
+		if (mediaType == VideoMediaType) return 1;
 	}
 
 	anim->qtime->trackIndex = 0;  // trackIndex can't be 0
@@ -341,10 +344,11 @@ int startquicktime (struct anim *anim)
 	FSSpec		theFSSpec;
 
 	OSErr		err = noErr;
-	Str255		dst;
 	char		theFullPath[255];
 #ifdef __APPLE__
 	FSRef		myRef;
+#else
+	Str255		dst;
 #endif
 
 	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie),"animqt");
@@ -376,7 +380,7 @@ int startquicktime (struct anim *anim)
 	}
 
 	if (err) {
-		if(QTIME_DEBUG) printf("qt: bad movie\n", anim->name);
+		if(QTIME_DEBUG) printf("qt: bad movie %s\n", anim->name);
 		if (anim->qtime->movie) {
 			DisposeMovie(anim->qtime->movie);
 			MEM_freeN(anim->qtime);
@@ -388,7 +392,7 @@ int startquicktime (struct anim *anim)
 	GetMovieBox(anim->qtime->movie, &anim->qtime->movieBounds);
 	anim->x = anim->qtime->movWidth = RECT_WIDTH(anim->qtime->movieBounds);
 	anim->y = anim->qtime->movHeight = RECT_HEIGHT(anim->qtime->movieBounds);
-	if(QTIME_DEBUG) printf("qt: got bounds\n", anim->name);
+	if(QTIME_DEBUG) printf("qt: got bounds %s\n", anim->name);
 
 	if(anim->x == 0 && anim->y == 0) {
 		if(QTIME_DEBUG) printf("qt: error, no dimensions\n");
