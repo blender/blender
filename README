@@ -1,9 +1,11 @@
 Welcome to the fun world of open-source.
 
 This file is to help you get started using the source and will hopefully
-answer most questions.
+answer most questions.  If you do have any problems with these instructions,
+post a message to the Forums on www.blender.org, or visit us at #blendersauce
+on irc.freenode.net
 
-Here are some links to external packages you may or maynot need:
+Here are some links to external packages you may or may not need:
 
 openssl:  http://www.openssl.org
 python:  http://www.python.org
@@ -11,7 +13,7 @@ mxtexttools:http://www.egenix.com/files/python/mxTextTools.html (python lib)
 libjpeg:  http://www.ijg.org/
 libpng:  http://www.libpng.org/pub/png/
 zlib:   http://www.gzip.org/zlib/
-ode:	http://q12.org/ode/ode.html
+ode:	http://opende.sourceforge.net/
 openal:  http://www.openal.org/home/		(for linux/windows)
 	sdl: http://www.libsdl.org/index.php (for openal)
 	smpeg: http://www.lokigames.com/development/smpeg.php3 (for openal)
@@ -47,45 +49,18 @@ properly.
 fix the pointer to it I'm still working on automating this)
 
 --------------Basic Makefile TIPS---------------------------------------
-Assuming you are using tcsh/csh do the following before compiling.
-#Set this to wherever you have extracted the source.
-setenv NANBLENDERHOME `pwd`
-setenv MAKEFLAGS "-w -I$NANBLENDERHOME/source"
-
-Or for bash/sh do this:
-NANBLENDERHOME=`pwd`
-export NANBLENDERHOME
-MAKEFLAGS="-w -I$NANBLENDERHOME/source"
-export MAKEFLAGS
-
-Then edit source/nan_definitions.mk to fit you're environment.
-(You'll want to change things like NAN_OPENSSL,NAN_JPEG, NAN_PNG etc.. 
-to point to where you have it installed)
+Edit source/nan_definitions.mk to fit your environment, be sure to edit the
+block matching your OS. You will want to change variables like NAN_OPENSSL,
+NAN_JPEG, NAN_PNG etc. to point to where you have those installed.
 
 If you want to integrate the game-engine in Blender, you might want
 to uncomment the following line in nan_compile.mk:
 #CFLAGS += -DGAMEBLENDER=1
-The define is disabled by default because there still are still some
+The define is disabled by default because there are still some
 problems with this at the moment.
 
-If you tried to just have a go at making stuff you might wind up with
-an empty file /tmp/.nanguess
-You need to remove the empty file and it will get created automatically
-by $NANBLENDERHOME/source/tools/guess/guessconfig after you have 
-setup the NANBLENDERHOME variable.
-
-After that cd $NANBLENDERHOME/intern 
-make
-make install
-
-cd $NANBLENDERHOME/source/ode
-Look at the README_BLENDER and follow instructions
-
-Then cd $NANBLENDERHOME/source
-make
-
-If you have any problems with the above post a message to the Forums on
-www.blender.org
+After adjusting things for your environment run 'make' (or use the nice hmake
+script at blender/source/tools/hmake/hmake)
 
 ----------------------WINDOWS TIPS--------------------------------------
 
@@ -168,9 +143,6 @@ zlib-1.1.4-lib.zip. Rename the unzipped directory "zlib" and copy it to the
 $NANBLENDERHOME/lib/windows directory.
 
 
-If you have any problems with the above post a message to the Forums on
-www.blender.org
-
 ----------------------Mac OSX TIPS--------------------------------------
 When building Blender on OSX you have three choices:
 METHOD 1. Build using the old NaN Makefiles.
@@ -242,7 +214,7 @@ BUILDING EXTERNAL LIBRARIES
 If you don't want to use the precompiled libraries you can download and/or
 build them yourself. Here are some directions.
 
-PYHON:
+PYTHON:
 Mac OSX 10.2 (Jaguar) now comes with Python (2.2.1) pre-installed. This is fine
 for producing the "frozen" Python code found in the intern directory. However,
 the installation does not contain the python library to link against (at least
@@ -260,19 +232,9 @@ $NANBLENDERHOME/lib/darwin-6.1-powerpc/python/include/python2.2
 $NANBLENDERHOME/lib/darwin-6.1-powerpc/python/lib/python2.2/config
 Now copy the include files and the libpython2.2.a library to those locations.
 
-FMOD:
-Download FMOD from http://www.fmod.org/ and unpack with StuffIt Expander. The
-archive contains header files and a library. Copy those to these directories
-(that you need to create first):
-$NANBLENDERHOME/lib/darwin-6.1-powerpc/fmod/include
-$NANBLENDERHOME/lib/darwin-6.1-powerpc/fmod/lib
-
 ODE:
 Ode is currently included in the source tree of Blender. This might change in
 the close future. But for now you don't need to download Ode.
 If you want to build ODE yourself, you'll have to edit a config file of ODE first.
-go to $NANBLENDERHOME/source/ode/config and edit the file "user-settings" so 
+go to $NANBLENDERHOME/extern/ode/dist/config and edit the file "user-settings" so 
 that platform is equal to osx (PLATFORM=osx).
-
-If you have any problems with the above post a message to the Forums on
-www.blender.org
