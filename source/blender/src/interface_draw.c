@@ -338,7 +338,7 @@ static void shaded_button(float x1, float y1, float x2, float y2, float asp, int
 	} else {
 		MM_DARK;
 		glBegin(GL_LINE_LOOP);
-		gl_round_box(x1, y1, x2, y2, 1.0);
+		gl_round_box(x1, y1, x2, y2, 1.5);
 		glEnd();
 	}
 	/* END OUTER OUTLINE */
@@ -381,7 +381,7 @@ static void flat_button(float x1, float y1, float x2, float y2, float asp, int c
 	} else {
 		MM_DARK;
 		glBegin(GL_LINE_LOOP);
-		gl_round_box(x1, y1, x2, y2, 1.0);
+		gl_round_box(x1, y1, x2, y2, 1.5);
 		glEnd();
 	}
 	/* END OUTER OUTLINE */
