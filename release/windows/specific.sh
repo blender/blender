@@ -61,8 +61,10 @@ if (`test -x "$NSIS"`) then
     cd installer
     TEMPFILE=00.blender_tmp.nsi
     DISTDIR=`cygpath -m $DISTDIR`
+    SHORTVERS=`echo $VERSION | sed 's/\.//'`
     # make a installer config for this release
-    cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$PVERS|g" > $TEMPFILE
+    cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$SHORTVERS|g" > $TEMPFILE
+    cat 00.blender.nsi | sed "s|VERSION|$VERSION|g" | sed "s|DISTDIR|$DISTDIR|g" | sed "s|SHORTVERS|$SHORTVERS|g" | less
     "$NSIS" $TEMPFILE
     rm $TEMPFILE
 fi
