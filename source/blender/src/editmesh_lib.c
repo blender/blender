@@ -623,7 +623,7 @@ short extrudeflag_edges_indiv(short flag)
 		if(eed->v1->f & eed->v2->f & flag) eed->f |= flag;
 	}
 	
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g';
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'h'; // h is grab, for correct undo print
 	return 'n';
 }
 
@@ -647,7 +647,7 @@ short extrudeflag_verts_indiv(short flag)
 
 	for(eve= em->verts.last; eve; eve= eve->prev) if(eve->vn) eve->vn->f |= flag;
 
-	return 'g';
+	return 'h';	// h is grab, for correct undo print
 }
 
 
@@ -818,8 +818,8 @@ static short extrudeflag_edge(short flag)
 	}
 
 	EM_select_flush();
-	
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g';
+
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'h';
 	return 'n';
 }
 
@@ -1042,7 +1042,7 @@ short extrudeflag_vert(short flag)
 	// since its vertex select mode now, it also deselects higher order
 	EM_selectmode_flush();
 
-	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g';
+	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'h'; // h is grab, for correct undo print
 	return 'n';
 }
 

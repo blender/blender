@@ -3885,7 +3885,7 @@ void make_trans_verts(float *min, float *max, int mode)
 	EditVert *eve;
 	int a;
 	EditBone	*ebo;
-	
+
 	tottrans= 0; // global!
 	
 	INIT_MINMAX(min, max);
@@ -4945,6 +4945,7 @@ static char *transform_mode_to_string(int mode)
                case 'w':       return("Warp"); break;
                case 'd':       return("Duplicate"); break;
 			   case 'n':	   return("Extrude"); break;
+			   case 'h':	   return("Extrude"); break;
                default:        return("Transform");
        }
 }
@@ -5014,8 +5015,8 @@ void transform(int mode)
 		if(mode=='r') mode= 'R';
 		if(mode=='s') mode= 'C';
 	}
-	/* from duplicate routines */
-	if(mode=='d') mode= 'g';
+	/* from duplicate or extrude routines */
+	if(mode=='d' || mode=='h') mode= 'g';
 
 	/* this can cause floating exception at dec alpha */
 	d_dvec[0]= d_dvec[1]= d_dvec[2]= 0.0;
