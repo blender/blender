@@ -356,7 +356,11 @@ void BLI_adddirstrings()
 		strcpy(files[num].owner,"user");
 #else
 		pwuser = getpwuid(files[num].s.st_uid);
-		strcpy(files[num].owner, pwuser->pw_name);
+		if ( pwuser ) {
+		   strcpy(files[num].owner, pwuser->pw_name);
+		} else {
+		   sprintf(files[num].owner, "%d", files[num].s.st_uid);
+                }
 #endif
 
 		tm= localtime(&files[num].s.st_mtime);
