@@ -132,69 +132,7 @@
 #define TEST_EDITMESH	if(G.obedit==0) return; \
 						if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
-void do_view3d_transformmenu(void *arg, int event)
-{
-	switch(event) {
-	case 1:
-		transform('g');
-		break;
-	case 2:
-		transform('r');
-		break;
-	case 3:
-		transform('s');
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-}
-
-static uiBlock *view3d_transformmenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiNewBlock(&curarea->uiblocks, "view3d_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_view3d_transformmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate|R",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-
 static int viewmovetemp = 0;
-
-void do_view3d_object_mirrormenu(void *arg, int event)
-{
-	switch(event) {
-		case 1:
-		case 2:
-		case 3:
-			mirror_object(event);
-			break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-}
-
-static uiBlock *view3d_object_mirrormenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiNewBlock(&curarea->uiblocks, "view3d_object_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_view3d_object_mirrormenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|Ctrl M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|Ctrl M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|Ctrl M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
 
 void do_layer_buttons(short event)
 {
@@ -1168,6 +1106,223 @@ static uiBlock *view3d_edit_snapmenu(void *arg_unused)
 	return block;
 }
 
+void do_view3d_transform_moveaxismenu(void *arg, int event)
+{
+	switch(event)
+	{
+	    case 0: /* X Global */
+		    transform('g'*'X');
+			break;
+		case 1: /* Y Global */
+			transform('g'*'Y');
+			break;
+		case 2: /* Z Global */
+			transform('g'*'Z');
+			break;
+		case 3: /* X Local */
+			transform('g'*'x');
+			break;
+		case 4: /* Y Local */
+			transform('g'*'y');
+			break;
+		case 5: /* Z Local */
+			transform('g'*'z');
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_transform_moveaxismenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_transform_moveaxismenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_transform_moveaxismenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|G, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Global|G, Y",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Global|G, Z",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|G, X, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|G, Y, Y",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|G, Z, Z",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+void do_view3d_transform_rotateaxismenu(void *arg, int event)
+{
+	switch(event)
+	{
+	    case 0: /* X Global */
+		    transform('r'*'X');
+			break;
+		case 1: /* Y Global */
+			transform('r'*'Y');
+			break;
+		case 2: /* Z Global */
+			transform('r'*'Z');
+			break;
+		case 3: /* X Local */
+			transform('r'*'x');
+			break;
+		case 4: /* Y Local */
+			transform('r'*'y');
+			break;
+		case 5: /* Z Local */
+			transform('r'*'z');
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_transform_rotateaxismenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_transform_rotateaxismenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_transform_rotateaxismenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|R, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Global|R, Y",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Global|R, Z",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|R, X, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|R, Y, Y",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|R, Z, Z",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+void do_view3d_transform_scaleaxismenu(void *arg, int event)
+{
+	switch(event)
+	{
+	    case 0: /* X Global */
+		    transform('s'*'X');
+			break;
+		case 1: /* Y Global */
+			transform('s'*'Y');
+			break;
+		case 2: /* Z Global */
+			transform('s'*'Z');
+			break;
+		case 3: /* X Local */
+			transform('s'*'x');
+			break;
+		case 4: /* Y Local */
+			transform('s'*'y');
+			break;
+		case 5: /* Z Local */
+			transform('s'*'z');
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_transform_scaleaxismenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_transform_scaleaxismenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_transform_scaleaxismenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|S, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Global|S, Y",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Global|S, Z",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|S, X, X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|S, Y, Y",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|S, Z, Z",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+void do_view3d_transformmenu(void *arg, int event)
+{
+	switch(event) {
+	case 1:
+		transform('g');
+		break;
+	case 2:
+		transform('r');
+		break;
+	case 3:
+		transform('s');
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_transformmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_transformmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBlockBut(block, view3d_transform_moveaxismenu, NULL, ICON_RIGHTARROW_THIN, "Grab/Move on Axis", 0, yco-=20, 120, 19, "");
+		
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate|R",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBlockBut(block, view3d_transform_rotateaxismenu, NULL, ICON_RIGHTARROW_THIN, "Rotate on Axis", 0, yco-=20, 120, 19, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBlockBut(block, view3d_transform_scaleaxismenu, NULL, ICON_RIGHTARROW_THIN, "Scale on Axis", 0, yco-=20, 120, 19, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+void do_view3d_object_mirrormenu(void *arg, int event)
+{
+	switch(event) {
+		case 1:
+		case 2:
+		case 3:
+			mirror_object(event);
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_object_mirrormenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_object_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_object_mirrormenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|Ctrl M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|Ctrl M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|Ctrl M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_view3d_edit_object_transformmenu(void *arg, int event)
 {
 	switch(event) {
@@ -1531,7 +1686,8 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_edit_objectmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform...", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 
 	uiDefIconTextBlockBut(block, view3d_edit_object_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Clear/Apply", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
@@ -1569,7 +1725,6 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 
-	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 		
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -2005,7 +2160,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform...", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -2234,7 +2389,7 @@ static uiBlock *view3d_edit_curvemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform...", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -2584,7 +2739,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform...", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -2715,8 +2870,8 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_pose_armaturemenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform...", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_pose_armature_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Clear Transform...", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_pose_armature_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Clear Transform", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

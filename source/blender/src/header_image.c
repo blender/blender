@@ -397,7 +397,7 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	if(G.f & G_DRAWFACES) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Faces", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Faces|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	if(G.sima->flag & SI_DRAWSHADOW) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Shadow Mesh", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow Mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	if(G.sima->lock) {
@@ -789,10 +789,10 @@ static uiBlock *image_uvs_transformmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_uvs_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_image_uvs_transformmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab...|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate...|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale...|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld / Align...|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld/Align|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror...|M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);

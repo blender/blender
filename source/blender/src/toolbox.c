@@ -1884,32 +1884,6 @@ static TBitem tb_view[]= {
 
 /* *************TRANSFORM ********** */
 
-
-static void tb_do_transform_moveaxis(void *arg, int event)
-{
-	switch(event)
-	{
-	    case 0: /* X Global */
-		    transform('g'*'X');
-			break;
-		case 1: /* Y Global */
-			transform('g'*'Y');
-			break;
-		case 2: /* Z Global */
-			transform('g'*'Z');
-			break;
-		case 3: /* X Local */
-			transform('g'*'x');
-			break;
-		case 4: /* Y Local */
-			transform('g'*'y');
-			break;
-		case 5: /* Z Local */
-			transform('g'*'z');
-			break;
-	}
-}
-
 static TBitem tb_transform_moveaxis[]= {
 {	0, "X Global|G, X", 	0, NULL},
 {	0, "Y Global|G, Y", 	1, NULL},
@@ -1918,32 +1892,7 @@ static TBitem tb_transform_moveaxis[]= {
 {	0, "X Local|G, X, X", 	3, NULL},
 {	0, "Y Local|G, Y, Y", 	4, NULL},
 {	0, "Z Local|G, Z, Z", 	5, NULL},
-{  -1, "", 			0, tb_do_transform_moveaxis}};
-
-static void tb_do_transform_rotateaxis(void *arg, int event)
-{
-	switch(event)
-	{
-	    case 0: /* X Global */
-		    transform('r'*'X');
-			break;
-		case 1: /* Y Global */
-			transform('r'*'Y');
-			break;
-		case 2: /* Z Global */
-			transform('r'*'Z');
-			break;
-		case 3: /* X Local */
-			transform('r'*'x');
-			break;
-		case 4: /* Y Local */
-			transform('r'*'y');
-			break;
-		case 5: /* Z Local */
-			transform('r'*'z');
-			break;
-	}
-}
+{  -1, "", 			0, do_view3d_transform_moveaxismenu}};
 
 static TBitem tb_transform_rotateaxis[]= {
 {	0, "X Global|R, X", 	0, NULL},
@@ -1953,34 +1902,7 @@ static TBitem tb_transform_rotateaxis[]= {
 {	0, "X Local|R, X, X", 	3, NULL},
 {	0, "Y Local|R, Y, Y", 	4, NULL},
 {	0, "Z Local|R, Z, Z", 	5, NULL},
-
-{  -1, "", 			0, tb_do_transform_rotateaxis}};
-
-
-static void tb_do_transform_scaleaxis(void *arg, int event)
-{
-	switch(event)
-	{
-	    case 0: /* X Global */
-		    transform('s'*'X');
-			break;
-		case 1: /* Y Global */
-			transform('s'*'Y');
-			break;
-		case 2: /* Z Global */
-			transform('s'*'Z');
-			break;
-		case 3: /* X Local */
-			transform('s'*'x');
-			break;
-		case 4: /* Y Local */
-			transform('s'*'y');
-			break;
-		case 5: /* Z Local */
-			transform('s'*'z');
-			break;
-	}
-}
+{  -1, "", 			0, do_view3d_transform_rotateaxismenu}};
 
 static TBitem tb_transform_scaleaxis[]= {
 {	0, "X Global|S, X", 	0, NULL},
@@ -1990,7 +1912,7 @@ static TBitem tb_transform_scaleaxis[]= {
 {	0, "X Local|S, X, X", 	3, NULL},
 {	0, "Y Local|S, Y, Y", 	4, NULL},
 {	0, "Z Local|S, Z, Z", 	5, NULL},
-{  -1, "", 			0, tb_do_transform_scaleaxis}};
+{  -1, "", 			0, do_view3d_transform_scaleaxismenu}};
 
 static void tb_do_transform_clearapply(void *arg, int event)
 {
