@@ -669,6 +669,7 @@ void mouse_select(void)
  */
 void borderselect(void)
 {
+	EditMesh *em = G.editMesh;
 	rcti rect;
 	Base *base;
 	Nurb *nu;
@@ -723,7 +724,7 @@ void borderselect(void)
 			if(G.obedit->type==OB_MESH) {
 				
 				calc_meshverts_ext();	/* drawobject.c */
-				eve= G.edve.first;
+				eve= em->verts.first;
 				while(eve) {		
 					if(eve->h==0 && eve->xs>rect.xmin && eve->xs<rect.xmax) {
 						if(eve->ys>rect.ymin && eve->ys<rect.ymax) {
@@ -924,11 +925,12 @@ void borderselect(void)
 
 void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float x, y, r;
 
 	calc_meshverts_ext();	/* drawobject.c */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->h==0) {
 			x= eve->xs-mval[0];
@@ -1066,6 +1068,7 @@ void obedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 
 void circle_select(void)
 {
+	EditMesh *em = G.editMesh;
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
@@ -1106,7 +1109,7 @@ void circle_select(void)
 				if(G.obedit->type==OB_MESH) {
 					
 					calc_meshverts_ext();	/* drawobject.c */
-					eve= G.edve.first;
+					eve= em->verts.first;
 					while(eve) {
 						if(eve->h==0) {
 							x= eve->xs-mval[0];

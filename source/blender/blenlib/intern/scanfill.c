@@ -1147,6 +1147,7 @@ int BLI_edgefill(int mode)  /* THE MAIN FILL ROUTINE */
   
 void fill_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve,*v1;
 	EditEdge *eed,*e1,*nexted;
 	EditVlak *evl,*nextvl;
@@ -1157,7 +1158,7 @@ void fill_mesh(void)
 	waitcursor(1);
 
 	/ * alle selected vertices kopieeren * /
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			v1= addfillvert(eve->co);
@@ -1168,7 +1169,7 @@ void fill_mesh(void)
 		eve= eve->next;
 	}
 	/ * alle selected edges kopieeren * /
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
 			e1= addfilledge(eed->v1->vn, eed->v2->vn);
@@ -1180,7 +1181,7 @@ void fill_mesh(void)
 	/ * van alle selected vlakken vertices en edges verwijderen om dubbels te voorkomen * /
 	/ * alle edges tellen punten op, vlakken trekken af,
 	   edges met vertices ->h<2 verwijderen * /
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	ok= 0;
 	while(evl) {
 		nextvl= evl->next;

@@ -65,6 +65,7 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_library.h"
@@ -78,6 +79,7 @@
 #include "BKE_curve.h"
 #include "BKE_font.h"
 
+#include "BLI_editVert.h"
 #include "BKE_bad_level_calls.h" /* for BPY_do_pyscript */
 
 #include "BLO_readfile.h" /* for BLO_read_file */
@@ -188,10 +190,15 @@ void duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
 	}	
 }
 
+static EditMesh theEditMesh;
+
 void initglobals(void)
 {
 	memset(&G, 0, sizeof(Global));
 	
+	G.editMesh = &theEditMesh;
+	memset(G.editMesh, 0, sizeof(G.editMesh));
+
 	U.savetime= 1;
 
 	G.animspeed= 4;

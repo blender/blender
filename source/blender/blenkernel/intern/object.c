@@ -1024,6 +1024,7 @@ void ob_parlimb(Object *ob, Object *par, float mat[][4])
 
 void give_parvert(Object *par, int nr, float *vec)
 {
+	EditMesh *em = G.editMesh;
 	Mesh *me;
 	EditVert *eve;
 /*  	extern ListBase editNurb; already in bad lev calls */
@@ -1042,7 +1043,7 @@ void give_parvert(Object *par, int nr, float *vec)
 			if(nr >= G.totvert) nr= 0;
 
 			count= 0;
-			eve= G.edve.first;
+			eve= em->verts.first;
 			while(eve) {
 				if(count==nr) {
 					memcpy(vec, eve->co, 12);

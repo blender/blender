@@ -2121,6 +2121,7 @@ char videosc_dir[160]= {0, 0};
 
 static void write_videoscape_mesh(Object *ob, char *str)
 {
+	EditMesh *em = G.editMesh;
 	Mesh *me;
 	Material *ma;
 	MVert *mvert;
@@ -2169,7 +2170,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 		fprintf(fp, "%d\n", G.totvert);
 	
 		tot= 0;
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			VECCOPY(co, eve->co);
 			Mat4MulVecfl(ob->obmat, co);
@@ -2178,7 +2179,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 			tot++;
 			eve= eve->next;
 		}
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 
 			if(evl->v4==0) {

@@ -396,7 +396,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts) {
 	return hme;
 }
 
-static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, EditVlak *efaces) {
+static HyperMesh *hypermesh_from_editmesh(EditMesh *em) {
 	HyperMesh *hme= hypermesh_new();
 	EditVert *ev, *prevev;
 	EditEdge *ee;
@@ -404,13 +404,13 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 
 		/* we only add vertices with edges, 'f1' is a free flag */
 		/* added: check for hide flag in vertices */
-	for (ev= everts; ev; ev= ev->next) ev->f1= 1;	
+	for (ev= em->verts.first; ev; ev= ev->next) ev->f1= 1;	
 
 		/* hack, tuck the new hypervert pointer into
 		 * the ev->prev link so we can find it easy, 
 		 * then restore real prev links later.
 		 */
-	for (ee= eedges; ee; ee= ee->next) {
+	for (ee= em->edges.first; ee; ee= ee->next) {
 		if(ee->v1->h==0 && ee->v2->h==0) {
 			if(ee->v1->f1) {
 				ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
@@ -424,7 +424,7 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 			hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, 1);
 		}
 	}
-	for (ef= efaces; ef; ef= ef->next) {
+	for (ef= em->faces.first; ef; ef= ef->next) {
 		if(ef->v1->h || ef->v2->h || ef->v3->h);
 		else if(ef->v4 && ef->v4->h);
 		else {
@@ -444,7 +444,7 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 	}
 
 		/* see hack above, restore the prev links */
-	for (prevev= NULL, ev= everts; ev; prevev= ev, ev= ev->next)
+	for (prevev= NULL, ev= em->verts.first; ev; prevev= ev, ev= ev->next)
 		ev->prev= prevev;
 	
 	return hme;
@@ -944,12 +944,11 @@ static DispListMesh *subsurf_subdivide_to_displistmesh(HyperMesh *hme, short sub
 	return dlm;
 }
 
-DispListMesh *subsurf_make_dispListMesh_from_editmesh(ListBase *verts, ListBase *edges, 
-											ListBase *faces, int subdivLevels, int flags, short type) {
+DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLevels, int flags, short type) {
 	if (subdivLevels<1) {
-		return displistmesh_from_editmesh(verts, edges, faces);
+		return displistmesh_from_editmesh(em);
 	} else {
-		HyperMesh *hme= hypermesh_from_editmesh(verts->first, edges->first, faces->first);
+		HyperMesh *hme= hypermesh_from_editmesh(em);
 	
 		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags, type);
 	}

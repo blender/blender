@@ -73,5 +73,10 @@ typedef struct EditVlak
 	unsigned char f, f1;
 } EditVlak;
 
+typedef struct EditMesh
+{
+	ListBase verts, edges, faces;
+} EditMesh;
+
 #endif
 

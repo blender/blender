@@ -261,11 +261,12 @@ static void check_hashedge(void)
 
 EditVert *addvertlist(float *vec)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	static unsigned char hashnr= 0;
 
 	eve= calloc(sizeof(EditVert),1);
-	BLI_addtail(&G.edve, eve);
+	BLI_addtail(&em->verts, eve);
 	
 	if(vec) VECCOPY(eve->co, vec);
 
@@ -379,6 +380,7 @@ void free_hashedgetab(void)
 
 EditEdge *addedgelist(EditVert *v1, EditVert *v2)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *v3;
 	EditEdge *eed;
 	int swap= 0;
@@ -402,7 +404,7 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2)
 		eed= (EditEdge *)calloc(sizeof(EditEdge), 1);
 		eed->v1= v1;
 		eed->v2= v2;
-		BLI_addtail(&G.eded, eed);
+		BLI_addtail(&em->edges, eed);
 		eed->dir= swap;
 		insert_hashedge(eed);
 	}
@@ -412,8 +414,9 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2)
 
 void remedge(EditEdge *eed)
 {
+	EditMesh *em = G.editMesh;
 
-	BLI_remlink(&G.eded, eed);
+	BLI_remlink(&em->edges, eed);
 
 	remove_hashedge(eed);
 }
@@ -438,6 +441,7 @@ static void freevlaklist(ListBase *lb)
 
 EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, EditVlak *example)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	EditEdge *e1, *e2=0, *e3=0, *e4=0;
 	
@@ -476,7 +480,7 @@ EditVlak *addvlaklist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 		evl->tf.col[0]= evl->tf.col[1]= evl->tf.col[2]= evl->tf.col[3]= vpaint_get_current_col();
 	}
 	
-	BLI_addtail(&G.edvl, evl);
+	BLI_addtail(&em->faces, evl);
 
 	if(evl->v4) CalcNormFloat4(v1->co, v2->co, v3->co, v4->co, evl->n);
 	else CalcNormFloat(v1->co, v2->co, v3->co, evl->n);
@@ -528,7 +532,7 @@ static int dubbelvlak(EditVlak *evltest)
 	
 	EditVlak *evl;
 	
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		if(evl!=evltest) {
 			if(comparevlak(evltest, evl)) return 1;
@@ -541,6 +545,7 @@ static int dubbelvlak(EditVlak *evltest)
 
 static int exist_vlak(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl, evltest;
 	
 	evltest.v1= v1;
@@ -548,7 +553,7 @@ static int exist_vlak(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 	evltest.v3= v3;
 	evltest.v4= v4;
 	
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		if(comparevlak(&evltest, evl)) return 1;
 		evl= evl->next;
@@ -584,9 +589,10 @@ int vlakselectedAND(EditVlak *evl, int flag)
 
 void recalc_editnormals(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		if(evl->v4) CalcNormFloat4(evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co, evl->n);
 		else CalcNormFloat(evl->v1->co, evl->v2->co, evl->v3->co, evl->n);
@@ -619,9 +625,10 @@ static void flipvlak(EditVlak *evl)
 
 void flip_editnormals(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		if( vlakselectedAND(evl, 1) ) {
 			flipvlak(evl);
@@ -658,6 +665,7 @@ static void edge_normal_compare(EditEdge *eed, EditVlak *evl1)
 
 static void edge_drawflags(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed, *e1, *e2, *e3, *e4;
 	EditVlak *evl;
@@ -674,19 +682,19 @@ static void edge_drawflags(void)
 	recalc_editnormals();
 	
 	/* init */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->f1= 1;		/* during test it's set at zero */
 		eve= eve->next;
 	}
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		eed->f= eed->f1= 0;
 		eed->vn= 0;
 		eed= eed->next;
 	}
 
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		e1= evl->e1;
 		e2= evl->e2;
@@ -706,7 +714,7 @@ static void edge_drawflags(void)
 	}
 
 	if(G.f & G_ALLEDGES) {
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			if(evl->e1->f>=2) evl->e1->f= 1;
 			if(evl->e2->f>=2) evl->e2->f= 1;
@@ -720,14 +728,14 @@ static void edge_drawflags(void)
 		
 		/* handle single-edges for 'test cylinder flag' (old engine) */
 		
-		eed= G.eded.first;
+		eed= em->edges.first;
 		while(eed) {
 			if(eed->f==1) eed->f1= 1;
 			eed= eed->next;
 		}
 
 		/* all faces, all edges with flag==2: compare normal */
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			if(evl->e1->f==2) edge_normal_compare(evl->e1, evl);
 			if(evl->e2->f==2) edge_normal_compare(evl->e2, evl);
@@ -739,7 +747,7 @@ static void edge_drawflags(void)
 		
 		/* sphere collision flag */
 		
-		eed= G.eded.first;
+		eed= em->edges.first;
 		while(eed) {
 			if(eed->f1!=1) {
 				eed->v1->f1= eed->v2->f1= 0;
@@ -764,6 +772,7 @@ static int contrpuntnorm(float *n, float *puno)  /* dutch: check vertex normal *
 
 void vertexnormals(int testflip)
 {
+	EditMesh *em = G.editMesh;
 	Mesh *me;
 	EditVert *eve;
 	EditVlak *evl;	
@@ -780,7 +789,7 @@ void vertexnormals(int testflip)
 
 	if(G.totface==0) {
 		/* fake vertex normals for 'halo puno'! */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			VECCOPY(eve->no, eve->co);
 			Normalise( (float *)eve->no);
@@ -790,14 +799,14 @@ void vertexnormals(int testflip)
 	}
 
 	/* clear normals */	
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->no[0]= eve->no[1]= eve->no[2]= 0.0;
 		eve= eve->next;
 	}
 	
 	/* calculate cosine angles and add to vertex normal */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		VecSubf(n1, evl->v2->co, evl->v1->co);
 		VecSubf(n2, evl->v3->co, evl->v2->co);
@@ -855,7 +864,7 @@ void vertexnormals(int testflip)
 	}
 
 	/* normalise vertex normals */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		len= Normalise(eve->no);
 		if(len==0.0) {
@@ -866,7 +875,7 @@ void vertexnormals(int testflip)
 	}
 	
 	/* vertex normal flip-flags for shade (render) */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		evl->f=0;			
 
@@ -910,11 +919,11 @@ void vertexnormals(int testflip)
 
 void free_editMesh(void)
 {
-
-//	if(G.edve.first) BLI_freelist(&G.edve);
-	if(G.edve.first) free_editverts(&G.edve);
-	if(G.eded.first) BLI_freelist(&G.eded);
-	if(G.edvl.first) freevlaklist(&G.edvl);
+	EditMesh *em = G.editMesh;
+//	if(em->verts.first) BLI_freelist(&em->verts);
+	if(em->verts.first) free_editverts(&em->verts);
+	if(em->edges.first) BLI_freelist(&em->edges);
+	if(em->faces.first) freevlaklist(&em->faces);
 	free_hashedgetab();
 	G.totvert= G.totface= 0;
 }
@@ -967,6 +976,7 @@ void make_editMesh(void)
 
 void make_editMesh_real(Mesh *me)
 {
+	EditMesh *em = G.editMesh;
 	MFace *mface;
 	TFace *tface;
 	MVert *mvert;
@@ -1094,7 +1104,7 @@ void make_editMesh_real(Mesh *me)
 	
 	/* intrr: needed because of hidden vertices imported from Mesh */
 	
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if(eed->v1->h || eed->v2->h) eed->h= 1;
 		else eed->h= 0;
@@ -1234,6 +1244,7 @@ void load_editMesh()
 
 void load_editMesh_real(Mesh *me, int undo)
 {
+	EditMesh *em = G.editMesh;
 	MFace *mface;
 	MVert *mvert, *oldverts;
 	MSticky *ms;
@@ -1263,7 +1274,7 @@ void load_editMesh_real(Mesh *me, int undo)
 	/* WATCH IT: in evl->f is punoflag (for vertex normal) */
 	vertexnormals( (me->flag & ME_NOPUNOFLIP)==0 );
 	
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if(eed->f==0) G.totface++;
 		eed= eed->next;
@@ -1292,7 +1303,7 @@ void load_editMesh_real(Mesh *me, int undo)
 	me->totface= G.totface;
 		
 	/* the vertices, abuse ->vn as counter */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	a=0;
 
 	while(eve) {
@@ -1342,7 +1353,7 @@ void load_editMesh_real(Mesh *me, int undo)
 #endif
 
 	/* the faces */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	i = 0;
 	while(evl) {
 		mface= &((MFace *) me->mface)[i];
@@ -1403,7 +1414,7 @@ void load_editMesh_real(Mesh *me, int undo)
 	}
 		
 	/* add loose edges as a face */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if( eed->f==0 ) {
 			mface= &((MFace *) me->mface)[i];
@@ -1424,7 +1435,7 @@ void load_editMesh_real(Mesh *me, int undo)
 		TFace *tfn, *tf;
 			
 		tf=tfn= MEM_callocN(sizeof(TFace)*me->totface, "tface");
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 				
 			*tf= evl->tf;
@@ -1451,7 +1462,7 @@ void load_editMesh_real(Mesh *me, int undo)
 		unsigned int *mcn, *mc;
 
 		mc=mcn= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			memcpy(mc, evl->tf.col, 4*sizeof(int));
 				
@@ -1486,7 +1497,7 @@ void load_editMesh_real(Mesh *me, int undo)
 									   "currkey->data");
 				oldkey = currkey->data;
 
-				eve= G.edve.first;
+				eve= em->verts.first;
 
 				i = 0;
 				mvert = me->mvert;
@@ -1527,7 +1538,7 @@ void load_editMesh_real(Mesh *me, int undo)
 	if(actkey) do_spec_key(me->key);
 	
 	/* te be sure: clear ->vn pointers */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->vn= 0;
 		eve= eve->next;
@@ -1721,11 +1732,12 @@ void slowerdraw(void)		/* reset fasterdraw */
 
 void convert_to_triface(int all)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl, *evln, *next;
 	
 	undo_push_mesh("Convert to triangles");
 	
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		next= evl->next;
 		if(evl->v4) {
@@ -1742,7 +1754,7 @@ void convert_to_triface(int all)
 				evln->tf.col[1]= evln->tf.col[2];
 				evln->tf.col[2]= evln->tf.col[3];
 				
-				BLI_remlink(&G.edvl, evl);
+				BLI_remlink(&em->faces, evl);
 				freevlak(evl);
 			}
 		}
@@ -1754,12 +1766,13 @@ void convert_to_triface(int all)
 
 void deselectall_mesh(void)	/* toggle */
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	int a;
 	
 	if(G.obedit->lay & G.vd->lay) {
 		a= 0;
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
 				a= 1;
@@ -1771,7 +1784,7 @@ void deselectall_mesh(void)	/* toggle */
 		if (a) undo_push_mesh("Deselect all");
 		else undo_push_mesh("Select all");
 		
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->h==0) {
 				if(a) eve->f&= -2;
@@ -1787,6 +1800,7 @@ void deselectall_mesh(void)	/* toggle */
 
 void righthandfaces(int select)	/* makes faces righthand turning */
 {
+	EditMesh *em = G.editMesh;
 	EditEdge *eed, *ed1, *ed2, *ed3, *ed4;
 	EditVlak *evl, *startvl;
 	float maxx, nor[3], cent[3];
@@ -1807,7 +1821,7 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 
 	waitcursor(1);
 	
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		eed->f= 0;
 		eed->f1= 0;
@@ -1816,7 +1830,7 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 
 	/* count faces and edges */
 	totsel= 0;
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		if(select==0 || vlakselectedAND(evl, 1) ) {
 			evl->f= 1;
@@ -1834,7 +1848,7 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 	while(totsel>0) {
 		/* from the outside to the inside */
 
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		startvl= 0;
 		maxx= -1.0e10;
 
@@ -1893,8 +1907,8 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 		direct= 1;
 		while(found) {
 			found= 0;
-			if(direct) evl= G.edvl.first;
-			else evl= G.edvl.last;
+			if(direct) evl= em->faces.first;
+			else evl= em->faces.last;
 			while(evl) {
 				if(evl->f) {
 					turn= 0;
@@ -1976,24 +1990,25 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 
 static EditVert *findnearestvert(short sel)
 {
+	EditMesh *em = G.editMesh;
 	/* if sel==1 the vertices with flag==1 get a disadvantage */
 	EditVert *eve,*act=0;
 	static EditVert *acto=0;
 	short dist=100,temp,mval[2];
 
-	if(G.edve.first==0) return 0;
+	if(em->verts.first==0) return 0;
 
 	/* do projection */
 	calc_meshverts_ext();	/* drawobject.c */
 	
 	/* we count from acto->next to last, and from first to acto */
 	/* does acto exist? */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve==acto) break;
 		eve= eve->next;
 	}
-	if(eve==0) acto= G.edve.first;
+	if(eve==0) acto= em->verts.first;
 
 	if(acto==0) return 0;
 
@@ -2014,7 +2029,7 @@ static EditVert *findnearestvert(short sel)
 	}
 	/* is there an indicated vertex? part 2 */
 	if(dist>3) {
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->h==0) {
 				temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
@@ -2037,16 +2052,17 @@ static EditVert *findnearestvert(short sel)
 
 static EditEdge *findnearestedge()
 {
+	EditMesh *em = G.editMesh;
 	EditEdge *closest, *eed;
 	EditVert *eve;
 	short found=0, mval[2];
 	float distance[2], v1[2], v2[2], mval2[2];
 	
-	if(G.eded.first==0) return NULL;
-	else eed=G.eded.first;	
+	if(em->edges.first==0) return NULL;
+	else eed=em->edges.first;	
 	
 	/* reset flags */	
-	for(eve=G.edve.first; eve; eve=eve->next){
+	for(eve=em->verts.first; eve; eve=eve->next){
 		eve->f &= ~2;
 	}	
 		
@@ -2057,7 +2073,7 @@ static EditEdge *findnearestedge()
 	mval2[0] = (float)mval[0];
 	mval2[1] = (float)mval[1];
 	
-	eed=G.eded.first;
+	eed=em->edges.first;
 	/*compare the distance to the rest of the edges and find the closest one*/
 	while(eed) {
 		/* Are both vertices of the edge ofscreen or either of them hidden? then don't select the edge*/
@@ -2088,7 +2104,7 @@ static EditEdge *findnearestedge()
 	}
 	
 	/* reset flags */	
-	for(eve=G.edve.first; eve; eve=eve->next){
+	for(eve=em->verts.first; eve; eve=eve->next){
 		eve->f &= ~2;
 	}
 	
@@ -2099,16 +2115,17 @@ static EditEdge *findnearestedge()
 /* does the same as findnearestedge but both vertices of the edge should be on screen*/
 static EditEdge *findnearestvisibleedge()
 {
+	EditMesh *em = G.editMesh;
 	EditEdge *closest, *eed;
 	EditVert *eve;
 	short foundedge=0, found=0, mval[2];
 	float distance[2], v1[2], v2[2], mval2[2];
 		
-	if(G.eded.first==0) return NULL;
-	else eed=G.eded.first;	
+	if(em->edges.first==0) return NULL;
+	else eed=em->edges.first;	
 	
 	/* reset flags */	
-	for(eve=G.edve.first; eve; eve=eve->next){
+	for(eve=em->verts.first; eve; eve=eve->next){
 		eve->f &= ~2;
 	}	
 	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
@@ -2119,7 +2136,7 @@ static EditEdge *findnearestvisibleedge()
 	mval2[0] = (float)mval[0];    	/* cast to float because of the pdist function only taking floats...*/
 	mval2[1] = (float)mval[1];
 	
-	eed=G.eded.first;
+	eed=em->edges.first;
 	while(eed) {      					/* compare the distance to the rest of the edges and find the closest one*/
 		if( !((eed->v1->f | eed->v2->f) & 2) && (eed->v1->h==0 && eed->v2->h==0) ){ 	/* only return edges with both vertices on screen */
 			v1[0] = eed->v1->xs;  			
@@ -2146,7 +2163,7 @@ static EditEdge *findnearestvisibleedge()
 	}
 	
 	/* reset flags */	
-	for(eve=G.edve.first; eve; eve=eve->next){
+	for(eve=em->verts.first; eve; eve=eve->next){
 		eve->f &= ~2;
 	}
 	
@@ -2223,6 +2240,7 @@ parameters: mode tells the function what it should do with the loop:
 
 void loopoperations(char mode)
 {
+	EditMesh *em = G.editMesh;
 	EditVert* look = NULL;
 
 	EditEdge *start, *eed, *opposite,*currente, *oldstart;
@@ -2239,7 +2257,7 @@ void loopoperations(char mode)
 
 	char mesg[100];
 
-	if ((G.obedit==0) || (G.edvl.first==0)) return;
+	if ((G.obedit==0) || (em->faces.first==0)) return;
 	
 	if(mode==LOOP_CUT)undo_push_mesh("Faceloop Subdivide");
 	else if(mode==LOOP_SELECT)undo_push_mesh("Faceloop Select");	
@@ -2262,7 +2280,7 @@ void loopoperations(char mode)
 		/* If the edge doesn't belong to a face, it's not a valid starting edge */
 		if(start){
 			start->f |= 16;
-			evl=G.edvl.first;
+			evl=em->faces.first;
 			while(evl){
 				if(evl->e1->f & 16){					
 					noface=0;
@@ -2292,13 +2310,13 @@ void loopoperations(char mode)
 			oldstart=start;	
 			
 			/* Clear flags */
-			for(eed=G.eded.first; eed; eed=eed->next){			
+			for(eed=em->edges.first; eed; eed=eed->next){			
 				eed->f &= ~(2|4|8|32|64);
 				eed->v1->f &= ~(2|8|16);
 				eed->v2->f &= ~(2|8|16);				
 			}
 			
-			for(evl= G.edvl.first; evl; evl=evl->next){			
+			for(evl= em->faces.first; evl; evl=evl->next){			
 				evl->f &= ~(4|8);
 				totface++;				
 			}
@@ -2315,7 +2333,7 @@ void loopoperations(char mode)
 				
 				/*----------Get Loop------------------------*/
 				tri=foundedge=lastface=0;													
-				evl= G.edvl.first;		
+				evl= em->faces.first;		
 				while(evl && !foundedge && !tri){
 									
 					if(!(evl->v4)){	/* Exception for triangular faces */
@@ -2480,7 +2498,7 @@ void loopoperations(char mode)
 			glColor3ub(255, 255, 0);
 			
 			if(mode==LOOP_SELECT){
-				evl= G.edvl.first;
+				evl= em->faces.first;
 				while(evl){
 					if(evl->f & 8){
 						
@@ -2519,7 +2537,7 @@ void loopoperations(char mode)
 			}
 				
 			if(mode==LOOP_CUT){
-				evl= G.edvl.first;
+				evl= em->faces.first;
 				while(evl){
 					if(evl->f & 8){
 						float cen[2][3];
@@ -2606,7 +2624,7 @@ void loopoperations(char mode)
 					evl=evl->next;
 				}
 				
-				eed=G.eded.first; 
+				eed=em->edges.first; 
 				while(eed){
 					if(eed->f & 64){
 						glBegin(GL_LINES);
@@ -2650,7 +2668,7 @@ void loopoperations(char mode)
 				
 		/* If this is a unmodified select, clear the selection */
 		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
-			for(evl= G.edvl.first;evl;evl=evl->next){
+			for(evl= em->faces.first;evl;evl=evl->next){
 				evl->v1->f &= !1;
 				evl->v2->f &= !1;
 				evl->v3->f &= !1;
@@ -2659,7 +2677,7 @@ void loopoperations(char mode)
 		}
 		/* Alt was not pressed, so add to the selection */
 		if(!(G.qual & LR_ALTKEY)){
-			for(evl= G.edvl.first;evl;evl=evl->next){
+			for(evl= em->faces.first;evl;evl=evl->next){
 				if(evl->f & 8){
 					evl->v1->f |= 1;
 					evl->v2->f |= 1;
@@ -2671,7 +2689,7 @@ void loopoperations(char mode)
 		/* alt was pressed, so subtract from the selection */
 		else
 		{
-			for(evl= G.edvl.first;evl;evl=evl->next){
+			for(evl= em->faces.first;evl;evl=evl->next){
 				if(evl->f & 8){
 					evl->v1->f &= !1;
 					evl->v2->f &= !1;
@@ -2688,7 +2706,7 @@ void loopoperations(char mode)
 	if(mode==LOOP_CUT && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
 		
 		/* count the number of edges in the loop */		
-		for(eed=G.eded.first; eed; eed = eed->next){
+		for(eed=em->edges.first; eed; eed = eed->next){
 			if(eed->f & 8)
 				ect++;
 		}		
@@ -2701,7 +2719,7 @@ void loopoperations(char mode)
 			taggedsrch[i] = NULL;
 		}
 		ect = 0;
-		for(eed=G.eded.first; eed; eed = eed->next){
+		for(eed=em->edges.first; eed; eed = eed->next){
 			if(eed->f & 8)
 			{
 				if(eed->h==0){
@@ -2784,7 +2802,7 @@ void loopoperations(char mode)
 
 		/* Count the Number of Faces in the selected loop*/
 		percentfaces = 0;
-		for(evl= G.edvl.first; evl ;evl=evl->next){
+		for(evl= em->faces.first; evl ;evl=evl->next){
 			if(evl->f & 8)
 			 {
 				percentfaces++;	
@@ -2796,7 +2814,7 @@ void loopoperations(char mode)
 
 		/* put those faces in the array */
 		i=0;
-		for(evl= G.edvl.first; evl ;evl=evl->next){
+		for(evl= em->faces.first; evl ;evl=evl->next){
 			 if(evl->f & 8)
 			 {
 				percentfacesloop[i] = evl;	
@@ -2822,7 +2840,7 @@ void loopoperations(char mode)
 
 			for(i=0;i<percentfaces;i++){
 				evl = percentfacesloop[i];
-				for(eed = G.eded.first; eed; eed=eed->next){
+				for(eed = em->edges.first; eed; eed=eed->next){
 					if(eed->f & 64){	/* color the starting edge */			
 						glBegin(GL_LINES);
 												
@@ -3197,7 +3215,7 @@ void loopoperations(char mode)
 	if(cut){
 		/* Now that we have selected a cut %, mark the edges for cutting. */
 		if(!inset){
-			for(eed = G.eded.first; eed; eed=eed->next){		
+			for(eed = em->edges.first; eed; eed=eed->next){		
 			   		if(percentcut == 1.0)
 						percentcut = 0.9999;
 					else if(percentcut == 0.0)
@@ -3217,7 +3235,7 @@ void loopoperations(char mode)
 			else
 				subdivideflag(8, 0, B_KNIFE | B_PERCENTSUBD); /* B_KNIFE tells subdivide that edgeflags are already set */
 			
-			for(eed = G.eded.first; eed; eed=eed->next){							
+			for(eed = em->edges.first; eed; eed=eed->next){							
 				if(eed->v1->f & 16) eed->v1->f |= 1;
 				else eed->v1->f &= ~1;
 				
@@ -3231,13 +3249,13 @@ void loopoperations(char mode)
 	
 
 	/* Clear flags */		
-	for(eed = G.eded.first; eed; eed=eed->next){	
+	for(eed = em->edges.first; eed; eed=eed->next){	
 		eed->f &= ~(2|4|8|32|64);
 		eed->v1->f &= ~(2|16);
 		eed->v2->f &= ~(2|16);		
 	}
 	
-	for(evl= G.edvl.first; evl; evl=evl->next){
+	for(evl= em->faces.first; evl; evl=evl->next){
 		evl->f &= ~(4|8);
 	}
 	
@@ -3258,6 +3276,7 @@ void loopoperations(char mode)
 
 void edge_select(void)
 {
+	EditMesh *em = G.editMesh;
 	EditEdge *closest=0;
 	
 	closest=findnearestedge();	
@@ -3269,7 +3288,7 @@ void edge_select(void)
 			
 			undo_push_mesh("Edge select");
 			/* deselectall */
-			for(eve= G.edve.first; eve; eve= eve->next) eve->f&= ~1;
+			for(eve= em->verts.first; eve; eve= eve->next) eve->f&= ~1;
 
 			/* select edge */
 			closest->v1->f |= 1;
@@ -3299,6 +3318,7 @@ static void draw_vertices_special(int mode, EditVert *act) /* teken = draw */
 	 * mode 0: deselect the selected ones, draw then, except act
 	 * mode 1: only draw act
 	 */
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	char col[3];
@@ -3319,7 +3339,7 @@ static void draw_vertices_special(int mode, EditVert *act) /* teken = draw */
 		}
 
 		glBegin(GL_POINTS);
-		eve= (EditVert *)G.edve.first;
+		eve= (EditVert *)em->verts.first;
 		while(eve) {
 			if(eve->h==0) {
 				if(eve!=act && (eve->f & 1)) {
@@ -3395,19 +3415,20 @@ void mouse_mesh(void)
 
 static void selectconnectedAll(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *v1,*v2;
 	EditEdge *eed;
 	short flag=1,toggle=0;
 
-	if(G.eded.first==0) return;
+	if(em->edges.first==0) return;
 	
 	undo_push_mesh("Select Connected (All)");
 
 	while(flag==1) {
 		flag= 0;
 		toggle++;
-		if(toggle & 1) eed= G.eded.first;
-		else eed= G.eded.last;
+		if(toggle & 1) eed= em->edges.first;
+		else eed= em->edges.last;
 		while(eed) {
 			v1= eed->v1;
 			v2= eed->v2;
@@ -3437,11 +3458,12 @@ static void selectconnectedAll(void)
 
 void selectconnected_mesh(int qual)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve,*v1,*v2,*act= 0;
 	EditEdge *eed;
 	short flag=1,sel,toggle=0;
 
-	if(G.eded.first==0) return;
+	if(em->edges.first==0) return;
 
 	if(qual & LR_CTRLKEY) {
 		selectconnectedAll();
@@ -3459,7 +3481,7 @@ void selectconnected_mesh(int qual)
 	
 	undo_push_mesh("Select linked");
 	/* clear test flags */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->f&= ~2;
 		eve= eve->next;
@@ -3469,8 +3491,8 @@ void selectconnected_mesh(int qual)
 	while(flag==1) {
 		flag= 0;
 		toggle++;
-		if(toggle & 1) eed= G.eded.first;
-		else eed= G.eded.last;
+		if(toggle & 1) eed= em->edges.first;
+		else eed= em->edges.last;
 		while(eed) {
 			v1= eed->v1;
 			v2= eed->v2;
@@ -3503,7 +3525,7 @@ short extrudeflag(short flag,short type)
 	/* when type=1 old extrusion faces are removed (for spin etc) */
 	/* all verts with (flag & 'flag'): extrude */
 	/* from old verts, 'flag' is cleared, in new ones it is set */
-
+	EditMesh *em = G.editMesh;
 	EditVert *eve, *v1, *v2, *v3, *v4, *nextve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditVlak *evl, *evl2, *nextvl;
@@ -3512,14 +3534,14 @@ short extrudeflag(short flag,short type)
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
 
 	/* clear vert flag f1, we use this to detext a loose selected vertice */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) eve->f1= 1;
 		else eve->f1= 0;
 		eve= eve->next;
 	}
 	/* clear edges counter flag, if selected we set it at 1 */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if( (eed->v1->f & flag) && (eed->v2->f & flag) ) {
 			eed->f= 1;
@@ -3535,7 +3557,7 @@ short extrudeflag(short flag,short type)
 
 	/* we set a flag in all selected faces, and increase the associated edge counters */
 
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		evl->f= 0;
 
@@ -3571,7 +3593,7 @@ short extrudeflag(short flag,short type)
 	}
 
 	/* set direction of edges */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		if(evl->f== 0) {
 			if(evl->e1->f==2) {
@@ -3612,7 +3634,7 @@ short extrudeflag(short flag,short type)
 
 	/* copy all selected vertices, */
 	/* write pointer to new vert in old struct at eve->vn */
-	eve= G.edve.last;
+	eve= em->verts.last;
 	while(eve) {
 		eve->f&= ~128;  /* clear, for later test for loose verts */
 		if(eve->f & flag) {
@@ -3632,7 +3654,7 @@ short extrudeflag(short flag,short type)
 
 	/* all edges with eed->f==1 or eed->f==2 become faces */
 	/* if deloud==1 then edges with eed->f>2 are removed */
-	eed= G.eded.last;
+	eed= em->edges.last;
 	while(eed) {
 		nexted= eed->prev;
 		if( eed->f<3) {
@@ -3650,7 +3672,7 @@ short extrudeflag(short flag,short type)
 		eed= nexted;
 	}
 	if(deloud) {
-		eed= G.eded.first;
+		eed= em->edges.first;
 		while(eed) {
 			nexted= eed->next;
 			if(eed->f==3 && eed->f1==1) {
@@ -3661,7 +3683,7 @@ short extrudeflag(short flag,short type)
 		}
 	}
 	/* duplicate faces, if necessart remove old ones  */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		nextvl= evl->next;
 		if(evl->f & 1) {
@@ -3674,7 +3696,7 @@ short extrudeflag(short flag,short type)
 			evl2= addvlaklist(v1, v2, v3, v4, evl);
 			
 			if(deloud) {
-				BLI_remlink(&G.edvl, evl);
+				BLI_remlink(&em->faces, evl);
 				freevlak(evl);
 			}
 			if (smooth) evl2->flag |= ME_SMOOTH;			
@@ -3685,14 +3707,14 @@ short extrudeflag(short flag,short type)
 		if eve->f1==1: make edge
 		if flag!=128 : if deloud==1: remove
 	*/
-	eve= G.edve.last;
+	eve= em->verts.last;
 	while(eve) {
 		nextve= eve->prev;
 		if(eve->vn) {
 			if(eve->f1==1) addedgelist(eve,eve->vn);
 			else if( (eve->f & 128)==0) {
 				if(deloud) {
-					BLI_remlink(&G.edve,eve);
+					BLI_remlink(&em->verts,eve);
 //					free(eve);
 					free_editvert(eve);
 					eve= NULL;
@@ -3710,10 +3732,10 @@ short extrudeflag(short flag,short type)
 void rotateflag(short flag, float *cent, float rotmat[][3])
 {
 	/* all verts with (flag & 'flag') rotate */
-
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
 			eve->co[0]-=cent[0];
@@ -3731,10 +3753,10 @@ void rotateflag(short flag, float *cent, float rotmat[][3])
 void translateflag(short flag, float *vec)
 {
 	/* all verts with (flag & 'flag') translate */
-
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
 			eve->co[0]+=vec[0];
@@ -3747,6 +3769,7 @@ void translateflag(short flag, float *vec)
 
 short removedoublesflag(short flag, float limit)		/* return amount */
 {
+	EditMesh *em = G.editMesh;
 	/* all verts with (flag & 'flag') are being evaluated */
 	EditVert *eve, *v1, *nextve;
 	EditEdge *eed, *e1, *nexted;
@@ -3757,7 +3780,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	int a, b, test, aantal;
 
 	/* flag 128 is cleared, count */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	aantal= 0;
 	while(eve) {
 		eve->f&= ~128;
@@ -3768,7 +3791,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 
 	/* allocate memory and qsort */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
 			sb->x= eve->co[0]+eve->co[1]+eve->co[2];
@@ -3814,12 +3837,12 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	MEM_freeN(sortblock);
 
 	/* test edges and insert again */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		eed->f= 0;
 		eed= eed->next;
 	}
-	eed= G.eded.last;
+	eed= em->edges.last;
 	while(eed) {
 		nexted= eed->prev;
 
@@ -3840,7 +3863,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	}
 
 	/* first count amount of test faces */
-	evl= (struct EditVlak *)G.edvl.first;
+	evl= (struct EditVlak *)em->faces.first;
 	aantal= 0;
 	while(evl) {
 		evl->f= 0;
@@ -3854,7 +3877,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	}
 
 	/* test faces for double vertices, and if needed remove them */
-	evl= (struct EditVlak *)G.edvl.first;
+	evl= (struct EditVlak *)em->faces.first;
 	while(evl) {
 		nextvl= evl->next;
 		if(evl->f==1) {
@@ -3885,13 +3908,13 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 						test= 0;
 					}
 					else {
-						BLI_remlink(&G.edvl, evl);
+						BLI_remlink(&em->faces, evl);
 						freevlak(evl);
 						aantal--;
 					}
 				}
 				else {
-					BLI_remlink(&G.edvl, evl);
+					BLI_remlink(&em->faces, evl);
 					freevlak(evl);
 					aantal--;
 				}
@@ -3917,7 +3940,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	/* double faces: sort block */
 	/* count again, now all selected faces */
 	aantal= 0;
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		evl->f= 0;
 		if(vlakselectedAND(evl, 1)) {
@@ -3930,7 +3953,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	if(aantal) {
 		/* double faces: sort block */
 		vsb= vlsortblock= MEM_mallocN(sizeof(struct vlaksort)*aantal, "sortremovedoub");
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			if(evl->f & 1) {
 				if(evl->v4) vsb->x= (long) MIN4( (long)evl->v1, (long)evl->v2, (long)evl->v3, (long)evl->v4);
@@ -3970,11 +3993,11 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 		MEM_freeN(vlsortblock);
 		
 		/* remove double faces */
-		evl= (struct EditVlak *)G.edvl.first;
+		evl= (struct EditVlak *)em->faces.first;
 		while(evl) {
 			nextvl= evl->next;
 			if(evl->f & 128) {
-				BLI_remlink(&G.edvl, evl);
+				BLI_remlink(&em->faces, evl);
 				freevlak(evl);
 			}
 			evl= nextvl;
@@ -3983,13 +4006,13 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 	
 	/* remove double vertices */
 	a= 0;
-	eve= (struct EditVert *)G.edve.first;
+	eve= (struct EditVert *)em->verts.first;
 	while(eve) {
 		nextve= eve->next;
 		if(eve->f & flag) {
 			if(eve->f & 128) {
 				a++;
-				BLI_remlink(&G.edve, eve);
+				BLI_remlink(&em->verts, eve);
 				
 //				free(eve);
 				free_editvert(eve);
@@ -4002,6 +4025,7 @@ short removedoublesflag(short flag, float limit)		/* return amount */
 
 void xsortvert_flag(int flag)
 {
+	EditMesh *em = G.editMesh;
 	/* all verts with (flag & 'flag') are sorted */
 	EditVert *eve;
 	struct xvertsort *sortblock, *sb;
@@ -4009,7 +4033,7 @@ void xsortvert_flag(int flag)
 	int aantal;
 	
 	/* count */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	aantal= 0;
 	while(eve) {
 		if(eve->f & flag) aantal++;
@@ -4021,7 +4045,7 @@ void xsortvert_flag(int flag)
 	
 	/* allocate memory and sort */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
 			sb->x= eve->xs;
@@ -4037,12 +4061,12 @@ void xsortvert_flag(int flag)
 	sb= sortblock;
 	while(aantal--) {
 		eve= sb->v1;
-		BLI_remlink(&G.edve, eve);
+		BLI_remlink(&em->verts, eve);
 		BLI_addtail(&tbase, eve);
 		sb++;
 	}
 	
-	addlisttolist(&G.edve, &tbase);
+	addlisttolist(&em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
 }
@@ -4051,13 +4075,14 @@ void xsortvert_flag(int flag)
 void hashvert_flag(int flag)
 {
 	/* switch vertex order using hash table */
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	struct xvertsort *sortblock, *sb, onth, *newsort;
 	ListBase tbase;
 	int aantal, a, b;
 	
 	/* count */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	aantal= 0;
 	while(eve) {
 		if(eve->f & flag) aantal++;
@@ -4069,7 +4094,7 @@ void hashvert_flag(int flag)
 
 	/* allocate memory */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*aantal,"sortremovedoub");
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & flag) {
 			sb->v1= eve;
@@ -4096,12 +4121,12 @@ void hashvert_flag(int flag)
 	sb= sortblock;
 	while(aantal--) {
 		eve= sb->v1;
-		BLI_remlink(&G.edve, eve);
+		BLI_remlink(&em->verts, eve);
 		BLI_addtail(&tbase, eve);
 		sb++;
 	}
 	
-	addlisttolist(&G.edve, &tbase);
+	addlisttolist(&em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
 }
@@ -4350,6 +4375,7 @@ static void smooth_subdiv_quad(EditVlak *evl, float *vec)
 
 void subdivideflag(int flag, float rad, int beauty)
 {
+	EditMesh *em = G.editMesh;
 	/* subdivide all with (vertflag & flag) */
 	/* if rad>0.0 it's a 'sphere' subdivide */
 	/* if rad<0.0 it's a fractal subdivide */
@@ -4369,7 +4395,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	}
 
 	/* edgeflags */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while((eed) && !(beauty & B_KNIFE)) {	
 		if( (eed->v1->f & flag) && (eed->v2->f & flag) ) eed->f= flag;
 		else eed->f= 0;	
@@ -4378,7 +4404,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	
 	/* if beauty: test for area and clear edge flags of 'ugly' edges */
 	if(beauty & B_BEAUTY) {
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			if( vlakselectedAND(evl, flag) ) {
 				if(evl->v4) {
@@ -4441,7 +4467,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	}
 	
 	/* make new normal and put in edge, clear flag! needed for face creation part below */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if(eed->f & flag) {
 			/* Subdivide percentage is stored in 1/32768ths in eed->f1 */
@@ -4484,7 +4510,7 @@ void subdivideflag(int flag, float rad, int beauty)
 
 	/* test all faces for subdivide edges, there are 8 or 16 cases (ugh)! */
 
-	evl= G.edvl.last;
+	evl= em->faces.last;
 	while(evl) {
 		if( vlakselectedOR(evl, flag) ) {
 			e1= evl->e1;
@@ -4739,7 +4765,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	}
 
 	/* remove all old edges, if needed make new ones */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		nexted= eed->next;
 		if( eed->vn ) {
@@ -4760,6 +4786,7 @@ void subdivideflag(int flag, float rad, int beauty)
 
 void adduplicateflag(int flag)
 {
+	EditMesh *em = G.editMesh;
 	/* old verts have flag 128 set, and flag 'flag' cleared
 	   new verts have flag 'flag' set */
 	EditVert *eve, *v1, *v2, *v3, *v4;
@@ -4767,7 +4794,7 @@ void adduplicateflag(int flag)
 	EditVlak *evl;
 
 	/* vertices first */
-	eve= G.edve.last;
+	eve= em->verts.last;
 	while(eve) {
 		eve->f&= ~128;
 		if(eve->f & flag) {
@@ -4789,7 +4816,7 @@ void adduplicateflag(int flag)
 		}
 		eve= eve->prev;
 	}
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if( (eed->v1->f & 128) && (eed->v2->f & 128) ) {
 			v1= eed->v1->vn;
@@ -4800,7 +4827,7 @@ void adduplicateflag(int flag)
 	}
 
 	/* then dupicate faces */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		if( (evl->v1->f & 128) && (evl->v2->f & 128) && (evl->v3->f & 128) ) {
 			if(evl->v4) {
@@ -4825,19 +4852,20 @@ void adduplicateflag(int flag)
 
 static void delvlakflag(int flag)
 {
+	EditMesh *em = G.editMesh;
 	/* delete all faces with 'flag', including edges and loose vertices */
 	/* in vertices the 'flag' is cleared */
 	EditVert *eve,*nextve;
 	EditEdge *eed, *nexted;
 	EditVlak *evl,*nextvl;
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		eed->f= 0;
 		eed= eed->next;
 	}
 
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		nextvl= evl->next;
 		if(vlakselectedAND(evl, flag)) {
@@ -4849,13 +4877,13 @@ static void delvlakflag(int flag)
 				evl->e4->f= 1;
 			}
 								
-			BLI_remlink(&G.edvl, evl);
+			BLI_remlink(&em->faces, evl);
 			freevlak(evl);
 		}
 		evl= nextvl;
 	}
 	/* all faces with 1, 2 (3) vertices selected: make sure we keep the edges */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		evl->e1->f= 0;
 		evl->e2->f= 0;
@@ -4868,7 +4896,7 @@ static void delvlakflag(int flag)
 	}
 	
 	/* test all edges for vertices with 'flag', and clear */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		nexted= eed->next;
 		if(eed->f==1) {
@@ -4882,11 +4910,11 @@ static void delvlakflag(int flag)
 		eed= nexted;
 	}
 	/* vertices with 'flag' now are the loose ones, and will be removed */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		nextve= eve->next;
 		if(eve->f & flag) {
-			BLI_remlink(&G.edve, eve);
+			BLI_remlink(&em->verts, eve);
 //			free(eve);
 			free_editvert(eve);
 		}
@@ -4978,6 +5006,7 @@ void separatemenu(void)
 
 void separate_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
 	EditVlak *evl, *vl1;
@@ -5018,7 +5047,7 @@ void separate_mesh(void)
 	
 	/* testen for split */
 	ok= 0;
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		flag= (eed->v1->f & 1)+(eed->v2->f & 1);
 		if(flag==1) {
@@ -5036,29 +5065,29 @@ void separate_mesh(void)
 	
 	/* set apart: everything that is not selected */
 	edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		v1= eve->next;
 		if((eve->f & 1)==0) {
-			BLI_remlink(&G.edve, eve);
+			BLI_remlink(&em->verts, eve);
 			BLI_addtail(&edve, eve);
 		}
 		eve= v1;
 	}
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		e1= eed->next;
 		if( (eed->v1->f & 1)==0 || (eed->v2->f & 1)==0 ) {
-			BLI_remlink(&G.eded, eed);
+			BLI_remlink(&em->edges, eed);
 			BLI_addtail(&eded, eed);
 		}
 		eed= e1;
 	}
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		vl1= evl->next;
 		if( (evl->v1->f & 1)==0 || (evl->v2->f & 1)==0 || (evl->v3->f & 1)==0 ) {
-			BLI_remlink(&G.edvl, evl);
+			BLI_remlink(&em->faces, evl);
 			BLI_addtail(&edvl, evl);
 		}
 		evl= vl1;
@@ -5087,12 +5116,12 @@ void separate_mesh(void)
 	makeDispList(G.obedit);
 	free_editMesh();
 	
-	G.edve= edve;
-	G.eded= eded;
-	G.edvl= edvl;
+	em->verts= edve;
+	em->edges= eded;
+	em->faces= edvl;
 	
 	/* hashedges are freed now, make new! */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if( findedgelist(eed->v1, eed->v2)==NULL )
 			insert_hashedge(eed);
@@ -5113,6 +5142,7 @@ void separate_mesh(void)
 
 void separate_mesh_loose(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
 	EditVlak *evl, *vl1;
@@ -5161,19 +5191,19 @@ void separate_mesh_loose(void)
 		/*--------- Select connected-----------*/		
 		//sel= 3;
 		/* clear test flags */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			eve->f&= ~1;			
 			eve= eve->next;
 		}
 		
 		/* Select a random vert to start with */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		eve->f |= 1;
 		
 		while(check==1) {
 			check= 0;			
-			eed= G.eded.first;			
+			eed= em->edges.first;			
 			while(eed) {				
 				if(eed->h==0) {
 					if(eed->v1->f & 1) {
@@ -5204,7 +5234,7 @@ void separate_mesh_loose(void)
 		else{			
 			/* Test for splitting: Separate selected */
 			ok= 0;
-			eed= G.eded.first;
+			eed= em->edges.first;
 			while(eed) {
 				flag= (eed->v1->f & 1)+(eed->v2->f & 1);
 				if(flag==1) {
@@ -5224,29 +5254,29 @@ void separate_mesh_loose(void)
 			
 			/* set apart: everything that is not selected */
 			edve.first= edve.last= eded.first= eded.last= edvl.first= edvl.last= 0;
-			eve= G.edve.first;
+			eve= em->verts.first;
 			while(eve) {
 				v1= eve->next;
 				if((eve->f & 1)==0) {
-					BLI_remlink(&G.edve, eve);
+					BLI_remlink(&em->verts, eve);
 					BLI_addtail(&edve, eve);
 				}
 				eve= v1;
 			}
-			eed= G.eded.first;
+			eed= em->edges.first;
 			while(eed) {
 				e1= eed->next;
 				if( (eed->v1->f & 1)==0 || (eed->v2->f & 1)==0 ) {
-					BLI_remlink(&G.eded, eed);
+					BLI_remlink(&em->edges, eed);
 					BLI_addtail(&eded, eed);
 				}
 				eed= e1;
 			}
-			evl= G.edvl.first;
+			evl= em->faces.first;
 			while(evl) {
 				vl1= evl->next;
 				if( (evl->v1->f & 1)==0 || (evl->v2->f & 1)==0 || (evl->v3->f & 1)==0 ) {
-					BLI_remlink(&G.edvl, evl);
+					BLI_remlink(&em->faces, evl);
 					BLI_addtail(&edvl, evl);
 				}
 				evl= vl1;
@@ -5275,12 +5305,12 @@ void separate_mesh_loose(void)
 			makeDispList(G.obedit);
 			free_editMesh();
 			
-			G.edve= edve;
-			G.eded= eded;
-			G.edvl= edvl;
+			em->verts= edve;
+			em->edges= eded;
+			em->faces= edvl;
 			
 			/* hashedges are freed now, make new! */
-			eed= G.eded.first;
+			eed= em->edges.first;
 			while(eed) {
 				if( findedgelist(eed->v1, eed->v2)==NULL )
 					insert_hashedge(eed);
@@ -5295,7 +5325,7 @@ void separate_mesh_loose(void)
 	}
 	
 	/* unselect the vertices that we (ab)used for the separation*/
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->f&= ~1;			
 		eve= eve->next;
@@ -5349,6 +5379,7 @@ void extrude_repeat_mesh(int steps, float offs)
 
 void spin_mesh(int steps,int degr,float *dvec, int mode)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve,*nextve;
 	float *curs, si,n[3],q[4],cmat[3][3],imat[3][3], tmat[3][3];
 	float cent[3],bmat[3][3];
@@ -5416,11 +5447,11 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	waitcursor(0);
 	if(ok==0) {
 		/* no vertices or only loose ones selected, remove duplicates */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			nextve= eve->next;
 			if(eve->f & 1) {
-				BLI_remlink(&G.edve,eve);
+				BLI_remlink(&em->verts,eve);
 //				free(eve);
 				free_editvert(eve);
 			}
@@ -5435,6 +5466,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 
 void screw_mesh(int steps,int turns)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve,*v1=0,*v2=0;
 	EditEdge *eed;
 	float dvec[3], nor[3];
@@ -5450,13 +5482,13 @@ void screw_mesh(int steps,int turns)
 	undo_push_mesh("Screw");
 	
 	/* clear flags */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->f1= 0;
 		eve= eve->next;
 	}
 	/* edges set flags in verts */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if(eed->v1->f & 1) {
 			if(eed->v2->f & 1) {
@@ -5468,7 +5500,7 @@ void screw_mesh(int steps,int turns)
 		eed= eed->next;
 	}
 	/* find two vertices with eve->f1==1, more or less is wrong */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f1==1) {
 			if(v1==0) v1= eve;
@@ -5504,9 +5536,10 @@ void screw_mesh(int steps,int turns)
 
 void selectswap_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->h==0) {
 			if(eve->f & 1) eve->f&= ~1;
@@ -5523,6 +5556,7 @@ void selectswap_mesh(void)
 
 void addvert_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve,*v1=0;
 	float *curs, mat[3][3],imat[3][3];
 
@@ -5531,7 +5565,7 @@ void addvert_mesh(void)
 	Mat3CpyMat4(mat, G.obedit->obmat);
 	Mat3Inv(imat, mat);
 
-	v1= G.edve.first;
+	v1= em->verts.first;
 	while(v1) {
 		if(v1->f & 1) break;
 		v1= v1->next;
@@ -5567,6 +5601,7 @@ void addvert_mesh(void)
 
 void addedgevlak_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve, *neweve[4];
 	EditVlak *evl;
 	float con1, con2, con3;
@@ -5575,7 +5610,7 @@ void addedgevlak_mesh(void)
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	/* how many selected ? */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			aantal++;
@@ -5687,6 +5722,7 @@ static void erase_vertices(ListBase *l)
 
 void delete_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl, *nextvl;
 	EditVert *eve,*nextve;
 	EditEdge *eed,*nexted;
@@ -5700,13 +5736,13 @@ void delete_mesh(void)
 
 	if(event==10 ) {
 		undo_push_mesh("Erase Vertices");
-		erase_edges(&G.eded);
-		erase_faces(&G.edvl);
-		erase_vertices(&G.edve);
+		erase_edges(&em->edges);
+		erase_faces(&em->faces);
+		erase_vertices(&em->verts);
 	} 
 	else if(event==4) {
 		undo_push_mesh("Erase Edges & Faces");
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			nextvl= evl->next;
 			/* delete only faces with 2 or more vertices selected */
@@ -5716,12 +5752,12 @@ void delete_mesh(void)
 			if(evl->v3->f & 1) count++;
 			if(evl->v4 && (evl->v4->f & 1)) count++;
 			if(count>1) {
-				BLI_remlink(&G.edvl, evl);
+				BLI_remlink(&em->faces, evl);
 				freevlak(evl);
 			}
 			evl= nextvl;
 		}
-		eed= G.eded.first;
+		eed= em->edges.first;
 		while(eed) {
 			nexted= eed->next;
 			if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
@@ -5730,7 +5766,7 @@ void delete_mesh(void)
 			}
 			eed= nexted;
 		}
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			nextvl= evl->next;
 			event=0;
@@ -5740,7 +5776,7 @@ void delete_mesh(void)
 			if(evl->v4 && (evl->v4->f & 1)) event++;
 			
 			if(event>1) {
-				BLI_remlink(&G.edvl, evl);
+				BLI_remlink(&em->faces, evl);
 				freevlak(evl);
 			}
 			evl= nextvl;
@@ -5748,7 +5784,7 @@ void delete_mesh(void)
 	} 
 	else if(event==1) {
 		undo_push_mesh("Erase Edges");
-		eed= G.eded.first;
+		eed= em->edges.first;
 		while(eed) {
 			nexted= eed->next;
 			if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
@@ -5757,7 +5793,7 @@ void delete_mesh(void)
 			}
 			eed= nexted;
 		}
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			nextvl= evl->next;
 			event=0;
@@ -5767,23 +5803,23 @@ void delete_mesh(void)
 			if(evl->v4 && (evl->v4->f & 1)) event++;
 			
 			if(event>1) {
-				BLI_remlink(&G.edvl, evl);
+				BLI_remlink(&em->faces, evl);
 				freevlak(evl);
 			}
 			evl= nextvl;
 		}
 		/* to remove loose vertices: */
-		eed= G.eded.first;
+		eed= em->edges.first;
 		while(eed) {
 			if( eed->v1->f & 1) eed->v1->f-=1;
 			if( eed->v2->f & 1) eed->v2->f-=1;
 			eed= eed->next;
 		}
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			nextve= eve->next;
 			if(eve->f & 1) {
-				BLI_remlink(&G.edve,eve);
+				BLI_remlink(&em->verts,eve);
 //				free(eve);
 				free_editvert(eve);
 			}
@@ -5797,18 +5833,18 @@ void delete_mesh(void)
 	}
 	else if(event==3) {
 		undo_push_mesh("Erase All");
-//		if(G.edve.first) BLI_freelist(&G.edve);
-		if(G.edve.first) free_editverts(&G.edve);
-		if(G.eded.first) BLI_freelist(&G.eded);
-		if(G.edvl.first) freevlaklist(&G.edvl);
+//		if(em->verts.first) BLI_freelist(&em->verts);
+		if(em->verts.first) free_editverts(&em->verts);
+		if(em->edges.first) BLI_freelist(&em->edges);
+		if(em->faces.first) freevlaklist(&em->faces);
 	}
 	else if(event==5) {
 		undo_push_mesh("Erase Only Faces");
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			nextvl= evl->next;
 			if(vlakselectedAND(evl, 1)) {
-				BLI_remlink(&G.edvl, evl);
+				BLI_remlink(&em->faces, evl);
 				freevlak(evl);
 			}
 			evl= nextvl;
@@ -5824,6 +5860,7 @@ void delete_mesh(void)
 
 void add_primitiveMesh(int type)
 {
+	EditMesh *em = G.editMesh;
 	Mesh *me;
 	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
 	float *curs, d, dia, phi, phid, cent[3], vec[3], imat[3][3], mat[3][3];
@@ -5861,7 +5898,7 @@ void add_primitiveMesh(int type)
 	me= G.obedit->data;
 	
 	/* deselectall */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) eve->f&= ~1;
 		eve= eve->next;
@@ -6063,7 +6100,7 @@ void add_primitiveMesh(int type)
 	}
 	else if(type==10) {	/*  grid */
 		/* clear flags */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			eve->f= 0;
 			eve= eve->next;
@@ -6095,7 +6132,7 @@ void add_primitiveMesh(int type)
 		float tmat[3][3];
 		
 		/* clear all flags */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			eve->f= 0;
 			eve= eve->next;
@@ -6135,7 +6172,7 @@ void add_primitiveMesh(int type)
 		EditVert *eva[12];
 
 		/* clear all flags */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			eve->f= 0;
 			eve= eve->next;
@@ -6158,7 +6195,7 @@ void add_primitiveMesh(int type)
 		dia*=200;
 		for(a=1; a<subdiv; a++) subdivideflag(2, dia, 0);
 		/* and now do imat */
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 2) {
 				VecAddf(eve->co,eve->co,cent);
@@ -6199,8 +6236,9 @@ void add_primitiveMesh(int type)
 
 void vertexsmooth(void)
 {
-	struct EditVert *eve;
-	struct EditEdge *eed;
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed;
 	float *adror, *adr, fac;
 	float fvec[3];
 	int teller=0;
@@ -6208,7 +6246,7 @@ void vertexsmooth(void)
 	if(G.obedit==0) return;
 
 	/* count */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) teller++;
 		eve= eve->next;
@@ -6218,7 +6256,7 @@ void vertexsmooth(void)
 	undo_push_mesh("Smooth");
 
 	adr=adror= (float *)MEM_callocN(3*sizeof(float *)*teller, "vertsmooth");
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			eve->vn= (EditVert *)adr;
@@ -6228,7 +6266,7 @@ void vertexsmooth(void)
 		eve= eve->next;
 	}
 	
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if( (eed->v1->f & 1) || (eed->v2->f & 1) ) {
 			fvec[0]= (eed->v1->co[0]+eed->v2->co[0])/2.0;
@@ -6247,7 +6285,7 @@ void vertexsmooth(void)
 		eed= eed->next;
 	}
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			if(eve->f1) {
@@ -6271,6 +6309,7 @@ void vertexsmooth(void)
 
 void vertexnoise(void)
 {
+	EditMesh *em = G.editMesh;
 	extern float Tin;
 	Material *ma;
 	Tex *tex;
@@ -6289,7 +6328,7 @@ void vertexnoise(void)
 	
 	ofs= tex->turbul/200.0;
 	
-	eve= (struct EditVert *)G.edve.first;
+	eve= (struct EditVert *)em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			
@@ -6319,13 +6358,14 @@ void vertexnoise(void)
 
 void hide_mesh(int swap)
 {
-	struct EditVert *eve;
-	struct EditEdge *eed;
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed;
 
 	if(G.obedit==0) return;
 
 	if(swap) {
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if((eve->f & 1)==0) {
 				eve->xs= 3200;
@@ -6335,7 +6375,7 @@ void hide_mesh(int swap)
 		}
 	}
 	else {
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
 				eve->f-=1;
@@ -6345,7 +6385,7 @@ void hide_mesh(int swap)
 			eve= eve->next;
 		}
 	}
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if(eed->v1->h || eed->v2->h) eed->h= 1;
 		else eed->h= 0;
@@ -6359,12 +6399,13 @@ void hide_mesh(int swap)
 
 void reveal_mesh(void)
 {
-	struct EditVert *eve;
-	struct EditEdge *eed;
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed;
 
 	if(G.obedit==0) return;
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->h) {
 			eve->h= 0;
@@ -6373,7 +6414,7 @@ void reveal_mesh(void)
 		eve= eve->next;
 	}
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		eed->h= 0;
 		eed= eed->next;
@@ -6556,12 +6597,13 @@ static void free_tagged_edgelist(EditEdge *eed)
 
 static void free_tagged_facelist(EditVlak *evl)
 {	
+	EditMesh *em = G.editMesh;
 	EditVlak *nextvl;
 
 	while(evl) {
 		nextvl= evl->next;
 		if(evl->f1) {
-			BLI_remlink(&G.edvl, evl);
+			BLI_remlink(&em->faces, evl);
 			freevlak(evl);
 		}
 		evl= nextvl;
@@ -6639,6 +6681,7 @@ static int collect_quadedges(EVPTuple *evla, EditEdge *eed, EditVlak *evl)
 
 void join_triangles(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *v1, *v2, *v3, *v4;
 	EditVlak *evl, *w;
 	EVPTuple *evlar;
@@ -6649,19 +6692,19 @@ void join_triangles(void)
 	unsigned int col[4];
 
 
-	totedge = count_edges(G.eded.first);
+	totedge = count_edges(em->edges.first);
 	if(totedge==0) return;
 
 	undo_push_mesh("Join triangles");
 	
 	evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "jointris");
 
-	ok = collect_quadedges(evlar, G.eded.first, G.edvl.first);
+	ok = collect_quadedges(evlar, em->edges.first, em->faces.first);
 	if (G.f & G_DEBUG) {
 		printf("edges selected: %d\n", ok);
 	}	
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		nexted= eed->next;
 		
@@ -6712,8 +6755,8 @@ void join_triangles(void)
 		}
 		eed= nexted;
 	}
-	free_tagged_edgelist(G.eded.first);
-	free_tagged_facelist(G.edvl.first);
+	free_tagged_edgelist(em->edges.first);
+	free_tagged_facelist(em->faces.first);
 
 	MEM_freeN(evlar);
 	
@@ -6725,6 +6768,7 @@ void join_triangles(void)
 /* quick hack, basically a copy of beauty_fill */
 void edge_flip(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *v1, *v2, *v3, *v4;
 	EditEdge *eed, *nexted;
 	EditVlak *evl, *w;
@@ -6744,7 +6788,7 @@ void edge_flip(void)
 						- if true: remedge,  addedge, all edges at the edge get new face pointers
 	 */
 
-	totedge = count_edges(G.eded.first);
+	totedge = count_edges(em->edges.first);
 	if(totedge==0) return;
 
 	undo_push_mesh("Flip edges");
@@ -6752,9 +6796,9 @@ void edge_flip(void)
 	/* temporary array for : edge -> face[1], face[2] */
 	evlar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "edgeflip");
 
-	ok = collect_quadedges(evlar, G.eded.first, G.edvl.first);
+	ok = collect_quadedges(evlar, em->edges.first, em->faces.first);
 	
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		nexted= eed->next;
 		
@@ -6821,8 +6865,8 @@ void edge_flip(void)
 	}
 
 	/* clear tagged edges and faces: */
-	free_tagged_edgelist(G.eded.first);
-	free_tagged_facelist(G.edvl.first);
+	free_tagged_edgelist(em->edges.first);
+	free_tagged_facelist(em->faces.first);
 		
 	MEM_freeN(evlar);
 	
@@ -6832,6 +6876,7 @@ void edge_flip(void)
 						
 void beauty_fill(void)
 {
+	EditMesh *em = G.editMesh;
     EditVert *v1, *v2, *v3, *v4;
     EditEdge *eed, *nexted;
     EditEdge dia1, dia2;
@@ -6851,7 +6896,7 @@ void beauty_fill(void)
 		*               - if true: remedge,  addedge, all edges at the edge get new face pointers
 		*/
 	
-    totedge = count_edges(G.eded.first);
+    totedge = count_edges(em->edges.first);
     if(totedge==0) return;
 
     if(okee("Beauty Fill")==0) return;
@@ -6864,12 +6909,12 @@ void beauty_fill(void)
     while (notbeauty) {
         notbeauty--;
 
-        ok = collect_quadedges(evlar, G.eded.first, G.edvl.first);
+        ok = collect_quadedges(evlar, em->edges.first, em->faces.first);
 
         /* there we go */
         onedone= 0;
 
-        eed= G.eded.first;
+        eed= em->edges.first;
         while(eed) {
             nexted= eed->next;
 
@@ -6986,8 +7031,8 @@ void beauty_fill(void)
             eed= nexted;
         }
 
-        free_tagged_edgelist(G.eded.first);
-        free_tagged_facelist(G.edvl.first);
+        free_tagged_edgelist(em->edges.first);
+        free_tagged_facelist(em->faces.first);
 
         if(onedone==0) break;
     }
@@ -7299,9 +7344,10 @@ void join_mesh(void)
 
 void clever_numbuts_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) break;
 		eve= eve->next;
@@ -7398,6 +7444,7 @@ void sort_faces(void)
 
 void vertices_to_sphere(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	Object *ob= OBACT;
 	float *curs, len, vec[3], cent[3], fac, facm, imat[3][3], bmat[3][3];
@@ -7426,7 +7473,7 @@ void vertices_to_sphere(void)
 
 	len= 0.0;
 	tot= 0;
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			tot++;
@@ -7438,7 +7485,7 @@ void vertices_to_sphere(void)
 	
 	if(len==0.0) len= 10.0;
 	
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			vec[0]= eve->co[0]-cent[0];
@@ -7463,6 +7510,7 @@ void vertices_to_sphere(void)
  * callbacks for the scanfill.c code a bit for this to work. */
 void fill_mesh(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve,*v1;
 	EditEdge *eed,*e1,*nexted;
 	EditVlak *evl,*nextvl;
@@ -7475,7 +7523,7 @@ void fill_mesh(void)
 	undo_push_mesh("Fill");
 
 	/* copy all selected vertices */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & 1) {
 			v1= BLI_addfillvert(eve->co);
@@ -7486,7 +7534,7 @@ void fill_mesh(void)
 		eve= eve->next;
 	}
 	/* copy all selected edges */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if( (eed->v1->f & 1) && (eed->v2->f & 1) ) {
 			e1= BLI_addfilledge(eed->v1->vn, eed->v2->vn);
@@ -7498,7 +7546,7 @@ void fill_mesh(void)
 	/* from all selected faces: remove vertices and edges verwijderen to prevent doubles */
 	/* all edges add values, faces subtract,
 	   then remove edges with vertices ->h<2 */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	ok= 0;
 	while(evl) {
 		nextvl= evl->next;
@@ -7743,10 +7791,11 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 
 static int editmesh_nfaces_selected(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	int count= 0;
 
-	for (evl= G.edvl.first; evl; evl= evl->next)
+	for (evl= em->faces.first; evl; evl= evl->next)
 		if (vlakselectedAND(evl, SELECT))
 			count++;
 
@@ -7755,10 +7804,11 @@ static int editmesh_nfaces_selected(void)
 
 static int editmesh_nvertices_selected(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	int count= 0;
 
-	for (eve= G.edve.first; eve; eve= eve->next)
+	for (eve= em->verts.first; eve; eve= eve->next)
 		if (eve->f & SELECT)
 			count++;
 
@@ -7767,12 +7817,13 @@ static int editmesh_nvertices_selected(void)
 
 static void editmesh_calc_selvert_center(float cent_r[3])
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	int nsel= 0;
 
 	cent_r[0]= cent_r[1]= cent_r[0]= 0.0;
 
-	for (eve= G.edve.first; eve; eve= eve->next) {
+	for (eve= em->verts.first; eve; eve= eve->next) {
 		if (eve->f & SELECT) {
 			cent_r[0]+= eve->co[0];
 			cent_r[1]+= eve->co[1];
@@ -7851,6 +7902,7 @@ void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 
 void editmesh_align_view_to_selected(View3D *v3d, int axis)
 {
+	EditMesh *em = G.editMesh;
 	int nselverts= editmesh_nvertices_selected();
 
 	if (nselverts<3) {
@@ -7864,7 +7916,7 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 		EditVlak *evl;
 
 		norm[0]= norm[1]= norm[2]= 0.0;
-		for (evl= G.edvl.first; evl; evl= evl->next) {
+		for (evl= em->faces.first; evl; evl= evl->next) {
 			if (vlakselectedAND(evl, SELECT)) {
 				float fno[3];
 				if (evl->v4) CalcNormFloat4(evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co, fno);
@@ -7886,7 +7938,7 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 
 		norm[0]= norm[1]= norm[2]= 0.0;
 		editmesh_calc_selvert_center(cent);
-		for (eve= G.edve.first; eve; eve= eve->next) {
+		for (eve= em->verts.first; eve; eve= eve->next) {
 			if (eve->f & SELECT) {
 				if (leve) {
 					float tno[3];
@@ -8053,7 +8105,7 @@ CutCurve *get_mouse_trail(int *len, char mode){
 */
 
 void KnifeSubdivide(char mode){
-
+	EditMesh *em = G.editMesh;
 	int oldcursor, len=0;
 	short isect=0;
 	CutCurve *curve;		
@@ -8087,7 +8139,7 @@ void KnifeSubdivide(char mode){
 	curve=get_mouse_trail(&len, TRAIL_MIXED);
 	
 	if (curve && len && mode){
-		eed= G.eded.first;		
+		eed= em->edges.first;		
 		while(eed) {	
 			if((eed->v1->f&1)&&(eed->v2->f&1)){
 				isect=seg_intersect(eed, curve, len);
@@ -8106,7 +8158,7 @@ void KnifeSubdivide(char mode){
 		if (mode==1) subdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD);
 		else if (mode==2) subdivideflag(1, 0, B_KNIFE);
 		
-		eed=G.eded.first;
+		eed=em->edges.first;
 		while(eed){
 			eed->f=0;
 			eed->f1=0;
@@ -8565,11 +8617,12 @@ void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1, float 
 
 void bevel_shrink_faces(float d, int flag)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3];
 
 	/* move edges of all faces with evl->f1 & flag closer towards their centres */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while (evl) {
 		if (evl->f1 & flag) {
 			VECCOPY(v1, evl->v1->co);
@@ -8605,11 +8658,12 @@ void bevel_shrink_faces(float d, int flag)
 
 void bevel_shrink_draw(float d, int flag)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3], fv1[3], fv2[3], fv3[3], fv4[3];
 
 	/* move edges of all faces with evl->f1 & flag closer towards their centres */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while (evl) {
 		VECCOPY(v1, evl->v1->co);
 		VECCOPY(v2, evl->v2->co);			
@@ -8673,6 +8727,7 @@ void bevel_shrink_draw(float d, int flag)
 
 void bevel_mesh(float bsize, int allfaces)
 {
+	EditMesh *em = G.editMesh;
 //#define BEV_DEBUG
 /* Enables debug printfs and assigns material indices: */
 /* 2 = edge quad                                       */
@@ -8693,7 +8748,7 @@ void bevel_mesh(float bsize, int allfaces)
 	removedoublesflag(1, limit);
 
 	/* tag all original faces */
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while (evl) {
 		if (vlakselectedAND(evl, 1)||allfaces) {
 			evl->f1= 1;
@@ -8714,7 +8769,7 @@ void bevel_mesh(float bsize, int allfaces)
 	fprintf(stderr,"bevel_mesh: split\n");
 #endif
 	
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while (evl) {
 		if (evl->f1 & 1) {
 			evl->f1-= 1;
@@ -8796,7 +8851,7 @@ void bevel_mesh(float bsize, int allfaces)
 	delvlakflag(128);
 
 	/* tag all faces for shrink*/
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while (evl) {
 		if (vlakselectedAND(evl, 1)||allfaces) {
 			evl->f1= 2;
@@ -8810,7 +8865,7 @@ void bevel_mesh(float bsize, int allfaces)
 
 	/* find edges that are on each other and make quads between them */
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		eed->f= eed->f1= 0;
 		if ( ((eed->v1->f & eed->v2->f) & 1) || allfaces) eed->f1 |= 4;	/* original edges */
@@ -8818,10 +8873,10 @@ void bevel_mesh(float bsize, int allfaces)
 		eed= eed->next;
 	}
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while (eed) {
 		if ( ((eed->f1 & 2)==0) && (eed->f1 & 4) ) {
-			eed2= G.eded.first;
+			eed2= em->edges.first;
 			while (eed2) {
 				if ( (eed2 != eed) && ((eed2->f1 & 2)==0) && (eed->f1 & 4) ) {
 					if (
@@ -8843,7 +8898,7 @@ void bevel_mesh(float bsize, int allfaces)
 						eed2->f1 |= 2;
 						
 						example= NULL;
-						evl= G.edvl.first;	/* search example vlak (for mat_nr, ME_SMOOTH, ...) */
+						evl= em->faces.first;	/* search example vlak (for mat_nr, ME_SMOOTH, ...) */
 						while (evl) {
 							if ( (evl->e1 == eed) ||
 							     (evl->e2 == eed) ||
@@ -8886,7 +8941,7 @@ void bevel_mesh(float bsize, int allfaces)
 		eed= eed->next;
 	}
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		eed->f= eed->f1= 0;
 		eed->f1= 0;
@@ -8902,7 +8957,7 @@ void bevel_mesh(float bsize, int allfaces)
 
 	/* Look for vertex clusters */
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while (eve) {
 		eve->f &= ~(64|128);
 		eve->vn= NULL;
@@ -8912,9 +8967,9 @@ void bevel_mesh(float bsize, int allfaces)
 	/* eve->f: 128: first vertex in a list (->vn) */
 	/*          64: vertex is in a list */
 	
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while (eve) {
-		eve2= G.edve.first;
+		eve2= em->verts.first;
 		eve3= NULL;
 		while (eve2) {
 			if ((eve2 != eve) && ((eve2->f & (64|128))==0)) {
@@ -8952,13 +9007,13 @@ void bevel_mesh(float bsize, int allfaces)
 	
 	/* Make former vertex clusters faces */
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while (eve) {
 		eve->f &= ~64;
 		eve= eve->next;
 	}
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while (eve) {
 		if (eve->f & 128) {
 			eve->f &= ~128;
@@ -8974,7 +9029,7 @@ void bevel_mesh(float bsize, int allfaces)
 			evl= NULL;
 			if (a>=3) {
 				example= NULL;
-				evl= G.edvl.first;	/* search example vlak */
+				evl= em->faces.first;	/* search example vlak */
 				while (evl) {
 					if ( (evl->v1 == neweve[0]) ||
 					     (evl->v2 == neweve[0]) ||
@@ -9000,7 +9055,7 @@ void bevel_mesh(float bsize, int allfaces)
 					cent[2]= (min[2]+max[2])/2;
 					eve2= addvertlist(cent);
 					eve2->f |= 1;
-					eed= G.eded.first;
+					eed= em->edges.first;
 					while (eed) {
 						c= 0;
 						for (b=0; b<a; b++) 
@@ -9046,7 +9101,7 @@ void bevel_mesh(float bsize, int allfaces)
 		eve= eve->next;
 	}
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while (eve) {
 		eve->f1= 0;
 		eve->f &= ~(128|64);
@@ -9189,6 +9244,7 @@ void bevel_menu()
 
 void select_non_manifold(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
 	EditVlak *evl;
@@ -9198,7 +9254,7 @@ void select_non_manifold(void)
 	 */
 
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		/* this will count how many edges are connected
 		 * to this vert */
@@ -9206,7 +9262,7 @@ void select_non_manifold(void)
 		eve= eve->next;
 	}
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		/* this will count how many faces are connected to
 		 * this edge */
@@ -9217,7 +9273,7 @@ void select_non_manifold(void)
 		eed= eed->next;
 	}
 
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		/* increase face count for edges */
 		++evl->e1->f1;
@@ -9230,7 +9286,7 @@ void select_non_manifold(void)
 
 	/* select verts that are attached to an edge that does not
 	 * have 2 neighboring faces */
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if (eed->f1 != 2) {
 			if (!eed->v1->h) eed->v1->f |= 1;
@@ -9240,7 +9296,7 @@ void select_non_manifold(void)
 	}
 
 	/* select isolated verts */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if (eve->f1 == 0) {
 			if (!eve->h) eve->f |= 1;
@@ -9255,16 +9311,17 @@ void select_non_manifold(void)
 
 void select_more(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->f1 = 0;
 		eve= eve->next;
 	}
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		if (eed->v1->f & 1)
 			eed->v2->f1 = 1;
@@ -9274,7 +9331,7 @@ void select_more(void)
 		eed= eed->next;
 	}
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if (eve->f1 == 1)
 			if (!eve->h) eve->f |= 1;
@@ -9288,6 +9345,7 @@ void select_more(void)
 
 void select_less(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
 	EditVlak *evl;
@@ -9297,7 +9355,7 @@ void select_less(void)
 	/* eve->f1 & 4 => shares edge with a deselected vert */ 
 	/* eve->f1 & 8 => at most one neighbor */ 
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		/* assume vert is isolated unless proven otherwise, */
 		/* assume at most one neighbor too */
@@ -9306,7 +9364,7 @@ void select_less(void)
 		eve= eve->next;
 	}
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		/* this will count how many faces are connected to
 		 * this edge */
@@ -9330,7 +9388,7 @@ void select_less(void)
 		eed= eed->next;
 	}
 
-	evl= G.edvl.first;
+	evl= em->faces.first;
 	while(evl) {
 		/* increase face count for edges */
 		++evl->e1->f1;
@@ -9342,7 +9400,7 @@ void select_less(void)
 		evl= evl->next;
 	}
 
-	eed= G.eded.first;
+	eed= em->edges.first;
 	while(eed) {
 		/* if the edge has only one neighboring face, then
 		 * deselect attached verts */
@@ -9355,7 +9413,7 @@ void select_less(void)
 	}
 
 	/* deselect verts */
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if (eve->f1) {
 			eve->f &= ~1;
@@ -9371,6 +9429,7 @@ void select_less(void)
 
 void selectrandom_mesh(void) /* randomly selects a user-set % of vertices */
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	int newsel = 0; /* to decide whether to redraw or not */
 	short randfac = 50;
@@ -9381,7 +9440,7 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices */
 	if(button(&randfac,0, 100,"Percentage:")==0) return;
 		
 	if(G.obedit->lay & G.vd->lay) {
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			BLI_srand( BLI_rand() ); /* random seed */
 			if ( (BLI_frand() * 100) < randfac) {
@@ -9408,8 +9467,9 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices */
 */
 short sharesFace(EditEdge* e1, EditEdge* e2)
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *search=NULL;
-	search = G.edvl.first;
+	search = em->faces.first;
 	if (e1 == e2){
 		return 0 ;
 	}
@@ -9428,6 +9488,7 @@ short sharesFace(EditEdge* e1, EditEdge* e2)
    and not sharing a face with the previous edge */
 void vertex_loop_select() 
 {
+	EditMesh *em = G.editMesh;
 	EditVert *v1=NULL,*v2=NULL,*curVert=NULL;
 	EditEdge *search=NULL,*startEdge=NULL,*valSearch = NULL,*nearest,*compEdge;
 	EditEdge *EdgeVal[5] = {NULL,NULL,NULL,NULL,NULL};
@@ -9437,7 +9498,7 @@ void vertex_loop_select()
 
 	undo_push_mesh("Vertex Loop Select");
 	SetBlenderCursor(BC_VLOOPCURSOR);
-	for(search=G.eded.first;search;search=search->next)
+	for(search=em->edges.first;search;search=search->next)
 		numEdges++;
 
 	/* start with v1 and go in one direction. */
@@ -9452,7 +9513,7 @@ void vertex_loop_select()
 			scrarea_do_windraw(curarea);
 			nearest = findnearestedge();
 			if (nearest) {
-				for(search = G.eded.first;search;search=search->next)
+				for(search = em->edges.first;search;search=search->next)
 					search->f &= ~32;
 					
 				compEdge = startEdge = nearest;
@@ -9466,7 +9527,7 @@ void vertex_loop_select()
 					edgeValCount = -1;
 					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
 					
-					for(valSearch = G.eded.first;valSearch;valSearch = valSearch->next){
+					for(valSearch = em->edges.first;valSearch;valSearch = valSearch->next){
 						if(valSearch->v1 == v1 || valSearch->v2 == v1){
 							if(valSearch != compEdge){
 								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
@@ -9514,7 +9575,7 @@ void vertex_loop_select()
 					edgeValCount = -1;
 					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
 					
-					for(valSearch = G.eded.first;valSearch;valSearch = valSearch->next){
+					for(valSearch = em->edges.first;valSearch;valSearch = valSearch->next){
 						if(valSearch->v1 == v2 || valSearch->v2 == v2){
 							if(valSearch != compEdge){
 								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
@@ -9560,7 +9621,7 @@ void vertex_loop_select()
 				glPushMatrix();
 				mymultmatrix(G.obedit->obmat);
 				glColor3ub(0, 255, 255);
-				for(search = G.eded.first;search;search= search->next){
+				for(search = em->edges.first;search;search= search->next){
 					if(search->f & 32){
 						glBegin(GL_LINES);			
 						glVertex3f(search->v1->co[0],search->v1->co[1],search->v1->co[2]);
@@ -9605,14 +9666,14 @@ void vertex_loop_select()
 	if(!cancel){
 		/* If this is a unmodified select, clear the selection */
 		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
-			for(search = G.eded.first;search;search= search->next){
+			for(search = em->edges.first;search;search= search->next){
 				search->v1->f &= !1;
 				search->v2->f &= !1;
 			}
 		}
 		/* Alt was not pressed, so add to the selection */
 		if(!(G.qual & LR_ALTKEY)){
-			for(search = G.eded.first;search;search= search->next){
+			for(search = em->edges.first;search;search= search->next){
 				if(search->f & 32){
 					search->v1->f |= 1;
 					search->v2->f |= 1;
@@ -9623,7 +9684,7 @@ void vertex_loop_select()
 		/* alt was pressed, so subtract from the selection */
 		else
 		{
-			for(search = G.eded.first;search;search= search->next){
+			for(search = em->edges.first;search;search= search->next){
 				if(search->f & 32){
 					search->v1->f &= !1;
 					search->v2->f &= !1;
@@ -9640,9 +9701,10 @@ void vertex_loop_select()
 }
 
 void editmesh_select_by_material(int index) {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	
-	for (evl=G.edvl.first; evl; evl= evl->next) {
+	for (evl=em->faces.first; evl; evl= evl->next) {
 		if (evl->mat_nr==index) {
 			if(evl->v1->h==0) evl->v1->f |= 1;
 			if(evl->v2->h==0) evl->v2->f |= 1;
@@ -9653,9 +9715,10 @@ void editmesh_select_by_material(int index) {
 }
 
 void editmesh_deselect_by_material(int index) {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	
-	for (evl=G.edvl.first; evl; evl= evl->next) {
+	for (evl=em->faces.first; evl; evl= evl->next) {
 		if (evl->mat_nr==index) {
 			if(evl->v1->h==0) evl->v1->f &= ~1;
 			if(evl->v2->h==0) evl->v2->f &= ~1;

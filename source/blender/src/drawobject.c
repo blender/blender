@@ -935,16 +935,17 @@ static void drawlattice(Object *ob)
 /* window coord, assuming all matrices are set OK */
 void calc_meshverts(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float mat[4][4];
 
-	if(G.edve.first==0) return;
-	eve= G.edve.first;
+	if(em->verts.first==0) return;
+	eve= em->verts.first;
 
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		if(eve->h==0) {
 			project_short(eve->co, &(eve->xs));
@@ -970,6 +971,7 @@ void calc_meshverts_ext(void)
 /* window coord for current window, sets matrices temporal, sets (eve->f & 2) when not visible */
 void calc_meshverts_ext_f2(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float mat[4][4];
 	
@@ -978,13 +980,13 @@ void calc_meshverts_ext_f2(void)
 	persp(PERSP_VIEW);
 	mymultmatrix(G.obedit->obmat);
 	
-	if(G.edve.first==0) return;
-	eve= G.edve.first;
+	if(em->verts.first==0) return;
+	eve= em->verts.first;
 
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	eve= G.edve.first;
+	eve= em->verts.first;
 	while(eve) {
 		eve->f &= ~2;
 		if(eve->h==0) {
@@ -1052,6 +1054,7 @@ void calc_nurbverts_ext(void)
 
 void tekenvertices(short sel)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float size;
 	char col[3];
@@ -1072,7 +1075,7 @@ void tekenvertices(short sel)
 		glEnable(GL_BLEND);
 
 		glBegin(GL_POINTS);
-		for(eve= G.edve.first; eve; eve= eve->next) {
+		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->f & 1)==sel ) glVertex3fv(eve->co);
 		}
 		glEnd();
@@ -1085,7 +1088,7 @@ void tekenvertices(short sel)
 	glColor3ub(col[0], col[1], col[2]);
 
 	glBegin(GL_POINTS);
-	for(eve= G.edve.first; eve; eve= eve->next) {
+	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->h==0 && (eve->f & 1)==sel ) glVertex3fv(eve->co);
 	}
 	glEnd();
@@ -1695,6 +1698,7 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 
 static void drawmeshsolid(Object *ob, float *nors)
 {
+	EditMesh *em = G.editMesh;
 	Mesh *me;
 	DispList *dl;
 	MVert *mvert;
@@ -1730,7 +1734,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 		
-		evl= G.edvl.first;
+		evl= em->faces.first;
 		while(evl) {
 			if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
 				
@@ -2342,6 +2346,7 @@ static void draw_static_particle_system(Object *ob, PartEff *paf)
 
 static void drawmeshwire(Object *ob)
 {
+	EditMesh *em = G.editMesh;
 	extern float editbutsize;	/* buttons.c */
 	Mesh *me;
 	MVert *mvert;
@@ -2369,7 +2374,7 @@ static void drawmeshwire(Object *ob)
 			glEnable(GL_BLEND);
 			glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 			
-			evl= G.edvl.first;
+			evl= em->faces.first;
 			while(evl) {
 				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
 					
@@ -2432,7 +2437,7 @@ static void drawmeshwire(Object *ob)
 			BIF_GetThemeColor3ubv(TH_EDGE_SELECT, col);
 			glShadeModel(GL_SMOOTH);
 			
-			eed= G.eded.first;
+			eed= em->edges.first;
 			glBegin(GL_LINES);
 			while(eed) {
 				if(eed->h==0) {
@@ -2447,7 +2452,7 @@ static void drawmeshwire(Object *ob)
 			glShadeModel(GL_FLAT);
 		}
 		else if(handles==0) {
-			eed= G.eded.first;
+			eed= em->edges.first;
 			glBegin(GL_LINES);
 			while(eed) {
 				if(eed->h==0) {
@@ -2470,7 +2475,7 @@ static void drawmeshwire(Object *ob)
 
 			glBegin(GL_LINES);
 			
-			evl= G.edvl.first;
+			evl= em->faces.first;
 			while(evl) {
 				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
 					if(evl->v4) CalcCent4f(fvec, evl->v1->co, evl->v2->co, evl->v3->co, evl->v4->co);

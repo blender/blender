@@ -1065,6 +1065,7 @@ static int ve_median_tot=0;
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float median[4];
 	int tot, totw;
@@ -1073,7 +1074,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	tot= totw= 0;
 	
 	if(ob->type==OB_MESH) {
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
 				tot++;
@@ -1164,7 +1165,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		median[3]= ve_median[3]-median[3];
 		
 		if(ob->type==OB_MESH) {
-			eve= G.edve.first;
+			eve= em->verts.first;
 			while(eve) {
 				if(eve->f & 1) {
 					VecAddf(eve->co, eve->co, median);

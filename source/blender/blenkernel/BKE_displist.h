@@ -57,6 +57,7 @@ struct Material;
 struct Bone;
 struct Mesh;
 struct TFace;
+struct EditMesh;
 
 typedef struct DispListMesh DispListMesh;
 struct DispListMesh {
@@ -73,7 +74,7 @@ void displistmesh_calc_vert_normals(DispListMesh *dlm);
 
 void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
 
-DispListMesh *displistmesh_from_editmesh(struct ListBase *verts, struct ListBase *edges, struct ListBase *faces);
+DispListMesh *displistmesh_from_editmesh(struct EditMesh *em);
 DispListMesh *displistmesh_from_mesh(struct Mesh *mesh, float *extverts);
 
 /*

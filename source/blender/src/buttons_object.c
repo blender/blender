@@ -932,6 +932,7 @@ extern ListBase editNurb;
 
 void do_common_editbuts(unsigned short event) // old name, is a mix of object and editing events.... 
 {
+	EditMesh *em = G.editMesh;
 	EditVlak *evl;
 	Base *base;
 	Object *ob;
@@ -948,7 +949,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_MATWICH:
 		if(G.obedit && G.obedit->actcol>0) {
 			if(G.obedit->type == OB_MESH) {
-				evl= G.edvl.first;
+				evl= em->faces.first;
 				while(evl) {
 					if( vlakselectedAND(evl, 1) ) {
 						if(index== -1) index= evl->mat_nr;
@@ -993,7 +994,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(G.obedit && G.obedit->actcol>0) {
 			if(G.obedit->type == OB_MESH) {
 				undo_push_mesh("Assign material index");
-				evl= G.edvl.first;
+				evl= em->faces.first;
 				while(evl) {
 					if( vlakselectedAND(evl, 1) )
 						evl->mat_nr= G.obedit->actcol-1;
@@ -1105,7 +1106,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_SETSOLID:
 		if(G.obedit) {
 			if(G.obedit->type == OB_MESH) {
-				evl= G.edvl.first;
+				evl= em->faces.first;
 				if (event == B_SETSMOOTH) undo_push_mesh("Set Smooth");
 				else if (event==B_SETSOLID) undo_push_mesh("Set Solid");
 				while(evl) {

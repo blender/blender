@@ -528,13 +528,14 @@ void countall()
 	if(G.obedit) {
 		
 		if(G.obedit->type==OB_MESH) {
-			eve= G.edve.first;
+			EditMesh *em = G.editMesh;
+			eve= em->verts.first;
 			while(eve) {
 				G.totvert++;
 				if(eve->f & 1) G.totvertsel++;
 				eve= eve->next;
 			}
-			evl= G.edvl.first;
+			evl= em->faces.first;
 			while(evl) {
 				G.totface++;
 				if(evl->v1->f & 1) {

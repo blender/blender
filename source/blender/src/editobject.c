@@ -533,6 +533,7 @@ void set_slowparent(void)
 
 void make_vertex_parent(void)
 {
+	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	Base *base;
 	Nurb *nu;
@@ -544,7 +545,7 @@ void make_vertex_parent(void)
 	/* we need 1 ot 3 selected vertices */
 	
 	if(G.obedit->type==OB_MESH) {
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
 				if(v1==0) v1= nr;
@@ -1158,6 +1159,7 @@ static int centremode= 0; /* 0 == do centre, 1 == centre new, 2 == centre cursor
 
 void docentre(void)
 {
+	EditMesh *em = G.editMesh;
 	Base *base;
 	Object *ob;
 	Mesh *me, *tme;
@@ -1177,7 +1179,7 @@ void docentre(void)
 		INIT_MINMAX(min, max);
 	
 		if(G.obedit->type==OB_MESH) {
-			eve= G.edve.first;
+			eve= em->verts.first;
 			while(eve) {
 				DO_MINMAX(eve->co, min, max);
 				eve= eve->next;
@@ -1186,7 +1188,7 @@ void docentre(void)
 			cent[1]= (min[1]+max[1])/2.0;
 			cent[2]= (min[2]+max[2])/2.0;
 			
-			eve= G.edve.first;
+			eve= em->verts.first;
 			while(eve) {
 				VecSubf(eve->co, eve->co, cent);			
 				eve= eve->next;
@@ -3404,6 +3406,7 @@ void make_trans_objects()
 /* mode: 1 = proportional */
 void make_trans_verts(float *min, float *max, int mode)	
 {
+	EditMesh *em = G.editMesh;
 /*  	extern Lattice *editLatt; already in BKE_lattice.h */
 	Nurb *nu;
 	BezTriple *bezt;
@@ -3433,7 +3436,7 @@ void make_trans_verts(float *min, float *max, int mode)
 	tottrans= 0;
 	
 	if(G.obedit->type==OB_MESH) {
-		eve= G.edve.first;
+		eve= em->verts.first;
 		while(eve) {
 			if(eve->h==0) {
 				if(mode==1 || (eve->f & 1)) {
@@ -4110,11 +4113,12 @@ void restore_tob(TransOb *tob)
 
 int cylinder_intersect_test(void)
 {
+	EditMesh *em = G.editMesh;
 	extern float editbutsize;
 	float *oldloc, speed[3], s, t, labda, labdacor, dist, len, len2, axis[3], *base, rc[3], n[3], o[3];
 	EditVert *v1;
 	
-	v1= G.edve.first;
+	v1= em->verts.first;
 
 	base= v1->co;
 	v1= v1->next;
@@ -4175,11 +4179,12 @@ int cylinder_intersect_test(void)
 
 int sphere_intersect_test(void)
 {
+	EditMesh *em = G.editMesh;
 	extern float editbutsize;
 	float *oldloc, speed[3], labda, labdacor, len, bsq, u, disc, *base, rc[3];
 	EditVert *v1;
 	
-	v1= G.edve.first;
+	v1= em->verts.first;
 	base= v1->co;
 	
 	v1= v1->next;

@@ -61,6 +61,7 @@ struct bScreen;
 struct Object;
 struct bSoundListener;
 struct BMF_Font;
+struct EditMesh;
 
 #define UNDO_MAX	64
 #define UNDO_EDIT_MAX 	64
@@ -110,9 +111,7 @@ typedef struct Global {
 	int f;
 
     /* Editmode lists */
-    struct ListBase edve;
-    struct ListBase eded;
-    struct ListBase edvl;
+	struct EditMesh *editMesh;
     
     float textcurs[4][2];
     

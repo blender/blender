@@ -107,7 +107,7 @@ struct _FastLamp {
 static FastLamp *fastlamplist= NULL;
 static float fviewmat[4][4];
 
-DispListMesh *displistmesh_from_editmesh(ListBase *verts, ListBase *edges, ListBase *faces) {
+DispListMesh *displistmesh_from_editmesh(EditMesh *em) {
 	DispListMesh *dlm= MEM_callocN(sizeof(*dlm),"dlm");
 	int i;
 	EditVert *eve, *evePrev;
@@ -115,22 +115,22 @@ DispListMesh *displistmesh_from_editmesh(ListBase *verts, ListBase *edges, ListB
 	EditVlak *evl;
 
 	dlm->flag= 0;
-	dlm->totvert= BLI_countlist(verts);
-	dlm->totface= BLI_countlist(edges)+BLI_countlist(faces);
+	dlm->totvert= BLI_countlist(&em->verts);
+	dlm->totface= BLI_countlist(&em->edges)+BLI_countlist(&em->faces);
 	dlm->mvert= MEM_callocN(sizeof(*dlm->mface)*dlm->totvert, "dlm->mvert");
 	dlm->mcol= NULL;
 	dlm->tface= NULL;
 	dlm->mface= MEM_mallocN(sizeof(*dlm->mface)*dlm->totface, "dlm->mface");
 
 	i=0;
-	for (eve= verts->first; eve; eve= eve->next, i++) {
+	for (eve= em->verts.first; eve; eve= eve->next, i++) {
 		MVert *mvNew= &dlm->mvert[i];
 		VECCOPY(mvNew->co, eve->co);
 		eve->prev= (void*) i;	/* hack to fetch indices */
 	}
 
 	i=0;
-	for (evl= faces->first; evl; evl= evl->next, i++) {
+	for (evl= em->faces.first; evl; evl= evl->next, i++) {
 		MFace *mfNew= &dlm->mface[i];
 
 		mfNew->v1= (int) evl->v1->prev;
@@ -147,7 +147,7 @@ DispListMesh *displistmesh_from_editmesh(ListBase *verts, ListBase *edges, ListB
 			mfNew->v2^= mfNew->v4^= mfNew->v2^= mfNew->v4;
 		}
 	}
-	for (eed= edges->first; eed; eed= eed->next, i++) {
+	for (eed= em->edges.first; eed; eed= eed->next, i++) {
 		MFace *mfNew= &dlm->mface[i];
 
 		mfNew->v1= (int) eed->v1->prev;
@@ -161,7 +161,7 @@ DispListMesh *displistmesh_from_editmesh(ListBase *verts, ListBase *edges, ListB
 	}
 
 		/* restore prev links */
-	for (evePrev=NULL, eve= verts->first; eve; evePrev=eve, eve= eve->next)
+	for (evePrev=NULL, eve= em->verts.first; eve; evePrev=eve, eve= eve->next)
 		eve->prev= evePrev;
 
 	displistmesh_calc_vert_normals(dlm);
@@ -1621,6 +1621,7 @@ void set_displist_onlyzero(int val)
 
 void makeDispList(Object *ob)
 {
+	EditMesh *em = G.editMesh;
 	Mesh *me;
 	Nurb *nu;
 	Curve *cu;
@@ -1651,8 +1652,7 @@ void makeDispList(Object *ob)
 			DispListMesh *dlm;
 
 			if (ob==G.obedit) {
-				dlm= subsurf_make_dispListMesh_from_editmesh(&G.edve, &G.eded, &G.edvl, 
-													me->subdiv, me->flag, me->subsurftype);
+				dlm= subsurf_make_dispListMesh_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
 			} else {
 				DispList *dlVerts= find_displist(&ob->disp, DL_VERTS);
 				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, 

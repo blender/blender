@@ -1115,12 +1115,13 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 #if 0
 static EditVert*	 add_armatureVert (float *loc)
 {
+	EditMesh *em = G.editMesh;
 	EditVert*	vert=NULL;
 
 	vert = MEM_callocN (sizeof (EditVert), "armaturevert");
 	if (vert){
 		VECCOPY (vert->co, loc);
-		BLI_addtail (&G.edve,vert);
+		BLI_addtail (&em->verts,vert);
 	}
 
 	return vert;
@@ -1129,9 +1130,10 @@ static EditVert*	 add_armatureVert (float *loc)
 
 static EditVert* get_armatureVert (float *loc)
 {
+	EditMesh *em = G.editMesh;
 	EditVert*	vert;
 
-	for (vert=G.edve.first;vert;vert=vert->next){
+	for (vert=em->verts.first;vert;vert=vert->next){
 		if ((vert->co[0]==loc[0])&&(vert->co[1]==loc[1])&&(vert->co[2]==loc[2])){
 			return (vert);
 		}

@@ -57,6 +57,7 @@
 
 void sel_verts_defgroup (int select)
 {
+	EditMesh *em = G.editMesh;
 	EditVert		*eve;
 	Object			*ob;
 	int				i;
@@ -68,7 +69,7 @@ void sel_verts_defgroup (int select)
 
 	switch (ob->type){
 	case OB_MESH:
-		for (eve=G.edve.first; eve; eve=eve->next){
+		for (eve=em->verts.first; eve; eve=eve->next){
 			if (eve->totweight){
 				for (i=0; i<eve->totweight; i++){
 					if (eve->dw[i].def_nr == (ob->actdef-1)){
@@ -148,6 +149,7 @@ bDeformGroup *add_defgroup_name (Object *ob, char *name)
 
 void del_defgroup (Object *ob)
 {
+	EditMesh *em = G.editMesh;
 	bDeformGroup	*defgroup;
 	EditVert		*eve;
 	int				i;
@@ -167,7 +169,7 @@ void del_defgroup (Object *ob)
 	remove_verts_defgroup(1);
 
 	/* Make sure that any verts with higher indices are adjusted accordingly */
-	for (eve=G.edve.first; eve; eve=eve->next){
+	for (eve=em->verts.first; eve; eve=eve->next){
 		for (i=0; i<eve->totweight; i++){
 			if (eve->dw[i].def_nr > (ob->actdef-1))
 				eve->dw[i].def_nr--;
@@ -412,6 +414,7 @@ void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum,
 void assign_verts_defgroup (void)
 /* Only available in editmode */
 {
+	EditMesh *em = G.editMesh;
 	Object *ob;
 	EditVert *eve;
 	bDeformGroup	*dg, *eg;
@@ -433,7 +436,7 @@ void assign_verts_defgroup (void)
 	switch (ob->type){
 	case OB_MESH:
 		/* Go through the list of editverts and assign them */
-		for (eve=G.edve.first; eve; eve=eve->next){
+		for (eve=em->verts.first; eve; eve=eve->next){
 			if (eve->f & 1){
 				done=0;
 				/* See if this vert already has a reference to this group */
@@ -505,6 +508,7 @@ void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
 void remove_verts_defgroup (int allverts)
 /* Only available in editmode */
 {
+	EditMesh *em = G.editMesh;
 	Object *ob;
 	EditVert *eve;
 	MDeformWeight *newdw;
@@ -524,7 +528,7 @@ void remove_verts_defgroup (int allverts)
 
 	switch (ob->type){
 	case OB_MESH:
-		for (eve=G.edve.first; eve; eve=eve->next){
+		for (eve=em->verts.first; eve; eve=eve->next){
 			if (eve->dw && ((eve->f & 1) || allverts)){
 				for (i=0; i<eve->totweight; i++){
 					/* Find group */
