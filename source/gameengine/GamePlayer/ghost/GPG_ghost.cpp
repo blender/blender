@@ -85,8 +85,8 @@ extern "C"
 #include "BKE_utildefines.h"
 
 #ifdef WIN32
-#ifdef NDEBUG
 #include <windows.h>
+#ifdef NDEBUG
 #include <wincon.h>
 #endif // NDEBUG
 #endif // WIN32
@@ -95,6 +95,62 @@ const int kMinWindowWidth = 100;
 const int kMinWindowHeight = 100;
 
 char bprogname[FILE_MAXDIR+FILE_MAXFILE];
+
+#ifdef WIN32
+typedef enum 
+{
+  SCREEN_SAVER_MODE_NONE = 0,
+  SCREEN_SAVER_MODE_PREVIEW,
+  SCREEN_SAVER_MODE_SAVER,
+  SCREEN_SAVER_MODE_CONFIGURATION,
+  SCREEN_SAVER_MODE_PASSWORD,
+} ScreenSaverMode;
+
+static ScreenSaverMode scr_saver_mode = SCREEN_SAVER_MODE_NONE;
+static HWND scr_saver_hwnd = NULL;
+
+static BOOL scr_saver_init(int argc, char **argv) 
+{
+	scr_saver_mode = SCREEN_SAVER_MODE_NONE;
+	scr_saver_hwnd = NULL;
+	BOOL ret = FALSE;
+
+	int len = ::strlen(argv[0]);
+	if (len > 4 && !::stricmp(".scr", argv[0] + len - 4))
+	{
+		scr_saver_mode = SCREEN_SAVER_MODE_CONFIGURATION;
+		ret = TRUE;
+		if (argc >= 2)
+		{
+			if (argc >= 3)
+			{
+				scr_saver_hwnd = (HWND) ::atoi(argv[2]);
+			}
+			if (!::stricmp("/c", argv[1]))
+			{
+				scr_saver_mode = SCREEN_SAVER_MODE_CONFIGURATION;
+				if (scr_saver_hwnd == NULL)
+					scr_saver_hwnd = ::GetForegroundWindow();
+			}
+			else if (!::stricmp("/s", argv[1]))
+			{
+				scr_saver_mode = SCREEN_SAVER_MODE_SAVER;
+			}
+			else if (!::stricmp("/a", argv[1]))
+			{
+				scr_saver_mode = SCREEN_SAVER_MODE_PASSWORD;
+			}
+			else if (!::stricmp("/p", argv[1])
+				 || !::stricmp("/l", argv[1]))
+			{
+				scr_saver_mode = SCREEN_SAVER_MODE_PREVIEW;
+			}
+		}
+	}
+	return ret;
+}
+
+#endif /* WIN32 */
 
 void usage(char* program)
 {
@@ -280,7 +336,34 @@ int main(int argc, char** argv)
 	printf("argv[0] = '%s'\n", argv[0]);
 #endif
 
-	for (i = 1; (i < argc) && !error;)
+
+#ifdef WIN32
+	if (scr_saver_init(argc, argv))
+	{
+		switch (scr_saver_mode)
+		{
+		case SCREEN_SAVER_MODE_CONFIGURATION:
+			MessageBox(scr_saver_hwnd, "This screen saver has no options that you can set", "Screen Saver", MB_OK);
+			break;
+		case SCREEN_SAVER_MODE_PASSWORD:
+			/* This is W95 only, which we currently do not support.
+			   Fall-back to normal screen saver behaviour in that case... */
+		case SCREEN_SAVER_MODE_SAVER:
+			fullScreen = true;
+			fullScreenParFound = true;
+			break;
+
+		case SCREEN_SAVER_MODE_PREVIEW:
+			/* This will actually be handled somewhere below... */
+			break;
+		}
+	}
+#endif
+	for (i = 1; (i < argc) && !error 
+#ifdef WIN32
+		&& scr_saver_mode == SCREEN_SAVER_MODE_NONE
+#endif
+		;)
 
 	{
 #ifndef NDEBUG
@@ -447,6 +530,9 @@ int main(int argc, char** argv)
 		usage(argv[0]);
 	}
 	else
+#ifdef WIN32
+		if (scr_saver_mode != SCREEN_SAVER_MODE_CONFIGURATION)
+#endif
 	{
 #ifdef __APPLE__
 		//SYS_WriteCommandLineInt(syshandle, "show_framerate", 1);
@@ -567,8 +653,18 @@ int main(int argc, char** argv)
 							
 							if (fullScreen)
 							{
-								app.startFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
-									stereoWindow, stereomode);
+#ifdef WIN32
+								if (scr_saver_mode == SCREEN_SAVER_MODE_SAVER)
+								{
+									app.startScreenSaverFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
+										stereoWindow, stereomode);
+								}
+								else
+#endif
+								{
+									app.startFullScreen(fullScreenWidth, fullScreenHeight, fullScreenBpp, fullScreenFrequency,
+										stereoWindow, stereomode);
+								}
 							}
 							else
 							{
@@ -604,8 +700,17 @@ int main(int argc, char** argv)
 								{
 									title = "blenderplayer";
 								}
-								app.startWindow(title, windowLeft, windowTop, windowWidth, windowHeight,
-									stereoWindow, stereomode);
+#ifdef WIN32
+								if (scr_saver_mode == SCREEN_SAVER_MODE_PREVIEW)
+								{
+									app.startScreenSaverPreview(scr_saver_hwnd, stereoWindow, stereomode);
+								}
+								else
+#endif
+								{
+									app.startWindow(title, windowLeft, windowTop, windowWidth, windowHeight,
+										stereoWindow, stereomode);
+								}
 							}
 						}
 						else

@@ -156,6 +156,138 @@ bool GPG_Application::SetGameEngineData(struct Main *maggie, STR_String startSce
 }
 
 
+#ifdef WIN32
+#define SCR_SAVE_MOUSE_MOVE_THRESHOLD 15
+
+static HWND found_ghost_window_hwnd;
+static GHOST_IWindow* ghost_window_to_find;
+static WNDPROC ghost_wnd_proc;
+static POINT scr_save_mouse_pos;
+
+static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BOOL close = FALSE;
+	switch (uMsg)
+	{
+		case WM_MOUSEMOVE:
+		{ 
+			POINT pt; 
+			GetCursorPos(&pt);
+			LONG dx = scr_save_mouse_pos.x - pt.x;
+			LONG dy = scr_save_mouse_pos.y - pt.y;
+			if (abs(dx) > SCR_SAVE_MOUSE_MOVE_THRESHOLD
+			    || abs(dy) > SCR_SAVE_MOUSE_MOVE_THRESHOLD)
+			{
+				close = TRUE;
+			}
+			scr_save_mouse_pos = pt;
+			break;
+		}
+		case WM_LBUTTONDOWN: 
+		case WM_MBUTTONDOWN: 
+		case WM_RBUTTONDOWN: 
+		case WM_KEYDOWN:
+			close = TRUE;
+	}
+	if (close)
+		PostMessage(hwnd,WM_CLOSE,0,0);
+	return CallWindowProc(ghost_wnd_proc, hwnd, uMsg, wParam, lParam);
+}
+
+BOOL CALLBACK findGhostWindowHWNDProc(HWND hwnd, LPARAM lParam)
+{
+	GHOST_IWindow *p = (GHOST_IWindow*) GetWindowLong(hwnd, GWL_USERDATA);
+	BOOL ret = TRUE;
+	if (p == ghost_window_to_find)
+	{
+		found_ghost_window_hwnd = hwnd;
+		ret = FALSE;
+	}
+	return ret;
+}
+
+static HWND findGhostWindowHWND(GHOST_IWindow* window)
+{
+	found_ghost_window_hwnd = NULL;
+	ghost_window_to_find = window;
+	EnumWindows(findGhostWindowHWNDProc, NULL);
+	return found_ghost_window_hwnd;
+}
+
+bool GPG_Application::startScreenSaverPreview(
+	HWND parentWindow,
+	const bool stereoVisual,
+	const int stereoMode)
+{
+	bool success = false;
+
+	RECT rc;
+	if (GetWindowRect(parentWindow, &rc))
+	{
+		int windowWidth = rc.right - rc.left;
+		int windowHeight = rc.bottom - rc.top;
+		STR_String title = "";
+							
+		m_mainWindow = fSystem->createWindow(title, 0, 0, windowWidth, windowHeight, GHOST_kWindowStateMinimized,
+			GHOST_kDrawingContextTypeOpenGL, stereoVisual);
+		if (!m_mainWindow) {
+			printf("error: could not create main window\n");
+			exit(-1);
+		}
+
+		HWND ghost_hwnd = findGhostWindowHWND(m_mainWindow);
+		if (!ghost_hwnd) {
+			printf("error: could find main window\n");
+			exit(-1);
+		}
+
+		SetParent(ghost_hwnd, parentWindow);
+		LONG style = GetWindowLong(ghost_hwnd, GWL_STYLE);
+		LONG exstyle = GetWindowLong(ghost_hwnd, GWL_EXSTYLE);
+
+		RECT adjrc = { 0, 0, windowWidth, windowHeight };
+		AdjustWindowRectEx(&adjrc, style, FALSE, exstyle);
+
+		style = (style & (~(WS_POPUP|WS_OVERLAPPEDWINDOW|WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MINIMIZEBOX|WS_MAXIMIZEBOX|WS_TILEDWINDOW ))) | WS_CHILD;
+		SetWindowLong(ghost_hwnd, GWL_STYLE, style);
+		SetWindowPos(ghost_hwnd, NULL, adjrc.left, adjrc.top, 0, 0, SWP_NOZORDER|SWP_NOSIZE|SWP_NOACTIVATE);
+
+		/* Check the size of the client rectangle of the window and resize the window
+		 * so that the client rectangle has the size requested.
+		 */
+		m_mainWindow->setClientSize(windowWidth, windowHeight);
+
+		success = initEngine(m_mainWindow, stereoMode);
+		if (success) {
+			success = startEngine();
+		}
+
+	}
+	return success;
+}
+
+bool GPG_Application::startScreenSaverFullScreen(
+		int width,
+		int height,
+		int bpp,int frequency,
+		const bool stereoVisual,
+		const int stereoMode)
+{
+	bool ret = startFullScreen(width, height, bpp, frequency, stereoVisual, stereoMode);
+	if (ret)
+	{
+		HWND ghost_hwnd = findGhostWindowHWND(m_mainWindow);
+		if (ghost_hwnd != NULL)
+		{
+			GetCursorPos(&scr_save_mouse_pos);
+			ghost_wnd_proc = (WNDPROC) GetWindowLong(ghost_hwnd, GWL_WNDPROC);
+			SetWindowLong(ghost_hwnd,GWL_WNDPROC, (LONG) screenSaverWindowProc);
+		}
+	}
+	return ret;
+}
+
+#endif
 
 bool GPG_Application::startWindow(STR_String& title,
 	int windowLeft,

@@ -34,6 +34,10 @@
 #include "GHOST_IEventConsumer.h"
 #include "STR_String.h"
 
+#ifdef WIN32
+#include <wtypes.h>
+#endif
+
 class KX_KetsjiEngine;
 class KX_ISceneConverter;
 class NG_LoopBackNetworkDeviceInterface;
@@ -60,6 +64,11 @@ public:
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
+#ifdef WIN32
+			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
+			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode);
+#endif
+
 	virtual	bool processEvent(GHOST_IEvent* event);
 			int getExitRequested(void);
 			const STR_String& getExitString(void);
