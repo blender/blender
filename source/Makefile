@@ -405,9 +405,9 @@ ifeq ($(OS),windows)
     BINTARGETS += blenderdynplayer
     BINTARGETS += plugin
 
-    PULIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winpublisher.res
+    PULIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
     PULIB += $(NAN_ZLIB)/lib/libz.a
-    SPLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winplayer.res
+    SPLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 
   ifdef NAN_PLAYERSTATIC
