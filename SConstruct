@@ -1211,7 +1211,7 @@ def preparedist():
 	shutil.copy("text/copyright.txt", "../dist/copyright.txt")
 	shutil.copy("text/blender.html", "../dist/blender.html")
 	shutil.copy("text/GPL-license.txt", "../dist/GPL-license.txt")
-	shutil.copy("text/Python-license.txt", "../dist/Python-lisence.txt")
+	shutil.copy("text/Python-license.txt", "../dist/Python-license.txt")
 	
 	reltext = "release_" + string.join(version.split("."), '') + ".txt"
 	shutil.copy("text/" + reltext, "../dist/" + reltext)
@@ -1507,11 +1507,13 @@ def donsis(env, target, source):
 	
 	# do language files
 	langlist = []
+	langfiles = []
 	langdir = os.listdir(startdir + "\\dist\\.blender\\locale")
 	for langitem in langdir:
 		if os.path.isdir(startdir + "\\dist\\.blender\\locale\\" + langitem) == 1:
-			langlist.append("File " + startdir + "\\dist\\.blender\\locale\\" + langitem + "\\LC_MESSAGES\\blender.mo")
-	langstring = string.join(langlist, "\n  ")
+			langfiles.append("SetOutPath $BLENDERHOME\\.blender\\locale\\" + langitem + "\\LC_MESSAGES")
+			langfiles.append("File " + startdir + "\\dist\\.blender\\locale\\" + langitem + "\\LC_MESSAGES\\blender.mo")
+	langstring = string.join(langfiles, "\n  ")
 	langstring += "\n\n"
 	nsis_cnt = string.replace(nsis_cnt, "[LANGUAGECONTS]", langstring)
 	
