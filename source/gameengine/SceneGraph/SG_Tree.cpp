@@ -61,7 +61,7 @@ SG_Tree::SG_Tree(SG_Node* client) :
 		MT_Transform(client->GetWorldPosition(), 
 			client->GetWorldOrientation().scaled(scale[0], scale[1], scale[2])));
 }
-	
+
 SG_Tree::~SG_Tree() 
 {
 }
@@ -103,7 +103,7 @@ SG_Tree* SG_Tree::Find(SG_Node *node)
 	if (m_client_object == node)
 		return this;
 	
-	SG_Tree *left(m_left), *right(m_right);
+	SG_Tree *left = m_left, *right = m_right;
 	
 	if (left && right)
 	{
@@ -226,11 +226,12 @@ SG_Tree* SG_TreeFactory::MakeTree()
 
 	HalfArray<SG_Tree*> sizes;
 	sizes.resize(num_objects);
-
-	for( unsigned int y = 0; y < num_objects; y++)
+	
+	unsigned int x, y;
+	for( y = 0; y < num_objects; y++)
 	{
 		sizes(y, y) = m_objects[y];
-		for( unsigned int x = y+1; x < num_objects; x++)
+		for( x = y+1; x < num_objects; x++)
 		{
 			sizes(x, y) = new SG_Tree(m_objects[x], m_objects[y]);
 			
@@ -243,13 +244,13 @@ SG_Tree* SG_TreeFactory::MakeTree()
 		MT_Scalar min_volume = FLT_MAX;
 		SG_Tree *min;
 		//char temp[16];
-		for( unsigned int y = 0; y < num_objects; y++)
+		for( y = 0; y < num_objects; y++)
 		{
 			/*std::cout << sizes(y, y) << " ";
 			for( unsigned int x = 0; x < y; x++)
 				std::cout << "                   "; */
 			
-			for( unsigned int x = y+1; x < num_objects; x++)
+			for( x = y+1; x < num_objects; x++)
 			{
 				//sprintf(temp, "%7.1f", sizes(x, y)->volume());
 				//std::cout << sizes(x, y) << "(" << temp << ") ";
@@ -269,7 +270,7 @@ SG_Tree* SG_TreeFactory::MakeTree()
 		/* Remove other bboxes that contain the two bboxes */
 		sizes.delete_column(miny);
 		
-		for( unsigned int x = miny + 1; x < num_objects; x++)
+		for( x = miny + 1; x < num_objects; x++)
 		{
 			if (x == minx)
 				continue;
@@ -280,12 +281,12 @@ SG_Tree* SG_TreeFactory::MakeTree()
 		num_objects--;
 		minx--;
 		sizes(minx, minx) = min;
-		for( unsigned int x = minx + 1; x < num_objects; x++)
+		for( x = minx + 1; x < num_objects; x++)
 		{
 			delete sizes(x, minx);
 			sizes(x, minx) = new SG_Tree(min, sizes(x, x));
 		}
-		for( unsigned int y = 0; y < minx; y++)
+		for( y = 0; y < minx; y++)
 		{
 			delete sizes(minx, y);
 			sizes(minx, y) = new SG_Tree(sizes(y, y), min);
