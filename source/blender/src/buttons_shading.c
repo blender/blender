@@ -2319,8 +2319,11 @@ static void material_panel_material(Object *ob, Material *ma)
 	
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
-
 	uiBlockBeginAlign(block);
+
+	/* id is the block from which the material is used */
+	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
+	else id= ob->data;
 
 	/* indicate which one is linking a material */
 	if(id) {
@@ -2338,19 +2341,13 @@ static void material_panel_material(Object *ob, Material *ma)
 	uiDefButS(block, TOGN|BIT|(ob->actcol-1), B_MATFROM, str,	158,174,32,20, &ob->colbits, 0, 0, 0, 0, "Show the block the material is linked to");
 	uiBlockSetCol(block, TH_AUTO);
 	
-	if( id == NULL ) return;
-	uiSetButLock(id->lib!=0, "Can't edit library data");
-
-	/* id is the block from which the material is used */
-	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
-	else id= ob->data;
-
 	sprintf(str, "%d Mat", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;
 	uiDefButC(block, NUM, B_ACTCOL, str,			191,174,114,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Number of materials on object / Active material");
 	uiBlockEndAlign(block);
 	
 	if(ob->totcol==0) return;
+	uiSetButLock(id->lib!=0, "Can't edit library data");
 
 	ma= give_current_material(ob, ob->actcol);	
 	if(ma==0) return;	
