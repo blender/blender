@@ -75,7 +75,13 @@ all debug::
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
-    export NAN_MOZILLA ?= $(LCGDIR)/mozilla
+    # Uncomment the following line to use Mozilla inplace of netscape
+    # CPPFLAGS +=-DMOZ_NOT_NET
+    # Location of MOZILLA/Netscape header files...
+    export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
+    export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
+    # Will fall back to look in NAN_MOZILLA_INC/nspr and NAN_MOZILLA_LIB
+    # if this is not set.
     export NAN_NSPR ?= $(LCGDIR)/nspr
 
     export NAN_BUILDINFO = true

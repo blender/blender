@@ -428,6 +428,7 @@ ifeq ($(OS),windows)
     PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
     PYPLAYERLIB = $(PYLIB)
 
+    # Might need to change this to $(NAN_MOZILLA_LIB)/nspr4.lib
     NSPLUGLIB += $(NAN_NSPR)/lib/nspr4.lib
 
     BINTARGETS = blendercreator
