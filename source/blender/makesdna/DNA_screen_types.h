@@ -82,6 +82,8 @@ typedef unsigned short dna_ushort_fix;
 /* panel->flag */
 #define PNL_SELECT	1
 #define PNL_CLOSED	2
+#define PNL_TABBED	4
+#define PNL_OVERLAP	8
 
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
@@ -89,6 +91,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	short ofsx, ofsy, sizex, sizey;
 	short flag, pad;
 	int pad2;
+	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 } Panel;
 
 typedef struct ScrArea {
