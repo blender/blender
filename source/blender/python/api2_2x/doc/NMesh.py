@@ -491,6 +491,23 @@ class NMesh:
         list and group passed in are returned.
     """
 
+  def renameVertGroup(groupName, newName):
+    """
+    Renames a vertex group.
+    @type groupName: string
+    @param groupName: the vertex group name to be renamed.
+    @type newName: string
+    @param newName: the name to replace the old name.
+    """
+
+  def getVertGroupNames():
+    """
+    Return a list of all vertex group names.
+    @rtype: list of strings
+    @return: returns a list of strings representing all vertex group
+    associated with the mesh's object
+    """
+
   def getMaxSmoothAngle():
     """
     Get the max angle for auto smoothing.
@@ -517,3 +534,5 @@ class NMesh:
     @param subdiv: new subdiv levels: [display, render].  Both are clamped to
         lie in the range [1, 6].
     """
+
+
