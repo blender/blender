@@ -1112,20 +1112,25 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	
 	/* forbidden combination */
 	if((R.r.mode & R_BORDER) && (R.r.mode & R_PANORAMA)) {
-		error("No border allowed for Panorama");
+		error("No border supported for Panorama");
 		G.afbreek= 1;
 		return;
 	}
 	
+	if(R.r.xparts*R.r.yparts>=2 && (R.r.mode & R_MOVIECROP) && (R.r.mode & R_BORDER)) {
+		error("Combination of border, crop and parts not allowed");
+		G.afbreek= 1;
+		return;
+	}
 	
 	if(R.r.xparts*R.r.yparts>64) {
-		error("No more than 64 parts");
+		error("No more than 64 parts supported");
 		G.afbreek= 1;
 		return;
 	}
 	
 	if(R.r.yparts>1 && (R.r.mode & R_PANORAMA)) {
-		error("No Y-Parts allowed for Panorama");
+		error("No Y-Parts supported for Panorama");
 		G.afbreek= 1;
 		return;
 	}
@@ -1287,6 +1292,10 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	if(R.r.mode & R_PANORAMA) {
 		R.rectx*= R.r.xparts;
 		R.recty*= R.r.yparts;
+	}
+	if(R.r.mode & R_MOVIECROP) {
+		initparts();
+		setpart(0);		// this will adjust r.rectx
 	}
 
 	if (0) {
