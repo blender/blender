@@ -830,8 +830,10 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	G.afbreek= 0;
 	end_test_break_callback();
 
-	/* Leave this window active, otherwise in dispiew it will destroy the image as well
+	/* in dispiew it will destroy the image otherwise
 	   window_make_active() raises window at osx and sends redraws */
+	if(R.displaymode==R_DISPLAYWIN) mainwindow_make_active();
+
 }
 
 /* finds area with a 'dispview' set */
