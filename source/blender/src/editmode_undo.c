@@ -133,7 +133,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 
 	/* prevent two same undocalls */
 	if(curundo && strcmp("Original", name)==0) {
-		if( strcmp(curundo->id.name, G.obedit->id.name)==0 ) {
+		if( curundo->ob==G.obedit ) {
 			return;
 		}
 	}
@@ -184,13 +184,8 @@ static void undo_clean_stack(void)
 	UndoElem *uel, *next;
 	int mixed= 0, checknames= 1;
 	
-	/* global undo changes pointers, so we also exceptionally allow identical names,
-	   but not when this object pointer exists in the stack, which happens for
-	   example when you rename objects and add new one with old name */
-	for(uel= undobase.first; uel; uel= uel->next) {
-		if( exist_object(uel->ob)) break;
-	}
-	if(uel) checknames= 0;
+	/* global undo changes pointers, so we also allow identical names */
+	/* side effect: when deleting/renaming object and start editing new one with same name */
 	
 	uel= undobase.first; 
 	while(uel) {
