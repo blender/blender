@@ -14,6 +14,8 @@ Example::
   ob.link (cam)                         # link camera data with the object
   scene.link (ob)                       # link the object into the scene
   ob.setLocation (0.0, -5.0, 1.0)       # position the object in the scene
+
+  Blender.Redraw()                      # redraw the scene to show the updates.
 """
 
 def New (type, name='type'):
@@ -25,8 +27,21 @@ def New (type, name='type'):
   @type name: string
   @param name: The name of the object. By default, the name will be the same
       as the object type.
-  @rtype: Blender Object
   @return: The created Object.
+
+  I{B{Example:}}
+
+  The example below creates a new Lamp object and puts it at the default
+  location (0, 0, 0) in the current scene::
+     import Blender
+     
+     object = Blender.Object.New ('Lamp')
+     lamp = Blender.Lamp.New ('Spot')
+     object.link (lamp)
+     scene = Blender.Scene.getCurrent ()
+     scene.link (object)
+
+     Blender.Redraw()
   """
 
 def Get (name = None):
@@ -34,17 +49,43 @@ def Get (name = None):
   Get the Object from Blender.
   @type name: string
   @param name: The name of the requested Object.
-  @rtype: Blender Object or a list of Blender Objects
   @return: It depends on the 'name' parameter:
       - (name): The Object with the given name;
       - ():     A list with all Objects in the current scene.
+
+  I{B{Example 1:}}
+
+  The example below works on the default scene. The script returns the plane
+  object and prints the location of the plane::
+    import Blender
+
+    object = Blender.Object.Get ('plane')
+    print object.getLocation()
+
+  I{B{Example 2:}}
+
+  The example below works on the default scene. The script returns all objects
+  in the scene and prints the list of object names::
+    import Blender
+
+    objects = Blender.Object.Get ()
+    print objects
   """
 
 def GetSelected ():
   """
-  Get the selected objects from Blender.
-  @rtype: A list of Blender Objects.
+  Get the selected objects from Blender. If no objects are selected, an empty
+  list will be returned.
   @return: A list of all selected Objects in the current scene.
+
+  I{B{Example:}}
+
+  The example below works on the default scene. Select one or more objects and
+  the script will print the selected objects::
+    import Blender
+
+    objects = Blender.Object.GetSelected ()
+    print objects
   """
 
 class Object:
@@ -57,18 +98,26 @@ class Object:
     @cvar LocZ: The Z location coordinate of the object.
     @cvar loc: The (X,Y,Z) location coordinates of the object (vector).
     @cvar dLocX: The delta X location coordinate of the object.
+        This variable applies to IPO Objects only.
     @cvar dLocY: The delta Y location coordinate of the object.
+        This variable applies to IPO Objects only.
     @cvar dLocZ: The delta Z location coordinate of the object.
+        This variable applies to IPO Objects only.
     @cvar dloc: The delta (X,Y,Z) location coordinates of the object (vector).
+        This variable applies to IPO Objects only.
     @cvar RotX: The X rotation angle (in radians) of the object.
     @cvar RotY: The Y rotation angle (in radians) of the object.
     @cvar RotZ: The Z rotation angle (in radians) of the object.
     @cvar rot: The (X,Y,Z) rotation angles (in radians) of the object (vector).
     @cvar dRotX: The delta X rotation angle (in radians) of the object.
+        This variable applies to IPO Objects only.
     @cvar dRotY: The delta Y rotation angle (in radians) of the object.
+        This variable applies to IPO Objects only.
     @cvar dRotZ: The delta Z rotation angle (in radians) of the object.
+        This variable applies to IPO Objects only.
     @cvar drot: The delta (X,Y,Z) rotation angles (in radians) of the object
         (vector).
+        This variable applies to IPO Objects only.
     @cvar SizeX: The X size of the object.
     @cvar SizeY: The Y size of the object.
     @cvar SizeZ: The Z size of the object.
@@ -173,8 +222,19 @@ class Object:
   def getLocation():
     """
     Returns the object's location (x, y, z).
-    @rtype: A vector triple
     @return: (x, y, z)
+
+    I{B{Example:}}
+
+    The example below works on the default scene. It retrieves all objects in
+    the scene and prints the name and location of each object::
+      import Blender
+
+      objects = Blender.Object.Get()
+
+      for obj in objects:
+          print obj.getName()
+          print obj.getLocation()
     """
 
   def getMaterials():
@@ -194,8 +254,18 @@ class Object:
   def getName():
     """
     Returns the name of the object
-    @rtype: string
     @return: The name of the object
+
+    I{B{Example:}}
+
+    The example below works on the default scene. It retrieves all objects in
+    the scene and prints the name of each object::
+      import Blender
+
+      objects = Blender.Object.Get()
+
+      for obj in objects:
+          print obj.getName()
     """
 
   def getParent():
@@ -217,8 +287,25 @@ class Object:
   def getType():
     """
     Returns the type of the object.
-    @rtype: string
     @return: The type of object.
+
+    I{B{Example:}}
+
+    The example below works on the default scene. It retrieves all objects in
+    the scene and updates the location and rotation of the camera. When run,
+    the camera will rotate 180 degrees and moved to the oposite side of the X
+    axis. Note that the number 'pi' in the example is an approximation of the
+    true number 'pi'::
+        import Blender
+
+        objects = Blender.Object.Get()
+
+        for obj in objects:
+            if obj.getType() == 'Camera':
+                obj.LocY = -obj.LocY
+                obj.RotZ = 3.141592 - obj.RotZ
+
+        Blender.Redraw()
     """
 
   def link(object):
@@ -279,19 +366,26 @@ class Object:
         - 5 - Textured
     """
 
-  def setEuler(rotation):
+  def setEuler(x, y, z):
     """
-    Sets the object's rotation according to the specified Euler angles. The
-    argument must be a vector triple.
-    @type rotation: A vector triple
-    @param rotation: A vector triple (x, y, z) specifying the Euler angles.
+    Sets the object's rotation according to the specified Euler angles.
+    @type x: float
+    @param x: The rotation angle in radians for the X direction.
+    @type y: float
+    @param y: The rotation angle in radians for the Y direction.
+    @type z: float
+    @param z: The rotation angle in radians for the Z direction.
     """
 
-  def setLocation(location):
+  def setLocation(x, y, z):
     """
-    Sets the object's location. The argument must be a vector triple.
-    @type location: A vector triple
-    @param location: A vector triple (x, y, z) specifying the new location.
+    Sets the object's location.
+    @type x: float
+    @param x: The X coordinate of the new location.
+    @type y: float
+    @param y: The Y coordinate of the new location.
+    @type z: float
+    @param z: The Z coordinate of the new location.
     """
 
   def setMaterials(materials):
