@@ -162,6 +162,23 @@ class Material:
     @return: True if there was an ipo linked or False otherwise.
     """
 
+  def insertIpoKey(keytype):
+    """
+    Inserts keytype values in material ipo at curframe. Uses module constants.
+    @type keytype: Integer
+    @param keytype:
+           -RGB
+           -ALPHA
+           -HALOSIZE
+           -MODE
+           -ALLCOLOR
+           -ALLMIRROR
+           -OFS
+           -SIZE
+           -ALLMAPPING
+    @return: py_none
+    """
+
   def getMode():
     """
     Get this Material's mode flags.
