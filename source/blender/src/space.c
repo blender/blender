@@ -1188,7 +1188,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if (G.qual==LR_SHIFTKEY) {
 					if (G.obedit && G.obedit->type==OB_MESH) {
-						transform('e');
+						Transform(TFM_CREASE, CTX_EDGE);
 					}
 				}
 				break;

@@ -48,6 +48,7 @@
 #define TFM_LAMP_ENERGY		10
 #define TFM_TRACKBALL		11
 #define TFM_PUSHPULL		12
+#define TFM_CREASE			13
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0

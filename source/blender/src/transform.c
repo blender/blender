@@ -244,6 +244,8 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 
 /* ************************** CONVERSIONS ************************* */
 
+/* ********************* texture space ********* */
+
 static void createTransTexspace(TransInfo *t)
 {
 	TransData *td;
@@ -291,6 +293,74 @@ static void createTransTexspace(TransInfo *t)
 	VECCOPY(td->ext->isize, td->ext->size);
 }
 
+/* ********************* edge (for crease) ***** */
+
+static void createTransEdge(TransInfo *t) {
+	TransData *td = NULL;
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	Mesh *me = G.obedit->data;
+	EditVert **nears = NULL;
+	float *vectors = NULL;
+	float mtx[3][3], smtx[3][3];
+	int count=0, countsel=0;
+	int propmode = t->flag & T_PROP_EDIT;
+
+	/* THIS IS A REALLY STUPID HACK, MUST BE A BETTER WAY TO DO IT */
+	/* this is sufficient to invoke edges added in mesh, but only in editmode */
+	if(me->medge==NULL) {
+		me->medge= MEM_callocN(sizeof(MEdge), "fake medge");
+		me->totedge= 1;
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+					
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->h==0) {
+			if (eed->f & SELECT) countsel++;
+			if (propmode) count++;
+		}
+	}
+
+	if (countsel == 0)
+		return;
+
+	if(propmode) {
+		t->total = count;
+	}
+	else {
+		t->total = countsel;
+	}
+
+	td= t->data= MEM_callocN(t->total * sizeof(TransData), "TransCrease");
+
+	Mat3CpyMat4(mtx, G.obedit->obmat);
+	Mat3Inv(smtx, mtx);
+
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->h==0 && (eed->f & SELECT || propmode)) {
+			/* need to set center for center calculations */
+			VecAddf(td->center, eed->v1->co, eed->v2->co);
+			VecMulf(td->center, 0.5f);
+
+			td->loc= NULL;
+			if (eed->f & SELECT)
+				td->flag= TD_SELECTED;
+			else 
+				td->flag= 0;
+
+
+			Mat3CpyMat3(td->smtx, smtx);
+			Mat3CpyMat3(td->mtx, mtx);
+
+			td->ext = NULL;
+			td->tdi = NULL;
+			td->val = &(eed->crease);
+			td->ival = eed->crease;
+
+			td++;
+		}
+	}
+}
 
 /* ********************* pose mode ************* */
 
@@ -411,8 +481,8 @@ static void createTransPose(TransInfo *t)
 	if(t->total==0) return;
 	
 	/* init trans data */
-    td = t->data = MEM_mallocN(Trans.total*sizeof(TransData), "TransPoseBone");
-    tdx = t->ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "TransPoseBoneExt");
+    td = t->data = MEM_mallocN(t->total*sizeof(TransData), "TransPoseBone");
+    tdx = t->ext = MEM_mallocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
 	for(i=0; i<t->total; i++, td++, tdx++) {
 		td->ext= tdx;
 		td->tdi = NULL;
@@ -423,6 +493,8 @@ static void createTransPose(TransInfo *t)
 	add_pose_transdata(&arm->bonebase, G.obpose, &td);
 	
 }
+
+/* ********************* armature ************** */
 
 static void createTransArmatureVerts(TransInfo *t)
 {
@@ -445,7 +517,7 @@ static void createTransArmatureVerts(TransInfo *t)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    td = t->data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditBone");
+    td = t->data = MEM_mallocN(t->total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
@@ -482,6 +554,8 @@ static void createTransArmatureVerts(TransInfo *t)
 	}
 }
 
+/* ********************* meta elements ********* */
+
 static void createTransMBallVerts(TransInfo *t)
 {
  	MetaElem *ml;
@@ -503,8 +577,8 @@ static void createTransMBallVerts(TransInfo *t)
 	if(propmode) t->total = count; 
 	else t->total = countsel;
 	
-	td = t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(MBall EditMode)");
-	tx = t->ext = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "MetaElement_TransExtension");
+	td = t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(MBall EditMode)");
+	tx = t->ext = MEM_mallocN(t->total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -540,6 +614,8 @@ static void createTransMBallVerts(TransInfo *t)
 		}
 	}
 } 
+
+/* ********************* curve/surface ********* */
 
 static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 	TransData *td, *td_near = NULL;
@@ -622,7 +698,7 @@ static void createTransCurveVerts(TransInfo *t)
 	
 	if(propmode) Trans.total = count; 
 	else t->total = countsel;
-	t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Curve EditMode)");
+	t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(Curve EditMode)");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -715,6 +791,8 @@ static void createTransCurveVerts(TransInfo *t)
 	}
 }
 
+/* ********************* lattice *************** */
+
 static void createTransLatticeVerts(TransInfo *t)
 {
 	TransData *td = NULL;
@@ -737,7 +815,7 @@ static void createTransLatticeVerts(TransInfo *t)
 	
 	if(propmode) t->total = count; 
 	else t->total = countsel;
-	t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Lattice EditMode)");
+	t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(Lattice EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -767,6 +845,8 @@ static void createTransLatticeVerts(TransInfo *t)
 		bp++;
 	}
 } 
+
+/* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
 #define E_VEC(a)	(vectors + (3 * (int)(a)->vn))
@@ -905,8 +985,8 @@ static void createTransEditVerts(TransInfo *t)
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditVert **nears = NULL;
-	float mtx[3][3], smtx[3][3];
 	float *vectors = NULL;
+	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 		
@@ -953,11 +1033,11 @@ static void createTransEditVerts(TransInfo *t)
 		t->total = count; 
 	
 		/* allocating scratch arrays */
-		vectors = (float *)malloc(Trans.total * 3 * sizeof(float));
-		nears = (EditVert**)malloc(Trans.total * sizeof(EditVert*));
+		vectors = (float *)malloc(t->total * 3 * sizeof(float));
+		nears = (EditVert**)malloc(t->total * sizeof(EditVert*));
 	}
 	else t->total = countsel;
-	tob= t->data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Mesh EditMode)");
+	tob= t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -1419,6 +1499,16 @@ static void createTransData(TransInfo *t)
 		t->flag |= T_TEXTURE;
 		createTransTexspace(t);
 	}
+	else if (t->context == CTX_EDGE) {
+		t->ext = NULL;
+		t->flag |= T_EDIT;
+		createTransEdge(t);
+		if(t->data && t->flag & T_PROP_EDIT) {
+			sort_trans_data(t);	// makes selected become first in array
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
+	}
 	else if (G.obpose) {
 		t->flag |= T_POSE;
 		createTransPose(t);
@@ -1553,6 +1643,9 @@ void Transform(int mode, int context)
 		break;
 	case TFM_PUSHPULL:
 		initPushPull(&Trans);
+		break;
+	case TFM_CREASE:
+		initCrease(&Trans);
 		break;
 	}
 
@@ -3146,6 +3239,99 @@ int PushPull(TransInfo *t, short mval[2])
 	headerprint(str);
 
 	force_draw(0);
+
+	return 1;
+}
+
+/* ************************** CREASE *************************** */
+
+void initCrease(TransInfo *t) 
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = Crease;
+	t->fac = (float)sqrt( (float)
+		(
+			(t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
+		+
+			(t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
+		) );
+
+	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
+}
+
+int Crease(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float crease;
+	int i;
+	char str[50];
+
+		
+	if(t->flag & T_SHIFT_MOD) {
+		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+		crease = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		
+		dx= (float)(t->center2d[0] - mval[0]);
+		dy= (float)(t->center2d[1] - mval[1]);
+		crease+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -crease);
+		
+	}
+	else {
+		float dx= (float)(t->center2d[0] - mval[0]);
+		float dy= (float)(t->center2d[1] - mval[1]);
+		crease = (float)sqrt( dx*dx + dy*dy)/t->fac;
+	}
+
+	crease -= 1.0f;
+	if (crease > 1.0f) crease = 1.0f;
+
+	snapGrid(t, &crease);
+
+	applyNumInput(&t->num, &crease);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+
+		if (crease >= 0.0f)
+			sprintf(str, "Crease: +%s", c, t->proptext);
+		else
+			sprintf(str, "Crease: %s", c, t->proptext);
+	}
+	else {
+		/* default header print */
+		if (crease >= 0.0f)
+			sprintf(str, "Crease: +%.3f %s", crease, t->proptext);
+		else
+			sprintf(str, "Crease: %.3f %s", crease, t->proptext);
+	}
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->val) {
+			*td->val = td->ival + crease * td->factor;
+			if (*td->val < 0.0f) *td->val = 0.0f;
+			if (*td->val > 1.0f) *td->val = 1.0f;
+		}
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	force_draw(0);
+
+	helpline (t->center);
 
 	return 1;
 }

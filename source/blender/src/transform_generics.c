@@ -338,6 +338,9 @@ void initTransModeFlags(TransInfo *t, int mode)
 	case TFM_SHEAR:
 		t->flag |= T_NO_CONSTRAINT;
 		break;
+	case TFM_CREASE:
+		t->flag |= T_NO_CONSTRAINT;
+		break;
 	}
 }
 
@@ -523,7 +526,10 @@ static void restore_ipokey(float *poin, float *old)
 }
 
 void restoreElement(TransData *td) {
-	VECCOPY(td->loc, td->iloc);
+	/* TransData for crease has no loc */
+	if (td->loc) {
+		VECCOPY(td->loc, td->iloc);
+	}
 	if (td->val) {
 		*td->val = td->ival;
 	}
