@@ -371,10 +371,11 @@ static PyObject *M_Mathutils_AngleBetweenVecs( PyObject * self,
 {
 	VectorObject *vec1;
 	VectorObject *vec2;
-	float dot, angleRads, norm;
+	float norm;
+	double dot, angleRads;
 	int x;
 
-	dot = 0;
+	dot = 0.0f;
 	if( !PyArg_ParseTuple
 	    ( args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2 ) )
 		return ( EXPP_ReturnPyObjError
@@ -412,10 +413,9 @@ static PyObject *M_Mathutils_AngleBetweenVecs( PyObject * self,
 	}
 
 	//I believe saacos checks to see if the vectors are normalized
-	angleRads = saacos( dot );
+	angleRads = (double)acos( dot );
 
-	return PyFloat_FromDouble( ( double )
-				   ( angleRads * ( 180 / Py_PI ) ) );
+	return PyFloat_FromDouble( angleRads * ( 180 / Py_PI ) );
 }
 
 static PyObject *M_Mathutils_MidpointVecs( PyObject * self, PyObject * args )
