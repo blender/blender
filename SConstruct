@@ -4,6 +4,10 @@ import time
 import sys
 from distutils import sysconfig
 
+if sys.platform != 'win32':
+	sys.stdout = os.popen("tee build.log", "w")
+	sys.stderr = sys.stdout
+
 # Build directory.
 root_build_dir = '..' + os.sep + 'build' + os.sep + sys.platform + os.sep
 
@@ -33,10 +37,10 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
     use_quicktime = 'false'
     use_sumo = 'true'
     use_ode = 'false'
-    use_buildinfo = 'false'
+    use_buildinfo = 'true'
     build_blender_dynamic = 'true'
     build_blender_static = 'false'
-    build_blender_player = 'false'
+    build_blender_player = 'true'
     build_blender_plugin = 'false'
     release_flags = ['-O2']
     debug_flags = ['-O2', '-g']
@@ -113,10 +117,10 @@ elif sys.platform == 'darwin':
     use_precomp = 'true'
     use_sumo = 'true'
     use_ode = 'false'
-    use_buildinfo = 'false'
+    use_buildinfo = 'true'
     build_blender_dynamic = 'true'
     build_blender_static = 'false'
-    build_blender_player = 'false'
+    build_blender_player = 'true'
     build_blender_plugin = 'false'
     # TODO: replace darwin-6.1-powerpc with the actual directiory on the
     #       build machine
@@ -295,10 +299,10 @@ elif sys.platform == 'win32':
     use_quicktime = 'true'
     use_sumo = 'true'
     use_ode = 'false'
-    use_buildinfo = 'false'
+    use_buildinfo = 'true'
     build_blender_dynamic = 'true'
     build_blender_static = 'false'
-    build_blender_player = 'false'
+    build_blender_player = 'true'
     build_blender_plugin = 'false'
     release_flags = ['/Og', '/Ot', '/Ob1', '/Op', '/G6']
     debug_flags = ['/Zi', '/Fr${TARGET.base}.sbr']
@@ -1082,7 +1086,151 @@ def buildinfo(env, build_type):
 						[root_build_dir+'source/creator/buildinfo.c'])]
 	return obj
 
-def BlenderBundle(target):
+def add2arc(arc, file):
+	if sys.platform == 'win32':
+		arc.write(file)
+	else:
+		arc.add(file)
+
+def zipit(env, target, source):
+	try:
+		if sys.platform == 'win32':
+			import zipfile
+		else:
+			import tarfile
+	except:
+		if sys.platform == 'win32':
+			print "no zipfile module found"
+		else:
+			print "no tarfile module found"
+		print
+		return
+	
+	try:
+		import shutil
+	except:
+		print "no shutil available"
+		print
+		return
+	
+	import glob
+	import time
+	
+	today = time.strftime("%Y%m%d", time.gmtime())
+	
+	print "Prepare the zip"
+	print
+	
+	# first copy files around
+	if sys.platform == 'win32':
+		shutil.copy("blender.exe", "bin/blender.exe")
+		shutil.copy("blenderplayer.exe", "bin/blenderplayer.exe")
+		shutil.copy("../lib/windows/python/lib/python23.dll", "bin/python23.dll")
+		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "bin/SDL.dll")
+		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "bin/gnu_gettext.dll")
+	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
+		shutil.copy("blender", "bin/blender")
+		shutil.copy("blenderplayer", "bin/blenderplayer")
+	else:
+		print "update zipit() for your platform!"
+		return
+	
+	pf=""
+	zipext = ""
+	zipname = ""
+	
+	if sys.platform == 'win32':
+		zipext += ".zip"
+		pf = "windows"
+	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
+		zipext += ".tar.gz"
+		pf = "linux"
+	
+	zipname = "bf_blender_" + pf+ "_" + today + zipext
+	
+	os.chdir("release")
+	
+	if os.path.isdir("../bin/.blender/scripts"):
+		shutil.rmtree("../bin/.blender/scripts")
+
+	shutil.copytree("scripts/", "../bin/.blender/scripts")
+
+	os.chdir("..")	
+	os.chdir("bin")
+	
+	print
+	if sys.platform == 'win32':
+		print "Create the zip!"
+	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
+		print "Create the tarball!"
+	print
+	
+	if sys.platform == 'win32':
+		thezip = zipfile.ZipFile(zipname, 'w', zipfile.ZIP_DEFLATED)
+	else:
+		thezip = tarfile.open(zipname, 'w:gz')
+	
+	rootdir = glob.glob("*")
+	for file in rootdir:
+		if os.path.isdir(file) == 0:
+			if string.find(file, zipname)==-1:
+				print "adding: " + file
+				add2arc(thezip, file)
+	
+	dotblenderdir = os.listdir(".blender")
+	for resource in dotblenderdir:
+		if os.path.isdir(".blender/" + resource) == 0:
+			print ".blender/" + resource
+			add2arc(thezip, ".blender/" + resource)
+
+	scripts_list = glob.glob(".blender/scripts/*")
+	for script in scripts_list:
+		if os.path.isdir(script) == 0:
+			print script
+			add2arc(thezip, script)
+	
+	locales_list = glob.glob(".blender/locale/*")
+	for locale in locales_list:
+		if string.find(locale, "CVS")==-1:
+			print locale + "/LC_MESSAGES/blender.mo"
+			add2arc(thezip, locale + "/LC_MESSAGES/blender.mo")
+	
+	thezip.close()
+	
+	print
+	print "Blender has been successfully packaged"
+	print "You can find the file %s in the bin/ directory"%zipname
+	print
+	
+	os.chdir("..")
+
+def printadd(env, target, source)
+	"""
+	Print warning message if platform hasn't been added to zipit() yet
+	"""
+	
+	print
+	print "############"
+	print 
+	print "Make sure zipit() works for your platform:"
+	print "  - binaries to copy (naming?)"
+	print "  - possible libraries?"
+	print "  - archive format?"
+	print
+	print "After you've corrected zipit() for your"
+	print "platform, be sure to add a proper elif"
+	print "at the end of BlenderRelease"
+	print
+	print "Blender is now ready and can be found in"
+	print "root of the source distribution, but it"
+	print "hasn't been packaged neatly. Make sure you"
+	print "get the right files"
+	print
+	print "/jesterKing"
+	print
+	
+
+def BlenderRelease(target):
 	"""
 	Make a MacOSX bundle.
 	
@@ -1111,7 +1259,24 @@ def BlenderBundle(target):
 				'chmod +x $TARGET && ' + \
 				'find %s.app -name CVS -prune -exec rm -rf {} \; && '%target +
 				'find %s.app -name .DS_Store -exec rm -rf {} \;'%target)
-
+	elif sys.platform == 'win32':
+		release_env = Environment()
+		blender_app = target
+		releaseit = release_env.Command('blender.zip', 'blender.exe', zipit)
+		release_env.Depends(releaseit, 'blenderplayer.exe')
+		release_env.Alias("release", releaseit)
+	elif sys.platform == 'linux2' or sys.platform == 'linux-i386':
+		release_env = Environment()
+		blender_app = target
+		releaseit = release_env.Command('other', 'blender', zipit)
+		release_env.Depends(releaseit, 'blenderplayer')
+		release_env.Alias("release", releaseit)
+	else:
+		release_env = Environment()
+		blender_app = target
+		releaseit = release_env.Command('blender.tar.gz', 'blender', printadd)
+		release_env.Depends(releaseit, 'blenderplayer')
+		release_env.Alias("release", releaseit)
 
 if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
 	dy_blender = link_env.Copy ()
@@ -1141,7 +1306,7 @@ if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
 	blender_libs(st_blender)
 	common_libs(st_blender)
 	international_libs(st_blender)
-	ketsji_libs(dst_blender)
+	ketsji_libs(st_blender)
 	system_libs(st_blender)
 	# The next line is to make sure that the LINKFLAGS are appended at the end
 	# of the link command. This 'trick' is needed because the GL and GLU static
@@ -1152,8 +1317,6 @@ if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
 	st_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
 	st_blender.Prepend (LIBPATH=['/usr/lib/opengl/xfree/lib'])
 	st_blender.Program (target='blenderstatic', source=s_obj)
-
-BlenderBundle('blender')
 
 if sys.platform=='win32':
     if user_options_dict['BUILD_BINARY']=='debug':
@@ -1183,7 +1346,6 @@ if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_G
 		if sys.platform == 'cygwin':
 			player_blender.Replace (CC='g++')
 		player_blender.Program (target='blenderplayer', source=d_obj)
-	BlenderBundle('blenderplayer')
 	if sys.platform=='win32':
 		if user_options_dict['BUILD_BINARY']=='debug':
 			browser = Environment()
@@ -1192,3 +1354,8 @@ if user_options_dict['BUILD_BLENDER_PLAYER'] == 1 and user_options_dict['BUILD_G
 			['dir /b/s '+root_build_dir+'*.sbr >'+browser_tmp,
 			'bscmake /nologo /n /oblenderplayer.bsc @'+browser_tmp,
 			'del '+browser_tmp])
+
+release_target = env.Alias("release", BlenderRelease('blender'))
+
+env.Depends(release_target, 'blenderplayer$PROGSUFFIX')
+env.Depends(release_target, 'blender$PROGSUFFIX')
