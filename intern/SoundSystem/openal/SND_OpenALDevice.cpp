@@ -202,6 +202,9 @@ ALvoid alutUnloadWAV(ALenum format,ALvoid *data,ALsizei size,ALsizei freq)
 
 #endif /* WIN32 */
 
+#ifdef __APPLE__
+#define OUDE_OPENAL 1
+#endif
 
 
 SND_OpenALDevice::SND_OpenALDevice()
