@@ -2439,7 +2439,7 @@ static PyObject *NMesh_getVertsFromGroup (PyObject *self, PyObject *args)
 	float weight;
 	int i, k, l1, l2, count;
 	int num = 0;
-	PyObject* tempVertexList;
+	PyObject* tempVertexList = NULL;
 	PyObject* vertexList;
 	PyObject* listObject; 
 	int tempInt;
@@ -2483,8 +2483,13 @@ static PyObject *NMesh_getVertsFromGroup (PyObject *self, PyObject *args)
 		if(nIndex == -1)
 			return EXPP_ReturnPyObjError (PyExc_AttributeError,
 					 "no deform groups assigned to mesh");
+
 	//temporary list
 	tempVertexList = PyList_New(((Mesh*)object->data)->totvert); 
+	if (tempVertexList == NULL)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"getVertsFromGroup: can't create pylist!");
+
 	count = 0;
 
 	if (listObject == (void *)-2054456) //do entire group
@@ -2558,6 +2563,8 @@ static PyObject *NMesh_getVertsFromGroup (PyObject *self, PyObject *args)
 	}
 	//only return what we need
 	vertexList = PyList_GetSlice(tempVertexList, 0, count);
+
+	Py_DECREF(tempVertexList);
 
 	return (vertexList);
 }
