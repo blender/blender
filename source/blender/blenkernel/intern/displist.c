@@ -453,7 +453,8 @@ static void initfastshade(void)
 	Mat4Ortho(R.viewinv);
 	Mat4Invert(fviewmat, R.viewinv);
 
-
+	init_render_material(&defmaterial);
+	
 	/* initrendertexture(); */
 
 	base= G.scene->base.first;
@@ -509,6 +510,7 @@ void freefastshade()
 		
 		MEM_freeN(fl);
 	}
+	end_render_material(&defmaterial);
 }
 
 
@@ -931,16 +933,15 @@ void shadeDispList(Object *ob)
 	/* Metaballs have the standard displist in the Object */
 	if(ob->type!=OB_MBALL) freedisplist(&ob->disp);
 
-	if((R.flag & R_RENDERING)==0) {
-		need_orco= 0;
-		for(a=0; a<ob->totcol; a++) {
-			ma= give_current_material(ob, a+1);
-			if(ma) {
-				init_render_material(ma);
-				if(ma->ren->texco & TEXCO_ORCO) need_orco= 1;
-			}
+	need_orco= 0;
+	for(a=0; a<ob->totcol; a++) {
+		ma= give_current_material(ob, a+1);
+		if(ma) {
+			init_render_material(ma);
+			if(ma->ren->texco & TEXCO_ORCO) need_orco= 1;
 		}
 	}
+
 	if(ob->type==OB_MESH) {
 		
 		me= ob->data;
@@ -1286,11 +1287,9 @@ void shadeDispList(Object *ob)
 		}
 	}
 	
-	if((R.flag & R_RENDERING)==0) {
-		for(a=0; a<ob->totcol; a++) {
-			ma= give_current_material(ob, a+1);
-			if(ma) end_render_material(ma);
-		}
+	for(a=0; a<ob->totcol; a++) {
+		ma= give_current_material(ob, a+1);
+		if(ma) end_render_material(ma);
 	}
 
 	/* this one was temporally removed */
