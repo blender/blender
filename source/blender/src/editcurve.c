@@ -293,7 +293,7 @@ void load_editNurb()
 		
 	}
 	
-	lastnu= 0;	/* for selected */
+	lastnu= NULL;	/* for selected */
 	
 }
 
@@ -309,7 +309,7 @@ void make_editNurb()
 
 	if(G.obedit==0) return;
 
-	lastselbp= 0;   /* global for select row */
+	lastselbp= NULL;   /* global for select row */
 
 	if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 		freeNurblist(&editNurb);
@@ -360,7 +360,7 @@ void make_editNurb()
 	
 	countall();
 	
-	lastnu= 0;	/* for selected */
+	lastnu= NULL;	/* for selected */
 }
 
 void remake_editNurb()
@@ -458,8 +458,9 @@ void separate_nurb()
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 
-	lastnu= 0;	/* for selected */
+	lastnu= NULL;	/* for selected */
 }
 
 /* ******************* FLAGS ********************* */
@@ -633,7 +634,7 @@ void deleteflagNurb(short flag)
 	if(G.obedit && G.obedit->type==OB_SURF);
 	else return;
 
-	lastselbp= 0;
+	lastselbp= NULL;
 
 	nu= editNurb.first;
 	while(nu) {
@@ -1236,6 +1237,7 @@ void hideNurb(int swap)
 	makeDispList(G.obedit);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void revealNurb()
@@ -1691,6 +1693,7 @@ void subdivideNurb()
 	makeDispList(G.obedit);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 
@@ -2209,12 +2212,14 @@ void merge_2_nurb(Nurb *nu1, Nurb *nu2)
 		}
 	}
 
-	/* merge knots */
-	makeknots(nu1, 1, nu1->flagu>>1);
-
-	/* make knots, for merged curved for example */
-	makeknots(nu1, 2, nu1->flagv>>1);
-
+	if((nu1->type & 7)==4) {
+		/* merge knots */
+		makeknots(nu1, 1, nu1->flagu>>1);
+	
+		/* make knots, for merged curved for example */
+		makeknots(nu1, 2, nu1->flagv>>1);
+	}
+	
 	MEM_freeN(temp);
 	BLI_remlink(&editNurb, nu2);
 	freeNurb(nu2);
@@ -2264,9 +2269,11 @@ void merge_nurb()
 	
 	BLI_freelistN(&nsortbase);
 	
+	countall();
+	lastnu= NULL;
 	makeDispList(G.obedit);
 	allqueue(REDRAWVIEW3D, 0);
-	
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 
@@ -2281,7 +2288,7 @@ void addsegment_nurb()
 
 	/* first decide if this is a surface merge! */
 	if(G.obedit->type==OB_SURF) nu= editNurb.first;
-	else nu= 0;
+	else nu= NULL;
 	
 	while(nu) {
 		if( isNurbsel(nu) ) {
@@ -2415,9 +2422,13 @@ void addsegment_nurb()
 				freeNurb(nu2);
 			}
 		}
+		
+		lastnu= NULL;	/* for selected */
+
 		makeDispList(G.obedit);
 		countall();
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 	}
 	else error("Can't make segment");
 }
@@ -2734,6 +2745,7 @@ void addvert_Nurb(int mode)
 	makeDispList(G.obedit);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 
 	if(mode=='e') transform('d');
 	else while(get_mbut()&R_MOUSE) BIF_wait_for_statechange();
@@ -2933,8 +2945,8 @@ void selectrow_nurb()
 	int u = 0, v = 0, a, b, ok=0;
 
 	if(editNurb.first==0) return;
-	if(G.obedit==0 || G.obedit->type!=OB_SURF) return;
-	if(lastselbp==0) return;
+	if(G.obedit==NULL || G.obedit->type!=OB_SURF) return;
+	if(lastselbp==NULL) return;
 
 	/* find the correct nurb and toggle with u of v */
 	nu= editNurb.first;
@@ -3011,6 +3023,7 @@ void delNurb()
 		countall();
 		makeDispList(G.obedit);
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		return;
 	}
 
@@ -3125,6 +3138,7 @@ void delNurb()
 									nu->flagu--;
 									makeDispList(G.obedit);
 									allqueue(REDRAWVIEW3D, 0);
+									allqueue(REDRAWBUTSEDIT, 0);
 								}
 							}
 							return;
@@ -3150,6 +3164,7 @@ void delNurb()
 									nu->flagu--;
 									makeDispList(G.obedit);
 									allqueue(REDRAWVIEW3D, 0);
+									allqueue(REDRAWBUTSEDIT, 0);
 								}
 							}
 							return;
@@ -3249,6 +3264,7 @@ void delNurb()
 	countall();
 	makeDispList(G.obedit);
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 
@@ -3331,6 +3347,7 @@ void join_curve(int type)
 	exit_editmode(1);
 	
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 
@@ -3875,7 +3892,7 @@ void clever_numbuts_curve()
 	float old[3], delta[3];
 	int a;
 	
-	if(lastnu==0) return;
+	if(lastnu==NULL) return;
 	if(lastnu->bp) {
 		bp= lastnu->bp;
 		a= lastnu->pntsu*lastnu->pntsv;
