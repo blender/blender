@@ -172,7 +172,7 @@ typedef struct {
 	short mode;
 	short flag;
 	unsigned char transp;
-	PyObject *image; /* Image; was DataBlock *tpage */
+	PyObject *image; /* Image; was DataBlock *tpage -- PyObj is wrong, change it*/
 	char mat_nr, smooth;
 
 } C_NMFace; /* an NMesh face */

@@ -29,33 +29,31 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_constant_H
-#define EXPP_constant_H
+#ifndef EXPP_rgbTuple_H
+#define EXPP_rgbTuple_H
 
 #include <Python.h>
 #include <stdio.h>
 
 #include "gen_utils.h"
 
-/* Objects of <type 'constant'> are used inside many other Blender Python
+/* Objects of <type 'rgbTuple'> are used inside other Blender Python
  * objects, so this header file must contain only 'public' declarations */
 
 /*****************************************************************************/
-/* Python API function prototypes for the constant module.                   */
-/*****************************************************************************/
-PyObject *M_constant_New (void);
-
-/*****************************************************************************/
-/* Python C_constant structure definition:                                   */
+/* Python C_rgbTuple structure definition:                                   */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
-  PyObject *dict;
-} C_constant;
+	float *rgb[3]; /* array of three pointers to floats */
+
+} C_rgbTuple;
 
 /*****************************************************************************/
-/* Python C_constant methods declarations:                                   */
+/* Python API function prototypes for the rgbTuple helper module.            */
 /*****************************************************************************/
-void constant_insert(C_constant *self, char *name, PyObject *args);
+PyObject *rgbTuple_New (float *rgb[3]);
+PyObject *rgbTuple_getCol (C_rgbTuple *self);
+PyObject *rgbTuple_setCol (C_rgbTuple *self, PyObject *args);
 
-#endif /* EXPP_constant_H */
+#endif /* EXPP_rgbTuple_H */

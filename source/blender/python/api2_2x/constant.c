@@ -102,16 +102,12 @@ static PyObject *new_const(void)
   constant = (C_constant *)PyObject_NEW(C_constant, &constant_Type);
 
   if (constant == NULL)
-  {
     return (PythonReturnErrorObject (PyExc_MemoryError,
                             "couldn't create constant object"));
-  }
 
   if ((constant->dict = PyDict_New()) == NULL)
-  {
     return (PythonReturnErrorObject (PyExc_MemoryError,
                     "couldn't create constant object's dictionary"));
-  }
   
   return (PyObject *)constant;
 }
@@ -122,9 +118,7 @@ static PyObject *new_const(void)
 void constant_insert(C_constant *self, char *key, PyObject *value)
 {
   if (self->dict)
-  {
     PyDict_SetItemString(self->dict, key, value); 
-  }
 }
 
 /*****************************************************************************/
@@ -144,23 +138,21 @@ static void constantDeAlloc (C_constant *self)
 /*              the function that accesses C_constant member variables and   */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject* constantGetAttr (C_constant *self, char *name)
+static PyObject *constantGetAttr (C_constant *self, char *name)
 {
   if (self->dict)
   {
     PyObject *v;
 
     if (!strcmp(name, "__members__"))
-    {
       return PyDict_Keys(self->dict);
-    }
  
     v  = PyDict_GetItemString(self->dict, name);
-    if (v)
-    {
+    if (v) {
       Py_INCREF(v); /* was a borrowed ref */
       return v;
     }
+
     return (PythonReturnErrorObject (PyExc_AttributeError,
                                      "attribute not found"));
   }
@@ -180,11 +172,10 @@ static int constantLength(C_constant *self)
 
 static PyObject *constantSubscript(C_constant *self, PyObject *key)
 {
-  if (self->dict)
-  {
+  if (self->dict) {
     PyObject *v = PyDict_GetItem(self->dict, key);
-    if (v)
-    {
+
+		if (v) {
       Py_INCREF(v);
       return v;
     }

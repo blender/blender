@@ -43,6 +43,7 @@
 #include <DNA_lamp_types.h>
 
 #include "constant.h"
+#include "rgbTuple.h"
 #include "gen_utils.h"
 #include "modules.h"
 
@@ -165,6 +166,8 @@ struct PyMethodDef M_Lamp_methods[] = {
 typedef struct {
   PyObject_HEAD
   Lamp *lamp;
+	PyObject *color;
+
 } C_Lamp;
 
 /*****************************************************************************/
@@ -187,6 +190,7 @@ static PyObject *Lamp_getSoftness(C_Lamp *self);
 static PyObject *Lamp_getHaloInt(C_Lamp *self);
 static PyObject *Lamp_getQuad1(C_Lamp *self);
 static PyObject *Lamp_getQuad2(C_Lamp *self);
+static PyObject *Lamp_getCol(C_Lamp *self);
 static PyObject *Lamp_setName(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setType(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setIntType(C_Lamp *self, PyObject *args);
@@ -206,6 +210,8 @@ static PyObject *Lamp_setSoftness(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setHaloInt(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setQuad1(C_Lamp *self, PyObject *args);
 static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args);
+static PyObject *Lamp_setCol(C_Lamp *self, PyObject *args);
+
 static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
                 PyObject *args);
 
@@ -217,8 +223,7 @@ static PyMethodDef C_Lamp_methods[] = {
   {"getName", (PyCFunction)Lamp_getName, METH_NOARGS,
           "() - return Lamp name"},
   {"getType", (PyCFunction)Lamp_getType, METH_NOARGS,
-          "() - return Lamp type -\n\t\
-'Lamp':0, 'Sun':1, 'Spot':2, 'Hemi':3"},
+          "() - return Lamp type - 'Lamp':0, 'Sun':1, 'Spot':2, 'Hemi':3"},
   {"getMode", (PyCFunction)Lamp_getMode, METH_NOARGS,
           "() - return Lamp mode flags (or'ed value)"},
   {"getSamples", (PyCFunction)Lamp_getSamples, METH_NOARGS,
@@ -249,6 +254,8 @@ static PyMethodDef C_Lamp_methods[] = {
           "() - return light intensity value #1 for a Quad Lamp"},
   {"getQuad2", (PyCFunction)Lamp_getQuad2, METH_NOARGS,
           "() - return light intensity value #2 for a Quad Lamp"},
+  {"getCol", (PyCFunction)Lamp_getCol, METH_NOARGS,
+          "() - return light rgb color triplet"},
   {"setName", (PyCFunction)Lamp_setName, METH_VARARGS,
           "(str) - rename Lamp"},
   {"setType", (PyCFunction)Lamp_setType, METH_VARARGS,
@@ -281,6 +288,8 @@ static PyMethodDef C_Lamp_methods[] = {
           "(float) - change light intensity value #1 for a Quad Lamp"},
   {"setQuad2", (PyCFunction)Lamp_setQuad2, METH_VARARGS,
           "(float) - change light intensity value #2 for a Quad Lamp"},
+  {"setCol", (PyCFunction)Lamp_setCol, METH_VARARGS,
+          "(f,f,f) or ([f,f,f]) - change light's rgb color triplet"},
   {0}
 };
 

@@ -53,7 +53,7 @@ static PyObject *M_Lamp_New(PyObject *self, PyObject *args, PyObject *keywords)
 
   bl_lamp = add_lamp(); /* first create in Blender */
   if (bl_lamp) /* now create the wrapper obj in Python */
-    py_lamp = (C_Lamp *)PyObject_NEW(C_Lamp, &Lamp_Type);
+    py_lamp = (C_Lamp *)Lamp_createPyObject(bl_lamp);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                             "couldn't create Lamp Data in Blender"));
@@ -110,11 +110,11 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
     C_Lamp *wanted_lamp = NULL;
 
     while ((lamp_iter) && (wanted_lamp == NULL)) {
-      if (strcmp (name, lamp_iter->id.name+2) == 0) {
-        wanted_lamp = (C_Lamp *)PyObject_NEW(C_Lamp, &Lamp_Type);
-				if (wanted_lamp) wanted_lamp->lamp = lamp_iter;
-      }
-      lamp_iter = lamp_iter->id.next;
+
+			if (strcmp (name, lamp_iter->id.name+2) == 0)
+        wanted_lamp = (C_Lamp *)Lamp_createPyObject(lamp_iter);
+
+			lamp_iter = lamp_iter->id.next;
     }
 
     if (wanted_lamp == NULL) { /* Requested lamp doesn't exist */
@@ -179,6 +179,7 @@ PyObject *M_Lamp_Init (void)
 PyObject *Lamp_createPyObject (Lamp *lamp)
 {
 	C_Lamp *pylamp;
+	float *rgb[3];
 
 	pylamp = (C_Lamp *)PyObject_NEW (C_Lamp, &Lamp_Type);
 
@@ -187,6 +188,12 @@ PyObject *Lamp_createPyObject (Lamp *lamp)
 						"couldn't create C_Lamp object");
 
 	pylamp->lamp = lamp;
+
+	rgb[0] = &lamp->r;
+	rgb[1] = &lamp->g;
+	rgb[2] = &lamp->b;
+
+	pylamp->color = rgbTuple_New(rgb);
 
 	return (PyObject *)pylamp;
 }
@@ -384,9 +391,14 @@ static PyObject *Lamp_getQuad2(C_Lamp *self)
           "couldn't get Lamp.quad2 attribute"));
 }
 
+static PyObject *Lamp_getCol(C_Lamp *self)
+{
+	return rgbTuple_getCol((C_rgbTuple *)self->color);
+}
+
 static PyObject *Lamp_setName(C_Lamp *self, PyObject *args)
 {
-  char *name;
+  char *name = NULL;
   char buf[21];
 
   if (!PyArg_ParseTuple(args, "s", &name))
@@ -755,6 +767,11 @@ static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
+static PyObject *Lamp_setCol(C_Lamp *self, PyObject *args)
+{
+	return rgbTuple_setCol((C_rgbTuple *)self->color, args);
+}
+
 /*****************************************************************************/
 /* Function:    LampDeAlloc                                                  */
 /* Description: This is a callback function for the C_Lamp type. It is       */
@@ -771,7 +788,7 @@ static void LampDeAlloc (C_Lamp *self)
 /*              the function that accesses C_Lamp member variables and       */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject* LampGetAttr (C_Lamp *self, char *name)
+static PyObject *LampGetAttr (C_Lamp *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -793,6 +810,8 @@ static PyObject* LampGetAttr (C_Lamp *self, char *name)
     attr = PyFloat_FromDouble(self->lamp->g);
   else if (strcmp(name, "B") == 0)
     attr = PyFloat_FromDouble(self->lamp->b);
+	else if (strcmp(name, "col") == 0)
+		attr = EXPP_incr_ret(self->color);
   else if (strcmp(name, "energy") == 0)
     attr = PyFloat_FromDouble(self->lamp->energy);
   else if (strcmp(name, "dist") == 0)
@@ -837,13 +856,13 @@ static PyObject* LampGetAttr (C_Lamp *self, char *name)
   }
 
   else if (strcmp(name, "__members__") == 0) {
-    /* 22 entries */
-    attr = Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+    /* 23 entries */
+    attr = Py_BuildValue("[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
                     "name", "type", "mode", "samples", "bufferSize",
                     "haloStep", "R", "G", "B", "energy", "dist",
                     "spotSize", "spotBlend", "clipStart", "clipEnd",
                     "bias", "softness", "haloInt", "quad1", "quad2",
-                    "Types", "Modes");
+                    "Types", "Modes", "col");
   }
 
   if (!attr)
@@ -913,7 +932,9 @@ static int LampSetAttr (C_Lamp *self, char *name, PyObject *value)
     error = Lamp_setQuad1 (self, valtuple);
   else if (strcmp (name, "quad2") == 0)
     error = Lamp_setQuad2 (self, valtuple);
-  
+  else if (strcmp (name, "col") == 0)
+    error = Lamp_setCol (self, valtuple);
+
   else { /* Error */
     Py_DECREF(valtuple);
   
@@ -923,7 +944,7 @@ static int LampSetAttr (C_Lamp *self, char *name, PyObject *value)
                    "constant dictionary -- cannot be changed"));
 
     else /* ... or no member with the given name was found */
-      return (EXPP_ReturnIntError (PyExc_KeyError,
+      return (EXPP_ReturnIntError (PyExc_AttributeError,
                    "attribute not found"));
   }
 

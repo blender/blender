@@ -46,7 +46,7 @@ void mesh_update(Mesh *mesh)
 
 static void NMCol_dealloc(PyObject *self)
 {
-  PyMem_DEL(self);
+  PyMem_DEL(self); /* XXX PyObject_Del ?*/
 }
 
 static C_NMCol *newcol (char r, char g, char b, char a)
