@@ -290,12 +290,27 @@ int EM_zbuffer_edge_visible(float *v1, float *v2, short *val1, short *val2)
 	return 0;
 }
 
+/* helper for findnearest edge */
+static float dist_mval_edge(short *mval, EditEdge *eed)
+{
+	float v1[2], v2[2], mval2[2];
+
+	mval2[0] = (float)mval[0];
+	mval2[1] = (float)mval[1];
+	
+	v1[0] = eed->v1->xs;
+	v1[1] = eed->v1->ys;
+	v2[0] = eed->v2->xs;
+	v2[1] = eed->v2->ys;
+	
+	return PdistVL2Dfl(mval2, v1, v2);
+}
+
 EditEdge *findnearestedge(short *dist)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *closest, *eed;
 	EditVert *eve;
-	float v1[2], v2[2], mval2[2];
 	short mval[2], distance;
 	
 	if(em->edges.first==NULL) return NULL;
@@ -312,21 +327,13 @@ EditEdge *findnearestedge(short *dist)
 	getmouseco_areawin(mval);
 	closest=NULL;
 	
-	mval2[0] = (float)mval[0];
-	mval2[1] = (float)mval[1];
-	
 	/*compare the distance to the rest of the edges and find the closest one*/
 	eed=em->edges.first;
 	while(eed) {
 		/* Are both vertices of the edge ofscreen or either of them hidden? then don't select the edge*/
 		if( !((eed->v1->f & 2) && (eed->v2->f & 2)) && eed->h==0){
-			v1[0] = eed->v1->xs;
-			v1[1] = eed->v1->ys;
-			v2[0] = eed->v2->xs;
-			v2[1] = eed->v2->ys;
 			
-			distance= (short)PdistVL2Dfl(mval2, v1, v2);
-			
+			distance= dist_mval_edge(mval, eed);
 			if(distance < *dist) {
 				if(EM_zbuffer_edge_visible(eed->v1->co, eed->v2->co, &eed->v1->xs, &eed->v2->xs)) {
 					*dist= distance;
@@ -563,6 +570,77 @@ void EM_select_face_fgon(EditFace *efa, int val)
 	}
 }
 
+/* ****************  LOOP SELECTS *************** */
+
+/* selects quads in loop direction of indicated edge */
+/* only flush over edges with valence <= 2 */
+static void faceloop_select(EditEdge *startedge, int select)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	int looking= 1;
+	
+	/* in eed->f1 we put the valence (amount of faces in edge) */
+	/* in eed->f2 we put tagged flag as correct loop */
+	/* in efa->f1 we put tagged flag as correct to select */
+
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f1= 0;
+		eed->f2= 0;
+	}
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		efa->f1= 0;
+		if(efa->h==0) {
+			efa->e1->f1++;
+			efa->e2->f1++;
+			efa->e3->f1++;
+			if(efa->e4) efa->e4->f1++;
+		}
+	}
+	
+	// tag startedge OK
+	startedge->f2= 1;
+	
+	while(looking) {
+		looking= 0;
+		
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->e4 && efa->f1==0) {	// not done quad
+				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { // valence ok
+
+					// if edge tagged, select opposing edge and mark face ok
+					if(efa->e1->f2) {
+						efa->e3->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					else if(efa->e2->f2) {
+						efa->e4->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					if(efa->e3->f2) {
+						efa->e1->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					if(efa->e4->f2) {
+						efa->e2->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+				}
+			}
+		}
+	}
+	
+	/* (de)select the faces */
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f1) EM_select_face(efa, select);
+	}
+}
+
 /* helper for edgeloop_select, checks for eed->f2 tag in faces */
 static int edge_not_in_tagged_face(EditEdge *eed)
 {
@@ -653,6 +731,39 @@ static void edgeloop_select(EditEdge *starteed, int select)
 	}
 }
 
+/* ***************** MAIN MOUSE SELECTION ************** */
+
+// just to have the functions nice together
+static void mouse_mesh_loop(void)
+{
+	EditEdge *eed;
+	short dist= 50;
+	
+	eed= findnearestedge(&dist);
+	if(eed) {
+		
+		if((G.qual & LR_SHIFTKEY)==0) EM_clear_flag_all(SELECT);
+		
+		if((eed->f & SELECT)==0) EM_select_edge(eed, 1);
+		else if(G.qual & LR_SHIFTKEY) EM_select_edge(eed, 0);
+
+		if(G.scene->selectmode & SCE_SELECT_FACE) {
+			faceloop_select(eed, eed->f & SELECT);
+		}
+		else {
+			edgeloop_select(eed, eed->f & SELECT);
+		}
+
+		/* frontbuffer draw of last selected only */
+		unified_select_draw(NULL, eed, NULL);
+		
+		countall();
+		EM_selectmode_flush();
+		
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
 
 /* here actual select happens */
 void mouse_mesh(void)
@@ -661,11 +772,13 @@ void mouse_mesh(void)
 	EditEdge *eed;
 	EditFace *efa;
 	
-	if(unified_findnearest(&eve, &eed, &efa)) {
+	if(G.qual & LR_ALTKEY) mouse_mesh_loop();
+	else if(unified_findnearest(&eve, &eed, &efa)) {
 		
 		if((G.qual & LR_SHIFTKEY)==0) EM_clear_flag_all(SELECT);
 		
 		if(efa) {
+			
 			if( (efa->f & SELECT)==0 ) {
 				EM_select_face_fgon(efa, 1);
 			}
@@ -680,7 +793,6 @@ void mouse_mesh(void)
 			else if(G.qual & LR_SHIFTKEY) {
 				EM_select_edge(eed, 0);
 			}
-			if(G.qual & LR_ALTKEY) edgeloop_select(eed, eed->f & SELECT);
 		}
 		else if(eve) {
 			if((eve->f & SELECT)==0) eve->f |= SELECT;
