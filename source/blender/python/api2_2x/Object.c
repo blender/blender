@@ -112,7 +112,8 @@ static PyObject *Object_materialUsage (BPy_Object *self, PyObject *args);
 static PyObject *Object_setDeltaLocation (BPy_Object *self, PyObject *args);
 static PyObject *Object_setDrawMode (BPy_Object *self, PyObject *args);
 static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args);
-static PyObject *Object_setEuler (BPy_Object *self, PyObject *args);
+static PyObject *Object_setEuler (BPy_Object *self, PyObject *args);\
+static PyObject *Object_setMatrix (BPy_Object *self, PyObject *args);
 static PyObject *Object_setIpo (BPy_Object *self, PyObject *args);
 static PyObject *Object_setLocation (BPy_Object *self, PyObject *args);
 static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args);
@@ -194,6 +195,8 @@ Possible arguments (provide as strings):\n\
   {"setEuler", (PyCFunction)Object_setEuler, METH_VARARGS,
 	"Set the object's rotation according to the specified Euler\n\
 angles. The argument must be a vector triple"},
+  {"setMatrix", (PyCFunction)Object_setMatrix, METH_VARARGS,
+	"Set and apply a new matrix for the object"},
   {"setLocation", (PyCFunction)Object_setLocation, METH_VARARGS,
 	"Set the object's location. The first argument must be a vector\n\
 triple."},
@@ -736,16 +739,16 @@ static PyObject *Object_getDrawType (BPy_Object *self)
 }
 
 static PyObject *Object_getEuler (BPy_Object *self)
-{
-	PyObject *attr = Py_BuildValue ("fff",
-									self->object->rot[0],
-									self->object->rot[1],
-									self->object->rot[2]);
+{  
+	EulerObject *eul;
 
-	if (attr) return (attr);
+	eul = (EulerObject*)newEulerObject(NULL);
+	eul->eul[0] = self->object->rot[0];
+	eul->eul[1] = self->object->rot[1];
+	eul->eul[2] = self->object->rot[2];
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
-			"couldn't get Object.drot attributes"));
+	return (PyObject*)eul; 
+
 }
 
 static PyObject *Object_getInverseMatrix (BPy_Object *self)
@@ -1178,21 +1181,56 @@ static PyObject *Object_setEuler (BPy_Object *self, PyObject *args)
 	float	rot2;
 	float	rot3;
 	int		status;
+	PyObject* ob;
 
-	if (PyObject_Length (args) == 3)
-		status = PyArg_ParseTuple (args, "fff", &rot1, &rot2, &rot3);
-	else
-		status = PyArg_ParseTuple (args, "(fff)", &rot1, &rot2, &rot3);
+	if (!PyArg_ParseTuple (args, "O", &ob))
+		return (PythonReturnErrorObject (PyExc_AttributeError,
+				"unknown type passed to function (setEuler)"));
 
-	if (!status)
-		return EXPP_ReturnPyObjError (PyExc_AttributeError,
-				"expected list argument of 3 floats");
+	//test to see if it's a list or a euler
+	if(PyList_Check(ob)){
+		if (PyObject_Length (args) == 3)
+			status = PyArg_ParseTuple (args, "fff", &rot1, &rot2, &rot3);
+		else
+			status = PyArg_ParseTuple (args, "(fff)", &rot1, &rot2, &rot3);
+		if (!status)
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+					"expected list argument of 3 floats");
+   	}else if(EulerObject_Check(ob)){
+		rot1 = ((EulerObject*)ob)->eul[0];
+		rot2 = ((EulerObject*)ob)->eul[1];
+		rot3 = ((EulerObject*)ob)->eul[2];
+	}else{
+		Py_DECREF (ob);
+ 		return (PythonReturnErrorObject (PyExc_AttributeError,
+				"expected list of floats or euler"));
+	}
 
 	self->object->rot[0] = rot1;
 	self->object->rot[1] = rot2;
 	self->object->rot[2] = rot3;
 
 	Py_INCREF (Py_None);
+	return (Py_None);
+}
+
+static PyObject *Object_setMatrix (BPy_Object *self, PyObject *args)
+{
+	MatrixObject* mat;
+	int x,y;
+
+	if (!PyArg_ParseTuple(args, "O!", &matrix_Type, &mat))
+		return EXPP_ReturnPyObjError 
+		   (PyExc_TypeError, "expected matrix object as argument");
+
+	for(x = 0; x < 4; x++){
+		for(y = 0; y < 4; y++){
+			self->object->obmat[x][y] = mat->matrix[x][y];
+		}
+	}
+	apply_obmat(self->object);
+
+  	Py_INCREF (Py_None);
 	return (Py_None);
 }
 
@@ -1778,7 +1816,7 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 	{
 		/* This is not allowed. */
 		PythonReturnErrorObject (PyExc_AttributeError,
-					"Setting the matrix is not allowed.");
+					"Please use .setMatrix(matrix)");
 		return (0);
 	}
 	if (StringEqual (name, "colbits"))

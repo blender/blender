@@ -61,6 +61,8 @@
 #include "modules.h"
 #include "vector.h"
 #include "matrix.h"
+#include "euler.h"
+#include "quat.h"
 
 /* The Object PyType Object defined in Object.c */
 extern PyTypeObject Object_Type;
