@@ -417,13 +417,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 
 		break;
 	case CONTEXT_OBJECT:
-		tab= sbuts->tab[CONTEXT_OBJECT];
-		if(tab== TAB_OBJECT_OBJECT) {
-			object_panels();
-		}
-		else if(tab == TAB_OBJECT_EFFECTS)  {
-			effects_panels();
-		}
+		/* no tabs */
+		object_panels();
 
 		break;
 	case CONTEXT_SHADING:

@@ -554,9 +554,6 @@ void buts_buttons(void)
 		
 		break;
 	case CONTEXT_OBJECT:
-		uiBlockBeginAlign(block);
-		uiDefIconButC(block, ROW, B_REDR,		ICON_OBJECT,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object ");
-		uiDefIconButC(block, ROW, B_REDR,		ICON_EFFECTS,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_EFFECTS, 0, 0, "Effects");
 
 		break;
 	case CONTEXT_SHADING:

@@ -81,9 +81,6 @@ extern void redraw_test_buttons(struct Base *new);
 #define TAB_SHADING_WORLD	3
 #define TAB_SHADING_LAMP	4
 
-#define TAB_OBJECT_OBJECT   0
-#define TAB_OBJECT_EFFECTS  1
-
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
 #define BUTS_SENS_ACT		2

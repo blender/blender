@@ -3719,32 +3719,29 @@ void common_insertkey()
 			}
 		}
 		else if(G.buts->mainb==CONTEXT_OBJECT) {
-			int tab= G.buts->tab[CONTEXT_OBJECT];
 			ob= OBACT;
-			if(tab==TAB_OBJECT_EFFECTS) {
-				if(ob && ob->type==OB_MESH) {
-					id= (ID *) (ob);
-					if(id) {
-						event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
-						if(event== -1) return;
+			if(ob && ob->type==OB_MESH) {
+				id= (ID *) (ob);
+				if(id) {
+					event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
+					if(event== -1) return;
 
-						if(event==0) {
-							insertkey(id, OB_PD_SDAMP);
-						}
-						if(event==1) {
-							insertkey(id, OB_PD_RDAMP);
-						}
-						if(event==2) {
-							insertkey(id, OB_PD_PERM);
-						}
-						if(event==3) {
-							insertkey(id, OB_PD_FSTR);
-						}
-						if(event==4) {
-							insertkey(id, OB_PD_FFALL);
-						}
-
+					if(event==0) {
+						insertkey(id, OB_PD_SDAMP);
 					}
+					if(event==1) {
+						insertkey(id, OB_PD_RDAMP);
+					}
+					if(event==2) {
+						insertkey(id, OB_PD_PERM);
+					}
+					if(event==3) {
+						insertkey(id, OB_PD_FSTR);
+					}
+					if(event==4) {
+						insertkey(id, OB_PD_FFALL);
+					}
+
 				}
 			}
 			else if(ob && ob->type==OB_CAMERA) {

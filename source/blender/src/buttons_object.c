@@ -1084,24 +1084,6 @@ static void object_panel_anim(Object *ob)
 	
 }
 
-void object_panels()
-{
-	Object *ob;
-
-	/* check context here */
-	ob= OBACT;
-	if(ob) {
-		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
-
-		object_panel_anim(ob);
-		object_panel_draw(ob);
-		object_panel_constraint();
-	/*	if(ob->type==OB_MESH) object_panel_effects(ob); */
-
-		uiClearButLock();
-	}
-}
-
 void do_effects_panels(unsigned short event)
 {
 	Object *ob;
@@ -1246,12 +1228,13 @@ void do_effects_panels(unsigned short event)
 }
 
 /* Panel for particle interaction settings */
-static void editing_panel_deflectors(Object *ob)
+static void object_panel_deflectors(Object *ob)
 {
 	uiBlock *block;
 
-	block= uiNewBlock(&curarea->uiblocks, "editing_panel_deflectors", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Particle Interaction", "Effects", 0, 0, 300, 204)==0) return;
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_deflectors", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Constraints", "Object");
+	if(uiNewPanel(curarea, block, "Particle Interaction", "Object", 640, 0, 318, 204)==0) return;
 
 	/* should become button, option? */
 	if(ob->pd==NULL) {
@@ -1279,15 +1262,16 @@ static void editing_panel_deflectors(Object *ob)
 	}
 }
 
-void effects_panel_effects(Object *ob)
+void object_panel_effects(Object *ob)
 {
 	Effect *eff;
 	uiBlock *block;
 	int a;
 	short x, y;
 	
-	block= uiNewBlock(&curarea->uiblocks, "effect_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Effects", "Effects", 190, 0, 418, 204)==0) return;
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Constraints", "Object");
+	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 418, 204)==0) return;
 
 	/* EFFECTS */
 	
@@ -1422,8 +1406,7 @@ void effects_panel_effects(Object *ob)
 	}
 }
 
-
-void effects_panels()
+void object_panels()
 {
 	Object *ob;
 
@@ -1432,11 +1415,15 @@ void effects_panels()
 	if(ob) {
 		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 
-		editing_panel_deflectors(ob);
+		object_panel_anim(ob);
+		object_panel_draw(ob);
+		object_panel_constraint();
 		if(ob->type==OB_MESH) {
-			effects_panel_effects(ob);
+			object_panel_effects(ob);
 		}
-		
+		object_panel_deflectors(ob);
+
 		uiClearButLock();
 	}
 }
+
