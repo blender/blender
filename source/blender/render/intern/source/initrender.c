@@ -1175,6 +1175,10 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		
 		if(G.scene->camera==0) {
 			error("No camera");
+			/* needed because R.rectx and R.recty can be unmatching R.rectot */
+			if(R.rectot) freeN(R.rectot);
+			R.rectot= NULL;
+			
 			G.afbreek=1;
 			return;
 		}
