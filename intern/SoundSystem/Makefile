@@ -47,10 +47,7 @@ ifneq ($(NAN_NO_OPENAL),true)
   ifeq ($(OS),darwin)
       DIRS += openal
   endif
-  ifeq ($(OS),freebsd)
-    DIRS += openal sdl
-  endif
-  ifeq ($(OS),$(findstring $(OS), "linux"))
+  ifeq ($(OS),$(findstring $(OS), "linux freebsd solaris"))
     DIRS += openal sdl
   endif
 else
