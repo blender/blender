@@ -1256,7 +1256,6 @@ static float texture_value_blend(float tex, float out, float fact, float facg, i
 
 void do_material_tex(ShadeInput *shi)
 {
-	Object *ob;
 	Material *mat_col, *mat_colspec, *mat_colmir, *mat_ref, *mat_amb;
 	Material *mat_spec, *mat_har, *mat_emit, *mat_alpha, *mat_ray_mirr, *mat_translu;
 	MTex *mtex;
@@ -1289,7 +1288,7 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->sticky; dx= O.dxsticky; dy= O.dysticky;
 			}
 			else if(mtex->texco==TEXCO_OBJECT) {
-				ob= mtex->object;
+				Object *ob= mtex->object;
 				if(ob) {
 					co= tempvec;
 					dx= dxt;
@@ -1439,27 +1438,41 @@ void do_material_tex(ShadeInput *shi)
 				Tnor*= stencilTin;
 				Tin*= stencilTin;
 			}
+			
+			
+			if(tex->nor) {
+				if((rgbnor & TEX_NOR)==0) {
+					/* make our own normal */
+					if(rgbnor & TEX_RGB) {
+						tex->nor[0]= Tr;
+						tex->nor[1]= Tg;
+						tex->nor[2]= Tb;
+					}
+					else {
+						float co= 0.5*cos(Tin-0.5);
+						float si= 0.5*sin(Tin-0.5);
+						float f1, f2;
 
-			if(tex->nor && (rgbnor & TEX_NOR)==0) {
-				/* make our own normal */
-				if(rgbnor & TEX_RGB) {
-					tex->nor[0]= Tr;
-					tex->nor[1]= Tg;
-					tex->nor[2]= Tb;
+						f1= shi->vn[0];
+						f2= shi->vn[1];
+						tex->nor[0]= f1*co+f2*si;
+						tex->nor[1]= f2*co-f1*si;
+						f1= shi->vn[1];
+						f2= shi->vn[2];
+						tex->nor[1]= f1*co+f2*si;
+						tex->nor[2]= f2*co-f1*si;
+					}
 				}
-				else {
-					float co= 0.5*cos(Tin-0.5);
-					float si= 0.5*sin(Tin-0.5);
-					float f1, f2;
-
-					f1= shi->vn[0];
-					f2= shi->vn[1];
-					tex->nor[0]= f1*co+f2*si;
-					tex->nor[1]= f2*co-f1*si;
-					f1= shi->vn[1];
-					f2= shi->vn[2];
-					tex->nor[1]= f1*co+f2*si;
-					tex->nor[2]= f2*co-f1*si;
+				// rotate to global coords
+				if(mtex->texco==TEXCO_ORCO) {
+					if(shi->vlr && shi->vlr->ob) {
+						float len= Normalise(tex->nor);
+						// can be optimized... (ton)
+						Mat4Mul3Vecfl(shi->vlr->ob->obmat, tex->nor);
+						Mat4Mul3Vecfl(R.viewmat, tex->nor);
+						Normalise(tex->nor);
+						VecMulf(tex->nor, len);
+					}
 				}
 			}
 
@@ -1509,11 +1522,22 @@ void do_material_tex(ShadeInput *shi)
 					
 					if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
-
-					shi->vn[0]+= Tnor*tex->norfac*tex->nor[0];
-					shi->vn[1]+= Tnor*tex->norfac*tex->nor[1];
-					shi->vn[2]+= Tnor*tex->norfac*tex->nor[2];
 					
+					/* we need to code blending modes for normals too once.. now 1 exception hardcoded */
+					
+					if(tex->type==TEX_IMAGE && (tex->imaflag & TEX_NORMALMAP)) {
+						fact= Tnor*tex->norfac;
+						if(fact>1.0) fact= 1.0;
+						facm= 1.0- fact;
+						shi->vn[0]= facm*shi->vn[0] + fact*tex->nor[0];
+						shi->vn[1]= facm*shi->vn[1] + fact*tex->nor[1];
+						shi->vn[2]= facm*shi->vn[2] + fact*tex->nor[2];
+					}
+					else {
+						shi->vn[0]+= Tnor*tex->norfac*tex->nor[0];
+						shi->vn[1]+= Tnor*tex->norfac*tex->nor[1];
+						shi->vn[2]+= Tnor*tex->norfac*tex->nor[2];
+					}					
 					Normalise(shi->vn);
 					
 					/* this makes sure the bump is passed on to the next texture */

@@ -803,12 +803,12 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
 		
 		/* normals flipped in render for smooth... */
-		if(smooth && (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
+		if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
 		
 		do_material_tex(shi);
 
 		/* normals flipped in render... */
-		if(smooth && (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
+		if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
 	
 		if(mat->texco & TEXCO_REFL) {
 			/* normals in render are pointing different... rhm */
@@ -1075,7 +1075,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 		init_render_world();
 		init_render_material(mat);
 		
-		/* clear imats */
+		/* clear imats, flip normal... (hack because everything is inverted here) */
 		for(x=0; x<MAX_MTEX; x++) {
 			if(mat->mtex[x]) {
 				if(mat->mtex[x]->tex) {
@@ -1083,6 +1083,8 @@ void BIF_previewrender(SpaceButs *sbuts)
 					
 					if(mat->mtex[x]->tex->env && mat->mtex[x]->tex->env->object) 
 						MTC_Mat4One(mat->mtex[x]->tex->env->object->imat);
+					
+					mat->mtex[x]->maptoneg ^= MAP_NORM;
 				}
 				if(mat->mtex[x]->object) MTC_Mat4One(mat->mtex[x]->object->imat);
 				if(mat->mtex[x]->object) MTC_Mat4One(mat->mtex[x]->object->imat);
@@ -1280,8 +1282,11 @@ void BIF_previewrender(SpaceButs *sbuts)
 	if(mat) {
 		end_render_material(mat);
 		for(x=0; x<MAX_MTEX; x++) {
-			if(mat->mtex[x] && mat->mtex[x]->tex) end_render_texture(mat->mtex[x]->tex);
-		}	
+			if(mat->mtex[x] && mat->mtex[x]->tex) {
+				end_render_texture(mat->mtex[x]->tex);
+				mat->mtex[x]->maptoneg ^= MAP_NORM;
+			}	
+		}
 	}
 	else if(tex) {
 		end_render_texture(tex);

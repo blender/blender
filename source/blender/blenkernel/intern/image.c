@@ -693,25 +693,32 @@ int imagewrap(Tex *tex, float *texvec)
 		Tb = ((float)rect[2])/255.0f;
 		
 		if(tex->nor) {
-			/* bump: take three samples */
-			val1= Tr+Tg+Tb;
-
-			if(x<ibuf->x-1) {
-				rect+=4;
-				val2= ((float)(rect[0]+rect[1]+rect[2]))/255.0f;
-				rect-=4;
+			if(tex->imaflag & TEX_NORMALMAP) {
+				tex->nor[0]= 0.5-Tr;
+				tex->nor[1]= 0.5-Tg;
+				tex->nor[2]= 0.5-Tb;
 			}
-			else val2= val1;
+			else {
+				/* bump: take three samples */
+				val1= Tr+Tg+Tb;
 
-			if(y<ibuf->y-1) {
-				rect+= 4*ibuf->x;
-				val3= ((float)(rect[0]+rect[1]+rect[2]))/255.0f;
+				if(x<ibuf->x-1) {
+					rect+=4;
+					val2= ((float)(rect[0]+rect[1]+rect[2]))/255.0f;
+					rect-=4;
+				}
+				else val2= val1;
+
+				if(y<ibuf->y-1) {
+					rect+= 4*ibuf->x;
+					val3= ((float)(rect[0]+rect[1]+rect[2]))/255.0f;
+				}
+				else val3= val1;
+
+				/* do not mix up x and y here! */
+				tex->nor[0]= (val1-val2);
+				tex->nor[1]= (val1-val3);
 			}
-			else val3= val1;
-
-			/* do not mix up x and y here! */
-			tex->nor[0]= (val1-val2);
-			tex->nor[1]= (val1-val3);
 		}
 
 		BRICONRGB;
@@ -1433,7 +1440,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;
 			}
 			
-			if(tex->nor) {
+			if(tex->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
 				/* a bit extra filter */
 				minx*= 1.35f;
 				miny*= 1.35f;
@@ -1473,7 +1480,6 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				/* don't switch x or y! */
 				tex->nor[0]= (val1-val2);
 				tex->nor[1]= (val1-val3);
-
 			}
 			else {
 				maxx= fx+minx;
@@ -1508,7 +1514,7 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;
 			}
 
-			if(tex->nor) {
+			if(tex->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
 				
 				/* a bit extra filter */
 				minx*= 1.35f;
@@ -1526,12 +1532,10 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 				/* don't switch x or y! */
 				tex->nor[0]= (val1-val2);
 				tex->nor[1]= (val1-val3);
-				
 			}
 			else {
 				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, &Tr, &Tg, &Tb, &Ta);
 			}
-
 		}
 		
 		BRICONRGB;
@@ -1546,6 +1550,11 @@ int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt)
 			ibuf->rect-= (ibuf->x*ibuf->y);
 		}
 
+		if(tex->nor && (tex->imaflag & TEX_NORMALMAP)) {
+			tex->nor[0]= 0.5-Tr;
+			tex->nor[1]= 0.5-Tg;
+			tex->nor[2]= 0.5-Tb;
+		}
 	}
 	else {
 		Tin= 0.0f;

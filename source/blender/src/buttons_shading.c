@@ -1268,7 +1268,9 @@ static void texture_panel_image(Tex *tex)
 
 	/* crop extend clip */
 	
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",	10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Sets the filter size used by mipmap and interpol");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter :",			10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 0, "Sets the filter size used by mipmap and interpol");
+	uiDefButS(block, TOG|BIT|11, B_NOP, "Normal Map",	160,92,150,19, &tex->imaflag, 0.1, 25.0, 0, 0, "Use image RGB values for normal mapping");
+
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,70,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the colour of the edge pixels");
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "Clip",			73,70,48,19, &tex->extend, 4.0, 2.0, 0, 0, "Sets alpha 0.0 outside Image edges");

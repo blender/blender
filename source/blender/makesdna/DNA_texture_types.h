@@ -220,6 +220,7 @@ typedef struct Tex {
 #define TEX_ANTIALI		256
 #define TEX_ANTISCALE	512
 #define TEX_STD_FIELD	1024
+#define TEX_NORMALMAP	2048
 
 #define TEX_LASOPPATCH	8192
 #define TEX_MORKPATCH	16384
