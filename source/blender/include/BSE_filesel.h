@@ -37,6 +37,7 @@
 struct SpaceFile;
 struct direntry;
 struct ID;
+struct ScrArea;
 
 void clear_global_filesel_vars(void);
 void filesel_statistics(struct SpaceFile *sfile, int *totfile, int *selfile, float *totlen, float *sellen);
@@ -47,13 +48,13 @@ void read_dir(struct SpaceFile *sfile);
 void freefilelist(struct SpaceFile *sfile);
 void parent(struct SpaceFile *sfile);
 void swapselect_file(struct SpaceFile *sfile);
-void drawfilespace(void);
+void drawfilespace(struct ScrArea *sa, void *spacedata);
 void activate_fileselect(int type, char *title, char *file, void (*func)(char *));
 void activate_imageselect(int type, char *title, char *file, void (*func)(char *));
 void activate_databrowse(struct ID *id, int idcode, int fromcode, int retval, short *menup, void (*func)(unsigned short));
 void filesel_prevspace(void);
 void free_filesel_spec(char *dir);
-void winqreadfilespace(unsigned short event, short val, char ascii);
+void winqreadfilespace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void main_to_filelist(struct SpaceFile *sfile);   
 
 #endif

@@ -763,7 +763,6 @@ void append_avi_codec(int frame)
 
 int get_codec_settings(void)
 {
-	char name[2048];
 	int ret_val = 0;
 	AVICOMPRESSOPTIONS *aopts[1] = {&opts};
 	AviCodecData *acd = G.scene->r.avicodecdata;

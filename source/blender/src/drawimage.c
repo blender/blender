@@ -410,7 +410,7 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 	return rectmain;
 }
 
-void drawimagespace(void)
+void drawimagespace(ScrArea *sa, void *spacedata)
 {
 	ImBuf *ibuf= NULL;
 	unsigned int *rect;

@@ -36,6 +36,7 @@
 struct Object;
 struct BGpic;
 struct rcti;
+struct ScrArea;
 
 void setalpha_bgpic(struct BGpic *bgpic);
 void default_gl_light(void);
@@ -44,7 +45,7 @@ void two_sided(int val);
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
 void backdrawview3d(int test);
-void drawview3dspace(void);
+void drawview3dspace(struct ScrArea *sa, void *spacedata);
 void drawview3d_render(struct View3D *v3d);
 int update_time(void);
 void calc_viewborder(struct View3D *v3d, struct rcti *viewborder_r);

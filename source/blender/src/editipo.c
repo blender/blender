@@ -1478,6 +1478,16 @@ void set_editflag_editipo()
 	scrarea_queue_winredraw(curarea);
 }
 
+void ipo_toggle_showkey(void) {
+	if(G.sipo->showkey) {
+		G.sipo->showkey= 0;
+		swap_selectall_editipo();	/* sel all */
+	}
+	else G.sipo->showkey= 1;
+	free_ipokey(&G.sipo->ipokey);
+	if(G.sipo->ipo) G.sipo->ipo->showkey= G.sipo->showkey;
+}
+
 void swap_selectall_editipo()
 {
 	Object *ob;

@@ -1650,8 +1650,11 @@ static void borderselect_function(void (*select_func)(bAction *act,
 	
 }
 
-void winqreadactionspace(unsigned short event, short val, char ascii)
+void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceAction *saction;
 	bAction	*act;
 	int doredraw= 0;

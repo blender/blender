@@ -358,6 +358,16 @@ int in_ipo_buttons(void)
 }
 
 
+void view2d_zoom(View2D *v2d, float factor, int winx, int winy) {
+	float dx= factor*(v2d->cur.xmax-v2d->cur.xmin);
+	float dy= factor*(v2d->cur.ymax-v2d->cur.ymin);
+	v2d->cur.xmin+= dx;
+	v2d->cur.xmax-= dx;
+	v2d->cur.ymin+= dy;
+	v2d->cur.ymax-= dy;
+	test_view2d(v2d, winx, winy);
+}
+
 void test_view2d(View2D *v2d, int winx, int winy)
 {
 	/* cur mag niet groter dan max, kleiner dan min of buiten tot vallen */
@@ -1316,7 +1326,7 @@ static void draw_key(SpaceIpo *sipo, int visible)
 	setlinestyle(0);
 }
 
-void drawipospace(void)
+void drawipospace(ScrArea *sa, void *spacedata)
 {
 	SpaceIpo *sipo= curarea->spacedata.first;
 	View2D *v2d= &sipo->v2d;

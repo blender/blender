@@ -538,7 +538,7 @@ static void draw_extra_seqinfo(void)
 	}
 }
 
-void drawseqspace(void)
+void drawseqspace(ScrArea *sa, void *spacedata)
 {
 	SpaceSeq *sseq;
 	Editing *ed;

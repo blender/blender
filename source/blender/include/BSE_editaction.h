@@ -48,7 +48,7 @@ void set_action_key (struct bAction *act, struct bPoseChannel *chan, int adrcode
 struct bAction *add_empty_action(void);
 void deselect_actionchannel_keys (struct bAction *act, int test);
 void deselect_actionchannels (struct bAction *act, int test);
-void winqreadactionspace(unsigned short event, short val, char ascii);
+void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void remake_action_ipos(struct bAction *act);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);

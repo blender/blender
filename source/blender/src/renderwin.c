@@ -180,8 +180,8 @@ static int renderwin_win_to_image_co(RenderWin *rw, int winco[2], int imgco_r[2]
 	
 	renderwin_get_disprect(rw, disprect);
 	
-	imgco_r[0]= (winco[0]-disprect[0][0])/rw->zoom;
-	imgco_r[1]= (winco[1]-disprect[0][1])/rw->zoom;
+	imgco_r[0]= (int) ((winco[0]-disprect[0][0])/rw->zoom);
+	imgco_r[1]= (int) ((winco[1]-disprect[0][1])/rw->zoom);
 	
 	return (imgco_r[0]>=0 && imgco_r[1]>=0 && imgco_r[0]<R.rectx && imgco_r[1]<R.recty);
 }
@@ -196,8 +196,8 @@ static int renderwin_win_to_ndc(RenderWin *rw, int win_co[2], float ndc_r[2])
 
 	window_get_size(rw->win, &w, &h);
 
-	ndc_r[0]= (float) (win_co[0]*2)/(w-1) - 1.0;
-	ndc_r[1]= (float) (win_co[1]*2)/(h-1) - 1.0;
+	ndc_r[0]= (float) ((win_co[0]*2)/(w-1) - 1.0);
+	ndc_r[1]= (float) ((win_co[1]*2)/(h-1) - 1.0);
 
 	return (fabs(ndc_r[0])<=1.0 && fabs(ndc_r[1])<=1.0);
 }

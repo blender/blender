@@ -61,6 +61,7 @@
 #include "BIF_screen.h"
 #include "BIF_interface.h"
 #include "BIF_imasel.h"
+#include "BIF_mywindow.h"
 
 #include "BSE_filesel.h"
 #include "BSE_drawimasel.h"
@@ -83,8 +84,11 @@ static void draw_icon_imasel(void)
 	scrarea_queue_winredraw(curarea);
 }
 
-void winqreadimaselspace(unsigned short event, short val, char ascii)
+void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceImaSel *simasel;
 	
 	short mval[2];

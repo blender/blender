@@ -41,6 +41,7 @@
 #define SELECT_SUBTRACT  4
 #define SELECT_INVERT   16
 
+struct ScrArea;
 struct EditIpo;
 struct View2D;
 struct rctf;
@@ -52,12 +53,13 @@ void areamouseco_to_ipoco	(struct View2D *v2d, short *mval, float *x, float *y);
 void ipoco_to_areaco		(struct View2D *v2d, float *vec, short *mval);
 void ipoco_to_areaco_noclip	(struct View2D *v2d, float *vec, short *mval);
 
+void view2d_zoom			(struct View2D *v2d, float factor, int winx, int winy);
 void test_view2d			(struct View2D *v2d, int winx, int winy);
 void calc_scrollrcts		(struct View2D *v2d, int winx, int winy);
 
 int in_ipo_buttons(void);
 void drawscroll(int disptype);
-void drawipospace(void);
+void drawipospace(struct ScrArea *sa, void *spacedata);
 
 void center_currframe(void);
 void scroll_ipobuts(void);

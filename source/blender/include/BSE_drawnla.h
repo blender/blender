@@ -33,7 +33,9 @@
 #ifndef BSE_DRAWNLA_H
 #define BSE_DRAWNLA_H
 
-void drawnlaspace(void);
+struct ScrArea;
+
+void drawnlaspace(struct ScrArea *sa, void *spacedata);
 
 #endif /* BSE_DRAWNLA */
 

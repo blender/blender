@@ -91,14 +91,17 @@ static SND_AudioDeviceInterfaceHandle ghAudioDeviceInterface;
 bSound *sound_find_sound(char *id_name);
 void sound_read_wav_data(bSound * sound, PackedFile * pf);
 void sound_stop_sound(void *object, bSound *sound);
-void winqreadsoundspace(unsigned short event, short val, char ascii);
+void winqreadsoundspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 /*  void sound_stop_all_sounds(void); already in BIF_editsound.h */
 
 
 
 /* Right. Now for some implementation: */
-void winqreadsoundspace(unsigned short event, short val, char ascii)
+void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	float dx, dy;
 	int doredraw= 0, cfra, first = 0;
 	short mval[2];
@@ -430,8 +433,9 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 /* ugly, but it works (for now) */
 int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 {
-	int i, filetype = SAMPLE_INVALID;
+	int filetype = SAMPLE_INVALID;
 #if GAMEBLENDER == 1
+	int i;
 	char buffer[25];
 	short shortbuf;
 	

@@ -105,7 +105,7 @@ void scrarea_do_windraw(ScrArea *area)
 	areawinset(area->win);
 
 	if(area->win && st->windraw) {
-		st->windraw();
+		st->windraw(area, area->spacedata.first);
 	}
 	else {
 		glClearColor(0.4375, 0.4375, 0.4375, 0.0); 
@@ -121,7 +121,7 @@ void scrarea_do_winchange(ScrArea *area)
 	areawinset(area->win);
 
 	if (st->winchange) {
-		st->winchange();
+		st->winchange(area, area->spacedata.first);
 	} else {
 		if (!BLI_rcti_is_empty(&area->winrct)) {
 			bwin_ortho2(area->win, -0.5, area->winrct.xmax-area->winrct.xmin-0.5, -0.5, area->winrct.ymax-area->winrct.ymin-0.5);
@@ -136,6 +136,6 @@ void scrarea_do_winhandle(ScrArea *area, BWinEvent *evt)
 	areawinset(area->win);
 	
 	if (st->winhandle) {
-		st->winhandle(evt->event, evt->val, evt->ascii);
+		st->winhandle(area, area->spacedata.first, evt);
 	}
 }

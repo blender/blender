@@ -45,6 +45,7 @@
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
+#include <process.h> /* getpid */
 #else
 #include <unistd.h> /* getpid */
 #endif

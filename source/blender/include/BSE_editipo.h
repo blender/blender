@@ -81,6 +81,7 @@ void test_editipo(void);
 void get_status_editipo(void);
 void update_editipo_flags(void);
 void set_editflag_editipo(void);
+void ipo_toggle_showkey(void);
 void swap_selectall_editipo(void);
 void swap_visible_editipo(void);
 void deselectall_editipo(void);

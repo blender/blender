@@ -556,7 +556,7 @@ static void add_image_strips(char *name)
 	
 	/* is voor restore windowmatrices */
 	areawinset(curarea->win);
-	drawseqspace();
+	drawseqspace(curarea, curarea->spacedata.first);
 
 	/* sfile zoeken */
 	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
@@ -616,7 +616,7 @@ static void add_movie_strip(char *name)
 	
 	/* is voor restore windowmatrices */
 	areawinset(curarea->win);
-	drawseqspace();
+	drawseqspace(curarea, curarea->spacedata.first);
 
 	/* sfile zoeken */
 	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);

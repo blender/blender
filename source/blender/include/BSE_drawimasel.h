@@ -33,6 +33,7 @@
 #ifndef BSE_DRAWIMASEL_H
 #define BSE_DRAWIMASEL_H
 
+struct ScrArea;
 struct SpaceImaSel;
 
 void viewgate(short sx, short sy, short ex, short ey);
@@ -45,7 +46,7 @@ void move_imadir_sli(struct SpaceImaSel *simasel);
 void move_imafile_sli(struct SpaceImaSel *simasel);
 void ima_select_all(struct SpaceImaSel *simasel);
 void pibplay(struct SpaceImaSel *simasel);
-void drawimaselspace(void);   
+void drawimaselspace(struct ScrArea *sa, void *spacedata);   
 
 /*  void calc_hilite(SpaceImaSel *simasel); */
 /*  void ima_select_all(SpaceImaSel *simasel); */

@@ -33,8 +33,10 @@
 #ifndef BIF_DRAWSEQ_H
 #define BIF_DRAWSEQ_H
 
+struct ScrArea;
 struct Sequence;
-void drawseqspace(void);
+
+void drawseqspace(struct ScrArea *sa, void *spacedata);
 void drawseq(struct Sequence *seq);
 void set_special_seq_update(int val);
 

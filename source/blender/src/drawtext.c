@@ -84,8 +84,8 @@
 #define TEXTXLOC	38
 
 /* locals */
-void drawtextspace(void);
-void winqreadtextspace(unsigned short event, short val, char ascii);
+void drawtextspace(ScrArea *sa, void *spacedata);
+void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 static void *last_txt_find_string= NULL;
 
@@ -532,7 +532,7 @@ static void do_selection(SpaceText *st, int selecting)
 		txt_undo_add_toop(st->text, UNDO_STO, sell, selc, linep2, charp2);
 }
 
-void drawtextspace(void)
+void drawtextspace(ScrArea *sa, void *spacedata)
 {
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
@@ -742,8 +742,11 @@ static int jumptoline_interactive(SpaceText *st) {
 	}
 }
 
-void winqreadtextspace(unsigned short event, short val, char ascii)
+void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceText *st= curarea->spacedata.first;
 	Text *text= st->text;
 	char *py_filename;

@@ -84,7 +84,7 @@
 #include "blendef.h"
 
 /* local functions ----------------------------------------------------- */
-void drawactionspace(void);
+void drawactionspace(ScrArea *sa, void *spacedata);
 static void draw_channel_names(void);
 static void draw_channel_strips(SpaceAction *saction);
 int count_action_levels(bAction *act);
@@ -345,7 +345,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	glaEnd2DDraw(di);
 }
 
-void drawactionspace(void)
+void drawactionspace(ScrArea *sa, void *spacedata)
 {
 
 	short ofsx = 0, ofsy = 0;

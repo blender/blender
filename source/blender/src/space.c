@@ -153,7 +153,7 @@ void free_soundspace(SpaceSound *ssound);
 
 /* ************* SPACE: VIEW3D  ************* */
 
-/*  extern void drawview3dspace(); BSE_drawview.h */
+/*  extern void drawview3dspace(ScrArea *sa, void *spacedata); BSE_drawview.h */
 
 
 void copy_view3d_lock(short val)
@@ -384,11 +384,9 @@ void start_game(void)
 #endif
 }
 
-void changeview3d()
+static void changeview3dspace(ScrArea *sa, void *spacedata)
 {
-	
 	setwinmatrixview3d(0);	/* 0= geen pick rect */
-	
 }
 
 	/* Callable from editmode and faceselect mode from the
@@ -419,8 +417,11 @@ static void align_view_to_selected(View3D *v3d)
 	}
 }
 
-void winqreadview3dspace(unsigned short event, short val, char ascii)
+void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	View3D *v3d= curarea->spacedata.first;
 	Object *ob;
 	float *curs;
@@ -676,16 +677,7 @@ void winqreadview3dspace(unsigned short event, short val, char ascii)
 				break;
 			case DKEY:
 				if(G.qual & LR_SHIFTKEY) {
-					if(G.obedit) {
-						if(G.obedit->type==OB_MESH) adduplicate_mesh();
-						else if(G.obedit->type==OB_ARMATURE) adduplicate_armature();
-						else if(G.obedit->type==OB_MBALL) adduplicate_mball();
-						else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
-					}
-					else if(G.obpose){
-						error ("Duplicate not possible in posemode.");
-					}
-					else adduplicate(0);
+					duplicate_context_selected();
 				}
 				else if(G.qual & LR_ALTKEY) {
 					if(G.obpose) error ("Duplicate not possible in posemode.");
@@ -958,13 +950,7 @@ void winqreadview3dspace(unsigned short event, short val, char ascii)
 				break;
 			case XKEY:
 			case DELKEY:
-				if(G.obedit) {
-					if(G.obedit->type==OB_MESH) delete_mesh();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
-					else if(G.obedit->type==OB_MBALL) delete_mball();
-					else if (G.obedit->type==OB_ARMATURE) delete_armature();
-				}
-				else delete_obj(0);
+				delete_context_selected();
 				break;
 			case YKEY:
 				if(G.obedit) {
@@ -972,23 +958,7 @@ void winqreadview3dspace(unsigned short event, short val, char ascii)
 				}
 				break;
 			case ZKEY:
-				if(G.qual & LR_CTRLKEY) {
-					reshadeall_displist();
-					G.vd->drawtype= OB_SHADED;
-				}
-				else if(G.qual & LR_SHIFTKEY) {
-					if(G.vd->drawtype== OB_SHADED) G.vd->drawtype= OB_WIRE;
-					else G.vd->drawtype= OB_SHADED;
-				}
-				else if(G.qual & LR_ALTKEY) {
-					if(G.vd->drawtype== OB_TEXTURE) G.vd->drawtype= OB_SOLID;
-					else G.vd->drawtype= OB_TEXTURE;
-				}
-				else {
-					if(G.vd->drawtype==OB_SOLID || G.vd->drawtype==OB_SHADED) G.vd->drawtype= OB_WIRE;
-					else G.vd->drawtype= OB_SOLID;
-				}
-				
+				toggle_shading();
 				
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
@@ -1094,7 +1064,7 @@ void initview3d(ScrArea *sa)
 
 /* ******************** SPACE: IPO ********************** */
 
-void changeview2d()
+static void changeview2dspace(ScrArea *sa, void *spacedata)
 {
 	if(G.v2d==0) return;
 
@@ -1102,8 +1072,11 @@ void changeview2d()
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }
 
-void winqreadipospace(unsigned short event, short val, char ascii)
+void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceIpo *sipo= curarea->spacedata.first;
 	View2D *v2d= &sipo->v2d;
 	float dx, dy;
@@ -1163,30 +1136,11 @@ void winqreadipospace(unsigned short event, short val, char ascii)
 			allqueue(REDRAWNLA, 0);
 			break;
 		case PADPLUSKEY:
-
-			dx= 0.1154*(v2d->cur.xmax-v2d->cur.xmin);
-			dy= 0.1154*(v2d->cur.ymax-v2d->cur.ymin);
-			if(val==SPACE_BUTS) {
-				dx/=2.0; dy/= 2.0;
-			}
-			v2d->cur.xmin+= dx;
-			v2d->cur.xmax-= dx;
-			v2d->cur.ymin+= dy;
-			v2d->cur.ymax-= dy;
-			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			view2d_zoom(v2d, 0.1154, curarea->winx, curarea->winy);
 			doredraw= 1;
 			break;
 		case PADMINUS:
-			dx= 0.15*(v2d->cur.xmax-v2d->cur.xmin);
-			dy= 0.15*(v2d->cur.ymax-v2d->cur.ymin);
-			if(val==SPACE_BUTS) {
-				dx/=2.0; dy/= 2.0;
-			}
-			v2d->cur.xmin-= dx;
-			v2d->cur.xmax+= dx;
-			v2d->cur.ymin-= dy;
-			v2d->cur.ymax+= dy;
-			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			view2d_zoom(v2d, -0.15, curarea->winx, curarea->winy);
 			doredraw= 1;
 			break;
 		case PAGEUPKEY:
@@ -1230,14 +1184,7 @@ void winqreadipospace(unsigned short event, short val, char ascii)
 			join_ipo();
 			break;
 		case KKEY:
-			if(G.sipo->showkey) {
-				G.sipo->showkey= 0;
-				swap_selectall_editipo();	/* sel all */
-			}
-			else G.sipo->showkey= 1;
-			free_ipokey(&G.sipo->ipokey);
-			if(G.sipo->ipo) G.sipo->ipo->showkey= G.sipo->showkey;
-
+			ipo_toggle_showkey();
 			scrarea_queue_headredraw(curarea);
 			allqueue(REDRAWVIEW3D, 0);
 			doredraw= 1;
@@ -1314,7 +1261,7 @@ void space_sound_button_function(int event)
 	}
 }
 
-void drawinfospace(void)
+void drawinfospace(ScrArea *sa, void *spacedata)
 {
 	uiBlock *block;
 	float fac;
@@ -1448,8 +1395,11 @@ void drawinfospace(void)
 	uiDrawBlock(block);
 }
 
-void winqreadinfospace(unsigned short event, short val, char ascii)
+void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	if(val) {
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 
@@ -1472,9 +1422,9 @@ void init_infospace(ScrArea *sa)
 
 /* ******************** SPACE: BUTS ********************** */
 
-extern void drawbutspace(void);	/* buttons.c */
+extern void drawbutspace(ScrArea *sa, void *spacedata);	/* buttons.c */
 
-void changebutspace(void)
+static void changebutspace(ScrArea *sa, void *spacedata)
 {
 	if(G.v2d==0) return;
 	
@@ -1482,10 +1432,13 @@ void changebutspace(void)
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }
 
-void winqreadbutspace(unsigned short event, short val, char ascii)
+void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceButs *sbuts= curarea->spacedata.first;
-	ScrArea *sa, *sa3d;
+	ScrArea *sa2, *sa3d;
 	int doredraw= 0;
 
 	if(val) {
@@ -1504,9 +1457,12 @@ void winqreadbutspace(unsigned short event, short val, char ascii)
 			break;
 
 		case PADPLUSKEY:
+			view2d_zoom(&sbuts->v2d, 0.06, curarea->winx, curarea->winy);
+			scrarea_queue_winredraw(curarea);
+			break;
 		case PADMINUS:
-			val= SPACE_BUTS;
-			winqreadipospace(event, val, 0);	// XXX - kill me
+			view2d_zoom(&sbuts->v2d, -0.075, curarea->winx, curarea->winy);
+			scrarea_queue_winredraw(curarea);
 			break;
 		case RENDERPREVIEW:
 			BIF_previewrender(sbuts);
@@ -1522,20 +1478,20 @@ void winqreadbutspace(unsigned short event, short val, char ascii)
 		case PAD5: case PAD7: case PAD9:
 		case PADENTER: case ZKEY: case PKEY:
 			sa3d= 0;
-			sa= G.curscreen->areabase.first;
-			while(sa) {
-				if(sa->spacetype==SPACE_VIEW3D) {
+			sa2= G.curscreen->areabase.first;
+			while(sa2) {
+				if(sa2->spacetype==SPACE_VIEW3D) {
 					if(sa3d) return;
-					sa3d= sa;
+					sa3d= sa2;
 				}
-				sa= sa->next;
+				sa2= sa2->next;
 			}
 			if(sa3d) {
 				sa= curarea;
 				areawinset(sa3d->win);
 				
 				if(event==PKEY) start_game();
-				else if(event==ZKEY) winqreadview3dspace(event, val, 0);	// XXX - kill me
+				else if(event==ZKEY) toggle_shading();
 				else persptoetsen(event);
 				
 				scrarea_queue_winredraw(sa3d);
@@ -1633,10 +1589,13 @@ void extern_set_butspace(int fkey)
 
 /* ******************** SPACE: SEQUENCE ********************** */
 
-/*  extern void drawseqspace(); BIF_drawseq.h */
+/*  extern void drawseqspace(ScrArea *sa, void *spacedata); BIF_drawseq.h */
 
-void winqreadseqspace(unsigned short event, short val, char ascii)
+void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceSeq *sseq= curarea->spacedata.first;
 	View2D *v2d= &sseq->v2d;
 	extern Sequence *last_seq;
@@ -1832,8 +1791,8 @@ void init_seqspace(ScrArea *sa)
 }
 
 /* ******************** SPACE: ACTION ********************** */
-extern void drawactionspace(void);
-extern void winqreadactionspace(unsigned short, short, char ascii);
+extern void drawactionspace(ScrArea *sa, void *spacedata);
+extern void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 void init_actionspace(ScrArea *sa)
 {
@@ -1954,8 +1913,8 @@ void init_imaselspace(ScrArea *sa)
 
 /* ******************** SPACE: SOUND ********************** */
 
-extern void drawsoundspace(void);
-extern void winqreadsoundspace(unsigned short, short, char ascii);
+extern void drawsoundspace(ScrArea *sa, void *spacedata);
+extern void winqreadsoundspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 void init_soundspace(ScrArea *sa)
 {
@@ -2003,10 +1962,13 @@ void free_soundspace(SpaceSound *ssound)
 
 /* ******************** SPACE: IMAGE ********************** */
 
-/*  extern void drawimagespace(); BIF_drawimage.h */
+/*  extern void drawimagespace(ScrArea *sa, void *spacedata); BIF_drawimage.h */
 
-void winqreadimagespace(unsigned short event, short val, char ascii)
+void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceImage *sima= curarea->spacedata.first;
 	View2D *v2d= &sima->v2d;
 #ifdef NAN_TPT
@@ -2145,8 +2107,8 @@ void init_imagespace(ScrArea *sa)
 
 /* ******************** SPACE: IMASEL ********************** */
 
-extern void drawimaselspace(void);
-extern void winqreadimaselspace(unsigned short, short, char ascii);
+extern void drawimaselspace(ScrArea *sa, void *spacedata);
+extern void winqreadimaselspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 
 /* alles naar imasel.c */
@@ -2154,10 +2116,13 @@ extern void winqreadimaselspace(unsigned short, short, char ascii);
 
 /* ******************** SPACE: OOPS ********************** */
 
-extern void drawoopsspace(void);
+extern void drawoopsspace(ScrArea *sa, void *spacedata);
 
-void winqreadoopsspace(unsigned short event, short val, char ascii)
+void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceOops *soops= curarea->spacedata.first;
 	View2D *v2d= &soops->v2d;
 	float dx, dy;
@@ -2301,8 +2266,8 @@ void init_oopsspace(ScrArea *sa)
 
 /* ******************** SPACE: Text ********************** */
 
-extern void drawtextspace(void);
-extern void winqreadtextspace(unsigned short, short, char ascii);
+extern void drawtextspace(ScrArea *sa, void *spacedata);
+extern void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 /* ******************** SPACE: ALGEMEEN ********************** */
 
@@ -2918,7 +2883,7 @@ SpaceType *spaceaction_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Action");
-		spacetype_set_winfuncs(st, drawactionspace, changeview2d, winqreadactionspace);
+		spacetype_set_winfuncs(st, drawactionspace, changeview2dspace, winqreadactionspace);
 	}
 
 	return st;
@@ -2984,7 +2949,7 @@ SpaceType *spaceipo_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Ipo");
-		spacetype_set_winfuncs(st, drawipospace, changeview2d, winqreadipospace);
+		spacetype_set_winfuncs(st, drawipospace, changeview2dspace, winqreadipospace);
 	}
 
 	return st;
@@ -2995,7 +2960,7 @@ SpaceType *spacenla_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Nla");
-		spacetype_set_winfuncs(st, drawnlaspace, changeview2d, winqreadnlaspace);
+		spacetype_set_winfuncs(st, drawnlaspace, changeview2dspace, winqreadnlaspace);
 	}
 
 	return st;
@@ -3006,7 +2971,7 @@ SpaceType *spaceoops_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Oops");
-		spacetype_set_winfuncs(st, drawoopsspace, changeview2d, winqreadoopsspace);
+		spacetype_set_winfuncs(st, drawoopsspace, changeview2dspace, winqreadoopsspace);
 	}
 
 	return st;
@@ -3017,7 +2982,7 @@ SpaceType *spaceseq_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Sequence");
-		spacetype_set_winfuncs(st, drawseqspace, changeview2d, winqreadseqspace);
+		spacetype_set_winfuncs(st, drawseqspace, changeview2dspace, winqreadseqspace);
 	}
 
 	return st;
@@ -3050,7 +3015,7 @@ SpaceType *spaceview3d_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("View3D");
-		spacetype_set_winfuncs(st, drawview3dspace, changeview3d, winqreadview3dspace);
+		spacetype_set_winfuncs(st, drawview3dspace, changeview3dspace, winqreadview3dspace);
 	}
 
 	return st;

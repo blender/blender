@@ -33,6 +33,7 @@
 #ifndef BSE_DRAWOOPS_H
 #define BSE_DRAWOOPS_H
 
+struct ScrArea;
 struct Oops;
 struct uiBlock;
 
@@ -44,7 +45,7 @@ void mysbox(float x1, float y1, float x2, float y2);
 unsigned int give_oops_color(short type, short sel, unsigned int *border);
 void calc_oopstext(char *str, float *v1);
 void draw_oops(struct Oops *oops, struct uiBlock *block);
-void drawoopsspace(void);
+void drawoopsspace(struct ScrArea *sa, void *spacedata);
 
 #endif /* BSE_DRAWOOPS */
 

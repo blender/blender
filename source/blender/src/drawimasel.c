@@ -853,7 +853,7 @@ void pibplay(SpaceImaSel *simasel)
 
 /* ************** hoofdtekenfunktie ************** */
 
-void drawimaselspace()	/* hoofdtekenfunktie */
+void drawimaselspace(ScrArea *sa, void *spacedata)	/* hoofdtekenfunktie */
 {
 	SpaceImaSel *simasel;
 	simasel= curarea->spacedata.first;

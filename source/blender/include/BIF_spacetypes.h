@@ -31,12 +31,13 @@
  */
 
 struct ScrArea;
+struct BWinEvent;
 
 typedef struct _SpaceType	SpaceType;
 
-typedef	void	(*SpaceDrawFP)		(void);
-typedef	void	(*SpaceChangeFP)	(void);
-typedef	void	(*SpaceHandleFP)	(unsigned short evt, short val, char ascii);
+typedef	void	(*SpaceDrawFP)		(struct ScrArea *sa, void *spacedata);
+typedef	void	(*SpaceChangeFP)	(struct ScrArea *sa, void *spacedata);
+typedef	void	(*SpaceHandleFP)	(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 	/***/
 

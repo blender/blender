@@ -367,7 +367,7 @@ void draw_oops(Oops *oops, uiBlock *block)
 	}
 }
 
-void drawoopsspace()
+void drawoopsspace(ScrArea *sa, void *spacedata)
 {
 	uiBlock *block;
 	Oops *oops;

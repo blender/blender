@@ -784,7 +784,7 @@ static void draw_view_icon(void)
 	glDisable(GL_BLEND);
 }
 
-void drawview3dspace(void)
+void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	Base *base;
 	Object *ob;
@@ -996,6 +996,7 @@ void drawview3dspace(void)
 	 */
 void drawview3d_render(struct View3D *v3d)
 {
+	extern void mywindow_build_and_set_renderwin(void);
 	extern short v3d_windowmode;
 	Base *base;
 	Object *ob;

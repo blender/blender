@@ -1049,7 +1049,7 @@ static void draw_filetext(SpaceFile *sfile)
 	glRecti(textrct.xmax+2,  textrct.ymin,  textrct.xmax+10,  textrct.ymax);
 }
 
-void drawfilespace()
+void drawfilespace(ScrArea *sa, void *spacedata)
 {
 	SpaceFile *sfile;
 	uiBlock *block;
@@ -1706,8 +1706,11 @@ static void fs_fake_users(SpaceFile *sfile)
 	scrarea_queue_winredraw(curarea);
 }
 
-void winqreadfilespace(unsigned short event, short val, char ascii)
+void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	static int acto=0;
 	SpaceFile *sfile;
 	int act, do_draw= 0, i, test, ret = 0;

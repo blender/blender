@@ -33,10 +33,11 @@
 #ifndef BIF_DRAWIMAGE_H
 #define BIF_DRAWIMAGE_H
 
+struct ScrArea;
 struct SpaceImage;
 
 void calc_image_view(struct SpaceImage *sima, char mode);
-void drawimagespace(void);
+void drawimagespace(struct ScrArea *sa, void *spacedata);
 void draw_tfaces(void);
 void image_changed(struct SpaceImage *sima, int dotile);
 void image_home(void);

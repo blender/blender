@@ -111,8 +111,11 @@ extern int nla_filter (Base* base, int flags);	/* From drawnla.c */
 
 /* ******************** SPACE: NLA ********************** */
 
-void winqreadnlaspace(unsigned short event, short val, char ascii)
+void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	SpaceNla *snla = curarea->spacedata.first;
 	int doredraw= 0;
 	short	mval[2];

@@ -887,7 +887,7 @@ void screenmain(void)
 		flush_extqd_events();
 		if (nafterqitems && !qtest()) {
 			append_afterqueue();
-			event= 0;
+			event= val= ascii= 0;
 		} else {
 			event= screen_qread(&val, &ascii);
 		}

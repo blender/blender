@@ -427,7 +427,7 @@ static void draw_nlastrips(SpaceNla *snla)
 	
 }
 
-void drawnlaspace(void)
+void drawnlaspace(ScrArea *sa, void *spacedata)
 {
 	short ofsx = 0, ofsy = 0;
 	

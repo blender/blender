@@ -60,7 +60,7 @@
 #include "BSE_drawipo.h"
 
 /* local */
-void drawsoundspace(void);
+void drawsoundspace(ScrArea *sa, void *spacedata);
 
 /*implementation */
 static void draw_wave(int startsamp, int endsamp, short sampdx, short offset, short *sp, float sampfac, float y)
@@ -163,7 +163,7 @@ static void draw_cfra_sound(void)
 }
 
 
-void drawsoundspace(void)
+void drawsoundspace(ScrArea *sa, void *spacedata)
 {
 	short ofsx, ofsy;
 	

@@ -86,6 +86,8 @@
 #include "BSE_drawview.h"
 
 #include "BDR_editobject.h"
+#include "BDR_editmball.h"
+#include "BDR_editcurve.h"
 
 /* old stuff */
 #include "blendertimer.h"
@@ -1171,7 +1173,7 @@ void snapmenu()
 }
 
 
-void mergemenu()
+void mergemenu(void)
 {
 	extern float doublimit;
 	short event;
@@ -1192,4 +1194,46 @@ void mergemenu()
 		    break;
 	}
 
+}
+
+void delete_context_selected(void) {
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH) delete_mesh();
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
+		else if(G.obedit->type==OB_MBALL) delete_mball();
+		else if (G.obedit->type==OB_ARMATURE) delete_armature();
+	}
+	else delete_obj(0);
+}
+
+void duplicate_context_selected(void) {
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH) adduplicate_mesh();
+		else if(G.obedit->type==OB_ARMATURE) adduplicate_armature();
+		else if(G.obedit->type==OB_MBALL) adduplicate_mball();
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
+	}
+	else if(G.obpose){
+		error ("Duplicate not possible in posemode.");
+	}
+	else adduplicate(0);
+}
+
+void toggle_shading(void) {
+	if(G.qual & LR_CTRLKEY) {
+		reshadeall_displist();
+		G.vd->drawtype= OB_SHADED;
+	}
+	else if(G.qual & LR_SHIFTKEY) {
+		if(G.vd->drawtype== OB_SHADED) G.vd->drawtype= OB_WIRE;
+		else G.vd->drawtype= OB_SHADED;
+	}
+	else if(G.qual & LR_ALTKEY) {
+		if(G.vd->drawtype== OB_TEXTURE) G.vd->drawtype= OB_SOLID;
+		else G.vd->drawtype= OB_TEXTURE;
+	}
+	else {
+		if(G.vd->drawtype==OB_SOLID || G.vd->drawtype==OB_SHADED) G.vd->drawtype= OB_WIRE;
+		else G.vd->drawtype= OB_SOLID;
+	}
 }

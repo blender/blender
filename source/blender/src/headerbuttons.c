@@ -2462,23 +2462,19 @@ static void do_info_editmenu(void *arg, int event)
 	case 2:
 		/* Circle Select */
 		/*if(select_area(SPACE_VIEW3D)) {
-			winqreadview3dspace(BKEY, 1, 0);	// XXX - kill me
-			winqreadview3dspace(BKEY, 1, 0);	// XXX - kill me
+			;
 		}*/
 		break;
 	case 3:
 		/* Duplicate */
 		if(select_area(SPACE_VIEW3D)) {
-			oldqual = G.qual;
-			G.qual = LR_SHIFTKEY;
-			winqreadview3dspace(DKEY, 1, 0);	// XXX - kill me
-			G.qual = oldqual;
+			duplicate_context_selected();
 		}
 		break;
 	case 4:
 		/* Delete */
 		if(select_area(SPACE_VIEW3D)) {
-			winqreadview3dspace(XKEY, 1, 0);	// XXX - kill me
+			delete_context_selected();
 		}
 		break;
 	case 5:
@@ -2532,19 +2528,13 @@ static void do_info_editmenu(void *arg, int event)
 			/* ### */
 		}	
 		if(select_area(SPACE_VIEW3D)) {
-			oldqual = G.qual;
-			G.qual = LR_SHIFTKEY;
-			winqreadview3dspace(WKEY, 1, 0);	// XXX - kill me
-			G.qual = oldqual;
+			transform('w');
 		}
 		break;
 	case 11:
 		/* Snap */
 		if(select_area(SPACE_VIEW3D)) {
-			oldqual = G.qual;
-			G.qual = LR_SHIFTKEY;
-			winqreadview3dspace(SKEY, 1, 0);	// XXX - kill me
-			G.qual = oldqual;
+			snapmenu();
 		}
 		break;
 	}
@@ -3930,7 +3920,10 @@ void do_ipo_buttons(short event)
 	case B_IPOSHOWKEY:
 		/* waarde omkeren vanwege winqread */
 		G.sipo->showkey= 1-G.sipo->showkey;
-		winqreadipospace(KKEY, 1, 0);		// XXX - kill me
+		ipo_toggle_showkey();
+		scrarea_queue_headredraw(curarea);
+		scrarea_queue_winredraw(curarea);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_VIEW2DZOOM:
 		viewmovetemp= 0;
