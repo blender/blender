@@ -1882,7 +1882,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 		}
 
 		/* shadow and spec, only when inp>0 */
-		if(lampdist> 0.0 && inp>0.0) {
+		if(lampdist> 0.0) {
 			
 			if(i>0.0 && (R.r.mode & R_SHADOW)) {
 				if(ma->mode & MA_SHADOW) {
