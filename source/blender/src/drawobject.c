@@ -2642,6 +2642,46 @@ static void drawmeshwire_wirextra(DispListMesh *dlm, int optimal, char alpha)
 	}
 }	
 
+static void drawmeshwire_seams(DispListMesh *dlm, int optimal)
+{
+	EditMesh *em= G.editMesh;
+	EditEdge *eed;
+
+	BIF_ThemeColor(TH_EDGE_SEAM);
+	glLineWidth(2);
+
+	if(dlm && optimal) {
+		MEdge *medge= dlm->medge;
+		MVert *mvert= dlm->mvert;
+		int a;
+	
+		glBegin(GL_LINES);
+		for (a=0; a<dlm->totedge; a++, medge++) {
+			if(medge->flag & ME_EDGEDRAW) {
+				eed= dlm->editedge[a];
+				if(eed && eed->h==0 && eed->seam) {
+					glVertex3fv(mvert[medge->v1].co); 
+					glVertex3fv(mvert[medge->v2].co);
+				}
+			}
+		}
+		glEnd();
+	}
+	else {
+		glBegin(GL_LINES);
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->h==0 && eed->seam) {
+				glVertex3fv(eed->v1->co);
+				glVertex3fv(eed->v2->co);
+			}
+		}
+		glEnd();
+	}
+
+	cpack(0x0);
+	glLineWidth(1);
+}
+
 static void drawmeshwire(Object *ob)
 {
 	EditMesh *em = G.editMesh;
@@ -2651,7 +2691,6 @@ static void drawmeshwire(Object *ob)
 	MFace *mface;
 	DispList *dl;
 	Material *ma;
-	EditEdge *eed;
 	EditFace *efa;
 	float fvec[3], *f1, *f2, *f3, *f4, *extverts=NULL;
 	int a, start, end, test, ok, optimal=0;
@@ -2725,6 +2764,9 @@ static void drawmeshwire(Object *ob)
 		
 		/* here starts all fancy draw-extra over */
 		
+		if(G.f & G_DRAWSEAMS)
+			drawmeshwire_seams(dlm, optimal);
+
 		/* show wires in transparant when no zbuf clipping for select */
 		if(G.zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0) {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2737,23 +2779,6 @@ static void drawmeshwire(Object *ob)
 		drawmeshwire_wirextra(dlm, optimal, 255);
 
 		if(G.f & G_DRAWCREASES) drawmeshwire_creases();
-		
-		if(optimal==0 && G.f & G_DRAWSEAMS) {
-			BIF_ThemeColor(TH_EDGE_SEAM);
-			glLineWidth(2);
-
-			glBegin(GL_LINES);
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->h==0 && eed->seam) {
-					glVertex3fv(eed->v1->co);
-					glVertex3fv(eed->v2->co);
-				}
-			}
-			glEnd();
-
-			cpack(0x0);
-			glLineWidth(1);
-		}
 
 		if(ob!=G.obedit) return;
 		
