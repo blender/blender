@@ -129,25 +129,72 @@ int	LastMode = TFM_TRANSLATION;
 
 /* ************************** Functions *************************** */
 
-/* ************************** CONVERSIONS ************************* */
-
-static int allocTransData(void)
+static void sort_trans_data(TransInfo *t) 
 {
-	int count, mode=0;
-	countall();
-	
- 	if(mode) count= G.totvert;
-	else count= G.totvertsel;
-	printf("count: %d\n", count);
-	if(G.totvertsel==0) {
-		count= 0;
-		return count;
+	TransData *sel, *unsel;
+	TransData temp;
+	unsel = t->data;
+	sel = t->data;
+	sel += t->total - 1;
+	while (sel > unsel) {
+		while (unsel->flag & TD_SELECTED) {
+			unsel++;
+			if (unsel == sel) {
+				return;
+			}
+		}
+		while (!(sel->flag & TD_SELECTED)) {
+			sel--;
+			if (unsel == sel) {
+				return;
+			}
+		}
+		temp = *unsel;
+		*unsel = *sel;
+		*sel = temp;
+		sel--;
+		unsel++;
 	}
-	
-	Trans.total = count;
-	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(EditMode)");
-	return count;
 }
+
+
+/* distance calculated from not-selected vertex to nearest selected vertex
+   warning; this is loops inside loop, has minor N^2 issues, but by sorting list it is OK */
+static void set_prop_dist(TransInfo *t)
+{
+	TransData *tob;
+	int a;
+	
+	for(a=0, tob= t->data; a<t->total; a++, tob++) {
+		
+		tob->dist= 0.0f; // init, it was mallocced
+		
+		if((tob->flag & TD_SELECTED)==0) {
+			TransData *td;
+			int i;
+			float dist, vec[3];
+
+			tob->dist = -1.0f; // signal for next loop
+				
+			for (i = 0, td= t->data; i < t->total; i++, td++) {
+				if(td->flag & TD_SELECTED) {
+					VecSubf(vec, tob->center, td->center);
+					Mat3MulVecfl(tob->mtx, vec);
+					dist = Normalise(vec);
+					if (tob->dist == -1.0f) {
+						tob->dist = dist;
+					}
+					else if (dist < tob->dist) {
+						tob->dist = dist;
+					}
+				}
+				else break;	// by definition transdata has selected items in beginning
+			}
+		}	
+	}
+}
+
+/* ************************** CONVERSIONS ************************* */
 
 void createTransTexspace(void)
 {
@@ -238,7 +285,6 @@ static void add_pose_transdata(ListBase *lb, Object *ob, TransData **tdp)
 				VECCOPY(td->center, vec);
 				
 				td->ob = ob;
-				td->dist= 0.0f;
 				td->flag= TD_SELECTED|TD_USEQUAT;
 				td->loc = bone->loc;
 				VECCOPY(td->iloc, bone->loc);
@@ -360,8 +406,6 @@ static void createTransArmatureVerts(void)
 			td->ext = NULL;
 			td->tdi = NULL;
 
-			td->dist = 0.0f;
-			
 			td++;
 		}
 		if (ebo->flag & BONE_ROOTSEL){
@@ -375,8 +419,6 @@ static void createTransArmatureVerts(void)
 			td->ext = NULL;
 			td->tdi = NULL;
 
-			td->dist = 0.0f;
-		
 			td++;
 		}
 			
@@ -389,25 +431,35 @@ static void createTransMBallVerts(void)
 	TransData *td;
 	TransDataExtension *tx;
 	float mtx[3][3], smtx[3][3];
-	int count;
+	int count=0, countsel=0;
+	int propmode = G.f & G_PROPORTIONAL;
 
-	count = allocTransData();
-	if (!count) return;
+	/* count totals */
+    for(ml= editelems.first; ml; ml= ml->next) {
+		if(ml->flag & SELECT) countsel++;
+		if(propmode) count++;
+	}
 
+	/* note: in prop mode we need at least 1 selected */
+	if (countsel==0) return;
+	
+	if(propmode) Trans.total = count; 
+	else Trans.total = countsel;
+	
+	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(MBall EditMode)");
 	tx = MEM_mallocN(Trans.total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
     
 	td = Trans.data;
-    ml= editelems.first;
-	while(ml) {
-		if(ml->flag & SELECT) {
+    for(ml= editelems.first; ml; ml= ml->next) {
+		if(propmode || (ml->flag & SELECT)) {
 			td->loc= &ml->x;
 			VECCOPY(td->iloc, td->loc);
 			VECCOPY(td->center, td->loc);
-			td->flag= TD_SELECTED;
-
+			if(ml->flag & SELECT) td->flag= TD_SELECTED;
+			else td->flag= 0;
 			Mat3CpyMat3(td->smtx, smtx);
 			Mat3CpyMat3(td->mtx, mtx);
 
@@ -421,12 +473,9 @@ static void createTransMBallVerts(void)
 
 			tx->rot = NULL;
 
-			td->dist = 0.0f;
-
 			td++;
 			tx++;
 		}
-		ml= ml->next;
 	}
 } 
 
@@ -438,122 +487,141 @@ static void createTransCurveVerts(void)
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
 	int a;
-	int count=0;
-	int mode = 0; /*This used for. . .what?*/
-	//int proptrans= 0;
+	int count=0, countsel=0;
+	int propmode = G.f & G_PROPORTIONAL;
 
-	count = allocTransData();
-	if (!count) return;
+	/* count total of vertices, check identical as in 2nd loop for making transdata! */
+	for(nu= editNurb.first; nu; nu= nu->next) {
+		if((nu->type & 7)==CU_BEZIER) {
+			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
+				if(bezt->hide==0) {
+					if(bezt->f1 & 1) countsel++;
+					if(bezt->f2 & 1) countsel++;
+					if(bezt->f3 & 1) countsel++;
+					if(propmode) count+= 3;
+				}
+			}
+		}
+		else {
+			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
+				if(bp->hide==0) {
+					if(propmode) count++;
+					if(bp->f1 & 1) countsel++;
+				}
+			}
+		}
+	}
+	/* note: in prop mode we need at least 1 selected */
+	if (countsel==0) return;
+	
+	if(propmode) Trans.total = count; 
+	else Trans.total = countsel;
+	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Curve EditMode)");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
     td = Trans.data;
-	nu= editNurb.first;
-	while(nu) {
+	for(nu= editNurb.first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
-			a= nu->pntsu;
-			bezt= nu->bezt;
-			while(a--) {
+			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
-					if(mode==1 || (bezt->f1 & 1)) {
+					if(propmode || (bezt->f1 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
 						VECCOPY(td->center, td->loc);
-						td->flag= TD_SELECTED;
+						if(bezt->f1 & 1) td->flag= TD_SELECTED;
+						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
 
-						td->dist = 0.0f;
-			
 						td++;
 						count++;
 					}
-					if(mode==1 || (bezt->f2 & 1)) {
+					if(propmode || (bezt->f2 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[1]);
 						td->loc= bezt->vec[1];
 						VECCOPY(td->center, td->loc);
-						td->flag= TD_SELECTED;
+						if(bezt->f2 & 1) td->flag= TD_SELECTED;
+						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
 
-						td->dist = 0.0f;
-			
 						td++;
 						count++;
 					}
-					if(mode==1 || (bezt->f3 & 1)) {
+					if(propmode || (bezt->f3 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
 						VECCOPY(td->center, td->loc);
-						td->flag= TD_SELECTED;
+						if(bezt->f3 & 1) td->flag= TD_SELECTED;
+						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
 
-						td->dist = 0.0f;
-			
 						td++;
 						count++;
 					}
 				}
-				bezt++;
 			}
 		}
 		else {
-			a= nu->pntsu*nu->pntsv;
-			bp= nu->bp;
-			while(a--) {
+			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
 				if(bp->hide==0) {
-					if(mode==1 || (bp->f1 & 1)) {
+					if(propmode || (bp->f1 & 1)) {
 						VECCOPY(td->iloc, bp->vec);
 						td->loc= bp->vec;
 						VECCOPY(td->center, td->loc);
-						td->flag= TD_SELECTED;
+						if(bp->f1 & 1) td->flag= TD_SELECTED;
+						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
 
-						td->dist = 0.0f;
-			
 						td++;
 						count++;
 					}
 				}
-				bp++;
 			}
 		}
-		nu= nu->next;
 	}
+	
 }
 
 static void createTransLatticeVerts(void)
 {
 	TransData *td = NULL;
-	int count = 0;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
-	int mode = 0; /*This used for proportional editing*/
-	/*should find a function that does this. . . what else is this used for? I DONT KNOW!*/
 	int a;
-	//int proptrans= 0;
+	int count=0, countsel=0;
+	int propmode = G.f & G_PROPORTIONAL;
 
 	bp= editLatt->def;
+	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	while(a--) {
+		if(bp->f1 & 1) countsel++;
+		if(propmode) count++;
+		bp++;
+	}
 	
+ 	/* note: in prop mode we need at least 1 selected */
+	if (countsel==0) return;
 	
- 	count = allocTransData();
-	
-	if (!count) return;
+	if(propmode) Trans.total = count; 
+	else Trans.total = countsel;
+	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Lattice EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -562,20 +630,18 @@ static void createTransLatticeVerts(void)
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
-		if(mode==1 || (bp->f1 & 1)) {
+		if(propmode || (bp->f1 & 1)) {
 			if(bp->hide==0) {
 				VECCOPY(td->iloc, bp->vec);
 				td->loc= bp->vec;
 				VECCOPY(td->center, td->loc);
-				td->flag= TD_SELECTED;
-
+				if(bp->f1 & 1) td->flag= TD_SELECTED;
+				else td->flag= 0;
 				Mat3CpyMat3(td->smtx, smtx);
 				Mat3CpyMat3(td->mtx, mtx);
 
 				td->ext = NULL;
 				td->tdi = NULL;
-
-				td->dist = 0.0f;
 
 				td++;
 				count++;
@@ -598,20 +664,17 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 static void createTransEditVerts(void)
 {
 	TransData *tob = NULL;
-	int totsel = 0;
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	float mtx[3][3], smtx[3][3];
-	/*should find a function that does this. . .*/
-	// int proptrans= 0;
+	int count=0, countsel=0;
+	int propmode = G.f & G_PROPORTIONAL;
 		
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (eve->f & SELECT)) {
+			if(eve->h==0 && (eve->f & SELECT)) 
 				eve->f1= SELECT;
-				Trans.total++;
-			}
 			else
 				eve->f1= 0;
 		}
@@ -623,9 +686,6 @@ static void createTransEditVerts(void)
 			if(eed->h==0 && (eed->f & SELECT))
 				eed->v1->f1= eed->v2->f1= SELECT;
 		}
-		for(eve= em->verts.first; eve; eve= eve->next)
-			if(eve->f1)
-				Trans.total++;
 	}
 	else {
 		EditFace *efa;
@@ -636,77 +696,38 @@ static void createTransEditVerts(void)
 				if(efa->v4) efa->v4->f1= SELECT;
 			}
 		}
-		for(eve= em->verts.first; eve; eve= eve->next)
-			if(eve->f1)
-				Trans.total++;
 	}
 	
-	totsel = Trans.total;
-	/* proportional edit exception... */
-	if((G.f & G_PROPORTIONAL) && Trans.total) {
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (!(eve->f1 & SELECT))) {
-				eve->f1 = 2;
-				Trans.total++;
-			}
+	/* now we can count */
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->h==0) {
+			if(eve->f1) countsel++;
+			if(propmode) count++;
 		}
 	}
 	
-	/* and now make transverts */
-    if (!Trans.total) return;
+ 	/* note: in prop mode we need at least 1 selected */
+	if (countsel==0) return;
+	
+	if(propmode) Trans.total = count; 
+	else Trans.total = countsel;
+	tob= Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    tob = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditVert");
-
-	for (eve=em->verts.first; eve; eve=eve->next)
-	{
-		if (eve->f1 == SELECT) {
-			VertsToTransData(tob, eve);
-
-			tob->flag |= TD_SELECTED;
-
-			Mat3CpyMat3(tob->smtx, smtx);
-			Mat3CpyMat3(tob->mtx, mtx);
-
-			tob->dist = 0.0f;
-
-			tob++;
-		}	
-	}	
-
-	/* PROPORTIONAL*/
-	if (G.f & G_PROPORTIONAL) {
-		for (eve=em->verts.first; eve; eve=eve->next)
-		{
-			TransData *td;
-			int i;
-			float dist, vec[3];
-			if (eve->f1 == 2) {
-
+	for (eve=em->verts.first; eve; eve=eve->next) {
+		if(eve->h==0) {
+			if(propmode || eve->f1) {
 				VertsToTransData(tob, eve);
+
+				if(eve->f1) tob->flag |= TD_SELECTED;
 
 				Mat3CpyMat3(tob->smtx, smtx);
 				Mat3CpyMat3(tob->mtx, mtx);
-			
-				tob->dist = -1;
-
-				td = Trans.data;
-				for (i = 0; i < totsel; i++, td++) {
-					VecSubf(vec, tob->center, td->center);
-					Mat3MulVecfl(mtx, vec);
-					dist = Normalise(vec);
-					if (tob->dist == -1) {
-						tob->dist = dist;
-					}
-					else if (dist < tob->dist) {
-						tob->dist = dist;
-					}
-				}
 
 				tob++;
-			}	
+			}
 		}	
 	}
 }
@@ -1065,7 +1086,6 @@ static void createTransObject(void)
 			
 			td->flag= TD_SELECTED|TD_OBJECT;
 			td->ext = tx;
-			td->dist = 0.0f;
 
 			/* store ipo keys? */
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
@@ -1153,6 +1173,12 @@ static void createTransData(TransInfo *t)
 		else {
 			printf("not done yet! only have mesh surface curve\n");
 		}
+		
+		if(G.f & G_PROPORTIONAL) {
+			sort_trans_data(&Trans);	// makes selected become first in array
+			set_prop_dist(&Trans);
+		}
+		
 	}
 	else {
 		createTransObject();
