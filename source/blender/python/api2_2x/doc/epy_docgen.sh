@@ -4,6 +4,6 @@
 # run from the doc directory containing the .py files
 # usage:  sh epy_docgen.sh
 
-epydoc -o BPY_API_232 --url "http://www.blender.org" -t Blender.py \
+epydoc -o BPY_API_233 --url "http://www.blender.org" -t Blender.py \
  -n "Blender" --no-private --no-frames \
 $( ls [A-Z]*.py )
