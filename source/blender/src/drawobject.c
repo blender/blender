@@ -2602,7 +2602,7 @@ static void drawmeshwire(Object *ob)
 				for (a=0; a<dlm->totedge; a++, medge++) {
 					if(medge->flag & ME_EDGEDRAW) {
 						eed= dlm->editedge[a];
-						if(eed->h==0) {
+						if(eed && eed->h==0) {
 							if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
 							else BIF_ThemeColor(TH_WIRE);
 							glVertex3fv(mvert[medge->v1].co); 

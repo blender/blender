@@ -861,6 +861,7 @@ static void faceloop_select(EditEdge *startedge, int select)
 	}
 }
 
+
 /* helper for edgeloop_select, checks for eed->f2 tag in faces */
 static int edge_not_in_tagged_face(EditEdge *eed)
 {
@@ -869,8 +870,10 @@ static int edge_not_in_tagged_face(EditEdge *eed)
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->h==0) {
-			if(efa->e1==eed || efa->e2==eed || efa->e3==eed || efa->e4==eed) {
-				if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2)) return 0;
+			if(efa->e1==eed || efa->e2==eed || efa->e3==eed || efa->e4==eed) {	// edge is in face
+				if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2)) {	// face is tagged
+					return 0;
+				}
 			}
 		}
 	}
@@ -897,7 +900,7 @@ static void edgeloop_select(EditEdge *starteed, int select)
 	int looking= 1;
 	
 	/* in f1 we put the valence (amount of edges in a vertex, or faces in edge) */
-	/* in f2 we put tagged flag as correct loop */
+	/* in eed->f2 and efa->f1 we put tagged flag as correct loop */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		eve->f1= 0;
 		eve->f2= 0;
@@ -910,6 +913,7 @@ static void edgeloop_select(EditEdge *starteed, int select)
 		}
 	}
 	for(efa= em->faces.first; efa; efa= efa->next) {
+		efa->f1= 0;
 		if(efa->h==0) {
 			efa->e1->f1++;
 			efa->e2->f1++;
