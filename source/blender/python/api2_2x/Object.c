@@ -593,8 +593,6 @@ static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
 static PyObject *Object_getData (BPy_Object *self)
 {
     PyObject  * data_object;
-//#    int         obj_id;
-//#    ID        * id;
 
     /* If there's a valid PyObject already, then just return that one. */
     if (self->data != NULL)
@@ -613,17 +611,15 @@ static PyObject *Object_getData (BPy_Object *self)
 
     data_object = NULL;
 
-    //#id = (ID*)self->object;
-    //#obj_id = MAKE_ID2 (id->name[0], id->name[1]);
-    switch (self->object->type)//#obj_id)
+    switch (self->object->type)
     {
-        case OB_ARMATURE://#ID_AR:
+        case OB_ARMATURE:
             data_object = Armature_CreatePyObject (self->object->data);
             break;
-        case OB_CAMERA://#ID_CA:
+        case OB_CAMERA:
             data_object = Camera_CreatePyObject (self->object->data);
             break;
-        case OB_CURVE://#ID_CU:
+        case OB_CURVE:
             data_object = Curve_CreatePyObject (self->object->data);
             break;
         case ID_IM:
@@ -632,12 +628,12 @@ static PyObject *Object_getData (BPy_Object *self)
         case ID_IP:
             data_object = Ipo_CreatePyObject (self->object->data);
             break;
-        case OB_LAMP://#ID_LA:
+        case OB_LAMP:
             data_object = Lamp_CreatePyObject (self->object->data);
             break;
         case ID_MA:
             break;
-        case OB_MESH://#ID_ME:
+        case OB_MESH:
             data_object = NMesh_CreatePyObject (self->object->data);
             break;
         case ID_OB:
@@ -842,7 +838,8 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
         data = (void *)Lamp_FromPyObject (py_data);
     if (Curve_CheckPyObject (py_data))
         data = (void *)Curve_FromPyObject (py_data);
-    /* TODO: add the (N)Mesh check and from functions here when finished. */
+    if (NMesh_CheckPyObject (py_data))
+        data = (void *)NMesh_FromPyObject (py_data);
 
     oldid = (ID*) self->object->data;
     id = (ID*) data;
@@ -1362,9 +1359,9 @@ static PyObject* Object_getAttr (BPy_Object *obj, char *name)
                     return (PyFloat_FromDouble (ika->effg[1]));
                 case 'Z':
                     return (PyFloat_FromDouble (ika->effg[2]));
-						default:
-							/* Do we need to display a sensible error message here? */
-							return (NULL);
+                default:
+                /* Do we need to display a sensible error message here? */
+                    return (NULL);
             }
         }
         return (NULL);
