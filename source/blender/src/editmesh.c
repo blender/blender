@@ -8449,6 +8449,8 @@ void bevel_menu()
 		if (nr==0) fac += 1.0/3.0; else fac += 1.0/(3 * nr * 2.0);
 	}
 
+	SetBlenderCursor(SYSCURSOR);
+
 	while (Finished == 0)
 	{
 		getmouseco_areawin(mval);
@@ -8528,9 +8530,11 @@ void bevel_menu()
 		}	
 	}
 	if (Canceled==0) {
+		SetBlenderCursor(BC_WAITCURSOR);
 		undo_push_mesh("Bevel");
 		bevel_mesh_recurs(drawd/fac, recurs, 1);
 		righthandfaces(1);
+		SetBlenderCursor(SYSCURSOR);
 	}
 }
 
