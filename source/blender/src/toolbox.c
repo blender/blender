@@ -2049,9 +2049,9 @@ static void tb_do_transform(void *arg, int event)
 }
 
 static TBitem tb_transform_object_mirror[]= {
-{	0, "X Local|M, 1", 	1, NULL},
-{	0, "Y Local|M, 2", 	2, NULL},
-{	0, "Z Local|M, 3", 	3, NULL},
+{	0, "X Local|Ctrl M, 1", 	1, NULL},
+{	0, "Y Local|Ctrl M, 2", 	2, NULL},
+{	0, "Z Local|Ctrl M, 3", 	3, NULL},
 {  -1, "", 			0, do_view3d_object_mirrormenu}};
 
 static TBitem tb_transform[]= {
@@ -2071,17 +2071,17 @@ static TBitem tb_transform[]= {
 {  -1, "", 			0, tb_do_transform}};
 
 static TBitem tb_transform_edit_mirror[]= {
-{	0, "X Global|M, 1", 	1, NULL},
-{	0, "Y Global|M, 2", 	2, NULL},
-{	0, "Z Global|M, 3", 	3, NULL},
+{	0, "X Global|Ctrl M, 1", 	1, NULL},
+{	0, "Y Global|Ctrl M, 2", 	2, NULL},
+{	0, "Z Global|Ctrl M, 3", 	3, NULL},
 {	0, "SEPR", 					0, NULL},
-{	0, "X Local|M, 4", 	4, NULL},
-{	0, "Y Local|M, 5", 	5, NULL},
-{	0, "Z Local|M, 6", 	6, NULL},
+{	0, "X Local|Ctrl M, 4", 	4, NULL},
+{	0, "Y Local|Ctrl M, 5", 	5, NULL},
+{	0, "Z Local|Ctrl M, 6", 	6, NULL},
 {	0, "SEPR", 					0, NULL},
-{	0, "X View|M, 7", 	7, NULL},
-{	0, "Y View|M, 8", 	8, NULL},
-{	0, "Z View|M, 9", 	9, NULL},
+{	0, "X View|Ctrl M, 7", 	7, NULL},
+{	0, "Y View|Ctrl M, 8", 	8, NULL},
+{	0, "Z View|Ctrl M, 9", 	9, NULL},
 {  -1, "", 			0, do_view3d_edit_mirrormenu}};
 
 static TBitem tb_transform_editmode1[]= {
