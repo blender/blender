@@ -87,7 +87,14 @@ ListBase editNurb;
 #include "DNA_world_types.h"	/* for render_types */
 #include "render_types.h"
 struct RE_Render R;
-float   Phong_Spec(float *n, float *l, float *v, int hard){return 0;}
+
+float Phong_Spec(float *n, float *l, float *v, int hard){return 0;}
+float Blinn_Spec(float *n, float *l, float *v, float a, float b){return 0;}
+float CookTorr_Spec(float *n, float *l, float *v, int hard){return 0;}
+float Toon_Spec(float *n, float *l, float *v, float a, float b){return 0;}
+float Toon_Diff(float *n, float *l, float *v, float a, float b){return 0;}
+float OrenNayar_Diff(float *n, float *l, float *v, float a, float b){return 0;}
+
 void waitcursor(int val){}
 void allqueue(unsigned short event, short val){}
 #define REDRAWVIEW3D	0x4010
