@@ -244,6 +244,7 @@ FaceIt_Fill(
 		}
 	}	
 
+	fdata->faceflag = mface->flag;
 	fdata->material = give_current_material(ob, mface->mat_nr+1);
 
 		// pack rgba colors.
@@ -605,8 +606,6 @@ AddNewBlenderMesh(
 	return ob_new;
 };
 
-
-
 /**
  *
  * External interface
@@ -702,6 +701,7 @@ ConvertCSGDescriptorsToMeshObject(
 		FaceData *fdata;
 		
 		face_it->Fill(face_it->it,&face);
+		fdata = face.user_face_data;
 
 		// cheat CSG never dumps out quads.
 
@@ -713,13 +713,12 @@ ConvertCSGDescriptorsToMeshObject(
 		mface->edcode = ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
 		mface->puno = 0;
 		mface->mat_nr = 0;
-		mface->flag = 0;
+		mface->flag = fdata->faceflag;
 		
 		/* HACK, perform material to index mapping using a general
 		 * hash table, just tuck the int into a void *.
 		 */
 		
-		fdata = face.user_face_data;
 		if (!BLI_ghash_haskey(material_hash, fdata->material)) {
 			int matnr = nmaterials++;
 			BLI_ghash_insert(material_hash, fdata->material, (void*) matnr);
@@ -765,8 +764,10 @@ ConvertCSGDescriptorsToMeshObject(
 	BLI_ghash_free(material_hash, NULL, NULL);
 
 	me->totface = face_it->num_elements;
-	// thats it!
 
+	mesh_calculate_vertex_normals(me);
+
+	// thats it!
 	if (user_face_vertex_data) {
 		MEM_freeN(user_face_vertex_data);
 	}

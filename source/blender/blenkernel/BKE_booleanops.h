@@ -132,7 +132,7 @@ typedef struct {
 	
 		/* assorted tface flags */
 	void *tpage;
-	char flag, transp;
+	char flag, transp, faceflag;
 	short mode, tile;
 } FaceData;
 
