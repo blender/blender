@@ -38,10 +38,10 @@
 #include "BPI_script.h"
 
 #include "MEM_guardedalloc.h"
+#include "BKE_bad_level_calls.h" /* for BPY_clear_script */
 
 /*
 #include "BLI_blenlib.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 #include "BKE_library.h"
 #include "BKE_global.h"

@@ -611,8 +611,8 @@ int BPY_menu_do_python(short menutype, int event)
 	buffer = MEM_mallocN(len+2, "pyfilebuf"); /* len+2 to add '\n\0' */
 	len = fread(buffer, 1, len, fp);
 
-	buffer[len-1] = '\n'; /* to fix potential syntax error */
-	buffer[len] = '\0';
+	buffer[len] = '\n'; /* fix syntax error in files w/o eol*/
+	buffer[len+1] = '\0';
 
 	/* fast clean-up of dos cr/lf line endings: change '\r' to space */
 

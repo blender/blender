@@ -62,6 +62,8 @@ extern PyObject *g_blenderdict;
 /*****************************************************************************/
 void M_Blender_Init (void);
 
+void types_InitAll(void); /* in Types.c */
+
 /* sys */
 PyObject * sys_Init (void);
 

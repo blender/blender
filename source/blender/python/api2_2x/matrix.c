@@ -264,7 +264,7 @@ PyObject *Matrix_Invert(MatrixObject *self)
 {
 	float det;
 	int x,y,z;
-	float *mat;
+	float *mat = NULL;
 	float t;
 
 	if(self->rowSize != self->colSize)

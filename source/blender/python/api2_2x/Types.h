@@ -34,22 +34,21 @@
 
 #include "Python.h"
 
-extern PyTypeObject Button_Type, Material_Type;
-
-extern PyTypeObject Texture_Type, MTex_Type;
-
+extern PyTypeObject Action_Type, Armature_Type;
+extern PyTypeObject BezTriple_Type, Bone_Type, Build_Type, Button_Type;
+extern PyTypeObject Camera_Type, Curve_Type;
+extern PyTypeObject Effect_Type;
+extern PyTypeObject Image_Type, Ipo_Type, IpoCurve_Type;
+extern PyTypeObject Lamp_Type, Lattice_Type;
+extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
+extern PyTypeObject NMFace_Type, NMVert_Type, NMCol_Type, NMesh_Type;
 extern PyTypeObject Object_Type;
+extern PyTypeObject Particle_Type;
 extern PyTypeObject Scene_Type;
-extern PyTypeObject NMesh_Type, NMFace_Type, NMVert_Type, NMCol_Type;
-extern PyTypeObject Camera_Type, Lamp_Type, Image_Type, Text_Type;
-extern PyTypeObject Armature_Type, Bone_Type;
-extern PyTypeObject Curve_Type, Ipo_Type, Metaball_Type;
-extern PyTypeObject Lattice_Type;
+extern PyTypeObject Text_Type, Texture_Type;
+extern PyTypeObject Wave_Type, World_Type;
 
-extern PyTypeObject  buffer_Type, rgbTuple_Type,
-	constant_Type, BezTriple_Type;
-
-extern PyTypeObject vector_Type, matrix_Type, euler_Type, quaternion_Type;
-extern PyTypeObject Action_Type;
+extern PyTypeObject buffer_Type, constant_Type, euler_Type;
+extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
 
 #endif /* EXPP_TYPES_H */

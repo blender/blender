@@ -741,7 +741,7 @@ static PyObject *Object_getDrawMode (BPy_Object *self)
 
 static PyObject *Object_getAction (BPy_Object *self)
 {
-	BPy_Action *py_action = NULL;
+	/*BPy_Action *py_action = NULL;*/
 
 	if(!self->object->action){
 		Py_INCREF (Py_None);

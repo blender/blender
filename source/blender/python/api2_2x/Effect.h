@@ -46,14 +46,6 @@
 #include"gen_utils.h"
 #include "bpy_types.h"
 
-
-/*****************************************************************************/
-/* Python BPy_Effect methods table:                                            */
-/*****************************************************************************/
-static PyMethodDef BPy_Effect_methods[] = {
-  {0}
-};
-
 /*****************************************************************************/
 /* Python API function prototypes for the Effect module.                     */
 /*****************************************************************************/
@@ -79,32 +71,5 @@ PyObject *EffectRepr (BPy_Effect *msh);
 PyObject* EffectCreatePyObject (struct Effect *effect);
 int EffectCheckPyObject (PyObject *py_obj);
 struct Effect* EffectFromPyObject (PyObject *py_obj);
-/*****************************************************************************/
-/* Python Effect_Type structure definition:                                  */
-/*****************************************************************************/
-static PyTypeObject Effect_Type =
-{
-  PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "Effect",                               /* tp_name */
-  sizeof (BPy_Effect),                      /* tp_basicsize */
-  0,                                      /* tp_itemsize */
-  /* methods */
-  (destructor)EffectDeAlloc,              /* tp_dealloc */
-  0,                 /* tp_print */
-  (getattrfunc)EffectGetAttr,             /* tp_getattr */
-  (setattrfunc)EffectSetAttr,             /* tp_setattr */
-  0,                                      /* tp_compare */
-  (reprfunc)EffectRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
-  0,0,0,0,0,0,
-  BPy_Effect_methods,                       /* tp_methods */
-  0,                                      /* tp_members */
-};
 
 #endif /* EXPP_EFFECT_H */

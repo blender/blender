@@ -381,3 +381,12 @@ def Text(string, fontsize = 'normal'):
   @rtype: int
   @return: The width of I{string} drawn with the chosen I{fontsize}.
   """
+
+class Button:
+  """
+  The Button object
+  =================
+    This object represents a button in Blender's GUI.
+  @type val: int or float or string (depends on button type).
+  @cvar val: The button's value.
+  """
