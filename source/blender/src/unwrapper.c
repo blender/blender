@@ -138,7 +138,7 @@ static HashEdge *make_hash_edge_table(Mesh *me, short fill)
 	MEdge *medge;
 	unsigned int a;
 
-	if(me->medge==NULL)
+	if(fill && (me->medge==NULL))
 		return NULL;
 
 	htable= MEM_callocN(EDHASHSIZE*sizeof(HashEdge), "lscmedgehashtable");
@@ -232,16 +232,6 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 
 	groups= (int*)MEM_callocN(sizeof(int)*me->totface, "SeamGroups");
 
-	if(me->medge==NULL) {
-		tface= (TFace*)me->tface;
-		gface= groups;
-		for(a=me->totface; a>0; a--, tface++, gface++)
-			if(tface->flag & TF_SELECT)
-				*gface= 1;
-		*seamgroups= groups;
-		return 1;
-	}
-	
 	htable= make_hash_edge_table(me, 0);
 
 	mface= (MFace*)me->mface;
