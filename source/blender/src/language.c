@@ -223,7 +223,7 @@ void start_interface_font(void)
 		if(!result) {
 			strcpy(tstr, BLI_gethome());
 			if (strstr(tstr,".blender") == 0) {
-				strcat(tstr,".blender/");
+				strcat(tstr,"/.blender/");
 			}
 			strcat(tstr, U.fontname);
 			result = FTF_SetFont(tstr, U.fontsize);
