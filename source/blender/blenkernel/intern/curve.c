@@ -1974,7 +1974,7 @@ void calchandleNurb(BezTriple *bezt,BezTriple *prev, BezTriple *next, int mode)
 		vx= dx1/len2 + dx/len1;
 		vy= dy1/len2 + dy/len1;
 		vz= dz1/len2 + dz/len1;
-		len= 2.71f*(float)sqrt(vx*vx + vy*vy + vz*vz);
+		len= 2.5614f*(float)sqrt(vx*vx + vy*vy + vz*vz);
 		if(len!=0.0f) {
 		
 			if(len1>5.0f*len2) len1= 5.0f*len2;	
