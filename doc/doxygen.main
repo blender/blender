@@ -36,12 +36,17 @@
  */
 
 /** \defgroup mainmodule Main Module */
+/** \defgroup defaultconfig Default Configuration
+ *  \ingroup mainmodule
+ */
+
 /** \defgroup render Rendering Module */
 /** \defgroup meshedit Mesh Editing Module */
 /** \defgroup texture Textureing */
 /** \defgroup compositor Compositing */
 /** \defgroup scripts Scripting */
 /** \defgroup gameengine Game Engine */
+
 /** \defgroup gui GUI */
 /** \defgroup hotkeys Hotkeys
  *  \ingroup gui
@@ -49,4 +54,5 @@
 /** \defgroup toolbox Toolbox
  *  \ingroup gui
  */
+
 /** \defgroup undoc Undocumented */
