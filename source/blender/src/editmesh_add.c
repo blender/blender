@@ -501,7 +501,7 @@ void add_primitiveMesh(int type)
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
 
-	if(type!= 11) {
+	if(type!= 31) {
 		Mat3CpyMat4(imat, G.vd->viewmat);
 		Mat3MulVecfl(imat, cent);
 		Mat3MulMat3(cmat, imat, mat);
@@ -727,7 +727,6 @@ void add_primitiveMesh(int type)
 		recalc_editnormals();	// does face centers too
 	}
 	else if(type==11) {	/*  UVsphere */
-		float tmat[3][3];
 		
 		/* clear all flags */
 		eve= em->verts.first;
@@ -740,10 +739,9 @@ void add_primitiveMesh(int type)
 		phi= 0; 
 		phid/=2;
 		for(a=0; a<=tot; a++) {
-			vec[0]= cent[0]+dia*sin(phi);
-			vec[1]= cent[1];
-			vec[2]= cent[2]+dia*cos(phi);
-			Mat3MulVecfl(imat,vec);
+			vec[0]= dia*sin(phi);
+			vec[1]= 0.0;
+			vec[2]= dia*cos(phi);
 			eve= addvertlist(vec);
 			eve->f= 1+2+4;
 			if(a==0) v1= eve;
@@ -757,14 +755,23 @@ void add_primitiveMesh(int type)
 		q[3]= sin(phi);
 		q[1]=q[2]= 0;
 		QuatToMat3(q, cmat);
-		Mat3MulMat3(tmat, cmat, mat);
-		Mat3MulMat3(cmat, imat, tmat);
 		
 		for(a=0; a<seg; a++) {
 			extrudeflag_vert(2);
 			rotateflag(2, v1->co, cmat);
 		}
+
 		removedoublesflag(4, 0.0001);
+
+		/* and now do imat */
+		eve= em->verts.first;
+		while(eve) {
+			if(eve->f & SELECT) {
+				VecAddf(eve->co,eve->co,cent);
+				Mat3MulVecfl(imat,eve->co);
+			}
+			eve= eve->next;
+		}
 	}
 	else if(type==12) {	/* Icosphere */
 		EditVert *eva[12];

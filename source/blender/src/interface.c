@@ -2975,18 +2975,16 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 
 
 /* only to be used to prevent an 'outside' event when using nested pulldowns */
-/* four checks:
-  - while mouse moves in good x direction
-  - while mouse motion x is bigger than y motion
-  - while distance to center block diminishes
+/* only one checks:
+  - while mouse moves in triangular area defined old mouse position and left/right side of new menu
   - only for 1 second
   
   return 0: check outside
 */
 static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
 {
-	short mvalo[2], dx, dy, domx, domy, x1, y1;
-	int disto, dist, counter=0;
+	short mvalo[2], dx, dy, domx, domy;
+	int counter=0;
 
 	if((block->direction & UI_TOP) || (block->direction & UI_DOWN)) return 0;
 	if(uevent->event!= MOUSEX && uevent->event!= MOUSEY) return 0;
@@ -2996,9 +2994,6 @@ static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
 	domy= ( -uevent->mval[1] + (block->maxy+block->miny)/2 );
 	/* we need some accuracy */
 	if( abs(domx)<4 ) return 0;
-	
-	/* calculte old dist */
-	disto= domx*domx + domy*domy;
 	
 	uiGetMouse(mywinget(), mvalo);
 	
@@ -3017,35 +3012,40 @@ static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
 		dy= uevent->mval[1] - mvalo[1];
 				
 		if( abs(dx)+abs(dy)>4 ) {  // threshold
-			if( abs(dy) > abs(dx) ) {
-				//printf("left because y>x direction\n");
-				return 0;
+			/* menu to right */
+			if(domx>0) {
+				int fac= (uevent->mval[0] - mvalo[0])*(mvalo[1] - (short)(block->maxy +20)) + (uevent->mval[1] - mvalo[1])*(-mvalo[0] + (short)block->minx);
+				if( (fac>0)) {
+					// printf("Left outside 1, Fac %d\n", fac); 
+					return 0;
+				}
+				
+				fac= (uevent->mval[0] - mvalo[0])*(mvalo[1] - (short)(block->miny-20)) + (uevent->mval[1] - mvalo[1])*(-mvalo[0] + (short)block->minx);
+				if( (fac<0))  {
+					//printf("Left outside 2, Fac %d\n", fac); 
+					return 0;
+				}
 			}
-			
-			if( dx>0 && domx>0);
-			else if(dx<0 && domx<0);
 			else {
-				//printf("left because dominant direction\n");
-				return 0;
+				int fac= (uevent->mval[0] - mvalo[0])*(mvalo[1] - (short)(block->maxy+20)) + (uevent->mval[1] - mvalo[1])*(-mvalo[0] + (short)block->maxx);
+				if( (fac<0)) {
+					// printf("Left outside 1, Fac %d\n", fac); 
+					return 0;
+				}
+				
+				fac= (uevent->mval[0] - mvalo[0])*(mvalo[1] - (short)(block->miny-20)) + (uevent->mval[1] - mvalo[1])*(-mvalo[0] + (short)block->maxx);
+				if( (fac>0))  {
+					// printf("Left outside 2, Fac %d\n", fac); 
+					return 0;
+				}
 			}
-			
 		}
 		
-		/* check dist */
-		x1= ( -uevent->mval[0] + (block->maxx+block->minx)/2 );
-		y1= ( -uevent->mval[1] + (block->maxy+block->miny)/2 );
-		dist= x1*x1 + y1*y1;
-		if(dist > disto) {
-			//printf("left because distance\n");
-			return 0;
-		}
-		else disto= dist;
-
 		/* idle for this poor code */
 		PIL_sleep_ms(10);
 		counter++;
 		if(counter > 100) {
-			// printf("left because of timer (1 sec)\n");
+			//printf("left because of timer (1 sec)\n");
 			return 0;
 		}
 	}

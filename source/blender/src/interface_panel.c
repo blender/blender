@@ -364,7 +364,7 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad,
 	gl_round_box_topshade(minx+1, miny+1, maxx-1, maxy-1, rad);
 
 	/* total outline */
-	if(roundboxtype & UI_RB_ALPHA) glColor4ub(0,0,0, 128); else glColor4ub(0,0,0, 255);
+	if(roundboxtype & UI_RB_ALPHA) glColor4ub(0,0,0, 128); else glColor4ub(0,0,0, 200);
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
 	glDisable( GL_LINE_SMOOTH );
