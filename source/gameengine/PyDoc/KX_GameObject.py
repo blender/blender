@@ -7,10 +7,14 @@ class KX_GameObject:
 	
 	Properties assigned to game objects are accessible as attributes of this class.
 	
-	@ivar mass: The object's mass (provided the object has a physics controller). float. read only
+	@ivar name: The object's name.
+	@type name: string.
+	@ivar mass: The object's mass (provided the object has a physics controller). Read only.
+	@type mass: float
 	@ivar parent: The object's parent object. (Read only)
 	@type parent: L{KX_GameObject}
-	@ivar visible: visibility flag. boolean.
+	@ivar visible: visibility flag.
+	@type visible: boolean
 	@ivar position: The object's position. 
 	@type position: list [x, y, z]
 	@ivar orientation: The object's orientation. 3x3 Matrix.  

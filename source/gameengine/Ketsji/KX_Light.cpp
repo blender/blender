@@ -191,11 +191,15 @@ int       KX_LightObject::_setattr(const STR_String& attr, PyObject *pyvalue)
 	{
 		if (attr == "colour" || attr == "color")
 		{
-			MT_Vector3 colour(MT_Vector3FromPyList(pyvalue));
-			m_lightobj.m_red = colour[0];
-			m_lightobj.m_green = colour[1];
-			m_lightobj.m_blue = colour[2];
-			return 0;
+			MT_Vector3 colour;
+			if (PyVecTo(pyvalue, colour))
+			{
+				m_lightobj.m_red = colour[0];
+				m_lightobj.m_green = colour[1];
+				m_lightobj.m_blue = colour[2];
+				return 0;
+			}
+			return 1;
 		}
 	}
 	

@@ -53,6 +53,12 @@ CPPFLAGS += -I../Physics/Dummy
 CPPFLAGS += -I../Physics/Sumo
 CPPFLAGS += -I../Physics/BlOde
 CPPFLAGS += -I.
+CPPFLAGS += -I../Converter
+CPPFLAGS += -I../../blender/blenkernel
+CPPFLAGS += -I../../blender/include
+CPPFLAGS += -I../../blender/makesdna
+CPPFLAGS += -I../../blender/imbuf
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 ###########################
 

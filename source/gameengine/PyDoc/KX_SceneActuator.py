@@ -27,9 +27,11 @@ class KX_SceneActuator(SCA_IActuator):
 		"""
 	def setCamera(camera):
 		"""
-		Sets the name of the camera to change to.
+		Sets the camera to change to.
 		
-		@type camera: string
+		Camera can be either a L{KX_Camera} or the name of the camera.
+		
+		@type camera: L{KX_Camera} or string
 		"""
 	def getUseRestart():
 		"""

@@ -43,6 +43,8 @@ class SCA_ISensor;
 class SCA_IController;
 class SCA_IActuator;
 
+template<class T> T PyVecTo(PyObject*);
+
 typedef std::vector<SCA_ISensor *>       SCA_SensorList;
 typedef std::vector<SCA_IController *>   SCA_ControllerList;
 typedef std::vector<SCA_IActuator *>     SCA_ActuatorList;
@@ -110,8 +112,7 @@ public:
 	 */
 	void Resume(void);
 	
-	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
-	const class MT_Point3&	ConvertPythonVectorArg(PyObject* args);
+//	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
 	
 	// here come the python forwarded methods
 	virtual PyObject* _getattr(const STR_String& attr);

@@ -192,16 +192,22 @@ PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self,
 												PyObject* args,
 												PyObject* kwds)
 {    
+	PyObject* gameobj;
+	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
+	{
+		m_OriginalObject = (CValue*)gameobj;
+		Py_Return;
+	}
+	
 	char* objectname;
+	if (PyArg_ParseTuple(args, "s", &objectname))
+	{
+		m_OriginalObject= (CValue*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));;
+		
+		Py_Return;
+	}
 	
-	if (!PyArg_ParseTuple(args, "s", &objectname))
-		return NULL;		
-
-	CValue* gameobj = SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));
-	
-	m_OriginalObject= (CValue*)gameobj;
-	
-	Py_Return;	
+	return NULL;
 }
 
 

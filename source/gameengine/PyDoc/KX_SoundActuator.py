@@ -127,3 +127,19 @@ class KX_SoundActuator(SCA_IActuator):
 			| o21, o22, o23 |
 			| o31, o32, o33 |
 		"""
+	
+	def setType(mode):
+		"""
+		Sets the operation mode of the actuator.
+		
+		@param mode: KX_SOUNDACT_PLAYSTOP, KX_SOUNDACT_PLAYEND, KX_SOUNDACT_LOOPSTOP, KX_SOUNDACT_LOOPEND, KX_SOUNDACT_LOOPBIDIRECTIONAL, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
+		@type mode: integer
+		"""
+
+	def getType():
+		"""
+		Returns the operation mode of the actuator.
+		
+		@rtype: integer
+		@return:  KX_SOUNDACT_PLAYSTOP, KX_SOUNDACT_PLAYEND, KX_SOUNDACT_LOOPSTOP, KX_SOUNDACT_LOOPEND, KX_SOUNDACT_LOOPBIDIRECTIONAL, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
+		"""

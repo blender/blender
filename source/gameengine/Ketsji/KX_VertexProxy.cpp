@@ -29,12 +29,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "KX_VertexProxy.h"
-#include "RAS_TexVert.h"
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include "KX_VertexProxy.h"
+#include "KX_MeshProxy.h"
+#include "RAS_TexVert.h"
 
 #include "KX_PyMath.h"
 
@@ -80,23 +81,22 @@ PyObject*
 KX_VertexProxy::_getattr(const STR_String& attr)
 {
   if (attr == "XYZ")
-  	return PyObjectFromMT_Vector3(m_vertex->getLocalXYZ());
+  	return PyObjectFrom(MT_Vector3(m_vertex->getLocalXYZ()));
 
   if (attr == "UV")
-  	return PyObjectFromMT_Point2(MT_Point2(m_vertex->getUV1()));
+  	return PyObjectFrom(MT_Point2(m_vertex->getUV1()));
 
   if (attr == "colour" || attr == "color")
   {
-  	unsigned int icol = m_vertex->getRGBA();
-  	unsigned char *colp = (unsigned char *) &icol;
+  	const unsigned char *colp = m_vertex->getRGBA();
 	MT_Vector4 colour(colp[0], colp[1], colp[2], colp[3]);
 	colour /= 255.0;
-  	return PyObjectFromMT_Vector4(colour);
+  	return PyObjectFrom(colour);
   }
   
   if (attr == "normal")
   {
-  	return PyObjectFromMT_Vector3(m_vertex->getNormal());
+	return PyObjectFrom(MT_Vector3(m_vertex->getNormal()));
   }
 
   // pos
@@ -109,13 +109,13 @@ KX_VertexProxy::_getattr(const STR_String& attr)
 
   // Col
   if (attr == "r")
-  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[0]/255.0);
+  	return PyFloat_FromDouble(m_vertex->getRGBA()[0]/255.0);
   if (attr == "g")
-  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[1]/255.0);
+  	return PyFloat_FromDouble(m_vertex->getRGBA()[1]/255.0);
   if (attr == "b")
-  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[2]/255.0);
+  	return PyFloat_FromDouble(m_vertex->getRGBA()[2]/255.0);
   if (attr == "a")
-  	return PyFloat_FromDouble(((unsigned char*)m_vertex->getRGBA())[3]/255.0);
+  	return PyFloat_FromDouble(m_vertex->getRGBA()[3]/255.0);
 
   // UV
   if (attr == "u")
@@ -132,26 +132,46 @@ int    KX_VertexProxy::_setattr(const STR_String& attr, PyObject *pyvalue)
   {
   	if (attr == "XYZ")
 	{
-		m_vertex->SetXYZ(MT_Point3FromPyList(pyvalue));
-		return 0;
+		MT_Point3 vec;
+		if (PyVecTo(pyvalue, vec))
+		{
+			m_vertex->SetXYZ(vec);
+			return 0;
+		}
+		return 1;
 	}
 	
 	if (attr == "UV")
 	{
-		m_vertex->SetUV(MT_Point2FromPyList(pyvalue));
-		return 0;
+		MT_Point2 vec;
+		if (PyVecTo(pyvalue, vec))
+		{
+			m_vertex->SetUV(vec);
+			return 0;
+		}
+		return 1;
 	}
 	
 	if (attr == "colour" || attr == "color")
 	{
-		m_vertex->SetRGBA(MT_Vector4FromPyList(pyvalue));
-		return 0;
+		MT_Vector4 vec;
+		if (PyVecTo(pyvalue, vec))
+		{
+			m_vertex->SetRGBA(vec);
+			return 0;
+		}
+		return 1;
 	}
 	
 	if (attr == "normal")
 	{
-		m_vertex->SetNormal(MT_Vector3FromPyList(pyvalue));
-		return 0;
+		MT_Vector3 vec;
+		if (PyVecTo(pyvalue, vec))
+		{
+			m_vertex->SetNormal(vec);
+			return 0;
+		}
+		return 1;
 	}
   }
   
@@ -198,7 +218,7 @@ int    KX_VertexProxy::_setattr(const STR_String& attr, PyObject *pyvalue)
 	}
 	
 	// col
-	unsigned int icol = m_vertex->getRGBA();
+	unsigned int icol = *((const unsigned int *)m_vertex->getRGBA());
 	unsigned char *cp = (unsigned char*) &icol;
 	val *= 255.0;
 	if (attr == "r")
@@ -233,132 +253,122 @@ int    KX_VertexProxy::_setattr(const STR_String& attr, PyObject *pyvalue)
 KX_VertexProxy::KX_VertexProxy(RAS_TexVert* vertex)
 :m_vertex(vertex)
 {
-	
 }
 
 KX_VertexProxy::~KX_VertexProxy()
 {
-	
 }
 
 
 
 // stuff for cvalue related things
-CValue*		KX_VertexProxy::Calc(VALUE_OPERATOR op, CValue *val) { return NULL;}
-CValue*		KX_VertexProxy::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val) { return NULL;}	
+CValue*		KX_VertexProxy::Calc(VALUE_OPERATOR, CValue *) { return NULL;}
+CValue*		KX_VertexProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { return NULL;}	
 STR_String	sVertexName="vertex";
 const STR_String &	KX_VertexProxy::GetText() {return sVertexName;};
 float		KX_VertexProxy::GetNumber() { return -1;}
 STR_String	KX_VertexProxy::GetName() { return sVertexName;}
-void		KX_VertexProxy::SetName(STR_String name) { };
+void		KX_VertexProxy::SetName(STR_String) { };
 CValue*		KX_VertexProxy::GetReplica() { return NULL;}
-void		KX_VertexProxy::ReplicaSetName(STR_String name) {};
+void		KX_VertexProxy::ReplicaSetName(STR_String) {};
 
 
 // stuff for python integration
 	
-PyObject* KX_VertexProxy::PyGetXYZ(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_VertexProxy::PyGetXYZ(PyObject*, 
+			       PyObject*, 
+			       PyObject*)
 {
-	
-	MT_Point3 pos = m_vertex->getLocalXYZ();
-	
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
+	return PyObjectFrom(MT_Point3(m_vertex->getLocalXYZ()));
+}
+
+PyObject* KX_VertexProxy::PySetXYZ(PyObject*, 
+			       PyObject* args, 
+			       PyObject*)
+{
+	MT_Point3 vec;
+	if (PyVecArgTo(args, vec))
 	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
+		m_vertex->SetXYZ(vec);
+	
+		Py_Return;
 	}
-
-	return resultlist;
-
+	
+	return NULL;
 }
 
-PyObject* KX_VertexProxy::PySetXYZ(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_VertexProxy::PyGetNormal(PyObject*, 
+			       PyObject*, 
+			       PyObject*)
 {
-
-	MT_Point3 pos = ConvertPythonVectorArg(args);
-	m_vertex->SetXYZ(pos);
-
-
-	Py_Return;
+	return PyObjectFrom(MT_Vector3(m_vertex->getNormal()));
 }
 
-PyObject* KX_VertexProxy::PyGetNormal(PyObject* self, 
+PyObject* KX_VertexProxy::PySetNormal(PyObject*, 
 			       PyObject* args, 
-			       PyObject* kwds)
+			       PyObject*)
 {
-	
-	MT_Vector3 normal(m_vertex->getNormal());
-	
-	PyObject* resultlist = PyList_New(3);
-	int index;
-	for (index=0;index<3;index++)
+	MT_Vector3 vec;
+	if (PyVecArgTo(args, vec))
 	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(normal[index]));
+		m_vertex->SetNormal(vec);
+		
+		Py_Return;
 	}
-
-	return resultlist;
-
-}
-
-PyObject* KX_VertexProxy::PySetNormal(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
-{
-	MT_Point3 normal = ConvertPythonVectorArg(args);
-	m_vertex->SetNormal(normal);
-	Py_Return;
+	
+	return NULL;
 }
 
 
-PyObject* KX_VertexProxy::PyGetRGBA(PyObject* self,
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_VertexProxy::PyGetRGBA(PyObject*,
+			       PyObject*, 
+			       PyObject*)
 {
-	int rgba = m_vertex->getRGBA();
-	return PyInt_FromLong(rgba);
+	int *rgba = (int *) m_vertex->getRGBA();
+	return PyInt_FromLong(*rgba);
 }
 
-PyObject* KX_VertexProxy::PySetRGBA(PyObject* self, 
+PyObject* KX_VertexProxy::PySetRGBA(PyObject*, 
 			       PyObject* args, 
-			       PyObject* kwds)
+			       PyObject*)
 {
+	float r, g, b, a;
+	if (PyArg_ParseTuple(args, "(ffff)", &r, &g, &b, &a))
+	{
+		m_vertex->SetRGBA(MT_Vector4(r, g, b, a));
+		Py_Return;
+	}
+	
 	int rgba;
 	if (PyArg_ParseTuple(args,"i",&rgba))
 	{
 		m_vertex->SetRGBA(rgba);
+		Py_Return;
 	}
 	Py_Return;
 }
 
 
-PyObject* KX_VertexProxy::PyGetUV(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* KX_VertexProxy::PyGetUV(PyObject*, 
+			       PyObject*, 
+			       PyObject*)
 {
-	MT_Vector2 uv = m_vertex->getUV1();
-	PyObject* resultlist = PyList_New(2);
-	int index;
-	for (index=0;index<2;index++)
+	return PyObjectFrom(MT_Vector2(m_vertex->getUV1()));
+}
+
+PyObject* KX_VertexProxy::PySetUV(PyObject*, 
+			       PyObject* args, 
+			       PyObject*)
+{
+	MT_Point2 vec;
+	if (PyVecArgTo(args, vec))
 	{
-		PyList_SetItem(resultlist,index,PyFloat_FromDouble(uv[index]));
+		m_vertex->SetUV(vec);
+		
+		Py_Return;
 	}
-
-	return resultlist;
-
-}
-
-PyObject* KX_VertexProxy::PySetUV(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
-{
-	MT_Point3 uv = ConvertPythonVectorArg(args);
-	m_vertex->SetUV(MT_Point2(uv[0],uv[1]));
-	Py_Return;
+	
+	return NULL;
 }
 
 

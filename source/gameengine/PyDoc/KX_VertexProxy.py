@@ -76,20 +76,20 @@ class KX_VertexProxy:
 		"""
 		Gets the colour of this vertex.
 		
-		Example:
-		# Big endian:
-		col = v.getRGBA()
-		red = (col & 0xff000000) >> 24
-		green = (col & 0xff0000) >> 16
-		blue = (col & 0xff00) >> 8
-		alpha = (col & 0xff)
+		The colour is represented as four bytes packed into an integer value.  The colour is 
+		packed as RGBA.
 		
-		# Little endian:
-		col = v.getRGBA()
-		alpha = (col & 0xff000000) >> 24
-		blue = (col & 0xff0000) >> 16
-		green = (col & 0xff00) >> 8
-		red = (col & 0xff)
+		Since Python offers no way to get each byte without shifting, you must use the struct module to
+		access colour in an machine independent way.
+		
+		Because of this, it is suggested you use the r, g, b and a attributes or the colour attribute instead.
+		
+		Example::
+			import struct;
+			col = struct.unpack('4B', struct.pack('I', v.getRGBA()))
+			# col = (r, g, b, a)
+			# black = (  0,   0,   0, 255)
+			# white = (255, 255, 255, 255)
 		
 		@rtype: integer
 		@return: packed colour. 4 byte integer with one byte per colour channel in RGBA format.
@@ -98,8 +98,20 @@ class KX_VertexProxy:
 		"""
 		Sets the colour of this vertex.
 		
-		@type col: integer
-		@param col: the new colour of this vertex in packed format.
+		See getRGBA() for the format of col, and its relevant problems.  Use the r, g, b and a attributes
+		or the colour attribute instead.
+		
+		setRGBA() also accepts a four component list as argument col.  The list represents the colour as [r, g, b, a]
+		with black = [0.0, 0.0, 0.0, 1.0] and white = [1.0, 1.0, 1.0, 1.0]
+		
+		Example::
+			v.setRGBA(0xff0000ff) # Red
+			v.setRGBA(0xff00ff00) # Green on little endian, transparent purple on big endian
+			v.setRGBA([1.0, 0.0, 0.0, 1.0]) # Red
+			v.setRGBA([0.0, 1.0, 0.0, 1.0]) # Green on all platforms.
+		
+		@type col: integer or list [r, g, b, a]
+		@param col: the new colour of this vertex in packed RGBA format.
 		"""
 	def getNormal():
 		"""

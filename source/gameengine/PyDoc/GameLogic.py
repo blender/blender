@@ -8,7 +8,9 @@ Documentation for the GameLogic Module.
 		- L{GameKeys}
 		- L{Rasterizer}
 	
-	All the other modules are accessibly through the methods in GameLogic.
+	All the other modules are accessible through the methods in GameLogic.
+	
+	See L{WhatsNew} for updates, changes and new functionality in the Game Engine Python API.
 	
 	Examples::
 		# To get a controller:
@@ -120,6 +122,20 @@ Documentation for the GameLogic Module.
 @var KX_RANDOMACT_FLOAT_NORMAL:		See L{SCA_RandomActuator}
 @var KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL:		See L{SCA_RandomActuator}
 
+@group Action Actuator: KX_ACTIONACT_PLAY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND, KX_ACTIONACT_PROPERTY
+@var KX_ACTIONACT_PLAY:	    See L{BL_ActionActuator}
+@var KX_ACTIONACT_FLIPPER:  See L{BL_ActionActuator}
+@var KX_ACTIONACT_LOOPSTOP: See L{BL_ActionActuator}
+@var KX_ACTIONACT_LOOPEND:  See L{BL_ActionActuator}
+@var KX_ACTIONACT_PROPERTY: See L{BL_ActionActuator}
+
+@group Sound Actuator: KX_SOUNDACT_PLAYSTOP, KX_SOUNDACT_PLAYEND, KX_SOUNDACT_LOOPSTOP, KX_SOUNDACT_LOOPEND, KX_SOUNDACT_LOOPBIDIRECTIONAL, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
+@var KX_SOUNDACT_PLAYSTOP:		    See L{KX_SoundActuator}
+@var KX_SOUNDACT_PLAYEND:		    See L{KX_SoundActuator}
+@var KKX_SOUNDACT_LOOPSTOP:		    See L{KX_SoundActuator}
+@var KX_SOUNDACT_LOOPEND:		    See L{KX_SoundActuator}
+@var KX_SOUNDACT_LOOPBIDIRECTIONAL:	    See L{KX_SoundActuator}
+@var KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:    See L{KX_SoundActuator}
 """
 
 

@@ -245,8 +245,12 @@ protected:
 	 */
 	RAS_Rect m_viewport;
 	
+	/**
+	 * Visibility testing functions.
+	 */
 	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty);
 	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible);
+	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj);
 	
 	/**
 	 * This stores anything from python

@@ -231,7 +231,7 @@ void SCA_IObject::SetCurrentTime(float currentTime) {
 }
 	
 
-
+#if 0
 const MT_Point3& SCA_IObject::ConvertPythonPylist(PyObject* pylist)
 {
 	bool error = false;
@@ -273,19 +273,7 @@ const MT_Point3& SCA_IObject::ConvertPythonPylist(PyObject* pylist)
 	}
 	return m_sDummy;
 }
-
-
-
-const MT_Point3& SCA_IObject::ConvertPythonVectorArg(PyObject* args)
-{
-
-	PyObject* pylist;
-	PyArg_ParseTuple(args,"O",&pylist);
-	m_sDummy = ConvertPythonPylist(pylist);
-	return m_sDummy;
-}
-
-
+#endif
 
 void SCA_IObject::Suspend(void)
 {

@@ -6,22 +6,24 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 	"""
 	Edit Object Actuator (in Add Object Mode)
 	
-	@warning: Add Object actuators will be ignored if at game start, the linked object doesn't exist
+	@warning: An Add Object actuator will be ignored if at game start, the linked object doesn't exist
 		  (or is empty) or the linked object is in an active layer.
 		  
 		  This will genereate a warning in the console:
 		  
 		  C{ERROR: GameObject I{OBName} has a AddObjectActuator I{ActuatorName} without object (in 'nonactive' layer)}
 	"""
-	def setObject(name):
+	def setObject(obj):
 		"""
-		Sets the name of the game object to add.
+		Sets the game object to add.
 		
-		A copy of the named object will be added to the scene.
+		A copy of the object will be added to the scene.
 		
-		If the named object does not exist, this function is ignored.
+		If the object does not exist, this function is ignored.
 		
-		@type name: string
+		obj can either be a L{KX_GameObject} or the name of an object.
+		
+		@type obj: L{KX_GameObject} or string
 		"""
 	def getObject():
 		"""

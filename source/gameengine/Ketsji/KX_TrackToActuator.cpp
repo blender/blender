@@ -399,16 +399,23 @@ char KX_TrackToActuator::SetObject_doc[] =
 "\t- object: string\n"
 "\tSet the object to track with the parent of this actuator.\n";
 PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* args, PyObject* kwds) {
-	char* nameArg;
-	
-	if (!PyArg_ParseTuple(args, "s", &nameArg)) {
-		return NULL;		
+	PyObject* gameobj;
+	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
+	{
+		m_object = (SCA_IObject*)gameobj;
+
+		Py_Return;
 	}
-	CValue* gameobj = SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(nameArg));
 	
-	m_object= (SCA_IObject*)gameobj;
+	char* objectname;
+	if (PyArg_ParseTuple(args, "s", &objectname))
+	{
+		m_object= static_cast<SCA_IObject*>(SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname)));
+		
+		Py_Return;
+	}
 	
-	Py_Return;	
+	return NULL;
 }
 
 

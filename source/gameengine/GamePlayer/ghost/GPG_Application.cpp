@@ -108,10 +108,25 @@ static GHOST_ISystem* fSystem = 0;
 static const int kTimerFreq = 10;
 
 GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main *maggie, STR_String startSceneName)
-	: m_maggie(maggie), m_startSceneName(startSceneName), m_exitRequested(0),
-	  m_system(system), m_mainWindow(0), m_frameTimer(0), m_cursor(GHOST_kStandardCursorFirstCursor),
-	  m_mouse(0), m_keyboard(0), m_rasterizer(0), m_canvas(0), m_rendertools(0), m_kxsystem(0), m_networkdevice(0), m_audiodevice(0), m_sceneconverter(0),
-	  m_engineInitialized(0), m_engineRunning(0), m_ketsjiengine(0)
+	: m_startSceneName(startSceneName), 
+	  m_maggie(maggie), 
+	  m_exitRequested(0),
+	  m_system(system), 
+	  m_mainWindow(0), 
+	  m_frameTimer(0), 
+	  m_cursor(GHOST_kStandardCursorFirstCursor),
+	  m_engineInitialized(0), 
+	  m_engineRunning(0), 
+	  m_ketsjiengine(0),
+	  m_kxsystem(0), 
+	  m_keyboard(0), 
+	  m_mouse(0), 
+	  m_canvas(0), 
+	  m_rendertools(0), 
+	  m_rasterizer(0), 
+	  m_sceneconverter(0),
+	  m_networkdevice(0), 
+	  m_audiodevice(0)
 {
 	fSystem = system;
 }

@@ -48,272 +48,13 @@
 
 #include "KX_Python.h"
 
-MT_Vector3 MT_Vector3FromPyList(PyObject* pylist)
-{
-	MT_Vector3 vec(0., 0., 0.);
-	bool error=false;
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		unsigned int numitems = listval->GetCount();
-		if (numitems <= 3)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				vec[index] = listval->GetValue(index)->GetNumber();
-			}
-		}	else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		// assert the list is long enough...
-		unsigned int numitems = PySequence_Size(pylist);
-		if (numitems <= 3)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
-				vec[index] = PyFloat_AsDouble(item);
-				Py_DECREF(item);
-			}
-		}
-		else
-		{
-			error = true;
-		}
-
-	}
-	if (error)
-		PyErr_SetString(PyExc_TypeError, "Expected list of three items for vector argument.");
-
-	return vec;
-}
-
-MT_Point3 MT_Point3FromPyList(PyObject* pylist)
-{
-	MT_Point3 point(0., 0., 0.);
-	bool error=false;
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		unsigned int numitems = listval->GetCount();
-		if (numitems <= 3)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				point[index] = listval->GetValue(index)->GetNumber();
-			}
-		}	else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		// assert the list is long enough...
-		unsigned int numitems = PySequence_Size(pylist);
-		if (numitems <= 3)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
-				point[index] = PyFloat_AsDouble(item);
-				Py_DECREF(item);
-			}
-		}
-		else
-		{
-			error = true;
-		}
-
-	}
-	if (error)
-		PyErr_SetString(PyExc_TypeError, "Expected list of three items for point argument.");
-
-	return point;
-}
-
-MT_Point2 MT_Point2FromPyList(PyObject* pylist)
-{
-	MT_Point2 point(0., 0.);
-	bool error=false;
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		unsigned int numitems = listval->GetCount();
-		if (numitems <= 2)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				point[index] = listval->GetValue(index)->GetNumber();
-			}
-		}	else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		// assert the list is long enough...
-		unsigned int numitems = PySequence_Size(pylist);
-		if (numitems <= 2)
-		{
-			for (unsigned int index=0;index<numitems;index++)
-			{
-				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
-				point[index] = PyFloat_AsDouble(item);
-				Py_DECREF(item);
-			}
-		}
-		else
-		{
-			error = true;
-		}
-
-	}
-	if (error)
-		PyErr_SetString(PyExc_TypeError, "Expected list of twos items for point argument.");
-
-	return point;
-}
-
-MT_Vector4 MT_Vector4FromPyList(PyObject* pylist)
-{
-	MT_Vector4 vec(0., 0., 0., 1.);
-	bool error=false;
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		unsigned int numitems = listval->GetCount();
-		if (numitems <= 4)
-		{
-			for (unsigned index=0;index<numitems;index++)
-			{
-				vec[index] = listval->GetValue(index)->GetNumber();
-			}
-		} else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		// assert the list is long enough...
-		unsigned int numitems = PySequence_Size(pylist);
-		if (numitems <= 4)
-		{
-			for (unsigned index=0;index<numitems;index++)
-			{
-				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
-				vec[index] = PyFloat_AsDouble(item);
-				Py_DECREF(item);
-			}
-		}
-		else
-		{
-			error = true;
-		}
-	}
-	if (error)
-		PyErr_SetString(PyExc_TypeError, "Expected list of four items for Vector argument.");
-	return vec;
-}
-
-MT_Quaternion MT_QuaternionFromPyList(PyObject* pylist)
-{
-	MT_Quaternion vec(0., 0., 0., 1.);
-	bool error=false;
-	if (pylist->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pylist;
-		unsigned int numitems = listval->GetCount();
-		if (numitems <= 4)
-		{
-			for (unsigned index=0;index<numitems;index++)
-			{
-				vec[index] = listval->GetValue(index)->GetNumber();
-			}
-		} else
-		{
-			error = true;
-		}
-		
-	} else
-	{
-		// assert the list is long enough...
-		unsigned int numitems = PySequence_Size(pylist);
-		if (numitems <= 4)
-		{
-			for (unsigned index=0;index<numitems;index++)
-			{
-				PyObject *item = PySequence_GetItem(pylist,index); /* new ref */
-				vec[index] = PyFloat_AsDouble(item);
-				Py_DECREF(item);
-			}
-		}
-		else
-		{
-			error = true;
-		}
-	}
-	if (error)
-		PyErr_SetString(PyExc_TypeError, "Expected list of four items for Quaternion argument.");
-	return vec;
-}
-
-
-MT_Matrix4x4 MT_Matrix4x4FromPyObject(PyObject *pymat)
-{
-	MT_Matrix4x4 mat;
-	bool error = false;
-	mat.setIdentity();
-	if (PySequence_Check(pymat))
-	{
-		unsigned int rows = PySequence_Size(pymat);
-		for (unsigned int y = 0; y < rows && y < 4; y++)
-		{
-			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
-			if (PySequence_Check(pyrow))
-			{
-				unsigned int cols = PySequence_Size(pyrow);
-				for( unsigned int x = 0; x < cols && x < 4; x++)
-				{
-					PyObject *item = PySequence_GetItem(pyrow, x); /* new ref */
-					mat[y][x] = PyFloat_AsDouble(item);
-					Py_DECREF(item);
-				}
-			}
-			Py_DECREF(pyrow);
-		}
-	}
-	 
-	return mat;
-}
-
 bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 {
 	if (!pymat)
 		return false;
 		
 	unsigned int x, y;
-	if (pymat->ob_type == &CListValue::Type)
-	{
-		CListValue* listval = (CListValue*) pymat;
-		if (listval->GetCount() == rank)
-		{
-			for (y = 0; y < rank; y++)
-			{
-				CListValue* vecval = (CListValue*)listval->GetValue(y);
-				if (vecval->GetCount() != rank)
-					return false;
-			}
-			return true;
-		}
-		return false;
-	} else if (PySequence_Check(pymat))
+	if (PySequence_Check(pymat))
 	{
 		unsigned int rows = PySequence_Size(pymat);
 		if (rows != rank)
@@ -337,58 +78,8 @@ bool PyObject_IsMT_Matrix(PyObject *pymat, unsigned int rank)
 	return false;
 }
 
-MT_Matrix3x3 MT_Matrix3x3FromPyObject(PyObject *pymat)
-{
-	MT_Matrix3x3 mat;
-	bool error = false;
-	mat.setIdentity();
-	if (pymat->ob_type == &CListValue::Type)
-	{
-		unsigned int row, col;
-		CListValue* listval = (CListValue*) pymat;
-		if (listval->GetCount() == 3)
-		{
-			for (row=0;row<3;row++) // each row has a 3-vector [x,y,z]
-			{
-				CListValue* vecval = (CListValue*)listval->GetValue(row);
-				for (col=0;col<3 && col < vecval->GetCount();col++)
-				{
-					mat[row][col] = vecval->GetValue(col)->GetNumber();
-					
-				}
-			}
-		}
-		else
-		{
-			error = true;
-			if (error)
-				PyErr_SetString(PyExc_TypeError, "Expected list of three items for 3x3 matrix argument.");
 
-		}
-	} else if (PySequence_Check(pymat))
-	{
-		unsigned int rows = PySequence_Size(pymat);
-		for (unsigned int y = 0; y < rows && y < 3; y++)
-		{
-			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
-			if (PySequence_Check(pyrow))
-			{
-				unsigned int cols = PySequence_Size(pyrow);
-				for( unsigned int x = 0; x < cols && x < 3; x++)
-				{
-					PyObject *pyitem = PySequence_GetItem(pyrow, x); /* new ref */
-					mat[y][x] = PyFloat_AsDouble(pyitem);
-					Py_DECREF(pyitem);
-				}
-			}
-			Py_DECREF(pyrow);
-		}
-	}
-	 
-	return mat;
-}
-
-PyObject* PyObjectFromMT_Matrix4x4(const MT_Matrix4x4 &mat)
+PyObject* PyObjectFrom(const MT_Matrix4x4 &mat)
 {
 	return Py_BuildValue("[[ffff][ffff][ffff][ffff]]",
 		mat[0][0], mat[0][1], mat[0][2], mat[0][3], 
@@ -397,7 +88,7 @@ PyObject* PyObjectFromMT_Matrix4x4(const MT_Matrix4x4 &mat)
 		mat[3][0], mat[3][1], mat[3][2], mat[3][3]);
 }
 
-PyObject* PyObjectFromMT_Matrix3x3(const MT_Matrix3x3 &mat)
+PyObject* PyObjectFrom(const MT_Matrix3x3 &mat)
 {
 	return Py_BuildValue("[[fff][fff][fff]]",
 		mat[0][0], mat[0][1], mat[0][2], 
@@ -405,25 +96,20 @@ PyObject* PyObjectFromMT_Matrix3x3(const MT_Matrix3x3 &mat)
 		mat[2][0], mat[2][1], mat[2][2]);
 }
 
-PyObject* PyObjectFromMT_Vector4(const MT_Vector4 &vec)
+PyObject* PyObjectFrom(const MT_Tuple4 &vec)
 {
 	return Py_BuildValue("[ffff]", 
 		vec[0], vec[1], vec[2], vec[3]);
 }
 
-PyObject* PyObjectFromMT_Vector3(const MT_Vector3 &vec)
+PyObject* PyObjectFrom(const MT_Tuple3 &vec)
 {
 	return Py_BuildValue("[fff]", 
 		vec[0], vec[1], vec[2]);
 }
 
-PyObject* PyObjectFromMT_Point3(const MT_Point3 &pos)
+PyObject* PyObjectFrom(const MT_Tuple2 &vec)
 {
-	return Py_BuildValue("[fff]",
-		pos[0], pos[1], pos[2]);
-}
-
-PyObject* PyObjectFromMT_Point2(const MT_Point2 &pos)
-{
-	return Py_BuildValue("[ff]", pos[0], pos[1]);
+	return Py_BuildValue("[ff]",
+		vec[0], vec[1]);
 }

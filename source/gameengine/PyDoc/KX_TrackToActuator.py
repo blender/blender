@@ -18,8 +18,8 @@ class KX_TrackToActuator(SCA_IActuator):
 		"""
 		Sets the object to track.
 		
-		@type object: string
-		@param object: the name of the object to track.
+		@type object: L{KX_GameObject} or string
+		@param object: Either a reference to a game object or the name of the object to track.
 		"""
 	def getObject():
 		"""

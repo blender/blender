@@ -29,14 +29,15 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "KX_MeshProxy.h"
-#include "RAS_IPolygonMaterial.h"
-#include "RAS_MeshObject.h"
-#include "KX_VertexProxy.h"
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include "KX_MeshProxy.h"
+#include "RAS_IPolygonMaterial.h"
+#include "RAS_MeshObject.h"
+
+#include "KX_VertexProxy.h"
 
 PyTypeObject KX_MeshProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

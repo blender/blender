@@ -395,7 +395,8 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"getProperty", (PyCFunction) BL_ActionActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
 	{"setChannel", (PyCFunction) BL_ActionActuator::sPySetChannel, METH_VARARGS, SetChannel_doc},
 //	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_VARARGS},
-	
+	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},	
+	{"setType", (PyCFunction) BL_ActionActuator::sPySetType, METH_VARARGS, SetType_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -803,5 +804,44 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 	
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+/* getType */
+char BL_ActionActuator::GetType_doc[] =
+"getType()\n"
+"\tReturns the operation mode of the actuator.\n";
+PyObject* BL_ActionActuator::PyGetType(PyObject* self,
+                                       PyObject* args, 
+                                       PyObject* kwds) {
+    return Py_BuildValue("h", m_playtype);
+}
+
+/* setType */
+char BL_ActionActuator::SetType_doc[] =
+"setType(mode)\n"
+"\t - mode: Play (0), Flipper (2), LoopStop (3), LoopEnd (4) or Property (6)\n"
+"\tSet the operation mode of the actuator.\n";
+PyObject* BL_ActionActuator::PySetType(PyObject* self,
+                                       PyObject* args,
+                                       PyObject* kwds) {
+	short typeArg;
+                                                                                                             
+    if (!PyArg_ParseTuple(args, "h", &typeArg)) {
+        return NULL;
+    }
+
+	switch (typeArg) {
+	case KX_ACT_ACTION_PLAY:
+	case KX_ACT_ACTION_FLIPPER:
+	case KX_ACT_ACTION_LOOPSTOP:
+	case KX_ACT_ACTION_LOOPEND:
+	case KX_ACT_ACTION_PROPERTY:
+		m_playtype = typeArg;
+		break;
+	default:
+		printf("Invalid type for action actuator: %d\n", typeArg); /* error */
+    }
+	
+    Py_Return;
 }
 

@@ -93,10 +93,20 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrame);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetProperty);
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
-
+	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
+	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
 
 	virtual PyObject* _getattr(const STR_String& attr);
 	void SetBlendTime (float newtime);
+
+	enum ActionActType
+	{
+		KX_ACT_ACTION_PLAY = 0,
+		KX_ACT_ACTION_FLIPPER = 2,
+		KX_ACT_ACTION_LOOPSTOP,
+		KX_ACT_ACTION_LOOPEND,
+		KX_ACT_ACTION_PROPERTY = 6
+	};
 
 protected:
 	float	m_blendframe;

@@ -111,8 +111,7 @@ inline void Py_Fatal(char *M) {
  */
 #define KX_PYMETHODDEF_DOC(class_name, method_name, doc_string) \
 char class_name::method_name##_doc[] = doc_string; \
-PyObject* class_name::Py##method_name(PyObject* self, PyObject* args, PyObject* kwds)
-
+PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
 
 
 /*------------------------------

@@ -79,6 +79,22 @@ class BL_ActionActuator(SCA_IActuator):
 		@type blendtime: float
 		"""
 
+	def setType(mode):
+		"""
+		Sets the operation mode of the actuator
+
+		@param mode: KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
+		@type mode: integer
+		"""
+
+	def getType():
+		"""
+		Returns the operation mode of the actuator
+	    
+		@rtype: integer
+		@return: KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
+		"""
+	
 	def getAction():
 		"""
 		getAction() returns the name of the action associated with this actuator.

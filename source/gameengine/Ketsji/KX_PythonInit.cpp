@@ -46,6 +46,8 @@
 #include "SCA_RandomActuator.h"
 #include "KX_ConstraintActuator.h"
 #include "KX_IpoActuator.h"
+#include "KX_SoundActuator.h"
+#include "BL_ActionActuator.h"
 #include "RAS_IRasterizer.h"
 #include "RAS_ICanvas.h"
 #include "MT_Vector3.h"
@@ -86,54 +88,36 @@ static RAS_IRasterizer* gp_Rasterizer = NULL;
 static PyObject* ErrorObject;
 STR_String gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1)";
 
-static PyObject* gPyGetRandomFloat(PyObject* self,
-										 PyObject* args, 
-										 PyObject* kwds)
+static PyObject* gPyGetRandomFloat(PyObject*,
+					PyObject*, 
+					PyObject*)
 {
 	return PyFloat_FromDouble(MT_random());
 }
 
-
-
-
-
-void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector3 &pos)
-{
-	PyObject* pylist;
-	PyArg_ParseTuple(args,"O",&pylist);
-
-	pos = MT_Vector3FromPyList(pylist);
-}
-
-void GlobalConvertPythonVectorArg(PyObject* args, MT_Vector4 &vec)
-{
-	PyObject* pylist;
-	PyArg_ParseTuple(args,"O",&pylist);
-
-	vec = MT_Vector4FromPyList(pylist);
-}
-
-
-static PyObject* gPySetGravity(PyObject* self,
+static PyObject* gPySetGravity(PyObject*,
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	GlobalConvertPythonVectorArg(args, vec);
-
-	if (gp_KetsjiScene)
-		gp_KetsjiScene->SetGravity(vec);
+	if (PyVecArgTo(args, vec))
+	{
+		if (gp_KetsjiScene)
+			gp_KetsjiScene->SetGravity(vec);
+		
+		Py_Return;
+	}
 	
-	Py_Return;
+	return NULL;
 }
 
 
 static bool usedsp = false;
 
 // this gets a pointer to an array filled with floats
-static PyObject* gPyGetSpectrum(PyObject* self,
+static PyObject* gPyGetSpectrum(PyObject*,
 								PyObject* args, 
-								PyObject* kwds)
+								PyObject*)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
@@ -160,9 +144,9 @@ static PyObject* gPyGetSpectrum(PyObject* self,
 
 
 
-static PyObject* gPyStartDSP(PyObject* self,
+static PyObject* gPyStartDSP(PyObject*,
 						PyObject* args, 
-						PyObject* kwds)
+						PyObject*)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
@@ -180,9 +164,9 @@ static PyObject* gPyStartDSP(PyObject* self,
 
 
 
-static PyObject* gPyStopDSP(PyObject* self,
+static PyObject* gPyStopDSP(PyObject*,
 					   PyObject* args, 
-					   PyObject* kwds)
+					   PyObject*)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
@@ -229,9 +213,9 @@ static struct PyMethodDef game_methods[] = {
 };
 
 
-static PyObject* gPyGetWindowHeight(PyObject* self, 
+static PyObject* gPyGetWindowHeight(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 	int height = (gp_Canvas ? gp_Canvas->GetHeight() : 0);
 
@@ -241,9 +225,9 @@ static PyObject* gPyGetWindowHeight(PyObject* self,
 
 
 
-static PyObject* gPyGetWindowWidth(PyObject* self, 
+static PyObject* gPyGetWindowWidth(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 		
 
@@ -258,9 +242,9 @@ static PyObject* gPyGetWindowWidth(PyObject* self,
 // temporarility visibility thing, will be moved to rasterizer/renderer later
 bool gUseVisibilityTemp = false;
 
-static PyObject* gPyEnableVisibility(PyObject* self, 
+static PyObject* gPyEnableVisibility(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 	int visible;
 	if (PyArg_ParseTuple(args,"i",&visible))
@@ -276,9 +260,9 @@ static PyObject* gPyEnableVisibility(PyObject* self,
 
 
 
-static PyObject* gPyShowMouse(PyObject* self, 
+static PyObject* gPyShowMouse(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 	int visible;
 	if (PyArg_ParseTuple(args,"i",&visible))
@@ -299,9 +283,9 @@ static PyObject* gPyShowMouse(PyObject* self,
 
 
 
-static PyObject* gPySetMousePosition(PyObject* self, 
+static PyObject* gPySetMousePosition(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 	int x,y;
 	if (PyArg_ParseTuple(args,"ii",&x,&y))
@@ -315,43 +299,49 @@ static PyObject* gPySetMousePosition(PyObject* self,
 
 
 
-static PyObject* gPySetBackgroundColor(PyObject* self, 
+static PyObject* gPySetBackgroundColor(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 	
 	MT_Vector4 vec = MT_Vector4(0., 0., 0.3, 0.);
-	GlobalConvertPythonVectorArg(args, vec);
-
-	if (gp_Canvas)
+	if (PyVecArgTo(args, vec))
 	{
-		gp_Rasterizer->SetBackColor(vec[0], vec[1], vec[2], vec[3]);
+		if (gp_Canvas)
+		{
+			gp_Rasterizer->SetBackColor(vec[0], vec[1], vec[2], vec[3]);
+		}
+		Py_Return;
 	}
-   Py_Return;
+	
+	return NULL;
 }
 
 
 
-static PyObject* gPySetMistColor(PyObject* self, 
+static PyObject* gPySetMistColor(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 	
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	GlobalConvertPythonVectorArg(args, vec);
-
-	if (gp_Rasterizer)
+	if (PyVecArgTo(args, vec))
 	{
-		gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
+		if (gp_Rasterizer)
+		{
+			gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
+		}
+		Py_Return;
 	}
-   Py_Return;
+	
+	return NULL;
 }
 
 
 
-static PyObject* gPySetMistStart(PyObject* self, 
+static PyObject* gPySetMistStart(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 
 	float miststart;
@@ -367,9 +357,9 @@ static PyObject* gPySetMistStart(PyObject* self,
 
 
 
-static PyObject* gPySetMistEnd(PyObject* self, 
+static PyObject* gPySetMistEnd(PyObject*, 
 										 PyObject* args, 
-										 PyObject* kwds)
+										 PyObject*)
 {
 
 	float mistend;
@@ -385,9 +375,9 @@ static PyObject* gPySetMistEnd(PyObject* self,
 
 
 
-static PyObject* gPyMakeScreenshot(PyObject* self,
+static PyObject* gPyMakeScreenshot(PyObject*,
 									PyObject* args,
-									PyObject* kwds)
+									PyObject*)
 {
 	char* filename;
 	if (PyArg_ParseTuple(args,"s",&filename))
@@ -506,6 +496,21 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 	KX_MACRO_addTypesToDict(d, KX_RANDOMACT_FLOAT_NORMAL,    SCA_RandomActuator::KX_RANDOMACT_FLOAT_NORMAL);
 	KX_MACRO_addTypesToDict(d, KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL, SCA_RandomActuator::KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL);
 
+	/* 6. Sound actuator                                                      */
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_PLAYSTOP,              KX_SoundActuator::KX_SOUNDACT_PLAYSTOP);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_PLAYEND,               KX_SoundActuator::KX_SOUNDACT_PLAYEND);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPSTOP,              KX_SoundActuator::KX_SOUNDACT_LOOPSTOP);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPEND,               KX_SoundActuator::KX_SOUNDACT_LOOPEND);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPBIDIRECTIONAL,     KX_SoundActuator::KX_SOUNDACT_LOOPBIDIRECTIONAL);
+	KX_MACRO_addTypesToDict(d, KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP,     KX_SoundActuator::KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP);
+
+	/* 7. Action actuator													   */
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_PLAY,     BL_ActionActuator::KX_ACT_ACTION_PLAY);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_FLIPPER,     BL_ActionActuator::KX_ACT_ACTION_FLIPPER);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_LOOPSTOP,     BL_ActionActuator::KX_ACT_ACTION_LOOPSTOP);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_LOOPEND,     BL_ActionActuator::KX_ACT_ACTION_LOOPEND);
+	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_PROPERTY,     BL_ActionActuator::KX_ACT_ACTION_PROPERTY);
+	
 	// Check for errors
 	if (PyErr_Occurred())
     {

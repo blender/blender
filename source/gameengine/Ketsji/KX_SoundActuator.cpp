@@ -256,7 +256,9 @@ PyMethodDef KX_SoundActuator::Methods[] = {
 	{"getLooping",(PyCFunction) KX_SoundActuator::sPyGetLooping,METH_VARARGS,NULL},
 	{"setPosition",(PyCFunction) KX_SoundActuator::sPySetPosition,METH_VARARGS,NULL},
 	{"setVelocity",(PyCFunction) KX_SoundActuator::sPySetVelocity,METH_VARARGS,NULL},
-	{"setOrientation",(PyCFunction) KX_SoundActuator::sPySetOrientation,METH_VARARGS,NULL},	
+	{"setOrientation",(PyCFunction) KX_SoundActuator::sPySetOrientation,METH_VARARGS,NULL},
+	{"setType",(PyCFunction) KX_SoundActuator::sPySetType,METH_VARARGS,NULL},
+	{"getType",(PyCFunction) KX_SoundActuator::sPyGetType,METH_VARARGS,NULL},
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
@@ -464,7 +466,28 @@ PyObject* KX_SoundActuator::PySetOrientation(PyObject* self, PyObject* args, PyO
 	m_soundObject->SetOrientation(ori);
 	
 	Py_Return;
-}         
+}
+
+PyObject* KX_SoundActuator::PySetType(PyObject* self, PyObject* args, PyObject* kwds)
+{
+	int typeArg;
+
+	if (!PyArg_ParseTuple(args, "i", &typeArg)) {
+		return NULL;
+	}
+
+	if ( (typeArg > KX_SOUNDACT_NODEF)
+	  && (typeArg < KX_SOUNDACT_MAX) ) {
+		m_type = (KX_SOUNDACT_TYPE) typeArg;
+	}
+
+	Py_Return;
+}
+
+PyObject* KX_SoundActuator::PyGetType(PyObject* self, PyObject* args, PyObject* kwds)
+{
+	return PyInt_FromLong(m_type);
+}
 
 
 

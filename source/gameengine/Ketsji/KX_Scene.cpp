@@ -772,7 +772,6 @@ void KX_Scene::AddCamera(KX_Camera* cam)
 	m_cameras.insert(cam);
 }
 
-
 KX_Camera* KX_Scene::GetActiveCamera()
 {	
 	// NULL if not defined
@@ -808,14 +807,15 @@ void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty)
 {
 	int intersect = KX_Camera::INTERSECT;
 	KX_GameObject *gameobj = node->Client()?(KX_GameObject*) node->Client()->GetSGClientObject():NULL;
+	bool dotest = (gameobj && gameobj->GetVisible()) || node->Left() || node->Right();
 	
 	/* If the camera is inside the box, assume intersect. */
-	if (!node->inside(GetActiveCamera()->NodeGetWorldPosition()))
+	if (dotest && !node->inside(GetActiveCamera()->NodeGetWorldPosition()))
 	{
 		MT_Scalar radius = node->Radius();
 		MT_Point3 centre = node->Centre();
 		
-		intersect = GetActiveCamera()->SphereInsideFrustum(centre, radius);
+		intersect = GetActiveCamera()->SphereInsideFrustum(centre, radius); 
 		
 		if (intersect == KX_Camera::INTERSECT)
 		{
@@ -832,17 +832,7 @@ void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty)
 			break;
 		case KX_Camera::INTERSECT:
 			if (gameobj)
-			{
-				int nummeshes = gameobj->GetMeshCount();
-				MT_Transform t(GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
-				
-				for (int m=0;m<nummeshes;m++)
-				{
-					// this adds the vertices to the display list
-					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
-				}
-				gameobj->MarkVisible();
-			}
+				MarkVisible(rasty, gameobj);
 			if (node->Left())
 				MarkVisible(node->Left(), rasty);
 			if (node->Right())
@@ -859,19 +849,22 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 	if (node->Client())
 	{
 		KX_GameObject *gameobj = (KX_GameObject*) node->Client()->GetSGClientObject();
-		if (visible)
+		if (gameobj->GetVisible())
 		{
-			int nummeshes = gameobj->GetMeshCount();
-			MT_Transform t( GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
-
-			
-			for (int m=0;m<nummeshes;m++)
+			if (visible)
 			{
-				// this adds the vertices to the display list
-				(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
+				int nummeshes = gameobj->GetMeshCount();
+				MT_Transform t( GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
+	
+				
+				for (int m=0;m<nummeshes;m++)
+				{
+					// this adds the vertices to the display list
+					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
+				}
 			}
+			gameobj->MarkVisible(visible);
 		}
-		gameobj->MarkVisible(visible && gameobj->GetVisible());
 	}
 	if (node->Left())
 		MarkSubTreeVisible(node->Left(), rasty, visible);
@@ -879,6 +872,59 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 		MarkSubTreeVisible(node->Right(), rasty, visible);
 }
 
+void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj)
+{
+	// User (Python/Actuator) has forced object invisible...
+	if (!gameobj->GetVisible())
+		return;
+	// If Frustum culling is off, the object is always visible.
+	bool vis = !GetActiveCamera()->GetFrustumCulling();
+	
+	// If the camera is inside this node, then the object is visible.
+	if (!vis)
+	{
+		vis = gameobj->GetSGNode()->inside( GetActiveCamera()->GetCameraLocation() );
+	}
+		
+	// Test the object's bound sphere against the view frustum.
+	if (!vis)
+	{
+		MT_Vector3 scale = gameobj->GetSGNode()->GetWorldScaling();
+		MT_Scalar radius = fabs(scale[scale.closestAxis()] * gameobj->GetSGNode()->Radius());
+		switch (GetActiveCamera()->SphereInsideFrustum(gameobj->NodeGetWorldPosition(), radius))
+		{
+			case KX_Camera::INSIDE:
+				vis = true;
+				break;
+			case KX_Camera::OUTSIDE:
+				vis = false;
+				break;
+			case KX_Camera::INTERSECT:
+				// Test the object's bound box against the view frustum.
+				MT_Point3 box[8];
+				gameobj->GetSGNode()->getBBox(box); 
+				vis = GetActiveCamera()->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
+				break;
+		}
+	}
+	
+	if (vis)
+	{
+		int nummeshes = gameobj->GetMeshCount();
+		MT_Transform t(GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
+		
+		for (int m=0;m<nummeshes;m++)
+		{
+			// this adds the vertices to the display list
+			(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
+		}
+		// Visibility/ non-visibility are marked
+		// elsewhere now.
+		gameobj->MarkVisible();
+	} else {
+		gameobj->MarkVisible(false);
+	}
+}
 
 void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 {
@@ -887,54 +933,7 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 	// do this incrementally in the future
 	for (int i = 0; i < m_objectlist->GetCount(); i++)
 	{
-		KX_GameObject* gameobj = (KX_GameObject*)m_objectlist->GetValue(i);
-		// If Frustum culling is off, the object is always visible.
-		bool vis = !GetActiveCamera()->GetFrustumCulling();
-		
-		// If the camera is inside this node, then the object is visible.
-		if (!vis)
-		{
-			vis = gameobj->GetSGNode()->inside( GetActiveCamera()->GetCameraLocation() );
-		}
-			
-		// Test the object's bound sphere against the view frustum.
-		if (!vis)
-		{
-			MT_Vector3 scale = gameobj->GetSGNode()->GetWorldScaling();
-			MT_Scalar radius = fabs(scale[scale.closestAxis()] * gameobj->GetSGNode()->Radius());
-			switch (GetActiveCamera()->SphereInsideFrustum(gameobj->NodeGetWorldPosition(), radius))
-			{
-				case KX_Camera::INSIDE:
-					vis = true;
-					break;
-				case KX_Camera::OUTSIDE:
-					vis = false;
-					break;
-				case KX_Camera::INTERSECT:
-					// Test the object's bound box against the view frustum.
-					MT_Point3 box[8];
-					gameobj->GetSGNode()->getBBox(box); 
-					vis = GetActiveCamera()->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
-					break;
-			}
-		}
-		
-		if (vis)
-		{
-			int nummeshes = gameobj->GetMeshCount();
-			MT_Transform t(GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
-			
-			for (int m=0;m<nummeshes;m++)
-			{
-				// this adds the vertices to the display list
-				(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
-			}
-			// Visibility/ non-visibility are marked
-			// elsewhere now.
-			gameobj->MarkVisible();
-		} else {
-			gameobj->MarkVisible(false);
-		}
+		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)));
 	}
 #else
 	if (GetActiveCamera()->GetFrustumCulling())

@@ -435,13 +435,13 @@ PyObject* KX_Camera::_getattr(const STR_String& attr)
 	if (attr == "frustum_culling")
 		return PyInt_FromLong(m_frustum_culling); /* new ref */
 	if (attr == "projection_matrix")
-		return PyObjectFromMT_Matrix4x4(GetProjectionMatrix()); /* new ref */
+		return PyObjectFrom(GetProjectionMatrix()); /* new ref */
 	if (attr == "modelview_matrix")
-		return PyObjectFromMT_Matrix4x4(GetModelviewMatrix()); /* new ref */
+		return PyObjectFrom(GetModelviewMatrix()); /* new ref */
 	if (attr == "camera_to_world")
-		return PyObjectFromMT_Matrix4x4(GetCameraToWorld()); /* new ref */
+		return PyObjectFrom(GetCameraToWorld()); /* new ref */
 	if (attr == "world_to_camera")
-		return PyObjectFromMT_Matrix4x4(GetWorldToCamera()); /* new ref */
+		return PyObjectFrom(GetWorldToCamera()); /* new ref */
 	
 	_getattr_up(KX_GameObject);
 }
@@ -483,8 +483,13 @@ int KX_Camera::_setattr(const STR_String &attr, PyObject *pyvalue)
 	{
 		if (attr == "projection_matrix")
 		{
-			SetProjectionMatrix(MT_Matrix4x4FromPyObject(pyvalue));
-			return 0;
+			MT_Matrix4x4 mat;
+			if (PyMatTo(pyvalue, mat))
+			{
+				SetProjectionMatrix(mat);
+				return 0;
+			}
+			return 1;
 		}
 	}
 	return KX_GameObject::_setattr(attr, pyvalue);
@@ -512,14 +517,11 @@ KX_PYMETHODDEF_DOC(KX_Camera, sphereInsideFrustum,
 	float radius;
 	if (PyArg_ParseTuple(args, "Of", &pycentre, &radius))
 	{
-		MT_Point3 centre = MT_Point3FromPyList(pycentre);
-		if (PyErr_Occurred())
+		MT_Point3 centre;
+		if (PyVecTo(pycentre, centre))
 		{
-			PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected list for argument centre.");
-			Py_Return;
+			return PyInt_FromLong(SphereInsideFrustum(centre, radius)); /* new ref */
 		}
-		
-		return PyInt_FromLong(SphereInsideFrustum(centre, radius)); /* new ref */
 	}
 
 	PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected arguments: (centre, radius)");
@@ -566,9 +568,9 @@ KX_PYMETHODDEF_DOC(KX_Camera, boxInsideFrustum,
 		for (unsigned int p = 0; p < 8 ; p++)
 		{
 			PyObject *item = PySequence_GetItem(pybox, p); /* new ref */
-			box[p] = MT_Point3FromPyList(item);
+			bool error = !PyVecTo(item, box[p]);
 			Py_DECREF(item);
-			if (PyErr_Occurred())
+			if (error)
 				return NULL;
 		}
 		
@@ -595,13 +597,9 @@ KX_PYMETHODDEF_DOC(KX_Camera, pointInsideFrustum,
 "\t\t# Box is outside the frustum !\n"
 )
 {
-	PyObject *pypoint;
-	if (PyArg_ParseTuple(args, "O", &pypoint))
+	MT_Point3 point;
+	if (PyVecArgTo(args, point))
 	{
-		MT_Point3 point = MT_Point3FromPyList(pypoint);
-		if (PyErr_Occurred())
-			return NULL;
-			
 		return PyInt_FromLong(PointInsideFrustum(point)); /* new ref */
 	}
 	
@@ -615,7 +613,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, getCameraToWorld,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
-	return PyObjectFromMT_Matrix4x4(GetCameraToWorld()); /* new ref */
+	return PyObjectFrom(GetCameraToWorld()); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, getWorldToCamera,
@@ -624,7 +622,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, getWorldToCamera,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
-	return PyObjectFromMT_Matrix4x4(GetWorldToCamera()); /* new ref */
+	return PyObjectFrom(GetWorldToCamera()); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, getProjectionMatrix,
@@ -633,7 +631,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, getProjectionMatrix,
 "\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
 )
 {
-	return PyObjectFromMT_Matrix4x4(GetProjectionMatrix()); /* new ref */
+	return PyObjectFrom(GetProjectionMatrix()); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, setProjectionMatrix,
@@ -681,12 +679,12 @@ KX_PYMETHODDEF_DOC(KX_Camera, setProjectionMatrix,
 	PyObject *pymat;
 	if (PyArg_ParseTuple(args, "O", &pymat))
 	{
-		MT_Matrix4x4 mat = MT_Matrix4x4FromPyObject(pymat);
-		if (PyErr_Occurred())
-			return NULL;
-		
-		SetProjectionMatrix(mat);
-		Py_Return;
+		MT_Matrix4x4 mat;
+		if (PyMatTo(pymat, mat))
+		{
+			SetProjectionMatrix(mat);
+			Py_Return;
+		}
 	}
 
 	PyErr_SetString(PyExc_TypeError, "setProjectionMatrix: Expected 4x4 list as matrix argument.");

@@ -36,6 +36,7 @@
 
 #include "MT_Point2.h"
 #include "MT_Point3.h"
+#include "MT_Vector2.h"
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
 #include "MT_Matrix3x3.h"
@@ -43,76 +44,106 @@
 
 #include "KX_Python.h"
 
-/**
- * Converts a python list to an MT_Vector3
- */
-MT_Vector3 MT_Vector3FromPyList(PyObject* pylist);
+static unsigned int Size(const MT_Matrix4x4&)          { return 4; }
+static unsigned int Size(const MT_Matrix3x3&)          { return 3; }
+static unsigned int Size(const MT_Tuple2&)                { return 2; }
+static unsigned int Size(const MT_Tuple3&)                { return 3; }
+static unsigned int Size(const MT_Tuple4&)                { return 4; }
 
 /**
- * Converts a python list to an MT_Point3
+ *  Converts the given python matrix to an MT class.
  */
-MT_Point3 MT_Point3FromPyList(PyObject* pylist);
+template<class T>
+bool PyMatTo(PyObject* pymat, T& mat)
+{
+	bool noerror = true;
+	mat.setIdentity();
+	if (PySequence_Check(pymat))
+	{
+		unsigned int rows = PySequence_Size(pymat);
+		for (unsigned int y = 0; y < rows && y < Size(mat); y++)
+		{
+			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
+			if (PySequence_Check(pyrow))
+			{
+				unsigned int cols = PySequence_Size(pyrow);
+				for( unsigned int x = 0; x < cols && x < Size(mat); x++)
+				{
+					PyObject *item = PySequence_GetItem(pyrow, x); /* new ref */
+					mat[y][x] = PyFloat_AsDouble(item);
+					Py_DECREF(item);
+				}
+			} else 
+				noerror = false;
+			Py_DECREF(pyrow);
+		}
+	} else 
+		noerror = false;
+	 
+	return noerror;
+}
 
 /**
- * Converts a python list to an MT_Vector4
+ *  Converts a python list to a MT class.
  */
-MT_Vector4 MT_Vector4FromPyList(PyObject* pylist);
+template<class T>
+bool PyVecTo(PyObject* pyval, T& vec)
+{
+	if (PySequence_Check(pyval))
+	{
+		unsigned int numitems = PySequence_Size(pyval);
+		for (unsigned int x = 0; x < numitems && x < Size(vec); x++)
+		{
+			PyObject *item = PySequence_GetItem(pyval, x); /* new ref */
+			vec[x] = PyFloat_AsDouble(item);
+			Py_DECREF(item);
+		}
+		
+		return true;
+	}
+	
+	return false;
+}
 
 /**
- * Converts a python list to an MT_Vector2
+ *  Converts a python argument to an MT class.
+ *  This paramater expects arguments as passed to a python method.
  */
-MT_Point2 MT_Point2FromPyList(PyObject* pylist);
-
-/**
- * Converts a python list to an MT_Quaternion
- */
-MT_Quaternion MT_QuaternionFromPyList(PyObject* pylist);
-
-/**
- * Converts a python list of lists to an MT_Matrix4x4.
- * Any object that supports the sequence protocol will work.
- * Only the first four rows and first four columns in each row will be converted.
- * @example The python object [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
- */
-MT_Matrix4x4 MT_Matrix4x4FromPyObject(PyObject *pymat);
-/**
- * Converts a python list of lists to an MT_Matrix3x3
- * Any object that supports the sequence protocol will work.
- * Only the first three rows and first three columns in each row will be converted.
- * @example The python object [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
- */
-MT_Matrix3x3 MT_Matrix3x3FromPyObject(PyObject *pymat);
+template<class T>
+bool PyVecArgTo(PyObject* args, T& vec)
+{
+	PyObject* pylist;
+	if (PyArg_ParseTuple(args,"O",&pylist))
+		return PyVecTo(pylist, vec);
+		
+	return false;
+}
 
 /**
  * Converts an MT_Matrix4x4 to a python object.
  */
-PyObject* PyObjectFromMT_Matrix4x4(const MT_Matrix4x4 &mat);
+PyObject* PyObjectFrom(const MT_Matrix4x4 &mat);
 
 /**
  * Converts an MT_Matrix3x3 to a python object.
  */
-PyObject* PyObjectFromMT_Matrix3x3(const MT_Matrix3x3 &mat);
+PyObject* PyObjectFrom(const MT_Matrix3x3 &mat);
 
 /**
- * Converts an MT_Vector3 to a python object.
+ * Converts an MT_Tuple2 to a python object.
  */
-PyObject* PyObjectFromMT_Vector3(const MT_Vector3 &vec);
+PyObject* PyObjectFrom(const MT_Tuple2 &vec);
 
 /**
- * Converts an MT_Vector4 to a python object
+ * Converts an MT_Tuple3 to a python object
  */
-PyObject* PyObjectFromMT_Vector4(const MT_Vector4 &vec);
+PyObject* PyObjectFrom(const MT_Tuple3 &vec);
 
 /**
- * Converts an MT_Vector3 to a python object.
+ * Converts an MT_Tuple4 to a python object.
  */
-PyObject* PyObjectFromMT_Point3(const MT_Point3 &pos);
+PyObject* PyObjectFrom(const MT_Tuple4 &pos);
 
-/**
- * Converts an MT_Point2 to a python object.
- */
-PyObject* PyObjectFromMT_Point2(const MT_Point2 &vec);
- 
 /**
  * True if the given PyObject can be converted to an MT_Matrix
  * @param rank = 3 (for MT_Matrix3x3) or 4 (for MT_Matrix4x4)

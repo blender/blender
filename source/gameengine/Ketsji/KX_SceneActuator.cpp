@@ -314,16 +314,21 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 										PyObject* args, 
 										PyObject* kwds)
 {
+	PyObject *cam;
+	if (PyArg_ParseTuple(args, "O!", &KX_Camera::Type, &cam))
+	{
+		m_camera = (KX_Camera*) cam;
+		Py_Return;
+	}
+
 	/* one argument: a scene, ignore the rest */
 	char *camName;
-	KX_Camera *camOb;
-
 	if(!PyArg_ParseTuple(args, "s", &camName))
 	{
 		return NULL;
 	}
 
-	camOb = FindCamera(camName);
+	KX_Camera *camOb = FindCamera(camName);
 	if (camOb) m_camera = camOb;
 
 	Py_Return;

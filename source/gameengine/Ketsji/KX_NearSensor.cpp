@@ -143,10 +143,12 @@ KX_NearSensor::~KX_NearSensor()
 {
 	// for nearsensor, the sensor is the 'owner' of sumoobj
 	// for touchsensor, it's the parent
-	static_cast<KX_TouchEventManager*>(m_eventmgr)->GetSumoScene()->remove(*m_sumoObj);
-
 	if (m_sumoObj)
+	{
+		static_cast<KX_TouchEventManager*>(m_eventmgr)->GetSumoScene()->remove(*m_sumoObj);
 		delete m_sumoObj;
+		m_sumoObj = NULL;
+	}
 		
 	if (m_client_info)
 		delete m_client_info;
