@@ -149,10 +149,10 @@ elif sys.platform == 'win32':
     use_sumo = 'false'
     use_ode = 'true'
     release_flags = ['/G6', '/GF']
-    debug_flags = []
+    debug_flags = ['/Zi']
     extra_flags = ['/EHsc', '/J', '/W3', '/Gd', '/MT']
     cxxflags = []
-    defines = ['WIN32', 'NDEBUG', '_CONSOLE', 'FTGL_STATIC_LIBRARY']
+    defines = ['WIN32', '_CONSOLE', 'FTGL_STATIC_LIBRARY']
     defines += ['INTERNATIONAL', 'WITH_QUICKTIME']
     defines += ['_LIB', 'WITH_FREETYPE2', 'USE_OPENAL']
     warn_flags = []
@@ -383,13 +383,19 @@ else:
 
 if user_options_dict['BUILD_BINARY'] == 'release':
     cflags = extra_flags + release_flags + warn_flags
+    if sys.platform == 'win32':
+        defines += ['NDEBUG']
 else:
     cflags = extra_flags + debug_flags + warn_flags
+    if sys.platform == 'win32':
+        #defines += ['_DEBUG'] specifying this makes msvc want to link to python22_d.lib??
+        platform_linkflags += ['/DEBUG','/PDB:blender.pdb']
+
 
 #-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files
 #-----------------------------------------------------------------------------
-cflags = extra_flags + release_flags + warn_flags
+#cflags = extra_flags + release_flags + warn_flags
 
 Export ('python_include')
 Export ('cflags')
