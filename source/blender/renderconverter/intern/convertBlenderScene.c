@@ -1502,8 +1502,11 @@ static void init_render_mesh(Object *ob)
 						v4= mfaceint->v4;
 						flag= mfaceint->flag;
 						puno= mfaceint->puno;
-						edcode= mfaceint->edcode;
-					} else {
+						/* if mfaceint, then dlm is not NULL too */
+						if(dlm->flag & ME_OPT_EDGES) edcode= mfaceint->edcode;
+						else edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
+					} 
+					else {
 						mat_nr= mface->mat_nr;
 						v1= mface->v1;
 						v2= mface->v2;
