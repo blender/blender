@@ -54,6 +54,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
+#include "DNA_key_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -61,6 +62,7 @@
 #include "DNA_space_types.h"
 
 #include "BIF_interface.h"
+#include "BIF_mainqueue.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -82,6 +84,424 @@
 #include "mydevice.h"
 
 static int viewmovetemp = 0;
+extern int totipo_edit, totipo_sel;
+
+static void do_ipo_editmenu_keymenu(void *arg, int event)
+{
+	Key *key;
+	KeyBlock *kb;
+
+	if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0) {
+		key= (Key *)G.sipo->from;
+		if(key==0) return;
+		kb= key->block.first;
+
+		while(kb) {
+			if(kb->flag & SELECT) {
+				kb->type= 0;
+				switch(event){
+					case 0:
+						printf("has it done anything?!\n");
+						kb->type= KEY_LINEAR;
+						break;
+					case 1:
+						kb->type= KEY_CARDINAL;
+						break;
+					case 2:
+						kb->type= KEY_BSPLINE;
+						break;
+				}
+			}
+			kb= kb->next;
+		}
+	}
+}
+
+static uiBlock *ipo_editmenu_keymenu(void *arg_unused)
+{
+	uiBlock *block;
+	EditIpo *ei;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_keymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_keymenu, NULL);
+
+	ei = get_editipo();
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linear", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cardinal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "BSpline", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+
+}
+
+static void do_ipo_editmenu_handlemenu(void *arg, int event)
+{
+	switch(event){
+	case 0:
+		sethandles_ipo(HD_AUTO);
+		break;
+	case 1:
+	case 2:
+		sethandles_ipo(HD_ALIGN);
+		break;
+	case 3:
+		sethandles_ipo(HD_VECT);
+		break;
+	}
+}
+
+static uiBlock *ipo_editmenu_handlemenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_handlemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_handlemenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto|Shift H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Aligned|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Free|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_ipo_editmenu_intpolmenu(void *arg, int event)
+{
+	EditIpo *ei;
+	int a;
+
+	get_status_editipo();
+
+	ei = G.sipo->editipo;
+
+	switch(event)
+	{
+	case 0:
+		for(a=0; a<G.sipo->totipo; a++, ei++) {
+			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
+				ei->icu->ipo= IPO_CONST;
+			}
+		}
+		break;
+	case 1:
+		for(a=0; a<G.sipo->totipo; a++, ei++) {
+			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
+				ei->icu->ipo= IPO_LIN;
+			}
+		}
+		break;
+	case 2:
+		for(a=0; a<G.sipo->totipo; a++, ei++) {
+			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
+				ei->icu->ipo= IPO_BEZ;
+			}
+		}
+		break;
+	}
+
+	scrarea_queue_winredraw(curarea);
+}
+
+static uiBlock *ipo_editmenu_intpolmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_intpolmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_intpolmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Constant", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linear", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bezier", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_ipo_editmenu_extendmenu(void *arg, int event)
+{
+	switch(event)
+	{
+	case 0:
+		do_ipo_buttons(B_IPOCONT);
+		break;
+	case 1:
+		do_ipo_buttons(B_IPOEXTRAP);
+		break;
+	case 2:
+		do_ipo_buttons(B_IPOCYCLIC);
+		break;
+	case 3:
+		do_ipo_buttons(B_IPOCYCLICX);
+		break;
+	}
+}
+
+static uiBlock *ipo_editmenu_extendmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_extendmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_extendmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Constant", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrapolation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic Extrapolation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+
+static void do_ipo_editmenu(void *arg, int event)
+{
+	switch(event)
+	{
+	case 0:
+		del_ipo();
+		break;
+	case 1:
+		add_duplicate_editipo();
+		break;
+	case 2:
+		ipo_record();
+		break;
+	case 3:
+		mainqenter(IKEY, 1);
+		break;
+	}
+}
+
+static uiBlock *ipo_editmenu(void *arg_unused)
+{
+	uiBlock *block;
+	EditIpo *ei;
+	short yco= 0, menuwidth=120;
+
+	get_status_editipo();
+
+	ei = G.sipo->editipo;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu, NULL);
+
+	if (!G.sipo->showkey){
+		uiDefIconTextBlockBut(block, ipo_editmenu_extendmenu, NULL, ICON_RIGHTARROW_THIN, "Extend Mode", 0, yco-=20, 120, 19, "");	
+		uiDefIconTextBlockBut(block, ipo_editmenu_intpolmenu, NULL, ICON_RIGHTARROW_THIN, "Interpolation Mode", 0, yco-=20, 120, 20, "");
+		if(ei != NULL && (ei->flag & IPO_EDIT))
+			uiDefIconTextBlockBut(block, ipo_editmenu_handlemenu, NULL, ICON_RIGHTARROW_THIN, "Handle Type", 0, yco-=20, 120, 19, "");
+		if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0)
+			uiDefIconTextBlockBut(block, ipo_editmenu_keymenu, NULL, ICON_RIGHTARROW_THIN, "Key Type", 0, yco-=20, 120, 19, "");
+
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	}
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe...|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+static void do_ipo_viewmenu(void *arg, int event)
+{
+	switch(event)
+	{
+	case 1:
+		do_ipo_buttons(B_IPOHOME);
+		break;
+	case 2:
+		ipo_toggle_showkey();
+		scrarea_queue_headredraw(curarea);
+		scrarea_queue_winredraw(curarea);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case 3:
+		move_to_frame();
+		break;
+	case 4:
+		mainqenter(PADPLUSKEY,1);
+		break;
+	case 5:
+		mainqenter(PADMINUS,1);
+		break;
+	}
+}
+
+static uiBlock *ipo_viewmenu(void *arg_unused)
+{
+	uiBlock *block;
+	EditIpo *ei;
+	short yco= 0, menuwidth=120;
+
+	ei = get_editipo();
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_ipo_viewmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|Numpad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|Numpad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Frame All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	if (ei != NULL && (ei->flag & IPO_EDIT)) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	}
+	if (G.sipo->showkey) {
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	}
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,20, "");
+	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+static void do_ipo_selectmenu(void *arg, int event)
+{
+	switch(event)
+	{
+	case 0:
+		borderselect_ipo();
+		break;
+	case 1:
+		swap_selectall_editipo();
+		break;
+	}
+}
+
+static uiBlock *ipo_selectmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_selectmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_ipo_selectmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+
+static char *ipo_modeselect_pup(void)
+{
+	static char string[1024];
+	char tmpstr[1024];
+	char formatstring[1024];
+
+	strcpy(string, "Display IPO type: %t");
+	
+	strcat(formatstring, "|%s %%x%d");
+
+	if(OBACT) {
+		sprintf(tmpstr,formatstring,"Object",ID_OB);
+		strcat(string,tmpstr);
+	}
+
+	if(OBACT && give_current_material(OBACT, OBACT->actcol)) { // check for material
+		sprintf(tmpstr,formatstring,"Material",ID_MA);
+		strcat(string,tmpstr);
+	}
+
+	if(G.scene->world) {
+		sprintf(tmpstr,formatstring,"World",ID_WO);
+		strcat(string,tmpstr);
+	}
+
+	if(OBACT && OBACT->type==OB_CURVE) {
+		sprintf(tmpstr,formatstring,"Curve",ID_WO);
+		strcat(string,tmpstr);
+	}
+
+	if(OBACT && OBACT->type==OB_CAMERA) {
+		sprintf(tmpstr,formatstring,"Camera",ID_CA);
+		strcat(string,tmpstr);
+	}
+	
+	if(OBACT && OBACT->type==OB_LAMP) {
+		sprintf(tmpstr,formatstring,"Lamp",ID_LA);
+		strcat(string,tmpstr);
+	}
+
+	if(OBACT){
+		if ELEM4(OBACT->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
+			sprintf(tmpstr,formatstring,"Vertex",ID_KE);
+			strcat(string,tmpstr);
+		}
+		if (OBACT->action){
+			sprintf(tmpstr,formatstring,"Action",ID_AC);
+			strcat(string,tmpstr);
+		}
+#ifdef __CON_IPO
+		sprintf(tmpstr,formatstring,"Constraint",IPO_CO);
+		strcat(string,tmpstr);
+#endif
+	}
+
+	sprintf(tmpstr,formatstring,"Sequence",ID_SEQ);
+	strcat(string,tmpstr);
+
+
+	return (string);
+}
 
 void do_ipo_buttons(short event)
 {
@@ -203,10 +623,12 @@ void do_ipo_buttons(short event)
 void ipo_buttons(void)
 {
 	Object *ob;
+	EditIpo *ei;
 	ID *id, *from;
 	uiBlock *block;
-	short xco;
+	short xco,xmax;
 	char naam[20];
+	int icon;
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
@@ -224,63 +646,82 @@ void ipo_buttons(void)
 	
 	test_editipo();	/* test if current editipo is OK, make_editipo sets v2d->cur */
 
-	/* FULL WINDOW en HOME */
+	/* pull down menus */
+	uiBlockSetEmboss(block, UI_EMBOSSP);
 
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
-	uiDefIconBut(block, BUT, B_IPOHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
-	uiDefIconButS(block, ICONTOG, B_IPOSHOWKEY, ICON_KEY_DEHLT,	xco+=XIC,0,XIC,YIC, &G.sipo->showkey, 0, 0, 0, 0, "Toggles between Curve and Key display (KKEY)");
+	ei = get_editipo();
+
+	xmax= GetButStringLength("View");
+	uiDefBlockBut(block,ipo_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
+	xco+=xmax;
+
+	xmax= GetButStringLength("Select");
+	uiDefBlockBut(block,ipo_selectmenu, NULL, "Select", xco, 0, xmax, 20, "");
+	xco+=xmax;
+
+	if (G.sipo->showkey) {
+		xmax= GetButStringLength("Key");
+		uiDefBlockBut(block,ipo_editmenu, NULL, "Key", xco, 0, xmax, 20, "");
+	}
+	else if(ei != NULL && (ei->flag & IPO_EDIT)) {
+		xmax= GetButStringLength("Point");
+		uiDefBlockBut(block,ipo_editmenu, NULL, "Point", xco, 0, xmax, 20, "");
+	}
+	else {
+		xmax= GetButStringLength("Curve");
+		uiDefBlockBut(block,ipo_editmenu, NULL, "Curve", xco, 0, xmax, 20, "");
+	}
+		
+	xco+=xmax;
+
+
+	/* end of pull down menus */
+	uiBlockSetEmboss(block, UI_EMBOSSX);
 
 	/* mainmenu, only when data is there and no pin */
 	uiSetButLock(G.sipo->pin, "Can't change because of pinned data");
 	
 	ob= OBACT;
-	xco+= XIC/2;
-	uiDefIconButS(block, ROW, B_IPOMAIN, ICON_OBJECT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_OB, 0, 0, "Displays Object Ipos");
-	
-	if(ob && give_current_material(ob, ob->actcol)) {
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_MATERIAL,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_MA, 0, 0, "Displays Material Ipos");
-		if(G.sipo->blocktype==ID_MA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
-			xco-= 4;
-		}
-	}
-	if(G.scene->world) {
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_WORLD,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_WO, 0, 0, "Display World Ipos");
-		if(G.sipo->blocktype==ID_WO) {
-			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
-			xco-= 4;
-		}
-	}
-	
-	if(ob && ob->type==OB_CURVE)
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_ANIM,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_CU, 0, 0, "Display Curve Ipos");
-	
-	if(ob && ob->type==OB_CAMERA)
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_CAMERA,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_CA, 0, 0, "Display Camera Ipos");
-	
-	if(ob && ob->type==OB_LAMP) {
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_LAMP,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_LA, 0, 0, "Display Lamp Ipos");
-		if(G.sipo->blocktype==ID_LA) {
-			uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
-			xco-= 4;
-		}
-	}
-	
-	if(ob) {
-		if ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)
-			uiDefIconButS(block, ROW, B_IPOMAIN, ICON_EDIT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_KE, 0, 0, "Displays VertexKeys Ipos");
-		if (ob->action)
-			uiDefIconButS(block, ROW, B_IPOMAIN, ICON_ACTION,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_AC, 0, 0, "Displays Action Ipos");
-#ifdef __CON_IPO
-		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_CONSTRAINT,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)IPO_CO, 0, 0, "Displays Constraint Ipos");
-#endif
-	}
-	uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SEQUENCE,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SEQ, 0, 0, "Displays Sequence Ipos");
+	xco+= 10;
 
-//	if(G.buts && G.buts->mainb == BUTS_SOUND && G.buts->lockpoin) 
-//		uiDefIconButS(block, ROW, B_IPOMAIN, ICON_SOUND,	xco+=XIC,0,XIC,YIC, &G.sipo->blocktype, 1.0, (float)ID_SO, 0, 0, "Displays Sound Ipos");
+	if (G.sipo->blocktype == ID_OB)
+		icon = ICON_OBJECT;
+	else if (G.sipo->blocktype == ID_MA)
+		icon = ICON_MATERIAL;
+	else if (G.sipo->blocktype == ID_WO)
+		icon = ICON_WORLD;
+	else if (G.sipo->blocktype == ID_CU)
+		icon = ICON_ANIM;
+	else if (G.sipo->blocktype == ID_CA)
+		icon = ICON_CAMERA;
+	else if (G.sipo->blocktype == ID_LA)
+		icon = ICON_LAMP;
+	else if (G.sipo->blocktype == ID_KE)
+		icon = ICON_EDIT;
+	else if (G.sipo->blocktype == ID_AC)
+		icon = ICON_ACTION;
+	else if (G.sipo->blocktype == IPO_CO)
+		icon = ICON_CONSTRAINT;
+	else if (G.sipo->blocktype == ID_SEQ)
+		icon = ICON_SEQUENCE;
 
+	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,120,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Display IPO type");
+
+	xco += 110;
+
+	if(G.sipo->blocktype==ID_MA) {
+		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Material texture. Click to change.");
+		xco-= 4;
+	}
+	if(G.sipo->blocktype==ID_WO) {
+		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active World texture. Click to change.");
+		xco-= 4;
+	}
+	
+	if(G.sipo->blocktype==ID_LA) {
+		uiDefButS(block, NUM, B_IPOMAIN, "",	xco+=XIC,0,XIC-4,YIC, &G.sipo->channel, 0.0, 7.0, 0, 0, "Displays Channel Number of the active Lamp texture. Click to change.");
+		xco-= 4;
+	}
 	
 	uiClearButLock();
 
@@ -305,13 +746,6 @@ void ipo_buttons(void)
 	}
 	xco+=XIC/2;
 	
-	/* EXTRAP */
-	uiDefIconBut(block, BUT, B_IPOCONT, ICON_CONSTANT,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to constant");
-	uiDefIconBut(block, BUT, B_IPOEXTRAP, ICON_LINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Sets the extend mode to extrapolation");
-	uiDefIconBut(block, BUT, B_IPOCYCLIC, ICON_CYCLIC,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,	"Sets the extend mode to cyclic");
-	uiDefIconBut(block, BUT, B_IPOCYCLICX, ICON_CYCLICLINEAR,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0,	"Sets the extend mode to cyclic extrapolation");
-	xco+= XIC/2;
-
 	uiClearButLock();
 	/* ZOOM en BORDER */
 	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (CTRL+MiddleMouse)");

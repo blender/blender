@@ -1475,7 +1475,7 @@ void set_editflag_editipo()
 			}
 		}
 	}
-	
+	scrarea_queue_headredraw(curarea);
 	scrarea_queue_winredraw(curarea);
 }
 
