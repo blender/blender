@@ -112,8 +112,8 @@ extern void helpline(float *vec);
 #include "transform_numinput.h"
 
 /* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
-TransInfo trans;
-int	LastMode = TRANSLATION;
+TransInfo Trans;
+int	LastMode = TFM_TRANSLATION;
 
 /* ************************** Functions *************************** */
 
@@ -132,8 +132,8 @@ int allocTransData()
 		return count;
 	}
 	
-	trans.total = count;
-	trans.data= MEM_mallocN(trans.total*sizeof(TransData), "TransObData(EditMode)");
+	Trans.total = count;
+	Trans.data= MEM_mallocN(Trans.total*sizeof(TransData), "TransObData(EditMode)");
 	return count;
 }
 
@@ -143,22 +143,22 @@ void createTransArmatureVerts()
 	TransData *tv;
 	float mtx[3][3], smtx[3][3];
 
-	trans.total = 0;
+	Trans.total = 0;
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		if (ebo->flag & BONE_TIPSEL){
-			trans.total++;
+			Trans.total++;
 		}
 		if (ebo->flag & BONE_ROOTSEL){
-			trans.total++;
+			Trans.total++;
 		}
 	}
 
-	if (!trans.total) return;
+    if (!Trans.total) return;
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	tv = trans.data = MEM_mallocN(trans.total*sizeof(TransData), "TransEditBone");
+    tv = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditBone");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -210,9 +210,9 @@ void createTransMBallVerts()
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
-	
-	tv = trans.data;
-	ml= editelems.first;
+    
+	tv = Trans.data;
+    ml= editelems.first;
 	while(ml) {
 		if(ml->flag & SELECT) {
 			tv->loc= &ml->x;
@@ -256,7 +256,7 @@ void createTransCurveVerts()
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	tv = trans.data;
+    tv = Trans.data;
 	nu= editNurb.first;
 	while(nu) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -366,7 +366,7 @@ void createTransLatticeVerts()
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	tv = trans.data;
+	tv = Trans.data;
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
@@ -419,7 +419,7 @@ void createTransEditVerts()
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->f & SELECT)) {
 				eve->f1= SELECT;
-				trans.total++;
+				Trans.total++;
 			}
 			else
 				eve->f1= 0;
@@ -434,7 +434,7 @@ void createTransEditVerts()
 		}
 		for(eve= em->verts.first; eve; eve= eve->next)
 			if(eve->f1)
-				trans.total++;
+				Trans.total++;
 	}
 	else {
 		EditFace *efa;
@@ -447,28 +447,27 @@ void createTransEditVerts()
 		}
 		for(eve= em->verts.first; eve; eve= eve->next)
 			if(eve->f1)
-				trans.total++;
+				Trans.total++;
 	}
 	
-	totsel = trans.total;
+	totsel = Trans.total;
 	/* proportional edit exception... */
-	if((G.f & G_PROPORTIONAL) && trans.total) {
+	if((G.f & G_PROPORTIONAL) && Trans.total) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (!(eve->f1 & SELECT))) {
 				eve->f1 = 2;
-				trans.total++;
+				Trans.total++;
 			}
 		}
 	}
 	
 	/* and now make transverts */
-	
-	if (!trans.total) return;
+    if (!Trans.total) return;
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	tob = trans.data = MEM_mallocN(trans.total*sizeof(TransData), "TransEditVert");
+    tob = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransEditVert");
 
 	for (eve=em->verts.first; eve; eve=eve->next)
 	{
@@ -502,7 +501,7 @@ void createTransEditVerts()
 			
 				tob->dist = -1;
 
-				td = trans.data;
+				td = Trans.data;
 				for (i = 0; i < totsel; i++, td++) {
 					VecSubf(vec, tob->center, td->center);
 					Mat3MulVecfl(mtx, vec);
@@ -573,22 +572,22 @@ void createTransObject()
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
-			trans.total++;
+			Trans.total++;
 			totsel++;
 		}
 		else if (G.f & G_PROPORTIONAL) {
 			ob= base->object;
 			if (G.vd->lay & ob->lay) {
-				trans.total++;
+				Trans.total++;
 			}
 		}
 		base= base->next;
 	}
 
-	if(!trans.total)
+	if(!Trans.total)
 		return;
 
-	tob = trans.data = MEM_mallocN(trans.total*sizeof(TransData), "TransOb");
+	tob = Trans.data = MEM_mallocN(Trans.total*sizeof(TransData), "TransOb");
 
 	base= FIRSTBASE;
 	while(base) {
@@ -627,7 +626,7 @@ void createTransObject()
 
 					tob->dist = -1;
 
-					td = trans.data;
+					td = Trans.data;
 					for (i = 0; i < totsel; i++, td++) {
 						dist = VecLenf(tob->center, td->center);
 						if (tob->dist == -1) {
@@ -652,14 +651,14 @@ void createTransObject()
 	THERE MUST BE A BETTER WAY TO DO THIS
 */
 
-	tob = trans.data;
-	for (i = 0; i < trans.total; i++, tob++) {
+	tob = Trans.data;
+	for (i = 0; i < Trans.total; i++, tob++) {
 		ob = tob->ob->parent;
 		while (ob) {
 			TransData *td;
 			int j, found = 0;
-			td = trans.data;
-			for (j = 0; j < trans.total; j++, td++) {
+			td = Trans.data;
+			for (j = 0; j < Trans.total; j++, td++) {
 				if (ob == td->ob) {
 					found = 1;
 					tob->flag |= TD_NOACTION;
@@ -722,45 +721,45 @@ void Transform(int mode) {
 
 	/* stupid PET initialisation code */
 	/* START */
-	if (trans.propsize == 0.0f) {
-		trans.propsize = 1.0;
+	if (Trans.propsize == 0.0f) {
+		Trans.propsize = 1.0;
 	}
 	/* END */
 
-	if (mode == REPEAT) {
+	if (mode == TFM_REPEAT) {
 		mode = LastMode;
 	}
 	else {
 		LastMode = mode;
 	}
 	
-	initTransModeFlags(&trans, mode);
+	initTransModeFlags(&Trans, mode);
 
-	initTrans(&trans);
+	initTrans(&Trans);
 
 	createTransData();
 
-	if (trans.total == 0)
+	if (Trans.total == 0)
 		return;
 
-	calculatePropRatio(&trans);
-	calculateCenter(&trans);
+	calculatePropRatio(&Trans);
+	calculateCenter(&Trans);
 
 	switch (mode) {
-	case TRANSLATION:
-		initTranslation(&trans);
+	case TFM_TRANSLATION:
+		initTranslation(&Trans);
 		break;
-	case ROTATION:
-		initRotation(&trans);
+	case TFM_ROTATION:
+		initRotation(&Trans);
 		break;
-	case RESIZE:
-		initResize(&trans);
+	case TFM_RESIZE:
+		initResize(&Trans);
 		break;
-	case TOSPHERE:
-		initToSphere(&trans);
+	case TFM_TOSPHERE:
+		initToSphere(&Trans);
 		break;
-	case SHEAR:
-		initShear(&trans);
+	case TFM_SHEAR:
+		initShear(&Trans);
 		break;
 	}
 
@@ -769,21 +768,21 @@ void Transform(int mode) {
 		event= extern_qread(&val);
 	}
 
-	trans.redraw = 1;
+	Trans.redraw = 1;
 
 	while (ret_val == 0) {
 		getmouseco_areawin(mval);
 		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
-			trans.redraw = 1;
+			Trans.redraw = 1;
 		}
-		if (trans.redraw) {
+		if (Trans.redraw) {
 			pmval[0] = mval[0];
 			pmval[1] = mval[1];
 
-			if (trans.transform) {
-				trans.transform(&trans, mval);
+			if (Trans.transform) {
+				Trans.transform(&Trans, mval);
 			}
-			trans.redraw = 0;
+			Trans.redraw = 0;
 		}
 		while( qtest() ) {
 			event= extern_qread(&val);
@@ -791,8 +790,8 @@ void Transform(int mode) {
 			if(val) {
 				switch (event){
 				case MIDDLEMOUSE:
-					selectConstraint(&trans);
-					trans.redraw = 1;
+					selectConstraint(&Trans);
+					Trans.redraw = 1;
 					break;
 				case ESCKEY:
 				case RIGHTMOUSE:
@@ -808,61 +807,61 @@ void Transform(int mode) {
 				case SKEY:
 				case RKEY:
 					if (G.qual == LR_CTRLKEY)
-						applyTransObjects(&trans);
+						applyTransObjects(&Trans);
 					else
-						restoreTransObjects(&trans);
+						restoreTransObjects(&Trans);
 					break;
 				case XKEY:
 					if (G.qual == 0)
-						setConstraint(&trans, MatI, (APPLYCON|CONAXIS0));
+						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS0));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&trans, MatI, (APPLYCON|CONAXIS1|CONAXIS2));
+						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS1|CONAXIS2));
 					break;
 				case YKEY:
 					if (G.qual == 0)
-						setConstraint(&trans, MatI, (APPLYCON|CONAXIS1));
+						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS1));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&trans, MatI, (APPLYCON|CONAXIS0|CONAXIS2));
+						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS0|CONAXIS2));
 					break;
 				case ZKEY:
 					if (G.qual == 0)
-						setConstraint(&trans, MatI, (APPLYCON|CONAXIS2));
+						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS2));
 					else if (G.qual == LR_CTRLKEY)
-						setConstraint(&trans, MatI, (APPLYCON|CONAXIS0|CONAXIS1));
+						setConstraint(&Trans, MatI, (APPLYCON|CONAXIS0|CONAXIS1));
 					break;
 				case OKEY:
 					if (G.qual==LR_SHIFTKEY) {
 						extern int prop_mode;
 						prop_mode = (prop_mode+1)%5;
-						calculatePropRatio(&trans);
-						trans.redraw= 1;
+						calculatePropRatio(&Trans);
+						Trans.redraw= 1;
 					}
 					break;
 				case WHEELDOWNMOUSE:
 				case PADPLUSKEY:
 					if(G.f & G_PROPORTIONAL) {
-						trans.propsize*= 1.1f;
-						calculatePropRatio(&trans);
-						trans.redraw= 1;
+						Trans.propsize*= 1.1f;
+						calculatePropRatio(&Trans);
+						Trans.redraw= 1;
 					}
 					break;
 				case WHEELUPMOUSE:
 				case PADMINUS:
 					if(G.f & G_PROPORTIONAL) {
-						trans.propsize*= 0.90909090f;
-						calculatePropRatio(&trans);
-						trans.redraw= 1;
+						Trans.propsize*= 0.90909090f;
+						calculatePropRatio(&Trans);
+						Trans.redraw= 1;
 					}
 					break;
 				}
-				trans.redraw |= handleNumInput(&(trans.num), event);
+				Trans.redraw |= handleNumInput(&(Trans.num), event);
 				arrows_move_cursor(event);
 			}
 			else {
 				switch (event){
 				case MIDDLEMOUSE:
-					chooseConstraint(&trans);
-					trans.redraw = 1;
+					chooseConstraint(&Trans);
+					Trans.redraw = 1;
 					break;
 				case LEFTMOUSE:
 				case RIGHTMOUSE:
@@ -874,13 +873,13 @@ void Transform(int mode) {
 	}
 
 	if(ret_val == TRANS_CANCEL) {
-		restoreTransObjects(&trans);
+		restoreTransObjects(&Trans);
 	}
 	else {
 		BIF_undo_push("Transform");
 	}
 
-	postTrans(&trans);
+	postTrans(&Trans);
 }
 
 /* ************************** WRAP *************************** */
@@ -1000,11 +999,11 @@ int Shear(TransInfo *t, short mval[2]) {
 /* ************************** RESIZE *************************** */
 
 void initResize(TransInfo *t) {
-	trans.fac = (float)sqrt( (float)
+	Trans.fac = (float)sqrt( (float)
 		(
-			(trans.center2d[1] - trans.imval[1])*(trans.center2d[1] - trans.imval[1])
+			(Trans.center2d[1] - Trans.imval[1])*(Trans.center2d[1] - Trans.imval[1])
 		+
-			(trans.center2d[0] - trans.imval[0])*(trans.center2d[0] - trans.imval[0])
+			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
 		) );
 
 	t->num.idx_max = 2;
@@ -1110,11 +1109,11 @@ void initToSphere(TransInfo *t) {
 
 	t->val /= (float)t->total;
 
-	trans.fac = (float)sqrt( (float)
+	Trans.fac = (float)sqrt( (float)
 		(
-			(trans.center2d[1] - trans.imval[1])*(trans.center2d[1] - trans.imval[1])
+			(Trans.center2d[1] - Trans.imval[1])*(Trans.center2d[1] - Trans.imval[1])
 		+
-			(trans.center2d[0] - trans.imval[0])*(trans.center2d[0] - trans.imval[0])
+			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
 		) );
 
 	t->num.idx_max = 0;

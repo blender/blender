@@ -160,7 +160,7 @@
 
 #include "blendef.h"
 
-#include "transform.h"
+#include "BIF_transform.h"
 
 #include "BIF_poseobject.h"
 
@@ -6726,7 +6726,7 @@ void std_rmouse_transform(void (*xf_func)(int))
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 #ifdef NEWTRANSFORM
-			Transform(TRANSLATION);
+			Transform(TFM_TRANSLATION);
 #else
 			xf_func('g');
 #endif

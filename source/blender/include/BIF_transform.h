@@ -30,35 +30,34 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef TRANSFORM_GENERICS_H
-#define TRANSFORM_GENERICS_H
+#ifndef BIF_TRANSFORM_H
+#define BIF_TRANSFORM_H
 
-void recalcData(TransInfo *t);
+/* ******************** Macros & Prototypes *********************** */
 
-void initTransModeFlags(TransInfo *t, int mode);
+/* MODE AND NUMINPUT FLAGS */
+#define TFM_REPEAT			0
+#define TFM_TRANSLATION		1
+#define TFM_ROTATION		2
+#define TFM_RESIZE			3
+#define TFM_TOSPHERE		4
+#define TFM_SHEAR			5
+#define TFM_LAMP_ENERGY		6
 
-void drawLine(float *center, float *dir, char axis);
+#define PROP_SHARP		0
+#define PROP_SMOOTH		1
+#define PROP_ROOT		2
+#define PROP_LIN		3
+#define PROP_CONST		4
 
-void postTrans (TransInfo *t);
+void Transform(int mode);
 
-void apply_grid1(float *val, int max_index, float factor);
-void apply_grid2(float *val, int max_index, float factor, float factor2);
-void apply_grid3(float *val, int max_index, float fac1, float fac2, float fac3);
 
-void applyTransObjects(TransInfo *t);
-void restoreTransObjects(TransInfo *t);
-
-void initTrans(TransInfo *t);
-
-void calculateCenterBound(TransInfo *t);
-void calculateCenterMedian(TransInfo *t);
-void calculateCenterCursor(TransInfo *t);
-
-void calculateCenter(TransInfo *t);
-
-void calculatePropRatio(TransInfo *t);
-
-TransInfo * BIF_GetTransInfo();
+extern struct TransInfo;
+struct TransInfo * BIF_GetTransInfo();
+void BIF_setSingleAxisConstraint(float vec[3]);
+void BIF_drawConstraint();
+void BIF_drawPropCircle();
 
 #endif
 

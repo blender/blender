@@ -34,6 +34,7 @@
 #define TRANSFORM_H
 
 #include "transform_numinput.h"
+#include "BIF_transform.h"
 
 /* ************************** Types ***************************** */
 
@@ -94,8 +95,6 @@ typedef struct TransInfo {
 
 /* ******************** Macros & Prototypes *********************** */
 
-//#define NEWTRANSFORM
-
 /* MODE AND NUMINPUT FLAGS */
 #define NOCONSTRAINT	1
 #define NULLONE			2
@@ -104,12 +103,13 @@ typedef struct TransInfo {
 #define NOFRACTION		16
 
 
-#define REPEAT			0
-#define TRANSLATION		1
-#define ROTATION		2
-#define RESIZE			3
-#define TOSPHERE		4
-#define SHEAR			5
+#define TFM_REPEAT			0
+#define TFM_TRANSLATION		1
+#define TFM_ROTATION		2
+#define TFM_RESIZE			3
+#define TFM_TOSPHERE		4
+#define TFM_SHEAR			5
+#define TFM_LAMP_ENERGY		6
 
 #define APPLYCON		1
 #define CONAXIS0		2

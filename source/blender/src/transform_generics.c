@@ -107,7 +107,7 @@ extern ListBase editNurb;
 extern ListBase editelems;
 
 /* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
-extern TransInfo trans;
+extern TransInfo Trans;
 
 /* ************************** Functions *************************** */
 
@@ -152,23 +152,23 @@ void initTransModeFlags(TransInfo *t, int mode) {
 	t->flags = 0;
 	t->num.flags = 0;
 	switch (mode) {
-	case TRANSLATION:
+	case TFM_TRANSLATION:
 		break;
-	case ROTATION:
+	case TFM_ROTATION:
 		break;
-	case RESIZE:
+	case TFM_RESIZE:
 		t->num.flags |= NULLONE;
 		if (!G.obedit) {
 			t->flags |= NOZERO;
 			t->num.flags |= NOZERO;
 		}
 		break;
-	case TOSPHERE:
+	case TFM_TOSPHERE:
 		t->num.flags |= NULLONE;
 		t->num.flags |= NONEGATIVE;
 		t->flags |= NOCONSTRAINT;
 		break;
-	case SHEAR:
+	case TFM_SHEAR:
 		t->flags |= NOCONSTRAINT;
 		break;
 	}
@@ -496,4 +496,8 @@ void calculatePropRatio(TransInfo *t)
 		}
 		strcpy(t->proptext, "");
 	}
+}
+
+TransInfo * BIF_GetTransInfo() {
+	return &Trans;
 }

@@ -111,8 +111,6 @@ extern ListBase editelems;
 
 void recalcData();
 
-extern TransInfo trans;
-
 /* ************************** CONSTRAINTS ************************* */
 void getConstraintMatrix(TransInfo *t);
 
@@ -196,6 +194,7 @@ void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[
  * This insures that the rotation is always logically following the mouse.
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
+
 void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
 {
 	if (!td && t->con.mode & APPLYCON) {
@@ -228,6 +227,7 @@ void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
  * even if they aren't actually used in the callback function. (Which could happen
  * for weird constraints not yet designed. Along a path for example.)
  */
+
 int getConstraintSpaceDimension(TransInfo *t)
 {
 	int n = 0;
@@ -242,6 +242,32 @@ int getConstraintSpaceDimension(TransInfo *t)
 		n++;
 
 	return n;
+}
+
+void BIF_setSingleAxisConstraint(float vec[3]) {
+	TransInfo *t = BIF_GetTransInfo();
+	float space[3][3], v[3];
+	VECCOPY(space[0], vec);
+
+	v[0] = vec[2];
+	v[1] = vec[0];
+	v[2] = vec[1];
+
+	Crossf(space[1], vec, v);
+	Crossf(space[2], vec, space[1]);
+
+	Mat3CpyMat3(t->con.mtx, space);
+	t->con.mode = (CONAXIS0|APPLYCON);
+	getConstraintMatrix(t);
+
+	VECCOPY(t->con.center, t->center);
+	if (G.obedit) {
+		Mat4MulVecfl(G.obedit->obmat, t->con.center);
+	}
+
+	t->con.applyVec = applyAxisConstraintVec;
+	t->con.applyRot = applyAxisConstraintRot;
+	t->redraw = 1;
 }
 
 void setConstraint(TransInfo *t, float space[3][3], int mode) {
@@ -259,44 +285,44 @@ void setConstraint(TransInfo *t, float space[3][3], int mode) {
 	t->redraw = 1;
 }
 
-//void drawConstraint(TransCon *t) {
-void drawConstraint() {
+void BIF_drawConstraint()
+{
 	int i = -1;
-	TransCon *t = &(trans.con);
+	TransInfo *t = BIF_GetTransInfo();
+	TransCon *tc = &(t->con);
 
-	if (t->mode == 0)
+	if (tc->mode == 0)
 		return;
 
-	if (!(t->mode & APPLYCON)) {
-		i = nearestAxisIndex(&trans);
+	if (!(tc->mode & APPLYCON)) {
+		i = nearestAxisIndex(t);
 	}
 
-	if (t->mode & CONAXIS0) {
+	if (tc->mode & CONAXIS0) {
 		if (i == 0)
-			drawLine(t->center, t->mtx[0], 255 - 'x');
+			drawLine(tc->center, tc->mtx[0], 255 - 'x');
 		else
-			drawLine(t->center, t->mtx[0], 'x');
+			drawLine(tc->center, tc->mtx[0], 'x');
 	}
-	if (t->mode & CONAXIS1) {
+	if (tc->mode & CONAXIS1) {
 		if (i == 1)
-			drawLine(t->center, t->mtx[1], 255 - 'y');
+			drawLine(tc->center, tc->mtx[1], 255 - 'y');
 		else
-			drawLine(t->center, t->mtx[1], 'y');
+			drawLine(tc->center, tc->mtx[1], 'y');
 	}
-	if (t->mode & CONAXIS2) {
+	if (tc->mode & CONAXIS2) {
 		if (i == 2)
-			drawLine(t->center, t->mtx[2], 255 - 'z');
+			drawLine(tc->center, tc->mtx[2], 255 - 'z');
 		else
-			drawLine(t->center, t->mtx[2], 'z');
+			drawLine(tc->center, tc->mtx[2], 'z');
 	}
 
 }
 
 /* called from drawview.c, as ane xtra per-window draw option */
-void drawPropCircle()
-//void drawPropCircle(TransInfo *t)
+void BIF_drawPropCircle()
 {
-	TransInfo *t = &trans;
+	TransInfo *t = BIF_GetTransInfo();
 
 	if (G.f & G_PROPORTIONAL) {
 		float tmat[4][4], imat[4][4];

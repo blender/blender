@@ -145,7 +145,7 @@
 #include "blendef.h"
 #include "datatoc.h"
 
-#include "transform.h"
+#include "BIF_transform.h"
 
 #include "TPT_DependKludge.h"
 #ifdef NAN_TPT
@@ -1216,7 +1216,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				} else if((G.qual==0))
 #ifdef NEWTRANSFORM
-					Transform(TRANSLATION);
+					Transform(TFM_TRANSLATION);
 #else
 					transform('g');
 #endif
@@ -1473,14 +1473,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else if((G.qual==0))
 #ifdef NEWTRANSFORM
-						Transform(ROTATION);
+						Transform(TFM_ROTATION);
 #else
 						transform('r');
 #endif
 				}
 				else if((G.qual==0))
 #ifdef NEWTRANSFORM
-					Transform(ROTATION);
+					Transform(TFM_ROTATION);
 #else
 					transform('r');
 #endif
@@ -1491,9 +1491,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						transform('N'); /* scale along normal */
 					else if(G.qual==LR_CTRLKEY)
 #ifdef NEWTRANSFORM
-						Transform(SHEAR);
+						Transform(TFM_SHEAR);
 					else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
-						Transform(SHEAR);
+						Transform(TFM_SHEAR);
 #else
 						transform('S');
 #endif
@@ -1501,9 +1501,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						snapmenu();
 					else if(G.qual==0)
 #ifdef NEWTRANSFORM
-						Transform(RESIZE);
+						Transform(TFM_RESIZE);
 					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
-						Transform(TOSPHERE);
+						Transform(TFM_TOSPHERE);
 #else
 						transform('s');
 #endif
@@ -1518,11 +1518,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if((G.qual==0))
 #ifdef NEWTRANSFORM
-					Transform(RESIZE);
+					Transform(TFM_RESIZE);
 				else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
-					Transform(TOSPHERE);
+					Transform(TFM_TOSPHERE);
 				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY))
-					Transform(SHEAR);
+					Transform(TFM_SHEAR);
 #else
 					transform('s');
 #endif

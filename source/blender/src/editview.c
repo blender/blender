@@ -712,9 +712,9 @@ int gesture(void)
 				else if(curarea->spacetype==SPACE_OOPS) transform_oops('g');
 				else {
 #ifdef NEWTRANSFORM
-					if(i=='g') Transform(TRANSLATION);
-					else if(i=='s') Transform(ROTATION);
-					else Transform(RESIZE);
+					if(i=='g') Transform(TFM_TRANSLATION);
+					else if(i=='s') Transform(TFM_ROTATION);
+					else Transform(TFM_RESIZE);
 #else
 					transform(i);
 #endif

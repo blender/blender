@@ -126,7 +126,7 @@
 #include "mydevice.h"
 #include "butspace.h"  // event codes
 
-#include "transform_constraints.h"
+#include "BIF_transform.h"
 
 /* Modules used */
 #include "render.h"		// for ogl render
@@ -1913,8 +1913,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.moving) {
 		constline_callback();
 #ifdef NEWTRANSFORM
-		drawConstraint();
-		drawPropCircle();
+		BIF_drawConstraint();
+		BIF_drawPropCircle();
 #endif
 	}
 
