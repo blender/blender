@@ -87,8 +87,8 @@ VertRen *RE_findOrAddVert(int nr)
 	a= nr>>8;
 	
 	if (a>=rblovelen){  /* Need to allocate more columns...*/
-		printf("Allocating %i more vert groups.  %i total.\n", 
-			TABLEINITSIZE, rblovelen+TABLEINITSIZE );
+		// printf("Allocating %i more vert groups.  %i total.\n", 
+		//	TABLEINITSIZE, rblovelen+TABLEINITSIZE );
 		temp=R.blove;
 		R.blove=(VertRen**)MEM_callocN(sizeof(void*)*(rblovelen+TABLEINITSIZE) , "Blove");
 		memcpy(R.blove, temp, rblovelen*sizeof(void*));
@@ -120,8 +120,8 @@ HaloRen *RE_findOrAddHalo(int nr)
 	a= nr>>8;
 	
 	if (a>=rblohalen){  /* Need to allocate more columns...*/
-		printf("Allocating %i more halo groups.  %i total.\n", 
-			TABLEINITSIZE, rblohalen+TABLEINITSIZE );
+		//printf("Allocating %i more halo groups.  %i total.\n", 
+		//	TABLEINITSIZE, rblohalen+TABLEINITSIZE );
 		temp=R.bloha;
 		R.bloha=(HaloRen**)MEM_callocN(sizeof(void*)*(rblohalen+TABLEINITSIZE) , "Blove");
 		memcpy(R.bloha, temp, rblohalen*sizeof(void*));
@@ -154,8 +154,8 @@ VlakRen *RE_findOrAddVlak(int nr)
 	a= nr>>8;
 	
 	if (a>=rblovllen){  /* Need to allocate more columns...*/
-		printf("Allocating %i more face groups.  %i total.\n", 
-			TABLEINITSIZE, rblovllen+TABLEINITSIZE );
+		// printf("Allocating %i more face groups.  %i total.\n", 
+		//	TABLEINITSIZE, rblovllen+TABLEINITSIZE );
 		temp=R.blovl;
 		R.blovl=(VlakRen**)MEM_callocN(sizeof(void*)*(rblovllen+TABLEINITSIZE) , "Blove");
 		memcpy(R.blovl, temp, rblovllen*sizeof(void*));

@@ -1409,26 +1409,31 @@ void clever_numbuts(void)
 {
 	
 	if(curarea->spacetype==SPACE_VIEW3D) {
+		// panel now
 	}
 	else if(curarea->spacetype==SPACE_NLA){
-		//clever_numbuts_nla();
+		// panel now
 	}
 	else if(curarea->spacetype==SPACE_IPO) {
+		// panel now
 	}
 	else if(curarea->spacetype==SPACE_SEQ) {
 		clever_numbuts_seq();
 	}
 	else if(curarea->spacetype==SPACE_IMAGE) {
+		// panel now
 	}
 	else if(curarea->spacetype==SPACE_IMASEL) {
 		clever_numbuts_imasel();
 	}
 	else if(curarea->spacetype==SPACE_BUTS){
+		clever_numbuts_buts();
 	}
 	else if(curarea->spacetype==SPACE_OOPS) {
 		clever_numbuts_oops();
 	}
 	else if(curarea->spacetype==SPACE_ACTION){
+		// in its own queue
 	}
 	else if(curarea->spacetype==SPACE_FILE) {
 		clever_numbuts_filesel();

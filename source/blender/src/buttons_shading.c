@@ -1729,9 +1729,10 @@ static void world_panel_amb_occ(World *wrld)
 		uiDefButS(block, ROW, B_REDR, "Plain", 10, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOPLAIN, 0, 0, "Plain diffuse energy (white)");
 		uiDefButS(block, ROW, B_REDR, "Sky Color", 110, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYCOL, 0, 0, "Use horizon and zenith color for diffuse energy");
 		uiDefButS(block, ROW, B_REDR, "Sky Texture", 210, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
-		uiBlockEndAlign(block);
 		
-		uiDefButF(block, NUMSLI, 0, "Energy:", 10, 0, 300, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, 0, "Energy:", 10, 0, 150, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
+		uiDefButF(block, NUMSLI, 0, "Bias:", 160, 0, 150, 19, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
 	}
 
 }
@@ -2892,7 +2893,6 @@ void texture_panels()
 	}
 }
 
-#if 0
 /* old popup.. too hackish, should be fixed once (ton) */ 
 void clever_numbuts_buts()
 {
@@ -2906,22 +2906,10 @@ void clever_numbuts_buts()
 	static char hexze[8];
 	int		rgb[3];
 	
-	switch (G.buts->mainb){
-	case BUTS_FPAINT:
-
-		sprintf(hexrgb, "%02X%02X%02X", (int)(Gvp.r*255), (int)(Gvp.g*255), (int)(Gvp.b*255));
-
-		add_numbut(0, TEX, "RGB:", 0, 6, hexrgb, "HTML Hex value for the RGB color");
-		do_clever_numbuts("Vertex Paint RGB Hex Value", 1, REDRAW); 
-		
-		/* Assign the new hex value */
-		sscanf(hexrgb, "%02X%02X%02X", &rgb[0], &rgb[1], &rgb[2]);
-		Gvp.r= (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
-		Gvp.g = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
-		Gvp.b = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-
-		break;
-	case BUTS_LAMP:
+	if(G.buts->mainb!= CONTEXT_SHADING) return;
+	
+	switch (G.buts->tab[CONTEXT_SHADING]) {
+	case TAB_SHADING_LAMP:
 		la= G.buts->lockpoin;
 		if (la){
 			sprintf(hexrgb, "%02X%02X%02X", (int)(la->r*255), (int)(la->g*255), (int)(la->b*255));
@@ -2934,7 +2922,7 @@ void clever_numbuts_buts()
 			BIF_preview_changed(G.buts);
 		}
 		break;
-	case BUTS_WORLD:
+	case TAB_SHADING_WORLD:
 		wo= G.buts->lockpoin;
 		if (wo){
 			sprintf(hexho, "%02X%02X%02X", (int)(wo->horr*255), (int)(wo->horg*255), (int)(wo->horb*255));
@@ -2955,7 +2943,7 @@ void clever_numbuts_buts()
 
 		}
 		break;
-	case BUTS_MAT:
+	case TAB_SHADING_MAT:
 
 		ma= G.buts->lockpoin;
 
@@ -2990,7 +2978,7 @@ void clever_numbuts_buts()
 	}
 }
 
-#endif
+
 
 void radio_panels()
 {

@@ -4174,7 +4174,10 @@ static void do_versions(Main *main)
 		}
 		
 		while(wrld) {
-			if(wrld->aodist==0.0) wrld->aodist= 10.0;
+			if(wrld->aodist==0.0) {
+				wrld->aodist= 10.0;
+				wrld->aobias= 0.05;
+			}
 			if(wrld->aosamp==0.0) wrld->aosamp= 5;
 			if(wrld->aoenergy==0.0) wrld->aoenergy= 1.0;
 			wrld= wrld->id.next;

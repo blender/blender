@@ -96,7 +96,8 @@ World *add_world(char *name)
 	wrld->aodist= 10.0;
 	wrld->aosamp= 5;
 	wrld->aoenergy= 1.0;
-
+	wrld->aobias= 0.05;
+	
 	return wrld;
 }
 

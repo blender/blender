@@ -95,7 +95,7 @@ typedef struct World {
 	short dofsta, dofend, dofmin, dofmax;
 	
 	/* ambient occlusion */
-	float aodist, aodistfac, aoenergy, pad;
+	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
 	
 	int physicsEngine;

@@ -2071,7 +2071,7 @@ static float *sphere_sampler(int type, int resol, float *nrm)
 void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 {
 	Isect isec;
-	float *vec, *nrm, div, sh=0;
+	float *vec, *nrm, div, bias, sh=0;
 	float maxdist = wrld->aodist;
 	int tot, actual;
 
@@ -2092,7 +2092,16 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 		R.wrld.zenb= G.scene->world->zenb;
 	}
 	
-	nrm= shi->vlr->n;
+	// bias prevents smoothed faces to appear flat
+	if(shi->vlr->flag & R_SMOOTH) {
+		bias= G.scene->world->aobias;
+		nrm= shi->vn;
+	}
+	else {
+		bias= 0.0;
+		nrm= shi->vlr->n;
+	}
+	
 	vec= sphere_sampler(wrld->aomode, wrld->aosamp, nrm);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
@@ -2101,7 +2110,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	
 	while(tot--) {
 		
-		if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) > 0.0) {
+		if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) > bias) {
 			
 			actual++;
 			
