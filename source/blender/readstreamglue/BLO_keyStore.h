@@ -40,7 +40,7 @@ extern "C" {
 
 typedef unsigned char byte;
 
-struct UserStructType;
+struct UserStruct;
 
 	void
 keyStoreConstructor(
