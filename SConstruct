@@ -216,30 +216,29 @@ elif sys.platform == 'cygwin':
     platform_libpath = ['/usr/lib/w32api', '/lib/w32api']
     platform_linkflags = ['-mwindows', '-mno-cygwin', '-mconsole']
     window_system = 'WIN32'
-    extra_includes = ['/usr/include']
+    extra_includes = []
     # z library information
     z_lib = ['z']
-    z_libpath = ['/usr/lib']
-    z_include = ['/usr/include']
+    z_libpath = ['#../lib/windows/zlib/lib']
+    z_include = ['#../lib/windows/zlib/include']
     # png library information
     png_lib = ['png']
-    png_libpath = ['/usr/lib']
-    png_include = ['/usr/include']
+    png_libpath = ['#../lib/windows/png/lib']
+    png_include = ['#../lib/windows/png/include']
     # jpeg library information
     jpeg_lib = ['jpeg']
-    jpeg_libpath = ['/usr/lib']
-    jpeg_include = ['/usr/include']
+    jpeg_libpath = ['#../lib/windows/jpeg/lib']
+    jpeg_include = ['#../lib/windows/jpeg/include']
     # OpenGL library information
-    opengl_lib = ['GL', 'GLU']
-    opengl_static = ['/usr/lib/libGL.a', '/usr/lib/libGLU.a']
-    opengl_libpath = ['/usr/lib', '/usr/X11R6/lib']
-    opengl_include = ['/usr/include']
+    opengl_lib = ['opengl32', 'glu32']
+    opengl_static = []
+    opengl_libpath = []
+    opengl_include = []
     # SDL specific stuff.
-    sdl_env.ParseConfig ('sdl-config --cflags --libs')
+    sdl_include = ['#../lib/windows/sdl/include']
+    sdl_libpath = ['#../lib/windows/sdl/lib']
+    sdl_lib = ['SDL']
     sdl_cflags = []
-    sdl_include = sdl_env.Dictionary()['CPPPATH']
-    sdl_libpath = sdl_env.Dictionary()['LIBPATH']
-    sdl_lib = sdl_env.Dictionary()['LIBS']
     #sdl_cflags = '-DWIN32'
     # SOLID library information
     solid_lib = []                                              # TODO
@@ -250,20 +249,20 @@ elif sys.platform == 'cygwin':
     qhull_include = ['#extern/qhull/include']
     # ODE library information
     ode_lib = ['ode']
-    ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
-    ode_include = ['#../lib/linux-glibc2.2.5-i386/ode/include']
+    ode_libpath = ['#../lib/windows/gcc/ode/lib']
+    ode_include = ['#../lib/windows/gcc/ode/include']
     # Python library information
-    python_lib = ['python%d.%d' % sys.version_info[0:2]]
-    python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
-    python_include = [sysconfig.get_python_inc ()]
-    python_linkflags = Split (sysconfig.get_config_var('LINKFORSHARED'))
+    python_include = ['#../lib/windows/python/include/python2.2']
+    python_libpath = ['#../lib/windows/python/lib']
+    python_lib = ['python22']
+    python_linkflags = []
     # International stuff
     ftgl_lib = ['ftgl']
-    ftgl_libpath = ['#../lib/windows/ftgl/lib']
-    ftgl_include = ['#../lib/windows/ftgl/include']
+    ftgl_libpath = ['#../lib/windows/gcc/ftgl/lib']
+    ftgl_include = ['#../lib/windows/gcc/ftgl/include']
     freetype_lib = ['freetype']
-    freetype_libpath = ['#../lib/windows/freetype/lib']
-    freetype_include = ['#../lib/windows/freetype/include']
+    freetype_libpath = ['#../lib/windows/gcc/freetype/lib']
+    freetype_include = ['#../lib/windows/gcc/freetype/include']
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
