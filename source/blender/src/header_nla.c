@@ -215,28 +215,6 @@ static uiBlock *nla_selectmenu(void *arg_unused)
 	return block;
 }
 
-static void do_nla_stripmenu(void *arg, int event)
-{	
-
-	switch(event)
-	{
-	case 0: /* Strip Properties */
-		break;
-	case 1: /* Add Action Strip */
-		break;
-	case 2: /* Duplicate */
-		duplicate_nlachannel_keys();
-		update_for_newframe_muted();
-		break;
-	case 3: /* Delete Strips */
-		delete_nlachannel_keys ();
-		update_for_newframe_muted();
-		break;
-	case 5: /* Convert Action to NLA Strip */
-		break;
-	}
-}
-
 static void do_nla_strip_transformmenu(void *arg, int event)
 {
 	switch(event) {
@@ -268,6 +246,34 @@ static uiBlock *nla_strip_transformmenu(void *arg_unused)
 	return block;
 }
 
+static void do_nla_stripmenu(void *arg, int event)
+{	
+	switch(event)
+	{
+	case 0: /* Strip Properties */
+		add_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
+		break;
+	case 1: /* Add Action Strip */
+		break;
+	case 2: /* Duplicate */
+		duplicate_nlachannel_keys();
+		update_for_newframe_muted();
+		break;
+	case 3: /* Delete Strips */
+		delete_nlachannel_keys ();
+		update_for_newframe_muted();
+		break;
+	case 5: /* Convert Action to NLA Strip */
+		break;
+	case 6: /* Move Up */
+		shift_nlastrips_up();
+		break;
+	case 7: /* Move Down */
+		shift_nlastrips_down();
+		break;
+	}
+}
+
 static uiBlock *nla_stripmenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -276,16 +282,21 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "nla_stripmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_nla_stripmenu, NULL);
 
-	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, nla_strip_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
 	
-	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Action Strip|Shift A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Up|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Down|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+		
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Action to NLA Strip|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 
 	if(curarea->headertype==HEADERTOP) {

@@ -102,7 +102,7 @@ extern int nla_filter (Base* base, int flags);	/* From drawnla.c */
 
 /* ******************** SPACE: NLA ********************** */
 
-static void shift_nlastrips_up(void) {
+void shift_nlastrips_up(void) {
 	
 	Base *base;
 	bActionStrip *strip, *prevstrip;
@@ -141,7 +141,7 @@ static void shift_nlastrips_up(void) {
 
 }
 
-static void shift_nlastrips_down(void) {
+void shift_nlastrips_down(void) {
 	
 	Base *base;
 	bActionStrip *strip, *nextstrip;
