@@ -886,9 +886,11 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 	if ((me->flag&ME_SUBSURF) && me->subdivr) {
 		if (me->subdiv==me->subdivr) {
 			*needsFree = 0;
-			if(G.obedit && me==G.obedit->data) {
-				return G.editMesh->derived;
-			} else {
+
+				// Don't reuse cache in editmode, we need to guarantee
+				// order of result and the incremental syncing messes
+				// with this (could be fixed). - zr
+			if(!(G.obedit && me==G.obedit->data)) {
 				return me->derived;
 			}
 		} 

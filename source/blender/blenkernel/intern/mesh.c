@@ -433,17 +433,23 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 	
 	me= ob->data;
 
-		/* if there's a key, set the first one */
-	if(me->key && me->texcomesh==0) {
-		cp_key(0, me->totvert, me->totvert, (char*) me->mvert->co, me->key, me->key->refkey, 0);
-	}
+	if (G.obedit && G.obedit->data==me) {
+		dm= subsurf_make_derived_from_editmesh(G.editMesh, subdivlvl, me->subsurftype, NULL);
+		dlm= dm->convertToDispListMesh(dm);
+		dm->release(dm);
+	} else {
+			/* if there's a key, set the first one */
+		if(me->key && me->texcomesh==0) {
+			cp_key(0, me->totvert, me->totvert, (char*) me->mvert->co, me->key, me->key->refkey, 0);
+		}
 
-	dm= subsurf_make_derived_from_mesh(me, subdivlvl);
-	dlm= dm->convertToDispListMesh(dm);
-	dm->release(dm);
-	
-		/* Restore correct key */
-	do_ob_key(ob);
+		dm= subsurf_make_derived_from_mesh(me, subdivlvl);
+		dlm= dm->convertToDispListMesh(dm);
+		dm->release(dm);
+		
+			/* Restore correct key */
+		do_ob_key(ob);
+	}
 
 	if (me->orco) MEM_freeN(me->orco);
 	me->orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
