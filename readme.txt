@@ -1,6 +1,6 @@
 Welcome to the fun world of open-source.
 
-To help you get started do the following before starting:
+To help you get started, do the following before starting:
 
 You will want to download the following external packages:
 
