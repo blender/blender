@@ -3339,11 +3339,12 @@ void mouse_mesh(void)
 			
 			glDrawBuffer(GL_FRONT);
 
+			undo_push_mesh("Vertex select");
+
 			if( (act->f & 1)==0) act->f+= 1;
 			else if(G.qual & LR_SHIFTKEY) act->f-= 1;
 
 			if((G.qual & LR_SHIFTKEY)==0) {
-				undo_push_mesh("Vertex select");
 				draw_vertices_special(0, act);
 			}
 			else draw_vertices_special(1, act);
