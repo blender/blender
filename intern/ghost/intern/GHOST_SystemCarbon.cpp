@@ -654,6 +654,13 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 		case inContent:
 			if (window != ::FrontWindow()) {
 				::SelectWindow(window);
+				/*
+				 * We add a mouse down event on the newly actived window
+				 */		
+				//GHOST_PRINT("GHOST_SystemCarbon::handleMouseDown(): adding mouse down event, " << ghostWindow << "\n");
+				EventMouseButton button;
+				::GetEventParameter(event, kEventParamMouseButton, typeMouseButton, NULL, sizeof(button), NULL, &button);
+				pushEvent(new GHOST_EventButton(getMilliSeconds(), GHOST_kEventButtonDown, ghostWindow, convertButton(button)));
 			} else {
 				handled = false;
 			}
