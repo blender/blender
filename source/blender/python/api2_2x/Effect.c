@@ -28,7 +28,6 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
 #include "Effect.h"
 #include "Build.h"
 #include "Particle.h"
