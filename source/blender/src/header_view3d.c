@@ -3670,7 +3670,7 @@ void do_view3d_buttons(short event)
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_AROUND:
-		handle_view3d_around();
+		handle_view3d_around(); // copies to other 3d windows
 		break;
 		
 	case B_SEL_VERT:

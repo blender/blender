@@ -1601,6 +1601,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else if(G.qual==0) {
 					G.vd->around= V3D_CENTRE;
 				}
+				handle_view3d_around();
+				
 				scrarea_queue_headredraw(curarea);
 				break;
 				
@@ -1610,6 +1612,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} 	else if(G.qual==0) {
 					G.vd->around= V3D_CURSOR;
 				}
+				handle_view3d_around();
+				
 				scrarea_queue_headredraw(curarea);
 				break;
 			
