@@ -261,7 +261,8 @@ bool ODEPhysicsController::SynchronizeMotionStates(float time)
       dQuaternion worldquat;
       float worldpos[3];
                 
-      m_MotionState->getWorldOrientation(worldquat[1],worldquat[2],worldquat[3],worldquat[0]);
+      m_MotionState->getWorldOrientation((float)worldquat[1],
+	 (float)worldquat[2],(float)worldquat[3],(float)worldquat[0]);
       m_MotionState->getWorldPosition(worldpos[0],worldpos[1],worldpos[2]);
         
       float scaling[3];
@@ -329,10 +330,10 @@ bool ODEPhysicsController::SynchronizeMotionStates(float time)
           return false;
         }
 
-      const float* worldPos = dBodyGetPosition(m_bodyId);
+      const float* worldPos = (float *)dBodyGetPosition(m_bodyId);
       m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 
-      const float* worldquat = dBodyGetQuaternion(m_bodyId);
+      const float* worldquat = (float *)dBodyGetQuaternion(m_bodyId);
       m_MotionState->setWorldOrientation(worldquat[1],worldquat[2],worldquat[3],worldquat[0]);
     }
   else {
@@ -345,7 +346,8 @@ bool ODEPhysicsController::SynchronizeMotionStates(float time)
       dQuaternion worldquat;
       float worldpos[3];
 
-      m_MotionState->getWorldOrientation(worldquat[1],worldquat[2],worldquat[3],worldquat[0]);
+      m_MotionState->getWorldOrientation((float)worldquat[1],
+	(float)worldquat[2],(float)worldquat[3],(float)worldquat[0]);
       m_MotionState->getWorldPosition(worldpos[0],worldpos[1],worldpos[2]);
         
       float scaling[3];
@@ -497,9 +499,9 @@ void ODEPhysicsController::applyImpulse(float attachX,float attachY,float attach
           newvel[2]=linvel[2]+impulseZ*massinv;
           dBodySetLinearVel(m_bodyId,newvel[0],newvel[1],newvel[2]);
 
-          const float* worldPos = dBodyGetPosition(m_bodyId);
+          const float* worldPos = (float *)dBodyGetPosition(m_bodyId);
 
-          const float* angvelc = dBodyGetAngularVel  (m_bodyId);
+          const float* angvelc = (float *)dBodyGetAngularVel(m_bodyId);
           float angvel[3];
           angvel[0]=angvelc[0];
           angvel[1]=angvelc[1];
@@ -542,7 +544,7 @@ void ODEPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& li
 {
   if (m_OdeDyna)
     {   
-      const float* vel = dBodyGetLinearVel(m_bodyId);
+      const float* vel = (float *)dBodyGetLinearVel(m_bodyId);
       linvX = vel[0];
       linvY = vel[1];
       linvZ = vel[2];

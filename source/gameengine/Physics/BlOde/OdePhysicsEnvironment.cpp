@@ -93,10 +93,10 @@ int			ODEPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				dJointID jointid = dJointCreateBall (m_OdeWorld,m_JointGroup);
 				struct	dxBody*	bodyid1 = dynactrl->GetOdeBodyId();
 				struct	dxBody*	bodyid2=0;
-				const float* pos = dBodyGetPosition(bodyid1);
-				const float* R = dBodyGetRotation(bodyid1);
-				float offset[3] = {pivotX,pivotY,pivotZ};
-				float newoffset[3];
+				const dReal* pos = dBodyGetPosition(bodyid1);
+				const dReal* R = dBodyGetRotation(bodyid1);
+				dReal offset[3] = {pivotX,pivotY,pivotZ};
+				dReal newoffset[3];
 				dMULTIPLY0_331 (newoffset,R,offset);
 				newoffset[0] += pos[0];
 				newoffset[1] += pos[1];
@@ -121,13 +121,13 @@ int			ODEPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				dJointID jointid = dJointCreateHinge (m_OdeWorld,m_JointGroup);
 				struct	dxBody*	bodyid1 = dynactrl->GetOdeBodyId();
 				struct	dxBody*	bodyid2=0;
-				const float* pos = dBodyGetPosition(bodyid1);
-				const float* R = dBodyGetRotation(bodyid1);
-				float offset[3] = {pivotX,pivotY,pivotZ};
-				float axisset[3] = {axisX,axisY,axisZ};
+				const dReal* pos = dBodyGetPosition(bodyid1);
+				const dReal* R = dBodyGetRotation(bodyid1);
+				dReal offset[3] = {pivotX,pivotY,pivotZ};
+				dReal axisset[3] = {axisX,axisY,axisZ};
 				
-				float newoffset[3];
-				float newaxis[3];
+				dReal newoffset[3];
+				dReal newaxis[3];
 				dMULTIPLY0_331 (newaxis,R,axisset);
 				
 				dMULTIPLY0_331 (newoffset,R,offset);
