@@ -61,6 +61,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_toets.h"
+#include "BIF_interface.h"
 
 #include "BSE_filesel.h"
 
@@ -97,7 +98,10 @@ void write_screendump(char *name)
 				ibuf->ftype= JPG|G.scene->r.quality;
 			}
 			else ibuf->ftype= TGA;	
-
+			
+			IMB_gamwarp(ibuf, 1.0+G.rt/100.0);
+			if(G.scene->r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
+			
 			IMB_saveiff(ibuf, name, IB_rect);
 			IMB_freeImBuf(ibuf);
 			
@@ -108,20 +112,28 @@ void write_screendump(char *name)
 	}
 }
 
-
+/* get dump from frontbuffer */
 void BIF_screendump(void)
 {
-	/* get dump from frontbuffer */
+	extern uiBut *UIbuttip; // interface.c
+	static int wasmenu= 0;
 	int x=0, y=0;
-	char imstr[32];
+	char imstr[64];
+
+	if(wasmenu && UIbuttip==NULL) {
+		save_image_filesel_str(imstr);
+		activate_fileselect(FILE_SPECIAL, imstr, G.ima, write_screendump);
+		wasmenu= 0;
+		return;
+	}
 	
 	dumpsx= 0;
 	dumpsy= 0;
 	
 	if(dumprect) MEM_freeN(dumprect);
-	dumprect= 0;
+	dumprect= NULL;
 	
-	if (G.qual & LR_SHIFTKEY) {
+	if(UIbuttip || (G.qual & LR_SHIFTKEY)) {		/* full screen */
 		x= 0;
 		y= 0;
 		
@@ -130,9 +142,7 @@ void BIF_screendump(void)
 		
 	} 
 	else {
-		if(mywin_inmenu()) {
-			mywin_getmenu_rect(&x, &y, &dumpsx, &dumpsy);
-		} else {
+		{	/* a window */
 			int win= mywinget();
 
 			bwin_getsuborigin(win, &x, &y);
@@ -141,14 +151,17 @@ void BIF_screendump(void)
 	}
 	
 	if (dumpsx && dumpsy) {
-		save_image_filesel_str(imstr);
 		
 		dumprect= MEM_mallocN(sizeof(int)*dumpsx*dumpsy, "dumprect");
 		glReadBuffer(GL_FRONT);
 		glReadPixels(x, y, dumpsx, dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, dumprect);
-	
-		/* open filesel */
 		
-		activate_fileselect(FILE_SPECIAL, imstr, G.ima, write_screendump);
-	}	
+		if(UIbuttip==NULL) {
+			wasmenu= 0;
+			save_image_filesel_str(imstr);
+			activate_fileselect(FILE_SPECIAL, imstr, G.ima, write_screendump);
+		}
+		else wasmenu= 1;
+	}
+
 }
