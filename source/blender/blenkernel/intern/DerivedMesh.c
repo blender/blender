@@ -1081,12 +1081,15 @@ DerivedMesh *mesh_get_derived(Object *ob)
 
 		build_mesh_data(ob);
 		dl= find_displist(&me->disp, DL_MESH);
-
-		if(G.obedit && me==G.obedit->data) {
-			return getSSDerivedMesh(G.editMesh, dl->mesh);
-		} else {
-			return getSSDerivedMesh(NULL, dl->mesh);
+		
+		if(dl) {
+			if(G.obedit && me==G.obedit->data) {
+				return getSSDerivedMesh(G.editMesh, dl->mesh);
+			} else {
+				return getSSDerivedMesh(NULL, dl->mesh);
+			}
 		}
+		else return NULL;
 	} else {
 		return NULL;
 	}
