@@ -414,17 +414,14 @@ int main(int argc, char **argv)
 			}
 		}
 
-printf("before BPY_start_python\n");
 		BPY_start_python();
 		
 		/**
 		 * NOTE: sound_init_audio() *must be* after start_python,
 		 * at least on FreeBSD.
+		 * added note (ton): i removed it altogether
 		 */
 
-//printf("before init_audio\n");
-//		sound_init_audio();
-printf("before BIF_init\n");
 		BIF_init();
 
 		/**
