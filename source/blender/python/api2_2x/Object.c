@@ -553,6 +553,7 @@ static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args )
 		}
 		blen_object->object = G.scene->basact->object;
 		PyList_Append( list, ( PyObject * ) blen_object );
+		Py_DECREF( blen_object );
 	}
 
 	base_iter = G.scene->base.first;
@@ -570,6 +571,7 @@ static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args )
 			}
 			blen_object->object = base_iter->object;
 			PyList_Append( list, ( PyObject * ) blen_object );
+			Py_DECREF( blen_object );
 		}
 		base_iter = base_iter->next;
 	}

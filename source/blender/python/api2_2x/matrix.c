@@ -89,6 +89,10 @@ PyObject *Matrix_toQuat( MatrixObject * self )
 						      "inappropriate matrix size\n" );
 
 		mat = PyMem_Malloc( 3 * 3 * sizeof( float ) );
+		if( mat == NULL ) {
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"problem allocating matrix\n\n" ) );
+		}
 		mat[0] = self->matrix[0][0];
 		mat[1] = self->matrix[0][1];
 		mat[2] = self->matrix[0][2];
@@ -100,6 +104,11 @@ PyObject *Matrix_toQuat( MatrixObject * self )
 		mat[8] = self->matrix[2][2];
 	}
 	quat = PyMem_Malloc( 4 * sizeof( float ) );
+	if( quat == NULL ) {
+		PyMem_Free( mat );
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"problem allocating quat\n\n" ) );
+	}
 	Mat3ToQuat( ( float ( * )[3] ) mat, quat );
 
 	return ( PyObject * ) newQuaternionObject( quat );
@@ -120,6 +129,10 @@ PyObject *Matrix_toEuler( MatrixObject * self )
 						      "inappropriate matrix size\n" );
 
 		mat = PyMem_Malloc( 3 * 3 * sizeof( float ) );
+		if( mat == NULL ) {
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"problem allocating mat\n\n" ) );
+		}
 		mat[0] = self->matrix[0][0];
 		mat[1] = self->matrix[0][1];
 		mat[2] = self->matrix[0][2];
@@ -131,6 +144,11 @@ PyObject *Matrix_toEuler( MatrixObject * self )
 		mat[8] = self->matrix[2][2];
 	}
 	eul = PyMem_Malloc( 3 * sizeof( float ) );
+	if( eul == NULL ) {
+		PyMem_Free( mat );
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"problem allocating eul\n\n" ) );
+	}
 	Mat3ToEul( ( float ( * )[3] ) mat, eul );
 
 	for( x = 0; x < 3; x++ ) {
@@ -143,13 +161,16 @@ PyObject *Matrix_toEuler( MatrixObject * self )
 PyObject *Matrix_Resize4x4( MatrixObject * self )
 {
 	float *mat;
-	float *contigPtr;
 	int x, row, col;
 
 	if( self->colSize == 4 && self->rowSize == 4 )
 		return EXPP_incr_ret( Py_None );
 
 	mat = PyMem_Malloc( 4 * 4 * sizeof( float ) );
+	if( mat == NULL ) {
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"problem allocating mat\n\n" ) );
+	}
 	for( x = 0; x < 16; x++ ) {
 		mat[x] = 0.0f;
 	}
@@ -209,19 +230,21 @@ PyObject *Matrix_Resize4x4( MatrixObject * self )
 		mat[15] = 1.0f;
 	}
 
-	PyMem_Free( *self->matrix );
-	contigPtr = PyMem_Malloc( 4 * 4 * sizeof( float ) );
-	if( contigPtr == NULL ) {
+	PyMem_Free( self->matrix );
+	PyMem_Free( self->contigPtr );
+	self->contigPtr = PyMem_Malloc( 4 * 4 * sizeof( float ) );
+	if( self->contigPtr == NULL ) {
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"problem allocating array space\n\n" ) );
 	}
 	self->matrix = PyMem_Malloc( 4 * sizeof( float * ) );
 	if( self->matrix == NULL ) {
+		PyMem_Free( self->contigPtr );
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"problem allocating pointer space\n\n" ) );
 	}
 	for( x = 0; x < 4; x++ ) {
-		self->matrix[x] = contigPtr + ( x * 4 );
+		self->matrix[x] = self->contigPtr + ( x * 4 );
 	}
 
 	for( row = 0; row < 4; row++ ) {
@@ -250,6 +273,10 @@ PyObject *Matrix_TranslationPart( MatrixObject * self )
 						      "inappropriate matrix size\n" );
 
 		vec = PyMem_Malloc( 3 * sizeof( float ) );
+		if( vec == NULL ) {
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"problem allocating vec\n\n" ) );
+		}
 		vec[0] = self->matrix[3][0];
 		vec[1] = self->matrix[3][1];
 		vec[2] = self->matrix[3][2];
@@ -271,6 +298,10 @@ PyObject *Matrix_RotationPart( MatrixObject * self )
 						      "inappropriate matrix size\n" );
 
 		mat = PyMem_Malloc( 3 * 3 * sizeof( float ) );
+		if( mat == NULL ) {
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"problem allocating mat\n\n" ) );
+		}
 		mat[0] = self->matrix[0][0];
 		mat[1] = self->matrix[0][1];
 		mat[2] = self->matrix[0][2];
@@ -319,6 +350,11 @@ PyObject *Matrix_Invert( MatrixObject * self )
 		if( self->rowSize == 2 ) {
 			mat = PyMem_Malloc( self->rowSize * self->colSize *
 					    sizeof( float ) );
+			if( mat == NULL ) {
+				return ( EXPP_ReturnPyObjError
+					 ( PyExc_MemoryError,
+					   "problem allocating mat\n\n" ) );
+			}
 			mat[0] = self->matrix[1][1];
 			mat[1] = -self->matrix[1][0];
 			mat[2] = -self->matrix[0][1];
@@ -326,10 +362,20 @@ PyObject *Matrix_Invert( MatrixObject * self )
 		} else if( self->rowSize == 3 ) {
 			mat = PyMem_Malloc( self->rowSize * self->colSize *
 					    sizeof( float ) );
+			if( mat == NULL ) {
+				return ( EXPP_ReturnPyObjError
+					 ( PyExc_MemoryError,
+					   "problem allocating mat\n\n" ) );
+			}
 			Mat3Adj( ( float ( * )[3] ) mat, *self->matrix );
 		} else if( self->rowSize == 4 ) {
 			mat = PyMem_Malloc( self->rowSize * self->colSize *
 					    sizeof( float ) );
+			if( mat == NULL ) {
+				return ( EXPP_ReturnPyObjError
+					 ( PyExc_MemoryError,
+					   "problem allocating mat\n\n" ) );
+			}
 			Mat4Adj( ( float ( * )[4] ) mat, *self->matrix );
 		}
 		//divide by determinate
@@ -351,6 +397,12 @@ PyObject *Matrix_Invert( MatrixObject * self )
 			t = self->matrix[1][0];
 			self->matrix[1][0] = self->matrix[0][1];
 			self->matrix[0][1] = t;
+			
+/* 
+   Note: is the code below correct?  
+   transposing mat and not copying into self->matrix? 
+   s. swaney 11-oct-2004
+*/
 		} else if( self->rowSize == 3 ) {
 			Mat3Transp( ( float ( * )[3] ) mat );
 		} else if( self->rowSize == 4 ) {
@@ -359,7 +411,7 @@ PyObject *Matrix_Invert( MatrixObject * self )
 	} else {
 		printf( "matrix does not have an inverse - none attempted\n" );
 	}
-
+	PyMem_Free( mat );
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -449,8 +501,10 @@ PyObject *Matrix_Identity( MatrixObject * self )
 
 static void Matrix_dealloc( MatrixObject * self )
 {
+	PyMem_Free( self->contigPtr );
 	PyMem_Free( self->matrix );
-	PyMem_DEL( self );
+
+	PyObject_DEL( self );
 }
 
 static PyObject *Matrix_getattr( MatrixObject * self, char *name )
@@ -510,6 +564,10 @@ static PyObject *Matrix_item( MatrixObject * self, int i )
 					      "matrix row index out of range\n" );
 
 	vec = PyMem_Malloc( self->colSize * sizeof( float ) );
+	if( vec == NULL ) {
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"problem allocating vec\n\n" ) );
+	}
 	for( x = 0; x < self->colSize; x++ ) {
 		vec[x] = self->matrix[i][x];
 	}
@@ -631,7 +689,10 @@ PyObject *Matrix_add( PyObject * m1, PyObject * m2 )
 	matSize = rowSize * colSize;
 
 	mat = PyMem_Malloc( matSize * sizeof( float ) );
-
+	if( mat == NULL ) {
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"problem allocating mat\n\n" ) );
+	}
 	for( x = 0; x < rowSize; x++ ) {
 		for( y = 0; y < colSize; y++ ) {
 			mat[( ( x * rowSize ) + y )] =
@@ -670,7 +731,10 @@ PyObject *Matrix_sub( PyObject * m1, PyObject * m2 )
 	matSize = rowSize * colSize;
 
 	mat = PyMem_Malloc( matSize * sizeof( float ) );
-
+	if( mat == NULL ) {
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"problem allocating mat\n\n" ) );
+	}
 	for( x = 0; x < rowSize; x++ ) {
 		for( y = 0; y < colSize; y++ ) {
 			mat[( ( x * rowSize ) + y )] =
@@ -714,7 +778,10 @@ PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 						      "Matrix dimension error during scalar multiplication\n" );
 
 		mat = PyMem_Malloc( matSizeV * sizeof( float ) );
-
+		if( mat == NULL ) {
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"problem allocating mat\n\n" ) );
+		}
 		for( x = 0; x < rowSizeV; x++ ) {
 			for( y = 0; y < colSizeV; y++ ) {
 				mat[( ( x * rowSizeV ) + y )] =
@@ -731,7 +798,10 @@ PyObject *Matrix_mul( PyObject * m1, PyObject * m2 )
 
 		mat = PyMem_Malloc( ( rowSizeV * colSizeW ) *
 				    sizeof( float ) );
-
+		if( mat == NULL ) {
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"problem allocating mat\n\n" ) );
+		}
 		for( x = 0; x < rowSizeV; x++ ) {
 			for( y = 0; y < colSizeW; y++ ) {
 				for( z = 0; z < colSizeV; z++ ) {
@@ -773,9 +843,20 @@ int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
 				if( PyInt_Check( *m2 ) ) {	//it's a int
 					tempI = PyMem_Malloc( 1 *
 							      sizeof( long ) );
+					if( tempI == NULL ) {
+						return ( EXPP_ReturnPyObjError
+							 ( PyExc_MemoryError,
+							   "problem allocating tempI\n\n" ) );
+					}
 					*tempI = PyInt_AsLong( *m2 );
 					mat = PyMem_Malloc( matSize *
 							    sizeof( float ) );
+					if( mat == NULL ) {
+						PyMem_Free( tempI );
+						return ( EXPP_ReturnPyObjError
+							 ( PyExc_MemoryError,
+							   "problem allocating mat\n\n" ) );
+					}
 					for( x = 0; x < matSize; x++ ) {
 						mat[x] = ( float ) *tempI;
 					}
@@ -790,9 +871,20 @@ int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
 					tempF = PyMem_Malloc( 1 *
 							      sizeof
 							      ( double ) );
+					if( tempF == NULL ) {
+						return ( EXPP_ReturnPyObjError
+							 ( PyExc_MemoryError,
+							   "problem allocating tempF\n\n" ) );
+					}
 					*tempF = PyFloat_AsDouble( *m2 );
 					mat = PyMem_Malloc( matSize *
 							    sizeof( float ) );
+					if( mat == NULL ) {
+						PyMem_Free( tempF );
+						return ( EXPP_ReturnPyObjError
+							 ( PyExc_MemoryError,
+							   "problem allocating mat\n\n" ) );
+					}
 					for( x = 0; x < matSize; x++ ) {
 						mat[x] = ( float ) *tempF;
 					}
@@ -858,7 +950,7 @@ static PyNumberMethods Matrix_NumMethods = {
 };
 
 PyTypeObject matrix_Type = {
-	PyObject_HEAD_INIT( NULL ) 
+	PyObject_HEAD_INIT( NULL )    /*   required python macro   */
 	0,	/*ob_size */
 	"Matrix",		/*tp_name */
 	sizeof( MatrixObject ),	/*tp_basicsize */
@@ -879,7 +971,6 @@ PyTypeObject matrix_Type = {
 PyObject *newMatrixObject( float *mat, int rowSize, int colSize )
 {
 	MatrixObject *self;
-	float *contigPtr;
 	int row, col, x;
 
 	if( rowSize < 2 || rowSize > 4 || colSize < 2 || colSize > 4 )
@@ -889,20 +980,21 @@ PyObject *newMatrixObject( float *mat, int rowSize, int colSize )
 	self = PyObject_NEW( MatrixObject, &matrix_Type );
 
 	//generate contigous memory space
-	contigPtr = PyMem_Malloc( rowSize * colSize * sizeof( float ) );
-	if( contigPtr == NULL ) {
+	self->contigPtr = PyMem_Malloc( rowSize * colSize * sizeof( float ) );
+	if( self->contigPtr == NULL ) {
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"problem allocating array space\n\n" ) );
 	}
 	//create pointer array
 	self->matrix = PyMem_Malloc( rowSize * sizeof( float * ) );
 	if( self->matrix == NULL ) {
+		PyMem_Free( self->contigPtr );
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"problem allocating pointer space\n\n" ) );
 	}
 	//pointer array points to contigous memory
 	for( x = 0; x < rowSize; x++ ) {
-		self->matrix[x] = contigPtr + ( x * colSize );
+		self->matrix[x] = self->contigPtr + ( x * colSize );
 	}
 
 	if( mat ) {		//if a float array passed

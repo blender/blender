@@ -49,7 +49,9 @@
 typedef float **ptRow;
 
 typedef struct _Matrix {
-	PyObject_VAR_HEAD ptRow matrix;
+	PyObject_VAR_HEAD  /*     standard python macro  */
+	ptRow matrix;
+	float *contigPtr;
 	int rowSize;
 	int colSize;
 	int flag;
