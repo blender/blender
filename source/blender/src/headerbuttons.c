@@ -494,8 +494,6 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 
 void do_update_for_newframe(int mute)
 {
-	Base *base;
-
 	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	allqueue(REDRAWVIEW3D, 0);

@@ -1407,14 +1407,11 @@ void add_numbut(int nr, int type, char *str, float min, float max, void *poin, c
 
 void clever_numbuts(void)
 {
-	Object *ob;
-	float lim;
-	char str[128];
 	
 	if(curarea->spacetype==SPACE_VIEW3D) {
 	}
 	else if(curarea->spacetype==SPACE_NLA){
-		clever_numbuts_nla();
+		//clever_numbuts_nla();
 	}
 	else if(curarea->spacetype==SPACE_IPO) {
 	}

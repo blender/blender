@@ -125,40 +125,11 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case UI_BUT_EVENT:
 			do_butspace(val); // abuse!
 			break;
+
 		case HOMEKEY:
 			do_nla_buttons(B_NLAHOME);
 			break;
-		case DKEY:
-			if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
-				duplicate_nlachannel_keys();
-				update_for_newframe_muted();
-			}
-			break;
-		case DELKEY:
-		case XKEY:
-			if (mval[0]>=NLAWIDTH)
-				delete_nlachannel_keys ();
-			else
-				delete_nlachannels();
-			update_for_newframe_muted();
-			break;
-		case GKEY:
-			if (mval[0]>=NLAWIDTH)
-				transform_nlachannel_keys ('g');
-			update_for_newframe_muted();
-			break;
-		case SKEY:
-			if (mval[0]>=NLAWIDTH)
-				transform_nlachannel_keys ('s');
-			update_for_newframe_muted();
-			break;
-		case BKEY:
-			borderselect_nla();
-			break;
-		case CKEY:
-			convert_nla(mval);
-			break;
-			
+
 		case AKEY:
 			if (G.qual & LR_SHIFTKEY){
 				add_nlablock(mval);
@@ -176,6 +147,50 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				allqueue (REDRAWIPO, 0);
 			}
 			break;
+
+		case BKEY:
+			borderselect_nla();
+			break;
+
+		case CKEY:
+			convert_nla(mval);
+			break;
+			
+		case DKEY:
+			if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
+				duplicate_nlachannel_keys();
+				update_for_newframe_muted();
+			}
+			break;
+
+		case GKEY:
+			if (mval[0]>=NLAWIDTH)
+				transform_nlachannel_keys ('g');
+			update_for_newframe_muted();
+			break;
+
+		case NKEY:
+			if(G.qual==0) {
+				add_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+				scrarea_queue_winredraw(curarea);
+			}
+			break;
+
+		case SKEY:
+			if (mval[0]>=NLAWIDTH)
+				transform_nlachannel_keys ('s');
+			update_for_newframe_muted();
+			break;
+
+		case DELKEY:
+		case XKEY:
+			if (mval[0]>=NLAWIDTH)
+				delete_nlachannel_keys ();
+			else
+				delete_nlachannels();
+			update_for_newframe_muted();
+			break;
+
 		case LEFTMOUSE:
 			if (mval[0]>NLAWIDTH){
 				do {
@@ -575,6 +590,7 @@ void init_nlaspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, snla);
 	
 	snla->spacetype= SPACE_NLA;
+	snla->blockscale= 0.7;
 	
 	snla->v2d.tot.xmin= 1.0;
 	snla->v2d.tot.ymin=	0.0;

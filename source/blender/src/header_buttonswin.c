@@ -451,7 +451,6 @@ void buts_buttons(void)
 	ID *id, *idfrom;
 	short xco, xmax, t_base= 0;
 	char naam[20];
-	int colorid;
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);

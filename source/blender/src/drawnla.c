@@ -43,15 +43,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "BSE_drawnla.h"
-#include "BSE_drawipo.h"
-#include "BSE_editnla_types.h"
-
-#include "BIF_gl.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_mywindow.h"
-#include "BIF_glutil.h"
 
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
@@ -68,10 +59,23 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_global.h"
 
+#include "BSE_drawnla.h"
+#include "BSE_drawipo.h"
+#include "BSE_editnla_types.h"
+
+#include "BIF_gl.h"
+#include "BIF_resources.h"
+#include "BIF_screen.h"
+#include "BIF_mywindow.h"
+#include "BIF_space.h"
+#include "BIF_interface.h"
+#include "BIF_glutil.h"
+
 #include "BDR_drawaction.h"
 #include "BDR_editcurve.h"
 
 #include "blendef.h"
+#include "mydevice.h"
 
 /* Local function prototypes */
 static void draw_nlastrips(SpaceNla *snla);
@@ -407,6 +411,54 @@ static void draw_nlastrips(SpaceNla *snla)
 	
 }
 
+/* ******* panel *********** */
+
+void do_nlabuts(unsigned short event)
+{
+	switch(event) {
+	case REDRAWVIEW3D:
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_REDR:
+		allqueue(REDRAWNLA, 0);
+		break;
+	}
+}
+
+
+static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "nla_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(NLA_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Transform Properties", "NLA", 10, 230, 318, 204)==0) return;
+
+	uiDefBut(block, LABEL, 0, "test text",		10,180,300,19, 0, 0, 0, 0, 0, "");
+
+}
+
+static void nla_blockhandlers(ScrArea *sa)
+{
+	SpaceNla *snla= sa->spacedata.first;
+	short a;
+	
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(snla->blockhandler[a]) {
+
+		case NLA_HANDLER_PROPERTIES:
+			nla_panel_properties(snla->blockhandler[a+1]);
+			break;
+		
+		}
+		/* clear action value for event */
+		snla->blockhandler[a+1]= 0;
+	}
+	uiDrawBlocksPanels(sa, 0);
+}
+
+
 void drawnlaspace(ScrArea *sa, void *spacedata)
 {
 	float col[3];
@@ -430,6 +482,8 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
 	
 	/*	Draw backdrop */
 	calc_ipogrid();	
@@ -458,6 +512,10 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 	draw_area_emboss(sa);
 	
+	/* it is important to end a view in a transform compatible with buttons */
+	bwin_scalematrix(sa->win, G.snla->blockscale, G.snla->blockscale, G.snla->blockscale);
+	nla_blockhandlers(sa);
+
 	curarea->win_swap= WIN_BACK_OK;
 }
 

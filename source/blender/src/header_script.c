@@ -80,9 +80,7 @@
 /* action executed after clicking in Scripts menu */
 static void do_scripts_submenus(void *int_arg, int event)
 {
-	SpaceScript *sc= curarea->spacedata.first;
-	Script *script= sc->script;
-	ScrArea *sa;
+	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
 	int menutype = (int)int_arg;
 
 	BPY_menu_do_python (menutype, event);
@@ -97,7 +95,7 @@ static uiBlock *script_scripts_submenus(void *int_menutype)
 	BPyMenu *pym;
 	int i = 0, menutype = (int)int_menutype;
 
-	if ((menutype < 0) || (menutype > PYMENU_TOTAL)) return;
+	if ((menutype < 0) || (menutype > PYMENU_TOTAL)) return NULL;
 
 	block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_scripts_submenus, int_menutype);
@@ -118,7 +116,6 @@ static uiBlock *script_scripts_submenus(void *int_menutype)
 static void do_script_scriptsmenu(void *arg, int event)
 {
 	ScrArea *sa;
-	char dir[FILE_MAXDIR];
 	
 	if(curarea->spacetype==SPACE_INFO) {
 		sa= closest_bigger_area();

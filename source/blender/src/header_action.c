@@ -72,6 +72,9 @@
 #include "BKE_action.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_constraint.h"
+#include "BKE_armature.h"
+
 #include "BSE_drawipo.h"
 #include "BSE_editaction.h"
 #include "BSE_headerbuttons.h"

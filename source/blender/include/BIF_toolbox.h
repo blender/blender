@@ -30,6 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifndef BIF_TOOLBOX_H
+#define BIF_TOOLBOX_H
+
+
 	/* TBOXX: width in pixels */
 #define TBOXXL  80
 #define TBOXXR  200
@@ -126,3 +130,4 @@ void replace_names_but (void);
 void BIF_screendump(void);
 void write_screendump(char *name);
 
+#endif

@@ -38,6 +38,7 @@
 #define WEIGHT_SUBTRACT 3
 
 struct Object;
+struct Mesh;
 struct MDeformVert;
 struct MDeformWeight;
 struct bDeformGroup;
@@ -58,6 +59,7 @@ void add_vert_to_defgroup (struct Object *ob, struct bDeformGroup *dg,
 						   int assignmode);
 void remove_vert_defgroup (struct Object *ob, struct bDeformGroup  *dg, 
 						   int vertnum);
+void create_dverts(Mesh *me);
 
 #endif
 

@@ -672,6 +672,7 @@ static uiBlock *info_runtime_optionsmenu(void *arg_unused)
 
 static void do_info_file_importmenu(void *arg, int event)
 {
+	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
 	ScrArea *sa;
 
 	if(curarea->spacetype==SPACE_INFO) {
@@ -710,6 +711,7 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 
 static void do_info_file_exportmenu(void *arg, int event)
 {
+	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
 	ScrArea *sa;
 
 	if(curarea->spacetype==SPACE_INFO) {

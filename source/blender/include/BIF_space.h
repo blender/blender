@@ -60,9 +60,11 @@ struct BWinEvent;
 /* image handler codes */
 #define IMAGE_HANDLER_PROPERTIES	30
 
-/* image handler codes */
-#define ACTION_HANDLER_PROPERTIES	30
+/* action handler codes */
+#define ACTION_HANDLER_PROPERTIES	40
 
+/* nla handler codes */
+#define NLA_HANDLER_PROPERTIES	50
 
 
 void	scrarea_do_windraw		(struct ScrArea *sa);

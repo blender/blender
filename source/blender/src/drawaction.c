@@ -565,7 +565,7 @@ static void action_blockhandlers(ScrArea *sa)
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		switch(sact->blockhandler[a]) {
 
-		case IMAGE_HANDLER_PROPERTIES:
+		case ACTION_HANDLER_PROPERTIES:
 			action_panel_properties(sact->blockhandler[a+1]);
 			break;
 		
