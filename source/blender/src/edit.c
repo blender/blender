@@ -1238,3 +1238,34 @@ void toggle_shading(void) {
 		else G.vd->drawtype= OB_SOLID;
 	}
 }
+
+void minmax_verts(float *min, float *max)
+{
+	extern TransVert *transvmain;
+	extern int tottrans;
+	TransVert *tv;
+	float centroid[3], vec[3], bmat[3][3];
+	int a;
+
+	tottrans=0;
+#ifdef __NLA
+	if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+#else
+	if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+#endif
+	if(tottrans==0) return;
+
+	Mat3CpyMat4(bmat, G.obedit->obmat);
+	
+	tv= transvmain;
+	for(a=0; a<tottrans; a++, tv++) {		
+		VECCOPY(vec, tv->loc);
+		Mat3MulVecfl(bmat, vec);
+		VecAddf(vec, vec, G.obedit->obmat[3]);
+		VecAddf(centroid, centroid, vec);
+		DO_MINMAX(vec, min, max);		
+	}
+	
+	MEM_freeN(transvmain);
+	transvmain= 0;
+}
