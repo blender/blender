@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jordi Rovira i Bonet
+ * Contributor(s): Jordi Rovira i Bonet, Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -37,6 +37,7 @@
 #include <BKE_armature.h>
 #include <BKE_library.h>
 #include <MEM_guardedalloc.h>
+#include <BLI_blenlib.h>
 
 #include "constant.h"
 #include "gen_utils.h"
@@ -88,6 +89,10 @@ static PyObject *Bone_getParent (BPy_Bone * self);
 static PyObject *Bone_hasParent (BPy_Bone * self);
 static PyObject *Bone_getWeight (BPy_Bone * self);
 static PyObject *Bone_getChildren (BPy_Bone * self);
+static PyObject *Bone_clearParent (BPy_Bone * self);
+static PyObject *Bone_clearChildren (BPy_Bone * self);
+static PyObject *Bone_hide (BPy_Bone * self);
+static PyObject *Bone_unhide (BPy_Bone * self);
 static PyObject *Bone_setName (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setRoll (BPy_Bone * self, PyObject * args);
 static PyObject *Bone_setHead (BPy_Bone * self, PyObject * args);
@@ -116,6 +121,10 @@ static PyMethodDef BPy_Bone_methods[] = {
    "() - return Bone size"},
   {"getQuat", (PyCFunction) Bone_getQuat, METH_NOARGS,
    "() - return Bone quat"},
+  {"hide", (PyCFunction) Bone_hide, METH_NOARGS,
+   "() - hides the bone"},
+  {"unhide", (PyCFunction) Bone_unhide, METH_NOARGS,
+   "() - unhides the bone"},
   {"getWeight", (PyCFunction) Bone_getWeight, METH_NOARGS,
    "() - return Bone weight"},
   {"getParent", (PyCFunction) Bone_getParent, METH_NOARGS,
@@ -126,6 +135,10 @@ static PyMethodDef BPy_Bone_methods[] = {
    "() - return true if bone has a parent"},
   {"getChildren", (PyCFunction) Bone_getChildren, METH_NOARGS,
    "() - return Bone children list"},
+  {"clearParent", (PyCFunction) Bone_clearParent, METH_NOARGS,
+   "() - clears the bone's parent in the armature and makes it root"},
+  {"clearChildren", (PyCFunction) Bone_clearChildren, METH_NOARGS,
+   "() - remove the children associated with this bone"},
   {"setName", (PyCFunction) Bone_setName, METH_VARARGS,
    "(str) - rename Bone"},
   {"setRoll", (PyCFunction) Bone_setRoll, METH_VARARGS,
@@ -665,6 +678,22 @@ Bone_setQuat (BPy_Bone * self, PyObject * args)
   return Py_None;
 }
 
+static int
+testChildbase(Bone *bone, Bone *test)
+{
+	Bone *child;
+
+	for(child = bone->childbase.first; child; child = child->next){
+		if(child == test){
+			return 1;
+		}
+		if(child->childbase.first != NULL)
+			testChildbase(child, test);
+	}
+
+	return 0;
+}
+
 static PyObject *
 Bone_setParent(BPy_Bone *self, PyObject *args)
 {
@@ -678,6 +707,13 @@ Bone_setParent(BPy_Bone *self, PyObject *args)
 
   if(!py_bone->bone)
 	return (EXPP_ReturnPyObjError (PyExc_TypeError, "bone contains no data!"));
+
+  if(py_bone->bone == self->bone)
+	  return (EXPP_ReturnPyObjError (PyExc_AttributeError, "Cannot parent to self"));
+
+  //test to see if were creating an illegal loop by parenting to child
+  if(testChildbase(self->bone, py_bone->bone))
+	  return (EXPP_ReturnPyObjError (PyExc_AttributeError, "Cannot parent to child"));
 
   //set the parent of self
   self->bone->parent = py_bone->bone;
@@ -704,6 +740,177 @@ Bone_setWeight(BPy_Bone *self, PyObject *args)
   Py_INCREF (Py_None);
   return Py_None;
 }
+
+static PyObject *
+Bone_clearParent(BPy_Bone *self)
+{
+  bArmature *arm = NULL;
+  Bone *bone = NULL;
+  Bone *parent = NULL;
+  Bone *child = NULL;
+  Bone *childPrev = NULL;
+  int firstChild;
+  float M_boneObjectspace[4][4];
+
+  if (!self->bone) 
+	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+
+  if(self->bone->parent == NULL)
+	  return EXPP_incr_ret(Py_None);
+
+  //get parent and remove link
+  parent = self->bone->parent;
+  self->bone->parent = NULL;
+
+  //remove the childbase link from the parent bone
+  firstChild = 1;
+  for(child = parent->childbase.first; child; child = child->next){	
+	  if(child == self->bone && firstChild){
+			parent->childbase.first = child->next;
+			child->next = NULL;
+			break;
+	  }
+	  if(child == self->bone && !firstChild){
+		  childPrev->next = child->next;
+		  child->next = NULL;
+		  break;
+	  }
+	  firstChild = 0;
+	  childPrev = child;
+  }
+
+  //now get rid of the parent transformation
+  get_objectspace_bone_matrix(parent, M_boneObjectspace, 0,0);
+
+  //transformation of local bone
+  Mat4MulVecfl(M_boneObjectspace, self->bone->head);
+  Mat4MulVecfl(M_boneObjectspace, self->bone->tail);
+
+
+  //get the root bone
+  while(parent->parent != NULL){
+	  parent = parent->parent;
+  }
+
+  //add unlinked bone to the bonebase of the armature
+  for (arm = G.main->armature.first; arm; arm= arm->id.next) {
+	  for(bone = arm->bonebase.first; bone; bone = bone->next){
+		  if(parent == bone){
+			  //we found the correct armature - now add it as root bone
+			  BLI_addtail (&arm->bonebase, self->bone);
+			  break;
+		  }
+	  }			
+  }
+  
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject *
+Bone_clearChildren(BPy_Bone *self)
+{ 
+  Bone *child = NULL;
+  bArmature *arm = NULL;
+  Bone *bone = NULL;
+  Bone *parent = NULL;
+  Bone *prev = NULL;
+  Bone *next = NULL;
+  float M_boneObjectspace[4][4];
+  int first;
+
+  if (!self->bone) 
+	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+
+  if(self->bone->childbase.first == NULL)
+	  return EXPP_incr_ret(Py_None);
+
+  //get the root bone
+  parent = bone->parent;
+
+  if(parent != NULL){
+	  while(parent->parent != NULL){
+		  parent = parent->parent;
+	  }
+  }else{
+	  parent = bone;
+  }
+
+  //get the armature
+  for (arm = G.main->armature.first; arm; arm = arm->id.next) {
+	  for(bone = arm->bonebase.first; bone; bone = bone->next){
+		  if(parent == bone){
+			  //we found the correct armature	   
+			  goto gotArmature;
+		  }
+	  }			
+  }
+
+gotArmature:
+
+  if(arm == NULL)
+	 (EXPP_ReturnPyObjError (PyExc_RuntimeError, "couldn't find armature that contains this bone"));
+
+  //now get rid of the parent transformation
+  get_objectspace_bone_matrix(self->bone, M_boneObjectspace, 0,0);
+
+  //set children as root
+  first = 1;
+  for(child = self->bone->childbase.first; child; child = next){
+      //undo transformation of local bone
+      Mat4MulVecfl(M_boneObjectspace, child->head);
+	  Mat4MulVecfl(M_boneObjectspace, child->tail);
+
+	  //set next pointers to NULL
+	  if(first){
+		prev = child;
+		first = 0;
+	  }else{
+		prev->next = NULL;
+	    prev = child;
+	  }
+	  next = child->next;
+
+	  //remove parenting and linking
+	  child->parent = NULL;
+	  BLI_remlink(&self->bone->childbase, child);
+
+	  //add as root
+	  BLI_addtail (&arm->bonebase, child);
+  }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+
+}
+
+static PyObject *
+Bone_hide(BPy_Bone *self)
+{
+  if (!self->bone) 
+	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+
+  if(!(self->bone->flag & BONE_HIDDEN))
+	self->bone->flag |= BONE_HIDDEN;
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+static PyObject *
+Bone_unhide(BPy_Bone *self)
+{
+  if (!self->bone) 
+	  (EXPP_ReturnPyObjError (PyExc_RuntimeError, "bone contains no data!"));
+
+  if(self->bone->flag & BONE_HIDDEN)
+	self->bone->flag &= ~BONE_HIDDEN;
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
 
 
 /*****************************************************************************/

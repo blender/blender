@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jordi Rovira i Bonet
+ * Contributor(s): Jordi Rovira i Bonet, Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -94,7 +94,8 @@ static PyObject *Armature_getName (BPy_Armature * self);
 static PyObject *Armature_getBones (BPy_Armature * self);
 static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args);
 static PyObject *Armature_setName (BPy_Armature * self, PyObject * args);
-/* static PyObject *Armature_setBones(BPy_Armature *self, PyObject *args); */
+static PyObject *Armature_drawAxes (BPy_Armature * self, PyObject * args);
+static PyObject *Armature_drawNames (BPy_Armature * self, PyObject * args);
 
 /*****************************************************************************/
 /* Python BPy_Armature methods table:                                        */
@@ -109,9 +110,10 @@ static PyMethodDef BPy_Armature_methods[] = {
    "(str) - rename Armature"},
   {"addBone", (PyCFunction)Armature_addBone, METH_VARARGS,
   	"(bone)-add bone"},
-  /*  {"setBones", (PyCFunction)Armature_setBones, METH_VARARGS,
-     "(list of bones) - replace the whole bone list of the armature"},
-   */
+  {"drawAxes", (PyCFunction)Armature_drawAxes, METH_VARARGS,
+  	"will draw the axis of each bone in armature"},
+  {"drawNames", (PyCFunction)Armature_drawNames, METH_VARARGS,
+  	"will draw the names of each bone in armature"},
   {NULL, NULL, 0, NULL}
 };
 
@@ -389,16 +391,25 @@ doesBoneName_exist(char *name, bArmature* arm)
   return 0;
 }
 
+static int
+testBoneInArmature(bArmature *arm, Bone *test)
+{
+	Bone *root;
+
+	for(root = arm->bonebase.first; root; root = root->next){
+		if(root == test){
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args)
 {
 	BPy_Bone* py_bone = NULL;
 	float M_boneObjectspace[4][4];
-	float M_parentRest[4][4];
 	float iM_parentRest[4][4];
-	float delta[3];
-	float rootHead[3];
-	float rootTail[3];
-
 	
 	if (!PyArg_ParseTuple(args, "O!", &Bone_Type, &py_bone))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError, 
@@ -413,30 +424,20 @@ static PyObject *Armature_addBone(BPy_Armature *self, PyObject *args)
 
 	//if bone has a parent....	
 	if(py_bone->bone->parent){
+
+		//then check to see if parent has been added to the armature - bone loop test
+		if(!testBoneInArmature(self->armature, py_bone->bone->parent))
+			return (EXPP_ReturnPyObjError (PyExc_TypeError, 
+			   "cannot parent to a bone not yet added to armature!"));
 		
 		//add to parent's childbase
 		BLI_addtail (&py_bone->bone->parent->childbase, py_bone->bone);
 		
 		//get the worldspace coords for the parent
-		get_objectspace_bone_matrix(py_bone->bone->parent, M_boneObjectspace, 1,0);
-		rootHead[0] = M_boneObjectspace[3][0];
-		rootHead[1] = M_boneObjectspace[3][1];
-		rootHead[2] = M_boneObjectspace[3][2];
 		get_objectspace_bone_matrix(py_bone->bone->parent, M_boneObjectspace, 0,0);
- 		rootTail[0] = M_boneObjectspace[3][0];
-		rootTail[1] = M_boneObjectspace[3][1];
-		rootTail[2] = M_boneObjectspace[3][2];
-
-		//rest matrix of parent
-		VecSubf (delta, rootTail, rootHead);
-		make_boneMatrixvr(M_parentRest, delta, py_bone->bone->parent->roll);
 
 		// Invert the parent rest matrix
-		Mat4Invert (iM_parentRest, M_parentRest);
-
-		// Get the new head and tail 
-		VecSubf (py_bone->bone->head, py_bone->bone->head, rootTail);
-		VecSubf (py_bone->bone->tail, py_bone->bone->tail, rootTail);
+		Mat4Invert (iM_parentRest, M_boneObjectspace);
 
 		//transformation of local bone
 		Mat4MulVecfl(iM_parentRest, py_bone->bone->head);
@@ -467,6 +468,42 @@ Armature_setName (BPy_Armature * self, PyObject * args)
 
   Py_INCREF (Py_None);
   return Py_None;
+}
+
+static PyObject *
+Armature_drawAxes (BPy_Armature * self, PyObject * args)
+{
+	int toggle;
+
+	if (!PyArg_ParseTuple (args, "i", &toggle))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+					"expected 1 or 0 as integer"));
+
+	if(toggle)
+		self->armature->flag |= ARM_DRAWAXES;
+	else
+		self->armature->flag &= ~ARM_DRAWAXES;
+
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
+static PyObject *
+Armature_drawNames (BPy_Armature * self, PyObject * args)
+{
+	int toggle;
+
+	if (!PyArg_ParseTuple (args, "i", &toggle))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+					"expected 1 or 0 as integer"));
+
+	if(toggle)
+		self->armature->flag |= ARM_DRAWNAMES;
+	else
+		self->armature->flag &= ~ARM_DRAWNAMES;
+
+	Py_INCREF (Py_None);
+	return Py_None;
 }
 
 /*****************************************************************************/
