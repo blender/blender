@@ -1283,6 +1283,15 @@ static void render_panel_yafrayGlobal()
   uiDefButI(block, NUM, 0, "Processors:", 160,35,150,20,
 				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
+	/*AA Settings*/
+	uiDefButS(block,TOGN|BIT|0, B_REDR, "Auto AA",5,110,150,20, &G.scene->r.YF_AA, 
+					0, 0, 0, 0, "Set AA using OSA and GI quality, disable for manual control");
+ 	if(G.scene->r.YF_AA){
+ 		uiDefButI(block, NUM, 0, "AA Passes ", 5,85,150,20,
+				&G.scene->r.YF_AApasses, 0, 64, 10, 10, "AA Passes");
+	    uiDefButI(block, NUM, 0, "AA Samples ", 160,85,150,20,
+				&G.scene->r.YF_AAsamples, 0, 2048, 10, 10, "AA Samples");
+	}
 }
 
 

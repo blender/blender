@@ -205,15 +205,19 @@ bool yafrayFileRender_t::writeRender()
 	ostr << "\traydepth=\"" << R.r.YF_raydepth << "\" gamma=\"" << R.r.YF_gamma << "\" exposure=\"" << R.r.YF_exposure << "\"\n";
 
 	//if( (G.scene->world!=NULL) && (G.scene->world->GIquality>1) && ! G.scene->world->cache )
-	if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
-		ostr << "\tAA_passes=\"5\" AA_minsamples=\"5\" " << endl;
-	else if ((R.r.mode & R_OSA) && (R.r.osa)) {
-		int passes=(R.r.osa%4)==0 ? R.r.osa/4 : 1;
-		int minsamples=(R.r.osa%4)==0 ? 4 : R.r.osa;
-		ostr << "\tAA_passes=\"" << passes << "\" AA_minsamples=\"" << minsamples << "\"";
+	if(R.r.YF_AA){
+		ostr << "\tAA_passes=\"" << R.r.YF_AApasses << "\" AA_minsamples=\"" << R.r.YF_AAsamples << "\"";
 	}
-	else ostr << "\tAA_passes=\"0\" AA_minsamples=\"1\"";
-
+	else{
+		if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
+			ostr << "\tAA_passes=\"5\" AA_minsamples=\"5\" " << endl;
+		else if ((R.r.mode & R_OSA) && (R.r.osa)) {
+			int passes=(R.r.osa%4)==0 ? R.r.osa/4 : 1;
+			int minsamples=(R.r.osa%4)==0 ? 4 : R.r.osa;
+			ostr << "\tAA_passes=\"" << passes << "\" AA_minsamples=\"" << minsamples << "\"";
+		}
+		else ostr << "\tAA_passes=\"0\" AA_minsamples=\"1\"";
+	}
 	ostr << "\n";
 
 	if (hasworld) ostr << "\tbackground_name=\"world_background\"\n";
