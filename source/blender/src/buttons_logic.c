@@ -62,6 +62,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_world_types.h"
@@ -83,6 +84,7 @@
 
 #include "BDR_editcurve.h"
 #include "BSE_buttons.h"
+#include "BSE_headerbuttons.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -558,6 +560,12 @@ void do_logic_buts(unsigned short event)
 					bSoundActuator *sa= act->data;
 					if(sa->sndnr)
 					{
+						if(sa->sndnr == -2) {
+							activate_databrowse((ID *)G.main->sound.first, ID_SO, 0, B_SOUNDACT_BROWSE,
+											&sa->sndnr, do_logic_buts);
+							break;
+						}
+
 						bSound *sound= G.main->sound.first;
 						int nr= 1;
 
@@ -591,7 +599,6 @@ void do_logic_buts(unsigned short event)
 		allqueue(REDRAWSOUND, 0);
 
 		break;
-
 	}
 }
 
@@ -1605,10 +1612,9 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 			
-			IDnames_to_pupstring(&str, "Sound files", NULL, &(G.main->sound), (ID *)sa->sound, &(sa->sndnr));
-
-			if(str[0])
+			if(G.main->sound.first)
 			{
+				IDnames_to_pupstring(&str, "Sound files", NULL, &(G.main->sound), (ID *)sa->sound, &(sa->sndnr));
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
 				uiDefButS(block, MENU, B_SOUNDACT_BROWSE, str, xco+10,yco-22,20,19, &(sa->sndnr), 0, 0, 0, 0, "");	
@@ -1621,10 +1627,10 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->sound->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
 					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->sound->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
 				}
-			}
+			} 
 			else
 			{
-				uiDefBut(block, LABEL, 0, "Use Sound window to load files", xco, yco-24, width, 19, NULL, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Use Sound window (F10) to load samples", xco, yco-24, width, 19, NULL, 0, 0, 0, 0, "");
 			}
 			
 			MEM_freeN(str);
