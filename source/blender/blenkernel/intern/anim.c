@@ -328,7 +328,7 @@ void frames_duplilist(Object *ob)
 			newob= new_dupli_object(&duplilist, ob, ob);
 
 			do_ob_ipo(newob);
-			where_is_object(newob);
+			where_is_object_time(newob, (float)G.scene->r.cfra);
 		}
 	}
 
