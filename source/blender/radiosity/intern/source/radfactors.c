@@ -69,18 +69,18 @@ RadView hemitop, hemiside;
 float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 {
 	float tvec[3], fac;
-	float vec[4][3];	/* vectoren van shootcent naar vertices rp */
-	float cross[4][3];	/* uitprodukten hiervan */
-	float rad[4];	/* hoeken tussen vecs */
+	float vec[4][3];	/* vectors of shoot->cent to vertices rp */
+	float cross[4][3];	/* cross products of this */
+	float rad[4];	/* anlgles between vecs */
 
-	/* test op richting */
+	/* test for direction */
 	VecSubf(tvec, shoot->cent, rp->cent);
 	if( tvec[0]*shoot->norm[0]+ tvec[1]*shoot->norm[1]+ tvec[2]*shoot->norm[2]>0.0)
 		return 0.0;
 	
 	if(rp->type==4) {
 
-		/* hoekvectors */
+		/* corner vectors */
 		VecSubf(vec[0], shoot->cent, rn->v1);
 		VecSubf(vec[1], shoot->cent, rn->v2);
 		VecSubf(vec[2], shoot->cent, rn->v3);
@@ -91,7 +91,7 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		Normalise(vec[2]);
 		Normalise(vec[3]);
 
-		/* uitprod */
+		/* cross product */
 		Crossf(cross[0], vec[0], vec[1]);
 		Crossf(cross[1], vec[1], vec[2]);
 		Crossf(cross[2], vec[2], vec[3]);
@@ -101,7 +101,7 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		Normalise(cross[2]);
 		Normalise(cross[3]);
 
-		/* hoeken */
+		/* angles */
 		rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];
 		rad[1]= vec[1][0]*vec[2][0]+ vec[1][1]*vec[2][1]+ vec[1][2]*vec[2][2];
 		rad[2]= vec[2][0]*vec[3][0]+ vec[2][1]*vec[3][1]+ vec[2][2]*vec[3][2];
@@ -112,7 +112,7 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		rad[2]= acos(rad[2]);
 		rad[3]= acos(rad[3]);
 
-		/* Stoke formule */
+		/* Stoke formula */
 		VecMulf(cross[0], rad[0]);
 		VecMulf(cross[1], rad[1]);
 		VecMulf(cross[2], rad[2]);
@@ -125,7 +125,7 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		fac+= tvec[0]*cross[3][0]+ tvec[1]*cross[3][1]+ tvec[2]*cross[3][2];
 	}
 	else {
-		/* hoekvectors */
+		/* corner vectors */
 		VecSubf(vec[0], shoot->cent, rn->v1);
 		VecSubf(vec[1], shoot->cent, rn->v2);
 		VecSubf(vec[2], shoot->cent, rn->v3);
@@ -134,7 +134,7 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		Normalise(vec[1]);
 		Normalise(vec[2]);
 
-		/* uitprod */
+		/* cross product */
 		Crossf(cross[0], vec[0], vec[1]);
 		Crossf(cross[1], vec[1], vec[2]);
 		Crossf(cross[2], vec[2], vec[0]);
@@ -142,7 +142,7 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		Normalise(cross[1]);
 		Normalise(cross[2]);
 
-		/* hoeken */
+		/* angles */
 		rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];
 		rad[1]= vec[1][0]*vec[2][0]+ vec[1][1]*vec[2][1]+ vec[1][2]*vec[2][2];
 		rad[2]= vec[2][0]*vec[0][0]+ vec[2][1]*vec[0][1]+ vec[2][2]*vec[0][2];
@@ -151,7 +151,7 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		rad[1]= acos(rad[1]);
 		rad[2]= acos(rad[2]);
 
-		/* Stoke formule */
+		/* Stoke formula */
 		VecMulf(cross[0], rad[0]);
 		VecMulf(cross[1], rad[1]);
 		VecMulf(cross[2], rad[2]);
@@ -228,8 +228,8 @@ void calcSidefactors()
 
 void initradiosity()
 {
-	/* alloceert en maakt LUTs voor top/side factors */
-	/* alloceert en maakt index array */
+	/* allocates and makes LUTs for top/side factors */
+	/* allocates and makes index array */
 	int a, hres2;
 
 	if(RG.topfactors) MEM_freeN(RG.topfactors);
@@ -261,7 +261,7 @@ void rad_make_hocos(RadView *vw)
 	/* } */
 }
 
-void rad_setmatrices(RadView *vw)	    /* voor hemi's */
+void rad_setmatrices(RadView *vw)	    /* for hemi's */
 {
 	float up1[3], len, twist;
 
@@ -292,7 +292,7 @@ void hemizbuf(RadView *vw)
 	rad_setmatrices(vw);
 	RE_zbufferall_radio(vw, RG.elem, RG.totelem);
 
-	/* factors tellen */
+	/* count factors */
 	if(vw->recty==vw->rectx) factors= RG.topfactors;
 	else factors= RG.sidefactors;
 	hres= RG.hemires/2;
@@ -730,13 +730,13 @@ void subdivideshootElements(int it)
 			if(blender_test_break()) break;
 		}
 		
-		/* test op extreem weinig kleurverloop binnen patch met subdivflag */
+		/* test for extreme small color change within a patch with subdivflag */
 		
 		rp= RG.patchbase.first;
 		
 		while(rp) {
-			if(rp->f & RAD_SUBDIV) {		/* rp heeft elems die moet gesubd */
-				/* minstens 4 levels diep */
+			if(rp->f & RAD_SUBDIV) {		/* rp has elems that need subdiv */
+				/* at least 4 levels deep */
 				rn= rp->first->down1;
 				if(rn) {
 					rn= rn->down1;
@@ -748,13 +748,13 @@ void subdivideshootElements(int it)
 				if(rn) {
 					min[0]= min[1]= min[2]= 1.0e10;
 					max[0]= max[1]= max[2]= -1.0e10;
-					/* errmin en max zijn de gefilterde kleuren */
+					/* errmin and max are the filtered colors */
 					errmin[0]= errmin[1]= errmin[2]= 1.0e10;
 					errmax[0]= errmax[1]= errmax[2]= -1.0e10;
 					minmaxradelemfilt(rp->first, min, max, errmin, errmax);
 					
-					/* verschil tussen kleuren klein: toch maar niet subd */
-					/* test ook voor de gefilterde: maar kritischer */
+					/* if small difference between colors: no subdiv */
+					/* also test for the filtered ones: but with higher critical level */
 					
 					contin= 0;
 					a= abs( calculatecolor(min[0])-calculatecolor(max[0]));
@@ -837,7 +837,7 @@ void subdivideshootPatches(int it)
 					
 						stoke= calcStokefactor(shoot, rp, rp->first, &area);
 						if(stoke!= 0.0) {
-							if(area>.1) {	/* ontvangt patch meer dan (ong)10% van energie? */
+							if(area>.1) {	/* does patch receive more than (about)10% of energy? */
 								rp->f= RAD_SUBDIV;
 							}
 							else {
@@ -853,16 +853,6 @@ void subdivideshootPatches(int it)
 														
 											rp->f= RAD_SUBDIV;
 											
-											/* if(get_qual()&LR_SHIFTKEY);
-											else {
-												drawpatch_ext(rp, 0xFF77FF);
-					
-												printf("Pa hemi %f stoke %f err %f area %f\n", *fp, stoke, err, area);
-					
-												while(get_mbut()&L_MOUSE==0);
-												while(get_mbut()&L_MOUSE);
-											}
-											*/
 										}
 									}
 								}
@@ -919,7 +909,7 @@ void inithemiwindows()
 {
 	RadView *vw;
 
-	/* de hemiwindows */
+	/* the hemiwindows */
 	vw= &(hemitop);
 	memset(vw, 0, sizeof(RadView));
 	vw->rectx= RG.hemires;

@@ -365,7 +365,7 @@ float *findmiddlevertex(RNode *node, RNode *nb, float *v1, float *v2)
 	return 0;
 }
 
-void make_face_tab()	/* zorgt voor ankers */
+void make_face_tab()	/* takes care of anchoring */
 {
 	RNode *rn, **el;
 	Face *face = NULL;
@@ -380,7 +380,7 @@ void make_face_tab()	/* zorgt voor ankers */
 	RG.igamma= 1.0/RG.gamma;
 	RG.radfactor= RG.radfac*pow(64*64, RG.igamma);
 
-	/* vlakkleuren omzetten */
+	/* convert face colors */
 	el= RG.elem;
 	for(a=RG.totelem; a>0; a--, el++) {
 		rn= *el;
@@ -391,7 +391,7 @@ void make_face_tab()	/* zorgt voor ankers */
 		charcol[1]= calculatecolor(rn->totrad[2]);
 	}
 	
-	/* nodes aflopen en Face's maken */
+	/* check nodes and make faces */
 	el= RG.elem;
 	for(a=RG.totelem; a>0; a--, el++) {
 
@@ -402,7 +402,7 @@ void make_face_tab()	/* zorgt voor ankers */
 		rn->v3[3]= 0.0;
 		if(rn->v4) rn->v4[3]= 0.0;
 		
-		/* test edges op subdivide */
+		/* test edges for subdivide */
 		flag= 0;
 		v1= v2= v3= v4= 0;
 		if(rn->ed1) {
@@ -425,7 +425,7 @@ void make_face_tab()	/* zorgt voor ankers */
 			if(v4) flag |= 8;
 		}
 		
-		/* met flag en vertexpointers kunnen nu Face's gemaakt*/
+		/* using flag and vertexpointers now Faces can be made */
 		
 		if(flag==0) {
 			makeface(rn->v1, rn->v2, rn->v3, rn->v4, rn);
@@ -434,7 +434,7 @@ void make_face_tab()	/* zorgt voor ankers */
 		else anchorTriface(rn, v1, v2, v3, flag);
 	}
 	
-	/* optellen */
+	/* add */
 	for(a=0; a<RG.totface; a++) {
 		
 		RAD_NEXTFACE(a);
@@ -457,20 +457,20 @@ void make_face_tab()	/* zorgt voor ankers */
 
 void filterFaces()
 {
-	/* alle kleuren van vertices in faces en weer terug */
+	/* put vertex colors in faces, and put them back */
 	
 	Face *face = NULL;
 	int a, w1, w2, w3;
 
 	if(RG.totface==0) return;
 
-	/* wissen */
+	/* clear */
 	for(a=0; a<RG.totface; a++) {
 		RAD_NEXTFACE(a);
 		face->col= 0;
 	}
 	
-	/* optellen: punten bij vlakken */
+	/* add: vertices with faces */
 	for(a=0; a<RG.totface; a++) {
 		RAD_NEXTFACE(a);
 		
@@ -488,7 +488,7 @@ void filterFaces()
 		}
 	}
 	
-	/* wissen */
+	/* clear */
 	for(a=0; a<RG.totface; a++) {
 		RAD_NEXTFACE(a);
 		face->v1[3]= 0.0;
@@ -498,7 +498,7 @@ void filterFaces()
 	}
 
 
-	/* optellen: vlakken bij punten */
+	/* add: faces with vertices */
 	for(a=0; a<RG.totface; a++) {
 		
 		RAD_NEXTFACE(a);
@@ -559,14 +559,14 @@ void calcfiltrad(RNode *rn, float *cd)
 
 void filterNodes()
 {
-	/* alle kleuren van nodes in tempblok en weer terug */
+	/* colors from nodes in tempblock and back */
 	
 	RNode *rn, **el;
 	float *coldata, *cd;
 	int a;
 
 	if(RG.totelem==0) return;
-	/* de upnodes moeten kleur hebben */
+	/* the up-nodes need a color */
 	el= RG.elem;
 	for(a=0; a<RG.totelem; a++, el++) {
 		rn= *el;
@@ -596,7 +596,7 @@ void filterNodes()
 		}
 	}
 	
-	/* met area optellen */
+	/* add using area */
 	cd= coldata= MEM_mallocN(3*4*RG.totelem, "filterNodes");
 	el= RG.elem;
 	for(a=0; a<RG.totelem; a++, el++) {
@@ -616,7 +616,7 @@ void filterNodes()
 
 void removeEqualNodes(short limit)
 {
-	/* nodes met kleur gelijk aan elkaar: verwijderen */
+	/* nodes with equal colors: remove */
 	RNode **el, *rn, *rn1;
 	float thresh, f1, f2;
 	int a, foundone=1, ok;
@@ -811,7 +811,7 @@ void rad_addmesh(void)
 			md[3]= coldata[mface->v4];
 		}
 		
-		/* boundbox en centrenew */
+		/* boundbox and centrenew */
 		
 		INIT_MINMAX(min, max);
 

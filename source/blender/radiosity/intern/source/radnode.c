@@ -237,7 +237,7 @@ void setnodelimit(float limit)
 
 }
 
-/* ************  GEHEUGENBEHEER ***********  */
+/* ************  memory management ***********  */
 
 int Ntotvert=0, Ntotnode=0, Ntotpatch=0;
 
@@ -313,7 +313,7 @@ void freePatch(RPatch *patch)
 
 void replaceAllNode(RNode *neighb, RNode *newn)
 {
-	/* verandert van alle buren de edgepointers die naar newn->up wijzen in new */
+	/* changes from all neighbours the edgepointers that point to newn->up in new */
 	int ok= 0;
 	
 	
@@ -345,7 +345,7 @@ void replaceAllNode(RNode *neighb, RNode *newn)
 
 void replaceAllNodeInv(RNode *neighb, RNode *old)
 {
-	/* verandert van alle buren de edgepointers die naar old wijzen in old->up */
+	/* changes from all neighbours the edgepointers that point to old in old->up */
 	if(neighb==0) return;
 	if(old->up==0) return;
 	
@@ -370,7 +370,7 @@ void replaceAllNodeInv(RNode *neighb, RNode *old)
 
 void replaceAllNodeUp(RNode *neighb, RNode *old)
 {
-	/* verandert van alle buren de edgepointers die naar old wijzen in old->up */
+	/* changes from all neighbours the edgepointers that point to old in old->up */
 	if(neighb==0) return;
 	if(old->up==0) return;
 	neighb= neighb->up;
@@ -397,15 +397,15 @@ void replaceAllNodeUp(RNode *neighb, RNode *old)
 
 void replaceTestNode(RNode *neighb, RNode **edpp, RNode *newn, int level, float *vert)
 {
-	/*	IF neighb->ed wijst naar newn->up
-	 *		IF edgelevels gelijk
-				IF testvert zit in neighb->ed
-					pointers beide kanten op veranderen
+	/*	IF neighb->ed points to newn->up
+	 *		IF edgelevels equal
+				IF testvert is in neighb->ed
+					change pointers both ways
 				ELSE
 					RETURN
 			ELSE
-				IF neighb edgelevel is dieper
-					verander neighb pointer
+				IF neighb edgelevel is deeper
+					change neighb pointer
 		
 	 */
 	int ok= 0;
@@ -484,7 +484,7 @@ void replaceTestNode(RNode *neighb, RNode **edpp, RNode *newn, int level, float 
 
 int setvertexpointersNode(RNode *neighb, RNode *node, int level, float **v1, float **v2)
 {
-	/* vergelijkt edgelevels , als gelijk zet het de vertexpointers */
+	/* compares edgelevels , if equal it sets the vertexpointers */
 	
 	if(neighb==0) return 0;
 	
@@ -542,7 +542,7 @@ void subdivideTriNode(RNode *node, RNode *edge)
 		return;
 	}
 	
-	/* bepaal subdivide richting */
+	/* defines subdivide direction */
 
 	if(edge==0) {
 		/* areathreshold */
@@ -563,7 +563,7 @@ void subdivideTriNode(RNode *node, RNode *edge)
 		else uvl= 3;
 	}
 	
-	/*  moeten naastliggende nodes dieper? Recursief! */
+	/*  should neighbour nodes be deeper? Recursive! */
 	n1= 0; 
 	if(uvl==1) {
 		if(node->ed1 && node->ed1->down1==0) n1= node->ed1;
@@ -576,7 +576,7 @@ void subdivideTriNode(RNode *node, RNode *edge)
 	}
 	if(n1) {
 		up= node->up;
-		while(up) {							/* ook testen op ed4 !!! */
+		while(up) {							/* also test for ed4 !!! */
 			if(n1->ed1==up || n1->ed2==up || n1->ed3==up || n1->ed4==up) {
 				subdivideNode(n1, up);
 				break;
@@ -585,7 +585,7 @@ void subdivideTriNode(RNode *node, RNode *edge)
 		}
 	}
 	
-	/* Het subdividen */
+	/* the subsidiving */
 	n1= mallocNode();
 	memcpy(n1, node, sizeof(RNode));
 	n2= mallocNode();
@@ -600,22 +600,22 @@ void subdivideTriNode(RNode *node, RNode *edge)
 	/* subdivide edge 1 */
 	if(uvl==1) {
 	
-		/* EERSTE NODE  krijgt edge 2 */
+		/* FIRST NODE  gets edge 2 */
 		n1->ed3= n2;
 		n1->lev3= 0;
 		replaceAllNode(n1->ed2, n1);
 		n1->lev1++;
 		replaceTestNode(n1->ed1, &(n1->ed1), n1, n1->lev1, n1->v2);
 
-		/* TWEEDE NODE  krijgt edge 3 */
+		/* SECOND NODE  gets edge 3 */
 		n2->ed2= n1;
 		n2->lev2= 0;
 		replaceAllNode(n2->ed3, n2);
 		n2->lev1++;
 		replaceTestNode(n2->ed1, &(n2->ed1), n2, n2->lev1, n2->v1);
 		
-		/* NIEUWE VERTEX uit edge 1 */
-		if( setvertexpointersNode(n1->ed1, n1, n1->lev1, &v1, &v2) ) {	/* nodes hebben gelijke levels */
+		/* NEW VERTEX from edge 1 */
+		if( setvertexpointersNode(n1->ed1, n1, n1->lev1, &v1, &v2) ) {	/* nodes have equal levels */
 			if(v1== n1->v2) {
 				n1->v1= v2;
 				n2->v2= v2;
@@ -635,22 +635,22 @@ void subdivideTriNode(RNode *node, RNode *edge)
 	}
 	else if(uvl==2) {
 	
-		/* EERSTE NODE  krijgt edge 1 */
+		/* FIRST NODE gets edge 1 */
 		n1->ed3= n2;
 		n1->lev3= 0;
 		replaceAllNode(n1->ed1, n1);
 		n1->lev2++;
 		replaceTestNode(n1->ed2, &(n1->ed2), n1, n1->lev2, n1->v2);
 
-		/* TWEEDE NODE  krijgt edge 3 */
+		/* SECOND NODE gets edge 3 */
 		n2->ed1= n1;
 		n2->lev1= 0;
 		replaceAllNode(n2->ed3, n2);
 		n2->lev2++;
 		replaceTestNode(n2->ed2, &(n2->ed2), n2, n2->lev2, n2->v3);
 		
-		/* NIEUWE VERTEX uit edge 2 */
-		if( setvertexpointersNode(n1->ed2, n1, n1->lev2, &v1, &v2) ) {	/* nodes hebben gelijke levels */
+		/* NEW VERTEX from edge 2 */
+		if( setvertexpointersNode(n1->ed2, n1, n1->lev2, &v1, &v2) ) {	/* nodes have equal levels */
 			if(v1== n1->v2) {
 				n1->v3= v2;
 				n2->v2= v2;
@@ -670,22 +670,22 @@ void subdivideTriNode(RNode *node, RNode *edge)
 	}
 	else if(uvl==3) {
 	
-		/* EERSTE NODE  krijgt edge 1 */
+		/* FIRST NODE gets edge 1 */
 		n1->ed2= n2;
 		n1->lev2= 0;
 		replaceAllNode(n1->ed1, n1);
 		n1->lev3++;
 		replaceTestNode(n1->ed3, &(n1->ed3), n1, n1->lev3, n1->v1);
 
-		/* TWEEDE NODE  krijgt edge 2 */
+		/* SECOND NODE gets edge 2 */
 		n2->ed1= n1;
 		n2->lev1= 0;
 		replaceAllNode(n2->ed2, n2);
 		n2->lev3++;
 		replaceTestNode(n2->ed3, &(n2->ed3), n2, n2->lev3, n2->v3);
 		
-		/* NIEUWE VERTEX uit edge 3 */
-		if( setvertexpointersNode(n1->ed3, n1, n1->lev3, &v1, &v2) ) {	/* nodes hebben gelijke levels */
+		/* NEW VERTEX from edge 3 */
+		if( setvertexpointersNode(n1->ed3, n1, n1->lev3, &v1, &v2) ) {	/* nodes have equal levels */
 			if(v1== n1->v1) {
 				n1->v3= v2;
 				n2->v1= v2;
@@ -727,7 +727,7 @@ void subdivideNode(RNode *node, RNode *edge)
 		return;
 	}
 	
-	/* bepaal subdivide richting */
+	/* defines subdivide direction */
 
 	if(edge==0) {
 		/* areathreshold */
@@ -744,7 +744,7 @@ void subdivideNode(RNode *node, RNode *edge)
 		else uvl= 2;
 	}
 	
-	/*  moeten naastliggende nodes dieper? Recursief! */
+	/*  do neighbour nodes have to be deeper? Recursive! */
 	n1= n2= 0; 
 	if(uvl==1) {
 		if(node->ed1 && node->ed1->down1==0) n1= node->ed1;
@@ -777,7 +777,7 @@ void subdivideNode(RNode *node, RNode *edge)
 		}
 	}
 
-	/* Het subdividen */
+	/* the subdividing */
 	n1= mallocNode();
 	memcpy(n1, node, sizeof(RNode));
 	n2= mallocNode();
@@ -789,10 +789,10 @@ void subdivideNode(RNode *node, RNode *edge)
 	node->down1= n1;
 	node->down2= n2;
 
-	/* subdivide edge 1 en 3 */
+	/* subdivide edge 1 and 3 */
 	if(uvl==1) {
 		
-		/* EERSTE NODE  krijgt edge 2 */
+		/* FIRST NODE  gets edge 2 */
 		n1->ed4= n2;
 		n1->lev4= 0;
 		replaceAllNode(n1->ed2, n1);
@@ -801,7 +801,7 @@ void subdivideNode(RNode *node, RNode *edge)
 		replaceTestNode(n1->ed1, &(n1->ed1), n1, n1->lev1, n1->v2);
 		replaceTestNode(n1->ed3, &(n1->ed3), n1, n1->lev3, n1->v3);
 
-		/* TWEEDE NODE  krijgt edge 4 */
+		/* SECOND NODE gets edge 4 */
 		n2->ed2= n1;
 		n2->lev2= 0;
 		replaceAllNode(n2->ed4, n2);
@@ -810,8 +810,8 @@ void subdivideNode(RNode *node, RNode *edge)
 		replaceTestNode(n2->ed1, &(n2->ed1), n2, n2->lev1, n2->v1);
 		replaceTestNode(n2->ed3, &(n2->ed3), n2, n2->lev3, n2->v4);
 		
-		/* NIEUWE VERTEX uit edge 1 */
-		if( setvertexpointersNode(n1->ed1, n1, n1->lev1, &v1, &v2) ) {	/* nodes hebben gelijke levels */
+		/* NEW VERTEX from edge 1 */
+		if( setvertexpointersNode(n1->ed1, n1, n1->lev1, &v1, &v2) ) {	/* nodes have equal levels */
 			if(v1== n1->v2) {
 				n1->v1= v2;
 				n2->v2= v2;
@@ -829,8 +829,8 @@ void subdivideNode(RNode *node, RNode *edge)
 			n1->v1[3]= node->v1[3];	/* color */
 		}
 		
-		/* NIEUWE VERTEX uit edge 3 */
-		if( setvertexpointersNode(n1->ed3, n1, n1->lev3, &v1, &v2) ) {	/* nodes hebben gelijke levels */
+		/* NEW VERTEX from edge 3 */
+		if( setvertexpointersNode(n1->ed3, n1, n1->lev3, &v1, &v2) ) {	/* nodes have equal levels */
 			if(v1== n1->v3) {
 				n1->v4= v2;
 				n2->v3= v2;
@@ -848,10 +848,10 @@ void subdivideNode(RNode *node, RNode *edge)
 			n1->v4[3]= node->v4[3];	/* color */
 		}
 	}
-	/* subdivide edge 2 en 4 */
+	/* subdivide edge 2 and 4 */
 	else if(uvl==2) {
 		
-		/* EERSTE NODE  krijgt edge 1 */
+		/* FIRST NODE gets edge 1 */
 		n1->ed3= n2;
 		n1->lev3= 0;
 		replaceAllNode(n1->ed1, n1);
@@ -860,7 +860,7 @@ void subdivideNode(RNode *node, RNode *edge)
 		replaceTestNode(n1->ed2, &(n1->ed2), n1, n1->lev2, n1->v2);
 		replaceTestNode(n1->ed4, &(n1->ed4), n1, n1->lev4, n1->v1);
 
-		/* TWEEDE NODE  krijgt edge 3 */
+		/* SECOND NODE gets edge 3 */
 		n2->ed1= n1;
 		n2->lev1= 0;
 		replaceAllNode(n2->ed3, n2);
@@ -869,8 +869,8 @@ void subdivideNode(RNode *node, RNode *edge)
 		replaceTestNode(n2->ed2, &(n2->ed2), n2, n2->lev2, n2->v3);
 		replaceTestNode(n2->ed4, &(n2->ed4), n2, n2->lev4, n2->v4);
 
-		/* NIEUWE VERTEX uit edge 2 */
-		if( setvertexpointersNode(n1->ed2, n1, n1->lev2, &v1, &v2) ) {	/* nodes hebben gelijke levels */
+		/* NEW VERTEX from edge 2 */
+		if( setvertexpointersNode(n1->ed2, n1, n1->lev2, &v1, &v2) ) {	/* nodes have equal levels */
 			if(v1== n1->v2) {
 				n1->v3= v2;
 				n2->v2= v2;
@@ -888,8 +888,8 @@ void subdivideNode(RNode *node, RNode *edge)
 			n1->v3[3]= node->v3[3];	/* color */
 		}
 
-		/* NIEUWE VERTEX uit edge 4 */
-		if( setvertexpointersNode(n1->ed4, n1, n1->lev4, &v1, &v2) ) {	/* nodes hebben gelijke levels */
+		/* NEW VERTEX from edge 4 */
+		if( setvertexpointersNode(n1->ed4, n1, n1->lev4, &v1, &v2) ) {	/* nodes have equal levels */
 			if(v1== n1->v1) {
 				n1->v4= v2;
 				n2->v1= v2;
@@ -916,15 +916,18 @@ void subdivideNode(RNode *node, RNode *edge)
 
 int comparelevel(RNode *node, RNode *nb, int level)
 {
-	/* recursief afdalen: bij diepste node testen */
-	/* return 1 is gelijk of hoger */
+	/* recursive descent: test with deepest node */
+	/* return 1 means equal or higher */
 	
 	if(nb==0) return 1;
 	
 	if(nb->down1) {
 		return 0;
 		
-		/*		HIER ZIT EEN FOUT, MAAR WELKE?  (zonder dit werkt 't ook, maar langzamer)
+		/*		THERE IS AN ERROR HERE, BUT WHAT?  (without this function the system
+		        works too, but is slower) (ton) */
+
+		/*
 		n1= nb->down1;
 		if(n1->ed1==node) return comparelevel(node, n1, level);
 		if(n1->ed2==node) return comparelevel(node, n1, level);
@@ -947,17 +950,17 @@ int comparelevel(RNode *node, RNode *nb, int level)
 		/* if(nb->ed3==node) return (nb->lev3<=level); */
 		/* if(nb->ed4==node) return (nb->lev4<=level); */
 		
-		return 1;	/* is hogere node */
+		return 1;	/* is higher node */
 	}
 	return 1;
 }
 
-void deleteTriNodes(RNode *node) 	/* beide kinderen van node */
+void deleteTriNodes(RNode *node) 	/* both children of node */
 {
 	RNode *n1, *n2;
 	
-	/* als naastliggende nodes dieper zijn: geen delete */
-	/* enkel twee nodes testen, van andere verandert level niet */
+	/* if neighbour nodes are deeper: no delete */
+	/* just test 2 nodes, from the others the level doesn't change */
 	
 	n1= node->down1;
 	n2= node->down2;
@@ -966,7 +969,7 @@ void deleteTriNodes(RNode *node) 	/* beide kinderen van node */
 	
 	if(n1->down1 || n2->down1) return;
 	
-	/* aan edges mag geen gesubdivide node zitten */
+	/* at the edges no subdivided node is allowed */
 
 	if(n1->ed1 && n1->ed1->down1) return;
 	if(n1->ed2 && n1->ed2->down1) return;
@@ -992,7 +995,7 @@ void deleteTriNodes(RNode *node) 	/* beide kinderen van node */
 	replaceAllNodeUp(n2->ed2, n2);
 	replaceAllNodeUp(n2->ed3, n2);
 
-	n1->down1= (RNode *)12;	/* voor debug */
+	n1->down1= (RNode *)12;	/* for debug */
 	n2->down1= (RNode *)12;
 	
 	freeNode(n1);
@@ -1001,13 +1004,13 @@ void deleteTriNodes(RNode *node) 	/* beide kinderen van node */
 	
 }
 
-	/* beide kinderen van node */
+	/* both children of node */
 void deleteNodes(RNode *node)
 {
 	RNode *n1, *n2;
-	
-	/* als naastliggende nodes dieper zijn: geen delete */
-	/* enkel twee nodes testen, van andere verandert level niet */
+
+	/* if neighbour nodes are deeper: no delete */
+	/* just test 2 nodes, from the others the level doesn't change */
 
 	if(node->type==3) {
 		deleteTriNodes(node);
@@ -1023,7 +1026,7 @@ void deleteNodes(RNode *node)
 	
 	if(n1->ed3==n2) {
 
-		/* aan edges mag geen gesubdivide node zitten */
+		/* at the edges no subdivided node is allowed */
 
 		if(n1->ed1 && n1->ed1->down1) return;
 		if(n1->ed2 && n1->ed2->down1) return;
@@ -1049,7 +1052,7 @@ void deleteNodes(RNode *node)
 		replaceAllNodeUp(n2->ed3, n2);
 		replaceAllNodeUp(n2->ed4, n2);
 
-		n1->down1= (RNode *)12;	/* voor debug */
+		n1->down1= (RNode *)12;	/* for debug */
 		n2->down1= (RNode *)12;
 		
 		freeNode(n1);
@@ -1084,7 +1087,7 @@ void deleteNodes(RNode *node)
 		replaceAllNodeUp(n2->ed3, n2);
 		replaceAllNodeUp(n2->ed4, n2);
 
-		n1->down1= (RNode *)12;	/* voor debug */
+		n1->down1= (RNode *)12;	/* for debug */
 		n2->down1= (RNode *)12;
 		
 		freeNode(n1);

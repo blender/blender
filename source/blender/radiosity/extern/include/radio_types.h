@@ -72,7 +72,7 @@ typedef struct RadView {
 #define RAD_BACKFACE	8
 
 
-typedef struct RNode {					/* lengte: 76 */
+typedef struct RNode {					/* length: 76 */
 	struct RNode *down1, *down2, *up;
 	struct RNode *ed1, *ed2, *ed3, *ed4;
 	struct RPatch *par;
@@ -87,7 +87,7 @@ typedef struct RNode {					/* lengte: 76 */
 } RNode;
 
 
-typedef struct Elem {					/* lengte: 44 */
+typedef struct Elem {					/* length: 44 */
 	struct RPatch *par;
 
 	short type;							/* type: 4==QUAD, 3==TRIA */
@@ -99,7 +99,7 @@ typedef struct Elem {					/* lengte: 44 */
 } Elem;
 
 
-typedef struct Face {					/* lengte: 24 */
+typedef struct Face {					/* length: 24 */
 	float *v1, *v2, *v3, *v4;
 	unsigned int col, matindex;
 } Face;
@@ -114,7 +114,7 @@ typedef struct RPatch {
 	struct Object *from;
 	
 	int type;				/* 3: TRIA, 4: QUAD */
-	short f, f1;			/* flags f: als node, alleen subdiv */
+	short f, f1;			/* flags f: if node, only for subdiv */
 
 	float ref[3], emit[3], unshot[3];
 	float cent[3], norm[3];
@@ -124,7 +124,7 @@ typedef struct RPatch {
 } RPatch;
 
 
-typedef struct VeNoCo {				/* nodig voor splitconnected */
+typedef struct VeNoCo {				/* needed for splitconnected */
 	struct VeNoCo *next;
 	float *v;
 	float *n;
@@ -133,7 +133,7 @@ typedef struct VeNoCo {				/* nodig voor splitconnected */
 } VeNoCo;
 
 
-typedef	struct EdSort {					/* sorteren edges */
+typedef	struct EdSort {					/* sort edges */
 	float *v1, *v2;
 	RNode *node;
 	int nr;
@@ -144,18 +144,18 @@ typedef struct {
 	unsigned int *hemibuf;
 	struct ListBase patchbase;
 	int totpatch, totelem, totvert, totlamp;
-	RNode **elem;						/* globaal array van alle pointers */
-	VeNoCo *verts;						/* tijdelijk vertices van patches */
-	float *formfactors;				    /* een factor per element */
-	float *topfactors, *sidefactors;    /* LUT voor delta's */
-	int *index;						/* LUT voor bovenstaande LUT */
+	RNode **elem;						/* global array with all pointers */
+	VeNoCo *verts;						/* temporal vertices from patches */
+	float *formfactors;				    /* 1 factor per element */
+	float *topfactors, *sidefactors;    /* LUT for delta's */
+	int *index;						/* LUT for above LUT */
 	Face **facebase;
 	int totface;
 	float min[3], max[3], size[3], cent[3];	/* world */
 	float maxsize, totenergy;
 	float patchmin, patchmax;
 	float elemmin, elemmax;
-	float radfactor, lostenergy, igamma;		/* radfac zit in button, radfactor wordt berekend */
+	float radfactor, lostenergy, igamma;		/* radfac is in button, radfactor is calculated */
 	int phase;
 	/* to preserve materials as used before, max 16 */
 	Material *matar[MAXMAT];
@@ -163,11 +163,11 @@ typedef struct {
 	
 		/* this part is a copy of struct Radio */
 	short hemires, maxiter;
-	short drawtype, flag;			/* bit 0 en 1: limits laten zien */
+	short drawtype, flag;			/* bit 0 en 1: show limits */
 	short subshootp, subshoote, nodelim, maxsublamp;
 	int maxnode;
 	float convergence;
-	float radfac, gamma;		/* voor afbeelden */
+	float radfac, gamma;		/* for display */
 
 } RadGlobal;
 

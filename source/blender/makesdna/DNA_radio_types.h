@@ -40,12 +40,12 @@
 
 typedef struct Radio {
 	short hemires, maxiter;
-	short drawtype, flag;			/* bit 0 en 1: limits laten zien */
+	short drawtype, flag;			/* bit 0 and 1: show limits */
 	short subshootp, subshoote, nodelim, maxsublamp;
-	short pama, pami, elma, elmi;	/* patch en elem limits */
+	short pama, pami, elma, elmi;	/* patch and elem limits */
 	int maxnode;
 	float convergence;
-	float radfac, gamma;		/* voor afbeelden */
+	float radfac, gamma;		/* for display */
 	
 } Radio;
 

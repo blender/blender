@@ -46,7 +46,7 @@ extern "C" {
 struct Library;
 struct FileData;
 
-/* let op: Sequence heeft identiek begin. */
+/* watch it: Sequence has identical beginning. */
 /**
  * ID is the first thing included in all serializable types. It
  * provides a common handle to place all data in double-linked lists.
@@ -66,14 +66,14 @@ typedef struct ID {
 } ID;
 
 /**
- * ??
+ * For each library file used, a Library struct is added to Main
  */
 typedef struct Library {
 	ID id;
 	ID *idblock;
 	struct FileData *filedata;
 	char name[160];
-	int tot, pad;		/* tot, idblock en filedata zijn voor lezen en schrijven */
+	int tot, pad;		/* tot, idblock and filedata are only fo read and write */
 } Library;
 
 /**
@@ -129,8 +129,7 @@ typedef struct Library {
 
 #define IPO_CO		MAKE_ID2('C', 'O')	/* NOTE! This is not an ID, but is needed for g.sipo->blocktype */
 
-/* id->flag: eerste 8 bits altijd op nul zetten bij inlezen */
-/* (always zero the first 8 bits when reading a file) */
+/* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1
 #define LIB_INDIRECT	2
@@ -142,7 +141,7 @@ typedef struct Library {
 
 #define LIB_NEW			256
 #define LIB_FAKEUSER	512
-/* vrije testflag */
+/* free test flag */
 #define LIB_DOIT		1024
 
 #ifdef __cplusplus

@@ -78,7 +78,7 @@ typedef struct PluginSeq {
 } PluginSeq;
 
 
-/* LET OP: eerste stuk identiek aan ID (ivm ipo's) */
+/* WATCH IT: first part identical to ID (for use in ipo's) */
 
 typedef struct Sequence {
 
@@ -105,7 +105,7 @@ typedef struct Sequence {
 	
 	PluginSeq *plugin;
 
-	/* pointers voor effecten: */
+	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;
 	
 	/* meta */
@@ -138,7 +138,7 @@ typedef struct Editing {
 #define SEQ_OVERLAP		8
 #define SEQ_FILTERY		16
 
-/* seq->type LET OP BITJE 3!!! */
+/* seq->type WATCH IT: BIT 3!!! */
 #define SEQ_IMAGE		0
 #define SEQ_META		1
 #define SEQ_SCENE		2

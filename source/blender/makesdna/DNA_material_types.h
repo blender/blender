@@ -43,12 +43,12 @@ struct MTex;
 struct Ipo;
 struct Material;
 
-/* LET OP: type veranderen? ook in ipo.h doen */
+/* WATCH IT: change type? also make changes in ipo.h  */
 
 typedef struct Material {
 	ID id;
 	
-	short colormodel, lay;		/* lay: voor dynamics */
+	short colormodel, lay;		/* lay: for dynamics (old engine, until 2.04) */
 	float r, g, b;
 	float specr, specg, specb;
 	float mirr, mirg, mirb;
@@ -65,7 +65,7 @@ typedef struct Material {
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
 	
-	/* onderstaand is voor buttons en render*/
+	/* for buttons and render*/
 	char rgbsel, texact, pr_type, septex;
 	short pr_back, pr_lamp;
 

@@ -279,7 +279,6 @@ int rad_go(void)	/* return 0 when user escapes */
 {
 	double stime= PIL_check_seconds_timer();
 	int retval;
-	/* firsttime moet vervangen worden door radphase? */
 	
 	if(RG.totface) return 0;
 
@@ -311,7 +310,7 @@ int rad_go(void)	/* return 0 when user escapes */
 
 	removeEqualNodes(RG.nodelim);
 
-	make_face_tab();	/* nu geankerd */
+	make_face_tab();	/* now anchored */
 
 	closehemiwindows();
 	RG.phase= 0;

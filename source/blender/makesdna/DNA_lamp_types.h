@@ -56,7 +56,7 @@ typedef struct Lamp {
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
 	
-	/* texact is voor buttons */
+	/* texact is for buttons */
 	short texact, shadhalostep;
 	
 	struct MTex *mtex[8];

@@ -44,7 +44,7 @@ struct ID;
 typedef struct Oops {
 	struct Oops *next, *prev;
 	short type, flag, dt, hide;
-	float x, y;		/* linksonder */
+	float x, y;		/* left - bottom */
 	float dx, dy;	/* shuffle */
 	struct ID *id;
 	ListBase link;
@@ -56,7 +56,7 @@ typedef struct OopsLink {
 	struct OopsLink *next, *prev;
 	short type, flag;
 	ID **idfrom;
-	Oops *to, *from;	/* from is voor temp */
+	Oops *to, *from;	/* from is for temp */
 	float xof, yof;
 	char name[12];
 } OopsLink;

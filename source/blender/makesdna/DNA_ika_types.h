@@ -1,8 +1,10 @@
 /**
  * blenlib/DNA_ika_types.h (mar-2001 nzc)
  *
- * Old ika types. These will be superceded by Reevan's stuff, soon (I
- * hope).
+ * Old ika types. These have been superceded by Reevan's stuff
+ * (armatures and bones)
+ *
+ * Can be removed! (ton)
  *
  * $Id$ 
  *
@@ -46,9 +48,9 @@ struct Ipo;
 typedef struct Deform {
 	struct Object *ob;
 	short flag, partype;
-	int par1, par2, par3;	/* kunnen vertexnrs zijn */
+	int par1, par2, par3;	/* can be vertexnrs */
 	float imat[4][4], premat[4][4], postmat[4][4];
-	float vec[3];	/* als partype==LIMB, voor distfunc */
+	float vec[3];	/* when partype==LIMB, for distfunc */
 	float fac, dist, pad;
 	
 } Deform;
@@ -67,12 +69,12 @@ typedef struct Ika {
 	short partype, flag, iter, lastfra;
 	
 	ListBase limbbase;
-	float eff[3], effg[3], effn[3];	/* current, global en (local)wanted */
+	float eff[3], effg[3], effn[3];	
 	float mem, slow, toty, totx, xyconstraint;
 	
 	struct Ipo *ipo;
 	struct Object *parent;
-	int par1, par2, par3;	/* kunnen vertexnrs zijn */
+	int par1, par2, par3;	
 
 	int totdef;
 	Deform *def;

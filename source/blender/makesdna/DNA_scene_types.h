@@ -82,10 +82,9 @@ typedef struct AviCodecData {
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	
-	/* hoe gaat tijd gedefinieerd worden? */
-	short cfra, sfra, efra;	/* plaatjes */
+	short cfra, sfra, efra;	/* fames as in 'images' */
 	short images, framapto, flag;
-	float ctime;			/* hiermee rekenen? */
+	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
 
 	/** For UR edge rendering: give the edges this colour */
@@ -98,7 +97,7 @@ typedef struct RenderData {
 	short pad[3];
 
 	short size, maximsize;	/* size in %, max in Kb */
-	/* uit buttons: */
+	/* from buttons: */
 	/**
 	 * The desired number of pixels in the x direction
 	 */
@@ -217,8 +216,8 @@ typedef struct Scene {
 	float cursor[3];
 	unsigned int lay;
 
-	/* enkele realtime vars */
-	struct FreeCamera *fcam;
+	/* some realtime vars */
+	struct FreeCamera *fcam;  /* old, can be removed (ton) */
 	
 	void *ed;
 	struct Radio *radio;
@@ -256,7 +255,7 @@ typedef struct Scene {
 #define R_PANORAMA		0x0400
 #define R_MOVIECROP		0x0800
 #define R_COSMO			0x1000
-/* deze verschillen tussen IrisGL en OpenGL!!! */
+/* these difines were different between IrisGL and OpenGL!!! */
 #define R_ODDFIELD		0x2000
 #define R_MBLUR			0x4000
 #define R_UNIFIED       0x8000
@@ -303,21 +302,21 @@ typedef struct Scene {
 #define R_RENDERING		16
 #define R_ANIMRENDER	32
 
-/* vlakren->flag */
+/* vlakren->flag (vlak = face in dutch) */
 #define R_SMOOTH		1
 #define R_VISIBLE		2
 #define R_NOPUNOFLIP	8
 #define R_CMAPCODE		16
 #define R_FACE_SPLIT	32
 
-/* vertren->texofs (texcoordinaten offset vanaf vertren->orco */
+/* vertren->texofs (texcoordinate offset relative to vertren->orco */
 #define R_UVOFS3	1
 
 /* **************** SCENE ********************* */
 #define RAD_PHASE_PATCHES	1
 #define RAD_PHASE_FACES		2
 
-/* base->flag en ob->flag */
+/* base->flag and ob->flag */
 #define BA_WASSEL			2
 #define BA_PARSEL			4
 #define BA_WHERE_UPDATE		8

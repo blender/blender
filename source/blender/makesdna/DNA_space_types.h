@@ -96,7 +96,7 @@ typedef struct SpaceButs {
 	int pad2;
 	View2D v2d;
 	
-	short mainb, menunr;	/* texnr en menunr moeten shorts blijven */
+	short mainb, menunr;	/* texnr and menunr have to remain shorts */
 	short pin, mainbo;	
 	void *lockpoin;
 	
@@ -186,7 +186,7 @@ typedef struct SpaceImage {
 	
 	struct Image *image;
 	float zoom;
-	float pad2; /* MAART: is this needed? Ton: yes, padding with 8 bytes aligned  */
+	float pad2; /* padding is with 8 bytes aligned  */
 	short mode, pin;
 	short imanr, curtile;
 	short xof, yof;
@@ -364,7 +364,7 @@ typedef struct SpaceImaSel {
 #define BUTS_ACT_ACT		128
 #define BUTS_ACT_LINK		256
 
-/* deze getallen ook invullen in blender.h SpaceFile: struct dna herkent geen defines */
+/* these values need to be hardcoded in blender.h SpaceFile: struct dna does not recognize defines */
 #define FILE_MAXDIR			160
 #define FILE_MAXFILE		80
 
@@ -396,8 +396,8 @@ typedef struct SpaceImaSel {
 #define MOVIEFILE			32
 #define PYSCRIPTFILE		64
 
-#define SCROLLH	16			/* hoogte scrollbar */
-#define SCROLLB	16			/* breedte scrollbar */
+#define SCROLLH	16			/* height scrollbar */
+#define SCROLLB	16			/* width scrollbar */
 
 /* SpaceImage->mode */
 #define SI_TEXTURE		0

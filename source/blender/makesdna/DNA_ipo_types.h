@@ -270,7 +270,7 @@ typedef short IPO_Channel;
 #define IPO_FLOAT		4
 #define IPO_DOUBLE		5
 #define IPO_FLOAT_DEGR	6
-/* zeer speciaal geval in keys */
+/* very special case, in keys */
 #define IPO_BEZTRIPLE	100
 #define IPO_BPOINT		101
 

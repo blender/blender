@@ -76,7 +76,7 @@ typedef struct TFace {
 	/* this one gets interpreted as a image in texture.c  */
 	void *tpage;
 
-	float uv[4][2];		/* als je dit wijzigt: ook fie set_correct_uv editmesh.c, ook andere plekken maken gebruik van de lengte van dit blok */
+	float uv[4][2];		/* when you change this: also do function set_correct_uv in editmesh.c, and there are more locations that use the size of this part */
 	unsigned int col[4];
 	char flag, transp;
 	short mode, tile, pad;
@@ -132,7 +132,7 @@ typedef struct Mesh {
 	struct Mesh *texcomesh;
 	float *orco;
 	
-	struct OcInfo *oc;		/* niet in file */
+	struct OcInfo *oc;		/* not written in file */
 	void *sumohandle;
     
 	int totvert, totface;
@@ -168,7 +168,7 @@ typedef struct Mesh {
 #define ME_SMESH		64
 #define ME_SUBSURF		128
 
-/* puno (mface) */
+/* puno = vertexnormal (mface) */
 #define ME_FLIPV1		1
 #define ME_FLIPV2		2
 #define ME_FLIPV3		4
@@ -187,8 +187,6 @@ typedef struct Mesh {
 /* flag (mface) */
 #define ME_SMOOTH		1
 
-/* tface->mode (beetje compatible met PMD formaat) */
-/* sharedvert bepaalt hoe de PSX versie wordt, sharedcol is vertexkleur en puno */
 
 #define TF_DYNAMIC		1
 /* #define TF_INVISIBLE	2 */

@@ -48,7 +48,7 @@ typedef struct bScreen {
 	struct Scene *scene;
 	short startx, endx, starty, endy;	/* framebuffer coords */
 	short sizex, sizey;
-	short scenenr, screennr;			/* alleen voor pupmenu */
+	short scenenr, screennr;			/* only for pupmenu */
 	short full, rt;
 	short mainwin, winakt;
 } bScreen;
@@ -63,7 +63,7 @@ typedef struct ScrVert {
 typedef struct ScrEdge {
 	struct ScrEdge *next, *prev;
 	ScrVert *v1, *v2;
-	short border;			/* 1 als op rand screen */
+	short border;			/* 1 when at edge of screen */
 	short flag;
 	int pad;
 } ScrEdge;
@@ -81,12 +81,12 @@ typedef unsigned short dna_ushort_fix;
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	ScrVert *v1, *v2, *v3, *v4;
-	bScreen *full;			/* als area==full, dit is de parent */
+	bScreen *full;			/* if area==full, this is the parent */
 	float winmat[4][4];
 	rcti totrct, headrct, winrct;
 
 	short headwin, win;
-	short headertype;		/* 0=niets, 1= down, 2= up */
+	short headertype;		/* 0=no header, 1= down, 2= up */
 	char spacetype, butspacetype;	/* SPACE_...  */
 	short winx, winy;		/* size */
 	char head_swap, head_equal;
@@ -101,7 +101,7 @@ typedef struct ScrArea {
 
 #define MAXWIN		128
 
-/* Als je EDGEWIDTH verandert, ook globale array edcol[] goedzetten */
+/* If you change EDGEWIDTH, also do the global arrat edcol[]  */
 #define EDGEWIDTH	5
 #define EDGEWIDTH2	(2)
 #define AREAGRID	4

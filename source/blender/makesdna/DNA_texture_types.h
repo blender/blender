@@ -179,7 +179,7 @@ typedef struct Tex {
 #define TEX_FLIPBLEND	2
 #define TEX_NEGALPHA	4
 
-/* extend (begint bij 1 ivm backward comp.) */
+/* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1
 #define TEX_CLIP		2
 #define TEX_REPEAT		3

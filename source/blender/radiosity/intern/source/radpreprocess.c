@@ -72,15 +72,16 @@ void setparelem(RNode *rn, RPatch *par);
 
 void splitconnected()
 {
-	/* voor zover de videoscapefile nog gedeelde vertices leverde, worden de vlakken getest
-	 * op normaal en kleur. Doe dit door voor elke vertex een normaal en een kleur te onthouden.
+	/* Since input meshes can have faces with sharing vertices, the geometry is being tested here.
+	 * Using normals and colors, faces are split separately. we do this by storing for each
+	 * vertex a normal and a color
 	 */
 	RPatch *rp;
 	RNode *rn;
 	VeNoCo *vnc, *next, *vnc1;
 	int a;
 	
-	/* test of gesplit moet worden */
+	/* test if we need a split */
 	
 	rp= RG.patchbase.first;
 	while(rp) {
@@ -98,7 +99,7 @@ void splitconnected()
 					vnc->col= (float *)rp->ref;
 					vnc->flag= 1;
 				}
-				else {	/* mag vlak deze vertex gebruiken voor gouraud? */
+				else {	/* is face from this vertex allowed for gouraud? */
 					vnc1= vnc;
 					while(vnc1) {
 						if(VecCompare(vnc1->n, rp->norm, 0.01)) {
@@ -127,7 +128,7 @@ void splitconnected()
 		}
 		rp= rp->next;
 	}
-		/* de vertexpointers van nodes aanpassen */
+		/* adapt vertexpointers from nodes */
 	
 	rp= RG.patchbase.first;
 	while(rp) {
@@ -141,7 +142,7 @@ void splitconnected()
 	}
 	
 	
-	/* het hele zaakje vrijgeven */
+	/* free all */
 	vnc= RG.verts;
 	for(a=0; a<RG.totvert; a++) {
 		vnc1= vnc->next;
@@ -218,8 +219,8 @@ static void setedge(RNode *node, RNode *nb, int nr, int nrb)
 
 void setedgepointers()
 {
-	/* edge-array maken en sorteren */
-	/* paren edges staan bij elkaar: pointers invullen in nodes */
+	/* make edge-array and sort it */
+	/* pairs of edges are put together: fill in pointers in nodes */
 	EdSort *es, *esblock;
 	RPatch *rp;
 	RNode *rn;
@@ -430,7 +431,7 @@ void rad_collect_meshes()
 							v4= (RG.verts+mface->v4+offs)->v;
 						}			
 						rn->par= rp;
-						rn->f= RAD_PATCH;	/* deze node is Patch */
+						rn->f= RAD_PATCH;	/* this node is a Patch */
 						rn->type= rp->type;
 
 						CalcNormFloat(v1, v2, v3, rp->norm);
@@ -439,7 +440,7 @@ void rad_collect_meshes()
 
 						rn->area= rp->area;
 
-						/* kleur en emit */
+						/* color and emit */
 						if(mface->mat_nr != index) {
 							index= mface->mat_nr;
 							ma= give_current_material(ob, index+1);
@@ -516,7 +517,7 @@ void countelem(RNode *rn)
 
 void countglobaldata()
 {
-	/* telt aantal elements en patches*/
+	/* counts elements and patches*/
 	RPatch *rp;
 
 	RG.totelem= RG.totpatch= 0;
@@ -559,7 +560,7 @@ void makeGlobalElemArray()
 		return;
 	}
 
-	/* recursief elements toevoegen */
+	/* recursive adding elements */
 	rp= RG.patchbase.first;
 	while(rp) {
 		addelem(&el, rp->first, rp);
@@ -574,7 +575,7 @@ void makeGlobalElemArray()
 		RG.formfactors= 0;
 }
 
-void splitpatch(RPatch *old)		/* bij overflow gedurende shoot */
+void splitpatch(RPatch *old)		/* in case of overflow during shoot */
 {
 	RNode *rn;
 	float **fpp;
@@ -670,7 +671,7 @@ void addpatch(RPatch *old, RNode *rn)
 
 void converttopatches()
 {
-	/* loopt patcheslijst af, als node gesubdivided: nieuwe patch */
+	/* chacks patches list, if node subdivided: new patch */
 	RPatch *rp, *next;
 	
 	rp= RG.patchbase.first;
@@ -693,7 +694,7 @@ void subdiv_elements()
 
 	rad_init_energy();
 	
-	/* eerst maxsize elements */
+	/* first maxsize elements */
 	
 	while(toobig) {
 		toobig= 0;
@@ -773,7 +774,7 @@ void maxsizePatches()
 		if(toobig) converttopatches();
 	}
 	
-	/* aantal lampen tellen */
+	/* count lamps */
 	rp= RG.patchbase.first;
 	RG.totlamp= 0;
 	while(rp) {

@@ -66,9 +66,7 @@
 
 #include "radio.h"
 
-/* Mij afspraak is cpack een getal dat als 0xFFaa66 of zo kan worden
- * uitgedrukt. Is dus gevoelig voor endian. Met deze define wordt het
- * altijd goed afgebeeld */
+/* cpack has to be endian-insensitive! (old irisgl function) */
 #define cpack(x)   glColor3ub( ((x)&0xFF), (((x)>>8)&0xFF), (((x)>>16)&0xFF) )
 
 char calculatecolor(float col)
@@ -217,7 +215,7 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
-		 	/* hier mywinget() gebruiken: anders wordt in header getekend */
+		 	/* use mywinget() here: otherwise it draws in header */
 		 	if(sa->win != mywinget()) areawinset(sa->win);
 			drawnodeWire(patch->first);
 		}
@@ -358,7 +356,7 @@ void drawsquare(float *cent, float size, short cox, short coy)
 
 void drawlimits()
 {
-	/* centreer rond cent */
+	/* centre around cent */
 	short cox=0, coy=1;
 	
 	if((RG.flag & 3)==2) coy= 2;
@@ -404,7 +402,7 @@ void pseudoAmb()
 	float fac;
 	char col[4];
 	
-	/* zet pseudo ambient kleuren in de nodes */
+	/* sets pseudo ambient color in the nodes */
 
 	rp= RG.patchbase.first;
 	while(rp) {
@@ -429,7 +427,7 @@ void pseudoAmb()
 
 void RAD_drawall(int depth_is_on)
 {
-	/* maakt afbeelding van elements of van faces */
+	/* displays elements or faces */
 	Face *face = NULL;
 	RNode **el;
 	RPatch *rp;
@@ -518,7 +516,7 @@ void rad_forcedraw()
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
-		 	/* hier mywinget() gebruiken: anders wordt in header getekend */
+		 	/* use mywinget() here: othwerwise it draws in header */
 		 	if(sa->win != mywinget()) areawinset(sa->win);
 		 	scrarea_do_windraw(sa);
 		}

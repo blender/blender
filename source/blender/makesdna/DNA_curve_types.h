@@ -131,7 +131,7 @@ typedef struct Curve {
 	/* default */
 	short resolu, resolv;
 	
-	/* font stuk */
+	/* font part */
 	short len, lines, pos, spacemode;
 	float spacing, linedist, shear, fsize;
 	float xof, yof;

@@ -131,14 +131,14 @@ int maxdata= 500000, maxnr= 50000;
 int nr_names=0;
 int nr_types=0;
 int nr_structs=0;
-char **names, *namedata;		/* op adres names[a] staat string a */
-char **types, *typedata;		/* op adres types[a] staat string a */
-short *typelens;				/* op typelens[a] staat de lengte van type a */
+char **names, *namedata;		/* at adress names[a] is string a */
+char **types, *typedata;		/* at adress types[a] is string a */
+short *typelens;				/* at typelens[a] is de length of type a */
 short *alphalens;			    /* contains sizes as they are calculated on the alpha */
-short **structs, *structdata;	/* op sp= structs[a] staat eerste adres structdefinitie
-								   sp[0] is typenummer
-								   sp[1] is aantal elementen
-								   sp[2] sp[3] is typenr,  namenr (enz) */
+short **structs, *structdata;	/* at sp= structs[a] is the first adress of a struct definition
+								   sp[0] is type number
+								   sp[1] is amount of elements
+								   sp[2] sp[3] is typenr,  namenr (etc) */
 /*
  * debugSDNA:
  *  - 0 = no output, except errors
@@ -225,7 +225,7 @@ int add_type(char *str, int len)
 	
 	if(str[0]==0) return -1;
 	
-	/* zoek typearray door */
+	/* search through type array */
 	for(nr=0; nr<nr_types; nr++) {
 		if(strcmp(str, types[nr])==0) {
 			if (len) {
@@ -236,7 +236,7 @@ int add_type(char *str, int len)
 		}
 	}
 	
-	/* nieuw type appenden */
+	/* append new type */
 	if(nr_types==0) cp= typedata;
 	else {
 		cp= types[nr_types-1]+strlen(types[nr_types-1])+1;
@@ -356,14 +356,14 @@ int add_name(char *str)
 		name = str;
 	}
 	
-	/* zoek name array door */
+	/* search name array */
 	for(nr=0; nr<nr_names; nr++) {
 		if(strcmp(name, names[nr])==0) {
 			return nr;
 		}
 	}
 	
-	/* nieuw type appenden */
+	/* append new type */
 	if(nr_names==0) cp= namedata;
 	else {
 		cp= names[nr_names-1]+strlen(names[nr_names-1])+1;
@@ -415,7 +415,7 @@ int preprocess_include(char *maindata, int len)
 	memcpy(temp, maindata, len);
 	
 	// remove all c++ comments
-	/* alle enters/tabs/etc vervangen door spaties */
+	/* replace all enters/tabs/etc with spaces */
 	cp= temp;
 	a= len;
 	comment = 0;
@@ -430,7 +430,7 @@ int preprocess_include(char *maindata, int len)
 	}
 	
 
-	/* data uit temp naar maindata kopieeren, verwijder commentaar en dubbele spaties */
+	/* data from temp copy to maindata, remove comments and double spaces */
 	cp= temp;
 	md= maindata;
 	newlen= 0;
@@ -447,10 +447,10 @@ int preprocess_include(char *maindata, int len)
 			cp[0]=cp[1]= 32;
 		}
 
-		/* niet kopieeren als: */
+		/* do not copy when: */
 		if(comment);
 		else if( cp[0]==' ' && cp[1]==' ' );
-		else if( cp[-1]=='*' && cp[0]==' ' );	/* pointers met spatie */
+		else if( cp[-1]=='*' && cp[0]==' ' );	/* pointers with a space */
 		else {
 			md[0]= cp[0];
 			md++;
@@ -498,8 +498,8 @@ void *read_file_data(char *filename, int *len_r)
 
 int convert_include(char *filename)
 {
-	/* lees includefile, sla structen over die op regel ervoor '#' hebben.
-	   sla alle data op in tijdelijke arrays.
+	/* read include file, skip structs with a '#' before it.
+	   store all data in temporal arrays.
 	*/
 	int filelen, count, overslaan, slen, type, name, strct;
 	short *structpoin, *sp;
@@ -514,12 +514,12 @@ int convert_include(char *filename)
 	filelen= preprocess_include(maindata, filelen);
 	mainend= maindata+filelen-1;
 
-	/* we zoeken naar '{' en dan terug naar 'struct' */
+	/* we look for '{' and then back to 'struct' */
 	count= 0;
 	overslaan= 0;
 	while(count<filelen) {
 		
-		/* code voor struct overslaan: twee hekjes. (voor spatie zorgt preprocess) */
+		/* code for skipping a struct: two hashes. (preprocess added a space) */
 		if(md[0]=='#' && md[1]==' ' && md[2]=='#') {
 			overslaan= 1;
 		}
@@ -532,10 +532,10 @@ int convert_include(char *filename)
 			else {
 				if(md[-1]==' ') md[-1]= 0;
 				md1= md-2;
-				while( *md1!=32) md1--;		/* naar begin woord */
+				while( *md1!=32) md1--;		/* to beginning of word */
 				md1++;
 				
-				/* structnaam te pakken, als... */
+				/* we've got a struct name when... */
 				if( strncmp(md1-7, "struct", 6)==0 ) {
 
 					
@@ -545,7 +545,7 @@ int convert_include(char *filename)
 
 					if (debugSDNA > 1) printf("\t|\t|-- detected struct %s\n", types[strct]);
 
-					/* eerst overal keurige strings van maken */
+					/* first lets make it all nice strings */
 					md1= md+1;
 					while(*md1 != '}') {
 						if( ((long)md1) > ((long)mainend) ) break;
@@ -554,17 +554,17 @@ int convert_include(char *filename)
 						md1++;
 					}
 					
-					/* types en namen lezen tot eerste karakter niet '}' */
+					/* read types and names until first character that is not '}' */
 					md1= md+1;
 					while( *md1 != '}' ) {
 						if( ((long)md1) > ((long)mainend) ) break;
 						
-						/* als er 'struct' of 'unsigned' staat, overslaan */
+						/* skip when it says 'struct' or 'unsigned' */
 						if(*md1) {
 							if( strncmp(md1, "struct", 6)==0 ) md1+= 7;
 							if( strncmp(md1, "unsigned", 6)==0 ) md1+= 9;
 							
-							/* type te pakken! */
+							/* we've got a type! */
 							type= add_type(md1, 0);
 
 							if (debugSDNA > 1) printf("\t|\t|\tfound type %s (", md1);
@@ -572,12 +572,12 @@ int convert_include(char *filename)
 							md1+= strlen(md1);
 
 							
-							/* doorlezen tot ';' */
+							/* read until ';' */
 							while( *md1 != ';' ) {
 								if( ((long)md1) > ((long)mainend) ) break;
 								
 								if(*md1) {
-									/* Name te pakken. slen needs
+									/* We've got a name. slen needs
 									 * correction for function
 									 * pointers! */
 									slen= strlen(md1);
@@ -663,12 +663,12 @@ int calculate_structlens(void)
 		lastunknown= unknown;
 		unknown= 0;
 		
-		/* loop alle structen af... */
+		/* check all structs... */
 		for(a=0; a<nr_structs; a++) {
 			structpoin= structs[a];
 			structtype= structpoin[0];
 
-			/* als lengte nog niet bekend */
+			/* when length is not known... */
 			if(typelens[structtype]==0) {
 				
 				sp= structpoin+2;
@@ -676,16 +676,16 @@ int calculate_structlens(void)
 				alphalen = 0;
 				has_pointer = 0;
 				
-				/* loop alle elementen in struct af */
+				/* check all elements in struct */
 				for(b=0; b<structpoin[1]; b++, sp+=2) {
 					type= sp[0];
 					cp= names[sp[1]];
 					
 					namelen= strlen(cp);
-					/* is het een pointer of functiepointer? */
+					/* is it a pointer or function pointer? */
 					if(cp[0]=='*' || cp[1]=='*') {
 						has_pointer = 1;
-						/* heeft de naam een extra lengte? (array) */
+						/* has the name an extra length? (array) */
 						mul= 1;
 						if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
 						
@@ -711,7 +711,7 @@ int calculate_structlens(void)
 						alphalen += 8 * mul;
 
 					} else if( typelens[type] ) {
-						/* heeft de naam een extra lengte? (array) */
+						/* has the name an extra length? (array) */
 						mul= 1;
 						if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
 						
@@ -763,7 +763,7 @@ int calculate_structlens(void)
 				structpoin= structs[a];
 				structtype= structpoin[0];
 				
-				/* lengte nog niet bekend */
+				/* length unknown */
 				if(typelens[structtype]!=0) {
 					printf("  %s\n", types[structtype]);
 				}
@@ -777,7 +777,7 @@ int calculate_structlens(void)
 			structpoin= structs[a];
 			structtype= structpoin[0];
 
-			/* lengte nog niet bekend */
+			/* length unkown yet */
 			if(typelens[structtype]==0) {
 				printf("  %s\n", types[structtype]);
 			}
@@ -818,7 +818,7 @@ void printStructLenghts(void)
 		lastunknown= unknown;
 		unknown= 0;
 		
-		/* loop alle structen af... */
+		/* check all structs... */
 		for(a=0; a<nr_structs; a++) {
 			structpoin= structs[a];
 			structtype= structpoin[0];
@@ -846,20 +846,20 @@ int make_structDNA(FILE *file)
 		printf("\tProgram version: %s\n", DNA_VERSION_DATE);
 	}
 		
-	/* de allerlangst bekende struct is 50k, 100k is ruimte genoeg! */
+	/* the longest known struct is 50k, so we assume 100k is sufficent! */
 	namedata= MEM_callocN(maxdata, "namedata");
 	typedata= MEM_callocN(maxdata, "typedata");
 	structdata= MEM_callocN(maxdata, "structdata");
 	
-	/* maximaal 5000 variablen, vast voldoende? */
+	/* a maximum of 5000 variables, must be sufficient? */
 	names= MEM_callocN(sizeof(char *)*maxnr, "names");
 	types= MEM_callocN(sizeof(char *)*maxnr, "types");
 	typelens= MEM_callocN(sizeof(short)*maxnr, "typelens");
 	alphalens= MEM_callocN(sizeof(short)*maxnr, "alphalens");
 	structs= MEM_callocN(sizeof(short)*maxnr, "structs");
 
-	/* inserten alle bekende types */
-	/* let op: uint komt niet voor! gebruik in structen unsigned int */
+	/* insertion of all known types */
+	/* watch it: uint is not allowed! use in structs an unsigned int */
 	add_type("char", 1);	/* 0 */
 	add_type("uchar", 1);	/* 1 */
 	add_type("short", 2);	/* 2 */
@@ -903,7 +903,7 @@ int make_structDNA(FILE *file)
 		return(1);
 	}
 
-	/* DIT DEEL VOOR DEBUG */
+	/* FOR DEBUG */
 	if (debugSDNA > 1)
 	{
 		int a,b;
@@ -934,7 +934,7 @@ int make_structDNA(FILE *file)
 		}
 	}
 
-	/* file schrijven */
+	/* file writing */
 
 	if (debugSDNA > -1) printf("Writing file ... ");
 		
@@ -943,34 +943,34 @@ int make_structDNA(FILE *file)
 		strcpy(str, "SDNA");
 		dna_write(file, str, 4);
 		
-		/* SCHRIJF NAMEN */
+		/* write names */
 		strcpy(str, "NAME");
 		dna_write(file, str, 4);
 		len= nr_names;
 		dna_write(file, &len, 4);
 		
-		/* lengte berekenen datablok met strings */
+		/* calculate size of datablock with strings */
 		cp= names[nr_names-1];
-		cp+= strlen(names[nr_names-1]) + 1;			/* +1: nul-terminator */
+		cp+= strlen(names[nr_names-1]) + 1;			/* +1: null-terminator */
 		len= (long)cp - (long)(names[0]);
 		len= (len+3) & ~3;
 		dna_write(file, names[0], len);
 		
-		/* SCHRIJF TYPES */
+		/* write TYPES */
 		strcpy(str, "TYPE");
 		dna_write(file, str, 4);
 		len= nr_types;
 		dna_write(file, &len, 4);
 	
-		/* lengte berekenen datablok */
+		/* calculate datablock size */
 		cp= types[nr_types-1];
-		cp+= strlen(types[nr_types-1]) + 1;		/* +1: nul-terminator */
+		cp+= strlen(types[nr_types-1]) + 1;		/* +1: null-terminator */
 		len= (long)cp - (long)(types[0]);
 		len= (len+3) & ~3;
 		
 		dna_write(file, types[0], len);
 		
-		/* SCHRIJF TYPELENGTES */
+		/* WRITE TYPELENGTHS */
 		strcpy(str, "TLEN");
 		dna_write(file, str, 4);
 		
@@ -978,13 +978,13 @@ int make_structDNA(FILE *file)
 		if(nr_types & 1) len+= 2;
 		dna_write(file, typelens, len);
 		
-		/* SCHRIJF STRUCTEN */
+		/* WRITE STRUCTS */
 		strcpy(str, "STRC");
 		dna_write(file, str, 4);
 		len= nr_structs;
 		dna_write(file, &len, 4);
 	
-		/* lengte berekenen datablok */
+		/* calc datablock size */
 		sp= structs[nr_structs-1];
 		sp+= 2+ 2*( sp[1] );
 		len= (long)sp - (long)(structs[0]);
@@ -992,7 +992,7 @@ int make_structDNA(FILE *file)
 		
 		dna_write(file, structs[0], len);
 	
-		/* dna padding test */
+		/* a simple dna padding test */
 
 		if (0) {
 			FILE *fp;
@@ -1036,7 +1036,7 @@ int make_structDNA(FILE *file)
 	return(0);
 }
 
-/* ************************* END MAKEN DNA ********************** */
+/* ************************* END MAKE DNA ********************** */
 
 void make_bad_file(char *file)
 {

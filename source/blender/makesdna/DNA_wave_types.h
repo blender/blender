@@ -38,6 +38,10 @@
 
 struct Ipo;
 
+
+/* a Wave has never been implemented... it was meant as a 'free' mathematical
+  deformation object type (ton) */
+
 typedef struct Wave {
 	ID id;
 	

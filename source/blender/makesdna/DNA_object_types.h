@@ -69,7 +69,7 @@ typedef struct Object {
 	ID id;
 
 	short type, partype;
-	int par1, par2, par3;	/* kunnen vertexnrs zijn */
+	int par1, par2, par3;	/* can be vertexnrs */
 	char parsubstr[32];	/* String describing subobject info */
 	void *pardata;
 	struct Object *parent, *track;
@@ -89,28 +89,28 @@ typedef struct Object {
 	ListBase defbase;
 	struct Material **mat;
 	
-	/* rot en drot moeten achterelkaar! (transform('r' en 's')) */
+	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
 	float size[3], dsize[3];
 	float rot[3], drot[3];
 	float quat[4], dquat[4];
 	float obmat[4][4];
 	float parentinv[4][4];
-	float imat[4][4];	/* voor bij render, tijdens simulate, tijdelijk: ipokeys van transform  */
+	float imat[4][4];	/* for during render, old game engine, temporally: ipokeys of transform  */
 	
-	unsigned int lay;				/* kopie van Base */
-	short flag;			/* kopie van Base */
-	short colbits;		/* nul==van obdata */
+	unsigned int lay;				/* copy of Base */
+	short flag;			/* copy of Base */
+	short colbits;		/* when zero, from obdata */
 	char transflag, ipoflag;
 	char trackflag, upflag;
-	short ipowin, scaflag;	/* ipowin: blocktype laatste ipowindow */
+	short ipowin, scaflag;	/* ipowin: blocktype last ipowindow */
 	short scavisflag, boundtype;
 	
 	short dupon, dupoff, dupsta, dupend;
 
 	float sf, ctime;
 	
-	/* tijdens realtime */
+	/* during realtime */
 
 	/* note that inertia is only called inertia for historical reasons
 	 * and is not changed to avoid DNA surgery. It actually reflects the 
@@ -129,7 +129,7 @@ typedef struct Object {
 	float rdamping, sizefac;
 	
 	char dt, dtx;
-	char totcol;	/* kopie van mesh of curve of meta */
+	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;
 	
 	ScriptLink scriptlink;

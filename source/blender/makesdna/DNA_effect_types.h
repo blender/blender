@@ -34,11 +34,11 @@
 #ifndef DNA_EFFECT_TYPES_H
 #define DNA_EFFECT_TYPES_H
 
-/* DENK ERAAN: NIEUWE EFFECTEN OOK IN DE WRITEFILE.C IVM DNA!!! */
+/* don't forget, new effects also in writefile.c for dna!!! */
 
 #define PAF_MAXMULT		4
 
-	/* paf->flag (bitje 0 vrij houden ivm compatibility) */
+	/* paf->flag (keep bit 0 free for compatibility) */
 #define PAF_BSPLINE		2
 #define PAF_STATIC		4
 #define PAF_FACE		8

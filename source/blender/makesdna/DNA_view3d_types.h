@@ -93,7 +93,7 @@ typedef struct View3D {
 	float lens, grid, near, far;
 	float ofs[3], cursor[3];
 	
-	short mx, my;	/* moeten achter elkaar blijven staan ivm als pointer doorgeven */
+	short mx, my;	/* have to remain together, because used as single pointer */
 	short mxo, myo;
 
 	short gridlines, viewbut;

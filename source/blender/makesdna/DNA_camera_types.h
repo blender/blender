@@ -48,9 +48,9 @@ typedef struct Camera {
 	
 	short type, flag, drawzoom, hold;
 	float clipsta, clipend;
-	float netsta, netend;			/* network camera */
+	float netsta, netend;			/* network camera (obsolete -ton) */
 	float lens, drawsize;
-	float hololen, hololen1;
+	float hololen, hololen1; /* obsolete (ton) */
 	
 	struct Ipo *ipo;
 	

@@ -52,12 +52,12 @@ typedef struct Image {
 	short ok, flag;
 	short lastframe, lastquality;
 
-	/* texture pagina */
+	/* texture page */
 	short tpageflag, totbind;
 	short xrep, yrep;
 	short twsta, twend;
 	unsigned int bindcode;
-	unsigned int *repbind;	/* om subregio's te kunnen repeaten */
+	unsigned int *repbind;	/* for repeat of parts of images */
 	
 	struct PackedFile * packedfile;
 
