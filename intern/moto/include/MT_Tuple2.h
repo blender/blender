@@ -75,7 +75,7 @@ public:
     const MT_Scalar *getValue() const { return m_co; }
 
     void getValue(float *vv) const { 
-        vv[0] = m_co[0]; vv[1] = m_co[1];
+        vv[0] = (float) m_co[0]; vv[1] = (float) m_co[1];
     }
     
     void getValue(double *vv) const { 

@@ -167,17 +167,17 @@ public:
 	 * Read the element from row i, column j.
 	 */
 	float getElement(int i, int j) {
-		return m_el[i][j];
+		return (float) m_el[i][j];
 	}
 	
     /**
 	 * Copy the contents to a contiguous block of 16 floats.
 	 */
     void getValue(float *m) const {
-        *m++ = m_el[0][0]; *m++ = m_el[1][0]; *m++ = m_el[2][0]; *m++ = m_el[3][0];
-        *m++ = m_el[0][1]; *m++ = m_el[1][1]; *m++ = m_el[2][1]; *m++ = m_el[3][1];
-        *m++ = m_el[0][2]; *m++ = m_el[1][2]; *m++ = m_el[2][2]; *m++ = m_el[3][2];
-        *m++ = m_el[0][3]; *m++ = m_el[1][3]; *m++ = m_el[2][3]; *m = m_el[3][3];
+        *m++ = (float) m_el[0][0]; *m++ = (float) m_el[1][0]; *m++ = (float) m_el[2][0]; *m++ = (float) m_el[3][0];
+        *m++ = (float) m_el[0][1]; *m++ = (float) m_el[1][1]; *m++ = (float) m_el[2][1]; *m++ = (float) m_el[3][1];
+        *m++ = (float) m_el[0][2]; *m++ = (float) m_el[1][2]; *m++ = (float) m_el[2][2]; *m++ = (float) m_el[3][2];
+        *m++ = (float) m_el[0][3]; *m++ = (float) m_el[1][3]; *m++ = (float) m_el[2][3]; *m = (float) m_el[3][3];
     }
 
     /**
