@@ -628,7 +628,6 @@ static EditFace *findnearestface(short *dist)
 /* for interactivity, frontbuffer draw in current window */
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
-	int optimal= subsurf_optimal(G.obedit);
 	DerivedMesh *dm = mesh_get_cage_derived(G.obedit);
 
 	glDrawBuffer(GL_FRONT);
@@ -669,10 +668,8 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
 			if(efa->fgonf==0) {
 				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
-				
-				if(efa->f & SELECT) BIF_ThemeColor(TH_FACE_DOT);
-				else BIF_ThemeColor(TH_WIRE);
-				
+				BIF_ThemeColor((efa->f & SELECT)?TH_FACE_DOT:TH_WIRE);
+
 				bglBegin(GL_POINTS);
 				bglVertex3fv(efa->cent);
 				bglEnd();
@@ -689,32 +686,19 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 			
-			if(eed->f & SELECT) BIF_ThemeColor(TH_VERTEX_SELECT);
-			else BIF_ThemeColor(TH_VERTEX);
+			BIF_ThemeColor((eed->f & SELECT)?TH_VERTEX_SELECT:TH_VERTEX);
 			
-			bglBegin(GL_POINTS);
-			if(optimal) {
-				bglVertex3fv(eed->v1->ssco);
-				bglVertex3fv(eed->v2->ssco);
-			} else {
-				bglVertex3fv(eed->v1->co);
-				bglVertex3fv(eed->v2->co);
-			}
-			bglEnd();
+			dm->drawMappedVertEM(dm, eed->v1);
+			dm->drawMappedVertEM(dm, eed->v2);
 		}
 	}
 	if(eve) {
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 			
-			if(eve->f & SELECT) BIF_ThemeColor(TH_VERTEX_SELECT);
-			else BIF_ThemeColor(TH_VERTEX);
+			BIF_ThemeColor((eve->f & SELECT)?TH_VERTEX_SELECT:TH_VERTEX);
 			
-			bglBegin(GL_POINTS);
-			if(optimal) bglVertex3fv(eve->ssco);
-			else bglVertex3fv(eve->co);
-			bglEnd();
+			dm->drawMappedVertEM(dm, eve);
 		}
 	}
 

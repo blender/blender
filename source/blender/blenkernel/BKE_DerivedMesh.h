@@ -51,6 +51,8 @@ struct DerivedMesh {
 	int (*getNumVerts)(DerivedMesh *dm);
 	int (*getNumFaces)(DerivedMesh *dm);
 
+	void (*getMappedVertCoEM)(DerivedMesh *dm, void *vert, float co_r[3]);
+
 			/* Convert to new DispListMesh, should be free'd by caller */
 	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm);
 
@@ -81,6 +83,9 @@ struct DerivedMesh {
 			 *    in ABGR format, and should be passed as per-face vertex color.
 			 */
 	void (*drawFacesColored)(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2);
+
+			/* Draw single mapped vert as bgl point (no options) */
+	void (*drawMappedVertEM)(DerivedMesh *dm, void *vert);
 
 			/* Draw mapped vertices as bgl points
 			 *  o Only if mapped EditVert->h==0

@@ -970,16 +970,6 @@ static void drawlattice(Object *ob)
 
 /* ***************** ******************** */
 
-int subsurf_optimal(Object *ob)
-{
-	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		if( (me->flag & ME_OPT_EDGES) && (me->flag & ME_SUBSURF) && me->subdiv) return 1;
-	}
-	return 0;
-}
-
-
 void calc_mesh_facedots_ext(void)
 {
 	EditMesh *em = G.editMesh;
@@ -1012,27 +1002,22 @@ void calc_mesh_facedots_ext(void)
 /* window coord, assuming all matrices are set OK */
 static void calc_meshverts(void)
 {
-	EditMesh *em = G.editMesh;
+	DerivedMesh *dm = mesh_get_cage_derived(G.obedit);
+	float co[3], mat[4][4];
 	EditVert *eve;
-	float mat[4][4];
-
-	if(em->verts.first==0) return;
-	eve= em->verts.first;
 
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	if(subsurf_optimal(G.obedit)) { // separate loop for speed 
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && eve->ssco) project_short(eve->ssco, &(eve->xs));
+	for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
+		if(eve->h==0) {
+			dm->getMappedVertCoEM(dm, eve, co);
+			project_short(co, &(eve->xs));
 		}
 	}
-	else {
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0) project_short(eve->co, &(eve->xs));
-		}
-	}
+
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	dm->release(dm);
 }
 
 /* window coord for current window, sets matrices temporal */
@@ -1051,13 +1036,9 @@ void calc_meshverts_ext(void)
 /* window coord for current window, sets matrices temporal, sets (eve->f & 2) when not visible */
 void calc_meshverts_ext_f2(void)
 {
-	EditMesh *em = G.editMesh;
+	DerivedMesh *dm = mesh_get_cage_derived(G.obedit);
+	float co[3], mat[4][4];
 	EditVert *eve;
-	float mat[4][4];
-	int optimal= subsurf_optimal(G.obedit);
-	
-	if(em->verts.first==0) return;
-	eve= em->verts.first;
 
 	/* matrices */
 	areawinset(curarea->win);
@@ -1067,11 +1048,11 @@ void calc_meshverts_ext_f2(void)
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	for(eve= em->verts.first; eve; eve= eve->next) {
+	for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
 		eve->f &= ~2;
 		if(eve->h==0) {
-			if(optimal && eve->ssco) project_short_noclip(eve->ssco, &(eve->xs));
-			else project_short_noclip(eve->co, &(eve->xs));
+			dm->getMappedVertCoEM(dm, eve, co);
+			project_short_noclip(co, &(eve->xs));
 	
 			if( eve->xs >= 0 && eve->ys >= 0 && eve->xs<curarea->winx && eve->ys<curarea->winy);
 			else eve->f |= 2;
@@ -1081,7 +1062,8 @@ void calc_meshverts_ext_f2(void)
 	/* restore */
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	myloadmatrix(G.vd->viewmat);
-	
+
+	dm->release(dm);
 }
 
 

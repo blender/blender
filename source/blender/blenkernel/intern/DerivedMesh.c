@@ -392,6 +392,7 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
 
 	mdm->dm.drawVerts = meshDM_drawVerts;
+	mdm->dm.drawMappedVertEM = NULL;
 	mdm->dm.drawMappedVertsEM = NULL;
 	mdm->dm.drawMappedVertsEMSelect = NULL;
 
@@ -424,6 +425,22 @@ typedef struct {
 	EditMesh *em;
 } EditMeshDerivedMesh;
 
+static void emDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
+{
+	EditVert *eve = vert;
+
+	co_r[0] = eve->co[0];
+	co_r[1] = eve->co[1];
+	co_r[2] = eve->co[2];
+}
+static void emDM_drawMappedVertEM(DerivedMesh *dm, void *vert)
+{
+	EditVert *eve = vert;
+
+	bglBegin(GL_POINTS);
+	bglVertex3fv(eve->co);
+	bglEnd();		
+}
 static void emDM_drawMappedVertsEM(DerivedMesh *dm, int sel)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
@@ -591,9 +608,11 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 
 	emdm->dm.getNumVerts = emDM_getNumVerts;
 	emdm->dm.getNumFaces = emDM_getNumFaces;
+	emdm->dm.getMappedVertCoEM = emDM_getMappedVertCoEM;
 	emdm->dm.convertToDispListMesh = emDM_convertToDispListMesh;
 
 	emdm->dm.drawVerts = NULL;
+	emdm->dm.drawMappedVertEM = emDM_drawMappedVertEM;
 	emdm->dm.drawMappedVertsEM = emDM_drawMappedVertsEM;
 	emdm->dm.drawMappedVertsEMSelect = emDM_drawMappedVertsEMSelect;
 
@@ -626,6 +645,22 @@ typedef struct {
 	float *nors;
 } SSDerivedMesh;
 
+static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
+{
+	EditVert *eve = vert;
+
+	co_r[0] = eve->ssco[0];
+	co_r[1] = eve->ssco[1];
+	co_r[2] = eve->ssco[2];
+}
+static void ssDM_drawMappedVertEM(DerivedMesh *dm, void *vert)
+{
+	EditVert *eve = vert;
+
+	bglBegin(GL_POINTS);
+	bglVertex3fv(eve->ssco);
+	bglEnd();		
+}
 static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int sel)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -985,9 +1020,11 @@ static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, float *nor
 
 	ssdm->dm.getNumVerts = ssDM_getNumVerts;
 	ssdm->dm.getNumFaces = ssDM_getNumFaces;
+	ssdm->dm.getMappedVertCoEM = ssDM_getMappedVertCoEM;
 	ssdm->dm.convertToDispListMesh = ssDM_convertToDispListMesh;
 
 	ssdm->dm.drawVerts = ssDM_drawVerts;
+	ssdm->dm.drawMappedVertEM = ssDM_drawMappedVertEM;
 	ssdm->dm.drawMappedVertsEM = ssDM_drawMappedVertsEM;
 	ssdm->dm.drawMappedVertsEMSelect = ssDM_drawMappedVertsEMSelect;
 
