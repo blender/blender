@@ -495,6 +495,6 @@ class Material:
   def getTextures ():
     """
     Get this Material's Texture list.
-    @rtype: list
-    @return: a list of Blender Textures.  None is returned for each empty texture slot.
+    @rtype: list of MTex
+    @return: a list of Blender MTex objects.  None is returned for each empty texture slot.
     """

@@ -122,6 +122,6 @@ class Text:
   def asLines():
     """
     Retrieve the contents of this Text buffer as a list of strings.
-    @rtype: list
-    @return:  A list of strings.
+    @rtype: list of strings
+    @return:  A list of strings, one for each line in the buffer
     """

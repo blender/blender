@@ -211,7 +211,7 @@ class Curve:
     Get the curve's control point value. 
     @type numcurve: int
     @type numpoint: int
-    @rtype: list
+    @rtype: list of floats
     @return: depends upon the curve's type.
       - type bezier : a list of three coordinates
       - type nurbs : a list of nine coordinates.

@@ -58,7 +58,7 @@ class Ipo:
   def getCurves():
     """
 		Gets all the IpoCurves of the Ipo.
-		@rtype: list
+		@rtype: list of IpoCurves
 		@return: A list (possibly void) containing all the IpoCurves associated to the Ipo object.
     """
   def getCurve(curvename):
@@ -237,7 +237,7 @@ class IpoCurve:
   def getPoints():
     """
 		Returns all the points of the ipo curve.
-		@rtype: list
+		@rtype: list of BezTriples
 		@return: the points of the ipo curve.
     """
 
@@ -254,8 +254,8 @@ class BezTriple:
   def getPoints():
     """
 		Returns the xy coordinates of the Bezier point.
-		@rtype: list
-		@return: list of the coordinates of the Bezier point.
+		@rtype: list of floats
+		@return: list of the x and y coordinates of the Bezier point.
     """
 
   def setPoints(newval):

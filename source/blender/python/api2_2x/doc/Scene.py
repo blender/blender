@@ -209,7 +209,7 @@ class Scene:
   def getChildren():
     """
     Get all objects linked to this Scene.
-    @rtype: list
+    @rtype: list of Blender Objects
     @return: A list with all Blender Objects linked to this Scene.
     """
 

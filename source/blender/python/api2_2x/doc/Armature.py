@@ -65,7 +65,7 @@ class Armature:
   def getBones():
     """
     Get the Armature root bones.
-    @rtype: list
+    @rtype: list of Blender Bones
     @return: a list of Armature bones.
     """
 

@@ -320,7 +320,7 @@ class NMesh:
     Get influences of bones in a specific vertex.
     @type index: int
     @param index: The index of a vertex.
-    @rtype: list
+    @rtype: list of lists
     @return: List of pairs (name, weight), where name is the bone name (string)
         and its weight is a float value.
     """
