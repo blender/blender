@@ -206,9 +206,8 @@ short imb_savebmp(struct ImBuf *ibuf, int outfile, int flags) {
    uchar *data;
    FILE *ofile;
 
-   extrabytes = (4 - ibuf->x % 4) % 4;
-printf("extrabytes = %d\n",extrabytes);
-   bytesize = (ibuf->x + extrabytes) * ibuf->y;
+   extrabytes = (4 - ibuf->x*3 % 4) % 4;
+   bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
 
    data = (uchar *) ibuf->rect;
    ofile = fdopen(outfile,"ab");
@@ -225,7 +224,7 @@ printf("extrabytes = %d\n",extrabytes);
    putShortLSB(1,ofile);
    putShortLSB(24,ofile);
    putIntLSB(0,ofile);
-   putIntLSB(bytesize,ofile);
+   putIntLSB(bytesize + BMP_FILEHEADER_SIZE + sizeof(infoheader),ofile);
    putIntLSB(0,ofile);
    putIntLSB(0,ofile);
    putIntLSB(0,ofile);
@@ -244,6 +243,5 @@ printf("extrabytes = %d\n",extrabytes);
       /* add padding here */
       for (t=0;t<extrabytes;t++) if (putc(0,ofile) == EOF) return 0;
    }
-printf("x = %d y = %d\n",x,y);
    return 1;
 }
