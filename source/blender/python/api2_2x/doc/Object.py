@@ -129,7 +129,14 @@ class Object:
     @cvar EffX: The X effector coordinate of the object. Only applies to IKA.
     @cvar EffY: The Y effector coordinate of the object. Only applies to IKA.
     @cvar EffZ: The Z effector coordinate of the object. Only applies to IKA.
-    @cvar Layer: The object layer (as a bitmask).
+    @cvar Layer: The object layer.  This value is a bitmask with one position
+        set for each of the 20 possible layers starting from the low order bit.
+	The easiest way to deal with these values in in hexadecimal notation.
+	Example::
+	    ob.Layer = 0x04    # sets layer 3 ( bit pattern 0100 )
+	
+	After setting the Layer value, call Blender.Redraw( -1 ) to update the
+	interface.
     @cvar parent: The parent object of the object. (Read-only)
     @cvar track: The object tracking this object. (Read-only)
     @cvar data: The data of the object. (Read-only)
