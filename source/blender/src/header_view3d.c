@@ -104,6 +104,9 @@
 #include "BIF_toolbox.h"
 #include "BIF_gl.h"
 
+#include "BPY_extern.h"
+#include "BPY_menus.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "butspace.h"
@@ -1628,6 +1631,35 @@ static uiBlock *view3d_edit_object_trackmenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_edit_object_scriptsmenu(void *arg, int event)
+{
+	BPY_menu_do_python(PYMENU_OBJECT, event);
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_edit_object_scriptsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+	BPyMenu *pym;
+	int i = 0;
+
+	block= uiNewBlock(&curarea->uiblocks, "v3d_eobject_pymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_object_scriptsmenu, NULL);
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	for (pym = BPyMenuTable[PYMENU_OBJECT]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+	}
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
 static void do_view3d_edit_objectmenu(void *arg, int event)
 {
 	/* needed to check for valid selected objects */
@@ -1730,6 +1762,9 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, view3d_edit_object_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
 
 		
 	if(curarea->headertype==HEADERTOP) {
@@ -2103,6 +2138,35 @@ static uiBlock *view3d_edit_mesh_showhidemenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_edit_mesh_scriptsmenu(void *arg, int event)
+{
+	BPY_menu_do_python(PYMENU_MESH, event);
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_edit_mesh_scriptsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+	BPyMenu *pym;
+	int i = 0;
+
+	block= uiNewBlock(&curarea->uiblocks, "v3d_emesh_pymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_mesh_scriptsmenu, NULL);
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	for (pym = BPyMenuTable[PYMENU_MESH]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
+	}
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
 static void do_view3d_edit_meshmenu(void *arg, int event)
 {
 	switch(event) {
@@ -2206,6 +2270,9 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, view3d_edit_mesh_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Vertices", 0, yco-=20, 120, 19, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, view3d_edit_mesh_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

@@ -19,7 +19,7 @@ Tip: 'Bevel selected vertices.'
 ######################################################################
 
 import Blender
-from Blender import NMesh
+from Blender import NMesh, Window
 from Blender.Draw import *
 from Blender.BGL import *
 
@@ -404,6 +404,11 @@ def bevel():
 	global me,NF,NV,NE,NC, old_dist
 	#
 	objects = Blender.Object.GetSelected() 
+	if objects[0].getType() != "Mesh":
+		PupMenu("Error|Active object for bevelling must be a mesh.")
+		return
+	editmode = Window.EditMode()
+	if editmode: Window.EditMode(0)
 	me = NMesh.GetRaw(objects[0].data.name)
 	#
 	NF = []
@@ -420,6 +425,7 @@ def bevel():
 	old_dist = dist.val
 	#
 	me.update(1)
+	if editmode: Window.EditMode(1)
 	Blender.Redraw()
 
 def bevel_update():

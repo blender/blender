@@ -3,7 +3,7 @@
 Name: 'UnWeld'
 Blender: 232
 Group: 'Mesh'
-Tip: 'unweld all faces from one selected and commun vertex. Made vertex bevelling'
+Tip: 'Unweld all faces from a selected and common vertex. Made vertex bevelling.'
 """
 
 # $Id$

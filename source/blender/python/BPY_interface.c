@@ -42,7 +42,6 @@
 #include <MEM_guardedalloc.h>
 #include <BLI_blenlib.h> /* for BLI_last_slash() */
 
-#include <BDR_editobject.h> /* for exit_editmode() */
 #include <BIF_interface.h> /* for pupmenu() */
 #include <BIF_space.h>
 #include <BIF_screen.h>
@@ -448,10 +447,6 @@ int BPY_txt_do_python_Text(struct Text* text)
 	 * will have been deallocated already, so we need to copy its name here. */
 	BLI_strncpy(textname, GetName(text), strlen(GetName(text))+1);
 
-	/* if in it, leave editmode, since changes a script makes to meshdata
-	 * can be lost otherwise. */
-	if (G.obedit) exit_editmode(1);
-
 	script->id.us = 1;
 	script->flags = SCRIPT_RUNNING;
 	script->py_draw = NULL;
@@ -620,10 +615,6 @@ int BPY_menu_do_python(short menutype, int event)
 		fclose(fp);
 		return 0;
 	}
-
-	/* if in editmode, leave it, since changes a script makes to meshdata
-	 * can be lost otherwise. */
-	if (G.obedit) exit_editmode(1);
 
 	/* let's find a proper area for an eventual script gui:
 	 * (still experimenting here, need definition on which win

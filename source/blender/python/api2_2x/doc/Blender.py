@@ -44,7 +44,7 @@ The Blender Python API Reference
   - L{Text}
   - L{Texture}
   - L{Types}
-  - L{Window}
+  - L{Window} (* important: L{Window.EditMode})
   - L{World} (*)
   - L{sys<Sys>} (*)
 

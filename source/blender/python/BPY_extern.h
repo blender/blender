@@ -53,6 +53,7 @@ int BPY_Err_getLinenumber(void);
 const char *BPY_Err_getFilename(void);
 /* void BPY_Err_Handle(struct Text *text); */
 int BPY_txt_do_python(struct SpaceText* st);
+int BPY_menu_do_python(short menutype, int event);
 void BPY_run_python_script(char *filename);
 void BPY_free_compiled_text(struct Text* text);
 /*void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */

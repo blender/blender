@@ -45,6 +45,8 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "BLI_blenlib.h"
+
 #include "BMF_Api.h"
 #include "BIF_language.h"
 #ifdef INTERNATIONAL
@@ -80,7 +82,6 @@
 /* action executed after clicking in Scripts menu */
 static void do_scripts_submenus(void *int_arg, int event)
 {
-	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
 	int menutype = (int)int_arg;
 
 	BPY_menu_do_python (menutype, event);
@@ -97,9 +98,8 @@ static uiBlock *script_scripts_submenus(void *int_menutype)
 
 	if ((menutype < 0) || (menutype > PYMENU_TOTAL)) return NULL;
 
-	block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	block= uiNewBlock(&curarea->uiblocks, "scriptsscriptssubmenus", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_scripts_submenus, int_menutype);
-	//uiBlockSetXOfs(block, -50);  // offset to parent button
 
 	for (pym = BPyMenuTable[menutype]; pym; pym = pym->next, i++) {
 		uiDefBut(block, BUTM, 1, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
@@ -168,7 +168,7 @@ void do_script_buttons(unsigned short event)
 	SpaceScript *sc= curarea->spacedata.first;
 	ID *id, *idtest;
 	int nr= 1;
-	Script *script;
+	Script *script = sc->script;
 
 	if (!sc) return;
 	if (sc->spacetype != SPACE_SCRIPT) return;
@@ -176,13 +176,12 @@ void do_script_buttons(unsigned short event)
 	switch (event) {
 	case B_SCRIPTBROWSE:
 		if (sc->menunr==-2) {
-			activate_databrowse((ID *)sc->script, ID_SCR, 0, B_SCRIPTBROWSE,
+			activate_databrowse((ID *)script, ID_SCR, 0, B_SCRIPTBROWSE,
 											&sc->menunr, do_script_buttons);
 			break;
 		}
-		if(sc->menunr < 0) break;
 
-		script = sc->script;
+		if(sc->menunr < 0) break;
 
 		nr = 1;
 		id = (ID *)script;
@@ -202,8 +201,13 @@ void do_script_buttons(unsigned short event)
 			allqueue(REDRAWHEADERS, 0);
 		}
 		break;
-	case B_SCRIPT2BUTS:
-		newspace(curarea, SPACE_BUTS);
+	case B_SCRIPT2PREV:
+		if(sc->next) {
+			BLI_remlink(&curarea->spacedata, sc);
+			BLI_addtail(&curarea->spacedata, sc);
+			sc = curarea->spacedata.first;
+			newspace(curarea, sc->spacetype);
+		}
 		break;
 	}
 
@@ -256,7 +260,9 @@ void script_buttons(void)
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
-	xco += 10;
+
+	uiDefIconBut(block, BUT, B_SCRIPT2PREV, ICON_GO_LEFT, xco+=XIC, 0, XIC, YIC,
+		0, 0, 0, 0, 0, "Returns to previous window");
 
 	/* FULL WINDOW */
 	if(curarea->full)
@@ -269,12 +275,6 @@ void script_buttons(void)
 	/* STD SCRIPT BUTTONS */
 	xco += 2*XIC;
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SCRIPTBROWSE, (ID*)sc->script, 0, &(sc->menunr), 0, 0, 0, 0, 0);
-
-	if (sc->script && sc->script->lastspace == SPACE_BUTS) {
-		xco += 10;
-		uiDefIconBut(block, BUT, B_SCRIPT2BUTS, ICON_BUTS, xco+=XIC, 0, XIC, YIC,
-			0, 0, 0, 0, 0, "Returns to Buttons Window");
-	}
 
 	/* always as last  */
 	curarea->headbutlen= xco+2*XIC;

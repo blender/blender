@@ -81,6 +81,7 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 
+#include "BPY_extern.h"
 #include "BPY_menus.h"
 
 #include "IMB_imbuf.h"
@@ -815,7 +816,6 @@ static uiBlock *image_uvs_transformmenu(void *arg_unused)
 
 static void do_image_uvsmenu(void *arg, int event)
 {
-	extern int BPY_menu_do_python(short menutype, int event);	// BPY_interface.c
 	ScrArea *sa;
 
 	/* events >=20 are registered bpython scripts */

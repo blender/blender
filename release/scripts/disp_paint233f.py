@@ -4,7 +4,7 @@
 Name: 'Dispaint'
 Blender: 233
 Group: 'Mesh'
-Tip: 'use vertex paint color value to modify shape displacing vertices along normal.'
+Tip: 'Use vertex paint color value to modify shape displacing vertices along normal.'
 """
 
 # $Id$

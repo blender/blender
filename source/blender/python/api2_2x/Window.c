@@ -32,6 +32,7 @@
 #include <Python.h>
 #include <stdio.h>
 
+#include <BDR_editobject.h> /* enter / leave editmode */
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_object.h> /* for during_script() */
@@ -73,6 +74,7 @@ static PyObject *M_Window_GetViewVector (PyObject *self);
 static PyObject *M_Window_GetViewMatrix (PyObject *self);
 static PyObject *M_Window_FileSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_ImageSelector (PyObject *self, PyObject *args);
+static PyObject *M_Window_EditMode (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.			 */
@@ -130,6 +132,13 @@ static char M_Window_GetViewVector_doc[] =
 static char M_Window_GetViewMatrix_doc[] =
 "() - Get the current 3d view matrix.";
 
+static char M_Window_EditMode_doc[] =
+"() - Get the current status -- 0: not in edit mode; 1: in edit mode.\n\
+(status) - if 1: enter edit mode; if 0: leave edit mode.\n\
+Returns the current status.  This function is mostly useful to leave\n\
+edit mode before applying changes to a mesh (otherwise the changes will\n\
+be lost) and then returning to it upon leaving.";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Window module:						 */
 /*****************************************************************************/
@@ -153,6 +162,8 @@ struct PyMethodDef M_Window_methods[] = {
 		M_Window_GetViewVector_doc},
 	{"GetViewMatrix", (PyCFunction)M_Window_GetViewMatrix,	METH_NOARGS,
 		M_Window_GetViewMatrix_doc},
+	{"EditMode", (PyCFunction)M_Window_EditMode,	METH_VARARGS,
+		M_Window_EditMode_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -465,6 +476,25 @@ static PyObject *M_Window_GetViewMatrix(PyObject *self)
 
 	return viewmat;
 }
+
+static PyObject *M_Window_EditMode(PyObject *self, PyObject *args)
+{
+	short status = -1;
+
+	if(!PyArg_ParseTuple(args, "|h", &status))
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+						"expected nothing or an int (bool) as argument"));
+
+	if (status >= 0) {
+		if (status) {
+				if (!G.obedit) enter_editmode();
+		}
+		else if (G.obedit) exit_editmode(1);
+	}
+
+	return Py_BuildValue("h", G.obedit?1:0);
+}
+
 
 /*****************************************************************************/
 /* Function:							Window_Init																				 */
