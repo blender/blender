@@ -1610,13 +1610,9 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		bglPolygonOffset(1.0);
 		glDepthMask(0);
 	} else {
-		if (realDM) {
+		if (realDM && !(me->flag&ME_OPT_EDGES)) {
 			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-			if (me->flag&ME_OPT_EDGES) {
-				realDM->drawMappedEdgesEM(realDM, NULL, NULL);
-			} else {
-				realDM->drawEdges(realDM);
-			}
+			realDM->drawEdges(realDM);
 		}
 	}
 
@@ -3761,7 +3757,9 @@ static int bbs_mesh_wire(DerivedMesh *dm, int offset)
 static int bbs_mesh_solid__setDrawOptions(void *userData, EditFace *efa)
 {
 	if (efa->h==0) {
-		set_framebuffer_index_color((int) efa->prev);
+		if (userData) {
+			set_framebuffer_index_color((int) efa->prev);
+		}
 		return 1;
 	} else {
 		return 0;
@@ -3784,7 +3782,7 @@ static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 				efa->prev= (EditFace *)(b);
 			a = b;
 
-			dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, NULL);
+			dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 1);
 
 			if(G.scene->selectmode & SCE_SELECT_FACE) {
 				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
@@ -3803,7 +3801,7 @@ static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 				efa->prev= prevefa;
 			return a;
 		} else {
-			dm->drawMappedFacesEM(dm, NULL, NULL);
+			dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 0);
 			return 1;
 		}
 	}

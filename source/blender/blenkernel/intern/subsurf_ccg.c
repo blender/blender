@@ -773,6 +773,8 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
 		int S, x, y, numVerts= ccgSubSurf_getFaceNumVerts(ss, f);
 
 		setMaterial(efa->mat_nr+1);
+		if (efa->h!=0)
+			continue;
 
 		for (S=0; S<numVerts; S++) {
 			float (*faceGridData)[3] = ccgSubSurf_getFaceGridDataArray(ss, f, S);
