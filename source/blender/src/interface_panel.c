@@ -714,11 +714,6 @@ static void ui_draw_panel_header(uiBlock *block)
 
 	if(nr==1) {
 		/* active tab */
-		/*uiSetRoundBox(3);
-		BIF_ThemeColorShade(TH_HEADER, -3);
-		uiRoundBox(2+block->minx+pnl_icons, panel->sizey-1, block->maxx, panel->sizey+PNL_HEADER, 10);
-		*/
-
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(4+block->minx+pnl_icons, block->maxy+5);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & USER_TR_BUTTONS));
@@ -749,7 +744,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			BIF_ThemeColorShade(TH_HEADER, -60);
 			uiRoundBox(2+pnl_icons+a*width, panel->sizey, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 			
-			BIF_ThemeColor(TH_TEXT_HI);
+			BIF_ThemeColorShade(TH_TEXT_HI, -40);
 			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));

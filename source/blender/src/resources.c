@@ -464,10 +464,10 @@ void BIF_InitTheme(void)
 	/* UI buttons (todo) */
 	SETCOL(btheme->tui.outline, 	0xA0,0xA0,0xA0, 255);
 	SETCOL(btheme->tui.neutral, 	0xA0,0xA0,0xA0, 255);
-	SETCOL(btheme->tui.action, 		0xB0,0xA0,0x90, 255);
-	SETCOL(btheme->tui.setting, 	0x88,0xA0,0xA4, 255);
-	SETCOL(btheme->tui.setting1, 	0xA0,0xA0,0xB0, 255);
-	SETCOL(btheme->tui.setting2, 	0xA2,0x98,0xA9, 255);
+	SETCOL(btheme->tui.action, 		0xAD,0xA0,0x93, 255);
+	SETCOL(btheme->tui.setting, 	0x8A,0x9E,0xA1, 255);
+	SETCOL(btheme->tui.setting1, 	0xA1,0xA1,0xAE, 255);
+	SETCOL(btheme->tui.setting2, 	0xA1,0x99,0xA7, 255);
 	SETCOL(btheme->tui.num,		 	0x90,0x90,0x90, 255);
 	SETCOL(btheme->tui.textfield,	0x90,0x90,0x90, 255);
 	SETCOL(btheme->tui.popup,		0xA0,0xA0,0xA0, 255);
@@ -475,7 +475,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tui.text,		0,0,0, 255);
 	SETCOL(btheme->tui.text_hi, 	255, 255, 255, 255);
 	
-	SETCOL(btheme->tui.menu_back, 	0xCF,0xCF,0xCF, 255);
+	SETCOL(btheme->tui.menu_back, 	0xD2,0xD2,0xD2, 255);
 	SETCOL(btheme->tui.menu_item, 	0xDA,0xDA,0xDA, 255);
 	SETCOL(btheme->tui.menu_hilite, 0x7F,0x7F,0x7F, 255);
 	SETCOL(btheme->tui.menu_text, 	0, 0, 0, 255);
@@ -492,7 +492,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
 	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
 
-	SETCOL(btheme->tv3d.grid, 	0x58, 0x58, 0x58, 255);
+	SETCOL(btheme->tv3d.grid, 	92, 92, 92, 255);
 	SETCOL(btheme->tv3d.wire, 	0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
 	SETCOL(btheme->tv3d.active, 0xff, 0xbb, 0xff, 255);
@@ -521,8 +521,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tipo.back, 	120, 120, 120, 255);
 	SETCOL(btheme->tipo.header, 195, 195, 195, 255);
 	SETCOL(btheme->tipo.panel,  255, 255, 255, 150);
-	SETCOL(btheme->tipo.shade1,  140, 140, 140, 100);
-	SETCOL(btheme->tipo.shade2,  0x7f, 0x70, 0x70, 100);
+	SETCOL(btheme->tipo.shade1,  172, 172, 172, 100);
+	SETCOL(btheme->tipo.shade2,  0x70, 0x70, 0x70, 100);
 	SETCOL(btheme->tipo.vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tipo.vertex_select, 0xff, 0xff, 0x70, 255);
 	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); 
@@ -539,30 +539,30 @@ void BIF_InitTheme(void)
 	
 	/* space action */
 	btheme->tact= btheme->tv3d;
-	SETCOL(btheme->tact.back, 	153, 153, 153, 255);
+	SETCOL(btheme->tact.back, 	116, 116, 116, 255);
 	SETCOL(btheme->tact.text, 	0, 0, 0, 255);
 	SETCOL(btheme->tact.text_hi, 255, 255, 255, 255);
 	SETCOL(btheme->tact.header, 182, 182, 182, 255);
 	SETCOL(btheme->tact.grid,  94, 94, 94, 255);
-	SETCOL(btheme->tact.face,  140, 150, 160, 255);	// RVK
-	SETCOL(btheme->tact.shade1,  140, 140, 140, 255);		// sliders
-	SETCOL(btheme->tact.shade2,  0x55, 0x22, 0x11, 100);	// bar
-	SETCOL(btheme->tact.hilite,  0x11, 0x22, 0x55, 100);	// bar
+	SETCOL(btheme->tact.face,  166, 166, 166, 255);	// RVK
+	SETCOL(btheme->tact.shade1,  172, 172, 172, 255);		// sliders
+	SETCOL(btheme->tact.shade2,  84, 44, 31, 100);	// bar
+	SETCOL(btheme->tact.hilite,  17, 27, 60, 100);	// bar
 
 	/* space nla */
 	btheme->tnla= btheme->tv3d;
-	SETCOL(btheme->tnla.back, 	153, 153, 153, 255);
+	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
 	SETCOL(btheme->tnla.text, 	0, 0, 0, 255);
 	SETCOL(btheme->tnla.text_hi, 255, 255, 255, 255);
 	SETCOL(btheme->tnla.header, 182, 182, 182, 255);
 	SETCOL(btheme->tnla.grid,  94, 94, 94, 255);	
-	SETCOL(btheme->tnla.shade1,  140, 140, 140, 255);		// sliders
-	SETCOL(btheme->tnla.shade2,  0x55, 0x22, 0x11, 100);	// bar
-	SETCOL(btheme->tnla.hilite,  0x11, 0x22, 0x55, 100);	// bar
+	SETCOL(btheme->tnla.shade1,  172, 172, 172, 255);		// sliders
+	SETCOL(btheme->tnla.shade2,  84, 44, 31, 100);	// bar
+	SETCOL(btheme->tnla.hilite,  17, 27, 60, 100);	// bar
 	
 	/* space seq */
 	btheme->tseq= btheme->tv3d;
-	SETCOL(btheme->tnla.back, 	110, 110, 110, 255);
+	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
 
 	/* space image */
 	btheme->tima= btheme->tv3d;
@@ -584,7 +584,7 @@ void BIF_InitTheme(void)
 
 	/* space oops */
 	btheme->toops= btheme->tv3d;
-	SETCOL(btheme->toops.back, 	140, 140, 140, 255);
+	SETCOL(btheme->toops.back, 	153, 153, 153, 255);
 
 	/* space info */
 	btheme->tinfo= btheme->tv3d;
@@ -592,9 +592,9 @@ void BIF_InitTheme(void)
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
-	SETCOL(btheme->tsnd.back, 	158, 158, 158, 255);
-	SETCOL(btheme->tsnd.shade1,  140, 140, 140, 255);		// sliders
-	SETCOL(btheme->tsnd.grid,0x70, 0x70, 0x60, 255);
+	SETCOL(btheme->tsnd.back, 	153, 153, 153, 255);
+	SETCOL(btheme->tsnd.shade1,  173, 173, 173, 255);		// sliders
+	SETCOL(btheme->tsnd.grid, 140, 140, 140, 255);
 	
 
 }
