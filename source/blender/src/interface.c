@@ -2416,12 +2416,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				}
 				else if(uevent->event==PADPLUSKEY || uevent->event==PADMINUS) {
 					SpaceLink *sl= curarea->spacedata.first;
-					
-					if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
-					else sl->blockscale-= 0.1;
-					CLAMP(sl->blockscale, 0.6, 1.0);
-					addqueue(block->winq, REDRAW, 1);
-					retval= UI_CONT;
+					if(curarea->spacetype!=SPACE_BUTS) {
+						if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
+						else sl->blockscale-= 0.1;
+						CLAMP(sl->blockscale, 0.6, 1.0);
+						addqueue(block->winq, REDRAW, 1);
+						retval= UI_CONT;
+					}
 				}
 			}
 		}

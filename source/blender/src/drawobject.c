@@ -2387,7 +2387,8 @@ static void drawmeshwire(Object *ob)
 			
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
-
+			glDepthMask(0);		// disable write in zbuffer, needed for nice transp
+			
 			evl= G.edvl.first;
 			while(evl) {
 				if(evl->v1->h==0 && evl->v2->h==0 && evl->v3->h==0) {
@@ -2431,13 +2432,18 @@ static void drawmeshwire(Object *ob)
 				evl= evl->next;
 			}
 			glDisable(GL_BLEND);
+			glDepthMask(1);		// restore write in zbuffer
 		}
 
 		if(mesh_uses_displist(me)) {
-			if(handles) BIF_ThemeColor(TH_WIRE);
-			else BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
-			
-			drawDispListwire(&me->disp);
+			/* dont draw the subsurf when solid... then this is a 'drawextra' */
+			if(handles==0 && ob->dt>OB_WIRE && G.vd->drawtype>OB_WIRE);
+			else {
+				if(handles) BIF_ThemeColor(TH_WIRE);
+				else BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
+					
+				drawDispListwire(&me->disp);
+			}
 		}
 		cpack(0x0);
 		

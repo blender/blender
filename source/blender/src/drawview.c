@@ -458,7 +458,9 @@ static void drawgrid(void)
 
 	dx= fabs(x-(wx)*fx/fw);
 	if(dx==0) dx= fabs(y-(wy)*fy/fw);
-
+	
+	glDepthMask(0);		// disable write in zbuffer
+	
 	/* check zoom out */
 	BIF_ThemeColor(TH_GRID);
 	persp(PERSP_WIN);
@@ -539,8 +541,8 @@ static void drawgrid(void)
 
 	fdrawline(x, 0.0, x, (float)curarea->winy); 
 
+	glDepthMask(1);		// enable write in zbuffer
 	persp(PERSP_VIEW);
-	setlinestyle(0);
 }
 
 
@@ -1058,6 +1060,7 @@ void do_viewbuts(unsigned short event)
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
 			v3d_editvertex_buts(NULL, ob, 1.0);
+			makeDispList(ob);
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;

@@ -697,7 +697,8 @@ static int hypermesh_get_nhidden(HyperMesh *hme) {
 	return count;
 }
 
-static DispList *hypermesh_to_displist(HyperMesh *hme) {
+/* flag is me->flag, for handles and 'optim' */
+static DispList *hypermesh_to_displist(HyperMesh *hme, short flag) {
 	int nverts= hypermesh_get_nverts(hme);
 	int nfaces= hypermesh_get_nfaces(hme) + hypermesh_get_nlines(hme) - hypermesh_get_nhidden(hme);
 	DispList *dl= MEM_callocN(sizeof(*dl), "dl");
@@ -720,7 +721,7 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 	}
 
 	/* added: handles for editmode */
-	if (hme->orig_me==NULL) {
+	if (hme->orig_me==NULL && (flag & ME_OPT_EDGES)) {
 		handles= hypermesh_get_nverts_handles(hme);
 	}
 
@@ -885,7 +886,8 @@ static DispList *hypermesh_to_displist(HyperMesh *hme) {
 	return dl;
 }
 
-static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv) {
+/* flag is me->flag, for handles and 'optim' */
+static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv, short flag) {
 	DispList *dl;
 	int i;
 
@@ -901,7 +903,7 @@ static DispList *subsurf_subdivide_to_displist(HyperMesh *hme, short subdiv) {
 		hme= tmp;
 	}
 
-	dl= hypermesh_to_displist(hme);
+	dl= hypermesh_to_displist(hme, flag);
 	hypermesh_free(hme);
 	
 	return dl;
@@ -915,7 +917,7 @@ void subsurf_make_editmesh(Object *ob) {
 		HyperMesh *hme= hypermesh_from_editmesh(G.edve.first, G.eded.first, G.edvl.first);
 
 		free_displist_by_type(&me->disp, DL_MESH);
-		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, me->subdiv));
+		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, me->subdiv, me->flag));
 		
 		dl= me->disp.first;
 		if(dl && dl->mesh) dl->mesh->flag= me->flag;
@@ -930,7 +932,7 @@ void subsurf_make_mesh(Object *ob, short subdiv) {
 		HyperMesh *hme= hypermesh_from_mesh(me, find_displist(&ob->disp, DL_VERTS));
 
 		free_displist_by_type(&me->disp, DL_MESH);
-		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, subdiv));
+		BLI_addtail(&me->disp, subsurf_subdivide_to_displist(hme, subdiv, me->flag));
 	}
 }
 
@@ -939,7 +941,7 @@ void subsurf_to_mesh(Object *oldob, Mesh *me) {
 	
 	if (oldme->totface) {
 		HyperMesh *hme= hypermesh_from_mesh(oldme, NULL);
-		DispList *dl= subsurf_subdivide_to_displist(hme, oldme->subdiv);
+		DispList *dl= subsurf_subdivide_to_displist(hme, oldme->subdiv, oldme->flag);
 		DispListMesh *dlm= dl->mesh;
 		MFace *mfaces;
 		int i;
@@ -980,7 +982,7 @@ DispList* subsurf_mesh_to_displist(Mesh *me, DispList *dl, short subdiv)
 	
 	hme= hypermesh_from_mesh(me, dl);
 
-	return subsurf_subdivide_to_displist(hme, subdiv);
+	return subsurf_subdivide_to_displist(hme, subdiv, me->flag);
 }
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 

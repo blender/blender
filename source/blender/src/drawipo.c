@@ -417,12 +417,23 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	}
 
 	if(v2d->keepaspect) {
+		short do_x=0, do_y=0;
+		
+		/* when a window edge changes, the aspect ratio can't be used to
+		   find which is the best new 'cur' rect. thats why it stores 'old' */
+		if(winx!=v2d->oldwinx) do_x= 1;
+		if(winy!=v2d->oldwiny) do_y= 1;
+		v2d->oldwinx= winx; 
+		v2d->oldwiny= winy;
+		
 		dx= (cur->ymax-cur->ymin)/(cur->xmax-cur->xmin);
 		dy= ((float)winy)/((float)winx);
 		
-		/* dx/dy is the total aspect */
+		if(do_x==do_y) {
+			if( dy > 1.0) do_x= 1; else do_x= 0;
+		}
 
-		if( dx/dy > 1.0) {
+		if( do_x ) {
 			
 			/* portrait window: correct for x */
 			dx= cur->ymax-cur->ymin;

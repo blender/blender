@@ -43,6 +43,8 @@ typedef struct View2D {
 	float minzoom, maxzoom;
 	short scroll, keeptot;
 	short keepaspect, keepzoom;
+	short oldwinx, oldwiny;
+	int pad;
 } View2D;
 
 #define V2D_KEEPZOOM	0x0001	
