@@ -28,24 +28,9 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- */
-
-/**
- * \file mainqueue.c
- * \brief Just the functions to maintain a central event queue.
  * 
- * Creates the functionality of a FIFO queue for events.
- *
- * \note The documentor (me) doesn't know the full description of 
- * the fields of the QEvent structure, and the parameters to the 
- * functions (event, val, ascii).  The comments should be updated
- * with more detailed descriptions of what is stored in each one.
- *
- * \warning This queue structure uses a method that assumes the presence
- * of allocated memory.  As well it doesn't de-allocate memory after
- * a read off of the queue, thereby causing a situation whereby memory
- * isn't being freed and can grow with out bound even though there is
- * a limit on the queue size.
+ * Just the functions to maintain a central event
+ * queue.
  */
 
 #include <stdlib.h>
@@ -56,49 +41,15 @@
 #include <config.h>
 #endif
 
-/**
- *	\struct QEvent
- *	\brief  This is the definition for the event queue datastructure
- */
 typedef struct {
-	/**
-	 * \var unsigned short event
-	 * \brief holds the event type
-	 */
 	unsigned short event;
-	/**
-	 * \var short val
-	 */
 	short val;
-	/**
-	* \var char ascii
-	*/
 	char ascii;
 } QEvent;
 
-/**
- * \var static QEvent mainqueue[MAXQUEUE]
- * \brief The Main Queue store.
- */
 static QEvent mainqueue[MAXQUEUE];
-
-/**
- * \var static unsigned int nevents=0
- * \brief The count of the events currently stored.
- */
 static unsigned int nevents= 0;
 
-/**
- * \brief Reads and removes events from the queue and returns the event type,
- * if the queue is empty return 0.
- * \param val the val of the event to read into.
- * \param ascii the buffer of the event to read into.
- * \return the event type or 0 if no event.
- *
- * Pops off the last item in the queue and returns the pieces in their
- * little parts. The last item was the oldest item in the queue.
- * 
- */
 unsigned short mainqread(short *val, char *ascii)
 {
 	if (nevents) {
@@ -111,24 +62,11 @@ unsigned short mainqread(short *val, char *ascii)
 		return 0;
 }
 
-/**
- * \brief A short cut to mainqenter_ext setting ascii to 0
- */
 void mainqenter(unsigned short event, short val)
 {
 	mainqenter_ext(event, val, 0);
 }
 
-/**
- * \brief Adds event to the beginning of the queue.
- * \param event the event type.
- * \param val the val of the event.
- * \param ascii the event characters.
- *
- * If the event isn't nothing, and if the queue still
- * has some room, then add to the queue.  Otherwise the
- * event is lost.
- */
 void mainqenter_ext(unsigned short event, short val, char ascii)
 {
 	if (!event)
@@ -144,19 +82,6 @@ void mainqenter_ext(unsigned short event, short val, char ascii)
 	}
 }
 
-/**
- * \brief Pushes and event back on to the front of the queue.
- * \param event
- * \param val
- * \param ascii
- *
- * Pushes an event back onto the queue, possibly after a peek
- * at the item.  This method assumes that the memory has already
- * been allocated and should be mentioned in a precondition.
- *
- * \pre This method assumes that the memory is already allocated
- * for the event.
- */
 void mainqpushback(unsigned short event, short val, char ascii)
 {
 	if (nevents<MAXQUEUE) {
@@ -167,12 +92,6 @@ void mainqpushback(unsigned short event, short val, char ascii)
 	}
 }
 
-/**
- * \brief Returns the event type from the last item in the queue
- * (the next one that would be popped off).  Probably used as a test
- * to see if the queue is empty or if a valid event is still around.
- * \return the event type of the last item in the queue
- */
 unsigned short mainqtest()
 {
 	if (nevents)

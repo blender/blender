@@ -29,27 +29,9 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-/**
- * \file blenderbuttons.c
- * \brief DataToC output of file <blenderbuttons_png>
- *
- * Contains an array of image data used to create the buttons used in the
- * blender gui. 
- *
- * Referenced in resources.c 
- * \ingroup defaultconfig
- */ 
+/* DataToC output of file <blenderbuttons_png> */
 
-/**
- * Array size.
- * This is generated automatically, and should not be changed.
- */
 int datatoc_blenderbuttons_size= 42002;
-
-/**
- * The is an array of characters which creates the icon file.
- * This is generated automatically, and should not be changed.
- */
 char datatoc_blenderbuttons[]= {
 137, 80, 78, 71, 13, 10, 26, 10,  0,  0,  0, 13, 73, 72, 68, 82,  0,  0,
   1,190,  0,  0,  0,242,  8,  2,  0,  0,  0,189,  2, 55, 29,  0,  0,  0,  9,112, 72, 89,115,  0,  0, 11, 19,  0,  0, 11, 19,  1,

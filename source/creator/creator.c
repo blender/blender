@@ -29,23 +29,6 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-/**
- * \file creator.c
- * \ingroup mainmodule
- * \brief The main blender function is defined here.
- *
- * This file contains the int main(int,char**) function along with some helper
- * functions.
- *
- * For some reason, doxygen wants to say that the build_* info variables are
- * defined here.  They are really defined in buildinfo.c 
- * \todo clear out unnecessary includes
- *
- */
-/**
- * \defgroup main_helpers Helpers
- * \ingroup mainmodule
- */
 #include <stdlib.h>
 
 #ifdef HAVE_CONFIG_H
@@ -127,45 +110,17 @@ extern char * build_platform;
 extern char * build_type;
 
 /*	Local Function prototypes */
-
-/**
- * \brief Prints help message
- * 
- * Prints a help message to the prompt when triggered by the switches:
- *  - "-h"
- *  - "--help"
- *  - "/?"
- *
- *  \todo document -nofrozen switch
- */
 static void print_help();
 
 /* for the callbacks: */
 
-/**
- * \brief For callback functions. What does this do?
- * \ingroup main_helpers
- * \ingroup undoc
- */
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
-/**
- * \brief Holds the blender program name.
- *
- * Copied from argv[0].  Used for playanim and creting runtimes.
- */
-char bprogname[FILE_MAXDIR+FILE_MAXFILE];
+char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 
-/** \brief Initialise callbacks for the modules that need them */
+/* Initialise callbacks for the modules that need them */
 void setCallbacks(void); 
 
-/**
- * \brief Used for trapping the SIGFPE signal.
- *
- * This function is passed to signal() on the following platforms:
- *  - Alpha Linux
- *  - SGI
- */
 static void fpe_handler(int sig)
 {
 	// printf("SIGFPE trapped\n");
@@ -217,50 +172,21 @@ static void print_help(void)
 }
 
 
-/**
- * \todo This function is neither used nor defined in this file!
- * It is declared in source/blender/blenlib/PIL_time.h
- * It is defined in source/blender/blenlib/intern/time.c
- * Should this be here?
- *
- */
 double PIL_check_seconds_timer(void);
-
-/* This is defined in: ??? */
 extern void winlay_get_screensize(int *width_r, int *height_r);
-
-/**
- * \brief The main blender function.
- *
- * This is function is compiled into the blender executable.  It handles
- * command line arugments and initialization.
- */
 int main(int argc, char **argv)	
 {
 	int a, i, stax, stay, sizx, sizy;
 	SYS_SystemHandle syshandle;
 	Scene *sce;
 
-/**
- * First step is to initialize platform specific variables and functions, and to
- * set the callbacks.
- */
-/**
- * \internal  - Turn on audio for WIN32 and linux
- */
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;
 #else
 	int audio = 0;
 #endif
-/**
- * \internal - Call the setCallbacks() function
- */
 	setCallbacks();
-/**
- * \internal Do some apple specific initialization.
- * \todo Does anyone know why the first #ifdef __APPLE__ is here?
- */
+
 #ifdef __APPLE__
 		/* patch to ignore argument finder gives us (pid?) */
 	if (argc==2 && strncmp(argv[1], "-psn_", 5)==0) {
@@ -281,9 +207,6 @@ int main(int argc, char **argv)
 	}
 #endif
 
-/**
- * \internal OS specific stuff for FreeBSD, Linux alpha, and sgi.
- */
 #ifdef __FreeBSD__
 	fpsetmask(0);
 #endif
@@ -296,40 +219,23 @@ int main(int argc, char **argv)
 	signal (SIGFPE, fpe_handler);
 #endif
 
-	/**
-	 * \internal copy path to executable in bprogname. playanim and creting runtimes need this.
-	 */
+	// copy path to executable in bprogname. playanim and creting runtimes
+	// need this.
+
 	BLI_where_am_i(bprogname, argv[0]);
 	
-		/** \internal Hack - force inclusion of the plugin api functions,
-		 *  \internal see blenpluginapi:pluginapi.c
-		 *  \todo pluginapi_force_ref() is defined as a hack.  Fix this?
+		/* Hack - force inclusion of the plugin api functions,
+		 * see blenpluginapi:pluginapi.c
 		 */
 	pluginapi_force_ref();
 	
-	/**
-	 * Initialize globals, get the system handle and initialize the messaging system.
-	 */
 	initglobals();	/* blender.c */
 
 	syshandle = SYS_GetSystem();
 	GEN_init_messaging_system();
 
 	/* first test for background */
-	/** \internal The G_SCENESCRIPT is always set. */
 	G.f |= G_SCENESCRIPT; /* scenescript always set! */
-	/**
-	 * The first for loop parses thru the following command line arguments:
-	 *  - "-h", "--help", and "/?": prints a help message.
-	 *  - "-a": plays animations (only when it's before the -b switch).
-	 *  - "-b", "-B": sets blender to run in background mode.
-	 *  - "-m": obsolete switch.
-	 *  - "-y": disables python.
-	 *  - "-Y": explains \e why "-y" is used to disable python.
-	 * \todo Put the -h, --help, and /? flags in one if statment.
-	 * \todo -a has 2 different meanings, depending on context.
-	 * \todo The -m switch has been disabled.  Is there any reason to keep it here?
-	 */
 	for(a=1; a<argc; a++) {
 
 		/* Handle unix and windows style help requests */
@@ -388,29 +294,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-/**
- * Set a few more options.
- */
 #ifdef __sgi
 	setuid(getuid()); /* end superuser */
 #endif
 
-	RE_init_render_data();	/** Render initializer must be called here because R.winpos from default file */
+	RE_init_render_data();	/* must be called here because R.winpos from default file */
 	
-	/**
-	 * If blender is not in background:
-	 */
 	if(G.background==0) {
-		/**
-		 * Parse the following command line arguments:
-		 *   - "-p": set the prefered window location and size.
-		 *   - "-d": enables debugging.
-		 *   - "-w": fullscreen mode.
-		 *   - "-W": borderless window (MS windows only).
-		 *   - "-R": registers the blender extensions. (MS windows only).
-		 *   - "-noaudion", "-nosound": disables audio.
-		 *   - "-nofrozen": disables frozen python.
-		 */
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
 				switch(argv[a][1]) {
@@ -470,9 +360,9 @@ int main(int argc, char **argv)
 				case 'N':
 					if (strcasecmp(argv[a], "-noaudio") == 0|| strcasecmp(argv[a], "-nosound") == 0) {
 						/**
-						 * \internal The noaudio flag notifies the gameengine that no audio is wanted,
-						 * even if the user didn't give the flag -g noaudio.
-						 */
+						 	notify the gameengine that no audio is wanted, even if the user didn't give
+						   	the flag -g noaudio.
+					*/
 
 						SYS_WriteCommandLineInt(syshandle,"noaudio",1);
 						audio = 0;
@@ -488,9 +378,6 @@ int main(int argc, char **argv)
 			}
 		}
 
-		/**
-		 * Start the python module, and initialize audio and BIF_init().
-		 */
 		BPY_start_python();
 		
 		/**
@@ -502,11 +389,6 @@ int main(int argc, char **argv)
 
 		BIF_init();
 	}
-	/**
-	 * If blender is in background:
-	 *  - Start python.
-	 *  - Turn audio off.
-	 */
 	else {
 		BPY_start_python();
 		SYS_WriteCommandLineInt(syshandle,"noaudio",1);
@@ -515,9 +397,6 @@ int main(int argc, char **argv)
         if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 	}
 
-	/**
-	 * Next, initialize more stuff :)
-	 */
 	RE_init_filt_mask();
 	
 #ifdef WITH_QUICKTIME
@@ -543,17 +422,6 @@ int main(int argc, char **argv)
 
 		/* OK we are ready for it */
 
-	/**
-	 * The third and final for loop processes the following arguments:
-	 *  - "-p" (again): This time four args are skipped and then break;
-	 *  - "-g": passes arguments to the game engine.
-	 *  - "-f": renders a single frame and saves it.
-	 *  - "-a": renders an animation.  "-b" must be before "-a"
-	 *  - "-S": sets the starting scene name.
-	 *  - "-s": sets the start frame.
-	 *  - "-e": sets the end frame.
-	 *  - <file>: sets the blender file to open.
-	 */
 	for(a=1; a<argc; a++) {
 		if (G.afbreek==1) break;
 
@@ -566,13 +434,13 @@ int main(int argc, char **argv)
 			case 'g':
 				{
 				/**
-				 * gameengine parameters are automaticly put into system
-				 * -g [paramname = value]
-				 * -g [boolparamname]
-				 * example:
-				 * -g novertexarrays
-				 * -g maxvertexarraysize = 512
-				 */
+				gameengine parameters are automaticly put into system
+				-g [paramname = value]
+				-g [boolparamname]
+				example:
+				-g novertexarrays
+				-g maxvertexarraysize = 512
+				*/
 
 					if(++a < argc) 
 					{
@@ -649,50 +517,29 @@ int main(int argc, char **argv)
 				break;
 			}
 		}
-		/**
-		 * If the argument does not begin with a dash, it must be a file name.
-		 */
 		else {
 			BKE_read_file(argv[a], NULL);
 			sound_initialize_sounds();
 		}
 	}
 	
-	/**
-	 * If blender is in background mode, exit.
-	 */
 	if(G.background) 
 	{
 		exit_usiblender();
 	}
 
-	/**
-	 * Otherwise, initialize the GUI.
-	 */
 	setscreen(G.curscreen);
 	
-	/**
-	 * \internal if no scene exists, add one called "1".
-	 */
 	if(G.main->scene.first==0) {
 		sce= add_scene("1");
 		set_scene(sce);
 	}
 	
-	/**
-	 * Start the main GUI loop.
-	 */
 	screenmain();
 
-	/**
-	 * If everything went well, return with 0.
-	 */
 	return 0;
 } /* end of int main(argc,argv)	*/
 
-/**
- * Helper function for setCallbacks().
- */
 static void error_cb(char *err)
 {
 	error("%s", err);

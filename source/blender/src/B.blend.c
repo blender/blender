@@ -29,33 +29,13 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
-/**
- * \file B.blend.c
- * \brief DataToC output of file <B_blend>
- *
- * Contains the data to create the default initial .blend file that
- * is loaded. It contains the default user preferences and initial
- * blend screen with the plane and the camera. 
- *
- * Referenced in usiblender.c
- * \ingroup defaultconfig
- */
+/* DataToC output of file <B_blend> */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-/**
- * Array size.
- * This is generated automatically, and should not be changed.
- */
 int datatoc_B_blend_size= 32472;
-
-/**
- * The is an array of characters which creates the .blend file.
- * This is generated automatically, and should not be changed.
- */
 char datatoc_B_blend[]= {
  66, 76, 69, 78, 68, 69, 82, 95,118, 50, 49, 50, 82, 69, 78, 68, 32,  0,  0,  0,136,237,255,191,
   0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,250,  0,  0,  0, 49,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,

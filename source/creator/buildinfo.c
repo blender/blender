@@ -29,31 +29,14 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-/**
- * \file buildinfo.c
- * \brief Info on the date, time, os, and type of blender build.
- * \ingroup mainmodule
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #ifdef BUILD_DATE
-/**
- * Global build date.
- */
 char * build_date=BUILD_DATE;
-/**
- * Global build time.
- */
 char * build_time=BUILD_TIME;
-/**
- * Global build platform.
- */
 char * build_platform=BUILD_PLATFORM;
-/**
- * Global build type.
- */
 char * build_type=BUILD_TYPE;
 #endif
