@@ -341,7 +341,7 @@ static HyperMesh *hypermesh_new(void) {
 	return hme;
 }
 
-static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevels) {
+static HyperMesh *hypermesh_from_mesh(Mesh *me, int subdivLevels) {
 	HyperMesh *hme= hypermesh_new();
 	HyperVert **vert_tbl;
 	MFace *mface= me->mface;
@@ -358,10 +358,7 @@ static HyperMesh *hypermesh_from_mesh(Mesh *me, float *extverts, int subdivLevel
 	vert_tbl= MEM_mallocN(sizeof(*vert_tbl)*me->totvert, "vert_tbl");
 	
 	for (i= 0; i<me->totvert; i++) {
-		if (extverts)
-			vert_tbl[i]= hypermesh_add_vert(hme, &extverts[i*3], NULL);
-		else
-			vert_tbl[i]= hypermesh_add_vert(hme, me->mvert[i].co, NULL);
+		vert_tbl[i]= hypermesh_add_vert(hme, me->mvert[i].co, NULL);
 	}
 
 	if(medge) {
@@ -1111,15 +1108,15 @@ DispListMesh *subsurf_make_dispListMesh_from_editmesh(EditMesh *em, int subdivLe
 	}
 }
 
-DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int subdivLevels, int flags) {
+DispListMesh *subsurf_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels, int flags) {
 	if (subdivLevels<1) {
-		return displistmesh_from_mesh(me, extverts);
+		return displistmesh_from_mesh(me, NULL);
 #ifdef USE_CCGSUBSURFLIB
 	} else if (me->subsurftype==ME_CCG_SUBSURF) {
-		return subsurf_ccg_make_dispListMesh_from_mesh(me, extverts, subdivLevels, flags);
+		return subsurf_ccg_make_dispListMesh_from_mesh(me, subdivLevels, flags);
 #endif
 	} else {
-		HyperMesh *hme= hypermesh_from_mesh(me, extverts, subdivLevels);
+		HyperMesh *hme= hypermesh_from_mesh(me, subdivLevels);
 
 		return subsurf_subdivide_to_displistmesh(hme, subdivLevels, flags, me->subsurftype);
 	}
@@ -1133,7 +1130,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 	 * calculated vert positions is incorrect for the verts 
 	 * on the boundary of the mesh.
 	 */
-	HyperMesh *hme= hypermesh_from_mesh(me, NULL, 1);	// 1=subdivlevel
+	HyperMesh *hme= hypermesh_from_mesh(me, 1);	// 1=subdivlevel
 	HyperMesh *nme= hypermesh_new();
 	float edge_sum[3], face_sum[3];
 	HyperVert *hv;

@@ -1757,20 +1757,15 @@ void makeDispList(Object *ob)
 
 		tex_space_mesh(ob->data);
 		
-		if(ob!=G.obedit) {
-			mesh_modifier(ob, 's');
-		}
-		
 		if (mesh_uses_displist(me)) {  /* subsurf */
 			DispListMesh *dlm;
 
 			if (ob==G.obedit) {
 				dlm= subsurf_make_dispListMesh_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
 			} else {
-				DispList *dlVerts= find_displist(&ob->disp, DL_VERTS);
-				// dl->verts should not be needed anymore, recode it in modifier (ton)
-				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, 
-													me->subdiv, me->flag);
+				mesh_modifier(ob, 's');
+				dlm= subsurf_make_dispListMesh_from_mesh(me, me->subdiv, me->flag);
+				mesh_modifier(ob, 'e');
 			}
 
 			dl= MEM_callocN(sizeof(*dl), "dl");
@@ -1780,9 +1775,6 @@ void makeDispList(Object *ob)
 			free_displist_by_type(&me->disp, DL_MESH);
 			BLI_addtail(&me->disp, dl);
 		}
-		
-		if(ob!=G.obedit) mesh_modifier(ob, 'e');
-		
 	}
 	else if(ob->type==OB_MBALL) {
 		ob= find_basis_mball(ob);

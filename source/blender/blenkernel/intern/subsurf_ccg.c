@@ -38,7 +38,6 @@ typedef struct _SubSurf {
 
 		/* used by mesh control type */
 	Mesh *me;
-	float *extverts;
 } SubSurf;
 
 static void _subsurfNew_meshIFC_vertDataCopy(CCGMeshHDL mv, void *tv, void *av) {
@@ -135,13 +134,12 @@ static SubSurf *subSurf_fromEditmesh(EditMesh *em, int subdivLevels) {
 	return ss;
 }
 
-static SubSurf *subSurf_fromMesh(Mesh *me, float *extverts, int subdivLevels) {
+static SubSurf *subSurf_fromMesh(Mesh *me, int subdivLevels) {
 	SubSurf *ss= MEM_mallocN(sizeof(*ss), "ss");
 
 	ss->controlType= SUBSURF_CONTROLTYPE_MESH;
 	ss->subSurf= _getSubSurf(ss, subdivLevels);
 	ss->me= me;
-	ss->extverts= extverts;
 
 	ccgSubSurf_setAllowEdgeCreation(ss->subSurf, 1);
 
@@ -528,11 +526,7 @@ static void subSurf_sync(SubSurf *ss) {
 		int i, fVerts[4];
 
 		for (i=0; i<ss->me->totvert; i++) {
-			if (ss->extverts) {
-				ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, &ss->extverts[i*3]);
-			} else {
-				ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->me->mvert[i].co);
-			}
+			ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->me->mvert[i].co);
 		}
 
 		if (ss->me->medge) {
@@ -620,8 +614,8 @@ DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(EditMesh *em, int subd
 	return dlm;
 }
 
-DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(Mesh *me, float *extverts, int subdivLevels, int flags) {
-	SubSurf *ss= subSurf_fromMesh(me, extverts, subdivLevels);
+DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(Mesh *me, int subdivLevels, int flags) {
+	SubSurf *ss= subSurf_fromMesh(me, subdivLevels);
 	DispListMesh *dlm;
 
 	subSurf_sync(ss);

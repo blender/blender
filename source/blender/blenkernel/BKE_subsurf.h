@@ -38,11 +38,11 @@ struct DispListMesh;
 struct EditMesh;
 
 struct DispListMesh *subsurf_make_dispListMesh_from_editmesh(struct EditMesh *em, int subdivLevels, int flags, short type);
-struct DispListMesh *subsurf_make_dispListMesh_from_mesh(struct Mesh *me, float *extverts, int subdivLevels, int flags);
+struct DispListMesh *subsurf_make_dispListMesh_from_mesh(struct Mesh *me, int subdivLevels, int flags);
 
 #ifdef USE_CCGSUBSURFLIB
 struct DispListMesh *subsurf_ccg_make_dispListMesh_from_editmesh(struct EditMesh *em, int subdivLevels, int flags);
-struct DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(struct Mesh *me, float *extverts, int subdivLevels, int flags);
+struct DispListMesh *subsurf_ccg_make_dispListMesh_from_mesh(struct Mesh *me, int subdivLevels, int flags);
 #endif
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);

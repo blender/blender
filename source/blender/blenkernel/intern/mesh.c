@@ -432,7 +432,7 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 		cp_key(0, me->totvert, me->totvert, (char*) me->mvert->co, me->key, me->key->refkey, 0);
 	}
 
-	dlm= subsurf_make_dispListMesh_from_mesh(me, NULL, subdivlvl, me->flag);
+	dlm= subsurf_make_dispListMesh_from_mesh(me, subdivlvl, me->flag);
 	
 		/* Restore correct key */
 	do_ob_key(ob);

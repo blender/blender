@@ -1359,13 +1359,10 @@ static void init_render_mesh(Object *ob)
 		/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
 		/* also when object is in editmode, displist ordering for editmode is different, giving orco probs */
 		
-		if((dl==NULL) || ((me->subdiv != me->subdivr)) || (ob==G.obedit)) {
+		if((dl==NULL) || ((me->subdiv != me->subdivr)) || (G.obedit && me==G.obedit->data)) {
 			/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
 			if(dl==NULL || (me->subdivdone-1)!=me->subdivr) {
-				DispList *dlVerts;
-
-				dlVerts= find_displist(&ob->disp, DL_VERTS);
-				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, me->subdivr, me->flag);
+				dlm= subsurf_make_dispListMesh_from_mesh(me, me->subdivr, me->flag);
 				dl= MEM_callocN(sizeof(*dl), "dl");
 				dl->type= DL_MESH;
 				dl->mesh= dlm;
