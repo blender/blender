@@ -56,14 +56,14 @@ install all:: $(TARGET)
 # we must use solid without qhull, which is the next target).
 solid_with_qhull:
 	cd solid \
-	    && ./configure --with-pic --prefix=$(NAN_SOLID) \
+	    && ./configure --with-pic --prefix=$(NAN_SOLID) --enable-doubles=yes \
 		CPPFLAGS="-I$(NAN_QHULL)/include" \
 		LDFLAGS="-Wl,--rpath -Wl,$(NAN_QHULL)/lib" \
 	    && $(MAKE) all install
 
 solid: qhull
 	cd solid \
-	    && ./configure --with-pic --prefix=$(NAN_SOLID) \
+	    && ./configure --with-pic --prefix=$(NAN_SOLID) --enable-doubles=yes --with-qhull=$(NAN_QHULL) --enable-shared=false \
 	    && $(MAKE) all install
 qhull:
 	cd qhull/src && $(MAKE) -f Makefile.txt all
