@@ -1937,8 +1937,10 @@ static void init_render_surf(Object *ob)
 				if (dl->flag & DL_CYCLIC_V) {
 					ver= RE_findOrAddVert(R.totvert++);
 					VECCOPY(ver->co, v1->co);
-					ver->orco= orco;
-					orco+= 3;
+					if(orco) {
+						ver->orco= orco;
+						orco+= 3;
+					}
 				}	
 			}	
 
@@ -1951,9 +1953,10 @@ static void init_render_surf(Object *ob)
 					v1= RE_findOrAddVert(startvert + v);
 					ver= RE_findOrAddVert(R.totvert++);
 					VECCOPY(ver->co, v1->co);
-					ver->orco= orco;
-					orco +=3;
-
+					if(orco) {
+						ver->orco= orco;
+						orco +=3;
+					}
 				}
 				sizeu++;
 			}	
