@@ -2498,8 +2498,9 @@ void logic_buts(void)
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 
 	if(wrld) {
-		if (wrld->physicsEngine == 1) buttons_enji(block, ob);
-		if ( (wrld->physicsEngine == 4) || (wrld->physicsEngine == 2) )
+		if 
+			(wrld->physicsEngine == 1) buttons_enji(block, ob);
+		else
 			buttons_ketsji(block, ob);
 	}
 	else buttons_ketsji(block, ob);

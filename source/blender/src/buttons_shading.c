@@ -1858,7 +1858,7 @@ static void world_panel_mistaph(World *wrld)
 
 #if GAMEBLENDER == 1
 	uiDefButI(block, MENU, 1, 
-			  "Physics %t|None %x0|Sumo %x2",	
+			  "Physics %t|None %x0|Sumo %x2|Ode %x4",	
 			  10,180,140,19, &wrld->physicsEngine, 0, 0, 0, 0, 
 			  "Physics Engine");
 	
