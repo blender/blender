@@ -1725,29 +1725,10 @@ short get_mbut(void)
 	return window_get_mbut(mainwin);
 }
 
-static unsigned short convert_for_nonumpad(unsigned short event)
-{
-	if (event>=ZEROKEY && event<=NINEKEY) {
-		return event - ZEROKEY + PAD0;
-	} else if (event==MINUSKEY) {
-		return PADMINUS;
-	} else if (event==EQUALKEY) {
-		return PADPLUSKEY;
-	} else if (event==BACKSLASHKEY) {
-		return PADSLASHKEY;
-	} else {
-		return event;
-	}
-}
-
 void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii)
 {
 
 	statechanged= 1;
-
-	if (U.flag & USER_NONUMPAD) {
-		evt= convert_for_nonumpad(evt);
-	}
 
 	/*  accept the extended ascii set (ton) */
 	if( !val || ascii<32 ) {

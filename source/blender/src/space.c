@@ -603,6 +603,21 @@ void select_group(short nr)
 	allqueue(REDRAWIPO, 0);
 }
 
+static unsigned short convert_for_nonumpad(unsigned short event)
+{
+	if (event>=ZEROKEY && event<=NINEKEY) {
+		return event - ZEROKEY + PAD0;
+	} else if (event==MINUSKEY) {
+		return PADMINUS;
+	} else if (event==EQUALKEY) {
+		return PADPLUSKEY;
+	} else if (event==BACKSLASHKEY) {
+		return PADSLASHKEY;
+	} else {
+		return event;
+	}
+}
+
 void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -751,6 +766,11 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 		else {
+
+			if (U.flag & USER_NONUMPAD) {
+				event= convert_for_nonumpad(event);
+			}
+
 			switch(event) {
 			
 			case BACKBUFDRAW:
