@@ -3868,11 +3868,11 @@ void make_trans_verts(float *min, float *max, int mode)
 	
 	/* note for transform refactor: dont rely on countall anymore... its ancient */
 	/* I skip it for editmesh now (ton) */
-	if(em==NULL) {
+	if(G.obedit->type!=OB_MESH) {
 		countall();
 		if(mode) tottrans= G.totvert;
 		else tottrans= G.totvertsel;
-		
+
 		if(G.totvertsel==0) {
 			tottrans= 0;
 			return;
