@@ -158,6 +158,7 @@ all debug::
   ifeq ($(OS),linux)
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
+    export NAN_ODE = $(LCGDIR)/ode
   endif
 
   ifeq ($(OS),openbsd)
