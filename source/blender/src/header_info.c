@@ -850,7 +850,7 @@ static void do_info_filemenu(void *arg, int event)
 		}
 		break;
 	case 6: /* save image */
-		mainqenter(F3KEY, 1);
+		BIF_save_rendered_image();
 		break;
 	case 22: /* save runtime */
 		activate_fileselect(FILE_SPECIAL, "Save Runtime", "", write_runtime_check);

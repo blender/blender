@@ -205,9 +205,9 @@ static int ray_previewrender(int x,  int y,  float *vec, float *vn)
 		
 		CalcNormFloat(rcubev[rcubi[hitface][0]], rcubev[rcubi[hitface][1]], rcubev[rcubi[hitface][2]], vn);
 		
-		vec[0]= (minlabda*(ray1[0]-ray2[0])+ray2[0])/3.7;
-		vec[1]= (minlabda*(ray1[1]-ray2[1])+ray2[1])/3.7;
-		vec[2]= (minlabda*(ray1[2]-ray2[2])+ray2[2])/3.7;
+		vec[0]= (minlabda*(ray1[0]-ray2[0])+ray2[0])/4.1;
+		vec[1]= (minlabda*(ray1[1]-ray2[1])+ray2[1])/4.1;
+		vec[2]= (minlabda*(ray1[2]-ray2[2])+ray2[2])/4.1;
 		
 		return 1;
 	}
