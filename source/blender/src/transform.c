@@ -1385,8 +1385,13 @@ void Transform(int mode)
 				/* enforce redraw of transform when modifiers are used */
 				case LEFTCTRLKEY:
 				case RIGHTCTRLKEY:
+					Trans.redraw = 1;
+					break;
 				case LEFTSHIFTKEY:
 				case RIGHTSHIFTKEY:
+					/* shift is modifier for higher resolution transform, works nice to store this mouse position */
+					getmouseco_areawin(Trans.shiftmval);
+					Trans.flag |= T_SHIFT_MOD;
 					Trans.redraw = 1;
 					break;
 					
@@ -1550,6 +1555,11 @@ void Transform(int mode)
 					/* commented out, doesn't work for actions started with menu */
 					// ret_val = TRANS_CONFIRM;
 					break;
+				case LEFTSHIFTKEY:
+				case RIGHTSHIFTKEY:
+					/* shift is modifier for higher resolution transform */
+					Trans.flag &= ~T_SHIFT_MOD;
+					break;
 				}
 			}
 		}
@@ -1665,9 +1675,17 @@ void ManipulatorTransform(int mode)
 			/* enforce redraw of transform when modifiers are used */
 			case LEFTCTRLKEY:
 			case RIGHTCTRLKEY:
+				if(val) Trans.redraw = 1;
+				break;
 			case LEFTSHIFTKEY:
 			case RIGHTSHIFTKEY:
-				if(val) Trans.redraw = 1;
+				/* shift is modifier for higher resolution transform, works nice to store this mouse position */
+				if(val) {
+					getmouseco_areawin(Trans.shiftmval);
+					Trans.flag |= T_SHIFT_MOD;
+					Trans.redraw = 1;
+				}
+				else Trans.flag &= ~T_SHIFT_MOD; 
 				break;
 				
 			case ESCKEY:
@@ -2018,12 +2036,23 @@ int Resize(TransInfo *t, short mval[2])
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
 	else {
-		ratio = (float)sqrt( (float)
-			(
-				(t->center2d[1] - mval[1])*(t->center2d[1] - mval[1])
-			+
-				(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
-			) ) / t->fac;
+		
+		if(t->flag & T_SHIFT_MOD) {
+			/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+			float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+			float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+			
+			dx= (float)(t->center2d[0] - mval[0]);
+			dy= (float)(t->center2d[1] - mval[1]);
+			ratio+= 0.1f*(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+			
+		}
+		else {
+			float dx= (float)(t->center2d[0] - mval[0]);
+			float dy= (float)(t->center2d[1] - mval[1]);
+			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		}
 	}
 
 	if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) < 0)
@@ -2486,7 +2515,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 
 int Trackball(TransInfo *t, short mval[2]) 
 {
-	char str[50];
+	char str[80];
 	float axis1[3], axis2[3];
 	float mat[3][3], totmat[3][3], smat[3][3];
 	float phi[2];
@@ -2506,15 +2535,16 @@ int Trackball(TransInfo *t, short mval[2])
 	snapGrid(t, phi);
 	
 	if (hasNumInput(&t->num)) {
-		//char c[20];
+		char c[40];
 		
-		//applyNumInput(&t->num, phi);
+		applyNumInput(&t->num, phi);
 		
-		//outputNumInput(&(t->num), c);
+		outputNumInput(&(t->num), c);
 		
-		//sprintf(str, "Trackball: %s %s", &c[0], t->proptext);
+		sprintf(str, "Trackball: %s %s %s", &c[0], &c[20], t->proptext);
 		
-		//final *= (float)(M_PI / 180.0);
+		phi[0] *= (float)(M_PI / 180.0);
+		phi[1] *= (float)(M_PI / 180.0);
 	}
 	else {
 		sprintf(str, "Trackball: %.2f %.2f %s", 180.0*phi[0]/M_PI, 180.0*phi[1]/M_PI, t->proptext);
@@ -2626,8 +2656,16 @@ int Translation(TransInfo *t, short mval[2])
 {
 	float tvec[3];
 	char str[200];
-
-	window_to_3d(t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+	
+	if(t->flag & T_SHIFT_MOD) {
+		float dvec[3];
+		/* calculate the main translation and the precise one separate */
+		window_to_3d(dvec, (short)(mval[0] - t->shiftmval[0]), (short)(mval[1] - t->shiftmval[1]));
+		VecMulf(dvec, 0.1f);
+		window_to_3d(t->vec, (short)(t->shiftmval[0] - t->imval[0]), (short)(t->shiftmval[1] - t->imval[1]));
+		VecAddf(t->vec, t->vec, dvec);
+	}
+	else window_to_3d(t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};

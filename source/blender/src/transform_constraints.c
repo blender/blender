@@ -203,21 +203,27 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
 	   constraint axis. Nice for camera grab + MMB */
-	if(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] < 0.000001) {
+	if(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] < 0.000001f) {
 		Projf(vec, in, t->viewinv[1]);
 		factor = Inpf(t->viewinv[1], vec) * 2.0f;
-
+		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
+		if(factor<0.0f) factor*= -factor;
+		else factor*= factor;
+		
 		VECCOPY(out, axis);
 		Normalise(out);
-		VecMulf(out, factor);
+		VecMulf(out, -factor);	/* -factor makes move down going backwards */
 	}
 	else {
-		Projf(vec, in, n);
-		factor = Normalise(vec);
-		factor /= Inpf(axis, vec);
+		// prevent division by zero, happens on constrainting without initial delta transform */
+		if(in[0]!=0.0f || in[1]!=0.0f || in[2]!=0.0) {
+			Projf(vec, in, n);
+			factor = Normalise(vec);
+			factor /= Inpf(axis, vec);
 
-		VecMulf(axis, factor);
-		VECCOPY(out, axis);
+			VecMulf(axis, factor);
+			VECCOPY(out, axis);
+		}
 	}
 }
 

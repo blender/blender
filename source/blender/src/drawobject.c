@@ -244,6 +244,7 @@ static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize)
 	glDrawPixels(rectsize, rectsize, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 }
 
+/* bad frontbuffer call... because it is used in transform after force_draw() */
 void helpline(float *vec)
 {
 	float vecrot[3], cent[2];
@@ -255,23 +256,24 @@ void helpline(float *vec)
 
 	getmouseco_areawin(mval);
 	project_float(vecrot, cent);	// no overflow in extreme cases
+	if(cent[0]!=3200.0f) {
+		persp(PERSP_WIN);
+		
+		glDrawBuffer(GL_FRONT);
+		
+		BIF_ThemeColor(TH_WIRE);
 
-	persp(PERSP_WIN);
-	
-	glDrawBuffer(GL_FRONT);
-	
-	BIF_ThemeColor(TH_WIRE);
-
-	setlinestyle(3);
-	glBegin(GL_LINE_STRIP); 
-		glVertex2sv(mval); 
-		glVertex2fv(cent); 
-	glEnd();
-	setlinestyle(0);
-	
-	persp(PERSP_VIEW);
-	glFlush(); // flush display for frontbuffer
-	glDrawBuffer(GL_BACK);
+		setlinestyle(3);
+		glBegin(GL_LINE_STRIP); 
+			glVertex2sv(mval); 
+			glVertex2fv(cent); 
+		glEnd();
+		setlinestyle(0);
+		
+		persp(PERSP_VIEW);
+		glFlush(); // flush display for frontbuffer
+		glDrawBuffer(GL_BACK);
+	}
 }
 
 void drawaxes(float size)

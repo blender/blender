@@ -117,6 +117,7 @@ typedef struct TransInfo {
     float       center[3];      /* center of transformation             */
     short       center2d[2];    /* center in screen coordinates         */
     short       imval[2];       /* initial mouse position               */
+	short		shiftmval[2];	/* mouse position when shift was pressed */
 	short       idx_max;
 	float		snap[3];		/* Snapping Gears						*/
     TransData  *data;           /* transformed data (array)             */
@@ -151,6 +152,8 @@ typedef struct TransInfo {
 #define T_POSE			4
 #define T_TEXTURE		8
 #define T_CAMERA		16
+		// when shift pressed, higher resolution transform. cannot rely on G.qual, need event!
+#define T_SHIFT_MOD		32
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	128
 

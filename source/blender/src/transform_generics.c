@@ -682,13 +682,16 @@ void calculateCenter(TransInfo *t)
 			float axis[3];
 			VECCOPY(axis, G.vd->persinv[2]);
 			Normalise(axis);
-			
+
 			/* 6.0 = 6 grid units */
-			t->center[0]+= 6.0f*axis[0];
-			t->center[1]+= 6.0f*axis[1];
-			t->center[2]+= 6.0f*axis[2];
+			axis[0]= t->center[0]+ 6.0f*axis[0];
+			axis[1]= t->center[1]+ 6.0f*axis[1];
+			axis[2]= t->center[2]+ 6.0f*axis[2];
 			
-			project_short_noclip(t->center, t->center2d);
+			project_short_noclip(axis, t->center2d);
+			
+			/* rotate only needs correct 2d center, grab needs initgrabz() value */
+			if(t->mode==TFM_TRANSLATION) VECCOPY(t->center, axis);
 		}
 	}	
 	initgrabz(t->center[0], t->center[1], t->center[2]);
