@@ -8,7 +8,6 @@ Here are some links to external packages you may or maynot need:
 openssl:  http://www.openssl.org
 python:  http://www.python.org
 mxtexttools:http://www.egenix.com/files/python/mxTextTools.html (python lib)
-nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
 libjpeg:  http://www.ijg.org/
 libpng:  http://www.libpng.org/pub/png/
 zlib:   http://www.gzip.org/zlib/
@@ -16,6 +15,10 @@ openal:  http://www.openal.org/home/		(for linux/windows)
 	sdl: http://www.libsdl.org/index.php (for openal)
 	smpeg: http://www.lokigames.com/development/smpeg.php3 (for openal)
 fmod: http://www.fmod.org/
+
+mozilla: http://www.mozilla.org/
+nspr:  ftp://ftp.mozilla.org/pub/nspr/releases
+	(side note: on debian linux you will need mozilla-dev and libnspr-dev)
 
 If you do not have GL you will also need mesa:
 http://www.mesa3d.org
