@@ -95,13 +95,13 @@ PyParentObject KX_ConstraintWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_ConstraintWrapper::_getattr(char* attr)
+PyObject*	KX_ConstraintWrapper::_getattr(const STR_String& attr)
 {
 	//here you can search for existing data members (like mass,friction etc.)
 	_getattr_up(PyObjectPlus);
 }
 
-int	KX_ConstraintWrapper::_setattr(char* attr,PyObject* pyobj)
+int	KX_ConstraintWrapper::_setattr(const STR_String& attr,PyObject* pyobj)
 {
 	
 	PyTypeObject* type = pyobj->ob_type;

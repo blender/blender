@@ -89,7 +89,7 @@ PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
 
 
 
-PyObject* KX_SCA_ReplaceMeshActuator::_getattr(char* attr)
+PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const STR_String& attr)
 {
   _getattr_up(SCA_IActuator);
 }

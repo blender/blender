@@ -609,7 +609,7 @@ static PyMethodDef	CValueMethods[] =
 };
 
 
-PyObject*	CValue::_getattr(char* attr)
+PyObject*	CValue::_getattr(const STR_String& attr)
 {
 	CValue* resultattr = FindIdentifier(attr);
 	STR_String text;
@@ -698,7 +698,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 	return vallie;
 
 }
-int	CValue::_setattr(char* attr,PyObject* pyobj)
+int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
 {
 	
 	if (!pyobj) { // member deletion

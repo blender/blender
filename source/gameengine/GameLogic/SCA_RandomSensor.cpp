@@ -153,7 +153,7 @@ PyMethodDef SCA_RandomSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_RandomSensor::_getattr(char* attr) {
+PyObject* SCA_RandomSensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_ISensor);
 }
 

@@ -360,7 +360,7 @@ PyMethodDef SCA_RandomActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_RandomActuator::_getattr(char* attr) {
+PyObject* SCA_RandomActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 }
 

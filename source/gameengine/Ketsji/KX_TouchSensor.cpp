@@ -246,7 +246,7 @@ PyMethodDef KX_TouchSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_TouchSensor::_getattr(char* attr) {
+PyObject* KX_TouchSensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_ISensor);
 }
 

@@ -98,9 +98,9 @@ public:
 		double deltatime
 	);
 
-		PyObject*  
+	virtual PyObject*  
 	_getattr(
-		char *attr
+		const STR_String& attr
 	);
 
 		SCA_IObject*	

@@ -131,15 +131,14 @@ PyParentObject KX_PhysicsObjectWrapper::Parents[] = {
 	NULL
 };
 
-PyObject*	KX_PhysicsObjectWrapper::_getattr(char* attr)
+PyObject*	KX_PhysicsObjectWrapper::_getattr(const STR_String& attr)
 {
 	_getattr_up(PyObjectPlus);
 }
 
 
-int	KX_PhysicsObjectWrapper::_setattr(char* attr,PyObject* pyobj)
+int	KX_PhysicsObjectWrapper::_setattr(const STR_String& attr,PyObject* pyobj)
 {
-	
 	PyTypeObject* type = pyobj->ob_type;
 	int result = 1;
 
@@ -154,6 +153,7 @@ int	KX_PhysicsObjectWrapper::_setattr(char* attr,PyObject* pyobj)
 	}
 	if (result)
 		result = PyObjectPlus::_setattr(attr,pyobj);
+		
 	return result;
 };
 

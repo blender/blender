@@ -65,7 +65,7 @@ class KX_TrackToActuator : public SCA_IActuator
 	virtual bool Update(double curtime,double deltatime);
 
 	/* Python part */
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 	
 	/* 1. setObject */
 	KX_PYMETHOD_DOC(KX_TrackToActuator,SetObject);

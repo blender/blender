@@ -76,7 +76,7 @@ PyMethodDef KX_MeshProxy::Methods[] = {
 };
 
 PyObject*
-KX_MeshProxy::_getattr(char* attr)
+KX_MeshProxy::_getattr(const STR_String& attr)
 {
   _getattr_up(SCA_IObject);
 }

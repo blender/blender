@@ -318,7 +318,7 @@ PyMethodDef SCA_PropertySensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_PropertySensor::_getattr(char* attr) {
+PyObject* SCA_PropertySensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_ISensor); /* implicit return! */
 }
 

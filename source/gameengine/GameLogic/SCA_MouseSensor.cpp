@@ -254,7 +254,7 @@ PyMethodDef SCA_MouseSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_MouseSensor::_getattr(char* attr) {
+PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_ISensor);
 }
 

@@ -110,7 +110,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 
 	/* read x-coordinate */
 	KX_PYMETHOD_DOC(SCA_MouseSensor,GetXPosition);

@@ -200,6 +200,20 @@ public:
     static char method_name##_doc[]; \
 
 /* The line above should remain empty */
+/**
+ * Method table macro (with doc)
+ */
+#define KX_PYMETHODTABLE(class_name, method_name) \
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, class_name::method_name##_doc}
+
+/**
+ * Function implementation macro
+ */
+#define KX_PYMETHODDEF_DOC(class_name, method_name, doc_string) \
+char class_name::method_name##_doc[] = doc_string; \
+PyObject* class_name::Py##method_name(PyObject* self, PyObject* args, PyObject* kwds)
+
+
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 #include "PyObjectPlus.h"
@@ -239,7 +253,7 @@ public:
 
 
 
-	PyObject*			_getattr(char* attr);
+	virtual PyObject*			_getattr(const STR_String& attr);
 
 	void	SpecialRelease()
 	{
@@ -266,7 +280,7 @@ public:
 	virtual CValue*	ConvertPythonToValue(PyObject* pyobj);
 
 
-	int					_setattr(char* attr,PyObject* value);
+	virtual int				_setattr(const STR_String& attr,PyObject* value);
 	
 	KX_PYMETHOD(CValue,GetName);
 

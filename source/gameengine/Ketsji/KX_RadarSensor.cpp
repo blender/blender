@@ -171,7 +171,7 @@ PyMethodDef KX_RadarSensor::Methods[] = {
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
-PyObject* KX_RadarSensor::_getattr(char* attr) {
+PyObject* KX_RadarSensor::_getattr(const STR_String& attr) {
 	_getattr_up(KX_TouchSensor);
 }
 

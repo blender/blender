@@ -77,7 +77,7 @@ public:
 						 const DT_CollData * coll_data); 
 	virtual void RegisterSumo(KX_TouchEventManager *touchman);
 	
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 
 };
 

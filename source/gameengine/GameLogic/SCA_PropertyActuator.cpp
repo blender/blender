@@ -219,7 +219,7 @@ PyMethodDef SCA_PropertyActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_PropertyActuator::_getattr(char* attr) {
+PyObject* SCA_PropertyActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 }
 

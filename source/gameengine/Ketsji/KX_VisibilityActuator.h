@@ -71,7 +71,7 @@ class KX_VisibilityActuator : public SCA_IActuator
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 	//KX_PYMETHOD_DOC
 	KX_PYMETHOD_DOC(KX_VisibilityActuator,SetVisible);
 

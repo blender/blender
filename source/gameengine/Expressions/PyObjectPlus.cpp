@@ -100,15 +100,15 @@ PyParentObject PyObjectPlus::Parents[] = {&PyObjectPlus::Type, NULL};
 /*------------------------------
  * PyObjectPlus attributes	-- attributes
 ------------------------------*/
-PyObject *PyObjectPlus::_getattr(char *attr)
+PyObject *PyObjectPlus::_getattr(const STR_String& attr)
 {
   //if (streq(attr, "type"))
   //  return Py_BuildValue("s", (*(GetParents()))->tp_name);
 
-  return Py_FindMethod(Methods, this, attr);    
+  return Py_FindMethod(Methods, this, const_cast<char *>(attr.ReadPtr()));
 }
 
-int PyObjectPlus::_setattr(char *attr, PyObject *value)
+int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
 {
 	//return PyObject::_setattr(attr,value);
 	//cerr << "Unknown attribute" << endl;

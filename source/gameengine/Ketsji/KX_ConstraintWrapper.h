@@ -38,8 +38,8 @@
 class	KX_ConstraintWrapper : public PyObjectPlus
 {
 	Py_Header;
-	PyObject*			_getattr(char* attr);
-	virtual int 			_setattr(char *attr, PyObject *value);
+	virtual PyObject*		_getattr(const STR_String& attr);
+	virtual int 			_setattr(const STR_String& attr, PyObject *value);
 public:
 	KX_ConstraintWrapper(PHY_ConstraintType ctype,int constraintId,class PHY_IPhysicsEnvironment* physenv,PyTypeObject *T = &Type);
 	virtual ~KX_ConstraintWrapper ();

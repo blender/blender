@@ -75,7 +75,7 @@ PyMethodDef KX_VertexProxy::Methods[] = {
 };
 
 PyObject*
-KX_VertexProxy::_getattr(char* attr)
+KX_VertexProxy::_getattr(const STR_String& attr)
 {
   _getattr_up(SCA_IObject);
 }

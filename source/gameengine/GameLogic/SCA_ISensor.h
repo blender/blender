@@ -46,7 +46,7 @@ class SCA_ISensor : public SCA_ILogicBrick
 	class SCA_EventManager* m_eventmgr;
 	bool	m_triggered;
 
-	/* Pulse positive  pulses? */
+	/** Pulse positive  pulses? */
 	bool m_pos_pulsemode;
 
 	/** Pulse negative pulses? */
@@ -61,7 +61,7 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** Number of ticks since the last negative pulse. */
 	int m_neg_ticks;
 
-	/* invert the output signal*/
+	/** invert the output signal*/
 	bool m_invert;
 
 	/** Sensor must ignore updates? */
@@ -77,7 +77,7 @@ public:
 	~SCA_ISensor();
 	virtual void	ReParent(SCA_IObject* parent);
 
-	/* Because we want sensors to share some behaviour, the Activate has     */
+	/** Because we want sensors to share some behaviour, the Activate has     */
 	/* an implementation on this level. It requires an evaluate on the lower */
 	/* level of individual sensors. Mapping the old activate()s is easy.     */
 	/* The IsPosTrig() also has to change, to keep things consistent.        */
@@ -85,7 +85,7 @@ public:
 	virtual bool Evaluate(CValue* event) = 0;
 	virtual bool IsPositiveTrigger();
 	
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 	virtual CValue* GetReplica()=0;
 
 	/** Set parameters for the pulsing behaviour.

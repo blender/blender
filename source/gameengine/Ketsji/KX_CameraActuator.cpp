@@ -362,7 +362,7 @@ PyMethodDef KX_CameraActuator::Methods[] = {
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
-PyObject* KX_CameraActuator::_getattr(char* attr) {
+PyObject* KX_CameraActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 }
 

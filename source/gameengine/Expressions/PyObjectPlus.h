@@ -40,6 +40,7 @@
 #endif
 
 #include "KX_Python.h"
+#include "STR_String.h"
 
 /*------------------------------
  * Python defines
@@ -72,7 +73,7 @@ inline void Py_Fatal(char *M) {
 								// which allows attribute and method calls
 								// to be properly passed up the hierarchy.
 #define _getattr_up(Parent) \
-  PyObject *rvalue = Py_FindMethod(Methods, this, attr); \
+  PyObject *rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
   if (rvalue == NULL) \
     { \
       PyErr_Clear(); \
@@ -107,15 +108,15 @@ class PyObjectPlus : public PyObject {				// The PyObjectPlus abstract class
 //	  Py_DECREF(this);
 //  };				// decref method
 
-  virtual PyObject *_getattr(char *attr);			// _getattr method
+  virtual PyObject *_getattr(const STR_String& attr);			// _getattr method
   static  PyObject *__getattr(PyObject * PyObj, char *attr) 	// This should be the entry in Type. 
-    { return ((PyObjectPlus*) PyObj)->_getattr(attr); };
+    { return ((PyObjectPlus*) PyObj)->_getattr(STR_String(attr)); };
    
-  virtual int _setattr(char *attr, PyObject *value);		// _setattr method
+  virtual int _setattr(const STR_String& attr, PyObject *value);		// _setattr method
   static  int __setattr(PyObject *PyObj, 			// This should be the entry in Type. 
 			char *attr, 
 			PyObject *value)
-    { return ((PyObjectPlus*) PyObj)->_setattr(attr, value);  };
+    { return ((PyObjectPlus*) PyObj)->_setattr(STR_String(attr), value);  };
 
   virtual PyObject *_repr(void);				// _repr method
   static  PyObject *__repr(PyObject *PyObj)			// This should be the entry in Type.

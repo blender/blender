@@ -89,10 +89,8 @@ bool KX_ObjectActuator::Update(double curtime,double deltatime)
 					(m_bitLocalFlag.AngularVelocity) != 0
 				);
 			m_active_combined_velocity = false;
-			return false;
-		} else {
-			return false; 
-		}
+		} 
+		return false; 
 
 	} else 
 	if (parent)
@@ -209,7 +207,7 @@ PyMethodDef KX_ObjectActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_ObjectActuator::_getattr(char* attr) {
+PyObject* KX_ObjectActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 };
 

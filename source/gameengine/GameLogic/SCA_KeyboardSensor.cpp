@@ -670,7 +670,7 @@ PyMethodDef SCA_KeyboardSensor::Methods[] = {
 };
 
 PyObject*
-SCA_KeyboardSensor::_getattr(char* attr)
+SCA_KeyboardSensor::_getattr(const STR_String& attr)
 {
   _getattr_up(SCA_ISensor);
 }

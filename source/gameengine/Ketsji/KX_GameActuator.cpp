@@ -213,7 +213,7 @@ PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* k
 	
 
 
-PyObject* KX_GameActuator::_getattr(char* attr)
+PyObject* KX_GameActuator::_getattr(const STR_String& attr)
 {
 	_getattr_up(SCA_IActuator);
 }

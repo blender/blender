@@ -75,9 +75,9 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 		double deltatime
 	);
 
-		PyObject*  
+	virtual PyObject*  
 	_getattr(
-		char *attr
+		const STR_String& attr
 	);
 
 	/* 1. setMesh */

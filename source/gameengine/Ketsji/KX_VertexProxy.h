@@ -55,7 +55,7 @@ public:
 
 
 // stuff for python integration
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 
 	KX_PYMETHOD(KX_VertexProxy,GetXYZ);
 	KX_PYMETHOD(KX_VertexProxy,SetXYZ);

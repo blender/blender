@@ -399,7 +399,7 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* BL_ActionActuator::_getattr(char* attr) {
+PyObject* BL_ActionActuator::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_IActuator);
 }
 

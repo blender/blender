@@ -165,7 +165,7 @@ PyMethodDef SCA_ISensor::Methods[] = {
 
 
 PyObject*
-SCA_ISensor::_getattr(char* attr)
+SCA_ISensor::_getattr(const STR_String& attr)
 {
   _getattr_up(SCA_ILogicBrick);
 }

@@ -386,7 +386,7 @@ PyMethodDef KX_TrackToActuator::Methods[] = {
 
 
 
-PyObject* KX_TrackToActuator::_getattr(char* attr)
+PyObject* KX_TrackToActuator::_getattr(const STR_String& attr)
 {
 	_getattr_up(SCA_IActuator);
 }

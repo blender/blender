@@ -700,7 +700,7 @@ PyParentObject KX_GameObject::Parents[] = {
 
 
 
-PyObject* KX_GameObject::_getattr(char* attr)
+PyObject* KX_GameObject::_getattr(const STR_String& attr)
 {
 	_getattr_up(SCA_IObject);
 }

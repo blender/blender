@@ -114,7 +114,7 @@ public:
 	const class MT_Point3&	ConvertPythonVectorArg(PyObject* args);
 	
 	// here come the python forwarded methods
-	PyObject* _getattr(char* attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 	
 };
 

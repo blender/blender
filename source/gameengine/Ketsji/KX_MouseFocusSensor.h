@@ -82,7 +82,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject*  _getattr(const STR_String& attr);
 
 	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRayTarget);
 	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRaySource);

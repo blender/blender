@@ -274,7 +274,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 
 
 
-PyObject* SCA_PythonController::_getattr(char* attr)
+PyObject* SCA_PythonController::_getattr(const STR_String& attr)
 {
 	_getattr_up(SCA_IController);
 }

@@ -132,7 +132,7 @@ KX_VisibilityActuator::Methods[] = {
 
 PyObject* 
 KX_VisibilityActuator::_getattr(
-	char* attr
+	const STR_String& attr
 	) 
 {
 	_getattr_up(SCA_IActuator);

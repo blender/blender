@@ -133,7 +133,7 @@ PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
 };
 
 
-PyObject* KX_SCA_EndObjectActuator::_getattr(char* attr)
+PyObject* KX_SCA_EndObjectActuator::_getattr(const STR_String& attr)
 {
   _getattr_up(SCA_IActuator);
 }

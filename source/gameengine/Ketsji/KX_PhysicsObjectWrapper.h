@@ -39,8 +39,8 @@ class	KX_PhysicsObjectWrapper : public PyObjectPlus
 {
 	Py_Header;
 
-	PyObject*			_getattr(char* attr);
-	virtual int 			_setattr(char *attr, PyObject *value);
+	virtual PyObject*		_getattr(const STR_String& attr);
+	virtual int 			_setattr(const STR_String& attr, PyObject *value);
 public:
 	KX_PhysicsObjectWrapper(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsEnvironment* physenv,PyTypeObject *T = &Type);
 	virtual ~KX_PhysicsObjectWrapper();

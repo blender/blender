@@ -357,7 +357,7 @@ PyMethodDef KX_MouseFocusSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* KX_MouseFocusSensor::_getattr(char* attr) {
+PyObject* KX_MouseFocusSensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_MouseSensor);
 }
 

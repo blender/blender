@@ -73,7 +73,7 @@ public:
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitNormal);
 	KX_PYMETHOD_DOC(KX_RaySensor,GetRayDirection);
 
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 	
 };
 

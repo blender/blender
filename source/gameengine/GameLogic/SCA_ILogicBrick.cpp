@@ -254,7 +254,7 @@ PyMethodDef SCA_ILogicBrick::Methods[] = {
 
 
 PyObject*
-SCA_ILogicBrick::_getattr(char* attr)
+SCA_ILogicBrick::_getattr(const STR_String& attr)
 {
   _getattr_up(CValue);
 }

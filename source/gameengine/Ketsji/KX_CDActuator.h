@@ -84,7 +84,7 @@ public:
 	/* Python interface --------------------------------------------------- */
 	/* -------------------------------------------------------------------- */
 
-	PyObject*  _getattr(char *attr);
+	virtual PyObject*  _getattr(const STR_String& attr);
 
 	KX_PYMETHOD(KX_CDActuator,StartCD);
 	KX_PYMETHOD(KX_CDActuator,PauseCD);

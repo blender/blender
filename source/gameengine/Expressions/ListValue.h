@@ -59,7 +59,7 @@ public:
 
 	bool CheckEqual(CValue* first,CValue* second);
 
-	virtual PyObject*  _getattr(char *attr);
+	virtual PyObject* _getattr(const STR_String& attr);
 
 	KX_PYMETHOD(CListValue,append);
 	KX_PYMETHOD(CListValue,reverse);

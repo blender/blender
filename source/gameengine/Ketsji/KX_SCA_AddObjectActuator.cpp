@@ -93,17 +93,7 @@ bool KX_SCA_AddObjectActuator::Update(double curtime,
 		SCA_IObject* replica = m_scene->AddReplicaObject(m_OriginalObject,GetParent(),m_timeProp );
 		KX_GameObject * game_obj = static_cast<KX_GameObject *>(replica);
 		game_obj->setLinearVelocity(m_linear_velocity,m_localFlag);
-
-		//if (game_obj->GetSumoObject())
-		//{
-			// If this is object is also controlled by physics.
-			// we have to inform the physics controller that 
-			// we no longer take control of the object.
-		//	game_obj->GetPhysicsController()->ResolveCombinedVelocities(m_linear_velocity,
-		//																MT_Vector3(0,0,0),
-		//																m_localFlag,
-		//																false);
-		//}
+		game_obj->ResolveCombinedVelocities(m_linear_velocity, MT_Vector3(0., 0., 0.), m_localFlag, false);
 
 		// keep a copy of the last object, to allow python scripters to change it
 		if (m_lastCreatedObject)
@@ -184,7 +174,7 @@ PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
 };
 
 
-PyObject* KX_SCA_AddObjectActuator::_getattr(char* attr)
+PyObject* KX_SCA_AddObjectActuator::_getattr(const STR_String& attr)
 {
   _getattr_up(SCA_IActuator);
 }

@@ -224,7 +224,7 @@ PyMethodDef KX_SceneActuator::Methods[] =
 
 
 
-PyObject* KX_SceneActuator::_getattr(char* attr)
+PyObject* KX_SceneActuator::_getattr(const STR_String& attr)
 {
 	_getattr_up(SCA_IActuator);
 }
