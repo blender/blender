@@ -90,7 +90,7 @@ void quicktime_exit(void)
 #if defined(_WIN32) || defined(__APPLE__)
 #ifdef WITH_QUICKTIME
 	if(G.have_quicktime) {
-		free_qtcodecdataExt();
+		free_qtcomponentdata();
 		ExitMovies();
 #ifdef _WIN32
 		TerminateQTML();

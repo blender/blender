@@ -42,9 +42,8 @@ void start_qt(void);					//for initrender.c
 void append_qt(int frame);
 void end_qt(void);
 
-int get_qtcodec_settings(void);			//for buttons.c
-void free_qtcodecdataExt(void);			//usiblender.c
-
+int  get_qtcodec_settings(void);		//for buttons.c
+void free_qtcomponentdata(void);
 void makeqtstring (char *string);		//for playanim.c
 
 #endif //(_WIN32) || (__APPLE__)
