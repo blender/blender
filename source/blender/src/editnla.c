@@ -291,7 +291,8 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 * based on user preference USER_LMOUSESELECT
 		 */
 		case LEFTMOUSE:
-			if (mval[0]>NLAWIDTH){
+			if(view2dmove(LEFTMOUSE)); // only checks for sliders
+			else if (mval[0]>NLAWIDTH){
 				do {
 					getmouseco_areawin(mval);
 					

@@ -103,7 +103,7 @@ static void draw_sample(bSample *sample)
 	short *sp, sampdx;
 	
 	/* one sample is where in v2d space? (v2d space in frames!) */
-	sampfac= 25.0/(sample->rate);
+	sampfac= ((float)G.scene->r.frs_sec)/(sample->rate);
 
 	/* how many samples? */
 	samples= sample->len/(sample->channels*(sample->bits/8));

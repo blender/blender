@@ -1792,7 +1792,8 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if( in_ipo_buttons() ) {
 				do_ipo_selectbuttons();
 				doredraw= 1;
-			}			
+			}
+			else if(view2dmove(LEFTMOUSE));	// only checks for sliders
 			else if(G.qual & LR_CTRLKEY) add_vert_ipo();
 			else {
 				do {
