@@ -1394,6 +1394,8 @@ static uiBlock *view3d_edit_mesh_normalsmenu(void *arg_unused)
 	return block;
 }
 
+
+
 static void do_view3d_edit_mesh_showhidemenu(void *arg, int event)
 {
 	
@@ -2165,6 +2167,41 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+static void do_view3d_pose_armature_showhidemenu(void *arg, int event)
+{
+	
+	switch(event) {
+		 
+	case 0: /* show hidden bones */
+		show_all_pose_bones();
+		break;
+	case 1: /* hide selected bones */
+		hide_selected_pose_bones();
+		break;
+	case 2: /* hide deselected bones */
+		hide_unselected_pose_bones();
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_pose_armature_showhidemenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_showhidemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_pose_armature_showhidemenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Deselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -2185,7 +2222,14 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefIconTextBlockBut(block, view3d_pose_armature_showhidemenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Show/Hide Bones", 0, yco-=20, 120, 19, "");
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}

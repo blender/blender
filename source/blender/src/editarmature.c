@@ -2707,6 +2707,72 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 	}
 } 
 
+int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) {
+	if (bone->flag & BONE_SELECTED) {
+		bone->flag |= BONE_HIDDEN;
+		bone->flag &= ~BONE_SELECTED;
+	}
+	return 0;
+}
+
+void hide_selected_pose_bones(void) {
+	bArmature		*arm;
+
+	arm=get_armature (G.obpose);
+
+	if (!arm)
+		return;
+
+	bone_looper(G.obpose, arm->bonebase.first, NULL, 
+				hide_selected_pose_bone);
+
+	force_draw();
+}
+
+int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) {
+	if (~bone->flag & BONE_SELECTED) {
+		bone->flag |= BONE_HIDDEN;
+	}
+	return 0;
+}
+
+void hide_unselected_pose_bones(void) {
+	bArmature		*arm;
+
+	arm=get_armature (G.obpose);
+
+	if (!arm)
+		return;
+
+	bone_looper(G.obpose, arm->bonebase.first, NULL, 
+				hide_unselected_pose_bone);
+
+	force_draw();
+}
+
+int show_pose_bone(Object *ob, Bone *bone, void *ptr) {
+	if (bone->flag & BONE_HIDDEN) {
+		bone->flag &= ~BONE_HIDDEN;
+		bone->flag |= BONE_SELECTED;
+	}
+
+	return 0;
+}
+
+void show_all_pose_bones(void) {
+	bArmature		*arm;
+
+	arm=get_armature (G.obpose);
+
+	if (!arm)
+		return;
+
+	bone_looper(G.obpose, arm->bonebase.first, NULL, 
+				show_pose_bone);
+
+	force_draw();
+}
+
 int is_delay_deform(void)
 {
 	bArmature               *arm;

@@ -1047,7 +1047,14 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.f & G_FACESELECT)
 					hide_tface();
-				
+				else if(G.obpose) {
+					if (G.qual==0)
+						hide_selected_pose_bones();
+					else if (G.qual==LR_SHIFTKEY)
+						hide_unselected_pose_bones();
+					else if (G.qual==LR_ALTKEY)
+						show_all_pose_bones();
+				}
 				break;
 			case IKEY:
 				break;
