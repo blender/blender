@@ -163,6 +163,7 @@ blo_read_runtime(
 		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);
 		lseek(fd, datastart, SEEK_SET);
 		bfd = blo_read_blendafterruntime(fd, actualsize-datastart, error_r);
+		fd= -1;	// file was closed in blo_read_blendafterruntime()
 	}
 	
 cleanup:
