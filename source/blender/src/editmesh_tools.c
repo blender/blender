@@ -139,9 +139,9 @@ void convert_to_triface(int all)
 		if(efa->v4) {
 			if(all || (efa->f & SELECT) ) {
 				
-				efan= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa);
+				efan= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa, NULL);
 				if(efa->f & SELECT) EM_select_face(efan, 1);
-				efan= addfacelist(efa->v1, efa->v3, efa->v4, 0, efa);
+				efan= addfacelist(efa->v1, efa->v3, efa->v4, 0, efa, NULL);
 				if(efa->f & SELECT) EM_select_face(efan, 1);
 
 				efan->tf.uv[1][0]= efan->tf.uv[2][0];
@@ -1031,7 +1031,7 @@ void fill_mesh(void)
 	if(ok) {
 		efa= fillfacebase.first;
 		while(efa) {
-			addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, 0, efa);
+			addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, 0, efa, NULL);
 			efa= efa->next;
 		}
 	}
@@ -1245,7 +1245,7 @@ static void addface_subdiv(EditFace *efa, int val1, int val2, int val3, int val4
 	if(val4>=9) v4= eve;
 	else v4= vert_from_number(efa, val4);
 	
-	w= addfacelist(v1, v2, v3, v4, efa);
+	w= addfacelist(v1, v2, v3, v4, efa, NULL);
 	if(w) {
 		if(efa->v4) set_wuv(4, w, val1, val2, val3, val4, efapin);
 		else set_wuv(3, w, val1, val2, val3, val4, efapin);
@@ -2090,14 +2090,14 @@ void beauty_fill(void)
                                 efa= efaa[1];
                                 efa->f1= 1;
 
-                                w= addfacelist(v1, v2, v3, 0, efa);
+                                w= addfacelist(v1, v2, v3, 0, efa, NULL);
 
 								UVCOPY(w->tf.uv[0], uv[0]);
 								UVCOPY(w->tf.uv[1], uv[1]);
 								UVCOPY(w->tf.uv[2], uv[2]);
 
                                 w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2];
-                                w= addfacelist(v1, v3, v4, 0, efa);
+                                w= addfacelist(v1, v3, v4, 0, efa, NULL);
 
 								UVCOPY(w->tf.uv[0], uv[0]);
 								UVCOPY(w->tf.uv[1], uv[2]);
@@ -2116,13 +2116,13 @@ void beauty_fill(void)
                                 efa= efaa[1];
                                 efa->f1= 1;
 
-                                w= addfacelist(v2, v3, v4, 0, efa);
+                                w= addfacelist(v2, v3, v4, 0, efa, NULL);
 
 								UVCOPY(w->tf.uv[0], uv[1]);
 								UVCOPY(w->tf.uv[1], uv[3]);
 								UVCOPY(w->tf.uv[2], uv[4]);
 
-                                w= addfacelist(v1, v2, v4, 0, efa);
+                                w= addfacelist(v1, v2, v4, 0, efa, NULL);
 
 								UVCOPY(w->tf.uv[0], uv[0]);
 								UVCOPY(w->tf.uv[1], uv[1]);
@@ -2212,7 +2212,7 @@ void join_triangles(void)
 				/* make new faces */
 				if( convex(v1->co, v2->co, v3->co, v4->co) > 0.01) {
 					if(exist_face(v1, v2, v3, v4)==0) {
-						w = addfacelist(v1, v2, v3, v4, efaa[0]);
+						w = addfacelist(v1, v2, v3, v4, efaa[0], NULL); /* seam edge may get broken */
 						untag_edges(w);
 
 						UVCOPY(w->tf.uv[0], uv[0]);
@@ -2305,7 +2305,7 @@ void edge_flip(void)
 				if (v1 && v2 && v3){
 					if( convex(v1->co, v2->co, v3->co, v4->co) > 0.01) {
 						if(exist_face(v1, v2, v3, v4)==0) {
-							w = addfacelist(v1, v2, v3, 0, efaa[1]);
+							w = addfacelist(v1, v2, v3, 0, efaa[1], NULL); /* outch this may break seams */ 
 							
 							untag_edges(w);
 
@@ -2315,7 +2315,7 @@ void edge_flip(void)
 
 							w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2]; 
 							
-							w = addfacelist(v1, v3, v4, 0, efaa[1]);
+							w = addfacelist(v1, v3, v4, 0, efaa[1], NULL); /* outch this may break seams */
 							untag_edges(w);
 
 							UVCOPY(w->tf.uv[0], uv[0]);
@@ -2486,8 +2486,8 @@ static void edge_rotate(EditEdge *eed)
 							
 	/* create the 2 new faces */   								
 	if(fac1 == 3 && fac2 == 3){
-		newFace[0] = addfacelist(faces[0][(p1+1)%3],faces[0][(p1+2)%3],faces[1][(p3+1)%3],NULL,NULL);
-		newFace[1] = addfacelist(faces[1][(p3+1)%3],faces[1][(p3+2)%3],faces[0][(p1+1)%3],NULL,NULL);
+		newFace[0] = addfacelist(faces[0][(p1+1)%3],faces[0][(p1+2)%3],faces[1][(p3+1)%3],NULL,NULL,NULL);
+		newFace[1] = addfacelist(faces[1][(p3+1)%3],faces[1][(p3+2)%3],faces[0][(p1+1)%3],NULL,NULL,NULL);
 	
 		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%3];
 		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%3];
@@ -2504,8 +2504,8 @@ static void edge_rotate(EditEdge *eed)
 		UVCOPY(newFace[1]->tf.uv[2],face[0]->tf.uv[(p1+1)%3]);
 	}
 	else if(fac1 == 4 && fac2 == 3){
-		newFace[0] = addfacelist(faces[0][(p1+1)%4],faces[0][(p1+2)%4],faces[0][(p1+3)%4],faces[1][(p3+1)%3],NULL);
-		newFace[1] = addfacelist(faces[1][(p3+1)%3],faces[1][(p3+2)%3],faces[0][(p1+1)%4],NULL,NULL);
+		newFace[0] = addfacelist(faces[0][(p1+1)%4],faces[0][(p1+2)%4],faces[0][(p1+3)%4],faces[1][(p3+1)%3],NULL,NULL);
+		newFace[1] = addfacelist(faces[1][(p3+1)%3],faces[1][(p3+2)%3],faces[0][(p1+1)%4],NULL,NULL,NULL);
 
 		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%4];
 		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%4];
@@ -2525,8 +2525,8 @@ static void edge_rotate(EditEdge *eed)
 	}
 
 	else if(fac1 == 3 && fac2 == 4){
-		newFace[0] = addfacelist(faces[0][(p1+1)%3],faces[0][(p1+2)%3],faces[1][(p3+1)%4],NULL,NULL);
-		newFace[1] = addfacelist(faces[1][(p3+1)%4],faces[1][(p3+2)%4],faces[1][(p3+3)%4],faces[0][(p1+1)%3],NULL);
+		newFace[0] = addfacelist(faces[0][(p1+1)%3],faces[0][(p1+2)%3],faces[1][(p3+1)%4],NULL,NULL,NULL);
+		newFace[1] = addfacelist(faces[1][(p3+1)%4],faces[1][(p3+2)%4],faces[1][(p3+3)%4],faces[0][(p1+1)%3],NULL,NULL);
 
 		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%3];
 		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%3];
@@ -2547,8 +2547,8 @@ static void edge_rotate(EditEdge *eed)
 	}
 	
 	else if(fac1 == 4 && fac2 == 4){
-		newFace[0] = addfacelist(faces[0][(p1+1)%4],faces[0][(p1+2)%4],faces[0][(p1+3)%4],faces[1][(p3+1)%4],NULL);
-		newFace[1] = addfacelist(faces[1][(p3+1)%4],faces[1][(p3+2)%4],faces[1][(p3+3)%4],faces[0][(p1+1)%4],NULL);
+		newFace[0] = addfacelist(faces[0][(p1+1)%4],faces[0][(p1+2)%4],faces[0][(p1+3)%4],faces[1][(p3+1)%4],NULL,NULL);
+		newFace[1] = addfacelist(faces[1][(p3+1)%4],faces[1][(p3+2)%4],faces[1][(p3+3)%4],faces[0][(p1+1)%4],NULL,NULL);
 
 		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1)%4];
 		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2)%4];
@@ -3048,12 +3048,12 @@ void bevel_mesh(float bsize, int allfaces)
 				v2= efa->v2->vn;
 				v3= efa->v3->vn;
 				v4= efa->v4->vn;
-				addfacelist(v1, v2, v3, v4, efa);
+				addfacelist(v1, v2, v3, v4, efa,NULL);
    			} else {
    				v1= efa->v1->vn;
    				v2= efa->v2->vn;
    				v3= efa->v3->vn;
-   				addfacelist(v1, v2, v3, 0, efa);
+   				addfacelist(v1, v2, v3, 0, efa,NULL);
    			}
 
 			efa= efa-> next;
@@ -3137,9 +3137,9 @@ void bevel_mesh(float bsize, int allfaces)
 							efa= NULL;
 
 							if (VecCompare(eed->v1->co, eed2->v2->co, limit)) {
-								efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], example);
+								efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], example,NULL);
 							} else {
-								efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], example);
+								efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], example,NULL);
 							}
 						
 							if(efa) {
@@ -3282,7 +3282,7 @@ void bevel_mesh(float bsize, int allfaces)
 							if ((neweve[b]==eed->v1) || (neweve[b]==eed->v2)) c++;
 						if (c==2) {
 							if(exist_face(eed->v1, eed->v2, eve2, 0)==0) {
-								efa= addfacelist(eed->v1, eed->v2, eve2, 0, example);
+								efa= addfacelist(eed->v1, eed->v2, eve2, 0, example,NULL);
 #ifdef BEV_DEBUG
 								efa->mat_nr= 2;
 #endif								
@@ -3296,16 +3296,16 @@ void bevel_mesh(float bsize, int allfaces)
 						con2= convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co);
 						con3= convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co);
 						if(con1>=con2 && con1>=con3)
-							efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], example);
+							efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], example,NULL);
 						else if(con2>=con1 && con2>=con3)
-							efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], example);
+							efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], example,NULL);
 						else 
-							efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], example);
+							efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], example,NULL);
 					}				
 				}
 				else if (a==3) {
 					if(exist_face(neweve[0], neweve[1], neweve[2], 0)==0)
-						efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, example);
+						efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, example, NULL);
 				}
 				if(efa) {
 					float inp;	

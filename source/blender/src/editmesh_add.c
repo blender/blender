@@ -327,7 +327,7 @@ void addedgeface_mesh(void)
 	if(amount==3) {
 		if(exist_face(neweve[0], neweve[1], neweve[2], 0)==0) {
 			
-			efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, NULL);
+			efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, NULL, NULL);
 
 		}
 		else error("The selected vertices already form a face");
@@ -340,11 +340,11 @@ void addedgeface_mesh(void)
 			con3= convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co);
 
 			if(con1>=con2 && con1>=con3)
-				efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL);
+				efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
 			else if(con2>=con1 && con2>=con3)
-				efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL);
+				efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
 			else 
-				efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL);
+				efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
 
 		}
 		else error("The selected vertices already form a face");
@@ -582,24 +582,24 @@ void add_primitiveMesh(int type)
 				v3= v1->next->next;
 				if(ext) v4= v2->next->next;
 				
-				addfacelist(v3, v1->next, v1, v3->next, NULL);
-				if(ext) addfacelist(v2, v2->next, v4, v4->next, NULL);
+				addfacelist(v3, v1->next, v1, v3->next, NULL, NULL);
+				if(ext) addfacelist(v2, v2->next, v4, v4->next, NULL, NULL);
 				
 			}
 			else {
 				v3= v1;
 				v4= v2;
 				for(a=1; a<tot; a++) {
-					addfacelist(vdown, v3, v3->next, 0, NULL);
+					addfacelist(vdown, v3, v3->next, 0, NULL, NULL);
 					v3= v3->next;
 					if(ext) {
-						addfacelist(vtop, v4, v4->next, 0, NULL);
+						addfacelist(vtop, v4, v4->next, 0, NULL, NULL);
 						v4= v4->next;
 					}
 				}
 				if(type>1) {
-					addfacelist(vdown, v3, v1, 0, NULL);
-					if(ext) addfacelist(vtop, v4, v2, 0, NULL);
+					addfacelist(vdown, v3, v1, 0, NULL, NULL);
+					if(ext) addfacelist(vtop, v4, v2, 0, NULL, NULL);
 				}
 			}
 		}
@@ -616,19 +616,19 @@ void add_primitiveMesh(int type)
 			v3= v1;
 			v4= v2;
 			for(a=1; a<tot; a++) {
-				addfacelist(v3, v3->next, v4->next, v4, NULL);
+				addfacelist(v3, v3->next, v4->next, v4, NULL, NULL);
 				v3= v3->next;
 				v4= v4->next;
 			}
-			addfacelist(v3, v1, v2, v4, NULL);
+			addfacelist(v3, v1, v2, v4, NULL, NULL);
 		}
 		else if(type==7) { /* cone */
 			v3= v1;
 			for(a=1; a<tot; a++) {
-				addfacelist(vtop, v3->next, v3, 0, NULL);
+				addfacelist(vtop, v3->next, v3, 0, NULL, NULL);
 				v3= v3->next;
 			}
-			addfacelist(vtop, v1, v3, 0, NULL);
+			addfacelist(vtop, v1, v3, 0, NULL, NULL);
 		}
 		
 		if(type<2) tot= totoud;
@@ -726,7 +726,7 @@ void add_primitiveMesh(int type)
 			v1= eva[ icoface[a][0] ];
 			v2= eva[ icoface[a][1] ];
 			v3= eva[ icoface[a][2] ];
-			addfacelist(v1, v2, v3, 0, NULL);
+			addfacelist(v1, v2, v3, 0, NULL, NULL);
 		}
 
 		dia*=200;
@@ -756,8 +756,8 @@ void add_primitiveMesh(int type)
 			tv[monkeynv+i]->f |= SELECT;
 		}
 		for (i=0; i<monkeynf; i++) {
-			addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL);
-			addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL);
+			addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
+			addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
 		}
 
 		MEM_freeN(tv);

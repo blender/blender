@@ -325,14 +325,14 @@ void free_facelist(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, EditFace *example)
+EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, EditFace *example, EditFace *exampleEdges)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	EditEdge *e1, *e2=0, *e3=0, *e4=0;
 
 	/* add face to list and do the edges */
-	if(example) {
+	if(exampleEdges) {
 		e1= addedgelist(v1, v2, example->e1);
 		e2= addedgelist(v2, v3, example->e2);
 		if(v4) e3= addedgelist(v3, v4, example->e3); 
@@ -732,7 +732,7 @@ void make_editMesh()
 			if(mface->v3) eve3= evlist[mface->v3]; else eve3= NULL;
 			if(mface->v4) eve4= evlist[mface->v4]; else eve4= NULL;
 			
-			efa= addfacelist(eve1, eve2, eve3, eve4, NULL);
+			efa= addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
 
 			if(efa) {
 			
@@ -1801,9 +1801,9 @@ static void undoMesh_to_editMesh(void *umv)
 	tface= um->tfaces;
 	for(a=0, efac= um->faces; a<um->totface; a++, efac++) {
 		if(efac->v4 != -1)
-			efa= addfacelist(evar[efac->v1], evar[efac->v2], evar[efac->v3], evar[efac->v4], NULL);
+			efa= addfacelist(evar[efac->v1], evar[efac->v2], evar[efac->v3], evar[efac->v4], NULL, NULL);
 		else 
-			efa= addfacelist(evar[efac->v1], evar[efac->v2], evar[efac->v3], NULL, NULL);
+			efa= addfacelist(evar[efac->v1], evar[efac->v2], evar[efac->v3], NULL, NULL ,NULL);
 
 		efa->mat_nr= efac->mat_nr;
 		efa->flag= efac->flag;

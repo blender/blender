@@ -537,8 +537,8 @@ static short extrudeflag_edge(short flag)
 				if(eed->v2->vn==NULL)
 					eed->v2->vn= addvertlist(eed->v2->co);
 					
-				if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
-				else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
+				if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
+				else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL, NULL);
 
 				if(eed->vn) {
 					/* btw, we dont do it in addfacelist, it copies edges too */
@@ -558,11 +558,11 @@ static short extrudeflag_edge(short flag)
 			if(efa->v2->vn==NULL) efa->v2->vn= addvertlist(efa->v2->co);
 			if(efa->v3->vn==NULL) efa->v3->vn= addvertlist(efa->v3->co);
 			if(efa->v4 && efa->v4->vn==NULL) efa->v4->vn= addvertlist(efa->v4->co);
-			
+			/* creases and seams stay on *old* face so no edge copy */
 			if(efa->v4)
-				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, efa->v4->vn, efa);
+				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, efa->v4->vn, efa, NULL);
 			else
-				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, NULL, efa);
+				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, NULL, efa, NULL);
 	
 			/* if *one* selected face has edge with unselected face; remove old selected faces */
 			if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2))
@@ -774,8 +774,8 @@ short extrudeflag_vert(short flag)
 		if( (eed->f2==1 || eed->f2==2) ) {
 			if(eed->f1==2) del_old= 1;
 			
-			if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL);
-			else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL);
+			if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
+			else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL, NULL);
 			
 			if(eed->vn) {
 				efa= (EditFace *)eed->vn;
@@ -818,7 +818,7 @@ short extrudeflag_vert(short flag)
 			v3= efa->v3->vn;
 			if(efa->v4) v4= efa->v4->vn; else v4= 0;
 			
-			efa2= addfacelist(v1, v2, v3, v4, efa);
+			efa2= addfacelist(v1, v2, v3, v4, efa, efa); /* hmm .. not sure about edges here */
 			
 			/* for transform */
 			VecAddf(nor, nor, efa->n);
@@ -967,7 +967,7 @@ void adduplicateflag(int flag)
 			v2= efa->v2->vn;
 			v3= efa->v3->vn;
 			if(efa->v4) v4= efa->v4->vn; else v4= NULL;
-			newfa= addfacelist(v1, v2, v3, v4, efa);
+			newfa= addfacelist(v1, v2, v3, v4, efa, efa); 
 			
 			newfa->f= efa->f;
 			efa->f -= flag;
