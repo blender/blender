@@ -96,7 +96,6 @@
 #include "blendef.h"
 #include "nla.h"
 
-
 static bPose	*g_posebuf=NULL;
 extern int count_action_levels (bAction *act);
 
