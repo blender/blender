@@ -3874,7 +3874,11 @@ void common_insertkey()
 			collect_pose_garbage(ob);
 
 			if (!act){
-				act=G.obpose->action=add_empty_action();
+				act= G.obpose->action=add_empty_action();
+				/* this sets the non-pinned open ipowindow(s) to show the action curve */
+				ob->ipowin= ID_AC;
+				allqueue(REDRAWIPO, ob->ipowin);
+				
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 			}
