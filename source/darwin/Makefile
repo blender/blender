@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.3 2002/11/03 22:38:32 maarten Exp $
+# $Id: Makefile,v 1.4 2003/02/02 17:28:15 sgefant Exp $
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -39,7 +39,7 @@ all::
 	@echo "---> creating directory structure for $(APPLICATION)"
 	@rm -rf $(DIR)/bin/$(APPLICATION).app
 	@cp -R $(APPLICATION).app $(DIR)/bin
-	@#cat $(APPLICATION).app/Contents/Info.plist | sed s/VERSION/`cat ../../VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > $(DIR)/bin/$(APPLICATION).app/Contents/Info.plist
+	@cat $(APPLICATION).app/Contents/Info.plist | sed s/VERSION/`cat ../../release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > $(DIR)/bin/$(APPLICATION).app/Contents/Info.plist
 	@echo "---> copying binary"
 	@cp $(DIR)/bin/$(APPLICATION) $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/
 	@echo "---> adding excutable attributes"
