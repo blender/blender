@@ -4348,6 +4348,85 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 	}
 }
 
+/* only to be used to prevent an 'outside' event when using nested pulldowns */
+/* four checks:
+  - while mouse moves in good x direction
+  - while mouse motion x is bigger than y motion
+  - while distance to center block diminishes
+  - only for 1 second
+  
+  return 0: check outside
+*/
+static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
+{
+	short mvalo[2], dx, dy, domx, domy, x1, y1;
+	int disto, dist, counter=0;
+
+	if(block->direction==UI_TOP || block->direction==UI_DOWN) return 0;
+	if(uevent->event!= MOUSEX && uevent->event!= MOUSEY) return 0;
+	
+	/* calculate dominant direction */
+	domx= ( -uevent->mval[0] + (block->maxx+block->minx)/2 );
+	domy= ( -uevent->mval[1] + (block->maxy+block->miny)/2 );
+	/* we need some accuracy */
+	if( abs(domx)<4 ) return 0;
+	
+	/* calculte old dist */
+	disto= domx*domx + domy*domy;
+	
+	uiGetMouse(mywinget(), mvalo);
+	
+	while(TRUE) {
+		uiGetMouse(mywinget(), uevent->mval);
+		
+		/* check inside, if so return */
+		if( block->minx <= uevent->mval[0] && block->maxx >= uevent->mval[0] ) {		
+			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) {
+				return 1;
+			}
+		}
+		
+		/* check direction */
+		dx= uevent->mval[0] - mvalo[0];
+		dy= uevent->mval[1] - mvalo[1];
+				
+		if( abs(dx)+abs(dy)>4 ) {  // threshold
+			if( abs(dy) > abs(dx) ) {
+				//printf("left because y>x direction\n");
+				return 0;
+			}
+			
+			if( dx>0 && domx>0);
+			else if(dx<0 && domx<0);
+			else {
+				//printf("left because dominant direction\n");
+				return 0;
+			}
+			
+		}
+		
+		/* check dist */
+		x1= ( -uevent->mval[0] + (block->maxx+block->minx)/2 );
+		y1= ( -uevent->mval[1] + (block->maxy+block->miny)/2 );
+		dist= x1*x1 + y1*y1;
+		if(dist > disto) {
+			//printf("left because distance\n");
+			return 0;
+		}
+		else disto= dist;
+
+		/* idle for this poor code */
+		PIL_sleep_ms(10);
+		counter++;
+		if(counter > 100) {
+			// printf("left because of timer (1 sec)\n");
+			return 0;
+		}
+	}
+	
+	return 0;
+}
+
 /* return: 
  * UI_NOTHING	pass event to other ui's
  * UI_CONT		don't pass event to other ui's
@@ -4583,14 +4662,23 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val==1) return UI_RETURN_OK;
 		
 		/* check outside */
-		if(block->parentrct.xmax != 0.0) {
+		if(inside==0 && block->parentrct.xmax != 0.0) {
 			/* strict check, and include the parent rect */
-			if( BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1])==0) {
-				if(uevent->mval[0]<block->minx-10) return UI_RETURN_OUT;
-				if(uevent->mval[1]<block->miny-10) return UI_RETURN_OUT;
-		
-				if(uevent->mval[0]>block->maxx+10) return UI_RETURN_OUT;
-				if(uevent->mval[1]>block->maxy+10) return UI_RETURN_OUT;
+			if( BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1]));
+			else if( ui_mouse_motion_towards_block(block, uevent));
+			else {
+				int safety;
+				if( block->parentrct.xmin < block->minx ) safety = 3; else safety= 40;
+				if(uevent->mval[0]<block->minx-safety) return UI_RETURN_OUT;
+				
+				if( block->parentrct.ymin < block->miny ) safety = 3; else safety= 40;
+				if(uevent->mval[1]<block->miny-safety) return UI_RETURN_OUT;
+				
+				if( block->parentrct.xmax > block->maxx ) safety = 3; else safety= 40;
+				if(uevent->mval[0]>block->maxx+safety) return UI_RETURN_OUT;
+				
+				if( block->parentrct.ymax > block->maxy ) safety = 3; else safety= 40;
+				if(uevent->mval[1]>block->maxy+safety) return UI_RETURN_OUT;
 			}
 		}
 		else {

@@ -568,7 +568,6 @@ void splash(void *data, int datasize, char *string)
 	bbuf= IMB_ibImageFromMemory((int *)data, datasize, IB_rect);
 
 	if (bbuf) {
-
 		oldwin = mywinget();
 		mywinset(G.curscreen->mainwin);
 		
@@ -921,6 +920,8 @@ void screenmain(void)
 	int has_input= 0;	/* was one, why! (ton) */
 	int firsttime = 1;
 	
+	window_make_active(mainwin);
+	
 	while (1) {
 		unsigned short event;
 		short val, towin;
@@ -934,7 +935,7 @@ void screenmain(void)
 			event= screen_qread(&val, &ascii);
 		}
 		
-		//window_make_active(mainwin); (removed, ton)
+		// window_make_active(mainwin); // (removed, ton)
 
 		if (event==INPUTCHANGE) {
 			has_input= val;
@@ -947,7 +948,7 @@ void screenmain(void)
 			 * If the main window is not active, deactivate the internal 
 			 * window.
 			 */
-		if (has_input) {
+		if (has_input || g_activearea==NULL || G.curscreen->winakt) {
 			ScrArea *newactarea;
 			int newactwin;
 			short mval[2];
@@ -1104,6 +1105,7 @@ void screenmain(void)
 
 		/* Bizar hack. The event queue has mutated... */
 		if ( (firsttime) && (event == 0) ) {
+			
 			if (G.fileflags & G_FILE_AUTOPLAY) {
 				// SET AUTOPLAY in G.flags for
 				// other fileloads
