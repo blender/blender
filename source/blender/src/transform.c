@@ -1987,6 +1987,9 @@ int Resize(TransInfo *t, short mval[2])
 				(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
 			) ) / t->fac;
 	}
+
+	if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) < 0)
+		ratio *= -1.0f;
 	
 	size[0] = size[1] = size[2] = ratio;
 
