@@ -3686,6 +3686,64 @@ int my_clock(void)
 #define YROTLOCAL	(YROT|ROTLOCAL)
 #define ZROTLOCAL	(ZROT|ROTLOCAL)
 
+void view_editmove(unsigned char event)
+{
+	/* Regular:   Zoom in */
+	/* Shift:     Scroll up */
+	/* Ctrl:      Scroll right */
+	/* Alt-Shift: Rotate up */
+	/* Alt-Ctrl:  Rotate right */
+
+	switch(event) {
+		case WHEELUPMOUSE:
+
+			if( G.qual & LR_SHIFTKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_SHIFTKEY;
+					persptoetsen(PAD2);
+					G.qual |= LR_SHIFTKEY;
+				} else {
+					persptoetsen(PAD2);
+				}
+			} else if( G.qual & LR_CTRLKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_CTRLKEY;
+					persptoetsen(PAD4);
+					G.qual |= LR_CTRLKEY;
+				} else {
+					persptoetsen(PAD4);
+				}
+			} else if(U.uiflag & WHEELZOOMDIR) 
+				persptoetsen(PADMINUS);
+			else
+				persptoetsen(PADPLUSKEY);
+
+			break;
+		case WHEELDOWNMOUSE:
+			if( G.qual & LR_SHIFTKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_SHIFTKEY;
+					persptoetsen(PAD8);
+					G.qual |= LR_SHIFTKEY;
+				} else {
+					persptoetsen(PAD8);
+				}
+			} else if( G.qual & LR_CTRLKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_CTRLKEY;
+					persptoetsen(PAD6);
+					G.qual |= LR_CTRLKEY;
+				} else {
+					persptoetsen(PAD6);
+				}
+			} else if(U.uiflag & WHEELZOOMDIR) 
+				persptoetsen(PADPLUSKEY);
+			else
+				persptoetsen(PADMINUS);
+			
+			break;
+	}
+}
 void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 {
 	short canceled = 0;
@@ -4635,7 +4693,10 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 						firsttime= 1;
 					}
 					else {
-					  persptoetsen(PADPLUSKEY);
+						if(event == WHEELDOWNMOUSE)
+							view_editmove(event);
+						else
+							persptoetsen(PADPLUSKEY);
 					  firsttime= 1;
 					}
 					break;
@@ -4647,7 +4708,10 @@ void transform(int mode)	/* 'g' 'G' 'r' 'R' 's' 'S' 't' or 'w' 'N' */
 						firsttime= 1;
 					}
 					else {
-					  persptoetsen(PADMINUS);
+						if(event == WHEELUPMOUSE)
+							view_editmove(event);
+						else
+						  persptoetsen(PADMINUS);
 					  firsttime= 1;
 					}
 					break;
