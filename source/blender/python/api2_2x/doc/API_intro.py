@@ -36,6 +36,7 @@ The Blender Python API Reference
      - L{Render}
   - L{Sound}
   - L{Text}
+  - L{Text3d} (new)
   - L{Texture}
   - L{Types}
   - L{Window}
