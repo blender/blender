@@ -50,6 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_subsurf.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -642,6 +643,8 @@ typedef struct {
 
 	DispListMesh *dlm;
 	EditMesh *em;
+
+	int needsFree;
 } SSDerivedMesh;
 
 static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
@@ -1013,7 +1016,18 @@ static DispListMesh *ssDM_convertToDispListMesh(DerivedMesh *dm)
 	return displistmesh_copy(ssdm->dlm);
 }
 
-static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm)
+static void ssDM_release(DerivedMesh *dm)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+
+	if (ssdm->needsFree) {
+		displistmesh_free(ssdm->dlm);
+	}
+
+	MEM_freeN(dm);
+}
+
+static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, int needsFree)
 {
 	SSDerivedMesh *ssdm = MEM_mallocN(sizeof(*ssdm), "dm");
 
@@ -1039,10 +1053,11 @@ static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm)
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
 	ssdm->dm.drawFacesEM = ssDM_drawFacesEM;
 
-	ssdm->dm.release = MEM_freeN;
+	ssdm->dm.release = ssDM_release;
 	
 	ssdm->dlm = dlm;
 	ssdm->em = em;
+	ssdm->needsFree = needsFree;
 
 	return (DerivedMesh*) ssdm;
 }
@@ -1081,18 +1096,51 @@ DerivedMesh *mesh_get_derived(Object *ob)
 
 		build_mesh_data(ob);
 		dl= find_displist(&me->disp, DL_MESH);
-		
-		if(dl) {
+
+			// XXX, This test should not be here because
+			// build_mesh_data should have made DLM... problem
+			// is there is an exception for objects from dupli,
+			// they only get displist built for first object.
+			//
+			// Would work fine except countall gets a derived
+			// mesh before the displist has been evaluated.
+		if (dl) {
 			if(G.obedit && me==G.obedit->data) {
-				return getSSDerivedMesh(G.editMesh, dl->mesh);
+				return getSSDerivedMesh(G.editMesh, dl->mesh, 0);
 			} else {
-				return getSSDerivedMesh(NULL, dl->mesh);
+				return getSSDerivedMesh(NULL, dl->mesh, 0);
 			}
 		}
-		else return NULL;
-	} else {
-		return NULL;
+	} 
+
+	return NULL;
+}
+
+DerivedMesh *mesh_get_derived_render(Object *ob)
+{
+	Mesh *me= ob->data;
+
+	if (mesh_uses_displist(me)) {
+		if (me->subdiv==me->subdivr) {
+			DispList *dl= find_displist(&me->disp, DL_MESH);
+
+			if(G.obedit && me==G.obedit->data) {
+				return getSSDerivedMesh(G.editMesh, dl->mesh, 0);
+			} else {
+				return getSSDerivedMesh(NULL, dl->mesh, 0);
+			}
+		} else {
+			if(G.obedit && me==G.obedit->data) {
+				DispListMesh *dlm = subsurf_make_dispListMesh_from_editmesh(G.editMesh, me->subdivr, me->flag, me->subsurftype);
+				return getSSDerivedMesh(G.editMesh, dlm, 1);
+			} else {
+				DispListMesh *dlm = subsurf_make_dispListMesh_from_mesh(me, me->subdivr, me->flag);
+				return getSSDerivedMesh(NULL, dlm, 1);
+			}
+		}
 	}
+
+	return NULL;
 }
 
 DerivedMesh *mesh_get_base_derived(Object *ob)

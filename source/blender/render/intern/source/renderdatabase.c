@@ -174,26 +174,6 @@ VlakRen *RE_findOrAddVlak(int nr)
 	return v;
 }
 
-/* ------------------------------------------------------------------------ */
-
-TFace *RE_findTFace(void)
-{
-	TFaceBlock *tfb = R.tfaceBlocks;
-
-	if (!tfb || !tfb->numAvail) {
-		TFaceBlock *tfbn = MEM_mallocN(sizeof(*tfbn), "TFaceBlock");
-
-		tfbn->tfaces = MEM_mallocN(sizeof(*tfbn->tfaces)*TABLEINITSIZE, "TFaceBlock->tfaces");
-		tfbn->numAvail = TABLEINITSIZE;
-		tfbn->next = R.tfaceBlocks;
-		R.tfaceBlocks = tfbn;
-
-		tfb = tfbn;
-	}
-
-	return &tfb->tfaces[tfb->numAvail--];
-}
-
 /* ------------------------------------------------------------------------- */
 
 HaloRen *RE_inithalo(Material *ma,   float *vec,   float *vec1, 

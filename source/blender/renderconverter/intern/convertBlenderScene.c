@@ -51,6 +51,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
+#include "BLI_memarena.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_lamp_types.h"
@@ -75,6 +76,7 @@
 #include "BKE_constraint.h"
 #include "BKE_displist.h"
 #include "BKE_deform.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -1297,8 +1299,6 @@ static void init_render_mesh(Object *ob)
 	Material *ma;
 	MSticky *ms = NULL;
 	PartEff *paf;
-	DispList *dl;
-//	TFace *tface;
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *extverts=0, *orco;
@@ -1354,40 +1354,17 @@ static void init_render_mesh(Object *ob)
 	do_puno= mesh_modifier(ob, 's');
 	
 	if (mesh_uses_displist(me)) {
-		dl= me->disp.first;
+		DerivedMesh *dm = mesh_get_derived_render(ob);
+		dlm = dm->convertToDispListMesh(dm);
+		dm->release(dm);
 
-		/* Force a displist rebuild if this is a subsurf and we have a different subdiv level */
-		/* also when object is in editmode, displist ordering for editmode is different, giving orco probs */
-		
-		if((dl==NULL) || ((me->subdiv != me->subdivr)) || (G.obedit && me==G.obedit->data)) {
-			/* prevent subsurf called again for duplicate use of mesh, tface pointers change */
-			if(dl==NULL || (me->subdivdone-1)!=me->subdivr) {
-				dlm= subsurf_make_dispListMesh_from_mesh(me, me->subdivr, me->flag);
-				dl= MEM_callocN(sizeof(*dl), "dl");
-				dl->type= DL_MESH;
-				dl->mesh= dlm;
+		mvert= dlm->mvert;
+		totvert= dlm->totvert;
 
-				free_displist_by_type(&me->disp, DL_MESH);
-				BLI_addtail(&me->disp, dl);
-
-				me->subdivdone= me->subdivr+1;	/* stupid hack, add one because otherwise old files will get
-												* subdivdone==0, so me->subdivr==0 won't work. proper caching
-												* will remove this hack.
-												*/
-			}
-		}
-
-		if(dl==NULL || dl->type!=DL_MESH);  // here used to be a return, but why?
-		else {
-			dlm= dl->mesh;
-	
-			mvert= dlm->mvert;
-			totvert= dlm->totvert;
-	
-			ms= NULL; // no stick in displistmesh
-		}
-		
+		ms= NULL; // no stick in displistmesh
 	} else {
+		DispList *dl;
+
 		dlm= NULL;
 		mvert= me->mvert;
 		totvert= me->totvert;
@@ -1473,7 +1450,7 @@ static void init_render_mesh(Object *ob)
 					mface= dlm->mface + start;
 					if (dlm->tface) {
 						tface= dlm->tface + start;
-						vertcol= dlm->tface->col;
+						vertcol= NULL;
 					} else if (dlm->mcol) {
 						vertcol= (unsigned int *)dlm->mcol;
 					} else {
@@ -1483,7 +1460,7 @@ static void init_render_mesh(Object *ob)
 					mface= ((MFace*) me->mface) + start;
 					if (me->tface) {
 						tface= ((TFace*) me->tface) + start;
-						vertcol= ((TFace*) me->tface)->col;
+						vertcol= NULL;
 					} else if (me->mcol) {
 						vertcol= (unsigned int *)me->mcol;
 					} else {
@@ -1532,15 +1509,25 @@ static void init_render_mesh(Object *ob)
 
 							if(len==0) R.totvlak--;
 							else {
-
-								if(vertcol) {
-									if(tface) vlr->vcol= vertcol+sizeof(TFace)*a/4;	/* vertcol is int */
-									else vlr->vcol= vertcol+sizeof(int)*a;
+								if(dlm) {
+									if(tface) {
+										vlr->tface= BLI_memarena_alloc(R.memArena, sizeof(*vlr->tface));
+										vlr->vcol= vlr->tface->col;
+										memcpy(vlr->tface, tface, sizeof(*tface));
+									} 
+									else if (vertcol) {
+										vlr->vcol= BLI_memarena_alloc(R.memArena, sizeof(int)*16);
+										memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*16);
+									}
+								} else {
+									if(tface) {
+										vlr->vcol= tface->col;
+										vlr->tface= tface;
+									} 
+									else if (vertcol) {
+										vlr->vcol= vertcol+4*a;
+									}
 								}
-								else vlr->vcol= 0;
-								
-								vlr->tface= tface;
-								
 							}
 						}
 						else if(v2 && (ma->mode & MA_WIRE)) {
@@ -1606,6 +1593,8 @@ static void init_render_mesh(Object *ob)
 	if(do_puno) calc_vertexnormals(totverto, totvlako);
 	
 	mesh_modifier(ob, 'e');  // end
+
+	if(dlm) displistmesh_free(dlm);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2685,6 +2674,9 @@ void RE_freeRotateBlenderScene(void)
 	char *ctile;
 
 	/* FREE */
+	
+	BLI_memarena_free(R.memArena);
+	R.memArena = NULL;
 
 	for(a=0; a<R.totlamp; a++) {
 		if(R.la[a]->shb) {
@@ -2745,7 +2737,6 @@ void RE_freeRotateBlenderScene(void)
 			if (mesh_uses_displist(me) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) || ob==G.obedit) ) { 
 			    /* Need to recalc for effects since they are time dependant */
 				makeDispList(ob);  /* XXX this should be replaced with proper caching */
-				me->subdivdone= 0;	/* needed to prevent multiple used meshes being recalculated */
 			}
 		}
 		else if(ob->type==OB_MBALL) {
@@ -2918,6 +2909,8 @@ void RE_rotateBlenderScene(void)
 	float mat[4][4];
 
 	if(G.scene->camera==0) return;
+
+	R.memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
 
 	slurph_opt= 0;
 

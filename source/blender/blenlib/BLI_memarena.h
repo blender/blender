@@ -44,7 +44,7 @@
 	 * enough to not cause much internal fragmentation, 
 	 * small enough not to waste resources
 	 */
-#define BLI_MEMARENA_STD_BUFSIZE	4096
+#define BLI_MEMARENA_STD_BUFSIZE	(1<<14)
 
 struct MemArena;
 typedef struct MemArena MemArena;

@@ -51,17 +51,6 @@
 
 /* ------------------------------------------------------------------------- */
 
-struct TFace;
-
-typedef struct TFaceBlock TFaceBlock;
-
-struct TFaceBlock {
-	TFaceBlock *next;
-
-	struct TFace *tfaces;
-	int numAvail;
-};
-
 /* localized texture result data */
 typedef struct TexResult {
 	float tin, tr, tg, tb, ta;
@@ -111,6 +100,8 @@ typedef struct ShadeInput
 	
 } ShadeInput;
 
+struct MemArena;
+
 /* here only stuff to initalize the render itself */
 typedef struct RE_Render
 {
@@ -150,7 +141,11 @@ typedef struct RE_Render
 	struct VlakRen **blovl;
 	struct VertRen **blove;
 	struct HaloRen **bloha;
-	struct TFaceBlock *tfaceBlocks;
+
+	/* arena for allocating data for use during render, for
+	 * example dynamic TFaces to go in the VlakRen structure.
+	 */
+	struct MemArena *memArena;
 
 	int *rectaccu;
 	int *rectz; /* z buffer: distance buffer */

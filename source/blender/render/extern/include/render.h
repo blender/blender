@@ -191,7 +191,6 @@ void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 struct VlakRen *RE_findOrAddVlak(int nr);
 struct VertRen *RE_findOrAddVert(int nr);
 struct HaloRen *RE_findOrAddHalo(int nr);
-struct TFace *RE_findTFace(void);
 HaloRen *RE_inithalo(struct Material *ma, float *vec, float *vec1, float *orco, float hasize, 
 					float vectsize, int seed);
 
