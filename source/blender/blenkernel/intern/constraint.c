@@ -483,6 +483,9 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 			data = (bTrackToConstraint*)con->data;
 
 			if (data->tar){
+				// Refresh the object if it isn't a constraint loop
+				if (!(con->flag & CONSTRAINT_NOREFRESH))
+					where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -511,6 +514,10 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 			data = (bLockTrackConstraint*)con->data;
 
 			if (data->tar){
+				// Refresh the object if it isn't a constraint loop
+				if (!(con->flag & CONSTRAINT_NOREFRESH))
+					where_is_object_time (data->tar, ctime);	
+
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -527,6 +534,8 @@ short get_constraint_target (bConstraint *con, short ownertype, void* ownerdata,
 				Curve *cu;
 				float q[4], vec[4], dir[3], *quat, x1, totmat[4][4];
 				float curvetime;
+
+				where_is_object_time (data->tar, ctime);	
 
 				Mat4One (totmat);
 
