@@ -38,7 +38,7 @@
 struct TFace;
 extern "C" int set_tpage(TFace* tface);		/* Worst hack ever */
 
-
+#if 0
 class KX_BlenderPolyMaterial : public RAS_IPolyMaterial
 {
 	/** Blender texture face structure. */
@@ -95,6 +95,8 @@ inline RAS_IPolyMaterial::TCachingInfo KX_BlenderPolyMaterial::GetCachingInfo(vo
 {
 	return GetTFace();
 }
+
+#endif
 
 #endif // __KX_BLENDERPOLYMATERIAL
 

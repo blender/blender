@@ -7,7 +7,6 @@ kx_blenderhook_env = library_env.Copy ()
 
 source_files = ['KX_BlenderSystem.cpp',
                 'KX_BlenderRenderTools.cpp',
-                'KX_BlenderPolyMaterial.cpp',
                 'KX_BlenderMouseDevice.cpp',
                 'KX_BlenderKeyboardDevice.cpp',
                 'KX_BlenderInputDevice.cpp',

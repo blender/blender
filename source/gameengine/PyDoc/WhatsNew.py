@@ -7,6 +7,7 @@ This document lists what has been changed in the Game Engine Python API.
 
 Blender CVS
 	- Added L{KX_GameObject}.getDistanceTo() method. (thanks Charlie C)
+	- Added L{KX_PolygonMaterial} module
 
 Blender 2.36
 ------------

@@ -1,4 +1,4 @@
-/** 
+/**
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -29,35 +29,61 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+#ifndef __KX_POLYGONMATERIAL_H__
+#define __KX_POLYGONMATERIAL_H__
 
-#ifndef __GPC_POLYGONMATERIAL
-#define __GPC_POLYGONMATERIAL
+#include "PyObjectPlus.h"
 
-#include "RAS_IPolygonMaterial.h"
+#include "RAS_MaterialBucket.h"
+#include "RAS_IRasterizer.h"
 
-namespace GPC_PolygonMaterial
+struct TFace;
+struct Material;
+struct MTex;
+
+/**
+ *  Material class.
+ *
+ *  This holds the shader, textures and python methods for setting the render state before
+ *  rendering.
+ */
+class KX_PolygonMaterial : public PyObjectPlus, public RAS_IPolyMaterial
 {
-	void SetMipMappingEnabled(bool enabled = false);
-};
-
-#if 0
-class GPC_PolygonMaterial : public RAS_IPolyMaterial
-{
-	struct TFace* m_tface;
-
-public:
-	GPC_PolygonMaterial(const STR_String& texname, bool ba, const STR_String& matname,
-			int tile, int tileXrep, int tileYrep, int mode, bool transparant, bool zsort,
-			int lightlayer, bool bIsTriangle, void* clientobject, void* tpage);
+	Py_Header;
+private:
+	/** Blender texture face structure. */
+	TFace*			m_tface;
+	Material*		m_material;
 	
-	virtual ~GPC_PolygonMaterial(void);
+	PyObject*		m_pymaterial;
 
+	mutable int		m_pass;
+public:
+	
+	KX_PolygonMaterial(const STR_String &texname,
+		Material* ma,
+		int tile,
+		int tilexrep,
+		int tileyrep,
+		int mode,
+		bool transparant,
+		bool zsort,
+		int lightlayer,
+		bool bIsTriangle,
+		void* clientobject,
+		struct TFace* tface,
+		PyTypeObject *T = &Type);
+	virtual ~KX_PolygonMaterial();
+	
 	/**
 	 * Returns the caching information for this material,
 	 * This can be used to speed up the rasterizing process.
 	 * @return The caching information.
 	 */
-	virtual TCachingInfo GetCachingInfo(void) const;
+	virtual TCachingInfo GetCachingInfo(void) const
+	{
+		return (void*) this;
+	}
 
 	/**
 	 * Activates the material in the (OpenGL) rasterizer.
@@ -66,27 +92,29 @@ public:
 	 * @param rasty			The rasterizer in which the material should be active.
 	 * @param cachingInfo	The information about the material used to speed up rasterizing.
 	 */
-	virtual void Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const;
+	void DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const;
+	virtual bool Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const;
 
 	/**
 	 * Returns the Blender texture face structure that is used for this material.
 	 * @return The material's texture face.
 	 */
-	TFace* GetTFace(void) const;
-
-	static void SetMipMappingEnabled(bool enabled = false);
+	TFace* GetTFace(void) const
+	{
+		return m_tface;
+	}
+	
+	
+	KX_PYMETHOD_DOC(KX_PolygonMaterial, updateTexture);
+	KX_PYMETHOD_DOC(KX_PolygonMaterial, setTexture);
+	KX_PYMETHOD_DOC(KX_PolygonMaterial, activate);
+	
+	KX_PYMETHOD_DOC(KX_PolygonMaterial, setCustomMaterial);
+	KX_PYMETHOD_DOC(KX_PolygonMaterial, loadProgram);
+	
+	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
 };
 
-
-inline TFace* GPC_PolygonMaterial::GetTFace(void) const
-{
-	return m_tface;
-}
-
-inline GPC_PolygonMaterial::TCachingInfo GPC_PolygonMaterial::GetCachingInfo(void) const
-{
-	return GetTFace();
-}
-#endif
-#endif  // __GPC_POLYGONMATERIAL_H
+#endif // __KX_POLYGONMATERIAL_H__
 

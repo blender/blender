@@ -169,12 +169,13 @@ RAS_MaterialBucket::T_MeshSlotList::iterator RAS_MaterialBucket::msEnd()
 	return m_meshSlots.end();
 }
 
-int RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-	RAS_IRenderTools *rendertools)
+bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+	RAS_IRenderTools *rendertools, int &drawmode)
 {
 	rendertools->SetViewMat(cameratrans);
 
-	rasty->SetMaterial(*m_material);
+	if (!rasty->SetMaterial(*m_material))
+		return false;
 	
 	bool dolights = m_material->GetDrawingMode()&16;
 
@@ -187,8 +188,10 @@ int RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IR
 		bool bUseLights = rendertools->ProcessLighting(m_material->GetLightLayer());
 	}
 
-	return (rasty->GetDrawingMode()  < RAS_IRasterizer::KX_SOLID ? 	
+	drawmode = (rasty->GetDrawingMode()  < RAS_IRasterizer::KX_SOLID ? 	
 		1:	(m_material->UsesTriangles() ? 0 : 2));
+	
+	return true;
 }
 
 void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
@@ -272,12 +275,13 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 		rendertools->SetClientObject((*m_meshSlots.begin()).m_clientObj);
 	}
 	
-	int drawmode = ActivateMaterial(cameratrans, rasty, rendertools);
+	int drawmode;
 
 	for (T_MeshSlotList::const_iterator it = m_meshSlots.begin();
 	! (it == m_meshSlots.end()); ++it)
 	{
-		RenderMeshSlot(cameratrans, rasty, rendertools, *it, drawmode);
+		while (ActivateMaterial(cameratrans, rasty, rendertools, drawmode))
+			RenderMeshSlot(cameratrans, rasty, rendertools, *it, drawmode);
 	}
 }
 

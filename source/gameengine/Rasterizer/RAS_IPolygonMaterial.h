@@ -83,7 +83,6 @@ public:
 	};
 
 	RAS_IPolyMaterial(const STR_String& texname,
-					  bool ba,
 					  const STR_String& matname,
 					  int tile,
 					  int tilexrep,
@@ -110,9 +109,12 @@ public:
 	 * @param rasty			The rasterizer in which the material should be active.
 	 * @param cachingInfo	The information about the material used to speed up rasterizing.
 	 */
-	virtual void Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const {}
+	virtual bool Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const 
+	{ 
+		return false; 
+	}
 
-	bool				Equals(const RAS_IPolyMaterial& lhs) const;
+	virtual bool				Equals(const RAS_IPolyMaterial& lhs) const;
 	bool				Less(const RAS_IPolyMaterial& rhs) const;
 	int					GetLightLayer() const;
 	bool				IsTransparant() const;

@@ -56,7 +56,10 @@ struct KX_VertexIndex {
 public:
 	KX_VertexIndex(int size);
 	void	SetIndex(short loc,unsigned int index);
+	
+	// The vertex array
 	short	m_vtxarray;
+	// An index into the vertex array for up to 4 verticies
 	unsigned short	m_indexarray[4];
 	short	m_size;
 };
@@ -124,8 +127,8 @@ public:
 	
 	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
 		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, int drawmode);
-	int ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools *rendertools);
+	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+		RAS_IRenderTools *rendertools, int &drawmode);
 	
 	unsigned int NumMeshSlots();
 	T_MeshSlotList::iterator msBegin();

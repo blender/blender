@@ -114,8 +114,9 @@ static void my_make_repbind(Image *ima)
 	}
 }
 
+extern "C" int set_tpage(TFace *tface);
 
-static int my_set_tpage(TFace *tface)
+int set_tpage(TFace *tface)
 {	
 	static TFace *lasttface= 0;
 	Image *ima;
@@ -361,7 +362,7 @@ static int my_set_tpage(TFace *tface)
 	return 1;
 }
 
-
+#if 0
 GPC_PolygonMaterial::GPC_PolygonMaterial(const STR_String& texname, bool ba, const STR_String& matname,
 			int tile, int tileXrep, int tileYrep, int mode, bool transparant, bool zsort,
 			int lightlayer, bool bIsTriangle, void* clientobject, void* tpage) :
@@ -415,7 +416,7 @@ void GPC_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& caching
 	rasty->SetDiffuse(m_diffuse[0], m_diffuse[1],m_diffuse[2], 1.0);
 }
 
-
+#endif
 void GPC_PolygonMaterial::SetMipMappingEnabled(bool enabled)
 {
 	fDoMipMap = enabled ? 1 : 0;

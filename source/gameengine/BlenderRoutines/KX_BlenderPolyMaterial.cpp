@@ -35,7 +35,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
+#if 0
 KX_BlenderPolyMaterial::KX_BlenderPolyMaterial(const STR_String &texname,
 											   bool ba,
 											   const STR_String& matname,
@@ -64,7 +64,6 @@ KX_BlenderPolyMaterial::KX_BlenderPolyMaterial(const STR_String &texname,
 		m_tface(tface)
 {
 }
-
 
 void KX_BlenderPolyMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingInfo) const 
 {
@@ -113,5 +112,6 @@ void KX_BlenderPolyMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cach
 }
 
 
+#endif
 
 

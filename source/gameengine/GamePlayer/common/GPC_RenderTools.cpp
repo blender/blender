@@ -34,6 +34,8 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
+
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #include <windows.h>
@@ -59,6 +61,7 @@
 #include "KX_GameObject.h"
 
 #include "GPC_PolygonMaterial.h"
+#include "KX_PolygonMaterial.h"
 #include "Value.h"
 
 //#include "KX_BlenderGL.h" // for text printing
@@ -220,8 +223,15 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	glPopMatrix();
 
 	// Restore OpenGL Settings
-	fog ? ::glEnable(GL_FOG) : ::glDisable(GL_FOG);
-	texture2D ? ::glEnable(GL_TEXTURE_2D) : ::glDisable(GL_TEXTURE_2D);
+	if (fog)
+		glEnable(GL_FOG);
+	else
+		glDisable(GL_FOG);
+	
+	if (texture2D)
+		glEnable(GL_TEXTURE_2D);
+	else
+		glDisable(GL_TEXTURE_2D);
 }
 
 /**
@@ -236,7 +246,7 @@ void GPC_RenderTools::RenderText(
 {
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
-	GPC_PolygonMaterial* blenderpoly = (GPC_PolygonMaterial*)polymat;
+	KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
 	struct TFace* tface = blenderpoly->GetTFace();
 	
 	BL_RenderText(mode, mytext, mytext.Length(), tface, v1, v2, v3, v4);
@@ -324,8 +334,10 @@ RAS_IPolyMaterial* GPC_RenderTools::CreateBlenderPolyMaterial(
 			bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,bool transparant, bool zsort,
 			int lightlayer,bool bIsTriangle,void* clientobject,void* tface)
 {
-	return new GPC_PolygonMaterial(texname, ba,matname,tile,tilexrep,tileyrep,
+	assert(!"Deprecated");
+/*	return new GPC_PolygonMaterial(texname, ba,matname,tile,tilexrep,tileyrep,
 			mode,transparant,zsort,lightlayer,bIsTriangle,clientobject,tface);
+			*/
 }
 
 

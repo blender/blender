@@ -42,8 +42,10 @@
 #endif // WIN32
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 #else
 #include <GL/gl.h>
+#include <GL/glu.h>
 #endif
 
 #include "RAS_Rect.h"
@@ -157,6 +159,10 @@ static void Myinit_gl_stuff(void)
 	}
 	
 	glPolygonStipple(patc);
+	
+	glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 }
 
 
@@ -270,12 +276,9 @@ void RAS_OpenGLRasterizer::DisplayFog()
 
 
 
-void RAS_OpenGLRasterizer::SetMaterial(const RAS_IPolyMaterial& mat)
+bool RAS_OpenGLRasterizer::SetMaterial(const RAS_IPolyMaterial& mat)
 {
-	if (mat.GetCachingInfo() != m_materialCachingInfo)
-	{
-		mat.Activate(this, m_materialCachingInfo);
-	}
+	return mat.Activate(this, m_materialCachingInfo);
 }
 
 
@@ -1329,4 +1332,14 @@ double RAS_OpenGLRasterizer::GetTime()
 	return m_time;
 }
 
-
+void RAS_OpenGLRasterizer::SetPolygonOffset(float mult, float add)
+{
+	glPolygonOffset(mult, add);
+	GLint mode = GL_POLYGON_OFFSET_FILL;
+	if (m_drawingmode < KX_SHADED)
+		mode = GL_POLYGON_OFFSET_LINE;
+	if (mult != 0.0f || add != 0.0f)
+		glEnable(mode);
+	else
+		glDisable(mode);
+}

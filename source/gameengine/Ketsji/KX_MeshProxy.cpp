@@ -39,6 +39,10 @@
 
 #include "KX_VertexProxy.h"
 
+#include "KX_PolygonMaterial.h"
+
+#include "KX_PyMath.h"
+
 PyTypeObject KX_MeshProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
@@ -79,7 +83,16 @@ PyMethodDef KX_MeshProxy::Methods[] = {
 PyObject*
 KX_MeshProxy::_getattr(const STR_String& attr)
 {
-  _getattr_up(SCA_IObject);
+	if (attr == "materials")
+	{
+		PyObject *materials = PyList_New(0); /* new ref */
+		RAS_MaterialBucket::Set::iterator mit = m_meshobj->GetFirstMaterial();
+		for(; mit != m_meshobj->GetLastMaterial(); ++mit)
+			PyList_Append(materials, static_cast<KX_PolygonMaterial*>((*mit)->GetPolyMaterial()));
+		return materials;
+	}
+		
+ 	_getattr_up(SCA_IObject);
 }
 
 

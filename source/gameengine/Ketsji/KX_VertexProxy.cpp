@@ -338,6 +338,7 @@ PyObject* KX_VertexProxy::PySetRGBA(PyObject*,
 		m_vertex->SetRGBA(MT_Vector4(r, g, b, a));
 		Py_Return;
 	}
+	PyErr_Clear();
 	
 	int rgba;
 	if (PyArg_ParseTuple(args,"i",&rgba))
@@ -345,7 +346,8 @@ PyObject* KX_VertexProxy::PySetRGBA(PyObject*,
 		m_vertex->SetRGBA(rgba);
 		Py_Return;
 	}
-	Py_Return;
+	
+	return NULL;
 }
 
 

@@ -46,6 +46,7 @@
 #include "KX_BlenderScalarInterpolator.h"
 
 #include "RAS_IPolygonMaterial.h"
+#include "KX_PolygonMaterial.h"
 
 // Expressions
 #include "ListValue.h"
@@ -235,7 +236,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	
 	MFace* mface = static_cast<MFace*>(mesh->mface);
 	TFace* tface = static_cast<TFace*>(mesh->tface);
-	assert(mface);
+	MT_assert(mface && "Mesh has no faces!");
 	MCol* mmcol = mesh->mcol;
 	
 	meshobj->m_xyz_index_to_vertex_index_mapping.resize(mesh->totvert);
@@ -383,7 +384,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				bool istriangle = (mface->v4==0);
 				bool zsort = ma?(ma->mode & MA_ZTRA) != 0:false;
 				
-				RAS_IPolyMaterial* polymat = rendertools->CreateBlenderPolyMaterial(imastr, false, matnameptr,
+				RAS_IPolyMaterial* polymat = new KX_PolygonMaterial(imastr, ma,
 					tile, tilexrep, tileyrep, 
 					mode, transp, zsort, lightlayer, istriangle, blenderobj, tface);
 	
@@ -484,13 +485,13 @@ static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blender
 {
 	PHY_MaterialProps *materialProps = new PHY_MaterialProps;
 	
-	assert(materialProps);
+	MT_assert(materialProps && "Create physics material properties failed");
 		
 	Material* blendermat = give_current_material(blenderobject, 0);
 		
 	if (blendermat)
 	{
-		assert(0.0f <= blendermat->reflect && blendermat->reflect <= 1.0f);
+		MT_assert(0.0f <= blendermat->reflect && blendermat->reflect <= 1.0f);
 	
 		materialProps->m_restitution = blendermat->reflect;
 		materialProps->m_friction = blendermat->friction;
@@ -511,7 +512,7 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 {
 	PHY_ShapeProps *shapeProps = new PHY_ShapeProps;
 	
-	assert(shapeProps);
+	MT_assert(shapeProps);
 		
 	shapeProps->m_mass = blenderobject->mass;
 	
@@ -521,8 +522,8 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 // the sphere radius
 	shapeProps->m_inertia = blenderobject->formfactor;
 	
-	assert(0.0f <= blenderobject->damping && blenderobject->damping <= 1.0f);
-	assert(0.0f <= blenderobject->rdamping && blenderobject->rdamping <= 1.0f);
+	MT_assert(0.0f <= blenderobject->damping && blenderobject->damping <= 1.0f);
+	MT_assert(0.0f <= blenderobject->rdamping && blenderobject->rdamping <= 1.0f);
 	
 	shapeProps->m_lin_drag = 1.0 - blenderobject->damping;
 	shapeProps->m_ang_drag = 1.0 - blenderobject->rdamping;

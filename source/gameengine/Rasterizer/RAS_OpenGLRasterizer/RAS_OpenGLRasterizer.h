@@ -105,7 +105,7 @@ public:
 	};*/
 	virtual void	SetDepthMask(DepthMask depthmask);
 
-	virtual void	SetMaterial(const RAS_IPolyMaterial& mat);
+	virtual bool	SetMaterial(const RAS_IPolyMaterial& mat);
 	virtual bool	Init();
 	virtual void	Exit();
 	virtual bool	BeginFrame(int drawingmode, double time);
@@ -224,6 +224,7 @@ public:
 						float difZ,
 						float diffuse
 					);
+	virtual void	SetPolygonOffset(float mult, float add);
 
 };
 

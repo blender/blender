@@ -36,7 +36,6 @@
 #endif
 
 RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
-									 bool ba,
 									 const STR_String& matname,
 									 int tile,
 									 int tilexrep,
@@ -77,7 +76,7 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 			this->m_zsort		==		lhs.m_zsort &&
 			this->m_drawingmode	==		lhs.m_drawingmode &&
 			this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
-			this->m_lightlayer  ==		lhs.m_lightlayer &&
+			this->m_lightlayer	==		lhs.m_lightlayer &&
 			this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 			this->m_materialname.hash() ==		lhs.m_materialname.hash()
 	);

@@ -112,11 +112,12 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	// it is needed for compatibility.
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
 
+	int drawingmode;
 	std::multiset< alphamesh, backtofront>::iterator msit = alphameshset.begin();
 	for (; msit != alphameshset.end(); ++msit)
 	{
-		(*msit).m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(*msit).m_ms,
-			(*msit).m_bucket->ActivateMaterial(cameratrans, rasty, rendertools));
+		while ((*msit).m_bucket->ActivateMaterial(cameratrans, rasty, rendertools, drawingmode))
+			(*msit).m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(*msit).m_ms, drawingmode);
 	}
 	
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);

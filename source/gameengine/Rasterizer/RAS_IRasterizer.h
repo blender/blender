@@ -116,7 +116,7 @@ public:
 	 * to be rendered with.
 	 * The material will be cached.
 	 */
-	virtual void	SetMaterial(const RAS_IPolyMaterial& mat)=0;
+	virtual bool	SetMaterial(const RAS_IPolyMaterial& mat)=0;
 	/**
 	 * Init initialises the renderer.
 	 */
@@ -328,6 +328,10 @@ public:
 							   float difY,
 							   float difZ,
 							   float diffuse)=0;
+	/**
+	 * Sets a polygon offset.  z depth will be: z1 = mult*z0 + add
+	 */
+	virtual void	SetPolygonOffset(float mult, float add) = 0;
 	
 };
 

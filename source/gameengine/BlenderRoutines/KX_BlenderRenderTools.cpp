@@ -57,6 +57,7 @@
 #include "KX_GameObject.h"
 
 #include "KX_BlenderPolyMaterial.h"
+#include "KX_PolygonMaterial.h"
 #include "Value.h"
 
 #include "KX_BlenderGL.h" // for text printing
@@ -258,7 +259,7 @@ void	KX_BlenderRenderTools::RenderText(int mode,RAS_IPolyMaterial* polymat,float
 		
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
-	KX_BlenderPolyMaterial* blenderpoly = (KX_BlenderPolyMaterial*)polymat;
+	KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
 	struct TFace* tface = blenderpoly->GetTFace();
 	
 	BL_RenderText( mode,mytext,mytext.Length(),tface,v1,v2,v3,v4);
@@ -435,11 +436,12 @@ RAS_IPolyMaterial* KX_BlenderRenderTools::CreateBlenderPolyMaterial(
 		bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,bool transparant,bool zsort, int lightlayer
 		,bool bIsTriangle,void* clientobject,void* tface)
 {
-	return new KX_BlenderPolyMaterial(
+	assert(!"Deprecated");
+/*	return new KX_BlenderPolyMaterial(
 
 		texname,
 		ba,matname,tile,tilexrep,tileyrep,mode,transparant,zsort, lightlayer
-		,bIsTriangle,clientobject,(struct TFace*)tface);
+		,bIsTriangle,clientobject,(struct TFace*)tface);*/
 }
 
 unsigned int KX_BlenderRenderTools::m_numgllights;
