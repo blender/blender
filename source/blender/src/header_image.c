@@ -683,6 +683,7 @@ static void do_image_imagemenu(void *arg, int event)
 			image_changed(G.sima, 0);
 		}
 		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 	}
 }
