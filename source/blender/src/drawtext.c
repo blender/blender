@@ -835,6 +835,59 @@ void txt_copy_selectbuffer (Text *text)
 }
 
 
+#ifdef _WIN32
+char *unixNewLine(char * buffer) {
+	char * output = NULL;
+	int i = 0, count = 1;
+	int len = strlen(buffer);
+
+	for (i; i<len; i++) {
+		count++;
+		if (buffer[i] == '\r' || buffer[i] == '\0')
+			count--;
+	}
+	output = MEM_callocN(sizeof(char) * count, "output buffer");
+	count = 0;
+	i = 0;
+	for (i; i<len; i++) {
+		if (buffer[i] != '\r' && buffer[i] != '\0') {
+			output[count] = buffer[i];
+			count++;
+		}
+	}
+	output[count] = '\0';
+	return output;
+}
+
+char *winNewLine(char * buffer) {
+	char * output = NULL;
+	int i = 0, count = 1;
+	int len = strlen(buffer);
+
+	for (i; i<len; i++, count++) {
+		if (buffer[i] == '\n')
+			count++;
+	}
+	output = MEM_callocN(sizeof(char) * count, "input buffer");
+	count = 0;
+	i = 0;
+	for (i; i<len; i++, count++) {
+		if (buffer[i] == '\n') {
+			output[count] = '\r';
+			count++;
+			output[count] = '\n';
+		}
+		else {
+			output[count] = buffer[i];
+		}
+	}
+	output[count] = '\0';
+	bufferlength = count;
+	return output;
+}
+#endif
+
+
 void txt_paste_clipboard(Text *text) {
 #ifdef _WIN32
 	char * buffer = NULL;
@@ -842,6 +895,7 @@ void txt_paste_clipboard(Text *text) {
 	if ( OpenClipboard(NULL) ) {
 		HANDLE hData = GetClipboardData( CF_TEXT );
 		buffer = (char*)GlobalLock( hData );
+		buffer = unixNewLine(buffer);
 		txt_insert_buf(text, buffer);
 		GlobalUnlock( hData );
 		CloseClipboard();
@@ -856,6 +910,8 @@ void txt_copy_clipboard(Text *text) {
 	if (OpenClipboard(NULL)) {
 		HLOCAL clipbuffer;
 		char* buffer;
+
+		copybuffer = winNewLine(copybuffer);
 
 		EmptyClipboard();
 		clipbuffer = LocalAlloc(LMEM_FIXED,((bufferlength+1)));
