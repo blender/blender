@@ -213,7 +213,7 @@ char *windowtype_pup(void)
 
 
 	strcat(string, "|User Preferences %x7"); //213
-	strcat(string, "|OOPS Schematic %x3"); //232
+	strcat(string, "|Outliner %x3"); //232
 	strcat(string, "|Buttons Window %x4"); //251
 
 	strcat(string, "|%l"); //254

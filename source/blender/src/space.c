@@ -2042,7 +2042,7 @@ void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	/* main choices pup */
 	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|%l|3D View %x2|%l|Ipo Curve Editor %x3|Action Editor %x4|"
 		"NLA Editor %x5|%l|UV/Image Editor %x6|Video Sequence Editor %x7|Audio Timeline %x8|Text Editor %x9|%l|User Preferences %x10|"
-		"OOPS Schematic %x11|Buttons Window %x12|%l|File Browser %x13|Image Browser %x14",
+		"Outliner %x11|Buttons Window %x12|%l|File Browser %x13|Image Browser %x14",
 													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
 	if(curmain==1) spacetype= 0;
 	else if(curmain==2) spacetype= SPACE_VIEW3D;
