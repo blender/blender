@@ -523,47 +523,47 @@ Ipo_addCurve (BPy_Ipo * self, PyObject * args)
       ok = 1;
     }
 
-  if (!strcmp (s, "DLocX"))
+  if (!strcmp (s, "dLocX"))
     {
       param = OB_DLOC_X;
       ok = 1;
     }
-  if (!strcmp (s, "DLocY"))
+  if (!strcmp (s, "dLocY"))
     {
       param = OB_DLOC_Y;
       ok = 1;
     }
-  if (!strcmp (s, "DLocZ"))
+  if (!strcmp (s, "dLocZ"))
     {
       param = OB_DLOC_Z;
       ok = 1;
     }
-  if (!strcmp (s, "DRotX"))
+  if (!strcmp (s, "dRotX"))
     {
       param = OB_DROT_X;
       ok = 1;
     }
-  if (!strcmp (s, "DRotY"))
+  if (!strcmp (s, "dRotY"))
     {
       param = OB_DROT_Y;
       ok = 1;
     }
-  if (!strcmp (s, "DRotZ"))
+  if (!strcmp (s, "dRotZ"))
     {
       param = OB_DROT_Z;
       ok = 1;
     }
-  if (!strcmp (s, "DSizeX"))
+  if (!strcmp (s, "dSizeX"))
     {
       param = OB_DSIZE_X;
       ok = 1;
     }
-  if (!strcmp (s, "DSizeY"))
+  if (!strcmp (s, "dSizeY"))
     {
       param = OB_DSIZE_Y;
       ok = 1;
     }
-  if (!strcmp (s, "DSizeZ"))
+  if (!strcmp (s, "dSizeZ"))
     {
       param = OB_DSIZE_Z;
       ok = 1;
@@ -621,7 +621,6 @@ Ipo_addCurve (BPy_Ipo * self, PyObject * args)
 static PyObject *
 Ipo_getCurve (BPy_Ipo * self, PyObject * args)
 {
-  //int num = 0 , i = 0;
   char *str;
   IpoCurve *icu = 0;
   if (!PyArg_ParseTuple (args, "s", &str))

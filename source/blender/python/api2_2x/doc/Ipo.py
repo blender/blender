@@ -73,6 +73,14 @@ class Ipo:
 		@rtype: IpoCurve object
 		@return: the corresponding IpoCurve, or None.
     """
+  def addCurve(curvename):
+    """
+		add a new curve to the IPO object.
+		LocX,LocY,LocZ,dLocX,dLocY,dLocZ,RotX,RotY,RotZ,dRotX,dRotY,dRotZ,SizeX,SizeY,SizeZ,dSizeX,dSizeY,dSizeZ,Layer,Time,ColR,ColG,ColB,ColA (Object Ipo)
+		@type curvename : string
+		@rtype: IpoCurve object
+		@return: the corresponding IpoCurve, or None.
+    """
   def setName(newname):
     """
 		Sets the name of the Ipo.
