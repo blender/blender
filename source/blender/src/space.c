@@ -1784,7 +1784,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "");
 
 		uiDefButS(block, TOG|BIT|8, 0, "Enable all codecs",
-			(xpos+edgespace+(2*medprefbut)+(2*midspace)),y2,medprefbut,buth,
+			(xpos+edgespace+(1*medprefbut)+(1*midspace)),y2,medprefbut,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Allows all codecs for rendering (not guaranteed)");
 #endif
 
