@@ -1561,9 +1561,8 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 			uiDefButF(block, NUM, B_IPO_NONE, "Speed:",			10,130,150,19, &hspeed, 0.0, 180.0, 1, 0, "");
 			uiDefBut(block, BUT, B_SETSPEED,"SET",			160,130,50,19, 0, 0, 0, 0, 0, "");
 		}
-		
-		ipo_editvertex_buts(block, G.sipo, min, max);
 	}
+
 	/* this one also does keypositions */
 	if(G.sipo->ipo) ipo_editvertex_buts(block, G.sipo, min, max);
 }
