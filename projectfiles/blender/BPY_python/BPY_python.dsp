@@ -127,6 +127,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\constant.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\CurNurb.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Curve.c
 # End Source File
 # Begin Source File
@@ -316,6 +320,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Camera.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\constant.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\CurNurb.h
 # End Source File
 # Begin Source File
 
