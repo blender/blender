@@ -120,6 +120,15 @@ void BPY_start_python(void)
 /* TODO: Shouldn't "blender" be replaced by PACKAGE ?? (config.h) */
 	Py_SetProgramName("blender");
 
+	/* 
+	 * Py_Initialize() will attempt to import the site module and
+	 * print an error if not found.  See init_syspath() for the
+	 * rest of our init msgs.
+	 */
+
+	printf("Checking for Python install...\n");
+	fflush( stdout );
+	
 	Py_Initialize ();
 
 	init_ourImport ();
@@ -224,6 +233,8 @@ void init_syspath(void)
 		int size = 0;
 		int index;
 
+		printf("Installed Python found!\n");
+
 		/* get the value of 'sitedirs' from the module */
 
 		/* the ref man says GetDict() never fails!!! */
@@ -244,7 +255,9 @@ void init_syspath(void)
 	}
 	else {	/* import 'site' failed */
 		PyErr_Clear();
-		printf("sys_init:warning - no sitedirs added from site module.\n");
+		printf("No installed Python found.\n");
+		printf("Only built-in modules are available.  Some scripts may not run.\n");
+		printf("Continuing happily.\n");
 	}
 
 	/* 
