@@ -1783,7 +1783,7 @@ void makeDispList(Object *ob)
 				dlm= subsurf_make_dispListMesh_from_editmesh(em, me->subdiv, me->flag, me->subsurftype);
 			} else {
 				DispList *dlVerts= find_displist(&ob->disp, DL_VERTS);
-				// not needed anymore, recode it (ton)
+				// dl->verts should not be needed anymore, recode it in modifier (ton)
 				dlm= subsurf_make_dispListMesh_from_mesh(me, dlVerts?dlVerts->verts:NULL, 
 													me->subdiv, me->flag);
 			}
@@ -2351,7 +2351,7 @@ void test_all_displists(void)
 	Base *base;
 	Object *ob;
 	unsigned int lay;
-	int makedisp;
+	int makedisp, freedisp;
 	
 	/* background */	
 	lay= G.scene->lay;
@@ -2360,7 +2360,7 @@ void test_all_displists(void)
 	while(base) {
 		if(base->lay & lay) {
 			ob= base->object;
-			makedisp= 0;
+			makedisp= freedisp= 0;
 			
 			if(ob->type==OB_MBALL && (ob->ipo || ob->parent)) {
 				// find metaball object holding the displist
@@ -2376,18 +2376,18 @@ void test_all_displists(void)
 			else if(ob->parent) {
 				
 				if (ob->parent->type == OB_LATTICE)
-					makedisp= 1;
+					freedisp= 1;
 				else if ((ob->parent->type==OB_ARMATURE) && (ob->partype == PARSKEL))
 					makedisp= 1;
 				else if ((ob->parent->type==OB_CURVE) && (ob->partype == PARSKEL))
-					makedisp= 1;
+					freedisp= 1;
 			}
 
 			if(ob->hooks.first) {
 				ObHook *hook;
 				for(hook= ob->hooks.first; hook; hook= hook->next) {
 					if(hook->parent) 
-						makedisp= 1;
+						freedisp= 1;
 					break;
 				}
 			}
@@ -2402,11 +2402,11 @@ void test_all_displists(void)
 					if(cu->key ) makedisp= 1;
 					if(cu->bevobj) {
 						Curve *cu1= cu->bevobj->data;
-						if(cu1->key ) makedisp= 1;
+						if(cu1->key ) freedisp= 1;
 					}
 					if(cu->taperobj) {
 						Curve *cu1= cu->taperobj->data;
-						if(cu1->key ) makedisp= 1;
+						if(cu1->key ) freedisp= 1;
 					}
 				}
 			}
@@ -2415,7 +2415,7 @@ void test_all_displists(void)
 				if(cu->textoncurve) {
 					if( ((Curve *)cu->textoncurve->data)->key ) {
 						text_to_curve(ob, 0);
-						makedisp= 1;
+						freedisp= 1;
 					}
 				}
 			}
@@ -2424,7 +2424,7 @@ void test_all_displists(void)
 					Effect *eff= ob->effect.first;
 					while(eff) {
 						if(eff->type==EFF_WAVE) {
-							makedisp= 1;
+							freedisp= 1;
 							break;
 						}
 						eff= eff->next;
@@ -2432,9 +2432,10 @@ void test_all_displists(void)
 				}
 				if(ob!=G.obedit) {
 					if(( ((Mesh *)(ob->data))->key )) 
-						makedisp= 1;
+						freedisp= 1;
 				}
 			}
+			if(freedisp) freedisplist_object(ob);
 			if(makedisp) makeDispList(ob);
 		}
 		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
