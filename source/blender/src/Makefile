@@ -41,7 +41,7 @@ CRE_CSRCS ?= $(CSRCS) $(wildcard cre/*.c)
 
 OBJS = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
 
-ALLTARGETS = creator publisher
+ALLTARGETS = publisher
 
 include nan_compile.mk
 
