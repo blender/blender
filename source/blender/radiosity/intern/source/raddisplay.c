@@ -227,6 +227,7 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 
 	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
 
+	glFlush();
 	glDrawBuffer(GL_BACK);
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);
 }
