@@ -431,7 +431,6 @@ BLO_readblenfilememory(
 	int fromBufferSize, 
 	BlendReadError *error_r)
 {
-	static char *functionality_check= "\0FUNCTIONALITY_CHECK += BLO_readblenfilememory\n";
 	int magiclen = strlen(headerMagic);
 	BlendFileData *bfd = NULL;
 
@@ -495,7 +494,6 @@ BLO_readblenfilehandle(
 	int fd, 
 	BlendReadError *error_r)
 {
-	static char *functionality_check= "\0FUNCTIONALITY_CHECK += BLO_readblenfilehandle\n";
 	int magiclen = strlen(headerMagic);
 	BlendFileData *bfd = NULL;
 	char tempbuffer[256];
@@ -543,7 +541,6 @@ BLO_readblenfilename(
 	char *fileName, 
 	BlendReadError *error_r)
 {
-	static char *functionality_check= "\0FUNCTIONALITY_CHECK += BLO_readblenfilename\n";
 	BlendFileData *bfd = NULL;
 	int fd;
 
@@ -603,7 +600,6 @@ blo_read_runtime(
 	char *path, 
 	BlendReadError *error_r) 
 {
-	static char *functionality_check= "\0FUNCTIONALITY_CHECK += BLO_read_runtime\n";
 	BlendFileData *bfd= NULL;
 	int fd, datastart;
 	char buf[8];

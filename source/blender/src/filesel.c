@@ -1797,7 +1797,7 @@ static void fs_fake_users(SpaceFile *sfile)
 
 static int get_hilited_entry(SpaceFile *sfile)
 {
-	int a, count=0;
+	int a;
 
 	for(a=0; a<sfile->totfile; a++) {
 		if(sfile->filelist[a].flags & HILITE) {
@@ -1812,7 +1812,6 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	static int acto=0;
 	SpaceFile *sfile;
 	int act, do_draw= 0, i, test, ret = 0;

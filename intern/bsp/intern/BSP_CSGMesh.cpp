@@ -156,8 +156,6 @@ AddPolygon(
 
 	if (verts == NULL || num_verts <3) return;
 
-	const int vertex_num = m_verts->size();
-
 	// make a polyscone from these vertex indices.
 
 	const BSP_FaceInd fi = m_faces->size();
@@ -203,7 +201,6 @@ AddSubTriangle(
 ){
 	// This creates a new polygon on the end of the face list.
 
-	const BSP_FaceInd fi = m_faces->size();
 	m_faces->push_back(BSP_MFace());			
 	BSP_MFace & face = m_faces->back();
 

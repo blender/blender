@@ -114,11 +114,8 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 {
 	int           i;
 	char          str[64];
-	char          keyname[32];
-	float	        x, y, ybase;
+	float	        x, y;
 	uiBlock       *block;
-	uiBut         *but;
-    short ofsx, ofsy = 0; 
 #define RVKBGCOL .6, .65, .7
 #define XIC 20
 #define YIC 20

@@ -177,7 +177,6 @@ Build(
 		
 		// choose a plane for the node. The first index in this
 		// mesh fragment will do for now.
-		vector<BSP_MVertex> & verts = m_mesh->VertexSet();
 
 		// choose a random splitting plane
 
@@ -233,7 +232,6 @@ Push(
 			// fragment onto the output
 			vector<BSP_FaceInd>::const_iterator in_frag_it = in_frag->FaceSet().begin();
 			vector<BSP_FaceInd>::const_iterator in_frag_end = in_frag->FaceSet().end();
-			vector<BSP_MFace>::iterator faces = in_frag->Mesh()->FaceSet().begin();
 		
 			if (keep == current || current == e_classified_on) {
 				for (;in_frag_it != in_frag_end; ++ in_frag_it) {

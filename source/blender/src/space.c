@@ -463,8 +463,8 @@ void select_parent(void)	/* Makes parent active and de-selected OBACT */
 void group_menu(void)
 {
 	Base *base;
-	short nr, len;
-	char *str, tstr[40];
+	short nr;
+	char *str;
 
 	/* make menu string */
 	

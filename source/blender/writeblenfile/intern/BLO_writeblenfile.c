@@ -111,7 +111,6 @@ int BLO_writeblenfile(
 	unsigned int dataIn,
 	struct streamGlueHeaderStruct *streamGlueHeader)
 {
-	static char *functionality_check= "\0FUNCTIONALITY_CHECK += BLO_writeblenfile\n";
 	struct BLO_writeblenfileStruct *writeblenfileStruct = 0;
 	int fileDes;	
 	extern int mywfile;

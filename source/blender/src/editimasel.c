@@ -89,7 +89,6 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceImaSel *simasel;
 	
 	short mval[2];

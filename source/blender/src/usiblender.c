@@ -134,8 +134,6 @@
 void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
-	extern char datatoc_splash_jpg[];
-	extern int datatoc_splash_jpg_size;
 
 	//here?
 	//sound_end_all_sounds();
@@ -159,9 +157,9 @@ int BIF_read_homefile(void)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
 	int success;
+#ifdef _WIN32	// FULLSCREEN
 	static int screenmode = -1;
 
-#ifdef _WIN32	// FULLSCREEN
 	screenmode = U.uiflag & FLIPFULLSCREEN;
 #endif
 
@@ -519,8 +517,6 @@ extern ListBase editelems;
 
 void exit_usiblender(void)
 {
-	extern char *fsmenu;	/* filesel.c */
-	
 	freeAllRad();
 	BKE_freecubetable();
 

@@ -101,7 +101,6 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	float dx, dy;
 	int doredraw= 0, cfra, first = 0;
 	short mval[2];

@@ -1738,9 +1738,7 @@ void convertmenu(void)
 
 void flip_subdivison(Object *ob, int level)
 {
-	Base *base;
-	Mesh *me, *tme;
-	short i, j;
+	Mesh *me;
 
 	me = ob->data;
 

@@ -761,7 +761,7 @@ void snap_sel_to_curs()
 	TransVert *tv;
 	Base *base;
 	Object *ob;
-	float gridf, *curs, imat[3][3], bmat[3][3], vec[3];
+	float *curs, imat[3][3], bmat[3][3], vec[3];
 	int a;
 
 	curs= give_cursor();
@@ -933,7 +933,7 @@ void snap_curs_to_firstsel()
 	TransVert *tv;
 	Base *base;
 	float *curs, bmat[3][3], vec[3], min[3], max[3], centroid[3];
-	int count, a;
+	int count;
 
 	curs= give_cursor();
 
@@ -1005,7 +1005,7 @@ void snap_to_center()
 	TransVert *tv;
 	Base *base;
 	Object *ob;
-	float gridf, snaploc[3], imat[3][3], bmat[3][3], vec[3], min[3], max[3], centroid[3];
+	float snaploc[3], imat[3][3], bmat[3][3], vec[3], min[3], max[3], centroid[3];
 	int count, a;
 
 

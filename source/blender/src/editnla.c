@@ -115,7 +115,6 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceNla *snla = curarea->spacedata.first;
 	int doredraw= 0;
 	short	mval[2];

@@ -609,7 +609,6 @@ void clever_numbuts_oops()
 {
 	Oops *oops;
 	Object *ob;
-	ID *id = idt;
 	char str1[10];
 	static char naam[256];
 	static char naam2[256];

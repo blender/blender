@@ -174,7 +174,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		if (objectdrawmode & RAS_IPolyMaterial::SHADOW)
 		{
 			// shadow must be cast to the ground, physics system needed here!
-			KX_GameObject* gameobj = (KX_GameObject*) this->m_clientobject;
+			// KX_GameObject* gameobj = (KX_GameObject*) this->m_clientobject;
 			MT_Point3 frompoint(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
 			MT_Vector3 direction = MT_Vector3(0,0,-1);
 
@@ -182,7 +182,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 			direction.normalize();
 			direction *= 100000;
 
-			MT_Point3 topoint = frompoint + direction;
+			// MT_Point3 topoint = frompoint + direction;
 			MT_Point3 resultpoint;
 			MT_Vector3 resultnormal;
 

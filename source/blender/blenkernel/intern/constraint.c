@@ -526,7 +526,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 {
 	float	M_oldmat[4][4];
 	float	M_identity[4][4];
-	float	enforce = 1.0;
 	
 	if (!constraint || !ob)
 		return;

@@ -122,8 +122,6 @@ static void transform_meshchannel_keys(char mode, Key *key);
 static void select_poseelement_by_name (char *name, int select);
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time);
-static void clever_numbuts_meshaction(Key *key, short* mval);
-
 /* Implementation */
 
 short showsliders = 0;
@@ -2142,7 +2140,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceAction *saction;
 	bAction	*act;
 	int doredraw= 0;
@@ -2487,7 +2484,7 @@ int get_nearest_key_num(Key *key, short *mval, float *x) {
 static void clever_keyblock_names(Key *key, short* mval){
     int        but=0, i, keynum;
     char       str[64];
-	float      x, min, max;
+	float      x;
 	KeyBlock   *kb;
 	/* get the keynum cooresponding to the y value
 	 * of the mouse pointer, return if this is
