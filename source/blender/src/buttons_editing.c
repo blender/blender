@@ -1219,9 +1219,9 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 			sp= &(nu->orderv);
 			uiDefButS(block, NUM, B_SETORDER, "V:",	 	670,90,50, 19, sp, 2.0, 6.0, 0, 0, "Nurbs only; the amount of control points involved");
 			sp= &(nu->resolu);
-			uiDefButS(block, NUM, B_MAKEDISP, "Resol U:", 565,70,102, 19, sp, 1.0, 128.0, 0, 0, "The amount of new points interpolated per control vertex pair");
+			uiDefButS(block, NUM, B_MAKEDISP, "Resol U:", 565,70,102, 19, sp, 1.0, 1024.0, 0, 0, "The amount of new points interpolated per control vertex pair");
 			sp= &(nu->resolv);
-			uiDefButS(block, NUM, B_MAKEDISP, "V:", 	670,70,50, 19, sp, 1.0, 128.0, 0, 0, "The amount of new points interpolated per control vertex pair");
+			uiDefButS(block, NUM, B_MAKEDISP, "V:", 	670,70,50, 19, sp, 1.0, 1024.0, 0, 0, "The amount of new points interpolated per control vertex pair");
 		}
 	}
 
@@ -1294,7 +1294,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		}
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_MAKEDISP, "DefResolU:",	760,160,120,19, &cu->resolu, 1.0, 128.0, 0, 0, "Default resolution");
+		uiDefButS(block, NUM, B_MAKEDISP, "DefResolU:",	760,160,120,19, &cu->resolu, 1.0, 1024.0, 0, 0, "Default resolution");
 		uiDefBut(block, BUT, B_SETRESOLU, "Set",		880,160,30,19, 0, 0, 0, 0, 0, "Set resolution for interpolation");
 
 		uiBlockBeginAlign(block);
