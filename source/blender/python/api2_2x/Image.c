@@ -204,9 +204,9 @@ static PyObject *M_Image_Load(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Image_Init                                      */
+/* Function:              Image_Init                                         */
 /*****************************************************************************/
-PyObject *M_Image_Init (void)
+PyObject *Image_Init (void)
 {
   PyObject  *submodule;
 

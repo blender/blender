@@ -29,40 +29,48 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_MATERIAL_H
-#define EXPP_MATERIAL_H
+#ifndef EXPP_bpy_types_h
+#define EXPP_bpy_types_h
 
 #include <Python.h>
-#include <BKE_material.h>
-#include <DNA_material_types.h>
 
-#include "rgbTuple.h"
+#include <DNA_camera_types.h>
+#include <DNA_lamp_types.h>
+
+#include "rgbTuple.h" /* for BPy_rgbTuple */
 
 /*****************************************************************************/
-/* Python BPy_Material structure definition:                                   */
+/* Camera Data                                                               */
 /*****************************************************************************/
+extern PyTypeObject Camera_Type;
+
+#define BPy_Camera_Check(v) \
+    ((v)->ob_type == &Camera_Type) /* for type checking */
+
+/* Python BPy_Camera structure definition */
 typedef struct {
   PyObject_HEAD
-  Material *material;
-	BPy_rgbTuple *col, *amb, *spec, *mir;
+  Camera *camera;
 
-} BPy_Material;
-
-extern PyTypeObject Material_Type; /* The Material PyType Object */
-
-#define BPy_Material_Check(v) \
-    ((v)->ob_type == &Material_Type) /* for type checking */
+} BPy_Camera;
+/**/
 
 /*****************************************************************************/
-/* Module Blender.Material - public functions                                */
+/* Lamp Data                                                                 */
 /*****************************************************************************/
-PyObject *M_Material_Init (void);
-PyObject *Material_CreatePyObject (Material *mat);
-int       Material_CheckPyObject (PyObject *pyobj);
+extern PyTypeObject Lamp_Type;
 
-/* Some functions needed by NMesh.c */
-PyObject  *EXPP_PyList_fromMaterialList (Material **matlist, int len);
-Material **EXPP_newMaterialList_fromPyList (PyObject *list);
-Material **EXPP_newMaterialList(int len);
+#define BPy_Lamp_Check(v) \
+    ((v)->ob_type == &Lamp_Type) /* for type checking */
 
-#endif /* EXPP_MATERIAL_H */
+/* Python BPy_Lamp structure definition */
+typedef struct {
+  PyObject_HEAD
+  Lamp *lamp;
+  BPy_rgbTuple *color;
+
+} BPy_Lamp;
+/**/
+
+
+#endif /* EXPP_bpy_types_h */

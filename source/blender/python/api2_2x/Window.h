@@ -67,7 +67,7 @@ static PyObject *M_Window_RedrawAll (PyObject *self, PyObject *args);
 static PyObject *M_Window_QRedrawAll (PyObject *self, PyObject *args);
 static PyObject *M_Window_FileSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_ImageSelector (PyObject *self, PyObject *args);
-static PyObject *M_Window_DrawProgressbar (PyObject *self, PyObject *args);
+static PyObject *M_Window_DrawProgressBar (PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -106,7 +106,7 @@ def my_function(filename):\n\
   print 'The selected image file was: ', filename\n\n\
 Blender.Window.ImageSelector(my_function, 'LOAD IMAGE')\n";
 
-char M_Window_DrawProgressbar_doc[] =
+char M_Window_DrawProgressBar_doc[] =
 "(done, text) - Draw a progressbar.\n\
 'done' is a float value <= 1.0, 'text' contains info about what is\n\
 currently being done.";
@@ -121,8 +121,10 @@ struct PyMethodDef M_Window_methods[] = {
   {"FileSelector", M_Window_FileSelector, METH_VARARGS, M_Window_FileSelector_doc},
   {"ImageSelector", M_Window_ImageSelector, METH_VARARGS,
           M_Window_ImageSelector_doc},
-  {"DrawProgressbar", M_Window_DrawProgressbar,  METH_VARARGS,
-          M_Window_DrawProgressbar_doc},
+  {"DrawProgressBar", M_Window_DrawProgressBar,  METH_VARARGS,
+          M_Window_DrawProgressBar_doc},
+  {"drawProgressBar", M_Window_DrawProgressBar,  METH_VARARGS,
+          M_Window_DrawProgressBar_doc},
   {NULL, NULL, 0, NULL}
 };
 

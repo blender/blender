@@ -55,7 +55,7 @@ extern PyObject *g_blenderdict;
 /* Module Init functions and Data Object helper functions (used by the       */
 /* Object module to work with its .data field for the various Data objs      */
 /*****************************************************************************/
-void            M_Blender_Init (void);
+void       M_Blender_Init (void);
 
 /* Object itself */
 PyObject *      M_Object_Init (void);
@@ -64,31 +64,31 @@ int             M_ObjectCheckPyObject (PyObject *py_obj);
 struct Object * M_ObjectFromPyObject (PyObject *py_obj);
 
 /* Scene */
-PyObject * M_Scene_Init (void);
+PyObject * Scene_Init (void);
 PyObject * Scene_CreatePyObject (struct Scene *sce);
 Scene    * Scene_FromPyObject   (PyObject *pyobj);
 int        Scene_CheckPyObject  (PyObject *pyobj);
 
 /* Types */
-PyObject *      M_Types_Init (void);
+PyObject * Types_Init (void);
 
 /* NMesh Data */
-PyObject * M_NMesh_Init (void);
+PyObject * NMesh_Init (void);
 PyObject * NMesh_CreatePyObject (struct Camera *cam);
 Camera   * NMesh_FromPyObject   (PyObject *pyobj);
 int        NMesh_CheckPyObject  (PyObject *pyobj);
 
 /* Material */
-PyObject *      M_Material_Init (void);
+PyObject * Material_Init (void);
 
 /* Camera Data */
-PyObject * M_Camera_Init (void);
+PyObject * Camera_Init (void);
 PyObject * Camera_CreatePyObject (struct Camera *cam);
 Camera   * Camera_FromPyObject   (PyObject *pyobj);
 int        Camera_CheckPyObject  (PyObject *pyobj);
 
 /* Lamp Data */
-PyObject * M_Lamp_Init (void);
+PyObject * Lamp_Init (void);
 PyObject * Lamp_CreatePyObject (struct Lamp *lamp);
 Lamp     * Lamp_FromPyObject   (PyObject *pyobj);
 int        Lamp_CheckPyObject  (PyObject *pyobj);
@@ -124,15 +124,15 @@ struct Effect * Effect_FromPyObject (PyObject *py_obj);
 int             Effect_CheckPyObject (PyObject *py_obj);
 
 /* Image */
-PyObject * M_Image_Init (void);
+PyObject * Image_Init (void);
 PyObject * Image_CreatePyObject (Image *image);
 int        Image_CheckPyObject (PyObject *pyobj);
 
 /* Init functions for other modules */
-PyObject * M_Window_Init (void);
-PyObject * M_Draw_Init (void);
-PyObject * M_BGL_Init (void);
-PyObject * M_Text_Init (void);
+PyObject * Window_Init (void);
+PyObject * Draw_Init (void);
+PyObject * BGL_Init (void);
+PyObject * Text_Init (void);
 PyObject * M_World_Init (void);
 
 #endif /* EXPP_modules_h */

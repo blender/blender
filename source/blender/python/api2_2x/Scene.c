@@ -29,12 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-/**
- * \file Scene.c
- * \ingroup scripts
- * \brief Blender.Scene Module and Scene  PyObject implementation.
- */
-
 #include <BKE_main.h>
 #include <BKE_global.h>
 #include <BKE_scene.h>
@@ -47,8 +41,7 @@
 #include <mydevice.h>          /* for #define REDRAW */
 
 #include "Object.h"
-#include "Camera.h"
-#include "modules.h"
+#include "bpy_types.h"
 
 #include "Scene.h"
 
@@ -204,23 +197,6 @@ PyTypeObject Scene_Type =
   0,                                      /* tp_members */
 };
 
-/**
- * \defgroup Scene_Module Blender.Scene module functions
- *
- */
-
-/*@{*/
-
-/**
- * \brief Python module function: Blender.Scene.New()
- *
- * This is the .New() function of the Blender.Scene submodule. It creates
- * new Scene  in Blender and returns its Python wrapper object.  The
- * parameter is optional and defaults to name = 'Scene'.
- * \param <name> - string: The Scene  name.
- * \return A new Scene PyObject.
- */
-
 static PyObject *M_Scene_New(PyObject *self, PyObject *args, PyObject *kword)
 {
   char     *name = "Scene";
@@ -248,19 +224,6 @@ static PyObject *M_Scene_New(PyObject *self, PyObject *args, PyObject *kword)
 
   return pyscene;
 }
-
-/**
- * \brief Python module function: Blender.Scene.Get()
- *
- * This is the .Get() function of the Blender.Scene submodule.  It searches
- * the list of current Scene objects and returns a Python wrapper for
- * the one with the name provided by the user.  If called with no arguments,
- * it returns a list of all current Scene object names in Blender.
- * \param <name> - string: The name of an existing Blender Scene object.
- * \return () - A list with the names of all current Scene objects;\n
- * \return (name) - A Python wrapper for the Scene called 'name'
- * in Blender.
- */
 
 static PyObject *M_Scene_Get(PyObject *self, PyObject *args)
 {
@@ -322,28 +285,10 @@ static PyObject *M_Scene_Get(PyObject *self, PyObject *args)
   }
 }
 
-/**
- * \brief Python module function: Blender.Scene.getCurrent()
- *
- * \return A Python wrapper for the currently active scene.
- */
-
 static PyObject *M_Scene_getCurrent (PyObject *self)
 {
   return Scene_CreatePyObject ((Scene *)G.scene);
 }
-
-/**
- * \brief Python module function: Blender.Scene.unlink()
- *
- * This function actually frees the Blender Scene object linked to this
- * Python wrapper.  It calls free_libblock(), which calls free_scene(),
- * where all objects linked to this scene have their user counts decremented.
- * But there's no garbage collecting of objects in Blender yet.
- * NOTE: a SystemError is raised if the user tries to remove the currently
- * active Scene.  Letting it be done would crash Blender.
- * \param pyobj BPy_Scene*: A Scene PyObject wrapper.
- */
 
 static PyObject *M_Scene_unlink (PyObject *self, PyObject *args)
 { 
@@ -366,17 +311,7 @@ static PyObject *M_Scene_unlink (PyObject *self, PyObject *args)
   return Py_None;
 }
 
-/*@}*/
-
-/**
- * \brief Initializes the Blender.Scene submodule
- *
- * This function is used by Blender_Init() in Blender.c to register the
- * Blender.Scene submodule in the main Blender module.
- * \return PyObject*: The initialized submodule.
- */
-
-PyObject *M_Scene_Init (void)
+PyObject *Scene_Init (void)
 {
   PyObject  *submodule;
 
@@ -389,13 +324,6 @@ PyObject *M_Scene_Init (void)
 
   return submodule;
 }
-
-/**
- * \brief Creates a new Python wrapper from an existing Blender Scene obj
- *
- * \param scene - Scene*: A pointer to an existing Blender Scene object.
- * \return PyObject*: The Scene wrapper created.
- */
 
 PyObject *Scene_CreatePyObject (Scene *scene)
 {
@@ -412,24 +340,10 @@ PyObject *Scene_CreatePyObject (Scene *scene)
   return (PyObject *)pyscene;
 }
 
-/**
- * \brief Checks if the given object is of type BPy_Scene
- *
- * \param pyobj - PyObject*: A pointer to a Scene PyObject.
- * \return int: True or false.
- */
-
 int Scene_CheckPyObject (PyObject *pyobj)
 {
   return (pyobj->ob_type == &Scene_Type);
 }
-
-/**
- * \brief Returns the Blender Scene object from the given PyObject
- *
- * \param pyobj - PyObject*: A pointer to a Scene PyObject.
- * \return Scene*: A pointer to the wrapped Blender Scene object.
- */
 
 Scene *Scene_FromPyObject (PyObject *pyobj)
 {
@@ -439,22 +353,6 @@ Scene *Scene_FromPyObject (PyObject *pyobj)
 /*****************************************************************************/
 /* Python BPy_Scene methods:                                                 */
 /*****************************************************************************/
-
-/**
- * \defgroup Scene_Methods Scene Method Functions
- *
- * These are the Scene PyObject method functions.  They are used to get and
- * set values for the Scene  member variables.
- */
-
-/*@{*/
-
-/**
- * \brief Scene PyMethod getName
- *
- * \return string: The Scene name.
- */
-
 static PyObject *Scene_getName(BPy_Scene *self)
 {
   PyObject *attr = PyString_FromString(self->scene->id.name+2);
@@ -464,11 +362,6 @@ static PyObject *Scene_getName(BPy_Scene *self)
   return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                                    "couldn't get Scene.name attribute"));
 }
-
-/**
- * \brief Scene PyMethod setName
- * \param name - string: The new Scene name.
- */
 
 static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
 {
@@ -487,15 +380,6 @@ static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
   return Py_None;
 }
 
-/**
- * \brief Scene PyMethod copy
- *
- * This function makes a copy of the scene (self).  The optional argument
- * can be:\n 0: Link Objects \n1: Link Object Data (default)\n2: Full copy
- * \param dup_objs - int: how the scene children are duplicated.
- * \return PyObject*: A pointer to the created copy of the scene.
- */
-
 static PyObject *Scene_copy (BPy_Scene *self, PyObject *args)
 {
   short dup_objs = 1;
@@ -511,14 +395,6 @@ static PyObject *Scene_copy (BPy_Scene *self, PyObject *args)
 
   return Scene_CreatePyObject (copy_scene (scene, dup_objs));
 }
-
-/**
- * \brief Scene PyMethod currentFrame
- *
- * If frame is given, the current frame is set and returned in any case.
- * \param frame int: The value for the current frame.
- * \return int: The current frame.
- */
 
 /* Blender seems to accept any positive value up to 18000 for start, end and
  * current frames, independently. */
@@ -537,14 +413,6 @@ static PyObject *Scene_currentFrame (BPy_Scene *self, PyObject *args)
   return PyInt_FromLong (rd->cfra);
 }
 
-/**
- * \brief Scene PyMethod startFrame
- *
- * If frame is given, the start frame is set and returned in any case.
- * \param frame int: The value for the start frame.
- * \return int: The start frame.
- */
-
 static PyObject *Scene_startFrame (BPy_Scene *self, PyObject *args)
 {
   short frame = -1;
@@ -558,14 +426,6 @@ static PyObject *Scene_startFrame (BPy_Scene *self, PyObject *args)
 
   return PyInt_FromLong (rd->sfra);
 }
-
-/**
- * \brief Scene PyMethod endFrame
- *
- * If frame is given, the end frame is set and returned in any case.
- * \param frame int: The value for the end frame.
- * \return int: The end frame.
- */
 
 static PyObject *Scene_endFrame (BPy_Scene *self, PyObject *args)
 {
@@ -581,12 +441,6 @@ static PyObject *Scene_endFrame (BPy_Scene *self, PyObject *args)
   return PyInt_FromLong (rd->efra);
 }
 
-/**
- * \brief Scene PyMethod makeCurrent
- *
- * Make self the current scene.
- */
-
 static PyObject *Scene_makeCurrent (BPy_Scene *self)
 {
   Scene *scene = self->scene;
@@ -597,13 +451,6 @@ static PyObject *Scene_makeCurrent (BPy_Scene *self)
   return Py_None;
 }
 
-/**
- * \brief Scene PyMethod update
- *
- * Updates scene self.  This function explicitely resorts the base list of
- * a newly created object hierarchy.
- */
-
 static PyObject *Scene_update (BPy_Scene *self)
 {
   Scene *scene = self->scene;
@@ -613,13 +460,6 @@ static PyObject *Scene_update (BPy_Scene *self)
   Py_INCREF (Py_None);
   return Py_None;
 }
-
-/**
- * \brief Scene PyMethod link
- *
- * Link the given object to this scene.
- * \param object PyObject*: A pointer to an Object Python wrapper.
- */
 
 static PyObject *Scene_link (BPy_Scene *self, PyObject *args)
 {
@@ -669,14 +509,6 @@ static PyObject *Scene_link (BPy_Scene *self, PyObject *args)
   return Py_None;
 }
 
-/**
- * \brief Scene PyMethod unlink
- *
- * Unlink (delete) the given object from this scene.
- * \param object PyObject*:  A pointer to a Blender Object Python wrapper.
- * \return int: 1 for success, 0 for failure.
- */
-
 static PyObject *Scene_unlink (BPy_Scene *self, PyObject *args)
 { 
   C_Object *bpy_obj = NULL;
@@ -709,12 +541,6 @@ static PyObject *Scene_unlink (BPy_Scene *self, PyObject *args)
   return Py_BuildValue ("i", PyInt_FromLong (retval));
 }
 
-/**
- * \brief Scene PyMethod getRenderdir
- *
- * \return string: The directory where rendered images are saved to.
- */
-
 static PyObject *Scene_getRenderdir (BPy_Scene *self)
 {
   if (self->scene)
@@ -724,12 +550,6 @@ static PyObject *Scene_getRenderdir (BPy_Scene *self)
             "Blender Scene was deleted!");
 }
 
-/**
- * \brief Scene PyMethod getBackbufdir
- *
- * \return string: The backbuffer image location
- */
-
 static PyObject *Scene_getBackbufdir (BPy_Scene *self)
 {
   if (self->scene)
@@ -738,17 +558,6 @@ static PyObject *Scene_getBackbufdir (BPy_Scene *self)
     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
             "Blender Scene already deleted");
 }
-
-/**
- * \brief Scene PyMethod frameSettings
- *
- * This method can be used to set (if the values are given) and in any case
- * get a tuple representing the start, end and current frame values.
- * \param start int: The optional start frame value;
- * \param end   int: The optional end frame value;
- * \param current int: The optional current frame value.
- * \return tuple: (start, end, current) frame values.
- */
 
 static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args)
 {	
@@ -774,12 +583,6 @@ static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args)
 
 	return Py_BuildValue("(iii)", rd->sfra, rd->efra, rd->cfra);
 }
-
-/**
- * \brief Scene PyMethod getChildren
- *
- * \return PyList: a list of all objects linked to Scene self.
- */
 
 static PyObject *Scene_getChildren (BPy_Scene *self)
 {	
@@ -814,12 +617,6 @@ static PyObject *Scene_getChildren (BPy_Scene *self)
 	return pylist;
 }
 
-/**
- * \brief Scene PyMethod getCurrentCamera
- *
- * \return PyObject*: A wrapper for the currently active camera
- */
-
 static PyObject *Scene_getCurrentCamera (BPy_Scene *self)
 {	
 	Object *cam_obj;
@@ -837,13 +634,6 @@ static PyObject *Scene_getCurrentCamera (BPy_Scene *self)
   Py_INCREF(Py_None); /* none found */
 	return Py_None;
 }
-
-/**
- * \brief Scene PyMethod setCurrentCamera
- *
- * Set the currently active Camera Object in Blender.
- * \param cam_obj PyObject*: A Camera PyObject.
- */
 
 static PyObject *Scene_setCurrentCamera (BPy_Scene *self, PyObject *args)
 {
@@ -873,32 +663,10 @@ static PyObject *Scene_setCurrentCamera (BPy_Scene *self, PyObject *args)
 	return Py_None;
 }
 
-/*@}*/
-
-/**
- * \defgroup Scene_callbacks Callback functions for the Scene PyType
- *
- * These callbacks are called by the Python interpreter when dealing with
- * PyObjects of type Scene.
- */
-
-/*@{*/
-
-/**
- * \brief The Scene PyType destructor
- */
-
 static void Scene_DeAlloc (BPy_Scene *self)
 {
   PyObject_DEL (self);
 }
-
-/**
- * \brief The Scene PyType attribute getter
- *
- * This is the callback called when a user tries to retrieve the contents of
- * Scene PyObject data members.  Ex. in Python: "print myscene.lens".
- */
 
 static PyObject *Scene_GetAttr (BPy_Scene *self, char *name)
 {
@@ -920,13 +688,6 @@ static PyObject *Scene_GetAttr (BPy_Scene *self, char *name)
   /* not an attribute, search the methods table */
   return Py_FindMethod(BPy_Scene_methods, (PyObject *)self, name);
 }
-
-/**
- * \brief The Scene PyType attribute setter
- *
- * This is the callback called when the user tries to change the value of some
- * Scene data member.  Ex. in Python: "myscene.lens = 45.0".
- */
 
 static int Scene_SetAttr (BPy_Scene *self, char *name, PyObject *value)
 {
@@ -967,29 +728,11 @@ static int Scene_SetAttr (BPy_Scene *self, char *name, PyObject *value)
   return 0; /* normal exit */
 }
 
-/**
- * \brief The Scene PyType compare function
- *
- * This function compares two given Scene PyObjects, returning 0 for equality
- * and -1 otherwise.  In Python it becomes 1 if they are equal and 0 case not.
- * The comparison is done with their pointers to Blender Scene  objects,
- * so any two wrappers pointing to the same Blender Scene  will be
- * considered the same Scene PyObject.  Currently, only the "==" and "!="
- * comparisons are meaninful -- the "<", "<=", ">" or ">=" are not.
- */
-
 static int Scene_Compare (BPy_Scene *a, BPy_Scene *b)
 {
   Scene *pa = a->scene, *pb = b->scene;
   return (pa == pb) ? 0:-1;
 }
-
-/**
- * \brief The Scene PyType print callback
- *
- * This function is called when the user tries to print a PyObject of type
- * Scene.  It builds a string with the name of the wrapped Blender Scene.
- */
 
 static int Scene_Print(BPy_Scene *self, FILE *fp, int flags)
 { 
@@ -997,30 +740,10 @@ static int Scene_Print(BPy_Scene *self, FILE *fp, int flags)
   return 0;
 }
 
-/**
- * \brief The Scene PyType repr callback
- *
- * This function is called when the statement "repr(myscene)" is executed in
- * Python.  Repr gives a string representation of a PyObject.
- */
-
 static PyObject *Scene_Repr (BPy_Scene *self)
 {
   return PyString_FromString(self->scene->id.name+2);
 }
-
-/*@}*/
-
-/**
- * \brief Internal helper function to search the Base of an Object
- *
- * This function looks up the linked list of Bases in a scene, searching
- * for a given object.
- * \param scene Scene*: A pointer to a Blender Scene;
- * \param object Object*: A pointer to a Blender Object.
- * \return The Base* to the Base where object was stored or NULL if the
- * object isn't linked to this scene.
- */
 
 Base *EXPP_Scene_getObjectBase(Scene *scene, Object *object)
 {

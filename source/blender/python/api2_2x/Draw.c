@@ -634,7 +634,7 @@ static PyObject *Method_Text (PyObject *self, PyObject *args)
 	return EXPP_incr_ret(Py_None);
 }
 
-PyObject *M_Draw_Init (void) 
+PyObject *Draw_Init (void) 
 {
 	PyObject *submodule, *dict;
 

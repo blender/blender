@@ -214,22 +214,22 @@ void M_Blender_Init (void)
 
         dict = PyModule_GetDict (module);
         g_blenderdict = dict;
-        PyDict_SetItemString (dict, "Scene",    M_Scene_Init());
+        PyDict_SetItemString (dict, "Scene",    Scene_Init());
         PyDict_SetItemString (dict, "Object",   M_Object_Init());
-        PyDict_SetItemString (dict, "Types",    M_Types_Init());
-        PyDict_SetItemString (dict, "NMesh",    M_NMesh_Init());
-        PyDict_SetItemString (dict, "Material", M_Material_Init());
-        PyDict_SetItemString (dict, "Camera",   M_Camera_Init());
-        PyDict_SetItemString (dict, "Lamp",     M_Lamp_Init());
+        PyDict_SetItemString (dict, "Types",    Types_Init());
+        PyDict_SetItemString (dict, "NMesh",    NMesh_Init());
+        PyDict_SetItemString (dict, "Material", Material_Init());
+        PyDict_SetItemString (dict, "Camera",   Camera_Init());
+        PyDict_SetItemString (dict, "Lamp",     Lamp_Init());
         PyDict_SetItemString (dict, "Curve",    M_Curve_Init());
         PyDict_SetItemString (dict, "Armature", M_Armature_Init());
         PyDict_SetItemString (dict, "Ipo",      M_Ipo_Init());
         PyDict_SetItemString (dict, "Metaball", M_Metaball_Init());
-        PyDict_SetItemString (dict, "Image",    M_Image_Init());
-        PyDict_SetItemString (dict, "Window",   M_Window_Init());
-        PyDict_SetItemString (dict, "Draw",     M_Draw_Init());
-        PyDict_SetItemString (dict, "BGL",      M_BGL_Init());
+        PyDict_SetItemString (dict, "Image",    Image_Init());
+        PyDict_SetItemString (dict, "Window",   Window_Init());
+        PyDict_SetItemString (dict, "Draw",     Draw_Init());
+        PyDict_SetItemString (dict, "BGL",      BGL_Init());
         PyDict_SetItemString (dict, "Effect",   M_Effect_Init());
-        PyDict_SetItemString (dict, "Text",     M_Text_Init());
+        PyDict_SetItemString (dict, "Text",     Text_Init());
         PyDict_SetItemString (dict, "World",    M_World_Init());
 }

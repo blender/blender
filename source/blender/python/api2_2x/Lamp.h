@@ -46,9 +46,10 @@
 #include "rgbTuple.h"
 #include "gen_utils.h"
 #include "modules.h"
+#include "bpy_types.h" /* for the BPy_Lamp declaration */
 
 /*****************************************************************************/
-/* Python C_Lamp defaults:                                                   */
+/* Python BPy_Lamp defaults:                                                 */
 /*****************************************************************************/
 
 /* Lamp types */
@@ -121,19 +122,20 @@ char M_Lamp_doc[] =
 This module provides control over **Lamp Data** objects in Blender.\n\n\
 Example::\n\n\
   from Blender import Lamp\n\
-  l = Lamp.New('Spot')\n\
-  l.setMode('square', 'shadow')\n\
-  ob = Object.New('Lamp')\n\
-  ob.link(l)\n";
+  l = Lamp.New('Spot')            # create new 'Spot' lamp data\n\
+  l.setMode('square', 'shadow')   # set these two lamp mode flags\n\
+  ob = Object.New('Lamp')         # create new lamp object\n\
+  ob.link(l)                      # link lamp obj with lamp data\n";
 
 char M_Lamp_New_doc[] =
-"(type, name) - return a new Lamp datablock of type 'type'\n\
-                and optional name 'name'.";
+"Lamp.New (type = 'Lamp', name = 'LampData'):\n\
+        Return a new Lamp Data object with the given type and name.";
 
 char M_Lamp_Get_doc[] =
-"(name) - return the lamp with the name 'name', \
-returns None if not found.\n If 'name' is not specified, \
-it returns a list of all lamps in the\ncurrent scene.";
+"Lamp.Get (name = None):\n\
+        Return the Lamp Data with the given name, None if not found, or\n\
+        Return a list with all Lamp Data objects in the current scene,\n\
+        if no argument was given.";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Lamp module:               */
@@ -147,64 +149,54 @@ struct PyMethodDef M_Lamp_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python C_Lamp structure definition:                                       */
+/* Python BPy_Lamp methods declarations:                                     */
 /*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  Lamp *lamp;
-	C_rgbTuple *color;
+static PyObject *Lamp_getName(BPy_Lamp *self);
+static PyObject *Lamp_getType(BPy_Lamp *self);
+static PyObject *Lamp_getMode(BPy_Lamp *self);
+static PyObject *Lamp_getSamples(BPy_Lamp *self);
+static PyObject *Lamp_getBufferSize(BPy_Lamp *self);
+static PyObject *Lamp_getHaloStep(BPy_Lamp *self);
+static PyObject *Lamp_getEnergy(BPy_Lamp *self);
+static PyObject *Lamp_getDist(BPy_Lamp *self);
+static PyObject *Lamp_getSpotSize(BPy_Lamp *self);
+static PyObject *Lamp_getSpotBlend(BPy_Lamp *self);
+static PyObject *Lamp_getClipStart(BPy_Lamp *self);
+static PyObject *Lamp_getClipEnd(BPy_Lamp *self);
+static PyObject *Lamp_getBias(BPy_Lamp *self);
+static PyObject *Lamp_getSoftness(BPy_Lamp *self);
+static PyObject *Lamp_getHaloInt(BPy_Lamp *self);
+static PyObject *Lamp_getQuad1(BPy_Lamp *self);
+static PyObject *Lamp_getQuad2(BPy_Lamp *self);
+static PyObject *Lamp_getCol(BPy_Lamp *self);
+static PyObject *Lamp_setName(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setType(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setIntType(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setMode(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setIntMode(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setSamples(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setBufferSize(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setHaloStep(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setEnergy(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setDist(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setSpotSize(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setSpotBlend(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setClipStart(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setClipEnd(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setBias(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setSoftness(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setHaloInt(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setQuad1(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setQuad2(BPy_Lamp *self, PyObject *args);
+static PyObject *Lamp_setCol(BPy_Lamp *self, PyObject *args);
 
-} C_Lamp;
-
-/*****************************************************************************/
-/* Python C_Lamp methods declarations:                                     */
-/*****************************************************************************/
-static PyObject *Lamp_getName(C_Lamp *self);
-static PyObject *Lamp_getType(C_Lamp *self);
-static PyObject *Lamp_getMode(C_Lamp *self);
-static PyObject *Lamp_getSamples(C_Lamp *self);
-static PyObject *Lamp_getBufferSize(C_Lamp *self);
-static PyObject *Lamp_getHaloStep(C_Lamp *self);
-static PyObject *Lamp_getEnergy(C_Lamp *self);
-static PyObject *Lamp_getDist(C_Lamp *self);
-static PyObject *Lamp_getSpotSize(C_Lamp *self);
-static PyObject *Lamp_getSpotBlend(C_Lamp *self);
-static PyObject *Lamp_getClipStart(C_Lamp *self);
-static PyObject *Lamp_getClipEnd(C_Lamp *self);
-static PyObject *Lamp_getBias(C_Lamp *self);
-static PyObject *Lamp_getSoftness(C_Lamp *self);
-static PyObject *Lamp_getHaloInt(C_Lamp *self);
-static PyObject *Lamp_getQuad1(C_Lamp *self);
-static PyObject *Lamp_getQuad2(C_Lamp *self);
-static PyObject *Lamp_getCol(C_Lamp *self);
-static PyObject *Lamp_setName(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setType(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setIntType(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setMode(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setIntMode(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setSamples(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setBufferSize(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setHaloStep(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setEnergy(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setDist(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setSpotSize(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setSpotBlend(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setClipStart(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setClipEnd(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setBias(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setSoftness(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setHaloInt(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setQuad1(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args);
-static PyObject *Lamp_setCol(C_Lamp *self, PyObject *args);
-
-static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
+static PyObject *Lamp_setColorComponent(BPy_Lamp *self, char *key,
                 PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Lamp methods table:                                              */
+/* Python BPy_Lamp methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Lamp_methods[] = {
+static PyMethodDef BPy_Lamp_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Lamp_getName, METH_NOARGS,
           "() - return Lamp name"},
@@ -258,7 +250,7 @@ static PyMethodDef C_Lamp_methods[] = {
           "(float) - change Lamp energy value"},
   {"setSpotSize", (PyCFunction)Lamp_setSpotSize, METH_VARARGS,
           "(float) - change Lamp spot size value"},
-  {"setSpotBlend", (PyCFunction)Lamp_setHaloStep, METH_VARARGS,
+  {"setSpotBlend", (PyCFunction)Lamp_setSpotBlend, METH_VARARGS,
           "(float) - change Lamp spot blend value"},
   {"setClipStart", (PyCFunction)Lamp_setClipStart, METH_VARARGS,
           "(float) - change Lamp clip start value"},
@@ -282,48 +274,12 @@ static PyMethodDef C_Lamp_methods[] = {
 /*****************************************************************************/
 /* Python TypeLamp callback function prototypes:                             */
 /*****************************************************************************/
-static void LampDeAlloc (C_Lamp *lamp);
-static PyObject *LampGetAttr (C_Lamp *lamp, char *name);
-static int LampSetAttr (C_Lamp *lamp, char *name, PyObject *v);
-static int LampCompare (C_Lamp *a, C_Lamp *b);
-static PyObject *LampRepr (C_Lamp *lamp);
-static int LampPrint (C_Lamp *lamp, FILE *fp, int flags);
+static void Lamp_dealloc (BPy_Lamp *lamp);
+static PyObject *Lamp_getAttr (BPy_Lamp *lamp, char *name);
+static int Lamp_setAttr (BPy_Lamp *lamp, char *name, PyObject *v);
+static int Lamp_compare (BPy_Lamp *a, BPy_Lamp *b);
+static PyObject *Lamp_repr (BPy_Lamp *lamp);
+static int Lamp_print (BPy_Lamp *lamp, FILE *fp, int flags);
 
-/*****************************************************************************/
-/* Python Lamp_Type helper functions needed by Blender (the Init function)   */
-/* and Object modules.                                                       */
-/*****************************************************************************/
-PyObject *M_Lamp_Init (void);
-PyObject *LampCreatePyObject (Lamp *lamp);
-Lamp *LampFromPyObject (PyObject *pyobj);
-int LampCheckPyObject (PyObject *pyobj);
-
-/*****************************************************************************/
-/* Python TypeLamp structure definition:                                     */
-/*****************************************************************************/
-PyTypeObject Lamp_Type =
-{
-  PyObject_HEAD_INIT(NULL)
-  0,                                    /* ob_size */
-  "Lamp",                               /* tp_name */
-  sizeof (C_Lamp),                      /* tp_basicsize */
-  0,                                    /* tp_itemsize */
-  /* methods */
-  (destructor)LampDeAlloc,              /* tp_dealloc */
-  (printfunc)LampPrint,                 /* tp_print */
-  (getattrfunc)LampGetAttr,             /* tp_getattr */
-  (setattrfunc)LampSetAttr,             /* tp_setattr */
-  (cmpfunc)LampCompare,                 /* tp_compare */
-  (reprfunc)LampRepr,                   /* tp_repr */
-  0,                                    /* tp_as_number */
-  0,                                    /* tp_as_sequence */
-  0,                                    /* tp_as_mapping */
-  0,                                    /* tp_as_hash */
-  0,0,0,0,0,0,
-  0,                                    /* tp_doc */ 
-  0,0,0,0,0,0,
-  C_Lamp_methods,                       /* tp_methods */
-  0,                                    /* tp_members */
-};
 
 #endif /* EXPP_LAMP_H */

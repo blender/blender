@@ -37,22 +37,22 @@
 /*****************************************************************************/
 /* Python rgbTuple_Type callback function prototypes:                        */
 /*****************************************************************************/
-static void rgbTupleDeAlloc (C_rgbTuple *self);
-static PyObject *rgbTupleGetAttr (C_rgbTuple *self, char *name);
-static int rgbTupleSetAttr (C_rgbTuple *self, char *name, PyObject *v);
-static int rgbTuplePrint(C_rgbTuple *self, FILE *fp, int flags);
-static PyObject *rgbTupleRepr (C_rgbTuple *self);
+static void rgbTupleDeAlloc (BPy_rgbTuple *self);
+static PyObject *rgbTupleGetAttr (BPy_rgbTuple *self, char *name);
+static int rgbTupleSetAttr (BPy_rgbTuple *self, char *name, PyObject *v);
+static int rgbTuplePrint(BPy_rgbTuple *self, FILE *fp, int flags);
+static PyObject *rgbTupleRepr (BPy_rgbTuple *self);
 
-static int rgbTupleLength(C_rgbTuple *self);
+static int rgbTupleLength(BPy_rgbTuple *self);
 
-static PyObject *rgbTupleSubscript(C_rgbTuple *self, PyObject *key);
-static int rgbTupleAssSubscript(C_rgbTuple *self, PyObject *who,
+static PyObject *rgbTupleSubscript(BPy_rgbTuple *self, PyObject *key);
+static int rgbTupleAssSubscript(BPy_rgbTuple *self, PyObject *who,
                                 PyObject *cares);
 
-static PyObject *rgbTupleItem(C_rgbTuple *self, int i);
-static int rgbTupleAssItem(C_rgbTuple *self, int i, PyObject *ob);
-static PyObject *rgbTupleSlice(C_rgbTuple *self, int begin, int end);
-static int rgbTupleAssSlice(C_rgbTuple *self, int begin, int end, PyObject *seq);
+static PyObject *rgbTupleItem(BPy_rgbTuple *self, int i);
+static int rgbTupleAssItem(BPy_rgbTuple *self, int i, PyObject *ob);
+static PyObject *rgbTupleSlice(BPy_rgbTuple *self, int begin, int end);
+static int rgbTupleAssSlice(BPy_rgbTuple *self, int begin, int end, PyObject *seq);
 
 /*****************************************************************************/
 /* Python rgbTuple_Type Mapping Methods table:                               */
@@ -86,7 +86,7 @@ PyTypeObject rgbTuple_Type =
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "rgbTuple",                             /* tp_name */
-  sizeof (C_rgbTuple),                    /* tp_basicsize */
+  sizeof (BPy_rgbTuple),                    /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
   (destructor)rgbTupleDeAlloc,            /* tp_dealloc */
@@ -111,13 +111,11 @@ PyTypeObject rgbTuple_Type =
 /*****************************************************************************/
 PyObject *rgbTuple_New(float *rgb[3])
 {
-  C_rgbTuple *rgbTuple;
-
-  printf ("In rgbTuple_New()\n");
+  BPy_rgbTuple *rgbTuple;
 
   rgbTuple_Type.ob_type = &PyType_Type;
 
-  rgbTuple = (C_rgbTuple *)PyObject_NEW(C_rgbTuple, &rgbTuple_Type);
+  rgbTuple = (BPy_rgbTuple *)PyObject_NEW(BPy_rgbTuple, &rgbTuple_Type);
 
   if (rgbTuple == NULL)
     return EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -136,7 +134,7 @@ PyObject *rgbTuple_New(float *rgb[3])
 /*                 get function returns a tuple, the set one accepts three   */
 /*                 floats (separated or in a tuple) as arguments.            */
 /*****************************************************************************/
-PyObject *rgbTuple_getCol (C_rgbTuple *self)
+PyObject *rgbTuple_getCol (BPy_rgbTuple *self)
 {
 	PyObject *list = PyList_New (3);
 
@@ -144,13 +142,13 @@ PyObject *rgbTuple_getCol (C_rgbTuple *self)
 									"couldn't create PyList");
 
 	PyList_SET_ITEM (list, 0, Py_BuildValue ("f", *(self->rgb[0]) ));
-	PyList_SET_ITEM (list, 1, Py_BuildValue ("f", *(self->rgb[0]) ));
-	PyList_SET_ITEM (list, 2, Py_BuildValue ("f", *(self->rgb[0]) ));
+	PyList_SET_ITEM (list, 1, Py_BuildValue ("f", *(self->rgb[1]) ));
+	PyList_SET_ITEM (list, 2, Py_BuildValue ("f", *(self->rgb[2]) ));
 
 	return list;
 }
 
-PyObject *rgbTuple_setCol (C_rgbTuple *self, PyObject *args)
+PyObject *rgbTuple_setCol (BPy_rgbTuple *self, PyObject *args)
 {
 	int ok;
 	float r = 0, g = 0, b = 0;
@@ -173,21 +171,21 @@ PyObject *rgbTuple_setCol (C_rgbTuple *self, PyObject *args)
 
 /*****************************************************************************/
 /* Function:    rgbTupleDeAlloc                                              */
-/* Description: This is a callback function for the C_rgbTuple type. It is   */
+/* Description: This is a callback function for the BPy_rgbTuple type. It is */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void rgbTupleDeAlloc (C_rgbTuple *self)
+static void rgbTupleDeAlloc (BPy_rgbTuple *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
 /* Function:    rgbTupleGetAttr                                              */
-/* Description: This is a callback function for the C_rgbTuple type. It is   */
-/*              the function that accesses C_rgbTuple member variables and   */
+/* Description: This is a callback function for the BPy_rgbTuple type. It is */
+/*              the function that accesses BPy_rgbTuple member variables and */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject* rgbTupleGetAttr (C_rgbTuple *self, char *name)
+static PyObject* rgbTupleGetAttr (BPy_rgbTuple *self, char *name)
 {
 	int i;
 
@@ -206,10 +204,10 @@ static PyObject* rgbTupleGetAttr (C_rgbTuple *self, char *name)
 
 /*****************************************************************************/
 /* Function:    rgbTupleSetAttr                                              */
-/* Description: This is a callback function for the C_rgbTuple type. It is   */
-/*              the function that changes C_rgbTuple member variables.       */
+/* Description: This is a callback function for the BPy_rgbTuple type. It is */
+/*              the function that changes BPy_rgbTuple member variables.     */
 /*****************************************************************************/
-static int rgbTupleSetAttr (C_rgbTuple *self, char *name, PyObject *v)
+static int rgbTupleSetAttr (BPy_rgbTuple *self, char *name, PyObject *v)
 {
 	float value;
 
@@ -239,12 +237,12 @@ static int rgbTupleSetAttr (C_rgbTuple *self, char *name, PyObject *v)
 /*             These functions provide code to access rgbTuple objects as    */
 /*             mappings.                                                     */
 /*****************************************************************************/
-static int rgbTupleLength(C_rgbTuple *self)
+static int rgbTupleLength(BPy_rgbTuple *self)
 {
   return 3;
 }
 
-static PyObject *rgbTupleSubscript(C_rgbTuple *self, PyObject *key)
+static PyObject *rgbTupleSubscript(BPy_rgbTuple *self, PyObject *key)
 {
 	char *name = NULL;
 	int i;
@@ -264,7 +262,7 @@ static PyObject *rgbTupleSubscript(C_rgbTuple *self, PyObject *key)
 	return Py_BuildValue("f", *(self->rgb[i]));
 }
 
-static int rgbTupleAssSubscript(C_rgbTuple *self, PyObject *key, PyObject *v)
+static int rgbTupleAssSubscript(BPy_rgbTuple *self, PyObject *key, PyObject *v)
 {
   char *name = NULL;
 	int i;
@@ -295,7 +293,7 @@ static int rgbTupleAssSubscript(C_rgbTuple *self, PyObject *key, PyObject *v)
 /*             These functions provide code to access rgbTuple objects as    */
 /*             sequences.                                                    */
 /*****************************************************************************/
-static PyObject *rgbTupleItem(C_rgbTuple *self, int i)
+static PyObject *rgbTupleItem(BPy_rgbTuple *self, int i)
 {
 	if (i < 0 || i >= 3)
 			return EXPP_ReturnPyObjError (PyExc_IndexError,
@@ -304,7 +302,7 @@ static PyObject *rgbTupleItem(C_rgbTuple *self, int i)
 	return Py_BuildValue("f", *(self->rgb[i]));
 }
 
-static PyObject *rgbTupleSlice(C_rgbTuple *self, int begin, int end)
+static PyObject *rgbTupleSlice(BPy_rgbTuple *self, int begin, int end)
 {
 	PyObject *list;
 	int count;
@@ -322,7 +320,7 @@ static PyObject *rgbTupleSlice(C_rgbTuple *self, int begin, int end)
 	return list;
 }
 
-static int rgbTupleAssItem(C_rgbTuple *self, int i, PyObject *ob)
+static int rgbTupleAssItem(BPy_rgbTuple *self, int i, PyObject *ob)
 {
 	if (i < 0 || i >= 3)
 		return EXPP_ReturnIntError(PyExc_IndexError,
@@ -337,7 +335,8 @@ static int rgbTupleAssItem(C_rgbTuple *self, int i, PyObject *ob)
 	return 0;
 }
 
-static int rgbTupleAssSlice(C_rgbTuple *self, int begin, int end, PyObject *seq)
+static int rgbTupleAssSlice(BPy_rgbTuple *self, int begin, int end,
+								PyObject *seq)
 {
 	int count;
 	
@@ -372,10 +371,10 @@ static int rgbTupleAssSlice(C_rgbTuple *self, int begin, int end, PyObject *seq)
 
 /*****************************************************************************/
 /* Function:    rgbTuplePrint                                                */
-/* Description: This is a callback function for the C_rgbTuple type. It      */
+/* Description: This is a callback function for the BPy_rgbTuple type. It    */
 /*              builds a meaninful string to 'print' rgbTuple objects.       */
 /*****************************************************************************/
-static int rgbTuplePrint(C_rgbTuple *self, FILE *fp, int flags)
+static int rgbTuplePrint(BPy_rgbTuple *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[%f, %f, %f]",
 					*(self->rgb[0]), *(self->rgb[1]), *(self->rgb[2]));
@@ -384,10 +383,10 @@ static int rgbTuplePrint(C_rgbTuple *self, FILE *fp, int flags)
 
 /*****************************************************************************/
 /* Function:    rgbTupleRepr                                                 */
-/* Description: This is a callback function for the C_rgbTuple type. It      */
+/* Description: This is a callback function for the BPy_rgbTuple type. It    */
 /*              builds a meaninful string to represent rgbTuple objects.     */
 /*****************************************************************************/
-static PyObject *rgbTupleRepr (C_rgbTuple *self)
+static PyObject *rgbTupleRepr (BPy_rgbTuple *self)
 {
 	float r, g, b;
 	char buf[64];

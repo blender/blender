@@ -71,7 +71,7 @@ PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args);
 char Blender_Set_doc[] =
 "(request, data) - Update settings in Blender\n\
 \n\
-(request) A string indentifying the setting to change\n\
+(request) A string identifying the setting to change\n\
 	'curframe'	- Sets the current frame using the number in data";
 
 char Blender_Get_doc[] =

@@ -1340,7 +1340,7 @@ Material **nmesh_updateMaterials(C_NMesh *nmesh)
 
 PyObject *NMesh_assignMaterials_toObject(C_NMesh *nmesh, Object *ob)
 {
-  C_Material *pymat;
+  BPy_Material *pymat;
   Material *ma;
   int i;
   short old_matmask;
@@ -1349,7 +1349,7 @@ PyObject *NMesh_assignMaterials_toObject(C_NMesh *nmesh, Object *ob)
   ob->colbits = 0;  /* make assign_material work on mesh linked material */
 
   for (i = 0; i < PySequence_Length(nmesh->materials); i++) {
-    pymat = (C_Material *)PySequence_GetItem(nmesh->materials, i);
+    pymat = (BPy_Material *)PySequence_GetItem(nmesh->materials, i);
 
     if (Material_CheckPyObject ((PyObject *)pymat)) {
       ma = pymat->material;
@@ -1659,7 +1659,7 @@ static PyObject *M_NMesh_FaceTranspModesDict (void)
 	return FTM;
 }
 
-PyObject *M_NMesh_Init (void) 
+PyObject *NMesh_Init (void) 
 {
   PyObject *submodule;
 

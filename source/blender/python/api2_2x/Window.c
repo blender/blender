@@ -169,10 +169,10 @@ static PyObject *M_Window_ImageSelector(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_DrawProgressbar                           */
-/* Python equivalent:     Blender.Window.DrawProgressbar                     */
+/* Function:              M_Window_DrawProgressBar                           */
+/* Python equivalent:     Blender.Window.DrawProgressBar                     */
 /*****************************************************************************/
-static PyObject *M_Window_DrawProgressbar(PyObject *self, PyObject *args)
+static PyObject *M_Window_DrawProgressBar(PyObject *self, PyObject *args)
 {
   float done;
   char *info = 0;
@@ -188,9 +188,9 @@ static PyObject *M_Window_DrawProgressbar(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Window_Init                                      */
+/* Function:              Window_Init                                        */
 /*****************************************************************************/
-PyObject *M_Window_Init (void)
+PyObject *Window_Init (void)
 {
   PyObject  *submodule, *Types;
 

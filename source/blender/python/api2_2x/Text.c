@@ -201,9 +201,9 @@ static PyObject *M_Text_unlink(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Text_Init                                      */
+/* Function:              Text_Init                                          */
 /*****************************************************************************/
-PyObject *M_Text_Init (void)
+PyObject *Text_Init (void)
 {
   PyObject  *submodule;
 

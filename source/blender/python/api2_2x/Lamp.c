@@ -32,6 +32,34 @@
 #include "Lamp.h"
 
 /*****************************************************************************/
+/* Python TypeLamp structure definition:                                     */
+/*****************************************************************************/
+PyTypeObject Lamp_Type =
+{
+  PyObject_HEAD_INIT(NULL)
+  0,                                    /* ob_size */
+  "Blender Lamp",                       /* tp_name */
+  sizeof (BPy_Lamp),                    /* tp_basicsize */
+  0,                                    /* tp_itemsize */
+  /* methods */
+  (destructor)Lamp_dealloc,              /* tp_dealloc */
+  (printfunc)Lamp_print,                 /* tp_print */
+  (getattrfunc)Lamp_getAttr,             /* tp_getattr */
+  (setattrfunc)Lamp_setAttr,             /* tp_setattr */
+  (cmpfunc)Lamp_compare,                 /* tp_compare */
+  (reprfunc)Lamp_repr,                   /* tp_repr */
+  0,                                    /* tp_as_number */
+  0,                                    /* tp_as_sequence */
+  0,                                    /* tp_as_mapping */
+  0,                                    /* tp_as_hash */
+  0,0,0,0,0,0,
+  0,                                    /* tp_doc */ 
+  0,0,0,0,0,0,
+  BPy_Lamp_methods,                     /* tp_methods */
+  0,                                    /* tp_members */
+};
+
+/*****************************************************************************/
 /* Function:              M_Lamp_New                                         */
 /* Python equivalent:     Blender.Lamp.New                                   */
 /*****************************************************************************/
@@ -40,7 +68,7 @@ static PyObject *M_Lamp_New(PyObject *self, PyObject *args, PyObject *keywords)
   char        *type_str = "Lamp";
   char        *name_str = "LampData";
   static char *kwlist[] = {"type_str", "name_str", NULL};
-  C_Lamp      *py_lamp; /* for Lamp Data object wrapper in Python */
+  BPy_Lamp    *py_lamp; /* for Lamp Data object wrapper in Python */
   Lamp        *bl_lamp; /* for actual Lamp Data we create in Blender */
   char        buf[21];
 
@@ -53,16 +81,17 @@ static PyObject *M_Lamp_New(PyObject *self, PyObject *args, PyObject *keywords)
 
   bl_lamp = add_lamp(); /* first create in Blender */
   if (bl_lamp) /* now create the wrapper obj in Python */
-    py_lamp = (C_Lamp *)Lamp_CreatePyObject(bl_lamp);
+    py_lamp = (BPy_Lamp *)Lamp_CreatePyObject(bl_lamp);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                             "couldn't create Lamp Data in Blender"));
 
+	/* let's return user count to zero, because ... */
+	bl_lamp->id.us = 0; /* ... add_lamp() incref'ed it */
+
   if (py_lamp == NULL)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
                             "couldn't create Lamp Data object"));
-
-  py_lamp->lamp = bl_lamp; /* link Python lamp wrapper with Blender Lamp */
 
   if (strcmp (type_str, "Lamp") == 0)
     bl_lamp->type = (short)EXPP_LAMP_TYPE_LAMP;
@@ -107,12 +136,12 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
 
   if (name) { /* (name) - Search lamp by name */
 
-    C_Lamp *wanted_lamp = NULL;
+    BPy_Lamp *wanted_lamp = NULL;
 
     while ((lamp_iter) && (wanted_lamp == NULL)) {
 
       if (strcmp (name, lamp_iter->id.name+2) == 0)
-        wanted_lamp = (C_Lamp *)Lamp_CreatePyObject(lamp_iter);
+        wanted_lamp = (BPy_Lamp *)Lamp_CreatePyObject(lamp_iter);
 
       lamp_iter = lamp_iter->id.next;
     }
@@ -193,10 +222,10 @@ static PyObject *M_Lamp_ModesDict (void)
 }
 
 /*****************************************************************************/
-/* Function:              M_Lamp_Init                                        */
+/* Function:              Lamp_Init                                          */
 /*****************************************************************************/
 /* Needed by the Blender module, to register the Blender.Lamp submodule */
-PyObject *M_Lamp_Init (void)
+PyObject *Lamp_Init (void)
 {
   PyObject  *submodule, *Types, *Modes;
 
@@ -217,19 +246,19 @@ PyObject *M_Lamp_Init (void)
 
 /*****************************************************************************/
 /* Function:    Lamp_CreatePyObject                                          */
-/* Description: This function will create a new C_Lamp from an existing      */
+/* Description: This function will create a new BPy_Lamp from an existing    */
 /*              Blender lamp structure.                                      */
 /*****************************************************************************/
 PyObject *Lamp_CreatePyObject (Lamp *lamp)
 {
-  C_Lamp *pylamp;
+  BPy_Lamp *pylamp;
   float *rgb[3];
 
-  pylamp = (C_Lamp *)PyObject_NEW (C_Lamp, &Lamp_Type);
+  pylamp = (BPy_Lamp *)PyObject_NEW (BPy_Lamp, &Lamp_Type);
 
   if (!pylamp)
     return EXPP_ReturnPyObjError (PyExc_MemoryError,
-            "couldn't create C_Lamp object");
+            "couldn't create BPy_Lamp object");
 
   pylamp->lamp = lamp;
 
@@ -237,7 +266,7 @@ PyObject *Lamp_CreatePyObject (Lamp *lamp)
   rgb[1] = &lamp->g;
   rgb[2] = &lamp->b;
 
-  pylamp->color = (C_rgbTuple *)rgbTuple_New(rgb);
+  pylamp->color = (BPy_rgbTuple *)rgbTuple_New(rgb);
 
   return (PyObject *)pylamp;
 }
@@ -259,13 +288,13 @@ int Lamp_CheckPyObject (PyObject *pyobj)
 /*****************************************************************************/
 Lamp *Lamp_FromPyObject (PyObject *pyobj)
 {
-  return ((C_Lamp *)pyobj)->lamp;
+  return ((BPy_Lamp *)pyobj)->lamp;
 }
 
 /*****************************************************************************/
-/* Python C_Lamp methods:                                                    */
+/* Python BPy_Lamp methods:                                                  */
 /*****************************************************************************/
-static PyObject *Lamp_getName(C_Lamp *self)
+static PyObject *Lamp_getName(BPy_Lamp *self)
 {
   PyObject *attr = PyString_FromString(self->lamp->id.name+2);
 
@@ -275,7 +304,7 @@ static PyObject *Lamp_getName(C_Lamp *self)
           "couldn't get Lamp.name attribute"));
 }
 
-static PyObject *Lamp_getType(C_Lamp *self)
+static PyObject *Lamp_getType(BPy_Lamp *self)
 { 
   PyObject *attr = PyInt_FromLong(self->lamp->type);
 
@@ -285,7 +314,7 @@ static PyObject *Lamp_getType(C_Lamp *self)
           "couldn't get Lamp.type attribute"));
 }
 
-static PyObject *Lamp_getMode(C_Lamp *self)
+static PyObject *Lamp_getMode(BPy_Lamp *self)
 {
   PyObject *attr = PyInt_FromLong(self->lamp->mode);
 
@@ -295,7 +324,7 @@ static PyObject *Lamp_getMode(C_Lamp *self)
           "couldn't get Lamp.mode attribute"));
 }
 
-static PyObject *Lamp_getSamples(C_Lamp *self)
+static PyObject *Lamp_getSamples(BPy_Lamp *self)
 {
   PyObject *attr = PyInt_FromLong(self->lamp->samp);
 
@@ -305,7 +334,7 @@ static PyObject *Lamp_getSamples(C_Lamp *self)
           "couldn't get Lamp.samples attribute"));
 }
 
-static PyObject *Lamp_getBufferSize(C_Lamp *self)
+static PyObject *Lamp_getBufferSize(BPy_Lamp *self)
 {
   PyObject *attr = PyInt_FromLong(self->lamp->bufsize);
 
@@ -315,7 +344,7 @@ static PyObject *Lamp_getBufferSize(C_Lamp *self)
           "couldn't get Lamp.bufferSize attribute"));
 }
 
-static PyObject *Lamp_getHaloStep(C_Lamp *self)
+static PyObject *Lamp_getHaloStep(BPy_Lamp *self)
 {
   PyObject *attr = PyInt_FromLong(self->lamp->shadhalostep);
 
@@ -325,7 +354,7 @@ static PyObject *Lamp_getHaloStep(C_Lamp *self)
           "couldn't get Lamp.haloStep attribute"));
 }
 
-static PyObject *Lamp_getEnergy(C_Lamp *self)
+static PyObject *Lamp_getEnergy(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->energy);
 
@@ -335,7 +364,7 @@ static PyObject *Lamp_getEnergy(C_Lamp *self)
           "couldn't get Lamp.energy attribute"));
 }
 
-static PyObject *Lamp_getDist(C_Lamp *self)
+static PyObject *Lamp_getDist(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->dist);
 
@@ -345,7 +374,7 @@ static PyObject *Lamp_getDist(C_Lamp *self)
           "couldn't get Lamp.dist attribute"));
 }
 
-static PyObject *Lamp_getSpotSize(C_Lamp *self)
+static PyObject *Lamp_getSpotSize(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->spotsize);
 
@@ -355,7 +384,7 @@ static PyObject *Lamp_getSpotSize(C_Lamp *self)
           "couldn't get Lamp.spotSize attribute"));
 }
 
-static PyObject *Lamp_getSpotBlend(C_Lamp *self)
+static PyObject *Lamp_getSpotBlend(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->spotblend);
 
@@ -365,7 +394,7 @@ static PyObject *Lamp_getSpotBlend(C_Lamp *self)
           "couldn't get Lamp.spotBlend attribute"));
 }
 
-static PyObject *Lamp_getClipStart(C_Lamp *self)
+static PyObject *Lamp_getClipStart(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->clipsta);
 
@@ -375,7 +404,7 @@ static PyObject *Lamp_getClipStart(C_Lamp *self)
           "couldn't get Lamp.clipStart attribute"));
 }
 
-static PyObject *Lamp_getClipEnd(C_Lamp *self)
+static PyObject *Lamp_getClipEnd(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->clipend);
 
@@ -385,7 +414,7 @@ static PyObject *Lamp_getClipEnd(C_Lamp *self)
           "couldn't get Lamp.clipEnd attribute"));
 }
 
-static PyObject *Lamp_getBias(C_Lamp *self)
+static PyObject *Lamp_getBias(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->bias);
 
@@ -395,7 +424,7 @@ static PyObject *Lamp_getBias(C_Lamp *self)
           "couldn't get Lamp.bias attribute"));
 }
 
-static PyObject *Lamp_getSoftness(C_Lamp *self)
+static PyObject *Lamp_getSoftness(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->soft);
 
@@ -405,7 +434,7 @@ static PyObject *Lamp_getSoftness(C_Lamp *self)
           "couldn't get Lamp.softness attribute"));
 }
 
-static PyObject *Lamp_getHaloInt(C_Lamp *self)
+static PyObject *Lamp_getHaloInt(BPy_Lamp *self)
 {
   PyObject *attr = PyFloat_FromDouble(self->lamp->haint);
 
@@ -415,7 +444,7 @@ static PyObject *Lamp_getHaloInt(C_Lamp *self)
           "couldn't get Lamp.haloInt attribute"));
 }
 
-static PyObject *Lamp_getQuad1(C_Lamp *self)
+static PyObject *Lamp_getQuad1(BPy_Lamp *self)
 { /* should we complain if Lamp is not of type Quad? */
   PyObject *attr = PyFloat_FromDouble(self->lamp->att1);
 
@@ -425,7 +454,7 @@ static PyObject *Lamp_getQuad1(C_Lamp *self)
           "couldn't get Lamp.quad1 attribute"));
 }
 
-static PyObject *Lamp_getQuad2(C_Lamp *self)
+static PyObject *Lamp_getQuad2(BPy_Lamp *self)
 { /* should we complain if Lamp is not of type Quad? */
   PyObject *attr = PyFloat_FromDouble(self->lamp->att2);
 
@@ -435,12 +464,12 @@ static PyObject *Lamp_getQuad2(C_Lamp *self)
           "couldn't get Lamp.quad2 attribute"));
 }
 
-static PyObject *Lamp_getCol(C_Lamp *self)
+static PyObject *Lamp_getCol(BPy_Lamp *self)
 {
   return rgbTuple_getCol(self->color);
 }
 
-static PyObject *Lamp_setName(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setName(BPy_Lamp *self, PyObject *args)
 {
   char *name = NULL;
   char buf[21];
@@ -457,7 +486,7 @@ static PyObject *Lamp_setName(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setType(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setType(BPy_Lamp *self, PyObject *args)
 {
   char *type;
 
@@ -486,7 +515,7 @@ static PyObject *Lamp_setType(C_Lamp *self, PyObject *args)
  * the first case t shoud be an int and in the second it should be a string. So
  * while the method setType expects a string ('persp' or 'ortho') or an empty
  * argument, this function should receive an int (0 or 1). */
-static PyObject *Lamp_setIntType(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setIntType(BPy_Lamp *self, PyObject *args)
 {
   short value;
 
@@ -504,7 +533,7 @@ static PyObject *Lamp_setIntType(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setMode(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setMode(BPy_Lamp *self, PyObject *args)
 {
   char *m[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
   short i, flag = 0;
@@ -545,7 +574,7 @@ static PyObject *Lamp_setMode(C_Lamp *self, PyObject *args)
 
 /* Another helper function, for the same reason.
  * (See comment before Lamp_setIntType above). */
-static PyObject *Lamp_setIntMode(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setIntMode(BPy_Lamp *self, PyObject *args)
 {
   short value;
 
@@ -560,7 +589,7 @@ static PyObject *Lamp_setIntMode(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setSamples(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setSamples(BPy_Lamp *self, PyObject *args)
 {
   short value;
 
@@ -575,7 +604,7 @@ static PyObject *Lamp_setSamples(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setBufferSize(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setBufferSize(BPy_Lamp *self, PyObject *args)
 {
   short value;
 
@@ -590,7 +619,7 @@ static PyObject *Lamp_setBufferSize(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setHaloStep(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setHaloStep(BPy_Lamp *self, PyObject *args)
 {
   short value;
 
@@ -605,7 +634,7 @@ static PyObject *Lamp_setHaloStep(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setEnergy(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setEnergy(BPy_Lamp *self, PyObject *args)
 {
   float value;
   
@@ -620,7 +649,7 @@ static PyObject *Lamp_setEnergy(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setDist(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setDist(BPy_Lamp *self, PyObject *args)
 {
   float value;
   
@@ -635,7 +664,7 @@ static PyObject *Lamp_setDist(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setSpotSize(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setSpotSize(BPy_Lamp *self, PyObject *args)
 {
   float value;
   
@@ -650,7 +679,7 @@ static PyObject *Lamp_setSpotSize(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setSpotBlend(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setSpotBlend(BPy_Lamp *self, PyObject *args)
 {
   float value;
   
@@ -665,7 +694,7 @@ static PyObject *Lamp_setSpotBlend(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setClipStart(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setClipStart(BPy_Lamp *self, PyObject *args)
 {
   float value;
   
@@ -680,7 +709,7 @@ static PyObject *Lamp_setClipStart(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setClipEnd(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setClipEnd(BPy_Lamp *self, PyObject *args)
 {
   float value;
 
@@ -695,7 +724,7 @@ static PyObject *Lamp_setClipEnd(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setBias(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setBias(BPy_Lamp *self, PyObject *args)
 {
   float value;
   
@@ -710,7 +739,7 @@ static PyObject *Lamp_setBias(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setSoftness(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setSoftness(BPy_Lamp *self, PyObject *args)
 {
   float value;
   
@@ -725,7 +754,7 @@ static PyObject *Lamp_setSoftness(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setHaloInt(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setHaloInt(BPy_Lamp *self, PyObject *args)
 {
   float value;
 
@@ -740,7 +769,7 @@ static PyObject *Lamp_setHaloInt(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setQuad1(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setQuad1(BPy_Lamp *self, PyObject *args)
 {
   float value;
 
@@ -755,7 +784,7 @@ static PyObject *Lamp_setQuad1(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setQuad2(BPy_Lamp *self, PyObject *args)
 {
   float value;
 
@@ -770,7 +799,7 @@ static PyObject *Lamp_setQuad2(C_Lamp *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
+static PyObject *Lamp_setColorComponent(BPy_Lamp *self, char *key,
                 PyObject *args)
 { /* for compatibility with old bpython */
   float value;
@@ -793,28 +822,29 @@ static PyObject *Lamp_setColorComponent(C_Lamp *self, char *key,
   return Py_None;
 }
 
-static PyObject *Lamp_setCol(C_Lamp *self, PyObject *args)
+static PyObject *Lamp_setCol(BPy_Lamp *self, PyObject *args)
 {
   return rgbTuple_setCol(self->color, args);
 }
 
 /*****************************************************************************/
-/* Function:    LampDeAlloc                                                  */
-/* Description: This is a callback function for the C_Lamp type. It is       */
+/* Function:    Lamp_dealloc                                                 */
+/* Description: This is a callback function for the BPy_Lamp type. It is     */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void LampDeAlloc (C_Lamp *self)
+static void Lamp_dealloc (BPy_Lamp *self)
 {
+	Py_DECREF (self->color);
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
-/* Function:    LampGetAttr                                                  */
-/* Description: This is a callback function for the C_Lamp type. It is       */
-/*              the function that accesses C_Lamp member variables and       */
+/* Function:    Lamp_getAttr                                                 */
+/* Description: This is a callback function for the BPy_Lamp type. It is     */
+/*              the function that accesses BPy_Lamp member variables and     */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *LampGetAttr (C_Lamp *self, char *name)
+static PyObject *Lamp_getAttr (BPy_Lamp *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -898,21 +928,21 @@ static PyObject *LampGetAttr (C_Lamp *self, char *name)
   if (attr != Py_None) return attr; /* member attribute found, return it */
 
   /* not an attribute, search the methods table */
-  return Py_FindMethod(C_Lamp_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Lamp_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
-/* Function:    LampSetAttr                                                  */
-/* Description: This is a callback function for the C_Lamp type. It is the   */
+/* Function:    Lamp_setAttr                                                 */
+/* Description: This is a callback function for the BPy_Lamp type. It is the */
 /*              function that changes Lamp Data members values. If this      */
 /*              data is linked to a Blender Lamp, it also gets updated.      */
 /*****************************************************************************/
-static int LampSetAttr (C_Lamp *self, char *name, PyObject *value)
+static int Lamp_setAttr (BPy_Lamp *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
 
-  valtuple = Py_BuildValue("(O)", value); /* the set* functions expect a tuple */
+  valtuple = Py_BuildValue("(O)", value); /*the set* functions expect a tuple*/
 
   if (!valtuple)
     return EXPP_ReturnIntError(PyExc_MemoryError,
@@ -983,36 +1013,36 @@ static int LampSetAttr (C_Lamp *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    LampCompare                                                  */
-/* Description: This is a callback function for the C_Lamp type. It          */
+/* Function:    Lamp_compare                                                 */
+/* Description: This is a callback function for the BPy_Lamp type. It        */
 /*              compares two Lamp_Type objects. Only the "==" and "!="       */
 /*              comparisons are meaninful. Returns 0 for equality and -1 if  */
 /*              they don't point to the same Blender Lamp struct.            */
 /*              In Python it becomes 1 if they are equal, 0 otherwise.       */
 /*****************************************************************************/
-static int LampCompare (C_Lamp *a, C_Lamp *b)
+static int Lamp_compare (BPy_Lamp *a, BPy_Lamp *b)
 {
   Lamp *pa = a->lamp, *pb = b->lamp;
   return (pa == pb) ? 0:-1;
 }
 
 /*****************************************************************************/
-/* Function:    LampPrint                                                    */
-/* Description: This is a callback function for the C_Lamp type. It          */
+/* Function:    Lamp_print                                                   */
+/* Description: This is a callback function for the BPy_Lamp type. It        */
 /*              builds a meaninful string to 'print' lamp objects.           */
 /*****************************************************************************/
-static int LampPrint(C_Lamp *self, FILE *fp, int flags)
+static int Lamp_print(BPy_Lamp *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Lamp \"%s\"]", self->lamp->id.name+2);
   return 0;
 }
 
 /*****************************************************************************/
-/* Function:    LampRepr                                                     */
-/* Description: This is a callback function for the C_Lamp type. It          */
+/* Function:    Lamp_repr                                                    */
+/* Description: This is a callback function for the BPy_Lamp type. It        */
 /*              builds a meaninful string to represent lamp objects.         */
 /*****************************************************************************/
-static PyObject *LampRepr (C_Lamp *self)
+static PyObject *Lamp_repr (BPy_Lamp *self)
 {
   return PyString_FromString(self->lamp->id.name+2);
 }

@@ -34,9 +34,9 @@
 struct PyMethodDef Null_methods[] = {{NULL, NULL}};
 
 /*****************************************************************************/
-/* Function:              M_Types_Init                                       */
+/* Function:             Types_Init                                          */
 /*****************************************************************************/
-PyObject *M_Types_Init (void)
+PyObject *Types_Init (void)
 {
   PyObject  *submodule, *dict;
 
