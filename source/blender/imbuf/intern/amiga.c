@@ -31,6 +31,14 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/**
+ * \file amiga.c
+ * \brief This file handles loading and saving of amiga files.
+ * \ingroup imbuf
+ * \warning This file contains endian code.  Some way should be found to move
+ * this code out of here.
+ * \help Endian #defines are in multiple files!
+ */
 
 #include "imbuf.h"
 #include "imbuf_patch.h"
@@ -48,9 +56,23 @@
 #endif
 
 /* actually hard coded endianness */
+/**
+ * \brief Makes a 4 bit id for a 32 bit value: Big-endian
+ * \todo How is this used?
+ */
 #define GET_BIG_LONG(x) (((uchar *) (x))[0] << 24 | ((uchar *) (x))[1] << 16 | ((uchar *) (x))[2] << 8 | ((uchar *) (x))[3])
+/**
+ * \brief Makes a 4 bit id for a 16? bit value: Little-endian
+ * \todo How is this used?
+ */
 #define GET_LITTLE_LONG(x) (((uchar *) (x))[3] << 24 | ((uchar *) (x))[2] << 16 | ((uchar *) (x))[1] << 8 | ((uchar *) (x))[0])
+/**
+ * \brief Converts between little and big endian: 32 bit values
+ */
 #define SWAP_L(x) (((x << 24) & 0xff000000) | ((x << 8) & 0xff0000) | ((x >> 8) & 0xff00) | ((x >> 24) & 0xff))
+/**
+ * \brief Converts between little and big endian:  16 bit values
+ */
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
@@ -390,6 +412,16 @@ static uchar *readbody(struct ImBuf *ibuf, uchar *body)
 	return body;
 }
 
+/**
+ * \brief Loads an amiga (.ami) image.
+ * \ingroup imbuf
+ * \param iffmem A pointer to a memory location.
+ * \param flags A set of bit flags determining what parts of the image to load.
+ * \return Returns 0 if loading the image fails, otherwise returns a pointer to an ImBuf.
+ * 
+ * I am fairly certain of what is going on in this function, so if I am
+ * wrong, please let me know, so I can update the docs!
+ */
 struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 {
 	int chunk,totlen,len,*cmap=0,cmaplen,*mem,ftype=0;
@@ -397,16 +429,45 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 	struct BitMapHeader bmhd;
 	struct ImBuf *ibuf=0;
 
+	/**
+	 * \internal The memory address to the data is copiend into mem.
+	 */
 	mem = iffmem;
+	/**
+	 * \internal The w member of the BitMapHeader is initialized to 0 because 
+	 * it will be tested to see if it has been set later.
+	 */
 	bmhd.w = 0;
 
+	/**
+	 * \internal The first three chunks must have the form: FORMxxxxILBM
+	 * else the function returns with 0;
+	 * FORM and ILBM are defined in imbuf_patch.h
+	 */
 	if (GET_ID(mem) != FORM) return (0);
 	if (GET_ID(mem+2) != ILBM) return (0);
+	/**
+	 * \internal The second chunk is the total size of the image.
+	 */
 	totlen= (GET_BIG_LONG(mem+1) + 1) & ~1;
+	/**
+	 * \internal mem is incremented to skip the first three chunks.
+	 */
 	mem += 3;
+	/**
+	 * \internal Anyone know why the total length is decreased by four here?
+	 */
 	totlen -= 4;
 
 
+	/**
+	 * \internal The while loop retrieves at most four blocks of memory:
+	 *  - bmhd: the bit map header
+	 *  - body: which is the image data
+	 *  - cmap: the color map
+	 *  - ftype: the file type (what does CAMG stand for?)
+	 * The body and the bitmap header are required.
+	 */
 	while(totlen > 0){
 		chunk = GET_ID(mem);
 		len= (GET_BIG_LONG(mem+1) + 1) & ~1;
@@ -439,18 +500,36 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 			break;
 		}
 		mem = (int *)((uchar *)mem +len);
+		/**
+		 * \intern Anything after the first BODY ID is discarded.
+		 */
 		if (body) break;
 	}
+	/**
+	 * \internal After the while loop, the existance of body and bmhd are detected.
+	 */
 	if (bmhd.w == 0) return (0);
 	if (body == 0) return (0);
 	
+	/**
+	 * \internal if the IB_test bit is set in flags, don't do masking.
+	 * (I'm not too sure about this)  In any case, allocate the memory
+	 * for the imbuf, and return 0 if this fails.
+	 */
 	if (flags & IB_test) ibuf = IMB_allocImBuf(bmhd.w, bmhd.h, bmhd.nPlanes, 0, 0);
 	else ibuf = IMB_allocImBuf(bmhd.w, bmhd.h, bmhd.nPlanes + (bmhd.masking & 1),0,1);
 
 	if (ibuf == 0) return (0);
 
+	/**
+	 * \internal Set the AMI bit in ftype.
+	 */
 	ibuf->ftype = (ftype | AMI);
 	
+	/**
+	 * \internal If there was a cmap chunk in the data, add the cmap
+	 * to the ImBuf and copy the data there.
+	 */
 	if (cmap){
 		ibuf->mincol = 0;
 		ibuf->maxcol = cmaplen;
@@ -461,11 +540,21 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 		imb_makecolarray(ibuf, cmap, 0);
 	}
 
+	/**
+	 * \internal If the IB_test bit of flags was set, we're done:
+	 * If the IB_freem bit is set, free the data pointed to by iffmem.
+	 * Return the data.
+	 */
 	if (flags & IB_test){
 		if (flags & IB_freem) free(iffmem);
 		return(ibuf);
 	}
 	
+	/**
+	 * \internal Check the bitmap header to see if there is any
+	 * compression.  0 is no, 1 is horizontal, 2 is vertical.
+	 * Load the data according to the type of compression.
+	 */
 	switch (bmhd.compression){
 	case 0:
 		body= readbody(ibuf, body);
@@ -479,23 +568,42 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 		break;
 	}
 
+	/**
+	 * \internal If the IB_freem bit is set, free the data pointed to by iffmem.
+	 */
 	if (flags & IB_freem) free(iffmem);
 
+	/**
+	 * \internal If there was some problem loading the body
+	 * data, free the memory already allocated in ibuf and
+	 * return 0.
+	 */
 	if (body == 0){
 		free (ibuf);
 		return(0);
 	}
 	
+	/**
+	 * \internal Set the bit depth to the number of planes in bmhd.
+	 * This discards the "stencil" data (What is the stencil? Alpha channel?)
+	 */
 	/* forget stencil */
 	ibuf->depth = bmhd.nPlanes;
 	
+	/**
+	 * \internal If the IB_rect bit is set in flags, add the rect and
+	 * get rid of the planes.
+	 */
 	if (flags & IB_rect){
 		imb_addrectImBuf(ibuf);
 		imb_bptolong(ibuf);
 		imb_freeplanesImBuf(ibuf);
+		/**
+		 * \internal If the image has a color map, apply it.
+		 */
 		if (ibuf->cmap){
 			if ((flags & IB_cmap) == 0) IMB_applycmap(ibuf);
-		} else if (ibuf->depth == 18){
+		} else if (ibuf->depth == 18){ /** \internal No color map, and the bit depths is 18, convert to 24-bit */
 			int i,col;
 			unsigned int *rect;
 
@@ -507,7 +615,7 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 				*rect++ = col;
 			}
 			ibuf->depth = 24;
-		} else if (ibuf->depth <= 8) { /* no colormap and no 24 bits: b&w */
+		} else if (ibuf->depth <= 8) { /** \internal No colormap and no 24 bits, so it's b&w */
 			uchar *rect;
 			int size, shift;
 
@@ -529,8 +637,14 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 		}
 	}
 
+	/**
+	 * \internal Anyone know what IB_ttob is?  What does IMB_flipy do?
+	 */
 	if ((flags & IB_ttob) == 0) IMB_flipy(ibuf);
 
+	/**
+	 * \internal Last thing to do before returning is to flip the bits from rgba to abgr.
+	 */
 	if (ibuf) {
 		if (ibuf->rect) 
 			IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);

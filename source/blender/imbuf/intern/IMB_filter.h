@@ -1,4 +1,4 @@
-/**
+/*
  * filter.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_filter.h
+ * \ingroup imbuf
+ * \brief Function declarations for filter.c
  */
 
 #ifndef IMB_FILTER_H

@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_bitplanes.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_bitplanes.h
+ * \ingroup imbuf
+ * \brief Function declarations for bitplanes.c
  */
 
 #ifndef IMB_BITPLANES_H

@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_png.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_png.h
+ * \ingroup imbuf
+ * \brief Function declarations for png_decode.c
  */
 
 #ifndef IMB_PNG_H

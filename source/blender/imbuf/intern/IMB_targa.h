@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_targa.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_targa.h
+ * \ingroup imbuf
+ * \brief Function declarations for targa.c
  */
 
 #ifndef IMB_TARGA_H

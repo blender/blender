@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_cmap.h
  *
  * $Id$
@@ -31,7 +31,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
+/**
+ * \file IMB_cmap.h
+ * \ingroup imbuf
+ * \brief Function declarations for cmap.c
+ */
 #ifndef IMB_CMAP_H
 #define IMB_CMAP_H
 

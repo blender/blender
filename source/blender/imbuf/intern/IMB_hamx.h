@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_hamx.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_hamx.h
+ * \ingroup imbuf
+ * \brief Function declarations for hamx.c
  */
 
 #ifndef IMB_HAMX_H

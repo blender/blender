@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_bmp.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_bmp.h
+ * \ingroup imbuf
+ * \brief Function declarations for bmp.c
  */
 
 #ifndef IMB_BMP_H

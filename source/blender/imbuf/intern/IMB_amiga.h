@@ -31,6 +31,11 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+/**
+ * \file IMB_amiga.h
+ * \ingroup imbuf
+ * \brief Function declarations for amiga.c
+ */
 
 #ifndef IMB_AMIGA_H
 #define IMB_AMIGA_H

@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_jpeg.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_jpeg.h
+ * \ingroup imbuf
+ * \brief Function declarations for jpeg.c
  */
 
 #ifndef IMB_JPEG_H

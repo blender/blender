@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_iff.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_iff.h
+ * \ingroup imbuf
+ * \brief Function declarations for iff.c
  */
 
 #ifndef IMB_IFF_H

@@ -1,4 +1,4 @@
-/**
+/*
  * allocimbuf.h
  *
  * $Id$
@@ -32,6 +32,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/**
+ * \file IMB_allocimbuf.h
+ * \ingroup imbuf
+ * \brief Header file for allocimbuf.c
+ */
 #ifndef IMB_ALLOCIMBUF_H
 #define IMB_ALLOCIMBUF_H
 

@@ -1,4 +1,4 @@
-/**
+/*
  * IMB_iris.h
  *
  * $Id$
@@ -30,6 +30,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+/**
+ * \file IMB_iris.h
+ * \ingroup imbuf
+ * \brief Function declarations for iris.c
  */
 
 #ifndef IMB_IRIS_H
