@@ -1178,11 +1178,9 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					do_draw= 1;
 				}
 			}
-			else if (G.qual == (LR_ALTKEY|LR_CTRLKEY)) {
-				if (!last_txt_find_string) {
-					txt_find_panel(st,1);
-					do_draw= 1;
-				}
+			else if (G.qual == (LR_ALTKEY|LR_CTRLKEY)) {	/* always search button */
+				txt_find_panel(st,1);
+				do_draw= 1;
 			}
 			break; /* BREAK F */
 		case JKEY:
