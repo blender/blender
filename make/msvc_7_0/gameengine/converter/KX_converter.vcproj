@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\converter\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\converter\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\converter\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\converter\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\source\gameengine\physics,..\..\..\source\gameengine\physics\ode,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\sumo\include,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\BlenderRoutines,..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\source\sumo\Fuzzics\include,..\..\..\..\source\gameengine\Ketsji,..\..\..\..\source\gameengine\SceneGraph,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\source\gameengine\soundsystem\snd_blenderwavecache,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\include,..\..\..\..\source\blender,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\BlOde"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)source\gameengine\physics,$(SolutionDir)source\gameengine\physics\ode,$(SolutionDir)source\gameengine\physics\dummy,$(SolutionDir)source\gameengine\physics\sumo\include,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\BlenderRoutines,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\rasterizer\ras_openglrasterizer,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\gameengine\soundsystem\snd_blenderwavecache,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\ketsji\kxnetwork,$(SolutionDir)source\gameengine\physics\sumo,$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include,$(SolutionDir)source\gameengine\physics\common,$(SolutionDir)source\gameengine\physics\BlOde"
 				PreprocessorDefinitions="WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\converter\mtdll_debug/KX_converter.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\converter\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\converter\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\converter\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\converter\mtdll_debug/KX_converter.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\converter\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\converter\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\converter\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"
@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\converter\mtdll_debug\KX_converter.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\converter\mtdll_debug\KX_converter.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -58,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\converter"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\converter"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\converter"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\converter"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,17 +67,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\BlOde,..\..\..\..\source\gameengine\physics\Dummy,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\BlenderRoutines,..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\source\sumo\Fuzzics\include,..\..\..\..\source\gameengine\Ketsji,..\..\..\..\source\gameengine\SceneGraph,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\source\gameengine\soundsystem\snd_blenderwavecache,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\include,..\..\..\..\source\blender,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics,..\..\..\source\gameengine\physics\ode,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)source\gameengine\physics\common,$(SolutionDir)source\gameengine\physics\BlOde,$(SolutionDir)source\gameengine\physics\Dummy,$(SolutionDir)intern\string,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\BlenderRoutines,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\rasterizer\ras_openglrasterizer,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\gameengine\soundsystem\snd_blenderwavecache,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\ketsji\kxnetwork,$(SolutionDir)source\gameengine\physics,$(SolutionDir)source\gameengine\physics\ode,$(SolutionDir)source\gameengine\physics\dummy,$(SolutionDir)source\gameengine\physics\sumo,$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\converter/KX_converter.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\converter/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\converter/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\converter/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\converter/KX_converter.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\converter\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\converter\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\converter\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -85,7 +85,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\converter\KX_converter.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\converter\KX_converter.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -104,8 +104,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\converter\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\converter\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\converter\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\converter\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -113,16 +113,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\source\gameengine\physics,..\..\..\source\gameengine\physics\ode,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\BlOde,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\BlenderRoutines,..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\source\sumo\Fuzzics\include,..\..\..\..\source\gameengine\Ketsji,..\..\..\..\source\gameengine\SceneGraph,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\source\gameengine\soundsystem\snd_blenderwavecache,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\include,..\..\..\..\source\blender,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)source\gameengine\physics&quot;;&quot;$(SolutionDir)source\gameengine\physics\ode&quot;;&quot;$(SolutionDir)source\gameengine\physics\dummy&quot;;&quot;$(SolutionDir)source\gameengine\physics\common&quot;;&quot;$(SolutionDir)source\gameengine\physics\BlOde&quot;;&quot;$(SolutionDir)intern\string&quot;;&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\gameengine\expressions&quot;;&quot;$(SolutionDir)source\gameengine\BlenderRoutines&quot;;&quot;$(SolutionDir)source\sumo\include&quot;;&quot;$(SolutionDir)intern\moto\include&quot;;&quot;$(SolutionDir)source\sumo\Fuzzics\include&quot;;&quot;$(SolutionDir)source\gameengine\Ketsji&quot;;&quot;$(SolutionDir)source\gameengine\SceneGraph&quot;;&quot;$(SolutionDir)source\gameengine\rasterizer&quot;;&quot;$(SolutionDir)source\gameengine\rasterizer\ras_openglrasterizer&quot;;&quot;$(SolutionDir)source\gameengine\gamelogic&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_openal&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem\snd_blenderwavecache&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)source\gameengine\ketsji\kxnetwork&quot;;&quot;$(SolutionDir)source\gameengine\physics\sumo&quot;;&quot;$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include&quot;"
 				PreprocessorDefinitions="WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\converter\debug/KX_converter.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\converter\debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\converter\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\converter\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\converter\debug/KX_converter.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\converter\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\converter\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\converter\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -132,7 +132,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\converter\debug\KX_converter.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\converter\debug\KX_converter.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -151,8 +151,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\converter\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\converter\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\converter\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\converter\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -160,24 +160,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\source\gameengine\physics,..\..\..\source\gameengine\physics\ode,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\sumo\include,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\blender\imbuf,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\BlenderRoutines,..\..\..\source\sumo\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\source\sumo\Fuzzics\include,..\..\..\..\source\gameengine\Ketsji,..\..\..\..\source\gameengine\SceneGraph,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\soundsystem,..\..\..\source\gameengine\soundsystem\snd_openal,..\..\..\source\gameengine\soundsystem\snd_blenderwavecache,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender\include,..\..\..\..\source\blender,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\BlOde"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)source\gameengine\physics,$(SolutionDir)source\gameengine\physics\ode,$(SolutionDir)source\gameengine\physics\dummy,$(SolutionDir)source\gameengine\physics\sumo\include,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\blender\imbuf,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\BlenderRoutines,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\rasterizer\ras_openglrasterizer,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\snd_openal,$(SolutionDir)source\gameengine\soundsystem\snd_blenderwavecache,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\ketsji\kxnetwork,$(SolutionDir)source\gameengine\physics\sumo,$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include,$(SolutionDir)source\gameengine\physics\common,$(SolutionDir)source\gameengine\physics\BlOde"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\converter\mtdll/KX_converter.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\converter\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\converter\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\converter\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\converter\mtdll/KX_converter.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\converter\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\converter\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\converter\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\converter\mtdll\KX_converter.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\converter\mtdll\KX_converter.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -200,101 +200,101 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_ActionActuator.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_ActionActuator.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_ArmatureObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_ArmatureObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_BlenderDataConversion.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_BlenderDataConversion.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_DeformableGameObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_DeformableGameObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_MeshDeformer.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_MeshDeformer.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_SkinDeformer.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_SkinDeformer.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_SkinMeshObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_SkinMeshObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BlenderWorldInfo.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BlenderWorldInfo.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_BlenderScalarInterpolator.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_BlenderScalarInterpolator.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_BlenderSceneConverter.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_BlenderSceneConverter.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertActuators.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertActuators.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertControllers.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertControllers.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertProperties.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertProperties.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertSensors.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertSensors.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_IpoConvert.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_IpoConvert.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_ActionActuator.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_ActionActuator.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_ArmatureObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_ArmatureObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_BlenderDataConversion.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_BlenderDataConversion.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_DeformableGameObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_DeformableGameObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_MeshDeformer.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_MeshDeformer.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_SkinDeformer.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_SkinDeformer.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BL_SkinMeshObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BL_SkinMeshObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\BlenderWorldInfo.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\BlenderWorldInfo.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Converter\KX_BlenderCanvas.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_BlenderCanvas.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_BlenderScalarInterpolator.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_BlenderScalarInterpolator.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_BlenderSceneConverter.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_BlenderSceneConverter.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertActuators.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertActuators.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertControllers.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertControllers.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertProperties.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertProperties.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_ConvertSensors.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_ConvertSensors.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Converter\KX_IpoConvert.h">
+				RelativePath="$(SolutionDir)source\gameengine\Converter\KX_IpoConvert.h">
 			</File>
 		</Filter>
 	</Files>

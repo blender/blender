@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,17 +21,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\../../../../source/gameengine/soundsystem/intern,..\../../../../source/gameengine/soundsystem,..\..\..\..\..\..\lib\windows\string\include,..\../../../../../lib/windows/moto/include,..\..\..\..\..\..\lib\windows\openal\include,..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal/SND_openal.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal/SND_openal.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\SND_openal.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\SND_openal.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -58,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\debug"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,15 +67,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\soundsystem,..\../../../../source/gameengine/soundsystem/intern,..\../../../../source/gameengine/soundsystem,..\..\..\..\..\..\lib\windows\string\include,..\../../../../../lib/windows/moto/include,..\..\..\..\..\..\lib\windows\openal\include,..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\debug/SND_openal.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\debug/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\debug/SND_openal.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\debug\SND_openal.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\debug\SND_openal.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,16 +112,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\soundsystem,..\../../../../source/gameengine/soundsystem/intern,..\../../../../source/gameengine/soundsystem,..\..\..\..\..\..\lib\windows\string\include,..\../../../../../lib/windows/moto/include,..\..\..\..\..\..\lib\windows\openal\include,..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll_debug/SND_openal.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll_debug/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll_debug/SND_openal.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -129,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll_debug\SND_openal.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll_debug\SND_openal.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -148,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,24 +157,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\soundsystem,..\../../../../source/gameengine/soundsystem/intern,..\../../../../source/gameengine/soundsystem,..\..\..\..\..\..\lib\windows\string\include,..\../../../../../lib/windows/moto/include,..\..\..\..\..\..\lib\windows\openal\include,..\..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\intern,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)lib\windows\openal\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll/SND_openal.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll/SND_openal.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\mtdll\SND_openal.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\openal\mtdll\SND_openal.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -197,14 +197,14 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\SoundSystem\openal\SND_OpenALDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\openal\SND_OpenALDevice.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\SoundSystem\openal\SND_OpenALDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\openal\SND_OpenALDevice.h">
 			</File>
 		</Filter>
 	</Files>

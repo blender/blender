@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\sumo\Fuzzics\include,..\../../../../lib/windows/moto/include,..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug/SM_fuzzics.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll_debug/SM_fuzzics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -38,7 +38,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug\SM_fuzzics.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll_debug\SM_fuzzics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\sumo\fuzzics\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\fuzzics\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,24 +66,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\sumo\Fuzzics\include,..\../../../../lib/windows/moto/include,..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\fuzzics\mtdll/SM_fuzzics.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\fuzzics\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\fuzzics\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\fuzzics\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll/SM_fuzzics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\fuzzics\mtdll\SM_fuzzics.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\fuzzics\mtdll\SM_fuzzics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,7 +103,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\fuzzics"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\fuzzics"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,17 +111,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\sumo\Fuzzics\include,..\../../../../lib/windows/moto/include,..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\fuzzics/SM_fuzzics.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\fuzzics/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\fuzzics/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\fuzzics/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\fuzzics/SM_fuzzics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\fuzzics\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\fuzzics\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\fuzzics\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -129,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\fuzzics\SM_fuzzics.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\fuzzics\SM_fuzzics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -157,7 +157,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\sumo\Fuzzics\include,..\../../../../lib/windows/moto/include,..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="5"
@@ -165,9 +165,9 @@
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\SM_fuzzics___Win32_Profile/SM_fuzzics.pch"
-				AssemblerListingLocation=".\SM_fuzzics___Win32_Profile/"
-				ObjectFile=".\SM_fuzzics___Win32_Profile/"
-				ProgramDataBaseFileName=".\SM_fuzzics___Win32_Profile/"
+				AssemblerListingLocation=".\SM_fuzzics___Win32_Profile\"
+				ObjectFile=".\SM_fuzzics___Win32_Profile\"
+				ProgramDataBaseFileName=".\SM_fuzzics___Win32_Profile\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -176,7 +176,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\fuzzics\profile\SM_fuzzics.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\fuzzics\profile\SM_fuzzics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,7 +196,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\fuzzics\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\fuzzics\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -204,16 +204,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\sumo\Fuzzics\include,..\../../../../lib/windows/moto/include,..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\fuzzics\debug/SM_fuzzics.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\fuzzics\debug/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\fuzzics\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\fuzzics\debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\fuzzics\debug/SM_fuzzics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\fuzzics\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\fuzzics\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\fuzzics\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -222,7 +222,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\fuzzics\debug\SM_fuzzics.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\fuzzics\debug\SM_fuzzics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -245,35 +245,35 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\src\SM_FhObject.cpp">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\src\SM_FhObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\src\SM_Object.cpp">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\src\SM_Object.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\src\SM_Scene.cpp">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\src\SM_Scene.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\include\SM_Callback.h">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\include\SM_Callback.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\include\SM_ClientObjectInfo.h">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\include\SM_ClientObjectInfo.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\include\SM_FhObject.h">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\include\SM_FhObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\include\SM_MotionState.h">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\include\SM_MotionState.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\include\SM_Object.h">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\include\SM_Object.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\sumo\Fuzzics\include\SM_Scene.h">
+				RelativePath="$(SolutionDir)source\sumo\Fuzzics\include\SM_Scene.h">
 			</File>
 		</Filter>
 	</Files>

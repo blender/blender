@@ -14,7 +14,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -22,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\source\gameengine\rasterizer,..\..\..\..\..\source\gameengine\gamelogic,..\..\..\..\..\source\gameengine\expressions,..\..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2/GP_ps2.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2/GP_ps2.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -74,16 +74,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\source\gameengine\rasterizer,..\..\..\..\..\source\gameengine\gamelogic,..\..\..\..\..\source\gameengine\expressions,..\..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="5"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\GP_ps2___Win32_Profile/GP_ps2.pch"
-				AssemblerListingLocation=".\GP_ps2___Win32_Profile/"
-				ObjectFile=".\GP_ps2___Win32_Profile/"
-				ProgramDataBaseFileName=".\GP_ps2___Win32_Profile/"
+				AssemblerListingLocation=".\GP_ps2___Win32_Profile\"
+				ObjectFile=".\GP_ps2___Win32_Profile\"
+				ProgramDataBaseFileName=".\GP_ps2___Win32_Profile\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -121,7 +121,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -129,15 +129,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\source\gameengine\rasterizer,..\..\..\..\..\source\gameengine\gamelogic,..\..\..\..\..\source\gameengine\expressions,..\..\..\..\source\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\sumo\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2\debug/GP_ps2.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2\debug/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\gameplayer\ps2\debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\debug/GP_ps2.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\gameplayer\ps2\debug\"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
@@ -179,53 +179,53 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\DebugActuator.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\DebugActuator.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\GPC_Init.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\GPC_Init.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2DualShockDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2DualShockDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2GamePlayer.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2GamePlayer.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2System.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2System.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\DebugActuator.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\DebugActuator.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\ExampleEngine.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\ExampleEngine.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\GPC_Init.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\GPC_Init.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2Canvas.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2Canvas.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2DualShockDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2DualShockDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2InputDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2InputDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2Rasterizer.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2Rasterizer.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2RenderTools.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2RenderTools.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\PS2System.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\PS2System.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\PS2\SamplePolygonMaterial.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\PS2\SamplePolygonMaterial.h">
 			</File>
 		</Filter>
 		<Filter

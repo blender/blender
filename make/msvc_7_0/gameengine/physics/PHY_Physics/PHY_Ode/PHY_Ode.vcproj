@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,15 +21,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\ode\include,$(SolutionDir)source\gameengine\physics\common"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/PHY_Ode.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll_debug/PHY_Ode.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -38,7 +38,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll_debug\PHY_Ode.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll_debug\PHY_Ode.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +66,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\ode\include,$(SolutionDir)source\gameengine\physics\common"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode/PHY_Ode.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\ode/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\ode/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\ode/PHY_Ode.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\ode\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\ode\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\ode\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -83,7 +83,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\PHY_Ode.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\ode\PHY_Ode.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +102,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,16 +111,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\ode\include,$(SolutionDir)source\gameengine\physics\common"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/PHY_Ode.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll/PHY_Ode.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -128,7 +128,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\mtdll\PHY_Ode.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\ode\mtdll\PHY_Ode.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +147,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\ode\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,15 +156,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\..\lib\windows\ode\include,..\..\..\..\..\..\source\gameengine\physics\common"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\ode\include,$(SolutionDir)source\gameengine\physics\common"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/PHY_Ode.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\ode\debug\PHY_Ode.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\ode\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\ode\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\ode\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -173,7 +173,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\ode\debug\PHY_Ode.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\ode\debug\PHY_Ode.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,20 +196,20 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\BlOde\OdePhysicsController.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\BlOde\OdePhysicsController.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\BlOde\OdePhysicsEnvironment.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\BlOde\OdePhysicsEnvironment.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\BlOde\OdePhysicsController.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\BlOde\OdePhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\BlOde\OdePhysicsEnvironment.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\BlOde\OdePhysicsEnvironment.h">
 			</File>
 		</Filter>
 	</Files>

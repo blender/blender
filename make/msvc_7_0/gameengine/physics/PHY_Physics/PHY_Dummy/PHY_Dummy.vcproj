@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\physics\common"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/PHY_Dummy.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll\PHY_Dummy.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -38,7 +38,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll\PHY_Dummy.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,15 +66,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="$(SolutionDir)source/gameengine/physics/common"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/PHY_Dummy.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll_debug/PHY_Dummy.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -83,7 +83,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\mtdll_debug\PHY_Dummy.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\mtdll_debug\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +102,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,15 +111,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="$(SolutionDir)source/gameengine/physics/common"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/PHY_Dummy.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\debug\PHY_Dummy.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\dummy\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\dummy\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -128,7 +128,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\debug\PHY_Dummy.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\debug\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +147,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy"
-			IntermediateDirectory="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\dummy"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -156,16 +156,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\../../../../../source/gameengine/physics/common"
+				AdditionalIncludeDirectories="$(SolutionDir)source/gameengine/physics/common"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy/PHY_Dummy.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy/"
-				ObjectFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy/"
-				ProgramDataBaseFileName="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\dummy/PHY_Dummy.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\dummy\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\dummy\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -173,7 +173,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\obj\windows\gameengine\physics\dummy\PHY_Dummy.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\dummy\PHY_Dummy.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,14 +196,14 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Dummy\DummyPhysicsEnvironment.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Dummy\DummyPhysicsEnvironment.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Dummy\DummyPhysicsEnvironment.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Dummy\DummyPhysicsEnvironment.h">
 			</File>
 		</Filter>
 	</Files>

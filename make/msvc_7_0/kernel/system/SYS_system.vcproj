@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="SYS_system"
+	ProjectGUID="{1D09E029-1F0B-4C80-802A-225F38C65577}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +22,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/SYS_system.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll/SYS_system.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll\SYS_system.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll\SYS_system.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +67,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/SYS_system.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll_debug/SYS_system.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -83,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\mtdll_debug\SYS_system.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\mtdll_debug\SYS_system.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,16 +112,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\string&quot;;&quot;$(SolutionDir)intern\moto\include&quot;"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/SYS_system.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\kernel\gen_system\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\debug/SYS_system.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -129,7 +130,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\debug\SYS_system.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\debug\SYS_system.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -148,8 +149,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\kernel\gen_system"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\kernel\gen_system"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,17 +158,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\string\include,../../../../../lib/windows/moto/include"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system/SYS_system.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\kernel\gen_system/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\kernel\gen_system/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system/SYS_system.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -175,7 +176,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\kernel\gen_system\SYS_system.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\kernel\gen_system\SYS_system.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -198,35 +199,35 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\GEN_HashedPtr.cpp">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\GEN_HashedPtr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\SYS_SingletonSystem.cpp">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\SYS_SingletonSystem.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\SYS_System.cpp">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\SYS_System.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\GEN_DataCache.h">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\GEN_DataCache.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\GEN_HashedPtr.h">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\GEN_HashedPtr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\GEN_Map.h">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\GEN_Map.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\GEN_SmartPtr.h">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\GEN_SmartPtr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\SYS_SingletonSystem.h">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\SYS_SingletonSystem.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\kernel\gen_system\SYS_System.h">
+				RelativePath="$(SolutionDir)source\kernel\gen_system\SYS_System.h">
 			</File>
 		</Filter>
 	</Files>

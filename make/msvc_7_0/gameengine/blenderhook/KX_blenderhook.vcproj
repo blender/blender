@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="KX_blenderhook"
+	ProjectGUID="{E7498162-0427-47A5-88A9-18D7184F606B}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\blenderhook\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\blenderhook\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\blenderhook\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\blenderhook\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\source\gameengine\Converter\,..\..\..\..\source\blender\imbuf,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\scenegraph,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)intern\guardedalloc&quot;;&quot;$(SolutionDir)source\gameengine\rasterizer\ras_openglrasterizer&quot;;&quot;$(SolutionDir)lib\windows\python\include\python2.2&quot;;&quot;$(SolutionDir)intern\string&quot;;&quot;$(SolutionDir)intern\bmfont&quot;;&quot;$(SolutionDir)source\gameengine\Converter\&quot;;&quot;$(SolutionDir)source\blender\imbuf&quot;;&quot;$(SolutionDir)intern\moto\include&quot;;&quot;$(SolutionDir)source\gameengine\ketsji&quot;;&quot;$(SolutionDir)source\blender\blenlib&quot;;&quot;$(SolutionDir)source\blender\blenkernel&quot;;&quot;$(SolutionDir)source\blender&quot;;&quot;$(SolutionDir)source\blender\include&quot;;&quot;$(SolutionDir)source\blender\makesdna&quot;;&quot;$(SolutionDir)source\gameengine\rasterizer&quot;;&quot;$(SolutionDir)source\gameengine\gamelogic&quot;;&quot;$(SolutionDir)source\kernel\gen_system&quot;;&quot;$(SolutionDir)source\gameengine\expressions&quot;;&quot;$(SolutionDir)source\gameengine\network&quot;;&quot;$(SolutionDir)source\gameengine\scenegraph&quot;;&quot;$(SolutionDir)source\sumo\include&quot;;&quot;$(SolutionDir)source\sumo\fuzzics\include&quot;;&quot;$(SolutionDir)source\gameengine\network\loopbacknetwork&quot;;&quot;$(SolutionDir)source\gameengine\soundsystem&quot;;&quot;$(SolutionDir)source\blender\misc&quot;;&quot;$(SolutionDir)source\blender\blenloader&quot;"
 				PreprocessorDefinitions="WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\blenderhook\debug/KX_blenderhook.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\blenderhook\debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\blenderhook\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\blenderhook\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\blenderhook\debug/KX_blenderhook.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\blenderhook\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\blenderhook\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\blenderhook\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -40,7 +41,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\blenderhook\debug\KX_blenderhook.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\blenderhook\debug\KX_blenderhook.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -59,8 +60,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\blenderhook"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\blenderhook"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\blenderhook"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\blenderhook"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -68,17 +69,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\guardedalloc\include,..\..\..\..\source\gameengine\rasterizer\ras_openglrasterizer,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\bmfont\include,..\..\..\..\source\gameengine\Converter\,..\..\..\..\source\blender\imbuf,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\gameengine\ketsji,..\..\..\..\source\blender\blenlib,..\..\..\..\source\blender\blenkernel,..\..\..\..\source\blender,..\..\..\..\source\blender\include,..\..\..\..\source\blender\makesdna,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\expressions,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\scenegraph,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\blender\misc,..\..\..\..\source\blender\blenloader"
+				AdditionalIncludeDirectories="$(SolutionDir)intern\guardedalloc,$(SolutionDir)source\gameengine\rasterizer\ras_openglrasterizer,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)intern\bmfont,$(SolutionDir)source\gameengine\Converter\,$(SolutionDir)source\blender\imbuf,$(SolutionDir)intern\moto\include,$(SolutionDir)source\gameengine\ketsji,$(SolutionDir)source\blender\blenlib,$(SolutionDir)source\blender\blenkernel,$(SolutionDir)source\blender,$(SolutionDir)source\blender\include,$(SolutionDir)source\blender\makesdna,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\scenegraph,$(SolutionDir)source\sumo\include,$(SolutionDir)source\sumo\fuzzics\include,$(SolutionDir)source\gameengine\network\loopbacknetwork,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\blender\misc,$(SolutionDir)source\blender\blenloader"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\blenderhook/KX_blenderhook.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\blenderhook/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\blenderhook/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\blenderhook/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\blenderhook/KX_blenderhook.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\blenderhook\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\blenderhook\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\blenderhook\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -86,7 +87,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\blenderhook\KX_blenderhook.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\blenderhook\KX_blenderhook.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -109,62 +110,62 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\BL_KetsjiEmbedStart.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\BL_KetsjiEmbedStart.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderCanvas.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderCanvas.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderGL.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderGL.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderInputDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderInputDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderKeyboardDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderKeyboardDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderMouseDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderMouseDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderPolyMaterial.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderPolyMaterial.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderRenderTools.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderRenderTools.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderSystem.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderSystem.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderCanvas.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderCanvas.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\BlenderRoutines\KX_BlenderDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderGL.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderGL.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderInputDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderInputDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderKeyboardDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderKeyboardDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderMouseDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderMouseDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderPolyMaterial.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderPolyMaterial.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderRenderTools.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderRenderTools.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\BlenderRoutines\KX_BlenderSystem.h">
+				RelativePath="$(SolutionDir)source\gameengine\BlenderRoutines\KX_BlenderSystem.h">
 			</File>
 		</Filter>
 	</Files>

@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\fmod\include,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\openal,..\..\..\..\source\gameengine\soundsystem\fmod,..\..\..\..\source\gameengine\soundsystem\dummy,..\..\..\..\..\lib\windows\string\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\fmod\include,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\openal,$(SolutionDir)source\gameengine\soundsystem\fmod,$(SolutionDir)source\gameengine\soundsystem\dummy,$(SolutionDir)intern\string,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll/SND_sound.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll/SND_sound.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll\SND_sound.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll\SND_sound.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +66,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\fmod\include,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\openal,..\..\..\..\source\gameengine\soundsystem\fmod,..\..\..\..\source\gameengine\soundsystem\dummy,..\..\..\..\..\lib\windows\string\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\fmod\include,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\openal,$(SolutionDir)source\gameengine\soundsystem\fmod,$(SolutionDir)source\gameengine\soundsystem\dummy,$(SolutionDir)intern\string,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll_debug/SND_sound.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll_debug/SND_sound.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -83,7 +83,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\soundsystem\mtdll_debug\SND_sound.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\mtdll_debug\SND_sound.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +102,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\soundsystem"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\soundsystem"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -111,17 +111,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\fmod\include,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\openal,..\..\..\..\source\gameengine\soundsystem\fmod,..\..\..\..\source\gameengine\soundsystem\dummy,..\..\..\..\..\lib\windows\string\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\fmod\include,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\openal,$(SolutionDir)source\gameengine\soundsystem\fmod,$(SolutionDir)source\gameengine\soundsystem\dummy,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\soundsystem/SND_sound.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\soundsystem/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\soundsystem/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\soundsystem/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem/SND_sound.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -129,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\soundsystem\SND_sound.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\SND_sound.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -148,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\soundsystem\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\soundsystem\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\soundsystem\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,15 +157,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\source\blender\include,..\..\..\..\..\lib\windows\fmod\include,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\soundsystem\openal,..\..\..\..\source\gameengine\soundsystem\fmod,..\..\..\..\source\gameengine\soundsystem\dummy,..\..\..\..\..\lib\windows\string\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)source\blender\include,$(SolutionDir)lib\windows\fmod\include,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\soundsystem\openal,$(SolutionDir)source\gameengine\soundsystem\fmod,$(SolutionDir)source\gameengine\soundsystem\dummy,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\soundsystem\debug/SND_sound.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\soundsystem\debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\soundsystem\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\soundsystem\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\soundsystem\debug/SND_sound.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\soundsystem\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\soundsystem\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\soundsystem\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -174,7 +174,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\soundsystem\debug\SND_sound.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\soundsystem\debug\SND_sound.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -197,86 +197,86 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_AudioDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_AudioDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_C-api.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_C-api.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_CDObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_CDObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_DeviceManager.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_DeviceManager.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_IdObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_IdObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_Scene.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_Scene.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_SoundListener.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_SoundListener.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_SoundObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_SoundObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_Utils.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_Utils.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_WaveCache.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_WaveCache.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_WaveSlot.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_WaveSlot.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_AudioDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_AudioDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_C-api.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_C-api.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_CDObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_CDObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_DependKludge.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_DependKludge.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_DeviceManager.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_DeviceManager.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_IAudioDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_IAudioDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\intern\SND_IdObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\intern\SND_IdObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_Object.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_Object.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_Scene.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_Scene.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_SoundListener.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_SoundListener.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_SoundObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_SoundObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_Utils.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_Utils.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_WaveCache.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_WaveCache.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SND_WaveSlot.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SND_WaveSlot.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\SoundSystem\SoundDefines.h">
+				RelativePath="$(SolutionDir)source\gameengine\SoundSystem\SoundDefines.h">
 			</File>
 		</Filter>
 	</Files>

@@ -14,7 +14,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -22,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\network,..\..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\..\source\gameengine\gameplayer\common,..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\source\gameengine\gamelogic,..\..\..\..\..\source\gameengine\Rasterizer,..\..\..\..\source\sumo\include,..\..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\sumo\Fuzzics\include,..\..\..\..\..\lib\windows\sdl\SDL-1.1.7\include,..\..\..\..\..\lib\windows\python\include\python2.0"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\network\loopbacknetwork,$(SolutionDir)source\gameengine\gameplayer\common,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)lib\windows\python\include\python2.0"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl/GP_sdl.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl/GP_sdl.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -44,7 +44,7 @@
 				OutputFile=".\Release/GP_sdl.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\sdl-1.1.7\lib,..\..\..\..\..\..\lib\windows\python\lib"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\sdl\sdl-1.1.7\lib,$(SolutionDir)lib\windows\python\lib"
 				ProgramDatabaseFile=".\Release/GP_sdl.pdb"
 				SubSystem="1"/>
 			<Tool
@@ -76,16 +76,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\network,..\..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\..\source\gameengine\gameplayer\common,..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\source\gameengine\gamelogic,..\..\..\..\..\source\gameengine\Rasterizer,..\..\..\..\source\sumo\include,..\..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\sumo\Fuzzics\include,..\..\..\..\..\lib\windows\sdl\SDL-1.1.7\include,..\..\..\..\..\lib\windows\python\include\python1.5"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\network\loopbacknetwork,$(SolutionDir)source\gameengine\gameplayer\common,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)lib\windows\python\include\python1.5"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="5"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\GP_sdl___Win32_Profile/GP_sdl.pch"
-				AssemblerListingLocation=".\GP_sdl___Win32_Profile/"
-				ObjectFile=".\GP_sdl___Win32_Profile/"
-				ProgramDataBaseFileName=".\GP_sdl___Win32_Profile/"
+				AssemblerListingLocation=".\GP_sdl___Win32_Profile\"
+				ObjectFile=".\GP_sdl___Win32_Profile\"
+				ProgramDataBaseFileName=".\GP_sdl___Win32_Profile\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -99,7 +99,7 @@
 				OutputFile=".\GP_sdl___Win32_Profile/GP_sdl.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\sdl-1.1.7\lib,..\..\..\..\..\..\lib\windows\python\lib,..\..\..\..\..\lib\windows\openal\lib\lib_release"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\sdl\sdl-1.1.7\lib,$(SolutionDir)lib\windows\python\lib,$(SolutionDir)lib\windows\openal\lib\lib_release"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\GP_sdl___Win32_Profile/GP_sdl.pdb"
 				SubSystem="1"/>
@@ -124,7 +124,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -132,15 +132,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\source\gameengine\network,..\..\..\..\..\source\gameengine\network\loopbacknetwork,..\..\..\..\..\source\gameengine\gameplayer\common,..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\source\gameengine\gamelogic,..\..\..\..\..\source\gameengine\Rasterizer,..\..\..\..\source\sumo\include,..\..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\sumo\Fuzzics\include,..\..\..\..\..\lib\windows\sdl\SDL-1.1.7\include,..\..\..\..\..\lib\windows\python\include\python1.5"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\network\loopbacknetwork,$(SolutionDir)source\gameengine\gameplayer\common,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)lib\windows\sdl\SDL-1.1.7\include,$(SolutionDir)lib\windows\python\include\python1.5"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl\debug/GP_sdl.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl\debug/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\gameplayer\sdl\debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\debug/GP_sdl.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\gameplayer\sdl\debug\"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
@@ -155,7 +155,7 @@
 				OutputFile=".\Debug/GP_sdl.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\sdl-1.1.7\lib,..\..\..\..\..\..\lib\windows\python\lib,..\..\..\..\..\lib\windows\openal\lib\lib_release"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\sdl\sdl-1.1.7\lib,$(SolutionDir)lib\windows\python\lib,$(SolutionDir)lib\windows\openal\lib\lib_release"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Debug/GP_sdl.pdb"
 				SubSystem="1"/>
@@ -183,35 +183,35 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLKeyboardDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLKeyboardDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLRenderTools.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLRenderTools.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLSystem.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLSystem.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\main.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\main.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLCanvas.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLCanvas.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLInputDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLInputDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLKeyboardDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLKeyboardDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLRenderTools.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLRenderTools.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\SDL\SDLSystem.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\SDL\SDLSystem.h">
 			</File>
 		</Filter>
 		<Filter
@@ -219,37 +219,37 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 		</Filter>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\alc\ALc.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\alc\ALc.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\alu\ALu.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\alu\ALu.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\alut\ALut.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\alut\ALut.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\OpenAL32.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\OpenAL32.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alBuffer.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alBuffer.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alEax.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alEax.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alError.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alError.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alExtension.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alExtension.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alListener.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alListener.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alSource.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alSource.obj">
 		</File>
 		<File
-			RelativePath="..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alState.obj">
+			RelativePath="$(SolutionDir)lib\windows\openal\lib\OpenAL32\alState.obj">
 		</File>
 	</Files>
 	<Globals>

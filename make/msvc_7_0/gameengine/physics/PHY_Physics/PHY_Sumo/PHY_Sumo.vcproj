@@ -22,15 +22,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\../../../../../source/gameengine/physics,..\../../../../../source/gameengine/physics/sumo,..\../../../../../source/gameengine/physics/sumo/include,..\../../../../../source/gameengine/physics/sumo/fuzzics/include,..\../../../../../../lib/windows/Moto/include"
+				AdditionalIncludeDirectories="$(SolutionDir)../../../../../source/gameengine/physics,$(SolutionDir)../../../../../source/gameengine/physics/sumo,$(SolutionDir)../../../../../source/gameengine/physics/sumo/include,$(SolutionDir)../../../../../source/gameengine/physics/sumo/fuzzics/include,$(SolutionDir)../../../../../../intern\moto\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Debug/PHY_Sumo.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
+				AssemblerListingLocation=".\Debug\"
+				ObjectFile=".\Debug\"
+				ProgramDataBaseFileName=".\Debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -67,16 +67,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\../../../../../source/gameengine/physics,..\../../../../../source/gameengine/physics/sumo,..\../../../../../source/gameengine/physics/sumo/include,..\../../../../../source/gameengine/physics/sumo/fuzzics/include,..\../../../../../../lib/windows/Moto/include"
+				AdditionalIncludeDirectories="$(SolutionDir)../../../../../source/gameengine/physics,$(SolutionDir)../../../../../source/gameengine/physics/sumo,$(SolutionDir)../../../../../source/gameengine/physics/sumo/include,$(SolutionDir)../../../../../source/gameengine/physics/sumo/fuzzics/include,$(SolutionDir)../../../../../../intern\moto\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Release/PHY_Sumo.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				AssemblerListingLocation=".\Release\"
+				ObjectFile=".\Release\"
+				ProgramDataBaseFileName=".\Release\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -107,50 +107,50 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_FhObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\src\SM_FhObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_Object.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\src\SM_Object.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\src\SM_Scene.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\src\SM_Scene.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPhysicsController.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SumoPhysicsController.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPhysicsEnvironment.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SumoPhysicsEnvironment.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_Callback.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\include\SM_Callback.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_ClientObjectInfo.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\include\SM_ClientObjectInfo.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_FhObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\include\SM_FhObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_MotionState.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\include\SM_MotionState.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_Object.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\include\SM_Object.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_Props.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\include\SM_Props.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include\SM_Scene.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\Fuzzics\include\SM_Scene.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPhysicsController.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SumoPhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\..\source\gameengine\Physics\Sumo\SumoPhysicsEnvironment.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SumoPhysicsEnvironment.h">
 			</File>
 		</Filter>
 	</Files>

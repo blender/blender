@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="h:\qtwin\include,..\..\..\..\..\source\gameengine\Expressions,..\..\..\..\..\source\gameengine\GameLogic,..\..\..\..\..\source\gameengine\Ketsji,..\..\..\..\..\source\gameengine\Ketsji\KXNetwork,..\..\..\..\..\source\gameengine\Network,..\..\..\..\..\source\gameengine\Network\LoopBackNetwork,..\..\..\..\..\source\gameengine\Rasterizer,..\..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer,..\..\..\..\..\source\gameengine\SceneGraph,..\..\..\..\source\sumo\Fuzzics\include,..\..\..\..\source\sumo\include,..\..\..\..\..\..\lib\windows\moto\include,..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\lib\windows\python\include\python2.0"
+				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\python\include\python2.0"
 				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp/gp.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp/gp.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -40,11 +40,11 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="opengl32.lib glu32.lib imm32.lib winmm.lib wsock32.lib h:\qtwin\lib\qt.lib h:\qtwin\lib\qnp.lib python20.lib"
-				OutputFile="..\..\..\..\..\obj\windows\gp.exe"
+				OutputFile="$(SolutionDir)obj\windows\gp.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\..\lib\windows\python\lib\"
-				ProgramDatabaseFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp/gp.pdb"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\python\lib\"
+				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp/gp.pdb"
 				SubSystem="2"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -52,7 +52,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp/gp.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp/gp.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -70,21 +70,21 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="h:\qtwin\include,..\..\..\..\..\source\gameengine\Expressions,..\..\..\..\..\source\gameengine\GameLogic,..\..\..\..\..\source\gameengine\Ketsji,..\..\..\..\..\source\gameengine\Ketsji\KXNetwork,..\..\..\..\..\source\gameengine\Network,..\..\..\..\..\source\gameengine\Network\LoopBackNetwork,..\..\..\..\..\source\gameengine\Rasterizer,..\..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer,..\..\..\..\..\source\gameengine\SceneGraph,..\..\..\..\source\sumo\Fuzzics\include,..\..\..\..\source\sumo\include,..\..\..\..\..\..\lib\windows\moto\include,..\..\..\..\..\source\kernel\gen_system,..\..\..\..\..\lib\windows\python\include\python1.5"
+				AdditionalIncludeDirectories="h:\qtwin\include,$(SolutionDir)source\gameengine\Expressions,$(SolutionDir)source\gameengine\GameLogic,$(SolutionDir)source\gameengine\Ketsji,$(SolutionDir)source\gameengine\Ketsji\KXNetwork,$(SolutionDir)source\gameengine\Network,$(SolutionDir)source\gameengine\Network\LoopBackNetwork,$(SolutionDir)source\gameengine\Rasterizer,$(SolutionDir)source\gameengine\Rasterizer\RAS_OpenGLRasterizer,$(SolutionDir)source\gameengine\SceneGraph,$(SolutionDir)source\sumo\Fuzzics\include,$(SolutionDir)source\sumo\include,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)lib\windows\python\include\python1.5"
 				PreprocessorDefinitions="_DEBUG,WIN32"
 				RuntimeLibrary="5"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug/gp.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug/gp.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -94,12 +94,12 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="opengl32.lib glu32.lib imm32.lib winmm.lib wsock32.lib h:\qtwin\lib\qt.lib python15_d.lib"
-				OutputFile="..\..\..\..\..\obj\windows\debug\gp.exe"
+				OutputFile="$(SolutionDir)obj\windows\debug\gp.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\..\lib\windows\python\lib\"
+				AdditionalLibraryDirectories="$(SolutionDir)lib\windows\python\lib\"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug/gp.pdb"
+				ProgramDatabaseFile="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug/gp.pdb"
 				SubSystem="2"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -107,7 +107,7 @@
 				MkTypLibCompatible="TRUE"
 				SuppressStartupBanner="TRUE"
 				TargetEnvironment="1"
-				TypeLibraryName="..\..\..\..\..\obj\windows\gameengine\gameplayer\qt\gp\debug/gp.tlb"/>
+				TypeLibraryName="$(SolutionDir)obj\windows\gameengine\gameplayer\qt\gp\debug/gp.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -129,53 +129,53 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\GP.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\GP.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\GP_Init.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\GP_Init.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtExampleEngine.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtExampleEngine.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtKeyboardDevice.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtKeyboardDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtOpenGLWidget.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtOpenGLWidget.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtSystem.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtSystem.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\DebugActuator.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\DebugActuator.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\GP_Init.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\GP_Init.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtExampleEngine.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtExampleEngine.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtInputDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtInputDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtKeyboardDevice.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtKeyboardDevice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtOpenGLWidget.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtOpenGLWidget.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtRenderTools.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtRenderTools.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\QtSystem.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\QtSystem.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\GamePlayer\Qt\SamplePolygonMaterial.h">
+				RelativePath="$(SolutionDir)source\gameengine\GamePlayer\Qt\SamplePolygonMaterial.h">
 			</File>
 		</Filter>
 		<Filter

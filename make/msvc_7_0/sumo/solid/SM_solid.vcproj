@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\sumo\solid\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\solid\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\sumo\solid\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\solid\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +21,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\gameengine\physics\sumo\SOLID-3.0\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\gameengine\physics\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\physics\sumo\SOLID-3.0\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\gameengine\physics\sumo\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\solid\debug/SM_solid.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\solid\debug/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\solid\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\solid\debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\solid\debug/SM_solid.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\solid\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\solid\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\solid\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -39,7 +39,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\solid\debug\SM_solid.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\solid\debug\SM_solid.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -58,8 +58,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\sumo\solid"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\solid"
+			OutputDirectory="$(SolutionDir)obj\windows\sumo\solid"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\solid"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -67,16 +67,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\gameengine\physics\sumo\SOLID-3.0\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\gameengine\physics\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\physics\sumo\SOLID-3.0\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\gameengine\physics\sumo\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\solid/SM_solid.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\solid/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\solid/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\solid/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\solid/SM_solid.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\solid\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\solid\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\solid\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\solid\SM_solid.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\solid\SM_solid.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\sumo\solid\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\solid\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\sumo\solid\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\solid\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,16 +112,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\source\gameengine\physics\sumo\SOLID-3.0\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\gameengine\physics\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\physics\sumo\SOLID-3.0\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\gameengine\physics\sumo\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\solid\mtdll_debug/SM_solid.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\solid\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\solid\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\solid\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\solid\mtdll_debug/SM_solid.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\solid\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\solid\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\solid\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -129,7 +129,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\solid\mtdll_debug\SM_solid.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\solid\mtdll_debug\SM_solid.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -148,8 +148,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\sumo\solid\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\sumo\solid\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\sumo\solid\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\sumo\solid\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -157,24 +157,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\source\gameengine\physics\sumo\SOLID-3.0\include,..\../../../../lib/windows/moto/include,..\..\..\..\source\gameengine\physics\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)source\gameengine\physics\sumo\SOLID-3.0\include,$(SolutionDir)../../../../intern\moto\include,$(SolutionDir)source\gameengine\physics\sumo\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\sumo\solid\mtdll/SM_solid.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\sumo\solid\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\sumo\solid\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\sumo\solid\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\sumo\solid\mtdll/SM_solid.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\sumo\solid\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\sumo\solid\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\sumo\solid\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\sumo\solid\mtdll\SM_solid.lib"
+				OutputFile="$(SolutionDir)obj\windows\sumo\solid\mtdll\SM_solid.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -197,152 +197,152 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\BBoxTree.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\BBoxTree.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Box.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Box.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Complex.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Complex.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Cone.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Cone.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Convex.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Convex.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Cylinder.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Cylinder.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_C-api.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_C-api.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_Endpoint.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_Endpoint.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_Proxy.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_Proxy.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_Scene.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_BP_Scene.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_C-api.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_C-api.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_DoubleBase.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_DoubleBase.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_Encounter.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_Encounter.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_FloatBase.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_FloatBase.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_LineSegment.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_LineSegment.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_Object.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_Object.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_RespTable.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_RespTable.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_Scene.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\DT_Scene.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Polyhedron.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Polyhedron.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Polytope.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Polytope.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\src\Sphere.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\src\Sphere.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\AlgoTable.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\AlgoTable.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\BBoxTree.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\BBoxTree.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Box.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Box.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Complex.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Complex.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Cone.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Cone.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Convex.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Convex.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Cylinder.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Cylinder.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_AABBox.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_AABBox.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BBox.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BBox.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BP_Endpoint.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BP_Endpoint.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BP_Proxy.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BP_Proxy.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BP_Scene.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_BP_Scene.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_DoubleBase.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_DoubleBase.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Encounter.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Encounter.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_FloatBase.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_FloatBase.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_LineSegment.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_LineSegment.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Object.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Object.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_RespTable.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_RespTable.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Response.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Response.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Scene.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_Scene.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_VertexBase.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_VertexBase.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_VertexBased.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\DT_VertexBased.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\IndexArray.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\IndexArray.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Polyhedron.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Polyhedron.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Polytope.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Polytope.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Shape.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Shape.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Physics\Sumo\SOLID-3.0\include\Sphere.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\Sumo\SOLID-3.0\include\Sphere.h">
 			</File>
 		</Filter>
 	</Files>

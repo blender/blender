@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\ketsji\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\ketsji\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,24 +21,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\source\gameengine\physics\common\dummy,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\expressions,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\..\source\gameengine\physics\sumo\include,..\..\..\..\source\gameengine\physics\BlOde"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)source\gameengine\physics\common\dummy,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\scenegraph,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\sumo\include,$(SolutionDir)source\sumo\fuzzics\include,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\ketsji\kxnetwork,$(SolutionDir)source\gameengine\physics,$(SolutionDir)source\gameengine\physics\common,$(SolutionDir)source\gameengine\physics\dummy,$(SolutionDir)source\gameengine\physics\sumo,$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include,$(SolutionDir)source\gameengine\physics\sumo\include,$(SolutionDir)source\gameengine\physics\BlOde"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\ketsji\mtdll/KX_ketsji.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\ketsji\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\ketsji\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\ketsji\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll/KX_ketsji.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\ketsji\mtdll\KX_ketsji.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -66,16 +66,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\source\gameengine\physics\common\dummy,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\expressions,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\..\source\gameengine\physics\sumo\include,..\..\..\..\source\gameengine\physics\BlOde"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)source\gameengine\physics\common\dummy,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\scenegraph,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\sumo\include,$(SolutionDir)source\sumo\fuzzics\include,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\ketsji\kxnetwork,$(SolutionDir)source\gameengine\physics,$(SolutionDir)source\gameengine\physics\common,$(SolutionDir)source\gameengine\physics\dummy,$(SolutionDir)source\gameengine\physics\sumo,$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include,$(SolutionDir)source\gameengine\physics\sumo\include,$(SolutionDir)source\gameengine\physics\BlOde"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/KX_ketsji.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll_debug/KX_ketsji.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\ketsji\mtdll_debug\KX_ketsji.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\ketsji\mtdll_debug\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -103,8 +103,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\ketsji\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\ketsji\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\ketsji\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\ketsji\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -112,16 +112,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\source\gameengine\physics\BlOde,..\..\..\source\gameengine\physics\common\dummy,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\expressions,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\..\source\gameengine\physics\sumo\include"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)source\gameengine\physics\BlOde,$(SolutionDir)source\gameengine\physics\common\dummy,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\scenegraph,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\sumo\include,$(SolutionDir)source\sumo\fuzzics\include,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\ketsji\kxnetwork,$(SolutionDir)source\gameengine\physics,$(SolutionDir)source\gameengine\physics\common,$(SolutionDir)source\gameengine\physics\dummy,$(SolutionDir)source\gameengine\physics\sumo,$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include,$(SolutionDir)source\gameengine\physics\sumo\include"
 				PreprocessorDefinitions="JANCODEPANCO,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\ketsji\debug/KX_ketsji.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\ketsji\debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\ketsji\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\ketsji\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\ketsji\debug/KX_ketsji.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\ketsji\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\ketsji\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\ketsji\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -131,7 +131,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\ketsji\debug\KX_ketsji.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\ketsji\debug\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -150,8 +150,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\ketsji"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\ketsji"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\ketsji"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\ketsji"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -159,17 +159,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\source\gameengine\physics\common\dummy,..\..\..\..\..\lib\windows\string\include,..\..\..\..\..\lib\windows\moto\include,..\..\..\..\source\kernel\gen_system,..\..\..\..\source\gameengine\soundsystem,..\..\..\..\source\gameengine\rasterizer,..\..\..\..\source\gameengine\scenegraph,..\..\..\..\source\gameengine\gamelogic,..\..\..\..\source\gameengine\expressions,..\..\..\source\sumo\include,..\..\..\source\sumo\fuzzics\include,..\..\..\..\source\gameengine\network,..\..\..\..\source\gameengine\ketsji\kxnetwork,..\..\..\..\source\gameengine\physics,..\..\..\..\source\gameengine\physics\common,..\..\..\..\source\gameengine\physics\dummy,..\..\..\..\source\gameengine\physics\sumo,..\..\..\..\source\gameengine\physics\sumo\fuzzics\include,..\..\..\..\source\gameengine\physics\sumo\include,..\..\..\..\source\gameengine\physics\BlOde"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)source\gameengine\physics\common\dummy,$(SolutionDir)intern\string,$(SolutionDir)intern\moto\include,$(SolutionDir)source\kernel\gen_system,$(SolutionDir)source\gameengine\soundsystem,$(SolutionDir)source\gameengine\rasterizer,$(SolutionDir)source\gameengine\scenegraph,$(SolutionDir)source\gameengine\gamelogic,$(SolutionDir)source\gameengine\expressions,$(SolutionDir)source\sumo\include,$(SolutionDir)source\sumo\fuzzics\include,$(SolutionDir)source\gameengine\network,$(SolutionDir)source\gameengine\ketsji\kxnetwork,$(SolutionDir)source\gameengine\physics,$(SolutionDir)source\gameengine\physics\common,$(SolutionDir)source\gameengine\physics\dummy,$(SolutionDir)source\gameengine\physics\sumo,$(SolutionDir)source\gameengine\physics\sumo\fuzzics\include,$(SolutionDir)source\gameengine\physics\sumo\include,$(SolutionDir)source\gameengine\physics\BlOde"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\ketsji/KX_ketsji.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\ketsji/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\ketsji/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\ketsji/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\ketsji/KX_ketsji.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\ketsji\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\ketsji\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\ketsji\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -177,7 +177,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\ketsji\KX_ketsji.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\ketsji\KX_ketsji.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -200,169 +200,169 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_Camera.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_Camera.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ConstraintWrapper.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ConstraintWrapper.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ConvertPhysicsObjects.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ConvertPhysicsObjects.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_EmptyObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_EmptyObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_GameObject.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_GameObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IPhysicsController.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IPhysicsController.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_KetsjiEngine.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_KetsjiEngine.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_Light.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_Light.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_MeshProxy.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_MeshProxy.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_MotionState.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_MotionState.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_OdePhysicsController.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_OdePhysicsController.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PhysicsObjectWrapper.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PyConstraintBinding.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PythonInit.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PythonInit.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_RayEventManager.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_RayEventManager.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SG_NodeRelationships.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SG_NodeRelationships.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_Scene.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_Scene.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SumoPhysicsController.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SumoPhysicsController.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TimeCategoryLogger.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TimeCategoryLogger.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TimeLogger.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TimeLogger.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TouchEventManager.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TouchEventManager.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_VertexProxy.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_VertexProxy.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_WorldInfo.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_WorldInfo.cpp">
 			</File>
 			<Filter
 				Name="ActuatorsImp"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_CDActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_CDActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_CameraActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_CameraActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ConstraintActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ConstraintActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_GameActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_GameActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IpoActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IpoActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ObjectActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ObjectActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SCA_AddObjectActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SCA_AddObjectActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SCA_EndObjectActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SCA_EndObjectActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SCA_ReplaceMeshActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SCA_ReplaceMeshActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SceneActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SceneActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SoundActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SoundActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TrackToActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TrackToActuator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_VisibilityActuator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_VisibilityActuator.cpp">
 				</File>
 			</Filter>
 			<Filter
 				Name="SG_ControllersImp"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_CameraIpoSGController.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_CameraIpoSGController.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IPO_SGController.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IPO_SGController.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_LightIpoSGController.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_LightIpoSGController.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ObColorIpoSGController.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ObColorIpoSGController.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_WorldIpoController.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_WorldIpoController.cpp">
 				</File>
 			</Filter>
 			<Filter
 				Name="SensorsImp"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_MouseFocusSensor.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_MouseFocusSensor.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_NearSensor.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_NearSensor.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_RadarSensor.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_RadarSensor.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_RaySensor.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_RaySensor.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TouchSensor.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TouchSensor.cpp">
 				</File>
 			</Filter>
 			<Filter
 				Name="IposImp"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_OrientationInterpolator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_OrientationInterpolator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PositionInterpolator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PositionInterpolator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ScalarInterpolator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ScalarInterpolator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ScalingInterpolator.cpp">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ScalingInterpolator.cpp">
 				</File>
 			</Filter>
 		</Filter>
@@ -370,190 +370,190 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_Camera.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_Camera.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ConstraintWrapper.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ConstraintWrapper.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ConvertPhysicsObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ConvertPhysicsObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_EmptyObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_EmptyObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_GameObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_GameObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_IClientObject.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IClientObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IPOTransform.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IPOTransform.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IPhysicsController.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IPhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ISceneConverter.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ISceneConverter.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ISystem.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ISystem.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_KetsjiEngine.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_KetsjiEngine.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_Light.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_Light.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_MeshProxy.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_MeshProxy.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_MotionState.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_MotionState.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_OdePhysicsController.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_OdePhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PhysicsObjectWrapper.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PyConstraintBinding.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PythonInit.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PythonInit.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_RayEventManager.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_RayEventManager.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SG_NodeRelationships.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SG_NodeRelationships.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_Scene.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_Scene.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SumoPhysicsController.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SumoPhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TimeCategoryLogger.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TimeCategoryLogger.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TimeLogger.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TimeLogger.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TouchEventManager.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TouchEventManager.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_VertexProxy.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_VertexProxy.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_WorldInfo.h">
+				RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_WorldInfo.h">
 			</File>
 			<Filter
 				Name="Actuators"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_CDActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_CDActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_CameraActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_CameraActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ConstraintActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ConstraintActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_GameActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_GameActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IpoActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IpoActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ObjectActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ObjectActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SCA_AddObjectActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SCA_AddObjectActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SCA_EndObjectActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SCA_EndObjectActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SCA_ReplaceMeshActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SCA_ReplaceMeshActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SceneActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SceneActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_SoundActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_SoundActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TrackToActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TrackToActuator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_VisibilityActuator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_VisibilityActuator.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="SG_Controllers"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_CameraIpoSGController.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_CameraIpoSGController.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IPO_SGController.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IPO_SGController.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_LightIpoSGController.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_LightIpoSGController.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ObColorIpoSGController.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ObColorIpoSGController.h">
 				</File>
 				<File
-					RelativePath="..\..\..\source\gameengine\Ketsji\KX_PhysicsController.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PhysicsController.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_WorldIpoController.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_WorldIpoController.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="Sensors"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_MouseFocusSensor.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_MouseFocusSensor.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_NearSensor.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_NearSensor.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_RadarSensor.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_RadarSensor.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_RaySensor.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_RaySensor.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_TouchSensor.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_TouchSensor.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="Ipos"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IInterpolator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IInterpolator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_IScalarInterpolator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_IScalarInterpolator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_OrientationInterpolator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_OrientationInterpolator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_PositionInterpolator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_PositionInterpolator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ScalarInterpolator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ScalarInterpolator.h">
 				</File>
 				<File
-					RelativePath="..\..\..\..\source\gameengine\Ketsji\KX_ScalingInterpolator.h">
+					RelativePath="$(SolutionDir)source\gameengine\Ketsji\KX_ScalingInterpolator.h">
 				</File>
 			</Filter>
 		</Filter>

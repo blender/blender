@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\physics\debug"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\physics\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -25,11 +25,11 @@
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\physics\debug/PHY_Physics.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\physics\debug/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\physics\debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\physics\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\debug/PHY_Physics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -38,7 +38,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\physics\debug\PHY_Physics.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\debug\PHY_Physics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -57,8 +57,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\physics"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\physics"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -72,10 +72,10 @@
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\physics/PHY_Physics.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\physics/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\physics/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\physics/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics/PHY_Physics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -83,7 +83,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\physics\PHY_Physics.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\PHY_Physics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -102,8 +102,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\physics\mtdll"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\physics\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -117,10 +117,10 @@
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\physics\mtdll/PHY_Physics.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\physics\mtdll/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\physics\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\physics\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\mtdll/PHY_Physics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -128,7 +128,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\physics\mtdll\PHY_Physics.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\mtdll\PHY_Physics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,8 +147,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\..\obj\windows\gameengine\physics\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\..\obj\windows\gameengine\physics\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\physics\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\physics\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -161,10 +161,10 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\obj\windows\gameengine\physics\mtdll_debug/PHY_Physics.pch"
-				AssemblerListingLocation="..\..\..\..\..\obj\windows\gameengine\physics\mtdll_debug/"
-				ObjectFile="..\..\..\..\..\obj\windows\gameengine\physics\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\..\obj\windows\gameengine\physics\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\physics\mtdll_debug/PHY_Physics.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\physics\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\physics\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\physics\mtdll_debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -173,7 +173,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\obj\windows\gameengine\physics\mtdll_debug\PHY_Physics.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\physics\mtdll_debug\PHY_Physics.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -196,44 +196,44 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_IMotionState.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_IMotionState.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_IPhysicsController.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_IPhysicsController.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_IPhysicsEnvironment.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_IPhysicsEnvironment.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Physics\PHY_DynamicTypes.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_DynamicTypes.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_DynamicTypes.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\PHY_DynamicTypes.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Physics\PHY_IMotionState.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_IMotionState.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_IMotionState.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\PHY_IMotionState.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_IPhysicsController.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_IPhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Physics\PHY_IPhysicsController.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\PHY_IPhysicsController.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Physics\PHY_IPhysicsEnvironment.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_IPhysicsEnvironment.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_IPhysicsEnvironment.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\PHY_IPhysicsEnvironment.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\..\source\gameengine\Physics\common\PHY_Pro.h">
+				RelativePath="$(SolutionDir)source\gameengine\Physics\common\PHY_Pro.h">
 			</File>
 		</Filter>
 	</Files>

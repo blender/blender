@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="EXP_expressions"
+	ProjectGUID="{8A5E634D-D1DA-40E9-A3B3-94689A6235DC}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -12,8 +13,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\expressions\debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\expressions\debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\expressions\debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\expressions\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -21,16 +22,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\expressions\debug/EXP_expressions.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\expressions\debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\expressions\debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\expressions\debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\expressions\debug/EXP_expressions.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\expressions\debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\expressions\debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\expressions\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -40,7 +41,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\expressions\debug\EXP_expressions.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\expressions\debug\EXP_expressions.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -59,8 +60,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Debug|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\expressions\mtdll_debug"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\expressions\mtdll_debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -68,16 +69,16 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug/EXP_expressions.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\expressions\mtdll_debug/EXP_expressions.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\expressions\mtdll_debug\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\expressions\mtdll_debug\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\expressions\mtdll_debug\"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"
@@ -86,7 +87,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\expressions\mtdll_debug\EXP_expressions.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\expressions\mtdll_debug\EXP_expressions.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -105,8 +106,8 @@
 		</Configuration>
 		<Configuration
 			Name="MT DLL Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\expressions\mtdll"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\expressions\mtdll"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\expressions\mtdll"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\expressions\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -114,24 +115,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.0,..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.0,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\expressions\mtdll/EXP_expressions.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\expressions\mtdll/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\expressions\mtdll/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\expressions\mtdll/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\expressions\mtdll/EXP_expressions.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\expressions\mtdll\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\expressions\mtdll\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\expressions\mtdll\"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\expressions\mtdll\EXP_expressions.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\expressions\mtdll\EXP_expressions.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -150,8 +151,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\obj\windows\gameengine\expressions"
-			IntermediateDirectory="..\..\..\..\obj\windows\gameengine\expressions"
+			OutputDirectory="$(SolutionDir)obj\windows\gameengine\expressions"
+			IntermediateDirectory="$(SolutionDir)obj\windows\gameengine\expressions"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -159,17 +160,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\python\include\python2.2,..\..\..\..\..\lib\windows\string\include,..\..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="c:\cygwin\home\stl,$(SolutionDir)lib\windows\python\include\python2.2,$(SolutionDir)intern\string,$(SolutionDir)source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\obj\windows\gameengine\expressions/EXP_expressions.pch"
-				AssemblerListingLocation="..\..\..\..\obj\windows\gameengine\expressions/"
-				ObjectFile="..\..\..\..\obj\windows\gameengine\expressions/"
-				ProgramDataBaseFileName="..\..\..\..\obj\windows\gameengine\expressions/"
+				PrecompiledHeaderFile="$(SolutionDir)obj\windows\gameengine\expressions\EXP_expressions.pch"
+				AssemblerListingLocation="$(SolutionDir)obj\windows\gameengine\expressions\"
+				ObjectFile="$(SolutionDir)obj\windows\gameengine\expressions\"
+				ProgramDataBaseFileName="$(SolutionDir)obj\windows\gameengine\expressions\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -177,12 +178,18 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\obj\windows\gameengine\expressions\EXP_expressions.lib"
+				OutputFile="$(SolutionDir)obj\windows\gameengine\expressions\EXP_expressions.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying lib
+
+XCOPY /Y $(SolutionDir)obj\windows\gameengine\expressions\*.lib $(SolutionDir)lib\windows\gameengine\expressions\lib\*.lib
+
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -200,125 +207,125 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\BoolValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\BoolValue.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\ConstExpr.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\ConstExpr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\EXP_C-Api.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\EXP_C-Api.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\EmptyValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\EmptyValue.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\ErrorValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\ErrorValue.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Expression.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Expression.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\FloatValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\FloatValue.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\IdentifierExpr.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\IdentifierExpr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\IfExpr.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\IfExpr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\InputParser.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\InputParser.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\IntValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\IntValue.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\KX_HashedPtr.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\KX_HashedPtr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\ListValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\ListValue.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Operator1Expr.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Operator1Expr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Operator2Expr.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Operator2Expr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\PyObjectPlus.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\PyObjectPlus.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\StringValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\StringValue.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Value.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Value.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\VectorValue.cpp">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\VectorValue.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\BoolValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\BoolValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\ConstExpr.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\ConstExpr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\EXP_C-Api.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\EXP_C-Api.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\EmptyValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\EmptyValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\ErrorValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\ErrorValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Expression.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Expression.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\FloatValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\FloatValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\IdentifierExpr.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\IdentifierExpr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\IfExpr.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\IfExpr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\InputParser.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\InputParser.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\IntValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\IntValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\KX_HashedPtr.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\KX_HashedPtr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\ListValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\ListValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Operator1Expr.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Operator1Expr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Operator2Expr.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Operator2Expr.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\PyObjectPlus.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\PyObjectPlus.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\StringValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\StringValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\Value.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\Value.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\VectorValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\VectorValue.h">
 			</File>
 			<File
-				RelativePath="..\..\..\..\source\gameengine\Expressions\VoidValue.h">
+				RelativePath="$(SolutionDir)source\gameengine\Expressions\VoidValue.h">
 			</File>
 		</Filter>
 	</Files>
