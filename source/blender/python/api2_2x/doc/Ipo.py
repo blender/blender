@@ -177,6 +177,10 @@ class IpoCurve:
   The IpoCurve object
   ===================
   This object gives access to generic data from all ipocurves objects in Blender.
+
+  Important Notes for Rotation Curves:\n
+  For the rotation IpoCurves, the y values for points are in units of 10 degrees.  example:  45.0 degrees is stored as 4.50 degrees.  These are the same numbers you see in the Transform Properties pupmenu ( NKey ) in the IPO Curve Editor window.  Positive rotations are in a counter-clockwise direction, just like in math class.
+  
   @cvar name: The Curve Data name.
   @cvar bezierPoints : The list of the Bezier points.
   """

@@ -213,8 +213,8 @@ class Object:
 
   def getEuler():
     """
-    Returns the object's rotation as Euler rotation vector (rotX, rotY, rotZ).
-    @rtype: A vector triple
+    Returns the object's rotation as Euler rotation vector (rotX, rotY, rotZ).  Angles are in radians.
+    @rtype: A vector triple of floats
     @return: (rotX, rotY, rotZ)
     """
 
