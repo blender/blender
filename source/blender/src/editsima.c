@@ -1647,7 +1647,7 @@ void unlink_selection(void)
 
 	mface= me->mface;
 	for(a=me->totface, tface= me->tface; a>0; a--, tface++, mface++) {
-		if(mface->v3 && !(tface->flag & TF_HIDE)) {
+		if(mface->v3 && tface->flag & TF_SELECT) {
 			if(mface->v4) {
 				if(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4))
 					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
@@ -1696,19 +1696,21 @@ void pin_tface_uv(int mode)
 	mface= me->mface;
 	tface= me->tface;
 	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(mode ==1){
-			if(tface->flag & TF_SEL1) tface->unwrap |= TF_PIN1;
-			if(tface->flag & TF_SEL2) tface->unwrap |= TF_PIN2;
-			if(tface->flag & TF_SEL3) tface->unwrap |= TF_PIN3;
-			if(mface->v4)
-				if(tface->flag & TF_SEL4) tface->unwrap |= TF_PIN4;
-		}
-		else if (mode ==0){
-			if(tface->flag & TF_SEL1) tface->unwrap &= ~TF_PIN1;
-			if(tface->flag & TF_SEL2) tface->unwrap &= ~TF_PIN2;
-			if(tface->flag & TF_SEL3) tface->unwrap &= ~TF_PIN3;
-			if(mface->v4)
+		if(mface->v3 && tface->flag & TF_SELECT) {
+			if(mode ==1){
+				if(tface->flag & TF_SEL1) tface->unwrap |= TF_PIN1;
+				if(tface->flag & TF_SEL2) tface->unwrap |= TF_PIN2;
+				if(tface->flag & TF_SEL3) tface->unwrap |= TF_PIN3;
+				if(mface->v4)
+					if(tface->flag & TF_SEL4) tface->unwrap |= TF_PIN4;
+			}
+			else if (mode ==0){
+				if(tface->flag & TF_SEL1) tface->unwrap &= ~TF_PIN1;
+				if(tface->flag & TF_SEL2) tface->unwrap &= ~TF_PIN2;
+				if(tface->flag & TF_SEL3) tface->unwrap &= ~TF_PIN3;
+				if(mface->v4)
 				if(tface->flag & TF_SEL4) tface->unwrap &= ~TF_PIN4;
+			}
 		}
 	}
 	scrarea_queue_winredraw(curarea);
