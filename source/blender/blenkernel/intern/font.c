@@ -359,11 +359,12 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			ct->charnr= cnr;
 			
 			/* only empty lines are allowed smaller than 1 */
-			if( linedist<1.0) {
-				if(i<slen && (cu->str[i+1]=='\r' || cu->str[i+1]=='\n')) yof-= linedist;
-				else yof-= 1.0;
-			}
-			else yof-= linedist;
+//			if( linedist<1.0) {
+//				if(i<slen && (cu->str[i+1]=='\r' || cu->str[i+1]=='\n')) yof-= linedist;
+//				else yof-= 1.0;
+//			}
+//			else
+			yof-= linedist;
 			
 			maxlen= MAX2(maxlen, xof);
 			linedata[lnr]= xof;
