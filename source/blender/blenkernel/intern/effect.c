@@ -314,7 +314,7 @@ void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 	float old;
 	
 	externtex(mtex, co);
-	
+
 	if(paf->texmap==PAF_TEXINT) {
 		Tin*= paf->texfac;
 		no[0]+= Tin*paf->defvec[0];
@@ -346,27 +346,33 @@ void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 	}
 }
 
-static float linetriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3])
+static int linetriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *labda)
 {
- 	float p[3], s[3], d[3], e1[3], e2[3], q[3];
- 	float a, f, u, v, t;
-
-	VecSubf(e1, v1, v0);
-	VecSubf(e2, v2, v0);
-	VecSubf(d, p2, p1);
-    Crossf(p, d, e2);
-    a = Inpf(e1, p);
-    if ((a > -0.000001) && (a < 0.000001)) return -1;
-    f = 1/a;
-    VecSubf(s, p1, v0);
-    u = f * Inpf(s, p);
-    if ((u < 0.0)||(u > 1.0)) return -1;
-    Crossf(q, s, e1);
-    t = f * Inpf(e2, q);
-    if ((t < 0.0)||(t > 1.0)) return -1;
-    v = f * Inpf(d, q);
-    if ((v < 0.0)||((u + v) > 1.0)) return -1;
-    return t;
+	float p[3], s[3], d[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+	
+	VECSUB(e1, v1, v0);
+	VECSUB(e2, v2, v0);
+	VECSUB(d, p2, p1);
+	
+	Crossf(p, d, e2);
+	a = INPR(e1, p);
+	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	f = 1.0/a;
+	
+	VECSUB(s, p1, v0);
+	
+	Crossf(q, s, e1);
+	*labda = f * INPR(e2, q);
+	if ((*labda < 0.0)||(*labda > 1.0)) return 0;
+	
+	u = f * INPR(s, p);
+	if ((u < 0.0)||(u > 1.0)) return 0;
+	
+	v = f * INPR(d, q);
+	if ((v < 0.0)||((u + v) > 1.0)) return 0;
+	
+	return 1;
 }
 
 static void get_effector(float opco[], float force[], float speed[], float cur_time, unsigned int par_layer)
@@ -424,7 +430,7 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 					ffall_val = ob->pd->f_power;
 
 				/* Now calculate the gravitational force */
-				VecSubf(vect_to_vert, obloc, opco);
+				VECSUB(vect_to_vert, obloc, opco);
 				distance = Normalise(vect_to_vert);
 
 				/* Limit minimum distance to vertex so that */
@@ -460,7 +466,7 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 					ffall_val = ob->pd->f_power;
 
 				/* Now calculate the vortex force */
-				VecSubf(vect_to_vert, obloc, opco);
+				VECSUB(vect_to_vert, obloc, opco);
 
 				distance = Normalise(vect_to_vert);
 
@@ -481,6 +487,27 @@ static void get_effector(float opco[], float force[], float speed[], float cur_t
 	}
 }
 
+static void cache_object_vertices(Object *ob)
+{
+	Mesh *me;
+	MVert *mvert;
+	float *fp;
+	int a;
+	
+	me= ob->data;
+	if(me->totvert==0) return;
+
+	fp= ob->sumohandle= MEM_mallocN(3*sizeof(float)*me->totvert, "cache particles");
+	mvert= me->mvert;
+	a= me->totvert;
+	while(a--) {
+		VECCOPY(fp, mvert->co);
+		Mat4MulVecfl(ob->obmat, fp);
+		mvert++;
+		fp+= 3;
+	}
+}
+
 static int get_deflection(float opco[3], float npco[3], float opno[3],
         float npno[3], float life, float force[3], int def_depth,
         float cur_time, unsigned int par_layer, int *last_object,
@@ -496,7 +523,7 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 	Object *ob, *deflection_object = NULL;
 	Mesh *def_mesh;
 	MFace *mface, *deflection_face = NULL;
-	float *v1, *v2, *v3, *v4;
+	float *v1, *v2, *v3, *v4, *vcache=NULL;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3];
 	float dv1[3], dv2[3], dv3[3];
 	float vect_to_int[3], refl_vel[3];
@@ -535,58 +562,83 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 				d_face = d_face + 1;
 				mface= def_mesh->mface;
 				a = def_mesh->totface;
-				/*Find out where the object is at this time*/
-				cur_frame = G.scene->r.cfra;
-				G.scene->r.cfra = (short)cur_time;
-				where_is_object_time(ob, cur_time);
-				G.scene->r.cfra = cur_frame;
-				/*Pass the values from ob->obmat to mat*/
-				/*and the location values to obloc           */
-				Mat3CpyMat4(mat,ob->obmat);
-				obloc[0] = ob->obmat[3][0];
-				obloc[1] = ob->obmat[3][1];
-				obloc[2] = ob->obmat[3][2];
-
+				
+				
+				if(ob->parent==NULL && ob->ipo==NULL) {	// static
+					if(ob->sumohandle==NULL) cache_object_vertices(ob);
+					vcache= ob->sumohandle;
+				}
+				else {
+					/*Find out where the object is at this time*/
+					cur_frame = G.scene->r.cfra;
+					G.scene->r.cfra = (short)cur_time;
+					where_is_object_time(ob, cur_time);
+					G.scene->r.cfra = cur_frame;
+					
+					/*Pass the values from ob->obmat to mat*/
+					/*and the location values to obloc           */
+					Mat3CpyMat4(mat,ob->obmat);
+					obloc[0] = ob->obmat[3][0];
+					obloc[1] = ob->obmat[3][1];
+					obloc[2] = ob->obmat[3][2];
+				}
+				
 				while (a--) {
 
-					/* Calculate the global co-ordinates of the vertices*/
-					v1= (def_mesh->mvert+(mface->v1))->co;
-					v2= (def_mesh->mvert+(mface->v2))->co;
-					v3= (def_mesh->mvert+(mface->v3))->co;
-					v4= (def_mesh->mvert+(mface->v4))->co;
-
-					VECCOPY(nv1, v1);
-					VECCOPY(nv2, v2);
-					VECCOPY(nv3, v3);
-					VECCOPY(nv4, v4);
-
-					/*Apply the objects deformation matrix*/
-					Mat3MulVecfl(mat, nv1);
-					Mat3MulVecfl(mat, nv2);
-					Mat3MulVecfl(mat, nv3);
-					Mat3MulVecfl(mat, nv4);
-
-					VecAddf(nv1, nv1, obloc);
-					VecAddf(nv2, nv2, obloc);
-					VecAddf(nv3, nv3, obloc);
-					VecAddf(nv4, nv4, obloc);
-
-					deflected_now = 0;
-
-					t = - 1;
-					t = linetriangle(opco, npco, nv1, nv2, nv3);
-					if ((t > 0)&&(t < min_t)) {
-					    deflected = 1;
-                    	deflected_now = 1;
+					if(vcache) {
+						v1= vcache+ 3*(mface->v1);
+						VECCOPY(nv1, v1);
+						v1= vcache+ 3*(mface->v2);
+						VECCOPY(nv2, v1);
+						v1= vcache+ 3*(mface->v3);
+						VECCOPY(nv3, v1);
+						v1= vcache+ 3*(mface->v4);
+						VECCOPY(nv4, v1);
 					}
-					else if (mface->v4) {
-						t = linetriangle(opco, npco, nv1, nv3, nv4);
-						if ((t > 0)&&(t < min_t)) {
-						    deflected = 1;
-							deflected_now = 2;
+					else {
+						/* Calculate the global co-ordinates of the vertices*/
+						v1= (def_mesh->mvert+(mface->v1))->co;
+						v2= (def_mesh->mvert+(mface->v2))->co;
+						v3= (def_mesh->mvert+(mface->v3))->co;
+						v4= (def_mesh->mvert+(mface->v4))->co;
+	
+						VECCOPY(nv1, v1);
+						VECCOPY(nv2, v2);
+						VECCOPY(nv3, v3);
+						VECCOPY(nv4, v4);
+	
+						/*Apply the objects deformation matrix*/
+						Mat3MulVecfl(mat, nv1);
+						Mat3MulVecfl(mat, nv2);
+						Mat3MulVecfl(mat, nv3);
+						Mat3MulVecfl(mat, nv4);
+	
+						VECADD(nv1, nv1, obloc);
+						VECADD(nv2, nv2, obloc);
+						VECADD(nv3, nv3, obloc);
+						VECADD(nv4, nv4, obloc);
+					}
+					
+					deflected_now = 0;
+					
+					t= 0.5;	// this is labda of line, can use it optimize quad intersection
+					
+					if( linetriangle(opco, npco, nv1, nv2, nv3, &t) ) {
+						if (t < min_t) {
+							deflected = 1;
+							deflected_now = 1;
+						}
+					}
+					else if (mface->v4 && (t>=0.0 && t<=1.0)) {
+						if( linetriangle(opco, npco, nv1, nv3, nv4, &t) ) {
+							if (t < min_t) {
+								deflected = 1;
+								deflected_now = 2;
+							}
 	  					}
 					}
-					if ((deflected_now > 0)&&(t < min_t)) {
+					
+					if ((deflected_now > 0) && (t < min_t)) {
                     	min_t = t;
                     	ds_object = d_object;
 						ds_face = d_face;
@@ -629,14 +681,14 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 	/* Now for the second part of the deflection code - work out the new speed */
 	/* and position of the particle if a collision occurred */
 	if (deflected) {
-    	VecSubf(edge1, dv1, dv2);
-		VecSubf(edge2, dv3, dv2);
+    	VECSUB(edge1, dv1, dv2);
+		VECSUB(edge2, dv3, dv2);
 		Crossf(d_nvect, edge2, edge1);
 		n_mag = Normalise(d_nvect);
-		dk_plane = Inpf(d_nvect, nv1);
-		dk_point1 = Inpf(d_nvect,opco);
+		dk_plane = INPR(d_nvect, nv1);
+		dk_point1 = INPR(d_nvect,opco);
 
-		VecSubf(d_intersect_vect, npco, opco);
+		VECSUB(d_intersect_vect, npco, opco);
 
 		d_intersect_co[0] = opco[0] + (min_t * (npco[0] - opco[0]));
 		d_intersect_co[1] = opco[1] + (min_t * (npco[1] - opco[1]));
@@ -648,7 +700,7 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 		mag_iv = Normalise(d_intersect_vect);
 		VECCOPY(npco, d_intersect_co);
 		
-		VecSubf(vect_to_int, opco, d_intersect_co);
+		VECSUB(vect_to_int, opco, d_intersect_co);
 		first_dist = Normalise(vect_to_int);
 
 		/* Work out the lengths of time before and after collision*/
@@ -685,7 +737,7 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 
 		damping = damping + ((1 - damping) * (BLI_drand()*rdamp_val));
 		damping = damping * damping;
-        ref_plane_mag = Inpf(refl_vel,d_nvect);
+        ref_plane_mag = INPR(refl_vel,d_nvect);
 
 		if (damping > 0.999) damping = 0.999;
 
@@ -709,7 +761,7 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 			/* Increment same_face */
 			*same_face = *same_face + 1;
 			if ((*same_face > 3) && (def_depth > 3)) {
-            	force_mag_norm = Inpf(forcec, d_nvect);
+            	force_mag_norm = INPR(forcec, d_nvect);
             	forcec[0] = forcec[0] - (d_nvect[0] * force_mag_norm);
                 forcec[1] = forcec[1] - (d_nvect[1] * force_mag_norm);
                 forcec[2] = forcec[2] - (d_nvect[2] * force_mag_norm);
@@ -746,7 +798,7 @@ static int get_deflection(float opco[3], float npco[3], float opno[3],
 		/* But only do this as a last resort, if we've got to the end of the */
 		/* number of collisions allowed */
 		if (def_depth==9) {
-			k_point3 = Inpf(d_nvect,npco);
+			k_point3 = INPR(d_nvect,npco);
 			if (((dk_plane > k_point3) && (dk_plane < dk_point1))||((dk_plane < k_point3) && (dk_plane > dk_point1))) {
 
 				/* Yup, the pesky particle may have fallen through a hole!!! */
@@ -879,7 +931,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 
 		/* speed: texture */
 		if(mtex && paf->texfac!=0.0) {
-			particle_tex(mtex, paf, opa->co, opa->no);
+			particle_tex(mtex, paf, pa->co, pa->no);
 		}
 		if(damp!=1.0) {
 			pa->no[0]*= damp;
@@ -1069,6 +1121,7 @@ void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
 
 void build_particle_system(Object *ob)
 {
+	Base *base;
 	Object *par;
 	PartEff *paf;
 	Particle *pa;
@@ -1102,6 +1155,11 @@ void build_particle_system(Object *ob)
 	if(paf->keys) MEM_freeN(paf->keys);
 	paf->keys= NULL;
 	new_particle(paf);
+
+	/* reset deflector cache, sumohandle is free, but its still sorta abuse... (ton) */
+	for(base= G.scene->base.first; base; base= base->next) {
+		base->object->sumohandle= NULL;
+	}
 
 	cfraont= G.scene->r.cfra;
 	cfralast= -1000;
@@ -1241,7 +1299,7 @@ void build_particle_system(Object *ob)
 			Mat4MulVecfl(prevobmat, vec);
 			
 			/* first start speed: object */
-			VecSubf(pa->no, pa->co, vec);
+			VECSUB(pa->no, pa->co, vec);
 			VecMulf(pa->no, paf->obfac);
 			
 			/* calculate the correct inter-frame */	
@@ -1261,7 +1319,7 @@ void build_particle_system(Object *ob)
 		
 			Normalise(vec);
 			VecMulf(vec, paf->normfac);
-			VecAddf(pa->no, pa->no, vec);
+			VECADD(pa->no, pa->no, vec);
 		}
 		pa->lifetime= paf->lifetime;
 		if(paf->randlife!=0.0) {
@@ -1296,6 +1354,14 @@ void build_particle_system(Object *ob)
 		/* do not do ob->ipo: keep insertkey */
 		do_ob_key(par);
 		par= par->parent;
+	}
+
+	/* reset deflector cache */
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(base->object->sumohandle) {
+			MEM_freeN(base->object->sumohandle);
+			base->object->sumohandle= NULL;
+		}
 	}
 
 	/* restore: AFTER popfirst */

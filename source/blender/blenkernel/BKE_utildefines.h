@@ -74,6 +74,11 @@
 #define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
 #define QUATCOPY(v1,v2)         {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2); *(v1+3)= *(v2+3);}
 
+#define VECADD(v1,v2,v3) 	{*(v1)= *(v2) + *(v3); *(v1+1)= *(v2+1) + *(v3+1); *(v1+2)= *(v2+2) + *(v3+2);}
+#define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
+
+#define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
+
 #define INIT_MINMAX(min, max) (min)[0]= (min)[1]= (min)[2]= 1.0e30; (max)[0]= (max)[1]= (max)[2]= -1.0e30;
 
 #define DO_MINMAX(vec, min, max) if( (min)[0]>(vec)[0] ) (min)[0]= (vec)[0]; \

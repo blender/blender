@@ -3176,6 +3176,24 @@ static void drawmball(Object *ob, int dt)
 	}
 }
 
+static void draw_forcefield(Object *ob)
+{
+	float imat[4][4], tmat[4][4];
+	float vec[3]= {0.0, 0.0, 0.0};
+	
+	mygetmatrix(tmat);
+	Mat4Invert(imat, tmat);
+	Normalise(imat[0]);
+	Normalise(imat[1]);
+
+	BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.4);
+	drawcircball(vec, 0.5, imat);
+	BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.65);
+	drawcircball(vec, 1.0, imat);
+	BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.8);
+	drawcircball(vec, 1.5, imat);
+}
+
 static void draw_bb_box(BoundBox *bb)
 {
 	float *vec;
@@ -3763,6 +3781,7 @@ void draw_object(Base *base)
 		break;
 	case OB_EMPTY:
 		drawaxes(1.0);
+		if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 		break;
 	case OB_LAMP:
 		/* does a myloadmatrix */
