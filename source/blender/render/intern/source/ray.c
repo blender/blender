@@ -55,6 +55,9 @@
 #define DDA_MIRROR 1
 #define DDA_SHADOW_TRA 2
 
+#define RAY_TRA		1
+#define RAY_TRAFLIP	2
+
 #define DEPTH_SHADOW_TRA  10
 /* from float.h */
 #define FLT_EPSILON 1.19209290e-07F
@@ -1324,6 +1327,7 @@ static int d3dda(Isect *is)
 static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr= is->vlr;
+	float l;
 	int osatex= 0, flip= 0;
 	
 	/* set up view vector */
@@ -1341,16 +1345,14 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shi->matren= shi->mat->ren;
 	
 	/* face normal, check for flip */
-	if((shi->matren->mode & (MA_RAYTRANSP|MA_ZTRA))==0) {
-		float l= vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2];
-		if(l<0.0) {	
-			flip= 1;
-			vlr->n[0]= -vlr->n[0];
-			vlr->n[1]= -vlr->n[1];
-			vlr->n[2]= -vlr->n[2];
-			// only flip lower 4 bits
-			vlr->puno= vlr->puno ^ 15;
-		}
+	l= vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2];
+	if(l<0.0) {	
+		flip= 1;
+		vlr->n[0]= -vlr->n[0];
+		vlr->n[1]= -vlr->n[1];
+		vlr->n[2]= -vlr->n[2];
+		// only flip lower 4 bits
+		vlr->puno= vlr->puno ^ 15;
 	}
 	
 	// Osa structs we leave unchanged now
@@ -1472,7 +1474,7 @@ static void color_combine(float *result, float fac1, float fac2, float *col1, fl
 #endif
 
 /* the main recursive tracer itself */
-static void traceray(short depth, float *start, float *vec, float *col, VlakRen *vlr, int mask, int osatex)
+static void traceray(short depth, float *start, float *vec, float *col, VlakRen *vlr, int mask, int osatex, int traflag)
 {
 	ShadeInput shi;
 	ShadeResult shr;
@@ -1501,11 +1503,22 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 				float f, f1, refract[3], tracol[3];
 				
 				if(shi.matren->mode & MA_RAYTRANSP) {
-					refraction(refract, shi.vn, shi.view, shi.matren->ang);
-					traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask, osatex);
+					/* odd depths: use normal facing viewer, otherwise flip */
+					if(traflag & RAY_TRAFLIP) {
+						float norm[3];
+						norm[0]= - shi.vn[0];
+						norm[1]= - shi.vn[1];
+						norm[2]= - shi.vn[2];
+						refraction(refract, norm, shi.view, shi.matren->ang);
+					}
+					else {
+						refraction(refract, shi.vn, shi.view, shi.matren->ang);
+					}
+					traflag |= RAY_TRA;
+					traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask, osatex, traflag ^ RAY_TRAFLIP);
 				}
 				else
-					traceray(depth-1, shi.co, shi.view, tracol, shi.vlr, shi.mask, osatex);
+					traceray(depth-1, shi.co, shi.view, tracol, shi.vlr, shi.mask, osatex, 0);
 				
 				f= shr.alpha; f1= 1.0-f;
 				shr.diff[0]= f*shr.diff[0] + f1*tracol[0];
@@ -1528,7 +1541,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 			if(f!=0.0) {
 			
 				reflection(ref, shi.vn, shi.view, NULL);			
-				traceray(depth-1, shi.co, ref, col, shi.vlr, shi.mask, osatex);
+				traceray(depth-1, shi.co, ref, col, shi.vlr, shi.mask, osatex, 0);
 			
 				f1= 1.0-f;
 
@@ -1710,10 +1723,10 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		
 		if(shi->matren->mode & MA_RAYTRANSP) {
 			refraction(refract, shi->vn, shi->view, shi->matren->ang);
-			traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0);
+			traceray(shi->matren->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0, RAY_TRA|RAY_TRAFLIP);
 		}
 		else
-			traceray(shi->matren->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, shi->mask, 0);
+			traceray(shi->matren->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, shi->mask, 0, 0);
 		
 		f= shr->alpha; f1= 1.0-f;
 		shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
@@ -1735,7 +1748,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			else
 				reflection(vec, shi->vn, shi->view, NULL);
 	
-			traceray(shi->matren->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask, shi->osatex);
+			traceray(shi->matren->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask, shi->osatex, 0);
 			
 			f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
 			shr->diff[0]= f*mircol[0] + f1*shr->diff[0];

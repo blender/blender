@@ -2804,7 +2804,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		}
 		
 		if(R.r.mode & R_RAYTRACE) {
-			if(shi.matren->ray_mirror!=0.0 || (shi.mat->mode & MA_RAYTRANSP && shr.alpha!=1.0)) {
+			if(shi.matren->ray_mirror!=0.0 || ((shi.mat->mode & MA_RAYTRANSP) && shr.alpha!=1.0)) {
 				ray_trace(&shi, &shr);
 			}
 		}

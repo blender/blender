@@ -159,7 +159,6 @@ static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale);
 /* ------------------------------------------------------------------------- */
 
 #define UVTOINDEX(u,v) (startvlak + (u) * sizev + (v))
-#define GETNORMAL(face,normal) CalcNormFloat4(face->v1->co, face->v2->co, face->v3->co, face->v4->co, normal)
 /*
 
 NOTE THAT U/V COORDINATES ARE SOMETIMES SWAPPED !!
@@ -1505,7 +1504,7 @@ static void init_render_mesh(Object *ob)
 
 							vlr->mat= ma;
 							vlr->flag= flag;
-							if((me->flag & ME_NOPUNOFLIP) || (ma->mode & MA_RAYTRANSP)) {
+							if((me->flag & ME_NOPUNOFLIP) ) {
 								vlr->flag |= R_NOPUNOFLIP;
 							}
 							vlr->ec= edcode;
@@ -1993,25 +1992,26 @@ static void init_render_surf(Object *ob)
 					v3= RE_findOrAddVert(p3);
 					v4= RE_findOrAddVert(p4);
 
-					flen= CalcNormFloat4(v4->co, v3->co, v2->co, v1->co, n1);
-/* flen can be 0 if there are double nurbs control vertices 
+/* normal len can be 0 if there are double nurbs control vertices 
 	so zero area faces can be generated
 	->> there is at the moment no proper way to fix this except
 	generating empty render faces */
 
-//					if(flen!=0.0) {
-						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->ob= ob;
-						vlr->v1= v4; vlr->v2= v3; vlr->v3= v2; vlr->v4= v1;		// note, displists for nurbs are again opposite, tsk tsk
-						VECCOPY(vlr->n, n1);
-						vlr->lay= ob->lay;
-						vlr->mat= matar[ dl->col];
-						vlr->ec= ME_V1V2+ME_V2V3;
-						vlr->flag= dl->rt;
-						if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
-							vlr->flag |= R_NOPUNOFLIP;
-						}
-//					}
+
+					vlr= RE_findOrAddVlak(R.totvlak++);
+					vlr->ob= ob;
+					vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
+					
+					flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+					VECCOPY(vlr->n, n1);
+					
+					vlr->lay= ob->lay;
+					vlr->mat= matar[ dl->col];
+					vlr->ec= ME_V1V2+ME_V2V3;
+					vlr->flag= dl->rt;
+					if( (cu->flag & CU_NOPUNOFLIP) ) {
+						vlr->flag |= R_NOPUNOFLIP;
+					}
 
 					VecAddf(v1->n, v1->n, n1);
 					VecAddf(v2->n, v2->n, n1);
@@ -2029,13 +2029,11 @@ static void init_render_surf(Object *ob)
 				{
 					/* optimize! :*/
 					vlr= RE_findOrAddVlak(UVTOINDEX(sizeu - 1, v));
-					GETNORMAL(vlr, n1);
 					vlr1= RE_findOrAddVlak(UVTOINDEX(0, v));
-					GETNORMAL(vlr1, n2);
-					VecAddf(vlr1->v1->n, vlr1->v1->n, n1);
-					VecAddf(vlr1->v2->n, vlr1->v2->n, n1);
-					VecAddf(vlr->v3->n, vlr->v3->n, n2);
-					VecAddf(vlr->v4->n, vlr->v4->n, n2);
+					VecAddf(vlr1->v1->n, vlr1->v1->n, vlr->n);
+					VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
+					VecAddf(vlr->v3->n, vlr->v3->n, vlr1->n);
+					VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
 				}
 			}
 			if (dl->flag & DL_CYCLIC_V) {
@@ -2044,13 +2042,11 @@ static void init_render_surf(Object *ob)
 				{
 					/* optimize! :*/
 					vlr= RE_findOrAddVlak(UVTOINDEX(u, 0));
-					GETNORMAL(vlr, n1);
 					vlr1= RE_findOrAddVlak(UVTOINDEX(u, sizev-1));
-					GETNORMAL(vlr1, n2);
-					VecAddf(vlr1->v2->n, vlr1->v2->n, n1);
-					VecAddf(vlr1->v3->n, vlr1->v3->n, n1);
-					VecAddf(vlr->v1->n, vlr->v1->n, n2);
-					VecAddf(vlr->v4->n, vlr->v4->n, n2);
+					VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
+					VecAddf(vlr1->v3->n, vlr1->v3->n, vlr->n);
+					VecAddf(vlr->v1->n, vlr->v1->n, vlr1->n);
+					VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
 				}
 			}
 			/* last vertex is an extra case: 
@@ -2073,16 +2069,12 @@ static void init_render_surf(Object *ob)
 			if ((dl->flag & DL_CYCLIC_U) && (dl->flag & DL_CYCLIC_V))
 			{
 				vlr= RE_findOrAddVlak(UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
-				GETNORMAL(vlr, n1);
 				vlr1= RE_findOrAddVlak(UVTOINDEX(0,0));  /* (0,0) */
-				GETNORMAL(vlr1, vn);
-				VecAddf(vn, vn, n1);
+				VecAddf(vn, vlr->n, vlr1->n);
 				vlr2= RE_findOrAddVlak(UVTOINDEX(0, sizev-1)); /* (0,n) */
-				GETNORMAL(vlr2, n1);
-				VecAddf(vn, vn, n1);
+				VecAddf(vn, vn, vlr2->n);
 				vlr3= RE_findOrAddVlak(UVTOINDEX(sizeu-1, 0)); /* (m,0) */
-				GETNORMAL(vlr3, n1);
-				VecAddf(vn, vn, n1);
+				VecAddf(vn, vn, vlr3->n);
 				VECCOPY(vlr->v3->n, vn);
 				VECCOPY(vlr1->v1->n, vn);
 				VECCOPY(vlr2->v2->n, vn);
@@ -2141,7 +2133,7 @@ static void init_render_surf(Object *ob)
 						vlr->mat= matar[ dl->col];
 						vlr->ec= ME_V1V2+ME_V2V3;
 						vlr->flag= dl->rt;
-						if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
+						if( (cu->flag & CU_NOPUNOFLIP) ) {
 							vlr->flag |= R_NOPUNOFLIP;
 						}
 					}
@@ -2500,7 +2492,7 @@ static void init_render_curve(Object *ob)
 				
 				vlr->mat= matar[ dl->col ];
 				vlr->flag= 0;
-				if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
+				if( (cu->flag & CU_NOPUNOFLIP) ) {
 					vlr->flag |= R_NOPUNOFLIP;
 				}
 				vlr->ec= 0;
@@ -2969,8 +2961,11 @@ void RE_rotateBlenderScene(void)
 		ob->flag &= ~OB_DONE;
 		ob= ob->id.next;
 	}
-
-	lay= G.scene->lay;
+	
+	/* in localview, lamps are using normal layers, objects only local bits */
+	if(G.scene->lay & 0xFF000000) lay= G.scene->lay & 0xFF000000;
+	else lay= G.scene->lay;
+	
 	sce= G.scene;
 
 	base= G.scene->base.first;

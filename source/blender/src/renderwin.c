@@ -967,8 +967,12 @@ void BIF_do_render(int anim)
 	/* if start render in 3d win, use layer from window (e.g also local view) */
 	if(curarea && curarea->spacetype==SPACE_VIEW3D) {
 		int lay= G.scene->lay;
-		G.scene->lay= G.vd->lay;
+		if(G.vd->lay & 0xFF000000)	// localview
+			G.scene->lay |= G.vd->lay;
+		else G.scene->lay= G.vd->lay;
+		
 		do_render(NULL, anim, 0);
+		
 		G.scene->lay= lay;
 	}
 	else do_render(NULL, anim, 0);
