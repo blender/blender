@@ -82,20 +82,20 @@ static PyObject *Curve_getPathLen( BPy_Curve * self );
 static PyObject *Curve_setPathLen( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getTotcol( BPy_Curve * self );
 static PyObject *Curve_setTotcol( BPy_Curve * self, PyObject * args );
-static PyObject *Curve_getMode( BPy_Curve * self );
-static PyObject *Curve_setMode( BPy_Curve * self, PyObject * args );
-static PyObject *Curve_getBevresol( BPy_Curve * self );
-static PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args );
-static PyObject *Curve_getResolu( BPy_Curve * self );
-static PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args );
-static PyObject *Curve_getResolv( BPy_Curve * self );
-static PyObject *Curve_setResolv( BPy_Curve * self, PyObject * args );
-static PyObject *Curve_getWidth( BPy_Curve * self );
-static PyObject *Curve_setWidth( BPy_Curve * self, PyObject * args );
-static PyObject *Curve_getExt1( BPy_Curve * self );
-static PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args );
-static PyObject *Curve_getExt2( BPy_Curve * self );
-static PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getMode( BPy_Curve * self );
+PyObject *Curve_setMode( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getBevresol( BPy_Curve * self );
+PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getResolu( BPy_Curve * self );
+PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getResolv( BPy_Curve * self );
+PyObject *Curve_setResolv( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getWidth( BPy_Curve * self );
+PyObject *Curve_setWidth( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getExt1( BPy_Curve * self );
+PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getExt2( BPy_Curve * self );
+PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getLoc( BPy_Curve * self );
@@ -520,7 +520,7 @@ static PyObject *Curve_setTotcol( BPy_Curve * self, PyObject * args )
 }
 
 
-static PyObject *Curve_getMode( BPy_Curve * self )
+PyObject *Curve_getMode( BPy_Curve * self )
 {
 	PyObject *attr = PyInt_FromLong( ( long ) self->curve->flag );
 
@@ -532,7 +532,7 @@ static PyObject *Curve_getMode( BPy_Curve * self )
 }
 
 
-static PyObject *Curve_setMode( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setMode( BPy_Curve * self, PyObject * args )
 {
 
 	if( !PyArg_ParseTuple( args, "i", &( self->curve->flag ) ) )
@@ -544,7 +544,7 @@ static PyObject *Curve_setMode( BPy_Curve * self, PyObject * args )
 }
 
 
-static PyObject *Curve_getBevresol( BPy_Curve * self )
+PyObject *Curve_getBevresol( BPy_Curve * self )
 {
 	PyObject *attr = PyInt_FromLong( ( long ) self->curve->bevresol );
 
@@ -556,19 +556,24 @@ static PyObject *Curve_getBevresol( BPy_Curve * self )
 }
 
 
-static PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args )
 {
+	short value;
 
-	if( !PyArg_ParseTuple( args, "i", &( self->curve->bevresol ) ) )
+	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
+			"expected integer argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	if(value > 10 || value < 0)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 10 and 0" ) );
+	self->curve->bevresol = value;
+
+	return EXPP_incr_ret( Py_None );
 }
 
 
-static PyObject *Curve_getResolu( BPy_Curve * self )
+PyObject *Curve_getResolu( BPy_Curve * self )
 {
 	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolu );
 
@@ -580,20 +585,25 @@ static PyObject *Curve_getResolu( BPy_Curve * self )
 }
 
 
-static PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args )
 {
+	short value;
 
-	if( !PyArg_ParseTuple( args, "i", &( self->curve->resolu ) ) )
+	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
+			"expected integer argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	if(value > 128 || value < 1)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 128 and 1" ) );
+	self->curve->resolu = value;
+
+	return EXPP_incr_ret( Py_None );
 }
 
 
 
-static PyObject *Curve_getResolv( BPy_Curve * self )
+PyObject *Curve_getResolv( BPy_Curve * self )
 {
 	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolv );
 
@@ -605,20 +615,25 @@ static PyObject *Curve_getResolv( BPy_Curve * self )
 }
 
 
-static PyObject *Curve_setResolv( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setResolv( BPy_Curve * self, PyObject * args )
 {
+	short value;
 
-	if( !PyArg_ParseTuple( args, "i", &( self->curve->resolv ) ) )
+	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
+			"expected integer argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	if(value > 128 || value < 1)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 128 and 1" ) );
+	self->curve->resolv = value;
+
+	return EXPP_incr_ret( Py_None );
 }
 
 
 
-static PyObject *Curve_getWidth( BPy_Curve * self )
+PyObject *Curve_getWidth( BPy_Curve * self )
 {
 	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->width );
 
@@ -630,19 +645,24 @@ static PyObject *Curve_getWidth( BPy_Curve * self )
 }
 
 
-static PyObject *Curve_setWidth( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setWidth( BPy_Curve * self, PyObject * args )
 {
+	float value;
 
-	if( !PyArg_ParseTuple( args, "f", &( self->curve->width ) ) )
+	if( !PyArg_ParseTuple( args, "f", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected float argument" ) );
+			"expected float argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	if(value > 2.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 2.0 and 0.0" ) );
+	self->curve->width = value;
+
+	return EXPP_incr_ret( Py_None );
 }
 
 
-static PyObject *Curve_getExt1( BPy_Curve * self )
+PyObject *Curve_getExt1( BPy_Curve * self )
 {
 	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext1 );
 
@@ -654,20 +674,25 @@ static PyObject *Curve_getExt1( BPy_Curve * self )
 }
 
 
-static PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args )
 {
+	float value;
 
-	if( !PyArg_ParseTuple( args, "f", &( self->curve->ext1 ) ) )
+	if( !PyArg_ParseTuple( args, "f", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected float argument" ) );
+			"expected float argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	if(value > 5.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 5.0 and 0.0" ) );
+	self->curve->ext1 = value;
+
+	return EXPP_incr_ret( Py_None );
 }
 
 
 
-static PyObject *Curve_getExt2( BPy_Curve * self )
+PyObject *Curve_getExt2( BPy_Curve * self )
 {
 	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext2 );
 
@@ -679,15 +704,20 @@ static PyObject *Curve_getExt2( BPy_Curve * self )
 }
 
 
-static PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args )
+PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args )
 {
+	float value;
 
-	if( !PyArg_ParseTuple( args, "f", &( self->curve->ext2 ) ) )
+	if( !PyArg_ParseTuple( args, "f", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected float argument" ) );
+			"expected float argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	if(value > 2.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 2.0 and 0.0" ) );
+	self->curve->ext2 = value;
+
+	return EXPP_incr_ret( Py_None );
 }
 
 

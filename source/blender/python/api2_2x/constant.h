@@ -38,6 +38,8 @@
 
 #include "gen_utils.h"
 
+#define BPy_Constant_Check(v) ((v)->ob_type==&constant_Type)
+
 /* Objects of <type 'constant'> are used inside many other Blender Python
  * objects, so this header file must contain only 'public' declarations */
 

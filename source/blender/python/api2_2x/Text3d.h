@@ -35,7 +35,6 @@
 
 #include <Python.h>
 #include <stdio.h>
-
 #include <BLI_arithb.h>
 #include <BLI_blenlib.h>
 #include <BKE_main.h>
@@ -43,27 +42,22 @@
 #include <BKE_object.h>
 #include <BKE_library.h>
 #include <BKE_curve.h>
-
 #include <DNA_curve_types.h>
-
 #include"gen_utils.h"
-
-extern PyTypeObject Text3d_Type;
-
-int Text3d_CheckPyObject( PyObject * py_obj );
-PyObject *Text3d_Init( void );
-struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
-
 
 #define BPy_Text3d_Check(v) ((v)->ob_type==&Text3d_Type)
 typedef Curve Text3d; 
+
+//prototypes
+int Text3d_CheckPyObject( PyObject * py_obj );
+PyObject *Text3d_Init( void );
+struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
 
 /* Python BPy_Text3d structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
 	Text3d * curve;
 } BPy_Text3d;
-
 
 #endif				/* EXPP_TEXT3D_H */
 

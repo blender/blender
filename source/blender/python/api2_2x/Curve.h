@@ -57,4 +57,21 @@ PyObject *Curve_CreatePyObject( struct Curve * curve );
 int Curve_CheckPyObject( PyObject * py_obj );
 struct Curve *Curve_FromPyObject( PyObject * py_obj );
 
+PyObject *Curve_getName( BPy_Curve * self );
+PyObject *Curve_setName( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getMode( BPy_Curve * self );
+PyObject *Curve_setMode( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getBevresol( BPy_Curve * self );
+PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getResolu( BPy_Curve * self );
+PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getResolv( BPy_Curve * self );
+PyObject *Curve_setResolv( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getExt1( BPy_Curve * self );
+PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getExt2( BPy_Curve * self );
+PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args );
+PyObject *Curve_getWidth( BPy_Curve * self );
+PyObject *Curve_setWidth( BPy_Curve * self, PyObject * args );
+
 #endif				/* EXPP_CURVE_H */
