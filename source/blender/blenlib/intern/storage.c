@@ -36,12 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>	
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
-
 #include <windows.h>
 #include "BLI_winstuff.h"
 #include <sys/types.h>
@@ -65,7 +60,7 @@
 #include <sys/mount.h>
 #endif
 
-#if defined(linux) || defined(__CYGWIN32__)
+#if defined(linux) || defined(__CYGWIN32__) || defined(__hpux)
 #include <sys/vfs.h>
 #endif
 
