@@ -943,7 +943,16 @@ if user_options_dict['BUILD_BLENDER_DYNAMIC'] == 1:
     dy_blender.Append (LIBPATH=user_options_dict['OPENGL_LIBPATH'])
     dy_blender.Append (CPPPATH=user_options_dict['OPENGL_INCLUDE'])
     if user_options_dict['USE_BUILDINFO'] == 1:
-        dy_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
+        if sys.platform=='win32':
+            build_info_file = open("source/creator/winbuildinfo.h", 'w')
+            build_info_file.write("char *build_date=\"%s\";\n"%build_date)
+            build_info_file.write("char *build_time=\"%s\";\n"%build_time)
+            build_info_file.write("char *build_platform=\"win32\";\n")
+            build_info_file.write("char *build_type=\"dynamic\";\n")
+            build_info_file.close()
+            dy_blender.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
+        else:
+            dy_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
                                          'BUILD_DATE=\'"%s"\''%(build_date),
                                          'BUILD_TYPE=\'"dynamic"\'',
                                          'NAN_BUILDINFO',
@@ -962,7 +971,16 @@ if user_options_dict['BUILD_BLENDER_STATIC'] == 1:
     # libraries need to be at the end of the command.
     st_blender.Replace(LINKCOM="$LINK -o $TARGET $SOURCES $_LIBDIRFLAGS $_LIBFLAGS $LINKFLAGS")
     if user_options_dict['USE_BUILDINFO'] == 1:
-        st_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
+        if sys.platform=='win32':
+            build_info_file = open("source/creator/winbuildinfo.h", 'w')
+            build_info_file.write("char *build_date=\"%s\";\n"%build_date)
+            build_info_file.write("char *build_time=\"%s\";\n"%build_time)
+            build_info_file.write("char *build_platform=\"win32\";\n")
+            build_info_file.write("char *build_type=\"static\";\n")
+            build_info_file.close()
+            st_blender.Append (CPPDEFINES = ['NAN_BUILDINFO', 'BUILD_DATE'])
+        else:
+            st_blender.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
                                          'BUILD_DATE=\'"%s"\''%(build_date),
                                          'BUILD_TYPE=\'"static"\'',
                                          'NAN_BUILDINFO',
