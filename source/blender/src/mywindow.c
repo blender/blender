@@ -438,7 +438,9 @@ void bwin_ortho(int winid, float x1, float x2, float y1, float y2, float n, floa
 
 void bwin_ortho2(int win, float x1, float x2, float y1, float y2)
 {
-	bwin_ortho(win, x1, x2, y1, y2, -1, 1);
+	// in blender it's always called with -0.5... according to opengl
+	// manual it should 0.375 for correctness. added for test
+	bwin_ortho(win, x1+0.125, x2+0.125, y1+0.125, y2+0.125, -1, 1);
 }
 
 void bwin_frustum(int winid, float x1, float x2, float y1, float y2, float n, float f)
