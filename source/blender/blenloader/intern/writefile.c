@@ -1578,9 +1578,6 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
 	char tempname[FILE_MAXDIR+FILE_MAXFILE];
 	int file, fout, write_user_block;
-#ifdef WIN32
-	char tmpdir[FILE_MAXDIR+FILE_MAXFILE];
-#endif
 
 	sprintf(tempname, "%s@", dir);
 
