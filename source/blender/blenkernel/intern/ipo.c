@@ -1,4 +1,4 @@
-/* ipo.c 
+/* ipo.c
  * 
  * $Id$
  *
@@ -55,6 +55,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_action_types.h"
@@ -72,6 +73,7 @@
 #include "BKE_blender.h"
 #include "BKE_ipo.h"
 #include "BKE_constraint.h"
+#include "BKE_mesh.h"
 
 #define SMALL -1.0e-10
 
@@ -88,7 +90,8 @@ int ob_ar[OB_TOTIPO]= {
 	OB_LOC_X, OB_LOC_Y, OB_LOC_Z, OB_DLOC_X, OB_DLOC_Y, OB_DLOC_Z, 
 	OB_ROT_X, OB_ROT_Y, OB_ROT_Z, OB_DROT_X, OB_DROT_Y, OB_DROT_Z, 
 	OB_SIZE_X, OB_SIZE_Y, OB_SIZE_Z, OB_DSIZE_X, OB_DSIZE_Y, OB_DSIZE_Z, 
-	OB_LAY, OB_TIME, OB_EFF_X, OB_EFF_Y, OB_EFF_Z, OB_COL_A
+	OB_LAY, OB_TIME, OB_EFF_X, OB_EFF_Y, OB_EFF_Z, OB_COL_A,
+	OB_PD_FSTR, OB_PD_FFALL, OB_PD_SDAMP, OB_PD_RDAMP, OB_PD_PERM
 };
 
 int ac_ar[AC_TOTIPO]= {
@@ -100,7 +103,7 @@ int ac_ar[AC_TOTIPO]= {
 int ma_ar[MA_TOTIPO]= {
 	MA_COL_R, MA_COL_G, MA_COL_B, 
 	MA_SPEC_R, MA_SPEC_G, MA_SPEC_B, 
-	MA_MIR_R, MA_MIR_G, MA_MIR_B, 
+	MA_MIR_R, MA_MIR_G, MA_MIR_B,
 	MA_REF, MA_ALPHA, MA_EMIT, MA_AMB, 
 	MA_SPEC, MA_HARD, MA_SPTR, MA_ANG, 
 	MA_MODE, MA_HASIZE, 
@@ -205,7 +208,7 @@ Ipo *copy_ipo(Ipo *ipo)
 	ipon= copy_libblock(ipo);
 	
 	duplicatelist(&(ipon->curve), &(ipo->curve));
-	
+
 	icu= ipon->curve.first;
 	while(icu) {
 		icu->bezt= MEM_dupallocN(icu->bezt);
@@ -701,7 +704,7 @@ float eval_icu(IpoCurve *icu, float ipotime)
 				prevbezt+= a;
 				dx= ipotime-prevbezt->vec[1][0];
 				fac= prevbezt->vec[2][0]-prevbezt->vec[1][0];
-				
+
 				if(fac!=0) {
 					fac= (prevbezt->vec[2][1]-prevbezt->vec[1][1])/fac;
 					cvalue= prevbezt->vec[1][1]+fac*dx;
@@ -907,11 +910,10 @@ void *give_mtex_poin(MTex *mtex, int adrcode )
 
 void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 {
-	void *poin= 0;
+	void *poin= NULL;
 	Object *ob;
 	Material *ma;
 	MTex *mtex;
-	Ika *ika= 0;
 	Lamp *la;
 	Sequence *seq;
 	World *wo;
@@ -921,13 +923,10 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 
 	*type= IPO_FLOAT;
 
-
 	if( GS(id->name)==ID_OB) {
 	
 		ob= (Object *)id;
 
-		if(ob->type==OB_IKA) ika= ob->data;
-		
 		switch(icu->adrcode) {
 		case OB_LOC_X:
 			poin= &(ob->loc[0]); break;
@@ -967,24 +966,36 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(ob->dsize[1]); break;
 		case OB_DSIZE_Z:
 			poin= &(ob->dsize[2]); break;
-		
+
 		case OB_LAY:
 			poin= &(ob->lay); *type= IPO_INT_BIT; break;
 			
-		case OB_EFF_X:	/* OB_COL_R */
-			if(ika) poin= &(ika->effg[0]);
-			else poin= &(ob->col[0]);
+		case OB_COL_R:	
+			poin= &(ob->col[0]);
 			break;
-		case OB_EFF_Y:	/* OB_COL_G */
-			if(ika) poin= &(ika->effg[1]);
-			else poin= &(ob->col[1]);
+		case OB_COL_G:
+			poin= &(ob->col[1]);
 			break;
-		case OB_EFF_Z:	/* OB_COL_B */
-			if(ika) poin= &(ika->effg[2]);
-			else poin= &(ob->col[2]);
+		case OB_COL_B:
+			poin= &(ob->col[2]);
 			break;
 		case OB_COL_A:
 			poin= &(ob->col[3]);
+			break;
+		case OB_PD_FSTR:
+			if(ob->pd) poin= &(ob->pd->f_strength);
+			break;
+		case OB_PD_FFALL:
+			if(ob->pd) poin= &(ob->pd->f_power);
+			break;
+		case OB_PD_SDAMP:
+			if(ob->pd) poin= &(ob->pd->pdef_damp);
+			break;
+		case OB_PD_RDAMP:
+			if(ob->pd) poin= &(ob->pd->pdef_rdamp);
+			break;
+		case OB_PD_PERM:
+			if(ob->pd) poin= &(ob->pd->pdef_perm);
 			break;
 		}
 	}
@@ -1808,6 +1819,11 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 				case OB_SIZE_X:
 				case OB_SIZE_Y:
 				case OB_SIZE_Z:
+				case OB_PD_FSTR:
+				case OB_PD_FFALL:
+				case OB_PD_SDAMP:
+				case OB_PD_RDAMP:
+				case OB_PD_PERM:
 					bezt= icu->bezt;
 					if(bezt) {
 						a= icu->totvert;

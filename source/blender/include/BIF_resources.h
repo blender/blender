@@ -26,7 +26,7 @@
  * The Original Code is: all of this file.
  *
  * Contributor(s): none yet.
- *
+ * 
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
@@ -60,7 +60,7 @@ typedef enum {
 	ICON_ORTHO,
 	ICON_PERSP,
 	ICON_CAMERA,
-	ICON_BLANK1,
+	ICON_EFFECTS,
 	ICON_BBOX,
 	ICON_WIRE,
 	ICON_SOLID,
@@ -89,7 +89,7 @@ typedef enum {
 	ICON_POSE_HLT,
 	ICON_BORDERMOVE,
 	ICON_MAYBE_ITS_A_LASSO,
-	ICON_BLANK6,
+	ICON_BLANK1,
 	ICON_ROTATE,
 	ICON_CURSOR,
 	ICON_ROTATECOLLECTION,
@@ -101,6 +101,8 @@ typedef enum {
 	ICON_BLANK11,
 	ICON_BLANK12,
 	
+
+
 	ICON_DOTSUP,
 	ICON_DOTSDOWN,
 	ICON_MENU_PANEL,

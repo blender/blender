@@ -74,12 +74,12 @@ typedef struct Mesh {
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	float *orco;
-	
+
 	struct OcInfo *oc;		/* not written in file */
 	void *sumohandle;
-    
+
 	int totvert, totface;
-	
+
 	int texflag;
 	float loc[3];
 	float size[3];

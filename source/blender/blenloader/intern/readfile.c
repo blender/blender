@@ -2204,7 +2204,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		paf= paf->next;
 	}
 
-	link_list(fd, &ob->network);
+	ob->pd= newdataadr(fd, ob->pd);
 
 	link_list(fd, &ob->prop);
 	prop= ob->prop.first;

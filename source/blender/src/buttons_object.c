@@ -971,9 +971,7 @@ void object_panel_draw(Object *ob)
 void do_object_panels(unsigned short event)
 {
 	Object *ob;
-	Base *base;
-	Effect *eff, *effn;
-	int type;
+	Effect *eff;
 	
 	ob= OBACT;
 
@@ -981,116 +979,6 @@ void do_object_panels(unsigned short event)
 		
 	case B_RECALCPATH:
 		calc_curvepath(OBACT);
-		allqueue(REDRAWVIEW3D, 0);
-		break;
-	case B_AUTOTIMEOFS:
-		auto_timeoffs();
-		break;
-	case B_FRAMEMAP:
-		G.scene->r.framelen= G.scene->r.framapto;
-		G.scene->r.framelen/= G.scene->r.images;
-		break;
-	case B_NEWEFFECT:
-		if(ob) {
-			if (BLI_countlist(&ob->effect)==MAX_EFFECT)
-				error("Unable to add: effect limit reached");
-			else
-				copy_act_effect(ob);
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_DELEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			effn= eff->next;
-			if(eff->flag & SELECT) {
-				BLI_remlink(&ob->effect, eff);
-				free_effect(eff);
-				break;
-			}
-			eff= effn;
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		break;
-	case B_NEXTEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->next) {
-					eff->flag &= ~SELECT;
-					eff->next->flag |= SELECT;
-				}
-				break;
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_PREVEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->prev) {
-					eff->flag &= ~SELECT;
-					eff->prev->flag |= SELECT;
-				}
-				break;
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_CHANGEEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->type!=eff->buttype) {
-					BLI_remlink(&ob->effect, eff);
-					type= eff->buttype;
-					free_effect(eff);
-					eff= add_effect(type);
-					BLI_addtail(&ob->effect, eff);
-				}
-				break;
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		break;
-	case B_CALCEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->type==EFF_PARTICLE) build_particle_system(ob);
-				else if(eff->type==EFF_WAVE) object_wave(ob);
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_RECALCAL:
-		base= FIRSTBASE;
-		while(base) {
-			if(base->lay & G.vd->lay) {
-				ob= base->object;
-				eff= ob->effect.first;
-				while(eff) {
-					if(eff->flag & SELECT) {
-						if(eff->type==EFF_PARTICLE) build_particle_system(ob);
-					}
-					eff= eff->next;
-				}
-			}
-			base= base->next;
-		}
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_PRINTSPEED:
@@ -1145,16 +1033,257 @@ void do_object_panels(unsigned short event)
 
 }
 
-void object_panel_effects(Object *ob)
+
+static void object_panel_anim(Object *ob)
+{
+	uiBlock *block;
+	char str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Anim settings", "Object", 0, 0, 318, 204)==0) return;
+	
+	uiBlockBeginAlign(block);
+	uiDefButC(block, ROW,REDRAWVIEW3D,"TrackX",	27,190,58,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"-Z",		177,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+	uiBlockBeginAlign(block);
+	uiDefButC(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
+	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		297,190,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
+	uiBlockBeginAlign(block);
+	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Draw Key",		25,160,70,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
+	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
+	uiDefButC(block, TOG|BIT|7, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
+	uiDefButS(block, TOG|BIT|4, 0, "SlowPar",					261,160,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
+	uiBlockBeginAlign(block);
+	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "DupliFrames",	24,128,88,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
+	uiDefButC(block, TOG|BIT|4, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
+	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
+	uiDefButC(block, TOG|BIT|6, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, 17999.0, 0, 0, "Specify startframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		169,105,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, 18000.0, 0, 0, "Specify endframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		169,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButC(block, TOG|BIT|2, REDRAWALL, "Offs Ob",			23,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
+	uiDefButC(block, TOG|BIT|6, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
+	uiDefButC(block, TOG|BIT|7, REDRAWALL, "Offs Particle",		141,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			23,17,114,30, &ob->sf, -9000.0, 9000.0, 100, 0, "Specify an offset in frames");
+	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,17,104,31, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
+	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			246,17,67,31, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiBlockEndAlign(block);
+	
+	sprintf(str, "%.4f", prspeed);
+	uiDefBut(block, LABEL, 0, str,							247,40,63,31, 0, 1.0, 0, 0, 0, "");
+	
+}
+
+void object_panels()
+{
+	Object *ob;
+
+	/* check context here */
+	ob= OBACT;
+	if(ob) {
+		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+
+		object_panel_anim(ob);
+		object_panel_draw(ob);
+		object_panel_constraint();
+	/*	if(ob->type==OB_MESH) object_panel_effects(ob); */
+
+		uiClearButLock();
+	}
+}
+
+void do_effects_panels(unsigned short event)
+{
+	Object *ob;
+	Base *base;
+	Effect *eff, *effn;
+	int type;
+	
+	ob= OBACT;
+
+	switch(event) {
+
+    case B_AUTOTIMEOFS:
+		auto_timeoffs();
+		break;
+	case B_FRAMEMAP:
+		G.scene->r.framelen= G.scene->r.framapto;
+		G.scene->r.framelen/= G.scene->r.images;
+		break;
+	case B_NEWEFFECT:
+		if(ob) {
+			if (BLI_countlist(&ob->effect)==MAX_EFFECT)
+				error("Unable to add: effect limit reached");
+			else
+				copy_act_effect(ob);
+		}
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_DELEFFECT:
+		if(ob==0 || ob->type!=OB_MESH) break;
+		eff= ob->effect.first;
+		while(eff) {
+			effn= eff->next;
+			if(eff->flag & SELECT) {
+				BLI_remlink(&ob->effect, eff);
+				free_effect(eff);
+				break;
+			}
+			eff= effn;
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_NEXTEFFECT:
+		if(ob==0 || ob->type!=OB_MESH) break;
+		eff= ob->effect.first;
+		while(eff) {
+			if(eff->flag & SELECT) {
+				if(eff->next) {
+					eff->flag &= ~SELECT;
+					eff->next->flag |= SELECT;
+				}
+				break;
+			}
+			eff= eff->next;
+		}
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_PREVEFFECT:
+		if(ob==0 || ob->type!=OB_MESH) break;
+		eff= ob->effect.first;
+		while(eff) {
+			if(eff->flag & SELECT) {
+				if(eff->prev) {
+					eff->flag &= ~SELECT;
+					eff->prev->flag |= SELECT;
+				}
+				break;
+			}
+			eff= eff->next;
+		}
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_CHANGEEFFECT:
+		if(ob==0 || ob->type!=OB_MESH) break;
+		eff= ob->effect.first;
+		while(eff) {
+			if(eff->flag & SELECT) {
+				if(eff->type!=eff->buttype) {
+					BLI_remlink(&ob->effect, eff);
+					type= eff->buttype;
+					free_effect(eff);
+					eff= add_effect(type);
+					BLI_addtail(&ob->effect, eff);
+				}
+				break;
+			}
+			eff= eff->next;
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_CALCEFFECT:
+		if(ob==0 || ob->type!=OB_MESH) break;
+		eff= ob->effect.first;
+		while(eff) {
+			if(eff->flag & SELECT) {
+				if(eff->type==EFF_PARTICLE) build_particle_system(ob);
+				else if(eff->type==EFF_WAVE) object_wave(ob);
+			}
+			eff= eff->next;
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_RECALCAL:
+		base= FIRSTBASE;
+		while(base) {
+			if(base->lay & G.vd->lay) {
+				ob= base->object;
+				eff= ob->effect.first;
+				while(eff) {
+					if(eff->flag & SELECT) {
+						if(eff->type==EFF_PARTICLE) build_particle_system(ob);
+					}
+					eff= eff->next;
+				}
+			}
+			base= base->next;
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+
+	default:
+		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
+			ob= OBACT;
+			if(ob) {
+				int a=B_SELEFFECT;
+				
+				eff= ob->effect.first;
+				while(eff) {
+					if(event==a) eff->flag |= SELECT;
+					else eff->flag &= ~SELECT;
+					
+					a++;
+					eff= eff->next;
+				}
+				allqueue(REDRAWBUTSOBJECT, 0);
+			}
+		}
+	}
+
+}
+
+/* Panel for particle interaction settings */
+static void editing_panel_deflectors(Object *ob)
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_deflectors", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Particle Interaction", "Effects", 0, 0, 190, 204)==0) return;
+
+	/* should become button, option? */
+	if(ob->pd==NULL) {
+		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+		/* and if needed, init here */
+	}
+	
+	if(ob->pd) {
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|0, B_DIFF, "Force field",	10,160,150,20, &ob->pd->forcefield, 0, 0, 0, 0, "Object center attracts or repels particles");
+		uiDefButF(block, NUM, B_DIFF, "Strength",	10,140,150,20, &ob->pd->f_strength, -100, 100, 0, 0, "Strength of force field");
+		uiDefButF(block, NUM, B_DIFF, "Fall-off",	10,120,150,20, &ob->pd->f_power, 0, 10, 0, 0, "Falloff power (real gravitational fallof = 2)");
+		/* only meshes collide now */
+		if(ob->type==OB_MESH) {
+			uiBlockBeginAlign(block);
+			uiDefButS(block, TOG|BIT|0, B_DIFF, "Deflection",10,80,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+			uiDefButF(block, NUM, B_DIFF, "Surface damping",	10,60,150,20, &ob->pd->pdef_damp, 0, 1, 0, 0, "Amount of damping during particle collision");
+			uiDefButF(block, NUM, B_DIFF, "Random damping",	10,40,150,20, &ob->pd->pdef_rdamp, 0, 1, 0, 0, "Random variation of damping");
+			uiDefButF(block, NUM, B_DIFF, "Permeability",		10,30,150,20, &ob->pd->pdef_perm, 0, 1, 0, 0, "Chance that the particle will pass through the mesh");
+		}
+	}
+}
+
+void effects_panel_effects(Object *ob)
 {
 	Effect *eff;
 	uiBlock *block;
 	int a;
 	short x, y;
 	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Constraints", "Object");
-	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 418, 204)==0) return;
+	block= uiNewBlock(&curarea->uiblocks, "effect_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Effects", "Effects", 190, 0, 418, 204)==0) return;
 
 	/* EFFECTS */
 	
@@ -1237,7 +1366,7 @@ void object_panel_effects(Object *ob)
 				uiDefButF(block, NUM, B_CALCEFFECT, "End:",		731,146,97,20, &paf->end, 1.0, 9000.0, 100, 0, "Specify the endframe");
 			}
 			uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		831,146,88,20, &paf->lifetime, 1.0, 9000.0, 100, 0, "Specify the life span of the particles");
-			uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",		922,146,80,20, &paf->totkey, 1.0, 32.0, 0, 0, "Specify the number of key positions");
+			uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",		922,146,80,20, &paf->totkey, 1.0, 100.0, 0, 0, "Specify the number of key positions");
 			
 			uiDefButS(block, NUM, B_REDR,		"CurMul:",		550,124,91,20, &paf->curmult, 0.0, 3.0, 0, 0, "Multiply the particles");
 			uiDefButS(block, NUM, B_CALCEFFECT, "Mat:",			644,124,84,20, paf->mat+paf->curmult, 1.0, 8.0, 0, 0, "Specify the material used for the particles");
@@ -1287,57 +1416,8 @@ void object_panel_effects(Object *ob)
 	}
 }
 
-static void object_panel_anim(Object *ob)
-{
-	uiBlock *block;
-	char str[32];
-	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Anim settings", "Object", 0, 0, 318, 204)==0) return;
-	
-	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW,REDRAWVIEW3D,"TrackX",	27,190,58,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"-Z",		177,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
-	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		297,190,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
-	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Draw Key",		25,160,70,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
-	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
-	uiDefButC(block, TOG|BIT|7, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
-	uiDefButS(block, TOG|BIT|4, 0, "SlowPar",					261,160,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
-	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "DupliFrames",	24,128,88,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
-	uiDefButC(block, TOG|BIT|4, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
-	uiDefButC(block, TOG|BIT|6, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, 17999.0, 0, 0, "Specify startframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		169,105,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, 18000.0, 0, 0, "Specify endframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		169,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|2, REDRAWALL, "Offs Ob",			23,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
-	uiDefButC(block, TOG|BIT|6, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
-	uiDefButC(block, TOG|BIT|7, REDRAWALL, "Offs Particle",		141,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
-	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			23,17,114,30, &ob->sf, -9000.0, 9000.0, 100, 0, "Specify an offset in frames");
-	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,17,104,31, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
-	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			246,17,67,31, 0, 0, 0, 0, 0, "Print objectspeed");
-	uiBlockEndAlign(block);
-	
-	sprintf(str, "%.4f", prspeed);
-	uiDefBut(block, LABEL, 0, str,							247,40,63,31, 0, 1.0, 0, 0, 0, "");
-	
-}
 
-void object_panels()
+void effects_panels()
 {
 	Object *ob;
 
@@ -1346,12 +1426,11 @@ void object_panels()
 	if(ob) {
 		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 
-		object_panel_anim(ob);
-		object_panel_draw(ob);
-		object_panel_constraint();
-		if(ob->type==OB_MESH) object_panel_effects(ob);
+		editing_panel_deflectors(ob);
+		if(ob->type==OB_MESH) {
+			effects_panel_effects(ob);
+		}
 		
 		uiClearButLock();
 	}
 }
-

@@ -2499,9 +2499,9 @@ void editing_panels()
 				editing_panel_mesh_texface();
 				editing_panel_mesh_uvautocalculation();
 			}
-
-			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) )
+			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) ) {
 				editing_panel_mesh_paint();
+			}
 		}
 		break;
 

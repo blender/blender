@@ -1912,7 +1912,8 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 			rn= *re;
 			if( (rn->f & RAD_SHOOT)==0 ) {    /* no shootelement */
 				
-				if( rn->f & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	
+				if( rn->f & RAD_TWOSIDED) Zvlnr= a;
+				else if( rn->f & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	
 				else Zvlnr= a;
 				
 				c1= hashlist_projectvert(rn->v1, hoco[0]);
@@ -1942,7 +1943,8 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem)
 				rf= vlr->radface;
 				if( (rf->flag & RAD_SHOOT)==0 ) {    /* no shootelement */
 					
-					if( rf->flag & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	/* receives no energy, but is zbuffered */
+					if( rf->flag & RAD_TWOSIDED) Zvlnr= totface;
+					else if( rf->flag & RAD_BACKFACE) Zvlnr= 0xFFFFFF;	/* receives no energy, but is zbuffered */
 					else Zvlnr= totface;
 					
 					c1= hashlist_projectvert(vlr->v1->co, hoco[0]);

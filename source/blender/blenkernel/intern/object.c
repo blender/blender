@@ -196,6 +196,8 @@ void free_object(Object *ob)
 	freedisplist(&ob->disp);
 	
 	BPY_free_scriptlink(&ob->scriptlink);
+	
+	if(ob->pd) MEM_freeN(ob->pd);
 }
 
 void unlink_object(Object *ob)
@@ -726,6 +728,8 @@ Object *copy_object(Object *ob)
 	/* If the active constraint channel was in this list, update it */
 	if (actcon)
 		obn->activecon = actcon;
+
+	if(ob->pd) obn->pd= MEM_dupallocN(ob->pd);
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);

@@ -57,6 +57,7 @@ extern void redraw_test_buttons(struct Base *new);
 #define BUTS_SCRIPT			11
 #define BUTS_SOUND			12
 #define BUTS_CONSTRAINT		13
+#define BUTS_EFFECTS		14
 
 /* warning: the values of these defines are used in sbuts->tabs[7] */
 /* buts->mainb new */
@@ -79,6 +80,9 @@ extern void redraw_test_buttons(struct Base *new);
 #define TAB_SHADING_RAD 	2
 #define TAB_SHADING_WORLD	3
 #define TAB_SHADING_LAMP	4
+
+#define TAB_OBJECT_OBJECT   0
+#define TAB_OBJECT_EFFECTS  1
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1

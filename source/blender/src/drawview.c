@@ -2463,7 +2463,7 @@ int play_anim(int mode)
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;
 	if(EFRA==0) EFRA= 250;
-	
+
 	if(SFRA>EFRA) return 0;
 	
 	update_time();

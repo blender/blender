@@ -77,6 +77,19 @@ typedef struct LBuf {
 	struct Object **ob;
 } LBuf;
 
+typedef struct PartDeflect {
+	short deflect;        /* Deflection flag - does mesh deflect particles*/
+	short forcefield;      /* Force flag, do the vertices attract / repel particles ? */
+
+	float pdef_damp;     /* Damping factor for particle deflection       */
+	float pdef_rdamp;    /* Random element of damping for deflection     */
+	float pdef_perm;     /* Chance of particle passing through mesh      */
+
+	float f_strength;    /* The strength of the force (+ or - )       */
+	float f_power;       /* The power law - real gravitation is 2 (square)  */
+} PartDeflect;
+
+
 typedef struct Object {
 	ID id;
 
@@ -179,6 +192,7 @@ typedef struct Object {
 	ListBase constraints;
 	ListBase nlastrips;
 
+	PartDeflect *pd;	/* particle deflector/attractor/collision data */
 	struct Life *life;
 
 	LBuf lbuf;

@@ -65,7 +65,7 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define OB_TOTIPO	24
+#define OB_TOTIPO	29
 
 #define OB_LOC_X	1
 #define OB_LOC_Y	2
@@ -100,6 +100,12 @@ typedef short IPO_Channel;
 #define OB_COL_G	22
 #define OB_COL_B	23
 #define OB_COL_A	24
+
+#define OB_PD_FSTR	25
+#define OB_PD_FFALL	26
+#define OB_PD_SDAMP	27
+#define OB_PD_RDAMP	28
+#define OB_PD_PERM	29
 
 
 

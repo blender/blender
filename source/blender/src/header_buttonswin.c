@@ -249,7 +249,7 @@ void buttons_active_id(ID **id, ID **idfrom)
 				else if(G.buts->tabo==TAB_SHADING_WORLD) G.buts->texfrom= 1;
 				else if(G.buts->tabo==TAB_SHADING_MAT) G.buts->texfrom= 0;
 			}
-	
+
 			if(G.buts->texfrom==0) {
 				if(ob && ob->type<OB_LAMP && ob->type) {
 					ma= give_current_material(ob, ob->actcol);
@@ -510,7 +510,7 @@ void buts_buttons(void)
 //	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 //	xco+=XIC;
 	
-	/* mainb menu */
+	/* mainb menu*/
 	/* (this could be done later with a dynamic tree and branches, also for python) */
 	//{
 	//	char mainbname[8][12]= {" Scene", " Object", " Types", " Shading", " Editing", " Script", " Logic"};
@@ -542,7 +542,10 @@ void buts_buttons(void)
 		
 		break;
 	case CONTEXT_OBJECT:
-		
+		uiBlockBeginAlign(block);
+		uiDefIconButC(block, ROW, B_REDR,		ICON_OBJECT,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object ");
+		uiDefIconButC(block, ROW, B_REDR,		ICON_EFFECTS,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_EFFECTS, 0, 0, "Effects");
+
 		break;
 	case CONTEXT_SHADING:
 		uiBlockBeginAlign(block);
@@ -557,7 +560,7 @@ void buts_buttons(void)
 		
 		break;
 	case CONTEXT_SCRIPT:
-		
+
 		break;
 	case CONTEXT_LOGIC:
 		

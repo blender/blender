@@ -63,6 +63,9 @@ extern void object_panels(void);
 extern void do_object_panels(unsigned short event);
 extern void do_constraintbuts(unsigned short event);
 
+/* effects */
+extern void effects_panels(void);
+extern void do_effects_panels(unsigned short event);
 
 /* editing */
 extern void editing_panels(void);
@@ -206,15 +209,6 @@ void butspace_context_switch(SpaceButs *buts, struct Base *new);
 
 #define B_RECALCPATH	1401
 
-#define B_AUTOTIMEOFS	1403
-#define B_FRAMEMAP		1404
-#define B_NEWEFFECT		1405
-#define B_PREVEFFECT	1406
-#define B_NEXTEFFECT	1407
-#define B_CHANGEEFFECT	1408
-#define B_CALCEFFECT	1409
-#define B_DELEFFECT		1410
-#define B_RECALCAL		1411
 
 #define B_PRINTSPEED	1413
 #define B_PRINTLEN		1414
@@ -342,13 +336,6 @@ enum {
 #define B_MAKESTICKY	2082
 #define B_MAKEVERTCOL	2083
 #define B_CHROMADEPTH	2084
-#define B_ISDEFLECTOR   2085
-#define B_PDEFDAMPING   2086
-#define B_GRAVITY       2087
-#define B_GRAVSTRENGTH  2088
-#define B_GRAVPOWER     2089
-#define B_PDEFRDAMP     2090
-#define B_PDEFPERM      2091
 
 /* *********************** */
 #define B_CURVEBUTS		2200
@@ -554,6 +541,20 @@ enum {
 		B_UVAUTO_ALIGNX,
 		B_UVAUTO_ALIGNY		
 };
+
+#define B_EFFECTSBUTS	3500
+
+#define B_AUTOTIMEOFS	3403
+#define B_FRAMEMAP		3404
+#define B_NEWEFFECT		3405
+#define B_PREVEFFECT	3406
+#define B_NEXTEFFECT	3407
+#define B_CHANGEEFFECT	3408
+#define B_CALCEFFECT	3409
+#define B_DELEFFECT		3410
+#define B_RECALCAL		3411
+#define B_RECALC_DEFL	3412
+
 /* *********************** */
 
 /* *********************** */

@@ -649,6 +649,8 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			write_constraints(wd, &ob->constraints);
 			write_constraint_channels(wd, &ob->constraintChannels);
 			write_nlastrips(wd, &ob->nlastrips);
+			
+			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 		}
 		ob= ob->id.next;
 	}

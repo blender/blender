@@ -55,7 +55,7 @@ struct Particle *new_particle(struct PartEff *paf);
 struct PartEff *give_parteff(struct Object *ob);
 void where_is_particle(struct PartEff *paf, struct Particle *pa, float ctime, float *vec);
 void particle_tex(struct MTex *mtex, struct PartEff *paf, float *co, float *no);
-void make_particle_keys(int depth, int nr, struct PartEff *paf, struct Particle *part, float *force, int deform, struct MTex *mtex);
+void make_particle_keys(int depth, int nr, struct PartEff *paf, struct Particle *part, float *force, int deform, struct MTex *mtex, unsigned int par_layer);
 void init_mv_jit(float *jit, int num,float seed2);
 void give_mesh_mvert(struct Mesh *me, int nr, float *co, short *no,float seed2);
 void build_particle_system(struct Object *ob);

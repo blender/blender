@@ -236,6 +236,21 @@ void getname_ob_ei(int nr, char *str, int colipo)
 	case OB_COL_A:
 		strcpy(str, "ColA");
 		break;
+	case OB_PD_FSTR:
+		strcpy(str, "FStreng");
+		break;
+	case OB_PD_FFALL:
+		strcpy(str, "FFall");
+		break;
+	case OB_PD_SDAMP:
+		strcpy(str, "Damping");
+		break;
+	case OB_PD_RDAMP:
+		strcpy(str, "RDamp");
+		break;
+	case OB_PD_PERM:
+		strcpy(str, "Perm");
+		break;
 	default:
 		str[0]= 0;
 	}	
@@ -3789,13 +3804,40 @@ void common_insertkey()
 						insertkey(id, map+MAP_SIZE_Y);
 						insertkey(id, map+MAP_SIZE_Z);
 					}
-					
+
 				}
 			}
 		}
-		else if(G.buts->mainb==CONTEXT_EDITING) {
-			ob= OBACT;
-			if(ob && ob->type==OB_CAMERA) {
+		else if(G.buts->mainb==CONTEXT_OBJECT) {
+		    int tab= G.buts->tab[CONTEXT_OBJECT];
+			if(tab==TAB_OBJECT_EFFECTS) {
+				ob= OBACT;
+				if(ob && ob->type==OB_MESH) {
+					id= (ID *) (ob);
+					if(id) {
+						event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
+						if(event== -1) return;
+
+						if(event==0) {
+							insertkey(id, OB_PD_SDAMP);
+						}
+						if(event==1) {
+							insertkey(id, OB_PD_RDAMP);
+						}
+						if(event==2) {
+							insertkey(id, OB_PD_PERM);
+						}
+						if(event==3) {
+							insertkey(id, OB_PD_FSTR);
+						}
+						if(event==4) {
+							insertkey(id, OB_PD_FFALL);
+						}
+
+					}
+				}
+			}
+			else if(ob && ob->type==OB_CAMERA) {
 				id= G.buts->lockpoin;
 				if(id) {
 					event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1");

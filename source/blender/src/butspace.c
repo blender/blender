@@ -245,7 +245,7 @@ void do_butspace(unsigned short event)
 	if(buts->mainb==CONTEXT_EDITING) allqueue(REDRAWBUTSEDIT, curarea->win);
 	if(buts->mainb==CONTEXT_SCRIPT) allqueue(REDRAWBUTSSCRIPT, curarea->win);
 	if(buts->mainb==CONTEXT_LOGIC) allqueue(REDRAWBUTSLOGIC, curarea->win);
-	
+
 	if (event <=50){
 		do_global_buttons2(event);
 	}
@@ -317,6 +317,10 @@ void do_butspace(unsigned short event)
 	}
 	else if(event<=B_UVAUTOCALCBUTS) {
 		do_uvautocalculationbuts(event);
+	}
+	else if(event<=B_EFFECTSBUTS) {
+		/*here we put the effects buttons do commands*/
+		do_effects_panels(event);
 	}
 	else if(event==REDRAWVIEW3D) allqueue(event, 1);	// 1=do header too
 	else if(event>REDRAWVIEW3D) allqueue(event, 0);
@@ -413,10 +417,14 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 
 		break;
 	case CONTEXT_OBJECT:
-		/* no tabs */
-		object_panels();
-		break;
-		
+		tab= sbuts->tab[CONTEXT_OBJECT];
+		if(tab== TAB_OBJECT_OBJECT) {
+			object_panels();
+		}
+		else if(tab == TAB_OBJECT_EFFECTS)  {
+			effects_panels();
+		}
+
 		break;
 	case CONTEXT_SHADING:
 		tab= sbuts->tab[CONTEXT_SHADING];

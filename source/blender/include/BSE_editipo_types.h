@@ -66,7 +66,7 @@ typedef struct EditIpo {
 
 /* ******************** */
 
-#define OB_TOTIPO	24
+#define OB_TOTIPO	29
 
 #define OB_LOC_X	1
 #define OB_LOC_Y	2
@@ -102,6 +102,11 @@ typedef struct EditIpo {
 #define OB_COL_B	23
 #define OB_COL_A	24
 
+#define OB_PD_GRAV	25
+#define OB_PD_GFALL	26
+#define OB_PD_SDAMP	27
+#define OB_PD_RDAMP	28
+#define OB_PD_PERM	29
 
 
 /* ******************** */

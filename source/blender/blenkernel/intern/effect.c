@@ -1,4 +1,4 @@
-/*  effect.c 
+/*  effect.c
  * 
  * 
  * $Id$
@@ -47,6 +47,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_ipo_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -60,11 +61,14 @@
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 #include "BKE_screen.h"
+#include "BKE_main.h"
 #include "BKE_blender.h"
 #include "BKE_object.h"
 #include "BKE_displist.h"
 #include "BKE_lattice.h"
-
+#include "BKE_mesh.h"
+#include "BKE_action.h"
+#include "BKE_constraint.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -303,7 +307,6 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 
 }
 
-
 void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 {				
 	extern float Tin, Tr, Tg, Tb;
@@ -322,6 +325,7 @@ void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 		no[0]+= (Tr-0.5f)*paf->texfac;
 		no[1]+= (Tg-0.5f)*paf->texfac;
 		no[2]+= (Tb-0.5f)*paf->texfac;
+		//printf("Test %f %f %f \n", Tr, Tg, Tb);
 	}
 	else {	/* PAF_TEXGRAD */
 		
@@ -343,37 +347,425 @@ void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 	}
 }
 
-void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex)
+static float linetriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3])
+{
+ 	float p[3], s[3], d[3], e1[3], e2[3], q[3];
+ 	float a, f, u, v, t;
+
+	VecSubf(e1, v1, v0);
+	VecSubf(e2, v2, v0);
+	VecSubf(d, p2, p1);
+    Crossf(p, d, e2);
+    a = Inpf(e1, p);
+    if ((a > -0.000001) && (a < 0.000001)) return -1;
+    f = 1/a;
+    VecSubf(s, p1, v0);
+    u = f * Inpf(s, p);
+    if ((u < 0.0)||(u > 1.0)) return -1;
+    Crossf(q, s, e1);
+    t = f * Inpf(e2, q);
+    if ((t < 0.0)||(t > 1.0)) return -1;
+    v = f * Inpf(d, q);
+    if ((v < 0.0)||((u + v) > 1.0)) return -1;
+    return t;
+}
+
+static void get_forcefield(float opco[], float force[], float cur_time, unsigned int par_layer)
+{
+	/* Particle gravity code */
+	/* Modifies the force on a particle according to its  */
+	/* distance from mesh vertices set to attract / repel */
+	Object *ob;
+	Base *base;
+	float vect_to_vert[3];
+	float f_force, distance;
+	float obloc[3];
+	float force_val, ffall_val;
+	short cur_frame;
+
+	/* Cycle through objects, get total of (1/(gravity_strength * dist^gravity_power)) */
+	/* Check for min distance here? */
+	base = G.scene->base.first;
+	while (base) {
+		if(base->lay & par_layer) {
+			ob= base->object;
+			if(ob->pd && ob->pd->forcefield) {
+
+				/* Need to set r.cfra for paths (investigate, ton) */
+				cur_frame = G.scene->r.cfra;
+				G.scene->r.cfra = (short)cur_time;
+				where_is_object_time(ob, cur_time);
+				G.scene->r.cfra = cur_frame;
+				
+				/* only use center of object */
+				obloc[0] = ob->obmat[3][0];
+				obloc[1] = ob->obmat[3][1];
+				obloc[2] = ob->obmat[3][2];
+				
+				/* Get IPO force strength and fall off values here */
+				if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+					force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
+				else 
+					force_val = ob->pd->f_strength;
+
+				if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+					ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
+				else 
+					ffall_val = ob->pd->f_power;
+
+				/* Now calculate the gravitational force */
+				VecSubf(vect_to_vert, obloc, opco);
+				distance = Normalise(vect_to_vert);
+
+				/* Limit minimum distance to vertex so that */
+				/* the force is not too big */
+				if (distance < 0.001) distance = 0.001;
+				f_force = (force_val)*(1/(1000 * pow((double)distance, (double)ffall_val)));
+				force[0] += (vect_to_vert[0] * f_force );
+				force[1] += (vect_to_vert[1] * f_force );
+				force[2] += (vect_to_vert[2] * f_force );
+
+			}
+		}
+		base = base->next;
+	}
+}
+
+static int get_deflection(float opco[3], float npco[3], float opno[3],
+        float npno[3], float life, float force[3], int def_depth,
+        float cur_time, unsigned int par_layer, int *last_object,
+		int *last_face, int *same_face)
+{
+	/* Particle deflection code */
+	/* The code is in two sections: the first part checks whether a particle has            */
+	/* intersected a face of a deflector mesh, given its old and new co-ords, opco and npco */
+	/* and which face it hit first                                                          */
+	/* The second part calculates the new co-ordinates given that collision and updates     */
+	/* the new co-ordinates accordingly */
+	Base *base;
+	Object *ob, *deflection_object = NULL;
+	Mesh *def_mesh;
+	MFace *mface, *deflection_face = NULL;
+	float *v1, *v2, *v3, *v4;
+	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3];
+	float dv1[3], dv2[3], dv3[3];
+	float vect_to_int[3], refl_vel[3];
+	float d_intersect_co[3], d_intersect_vect[3], d_nvect[3], d_i_co_above[3];
+	float forcec[3];
+	float k_point3, dist_to_plane;
+	float first_dist, ref_plane_mag;
+	float dk_plane=0, dk_point1=0;
+	float icalctop, icalcbot, n_mag;
+	float mag_iv, x_m,y_m,z_m;
+	float damping, perm_thresh;
+	float perm_val, rdamp_val;
+	int a, deflected=0, deflected_now=0;
+	float t, min_t;
+	float mat[3][3], obloc[3];
+	short cur_frame;
+	float time_before, time_after;
+	float force_mag_norm;
+	int d_object=0, d_face=0, ds_object=0, ds_face=0;
+
+	first_dist = 200000;
+	min_t = 200000;
+
+	/* The first part of the code, finding the first intersected face*/
+	base= G.scene->base.first;
+	while (base) {
+		/*Only proceed for mesh object in same layer */
+		if(base->object->type==OB_MESH && (base->lay & par_layer)) {
+			ob= base->object;
+			/* only with deflecting set */
+			if(ob->pd && ob->pd->deflect) {
+				def_mesh= ob->data;
+			
+				d_object = d_object + 1;
+
+				d_face = d_face + 1;
+				mface= def_mesh->mface;
+				a = def_mesh->totface;
+				/*Find out where the object is at this time*/
+				cur_frame = G.scene->r.cfra;
+				G.scene->r.cfra = (short)cur_time;
+				where_is_object_time(ob, cur_time);
+				G.scene->r.cfra = cur_frame;
+				/*Pass the values from ob->obmat to mat*/
+				/*and the location values to obloc           */
+				Mat3CpyMat4(mat,ob->obmat);
+				obloc[0] = ob->obmat[3][0];
+				obloc[1] = ob->obmat[3][1];
+				obloc[2] = ob->obmat[3][2];
+
+				while (a--) {
+
+					/* Calculate the global co-ordinates of the vertices*/
+					v1= (def_mesh->mvert+(mface->v1))->co;
+					v2= (def_mesh->mvert+(mface->v2))->co;
+					v3= (def_mesh->mvert+(mface->v3))->co;
+					v4= (def_mesh->mvert+(mface->v4))->co;
+
+					VECCOPY(nv1, v1);
+					VECCOPY(nv2, v2);
+					VECCOPY(nv3, v3);
+					VECCOPY(nv4, v4);
+
+					/*Apply the objects deformation matrix*/
+					Mat3MulVecfl(mat, nv1);
+					Mat3MulVecfl(mat, nv2);
+					Mat3MulVecfl(mat, nv3);
+					Mat3MulVecfl(mat, nv4);
+
+					VecAddf(nv1, nv1, obloc);
+					VecAddf(nv2, nv2, obloc);
+					VecAddf(nv3, nv3, obloc);
+					VecAddf(nv4, nv4, obloc);
+
+					deflected_now = 0;
+
+					t = - 1;
+					t = linetriangle(opco, npco, nv1, nv2, nv3);
+					if ((t > 0)&&(t < min_t)) {
+					    deflected = 1;
+                    	deflected_now = 1;
+					}
+					else if (mface->v4) {
+						t = linetriangle(opco, npco, nv1, nv3, nv4);
+						if ((t > 0)&&(t < min_t)) {
+						    deflected = 1;
+							deflected_now = 2;
+	  					}
+					}
+					if ((deflected_now > 0)&&(t < min_t)) {
+                    	min_t = t;
+                    	ds_object = d_object;
+						ds_face = d_face;
+						deflection_object = ob;
+						deflection_face = mface;
+						if (deflected_now==1) {
+							VECCOPY(dv1, nv1);
+							VECCOPY(dv2, nv2);
+							VECCOPY(dv3, nv3);
+						}
+						else {
+							VECCOPY(dv1, nv1);
+							VECCOPY(dv2, nv3);
+							VECCOPY(dv3, nv4);
+						}
+					}
+					mface++;
+				}
+			}
+		}
+		base = base->next;
+	}
+
+	/* Here's the point to do the permeability calculation */
+	/* Set deflected to 0 if a random number is below the value */
+	/* Get the permeability IPO here*/
+	if (deflected) {
+		
+		if (has_ipo_code(deflection_object->ipo, OB_PD_PERM)) 
+			perm_val = IPO_GetFloatValue(deflection_object->ipo, OB_PD_PERM, cur_time);
+		else 
+			perm_val = deflection_object->pd->pdef_perm;
+
+		perm_thresh =  BLI_drand() - perm_val;
+		if (perm_thresh < 0 ) {
+			deflected = 0;
+		}
+	}
+
+	/* Now for the second part of the deflection code - work out the new speed */
+	/* and position of the particle if a collision occurred */
+	if (deflected) {
+    	VecSubf(edge1, dv1, dv2);
+		VecSubf(edge2, dv3, dv2);
+		Crossf(d_nvect, edge2, edge1);
+		n_mag = Normalise(d_nvect);
+		dk_plane = Inpf(d_nvect, nv1);
+		dk_point1 = Inpf(d_nvect,opco);
+
+		VecSubf(d_intersect_vect, npco, opco);
+
+		d_intersect_co[0] = opco[0] + (min_t * (npco[0] - opco[0]));
+		d_intersect_co[1] = opco[1] + (min_t * (npco[1] - opco[1]));
+		d_intersect_co[2] = opco[2] + (min_t * (npco[2] - opco[2]));
+		
+		d_i_co_above[0] = (d_intersect_co[0] + (0.001 * d_nvect[0]));
+		d_i_co_above[1] = (d_intersect_co[1] + (0.001 * d_nvect[1]));
+		d_i_co_above[2] = (d_intersect_co[2] + (0.001 * d_nvect[2]));
+		mag_iv = Normalise(d_intersect_vect);
+		VECCOPY(npco, d_intersect_co);
+		
+		VecSubf(vect_to_int, opco, d_intersect_co);
+		first_dist = Normalise(vect_to_int);
+
+		/* Work out the lengths of time before and after collision*/
+		time_before = (life*(first_dist / (mag_iv)));
+		time_after =  (life*((mag_iv - first_dist) / (mag_iv)));
+
+		/* We have to recalculate what the speed would have been at the */
+		/* point of collision, not the key frame time */
+		npno[0]= opno[0] + time_before*force[0];
+		npno[1]= opno[1] + time_before*force[1];
+		npno[2]= opno[2] + time_before*force[2];
+
+
+		/* Reflect the speed vector in the face */
+		x_m = (2 * npno[0] * d_nvect[0]);
+		y_m = (2 * npno[1] * d_nvect[1]);
+		z_m = (2 * npno[2] * d_nvect[2]);
+		refl_vel[0] = npno[0] - (d_nvect[0] * (x_m + y_m + z_m));
+		refl_vel[1] = npno[1] - (d_nvect[1] * (x_m + y_m + z_m));
+		refl_vel[2] = npno[2] - (d_nvect[2] * (x_m + y_m + z_m));
+
+		/*A random variation in the damping factor........ */
+		/*Get the IPO values for damping here*/
+		
+		if (has_ipo_code(deflection_object->ipo, OB_PD_SDAMP)) 
+			damping = IPO_GetFloatValue(deflection_object->ipo, OB_PD_SDAMP, cur_time);
+		else 
+			damping = deflection_object->pd->pdef_damp;
+		
+		if (has_ipo_code(deflection_object->ipo, OB_PD_RDAMP)) 
+			rdamp_val = IPO_GetFloatValue(deflection_object->ipo, OB_PD_RDAMP, cur_time);
+		else 
+			rdamp_val = deflection_object->pd->pdef_rdamp;
+
+		damping = damping + ((1 - damping) * (BLI_drand()*rdamp_val));
+		damping = damping * damping;
+        ref_plane_mag = Inpf(refl_vel,d_nvect);
+
+		if (damping > 0.999) damping = 0.999;
+
+		/* Now add in the damping force - only damp in the direction of */
+		/* the faces normal vector */
+		npno[0] = (refl_vel[0] - (d_nvect[0] * ref_plane_mag * damping));
+		npno[1] = (refl_vel[1] - (d_nvect[1] * ref_plane_mag * damping));
+		npno[2] = (refl_vel[2] - (d_nvect[2] * ref_plane_mag * damping));
+
+		/* Now reset opno */
+		VECCOPY(opno,npno);
+		VECCOPY(forcec, force);
+
+		/* If the particle has bounced more than four times on the same */
+		/* face within this cycle (depth > 4, same face > 4 )           */
+		/* Then set the force to be only that component of the force    */
+		/* in the same direction as the face normal                     */
+		/* i.e. subtract the component of the force in the direction    */
+		/* of the face normal from the actual force                     */
+		if ((ds_object == *last_object) && (ds_face == *last_face)) {
+			/* Increment same_face */
+			*same_face = *same_face + 1;
+			if ((*same_face > 3) && (def_depth > 3)) {
+            	force_mag_norm = Inpf(forcec, d_nvect);
+            	forcec[0] = forcec[0] - (d_nvect[0] * force_mag_norm);
+                forcec[1] = forcec[1] - (d_nvect[1] * force_mag_norm);
+                forcec[2] = forcec[2] - (d_nvect[2] * force_mag_norm);
+			}
+		}
+		else *same_face = 1;
+
+		*last_object = ds_object;
+		*last_face = ds_face;
+
+		/* We have the particles speed at the point of collision    */
+		/* Now we want the particles speed at the current key frame */
+
+		npno[0]= npno[0] + time_after*forcec[0];
+		npno[1]= npno[1] + time_after*forcec[1];
+		npno[2]= npno[2] + time_after*forcec[2];
+
+		/* Now we have to recalculate pa->co for the remainder*/
+		/* of the time since the intersect*/
+		npco[0]= npco[0] + time_after*npno[0];
+		npco[1]= npco[1] + time_after*npno[1];
+		npco[2]= npco[2] + time_after*npno[2];
+
+		/* And set the old co-ordinates back to the point just above the intersection */
+		VECCOPY(opco, d_i_co_above);
+
+		/* Finally update the time */
+		life = time_after;
+		cur_time += time_before;
+
+		/* The particle may have fallen through the face again by now!!*/
+		/* So check if the particle has changed sides of the plane compared*/
+		/* the co-ordinates at the last keyframe*/
+		/* But only do this as a last resort, if we've got to the end of the */
+		/* number of collisions allowed */
+		if (def_depth==9) {
+			k_point3 = Inpf(d_nvect,npco);
+			if (((dk_plane > k_point3) && (dk_plane < dk_point1))||((dk_plane < k_point3) && (dk_plane > dk_point1))) {
+
+				/* Yup, the pesky particle may have fallen through a hole!!! */
+                /* So we'll cheat a bit and move the particle along the normal vector */
+                /* until it's just the other side of the plane */
+                icalctop = (dk_plane - d_nvect[0]*npco[0] - d_nvect[1]*npco[1] - d_nvect[2]*npco[2]);
+                icalcbot = (d_nvect[0]*d_nvect[0] + d_nvect[1]*d_nvect[1] + d_nvect[2]*d_nvect[2]);
+                dist_to_plane = icalctop / icalcbot;
+
+                /*  Now just increase the distance a little to place */
+                /* the point the other side of the plane */
+                dist_to_plane *= 1.1;
+                npco[0]= npco[0] + (dist_to_plane * d_nvect[0]);
+                npco[1]= npco[1] + (dist_to_plane * d_nvect[1]);
+                npco[2]= npco[2] + (dist_to_plane * d_nvect[2]);
+
+			}
+		}
+	}
+	return deflected;
+}
+
+void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer)
 {
 	Particle *pa, *opa = NULL;
-	float damp, deltalife;
-	int b, rt1, rt2;
-	
+	float damp, deltalife, life;
+	float cur_time;
+	float opco[3], opno[3], npco[3], npno[3], new_force[3];
+	int b, rt1, rt2, deflected, deflection, finish_defs, def_count;
+	int last_ob, last_fc, same_fc;
+
 	damp= 1.0f-paf->damp;
 	pa= part;
-	
+
 	/* start speed: random */
 	if(paf->randfac!=0.0) {
 		pa->no[0]+= (float)(paf->randfac*( BLI_drand() -0.5));
 		pa->no[1]+= (float)(paf->randfac*( BLI_drand() -0.5));
 		pa->no[2]+= (float)(paf->randfac*( BLI_drand() -0.5));
 	}
-	
+
 	/* start speed: texture */
 	if(mtex && paf->texfac!=0.0) {
-		particle_tex(mtex, paf, pa->co, pa->no);
+	/*	particle_tex(mtex, paf, pa->co, pa->no);  */
 	}
-	
+
 	if(paf->totkey>1) deltalife= pa->lifetime/(paf->totkey-1);
 	else deltalife= pa->lifetime;
 
 	opa= pa;
 	pa++;
-		
+
 	b= paf->totkey-1;
 	while(b--) {
 		/* new time */
 		pa->time= opa->time+deltalife;
+
+		/* set initial variables                                */
+		opco[0] = opa->co[0];
+		opco[1] = opa->co[1];
+		opco[2] = opa->co[2];
+
+		new_force[0] = force[0];
+		new_force[1] = force[1];
+		new_force[2] = force[2];
+
+		/* Check force field */
+		cur_time = pa->time;
+		get_forcefield(opco, new_force, cur_time, par_layer);
 
 		/* new location */
 		pa->co[0]= opa->co[0] + deltalife*opa->no[0];
@@ -381,13 +773,60 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		pa->co[2]= opa->co[2] + deltalife*opa->no[2];
 
 		/* new speed */
-		pa->no[0]= opa->no[0] + deltalife*force[0];
-		pa->no[1]= opa->no[1] + deltalife*force[1];
-		pa->no[2]= opa->no[2] + deltalife*force[2];
+		pa->no[0]= opa->no[0] + deltalife*new_force[0];
+		pa->no[1]= opa->no[1] + deltalife*new_force[1];
+		pa->no[2]= opa->no[2] + deltalife*new_force[2];
+
+		/* Particle deflection code                             */
+		deflection = 0;
+		finish_defs = 1;
+		def_count = 0;
+
+		VECCOPY(opno, opa->no);
+		VECCOPY(npco, pa->co);
+		VECCOPY(npno, pa->no);
+
+		life = deltalife;
+		cur_time -= deltalife;
+
+		last_ob = -1;
+		last_fc = -1;
+		same_fc = 0;
+
+		/* First call the particle deflection check for the particle moving   */
+		/* between the old co-ordinates and the new co-ordinates              */
+		/* If a deflection occurs, call the code again, this time between the */
+		/* intersection point and the updated new co-ordinates                */
+		/* Bail out if we've done the calculation 10 times - this seems ok     */
+        /* for most scenes I've tested */
+		while (finish_defs) {
+			deflected =  get_deflection(opco, npco, opno, npno, life, new_force,
+							def_count, cur_time, par_layer,
+							&last_ob, &last_fc, &same_fc);
+			if (deflected) {
+				def_count = def_count + 1;
+				deflection = 1;
+				if (def_count==10) finish_defs = 0;
+			}
+			else {
+				finish_defs = 0;
+			}
+		}
+
+		/* Only update the particle positions and speed if we had a deflection */
+		if (deflection) {
+			pa->co[0] = npco[0];
+			pa->co[1] = npco[1];
+			pa->co[2] = npco[2];
+			pa->no[0] = npno[0];
+			pa->no[1] = npno[1];
+			pa->no[2] = npno[2];
+		}
+
 
 		/* speed: texture */
 		if(mtex && paf->texfac!=0.0) {
-			particle_tex(mtex, paf, pa->co, pa->no);
+			particle_tex(mtex, paf, opa->co, opa->no);
 		}
 		if(damp!=1.0) {
 			pa->no[0]*= damp;
@@ -395,6 +834,8 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 			pa->no[2]*= damp;
 		}
 	
+
+
 		opa= pa;
 		pa++;
 		/* opa is used later on too! */
@@ -428,8 +869,8 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 					pa->lifetime*= 1.0f+ (float)(paf->randlife*( BLI_drand() - 0.5));
 				}
 				pa->mat_nr= paf->mat[depth];
-				
-				make_particle_keys(depth+1, b, paf, pa, force, deform, mtex);
+
+				make_particle_keys(depth+1, b, paf, pa, force, deform, mtex, par_layer);
 			}
 		}
 	}
@@ -495,14 +936,14 @@ void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
 		VECCOPY(no, mvert->no);
 	}
 	else {
-		
+
 		nr-= me->totvert;
 		
 		if(jit==0) {
 			jitlevel= nr/me->totface;
 			if(jitlevel==0) jitlevel= 1;
 			if(jitlevel>100) jitlevel= 100;
-			
+
 			jit= MEM_callocN(2+ jitlevel*2*sizeof(float), "jit");
 			init_mv_jit(jit, jitlevel,seed2);
 			
@@ -515,7 +956,7 @@ void give_mesh_mvert(Mesh *me, int nr, float *co, short *no, float seed2)
 		
 		mface= me->mface;
 		mface+= curface;
-		
+
 		v1= (me->mvert+(mface->v1))->co;
 		v2= (me->mvert+(mface->v2))->co;
 		n1= (me->mvert+(mface->v1))->no;
@@ -563,31 +1004,32 @@ void build_particle_system(Object *ob)
 	MVert *mvert;
 	MTex *mtexmove=0;
 	Material *ma;
+	int armature_parent;
 	float framelenont, ftime, dtime, force[3], imat[3][3], vec[3];
 	float fac, prevobmat[4][4], sfraont, co[3];
-	int deform=0, a, cur, cfraont, cfralast, totpart;
+	int deform=0, a, b, c, cur, cfraont, cfralast, totpart;
 	short no[3];
-	
+
 	if(ob->type!=OB_MESH) return;
 	me= ob->data;
 	if(me->totvert==0) return;
-	
+
 	ma= give_current_material(ob, 1);
 	if(ma) {
 		mtexmove= ma->mtex[7];
 	}
-	
+
 	paf= give_parteff(ob);
 	if(paf==0) return;
 
 	waitcursor(1);
-	
+
 	disable_speed_curve(1);
-	
+
 	/* generate all particles */
 	if(paf->keys) MEM_freeN(paf->keys);
 	paf->keys= 0;
-	new_particle(paf);	
+	new_particle(paf);
 
 	cfraont= G.scene->r.cfra;
 	cfralast= -1000;
@@ -595,7 +1037,7 @@ void build_particle_system(Object *ob)
 	G.scene->r.framelen= 1.0;
 	sfraont= ob->sf;
 	ob->sf= 0.0;
-	
+
 	/* mult generations? */
 	totpart= paf->totpart;
 	for(a=0; a<PAF_MAXMULT; a++) {
@@ -608,7 +1050,7 @@ void build_particle_system(Object *ob)
 
 	ftime= paf->sta;
 	dtime= (paf->end - paf->sta)/totpart;
-	
+
 	/* remember full hierarchy */
 	par= ob;
 	while(par) {
@@ -619,13 +1061,20 @@ void build_particle_system(Object *ob)
 	/* set it all at first frame */
 	G.scene->r.cfra= cfralast= (int)floor(ftime);
 	par= ob;
+	armature_parent = 0;
 	while(par) {
 		/* do_ob_ipo(par); */
 		do_ob_key(par);
+		/* Just checking whether theres an armature in the */
+		/* parent chain of the emitter, so we know whether */
+		/* to recalculate the armatures */
+		if(par->type==OB_ARMATURE) {
+			armature_parent = 1;
+		}
 		par= par->parent;
 	}
 	do_mat_ipo(ma);
-	
+
 	if((paf->flag & PAF_STATIC)==0) {
 		where_is_object(ob);
 		Mat4CpyMat4(prevobmat, ob->obmat);
@@ -649,16 +1098,28 @@ void build_particle_system(Object *ob)
 	
 	/* init */
 	give_mesh_mvert(me, totpart, co, no,paf->seed);
-	
+
+	printf("\n");
+	printf("Calculating particles......... \n");
+
 	for(a=0; a<totpart; a++, ftime+=dtime) {
 		
 		pa= new_particle(paf);
 		pa->time= ftime;
 		
+		c = totpart/100;
+		if (c==0){
+			c = 1;
+		}
+
+		b=(a%c);
+		if (b==0) {
+			printf("\r Particle: %d / %d ", a, totpart);
+		}
 		/* set ob at correct time */
 		
 		if((paf->flag & PAF_STATIC)==0) {
-		
+
 			cur= (int)floor(ftime) + 1 ;		/* + 1 has a reason: (obmat/prevobmat) otherwise comet-tails start too late */
 			if(cfralast != cur) {
 				G.scene->r.cfra= cfralast= cur;
@@ -666,6 +1127,12 @@ void build_particle_system(Object *ob)
 				/* added later: blur? */
 				bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
 				
+				/* Update the armatures */
+				if (armature_parent) {
+					do_all_actions();
+					rebuild_all_armature_displists();
+				}
+
 				par= ob;
 				while(par) {
 					/* do_ob_ipo(par); */
@@ -726,9 +1193,11 @@ void build_particle_system(Object *ob)
 		}
 		pa->mat_nr= 1;
 		
-		make_particle_keys(0, a, paf, pa, force, deform, mtexmove);
+		make_particle_keys(0, a, paf, pa, force, deform, mtexmove, ob->lay);
 	}
 	
+	printf("\r Particle: %d / %d \n", totpart, totpart);
+
 	if(deform) end_latt_deform();
 		
 	/* restore */
@@ -736,6 +1205,11 @@ void build_particle_system(Object *ob)
 	G.scene->r.framelen= framelenont;
 	give_mesh_mvert(0, 0, 0, 0,paf->seed);
 
+	/*Restore armature settings*/
+	if (armature_parent) {
+		do_all_actions();
+		rebuild_all_armature_displists();
+	}
 
 	/* put hierarchy back */
 	par= ob;
