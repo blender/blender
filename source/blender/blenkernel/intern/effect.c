@@ -64,7 +64,6 @@
 #include "BKE_displist.h"
 #include "BKE_lattice.h"
 
-#include "render.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -307,6 +306,7 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 {				
 	extern float Tin, Tr, Tg, Tb;
+	extern void externtex(struct MTex *mtex, float *vec);
 	float old;
 	
 	externtex(mtex, co);
