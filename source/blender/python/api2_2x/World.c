@@ -209,11 +209,9 @@ static PyObject *M_World_Get(PyObject *self, PyObject *args)
  * \return PyObject*: The initialized submodule.
  */
 
-PyObject *M_World_Init (void)
+PyObject *World_Init (void)
 {
   PyObject  *submodule;
-
-  printf ("In M_World_Init()\n");
 
   World_Type.ob_type = &PyType_Type;
 

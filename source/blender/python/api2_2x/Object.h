@@ -60,13 +60,13 @@
 /* The Object PyType Object defined in Object.c */
 extern PyTypeObject Object_Type;
 
-#define C_Object_Check(v) \
+#define BPy_Object_Check(v) \
     ((v)->ob_type == &Object_Type) /* for type checking */
 
 /*****************************************************************************/
-/* Python C_Object structure definition.                                     */
+/* Python BPy_Object structure definition.                                     */
 /*****************************************************************************/
-struct C_Object;
+struct BPy_Object;
 
 typedef struct {
     PyObject_HEAD
@@ -78,11 +78,11 @@ typedef struct {
 
     /* points to the parent object. This is only set when there's a valid */
     /* PyObject (already created at some point). */
-    struct C_Object * parent;
+    struct BPy_Object * parent;
 
     /* points to the object that is tracking this object. This is only set */
     /* when there's a valid PyObject (already created at some point). */
-    struct C_Object * track;
-} C_Object;
+    struct BPy_Object * track;
+} BPy_Object;
 
 #endif /* EXPP_OBJECT_H */

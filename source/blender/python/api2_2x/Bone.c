@@ -73,32 +73,32 @@ struct PyMethodDef M_Bone_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python C_Bone methods declarations:                                       */
+/* Python BPy_Bone methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Bone_getName(C_Bone *self);
-static PyObject *Bone_getRoll(C_Bone *self);
-static PyObject *Bone_getHead(C_Bone *self);
-static PyObject *Bone_getTail(C_Bone *self);
-static PyObject *Bone_getLoc(C_Bone *self);
-static PyObject *Bone_getSize(C_Bone *self);
-static PyObject *Bone_getQuat(C_Bone *self);
-static PyObject *Bone_getParent(C_Bone *self);
-static PyObject *Bone_hasParent(C_Bone *self);
-static PyObject *Bone_getChildren(C_Bone *self);
-static PyObject *Bone_setName(C_Bone *self, PyObject *args);
-static PyObject *Bone_setRoll(C_Bone *self, PyObject *args);
-static PyObject *Bone_setHead(C_Bone *self, PyObject *args);
-static PyObject *Bone_setTail(C_Bone *self, PyObject *args);
-static PyObject *Bone_setLoc(C_Bone *self, PyObject *args);
-static PyObject *Bone_setSize(C_Bone *self, PyObject *args);
-static PyObject *Bone_setQuat(C_Bone *self, PyObject *args);
-//static PyObject *Bone_setParent(C_Bone *self, PyObject *args);
-//static PyObject *Bone_setChildren(C_Bone *self, PyObject *args);
+static PyObject *Bone_getName(BPy_Bone *self);
+static PyObject *Bone_getRoll(BPy_Bone *self);
+static PyObject *Bone_getHead(BPy_Bone *self);
+static PyObject *Bone_getTail(BPy_Bone *self);
+static PyObject *Bone_getLoc(BPy_Bone *self);
+static PyObject *Bone_getSize(BPy_Bone *self);
+static PyObject *Bone_getQuat(BPy_Bone *self);
+static PyObject *Bone_getParent(BPy_Bone *self);
+static PyObject *Bone_hasParent(BPy_Bone *self);
+static PyObject *Bone_getChildren(BPy_Bone *self);
+static PyObject *Bone_setName(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setRoll(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setHead(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setTail(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setLoc(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setSize(BPy_Bone *self, PyObject *args);
+static PyObject *Bone_setQuat(BPy_Bone *self, PyObject *args);
+//static PyObject *Bone_setParent(BPy_Bone *self, PyObject *args);
+//static PyObject *Bone_setChildren(BPy_Bone *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Bone methods table:                                              */
+/* Python BPy_Bone methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Bone_methods[] = {
+static PyMethodDef BPy_Bone_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Bone_getName, METH_NOARGS,  "() - return Bone name"},
   {"getRoll", (PyCFunction)Bone_getRoll, METH_NOARGS,  "() - return Bone roll"},
@@ -136,12 +136,12 @@ static PyMethodDef C_Bone_methods[] = {
 /*****************************************************************************/
 /* Python TypeBone callback function prototypes:                             */
 /*****************************************************************************/
-static void BoneDeAlloc (C_Bone *bone);
-static PyObject *BoneGetAttr (C_Bone *bone, char *name);
-static int BoneSetAttr (C_Bone *bone, char *name, PyObject *v);
-static int BoneCmp (C_Bone *a1, C_Bone *a2);
-static PyObject *BoneRepr (C_Bone *bone);
-static int BonePrint (C_Bone *bone, FILE *fp, int flags);
+static void Bone_dealloc (BPy_Bone *bone);
+static PyObject *Bone_getAttr (BPy_Bone *bone, char *name);
+static int Bone_setAttr (BPy_Bone *bone, char *name, PyObject *v);
+static int Bone_compare (BPy_Bone *a1, BPy_Bone *a2);
+static PyObject *Bone_repr (BPy_Bone *bone);
+static int Bone_print (BPy_Bone *bone, FILE *fp, int flags);
 
 /*****************************************************************************/
 /* Python TypeBone structure definition:                                     */
@@ -149,26 +149,26 @@ static int BonePrint (C_Bone *bone, FILE *fp, int flags);
 PyTypeObject Bone_Type =
 {
   PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "Bone",                               /* tp_name */
-  sizeof (C_Bone),                     /* tp_basicsize */
-  0,                                      /* tp_itemsize */
+  0,                                    /* ob_size */
+  "Blender Bone",                       /* tp_name */
+  sizeof (BPy_Bone),                    /* tp_basicsize */
+  0,                                    /* tp_itemsize */
   /* methods */
-  (destructor)BoneDeAlloc,              /* tp_dealloc */
-  (printfunc)BonePrint,                 /* tp_print */
-  (getattrfunc)BoneGetAttr,             /* tp_getattr */
-  (setattrfunc)BoneSetAttr,             /* tp_setattr */
-  (cmpfunc)BoneCmp,                     /* tp_compare */
-  (reprfunc)BoneRepr,                   /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
+  (destructor)Bone_dealloc,             /* tp_dealloc */
+  (printfunc)Bone_print,                /* tp_print */
+  (getattrfunc)Bone_getAttr,            /* tp_getattr */
+  (setattrfunc)Bone_setAttr,            /* tp_setattr */
+  (cmpfunc)Bone_compare,                /* tp_compare */
+  (reprfunc)Bone_repr,                  /* tp_repr */
+  0,                                    /* tp_as_number */
+  0,                                    /* tp_as_sequence */
+  0,                                    /* tp_as_mapping */
+  0,                                    /* tp_as_hash */
   0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
+  0,                                    /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Bone_methods,                      /* tp_methods */
-  0,                                      /* tp_members */
+  BPy_Bone_methods,                     /* tp_methods */
+  0,                                    /* tp_members */
 };
 
 
@@ -181,10 +181,8 @@ PyTypeObject Bone_Type =
 static PyObject *M_Bone_New(PyObject *self, PyObject *args, PyObject *keywords)
 {
   char        *name_str = "BoneName";
-  C_Bone      *py_bone = NULL; /* for Bone Data object wrapper in Python */
+  BPy_Bone    *py_bone = NULL; /* for Bone Data object wrapper in Python */
   Bone        *bl_bone = NULL; /* for actual Bone Data we create in Blender */
-
-  printf ("In Bone_New()\n");
 
   if (!PyArg_ParseTuple(args, "|s", &name_str))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
@@ -195,7 +193,7 @@ static PyObject *M_Bone_New(PyObject *self, PyObject *args, PyObject *keywords)
   strncpy(bl_bone->name,name_str,sizeof(bl_bone->name));
   
   if (bl_bone) /* now create the wrapper obj in Python */
-    py_bone = (C_Bone *)PyObject_NEW(C_Bone, &Bone_Type);
+    py_bone = (BPy_Bone *)PyObject_NEW(BPy_Bone, &Bone_Type);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                             "couldn't create Bone Data in Blender"));
@@ -218,15 +216,13 @@ static PyObject *M_Bone_New(PyObject *self, PyObject *args, PyObject *keywords)
 
 
 /*****************************************************************************/
-/* Function:              M_Bone_Init                                        */
+/* Function:              Bone_Init                                          */
 /*****************************************************************************/
-PyObject *M_Bone_Init (void)
+PyObject *Bone_Init (void)
 {
   PyObject  *submodule;
 
   Bone_Type.ob_type = &PyType_Type;
-
-  printf ("In M_Bone_Init()\n");
 
   submodule = Py_InitModule3("Blender.Armature.Bone",
                              M_Bone_methods, M_Bone_doc);
@@ -235,9 +231,9 @@ PyObject *M_Bone_Init (void)
 }
 
 /*****************************************************************************/
-/* Python C_Bone methods:                                                    */
+/* Python BPy_Bone methods:                                                  */
 /*****************************************************************************/
-static PyObject *Bone_getName(C_Bone *self)
+static PyObject *Bone_getName(BPy_Bone *self)
 {
   PyObject *attr=NULL;
   
@@ -253,7 +249,7 @@ static PyObject *Bone_getName(C_Bone *self)
 }
 
 
-static PyObject *Bone_getRoll(C_Bone *self)
+static PyObject *Bone_getRoll(BPy_Bone *self)
 {
   PyObject *attr=NULL;
   
@@ -269,7 +265,7 @@ static PyObject *Bone_getRoll(C_Bone *self)
 }
 
 
-static PyObject *Bone_getHead(C_Bone *self)
+static PyObject *Bone_getHead(BPy_Bone *self)
 {
   PyObject *attr=NULL;
   
@@ -286,7 +282,7 @@ static PyObject *Bone_getHead(C_Bone *self)
 }
 
 
-static PyObject *Bone_getTail(C_Bone *self)
+static PyObject *Bone_getTail(BPy_Bone *self)
 {
   PyObject *attr=NULL;
   
@@ -303,7 +299,7 @@ static PyObject *Bone_getTail(C_Bone *self)
 }
 
 
-static PyObject *Bone_getLoc (C_Bone *self)
+static PyObject *Bone_getLoc (BPy_Bone *self)
 {
   PyObject *attr=NULL;
   
@@ -320,7 +316,7 @@ static PyObject *Bone_getLoc (C_Bone *self)
 }
 
 
-static PyObject *Bone_getSize(C_Bone *self)
+static PyObject *Bone_getSize(BPy_Bone *self)
 {
   PyObject *attr=NULL;
   
@@ -337,7 +333,7 @@ static PyObject *Bone_getSize(C_Bone *self)
 }
 
 
-static PyObject *Bone_getQuat(C_Bone *self)
+static PyObject *Bone_getQuat(BPy_Bone *self)
 {
   PyObject *attr=NULL;
   
@@ -354,14 +350,14 @@ static PyObject *Bone_getQuat(C_Bone *self)
 }
 
 
-static PyObject *Bone_hasParent(C_Bone *self)
+static PyObject *Bone_hasParent(BPy_Bone *self)
 {
   
   if (!self->bone) (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                           "couldn't get attribute from a NULL bone"));
 
   /*
-  return M_BoneCreatePyObject(self->bone->parent);
+  return Bone_CreatePyObject(self->bone->parent);
   */
   if (self->bone->parent)
     {
@@ -377,13 +373,13 @@ static PyObject *Bone_hasParent(C_Bone *self)
 }
 
 
-static PyObject *Bone_getParent(C_Bone *self)
+static PyObject *Bone_getParent(BPy_Bone *self)
 {
   
   if (!self->bone) (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                           "couldn't get attribute from a NULL bone"));
 
-  if (self->bone->parent) return M_BoneCreatePyObject(self->bone->parent);
+  if (self->bone->parent) return Bone_CreatePyObject(self->bone->parent);
   else /*(EXPP_ReturnPyObjError (PyExc_RuntimeError,
          "couldn't get parent bone, because bone hasn't got a parent."));*/
     {
@@ -394,7 +390,7 @@ static PyObject *Bone_getParent(C_Bone *self)
 }
 
 
-static PyObject *Bone_getChildren(C_Bone *self)
+static PyObject *Bone_getChildren(BPy_Bone *self)
 {
   int totbones = 0;
   Bone* current = NULL;
@@ -413,7 +409,7 @@ static PyObject *Bone_getChildren(C_Bone *self)
   listbones = PyList_New(totbones);
   for (i=0; i<totbones; i++) {
     assert(current);
-    PyList_SetItem(listbones, i, M_BoneCreatePyObject(current));
+    PyList_SetItem(listbones, i, Bone_CreatePyObject(current));
     current = current->next;
   }
 
@@ -421,7 +417,7 @@ static PyObject *Bone_getChildren(C_Bone *self)
 }
 
 
-static PyObject *Bone_setName(C_Bone *self, PyObject *args)
+static PyObject *Bone_setName(BPy_Bone *self, PyObject *args)
 {
   char *name;
 
@@ -439,7 +435,7 @@ static PyObject *Bone_setName(C_Bone *self, PyObject *args)
 }
 
 
-PyObject *Bone_setRoll(C_Bone *self, PyObject *args)
+PyObject *Bone_setRoll(BPy_Bone *self, PyObject *args)
 {
   float roll;
 
@@ -457,7 +453,7 @@ PyObject *Bone_setRoll(C_Bone *self, PyObject *args)
 }
 
 
-static PyObject *Bone_setHead(C_Bone *self, PyObject *args)
+static PyObject *Bone_setHead(BPy_Bone *self, PyObject *args)
 {
   float f1,f2,f3;
 
@@ -477,7 +473,7 @@ static PyObject *Bone_setHead(C_Bone *self, PyObject *args)
 }
 
 
-static PyObject *Bone_setTail(C_Bone *self, PyObject *args)
+static PyObject *Bone_setTail(BPy_Bone *self, PyObject *args)
 {
   float f1,f2,f3;
 
@@ -497,7 +493,7 @@ static PyObject *Bone_setTail(C_Bone *self, PyObject *args)
 }
 
 
-static PyObject *Bone_setLoc(C_Bone *self, PyObject *args)
+static PyObject *Bone_setLoc(BPy_Bone *self, PyObject *args)
 {
   float f1,f2,f3;
 
@@ -517,7 +513,7 @@ static PyObject *Bone_setLoc(C_Bone *self, PyObject *args)
 }
 
 
-static PyObject *Bone_setSize(C_Bone *self, PyObject *args)
+static PyObject *Bone_setSize(BPy_Bone *self, PyObject *args)
 {
   float f1,f2,f3;
 
@@ -537,7 +533,7 @@ static PyObject *Bone_setSize(C_Bone *self, PyObject *args)
 }
 
 
-static PyObject *Bone_setQuat(C_Bone *self, PyObject *args)
+static PyObject *Bone_setQuat(BPy_Bone *self, PyObject *args)
 {
   float f1,f2,f3,f4;
 
@@ -559,22 +555,22 @@ static PyObject *Bone_setQuat(C_Bone *self, PyObject *args)
 
 
 /*****************************************************************************/
-/* Function:    BoneDeAlloc                                                  */
-/* Description: This is a callback function for the C_Bone type. It is       */
+/* Function:    Bone_dealloc                                                 */
+/* Description: This is a callback function for the BPy_Bone type. It is     */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void BoneDeAlloc (C_Bone *self)
+static void Bone_dealloc (BPy_Bone *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
-/* Function:    BoneGetAttr                                                  */
-/* Description: This is a callback function for the C_Bone type. It is       */
-/*              the function that accesses C_Bone member variables and       */
+/* Function:    Bone_getAttr                                                 */
+/* Description: This is a callback function for the BPy_Bone type. It is     */
+/*              the function that accesses BPy_Bone member variables and     */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject* BoneGetAttr (C_Bone *self, char *name)
+static PyObject* Bone_getAttr (BPy_Bone *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -611,16 +607,16 @@ static PyObject* BoneGetAttr (C_Bone *self, char *name)
   if (attr != Py_None) return attr; /* member attribute found, return it */
 
   /* not an attribute, search the methods table */
-  return Py_FindMethod(C_Bone_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Bone_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
-/* Function:    BoneSetAttr                                                  */
-/* Description: This is a callback function for the C_Bone type. It is the   */
+/* Function:    Bone_setAttr                                                 */
+/* Description: This is a callback function for the BPy_Bone type. It is the */
 /*              function that changes Bone Data members values. If this      */
 /*              data is linked to a Blender Bone, it also gets updated.      */
 /*****************************************************************************/
-static int BoneSetAttr (C_Bone *self, char *name, PyObject *value)
+static int Bone_setAttr (BPy_Bone *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -650,11 +646,11 @@ static int BoneSetAttr (C_Bone *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    BonePrint                                                    */
-/* Description: This is a callback function for the C_Bone type. It          */
+/* Function:    Bone_print                                                   */
+/* Description: This is a callback function for the BPy_Bone type. It        */
 /*              builds a meaninful string to 'print' bone objects.           */
 /*****************************************************************************/
-static int BonePrint(C_Bone *self, FILE *fp, int flags)
+static int Bone_print(BPy_Bone *self, FILE *fp, int flags)
 {
   if (self->bone) fprintf(fp, "[Bone \"%s\"]", self->bone->name);
   else fprintf(fp, "[Bone NULL]");
@@ -662,23 +658,23 @@ static int BonePrint(C_Bone *self, FILE *fp, int flags)
 }
 
 /*****************************************************************************/
-/* Function:    BoneRepr                                                     */
-/* Description: This is a callback function for the C_Bone type. It          */
+/* Function:    Bone_repr                                                    */
+/* Description: This is a callback function for the BPy_Bone type. It        */
 /*              builds a meaninful string to represent bone objects.         */
 /*****************************************************************************/
-static PyObject *BoneRepr (C_Bone *self)
+static PyObject *Bone_repr (BPy_Bone *self)
 {
   if (self->bone) return PyString_FromString(self->bone->name);
   else return PyString_FromString("NULL");
 }
 
 /**************************************************************************/
-/* Function:    BoneCmp                                                   */
-/* Description: This is a callback function for the C_Bone type. It       */
+/* Function:    Bone_compare                                              */
+/* Description: This is a callback function for the BPy_Bone type. It     */
 /*              compares the two bones: translate comparison to the       */
 /*              C pointers.                                               */
 /**************************************************************************/
-static int BoneCmp (C_Bone *a, C_Bone *b)
+static int Bone_compare (BPy_Bone *a, BPy_Bone *b)
 {
   Bone *pa = a->bone, *pb = b->bone;
 	return (pa == pb) ? 0:-1;
@@ -688,17 +684,15 @@ static int BoneCmp (C_Bone *a, C_Bone *b)
 
 
 /*****************************************************************************/
-/* Function:    M_BoneCreatePyObject                                         */
+/* Function:    Bone_CreatePyObject                                          */
 /* Description: This function will create a new BlenBone from an existing    */
 /*              Bone structure.                                              */
 /*****************************************************************************/
-PyObject* M_BoneCreatePyObject (struct Bone *obj)
+PyObject* Bone_CreatePyObject (struct Bone *obj)
 {
-  C_Bone    * blen_bone;
+  BPy_Bone    * blen_bone;
 
-  printf ("  In M_BoneCreatePyObject\n");
-
-  blen_bone = (C_Bone*)PyObject_NEW (C_Bone, &Bone_Type);
+  blen_bone = (BPy_Bone*)PyObject_NEW (BPy_Bone, &Bone_Type);
 
   if (blen_bone == NULL)
     {
@@ -709,24 +703,24 @@ PyObject* M_BoneCreatePyObject (struct Bone *obj)
 }
 
 /*****************************************************************************/
-/* Function:    M_BoneCheckPyObject                                          */
+/* Function:    Bone_CheckPyObject                                           */
 /* Description: This function returns true when the given PyObject is of the */
 /*              type Bone. Otherwise it will return false.                   */
 /*****************************************************************************/
-int M_BoneCheckPyObject (PyObject *py_obj)
+int Bone_CheckPyObject (PyObject *py_obj)
 {
   return (py_obj->ob_type == &Bone_Type);
 }
 
 /*****************************************************************************/
-/* Function:    M_BoneFromPyObject                                           */
+/* Function:    Bone_FromPyObject                                            */
 /* Description: This function returns the Blender bone from the given        */
 /*              PyObject.                                                    */
 /*****************************************************************************/
-struct Bone* M_BoneFromPyObject (PyObject *py_obj)
+struct Bone* Bone_FromPyObject (PyObject *py_obj)
 {
-  C_Bone    * blen_obj;
+  BPy_Bone    * blen_obj;
 
-  blen_obj = (C_Bone*)py_obj;
+  blen_obj = (BPy_Bone*)py_obj;
   return (blen_obj->bone);
 }

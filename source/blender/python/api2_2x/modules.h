@@ -56,13 +56,16 @@ extern PyObject *g_blenderdict;
 /* Module Init functions and Data Object helper functions (used by the       */
 /* Object module to work with its .data field for the various Data objs      */
 /*****************************************************************************/
-void       M_Blender_Init (void);
+void M_Blender_Init (void);
+
+/* sys */
+PyObject * sys_Init (void);
 
 /* Object itself */
-PyObject *      M_Object_Init (void);
-PyObject *      M_ObjectCreatePyObject (struct Object *obj);
-int             M_ObjectCheckPyObject (PyObject *py_obj);
-struct Object * M_ObjectFromPyObject (PyObject *py_obj);
+PyObject * Object_Init (void);
+PyObject * Object_CreatePyObject (struct Object *obj);
+Object   * Object_FromPyObject (PyObject *py_obj);
+int        Object_CheckPyObject (PyObject *py_obj);
 
 /* Scene */
 PyObject * Scene_Init (void);
@@ -95,34 +98,34 @@ Lamp     * Lamp_FromPyObject   (PyObject *pyobj);
 int        Lamp_CheckPyObject  (PyObject *pyobj);
 
 /* Curve Data */
-PyObject *      M_Curve_Init (void);
-PyObject *      CurveCreatePyObject (struct Curve *curve);
-struct Curve *  CurveFromPyObject   (PyObject *py_obj);
-int             CurveCheckPyObject  (PyObject *py_obj);
+PyObject * Curve_Init (void);
+PyObject * CurveCreatePyObject (struct Curve *curve);
+Curve    * CurveFromPyObject   (PyObject *py_obj);
+int        CurveCheckPyObject  (PyObject *py_obj);
 
 /* Armature Data */
-PyObject *         M_Armature_Init (void);
-PyObject *         M_ArmatureCreatePyObject (bArmature *armature);
-bArmature*         M_ArmatureFromPyObject   (PyObject *py_obj);
-int                M_ArmatureCheckPyObject  (PyObject *py_obj);
+PyObject  * Armature_Init (void);
+PyObject  * Armature_CreatePyObject (bArmature *armature);
+bArmature * Armature_FromPyObject   (PyObject *py_obj);
+int         Armature_CheckPyObject  (PyObject *py_obj);
 
 /* Ipo Data */
-PyObject *      M_Ipo_Init (void);
-PyObject *      Ipo_CreatePyObject (struct Ipo *ipo);
-struct Ipo *    Ipo_FromPyObject   (PyObject *py_obj);
-int             Ipo_CheckPyObject  (PyObject *py_obj);
+PyObject * Ipo_Init (void);
+PyObject * Ipo_CreatePyObject (struct Ipo *ipo);
+Ipo      * Ipo_FromPyObject   (PyObject *py_obj);
+int        Ipo_CheckPyObject  (PyObject *py_obj);
 
 /* Metaball Data */
-PyObject *        M_Metaball_Init (void);
-PyObject *        Metaball_CreatePyObject (MetaBall *metaball);
-struct MetaBall * Metaball_FromPyObject   (PyObject *py_obj);
-int               Metaball_CheckPyObject  (PyObject *py_obj);
+PyObject * Metaball_Init (void);
+PyObject * Metaball_CreatePyObject (MetaBall *metaball);
+MetaBall * Metaball_FromPyObject   (PyObject *py_obj);
+int        Metaball_CheckPyObject  (PyObject *py_obj);
 
 /* Particle Effects Data */
-PyObject *      M_Effect_Init (void);
-PyObject *      Effect_CreatePyObject (struct Effect *effect);
-struct Effect * Effect_FromPyObject (PyObject *py_obj);
-int             Effect_CheckPyObject (PyObject *py_obj);
+PyObject * Effect_Init (void);
+PyObject * Effect_CreatePyObject (struct Effect *effect);
+Effect   * Effect_FromPyObject (PyObject *py_obj);
+int        Effect_CheckPyObject (PyObject *py_obj);
 
 /* Image */
 PyObject * Image_Init (void);
@@ -137,6 +140,6 @@ PyObject * Text_CreatePyObject (Text *txt);
 PyObject * Window_Init (void);
 PyObject * Draw_Init (void);
 PyObject * BGL_Init (void);
-PyObject * M_World_Init (void);
+PyObject * World_Init (void);
 
 #endif /* EXPP_modules_h */

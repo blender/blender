@@ -81,10 +81,10 @@ static PyObject *g_nmeshmodule = NULL;
 
 /* Type checking for EXPP PyTypes */
 
-#define C_NMesh_Check(v)       ((v)->ob_type == &NMesh_Type)
-#define C_NMFace_Check(v)      ((v)->ob_type == &NMFace_Type)
-#define C_NMVert_Check(v)      ((v)->ob_type == &NMVert_Type)
-#define C_NMCol_Check(v)       ((v)->ob_type == &NMCol_Type)
+#define BPy_NMesh_Check(v)       ((v)->ob_type == &NMesh_Type)
+#define BPy_NMFace_Check(v)      ((v)->ob_type == &NMFace_Type)
+#define BPy_NMVert_Check(v)      ((v)->ob_type == &NMVert_Type)
+#define BPy_NMCol_Check(v)       ((v)->ob_type == &NMCol_Type)
 
 static char M_NMesh_doc[] =
 "The Blender.NMesh module";
@@ -164,7 +164,7 @@ typedef struct {
 	PyObject_HEAD
 	unsigned char r, g, b, a;
 
-} C_NMCol; /* an NMesh color: [r,g,b,a] */
+} BPy_NMCol; /* an NMesh color: [r,g,b,a] */
 
 typedef struct {
 	PyObject_VAR_HEAD
@@ -173,7 +173,7 @@ typedef struct {
 	float uvco[3];
 	int index;
 
-} C_NMVert; /* an NMesh vertex */
+} BPy_NMVert; /* an NMesh vertex */
 
 typedef struct {
 	PyObject_HEAD
@@ -186,7 +186,7 @@ typedef struct {
 	Image *image;
 	char mat_nr, smooth;
 
-} C_NMFace; /* an NMesh face */
+} BPy_NMFace; /* an NMesh face */
 
 typedef struct {
 	PyObject_HEAD
@@ -202,17 +202,17 @@ typedef struct {
 #define NMESH_HASVERTUV	1<<1
 #define NMESH_HASFACEUV	1<<2
 
-} C_NMesh;
+} BPy_NMesh;
 
 /* PROTOS */
 extern void test_object_materials(ID *id); /* declared in BKE_material.h */
 static int unlink_existingMeshData(Mesh *mesh);
-static int convert_NMeshToMesh(Mesh *mesh, C_NMesh *nmesh);
+static int convert_NMeshToMesh(Mesh *mesh, BPy_NMesh *nmesh);
 void mesh_update(Mesh *mesh);
 PyObject *new_NMesh(Mesh *oldmesh);
-Mesh *Mesh_fromNMesh(C_NMesh *nmesh);
-PyObject *NMesh_assignMaterials_toObject(C_NMesh *nmesh, Object *ob);
-Material **nmesh_updateMaterials(C_NMesh *nmesh);
+Mesh *Mesh_fromNMesh(BPy_NMesh *nmesh);
+PyObject *NMesh_assignMaterials_toObject(BPy_NMesh *nmesh, Object *ob);
+Material **nmesh_updateMaterials(BPy_NMesh *nmesh);
 Material **newMaterialList_fromPyList (PyObject *list);
 void mesh_update(Mesh *mesh);
 

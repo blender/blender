@@ -173,12 +173,12 @@ static PyMethodDef BPy_Camera_methods[] = {
 /*****************************************************************************/
 /* Python Camera_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void Camera_DeAlloc (BPy_Camera *self);
-static int Camera_Print (BPy_Camera *self, FILE *fp, int flags);
-static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *v);
-static int Camera_Compare (BPy_Camera *a, BPy_Camera *b);
-static PyObject *Camera_GetAttr (BPy_Camera *self, char *name);
-static PyObject *Camera_Repr (BPy_Camera *self);
+static void Camera_dealloc (BPy_Camera *self);
+static int Camera_print (BPy_Camera *self, FILE *fp, int flags);
+static int Camera_setAttr (BPy_Camera *self, char *name, PyObject *v);
+static int Camera_compare (BPy_Camera *a, BPy_Camera *b);
+static PyObject *Camera_getAttr (BPy_Camera *self, char *name);
+static PyObject *Camera_repr (BPy_Camera *self);
 
 
 #endif /* EXPP_CAMERA_H */

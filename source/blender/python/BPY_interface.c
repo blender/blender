@@ -40,6 +40,8 @@
 
 #include <MEM_guardedalloc.h>
 
+#include <BLI_blenlib.h> /* for BLI_last_slash() */
+
 #include <BKE_global.h>
 #include <BKE_main.h>
 #include <BKE_text.h>
@@ -53,6 +55,8 @@
 #include <DNA_space_types.h>
 #include <DNA_text_types.h>
 #include <DNA_world_types.h>
+
+#include <DNA_userdef_types.h> /* for U.pythondir */
 
 #include "BPY_extern.h"
 #include "api2_2x/EXPP_interface.h"
@@ -89,13 +93,15 @@ void      DoAllScriptsFromList (ListBase * list, short event);
 /*****************************************************************************/
 void BPY_start_python(void)
 {
-  printf ("In BPY_start_python\n");
+  //printf ("In BPY_start_python\n");
 /* TODO: Shouldn't "blender" be replaced by PACKAGE ?? (config.h) */
   Py_SetProgramName("blender");
 
   Py_Initialize ();
 
   initBlenderApi2_2x ();
+
+	init_syspath();
 
   return; /* We could take away all these return; ... */
 }
@@ -105,9 +111,85 @@ void BPY_start_python(void)
 /*****************************************************************************/
 void BPY_end_python(void)
 {
-  printf ("In BPY_end_python\n");
+  //printf ("In BPY_end_python\n");
   Py_Finalize();
   return;
+}
+
+void syspath_append(PyObject *dir)
+{
+  PyObject *mod_sys, *dict, *path;
+
+  PyErr_Clear();
+
+  mod_sys = PyImport_ImportModule("sys"); /* new ref */
+  dict = PyModule_GetDict(mod_sys);       /* borrowed ref */
+  path = PyDict_GetItemString(dict, "path"); /* borrowed ref */
+
+  if (!PyList_Check(path)) return;
+
+  PyList_Append(path, dir);
+
+  if (PyErr_Occurred()) Py_FatalError("could not build sys.path");
+
+  Py_DECREF(mod_sys);
+}
+
+void init_syspath(void)
+{
+	PyObject *path;
+	PyObject *mod, *d;
+	PyObject *p;
+	char *c, *progname;
+	char execdir[FILE_MAXDIR + FILE_MAXFILE];/*defines from DNA_space_types.h*/
+
+	int n;
+
+	path = Py_BuildValue("s", bprogname);
+
+	mod = PyImport_ImportModule("Blender.sys");
+
+  if (mod) {
+		d = PyModule_GetDict(mod);
+		PyDict_SetItemString(d, "progname", path);
+		Py_DECREF(mod);
+	}
+  else
+    printf("Warning: could not set Blender.sys.progname\n");
+
+	progname = BLI_last_slash(bprogname); /* looks for the last dir separator */
+
+	c = Py_GetPath(); /* get python system path */
+	PySys_SetPath(c); /* initialize */
+
+	n = progname - bprogname;
+	if (n > 0) {
+		strncpy(execdir, bprogname, n);
+		if (execdir[n-1] == '.') n--; /*fix for when run as ./blender */
+		execdir[n] = '\0';
+
+		p = Py_BuildValue("s", execdir);
+		syspath_append(p);  /* append to module search path */
+
+		/* set Blender.sys.progname */
+	}
+  else
+    printf ("Warning: could not determine argv[0] path\n");
+
+	if (U.pythondir) { /* XXX not working, U.pythondir is NULL here ?!?*/
+					/* maybe it wasn't defined yet at this point in start-up ...*/
+		p = Py_BuildValue("s", U.pythondir);
+		syspath_append(p);  /* append to module search path */
+	}
+
+	/* set sys.executable to the Blender exe */
+  mod = PyImport_ImportModule("sys"); /* new ref */
+
+	if (mod) {
+		d = PyModule_GetDict(mod); /* borrowed ref */
+	  PyDict_SetItemString(d, "executable", Py_BuildValue("s", bprogname));
+	  Py_DECREF(mod);
+	}
 }
 
 /*****************************************************************************/
@@ -116,7 +198,7 @@ void BPY_end_python(void)
 /*****************************************************************************/
 int BPY_Err_getLinenumber(void)
 {
-  printf ("In BPY_Err_getLinenumber\n");
+  //printf ("In BPY_Err_getLinenumber\n");
   return g_script_error.lineno;
 }
 
@@ -125,7 +207,7 @@ int BPY_Err_getLinenumber(void)
 /*****************************************************************************/
 const char *BPY_Err_getFilename(void)
 {
-  printf ("In BPY_Err_getFilename\n");
+  //printf ("In BPY_Err_getFilename\n");
   return g_script_error.filename;
 }
 
@@ -222,7 +304,7 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 {
   PyObject *dict, *ret;
 
-  printf ("\nIn BPY_txt_do_python\n");
+  //printf ("\nIn BPY_txt_do_python\n");
 
   if (!st->text) return NULL;
 
@@ -290,7 +372,7 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 /*****************************************************************************/
 void BPY_free_compiled_text(struct Text* text)
 {
-  printf ("In BPY_free_compiled_text\n");
+  //printf ("In BPY_free_compiled_text\n");
   if (!text->compiled) return;
   Py_DECREF((PyObject*) text->compiled);
   text->compiled = NULL;
@@ -308,7 +390,7 @@ void BPY_free_compiled_text(struct Text* text)
 /*****************************************************************************/
 void BPY_clear_bad_scriptlinks(struct Text *byebye)
 {
-  printf ("In BPY_clear_bad_scriptlinks\n");
+  //printf ("In BPY_clear_bad_scriptlinks\n");
 /*
   BPY_clear_bad_scriptlist(getObjectList(), byebye);
   BPY_clear_bad_scriptlist(getLampList(), byebye);
@@ -330,7 +412,7 @@ void BPY_clear_bad_scriptlinks(struct Text *byebye)
 /*****************************************************************************/
 void BPY_do_all_scripts(short event)
 {
-  printf ("In BPY_do_all_scripts(event=%d)\n",event);
+  /*printf ("In BPY_do_all_scripts(event=%d)\n",event);*/
 
   DoAllScriptsFromList (&(G.main->object), event);
   DoAllScriptsFromList (&(G.main->lamp), event);
@@ -357,7 +439,7 @@ void BPY_do_pyscript(struct ID *id, short event)
   PyObject    * dict;
   PyObject    * ret;
 
-  printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);
+  /*printf ("In BPY_do_pyscript(id=%s, event=%d)\n",id->name, event);*/
 
   scriptlink = setScriptLinks (id, event);
 
@@ -396,7 +478,7 @@ void BPY_do_pyscript(struct ID *id, short event)
 /*****************************************************************************/
 void BPY_free_scriptlink(struct ScriptLink *slink)
 {
-  printf ("In BPY_free_scriptlink\n");
+  //printf ("In BPY_free_scriptlink\n");
 
   if (slink->totscript) {
     if(slink->flag) MEM_freeN(slink->flag);
@@ -414,7 +496,7 @@ void BPY_copy_scriptlink(struct ScriptLink *scriptlink)
 {
   void *tmp;
 
-  printf ("In BPY_copy_scriptlink\n");
+  //printf ("In BPY_copy_scriptlink\n");
 
   if (scriptlink->totscript) {
 

@@ -49,7 +49,7 @@
 
 void initBlenderApi2_2x (void)
 {
-  printf ("initBlenderApi2_2x\n");
+  //printf ("initBlenderApi2_2x\n");
   g_blenderdict = NULL;
   M_Blender_Init ();
 }
@@ -73,7 +73,7 @@ ScriptLink * setScriptLinks(ID *id, short event)
   int           obj_id;
 
   obj_id = MAKE_ID2 (id->name[0], id->name[1]);
-  printf ("In setScriptLinks (id=%s, event=%d)\n",id->name, event);
+  //printf ("In setScriptLinks (id=%s, event=%d)\n",id->name, event);
 
   switch (obj_id)
   {
@@ -83,7 +83,7 @@ ScriptLink * setScriptLinks(ID *id, short event)
       {
         return NULL;
       }
-      link = M_ObjectCreatePyObject (object);
+      link = Object_CreatePyObject (object);
       scriptlink = &(object->scriptlink);
       break;
     case ID_LA:

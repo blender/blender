@@ -43,7 +43,6 @@ static PyObject *M_Curve_New(PyObject *self, PyObject *args)
   BPy_Curve    *pycurve; /* for Curve Data object wrapper in Python */
   Curve      *blcurve = 0; /* for actual Curve Data we create in Blender */
   
-  printf ("In Curve_New()\n");
   if (!PyArg_ParseTuple(args, "|s", &name))
 					return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 														"expected string argument or no argument"));
@@ -81,7 +80,6 @@ static PyObject *M_Curve_Get(PyObject *self, PyObject *args)
   Curve   *curv_iter;
   BPy_Curve *wanted_curv;
 
-  printf ("In Curve_Get()\n");
   if (!PyArg_ParseTuple(args, "|s", &name))//expects nothing or a string
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 														"expected string argument"));
@@ -133,12 +131,11 @@ BPy_Curve *found_cur=(BPy_Curve*)PyObject_NEW(BPy_Curve,&Curve_Type);
 }
 
 /*****************************************************************************/
-/* Function:              M_Curve_Init                                      */
+/* Function:              Curve_Init                                         */
 /*****************************************************************************/
-PyObject *M_Curve_Init (void)
+PyObject *Curve_Init (void)
 {
   PyObject  *submodule;
-  printf ("In M_Curve_Init()\n");
 
   Curve_Type.ob_type = &PyType_Type;
 
@@ -676,8 +673,6 @@ static PyObject *CurveRepr (BPy_Curve *self) //used by 'repr'
 PyObject* CurveCreatePyObject (struct Curve *curve)
 {
  BPy_Curve    * blen_object;
-
-    printf ("In CurveCreatePyObject\n");
 
     blen_object = (BPy_Curve*)PyObject_NEW (BPy_Curve, &Curve_Type);
 

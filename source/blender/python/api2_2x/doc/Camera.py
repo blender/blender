@@ -1,7 +1,10 @@
 # Blender.Camera module and the Camera PyType object
 
 """
-The Blender.Camera submodule
+The Blender.Camera submodule.
+
+Camera Data
+===========
 
 This module provides access to B{Camera Data} objects in Blender.
 

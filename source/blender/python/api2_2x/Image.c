@@ -40,7 +40,7 @@
 #include "Image.h"
 
 /*****************************************************************************/
-/* Python C_Image defaults:                                                  */
+/* Python BPy_Image defaults:                                                */
 /*****************************************************************************/
 #define EXPP_IMAGE_REP      1
 #define EXPP_IMAGE_REP_MIN  1
@@ -124,11 +124,11 @@ static PyObject *M_Image_Get(PyObject *self, PyObject *args)
 
 	if (name) { /* (name) - Search image by name */
 
-    C_Image *wanted_image = NULL;
+    BPy_Image *wanted_image = NULL;
 
     while ((img_iter) && (wanted_image == NULL)) {
       if (strcmp (name, img_iter->id.name+2) == 0) {
-        wanted_image = (C_Image *)PyObject_NEW(C_Image, &Image_Type);
+        wanted_image = (BPy_Image *)PyObject_NEW(BPy_Image, &Image_Type);
 				if (wanted_image) wanted_image->image = img_iter;
       }
       img_iter = img_iter->id.next;
@@ -181,13 +181,13 @@ static PyObject *M_Image_Load(PyObject *self, PyObject *args)
 {
   char    *fname;
   Image   *img_ptr;
-  C_Image *img;
+  BPy_Image *img;
 
   if (!PyArg_ParseTuple(args, "s", &fname))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
 
-  img = (C_Image *)PyObject_NEW(C_Image, &Image_Type);
+  img = (BPy_Image *)PyObject_NEW(BPy_Image, &Image_Type);
 
   if (!img)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -222,18 +222,18 @@ PyObject *Image_Init (void)
 /************************/
 
 /*****************************************************************************/
-/* Python C_Image methods declarations:                                      */
+/* Python BPy_Image methods declarations:                                    */
 /*****************************************************************************/
-static PyObject *Image_getName(C_Image *self);
-static PyObject *Image_getFilename(C_Image *self);
-static PyObject *Image_setName(C_Image *self, PyObject *args);
-static PyObject *Image_setXRep(C_Image *self, PyObject *args);
-static PyObject *Image_setYRep(C_Image *self, PyObject *args);
+static PyObject *Image_getName(BPy_Image *self);
+static PyObject *Image_getFilename(BPy_Image *self);
+static PyObject *Image_setName(BPy_Image *self, PyObject *args);
+static PyObject *Image_setXRep(BPy_Image *self, PyObject *args);
+static PyObject *Image_setYRep(BPy_Image *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Image methods table:                                             */
+/* Python BPy_Image methods table:                                           */
 /*****************************************************************************/
-static PyMethodDef C_Image_methods[] = {
+static PyMethodDef BPy_Image_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Image_getName, METH_NOARGS,
           "() - Return Image Data name"},
@@ -249,14 +249,14 @@ static PyMethodDef C_Image_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python Image_Type callback function prototypes:                          */
+/* Python Image_Type callback function prototypes:                           */
 /*****************************************************************************/
-static void Image_Dealloc (C_Image *self);
-static int Image_SetAttr (C_Image *self, char *name, PyObject *v);
-static int Image_Compare (C_Image *a, C_Image *b);
-static int Image_Print (C_Image *self, FILE *fp, int flags);
-static PyObject *Image_GetAttr (C_Image *self, char *name);
-static PyObject *Image_Repr (C_Image *self);
+static void Image_Dealloc (BPy_Image *self);
+static int Image_SetAttr (BPy_Image *self, char *name, PyObject *v);
+static int Image_Compare (BPy_Image *a, BPy_Image *b);
+static int Image_Print (BPy_Image *self, FILE *fp, int flags);
+static PyObject *Image_GetAttr (BPy_Image *self, char *name);
+static PyObject *Image_Repr (BPy_Image *self);
 
 /*****************************************************************************/
 /* Python Image_Type structure definition:                                   */
@@ -265,8 +265,8 @@ PyTypeObject Image_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                     /* ob_size */
-  "Image",                               /* tp_name */
-  sizeof (C_Image),                      /* tp_basicsize */
+  "Blender Image",                       /* tp_name */
+  sizeof (BPy_Image),                    /* tp_basicsize */
   0,                                     /* tp_itemsize */
   /* methods */
   (destructor)Image_Dealloc,             /* tp_dealloc */
@@ -282,34 +282,34 @@ PyTypeObject Image_Type =
   0,0,0,0,0,0,
   0,                                     /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Image_methods,                       /* tp_methods */
+  BPy_Image_methods,                       /* tp_methods */
   0,                                     /* tp_members */
 };
 
 /*****************************************************************************/
 /* Function:    ImageDealloc                                                 */
-/* Description: This is a callback function for the C_Image type. It is      */
+/* Description: This is a callback function for the BPy_Image type. It is    */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void Image_Dealloc (C_Image *self)
+static void Image_Dealloc (BPy_Image *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
 /* Function:    Image_CreatePyObject                                         */
-/* Description: This function will create a new C_Image from an existing     */
+/* Description: This function will create a new BPy_Image from an existing   */
 /*              Blender image structure.                                     */
 /*****************************************************************************/
 PyObject *Image_CreatePyObject (Image *image)
 {
-	C_Image *py_img;
+	BPy_Image *py_img;
 
-	py_img = (C_Image *)PyObject_NEW (C_Image, &Image_Type);
+	py_img = (BPy_Image *)PyObject_NEW (BPy_Image, &Image_Type);
 
 	if (!py_img)
 		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-						"couldn't create C_Image object");
+						"couldn't create BPy_Image object");
 
 	py_img->image = image;
 
@@ -327,9 +327,9 @@ int Image_CheckPyObject (PyObject *pyobj)
 }
 
 /*****************************************************************************/
-/* Python C_Image methods:                                                  */
+/* Python BPy_Image methods:                                                 */
 /*****************************************************************************/
-static PyObject *Image_getName(C_Image *self)
+static PyObject *Image_getName(BPy_Image *self)
 {
   PyObject *attr = PyString_FromString(self->image->id.name+2);
 
@@ -339,7 +339,7 @@ static PyObject *Image_getName(C_Image *self)
           "couldn't get Image.name attribute"));
 }
 
-static PyObject *Image_getFilename(C_Image *self)
+static PyObject *Image_getFilename(BPy_Image *self)
 {
   PyObject *attr = PyString_FromString(self->image->name);
 
@@ -349,7 +349,7 @@ static PyObject *Image_getFilename(C_Image *self)
           "couldn't get Image.filename attribute"));
 }
 
-static PyObject *Image_setName(C_Image *self, PyObject *args)
+static PyObject *Image_setName(BPy_Image *self, PyObject *args)
 {
   char *name;
   char buf[21];
@@ -366,7 +366,7 @@ static PyObject *Image_setName(C_Image *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Image_setXRep(C_Image *self, PyObject *args)
+static PyObject *Image_setXRep(BPy_Image *self, PyObject *args)
 {
   short value;
 
@@ -384,7 +384,7 @@ static PyObject *Image_setXRep(C_Image *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Image_setYRep(C_Image *self, PyObject *args)
+static PyObject *Image_setYRep(BPy_Image *self, PyObject *args)
 {
   short value;
 
@@ -404,11 +404,11 @@ static PyObject *Image_setYRep(C_Image *self, PyObject *args)
 
 /*****************************************************************************/
 /* Function:    Image_GetAttr                                                */
-/* Description: This is a callback function for the C_Image type. It is      */
-/*              the function that accesses C_Image member variables and      */
+/* Description: This is a callback function for the BPy_Image type. It is    */
+/*              the function that accesses BPy_Image member variables and    */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *Image_GetAttr (C_Image *self, char *name)
+static PyObject *Image_GetAttr (BPy_Image *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -432,16 +432,16 @@ static PyObject *Image_GetAttr (C_Image *self, char *name)
   if (attr != Py_None) return attr; /* attribute found, return its value */
 
   /* not an attribute, search the methods table */
-  return Py_FindMethod(C_Image_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Image_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
 /* Function:    Image_SetAttr                                                */
-/* Description: This is a callback function for the C_Image type. It is the  */
+/* Description: This is a callback function for the BPy_Image type. It is the*/
 /*              function that changes Image Data members values. If this     */
 /*              data is linked to a Blender Image, it also gets updated.     */
 /*****************************************************************************/
-static int Image_SetAttr (C_Image *self, char *name, PyObject *value)
+static int Image_SetAttr (BPy_Image *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -480,13 +480,13 @@ static int Image_SetAttr (C_Image *self, char *name, PyObject *value)
 
 /*****************************************************************************/
 /* Function:    Image_Compare                                                */
-/* Description: This is a callback function for the C_Image type. It         */
+/* Description: This is a callback function for the BPy_Image type. It       */
 /*              compares two Image_Type objects. Only the "==" and "!="      */
 /*              comparisons are meaninful. Returns 0 for equality and -1 if  */
 /*              they don't point to the same Blender Image struct.           */
 /*              In Python it becomes 1 if they are equal, 0 otherwise.       */
 /*****************************************************************************/
-static int Image_Compare (C_Image *a, C_Image *b)
+static int Image_Compare (BPy_Image *a, BPy_Image *b)
 {
 	Image *pa = a->image, *pb = b->image;
 	return (pa == pb) ? 0:-1;
@@ -494,10 +494,10 @@ static int Image_Compare (C_Image *a, C_Image *b)
 
 /*****************************************************************************/
 /* Function:    Image_Print                                                  */
-/* Description: This is a callback function for the C_Image type. It         */
+/* Description: This is a callback function for the BPy_Image type. It       */
 /*              builds a meaninful string to 'print' image objects.          */
 /*****************************************************************************/
-static int Image_Print(C_Image *self, FILE *fp, int flags)
+static int Image_Print(BPy_Image *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Image \"%s\"]", self->image->id.name+2);
   return 0;
@@ -505,10 +505,10 @@ static int Image_Print(C_Image *self, FILE *fp, int flags)
 
 /*****************************************************************************/
 /* Function:    Image_Repr                                                   */
-/* Description: This is a callback function for the C_Image type. It         */
+/* Description: This is a callback function for the BPy_Image type. It       */
 /*              builds a meaninful string to represent image objects.        */
 /*****************************************************************************/
-static PyObject *Image_Repr (C_Image *self)
+static PyObject *Image_Repr (BPy_Image *self)
 {
   return PyString_FromString(self->image->id.name+2);
 }

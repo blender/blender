@@ -29,31 +29,38 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_IMAGE_H
-#define EXPP_IMAGE_H
+#ifndef EXPP_sys_H
+#define EXPP_sys_H
 
 #include <Python.h>
-#include <DNA_image_types.h>
-
-
-/*****************************************************************************/
-/* Python BPy_Image structure definition                                     */
-/*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  Image *image;
-
-} BPy_Image;
-
-extern PyTypeObject Image_Type; /* The Image PyType Object */ 
-
-#define BPy_Image_Check(v)  ((v)->ob_type == &Image_Type)/*for type checking*/
+#include <BLI_blenlib.h> /* for BLI_last_slash() */
+#include "gen_utils.h"
+#include "modules.h"
 
 /*****************************************************************************/
-/* Module Blender.Image - public functions                                   */
+/* Python API function prototypes for the sys module.                        */
 /*****************************************************************************/
-PyObject *M_Image_Init (void);
-PyObject *Image_CreatePyObject (Image *image);
-int       Image_CheckPyObject (PyObject *pyobj);
+static PyObject *M_sys_dirname (PyObject *self, PyObject *args);
 
-#endif /* EXPP_IMAGE_H */
+/*****************************************************************************/
+/* The following string definitions are used for documentation strings.      */
+/* In Python these will be written to the console when doing a               */
+/* Blender.sys.__doc__                                                       */
+/*****************************************************************************/
+static char M_sys_doc[] =
+"The Blender.sys submodule\n\
+\n\
+This is a minimal sys module kept for compatibility.  It may also still be\n\
+useful for users without full Python installations.\n";
+
+static char M_sys_dirname_doc[] = "";
+
+/*****************************************************************************/
+/* Python method structure definition for Blender.sys module:                */
+/*****************************************************************************/
+struct PyMethodDef M_sys_methods[] = {
+  {"dirname",     M_sys_dirname,         METH_VARARGS, M_sys_dirname_doc},
+  {NULL, NULL, 0, NULL}
+};
+
+#endif /* EXPP_sys_H */

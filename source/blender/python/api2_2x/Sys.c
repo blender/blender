@@ -29,31 +29,59 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_IMAGE_H
-#define EXPP_IMAGE_H
+#include "Sys.h"
 
-#include <Python.h>
-#include <DNA_image_types.h>
+static PyObject *g_sysmodule = Py_None; /* pointer to Blender.sys module */
 
+PyObject *sys_Init (void)
+{
+  PyObject  *submodule, *dict, *sep;
 
-/*****************************************************************************/
-/* Python BPy_Image structure definition                                     */
-/*****************************************************************************/
-typedef struct {
-  PyObject_HEAD
-  Image *image;
+  submodule = Py_InitModule3("Blender.sys", M_sys_methods, M_sys_doc);
 
-} BPy_Image;
+  g_sysmodule = submodule;
 
-extern PyTypeObject Image_Type; /* The Image PyType Object */ 
+  dict = PyModule_GetDict(submodule);
 
-#define BPy_Image_Check(v)  ((v)->ob_type == &Image_Type)/*for type checking*/
+#ifdef WIN32
+  sep = Py_BuildValue("s", "\\");
+#else
+  sep = Py_BuildValue("s", "/");
+#endif
 
-/*****************************************************************************/
-/* Module Blender.Image - public functions                                   */
-/*****************************************************************************/
-PyObject *M_Image_Init (void);
-PyObject *Image_CreatePyObject (Image *image);
-int       Image_CheckPyObject (PyObject *pyobj);
+  if (sep) {
+    Py_INCREF(sep);
+    PyDict_SetItemString(dict, "dirsep" , sep);
+    PyDict_SetItemString(dict, "sep" , sep);
+  }
 
-#endif /* EXPP_IMAGE_H */
+  return submodule;
+}
+
+static PyObject *M_sys_dirname (PyObject *self, PyObject *args)
+{
+  PyObject *c;
+
+  char *name, dirname[256];
+  char sep;
+  int n;
+
+  if (!PyArg_ParseTuple(args, "s", &name))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+              "expected string argument");
+
+  c = PyObject_GetAttrString (g_sysmodule, "dirsep");
+  sep = PyString_AsString(c)[0];
+  Py_DECREF(c);
+
+  n = strrchr(name, sep) - name;
+  if (n > 255) {
+    PyErr_SetString(PyExc_RuntimeError, "path too long");
+    return 0;
+  }
+
+  strncpy(dirname, name, n);
+  dirname[n] = 0;
+
+  return Py_BuildValue("s", dirname);
+}

@@ -37,12 +37,12 @@
 /*****************************************************************************/
 /* Python constant_Type callback function prototypes:                        */
 /*****************************************************************************/
-static void constantDeAlloc (C_constant *cam);
-static PyObject *constantGetAttr (C_constant *cam, char *name);
-static PyObject *constantRepr (C_constant *cam);
-static int constantLength(C_constant *self);
-static PyObject *constantSubscript(C_constant *self, PyObject *key);
-static int constantAssSubscript(C_constant *self, PyObject *who,
+static void constant_dealloc (BPy_constant *cam);
+static PyObject *constant_getAttr (BPy_constant *cam, char *name);
+static PyObject *constant_repr (BPy_constant *cam);
+static int constantLength(BPy_constant *self);
+static PyObject *constantSubscript(BPy_constant *self, PyObject *key);
+static int constantAssSubscript(BPy_constant *self, PyObject *who,
                                 PyObject *cares);
 
 /*****************************************************************************/
@@ -62,16 +62,16 @@ PyTypeObject constant_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
-  "constant",                             /* tp_name */
-  sizeof (C_constant),                    /* tp_basicsize */
+  "Blender constant",                     /* tp_name */
+  sizeof (BPy_constant),                  /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
-  (destructor)constantDeAlloc,            /* tp_dealloc */
+  (destructor)constant_dealloc,           /* tp_dealloc */
   0,                                      /* tp_print */
-  (getattrfunc)constantGetAttr,           /* tp_getattr */
+  (getattrfunc)constant_getAttr,          /* tp_getattr */
   0,                                      /* tp_setattr */
   0,                                      /* tp_compare */
-  (reprfunc)constantRepr,                 /* tp_repr */
+  (reprfunc)constant_repr,                /* tp_repr */
   0,                                      /* tp_as_number */
   0,                                      /* tp_as_sequence */
   &constantAsMapping,                     /* tp_as_mapping */
@@ -95,13 +95,11 @@ PyObject *M_constant_New(void) /* can't be static, we call it in other files */
 
 static PyObject *new_const(void)
 { /* this is the static one */
-  C_constant *constant;
+  BPy_constant *constant;
 
   constant_Type.ob_type = &PyType_Type;
 
-  printf ("In constant_New()\n");
-
-  constant = (C_constant *)PyObject_NEW(C_constant, &constant_Type);
+  constant = (BPy_constant *)PyObject_NEW(BPy_constant, &constant_Type);
 
   if (constant == NULL)
     return (PythonReturnErrorObject (PyExc_MemoryError,
@@ -115,31 +113,31 @@ static PyObject *new_const(void)
 }
 
 /*****************************************************************************/
-/* Python C_constant methods:                                                */
+/* Python BPy_constant methods:                                              */
 /*****************************************************************************/
-int constant_insert (C_constant *self, char *name, PyObject *value)
+int constant_insert (BPy_constant *self, char *name, PyObject *value)
 {
 	return PyDict_SetItemString (self->dict, name, value);
 }
 
 /*****************************************************************************/
-/* Function:    constantDeAlloc                                              */
-/* Description: This is a callback function for the C_constant type. It is   */
+/* Function:    constant_dealloc                                              */
+/* Description: This is a callback function for the BPy_constant type. It is */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void constantDeAlloc (C_constant *self)
+static void constant_dealloc (BPy_constant *self)
 {
   Py_DECREF(self->dict);
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
-/* Function:    constantGetAttr                                              */
-/* Description: This is a callback function for the C_constant type. It is   */
-/*              the function that accesses C_constant member variables and   */
+/* Function:    constant_getAttr                                              */
+/* Description: This is a callback function for the BPy_constant type. It is */
+/*              the function that accesses BPy_constant member variables and */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject *constantGetAttr (C_constant *self, char *name)
+static PyObject *constant_getAttr (BPy_constant *self, char *name)
 {
   if (self->dict)
   {
@@ -166,12 +164,12 @@ static PyObject *constantGetAttr (C_constant *self, char *name)
 /*             These functions provide code to access constant objects as    */
 /*             mappings.                                                     */
 /*****************************************************************************/
-static int constantLength(C_constant *self)
+static int constantLength(BPy_constant *self)
 {
   return 0;
 }
 
-static PyObject *constantSubscript(C_constant *self, PyObject *key)
+static PyObject *constantSubscript(BPy_constant *self, PyObject *key)
 {
   if (self->dict) {
     PyObject *v = PyDict_GetItem(self->dict, key);
@@ -185,7 +183,7 @@ static PyObject *constantSubscript(C_constant *self, PyObject *key)
   return NULL;
 }
 
-static int constantAssSubscript(C_constant *self, PyObject *who,
+static int constantAssSubscript(BPy_constant *self, PyObject *who,
                                 PyObject *cares)
 {
   /* no user assignments allowed */
@@ -193,11 +191,11 @@ static int constantAssSubscript(C_constant *self, PyObject *who,
 }
 
 /*****************************************************************************/
-/* Function:    constantRepr                                                 */
-/* Description: This is a callback function for the C_constant type. It      */
+/* Function:    constant_repr                                                */
+/* Description: This is a callback function for the BPy_constant type. It    */
 /*              builds a meaninful string to represent constant objects.     */
 /*****************************************************************************/
-static PyObject *constantRepr (C_constant *self)
+static PyObject *constant_repr (BPy_constant *self)
 {
   PyObject *repr = PyObject_Repr(self->dict);
   return repr;

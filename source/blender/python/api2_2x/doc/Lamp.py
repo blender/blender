@@ -1,7 +1,10 @@
 # Blender.Lamp module and the Lamp PyType object
 
 """
-The Blender.Lamp submodule
+The Blender.Lamp submodule.
+
+Lamp Data
+=========
 
 This module provides control over B{Lamp Data} objects in Blender.
 

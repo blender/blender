@@ -54,7 +54,7 @@
 static PyObject *M_Armature_New (PyObject *self, PyObject *args,
                                  PyObject *keywords);
 static PyObject *M_Armature_Get (PyObject *self, PyObject *args);
-PyObject *M_Armature_Init (void);
+PyObject *Armature_Init (void);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -92,25 +92,25 @@ struct PyMethodDef M_Armature_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python C_Armature structure definition:                                   */
+/* Python BPy_Armature structure definition:                                 */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
   bArmature *armature;
-} C_Armature;
+} BPy_Armature;
 
 /*****************************************************************************/
-/* Python C_Armature methods declarations:                                   */
+/* Python BPy_Armature methods declarations:                                 */
 /*****************************************************************************/
-static PyObject *Armature_getName(C_Armature *self);
-static PyObject *Armature_getBones(C_Armature *self);
-static PyObject *Armature_setName(C_Armature *self, PyObject *args);
-//static PyObject *Armature_setBones(C_Armature *self, PyObject *args);
+static PyObject *Armature_getName(BPy_Armature *self);
+static PyObject *Armature_getBones(BPy_Armature *self);
+static PyObject *Armature_setName(BPy_Armature *self, PyObject *args);
+//static PyObject *Armature_setBones(BPy_Armature *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Armature methods table:                                          */
+/* Python BPy_Armature methods table:                                        */
 /*****************************************************************************/
-static PyMethodDef C_Armature_methods[] = {
+static PyMethodDef BPy_Armature_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Armature_getName, METH_NOARGS,
           "() - return Armature name"},
@@ -127,12 +127,12 @@ static PyMethodDef C_Armature_methods[] = {
 /*****************************************************************************/
 /* Python TypeArmature callback function prototypes:                         */
 /*****************************************************************************/
-static void ArmatureDeAlloc (C_Armature *armature);
-static PyObject *ArmatureGetAttr (C_Armature *armature, char *name);
-static int ArmatureSetAttr (C_Armature *armature, char *name, PyObject *v);
-static int ArmatureCmp (C_Armature *a1, C_Armature *a2);
-static PyObject *ArmatureRepr (C_Armature *armature);
-static int ArmaturePrint (C_Armature *armature, FILE *fp, int flags);
+static void Armature_dealloc (BPy_Armature *armature);
+static PyObject *Armature_getAttr (BPy_Armature *armature, char *name);
+static int Armature_setAttr (BPy_Armature *armature, char *name, PyObject *v);
+static int Armature_compare (BPy_Armature *a1, BPy_Armature *a2);
+static PyObject *Armature_repr (BPy_Armature *armature);
+static int Armature_print (BPy_Armature *armature, FILE *fp, int flags);
 
 /*****************************************************************************/
 /* Python TypeArmature structure definition:                                 */
@@ -141,16 +141,16 @@ PyTypeObject Armature_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
-  "Armature",                               /* tp_name */
-  sizeof (C_Armature),                     /* tp_basicsize */
+  "Blender Armature",                     /* tp_name */
+  sizeof (BPy_Armature),                  /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
-  (destructor)ArmatureDeAlloc,              /* tp_dealloc */
-  (printfunc)ArmaturePrint,                 /* tp_print */
-  (getattrfunc)ArmatureGetAttr,             /* tp_getattr */
-  (setattrfunc)ArmatureSetAttr,             /* tp_setattr */
-  (cmpfunc)ArmatureCmp,                     /* tp_compare */
-  (reprfunc)ArmatureRepr,                   /* tp_repr */
+  (destructor)Armature_dealloc,           /* tp_dealloc */
+  (printfunc)Armature_print,              /* tp_print */
+  (getattrfunc)Armature_getAttr,          /* tp_getattr */
+  (setattrfunc)Armature_setAttr,          /* tp_setattr */
+  (cmpfunc)Armature_compare,              /* tp_compare */
+  (reprfunc)Armature_repr,                /* tp_repr */
   0,                                      /* tp_as_number */
   0,                                      /* tp_as_sequence */
   0,                                      /* tp_as_mapping */
@@ -158,7 +158,7 @@ PyTypeObject Armature_Type =
   0,0,0,0,0,0,
   0,                                      /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Armature_methods,                      /* tp_methods */
+  BPy_Armature_methods,                   /* tp_methods */
   0,                                      /* tp_members */
 };
 

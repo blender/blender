@@ -178,6 +178,6 @@ PyTypeObject Text_Type =
   0,                                    /* tp_members */
 };
 
-static int Text_IsLinked(Text *text);
+static int Text_IsLinked(BPy_Text *self);
 
 #endif /* EXPP_TEXT_H */

@@ -1,7 +1,10 @@
 # Blender.Text module and the Text PyType object
 
 """
-The Blender.Text submodule
+The Blender.Text submodule.
+
+Text Objects
+============
 
 This module provides access to B{Text} objects in Blender.
 

@@ -49,12 +49,12 @@ PyTypeObject Camera_Type =
   sizeof (BPy_Camera),           /* tp_basicsize */
   0,                             /* tp_itemsize */
   /* methods */
-  (destructor)Camera_DeAlloc,    /* tp_dealloc */
-  (printfunc)Camera_Print,       /* tp_print */
-  (getattrfunc)Camera_GetAttr,   /* tp_getattr */
-  (setattrfunc)Camera_SetAttr,   /* tp_setattr */
-  (cmpfunc)Camera_Compare,       /* tp_compare */
-  (reprfunc)Camera_Repr,         /* tp_repr */
+  (destructor)Camera_dealloc,    /* tp_dealloc */
+  (printfunc)Camera_print,       /* tp_print */
+  (getattrfunc)Camera_getAttr,   /* tp_getattr */
+  (setattrfunc)Camera_setAttr,   /* tp_setattr */
+  (cmpfunc)Camera_compare,       /* tp_compare */
+  (reprfunc)Camera_repr,         /* tp_repr */
   0,                             /* tp_as_number */
   0,                             /* tp_as_sequence */
   0,                             /* tp_as_mapping */
@@ -182,8 +182,6 @@ static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
 PyObject *Camera_Init (void)
 {
   PyObject  *submodule;
-
-  printf ("In M_Camera_Init()\n");
 
   Camera_Type.ob_type = &PyType_Type;
 
@@ -470,12 +468,12 @@ static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-static void Camera_DeAlloc (BPy_Camera *self)
+static void Camera_dealloc (BPy_Camera *self)
 {
   PyObject_DEL (self);
 }
 
-static PyObject *Camera_GetAttr (BPy_Camera *self, char *name)
+static PyObject *Camera_getAttr (BPy_Camera *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -520,7 +518,7 @@ static PyObject *Camera_GetAttr (BPy_Camera *self, char *name)
   return Py_FindMethod(BPy_Camera_methods, (PyObject *)self, name);
 }
 
-static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *value)
+static int Camera_setAttr (BPy_Camera *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -579,19 +577,19 @@ static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *value)
   return 0; /* normal exit */
 }
 
-static int Camera_Compare (BPy_Camera *a, BPy_Camera *b)
+static int Camera_compare (BPy_Camera *a, BPy_Camera *b)
 {
   Camera *pa = a->camera, *pb = b->camera;
   return (pa == pb) ? 0:-1;
 }
 
-static int Camera_Print(BPy_Camera *self, FILE *fp, int flags)
+static int Camera_print(BPy_Camera *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Camera \"%s\"]", self->camera->id.name+2);
   return 0;
 }
 
-static PyObject *Camera_Repr (BPy_Camera *self)
+static PyObject *Camera_repr (BPy_Camera *self)
 {
   return PyString_FromString(self->camera->id.name+2);
 }

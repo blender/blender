@@ -175,7 +175,7 @@ static PyMethodDef BPy_World_methods[] = {
 /* Python World_Type helper functions needed by Blender (the Init function) */
 /* and Object modules.                                                       */
 /*****************************************************************************/
-PyObject *M_World_Init (void);
+PyObject *World_Init (void);
 PyObject *World_CreatePyObject (World *cam);
 World   *World_FromPyObject (PyObject *pyobj);
 int       World_CheckPyObject (PyObject *pyobj);

@@ -37,18 +37,18 @@
 #include <DNA_armature_types.h>
 
 /** Bone module initialization function. */
-PyObject *M_Bone_Init (void);
+PyObject *Bone_Init (void);
 
 
-/** Python C_Bone structure definition. */
+/** Python BPy_Bone structure definition. */
 typedef struct {
   PyObject_HEAD
   Bone *bone;
-} C_Bone;
+} BPy_Bone;
 
 
-PyObject* M_BoneCreatePyObject (struct Bone *obj);
-int M_BoneCheckPyObject (PyObject *py_obj);
-Bone* M_BoneFromPyObject (PyObject *py_obj);
+PyObject* Bone_CreatePyObject (struct Bone *obj);
+int Bone_CheckPyObject (PyObject *py_obj);
+Bone* Bone_FromPyObject (PyObject *py_obj);
 
 #endif

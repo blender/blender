@@ -73,7 +73,6 @@ static PyObject *M_Metaball_New(PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "|s", &name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
 				   "expected string argument (or nothing)"));
-  printf ("In MetaBall_New()\n");
 
   blmball = add_mball(); /* first create the MetaBall Data in Blender */
 
@@ -159,15 +158,15 @@ static PyObject *M_Metaball_Get(PyObject *self, PyObject *args)
 
 }
 
-/*******************************************************************************/
-/* Function:              M_Metaball_Init                                      */
-/*******************************************************************************/
-PyObject *M_Metaball_Init (void)
+/******************************************************************************/
+/* Function:              Metaball_Init                                       */
+/******************************************************************************/
+PyObject *Metaball_Init (void)
 {
   PyObject  *submodule;
 
   Metaball_Type.ob_type = &PyType_Type;
-  printf ("In M_Metaball_Init()\n");
+
   submodule = Py_InitModule3("Blender.Metaball",
 			     M_Metaball_methods, M_Metaball_doc);
 

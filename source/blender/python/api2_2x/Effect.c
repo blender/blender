@@ -148,24 +148,25 @@ PyObject *	effectlist = PyList_New (0);
 }
 
 /*****************************************************************************/
-/* Function:              M_Effect_Init                                      */
+/* Function:              Effect_Init                                        */
 /*****************************************************************************/
 
 
-PyObject *M_Build_Init (void);
-PyObject *M_Wave_Init (void);
-PyObject *M_Particle_Init (void);
+PyObject *Build_Init (void);
+PyObject *Wave_Init (void);
+PyObject *Particle_Init (void);
 
-PyObject *M_Effect_Init (void)
+PyObject *Effect_Init (void)
 {
   PyObject  *submodule,	*dict;
-  printf ("In M_Effect_Init()\n");
+
   Effect_Type.ob_type = &PyType_Type;
-  submodule = Py_InitModule3("Blender.Effect",M_Effect_methods, 0 );
+
+	submodule = Py_InitModule3("Blender.Effect",M_Effect_methods, 0 );
   dict = PyModule_GetDict (submodule);
-  PyDict_SetItemString (dict, "Wave", M_Wave_Init());
-  PyDict_SetItemString (dict, "Build", M_Build_Init());
-  PyDict_SetItemString (dict, "Particle", M_Particle_Init());
+  PyDict_SetItemString (dict, "Wave", Wave_Init());
+  PyDict_SetItemString (dict, "Build", Build_Init());
+  PyDict_SetItemString (dict, "Particle", Particle_Init());
   return (submodule);
 }
 
@@ -296,8 +297,6 @@ return PyString_FromString(str);
 PyObject* EffectCreatePyObject (struct Effect *effect)
 {
  BPy_Effect    * blen_object;
-
-    printf ("In EffectCreatePyObject\n");
 
     blen_object = (BPy_Effect*)PyObject_NEW (BPy_Effect, &Effect_Type);
 

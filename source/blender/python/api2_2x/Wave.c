@@ -166,8 +166,6 @@ int type =   EFF_WAVE;
   BPy_Effect    *pyeffect;
   Effect      *bleffect = 0; 
   
-  printf ("In Effect_New()\n");
-
   bleffect = add_effect(type); 
   if (bleffect == NULL) 
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
@@ -198,7 +196,7 @@ PyObject *M_Wave_Get(PyObject *self, PyObject *args)
   Effect *eff;
   BPy_Wave *wanted_eff;
   int num,i;
-  printf ("In Effect_Get()\n");
+
   if (!PyArg_ParseTuple(args, "si", &name, &num ))
     return(EXPP_ReturnPyObjError(PyExc_AttributeError,\
 				 "expected string int argument"));
@@ -237,12 +235,12 @@ PyObject *M_Wave_Get(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Wave_Init                                        */
+/* Function:              Wave_Init                                          */
 /*****************************************************************************/
-PyObject *M_Wave_Init (void)
+PyObject *Wave_Init (void)
 {
   PyObject  *submodule;
-  printf ("In M_Wave_Init()\n");
+
   Wave_Type.ob_type = &PyType_Type;
   submodule = Py_InitModule3("Blender.Wave",M_Wave_methods, M_Wave_doc);
   return (submodule);
@@ -548,7 +546,6 @@ PyObject* WaveCreatePyObject (struct Effect *wave)
 {
  BPy_Wave    * blen_object;
 
-    printf ("In WaveCreatePyObject\n");
 
     blen_object = (BPy_Wave*)PyObject_NEW (BPy_Wave, &Wave_Type);
 

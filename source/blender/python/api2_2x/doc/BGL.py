@@ -1,18 +1,26 @@
 # Blender.BGL module (OpenGL wrapper)
 
 """
+The Blender.BGL submodule (the OpenGL wrapper).
+
 The Blender.BGL submodule
+=========================
 
 This module wraps OpenGL constants and functions, making them available from
-within Blender Python.  The complete list can be retrieved from the module
-itself, by listing its contents: dir(Blender.BGL).  There are too many to be
-documented here, but a simple search on the net can point to more than enough
-material to teach OpenGL programming, from books to many collections of
-tutorials.  The I{red book}: "OpenGL Programming Guide", is a very good
-resource, even for newcomers.
+within Blender Python.
+
+The complete list can be retrieved from the module itself, by listing its
+contents: dir(Blender.BGL).  There are too many to be documented here, but
+a simple search on the net can point to more than enough material to teach
+OpenGL programming, from books to many collections of tutorials.
+
+The "red book": "I{OpenGL Programming Guide: The Official Guide to Learning
+OpenGL}" and the online NeHe tutorials are two of the best resources.
+
 @see: U{www.opengl.org}
 
 Example::
+
  import Blender
  from Blender.BGL import *
  from Blender import Draw
@@ -44,7 +52,7 @@ Example::
   Draw.Redraw(1)                       # make changes visible.
  #
  def ev(evt, val):                     # this is a callback for Draw.Register()
-  global R,G,B,A                       # it handles input events
+  global R,G,B,A                       # ... it handles input events
   if evt == Draw.ESCKEY or evt == Draw.QKEY:
     Draw.Exit()                        # this quits the script
   elif evt == Draw.LEFTMOUSE: R = 1 - R

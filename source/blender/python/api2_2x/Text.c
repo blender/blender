@@ -400,9 +400,8 @@ static void Text_dealloc (BPy_Text *self)
 static PyObject *Text_getAttr (BPy_Text *self, char *name)
 {
   PyObject *attr = Py_None;
-  Text *text = self->text;
 
-  if (!text || !Text_IsLinked(text))
+  if (!self->text || !Text_IsLinked(self))
     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
        "Text was already deleted!");
 
@@ -439,9 +438,8 @@ static int Text_setAttr (BPy_Text *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
-  Text *text = self->text;
 
-  if (!text || !Text_IsLinked(text))
+  if (!self->text || !Text_IsLinked(self))
     return EXPP_ReturnIntError (PyExc_RuntimeError,
        "Text was already deleted!");
 
@@ -494,7 +492,7 @@ static int Text_compare (BPy_Text *a, BPy_Text *b)
 /*****************************************************************************/
 static int Text_print(BPy_Text *self, FILE *fp, int flags)
 { 
-  if (self->text && Text_IsLinked(self->text))
+  if (self->text && Text_IsLinked(self))
     fprintf(fp, "[Text \"%s\"]", self->text->id.name+2);
   else
     fprintf(fp, "[Text <deleted>]");
@@ -509,23 +507,25 @@ static int Text_print(BPy_Text *self, FILE *fp, int flags)
 /*****************************************************************************/
 static PyObject *Text_repr (BPy_Text *self)
 {
-  if (self->text && Text_IsLinked(self->text))
+  if (self->text && Text_IsLinked(self))
     return PyString_FromString(self->text->id.name+2);
   else
     return PyString_FromString("<deleted>");
 }
 
-/* internal function to confirm if a Text wasn't unlinked */
-static int Text_IsLinked(Text *text)
+/* Internal function to confirm if a Text wasn't unlinked.
+ * This is necessary because without it, if a script writer
+ * referenced an already unlinked Text obj, Blender would crash. */ 
+static int Text_IsLinked(BPy_Text *self)
 {
   Text *txt_iter = G.main->text.first;
 
   while (txt_iter) {
-    if (text == txt_iter) return 1;
+    if (self->text == txt_iter) return 1; /* ok, still linked */
+
     txt_iter = txt_iter->id.next;
   }
-
+/* uh-oh, it was already deleted */
+	self->text = NULL; /* so we invalidate the pointer */
   return 0;
 }
-
-

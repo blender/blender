@@ -107,7 +107,7 @@ def my_function(filename):\n\
 Blender.Window.ImageSelector(my_function, 'LOAD IMAGE')\n";
 
 char M_Window_DrawProgressBar_doc[] =
-"(done, text) - Draw a progressbar.\n\
+"(done, text) - Draw a progress bar.\n\
 'done' is a float value <= 1.0, 'text' contains info about what is\n\
 currently being done.";
 

@@ -57,7 +57,7 @@ typedef struct {
 /* Python Scene_Type helper functions needed by Blender (the Init function) */
 /* and Object modules.                                                       */
 /*****************************************************************************/
-PyObject *M_Scene_Init (void);
+PyObject *Scene_Init (void);
 PyObject *Scene_CreatePyObject (Scene *cam);
 Scene    *Scene_FromPyObject (PyObject *pyobj);
 int       Scene_CheckPyObject (PyObject *pyobj);

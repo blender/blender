@@ -132,15 +132,14 @@ static PyObject *M_Ipo_Get(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Ipo_Init                                      */
+/* Function:              Ipo_Init                                           */
 /*****************************************************************************/
-PyObject *M_Ipo_Init (void)
+PyObject *Ipo_Init (void)
 {
   PyObject  *submodule;
 
   Ipo_Type.ob_type = &PyType_Type;
 
-  printf ("In M_Ipo_Init()\n");
   submodule = Py_InitModule3("Blender.Ipo", M_Ipo_methods, M_Ipo_doc);
 
   return (submodule);

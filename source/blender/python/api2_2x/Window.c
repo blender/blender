@@ -175,7 +175,7 @@ static PyObject *M_Window_ImageSelector(PyObject *self, PyObject *args)
 static PyObject *M_Window_DrawProgressBar(PyObject *self, PyObject *args)
 {
   float done;
-  char *info = 0;
+  char *info = NULL;
   int retval;
 
   if(!PyArg_ParseTuple(args, "fs", &done, &info))
@@ -193,8 +193,6 @@ static PyObject *M_Window_DrawProgressBar(PyObject *self, PyObject *args)
 PyObject *Window_Init (void)
 {
   PyObject  *submodule, *Types;
-
-  printf ("In M_Window_Init()\n");
 
   submodule = Py_InitModule3("Blender.Window", M_Window_methods, M_Window_doc);
 

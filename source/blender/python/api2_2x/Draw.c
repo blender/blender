@@ -283,7 +283,6 @@ static PyObject *Method_Draw (PyObject *self,  PyObject *args)
 {
 	/*@ If forced drawing is disable queue a redraw event instead */
 	if (EXPP_disable_force_draw) {
-		printf ("\nEXPP_disable_force_draw\n");
 		scrarea_queue_winredraw(curarea);
 		return EXPP_incr_ret (Py_None);
 	}
@@ -655,8 +654,6 @@ static PyObject *Method_Text (PyObject *self, PyObject *args)
 PyObject *Draw_Init (void) 
 {
 	PyObject *submodule, *dict;
-
-	printf("In M_Draw_Init()\n");
 
   Button_Type.ob_type = &PyType_Type;
 

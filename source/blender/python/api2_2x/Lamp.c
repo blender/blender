@@ -188,7 +188,7 @@ static PyObject *M_Lamp_TypesDict (void)
   PyObject *Types = M_constant_New();
 
   if (Types) {
-    C_constant *c = (C_constant *)Types;
+    BPy_constant *c = (BPy_constant *)Types;
 
     constant_insert (c, "Lamp", PyInt_FromLong (EXPP_LAMP_TYPE_LAMP));
     constant_insert (c, "Sun",  PyInt_FromLong (EXPP_LAMP_TYPE_SUN));
@@ -205,7 +205,7 @@ static PyObject *M_Lamp_ModesDict (void)
   PyObject *Modes = M_constant_New();
 
   if (Modes) {
-    C_constant *c = (C_constant *)Modes;
+    BPy_constant *c = (BPy_constant *)Modes;
 
     constant_insert (c, "Shadows", PyInt_FromLong (EXPP_LAMP_MODE_SHADOWS));
     constant_insert (c, "Halo", PyInt_FromLong (EXPP_LAMP_MODE_HALO));

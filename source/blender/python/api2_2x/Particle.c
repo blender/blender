@@ -254,9 +254,9 @@ PyObject *M_Particle_Get(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Particle_Init                                    */
+/* Function:              Particle_Init                                      */
 /*****************************************************************************/
-PyObject *M_Particle_Init (void)
+PyObject *Particle_Init (void)
 {
   PyObject  *submodule;
   Particle_Type.ob_type = &PyType_Type;

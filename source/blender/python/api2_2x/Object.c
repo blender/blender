@@ -76,37 +76,37 @@ struct PyMethodDef M_Object_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python C_Object methods declarations:                                     */
+/* Python BPy_Object methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Object_clrParent (C_Object *self, PyObject *args);
-static PyObject *Object_getData (C_Object *self);
-static PyObject *Object_getDeformData (C_Object *self);
-static PyObject *Object_getDeltaLocation (C_Object *self);
-static PyObject *Object_getDrawMode (C_Object *self);
-static PyObject *Object_getDrawType (C_Object *self);
-static PyObject *Object_getEuler (C_Object *self);
-static PyObject *Object_getInverseMatrix (C_Object *self);
-static PyObject *Object_getLocation (C_Object *self, PyObject *args);
-static PyObject *Object_getMaterials (C_Object *self);
-static PyObject *Object_getMatrix (C_Object *self);
-static PyObject *Object_getParent (C_Object *self);
-static PyObject *Object_getTracked (C_Object *self);
-static PyObject *Object_getType (C_Object *self);
-static PyObject *Object_link (C_Object *self, PyObject *args);
-static PyObject *Object_makeParent (C_Object *self, PyObject *args);
-static PyObject *Object_materialUsage (C_Object *self, PyObject *args);
-static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args);
-static PyObject *Object_setDrawMode (C_Object *self, PyObject *args);
-static PyObject *Object_setDrawType (C_Object *self, PyObject *args);
-static PyObject *Object_setEuler (C_Object *self, PyObject *args);
-static PyObject *Object_setLocation (C_Object *self, PyObject *args);
-static PyObject *Object_setMaterials (C_Object *self, PyObject *args);
-static PyObject *Object_shareFrom (C_Object *self, PyObject *args);
+static PyObject *Object_clrParent (BPy_Object *self, PyObject *args);
+static PyObject *Object_getData (BPy_Object *self);
+static PyObject *Object_getDeformData (BPy_Object *self);
+static PyObject *Object_getDeltaLocation (BPy_Object *self);
+static PyObject *Object_getDrawMode (BPy_Object *self);
+static PyObject *Object_getDrawType (BPy_Object *self);
+static PyObject *Object_getEuler (BPy_Object *self);
+static PyObject *Object_getInverseMatrix (BPy_Object *self);
+static PyObject *Object_getLocation (BPy_Object *self, PyObject *args);
+static PyObject *Object_getMaterials (BPy_Object *self);
+static PyObject *Object_getMatrix (BPy_Object *self);
+static PyObject *Object_getParent (BPy_Object *self);
+static PyObject *Object_getTracked (BPy_Object *self);
+static PyObject *Object_getType (BPy_Object *self);
+static PyObject *Object_link (BPy_Object *self, PyObject *args);
+static PyObject *Object_makeParent (BPy_Object *self, PyObject *args);
+static PyObject *Object_materialUsage (BPy_Object *self, PyObject *args);
+static PyObject *Object_setDeltaLocation (BPy_Object *self, PyObject *args);
+static PyObject *Object_setDrawMode (BPy_Object *self, PyObject *args);
+static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args);
+static PyObject *Object_setEuler (BPy_Object *self, PyObject *args);
+static PyObject *Object_setLocation (BPy_Object *self, PyObject *args);
+static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args);
+static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Object methods table:                                            */
+/* Python BPy_Object methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Object_methods[] = {
+static PyMethodDef BPy_Object_methods[] = {
     /* name, method, flags, doc */
     {"clrParent",        (PyCFunction)Object_clrParent,        METH_VARARGS,
         "Clears parent object. Optionally specify:\n\
@@ -182,11 +182,12 @@ works only if self and the object specified are of the same type."},
 /*****************************************************************************/
 /* PythonTypeObject callback function prototypes                             */
 /*****************************************************************************/
-static void      ObjectDeAlloc (C_Object *obj);
-static int       ObjectPrint   (C_Object *obj, FILE *fp, int flags);
-static PyObject* ObjectGetAttr (C_Object *obj, char *name);
-static int       ObjectSetAttr (C_Object *obj, char *name, PyObject *v);
-static PyObject* ObjectRepr    (C_Object *obj);
+static void      Object_dealloc (BPy_Object *obj);
+static int       Object_print   (BPy_Object *obj, FILE *fp, int flags);
+static PyObject* Object_getAttr (BPy_Object *obj, char *name);
+static int       Object_setAttr (BPy_Object *obj, char *name, PyObject *v);
+static PyObject* Object_repr    (BPy_Object *obj);
+static int       Object_compare (BPy_Object *a, BPy_Object *b);
 
 /*****************************************************************************/
 /* Python TypeObject structure definition.                                   */
@@ -195,16 +196,16 @@ PyTypeObject Object_Type =
 {
     PyObject_HEAD_INIT(NULL)
     0,                                /* ob_size */
-    "Object",                         /* tp_name */
-    sizeof (C_Object),                /* tp_basicsize */
+    "Blender Object",                 /* tp_name */
+    sizeof (BPy_Object),              /* tp_basicsize */
     0,                                /* tp_itemsize */
     /* methods */
-    (destructor)ObjectDeAlloc,        /* tp_dealloc */
-    (printfunc)ObjectPrint,           /* tp_print */
-    (getattrfunc)ObjectGetAttr,       /* tp_getattr */
-    (setattrfunc)ObjectSetAttr,       /* tp_setattr */
-    0,                                /* tp_compare */
-    (reprfunc)ObjectRepr,             /* tp_repr */
+    (destructor)Object_dealloc,       /* tp_dealloc */
+    (printfunc)Object_print,          /* tp_print */
+    (getattrfunc)Object_getAttr,      /* tp_getattr */
+    (setattrfunc)Object_setAttr,      /* tp_setattr */
+    (cmpfunc)Object_compare,          /* tp_compare */
+    (reprfunc)Object_repr,            /* tp_repr */
     0,                                /* tp_as_number */
     0,                                /* tp_as_sequence */
     0,                                /* tp_as_mapping */
@@ -212,7 +213,7 @@ PyTypeObject Object_Type =
     0,0,0,0,0,0,
     0,                                /* tp_doc */ 
     0,0,0,0,0,0,
-    C_Object_methods,                 /* tp_methods */
+    BPy_Object_methods,               /* tp_methods */
     0,                                /* tp_members */
 };
 
@@ -223,12 +224,10 @@ PyTypeObject Object_Type =
 PyObject *M_Object_New(PyObject *self, PyObject *args)
 {
     struct Object   * object;
-    C_Object        * blen_object;
+    BPy_Object      * blen_object;
     int               type;
     char            * str_type;
     char            * name = NULL;
-
-    printf ("In Object_New()\n");
 
     if (!PyArg_ParseTuple(args, "s|s", &str_type, &name))
     {
@@ -365,7 +364,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
     G.totobj++;
 
     /* Create a Python object from it. */
-    blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
+    blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
     blen_object->object = object;
     blen_object->data = NULL;
     blen_object->parent = NULL;
@@ -382,13 +381,11 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
     struct Object   * object;
     char            * name = NULL;
 
-    printf ("In Object_Get()\n");
-
     PyArg_ParseTuple(args, "|s", &name);
 
     if (name != NULL)
     {
-        C_Object    * blen_object;
+        BPy_Object    * blen_object;
 
         object = GetObjectByName (name);
 
@@ -398,7 +395,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
             return (PythonReturnErrorObject (PyExc_AttributeError,
                         "Unknown object specified."));
         }
-        blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
+        blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
         blen_object->object = object;
         blen_object->parent = NULL;
         blen_object->data = NULL;
@@ -446,7 +443,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
 /*****************************************************************************/
 static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
 {
-    C_Object        * blen_object;
+    BPy_Object        * blen_object;
     PyObject        * list;
     Base            * base_iter;
 
@@ -458,7 +455,7 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
          (G.scene->basact->lay & G.vd->lay)))
     {
         /* Active object is first in the list. */
-        blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
+        blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
         if (blen_object == NULL)
         {
             Py_DECREF (list);
@@ -477,7 +474,7 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
              (base_iter->lay & G.vd->lay)) &&
             (base_iter != G.scene->basact))
         {
-            blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type); 
+            blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
             if (blen_object == NULL)
             {
                 Py_DECREF (list);
@@ -496,23 +493,21 @@ static PyObject *M_Object_GetSelected (PyObject *self, PyObject *args)
 /*****************************************************************************/
 /* Function:              initObject                                         */
 /*****************************************************************************/
-PyObject *M_Object_Init (void)
+PyObject *Object_Init (void)
 {
     PyObject    * module;
 
-    printf ("In initObject()\n");
-
     Object_Type.ob_type = &PyType_Type;
 
-    module = Py_InitModule3("Object", M_Object_methods, M_Object_doc);
+    module = Py_InitModule3("Blender.Object", M_Object_methods, M_Object_doc);
 
     return (module);
 }
 
 /*****************************************************************************/
-/* Python C_Object methods:                                                  */
+/* Python BPy_Object methods:                                                  */
 /*****************************************************************************/
-static PyObject *Object_clrParent (C_Object *self, PyObject *args)
+static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
 {
     int       mode=0;
     int       fast=0;
@@ -541,7 +536,7 @@ static PyObject *Object_clrParent (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_getData (C_Object *self)
+static PyObject *Object_getData (BPy_Object *self)
 {
     PyObject  * data_object;
 //#    int         obj_id;
@@ -569,7 +564,7 @@ static PyObject *Object_getData (C_Object *self)
     switch (self->object->type)//#obj_id)
     {
         case OB_ARMATURE://#ID_AR:
-            data_object = M_ArmatureCreatePyObject (self->object->data);
+            data_object = Armature_CreatePyObject (self->object->data);
             break;
         case OB_CAMERA://#ID_CA:
             data_object = Camera_CreatePyObject (self->object->data);
@@ -591,7 +586,7 @@ static PyObject *Object_getData (C_Object *self)
             data_object = NMesh_CreatePyObject (self->object->data);
             break;
         case ID_OB:
-            data_object = M_ObjectCreatePyObject (self->object->data);
+            data_object = Object_CreatePyObject (self->object->data);
             break;
         case ID_SCE:
             break;
@@ -615,13 +610,13 @@ static PyObject *Object_getData (C_Object *self)
     }
 }
 
-static PyObject *Object_getDeformData (C_Object *self)
+static PyObject *Object_getDeformData (BPy_Object *self)
 {
     return (PythonReturnErrorObject (PyExc_NotImplementedError,
             "getDeformData: not yet implemented"));
 }
 
-static PyObject *Object_getDeltaLocation (C_Object *self)
+static PyObject *Object_getDeltaLocation (BPy_Object *self)
 {
     PyObject *attr = Py_BuildValue ("fff",
                                     self->object->dloc[0],
@@ -634,7 +629,7 @@ static PyObject *Object_getDeltaLocation (C_Object *self)
             "couldn't get Object.dloc attributes"));
 }
 
-static PyObject *Object_getDrawMode (C_Object *self)
+static PyObject *Object_getDrawMode (BPy_Object *self)
 {
     PyObject *attr = Py_BuildValue ("b", self->object->dtx);
 
@@ -644,7 +639,7 @@ static PyObject *Object_getDrawMode (C_Object *self)
             "couldn't get Object.drawMode attribute"));
 }
 
-static PyObject *Object_getDrawType (C_Object *self)
+static PyObject *Object_getDrawType (BPy_Object *self)
 {
     PyObject *attr = Py_BuildValue ("b", self->object->dt);
 
@@ -654,7 +649,7 @@ static PyObject *Object_getDrawType (C_Object *self)
             "couldn't get Object.drawType attribute"));
 }
 
-static PyObject *Object_getEuler (C_Object *self)
+static PyObject *Object_getEuler (BPy_Object *self)
 {
     PyObject *attr = Py_BuildValue ("fff",
                                     self->object->drot[0],
@@ -667,7 +662,7 @@ static PyObject *Object_getEuler (C_Object *self)
             "couldn't get Object.drot attributes"));
 }
 
-static PyObject *Object_getInverseMatrix (C_Object *self)
+static PyObject *Object_getInverseMatrix (BPy_Object *self)
 {
     Object  * ob;
     float     inverse[4][4];
@@ -678,7 +673,7 @@ static PyObject *Object_getInverseMatrix (C_Object *self)
     return (newMatrixObject (inverse));
 }
 
-static PyObject *Object_getLocation (C_Object *self, PyObject *args)
+static PyObject *Object_getLocation (BPy_Object *self, PyObject *args)
 {
     PyObject *attr = Py_BuildValue ("fff",
                                     self->object->loc[0],
@@ -691,14 +686,14 @@ static PyObject *Object_getLocation (C_Object *self, PyObject *args)
             "couldn't get Object.loc attributes"));
 }
 
-static PyObject *Object_getMaterials (C_Object *self)
+static PyObject *Object_getMaterials (BPy_Object *self)
 {
     /* TODO: Implement when the Material module is implemented. */
     return (PythonReturnErrorObject (PyExc_NotImplementedError,
             "getMaterials: not yet implemented"));
 }
 
-static PyObject *Object_getMatrix (C_Object *self)
+static PyObject *Object_getMatrix (BPy_Object *self)
 {
     Object  * ob;
 
@@ -707,7 +702,7 @@ static PyObject *Object_getMatrix (C_Object *self)
     return (newMatrixObject (ob->obmat));
 }
 
-static PyObject *Object_getParent (C_Object *self)
+static PyObject *Object_getParent (BPy_Object *self)
 {
     PyObject *attr;
 
@@ -721,11 +716,11 @@ static PyObject *Object_getParent (C_Object *self)
     {
         return (EXPP_incr_ret (Py_None));
     }
-    attr = M_ObjectCreatePyObject (self->object->parent);
+    attr = Object_CreatePyObject (self->object->parent);
 
     if (attr)
     {
-        self->parent = (struct C_Object*)attr;
+        self->parent = (struct BPy_Object*)attr;
         return (attr);
     }
 
@@ -733,7 +728,7 @@ static PyObject *Object_getParent (C_Object *self)
             "couldn't get Object.parent attribute"));
 }
 
-static PyObject *Object_getTracked (C_Object *self)
+static PyObject *Object_getTracked (BPy_Object *self)
 {
     PyObject    *attr;
 
@@ -744,11 +739,11 @@ static PyObject *Object_getTracked (C_Object *self)
     }
 
     /* TODO: what if self->object->track==NULL? Should we return Py_None? */
-    attr = M_ObjectCreatePyObject (self->object->track);
+    attr = Object_CreatePyObject (self->object->track);
 
     if (attr)
     {
-        self->track = (struct C_Object*)attr;
+        self->track = (struct BPy_Object*)attr;
         return (attr);
     }
 
@@ -756,7 +751,7 @@ static PyObject *Object_getTracked (C_Object *self)
             "couldn't get Object.track attribute"));
 }
 
-static PyObject *Object_getType (C_Object *self)
+static PyObject *Object_getType (BPy_Object *self)
 {
     switch (self->object->type)
     {
@@ -776,7 +771,7 @@ static PyObject *Object_getType (C_Object *self)
     }
 }
 
-static PyObject *Object_link (C_Object *self, PyObject *args)
+static PyObject *Object_link (BPy_Object *self, PyObject *args)
 {
     PyObject    * py_data;
     ID          * id;
@@ -844,11 +839,11 @@ static PyObject *Object_link (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_makeParent (C_Object *self, PyObject *args)
+static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
 {
     PyObject    * list;
     PyObject    * py_child;
-    C_Object    * py_obj_child;
+    BPy_Object    * py_obj_child;
     Object      * child;
     Object      * parent;
     int           noninverse;
@@ -872,8 +867,8 @@ static PyObject *Object_makeParent (C_Object *self, PyObject *args)
     {
         child = NULL;
         py_child = PySequence_GetItem (list, i);
-        if (M_ObjectCheckPyObject (py_child))
-            child = (Object*) M_ObjectFromPyObject (py_child);
+        if (Object_CheckPyObject (py_child))
+            child = (Object*) Object_FromPyObject (py_child);
 
         if (child == NULL)
         {
@@ -889,8 +884,8 @@ static PyObject *Object_makeParent (C_Object *self, PyObject *args)
         }
         child->partype = PAROBJECT;
         child->parent = parent;
-        py_obj_child = (C_Object *) py_child;
-        py_obj_child->parent = (struct C_Object *)self;
+        py_obj_child = (BPy_Object *) py_child;
+        py_obj_child->parent = (struct BPy_Object *)self;
         if (noninverse == 1)
         {
             /* Parent inverse = unity */
@@ -915,13 +910,13 @@ static PyObject *Object_makeParent (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_materialUsage (C_Object *self, PyObject *args)
+static PyObject *Object_materialUsage (BPy_Object *self, PyObject *args)
 {
     return (PythonReturnErrorObject (PyExc_NotImplementedError,
             "materialUsage: not yet implemented"));
 }
 
-static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args)
+static PyObject *Object_setDeltaLocation (BPy_Object *self, PyObject *args)
 {
     float   dloc1;
     float   dloc2;
@@ -941,7 +936,7 @@ static PyObject *Object_setDeltaLocation (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_setDrawMode (C_Object *self, PyObject *args)
+static PyObject *Object_setDrawMode (BPy_Object *self, PyObject *args)
 {
     char    dt;
 
@@ -956,7 +951,7 @@ static PyObject *Object_setDrawMode (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_setDrawType (C_Object *self, PyObject *args)
+static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args)
 { 
     char    dtx;
 
@@ -971,7 +966,7 @@ static PyObject *Object_setDrawType (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_setEuler (C_Object *self, PyObject *args)
+static PyObject *Object_setEuler (BPy_Object *self, PyObject *args)
 {
     float   drot1;
     float   drot2;
@@ -991,7 +986,7 @@ static PyObject *Object_setEuler (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_setLocation (C_Object *self, PyObject *args)
+static PyObject *Object_setLocation (BPy_Object *self, PyObject *args)
 {
     float   loc1;
     float   loc2;
@@ -1011,7 +1006,7 @@ static PyObject *Object_setLocation (C_Object *self, PyObject *args)
     return (Py_None);
 }
 
-static PyObject *Object_setMaterials (C_Object *self, PyObject *args)
+static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 {
 #if 0
     PyObject     * list;
@@ -1075,9 +1070,9 @@ static PyObject *Object_setMaterials (C_Object *self, PyObject *args)
             "setMaterials: not yet implemented"));
 }
 
-static PyObject *Object_shareFrom (C_Object *self, PyObject *args)
+static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 {
-    C_Object        * object;
+    BPy_Object        * object;
     ID              * id;
     ID              * oldid;
 
@@ -1087,7 +1082,7 @@ static PyObject *Object_shareFrom (C_Object *self, PyObject *args)
                 "expected an object argument");
         return (NULL);
     }
-    if (!M_ObjectCheckPyObject ((PyObject*)object))
+    if (!Object_CheckPyObject ((PyObject*)object))
     {
         PythonReturnErrorObject (PyExc_TypeError,
                 "argument 1 is not of type 'Object'");
@@ -1135,17 +1130,15 @@ static PyObject *Object_shareFrom (C_Object *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:    M_ObjectCreatePyObject                                       */
+/* Function:    Object_CreatePyObject                                        */
 /* Description: This function will create a new BlenObject from an existing  */
 /*              Object structure.                                            */
 /*****************************************************************************/
-PyObject* M_ObjectCreatePyObject (struct Object *obj)
+PyObject* Object_CreatePyObject (struct Object *obj)
 {
-    C_Object    * blen_object;
+    BPy_Object    * blen_object;
 
-    printf ("In M_ObjectCreatePyObject\n");
-
-    blen_object = (C_Object*)PyObject_NEW (C_Object, &Object_Type);
+    blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type);
 
     if (blen_object == NULL)
     {
@@ -1156,45 +1149,45 @@ PyObject* M_ObjectCreatePyObject (struct Object *obj)
 }
 
 /*****************************************************************************/
-/* Function:    M_ObjectCheckPyObject                                        */
+/* Function:    Object_CheckPyObject                                         */
 /* Description: This function returns true when the given PyObject is of the */
 /*              type Object. Otherwise it will return false.                 */
 /*****************************************************************************/
-int M_ObjectCheckPyObject (PyObject *py_obj)
+int Object_CheckPyObject (PyObject *py_obj)
 {
     return (py_obj->ob_type == &Object_Type);
 }
 
 /*****************************************************************************/
-/* Function:    M_ObjectFromPyObject                                         */
+/* Function:    Object_FromPyObject                                          */
 /* Description: This function returns the Blender object from the given      */
 /*              PyObject.                                                    */
 /*****************************************************************************/
-struct Object* M_ObjectFromPyObject (PyObject *py_obj)
+struct Object* Object_FromPyObject (PyObject *py_obj)
 {
-    C_Object    * blen_obj;
+    BPy_Object    * blen_obj;
 
-    blen_obj = (C_Object*)py_obj;
+    blen_obj = (BPy_Object*)py_obj;
     return (blen_obj->object);
 }
 
 /*****************************************************************************/
-/* Function:    ObjectDeAlloc                                                */
+/* Function:    Object_dealloc                                               */
 /* Description: This is a callback function for the BlenObject type. It is   */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void ObjectDeAlloc (C_Object *obj)
+static void Object_dealloc (BPy_Object *obj)
 {
     PyObject_DEL (obj);
 }
 
 /*****************************************************************************/
-/* Function:    ObjectGetAttr                                                */
+/* Function:    Object_getAttr                                               */
 /* Description: This is a callback function for the BlenObject type. It is   */
 /*              the function that retrieves any value from Blender and       */
 /*              passes it to Python.                                         */
 /*****************************************************************************/
-static PyObject* ObjectGetAttr (C_Object *obj, char *name)
+static PyObject* Object_getAttr (BPy_Object *obj, char *name)
 {
     struct Object   * object;
     struct Ika      * ika;
@@ -1277,9 +1270,9 @@ static PyObject* ObjectGetAttr (C_Object *obj, char *name)
     if (StringEqual (name, "Layer"))
         return (PyInt_FromLong(object->lay));
     if (StringEqual (name, "parent"))
-        return (M_ObjectCreatePyObject (object->parent));
+        return (Object_CreatePyObject (object->parent));
     if (StringEqual (name, "track"))
-        return (M_ObjectCreatePyObject (object->track));
+        return (Object_CreatePyObject (object->track));
     if (StringEqual (name, "data"))
         return (Object_getData (obj));
     if (StringEqual (name, "ipo"))
@@ -1302,16 +1295,16 @@ static PyObject* ObjectGetAttr (C_Object *obj, char *name)
         return (Py_BuildValue ("b", object->dtx));
 
     /* not an attribute, search the methods table */
-    return Py_FindMethod(C_Object_methods, (PyObject *)obj, name);
+    return Py_FindMethod(BPy_Object_methods, (PyObject *)obj, name);
 }
 
 /*****************************************************************************/
-/* Function:    ObjectSetAttr                                                */
+/* Function:    Object_setAttr                                               */
 /* Description: This is a callback function for the BlenObject type. It is   */
 /*              the function that retrieves any value from Python and sets   */
 /*              it accordingly in Blender.                                   */
 /*****************************************************************************/
-static int ObjectSetAttr (C_Object *obj, char *name, PyObject *value)
+static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 {
     struct Object    * object;
     struct Ika      * ika;
@@ -1469,22 +1462,36 @@ static int ObjectSetAttr (C_Object *obj, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    ObjectPrint                                                  */
-/* Description: This is a callback function for the C_Object type. It        */
+/* Function:    Object_compare                                               */
+/* Description: This is a callback function for the BPy_Object type. It      */
+/*              compares two Object_Type objects. Only the "==" and "!="     */
+/*              comparisons are meaninful. Returns 0 for equality and -1 if  */
+/*              they don't point to the same Blender Object struct.          */
+/*              In Python it becomes 1 if they are equal, 0 otherwise.       */
+/*****************************************************************************/
+static int Object_compare (BPy_Object *a, BPy_Object *b)
+{
+  Object *pa = a->object, *pb = b->object;
+  return (pa == pb) ? 0:-1;
+}
+
+/*****************************************************************************/
+/* Function:    Object_print                                                 */
+/* Description: This is a callback function for the BPy_Object type. It      */
 /*              builds a meaninful string to 'print' object objects.         */
 /*****************************************************************************/
-static int ObjectPrint(C_Object *self, FILE *fp, int flags)
+static int Object_print(BPy_Object *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Object \"%s\"]", self->object->id.name+2);
   return 0;
 }
 
 /*****************************************************************************/
-/* Function:    ObjectRepr                                                   */
-/* Description: This is a callback function for the C_Object type. It        */
+/* Function:    Object_repr                                                  */
+/* Description: This is a callback function for the BPy_Object type. It      */
 /*              builds a meaninful string to represent object objects.       */
 /*****************************************************************************/
-static PyObject *ObjectRepr (C_Object *self)
+static PyObject *Object_repr (BPy_Object *self)
 {
   return PyString_FromString(self->object->id.name+2);
 }

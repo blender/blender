@@ -152,12 +152,12 @@ struct PyMethodDef M_Build_methods[] = {
 };
 
 /*****************************************************************************/
-/* Function:              M_Build_Init                                       */
+/* Function:              Build_Init                                         */
 /*****************************************************************************/
-PyObject *M_Build_Init (void)
+PyObject *Build_Init (void)
 {
   PyObject  *submodule;
-  printf ("In M_Build_Init()\n");
+
   Build_Type.ob_type = &PyType_Type;
   submodule = Py_InitModule3("Blender.Build",M_Build_methods,M_Build_doc );
   return (submodule);

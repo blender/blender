@@ -7,16 +7,30 @@
 # Blender.py Camera.py Lamp.py BGL.py etc.
 
 """
-Here goes the Introduction to Blender Python
+This is the main Blender module.
 
-Let's see::
-    - What scripting is, why have it
-    - What Python is, links
-    - More about what scripting can give us
-    - Overview of the Blender Python modules
-    - Links to Blender, Blender Python, later: script lists
+Blender Python
+==============
+
+ Submodules:
+ -----------
+
+  - L{Camera}
+  - L{Lamp}
+  - L{BGL}
+  - L{Window}
+  - L{Text}
+
+ Introduction:
+ -------------
+  - What scripting is, why have it
+  - What Python is, links
+  - More about what scripting can give us
+  - Overview of the Blender Python modules
+  - Links to Blender, Blender Python, later: script lists
+
 @author: The Blender Python Team
-@requires: Blender 2.28 or newer, Python 2.? (2.0, 2.1, 2.2 ???) or newer
+@requires: Blender 2.28 or newer.
 @version: 0.1
 @see: U{www.blender.org<http://www.blender.org>}
 @see: U{projects.blender.org<http://projects.blender.org>}

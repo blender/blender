@@ -42,11 +42,9 @@ static PyObject *M_Armature_New(PyObject *self, PyObject *args,
   char        *type_str = "Armature";
   char        *name_str = "ArmatureData";
   static char *kwlist[] = {"type_str", "name_str", NULL};
-  C_Armature  *py_armature; /* for Armature Data object wrapper in Python */
+  BPy_Armature  *py_armature; /* for Armature Data object wrapper in Python */
   bArmature   *bl_armature; /* for actual Armature Data we create in Blender */
   char        buf[21];
-
-  printf ("In Armature_New()\n");
 
   if (!PyArg_ParseTupleAndKeywords(args, keywords, "|ss", kwlist,
            &type_str, &name_str))
@@ -55,7 +53,7 @@ static PyObject *M_Armature_New(PyObject *self, PyObject *args,
 
   bl_armature = add_armature(); /* first create in Blender */
   if (bl_armature) /* now create the wrapper obj in Python */
-    py_armature = (C_Armature *)PyObject_NEW(C_Armature, &Armature_Type);
+    py_armature = (BPy_Armature *)PyObject_NEW(BPy_Armature, &Armature_Type);
   else
     return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
            "couldn't create Armature Data in Blender"));
@@ -85,9 +83,8 @@ static PyObject *M_Armature_Get(PyObject *self, PyObject *args)
 {
   char   *name = NULL;
   bArmature   *armature_iter;
-  C_Armature *wanted_armature;
+  BPy_Armature *wanted_armature;
 
-  printf ("In Armature_Get()\n");
   if (!PyArg_ParseTuple(args, "|s", &name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
            "expected string argument (or nothing)"));  
@@ -102,7 +99,7 @@ static PyObject *M_Armature_Get(PyObject *self, PyObject *args)
     while ((armature_iter) && (wanted_armature == NULL)) {
       
       if (strcmp (name, armature_iter->id.name+2) == 0) {
-  wanted_armature = (C_Armature *)PyObject_NEW(C_Armature, &Armature_Type);
+  wanted_armature = (BPy_Armature *)PyObject_NEW(BPy_Armature, &Armature_Type);
   if (wanted_armature) wanted_armature->armature = armature_iter;
       }
       
@@ -132,7 +129,7 @@ static PyObject *M_Armature_Get(PyObject *self, PyObject *args)
                 "couldn't create PyList"));
 
       while (armature_iter) {
-        pyobj = M_ArmatureCreatePyObject (armature_iter);
+        pyobj = Armature_CreatePyObject (armature_iter);
 
         if (!pyobj)
           return (PythonReturnErrorObject (PyExc_MemoryError,
@@ -150,14 +147,12 @@ static PyObject *M_Armature_Get(PyObject *self, PyObject *args)
 }
 
 /*****************************************************************************/
-/* Function:              M_Armature_Init                                    */
+/* Function:              Armature_Init                                      */
 /*****************************************************************************/
-PyObject *M_Armature_Init (void)
+PyObject *Armature_Init (void)
 {
   PyObject  *submodule;
   PyObject  *dict;
-
-  printf ("In M_Armature_Init()\n");
 
   Armature_Type.ob_type = &PyType_Type;
 
@@ -166,15 +161,15 @@ PyObject *M_Armature_Init (void)
 
   /* Add the Bone submodule to this module */
   dict = PyModule_GetDict (submodule);
-  PyDict_SetItemString (dict, "Bone", M_Bone_Init());
+  PyDict_SetItemString (dict, "Bone", Bone_Init());
 
   return (submodule);
 }
 
 /*****************************************************************************/
-/* Python C_Armature methods:                                                */
+/* Python BPy_Armature methods:                                              */
 /*****************************************************************************/
-static PyObject *Armature_getName(C_Armature *self)
+static PyObject *Armature_getName(BPy_Armature *self)
 {
   PyObject *attr = PyString_FromString(self->armature->id.name+2);
 
@@ -186,7 +181,7 @@ static PyObject *Armature_getName(C_Armature *self)
 
 
 /** Create and return a list of the root bones for this armature. */
-static PyObject *Armature_getBones(C_Armature *self)
+static PyObject *Armature_getBones(BPy_Armature *self)
 {
   int totbones = 0;
   PyObject *listbones = NULL;
@@ -202,7 +197,7 @@ static PyObject *Armature_getBones(C_Armature *self)
   listbones = PyList_New(totbones);
   for (i=0; i<totbones; i++) {
     /* Wrap and set to corresponding element of the list. */
-    PyList_SetItem(listbones, i, M_BoneCreatePyObject(current) );
+    PyList_SetItem(listbones, i, Bone_CreatePyObject(current) );
     current = current->next;
   }
 
@@ -210,7 +205,7 @@ static PyObject *Armature_getBones(C_Armature *self)
 }
 
 
-static PyObject *Armature_setName(C_Armature *self, PyObject *args)
+static PyObject *Armature_setName(BPy_Armature *self, PyObject *args)
 {
   char *name;
   char buf[21];
@@ -228,7 +223,7 @@ static PyObject *Armature_setName(C_Armature *self, PyObject *args)
 }
 
 /*
-  static PyObject *Armature_setBones(C_Armature *self, PyObject *args)
+  static PyObject *Armature_setBones(BPy_Armature *self, PyObject *args)
   {
   // TODO: Implement me!
   printf("ERROR: Armature_setBones NOT implemented yet!\n");
@@ -239,22 +234,22 @@ static PyObject *Armature_setName(C_Armature *self, PyObject *args)
 */
 
 /*****************************************************************************/
-/* Function:    ArmatureDeAlloc                                              */
-/* Description: This is a callback function for the C_Armature type. It is   */
+/* Function:    Armature_dealloc                                             */
+/* Description: This is a callback function for the BPy_Armature type. It is */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void ArmatureDeAlloc (C_Armature *self)
+static void Armature_dealloc (BPy_Armature *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
-/* Function:    ArmatureGetAttr                                              */
-/* Description: This is a callback function for the C_Armature type. It is   */
-/*              the function that accesses C_Armature member variables and   */
+/* Function:    Armature_getAttr                                             */
+/* Description: This is a callback function for the BPy_Armature type. It is */
+/*              the function that accesses BPy_Armature member variables and */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject* ArmatureGetAttr (C_Armature *self, char *name)
+static PyObject* Armature_getAttr (BPy_Armature *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -275,17 +270,17 @@ static PyObject* ArmatureGetAttr (C_Armature *self, char *name)
   if (attr != Py_None) return attr; /* member attribute found, return it */
 
   /* not an attribute, search the methods table */
-  return Py_FindMethod(C_Armature_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Armature_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
-/* Function:    ArmatureSetAttr                                              */
-/* Description: This is a callback function for the C_Armature type. It is   */
+/* Function:    Armature_setAttr                                             */
+/* Description: This is a callback function for the BPy_Armature type. It is */
 /*              the function that changes Armature Data members values. If   */
 /*              this data is linked to a Blender Armature, it also gets      */
 /*              updated.                                                     */
 /*****************************************************************************/
-static int ArmatureSetAttr (C_Armature *self, char *name, PyObject *value)
+static int Armature_setAttr (BPy_Armature *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -317,50 +312,48 @@ static int ArmatureSetAttr (C_Armature *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    ArmaturePrint                                                */
-/* Description: This is a callback function for the C_Armature type. It      */
+/* Function:    Armature_print                                               */
+/* Description: This is a callback function for the BPy_Armature type. It    */
 /*              builds a meaninful string to 'print' armature objects.       */
 /*****************************************************************************/
-static int ArmaturePrint(C_Armature *self, FILE *fp, int flags)
+static int Armature_print(BPy_Armature *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Armature \"%s\"]", self->armature->id.name+2);
   return 0;
 }
 
 /*****************************************************************************/
-/* Function:    ArmatureRepr                                                 */
-/* Description: This is a callback function for the C_Armature type. It      */
+/* Function:    Armature_repr                                                */
+/* Description: This is a callback function for the BPy_Armature type. It    */
 /*              builds a meaninful string to represent armature objects.     */
 /*****************************************************************************/
-static PyObject *ArmatureRepr (C_Armature *self)
+static PyObject *Armature_repr (BPy_Armature *self)
 {
   return PyString_FromString(self->armature->id.name+2);
 }
 
 /*****************************************************************************/
-/* Function:    ArmatureCmp                                                  */
-/* Description: This is a callback function for the C_Armature type. It      */
+/* Function:    Armature_compare                                             */
+/* Description: This is a callback function for the BPy_Armature type. It    */
 /*              compares the two armatures: translate comparison to the      */
 /*              C pointers.                                                  */
 /*****************************************************************************/
-static int ArmatureCmp (C_Armature *a, C_Armature *b)
+static int Armature_compare (BPy_Armature *a, BPy_Armature *b)
 {
   bArmature *pa = a->armature, *pb = b->armature;
   return (pa == pb) ? 0:-1;
 }
 
 /*****************************************************************************/
-/* Function:    M_ArmatureCreatePyObject                                     */
+/* Function:    Armature_CreatePyObject                                      */
 /* Description: This function will create a new BlenArmature from an         */
 /*              existing Armature structure.                                 */
 /*****************************************************************************/
-PyObject* M_ArmatureCreatePyObject (struct bArmature *obj)
+PyObject* Armature_CreatePyObject (struct bArmature *obj)
 {
-  C_Armature    * blen_armature;
+  BPy_Armature    * blen_armature;
 
-  printf ("In M_ArmatureCreatePyObject\n");
-
-  blen_armature = (C_Armature*)PyObject_NEW (C_Armature, &Armature_Type);
+  blen_armature = (BPy_Armature*)PyObject_NEW (BPy_Armature, &Armature_Type);
 
   if (blen_armature == NULL)
     {
@@ -371,24 +364,24 @@ PyObject* M_ArmatureCreatePyObject (struct bArmature *obj)
 }
 
 /*****************************************************************************/
-/* Function:    M_ArmatureCheckPyObject                                      */
+/* Function:    Armature_CheckPyObject                                       */
 /* Description: This function returns true when the given PyObject is of the */
 /*              type Armature. Otherwise it will return false.               */
 /*****************************************************************************/
-int M_ArmatureCheckPyObject (PyObject *py_obj)
+int Armature_CheckPyObject (PyObject *py_obj)
 {
   return (py_obj->ob_type == &Armature_Type);
 }
 
 /*****************************************************************************/
-/* Function:    M_ArmatureFromPyObject                                       */
+/* Function:    Armature_FromPyObject                                        */
 /* Description: This function returns the Blender armature from the given    */
 /*              PyObject.                                                    */
 /*****************************************************************************/
-struct bArmature* M_ArmatureFromPyObject (PyObject *py_obj)
+struct bArmature* Armature_FromPyObject (PyObject *py_obj)
 {
-  C_Armature    * blen_obj;
+  BPy_Armature    * blen_obj;
 
-  blen_obj = (C_Armature*)py_obj;
+  blen_obj = (BPy_Armature*)py_obj;
   return (blen_obj->armature);
 }

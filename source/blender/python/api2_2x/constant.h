@@ -46,17 +46,17 @@
 PyObject *M_constant_New (void);
 
 /*****************************************************************************/
-/* Python C_constant structure definition:                                   */
+/* Python BPy_constant structure definition:                                 */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
   PyObject *dict;
 
-} C_constant;
+} BPy_constant;
 
 /*****************************************************************************/
-/* Python C_constant methods declarations:                                   */
+/* Python BPy_constant methods declarations:                                 */
 /*****************************************************************************/
-int constant_insert(C_constant *self, char *name, PyObject *value);
+int constant_insert(BPy_constant *self, char *name, PyObject *value);
 
 #endif /* EXPP_constant_H */

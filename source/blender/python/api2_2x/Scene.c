@@ -162,12 +162,12 @@ static PyMethodDef BPy_Scene_methods[] = {
 /*****************************************************************************/
 /* Python Scene_Type callback function prototypes:                           */
 /*****************************************************************************/
-static void Scene_DeAlloc (BPy_Scene *self);
-static int Scene_Print (BPy_Scene *self, FILE *fp, int flags);
-static int Scene_SetAttr (BPy_Scene *self, char *name, PyObject *v);
-static int Scene_Compare (BPy_Scene *a, BPy_Scene *b);
-static PyObject *Scene_GetAttr (BPy_Scene *self, char *name);
-static PyObject *Scene_Repr (BPy_Scene *self);
+static void Scene_dealloc (BPy_Scene *self);
+static int Scene_print (BPy_Scene *self, FILE *fp, int flags);
+static int Scene_setAttr (BPy_Scene *self, char *name, PyObject *v);
+static int Scene_compare (BPy_Scene *a, BPy_Scene *b);
+static PyObject *Scene_getAttr (BPy_Scene *self, char *name);
+static PyObject *Scene_repr (BPy_Scene *self);
 
 /*****************************************************************************/
 /* Python Scene_Type structure definition:                                   */
@@ -180,12 +180,12 @@ PyTypeObject Scene_Type =
   sizeof (BPy_Scene),                     /* tp_basicsize */
   0,                                      /* tp_itemsize */
   /* methods */
-  (destructor)Scene_DeAlloc,              /* tp_dealloc */
-  (printfunc)Scene_Print,                 /* tp_print */
-  (getattrfunc)Scene_GetAttr,             /* tp_getattr */
-  (setattrfunc)Scene_SetAttr,             /* tp_setattr */
-  (cmpfunc)Scene_Compare,                 /* tp_compare */
-  (reprfunc)Scene_Repr,                   /* tp_repr */
+  (destructor)Scene_dealloc,              /* tp_dealloc */
+  (printfunc)Scene_print,                 /* tp_print */
+  (getattrfunc)Scene_getAttr,             /* tp_getattr */
+  (setattrfunc)Scene_setAttr,             /* tp_setattr */
+  (cmpfunc)Scene_compare,                 /* tp_compare */
+  (reprfunc)Scene_repr,                   /* tp_repr */
   0,                                      /* tp_as_number */
   0,                                      /* tp_as_sequence */
   0,                                      /* tp_as_mapping */
@@ -203,8 +203,6 @@ static PyObject *M_Scene_New(PyObject *self, PyObject *args, PyObject *kword)
   char     *kw[] = {"name", NULL};
   PyObject *pyscene; /* for the Scene object wrapper in Python */
   Scene    *blscene; /* for the actual Scene we create in Blender */
-
-  printf ("In Scene_New()\n");
 
   if (!PyArg_ParseTupleAndKeywords(args, kword, "|s", kw, &name))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
@@ -314,8 +312,6 @@ static PyObject *M_Scene_unlink (PyObject *self, PyObject *args)
 PyObject *Scene_Init (void)
 {
   PyObject  *submodule;
-
-  printf ("In M_Scene_Init()\n");
 
   Scene_Type.ob_type = &PyType_Type;
 
@@ -464,7 +460,7 @@ static PyObject *Scene_update (BPy_Scene *self)
 static PyObject *Scene_link (BPy_Scene *self, PyObject *args)
 {
   Scene    *scene = self->scene;
-  C_Object *bpy_obj; /* XXX Change to BPy or whatever is chosen */
+  BPy_Object *bpy_obj; /* XXX Change to BPy or whatever is chosen */
 
   if (!scene)
       return EXPP_ReturnPyObjError (PyExc_RuntimeError,
@@ -511,7 +507,7 @@ static PyObject *Scene_link (BPy_Scene *self, PyObject *args)
 
 static PyObject *Scene_unlink (BPy_Scene *self, PyObject *args)
 { 
-  C_Object *bpy_obj = NULL;
+  BPy_Object *bpy_obj = NULL;
   Object *object;
   Scene *scene = self->scene;
   Base *base;
@@ -638,7 +634,7 @@ static PyObject *Scene_getCurrentCamera (BPy_Scene *self)
 static PyObject *Scene_setCurrentCamera (BPy_Scene *self, PyObject *args)
 {
 	Object *object;
-	C_Object *cam_obj;
+	BPy_Object *cam_obj;
 	Scene  *scene = self->scene;
 
 	if (!scene)
@@ -663,12 +659,12 @@ static PyObject *Scene_setCurrentCamera (BPy_Scene *self, PyObject *args)
 	return Py_None;
 }
 
-static void Scene_DeAlloc (BPy_Scene *self)
+static void Scene_dealloc (BPy_Scene *self)
 {
   PyObject_DEL (self);
 }
 
-static PyObject *Scene_GetAttr (BPy_Scene *self, char *name)
+static PyObject *Scene_getAttr (BPy_Scene *self, char *name)
 {
   PyObject *attr = Py_None;
 
@@ -689,7 +685,7 @@ static PyObject *Scene_GetAttr (BPy_Scene *self, char *name)
   return Py_FindMethod(BPy_Scene_methods, (PyObject *)self, name);
 }
 
-static int Scene_SetAttr (BPy_Scene *self, char *name, PyObject *value)
+static int Scene_setAttr (BPy_Scene *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
@@ -728,19 +724,19 @@ static int Scene_SetAttr (BPy_Scene *self, char *name, PyObject *value)
   return 0; /* normal exit */
 }
 
-static int Scene_Compare (BPy_Scene *a, BPy_Scene *b)
+static int Scene_compare (BPy_Scene *a, BPy_Scene *b)
 {
   Scene *pa = a->scene, *pb = b->scene;
   return (pa == pb) ? 0:-1;
 }
 
-static int Scene_Print(BPy_Scene *self, FILE *fp, int flags)
+static int Scene_print(BPy_Scene *self, FILE *fp, int flags)
 { 
   fprintf(fp, "[Scene \"%s\"]", self->scene->id.name+2);
   return 0;
 }
 
-static PyObject *Scene_Repr (BPy_Scene *self)
+static PyObject *Scene_repr (BPy_Scene *self)
 {
   return PyString_FromString(self->scene->id.name+2);
 }
