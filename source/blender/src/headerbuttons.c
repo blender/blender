@@ -1042,7 +1042,6 @@ void do_global_buttons(unsigned short event)
 			bAction *act = (bAction*) from;
 			bActionChannel *chan = 
 				get_hilighted_action_channel((bAction*)from);
-			chan->ipo->id.us--;
 			BLI_freelinkN (&act->chanbase, chan);
 		}
 		else if(ipo->blocktype==IPO_CO) ((Object *)from)->activecon->ipo= 0;
