@@ -37,6 +37,7 @@
 
 #include "constant.h"
 #include "gen_utils.h"
+#include "sceneRender.h"
 
 /* The Scene PyType Object defined in Scene.c */
 PyTypeObject Scene_Type;

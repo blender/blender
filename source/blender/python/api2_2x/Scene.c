@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Jacques Guignot
+ * Contributor(s): Willian P. Germano, Jacques Guignot, Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -49,14 +49,14 @@ static Base *EXPP_Scene_getObjectBase (Scene *scene, Object *object);
 PyObject *M_Object_Get (PyObject *self, PyObject *args); /* from Object.c */
 
 /*****************************************************************************/
-/* Python BPy_Scene defaults:																								 */
+/* Python BPy_Scene defaults:												 */
 /*****************************************************************************/
 #define EXPP_SCENE_FRAME_MAX 18000
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MIN 4
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MAX 10000
 
 /*****************************************************************************/
-/* Python API function prototypes for the Scene module.											 */
+/* Python API function prototypes for the Scene module.						*/
 /*****************************************************************************/
 static PyObject *M_Scene_New (PyObject *self, PyObject *args,
 															 PyObject *keywords);
@@ -65,26 +65,214 @@ static PyObject *M_Scene_GetCurrent (PyObject *self);
 static PyObject *M_Scene_Unlink (PyObject *self, PyObject *arg);
 
 /*****************************************************************************/
-/* The following string definitions are used for documentation strings.			 */
-/* In Python these will be written to the console when doing a							 */
-/* Blender.Scene.__doc__																										 */
+/* The following string definitions are used for documentation strings.		*/
+/* In Python these will be written to the console when doing a				*/
+/* Blender.Scene.__doc__													*/
 /*****************************************************************************/
 static char M_Scene_doc[] =
 "The Blender.Scene submodule";
-
 static char M_Scene_New_doc[] =
 "(name = 'Scene') - Create a new Scene called 'name' in Blender.";
-
 static char M_Scene_Get_doc[] =
 "(name = None) - Return the scene called 'name'.\n\
 					 If 'name' is None, return a list with all Scenes.";
-
 static char M_Scene_GetCurrent_doc[] =
 "() - Return the currently active Scene in Blender.";
-
 static char M_Scene_Unlink_doc[] =
 "(scene) - Unlink (delete) scene 'Scene' from Blender.\n\
 (scene) is of type Blender scene.";
+// Python BPy_Scene rendering declarations:						
+static char M_Scene_Render_doc[] =
+"() - render the scene\n";
+static char M_Scene_RenderAnim_doc[] =
+"() - render a sequence\n";
+static char M_Scene_CloseRenderWindow_doc[] =
+"() - close the rendering window\n";
+static char M_Scene_Play_doc[] =
+"() - play animation of rendered images/avi (searches Pics: field)\n";
+static char M_Scene_SetRenderPath_doc[] =
+"() - get/set the path to output the rendered images to\n";
+static char M_Scene_GetRenderPath_doc[] =
+"() - get the path to directory where rendered images will go\n";
+static char M_Scene_SetBackbufPath_doc[] =
+"() - get/set the path to a background image and load it\n";
+static char M_Scene_GetBackbufPath_doc[] =
+"() - get the path to background image file\n";
+static char M_Scene_EnableBackbuf_doc[] =
+"() - enable/disable the backbuf image\n";
+static char M_Scene_SetFtypePath_doc[] =
+"() - get/set the path to output the Ftype file\n";
+static char M_Scene_GetFtypePath_doc[] =
+"() - get the path to Ftype file\n";
+static char M_Scene_EnableExtensions_doc[] =
+"() - enable/disable windows extensions for output files\n";
+static char M_Scene_EnableSequencer_doc[] =
+"() - enable/disable Do Sequence\n";
+static char M_Scene_EnableRenderDaemon_doc[] =
+"() - enable/disable Scene daemon\n";
+static char M_Scene_SetRenderWinPos_doc[] =
+"() - position the rendering window in around the edge of the screen\n";
+static char M_Scene_EnableDispView_doc[] =
+"() - enable Sceneing in view\n";
+static char M_Scene_EnableDispWin_doc[] =
+"() - enable Sceneing in new window\n";
+static char M_Scene_EnableToonShading_doc[] =
+"() - enable/disable Edge rendering\n";
+static char M_Scene_EdgeIntensity_doc[] =
+"() - get/set edge intensity for toon shading\n";
+static char M_Scene_EnableEdgeShift_doc[] =
+"() - with the unified renderer the outlines are shifted a bit.\n";
+static char M_Scene_EnableEdgeAll_doc[] =
+"() - also consider transparent faces for edge-rendering with the unified renderer\n";
+static char M_Scene_SetEdgeColor_doc[] =
+"() - set the edge color for toon shading - Red,Green,Blue expected.\n";
+static char M_Scene_GetEdgeColor_doc[] =
+"() - get the edge color for toon shading - Red,Green,Blue expected.\n";
+static char M_Scene_EdgeAntiShift_doc[] =
+"() - with the unified renderer to reduce intensity on boundaries.\n";
+static char M_Scene_EnableOversampling_doc[] =
+"() - enable/disable oversampling (anit-aliasing).\n";
+static char M_Scene_SetOversamplingLevel_doc[] =
+"() - get/set the level of oversampling (anit-aliasing).\n";
+static char M_Scene_EnableMotionBlur_doc[] =
+"() - enable/disable MBlur.\n";
+static char M_Scene_MotionBlurLevel_doc[] =
+"() - get/set the length of shutter time for motion blur.\n";
+static char M_Scene_PartsX_doc[] =
+"() - get/set the number of parts to divide the render in the X direction\n";
+static char M_Scene_PartsY_doc[] =
+"() - get/set the number of parts to divide the render in the Y direction\n";
+static char M_Scene_EnableSky_doc[] =
+"() - enable render background with sky\n";
+static char M_Scene_EnablePremultiply_doc[] =
+"() - enable premultiply alpha\n";
+static char M_Scene_EnableKey_doc[] =
+"() - enable alpha and colour values remain unchanged\n";
+static char M_Scene_EnableShadow_doc[] =
+"() - enable/disable shadow calculation\n";
+static char M_Scene_EnableEnvironmentMap_doc[] =
+"() - enable/disable environment map rendering\n";
+static char M_Scene_EnableRayTracing_doc[] =
+"() - enable/disable ray tracing\n";
+static char M_Scene_EnableRadiosityRender_doc[] =
+"() - enable/disable radiosity rendering\n";
+static char M_Scene_EnablePanorama_doc[] =
+"() - enable/disable panorama rendering (output width is multiplied by Xparts)\n";
+static char M_Scene_SetRenderWinSize_doc[] =
+"() - get/set the size of the render window\n";
+static char M_Scene_EnableFieldRendering_doc[] =
+"() - enable/disable field rendering\n";
+static char M_Scene_EnableOddFieldFirst_doc[] =
+"() - enable/disable Odd field first rendering (Default: Even field)\n";
+static char M_Scene_EnableFieldTimeDisable_doc[] =
+"() - enable/disable time difference in field calculations\n";
+static char M_Scene_EnableGaussFilter_doc[] =
+"() - enable/disable Gauss sampling filter for antialiasing\n";
+static char M_Scene_EnableBorderRender_doc[] =
+"() - enable/disable small cut-out rendering\n";
+static char M_Scene_EnableGammaCorrection_doc[] =
+"() - enable/disable gamma correction\n";
+static char M_Scene_GaussFilterSize_doc[] =
+"() - get/sets the Gauss filter size\n";
+static char M_Scene_StartFrame_doc[] =
+"() - get/set the starting frame for sequence rendering\n";
+static char M_Scene_EndFrame_doc[] =
+"() - get/set the ending frame for sequence rendering\n";
+static char M_Scene_ImageSizeX_doc[] =
+"() - get/set the image width in pixels\n";
+static char M_Scene_ImageSizeY_doc[] =
+"() - get/set the image height in pixels\n";
+static char M_Scene_AspectRatioX_doc[] =
+"() - get/set the horizontal aspect ratio\n";
+static char M_Scene_AspectRatioY_doc[] =
+"() - get/set the vertical aspect ratio\n";
+static char M_Scene_SetRenderer_doc[] =
+"() - get/set which renderer to render the output\n";
+static char M_Scene_EnableCropping_doc[] =
+"() - enable/disable exclusion of border rendering from total image\n";
+static char M_Scene_SetImageType_doc[] =
+"() - get/set the type of image to output from the render\n";
+static char M_Scene_Quality_doc[] =
+"() - get/set quality get/setting for JPEG images, AVI Jpeg and SGI movies\n";
+static char M_Scene_FramesPerSec_doc[] =
+"() - get/set frames per second\n";
+static char M_Scene_EnableGrayscale_doc[] =
+"() - images are saved with BW (grayscale) data\n";
+static char M_Scene_EnableRGBColor_doc[] =
+"() - images are saved with RGB (color) data\n";
+static char M_Scene_EnableRGBAColor_doc[] =
+"() - images are saved with RGB and Alpha data (if supported)\n";
+static char M_Scene_SizePreset_doc[] =
+"() - get/set the render to one of a few preget/sets\n";
+static char M_Scene_EnableUnifiedRenderer_doc[] =
+"() - use the unified renderer\n";
+static char M_Scene_SetYafrayGIQuality_doc[] =
+"() - get/set yafray global Illumination quality\n";
+static char M_Scene_SetYafrayGIMethod_doc[] =
+"() - get/set yafray global Illumination method\n";
+static char M_Scene_YafrayGIPower_doc[] =
+"() - get/set GI lighting intensity scale\n";
+static char M_Scene_YafrayGIDepth_doc[] =
+"() - get/set number of bounces of the indirect light\n";
+static char M_Scene_YafrayGICDepth_doc[] =
+"() - get/set number of bounces inside objects (for caustics)\n";
+static char M_Scene_EnableYafrayGICache_doc[] =
+"() - enable/disable cache irradiance samples (faster)\n";
+static char M_Scene_EnableYafrayGIPhotons_doc[] =
+"() - enable/disable use global photons to help in GI\n";
+static char M_Scene_YafrayGIPhotonCount_doc[] =
+"() - get/set number of photons to shoot\n";
+static char M_Scene_YafrayGIPhotonRadius_doc[] =
+"() - get/set radius to search for photons to mix (blur)\n";
+static char M_Scene_YafrayGIPhotonMixCount_doc[] =
+"() - get/set number of photons to shoot\n";
+static char M_Scene_EnableYafrayGITunePhotons_doc[] =
+"() - enable/disable show the photonmap directly in the render for tuning\n";
+static char M_Scene_YafrayGIShadowQuality_doc[] =
+"() - get/set the shadow quality, keep it under 0.95\n";
+static char M_Scene_YafrayGIPixelsPerSample_doc[] =
+"() - get/set maximum number of pixels without samples, the lower the better and slower\n";
+static char M_Scene_EnableYafrayGIGradient_doc[] =
+"() - enable/disable try to smooth lighting using a gradient\n";
+static char M_Scene_YafrayGIRefinement_doc[] =
+"() - get/setthreshold to refine shadows EXPERIMENTAL. 1 = no refinement\n";
+static char M_Scene_YafrayRayBias_doc[] =
+"() - get/set shadow ray bias to avoid self shadowing\n";
+static char M_Scene_YafrayRayDepth_doc[] =
+"() - get/set maximum render ray depth from the camera\n";
+static char M_Scene_YafrayGamma_doc[] =
+"() - get/set gamma correction, 1 is off\n";
+static char M_Scene_YafrayExposure_doc[] =
+"() - get/set exposure adjustment, 0 is off\n";
+static char M_Scene_YafrayProcessorCount_doc[] =
+"() - get/set number of processors to use\n";
+static char M_Scene_EnableGameFrameStretch_doc[] =
+"() - enble stretch or squeeze the viewport to fill the display window\n";
+static char M_Scene_EnableGameFrameExpose_doc[] =
+"() - enable show the entire viewport in the display window, viewing more horizontally or vertically\n";
+static char M_Scene_EnableGameFrameBars_doc[] =
+"() - enable show the entire viewport in the display window, using bar horizontally or vertically\n";
+static char M_Scene_SetGameFrameColor_doc[] =
+"() - set the red, green, blue component of the bars\n";
+static char M_Scene_GetGameFrameColor_doc[] =
+"() - get the red, green, blue component of the bars\n";
+static char M_Scene_GammaLevel_doc[] =
+"() - get/set the gamma value for blending oversampled images (1.0 = no correction\n";
+static char M_Scene_PostProcessAdd_doc[] =
+"() - get/set post processing add\n";
+static char M_Scene_PostProcessMultiply_doc[] =
+"() - get/set post processing multiply\n";
+static char M_Scene_PostProcessGamma_doc[] =
+"() - get/set post processing gamma\n";
+static char M_Scene_SGIMaxsize_doc[] =
+"() - get/set maximum size per frame to save in an SGI movie\n";
+static char M_Scene_EnableSGICosmo_doc[] =
+"() - enable/disable attempt to save SGI movies using Cosmo hardware\n";
+static char M_Scene_OldMapValue_doc[] =
+"() - get/set specify old map value in frames\n";
+static char M_Scene_NewMapValue_doc[] =
+"() - get/set specify new map value in frames\n";
+
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Scene module:							 */
@@ -100,6 +288,18 @@ struct PyMethodDef M_Scene_methods[] = {
 														 METH_NOARGS,  M_Scene_GetCurrent_doc},
 	{"Unlink",			M_Scene_Unlink,			 METH_VARARGS, M_Scene_Unlink_doc},
 	{"unlink",			M_Scene_Unlink,			 METH_VARARGS, M_Scene_Unlink_doc},
+	{"CloseRenderWindow",(PyCFunction)M_Render_CloseRenderWindow, METH_NOARGS,
+				M_Scene_CloseRenderWindow_doc},
+	{"EnableDispView",(PyCFunction)M_Render_EnableDispView, METH_NOARGS,
+				M_Scene_EnableDispView_doc},
+	{"EnableDispWin",(PyCFunction)M_Render_EnableDispWin, METH_NOARGS,
+				M_Scene_EnableDispWin_doc},
+	{"SetRenderWinPos",(PyCFunction)M_Render_SetRenderWinPos, METH_VARARGS,
+				M_Scene_SetRenderWinPos_doc}, 
+	{"EnableEdgeShift",(PyCFunction)M_Render_EnableEdgeShift, METH_VARARGS,
+				M_Scene_EnableEdgeShift_doc},
+	{"EnableEdgeAll",(PyCFunction)M_Render_EnableEdgeAll, METH_VARARGS,
+				M_Scene_EnableEdgeAll_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -125,8 +325,9 @@ static PyObject *Scene_getChildren(BPy_Scene *self);
 static PyObject *Scene_getCurrentCamera(BPy_Scene *self);
 static PyObject *Scene_setCurrentCamera(BPy_Scene *self, PyObject *args);
 
+
 /*****************************************************************************/
-/* Python BPy_Scene methods table:																					 */
+/* Python BPy_Scene methods table:											*/
 /*****************************************************************************/
 static PyMethodDef BPy_Scene_methods[] = {
  /* name, method, flags, doc */
@@ -134,28 +335,14 @@ static PyMethodDef BPy_Scene_methods[] = {
 			"() - Return Scene name"},
 	{"setName", (PyCFunction)Scene_setName, METH_VARARGS,
 					"(str) - Change Scene name"},
-	{"getWinSize", (PyCFunction)Scene_getWinSize, METH_NOARGS,
-			"() - Return Render window [x,y] dimensions"},
-	{"setWinSize", (PyCFunction)Scene_setWinSize, METH_VARARGS,
-					"(str) - Change Render window [x,y] dimensions"},
 	{"copy",		(PyCFunction)Scene_copy, METH_VARARGS,
 					"(duplicate_objects = 1) - Return a copy of this scene\n"
 	"The optional argument duplicate_objects defines how the scene\n"
 	"children are duplicated:\n\t0: Link Objects\n\t1: Link Object Data"
 	"\n\t2: Full copy\n"},
-	{"startFrame", (PyCFunction)Scene_startFrame, METH_VARARGS,
-					"(frame) - If frame is given, the start frame is set and"
-									"\nreturned in any case"},
-	{"endFrame", (PyCFunction)Scene_endFrame, METH_VARARGS,
-					"(frame) - If frame is given, the end frame is set and"
-									"\nreturned in any case"},
 	{"currentFrame", (PyCFunction)Scene_currentFrame, METH_VARARGS,
 					"(frame) - If frame is given, the current frame is set and"
 									"\nreturned in any case"},
-	{"frameSettings", (PyCFunction)Scene_frameSettings, METH_VARARGS,
-					"(start, end, current) - Sets or retrieves the Scene's frame"
-					" settings.\nIf the frame arguments are specified, they are set. "
-					"A tuple (start, end, current) is returned in any case."},
 	{"makeCurrent", (PyCFunction)Scene_makeCurrent, METH_NOARGS,
 					"() - Make self the current scene"},
 	{"update", (PyCFunction)Scene_update, METH_VARARGS,
@@ -166,21 +353,215 @@ static PyMethodDef BPy_Scene_methods[] = {
 					"(obj) - Link Object obj to this scene"},
 	{"unlink", (PyCFunction)Scene_unlink, METH_VARARGS,
 					"(obj) - Unlink Object obj from this scene"},
-	{"getRenderdir", (PyCFunction)Scene_getRenderdir, METH_NOARGS,
-					"() - Return directory where rendered images are saved to"},
-	{"getBackbufdir", (PyCFunction)Scene_getBackbufdir, METH_NOARGS,
-					"() - Return location of the backbuffer image"},
 	{"getChildren", (PyCFunction)Scene_getChildren, METH_NOARGS,
 					"() - Return list of all objects linked to scene self"},
 	{"getCurrentCamera", (PyCFunction)Scene_getCurrentCamera, METH_NOARGS,
 					"() - Return current active Camera"},
 	{"setCurrentCamera", (PyCFunction)Scene_setCurrentCamera, METH_VARARGS,
 					"() - Set the currently active Camera"},
+	//RENDERING METHODS
+	{"render",(PyCFunction)M_Render_Render, METH_NOARGS,
+			M_Scene_Render_doc},
+	{"renderAnim",(PyCFunction)M_Render_RenderAnim, METH_NOARGS,
+				M_Scene_RenderAnim_doc},
+	{"play",(PyCFunction)M_Render_Play, METH_NOARGS,
+				M_Scene_Play_doc},
+	{"setRenderPath",(PyCFunction)M_Render_SetRenderPath, METH_VARARGS,
+				M_Scene_SetRenderPath_doc},
+	{"getRenderPath",(PyCFunction)M_Render_GetRenderPath, METH_NOARGS,
+				M_Scene_GetRenderPath_doc},
+	{"setBackbufPath",(PyCFunction)M_Render_SetBackbufPath, METH_VARARGS,
+				M_Scene_SetBackbufPath_doc},
+	{"getBackbufPath",(PyCFunction)M_Render_GetBackbufPath, METH_NOARGS,
+				M_Scene_GetBackbufPath_doc},
+	{"enableBackbuf",(PyCFunction)M_Render_EnableBackbuf, METH_VARARGS,
+				M_Scene_EnableBackbuf_doc},
+	{"setFtypePath",(PyCFunction)M_Render_SetFtypePath, METH_VARARGS,
+				M_Scene_SetFtypePath_doc},
+	{"getFtypePath",(PyCFunction)M_Render_GetFtypePath, METH_NOARGS,
+				M_Scene_GetFtypePath_doc},
+	{"enableExtensions",(PyCFunction)M_Render_EnableExtensions, METH_VARARGS,
+				M_Scene_EnableExtensions_doc},
+	{"enableSequencer",(PyCFunction)M_Render_EnableSequencer, METH_VARARGS,
+				M_Scene_EnableSequencer_doc},
+	{"enableRenderDaemon",(PyCFunction)M_Render_EnableRenderDaemon, METH_VARARGS,
+				M_Scene_EnableRenderDaemon_doc},
+	{"enableToonShading",(PyCFunction)M_Render_EnableToonShading, METH_VARARGS,
+				M_Scene_EnableToonShading_doc},
+	{"edgeIntensity",(PyCFunction)M_Render_EdgeIntensity, METH_VARARGS,
+				M_Scene_EdgeIntensity_doc},
+	{"setEdgeColor",(PyCFunction)M_Render_SetEdgeColor, METH_VARARGS,
+				M_Scene_SetEdgeColor_doc},
+	{"getEdgeColor",(PyCFunction)M_Render_GetEdgeColor, METH_VARARGS,
+				M_Scene_GetEdgeColor_doc},
+	{"edgeAntiShift",(PyCFunction)M_Render_EdgeAntiShift, METH_VARARGS,
+				M_Scene_EdgeAntiShift_doc},
+	{"enableOversampling",(PyCFunction)M_Render_EnableOversampling, METH_VARARGS,
+				M_Scene_EnableOversampling_doc},
+	{"setOversamplingLevel",(PyCFunction)M_Render_SetOversamplingLevel, METH_VARARGS,
+				M_Scene_SetOversamplingLevel_doc},
+	{"enableMotionBlur",(PyCFunction)M_Render_EnableMotionBlur, METH_VARARGS,
+				M_Scene_EnableMotionBlur_doc},
+	{"motionBlurLevel",(PyCFunction)M_Render_MotionBlurLevel, METH_VARARGS,
+				M_Scene_MotionBlurLevel_doc},
+	{"partsX",(PyCFunction)M_Render_PartsX, METH_VARARGS,
+				M_Scene_PartsX_doc},
+	{"partsY",(PyCFunction)M_Render_PartsY, METH_VARARGS,
+				M_Scene_PartsY_doc},
+	{"enableSky",(PyCFunction)M_Render_EnableSky, METH_NOARGS,
+				M_Scene_EnableSky_doc},
+	{"enablePremultiply",(PyCFunction)M_Render_EnablePremultiply, METH_NOARGS,
+				M_Scene_EnablePremultiply_doc},
+	{"enableKey",(PyCFunction)M_Render_EnableKey, METH_NOARGS,
+				M_Scene_EnableKey_doc}, 
+	{"enableShadow",(PyCFunction)M_Render_EnableShadow, METH_VARARGS,
+				M_Scene_EnableShadow_doc},
+	{"enablePanorama",(PyCFunction)M_Render_EnablePanorama, METH_VARARGS,
+				M_Scene_EnablePanorama_doc},
+	{"enableEnvironmentMap",(PyCFunction)M_Render_EnableEnvironmentMap, METH_VARARGS,
+				M_Scene_EnableEnvironmentMap_doc},
+	{"enableRayTracing",(PyCFunction)M_Render_EnableRayTracing, METH_VARARGS,
+				M_Scene_EnableRayTracing_doc},
+	{"enableRadiosityRender",(PyCFunction)M_Render_EnableRadiosityRender, METH_VARARGS,
+				M_Scene_EnableRadiosityRender_doc},
+	{"setRenderWinSize",(PyCFunction)M_Render_SetRenderWinSize, METH_VARARGS,
+				M_Scene_SetRenderWinSize_doc},
+	{"enableFieldRendering",(PyCFunction)M_Render_EnableFieldRendering, METH_VARARGS,
+				M_Scene_EnableFieldRendering_doc},
+	{"enableOddFieldFirst",(PyCFunction)M_Render_EnableOddFieldFirst, METH_VARARGS,
+				M_Scene_EnableOddFieldFirst_doc},
+	{"enableFieldTimeDisable",(PyCFunction)M_Render_EnableFieldTimeDisable, METH_VARARGS,
+				M_Scene_EnableFieldTimeDisable_doc},
+	{"enableGaussFilter",(PyCFunction)M_Render_EnableGaussFilter, METH_VARARGS,
+				M_Scene_EnableGaussFilter_doc},
+	{"enableBorderRender",(PyCFunction)M_Render_EnableBorderRender, METH_VARARGS,
+				M_Scene_EnableBorderRender_doc},
+	{"enableGammaCorrection",(PyCFunction)M_Render_EnableGammaCorrection, METH_VARARGS,
+				M_Scene_EnableGammaCorrection_doc},
+	{"gaussFilterSize",(PyCFunction)M_Render_GaussFilterSize, METH_VARARGS,
+				M_Scene_GaussFilterSize_doc},
+	{"startFrame",(PyCFunction)M_Render_StartFrame, METH_VARARGS,
+				M_Scene_StartFrame_doc},
+	{"endFrame",(PyCFunction)M_Render_EndFrame, METH_VARARGS,
+				M_Scene_EndFrame_doc},
+	{"imageSizeX",(PyCFunction)M_Render_ImageSizeX, METH_VARARGS,
+				M_Scene_ImageSizeX_doc},
+	{"imageSizeY",(PyCFunction)M_Render_ImageSizeY, METH_VARARGS,
+				M_Scene_ImageSizeY_doc},
+	{"aspectRatioX",(PyCFunction)M_Render_AspectRatioX, METH_VARARGS,
+				M_Scene_AspectRatioX_doc},
+	{"aspectRatioY",(PyCFunction)M_Render_AspectRatioY, METH_VARARGS,
+				M_Scene_AspectRatioY_doc},
+	{"setRenderer",(PyCFunction)M_Render_SetRenderer, METH_VARARGS,
+				M_Scene_SetRenderer_doc},
+	{"enableCropping",(PyCFunction)M_Render_EnableCropping, METH_VARARGS,
+				M_Scene_EnableCropping_doc},
+	{"setImageType",(PyCFunction)M_Render_SetImageType, METH_VARARGS,
+				M_Scene_SetImageType_doc},
+	{"quality",(PyCFunction)M_Render_Quality, METH_VARARGS,
+				M_Scene_Quality_doc},
+	{"framesPerSec",(PyCFunction)M_Render_FramesPerSec, METH_VARARGS,
+				M_Scene_FramesPerSec_doc},
+	{"enableGrayscale",(PyCFunction)M_Render_EnableGrayscale, METH_NOARGS,
+				M_Scene_EnableGrayscale_doc},
+	{"enableRGBColor",(PyCFunction)M_Render_EnableRGBColor, METH_NOARGS,
+				M_Scene_EnableRGBColor_doc},
+	{"enableRGBAColor",(PyCFunction)M_Render_EnableRGBAColor, METH_NOARGS,
+				M_Scene_EnableRGBAColor_doc},
+	{"sizePreset",(PyCFunction)M_Render_SizePreset, METH_VARARGS,
+				M_Scene_SizePreset_doc},
+	{"enableUnifiedRenderer",(PyCFunction)M_Render_EnableUnifiedRenderer, METH_VARARGS,
+				M_Scene_EnableUnifiedRenderer_doc},
+	{"setYafrayGIQuality",(PyCFunction)M_Render_SetYafrayGIQuality, METH_VARARGS,
+				M_Scene_SetYafrayGIQuality_doc},
+	{"setYafrayGIMethod",(PyCFunction)M_Render_SetYafrayGIMethod, METH_VARARGS,
+				M_Scene_SetYafrayGIMethod_doc},
+	{"yafrayGIPower",(PyCFunction)M_Render_YafrayGIPower, METH_VARARGS,
+				M_Scene_YafrayGIPower_doc},
+	{"yafrayGIDepth",(PyCFunction)M_Render_YafrayGIDepth, METH_VARARGS,
+				M_Scene_YafrayGIDepth_doc},
+	{"yafrayGICDepth",(PyCFunction)M_Render_YafrayGICDepth, METH_VARARGS,
+				M_Scene_YafrayGICDepth_doc},
+	{"enableYafrayGICache",(PyCFunction)M_Render_EnableYafrayGICache, METH_VARARGS,
+				M_Scene_EnableYafrayGICache_doc},
+	{"enableYafrayGIPhotons",(PyCFunction)M_Render_EnableYafrayGIPhotons, METH_VARARGS,
+				M_Scene_EnableYafrayGIPhotons_doc},
+	{"yafrayGIPhotonCount",(PyCFunction)M_Render_YafrayGIPhotonCount, METH_VARARGS,
+				M_Scene_YafrayGIPhotonCount_doc},
+	{"yafrayGIPhotonRadius",(PyCFunction)M_Render_YafrayGIPhotonRadius, METH_VARARGS,
+				M_Scene_YafrayGIPhotonRadius_doc},
+	{"yafrayGIPhotonMixCount",(PyCFunction)M_Render_YafrayGIPhotonMixCount, METH_VARARGS,
+				M_Scene_YafrayGIPhotonMixCount_doc},
+	{"enableYafrayGITunePhotons",(PyCFunction)M_Render_EnableYafrayGITunePhotons, METH_VARARGS,
+				M_Scene_EnableYafrayGITunePhotons_doc},
+	{"yafrayGIShadowQuality",(PyCFunction)M_Render_YafrayGIShadowQuality, METH_VARARGS,
+				M_Scene_YafrayGIShadowQuality_doc},
+	{"yafrayGIPixelsPerSample",(PyCFunction)M_Render_YafrayGIPixelsPerSample, METH_VARARGS,
+				M_Scene_YafrayGIPixelsPerSample_doc},
+	{"enableYafrayGIGradient",(PyCFunction)M_Render_EnableYafrayGIGradient, METH_VARARGS,
+				M_Scene_EnableYafrayGIGradient_doc},
+	{"yafrayGIRefinement",(PyCFunction)M_Render_YafrayGIRefinement, METH_VARARGS,
+				M_Scene_YafrayGIRefinement_doc},
+	{"yafrayRayBias",(PyCFunction)M_Render_YafrayRayBias, METH_VARARGS,
+				M_Scene_YafrayRayBias_doc},
+	{"yafrayRayDepth",(PyCFunction)M_Render_YafrayRayDepth, METH_VARARGS,
+				M_Scene_YafrayRayDepth_doc},
+	{"yafrayGamma",(PyCFunction)M_Render_YafrayGamma, METH_VARARGS,
+				M_Scene_YafrayGamma_doc},
+	{"yafrayExposure",(PyCFunction)M_Render_YafrayExposure, METH_VARARGS,
+				M_Scene_YafrayExposure_doc},
+	{"yafrayProcessorCount",(PyCFunction)M_Render_YafrayProcessorCount, METH_VARARGS,
+				M_Scene_YafrayProcessorCount_doc},
+	{"enableGameFrameStretch",(PyCFunction)M_Render_EnableGameFrameStretch, METH_NOARGS,
+				M_Scene_EnableGameFrameStretch_doc},
+	{"enableGameFrameExpose",(PyCFunction)M_Render_EnableGameFrameExpose, METH_NOARGS,
+				M_Scene_EnableGameFrameExpose_doc},
+	{"enableGameFrameBars",(PyCFunction)M_Render_EnableGameFrameBars, METH_NOARGS,
+				M_Scene_EnableGameFrameBars_doc},
+	{"setGameFrameColor",(PyCFunction)M_Render_SetGameFrameColor, METH_VARARGS,
+				M_Scene_SetGameFrameColor_doc},
+	{"getGameFrameColor",(PyCFunction)M_Render_GetGameFrameColor, METH_VARARGS,
+				M_Scene_GetGameFrameColor_doc},
+	{"gammaLevel",(PyCFunction)M_Render_GammaLevel, METH_VARARGS,
+				M_Scene_GammaLevel_doc},
+	{"postProcessAdd",(PyCFunction)M_Render_PostProcessAdd, METH_VARARGS,
+				M_Scene_PostProcessAdd_doc},
+	{"postProcessMultiply",(PyCFunction)M_Render_PostProcessMultiply, METH_VARARGS,
+				M_Scene_PostProcessMultiply_doc},
+	{"postProcessGamma",(PyCFunction)M_Render_PostProcessGamma, METH_VARARGS,
+				M_Scene_PostProcessGamma_doc},
+ 	{"SGIMaxsize",(PyCFunction)M_Render_SGIMaxsize, METH_VARARGS,
+				M_Scene_SGIMaxsize_doc},
+	{"enableSGICosmo",(PyCFunction)M_Render_EnableSGICosmo, METH_VARARGS,
+				M_Scene_EnableSGICosmo_doc},
+	{"oldMapValue",(PyCFunction)M_Render_OldMapValue, METH_VARARGS,
+				M_Scene_OldMapValue_doc},
+	{"newMapValue",(PyCFunction)M_Render_NewMapValue, METH_VARARGS,
+				M_Scene_NewMapValue_doc},
+	//DEPRECATED
+	{"getWinSize", (PyCFunction)Scene_getWinSize, METH_NOARGS,
+			"() - Return Render window [x,y] dimensions"},
+	{"setWinSize", (PyCFunction)Scene_setWinSize, METH_VARARGS,
+					"(str) - Change Render window [x,y] dimensions"},
+	{"startFrame", (PyCFunction)Scene_startFrame, METH_VARARGS,
+					"(frame) - If frame is given, the start frame is set and"
+									"\nreturned in any case"},
+	{"endFrame", (PyCFunction)Scene_endFrame, METH_VARARGS,
+					"(frame) - If frame is given, the end frame is set and"
+									"\nreturned in any case"},
+	{"frameSettings", (PyCFunction)Scene_frameSettings, METH_VARARGS,
+					"(start, end, current) - Sets or retrieves the Scene's frame"
+					" settings.\nIf the frame arguments are specified, they are set. "
+					"A tuple (start, end, current) is returned in any case."},
+	{"getRenderdir", (PyCFunction)Scene_getRenderdir, METH_NOARGS,
+					"() - Return directory where rendered images are saved to"},
+	{"getBackbufdir", (PyCFunction)Scene_getBackbufdir, METH_NOARGS,
+					"() - Return location of the backbuffer image"},
 	{0}
 };
 
 /*****************************************************************************/
-/* Python Scene_Type callback function prototypes:													 */
+/* Python Scene_Type callback function prototypes:							*/
 /*****************************************************************************/
 static void Scene_dealloc (BPy_Scene *self);
 static int Scene_setAttr (BPy_Scene *self, char *name, PyObject *v);
@@ -189,31 +570,31 @@ static PyObject *Scene_getAttr (BPy_Scene *self, char *name);
 static PyObject *Scene_repr (BPy_Scene *self);
 
 /*****************************************************************************/
-/* Python Scene_Type structure definition:																	 */
+/* Python Scene_Type structure definition:								     */
 /*****************************************************************************/
 PyTypeObject Scene_Type =
 {
 	PyObject_HEAD_INIT(NULL)
-	0,																			/* ob_size */
-	"Scene",																/* tp_name */
-	sizeof (BPy_Scene),											/* tp_basicsize */
-	0,																			/* tp_itemsize */
+	0,								/* ob_size */
+	"Scene",						/* tp_name */
+	sizeof (BPy_Scene),				/* tp_basicsize */
+	0,								/* tp_itemsize */
 	/* methods */
-	(destructor)Scene_dealloc,							/* tp_dealloc */
-	0,																			/* tp_print */
-	(getattrfunc)Scene_getAttr,							/* tp_getattr */
-	(setattrfunc)Scene_setAttr,							/* tp_setattr */
-	(cmpfunc)Scene_compare,									/* tp_compare */
-	(reprfunc)Scene_repr,										/* tp_repr */
-	0,																			/* tp_as_number */
-	0,																			/* tp_as_sequence */
-	0,																			/* tp_as_mapping */
-	0,																			/* tp_as_hash */
+	(destructor)Scene_dealloc,		/* tp_dealloc */
+	0,								/* tp_print */
+	(getattrfunc)Scene_getAttr,		/* tp_getattr */
+	(setattrfunc)Scene_setAttr,		/* tp_setattr */
+	(cmpfunc)Scene_compare,			/* tp_compare */
+	(reprfunc)Scene_repr,			/* tp_repr */
+	0,								/* tp_as_number */
+	0,								/* tp_as_sequence */
+	0,								/* tp_as_mapping */
+	0,								/* tp_as_hash */
 	0,0,0,0,0,0,
-	0,																			/* tp_doc */ 
+	0,								/* tp_doc */ 
 	0,0,0,0,0,0,
-	BPy_Scene_methods,											/* tp_methods */
-	0,																			/* tp_members */
+	BPy_Scene_methods,				/* tp_methods */
+	0,								/* tp_members */
 };
 
 static PyObject *M_Scene_New(PyObject *self, PyObject *args, PyObject *kword)
@@ -339,11 +720,49 @@ static PyObject *M_Scene_Unlink (PyObject *self, PyObject *args)
 PyObject *Scene_Init (void)
 {
 	PyObject	*submodule;
+ 	PyObject *dict;
 
 	Scene_Type.ob_type = &PyType_Type;
+ 	submodule = Py_InitModule3("Blender.Scene",	M_Scene_methods, M_Scene_doc);
+	dict = PyModule_GetDict(submodule);
 
-	submodule = Py_InitModule3("Blender.Scene",
-									M_Scene_methods, M_Scene_doc);
+	#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, PyInt_FromLong(R_##x))
+	EXPP_ADDCONST(INTERN);
+	EXPP_ADDCONST(YAFRAY);
+	EXPP_ADDCONST(AVIRAW);
+	EXPP_ADDCONST(AVIJPEG);
+#ifdef _WIN32
+	EXPP_ADDCONST(AVICODEC);
+#endif
+	EXPP_ADDCONST(QUICKTIME);
+	EXPP_ADDCONST(TARGA);
+	EXPP_ADDCONST(RAWTGA);
+	EXPP_ADDCONST(PNG);
+	EXPP_ADDCONST(BMP);
+	EXPP_ADDCONST(JPEG90);
+	EXPP_ADDCONST(HAMX);
+	EXPP_ADDCONST(IRIS);
+	EXPP_ADDCONST(IRIZ);
+	EXPP_ADDCONST(FTYPE);
+	EXPP_ADDCONST(PAL);
+	EXPP_ADDCONST(NTSC);
+	EXPP_ADDCONST(DEFAULT);
+	EXPP_ADDCONST(PREVIEW);
+	EXPP_ADDCONST(PC);
+	EXPP_ADDCONST(PAL169);
+	EXPP_ADDCONST(PANO);
+	EXPP_ADDCONST(FULL);
+
+	#undef EXPP_ADDCONST
+	#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, PyInt_FromLong(PY_##x))
+	EXPP_ADDCONST(NONE);
+	EXPP_ADDCONST(LOW);
+	EXPP_ADDCONST(MEDIUM);
+	EXPP_ADDCONST(HIGH);
+	EXPP_ADDCONST(HIGHER);
+	EXPP_ADDCONST(BEST);
+	EXPP_ADDCONST(SKYDOME);
+	EXPP_ADDCONST(GIFULL);
 
 	return submodule;
 }
@@ -429,40 +848,6 @@ static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
 	return Py_None;
 }
 
-static PyObject *Scene_getWinSize(BPy_Scene *self)
-{
-	PyObject* list = PyList_New (0);
-	Scene *scene = self->scene;
-
-	PyList_Append (list, PyInt_FromLong(scene->r.xsch));
-	PyList_Append (list, PyInt_FromLong(scene->r.ysch));
-
-	return list;
-}
-
-static PyObject *Scene_setWinSize(BPy_Scene *self, PyObject *args)
-{
-	int xres = -1, yres = -1;
-
-	if (!PyArg_ParseTuple(args, "(ii)", &xres, &yres))
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-							"expected a [x, y] list as argument");
-
-	if (xres > 0)
-		self->scene->r.xsch = EXPP_ClampInt(xres,
-										EXPP_SCENE_RENDER_WINRESOLUTION_MIN,
-										EXPP_SCENE_RENDER_WINRESOLUTION_MAX);
-
-	if (yres > 0)
-		self->scene->r.ysch = EXPP_ClampInt(yres,
-										EXPP_SCENE_RENDER_WINRESOLUTION_MIN,
-										EXPP_SCENE_RENDER_WINRESOLUTION_MAX);
-
-	Py_INCREF(Py_None);
-
-	return Py_None;
-}
-
 static PyObject *Scene_copy (BPy_Scene *self, PyObject *args)
 {
 	short dup_objs = 1;
@@ -494,34 +879,6 @@ static PyObject *Scene_currentFrame (BPy_Scene *self, PyObject *args)
 	if (frame > 0) rd->cfra = EXPP_ClampInt(frame, 1, EXPP_SCENE_FRAME_MAX);
 
 	return PyInt_FromLong (rd->cfra);
-}
-
-static PyObject *Scene_startFrame (BPy_Scene *self, PyObject *args)
-{
-	short frame = -1;
-	RenderData *rd = &self->scene->r;
-
-	if (!PyArg_ParseTuple (args, "|h", &frame))
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-						"expected int argument or nothing");
-
-	if (frame > 0) rd->sfra = EXPP_ClampInt (frame, 1, EXPP_SCENE_FRAME_MAX);
-
-	return PyInt_FromLong (rd->sfra);
-}
-
-static PyObject *Scene_endFrame (BPy_Scene *self, PyObject *args)
-{
-	short frame = -1;
-	RenderData *rd = &self->scene->r;
-
-	if (!PyArg_ParseTuple (args, "|h", &frame))
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-						"expected int argument or nothing");
-
-	if (frame > 0) rd->efra = EXPP_ClampInt (frame, 1, EXPP_SCENE_FRAME_MAX);
-
-	return PyInt_FromLong (rd->efra);
 }
 
 static PyObject *Scene_makeCurrent (BPy_Scene *self)
@@ -651,48 +1008,6 @@ static PyObject *Scene_unlink (BPy_Scene *self, PyObject *args)
 	return Py_BuildValue ("i", PyInt_FromLong (retval));
 }
 
-static PyObject *Scene_getRenderdir (BPy_Scene *self)
-{
-	if (self->scene)
-		return PyString_FromString (self->scene->r.pic);
-	else
-		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-						"Blender Scene was deleted!");
-}
-
-static PyObject *Scene_getBackbufdir (BPy_Scene *self)
-{
-	if (self->scene)
-		return PyString_FromString (self->scene->r.backbuf);
-	else
-		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-						"Blender Scene already deleted");
-}
-
-static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args)
-{	
-	int start = -1;
-	int end = -1;
-	int current = -1;
-	RenderData *rd = NULL;
-	Scene *scene = self->scene;
-
-	if (!scene)
-		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-						"Blender Scene was deleted!");
-
-	rd = &scene->r;
-
-	if (!PyArg_ParseTuple (args, "|iii", &start, &end, &current))
-		return EXPP_ReturnPyObjError (PyExc_TypeError,
-						"expected three ints or nothing as arguments");
-
-	if (start > 0)	 rd->sfra = EXPP_ClampInt (start, 1, EXPP_SCENE_FRAME_MAX);
-	if (end > 0)		 rd->efra = EXPP_ClampInt (end, 1, EXPP_SCENE_FRAME_MAX);
-	if (current > 0) rd->cfra = EXPP_ClampInt (current, 1, EXPP_SCENE_FRAME_MAX);
-
-	return Py_BuildValue("(iii)", rd->sfra, rd->efra, rd->cfra);
-}
 
 static PyObject *Scene_getChildren (BPy_Scene *self)
 {	
@@ -861,4 +1176,105 @@ Base *EXPP_Scene_getObjectBase(Scene *scene, Object *object)
 	}
 
 	return NULL; /* object isn't linked to this scene */
+}
+
+/*****************************************************************************/
+// DEPRECATED 	
+/*****************************************************************************/
+static PyObject *Scene_getRenderdir (BPy_Scene *self)
+{
+	if (self->scene)
+		return M_Render_GetRenderPath((PyObject*)self);
+
+	else
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene was deleted!");
+}
+
+static PyObject *Scene_getBackbufdir (BPy_Scene *self)
+{
+	if (self->scene)
+		return M_Render_GetBackbufPath((PyObject*)self);
+	else
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene already deleted");
+}
+
+static PyObject *Scene_startFrame (BPy_Scene *self, PyObject *args)
+{
+	short frame = -1;
+								 
+	if (!PyArg_ParseTuple (args, "|h", &frame))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected int argument or nothing");
+
+	return M_Render_StartFrame((PyObject*)self, args);
+}
+
+static PyObject *Scene_endFrame (BPy_Scene *self, PyObject *args)
+{
+	short frame = -1;
+
+	if (!PyArg_ParseTuple (args, "|h", &frame))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected int argument or nothing");
+
+	return M_Render_EndFrame((PyObject*)self, args);
+}
+
+static PyObject *Scene_getWinSize(BPy_Scene *self)
+{
+	PyObject* list = PyList_New (0);
+
+	PyList_Append (list, M_Render_ImageSizeX((PyObject*)self, NULL));
+	PyList_Append (list, M_Render_ImageSizeY((PyObject*)self, NULL));
+
+	return list;
+}
+
+static PyObject *Scene_setWinSize(BPy_Scene *self, PyObject *args)
+{
+	int xres = -1, yres = -1;
+
+	if (!PyArg_ParseTuple(args, "(ii)", &xres, &yres))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+							"expected a [x, y] list as argument");
+
+	if (xres > 0)
+		self->scene->r.xsch = EXPP_ClampInt(xres,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MIN,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MAX);
+	if (yres > 0)
+		self->scene->r.ysch = EXPP_ClampInt(yres,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MIN,
+										EXPP_SCENE_RENDER_WINRESOLUTION_MAX);
+
+	Py_INCREF(Py_None);
+	return Py_None;
+
+}
+
+static PyObject *Scene_frameSettings (BPy_Scene *self, PyObject *args)
+{	
+	int start = -1;
+	int end = -1;
+	int current = -1;
+	RenderData *rd = NULL;
+	Scene *scene = self->scene;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+						"Blender Scene was deleted!");
+
+	rd = &scene->r;
+
+	if (!PyArg_ParseTuple (args, "|iii", &start, &end, &current))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+						"expected three ints or nothing as arguments");
+
+	if (start > 0)	 rd->sfra = EXPP_ClampInt (start, 1, EXPP_SCENE_FRAME_MAX);
+	if (end > 0)		 rd->efra = EXPP_ClampInt (end, 1, EXPP_SCENE_FRAME_MAX);
+	if (current > 0) rd->cfra = EXPP_ClampInt (current, 1, EXPP_SCENE_FRAME_MAX);
+
+	return Py_BuildValue("(iii)", rd->sfra, rd->efra, rd->cfra);
 }
