@@ -65,6 +65,7 @@
 #include "SYS_System.h"
 #include "SG_Controller.h"
 #include "SG_IObject.h"
+#include "SG_Tree.h"
 
 #include "KX_SG_NodeRelationships.h"
 
@@ -613,6 +614,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->NodeSetRelativeScale(newscale);
 
 	replica->GetSGNode()->UpdateWorldData(0);
+	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	
 	return replica;
 }
@@ -798,25 +800,109 @@ void KX_Scene::UpdateMeshTransformations()
 	}
 }
 
+void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty)
+{
+	int intersect = KX_Camera::INTERSECT;
+	
+	/* If the camera is inside the box, assume intersect. */
+	if (!node->inside(GetActiveCamera()->NodeGetWorldPosition()))
+	{
+		MT_Point3 box[8];
+		node->get(box);
+		intersect = GetActiveCamera()->BoxInsideFrustum(box);
+	}
+
+	switch (intersect)
+	{
+		case KX_Camera::OUTSIDE:
+			MarkSubTreeVisible(node, rasty, false);
+			break;
+		case KX_Camera::INTERSECT:
+			if (node->Client())
+			{
+				KX_GameObject *gameobj = (KX_GameObject*) node->Client()->GetSGClientObject();
+				int nummeshes = gameobj->GetMeshCount();
+				
+				for (int m=0;m<nummeshes;m++)
+				{
+					// this adds the vertices to the display list
+					(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
+				}
+				gameobj->MarkVisible();
+			}
+			if (node->Left())
+				MarkVisible(node->Left(), rasty);
+			if (node->Right())
+				MarkVisible(node->Right(), rasty);
+			break;
+		case KX_Camera::INSIDE:
+			MarkSubTreeVisible(node, rasty, true);
+			break;
+	}
+}
+
+void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible)
+{
+	if (node->Client())
+	{
+		KX_GameObject *gameobj = (KX_GameObject*) node->Client()->GetSGClientObject();
+		if (visible)
+		{
+			int nummeshes = gameobj->GetMeshCount();
+			
+			for (int m=0;m<nummeshes;m++)
+			{
+				// this adds the vertices to the display list
+				(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
+			}
+		}
+		gameobj->MarkVisible(visible);
+	}
+	if (node->Left())
+		MarkSubTreeVisible(node->Left(), rasty, visible);
+	if (node->Right())
+		MarkSubTreeVisible(node->Right(), rasty, visible);
+}
+
+
 void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
 {
-	
+// FIXME: When tree is operational
+#if 1
 	// do this incrementally in the future
 	for (int i = 0; i < m_objectlist->GetCount(); i++)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_objectlist->GetValue(i);
-		
-		int nummeshes = gameobj->GetMeshCount();
-		
-		for (int m=0;m<nummeshes;m++)
+		bool vis = !GetActiveCamera()->GetFrustumCulling();
+		if (!vis)
+			vis = gameobj->GetSGNode()->inside( GetActiveCamera()->GetCameraLocation() );
+		if (!vis)
 		{
-			// this adds the vertices to the display list
-			(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
+			MT_Point3 box[8];
+			gameobj->GetSGNode()->getBBox(box);
+			vis = GetActiveCamera()->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
+		}
+		
+		if (vis)
+		{
+			
+			int nummeshes = gameobj->GetMeshCount();
+			
+			for (int m=0;m<nummeshes;m++)
+			{
+				// this adds the vertices to the display list
+				(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode(),rasty);
+			}
 			// Visibility/ non-visibility are marked
 			// elsewhere now.
 			gameobj->MarkVisible();
+		} else {
+			gameobj->MarkVisible(false);
 		}
 	}
+#else
+	MarkVisible(m_objecttree, rasty);
+#endif
 }
 
 // logic stuff
@@ -976,6 +1062,11 @@ void KX_Scene::SetNetworkScene(NG_NetworkScene *newScene)
 void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 {
 	GetPhysicsEnvironment()->setGravity(gravity[0],gravity[1],gravity[2]);
+}
+
+void KX_Scene::SetNodeTree(SG_Tree* root)
+{
+	m_objecttree = root;
 }
 
 void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)

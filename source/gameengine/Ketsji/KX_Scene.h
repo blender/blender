@@ -68,6 +68,7 @@ class SND_IAudioDevice;
 class NG_NetworkDeviceInterface;
 class NG_NetworkScene;
 class SG_Node;
+class SG_Tree;
 class KX_Camera;
 class GEN_HashedPtr;
 class KX_GameObject;
@@ -87,6 +88,8 @@ class SG_IObject;
  * */
 class KX_Scene : public SCA_IScene
 {
+	//Py_Header;
+protected:
 	RAS_BucketManager*	m_bucketmanager;
 	CListValue*			m_tempObjectList;
 
@@ -100,6 +103,11 @@ class KX_Scene : public SCA_IScene
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
+
+	/**
+	 *  The tree of objects in the scene.
+	 */
+	SG_Tree*			m_objecttree;
 
 	/**
 	 * The set of cameras for this scene
@@ -222,7 +230,7 @@ class KX_Scene : public SCA_IScene
 	 * Toggle to enable or disable activity culling.
 	 */
 	bool m_activity_culling;
-
+	
 	/**
 	 * The framing settings used by this scene
 	 */
@@ -235,6 +243,9 @@ class KX_Scene : public SCA_IScene
 	 */
 	RAS_Rect m_viewport;
 	
+	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty);
+	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible);
+
 public:
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
@@ -469,6 +480,31 @@ public:
 	void SetPhysicsEnvironment(class PHY_IPhysicsEnvironment*	physEnv);
 
 	void	SetGravity(const MT_Vector3& gravity);
+	
+	/**
+	 * Sets the node tree for this scene.
+	 */
+	void SetNodeTree(SG_Tree* root);
+
+#if 0
+	KX_PYMETHOD_DOC(KX_Scene, GetLightList);
+	KX_PYMETHOD_DOC(KX_Scene, GetObjectList);
+	KX_PYMETHOD_DOC(KX_Scene, GetName);
+	
+	KX_PYMETHOD_DOC(KX_Scene, GetActiveCamera);
+	KX_PYMETHOD_DOC(KX_Scene, SetActiveCamera);
+	KX_PYMETHOD_DOC(KX_Scene, FindCamera);
+	
+	KX_PYMETHOD_DOC(KX_Scene, SetGravity);
+	
+	KX_PYMETHOD_DOC(KX_Scene, SetActivityCulling);
+	KX_PYMETHOD_DOC(KX_Scene, SetActivityCullingRadius);
+	
+	KX_PYMETHOD_DOC(KX_Scene, SetSceneViewport);
+	KX_PYMETHOD_DOC(KX_Scene, GetSceneViewport);
+
+	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
+#endif
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;
