@@ -2488,14 +2488,14 @@ static void drawmeshwire(Object *ob)
 			glEnd();
 		}
 	}
-	else {
+	else { /* Object mode draw */
 		
 		if(me==0) return;
 		
 		if(me->bb==0) tex_space_mesh(me);
 		if(me->totface>4) if(boundbox_clip(ob->obmat, me->bb)==0) return;
 		
-		if(mesh_uses_displist(me)) drawDispListwire(&me->disp);
+		if(mesh_uses_displist(me)) drawDispListwire(&me->disp); /* Subsurf */
 		else {
 			
 			mvert= me->mvert;
@@ -2511,7 +2511,7 @@ static void drawmeshwire(Object *ob)
 			dl= find_displist(&ob->disp, DL_VERTS);
 			if(dl) extverts= dl->verts;
 			
-			if(ok) {
+			if(ok) { /* No faces, just draw verts as points */
 				
 				start= 0; end= me->totvert;
 				set_buildvars(ob, &start, &end);
@@ -2521,13 +2521,13 @@ static void drawmeshwire(Object *ob)
 				
 				if(extverts) {
 					extverts+= 3*start;
-					for(a= start; a<end; a++, extverts+=3) {
+					for(a= start; a<end; a++, extverts+=3) { /* DispList found, Draw displist */
 						glVertex3fv(extverts);
 					}
 				}
 				else {
 					mvert+= start;
-					for(a= start; a<end; a++, mvert++) {
+					for(a= start; a<end; a++, mvert++) { /* else Draw mesh verts directly */
 						glVertex3fv(mvert->co);
 					}
 				}
@@ -2535,7 +2535,7 @@ static void drawmeshwire(Object *ob)
 				glEnd();
 				glPointSize(1.0);
 			}
-			else {
+			else { /* Draw wire frame */
 				
 				start= 0; end= me->totface;
 				set_buildvars(ob, &start, &end);

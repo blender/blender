@@ -3011,10 +3011,10 @@ void loopoperations(char mode)
 				else if(percentcut == 0.0)
 					percentcut = 0.0001;
 				if(eed->f & 8){
-					if(eed->f & 32)
-						eed->f1 = 32768*(1.0-percentcut);
+					if(eed->f & 32) /* Need to offset by a const. (0.5/32768) for consistant roundoff */
+						eed->f1 = 32768*(1.0-percentcut - 0.0000153); 
 					else
-						eed->f1 = 32768*(percentcut);
+						eed->f1 = 32768*(percentcut + 0.0000153); 
 				}				
 		}
 	/*-------------------------------------*/
@@ -3954,12 +3954,12 @@ static void set_wuv(int tot, EditVlak *evl, int v1, int v2, int v3, int v4)
 						/* Numbers corespond to verts (corner points), 	*/
 						/* edge->vn's (center edges), the Center 	*/
 	memcpy(uvo, evl->tf.uv, sizeof(uvo));	/* And the quincunx points of a face 		*/
-	uv= evl->tf.uv[0];				/* as shown here:     				*/
-						/*           2         5          1		*/
-	memcpy(colo, evl->tf.col, sizeof(colo));	/*		 10         13     		*/
-	col= evl->tf.col;				/* 	     6		9	   8		*/
-						/*		 11	    12    		*/
-	if(tot==4) {				/*	     3		7	   4            */
+	uv= evl->tf.uv[0];                            /* as shown here:     				*/
+	                                              /*           2         5          1   */
+	memcpy(colo, evl->tf.col, sizeof(colo));      /*               10         13        */
+	col= evl->tf.col;                             /*           6         9          8   */
+                                                  /*               11         12        */
+	if(tot==4) {                                  /*           3         7          4   */
 		for(a=0; a<4; a++, uv+=2, col++) {
 			if(a==0) v= v1;
 			else if(a==1) v= v2;
