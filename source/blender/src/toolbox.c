@@ -819,9 +819,9 @@ void tbox_drawelem_text(x, y, type)
 #ifdef INTERNATIONAL
 		if(G.ui_international == TRUE)
 			if(U.transopts & TR_MENUS)
-				FTF_DrawString(tbstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, 0);
+				FTF_DrawString(tbstr, FTF_USE_GETTEXT | FTF_INPUT_UTF8, (type==0 || type==2)?0:1);
 			else
-				FTF_DrawString(tbstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, 0);
+				FTF_DrawString(tbstr, FTF_NO_TRANSCONV | FTF_INPUT_UTF8, (type==0 || type==2)?0:1);
 		else
 			BMF_DrawString(G.font, tbstr);
 #else
