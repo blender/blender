@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\bsp\libbsp.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\*.lib ..\..\..\..\lib\windows\bsp\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\*.lib ..\..\..\..\lib\windows\bsp\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "bsplib - Win32 Debug"
@@ -82,7 +82,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\bsp\debug\libbsp.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\debug\*.lib ..\..\..\..\lib\windows\bsp\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E /Y ..\..\..\..\obj\windows\intern\bsp\debug\vc60.* ..\..\..\..\lib\windows\bsp\lib\debug\	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\bsp\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\debug\*.lib ..\..\..\..\lib\windows\bsp\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /Y ..\..\..\..\obj\windows\intern\bsp\debug\vc60.* ..\..\..\..\lib\windows\bsp\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

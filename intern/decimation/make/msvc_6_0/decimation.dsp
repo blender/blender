@@ -54,7 +54,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\decimation\libdecimation.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\lib\windows\decimation\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\*.lib ..\..\..\..\lib\windows\decimation\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "decimation - Win32 Debug"
@@ -83,7 +83,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\decimation\debug\libdecimation.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\lib\windows\decimation\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E ..\..\..\..\obj\windows\intern\decimation\debug\vc60.* ..\..\..\..\lib\windows\decimation\lib\debug\	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\lib\windows\decimation\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\*.lib ..\..\..\..\lib\windows\decimation\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /Y ..\..\..\..\obj\windows\intern\decimation\debug\vc60.* ..\..\..\..\lib\windows\decimation\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

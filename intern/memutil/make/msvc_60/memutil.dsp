@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\memutil\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\memutil\*.lib ..\..\..\..\lib\windows\memutil\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\memutil\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\*.lib ..\..\..\..\lib\windows\memutil\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "memutil - Win32 Debug"
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\memutil\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\memutil\debug\*.lib ..\..\..\..\lib\windows\memutil\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E /Y ..\..\..\..\obj\windows\intern\memutil\debug\vc60.* ..\..\..\..\lib\windows\memutil\lib\debug\	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\memutil\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\debug\*.lib ..\..\..\..\lib\windows\memutil\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /Y ..\..\..\..\obj\windows\intern\memutil\debug\vc60.* ..\..\..\..\lib\windows\memutil\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

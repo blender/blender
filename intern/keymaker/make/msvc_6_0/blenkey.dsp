@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\blenkey\libblenkey.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\lib\windows\blenkey\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\lib\windows\blenkey\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "blenkey - Win32 Debug"
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\blenkey\debug\libblenkey.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\lib\windows\blenkey\lib\debug\*.a
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\lib\windows\blenkey\lib\debug\*.a
 # End Special Build Tool
 
 !ENDIF 

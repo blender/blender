@@ -53,7 +53,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"../../../../obj/windows/intern/container/libcontainer.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\container\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\container\*.lib ..\..\..\..\lib\windows\container\lib\*.a	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\container\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\container\*.lib ..\..\..\..\lib\windows\container\lib\*.a	ECHO Done
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "container - Win32 Debug"
@@ -81,7 +81,7 @@ LIB32=link.exe -lib
 # ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\container\debug\libcontainer.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=ECHO Copying header files	XCOPY /E /Y ..\..\*.h ..\..\..\..\lib\windows\container\include\	ECHO Copying lib	XCOPY /E /Y ..\..\..\..\obj\windows\intern\container\debug\*.lib ..\..\..\..\lib\windows\container\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /E /Y ..\..\..\..\obj\windows\intern\container\debug\vc60.* ..\..\..\..\lib\windows\container\lib\debug\	ECHO Done
+PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\*.h ..\..\..\..\lib\windows\container\include\	ECHO Copying lib	XCOPY /Y ..\..\..\..\obj\windows\intern\container\debug\*.lib ..\..\..\..\lib\windows\container\lib\debug\*.a	ECHO Copying Debug info.	XCOPY /Y ..\..\..\..\obj\windows\intern\container\debug\vc60.* ..\..\..\..\lib\windows\container\lib\debug\	ECHO Done
 # End Special Build Tool
 
 !ENDIF 

@@ -101,10 +101,10 @@ to add Python to your path.
 
 BUILDING BLENDER
 
-Open the workspace $NANBLENDERHOME/projectfiles/creator/blendercreator.dsw.
-This contains the following four main projects:
-blendercreator    Builds the creator
-blenderpublisher  Builds the publisher
+Open the workspace $NANBLENDERHOME/projectfiles/blender/blender.dsw
+
+This contains the following three main projects:
+blender           Builds the main executable
 GP_ghost          Builds the stand-alone game player
 GP_axctl          Builds the ActiveX control
 
