@@ -964,7 +964,7 @@ static PyObject *Object_setDrawMode (BPy_Object *self, PyObject *args)
 {
     char    dt;
 
-    if (!PyArg_Parse (args, "b", &dt))
+    if (!PyArg_ParseTuple (args, "b", &dt))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected an integer as argument"));
@@ -979,7 +979,7 @@ static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args)
 { 
     char    dtx;
 
-    if (!PyArg_Parse (args, "b", &dtx))
+    if (!PyArg_ParseTuple (args, "b", &dtx))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected an integer as argument"));
@@ -1037,7 +1037,7 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
     int            i;
     Material    ** matlist;
 
-    if (!PyArg_Parse (args, "O", &list))
+    if (!PyArg_ParseTuple (args, "O", &list))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected a list of materials as argument"));
@@ -1093,7 +1093,7 @@ static PyObject *Object_setName (BPy_Object *self, PyObject *args)
     char  * name;
     char    buf[21];
 
-    if (!PyArg_Parse (args, "s", &name))
+    if (!PyArg_ParseTuple (args, "s", &name))
     {
         return (PythonReturnErrorObject (PyExc_AttributeError,
                 "expected a String as argument"));
@@ -1113,7 +1113,7 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
     ID              * id;
     ID              * oldid;
 
-    if (!PyArg_Parse (args, "O", &object))
+    if (!PyArg_ParseTuple (args, "O", &object))
     {
         PythonReturnErrorObject (PyExc_AttributeError,
                 "expected an object argument");
