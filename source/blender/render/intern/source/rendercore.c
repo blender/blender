@@ -1717,10 +1717,10 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	if(u==1.0) {
 		/* exception case for wire render of edge */
 		if(vlr->v2==vlr->v3);
-		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV) || (R.r.mode && R_ORTHO)) {
+		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV) || (R.r.mode & R_ORTHO)) {
 			float detsh, t00, t10, t01, t11;
 			
-			if(vlr->snproj==0 || (R.r.mode && R_ORTHO)) {
+			if(vlr->snproj==0 || (R.r.mode & R_ORTHO)) {
 				t00= v3->co[0]-v1->co[0]; t01= v3->co[1]-v1->co[1];
 				t10= v3->co[0]-v2->co[0]; t11= v3->co[1]-v2->co[1];
 			}
@@ -1737,7 +1737,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			t00*= detsh; t01*=detsh; 
 			t10*=detsh; t11*=detsh;
 		
-			if(vlr->snproj==0 || (R.r.mode && R_ORTHO)) {
+			if(vlr->snproj==0 || (R.r.mode & R_ORTHO)) {
 				u= (shi->co[0]-v3->co[0])*t11-(shi->co[1]-v3->co[1])*t10;
 				v= (shi->co[1]-v3->co[1])*t00-(shi->co[0]-v3->co[0])*t01;
 				if(shi->osatex) {
@@ -1747,7 +1747,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 					shi->dyuv[1]=  shi->dyco[1]*t00- shi->dyco[0]*t01;
 				}
 				// exception!!!
-				if(R.r.mode && R_ORTHO) {
+				if(R.r.mode & R_ORTHO) {
 					shi->co[2]= (1.0+u+v)*v3->co[2] - u*v1->co[2] - v*v2->co[2];
 				}
 			}
