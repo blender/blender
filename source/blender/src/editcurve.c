@@ -3949,7 +3949,7 @@ void clever_numbuts_curve()
 			do_clever_numbuts("Active HandlePoint", 3, REDRAW);
 		}
 		else if(bezt->f3 & 1) {
-			add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, bezt->vec[0], 0);
+			add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, bezt->vec[2], 0);
 			add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bezt->vec[2]+1, 0);
 			add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bezt->vec[2]+2, 0);
 		
