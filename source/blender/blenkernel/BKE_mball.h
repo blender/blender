@@ -52,6 +52,7 @@ void make_local_mball(struct MetaBall *mb);
 void tex_space_mball( struct Object *ob);
 void make_orco_mball( struct Object *ob);
 struct Object *find_basis_mball( struct Object *ob);
+int is_basis_mball(struct Object *ob);
 void metaball_polygonize(struct Object *ob);
 void calc_mballco(struct MetaElem *ml, float *vec);
 float densfunc(struct MetaElem *ball, float x, float y, float z);

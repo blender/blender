@@ -77,6 +77,7 @@
 #include "BKE_global.h"
 #include "BKE_displist.h"
 #include "BKE_material.h"
+#include "BKE_mball.h"
 #include "BKE_ipo.h"
 #include "BKE_mesh.h"
 #include "BKE_effect.h"
@@ -2195,25 +2196,27 @@ static void drawDispList(Object *ob, int dt)
 		}
 		break;
 	case OB_MBALL:
-
-		lb= &ob->disp;
-		if(lb->first==0) makeDispList(ob);
-
-		if(solid) {
-			
-			if(dt==OB_SHADED) {
-				dl= lb->first;
-				if(dl && dl->col1==0) shadeDispList(ob);
-				drawDispListshaded(lb, ob);
+		
+		if( is_basis_mball(ob)) {
+			lb= &ob->disp;
+			if(lb->first==0) makeDispList(ob);
+	
+			if(solid) {
+				
+				if(dt==OB_SHADED) {
+					dl= lb->first;
+					if(dl && dl->col1==0) shadeDispList(ob);
+					drawDispListshaded(lb, ob);
+				}
+				else {
+					init_gl_materials(ob);
+					two_sided(0);
+				
+					drawDispListsolid(lb, ob);	
+				}
 			}
-			else {
-				init_gl_materials(ob);
-				two_sided(0);
-			
-				drawDispListsolid(lb, ob);	
-			}
+			else drawDispListwire(lb);
 		}
-		else drawDispListwire(lb);
 		break;
 	}
 	

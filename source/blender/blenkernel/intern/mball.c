@@ -265,6 +265,15 @@ void make_orco_mball(Object *ob)
 	}
 }
 
+int is_basis_mball(Object *ob)
+{
+	int len;
+	
+	/* just a quick test */
+	len= strlen(ob->id.name);
+	if( isdigit(ob->id.name[len-1]) ) return 0;
+	return 1;
+}
 
 Object *find_basis_mball(Object *basis)
 {

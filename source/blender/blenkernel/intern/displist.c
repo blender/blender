@@ -1488,8 +1488,9 @@ void makeDispList(Object *ob)
 		}
 	}
 	else if(ob->type==OB_MBALL) {
-		ob= find_basis_mball(ob);
 		
+		ob= find_basis_mball(ob);
+
 		metaball_polygonize(ob);
 		tex_space_mball(ob);
 
