@@ -215,26 +215,8 @@ int BLO_has_bfile_extension(char *str);
 
 void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode);
 
+BlendFileData* blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r);
 
-/* Ick ick ick, why are internal loader functions
- * being exported out of the loader? IMHO readstreamglue
- * should not need to know anything about the loader, 
- * but this is a point of contention. - zr
- */
-	void*
-blo_readstreamfile_begin(
-	void *endControl);
-
-	int
-blo_readstreamfile_process(
-	void *filedataVoidPtr, 
-	unsigned char *data, 
-	unsigned int dataIn);
-	
-	int
-blo_readstreamfile_end(
-	void *filedataVoidPtr);
-				
 #ifdef __cplusplus
 } 
 #endif

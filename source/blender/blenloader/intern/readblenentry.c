@@ -257,12 +257,6 @@ BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r) {
 			bfd->type= BLENFILETYPE_RUNTIME;
 			strcpy(bfd->main->name, file);
 		}
-	} else {
-		bfd= BLO_readblenfilename(file, error_r);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_PUB;
-			strcpy(bfd->main->name, file);
-		}
 	}
 
 	return bfd;	
@@ -280,12 +274,6 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *erro
 			strcpy(bfd->main->name, "");
 		}
 		blo_freefiledata(fd);			
-	} else {
-		bfd= BLO_readblenfilememory(mem, memsize, error_r);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_PUB;
-			strcpy(bfd->main->name, "");
-		}
 	}
 
 	return bfd;	

@@ -128,9 +128,6 @@
 
 #include "mydevice.h"
 
-
-
-
 /*
  Remark: still a weak point is the newadress() function, that doesnt solve reading from
  multiple files at the same time
@@ -5067,154 +5064,31 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	}
 }
 
-// ****************** STREAM GLUE READER **********************
+/* reading runtime */
 
-static int fd_read_from_streambuffer(FileData *filedata, void *buffer, int size)
-{
-	int readsize = EOF;
-	int type;
-	
-	if (size <= (filedata->inbuffer - filedata->seek)) {
-		memmove(buffer, filedata->buffer + filedata->seek, size);
-		filedata->seek += size;
-		readsize = size;
-	} else {
-		// special ENDB handling
-		if (((filedata->inbuffer - filedata->seek) == 8) && (size > 8)) {
-			memmove(&type, filedata->buffer + filedata->seek, sizeof(type));
-
-			if (type == ENDB) {
-				memmove(buffer, filedata->buffer + filedata->seek, 8);
-				readsize = 8;
-			}
-		}
-	}
-	
-	return (readsize);
-}
-
-void *blo_readstreamfile_begin(void *endControl)
-{
-	void **params = endControl;
-	
+BlendFileData *blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r) {
+	BlendFileData *bfd = NULL;
 	FileData *fd = filedata_new();
-	fd->read = fd_read_from_streambuffer;
-	fd->buffersize = 100000;
-	fd->buffer = MEM_mallocN(fd->buffersize, "Buffer readstreamfile");
-	fd->bfd_r = params[0];
-	fd->error_r = params[1];
-	
-	return fd;
-}
+	fd->filedes = file;
+	fd->buffersize = actualsize;
+	fd->read = fd_read_from_file;
 
-int blo_readstreamfile_process(void *filedataVoidPtr, unsigned char *data, unsigned int dataIn)
-{
-	struct FileData *filedata = filedataVoidPtr;
-	int err = 0;
-	int size, datasize;
-	char *newbuffer;
-	BHead8 bhead8;
-	BHead4 bhead4;
+	decode_blender_header(fd);
 	
-	// copy everything in the buffer
-	
-	if (((int) dataIn + filedata->inbuffer) > filedata->buffersize) {
-		// do we need a bigger buffer ?
-		if (((int) dataIn + filedata->inbuffer - filedata->seek) > filedata->buffersize) {
-			// copy data and ajust settings
-			filedata->buffersize = dataIn + filedata->inbuffer - filedata->seek;
-			newbuffer = MEM_mallocN(filedata->buffersize, "readstreamfile newbuffer");
-			memmove(newbuffer, filedata->buffer + filedata->seek, filedata->inbuffer - filedata->seek);
-			MEM_freeN(filedata->buffer);
-			filedata->buffer = newbuffer;
-		} else {
-			// we just move the existing data to the start
-			// of the block
-			memmove(filedata->buffer, filedata->buffer + filedata->seek, filedata->inbuffer - filedata->seek);
+	if (fd->flags & FD_FLAGS_FILE_OK) {
+		if (!read_file_dna(fd)) {
+			blo_freefiledata(fd);
+			fd= NULL;
+			return NULL;
 		}
-		// adjust seek and inbuffer accordingly
-		filedata->inbuffer -= filedata->seek;
-		filedata->seek = 0;
-	}
-	
-	memmove(filedata->buffer + filedata->inbuffer, data, dataIn);
-	filedata->inbuffer += dataIn;
-	
-	// OK, so now we have everything in one buffer. What are we
-	// going to do with it...
-	
-	while (1) {
-		datasize = filedata->inbuffer - filedata->seek;
-	
-		if (filedata->headerdone) {
-			if (filedata->flags & FD_FLAGS_FILE_POINTSIZE_IS_4) {
-				if (datasize > sizeof(bhead4)) {
-					datasize -= sizeof(bhead4);
-					memmove(&bhead4, filedata->buffer + filedata->seek, sizeof(bhead4));
-					size = bhead4.len;
-				} else {
-					break;
-				}
-			} else {
-				if (datasize > sizeof(bhead8)) {
-					datasize -= sizeof(bhead8);
-					memmove(&bhead8, filedata->buffer + filedata->seek, sizeof(bhead8));
-					size = bhead8.len;
-				} else {
-					break;
-				}
-			}
-	
-			if (filedata->flags & FD_FLAGS_SWITCH_ENDIAN) {
-				SWITCH_INT(size);
-			}
-	
-			// do we have enough left in the buffer to read
-			// in a full bhead + data ?
-			if (size <= datasize) {
-				get_bhead(filedata);
-			} else {
-				break;
-			}
-	
-		} else {
-			if (datasize < SIZEOFBLENDERHEADER) {
-				// still need more data to continue..
-				break;
-			} else {
-				decode_blender_header(filedata);
-				filedata->headerdone = 1;
-				if (! (filedata->flags & FD_FLAGS_FILE_OK)) {
-					// not a blender file ... ?
-					err = 1;
-					break;
-				}
-			}
-		}
-	}
-	
-	return err;
-}
-
-int blo_readstreamfile_end(void *filedataVoidPtr)
-{
-	struct FileData *fd = filedataVoidPtr;
-	int err = 1;
-
-	*fd->bfd_r= NULL;
-	if (!(fd->flags & FD_FLAGS_FILE_OK)) {
-		*fd->error_r= BRE_NOT_A_BLEND;
-	} else if ((fd->inbuffer - fd->seek) != 8) {
-		*fd->error_r= BRE_INCOMPLETE;
-	} else if (!get_bhead(fd) || !read_file_dna(fd)) {
-			// ENDB block !
-		*fd->error_r= BRE_INCOMPLETE;
 	} else {
-		*fd->bfd_r= blo_read_file_internal(fd, fd->error_r);
-		err = 0;
+		blo_freefiledata(fd);
+		fd= NULL;
+		return NULL;
 	}
 	
+	bfd= blo_read_file_internal(fd, error_r);
 	blo_freefiledata(fd);
 	
-	return err;
+	return bfd;
 }

@@ -33,9 +33,7 @@
 
 include nan_definitions.mk
 
-DIRS = blenloader
-DIRS += deflate inflate
-DIRS += writestreamglue readstreamglue writeblenfile readblenfile
+DIRS = blenloader readblenfile
 DIRS += avi imbuf img render radiosity blenlib blenkernel blenpluginapi
 DIRS += makesdna src renderconverter yafray
 DIRS += python

@@ -202,17 +202,6 @@ endif
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
     PULIB += $(NAN_MOTO)/lib/libmoto.a
     PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-    PULIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
-    PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
-    # toggle 2 writestreamglue libs for the Uber-Publisher :)
-    #PULIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
-    PULIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
-    PULIB += $(OCGDIR)/blender/deflate/$(DEBUG_DIR)libdeflate.a
-    PULIB += $(OCGDIR)/blender/writeblenfile/$(DEBUG_DIR)libwriteblenfile.a
-    PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
-    # toggle 2 writestreamglue libs for the Uber-Publisher :)
-    #PULIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
-    PULIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a # KEY_dependkludge fix.. Remove me
     PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
 
 ifeq ($(NAN_NO_KETSJI),true)
@@ -229,12 +218,9 @@ endif
 
     SPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
     SPLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-    SPLIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a
     # this is used for the plugin. It uses some things from libz.a, 
     # but somehow it consistently fails to resolve these symbols... or 
     # can I just not check them? nm claims they aren't...
-    SPLIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
-    SPLIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
     SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
 
     # These three need to be explicitly mentioned on the cl, because 

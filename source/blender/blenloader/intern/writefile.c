@@ -162,12 +162,6 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "readfile.h"
 #include "genfile.h"
 
-/* *******  MYWRITE ********* */
-
-#include "BLO_writeStreamGlue.h"
-
-/***/
-
 typedef struct {
 	struct SDNA *sdna;
 
@@ -175,12 +169,9 @@ typedef struct {
 	unsigned char *buf;
 	
 	int tot, count, error;
-	
-	int is_publisher;
-	struct writeStreamGlueStruct *streamGlue;
 } WriteData;
 
-static WriteData *writedata_new(int file, int is_publisher)
+static WriteData *writedata_new(int file)
 {
 	extern char DNAstr[];	/* DNA.c */
 	extern int DNAlen;
@@ -193,7 +184,6 @@ static WriteData *writedata_new(int file, int is_publisher)
 	wd->sdna= dna_sdna_from_data(DNAstr, DNAlen, 0);
 	
 	wd->file= file;
-	wd->is_publisher= is_publisher;
 
 	wd->buf= MEM_mallocN(100000, "wd->buf");
 	
@@ -203,13 +193,8 @@ static WriteData *writedata_new(int file, int is_publisher)
 static void writedata_do_write(WriteData *wd, void *mem, int memlen)
 {
 	if (wd->error) return;
-	
-	if (wd->is_publisher) {
-		wd->error = writeStreamGlue(Global_streamGlueControl, &wd->streamGlue, mem, memlen, 0);
-	} else {
-		if (write(wd->file, mem, memlen) != memlen)
-			wd->error= 1;
-	}	
+	if (write(wd->file, mem, memlen) != memlen)
+		wd->error= 1;
 }
 
 static void writedata_free(WriteData *wd) 
@@ -222,7 +207,6 @@ static void writedata_free(WriteData *wd)
 
 /***/
 
-struct streamGlueControlStruct *Global_streamGlueControl;
 int mywfile;
 
 /**
@@ -268,25 +252,7 @@ bgnwrite(
 	int file, 
 	int write_flags)
 {
-	int is_publisher= (write_flags & (G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN | G_FILE_PUBLISH));
-	WriteData *wd= writedata_new(file, is_publisher);
-	
-	if (is_publisher) {
-		mywfile= file;
-		wd->streamGlue = NULL;
-		Global_streamGlueControl = streamGlueControlConstructor();
-		streamGlueControlAppendAction(Global_streamGlueControl, DUMPFROMMEMORY);
-		if (write_flags & G_FILE_COMPRESS) {
-			streamGlueControlAppendAction(Global_streamGlueControl, DEFLATE);
-		}
-		if (write_flags & G_FILE_LOCK) {
-			streamGlueControlAppendAction(Global_streamGlueControl, ENCRYPT);
-		}
-		if (write_flags & G_FILE_SIGN) {
-			streamGlueControlAppendAction(Global_streamGlueControl, SIGN);
-		}
-		streamGlueControlAppendAction(Global_streamGlueControl, WRITEBLENFILE);
-	}
+	WriteData *wd= writedata_new(file);
 	
 	return wd;
 }
@@ -306,88 +272,6 @@ endwrite(
 	if (wd->count) {
 		writedata_do_write(wd, wd->buf, wd->count);
 		wd->count= 0; 
-	}
-	if (wd->is_publisher) {
-		writeStreamGlue(Global_streamGlueControl, &wd->streamGlue, NULL, 0, 1);
-		streamGlueControlDestructor(Global_streamGlueControl);
-		// final writestream error handling goes here
-		if (wd->error) {
-			int err = wd->error;
-			int errFunction = BWS_GETFUNCTION(err);
-			int errGeneric =  BWS_GETGENERR(err);
-			int errSpecific = BWS_GETSPECERR(err);
-			char *errFunctionStrings[] = {
-				"",
-				"The write stream",
-				"The deflation",
-				"The encryption",
-				"The signing",
-				"Writing the blendfile"
-			};
-			char *errGenericStrings[] = {
-				"",
-				"generated an out of memory error",
-				"is not allowed in this version",
-				"has problems with your key"
-			};
-			char *errWriteStreamGlueStrings[] = {
-				"",
-				"does not know how to proceed"
-			};
-			char *errDeflateStrings[] = {
-				"",
-				"bumped on a compress error"
-			};
-			char *errEncryptStrings[] = {
-				"",
-				"could not write the key",
-				"bumped on an encrypt error"
-			};
-			char *errSignStrings[] = {
-				"",
-				"could not write the key",
-				"failed"
-			};
-			char *errWriteBlenFileStrings[] = {
-				"",
-				"encountered problems writing the filedescription",
-				"encountered problems writing the blendfile",
-				"encountered problems writing one (or more) parameters"
-			};
-			char *errFunctionString= errFunctionStrings[errFunction];
-			char *errExtraString= "";
-			
-			if (errGeneric)
-			{
-				errExtraString= errGenericStrings[errGeneric];
-			}
-			else if (errSpecific)
-			{
-				switch (errFunction)
-				{
-				case BWS_WRITESTREAMGLUE:
-					errExtraString= errWriteStreamGlueStrings[errSpecific];
-					break;
-				case BWS_DEFLATE:
-					errExtraString= errDeflateStrings[errSpecific];
-					break;
-				case BWS_ENCRYPT:
-					errExtraString= errEncryptStrings[errSpecific];
-					break;
-				case BWS_SIGN:
-					errExtraString= errSignStrings[errSpecific];
-					break;
-				case BWS_WRITEBLENFILE:
-					errExtraString= errWriteBlenFileStrings[errSpecific];
-					break;
-				default:
-					break;
-				}
-			}
-			
-				// call Blender error popup window
-			error("%s %s", errFunctionString, errExtraString);
-		}
 	}
 	
 	err= wd->error;
@@ -1739,8 +1623,7 @@ void BLO_write_runtime(char *file, char *exename) {
 	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	if (outfd != -1) {
 
-		/* Ensure runtime's are built with Publisher files */
-		write_file_handle(outfd, 0, G.fileflags|G_FILE_PUBLISH);
+		write_file_handle(outfd, 0, G.fileflags);
 		
 		if (write(outfd, " ", 1) != 1) {
 			cause= "Unable to write to output file";
@@ -1820,8 +1703,7 @@ void BLO_write_runtime(char *file, char *exename) {
 		
 	datastart= lseek(outfd, 0, SEEK_CUR);
 
-		/* Ensure runtime's are built with Publisher files */
-	write_file_handle(outfd, 0, G.fileflags|G_FILE_PUBLISH);
+	write_file_handle(outfd, 0, G.fileflags);
 	
 	if (!handle_write_msb_int(outfd, datastart) || (write(outfd, "BRUNTIME", 8)!=8)) {
 		cause= "Unable to write to output file";
