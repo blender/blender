@@ -1094,7 +1094,8 @@ void BIF_previewrender(SpaceButs *sbuts)
 	}
 
 	if(sbuts->cury>=PR_RECTY && tex) 
-		draw_tex_crop(sbuts->lockpoin);
+		if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) 
+			draw_tex_crop(sbuts->lockpoin);
 	
 	glDrawBuffer(GL_BACK);
 	/* draw again for clean swapbufers */

@@ -801,6 +801,7 @@ void calc_lattverts_ext(void)
 {
 
 	areawinset(curarea->win);
+	persp(PERSP_VIEW);
 	mymultmatrix(G.obedit->obmat);
 	calc_lattverts();
 	myloadmatrix(G.vd->viewmat);
@@ -1025,6 +1026,7 @@ void calc_nurbverts_ext(void)
 {
 
 	areawinset(curarea->win);
+	persp(PERSP_VIEW);
 	mymultmatrix(G.obedit->obmat);
 	calc_Nurbverts(editNurb.first);
 	myloadmatrix(G.vd->viewmat);
