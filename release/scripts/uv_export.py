@@ -40,6 +40,9 @@ Tooltip: 'Export the UV Faces layout of the  selected object to tga'
 # Default path is now the directory of the last saved .blend
 # New options: Work on selected face only & Scale image when face wraps
 # --------------------------
+#    Version 1.3a
+# Corrected a minor typo and added the tga extension to both export call
+# --------------------------
 
 import Blender
 from math import *
@@ -63,7 +66,7 @@ def draw():
 	#Title
 	Blender.BGL.glColor3f(1, 1, 1)
 	Blender.BGL.glRasterPos2d(8, 183)
-	Blender.Draw.Text("Blender UF Faces Export")
+	Blender.Draw.Text("Blender UV Faces Export")
 	Blender.BGL.glRasterPos2d(8, 163)
 	Blender.Draw.Text("""(C) Feb. 2003 Martin Poirier (aka "theeth")""")
   
@@ -96,7 +99,7 @@ def bevent(evt):
 		if bObFile.val:
 			UV_Export(bSize.val, bWSize.val, bFile.val + Blender.Object.GetSelected()[0].name + ".tga")
 		else:
-			UV_Export(bSize.val, bWSize.val, bFile.val)
+			UV_Export(bSize.val, bWSize.val, bFile.val + ".tga")
 
 def Buffer(height=16, width=16, profondeur=3,rvb=255 ):  
    """  
