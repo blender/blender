@@ -66,7 +66,7 @@ elif ( test $UNAME = "Linux" ) then
 	LDFLAGS="-Bshareable";
 elif ( test $UNAME = "SunOS" ) then
 	CC="cc";
-	CFLAGS="-O2";
+	CFLAGS="-O";
 
 	LD="ld";
 	LDFLAGS="-r";
