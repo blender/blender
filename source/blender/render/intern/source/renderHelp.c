@@ -265,8 +265,8 @@ void set_normalflags(void)
 	for(a1=0; a1<R.totvlak; a1++) {
 		if((a1 & 255)==0) vlr= R.blovl[a1>>8];
 		else vlr++;
-
-		if(vlr->flag & R_NOPUNOFLIP) {
+		
+		if((vlr->flag & R_NOPUNOFLIP)) {
 			/* we flip render normal here, is not that neat, but otherwise render() needs rewrite... */
 			vlr->n[0]= -vlr->n[0];
 			vlr->n[1]= -vlr->n[1];

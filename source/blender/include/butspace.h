@@ -135,6 +135,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_COLLAMP		1102
 #define B_TEXCLEARLAMP	1103
 #define B_SBUFF			1104
+#define B_SHADBUF		1105
+#define B_SHADRAY		1106
 
 /* *********************** */
 #define B_MATBUTS		1300
@@ -152,6 +154,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_MTEXCOPY		1211
 #define B_MATLAY		1212
 #define B_MATHALO		1213
+#define B_MATZTRANSP	1214
+#define B_MATRAYTRANSP	1215
 
 /* *********************** */
 #define B_TEXBUTS		1400

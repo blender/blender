@@ -1662,15 +1662,23 @@ void do_lampbuts(unsigned short event)
 			BIF_preview_changed(G.buts);
 		}
 		break;
-      case B_SBUFF: 
-		{ 
-			la= G.buts->lockpoin; 
-			la->bufsize = la->bufsize&=(~15); 
-			allqueue(REDRAWBUTSSHADING, 0); 
-			allqueue(REDRAWOOPS, 0); 
-			/*la->bufsize = la->bufsize % 64;*/ 
-		} 
+	case B_SBUFF: 
+		la= G.buts->lockpoin; 
+		la->bufsize = la->bufsize&=(~15); 
+		allqueue(REDRAWBUTSSHADING, 0); 
+		allqueue(REDRAWOOPS, 0); 
 		break; 
+	case B_SHADBUF:
+		la= G.buts->lockpoin; 
+		la->mode &= ~LA_SHAD_RAY;
+		allqueue(REDRAWBUTSSHADING, 0); 
+		allqueue(REDRAWVIEW3D, 0); 		
+		break;
+	case B_SHADRAY:
+		la= G.buts->lockpoin; 
+		la->mode &= ~LA_SHAD;
+		allqueue(REDRAWBUTSSHADING, 0); 
+		break;
 	}
 	
 	if(event) freefastshade();
@@ -1816,8 +1824,8 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|13, B_REDR,"Ray Shadow",		10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
-	uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
+	uiDefButS(block, TOG|BIT|13, B_SHADRAY,"Ray Shadow",		10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
+	uiDefButS(block, TOG|BIT|0, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
 	uiBlockEndAlign(block);
 	
 	uiDefButS(block, TOG|BIT|5, 0,"OnlyShadow",			10,120,80,19,&la->mode, 0, 0, 0, 0, "Causes spotlight to cast shadows only without illuminating objects");
@@ -2005,6 +2013,23 @@ void do_matbuts(unsigned short event)
 			ma->lay= 1;
 			scrarea_queue_winredraw(curarea);
 		}
+		break;
+	case B_MATZTRANSP:
+		ma= G.buts->lockpoin;
+		if(ma) {
+			ma->mode &= ~MA_RAYTRANSP;
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_preview_changed(G.buts);
+		}
+		break;
+	case B_MATRAYTRANSP:
+		ma= G.buts->lockpoin;
+		if(ma) {
+			ma->mode &= ~MA_ZTRA;
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_preview_changed(G.buts);
+		}
+		break;
 	}
 }
 
@@ -2216,6 +2241,33 @@ static void material_panel_texture(Material *ma)
 	uiBlockSetCol(block, TH_AUTO);
 }
 
+static void material_panel_raytrace(Material *ma)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_raytrace", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Shaders", "Material");
+	if(uiNewPanel(curarea, block, "Raytrace", "Material", 640, 0, 318, 204)==0) return;
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,160,200,19, &(ma->ray_mirror), 0.0, 1.0, 0, 2, "Sets the amount mirror reflection for raytrace");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,19, &(ma->ray_depth), 0.0, 6.0, 0, 0, "Amount of inter-reflections calculated maximal ");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,140,200,19, &(ma->fresnel_mir), 0.0, 1.0, 0, 2, "Sets Fresnel falloff for mirror reflection");
+	uiDefButF(block, NUM, B_MATPRV, "Falloff ",	210,140,100,19, &(ma->falloff_mir), 0.0, 5.0, 0, 2, "Sets the falloff strength of Fresnel");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Ang Index ",10,80,200,19, &(ma->ang), 0.0, 1.0, 0, 2, "Sets the angular index of refraction for raytrace");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,80,100,19, &(ma->ray_depth_tra), 0.0, 6.0, 0, 0, "Amount of refractions calculated maximal ");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,60,200,19, &(ma->fresnel_tra), 0.0, 1.0, 0, 2, "Sets Fresnel falloff for transparency");
+	uiDefButF(block, NUM, B_MATPRV, "Falloff ",		210,60,100,19, &(ma->falloff_tra), 0.0, 5.0, 0, 2, "Sets the falloff strength of Fresnel");
+	uiBlockEndAlign(block);
+
+	uiBlockSetCol(block, TH_BUT_SETTING1);
+	uiDefButI(block, TOG|BIT|18, B_MATPRV,	"Ray Mirror",	160,185,150,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
+	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",160,105,150,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
+
+}
+
 static void material_panel_shading(Material *ma)
 {
 	uiBlock *block;
@@ -2287,13 +2339,9 @@ static void material_panel_shading(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "Size:",	90, 100,150,19, &(ma->param[2]), 0.0, 1.53, 0, 0, "Sets the size of specular toon area");
 			uiDefButF(block, NUMSLI, B_MATPRV, "Smooth:",90, 80,150,19, &(ma->param[3]), 0.0, 1.0, 0, 0, "Sets the smoothness of specular toon area");
 		}
-		
+		uiBlockEndAlign(block);
 		
 		/* default shading variables */
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, 0, "RayMir ",			9,55,154,19, &(ma->ray_mirror), 0.0, 1.0, 0, 0, "Sets the amount mirror reflection for raytrace");
-		uiDefButS(block, NUM, 0, "Depth:",				163,55,80,19, &(ma->ray_depth), 0.0, 6.0, 0, 0, "Amount of inter-reflections calculated maximal ");
-		uiBlockEndAlign(block);
 		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,30,117,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		133,30,110,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		9,10,117,19, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
@@ -2305,7 +2353,7 @@ static void material_panel_shading(Material *ma)
 		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows from spotlights");
 		uiDefButI(block, TOG|BIT|16, 0,	"Radio",			245,123,65,18, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosty rendering");
 		uiDefButI(block, TOG|BIT|3, 0,	"Wire",				245,104,65,18, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
-		uiDefButI(block, TOG|BIT|6, 0,	"ZTransp",			245,85, 65,18, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
+		uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp",	245,85, 65,18, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
 		uiDefButI(block, TOG|BIT|9, 0,	"Env",				245,66, 65,18, &(ma->mode), 0, 0, 0, 0, "Causes faces to disappear: allows world to show through");
 		uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",		245,47, 65,18, &(ma->mode), 0, 0, 0, 0, "Renders shadows falling on material only");
 		uiDefButI(block, TOG|BIT|14, 0,	"No Mist",			245,28, 65,18, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
@@ -2482,6 +2530,7 @@ void material_panels()
 		
 		if(ma) {
 			material_panel_shading(ma);
+			material_panel_raytrace(ma);
 			material_panel_texture(ma);
 			
 			mtex= ma->mtex[ ma->texact ];

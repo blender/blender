@@ -46,6 +46,7 @@
 
 #include "render.h"
 #include "render_intern.h"
+#include "rendercore.h"
 #include "jitter.h"
 
 #define OCRES	64
@@ -1143,9 +1144,8 @@ static int d3dda(Isect *is)
 
 /* for now; mostly a duplicate of shadepixel() itself... could be unified once */
 /* R.view has been set */
-static void shade_ray(Isect *is, int mask)
+static void shade_ray(Isect *is, int mask, ShadeResult *shr)
 {
-	extern void shade_lamp_loop(int );
 	VertRen *v1, *v2, *v3;
 	float n1[3], n2[3], n3[3];
 	float *o1, *o2, *o3;
@@ -1166,15 +1166,17 @@ static void shade_ray(Isect *is, int mask)
 	
 	/* face normal, check for flip */
 	R.vno= R.vlr->n;
-	l= R.vlr->n[0]*R.view[0]+R.vlr->n[1]*R.view[1]+R.vlr->n[2]*R.view[2];
-	if(l<0.0) {	
-		flip= 1;
-		R.vlr->n[0]= -R.vlr->n[0];
-		R.vlr->n[1]= -R.vlr->n[1];
-		R.vlr->n[2]= -R.vlr->n[2];
-		R.vlr->puno= ~(R.vlr->puno);
+	if((R.mat->mode & MA_RAYTRANSP)==0) {
+		l= R.vlr->n[0]*R.view[0]+R.vlr->n[1]*R.view[1]+R.vlr->n[2]*R.view[2];
+		if(l<0.0) {	
+			flip= 1;
+			R.vlr->n[0]= -R.vlr->n[0];
+			R.vlr->n[1]= -R.vlr->n[1];
+			R.vlr->n[2]= -R.vlr->n[2];
+			R.vlr->puno= ~(R.vlr->puno);
+		}
 	}
-
+	
 	if(R.vlr->v4) {
 		if(is->isect==2) {
 			v1= R.vlr->v3;
@@ -1338,7 +1340,7 @@ static void shade_ray(Isect *is, int mask)
 		VECCOPY(R.vn, R.vlr->n);
 	}
 
-	shade_lamp_loop(mask);	
+	shade_lamp_loop(mask, shr);	
 
 	if(flip) {	
 		R.vlr->n[0]= -R.vlr->n[0];
@@ -1348,20 +1350,121 @@ static void shade_ray(Isect *is, int mask)
 	}
 }
 
-/* the main recursive tracer itself */
-static void traceray(float f, short depth, float *start, float *vec, float *col, int mask)
+static void refraction(float *refract, float *n, float *view, float index)
 {
-	extern unsigned short shortcol[4];	// only for old render, which stores ushort
+	float dot, fac;
+
+	VECCOPY(refract, view);
+	if(index==0.0) return;
+
+	dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
+
+	if(dot>0.0) {
+		fac= 1.0 - (1.0 - dot*dot)*index*index;
+		if(fac<= 0.0) return;
+		fac= -dot*index + sqrt(fac);
+	}
+	else {
+		index = 1.0/index;
+		fac= 1.0 - (1.0 - dot*dot)*index*index;
+		if(fac<= 0.0) return;
+		fac= -dot*index - sqrt(fac);
+	}
+
+	refract[0]= index*view[0] + fac*n[0];
+	refract[1]= index*view[1] + fac*n[1];
+	refract[2]= index*view[2] + fac*n[2];
+}
+
+static void calc_dx_dy_refract(float *ref, float *n, float *view, float index)
+{
+	float dref[3], dview[3], dnor[3];
+	
+	refraction(ref, n, view, index);
+	
+	dview[0]= view[0]+ O.dxview;
+	dview[1]= view[1];
+	dview[2]= view[2];
+
+	if(R.vlr->flag & R_SMOOTH) {
+		VecAddf(dnor, n, O.dxno);
+		refraction(dref, dnor, dview, index);
+	}
+	else {
+		refraction(dref, n, dview, index);
+	}
+	VecSubf(O.dxrefract, ref, dref);
+	
+	dview[0]= view[0];
+	dview[1]= view[1]+ O.dyview;
+
+	if(R.vlr->flag & R_SMOOTH) {
+		VecAddf(dnor, n, O.dyno);
+		refraction(dref, dnor, dview, index);
+	}
+	else {
+		refraction(dref, n, dview, index);
+	}
+	VecSubf(O.dyrefract, ref, dref);
+	
+}
+
+
+/* orn = original face normal */
+static void reflection(float *ref, float *n, float *view, float *orn)
+{
+	float f1;
+	
+	f1= -2.0*(n[0]*view[0]+ n[1]*view[1]+ n[2]*view[2]);
+	
+	if(orn==NULL) {
+		// heuristic, should test this! is to prevent normal going to the back
+		if(f1> -0.2) f1= -0.2;
+	}
+	
+	ref[0]= (view[0]+f1*n[0]);
+	ref[1]= (view[1]+f1*n[1]);
+	ref[2]= (view[2]+f1*n[2]);
+
+	if(orn) {
+		/* test phong normals, then we should prevent vector going to the back */
+		f1= ref[0]*orn[0]+ ref[1]*orn[1]+ ref[2]*orn[2];
+		if(f1>0.0) {
+			f1+= .01;
+			ref[0]-= f1*orn[0];
+			ref[1]-= f1*orn[1];
+			ref[2]-= f1*orn[2];
+		}
+	}
+}
+
+static void color_combine(float *result, float fac1, float fac2, float *col1, float *col2)
+{
+	float col1t[3], col2t[3];
+	
+	col1t[0]= sqrt(col1[0]);
+	col1t[1]= sqrt(col1[1]);
+	col1t[2]= sqrt(col1[2]);
+	col2t[0]= sqrt(col2[0]);
+	col2t[1]= sqrt(col2[1]);
+	col2t[2]= sqrt(col2[2]);
+
+	result[0]= (fac1*col1t[0] + fac2*col2t[0]);
+	result[0]*= result[0];
+	result[1]= (fac1*col1t[1] + fac2*col2t[1]);
+	result[1]*= result[1];
+	result[2]= (fac1*col1t[2] + fac2*col2t[2]);
+	result[2]*= result[2];
+}
+
+/* the main recursive tracer itself */
+static void traceray(short depth, float *start, float *vec, float *col, int mask)
+{
+	ShadeResult shr;
 	Isect isec;
-	float f1, fr, fg, fb;
+	float f, f1, fr, fg, fb;
 	float ref[3];
 	
-	if(depth<0) return;
-
-	fr= R.mat->mirr;
-	fg= R.mat->mirg;
-	fb= R.mat->mirb;
-
 	VECCOPY(isec.start, start);
 	isec.end[0]= start[0]+g_oc.ocsize*vec[0];
 	isec.end[1]= start[1]+g_oc.ocsize*vec[1];
@@ -1374,26 +1477,65 @@ static void traceray(float f, short depth, float *start, float *vec, float *col,
 		VECCOPY(R.view, vec);
 		Normalise(R.view);
 		
-		shade_ray(&isec, mask);	// returns shortcol
+		shade_ray(&isec, mask, &shr);
 		
-		f1= 1.0-f;
+		if(depth>0) {
 
-		col[0]= f*fr*(shortcol[0]/65535.0)+ f1*col[0];
-		col[1]= f*fg*(shortcol[1]/65535.0)+ f1*col[1];
-		col[2]= f*fb*(shortcol[2]/65535.0)+ f1*col[2];
-		
-		/* is already new material: */
-		if(R.mat->ray_mirror>0.0) {
-			f1= -2*(R.vn[0]*R.view[0]+R.vn[1]*R.view[1]+R.vn[2]*R.view[2]);
-			if(f1> -0.2) f1= -0.2;
+			if(R.mat->mode & MA_RAYMIRROR) {
+				f= R.mat->ray_mirror;
+				if(f!=0.0) f*= fresnel_fac(R.view, R.vn, R.mat->fresnel_mir, R.mat->falloff_mir);
+			}
+			else f= 0.0;
 			
-			ref[0]= (R.view[0]+f1*R.vn[0]);
-			ref[1]= (R.view[1]+f1*R.vn[1]);
-			ref[2]= (R.view[2]+f1*R.vn[2]);
+			/* have to do it here, make local vars... */
+			fr= R.mat->mirr;
+			fg= R.mat->mirg;
+			fb= R.mat->mirb;
+		
+			if(R.mat->mode & MA_RAYTRANSP && shr.alpha!=1.0) {
+				float f, f1, refract[3], tracol[3];
+				
+				refraction(refract, R.vn, R.view, R.mat->ang);
+				traceray(depth-1, R.co, refract, tracol, mask);
+				
+				f= shr.alpha; f1= 1.0-f;
+				shr.diff[0]= f*shr.diff[0] + f1*tracol[0];
+				shr.diff[1]= f*shr.diff[1] + f1*tracol[1];
+				shr.diff[2]= f*shr.diff[2] + f1*tracol[2];
+				shr.alpha= 1.0;
+			}
 
-			f*= R.mat->ray_mirror;
-			traceray(f, depth-1, R.co, ref, col, mask);
+			if(f!=0.0) {
+			
+				reflection(ref, R.vn, R.view, NULL);			
+				traceray(depth-1, R.co, ref, col, mask);
+			
+				f1= 1.0-f;
+
+				/* combine */
+				//color_combine(col, f*fr*(1.0-shr.spec[0]), f1, col, shr.diff);
+				//col[0]+= shr.spec[0];
+				//col[1]+= shr.spec[1];
+				//col[2]+= shr.spec[2];
+				
+				col[0]= f*fr*(1.0-shr.spec[0])*col[0] + f1*shr.diff[0] + shr.spec[0];
+	
+				col[1]= f*fg*(1.0-shr.spec[1])*col[1] + f1*shr.diff[1] + shr.spec[1];
+	
+				col[2]= f*fb*(1.0-shr.spec[2])*col[2] + f1*shr.diff[2] + shr.spec[2];
+			}
+			else {
+				col[0]= shr.diff[0] + shr.spec[0];
+				col[1]= shr.diff[1] + shr.spec[1];
+				col[2]= shr.diff[2] + shr.spec[2];
+			}
 		}
+		else {
+			col[0]= shr.diff[0] + shr.spec[0];
+			col[1]= shr.diff[1] + shr.spec[1];
+			col[2]= shr.diff[2] + shr.spec[2];
+		}
+		
 	}
 	else {	/* sky */
 		char skycol[4];
@@ -1402,13 +1544,10 @@ static void traceray(float f, short depth, float *start, float *vec, float *col,
 		Normalise(R.view);
 
 		RE_sky(skycol);	
-		
-		f1= 1.0-f;
 
-		f/= 255.0;
-		col[0]= f*fr*skycol[0]+ f1*col[0];
-		col[1]= f*fg*skycol[1]+ f1*col[1];
-		col[2]= f*fb*skycol[2]+ f1*col[2];
+		col[0]= skycol[0]/255.0;
+		col[1]= skycol[1]/255.0;
+		col[2]= skycol[2]/255.0;
 
 	}
 }
@@ -1497,94 +1636,174 @@ static void *jitter_cube(int resol)
 
 }
 
-/* ***************** extern calls ************** */
+/* ***************** main calls ************** */
 
 
 /* extern call from render loop */
-void ray_mirror(int mask)
+void ray_trace(int mask, ShadeResult *shr)
 {
-	float i, vec[3];
+	VlakRen *vlr;
+	float i, f, f1, fr, fg, fb, vec[3], mircol[3], tracol[3];
+	int do_tra, do_mir;
+	
+	do_tra= ((R.mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0);
+	do_mir= ((R.mat->mode & MA_RAYMIRROR) && R.mat->ray_mirror!=0.0);
+	vlr= R.vlr;
 	
 	if(R.r.mode & R_OSA) {
-		VlakRen *vlr;
-		float accum[3], rco[3], rvno[3], col[3], ref[3], dxref[3], dyref[3];
-		float div= 0.0;
+		float accum[3], rco[3], ref[3], dxref[3], dyref[3];
+		float accur[3], refract[3], divr=0.0, div= 0.0;
 		int j;
 		
+		if(do_tra) calc_dx_dy_refract(refract, R.vn, R.view, R.mat->ang);
+		
 		accum[0]= accum[1]= accum[2]= 0.0;
+		accur[0]= accur[1]= accur[2]= 0.0;
 		
 		/* store variables which change during tracing */
 		VECCOPY(rco, R.co);
-		VECCOPY(rvno, R.vno);
 		VECCOPY(ref, R.ref);
 		VECCOPY(dxref, O.dxref);
 		VECCOPY(dyref, O.dyref);
-		vlr= R.vlr;
-
+		
 		for(j=0; j<R.osa; j++) {
 			if(mask & 1<<j) {
-				vec[0]= ref[0] + (jit[j][0]-0.5)*dxref[0] + (jit[j][1]-0.5)*dyref[0] ;
-				vec[1]= ref[1] + (jit[j][0]-0.5)*dxref[1] + (jit[j][1]-0.5)*dyref[1] ;
-				vec[2]= ref[2] + (jit[j][0]-0.5)*dxref[2] + (jit[j][1]-0.5)*dyref[2] ;
 				
-				/* prevent normal go to backside */
-				i= vec[0]*rvno[0]+ vec[1]*rvno[1]+ vec[2]*rvno[2];
-				if(i>0.0) {
-					i+= .01;
-					vec[0]-= i*rvno[0];
-					vec[1]-= i*rvno[1];
-					vec[2]-= i*rvno[2];
-				}
-				
-				R.co[0]+= (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
-				R.co[1]+= (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
-				R.co[2]+= (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
-				
-				/* we use a new mask here, only shadow uses it */
-				/* result in accum, this is copied to R.refcol for shade_lamp_loop */
-				traceray(1.0, R.mat->ray_depth, R.co, vec, col, 1<<j);
-				
-				VecAddf(accum, accum, col);
-				div+= 1.0;
+				if(do_tra) {
+					vec[0]= refract[0] + (jit[j][0]-0.5)*O.dxrefract[0] + (jit[j][1]-0.5)*O.dyrefract[0] ;
+					vec[1]= refract[1] + (jit[j][0]-0.5)*O.dxrefract[1] + (jit[j][1]-0.5)*O.dyrefract[1] ;
+					vec[2]= refract[2] + (jit[j][0]-0.5)*O.dxrefract[2] + (jit[j][1]-0.5)*O.dyrefract[2] ;
 
-				/* restore */
-				VECCOPY(R.co, rco);
-				R.vlr= vlr;
-				R.mat= vlr->mat;
-				R.matren= R.mat->ren;
+					R.co[0]+= (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
+					R.co[1]+= (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
+					R.co[2]+= (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
+
+					traceray(R.mat->ray_depth_tra, R.co, vec, tracol, mask);
+					
+					VecAddf(accur, accur, tracol);
+					divr+= 1.0;
+
+					/* restore */
+					VECCOPY(R.co, rco);
+					R.vlr= vlr;
+					R.mat= vlr->mat;
+					R.matren= R.mat->ren;
+				}
+
+				if(do_mir) {
+					vec[0]= ref[0] + 2.0*(jit[j][0]-0.5)*dxref[0] + 2.0*(jit[j][1]-0.5)*dyref[0] ;
+					vec[1]= ref[1] + 2.0*(jit[j][0]-0.5)*dxref[1] + 2.0*(jit[j][1]-0.5)*dyref[1] ;
+					vec[2]= ref[2] + 2.0*(jit[j][0]-0.5)*dxref[2] + 2.0*(jit[j][1]-0.5)*dyref[2] ;
+					
+					/* prevent normal go to backside */
+					i= vec[0]*R.vlr->n[0]+ vec[1]*R.vlr->n[1]+ vec[2]*R.vlr->n[2];
+					if(i>0.0) {
+						i+= .01;
+						vec[0]-= i*R.vlr->n[0];
+						vec[1]-= i*R.vlr->n[1];
+						vec[2]-= i*R.vlr->n[2];
+					}
+					
+					R.co[0]+= (jit[j][0]-0.5)*O.dxco[0] + (jit[j][1]-0.5)*O.dyco[0] ;
+					R.co[1]+= (jit[j][0]-0.5)*O.dxco[1] + (jit[j][1]-0.5)*O.dyco[1] ;
+					R.co[2]+= (jit[j][0]-0.5)*O.dxco[2] + (jit[j][1]-0.5)*O.dyco[2] ;
+					
+					/* we use a new mask here, only shadow uses it */
+					/* result in accum, this is copied to shade_lamp_loop */
+					traceray(R.mat->ray_depth, R.co, vec, mircol, 1<<j);
+					
+					VecAddf(accum, accum, mircol);
+					div+= 1.0;
+	
+					/* restore */
+					VECCOPY(R.co, rco);
+					R.vlr= vlr;
+					R.mat= vlr->mat;
+					R.matren= R.mat->ren;
+				}
 			}
 		}
-		R.refcol[0]= R.mat->ray_mirror;
-		R.refcol[1]= R.mat->ray_mirror*accum[0]/div;
-		R.refcol[2]= R.mat->ray_mirror*accum[1]/div;
-		R.refcol[3]= R.mat->ray_mirror*accum[2]/div;
+		
+		if(divr!=0.0) {
+			f= shr->alpha; f1= 1.0-f; f1/= divr;
+			shr->diff[0]= f*shr->diff[0] + f1*accur[0];
+			shr->diff[1]= f*shr->diff[1] + f1*accur[1];
+			shr->diff[2]= f*shr->diff[2] + f1*accur[2];
+			shr->alpha= 1.0;
+		}
+		
+		if(div!=0.0) {
+			i= R.mat->ray_mirror;
+			fr= R.mat->mirr;
+			fg= R.mat->mirg;
+			fb= R.mat->mirb;
+	
+			/* result */
+			f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i; f/= div;
+			shr->diff[0]= f*accum[0] + f1*shr->diff[0];
+			
+			f= i*fg*(1.0-shr->spec[1]);	f1= 1.0-i; f/= div;
+			shr->diff[1]= f*accum[1] + f1*shr->diff[1];
+			
+			f= i*fb*(1.0-shr->spec[2]);	f1= 1.0-i; f/= div;
+			shr->diff[2]= f*accum[2] + f1*shr->diff[2];
+		}
 	}
 	else {
-		i= -2.0*(R.vn[0]*R.view[0]+R.vn[1]*R.view[1]+R.vn[2]*R.view[2]);
 		
-		vec[0]= (R.view[0]+i*R.vn[0]);
-		vec[1]= (R.view[1]+i*R.vn[1]);
-		vec[2]= (R.view[2]+i*R.vn[2]);
-		
-		/* test phong normals, then we should prevent vector going to the back */
-		if(R.vlr->flag & R_SMOOTH) {
-			i= vec[0]*R.vno[0]+ vec[1]*R.vno[1]+ vec[2]*R.vno[2];
-			if(i>0.0) {
-				i+= .01;
-				vec[0]-= i*R.vno[0];
-				vec[1]-= i*R.vno[1];
-				vec[2]-= i*R.vno[2];
-			}
+		if(do_tra) {
+			float rvn[3], view[3], rco[3], ref[3], refract[3];
+			
+			/* store variables which change during tracing */
+			VECCOPY(view, R.view);
+			VECCOPY(rco, R.co);
+			VECCOPY(rvn, R.vn);
+			VECCOPY(ref, R.ref);
+
+			refraction(refract, R.vn, R.view, R.mat->ang);
+			traceray(R.mat->ray_depth_tra, R.co, refract, tracol, mask);
+			
+			f= shr->alpha; f1= 1.0-f;
+			shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
+			shr->diff[1]= f*shr->diff[1] + f1*tracol[1];
+			shr->diff[2]= f*shr->diff[2] + f1*tracol[2];
+			shr->alpha= 1.0;
+
+			/* store variables which change during tracing */
+			VECCOPY(R.view, view);
+			VECCOPY(R.co, rco);
+			VECCOPY(R.ref, ref);
+			VECCOPY(R.vn, rvn);
+			R.vlr= vlr;
+			R.mat= vlr->mat;
+			R.matren= R.mat->ren;
 		}
 		
-		/* result in r.refcol, this is added in shade_lamp_loop */
-		i= R.mat->ray_mirror;
-		traceray(1.0, R.mat->ray_depth, R.co, vec, R.refcol+1, mask);
-		R.refcol[0]= i;
-		R.refcol[1]*= i;
-		R.refcol[2]*= i;
-		R.refcol[3]*= i;
+		if(do_mir) {
 		
+			i= R.mat->ray_mirror*fresnel_fac(R.view, R.vn, R.mat->fresnel_mir, R.mat->falloff_mir);
+			if(i!=0.0) {
+				fr= R.mat->mirr;
+				fg= R.mat->mirg;
+				fb= R.mat->mirb;
+	
+				if(R.vlr->flag & R_SMOOTH) 
+					reflection(vec, R.vn, R.view, R.vlr->n);
+				else
+					reflection(vec, R.vn, R.view, NULL);
+		
+				traceray(R.mat->ray_depth, R.co, vec, mircol, mask);
+				
+				f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
+				shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
+				
+				f= i*fg*(1.0-shr->spec[1]);	f1= 1.0-i;
+				shr->diff[1]= f*mircol[1] + f1*shr->diff[1];
+				
+				f= i*fb*(1.0-shr->spec[2]);	f1= 1.0-i;
+				shr->diff[2]= f*mircol[2] + f1*shr->diff[2];
+			}
+		}
 	}
 }
 

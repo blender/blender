@@ -1552,12 +1552,22 @@ void RE_calc_R_ref()
 
 }
 
+float fresnel_fac(float *view, float *vn, float fresnel, float falloff)
+{
+	float fac= fabs(view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
+
+	if(falloff>0.0) fac= pow(fac, falloff); else fac= 1.0;
+	if(fac>1.0) fac= 1.0;
+		
+	return (1.0 - fresnel*fac);
+}
+
 /* mask is used to define the amount of rays/samples */
-void shade_lamp_loop(int mask)
+void shade_lamp_loop(int mask, ShadeResult *shr)
 {
 	LampRen *lar;
 	Material *ma;
-	float i, inp, inpr, t, lv[3], lampdist, ld = 0, ir, ig, ib, isr=0,isg=0,isb=0;
+	float i, inp, inpr, t, lv[3], lampdist, ld = 0;
 	float lvrot[3], *vn, *view, shadfac, soft;
 	int a;
 
@@ -1565,8 +1575,12 @@ void shade_lamp_loop(int mask)
 	view= R.view;
 	ma= R.matren;
 	
+	memset(shr, 0, sizeof(ShadeResult));
+	
 	/* separate loop */
 	if(ma->mode & MA_ONLYSHADOW) {
+		float ir;
+		
 		shadfac= ir= 0.0;
 		for(a=0; a<R.totlamp; a++) {
 			lar= R.la[a];
@@ -1603,9 +1617,7 @@ void shade_lamp_loop(int mask)
 			}
 		}
 		if(ir>0.0) shadfac/= ir;
-		ma->alpha= (R.mat->alpha)*(1.0-shadfac);
-		
-		shortcol[0]=shortcol[1]=shortcol[2]= 0;
+		shr->alpha= (R.mat->alpha)*(1.0-shadfac);
 		
 		return;
 	}
@@ -1615,6 +1627,8 @@ void shade_lamp_loop(int mask)
 		ma->g= R.vcol[1];
 		ma->b= R.vcol[2];
 	}
+	
+	ma->alpha= R.mat->alpha;	// copy to render material, for fresnel and spectra
 
 	if(ma->texco) {
 		if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
@@ -1626,38 +1640,18 @@ void shade_lamp_loop(int mask)
 	}
 	
 	if(ma->mode & MA_SHLESS) {
-		ir= ma->r;
-		ig= ma->g;
-		ib= ma->b;
-	
-		if(usegamtab) {
-			a= 65535*ir;
-			if(a<0) a=0; else if(a>65535) a= 65535;
-			shortcol[0]= igamtab2[a];
-			a= 65535*ig;
-			if(a<0) a=0; else if(a>65535) a= 65535;
-			shortcol[1]= igamtab2[a];
-			a= 65535*ib;
-			if(a<0) a=0; else if(a>65535) a= 65535;
-			shortcol[2]= igamtab2[a];
-		}
-		else {
-			a= 65535*ir;
-			if(a<0) shortcol[0]= 0; else if(a>65535) shortcol[0]= 65535; else shortcol[0]= a;
-			a= 65535*ig;
-			if(a<0) shortcol[1]= 0; else if(a>65535) shortcol[1]= 65535; else shortcol[1]= a;
-			a= 65535*ib;
-			if(a<0) shortcol[2]= 0; else if(a>65535) shortcol[2]= 65535; else shortcol[2]= a;
-		}
+		shr->diff[0]= ma->r;
+		shr->diff[1]= ma->g;
+		shr->diff[2]= ma->b;
 		return;
 	}
 
 	if( (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP))== MA_VERTEXCOL ) {
-		ir= ma->emit+R.vcol[0];
-		ig= ma->emit+R.vcol[1];
-		ib= ma->emit+R.vcol[2];
+		shr->diff[0]= ma->emit+R.vcol[0];
+		shr->diff[1]= ma->emit+R.vcol[1];
+		shr->diff[2]= ma->emit+R.vcol[2];
 	}
-	else ir= ig= ib= ma->emit;
+	else shr->diff[0]= shr->diff[1]= shr->diff[2]= ma->emit;
 
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];
@@ -1749,9 +1743,9 @@ void shade_lamp_loop(int mask)
 							shadfac = 1.0 - testshadowbuf(lar->shb, inp);
 							if(shadfac>0.0) {
 								shadfac*= inp*soft*lar->energy;
-								ir -= shadfac;
-								ig -= shadfac;
-								ib -= shadfac;
+								shr->diff[0] -= shadfac;
+								shr->diff[1] -= shadfac;
+								shr->diff[2] -= shadfac;
 								
 								continue;
 							}
@@ -1839,9 +1833,9 @@ void shade_lamp_loop(int mask)
 					}
 					
 					t= ma->spec*spec(t, ma->har);
-					isr+= t*(lar->r * ma->specr);
-					isg+= t*(lar->g * ma->specg);
-					isb+= t*(lar->b * ma->specb);
+					shr->spec[0]+= t*(lar->r * ma->specr);
+					shr->spec[1]+= t*(lar->g * ma->specg);
+					shr->spec[2]+= t*(lar->b * ma->specb);
 				}
 				else {
 					/* specular shaders */
@@ -1858,93 +1852,55 @@ void shade_lamp_loop(int mask)
 					
 					t= shadfac*ma->spec*lampdist*specfac;
 					
-					isr+= t*(lar->r * ma->specr);
-					isg+= t*(lar->g * ma->specg);
-					isb+= t*(lar->b * ma->specb);
+					shr->spec[0]+= t*(lar->r * ma->specr);
+					shr->spec[1]+= t*(lar->g * ma->specg);
+					shr->spec[2]+= t*(lar->b * ma->specb);
 				}
 			}
 		}
 		
 		/* in case 'no diffuse' we still do most calculus, spec can be in shadow */
 		if(i>0.0 && !(lar->mode & LA_NO_DIFF)) {
-			ir+= i*lar->r;
-			ig+= i*lar->g;
-			ib+= i*lar->b;
+			shr->diff[0]+= i*lar->r;
+			shr->diff[1]+= i*lar->g;
+			shr->diff[2]+= i*lar->b;
 		}
 	}
-	
-	/* sum shading here, to make all variables local (because of raytrace) */
-	if(ir<0.0) ir= 0.0; else ir*= ma->r;
-	ir+= ma->ambr +ma->amb*R.rad[0];
-	
-	if(ig<0.0) ig= 0.0; else ig*= ma->g;
-	ig+= ma->ambg +ma->amb*R.rad[1];
-	
-	if(ib<0.0) ib= 0.0; else ib*= ma->b;
-	ib+= ma->ambb +ma->amb*R.rad[2];
-	
-	if(isr<0.0) isr= 0.0;
-	if(isg<0.0) isg= 0.0;
-	if(isb<0.0) isb= 0.0;
 
-	if(ma->mode & MA_ZTRA) {	/* ztra shade */
+	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
+		if(ma->fresnel_tra!=0.0) 
+			ma->alpha*= fresnel_fac(R.view, R.vn, ma->fresnel_tra, ma->falloff_tra);
+
 		if(ma->spectra!=0.0) {
 
-			t = MAX3(isr, isb, isg);
+			t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
 			t *= ma->spectra;
 			if(t>1.0) t= 1.0;
-			if(ma->mapto & MAP_ALPHA) ma->alpha= (1.0-t)*ma->alpha+t;
-			else ma->alpha= (1.0-t)*R.mat->alpha+t;
+			ma->alpha= (1.0-t)*ma->alpha+t;
 		}
 	}
 
-	/* Result of ray_mirror() is written in R.refcol. 
-	   Ugly is that shade_lamp_loop is called from within ray_mirror as well */
-	if(R.r.mode & R_RAYTRACE) {
-		if(ma->ray_mirror!=0.0) {
-			static int only_once= 1;
-			if(only_once) {
-				float mirr= ma->mirr, mirg= ma->mirg, mirb= ma->mirb;
-				extern void ray_mirror(int);
-				
-				only_once= 0;
-				ray_mirror(mask);
-				only_once= 1;
-				
-				/* this is because the material mir color can be textured */
-				ma->mirr= mirr; ma->mirb= mirb; ma->mirg= mirg;
-			}
-		}
-	}
+	shr->alpha= ma->alpha;
+
+	if(shr->spec[0]<0.0) shr->spec[0]= 0.0;
+	if(shr->spec[1]<0.0) shr->spec[1]= 0.0;
+	if(shr->spec[2]<0.0) shr->spec[2]= 0.0;
+
+	if(shr->diff[0]<0.0) shr->diff[0]= 0.0; else shr->diff[0]*= ma->r;
+	shr->diff[0]+= ma->ambr +ma->amb*R.rad[0];
 	
-	if(R.refcol[0]==0.0) {
-		a= 65535.0*( ir + isr);
-		if(a>65535) a=65535; else if(a<0) a= 0;
-		shortcol[0]= a;
-		a= 65535.0*(ig + isg);
-		if(a>65535) a=65535; else if(a<0) a= 0;
-		shortcol[1]= a;
-		a= 65535*(ib + isb);
-		if(a>65535) a=65535; else if(a<0) a= 0;
-		shortcol[2]= a;
-	}
-	else {
-		a= 65535.0*( ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*ir +isr);
-		if(a>65535) a=65535; else if(a<0) a= 0;
-		shortcol[0]= a;
-		a= 65535.0*( ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*ig +isg);
-		if(a>65535) a=65535; else if(a<0) a= 0;
-		shortcol[1]= a;
-		a= 65535.0*( ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*ib +isb);
-		if(a>65535) a=65535; else if(a<0) a= 0;
-		shortcol[2]= a;
+	if(shr->diff[1]<0.0) shr->diff[1]= 0.0; else shr->diff[1]*= ma->g;
+	shr->diff[1]+= ma->ambg +ma->amb*R.rad[1];
+	
+	if(shr->diff[2]<0.0) shr->diff[2]= 0.0; else shr->diff[2]*= ma->b;
+	shr->diff[2]+= ma->ambb +ma->amb*R.rad[2];
+	
+	if(R.refcol[0]!=0.0) {
+		shr->diff[0]= ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*shr->diff[0];
+		shr->diff[1]= ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*shr->diff[1];
+		shr->diff[2]= ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*shr->diff[2];
 	}
 
-	if(usegamtab) {
-		shortcol[0]= igamtab2[ shortcol[0] ];
-		shortcol[1]= igamtab2[ shortcol[1] ];
-		shortcol[2]= igamtab2[ shortcol[2] ];
-	}
 }
 
 
@@ -1955,6 +1911,7 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 	static VertRen *v1, *v2, *v3;
 	static float t00, t01, t10, t11, dvlak, n1[3], n2[3], n3[3];
 	static float s00, s01, s10, s11;
+	ShadeResult shr;
 	float *o1, *o2, *o3;
 	float u, v, l, dl, hox, hoy, detsh, fac, deler, alpha;
 	char *cp1, *cp2, *cp3;
@@ -2350,7 +2307,33 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 			R.winco[1]= (y+(R.ystart))/(float)R.afmy;
 		}
 	
-		shade_lamp_loop(mask);
+		shade_lamp_loop(mask, &shr);
+		
+		if(R.r.mode & R_RAYTRACE) {
+			if(R.matren->ray_mirror!=0.0 || (R.mat->mode & MA_RAYTRANSP && shr.alpha!=1.0)) {
+				extern void ray_trace(int, ShadeResult *);
+				
+				ray_trace(mask, &shr);
+			}
+		}
+		
+		fac= shr.diff[0] + shr.spec[0];
+		if(fac<=0.0) shortcol[0]= 0; else if(fac>=1.0) shortcol[0]= 65535;
+		else shortcol[0]= 65535.0*fac;
+		
+		fac= shr.diff[1] + shr.spec[1];
+		if(fac<=0.0) shortcol[1]= 0; else if(fac>=1.0) shortcol[1]= 65535;
+		else shortcol[1]= 65535.0*fac;
+
+		fac= shr.diff[2] + shr.spec[2];
+		if(fac<=0.0) shortcol[2]= 0; else if(fac>=1.0) shortcol[2]= 65535;
+		else shortcol[2]= 65535.0*fac;
+		
+		if(usegamtab) {
+			shortcol[0]= igamtab2[ shortcol[0] ];
+			shortcol[1]= igamtab2[ shortcol[1] ];
+			shortcol[2]= igamtab2[ shortcol[2] ];
+		}
 
 		/* MIST */
 		if( (R.wrld.mode & WO_MIST) && (R.matren->mode & MA_NOMIST)==0 ){
@@ -2358,8 +2341,8 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 		}
 		else alpha= 1.0;
 
-		if(R.matren->alpha!=1.0 || alpha!=1.0) {
-			fac= alpha*(R.matren->alpha);
+		if(shr.alpha!=1.0 || alpha!=1.0) {
+			fac= alpha*(shr.alpha);
 			
 				/* gamma */
 			if(R.osa && usegamtab) fac*= fac;

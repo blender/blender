@@ -1660,7 +1660,7 @@ static void init_render_mesh(Object *ob)
 							vlr->mat= ma;
 							vlr->puno= mface->puno;
 							vlr->flag= mface->flag;
-							if(me->flag & ME_NOPUNOFLIP) {
+							if((me->flag & ME_NOPUNOFLIP) || (ma->mode & MA_RAYTRANSP)) {
 								vlr->flag |= R_NOPUNOFLIP;
 								vlr->puno= 15;
 							}
@@ -2132,7 +2132,7 @@ static void init_render_surf(Object *ob)
 						vlr->mat= matar[ dl->col];
 						vlr->ec= ME_V1V2+ME_V2V3;
 						vlr->flag= dl->rt;
-						if(cu->flag & CU_NOPUNOFLIP) {
+						if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
 							vlr->flag |= R_NOPUNOFLIP;
 							vlr->puno= 15;
 						}
@@ -2272,7 +2272,7 @@ static void init_render_surf(Object *ob)
 						vlr->mat= matar[ dl->col];
 						vlr->ec= ME_V1V2+ME_V2V3;
 						vlr->flag= dl->rt;
-						if(cu->flag & CU_NOPUNOFLIP) {
+						if( (cu->flag & CU_NOPUNOFLIP) || (vlr->mat->mode & MA_RAYTRANSP)) {
 							vlr->flag |= R_NOPUNOFLIP;
 							vlr->puno= 15;
 						}

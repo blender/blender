@@ -86,6 +86,7 @@ void init_material(Material *ma)
 	ma->r= ma->g= ma->b= ma->ref= 0.8;
 	ma->specr= ma->specg= ma->specb= 1.0;
 	ma->mirr= ma->mirg= ma->mirb= 1.0;
+	ma->spectra= 1.0;
 	ma->amb= 0.5;
 	ma->alpha= 1.0;
 	ma->spec= ma->hasize= 0.5;
@@ -104,6 +105,11 @@ void init_material(Material *ma)
 	ma->param[2]= 0.5;
 	ma->param[3]= 0.1;
 	
+	ma->ang= 1.0;
+	ma->ray_depth= 2;
+	ma->ray_depth_tra= 2;
+	ma->falloff_mir= 1.0;
+	ma->falloff_tra= 1.0;
 	
 	ma->mode= MA_TRACEBLE+MA_SHADOW+MA_RADIO;	
 }
@@ -577,14 +583,14 @@ void init_render_material(Material *ma)
 	}
 	if(needuv) ma->texco |= NEED_UV;
 
-	if(R.r.mode & R_RAYTRACE) {
-		if(ma->ray_mirror!=0.0) { 
-			ma->texco |= NEED_UV|TEXCO_REFL;
-			if(R.osa) ma->texco |= TEXCO_OSA;
-		}
+	if(ma->mode & MA_RAYMIRROR) { 
+		ma->texco |= NEED_UV|TEXCO_REFL;
+		if(R.osa) ma->texco |= TEXCO_OSA;
 	}
-
-
+	if(ma->mode & MA_RAYTRANSP) {
+		ma->texco |= NEED_UV;
+		if(R.osa) ma->texco |= TEXCO_OSA;
+	}
 
 	ma->ambr= ma->amb*R.wrld.ambr;
 	ma->ambg= ma->amb*R.wrld.ambg;

@@ -86,8 +86,8 @@
 
 #include "RE_renderconverter.h"
 
-#define PR_RECTX	121
-#define PR_RECTY	121
+#define PR_RECTX	141
+#define PR_RECTY	141
 #define PR_XMIN		10
 #define PR_YMIN		5
 #define PR_XMAX		200
@@ -219,6 +219,14 @@ static int ray_previewrender(int x,
 
 static unsigned int previewback(int type, int x, int y)
 {
+	
+	/* checkerboard, for later
+	x+= PR_RECTX/2;
+	y+= PR_RECTX/2;
+	if( ((x/24) + (y/24)) & 1) return 0x40404040;
+	else return 0xa0a0a0a0;
+	*/
+	
 	if(type & MA_DARK) {
 		if(abs(x)>abs(y)) return 0;
 		else return 0x40404040;
@@ -667,8 +675,40 @@ static float pr2_lamp[3]= {-8.8, -5.6, -1.5};
 static float pr1_col[3]= {0.8, 0.8, 0.8};
 static float pr2_col[3]= {0.5, 0.6, 0.7};
 
+static void refraction_prv(int *x, int *y, float *n, float index)
+{
+	float dot, fac, view[3], len;
+
+
+	if(index==0.0) return;
+
+	view[0]= index*(float)*x;
+	view[1]= ((float)*y)/index;
+	view[2]= 20.0;
+	len= Normalise(view);
+	
+	dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
+
+	if(dot>0.0) {
+		fac= 1.0 - (1.0 - dot*dot)*index*index;
+		if(fac<= 0.0) return;
+		fac= -dot*index + sqrt(fac);
+	}
+	else {
+		index = 1.0/index;
+		fac= 1.0 - (1.0 - dot*dot)*index*index;
+		if(fac<= 0.0) return;
+		fac= -dot*index - sqrt(fac);
+	}
+
+	*x= (int)(len*(index*view[0] + fac*n[0]));
+	*y= (int)(len*(index*view[1] + fac*n[1]));
+}
+
+
 static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 {
+	extern float fresnel_fac(float *view, float *vn, float fresnel, float falloff);
 	Material *mat;
 	float v1,inp, inprspec=0, isr=0.0, isb=0.0, isg=0.0;
 	float ir=0.0, ib=0.0, ig=0.0;
@@ -678,13 +718,6 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 	char tracol;
 	
 	mat= R.matren;
-	/* pr1_lamp[0]= mat->mtex[0]->ofs[0]; */
-	/* pr1_lamp[1]= mat->mtex[0]->ofs[1]; */
-	/* pr1_lamp[2]= mat->mtex[0]->ofs[2]; */
-
-	/* pr2_lamp[0]= mat->mtex[0]->size[0]; */
-	/* pr2_lamp[1]= mat->mtex[0]->size[1]; */
-	/* pr2_lamp[2]= mat->mtex[0]->size[2]; */
 
 	v1= 1.0/PR_RECTX;
 	view[0]= v1*x;
@@ -738,7 +771,8 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 			
 			inp= -2.0*(R.vn[0]*view[0]+R.vn[1]*view[1]+R.vn[2]*view[2]);
 			R.ref[0]= (view[0]+inp*R.vn[0]);
-			R.ref[1]= -(view[1]+inp*R.vn[1]);
+			R.ref[1]= (view[1]+inp*R.vn[1]);
+			if(smooth) R.ref[1]= -R.ref[1];
 			R.ref[2]= (view[2]+inp*R.vn[2]);
 		}
 
@@ -815,6 +849,38 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 			ig+= inp*la[1];
 			ib+= inp*la[2];
 		}
+		
+		/* drawing checkerboard and sky */
+		if(mat->mode & MA_RAYMIRROR) {
+			float col, div, y, z;
+			int fac;
+			
+			/* rotate a bit in x */
+			y= R.ref[1]; z= R.ref[2];
+			R.ref[1]= 0.98*y - 0.17*z;
+			R.ref[2]= 0.17*y + 0.98*z;
+			
+			/* scale */
+			div= (0.85*R.ref[1]);
+			
+			R.refcol[0]= mat->ray_mirror*fresnel_fac(view, R.vn, mat->fresnel_mir, mat->falloff_mir);;
+
+			if(div<0.0) {
+				/* minus 0.5 prevents too many small tiles in distance */
+				fac= (int)(R.ref[0]/(div-0.1) ) + (int)(R.ref[2]/(div-0.1) );
+				if(fac & 1) col= 0.8;
+				else col= 0.3;
+
+				R.refcol[1]= R.refcol[0]*col;
+				R.refcol[2]= R.refcol[1];
+				R.refcol[3]= R.refcol[2];
+			}
+			else {
+				R.refcol[1]= 0.0;
+				R.refcol[2]= R.refcol[0]*0.3*div;
+				R.refcol[3]= R.refcol[0]*0.8*div;
+			}
+		}
 
 		if(R.refcol[0]==0.0) {
 			a= 255.0*( mat->r*ir +mat->ambr +isr);
@@ -840,18 +906,25 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 		}
 	}
 
-	if(mat->alpha!=1.0) {
-		
-		alpha= mat->alpha;
-		
-			/* ztra shade */
-		if(mat->spectra!=0.0) {
-			inp= mat->spectra*inprspec;
-			if(inp>1.0) inp= 1.0;
-			
-			alpha= (1.0-inp)*alpha+ inp;
+	alpha= mat->alpha;
+	
+	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
+		if(mat->fresnel_tra!=0.0) 
+			alpha*= fresnel_fac(view, R.vn, mat->fresnel_tra, mat->falloff_tra);
+	
+		/* ztra shade */
+	if(mat->spectra!=0.0) {
+		inp = MAX3(isr, isg, isb);
+		inp *= mat->spectra;
+		if(inp>1.0) inp= 1.0;
+		alpha= (1.0-inp)*alpha+inp;
+	}
+	
+	if(alpha!=1.0) {
+		if(mat->mode & MA_RAYTRANSP) {
+			refraction_prv(&x, &y, R.vn, mat->ang);
 		}
-
+		
 		tracol=  previewback(mat->pr_back, x, y) & 255;
 		
 		tracol= (1.0-alpha)*tracol;
@@ -859,7 +932,6 @@ static void shade_preview_pixel(float *vec, int x, int y,char *rect, int smooth)
 		rect[0]= tracol+ (rect[0]*alpha) ;
 		rect[1]= tracol+ (rect[1]*alpha) ;
 		rect[2]= tracol+ (rect[2]*alpha) ;
-
 	}
 }
 
@@ -924,6 +996,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 	MTC_Mat4One(R.viewinv);
 	
 	R.osatex= 0;
+	
 	if(mat) {
 		/* rendervars */
 		init_render_world();

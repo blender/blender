@@ -44,6 +44,7 @@ typedef struct RE_Osa
 	float dxlv[3], dylv[3];
 	float dxwin[3], dywin[3];
 	float dxsticky[3], dysticky[3];
+	float dxrefract[3], dyrefract[3];
 } Osa;
 
 /*  extern Osa O;  */
