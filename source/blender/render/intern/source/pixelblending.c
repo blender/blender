@@ -858,11 +858,6 @@ void RE_addalphaAddfac(char *doel, char *bron, char addfac)
 	
 	int c, mul;
 
-	if( doel[3]==0) {
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		return;
-	}
-
 	mul= 255 - (bron[3]*(255-addfac))/255;
 
 	c= ((mul*doel[0])/255)+bron[0];
