@@ -568,7 +568,7 @@ static void edge_drawflags(void)
 		if(e1->f2<3) e1->f2+= 1;
 		if(e2->f2<3) e2->f2+= 1;
 		if(e3->f2<3) e3->f2+= 1;
-		if(e4 && e4->f<3) e4->f2+= 1;
+		if(e4 && e4->f2<3) e4->f2+= 1;
 		
 		if(e1->vn==0) e1->vn= (EditVert *)efa;
 		if(e2->vn==0) e2->vn= (EditVert *)efa;
@@ -584,7 +584,7 @@ static void edge_drawflags(void)
 			if(efa->e1->f2>=2) efa->e1->f2= 1;
 			if(efa->e2->f2>=2) efa->e2->f2= 1;
 			if(efa->e3->f2>=2) efa->e3->f2= 1;
-			if(efa->e4 && efa->e4->f>=2) efa->e4->f2= 1;
+			if(efa->e4 && efa->e4->f2>=2) efa->e4->f2= 1;
 			
 			efa= efa->next;
 		}		
