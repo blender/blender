@@ -680,10 +680,10 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 	BIF_ThemeColor(curarea, TH_TEXT_HI);
 	
 	if(dir=='h') {
-		ui_draw_anti_tria( x, y, x, y+10.0, x+8.75, y+5.25);
+		ui_draw_anti_tria( x, y, x, y+10.0, x+6, y+5.25);
 	}
 	else {
-		ui_draw_anti_tria( x-2, y+8.75,  x+10-2, y+8.75, x+5.25-2, y);	
+		ui_draw_anti_tria( x-2, y+7,  x+10-2, y+7, x+5.25-2, y+2);	
 	}
 }
 
@@ -752,12 +752,18 @@ static void ui_draw_panel_header(uiBlock *block)
 		pa= pa->next;
 	}
 	
-	pnl_icons= PNL_ICON;
+	pnl_icons= PNL_ICON+8;
 	if(panel->control & UI_PNL_CLOSE) pnl_icons+= PNL_ICON;
 
 	if(nr==1) {
+		/* active tab */
+		/*uiSetRoundBox(3);
+		BIF_ThemeColorShade(curarea, TH_HEADER, -3);
+		uiRoundBox(2+block->minx+pnl_icons, panel->sizey-1, block->maxx, panel->sizey+PNL_HEADER, 10);
+		*/
+
 		BIF_ThemeColor(curarea, TH_TEXT_HI);
-		glRasterPos2f(block->minx+pnl_icons, block->maxy+5);
+		glRasterPos2f(16+block->minx+pnl_icons, block->maxy+5);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & TR_BUTTONS), 0);
 		return;
 	}
@@ -769,12 +775,12 @@ static void ui_draw_panel_header(uiBlock *block)
 		if(pa->active==0);
 		else if(pa==panel) {
 			/* active tab */
-			uiSetRoundBox(15);
-			BIF_ThemeColorShade(curarea, TH_HEADER, -60);
-			uiRoundBox(2+pnl_icons+a*width, panel->sizey+3, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
+			uiSetRoundBox(3);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -3);
+			uiRoundBox(2+pnl_icons+a*width, panel->sizey-1, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 
-			BIF_ThemeColor(curarea, TH_TEXT_HI);
-			glRasterPos2f(10+pnl_icons+a*width, panel->sizey+5);
+			BIF_ThemeColor(curarea, TH_TEXT);
+			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
 			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
 
@@ -783,20 +789,25 @@ static void ui_draw_panel_header(uiBlock *block)
 		else if(pa->paneltab==panel) {
 			/* not active tab */
 			
-			BIF_ThemeColorShade(curarea, TH_HEADER, -130);
-			glRasterPos2f(10+pnl_icons+a*width, panel->sizey+5);
-			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
-			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 0);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -60);
+			uiRoundBox(2+pnl_icons+a*width, panel->sizey, pnl_icons+(a+1)*width, panel->sizey+PNL_HEADER-3, 8);
 			
+			BIF_ThemeColor(curarea, TH_TEXT_HI);
+			glRasterPos2f(16+pnl_icons+a*width, panel->sizey+4);
+			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
+			BIF_DrawString(block->curfont, str, (U.transopts & TR_BUTTONS), 1);
+				
 			a++;
 		}
 		pa= pa->next;
 	}
 	
 	// dragger
+	/*
 	uiSetRoundBox(15);
 	BIF_ThemeColorShade(curarea, TH_HEADER, -70);
 	uiRoundBox(panel->sizex-PNL_ICON+5, panel->sizey+5, panel->sizex-5, panel->sizey+PNL_HEADER-5, 5);
+	*/
 	
 }
 
@@ -873,7 +884,7 @@ void ui_draw_panel(uiBlock *block)
 		uiSetRoundBox(3);
 
 		if(panel->control & UI_PNL_SOLID) {
-			BIF_ThemeColorShade(curarea, TH_HEADER, -30);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -40);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			// blend now for panels in 3d window, test...
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -892,8 +903,15 @@ void ui_draw_panel(uiBlock *block)
 			glDisable(GL_BLEND);
 		}
 		else if(panel->control & UI_PNL_TRANSP) {
-			BIF_ThemeColorShade(curarea, TH_BACK, 32);
-			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
+			BIF_ThemeColorShade(curarea, TH_HEADER, -30);
+			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
+			
+			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+			glEnable(GL_BLEND);
+			BIF_ThemeColor4(curarea, TH_PANEL);
+			glRectf(block->minx, block->miny, block->maxx, block->maxy);
+
+			glDisable(GL_BLEND);
 		}
 		
 		
@@ -922,13 +940,13 @@ void ui_draw_panel(uiBlock *block)
 	
 	/* draw optional close icon */
 	
-	ofsx= 0;
+	ofsx= 6;
 	if(panel->control & UI_PNL_CLOSE) {
-		glRasterPos2f(block->minx+2, block->maxy+3);
+		glRasterPos2f(block->minx+4, block->maxy+3);
 		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
-		BIF_draw_icon(ICON_X);
+		BIF_draw_icon(ICON_PANEL_CLOSE);
 		if(block->aspect>1.1) glPixelZoom(1.0, 1.0);
-		ofsx= 16;
+		ofsx= 22;
 	}
 
 	/* draw collapse icon */
@@ -936,7 +954,7 @@ void ui_draw_panel(uiBlock *block)
 	if(panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'h');
 	else if(panel->flag & PNL_CLOSEDX)
-		ui_draw_tria_icon(block->minx+4, block->maxy+2, block->aspect, 'h');
+		ui_draw_tria_icon(block->minx+7, block->maxy+2, block->aspect, 'h');
 	else
 		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'v');
 

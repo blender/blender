@@ -465,7 +465,7 @@ void BIF_InitThemeColors(void)
 
 	SETCOL(btheme->tbuts.back, 	180, 180, 180, 255);
 	SETCOL(btheme->tbuts.header, 195, 195, 195, 255);
-	SETCOL(btheme->tbuts.panel,  255, 255, 255, 100);
+	SETCOL(btheme->tbuts.panel,  255, 255, 255, 40);
 
 	btheme->tipo= btheme->tv3d;
 
