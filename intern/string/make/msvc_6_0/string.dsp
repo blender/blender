@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\string\libstring.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h  ..\..\..\..\lib\windows\string\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\string\*.lib ..\..\..\..\lib\windows\string\lib\*.a	ECHO Done
@@ -78,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"../../../../obj/windows/intern/string/debug\libstring.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h  ..\..\..\..\lib\windows\string\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\string\debug\*.lib ..\..\..\..\lib\windows\string\lib\debug\*.a	ECHO Done

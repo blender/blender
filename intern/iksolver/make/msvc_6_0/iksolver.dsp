@@ -51,7 +51,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\iksolver\libiksolver.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\extern\*.h ..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\iksolver\*.lib ..\..\..\..\lib\windows\iksolver\lib\*.a	ECHO Done
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\iksolver\debug\libiksolver.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\extern\*.h ..\..\..\..\lib\windows\iksolver\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\iksolver\debug\*.lib ..\..\..\..\lib\windows\iksolver\lib\debug\*.a	ECHO Done

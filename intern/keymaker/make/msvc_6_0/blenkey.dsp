@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\blenkey\libblenkey.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\blenkey\*.lib ..\..\..\..\lib\windows\blenkey\lib\*.a	ECHO Done
@@ -78,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\blenkey\debug\libblenkey.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\blenkey.h ..\..\..\..\lib\windows\blenkey\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\blenkey\debug\*.lib ..\..\..\..\lib\windows\blenkey\lib\debug\*.a

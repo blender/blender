@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\guardedalloc\libguardedalloc.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\guardedalloc\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\guardedalloc\*.lib ..\..\..\..\lib\windows\guardedalloc\lib\*.a	ECHO Done
@@ -78,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\intern\guardedalloc\debug\libguardedalloc.lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Cmds=ECHO Copying header files	XCOPY /E ..\..\*.h ..\..\..\..\lib\windows\guardedalloc\include\	ECHO Copying lib	XCOPY /E ..\..\..\..\obj\windows\intern\guardedalloc\debug\*.lib ..\..\..\..\lib\windows\guardedalloc\lib\debug\*.a	ECHO Done
