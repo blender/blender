@@ -1907,7 +1907,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 					}
 					else if(lar->mode & LA_SHAD_RAY) {
 						if(R.r.mode & R_RAYTRACE) {
-							extern void ray_shadow(ShadeInput *, LampRen *, float *, int);
+							
 							/* hurms, single sided? */
 							if( shi->vlr->n[0]*lv[0] + shi->vlr->n[1]*lv[1] + shi->vlr->n[2]*lv[2] > -0.01) {
 								ray_shadow(shi, lar, shadfac, mask);
@@ -2306,8 +2306,6 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	}
 }
 
-int temp_x, temp_y;
-
   /* x,y: window coordinate from 0 to rectx,y */
   /* return pointer to rendered face */
 void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
@@ -2319,8 +2317,9 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	if(vlaknr< 0) {	/* error */
 		return NULL;
 	}
-temp_x= floor(x);
-temp_y= floor(y);
+	/* currently in use for dithering soft shadow */
+	shi.xs= x;
+	shi.ys= y;
 	
 	if(vlaknr==0) {	/* sky */
 		col[0]= 0.0; col[1]= 0.0; col[2]= 0.0; col[3]= 0.0;
@@ -2474,8 +2473,6 @@ temp_y= floor(y);
 		
 		if(R.r.mode & R_RAYTRACE) {
 			if(shi.matren->ray_mirror!=0.0 || (shi.mat->mode & MA_RAYTRANSP && shr.alpha!=1.0)) {
-				extern void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask);
-				
 				ray_trace(&shi, &shr, mask);
 			}
 		}

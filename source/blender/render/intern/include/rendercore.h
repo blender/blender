@@ -71,6 +71,10 @@ float fresnel_fac(float *view, float *vn, float fresnel, float fac);
 void calc_R_ref(struct ShadeInput *shi);
 float spec(float inp, int hard);
 
+/* -------- ray.c ------- */
+
+extern void ray_shadow(ShadeInput *, LampRen *, float *, int);
+extern void ray_trace(ShadeInput *, ShadeResult *, int);
 
 /**
  * Apply the background (sky). Depending on the active alphamode and

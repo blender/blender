@@ -102,6 +102,7 @@ typedef struct Node
 /* ******** globals ***************** */
 
 static Octree g_oc;	/* can be scene pointer or so later... */
+static int coh_test=0;	/* coherence optimize */
 
 /* just for statistics */
 static int raycount, branchcount, nodecount;
@@ -1060,7 +1061,6 @@ static int d3dda(Isect *is)
 	}
 	else {
 		static int coh_ocx1,coh_ocx2,coh_ocy1, coh_ocy2,coh_ocz1,coh_ocz2;
-		static int coh_test=0;
 		float dox, doy, doz;
 		int coherent=1, nodecount=0;
 		
@@ -1502,11 +1502,10 @@ static float jit_cube4[4*4*4*3]={0.0};
 static float jit_cube5[5*5*5*3]={0.0};
 
 /* table around origin, -.5 to 0.5 */
-static float *jitter_plane(LampRen *lar)
+static float *jitter_plane(LampRen *lar, int xs, int ys)
 {
 	extern float hashvectf[];
-	extern char hash[];
-	extern int temp_x, temp_y;
+	//extern char hash[];
 	float dsizex, dsizey, *fp, *hv;
 	int dit, x, y, resolx, resoly;
 	
@@ -1551,7 +1550,7 @@ static float *jitter_plane(LampRen *lar)
 	}
 	
 	if(lar->ray_samp_type & LA_SAMP_DITHER)
-		return lar->jitter + 3*resolx*resoly*((temp_x & 1)+2*(temp_y & 1));
+		return lar->jitter + 3*resolx*resoly*((xs & 1)+2*(ys & 1));
 
 	return lar->jitter;
 }
@@ -1847,6 +1846,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
 	else isec.mode= DDA_SHADOW;
 	
 	shadfac[3]= 1.0;	// 1=full light
+	coh_test= 0;		// reset coherence optimize
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 		lampco[0]= shi->co[0] - g_oc.ocsize*lar->vec[0];
@@ -1928,7 +1928,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac, int mask)
 		isec.vlrorig= shi->vlr;
 
 		fac= 0.0;
-		jitlamp= jitter_plane(lar);
+		jitlamp= jitter_plane(lar, floor(shi->xs), floor(shi->ys));
 
 		a= lar->ray_totsamp;
 		
