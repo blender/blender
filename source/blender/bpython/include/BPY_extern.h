@@ -40,6 +40,7 @@ struct _object;  // forward declaration for PyObject !
 
 void BPY_start_python(void);
 void BPY_end_python(void);
+void BPY_syspath_append_pythondir(void);
 int BPY_Err_getLinenumber(void);
 const char *BPY_Err_getFilename(void);
 void BPY_Err_Handle(struct Text *text);

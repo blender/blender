@@ -231,6 +231,17 @@ void init_syspath(void)
 	BPY_debug(("append done\n"));
 }
 
+/*****************************************************************************/
+/* Description: This function adds the user defined folder for Python        */
+/*              scripts to sys.path.  This is done in init_syspath, too, but */
+/*              when Blender's main() runs BPY_start_python(), U.pythondir   */
+/*              isn't set yet, so we provide this function to be executed    */
+/*              after U.pythondir is defined.                                */
+/*****************************************************************************/
+void BPY_syspath_append_pythondir(void)
+{
+	syspath_append(Py_BuildValue("s", U.pythondir));
+}
 
 #define FILENAME_LENGTH 24
 typedef struct _ScriptError {
