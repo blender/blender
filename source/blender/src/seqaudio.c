@@ -340,6 +340,9 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 	Sequence *seq;
 	bSound *sound;
 
+	/* this call used to be in startup */
+	sound_init_audio();
+
 	ed= G.scene->ed;
 	if(ed) {
 		seq= ed->seqbasep->first;

@@ -1009,6 +1009,8 @@ void sound_init_audio(void)
 	
 		ghAudioDeviceInterface = SND_GetAudioDevice();
 		ghSoundScene = SND_CreateScene(ghAudioDeviceInterface);
+		// also called after read new file, but doesnt work when no audio initialized
+		sound_initialize_sounds();
 	}
 }
 

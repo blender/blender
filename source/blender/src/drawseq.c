@@ -194,6 +194,8 @@ void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2)
 	bSound *sound;
 
 	audio_makestream(seq->sound);
+	if(seq->sound->stream==NULL) return;
+	
 	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
 	sound = seq->sound;
 	sofs = ((int)( (((float)(seq->startdisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
