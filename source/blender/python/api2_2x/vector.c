@@ -181,7 +181,11 @@ PyObject *Vector_Resize4D(VectorObject *self)
 
 static void Vector_dealloc(VectorObject *self)
 {
-  PyObject_DEL (self);
+  /* if we own this memory we must delete it */
+  if( self->delete_pymem )
+	  PyMem_Free( self->vec );
+
+  PyObject_DEL (self);	  
 }
 
 static PyObject *Vector_getattr(VectorObject *self, char *name)
@@ -573,6 +577,15 @@ PyTypeObject vector_Type =
   &Vector_SeqMethods,           /*tp_as_sequence*/
 };
 
+
+/* 
+ * create a Vector Object
+ * if vec arg is NULL
+ *   allocate memory on python stack.
+ *   initialize to zero in homogenous coords.
+ * size arg is number of floats to alloc.
+ */
+
 PyObject *newVectorObject(float *vec, int size)
 {
   VectorObject *self;
@@ -588,8 +601,10 @@ PyObject *newVectorObject(float *vec, int size)
 		  self->vec[x] = 0.0f;
 	  }
 	  if(size == 4) self->vec[3] = 1.0f;
+	  self->delete_pymem = 1;  /* must free this alloc later */
   }else{
 	self->vec = vec;
+	self->delete_pymem = 0;
   }
 
   self->size = size;

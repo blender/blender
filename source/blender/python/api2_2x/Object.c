@@ -914,6 +914,7 @@ static PyObject *Object_getType (BPy_Object *self)
 	}
 }
 
+
 static PyObject *Object_getBoundBox (BPy_Object *self)
 {
   int i;
@@ -924,7 +925,7 @@ static PyObject *Object_getBoundBox (BPy_Object *self)
 	return EXPP_ReturnPyObjError (PyExc_AttributeError,
 	  "This object isn't linked to any object data (mesh, curve, etc) yet");
 
-  if (!self->object->bb) {
+  if (!self->object->bb) {  /* if no ob bbox, we look in obdata */
 	Mesh *me;
 	Curve *curve;
 	switch (self->object->type) {
@@ -944,27 +945,83 @@ static PyObject *Object_getBoundBox (BPy_Object *self)
 		Py_INCREF (Py_None);
 		return Py_None;
 	}
+
+	{      /* transform our obdata bbox by the obmat.
+		  the obmat is 4x4 homogeneous coords matrix.
+	          each bbox coord is xyz, so we make it homogenous
+		  by padding it with w=1.0 and doing the matrix mult.
+		  afterwards we divide by w to get back to xyz.
+	       */
+		/* printmatrix4( "obmat", self->object->obmat); */
+
+		float tmpvec[4];  /* tmp vector for homogenous coords math */
+		int i;
+		float *from;
+		float *to;
+
+		bbox = PyList_New(8);
+		if (!bbox)
+			return EXPP_ReturnPyObjError (PyExc_MemoryError,
+						      "couldn't create pylist");
+		for( i = 0, from = vec;
+		     i < 8;
+		     i++, from += 3 ) {
+			memcpy( tmpvec, from, 3*sizeof(float));
+			tmpvec[3]=1.0f;  /* set w coord */
+			Mat4MulVec4fl(  self->object->obmat, tmpvec );
+			/* divide x,y,z by w */
+			tmpvec[0] /= tmpvec[3];
+			tmpvec[1] /= tmpvec[3];
+			tmpvec[2] /= tmpvec[3];
+
+#if 0
+			{ /* debug print stuff */
+				int i;
+
+				printf("\nobj bbox transformed\n");
+				for( i=0; i<4; ++i)
+					printf( "%f ", tmpvec[i]);
+
+				printf("\n");
+			}
+#endif
+	
+			/* because our bounding box is calculated and
+			   does not have its own memory,
+			   we must create vectors that allocate space */
+		
+			vector = newVectorObject( NULL, 3);
+			memcpy( ((VectorObject*)vector)->vec, 
+				tmpvec, 
+				3*sizeof(float));
+			PyList_SET_ITEM(bbox, i, vector);
+		}
+	}
   }
-  else vec = (float *)self->object->bb->vec;
+  else{  /* the ob bbox exists */
+      vec = (float *)self->object->bb->vec;
 
-  if (!vec)
-	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-		  "couldn't retrieve bounding box data");
+      if (!vec)
+	    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+					  "couldn't retrieve bounding box data");
 
-  bbox = PyList_New(8);
+      bbox = PyList_New(8);
 
-  if (!bbox)
-	return EXPP_ReturnPyObjError (PyExc_MemoryError,
+      if (!bbox)
+	    return EXPP_ReturnPyObjError (PyExc_MemoryError,
 		  "couldn't create pylist");
 
-  for (i = 0; i < 8; i++) {
+      /* create vectors referencing object bounding box coords */
+      for (i = 0; i < 8; i++) {
 	vector = newVectorObject(vec, 3);
 	PyList_SET_ITEM(bbox, i, vector);
 	vec += 3;
+      }
   }
 
   return bbox;
 }
+
 
 static PyObject *Object_makeDisplayList (BPy_Object *self)
 {

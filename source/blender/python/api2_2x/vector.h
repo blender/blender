@@ -57,6 +57,7 @@ typedef struct {
 		//0 - no coercion
 		//1 - coerced from int
 		//2 - coerced from float
+	int delete_pymem;  /* do we need to delete the memory vec points at? */
 } VectorObject;
 
 //prototypes
