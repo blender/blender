@@ -1638,6 +1638,39 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 	glShadeModel(GL_FLAT);
 }
 
+/* wrappers for shaded+wire and solid+wire */
+static void drawMeshWireExtra(Object *ob) {
+	GLfloat origwidth;
+	GLint origcolor[4];
+	
+	glGetFloatv(GL_LINE_WIDTH, &origwidth);
+	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
+	
+	glLineWidth(1.2);
+
+	cpack(0x4F4F4F);
+	drawmeshwire(ob);
+
+	glColor4iv(origcolor);
+	glLineWidth(origwidth);
+}
+
+static void drawDispListWireExtra(ListBase *lb) {
+	GLfloat origwidth;
+	GLint origcolor[4];
+
+	glGetFloatv(GL_LINE_WIDTH, &origwidth);
+	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
+
+	glLineWidth(1.2);
+
+	cpack(0x4F4F4F);
+	drawDispListwire(lb);
+
+	glLineWidth(origwidth);
+	glColor4iv(origcolor);
+}
+
 static void drawmeshsolid(Object *ob, float *nors)
 {
 	Mesh *me;
@@ -1719,9 +1752,7 @@ static void drawmeshsolid(Object *ob, float *nors)
 			if(G.zbuf) glEnable(GL_DEPTH_TEST);
 		}
 		
-		if(ob->dtx == OB_DRAWWIRE) {
-			drawmeshwire(ob);
-		}
+		if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 
 	}
 	else {
@@ -1982,10 +2013,7 @@ static void drawmeshshaded(Object *ob, unsigned int *col1, unsigned int *col2)
 	glShadeModel(GL_FLAT);
 	if(twoside) glDisable(GL_CULL_FACE);
 	
-	if(ob->dtx == OB_DRAWWIRE) {
-		cpack(0x5F5F5F);
-		drawmeshwire(ob);
-	}
+	if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 }
 
 static void drawDispList(Object *ob, int dt)
@@ -2023,26 +2051,17 @@ static void drawDispList(Object *ob, int dt)
 					/* vertexpaint only true when selecting */
 				if (vertexpaint) {
 					drawmeshsolid(ob, NULL);
-					if(ob->dtx == OB_DRAWWIRE) {
-						cpack(0x5F5F5F);
-						drawmeshwire(ob);
-					}
+					if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);					
 				} else {
 					init_gl_materials(ob);
 					two_sided(me->flag & ME_TWOSIDED);
 					drawDispListsolid(lb, ob);
-					if(ob->dtx == OB_DRAWWIRE) {
-						cpack(0x5F5F5F);
-						drawDispListwire(lb);
-					}
+					if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
 				}
 			}
 			else {
 				drawmeshsolid(ob, dl->nors);
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawmeshwire(ob);
-				}
+				if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 			}
 			
 		}
@@ -2078,10 +2097,8 @@ static void drawDispList(Object *ob, int dt)
 				}
 				
 				drawmeshshaded(ob, (unsigned int*)wtcol, 0);
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawmeshwire(ob);
-				}
+				if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
+				
 				MEM_freeN (wtcol);
 				
 			}
@@ -2094,18 +2111,12 @@ static void drawDispList(Object *ob, int dt)
 //*/
 				if(me->mcol) {
 					drawmeshshaded(ob, (unsigned int *)me->mcol, 0);
-					if(ob->dtx == OB_DRAWWIRE) {
-						cpack(0x5F5F5F);
-						drawmeshwire(ob);
-					}
+					if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 				} else if(me->tface) {
 					tface_to_mcol(me);
 					drawmeshshaded(ob, (unsigned int *)me->mcol, 0);	
 					MEM_freeN(me->mcol); me->mcol= 0;
-					if(ob->dtx == OB_DRAWWIRE) {
-						cpack(0x5F5F5F);
-						drawmeshwire(ob);
-					}
+					if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 				}
 				else 
 					drawmeshwire(ob);
@@ -2121,16 +2132,10 @@ static void drawDispList(Object *ob, int dt)
 				if(dl) {
 					if(mesh_uses_displist(me)) {
 						drawDispListshaded(&me->disp, ob);
-						if(ob->dtx == OB_DRAWWIRE) {
-							cpack(0x5F5F5F);
-							drawDispListwire(&me->disp);
-						}
+						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(&me->disp);
 					} else {
 						drawmeshshaded(ob, dl->col1, dl->col2);
-						if(ob->dtx == OB_DRAWWIRE) {
-							cpack(0x5F5F5F);
-							drawmeshwire(ob);
-						}
+						if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 					}
 				}
 			}
@@ -2164,20 +2169,13 @@ static void drawDispList(Object *ob, int dt)
 			if(dt==OB_SHADED) {
 				if(ob->disp.first==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawDispListwire(lb);
-				}
-
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 				drawDispListsolid(lb, ob);
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawDispListwire(lb);
-				}
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
 
 			}
 			index3_nors_incr= 1;
@@ -2202,20 +2200,14 @@ static void drawDispList(Object *ob, int dt)
 			if(dt==OB_SHADED) {
 				if(ob->disp.first==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawDispListwire(lb);
-				}
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 			
 				drawDispListsolid(lb, ob);
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawDispListwire(lb);
-				}
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
 			}
 		}
 		else {
@@ -2233,22 +2225,14 @@ static void drawDispList(Object *ob, int dt)
 				dl= lb->first;
 				if(dl && dl->col1==0) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawDispListwire(lb);
-				}
-
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
 			}
 			else {
 				init_gl_materials(ob);
 				two_sided(0);
 			
 				drawDispListsolid(lb, ob);	
-				if(ob->dtx == OB_DRAWWIRE) {
-					cpack(0x5F5F5F);
-					drawDispListwire(lb);
-				}
-
+				if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(lb);
 			}
 		}
 		else drawDispListwire(lb);
@@ -3426,18 +3410,12 @@ void draw_object(Base *base)
 						drawDispListsolid(&me->disp, ob);
 						/* this seems to be the place where the wire for subsurfs 
 						 * gets drawn.. so we draw an extra wire in grey here (editmode) */
-						if(ob->dtx & OB_DRAWWIRE) {
-							cpack(0x5F5F5F);
-							drawDispListwire(&me->disp);
-						}
+						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(&me->disp);
 						drawmeshwire(ob);
 					}
 					else {
 						drawmeshsolid(ob, 0);
-						if(ob->dtx & OB_DRAWWIRE) {
-							cpack(0x5F5F5F);
-							drawDispListwire(&me->disp);
-						}
+						if(ob->dtx & OB_DRAWWIRE) drawDispListWireExtra(&me->disp);
 					}
 				}
 				if(ob==G.obedit && (G.f & G_PROPORTIONAL)) draw_prop_circle();
@@ -3453,10 +3431,7 @@ void draw_object(Base *base)
 					if(G.f & G_BACKBUFSEL) drawmeshsolid(ob, 0);					
 					else if(G.f & G_FACESELECT || G.vd->drawtype==OB_TEXTURE) {
 						draw_tface_mesh(ob, ob->data, dt);
-						if(ob->dtx & OB_DRAWWIRE) {
-							cpack(0x5F5F5F);
-							drawmeshwire(ob);
-						}
+						if(ob->dtx & OB_DRAWWIRE) drawMeshWireExtra(ob);
 					}
 					else drawDispList(ob, dt);
 				}
