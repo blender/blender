@@ -948,7 +948,7 @@ void subsurf_make_mesh(Object *ob, short subdiv) {
 void subsurf_to_mesh(Object *oldob, Mesh *me) {
 	Mesh *oldme= oldob->data;
 	
-	if (oldme->totface) {
+	if (oldme->totface && oldme->subdiv) {
 		HyperMesh *hme= hypermesh_from_mesh(oldme, NULL);
 		DispList *dl= subsurf_subdivide_to_displist(hme, oldme->subdiv, oldme->flag);
 		DispListMesh *dlm= dl->mesh;

@@ -380,8 +380,8 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefButS(block, TOG|BIT|7, B_MAKEDISP, "SubSurf",		10,124,130,17, &me->flag, 0, 0, 0, 0, "Treats the active object as a Catmull-Clark Subdivision Surface");
 	uiBlockSetCol(block, TH_AUTO);
 
-	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			10,104,100,18, &me->subdiv, 0, 12, 0, 0, "Defines the level of subdivision to display in real time interactively");
-	uiDefButS(block, NUM, B_MAKEDISP, "",					110, 104, 30, 18, &me->subdivr, 0, 12, 0, 0, "Defines the level of subdivision to apply during rendering");
+	uiDefButS(block, NUM, B_MAKEDISP, "Subdiv:",			10,104,100,18, &me->subdiv, 1, 6, 0, 0, "Defines the level of subdivision to display in real time interactively");
+	uiDefButS(block, NUM, B_MAKEDISP, "",					110, 104, 30, 18, &me->subdivr, 1, 6, 0, 0, "Defines the level of subdivision to apply during rendering");
 	uiDefButS(block, TOG|BIT|8, B_MAKEDISP, "Optimal",	10,84,130,17, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
 	
 	if(me->msticky) val= 1.0; else val= 0.0;
