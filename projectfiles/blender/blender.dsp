@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\source\blender\bpython\include" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\blender\radiosity\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "WITH_QUICKTIME" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\source\blender\python" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\blender\radiosity\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "WITH_QUICKTIME" /YX /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x413 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -71,7 +71,7 @@ PostBuild_Cmds=ECHO Copying required 3rd party dlls...	XCOPY /Y ..\..\..\lib\win
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\source\blender\bpython\include" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\blender\radiosity\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "WITH_QUICKTIME" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\source\blender\python" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\blender\radiosity\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "WITH_QUICKTIME" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
