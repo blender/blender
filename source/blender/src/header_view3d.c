@@ -2947,11 +2947,7 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 	xco+= xmax;
 	
 	
-	if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
-			xmax= GetButStringLength("Paint");
-			uiDefBlockBut(block, view3d_paintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
-			xco+= xmax;
-	} else if (G.obedit) {
+	if (G.obedit) {
 		if (OBACT && OBACT->type == OB_MESH) {
 			xmax= GetButStringLength("Mesh");
 			uiDefBlockBut(block, view3d_edit_meshmenu, NULL, "Mesh",	xco,-2, xmax-3, 24, "");
@@ -2981,7 +2977,13 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 			uiDefBlockBut(block, view3d_edit_armaturemenu, NULL, "Armature",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
-	} else if (G.f & G_FACESELECT) {
+	}
+	else if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
+		xmax= GetButStringLength("Paint");
+		uiDefBlockBut(block, view3d_paintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
+		xco+= xmax;
+	} 
+	else if (G.f & G_FACESELECT) {
 		if (OBACT && OBACT->type == OB_MESH) {
 			xmax= GetButStringLength("Face");
 			uiDefBlockBut(block, view3d_faceselmenu, NULL, "Face",	xco,-2, xmax-3, 24, "");
