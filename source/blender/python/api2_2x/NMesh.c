@@ -48,6 +48,165 @@
 #define NMESH_SUBDIV_MIN			1
 #define NMESH_SUBDIV_MAX			6
 
+static char NMesh_addVertGroup_doc[] =
+"add a named and empty vertex(deform) Group to a mesh that has been linked\n\
+to an object. ";
+
+static char NMesh_removeVertGroup_doc[] =
+"remove a named vertex(deform) Group from a mesh that has been linked\n\
+to an object.  Will remove all verts assigned to group.";
+
+static char NMesh_assignVertsToGroup_doc[] =
+"Adds an array (a python list) of vertex points (by index) to a named\n\
+vertex group.  The list will have an associated wieght assigned to them.\n\
+The weight represents the amount of influence this group has over these\n\
+vertex points. Weights should be in the range of 0.0 - 1.0.\n\
+The assignmode can be either 'add', 'subtract', or 'replace'.  If this vertex\n\
+is not assigned to the group 'add' creates a new association with the weight\n\
+specified, otherwise the weight given is added to the current weight of the\n\
+vertex.\n\
+'subtract' will attempt to subtract the weight passed from a vertex already\n\
+associated with a group, else it does nothing. 'replace' attempts to replace\n\
+the weight with the new weight value for an already associated vertex/group,\n\
+else it does nothing. The mesh must have all it's vertex points set before\n\
+attempting to assign any vertex points to a vertex group.";
+
+static char NMesh_removeVertsFromGroup_doc[] =
+"Remove an array (a python list) of vertex points from a named group in a\n\
+mesh that has been linked to an object. If no list is given this will remove\n\
+all vertex point associations with the group passed";
+
+static char NMesh_getVertsFromGroup_doc[] =
+"By passing a python list of vertex indices and a named group, this will\n\
+return a python list representing the indeces that are a part of this vertex.\n\
+group. If no association was found for the index passed nothing will be\n\
+return for the index. An optional flag will also return the weights as well";
+
+static char NMesh_renameVertGroup_doc[] =
+"Renames a vertex group";
+
+static char NMesh_getVertGroupNames_doc[] =
+"Returns a list of all the vertex group names";
+
+static char M_NMesh_doc[] =
+"The Blender.NMesh submodule";
+
+static char M_NMesh_Col_doc[]=
+"([r, g, b, a]) - Get a new mesh color\n\n\
+[r=255, g=255, b=255, a=255] Specify the color components";
+
+static char M_NMesh_Face_doc[] =
+"(vertexlist = None) - Get a new face, and pass optional vertex list";
+
+static char NMFace_append_doc[] =
+"(vert) - appends Vertex 'vert' to face vertex list";
+
+static char M_NMesh_Vert_doc[] =
+"([x, y, z]) - Get a new vertice\n\n\
+[x, y, z] Specify new coordinates";
+
+static char NMesh_getMaterials_doc[] =
+"(i = -1) - Get this mesh's list of materials.\n\
+(i = -1) - int: determines the list's contents:\n\
+-1: return the current list, possibly modified by the script (default);\n\
+ 0: get a fresh list from the Blender mesh -- modifications not included,\n\
+    unless the script called mesh.update() first;\n\
+ 1: like 0, but does not ignore empty slots, returns them as 'None'.";
+
+static char NMesh_setMaterials_doc[] =
+"(matlist) - Set this mesh's list of materials.  This method makes sure\n\
+the passed matlist is valid (can only include up to 16 materials and None's).";
+
+static char NMesh_addMaterial_doc[] =
+"(material) - add a new Blender Material 'material' to this Mesh's materials\n\
+list.";
+
+static char NMesh_insertKey_doc[] =
+"(frame = None, type = 'relative') - inserts a Mesh key at the given frame\n\
+if called without arguments, it inserts the key at the current Scene frame.\n\
+(type) - 'relative' or 'absolute'.  Only relevant on the first call to this\n\
+function for each nmesh.";
+
+static char NMesh_removeAllKeys_doc[] =
+"() - removes all keys from this mesh\n\
+returns True if successful or False if this NMesh wasn't linked to a real\n\
+Blender Mesh yet or the Mesh had no keys";
+
+static char NMesh_getSelectedFaces_doc[] =
+"(flag = None) - returns list of selected Faces\n\
+If flag = 1, return indices instead";
+
+static char NMesh_getActiveFace_doc[] =
+"returns the index of the active face ";
+
+static char NMesh_hasVertexUV_doc[] =
+"(flag = None) - returns 1 if Mesh has per vertex UVs ('Sticky')\n\
+The optional argument sets the Sticky flag";
+
+static char NMesh_hasFaceUV_doc[] =
+"(flag = None) - returns 1 if Mesh has textured faces\n\
+The optional argument sets the textured faces flag";
+
+static char NMesh_hasVertexColours_doc[] =
+"(flag = None) - returns 1 if Mesh has vertex colours.\n\
+The optional argument sets the vertex colour flag";
+
+static char NMesh_getVertexInfluences_doc[] =
+"Return a list of the influences of bones in the vertex \n\
+specified by index. The list contains pairs with the \n\
+bone name and the weight.";
+
+
+static char NMesh_update_doc[] = "(recalc_normals = 0) - updates the Mesh.\n\
+if recalc_normals is given and is equal to 1, normal vectors are recalculated.";
+
+static char NMesh_getMode_doc[] =
+"() - get the mode flags of this nmesh as an or'ed int value.";
+
+static char NMesh_setMode_doc[] =
+"(none to 5 strings) - set the mode flags of this nmesh.\n\
+() - unset all flags.";
+
+static char NMesh_getMaxSmoothAngle_doc[] =
+"() - get the max smooth angle for mesh auto smoothing.";
+
+static char NMesh_setMaxSmoothAngle_doc[] =
+"(int) - set the max smooth angle for mesh auto smoothing in the range\n\
+[1,80] in degrees.";
+
+static char NMesh_getSubDivLevels_doc[] =
+"() - get the subdivision levels for display and rendering: [display, render]";
+
+static char NMesh_setSubDivLevels_doc[] =
+"([int, int]) - set the subdivision levels for [display, render] -- they are\n\
+clamped to the range [1,6].";
+
+static char M_NMesh_New_doc[] =
+"() - returns a new, empty NMesh mesh object\n";
+
+static char M_NMesh_GetRaw_doc[] =
+"([name]) - Get a raw mesh from Blender\n\n\
+[name] Name of the mesh to be returned\n\n\
+If name is not specified a new empty mesh is\n\
+returned, otherwise Blender returns an existing\n\
+mesh.";
+
+static char M_NMesh_GetRawFromObject_doc[] =
+"(name) - Get the raw mesh used by a Blender object\n\n\
+(name) Name of the object to get the mesh from\n\n\
+This returns the mesh as used by the object, which\n\
+means it contains all deformations and modifications.";
+
+static char M_NMesh_PutRaw_doc[] =
+"(mesh, [name, renormal]) - Return a raw mesh to Blender\n\n\
+(mesh) The NMesh object to store\n\
+[name] The mesh to replace\n\
+[renormal=1] Flag to control vertex normal recalculation\n\n\
+If the name of a mesh to replace is not given a new\n\
+object is created and returned.";
+
+
+
 void mesh_update(Mesh *mesh)
 {
 	edge_drawflags_mesh(mesh);
@@ -273,7 +432,7 @@ static PyObject *NMFace_getattr(PyObject *self, char *name)
 
 	else if ((strcmp(name, "normal") == 0) || (strcmp(name, "no") == 0))	{
 
-		if (EXPP_check_sequence_consistency(mf->v, &NMVert_Type)) {
+		if (EXPP_check_sequence_consistency(mf->v, &NMVert_Type) == 1) {
 
 			float fNormal[3] = {0.0,0.0,0.0};
 			float *vco[4] = {NULL, NULL, NULL, NULL};
@@ -630,6 +789,51 @@ static void NMesh_dealloc(PyObject *self)
 	Py_DECREF(me->materials);
 
 	PyObject_DEL(self);
+}
+
+static PyObject *NMesh_getMaterials (PyObject *self, PyObject *args)
+{
+	BPy_NMesh *nm = (BPy_NMesh *)self;
+	PyObject *list = NULL;
+	Mesh *me = nm->mesh;
+	int all = -1;
+
+	if (!PyArg_ParseTuple (args, "|i", &all))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected nothing or an int (bool) as argument");
+
+	if (all >= 0) {
+		list = EXPP_PyList_fromMaterialList (me->mat, me->totcol, all);
+		Py_DECREF (nm->materials); /* update nmesh.materials attribute */
+		nm->materials = EXPP_incr_ret(list);
+	}
+	else
+		list = EXPP_incr_ret (nm->materials);
+
+	return list;
+}
+
+static PyObject *NMesh_setMaterials (PyObject *self, PyObject *args)
+{
+	BPy_NMesh *me = (BPy_NMesh *)self;
+	PyObject *pymats = NULL;
+
+	if (!PyArg_ParseTuple (args, "O!", &PyList_Type, pymats))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected a list of materials (None's also accepted) as argument");
+
+	if (!EXPP_check_sequence_consistency (pymats, &Material_Type))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"list should only contain materials (None's also accepted)");
+
+	if (PyList_Size(pymats) > 16)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"list can't have more than 16 materials");
+
+	Py_DECREF (me->materials);
+	me->materials = EXPP_incr_ret (pymats);
+
+	return EXPP_incr_ret (Py_None);
 }
 
 static PyObject *NMesh_addMaterial (PyObject *self, PyObject *args)
@@ -1076,6 +1280,8 @@ static struct PyMethodDef NMesh_methods[] =
 	MethodDef(getActiveFace),
 	MethodDef(getSelectedFaces),
 	MethodDef(getVertexInfluences),
+	MethodDef(getMaterials),
+	MethodDef(setMaterials),
 	MethodDef(addMaterial),
 	MethodDef(insertKey),
 	MethodDef(removeAllKeys),
@@ -1434,7 +1640,7 @@ static PyObject *new_NMesh_internal(Mesh *oldmesh,
 			PyList_SetItem (me->faces, i,
 									(PyObject *)nmface_from_data(me, vidxs, oldmf->mat_nr, oldmf->flag, oldtf, oldmc));
 		}
-		me->materials = EXPP_PyList_fromMaterialList(oldmesh->mat, oldmesh->totcol);
+		me->materials = EXPP_PyList_fromMaterialList(oldmesh->mat, oldmesh->totcol, 0);
 	}
 
 	return (PyObject *)me;	
@@ -1959,10 +2165,10 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
 		return EXPP_ReturnPyObjError (PyExc_AttributeError,
 										"nmesh materials are not a sequence");
 
-	if (!EXPP_check_sequence_consistency(nmesh->verts, &NMVert_Type))
+	if (EXPP_check_sequence_consistency(nmesh->verts, &NMVert_Type) != 1)
 		return EXPP_ReturnPyObjError (PyExc_AttributeError,
 										"nmesh vertices must be NMVerts");
-	if (!EXPP_check_sequence_consistency(nmesh->faces, &NMFace_Type))
+	if (EXPP_check_sequence_consistency(nmesh->faces, &NMFace_Type) != 1)
 		return EXPP_ReturnPyObjError (PyExc_AttributeError,
 										"nmesh faces must be NMFaces");
 
@@ -2021,7 +2227,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
 	if (ob) { // we created a new object
 		nmesh->object = ob; // linking so vgrouping methods know which obj to work on
 		NMesh_assignMaterials_toObject(nmesh, ob);
-		EXPP_synchronizeMaterialLists (ob, ob->data);
+		EXPP_synchronizeMaterialLists (ob);
 		return Object_CreatePyObject(ob);
 	}
 	else {

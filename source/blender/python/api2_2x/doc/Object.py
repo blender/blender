@@ -277,9 +277,12 @@ class Object:
     @return: a python action.
     """
 
-  def getMaterials():
+  def getMaterials(what = 0):
     """
     Returns a list of materials assigned to the object.
+    @type what: int
+    @param what: if nonzero, empty slots will be returned as None's instead
+        of being ignored (default way). See L{NMesh.NMesh.getMaterials}.
     @rtype: list of Material Objects
     @return: list of Material Objects assigned to the object.
     """
@@ -492,7 +495,7 @@ class Object:
   
   def shareFrom(object):
     """
-    Link data of self with object specified in the argument. This works only
+    Link data of object specified in the argument with self. This works only
     if self and the object specified are of the same type.
     @type object: Blender Object
     @param object: A Blender Object of the same type.

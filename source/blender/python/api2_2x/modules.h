@@ -100,9 +100,9 @@ int        Material_CheckPyObject (PyObject *pyobj);
 Material **EXPP_newMaterialList_fromPyList (PyObject *list);
 Material **EXPP_newMaterialList(int len);
 int        EXPP_releaseMaterialList (Material **matlist, int len);
-int        EXPP_synchronizeMaterialLists (Object *object, void *data);
+int        EXPP_synchronizeMaterialLists (Object *object);
 void       EXPP_incr_mats_us (Material **matlist, int len);
-PyObject * EXPP_PyList_fromMaterialList(Material **matlist, int len);
+PyObject * EXPP_PyList_fromMaterialList(Material **matlist, int len, int all);
 Material * GetMaterialByName (char * name);
 
 /* Texture */

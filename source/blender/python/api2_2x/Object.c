@@ -108,7 +108,7 @@ static PyObject *Object_getEuler (BPy_Object *self);
 static PyObject *Object_getInverseMatrix (BPy_Object *self);
 static PyObject *Object_getIpo (BPy_Object *self);
 static PyObject *Object_getLocation (BPy_Object *self, PyObject *args);
-static PyObject *Object_getMaterials (BPy_Object *self);
+static PyObject *Object_getMaterials (BPy_Object *self, PyObject *args);
 static PyObject *Object_getMatrix (BPy_Object *self, PyObject *args);
 static PyObject *Object_getName (BPy_Object *self);
 static PyObject *Object_getParent (BPy_Object *self);
@@ -183,8 +183,9 @@ hierarchy (faster)"},
 	"Returns the object's inverse matrix"},
   {"getLocation", (PyCFunction)Object_getLocation, METH_VARARGS,
 	"Returns the object's location (x, y, z)"},
-  {"getMaterials", (PyCFunction)Object_getMaterials, METH_NOARGS,
-	"Returns list of materials assigned to the object"},
+  {"getMaterials", (PyCFunction)Object_getMaterials, METH_VARARGS,
+	"(i = 0) - Returns list of materials assigned to the object.\n\
+if i is nonzero, empty slots are not ignored: they are returned as None's."},
   {"getMatrix", (PyCFunction)Object_getMatrix, METH_VARARGS,
 	"Returns the object matrix - worlspace or localspace (default)"},
   {"getName", (PyCFunction)Object_getName, METH_NOARGS,
@@ -919,10 +920,17 @@ static PyObject *Object_getLocation (BPy_Object *self, PyObject *args)
 			"couldn't get Object.loc attributes"));
 }
 
-static PyObject *Object_getMaterials (BPy_Object *self)
+static PyObject *Object_getMaterials (BPy_Object *self, PyObject *args)
 {
+	int all = 0;
+
+	if (!PyArg_ParseTuple(args, "|i", &all)){
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"expected an int or nothing"));
+	}
+
 	return (EXPP_PyList_fromMaterialList (self->object->mat,
-										  self->object->totcol));
+										  self->object->totcol, all));
 }
 
 static PyObject *Object_getMatrix (BPy_Object *self, PyObject *args)
@@ -1258,7 +1266,7 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 	if ( self->object->type == OB_MESH)
 	{
 		self->object->totcol = 0;
-		EXPP_synchronizeMaterialLists(self->object, id);
+		EXPP_synchronizeMaterialLists(self->object);
 	}
 
 	id_us_plus (id);
@@ -1585,8 +1593,7 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 			case OB_MESH:	/* fall through */
 			case OB_MBALL:	/* fall through */
 			case OB_SURF:
-				EXPP_synchronizeMaterialLists (self->object,
-											   self->object->data);
+				EXPP_synchronizeMaterialLists (self->object);
 				break;
 			default:
 				break;
@@ -1679,13 +1686,13 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "O", &object))
 	{
-		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
 				"expected an object argument");
 	}
 	if (!Object_CheckPyObject ((PyObject*)object))
 	{
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
-				"argument 1 is not of type 'Object'");
+				"first argument is not of type 'Object'");
 	}
 
 	if (self->object->type != object->object->type)
@@ -1708,9 +1715,9 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 
 			if ( self->object->type == OB_MESH && id ){
 				self->object->totcol = 0;
-				EXPP_synchronizeMaterialLists(self->object, id);
+				EXPP_synchronizeMaterialLists(self->object);
 			}
-			
+
 			id_us_plus (id);
 			if (oldid)
 			{

@@ -145,17 +145,18 @@ int EXPP_check_sequence_consistency(PyObject *seq, PyTypeObject *against)
 {
 	PyObject *ob;
 	int len = PySequence_Length(seq);
-	int i;
+	int i, result = 1;
 
 	for (i = 0; i < len; i++) {
 		ob = PySequence_GetItem(seq, i);
-		if (ob->ob_type != against) {
+		if (ob == Py_None) result = 2;
+		else if (ob->ob_type != against) {
 			Py_DECREF(ob);
 			return 0;
 		}
 		Py_DECREF(ob);
 	}
-	return 1;
+	return result; /* 1 if all of 'against' type, 2 if there are (also) Nones */
 }
 
 PyObject *EXPP_tuple_repr(PyObject *self, int size)

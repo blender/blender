@@ -59,6 +59,7 @@ void BPY_free_compiled_text(struct Text* text);
 /*void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
 void BPY_clear_bad_scriptlinks(struct Text *byebye);
 /*void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */
+int BPY_has_onload_script(void);
 void BPY_do_all_scripts(short event);
 void BPY_do_pyscript(struct ID *id, short event);
 void BPY_free_scriptlink(struct ScriptLink *slink);

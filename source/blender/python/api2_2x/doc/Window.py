@@ -8,7 +8,7 @@ Window
 
 This module provides access to B{Window} functions in Blender.
 
-B{New}: L{EditMode}, L{ViewLayer}, functions related to input events, etc.
+B{New}: many new functions related to screens and events.
 
 Example:
 --------
@@ -360,7 +360,22 @@ def GetAreaSize ():
      returns for the 'vertices' of the same area.
   """
 
-def GetScreenInfo (type = -1, rect = 'win'):
+def GetScreens ():
+  """
+  Get the names of all available screens.
+  @rtype: list of strings
+  @return: a list of names that can be passed to L{SetScreen}.
+  """
+
+def SetScreen (name):
+  """
+  Set as current screen the one with the given name.
+  @type name: string
+  @param name: the name of an existing screen.  Use L{GetScreens} to get
+      a list with all screen names.
+  """
+
+def GetScreenInfo (type = -1, rect = 'win', screen = ''):
   """
   Get info about the current screen setup.
   @type type: int
@@ -373,6 +388,9 @@ def GetScreenInfo (type = -1, rect = 'win'):
         - the whole area: 'total'
         - only the header: 'header'
         - only the window content part (default): 'win'
+  @type screen: string
+  @param screen: the name of an available screen.  The current one is used by
+      default.
   @rtype: list of dictionaries
   @return: a list of dictionaries, one for each area in the screen.  Each
       dictionary has these keys (all values are ints):

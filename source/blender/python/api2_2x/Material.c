@@ -209,11 +209,11 @@ static PyObject *M_Material_Get(PyObject *self, PyObject *args)
 
 		BPy_Material *wanted_mat = NULL;
 
-		while ((mat_iter) && (wanted_mat == NULL)) {
-
-			if (strcmp (name, mat_iter->id.name+2) == 0)
+		while (mat_iter) {
+			if (strcmp (name, mat_iter->id.name+2) == 0) {
 				wanted_mat = (BPy_Material *)Material_CreatePyObject (mat_iter);
-
+				break;
+			}
 			mat_iter = mat_iter->id.next;
 		}
 
@@ -221,7 +221,7 @@ static PyObject *M_Material_Get(PyObject *self, PyObject *args)
 			char error_msg[64];
 			PyOS_snprintf(error_msg, sizeof(error_msg),
 											"Material \"%s\" not found", name);
-			return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
+			return EXPP_ReturnPyObjError (PyExc_NameError, error_msg);
 		}
 
 		return (PyObject *)wanted_mat;
@@ -1714,11 +1714,10 @@ static PyObject *Material_repr (BPy_Material *self)
 	return PyString_FromFormat ("[Material \"%s\"]", self->material->id.name+2);
 }
 
-
 /*****************************************************************************/
 /* These functions are used in NMesh.c and Object.c													 */
 /*****************************************************************************/
-PyObject *EXPP_PyList_fromMaterialList (Material **matlist, int len)
+PyObject *EXPP_PyList_fromMaterialList (Material **matlist, int len, int all)
 {
 	PyObject *list;
 	int i;
@@ -1735,6 +1734,9 @@ PyObject *EXPP_PyList_fromMaterialList (Material **matlist, int len)
 			PyList_Append (list, ob);
 			Py_DECREF (ob); /* because Append increfs */
 		}
+		else if (all) { /* return NULL mats (empty slots) as Py_None */
+			PyList_Append (list, Py_None);
+		}			
 	}
 
 	return list;
@@ -1752,7 +1754,7 @@ Material **EXPP_newMaterialList_fromPyList (PyObject *list)
 
 	matlist = EXPP_newMaterialList (len);
 
-	for (i= 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 
 		pymat = (BPy_Material *)PySequence_GetItem (list, i);
 
@@ -1760,7 +1762,9 @@ Material **EXPP_newMaterialList_fromPyList (PyObject *list)
 			mat = pymat->material;
 			matlist[i] = mat;
 		}
-
+		else if ((PyObject *)pymat == Py_None) {
+			matlist[i] = NULL;
+		}
 		else { /* error; illegal type in material list */
 			Py_DECREF(pymat);
 			MEM_freeN(matlist);
@@ -1783,26 +1787,26 @@ Material **EXPP_newMaterialList(int len)
 
 int EXPP_releaseMaterialList (Material **matlist, int len)
 {
-		int						i;
-		Material		* mat;
+	int	i;
+	Material *mat;
 
 		if ((len < 0) || (len > MAXMAT)) {
-				printf ("illegal matindex!\n");
-				return 0;
+			printf ("illegal matindex!\n");
+			return 0;
 		}
 
 		for (i=0 ; i<len ; i++) {
-				mat = matlist[i];
-				if (mat != NULL) {
-						if (((ID *)mat)->us > 0)
-								((ID *)mat)->us--;
-						else
-								printf ("FATAL: material usage=0: %s", ((ID *)mat)->name);
-				}
+			mat = matlist[i];
+			if (mat) {
+				if (((ID *)mat)->us > 0)
+					((ID *)mat)->us--;
+				else
+					printf ("FATAL: material usage=0: %s", ((ID *)mat)->name);
+			}
 		}
-		MEM_freeN (matlist);
+	MEM_freeN (matlist);
 
-		return 1;
+	return 1;
 }
 
 /** expands pointer array of length 'oldsize' to length 'newsize'.
@@ -1818,16 +1822,16 @@ static int expandPtrArray(void **p, int oldsize, int newsize)
 	if (newsize < oldsize) {
 		return 0;
 	}	
-	newarray = MEM_callocN(newsize * sizeof(void *), "PtrArray");
+	newarray = MEM_callocN(sizeof(void *)*newsize, "PtrArray");
 	if (*p) {
-		memcpy(newarray, *p, oldsize);
+		memcpy(newarray, *p, sizeof(void *)*oldsize);
 		MEM_freeN(*p);
 	}	
 	*p = newarray;
 	return 1;
 }
 
-int EXPP_synchronizeMaterialLists (Object *object, void *data)
+int EXPP_synchronizeMaterialLists (Object *object)
 {
 		Material	*** p_dataMaterials = give_matarar (object);
 		short				* nmaterials = give_totcolp (object);

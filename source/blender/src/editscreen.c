@@ -939,7 +939,8 @@ void screenmain(void)
 {
 	int has_input= 1;
 	int firsttime = 1;
-	
+	int onload_script = 0;
+
 	window_make_active(mainwin);
 	
 	while (1) {
@@ -1035,8 +1036,10 @@ void screenmain(void)
 			BIF_read_file(ext_load_str);
 			sound_initialize_sounds();
 		}
-		else if (event==ONLOAD_SCRIPT) {
-			firsttime = 1; /* trick to run BPY_do_pyscript below */
+		else if ((event==ONLOAD_SCRIPT) && BPY_has_onload_script()) {
+			/* event queued in setup_app_data() in blender.c, where G.f is checked */
+			onload_script = 1;
+			firsttime = 1; /* see last 'if' in this function */
 		}
 		else {
 			towin= 1;
@@ -1133,8 +1136,13 @@ void screenmain(void)
 
 		/* Bizar hack. The event queue has mutated... */
 		if ( (firsttime) && (event == 0) ) {
-			
-			if (G.fileflags & G_FILE_AUTOPLAY) {
+
+			if (onload_script) {
+				/* OnLoad scriptlink */
+				BPY_do_pyscript(&G.scene->id, SCRIPT_ONLOAD);
+				onload_script = 0;
+			}
+			else if (G.fileflags & G_FILE_AUTOPLAY) {
 				// SET AUTOPLAY in G.flags for
 				// other fileloads
 
@@ -1145,9 +1153,6 @@ void screenmain(void)
 				// fake a 'p' keypress
 
 				mainqenter(PKEY, 1);
-			} else if (G.f & G_SCENESCRIPT) {
-				/* ONLOAD scriptlink */
-				BPY_do_pyscript(&G.scene->id, SCRIPT_ONLOAD);
 			} else {
 				extern char datatoc_splash_jpg[];
 				extern int datatoc_splash_jpg_size;

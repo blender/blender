@@ -53,11 +53,11 @@ The Blender Python API Reference
  Introduction:
  -------------
 
- This Reference documents the Blender Python API, a growing collection of
- Python modules (libs) that give access to part of the program's internal data
- and functions.
+ This reference documents the Blender Python API, a growing collection of
+ Python modules (libraries) that give access to part of the program's internal
+ data and functions.
  
- Through scripting, Blender can be extended in realtime.  Possibilities range
+ Through scripting Blender can be extended in realtime.  Possibilities range
  from simple functionality to importers / exporters and even more complex
  "applications".  Blender scripts are written in
  U{Python <www.python.org>}, an impressive high level, multi-paradigm,
@@ -66,7 +66,8 @@ The Blender Python API Reference
 @author: The Blender Python Team
 @requires: Blender 2.34 or newer.
 @version: 2.34
-@see: U{www.blender.org<http://www.blender.org>}
+@see: U{www.blender.org<http://www.blender.org>}: documentation and forum
+@see: U{www.elysiun.com<http://www.elysiun.com>}: user forum
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{www.python.org<http://www.python.org>}
 @see: U{www.python.org/doc<http://www.python.org/doc>}

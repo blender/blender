@@ -62,7 +62,7 @@ Material *Material_FromPyObject (PyObject *pyobj);
 int Material_CheckPyObject (PyObject *pyobj);
 
 /* Some functions needed by NMesh.c */
-PyObject  *EXPP_PyList_fromMaterialList (Material **matlist, int len);
+PyObject  *EXPP_PyList_fromMaterialList (Material **matlist, int len, int all);
 Material **EXPP_newMaterialList_fromPyList (PyObject *list);
 Material **EXPP_newMaterialList(int len);
 

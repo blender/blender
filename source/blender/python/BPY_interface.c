@@ -908,6 +908,21 @@ static PyObject *ID_asPyObject(ID *id)
 	}
 }
 
+int BPY_has_onload_script(void)
+{
+	ScriptLink *slink = &G.scene->scriptlink;
+	int i;
+
+	if (!slink || !slink->totscript) return 0;
+
+	for (i = 0; i < slink->totscript; i++) {
+			if ((slink->flag[i] == SCRIPT_ONLOAD) && (slink->scripts[i] != NULL))
+				return 1;
+	}
+
+	return 0;
+}
+
 void BPY_do_pyscript(ID *id, short event)
 {
 	ScriptLink *scriptlink = ID_getScriptlink(id);

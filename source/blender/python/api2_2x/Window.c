@@ -96,6 +96,8 @@ static PyObject *M_Window_GetKeyQualifiers (PyObject *self);
 static PyObject *M_Window_SetKeyQualifiers (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetAreaSize (PyObject *self);
 static PyObject *M_Window_GetAreaID (PyObject *self);
+static PyObject *M_Window_GetScreens (PyObject *self);
+static PyObject *M_Window_SetScreen (PyObject *self, PyObject *args);
 static PyObject *M_Window_GetScreenInfo (PyObject *self, PyObject *args,
 	PyObject *kwords);
 
@@ -232,20 +234,28 @@ static char M_Window_GetAreaID_doc[] =
 static char M_Window_GetAreaSize_doc[] =
 "() - Get the current window's (area) size as [x,y].";
 
+static char M_Window_GetScreens_doc[] =
+"() - Get a list with the names of all available screens.";
+
+static char M_Window_SetScreen_doc[] =
+"(name) - Set current screen to the one with the given 'name'.";
+
 static char M_Window_GetScreenInfo_doc[] =
-"(type = -1, rect = 'win') - Get info about the current screen setup.\n\
+"(type = -1, rect = 'win', screen = None)\n\
+- Get info about the the areas in the current screen setup.\n\
 (type = -1) - int: the space type (Blender.Window.Types) to restrict the\n\
 	results to, all if -1;\n\
-(rect = 'win') - the rectangle of interest.  This defines if the corner\n\
+(rect = 'win') - str: the rectangle of interest.  This defines if the corner\n\
 	coordinates returned will refer to:\n\
 	- the whole area: 'total';\n\
 	- only the header: 'header';\n\
-	- only the window content (default): 'win'.\n\n\
+	- only the window content (default): 'win'.\n\
+(screen = None) - str: the screen name, current if not given.\n\n\
 A list of dictionaries (one for each area) is returned.\n\
 Each dictionary has keys:\n\
 'vertices': [xmin, ymin, xmax, ymax] area corners;\n\
 'win': window type, see Blender.Window.Types dict;\n\
-'id': this area's id.";
+'id': area's id.";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Window module:						 */
@@ -304,6 +314,10 @@ struct PyMethodDef M_Window_methods[] = {
 		M_Window_GetAreaSize_doc},
 	{"GetAreaID", (PyCFunction)M_Window_GetAreaID, METH_NOARGS,
 		M_Window_GetAreaID_doc},
+	{"GetScreens", (PyCFunction)M_Window_GetScreens, METH_NOARGS,
+		M_Window_GetScreens_doc},
+	{"SetScreen", (PyCFunction)M_Window_SetScreen, METH_VARARGS,
+		M_Window_SetScreen_doc},
 	{"GetScreenInfo", (PyCFunction)M_Window_GetScreenInfo,
 		METH_VARARGS | METH_KEYWORDS, M_Window_GetScreenInfo_doc},
 	{NULL, NULL, 0, NULL}
@@ -958,21 +972,75 @@ static PyObject *M_Window_GetAreaID(PyObject *self)
 	return Py_BuildValue("h", sa->win);
 }
 
+static PyObject *M_Window_SetScreen(PyObject *self, PyObject *args)
+{
+	bScreen *scr = G.main->screen.first;
+	char *name = NULL;
+
+	if (!PyArg_ParseTuple(args, "s", &name))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected string as argument");
+
+	while (scr) {
+		if (!strcmp(scr->id.name+2, name)) {
+			setscreen(scr);
+			break;
+		}
+		scr = scr->id.next;
+	}
+
+	if (!scr)
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"no such screen, check Window.GetScreens() for valid names.");
+
+	return EXPP_incr_ret(Py_None);
+}
+
+static PyObject *M_Window_GetScreens(PyObject *self)
+{
+	bScreen *scr = G.main->screen.first;
+	PyObject *list = PyList_New(0);
+	PyObject *str = NULL;
+
+	if (!list)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+			"couldn't create py list!");
+
+	while (scr) {
+		str = PyString_FromString(scr->id.name+2);
+
+		if (!str) {
+			Py_DECREF(list);
+			return EXPP_ReturnPyObjError (PyExc_MemoryError,
+				"couldn't create py string!");
+		}
+
+		PyList_Append(list, str); /* incref's str */
+		Py_DECREF(str);
+
+		scr = scr->id.next;
+	}
+
+	return list;	
+}
+
 static PyObject *M_Window_GetScreenInfo(PyObject *self, PyObject *args,
 	PyObject *kwords)
 {
 	ScrArea *sa = G.curscreen->areabase.first;
+	bScreen *scr = G.main->screen.first;
 	PyObject *item, *list;
 	rcti *rct;
 	int type = -1;
 	char *rect = "win";
-	static char *kwlist[] = {"type", "rect", NULL};
+	char *screen = "";
+	static char *kwlist[] = {"type", "rect", "screen", NULL};
 	int rctype = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwords, "|is", kwlist, &type,
-				&rect))
+	if (!PyArg_ParseTupleAndKeywords(args, kwords, "|iss", kwlist, &type,
+			&rect, &screen))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
-			"expected nothing or an int and a string as arguments");
+			"expected nothing or an int and two strings as arguments");
 
 	if (!strcmp(rect, "win"))
 		rctype = 0;
@@ -986,6 +1054,22 @@ static PyObject *M_Window_GetScreenInfo(PyObject *self, PyObject *args,
 
 	list = PyList_New(0);
 
+	if (screen && screen[0] != '\0') {
+		while (scr) {
+			if (!strcmp(scr->id.name+2, screen)) {
+				sa = scr->areabase.first;
+				break;
+			}
+			scr = scr->id.next;
+		}
+	}
+
+	if (!scr) {
+		Py_DECREF(list);
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"no such screen, see existing ones with Window.GetScreens.");
+	}
+	
 	while (sa) {
 		if (type != -1 && sa->spacetype != type) {
 			sa = sa->next;

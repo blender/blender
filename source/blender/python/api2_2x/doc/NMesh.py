@@ -3,7 +3,7 @@
 """
 The Blender.NMesh submodule.
 
-B{New}: vertex selection.
+B{New}: L{NMesh.getMaterials}, L{NMesh.setMaterials}.
 
 Mesh Data
 =========
@@ -235,7 +235,8 @@ class NMesh:
     object in Blender and NMesh as its Python counterpart.
   @cvar name: The NMesh name.  It's common to use this field to store extra
      data about the mesh (to be exported to another program, for example).
-  @cvar materials: The list of materials used by this NMesh.
+  @cvar materials: The list of materials used by this NMesh.  See
+     L{NMesh.getMaterials} for important details.
   @cvar verts: The list of NMesh vertices (NMVerts).
   @cvar users: The number of Objects using (linked to) this mesh.
   @cvar faces: The list of NMesh faces (NMFaces).
@@ -252,6 +253,35 @@ class NMesh:
     the material if it wasn't already in the list.
     @type material: Blender Material
     @param material: A Blender Material.
+    """
+
+  def getMaterials(what = -1):
+    """
+    Get this NMesh's list of materials.
+    @type what: int
+    @param what: determines the list's contents:
+        - -1: return the current nmesh's list;
+        -  0: retrieve a fresh list from the Blender mesh -- eventual
+              modifications made by the script not included, unless
+              L{NMesh.update}d is called before this method;
+        -  1: like 0, but empty slots are not ignored, they are returned as
+              None's.
+    @note: what >= 0 also updates nmesh.materials attribute.
+    @rtype: list of materials
+    @return: the requested list of materials.
+    @note: if a user goes to the material buttons window and removes some
+        mesh's link to a material, that material slot becomes empty.
+        Previously such materials were ignored.
+    """
+
+  def setMaterials(matlist):
+    """
+    Set this NMesh's list of materials.  This method checks the consistency of
+    the passed list: must only have materials or None's and can't contain more
+    than 16 entries.
+    @type matlist: list of materials
+    @param matlist: a list with materials, None's also accepted (they become
+        empty material slots in Blender.
     """
 
   def hasVertexColours(flag = None):
