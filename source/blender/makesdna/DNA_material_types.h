@@ -74,9 +74,10 @@ typedef struct Material {
 	float hasize, flaresize, subsize, flareboost;
 	
 	/* for buttons and render*/
-	char rgbsel, texact, pr_type, septex;
-	short pr_back, pr_lamp;
-
+	char rgbsel, texact, pr_type, pad;
+	short pr_back, pr_lamp, septex, pad4;
+	int pad5;
+	
 	/* shaders */
 	short diff_shader, spec_shader;
 	float roughness, refrac;
