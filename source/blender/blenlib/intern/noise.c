@@ -534,14 +534,22 @@ float turbulence_perlin(float *point, float lofreq, float hifreq)
 /* for use with BLI_gNoise/gTurbulence, returns signed noise */
 float orgPerlinNoise(float x, float y, float z)
 {
-	float v[3] = {x, y, z};
+	float v[3];
+
+	v[0] = x;
+	v[1] = y;
+	v[2] = z;
 	return noise3_perlin(v);
 }
 
 /* for use with BLI_gNoise/gTurbulence, returns unsigned noise */
 float orgPerlinNoiseU(float x, float y, float z)
 {
-	float v[3] = {x, y, z};
+	float v[3];
+
+	v[0] = x;
+	v[1] = y;
+	v[2] = z;
 	return (0.5+0.5*noise3_perlin(v));
 }
 
