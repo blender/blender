@@ -60,6 +60,12 @@ Then edit source/nan_definitions.mk to fit you're environment.
 (You'll want to change things like NAN_OPENSSL,NAN_JPEG, NAN_PNG etc.. 
 to point to where you have it installed)
 
+If you want to integrate the game-engine in Blender, you might want
+to uncomment the following line in nan_compile.mk:
+#CFLAGS += -DGAMEBLENDER=1
+The define is disabled by default because there still are still some
+problems with this at the moment.
+
 If you tried to just have a go at making stuff you might wind up with
 an empty file /tmp/.nanguess
 You need to remove the empty file and it will get created automatically
