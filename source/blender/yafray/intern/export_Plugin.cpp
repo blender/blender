@@ -238,6 +238,13 @@ bool yafrayPluginRender_t::writeRender()
 		params["AA_pixelwidth"]=yafray::parameter_t(1.5);
 		params["AA_threshold"]=yafray::parameter_t(0.05f);
 	}
+	if(R.r.mode & R_BORDER) 
+	{
+		params["border_xmin"]=yafray::parameter_t( R.r.border.xmin*2.0-1.0 );
+		params["border_xmax"]=yafray::parameter_t( R.r.border.xmax*2.0-1.0 );
+		params["border_ymin"]=yafray::parameter_t( R.r.border.ymin*2.0-1.0 );
+		params["border_ymax"]=yafray::parameter_t( R.r.border.ymax*2.0-1.0 );
+	}
 	if (hasworld) params["background_name"]=yafray::parameter_t("world_background");
 	params["bias"]=yafray::parameter_t(R.r.YF_raybias);
 	//params["outfile"]=yafray::parameter_t(imgout);
