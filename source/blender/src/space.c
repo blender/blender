@@ -1116,11 +1116,23 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else {
                 	start_game();
 				}
-				break;
+				break;				
 			case RKEY:
 				if(G.obedit==0 && (G.f & G_FACESELECT)) rotate_uv_tface();
 				else if(G.qual & LR_ALTKEY) clear_object('r');
-				else if(G.qual & LR_SHIFTKEY) selectrow_nurb();
+				else if (G.obedit) {
+					if(G.qual & LR_SHIFTKEY) {
+						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF)					
+							selectrow_nurb();
+						else if (G.obedit->type==OB_MESH)
+							loop('s');
+					}
+					else if(G.qual & LR_CTRLKEY) {
+						if (G.obedit->type==OB_MESH)
+							loop('c');
+					}
+					else transform('r');
+				}
 				else transform('r');
 				break;
 			case SKEY:

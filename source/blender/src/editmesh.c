@@ -2033,35 +2033,42 @@ static void tekenvertices_special(int mode, EditVert *act) /* teken = draw */
 	if(G.zbuf) glEnable(GL_DEPTH_TEST);
 }
 
-static void edge_select(void)
+static EditEdge *findnearestedge()
 {
-	EditEdge *closest=0, *eed=0;
-	short found=0, mval[2];
+	EditEdge *closest, *eed;
+	short foundedge=0, found=0, mval[2];
 	float distance[2], v1[2], v2[2], mval2[2];
 	
-	calc_meshverts_ext_f2();     /*sets (eve->f & 2) for vertices that aren't visible*/
+	calc_meshverts_ext_f2();     	/*sets (eve->f & 2) for vertices that aren't visible*/
 	
-	if(G.eded.first==0) return;
-	eed=G.eded.first;
+	if(G.eded.first==0) return NULL;
+	eed=G.eded.first;	
+	
+	/* reset test flags */
+	while(eed){	
+		eed->f &= ~4;
+		eed=eed->next;
+	}
 	
 	getmouseco_areawin(mval);
-	mval2[0] = (float)mval[0];    /* cast to float because of the pdist function only taking floats...*/
+	mval2[0] = (float)mval[0];    	/* cast to float because of the pdist function only taking floats...*/
 	mval2[1] = (float)mval[1];
 	
-	while(eed) {       /*compare the distance to the rest of the edges and find the closest one*/
-		if( !((eed->v1->f & 2) && (eed->v2->f & 2))){ /* Are both vertices of the edge invisible? then don't select the edge*/
-			v1[0] = eed->v1->xs;   /* oh great! the screencoordinates are not an array....grrrr*/
+	eed=G.eded.first;
+	while(eed) {      					/*compare the distance to the rest of the edges and find the closest one*/
+		if( !((eed->v1->f & 2) && (eed->v2->f & 2))){ 	/* Are both vertices of the edge invisible? then don't select the edge*/
+			v1[0] = eed->v1->xs;  			/* oh great! the screencoordinates are not an array....grrrr*/
 			v1[1] = eed->v1->ys;
 			v2[0] = eed->v2->xs;
 			v2[1] = eed->v2->ys;
 			
 			distance[1] = PdistVL2Dfl(mval2, v1, v2);
 			
-			if(distance[1]<50){    /* TODO: make this maximum selecting distance selectable (the same with vertice select?) */
-				if(found) {              //do we have to compare it to other distances?
+			if(distance[1]<50){    			/* TODO: make this maximum selecting distance selectable (the same with vertice select?) */
+				if(found) {              	/*do we have to compare it to other distances? */
 					if (distance[1]<distance[0]){
 						distance[0]=distance[1];
-						closest=eed;  /*save the current closest edge*/
+						closest=eed;  	/*save the current closest edge*/
 					}
 				} else {
 					distance[0]=distance[1];
@@ -2073,10 +2080,256 @@ static void edge_select(void)
 		eed= eed->next;
 	}
 	
-	if(found){         /* Did we find anything that is selectable?*/
+	/* reset flags */
+	eed=G.eded.first;
+	while(eed) {		
+		eed->f &= ~(2|4);
+		eed->v1->f &= ~(2);
+		eed->v2->f &= ~(2);			
+		eed= eed->next;			
+	}
+	
+	if(found) return closest;
+	else return 0;
+}
+
+/* 
+functionality: various loop functions
+parameters: mode tells the function what it should do with the loop:
+		's' = select
+		'c' = cut in half
+*/
+		
+void loop(int mode)
+{
+	EditEdge *start, *eed, *opposite,*currente;
+	EditVlak *evl, *currentvl, *formervl;
+	Mesh *me;
+	short lastface=0, foundedge=0, done=0, c=0, found=0, tri=0, side=1, totface=0;	
+	
+	TEST_EDITMESH	
+	
+	me= get_mesh(G.obedit);		
+	
+	start=findnearestedge();			
+	
+	if(start!=NULL){         		/* Did we find anything that is selectable? */
+			
+		/* Clear flags */		
+		eed=G.eded.first;
+		while(eed) {		
+			eed->f &= ~(2|4|8|32);
+			eed->v1->f &= ~(1|2|16);
+			eed->v2->f &= ~(1|2|16);			
+			eed= eed->next;			
+		}
+		
+		evl= G.edvl.first;
+		while(evl){
+			evl->f &= ~4;
+			totface++;
+			evl=evl->next;
+		}
+		
+				
+		/* Tag the starting edge */
+		start->f |= (2|4);				
+		start->v1->f |= 2;
+		start->v2->f |= 2;		
+		
+		currente=start;						
+		
+		while(!lastface && c<totface){
+			
+			/*----------Get Loop------------------------*/
+			tri=foundedge=lastface=0;			
+									
+			evl= G.edvl.first;		
+			while(evl && !foundedge && !tri){
+								
+				if(!(evl->v4)){	/* Exception for triangular faces */
+					
+					if((evl->e1->f | evl->e2->f | evl->e3->f) & 2){
+						tri=1;
+						currentvl=evl;						
+					}						
+				}
+				else{
+					
+					if((evl->e1->f | evl->e2->f | evl->e3->f | evl->e4->f) & 2){
+						
+						if(c==0){	/* just pick a face, doesn't matter wich side of the edge we go to */
+							if(!(evl->f & 4)){
+								
+								if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
+									opposite=evl->e1;														
+									foundedge=1;
+								}
+								else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
+									opposite=evl->e2;
+									foundedge=1;
+								}
+								else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
+									opposite=evl->e3;
+									foundedge=1;
+								}
+								else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
+									opposite=evl->e4;
+									foundedge=1;
+								}
+								
+								currentvl=evl;
+								formervl=evl;
+								
+								/* mark this side of the edge so we know in which direction we went */
+								if(side==1) evl->f |= 4;
+							}
+						}
+						else {	
+							if(evl!=formervl){	/* prevent going backwards in the loop */
+							
+								if(!(evl->e1->v1->f & 2) && !(evl->e1->v2->f & 2)){
+									opposite=evl->e1;
+									foundedge=1;
+								}
+								else if(!(evl->e2->v1->f & 2) && !(evl->e2->v2->f & 2)){
+									opposite=evl->e2;
+									foundedge=1;
+								}
+								else if(!(evl->e3->v1->f & 2) && !(evl->e3->v2->f & 2)){
+									opposite=evl->e3;
+									foundedge=1;
+								}
+								else if(!(evl->e4->v1->f & 2) && !(evl->e4->v2->f & 2)){
+									opposite=evl->e4;
+									foundedge=1;
+								}
+								
+								currentvl=evl;
+							}
+						}
+					}
+				}
+			evl=evl->next;
+			}
+			/*----------END Get Loop------------------------*/
+			
+		
+			/*----------Selection-----------------------------*/
+			if(foundedge){
+			
+				
+				/* select the current edge */
+				currente->v1->f |= 1;
+				currente->v2->f |= 1;								
+				
+				/* mark the edge as done */
+				currente->f |= 8;
+					
+				if(opposite->f & 4) lastface=1;	/* found the starting edge! close loop */								
+				else{
+					/* un-set the testflags */
+					currente->f &= ~2;
+					currente->v1->f &= ~2;
+					currente->v2->f &= ~2;
+				
+					/* set the opposite edge to be the current edge */				
+					currente=opposite;
+					
+					/* set the current face to be the FORMER face (to prevent going backwards in the loop) */
+					formervl=currentvl;
+					
+					/* set the testflags */
+					currente->f |= 2;
+					currente->v1->f |= 2;
+					currente->v2->f |= 2;			
+				}
+				c++;	/* if only.... */	
+			}
+			else{
+				currente->v1->f |= 1;
+				currente->v2->f |= 1;
+								
+				/* un-set the testflags */
+				currente->f &= ~2;
+				currente->v1->f &= ~2;
+				currente->v2->f &= ~2;
+				
+				/* mark the edge as done */
+				currente->f |= 8;
+				
+				/* cheat to correctly split tri's */
+				if(tri){					
+					currente->v1->f |= 8;
+					currente->v2->f |= 8;
+				}
+					
+				/* is the the first time we've ran out of possible faces?
+				*  try to start from the beginning but in the opposite direction to select as many
+				*  verts as possible.
+				*/				
+				if(side==1){					
+					currente=start;
+					currente->f |= 2;
+					currente->v1->f |= 2;
+					currente->v2->f |= 2;					
+					side++;
+					c=0;
+				}
+				else lastface=1;				
+			}
+			/*----------END Selection-----------------------------*/
+			
+		}
+		
+		/*----------Subdivide-----------------------------*/
+		
+		if(mode=='c'){			
+			subdivideflag(8, 0, B_KNIFE); /* B_KNIFE tells subdivide that edgeflags are already set */
+			
+			eed=G.eded.first;
+			while(eed) {							
+				if(eed->v1->f & 16) eed->v1->f |= 1;
+				else eed->v1->f &= ~1;
+				
+				if(eed->v2->f & 16) eed->v2->f |= 1;
+				else eed->v2->f &= ~1;
+				
+				eed= eed->next;			
+			}
+		}
+		/*----------END Subdivide-----------------------------*/
+		
+		/* Clear flags */		
+		eed=G.eded.first;
+		while(eed) {		
+			eed->f &= ~(2|4|8|32);
+			eed->v1->f &= ~(2|16);
+			eed->v2->f &= ~(2|16);			
+			eed= eed->next;			
+		}
+		
+		evl= G.edvl.first;
+		while(evl){
+			evl->f &= ~4;
+			evl=evl->next;
+		}
+		
+		
+		allqueue(REDRAWVIEW3D, 0);			
+	}
+}
+
+void edge_select(void)
+{
+	EditEdge *closest=0;
+	
+	closest=findnearestedge();	
+	
+	if(closest){         /* Did we find anything that is selectable?*/
 
 		if( (G.qual & LR_SHIFTKEY)==0) {
-			EditVert *eve;
+			EditVert *eve;			
 			
 			/* deselectall */
 			for(eve= G.edve.first; eve; eve= eve->next) eve->f&= ~1;
@@ -3470,10 +3723,11 @@ void subdivideflag(int flag, float rad, int beauty)
 	while(eed) {
 		nexted= eed->next;
 		if( eed->vn ) {
-			if(eed->f==0) {  /* not used in face */
+			eed->vn->f |= 16;			
+			if(eed->f==0) {  /* not used in face */				
 				addedgelist(eed->v1,eed->vn);
 				addedgelist(eed->vn,eed->v2);
-			}
+			}						
 			remedge(eed);
 			free(eed);
 		}

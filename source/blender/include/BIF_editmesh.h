@@ -111,6 +111,9 @@ void separatemenu(void);
 void separate_mesh(void);
 void separate_mesh_loose(void);
 
+void loop(int);
+void edge_select(void);
+
 void extrude_repeat_mesh(int steps, float offs);
 void spin_mesh(int steps,int degr,float *dvec, int mode);
 void screw_mesh(int steps,int turns);
