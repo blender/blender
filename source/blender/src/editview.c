@@ -62,10 +62,11 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_global.h"
 #include "BKE_armature.h"
+#include "BKE_global.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
 #include "BIF_editarmature.h"
@@ -360,14 +361,124 @@ static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 	
 }
 
+static void do_lasso_select_curve(short mcords[][2], short moves, short select)
+{
+	Nurb *nu;
+	BPoint *bp;
+	BezTriple *bezt;
+	int a;
+	
+	calc_nurbverts_ext();	/* drawobject.c */
+	nu= editNurb.first;
+	while(nu) {
+		if((nu->type & 7)==CU_BEZIER) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				if(bezt->hide==0) {
+					if(lasso_inside(mcords, moves, bezt->s[0][0], bezt->s[0][1])) {
+						if(select) bezt->f1|= 1;
+						else bezt->f1 &= ~1;
+					}
+					if(lasso_inside(mcords, moves, bezt->s[1][0], bezt->s[1][1])) {
+						if(select) bezt->f2|= 1;
+						else bezt->f2 &= ~1;
+					}
+					if(lasso_inside(mcords, moves, bezt->s[2][0], bezt->s[2][1])) {
+						if(select) bezt->f3|= 1;
+						else bezt->f3 &= ~1;
+					}
+				}
+				bezt++;
+			}
+		}
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			while(a--) {
+				if(bp->hide==0) {
+					if(lasso_inside(mcords, moves, bp->s[0], bp->s[1])) {
+						if(select) bp->f1|= 1;
+						else bp->f1 &= ~1;
+					}
+				}
+				bp++;
+			}
+		}
+		nu= nu->next;
+	}
+}
+
+static void do_lasso_select_lattice(short mcords[][2], short moves, short select)
+{
+	BPoint *bp;
+	int a;
+	
+	calc_lattverts_ext();
+	
+	bp= editLatt->def;
+	
+	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	while(a--) {
+		if(bp->hide==0) {
+			if(lasso_inside(mcords, moves, bp->s[0], bp->s[1])) {
+				if(select) bp->f1|= 1;
+				else bp->f1 &= ~1;
+			}
+		}
+		bp++;
+	}
+}
+
+
+static void do_lasso_select_facemode(short mcords[][2], short moves, short select)
+{
+	extern int em_vertoffs;		// still bad code, let linker solve for now
+	Mesh *me;
+	TFace *tface;
+	rcti rect;
+	int a;
+	
+	me= get_mesh(OBACT);
+	if(me==NULL || me->tface==NULL) return;
+	if(me->totface==0) return;
+	tface= me->tface;
+	
+	em_vertoffs= me->totface+1;	// max index array
+	
+	lasso_select_boundbox(&rect, mcords, moves);
+	EM_mask_init_backbuf_border(mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	
+	for(a=1; a<=me->totface; a++, tface++) {
+		if(EM_check_backbuf_border(a)) {
+			if(select) tface->flag |= TF_SELECT;
+			else tface->flag &= ~TF_SELECT;
+		}
+	}
+	
+	EM_free_backbuf_border();
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
 static void do_lasso_select(short mcords[][2], short moves, short select)
 {
-	/* first simple object centers */
-	if(G.obedit==NULL) 
-		do_lasso_select_objects(mcords, moves, select);
+	if(G.obedit==NULL) {
+		if(G.f & G_FACESELECT)
+			do_lasso_select_facemode(mcords, moves, select);
+		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
+			;
+		else  
+			do_lasso_select_objects(mcords, moves, select);
+	}
 	else if(G.obedit->type==OB_MESH) 
 		do_lasso_select_mesh(mcords, moves, select);
-
+	else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
+		do_lasso_select_curve(mcords, moves, select);
+	else if(G.obedit->type==OB_LATTICE) 
+		do_lasso_select_lattice(mcords, moves, select);
+	
 	BIF_undo_push("Lasso select");
 
 	allqueue(REDRAWVIEW3D, 0);
@@ -516,6 +627,17 @@ int gesture(void)
 	unsigned short event=0;
 	short mval[2], val, timer=0, mousebut, lasso=0, maxmoves;
 	
+	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
+	else mousebut = L_MOUSE;
+	
+	if(G.qual & LR_CTRLKEY) {
+		if(G.obedit==NULL) {
+			if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) return 0;
+			if(G.obpose) return;
+		}
+		lasso= 1;
+	}
+	
 	glDrawBuffer(GL_FRONT);
 	persp(PERSP_WIN);	/*  ortho at pixel level */
 	
@@ -523,11 +645,6 @@ int gesture(void)
 	
 	mcords[0][0] = mval[0];
 	mcords[0][1] = mval[1];
-	
-	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
-	else mousebut = L_MOUSE;
-	
-	if(G.qual & LR_CTRLKEY) lasso= 1;
 	
 	if(lasso) maxmoves= MOVES_LASSO;
 	else maxmoves= MOVES_GESTURE;

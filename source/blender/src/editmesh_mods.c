@@ -289,7 +289,13 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	unsigned int *buf, *bufmask, *dr, *drm;
 	int a;
 	
-	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
+	/* method in use for face selecting too */
+	if(G.obedit==NULL) {
+		if(G.f & G_FACESELECT);
+		else return 0;
+	}
+	else if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
+
 	if(em_vertoffs==0) return 0;
 	
 	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
