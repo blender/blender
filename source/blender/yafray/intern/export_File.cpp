@@ -432,7 +432,6 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 			Tex* tex = mtex->tex;
 			if (tex==NULL) continue;
 
-			//map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name+2));
 			// now included the full name
 			map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name));
 			if (mtexL!=used_textures.end()) {
@@ -560,7 +559,10 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 		ostr << "\t\t<specular_amount value=\"" << matr->spec << "\" />\n";
 		ostr << "\t\t<hard value=\"" << matr->har << "\" />\n";
 		ostr << "\t\t<alpha value=\"" << matr->alpha << "\" />\n";
-		ostr << "\t\t<emit value=\"" << (matr->emit * R.r.GIpower) << "\" />\n";
+		// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
+		float bg_mult;
+		if (R.r.GImethod==0) bg_mult=1; else bg_mult=R.r.GIpower;
+		ostr << "\t\t<emit value=\"" << (matr->emit * bg_mult) << "\" />\n";
 
 		// reflection/refraction
 		if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
@@ -606,7 +608,6 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 			Tex* tex = mtex->tex;
 			if (tex==NULL) continue;
 
-			//map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name+2));
 			map<string, pair<Material*, MTex*> >::const_iterator mtexL = used_textures.find(string(tex->id.name));
 			if (mtexL!=used_textures.end()) {
 
@@ -753,7 +754,6 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
 		ostr << "caus_IOR=\"" << VLR_list[0]->mat->ang << "\" ";
 	if (strlen(matname)==0) matname = "blender_default"; 
-	//else matname+=2;	//skip MA id
 	ostr << " shader_name=\"" << matname << "\" >\n";
 	ostr << "\t<attributes>\n";
 	if (VLR_list[0]->mat->mode & MA_RAYTRANSP) 
@@ -883,7 +883,6 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 		char* fmatname = fmat->id.name;
 		if (strlen(fmatname)==0) fmatname = "blender_default"; 
-		//else fmatname+=2;	//skip MA id
 		TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 		int idx1, idx2, idx3;
 
@@ -1046,7 +1045,8 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4]
 	
 	ostr.str("");
 	string md = "off";
-	if (R.r.GIphotons) {md = "on";power*=R.r.GIpower;}
+	// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
+	if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  power*=R.r.GIpower; }
 	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << power << "\" ";
 	if (!R.r.GIphotons) {
 		int psm=0, sm = lamp->ray_totsamp;
@@ -1077,7 +1077,7 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4]
 
 void yafrayFileRender_t::writeLamps()
 {
-	// inver viewmatrix needed for back2world transform
+	// inverse viewmatrix needed for back2world transform
 	float iview[4][4];
 	// R.viewinv != inv.R.viewmat because of possible ortho mode (see convertBlenderScene.c)
 	// have to invert it here
@@ -1135,12 +1135,11 @@ void yafrayFileRender_t::writeLamps()
 		ostr << " >\n";
 
 		// transform lamp co & vec back to world
-		float lpco[3], lpvec[4];
+		float lpco[3], lpvec[3];
 		MTC_cp3Float(lamp->co, lpco);
 		MTC_Mat4MulVecfl(iview, lpco);
 		MTC_cp3Float(lamp->vec, lpvec);
-		lpvec[3] = 0;	// vec, not point
-		MTC_Mat4MulVec4fl(iview, lpvec);
+		MTC_Mat4Mul3Vecfl(iview, lpvec);
 
 		// position, (==-blendir for sun/hemi)
 		if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))
@@ -1201,7 +1200,7 @@ void yafrayFileRender_t::writeCamera()
 	ostr << "\t<from x=\"" << maincam_obj->obmat[3][0] << "\""
 							<< " y=\"" << maincam_obj->obmat[3][1] << "\""
 							<< " z=\"" << maincam_obj->obmat[3][2] << "\" />\n";
-	float fdist = -R.viewmat[3][2];
+	float fdist = fabs(R.viewmat[3][2]);
 	if (R.r.mode & R_ORTHO) fdist *= 0.01f;
 	ostr << "\t<to x=\"" << maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2]
 					<< "\" y=\"" << maincam_obj->obmat[3][1] - fdist * R.viewmat[1][2]

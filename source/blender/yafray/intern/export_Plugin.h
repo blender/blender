@@ -52,11 +52,11 @@ class yafrayPluginRender_t : public yafrayRender_t
 		void genFace(std::vector<int> &faces,std::vector<std::string> &shaders,std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
 				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
-				bool has_orco,bool has_uv,bool has_vcol);
+				bool has_orco,bool has_uv, bool has_vcol);
 		void genCompleFace(std::vector<int> &faces,/*std::vector<std::string> &shaders,*/std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
 				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
-				bool has_orco,bool has_uv,bool has_vcol);
+				bool has_orco,bool has_uv, bool has_vcol);
 		void genVertices(std::vector<yafray::point3d_t> &verts, int &vidx,
 										 std::map<VertRen*, int> &vert_idx, VlakRen* vlr, bool has_orco, Object* obj);
 };

@@ -560,7 +560,10 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 		params["specular_amount"]=yafray::parameter_t(matr->spec);
 		params["hard"]=yafray::parameter_t(matr->har);
 		params["alpha"]=yafray::parameter_t(matr->alpha);
-		params["emit"]=yafray::parameter_t(matr->emit * R.r.GIpower);
+		// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
+		float bg_mult;
+		if (R.r.GImethod==0) bg_mult=1; else bg_mult=R.r.GIpower;
+		params["emit"]=yafray::parameter_t(matr->emit * bg_mult);
 
 		// reflection/refraction
 		if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
@@ -773,28 +776,28 @@ void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol,VlakRen *vlr,
 		vr = ((vlr->vcol[p1] >> 24) & 255)/255.0;
 		vg = ((vlr->vcol[p1] >> 16) & 255)/255.0;
 		vb = ((vlr->vcol[p1] >> 8) & 255)/255.0;
-		vcol.push_back(vr);vcol.push_back(vg);vcol.push_back(vb);
+		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
 		vr = ((vlr->vcol[p2] >> 24) & 255)/255.0;
 		vg = ((vlr->vcol[p2] >> 16) & 255)/255.0;
 		vb = ((vlr->vcol[p2] >> 8) & 255)/255.0;
-		vcol.push_back(vr);vcol.push_back(vg);vcol.push_back(vb);
+		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
 		vr = ((vlr->vcol[p3] >> 24) & 255)/255.0;
 		vg = ((vlr->vcol[p3] >> 16) & 255)/255.0;
 		vb = ((vlr->vcol[p3] >> 8) & 255)/255.0;
-		vcol.push_back(vr);vcol.push_back(vg);vcol.push_back(vb);
+		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
 	}
 	else
 	{
-		vcol.push_back(0);vcol.push_back(0);vcol.push_back(0);
-		vcol.push_back(0);vcol.push_back(0);vcol.push_back(0);
-		vcol.push_back(0);vcol.push_back(0);vcol.push_back(0);
+		vcol.push_back(0);  vcol.push_back(0);  vcol.push_back(0);
+		vcol.push_back(0);  vcol.push_back(0);  vcol.push_back(0);
+		vcol.push_back(0);  vcol.push_back(0);  vcol.push_back(0);
 	}
 }
 
 void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,vector<int> &faceshader,
 														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
 														map<VertRen*, int> &vert_idx,VlakRen *vlr,
-														bool has_orco,bool has_uv,bool has_vcol)
+														bool has_orco,bool has_uv, bool has_vcol)
 {
 	Material* fmat = vlr->mat;
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
@@ -813,7 +816,6 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 		shaders.push_back(fmatname);
 		faceshader.push_back(shaders.size()-1);
 	}
-	//else fmatname+=2;	//skip MA id
 	TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 	int idx1, idx2, idx3;
 
@@ -829,13 +831,13 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 	if(has_uv) genUVcoords(uvcoords,vlr,uvc);
 
 	// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
-	if(has_vcol) genVcol(vcol,vlr,0,1,2,EXPORT_VCOL);
+	if (has_vcol) genVcol(vcol,vlr,0,1,2,EXPORT_VCOL);
 }
 
 void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &shaders,*/vector<int> &faceshader,
 														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
 														map<VertRen*, int> &vert_idx,VlakRen *vlr,
-														bool has_orco,bool has_uv,bool has_vcol)
+														bool has_orco,bool has_uv, bool has_vcol)
 {
 	Material* fmat = vlr->mat;
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
@@ -853,7 +855,7 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 	faces.push_back(idx1);faces.push_back(idx2);faces.push_back(idx3);
 
 	if(has_uv) genCompleUVcoords(uvcoords,/*vlr,*/uvc);
-	if(has_vcol) genVcol(vcol,vlr,2,3,0,EXPORT_VCOL);
+	if (has_vcol) genVcol(vcol,vlr,2,3,0,EXPORT_VCOL);
 }
 
 void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vidx,
@@ -906,10 +908,10 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
 {
 	float mtr[4*4];
-	mtr[0*4+0]=obmat[0][0];mtr[0*4+1]=obmat[1][0];mtr[0*4+2]=obmat[2][0];mtr[0*4+3]=obmat[3][0];
-	mtr[1*4+0]=obmat[0][1];mtr[1*4+1]=obmat[1][1];mtr[1*4+2]=obmat[2][1];mtr[1*4+3]=obmat[3][1];
-	mtr[2*4+0]=obmat[0][2];mtr[2*4+1]=obmat[1][2];mtr[2*4+2]=obmat[2][2];mtr[2*4+3]=obmat[3][2];
-	mtr[3*4+0]=obmat[0][3];mtr[3*4+1]=obmat[1][3];mtr[3*4+2]=obmat[2][3];mtr[3*4+3]=obmat[3][3];
+	mtr[0*4+0]=obmat[0][0];  mtr[0*4+1]=obmat[1][0];  mtr[0*4+2]=obmat[2][0];  mtr[0*4+3]=obmat[3][0];
+	mtr[1*4+0]=obmat[0][1];  mtr[1*4+1]=obmat[1][1];  mtr[1*4+2]=obmat[2][1];  mtr[1*4+3]=obmat[3][1];
+	mtr[2*4+0]=obmat[0][2];  mtr[2*4+1]=obmat[1][2];  mtr[2*4+2]=obmat[2][2];  mtr[2*4+3]=obmat[3][2];
+	mtr[3*4+0]=obmat[0][3];  mtr[3*4+1]=obmat[1][3];  mtr[3*4+2]=obmat[2][3];  mtr[3*4+3]=obmat[3][3];
 	yafrayGate->transformPush(mtr);
 	string name=string(obj->id.name+2);
 	bool castShadows=VLR_list[0]->mat->mode & MA_TRACEBLE;
@@ -920,7 +922,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	{
 		caus_IOR=VLR_list[0]->mat->ang;
 		float tr=1.0-VLR_list[0]->mat->alpha;
-		caus_tcolor.set(VLR_list[0]->mat->r * tr,VLR_list[0]->mat->g * tr,VLR_list[0]->mat->b * tr);
+		caus_tcolor.set(VLR_list[0]->mat->r*tr, VLR_list[0]->mat->g*tr, VLR_list[0]->mat->b*tr);
 		caus=true;
 	}
 	bool has_orco=(VLR_list[0]->v1->orco!=NULL);
@@ -942,12 +944,8 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	}
 	// Guess if we need to set vertex colors Could be faster? sure
 	bool has_vcol=false;
-	for(int i=0;i<obj->totcol;++i)
-	{
-		Material *fmat=obj->mat[i];
-		if(fmat==NULL) continue;
-		if((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0) {has_vcol=true;break;};
-	}
+	if ((obj->type==OB_MESH) && (obj->data!=NULL))
+		has_vcol = (((Mesh*)obj->data)->mcol!=NULL);
 	vector<yafray::point3d_t> verts;
 	vector<yafray::CFLOAT> vcol;
 	// now all vertices
@@ -970,9 +968,9 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 				fci2!=VLR_list.end();++fci2)
 	{
 		VlakRen* vlr = *fci2;
-		genFace(faces,shaders,faceshader,uvcoords,vcol,vert_idx,vlr,has_orco,has_uv,has_vcol);
+		genFace(faces, shaders, faceshader, uvcoords, vcol, vert_idx, vlr, has_orco, has_uv, has_vcol);
 		if (vlr->v4) 
-			genCompleFace(faces,/*shaders,*/faceshader,uvcoords,vcol,vert_idx,vlr,has_orco,has_uv,has_vcol);
+			genCompleFace(faces, /*shaders,*/ faceshader, uvcoords, vcol, vert_idx, vlr, has_orco, has_uv, has_vcol);
 	}
 
 	yafrayGate->addObject_trimesh(name,verts,faces,uvcoords,vcol,
@@ -1024,10 +1022,10 @@ void yafrayPluginRender_t::writeAllObjects()
 			MTC_Mat4MulMat4(cmat, imat, nmat);	// transform with respect to original = inverse_original * new
 
 			float mtr[4*4];
-			mtr[0*4+0]=cmat[0][0];mtr[0*4+1]=cmat[1][0];mtr[0*4+2]=cmat[2][0];mtr[0*4+3]=cmat[3][0];
-			mtr[1*4+0]=cmat[0][1];mtr[1*4+1]=cmat[1][1];mtr[1*4+2]=cmat[2][1];mtr[1*4+3]=cmat[3][1];
-			mtr[2*4+0]=cmat[0][2];mtr[2*4+1]=cmat[1][2];mtr[2*4+2]=cmat[2][2];mtr[2*4+3]=cmat[3][2];
-			mtr[3*4+0]=cmat[0][3];mtr[3*4+1]=cmat[1][3];mtr[3*4+2]=cmat[2][3];mtr[3*4+3]=cmat[3][3];
+			mtr[0*4+0]=cmat[0][0];  mtr[0*4+1]=cmat[1][0];  mtr[0*4+2]=cmat[2][0];  mtr[0*4+3]=cmat[3][0];
+			mtr[1*4+0]=cmat[0][1];  mtr[1*4+1]=cmat[1][1];  mtr[1*4+2]=cmat[2][1];  mtr[1*4+3]=cmat[3][1];
+			mtr[2*4+0]=cmat[0][2];  mtr[2*4+1]=cmat[1][2];  mtr[2*4+2]=cmat[2][2];  mtr[2*4+3]=cmat[3][2];
+			mtr[3*4+0]=cmat[0][3];  mtr[3*4+1]=cmat[1][3];  mtr[3*4+2]=cmat[2][3];  mtr[3*4+3]=cmat[3][3];
 			yafrayGate->transformPush(mtr);
 
 			// new name from original
@@ -1052,7 +1050,8 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][
 	float power=lamp->energy;
 	
 	string md = "off";
-	if (R.r.GIphotons) {md = "on";power*=R.r.GIpower;}
+	// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
+	if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  power*=R.r.GIpower; }
 	params["type"]=yafray::parameter_t("arealight");
 	char temp[16];
 	sprintf(temp,"LAMP%d",num+1);
@@ -1137,9 +1136,8 @@ void yafrayPluginRender_t::writeLamps()
 		string lpmode="off";
 		// shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag
 		if (R.r.mode & R_SHADOW)
-			params["cast_shadows"]=yafray::parameter_t("on");
-		else
-			params["cast_shadows"]=yafray::parameter_t("off");
+			if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
+		params["cast_shadows"]=yafray::parameter_t(lpmode);
 		// spot specific stuff
 		if (lamp->type==LA_SPOT) 
 		{
@@ -1152,12 +1150,11 @@ void yafrayPluginRender_t::writeLamps()
 		}
 
 		// transform lamp co & vec back to world
-		float lpco[3], lpvec[4];
+		float lpco[3], lpvec[3];
 		MTC_cp3Float(lamp->co, lpco);
 		MTC_Mat4MulVecfl(iview, lpco);
 		MTC_cp3Float(lamp->vec, lpvec);
-		lpvec[3] = 0;	// vec, not point
-		MTC_Mat4MulVec4fl(iview, lpvec);
+		MTC_Mat4Mul3Vecfl(iview, lpvec);
 
 		// position, (==-blendir for sun/hemi)
 		if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))
@@ -1206,7 +1203,7 @@ void yafrayPluginRender_t::writeCamera()
 
 	params["from"]=yafray::parameter_t(
 			yafray::point3d_t(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]));
-	float fdist = -R.viewmat[3][2];
+	float fdist = fabs(R.viewmat[3][2]);
 	if (R.r.mode & R_ORTHO) fdist *= 0.01f;
 	params["to"]=yafray::parameter_t(
 			yafray::point3d_t(maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2],
