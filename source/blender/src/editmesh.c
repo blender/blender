@@ -1004,7 +1004,11 @@ void make_editMesh_real(Mesh *me)
 	for(a=0; a<tot; a++, mvert++) {
 		eve= addvertlist(mvert->co);
 		evlist[a]= eve;
-		eve->f |= (mvert->flag & 1);
+		
+		// face select sets selection in next loop
+		if( (G.f & G_FACESELECT)==0 )
+			eve->f |= (mvert->flag & 1);
+		
 		if (mvert->flag & ME_HIDE) eve->h= 1;		
 		eve->no[0]= mvert->no[0]/32767.0;
 		eve->no[1]= mvert->no[1]/32767.0;

@@ -1023,15 +1023,15 @@ static void texture_panel_colors(Tex *tex)
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_CALCCBAND, "Pos",	10,120,80,20, &cbd->pos, 0.0, 1.0, 10, 0, "Set the position of the active colour");
-		uiDefButS(block, ROW, B_TEXPRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "Interpolation type Ease");
-		uiDefButS(block, ROW, B_TEXPRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Interpolation type Linear");
-		uiDefButS(block, ROW, B_TEXPRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Interpolation type Spline");
+		uiDefButS(block, ROW, B_TEXREDR_PRV, "E",		90,120,20,20, &tex->coba->ipotype, 5.0, 1.0, 0, 0, "Interpolation type Ease");
+		uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		110,120,20,20, &tex->coba->ipotype, 5.0, 0.0, 0, 0, "Interpolation type Linear");
+		uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		130,120,20,20, &tex->coba->ipotype, 5.0, 2.0, 0, 0, "Interpolation type Spline");
 		uiDefButF(block, COL, B_BANDCOL, "",		150,120,30,20, &(cbd->r), 0, 0, 0, 0, "");
-		uiDefButF(block, NUMSLI, B_TEXPRV, "A ",	180,120,130,20, &cbd->a, 0.0, 1.0, 0, 0, "Set the alpha value");
+		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "A ",	180,120,130,20, &cbd->a, 0.0, 1.0, 0, 0, "Set the alpha value");
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_TEXPRV, "R ",	10,100,100,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Set the red value");
-		uiDefButF(block, NUMSLI, B_TEXPRV, "G ",	110,100,100,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Set the green value");
-		uiDefButF(block, NUMSLI, B_TEXPRV, "B ",	210,100,100,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Set the blue value");
+		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "R ",	10,100,100,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Set the red value");
+		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "G ",	110,100,100,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Set the green value");
+		uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "B ",	210,100,100,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Set the blue value");
 	}
 	
 	/* RGB-BRICON */
