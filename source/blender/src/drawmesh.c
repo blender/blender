@@ -1147,6 +1147,9 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	glLoadIdentity();	
 	default_gl_light();
 	glPopMatrix();
+	
+	glFrontFace(GL_CCW);
+
 }
 
 void init_realtime_GL(void)
