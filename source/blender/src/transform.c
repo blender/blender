@@ -155,7 +155,6 @@ void createTransTexspace(void)
 	Object *ob;
 	ID *id;
 	
-	
 	ob= OBACT;
 	Trans.total = 1;
 	td= Trans.data= MEM_callocN(sizeof(TransData), "TransTexspace");
@@ -840,17 +839,16 @@ static void ObjectToTransData(TransData *td, Object *ob)
 
 	Mat3CpyMat4(td->mtx, ob->obmat);
 
-	object_to_mat3(ob, obmtx);
-
-	/*
-	Mat3CpyMat4(totmat, ob->obmat);
-	Mat3Inv(obinv, totmat);
-	Mat3MulMat3(td->smtx, obmtx, obinv);
-	*/
 	if (ob->parent)
 	{
-		Mat3CpyMat4(td->mtx, ob->parent->obmat);
-		Mat3Inv(td->smtx, td->mtx);
+		float totmat[3][3], obinv[3][3];
+		
+		/* we calculate smtx without obmat: so a parmat */
+		object_to_mat3(ob, obmtx);
+		Mat3CpyMat4(totmat, ob->obmat);
+		Mat3Inv(obinv, totmat);
+		Mat3MulMat3(td->smtx, obmtx, obinv);
+		Mat3Inv(td->mtx, td->smtx);
 	}
 	else
 	{
