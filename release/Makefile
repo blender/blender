@@ -145,7 +145,7 @@ endif
 	   @rm -fr $(CONFDIR)/scripts/CVS
 
 	@[ ! -d bpydata ] || \
-	   @cp -r bpydata $(CONFDIR)/scripts
+	   @cp -r bpydata $(CONFDIR)/bpydata
 	@[ ! -d $(CONFDIR)/bpydata ] || \
 	   @rm -fr $(CONFDIR)/bpydata/CVS
 
