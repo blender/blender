@@ -412,7 +412,7 @@ DuplicateMesh(
 			// duplicate the face data for this face.
 			o_f_data.Duplicate(i_f_data[*f_faces_it]);
 
-			output.AddSubTriangle(dup_face,triangle_indices.begin() + i); 
+			output.AddSubTriangle(dup_face,&triangle_indices[i]); 
 		}
 	}
 

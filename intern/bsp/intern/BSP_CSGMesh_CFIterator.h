@@ -30,6 +30,7 @@
  */
 
 #ifndef BSP_CSGMesh_CFIterator_h
+
 #define BSP_CSGMesh_CFIterator_h
 
 #include "BSP_CSGMesh.h"
@@ -69,7 +70,7 @@ BSP_CSGMesh_VertexIt_Done(
 	// assume CSG_IteratorPtr is of the correct type.
 	BSP_CSGMesh_VertexIt * vertex_it = (BSP_CSGMesh_VertexIt *)it;
 
-	if (vertex_it->pos < vertex_it->mesh->VertexSet().end()) return 0;
+	if (vertex_it->pos < &(*vertex_it->mesh->VertexSet().end())) return 0;
 	return 1;
 };
 
@@ -103,7 +104,7 @@ BSP_CSGMesh_VertexIt_Reset(
 ) {
 	// assume CSG_IteratorPtr is of the correct type.
 	BSP_CSGMesh_VertexIt * vertex_it = (BSP_CSGMesh_VertexIt *)it;
-	vertex_it->pos = vertex_it->mesh->VertexSet().begin();
+	vertex_it->pos = &vertex_it->mesh->VertexSet()[0];
 };	
 
 static
@@ -122,7 +123,7 @@ BSP_CSGMeshVertexIt_Construct(
 	
 	BSP_CSGMesh_VertexIt * v_it = new BSP_CSGMesh_VertexIt;
 	v_it->mesh = mesh;
-	v_it->pos = mesh->VertexSet().begin();
+	v_it->pos = &mesh->VertexSet()[0];
 	output->it = v_it;
 };			
 
@@ -161,7 +162,7 @@ BSP_CSGMesh_FaceIt_Done(
 	// assume CSG_IteratorPtr is of the correct type.
 	BSP_CSGMesh_FaceIt * face_it = (BSP_CSGMesh_FaceIt *)it;
 
-	if (face_it->pos < face_it->mesh->FaceSet().end()) {
+	if (face_it->pos < &(*face_it->mesh->FaceSet().end())) {
 		if (face_it->face_triangle + 3 <= face_it->pos->m_verts.size()) {
 			return 0;
 		}
@@ -190,7 +191,7 @@ BSP_CSGMesh_FaceIt_Fill(
 	// time to change the iterator type to an integer...
 	face_it->mesh->FaceData().Copy(
 		face->user_face_data,
-		int(face_it->pos - face_it->mesh->FaceSet().begin())
+		int(face_it->pos - &face_it->mesh->FaceSet()[0])
 	);
 	
 	// Copy face vertex data across...
@@ -222,7 +223,8 @@ BSP_CSGMesh_FaceIt_Step(
 	BSP_CSGMesh_FaceIt * face_it = (BSP_CSGMesh_FaceIt *)it;		
 
 	// safety guard
-	if (face_it->pos < face_it->mesh->FaceSet().end()) {
+	if (face_it->pos < &(*face_it->mesh->FaceSet().end())) {
+
 		if (face_it->face_triangle + 3 < face_it->pos->m_verts.size()) {
 			(face_it->face_triangle)++;
 		} else {
@@ -239,7 +241,7 @@ BSP_CSGMesh_FaceIt_Reset(
 ) {
 	// assume CSG_IteratorPtr is of the correct type.
 	BSP_CSGMesh_FaceIt * f_it = (BSP_CSGMesh_FaceIt *)it;		
-	f_it->pos = f_it->mesh->FaceSet().begin();
+	f_it->pos = &f_it->mesh->FaceSet()[0];
 	f_it->face_triangle = 0;
 };
 
@@ -259,7 +261,7 @@ BSP_CSGMesh_FaceIt_Construct(
 	
 	BSP_CSGMesh_FaceIt * f_it = new BSP_CSGMesh_FaceIt;
 	f_it->mesh = mesh;
-	f_it->pos = mesh->FaceSet().begin();
+	f_it->pos = &mesh->FaceSet()[0];
 	f_it->face_triangle = 0;
 
 	output->it = f_it;
