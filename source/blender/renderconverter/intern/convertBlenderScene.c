@@ -1828,8 +1828,7 @@ static void init_render_surf(Object *ob)
 		end_latt_deform();
 	}
 	
-#ifdef __NLA
-	if(ob->parent && ob->parent->type==OB_ARMATURE) {
+	if(ob->partype==PARSKEL && ob->parent && ob->parent->type==OB_ARMATURE) {
 /*  		bArmature *arm= ob->parent->data; */
 		init_armature_deform(ob->parent, ob);
 		dl= displist.first;
@@ -1843,7 +1842,6 @@ static void init_render_surf(Object *ob)
 			dl= dl->next;
 		}
 	}
-#endif
 
 	if(ob->parent && ob->parent->type==OB_IKA) {
 		Ika *ika= ob->parent->data;
