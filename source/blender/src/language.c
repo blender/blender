@@ -41,7 +41,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
-#include "BLI_winstuff.h"
 
 #include "BIF_language.h"
 #include "BIF_space.h"		/* allqueue() */
