@@ -88,10 +88,6 @@ static PyObject *Ipo_getName(C_Ipo *self);
 static PyObject *Ipo_setName(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getBlocktype(C_Ipo *self);
 static PyObject *Ipo_setBlocktype(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getShowkey(C_Ipo *self);
-static PyObject *Ipo_setShowkey(C_Ipo *self, PyObject *args);
-static PyObject *Ipo_getPad(C_Ipo *self);
-static PyObject *Ipo_setPad(C_Ipo *self, PyObject *args);
 static PyObject *Ipo_getRctf(C_Ipo *self);
 static PyObject *Ipo_setRctf(C_Ipo *self, PyObject *args);
 
@@ -115,14 +111,6 @@ static PyMethodDef C_Ipo_methods[] = {
       "() - Return Ipo blocktype -"},
   {"setBlocktype", (PyCFunction)Ipo_setBlocktype, METH_VARARGS,
       "(str) - Change Ipo blocktype"},
-  {"getShowkey", (PyCFunction)Ipo_getShowkey, METH_NOARGS,
-      "() - Return Ipo showkey - "},
-  {"setShowkey", (PyCFunction)Ipo_setShowkey, METH_VARARGS,
-      "(str) - Change Ipo showkey"},
-  {"getPad", (PyCFunction)Ipo_getPad, METH_NOARGS,
-      "() - Return Ipo pad - "},
-  {"setPad", (PyCFunction)Ipo_setPad, METH_VARARGS,
-      "(str) - Change Ipo pad"},
   {"getRctf", (PyCFunction)Ipo_getRctf, METH_NOARGS,
       "() - Return Ipo rctf - "},
   {"setRctf", (PyCFunction)Ipo_setRctf, METH_VARARGS,
