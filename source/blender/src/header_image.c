@@ -354,6 +354,36 @@ void do_image_buttons(unsigned short event)
 	}
 }
 
+static void do_image_view_viewnavmenu(void *arg, int event)
+{
+	switch(event) {
+	case 1: /* Zoom In */
+		image_viewzoom(PADPLUSKEY);
+		break;
+	case 2: /* Zoom Out */
+		image_viewzoom(PADMINUS);
+		break;
+	}
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static uiBlock *image_view_viewnavmenu(void *arg_unused)
+{
+/*		static short tog=0; */
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "image_view_viewnavmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_view_viewnavmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
 static void do_image_viewmenu(void *arg, int event)
 {
 
@@ -409,13 +439,15 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Faces|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	if(G.sima->flag & SI_DRAWSHADOW) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Shadow Mesh", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow Mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, image_view_viewnavmenu, NULL, ICON_RIGHTARROW_THIN, "View Navigation", 0, yco-=20, 120, 19, "");
 
 	if(G.sima->lock) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	}
+	} 
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
