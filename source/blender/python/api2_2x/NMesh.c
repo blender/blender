@@ -822,7 +822,21 @@ static int NMesh_setattr(PyObject *self, char *name, PyObject *v)
 {
   BPy_NMesh *me = (BPy_NMesh *)self;
 
-  if (!strcmp(name, "verts") || !strcmp(name, "faces") ||
+	if (!strcmp(name, "name")) {
+		char buf[21];
+
+		if (!PyString_Check(v))
+			return EXPP_ReturnIntError (PyExc_TypeError,
+							"expected string argument");
+
+		PyOS_snprintf(buf, sizeof(buf), "%s", PyString_AsString(v));
+		rename_id(&me->mesh->id, buf);
+
+		Py_DECREF (me->name);
+		me->name = PyString_FromString(me->mesh->id.name+2);
+	}
+
+	else if (!strcmp(name, "verts") || !strcmp(name, "faces") ||
                   !strcmp(name, "materials")) {
 
     if(PySequence_Check(v)) {
@@ -842,7 +856,7 @@ static int NMesh_setattr(PyObject *self, char *name, PyObject *v)
     }
 
     else
-      return EXPP_ReturnIntError (PyExc_AttributeError, "expected a sequence");
+      return EXPP_ReturnIntError (PyExc_TypeError, "expected a sequence");
   }
 
   else
@@ -1347,11 +1361,22 @@ PyObject *NMesh_assignMaterials_toObject(BPy_NMesh *nmesh, Object *ob)
   Material *ma;
   int i;
   short old_matmask;
+	Mesh *mesh = nmesh->mesh;
+	int nmats; /* number of mats == len(nmesh->materials)*/
 
   old_matmask = ob->colbits; /*@ HACK: save previous colbits */
   ob->colbits = 0;  /* make assign_material work on mesh linked material */
 
-  for (i = 0; i < PySequence_Length(nmesh->materials); i++) {
+	nmats = PyList_Size(nmesh->materials);
+
+	if (nmats > 0 && !mesh->mat) { /* explain ... */
+		ob->totcol = nmats;
+		mesh->totcol = nmats;
+		mesh->mat = MEM_callocN(sizeof(void *)*nmats, "bpy_memats");
+		ob->mat   = MEM_callocN(sizeof(void *)*nmats, "bpy_obmats");
+	}
+
+  for (i = 0; i < nmats; i++) {
     pymat = (BPy_Material *)PySequence_GetItem(nmesh->materials, i);
 
     if (Material_CheckPyObject ((PyObject *)pymat)) {
@@ -1565,7 +1590,7 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   // materials. For example, you want several checker boards sharing their
   // mesh data, but having different colors. So you would assign material
   // index 0 to all even, index 1 to all odd faces and bind the materials
-  // to the Object instead (MaterialButtons: [OB] button "link materials to object")
+  // to the Object instead (MaterialButtons: [OB] "link materials to object")
   //
   // This feature implies that pointers to materials can be stored in
   // an object or a mesh. The number of total materials MUST be
@@ -1577,7 +1602,8 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
 
   if (ob) { // we created a new object
     NMesh_assignMaterials_toObject(nmesh, ob);
-    return EXPP_incr_ret (Py_None);
+		EXPP_synchronizeMaterialLists (ob, ob->data);
+    return Object_CreatePyObject(ob);
   }
   else {
     mesh->mat = EXPP_newMaterialList_fromPyList(nmesh->materials);
