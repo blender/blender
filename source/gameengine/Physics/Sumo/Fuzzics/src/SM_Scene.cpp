@@ -65,21 +65,21 @@ SM_Scene::SM_Scene() :
 	
 	/* Sensor */
 	DT_AddPairResponse(m_respTable, m_ResponseClass[SENSOR_RESPONSE], m_ResponseClass[SENSOR_RESPONSE], 0, DT_NO_RESPONSE, this);
-	DT_AddPairResponse(m_respTable, m_ResponseClass[SENSOR_RESPONSE], m_ResponseClass[STATIC_RESPONSE], SM_Scene::boing, DT_BROAD_RESPONSE, this);
-	DT_AddPairResponse(m_respTable, m_ResponseClass[SENSOR_RESPONSE], m_ResponseClass[OBJECT_RESPONSE], SM_Scene::boing, DT_BROAD_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[SENSOR_RESPONSE], m_ResponseClass[STATIC_RESPONSE], SM_Scene::boing, DT_SIMPLE_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[SENSOR_RESPONSE], m_ResponseClass[OBJECT_RESPONSE], SM_Scene::boing, DT_SIMPLE_RESPONSE, this);
 	DT_AddPairResponse(m_respTable, m_ResponseClass[SENSOR_RESPONSE], m_ResponseClass[FH_RESPONSE], 0, DT_NO_RESPONSE, this);
 	
 	/* Static */
-	DT_AddPairResponse(m_respTable, m_ResponseClass[STATIC_RESPONSE], m_ResponseClass[SENSOR_RESPONSE], SM_Scene::boing, DT_BROAD_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[STATIC_RESPONSE], m_ResponseClass[SENSOR_RESPONSE], SM_Scene::boing, DT_SIMPLE_RESPONSE, this);
 	DT_AddPairResponse(m_respTable, m_ResponseClass[STATIC_RESPONSE], m_ResponseClass[STATIC_RESPONSE], 0, DT_NO_RESPONSE, this);
 	DT_AddPairResponse(m_respTable, m_ResponseClass[STATIC_RESPONSE], m_ResponseClass[OBJECT_RESPONSE], SM_Object::boing, DT_BROAD_RESPONSE, this);
-	DT_AddPairResponse(m_respTable, m_ResponseClass[STATIC_RESPONSE], m_ResponseClass[FH_RESPONSE], SM_FhObject::ray_hit, DT_BROAD_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[STATIC_RESPONSE], m_ResponseClass[FH_RESPONSE], SM_FhObject::ray_hit, DT_SIMPLE_RESPONSE, this);
 	
 	/* Object */
-	DT_AddPairResponse(m_respTable, m_ResponseClass[OBJECT_RESPONSE], m_ResponseClass[SENSOR_RESPONSE], SM_Scene::boing, DT_BROAD_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[OBJECT_RESPONSE], m_ResponseClass[SENSOR_RESPONSE], SM_Scene::boing, DT_SIMPLE_RESPONSE, this);
 	DT_AddPairResponse(m_respTable, m_ResponseClass[OBJECT_RESPONSE], m_ResponseClass[STATIC_RESPONSE], SM_Object::boing, DT_BROAD_RESPONSE, this);
 	DT_AddPairResponse(m_respTable, m_ResponseClass[OBJECT_RESPONSE], m_ResponseClass[OBJECT_RESPONSE], SM_Object::boing, DT_BROAD_RESPONSE, this);
-	DT_AddPairResponse(m_respTable, m_ResponseClass[OBJECT_RESPONSE], m_ResponseClass[FH_RESPONSE], SM_FhObject::ray_hit, DT_BROAD_RESPONSE, this);
+	DT_AddPairResponse(m_respTable, m_ResponseClass[OBJECT_RESPONSE], m_ResponseClass[FH_RESPONSE], SM_FhObject::ray_hit, DT_SIMPLE_RESPONSE, this);
 	
 	/* Fh Object */
 	DT_AddPairResponse(m_respTable, m_ResponseClass[FH_RESPONSE], m_ResponseClass[SENSOR_RESPONSE], 0, DT_NO_RESPONSE, this);
@@ -187,8 +187,30 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
 	// Divide the timeStep into a number of subsamples of size roughly 
 	// equal to subS (might be a little smaller).
 	MT_Scalar timeStep = curtime - m_lastTime;
-	MT_Scalar subStep = 1.0/ticrate;
-	int num_samples = int(timeStep * ticrate);
+	MT_Scalar subStep;
+	int num_samples;
+	
+	if (ticrate > 0.0)
+	{
+		subStep = 1.0/ticrate;
+		num_samples = int(timeStep * ticrate);
+	
+		if (num_samples > 4)
+		{
+			std::cout << "Dropping physics frames! step: " << timeStep << " frames:" << num_samples << std::endl;
+			num_samples /= 4;
+			subStep *= 4.0;
+		}
+	} 
+	else
+	{
+		// Variable time step. (old update)
+		// Integrate at least 100 Hz
+		subStep = timeStep > 0.01 ? 0.01 : timeStep;
+		num_samples = int(timeStep * 0.01);
+		if (num_samples < 1)
+			num_samples = 1;
+	}
 	
 	T_ObjectList::iterator i;
 	
@@ -209,7 +231,7 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
 #endif
 		return false;	
 	}
-
+	
 	m_lastTime += MT_Scalar(num_samples)*subStep;
 	
 	// Do the integration steps per object.
@@ -253,23 +275,16 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate) {
 			//(*i)->clearForce();
 		}
 	}
-	// For each pair of object that collided, call the corresponding callback.
-	// Additional collisions of a pair within the same time step are ignored.
-
-	if (m_secondaryRespTable) {
-		T_PairList::iterator p;
-		for (p = m_pairList.begin(); p != m_pairList.end(); ++p) {
-			DT_CallResponse(m_secondaryRespTable, 
-							(*p).first->getObjectHandle(), 
-							(*p).second->getObjectHandle(), 
-							0);
-		}
-	}
-	
-	clearPairs();
-	
 	return true;
 }
+
+void SM_Scene::notifyCollision(SM_Object *obj1, SM_Object *obj2)
+{
+	// For each pair of object that collided, call the corresponding callback.
+	if (m_secondaryRespTable)
+		DT_CallResponse(m_secondaryRespTable, obj1->getObjectHandle(), obj2->getObjectHandle(), 0);
+}
+
 
 SM_Object *SM_Scene::rayTest(void *ignore_client, 
 							 const MT_Point3& from, const MT_Point3& to, 
@@ -320,13 +335,13 @@ DT_Bool SM_Scene::boing(
 	void *client_data,  
 	void *object1,
 	void *object2,
-	const DT_CollData *coll_data
+	const DT_CollData *
 ){
 	SM_Scene  *scene = (SM_Scene *)client_data; 
 	SM_Object *obj1  = (SM_Object *)object1;  
 	SM_Object *obj2  = (SM_Object *)object2;  
 	
-	scene->addPair(obj1, obj2); // Record this collision for client callbacks
+	scene->notifyCollision(obj1, obj2); // Record this collision for client callbacks
 
 #ifdef SM_DEBUG_BOING	
 	printf("SM_Scene::boing\n");

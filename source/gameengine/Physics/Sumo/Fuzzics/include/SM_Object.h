@@ -144,7 +144,6 @@ public:
 	void setOrientation(const MT_Quaternion& orn);
 	void setScaling(const MT_Vector3& scaling);
 	
-
 	/**
 	 * set an external velocity. This velocity complements
 	 * the physics velocity. So setting it does not override the
@@ -267,13 +266,7 @@ public:
 	
 	void relax();
 	
-	void backup() {
-		m_pos = m_prev_state.getPosition();
-		m_orn = m_prev_state.getOrientation();
-		m_xform = m_prev_xform;
-	}
 private:
-
 	// Tweak parameters
 	static MT_Scalar ImpulseThreshold;
 

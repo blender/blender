@@ -119,47 +119,57 @@ PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
 ------------------------------*/
 typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
 
-class PyObjectPlus : public PyObject {				// The PyObjectPlus abstract class
-
-  Py_Header;							// Always start with Py_Header
-
- public:  
-  PyObjectPlus(PyTypeObject *T);
-  
-  virtual ~PyObjectPlus() {};					// destructor
-  static void PyDestructor(PyObject *P)				// python wrapper
-  {  
-	  delete ((PyObjectPlus *) P);  
-  };
-
-  //void INCREF(void) {
-//	  Py_INCREF(this);
-//  };				// incref method
-  //void DECREF(void) {
-//	  Py_DECREF(this);
-//  };				// decref method
-
-  virtual PyObject *_getattr(const STR_String& attr);			// _getattr method
-  static  PyObject *__getattr(PyObject * PyObj, char *attr) 	// This should be the entry in Type. 
-    { return ((PyObjectPlus*) PyObj)->_getattr(STR_String(attr)); };
-   
-  virtual int _setattr(const STR_String& attr, PyObject *value);		// _setattr method
-  static  int __setattr(PyObject *PyObj, 			// This should be the entry in Type. 
-			char *attr, 
-			PyObject *value)
-    { return ((PyObjectPlus*) PyObj)->_setattr(STR_String(attr), value);  };
-
-  virtual PyObject *_repr(void);				// _repr method
-  static  PyObject *__repr(PyObject *PyObj)			// This should be the entry in Type.
-    {  return ((PyObjectPlus*) PyObj)->_repr();  };
-
-
-								// isA methods
-  bool isA(PyTypeObject *T);
-  bool isA(const char *mytypename);
-  PyObject *Py_isA(PyObject *args);
-  static PyObject *sPy_isA(PyObject *self, PyObject *args, PyObject *kwd)
-    {return ((PyObjectPlus*)self)->Py_isA(args);};
+class PyObjectPlus : public PyObject 
+{				// The PyObjectPlus abstract class
+	Py_Header;							// Always start with Py_Header
+	
+public:
+	PyObjectPlus(PyTypeObject *T);
+	
+	virtual ~PyObjectPlus() {};					// destructor
+	static void PyDestructor(PyObject *P)				// python wrapper
+	{  
+		delete ((PyObjectPlus *) P);  
+	};
+	
+	//void INCREF(void) {
+	//	  Py_INCREF(this);
+	//  };				// incref method
+	//void DECREF(void) {
+	//	  Py_DECREF(this);
+	//  };				// decref method
+	
+	virtual PyObject *_getattr(const STR_String& attr);			// _getattr method
+	static  PyObject *__getattr(PyObject * PyObj, char *attr) 	// This should be the entry in Type. 
+	{
+		return ((PyObjectPlus*) PyObj)->_getattr(STR_String(attr)); 
+	}
+	
+	virtual int _delattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject *value);		// _setattr method
+	static  int __setattr(PyObject *PyObj, 			// This should be the entry in Type. 
+				char *attr, 
+				PyObject *value)
+	{ 
+		if (!value)
+			return ((PyObjectPlus*) PyObj)->_delattr(attr);
+		return ((PyObjectPlus*) PyObj)->_setattr(STR_String(attr), value);  
+	}
+	
+	virtual PyObject *_repr(void);				// _repr method
+	static  PyObject *__repr(PyObject *PyObj)			// This should be the entry in Type.
+	{
+		return ((PyObjectPlus*) PyObj)->_repr();  
+	}
+	
+									// isA methods
+	bool isA(PyTypeObject *T);
+	bool isA(const char *mytypename);
+	PyObject *Py_isA(PyObject *args);
+	static PyObject *sPy_isA(PyObject *self, PyObject *args, PyObject *kwd)
+	{
+		return ((PyObjectPlus*)self)->Py_isA(args);
+	}
 };
 
 #endif //  _adr_py_lib_h_

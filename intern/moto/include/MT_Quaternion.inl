@@ -60,3 +60,27 @@ GEN_INLINE MT_Quaternion operator*(const MT_Vector3& w, const MT_Quaternion& q)
                          -w[0] * q[0] - w[1] * q[1] - w[2] * q[2]); 
 }
 
+GEN_INLINE MT_Scalar MT_Quaternion::angle(const MT_Quaternion& q) const 
+{
+	MT_Scalar s = sqrt(length2() * q.length2());
+	assert(s != MT_Scalar(0.0));
+	return acos(dot(q) / s);
+}
+
+GEN_INLINE MT_Quaternion MT_Quaternion::slerp(const MT_Quaternion& q, const MT_Scalar& t) const
+{
+	MT_Scalar theta = angle(q);
+	if (theta != MT_Scalar(0.0))
+	{
+		MT_Scalar d = MT_Scalar(1.0) / sin(theta);
+		MT_Scalar s0 = sin((MT_Scalar(1.0) - t) * theta);
+		MT_Scalar s1 = sin(t * theta);
+		
+		return d*(*this * s0 + q * s1);
+	}
+	else
+	{
+		return *this;
+	}
+}
+

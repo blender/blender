@@ -78,10 +78,11 @@
 #include "KX_SumoPhysicsController.h"
 
 static GEN_Map<GEN_HashedPtr,DT_ShapeHandle> map_gamemesh_to_sumoshape;
+static GEN_Map<GEN_HashedPtr, DT_VertexBaseHandle> map_gamemesh_to_vertex_base_handle;
 
 // forward declarations
-void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,class SM_Object* sumoObj,const STR_String& matname,bool isDynamic,bool isActor);
-DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj);
+static void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoScene,class SM_Object* sumoObj,const STR_String& matname,bool isDynamic,bool isActor);
+static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope);
 
 
 void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
@@ -127,6 +128,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 	if (objprop->m_dyna && objprop->m_isactor)
 	{
 		DT_ShapeHandle shape = NULL;
+		bool polytope = false;
 		switch (objprop->m_boundclass)
 		{
 			case KX_BOUNDBOX:
@@ -151,10 +153,13 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 					smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
 				break;
 			/* Dynamic mesh objects.  WARNING! slow. */
+			case KX_BOUNDPOLYTOPE:
+				polytope = true;
+				// fall through
 			case KX_BOUNDMESH:
 				if (meshobj && meshobj->NumPolygons() > 0)
 				{
-					if ((shape = CreateShapeFromMesh(meshobj)))
+					if ((shape = CreateShapeFromMesh(meshobj, polytope)))
 					{
 						// TODO: calculate proper inertia
 						smprop->m_inertia *= smprop->m_mass*smprop->m_radius*smprop->m_radius;
@@ -185,6 +190,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 			{
 
 				DT_ShapeHandle complexshape=0;
+				bool polytope = false;
 
 				switch (objprop->m_boundclass)
 				{
@@ -200,11 +206,14 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 					case KX_BOUNDCONE:
 						complexshape = DT_NewCone(objprop->m_boundobject.c.m_radius, objprop->m_boundobject.c.m_height);
 						break;
+					case KX_BOUNDPOLYTOPE:
+						polytope = true;
+						// fall through
 					default:
 					case KX_BOUNDMESH:
 						if (numpolys>0)
 						{
-							complexshape = CreateShapeFromMesh(meshobj);
+							complexshape = CreateShapeFromMesh(meshobj, polytope);
 							//std::cout << "Convert Physics Mesh: " << meshobj->GetName() << std::endl;
 /*							if (!complexshape) 
 							{
@@ -267,7 +276,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 
 
 
-void	BL_RegisterSumoObject(
+static void	BL_RegisterSumoObject(
 	KX_GameObject* gameobj,
 	class SM_Scene* sumoScene,
 	class SM_Object* sumoObj,
@@ -296,21 +305,114 @@ void	BL_RegisterSumoObject(
 		physicscontroller->SetObject(gameobj->GetSGNode());
 }
 
-DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
+static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+{
+	// instance a mesh from a single vertex array & material
+	const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
+	//const KX_IndexArray &index_array = *meshobj->GetIndexCache(mat)[vtxarray];
+	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getLocalXYZ(), sizeof(RAS_TexVert));
+	
+	DT_ShapeHandle shape = DT_NewComplexShape(vertex_base);
+	
+	std::vector<DT_Index> indices;
+	for (int p = 0; p < meshobj->NumPolygons(); p++)
+	{
+		RAS_Polygon* poly = meshobj->GetPolygon(p);
+	
+		// only add polygons that have the collisionflag set
+		if (poly->IsCollider())
+		{
+			DT_VertexIndices(3, poly->GetVertexIndexBase().m_indexarray);
+			
+			// tesselate
+			if (poly->VertexCount() == 4)
+			{
+				DT_Begin();
+				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[0]);
+				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[2]);
+				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[3]);
+				DT_End();
+			}
+		}
+	}
+
+	//DT_VertexIndices(indices.size(), &indices[0]);
+	DT_EndComplexShape();
+	
+	map_gamemesh_to_vertex_base_handle.insert(GEN_HashedPtr(meshobj), vertex_base);
+	return shape;
+}
+
+static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+{
+	// instance a mesh from a single vertex array & material
+	const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
+	//const KX_IndexArray &index_array = *meshobj->GetIndexCache(mat)[vtxarray];
+	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getLocalXYZ(), sizeof(RAS_TexVert));
+	
+	std::vector<DT_Index> indices;
+	for (int p = 0; p < meshobj->NumPolygons(); p++)
+	{
+		RAS_Polygon* poly = meshobj->GetPolygon(p);
+	
+		// only add polygons that have the collisionflag set
+		if (poly->IsCollider())
+		{
+			indices.push_back(poly->GetVertexIndexBase().m_indexarray[0]);
+			indices.push_back(poly->GetVertexIndexBase().m_indexarray[1]);
+			indices.push_back(poly->GetVertexIndexBase().m_indexarray[2]);
+			
+			if (poly->VertexCount() == 4)
+				indices.push_back(poly->GetVertexIndexBase().m_indexarray[3]);
+		}
+	}
+
+	DT_ShapeHandle shape = DT_NewPolytope(vertex_base);
+	DT_VertexIndices(indices.size(), &indices[0]);
+	DT_EndPolytope();
+	
+	map_gamemesh_to_vertex_base_handle.insert(GEN_HashedPtr(meshobj), vertex_base);
+	return shape;
+}
+
+// This will have to be a method in a class somewhere...
+// Update SOLID with a changed physics mesh.
+// not used... yet.
+bool ReInstanceShapeFromMesh(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+{
+	DT_VertexBaseHandle *vertex_base = map_gamemesh_to_vertex_base_handle[GEN_HashedPtr(meshobj)];
+	if (vertex_base)
+	{
+		const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
+		DT_ChangeVertexBase(*vertex_base, vertex_array[0].getLocalXYZ());
+		return true;
+	}
+	return false;
+}
+
+static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope)
 {
 
 	DT_ShapeHandle *shapeptr = map_gamemesh_to_sumoshape[GEN_HashedPtr(meshobj)];
+	// Mesh has already been converted: reuse
 	if (shapeptr)
 	{
 		return *shapeptr;
 	}
 	
+	// Mesh has no polygons!
 	int numpolys = meshobj->NumPolygons();
 	if (!numpolys)
 	{
 		return NULL;
 	}
+	
+	// Count the number of collision polygons and check they all come from the same 
+	// vertex array
 	int numvalidpolys = 0;
+	int vtxarray = -1;
+	RAS_IPolyMaterial *poly_material = NULL;
+	bool reinstance = true;
 
 	for (int p=0; p<numpolys; p++)
 	{
@@ -319,74 +421,116 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 		// only add polygons that have the collisionflag set
 		if (poly->IsCollider())
 		{
+			// check polygon is from the same vertex array
+			if (poly->GetVertexIndexBase().m_vtxarray != vtxarray)
+			{
+				if (vtxarray < 0)
+					vtxarray = poly->GetVertexIndexBase().m_vtxarray;
+				else
+				{
+					reinstance = false;
+					vtxarray = -1;
+				}
+			}
+			
+			// check poly is from the same material
+			if (poly->GetMaterial()->GetPolyMaterial() != poly_material)
+			{
+				if (poly_material)
+				{
+					reinstance = false;
+					poly_material = NULL;
+				}
+				else
+					poly_material = poly->GetMaterial()->GetPolyMaterial();
+			}
+			
+			// count the number of collision polys
 			numvalidpolys++;
-			break;
+			
+			// We have one collision poly, and we can't reinstance, so we
+			// might as well break here.
+			if (!reinstance)
+				break;
 		}
 	}
 	
+	// No collision polygons
 	if (numvalidpolys < 1)
 		return NULL;
 	
-	DT_ShapeHandle shape = DT_NewComplexShape(NULL);
-	
-	
-	numvalidpolys = 0;
-
-	for (int p2=0; p2<numpolys; p2++)
+	DT_ShapeHandle shape;
+	if (reinstance)
 	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p2);
-	
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{   /* We have to tesselate here because SOLID can only raycast triangles */
-		    DT_Begin();
-			DT_Vector3 pt;
-			/* V1 */
-			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-				poly->GetVertexIndexBase().m_indexarray[2],
-				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
-			DT_Vertex(pt);
-			/* V2 */
-			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-				poly->GetVertexIndexBase().m_indexarray[1],
-				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
-			DT_Vertex(pt);
-			/* V3 */
-			meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-				poly->GetVertexIndexBase().m_indexarray[0],
-				poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
-			DT_Vertex(pt);
-			
-			numvalidpolys++;
-		    DT_End();
-			
-			if (poly->VertexCount() == 4)
-			{
-			    DT_Begin();
-				/* V1 */
-				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[3],
-					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
-				DT_Vertex(pt);
-				/* V3 */
-				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[2],
-					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
-				DT_Vertex(pt);
-				/* V4 */
-				meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[0],
-					poly->GetMaterial()->GetPolyMaterial())->xyz().getValue(pt);
-				DT_Vertex(pt);
-			
-				numvalidpolys++;
-			    DT_End();
-			}
-	
-		}
+		if (polytope)
+			shape = InstancePhysicsPolytope(meshobj, vtxarray, poly_material);
+		else
+			shape = InstancePhysicsComplex(meshobj, vtxarray, poly_material);
 	}
+	else
+	{
+		if (polytope)
+		{
+			std::cout << "CreateShapeFromMesh: " << meshobj->GetName() << " is not suitable for polytope." << std::endl;
+			if (!poly_material)
+				std::cout << "                     Check mesh materials." << std::endl;
+			if (vtxarray < 0)
+				std::cout << "                     Check number of vertices." << std::endl;
+		}
+		
+		shape = DT_NewComplexShape(NULL);
+			
+		numvalidpolys = 0;
 	
-	DT_EndComplexShape();
+		for (int p2=0; p2<numpolys; p2++)
+		{
+			RAS_Polygon* poly = meshobj->GetPolygon(p2);
+		
+			// only add polygons that have the collisionflag set
+			if (poly->IsCollider())
+			{   /* We have to tesselate here because SOLID can only raycast triangles */
+			   DT_Begin();
+				/* V1 */
+				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+					poly->GetVertexIndexBase().m_indexarray[2],
+					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+				/* V2 */
+				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+					poly->GetVertexIndexBase().m_indexarray[1],
+					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+				/* V3 */
+				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+					poly->GetVertexIndexBase().m_indexarray[0],
+					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+				
+				numvalidpolys++;
+			   DT_End();
+				
+				if (poly->VertexCount() == 4)
+				{
+				   DT_Begin();
+					/* V1 */
+					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[3],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+					/* V3 */
+					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[2],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+					/* V4 */
+					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[0],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+				
+					numvalidpolys++;
+				   DT_End();
+				}
+		
+			}
+		}
+		
+		DT_EndComplexShape();
+	}
 
 	if (numvalidpolys > 0)
 	{
@@ -398,17 +542,22 @@ DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
 	return NULL;
 }
 
-
 void	KX_ClearSumoSharedShapes()
 {
 	int numshapes = map_gamemesh_to_sumoshape.size();
-	for (int i=0;i<numshapes ;i++)
+	int i;
+	for (i=0;i<numshapes ;i++)
 	{
 		DT_ShapeHandle shape = *map_gamemesh_to_sumoshape.at(i);
 		DT_DeleteShape(shape);
 	}
 	
 	map_gamemesh_to_sumoshape.clear();
+	
+	for (i=0; i < map_gamemesh_to_vertex_base_handle.size(); i++)
+		DT_DeleteVertexBase(*map_gamemesh_to_vertex_base_handle.at(i));
+	
+	map_gamemesh_to_vertex_base_handle.clear();
 }
 
 

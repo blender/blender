@@ -95,6 +95,9 @@ public:
     void invert();
     MT_Quaternion inverse() const;
 
+    MT_Scalar angle(const MT_Quaternion& q) const;
+    MT_Quaternion slerp(const MT_Quaternion& q, const MT_Scalar& t) const;
+    
     static MT_Quaternion random();
 };
 

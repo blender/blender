@@ -636,7 +636,7 @@ void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 }
 
 
-void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawingmode,RAS_IRasterizer* rasty)
+void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawingmode)
 {
 //	int nummaterials = m_materials.size();
 	int i;
@@ -654,8 +654,8 @@ void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawing
 
 		int numpolys = m_Polygons.size();
 		
-		if ((rasty->GetDrawingMode() > RAS_IRasterizer::KX_BOUNDINGBOX) && 
-			(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID))
+		if ((drawingmode > RAS_IRasterizer::KX_BOUNDINGBOX) && 
+			(drawingmode < RAS_IRasterizer::KX_SOLID))
 		{
 			for (i=0;i<numpolys;i++)
 			{
@@ -684,7 +684,7 @@ void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawing
 		m_bModified = false;
 	} 
 	
-	if (m_zsort && rasty->GetDrawingMode() >= RAS_IRasterizer::KX_SOLID)
+	if (m_zsort && drawingmode >= RAS_IRasterizer::KX_SOLID)
 	{
 		SortPolygons(transform);
 	}

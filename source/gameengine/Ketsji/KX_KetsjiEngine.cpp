@@ -315,13 +315,13 @@ void KX_KetsjiEngine::NextFrame()
 	m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 
 	double curtime;
-	double localtime = m_previoustime;
 	if (m_bFixedTime)
 		curtime = m_previoustime + 1.0/m_ticrate;
 	else
 		curtime = m_kxsystem->GetTimeInSeconds();
 	m_deltatime += curtime - m_previoustime;
 	m_previoustime = curtime;
+	double localtime = curtime - m_deltatime;
 
 	// Compute the number of logic frames to do each update (fixed tic bricks)
 	int frames = (int) (m_deltatime*m_ticrate);
@@ -329,44 +329,7 @@ void KX_KetsjiEngine::NextFrame()
 	
 	KX_SceneList::iterator sceneit;
 	
-	if (!frames)
-	{
-		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
-		// for each scene, call the proceed functions
-		{
-			KX_Scene* scene = *sceneit;
-	
-			if (!scene->IsSuspended())
-			{
-				// set Python hooks for each scene
-				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
-				PHY_SetActiveScene(scene);
-				
-				// Perform physics calculations on the scene. This can involve 
-				// many iterations of the physics solver.
-				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetPhysicsEnvironment()->proceed(curtime);
-				// Update scenegraph after physics step. This maps physics calculations
-				// into node positions.		
-				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-				scene->UpdateParents(curtime);
-				
-				// Do some cleanup work for this logic frame
-				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
-				scene->LogicUpdateFrame(curtime, false);
-	
-				// Actuators can affect the scenegraph
-				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-				scene->UpdateParents(curtime);
-			} // suspended
-	
-			DoSound(scene);
-	
-			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
-		}
-	}
-	
-	while (frames--)
+	while (frames)
 	{
 		localtime += 1.0/m_ticrate;
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
@@ -384,44 +347,46 @@ void KX_KetsjiEngine::NextFrame()
 			if (!scene->IsSuspended())
 			{
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetPhysicsEnvironment()->endFrame();
-				scene->GetPhysicsEnvironment()->beginFrame();
-			
 				m_logger->StartLog(tc_network, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetNetworkScene()->proceed(curtime);
+				scene->GetNetworkScene()->proceed(localtime);
 	
 				// set Python hooks for each scene
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 				PHY_SetActiveScene(scene);
 	
-				// Perform physics calculations on the scene. This can involve 
-				// many iterations of the physics solver.
-				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
-				scene->GetPhysicsEnvironment()->proceed(curtime);
+				scene->GetPhysicsEnvironment()->endFrame();
+				
 				// Update scenegraph after physics step. This maps physics calculations
 				// into node positions.		
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-				scene->UpdateParents(curtime);
+				scene->UpdateParents(localtime);
 				
 				// Process sensors, and controllers
 				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
-				scene->LogicBeginFrame(curtime);
+				scene->LogicBeginFrame(localtime);
 	
 				// Scenegraph needs to be updated again, because Logic Controllers 
 				// can affect the local matrices.
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-				scene->UpdateParents(curtime);
+				scene->UpdateParents(localtime);
 	
 				// Process actuators
 	
 				// Do some cleanup work for this logic frame
 				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
-				scene->LogicUpdateFrame(curtime, true);
+				scene->LogicUpdateFrame(localtime, true);
 				scene->LogicEndFrame();
 	
 				// Actuators can affect the scenegraph
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
-				scene->UpdateParents(curtime);
+				scene->UpdateParents(localtime);
+				
+				scene->GetPhysicsEnvironment()->beginFrame();
+		
+				// Perform physics calculations on the scene. This can involve 
+				// many iterations of the physics solver.
+				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
+				scene->GetPhysicsEnvironment()->proceed(localtime);
 			} // suspended
 	
 			DoSound(scene);
@@ -445,8 +410,46 @@ void KX_KetsjiEngine::NextFrame()
 	
 		// scene management
 		ProcessScheduledScenes();
+		
+		frames--;
 	}
 
+	// Logic update sub frame: this will let some logic bricks run at the
+	// full frame rate.
+	for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
+	// for each scene, call the proceed functions
+	{
+		KX_Scene* scene = *sceneit;
+
+		if (!scene->IsSuspended())
+		{
+			// set Python hooks for each scene
+			PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
+			PHY_SetActiveScene(scene);
+			
+			// Perform physics calculations on the scene. This can involve 
+			// many iterations of the physics solver.
+			m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
+			scene->GetPhysicsEnvironment()->proceed(curtime);
+			// Update scenegraph after physics step. This maps physics calculations
+			// into node positions.		
+			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+			scene->UpdateParents(curtime);
+			
+			// Do some cleanup work for this logic frame
+			m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
+			scene->LogicUpdateFrame(curtime, false);
+
+			// Actuators can affect the scenegraph
+			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+			scene->UpdateParents(curtime);
+		} // suspended
+
+		DoSound(scene);
+
+		m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
+	}
+	
 	// Start logging time spend outside main loop
 	m_logger->StartLog(tc_outside, m_kxsystem->GetTimeInSeconds(), true);
 }

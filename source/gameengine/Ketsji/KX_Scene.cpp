@@ -860,7 +860,7 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 				for (int m=0;m<nummeshes;m++)
 				{
 					// this adds the vertices to the display list
-					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
+					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
 				}
 			}
 			gameobj->MarkVisible(visible);
@@ -916,7 +916,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj)
 		for (int m=0;m<nummeshes;m++)
 		{
 			// this adds the vertices to the display list
-			(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode(),rasty);
+			(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
 		}
 		// Visibility/ non-visibility are marked
 		// elsewhere now.
@@ -1184,6 +1184,12 @@ PyObject* KX_Scene::_getattr(const STR_String& attr)
 	}
 	
 	_getattr_up(PyObjectPlus);
+}
+
+int KX_Scene::_delattr(const STR_String &attr)
+{
+	PyDict_DelItemString(m_attrlist, const_cast<char *>(attr.ReadPtr()));
+	return 0;
 }
 
 int KX_Scene::_setattr(const STR_String &attr, PyObject *pyvalue)

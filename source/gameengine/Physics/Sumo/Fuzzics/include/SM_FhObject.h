@@ -40,7 +40,7 @@ public:
 	SM_FhObject(DT_ShapeHandle rayshape, MT_Vector3 ray, SM_Object *parent_object);
 
 	const MT_Vector3&  getRay()          const { return m_ray; }
-	MT_Point3          getSpot()         const { return m_pos + m_ray; }
+	MT_Point3          getSpot()         const { return getPosition() + m_ray; }
 	const MT_Vector3&  getRayDirection() const { return m_ray_direction; }
 	SM_Object         *getParentObject() const { return m_parent_object; }
 

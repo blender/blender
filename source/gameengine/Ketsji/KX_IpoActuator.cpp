@@ -276,7 +276,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 				m_direction = 1;
 			SetStartTime(curtime);
 		}
-
+		
 		SetLocalTime(curtime);
 		
 		if (ClampLocalTime() && m_localtime == m_startframe)

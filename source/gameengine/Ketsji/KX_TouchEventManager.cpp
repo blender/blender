@@ -40,31 +40,6 @@
 
 #include "SM_Object.h"
 
-KX_TouchEventManager::Collision::Collision(SCA_ISensor *sensor, SM_Object *obj1, SM_Object *obj2)
-	: m_id(next_id++),
-	  m_sensor(sensor),
-	  m_object1(obj1),
-	  m_object2(obj2)
-{
-}
-
-bool KX_TouchEventManager::Collision::operator<(const Collision &other) const
-{
-	if (*this == other)
-		return true;
-		
-	return m_id < other.m_id;
-}
-		
-bool KX_TouchEventManager::Collision::operator==(const Collision &other) const
-{
-	return m_sensor == other.m_sensor && 
-		((m_object1 == other.m_object1 && m_object2 == other.m_object2) ||
-		 (m_object1 == other.m_object2 && m_object2 == other.m_object1));
-}
-
-int KX_TouchEventManager::Collision::next_id = 0;
-
 KX_TouchEventManager::KX_TouchEventManager(class SCA_LogicManager* logicmgr,
 	SM_Scene *scene)
 	: SCA_EventManager(TOUCH_EVENTMGR),
@@ -80,15 +55,8 @@ DT_Bool KX_TouchEventManager::HandleCollision(void* object1, void* object2, cons
 {
 	SM_Object * obj1 = static_cast<SM_Object*>(object1);
 	SM_Object * obj2 = static_cast<SM_Object*>(object2);
-	KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo *>(obj1->getClientObject());
 	
-	list<SCA_ISensor*>::iterator it;
-	for ( it = client_info->m_sensors.begin(); it != client_info->m_sensors.end(); ++it)
-		m_collisions.insert(Collision(*it, obj1, obj2));
-
-	client_info = static_cast<KX_ClientObjectInfo *>(obj2->getClientObject());
-	for ( it = client_info->m_sensors.begin(); it != client_info->m_sensors.end(); ++it)
-		m_collisions.insert(Collision(*it, obj2, obj1));
+	m_collisions.insert(std::pair<SM_Object*, SM_Object*>(obj1, obj2));
 		
 	return DT_CONTINUE;
 }
@@ -164,7 +132,17 @@ void KX_TouchEventManager::NextFrame()
 			static_cast<KX_TouchSensor*>(*it)->SynchronizeTransform();
 		
 		for (std::set<Collision>::iterator cit = m_collisions.begin(); cit != m_collisions.end(); ++cit)
-			static_cast<KX_TouchSensor*>((*cit).m_sensor)->HandleCollision((*cit).m_object1, (*cit).m_object2, NULL);
+		{
+			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo *>((*cit).first->getClientObject());
+	
+			list<SCA_ISensor*>::iterator sit;
+			for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit)
+				static_cast<KX_TouchSensor*>(*sit)->HandleCollision((*cit).first, (*cit).second, NULL);
+		
+			client_info = static_cast<KX_ClientObjectInfo *>((*cit).second->getClientObject());
+			for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit)
+				static_cast<KX_TouchSensor*>(*sit)->HandleCollision((*cit).second, (*cit).first, NULL);
+		}
 			
 		m_collisions.clear();
 			
@@ -184,6 +162,7 @@ void KX_TouchEventManager::RemoveSensor(class SCA_ISensor* sensor)
 		std::swap(*i, m_sensors.back());
 		m_sensors.pop_back();
 	}
+	
 	// remove the sensor forever :)
 	SCA_EventManager::RemoveSensor(sensor);
 }

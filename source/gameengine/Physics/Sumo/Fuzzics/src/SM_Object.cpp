@@ -65,7 +65,6 @@ SM_Object::SM_Object(
 	m_materialPropsBackup(0),
 	m_shapeProps(shapeProps),
 	m_shapePropsBackup(0),
-	m_object(DT_CreateObject(this, shape)),
 	m_margin(0.0),
 	m_scaling(1.0, 1.0, 1.0),
 	m_reaction_impulse(0.0, 0.0, 0.0),
@@ -84,6 +83,7 @@ SM_Object::SM_Object(
 	m_inv_mass(0.0),
 	m_inv_inertia(0., 0., 0.)
 {
+	m_object = DT_CreateObject(this, shape);
 	m_xform.setIdentity();
 	m_xform.getValue(m_ogl_matrix);
 	if (shapeProps)
@@ -146,19 +146,14 @@ integrateMomentum(
 //#define BACKWARD
 #ifdef  MIDPOINT
 // Midpoint rule
-		m_pos += (m_prev_state.getLinearVelocity() + actualLinVelocity()) * (timeStep * 0.5);
-		m_orn += (m_prev_state.getAngularVelocity() * m_prev_state.getOrientation() + actualAngVelocity() * m_orn) * (timeStep * 0.25);
+		integrateMidpoint(timeStep, m_prev_state, actualLinVelocity(), actualAngVelocity());
 #elif defined BACKWARD
 // Backward Euler
-		m_pos += actualLinVelocity() * timeStep;
-		m_orn += actualAngVelocity() * m_orn * (timeStep * 0.5);
+		integrateBackward(timeStep, actualLinVelocity(), actualAngVelocity());
 #else 
 // Forward Euler
-
-		m_pos += m_prev_state.getLinearVelocity() * timeStep;
-		m_orn += m_prev_state.getAngularVelocity() * m_orn * (timeStep * 0.5);
+		integrateForward(timeStep, m_prev_state);
 #endif
-		m_orn.normalize(); // I might not be necessary to do this every call
 
 		calcXform();
 		notifyClient();		
@@ -212,7 +207,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 			 * Apply impulse at the collision point.
 			 * Take rotational inertia into account.
 			 */
-			applyImpulse(local2 + m_pos, impulse * normal);
+			applyImpulse(local2 + getPosition(), impulse * normal);
 		} else {
 			/**
 			 * Apply impulse through object centre. (no rotation.)
@@ -323,7 +318,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 					(invMass + lateral.dot(temp.cross(local2)));
 
 				MT_Scalar friction = MT_min(impulse_lateral, max_friction);
-				applyImpulse(local2 + m_pos, -lateral * friction);
+				applyImpulse(local2 + getPosition(), -lateral * friction);
 			}
 			else {
 				MT_Scalar impulse_lateral = rel_vel_lateral / invMass;
@@ -349,7 +344,7 @@ static void AddCallback(SM_Scene *scene, SM_Object *obj1, SM_Object *obj2)
 	if ((obj1->getClientObject() && obj1->getClientObject()->hasCollisionCallback()) || 
 	    (obj2->getClientObject() && obj2->getClientObject()->hasCollisionCallback()) &&
 	     DT_GetIntersect(obj1->getObjectHandle(), obj2->getObjectHandle(), v))
-		scene->addPair(obj1, obj2);
+		scene->notifyCollision(obj1, obj2);
 }
 
 DT_Bool SM_Object::boing(
@@ -402,10 +397,10 @@ DT_Bool SM_Object::boing(
 	// Set callbacks for game engine.
 	if ((obj1->getClientObject() && obj1->getClientObject()->hasCollisionCallback()) || 
 	    (obj2->getClientObject() && obj2->getClientObject()->hasCollisionCallback()))
-		scene->addPair(obj1, obj2);
+		scene->notifyCollision(obj1, obj2);
 	
-	local1 -= obj1->m_pos;
-	local2 -= obj2->m_pos;
+	local1 -= obj1->getPosition();
+	local2 -= obj2->getPosition();
 	
 	// Calculate collision parameters
 	MT_Vector3 rel_vel        = obj1->getVelocity(local1) - obj2->getVelocity(local2);
@@ -492,7 +487,7 @@ void SM_Object::relax(void)
 		return;
 	//std::cout << "SM_Object::relax: { " << m_error << " }" << std::endl;
 	
-	m_pos += m_error; 
+	setPosition(getPosition() + m_error); 
 	m_error.setValue(0., 0., 0.); 
 	calcXform();
 	notifyClient();
@@ -641,15 +636,15 @@ calcXform() {
 	printf("                 m_scaling = { %-0.5f, %-0.5f, %-0.5f }\n",
 		m_scaling[0], m_scaling[1], m_scaling[2]);
 #endif
-	m_xform.setOrigin(m_pos);
-	m_xform.setBasis(MT_Matrix3x3(m_orn, m_scaling));
+	m_xform.setOrigin(getPosition());
+	m_xform.setBasis(MT_Matrix3x3(getOrientation(), m_scaling));
 	m_xform.getValue(m_ogl_matrix);
 	
 	/* Blender has been known to crash here.
 	   This usually means SM_Object *this has been deleted more than once. */
 	DT_SetMatrixd(m_object, m_ogl_matrix);
 	if (m_fh_object) {
-		m_fh_object->setPosition(m_pos);
+		m_fh_object->setPosition(getPosition());
 		m_fh_object->calcXform();
 	}
 	updateInvInertiaTensor();
@@ -765,9 +760,9 @@ setPosition(
 	const MT_Point3& pos
 ){
 	m_kinematic = true;
-	m_pos = pos;
+	SM_MotionState::setPosition(pos);
 }
-
+	
 	void 
 SM_Object::
 setOrientation(
@@ -775,7 +770,7 @@ setOrientation(
 ){
 	assert(!orn.fuzzyZero());
 	m_kinematic = true;
-	m_orn = orn;
+	SM_MotionState::setOrientation(orn);
 }
 
 	void 

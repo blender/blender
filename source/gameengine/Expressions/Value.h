@@ -249,6 +249,7 @@ public:
 	virtual CValue*	ConvertPythonToValue(PyObject* pyobj);
 
 
+	virtual int				_delattr(const STR_String& attr);
 	virtual int				_setattr(const STR_String& attr,PyObject* value);
 	
 	KX_PYMETHOD(CValue,GetName);

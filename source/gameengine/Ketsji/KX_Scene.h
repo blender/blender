@@ -514,6 +514,7 @@ public:
 
 	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
 	virtual int _setattr(const STR_String &attr, PyObject *pyvalue);
+	virtual int _delattr(const STR_String &attr);
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

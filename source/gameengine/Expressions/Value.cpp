@@ -698,14 +698,15 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 	return vallie;
 
 }
+
+int	CValue::_delattr(const STR_String& attr)
+{
+	RemoveProperty(attr);
+	return 0;
+}
+
 int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
 {
-	
-	if (!pyobj) { // member deletion
-		RemoveProperty(attr);
-		return 0;
-	}
-
 	CValue* vallie = ConvertPythonToValue(pyobj);
 	if (vallie)
 	{

@@ -88,13 +88,7 @@ public:
     void add(SM_Object& object);
     void remove(SM_Object& object);
 
-	void addPair(SM_Object *obj1, SM_Object *obj2) {
-		m_pairList.insert(std::make_pair(obj1, obj2));
-	}
-
-	void clearPairs() {
-		m_pairList.clear();
-	}
+	void notifyCollision(SM_Object *obj1, SM_Object *obj2);
 
 	void setSecondaryRespTable(DT_RespTableHandle secondaryRespTable); 
 	DT_RespTableHandle getSecondaryRespTable() { return m_secondaryRespTable; }
@@ -146,8 +140,6 @@ private:
 	
 	/** internal type */
 	typedef std::vector<SM_Object *> T_ObjectList;
-	/** internal type */
-	typedef std::set<std::pair<SM_Object *, SM_Object *> > T_PairList;
 
 	/** Handle to the scene in SOLID */
 	DT_SceneHandle      m_scene;
@@ -174,12 +166,6 @@ private:
 	 * The list of objects that receive motion updates and do
 	 * collision tests. */
 	T_ObjectList        m_objectList;
-
-	/**
-	 * A list with pairs of objects that collided the previous
-	 * timestep. The list is built during the proceed(). During that
-	 * time, it is not valid. */
-	T_PairList          m_pairList;
 	
 	MT_Scalar           m_lastTime;
 };

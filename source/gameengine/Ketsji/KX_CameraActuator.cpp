@@ -194,7 +194,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	RemoveAllEvents();
 
 	if (bNegativeEvent) return false;
-
+	
 	/* The rules:                                                            */
 	/* CONSTRAINT 1: not implemented */
 	/* CONSTRAINT 2: can camera see actor?              */

@@ -197,8 +197,7 @@ public:
 
 	void				SchedulePolygons(
 							const MT_Transform &transform,
-							int drawingmode,
-							class RAS_IRasterizer* rasty
+							int drawingmode
 						);
 
 	void				ClearArrayData();

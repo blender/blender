@@ -9,7 +9,9 @@ source_files = ['SumoPhysicsController.cpp',
                 'SumoPhysicsEnvironment.cpp',
                 'Fuzzics/src/SM_FhObject.cpp',
                 'Fuzzics/src/SM_Object.cpp',
-                'Fuzzics/src/SM_Scene.cpp']
+                'Fuzzics/src/SM_Scene.cpp',
+		'Fuzzics/src/SM_MotionState.cpp'
+		]
 
 phy_sumo_env.Append (CPPPATH = ['.',
                                 '../common',

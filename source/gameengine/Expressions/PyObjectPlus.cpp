@@ -111,6 +111,11 @@ PyObject *PyObjectPlus::_getattr(const STR_String& attr)
   return Py_FindMethod(Methods, this, const_cast<char *>(attr.ReadPtr()));
 }
 
+int PyObjectPlus::_delattr(const STR_String& attr)
+{
+	return 1;
+}
+
 int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
 {
 	//return PyObject::_setattr(attr,value);
