@@ -1655,8 +1655,8 @@ short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 	/* return 0 1 2: handlepunt */
 	EditIpo *ei;
 	BezTriple *bezt1;
-	int a, b;
-	short dist= 100, temp, mval[2], hpoint=0;
+	int dist= 100, temp, a, b;
+	short mval[2], hpoint=0;
 
 	*icu= 0;
 	*bezt= 0;
