@@ -161,8 +161,7 @@ static PyObject *IpoRepr( BPy_Ipo * self );
 /* Python Ipo_Type structure definition:                                  */
 /*****************************************************************************/
 PyTypeObject Ipo_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
+	PyObject_HEAD_INIT( NULL ) /* required macro */ 0,	/* ob_size */
 	"Ipo",			/* tp_name */
 	sizeof( BPy_Ipo ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
@@ -499,67 +498,67 @@ int Ipo_woIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "HorR" ) ) {
-		*param = CAM_LENS;
+		*param = WO_HOR_R;
 		ok = 1;
 	}
 	if( !strcmp( s, "HorG" ) ) {
-		*param = CAM_STA;
+		*param = WO_HOR_G;
 		ok = 1;
 	}
 	if( !strcmp( s, "HorB" ) ) {
-		*param = CAM_END;
+		*param = WO_HOR_B;
 		ok = 1;
 	}
 	if( !strcmp( s, "ZenR" ) ) {
-		*param = CAM_LENS;
+		*param = WO_ZEN_R;
 		ok = 1;
 	}
 	if( !strcmp( s, "ZenG" ) ) {
-		*param = CAM_STA;
+		*param = WO_ZEN_G;
 		ok = 1;
 	}
 	if( !strcmp( s, "ZenB" ) ) {
-		*param = CAM_END;
+		*param = WO_ZEN_B;
 		ok = 1;
 	}
 	if( !strcmp( s, "Expos" ) ) {
-		*param = CAM_LENS;
+		*param = WO_EXPOS;
 		ok = 1;
 	}
 	if( !strcmp( s, "Misi" ) ) {
-		*param = CAM_STA;
+		*param = WO_MISI;
 		ok = 1;
 	}
 	if( !strcmp( s, "MisDi" ) ) {
-		*param = CAM_END;
+		*param = WO_MISTDI;
 		ok = 1;
 	}
 	if( !strcmp( s, "MisHi" ) ) {
-		*param = CAM_LENS;
+		*param = WO_MISTHI;
 		ok = 1;
 	}
 	if( !strcmp( s, "StarR" ) ) {
-		*param = CAM_STA;
+		*param = WO_STAR_R;
 		ok = 1;
 	}
 	if( !strcmp( s, "StarB" ) ) {
-		*param = CAM_END;
+		*param = WO_STAR_B;
 		ok = 1;
 	}
 	if( !strcmp( s, "StarG" ) ) {
-		*param = CAM_LENS;
+		*param = WO_STAR_G;
 		ok = 1;
 	}
 	if( !strcmp( s, "ClSta" ) ) {
-		*param = CAM_STA;
+		*param = WO_MISTSTA;
 		ok = 1;
 	}
 	if( !strcmp( s, "StarDi" ) ) {
-		*param = CAM_END;
+		*param = WO_STARDIST;
 		ok = 1;
 	}
 	if( !strcmp( s, "StarSi" ) ) {
-		*param = CAM_END;
+		*param = WO_STARSIZE;
 		ok = 1;
 	}
 	return ok;
@@ -569,107 +568,107 @@ int Ipo_maIcuName( char *s, int *param )
 {
 	int ok = 0;
 	if( !strcmp( s, "R" ) ) {
-		*param = CAM_LENS;
+		*param = MA_COL_R;
 		ok = 1;
 	}
 	if( !strcmp( s, "G" ) ) {
-		*param = CAM_STA;
+		*param = MA_COL_G;
 		ok = 1;
 	}
 	if( !strcmp( s, "B" ) ) {
-		*param = CAM_END;
+		*param = MA_COL_B;
 		ok = 1;
 	}
 	if( !strcmp( s, "SpecR" ) ) {
-		*param = CAM_LENS;
+		*param = MA_SPEC_R;
 		ok = 1;
 	}
 	if( !strcmp( s, "SpecG" ) ) {
-		*param = CAM_STA;
+		*param = MA_SPEC_G;
 		ok = 1;
 	}
 	if( !strcmp( s, "SpecB" ) ) {
-		*param = CAM_END;
+		*param = MA_SPEC_B;
 		ok = 1;
 	}
 	if( !strcmp( s, "MirR" ) ) {
-		*param = CAM_LENS;
+		*param = MA_MIR_R;
 		ok = 1;
 	}
 	if( !strcmp( s, "MirG" ) ) {
-		*param = CAM_STA;
+		*param = MA_MIR_G;
 		ok = 1;
 	}
 	if( !strcmp( s, "MirB" ) ) {
-		*param = CAM_END;
+		*param = MA_MIR_B;
 		ok = 1;
 	}
 	if( !strcmp( s, "Ref" ) ) {
-		*param = CAM_LENS;
+		*param = MA_REF;
 		ok = 1;
 	}
 	if( !strcmp( s, "Alpha" ) ) {
-		*param = CAM_STA;
+		*param = MA_ALPHA;
 		ok = 1;
 	}
 	if( !strcmp( s, "Emit" ) ) {
-		*param = CAM_END;
+		*param = MA_EMIT;
 		ok = 1;
 	}
 	if( !strcmp( s, "Amb" ) ) {
-		*param = CAM_LENS;
+		*param = MA_AMB;
 		ok = 1;
 	}
 	if( !strcmp( s, "Spec" ) ) {
-		*param = CAM_STA;
+		*param = MA_SPEC;
 		ok = 1;
 	}
 	if( !strcmp( s, "Hard" ) ) {
-		*param = CAM_END;
+		*param = MA_HARD;
 		ok = 1;
 	}
 	if( !strcmp( s, "SpTra" ) ) {
-		*param = CAM_LENS;
+		*param = MA_SPTR;
 		ok = 1;
 	}
 	if( !strcmp( s, "Ior" ) ) {
-		*param = CAM_STA;
+		*param = MA_IOR;
 		ok = 1;
 	}
 	if( !strcmp( s, "Mode" ) ) {
-		*param = CAM_END;
+		*param = MA_MODE;
 		ok = 1;
 	}
 	if( !strcmp( s, "HaSize" ) ) {
-		*param = CAM_LENS;
+		*param = MA_HASIZE;
 		ok = 1;
 	}
 	if( !strcmp( s, "Translu" ) ) {
-		*param = CAM_STA;
+		*param = MA_TRANSLU;
 		ok = 1;
 	}
 	if( !strcmp( s, "RayMir" ) ) {
-		*param = CAM_END;
+		*param = MA_RAYM;
 		ok = 1;
 	}
 	if( !strcmp( s, "FresMir" ) ) {
-		*param = CAM_LENS;
+		*param = MA_FRESMIR;
 		ok = 1;
 	}
 	if( !strcmp( s, "FresMirI" ) ) {
-		*param = CAM_STA;
+		*param = MA_FRESMIRI;
 		ok = 1;
 	}
 	if( !strcmp( s, "FresTra" ) ) {
-		*param = CAM_END;
+		*param = MA_FRESTRA;
 		ok = 1;
 	}
 	if( !strcmp( s, "FresTraI" ) ) {
-		*param = CAM_LENS;
+		*param = MA_FRESTRAI;
 		ok = 1;
 	}
 	if( !strcmp( s, "TraGlow" ) ) {
-		*param = CAM_STA;
+		*param = MA_ADD;
 		ok = 1;
 	}
 	return ok;
@@ -1250,7 +1249,7 @@ static PyObject *Ipo_getCurveBP( BPy_Ipo * self, PyObject * args )
 
 	/* unsupported method */
 	return EXPP_ReturnPyObjError( PyExc_NotImplementedError,
-								  "bpoint ipos are not supported");
+				      "bpoint ipos are not supported" );
 
 #if 0
 
