@@ -219,7 +219,7 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 
 		/* almost project_short */
 	    Mat4MulVec4fl(G.vd->persmat,pv4);
-		if (fabs(pv[3]) > 0.00001) { /* avoid division by zero */
+		if (fabs(pv4[3]) > 0.00001) { /* avoid division by zero */
 			target[0] = dx/2.0 + (dx/2.0)*pv4[0]/pv4[3];
 			target[1] = dy/2.0 + (dy/2.0)*pv4[1]/pv4[3];
 		}
