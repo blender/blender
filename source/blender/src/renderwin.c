@@ -403,13 +403,15 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 		} 
 		else if (evt==PADPLUSKEY) {
 			if (rw->zoom<15.9) {
-				rw->zoom*= 2.0;
+				if(rw->zoom>0.5 && rw->zoom<1.0) rw->zoom= 1.0;
+				else rw->zoom*= 2.0;
 				renderwin_queue_redraw(rw);
 			}
 		} 
 		else if (evt==PADMINUS) {
 			if (rw->zoom>0.26) {
-				rw->zoom*= 0.5;
+				if(rw->zoom>1.0 && rw->zoom<2.0) rw->zoom= 1.0;
+				else rw->zoom*= 0.5;
 				renderwin_queue_redraw(rw);
 			}
 		} 
