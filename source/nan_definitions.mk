@@ -467,6 +467,7 @@ all debug::
     # enable freetype2 support for text objects
     #export WITH_FREETYPE2 ?= true
   endif
+
 endif
 endif
 endif
@@ -474,4 +475,10 @@ endif
 endif
 endif
 endif
+endif
+
+# Don't want to build the gameengine?
+ifeq ($(NAN_NO_KETSJI), true)
+   export NAN_JUST_BLENDERDYNAMIC=true
+   export NAN_NO_OPENAL=true
 endif

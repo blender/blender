@@ -38,7 +38,11 @@ endif
 
 include nan_definitions.mk
 
-DIRS = creator blender kernel gameengine
+DIRS = creator blender kernel
+
+ifneq ($(NAN_NO_KETSJI),true)
+   DIRS += gameengine
+endif
 
 ifeq ($(OS),windows)
     DIRS += icons
@@ -98,6 +102,7 @@ PYPLAYERLIB ?= $(PYLIB)
     COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
     COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
     COMLIB += $(NAN_JPEG)/lib/libjpeg.a
+ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
@@ -131,6 +136,7 @@ PYPLAYERLIB ?= $(PYLIB)
     COMLIB += $(OCGDIR)/gameengine/ketsji/KXNetwork/$(DEBUG_DIR)libKXNetwork.a
     COMLIB += $(OCGDIR)/gameengine/Network/$(DEBUG_DIR)libNetwork.a
     COMLIB += $(OCGDIR)/gameengine/Network/LoopBackNetwork/$(DEBUG_DIR)libLoopBackNetwork.a
+endif
     COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
     COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
     COMLIB += $(NAN_PNG)/lib/libpng.a
@@ -206,6 +212,13 @@ endif
     #PULIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
     PULIB += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a # KEY_dependkludge fix.. Remove me
     PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+
+ifeq ($(NAN_NO_KETSJI),true)
+    PULIB += $(NAN_MOTO)/lib/libmoto.a
+    PULIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
+    PULIB += $(OCGDIR)/kernel/gen_messaging/$(DEBUG_DIR)libgen_messaging.a
+    COMLIB += $(NAN_SND_LIBS)
+endif
 
     SPLIB1 = $(OCGDIR)/gameengine/GamePlayer/ghost/$(DEBUG_DIR)libghost.a
     SPLIB1 += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
@@ -446,6 +459,15 @@ ifeq ($(OS),windows)
     endif
   endif
 endif
+
+ifeq ($(NAN_JUST_BLENDERDYNAMIC),true)
+  ifeq ($(OS),darwin)
+    BINTARGETS = blenderdynamic.app
+  else
+    BINTARGETS = blenderdynamic
+  endif
+endif
+
 
 # prepare for NAN_BUILDINFO compile at the *sigh* link rules below
 

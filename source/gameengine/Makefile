@@ -38,6 +38,10 @@ DIR = $(OCGDIR)/gameengine
 DIRS = BlenderRoutines
 DIRS += Converter
 DIRS += Expressions GameLogic Ketsji Rasterizer SceneGraph
-DIRS += Network GamePlayer Physics
+DIRS += Network Physics
+
+ifneq ($(NAN_JUST_BLENDERDYNAMIC),true)
+  DIRS += GamePlayer
+endif
 
 include nan_subdirs.mk

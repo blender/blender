@@ -50,6 +50,12 @@ REL_CCFLAGS	+= -DNDEBUG
 DBG_CFLAGS	+= -g
 DBG_CCFLAGS	+= -g
 
+# Is the game engine getting you down? ---------------------------------
+   
+ifeq ($(NAN_NO_KETSJI), true)
+   CPPFLAGS += -DNO_KETSJI
+endif
+
 # OS dependent parts ---------------------------------------------------
 
 ifeq ($(OS),beos)

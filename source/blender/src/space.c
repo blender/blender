@@ -369,6 +369,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 void start_game(void)
 {
 #if GAMEBLENDER == 1
+#ifndef NAN_NO_KETSJI
 	Scene *sc, *startscene = G.scene;
 	LinkNode *scene_cfra_store;
 
@@ -426,6 +427,7 @@ void start_game(void)
 	allqueue(REDRAWACTION, 0);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
+#endif
 #else
 	notice("Game engine is disabled in this release!");
 #endif
