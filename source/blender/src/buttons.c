@@ -3979,8 +3979,8 @@ void texbuts(void)
 				}
 				uiBlockSetCol(block, BUTGREY);
 				uiDefIDPoinBut(block, test_obpoin_but, B_ENV_OB, "Ob:",	  350,95,166,24, &(env->object), "Object name");
-				uiDefButF(block, NUM, B_MATPRV, "Filter :",				  518,95,121,24, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjust sharpness or blurriness of the reflection"),
-				uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				  639,95,120,24, &env->depth, 0, 5.0, 0, 0, "Number of times a map gets rendered again, for recursive mirror effect"),
+				uiDefButF(block, NUM, B_MATPRV, "Filter :",				  518,95,120,24, &tex->filtersize, 0.1, 25.0, 0, 0, "Adjust sharpness or blurriness of the reflection"),
+				uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				  640,95,120,24, &env->depth, 0, 5.0, 0, 0, "Number of times a map gets rendered again, for recursive mirror effect"),
 
 				uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		350,68,122,24, &env->clipsta, 0.01, 50.0, 100, 0, "Set start value for clipping");
 				uiDefButF(block, NUM, 0, 	"ClipEnd", 					475,68,142,24, &env->clipend, 0.1, 5000.0, 1000, 0, "Set end value for clipping");
