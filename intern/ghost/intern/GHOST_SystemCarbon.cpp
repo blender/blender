@@ -565,11 +565,15 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 				//GHOST_ASSERT(status == noErr, "GHOST_SystemCarbon::handleMouseEvent(): GetEventParameter() failed");
 				status = ::GetEventParameter(event, kEventParamMouseWheelAxis, typeMouseWheelAxis, NULL, sizeof(axis), NULL, &axis);
 				GHOST_ASSERT(status == noErr, "GHOST_SystemCarbon::handleMouseEvent(): GetEventParameter() failed");
-				status = ::GetEventParameter(event, kEventParamMouseWheelDelta, typeLongInteger, NULL, sizeof(delta), NULL, &delta);
-				GHOST_ASSERT(status == noErr, "GHOST_SystemCarbon::handleMouseEvent(): GetEventParameter() failed");
 				if (axis == kEventMouseWheelAxisY)
 				{
-					pushEvent(new GHOST_EventWheel(getMilliSeconds(), GHOST_kEventWheel, window, delta));
+					status = ::GetEventParameter(event, kEventParamMouseWheelDelta, typeLongInteger, NULL, sizeof(delta), NULL, &delta);
+					GHOST_ASSERT(status == noErr, "GHOST_SystemCarbon::handleMouseEvent(): GetEventParameter() failed");
+					/*
+					 * Limit mouse wheel delta to plus and minus one.
+					 */
+					delta = delta > 0 ? 1 : -1;
+					pushEvent(new GHOST_EventWheel(getMilliSeconds(), window, delta));
 				}
 			}
 			break;
