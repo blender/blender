@@ -2724,6 +2724,137 @@ static void drawmeshwire_seams(DispListMesh *dlm, int optimal)
 	glLineWidth(1);
 }
 
+static void draw_measure_stats(void)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	float *v1, *v2, *v3, *v4, fvec[3];
+	char val[32]; /* Stores the measurement display text here */
+	float area, col[3]; /* area of the face,  colour of the text to draw */
+	
+	if(G.zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0)
+		glDisable(GL_DEPTH_TEST);
+
+	if(G.zbuf) bglPolygonOffset(5.0);
+	
+	/* Draw Edge Lengths */
+	if(G.f & G_DRAW_EDGELEN) {
+		BIF_GetThemeColor3fv(TH_TEXT, col);
+		/* make color a bit more red */
+		if(col[0]> 0.5) {col[1]*=0.7; col[2]*= 0.7;}
+		else col[0]= col[0]*0.7 + 0.3;
+		glColor3fv(col);
+		
+		/* Now Draw distance */      
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->f & SELECT) {
+				v1= eed->v1->co;
+				v2= eed->v2->co;
+				
+				glRasterPos3f( 0.5*(v1[0]+v2[0]),  0.5*(v1[1]+v2[1]),  0.5*(v1[2]+v2[2]));
+				sprintf(val,"%.3f", VecLenf(v1, v2));
+				BMF_DrawString( G.fonts, val);
+			}
+		}
+	}
+
+	/* Draw Face Areas */
+	if(G.f & G_DRAW_FACEAREA) {
+		BIF_GetThemeColor3fv(TH_TEXT, col);
+		/* make color a bit more green */
+		if(col[1]> 0.5) {col[0]*=0.7; col[2]*= 0.7;}
+		else col[1]= col[1]*0.7 + 0.3;
+		glColor3fv(col);
+		
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				/* Calculate the area */
+				if (efa->v4)
+					area=  AreaQ3Dfl( efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+				else
+					area = AreaT3Dfl( efa->v1->co, efa->v2->co, efa->v3->co);
+
+				sprintf(val,"%.3f", area);
+				glRasterPos3fv(efa->cent);
+				BMF_DrawString( G.fonts, val);
+			}
+		}
+	}
+
+	/* Draw Edge Angles */
+	if(G.f & G_DRAW_EDGEANG) {
+		EditEdge *e1, *e2, *e3, *e4;
+		
+		BIF_GetThemeColor3fv(TH_TEXT, col);
+		/* make color a bit more blue */
+		if(col[2]> 0.5) {col[0]*=0.7; col[1]*= 0.7;}
+		else col[2]= col[2]*0.7 + 0.3;
+		glColor3fv(col);
+		
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			v1= efa->v1->co;
+			v2= efa->v2->co;
+			v3= efa->v3->co;
+			if(efa->v4) v4= efa->v4->co; else v4= v3;
+			e1= efa->e1;
+			e2= efa->e2;
+			e3= efa->e3;
+			if(efa->e4) e4= efa->e4; else e4= e3;
+			
+			/* Calculate the angles */
+				
+			if(e4->f & e1->f & SELECT ) {
+				/* Vec 1 */
+				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
+				fvec[0]= 0.2*efa->cent[0] + 0.8*v1[0];
+				fvec[1]= 0.2*efa->cent[1] + 0.8*v1[1];
+				fvec[2]= 0.2*efa->cent[2] + 0.8*v1[2];
+				glRasterPos3f(fvec[0], fvec[1], fvec[2]);
+				BMF_DrawString( G.fonts, val);
+			}
+			if(e1->f & e2->f & SELECT ) {
+				/* Vec 2 */
+				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
+				fvec[0]= 0.2*efa->cent[0] + 0.8*v2[0];
+				fvec[1]= 0.2*efa->cent[1] + 0.8*v2[1];
+				fvec[2]= 0.2*efa->cent[2] + 0.8*v2[2];
+				glRasterPos3f(fvec[0], fvec[1], fvec[2]);
+				BMF_DrawString( G.fonts, val);
+			}
+			if(e2->f & e3->f & SELECT ) {
+				/* Vec 3 */
+				if(efa->v4) 
+					sprintf(val,"%.3f", VecAngle3(v2, v3, v4));
+				else
+					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
+				fvec[0]= 0.2*efa->cent[0] + 0.8*v3[0];
+				fvec[1]= 0.2*efa->cent[1] + 0.8*v3[1];
+				fvec[2]= 0.2*efa->cent[2] + 0.8*v3[2];
+				glRasterPos3f(fvec[0], fvec[1], fvec[2]);
+				BMF_DrawString( G.fonts, val);
+			}
+				/* Vec 4 */
+			if(efa->v4) {
+				if(e3->f & e4->f & SELECT ) {
+					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
+
+					fvec[0]= 0.2*efa->cent[0] + 0.8*v4[0];
+					fvec[1]= 0.2*efa->cent[1] + 0.8*v4[1];
+					fvec[2]= 0.2*efa->cent[2] + 0.8*v4[2];
+					glRasterPos3f(fvec[0], fvec[1], fvec[2]);
+					BMF_DrawString( G.fonts, val);
+				}
+			}
+		}
+	}    
+	
+	if(G.zbuf) {
+		glEnable(GL_DEPTH_TEST);
+		bglPolygonOffset(0.0);
+	}
+}
+
 static void drawmeshwire(Object *ob)
 {
 	EditMesh *em = G.editMesh;
@@ -2736,7 +2867,7 @@ static void drawmeshwire(Object *ob)
 	EditFace *efa;
 	float fvec[3], *f1, *f2, *f3, *f4, *extverts=NULL;
 	int a, start, end, test, ok, optimal=0;
-
+	
 	me= get_mesh(ob);
 
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
@@ -2821,7 +2952,7 @@ static void drawmeshwire(Object *ob)
 		drawmeshwire_wirextra(dlm, optimal, 255);
 
 		if(G.f & G_DRAWCREASES) drawmeshwire_creases();
-
+		
 		if(ob!=G.obedit) return;
 		
 		calc_meshverts();
@@ -2830,13 +2961,11 @@ static void drawmeshwire(Object *ob)
 		draw_vertices(optimal, 1);
 
 		if(G.f & G_DRAWNORMALS) {	/* normals */
-			/*cpack(0xDDDD22);*/
 			BIF_ThemeColor(TH_NORMAL);
 
 			glBegin(GL_LINES);
 			
-			efa= em->faces.first;
-			while(efa) {
+			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->h==0 && efa->fgonf!=EM_FGON) {
 					VECCOPY(fvec, efa->cent);
 					glVertex3fv(fvec);
@@ -2846,14 +2975,15 @@ static void drawmeshwire(Object *ob)
 					glVertex3fv(fvec);
 					
 				}
-				efa= efa->next;
 			}
-
 			glEnd();
 		}
+
+		if(G.f & (G_DRAW_EDGELEN|G_DRAW_FACEAREA|G_DRAW_EDGEANG))
+			draw_measure_stats();
 	}
 	else { /* Object mode draw */
-		
+
 		if(me==NULL) return;
 		
 		if(me->bb==NULL) tex_space_mesh(me);

@@ -996,7 +996,7 @@ static void texture_panel_musgrave(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
 	str= "Multifractal %x0|Ridged Multifractal %x1|Hybrid Multifractal %x2|Hetero Terrain %x4|fBm %x3";
-	uiDefButS(block, MENU, B_TEXPRV, str, 10, 160, 150, 19, &tex->stype, 0.0, 0.0, 0, 0, "Sets Musgrave type");
+	uiDefButS(block, MENU, B_TEXREDR_PRV, str, 10, 160, 150, 19, &tex->stype, 0.0, 0.0, 0, 0, "Sets Musgrave type");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_TEXPRV, "H: ", 10, 130, 150, 19, &tex->mg_H, 0.0001, 2.0, 10, 0, "Sets the highest fractal dimension");

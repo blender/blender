@@ -1630,7 +1630,18 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==0) {
 					ob= OBACT;
 					if(ob) {
-						obmat_to_viewmat(ob);
+						if ((G.obedit) && (G.obedit->type == OB_MESH)) {
+							editmesh_align_view_to_selected(G.vd, 2);
+						} 
+						else if (G.f & G_FACESELECT) {
+							if(ob->type==OB_MESH) {
+								Mesh *me= ob->data;
+								faceselect_align_view_to_selected(G.vd, me, 2);
+							}
+						}
+						else
+							obmat_to_viewmat(ob);
+						
 						if(G.vd->persp==2) G.vd->persp= 1;
 						scrarea_queue_winredraw(curarea);
 					}

@@ -174,6 +174,11 @@ typedef struct Global {
 #define G_DRAWSEAMS     (1 << 20)
 #define G_HIDDENEDGES   (1 << 21)
 
+/* Measurement info Drawing */
+#define G_DRAW_EDGELEN   (1 << 22) 
+#define G_DRAW_FACEAREA (1 << 23)
+#define G_DRAW_EDGEANG  (1 << 24)
+
 /* G.fileflags */
 
 #define G_AUTOPACK_BIT                  0

@@ -2114,20 +2114,27 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools 1", "Editing", 960, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",		1091, 200, 166, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_HIDE,		"Hide",			1091, 180,  77, 19, 0, 0, 0, 0, 0, "Hides selected faces");
-	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		1171, 180,  86, 19, 0, 0, 0, 0, 0, "Reveals selected faces");
-	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	1091, 160, 166, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
+	uiDefBut(block, BUT,B_DOCENTRE, "Centre",	955, 200, 160, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_HIDE,		"Hide",		1115, 200,  160, 19, 0, 0, 0, 0, 0, "Hides selected faces");
+	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	955, 180, 160, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
+	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		1115, 180,  160, 19, 0, 0, 0, 0, 0, "Reveals selected faces");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",		1090, 131, 166, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
-	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	1090,110,166,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
-	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",		1090,88,166,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
-	uiDefButI(block, TOG|BIT|18, B_DRAWEDGES, "Draw Edges", 	1090,66,166,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
-	uiDefButI(block, TOG|BIT|19, B_DRAWCREASES, "Draw Creases",	1090,44,166,19, &G.f, 0, 0, 0, 0, "Displays creased edges using hilights");
-	uiDefButI(block, TOG|BIT|20, REDRAWVIEW3D, "Draw Seams",	1090,22,166,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
-	uiDefButI(block, TOG|BIT|11, 0, "All Edges",				1090, 0,166,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
+	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",	955, 131, 150, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
+	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	955,110,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
+	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButI(block, TOG|BIT|20, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
+	uiDefButI(block, TOG|BIT|11, 0, "All Edges",			955, 0,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
+	uiBlockEndAlign(block);
+	
+	/* Measurement drawing options */
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|22, REDRAWVIEW3D, "Edge Length",	1125,131,150,19, &G.f, 0, 0, 0, 0, "Displays selected edge lengths");
+	uiDefButI(block, TOG|BIT|24, REDRAWVIEW3D, "Edge Angles",	1125,88,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
+	uiDefButI(block, TOG|BIT|23, REDRAWVIEW3D, "Face Area",		1125,110,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
 	uiBlockEndAlign(block);
 
 }

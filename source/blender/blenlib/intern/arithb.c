@@ -2205,6 +2205,20 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	}
 }
 
+/* Return the angle in degrees between vecs 1-2 and 2-3 */
+float VecAngle3( float *v1, float *v2, float *v3)
+{
+	float vec1[3], vec2[3];
+
+	VecSubf(vec1, v2, v1);
+	VecSubf(vec2, v3, v1);
+	Normalise(vec1);
+	Normalise(vec2);
+	
+	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 360.0/M_PI;
+}
+
+
 void euler_rot(float *beul, float ang, char axis)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];

@@ -564,6 +564,13 @@ vectoquat(
 	short upflag
 );
 
+	float
+VecAngle3(
+	float *v1, 
+	float *v2,
+	float *v3
+);
+
 	void 
 i_lookat(
 	float vx, float vy, 
