@@ -411,6 +411,7 @@ void rotate_uv_tface()
 		mface++;
 	}
 	
+	makeDispList(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -1062,6 +1063,8 @@ void uv_autocalc_tface()
 			}
 		}
 	}
+
+	makeDispList(OBACT);
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);

@@ -68,8 +68,11 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_butspace.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
+
 #include "BSE_drawipo.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
@@ -133,9 +136,9 @@ void do_sound_buttons(unsigned short event)
 		if (G.buts->texnr == 32766) {
 			if (id) strcpy(name, ((bSound *)id)->name);
 			else strcpy(name, U.sounddir);
-			activate_fileselect(FILE_SPECIAL, "SELECT WAV FILE",
-											name, load_sound_buttons);
-		} else {
+			activate_fileselect(FILE_SPECIAL, "SELECT WAV FILE", name, load_sound_buttons);
+		} 
+		else {
 			nr= 1;
 
 			idtest= G.main->sound.first;
@@ -330,13 +333,15 @@ void load_sound_buttons(char *str)
 	sound= sound_new_sound(str);
 	if (sound) {
 		if (curarea && curarea->spacetype==SPACE_BUTS) {
-//			if (G.buts->mainb == BUTS_SOUND) {
-//				G.buts->lockpoin = sound;
-//			}
+			if (G.buts->mainb == CONTEXT_SCENE) {
+				if( G.buts->tab[CONTEXT_SCENE]==TAB_SCENE_SOUND )
+					G.buts->lockpoin = sound;
+			}
 		}
-	} else {
+	} 
+	else {
 		error("Not a valid sample: %s", str);
 	}
 
-	//allqueue(REDRAWBUTSSOUND, 0);
+	allqueue(REDRAWBUTSSCENE, 0);
 }

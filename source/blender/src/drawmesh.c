@@ -785,7 +785,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		MVert *mvert=NULL;
 		int totface;
 
-		if (mesh_uses_displist(me) && !editing) {
+		if(mesh_uses_displist(me) && editing==0) {
 			DispList *dl= find_displist(&me->disp, DL_MESH);
 			DispListMesh *dlm= dl->mesh;
 			
@@ -799,10 +799,11 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 				mfaceint= dlm->mface;
 				tface= dlm->tface;
 			}
-		} else {
+		} 
+		else {
 			DispList *dl= find_displist(&ob->disp, DL_VERTS);
 			if (dl) extverts= dl->verts;
-
+			
 			totface= me->totface;
 			mvert= me->mvert;
 			mface= me->mface;

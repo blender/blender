@@ -597,6 +597,7 @@ void transform_tface_uv(int mode)
 	
 	if(mode=='g') if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
 			
+	makeDispList(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_headredraw(curarea);
 	scrarea_queue_winredraw(curarea);
