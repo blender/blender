@@ -3393,6 +3393,8 @@ void info_buttons(void)
 	xco+=XIC;
 	if(U.uiflag & FLIPINFOMENU) {
 	} else {
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+
 		xmax= GetButStringLength("File");
 		uiDefBlockBut(block, info_filemenu, NULL, "File",	xco, 3, xmax, 15, "");
 		xco+= xmax;
