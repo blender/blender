@@ -100,7 +100,7 @@ integrateMomentum(
 	// those MIDPOINT and BACKWARD integration methods are
 	// in this form not ok with some testfiles ! 
 	// For a release build please use forward euler unless completely tested
-[
+
 //#define MIDPOINT
 //#define BACKWARD
 #ifdef  MIDPOINT
