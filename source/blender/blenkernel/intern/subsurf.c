@@ -901,3 +901,44 @@ DispList* subsurf_mesh_to_displist(Mesh *me, DispList *dl, short subdiv)
 
 	return subsurf_subdivide_to_displist(hme, subdiv);
 }
+
+void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 
+{
+	/* Finds the subsurf limit positions for the verts in a mesh 
+	 * and puts them in an array of floats. Please note that the 
+	 * calculated vert positions is incorrect for the verts 
+	 * on the boundary of the mesh.
+	 */
+	HyperMesh *hme= hypermesh_from_mesh(me, NULL);
+	HyperMesh *nme= hypermesh_new();
+	float edge_sum[3], face_sum[3];
+	HyperVert *hv;
+	LinkNode *l;
+	int i;
+
+	hypermesh_subdivide(hme, nme);
+
+	for (i= me->totvert-1,hv=hme->verts; i>=0; i--,hv=hv->next) {
+		int N= 0;
+                
+		edge_sum[0]= edge_sum[1]= edge_sum[2]= 0.0;
+		face_sum[0]= face_sum[1]= face_sum[2]= 0.0;
+
+		for (N=0,l=hv->edges; l; N++,l= l->next) {
+			Vec3Add(edge_sum, ((HyperEdge*) l->link)->ep->co);
+		}
+		for (l=hv->faces; l; l= l->next) {
+			Vec3Add(face_sum, ((HyperFace*) l->link)->mid->co);
+		}
+
+		positions_r[i][0] = 
+			(hv->nmv->co[0]*N*N + edge_sum[0]*4 + face_sum[0])/(N*(N+5));
+		positions_r[i][1] = 
+			(hv->nmv->co[1]*N*N + edge_sum[1]*4 + face_sum[1])/(N*(N+5));
+		positions_r[i][2] = 
+			(hv->nmv->co[2]*N*N + edge_sum[2]*4 + face_sum[2])/(N*(N+5));
+	}
+
+	hypermesh_free(nme);
+	hypermesh_free(hme);
+}

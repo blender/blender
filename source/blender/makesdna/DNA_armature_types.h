@@ -61,6 +61,10 @@ typedef struct Bone {
 	float defmat[4][4];
 	float irestmat[4][4];	/*	Cached inverse of rest matrix (objectspace)*/
 	float posemat[4][4];	/*	Cached pose matrix (objectspace)*/
+	short boneclass;
+	short filler1;
+	short filler2;
+	short filler3;
 }Bone;
 
 typedef struct bArmature {
@@ -119,5 +123,22 @@ enum {
 		BONE_ISMUSCLEBIT
 };
 
-#endif
+enum {
+		BONE_SKINNABLE  =       0,
+		BONE_UNSKINNABLE,
+		BONE_HEAD,
+		BONE_NECK,
+		BONE_BACK,
+		BONE_SHOULDER,
+		BONE_ARM,
+		BONE_HAND,
+		BONE_FINGER,
+		BONE_THUMB,
+		BONE_PELVIS,
+		BONE_LEG,
+		BONE_FOOT,
+		BONE_TOE,
+		BONE_TENTACLE
+};
 
+#endif

@@ -114,20 +114,32 @@ the specified defweight group */
 	return dv->dw+(dv->totweight-1);
 }
 
-void add_defgroup (Object *ob)
+void add_defgroup (Object *ob) {
+	add_defgroup_name (ob, "Group");
+}
+
+bDeformGroup *add_defgroup_name (Object *ob, char *name)
 {
 	bDeformGroup	*defgroup;
-
+	
 	if (!ob)
-		return;
-
+		return NULL;
+	
 	defgroup = MEM_callocN (sizeof(bDeformGroup), "deformGroup");
-	strcpy (defgroup->name, "Group");
+
+	/* I think there should be some length
+	 * checking here -- don't know why NaN
+	 * never checks name lengths (see
+	 * unique_vertexgroup_name, for example).
+	 */
+	strcpy (defgroup->name, name);
 
 	BLI_addtail(&ob->defbase, defgroup);
 	unique_vertexgroup_name(defgroup, ob);
 
 	ob->actdef = BLI_countlist(&ob->defbase);
+
+	return defgroup;
 }
 
 void del_defgroup (Object *ob)
@@ -165,6 +177,233 @@ void del_defgroup (Object *ob)
 	/* Remove the group */
 	BLI_freelinkN (&ob->defbase, defgroup);
 }
+
+void create_dverts(Mesh *me)
+{
+	/* create deform verts for the mesh
+	 */
+	int i;
+
+	me->dvert= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "deformVert");
+	for (i=0; i < me->totvert; ++i) {
+		me->dvert[i].totweight = 0;
+		me->dvert[i].dw        = NULL;
+	}
+}
+
+int  get_defgroup_num (Object *ob, bDeformGroup	*dg)
+{
+	/* Fetch the location of this deform group
+	 * within the linked list of deform groups.
+	 * (this number is stored in the deform
+	 * weights of the deform verts to link them
+	 * to this deform group) deform deform
+	 * deform blah blah deform
+	 */
+
+	bDeformGroup	*eg;
+	int def_nr;
+
+	eg = ob->defbase.first;
+	def_nr = 0;
+
+	/* loop through all deform groups
+	 */
+	while (eg != NULL){
+
+		/* if the current deform group is
+		 * the one we are after, return
+		 * def_nr
+		 */
+		if (eg == dg){
+			break;
+		}
+		++def_nr;
+		eg = eg->next;
+	}
+
+	/* if there was no deform group found then
+	 * return -1 (should set up a nice symbolic
+	 * constant for this)
+	 */
+	if (eg == NULL) return -1;
+	
+	return def_nr;
+    
+}
+
+
+void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
+{
+	/* This routine removes the vertex from the deform
+	 * group with number def_nr.
+	 *
+	 * This routine is meant to be fast, so it is the
+	 * responsibility of the calling routine to:
+	 *   a) test whether ob is non-NULL
+	 *   b) test whether ob is a mesh
+	 *   c) calculate def_nr
+	 */
+
+	MDeformWeight *newdw;
+	MDeformVert *dvert;
+	int i;
+
+	/* if this mesh has no deform mesh abort
+	 */
+	if (!((Mesh*)ob->data)->dvert) return;
+
+	/* get the deform mesh cooresponding to the
+	 * vertnum
+	 */
+	dvert = ((Mesh*)ob->data)->dvert + vertnum;
+
+	/* for all of the deform weights in the
+	 * deform vert
+	 */
+	for (i=dvert->totweight - 1 ; i>=0 ; i--){
+
+		/* if the def_nr is the same as the one
+		 * for our weight group then remove it
+		 * from this deform vert.
+		 */
+		if (dvert->dw[i].def_nr == def_nr) {
+			dvert->totweight--;
+        
+			/* if there are still other deform weights
+			 * attached to this vert then remove this
+			 * deform weight, and reshuffle the others
+			 */
+			if (dvert->totweight) {
+				newdw = MEM_mallocN (sizeof(MDeformWeight)*(dvert->totweight), 
+									 "deformWeight");
+				if (dvert->dw){
+					memcpy (newdw, dvert->dw, sizeof(MDeformWeight)*i);
+					memcpy (newdw+i, dvert->dw+i+1, 
+							sizeof(MDeformWeight)*(dvert->totweight-i));
+					MEM_freeN (dvert->dw);
+				}
+				dvert->dw=newdw;
+			}
+			/* if there are no other deform weights
+			 * left then just remove the deform weight
+			 */
+			else {
+				MEM_freeN (dvert->dw);
+				dvert->dw = NULL;
+			}
+		}
+	}
+
+}
+
+void add_vert_defnr (Object *ob, int def_nr, int vertnum, 
+                           float weight, int assignmode)
+{
+	/* add the vert to the deform group with the
+	 * specified number
+	 */
+
+	MDeformVert *dv;
+	MDeformWeight *newdw;
+	int	i;
+
+	/* get the vert
+	 */
+	dv = ((Mesh*)ob->data)->dvert + vertnum;
+
+	/* Lets first check to see if this vert is
+	 * already in the weight group -- if so
+	 * lets update it
+	 */
+	for (i=0; i<dv->totweight; i++){
+		
+		/* if this weight cooresponds to the
+		 * deform group, then add it using
+		 * the assign mode provided
+		 */
+		if (dv->dw[i].def_nr == def_nr){
+			
+			switch (assignmode) {
+			case WEIGHT_REPLACE:
+				dv->dw[i].weight=weight;
+				break;
+			case WEIGHT_ADD:
+				dv->dw[i].weight+=weight;
+				if (dv->dw[i].weight >= 1.0)
+					dv->dw[i].weight = 1.0;
+				break;
+			case WEIGHT_SUBTRACT:
+				dv->dw[i].weight-=weight;
+				/* if the weight is zero or less then
+				 * remove the vert from the deform group
+				 */
+				if (dv->dw[i].weight <= 0.0)
+					remove_vert_def_nr(ob, def_nr, vertnum);
+				break;
+			}
+			return;
+		}
+	}
+
+	/* if the vert wasn't in the deform group then
+	 * we must take a different form of action ...
+	 */
+
+	switch (assignmode) {
+	case WEIGHT_SUBTRACT:
+		/* if we are subtracting then we don't
+		 * need to do anything
+		 */
+		return;
+
+	case WEIGHT_REPLACE:
+	case WEIGHT_ADD:
+		/* if we are doing an additive assignment, then
+		 * we need to create the deform weight
+		 */
+		newdw = MEM_callocN (sizeof(MDeformWeight)*(dv->totweight+1), 
+							 "deformWeight");
+		if (dv->dw){
+			memcpy (newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
+			MEM_freeN (dv->dw);
+		}
+		dv->dw=newdw;
+    
+		dv->dw[dv->totweight].weight=weight;
+		dv->dw[dv->totweight].def_nr=def_nr;
+    
+		dv->totweight++;
+		break;
+	}
+}
+
+void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum, 
+                           float weight, int assignmode)
+{
+	/* add the vert to the deform group with the
+	 * specified assign mode
+	 */
+	int	def_nr;
+
+	/* get the deform group number, exit if
+	 * it can't be found
+	 */
+	def_nr = get_defgroup_num(ob, dg);
+	if (def_nr < 0) return;
+
+	/* if this mesh has no deform verts then
+	 * create some
+	 */
+	if (!((Mesh*)ob->data)->dvert) {
+		create_dverts((Mesh*)ob->data);
+	}
+
+	/* call another function to do the work
+	 */
+	add_vert_defnr (ob, def_nr, vertnum, weight, assignmode);
+}
+
 
 void assign_verts_defgroup (void)
 /* Only available in editmode */
@@ -230,6 +469,35 @@ void assign_verts_defgroup (void)
 
 }
 
+void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
+{
+	/* This routine removes the vertex from the specified
+	 * deform group.
+	 */
+
+	int def_nr;
+
+	/* if the object is NULL abort
+	 */
+	if (!ob)
+		return;
+
+	/* if this isn't a mesh abort
+	 */
+	if (ob->type != OB_MESH) return;
+
+	/* get the deform number that cooresponds
+	 * to this deform group, and abort if it
+	 * can not be found.
+	 */
+	def_nr = get_defgroup_num(ob, dg);
+	if (def_nr < 0) return;
+
+	/* call another routine to do the work
+	 */
+	remove_vert_def_nr (ob, def_nr, vertnum);
+}
+
 void remove_verts_defgroup (int allverts)
 /* Only available in editmode */
 {
@@ -286,12 +554,18 @@ void remove_verts_defgroup (int allverts)
 
 void verify_defgroups (Object *ob)
 {
-		/* Ensure the defbase & the dverts match */
+	/* Ensure the defbase & the dverts match */
 	switch (ob->type){
 	case OB_MESH:
+
+		/* I'm pretty sure this means "If there are no
+		 * deform groups defined, yet there are deform
+		 * vertices, then delete the deform vertices
+		 */
 		if (!ob->defbase.first){
 			if (((Mesh*)ob->data)->dvert){
-				free_dverts(((Mesh*)ob->data)->dvert, ((Mesh*)ob->data)->totvert);
+				free_dverts(((Mesh*)ob->data)->dvert, 
+							((Mesh*)ob->data)->totvert);
 				((Mesh*)ob->data)->dvert=NULL;
 			}
 		}
@@ -300,6 +574,22 @@ void verify_defgroups (Object *ob)
 		break;
 	}
 }
+
+bDeformGroup *get_named_vertexgroup(Object *ob, char *name)
+{
+	/* return a pointer to the deform group with this name
+	 * or return NULL otherwise.
+	 */
+	bDeformGroup *curdef;
+
+	for (curdef = ob->defbase.first; curdef; curdef=curdef->next){
+		if (!strcmp(curdef->name, name)){
+			return curdef;
+		}
+	}
+	return NULL;
+}
+
 
 void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 {

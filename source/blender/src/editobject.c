@@ -850,7 +850,14 @@ void make_parent(void)
 							memset(base->object->loc, 0, 3*sizeof(float));
 						}
 						else {
-						if(mode==PARSKEL && par->type == OB_ARMATURE) {
+							if(mode==PARSKEL && par->type == OB_ARMATURE) {
+								/* Prompt the user as to whether he wants to
+								 * add some vertex groups based on the bones
+								 * in the parent armature.
+								 */
+								create_vgroups_from_armature(base->object, 
+															 par);
+
 								base->object->partype= PAROBJECT;
 								what_does_parent(base->object);
 								Mat4One (base->object->parentinv);

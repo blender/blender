@@ -77,6 +77,7 @@ struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 struct Bone *get_indexed_bone (struct bArmature *arm, int index);
 void make_displists_by_armature (struct Object *ob);
 void calc_bone_deform (struct Bone *bone, float weight, float *vec, float *co, float *contrib);
+float dist_to_bone (float vec[3], float b1[3], float b2[3]);
 
 void where_is_armature_time (struct Object *ob, float ctime);
 void where_is_armature (struct Object *ob);

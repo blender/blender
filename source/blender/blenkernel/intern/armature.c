@@ -73,7 +73,6 @@
 /*	Function prototypes */
 
 static void apply_pose_bonechildren (Bone* bone, bPose* pose, int doit);
-static float dist_to_bone (float vec[3], float b1[3], float b2[3]);
 static Bone *get_named_bone_bonechildren (Bone *bone, const char *name);
 static Bone *get_indexed_bone_bonechildren (Bone *bone, int *index);
 /*void make_bone_parent_matrix (Bone* bone);*/
@@ -568,7 +567,7 @@ static int verify_boneptr_children (Bone *cBone, Bone *tBone)
 }
 
 
-static float dist_to_bone (float vec[3], float b1[3], float b2[3])
+float dist_to_bone (float vec[3], float b1[3], float b2[3])
 {
 /*  	float dist=0; */
 	float bdelta[3];

@@ -33,12 +33,18 @@
 #ifndef BIF_DEFORM_H
 #define BIF_DEFORM_H
 
+#define WEIGHT_REPLACE  1
+#define WEIGHT_ADD      2
+#define WEIGHT_SUBTRACT 3
+
 struct Object;
 struct MDeformVert;
 struct MDeformWeight;
 struct bDeformGroup;
 
+struct bDeformGroup *get_named_vertexgroup (Object *ob, char *name);
 void unique_vertexgroup_name (struct bDeformGroup *dg, struct Object *ob);
+struct bDeformGroup *add_defgroup_name (struct Object *ob, char *name);
 void add_defgroup (struct Object *ob);
 void del_defgroup (struct Object *ob);
 void assign_verts_defgroup (void);
@@ -46,6 +52,12 @@ void remove_verts_defgroup (int allverts);
 void sel_verts_defgroup (int select);
 struct MDeformWeight *verify_defweight (struct MDeformVert *dv, int defgroup);
 void verify_defgroups (struct Object *ob);
+int  get_defgroup_num (struct Object *ob, struct bDeformGroup   *dg);
+void add_vert_to_defgroup (struct Object *ob, struct bDeformGroup *dg, 
+						   int vertnum, float weight, 
+						   int assignmode);
+void remove_vert_defgroup (struct Object *ob, struct bDeformGroup  *dg, 
+						   int vertnum);
 
 #endif
 

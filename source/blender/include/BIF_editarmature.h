@@ -73,6 +73,7 @@ typedef struct EditBone
 	float rot[3], drot[3];
 	float quat[4], dquat[4];
 	float obmat[4][4];
+	short boneclass;
 
 
 } EditBone;
@@ -106,6 +107,7 @@ void	selectconnected_posearmature(void);
 void	select_bone_by_name (struct bArmature *arm, char *name, int select);
 struct	Bone *get_first_selected_bone (void);
 void auto_align_armature(void);
+void create_vgroups_from_armature(Object *ob, Object *par);
 
 #define	BONESEL_TIP		0x08000000
 #define	BONESEL_ROOT	0x04000000

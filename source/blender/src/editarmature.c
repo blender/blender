@@ -58,6 +58,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_action.h"
@@ -65,6 +66,7 @@
 #include "BKE_constraint.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
+#include "BKE_subsurf.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -76,6 +78,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_poseobject.h"
 #include "BIF_mywindow.h"
+#include "BIF_editdeform.h"
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
@@ -810,6 +813,8 @@ static void editbones_to_armature (ListBase *list, Object *ob)
 
 		newBone->weight = eBone->weight;
 		newBone->dist = eBone->dist;
+		newBone->boneclass = eBone->boneclass;
+
 		memcpy (newBone->loc, eBone->loc, sizeof(eBone->loc));
 		memcpy (newBone->dloc, eBone->dloc, sizeof(eBone->dloc));
 /*		memcpy (newBone->orig, eBone->orig, sizeof(eBone->orig));*/
@@ -906,6 +911,8 @@ void load_editArmature(void)
 
 		newBone->weight = eBone->weight;
 		newBone->dist = eBone->dist;
+		newBone->boneclass = eBone->boneclass;
+
 		memcpy (newBone->loc, eBone->loc, sizeof(eBone->loc));
 		memcpy (newBone->dloc, eBone->dloc, sizeof(eBone->dloc));
 /*		memcpy (newBone->orig, eBone->orig, sizeof(eBone->orig));*/
@@ -1081,6 +1088,7 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 #endif		
 		eBone->dist= curBone->dist;
 		eBone->weight= curBone->weight;
+		eBone->boneclass = curBone->boneclass;
 		memcpy (eBone->loc, curBone->loc, sizeof(curBone->loc));
 		memcpy (eBone->dloc, curBone->dloc, sizeof(curBone->dloc));
 		/*		memcpy (eBone->orig, curBone->orig, sizeof(curBone->orig));*/
@@ -1587,6 +1595,7 @@ static void add_bone_input (Object *ob)
 		
 		bone->weight= 1.0F;
 		bone->dist= 1.0F;
+		bone->boneclass = BONE_SKINNABLE;
 
 		/*	Project cursor center to screenspace. */
 		getmouseco_areawin(mval);
@@ -1781,8 +1790,35 @@ void armaturebuts(void)
 
 				/* Dist and weight buttons */
 				uiBlockSetCol(block, BUTGREY);
-				uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+320, by, 110, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
-				uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+438, by, 110, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
+				but=uiDefButI(block, MENU, REDRAWVIEW3D,
+							  "Skinnable %x0|"
+							  "Unskinnable %x1|"
+							  "Head %x2|"
+							  "Neck %x3|"
+							  "Back %x4|"
+							  "Shoulder %x5|"
+							  "Arm %x6|"
+							  "Hand %x7|"
+							  "Finger %x8|"
+							  "Thumb %x9|"
+							  "Pelvis %x10|"
+							  "Leg %x11|"
+							  "Foot %x12|"
+							  "Toe %x13|"
+							  "Tentacle %x14",
+							  bx+320,by,97,18,
+							  &curBone->boneclass,
+							  0.0, 0.0, 0.0, 0.0, 
+							  "Classification of armature element");
+				
+				/* Dist and weight buttons */
+				uiBlockSetCol(block, BUTGREY);
+				uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+425, by, 
+						  110, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, 
+						  "Bone deformation distance");
+				uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+543, by, 
+						  110, 18, &curBone->weight, 0.0F, 1000.0F, 
+						  10.0F, 0.0F, "Bone deformation weight");
 				
 				by-=19;	
 			}
@@ -2108,6 +2144,8 @@ void extrude_armature(void)
 			newbone->flag |= BONE_QUATROT;
 			newbone->weight= curbone->weight;
 			newbone->dist= curbone->dist;
+			newbone->boneclass= curbone->boneclass;
+
 			Mat4One(newbone->obmat);
 			
 			/* See if there are any ik children of the parent */
@@ -2586,3 +2624,324 @@ void auto_align_armature(void)
 	}
 } 
 
+int bone_looper(Object *ob, Bone *bone, void *data,
+                        int (*bone_func)(Object *, Bone *, void *)) {
+
+    /* We want to apply the function bone_func to every bone 
+     * in an armature -- feed bone_looper the first bone and 
+     * a pointer to the bone_func and watch it go!. The int count 
+     * can be useful for counting bones with a certain property
+     * (e.g. skinnable)
+     */
+    int count = 0;
+
+    if (bone) {
+
+        /* only do bone_func if the bone is non null
+         */
+        count += bone_func(ob, bone, data);
+
+        /* try to execute bone_func for the first child
+         */
+        count += bone_looper(ob, bone->childbase.first, data,
+                                    bone_func);
+
+        /* try to execute bone_func for the next bone at this
+         * depth of the recursion.
+         */
+        count += bone_looper(ob, bone->next, data, bone_func);
+    }
+
+    return count;
+}
+
+int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
+    /* This group creates a vertex group to ob that has the
+     * same name as bone. Is such a vertex group aleady exist
+     * the routine exits.
+     */
+    if (!get_named_vertexgroup(ob,bone->name)) {
+        add_defgroup_name(ob, bone->name);
+        return 1;
+    }
+    return 0;
+}
+
+int bone_skinnable(Object *ob, Bone *bone, void *data)
+{
+    /* Bones that are not of boneclass BONE_UNSKINNABLE
+     * are regarded to be "skinnable" and are eligible for
+     * auto-skinning.
+     *
+     * This function performs 2 functions:
+     *
+     *   a) It returns 1 if the bone is skinnable.
+     *      If we loop over all bones with this 
+     *      function, we can count the number of
+     *      skinnable bones.
+     *   b) If the pointer data is non null,
+     *      it is treated like a handle to a
+     *      bone pointer -- the bone pointer
+     *      is set to point at this bone, and
+     *      the pointer the handle points to
+     *      is incremented to point to the
+     *      next member of an array of pointers
+     *      to bones. This way we can loop using
+     *      this function to construct an array of
+     *      pointers to bones that point to all
+     *      skinnable bones.
+     */
+    Bone ***hbone;
+
+    if ( bone->boneclass != BONE_UNSKINNABLE ) {
+		if (data != NULL) {
+			hbone = (Bone ***) data;
+            **hbone = bone;
+            ++*hbone;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+int dgroup_skinnable(Object *ob, Bone *bone, void *data) {
+    /* Bones that are not of boneclass BONE_UNSKINNABLE
+     * are regarded to be "skinnable" and are eligible for
+     * auto-skinning.
+     *
+     * This function performs 2 functions:
+     *
+     *   a) If the bone is skinnable, it creates 
+     *      a vertex group for ob that has
+     *      the name of the skinnable bone
+     *      (if one doesn't exist already).
+     *   b) If the pointer data is non null,
+     *      it is treated like a handle to a
+     *      bDeformGroup pointer -- the 
+     *      bDeformGroup pointer is set to point
+     *      to the deform group with the bone's
+     *      name, and the pointer the handle 
+     *      points to is incremented to point to the
+     *      next member of an array of pointers
+     *      to bDeformGroups. This way we can loop using
+     *      this function to construct an array of
+     *      pointers to bDeformGroups, all with names
+     *      of skinnable bones.
+     */
+    bDeformGroup ***hgroup, *defgroup;
+
+    if ( bone->boneclass != BONE_UNSKINNABLE ) {
+        if ( !(defgroup = get_named_vertexgroup(ob, bone->name)) ) {
+            defgroup = add_defgroup_name(ob, bone->name);
+        }
+
+        if (data != NULL) {
+            hgroup = (bDeformGroup ***) data;
+            **hgroup = defgroup;
+            ++*hgroup;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+void add_verts_to_closest_dgroup(Object *ob, Object *par)
+{
+    /* This function implements a crude form of 
+     * auto-skinning: vertices are assigned to the
+     * deformation groups associated with bones based
+     * on thier proximity to a bone. Every vert is
+     * given a weight of 1.0 to the weight group
+     * cooresponding to the bone that it is
+     * closest to. The vertex may also be assigned to
+     * a deformation group associated to a bone
+     * that is within 10% of the mninimum distance
+     * between the bone and the nearest vert -- the
+     * cooresponding weight will fall-off to zero
+     * as the distance approaches the 10% tolerance mark.
+	 * If the mesh has subsurf enabled then the verts
+	 * on the subsurf limit surface is used to generate 
+	 * the weights rather than the verts on the cage
+	 * mesh.
+     */
+
+    bArmature *arm;
+    Bone **bonelist, **bonehandle, *bone;
+    bDeformGroup **dgrouplist, **dgrouphandle, *defgroup;
+    float *distance, mindist = 0.0, weight = 0.0;
+    float   root[3];
+    float   tip[3];
+    float real_co[3];
+	float *subverts = NULL;
+    float *subvert;
+    Mesh  *mesh;
+    MVert *vert;
+
+    int numbones, i, j;
+
+    /* If the parent object is not an armature exit */
+    arm = get_armature(par);
+    if (!arm)
+        return;
+
+    /* count the number of skinnable bones */
+    numbones = bone_looper(ob, arm->bonebase.first, NULL,
+                                  bone_skinnable);
+
+    /* create an array of pointer to bones that are skinnable
+     * and fill it with all of the skinnable bones
+     */
+    bonelist = MEM_mallocN(numbones*sizeof(Bone *), "bonelist");
+    bonehandle = bonelist;
+    bone_looper(ob, arm->bonebase.first, &bonehandle,
+                       bone_skinnable);
+
+    /* create an array of pointers to the deform groups that
+     * coorespond to the skinnable bones (creating them
+     * as necessary.
+     */
+    dgrouplist = MEM_mallocN(numbones*sizeof(bDeformGroup *), "dgrouplist");
+    dgrouphandle = dgrouplist;
+    bone_looper(ob, arm->bonebase.first, &dgrouphandle,
+                       dgroup_skinnable);
+
+    /* create an array of floats that will be used for each vert
+     * to hold the distance to each bone.
+     */
+    distance = MEM_mallocN(numbones*sizeof(float), "distance");
+
+    mesh = (Mesh*)ob->data;
+
+	/* Is subsurf on? Lets use the verts on the limit surface then */
+	if ( (mesh->flag&ME_SUBSURF) && (mesh->subdiv > 0) ) {
+		subverts = MEM_mallocN(3*mesh->totvert*sizeof(float), "subverts");
+		subsurf_calculate_limit_positions(mesh, subverts);
+	}
+
+    /* for each vertex in the mesh ...
+     */
+    for ( i=0 ; i < mesh->totvert ; ++i ) {
+        /* get the vert in global coords
+         */
+		
+		if (subverts) {
+			subvert = subverts + i*3;
+			VECCOPY (real_co, subvert);
+		}
+		else {
+			vert = mesh->mvert + i;
+			VECCOPY (real_co, vert->co);
+		}
+        Mat4MulVecfl(ob->obmat, real_co);
+
+
+        /* for each skinnable bone ...
+         */
+        for (j=0; j < numbones; ++j) {
+            bone = bonelist[j];
+
+            /* get the root of the bone in global coords
+             */
+            get_bone_root_pos (bone, root, 0);
+            Mat4MulVecfl(par->obmat, root);
+
+            /* get the tip of the bone in global coords
+             */
+            get_bone_tip_pos (bone, tip, 0);
+            Mat4MulVecfl(par->obmat, tip);
+
+            /* store the distance from the bone to
+             * the vert
+             */
+            distance[j] = dist_to_bone(real_co, root, tip);
+
+            /* if this is the first bone, or if this
+             * bone is less than mindist, then set this
+             * distance to mindist
+             */
+            if (j == 0) {
+                mindist = distance[j];
+            }
+            else if (distance[j] < mindist) {
+                mindist = distance[j];
+            }
+        }
+
+        /* for each deform group ...
+         */
+        for (j=0; j < numbones; ++j) {
+            defgroup = dgrouplist[j];
+
+            /* if the cooresponding bone is the closest one
+             * add the vert to the deform group with weight 1
+             */
+            if (distance[j] <= mindist) {
+                add_vert_to_defgroup (ob, defgroup, i, 1.0, WEIGHT_REPLACE);
+            }
+
+            /* if the cooresponding bone is within 10% of the
+             * nearest distance, add the vert to the
+             * deform group with a weight that declines with
+             * distance
+             */
+            else if (distance[j] <= mindist*1.10) {
+                if (mindist > 0)
+                    weight = 1.0 - (distance[j] - mindist) / (mindist * 0.10);
+                add_vert_to_defgroup (ob, defgroup, i, weight, WEIGHT_REPLACE);
+            }
+            
+            /* if the cooresponding bone is outside of the 10% tolerance
+             * then remove the vert from the weight group (if it is
+             * in that group)
+             */
+            else {
+                remove_vert_defgroup (ob, defgroup, i);
+            }
+        }
+    }
+
+    /* free the memory allocated
+     */
+    MEM_freeN(bonelist);
+    MEM_freeN(dgrouplist);
+    MEM_freeN(distance);
+	if (subverts) MEM_freeN(subverts);
+}
+
+void create_vgroups_from_armature(Object *ob, Object *par)
+{
+	/* Lets try to create some vertex groups 
+	 * based on the bones of the parent armature.
+	 */
+
+	bArmature *arm;
+	short mode;
+
+	/* If the parent object is not an armature exit */
+	arm = get_armature(par);
+	if (!arm)
+		return;
+
+	/* Prompt the user on whether/how they want the vertex groups
+	 * added to the child mesh */
+	mode= pupmenu("Vertex Groups from Bones? %t|No Thanks %x1|Empty %x2|"
+				  "Closest Bone %x3");
+	switch (mode){
+	case 2:
+		/* Traverse the bone list, trying to create empty vertex 
+		 * groups cooresponding to the bone.
+		 */
+		bone_looper(ob, arm->bonebase.first, NULL,
+					add_defgroup_unique_bone);
+		break;
+
+	case 3:
+		/* Traverse the bone list, trying to create vertex groups 
+		 * that are populated with the vertices for which the
+		 * bone is closest.
+		 */
+		add_verts_to_closest_dgroup(ob, par);
+		break;
+
+	}
+} 

@@ -39,6 +39,7 @@ void subsurf_to_mesh(struct Object *oldob, struct Mesh *newme);
 void subsurf_make_mesh(struct Object *ob, short subdiv);
 void subsurf_make_editmesh(struct Object *ob);
 struct DispList* subsurf_mesh_to_displist(struct Mesh *me, struct DispList *dl, short subdiv);
+void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 
 #endif
 
