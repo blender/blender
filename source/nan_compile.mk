@@ -78,10 +78,10 @@ endif
 ifeq ($(OS),darwin)
     CC	= gcc
     CCC	= g++
-    CFLAGS	+= -pipe -fPIC
+    CFLAGS	+= -pipe -fPIC -ffast-math -mcpu=7450 -mtune=7450
     CCFLAGS	+= -pipe -fPIC
-    REL_CFLAGS	+= -O
-    REL_CCFLAGS	+= -O
+    REL_CFLAGS	+= -O2
+    REL_CCFLAGS	+= -O2
     CPPFLAGS	+= -D_THREAD_SAFE
     NAN_DEPEND	= true
     OPENGL_HEADERS = /System/Library/Frameworks/OpenGL.framework
