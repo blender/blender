@@ -39,6 +39,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h> 
 #include "STR_String.h"
 
 #ifdef HAVE_CONFIG_H
