@@ -61,6 +61,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_oops.h"
 #include "BIF_drawoops.h"
+#include "BIF_outliner.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -632,6 +633,12 @@ void free_oopspace(SpaceOops *so)
 	while( (oops= so->oops.first) ) {
 		BLI_remlink(&so->oops, oops);
 		free_oops(oops);
+	}
+	
+	outliner_free_tree(&so->tree);
+	if(so->treestore) {
+		if(so->treestore->data) MEM_freeN(so->treestore->data);
+		MEM_freeN(so->treestore);
 	}
 }
 

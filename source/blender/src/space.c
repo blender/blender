@@ -81,6 +81,8 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_spacetypes.h"  // first, nasty dependency with typedef
+
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
 #include "BIF_drawseq.h"
@@ -93,6 +95,7 @@
 #include "BIF_editlattice.h"
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
+#include "BIF_editnla.h"
 #include "BIF_editoops.h"
 #include "BIF_editseq.h"
 #include "BIF_editsima.h"
@@ -104,10 +107,10 @@
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
+#include "BIF_outliner.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_spacetypes.h"
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
@@ -713,7 +716,7 @@ void BIF_undo_menu(void)
 
 /* *************** */
 
-void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
@@ -1707,7 +1710,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 }
 
-void initview3d(ScrArea *sa)
+static void initview3d(ScrArea *sa)
 {
 	View3D *vd;
 	
@@ -1750,7 +1753,7 @@ static void changeview2dspace(ScrArea *sa, void *spacedata)
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }
 
-void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	extern void do_ipobuts(unsigned short event); 	// drawipo.c
 	unsigned short event= evt->event;
@@ -2781,7 +2784,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 }
 
 
-void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
@@ -2855,7 +2858,7 @@ void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 }
 
-void init_infospace(ScrArea *sa)
+static void init_infospace(ScrArea *sa)
 {
 	SpaceInfo *sinfo;
 	
@@ -2877,7 +2880,7 @@ static void changebutspace(ScrArea *sa, void *spacedata)
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }
 
-void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+static void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
@@ -3000,7 +3003,7 @@ void test_butspace(void)
 	G.buts->v2d.tot.ymin= MIN2(0.0, blocksmin-10.0);
 }
 
-void init_butspace(ScrArea *sa)
+static void init_butspace(ScrArea *sa)
 {
 	SpaceButs *buts;
 	
@@ -3020,7 +3023,7 @@ void extern_set_butspace(int fkey)
 	ScrArea *sa;
 	SpaceButs *sbuts;
 	
-	/* when a f-key pressed: closest button window is initialized */
+	/* when a f-key pressed: 'closest' button window is initialized */
 	if(curarea->spacetype==SPACE_BUTS) sa= curarea;
 	else {
 		/* find area */
@@ -3073,7 +3076,7 @@ void extern_set_butspace(int fkey)
 
 /*  extern void drawseqspace(ScrArea *sa, void *spacedata); BIF_drawseq.h */
 
-void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
@@ -3283,7 +3286,7 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 }
 
 
-void init_seqspace(ScrArea *sa)
+static void init_seqspace(ScrArea *sa)
 {
 	SpaceSeq *sseq;
 	
@@ -3334,7 +3337,7 @@ static void changeactionspace(ScrArea *sa, void *spacedata)
 }
 
 
-void init_actionspace(ScrArea *sa)
+static void init_actionspace(ScrArea *sa)
 {
 	SpaceAction *saction;
 	
@@ -3385,7 +3388,7 @@ void free_actionspace(SpaceAction *saction)
 
 /* ******************** SPACE: FILE ********************** */
 
-void init_filespace(ScrArea *sa)
+static void init_filespace(ScrArea *sa)
 {
 	SpaceFile *sfile;
 	
@@ -3398,7 +3401,7 @@ void init_filespace(ScrArea *sa)
 	sfile->spacetype= SPACE_FILE;
 }
 
-void init_textspace(ScrArea *sa)
+static void init_textspace(ScrArea *sa)
 {
 	SpaceText *st;
 	
@@ -3417,7 +3420,7 @@ void init_textspace(ScrArea *sa)
 	st->top= 0;
 }
 
-void init_scriptspace(ScrArea *sa)
+static void init_scriptspace(ScrArea *sa)
 {
 	SpaceScript *sc;
 
@@ -3430,7 +3433,7 @@ void init_scriptspace(ScrArea *sa)
 	sc->flags = 0;
 }
 
-void init_imaselspace(ScrArea *sa)
+static void init_imaselspace(ScrArea *sa)
 {
 	SpaceImaSel *simasel;
 	
@@ -3469,7 +3472,7 @@ void init_imaselspace(ScrArea *sa)
 extern void drawsoundspace(ScrArea *sa, void *spacedata);
 extern void winqreadsoundspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
-void init_soundspace(ScrArea *sa)
+static void init_soundspace(ScrArea *sa)
 {
 	SpaceSound *ssound;
 	
@@ -3517,7 +3520,7 @@ void free_soundspace(SpaceSound *ssound)
 
 /*  extern void drawimagespace(ScrArea *sa, void *spacedata); BIF_drawimage.h */
 
-void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
@@ -3746,7 +3749,7 @@ void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 }
 
 
-void init_imagespace(ScrArea *sa)
+static void init_imagespace(ScrArea *sa)
 {
 	SpaceImage *sima;
 	
@@ -3772,7 +3775,7 @@ extern void winqreadimaselspace(struct ScrArea *sa, void *spacedata, struct BWin
 
 extern void drawoopsspace(ScrArea *sa, void *spacedata);
 
-void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
 	short val= evt->val;
@@ -3796,147 +3799,202 @@ void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (U.flag & USER_NONUMPAD) {
 		event= convert_for_nonumpad(event);
 	}
-
-	switch(event) {
-	case LEFTMOUSE:
-		gesture();
-		break;
-	case MIDDLEMOUSE:
-	case WHEELUPMOUSE:
-	case WHEELDOWNMOUSE:
-		view2dmove(event);	/* in drawipo.c */
-		break;
-	case RIGHTMOUSE:
-		mouse_select_oops();
-		break;
-	case PADPLUSKEY:
 	
-		dx= 0.1154*(v2d->cur.xmax-v2d->cur.xmin);
-		dy= 0.1154*(v2d->cur.ymax-v2d->cur.ymin);
-		v2d->cur.xmin+= dx;
-		v2d->cur.xmax-= dx;
-		v2d->cur.ymin+= dy;
-		v2d->cur.ymax-= dy;
-		test_view2d(G.v2d, curarea->winx, curarea->winy);
-		scrarea_queue_winredraw(curarea);
-		break;
-	
-	case PADMINUS:
-
-		dx= 0.15*(v2d->cur.xmax-v2d->cur.xmin);
-		dy= 0.15*(v2d->cur.ymax-v2d->cur.ymin);
-		v2d->cur.xmin-= dx;
-		v2d->cur.xmax+= dx;
-		v2d->cur.ymin-= dy;
-		v2d->cur.ymax+= dy;
-		test_view2d(G.v2d, curarea->winx, curarea->winy);
-		scrarea_queue_winredraw(curarea);
-		break;
+	if(soops->type==SO_OUTLINER) {
+		switch(event) {
+		case LEFTMOUSE:
+			outliner_mouse_event(sa, event);
+			break;
+		case MIDDLEMOUSE:
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
+			view2dmove(event);	/* in drawipo.c */
+			break;
+			
+		case AKEY:
+			outliner_toggle_visible(sa);
+			break;
 		
-	case HOMEKEY:	
-		if((G.qual==0))
-			do_oops_buttons(B_OOPSHOME);
-		break;
+		case RETKEY:
+		case PADENTER:
+			outliner_mouse_event(sa, event);
+			break;
+		case PERIODKEY:
+		case PADPERIOD:
+			outliner_show_active(sa);
+			break;
+		}
+	}
+	else {
+		switch(event) {
+		case LEFTMOUSE:
+			gesture();
+			break;
+		case MIDDLEMOUSE:
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
+			view2dmove(event);	/* in drawipo.c */
+			break;
+		case RIGHTMOUSE:
+			mouse_select_oops();
+			break;
+		case PADPLUSKEY:
 		
-	case AKEY:
-		if((G.qual==0)) {
-			swap_select_all_oops();
+			dx= 0.1154*(v2d->cur.xmax-v2d->cur.xmin);
+			dy= 0.1154*(v2d->cur.ymax-v2d->cur.ymin);
+			v2d->cur.xmin+= dx;
+			v2d->cur.xmax-= dx;
+			v2d->cur.ymin+= dy;
+			v2d->cur.ymax-= dy;
+			test_view2d(G.v2d, curarea->winx, curarea->winy);
 			scrarea_queue_winredraw(curarea);
-		}
-		break;
-	case BKEY:
-		if((G.qual==0))
-			borderselect_oops();
-		break;
-	case GKEY:
-		if((G.qual==0))
-			transform_oops('g');
-		break;
-	case LKEY:
-		if((G.qual==LR_SHIFTKEY))
-			select_backlinked_oops();
-		else if((G.qual==0))
-			select_linked_oops();
-		break;
-	case SKEY:
-		if((G.qual==LR_ALTKEY)) {
-			if (okee("Shrink blocks")) {
-				shrink_oops();
+			break;
+		
+		case PADMINUS:
+
+			dx= 0.15*(v2d->cur.xmax-v2d->cur.xmin);
+			dy= 0.15*(v2d->cur.ymax-v2d->cur.ymin);
+			v2d->cur.xmin-= dx;
+			v2d->cur.xmax+= dx;
+			v2d->cur.ymin-= dy;
+			v2d->cur.ymax+= dy;
+			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			scrarea_queue_winredraw(curarea);
+			break;
+			
+		case HOMEKEY:	
+			if((G.qual==0))
+				do_oops_buttons(B_OOPSHOME);
+			break;
+			
+		case AKEY:
+			if((G.qual==0)) {
+				swap_select_all_oops();
+				scrarea_queue_winredraw(curarea);
 			}
-		} else if((G.qual==LR_SHIFTKEY)) {
-			if (okee("Shuffle blocks")) {
-				shuffle_oops();
+			break;
+		case BKEY:
+			if((G.qual==0))
+				borderselect_oops();
+			break;
+		case GKEY:
+			if((G.qual==0))
+				transform_oops('g');
+			break;
+		case LKEY:
+			if((G.qual==LR_SHIFTKEY))
+				select_backlinked_oops();
+			else if((G.qual==0))
+				select_linked_oops();
+			break;
+		case SKEY:
+			if((G.qual==LR_ALTKEY)) {
+				if (okee("Shrink blocks")) {
+					shrink_oops();
+				}
+			} else if((G.qual==LR_SHIFTKEY)) {
+				if (okee("Shuffle blocks")) {
+					shuffle_oops();
+				}
+			} else if((G.qual==0)) {
+				transform_oops('s');
 			}
-		} else if((G.qual==0)) {
-			transform_oops('s');
-		}
-		break;
-	case PKEY:
-		if((G.qual==LR_CTRLKEY)) {
-			make_parent();
-		} else if((G.qual==LR_ALTKEY)) {
-			clear_parent();
-		}
-		break;
+			break;
+		case PKEY:
+			if((G.qual==LR_CTRLKEY)) {
+				make_parent();
+			} else if((G.qual==LR_ALTKEY)) {
+				clear_parent();
+			}
+			break;
 
 
-	case ONEKEY:
-		do_layer_buttons(0); break;
-	case TWOKEY:
-		do_layer_buttons(1); break;
-	case THREEKEY:
-		do_layer_buttons(2); break;
-	case FOURKEY:
-		do_layer_buttons(3); break;
-	case FIVEKEY:
-		do_layer_buttons(4); break;
-	case SIXKEY:
-		do_layer_buttons(5); break;
-	case SEVENKEY:
-		do_layer_buttons(6); break;
-	case EIGHTKEY:
-		do_layer_buttons(7); break;
-	case NINEKEY:
-		do_layer_buttons(8); break;
-	case ZEROKEY:
-		do_layer_buttons(9); break;
-	case MINUSKEY:
-		do_layer_buttons(10); break;
-	case EQUALKEY:
-		do_layer_buttons(11); break;
-	case ACCENTGRAVEKEY:
-		do_layer_buttons(-1); break;
-	
+		case ONEKEY:
+			do_layer_buttons(0); break;
+		case TWOKEY:
+			do_layer_buttons(1); break;
+		case THREEKEY:
+			do_layer_buttons(2); break;
+		case FOURKEY:
+			do_layer_buttons(3); break;
+		case FIVEKEY:
+			do_layer_buttons(4); break;
+		case SIXKEY:
+			do_layer_buttons(5); break;
+		case SEVENKEY:
+			do_layer_buttons(6); break;
+		case EIGHTKEY:
+			do_layer_buttons(7); break;
+		case NINEKEY:
+			do_layer_buttons(8); break;
+		case ZEROKEY:
+			do_layer_buttons(9); break;
+		case MINUSKEY:
+			do_layer_buttons(10); break;
+		case EQUALKEY:
+			do_layer_buttons(11); break;
+		case ACCENTGRAVEKEY:
+			do_layer_buttons(-1); break;
+		
+		}
 	}
 }
 
-void init_v2d_oops(View2D *v2d)
+void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 {
-	v2d->tot.xmin= -28.0;
-	v2d->tot.xmax= 28.0;
-	v2d->tot.ymin= -28.0;
-	v2d->tot.ymax= 28.0;
+	View2D *v2d= &soops->v2d;
 	
-	v2d->cur= v2d->tot;
+	if(soops->type==SO_OUTLINER) {
+		/* outliner space is window size */
+		calc_scrollrcts(v2d, sa->winx, sa->winy);
+		
+		v2d->tot.xmax= 0.0;
+		v2d->tot.ymax= 0.0;
+		v2d->tot.xmin= -(v2d->mask.xmax-v2d->mask.xmin);
+		v2d->tot.ymin= -(v2d->mask.ymax-v2d->mask.ymin);
+		
+		v2d->cur= v2d->tot;
+		
+		v2d->min[0]= v2d->tot.xmin;
+		v2d->min[1]= v2d->tot.ymin;
+		
+		v2d->max[0]= v2d->tot.xmax;
+		v2d->max[1]= v2d->tot.ymax;
+		
+		v2d->minzoom= 1.0;
+		v2d->maxzoom= 1.0;
+		
+		v2d->scroll= L_SCROLL;
+		v2d->keepaspect= 1;
+		v2d->keepzoom= 1;
+		v2d->keeptot= 1;
+	}
+	else {
+		v2d->tot.xmin= -28.0;
+		v2d->tot.xmax= 28.0;
+		v2d->tot.ymin= -28.0;
+		v2d->tot.ymax= 28.0;
+		
+		v2d->cur= v2d->tot;
 
-	v2d->min[0]= 10.0;
-	v2d->min[1]= 4.0;
+		v2d->min[0]= 10.0;
+		v2d->min[1]= 4.0;
 
-	v2d->max[0]= 320.0;
-	v2d->max[1]= 320.0;
-	
-	v2d->minzoom= 0.01f;
-	v2d->maxzoom= 2.0;
-	
-	/* v2d->scroll= L_SCROLL+B_SCROLL; */
-	v2d->scroll= 0;
-	v2d->keepaspect= 1;
-	v2d->keepzoom= 0;
-	v2d->keeptot= 0;
-	
+		v2d->max[0]= 320.0;
+		v2d->max[1]= 320.0;
+		
+		v2d->minzoom= 0.01f;
+		v2d->maxzoom= 2.0;
+		
+		/* v2d->scroll= L_SCROLL+B_SCROLL; */
+		v2d->scroll= 0;
+		v2d->keepaspect= 1;
+		v2d->keepzoom= 0;
+		v2d->keeptot= 0;
+	}
 }
 
-void init_oopsspace(ScrArea *sa)
+static void init_oopsspace(ScrArea *sa, int outliner)
 {
 	SpaceOops *soops;
 	
@@ -3944,13 +4002,52 @@ void init_oopsspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, soops);
 
 	soops->visiflag= OOPS_OB+OOPS_MA+OOPS_ME+OOPS_TE+OOPS_CU+OOPS_IP;
+	if(outliner) soops->type= SO_OUTLINER;
 	
 	soops->spacetype= SPACE_OOPS;
 	soops->blockscale= 0.7;
-	init_v2d_oops(&soops->v2d);
+	init_v2d_oops(sa, soops);
 }
 
-/* ******************** SPACE: PAINT ********************** */
+/* ******************** SPACE: NLA ********************** */
+
+static void init_nlaspace(ScrArea *sa)
+{
+	SpaceNla *snla;
+	
+	snla= MEM_callocN(sizeof(SpaceNla), "initnlaspace");
+	BLI_addhead(&sa->spacedata, snla);
+	
+	snla->spacetype= SPACE_NLA;
+	snla->blockscale= 0.7;
+	
+	snla->v2d.tot.xmin= 1.0;
+	snla->v2d.tot.ymin=	0.0;
+	snla->v2d.tot.xmax= 1000.0;
+	snla->v2d.tot.ymax= 1000.0;
+	
+	snla->v2d.cur.xmin= -5.0;
+	snla->v2d.cur.ymin= 0.0;
+	snla->v2d.cur.xmax= 65.0;
+	snla->v2d.cur.ymax= 1000.0;
+	
+	snla->v2d.min[0]= 0.0;
+	snla->v2d.min[1]= 0.0;
+	
+	snla->v2d.max[0]= 1000.0;
+	snla->v2d.max[1]= 1000.0;
+	
+	snla->v2d.minzoom= 0.1F;
+	snla->v2d.maxzoom= 50;
+	
+	snla->v2d.scroll= R_SCROLL+B_SCROLL;
+	snla->v2d.keepaspect= 0;
+	snla->v2d.keepzoom= V2D_LOCKZOOM_Y;
+	snla->v2d.keeptot= 0;
+	
+	snla->lock = 0;
+}
+
 
 
 /* ******************** SPACE: Text ********************** */
@@ -3967,6 +4064,10 @@ extern void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWin
 
 void newspace(ScrArea *sa, int type)
 {
+	int xtra= type & 256;	// hack to enforce outliner with hotkey from toets.c
+	
+	type &= ~256;
+	
 	if(type>=0) {
 		if(sa->spacetype != type) {
 			SpaceLink *sl;
@@ -4012,7 +4113,7 @@ void newspace(ScrArea *sa, int type)
 				else if(type==SPACE_IMASEL)
 					init_imaselspace(sa);
 				else if(type==SPACE_OOPS)
-					init_oopsspace(sa);
+					init_oopsspace(sa, xtra);
 				else if(type==SPACE_ACTION)
 					init_actionspace(sa);
 				else if(type==SPACE_TEXT)
@@ -4032,8 +4133,8 @@ void newspace(ScrArea *sa, int type)
 
 		
 	/* exception: filespace */
-	if(curarea->spacetype==SPACE_FILE) {
-		SpaceFile *sfile= curarea->spacedata.first;
+	if(sa->spacetype==SPACE_FILE) {
+		SpaceFile *sfile= sa->spacedata.first;
 		
 		if(sfile->type==FILE_MAIN) {
 			freefilelist(sfile);
@@ -4046,10 +4147,19 @@ void newspace(ScrArea *sa, int type)
 		if(sfile->filelist) test_flags_file(sfile);
 	}
 	/* exception: imasel space */
-	else if(curarea->spacetype==SPACE_IMASEL) {
-		SpaceImaSel *simasel= curarea->spacedata.first;
+	else if(sa->spacetype==SPACE_IMASEL) {
+		SpaceImaSel *simasel= sa->spacedata.first;
 		simasel->returnfunc= 0;
 		simasel->title[0]= 0;
+	}
+	else if(sa->spacetype==SPACE_OOPS) {
+		SpaceOops *so= sa->spacedata.first;
+		if(xtra && so->type!=SO_OUTLINER) {
+			so->type= SO_OUTLINER;
+			init_v2d_oops(sa, so);
+			scrarea_queue_winredraw(sa);
+			scrarea_queue_headredraw(sa);
+		}
 	}
 }
 
@@ -4127,7 +4237,9 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
 			SpaceOops *so= (SpaceOops *)sl;
-			so->oops.first= so->oops.last= 0;
+			so->oops.first= so->oops.last= NULL;
+			so->tree.first= so->tree.last= NULL;
+			so->treestore= NULL;
 		}
 		else if(sl->spacetype==SPACE_IMASEL) {
 			check_imasel_copy((SpaceImaSel *) sl);

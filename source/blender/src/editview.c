@@ -269,7 +269,6 @@ static void do_lasso_select_objects(short mcords[][2], short moves, short select
 			}
 		}
 	}
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
@@ -382,8 +381,6 @@ static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 	EM_free_backbuf_border();
 	EM_selectmode_flush();
 	
-	allqueue(REDRAWVIEW3D, 0);
-				
 }
 
 static void do_lasso_select(short mcords[][2], short moves, short select)
@@ -396,6 +393,8 @@ static void do_lasso_select(short mcords[][2], short moves, short select)
 
 	BIF_undo_push("Lasso select");
 
+	allqueue(REDRAWVIEW3D, 0);
+	countall();
 }
 
 /* un-draws and draws again */
@@ -825,7 +824,7 @@ void set_active_base(Base *base)
 	BASACT= base;
 	
 	/* signals to buttons */
-	redraw_test_buttons(base);
+	redraw_test_buttons(base->object);
 
 	set_active_group();
 	

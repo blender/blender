@@ -39,7 +39,6 @@ struct Text;
 
 void unlink_text(struct Text *text);
 
-void init_textspace(struct ScrArea *sa);
 void free_textspace(struct SpaceText *st);
 
 void txt_write_file(struct Text *text);

@@ -129,7 +129,8 @@ typedef struct Library {
 #define ID_SCRIPT	MAKE_ID2('P', 'Y')
 
 #define IPO_CO		MAKE_ID2('C', 'O')	/* NOTE! This is not an ID, but is needed for g.sipo->blocktype */
-
+#define ID_NLA		MAKE_ID2('N', 'L')	/* fake ID for outliner */
+							 
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1

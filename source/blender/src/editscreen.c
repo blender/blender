@@ -1948,8 +1948,7 @@ void setscreen(bScreen *sc)
 
 				/* patch for old files */
 				if(soops->v2d.cur.xmin==soops->v2d.cur.xmax) {
-					extern void init_v2d_oops(View2D*);
-					init_v2d_oops(&soops->v2d);
+					init_v2d_oops(sa, soops);
 				}
 			}
 			else if(sl->spacetype==SPACE_BUTS) {

@@ -40,7 +40,7 @@ struct ID;
 
 /* external, butspace.c */
 extern void do_butspace(unsigned short event);
-extern void redraw_test_buttons(struct Base *new);
+extern void redraw_test_buttons(struct Object *new);
 
 /* buts->mainb old */
 #define BUTS_VIEW			0

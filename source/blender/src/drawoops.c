@@ -58,13 +58,13 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 
-#include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_mywindow.h"
+#include "BIF_outliner.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
-#include "BIF_mywindow.h"
-#include "BIF_resources.h"
 
 /*  #include "BIF_drawoops.h" bad name :(*/
 #include "BIF_oops.h"
@@ -388,6 +388,7 @@ void draw_oops(Oops *oops)
 
 void drawoopsspace(ScrArea *sa, void *spacedata)
 {
+	SpaceOops *soops= spacedata;
 	Oops *oops;
 	float col[3];
 	int ofsx, ofsy;
@@ -395,57 +396,60 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	if(G.soops==0) return;	
+	if(soops==0) return;	
+	
+	if(soops->type==SO_OUTLINER) draw_outliner(sa, soops);
+	else {
+		boundbox_oops();
+		calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
 
-	boundbox_oops();
-	calc_scrollrcts(G.v2d, curarea->winx, curarea->winy);
+		if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+			if(G.v2d->scroll) {	
+				ofsx= curarea->winrct.xmin;	/* because of mywin */
+				ofsy= curarea->winrct.ymin;
 
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-		if(G.v2d->scroll) {	
-			ofsx= curarea->winrct.xmin;	/* because of mywin */
-			ofsy= curarea->winrct.ymin;
-
-			glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1); 
-			glScissor(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
+				glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1); 
+				glScissor(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
+			}
 		}
-	}
 
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 
-	oopscalex= .14*((float)curarea->winx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
-	calc_ipogrid();	/* for scrollvariables */
-	build_oops();
+		oopscalex= .14*((float)curarea->winx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+		calc_ipogrid();	/* for scrollvariables */
+		build_oops();
 
-	oops= G.soops->oops.first;
-	while(oops) {
-		if(oops->hide==0) {
-			draw_oopslink(oops);
+		oops= soops->oops.first;
+		while(oops) {
+			if(oops->hide==0) {
+				draw_oopslink(oops);
+			}
+			oops= oops->next;
 		}
-		oops= oops->next;
-	}
-	oops= G.soops->oops.first;
-	while(oops) {
-		if(oops->hide==0) {
-			if(oops->flag & SELECT); else draw_oops(oops);
+		oops= soops->oops.first;
+		while(oops) {
+			if(oops->hide==0) {
+				if(oops->flag & SELECT); else draw_oops(oops);
+			}
+			oops= oops->next;
 		}
-		oops= oops->next;
-	}
-	oops= G.soops->oops.first;
-	while(oops) {
-		if(oops->hide==0) {
-			if(oops->flag & SELECT) draw_oops(oops);
+		oops= soops->oops.first;
+		while(oops) {
+			if(oops->hide==0) {
+				if(oops->flag & SELECT) draw_oops(oops);
+			}
+			oops= oops->next;
 		}
-		oops= oops->next;
 	}
 	
 	/* restore viewport */
 	mywinset(curarea->win);
-
 	
 	/* ortho at pixel level curarea */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
-	if(G.v2d->scroll) {	
-		drawscroll(0);		
+
+	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
+		if(G.v2d->scroll) drawscroll(0);		
 	}
 	draw_area_emboss(sa);	
 	

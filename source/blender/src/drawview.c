@@ -831,13 +831,28 @@ static void drawviewborder(void)
 	float x1, x2, y1, y2;
 	float x3, y3, x4, y4;
 	rcti viewborder;
-
+	
 	calc_viewborder(G.vd, &viewborder);
 	x1= viewborder.xmin;
 	y1= viewborder.ymin;
 	x2= viewborder.xmax;
 	y2= viewborder.ymax;
 
+	/* passepartout, in color of backdrop minus 50 */
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable(GL_BLEND);
+	glColor4ub(0, 0, 0, 50);
+	
+	if (x1 > 0.0) {
+		glRectf(0.0, (float)curarea->winy, x1, 0.0);
+		glRectf(x2, (float)curarea->winy, (float)curarea->winx, 0.0);
+	}
+	if (y1 > 0.0)	{
+		glRectf(x1, (float)curarea->winy, x2, y2);
+		glRectf(x1, y1, x2, 0.0);
+	}
+	glDisable(GL_BLEND);
+	
 	/* edge */
 	setlinestyle(3);
 	cpack(0);

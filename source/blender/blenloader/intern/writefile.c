@@ -1220,6 +1220,12 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 						writestruct(wd, DATA, "Oops", 1, oops);
 						oops= oops->next;
 					}
+					/* outliner */
+					if(so->treestore) {
+						writestruct(wd, DATA, "TreeStore", 1, so->treestore);
+						if(so->treestore->data)
+							writestruct(wd, DATA, "TreeStoreElem", so->treestore->usedelem, so->treestore->data);
+					}
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
 					writestruct(wd, DATA, "SpaceImage", 1, sl);

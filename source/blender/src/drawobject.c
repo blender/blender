@@ -4269,7 +4269,7 @@ void draw_object(Base *base)
 		if(ob->hooks.first && ob!=G.obedit) draw_hooks(ob);
 
 		/* help lines and so */
-		if(ob->parent && (ob->parent->lay & G.vd->lay)) {
+		if(ob!=G.obedit && ob->parent && (ob->parent->lay & G.vd->lay)) {
 			setlinestyle(3);
 			glBegin(GL_LINES);
 			glVertex3fv(ob->obmat[3]);

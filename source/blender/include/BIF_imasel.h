@@ -51,7 +51,6 @@ void get_next_image(struct SpaceImaSel *simasel);
 void get_file_info(struct SpaceImaSel *simasel);
 void get_pib_file(struct SpaceImaSel *simasel);
 void change_imadir(struct SpaceImaSel *simasel);
-void init_imaselspace(struct ScrArea *sa);
 void check_imasel_copy(struct SpaceImaSel *simasel);
 void free_imasel(struct SpaceImaSel *simasel);
 

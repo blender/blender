@@ -36,7 +36,6 @@
 struct ScrArea;
 struct SpaceScript;
 
-void init_scriptspace(struct ScrArea *sa);
 void free_scriptspace(struct SpaceScript *sc);
 
 #endif /* BIF_DRAWSCRIPT_H */

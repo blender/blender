@@ -797,7 +797,6 @@ void do_global_buttons(unsigned short event)
 			if(idtest!=id) {
 				assign_material(ob, (Material *)idtest, ob->actcol);
 				
-				allqueue(REDRAWBUTSHEAD, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				BIF_preview_changed(G.buts);
@@ -813,9 +812,9 @@ void do_global_buttons(unsigned short event)
 			ma= give_current_material(ob, ob->actcol);
 			if(ma) {
 				assign_material(ob, 0, ob->actcol);
-				allqueue(REDRAWBUTSHEAD, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWOOPS, 0);
 				BIF_preview_changed(G.buts);
 			}
 		}
@@ -922,9 +921,9 @@ void do_global_buttons(unsigned short event)
 				id_us_plus(idtest);
 				if(id) id->us--;
 				
-				allqueue(REDRAWBUTSHEAD, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWOOPS, 0);
 				BIF_preview_changed(G.buts);
 			}
 		}
@@ -1206,9 +1205,9 @@ void do_global_buttons(unsigned short event)
 			id_us_plus(idtest);
 			if(id) id->us--;
 			
-			allqueue(REDRAWBUTSHEAD, 0);
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWOOPS, 0);
 			BIF_preview_changed(G.buts);
 		}
 		break;
@@ -1271,9 +1270,9 @@ void do_global_buttons(unsigned short event)
 				id_us_plus(idtest);
 				if(id) id->us--;
 				
-				allqueue(REDRAWBUTSHEAD, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWOOPS, 0);
 				BIF_preview_changed(G.buts);
 			}
 		}
@@ -1309,10 +1308,10 @@ void do_global_buttons(unsigned short event)
 			id_us_plus(idtest);
 			if(id) id->us--;
 			
-			allqueue(REDRAWBUTSHEAD, 0);
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWOOPS, 0);
 			BIF_preview_changed(G.buts);
 		}
 		break;
@@ -1366,9 +1365,9 @@ void do_global_buttons(unsigned short event)
 				id_us_plus(idtest);
 				if(id) id->us--;
 				
-				allqueue(REDRAWBUTSHEAD, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWOOPS, 0);
 				BIF_preview_changed(G.buts);
 			}
 		}
@@ -1382,29 +1381,28 @@ void do_global_buttons(unsigned short event)
 	
 	case B_AUTOMATNAME:
 		automatname(G.buts->lockpoin);
-		allqueue(REDRAWBUTSHEAD, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWOOPS, 0);
 		break;		
 	case B_AUTOTEXNAME:
 		if(G.buts->mainb==CONTEXT_SHADING) {
 			if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_TEX) {
 				autotexname(G.buts->lockpoin);
-				allqueue(REDRAWBUTSSHADING, 0);
 			}
 			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_MAT) {
 				ma= G.buts->lockpoin;
 				if(ma->mtex[ ma->texact]) autotexname(ma->mtex[ma->texact]->tex);
-				allqueue(REDRAWBUTSSHADING, 0);
 			}
 			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_WORLD) {
 				wrld= G.buts->lockpoin;
 				if(wrld->mtex[ wrld->texact]) autotexname(wrld->mtex[wrld->texact]->tex);
-				allqueue(REDRAWBUTSSHADING, 0);
 			}
 			else if(G.buts->tab[CONTEXT_SHADING]==TAB_SHADING_LAMP) {
 				la= G.buts->lockpoin;
 				if(la->mtex[ la->texact]) autotexname(la->mtex[la->texact]->tex);
-				allqueue(REDRAWBUTSSHADING, 0);
 			}
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWOOPS, 0);
 		}
 		break;
 
@@ -1591,7 +1589,6 @@ void do_global_buttons(unsigned short event)
 			
 		/* redraw because name has changed: new pup */
 		scrarea_queue_headredraw(curarea);
-		allqueue(REDRAWBUTSHEAD, 0);
 		allqueue(REDRAWINFO, 1);
 		allqueue(REDRAWOOPS, 1);
 		/* name scene also in set PUPmenu */

@@ -440,11 +440,13 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		new_material_to_objectdata((G.scene->basact) ? (G.scene->basact->object) : 0);
 		scrarea_queue_winredraw(curarea);
 		allqueue(REDRAWVIEW3D_Z, 0);
+		allqueue(REDRAWOOPS, 0);
 		break;
 	case B_MATDEL:
 		delete_material_index();
 		scrarea_queue_winredraw(curarea);
 		allqueue(REDRAWVIEW3D_Z, 0);
+		allqueue(REDRAWOOPS, 0);
 		break;
 	case B_MATASS:
 		if(G.obedit && G.obedit->actcol>0) {

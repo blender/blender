@@ -34,6 +34,7 @@
 #define BIF_EDITNLA_H
 
 void clever_numbuts_nla(void);
+extern void winqreadnlaspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 /* NLA channel operations */
 void delete_nlachannel_keys(void);

@@ -202,7 +202,7 @@ void add_object_draw(int type)	/* for toolbox */
 		allqueue(REDRAWVIEW3D, 0);
 	}
 
-	redraw_test_buttons(BASACT);
+	redraw_test_buttons(OBACT);
 
 	allqueue(REDRAWALL, 0);
 
@@ -266,7 +266,7 @@ void delete_obj(int ok)
 	
 	test_scene_constraints();
 	allqueue(REDRAWVIEW3D, 0);
-	redraw_test_buttons(BASACT);
+	redraw_test_buttons(OBACT);
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWDATASELECT, 0);
@@ -1437,12 +1437,13 @@ void enter_editmode(void)
 		make_editNurb();
 	}
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWOOPS, 0);
 	countall();
 	
 	if(ok) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	
-		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 1);
 	}
 	else G.obedit= 0;
 
@@ -1542,9 +1543,10 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	
 		countall();
-		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWBUTSLOGIC, 0);
+		allqueue(REDRAWOOPS, 0);
 	}
 	scrarea_queue_headredraw(curarea);
 

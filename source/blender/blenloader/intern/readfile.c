@@ -2624,13 +2624,24 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_OOPS) {
 						SpaceOops *so= (SpaceOops *)sl;
 						Oops *oops;
+						TreeStoreElem *tselem;
+						int a;
 
 						oops= so->oops.first;
 						while(oops) {
-							oops->id= newlibadr(fd, 0, oops->id);
+							oops->id= newlibadr(fd, NULL, oops->id);
 							oops= oops->next;
 						}
-						so->lockpoin= 0;
+						so->lockpoin= NULL;
+						so->tree.first= so->tree.last= NULL;
+						
+						if(so->treestore) {
+							tselem= so->treestore->data;
+							for(a=0; a<so->treestore->usedelem; a++, tselem++) {
+								tselem->id= newlibadr(fd, NULL, tselem->id);
+							}
+						}
+						
 					}
 					else if(sl->spacetype==SPACE_SOUND) {
 						SpaceSound *ssound= (SpaceSound *)sl;
@@ -2746,14 +2757,22 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				else if(sl->spacetype==SPACE_OOPS) {
 					SpaceOops *so= (SpaceOops *)sl;
 					Oops *oops;
-
+					
+					int a;
 					oops= so->oops.first;
 					while(oops) {
 						oops->id= restore_pointer_by_name(newmain, (ID *)oops->id);
 						oops= oops->next;
 					}
-
 					so->lockpoin= NULL;
+					
+					if(so->treestore) {
+						TreeStore *ts= so->treestore;
+						TreeStoreElem *tselem=ts->data;
+						for(a=0; a<ts->usedelem; a++, tselem++) {
+							tselem->id= restore_pointer_by_name(newmain, tselem->id);
+						}
+					}
 				}
 				else if(sl->spacetype==SPACE_SOUND) {
 					SpaceSound *ssound= (SpaceSound *)sl;
@@ -2821,11 +2840,20 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;
+				
 				link_list(fd, &(soops->oops));
 				oops= soops->oops.first;
 				while(oops) {
 					oops->link.first= oops->link.last= 0;
 					oops= oops->next;
+				}
+				
+				soops->treestore= newdataadr(fd, soops->treestore);
+				if(soops->treestore) {
+					soops->treestore->data= newdataadr(fd, soops->treestore->data);
+					/* we only saved what was used */
+					soops->treestore->totelem= soops->treestore->usedelem;
+					soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
 				}
 			}
 		}

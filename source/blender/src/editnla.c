@@ -680,43 +680,6 @@ static void mouse_nlachannels(short mval[2])
 	
 }
 
-void init_nlaspace(ScrArea *sa)
-{
-	SpaceNla *snla;
-	
-	snla= MEM_callocN(sizeof(SpaceNla), "initnlaspace");
-	BLI_addhead(&sa->spacedata, snla);
-	
-	snla->spacetype= SPACE_NLA;
-	snla->blockscale= 0.7;
-	
-	snla->v2d.tot.xmin= 1.0;
-	snla->v2d.tot.ymin=	0.0;
-	snla->v2d.tot.xmax= 1000.0;
-	snla->v2d.tot.ymax= 1000.0;
-	
-	snla->v2d.cur.xmin= -5.0;
-	snla->v2d.cur.ymin= 0.0;
-	snla->v2d.cur.xmax= 65.0;
-	snla->v2d.cur.ymax= 1000.0;
-	
-	snla->v2d.min[0]= 0.0;
-	snla->v2d.min[1]= 0.0;
-	
-	snla->v2d.max[0]= 1000.0;
-	snla->v2d.max[1]= 1000.0;
-	
-	snla->v2d.minzoom= 0.1F;
-	snla->v2d.maxzoom= 50;
-	
-	snla->v2d.scroll= R_SCROLL+B_SCROLL;
-	snla->v2d.keepaspect= 0;
-	snla->v2d.keepzoom= V2D_LOCKZOOM_Y;
-	snla->v2d.keeptot= 0;
-	
-	snla->lock = 0;
-}
-
 void deselect_nlachannel_keys (int test)
 {
 	Base			*base;

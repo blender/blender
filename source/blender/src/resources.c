@@ -915,4 +915,13 @@ void BIF_GetThemeColor4ubv(int colorid, char *col)
 	col[3]= cp[3];
 }
 
-
+void BIF_GetThemeColorType4ubv(int colorid, int spacetype, char *col)
+{
+	char *cp;
+	
+	cp= BIF_ThemeGetColorPtr(theme_active, spacetype, colorid);
+	col[0]= cp[0];
+	col[1]= cp[1];
+	col[2]= cp[2];
+	col[3]= cp[3];
+}

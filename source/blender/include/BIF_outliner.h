@@ -1,7 +1,5 @@
 /**
- * blenlib/DNA_oops_types.h (mar-2001 nzc)
- *	
- * $Id$ 
+ * $Id: BIF_outliner.h
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -22,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -31,54 +29,27 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#ifndef DNA_OOPS_TYPES_H
-#define DNA_OOPS_TYPES_H
 
-#define OOPSX	5.0
-#define OOPSY	1.8
+#ifndef BIF_OUTLINER_H
+#define BIF_OUTLINER_H
 
-#include "DNA_listBase.h"
 
-struct ID;
+typedef struct TreeElement {
+	struct TreeElement *next, *prev, *parent;
+	ListBase subtree;
+	float xs, ys;
+	int store_index;	// offset in tree store
+	short flag, index;	// flag for non-saved stuff, index for (ID *) arrays
+}  TreeElement;
 
-typedef struct TreeStoreElem {
-	short type, nr, flag, used;
-	ID *id;
-} TreeStoreElem;
+/* TreeElement->flag */
+#define TE_ACTIVE	1
 
-typedef struct TreeStore {
-	int totelem, usedelem;
-	TreeStoreElem *data;
-} TreeStore;
-
-typedef struct Oops {
-	struct Oops *next, *prev;
-	short type, flag, dt, hide;
-	float x, y;		/* left - bottom */
-	float dx, dy;	/* shuffle */
-	struct ID *id;
-	ListBase link;
-} Oops;
-
-#
-#
-typedef struct OopsLink {
-	struct OopsLink *next, *prev;
-	short type, flag;
-	ID **idfrom;
-	Oops *to, *from;	/* from is for temp */
-	float xof, yof;
-	char name[12];
-} OopsLink;
-
-/* oops->flag  (1==SELECT) */
-#define OOPS_DOSELECT	2
-#define OOPS_REFER		4
-
-/* TreeStoreElem->flag */
-#define TSE_CLOSED		1
-#define TSE_LASTCLICKED	2
-
+extern void draw_outliner(struct ScrArea *sa, struct SpaceOops *so);
+extern void outliner_free_tree(struct ListBase *lb);
+extern void outliner_mouse_event(struct ScrArea *sa, short event);
+extern void outliner_toggle_visible(struct ScrArea *sa);
+extern void outliner_show_active(struct ScrArea *sa);
 
 #endif
 

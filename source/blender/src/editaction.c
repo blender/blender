@@ -759,7 +759,7 @@ void borderselect_mesh(Key *key)
 	}
 }
 
-
+/* used by ipo, outliner, buttons to find the active channel */
 bActionChannel* get_hilighted_action_channel(bAction* action)
 {
 	bActionChannel *chan;
@@ -1601,7 +1601,8 @@ static void hilight_channel (bAction *act, bActionChannel *chan, short select)
  *             = SELECT_INVERT
  */
 
-static int select_channel(bAction *act, bActionChannel *chan,
+/* exported for outliner (ton) */
+int select_channel(bAction *act, bActionChannel *chan,
                           int selectmode) {
 	/* Select the channel based on the selection mode
 	 */

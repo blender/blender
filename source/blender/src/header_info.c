@@ -430,8 +430,7 @@ void do_info_buttons(unsigned short event)
 	case B_INFOSCE:		/* menu select scene */
 
 		if( G.obedit) {
-			error("Unable to perform function in EditMode");
-			return;
+			exit_editmode(2);
 		}
 		if( G.curscreen->scenenr== -2) {
 			if(curarea->winy <50) {

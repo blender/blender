@@ -58,14 +58,17 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_global.h"
+#include "BKE_main.h"
+
 #include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_editoops.h"
 #include "BIF_oops.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
+#include "BIF_space.h"
+
 #include "BSE_drawipo.h"
 #include "BSE_drawoops.h"
 #include "BSE_headerbuttons.h"
@@ -118,25 +121,45 @@ static void do_oops_viewmenu(void *arg, int event)
 	case 3: /* Maximize Window */
 		/* using event B_FULL */
 		break;
+	case 4: /* show outliner */
+		{
+			SpaceOops *soops= curarea->spacedata.first;
+			if(soops->type==SO_OOPS) soops->type= SO_OUTLINER;
+			else soops->type= SO_OOPS;
+			init_v2d_oops(curarea, soops);
+			scrarea_queue_winredraw(curarea);
+		}
+		break;
 	}
 }			
 
 static uiBlock *oops_viewmenu(void *arg_unused)
 {
-/*	static short tog=0; */
+	SpaceOops *soops= curarea->spacedata.first;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
 	block= uiNewBlock(&curarea->uiblocks, "oops_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_oops_viewmenu, NULL);
-		
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shuffle Selected Blocks|Shift S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-    uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink Selected Blocks|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	
+	if(soops->type==SO_OOPS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shuffle Selected Blocks|Shift S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink Selected Blocks|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	}
+	else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+	}
+	
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	
@@ -282,66 +305,70 @@ void oops_buttons(void)
 	xco+=XIC;
 
 	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
-	/* pull down menus */
+		/* pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, oops_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		xmax= GetButStringLength("Select");
-		uiDefPulldownBut(block, oops_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
-		
-		xmax= GetButStringLength("Block");
-		uiDefPulldownBut(block, oops_blockmenu, NULL, "Block", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
-
+		if(soops->type==SO_OOPS) {
+			xmax= GetButStringLength("Select");
+			uiDefPulldownBut(block, oops_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+			
+			xmax= GetButStringLength("Block");
+			uiDefPulldownBut(block, oops_blockmenu, NULL, "Block", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
 
-	xco+= 8;
-	
-	/* ZOOM and BORDER */
-    uiBlockBeginAlign(block);
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	(short)(xco),0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (Ctrl MiddleMouse)");
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
-    uiBlockEndAlign(block);
-    
-	xco+= 8;
-    
-	/* VISIBLE */
-	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|10,B_NEWOOPS, "Layer",		(short)(xco+=XIC),0,XIC+20,YIC, &soops->visiflag, 0, 0, 0, 0, "Only show object datablocks on visible layers");
-    xco+= 20;
-	uiDefIconButS(block, TOG|BIT|0, B_NEWOOPS, ICON_SCENE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Scene datablocks");
-	uiDefIconButS(block, TOG|BIT|1, B_NEWOOPS, ICON_OBJECT_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Object datablocks");
-	uiDefIconButS(block, TOG|BIT|2, B_NEWOOPS, ICON_MESH_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Mesh datablocks");
-	uiDefIconButS(block, TOG|BIT|3, B_NEWOOPS, ICON_CURVE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Curve/Surface/Font datablocks");
-	uiDefIconButS(block, TOG|BIT|4, B_NEWOOPS, ICON_MBALL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Metaball datablocks");
-	uiDefIconButS(block, TOG|BIT|5, B_NEWOOPS, ICON_LATTICE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lattice datablocks");
-	uiDefIconButS(block, TOG|BIT|6, B_NEWOOPS, ICON_LAMP_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lamp datablocks");
-	uiDefIconButS(block, TOG|BIT|7, B_NEWOOPS, ICON_MATERIAL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Material datablocks");
-	uiDefIconButS(block, TOG|BIT|8, B_NEWOOPS, ICON_TEXTURE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Texture datablocks");
-	uiDefIconButS(block, TOG|BIT|9, B_NEWOOPS, ICON_IPO_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Ipo datablocks");
-	uiDefIconButS(block, TOG|BIT|12, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Image datablocks");
-	uiDefIconButS(block, TOG|BIT|11, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Library datablocks");
-
-    uiBlockEndAlign(block);
-  
-	/* name */
-	if(G.soops->lockpoin) {
-		oops= G.soops->lockpoin;
-		if(oops->type==ID_LI) strcpy(naam, ((Library *)oops->id)->name);
-		else strcpy(naam, oops->id->name);
+	if(soops->type==SO_OOPS) {
+		/* ZOOM and BORDER */
+		uiBlockBeginAlign(block);
+		uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	(short)(xco),0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view (Ctrl MiddleMouse)");
+		uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	(short)(xco+=XIC),0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
+		uiBlockEndAlign(block);
 		
-		cpack(0x0);
-		glRasterPos2i(xco+=XIC+10,	5);
-		BMF_DrawString(uiBlockGetCurFont(block), naam);
+		xco+= 8;
+		
+		/* VISIBLE */
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|10,B_NEWOOPS, "Layer",		(short)(xco+=XIC),0,XIC+20,YIC, &soops->visiflag, 0, 0, 0, 0, "Only show object datablocks on visible layers");
+		xco+= 20;
+		uiDefIconButS(block, TOG|BIT|0, B_NEWOOPS, ICON_SCENE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Scene datablocks");
+		uiDefIconButS(block, TOG|BIT|1, B_NEWOOPS, ICON_OBJECT_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Object datablocks");
+		uiDefIconButS(block, TOG|BIT|2, B_NEWOOPS, ICON_MESH_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Mesh datablocks");
+		uiDefIconButS(block, TOG|BIT|3, B_NEWOOPS, ICON_CURVE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Curve/Surface/Font datablocks");
+		uiDefIconButS(block, TOG|BIT|4, B_NEWOOPS, ICON_MBALL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Metaball datablocks");
+		uiDefIconButS(block, TOG|BIT|5, B_NEWOOPS, ICON_LATTICE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lattice datablocks");
+		uiDefIconButS(block, TOG|BIT|6, B_NEWOOPS, ICON_LAMP_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lamp datablocks");
+		uiDefIconButS(block, TOG|BIT|7, B_NEWOOPS, ICON_MATERIAL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Material datablocks");
+		uiDefIconButS(block, TOG|BIT|8, B_NEWOOPS, ICON_TEXTURE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Texture datablocks");
+		uiDefIconButS(block, TOG|BIT|9, B_NEWOOPS, ICON_IPO_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Ipo datablocks");
+		uiDefIconButS(block, TOG|BIT|12, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Image datablocks");
+		uiDefIconButS(block, TOG|BIT|11, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Library datablocks");
 
+		uiBlockEndAlign(block);
+	  
+		/* name */
+		if(G.soops->lockpoin) {
+			oops= G.soops->lockpoin;
+			if(oops->type==ID_LI) strcpy(naam, ((Library *)oops->id)->name);
+			else strcpy(naam, oops->id->name);
+			
+			cpack(0x0);
+			glRasterPos2i(xco+=XIC+10,	5);
+			BMF_DrawString(uiBlockGetCurFont(block), naam);
+
+		}
 	}
-
+	else {
+		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Selected %x3|Active %x4",	 xco, 0, 100, 20,  &soops->outlinevis, 0, 0, 0, 0, "");
+	}
+	
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 

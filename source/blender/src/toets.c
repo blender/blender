@@ -638,6 +638,10 @@ int blenderqread(unsigned short event, short val)
 			newspace(curarea, SPACE_OOPS);
 			return 0;
 		}
+		else if(G.qual==(LR_SHIFTKEY|LR_ALTKEY)) {
+			newspace(curarea, SPACE_OOPS+256);
+			return 0;
+		}
 		else if(G.qual==0) {
 			extern_set_butspace(event);
 		}

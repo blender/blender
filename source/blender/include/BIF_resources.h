@@ -76,8 +76,8 @@ typedef enum {
 	ICON_SORTSIZE,
 	ICON_LONGDISPLAY,
 	ICON_SHORTDISPLAY,
-	ICON_BLANK4,
-	ICON_BLANK5,
+	ICON_TRIA_OPEN,
+	ICON_TRIA_CLOSED,
 
 	ICON_VIEW_AXIS_ALL,
 	ICON_VIEW_AXIS_NONE,
@@ -255,7 +255,7 @@ typedef enum {
 	ICON_LIBRARY_HLT,
 	ICON_IMAGE_HLT,
 	ICON_CONSTRAINT,
-	ICON_BLANK32,
+	ICON_CAMERA_DEHLT,
 	ICON_BLANK33,
 #define BIFICONID_LAST		(ICON_BLANK33)
 #define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
@@ -406,7 +406,7 @@ void 	BIF_ThemeColor4(int colorid);
 void 	BIF_ThemeColorShade(int colorid, int offset);
 
 // sets color plus offset for alpha
-void		BIF_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
+void	BIF_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
 
 // sets color, which is blend between two theme colors
 void 	BIF_ThemeColorBlend(int colorid1, int colorid2, float fac);
@@ -423,6 +423,10 @@ void 	BIF_GetThemeColor3fv(int colorid, float *col);
 // get the 3 or 4 byte values
 void 	BIF_GetThemeColor3ubv(int colorid, char *col);
 void 	BIF_GetThemeColor4ubv(int colorid, char *col);
+
+// get a theme color from specified space type
+void	BIF_GetThemeColorType4ubv(int colorid, int spacetype, char *col);
+
 
 struct ScrArea;
 

@@ -47,6 +47,8 @@ struct ImBuf;
 struct Image;
 struct SpaceIpo;
 struct BlendHandle;
+struct TreeStore;
+
 
 	/**
 	 * The base structure all the other spaces
@@ -193,6 +195,11 @@ typedef struct SpaceOops {
 	ListBase oops;
 	short pin, visiflag, flag, rt;
 	void *lockpoin;
+	
+	ListBase tree;
+	struct TreeStore *treestore;
+	short type, outlinevis, storeflag;
+	short pad1;
 	
 } SpaceOops;
 
@@ -438,6 +445,9 @@ typedef struct SpaceImaSel {
 #define ST_SCROLL_SELECT        0x0001 // scrollable
 #define ST_CLEAR_NAMESPACE      0x0010 // clear namespace after script
                                        // execution (see BPY_main.c)
+/* SpaceOops->type */
+#define SO_OOPS			0
+#define SO_OUTLINER		1
 
 /* SpaceOops->flag */
 #define SO_TESTBLOCKS	1
@@ -457,6 +467,16 @@ typedef struct SpaceImaSel {
 #define OOPS_LAY	1024
 #define OOPS_LI		2048
 #define OOPS_IM		4096
+
+/* SpaceOops->outlinevis */
+#define SO_ALL_SCENES	0
+#define SO_CUR_SCENE	1
+#define SO_VISIBLE		2
+#define SO_SELECTED		3
+#define SO_ACTIVE		4
+
+/* SpaceOops->storeflag */
+#define SO_TREESTORE_CLEANUP	1
 
 /* headerbuttons: 450-499 */
 

@@ -59,5 +59,8 @@ void borderselect_action(void);
 void deselect_actionchannel_keys(bAction *act, int test);
 void deselect_meshchannel_keys (Key *key, int test);
 
+int select_channel(bAction *act, bActionChannel *chan, int selectmode);
+
+
 #endif
 

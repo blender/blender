@@ -326,30 +326,30 @@ void do_butspace(unsigned short event)
 	else if(event>REDRAWVIEW3D) allqueue(event, 0);
 }
 
-void butspace_context_switch(SpaceButs *buts, Base *new)
+static void butspace_context_switch(SpaceButs *buts, Object *new)
 {
 	// change type automatically
 	if(new) {
 		int tab= buts->tab[CONTEXT_SHADING];
 		
 		if(tab == TAB_SHADING_WORLD) {
-			if(new->object->type==OB_LAMP) {
+			if(new->type==OB_LAMP) {
 				buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
 			}
 			else buts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 			
 		}
 		else if(tab == TAB_SHADING_TEX) {
-			if(new->object->type==OB_LAMP) buts->texfrom= 2;
-			else if(new->object->type==OB_CAMERA) buts->texfrom= 1;
+			if(new->type==OB_LAMP) buts->texfrom= 2;
+			else if(new->type==OB_CAMERA) buts->texfrom= 1;
 			else buts->texfrom= 0;
 		}
 		else if(tab == TAB_SHADING_RAD) {
 		}
-		else if(new->object->type==OB_CAMERA) {
+		else if(new->type==OB_CAMERA) {
 			buts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
 		}
-		else if(new->object->type==OB_LAMP) {
+		else if(new->type==OB_LAMP) {
 			buts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
 		}
 		else {
@@ -359,7 +359,7 @@ void butspace_context_switch(SpaceButs *buts, Base *new)
 }
 
 /* new active object */
-void redraw_test_buttons(Base *new)
+void redraw_test_buttons(Object *new)
 {
 	ScrArea *sa;
 	SpaceButs *buts;

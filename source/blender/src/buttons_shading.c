@@ -2376,11 +2376,13 @@ void do_matbuts(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWOOPS, 0);
 		BIF_preview_changed(G.buts);
 		break;
 	case B_MATFROM:
 		scrarea_queue_headredraw(curarea);
 		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWOOPS, 0);
 		// BIF_previewdraw();  push/pop!
 		break;
 	case B_MATPRV:

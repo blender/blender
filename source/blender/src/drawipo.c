@@ -378,6 +378,10 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	rctf *cur, *tot;
 	float dx, dy, temp, fac, zoom;
 	
+	/* correct winx for scroll */
+	if(v2d->scroll & L_SCROLL) winx-= SCROLLB;
+	if(v2d->scroll & B_SCROLL) winy-= SCROLLH;
+	
 	cur= &v2d->cur;
 	tot= &v2d->tot;
 	
@@ -689,7 +693,8 @@ void drawscroll(int disptype)
 		val= ipogrid_startx;
 		while(fac < hor.xmax) {
 			
-			if(curarea->spacetype==SPACE_SEQ) {
+			if(curarea->spacetype==SPACE_OOPS);
+			else if(curarea->spacetype==SPACE_SEQ) {
 				fac2= val/(float)G.scene->r.frs_sec;
 				tim= floor(fac2);
 				fac2= fac2-tim;
@@ -748,7 +753,8 @@ void drawscroll(int disptype)
 		dfac= (ipogrid_dy)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
 		dfac= dfac*(vert.ymax-vert.ymin-SCROLLH);
 		
-		if(curarea->spacetype==SPACE_SEQ) {
+		if(curarea->spacetype==SPACE_OOPS);
+		else if(curarea->spacetype==SPACE_SEQ) {
 			BIF_ThemeColor(TH_TEXT);
 			val= ipogrid_starty;
 			fac+= 0.5*dfac;
@@ -1917,8 +1923,9 @@ int view2dmove(unsigned short event)
 		else mousebut = L_MOUSE;
 	
 	if ( (G.qual & LR_CTRLKEY) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
-		/* patch for buttonswin, standard scroll no zoom */
-		if(curarea->spacetype==SPACE_BUTS && (G.qual & LR_CTRLKEY)==0);
+		/* patch for oops & buttonswin, standard scroll no zoom */
+		if(curarea->spacetype==SPACE_OOPS);
+		else if(curarea->spacetype==SPACE_BUTS && (G.qual & LR_CTRLKEY)==0);
 		else if (view2dzoom(event)) {
 			curarea->head_swap= 0;
 			return 0;
@@ -1958,6 +1965,8 @@ int view2dmove(unsigned short event)
 			facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(curarea->winy);		
 		}
 		
+		/* no x move in outliner */
+		if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) facx= 0.0;
 		
 		/* no y move in audio */
 		if(curarea->spacetype==SPACE_SOUND) facy= 0.0;
@@ -1978,7 +1987,6 @@ int view2dmove(unsigned short event)
 			if(event==WHEELDOWNMOUSE) {	
 				facx= -facx; facy= -facy;
 			}
-			
 			switch (G.qual & (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
 			case (LR_SHIFTKEY):
 				dx = 0.0;
@@ -1989,7 +1997,11 @@ int view2dmove(unsigned short event)
 				dy = 0.0;
 				break;
 			default:
-				if(curarea->spacetype==SPACE_BUTS) {
+				if(curarea->spacetype==SPACE_OOPS) {
+					dx= 0.0;
+					dy= facy*20;
+				}
+				else if(curarea->spacetype==SPACE_BUTS) {
 					if(G.buts->align==BUT_HORIZONTAL) {
 						dx= facx*30; dy= 0.0;
 					} else {
