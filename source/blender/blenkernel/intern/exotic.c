@@ -1192,8 +1192,8 @@ static int iv_finddata(struct IvNode *iv, char *field, int fieldnr)
 							/* atof doesn't stop after the first float
 							 * in a long string at Windows... so we copy 
 							 * the float to a new string then atof... */
-							 
-							i= (long)(strpbrk(cpa, ", \n")-cpa);
+							char *cpa_temp = strpbrk(cpa, ", \n");
+							i = cpa_temp - cpa;
 							
 							if (i>63) *fp= 0.0;
 							else {
