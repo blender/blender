@@ -57,7 +57,7 @@ endif
 
 ifeq ($(OS),darwin)
     LLIBS    += -lGLU -lGL
-    LLIBS    += -lz -framework Carbon -framework AGL 
+    LLIBS    += -lz -framework Carbon -framework AGL -framework OpenGL
     LLIBS    += -framework QuickTime -framework CoreAudio
     LLIBS    += -framework AudioUnit -framework AudioToolbox
     LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
