@@ -55,13 +55,14 @@ typedef struct TreeElement {
 #define TSE_NLA				1
 #define TSE_NLA_ACTION		2
 #define TSE_DEFGROUP_BASE	3
-#define TSE_DEFGROUP			4
-#define TSE_BONE				5
-#define TSE_CONSTRAINT_BASE	6
-#define TSE_CONSTRAINT		7
-#define TSE_HOOKS_BASE		8
-#define TSE_HOOK				9
-#define TSE_SCRIPT_BASE		10
+#define TSE_DEFGROUP		4
+#define TSE_BONE			5
+#define TSE_EBONE			6
+#define TSE_CONSTRAINT_BASE	7
+#define TSE_CONSTRAINT		8
+#define TSE_HOOKS_BASE		9
+#define TSE_HOOK			10
+#define TSE_SCRIPT_BASE		11
 
 /* button events */
 #define OL_NAMEBUTTON		1

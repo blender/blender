@@ -576,10 +576,22 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_AR:
 			{
 				bArmature *arm= (bArmature *)id;
-				Bone *curBone;
 				int a= 0;
-				for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-					outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
+				
+				if(G.obedit && G.obedit->data==arm) {
+					EditBone *ebone;
+					TreeElement *ten;
+					for (ebone = G.edbo.first; ebone; ebone=ebone->next, a++) {
+						ten= outliner_add_element(soops, &te->subtree, id, te, TSE_EBONE, a);
+						ten->directdata= ebone;
+						ten->name= ebone->name;
+					}
+				}
+				else {
+					Bone *curBone;
+					for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+						outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
+					}
 				}
 			}
 			break;
@@ -1137,6 +1149,7 @@ static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int 
 		if(G.qual & LR_SHIFTKEY);
 		else deselectall_posearmature(0);
 		bone->flag |= BONE_SELECTED;
+
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWACTION, 0);
@@ -1150,6 +1163,32 @@ static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int 
 	}
 	return 0;
 }
+
+/* ebones only draw in editmode armature */
+static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	EditBone *ebone= te->directdata;
+	
+	if(set) {
+		if(G.qual & LR_SHIFTKEY);
+		else {
+			ebone->flag |= BONE_SELECTED; // trick deselectall, it toggles... duhh
+			deselectall_armature();
+		}
+		ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
+		// flush to parent?
+		if(ebone->parent && (ebone->flag & BONE_IK_TOPARENT)) ebone->parent->flag |= BONE_TIPSEL;
+		
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
+		allqueue(REDRAWACTION, 0);
+	}
+	else {
+		if (ebone->flag & BONE_SELECTED) return 1;
+	}
+	return 0;
+}
+
 
 static int tree_element_active_text(SpaceOops *soops, TreeElement *te, int set)
 {
@@ -1204,6 +1243,8 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_defgroup(te, tselem, set);
 		case TSE_BONE:
 			return tree_element_active_bone(te, tselem, set);
+		case TSE_EBONE:
+			return tree_element_active_ebone(te, tselem, set);
 		case TSE_HOOK: // actually object
 			if(set) tree_element_active_object(soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
@@ -1738,6 +1779,7 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 			case TSE_DEFGROUP_BASE:
 				BIF_draw_icon(ICON_VERTEXSEL); break;
 			case TSE_BONE:
+			case TSE_EBONE:
 				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
 				BIF_draw_icon(ICON_CONSTRAINT); break;
@@ -2088,6 +2130,16 @@ static void namebutton_cb(void *voidp, void *arg2_unused)
 						case TSE_NLA_ACTION:
 							test_idbutton(tselem->id->name+2);
 							break;
+						case TSE_EBONE:
+							if(G.obedit && G.obedit->data==(ID *)tselem->id) {
+								extern void validate_editbonebutton(EditBone *);
+								EditBone *ebone= te->directdata;
+								validate_editbonebutton(ebone);
+							}
+							allqueue(REDRAWOOPS, 0);
+							allqueue(REDRAWVIEW3D, 1);
+							allqueue(REDRAWBUTSEDIT, 0);
+							break;
 						case TSE_BONE:
 							{
 								Bone *bone= te->directdata;
@@ -2096,11 +2148,11 @@ static void namebutton_cb(void *voidp, void *arg2_unused)
 
 								// dangerous call, it re-allocs the Armature bones, exits editmode too
 								rename_bone_ext(bone->name, bone_newname);
-								allqueue(REDRAWOOPS, 0);
-								allqueue(REDRAWVIEW3D, 1);
-								allqueue(REDRAWBUTSEDIT, 0);
-								break;
 							}
+							allqueue(REDRAWOOPS, 0);
+							allqueue(REDRAWVIEW3D, 1);
+							allqueue(REDRAWBUTSEDIT, 0);
+							break;
 						}
 					}
 				}

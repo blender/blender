@@ -1590,7 +1590,8 @@ static void constraint_ebone_name_fix(ListBase *conlist, EditBone *eBone)
 	}
 }
 
-static void validate_editbonebutton(EditBone *eBone)
+// called in outliner too...
+void validate_editbonebutton(EditBone *eBone)
 {
 	EditBone	*prev;
 	bAction		*act=NULL;

@@ -781,10 +781,10 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 	
 	if(x1==0 && x2==0 && y1==0 && y2==0) {
 		getmouseco_areawin(mval);
-		rect.xmin= mval[0]-7;
-		rect.xmax= mval[0]+7;
-		rect.ymin= mval[1]-7;
-		rect.ymax= mval[1]+7;
+		rect.xmin= mval[0]-12;	// seems to be default value for bones only now
+		rect.xmax= mval[0]+12;
+		rect.ymin= mval[1]-12;
+		rect.ymax= mval[1]+12;
 	}
 	else {
 		rect.xmin= x1;

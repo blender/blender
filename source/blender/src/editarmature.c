@@ -740,6 +740,7 @@ void remake_editArmature(void)
 	
 	make_editArmature();
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -1775,6 +1776,7 @@ void deselectall_armature(void)
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
 	countall();
 }
 
@@ -1880,6 +1882,7 @@ void join_armature(void)
 	}
 #endif
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
 
 }
 
@@ -1972,6 +1975,7 @@ void extrude_armature(void)
 	transform('g');		
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
 }
 
 void addvert_armature(void)
@@ -2135,6 +2139,7 @@ void adduplicate_armature(void)
 	transform('g');
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
 }
 
 /*
@@ -2229,6 +2234,7 @@ void mousepose_armature(void)
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);		/* To force action ipo update */
 	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
 
 	rightmouse_transform();
 	
