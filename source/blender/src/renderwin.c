@@ -632,6 +632,7 @@ static void printrenderinfo_cb(double time, int sample)
 #ifdef _WIN32
 /* we use the SetTimer here */
 
+/* WIN32: this function is called all the time, and should not use cpu or resources */
 static int test_break()
 {
 
@@ -653,13 +654,14 @@ static int test_break()
 	else return 0;
 }
 
-
+/* WIN32: init SetTimer callback */
 static void init_test_break_callback()
 {
 	;
 }
 
-static void end_test_break_callback()
+/* WIN32: stop SetTimer callback */
+sstatic void end_test_break_callback()
 {
 	;
 }
@@ -667,10 +669,7 @@ static void end_test_break_callback()
 #else
 /* all other OS's support signal(SIGVTALRM) */
 
-/* this function can be called anywhere during render, it should not eat resources
-   or cpu time, can be called a million times or so
-*/
-
+/* WIN32: this function is called all the time, and should not use cpu or resources */
 static int test_break()
 {
 	short val;
@@ -693,7 +692,7 @@ static int test_break()
 	else return 0;
 }
 
-/* this function goes in the signal() callback */
+/* POSIX: this function goes in the signal() callback */
 static void interruptESC(int sig)
 {
 
@@ -703,7 +702,7 @@ static void interruptESC(int sig)
 	signal(SIGVTALRM, interruptESC);
 }
 
-
+/* POSIX: initialize timer and signal */
 static void init_test_break_callback()
 {
 
@@ -720,6 +719,7 @@ static void init_test_break_callback()
 
 }
 
+/* POSIX: stop timer and callback */
 static void end_test_break_callback()
 {
 	struct itimerval tmevalue;
