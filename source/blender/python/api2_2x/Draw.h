@@ -56,8 +56,8 @@ void initDraw (void);
 typedef struct _Button
 {
   PyObject_VAR_HEAD		/* required Py Macro */
-  int type;			/*@ 1 == int, 2 == float, 3 == string */
-  int slen;			/*@ length of string (if type == 3) */
+  int type;	/*@ 1 == int, 2 == float, 3 == string */
+  unsigned int slen; /*@ length of string (if type == 3) */
   union
   {
     int asint;

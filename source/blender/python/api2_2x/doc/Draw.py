@@ -6,6 +6,8 @@ The Blender.Draw submodule.
 Draw
 ====
 
+B{New}: L{PupIntInput}, L{PupFloatInput}, L{PupStrInput}.
+
 This module provides access to a B{windowing interface} in Blender.  Its widgets
 include many kinds of buttons: push, toggle, menu, number, string, slider,
 scrollbar, plus support for text drawing.  It also includes keyboard keys and
@@ -73,6 +75,8 @@ not necessary to re-register the callbacks, they will stay until Draw.Exit
 is called.  It's enough to redraw the screen when a relevant event is caught.
 Apologies for the confusion.
 
+@note: function Button has a new alias: L{PushButton}.
+
 @warn: Inside the windowing loop (after Draw.Register() has been executed and
 before Draw.Exit() is called), don't use the redraw functions from other
 modules (Blender and Window).  The Draw submodule has its own Draw.Redraw() and
@@ -124,11 +128,9 @@ def Create(value):
   @return: The Button created.
   """
 
-def Button_(name, event, x, y, width, height, tooltip = None):
+def PushButton(name, event, x, y, width, height, tooltip = None):
   """
-  Create a new (push) Button object.  Please note there is no '_' character at the end of 'Button'.
-  This is due to a bug in our doc generation program.  Use Button(....) instead.
-  And stop laughing.
+  Create a new (push) Button object.
   @type name: string
   @param name: The string to display on the button.
   @type event: int
@@ -145,6 +147,10 @@ def Button_(name, event, x, y, width, height, tooltip = None):
   @type tooltip: string
   @param tooltip: The button's tooltip (the string that appears when the mouse
       is kept over the button).
+  @note: This function used to be called only "Button".  We added an
+     alternative alias to avoid a name clash with the L{Button} class/type that
+     caused trouble in this documentation's generation.  The old name shouldn't
+     be deprecated, use Button or PushButton (better) at your choice.
   """
 
 def PupMenu(name, maxrow = None):
@@ -193,7 +199,7 @@ def PupIntInput(text, default, min, max):
   @type text: string
   @param text: The text that is displayed in the popup.
   @type default: int
-  @param default: The value that the popup is set to initialy.
+  @param default: The value that the popup is set to initially.
   @type min: int
   @param min: The lowest value the popup will allow.
   @type max: int
@@ -225,7 +231,7 @@ def PupFloatInput(text, default, min, max, clickStep, floatLen):
   @type text: string
   @param text: The text that is displayed in the popup.
   @type default: float
-  @param default: The value that the popup is set to initialy.
+  @param default: The value that the popup is set to initially.
   @type min: float
   @param min: The lowest value the popup will allow.
   @type max: float
@@ -236,6 +242,27 @@ def PupFloatInput(text, default, min, max, clickStep, floatLen):
   @param floatLen: The number of decimal places to display, between 2 and 4.
   @rtype: float
   @return: the number chosen or None if none was chosen.
+  """
+
+def PupStrInput(text, default, max = 20):
+  """
+  Create a string input pop-up.
+  
+  This allows python to use Blender's string popup input.
+
+  Example::
+    Blender.Draw.PupStrInput("Name:", "untitled", 25)
+    
+  @type text: string
+  @param text: The text that is displayed in the popup.
+  @type default: string
+  @param default: The value that the popup is set to initially.  If it's longer
+      then 'max', it's truncated.
+  @type max: int
+  @param max: The most characters the popup input will allow.  If not given
+      it defaults to 20 chars.  It should be in the range [1, 100].
+  @rtype: string
+  @return: The text entered by the user or None if none was chosen.
   """
 
 def Menu(name, event, x, y, width, height, default, tooltip = None):

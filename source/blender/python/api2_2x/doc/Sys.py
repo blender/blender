@@ -6,7 +6,7 @@ The Blender.sys submodule.
 sys
 ===
 
-B{New}: L{exists}
+B{New}: L{exists}, L{makename}.
 
 This module provides a minimal set of helper functions and data.  Its purpose
 is to avoid the need for the standard Python module 'os', in special 'os.path',

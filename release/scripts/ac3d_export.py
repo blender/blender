@@ -15,7 +15,7 @@ Tip: 'Export to AC3D (.ac) format.'
 # --------------------------------------------------------------------------
 # AC3DExport version 2.34
 # Program versions: Blender 2.34 and AC3Db files (means version 0xb)
-# new: minor tweaks, exporter didn't change
+# new: minor cosmetic tweaks, exporter itself didn't change
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -398,10 +398,12 @@ def b_event(evt):
     Draw.Redraw(1)
   elif evt == 10:
     ARG = 'all'
-    Blender.Window.FileSelector(fs_callback, "AC3D Export")
+    fname = Blender.sys.makename(ext=".ac")
+    Blender.Window.FileSelector(fs_callback, "Export AC3D", fname)
   elif evt == 11:
     ARG = 'sel'
-    Blender.Window.FileSelector(fs_callback, "AC3D Export")
+    fname = Blender.sys.makename(ext=".ac")
+    Blender.Window.FileSelector(fs_callback, "Export AC3D", fname)
   elif evt == 20:
     HELPME = 1 - HELPME
     Draw.Redraw(1)

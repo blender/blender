@@ -45,6 +45,7 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
@@ -107,9 +108,10 @@ static PyObject *Method_String (PyObject * self, PyObject * args);
 static PyObject *Method_GetStringWidth (PyObject * self, PyObject * args);
 static PyObject *Method_Text (PyObject * self, PyObject * args);
 static PyObject *Method_PupMenu (PyObject * self, PyObject * args);
-/* next two by Campbell: */
+/* next three by Campbell: */
 static PyObject *Method_PupIntInput (PyObject * self, PyObject * args);
 static PyObject *Method_PupFloatInput (PyObject * self, PyObject * args);
+static PyObject *Method_PupStrInput (PyObject * self, PyObject * args);
 
 static uiBlock *Get_uiBlock (void);
 static void py_slider_update (void *butv, void *data2_unused);
@@ -150,7 +152,8 @@ static char Method_Button_doc[] =
 (event) The event number to pass to the button event function when activated\n\
 (x, y) The lower left coordinate of the button\n\
 (width, height) The button width and height\n\
-[tooltip=] The button's tooltip";
+[tooltip=] The button's tooltip\n\n\
+This function can be called as Button() or PushButton().";
 
 static char Method_Menu_doc[] =
 "(name, event, x, y, width, height, default, [tooltip]) - Create a new Menu \
@@ -251,18 +254,25 @@ Ex: Draw.PupMenu('OK?%t|QUIT BLENDER') # should be familiar ...";
 
 static char Method_PupIntInput_doc[] =
 "(text, default, min, max) - Display an int pop-up input.\n\
-(text) - text string to display at the button;\n\
+(text) - text string to display on the button;\n\
 (default, min, max) - the default, min and max int values for the button;\n\
-Return the value selected or None";
+Return the user input value or None on user exit";
 
 static char Method_PupFloatInput_doc[] =
 "(text, default, min, max, clickStep, floatLen) - Display a float pop-up input.\n\
-(text) - text string to display at the button;\n\
+(text) - text string to display on the button;\n\
 (default, min, max) - the default, min and max float values for the button;\n\
 (clickStep) - float increment/decrement for each click on the button arrows;\n\
 (floatLen) - an integer defining the precision (number of decimal places) of \n\
 the float value show.\n\
-Return the value selected or None";
+Return the user input value or None on user exit";
+
+static char Method_PupStrInput_doc[] =
+"(text, default, max = 20) - Display a float pop-up input.\n\
+(text) - text string to display on the button;\n\
+(default) - the initial string to display (truncated to 'max' chars);\n\
+(max = 20) - The maximum number of chars the user can input;\n\
+Return the user input value or None on user exit";
 
 static char Method_Exit_doc[] = "() - Exit the windowing interface";
 
@@ -293,10 +303,12 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef (PupMenu),
 	MethodDef (PupIntInput),
 	MethodDef (PupFloatInput),
+	MethodDef (PupStrInput),
 	MethodDef (Exit),
 	MethodDef (Redraw),
 	MethodDef (Draw),
 	MethodDef (Register),
+  {"PushButton", Method_Button, METH_VARARGS, Method_Button_doc},
 	{NULL, NULL,0,NULL}
 };
 
@@ -356,7 +368,7 @@ static int Button_setattr (PyObject *self, char *name, PyObject *v)
 			/* if the length of the new string is the same as */
 			/* the old one, just copy, else delete and realloc. */
 			if (but->slen == strlen (newstr)) {
-				strncpy (but->val.asstr, newstr, but->slen);
+				BLI_strncpy (but->val.asstr, newstr, but->slen);
 			}
 			else {
 				MEM_freeN (but->val.asstr);
@@ -1084,10 +1096,10 @@ static PyObject *Method_PupMenu (PyObject *self, PyObject *args)
 
 static PyObject *Method_PupIntInput (PyObject *self, PyObject *args)
 {
-	char *text;
-	int min, max;
-	short var;
-	PyObject *ret;
+	char *text = NULL;
+	int min = 0, max = 1;
+	short var = 0;
+	PyObject *ret = NULL;
 	
 	if (!PyArg_ParseTuple (args, "s|hii", &text, &var, &min, &max))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
@@ -1105,9 +1117,9 @@ static PyObject *Method_PupIntInput (PyObject *self, PyObject *args)
 
 static PyObject *Method_PupFloatInput (PyObject *self, PyObject *args)
 {
-	char *text;
-	float min, max, var, a1, a2;
-	PyObject *ret;
+	char *text = NULL;
+	float min = 0, max = 1, var = 0, a1 = 10, a2 = 2;
+	PyObject *ret = NULL;
 
 	if (!PyArg_ParseTuple (args, "s|fffff", &text, &var, &min, &max, &a1, &a2))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
@@ -1122,6 +1134,39 @@ static PyObject *Method_PupFloatInput (PyObject *self, PyObject *args)
 
 	return EXPP_ReturnPyObjError (PyExc_MemoryError, "couldn't create a PyFloat");
 }
+
+static PyObject *Method_PupStrInput (PyObject *self, PyObject *args)
+{
+	char *text = NULL, *textMsg = NULL;
+	char tmp[101];
+	char max = 20;
+	PyObject *ret = NULL;
+
+	if (!PyArg_ParseTuple (args, "ss|b", &textMsg, &text, &max))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected 2 strings and 1 int");
+
+	if ((max <= 0) || (max > 100))
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
+			"max string length value must be in the range [1, 100].");
+
+	/* copying the text string handles both cases:
+	 * max < strlen(text) (by truncating) and
+	 * max > strlen(text) (by expanding to strlen(tmp)) */
+	BLI_strncpy(tmp, text, max);
+
+	if (sbutton (tmp, 0, max, textMsg) == 0) {
+		Py_INCREF (Py_None);
+		return Py_None;
+	}
+
+	ret = Py_BuildValue ("s", tmp);
+
+	if (ret) return ret;
+	
+	return EXPP_ReturnPyObjError(PyExc_MemoryError, "couldn't create a PyString");
+}
+
 
 PyObject *Draw_Init (void)
 {

@@ -715,11 +715,11 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_file_importmenu, NULL);
 	//uiBlockSetXOfs(block, -50);  // offset to parent button
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "VRML 1.0...|Ctrl F2",
-			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "DXF...|Shift F2",
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "VRML 1.0...",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "VideoScape...|Alt W",
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "DXF...",
+			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "VideoScape...",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "STL...",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 3, "");
