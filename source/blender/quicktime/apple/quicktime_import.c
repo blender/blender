@@ -51,6 +51,7 @@
 #include <QuickTimeComponents.h>
 #endif /* _WIN32 */
 
+
 #include "quicktime_import.h"
 #include "quicktime_export.h"
 
@@ -58,7 +59,7 @@
 #define	RECT_WIDTH(r)	(r.right-r.left)
 #define	RECT_HEIGHT(r)	(r.bottom-r.top)
 
-#define QTIME_DEBUG 1
+#define QTIME_DEBUG 0
 
 
 void quicktime_init(void)
@@ -176,7 +177,6 @@ int anim_is_quicktime (char *name)
 #else
 	qtname = get_valid_qtname(name);
 	sprintf(theFullPath, "%s", qtname);
-	if(QTIME_DEBUG) printf("qt: win checking as movie: %s\n", qtname);
 	MEM_freeN(qtname);
 
 	CopyCStringToPascal(theFullPath, dst);
