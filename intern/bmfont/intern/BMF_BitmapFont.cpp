@@ -69,15 +69,37 @@ BMF_BitmapFont::~BMF_BitmapFont(void)
 {
 }
 
+#ifdef __APPLE__
+#include <stdio.h>
+static int is_a_really_crappy_nvidia_card(void) {
+	static int well_is_it= -1;
+	
+	/* Do you understand the implication? Do you? */
+	if (well_is_it==-1) {
+		well_is_it= (strcmp(glGetString(GL_RENDERER), "NVIDIA GeForce 6800 GT OpenGL Engine") == 0);
+	}
+	return well_is_it;
+}
+#endif
 
 void BMF_BitmapFont::DrawString(char* str)
 {
 	GLint alignment;
 	unsigned char c;
+	GLint vp[4];  // hack stuff
+	GLubyte nullm = 0;	// hack stuff
+	
+#ifdef __APPLE__
+	if(is_a_really_crappy_nvidia_card()) {
+		glGetIntegerv(GL_VIEWPORT, vp);   // hack stuff
 		
+		glBitmap(1, 1, 0, 0, -vp[0], vp[1], &nullm); 
+		
+	}
+#endif
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
+	
 	while ( (c = (unsigned char) *str++) ) {
 		BMF_CharData & cd = m_fontData->chars[c];
 		
