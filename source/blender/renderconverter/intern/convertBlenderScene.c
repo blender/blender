@@ -2737,7 +2737,7 @@ static void check_non_flat_quads(void)
 				CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
-				if( fabs(xn) < 0.9990 ) {	// checked on noisy fractal grid
+				if( fabs(xn) < 0.99995 ) {	// checked on noisy fractal grid
 				
 					if( xn<0.0 ) flipnorm= 1; else flipnorm= 0;
 					
