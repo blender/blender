@@ -146,6 +146,7 @@ void BIF_read_file(char *name)
 
 	winqueue_break= 1;	/* leave queues everywhere */
 
+	undo_editmode_clear();
 	BKE_reset_undo();
 	BKE_write_undo("original");	/* save current state */
 }
@@ -258,6 +259,7 @@ int BIF_read_homefile(void)
 		space_set_commmandline_options();
 
 		if (U.undosteps==0) U.undosteps=32;
+		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo("original");	/* save current state */
 

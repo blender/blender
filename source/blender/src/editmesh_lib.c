@@ -1483,33 +1483,38 @@ EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 	return NULL;
 }
 
-
-float convex(float *v1, float *v2, float *v3, float *v4)
+/* evaluate if entire quad is a proper convex quad */
+int convex(float *v1, float *v2, float *v3, float *v4)
 {
-	float cross[3], test[3];
-	float inpr;
+	float nor[3], vec[4][2];
 	
-	/* make sure we do not test a (close to) zero sized tria in quad */
-	test[0]= AreaT3Dfl(v1, v2, v3);
-	test[1]= AreaT3Dfl(v2, v3, v4);
-	test[2]= AreaT3Dfl(v3, v4, v1);
+	/* define projection */
+	CalcNormFloat4(v1, v2, v3, v4, nor);
+	nor[0]= ABS(nor[0]);
+	nor[1]= ABS(nor[1]);
+	nor[2]= ABS(nor[2]);
+	if(nor[2] >= nor[0] && nor[2]>= nor[1]) {
+		vec[0][0]= v1[0]; vec[0][1]= v1[1];
+		vec[1][0]= v2[0]; vec[1][1]= v2[1];
+		vec[2][0]= v3[0]; vec[2][1]= v3[1];
+		vec[3][0]= v4[0]; vec[3][1]= v4[1];
+	}
+	else if(nor[1] >= nor[0] && nor[1]>= nor[2]) {
+		vec[0][0]= v1[0]; vec[0][1]= v1[2];
+		vec[1][0]= v2[0]; vec[1][1]= v2[2];
+		vec[2][0]= v3[0]; vec[2][1]= v3[2];
+		vec[3][0]= v4[0]; vec[3][1]= v4[2];
+	}
+	else {
+		vec[0][0]= v1[1]; vec[0][1]= v1[2];
+		vec[1][0]= v2[1]; vec[1][1]= v2[2];
+		vec[2][0]= v3[1]; vec[2][1]= v3[2];
+		vec[3][0]= v4[1]; vec[3][1]= v4[2];
+	}
 	
-	if(test[0]<test[1] && test[0]<test[2]) {
-		CalcNormFloat(v2, v3, v4, cross);
-		CalcNormFloat(v2, v4, v1, test);
-	}
-	else if(test[1]<test[0] && test[1]<test[2]) {
-		CalcNormFloat(v3, v4, v1, cross);
-		CalcNormFloat(v3, v1, v2, test);
-	}
-	else  {
-		CalcNormFloat(v4, v1, v2, cross);
-		CalcNormFloat(v4, v2, v3, test);
-	}
-	
-	inpr= cross[0]*test[0]+cross[1]*test[1]+cross[2]*test[2];
-
-	return inpr;
+	/* linetests, the 2 diagonals have to instersect to be convex */
+	if( IsectLL2Df(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
+	return 0;
 }
 
 

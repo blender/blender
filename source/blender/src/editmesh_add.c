@@ -294,7 +294,6 @@ void addedgeface_mesh(void)
 	EditVert *eve, *neweve[4];
 	EditEdge *eed;
 	EditFace *efa;
-	float con1, con2, con3;
 	short amount=0;
 
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
@@ -352,18 +351,12 @@ void addedgeface_mesh(void)
 		
 			if(tria==2) join_triangles();
 			else {
-				con1= convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co);
-				con2= convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co);
-				con3= convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co);
-
-				if(con1>=con2 && con1>=con3)
-					efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
-				else if(con2>=con1 && con2>=con3)
-					efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
-				else 
-					efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
 				
-				EM_select_face(efa, 1);
+				if( convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co) ) {
+					efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
+					EM_select_face(efa, 1);
+				}
+				else error("The selected vertices form a concave quad");
 			}
 
 		}

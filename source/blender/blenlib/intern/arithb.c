@@ -1874,6 +1874,56 @@ float AreaPoly3Dfl(int nr, float *verts, float *normal)
 	return (float)fabs(0.5*area/max);
 }
 
+/* intersect Line-Line, shorts */
+short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4)
+{
+	/* return:
+	-1: colliniar
+	 0: no intersection of segments
+	 1: exact intersection of segments
+	 2: cross-intersection of segments
+	*/
+	float div, labda, mu;
+	
+	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
+	if(div==0.0) return -1;
+	
+	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
+	
+	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
+	
+	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
+		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
+		return 2;
+	}
+	return 0;
+}
+
+/* intersect Line-Line, floats */
+short IsectLL2Df(float *v1, float *v2, float *v3, float *v4)
+{
+	/* return:
+	-1: colliniar
+0: no intersection of segments
+1: exact intersection of segments
+2: cross-intersection of segments
+	*/
+	float div, labda, mu;
+	
+	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
+	if(div==0.0) return -1;
+	
+	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
+	
+	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
+	
+	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
+		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
+		return 2;
+	}
+	return 0;
+}
+
 void MinMax3(float *min, float *max, float *vec)
 {
 	if(min[0]>vec[0]) min[0]= vec[0];

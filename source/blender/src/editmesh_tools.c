@@ -2052,7 +2052,7 @@ void beauty_fill(void)
                 if(ok) {
                     /* test convex */
                     givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
-                    if( convex(v1->co, v2->co, v3->co, v4->co) > -0.5) {
+                    if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 
                         /* test edges */
                         if( ((long)v1) > ((long)v3) ) {
@@ -2226,7 +2226,7 @@ void join_triangles(void)
 		1-----2        1-----2
 */
 				/* make new faces */
-				if( convex(v1->co, v2->co, v3->co, v4->co) > 0.01) {
+				if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 					if(exist_face(v1, v2, v3, v4)==0) {
 						w = addfacelist(v1, v2, v3, v4, efaa[0], NULL); /* seam edge may get broken */
 						w->f= efaa[0]->f;	/* copy selection flag */
@@ -2322,7 +2322,7 @@ void edge_flip(void)
 */
 				/* make new faces */
 				if (v1 && v2 && v3){
-					if( convex(v1->co, v2->co, v3->co, v4->co) > 0.01) {
+					if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 						if(exist_face(v1, v2, v3, v4)==0) {
 							w = addfacelist(v1, v2, v3, 0, efaa[1], NULL); /* outch this may break seams */ 
 							EM_select_face(w, 1);
@@ -2962,7 +2962,6 @@ void bevel_mesh(float bsize, int allfaces)
 	EditFace *efa, *example; //, *nextvl;
 	EditEdge *eed, *eed2;
 	EditVert *neweve[1024], *eve, *eve2, *eve3, *v1, *v2, *v3, *v4; //, *eve4;
-	float con1, con2, con3;
 	//short found4,  search;
 	//float f1, f2, f3, f4;
 	float cent[3], min[3], max[3];
@@ -3306,15 +3305,7 @@ void bevel_mesh(float bsize, int allfaces)
 					}
 				} else if (a==4) {
 					if(exist_face(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
-						con1= convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co);
-						con2= convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co);
-						con3= convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co);
-						if(con1>=con2 && con1>=con3)
-							efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], example,NULL);
-						else if(con2>=con1 && con2>=con3)
-							efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], example,NULL);
-						else 
-							efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], example,NULL);
+						efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], example,NULL);
 					}				
 				}
 				else if (a==3) {

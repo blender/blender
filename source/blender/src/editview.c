@@ -209,30 +209,6 @@ static int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 	return 0;
 }
 
-static short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4)  /* intersect Line-Line */
-{
-	/* return:
-	-1: colliniar
-	 0: no intersection of segments
-	 1: exact intersection of segments
-	 2: cross-intersection of segments
-	*/
-	float div, labda, mu;
-	
-	div= (v2[0]-v1[0])*(v4[1]-v3[1])-(v2[1]-v1[1])*(v4[0]-v3[0]);
-	if(div==0.0) return -1;
-	
-	labda= ((float)(v1[1]-v3[1])*(v4[0]-v3[0])-(v1[0]-v3[0])*(v4[1]-v3[1]))/div;
-
-	mu= ((float)(v1[1]-v3[1])*(v2[0]-v1[0])-(v1[0]-v3[0])*(v2[1]-v1[1]))/div;
-	
-	if(labda>=0.0 && labda<=1.0 && mu>=0.0 && mu<=1.0) {
-		if(labda==0.0 || labda==1.0 || mu==0.0 || mu==1.0) return 1;
-		return 2;
-	}
-	return 0;
-}
-
 /* edge version for lasso select. we assume boundbox check was done */
 static int lasso_inside_edge(short mcords[][2], short moves, short *v1, short *v2)
 {

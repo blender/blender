@@ -540,6 +540,18 @@ VecRotToMat3(
 	float phi, 
 	float mat[][3]
 );
+
+/* intersect Line-Line
+	return:
+	-1: colliniar
+	 0: no intersection of segments
+	 1: exact intersection of segments
+	 2: cross-intersection of segments
+*/
+extern short IsectLL2Df(float *v1, float *v2, float *v3, float *v4);
+extern short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4);
+
+
 	float *
 vectoquat(
 	float *vec, 

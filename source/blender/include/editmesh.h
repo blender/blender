@@ -84,7 +84,7 @@ extern void delfaceflag(int flag);
 extern void rotateflag(short flag, float *cent, float rotmat[][3]);
 extern void translateflag(short flag, float *vec);
 
-extern float convex(float *v1, float *v2, float *v3, float *v4);
+extern int convex(float *v1, float *v2, float *v3, float *v4);
 
 /* ******************* editmesh_mods.c */
 extern EditEdge *findnearestedge(short *dist);
