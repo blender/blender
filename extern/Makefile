@@ -38,9 +38,10 @@ DIRS = ode
 
 include nan_subdirs.mk
 
-install:
+# we're not quite ready with the 'all' target just yet:
+install all::
 	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i $@ || exit 1; \
+	    echo "====> $(MAKE) install in $(SOURCEDIR)/$$i" ;\
+	    $(MAKE) -C $$i install || exit 1; \
 	done
 

@@ -52,7 +52,6 @@ all:
 
 install: all
     ifeq ($(OS),$(findstring $(OS), "freebsd linux"))
-	@echo "====> $(MAKE) $@ in $(SOURCEDIR)"
 	[ -d $(LCGDIR) ] || mkdir $(LCGDIR)
 	[ -d $(NAN_ODE) ] || mkdir $(NAN_ODE)
 	[ -d $(NAN_ODE)/include ] || mkdir $(NAN_ODE)/include
