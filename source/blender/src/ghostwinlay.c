@@ -118,7 +118,6 @@ int checkAppleVideoCard() {
 	long value;
 	long maxvram = 0;   /* we get always more than 1 renderer, check one, at least, has 8 Mo */
 	
-	
 	display_mask = CGDisplayIDToOpenGLDisplayMask (CGMainDisplayID() );	
 	
 	theErr = CGLQueryRendererInfo( display_mask, &rend, &nrend);
@@ -157,6 +156,17 @@ int checkAppleVideoCard() {
 	}
 	CGLDestroyRendererInfo (rend);
 	return 0;
+}
+
+void getMacAvailableBounds(short *top, short *left, short *bottom, short *right) {
+	Rect outAvailableRect;
+	
+	GetAvailableWindowPositioningBounds ( GetMainDevice(), &outAvailableRect);
+	
+	*top = outAvailableRect.top;  
+    *left = outAvailableRect.left;
+    *bottom = outAvailableRect.bottom; 
+    *right = outAvailableRect.right;
 }
 
 #endif

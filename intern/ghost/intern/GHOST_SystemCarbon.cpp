@@ -899,16 +899,18 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 					if (macState == 2) { // always ok
 							::ZoomWindow(window, part, true);
 							ghostWindow->setMac_windowState(1);
-						} else { // need to force size again
-							GHOST_TUns32 scr_x,scr_y;
+					} else { // need to force size again
+						GHOST_TUns32 scr_x,scr_y;
+						Rect outAvailableRect;
 						
-							ghostWindow->setMac_windowState(2);
+						ghostWindow->setMac_windowState(2);
+						::GetAvailableWindowPositioningBounds ( GetMainDevice(), &outAvailableRect);
 						
-							this->getMainDisplayDimensions(scr_x,scr_y);
-							::SizeWindow (window, scr_x,scr_y-22,false);
-							::MoveWindow (window, 1,22,true);
-						}
-
+						//this->getMainDisplayDimensions(scr_x,scr_y);
+						::SizeWindow (window, outAvailableRect.right-outAvailableRect.left,outAvailableRect.bottom-outAvailableRect.top-1,false);
+						::MoveWindow (window, outAvailableRect.left, outAvailableRect.top,true);
+					}
+				
 			}
 			break;
 

@@ -113,9 +113,11 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
     Str255 title255;
 	OSStatus err;
 	
+	//fprintf(stderr," main screen top %i left %i height %i width %i\n", top, left, height, width);
+	
 	if (state >= 8 ) {
 		state = state - 8;
-		setMac_windowState(2);
+		setMac_windowState(1);
 	} else 
 		setMac_windowState(0);
 
@@ -128,10 +130,10 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 								 kWindowStandardDocumentAttributes+kWindowLiveResizeAttribute,
 								 &bnds,
 								 &m_windowRef);
+		
 		if ( err != noErr) {
 			fprintf(stderr," error creating window %i \n",err);
 		} else {
-			//void *handler = &GHOST_WindowCarbon::myWEventHandlerProc;
 			
 			::SetWRefCon(m_windowRef,(SInt32)this);
 			setTitle(title);
@@ -139,7 +141,10 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 			if ( err != noErr) {
 				fprintf(stderr," error creating handler %i \n",err);
 			} else {
-				::TransitionWindow (m_windowRef,kWindowZoomTransitionEffect,kWindowShowTransitionAction,NULL);
+				//	::TransitionWindow (m_windowRef,kWindowZoomTransitionEffect,kWindowShowTransitionAction,NULL);
+				::ShowWindow(m_windowRef);
+				::MoveWindow (m_windowRef, left, top,true);
+				
 			}
 		}
         if (m_windowRef) {

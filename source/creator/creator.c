@@ -113,6 +113,7 @@ static void print_version();
 /* defined is ghostwinlay , we can't include carbon here, conflict with DNA */
 #ifdef __APPLE
 extern int checkAppleVideoCard();
+extern void getMacAvailableBounds(short *top, short *left, short *bottom, short *right);
 #endif
 
 
@@ -200,6 +201,7 @@ static void print_help(void)
 
 double PIL_check_seconds_timer(void);
 extern void winlay_get_screensize(int *width_r, int *height_r);
+
 int main(int argc, char **argv)
 {
 	int a, i, stax, stay, sizx, sizy;
@@ -225,16 +227,21 @@ int main(int argc, char **argv)
         /* first let us check if we are hardware accelerated and with VRAM >= 16 Mo */
         
         if (checkAppleVideoCard()) {
-            winlay_get_screensize(&scr_x, &scr_y);
-            /* let sneak under topbar */ 
-            setprefsize(1, 1, scr_x-2, scr_y-24);
+			short top, left, bottom, right;
+			
+			winlay_get_screensize(&scr_x, &scr_y); 
+			/*  let sneak under topbar 
+            setprefsize(1, 1, scr_x-2, scr_y-24);*/
+			getMacAvailableBounds(&top, &left, &bottom, &right);
+			setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64);
 
         } else {
+				winlay_get_screensize(&scr_x, &scr_y);
+
 		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
 		setprefsize(120, 40, 850, 684);
         }
     
-		winlay_get_screensize(&scr_x, &scr_y);
 		winlay_process_events(0);
 		if (GHOST_HACK_getFirstFile(firstfilebuf)) {
 			argc= 2;
