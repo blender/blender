@@ -147,6 +147,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	glRasterPos2f(xs, ys);
 
 	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
+	else if(but->aspect<0.9) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1079,6 +1080,7 @@ static void round_button_mid(float x1, float y1, float x2, float y2, float asp, 
 static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 	int align= (flag & UI_BUT_ALIGN);
+	int round_align_fix= 0;
 	
 	/* paper */
 	if(flag & UI_SELECT) {
@@ -1094,45 +1096,55 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 		switch(align) {
 		case UI_BUT_ALIGN_TOP:
 			uiSetRoundBox(12);
+			round_align_fix= 4;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 		case UI_BUT_ALIGN_DOWN:
 			uiSetRoundBox(3);
+			round_align_fix= 2;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 		case UI_BUT_ALIGN_LEFT:
 			uiSetRoundBox(6);
+			round_align_fix= 6;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 		case UI_BUT_ALIGN_RIGHT:
 			uiSetRoundBox(9);
+			round_align_fix= 0;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 			
 		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
 			uiSetRoundBox(1);
+			round_align_fix= 0;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 		case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
 			uiSetRoundBox(2);
+			round_align_fix= 2;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
 			uiSetRoundBox(8);
+			round_align_fix= 0;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
 			uiSetRoundBox(4);
+			round_align_fix= 4;
 			round_button(x1, y1, x2, y2, asp, colorid);
 			break;
 			
 		default:
+			round_align_fix= 0;
 			round_button_mid(x1, y1, x2, y2, asp, colorid, align);
 			break;
 		}
 	} 
 	else {
 		uiSetRoundBox(15);
+		round_align_fix= 6;
 		round_button(x1, y1, x2, y2, asp, colorid);
 	}
 	
@@ -1163,7 +1175,7 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 		else BIF_ThemeColorShade(colorid, -10);
 		// assuming its not inside alignment...
 		if(x2-x1 > 24) {
-			uiSetRoundBox(6);
+			uiSetRoundBox(round_align_fix);
 			glBegin(GL_POLYGON);
 			gl_round_box(x2-16, y1+asp, x2-asp, y2-asp, 7.0);
 			glEnd();
