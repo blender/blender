@@ -63,7 +63,7 @@ static PyMethodDef BPy_MTex_methods[] = {
  /* name, method, flags, doc */
   {"setTex", (PyCFunction)MTex_setTex, METH_VARARGS,
                             "(i) - Set MTex Texture"},
-  {0}
+  {NULL, NULL,0, NULL}
 };
 
 /*****************************************************************************/

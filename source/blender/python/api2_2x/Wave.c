@@ -85,7 +85,7 @@ static PyMethodDef BPy_Wave_methods[] = {
 	 METH_NOARGS,"()-Return Wave lifetime"},
   {"setLifetime",(PyCFunction)Wave_setLifetime, METH_VARARGS,
 	 "()- Sets Wave lifetime"},
-	{0}
+	{NULL, NULL, 0, NULL}
 };
 
 

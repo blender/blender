@@ -102,11 +102,11 @@ static PyObject *new_const(void)
   constant = (BPy_constant *)PyObject_NEW(BPy_constant, &constant_Type);
 
   if (constant == NULL)
-    return (PythonReturnErrorObject (PyExc_MemoryError,
+    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
                             "couldn't create constant object"));
 
   if ((constant->dict = PyDict_New()) == NULL)
-    return (PythonReturnErrorObject (PyExc_MemoryError,
+    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
                     "couldn't create constant object's dictionary"));
   
   return (PyObject *)constant;
@@ -152,10 +152,10 @@ static PyObject *constant_getAttr (BPy_constant *self, char *name)
       return v;
     }
 
-    return (PythonReturnErrorObject (PyExc_AttributeError,
+    return (EXPP_ReturnPyObjError (PyExc_AttributeError,
                                      "attribute not found"));
   }
-  return (PythonReturnErrorObject (PyExc_RuntimeError,
+  return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
                                    "constant object lacks a dictionary"));
 }
 

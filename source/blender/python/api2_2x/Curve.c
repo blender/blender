@@ -361,7 +361,7 @@ M_Curve_Get (PyObject * self, PyObject * args)
       curvlist = PyList_New (0);
 
       if (curvlist == NULL)
-	return (PythonReturnErrorObject (PyExc_MemoryError,
+	return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 					 "couldn't create PyList"));
 
       while (curv_iter)

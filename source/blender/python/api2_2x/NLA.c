@@ -204,7 +204,7 @@ M_NLA_GetActions(PyObject* self)
 			Py_DECREF (py_action);
 		} else {
 			Py_DECREF ( dict );
-			return (PythonReturnErrorObject (PyExc_RuntimeError,
+			return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"NLA_GetActions: could not create Action object"));
 		}
 	}	
@@ -359,7 +359,7 @@ static PyObject *Action_getAllChannelIpos (BPy_Action *self)
 			Py_DECREF (ipo_attr);
 		} else {
 			Py_DECREF ( dict );
-			return (PythonReturnErrorObject (PyExc_RuntimeError,
+			return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"Action_getAllChannelIpos: could not create Ipo object"));
 		}
 	}	

@@ -115,7 +115,7 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
 	{"ReleaseGlobalDict", &Blender_ReleaseGlobalDict,
 		METH_VARARGS, Blender_ReleaseGlobalDict_doc},
-	{NULL, NULL}
+ 	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
@@ -153,10 +153,10 @@ static PyObject *Blender_Set (PyObject *self, PyObject *args)
 	}
 	else
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 																			"bad request identifier"));
 	}
-	return ( PythonIncRef (Py_None) );
+	return ( EXPP_incr_ret (Py_None) );
 }
 
 /*****************************************************************************/
@@ -231,17 +231,17 @@ static PyObject *Blender_Get (PyObject *self, PyObject *args)
 								 requested data is unknown?
 		else
 		{
-			return (PythonReturnErrorObject (..., "message") );
+			return (EXPP_ReturnPyObjError (..., "message") );
 		}
 		*/
 	}
 	else
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 																		"expected string argument"));
 	}
 
-	return (PythonReturnErrorObject (PyExc_AttributeError,
+	return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 																"bad request identifier"));
 }
 

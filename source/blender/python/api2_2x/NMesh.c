@@ -237,7 +237,7 @@ static PyObject *NMFace_append(PyObject *self, PyObject *args)
 static struct PyMethodDef NMFace_methods[] =
 {
 	MethodDef(append),
-	{NULL, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static PyObject *NMFace_getattr(PyObject *self, char *name)
@@ -1088,7 +1088,7 @@ static struct PyMethodDef NMesh_methods[] =
 		NMesh_getMaxSmoothAngle_doc},
 	{"getSubDivLevels", (PyCFunction)NMesh_getSubDivLevels, METH_NOARGS,
 		NMesh_getSubDivLevels_doc},
-	{NULL, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static PyObject *NMesh_getattr(PyObject *self, char *name)
@@ -2044,7 +2044,7 @@ static struct PyMethodDef M_NMesh_methods[] = {
 	MethodDef(GetRaw),
 	MethodDef(GetRawFromObject),
 	MethodDef(PutRaw),
-	{NULL, NULL}
+	{NULL, NULL, 0, NULL}
 };
 
 static PyObject *M_NMesh_Modes (void)

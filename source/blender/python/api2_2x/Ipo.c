@@ -286,7 +286,7 @@ M_Ipo_Get (PyObject * self, PyObject * args)
       ipolist = PyList_New (BLI_countlist (&(G.main->ipo)));
 
       if (ipolist == NULL)
-	return (PythonReturnErrorObject (PyExc_MemoryError,
+	return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 					 "couldn't create PyList"));
 
       while (ipo_iter)
@@ -294,7 +294,7 @@ M_Ipo_Get (PyObject * self, PyObject * args)
 	  pyobj = Ipo_CreatePyObject (ipo_iter);
 
 	  if (!pyobj)
-	    return (PythonReturnErrorObject (PyExc_MemoryError,
+	    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 					     "couldn't create PyString"));
 
 	  PyList_SET_ITEM (ipolist, index, pyobj);

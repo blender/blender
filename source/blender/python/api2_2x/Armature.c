@@ -461,14 +461,14 @@ M_Armature_Get (PyObject * self, PyObject * args)
 		armlist = PyList_New (BLI_countlist (&(G.main->armature)));
 
 		if (armlist == NULL)
-			return (PythonReturnErrorObject (PyExc_MemoryError,
+			return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 						"couldn't create PyList"));
 
 		while (armature_iter){
 			pyobj = Armature_CreatePyObject (armature_iter);
 
 			if (!pyobj)
-			return (PythonReturnErrorObject (PyExc_MemoryError,
+			return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 							"couldn't create PyString"));
 
 			PyList_SET_ITEM (armlist, index, pyobj);

@@ -120,7 +120,7 @@ static PyMethodDef BPy_Particle_methods[] = {
 	 METH_NOARGS,"()-Return particle life time"},
   {"setDefvec",(PyCFunction)Particle_setDefvec, METH_VARARGS,
 	 "()- Sets particle life time "},
-	{0}
+	{NULL, NULL, 0, NULL}
 };
 
 

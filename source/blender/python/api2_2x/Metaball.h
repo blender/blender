@@ -179,7 +179,7 @@ static PyMethodDef BPy_Metaball_methods[] = {
   {"setsize", (PyCFunction)Metaball_setsize , \
 	 METH_VARARGS, "(f f f) - Sets Metaball size values"},
 	/*end of MetaElem data*/
-	{0}
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/

@@ -297,7 +297,7 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef (Redraw),
 	MethodDef (Draw),
 	MethodDef (Register),
-	{NULL, NULL}
+	{NULL, NULL,0,NULL}
 };
 
 PyTypeObject Button_Type = {

@@ -92,11 +92,6 @@ ID *GetIdFromList(ListBase *list, char *name)
 /* Description: These functions set an internal string with the given type   */
 /*              and error_msg arguments.                                     */
 /*****************************************************************************/
-PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg)
-{
-	PyErr_SetString (type, error_msg);
-	return (NULL);
-}
 
 PyObject *EXPP_ReturnPyObjError (PyObject * type, char * error_msg)
 { /* same as above, just to change its name smoothly */
@@ -114,17 +109,13 @@ int EXPP_ReturnIntError (PyObject *type, char *error_msg)
 /* Description: This function increments the reference count of the given    */
 /*              Python object (usually Py_None) and returns it.              */
 /*****************************************************************************/
-PyObject * PythonIncRef (PyObject *object)
-{
-	Py_INCREF (object);
-	return (object);
-}
 
 PyObject *EXPP_incr_ret (PyObject *object)
 {
 	Py_INCREF (object);
 	return (object);
 }
+
 /*****************************************************************************/
 /* Description: This function maps the event identifier to a string.         */
 /*****************************************************************************/

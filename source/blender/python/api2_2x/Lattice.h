@@ -175,7 +175,7 @@ static PyMethodDef BPy_Lattice_methods[] = {
 			Lattice_applyDeform_doc},
 	{"insertKey", (PyCFunction)Lattice_insertKey, METH_VARARGS,
 			Lattice_insertKey_doc},
-	{0}
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/

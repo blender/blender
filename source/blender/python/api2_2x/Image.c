@@ -153,14 +153,14 @@ static PyObject *M_Image_Get(PyObject *self, PyObject *args)
 		img_list = PyList_New (BLI_countlist (&(G.main->image)));
 
 		if (img_list == NULL)
-			return (PythonReturnErrorObject (PyExc_MemoryError,
+			return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 							"couldn't create PyList"));
 
 		while (img_iter) {
 			pyobj = Image_CreatePyObject (img_iter);
 
 			if (!pyobj)
-				return (PythonReturnErrorObject (PyExc_MemoryError,
+				return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 									"couldn't create PyObject"));
 
 			PyList_SET_ITEM (img_list, index, pyobj);
@@ -262,7 +262,7 @@ static PyMethodDef BPy_Image_methods[] = {
 					"(int) - Change Image object x repetition value"},
 	{"setYRep", (PyCFunction)Image_setYRep, METH_VARARGS,
 					"(int) - Change Image object y repetition value"},
-	{0}
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/

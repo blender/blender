@@ -289,7 +289,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
 
   if (!PyArg_ParseTuple(args, "s|s", &str_type, &name))
   {
-		PythonReturnErrorObject (PyExc_TypeError, "string expected as argument");
+		EXPP_ReturnPyObjError (PyExc_TypeError, "string expected as argument");
 		return (NULL);
   }
 
@@ -307,7 +307,7 @@ PyObject *M_Object_New(PyObject *self, PyObject *args)
   else if (strcmp (str_type, "Empty") == 0)   type = OB_EMPTY;
   else
   {
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 	  	"Unknown type specified"));
   }
 
@@ -401,7 +401,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
 		if (object == NULL)
 		{
 			/* No object exists with the name specified in the argument name. */
-			return (PythonReturnErrorObject (PyExc_AttributeError,
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 						"Unknown object specified."));
 		}
 		blen_object = (BPy_Object*)PyObject_NEW (BPy_Object, &Object_Type); 
@@ -420,7 +420,7 @@ PyObject *M_Object_Get(PyObject *self, PyObject *args)
 
 		if (obj_list == NULL)
 		{
-			return (PythonReturnErrorObject (PyExc_SystemError,
+			return (EXPP_ReturnPyObjError (PyExc_SystemError,
 					"List creation failed."));
 		}
 
@@ -574,7 +574,7 @@ static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
 
   if (!PyArg_ParseTuple (args, "|ii", &mode, &fast))
   {
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 		  "expected one or two integers as arguments"));
   }
 
@@ -735,7 +735,7 @@ static PyObject *Object_getDeltaLocation (BPy_Object *self)
 
 	if (attr) return (attr);
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.dloc attributes"));
 }
 
@@ -745,7 +745,7 @@ static PyObject *Object_getDrawMode (BPy_Object *self)
 
 	if (attr) return (attr);
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.drawMode attribute"));
 }
 
@@ -790,7 +790,7 @@ static PyObject *Object_getDrawType (BPy_Object *self)
 
 	if (attr) return (attr);
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.drawType attribute"));
 }
 
@@ -837,7 +837,7 @@ static PyObject *Object_getLocation (BPy_Object *self, PyObject *args)
 
 	if (attr) return (attr);
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.loc attributes"));
 }
 
@@ -863,7 +863,7 @@ static PyObject *Object_getName (BPy_Object *self)
 
 	if (attr) return (attr);
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get the name of the Object"));
 }
 
@@ -881,7 +881,7 @@ static PyObject *Object_getParent (BPy_Object *self)
 		return (attr);
 	}
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.parent attribute"));
 }
 
@@ -894,7 +894,7 @@ static PyObject *Object_getSize (BPy_Object *self, PyObject *args)
 
 	if (attr) return (attr);
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.size attributes"));
 }
 
@@ -904,7 +904,7 @@ static PyObject *Object_getTimeOffset (BPy_Object *self)
 
 	if (attr) return (attr);
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.sf attributes"));
 }
 
@@ -923,7 +923,7 @@ static PyObject *Object_getTracked (BPy_Object *self)
 		return (attr);
 	}
 
-	return (PythonReturnErrorObject (PyExc_RuntimeError,
+	return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"couldn't get Object.track attribute"));
 }
 
@@ -1077,7 +1077,7 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "O", &py_data))
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 			"expected an object as argument"));
 	}
 	if (Armature_CheckPyObject (py_data))
@@ -1096,7 +1096,7 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 	/* have we set data to something good? */
 	if( !data )
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 			"link argument type is not supported "));
 	}
 
@@ -1109,47 +1109,47 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 		case ID_AR:
 			if (self->object->type != OB_ARMATURE)
 			{
-				return (PythonReturnErrorObject (PyExc_AttributeError,
+				return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"The 'link' object is incompatible with the base object"));
 			}
 			break;
 		case ID_CA:
 			if (self->object->type != OB_CAMERA)
 			{
-				return (PythonReturnErrorObject (PyExc_AttributeError,
+				return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"The 'link' object is incompatible with the base object"));
 			}
 			break;
 		case ID_LA:
 			if (self->object->type != OB_LAMP)
 			{
-				return (PythonReturnErrorObject (PyExc_AttributeError,
+				return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"The 'link' object is incompatible with the base object"));
 			}
 			break;
 		case ID_ME:
 			if (self->object->type != OB_MESH)
 			{
-				return (PythonReturnErrorObject (PyExc_AttributeError,
+				return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"The 'link' object is incompatible with the base object"));
 			}
 			break;
 		case ID_CU:
 			if (self->object->type != OB_CURVE)
 			{
-				return (PythonReturnErrorObject (PyExc_AttributeError,
+				return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"The 'link' object is incompatible with the base object"));
 			}
 			break;
 		case ID_LT:
 			if (self->object->type != OB_LATTICE)
 			{
-					return (PythonReturnErrorObject (PyExc_AttributeError,
+					return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 							"The 'link' object is incompatible with the base object"));
 			}
 			break;
 		default:
-			return (PythonReturnErrorObject (PyExc_AttributeError,
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"Linking this object type is not supported"));
 	}
 	self->object->data = data;
@@ -1169,7 +1169,7 @@ static PyObject *Object_link (BPy_Object *self, PyObject *args)
 		}
 		else
 		{
-			return (PythonReturnErrorObject (PyExc_RuntimeError,
+			return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"old object reference count below 0"));
 		}
 	}
@@ -1190,12 +1190,12 @@ static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
 	/* Check if the arguments passed to makeParent are valid. */
 	if (!PyArg_ParseTuple (args, "O|ii", &list, &noninverse, &fast))
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 			"expected a list of objects and one or two integers as arguments"));
 	}
 	if (!PySequence_Check (list))
 	{
-		return (PythonReturnErrorObject (PyExc_TypeError,
+		return (EXPP_ReturnPyObjError (PyExc_TypeError,
 			"expected a list of objects"));
 	}
 
@@ -1209,14 +1209,14 @@ static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
 
 		if (child == NULL)
 		{
-			return (PythonReturnErrorObject (PyExc_TypeError,
+			return (EXPP_ReturnPyObjError (PyExc_TypeError,
 				"Object Type expected"));
 		}
 
 		parent = (Object*)self->object;
 		if (test_parent_loop (parent, child))
 		{
-			return (PythonReturnErrorObject (PyExc_RuntimeError,
+			return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"parenting loop detected - parenting failed"));
 		}
 		child->partype = PAROBJECT;
@@ -1248,7 +1248,7 @@ static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
 
 static PyObject *Object_materialUsage (BPy_Object *self, PyObject *args)
 {
-	return (PythonReturnErrorObject (PyExc_NotImplementedError,
+	return (EXPP_ReturnPyObjError (PyExc_NotImplementedError,
 			"materialUsage: not yet implemented"));
 }
 
@@ -1282,7 +1282,7 @@ static PyObject *Object_setDrawMode (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "b", &dtx))
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"expected an integer as argument"));
 	}
 	self->object->dtx = dtx;
@@ -1297,7 +1297,7 @@ static PyObject *Object_setDrawType (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "b", &dt))
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"expected an integer as argument"));
 	}
 	self->object->dt = dt;
@@ -1445,7 +1445,7 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "O", &list))
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"expected a list of materials as argument"));
 	}
 
@@ -1455,12 +1455,12 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args)
 		matlist = EXPP_newMaterialList_fromPyList (list);
 		if (!matlist)
 		{
-			return (PythonReturnErrorObject (PyExc_AttributeError,
+			return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"material list must be a list of valid materials!"));
 		}
 		if ((len < 0) || (len > MAXMAT))
 		{
-			return (PythonReturnErrorObject (PyExc_RuntimeError,
+			return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"illegal material index!"));
 		}
 
@@ -1501,7 +1501,7 @@ static PyObject *Object_setName (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "s", &name))
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"expected a String as argument"));
 	}
 
@@ -1543,7 +1543,7 @@ static PyObject *Object_setTimeOffset (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "f", &newTimeOffset))
 	{
-		return (PythonReturnErrorObject (PyExc_AttributeError,
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"expected a float as argument"));
 	}
 
@@ -1561,20 +1561,20 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "O", &object))
 	{
-		PythonReturnErrorObject (PyExc_AttributeError,
+		EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"expected an object argument");
 		return (NULL);
 	}
 	if (!Object_CheckPyObject ((PyObject*)object))
 	{
-		PythonReturnErrorObject (PyExc_TypeError,
+		EXPP_ReturnPyObjError (PyExc_TypeError,
 				"argument 1 is not of type 'Object'");
 		return (NULL);
 	}
 
 	if (self->object->type != object->object->type)
 	{
-		PythonReturnErrorObject (PyExc_TypeError,
+		EXPP_ReturnPyObjError (PyExc_TypeError,
 				"objects are not of same data type");
 		return (NULL);
 	}
@@ -1605,14 +1605,14 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 				}
 				else
 				{
-					return (PythonReturnErrorObject (PyExc_RuntimeError,
+					return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 							"old object reference count below 0"));
 				}
 			}
 			Py_INCREF (Py_None);
 			return (Py_None);
 		default:
-			PythonReturnErrorObject (PyExc_TypeError,
+			EXPP_ReturnPyObjError (PyExc_TypeError,
 					"type not supported");
 			return (NULL);
 	}
@@ -2007,42 +2007,42 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 	if (StringEqual (name, "parent"))
 	{
 		/* This is not allowed. */
-		PythonReturnErrorObject (PyExc_AttributeError,
+		EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"Setting the parent is not allowed.");
 		return (0);
 	}
 	if (StringEqual (name, "track"))
 	{
 		/* This is not allowed. */
-		PythonReturnErrorObject (PyExc_AttributeError,
+		EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"Setting the track is not allowed.");
 		return (0);
 	}
 	if (StringEqual (name, "data"))
 	{
 		/* This is not allowed. */
-		PythonReturnErrorObject (PyExc_AttributeError,
+		EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"Setting the data is not allowed.");
 		return (0);
 	}
 	if (StringEqual (name, "ipo"))
 	{
 		/* This is not allowed. */
-		PythonReturnErrorObject (PyExc_AttributeError,
+		EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"Setting the ipo is not allowed.");
 		return (0);
 	}
 	if (StringEqual (name, "mat"))
 	{
 		/* This is not allowed. */
-		PythonReturnErrorObject (PyExc_AttributeError,
+		EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"Setting the matrix is not allowed.");
 		return (0);
 	}
 	if (StringEqual (name, "matrix"))
 	{
 		/* This is not allowed. */
-		PythonReturnErrorObject (PyExc_AttributeError,
+		EXPP_ReturnPyObjError (PyExc_AttributeError,
 					"Please use .setMatrix(matrix)");
 		return (0);
 	}

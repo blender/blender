@@ -234,14 +234,14 @@ static PyObject *M_Material_Get(PyObject *self, PyObject *args)
 		matlist = PyList_New (BLI_countlist (&(G.main->mat)));
 
 		if (!matlist)
-			return (PythonReturnErrorObject (PyExc_MemoryError,
+			return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 							"couldn't create PyList"));
 
 		while (mat_iter) {
 			pyobj = Material_CreatePyObject (mat_iter);
 
 			if (!pyobj)
-				return (PythonReturnErrorObject (PyExc_MemoryError,
+				return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 									"couldn't create PyObject"));
 
 			PyList_SET_ITEM (matlist, index, pyobj);
@@ -503,7 +503,7 @@ static PyMethodDef BPy_Material_methods[] = {
 		   "(n,tex,texco=0,mapto=0) - Set numbered texture to tex"},
 	{"clearTexture", (PyCFunction)Material_clearTexture, METH_VARARGS,
 			"(n) - Remove texture from numbered slot"},
-	{0}
+	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/

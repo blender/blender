@@ -147,7 +147,7 @@ static PyObject *M_Metaball_Get(PyObject *self, PyObject *args)
     mballlist = PyList_New (0);
 
     if (mballlist == NULL)
-      return (PythonReturnErrorObject (PyExc_MemoryError,
+      return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 				       "couldn't create PyList"));
 
     while (mball_iter) {

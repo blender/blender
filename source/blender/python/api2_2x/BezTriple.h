@@ -41,7 +41,8 @@
 
 typedef struct
 {
-  PyObject_HEAD BezTriple *beztriple;
+  PyObject_HEAD  /* required python macro */
+  BezTriple *beztriple;
 }
 C_BezTriple;
 

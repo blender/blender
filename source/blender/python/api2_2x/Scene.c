@@ -166,7 +166,7 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"currentFrame", (PyCFunction)Scene_currentFrame, METH_VARARGS,
 					"(frame) - If frame is given, the current frame is set and"
 									"\nreturned in any case"},
-	{0}
+	{NULL, NULL, 0, NULL}
 };
 //-----------------------BPy_Scene method def-------------------------------------------------------------------------
 PyTypeObject Scene_Type =
@@ -421,14 +421,14 @@ static PyObject *M_Scene_Get(PyObject *self, PyObject *args)
 		sce_pylist = PyList_New (BLI_countlist (&(G.main->scene)));
 
 		if (sce_pylist == NULL)
-			return (PythonReturnErrorObject (PyExc_MemoryError,
+			return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 							"couldn't create PyList"));
 
 		while (scene_iter) {
 			pyobj = Scene_CreatePyObject (scene_iter);
 
 			if (!pyobj)
-				return (PythonReturnErrorObject (PyExc_MemoryError,
+				return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 									"couldn't create PyString"));
 
 			PyList_SET_ITEM (sce_pylist, index, pyobj);

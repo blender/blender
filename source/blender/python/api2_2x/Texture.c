@@ -356,7 +356,7 @@ static PyMethodDef BPy_Texture_methods[] = {
                             "(s) - Set Texture stype"},
   {"setType", (PyCFunction)Texture_setType, METH_VARARGS,
                             "(s) - Set Texture type"},
-  {0}
+  {NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
@@ -467,13 +467,13 @@ static PyObject *M_Texture_Get(PyObject *self, PyObject *args)
 
         tex_pylist = PyList_New (BLI_countlist (&(G.main->tex)));
         if (!tex_pylist)
-            return PythonReturnErrorObject(PyExc_MemoryError,
+            return EXPP_ReturnPyObjError(PyExc_MemoryError,
                                             "couldn't create PyList");
 
         while (tex_iter) {
             pyobj = Texture_CreatePyObject(tex_iter);
             if (!pyobj)
-                return PythonReturnErrorObject(PyExc_MemoryError,
+                return EXPP_ReturnPyObjError(PyExc_MemoryError,
                                     "couldn't create Texture PyObject");
 
             PyList_SET_ITEM(tex_pylist, index, pyobj);

@@ -189,7 +189,7 @@ static PyObject *M_World_Get(PyObject *self, PyObject *args)
 	else { /* return a list of all worlds in the scene */
 		worldlist = PyList_New (0);
 		if (worldlist == NULL)
-			return (PythonReturnErrorObject (PyExc_MemoryError,
+			return (EXPP_ReturnPyObjError (PyExc_MemoryError,
 																			 "couldn't create PyList"));
 
 		while (world_iter) {

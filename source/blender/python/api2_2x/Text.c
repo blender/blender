@@ -136,7 +136,7 @@ static PyMethodDef BPy_Text_methods[] = {
           "(name, val) - Set attribute 'name' to value 'val'"},
   {"asLines", (PyCFunction)Text_asLines, METH_VARARGS,
           "() - Return text buffer as a list of lines"},
-  {0}
+  {NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/

@@ -271,7 +271,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
           "(float) - change light intensity value #2 for a Quad Lamp"},
   {"setCol", (PyCFunction)Lamp_setCol, METH_VARARGS,
           "(f,f,f) or ([f,f,f]) - change light's rgb color triplet"},
-  {0}
+  {NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/

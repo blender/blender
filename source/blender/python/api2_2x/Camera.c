@@ -294,7 +294,7 @@ M_Camera_Get (PyObject * self, PyObject * args)
       cam_pylist = PyList_New (BLI_countlist (&(G.main->camera)));
 
       if (!cam_pylist)
-	return PythonReturnErrorObject (PyExc_MemoryError,
+	return EXPP_ReturnPyObjError (PyExc_MemoryError,
 					"couldn't create PyList");
 
       while (cam_iter)
@@ -302,7 +302,7 @@ M_Camera_Get (PyObject * self, PyObject * args)
 	  pyobj = Camera_CreatePyObject (cam_iter);
 
 	  if (!pyobj)
-	    return PythonReturnErrorObject (PyExc_MemoryError,
+	    return EXPP_ReturnPyObjError (PyExc_MemoryError,
 					    "couldn't create Camera PyObject");
 
 	  PyList_SET_ITEM (cam_pylist, index, pyobj);

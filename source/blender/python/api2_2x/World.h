@@ -142,7 +142,7 @@ static PyMethodDef BPy_World_methods[] = {
       "() - Return World Data mist"},
   {"setMist", (PyCFunction)World_setMist, METH_VARARGS,
       "() - Return World Data mist"},
-  {0}
+  {NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
