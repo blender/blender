@@ -226,7 +226,7 @@ static int insert_into_textbuf(Curve *cu, char c)
 	}
 }
 
-void do_textedit(unsigned short event, short val, unsigned char _ascii)
+void do_textedit(unsigned short event, short val, char _ascii)
 {
 	Curve *cu;
 	static int accentcode= 0;
