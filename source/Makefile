@@ -486,10 +486,10 @@ release:
 
 ############### Linker rules ###############
 
-blenderstatic: $(DIR)/$(DEBUG_DIR)blenderstatic
-blenderdynamic: $(DIR)/$(DEBUG_DIR)blenderdynamic$(EXT)
-blenderplayer: $(DIR)/$(DEBUG_DIR)blenderplayer$(EXT)
-blenderdynplayer: $(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT)
+blenderstatic: $(DIR)/$(DEBUG_DIR)bin/blenderstatic
+blenderdynamic: $(DIR)/$(DEBUG_DIR)bin/blender$(EXT)
+blenderplayer: $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT)
+blenderdynplayer: $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT)
 
 blenderplayer.app: blenderplayer
 	@$(MAKE) -C darwin/ APPLICATION=blenderplayer
@@ -499,13 +499,13 @@ blenderdynamic.app: blenderdynamic
 
 # XPCOM connector only for linux so far...
 ifeq ($(OS),linux)
-    xplink: $(DIR)/$(DEBUG_DIR)Blender3DPlugin$(SOEXT)
+    xplink: $(DIR)/$(DEBUG_DIR)bin/Blender3DPlugin$(SOEXT)
 endif
 
 # Moz/NS plugin:
 ifeq ($(OS),$(findstring $(OS), "freebsd linux irix solaris"))
-    plugin: $(DIR)/$(DEBUG_DIR)npBlender3DPlugin$(SOEXT)
-    ptest: $(DIR)/$(DEBUG_DIR)npTestPlugin$(SOEXT)
+    plugin: $(DIR)/$(DEBUG_DIR)bin/npBlender3DPlugin$(SOEXT)
+    ptest: $(DIR)/$(DEBUG_DIR)bin/npTestPlugin$(SOEXT)
 endif
 # Windows needs a 8.3 name... Why? Dunno...
 ifeq ($(OS),windows)
@@ -514,7 +514,7 @@ ifeq ($(OS),windows)
 	endif
 endif
 
-$(DIR)/$(DEBUG_DIR)blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+$(DIR)/$(DEBUG_DIR)bin/blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
@@ -525,7 +525,7 @@ $(DIR)/$(DEBUG_DIR)blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	/bin/rm $(BUILDINFO_O)
     endif
 
-$(DIR)/$(DEBUG_DIR)blenderdynamic$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
@@ -536,7 +536,7 @@ $(DIR)/$(DEBUG_DIR)blenderdynamic$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	/bin/rm $(BUILDINFO_O)
     endif
 
-$(DIR)/$(DEBUG_DIR)blenderplayer$(EXT): $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB)
+$(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT): $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
@@ -547,7 +547,7 @@ $(DIR)/$(DEBUG_DIR)blenderplayer$(EXT): $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB)
 	/bin/rm $(BUILDINFO_O)
     endif
 
-$(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT): $(OBJS) $(COMLIB) $(SPLIB)
+$(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT): $(OBJS) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
@@ -559,8 +559,8 @@ $(DIR)/$(DEBUG_DIR)blenderdynplayer$(EXT): $(OBJS) $(COMLIB) $(SPLIB)
     endif
 
 ifeq ($(OS),linux)
-$(DIR)/$(DEBUG_DIR)Blender3DPlugin$(SOEXT): $(PLUGAPPLIB_XPLINK)
-	@echo "****> Link $(DIR)/$(DEBUG_DIR)Blender3DPlugin.so"
+$(DIR)/$(DEBUG_DIR)bin/Blender3DPlugin$(SOEXT): $(PLUGAPPLIB_XPLINK)
+	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
     endif
@@ -577,7 +577,7 @@ DEFFILE = ./gameengine/GamePlayer/netscape/src/npB3DPlg.def
 # Windows needs a specific name format for dll.s so we give it one.
 ifeq ($(OS),windows)
 $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB)
-	@echo "****> Link $(DIR)/$(DEBUG_DIR)npBl3DPlg.$(SOEXT)"
+	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
     endif
@@ -589,8 +589,8 @@ $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLI
 endif
 
 ifeq ($(OS),$(findstring $(OS), "linux freebsd irix solaris"))
-$(DIR)/$(DEBUG_DIR)npBlender3DPlugin$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB)
-	@echo "****> Link $(DIR)/$(DEBUG_DIR)Blender3DPlugin.so"
+$(DIR)/$(DEBUG_DIR)bin/npBlender3DPlugin$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB)
+	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
     endif
@@ -599,7 +599,7 @@ $(DIR)/$(DEBUG_DIR)npBlender3DPlugin$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLI
 	/bin/rm $(BUILDINFO_O)
     endif
 
-$(DIR)/$(DEBUG_DIR)npTestPlugin$(SOEXT): $(NSPLUGLIB)
+$(DIR)/$(DEBUG_DIR)bin/npTestPlugin$(SOEXT): $(NSPLUGLIB)
 	@echo "****> Link $@"
     ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
