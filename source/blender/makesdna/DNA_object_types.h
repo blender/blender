@@ -251,6 +251,7 @@ extern Object workob;
 #define OB_TEXSPACE		4
 #define OB_DRAWNAME		8
 #define OB_DRAWIMAGE	16
+#define OB_DRAWWIRE		32 /* for solid+wire display */
 
 /* boundtype */
 #define OB_BOUND_BOX		0

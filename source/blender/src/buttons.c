@@ -1020,6 +1020,7 @@ void common_editbuts(void)
 	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Bounds",		28, 140, 100, 18, &ob->dtx, 0, 0, 0, 0, "Display bounding object");
 	uiDefButS(block, MENU, REDRAWVIEW3D, "Bounding volume%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder",
 																28, 120, 100, 18, &ob->boundtype, 0, 0, 0, 0, "Choose between bound objects");
+	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Wire",		28, 100, 100, 18, &ob->dtx, 0, 0, 0, 0, "Display wireframe in shaded mode");
 	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Axis",		28, 80, 100, 18, &ob->dtx, 0, 0, 0, 0, "Draw axis");
 	uiDefButC(block, TOG|BIT|2, REDRAWVIEW3D, "TexSpace",	28, 60, 100, 18, &ob->dtx, 0, 0, 0, 0, "Display texture space");
 	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "Name",		28, 40, 100, 18, &ob->dtx, 0, 0, 0, 0, "Print object name");
