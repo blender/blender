@@ -364,19 +364,35 @@ static void lscm_add_triangle(float *v1, float *v2, float *v3, int vid1, int vid
 	nlEnd(NL_ROW);
 }
 
+static float lscm_angle_cos(float *v1, float *v2, float *v3)
+{
+    float vec1[3], vec2[3];
+
+	VecSubf(vec1, v2, v1);
+	VecSubf(vec2, v3, v1);
+	Normalise(vec1);
+	Normalise(vec2);
+
+	return vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
+}
+
 static int lscm_build_vertex_data(Mesh *me, int *groups, int gid, LscmVert **lscm_vertices, LscmVert ***sort_vertices)
 {
+	MVert *mv;
 	MFace *mf;
 	TFace *tf;
 	int *gf, totvert, a;
 	LscmVert *lscmvert, **sortvert;
 	LscmVert *v1, *v2, *v3, **sv1, **sv2, **sv3;
+	float a1, a2;
 
 	/* determine size for malloc */
 	totvert= 0;
+	mv = me->mvert;
 	mf= me->mface;
 	tf= me->tface;
 	gf= groups;
+	a1 = a2 = 0;
 
 	for(a=me->totface; a>0; a--) {
 		if(*gf==gid) {
@@ -408,50 +424,66 @@ static int lscm_build_vertex_data(Mesh *me, int *groups, int gid, LscmVert **lsc
 	/* warning: ugly code :) */
 	for(a=me->totface; a>0; a--) {
 		if(*gf==gid) {
-			v1->v= mf->v1;
-			v2->v= mf->v2;
-			v3->v= mf->v3;
-
-			v1->tf_index= 0;
-			v2->tf_index= 1;
-			v3->tf_index= 2;
-
-			v1->flag= v2->flag= v3->flag= 0;
-
-			v1->v1= mf->v2;
-			v1->v2= mf->v3;
-
-			v2->v1= mf->v1;
-			v2->v2= mf->v3;
-
-			v3->v1= mf->v1;
-			v3->v2= mf->v2;
-
-			v1->tf= v2->tf= v3->tf= tf;
-
-			*sv1= v1;
-			*sv2= v2;
-			*sv3= v3;
-
-			if(tf->unwrap & TF_SEAM1) {
-				v1->flag |= LSCM_SEAM1;
-				v2->flag |= LSCM_SEAM1;
-			}
-
-			if(tf->unwrap & TF_SEAM2) {
-				v2->flag |= LSCM_SEAM2;
-				v3->flag |= LSCM_SEAM2;
-			}
-
-			if(!mf->v4 && tf->unwrap & TF_SEAM3) {
-				v1->flag |= LSCM_SEAM2;
-				v3->flag |= LSCM_SEAM1;
-			}
-
-			v1 += 3; v2 += 3; v3 += 3;
-			sv1 += 3; sv2 += 3; sv3 += 3;
-
+			/* determine triangulation direction, to avoid degenerate
+			   triangles (small cos = degenerate). */
 			if(mf->v4) {
+				a1 = lscm_angle_cos((mv+mf->v1)->co, (mv+mf->v2)->co, (mv+mf->v3)->co);
+				a1 += lscm_angle_cos((mv+mf->v2)->co, (mv+mf->v1)->co, (mv+mf->v3)->co);
+				a1 += lscm_angle_cos((mv+mf->v3)->co, (mv+mf->v1)->co, (mv+mf->v2)->co);
+
+				a2 = lscm_angle_cos((mv+mf->v1)->co, (mv+mf->v2)->co, (mv+mf->v4)->co);
+				a2 += lscm_angle_cos((mv+mf->v2)->co, (mv+mf->v1)->co, (mv+mf->v4)->co);
+				a2 += lscm_angle_cos((mv+mf->v4)->co, (mv+mf->v1)->co, (mv+mf->v2)->co);
+			}
+
+			a1 = 0.0; a2 = 1.0;
+
+			if(!mf->v4 || a1 > a2) {
+				v1->v= mf->v1;
+				v2->v= mf->v2;
+				v3->v= mf->v3;
+
+				v1->tf_index= 0;
+				v2->tf_index= 1;
+				v3->tf_index= 2;
+
+				v1->flag= v2->flag= v3->flag= 0;
+
+				v1->v1= v2->v;
+				v1->v2= v3->v;
+
+				v2->v1= v1->v;
+				v2->v2= v3->v;
+
+				v3->v1= v1->v;
+				v3->v2= v2->v;
+
+				v1->tf= v2->tf= v3->tf= tf;
+
+				*sv1= v1;
+				*sv2= v2;
+				*sv3= v3;
+
+				if(tf->unwrap & TF_SEAM1) {
+					v1->flag |= LSCM_SEAM1;
+					v2->flag |= LSCM_SEAM1;
+				}
+	
+				if(tf->unwrap & TF_SEAM2) {
+					v2->flag |= LSCM_SEAM2;
+					v3->flag |= LSCM_SEAM2;
+				}
+
+				if(!mf->v4 && tf->unwrap & TF_SEAM3) {
+					v1->flag |= LSCM_SEAM2;
+					v3->flag |= LSCM_SEAM1;
+				}
+
+				v1 += 3; v2 += 3; v3 += 3;
+				sv1 += 3; sv2 += 3; sv3 += 3;
+			}
+
+			if(mf->v4 && a1 > a2) {
 				v1->v= mf->v1;
 				v2->v= mf->v3;
 				v3->v= mf->v4;
@@ -462,14 +494,14 @@ static int lscm_build_vertex_data(Mesh *me, int *groups, int gid, LscmVert **lsc
 
 				v1->flag= v2->flag= v3->flag= 0;
 
-				v1->v1= mf->v3;
-				v1->v2= mf->v4;
+				v1->v1= v2->v;
+				v1->v2= v3->v;
 
-				v2->v1= mf->v4;
-				v2->v2= mf->v1;
+				v2->v1= v3->v;
+				v2->v2= v1->v;
 	
-				v3->v1= mf->v1;
-				v3->v2= mf->v3;
+				v3->v1= v1->v;
+				v3->v2= v2->v;
 
 				v1->tf= v2->tf= v3->tf= tf;
 
@@ -490,6 +522,87 @@ static int lscm_build_vertex_data(Mesh *me, int *groups, int gid, LscmVert **lsc
 				v1 += 3; v2 += 3; v3 += 3;
 				sv1 += 3; sv2 += 3; sv3 += 3;
 			}
+
+			if(mf->v4 && a1 <= a2) {
+				v1->v= mf->v1;
+				v2->v= mf->v2;
+				v3->v= mf->v4;
+
+				v1->tf_index= 0;
+				v2->tf_index= 1;
+				v3->tf_index= 3;
+
+				v1->flag= v2->flag= v3->flag= 0;
+
+				v1->v1= v2->v;
+				v1->v2= v3->v;
+
+				v2->v1= v1->v;
+				v2->v2= v3->v;
+
+				v3->v1= v1->v;
+				v3->v2= v2->v;
+
+				v1->tf= v2->tf= v3->tf= tf;
+
+				*sv1= v1;
+				*sv2= v2;
+				*sv3= v3;
+
+				if(tf->unwrap & TF_SEAM1) {
+					v1->flag |= LSCM_SEAM1;
+					v2->flag |= LSCM_SEAM1;
+				}
+	
+				if(tf->unwrap & TF_SEAM4) {
+					v1->flag |= LSCM_SEAM2;
+					v3->flag |= LSCM_SEAM1;
+				}
+
+				v1 += 3; v2 += 3; v3 += 3;
+				sv1 += 3; sv2 += 3; sv3 += 3;
+
+				/* -- */
+
+				v1->v= mf->v2;
+				v2->v= mf->v3;
+				v3->v= mf->v4;
+
+				v1->tf_index= 1;
+				v2->tf_index= 2;
+				v3->tf_index= 3;
+
+				v1->flag= v2->flag= v3->flag= 0;
+
+				v1->v1= v2->v;
+				v1->v2= v3->v;
+
+				v2->v1= v1->v;
+				v2->v2= v3->v;
+	
+				v3->v1= v1->v;
+				v3->v2= v2->v;
+
+				v1->tf= v2->tf= v3->tf= tf;
+
+				*sv1= v1;
+				*sv2= v2;
+				*sv3= v3;
+
+				if(tf->unwrap & TF_SEAM2) {
+					v1->flag |= LSCM_SEAM1;
+					v2->flag |= LSCM_SEAM1;
+				}
+	
+				if(tf->unwrap & TF_SEAM3) {
+					v2->flag |= LSCM_SEAM2;
+					v3->flag |= LSCM_SEAM2;
+				}
+
+				v1 += 3; v2 += 3; v3 += 3;
+				sv1 += 3; sv2 += 3; sv3 += 3;
+			}
+
 		}
 		tf++; mf++; gf++;
 	}
