@@ -42,6 +42,9 @@ struct Script;     /* defined in BPI_script.h            */
 /*
 struct _object;  // forward declaration for PyObject !
 */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void BPY_start_python(void);
 void BPY_end_python(void);
@@ -71,3 +74,7 @@ void BPY_free_finished_script(struct Script *script);
 
 void init_syspath(void);
 void syspath_append(char *dir);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
