@@ -320,6 +320,7 @@ void BLI_adddirstrings()
 
 	struct direntry * file;
 	struct tm *tm;
+	time_t zero= 0;
 	struct passwd *pwuser;
 
 	file = &files[0];
@@ -364,9 +365,11 @@ void BLI_adddirstrings()
 #endif
 
 		tm= localtime(&files[num].s.st_mtime);
+		// prevent impossible dates in windows
+		if(tm==NULL) tm= localtime(&zero);
 		strftime(files[num].time, 8, "%H:%M", tm);
 		strftime(files[num].date, 16, "%d-%b-%y", tm);
-		
+
 		st_size= (int)files[num].s.st_size;
 		
 		num1= st_size % 1000;
