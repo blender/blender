@@ -1609,12 +1609,12 @@ static void info_text(int x, int y)
 
 
 	if(G.obedit) {
-		sprintf(infostr,"Ve:%d-%d Fa:%d-%d	Mem:%.2fM  ",
+		sprintf(infostr,"Ve:%d-%d | Fa:%d-%d | Mem:%.2fM ",
 		G.totvertsel, G.totvert, G.totfacesel, G.totface,
 		(mem_in_use>>10)/1024.0);
 	}
 	else {
-		sprintf(infostr,"Ve:%d Fa:%d	Ob:%d-%d La:%d	Mem:%.2fM	  ",
+		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d | Mem:%.2fM | ",
 			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp,  (mem_in_use>>10)/1024.0);
 	}
 	ob= OBACT;
@@ -1644,7 +1644,7 @@ static void info_text(int x, int y)
 	swatch_color= hsv_to_cpack(fac1, fac2, fac3);
 
 	cpack( swatch_color );
-	glRecti(x-24,  y-7,  x-24+hsize,	y+16);
+	glRecti(x-24,  y-6,  x-22+hsize,	y+14);
 
 	glColor3ub(0, 0, 0);
 
@@ -1729,15 +1729,14 @@ void info_buttons(void)
 		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
 	
 		/* STD SCENE BUTTONS */
-		xco+= 5;
 		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &G.curscreen->scenenr, 1, 1, B_INFODELSCE, 0, 0);
 	}
 	else xco= 430;
 	
-	info_text(xco+29, 6);
+	info_text(xco+24, 6);
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+7, 0,XIC,YIC, 0, 0, 0, 0, 0, "Click to display Splash Screen");
+	uiDefIconBut(block, BUT, B_SHOWSPLASH, ICON_BLENDER, xco+2, 0,XIC,YIC, 0, 0, 0, 0, 0, "Click to display Splash Screen");
 
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
