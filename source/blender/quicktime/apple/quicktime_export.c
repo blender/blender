@@ -570,6 +570,7 @@ int get_qtcodec_settings(void)
 //	Component c = 0;
 //	ComponentDescription cd;
 	CodecInfo ci;
+	char str[255];
 
 //	cd.componentType = StandardCompressionType;
 //	cd.componentSubType = StandardCompressionSubType;
@@ -632,7 +633,8 @@ int get_qtcodec_settings(void)
 	SCGetInfo(qcdx->theComponent, scDataRateSettingsType,	&qcdx->aDataRateSetting);
 
 	GetCodecInfo (&ci, qcdx->gSpatialSettings.codecType, 0);
-	sprintf(qtcdname,"Codec: %s", p2cstr(ci.typeName));
+	CopyPascalStringToC(ci.typeName, str);
+	sprintf(qtcdname,"Codec: %s", str);
 
 	// framerate jugglin'
 
