@@ -1067,7 +1067,6 @@ Bone_setPose (BPy_Bone *self, PyObject *args)
 static void
 Bone_dealloc (BPy_Bone * self)
 {
-	MEM_freeN(self->bone);
     PyObject_DEL (self);
 }
 

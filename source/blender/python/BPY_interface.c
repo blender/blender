@@ -339,8 +339,12 @@ void BPY_Err_Handle(char *script_name)
 		PyErr_Restore(exception, err, tb); /* takes away reference! */
 		PyErr_Print();
 		v = PyObject_GetAttrString(err, "lineno");
-		g_script_error.lineno = PyInt_AsLong(v);
-		Py_XDECREF(v);
+		if (v) {
+			g_script_error.lineno = PyInt_AsLong(v);
+			Py_DECREF(v);
+		} else {
+			g_script_error.lineno = -1;
+		}
 		/* this avoids an abort in Python 2.3's garbage collecting: */
 		PyErr_Clear(); 
 		return;
@@ -445,6 +449,7 @@ int BPY_txt_do_python_Text(struct Text* text)
 
 		BPY_Err_Handle(GetName(text));
 		ReleaseGlobalDictionary(py_dict);
+		script->py_globaldict = NULL;
 		free_libblock(&G.main->script, script);
 		//BPY_end_python();
 		//BPY_start_python();
