@@ -167,6 +167,7 @@ struct _QuicktimeCodecDataExt *qcdx;
 
 static int sframe;
 
+int have_qtcodec;
 
 /************************************************************
 *                                                           *

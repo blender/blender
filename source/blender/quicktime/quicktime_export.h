@@ -45,9 +45,7 @@ void free_qtcodecdataExt(void);			//usiblender.c
 
 void makeqtstring (char *string);		//for playanim.c
 
-int G_have_quicktime; //unused, is located in blenlib/BKE_global.h
-
-int have_qtcodec;
+extern int have_qtcodec;
 
 #endif //(_WIN32) || (__APPLE__)
 
