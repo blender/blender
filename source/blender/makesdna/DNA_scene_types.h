@@ -77,6 +77,8 @@ typedef struct AviCodecData {
 	unsigned int	dwFlags;            /* flags... see below */
 	unsigned int	dwInterleaveEvery;  /* for non-video streams only */
 	unsigned int	pad;
+
+	char			avicodecname[128];
 } AviCodecData;
 
 typedef struct RenderData {

@@ -64,8 +64,6 @@
 // the output video stream
 
 AVICOMPRESSOPTIONS opts;
-char avicdname[128];
-int have_avicodec= 0;
 
 static int sframe;
 static PAVIFILE pfile = NULL;
@@ -510,6 +508,9 @@ static void init_bmi(BITMAPINFOHEADER *bmi)
 
 static void opts_to_acd(AviCodecData *acd)
 {
+	HIC hic;
+	ICINFO icinfo;
+
 	acd->fccType = opts.fccType;
 	acd->fccHandler = opts.fccHandler;
 	acd->dwKeyFrameEvery = opts.dwKeyFrameEvery;
@@ -528,6 +529,18 @@ static void opts_to_acd(AviCodecData *acd)
 	if (opts.lpParms && opts.cbParms) {
 		acd->lpParms = MEM_mallocN(opts.cbParms, "avi.lpParms");
 		memcpy(acd->lpParms, opts.lpParms, opts.cbParms);
+	}
+
+	if ((hic=ICOpen(ICTYPE_VIDEO,acd->fccHandler,ICMODE_QUERY))!=NULL) {
+		icinfo.dwSize=sizeof(ICINFO);
+		if (ICGetInfo(hic,&icinfo,sizeof(ICINFO))) {
+			WideCharToMultiByte(CP_ACP,0,icinfo.szDescription,-1,acd->avicodecname,128,NULL,NULL);
+		} else
+			sprintf(acd->avicodecname, "undefined");
+		if (ICClose(hic)!=ICERR_OK)
+;//			return 0;
+	} else {
+		sprintf(acd->avicodecname, "Full Frames (Uncompressed)");	//heh, nasty
 	}
 }
 
@@ -769,8 +782,6 @@ int get_avicodec_settings(void)
 	AVICOMPRESSOPTIONS *aopts[1] = {&opts};
 	AviCodecData *acd = G.scene->r.avicodecdata;
 	static PAVISTREAM psdummy;
-	HIC hic;
-	ICINFO icinfo;
 
 	acd_to_opts(G.scene->r.avicodecdata);
 
@@ -788,20 +799,6 @@ int get_avicodec_settings(void)
 		{
 			ret_val = 1;
 		} else {
-			have_avicodec = 1;
-
-			if ((hic=ICOpen(ICTYPE_VIDEO,opts.fccHandler,ICMODE_QUERY))!=NULL) {
-				icinfo.dwSize=sizeof(ICINFO);
-				if (ICGetInfo(hic,&icinfo,sizeof(ICINFO))) {
-					WideCharToMultiByte(CP_ACP,0,icinfo.szDescription,-1,avicdname,128,NULL,NULL);
-				} else
-					sprintf(avicdname, "undefined");
-				if (ICClose(hic)!=ICERR_OK)
-					return 0;
-			} else {
-				sprintf(avicdname, "Full Frames (Uncompressed)");	//heh, nasty
-			}
-	
 			if (acd) {
 				free_avicodecdata(acd);
 			} else {

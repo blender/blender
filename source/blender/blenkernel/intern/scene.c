@@ -157,6 +157,11 @@ Scene *add_scene(char *name)
 	sce->r.freqplay= 60;
 	sce->r.depth= 32;
 
+	if (sce->r.avicodecdata) {
+printf("this is not good\n");
+	}
+//	sce->r.imtype= R_TARGA;
+
 	sce->r.stereomode = 1;  // no stereo
 
 	strcpy(sce->r.backbuf, "//backbuf");

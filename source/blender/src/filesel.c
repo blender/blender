@@ -516,7 +516,9 @@ void test_flags_file(SpaceFile *sfile)
 			if(BLI_testextensie(file->relname, ".py")) {
 				file->flags |= PYSCRIPTFILE;			
 			} else if( BLI_testextensie(file->relname, ".ttf")
+					|| BLI_testextensie(file->relname, ".ttc")
 					|| BLI_testextensie(file->relname, ".pfb")
+					|| BLI_testextensie(file->relname, ".otf")
 					|| BLI_testextensie(file->relname, ".otc")) {
 				file->flags |= FTFONTFILE;			
 			} else if (G.have_quicktime){

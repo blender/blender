@@ -6600,10 +6600,10 @@ void renderbuts(void)
 #endif /* WITH_QUICKTIME */
 		} else {
 #ifdef _WIN32
-			if(!have_avicodec)
+			if(G.scene->r.avicodecdata->avicodecname[0] == NULL)
 				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
 			else
-				uiDefBut(block, LABEL, 0, avicdname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, G.scene->r.avicodecdata->avicodecname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
 #endif
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}

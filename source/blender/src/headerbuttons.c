@@ -2111,7 +2111,6 @@ Scene *copy_scene(Scene *sce, int level)
 		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
 
 		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
-
 	}
 
 	return scen;
@@ -2204,6 +2203,13 @@ void do_info_buttons(unsigned short event)
 			if(nr==1) {
 				sce= add_scene(G.scene->id.name+2);
 				sce->r= G.scene->r;
+#ifdef _WIN32
+				if (sce->r.avicodecdata) {
+					sce->r.avicodecdata = MEM_dupallocN(G.scene->r.avicodecdata);
+					sce->r.avicodecdata->lpFormat = MEM_dupallocN(G.scene->r.avicodecdata->lpFormat);
+					sce->r.avicodecdata->lpParms = MEM_dupallocN(G.scene->r.avicodecdata->lpParms);
+				}
+#endif
 			}
 			else sce= copy_scene(G.scene, nr-2);
 			

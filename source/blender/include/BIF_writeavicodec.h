@@ -40,7 +40,5 @@ void append_avi_codec(int frame);
 void end_avi_codec(void);
 int get_avicodec_settings(void);
 
-extern int have_avicodec;
-extern char avicdname[128];
 #endif
 
