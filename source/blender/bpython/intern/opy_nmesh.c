@@ -1352,7 +1352,6 @@ static int check_validFaceUV(NMesh *nmesh)
 	faces = nmesh->faces;
 	for (i = 0; i < PySequence_Length(faces); i++) {
 		nmface = (NMFace *) PyList_GetItem(faces, i);
-		n = 
 		n = PySequence_Length(nmface->uv);
 		if (n != PySequence_Length(nmface->v))
 		{

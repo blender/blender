@@ -87,7 +87,7 @@ ListBase editNurb;
 #include "DNA_world_types.h"	/* for render_types */
 #include "render_types.h"
 struct RE_Render R;
-float   RE_Spec(float inp, int hard){}
+float   RE_Spec(float inp, int hard){return 0;}
 void waitcursor(int val){}
 void allqueue(unsigned short event, short val){}
 #define REDRAWVIEW3D	0x4010
@@ -102,7 +102,7 @@ void load_editMesh(void){}
 void make_editMesh(void){}
 void free_editMesh(void){}
 void docentre_new(void){}
-int saveover(char *str){}
+int saveover(char *str){ return 0;}
 
 /* image.c */
 #include "DNA_image_types.h"
@@ -122,11 +122,11 @@ ListBase editelems;
 /* object.c */
 void BPY_free_scriptlink(ScriptLink *slink){}
 void BPY_copy_scriptlink(ScriptLink *scriptlink){}
-float *give_cursor(void){}  // become a callback or argument
+float *give_cursor(void){ return 0;}  // become a callback or argument
 
 
 /* packedFile.c */
-short pupmenu(char *instr){}  // will be general callback
+short pupmenu(char *instr){ return 0;}  // will be general callback
 
 /* sca.c */
 #define LEFTMOUSE    0x001	// because of mouse sensor
@@ -179,9 +179,13 @@ int BPY_call_importloader(char *name)
 	/* struct EnvMap; */
 	/* struct Tex; */
 void    RE_free_envmap(struct EnvMap *env){}      
-struct EnvMap *RE_copy_envmap(struct EnvMap *env){}
+struct EnvMap *RE_copy_envmap(struct EnvMap *env){ return env;}
 void    RE_free_envmapdata(struct EnvMap *env){}
-int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt){}
+
+int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt){
+   return 0;
+}
+
 void    RE_calc_R_ref(void){}
 char texstr[15][8];	/* buttons.c */
 Osa O;

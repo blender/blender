@@ -386,10 +386,10 @@ static void add_main_to_main(Main *mainvar, Main *from)
 
 void blo_join_main(ListBase *mainlist)
 {
-	Main *tojoin, *main= mainlist->first;
+	Main *tojoin, *mainl= mainlist->first;
 
-	while (tojoin= main->next) {
-		add_main_to_main(main, tojoin);
+	while (tojoin= mainl->next) {
+		add_main_to_main(mainl, tojoin);
 		BLI_remlink(mainlist, tojoin);
 		MEM_freeN(tojoin);
 	}	
@@ -423,21 +423,21 @@ static void split_libdata(ListBase *lb, Main *first)
 
 void blo_split_main(ListBase *mainlist)
 {
-	Main *main= mainlist->first;
+	Main *mainl= mainlist->first;
 	ListBase *lbarray[30];
 	Library *lib;
 	int i;
 	
-	for (lib= main->library.first; lib; lib= lib->id.next) {
+	for (lib= mainl->library.first; lib; lib= lib->id.next) {
 		Main *libmain= MEM_callocN(sizeof(*libmain), "libmain");
 		libmain->curlib= lib;
 
 		BLI_addtail(mainlist, libmain);
 	}
 	
-	i= set_listbasepointers(main, lbarray);
+	i= set_listbasepointers(mainl, lbarray);
 	while(i--)
-		split_libdata(lbarray[i], main->next);
+		split_libdata(lbarray[i], mainl->next);
 }
 
 static Main *blo_find_main(ListBase *mainlist, char *name)
@@ -3804,7 +3804,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 {
 	BHead *bhead= blo_firstbhead(fd);
 	BlendFileData *bfd;
-	FileGlobal *fg;
+	FileGlobal *fg = (FileGlobal *)NULL;
 
 	bfd= MEM_callocN(sizeof(*bfd), "blendfiledata");
 	bfd->main= MEM_callocN(sizeof(*bfd->main), "main");
@@ -4464,7 +4464,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	FileData *fd= (FileData*) sfile->libfiledata;
 	ListBase mainlist;
-	Main *main;
+	Main *mainl;
 	int a, totsel=0;
 	
 	/* zijn er geselecteerde files? */
@@ -4499,21 +4499,21 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	blo_split_main(&mainlist);
 	
 	/* welke moeten wij hebben? */
-	main= blo_find_main(&mainlist, dir);
+	mainl = blo_find_main(&mainlist, dir);
 
 	if(totsel==0) {
-		append_named_part(sfile, main, G.scene, sfile->file, idcode);
+		append_named_part(sfile, mainl, G.scene, sfile->file, idcode);
 	}
 	else {
 		for(a=0; a<sfile->totfile; a++) {
 			if(sfile->filelist[a].flags & ACTIVE) {
-				append_named_part(sfile, main, G.scene, sfile->filelist[a].relname, idcode);
+				append_named_part(sfile, mainl, G.scene, sfile->filelist[a].relname, idcode);
 			}
 		}
 	}
 	
 	/* de main consistent maken */
-	expand_main(fd, main);
+	expand_main(fd, mainl);
 	
 	/* als expand nog andere libs gevonden heeft: */
 	read_libraries(fd, &mainlist);

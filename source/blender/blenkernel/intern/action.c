@@ -153,7 +153,7 @@ blend_constraints(
 ){
 	bConstraint *dcon;
 	const bConstraint *scon;
-	float dstweight;
+	float dstweight = 0;
 
 	switch (mode){
 	case POSE_BLEND:
