@@ -907,9 +907,9 @@ static void createTransEditVerts(void)
 	TransData *tob = NULL;
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
-	EditVert **nears;
+	EditVert **nears = NULL;
 	float mtx[3][3], smtx[3][3];
-	float *vectors;
+	float *vectors = NULL;
 	int count=0, countsel=0;
 	int propmode = Trans.flag & T_PROP_EDIT;
 		

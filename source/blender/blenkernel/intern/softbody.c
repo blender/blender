@@ -710,10 +710,13 @@ static void mesh_to_softbody(Object *ob)
 	BodyPoint *bp;
 	BodySpring *bs;
 	float goalfac;
-	int a;
+	int a, totedge;
+	
+	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
+	else totedge= 0;
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, me->totvert, me->totedge);
+	renew_softbody(ob, me->totvert, totedge);
 		
 	/* we always make body points */
 	sb= ob->soft;	
@@ -769,14 +772,15 @@ static void mesh_to_softbody(Object *ob)
 				bs->strength= 1.0;
 				bs->len= VecLenf( (bp+bs->v1)->origS, (bp+bs->v2)->origS);
 			}
-		}
-		
-		/* insert *diagonal* springs in quads if desired */
-		if (ob->softflag & OB_SB_QUADS) {
-			add_mesh_quad_diag_springs(ob);
-		}
 
-		build_bps_springlist(ob); /* big mesh optimization */
+		
+			/* insert *diagonal* springs in quads if desired */
+			if (ob->softflag & OB_SB_QUADS) {
+				add_mesh_quad_diag_springs(ob);
+			}
+
+			build_bps_springlist(ob); /* big mesh optimization */
+		}
 	}
 	
 }

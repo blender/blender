@@ -71,7 +71,7 @@ struct ScrArea;
 
 struct TransInfo * BIF_GetTransInfo(void);
 void BIF_setSingleAxisConstraint(float vec[3], char *text);
-void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]);
+void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_drawConstraint(void);
 void BIF_drawPropCircle(void);
 

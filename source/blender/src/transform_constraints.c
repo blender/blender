@@ -600,7 +600,7 @@ void BIF_setSingleAxisConstraint(float vec[3], char *text) {
 	t->redraw = 1;
 }
 
-void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
+void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 	float space[3][3];
 	
@@ -613,6 +613,9 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3]) {
 	t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
 	getConstraintMatrix(t);
 	
+	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
+	if(text) strncpy(t->con.text+1, text, 48);	// 50 in struct
+
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
 	t->con.applySize = applyAxisConstraintSize;

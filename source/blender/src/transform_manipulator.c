@@ -2030,28 +2030,28 @@ int BIF_do_manipulator(ScrArea *sa)
 		case MAN_TRANS_X:
 			if(G.qual & LR_SHIFTKEY) {
 				drawflags= MAN_TRANS_Y|MAN_TRANS_Z;
-				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2]);
+				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2], " Y+Z");
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[0], " dX");
+				BIF_setSingleAxisConstraint(v3d->twmat[0], " X");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 		case MAN_TRANS_Y:
 			if(G.qual & LR_SHIFTKEY) {
 				drawflags= MAN_TRANS_X|MAN_TRANS_Z;
-				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2]);
+				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2], " X+Z");
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[1], " dY");
+				BIF_setSingleAxisConstraint(v3d->twmat[1], " Y");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 		case MAN_TRANS_Z:
 			if(G.qual & LR_SHIFTKEY) {
 				drawflags= MAN_TRANS_X|MAN_TRANS_Y;
-				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1]);
+				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1], " X+Y");
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[2], " dZ");
+				BIF_setSingleAxisConstraint(v3d->twmat[2], " Z");
 			ManipulatorTransform(TFM_TRANSLATION);
 			break;
 			
@@ -2061,41 +2061,41 @@ int BIF_do_manipulator(ScrArea *sa)
 		case MAN_SCALE_X:
 			if(G.qual & LR_SHIFTKEY) {
 				drawflags= MAN_SCALE_Y|MAN_SCALE_Z;
-				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2]);
+				BIF_setDualAxisConstraint(v3d->twmat[1], v3d->twmat[2], " Y+Z");
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[0], " SizeX");
+				BIF_setSingleAxisConstraint(v3d->twmat[0], " X");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		case MAN_SCALE_Y:
 			if(G.qual & LR_SHIFTKEY) {
 				drawflags= MAN_SCALE_X|MAN_SCALE_Z;
-				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2]);
+				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[2], " X+Z");
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[1], " SizeY");
+				BIF_setSingleAxisConstraint(v3d->twmat[1], " Y");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		case MAN_SCALE_Z:
 			if(G.qual & LR_SHIFTKEY) {
 				drawflags= MAN_SCALE_X|MAN_SCALE_Y;
-				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1]);
+				BIF_setDualAxisConstraint(v3d->twmat[0], v3d->twmat[1], " X+Y");
 			}
 			else
-				BIF_setSingleAxisConstraint(v3d->twmat[2], " SizeZ");
+				BIF_setSingleAxisConstraint(v3d->twmat[2], " Z");
 			ManipulatorTransform(TFM_RESIZE);
 			break;
 		
 		case MAN_ROT_X:
-			BIF_setSingleAxisConstraint(v3d->twmat[0], " RotX");
+			BIF_setSingleAxisConstraint(v3d->twmat[0], " X");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_Y:
-			BIF_setSingleAxisConstraint(v3d->twmat[1], " RotY");
+			BIF_setSingleAxisConstraint(v3d->twmat[1], " Y");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_Z:
-			BIF_setSingleAxisConstraint(v3d->twmat[2], " RotZ");
+			BIF_setSingleAxisConstraint(v3d->twmat[2], " Z");
 			ManipulatorTransform(TFM_ROTATION);
 			break;
 		case MAN_ROT_T:
