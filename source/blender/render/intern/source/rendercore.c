@@ -2189,9 +2189,15 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 		else alpha= 1.0;
 
 		if(shr.alpha!=1.0 || alpha!=1.0) {
-			fac= alpha*(shr.alpha);
-			
-			col[3]= fac;
+			if(shi.mat->mode & MA_RAYTRANSP) {
+				// sky was applied allready for ray transp, only do mist
+				col[3]= shr.alpha;
+				fac= alpha;	
+			}
+			else {
+				fac= alpha*(shr.alpha);
+				col[3]= fac;
+			}			
 			col[0]*= fac;
 			col[1]*= fac;
 			col[2]*= fac;
@@ -2233,10 +2239,15 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 
 static void shadepixel_sky(float x, float y, int z, int facenr, int mask, float *colf)
 {
+	VlakRen *vlr;
 	float collector[4];
 	
-	shadepixel(x, y, z, facenr, mask, colf);
+	vlr= shadepixel(x, y, z, facenr, mask, colf);
 	if(colf[3] != 1.0) {
+		/* bail out when raytrace transparency (sky included already) */
+		if(vlr && (R.r.mode & R_RAYTRACE))
+			if(vlr->mat->mode & MA_RAYTRANSP) return;
+
 		renderSkyPixelFloat(collector, x, y);
 		addAlphaOverFloat(collector, colf);
 		QUATCOPY(colf, collector);

@@ -2316,7 +2316,7 @@ void abufsetrow(float *acolrow, int y)
 	APixstr *ap, *apn;
 	float *col, fcol[4], tempcol[4], sampcol[16*4], *scol, accumcol[4];
 	float ys, fac, alpha[32];
-	int x, part, a, zrow[100][3], totvlak, nr;
+	int x, part, a, zrow[100][3], totface, nr;
 	int sval;
 	
 	if(y<0) return;
@@ -2363,22 +2363,22 @@ void abufsetrow(float *acolrow, int y)
 	for(x=0; x<R.rectx; x++, col+=4, ap++) {
 		if(ap->p[0]) {
 			/* sort in z */
-			totvlak= 0;
+			totface= 0;
 			apn= ap;
 			while(apn) {
 				for(a=0; a<4; a++) {
 					if(apn->p[a]) {
-						zrow[totvlak][0]= apn->z[a];
-						zrow[totvlak][1]= apn->p[a];
-						zrow[totvlak][2]= apn->mask[a];
-						totvlak++;
-						if(totvlak>99) totvlak= 99;
+						zrow[totface][0]= apn->z[a];
+						zrow[totface][1]= apn->p[a];
+						zrow[totface][2]= apn->mask[a];
+						totface++;
+						if(totface>99) totface= 99;
 					}
 					else break;
 				}
 				apn= apn->next;
 			}
-			if(totvlak==1) {
+			if(totface==1) {
 				
 				shadetrapixel((float)x, (float)y, ap->z[0], ap->p[0], ap->mask[0], fcol);
 	
@@ -2399,7 +2399,7 @@ void abufsetrow(float *acolrow, int y)
 			}
 			else {
 
-				if(totvlak==2) {
+				if(totface==2) {
 					if(zrow[0][0] < zrow[1][0]) {
 						a= zrow[0][0]; zrow[0][0]= zrow[1][0]; zrow[1][0]= a;
 						a= zrow[0][1]; zrow[0][1]= zrow[1][1]; zrow[1][1]= a;
@@ -2407,31 +2407,31 @@ void abufsetrow(float *acolrow, int y)
 					}
 
 				}
-				else {	/* totvlak>2 */
-					qsort(zrow, totvlak, sizeof(int)*3, vergzvlak);
+				else {	/* totface>2 */
+					qsort(zrow, totface, sizeof(int)*3, vergzvlak);
 				}
 				
 				/* join when pixels are adjacent */
 				
-				while(totvlak>0) {
-					totvlak--;
+				while(totface>0) {
+					totface--;
 					
-					shadetrapixel((float)x, (float)y, zrow[totvlak][0], zrow[totvlak][1], zrow[totvlak][2], fcol);
+					shadetrapixel((float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
 					
-					a= count_mask(zrow[totvlak][2]);
+					a= count_mask(zrow[totface][2]);
 					if( (R.r.mode & R_OSA ) && a<R.osa) {
-						if(totvlak>0) {
+						if(totface>0) {
 							memset(sampcol, 0, 4*sizeof(float)*R.osa);
-							sval= addtosampcol(sampcol, fcol, zrow[totvlak][2]);
+							sval= addtosampcol(sampcol, fcol, zrow[totface][2]);
 
 							/* sval==0: alpha completely full */
-							while( (sval != 0) && (totvlak>0) ) {
-								a= count_mask(zrow[totvlak-1][2]);
+							while( (sval != 0) && (totface>0) ) {
+								a= count_mask(zrow[totface-1][2]);
 								if(a==R.osa) break;
-								totvlak--;
+								totface--;
 							
-								shadetrapixel((float)x, (float)y, zrow[totvlak][0], zrow[totvlak][1], zrow[totvlak][2], fcol);
-								sval= addtosampcol(sampcol, fcol, zrow[totvlak][2]);
+								shadetrapixel((float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
+								sval= addtosampcol(sampcol, fcol, zrow[totface][2]);
 							}
 							scol= sampcol;
 							accumcol[0]= scol[0]; accumcol[1]= scol[1];

@@ -994,9 +994,19 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		
 		tracol= (1.0-alpha)*tracol;
 		
-		rect[0]= tracol+ (rect[0]*alpha) ;
-		rect[1]= tracol+ (rect[1]*alpha) ;
-		rect[2]= tracol+ (rect[2]*alpha) ;
+		if((mat->mode & MA_RAYTRANSP) && mat->filter!=0.0) {
+			float fr= 1.0+ mat->filter*(shi->r-1.0);
+			rect[0]= fr*tracol+ (rect[0]*alpha) ;
+			fr= 1.0+ mat->filter*(shi->g-1.0);
+			rect[1]= fr*tracol+ (rect[1]*alpha) ;
+			fr= 1.0+ mat->filter*(shi->b-1.0);
+			rect[2]= fr*tracol+ (rect[2]*alpha) ;
+		}
+		else {
+			rect[0]= tracol+ (rect[0]*alpha) ;
+			rect[1]= tracol+ (rect[1]*alpha) ;
+			rect[2]= tracol+ (rect[2]*alpha) ;
+		}
 	}
 }
 

@@ -1457,7 +1457,9 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		if(depth>0) {
 
 			if(shi.mat->mode & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha!=1.0) {
-				float f, f1, refract[3], tracol[3];
+				float f, f1, refract[3], tracol[4];
+				
+				tracol[3]= col[3];	// we pass on and accumulate alpha
 				
 				if(shi.mat->mode & MA_RAYTRANSP) {
 					/* odd depths: use normal facing viewer, otherwise flip */
@@ -1478,16 +1480,21 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 					traceray(depth-1, shi.co, shi.view, tracol, shi.vlr, shi.mask, osatex, 0);
 				
 				f= shr.alpha; f1= 1.0-f;
-				shr.diff[0]= f*shr.diff[0] + f1*tracol[0];
-				shr.diff[1]= f*shr.diff[1] + f1*tracol[1];
-				shr.diff[2]= f*shr.diff[2] + f1*tracol[2];
+				fr= 1.0+ shi.mat->filter*(shi.r-1.0);
+				fg= 1.0+ shi.mat->filter*(shi.g-1.0);
+				fb= 1.0+ shi.mat->filter*(shi.b-1.0);
+				shr.diff[0]= f*shr.diff[0] + f1*fr*tracol[0];
+				shr.diff[1]= f*shr.diff[1] + f1*fg*tracol[1];
+				shr.diff[2]= f*shr.diff[2] + f1*fb*tracol[2];
 				
 				shr.spec[0] *=f;
 				shr.spec[1] *=f;
 				shr.spec[2] *=f;
-				
-				shr.alpha= 1.0;
+
+				col[3]= f1*tracol[3] + f;
 			}
+			else 
+				col[3]= 1.0;
 
 			if(shi.mat->mode & MA_RAYMIRROR) {
 				f= shi.ray_mirror;
@@ -1496,9 +1503,10 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 			else f= 0.0;
 			
 			if(f!=0.0) {
-			
+				float mircol[4];
+				
 				reflection(ref, shi.vn, shi.view, NULL);			
-				traceray(depth-1, shi.co, ref, col, shi.vlr, shi.mask, osatex, 0);
+				traceray(depth-1, shi.co, ref, mircol, shi.vlr, shi.mask, osatex, 0);
 			
 				f1= 1.0-f;
 
@@ -1512,9 +1520,9 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 				fg= shi.mirg;
 				fb= shi.mirb;
 		
-				col[0]= f*fr*(1.0-shr.spec[0])*col[0] + f1*shr.diff[0] + shr.spec[0];
-				col[1]= f*fg*(1.0-shr.spec[1])*col[1] + f1*shr.diff[1] + shr.spec[1];
-				col[2]= f*fb*(1.0-shr.spec[2])*col[2] + f1*shr.diff[2] + shr.spec[2];
+				col[0]= f*fr*(1.0-shr.spec[0])*mircol[0] + f1*shr.diff[0] + shr.spec[0];
+				col[1]= f*fg*(1.0-shr.spec[1])*mircol[1] + f1*shr.diff[1] + shr.spec[1];
+				col[2]= f*fb*(1.0-shr.spec[2])*mircol[2] + f1*shr.diff[2] + shr.spec[2];
 			}
 			else {
 				col[0]= shr.diff[0] + shr.spec[0];
@@ -1530,7 +1538,6 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		
 	}
 	else {	/* sky */
-		
 		VECCOPY(shi.view, vec);
 		Normalise(shi.view);
 		
@@ -1676,7 +1683,7 @@ static float *jitter_plane(LampRen *lar, int xs, int ys)
 void ray_trace(ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr;
-	float i, f, f1, fr, fg, fb, vec[3], mircol[3], tracol[3];
+	float i, f, f1, fr, fg, fb, vec[3], mircol[4], tracol[4];
 	int do_tra, do_mir;
 	
 	do_tra= ((shi->mat->mode & (MA_RAYTRANSP|MA_ZTRA)) && shr->alpha!=1.0);
@@ -1686,6 +1693,8 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	if(do_tra) {
 		float refract[3];
 		
+		tracol[3]= shr->alpha;
+		
 		if(shi->mat->mode & MA_RAYTRANSP) {
 			refraction(refract, shi->vn, shi->view, shi->ang);
 			traceray(shi->mat->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0, RAY_TRA|RAY_TRAFLIP);
@@ -1694,10 +1703,14 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			traceray(shi->mat->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, shi->mask, 0, 0);
 		
 		f= shr->alpha; f1= 1.0-f;
-		shr->diff[0]= f*shr->diff[0] + f1*tracol[0];
-		shr->diff[1]= f*shr->diff[1] + f1*tracol[1];
-		shr->diff[2]= f*shr->diff[2] + f1*tracol[2];
-		shr->alpha= 1.0;
+		fr= 1.0+ shi->mat->filter*(shi->r-1.0);
+		fg= 1.0+ shi->mat->filter*(shi->g-1.0);
+		fb= 1.0+ shi->mat->filter*(shi->b-1.0);
+		shr->diff[0]= f*shr->diff[0] + f1*fr*tracol[0];
+		shr->diff[1]= f*shr->diff[1] + f1*fg*tracol[1];
+		shr->diff[2]= f*shr->diff[2] + f1*fb*tracol[2];
+
+		shr->alpha= tracol[3];
 	}
 	
 	if(do_mir) {
@@ -1727,29 +1740,31 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	}
 }
 
-/* no premul here! */
-static void addAlphaLight(float *old, float *over)
+/* color 'shadfac' passes through 'col' with alpha and filter */
+/* filter is only applied on alpha defined transparent part */
+static void addAlphaLight(float *shadfac, float *col, float alpha, float filter)
 {
-	float div= old[3]+over[3];
-
-	if(div > 0.0001) {
-		old[0]= (over[3]*over[0] + old[3]*old[0])/div;
-		old[1]= (over[3]*over[1] + old[3]*old[1])/div;
-		old[2]= (over[3]*over[2] + old[3]*old[2])/div;
-	}
-	old[3]= over[3] + (1-over[3])*old[3];
-
+	float fr, fg, fb;
+	
+	fr= 1.0+ filter*(col[0]-1.0);
+	fg= 1.0+ filter*(col[1]-1.0);
+	fb= 1.0+ filter*(col[2]-1.0);
+	
+	shadfac[0]= alpha*col[0] + fr*(1.0-alpha)*shadfac[0];
+	shadfac[1]= alpha*col[1] + fg*(1.0-alpha)*shadfac[1];
+	shadfac[2]= alpha*col[2] + fb*(1.0-alpha)*shadfac[2];
+	
+	shadfac[3]= (1.0-alpha)*shadfac[3];
 }
 
 static void ray_trace_shadow_tra(Isect *is, int depth)
 {
 	/* ray to lamp, find first face that intersects, check alpha properties,
-	   if it has alpha<1  continue. exit when alpha is full */
+	   if it has col[3]>0.0  continue. so exit when alpha is full */
 	ShadeInput shi;
 	ShadeResult shr;
 
 	if( d3dda(is)) {
-		float col[4];
 		/* we got a face */
 		
 		shi.mask= 1;
@@ -1758,12 +1773,10 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 		
 		shade_ray(is, &shi, &shr);
 		
-		/* add color */
-		VECCOPY(col, shr.diff);
-		col[3]= shr.alpha;
-		addAlphaLight(is->col, col);
-
-		if(depth>0 && is->col[3]<1.0) {
+		/* mix colors based on shadfac (rgb + amount of light factor) */
+		addAlphaLight(is->col, shr.diff, shr.alpha, shi.mat->filter);
+		
+		if(depth>0 && is->col[3]>0.0) {
 			
 			/* adapt isect struct */
 			VECCOPY(is->start, shi.co);
@@ -1771,8 +1784,6 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 
 			ray_trace_shadow_tra(is, depth-1);
 		}
-		else if(is->col[3]>1.0) is->col[3]= 1.0;
-
 	}
 }
 
@@ -2102,17 +2113,13 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		VECCOPY(isec.end, lampco);
 
 		if(isec.mode==DDA_SHADOW_TRA) {
+			/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */
 			isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
-			isec.col[3]= 0.0;	//alpha
+			isec.col[3]= 1.0;
 
 			ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA);
-
-			VECCOPY(shadfac, isec.col);
-				// alpha to 'light'
-			shadfac[3]= 1.0-isec.col[3];
-			shadfac[0]= shadfac[3]+shadfac[0]*isec.col[3];
-			shadfac[1]= shadfac[3]+shadfac[1]*isec.col[3];
-			shadfac[2]= shadfac[3]+shadfac[2]*isec.col[3];
+			QUATCOPY(shadfac, isec.col);
+			//printf("shadfac %f %f %f %f\n", shadfac[0], shadfac[1], shadfac[2], shadfac[3]);
 		}
 		else if( d3dda(&isec)) shadfac[3]= 0.0;
 	}
