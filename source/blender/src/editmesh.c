@@ -118,7 +118,7 @@ static float convex(float *v1, float *v2, float *v3, float *v4);
 
 /* EditMesh Undo */
 void make_editMesh_real(Mesh *me);
-void load_editMesh_real(Mesh *me);
+void load_editMesh_real(Mesh *me, int);
 /****/
 
 
@@ -972,6 +972,7 @@ void make_editMesh_real(Mesh *me)
 	KeyBlock *actkey=0;
 	EditVert *eve, **evlist, *eve1, *eve2, *eve3, *eve4;
 	EditVlak *evl;
+	EditEdge *eed;
 	int tot, a;
 
 	if(G.obedit==0) return;
@@ -1010,6 +1011,7 @@ void make_editMesh_real(Mesh *me)
 		eve= addvertlist(mvert->co);
 		evlist[a]= eve;
 		eve->f |= (mvert->flag & 1);
+		if (mvert->flag & ME_HIDE) eve->h= 1;		
 		eve->no[0]= mvert->no[0]/32767.0;
 		eve->no[1]= mvert->no[1]/32767.0;
 		eve->no[2]= mvert->no[2]/32767.0;
@@ -1079,6 +1081,16 @@ void make_editMesh_real(Mesh *me)
 			if(mcol) mcol+=4;
 		}
 	}
+	
+	/* intrr: needed because of hidden vertices imported from Mesh */
+	
+	eed= G.eded.first;
+	while(eed) {
+		if(eed->v1->h || eed->v2->h) eed->h= 1;
+		else eed->h= 0;
+		eed= eed->next;
+	}	
+	
 	MEM_freeN(evlist);
 	
 	countall();
@@ -1206,11 +1218,11 @@ void load_editMesh()
 	countall();
 	me= get_mesh(G.obedit);
        
-	load_editMesh_real(me);
+	load_editMesh_real(me, 0);
 }
 
 
-void load_editMesh_real(Mesh *me)
+void load_editMesh_real(Mesh *me, int undo)
 {
 	MFace *mface;
 	MVert *mvert;
@@ -1336,6 +1348,7 @@ void load_editMesh_real(Mesh *me)
 			mvert->flag= 0;
 			if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
 			mvert->flag |= (eve->f & 1);
+			if (eve->h) mvert->flag |= ME_HIDE;			
 			
 			eve= eve->next;
 			mvert++;
@@ -1431,7 +1444,7 @@ void load_editMesh_real(Mesh *me)
 		if(actkey) mesh_to_key(me, actkey);
 		
 		/* texmesh: using ->tface remake all */
-		if(me->tface && me->totface) {
+		if((me->tface && me->totface)||undo) {
 			TFace *tfn, *tf;
 			
 			tf=tfn= MEM_callocN(sizeof(TFace)*me->totface, "tface");
@@ -1450,13 +1463,13 @@ void load_editMesh_real(Mesh *me)
 				}
 				
 				/* sometimes editmode doesn't free (before render) */
-				evl->tface= tf;
+/*				evl->tface= tf;	intrr: FIXME: Not sure about this one */
 
 				tf++;
 				evl= evl->next;
 			}
 			
-			MEM_freeN(me->tface);
+			/* MEM_freeN(me->tface); intrr: FIXME: Not sure either :) */
 			me->tface= tfn;
 		}
 		else if(me->tface) {
@@ -7628,7 +7641,7 @@ void undo_push_mesh(char *name)
        //printf("undo: saving block: %d [%s]\n", G.undo_edit_level, G.undo_edit[G.undo_edit_level].name);
 
        G.undo_edit[G.undo_edit_level].datablock= (void*)me;
-       load_editMesh_real(me);
+       load_editMesh_real(me, 1);
 }
 
 void undo_pop_mesh(int steps)  /* steps == 1 is one step */

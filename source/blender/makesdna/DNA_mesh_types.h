@@ -224,6 +224,7 @@ typedef struct Mesh {
 /* mvert->flag (1=select) */
 #define ME_SPHERETEST	2
 #define ME_SPHERETEMP	4
+#define ME_HIDE			16
 
 #endif
 
