@@ -433,6 +433,7 @@ static int _object_deform(Object *ob, int applyflag)
 			if(applyflag) {
 				Nurb *nu;
 				BPoint *bp;
+				BezTriple *bezt;
 				
 				nu= cu->nurb.first;
 				while(nu) {
@@ -444,24 +445,36 @@ static int _object_deform(Object *ob, int applyflag)
 							bp++;
 						}
 					}
+					else if(nu->bezt) {
+						a= nu->pntsu;
+						bezt= nu->bezt;
+						while(a--) {
+							calc_latt_deform(bezt->vec[0]);
+							calc_latt_deform(bezt->vec[1]);
+							calc_latt_deform(bezt->vec[2]);
+							bezt++;
+						}
+						test2DNurb(nu);
+					}
 					nu= nu->next;
 				}
 			}
-			
-			/* when apply, do this too, looks more interactive */
-			dl= cu->disp.first;
-			while(dl) {
-				
-				fp= dl->verts;
-				
-				if(dl->type==DL_INDEX3) tot=dl->parts;
-				else tot= dl->nr*dl->parts;
-				
-				for(a=0; a<tot; a++, fp+=3) {
-					calc_latt_deform(fp);
+			else {
+				/* apply deform on displist */
+				dl= cu->disp.first;
+				while(dl) {
+					
+					fp= dl->verts;
+					
+					if(dl->type==DL_INDEX3) tot=dl->parts;
+					else tot= dl->nr*dl->parts;
+					
+					for(a=0; a<tot; a++, fp+=3) {
+						calc_latt_deform(fp);
+					}
+					
+					dl= dl->next;
 				}
-				
-				dl= dl->next;
 			}
 		}
 		end_latt_deform();
