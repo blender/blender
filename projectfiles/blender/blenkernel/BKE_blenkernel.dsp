@@ -262,6 +262,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\script.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\softbody.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\sound.c
 # End Source File
 # Begin Source File
@@ -443,6 +447,10 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_screen.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\BKE_script.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\BKE_softbody.h
 # End Source File
 # Begin Source File
 
