@@ -449,7 +449,7 @@ static char *ipo_modeselect_pup(void)
 
 	strcpy(string, "Display IPO type: %t");
 	
-	strcat(formatstring, "|%s %%x%d");
+	strcpy(formatstring, "|%s %%x%d");
 
 	if(OBACT) {
 		sprintf(tmpstr,formatstring,"Object",ID_OB);
