@@ -850,7 +850,7 @@ int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
 					tempI = PyMem_Malloc( 1 *
 							      sizeof( long ) );
 					if( tempI == NULL ) {
-						return ( EXPP_ReturnPyObjError
+						return ( EXPP_ReturnIntError
 							 ( PyExc_MemoryError,
 							   "problem allocating tempI\n\n" ) );
 					}
@@ -859,7 +859,7 @@ int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
 							    sizeof( float ) );
 					if( mat == NULL ) {
 						PyMem_Free( tempI );
-						return ( EXPP_ReturnPyObjError
+						return ( EXPP_ReturnIntError
 							 ( PyExc_MemoryError,
 							   "problem allocating mat\n\n" ) );
 					}
@@ -878,7 +878,7 @@ int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
 							      sizeof
 							      ( double ) );
 					if( tempF == NULL ) {
-						return ( EXPP_ReturnPyObjError
+						return ( EXPP_ReturnIntError
 							 ( PyExc_MemoryError,
 							   "problem allocating tempF\n\n" ) );
 					}
@@ -887,7 +887,7 @@ int Matrix_coerce( PyObject ** m1, PyObject ** m2 )
 							    sizeof( float ) );
 					if( mat == NULL ) {
 						PyMem_Free( tempF );
-						return ( EXPP_ReturnPyObjError
+						return ( EXPP_ReturnIntError
 							 ( PyExc_MemoryError,
 							   "problem allocating mat\n\n" ) );
 					}
