@@ -5,10 +5,13 @@ import sys
 from distutils import sysconfig
 
 # Build directory.
-root_build_dir = '..' + os.sep + 'build' + os.sep
+root_build_dir = '..' + os.sep + 'build' + os.sep + sys.platform + os.sep
+
+# User configurable options file. This can be controlled by the user by running
+# scons with the following argument: CONFIG=user_config_options_file
+config_file = ARGUMENTS.get('CONFIG', 'config.opts')
 
 # Blender version.
-config_file = 'config.opts'
 version='2.32'
 
 sdl_env = Environment ()
