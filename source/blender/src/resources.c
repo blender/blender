@@ -436,7 +436,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tui.setting2, 	0xA2,0x98,0xA9, 255);
 	SETCOL(btheme->tui.num,		 	0x90,0x90,0x90, 255);
 	SETCOL(btheme->tui.textfield,	0x90,0x90,0x90, 255);
-	SETCOL(btheme->tui.popup,		0xB2,0xB2,0xA9, 255);
+	SETCOL(btheme->tui.popup,		0xA0,0xA0,0xA0, 255);
 	
 	SETCOL(btheme->tui.text,		0,0,0, 255);
 	SETCOL(btheme->tui.text_hi, 	255, 255, 255, 255);
@@ -632,7 +632,24 @@ void BIF_ThemeColorShade(int colorid, int offset)
 	CLAMP(g, 0, 255);
 	b= offset + (int) cp[2];
 	CLAMP(b, 0, 255);
-	glColor3ub(r, g, b);
+	//glColor3ub(r, g, b);
+	glColor4ub(r, g, b, cp[3]);
+}
+void BIF_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
+{
+	int r, g, b, a;
+	char *cp;
+	
+	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	r= coloffset + (int) cp[0];
+	CLAMP(r, 0, 255);
+	g= coloffset + (int) cp[1];
+	CLAMP(g, 0, 255);
+	b= coloffset + (int) cp[2];
+	CLAMP(b, 0, 255);
+	a= alphaoffset + (int) cp[3];
+	CLAMP(a, 0, 255);
+	glColor4ub(r, g, b, a);
 }
 
 // blend between to theme colors, and set it

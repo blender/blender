@@ -2839,7 +2839,7 @@ void draw_area_emboss(ScrArea *sa)
 	
 	/* top  */
 	if(sa->headertype!=HEADERTOP) {
-		glColor4ub(255,255,255, 128);
+		glColor4ub(255,255,255, 96);
 		sdrawline(0, sa->winy-1, sa->winx-1, sa->winy-1);
 	}
 	/* left  */

@@ -785,6 +785,7 @@ static int ui_do_but_MENU(uiBut *but)
 	}
 
 	width+= 10;
+	if (width < (but->x2 - but->x1)) width = (but->x2 - but->x1);
 	if (width<50) width=50;
 
 	boxh= TBOXH;
@@ -833,6 +834,10 @@ static int ui_do_but_MENU(uiBut *but)
 			if(active==a) bt->flag |= UI_ACTIVE;
 		}
 	}
+	
+	/* fix alignment because of the shadow, etc */
+	block->xofs = -2;
+	block->yofs = -2;
 	
 	ui_positionblock(block, but);
 	block->win= G.curscreen->mainwin;
@@ -1691,6 +1696,7 @@ static int ui_do_but_BLOCK(uiBut *but)
 
 	block= but->block_func(0);
 
+	block->xofs = -2;	/* for proper alignment */
 	ui_positionblock(block, but);
 	block->flag |= UI_BLOCK_LOOP;
 	block->win= G.curscreen->mainwin;

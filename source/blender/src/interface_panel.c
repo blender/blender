@@ -630,10 +630,10 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 	BIF_ThemeColor(TH_TEXT_HI);
 	
 	if(dir=='h') {
-		ui_draw_anti_tria( x, y, x, y+10.0, x+6, y+5.25);
+		ui_draw_anti_tria( x, y+1, x, y+10.0, x+7, y+6.25);
 	}
 	else {
-		ui_draw_anti_tria( x-2, y+7,  x+10-2, y+7, x+5.25-2, y+2);	
+		ui_draw_anti_tria( x-2, y+8,  x+9-2, y+8, x+4.75-2, y+1);	
 	}
 }
 
@@ -834,12 +834,13 @@ void ui_draw_panel(uiBlock *block)
 		uiSetRoundBox(3);
 
 		if(panel->control & UI_PNL_SOLID) {
-			BIF_ThemeColorShade(TH_HEADER, -40);
+			BIF_ThemeColorShade(TH_HEADER, -30);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 			// blend now for panels in 3d window, test...
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
+			BIF_ThemeColorShade(TH_PANEL, +100);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
 			//if(align) {
