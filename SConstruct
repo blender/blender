@@ -893,30 +893,35 @@ if user_options_dict['USE_INTERNATIONAL'] == 1:
     link_env.Append (LIBS=user_options_dict['FREETYPE_LIBRARY'])
 if user_options_dict['USE_QUICKTIME'] == 1:
     link_env.Append (LIBS=['blender_quicktime'])
+
 if user_options_dict['BUILD_GAMEENGINE'] == 1:
-    link_env.Append (LIBS=['KX_blenderhook',
-                           'KX_converter',
-                           'PHY_Dummy',
-                           'PHY_Physics',
-                           'KX_ketsji',
-                           'SCA_GameLogic',
-                           'RAS_rasterizer',
-                           'RAS_OpenGLRasterizer',
-                           'blender_expressions',
-                           'SG_SceneGraph',
-                           'blender_MT',
-                           'KX_blenderhook',
-                           'KX_network',
-                           'blender_kernel',
-                           'NG_network',
-                           'NG_loopbacknetwork'])
-    if user_options_dict['USE_PHYSICS'] == 'solid':
-        link_env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
-    else:
-        link_env.Append (LIBS=['PHY_Ode',
-                               'PHY_Physics'])
-        link_env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
-        link_env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
+	link_env.Append (LIBS=['KX_blenderhook',
+						   'KX_converter',
+						   'PHY_Dummy',
+						   'PHY_Physics',
+						   'KX_ketsji',
+						   'SCA_GameLogic',
+						   'RAS_rasterizer',
+						   'RAS_OpenGLRasterizer',
+						   'blender_expressions',
+						   'SG_SceneGraph',
+						   'blender_MT',
+						   'KX_blenderhook',
+						   'KX_network',
+						   'blender_kernel',
+						   'NG_network',
+						   'NG_loopbacknetwork'])
+	if user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
+		link_env.Append (LIBS=['GPG_ghost'])
+		link_env.Append (LIBS=['GPC_common'])
+	if user_options_dict['USE_PHYSICS'] == 'solid':
+		link_env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
+	else:
+		link_env.Append (LIBS=['PHY_Ode',
+							   'PHY_Physics'])
+		link_env.Append (LIBS=user_options_dict['ODE_LIBRARY'])
+		link_env.Append (LIBPATH=user_options_dict['ODE_LIBPATH'])
+
 link_env.Append (LIBS=['blender_python'])
 link_env.Append (LIBS=user_options_dict['PYTHON_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['PYTHON_LIBPATH'])

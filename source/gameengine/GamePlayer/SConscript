@@ -1,0 +1,2 @@
+SConscript(['common/SConscript',
+			'ghost/SConscript'])

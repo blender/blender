@@ -14,6 +14,9 @@ SConscript(['BlenderRoutines/SConscript',
             'Rasterizer/RAS_OpenGLRasterizer/SConscript',
             'SceneGraph/SConscript'])
 
+if user_options_dict['BUILD_BLENDER_PLAYER']:
+	SConscript(['GamePlayer/SConscript'])
+
 if user_options_dict['USE_PHYSICS'] == 'solid':
     SConscript(['Physics/Sumo/SConscript'])
 elif user_options_dict['USE_PHYSICS'] == 'ode':
