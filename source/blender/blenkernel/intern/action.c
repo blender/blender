@@ -415,136 +415,177 @@ void get_pose_from_action(bPose **pose, bAction *act, float ctime)
 	}
 }
 
-static int do_strip_armature(Object *ob, bActionStrip *strip)
+void do_all_actions()
 {
+	Base *base;
 	bPose *apose=NULL;
 	bPose *tpose=NULL;
+	Object *ob;
+	bActionStrip *strip;
 	int	doit;
 	float striptime, frametime, length, actlength;
-	float bframetime;
 	float blendfac, stripframe;
 
-	if (!strip->act) return 0;
+	int set;
 
-	doit = 0;
+	/* NEW: current scene ob ipo's */
+	base= G.scene->base.first;
+	set= 0;
 
-	copy_pose(&apose, ob->pose, 1);
-	copy_pose(&tpose, ob->pose, 1);
-	rest_pose(apose, 1);
-
-
-			
-	/* Determine if the current frame is within the strip's range */
-	length = strip->end-strip->start;
-	actlength = strip->actend-strip->actstart;
-	striptime = (G.scene->r.cfra-(strip->start)) / length;
-	stripframe = (G.scene->r.cfra-(strip->start)) ;
-
-	if (striptime>=0.0){
-						
-		rest_pose(tpose, 1);
-					
-		/* Handle path */
-		if (strip->flag & ACTSTRIP_USESTRIDE){
-			if (ob->parent && ob->parent->type==OB_CURVE){
-				Curve *cu = ob->parent->data;
-				float ctime, pdist;
-							
-				if (cu->flag & CU_PATH){
-					/* Ensure we have a valid path */
-					if(cu->path==0 || cu->path->data==0) 
-						calc_curvepath(ob->parent);
-							
-					/* Find the position on the path */
-					ctime 
-						= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra,
-									   0.0);
-									
-					if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
-						ctime /= cu->pathlen;
-						CLAMP(ctime, 0.0, 1.0);
-					}
-					pdist = ctime*cu->path->totdist;
-									
-					if (strip->stridelen)
-						striptime = pdist / strip->stridelen;
-					else
-						striptime = 0;
-							
-					striptime = (float)fmod (striptime, 1.0);
-									
-					frametime  = (striptime * actlength) + strip->actstart;
-					bframetime = bsystem_time(ob, 0, frametime, 0.0);
-					get_pose_from_action (&tpose, strip->act, bframetime);
-#ifdef __NLA_BLENDCON
-					do_pose_constraint_channels(tpose, strip->act, bframetime);
-#endif
-					doit=1;
-				}
-			}
-		}
-
-		/* Handle repeat */
+	while(base) {
 		
-		else if (striptime < 1.0){
-			/* Mod to repeat */
-			striptime*=strip->repeat;
-			striptime = (float)fmod (striptime, 1.0);
+		ob = base->object;
+
+		/* Retrieve data from the NLA */
+		if(ob->type==OB_ARMATURE){
+
+			doit=0;
+
+			/* Clear pose */
+			if (apose){
+				clear_pose(apose);
+				MEM_freeN(apose);
+			}
+			/* Clear pose */
+			if (tpose){
+				clear_pose(tpose);
+				MEM_freeN(tpose);
+			}
+
+			copy_pose(&apose, ob->pose, 1);
+			copy_pose(&tpose, ob->pose, 1);
+			rest_pose(apose, 1);
+ 
+			if (base->object->nlastrips.first){
+				rest_pose(base->object->pose, 0);
+			}
+
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+				doit = 0;
+				if (strip->act){
+			
+					/* Determine if the current frame is within the strip's range */
+					length = strip->end-strip->start;
+					actlength = strip->actend-strip->actstart;
+					striptime = (G.scene->r.cfra-(strip->start)) / length;
+					stripframe = (G.scene->r.cfra-(strip->start)) ;
+
+
+					if (striptime>=0.0){
+						
+						rest_pose(tpose, 1);
+
+						/* Handle path */
+						if (strip->flag & ACTSTRIP_USESTRIDE){
+							if (ob->parent && ob->parent->type==OB_CURVE){
+								Curve *cu = ob->parent->data;
+								float ctime, pdist;
+
+								if (cu->flag & CU_PATH){
+									/* Ensure we have a valid path */
+									if(cu->path==0 || cu->path->data==0) calc_curvepath(ob->parent);
+
+									/* Find the position on the path */
+									ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
+									
+									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
+										ctime /= cu->pathlen;
+										CLAMP(ctime, 0.0, 1.0);
+									}
+									pdist = ctime*cu->path->totdist;
+									
+									if (strip->stridelen)
+										striptime = pdist / strip->stridelen;
+									else
+										striptime = 0;
+									
+									striptime = (float)fmod (striptime, 1.0);
+									
+									frametime = (striptime * actlength) + strip->actstart;
+									get_pose_from_action (&tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
+#ifdef __NLA_BLENDCON
+									do_pose_constraint_channels(tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
+#endif
+									doit=1;
+								}
+							}
+						}
+
+						/* Handle repeat */
+		
+						else if (striptime < 1.0){
+							/* Mod to repeat */
+							striptime*=strip->repeat;
+							striptime = (float)fmod (striptime, 1.0);
 							
-			frametime = (striptime * actlength) + strip->actstart;
-			bframetime = bsystem_time(ob, 0, frametime, 0.0);
-			get_pose_from_action (&tpose, strip->act, bframetime);
+							frametime = (striptime * actlength) + strip->actstart;
+							get_pose_from_action (&tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
 #ifdef __NLA_BLENDCON
-			do_pose_constraint_channels(tpose, strip->act, bframetime);
+							do_pose_constraint_channels(tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
 #endif
-			doit=1;
-		}
-		/* Handle extend */
-		else{
-			if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
-				striptime = 1.0;
-				frametime = (striptime * actlength) + strip->actstart;
-				bframetime = bsystem_time(ob, 0, frametime, 0.0);
-				get_pose_from_action (&tpose, strip->act, bframetime);
+							doit=1;
+						}
+						/* Handle extend */
+						else{
+							if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
+								striptime = 1.0;
+								frametime = (striptime * actlength) + strip->actstart;
+								get_pose_from_action (&tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
 #ifdef __NLA_BLENDCON
-				do_pose_constraint_channels(tpose, strip->act, bframetime);
+								do_pose_constraint_channels(tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
 #endif
-				doit=1;
+								doit=1;
+							}
+						}
+
+						/* Handle blendin & blendout */
+						if (doit){
+							/* Handle blendin */
+
+							if (strip->blendin>0.0 && stripframe<=strip->blendin && G.scene->r.cfra>=strip->start){
+								blendfac = stripframe/strip->blendin;
+							}
+							else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && G.scene->r.cfra<=strip->end){
+								blendfac = (length-stripframe)/(strip->blendout);
+							}
+							else
+								blendfac = 1;
+
+							/* Blend this pose with the accumulated pose */
+							blend_poses (apose, tpose, blendfac, strip->mode);
+#ifdef __NLA_BLENDCON
+							blend_constraints(&apose->chanbase, &tpose->chanbase, blendfac, strip->mode);
+#endif
+						}
+					}					
+					if (apose){
+						get_pose_from_pose(&ob->pose, apose);
+#ifdef __NLA_BLENDCON
+						get_constraint_influence_from_pose(ob->pose, apose);
+#endif
+					}
+				}
+				
 			}
+
+			/* Do local action (always overrides the nla actions) */
+			/*	At the moment, only constraint ipos on the local action have any effect */
+			if(base->object->action) {
+				get_pose_from_action (&ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
+				do_pose_constraint_channels(ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
+				doit = 1;
+			} 
+			
+			if (doit)
+				apply_pose_armature(get_armature(ob), ob->pose, 1);
+
 		}
-
-		/* Handle blendin & blendout */
-		if (doit){
-			/* Handle blendin */
-
-			if (strip->blendin>0.0 && 
-				stripframe<=strip->blendin &&
-				G.scene->r.cfra>=strip->start){
-
-				blendfac = stripframe/strip->blendin;
-			}
-			else if (strip->blendout>0.0 && 
-					 stripframe>=(length-strip->blendout) && 
-					 G.scene->r.cfra<=strip->end){
-				blendfac = (length-stripframe)/(strip->blendout);
-			}
-			else
-				blendfac = 1;
-
-			/* Blend this pose with the accumulated pose */
-			blend_poses (apose, tpose, blendfac, strip->mode);
-#ifdef __NLA_BLENDCON
-			blend_constraints(&apose->chanbase, &tpose->chanbase, 
-							  blendfac, strip->mode);
-#endif
+		base= base->next;
+		if(base==0 && set==0 && G.scene->set) {
+			set= 1;
+			base= G.scene->set->base.first; 
 		}
-	}
-					
-	if (apose){
-		get_pose_from_pose(&ob->pose, apose);
-#ifdef __NLA_BLENDCON
-		get_constraint_influence_from_pose(ob->pose, apose);
-#endif
+		
 	}
 
 	if (apose){
@@ -558,69 +599,6 @@ static int do_strip_armature(Object *ob, bActionStrip *strip)
 		apose = NULL;
 	}
 
-	return doit;
-
-}
-
-static void do_action_armature(Object *ob)
-{
-
-	bActionStrip *strip;
-	int doit;
-
-	/* Retrieve data from the NLA */
-	if(ob->type!=OB_ARMATURE) return;
-
-	doit=0;
-
-	/* Do local action (always overrides the nla actions)
-	 * At the moment, only constraint ipos on the local 
-	 * action have any effect */
-	if(ob->action) {
-		float bcfra = bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0);
-		get_pose_from_action (&ob->pose, ob->action, bcfra);
-		do_pose_constraint_channels(ob->pose, ob->action, bcfra);
-
-		doit = 1;
-	}
-	else {
-		/* do nla */
-		if (ob->nlastrips.first){
-			rest_pose(ob->pose, 0);
-
-			for (strip=ob->nlastrips.first; strip; 
-				 strip=strip->next){
-
-				doit += do_strip_armature(ob, strip);
-			}
-		}
-	}
-			
-	if (doit)
-		apply_pose_armature(get_armature(ob), ob->pose, 1);
-
-}
-
-void do_all_actions(void)
-{
-	Base *base;
-	int set;
-
-	set= 0;
-
-	/* NEW: current scene ob ipo's */
-	base= G.scene->base.first;
-
-	while(base) {
-		do_action_armature(base->object);
-
-		base= base->next;
-		if(base==0 && set==0 && G.scene->set) {
-			set= 1;
-			base= G.scene->set->base.first; 
-		}
-	}
-	
 }
 
 static void do_pose_constraint_channels(bPose *pose, bAction *act, float ctime)
