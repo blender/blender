@@ -40,6 +40,17 @@
 #include <DNA_scriptlink_types.h>
 
 /*****************************************************************************/
+/* Description: This function clamps a float to the given interval           */
+/*              [min, max].                                                  */
+/*****************************************************************************/
+float EXPP_ClampFloat (float value, float min, float max)
+{
+	if (value < min) return min;
+	else if (value > max) return max;
+	return value;
+}
+
+/*****************************************************************************/
 /* Description: This function returns true if both given strings are equal,  */
 /*              otherwise it returns false.                                  */
 /*****************************************************************************/
@@ -58,13 +69,19 @@ char * GetIdName (ID *id)
 }
 
 /*****************************************************************************/
-/* Description: This function sets an internal string with the given type    */
+/* Description: These functions set an internal string with the given type   */
 /*              and error_msg arguments.                                     */
 /*****************************************************************************/
 PyObject * PythonReturnErrorObject (PyObject * type, char * error_msg)
 {
 	PyErr_SetString (type, error_msg);
 	return (NULL);
+}
+
+int EXPP_intError (PyObject *type, char *error_msg)
+{
+	PyErr_SetString (type, error_msg);
+	return -1;
 }
 
 /*****************************************************************************/

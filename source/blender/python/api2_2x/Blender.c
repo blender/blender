@@ -241,6 +241,8 @@ void initBlender (void)
 	dict = PyModule_GetDict (module);
 	g_blenderdict = dict;
 	PyDict_SetItemString (dict, "Object", initObject());
-	PyDict_SetItemString (dict, "Camera", initCamera());
+	PyDict_SetItemString (dict, "Camera", M_Camera_Init());
+	PyDict_SetItemString (dict, "Lamp", M_Lamp_Init());
+	PyDict_SetItemString (dict, "Image", M_Image_Init());
 }
 

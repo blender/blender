@@ -24,28 +24,38 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+
+#ifndef EXPP_constant_H
+#define EXPP_constant_H
+
 #include <Python.h>
+#include <stdio.h>
 
-#include <DNA_object_types.h>
-#include <DNA_camera_types.h>
-#include <DNA_lamp_types.h>
-#include <DNA_image_types.h>
+#include "gen_utils.h"
+
+/* Objects of <type 'constant'> are instanced inside many other Blender Python
+ * objects, so this header file must contain only 'public' declarations */
 
 /*****************************************************************************/
-/* Global variables                                                          */
+/* Python API function prototypes for the constant module.                   */
 /*****************************************************************************/
-PyObject *g_blenderdict;
+PyObject *constant_New (void);
 
-void initBlender (void);
-PyObject* initObject (void);
-PyObject* ObjectCreatePyObject (struct Object *obj);
-PyObject* M_Camera_Init (void);
-PyObject* CameraCreatePyObject (struct Camera *cam);
-PyObject* M_Lamp_Init (void);
-PyObject* LampCreatePyObject (struct Lamp *lamp);
-PyObject* M_Image_Init (void);
-PyObject* ImageCreatePyObject (struct Image *img);
+/*****************************************************************************/
+/* Python C_constant structure definition:                                   */
+/*****************************************************************************/
+typedef struct {
+  PyObject_HEAD
+  PyObject *dict;
+} C_constant;
+
+/*****************************************************************************/
+/* Python C_constant methods declarations:                                   */
+/*****************************************************************************/
+void constant_insert(C_constant *self, char *name, PyObject *args);
+
+#endif /* EXPP_constant_H */

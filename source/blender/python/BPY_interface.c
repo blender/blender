@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -96,12 +96,12 @@ void BPY_start_python(void)
 }
 
 /*****************************************************************************/
-/* Description:                                                              */
-/* Notes:       Not implemented yet                                          */
+/* Description: This function will terminate the Python interpreter          */
 /*****************************************************************************/
 void BPY_end_python(void)
 {
 	printf ("In BPY_end_python\n");
+	Py_Finalize();
 	return;
 }
 
@@ -144,6 +144,15 @@ struct _object *BPY_txt_do_python(struct SpaceText* st)
 	dict = PyModule_GetDict(PyImport_AddModule("__main__"));
 	/* dict = newGlobalDictionary(); */
 	ret = RunPython (st->text, dict);
+
+	/* If errors have occurred, set the error filename to the name of the
+	   script.
+	*/
+	if (!ret)
+	{
+		sprintf(g_script_error.filename, "%s", st->text->id.name+2);
+		return NULL;
+	}
 
 	return dict;
 }
@@ -306,6 +315,17 @@ PyObject * RunPython(Text *text, PyObject *globaldict)
 	printf("Run Python script \"%s\" ...\n", GetName(text));
 	buf = txt_to_buf(text);
 	ret = PyRun_String (buf, Py_file_input, globaldict, globaldict);
+
+	if (!ret)
+	{
+		/* an exception was raised, handle it here */
+		PyErr_Print(); /* this function also clears the error
+				  indicator */
+	}
+	else
+	{
+		PyErr_Clear(); /* seems necessary, at least now */
+	}
 
 	MEM_freeN (buf);
 	return ret;
