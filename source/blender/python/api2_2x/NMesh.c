@@ -142,7 +142,6 @@ static void NMFace_dealloc (PyObject *self)
   Py_DECREF(mf->v);
   Py_DECREF(mf->uv);
   Py_DECREF(mf->col);
-  Py_XDECREF(mf->image);
 
   PyObject_DEL(self);
 }
@@ -218,7 +217,7 @@ static PyObject *NMFace_getattr(PyObject *self, char *name)
 
   else if (strcmp(name, "image") == 0) {
     if (mf->image)
-      return Py_BuildValue("O", (PyObject *)mf->image);
+      return Image_CreatePyObject (mf->image);
     else 
       return EXPP_incr_ret(Py_None);
   }
@@ -298,18 +297,18 @@ static int NMFace_setattr(PyObject *self, char *name, PyObject *v)
 			return 0;
   }
 	else if (strcmp(name, "image") == 0) {
-    PyObject *img;
-    if (!PyArg_Parse(v, "O!", &Image_Type, &img))
+    PyObject *pyimg;
+    if (!PyArg_Parse(v, "O!", &Image_Type, &pyimg))
 			  return EXPP_ReturnIntError(PyExc_TypeError,
 							"expected image object");
 
-		if (img == Py_None) {
+		if (pyimg == Py_None) {
       mf->image = NULL;
 
 			return 0;
     }
 
-    mf->image = (C_Image *)img;
+    mf->image = ((C_Image *)pyimg)->image;
 
     return 0;
   }
@@ -869,8 +868,8 @@ static C_NMFace *nmface_from_data(C_NMesh *mesh, int vidxs[4],
   C_NMFace *newf = PyObject_NEW (C_NMFace, &NMFace_Type);
   int i, len;
 
-  if(vidxs[3]) len = 4;
-  else if(vidxs[2]) len = 3;
+  if (vidxs[3]) len = 4;
+  else if (vidxs[2]) len = 3;
   else len = 2;
 
   newf->v = PyList_New(len);
@@ -888,14 +887,14 @@ static C_NMFace *nmface_from_data(C_NMesh *mesh, int vidxs[4],
     }
 
     if (tface->tpage) /* pointer to image per face: */
-      newf->image = (C_Image *)Image_CreatePyObject (tface->tpage);
+      newf->image = (Image *)tface->tpage;
     else
       newf->image = NULL;
 
     newf->mode = tface->mode;     /* draw mode */
     newf->flag = tface->flag;     /* select flag */
     newf->transp = tface->transp; /* transparency flag */
-    col = (MCol *) (tface->col);
+    col = (MCol *) (tface->col);  /* XXX weird, tface->col is uint[4] */
   }
 	else {
     newf->image = NULL;
@@ -907,9 +906,10 @@ static C_NMFace *nmface_from_data(C_NMesh *mesh, int vidxs[4],
 
   if (col) {
     newf->col = PyList_New(4);
-    for(i = 0; i < 4; i++, col++)
+    for(i = 0; i < 4; i++, col++) {
       PyList_SetItem(newf->col, i, 
         (PyObject *)newcol(col->b, col->g, col->r, col->a));
+		}
   }
 	else newf->col = PyList_New(0);
 
@@ -1196,7 +1196,7 @@ static int assignFaceUV(TFace *tf, C_NMFace *nmface)
   }
   if (nmface->image) /* image assigned ? */
   {
-    tf->tpage = nmface->image->image;
+    tf->tpage = (void *)nmface->image;
   }
   else
     tf->tpage = 0;
@@ -1270,7 +1270,7 @@ static void mface_from_data(MFace *mf, TFace *tf, MCol *col, C_NMFace *from)
         continue;
       }
 
-      col->b = mc->r;
+			col->b = mc->r;
       col->g = mc->g;
       col->r = mc->b;
       col->a = mc->a;
@@ -1355,11 +1355,10 @@ PyObject *NMesh_assignMaterials_toObject(C_NMesh *nmesh, Object *ob)
       ma = pymat->material;
       assign_material(ob, ma, i+1);/*@ XXX don't use this function anymore*/
     }
-
 		else {
       Py_DECREF (pymat);
       return EXPP_ReturnPyObjError (PyExc_TypeError,
-						"Material type in attribute list 'materials' expected!");
+						"expected Material type in attribute list 'materials'!");
     } 
 
     Py_DECREF (pymat);
@@ -1487,7 +1486,7 @@ static int convert_NMeshToMesh (Mesh *mesh, C_NMesh *nmesh)
       Py_DECREF(mf);
 
       newmf++;
-      if (newmc) newmc++;
+      if (newmc) newmc += 4; /* there are 4 MCol's per face */
     }
   }
   return 1;
@@ -1529,7 +1528,8 @@ static PyObject *M_NMesh_PutRaw(PyObject *self, PyObject *args)
   if(!mesh || mesh->id.us == 0) {
     ob = add_object(OB_MESH);
     if (!ob) {
-      PyErr_SetString(PyExc_RuntimeError, "Fatal: could not create mesh object");
+      PyErr_SetString(PyExc_RuntimeError,
+											"Fatal: could not create mesh object");
       return 0;
     }
     if (mesh)
@@ -1697,5 +1697,8 @@ int NMesh_CheckPyObject (PyObject *pyobj)
 
 Mesh *NMesh_FromPyObject (PyObject *pyobj)
 {
-	return ((C_NMesh *)pyobj)->mesh;
+	if (pyobj->ob_type == &NMesh_Type)
+		return Mesh_fromNMesh ((C_NMesh *)pyobj);
+
+	return NULL;
 }

@@ -144,6 +144,8 @@ PyObject *M_Metaball_Init (void)
 {
   PyObject  *submodule;
 
+	Metaball_Type.ob_type = &PyType_Type;
+
   printf ("In M_Metaball_Init()\n");
   submodule = Py_InitModule3("Blender.Metaball",
 			     M_Metaball_methods, M_Metaball_doc);

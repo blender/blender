@@ -29,11 +29,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-/**
+/*!
  * \file Camera.c
  * \ingroup scripts
  * \brief Blender.Camera Module and Camera Data PyObject implementation.
  *
+ * This file is kept as a reference for new developers.  If you want to
+ * create a new Python Module for Blender, Camera.c is a good starting point.
  */
 
 #include <BKE_main.h>
@@ -43,6 +45,7 @@
 #include <BLI_blenlib.h>
 
 #include "Camera.h"
+
 
 /*****************************************************************************/
 /* Python BPy_Camera defaults:                                               */
@@ -81,6 +84,12 @@ static PyObject *M_Camera_Get (PyObject *self, PyObject *args);
 /* In Python these will be written to the console when doing a               */
 /* Blender.Camera.__doc__                                                    */
 /*****************************************************************************/
+
+/*!
+ * \var M_Camera_doc
+ * \brief Doc string for the Blender.Camera module
+ */
+
 static char M_Camera_doc[] =
 "The Blender Camera module\n\
 \n\
@@ -95,7 +104,12 @@ Example::\n\
   ob = Object.New('Camera')    # make camera object\n\
   ob.link(c)                   # link camera data with this object\n\
   cur.link(ob)                 # link object into scene\n\
-  cur.setCurrentCamera(ob)     # make this camera the active\n";
+  cur.setCurrentCamera(ob)     # make this camera the active";
+
+/*!
+ * \var M_Camera_New_doc
+ * \brief Doc string for the Blender.Camera.New() module function
+ */
 
 static char M_Camera_New_doc[] =
 "Blender.Camera.New (type = 'persp', name = 'CamData'):\n\
@@ -103,6 +117,11 @@ static char M_Camera_New_doc[] =
 (type) - Return a new Camera Data object of type \"type\",\n\
          which can be 'persp' or 'ortho';\n\
 ()     - Return a new Camera Data object of type 'persp'.";
+
+/*!
+ * \var M_Camera_Get_doc
+ * \brief Doc string for the Blender.Camera.Get() module function
+ */
 
 static char M_Camera_Get_doc[] =
 "Blender.Camera.Get (name = None):\n\
@@ -114,6 +133,16 @@ static char M_Camera_Get_doc[] =
 /*****************************************************************************/
 /* Python method structure definition for Blender.Camera module:             */
 /*****************************************************************************/
+
+/*!
+ * \var M_Camera_methods
+ * \brief Table of module functions.
+ *
+ * The Blender.Camera functions are registered with this table.
+ * Each entry defines: the method name in Python, the pointer to its C
+ * function, the argument list expected and a doc string.
+ */
+
 struct PyMethodDef M_Camera_methods[] = {
   {"New",(PyCFunction)M_Camera_New, METH_VARARGS|METH_KEYWORDS,
           M_Camera_New_doc},
@@ -145,6 +174,17 @@ static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args);
 /*****************************************************************************/
 /* Python BPy_Camera methods table:                                          */
 /*****************************************************************************/
+
+/*!
+ * \var BPy_Camera_methods
+ * \showinitializer
+ * \brief Table of Camera member functions
+ *
+ * This table registers the Camera PyObject methods.
+ * Each entry defines: the method name in Python, the pointer to its C
+ * function, the argument list expected and a doc string.
+ */
+
 static PyMethodDef BPy_Camera_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Camera_getName, METH_NOARGS,
@@ -189,46 +229,53 @@ static int Camera_Compare (BPy_Camera *a, BPy_Camera *b);
 static PyObject *Camera_GetAttr (BPy_Camera *self, char *name);
 static PyObject *Camera_Repr (BPy_Camera *self);
 
+/*!
+ * \var Camera_Type
+ * \brief Definition for the Camera PyObject struct
+ *
+ * Here we define the Camera PyType: its name, size, available function
+ * pointers and table of bound methods.
+ */
+
 /*****************************************************************************/
 /* Python Camera_Type structure definition:                                  */
 /*****************************************************************************/
 PyTypeObject Camera_Type =
 {
   PyObject_HEAD_INIT(NULL)
-  0,                                      /* ob_size */
-  "Camera",                               /* tp_name */
-  sizeof (BPy_Camera),                    /* tp_basicsize */
-  0,                                      /* tp_itemsize */
+  0,                             /* ob_size */
+  "Camera",                      /* tp_name */
+  sizeof (BPy_Camera),           /* tp_basicsize */
+  0,                             /* tp_itemsize */
   /* methods */
-  (destructor)Camera_DeAlloc,             /* tp_dealloc */
-  (printfunc)Camera_Print,                /* tp_print */
-  (getattrfunc)Camera_GetAttr,            /* tp_getattr */
-  (setattrfunc)Camera_SetAttr,            /* tp_setattr */
-  (cmpfunc)Camera_Compare,                /* tp_compare */
-  (reprfunc)Camera_Repr,                  /* tp_repr */
-  0,                                      /* tp_as_number */
-  0,                                      /* tp_as_sequence */
-  0,                                      /* tp_as_mapping */
-  0,                                      /* tp_as_hash */
+  (destructor)Camera_DeAlloc,    /* tp_dealloc */
+  (printfunc)Camera_Print,       /* tp_print */
+  (getattrfunc)Camera_GetAttr,   /* tp_getattr */
+  (setattrfunc)Camera_SetAttr,   /* tp_setattr */
+  (cmpfunc)Camera_Compare,       /* tp_compare */
+  (reprfunc)Camera_Repr,         /* tp_repr */
+  0,                             /* tp_as_number */
+  0,                             /* tp_as_sequence */
+  0,                             /* tp_as_mapping */
+  0,                             /* tp_as_hash */
   0,0,0,0,0,0,
-  0,                                      /* tp_doc */ 
+  0,                             /* tp_doc */ 
   0,0,0,0,0,0,
-  BPy_Camera_methods,                     /* tp_methods */
-  0,                                      /* tp_members */
+  BPy_Camera_methods,            /* tp_methods */
+  0,                             /* tp_members */
 };
 
-/**
- * \defgroup Camera_Module Blender.Camera module functions
- *
+/*!
+ * \defgroup M_Functions Blender.Camera functions
  */
 
-/*@{*/
+/*! @{ */
 
-/**
+/*!
  * \brief Python module function: Blender.Camera.New()
  *
  * This is the .New() function of the Blender.Camera submodule. It creates
- * new Camera Data in Blender and returns its Python wrapper object.  The
+ * new Camera Data in Blender and returns its wrapper PyObject.  The
  * parameters are optional and default to type = 'persp' and name = 'CamData'.
  * \param <type> - string: The Camera type: 'persp' or 'ortho';
  * \param <name> - string: The Camera Data name.
@@ -286,7 +333,7 @@ static PyObject *M_Camera_New(PyObject *self, PyObject *args, PyObject *kwords)
   return pycam;
 }
 
-/**
+/*!
  * \brief Python module function: Blender.Camera.Get()
  *
  * This is the .Get() function of the Blender.Camera submodule.  It searches
@@ -361,9 +408,9 @@ static PyObject *M_Camera_Get(PyObject *self, PyObject *args)
   }
 }
 
-/*@}*/
+/*@} Cam_M_Functions */
 
-/**
+/*!
  * \brief Initializes the Blender.Camera submodule
  *
  * This function is used by Blender_Init() in Blender.c to register the
@@ -387,7 +434,7 @@ PyObject *M_Camera_Init (void)
 
 /* Three Python Camera_Type helper functions needed by the Object module: */
 
-/**
+/*!
  * \brief Creates a new Python wrapper from an existing Blender Camera Data obj
  *
  * This is also used in Object.c when defining the object.data member variable
@@ -411,7 +458,7 @@ PyObject *Camera_CreatePyObject (Camera *cam)
   return (PyObject *)pycam;
 }
 
-/**
+/*!
  * \brief Checks if the given object is of type BPy_Camera
  *
  * This is also used in Object.c when handling the object.data member variable
@@ -425,7 +472,7 @@ int Camera_CheckPyObject (PyObject *pyobj)
   return (pyobj->ob_type == &Camera_Type);
 }
 
-/**
+/*!
  * \brief Returns the Blender Camera object from the given PyObject
  *
  * This is also used in Object.c when handling the object.data member variable
@@ -443,16 +490,14 @@ Camera *Camera_FromPyObject (PyObject *pyobj)
 /* Python BPy_Camera methods:                                                */
 /*****************************************************************************/
 
-/**
- * \defgroup Camera_Methods Camera Method Functions
+/*!
+ * \defgroup CamMethods Camera Method Functions
  *
- * These are the Camera PyObject method functions.  They are used to get and
- * set values for the Camera Data member variables.
+ * These are the Camera PyObject methods.
+ * @{
  */
 
-/*@{*/
-
-/**
+/*!
  * \brief Camera PyMethod getName
  *
  * \return string: The Camera Data name.
@@ -468,7 +513,7 @@ static PyObject *Camera_getName(BPy_Camera *self)
                                    "couldn't get Camera.name attribute");
 }
 
-/**
+/*!
  * \brief Camera PyMethod getType
  *
  * \return int: The Camera Data type.
@@ -484,7 +529,7 @@ static PyObject *Camera_getType(BPy_Camera *self)
                                    "couldn't get Camera.type attribute");
 }
 
-/**
+/*!
  * \brief Camera PyMethod getMode
  *
  * \return int: The Camera Data mode flags.
@@ -500,7 +545,7 @@ static PyObject *Camera_getMode(BPy_Camera *self)
                                    "couldn't get Camera.Mode attribute");
 }
 
-/**
+/*!
  * \brief Camera PyMethod getLens
  *
  * \return float: The Camera Data lens value
@@ -516,7 +561,7 @@ static PyObject *Camera_getLens(BPy_Camera *self)
                                    "couldn't get Camera.lens attribute");
 }
 
-/**
+/*!
  * \brief Camera PyMethod getClipStart
  *
  * \return float: The Camera Data clip start value.
@@ -532,7 +577,7 @@ static PyObject *Camera_getClipStart(BPy_Camera *self)
                                    "couldn't get Camera.clipStart attribute");
 }
 
-/**
+/*!
  * \brief Camera PyMethod getClipEnd
  * \return float: The Camera Data clip end value.
  */
@@ -547,7 +592,7 @@ static PyObject *Camera_getClipEnd(BPy_Camera *self)
                                    "couldn't get Camera.clipEnd attribute");
 }
 
-/**
+/*!
  * \brief Camera method getDrawSize
  * \return float: The Camera Data draw size value.
  */
@@ -562,7 +607,7 @@ static PyObject *Camera_getDrawSize(BPy_Camera *self)
                                    "couldn't get Camera.drawSize attribute");
 }
 
-/**
+/*!
  * \brief Camera PyMethod setName
  * \param name - string: The new Camera Data name.
  */
@@ -584,7 +629,7 @@ static PyObject *Camera_setName(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/**
+/*!
  * \brief Camera PyMethod setType
  * \param type - string: The new Camera Data type: 'persp' or 'ortho'.
  */
@@ -615,7 +660,7 @@ static PyObject *Camera_setType(BPy_Camera *self, PyObject *args)
  * the method setType expects a string ('persp' or 'ortho') or an empty
  * argument, this function should receive an int (0 or 1). */
 
-/**
+/*!
  * \brief Internal helper function
  *
  * This one is not a PyMethod.  It is just an internal helper function.
@@ -640,7 +685,7 @@ static PyObject *Camera_setIntType(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/**
+/*!
  * \brief Camera PyMethod setMode
  *
  * There are two mode flags for Cameras: 'showLimits' and 'showMist'.
@@ -689,7 +734,7 @@ static PyObject *Camera_setMode(BPy_Camera *self, PyObject *args)
 /* Another helper function, for the same reason.
  * (See comment before Camera_setIntType above). */
 
-/**
+/*!
  * \brief Internal helper function
  *
  * This one is not a PyMethod.  It is just an internal helper function.
@@ -714,7 +759,7 @@ static PyObject *Camera_setIntMode(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/**
+/*!
  * \brief Camera PyMethod setLens
  * \param lens - float: The new Camera Data lens value.
  */
@@ -734,7 +779,7 @@ static PyObject *Camera_setLens(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/**
+/*!
  * \brief Camera PyMethod setClipStart
  * \param clipStart - float: The new Camera Data clip start value.
  */
@@ -754,7 +799,7 @@ static PyObject *Camera_setClipStart(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/**
+/*!
  * \brief Camera PyMethod setClipEnd
  * \param clipEnd - float: The new Camera Data clip end value.
  */
@@ -774,7 +819,7 @@ static PyObject *Camera_setClipEnd(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/**
+/*!
  * \brief Camera PyMethod setDrawSize
  * \param drawSize - float: The new Camera Data draw size value.
  */
@@ -794,18 +839,9 @@ static PyObject *Camera_setDrawSize(BPy_Camera *self, PyObject *args)
   return Py_None;
 }
 
-/*@}*/
+/*@} Cam_Methods group */
 
-/**
- * \defgroup Camera_callbacks Callback functions for the Camera PyType
- *
- * These callbacks are called by the Python interpreter when dealing with
- * PyObjects of type Camera.
- */
-
-/*@{*/
-
-/**
+/*!
  * \brief The Camera PyType destructor
  */
 
@@ -814,7 +850,7 @@ static void Camera_DeAlloc (BPy_Camera *self)
   PyObject_DEL (self);
 }
 
-/**
+/*!
  * \brief The Camera PyType attribute getter
  *
  * This is the callback called when a user tries to retrieve the contents of
@@ -866,7 +902,7 @@ static PyObject *Camera_GetAttr (BPy_Camera *self, char *name)
   return Py_FindMethod(BPy_Camera_methods, (PyObject *)self, name);
 }
 
-/**
+/*!
  * \brief The Camera PyType attribute setter
  *
  * This is the callback called when the user tries to change the value of some
@@ -932,7 +968,7 @@ static int Camera_SetAttr (BPy_Camera *self, char *name, PyObject *value)
   return 0; /* normal exit */
 }
 
-/**
+/*!
  * \brief The Camera PyType compare function
  *
  * This function compares two given Camera PyObjects, returning 0 for equality
@@ -949,7 +985,7 @@ static int Camera_Compare (BPy_Camera *a, BPy_Camera *b)
   return (pa == pb) ? 0:-1;
 }
 
-/**
+/*!
  * \brief The Camera PyType print callback
  *
  * This function is called when the user tries to print a PyObject of type
@@ -962,7 +998,7 @@ static int Camera_Print(BPy_Camera *self, FILE *fp, int flags)
   return 0;
 }
 
-/**
+/*!
  * \brief The Camera PyType repr callback
  *
  * This function is called when the statement "repr(mycamera)" is executed in
@@ -973,5 +1009,3 @@ static PyObject *Camera_Repr (BPy_Camera *self)
 {
   return PyString_FromString(self->camera->id.name+2);
 }
-
-/*@}*/

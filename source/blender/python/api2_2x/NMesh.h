@@ -158,10 +158,6 @@ static char M_NMesh_PutRaw_doc[] =
 If the name of a mesh to replace is not given a new\n\
 object is created and returned.";
 
-/* the color, vertex, face and mesh types below have their own variables
- * because they don't need to be linked to real Blender data -- e.g.: they
- * can be created with .New() methods */
-
 /* Typedefs for the new types */
 
 typedef struct {
@@ -187,7 +183,7 @@ typedef struct {
 	short mode;
 	short flag;
 	unsigned char transp;
-	C_Image *image;
+	Image *image;
 	char mat_nr, smooth;
 
 } C_NMFace; /* an NMesh face */

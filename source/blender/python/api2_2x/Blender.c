@@ -195,7 +195,7 @@ PyObject *Blender_ReleaseGlobalDict(PyObject *self, PyObject *args)
                         "expected int argument (or nothing)");
         }
 
-        return Py_BuildValue("i", (EXPP_releaseGlobalDict?1:0));
+        return Py_BuildValue("i", (EXPP_releaseGlobalDict ? 1:0));
 }
 
 /*****************************************************************************/

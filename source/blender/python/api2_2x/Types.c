@@ -41,12 +41,14 @@ PyObject *M_Types_Init (void)
   PyObject  *submodule, *dict;
 
  /* These are only set when some object initializes them.  But unless we
-	* do it now, we get two easy ways to crash Blender. Maybe we'd better
+	* do it now, we get an easy way to crash Blender. Maybe we'd better
 	* have an Init function for all these internal types that more than one
 	* module can use.  We could call it after setting the Blender dictionary */
   vector_Type.ob_type = &PyType_Type;
   rgbTuple_Type.ob_type = &PyType_Type;
 	constant_Type.ob_type = &PyType_Type;
+	buffer_Type.ob_type = &PyType_Type;
+	Button_Type.ob_type = &PyType_Type;
 
   submodule = Py_InitModule3 ("Blender.Types", Null_methods, M_Types_doc);
 

@@ -280,7 +280,7 @@ static PyObject *MetaballRepr (C_Metaball *self);
 /*****************************************************************************/
 PyTypeObject Metaball_Type =
 {
-  PyObject_HEAD_INIT(&PyType_Type)
+  PyObject_HEAD_INIT(NULL)
   0,                                      /* ob_size */
   "Metaball",                               /* tp_name */
   sizeof (C_Metaball),                      /* tp_basicsize */

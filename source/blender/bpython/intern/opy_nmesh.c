@@ -1548,7 +1548,7 @@ static int convert_NMeshToMesh(Mesh *mesh, NMesh *nmesh)
 			Py_DECREF(mf);
 				
 			newmf++;
-			if (newmc) newmc++;
+			if (newmc) newmc += 4; /* there are 4 MCol's per face */
 		}
 	}
 	return 1;

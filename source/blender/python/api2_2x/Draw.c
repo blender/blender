@@ -636,7 +636,7 @@ PyObject *M_Draw_Init (void)
 
 	printf("In M_Draw_Init()\n");
 
-    Button_Type.ob_type = &PyType_Type;
+  Button_Type.ob_type = &PyType_Type;
 
 	submodule = Py_InitModule3("Blender.Draw", Draw_methods, Draw_doc);
 

@@ -84,35 +84,35 @@ void initDraw (void);
 /* Button Object */
 
 typedef struct _Button {
-	PyObject_VAR_HEAD
+  PyObject_VAR_HEAD
 
-	int type; /*@ 1 == int, 2 == float, 3 == string */
-	int slen; /*@ length of string (if type == 3) */
-	union {
-		int asint;
-		float asfloat;
-		char *asstr;
-	} val;
+  int type; /*@ 1 == int, 2 == float, 3 == string */
+  int slen; /*@ length of string (if type == 3) */
+  union {
+    int asint;
+    float asfloat;
+    char *asstr;
+  } val;
 } Button;
 
 static void Button_dealloc(PyObject *self);
 static PyObject *Button_getattr(PyObject *self, char *name);
-static int Button_setattr(PyObject *self,  char *name, PyObject *v);
 static PyObject *Button_repr(PyObject *self);
+static int Button_setattr(PyObject *self,  char *name, PyObject *v);
 
 PyTypeObject Button_Type =
 {
-	PyObject_HEAD_INIT(NULL)
-	0,								              /*ob_size*/
-	"Button",						            /*tp_name*/
-	sizeof(Button),					        /*tp_basicsize*/
-	0,								              /*tp_itemsize*/
-	(destructor) Button_dealloc,	/*tp_dealloc*/
-	(printfunc)  0,					        /*tp_print*/
-	(getattrfunc) Button_getattr,	/*tp_getattr*/
-	(setattrfunc) Button_setattr,	/*tp_setattr*/
-	(cmpfunc)  0,				          	/*tp_cmp*/
-	(reprfunc)  Button_repr,		  /*tp_repr*/
+  PyObject_HEAD_INIT(NULL)
+  0,                              /*ob_size*/
+  "Button",                       /*tp_name*/
+  sizeof(Button),                 /*tp_basicsize*/
+  0,                              /*tp_itemsize*/
+  (destructor) Button_dealloc,    /*tp_dealloc*/
+  (printfunc)  0,                 /*tp_print*/
+  (getattrfunc) Button_getattr,   /*tp_getattr*/
+  (setattrfunc) Button_setattr,   /*tp_setattr*/
+  (cmpfunc)  0,                   /*tp_cmp*/
+  (reprfunc)  Button_repr,        /*tp_repr*/
 };
 
 static Button *newbutton (void);
@@ -135,10 +135,10 @@ static char Method_Register_doc[] =
 "(draw, event, button) - Register callbacks for windowing\n\n\
 (draw) A function to draw the screen, taking no arguments\n\
 (event) A function to handle events, taking 2 arguments (evt, val)\n\
-	(evt) The event number\n\
-	(val) The value modifier (for key and mouse press/release)\n\
+  (evt) The event number\n\
+  (val) The value modifier (for key and mouse press/release)\n\
 (button) A function to handle button events, taking 1 argument (evt)\n\
-	(evt) The button number\n\n\
+  (evt) The button number\n\n\
 A None object can be passed if a callback is unused.";
 
 static PyObject *Method_Register (PyObject *self, PyObject *args);
@@ -192,8 +192,8 @@ The menu options are specified through the name of the\n\
 button. Options are followed by a format code and seperated\n\
 by the '|' (pipe) character.\n\
 Valid format codes are\n\
-	%t - The option should be used as the title\n\
-	%xN - The option should set the integer N in the button value.";
+  %t - The option should be used as the title\n\
+  %xN - The option should set the integer N in the button value.";
 
 static PyObject *Method_Menu (PyObject *self,  PyObject *args);
 
@@ -218,10 +218,10 @@ Create a new Slider button\n\n\
 (x, y) The lower left coordinate of the button\n\
 (width, height) The button width and height\n\
 (initial, min, max) Three values (int or float) specifying the initial \
-				and limit values.\n\
+        and limit values.\n\
 [update=1] A value controlling whether the slider will emit events as it \
 is edited.\n\
-			A non-zero value (default) enables the events. A zero value supresses them.\n\
+      A non-zero value (default) enables the events. A zero value supresses them.\n\
 [tooltip=""] The button's tooltip";
 
 static PyObject *Method_Slider (PyObject *self,  PyObject *args);
@@ -234,7 +234,7 @@ new Scrollbar\n\n\
 (width, height) The button width and height\n\
 (initial, min, max) Three values (int or float) specifying the initial and limit values.\n\
 [update=1] A value controlling whether the slider will emit events as it is edited.\n\
-			A non-zero value (default) enables the events. A zero value supresses them.\n\
+      A non-zero value (default) enables the events. A zero value supresses them.\n\
 [tooltip=""] The button's tooltip";
 
 static PyObject *Method_Scrollbar (PyObject *self,  PyObject *args);
@@ -272,7 +272,7 @@ static char Method_Text_doc[] =
 static PyObject *Method_Text (PyObject *self, PyObject *args);
 
 #define _MethodDef(func, prefix) \
-	{#func, prefix##_##func, METH_VARARGS, prefix##_##func##_doc}
+  {#func, prefix##_##func, METH_VARARGS, prefix##_##func##_doc}
 
 /* So that _MethodDef(delete, Scene) expands to:
  * {"delete", Scene_delete, METH_VARARGS, Scene_delete_doc} */
@@ -281,23 +281,23 @@ static PyObject *Method_Text (PyObject *self, PyObject *args);
 #define MethodDef(func) _MethodDef(func, Method)
 
 static struct PyMethodDef Draw_methods[] = {
-	MethodDef(Create),
-	MethodDef(Button),
-	MethodDef(Toggle),
-	MethodDef(Menu),
-	MethodDef(Slider),
-	MethodDef(Scrollbar),
-	MethodDef(Number),
-	MethodDef(String),
+  MethodDef(Create),
+  MethodDef(Button),
+  MethodDef(Toggle),
+  MethodDef(Menu),
+  MethodDef(Slider),
+  MethodDef(Scrollbar),
+  MethodDef(Number),
+  MethodDef(String),
 
-	MethodDef(Text),
+  MethodDef(Text),
 
-	MethodDef(Exit),
-	MethodDef(Redraw),
-	MethodDef(Draw),
-	MethodDef(Register),
+  MethodDef(Exit),
+  MethodDef(Redraw),
+  MethodDef(Draw),
+  MethodDef(Register),
 
-	{NULL, NULL}
+  {NULL, NULL}
 };
 
 PyObject *M_Draw_Init (void); 
