@@ -141,8 +141,8 @@ class yafrayInterface_t : public renderEnvironment_t
 		virtual void transformPush(float *m)=0;
 		virtual void transformPop()=0;
 		virtual void addObject_trimesh(const std::string &name,
-				std::vector<point3d_t> *verts, const std::vector<int> &faces,
-				std::vector<GFLOAT> *uvcoords, std::vector<CFLOAT> *vcol,
+				std::vector<point3d_t> &verts, const std::vector<int> &faces,
+				std::vector<GFLOAT> &uvcoords, std::vector<CFLOAT> &vcol,
 				const std::vector<std::string> &shaders,const std::vector<int> &faceshader,
 				float sm_angle,bool castShadows,bool useR,bool receiveR,bool caus,bool has_orco,
 				const color_t &caus_rcolor,const color_t &caus_tcolor,float caus_IOR)=0;

@@ -688,50 +688,50 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 	}
 }
 
-void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> *uvcoords,VlakRen *vlr,TFace* uvc)
+void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords,VlakRen *vlr,TFace* uvc)
 {
 	if (uvc) 
 	{
 	// use correct uv coords for this triangle
 		if (vlr->flag & R_FACE_SPLIT) 
 		{
-			uvcoords->push_back(uvc->uv[0][0]);uvcoords->push_back(1-uvc->uv[0][1]);
-			uvcoords->push_back(uvc->uv[2][0]);uvcoords->push_back(1-uvc->uv[2][1]);
-			uvcoords->push_back(uvc->uv[3][0]);uvcoords->push_back(1-uvc->uv[3][1]);
+			uvcoords.push_back(uvc->uv[0][0]);uvcoords.push_back(1-uvc->uv[0][1]);
+			uvcoords.push_back(uvc->uv[2][0]);uvcoords.push_back(1-uvc->uv[2][1]);
+			uvcoords.push_back(uvc->uv[3][0]);uvcoords.push_back(1-uvc->uv[3][1]);
 		}
 		else 
 		{
-			uvcoords->push_back(uvc->uv[0][0]);uvcoords->push_back(1-uvc->uv[0][1]);
-			uvcoords->push_back(uvc->uv[1][0]);uvcoords->push_back(1-uvc->uv[1][1]);
-			uvcoords->push_back(uvc->uv[2][0]);uvcoords->push_back(1-uvc->uv[2][1]);
+			uvcoords.push_back(uvc->uv[0][0]);uvcoords.push_back(1-uvc->uv[0][1]);
+			uvcoords.push_back(uvc->uv[1][0]);uvcoords.push_back(1-uvc->uv[1][1]);
+			uvcoords.push_back(uvc->uv[2][0]);uvcoords.push_back(1-uvc->uv[2][1]);
 		}
 	}
 	else
 	{
-		uvcoords->push_back(0);uvcoords->push_back(0);
-		uvcoords->push_back(0);uvcoords->push_back(0);
-		uvcoords->push_back(0);uvcoords->push_back(0);
+		uvcoords.push_back(0);uvcoords.push_back(0);
+		uvcoords.push_back(0);uvcoords.push_back(0);
+		uvcoords.push_back(0);uvcoords.push_back(0);
 	}
 }
 
-void yafrayPluginRender_t::genCompleUVcoords(vector<yafray::GFLOAT> *uvcoords,/*VlakRen *vlr,*/TFace* uvc)
+void yafrayPluginRender_t::genCompleUVcoords(vector<yafray::GFLOAT> &uvcoords,/*VlakRen *vlr,*/TFace* uvc)
 {
 	if (uvc) 
 	{
 	// use correct uv coords for this triangle
-		uvcoords->push_back(uvc->uv[2][0]);uvcoords->push_back(1-uvc->uv[2][1]);
-		uvcoords->push_back(uvc->uv[3][0]);uvcoords->push_back(1-uvc->uv[3][1]);
-		uvcoords->push_back(uvc->uv[0][0]);uvcoords->push_back(1-uvc->uv[0][1]);
+		uvcoords.push_back(uvc->uv[2][0]);uvcoords.push_back(1-uvc->uv[2][1]);
+		uvcoords.push_back(uvc->uv[3][0]);uvcoords.push_back(1-uvc->uv[3][1]);
+		uvcoords.push_back(uvc->uv[0][0]);uvcoords.push_back(1-uvc->uv[0][1]);
 	}
 	else
 	{
-		uvcoords->push_back(0);uvcoords->push_back(0);
-		uvcoords->push_back(0);uvcoords->push_back(0);
-		uvcoords->push_back(0);uvcoords->push_back(0);
+		uvcoords.push_back(0);uvcoords.push_back(0);
+		uvcoords.push_back(0);uvcoords.push_back(0);
+		uvcoords.push_back(0);uvcoords.push_back(0);
 	}
 }
 
-void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> *vcol,VlakRen *vlr,
+void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol,VlakRen *vlr,
 																		int p1,int p2,int p3,bool EXPORT_VCOL)
 {
 	if ((EXPORT_VCOL) && (vlr->vcol)) 
@@ -741,26 +741,26 @@ void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> *vcol,VlakRen *vlr,
 		vr = ((vlr->vcol[p1] >> 24) & 255)/255.0;
 		vg = ((vlr->vcol[p1] >> 16) & 255)/255.0;
 		vb = ((vlr->vcol[p1] >> 8) & 255)/255.0;
-		vcol->push_back(vr);vcol->push_back(vg);vcol->push_back(vb);
+		vcol.push_back(vr);vcol.push_back(vg);vcol.push_back(vb);
 		vr = ((vlr->vcol[p2] >> 24) & 255)/255.0;
 		vg = ((vlr->vcol[p2] >> 16) & 255)/255.0;
 		vb = ((vlr->vcol[p2] >> 8) & 255)/255.0;
-		vcol->push_back(vr);vcol->push_back(vg);vcol->push_back(vb);
+		vcol.push_back(vr);vcol.push_back(vg);vcol.push_back(vb);
 		vr = ((vlr->vcol[p3] >> 24) & 255)/255.0;
 		vg = ((vlr->vcol[p3] >> 16) & 255)/255.0;
 		vb = ((vlr->vcol[p3] >> 8) & 255)/255.0;
-		vcol->push_back(vr);vcol->push_back(vg);vcol->push_back(vb);
+		vcol.push_back(vr);vcol.push_back(vg);vcol.push_back(vb);
 	}
 	else
 	{
-		vcol->push_back(0);vcol->push_back(0);vcol->push_back(0);
-		vcol->push_back(0);vcol->push_back(0);vcol->push_back(0);
-		vcol->push_back(0);vcol->push_back(0);vcol->push_back(0);
+		vcol.push_back(0);vcol.push_back(0);vcol.push_back(0);
+		vcol.push_back(0);vcol.push_back(0);vcol.push_back(0);
+		vcol.push_back(0);vcol.push_back(0);vcol.push_back(0);
 	}
 }
 
 void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,vector<int> &faceshader,
-														vector<yafray::GFLOAT> *uvcoords,vector<yafray::CFLOAT> *vcol,
+														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
 														map<VertRen*, int> &vert_idx,VlakRen *vlr,
 														bool has_orco,bool has_uv,bool has_vcol)
 {
@@ -801,7 +801,7 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 }
 
 void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &shaders,*/vector<int> &faceshader,
-														vector<yafray::GFLOAT> *uvcoords,vector<yafray::CFLOAT> *vcol,
+														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
 														map<VertRen*, int> &vert_idx,VlakRen *vlr,
 														bool has_orco,bool has_uv,bool has_vcol)
 {
@@ -824,7 +824,7 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 	if(has_vcol) genVcol(vcol,vlr,2,3,0,EXPORT_VCOL);
 }
 
-void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> *verts,int &vidx,
+void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts,int &vidx,
 																			 map<VertRen*, int> &vert_idx,VlakRen* vlr,bool has_orco)
 {
 	VertRen* ver;
@@ -832,33 +832,33 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> *verts,int &vid
 	{
 		vert_idx[vlr->v1] = vidx++;
 		ver = vlr->v1;
-		verts->push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
 		if (has_orco) 
-			verts->push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
 	if (vert_idx.find(vlr->v2)==vert_idx.end()) 
 	{
 		vert_idx[vlr->v2] = vidx++;
 		ver = vlr->v2;
-		verts->push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
 		if (has_orco)
-			verts->push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
 	if (vert_idx.find(vlr->v3)==vert_idx.end()) 
 	{
 		vert_idx[vlr->v3] = vidx++;
 		ver = vlr->v3;
-		verts->push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
 		if (has_orco)
-			verts->push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
 	if ((vlr->v4) && (vert_idx.find(vlr->v4)==vert_idx.end())) 
 	{
 		vert_idx[vlr->v4] = vidx++;
 		ver = vlr->v4;
-		verts->push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
+		verts.push_back(yafray::point3d_t(ver->co[0],ver->co[1],ver->co[2]));
 		if (has_orco)
-			verts->push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
 	}
 }
 
@@ -900,9 +900,8 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 		if(fmat==NULL) continue;
 		if((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0) {has_vcol=true;break;};
 	}
-	vector<yafray::point3d_t> *verts=new vector<yafray::point3d_t>;
-	vector<yafray::CFLOAT> *vcol=NULL;
-	if(has_vcol) vcol=new vector<yafray::CFLOAT>;
+	vector<yafray::point3d_t> verts;
+	vector<yafray::CFLOAT> vcol;
 	// now all vertices
 	map<VertRen*, int> vert_idx;	// for removing duplicate verts and creating an index list
 	int vidx = 0;	// vertex index counter
@@ -918,9 +917,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	vector<int> faces;
 	vector<string> shaders;
 	vector<int> faceshader;
-	vector<yafray::GFLOAT> *uvcoords=NULL;
-	if(has_uv)
-		uvcoords=new vector<yafray::GFLOAT>;
+	vector<yafray::GFLOAT> uvcoords;
 	for (vector<VlakRen*>::const_iterator fci2=VLR_list.begin();
 				fci2!=VLR_list.end();++fci2)
 	{
