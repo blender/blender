@@ -230,8 +230,12 @@ static PyObject *M_Scene_New(PyObject *self, PyObject *args, PyObject *kword)
 	blscene = add_scene(name); /* first create the Scene in Blender */
 
 	if (blscene){ 
-	  /* return user count to zero because add_scene() inc'd it */
-	  blscene->id.us = 0;  
+	  /* normally, for most objects, we set the user count to zero here.
+	   * Scene is different than most objs since it is the container
+	   * for all the others. Since add_scene() has already set 
+	   * the user count to one, we leave it alone.
+	   */ 
+
 	  /* now create the wrapper obj in Python */
 	  pyscene = Scene_CreatePyObject (blscene);
 	}

@@ -50,8 +50,8 @@ static PyObject *M_Text_New(PyObject *self, PyObject *args, PyObject *keywords)
   bl_text = add_empty_text();
 
   if (bl_text) {
-    /* return user count to zero because add_empty_text() inc'd it */
-    bl_text->id.us = 0;
+    /* do not set user count because Text is already linked */
+
     /* create python wrapper obj */
     py_text = Text_CreatePyObject (bl_text);
   }
