@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\img"
+# PROP Output_Dir "..\..\..\obj\windows\blender\img"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\img"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\img\BL_img.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "BL_img - Win32 Debug"
 
@@ -61,8 +61,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\blender\img\debug"
+# PROP Output_Dir "..\..\..\obj\windows\blender\img\debug"
+# PROP Intermediate_Dir "..\..\..\obj\windows\blender\img\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -75,7 +75,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\img\debug\BL_img.lib"
+# ADD LIB32 /nologo
 
 !ENDIF 
 

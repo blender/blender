@@ -39,12 +39,12 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\expressions"
+# PROP Output_Dir "..\..\..\obj\windows\gameengine\expressions"
+# PROP Intermediate_Dir "..\..\..\obj\windows\gameengine\expressions"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -52,7 +52,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\gameengine\expressions\EXP_expressions.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "EXP_expressions - Win32 Debug"
 
@@ -68,7 +68,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /U "_DEBUG" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\lib\windows\string\include" /I "..\..\..\source\kernel\gen_system" /D "WIN32" /D "_MBCS" /D "_LIB" /D "EXP_PYTHON_EMBEDDING" /U "_DEBUG" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe

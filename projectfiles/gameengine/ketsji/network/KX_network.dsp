@@ -39,12 +39,12 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "..\..\..\..\..\obj\windows\gameengine\ketsji\network"
+# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\ketsji\network"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\ketsji\network"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\Network" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.2" /I "..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\gameengine\ketsji" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\expressions" /I "..\..\..\..\source\gameengine\Network" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -52,7 +52,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\..\obj\windows\gameengine\ketsji\network\KX_network.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "KX_network - Win32 Debug"
 

@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\physics"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\physics"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -61,8 +61,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\..\obj\windows\gameengine\physics\debug"
-# PROP Intermediate_Dir "..\..\..\obj\windows\gameengine\physics\debug"
+# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\physics\debug"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\physics\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c

@@ -39,8 +39,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "..\..\..\..\..\obj\windows\gameengine\soundsystem\openal"
+# PROP Output_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\openal"
+# PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\soundsystem\openal"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -52,7 +52,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\..\obj\windows\gameengine\soundsystem\openal\SND_openal.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "SND_openal - Win32 Debug"
 

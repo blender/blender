@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "..\..\..\..\..\..\obj\windows\blender\bpython"
+# PROP Output_Dir "..\..\..\..\..\obj\windows\blender\bpython"
+# PROP Intermediate_Dir "..\..\..\..\..\obj\windows\blender\bpython"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\..\..\obj\windows\blender\bpython\BPY_python.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "BPY_python - Win32 Debug"
 

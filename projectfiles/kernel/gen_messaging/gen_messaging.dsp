@@ -39,8 +39,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\..\..\obj\windows\kernel\gen_messaging"
-# PROP Intermediate_Dir "..\..\..\..\obj\windows\kernel\gen_messaging"
+# PROP Output_Dir "..\..\..\obj\windows\kernel\gen_messaging"
+# PROP Intermediate_Dir "..\..\..\obj\windows\kernel\gen_messaging"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c

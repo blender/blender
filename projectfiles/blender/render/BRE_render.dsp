@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\render\BRE_render.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "BRE_render - Win32 Debug"
 
@@ -75,7 +75,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\..\..\obj\windows\blender\render\debug\BRE_render.lib"
+# ADD LIB32 /nologo
 
 !ENDIF 
 

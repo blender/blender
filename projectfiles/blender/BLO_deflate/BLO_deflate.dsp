@@ -77,7 +77,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo /out:"..\..\obj\windows\blender\deflate\debug\BLO_deflate.lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "BLO_deflate - Win32 MT DLL Release"
 

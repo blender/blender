@@ -267,6 +267,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "BPY_frozen"="..\blender\bpython\frozen\BPY_frozen.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "BPY_python"="..\blender\bpython\intern\BPY_python\BPY_python.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -932,6 +944,12 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name PHY_Dummy
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BPY_frozen
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Ode
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -1078,6 +1096,12 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name PHY_Physics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BPY_frozen
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PHY_Ode
     End Project Dependency
 }}}
 
