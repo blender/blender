@@ -1178,7 +1178,7 @@ static void render_panel_format(void)
 #endif
 
 	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,174,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
-	uiDefButI(block, TOG|BIT|11,0, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
+	uiDefButI(block, TOG|BIT|11,B_DIFF, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
 
 	yofs -= 22;
 
@@ -1227,7 +1227,7 @@ static void render_panel_format(void)
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
 	} else {
-		uiDefButS(block, NUM,0, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
+		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
 	uiDefButS(block, NUM,REDRAWALL,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 
@@ -1271,39 +1271,39 @@ static void render_panel_yafrayGI()
 
 	if (G.scene->r.GImethod>0) {
 		if (G.scene->r.GIpower==0) G.scene->r.GIpower=1;
-		uiDefButF(block, NUM, 0, "Power:", 5,10,154,20, &G.scene->r.GIpower, 0.01, 100.0, 10, 0, "GI lighting intensity scale, 1 is normal");
+		uiDefButF(block, NUM, B_DIFF, "Power:", 5,10,154,20, &G.scene->r.GIpower, 0.01, 100.0, 10, 0, "GI lighting intensity scale, 1 is normal");
 	}
         
 
 	if (G.scene->r.GImethod==2) 
 	{
 		if (G.scene->r.GIdepth==0) G.scene->r.GIdepth=2;
-		uiDefButI(block, NUM, 0, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 8.0, 10, 10, "Number of bounces of the indirect light");
-		uiDefButI(block, NUM, 0, "CDepth:", 180,150,110,20, &G.scene->r.GIcausdepth, 1.0, 8.0, 10, 10, "Number of bounces inside objects (for caustics)");
+		uiDefButI(block, NUM, B_DIFF, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 8.0, 10, 10, "Number of bounces of the indirect light");
+		uiDefButI(block, NUM, B_DIFF, "CDepth:", 180,150,110,20, &G.scene->r.GIcausdepth, 1.0, 8.0, 10, 10, "Number of bounces inside objects (for caustics)");
 		uiDefButS(block,TOG|BIT|0, B_REDR, "Cache",70,125,89,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache irradiance samples (faster)");
 		uiDefButS(block,TOG|BIT|0, B_REDR, "Photons",180,125,89,20, &G.scene->r.GIphotons, 0, 0, 0, 0, "Use global photons to help in GI");
 		if (G.scene->r.GIcache) 
 		{
 			uiDefBut(block, LABEL, 0, "Cache parameters:", 5,105,130,20, 0, 1.0, 0, 0, 0, "");
 			if (G.scene->r.GIshadowquality==0.0) G.scene->r.GIshadowquality=0.9;
-			uiDefButF(block, NUM, 0,"ShadQu:", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.01, 1.0 ,1,0, "Sets the shadow quality, keep it under 0.95 :-) ");
+			uiDefButF(block, NUM, B_DIFF,"ShadQu:", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.01, 1.0 ,1,0, "Sets the shadow quality, keep it under 0.95 :-) ");
 			if (G.scene->r.GIpixelspersample==0) G.scene->r.GIpixelspersample=10;
-			uiDefButI(block, NUM, 0, "Prec:",	5,60,75,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
-			uiDefButS(block,TOG|BIT|0, 0, "Gradient", 84,60,75,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
+			uiDefButI(block, NUM, B_DIFF, "Prec:",	5,60,75,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
+			uiDefButS(block,TOG|BIT|0, B_DIFF, "Gradient", 84,60,75,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
 			if (G.scene->r.GIrefinement==0) G.scene->r.GIrefinement=1.0;
-			uiDefButF(block, NUM, 0, "Refinement:", 5,35,154,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
+			uiDefButF(block, NUM, B_DIFF, "Refinement:", 5,35,154,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
 		}
 		if (G.scene->r.GIphotons) 
 		{
 			uiDefBut(block, LABEL, 0, "Photon parameters:", 170,105,130,20, 0, 1.0, 0, 0, 0, "");
 			if(G.scene->r.GIphotoncount==0) G.scene->r.GIphotoncount=100000;
-			uiDefButI(block, NUM, 0, "Count:", 170,85,140,20, &G.scene->r.GIphotoncount, 
+			uiDefButI(block, NUM, B_DIFF, "Count:", 170,85,140,20, &G.scene->r.GIphotoncount, 
 					0, 10000000, 10, 10, "Number of photons to shoot");
 			if(G.scene->r.GIphotonradius==0.0) G.scene->r.GIphotonradius=1.0;
-			uiDefButF(block, NUMSLI, 0,"Radius:", 170,60,140,20,	&(G.scene->r.GIphotonradius), 
+			uiDefButF(block, NUMSLI, B_DIFF,"Radius:", 170,60,140,20,	&(G.scene->r.GIphotonradius), 
 					0.00001, 100.0 ,0,0, "Radius to search for photons to mix (blur)");
 			if(G.scene->r.GImixphotons==0) G.scene->r.GImixphotons=100;
-			uiDefButI(block, NUM, 0, "MixCount:", 170,35,140,20, &G.scene->r.GImixphotons, 
+			uiDefButI(block, NUM, B_DIFF, "MixCount:", 170,35,140,20, &G.scene->r.GImixphotons, 
 					0, 1000, 10, 10, "Number of photons to shoot");
 			uiDefButS(block,TOG|BIT|0, B_REDR, "Tune Photons",170,10,140,20, &G.scene->r.GIdirect, 
 					0, 0, 0, 0, "Show the photonmap directly in the render for tuning");
@@ -1323,14 +1323,14 @@ static void render_panel_yafrayGlobal()
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ", 305,180,10,10, 0, 0, 0, 0, 0, "");
 
-	uiDefButF(block, NUMSLI, 0,"Bi ", 5,35,150,20,	&(G.scene->r.YF_raybias), 
+	uiDefButF(block, NUMSLI, B_DIFF,"Bi ", 5,35,150,20,	&(G.scene->r.YF_raybias), 
 				0.0, 10.0 ,0,0, "Shadow ray bias to avoid self shadowing");
-  uiDefButI(block, NUM, 0, "Raydepth ", 5,60,150,20,
+  uiDefButI(block, NUM, B_DIFF, "Raydepth ", 5,60,150,20,
 				&G.scene->r.YF_raydepth, 1.0, 80.0, 10, 10, "Maximum render ray depth from the camera");
-	uiDefButF(block, NUMSLI, 0, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
-	uiDefButF(block, NUMSLI, 0, "Exp ", 160,10,150,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
+	uiDefButF(block, NUMSLI, B_DIFF, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
+	uiDefButF(block, NUMSLI, B_DIFF, "Exp ", 160,10,150,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
         
-  uiDefButI(block, NUM, 0, "Processors:", 160,35,150,20,
+  uiDefButI(block, NUM, B_DIFF, "Processors:", 160,35,150,20,
 				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
 	/*AA Settings*/
@@ -1340,10 +1340,10 @@ static void render_panel_yafrayGlobal()
 	uiDefButS(block,TOGN|BIT|0, B_REDR, "xml", 175,140,75,20, &G.scene->r.YFexportxml,
 					0, 0, 0, 0, "Export to an xml file and call yafray instead of plugin");
  	if(G.scene->r.YF_AA){
-		uiDefButI(block, NUM, 0, "AA Passes ", 5,115,150,20, &G.scene->r.YF_AApasses, 0, 64, 10, 10, "Number of AA passes (0 is no AA)");
-		uiDefButI(block, NUM, 0, "AA Samples ", 160,115,150,20, &G.scene->r.YF_AAsamples, 0, 2048, 10, 10, "Number of samples per pass");
-		uiDefButF(block, NUMSLI, 0, "Psz ", 5,90,150,20, &G.scene->r.YF_AApixelsize, 1.0, 2.0, 0, 0, "AA pixel filter size");
-		uiDefButF(block, NUMSLI, 0, "Thr ", 160,90,150,20, &G.scene->r.YF_AAthreshold, 0.000001, 1.0, 0, 0, "AA threshold");
+		uiDefButI(block, NUM, B_DIFF, "AA Passes ", 5,115,150,20, &G.scene->r.YF_AApasses, 0, 64, 10, 10, "Number of AA passes (0 is no AA)");
+		uiDefButI(block, NUM, B_DIFF, "AA Samples ", 160,115,150,20, &G.scene->r.YF_AAsamples, 0, 2048, 10, 10, "Number of samples per pass");
+		uiDefButF(block, NUMSLI, B_DIFF, "Psz ", 5,90,150,20, &G.scene->r.YF_AApixelsize, 1.0, 2.0, 0, 0, "AA pixel filter size");
+		uiDefButF(block, NUMSLI, B_DIFF, "Thr ", 160,90,150,20, &G.scene->r.YF_AAthreshold, 0.000001, 1.0, 0, 0, "AA threshold");
 	}
 }
 
