@@ -583,10 +583,10 @@ void do_render_panels(unsigned short event)
 			get_qtcodec_settings();
 #endif /* WITH_QUICKTIME */
 		}
-#ifdef _WIN32
+#if defined (_WIN32) && !defined(FREE_WINDOWS)
 		else
 			get_avicodec_settings();
-#endif /* _WIN32 */
+#endif /* _WIN32 && !FREE_WINDOWS */
 #endif /* _WIN32 || __APPLE__ */
 		break;
 
