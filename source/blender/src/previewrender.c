@@ -783,7 +783,13 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		}
 		
 	}
+	/* set it here, because ray_mirror will affect it */
+	alpha= mat->alpha;
 	
+	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
+		if(mat->fresnel_tra!=0.0) 
+			alpha*= fresnel_fac(view, shi->vn, mat->fresnel_tra_i, mat->fresnel_tra);
+
 	if(mat->mode & MA_SHLESS) {
 		temp= 255.0*(mat->r);
 		if(temp>255) rect[0]= 255; else if(temp<0) rect[0]= 0; else rect[0]= temp;
@@ -860,8 +866,14 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			/* scale */
 			div= (0.85*shi->ref[1]);
 			
-			shi->refcol[0]= mat->ray_mirror*fresnel_fac(view, shi->vn, mat->ang, mat->fresnel_mir);
-
+			shi->refcol[0]= mat->ray_mirror*fresnel_fac(view, shi->vn, mat->fresnel_mir_i, mat->fresnel_mir);
+			/* not real 'alpha', but mirror overriding transparency */
+			if(mat->mode & MA_RAYTRANSP) {
+				float fac= sqrt(shi->refcol[0]);
+				alpha= alpha*(1.0-fac) + fac;
+			}
+			else alpha= alpha*(1.0-shi->refcol[0]) + shi->refcol[0];
+			
 			if(div<0.0) {
 				/* minus 0.5 prevents too many small tiles in distance */
 				fac= (int)(shi->ref[0]/(div-0.1) ) + (int)(shi->ref[2]/(div-0.1) );
@@ -903,12 +915,6 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		}
 	}
 
-	alpha= mat->alpha;
-	
-	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
-		if(mat->fresnel_tra!=0.0) 
-			alpha*= fresnel_fac(view, shi->vn, mat->ang, mat->fresnel_tra);
-	
 		/* ztra shade */
 	if(mat->spectra!=0.0) {
 		inp = MAX3(isr, isg, isb);
@@ -916,7 +922,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		if(inp>1.0) inp= 1.0;
 		alpha= (1.0-inp)*alpha+inp;
 	}
-	
+
 	if(alpha!=1.0) {
 		if(mat->mode & MA_RAYTRANSP) {
 			refraction_prv(&x, &y, shi->vn, mat->ang);

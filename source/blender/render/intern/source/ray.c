@@ -1366,7 +1366,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 
 			if(shi.matren->mode & MA_RAYMIRROR) {
 				f= shi.matren->ray_mirror;
-				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.matren->ang, shi.matren->fresnel_mir);
+				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.matren->fresnel_mir_i, shi.matren->fresnel_mir);
 			}
 			else f= 0.0;
 			
@@ -1438,6 +1438,9 @@ static float jit_cube5[5*5*5*3]={0.0};
 static float *jitter_plane(int resol)
 {
 	extern float hashvectf[];
+	extern char hash[];
+	extern int temp_x, temp_y;
+	static int offs=0;
 	float dsize, *jit, *fp, *hv;
 	int x, y;
 	
@@ -1453,15 +1456,17 @@ static float *jitter_plane(int resol)
 	case 7: jit= jit_plane7; break;
 	default: jit= jit_plane8; break;
 	}
-	if(jit[0]!=0.0) return jit;
+	//if(jit[0]!=0.0) return jit;
+
+	offs++;
 
 	dsize= 1.0/(resol-1.0);
 	fp= jit;
-	hv= hashvectf;
+	hv= hashvectf+3*(hash[ (temp_x&3)+4*(temp_y&3) ]);
 	for(x=0; x<resol; x++) {
 		for(y=0; y<resol; y++, fp+= 3, hv+=3) {
-			fp[0]= -0.5 + (x+0.25*hv[0])*dsize;
-			fp[1]= -0.5 + (y+0.25*hv[1])*dsize;
+			fp[0]= -0.5 + (x+0.5*hv[0])*dsize;
+			fp[1]= -0.5 + (y+0.5*hv[1])*dsize;
 			fp[2]= fp[0]*fp[0] + fp[1]*fp[1];
 			if(resol>2)
 				if(fp[2]>0.3) fp[2]= 0.0;
@@ -1586,7 +1591,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 		}
 		
 		if(div!=0.0) {
-			i= shi->matren->ray_mirror;
+			i= shi->matren->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->matren->fresnel_mir_i, shi->matren->fresnel_mir);
 			fr= shi->matren->mirr;
 			fg= shi->matren->mirg;
 			fb= shi->matren->mirb;
@@ -1619,7 +1624,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr, int mask)
 		
 		if(do_mir) {
 		
-			i= shi->matren->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->matren->ang, shi->matren->fresnel_mir);
+			i= shi->matren->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->matren->fresnel_mir_i, shi->matren->fresnel_mir);
 			if(i!=0.0) {
 				fr= shi->matren->mirr;
 				fg= shi->matren->mirg;

@@ -1500,24 +1500,18 @@ void calc_R_ref(ShadeInput *shi)
 
 }
 
-float fresnel_fac(float *view, float *vn, float ior, float fac)
+/* mix of 'real' fresnel and allowing control. grad defines blending gradient */
+float fresnel_fac(float *view, float *vn, float grad, float fac)
 {
-	float rf, t1, t2;
+	float t1, t2;
 	
 	if(fac==0.0) return 1.0;
 	
-	rf = ((ior-1.0)/(ior+1.0));
-	rf*= rf;
-
 	t1= (view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
-	if(t1>0.0) t1= 1.0-t1;
-	else t1 = 1.0+t1;
+	if(t1>0.0)  t2= 1.0+t1;
+	else t2= 1.0-t1;
 	
-	if(fac==5.0) {
-		t2 = t1*t1;
-		t2= rf + (1.0-rf)*t1*t2*t2;
-	}
-	else t2= rf + (1.0-rf)*pow(t1, fac);
+	t2= grad + (1.0-grad)*pow(t2, fac);
 
 	if(t2<0.0) return 0.0;
 	else if(t2>1.0) return 1.0;
@@ -1547,7 +1541,7 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 
 	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
 		if(ma->fresnel_tra!=1.0) 
-			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->ang, ma->fresnel_tra);
+			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 	}
 
 	shr->diff[0]= ma->r;
@@ -1879,7 +1873,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr, int mask)
 
 	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
 		if(ma->fresnel_tra!=1.0) 
-			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->ang, ma->fresnel_tra);
+			ma->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 
 		if(ma->spectra!=0.0) {
 
@@ -2182,6 +2176,8 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	}
 }
 
+int temp_x, temp_y;
+
   /* x,y: window coordinate from 0 to rectx,y */
   /* return pointer to rendered face */
 void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
@@ -2193,6 +2189,8 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	if(vlaknr< 0) {	/* error */
 		return NULL;
 	}
+temp_x= floor(x);
+temp_y= floor(y);
 	
 	if(vlaknr==0) {	/* sky */
 		col[0]= 0.0; col[1]= 0.0; col[2]= 0.0; col[3]= 0.0;

@@ -3933,6 +3933,8 @@ static void do_versions(Main *main)
 		Material *ma= main->mat.first;
 		Scene *sce;
 		while(ma) {
+			if(ma->fresnel_tra_i==0.0) ma->fresnel_tra_i= 1.25;
+			if(ma->fresnel_mir_i==0.0) ma->fresnel_mir_i= 1.25;
 			if(ma->ang==0.0) {
 				ma->ang= 1.0;
 				ma->ray_depth= 2;

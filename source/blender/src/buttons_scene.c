@@ -1058,7 +1058,7 @@ static void render_panel_render()
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|6,0,"Fields",  564,50,60,23,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
 	uiDefButI(block, TOG|BIT|13,0,"Odd",	624,50,40,23,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
-	uiDefButI(block, TOG|BIT|7,0,"x",		655,50,20,23,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
+	uiDefButI(block, TOG|BIT|7,0,"x",		665,50,20,23,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 
 	uiDefButI(block, TOG|BIT|17,0,"Gauss",	564,30,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gauss sampling filter for antialiasing");
 	uiDefButF(block, NUM,B_DIFF,"",			624,30,60,20,&G.scene->r.gauss,0.5, 2.0, 0, 0, "Sets the Gauss filter size)");

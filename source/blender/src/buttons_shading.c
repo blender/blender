@@ -2251,30 +2251,34 @@ static void material_panel_tramir(Material *ma)
 	uiNewPanelTabbed("Shaders", "Material");
 	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
 
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,180,200,19, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
-	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror",210,180,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,160,200,19, &(ma->fresnel_mir), 0.0, 5.0, 100, 2, "Power of Fresnel for mirror reflection");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,19, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
+	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror",210,180,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Alpha ",		10,130,200,19, &(ma->alpha), 0.0, 1.0, 0, 0, "Sets the material's opacity and transparency mix");
-	uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp",	210,130,100,19, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
+	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,160,200,20, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,20, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
 
-	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",		10,110,200,19, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
-	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,110,100,19, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
-
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,90,200,19, &(ma->fresnel_tra), 0.0, 5.0, 100, 2, "Power of Fresnel for transparency");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,90,100,19, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,140,160,20, &(ma->fresnel_mir), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,140,140,20, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,60,150,19, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,60,150,19, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
+	uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp",	110,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
+	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",	10,10,100,19, &(ma->mode), 0, 0, 0, 0, "Renders shadows falling on material only");
-	uiDefButI(block, TOG|BIT|14, 0,	"No Mist",		110,10,100,19, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
-	uiDefButI(block, TOG|BIT|9, 0,	"Env",			210,10,100,19, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through");
+	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",	10,90,200,20, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",	210,90,100,20, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
+
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,70,160,20, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for transparency");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,70,140,20, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,40,150,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,40,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|10, 0,	"OnlyShadow",	10,10,100,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows falling on material only");
+	uiDefButI(block, TOG|BIT|14, 0,	"No Mist",		110,10,100,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
+	uiDefButI(block, TOG|BIT|9, 0,	"Env",			210,10,100,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through");
 	uiBlockEndAlign(block);
 
 
