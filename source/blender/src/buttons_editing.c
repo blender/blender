@@ -964,7 +964,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 	if(ob->type!=OB_SURF) {
 		
 		if(ob->type==OB_CURVE) {
-			static float prlen;
+			extern float prlen;		// buttons_object.c, should be moved....
 			char str[32];
 			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, 9000.0, 0, 0, "");

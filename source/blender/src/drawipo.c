@@ -418,6 +418,33 @@ void test_view2d(View2D *v2d, int winx, int winy)
 			cur->ymax= temp+0.5*dy;
 		}
 	}
+	else {
+		if(dx<G.v2d->min[0]) {
+			dx= G.v2d->min[0];
+			temp= 0.5*(cur->xmax+cur->xmin);
+			cur->xmin= temp-0.5*dx;
+			cur->xmax= temp+0.5*dx;
+		}
+		else if(dx>G.v2d->max[0]) {
+			dx= G.v2d->max[0];
+			temp= 0.5*(cur->xmax+cur->xmin);
+			cur->xmin= temp-0.5*dx;
+			cur->xmax= temp+0.5*dx;
+		}
+		
+		if(dy<G.v2d->min[1]) {
+			dy= G.v2d->min[1];
+			temp= 0.5*(cur->ymax+cur->ymin);
+			cur->ymin= temp-0.5*dy;
+			cur->ymax= temp+0.5*dy;
+		}
+		else if(dy>G.v2d->max[1]) {
+			dy= G.v2d->max[1];
+			temp= 0.5*(cur->ymax+cur->ymin);
+			cur->ymin= temp-0.5*dy;
+			cur->ymax= temp+0.5*dy;
+		}
+	}
 
 	if(v2d->keepaspect) {
 		short do_x=0, do_y=0;
