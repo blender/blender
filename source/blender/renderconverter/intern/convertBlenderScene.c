@@ -2192,7 +2192,7 @@ static void init_render_curve(Object *ob)
 	/* bevelcurve in displist */
 	dlbev.first= dlbev.last= 0;
 
-	if(cu->ext1!=0.0 || cu->ext2!=0.0 || cu->bevobj!=0) {
+	if(cu->ext1!=0.0 || cu->ext2!=0.0 || cu->bevobj!=NULL) {
 		makebevelcurve(ob, &dlbev);
 	}
 
@@ -2277,8 +2277,11 @@ static void init_render_curve(Object *ob)
 				while(b--) {
 
 					bevp= (BevPoint *)(bl+1);
-					a= bl->nr;
-					while(a--) {
+					for(a=0; a<bl->nr; a++) {
+						float fac;
+						
+						/* returns 1.0 if no taper, of course */
+						fac= calc_taper(cu->taperobj, a, bl->nr);
 
 						if(cu->flag & CU_3D) {
 							vec[0]= fp1[1]+widfac;
@@ -2287,15 +2290,15 @@ static void init_render_curve(Object *ob)
 
 							MTC_Mat3MulVecfl(bevp->mat, vec);
 
-							fp[0]= bevp->x+ vec[0];
-							fp[1]= bevp->y+ vec[1];
-							fp[2]= bevp->z+ vec[2];
+							fp[0]= bevp->x+ fac*vec[0];
+							fp[1]= bevp->y+ fac*vec[1];
+							fp[2]= bevp->z+ fac*vec[2];
 						}
 						else {
 
-							fp[0]= bevp->x+ (widfac+fp1[1])*bevp->sina;
-							fp[1]= bevp->y+ (widfac+fp1[1])*bevp->cosa;
-							fp[2]= bevp->z+ fp1[2];
+							fp[0]= bevp->x+ fac*(widfac+fp1[1])*bevp->sina;
+							fp[1]= bevp->y+ fac*(widfac+fp1[1])*bevp->cosa;
+							fp[2]= bevp->z+ fac*fp1[2];
 							/* do not MatMul here: polyfill should work uniform, independent which frame */
 						}
 						fp+= 3;
@@ -2368,7 +2371,7 @@ static void init_render_curve(Object *ob)
 				}
 
 				/* make double points: SPLIT POLY */
-				if(dlb->nr==4 && cu->bevobj==0) {
+				if(dlb->nr==4 && cu->bevobj==NULL) {
 					split_u_renderfaces(startvlak, startvert, bl->nr, 1, bl->poly>0);
 					split_u_renderfaces(startvlak, startvert, bl->nr, 2, bl->poly>0);
 				}

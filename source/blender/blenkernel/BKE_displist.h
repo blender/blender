@@ -114,6 +114,7 @@ extern void addnormalsDispList(struct Object *ob, struct ListBase *lb);
 extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
 extern void curve_to_filledpoly(struct Curve *cu, struct ListBase *dispbase);
 extern void freedisplist(struct ListBase *lb);
+extern float calc_taper(Object *taperobj, int cur, int tot);
 extern void makeDispList(struct Object *ob);
 extern void set_displist_onlyzero(int val);
 extern void shadeDispList(struct Object *ob);
