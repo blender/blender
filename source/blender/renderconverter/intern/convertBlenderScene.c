@@ -2818,6 +2818,9 @@ void RE_rotateBlenderScene(void)
 #ifdef __NLA
 	do_all_actions();
 	rebuild_all_armature_displists();
+	/* so nice, better do it twice */
+	do_all_actions();
+	rebuild_all_armature_displists();
 #endif
 	do_all_ikas();
 	test_all_displists();
