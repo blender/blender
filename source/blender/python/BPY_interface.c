@@ -44,6 +44,7 @@
 #include <BIF_interface.h> /* for pupmenu */
 #include <BIF_space.h>
 #include <BIF_screen.h>
+#include <BIF_toolbox.h>
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_main.h>
@@ -566,6 +567,7 @@ int BPY_menu_do_python(short menutype, int event)
 		free_libblock(&G.main->script, script);
   //  BPY_end_python();
   //  BPY_start_python();
+		error ("Python script error: check console");
 
     return 0;
 	}

@@ -34,6 +34,8 @@
  * implementation.	Non-trivial original comments are marked with an
  * @ symbol at their beginning. */
 
+#include "BIF_toolbox.h"
+
 #include "Draw.h"
 
 /* declared in ../BPY_extern.h,
@@ -103,7 +105,7 @@ static Button *newbutton (void)
 
 /* GUI interface routines */
 
-static void exit_pydraw(SpaceScript *sc, short error)
+static void exit_pydraw(SpaceScript *sc, short err)
 {
 	Script *script = NULL;
 
@@ -111,8 +113,10 @@ static void exit_pydraw(SpaceScript *sc, short error)
 
 	script = sc->script;
 
-	if (error) {
+	if (err) {
 		PyErr_Print();
+		script->flags = 0; /* mark script struct for deletion */
+		error("Python script error: check console");
 		scrarea_queue_redraw(sc->area);
 	}
 

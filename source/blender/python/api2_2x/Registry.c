@@ -99,8 +99,6 @@ static PyObject *M_Registry_SetKey (PyObject *self, PyObject *args)
     return EXPP_ReturnPyObjError (PyExc_AttributeError,
             "expected a string and a dictionary");
 
-  printf("dict size: %d", sizeof(*pydict)); /* debug XXX */
-
   if (PyDict_SetItem (bpy_registryDict, pystr, pydict)) /* 0 on success */
     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
             "Registry_SetKey: couldn't update the Registry dict");
@@ -145,4 +143,3 @@ PyObject *Registry_Init (void)
 
   return submodule;
 }
-

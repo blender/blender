@@ -109,7 +109,7 @@ char *BPyMenu_CreatePupmenuStr(BPyMenu *pym, short menugroup)
 	strcat(str, str2);
 
 	while (pysm) {
-		snprintf(str2, sizeof(str2), "|%s%%x%d", pysm->name, i);
+		PyOS_snprintf(str2, sizeof(str2), "|%s%%x%d", pysm->name, i);
 		rlen = sizeof(str) - strlen(str);
 		strncat(str, str2, rlen);
 		i++;
@@ -308,6 +308,7 @@ static void bpymenu_CreateFromFile (void)
 				pymenu = bpymenu_AddEntry(group, w1, w2, tip);
 				if (!pymenu) {
 					puts("BpyMenus error: couldn't create bpymenu entry.\n");
+					fclose(fp);
 					return;
 				}
 			}
@@ -318,6 +319,8 @@ static void bpymenu_CreateFromFile (void)
 			}
 		}
 	}
+
+	fclose(fp);
 	return;
 }
 
@@ -360,6 +363,9 @@ static void bpymenu_WriteDataFile(void)
 		}
 		fprintf(fp, "}\n");
 	}
+
+	fclose(fp);
+	return;
 }
 
 /* BPyMenu_PrintAllEntries:
@@ -478,7 +484,6 @@ static void bpymenu_CreateFromDir (void)
 		res = fscanf(fp, "%[^']'%[^'\r\n]'\n", w, name);
 		if ((res != 2) || (w[0] != 'n' && w[0] != 'N')) {
 			printf("BPyMenus error: wrong 'name' line in %s.\n", str);
-			printf("%s | %s\n", w, name);
 			goto discard;
 		}
 
@@ -488,7 +493,6 @@ static void bpymenu_CreateFromDir (void)
 		res = fscanf(fp, "%[^']'%[^'\r\n]'\n", w, line);
 		if ((res != 2) || (w[0] != 'g' && w[0] != 'G')) {
 			printf("BPyMenus error: wrong 'group' line in %s.\n", str);
-			printf("'%s' | '%s'\n", w, name);
 			goto discard;
 		}
 
@@ -544,20 +548,16 @@ void BPyMenu_Init(void)
 	result = stat(U.pythondir, &st);
 
 	if (result == -1) {
-		/*
-		printf ("\nScripts dir: %s\nError: %s\n", U.pythondir, strerror(errno));
-		printf ("Please go to 'Info window -> File Paths tab' and set a valid "
-						"path for\nthe Blender Python scripts dir.\n");
-		*/
+		printf ("\n# Scripts dir: %s\nError: %s\n", U.pythondir, strerror(errno));
+		printf ("# Please go to 'Info window -> File Paths tab' and set a valid "
+						"# path for\nthe Blender Python scripts dir.\n");
 		return;
 	}
 
 	if (!S_ISDIR(st.st_mode)) {
-		/*
-		printf ("\nScripts dir: %s is not a directory!", U.pythondir);
-		printf ("Please go to 'Info window -> File Paths tab' and set a valid "
-						"path for\nthe Blender Python scripts dir.\n");
-		*/
+		printf ("\n# Scripts dir: %s is not a directory!", U.pythondir);
+		printf ("# Please go to 'Info window -> File Paths tab' and set a valid "
+						"# path for\nthe Blender Python scripts dir.\n");
 		return;
 	}
 
@@ -586,5 +586,3 @@ void BPyMenu_Init(void)
 
 	return;
 }
-
-
