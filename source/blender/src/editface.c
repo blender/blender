@@ -95,7 +95,7 @@
 #include "BSE_trans_types.h"
 #endif /* NAN_TPT */
 
-static cumapsize= 1.0;
+static float cumapsize= 1.0;
 TFace *lasttface=0;
 
 void set_lasttface()
@@ -634,7 +634,7 @@ void uv_autocalc_tface()
 	MFace *mface;
 	MVert *mv;
 	Object *ob;
-	float dx, dy, min[3], cent[3], max[3], no[3], *loc, mat[4][4];
+	float dx, dy, x, y, min[3], cent[3], max[3], no[3], *loc, mat[4][4];
 	float fac = 1.0;
 
 	int i, n, mi; /* strubi */
@@ -732,11 +732,18 @@ void uv_autocalc_tface()
 		tface= me->tface;
 		mface= me->mface;
 
-		dx = curarea->winx;
-		dy = curarea->winy;
+		dx= curarea->winx;
+		dy= curarea->winy;
 
-		if (dx > dy) dy = dx;
-		else         dx = dy;
+		x= y= 0.0;
+		if (dx > dy) {
+			y= (dx-dy)/ 2.0;
+			dy= dx;
+		}
+		else {
+			x= (dy-dx)/ 2.0;
+			dx= dy;
+		}
 
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(tface->flag & TF_SELECT) {
@@ -745,24 +752,24 @@ void uv_autocalc_tface()
 				
 				project_short( (me->mvert+mface->v1)->co, adr);
 				if(adr[0]!=3200) {
-					tface->uv[0][0]= ((float)adr[0])/dx;
-					tface->uv[0][1]= ((float)adr[1])/dy;
+					tface->uv[0][0]= (x+((float)adr[0]))/dx;
+					tface->uv[0][1]= (y+((float)adr[1]))/dy;
 				}
 				project_short( (me->mvert+mface->v2)->co, adr);
 				if(adr[0]!=3200) {
-					tface->uv[1][0]= ((float)adr[0])/dx;
-					tface->uv[1][1]= ((float)adr[1])/dy;
+					tface->uv[1][0]= (x+((float)adr[0]))/dx;
+					tface->uv[1][1]= (y+((float)adr[1]))/dy;
 				}
 				project_short( (me->mvert+mface->v3)->co, adr);
 				if(adr[0]!=3200) {
-					tface->uv[2][0]= ((float)adr[0])/dx;
-					tface->uv[2][1]= ((float)adr[1])/dy;
+					tface->uv[2][0]= (x+((float)adr[0]))/dx;
+					tface->uv[2][1]= (y+((float)adr[1]))/dy;
 				}
 				if(mface->v4) {
 					project_short( (me->mvert+mface->v4)->co, adr);
 					if(adr[0]!=3200) {
-						tface->uv[3][0]= ((float)adr[0])/dx;
-						tface->uv[3][1]= ((float)adr[1])/dy;
+						tface->uv[3][0]= (x+((float)adr[0]))/dx;
+						tface->uv[3][1]= (y+((float)adr[1]))/dy;
 					}
 				}
 			}
