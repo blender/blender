@@ -31,10 +31,6 @@
 
 #include "Metaball.h"
 
-#ifndef FP_INFINITE
-#define FP_INFINITE 1
-#endif
-
 /*****************************************************************************/
 /* Function:              M_Metaball_New                                     */
 /* Python equivalent:     Blender.Metaball.New                               */
@@ -114,26 +110,19 @@ static PyObject *M_Metaball_Get(PyObject *self, PyObject *args)
   }
 
   else { /* () - return a list of all mballs in the scene */
-    int index = 0;
-    PyObject *mballlist, *pyobj;
+    PyObject *mballlist;
 
-    mballlist = PyList_New (BLI_countlist (&(G.main->mball)));
+    mballlist = PyList_New (0);
 
     if (mballlist == NULL)
       return (PythonReturnErrorObject (PyExc_MemoryError,
 				       "couldn't create PyList"));
 
     while (mball_iter) {
-      pyobj = Metaball_CreatePyObject (mball_iter);
-
-      if (!pyobj)
-	return (PythonReturnErrorObject (PyExc_MemoryError,
-					 "couldn't create PyString"));
-
-      PyList_SET_ITEM (mballlist, index, pyobj);
-
+			C_Metaball *found_mball=(C_Metaball*)PyObject_NEW(C_Metaball,&Metaball_Type);
+			found_mball->metaball = mball_iter;
+      PyList_Append (mballlist,   (PyObject *)found_mball);
       mball_iter = mball_iter->id.next;
-      index++;
     }
 
     return (mballlist);
@@ -148,8 +137,7 @@ PyObject *M_Metaball_Init (void)
 {
   PyObject  *submodule;
 
-	Metaball_Type.ob_type = &PyType_Type;
-
+  Metaball_Type.ob_type = &PyType_Type;
   printf ("In M_Metaball_Init()\n");
   submodule = Py_InitModule3("Blender.Metaball",
 			     M_Metaball_methods, M_Metaball_doc);
@@ -219,18 +207,6 @@ static PyObject *Metaball_getNMetaElems(C_Metaball *self)
   return (PyInt_FromLong(i) );
 }
 
-static PyObject *Metaball_getNMetaElems1(C_Metaball *self)
-{
-  int i = 0;
-  MetaElem*ptr = self->metaball->disp.first;
-  if(!ptr) return (PyInt_FromLong(0) );
-  while(ptr)
-    {
-      i++;
-      ptr = ptr->next;
-    }
-  return (PyInt_FromLong(i) );
-}
 
 
 static PyObject *Metaball_getloc(C_Metaball *self)
@@ -244,18 +220,18 @@ static PyObject *Metaball_getloc(C_Metaball *self)
 
 static PyObject *Metaball_setloc(C_Metaball *self,PyObject*args)
 {	
-	
-  float val[3];
-  if (!PyArg_ParseTuple(args, "fff", val,val+1,val+2))
-    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected three float args"));
- 
-  self->metaball->loc[0] = val[0];
-  self->metaball->loc[1] = val[1];
-  self->metaball->loc[2] = val[2];
-
+	PyObject *listargs=0;
+	int i;
+  if (!PyArg_ParseTuple(args, "O", &listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+  if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	for(i=0;i<3;i++){
+		PyObject * xx = PyList_GetItem(listargs,i);
+		self->metaball->loc[i] = PyFloat_AsDouble(xx);
+	}
   Py_INCREF(Py_None);
   return Py_None;
-
 }
 
 static PyObject *Metaball_getrot(C_Metaball *self)
@@ -269,18 +245,18 @@ static PyObject *Metaball_getrot(C_Metaball *self)
 
 static PyObject *Metaball_setrot(C_Metaball *self,PyObject*args)
 {	
-	
-  float val[3];
-  if (!PyArg_ParseTuple(args, "fff", val,val+1,val+2))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected three float args"));
- 
-  self->metaball->rot[0] = val[0];
-  self->metaball->rot[1] = val[1];
-  self->metaball->rot[2] = val[2];
-
+	PyObject *listargs=0;
+	int i;
+  if (!PyArg_ParseTuple(args, "O", &listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+  if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	for(i=0;i<3;i++){
+		PyObject * xx = PyList_GetItem(listargs,i);
+		self->metaball->rot[i] = PyFloat_AsDouble(xx);
+	}
   Py_INCREF(Py_None);
   return Py_None;
-
 }
 
 static PyObject *Metaball_getsize(C_Metaball *self)
@@ -294,19 +270,20 @@ static PyObject *Metaball_getsize(C_Metaball *self)
 
 static PyObject *Metaball_setsize(C_Metaball *self,PyObject*args)
 {	
-	
-  float val[3];
-  if (!PyArg_ParseTuple(args, "fff", val,val+1,val+2))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError,"expected three float args"));
- 
-  self->metaball->size[0] = val[0];
-  self->metaball->size[1] = val[1];
-  self->metaball->size[2] = val[2];
-
+	PyObject *listargs=0;
+	int i;
+  if (!PyArg_ParseTuple(args, "O", &listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+  if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	for(i=0;i<3;i++){
+		PyObject * xx = PyList_GetItem(listargs,i);
+		self->metaball->size[i] = PyFloat_AsDouble(xx);
+	}
   Py_INCREF(Py_None);
   return Py_None;
-
 }
+
 static PyObject *Metaball_getWiresize(C_Metaball *self)
 {
   return PyFloat_FromDouble(self->metaball->wiresize);
@@ -389,14 +366,6 @@ static PyObject *Metaball_getMetadata(C_Metaball *self,PyObject*args)
     }
   if(!strcmp(name,"type"))
     return (PyInt_FromLong(ptr->type));
-  if(!strcmp(name,"lay"))
-    return (PyInt_FromLong(ptr->lay));
-  if(!strcmp(name,"selcol"))
-    return (PyInt_FromLong(ptr->selcol));
-  if(!strcmp(name,"flag"))
-    return (PyInt_FromLong(ptr->flag));
-  if(!strcmp(name,"pad"))
-    return (PyInt_FromLong(ptr->pad));
   if(!strcmp(name,"x"))
     return (PyFloat_FromDouble(ptr->x));
   if(!strcmp(name,"y"))
@@ -417,11 +386,6 @@ static PyObject *Metaball_getMetadata(C_Metaball *self,PyObject*args)
     return (PyFloat_FromDouble(ptr->s));
   if(!strcmp(name,"len"))
     return (PyFloat_FromDouble(ptr->len));
-  if(!strcmp(name,"maxrad2"))
-    return (PyFloat_FromDouble(ptr->maxrad2));
-
-
-
 
   return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown name "));
 }
@@ -435,19 +399,12 @@ static PyObject *Metaball_setMetadata(C_Metaball *self,PyObject*args)
   char*name = NULL;
   int intval=-1;
   float floatval=FP_INFINITE;
-  int ok = 0;
 	MetaElem *ptr;
 
-	/* XXX: This won't work.  PyArg_ParseTuple will unpack 'args' in its first
-	 * call, so it can't be called again.  Better get the value as a float then
-	 * compare it with its int part and, if equal, consider it an int.  Note 
-	 * that 'ok' isn't used in this function at all, whatever it was meant for */
-  if (PyArg_ParseTuple(args, "sii", &name,&num,&intval))ok=1;
-  if (PyArg_ParseTuple(args, "sif", &name,&num,&floatval)) ok = 2;
-  if (!ok)
+  if (!PyArg_ParseTuple(args, "sif", &name,&num,&floatval))
 return (EXPP_ReturnPyObjError (PyExc_TypeError, \
-				   "expected string,int,int or float  arguments"));
-  if (floatval == FP_INFINITE) floatval = (float)intval;
+				   "expected string,int,int float  arguments"));
+	intval = (int)floatval;
   /*jump to the num-th MetaElem*/
   ptr = self->metaball->elems.first;
   if(!ptr) 
@@ -460,15 +417,7 @@ return (EXPP_ReturnPyObjError (PyExc_TypeError, \
     }
   if(!strcmp(name,"type"))
     {ptr->type=intval;return (PyInt_FromLong(intval));}
-  if(!strcmp(name,"lay"))
-    {ptr->lay=intval;return (PyInt_FromLong(intval));}
-  if(!strcmp(name,"selcol"))
-    {ptr->selcol=intval;return (PyInt_FromLong(intval));}
-  if(!strcmp(name,"flag"))
-    {ptr->flag=intval;return (PyInt_FromLong(intval));}
-  if(!strcmp(name,"pad"))
     {ptr->pad=intval;return (PyInt_FromLong(intval));}
-
   if(!strcmp(name,"x"))
     {ptr->x=floatval;return (PyFloat_FromDouble(floatval));}
   if(!strcmp(name,"y"))
@@ -489,12 +438,8 @@ return (EXPP_ReturnPyObjError (PyExc_TypeError, \
     {ptr->s=floatval;return (PyFloat_FromDouble(floatval));}
   if(!strcmp(name,"len"))
     {ptr->len=floatval;return (PyFloat_FromDouble(floatval));}
-  if(!strcmp(name,"maxrad2"))
-    {ptr->maxrad2=floatval;return (PyFloat_FromDouble(floatval));}
 
-
-
-  return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown name "));
+  return (EXPP_ReturnPyObjError (PyExc_TypeError, "unknown field "));
 }
 
 static PyObject *Metaball_getMetatype(C_Metaball *self,PyObject*args)
@@ -527,121 +472,6 @@ static PyObject *Metaball_setMetatype(C_Metaball *self,PyObject*args)
 
 }
 
-static PyObject *Metaball_getMetalay(C_Metaball *self,PyObject*args)
-{	
-  int num;
-  int i = 0;
-  MetaElem*ptr = self->metaball->elems.first;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyInt_FromLong(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyInt_FromLong(ptr->lay));
-}
-
-
-
-static PyObject *Metaball_setMetalay(C_Metaball *self,PyObject*args)
-{	
-  int num,val, i = 0;
-  MetaElem*ptr = self->metaball->elems.first;
-  if (!PyArg_ParseTuple(args, "ii", &num,&val))
-    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected int int arguments"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->lay = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
-static PyObject *Metaball_getMetaflag(C_Metaball *self,PyObject*args)
-{	
-  int num;
-  int i = 0;
-  MetaElem*ptr = self->metaball->elems.first;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyInt_FromLong(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyInt_FromLong(ptr->flag));
-}
-
-
-
-static PyObject *Metaball_setMetaflag(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num,val, i = 0;
-  if (!PyArg_ParseTuple(args, "ii", &num,&val))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int int argnts"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->flag = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
-static PyObject *Metaball_getMetaselcol(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num;
-  int i = 0;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyInt_FromLong(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyInt_FromLong(ptr->selcol));
-}
-
-
-
-static PyObject *Metaball_setMetaselcol(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num,val, i = 0;
-  if (!PyArg_ParseTuple(args, "ii", &num,&val))
-    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected int int arguments"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->selcol = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
-static PyObject *Metaball_getMetapad(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num;
-  int i = 0;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyInt_FromLong(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyInt_FromLong(ptr->pad));
-}
-
-
-
-static PyObject *Metaball_setMetapad(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num,val, i = 0;
-  if (!PyArg_ParseTuple(args, "ii", &num,&val))
-    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected int int arguments"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->pad = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
 
 static PyObject *Metaball_getMetax(C_Metaball *self,PyObject*args)
 {	
@@ -731,148 +561,6 @@ static PyObject *Metaball_setMetaz(C_Metaball *self,PyObject*args)
 
 }
 
-static PyObject *Metaball_getMetaexpx(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num;
-  int i = 0;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyFloat_FromDouble(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyFloat_FromDouble(ptr->expx));
-}
-
-static PyObject *Metaball_setMetaexpx(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num, i = 0;
-  float val;
-  if (!PyArg_ParseTuple(args, "if", &num,&val))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int float args"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->expx = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
-static PyObject *Metaball_getMetaexpy(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num;
-  int i = 0;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyFloat_FromDouble(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyFloat_FromDouble(ptr->expy));
-}
-
-static PyObject *Metaball_setMetaexpy(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num, i = 0;
-  float val;
-  if (!PyArg_ParseTuple(args, "if", &num,&val))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int float argts"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->expy = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
-static PyObject *Metaball_getMetaexpz(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num;
-  int i = 0;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyFloat_FromDouble(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyFloat_FromDouble(ptr->expz));
-}
-
-static PyObject *Metaball_setMetaexpz(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num, i = 0;
-  float val;
-  if (!PyArg_ParseTuple(args, "if", &num,&val))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int float argts"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->expz = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
-
-static PyObject *Metaball_getMetarad(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num;
-  int i = 0;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyFloat_FromDouble(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyFloat_FromDouble(ptr->rad));
-}
-
-static PyObject *Metaball_setMetarad(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num, i = 0;
-  float val;
-  if (!PyArg_ParseTuple(args, "if", &num,&val))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int float args"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->rad = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
-
-
-static PyObject *Metaball_getMetarad2(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num;
-  int i = 0;
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  if(!ptr) return (PyFloat_FromDouble(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyFloat_FromDouble(ptr->rad2));
-}
-
-static PyObject *Metaball_setMetarad2(C_Metaball *self,PyObject*args)
-{	
-  MetaElem*ptr = self->metaball->elems.first;
-  int num, i = 0;
-  float val;
-  if (!PyArg_ParseTuple(args, "if", &num,&val))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int float args"));
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->rad2 = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
 
 static PyObject *Metaball_getMetas(C_Metaball *self,PyObject*args)
 {	
@@ -889,12 +577,10 @@ static PyObject *Metaball_getMetas(C_Metaball *self,PyObject*args)
 static PyObject *Metaball_setMetas(C_Metaball *self,PyObject*args)
 {	
   int num, i = 0;
+  MetaElem*ptr = self->metaball->elems.first;
   float val;
-	MetaElem *ptr;
-
   if (!PyArg_ParseTuple(args, "if", &num,&val))
     return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int float args"));
-  ptr = self->metaball->elems.first;
   if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
   for(i = 0;i<num;i++){ptr = ptr->next;}
   ptr->s = val;
@@ -903,6 +589,9 @@ static PyObject *Metaball_setMetas(C_Metaball *self,PyObject*args)
   return Py_None;
 
 }
+
+
+
 
 
 
@@ -940,38 +629,6 @@ static PyObject *Metaball_setMetalen(C_Metaball *self,PyObject*args)
 
 
 
-static PyObject *Metaball_getMetamaxrad2(C_Metaball *self,PyObject*args)
-{	
-  int num;
-  int i = 0;
-	MetaElem *ptr;
-
-  if (!PyArg_ParseTuple(args, "i", &num))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int argument"));
-  ptr = self->metaball->elems.first;
-  if(!ptr) return (PyFloat_FromDouble(0));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  return (PyFloat_FromDouble(ptr->maxrad2));
-}
-
-static PyObject *Metaball_setMetamaxrad2(C_Metaball *self,PyObject*args)
-{	
-  int num, i = 0;
-  float val;
-	MetaElem *ptr;
-
-  if (!PyArg_ParseTuple(args, "if", &num,&val))
-    return (EXPP_ReturnPyObjError (PyExc_TypeError, "expected int float args"));
-  ptr = self->metaball->elems.first;
-  if(!ptr)  return (EXPP_ReturnPyObjError (PyExc_TypeError, "No MetaElem"));
-  for(i = 0;i<num;i++){ptr = ptr->next;}
-  ptr->maxrad2 = val;
-
-  Py_INCREF(Py_None);
-  return Py_None;
-
-}
-
 
 
 
@@ -1004,6 +661,8 @@ static PyObject *MetaballGetAttr (C_Metaball *self, char *name)
 
 if (strcmp (name, "name") == 0)return  Metaball_getName (self);
 if (strcmp (name, "rot") == 0)return  Metaball_getrot (self);
+if (strcmp (name, "loc") == 0)return  Metaball_getloc (self);
+if (strcmp (name, "size") == 0)return  Metaball_getsize (self);
   return Py_FindMethod(C_Metaball_methods, (PyObject *)self, name);
 }
 
@@ -1031,7 +690,17 @@ static int MetaballSetAttr (C_Metaball *self, char *name, PyObject *value)
 			Metaball_setrot (self, valtuple);
 			return 0;
 		}
+  if (strcmp (name, "loc") == 0)
+		{
+			Metaball_setloc (self, valtuple);
+			return 0;
+		}
  
+  if (strcmp (name, "size") == 0)
+		{
+			Metaball_setsize (self, valtuple);
+			return 0;
+		}
   return (EXPP_ReturnIntError (PyExc_KeyError,"attribute not found"));
 }
 
@@ -1045,44 +714,3 @@ static PyObject *MetaballRepr (C_Metaball *self)
   return PyString_FromString(self->metaball->id.name+2);
 }
 
-/* Three Python Metaball_Type helper functions needed by the Object module: */
-
-/*****************************************************************************/
-/* Function:    Metaball_CreatePyObject                                      */
-/* Description: This function will create a new C_Metaball from an existing  */
-/*              Blender metaball structure.                                  */
-/*****************************************************************************/
-PyObject *Metaball_CreatePyObject (MetaBall *metaball)
-{
-	C_Metaball *pymetaball;
-
-	pymetaball = (C_Metaball *)PyObject_NEW (C_Metaball, &Metaball_Type);
-
-	if (!pymetaball)
-		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-						"couldn't create C_Metaball object");
-
-	pymetaball->metaball = metaball;
-
-	return (PyObject *)pymetaball;
-}
-
-/*****************************************************************************/
-/* Function:    Metaball_CheckPyObject                                       */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Metaball. Otherwise it will return false.               */
-/*****************************************************************************/
-int Metaball_CheckPyObject (PyObject *pyobj)
-{
-	return (pyobj->ob_type == &Metaball_Type);
-}
-
-/*****************************************************************************/
-/* Function:    Metaball_FromPyObject                                        */
-/* Description: This function returns the Blender metaball from the given    */
-/*              PyObject.                                                    */
-/*****************************************************************************/
-MetaBall *Metaball_FromPyObject (PyObject *pyobj)
-{
-	return ((C_Metaball *)pyobj)->metaball;
-}
