@@ -2732,6 +2732,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		if(shi.matren->texco & TEXCO_WINDOW) {
 			shi.winco[0]= (x+(R.xstart))/(float)R.afmx;
 			shi.winco[1]= (y+(R.ystart))/(float)R.afmy;
+			shi.winco[2]= 0.0;
 		}
 		/* after this the u and v AND O.dxuv and O.dyuv are incorrect */
 		if(shi.matren->texco & TEXCO_STICKY) {
@@ -2768,7 +2769,8 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 				
 				shi.sticky[0]= l*o3[0]-u*o1[0]-v*o2[0];
 				shi.sticky[1]= l*o3[1]-u*o1[1]-v*o2[1];
-	
+				shi.sticky[2]= 0.0;
+				
 				if(shi.osatex) {
 					O.dxuv[0]=  s11/Zmulx;
 					O.dxuv[1]=  - s01/Zmulx;
