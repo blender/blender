@@ -351,8 +351,8 @@ int read_languagefile(void)
 		strcat(name, "/Contents/Resources/.Blanguages");
 #elif defined (WIN32)
 		/* Check the installation dir in Windows */
-		strcat(name, BLI_gethome());
-		strcpy(name,"/.Blanguages");
+		strcpy(name, BLI_gethome());
+		strcat(name,"/.Blanguages");
 #else
 		strcpy(name, ".blender/.Blanguages");
 #endif

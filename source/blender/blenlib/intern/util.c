@@ -495,7 +495,10 @@ char *BLI_gethome(void) {
 
 		ret = getenv("HOME");
 		if(ret) {
-			if (BLI_exists(ret)) return ret;
+			if (BLI_exists(ret)){
+				strcat(ret,"\.blender");
+				return ret;
+			}
 		}
 				
 		/* add user profile support for WIN 2K / NT */
