@@ -35,6 +35,7 @@
 #include <BKE_global.h>
 #include <BKE_object.h>
 #include <BKE_library.h>
+#include <BKE_ipo.h>
 #include <BLI_blenlib.h>
 
 #include "constant.h"
@@ -331,9 +332,14 @@ IpoCurve_setName (C_IpoCurve * self, PyObject * args)
 static PyObject *
 IpoCurve_Recalc (C_IpoCurve * self)
 {
-  void testhandles_ipocurve (IpoCurve * icu);
   IpoCurve *icu = self->ipocurve;
-  testhandles_ipocurve (icu);
+
+  /* testhandles_ipocurve (icu); */
+  /* call calchandles_* instead of testhandles_*  */
+  /* I'm not sure this is a complete solution but since we do not */
+  /* deal with curve handles right now, it seems ok */
+  calchandles_ipocurve (icu);
+
   Py_INCREF (Py_None);
   return Py_None;
 }
