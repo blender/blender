@@ -1863,7 +1863,7 @@ void setsplinetype(short type)
 		error("Not implemented yet");
 		return;
 	}
-
+	
 	nu= editNurb.first;
 	while(nu) {
 		if(isNurbsel(nu)) {
@@ -1908,8 +1908,7 @@ void setsplinetype(short type)
 			else if((nu->type & 7)==CU_BEZIER) {	/* Bezier */
 				if(type==0 || type==4) {	    /* to Poly or Nurb */
 					nr= 3*nu->pntsu;
-					nu->bp =
-						(BPoint*)MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
+					nu->bp = MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
 					a= nu->pntsu;
 					bezt= nu->bezt;
 					bp= nu->bp;
@@ -1961,30 +1960,33 @@ void setsplinetype(short type)
 				}
 				else if(type==CU_BEZIER) {		/* to Bezier */
 					nr= nu->pntsu/3;
-					bezt =
-						(BezTriple*)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
-					nu->bezt= bezt;
-					a= nr;
-					bp= nu->bp;
-					while(a--) {
-						VECCOPY(bezt->vec[0], bp->vec);
-						bezt->f1= bp->f1;
-						bp++;
-						VECCOPY(bezt->vec[1], bp->vec);
-						bezt->f2= bp->f1;
-						bp++;
-						VECCOPY(bezt->vec[2], bp->vec);
-						bezt->f3= bp->f1;
-						bp++;
-						bezt++;
+
+					if(nr<2) error("no conversion possible");
+					else {
+						bezt = MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
+						nu->bezt= bezt;
+						a= nr;
+						bp= nu->bp;
+						while(a--) {
+							VECCOPY(bezt->vec[0], bp->vec);
+							bezt->f1= bp->f1;
+							bp++;
+							VECCOPY(bezt->vec[1], bp->vec);
+							bezt->f2= bp->f1;
+							bp++;
+							VECCOPY(bezt->vec[2], bp->vec);
+							bezt->f3= bp->f1;
+							bp++;
+							bezt++;
+						}
+						MEM_freeN(nu->bp);
+						nu->bp= 0;
+						MEM_freeN(nu->knotsu);
+						nu->knotsu= 0;
+						nu->pntsu= nr;
+						nu->type &= ~7;
+						nu->type+= 1;
 					}
-					MEM_freeN(nu->bp);
-					nu->bp= 0;
-					MEM_freeN(nu->knotsu);
-					nu->knotsu= 0;
-					nu->pntsu= nr;
-					nu->type &= ~7;
-					nu->type+= 1;
 				}
 			}
 		}

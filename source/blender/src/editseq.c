@@ -1330,6 +1330,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				seqn->strip= MEM_dupallocN(seq->strip);
 				seqn->anim= 0;
 				seqn->sound->id.us++;
+				if(seqn->ipo) seqn->ipo->id.us++;
 
 				if(seqn->len>0) {
 					seqn->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
