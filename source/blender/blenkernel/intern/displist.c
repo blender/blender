@@ -705,8 +705,9 @@ void shadeDispList(Object *ob)
 
 			dl= me->disp.first;
 			while(dl) {
-				if(dl->type==DL_MESH) {
+				if(dl->type==DL_MESH && dl->mesh && dl->mesh->totvert) {
 					DispListMesh *dlm= dl->mesh;
+					float *vnors, *vn;
 					int i;
 					
 					dlob= MEM_callocN(sizeof(DispList), "displistshade");
@@ -717,6 +718,25 @@ void shadeDispList(Object *ob)
 					if (me->flag & ME_TWOSIDED)
 						dlob->col2= MEM_mallocN(sizeof(*dlob->col2)*dlm->totface*4, "col1");
 					
+					/* vertexnormals */
+					vn=vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
+					mvert= dlm->mvert;
+					a= dlm->totvert;
+					while(a--) {
+						
+						xn= mvert->no[0]; 
+						yn= mvert->no[1]; 
+						zn= mvert->no[2];
+						
+						/* transpose ! */
+						vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+						vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+						vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+						Normalise(vn);
+						
+						mvert++; vn+=3;
+					}		
+			
 					for (i=0; i<dlm->totface; i++) {
 						MFaceInt *mf= &dlm->mface[i];
 
@@ -753,14 +773,17 @@ void shadeDispList(Object *ob)
 								
 								VECCOPY(vec, mv->co);
 								Mat4MulVecfl(mat, vec);
+								if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
+								else vn= n1;
 							
 								if (need_orco && orco)
-									fastshade(vec, n1, &orco[vidx[j]*3], ma, (char *)col1, (char*)col2, (char*) mcol);
+									fastshade(vec, vn, &orco[vidx[j]*3], ma, (char *)col1, (char*)col2, (char*) mcol);
 								else
-									fastshade(vec, n1, mv->co, ma, (char *)col1, (char*)col2, (char*) mcol);
+									fastshade(vec, vn, mv->co, ma, (char *)col1, (char*)col2, (char*) mcol);
 							}
 						}
 					}
+					MEM_freeN(vnors);
 				}
 				dl= dl->next;
 			}
@@ -771,7 +794,8 @@ void shadeDispList(Object *ob)
 			}
 		}
 		else if(me->totvert>0) {
-		
+			float *vnors, *vn;
+			
 			if(me->orco==0 && need_orco) {
 				make_orco_mesh(me);
 			}
@@ -796,25 +820,23 @@ void shadeDispList(Object *ob)
 				col2= dl->col2= MEM_mallocN(4*sizeof(int)*me->totface, "col2");
 			}
 			
-			/* no vertexnormals now */
+			/* vertexnormals */
+			vn=vnors= MEM_mallocN(me->totvert*3*sizeof(float), "vnors disp");
 			mvert= me->mvert;
 			a= me->totvert;
-			while(FALSE || a--) {
-				
-				VECCOPY(vec, mvert->co);
-				Mat4MulVecfl(mat, vec);
+			while(a--) {
 				
 				xn= mvert->no[0]; 
 				yn= mvert->no[1]; 
 				zn= mvert->no[2];
 				
 				/* transpose ! */
-				n1[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				n1[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				n1[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-				Normalise(n1);
+				vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+				vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+				vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+				Normalise(vn);
 				
-				mvert++;
+				mvert++; vn+=3;
 			}		
 			
 			mface= me->mface;
@@ -838,9 +860,11 @@ void shadeDispList(Object *ob)
 					mvert= me->mvert+mface->v1;
 					VECCOPY(vec, mvert->co);
 					Mat4MulVecfl(mat, vec);
+					if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v1;
+					else vn= n1;
 					
-					if(orco)  fastshade(vec, n1, orco+3*mface->v1, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					else fastshade(vec, n1, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
+					if(orco)  fastshade(vec, vn, orco+3*mface->v1, ma, (char *)col1, (char *)col2, (char *)vertcol);
+					else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
 					col1++;
 					if(vertcol) vertcol++; 
 					if(col2) col2++;
@@ -848,9 +872,11 @@ void shadeDispList(Object *ob)
 					mvert= me->mvert+mface->v2;
 					VECCOPY(vec, mvert->co);
 					Mat4MulVecfl(mat, vec);
+					if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v2;
+					else vn= n1;
 					
-					if(orco)  fastshade(vec, n1, orco+3*mface->v2, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					else fastshade(vec, n1, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
+					if(orco)  fastshade(vec, vn, orco+3*mface->v2, ma, (char *)col1, (char *)col2, (char *)vertcol);
+					else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
 					col1++;
 					if(vertcol) vertcol++; 
 					if(col2) col2++;
@@ -858,9 +884,11 @@ void shadeDispList(Object *ob)
 					mvert= me->mvert+mface->v3;
 					VECCOPY(vec, mvert->co);
 					Mat4MulVecfl(mat, vec);
+					if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v3;
+					else vn= n1;
 					
-					if(orco)  fastshade(vec, n1, orco+3*mface->v3, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					else fastshade(vec, n1, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
+					if(orco)  fastshade(vec, vn, orco+3*mface->v3, ma, (char *)col1, (char *)col2, (char *)vertcol);
+					else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
 					col1++;
 					if(vertcol) vertcol++; 
 					if(col2) col2++;
@@ -869,9 +897,11 @@ void shadeDispList(Object *ob)
 						mvert= me->mvert+mface->v4;
 						VECCOPY(vec, mvert->co);
 						Mat4MulVecfl(mat, vec);
+						if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v4;
+						else vn= n1;
 						
-						if(orco)  fastshade(vec, n1, orco+3*mface->v4, ma, (char *)col1, (char *)col2, (char *)vertcol);
-						else fastshade(vec, n1, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
+						if(orco)  fastshade(vec, vn, orco+3*mface->v4, ma, (char *)col1, (char *)col2, (char *)vertcol);
+						else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
 					}
 					col1++;
 					if(vertcol) vertcol++; 
@@ -887,6 +917,8 @@ void shadeDispList(Object *ob)
 				nor+= 3;
 				mface++;
 			}
+			
+			MEM_freeN(vnors);
 			
 			if(me->orco) {
 				MEM_freeN(me->orco);
