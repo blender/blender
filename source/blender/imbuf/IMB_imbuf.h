@@ -140,7 +140,7 @@ short IMB_converttocmap(struct ImBuf *ibuf);
  *
  * @attention Defined in cmap.c
  */
-int IMB_alpha_to_col0(int new);
+int IMB_alpha_to_col0(int value);
 
 /**
  *

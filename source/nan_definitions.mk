@@ -102,6 +102,9 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -153,6 +156,9 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /sw
     export NAN_PNG ?= /sw
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -197,6 +203,9 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
     export NAN_PNG ?= /usr/local
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -240,6 +249,9 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -281,6 +293,9 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr
     export NAN_PNG ?= /usr
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr
@@ -323,6 +338,9 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -364,6 +382,9 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
     export NAN_PNG ?= /usr/local
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?=
     export NAN_MESA ?= /usr/src/Mesa-3.1
@@ -403,6 +424,9 @@ endif
     ifeq ($(FREE_WINDOWS), true)
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
       export NAN_ODE ?= $(LCGDIR)/gcc/ode
       ifeq ($(NAN_SDL),)
 	  export NAN_SDL ?= $(LCGDIR)/gcc/sdl
@@ -411,6 +435,9 @@ endif
     else
       export NAN_PYTHON_BINARY ?= python
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
       export NAN_ODE ?= $(LCGDIR)/ode
       ifeq ($(NAN_SDL),)
 	  export NAN_SDL ?= $(LCGDIR)/sdl
@@ -458,6 +485,9 @@ endif
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_SDL ?= $(LCGDIR)/sdl
+# Commented out by default
+#    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= $(LCGDIR)/OpenEXR
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1

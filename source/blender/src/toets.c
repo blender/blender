@@ -38,10 +38,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
@@ -177,6 +173,7 @@ void schrijfplaatje(char *name)
 
 	if(ibuf) {
 		ibuf->rect= (unsigned int *) R.rectot;
+		ibuf->rect_float = R.rectftot;
 
 		if(R.r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
 
@@ -195,6 +192,17 @@ void schrijfplaatje(char *name)
 		else if(R.r.imtype==R_PNG) {
 			ibuf->ftype= PNG;
 		}
+#ifdef WITH_OPENEXR
+		else if(R.r.imtype==R_OPENEXR) {
+			ibuf->ftype= OPENEXR;
+			if (ibuf->zbuf == 0) {
+				if (R.rectz) {
+					ibuf->zbuf = (int *)R.rectz;
+				}
+				else printf("Write OPENEXR: no zbuf !\n");
+			}
+		}
+#endif
 		else if(R.r.imtype==R_BMP) {
 			ibuf->ftype= BMP;
 		}
@@ -474,6 +482,8 @@ int save_image_filesel_str(char *str)
 	switch(G.scene->r.imtype) {
 	case R_PNG:
 		strcpy(str, "Save PNG"); return 1;
+	case R_OPENEXR:
+		strcpy(str, "Save OPENEXR"); return 1;
 	case R_BMP:
 		strcpy(str, "Save BMP"); return 1;
 	case R_TARGA:

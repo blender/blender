@@ -77,3 +77,7 @@ ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -I$(NAN_FREETYPE)/include
     CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 endif
+
+ifeq ($(WITH_OPENEXR), true)
+    CPPFLAGS += -DWITH_OPENEXR
+endif

@@ -44,10 +44,6 @@
 
 #include "render.h"			// RE_make_existing_file, R. stuff
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 int BIF_write_ibuf(ImBuf *ibuf, char *name)
 {
 	int ok;
@@ -61,6 +57,11 @@ int BIF_write_ibuf(ImBuf *ibuf, char *name)
 	else if ((G.scene->r.imtype==R_BMP)) {
 		ibuf->ftype= BMP;
 	}
+#ifdef WITH_OPENEXR
+	else if ((G.scene->r.imtype==R_OPENEXR)) {
+		ibuf->ftype= OPENEXR;
+	}
+#endif
 	else if ((G.scene->r.imtype==R_TARGA) || (G.scene->r.imtype==R_PNG)) {
 		// fall back to Targa if PNG writing is not supported
 		ibuf->ftype= TGA;

@@ -75,6 +75,7 @@ typedef struct ImBuf{
 	int	ftype;		/**< File type */
 	unsigned int	*cmap;		/**< Color map data. */
 	unsigned int	*rect;		/**< databuffer */
+	float *rect_float;		/**< databuffer in Float format, unclampled !! */
 	unsigned int	**planes;	/**< bitplanes */
 	int	flags;		/**< Controls which components should exist. */
 	int	mall;		/**< what is malloced internal, and can be freed */
@@ -151,6 +152,9 @@ typedef enum {
 #ifdef WITH_IMAGEMAGICK
 #define IMAGEMAGICK	(1 << 23)
 #endif
+#ifdef WITH_OPENEXR
+#define OPENEXR		(1 << 22)
+#endif
 
 #define RAWTGA	        (TGA | 1)
 
@@ -187,6 +191,7 @@ typedef enum {
 #define IS_hamx(x)		(x->ftype == AN_hamx)
 #define IS_tga(x)		(x->ftype & TGA)
 #define IS_png(x)		(x->ftype & PNG)
+#define IS_openexr(x)		(x->ftype & OPENEXR)
 #define IS_bmp(x)		(x->ftype & BMP)
 
 #define IMAGIC 	0732

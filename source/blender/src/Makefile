@@ -111,6 +111,10 @@ ifeq ($(WITH_QUICKTIME),true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
+ifeq ($(WITH_OPENEXR),true)
+	CPPFLAGS += -DWITH_OPENEXR
+endif
+
 ifeq ($(INTERNATIONAL), true)
     CPPFLAGS += -DINTERNATIONAL
 endif

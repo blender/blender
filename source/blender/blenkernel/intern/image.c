@@ -193,6 +193,11 @@ void makepicstring(char *string, int frame)
 	else if(G.scene->r.imtype==R_PNG) {
 		extension= ".png";
 	}
+#ifdef WITH_OPENEXR
+	else if(G.scene->r.imtype==R_OPENEXR) {
+		extension= ".exr";
+	}
+#endif
 	else if(G.scene->r.imtype==R_TARGA) {
 		extension= ".tga";
 	}

@@ -33,6 +33,9 @@ source_files = ['intern/allocimbuf.c',
                 'intern/util.c',
                 'intern/writeimage.c']
 
+if user_options_dict['USE_OPENEXR'] == 1:
+	source_files.append('intern/openexr.cpp')
+
 imbuf_env.Append (CPPPATH = ['.',
                              '../makesdna',
                              '#/intern/guardedalloc',
@@ -43,6 +46,7 @@ imbuf_env.Append (CPPPATH = ['.',
 
 imbuf_env.Append (CPPPATH = user_options_dict['JPEG_INCLUDE'])
 imbuf_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
+imbuf_env.Append (CPPPATH = user_options_dict['OPENEXR_INCLUDE'])
 imbuf_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
 imbuf_env.Append (CPPPATH = extra_includes)
 imbuf_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_imbuf', source=source_files)

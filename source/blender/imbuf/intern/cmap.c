@@ -64,12 +64,12 @@ void IMB_freeImBufdata(void)
 }
 
 
-int IMB_alpha_to_col0(int new)
+int IMB_alpha_to_col0(int value)
 {
 	int old;
 	
 	old = alpha_col0;
-	alpha_col0 = new;
+	alpha_col0 = value;
 	return (old);
 }
 

@@ -148,6 +148,12 @@ endif
     COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
     COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
     COMLIB += $(NAN_PNG)/lib/libpng.a
+  ifeq ($(WITH_OPENEXR), true)
+    COMLIB += $(NAN_OPENEXR)/lib/libIlmImf.a
+    COMLIB += $(NAN_OPENEXR)/lib/libHalf.a
+    COMLIB += $(NAN_OPENEXR)/lib/libIex.a
+    COMLIB += $(NAN_OPENEXR)/lib/libImath.a
+  endif
     COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a
     COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
   ifeq ($(WITH_QUICKTIME), true)

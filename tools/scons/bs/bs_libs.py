@@ -123,6 +123,9 @@ def system_libs(env):
 	env.Append (LIBPATH=bs_globals.user_options_dict['SDL_LIBPATH'])
 	env.Append (LIBS=bs_globals.user_options_dict['PNG_LIBRARY'])
 	env.Append (LIBPATH=bs_globals.user_options_dict['PNG_LIBPATH'])
+	if bs_globals.user_options_dict['USE_OPENEXR'] == 1:
+		env.Append (LIBS=bs_globals.user_options_dict['OPENEXR_LIBRARY'])
+		env.Append (LIBPATH=bs_globals.user_options_dict['OPENEXR_LIBPATH'])
 	env.Append (LIBS=bs_globals.user_options_dict['JPEG_LIBRARY'])
 	env.Append (LIBPATH=bs_globals.user_options_dict['JPEG_LIBPATH'])
 	env.Append (LIBS=bs_globals.user_options_dict['GETTEXT_LIBRARY'])

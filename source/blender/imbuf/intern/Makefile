@@ -60,6 +60,11 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I..
 
 ifeq ($(WITH_QUICKTIME), true)
-	CPPFLAGS += -DWITH_QUICKTIME
+   CPPFLAGS += -DWITH_QUICKTIME
+endif
+
+ifeq ($(WITH_OPENEXR), true)
+   CPPFLAGS += -DWITH_OPENEXR
+   CPPFLAGS += -I$(NAN_OPENEXR)/include/OpenEXR
 endif
 

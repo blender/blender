@@ -685,3 +685,4 @@ void calculatePropRatio(TransInfo *t)
 TransInfo * BIF_GetTransInfo() {
 	return &Trans;
 }
+
