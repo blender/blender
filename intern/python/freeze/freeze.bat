@@ -1,0 +1,1 @@
+C:\Python-2.2.2\PCBuild\python.exe -S -O freeze.py -d -x os -x pprint -x Blender -I ../modules -o ../../../source/blender/bpython/frozen ../modules/VRMLmain.py

@@ -189,6 +189,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "python_freeze"="..\..\python\freeze\python_freeze.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "string"="..\..\string\make\msvc_6_0\string.dsp" - Package Owner=<4>
 
 Package=<5>
