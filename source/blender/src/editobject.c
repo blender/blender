@@ -5045,6 +5045,12 @@ void transform(int mode)
 			figure_bone_nocalc(G.obpose);
 			figure_pose_updating();
 			make_trans_bones((char)mode);
+			
+			if(mode=='g' && tottrans==0) {
+				mode= 'r';
+				make_trans_bones((char)mode);
+			}
+			
 			break;
 		}
 	}

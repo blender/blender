@@ -75,6 +75,7 @@
 #include "BIF_outliner.h"
 #include "BIF_language.h"
 #include "BIF_mainqueue.h"
+#include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -187,7 +188,7 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	tselem->type= type;
 	tselem->nr= nr;
 	tselem->id= id;
-	tselem->flag= 0;
+	tselem->flag= TSE_CLOSED;
 	te->store_index= ts->usedelem;
 	
 	ts->usedelem++;
@@ -798,9 +799,14 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					set_scene((Scene *)tselem->id);
 				}
 			}
-			else if(ELEM5(GS(tselem->id->name), ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
+			else if(ELEM4(GS(tselem->id->name), ID_ME, ID_CU, ID_MB, ID_LT)) {
 				if(G.obedit) exit_editmode(2);
 				else enter_editmode();
+			}
+			else if(GS(tselem->id->name)==ID_AR) {
+				if(G.obedit) exit_editmode(2);
+				if(G.obpose) exit_posemode(1);
+				else enter_posemode();
 			}
 			else {	// rest of types
 				tree_element_active(soops, te, 1);
@@ -933,6 +939,7 @@ static void outliner_draw_iconrow(SpaceOops *soops, TreeElement *parent, ListBas
 			/* active blocks get white circle */
 			active= 0;
 			if(GS(tselem->id->name)==ID_OB) active= (OBACT==(Object *)tselem->id);
+			else if(G.obpose && G.obedit->data==tselem->id) active= 1;
 			else if(G.obedit && G.obedit->data==tselem->id) active= 1;
 			else active= tree_element_active(soops, te, 0);
 			
@@ -1144,7 +1151,6 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	/* draw outliner stuff */
 	outliner_back(soops);
 	outliner_draw_tree(soops);
-
 	
 	/* drawoopsspace handles sliders and restores view */
 }

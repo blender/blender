@@ -2222,7 +2222,6 @@ void mousepose_armature(void)
 	allqueue(REDRAWIPO, 0);		/* To force action ipo update */
 	allqueue(REDRAWBUTSOBJECT, 0);
 
-//	countall();
 	rightmouse_transform();
 	
 }
