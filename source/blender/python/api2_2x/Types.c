@@ -50,6 +50,9 @@ PyObject *Types_Init (void)
 	buffer_Type.ob_type = &PyType_Type;
 	Button_Type.ob_type = &PyType_Type;
 
+	/* Another one that needs to be here: */
+	Text_Type.ob_type = &PyType_Type;
+
   submodule = Py_InitModule3 ("Blender.Types", Null_methods, M_Types_doc);
 
   dict = PyModule_GetDict(submodule);

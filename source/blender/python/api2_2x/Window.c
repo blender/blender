@@ -65,7 +65,7 @@ PyObject *M_Window_Redraw(PyObject *self, PyObject *args)
           st = sa->spacedata.first;
           if (st->text->flags & TXT_FOLLOW) /* follow cursor display */
             pop_space_text(st);
-          if (EXPP_disable_force_draw) { /* from Draw.[ch] ... */
+          if (EXPP_disable_force_draw) { /* defined in Draw.[ch] ... */
             scrarea_queue_redraw(sa);
           }
 
@@ -123,26 +123,26 @@ static PyObject *M_Window_QRedrawAll(PyObject *self, PyObject *args)
 static void getSelectedFile(char *name)
 {
   if (EXPP_FS_PyCallback) {
-	  SpaceText *st= curarea->spacedata.first;
+    SpaceText *st= curarea->spacedata.first;
 
     PyObject_CallFunction((PyObject *)EXPP_FS_PyCallback, "s", name);
 
-		EXPP_FS_PyCallback = NULL;
-		st->flags &= ST_CLEAR_NAMESPACE; /* free global dictionary */
+    EXPP_FS_PyCallback = NULL;
+    st->flags &= ST_CLEAR_NAMESPACE; /* global dict can be cleared */
   }
 }
 
 static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 {
   char *title = "SELECT FILE";
-	SpaceText *st = curarea->spacedata.first;
+  SpaceText *st = curarea->spacedata.first;
 
   if (!PyArg_ParseTuple(args, "O!|s",
                         &PyFunction_Type, &EXPP_FS_PyCallback, &title))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
     "\nexpected a callback function (and optionally a string) as argument(s)"));
 
-	st->flags &= ~ST_CLEAR_NAMESPACE; /* hold global dictionary */
+  st->flags &= ~ST_CLEAR_NAMESPACE; /* so global dict won't be cleared */
 
   activate_fileselect(FILE_BLENDER, title, G.sce, getSelectedFile);
 
@@ -153,14 +153,14 @@ static PyObject *M_Window_FileSelector(PyObject *self, PyObject *args)
 static PyObject *M_Window_ImageSelector(PyObject *self, PyObject *args)
 {
   char *title = "SELECT IMAGE";
-	SpaceText *st = curarea->spacedata.first;
+  SpaceText *st = curarea->spacedata.first;
 
   if (!PyArg_ParseTuple(args, "O!|s",
                         &PyFunction_Type, &EXPP_FS_PyCallback, &title))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
     "\nexpected a callback function (and optionally a string) as argument(s)"));
 
-	st->flags &= ~ST_CLEAR_NAMESPACE; /* hold global dictionary */
+  st->flags &= ~ST_CLEAR_NAMESPACE; /* hold global dictionary */
 
   activate_imageselect(FILE_BLENDER, title, G.sce, getSelectedFile);
 
@@ -185,6 +185,28 @@ static PyObject *M_Window_DrawProgressBar(PyObject *self, PyObject *args)
   retval = progress_bar(done, info);
 
   return Py_BuildValue("i", retval);
+}
+
+/*****************************************************************************/
+/* Function:              M_Window_GetCursorPos                              */
+/* Python equivalent:     Blender.Window.GetCursorPos                        */
+/*****************************************************************************/
+static PyObject *M_Window_GetCursorPos(PyObject *self)
+{
+  float *cursor = NULL;
+  PyObject *pylist;
+
+  if (G.vd && G.vd->localview)
+    cursor = G.vd->cursor;
+  else cursor = G.scene->cursor;
+
+  pylist = Py_BuildValue("[fff]", cursor[0], cursor[1], cursor[2]);
+
+  if (!pylist)
+    return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+            "GetCursorPos: couldn't create pylist"));
+
+  return pylist;
 }
 
 /*****************************************************************************/

@@ -208,6 +208,7 @@ void M_Blender_Init (void)
   dict = PyModule_GetDict (module);
   g_blenderdict = dict;
   PyDict_SetItemString (dict, "sys",      sys_Init());
+  PyDict_SetItemString (dict, "Registry", Registry_Init());
   PyDict_SetItemString (dict, "Scene",    Scene_Init());
   PyDict_SetItemString (dict, "Object",   Object_Init());
   PyDict_SetItemString (dict, "Types",    Types_Init());

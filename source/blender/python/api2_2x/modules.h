@@ -63,6 +63,9 @@ void M_Blender_Init (void);
 /* sys */
 PyObject * sys_Init (void);
 
+/* Registry */
+PyObject * Registry_Init (void);
+
 /* Object itself */
 PyObject * Object_Init (void);
 PyObject * Object_CreatePyObject (struct Object *obj);

@@ -148,7 +148,11 @@ static PyObject *Vector_repr (VectorObject *self)
 {
   char  buffer[100];
 
-  sprintf (buffer, "[%.3f, %.3f, %.3f, %.3f]\n",
+	if (self->size == 3)
+		sprintf (buffer, "[%.3f, %.3f, %.3f]\n",
+           self->vec[0], self->vec[1], self->vec[2]);
+	else /* assuming size == 4 */
+		sprintf (buffer, "[%.3f, %.3f, %.3f, %.3f]\n",
            self->vec[0], self->vec[1], self->vec[2], self->vec[3]);
 
   return PyString_FromString (buffer);

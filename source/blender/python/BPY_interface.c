@@ -61,6 +61,11 @@
 #include "BPY_extern.h"
 #include "api2_2x/EXPP_interface.h"
 
+/* bpy_registryDict is declared in api2_2x/Registry.h and defined
+ * here.  This Python dictionary will be used to store data that scripts
+ * choose to preserve after they are executed, so user changes can be
+ * restored next time the script is used.  Check the Blender.Registry module. */
+extern PyObject *bpy_registryDict;
 
 /*****************************************************************************/
 /* Structure definitions                                                     */
@@ -96,6 +101,11 @@ PyObject *blender_import(PyObject *self, PyObject *args);
 /*****************************************************************************/
 void BPY_start_python(void)
 {
+  bpy_registryDict = PyDict_New(); /* check comment at start of this file */
+
+  if (!bpy_registryDict)
+    printf("Error: Couldn't create the Registry Python Dictionary!");
+
 /* TODO: Shouldn't "blender" be replaced by PACKAGE ?? (config.h) */
   Py_SetProgramName("blender");
 
@@ -115,6 +125,11 @@ void BPY_start_python(void)
 /*****************************************************************************/
 void BPY_end_python(void)
 {
+  if (bpy_registryDict) {
+    Py_DECREF (bpy_registryDict);
+    bpy_registryDict = NULL;
+  }
+
   Py_Finalize();
   return;
 }

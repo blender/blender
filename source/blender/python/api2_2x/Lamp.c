@@ -214,6 +214,10 @@ static PyObject *Lamp_ModesDict (void)
     constant_insert (c, "Square", PyInt_FromLong (EXPP_LAMP_MODE_SQUARE));
     constant_insert (c, "OnlyShadow",
                     PyInt_FromLong (EXPP_LAMP_MODE_ONLYSHADOW));
+    constant_insert (c, "NoDiffuse",
+                    PyInt_FromLong (EXPP_LAMP_MODE_NODIFFUSE));
+    constant_insert (c, "NoSpecular",
+                    PyInt_FromLong (EXPP_LAMP_MODE_NOSPECULAR));
   }
 
   return Modes;
@@ -559,15 +563,15 @@ static PyObject *Lamp_setIntType(BPy_Lamp *self, PyObject *args)
 
 static PyObject *Lamp_setMode(BPy_Lamp *self, PyObject *args)
 {
-  char *m[8] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+  char *m[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
   short i, flag = 0;
 
   if (!PyArg_ParseTuple(args, "|ssssssss", &m[0], &m[1], &m[2],
-                        &m[3], &m[4], &m[5], &m[6], &m[7]))
+                        &m[3], &m[4], &m[5], &m[6], &m[7], &m[8], &m[9]))
     return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-            "expected from none to eight string argument(s)"));
+            "expected from none to 10 string argument(s)"));
 
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 10; i++) {
     if (m[i] == NULL) break;
     if (strcmp(m[i], "Shadows") == 0)
       flag |= (short)EXPP_LAMP_MODE_SHADOWS;
@@ -585,6 +589,10 @@ static PyObject *Lamp_setMode(BPy_Lamp *self, PyObject *args)
       flag |= (short)EXPP_LAMP_MODE_SPHERE;
     else if (strcmp(m[i], "Square") == 0)
       flag |= (short)EXPP_LAMP_MODE_SQUARE;
+    else if (strcmp(m[i], "NoDiffuse") == 0)
+      flag |= (short)EXPP_LAMP_MODE_NODIFFUSE;
+    else if (strcmp(m[i], "NoSpecular") == 0)
+      flag |= (short)EXPP_LAMP_MODE_NOSPECULAR;
     else
       return (EXPP_ReturnPyObjError (PyExc_AttributeError,
               "unknown lamp flag argument"));
@@ -924,7 +932,7 @@ static PyObject *Lamp_getAttr (BPy_Lamp *self, char *name)
   }
 
   else if (strcmp(name, "Modes") == 0) {
-    attr = Py_BuildValue("{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
+    attr = Py_BuildValue("{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
                     "Shadows",    EXPP_LAMP_MODE_SHADOWS,
                     "Halo",       EXPP_LAMP_MODE_HALO,
                     "Layer",      EXPP_LAMP_MODE_LAYER,
@@ -932,7 +940,9 @@ static PyObject *Lamp_getAttr (BPy_Lamp *self, char *name)
                     "Negative",   EXPP_LAMP_MODE_NEGATIVE,
                     "OnlyShadow", EXPP_LAMP_MODE_ONLYSHADOW,
                     "Sphere",     EXPP_LAMP_MODE_SPHERE,
-                    "Square",     EXPP_LAMP_MODE_SQUARE);
+                    "Square",     EXPP_LAMP_MODE_SQUARE,
+                    "NoDiffuse",  EXPP_LAMP_MODE_NODIFFUSE,
+                    "NoSpecular", EXPP_LAMP_MODE_NOSPECULAR);
   }
 
   else if (strcmp(name, "__members__") == 0) {

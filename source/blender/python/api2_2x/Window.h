@@ -68,6 +68,7 @@ static PyObject *M_Window_QRedrawAll (PyObject *self, PyObject *args);
 static PyObject *M_Window_FileSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_ImageSelector (PyObject *self, PyObject *args);
 static PyObject *M_Window_DrawProgressBar (PyObject *self, PyObject *args);
+static PyObject *M_Window_GetCursorPos (PyObject *self);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -111,6 +112,9 @@ char M_Window_DrawProgressBar_doc[] =
 'done' is a float value <= 1.0, 'text' contains info about what is\n\
 currently being done.";
 
+char M_Window_GetCursorPos_doc[] =
+"() - Get the current 3d cursor position as a list of three floats.";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Window module:             */
 /*****************************************************************************/
@@ -118,13 +122,16 @@ struct PyMethodDef M_Window_methods[] = {
   {"Redraw",     M_Window_Redraw,     METH_VARARGS, M_Window_Redraw_doc},
   {"RedrawAll",  M_Window_RedrawAll,  METH_VARARGS, M_Window_RedrawAll_doc},
   {"QRedrawAll", M_Window_QRedrawAll, METH_VARARGS, M_Window_QRedrawAll_doc},
-  {"FileSelector", M_Window_FileSelector, METH_VARARGS, M_Window_FileSelector_doc},
+  {"FileSelector", M_Window_FileSelector, METH_VARARGS,
+          M_Window_FileSelector_doc},
   {"ImageSelector", M_Window_ImageSelector, METH_VARARGS,
           M_Window_ImageSelector_doc},
   {"DrawProgressBar", M_Window_DrawProgressBar,  METH_VARARGS,
           M_Window_DrawProgressBar_doc},
   {"drawProgressBar", M_Window_DrawProgressBar,  METH_VARARGS,
           M_Window_DrawProgressBar_doc},
+  {"GetCursorPos", (PyCFunction)M_Window_GetCursorPos,  METH_NOARGS,
+          M_Window_GetCursorPos_doc},
   {NULL, NULL, 0, NULL}
 };
 
