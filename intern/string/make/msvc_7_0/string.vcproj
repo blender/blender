@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../.."
+				AdditionalIncludeDirectories="..\.."
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -30,7 +30,7 @@
 				AssemblerListingLocation=".\../../../../obj/windows/intern/string/debug/"
 				ObjectFile=".\../../../../obj/windows/intern/string/debug/"
 				ProgramDataBaseFileName=".\../../../../obj/windows/intern/string/debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -72,7 +72,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../.."
+				AdditionalIncludeDirectories="..\.."
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -82,7 +82,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\string/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\string/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\string/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool

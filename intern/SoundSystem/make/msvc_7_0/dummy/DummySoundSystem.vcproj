@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\intern,..\..\..\..\SoundSystem,..\..\..\..\moto\include,..\..\..\..\string"
+				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\string;..\..\..\..\SoundSystem;..\..\..\..\moto\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -33,7 +33,7 @@
 				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\intern\soundsystem\dummy/"
 				ObjectFile=".\..\..\..\..\..\obj\windows\intern\soundsystem\dummy/"
 				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\intern\soundsystem\dummy/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -72,7 +72,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\intern,..\..\..\..\SoundSystem,..\..\..\..\moto\include,..\..\..\..\string"
+				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\string;..\..\..\..\SoundSystem;..\..\..\..\moto\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -81,7 +81,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\soundsystem\dummy\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\soundsystem\dummy\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\soundsystem\dummy\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>

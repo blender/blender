@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../..,../../../../../lib/windows/string/include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\string\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -31,7 +31,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\ghost/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\ghost/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\ghost/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -73,7 +73,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../..,../../../../../lib/windows/string/include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\string\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -83,7 +83,7 @@ ECHO Done
 				ObjectFile=".\..\..\..\..\obj\windows\intern\ghost\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\ghost\debug/"
 				BrowseInformation="1"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>

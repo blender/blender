@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\string;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include"
+				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\string;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -31,7 +31,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\soundsystem\openal\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -71,7 +71,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\string;..\..\..\..\..\..\lib\windows\openal\include;..\..\..\..\..\..\lib\windows\sdl\include"
+				AdditionalIncludeDirectories="..\..\..\intern;..\..\..\..\string;..\..\..\..\SoundSystem\sdl;..\..\..\..\SoundSystem;..\..\..\..\moto\include;..\..\..\..\..\..\lib\windows\sdl\include;..\..\..\..\..\..\lib\windows\openal\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -82,7 +82,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal/"
 				ObjectFile=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal/"
 				ProgramDataBaseFileName=".\..\..\..\..\..\obj\windows\intern\soundsystem\openal/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool

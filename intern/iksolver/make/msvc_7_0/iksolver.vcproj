@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..\..\..\intern\moto\include,..\..\..\..\intern\memutil"
+				AdditionalIncludeDirectories="..\..\..\..\intern\memutil;..\..\..\..\intern\moto\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -30,7 +30,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\iksolver/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\iksolver/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\iksolver/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -71,7 +71,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\intern\moto\include,..\..\..\..\intern\memutil"
+				AdditionalIncludeDirectories="..\..\..\..\intern\memutil;..\..\..\..\intern\moto\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -79,7 +79,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\iksolver\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\iksolver\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\iksolver\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>

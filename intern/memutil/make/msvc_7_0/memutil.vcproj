@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../.."
+				AdditionalIncludeDirectories="..\.."
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -30,7 +30,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\memutil\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\memutil\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\memutil\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -74,7 +74,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="../.."
+				AdditionalIncludeDirectories="..\.."
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -84,7 +84,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\memutil/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\memutil/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\memutil/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -133,13 +133,13 @@ ECHO Done
 					RelativePath="..\..\MEM_NonCopyable.h">
 				</File>
 				<File
-					RelativePath="..\..\MEM_RefCountPtr.h">
-				</File>
-				<File
 					RelativePath="..\..\MEM_RefCounted.h">
 				</File>
 				<File
 					RelativePath="..\..\MEM_RefCountedC-Api.h">
+				</File>
+				<File
+					RelativePath="..\..\MEM_RefCountPtr.h">
 				</File>
 				<File
 					RelativePath="..\..\MEM_SmartPtr.h">

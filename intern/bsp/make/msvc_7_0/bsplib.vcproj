@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../../../lib/windows/memutil,../..,../../../../../lib/windows/moto/include,../../../../../lib/windows/container/include,../../../../../lib/windows/memutil/include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\memutil;..\..\..\..\..\lib\windows\moto\include;..\..\..\..\..\lib\windows\container\include;..\..\..\..\..\lib\windows\memutil\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -29,7 +29,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\bsp\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\bsp\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\bsp\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -73,7 +73,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="../../../../../lib/windows/memutil/include,../..,../../../../../lib/windows/moto/include,../../../../../lib/windows/container/include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\lib\windows\memutil;..\..\..\..\..\lib\windows\moto\include;..\..\..\..\..\lib\windows\container\include;..\..\..\..\..\lib\windows\memutil\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -83,7 +83,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\bsp/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\bsp/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\bsp/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -137,6 +137,9 @@ ECHO Done
 				RelativePath="..\..\intern\BSP_CSGMesh.h">
 			</File>
 			<File
+				RelativePath="..\..\intern\BSP_CSGMesh_CFIterator.h">
+			</File>
+			<File
 				RelativePath="..\..\intern\BSP_CSGMeshBuilder.cpp">
 			</File>
 			<File
@@ -147,9 +150,6 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\BSP_CSGMeshSplitter.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGMesh_CFIterator.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\BSP_CSGNCMeshSplitter.cpp">

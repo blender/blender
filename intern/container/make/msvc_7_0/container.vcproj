@@ -30,7 +30,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\container/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\container/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\container/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -78,7 +78,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\container\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\container\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\container\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"/>
 			<Tool

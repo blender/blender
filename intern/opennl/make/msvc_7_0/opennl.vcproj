@@ -26,7 +26,7 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="TRUE"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="1"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
 			<Tool
@@ -72,7 +72,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\opennl\"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\opennl"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\opennl\"
-				WarningLevel="3"
+				WarningLevel="1"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="1"/>

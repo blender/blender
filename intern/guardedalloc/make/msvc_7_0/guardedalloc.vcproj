@@ -32,7 +32,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\guardedalloc/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\guardedalloc/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\guardedalloc/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -82,7 +82,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\guardedalloc\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\guardedalloc\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\guardedalloc\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>

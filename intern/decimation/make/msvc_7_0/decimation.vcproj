@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\container\include\,..\..\..\..\..\lib\windows\memutil\include\,..\..\..\..\..\lib\windows\moto\include\"
+				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\moto\include\;..\..\..\..\..\lib\windows\container\include\;..\..\..\..\..\lib\windows\memutil\include\"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
@@ -29,7 +29,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\decimation\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\decimation\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\decimation\debug/"
-				WarningLevel="4"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -73,7 +73,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\container\include\,..\..\..\..\..\lib\windows\memutil\include\,..\..\..\..\..\lib\windows\moto\include\"
+				AdditionalIncludeDirectories="..\..\..\..\..\lib\windows\moto\include\;..\..\..\..\..\lib\windows\container\include\;..\..\..\..\..\lib\windows\memutil\include\"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
@@ -82,7 +82,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\decimation/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\decimation/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\decimation/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -117,6 +117,9 @@ ECHO Done
 		<Filter
 			Name="intern"
 			Filter="">
+			<File
+				RelativePath="..\..\intern\LOD_decimation.cpp">
+			</File>
 			<File
 				RelativePath="..\..\intern\LOD_DecimationClass.h">
 			</File>
@@ -173,9 +176,6 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\LOD_QuadricEditor.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\LOD_decimation.cpp">
 			</File>
 		</Filter>
 		<Filter

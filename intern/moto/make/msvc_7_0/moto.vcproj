@@ -30,7 +30,7 @@
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\moto/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\moto/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\moto/"
-				WarningLevel="4"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -79,7 +79,7 @@ ECHO Done
 				AssemblerListingLocation=".\..\..\..\..\obj\windows\intern\moto\debug/"
 				ObjectFile=".\..\..\..\..\obj\windows\intern\moto\debug/"
 				ProgramDataBaseFileName=".\..\..\..\..\obj\windows\intern\moto\debug/"
-				WarningLevel="3"
+				WarningLevel="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
 				CompileAs="0"/>
@@ -177,6 +177,16 @@ ECHO Done
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\intern\MT_random.cpp">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="..\..\include\;../../include;$(NoInherit)"
+						WarningLevel="3"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\intern\MT_Transform.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -216,16 +226,6 @@ ECHO Done
 						WarningLevel="3"/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath="..\..\intern\MT_random.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="..\..\include\;../../include;$(NoInherit)"
-						WarningLevel="3"/>
-				</FileConfiguration>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -235,6 +235,9 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\include\GEN_Map.h">
+			</File>
+			<File
+				RelativePath="..\..\include\MT_assert.h">
 			</File>
 			<File
 				RelativePath="..\..\include\MT_CmMatrix4x4.h">
@@ -264,6 +267,9 @@ ECHO Done
 				RelativePath="..\..\include\MT_Quaternion.h">
 			</File>
 			<File
+				RelativePath="..\..\include\MT_random.h">
+			</File>
+			<File
 				RelativePath="..\..\include\MT_Scalar.h">
 			</File>
 			<File
@@ -289,12 +295,6 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\include\MT_Vector4.h">
-			</File>
-			<File
-				RelativePath="..\..\include\MT_assert.h">
-			</File>
-			<File
-				RelativePath="..\..\include\MT_random.h">
 			</File>
 			<File
 				RelativePath="..\..\include\NM_Scalar.h">
