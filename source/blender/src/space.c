@@ -3157,10 +3157,12 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if((G.qual==LR_SHIFTKEY)) {
 					insert_gap(25, CFRA);
+					BIF_undo_push("Insert gaps Sequencer");
 					allqueue(REDRAWSEQ, 0);
 				}
 				else if(G.qual==LR_ALTKEY) {
 					insert_gap(250, CFRA);
+					BIF_undo_push("Insert gaps Sequencer");
 					allqueue(REDRAWSEQ, 0);
 				}
 			}

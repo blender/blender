@@ -2437,6 +2437,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
 	Sequence *seq;
+	MetaStack *ms;
 	StripElem *se;
 	int a;
 
@@ -2460,14 +2461,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->ed) {
 		ed= sce->ed= newdataadr(fd, sce->ed);
 
-		ed->metastack.first= ed->metastack.last= 0;
-
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
 
-		ed->seqbasep= &ed->seqbase;
-
-		WHILE_SEQ(ed->seqbasep) {
+		WHILE_SEQ(&ed->seqbase) {
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
@@ -2539,6 +2536,36 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			}
 		}
 		END_SEQ
+			
+		/* link metastack, slight abuse of structs here, have to restore pointer to internal part in struct */
+		{
+			Sequence temp;
+			char *poin;
+			long offset;
+			int seted=0;
+			
+			offset= ((long)&(temp.seqbase)) - ((long)&temp);
+
+			/* root pointer */
+			poin= (char *)ed->seqbasep;
+			poin -= offset;
+			poin= newdataadr(fd, poin);
+			if(poin) ed->seqbasep= (ListBase *)(poin+offset);
+			else ed->seqbasep= &ed->seqbase;
+			
+			/* stack */
+			link_list(fd, &(ed->metastack));
+			
+			for(ms= ed->metastack.first; ms; ms= ms->next) {
+				ms->parseq= newdataadr(fd, ms->parseq);
+				
+				poin= (char *)ms->oldbasep;
+				poin -= offset;
+				poin= newdataadr(fd, poin);
+				if(poin) ms->oldbasep= (ListBase *)(poin+offset);
+				else ms->oldbasep= &ed->seqbase;
+			}
+		}
 	}
 
 	direct_link_scriptlink(fd, &sce->scriptlink);
@@ -2583,7 +2610,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
 						sipo->editipo= 0;
-						sipo->from= newlibadr(fd, sc->id.lib, sipo->from);
+						
+						if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
+						else sipo->from= newlibadr(fd, sc->id.lib, sipo->from);
+						
 						sipo->ipokey.first= sipo->ipokey.last= 0;
 						sipo->ipo= newlibadr(fd, sc->id.lib, sipo->ipo);
 					}
@@ -2719,7 +2749,10 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
-					sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
+					
+					if(sipo->blocktype==ID_SEQ) sipo->from= NULL;	// no libdata
+					else sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
+					
 					// not free sipo->ipokey, creates dependency with src/
 					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
 					if(sipo->editipo) MEM_freeN(sipo->editipo);

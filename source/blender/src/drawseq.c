@@ -785,7 +785,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	glLoadIdentity();
 
 	BIF_GetThemeColor3fv(TH_BACK, col);
-	if(ed && ed->metastack.first) glClearColor(col[0], col[1], col[2]-1.0, 0.0);
+	if(ed && ed->metastack.first) glClearColor(col[0], col[1], col[2]-0.1, 0.0);
 	else glClearColor(col[0], col[1], col[2], 0.0);
 
 	glClear(GL_COLOR_BUFFER_BIT);

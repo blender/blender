@@ -122,8 +122,7 @@ typedef struct Sequence {
 	void *effectdata;			/* Struct pointer for effect settings */
 
 } Sequence;
-#
-#
+
 typedef struct MetaStack {
 	struct MetaStack *next, *prev;
 	ListBase *oldbasep;

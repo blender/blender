@@ -1063,6 +1063,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	Base *base;
 	Editing *ed;
 	Sequence *seq;
+	MetaStack *ms;
 	Strip *strip;
 
 	sce= scebase->first;
@@ -1118,6 +1119,11 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				}
 			}
 			END_SEQ
+				
+			/* new; meta stack too, even when its nasty restore code */
+			for(ms= ed->metastack.first; ms; ms= ms->next) {
+				writestruct(wd, DATA, "MetaStack", 1, ms);
+			}
 		}
 
 		write_scriptlink(wd, &sce->scriptlink);
