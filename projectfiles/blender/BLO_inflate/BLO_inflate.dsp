@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x413 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -68,7 +68,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
@@ -92,8 +92,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\inflate\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x413 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -116,8 +116,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\inflate\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\inflate" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\blender\writestreamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
 BSC32=bscmake.exe

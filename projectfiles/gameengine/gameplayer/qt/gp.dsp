@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "h:\qtwin\include" /I "..\..\..\..\source\gameengine\Expressions" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\Ketsji" /I "..\..\..\..\source\gameengine\Ketsji\KXNetwork" /I "..\..\..\..\source\gameengine\Network" /I "..\..\..\..\source\gameengine\Network\LoopBackNetwork" /I "..\..\..\..\source\gameengine\Rasterizer" /I "..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer" /I "..\..\..\..\source\gameengine\SceneGraph" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\lib\windows\python\include\python2.0" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "h:\qtwin\include" /I "..\..\..\..\source\gameengine\Expressions" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\Ketsji" /I "..\..\..\..\source\gameengine\Ketsji\KXNetwork" /I "..\..\..\..\source\gameengine\Network" /I "..\..\..\..\source\gameengine\Network\LoopBackNetwork" /I "..\..\..\..\source\gameengine\Rasterizer" /I "..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer" /I "..\..\..\..\source\gameengine\SceneGraph" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\..\lib\windows\python\include\python2.0" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib h:\qtwin\lib\qt.lib h:\qtwin\lib\qnp.lib python20.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\..\..\..\obj\windows\gp.exe" /libpath:"..\..\..\..\lib\windows\python\lib\\"
+# ADD LINK32 opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib h:\qtwin\lib\qt.lib h:\qtwin\lib\qnp.lib python20.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\..\..\..\obj\windows\gp.exe" /libpath:"..\..\..\..\..\lib\windows\python\lib\\"
 
 !ELSEIF  "$(CFG)" == "gp - Win32 Debug"
 
@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /GX /Od /I "h:\qtwin\include" /I "..\..\..\..\source\gameengine\Expressions" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\Ketsji" /I "..\..\..\..\source\gameengine\Ketsji\KXNetwork" /I "..\..\..\..\source\gameengine\Network" /I "..\..\..\..\source\gameengine\Network\LoopBackNetwork" /I "..\..\..\..\source\gameengine\Rasterizer" /I "..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer" /I "..\..\..\..\source\gameengine\SceneGraph" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\lib\windows\python\include\python1.5" /D "_DEBUG" /D "WIN32"
+# ADD CPP /nologo /W3 /GX /Od /I "h:\qtwin\include" /I "..\..\..\..\source\gameengine\Expressions" /I "..\..\..\..\source\gameengine\GameLogic" /I "..\..\..\..\source\gameengine\Ketsji" /I "..\..\..\..\source\gameengine\Ketsji\KXNetwork" /I "..\..\..\..\source\gameengine\Network" /I "..\..\..\..\source\gameengine\Network\LoopBackNetwork" /I "..\..\..\..\source\gameengine\Rasterizer" /I "..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer" /I "..\..\..\..\source\gameengine\SceneGraph" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\..\lib\windows\python\include\python1.5" /D "_DEBUG" /D "WIN32"
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
@@ -79,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib h:\qtwin\lib\qt.lib python15_d.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\..\..\..\..\obj\windows\debug\gp.exe" /libpath:"..\..\..\..\lib\windows\python\lib\\"
+# ADD LINK32 opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib h:\qtwin\lib\qt.lib python15_d.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\..\..\..\..\obj\windows\debug\gp.exe" /libpath:"..\..\..\..\..\lib\windows\python\lib\\"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 

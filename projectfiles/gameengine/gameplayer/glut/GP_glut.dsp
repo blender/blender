@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\source\gameengine\SoundSystem" /I "../../../../lib/windows/moto/include" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\..\lib\windows\python\include\python2.0" /I "..\..\source\gameengine\SoundSystem" /I "../../../../../lib/windows/moto/include" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -51,7 +51,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /machine:I386 /libpath:"..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\lib\windows\openal\lib\lib_release"
+# ADD LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /machine:I386 /libpath:"..\..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\..\lib\windows\openal\lib\lib_release"
 
 !ELSEIF  "$(CFG)" == "GP_glut - Win32 Debug"
 
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\lib\windows\python\include\python1.5" /I "..\..\source\gameengine\SoundSystem" /I "../../../../lib/windows/moto/include" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\..\lib\windows\python\include\python1.5" /I "..\..\source\gameengine\SoundSystem" /I "../../../../../lib/windows/moto/include" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -75,7 +75,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\lib\windows\openal\lib\lib_release"
+# ADD LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\..\lib\windows\openal\lib\lib_release"
 
 !ELSEIF  "$(CFG)" == "GP_glut - Win32 Profile"
 
@@ -91,16 +91,16 @@ LINK32=link.exe
 # PROP Intermediate_Dir "GP_glut___Win32_Profile"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\lib\windows\python\include\python1.5" /I "..\..\source\gameengine\SoundSystem" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\lib\windows\python\include\python1.5" /I "..\..\source\gameengine\SoundSystem" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\..\lib\windows\python\include\python1.5" /I "..\..\source\gameengine\SoundSystem" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\..\source\kernel\gen_system" /I "..\..\..\..\source\gameengine\network" /I "..\..\..\..\source\gameengine\network\loopbacknetwork" /I "..\..\..\..\source\gameengine\gameplayer\common" /I "..\..\..\..\source\gameengine\rasterizer" /I "..\..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\..\..\lib\windows\python\include\python1.5" /I "..\..\source\gameengine\SoundSystem" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\lib\windows\openal\lib\lib_release"
-# ADD LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\lib\windows\openal\lib\lib_release"
+# ADD BASE LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\..\lib\windows\openal\lib\lib_release"
+# ADD LINK32 glu32.lib user32.lib gdi32.lib advapi32.lib dxguid.lib ole32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\..\lib\windows\glut-3.7\lib" /libpath:"..\..\..\..\..\lib\windows\python\lib" /libpath:"..\..\..\..\..\lib\windows\openal\lib\lib_release"
 
 !ENDIF 
 
@@ -159,47 +159,47 @@ SOURCE=..\..\..\..\source\gameengine\GamePlayer\Glut\GlutSystem.h
 # End Group
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\alc\ALc.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\alc\ALc.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\alu\ALu.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\alu\ALu.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\alut\ALut.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\alut\ALut.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\alBuffer.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alBuffer.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\alEax.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alEax.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\alError.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alError.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\alExtension.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alExtension.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\alListener.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alListener.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\alSource.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alSource.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\alState.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alState.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\lib\windows\openal\lib\OpenAL32\OpenAL32.obj
+SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\OpenAL32.obj
 # End Source File
 # End Target
 # End Project

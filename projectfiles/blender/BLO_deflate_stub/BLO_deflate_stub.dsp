@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\source\blender\deflate\\" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\source\blender\deflate\\" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -68,7 +68,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\deflate\\" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\deflate\\" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -91,8 +91,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "BLO_deflate_stub___Win32_MT_DLL_Release"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\..\source\blender\deflate\\" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\source\blender\deflate\\" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\..\source\blender\deflate\\" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\source\blender\deflate\\" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -115,8 +115,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "BLO_deflate_stub___Win32_MT_DLL_Debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\deflate\\" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\deflate\\" /I "..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\deflate\\" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\blender\deflate\\" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\source\blender\streamglue" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe

@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "../../../../../lib/windows/python/include/python2.0" /I "../../../../../source/blender/encrypt" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../lib/windows/iksolver/include" /I "../../../../../source/gameengine/SoundSystem/SND_Dummy" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "../../../../../../lib/windows/python/include/python2.0" /I "../../../../../source/blender/encrypt" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../../lib/windows/iksolver/include" /I "../../../../../source/gameengine/SoundSystem/SND_Dummy" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -51,7 +51,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 libguardedalloc.a libmoto.a sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386 /out:"..\..\..\..\..\..\obj\windows\BlenderLoader.exe" /libpath:"../../../../../lib/windows/moto/lib" /libpath:"..\..\..\..\..\lib\windows\guardedalloc\lib" /libpath:"../../../../../lib/windows/python/lib" /libpath:"../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
+# ADD LINK32 libguardedalloc.a libmoto.a sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386 /out:"..\..\..\..\..\..\obj\windows\BlenderLoader.exe" /libpath:"../../../../../../lib/windows/moto/lib" /libpath:"..\..\..\..\..\..\lib\windows\guardedalloc\lib" /libpath:"../../../../../../lib/windows/python/lib" /libpath:"../../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
 
 !ELSEIF  "$(CFG)" == "BlenderLoader - Win32 Debug"
 
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../../../../../lib/windows/python/include/python1.5" /I "../../../../../source/blender/encrypt" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../lib/windows/iksolver/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fr /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../../../../../../lib/windows/python/include/python1.5" /I "../../../../../source/blender/encrypt" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../../lib/windows/iksolver/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fr /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -75,7 +75,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 sdldebug.lib libguardedalloc.a libmoto.a sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\..\..\..\..\obj\windows\debug\BlenderLoader.exe" /pdbtype:sept /libpath:"..\..\..\..\..\lib\windows\guardedalloc\lib" /libpath:"../../../../../lib/windows/python/lib" /libpath:"../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
+# ADD LINK32 sdldebug.lib libguardedalloc.a libmoto.a sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\..\..\..\..\obj\windows\debug\BlenderLoader.exe" /pdbtype:sept /libpath:"..\..\..\..\..\..\lib\windows\guardedalloc\lib" /libpath:"../../../../../../lib/windows/python/lib" /libpath:"../../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
 
 !ELSEIF  "$(CFG)" == "BlenderLoader - Win32 Profile"
 
@@ -91,17 +91,17 @@ LINK32=link.exe
 # PROP Intermediate_Dir "BlenderLoader___Win32_Profile"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/python/include/python1.5" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../lib/windows/iksolver/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../../../lib/windows/python/include/python1.5" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../../lib/windows/iksolver/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
 # SUBTRACT BASE CPP /Fr
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "../../../../../lib/windows/python/include/python1.5" /I "../../../../../source/blender/encrypt" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../lib/windows/iksolver/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "../../../../../../lib/windows/python/include/python1.5" /I "../../../../../source/blender/encrypt" /I "../../../../../source/blender/blenkernel" /I "../../../../../source/blender/makesdna" /I "../../../../../source/blender/blenlib" /I "../../../../../source/blender/blenloader" /I "../../../../../source/blender/render/extern/include" /I "../../../../../source/gameengine/Rasterizer" /I "../../../../../../lib\windows\sdl\SDL-1.1.7\include" /I "../../../../../source/gameengine/GameLogic" /I "..\..\..\..\..\source\sumo\include" /I "..\..\..\..\..\..\lib\windows\moto\include" /I "..\..\..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\..\..\source\kernel\gen_system" /I "../../../../../source/blender/imbuf" /I "../../../../../source/gameengine/SoundSystem" /I "../../../../../source/gameengine/SoundSystem/SND_OpenAL" /I "../../../../../source/gameengine/Ketsji" /I "../../../../../source/gameengine/Expressions" /I "../../../../../source/gameengine/SceneGraph" /I "../../../../../source/gameengine/ketsji/kxnetwork" /I "../../../../../source/gameengine/network" /I "../../../../../source/gameengine/network/loopbacknetwork" /I "../../../../../source/gameengine/GamePlayer/common" /I "../../../../../../lib/windows/iksolver/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 sdldebug.lib sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\..\..\..\..\obj\windows\debug\BlenderLoader.exe" /pdbtype:sept /libpath:"../../../../../lib/windows/python/lib" /libpath:"../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
-# ADD LINK32 sdldebug.lib libguardedalloc.a libmoto.a sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\..\..\..\..\obj\windows\profile\BlenderLoader.exe" /pdbtype:sept /libpath:"..\..\..\..\..\lib\windows\guardedalloc\lib" /libpath:"../../../../../lib/windows/python/lib" /libpath:"../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
+# ADD BASE LINK32 sdldebug.lib sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\..\..\..\..\obj\windows\debug\BlenderLoader.exe" /pdbtype:sept /libpath:"../../../../../../lib/windows/python/lib" /libpath:"../../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
+# ADD LINK32 sdldebug.lib libguardedalloc.a libmoto.a sdlmain.lib sdl.lib dxguid.lib ole32.lib libjpeg.lib glu32.lib opengl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /out:"..\..\..\..\..\..\obj\windows\profile\BlenderLoader.exe" /pdbtype:sept /libpath:"..\..\..\..\..\..\lib\windows\guardedalloc\lib" /libpath:"../../../../../../lib/windows/python/lib" /libpath:"../../../../../../lib/windows/jpeg/lib" /libpath:"../../../../../../lib/windows/sdl/SDL-1.1.7\Lib"
 
 !ENDIF 
 
@@ -160,47 +160,47 @@ SOURCE=..\..\..\..\..\source\gameengine\GamePlayer\Loaders\Blender\SDLSystem.h
 # End Group
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\alc\ALc.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\alc\ALc.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\alu\ALu.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\alu\ALu.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\alut\ALut.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\alut\ALut.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alBuffer.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alBuffer.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alEax.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alEax.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alError.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alError.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alExtension.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alExtension.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alListener.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alListener.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alSource.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alSource.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alState.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\alState.obj
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\..\lib\windows\openal\lib\OpenAL32\OpenAL32.obj
+SOURCE=..\..\..\..\..\..\lib\windows\openal\lib\OpenAL32\OpenAL32.obj
 # End Source File
 # End Target
 # End Project

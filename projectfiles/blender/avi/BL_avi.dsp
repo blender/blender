@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -68,7 +68,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /GZ /c
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -92,8 +92,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\avi\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /GZ /c
-# ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /GZ /c
+# ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -116,8 +116,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\avi\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /c
-# ADD CPP /nologo /MD /GX /O2 /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /c
+# ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /c
+# ADD CPP /nologo /MD /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "DWORDS_LITTLEENDIAN" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe

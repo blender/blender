@@ -45,7 +45,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -69,7 +69,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -93,8 +93,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\sumo\fuzzics\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
-# ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
+# ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
+# ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -117,8 +117,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\sumo\fuzzics\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
-# ADD CPP /nologo /MD /GX /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /MD /GX /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -141,8 +141,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "SM_fuzzics___Win32_Profile"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\source\sumo\Fuzzics\include" /I "../../../../lib/windows/moto/include" /I "..\..\..\source\sumo\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe

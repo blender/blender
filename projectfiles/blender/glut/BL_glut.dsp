@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\source\blender\\" /I "..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I "..\..\..\source\blender\\" /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -67,7 +67,7 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /I "..\..\..\source\blender\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /FR /YX /J /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /I "..\..\..\source\blender\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /FR /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -90,8 +90,8 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "BL_glut___Win32_Profile"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /I "..\..\..\source\blender\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /I "..\..\..\source\blender\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /I "..\..\..\source\blender\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /O2 /I "..\..\..\..\lib\windows\glut-3.7\include" /I "..\..\..\source\blender\glut-win" /I "..\..\..\source\blender\\" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
