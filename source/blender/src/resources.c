@@ -378,6 +378,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->text_hi; break;
 			case TH_HEADER:
 				cp= ts->header; break;
+			case TH_PANEL:
+				cp= ts->panel; break;
 			case TH_SHADE1:
 				cp= ts->shade1; break;
 			case TH_SHADE2:
