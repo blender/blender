@@ -314,3 +314,10 @@ class World:
     @type event: string
     @param event: "FrameChanged" or "Redraw".
     """
+  
+  def makeActive ():
+    """
+    Make this world active in the current scene.
+    @rtype: PyNone
+    @return:  PyNone    
+    """	

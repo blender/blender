@@ -680,6 +680,21 @@ static PyObject *World_getScriptLinks (BPy_World *self, PyObject *args)
 }
 
 
+
+/* world.makeActive */
+static PyObject *World_makeActive (BPy_World *self)
+{
+	World *world = self->world;
+	/* If there is a world then it now has one less user */
+	if( G.scene->world) 
+		G.scene->world->id.us--;
+	world->id.us++;
+	G.scene->world = world;
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 /*@{*/
 
 /**
