@@ -398,9 +398,9 @@ elif string.find (sys.platform, 'irix') != -1:
     platform_libs = ['movieGL', 'Xmu', 'Xext', 'X11',
                      'c', 'm', 'dmedia', 'cl', 'audio',
                      'Cio', 'pthread']
-    platform_libpath = ['/usr/lib32',
+    platform_libpath = ['/usr/lib32/mips3',
                         '/lib/freeware/lib32',
-                        '/usr/lib32/mips3']
+                        '/usr/lib32']
     platform_linkflags = ['-mips3', '-n32']
     extra_includes = ['/usr/freeware/include',
                       '/usr/include']
