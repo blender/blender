@@ -137,13 +137,13 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 	set_inverted_drawing(0);
 }
 
-void sdrawXORcirc(short xofs, short yofs, float rad)
+void fdrawXORcirc(float xofs, float yofs, float rad)
 {
 	set_inverted_drawing(1);
 
 	glPushMatrix();
 	glTranslatef(xofs, yofs, 0.0);
-	glutil_draw_lined_arc(0.0, M_PI*2, rad, 20);
+	glutil_draw_lined_arc(0.0, M_PI*2.1, rad, 20);
 	glPopMatrix();
 
 	set_inverted_drawing(0);
@@ -178,14 +178,14 @@ void glutil_draw_lined_arc(float start, float angle, float radius, int nsegments
 
 int glaGetOneInteger(int param)
 {
-	int i;
+	GLint i;
 	glGetIntegerv(param, &i);
 	return i;
 }
 
 float glaGetOneFloat(int param)
 {
-	float v;
+	GLfloat v;
 	glGetFloatv(param, &v);
 	return v;
 }
@@ -209,7 +209,7 @@ void glaRasterPosSafe2f(float x, float y, float known_good_x, float known_good_y
 
 static int get_cached_work_texture(int *w_r, int *h_r)
 {
-	static int texid= -1;
+	static GLint texid= -1;
 	static int tex_w= 256;
 	static int tex_h= 256;
 
@@ -366,10 +366,10 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 	int sc_w, sc_h;
 	float wo_w, wo_h;
 
-	glGetIntegerv(GL_VIEWPORT, di->orig_vp);
-	glGetIntegerv(GL_SCISSOR_BOX, di->orig_sc);
-	glGetFloatv(GL_PROJECTION_MATRIX, di->orig_projmat);
-	glGetFloatv(GL_MODELVIEW_MATRIX, di->orig_viewmat);
+	glGetIntegerv(GL_VIEWPORT, (GLint *)di->orig_vp);
+	glGetIntegerv(GL_SCISSOR_BOX, (GLint *)di->orig_sc);
+	glGetFloatv(GL_PROJECTION_MATRIX, (GLfloat *)di->orig_projmat);
+	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *)di->orig_viewmat);
 
 	di->screen_rect= *screen_rect;
 	if (world_rect) {

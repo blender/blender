@@ -477,6 +477,8 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		bt->y2 += yof;
 
 		bt->aspect= 1.0;
+		// check_but recalculates drawstring size in pixels
+		ui_check_but(bt);
 		
 		bt= bt->next;
 	}

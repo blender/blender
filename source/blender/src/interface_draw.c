@@ -1579,8 +1579,12 @@ static void ui_draw_but_HSVCUBE(uiBut *but)
 	glShadeModel(GL_FLAT);
 
 	/* cursor */
-	sdrawXORcirc((short)(but->x1 + x*(but->x2-but->x1)), 
-				 (short)(but->y1 + y*(but->y2-but->y1)), 3.0);
+	x= but->x1 + x*(but->x2-but->x1);
+	y= but->y1 + y*(but->y2-but->y1);
+	CLAMP(x, but->x1+3.0, but->x2-3.0);
+	CLAMP(y, but->y1+3.0, but->y2-3.0);
+	
+	fdrawXORcirc(x, y, 3.0);
 
 	/* outline */
 	glColor3ub(0,  0,  0);

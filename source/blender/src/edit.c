@@ -341,11 +341,11 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	/* draw circle */
 
 	if(mvalo && no_mvalo==0) {
-		sdrawXORcirc(mvalo[0], mvalo[1], rado);
+		fdrawXORcirc(mvalo[0], mvalo[1], rado);
 	}
 	
 	if(mval) {
-		sdrawXORcirc(mval[0], mval[1], rad);
+		fdrawXORcirc(mval[0], mval[1], rad);
 	}
 
 	glFlush();
