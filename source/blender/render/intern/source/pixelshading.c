@@ -1515,22 +1515,20 @@ void shadeHaloFloat(HaloRen *har,
 	/* scale factor.                                                         */
 	if(linef!=0.0) {
 		Material *ma= har->mat;
-		linef *= 255.0;
 		
-		colf[0]+= linef * ma->specr;
-		colf[1]+= linef * ma->specg;
-		colf[2]+= linef * ma->specb;
+		colf[0]+= 255.0*linef * ma->specr;
+		colf[1]+= 255.0*linef * ma->specg;
+		colf[2]+= 255.0*linef * ma->specb;
 		
 		if(har->type & HA_XALPHA) colf[3]+= linef*linef;
 		else colf[3]+= linef;
 	}
 	if(ringf!=0.0) {
 		Material *ma= har->mat;
-		ringf *= 255.0;
 
-		colf[0]+= ringf * ma->mirr;
-		colf[1]+= ringf * ma->mirg;
-		colf[2]+= ringf * ma->mirb;
+		colf[0]+= 255.0*ringf * ma->mirr;
+		colf[1]+= 255.0*ringf * ma->mirg;
+		colf[2]+= 255.0*ringf * ma->mirb;
 		
 		if(har->type & HA_XALPHA) colf[3]+= ringf*ringf;
 		else colf[3]+= ringf;
