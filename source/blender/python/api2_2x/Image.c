@@ -116,13 +116,13 @@ static PyObject *M_Image_Load(PyObject *self, PyObject *args)
 /*****************************************************************************/
 PyObject *M_Image_Init (void)
 {
-  PyObject  *module;
+  PyObject  *submodule;
 
   printf ("In M_Image_Init()\n");
 
-  module = Py_InitModule3("Image", M_Image_methods, M_Image_doc);
+  submodule = Py_InitModule3("Blender.Image", M_Image_methods, M_Image_doc);
 
-  return (module);
+  return (submodule);
 }
 
 /*****************************************************************************/

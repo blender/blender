@@ -49,3 +49,4 @@ PyObject *M_Image_Init (void);
 PyObject *M_Window_Init (void);
 PyObject *M_Draw_Init (void);
 PyObject *M_BGL_Init (void);
+PyObject *M_Text_Init (void);

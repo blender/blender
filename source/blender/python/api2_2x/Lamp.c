@@ -132,13 +132,13 @@ static PyObject *M_Lamp_Get(PyObject *self, PyObject *args)
 /*****************************************************************************/
 PyObject *M_Lamp_Init (void)
 {
-  PyObject  *module;
+  PyObject  *submodule;
 
   printf ("In M_Lamp_Init()\n");
 
-  module = Py_InitModule3("Lamp", M_Lamp_methods, M_Lamp_doc);
+  submodule = Py_InitModule3("Blender.Lamp", M_Lamp_methods, M_Lamp_doc);
 
-  return (module);
+  return (submodule);
 }
 
 /*****************************************************************************/

@@ -40,11 +40,15 @@
 #include <DNA_ID.h>
 #include <DNA_object_types.h>
 #include <DNA_scene_types.h>
+#include <DNA_screen_types.h> /* for SPACE_VIEW3D */
 #include <DNA_userdef_types.h>
 #include <BKE_ipo.h>
 
 #include "gen_utils.h"
 #include "modules.h"
+
+/* From Window.h, used here by Blender_Redraw */
+PyObject *M_Window_Redraw(PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.                    */

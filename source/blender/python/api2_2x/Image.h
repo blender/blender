@@ -71,9 +71,9 @@ char M_Image_New_doc[] =
 "() - return a new Image object -- unimplemented";
 
 char M_Image_Get_doc[] =
-"(name) - return the camera with the name 'name', \
+"(name) - return the image with the name 'name', \
 returns None if not found.\n If 'name' is not specified, \
-it returns a list of all cameras in the\ncurrent scene.";
+it returns a list of all images in the\ncurrent scene.";
 
 char M_Image_Load_doc[] =
 "(filename) - return image from file filename as Image Object, \

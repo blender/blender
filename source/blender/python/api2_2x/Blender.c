@@ -159,20 +159,18 @@ PyObject *Blender_Get (PyObject *self, PyObject *args)
 /*****************************************************************************/
 PyObject *Blender_Redraw(PyObject *self, PyObject *args)
 {
-	/*
+
 	int wintype = SPACE_VIEW3D;
-	
+
 	printf ("In Blender_Redraw()\n");
 
 	if (!PyArg_ParseTuple (args, "|i", &wintype))
 	{
-		 TODO: Do we need to generate a nice error message here?
-		return (NULL);
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected int argument (or nothing)");
 	}
 
-	return Windowmodule_Redraw(self, Py_BuildValue("(i)", wintype));
-	*/
-	return (Py_None);
+	return M_Window_Redraw(self, Py_BuildValue("(i)", wintype));
 }
 
 /*****************************************************************************/
@@ -198,5 +196,6 @@ void initBlender (void)
 	PyDict_SetItemString (dict, "Window", M_Window_Init());
 	PyDict_SetItemString (dict, "Draw",   M_Draw_Init());
 	PyDict_SetItemString (dict, "BGL",    M_BGL_Init());
+	PyDict_SetItemString (dict, "Text",   M_Text_Init());
 }
 
