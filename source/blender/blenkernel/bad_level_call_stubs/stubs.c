@@ -72,7 +72,8 @@ void build_seqar(ListBase *seqbase, struct Sequence  ***seqar, int *totseq)
 }
 
 void BPY_do_pyscript(ID *id, short int event){}
-void BPY_free_compiled_text(struct Text *text) {};
+void BPY_clear_script(Script *script){}
+void BPY_free_compiled_text(struct Text *text){}
 
 /* writefile.c */
 	/* struct Oops; */

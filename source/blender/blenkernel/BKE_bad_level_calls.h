@@ -56,7 +56,9 @@ struct Sequence;
 void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq);
 
 struct ID;
+struct Script;
 void BPY_do_pyscript (struct ID *id, short int event);
+void BPY_clear_script (struct Script *script);
 
 /* writefile.c */
 struct Oops;
