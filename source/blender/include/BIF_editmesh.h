@@ -76,6 +76,7 @@ extern void EM_clear_flag_all(int flag);
 extern void EM_select_face(struct EditFace *efa, int sel);
 extern void EM_select_edge(struct EditEdge *eed, int sel);
 
+extern void EM_deselect_flush(void);	// vertices to edges/faces (exception!)
 extern void EM_select_flush(void);	// vertices to edges/faces (exception!)
 extern void EM_selectmode_set(void); // when mode changes
 extern void EM_selectmode_flush(void); // when selection changes

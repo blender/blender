@@ -227,9 +227,32 @@ void EM_set_flag_all(int flag)
 	
 }
 
-/* flush to edges & faces */
+void EM_deselect_flush(void)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->v1->f & eed->v2->f & SELECT);
+		else eed->f &= ~SELECT;
+	}
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->v4) {
+			if(efa->v1->f & efa->v2->f & efa->v3->f & efa->v4->f & SELECT );
+			else efa->f &= ~SELECT;
+		}
+		else {
+			if(efa->v1->f & efa->v2->f & efa->v3->f & SELECT );
+			else efa->f &= ~SELECT;
+		}
+	}
+}
 
-/*  this based on coherent selected vertices, for example when adding new
+
+/* flush selection to edges & faces */
+
+/*  this only based on coherent selected vertices, for example when adding new
     objects. call clear_flag_all() before you select vertices to be sure it ends OK!
 	
 */

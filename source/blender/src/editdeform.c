@@ -79,6 +79,7 @@ void sel_verts_defgroup (int select)
 					if (eve->dw[i].def_nr == (ob->actdef-1)){
 						if (select) eve->f |= SELECT;
 						else eve->f &= ~SELECT;
+						
 						break;
 					}
 				}
@@ -89,8 +90,9 @@ void sel_verts_defgroup (int select)
 		break;
 	}
 	countall();
-	EM_select_flush();	// vertices to edges/faces
-
+	/* this has to be called, because this function operates on vertices only */
+	if(select) EM_select_flush();	// vertices to edges/faces
+	else EM_deselect_flush();
 }
 
 MDeformWeight *verify_defweight (MDeformVert *dv, int defgroup)
