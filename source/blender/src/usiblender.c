@@ -221,18 +221,21 @@ int BIF_read_homefile(void)
 			U.vrmlflag= USER_VRML_LAYERS;
 		}
 
-#ifndef __sgi
-		/* startup 2.26 with aa fonts ! */
-		if (G.main->versionfile <= 225) {
-			U.transopts |= USER_DOTRANSLATE;
-		}
-#endif
-
 		space_set_commmandline_options();
 
 		if (U.undosteps==0) U.undosteps=32;
 
 		reset_autosave();
+
+#ifdef INTERNATIONAL
+		read_languagefile();
+	
+		if(U.transopts & USER_DOTRANSLATE)
+			start_interface_font();
+		else
+			G.ui_international = FALSE;
+#endif // INTERNATIONAL
+
 	}
 
 	return success;
@@ -501,14 +504,6 @@ void BIF_init(void)
 	readBlog();
 	strcpy(G.lib, G.sce);
 
-#ifdef INTERNATIONAL
-	read_languagefile();
-
-	if(U.transopts & USER_DOTRANSLATE)
-		start_interface_font();
-	else
-		G.ui_international = FALSE;
-#endif // INTERNATIONAL
 }
 
 /***/

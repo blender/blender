@@ -82,6 +82,8 @@
 #include "BIF_drawimage.h"	/* rectwrite_part */
 #include "BIF_mywindow.h"
 #include "BIF_interface.h"
+#include "BIF_glutil.h"
+
 #include "PIL_time.h"
 
 #include "RE_renderconverter.h"
@@ -276,6 +278,8 @@ static void display_pr_scanline(unsigned int *rect, int recty)
 
 	glRasterPos2f( (float)PR_XMIN+0.5, 1.0+(float)PR_YMIN + (recty*PR_FACY) );
 	glDrawPixels(PR_RECTX, 3, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
+
+	//glaDrawPixelsTex((float)PR_XMIN, (float)PR_YMIN + (recty*PR_FACY), PR_RECTX, 3, rect);
 
 	glPixelZoom(1.0, 1.0);
 	
