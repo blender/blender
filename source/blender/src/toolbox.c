@@ -1549,7 +1549,6 @@ static void tb_do_hotkey(void *arg, int event)
 
 /* *************Select ********** */
 
-
 static TBitem tb_object_select[]= {
 {	0, "Border Select|B", 	'b', NULL},
 {	0, "(De)select All|A", 	'a', NULL},
