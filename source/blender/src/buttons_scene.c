@@ -1049,7 +1049,7 @@ static void render_panel_render(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map renering");
+	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	626,171,61,30, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
 	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,41,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
 	uiDefButI(block, TOG|BIT|16,0,"Ray",	606,142,35,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
 	uiDefButI(block, TOG|BIT|8,0,"Radio",	641,142,46,28, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
