@@ -382,6 +382,19 @@ class Object:
     @return: a boolean value.
     """
 
+  def insertIpoKey(keytype):
+    """
+    Inserts keytype values in object ipo at curframe. Uses module constants.
+    @type keytype: Integer
+    @param keytype:
+           -LOC
+           -ROT
+           -SIZE
+           -LOCROT
+           -LOCROTSIZE
+    @return: py_none
+    """
+
   def link(object):
     """
     Links Object with data provided in the argument. The data must match the
