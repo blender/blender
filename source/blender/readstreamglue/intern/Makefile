@@ -53,7 +53,6 @@ CPPFLAGS += -I../../../kernel/gen_messaging
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../inflate
 CPPFLAGS += -I../../decrypt
-CPPFLAGS += -I../../verify
 
 CPPFLAGS += -I$(NAN_OPENSSL)/include
 

@@ -51,7 +51,6 @@ TESTLIBS += $(OCGDIR)/blender/deflate/$(DEBUG_DIR)libdeflate.a
 TESTLIBS += $(OCGDIR)/blender/encrypt/$(DEBUG_DIR)libencrypt.a
 TESTLIBS += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
 TESTLIBS += $(OCGDIR)/blender/sign/$(DEBUG_DIR)libsign.a
-TESTLIBS += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
 TESTLIBS += $(OCGDIR)/blender/writeblenfile/$(DEBUG_DIR)libwriteblenfile.a
 TESTLIBS += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
 TESTLIBS += $(OCGDIR)/blender/readstreamglue/$(DEBUG_DIR)libreadstreamglue.a

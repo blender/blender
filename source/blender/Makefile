@@ -34,7 +34,7 @@
 include nan_definitions.mk
 
 DIRS = blenloader
-DIRS += deflate inflate encrypt decrypt verify
+DIRS += deflate inflate encrypt decrypt
 DIRS += writestreamglue readstreamglue writeblenfile readblenfile
 DIRS += avi imbuf img render radiosity blenlib blenkernel blenpluginapi
 DIRS += bpython makesdna src renderconverter

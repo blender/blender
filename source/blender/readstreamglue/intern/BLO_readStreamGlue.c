@@ -46,7 +46,6 @@
 #include "BLO_readfile.h"
 #include "BLO_inflate.h"
 #include "BLO_decrypt.h"
-#include "BLO_verify.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -178,12 +177,6 @@ readStreamGlue(
 				(*control)->begin = BLO_decrypt_begin;
 				(*control)->process = BLO_decrypt_process;
 				(*control)->end = BLO_decrypt_end;
-				break;
-			case VERIFY:
-			case SIGN:
-				(*control)->begin = BLO_verify_begin;
-				(*control)->process = BLO_verify_process;
-				(*control)->end = BLO_verify_end;
 				break;
 			default:
 				err = BRS_SETFUNCTION(BRS_READSTREAMGLUE) |

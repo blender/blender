@@ -186,7 +186,6 @@ endif
     PULIB += $(OCGDIR)/blender/deflate/$(DEBUG_DIR)libdeflate.a
     PULIB += $(OCGDIR)/blender/encrypt/$(DEBUG_DIR)libencrypt.a
     PULIB += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
-    PULIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
     PULIB += $(OCGDIR)/blender/writeblenfile/$(DEBUG_DIR)libwriteblenfile.a
     PULIB += $(OCGDIR)/blender/writestreamglue/$(DEBUG_DIR)libwritestreamglue.a
     # toggle 2 writestreamglue libs for the Uber-Publisher :)
@@ -208,7 +207,6 @@ endif
     SPLIB += $(OCGDIR)/blender/inflate/$(DEBUG_DIR)libinflate.a
     SPLIB += $(OCGDIR)/blender/decrypt/$(DEBUG_DIR)libdecrypt.a
     SPLIB += $(OCGDIR)/blender/writestreamglueSTUB/$(DEBUG_DIR)libwritestreamglueSTUB.a
-    SPLIB += $(OCGDIR)/blender/verify/$(DEBUG_DIR)libverify.a
     SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
 
     PULIB += $(NAN_BLENKEY)/lib/libblenkey.a

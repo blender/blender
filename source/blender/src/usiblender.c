@@ -33,8 +33,6 @@
 	/* placed up here because of crappy
 	 * winsock stuff.
 	 */
-#include "BLO_signer_info.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -137,7 +135,6 @@
 void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
-	struct BLO_SignerInfo *info;
 	extern char datatoc_splash_jpg[];
 	extern int datatoc_splash_jpg_size;
 	char infostring[400];
@@ -146,15 +143,11 @@ void BIF_read_file(char *name)
 
 	// first try to read exotic file formats...
 	if (BKE_read_exotic(name) == 0) { /* throws first error box */
-		// we didn't succeed, now try to read Blender file
-		BKE_read_file(name, NULL); /* calls readfile, calls toolbox, throws one more, on failure calls the stream, and that is stubbed.... */
+		/* we didn't succeed, now try to read Blender file
+		   calls readfile, calls toolbox, throws one more, 
+		   on failure calls the stream, and that is stubbed.... */
+		BKE_read_file(name, NULL); 
 	}
-	info = BLO_getSignerInfo();
-	if (BLO_isValidSignerInfo(info)) {
-		sprintf(infostring, "File signed by: %s // %s", info->name, info->email);
-		splash((void *)datatoc_splash_jpg, datatoc_splash_jpg_size, infostring);
-	}
-	BLO_clrSignerInfo(info);
 
 	sound_initialize_sounds();
 
