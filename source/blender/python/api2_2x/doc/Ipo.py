@@ -209,7 +209,7 @@ class Ipo:
     @return: None
     """
     
-  def getCurvecurval(curvepos):
+  def getCurveCurval(curvepos):
     """
     Gets the current value of a curve of the Ipo.
     @type curvepos: int or string
