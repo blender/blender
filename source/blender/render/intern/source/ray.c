@@ -1523,9 +1523,9 @@ void ray_mirror(int mask)
 
 		for(j=0; j<R.osa; j++) {
 			if(mask & 1<<j) {
-				vec[0]= ref[0] + 1.0*(jit[j][0]-0.5)*dxref[0] + 1.0*(jit[j][1]-0.5)*dyref[0] ;
-				vec[1]= ref[1] + 1.0*(jit[j][0]-0.5)*dxref[1] + 1.0*(jit[j][1]-0.5)*dyref[1] ;
-				vec[2]= ref[2] + 1.0*(jit[j][0]-0.5)*dxref[2] + 1.0*(jit[j][1]-0.5)*dyref[2] ;
+				vec[0]= ref[0] + (jit[j][0]-0.5)*dxref[0] + (jit[j][1]-0.5)*dyref[0] ;
+				vec[1]= ref[1] + (jit[j][0]-0.5)*dxref[1] + (jit[j][1]-0.5)*dyref[1] ;
+				vec[2]= ref[2] + (jit[j][0]-0.5)*dxref[2] + (jit[j][1]-0.5)*dyref[2] ;
 				
 				/* prevent normal go to backside */
 				i= vec[0]*rvno[0]+ vec[1]*rvno[1]+ vec[2]*rvno[2];

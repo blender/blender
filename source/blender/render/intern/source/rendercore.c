@@ -2102,8 +2102,8 @@ void shadepixel(float x, float y, int vlaknr, int mask)
 		
 		if(R.osatex) {
 			if( (R.matren->texco & TEXCO_REFL) ) {
-				O.dxview= 1.0/fac;
-				O.dyview= R.ycor/fac;
+				O.dxview= -1.0/fac;
+				O.dyview= -R.ycor/fac;
 			}
 		}
 
