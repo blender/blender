@@ -66,6 +66,8 @@ CutCurve *get_mouse_trail(int * length, char mode);
 #define TRAIL_AUTO     4 
 
 short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
+
+void LoopMenu(void);
 /* End Knife Subdiv */
 
 	/** Aligns the selected TFace's of @a me to the @a v3d,

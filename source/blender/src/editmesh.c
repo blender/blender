@@ -7494,6 +7494,29 @@ short seg_intersect(EditEdge *e, CutCurve *c, int len){
 } 
 
 
+void LoopMenu(){ /* Called by KKey */
+
+	short ret;
+	
+	ret=pupmenu("Loop/Cut Menu %t|Loop Select %x1|Loop Cut %x2|"
+				"Knife (Exact) %x3|Knife (Centers)%x4|");
+				
+	switch (ret){
+		case 1:
+			loop('s');
+			break;
+		case 2:
+			loop('c');
+			break;
+		case 3: 
+			KnifeSubdivide(KNIFE_EXACT);
+			break;
+		case 4:
+			KnifeSubdivide(KNIFE_MIDPOINT);
+	}
+
+}
+
 /*********************** EDITMESH UNDO ********************************/
 /* Mesh Edit undo by Alexander Ewring,                                */
 /* ported by Robert Wenzlaff                                          */
