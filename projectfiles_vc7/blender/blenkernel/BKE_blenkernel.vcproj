@@ -434,6 +434,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\subsurf.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\subsurf_ccg.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\text.c">
 			</File>
 			<File
