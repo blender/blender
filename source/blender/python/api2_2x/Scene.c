@@ -96,6 +96,8 @@ struct PyMethodDef M_Scene_methods[] = {
 /*****************************************************************************/
 static PyObject *Scene_getName(BPy_Scene *self);
 static PyObject *Scene_setName(BPy_Scene *self, PyObject *arg);
+static PyObject *Scene_getSize(BPy_Scene *self);
+static PyObject *Scene_setSize(BPy_Scene *self, PyObject *arg);
 static PyObject *Scene_copy(BPy_Scene *self, PyObject *arg);
 static PyObject *Scene_startFrame(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_endFrame(BPy_Scene *self, PyObject *args);
@@ -120,6 +122,10 @@ static PyMethodDef BPy_Scene_methods[] = {
       "() - Return Scene name"},
   {"setName", (PyCFunction)Scene_setName, METH_VARARGS,
           "(str) - Change Scene name"},
+  {"getSize", (PyCFunction)Scene_getSize, METH_NOARGS,
+      "() - Return Scene size"},
+  {"setSize", (PyCFunction)Scene_setSize, METH_VARARGS,
+          "(str) - Change Scene size"},
   {"copy",    (PyCFunction)Scene_copy, METH_VARARGS,
           "(duplicate_objects = 1) - Return a copy of this scene\n"
   "The optional argument duplicate_objects defines how the scene\n"
@@ -371,6 +377,36 @@ static PyObject *Scene_setName(BPy_Scene *self, PyObject *args)
 
   rename_id(&self->scene->id, buf);
 
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
+
+static PyObject *Scene_getSize(BPy_Scene *self)
+{
+PyObject* list = PyList_New (0);
+Scene *scene = self->scene;
+PyList_Append (list,  PyInt_FromLong(scene->r.xsch));
+PyList_Append (list,  PyInt_FromLong(scene->r.ysch));
+ return list;
+}
+
+static PyObject *Scene_setSize(BPy_Scene *self, PyObject *args)
+{
+ 	PyObject *listargs=0, * tmp;
+	int i;
+  if (!PyArg_ParseTuple(args, "O", &listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+  if (!PyList_Check(listargs))
+    return (EXPP_ReturnPyObjError(PyExc_TypeError,"expected a list"));
+	puts("popo");
+	tmp = PyList_GetItem(listargs,0);
+	printf("%d\n",self->scene->r.xsch);
+	self->scene->r.xsch = (short)PyInt_AsLong(tmp);
+	printf("%d\n",self->scene->r.xsch);
+	tmp = PyList_GetItem(listargs,1);
+	self->scene->r.ysch = (short)PyInt_AsLong(tmp);
   Py_INCREF(Py_None);
   return Py_None;
 }
@@ -670,9 +706,9 @@ static PyObject *Scene_getAttr (BPy_Scene *self, char *name)
   if (strcmp(name, "name") == 0)
     attr = PyString_FromString(self->scene->id.name+2);
 
-  else if (strcmp(name, "__members__") == 0) {
+  else if (strcmp(name, "__members__") == 0)
     attr = Py_BuildValue("[s]", "name");
-  }
+
 
   if (!attr)
     return (EXPP_ReturnPyObjError (PyExc_MemoryError,
