@@ -299,7 +299,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	
 	clear_global();
 	
-	G.save_over = 1;
+	if(mode!='u') G.save_over = 1;
 	
 	G.main= bfd->main;
 	if (bfd->user) {
