@@ -101,8 +101,8 @@ static uiBlock *seq_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "seq_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Frame All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Frame Selected|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
@@ -202,13 +202,13 @@ static uiBlock *seq_addmenu_effectmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_seq_addmenu_effectmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Sub", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mul", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subtract", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Multiply", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cross", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "GammaCross", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AlphaOver", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AlphaUnder", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AlphaOverDrop", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Gamma Cross", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Alpha Over", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Alpha Under", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Alpha Over Drop", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Plugin...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 
@@ -247,12 +247,15 @@ static uiBlock *seq_addmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "seq_addmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_addmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBlockBut(block, seq_addmenu_effectmenu, NULL, ICON_RIGHTARROW_THIN, "Effect", 0, yco-=20, 120, 19, "");	
 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+		
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -444,21 +447,21 @@ void seq_buttons()
 	/* pull down menus */
 	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
 		uiBlockSetEmboss(block, UI_EMBOSSP);
-	
+
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block,seq_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
+		uiDefBlockBut(block,seq_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 	
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block,seq_selectmenu, NULL, "Select", xco, 0, xmax, 20, "");
+		uiDefBlockBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 	
 		xmax= GetButStringLength("Add");
-		uiDefBlockBut(block, seq_addmenu, NULL, "Add", xco, 0, xmax, 20, "");
+		uiDefBlockBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 	
 		xmax= GetButStringLength("Strip");
-		uiDefBlockBut(block, seq_editmenu, NULL, "Strip", xco, 0, xmax, 20, "");
+		uiDefBlockBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 	
 		/* end of pull down menus */
@@ -466,16 +469,16 @@ void seq_buttons()
 	}
 	
 	/* IMAGE */
-	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Toggles image display");
+	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Shows the sequence output image preview");
 
 	/* ZOOM and BORDER */
-	xco+= XIC;
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (CTRL+MiddleMouse)");
+	xco+= 8;
+	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
 
 	/* CLEAR MEM */
-	xco+= XIC;
-	uiDefBut(block, BUT, B_SEQCLEAR, "Clear",	xco+=XIC,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Forces a clear of all buffered images in memory");
+	xco+= 8;
+	uiDefBut(block, BUT, B_SEQCLEAR, "Refresh",	xco+=XIC,0,3*XIC,YIC, 0, 0, 0, 0, 0, "Clears all buffered images in memory");
 	
 	uiDrawBlock(block);
 }

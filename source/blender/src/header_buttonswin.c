@@ -380,12 +380,78 @@ static uiBlock *sbuts_context_menu(void *arg_unused)
 }
 #endif
 
+static void do_buts_viewmenu(void *arg, int event)
+{
+	SpaceButs *sbuts= curarea->spacedata.first;
+	
+	switch(event) {
+		case 0: /* panel alignment */
+		case 1:
+		case 2:
+			sbuts->align= event;
+			if(event) {
+				uiAlignPanelStep(curarea, 1.0);
+				do_buts_buttons(B_BUTSHOME);
+			}
+			break;
+		case 3: /* View All */
+			do_buts_buttons(B_BUTSHOME);
+			break;
+		case 4: /* Maximize Window */
+			/* using event B_FULL */
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *buts_viewmenu(void *arg_unused)
+{
+	SpaceButs *sbuts= curarea->spacedata.first;
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "buts_viewmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_buts_viewmenu, NULL);
+	
+	if (sbuts->align == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Horizontal Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Horizontal Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+
+	if (sbuts->align == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Vertical Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Vertical Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	if (sbuts->align == 0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Free Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Free Align", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		
+	if (!curarea->full) 
+		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	else 
+		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
+
 void buts_buttons(void)
 {
 	uiBlock *block;
 	ID *id, *idfrom;
-	short xco, t_base= 0;
+	short xco, xmax, t_base= 0;
 	char naam[20];
+	int colorid;
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
@@ -395,19 +461,56 @@ void buts_buttons(void)
 
 	curarea->butspacetype= SPACE_BUTS;
 	
+	
 	xco = 8;
 	
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, 
+					  windowtype_pup(), xco, 0, XIC+10, YIC, 
+					  &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
+					  "Displays Current Window Type. "
+					  "Click for menu of available types.");
 
-	xco+= XIC+22;
+	xco += XIC + 14;
+
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if (curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+					  ICON_DISCLOSURE_TRI_RIGHT,
+					  xco,2,XIC,YIC-2,
+					  &(curarea->flag), 0, 0, 0, 0, 
+					  "Show pulldown menus");
+	}
+	else {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+					  ICON_DISCLOSURE_TRI_DOWN,
+					  xco,2,XIC,YIC-2,
+					  &(curarea->flag), 0, 0, 0, 0, 
+					  "Hide pulldown menus");
+	}
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	xco+=XIC;
+
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+		/* pull down menus */
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+		xmax= GetButStringLength("View");
+		uiDefBlockBut(block, buts_viewmenu, NULL, 
+					  "View", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+
+	}
+
+	uiBlockSetEmboss(block, UI_EMBOSSX);
+
 	
 	/* FULL WINDOW */
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
+//	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
+//	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 
 	/* HOME */
-	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
-	xco+=XIC;
+//	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
+//	xco+=XIC;
 	
 	/* mainb menu */
 	/* (this could be done later with a dynamic tree and branches, also for python) */
@@ -419,13 +522,14 @@ void buts_buttons(void)
 	//	xco+= 90-XIC+10;
 	//}
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, ROW, B_REDR,	ICON_GAME,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
+	uiDefIconButS(block, ROW, B_REDR,	ICON_GAME,			xco, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_OBJECT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_EDIT,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
-	xco+=XIC;
+	
+	xco+= XIC;
 	
 	// if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 4;
 	

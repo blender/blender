@@ -2629,7 +2629,7 @@ void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case RIGHTMOUSE:
-			nr= pupmenu("Align buttons%t|Free %x0|Horizontal%x1|Vertical%x2");
+			nr= pupmenu("Panel Alignment%t|Horizontal%x1|Vertical%x2|Free %x0");
 			if (nr>=0) {
 				sbuts->align= nr;
 				if(nr) {

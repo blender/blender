@@ -171,10 +171,53 @@ void do_sound_buttons(unsigned short event)
 	}
 }
 
+
+static void do_sound_viewmenu(void *arg, int event)
+{
+	switch(event) {
+		case 0: /* View All */
+			do_sound_buttons(B_SOUNDHOME);
+			break;
+		case 1: /* Maximize Window */
+			/* using event B_FULL */
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *sound_viewmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "sound_viewmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_sound_viewmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+		
+	if (!curarea->full) 
+		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	else 
+		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
+
 void sound_buttons(void)
 {
 	uiBlock *block;
-	short xco;
+	short xco, xmax;
 	char naam[256];
 	char ch[20];
 	
@@ -183,21 +226,50 @@ void sound_buttons(void)
 
 	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
 	else uiBlockSetCol(block, TH_HEADERDESEL);
-
-	curarea->butspacetype= SPACE_SOUND;
 	
+	curarea->butspacetype= SPACE_SOUND;
+
 	xco = 8;
+	
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, 
+					  windowtype_pup(), xco, 0, XIC+10, YIC, 
+					  &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
+					  "Displays Current Window Type. "
+					  "Click for menu of available types.");
 
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(),xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
+	xco += XIC + 14;
 
-	xco+= XIC+22;
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if (curarea->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+					  ICON_DISCLOSURE_TRI_RIGHT,
+					  xco,2,XIC,YIC-2,
+					  &(curarea->flag), 0, 0, 0, 0, 
+					  "Show pulldown menus");
+	}
+	else {
+		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+					  ICON_DISCLOSURE_TRI_DOWN,
+					  xco,2,XIC,YIC-2,
+					  &(curarea->flag), 0, 0, 0, 0, 
+					  "Hide pulldown menus");
+	}
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	xco+=XIC;
 
-	/* FULL WINDOW */
-	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
-	uiDefIconBut(block, BUT, B_SOUNDHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
+	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+		/* pull down menus */
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+	
+		xmax= GetButStringLength("View");
+		uiDefBlockBut(block, sound_viewmenu, NULL, 
+					  "View", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
 
-	xco= std_libbuttons(block, xco+40, 0, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
+	}
+
+	uiBlockSetEmboss(block, UI_EMBOSSX);
+	xco= std_libbuttons(block, xco+8, 0, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
 
 	if(G.ssound->sound) {
 		bSound *sound= G.ssound->sound;

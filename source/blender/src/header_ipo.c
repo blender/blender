@@ -387,7 +387,7 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Frame All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 
 	if (ei != NULL && (ei->flag & IPO_EDIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
@@ -673,24 +673,24 @@ void ipo_buttons(void)
 		ei = get_editipo();
 	
 		xmax= GetButStringLength("View");
-		uiDefBlockBut(block,ipo_viewmenu, NULL, "View", xco, 0, xmax, 20, "");
+		uiDefBlockBut(block,ipo_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 	
 		xmax= GetButStringLength("Select");
-		uiDefBlockBut(block,ipo_selectmenu, NULL, "Select", xco, 0, xmax, 20, "");
+		uiDefBlockBut(block,ipo_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 	
 		if (G.sipo->showkey) {
 			xmax= GetButStringLength("Key");
-			uiDefBlockBut(block,ipo_editmenu, NULL, "Key", xco, 0, xmax, 20, "");
+			uiDefBlockBut(block,ipo_editmenu, NULL, "Key", xco, -2, xmax-3, 24, "");
 		}
 		else if(ei != NULL && (ei->flag & IPO_EDIT)) {
 			xmax= GetButStringLength("Point");
-			uiDefBlockBut(block,ipo_editmenu, NULL, "Point", xco, 0, xmax, 20, "");
+			uiDefBlockBut(block,ipo_editmenu, NULL, "Point", xco, -2, xmax-3, 24, "");
 		}
 		else {
 			xmax= GetButStringLength("Curve");
-			uiDefBlockBut(block,ipo_editmenu, NULL, "Curve", xco, 0, xmax, 20, "");
+			uiDefBlockBut(block,ipo_editmenu, NULL, "Curve", xco, -2, xmax-3, 24, "");
 		}
 			
 		xco+=xmax;
