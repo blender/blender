@@ -288,6 +288,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\script.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\softbody.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\sound.c">
 			</File>
 			<File
@@ -425,6 +428,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_script.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_softbody.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_sound.h">
