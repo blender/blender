@@ -220,6 +220,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Window.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\World.c">
 			</File>
 			<File
@@ -363,6 +366,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Window.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\World.h">

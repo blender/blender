@@ -260,6 +260,9 @@
 				RelativePath="..\..\..\source\blender\src\editmesh_tools.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\editmesh_undo.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\editnla.c">
 			</File>
 			<File
