@@ -254,6 +254,52 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 }
 
 /*
+ * Generic callback for object based spacial constraints applied to linear motion
+ * 
+ * At first, the following is applied to the first data in the array
+ * The IN vector in projected into the constrained space and then further
+ * projected along the view vector.
+ * (in perspective mode, the view vector is relative to the position on screen)
+ *
+ * Further down, that vector is mapped to each data's space.
+ */
+
+static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], float out[3], float pvec[3])
+{
+	VECCOPY(out, in);
+	if (t->con.mode & CON_APPLY) {
+		if (!td) {
+			Mat3MulVecfl(t->con.pmtx, out);
+			if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
+				if (getConstraintSpaceDimension(t) == 2) {
+					planeProjection(t, in, out);
+				}
+				else if (getConstraintSpaceDimension(t) == 1) {
+					float c[3];
+
+					if (t->con.mode & CON_AXIS0) {
+						VECCOPY(c, t->con.mtx[0]);
+					}
+					else if (t->con.mode & CON_AXIS1) {
+						VECCOPY(c, t->con.mtx[1]);
+					}
+					else if (t->con.mode & CON_AXIS2) {
+						VECCOPY(c, t->con.mtx[2]);
+					}
+					axisProjection(t, c, in, out);
+				}
+			}
+
+			postConstraintChecks(t, out, pvec);
+			VECCOPY(out, pvec);
+		}
+		else {
+			Mat3MulVecfl(td->axismtx, out);
+		}
+	}
+}
+
+/*
  * Generic callback for constant spacial constraints applied to resize motion
  * 
  *
@@ -391,25 +437,25 @@ void drawObjectConstraint(TransInfo *t) {
 	TransData * td = t->data;
 
 	if (t->con.mode & CON_AXIS0) {
-		drawLine(t->con.center, td->axismtx[0], 255 - 'x');
+		drawLine(td->ob->obmat[3], td->axismtx[0], 255 - 'x');
 	}
 	if (t->con.mode & CON_AXIS1) {
-		drawLine(t->con.center, td->axismtx[1], 255 - 'y');
+		drawLine(td->ob->obmat[3], td->axismtx[1], 255 - 'y');
 	}
 	if (t->con.mode & CON_AXIS2) {
-		drawLine(t->con.center, td->axismtx[2], 255 - 'z');
+		drawLine(td->ob->obmat[3], td->axismtx[2], 255 - 'z');
 	}
 
 	td++;
 	for(i=1;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
-			drawLine(t->con.center, td->axismtx[0], 'x');
+			drawLine(td->ob->obmat[3], td->axismtx[0], 'x');
 		}
 		if (t->con.mode & CON_AXIS1) {
-			drawLine(t->con.center, td->axismtx[1], 'y');
+			drawLine(td->ob->obmat[3], td->axismtx[1], 'y');
 		}
 		if (t->con.mode & CON_AXIS2) {
-			drawLine(t->con.center, td->axismtx[2], 'z');
+			drawLine(td->ob->obmat[3], td->axismtx[2], 'z');
 		}
 	}
 }
@@ -472,14 +518,11 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	}
 	else {
 		if (t->total == 1) {
-			float obmat[3][3];
-			Mat3CpyMat4(obmat, t->data->ob->obmat);
-			setConstraint(t, obmat, mode, text);
+			setConstraint(t, t->data->axismtx, mode, text);
 		}
 		else {
 			strcpy(t->con.text + 1, text);
-			Mat3One(t->con.mtx);
-			Mat3One(t->con.imtx);
+			Mat3CpyMat3(t->con.mtx, t->data->axismtx);
 			t->con.mode = mode;
 			getConstraintMatrix(t);
 
@@ -491,7 +534,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 			startConstraint(t);
 
 			t->con.drawExtra = drawObjectConstraint;
-			t->con.applyVec = NULL;
+			t->con.applyVec = applyObjectConstraintVec;
 			t->con.applySize = applyObjectConstraintSize;
 			t->con.applyRot = applyObjectConstraintRot;
 			t->redraw = 1;
@@ -701,7 +744,7 @@ void setNearestAxis(TransInfo *t)
 	}
 
 	if (len[0] < len[1] && len[0] < len[2]) {
-		if (G.qual == LR_CTRLKEY) {
+		if (G.qual == LR_ALTKEY) {
 			t->con.mode |= (CON_AXIS1|CON_AXIS2);
 			strcpy(t->con.text, " locking global X");
 		}
@@ -711,7 +754,7 @@ void setNearestAxis(TransInfo *t)
 		}
 	}
 	else if (len[1] < len[0] && len[1] < len[2]) {
-		if (G.qual == LR_CTRLKEY) {
+		if (G.qual == LR_ALTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS2);
 			strcpy(t->con.text, " locking global Y");
 		}
@@ -721,7 +764,7 @@ void setNearestAxis(TransInfo *t)
 		}
 	}
 	else if (len[2] < len[1] && len[2] < len[0]) {
-		if (G.qual == LR_CTRLKEY) {
+		if (G.qual == LR_ALTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS1);
 			strcpy(t->con.text, " locking global Z");
 		}

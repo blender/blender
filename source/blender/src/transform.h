@@ -107,7 +107,7 @@ typedef struct TransInfo {
     int       (*transform)(struct TransInfo *, short *);
                                 /* transform function pointer           */
     char        redraw;         /* redraw flag                          */
-    int	        flags;          /* generic flags for special behaviors  */
+    int	        flag;          /* generic flags for special behaviors  */
     int         total;          /* total number of transformed data     */
 	float		propsize;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
@@ -143,6 +143,13 @@ typedef struct TransInfo {
 #define TFM_SHEAR			5
 #define TFM_LAMP_ENERGY		6
 
+/* transinfo->flag */
+#define T_OBJECT		1
+#define T_EDIT			2
+#define T_POSE			4
+#define T_TEXTURE		8
+
+
 #define CON_APPLY		1
 #define CON_AXIS0		2
 #define CON_AXIS1		4
@@ -160,7 +167,6 @@ typedef struct TransInfo {
 #define TD_SELECTED		1
 #define	TD_NOACTION		2
 #define	TD_USEQUAT		4
-#define TD_OBJECT		8
 
 void Transform(int mode);
 

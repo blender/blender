@@ -105,6 +105,7 @@
 
 #include "transform.h"
 #include "transform_generics.h"
+#include "transform_constraints.h"
 
 extern ListBase editNurb;
 extern ListBase editelems;
@@ -287,7 +288,7 @@ void recalcData(TransInfo *t)
 
 void initTransModeFlags(TransInfo *t, int mode) 
 {
-	t->flags = 0;
+	t->flag = 0;
 	t->num.flags = 0;
 	t->mode = mode;
 	
@@ -299,17 +300,17 @@ void initTransModeFlags(TransInfo *t, int mode)
 	case TFM_RESIZE:
 		t->num.flags |= NULLONE;
 		if (!G.obedit) {
-			t->flags |= NOZERO;
+			t->flag |= NOZERO;
 			t->num.flags |= NOZERO;
 		}
 		break;
 	case TFM_TOSPHERE:
 		t->num.flags |= NULLONE;
 		t->num.flags |= NONEGATIVE;
-		t->flags |= NOCONSTRAINT;
+		t->flag |= NOCONSTRAINT;
 		break;
 	case TFM_SHEAR:
-		t->flags |= NOCONSTRAINT;
+		t->flag |= NOCONSTRAINT;
 		break;
 	}
 }
@@ -382,6 +383,7 @@ void postTrans (TransInfo *t)
 	G.moving = 0; // Set moving flag off (display as usual)
 
 	stopConstraint(t);
+	t->con.drawExtra = NULL;
 	t->con.applyVec	= NULL;
 	t->con.applySize= NULL;
 	t->con.applyRot	= NULL;
@@ -515,7 +517,7 @@ void calculateCenterCursor(TransInfo *t)
 	cursor = give_cursor();
 	VECCOPY(t->center, cursor);
 
-	if(G.obedit || G.obpose) {
+	if(t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= G.obedit?G.obedit:G.obpose;
 		float mat[3][3], imat[3][3];
 		float vec[3];
@@ -546,7 +548,7 @@ void calculateCenterMedian(TransInfo *t)
 	VecMulf(partial, 1.0f / t->total);
 	VECCOPY(t->center, partial);
 
-	if (G.obedit || G.obpose) {
+	if (t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= G.obedit?G.obedit:G.obpose;
 		float vec[3];
 		
@@ -578,7 +580,7 @@ void calculateCenterBound(TransInfo *t)
 	VecAddf(t->center, min, max);
 	VecMulf(t->center, 0.5);
 
-	if (G.obedit || G.obpose) {
+	if (t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= G.obedit?G.obedit:G.obpose;
 		float vec[3];
 		

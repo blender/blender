@@ -1084,7 +1084,7 @@ static void createTransObject(void)
 		if TESTBASELIB(base) {
 			ob= base->object;
 			
-			td->flag= TD_SELECTED|TD_OBJECT;
+			td->flag= TD_SELECTED;
 			td->ext = tx;
 
 			/* store ipo keys? */
@@ -1148,13 +1148,16 @@ static void createTransObject(void)
 static void createTransData(TransInfo *t) 
 {
 	if( t->mode & TFM_TEX) {
+		t->flag &= T_TEXTURE;
 		createTransTexspace();
 		t->mode &= ~TFM_TEX;	// now becoming normal grab/rot/scale
 	}
 	else if (G.obpose) {
+		t->flag &= T_POSE;
 		createTransPose();
 	}
 	else if (G.obedit) {
+		t->flag &= T_EDIT;
 		if (G.obedit->type == OB_MESH) {
 			createTransEditVerts();	
    		}
@@ -1182,6 +1185,7 @@ static void createTransData(TransInfo *t)
 	}
 	else {
 		createTransObject();
+		t->flag &= T_OBJECT;
 	}
 }
 
@@ -1330,7 +1334,7 @@ void Transform(int mode)
 					else if(cmode == 'x') {
 						if (G.qual == 0)
 							setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
-						else if (G.qual == LR_CTRLKEY)
+						else if (G.qual == LR_ALTKEY)
 							setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
 
 						cmode = 'X';
@@ -1338,7 +1342,7 @@ void Transform(int mode)
 					else {
 						if (G.qual == 0)
 							setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
-						else if (G.qual == LR_CTRLKEY)
+						else if (G.qual == LR_ALTKEY)
 							setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
 
 						cmode = 'x';
@@ -1353,7 +1357,7 @@ void Transform(int mode)
 					else if(cmode == 'y') {
 						if (G.qual == 0)
 							setLocalConstraint(&Trans, (CON_AXIS1), "along global Y");
-						else if (G.qual == LR_CTRLKEY)
+						else if (G.qual == LR_ALTKEY)
 							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking global Y");
 
 						cmode = 'Y';
@@ -1361,7 +1365,7 @@ void Transform(int mode)
 					else {
 						if (G.qual == 0)
 							setConstraint(&Trans, mati, (CON_AXIS1), "along local Y");
-						else if (G.qual == LR_CTRLKEY)
+						else if (G.qual == LR_ALTKEY)
 							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking local Y");
 
 						cmode = 'y';
@@ -1376,7 +1380,7 @@ void Transform(int mode)
 					else if(cmode == 'z') {
 						if (G.qual == 0)
 							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
-						else if (G.qual == LR_CTRLKEY)
+						else if (G.qual == LR_ALTKEY)
 							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
 
 						cmode = 'Z';
@@ -1384,7 +1388,7 @@ void Transform(int mode)
 					else {
 						if (G.qual == 0)
 							setConstraint(&Trans, mati, (CON_AXIS2), "along global Z");
-						else if (G.qual == LR_CTRLKEY)
+						else if (G.qual == LR_ALTKEY)
 							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
 
 						cmode = 'z';
@@ -1732,7 +1736,7 @@ int Resize(TransInfo *t, short mval[2])
 		if (td->flag & TD_NOACTION)
 			continue;
 
-		if (!(td->flag & TD_OBJECT)) {
+		if (t->flag & T_EDIT) {
 			Mat3MulMat3(smat, mat, td->mtx);
 			Mat3MulMat3(tmat, td->smtx, smat);
 		}
@@ -1743,7 +1747,7 @@ int Resize(TransInfo *t, short mval[2])
 		if (td->ext) {
 			float fsize[3];
 
-			if (td->flag & TD_OBJECT) {
+			if (t->flag & T_OBJECT) {
 				float obsizemat[3][3];
 				Mat3MulMat3(obsizemat, td->smtx, tmat);
 				Mat3ToSize(obsizemat, fsize);
@@ -1785,7 +1789,7 @@ int Resize(TransInfo *t, short mval[2])
 
 		VecMulf(vec, td->factor);
 
-		if (td->flag & TD_OBJECT) {
+		if (t->flag & T_OBJECT) {
 			Mat3MulVecfl(td->smtx, vec);
 		}
 
@@ -1994,7 +1998,7 @@ int Rotation(TransInfo *t, short mval[2])
 			VecRotToMat3(axis, final * td->factor, mat);
 		}
 
-		if (!(td->flag & TD_OBJECT)) {
+		if (t->flag & T_EDIT) {
 			Mat3MulMat3(totmat, mat, td->mtx);
 			Mat3MulMat3(smat, td->smtx, totmat);
 
