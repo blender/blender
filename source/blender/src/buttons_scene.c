@@ -1281,10 +1281,9 @@ static void render_panel_yafrayGI()
 			70,150,89,20, &G.scene->r.GIquality, 0, 0, 0, 0, "Global Illumination Quality");
 
 	if (G.scene->r.GImethod>0) {
-		if (G.scene->r.GIpower==0) G.scene->r.GIpower=1;
-		uiDefButF(block, NUM, B_DIFF, "Power:", 5,10,154,20, &G.scene->r.GIpower, 0.01, 100.0, 10, 0, "GI lighting intensity scale, 1 is normal");
+		uiDefButF(block, NUM, B_DIFF, "EmitPwr:", 5,35,154,20, &G.scene->r.GIpower, 0.01, 100.0, 10, 0, "arealight, material emit and background intensity scaling, 1 is normal");
+		if (G.scene->r.GImethod==2) uiDefButF(block, NUM, B_DIFF, "GI Pwr:", 5,10,154,20, &G.scene->r.GIindirpower, 0.01, 100.0, 10, 0, "GI indirect lighting intensity scaling, 1 is normal");
 	}
-        
 
 	if (G.scene->r.GImethod==2) 
 	{
@@ -1300,9 +1299,8 @@ static void render_panel_yafrayGI()
 			uiDefButF(block, NUM, B_DIFF,"ShadQu:", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.01, 1.0 ,1,0, "Sets the shadow quality, keep it under 0.95 :-) ");
 			if (G.scene->r.GIpixelspersample==0) G.scene->r.GIpixelspersample=10;
 			uiDefButI(block, NUM, B_DIFF, "Prec:",	5,60,75,20, &G.scene->r.GIpixelspersample, 1, 50, 10, 10, "Maximum number of pixels without samples, the lower the better and slower");
-			uiDefButS(block,TOG|BIT|0, B_DIFF, "Gradient", 84,60,75,20, &G.scene->r.GIgradient, 0, 0, 0, 0, "Try to smooth lighting using a gradient");
 			if (G.scene->r.GIrefinement==0) G.scene->r.GIrefinement=1.0;
-			uiDefButF(block, NUM, B_DIFF, "Refinement:", 5,35,154,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
+			uiDefButF(block, NUM, B_DIFF, "Ref:", 80,60,75,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
 		}
 		if (G.scene->r.GIphotons) 
 		{
@@ -1315,7 +1313,7 @@ static void render_panel_yafrayGI()
 					0.00001, 100.0 ,0,0, "Radius to search for photons to mix (blur)");
 			if(G.scene->r.GImixphotons==0) G.scene->r.GImixphotons=100;
 			uiDefButI(block, NUM, B_DIFF, "MixCount:", 170,35,140,20, &G.scene->r.GImixphotons, 
-					0, 1000, 10, 10, "Number of photons to shoot");
+					0, 1000, 10, 10, "Number of photons to mix");
 			uiDefButS(block,TOG|BIT|0, B_REDR, "Tune Photons",170,10,140,20, &G.scene->r.GIdirect, 
 					0, 0, 0, 0, "Show the photonmap directly in the render for tuning");
 		}
@@ -1373,6 +1371,8 @@ void render_panels()
 		if (G.scene->r.YF_raydepth==0) G.scene->r.YF_raydepth=5;
 		if (G.scene->r.YF_AApixelsize==0.0) G.scene->r.YF_AApixelsize=1.5;
 		if (G.scene->r.YF_AAthreshold==0.0) G.scene->r.YF_AAthreshold=0.05;
+		if (G.scene->r.GIpower==0.0) G.scene->r.GIpower=1.0;
+		if (G.scene->r.GIindirpower==0.0) G.scene->r.GIindirpower=1.0;
 		render_panel_yafrayGlobal();
 		render_panel_yafrayGI();
 	}

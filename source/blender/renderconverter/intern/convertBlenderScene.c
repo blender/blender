@@ -3016,7 +3016,7 @@ void RE_rotateBlenderScene(void)
 					free_duplilist();
 				}
 				else {
-					/* yafray: if there are linked data objects (except lamps or empties),
+					/* yafray: if there are linked data objects (except lamps, empties or armatures),
 					   yafray only needs to know about one, the rest can be instanciated.
 					   The dupliMtx list is used for this purpose */
 					if (R.r.renderer==R_YAFRAY) {
@@ -3027,7 +3027,7 @@ void RE_rotateBlenderScene(void)
 							else
 								init_render_object(ob);
 						}
-						else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) && YAF_objectKnownData(ob))
+						else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) && (ob->type!=OB_ARMATURE) && YAF_objectKnownData(ob))
 							printf("Added dupli matrix for linked data object %s\n", ob->id.name);
 						else
 							init_render_object(ob);

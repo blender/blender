@@ -18,6 +18,8 @@ void yafrayRender_t::clearAll()
 	dupliMtx_list.clear();
 	dup_srcob.clear();
 	objectData.clear();
+	imagetex.clear();
+	imgtex_shader.clear();
 }
 
 bool yafrayRender_t::exportScene()
@@ -102,8 +104,7 @@ bool yafrayRender_t::getAllMatTexObs()
 			if (strlen(matr->id.name)==0)
 				used_materials["blender_default"] = matr;
 			else
-				used_materials[matr->id.name] = matr; // <-- full name to avoid name collision in yafray
-				//used_materials[matr->id.name+2] = matr;	// skip 'MA' id
+				used_materials[matr->id.name] = matr;
 			// textures, all active channels
 			for (int m=0;m<8;m++) {
 				if (matr->septex & (1<<m)) continue;	// only active channels
@@ -115,26 +116,36 @@ bool yafrayRender_t::getAllMatTexObs()
 				if (tx==NULL) continue;
 				short txtp = tx->type;
 				// if texture type not available in yafray, ignore
-				if ((txtp!=TEX_STUCCI) &&
-						(txtp!=TEX_CLOUDS) &&
-						(txtp!=TEX_WOOD) &&
-						(txtp!=TEX_MARBLE) &&
-						(txtp!=TEX_IMAGE)) continue;
-				// in the case of an image texture, check that there is an actual image, otherwise ignore
-				if ((txtp & TEX_IMAGE) && (!tx->ima)) continue;
-				used_textures[tx->id.name] = make_pair(matr, mx); // <-- full name to avoid name collision in yafray
-				//used_textures[tx->id.name+2] = make_pair(matr, mx);
+				if ((txtp==0) ||
+						(txtp==TEX_MAGIC) ||
+						(txtp==TEX_BLEND) ||
+						(txtp==TEX_NOISE) ||
+						(txtp==TEX_PLUGIN) ||
+						(txtp==TEX_ENVMAP)) continue;
+				// In the case of an image texture, check that there is an actual image, otherwise ignore.
+				// Stupid error was here (...if (txtp & TEX_IMAGE)...),
+				// which happened to work sofar, but not anymore with the extended texture support..
+				if ((txtp==TEX_IMAGE) && (!tx->ima)) continue;
+				used_textures[tx->id.name] = mx;
 			}
 		}
 
-		// make list of faces per object, ignore <3 vert faces, duplicate vertex sorting done later
-		// make sure null object pointers are ignored
+		// Make list of faces per object, ignore <3 vert faces, duplicate vertex sorting done later.
+		// ignore null object pointers.
+		// Also make list of facetexture images (material 'TexFace').
 		if (vlr->ob) {
 			int nv = 0;	// number of vertices
 			if (vlr->v4) nv=4; else if (vlr->v3) nv=3;
 			if (nv) all_objects[vlr->ob].push_back(vlr);
+			if (vlr->tface) {
+				Image* fc_img = (Image*)vlr->tface->tpage;
+				if (fc_img) {
+					Material* fmat = vlr->mat;
+					// only save if TexFace enabled
+					if (fmat && (fmat->mode & MA_FACETEXTURE)) imagetex[fc_img] = fmat;
+				}
+			}
 		}
-		//else cout << "WARNING: VlakRen struct with null obj.ptr!\n";
 
 	}
 
@@ -167,7 +178,7 @@ void yafrayRender_t::addDupliMtx(Object* obj)
 {
 	for (int i=0;i<4;i++)
 		for (int j=0;j<4;j++)
-			dupliMtx_list[string(obj->id.name)].push_back(obj->obmat[i][j]);
+			dupliMtx_list[obj->id.name].push_back(obj->obmat[i][j]);
 }
 
 
@@ -184,7 +195,7 @@ bool yafrayRender_t::objectKnownData(Object* obj)
 		// then save matrix of linked object in dupliMtx_list, using name of ORIGINAL object
 		for (int i=0;i<4;i++)
 			for (int j=0;j<4;j++)
-				dupliMtx_list[string(orgob->id.name)].push_back(obj->obmat[i][j]);
+				dupliMtx_list[orgob->id.name].push_back(obj->obmat[i][j]);
 		return true;
 	}
 	// object not known yet

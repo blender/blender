@@ -212,13 +212,13 @@ typedef struct RenderData {
 	float postmul, postgamma, postadd, postigamma;
 
 	/* yafray: global panel params. TODO: move elsewhere */
-	short GIquality, GIcache, GImethod, GIgradient, GIphotons, GIdirect;
-	short YF_AA, YFexportxml;
+	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
+	short YF_AA, YFexportxml, yfpad1[3];
 	int GIdepth, GIcausdepth, GIpixelspersample;
 	int GIphotoncount, GImixphotons;
 	float GIphotonradius;
 	int YF_numprocs, YF_raydepth, YF_AApasses, YF_AAsamples;
-	float GIshadowquality, GIrefinement, GIpower;
+	float GIshadowquality, GIrefinement, GIpower, GIindirpower;
 	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	char backbuf[160], pic[160], ftype[160];

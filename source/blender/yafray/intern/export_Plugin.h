@@ -31,11 +31,12 @@ class yafrayPluginRender_t : public yafrayRender_t
 
 		void displayImage();
 		virtual void writeTextures();
+		virtual void writeShader(const std::string &shader_name, Material* matr, const std::string &facetexname="");
 		virtual void writeMaterialsAndModulators();
 		virtual void writeObject(Object* obj, 
 				const std::vector<VlakRen*> &VLR_list, const float obmat[4][4]);
 		virtual void writeAllObjects();
-		void writeAreaLamp(LampRen* lamp, int num, float iview[4][4]);
+		virtual void writeAreaLamp(LampRen* lamp, int num, float iview[4][4]);
 		virtual void writeLamps();
 		virtual void writeCamera();
 		virtual void writeHemilight();
@@ -45,18 +46,17 @@ class yafrayPluginRender_t : public yafrayRender_t
 		virtual bool initExport();
 		virtual bool finishExport();
 
-		void genUVcoords(std::vector<yafray::GFLOAT> &uvcoords,VlakRen *vlr,TFace* uvc);
-		void genCompleUVcoords(std::vector<yafray::GFLOAT> &uvcoords,/*VlakRen *vlr,*/TFace* uvc);
+		void genUVcoords(std::vector<yafray::GFLOAT> &uvcoords,VlakRen *vlr,TFace* uvc, bool comple=false);
 		void genVcol(std::vector<yafray::CFLOAT> &vcol,VlakRen *vlr,
-								int p1,int p2,int p3,bool EXPORT_VCOL);
+								int p1,int p2,int p3);
 		void genFace(std::vector<int> &faces,std::vector<std::string> &shaders,std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
 				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
-				bool has_orco,bool has_uv, bool has_vcol);
+				bool has_orco,bool has_uv);
 		void genCompleFace(std::vector<int> &faces,/*std::vector<std::string> &shaders,*/std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
 				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
-				bool has_orco,bool has_uv, bool has_vcol);
+				bool has_orco,bool has_uv);
 		void genVertices(std::vector<yafray::point3d_t> &verts, int &vidx,
 										 std::map<VertRen*, int> &vert_idx, VlakRen* vlr, bool has_orco, Object* obj);
 };

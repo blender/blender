@@ -88,20 +88,24 @@ class yafrayRender_t
 
 		std::map<Object*, std::vector<VlakRen*> > all_objects;
 		std::map<std::string, Material*> used_materials;
-		std::map<std::string, std::pair<Material*, MTex*> > used_textures;
+		std::map<std::string, MTex*> used_textures;
 		std::map<std::string, std::vector<float> > dupliMtx_list;
 		std::map<std::string, Object*> dup_srcob;
 		std::map<void*, Object*> objectData;
+		std::map<Image*, Material*> imagetex;
+		std::map<Image*, std::string> imgtex_shader;
 
 		Object* findObject(const char* name);
 		bool getAllMatTexObs();
 
 		virtual void writeTextures()=0;
+		virtual void writeShader(const std::string &shader_name, Material* matr, const std::string &facetexname)=0;
 		virtual void writeMaterialsAndModulators()=0;
 		virtual void writeObject(Object* obj, const std::vector<VlakRen*> &VLR_list, const float obmat[4][4])=0;
 		virtual void writeAllObjects()=0;
 		virtual void writeLamps()=0;
 		virtual void writeCamera()=0;
+		virtual void writeAreaLamp(LampRen* lamp, int num, float iview[4][4])=0;
 		virtual void writeHemilight()=0;
 		virtual void writePathlight()=0;
 		virtual bool writeWorld()=0;

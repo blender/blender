@@ -221,8 +221,6 @@ static PyObject *RenderData_YafrayGIShadowQuality( BPy_RenderData * self,
 						   PyObject * args );
 static PyObject *RenderData_YafrayGIPixelsPerSample( BPy_RenderData * self,
 						     PyObject * args );
-static PyObject *RenderData_EnableYafrayGIGradient( BPy_RenderData * self,
-						    PyObject * args );
 static PyObject *RenderData_YafrayGIRefinement( BPy_RenderData * self,
 						PyObject * args );
 static PyObject *RenderData_YafrayRayBias( BPy_RenderData * self,
@@ -451,9 +449,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"yafrayGIPixelsPerSample",
 	 ( PyCFunction ) RenderData_YafrayGIPixelsPerSample, METH_VARARGS,
 	 "(int) - get/set maximum number of pixels without samples, the lower the better and slower\n"},
-	{"enableYafrayGIGradient",
-	 ( PyCFunction ) RenderData_EnableYafrayGIGradient, METH_VARARGS,
-	 "(bool) - enable/disable try to smooth lighting using a gradient\n"},
 	{"yafrayGIRefinement", ( PyCFunction ) RenderData_YafrayGIRefinement,
 	 METH_VARARGS,
 	 "(float) - get/setthreshold to refine shadows EXPERIMENTAL. 1 = no refinement\n"},
@@ -1791,20 +1786,6 @@ PyObject *RenderData_YafrayGIPixelsPerSample( BPy_RenderData * self,
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_StandardError,
 						"YafrayGIMethod must be set to 'FULL' and GICache must be enabled\n" ) );
-}
-
-//------------------------------------RenderData.EnableYafrayGIGradient() 
-PyObject *RenderData_EnableYafrayGIGradient( BPy_RenderData * self,
-					     PyObject * args )
-{
-	if( self->renderContext->GImethod == 2
-	    && self->renderContext->GIcache == 1 ) {
-		return M_Render_BitToggleShort( args, 1,
-						&self->renderContext->
-						GIgradient );;
-	} else
-		return ( EXPP_ReturnPyObjError( PyExc_StandardError,
-						"YafrayGIMethod must be set to 'FULL' and GICache must be enabled" ) );
 }
 
 //------------------------------------RenderData.YafrayGIRefinement() ----
