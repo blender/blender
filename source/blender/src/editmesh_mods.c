@@ -644,14 +644,16 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		}
 		
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
-			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
-			
-			if(efa->f & SELECT) BIF_ThemeColor(TH_FACE_DOT);
-			else BIF_ThemeColor(TH_WIRE);
-			
-			bglBegin(GL_POINTS);
-			bglVertex3fv(efa->cent);
-			bglEnd();
+			if(efa->fgonf==0) {
+				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
+				
+				if(efa->f & SELECT) BIF_ThemeColor(TH_FACE_DOT);
+				else BIF_ThemeColor(TH_WIRE);
+				
+				bglBegin(GL_POINTS);
+				bglVertex3fv(efa->cent);
+				bglEnd();
+			}
 		}
 	}
 	/* edge selected */

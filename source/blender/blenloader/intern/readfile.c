@@ -4472,9 +4472,26 @@ static void do_versions(Main *main)
 	}
 	if(main->versionfile <= 234) {
 		Scene *sce;
+		bScreen *sc;
+		int set_zbuf_sel=0;
 		
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
-			if(sce->selectmode==0) sce->selectmode= SCE_SELECT_VERTEX;
+			if(sce->selectmode==0) {
+				sce->selectmode= SCE_SELECT_VERTEX;
+				set_zbuf_sel= 1;
+			}
+		}
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D *)sl;
+						if(set_zbuf_sel) v3d->flag |= V3D_ZBUF_SELECT;
+					}
+				}
+			}
 		}
 	}
 	

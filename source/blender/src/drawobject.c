@@ -2508,6 +2508,140 @@ static void glVertex_efa_edges(EditFace *efa)
 	}
 }
 
+static void drawmeshwire_wirextra(DispListMesh *dlm, int optimal, char alpha)
+{
+	EditMesh *em= G.editMesh;
+	EditFace *efa;
+	EditEdge *eed;
+	int a;
+	char wire[4], sel[4];
+
+	/* since this function does transparant... */
+	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, sel);
+	BIF_GetThemeColor3ubv(TH_WIRE, wire);
+
+	wire[3]= alpha;
+	sel[3]= alpha;
+	
+	if(G.scene->selectmode == SCE_SELECT_FACE) {
+		
+		glBegin(GL_LINES);
+		if(dlm && optimal) {
+			MEdge *medge= dlm->medge;
+			MVert *mvert= dlm->mvert;
+			
+			for (a=0; a<dlm->totedge; a++, medge++) {
+				if(medge->flag & ME_EDGEDRAW) {
+					eed= dlm->editedge[a];
+					if(eed && eed->h==0) {
+						if(eed->f & SELECT) glColor4ubv(sel);
+						else glColor4ubv(wire);
+						glVertex3fv(mvert[medge->v1].co); 
+						glVertex3fv(mvert[medge->v2].co);
+					}
+				}
+			}
+		}
+		else {
+			/* draw faces twice, to have selected ones on top */
+			glColor4ubv(wire);
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->h==0 && (efa->f & SELECT)==0) { 
+					glVertex_efa_edges(efa);
+				}
+			}
+			glColor4ubv(sel);
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->h==0 && (efa->f & SELECT)) { 
+					glVertex_efa_edges(efa);
+				}
+			}
+		}
+		glEnd();
+	}	
+	else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
+		/* Use edge highlighting */
+		
+		/* (bleeding edges) to illustrate selection is defined on vertex basis */
+		/* but cannot do with subdivided edges... */
+		if(dlm==NULL && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_LINES);
+			
+			for(eed= em->edges.first; eed; eed= eed->next) {
+				if(eed->h==0) {
+					if(eed->v1->f & SELECT) glColor4ubv(sel);
+					else glColor4ubv(wire);
+					glVertex3fv(eed->v1->co);
+					if(eed->v2->f & SELECT) glColor4ubv(sel);
+					else glColor4ubv(wire);
+					glVertex3fv(eed->v2->co);
+				}
+			}
+			glEnd();
+			glShadeModel(GL_FLAT);
+		}
+		else {
+			glBegin(GL_LINES);
+			if(dlm && optimal) {
+				MEdge *medge= dlm->medge;
+				MVert *mvert= dlm->mvert;
+				
+				for (a=0; a<dlm->totedge; a++, medge++) {
+					if(medge->flag & ME_EDGEDRAW) {
+						eed= dlm->editedge[a];
+						if(eed && eed->h==0) {
+							if(eed->f & SELECT) glColor4ubv(sel);
+							else glColor4ubv(wire);
+							glVertex3fv(mvert[medge->v1].co); 
+							glVertex3fv(mvert[medge->v2].co);
+						}
+					}
+				}
+			}
+			else {
+				glBegin(GL_LINES);
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if(eed->h==0) {
+						if(eed->f & SELECT) glColor4ubv(sel);
+						else glColor4ubv(wire);
+						glVertex3fv(eed->v1->co);
+						glVertex3fv(eed->v2->co);
+					}
+				}
+			}
+			glEnd();
+		}
+	}
+	else {
+		glColor4ubv(wire);
+		glBegin(GL_LINES);
+		if(dlm && optimal) {
+			MEdge *medge= dlm->medge;
+			MVert *mvert= dlm->mvert;
+			
+			for (a=0; a<dlm->totedge; a++, medge++) {
+				if(medge->flag & ME_EDGEDRAW) {
+					eed= dlm->editedge[a];
+					if(eed && eed->h==0) {
+						glVertex3fv(mvert[medge->v1].co); 
+						glVertex3fv(mvert[medge->v2].co);
+					}
+				}
+			}
+		}
+		else {
+			for(eed= em->edges.first; eed; eed= eed->next) {
+				if(eed->h==0) {
+					glVertex3fv(eed->v1->co);
+					glVertex3fv(eed->v2->co);
+				}
+			}
+		}
+		glEnd();
+	}
+}	
+
 static void drawmeshwire(Object *ob)
 {
 	EditMesh *em = G.editMesh;
@@ -2582,124 +2716,25 @@ static void drawmeshwire(Object *ob)
 		if(mesh_uses_displist(me)) {
 			
 			/* dont draw the subsurf when solid... then this is a 'drawextra' */
-			if(optimal==0 && ob->dt>OB_WIRE && G.vd->drawtype>OB_WIRE);
+			if(ob->dt>OB_WIRE && G.vd->drawtype>OB_WIRE);
 			else {
-				/* don't draw in edge/face mode */
-				if(optimal && (G.scene->selectmode & SCE_SELECT_VERTEX)==0);
-				else {
-					if(optimal) BIF_ThemeColor(TH_WIRE);
-					else BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-						
-					drawDispListwire(&me->disp);
-				}
+				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
+				drawDispListwire(&me->disp);
 			}
 		}
 		
-		if(G.scene->selectmode == SCE_SELECT_FACE) {
+		/* here starts all fancy draw-extra over */
 		
-			glBegin(GL_LINES);
-			if(dlm && optimal) {
-				MEdge *medge= dlm->medge;
-				MVert *mvert= dlm->mvert;
-				
-				for (a=0; a<dlm->totedge; a++, medge++) {
-					if(medge->flag & ME_EDGEDRAW) {
-						eed= dlm->editedge[a];
-						if(eed && eed->h==0) {
-							if(eed->f & SELECT) BIF_ThemeColor(TH_EDGE_SELECT);
-							else BIF_ThemeColor(TH_WIRE);
-							glVertex3fv(mvert[medge->v1].co); 
-							glVertex3fv(mvert[medge->v2].co);
-						}
-					}
-				}
-			}
-			else {
-				/* draw faces twice, to have selected ones on top */
-				BIF_ThemeColor(TH_WIRE);
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if(efa->h==0 && (efa->f & SELECT)==0) { 
-						glVertex_efa_edges(efa);
-					}
-				}
-				BIF_ThemeColor(TH_EDGE_SELECT);
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if(efa->h==0 && (efa->f & SELECT)) { 
-						glVertex_efa_edges(efa);
-					}
-				}
-			}
-			glEnd();
-		}	
-		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
-			/* Use edge highlighting */
-			char col[4], colhi[4];
-			
-			BIF_GetThemeColor3ubv(TH_EDGE_SELECT, colhi);
-			BIF_GetThemeColor3ubv(TH_WIRE, col);
-			
-			/* (bleeding edges) to illustrate selection is defined on vertex basis */
-			/* but cannot do with subdivided edges... */
-			if(dlm==NULL && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
-				glShadeModel(GL_SMOOTH);
-				glBegin(GL_LINES);
-
-				for(eed= em->edges.first; eed; eed= eed->next) {
-					if(eed->h==0) {
-						if(eed->v1->f & SELECT) glColor3ub(colhi[0], colhi[1], colhi[2]);
-						else glColor3ub(col[0], col[1], col[2]);
-						glVertex3fv(eed->v1->co);
-						if(eed->v2->f & SELECT) glColor3ub(colhi[0], colhi[1], colhi[2]);
-						else glColor3ub(col[0], col[1], col[2]);
-						glVertex3fv(eed->v2->co);
-					}
-				}
-				glEnd();
-				glShadeModel(GL_FLAT);
-			}
-			else {
-				glBegin(GL_LINES);
-				if(dlm && optimal) {
-					MEdge *medge= dlm->medge;
-					MVert *mvert= dlm->mvert;
-					
-					for (a=0; a<dlm->totedge; a++, medge++) {
-						if(medge->flag & ME_EDGEDRAW) {
-							eed= dlm->editedge[a];
-							if(eed && eed->h==0) {
-								if(eed->f & SELECT) glColor3ub(colhi[0], colhi[1], colhi[2]);
-								else glColor3ub(col[0], col[1], col[2]);
-								glVertex3fv(mvert[medge->v1].co); 
-								glVertex3fv(mvert[medge->v2].co);
-							}
-						}
-					}
-				}
-				else {
-					glBegin(GL_LINES);
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->h==0) {
-							if(eed->f & SELECT) glColor3ub(colhi[0], colhi[1], colhi[2]);
-							else glColor3ub(col[0], col[1], col[2]);
-							glVertex3fv(eed->v1->co);
-							glVertex3fv(eed->v2->co);
-						}
-					}
-				}
-				glEnd();
-			}
+		/* show wires in transparant when no zbuf clipping for select */
+		if(G.zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0) {
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			glDisable(GL_DEPTH_TEST);
+			drawmeshwire_wirextra(dlm, optimal, 85);
+			glDisable(GL_BLEND);
+			glEnable(GL_DEPTH_TEST);
 		}
-		else if(optimal==0) {
-			BIF_ThemeColor(TH_WIRE);
-			glBegin(GL_LINES);
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->h==0) {
-					glVertex3fv(eed->v1->co);
-					glVertex3fv(eed->v2->co);
-				}
-			}
-			glEnd();
-		}
+		drawmeshwire_wirextra(dlm, optimal, 255);
 
 		if(G.f & G_DRAWCREASES) drawmeshwire_creases();
 		
@@ -4269,7 +4304,8 @@ void draw_object(Base *base)
 
 		/* object centers */
 		if(G.zbuf) glDisable(GL_DEPTH_TEST);
-		if(ob->type == OB_LAMP) {
+		if(ob==G.obedit);
+		else if(ob->type == OB_LAMP) {
 			if(ob->id.lib) {
 				if(base->flag & SELECT) rect= rectllib_sel;
 				else rect= rectllib_desel;
