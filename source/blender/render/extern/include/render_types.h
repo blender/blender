@@ -123,7 +123,7 @@ typedef struct RE_Render
 	 * near and far, but VC in cpp mode chokes on it :( */
 	float near;    /* near clip distance */
 	float far;     /* far clip distance */
-	float ycor, zcor, pixsize, viewfac;
+	float ycor, pixsize, viewfac;
 
 
 	/* These three need to be 'handlerized'. Not an easy task... */

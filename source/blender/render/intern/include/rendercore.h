@@ -72,7 +72,7 @@ typedef struct PixStrMain
 } PixStrMain;
 
 
-float   mistfactor(float *co);	/* dist and height, return alpha */
+float   mistfactor(float zcor, float *co);	/* dist and height, return alpha */
 
 void	add_halo_flare(void);
 

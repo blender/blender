@@ -86,11 +86,11 @@
 /* global for this file. struct render will be more dynamic later, to allow multiple renderers */
 RE_Render R;
 
-float mistfactor(float *co)	/* dist en height, return alpha */
+float mistfactor(float zcor, float *co)	/* dist en height, return alpha */
 {
 	float fac, hi;
 	
-	fac= R.zcor - R.wrld.miststa;	/* R.zcor is calculated per pixel */
+	fac= zcor - R.wrld.miststa;	/* zcor is calculated per pixel */
 
 	/* fac= -co[2]-R.wrld.miststa; */
 
@@ -168,8 +168,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	
 	if(R.wrld.mode & WO_MIST) {
 		/* patchy... */
-		R.zcor= -lar->co[2];
-		haint *= mistfactor(lar->co);
+		haint *= mistfactor(-lar->co[2], lar->co);
 		if(haint==0.0) {
 			return;
 		}
@@ -1948,7 +1947,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 	}
 	else if( (vlaknr & 0x7FFFFF) <= R.totvlak) {
 		VertRen *v1, *v2, *v3;
-		float alpha, fac, dvlak, deler;
+		float alpha, fac, dvlak, deler, zcor;
 		
 		vlr= RE_findOrAddVlak( (vlaknr-1) & 0x7FFFFF);
 		
@@ -1987,8 +1986,8 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		}
 
 		deler= vlr->n[0]*shi.view[0] + vlr->n[1]*shi.view[1] + vlr->n[2]*shi.view[2];
-		if (deler!=0.0) fac= R.zcor= dvlak/deler;
-		else fac= R.zcor= 0.0;
+		if (deler!=0.0) fac= zcor= dvlak/deler;
+		else fac= zcor= 0.0;
 		
 		shi.co[0]= fac*shi.view[0];
 		shi.co[1]= fac*shi.view[1];
@@ -2010,7 +2009,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		}
 
 		fac= Normalise(shi.view);
-		R.zcor*= fac;	/* for mist */
+		zcor*= fac;	/* for mist */
 		
 		if(shi.osatex) {
 			if( (shi.mat->texco & TEXCO_REFL) ) {
@@ -2129,7 +2128,7 @@ void *shadepixel(float x, float y, int vlaknr, int mask, float *col)
 		
 		/* MIST */
 		if( (R.wrld.mode & WO_MIST) && (shi.mat->mode & MA_NOMIST)==0 ){
-			alpha= mistfactor(shi.co);
+			alpha= mistfactor(zcor, shi.co);
 		}
 		else alpha= 1.0;
 

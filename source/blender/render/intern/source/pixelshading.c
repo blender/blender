@@ -338,9 +338,8 @@ void shadeHaloFloat(HaloRen *har,  float *col, unsigned int zz,
            alpha= har->alfa;
        }
        else {
-           /* a but patchy... */
-           R.zcor= -har->co[2];
-           alpha= mistfactor(har->co)*har->alfa;
+           /* a bit patchy... */
+           alpha= mistfactor(-har->co[2], har->co)*har->alfa;
        }
 	}
 	else alpha= har->alfa;
