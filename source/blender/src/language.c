@@ -339,8 +339,12 @@ int read_languagefile(void)
 	int result;
 #endif
 	
-	/* .Blanguages */
+	/* .Blanguages, http://www.blender3d.org/cms/Installation_Policy.352.0.html*/
+#if defined (__APPLE__) || (WIN32)
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blanguages");
+#else
+	BLI_make_file_string("/", name, BLI_gethome(), ".blender/.Blanguages");
+#endif
 
 	lines= BLI_read_file_as_lines(name);
 
@@ -351,11 +355,9 @@ int read_languagefile(void)
 		char *bundlePath = BLI_getbundle();
 		strcpy(name, bundlePath);
 		strcat(name, "/Contents/Resources/.Blanguages");
-#elif defined (WIN32)
-		/* Check the installation dir in Windows */
-		strcpy(name, BLI_gethome());
-		strcat(name,"/.Blanguages");
 #else
+		/* Check the CWD. Takes care of the case where users
+		 * unpack blender tarball; cd blender-dir; ./blender */
 		strcpy(name, ".blender/.Blanguages");
 #endif
 		lines= BLI_read_file_as_lines(name);
