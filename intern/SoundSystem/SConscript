@@ -36,6 +36,7 @@ soundsys_env.Append (CPPPATH = ['.',
 if user_options_dict['USE_OPENAL'] == 1:
     source_files += ['openal/SND_OpenALDevice.cpp',
                      'openal/pthread_cancel.cpp']
+    soundsys_env.Append (CPPPATH=user_options_dict['OPENAL_INCLUDE'])
     if sys.platform=='win32':
         defines += ['_LIB']
         soundsys_env.Append(CPPDEFINES = defines)

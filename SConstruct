@@ -82,6 +82,10 @@ if sys.platform == 'linux2':
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
+    # OpenAL library information
+    openal_lib = ['openal']
+    openal_libpath = ['/usr/lib']
+    openal_include = ['/usr/include']
 
 elif sys.platform == 'darwin':
     use_international = 'false'
@@ -158,6 +162,10 @@ elif sys.platform == 'darwin':
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
+    # OpenAL library information
+    openal_lib = []
+    openal_libpath = []
+    openal_include = []
 
 elif sys.platform == 'cygwin':
     use_international = 'false'
@@ -207,6 +215,10 @@ elif sys.platform == 'cygwin':
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
+    # OpenAL library information
+    openal_lib = []
+    openal_libpath = []
+    openal_include = []
 
 elif sys.platform == 'win32':
     use_international = 'true'
@@ -224,15 +236,14 @@ elif sys.platform == 'win32':
     defines += ['WITH_QUICKTIME']
     defines += ['_LIB', 'USE_OPENAL']
     warn_flags = []
-    platform_libs = [ 'qtmlClient', 'odelib', 'openal_static', 'soundsystem',
+    platform_libs = [ 'qtmlClient', 'odelib', 'soundsystem',
                      'ws2_32', 'dxguid', 'vfw32', 'winmm',
                      'iconv', 'kernel32', 'user32', 'gdi32',
                      'winspool', 'comdlg32', 'advapi32', 'shell32',
                      'ole32', 'oleaut32', 'uuid', 'odbc32', 'odbccp32',
                      'libcmt', 'libc']
     platform_libpath = ['#../lib/windows/iconv/lib',
-                        '#../lib/windows/QTDevWin/Libraries',
-                        '#../lib/windows/openal/lib']
+                        '#../lib/windows/QTDevWin/Libraries']
     platform_linkflags = [
                         '/SUBSYSTEM:CONSOLE',
                         '/MACHINE:IX86',
@@ -250,8 +261,6 @@ elif sys.platform == 'win32':
     extra_includes = []
     if use_quicktime == 'true':
         extra_includes += ['#../lib/windows/QTDevWin/CIncludes']
-    if use_openal == 'true':
-        extra_includes += ['#../lib/windows/openal/include']
     # z library information
     z_lib = ['libz_st']
     z_libpath = ['#../lib/windows/zlib/lib']
@@ -300,6 +309,10 @@ elif sys.platform == 'win32':
     gettext_lib = ['gnu_gettext']
     gettext_libpath = ['#../lib/windows/gettext/lib']
     gettext_include = ['#../lib/windows/gettext/include']
+    # OpenAL library information
+    openal_lib = ['openal_static']
+    openal_libpath = ['#../lib/windows/openal/lib']
+    openal_include = ['#../lib/windows/openal/include']
 
 elif string.find (sys.platform, 'sunos') != -1:
     use_international = 'true'
@@ -369,6 +382,10 @@ elif string.find (sys.platform, 'sunos') != -1:
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
+    # OpenAL library information
+    openal_lib = []
+    openal_libpath = []
+    openal_include = []
 
 elif string.find (sys.platform, 'irix') != -1:
     use_international = 'false'
@@ -443,6 +460,10 @@ elif string.find (sys.platform, 'irix') != -1:
     gettext_lib = []
     gettext_libpath = []
     gettext_include = []
+    # OpenAL library information
+    openal_lib = []
+    openal_libpath = []
+    openal_include = []
 
 elif string.find (sys.platform, 'hp-ux') != -1:
     window_system = 'X11'
@@ -509,6 +530,9 @@ else:
     config.write ("ODE_INCLUDE = %s\n"%(ode_include))
     config.write ("ODE_LIBPATH = %s\n"%(ode_libpath))
     config.write ("ODE_LIBRARY = %s\n"%(ode_lib))
+    config.write ("OPENAL_INCLUDE = %s\n"%(openal_include))
+    config.write ("OPENAL_LIBPATH = %s\n"%(openal_libpath))
+    config.write ("OPENAL_LIBRARY = %s\n"%(openal_lib))
     config.write ("\n# The following information is only necessary when building with\n")
     config.write ("# internationalization support.\n");
     config.write ("FTGL_INCLUDE = %s\n"%(ftgl_include))
@@ -581,6 +605,9 @@ user_options.AddOptions (
         ('ODE_INCLUDE', 'Include directory for ODE header files.'),
         ('ODE_LIBPATH', 'Library path where the ODE library is located.'),
         ('ODE_LIBRARY', 'ODE library name.'),
+        ('OPENAL_INCLUDE', 'Include directory for OpenAL header files.'),
+        ('OPENAL_LIBPATH', 'Library path where the OpenAL library is located.'),
+        ('OPENAL_LIBRARY', 'OpenAL library name.'),
         ('FTGL_INCLUDE', 'Include directory for ftgl header files.'),
         ('FTGL_LIBPATH', 'Library path where the ftgl library is located.'),
         ('FTGL_LIBRARY', 'ftgl library name.'),
@@ -725,6 +752,9 @@ link_env.Append (LIBS=user_options_dict['GETTEXT_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['GETTEXT_LIBPATH'])
 link_env.Append (LIBS=user_options_dict['Z_LIBRARY'])
 link_env.Append (LIBPATH=user_options_dict['Z_LIBPATH'])
+if user_options_dict['USE_OPENAL'] == 1:
+    link_env.Append (LIBS=user_options_dict['OPENAL_LIBRARY'])
+    link_env.Append (LIBPATH=user_options_dict['OPENAL_LIBPATH'])
 link_env.Append (LIBS=platform_libs)
 link_env.Append (LIBPATH=platform_libpath)
 if sys.platform == 'darwin':
