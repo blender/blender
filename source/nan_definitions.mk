@@ -152,7 +152,7 @@ all debug::
     export HOST = $(shell hostname -s)
     export NAN_PYTHON ?= /usr/local/include/python
     export NAN_PYTHON_VERSION ?= 2.2
-    export NAN_PYTHON_BINARY ?= 
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?= 
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -185,7 +185,7 @@ all debug::
     export HOST = $(shell /usr/bsd/hostname -s)
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.1
-    export NAN_PYTHON_BINARY ?= 
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?= 
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -218,7 +218,7 @@ all debug::
     export HOST = $(shell hostname -s)
     export NAN_PYTHON ?= /usr
     export NAN_PYTHON_VERSION ?= 2.2
-    export NAN_PYTHON_BINARY ?=
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?=
     export NAN_OPENAL ?= /usr
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -285,7 +285,7 @@ all debug::
     export HOST = $(shell hostname)
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.2
-    export NAN_PYTHON_BINARY ?=
+    export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_MXTEXTTOOLS ?=
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
