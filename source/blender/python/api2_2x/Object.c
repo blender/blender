@@ -119,7 +119,7 @@ static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearTrack( BPy_Object * self, PyObject * args );
-static PyObject *Object_getData(BPy_Object *self, PyObject *a, PyObject *kwd);
+static PyObject *Object_getData(BPy_Object *self, PyObject *args, PyObject *kwd);
 static PyObject *Object_getDeltaLocation( BPy_Object * self );
 static PyObject *Object_getDrawMode( BPy_Object * self );
 static PyObject *Object_getDrawType( BPy_Object * self );
@@ -764,16 +764,16 @@ int EXPP_add_obdata( struct Object *object )
 }
 
 
-static PyObject *Object_getData( BPy_Object *self, PyObject *a, PyObject *kwd )
+static PyObject *Object_getData( BPy_Object *self, PyObject *args, PyObject *kwd )
 {
 	PyObject *data_object;
 	Object *object = self->object;
 	int name_only = 0;
 	static char *kwlist[] = {"name_only", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(a, kwd, "|i", kwlist, &name_only))
+	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|i", kwlist, &name_only))
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected nothing or an int (keyword 'name_only') as argument" );
+			"expected nothing or bool keyword 'name_only' as argument" );
 
 	/* if there's no obdata, try to create it */
 	if( object->data == NULL ) {

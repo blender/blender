@@ -188,14 +188,11 @@ class Object:
 
   def getData(name_only = False):
     """
-    Returns the Datablock object (new: or just its name) containing the
-    object's data. For example the Mesh, Lamp or the Camera.
+    Returns the Datablock object (Mesh, Lamp, Camera, etc.) linked to this Object.  If the keyword parameter 'name_only' is True, only the Datablock name is returned as a string. 
     @type name_only: bool
-    @param name_only: if True on nonzero, only the name of the data object
-        is returned.
-    @rtype: Object type specific or string
-    @return: Depending on the type of the Object, it returns a specific object
-        for the data requested.  If name_only is True, it returns a string.
+    @param name_only: This is a keyword parameter.  if True (or nonzero), only the name of the data object is returned.  The default value is False.
+    @rtype: specific Object type or string
+    @return: Depends on the type of Datablock linked to the Object.  If name_only is True, it returns a string.
     """
 
   def getDeltaLocation():
