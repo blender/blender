@@ -149,7 +149,7 @@ struct _FSMenuEntry {
 	char *path;
 };
 
-static FSMenuEntry *fsmenu= 0, *lseperator= 0;
+static FSMenuEntry *fsmenu= 0;
 
 int fsmenu_get_nentries(void)
 {
@@ -187,9 +187,16 @@ char *fsmenu_build_menu(void)
 
 	for (fsme= fsmenu; fsme; fsme= fsme->next) {
 		if (!fsme->path) {
-				/* ignore consecutive or trailing seperators */
-			if (fsme->next && fsme->next->path)
-				BLI_dynstr_append(ds, "%l|");
+				/* clean consecutive seperators and ignore trailing ones */
+			if (fsme->next) {
+				if (fsme->next->path) {
+					BLI_dynstr_append(ds, "%l|");
+				} else {
+					FSMenuEntry *next= fsme->next;
+					fsme->next= next->next;
+					MEM_freeN(next);
+				}
+			}
 		} else {
 			BLI_dynstr_append(ds, fsme->path);
 			if (fsme->next) BLI_dynstr_append(ds, "|");
@@ -200,17 +207,21 @@ char *fsmenu_build_menu(void)
 	BLI_dynstr_free(ds);
 	return menustr;
 }
+static FSMenuEntry *fsmenu_get_last_separator(void) 
+{
+	FSMenuEntry *fsme, *lsep=NULL;
+
+	for (fsme= fsmenu; fsme; fsme= fsme->next)
+		if (!fsme->path)
+			lsep= fsme;
+
+	return lsep;
+}
 void fsmenu_insert_entry(char *path, int sorted)
 {
-	FSMenuEntry *fsme, *prev;
+	FSMenuEntry *prev= fsmenu_get_last_separator();
+	FSMenuEntry *fsme= prev?prev->next:fsmenu;
 
-	if (lseperator) {
-		prev= lseperator;
-		fsme= lseperator->next;
-	} else {
-		prev= NULL;
-		fsme= fsmenu;
-	}
 	for (; fsme; prev= fsme, fsme= fsme->next) {
 		if (fsme->path) {
 			if (BLI_streq(path, fsme->path)) {
@@ -239,11 +250,9 @@ void fsmenu_append_seperator(void)
 
 		while (fsme->next) fsme= fsme->next;
 
-		lseperator= MEM_mallocN(sizeof(*fsme), "fsme");
-		lseperator->next= NULL;
-		lseperator->path= NULL;
-
-		fsme->next= lseperator;
+		fsme->next= MEM_mallocN(sizeof(*fsme), "fsme");
+		fsme->next->next= NULL;
+		fsme->next->path= NULL;
 	}
 }
 void fsmenu_remove_entry(int idx)
