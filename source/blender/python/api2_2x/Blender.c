@@ -233,12 +233,20 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 			ret = EXPP_incr_ret( Py_None );
 	}
 	else if(StringEqual(str, "udatadir")) {
-		char udatadir[FILE_MAXDIR];
+		if (U.pythondir[0] != '\0') {
+			char upydir[FILE_MAXDIR];
 
-		if (BLI_exists(U.pythondir)) {
-			BLI_make_file_string("/", udatadir, U.pythondir, "bpydata/");
-			if (BLI_exists(udatadir))
-				ret = PyString_FromString(udatadir);
+			BLI_strncpy(upydir, U.pythondir, FILE_MAXDIR);
+			BLI_convertstringcode(upydir, G.sce, 0);
+
+			if (BLI_exists(upydir)) {
+				char udatadir[FILE_MAXDIR];
+
+				BLI_make_file_string("/", udatadir, upydir, "bpydata/");
+
+				if (BLI_exists(udatadir))
+					ret = PyString_FromString(udatadir);
+			}
 		}
 		if (!ret) ret = EXPP_incr_ret(Py_None);
 	}
@@ -247,14 +255,20 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 
 		if (sdir)
 			ret = PyString_FromString(sdir);
-			else
-				ret = EXPP_incr_ret( Py_None );
+		else
+			ret = EXPP_incr_ret( Py_None );
 	}
 	else if( StringEqual( str, "uscriptsdir" ) ) {
-			if( BLI_exists( U.pythondir ) )
-				ret = PyString_FromString( U.pythondir );
-			else
-				ret = EXPP_incr_ret( Py_None );
+		if (U.pythondir[0] != '\0') {
+			char upydir[FILE_MAXDIR];
+
+			BLI_strncpy(upydir, U.pythondir, FILE_MAXDIR);
+			BLI_convertstringcode(upydir, G.sce, 0);
+
+			if( BLI_exists( upydir ) )
+				ret = PyString_FromString( upydir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
 	}
 	/* According to the old file (opy_blender.c), the following if
 	   statement is a quick hack and needs some clean up. */

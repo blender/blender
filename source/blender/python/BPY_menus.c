@@ -67,8 +67,12 @@
 #include <errno.h>
 
 #define BPYMENU_DATAFILE "Bpymenus"
+#define MAX_DIR_DEPTH 4 /* max depth for traversing scripts dirs */
+#define MAX_DIR_NUMBER 30 /* max number of dirs in scripts dirs trees */
 
 static int DEBUG;
+static int Dir_Depth;
+static int Dirs_Number;
 
 /* BPyMenuTable holds all registered pymenus, as linked lists for each menu
  * where they can appear (see PYMENUHOOKS enum in BPY_menus.h).
@@ -238,6 +242,10 @@ void BPyMenu_RemoveAllEntries( void )
 		}
 		BPyMenuTable[i] = NULL;
 	}
+
+	Dirs_Number = 0;
+	Dir_Depth = 0;
+
 	return;
 }
 
@@ -534,7 +542,7 @@ static void bpymenu_WriteDataFile( void )
 	fprintf( fp,
 		 "# Blender: registered menu entries for bpython scripts\n" );
 
-	if( U.pythondir[0] != '\0' )
+	if( U.pythondir[0] != '\0' && strcmp(U.pythondir, "/") != 0)
 		fprintf( fp, "# User defined scripts dir: %s\n", U.pythondir );
 
 	for( i = 0; i < PYMENU_TOTAL; i++ ) {
@@ -815,12 +823,27 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 			}
 
 			else if (S_ISDIR(status.st_mode)) { /* is subdir */
+				Dirs_Number++;
+				Dir_Depth++;
+				if (Dirs_Number > MAX_DIR_NUMBER) {
+					if (DEBUG) {
+						fprintf(stderr, "BPyMenus error: Too many subdirs.\n");
+					}
+					return -1;
+				}
+				else if (Dir_Depth > MAX_DIR_DEPTH) {
+					Dir_Depth--;
+					if (DEBUG)
+						fprintf(stderr,
+							"BPyMenus error: Max depth reached traversing dirs.\n");
+					break;
+				}
 				s = de->d_name;
 				if (parentdir) {
 					BLI_make_file_string(NULL, subdir, parentdir, de->d_name);
 					s = subdir;
 				}
-				bpymenu_ParseDir(path, s, is_userdir);
+				if (bpymenu_ParseDir(path, s, is_userdir) == -1) return -1;
 			}
 
 		}
@@ -879,7 +902,7 @@ int BPyMenu_Init( int usedir )
 	for( res1 = 0; res1 < PYMENU_TOTAL; res1++ )
 		BPyMenuTable[res1] = NULL;
 
-	if( U.pythondir[0] == '\0' )
+	if( U.pythondir[0] == '\0' || strcmp(U.pythondir, "/") == 0)
 		upydir = NULL;
 
 	BLI_strncpy(dirname, bpy_gethome(1), FILE_MAXDIR);
@@ -950,8 +973,11 @@ int BPyMenu_Init( int usedir )
 		}
 		if( res1 == 0 )
 			bpymenu_ParseDir( dirname, NULL, 0 );
-		if( res2 == 0 )
-			bpymenu_ParseDir( U.pythondir, NULL, 1 );
+		if( res2 == 0 ) {
+			BLI_strncpy(dirname, U.pythondir, FILE_MAXDIR);
+			BLI_convertstringcode(dirname, G.sce, 0);
+			bpymenu_ParseDir( dirname, NULL, 1 );
+		}
 
 		/* check if we got any data */
 		for( res1 = 0; res1 < PYMENU_TOTAL; res1++ )

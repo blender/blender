@@ -3884,7 +3884,9 @@ static PyObject *NMesh_transform (PyObject *self, PyObject *args)
 		 * of the transpose of the supplied matrix */
 		float invmat[4][4];
 
-		if (!Mat4Invert(invmat, mat->matrix))
+		/* we only need to invert a 3x3 submatrix, because the 4th component of
+		 * affine vectors is 0, but Mat4Invert reports non invertible matrices */
+		if (!Mat4Invert((float(*)[4])*invmat, (float(*)[4])*mat->matrix))
 			return EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"given matrix is not invertible");
 
@@ -3893,12 +3895,9 @@ static PyObject *NMesh_transform (PyObject *self, PyObject *args)
 			vx = mv->no[0];
 			vy = mv->no[1];
 			vz = mv->no[2];
-			mv->no[0] = vx*invmat[0][0] + vy*invmat[0][1] + vz*invmat[0][2] +
-						 			invmat[0][3];
-			mv->no[1] = vx*invmat[1][0] + vy*invmat[1][1] + vz*invmat[1][2] +
-									invmat[1][3];
-			mv->no[2] = vx*invmat[2][0] + vy*invmat[2][1] + vz*invmat[2][2] +
-									invmat[2][3];
+			mv->no[0] = vx*invmat[0][0] + vy*invmat[0][1] + vz*invmat[0][2];
+			mv->no[1] = vx*invmat[1][0] + vy*invmat[1][1] + vz*invmat[1][2]; 
+			mv->no[2] = vx*invmat[2][0] + vy*invmat[2][1] + vz*invmat[2][2];
 			Normalise(mv->no);
 			Py_DECREF(mv);
 		}
