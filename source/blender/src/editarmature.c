@@ -1493,10 +1493,13 @@ static void draw_bone (int armflag, int boneflag, unsigned int id, char *name, f
 	glPopMatrix();
 
 	/*	Draw the bone name */
-	if (armflag & ARM_DRAWNAMES){
-		glRasterPos3f(0,  length/2.0,  0);
-		BMF_DrawString(G.font, " ");
-		BMF_DrawString(G.font, name);
+	if (armflag & ARM_DRAWNAMES) {
+		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+		if((G.f & G_PICKSEL) == 0) {
+			glRasterPos3f(0,  length/2.0,  0);
+			BMF_DrawString(G.font, " ");
+			BMF_DrawString(G.font, name);
+		}
 	}
 }
 
