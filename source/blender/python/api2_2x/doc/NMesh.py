@@ -53,18 +53,18 @@ Example::
     - HIDE - hidden.
     - ACTIVE - the active face.
 @var FaceModes: The available *texture face* modes. Note: these are only
-  meaninful if nmesh.hasFaceUV() returns true, since in Blender this info is
+  meaningful if nmesh.hasFaceUV() returns true, since in Blender this info is
   stored at the TexFace (TexFace button in Edit Mesh buttons) structure.
     - ALL - set all modes at once.
     - BILLBOARD - always orient after camera.
     - HALO - halo face, always point to camera.
-    - DINAMYC - respond to collisions.
+    - DYNAMIC - respond to collisions.
     - INVISIBLE - invisible face.
-    - LIGHT - dinamyc lighting.
-    - OBCOL - use object colour instead of vertex colours.
+    - LIGHT - dynamic lighting.
+    - OBCOL - use object color instead of vertex colors.
     - SHADOW - shadow type.
     - SHAREDVERT - apparently unused in Blender.
-    - SHAREDCOL - shared vertex colours (per vertex).
+    - SHAREDCOL - shared vertex colors (per vertex).
     - TEX - has texture image.
     - TILES - uses tiled image.
     - TWOSIDE - two-sided face.
@@ -85,7 +85,7 @@ def Col(col = [255, 255, 255, 255]):
   """
   Get a new mesh rgba color.
   @type col: list
-  @param col: A list [red, green, blue, alpha] of int values in [0, 255].
+  @param col: A list [red, green, blue, alpha] of integer values in [0, 255].
   @rtype: NMCol
   @return:  A new NMCol (mesh rgba color) object.
   """
@@ -136,7 +136,9 @@ def GetRaw(name = None):
 
 def GetRawFromObject(name):
   """
-  Get the raw mesh data object from the Object in Blender called I{name}.
+  Get the raw mesh data object from the Object in Blender called I{name}.\n
+  Note: The mesh coordinates are in local space, not the world space of its Object.\n
+  For world space vertex coordinates, each vertex location must be multiplied by the object's 4x4 matrix.
   @type name: string
   @param name: The name of an Object of type "Mesh".
   @rtype: NMesh
@@ -177,7 +179,7 @@ class NMCol:
   The NMCol object
   ================
     This object is a list of ints: [r, g, b, a] representing an
-    rgba colour.
+    rgba color.
   @cvar r: The Red component in [0, 255].
   @cvar g: The Green component in [0, 255].
   @cvar b: The Blue component in [0, 255].
@@ -189,16 +191,17 @@ class NMVert:
   The NMVert object
   =================
     This object holds mesh vertex data.
-  @type co: list of three floats
+  @type co: 3D Vector object.
   @cvar co: The vertex coordinates (x, y, z).
-  @type no: list of three floats
+  @type no: 3D Vector object. (unit length)
   @cvar no: The vertex normal vector (x, y, z).
-  @type uvco: list of two floats
-  @cvar uvco: The vertex texture "sticky" coordinates.
+  @type uvco: 3D Vector object.
+  @cvar uvco: The vertex texture "sticky" coordinates. The Z value of the Vector is ignored.
   @type index: int
   @cvar index: The vertex index, if owned by a mesh.
   @type sel: int
-  @cvar sel: The selection state (selected:1, unselected:0) of this vertex.
+  @cvar sel: The selection state (selected:1, unselected:0) of this vertex.\n
+  Note: An NMesh will return the selection state of the mesh when EditMod was last exited. A python script operating in EditMode must exit edit mode, before getting the current selection state of the mesh.
   @warn:  There are two kinds of uv texture coordinates in Blender: per vertex
      ("sticky") and per face vertex (uv in L{NMFace}).  In the first, there's
      only one uv pair of coordinates for each vertex in the mesh.  In the
@@ -712,6 +715,8 @@ class NMesh:
   def getMaxSmoothAngle():
     """
     Get the max angle for auto smoothing.
+    Note: This will only affect smoothing generated at render time.
+    Smoothing can also be set per face which is visible in Blenders 3D View.
     @return: The value in degrees.
     """
 
