@@ -55,19 +55,20 @@ DrawProgressBar::
 
 @type Types: readonly dictionary
 @var Types: The available Window Types.
-    - VIEW3D
-    - IPO
-    - OOPS
+    - ACTION
     - BUTS
     - FILE
     - IMAGE
-    - INFO
-    - SEQ
     - IMASEL
-    - SOUND
-    - ACTION
-    - TEXT
+    - INFO
+    - IPO
     - NLA
+    - OOPS
+    - SCRIPT
+    - SEQ
+    - SOUND
+    - TEXT
+    - VIEW3D
 """
 
 def Redraw ():

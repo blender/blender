@@ -99,6 +99,7 @@ struct PyMethodDef M_Object_methods[] = {
 static PyObject *Object_buildParts (BPy_Object *self);
 static PyObject *Object_clearIpo (BPy_Object *self);
 static PyObject *Object_clrParent (BPy_Object *self, PyObject *args);
+static PyObject *Object_clearTrack (BPy_Object *self, PyObject *args);
 static PyObject *Object_getData (BPy_Object *self);
 static PyObject *Object_getDeltaLocation (BPy_Object *self);
 static PyObject *Object_getDrawMode (BPy_Object *self);
@@ -133,6 +134,7 @@ static PyObject *Object_setMaterials (BPy_Object *self, PyObject *args);
 static PyObject *Object_setName (BPy_Object *self, PyObject *args);
 static PyObject *Object_setSize (BPy_Object *self, PyObject *args);
 static PyObject *Object_setTimeOffset (BPy_Object *self, PyObject *args);
+static PyObject *Object_makeTrack (BPy_Object *self, PyObject *args);
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args);
 static PyObject *Object_Select (BPy_Object *self, PyObject *args);
 static PyObject *Object_getAllProperties (BPy_Object *self);
@@ -141,6 +143,9 @@ static PyObject *Object_removeProperty(BPy_Object *self, PyObject *args);
 static PyObject *Object_getProperty(BPy_Object *self, PyObject *args);
 static PyObject *Object_removeAllProperties(BPy_Object *self);
 static PyObject *Object_copyAllPropertiesTo(BPy_Object *self, PyObject *args);
+static PyObject *Object_getScriptLinks(BPy_Object *self, PyObject *args);
+static PyObject *Object_addScriptLink(BPy_Object *self, PyObject *args);
+static PyObject *Object_clearScriptLinks(BPy_Object *self);
 
 /*****************************************************************************/
 /* Python BPy_Object methods table:											   */
@@ -153,6 +158,10 @@ static PyMethodDef BPy_Object_methods[] = {
 		"Returns the ipo of this object (if any) "},   
   {"clrParent", (PyCFunction)Object_clrParent, METH_VARARGS,
 	"Clears parent object. Optionally specify:\n\
+mode\n\tnonzero: Keep object transform\nfast\n\t>0: Don't update scene \
+hierarchy (faster)"},
+  {"clearTrack", (PyCFunction)Object_clearTrack, METH_VARARGS,
+	"Make this object not track another anymore. Optionally specify:\n\
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
 hierarchy (faster)"},
   {"getData", (PyCFunction)Object_getData, METH_NOARGS,
@@ -203,7 +212,7 @@ match the Object's type, so you cannot link a Lamp to a Mesh type object."},
 	"Makes the object the parent of the objects provided in the \n\
 argument which must be a list of valid Objects. Optional extra arguments:\n\
 mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
-fase:\n\t0: update scene hierarchy automatically\n\t\
+fast:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
 explicitely update the Scene hierarchy."},
   {"materialUsage", (PyCFunction)Object_materialUsage, METH_VARARGS,
@@ -237,6 +246,12 @@ objects."},
 triple."},
   {"setTimeOffset", (PyCFunction)Object_setTimeOffset, METH_VARARGS,
 	"Set the object's time offset."},
+  {"makeTrack", (PyCFunction)Object_makeTrack, METH_VARARGS,
+	"(trackedobj, fast = 0) - Make this object track another.\n\
+	 (trackedobj) - the object that will be tracked.\n\
+	 (fast = 0) - if 0: update the scene hierarchy automatically.  If you\n\
+	 set 'fast' to a nonzero value, don't forget to update the scene yourself\n\
+	 (see scene.update())."},
   {"shareFrom", (PyCFunction)Object_shareFrom, METH_VARARGS,
 	"Link data of self with object specified in the argument. This\n\
 works only if self and the object specified are of the same type."},
@@ -259,6 +274,16 @@ works only if self and the object specified are of the same type."},
   "() - removeAll a properties from this object"},
    {"copyAllPropertiesTo", (PyCFunction)Object_copyAllPropertiesTo, METH_VARARGS,
   "() - copy all properties from this object to another object"},
+	{"getScriptLinks", (PyCFunction)Object_getScriptLinks, METH_VARARGS,
+			"(eventname) - Get a list of this object's scriptlinks (Text names) "
+			"of the given type\n"
+	"(eventname) - string: FrameChanged or Redraw."},
+	{"addScriptLink", (PyCFunction)Object_addScriptLink, METH_VARARGS,
+			"(text, evt) - Add a new object scriptlink.\n"
+	"(text) - string: an existing Blender Text name;\n"
+	"(evt) string: FrameChanged or Redraw."},
+	{"clearScriptLinks", (PyCFunction)Object_clearScriptLinks, METH_NOARGS,
+			"() - Delete all scriptlinks from this object."},
   {NULL, NULL, 0, NULL}
 };
 
@@ -606,6 +631,35 @@ static PyObject *Object_clrParent (BPy_Object *self, PyObject *args)
   self->object->parent = NULL;
 
   if (mode == 2)
+  {
+		/* Keep transform */
+		apply_obmat (self->object);
+  }
+
+  if (!fast)
+  {
+		sort_baselist (G.scene);
+  }
+
+  Py_INCREF (Py_None);
+  return (Py_None);
+}
+
+static PyObject *Object_clearTrack (BPy_Object *self, PyObject *args)
+{
+  int mode=0;
+  int fast=0;
+
+  if (!PyArg_ParseTuple (args, "|ii", &mode, &fast))
+  {
+		return (EXPP_ReturnPyObjError (PyExc_AttributeError,
+		  "expected one or two integers as arguments"));
+  }
+
+  /* Remove the link only, the object is still in the scene. */
+  self->object->track = NULL;
+
+  if (mode)
   {
 		/* Keep transform */
 		apply_obmat (self->object);
@@ -1600,6 +1654,23 @@ static PyObject *Object_setTimeOffset (BPy_Object *self, PyObject *args)
 	return (Py_None);
 }
 
+static PyObject *Object_makeTrack (BPy_Object *self, PyObject *args)
+{
+  BPy_Object *tracked = NULL;
+	Object *ob = self->object;
+	int fast = 0;
+	
+	if (!PyArg_ParseTuple (args, "O!|i", &Object_Type, &tracked, &fast))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected an object and optionally also an int as arguments.");
+
+	ob->track = tracked->object;
+
+	if (!fast) sort_baselist(G.scene);
+
+	return EXPP_incr_ret(Py_None);
+}
+
 static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 {
 	BPy_Object		* object;
@@ -1608,22 +1679,19 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 
 	if (!PyArg_ParseTuple (args, "O", &object))
 	{
-		EXPP_ReturnPyObjError (PyExc_AttributeError,
+		return EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"expected an object argument");
-		return (NULL);
 	}
 	if (!Object_CheckPyObject ((PyObject*)object))
 	{
-		EXPP_ReturnPyObjError (PyExc_TypeError,
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
 				"argument 1 is not of type 'Object'");
-		return (NULL);
 	}
 
 	if (self->object->type != object->object->type)
 	{
-		EXPP_ReturnPyObjError (PyExc_TypeError,
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
 				"objects are not of same data type");
-		return (NULL);
 	}
 	switch (self->object->type)
 	{
@@ -1659,9 +1727,8 @@ static PyObject *Object_shareFrom (BPy_Object *self, PyObject *args)
 			Py_INCREF (Py_None);
 			return (Py_None);
 		default:
-			EXPP_ReturnPyObjError (PyExc_TypeError,
+			return EXPP_ReturnPyObjError (PyExc_TypeError,
 					"type not supported");
-			return (NULL);
 	}
 
 	Py_INCREF (Py_None);
@@ -1869,6 +1936,45 @@ static PyObject *Object_copyAllPropertiesTo(BPy_Object *self, PyObject *args)
 	}
 
 	return EXPP_incr_ret  (Py_None);
+}
+
+/* obj.addScriptLink */
+static PyObject *Object_addScriptLink (BPy_Object *self, PyObject *args)
+{
+	Object *obj = self->object;
+	ScriptLink *slink = NULL;
+
+	slink = &(obj)->scriptlink;
+
+	if (!EXPP_addScriptLink(slink, args, 0))
+		return EXPP_incr_ret (Py_None);
+	else return NULL;
+}
+
+/* obj.clearScriptLinks */
+static PyObject *Object_clearScriptLinks (BPy_Object *self)
+{
+	Object *obj = self->object;
+	ScriptLink *slink = NULL;
+
+	slink = &(obj)->scriptlink;
+
+	return EXPP_incr_ret(Py_BuildValue("i", EXPP_clearScriptLinks (slink)));
+}
+
+/* obj.getScriptLinks */
+static PyObject *Object_getScriptLinks (BPy_Object *self, PyObject *args)
+{
+	Object *obj = self->object;
+	ScriptLink *slink = NULL;
+	PyObject *ret = NULL;
+
+	slink = &(obj)->scriptlink;
+
+	ret = EXPP_getScriptLinks(slink, args, 0);
+
+	if (ret) return ret;
+	else return NULL;
 }
 
 /*****************************************************************************/
@@ -2231,10 +2337,10 @@ static int Object_setAttr (BPy_Object *obj, char *name, PyObject *value)
 	}
 	if (StringEqual (name, "track"))
 	{
-		/* This is not allowed. */
-		EXPP_ReturnPyObjError (PyExc_AttributeError,
-					"Setting the track is not allowed.");
-		return (0);
+		if (Object_makeTrack (obj, valtuple) != Py_None)
+			return (-1);
+		else
+			return (0);
 	}
 	if (StringEqual (name, "data"))
 	{

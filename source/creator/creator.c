@@ -182,7 +182,7 @@ static void print_help(void)
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable OnLoad scene scripts, use -Y to find out why its -y\n");
-	printf ("  -P <filename>\tRun the given Python script\n");
+	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
 #endif
@@ -424,16 +424,6 @@ int main(int argc, char **argv)
 
 		BIF_init();
 
-		/**
-		 * NOTE: the U.pythondir string is NULL until BIF_init() is executed,
-		 * so we provide the BPY_ function below to append the user defined
-		 * pythondir to Python's sys.path at this point.  Simply putting
-		 * BIF_init() before BPY_start_python() crashes Blender at startup.
-		 * Update: now this function also inits the bpymenus, which also depend
-		 * on U.pythondir.
-		 */
-
-		BPY_post_start_python();
 	}
 	else {
 		BPY_start_python();
@@ -444,6 +434,16 @@ int main(int argc, char **argv)
         // sound_init_audio();
         // if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 	}
+
+	/**
+	 * NOTE: the U.pythondir string is NULL until BIF_init() is executed,
+	 * so we provide the BPY_ function below to append the user defined
+	 * pythondir to Python's sys.path at this point.  Simply putting
+	 * BIF_init() before BPY_start_python() crashes Blender at startup.
+	 * Update: now this function also inits the bpymenus, which also depend
+	 * on U.pythondir.
+	 */
+	BPY_post_start_python();
 
 	RE_init_filt_mask();
 

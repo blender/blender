@@ -33,6 +33,7 @@
 #include <BLI_blenlib.h>
 #include <PIL_time.h>
 #include <Python.h>
+#include <sys/stat.h>
 #include "gen_utils.h"
 #include "modules.h"
 
@@ -92,7 +93,12 @@ Each successive call is garanteed to return values greater than or\n\
 equal to the previous call.";
 
 static char M_sys_exists_doc[] =
-"(path) - Return 1 if given pathname (file or dir) exists, 0 otherwise.";
+"(path) - Check if the given pathname exists.\n\
+The return value is as follows:\n\
+\t 0: path doesn't exist;\n\
+\t 1: path is an existing filename;\n\
+\t 2: path is an existing dirname;\n\
+\t-1: path exists but is neither a regular file nor a dir.";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.sys module:                */
@@ -337,16 +343,20 @@ static PyObject *M_sys_time (PyObject *self)
 
 static PyObject *M_sys_exists (PyObject *self, PyObject *args)
 {
+	struct stat st;
 	char *fname = NULL;
-	int i = 0;
+	int res = 0, i = -1;
 
 	if (!PyArg_ParseTuple(args, "s", &fname))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
-							"expected string (file path) argument");
+							"expected string (pathname) argument");
 
-	i = BLI_exists(fname);
+	res = stat(fname, &st);
 
-	if (i) return Py_BuildValue("i", 1); /* path was found */
+	if (res == -1) i = 0;
+	else if (S_ISREG(st.st_mode)) i = 1;
+	else if (S_ISDIR(st.st_mode)) i = 2;
+	/* i stays as -1 if path exists but is neither a regular file nor a dir */
 
-	return Py_BuildValue("i", 0); /* path doesn't exist */
+	return Py_BuildValue("i", i);
 }

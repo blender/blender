@@ -3,6 +3,8 @@
 """
 The Blender.Lamp submodule.
 
+B{New}: scriptLink methods: L{Lamp.getScriptLinks}, ...
+
 Lamp Data
 =========
 
@@ -320,3 +322,29 @@ class Lamp:
     @param quad2: The new quad 2 value.
     @warning: this only applies to Lamps with the 'Quad' flag on.
     """ 
+
+  def getScriptLinks (event):
+    """
+    Get a list with this Lamp's script links of type 'event'.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
+    @rtype: list
+    @return: a list with Blender L{Text} names (the script links of the given
+        'event' type) or None if there are no script links at all.
+    """
+
+  def clearScriptLinks ():
+    """
+    Delete all this Lamp's script links.
+    @rtype: bool
+    @return: 0 if some internal problem occurred or 1 if successful.
+    """
+
+  def addScriptLink (text, event):
+    """
+    Add a new script link to this Lamp.
+    @type text: string
+    @param text: the name of an existing Blender L{Text}.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
+    """

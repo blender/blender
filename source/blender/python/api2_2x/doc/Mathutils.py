@@ -39,18 +39,6 @@ def Rand (high = 1, low = 0):
   @param low: The lower range.
   """
 
-def Vector (list = None):
-  """
-  Create a new Vector object from a list.
-  @type list: PyList of float or int
-  @param list: The list of values for the Vector object.
-  Must be 2, 3, or 4 values.
-  @rtype: Vector object.
-  @return: It depends wheter a parameter was passed:
-      - (list): Vector object initialized with the given values;
-      - ():     An empty 3 dimensional vector.
-  """
-
 def CopyVec(vector):
   """
   Create a copy of the Vector object.
@@ -126,23 +114,6 @@ def ProjectVecs(vec1, vec2):
   @param vec2: A 2d,3d or 4d vector.
   @rtype: Vector object
   @return: The parallel projection vector.
-  """
-
-def Matrix(list1 = None, list2 = None, list3 = None, list4 = None):
-  """  
-  Create a new matrix object from intialized values.
-  @type list1: PyList of int/float
-  @param list1: A 2d,3d or 4d list.
-  @type list2: PyList of int/float
-  @param list2: A 2d,3d or 4d list.
-  @type list3: PyList of int/float
-  @param list3: A 2d,3d or 4d list.
-  @type list4: PyList of int/float
-  @param list4: A 2d,3d or 4d list.
-  @rtype: New matrix object.
-  @return: It depends wheter a parameter was passed:
-      - (list1, etc.): Matrix object initialized with the given values;
-      - ():     An empty 3 dimensional matrix.
   """
 
 def RotationMatrix(angle, matSize, axisFlag, axis):
@@ -248,21 +219,6 @@ def MatMultVec(mat, vec):
   @return: The column vector that results from the muliplication.
   """
 
-def Quaternion(list = None, angle = None):
-  """  
-  Create a new matrix object from intialized values.
-  @type list: PyList of int/float
-  @param list: A 3d or 4d list to intialize quaternion.
-  4d if intializing, 3d if will be used as an axis of rotation.
-  @type angle: float (optional)
-  @param angle: An arbitrary rotation amount around 'list'.
-  List is used as an axis of rotation in this case.
-  @rtype: New quaternion object.
-  @return: It depends wheter a parameter was passed:
-      - (list/angle): Quaternion object initialized with the given values;
-      - ():     An identity 4 dimensional quaternion.
-  """
-
 def CopyQuat(quaternion):
   """
   Create a copy of the Quaternion object.
@@ -320,16 +276,6 @@ def Slerp(quat1, quat2, factor):
   @return: The interpolated rotation.
   """
 
-def Euler(list = None):
-  """
-  Create a new euler object.
-  @type list: PyList of float/int
-  @param list: 3d list to initalize euler
-  @rtype: Euler object
-  @return: Euler representing heading, pitch, bank.
-  Values are in degrees.
-  """
-
 def CopyEuler(euler):
   """
   Create a new euler object.
@@ -364,6 +310,21 @@ class Vector:
   @cvar w: The w value (if any).
   @cvar length: The magnitude of the vector.
   """
+
+  def __init__(list = None):
+    """
+    Create a new Vector object from a list.
+
+    Example::
+      v = Blender.Mathutils.Vector([1,0,0])
+    @type list: PyList of float or int
+    @param list: The list of values for the Vector object.
+    Must be 2, 3, or 4 values.
+    @rtype: Vector object.
+    @return: It depends wheter a parameter was passed:
+        - (list): Vector object initialized with the given values;
+        - ():     An empty 3 dimensional vector.
+    """
 
   def zero():
     """
@@ -405,6 +366,19 @@ class Euler:
   @cvar z: The roll value in degrees.
   """
 
+  def __init__(list = None):
+    """
+    Create a new euler object.
+
+    Example::
+      euler = Euler([45,0,0])
+    @type list: PyList of float/int
+    @param list: 3d list to initialize euler
+    @rtype: Euler object
+    @return: Euler representing heading, pitch, bank.
+    @note: Values are in degrees.
+    """
+
   def zero():
     """
     Set all values to zero.
@@ -445,6 +419,25 @@ class Quaternion:
   @cvar angle: A scalar representing the amount of rotation
   in degrees.
   """
+
+  def __init__(list = None, angle = None):
+    """  
+    Create a new quaternion object from initialized values.
+
+    Example::
+      quat = Mathutils.Quaternion()
+
+    @type list: PyList of int/float
+    @param list: A 3d or 4d list to initialize quaternion.
+        4d if intializing, 3d if will be used as an axis of rotation.
+    @type angle: float (optional)
+    @param angle: An arbitrary rotation amount around 'list'.
+        List is used as an axis of rotation in this case.
+    @rtype: New quaternion object.
+    @return: It depends wheter a parameter was passed:
+        - (list/angle): Quaternion object initialized with the given values;
+        - ():     An identity 4 dimensional quaternion.
+    """
 
   def identity():
     """
@@ -495,6 +488,27 @@ class Matrix:
   @cvar rowsize: The row size of the matrix.
   @cvar colsize: The column size of the matrix.
   """
+
+  def __init__(list1 = None, list2 = None, list3 = None, list4 = None):
+    """  
+    Create a new matrix object from initialized values.
+
+    Example::
+      matrix = Mathutils.Matrix([1,1,1],[0,1,0],[1,0,0])
+
+    @type list1: PyList of int/float
+    @param list1: A 2d,3d or 4d list.
+    @type list2: PyList of int/float
+    @param list2: A 2d,3d or 4d list.
+    @type list3: PyList of int/float
+    @param list3: A 2d,3d or 4d list.
+    @type list4: PyList of int/float
+    @param list4: A 2d,3d or 4d list.
+    @rtype: New matrix object.
+    @return: It depends wheter a parameter was passed:
+        - (list1, etc.): Matrix object initialized with the given values;
+        - ():     An empty 3 dimensional matrix.
+    """
 
   def zero():
     """

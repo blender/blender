@@ -3,7 +3,12 @@
 """
 The Blender.Object submodule
 
-This module provides access to the B{Object Data} in Blender.
+B{New}: L{Object.makeTrack}, scriptLink methods: L{Object.getScriptLinks}, ...
+
+Object
+======
+
+This module provides access to the B{Objects} in Blender.
 
 Example::
 
@@ -521,4 +526,54 @@ class Object:
     @warn: If after running your script objects disappear from the screen or
        are not displayed correctly, try this method function.  But if the script
        works properly without it, there's no reason to use it.
+    """
+
+  def getScriptLinks (event):
+    """
+    Get a list with this Object's script links of type 'event'.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
+    @rtype: list
+    @return: a list with Blender L{Text} names (the script links of the given
+        'event' type) or None if there are no script links at all.
+    """
+
+  def clearScriptLinks ():
+    """
+    Delete all this Object's script links.
+    @rtype: bool
+    @return: 0 if some internal problem occurred or 1 if successful.
+    """
+
+  def addScriptLink (text, event):
+    """
+    Add a new script link to this Object.
+    @type text: string
+    @param text: the name of an existing Blender L{Text}.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
+    """
+
+  def makeTrack (tracked, fast = 0):
+    """
+    Make this Object track another.
+    @type tracked: Blender Object
+    @param tracked: the object to be tracked.
+    @type fast: int (bool)
+    @param fast: if zero, the scene hierarchy is updated automatically.  If
+        you set 'fast' to a nonzero value, don't forget to update the scene
+        yourself (see L{Scene.Scene.update}).
+    @note: you also need to clear the rotation (L{setEuler}) of this object
+       if it was not (0,0,0) already.
+    """
+
+  def clearTrack (mode = 0, fast = 0):
+    """
+    Make this Object not track another anymore.
+    @type mode: int (bool)
+    @param mode: if nonzero the matrix transformation used for tracking is kept.
+    @type fast: int (bool)
+    @param fast: if zero, the scene hierarchy is updated automatically.  If
+        you set 'fast' to a nonzero value, don't forget to update the scene
+        yourself (see L{Scene.Scene.update}).
     """

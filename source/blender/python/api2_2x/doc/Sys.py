@@ -114,14 +114,18 @@ def makename (path = "Blender.Get('filename')", ext = "", strip = 0):
 def exists(path):
   """
   Tell if the given pathname (file or dir) exists.
-  @rtype: bool
-  @return: 1 if 'path' exists, 0 otherwise.
+  @rtype: int
+  @return:
+      -  0: path does not exist;
+      -  1: path is an existing filename;
+      -  2: path is an existing dirname;
+      - -1: path exists but is neither a regular file nor a dir.
   """
 
 def time ():
   """
   Get the current time in seconds since a fixed value.  Successive calls to
-  this function are garanteed to return values greater than the previous call.
+  this function are guaranteed to return values greater than the previous call.
   @rtype: float
   @return: the elapsed time in seconds.
   """

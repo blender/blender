@@ -100,13 +100,11 @@ def matrix_mul(m, n = acmatrix):
 
 # ---
 
-errmsg = ''
-
 class AC3DExport:
 
     def __init__(self, scene, filename):
 
-        global ARG, SKIP_DATA, ADD_DEFAULT_MAT, DEFAULT_MAT, errmsg
+        global ARG, SKIP_DATA, ADD_DEFAULT_MAT, DEFAULT_MAT
 
         print 'Trying AC3DExport...'
 
@@ -179,7 +177,9 @@ class AC3DExport:
         try:
             file = open(filename, 'w')
         except IOError, (errno, strerror):
-            errmsg = "IOError #%s: %s" % (errno, strerror)
+            errmsg = "IOError #%s" % errno
+            errmsg = errmsg + "%t|" + strerror
+            Blender.Draw.PupMenu(errmsg)
             return None
         file.write(buf)
         file.close()
@@ -333,30 +333,43 @@ def gui():
     BGL.glClear(BGL.GL_COLOR_BUFFER_BIT)
     BGL.glColor3f(1,1,1)
     BGL.glRasterPos2i(18, 150)
-    Draw.Text("AC3D is a simple, affordable commercial 3d modeller that can be found at www.ac3d.org .")
+    Draw.Text("AC3D is a simple, affordable commercial 3d modeller that can "
+      "be found at www.ac3d.org .")
     BGL.glRasterPos2i(18, 130)
-    Draw.Text("It uses a nice text file format (extension .ac) which supports uv-textured meshes")
+    Draw.Text("It uses a nice text file format (extension .ac) which supports "
+      "uv-textured meshes")
     BGL.glRasterPos2i(18, 110)
     Draw.Text("with parenting (grouping) information.")
     BGL.glRasterPos2i(18, 90)
-    Draw.Text("Notes: AC3D has a 'data' token that assigns a string to each mesh, useful for games,")
+    Draw.Text("Notes: AC3D has a 'data' token that assigns a string to each "
+      "mesh, useful for games,")
     BGL.glRasterPos2i(55, 70)
-    Draw.Text("for example. You can use Blender's mesh datablock name for that.")
+    Draw.Text("for example. You can use Blender's mesh 'ME:' field for that.")
     BGL.glRasterPos2i(55, 50)
     Draw.Text("The .ac format is well supported by the PLib 3d gaming library.")
-    Draw.Button("Ok", 21, 285, 10, 45, 20, "Click to return to previous screen.")
+    Draw.Button("Ok", 21, 285, 10, 45, 20,
+      "Click to return to previous screen.")
   else:
     BGL.glClearColor(0,0,1,1)
     BGL.glClear(BGL.GL_COLOR_BUFFER_BIT)
     BGL.glColor3f(1,1,1)
     BGL.glRasterPos2i(20, 150)
     Draw.Text("AC3D Exporter")
-    Draw.Toggle("Default mat", 1, 15, 100, 90, 20, ADD_DEFAULT_MAT, "Objects without materials assigned get a default (white) one automatically.")
-    Draw.Toggle("Skip data", 2, 15, 80, 90, 20, SKIP_DATA, "Don't export mesh names as 'data' info.")
-    Draw.Toggle("Mir2Amb", 3, 15, 50, 90, 20, MIRCOL_AS_AMB, "Get AC3D's ambient RGB color for each object from its mirror color in Blender.")
-    Draw.Toggle("Mir2Emis", 4, 15, 30, 90, 20, MIRCOL_AS_EMIS, "Get AC3D's emissive RGB color for each object from its mirror color in Blender.")
-    Draw.Button("Export All...", 10, 140, 80, 110, 30, "Export all meshes to an AC3D file.")
-    Draw.Button("Export Selected...", 11, 140, 40, 110, 30, "Export selected meshes to an AC3D file.")
+    Draw.Toggle("Default mat", 1, 15, 100, 90, 20, ADD_DEFAULT_MAT,
+      "Objects without materials assigned get a default (white) one"
+      " automatically.")
+    Draw.Toggle("Skip data", 2, 15, 80, 90, 20, SKIP_DATA,
+      "Don't export mesh names as 'data' info.")
+    Draw.Toggle("Mir2Amb", 3, 15, 50, 90, 20, MIRCOL_AS_AMB,
+      "Get AC3D's ambient RGB color for each object from its mirror color "
+      "in Blender.")
+    Draw.Toggle("Mir2Emis", 4, 15, 30, 90, 20, MIRCOL_AS_EMIS,
+      "Get AC3D's emissive RGB color for each object from its mirror color "
+      "in Blender.")
+    Draw.Button("Export All...", 10, 140, 80, 110, 30,
+      "Export all meshes to an AC3D file.")
+    Draw.Button("Export Selected...", 11, 140, 40, 110, 30,
+      "Export selected meshes to an AC3D file.")
     Draw.Button("HELP", 20, 285, 80, 100, 40, "Click for additional info.")
     Draw.Button("EXIT", 22, 285, 30, 100, 40, "Click to leave.")
 

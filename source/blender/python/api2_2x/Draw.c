@@ -325,12 +325,13 @@ PyTypeObject Button_Type = {
 	(reprfunc) Button_repr,	/*tp_repr */
 };
 
-
 static void Button_dealloc (PyObject *self)
 {
 	Button *but = (Button *) self;
 
-	if (but->type == 3) MEM_freeN (but->val.asstr);
+	if (but->type == 3) {
+		if (but->val.asstr) MEM_freeN (but->val.asstr);
+	}
 
 	PyObject_DEL (self);
 }
@@ -1008,7 +1009,7 @@ static PyObject *Method_String (PyObject *self, PyObject *args)
 	but->val.asstr = MEM_mallocN (len + 1, "button string");
 
 	strncpy (but->val.asstr, newstr, len);
-	but->val.asstr[len] = 0;
+	but->val.asstr[len] = '\0';
 
 	block = Get_uiBlock ();
 	if (block)
@@ -1189,6 +1190,8 @@ PyObject *Draw_Init (void)
 	EXPP_ADDCONST (LEFTMOUSE);
 	EXPP_ADDCONST (MIDDLEMOUSE);
 	EXPP_ADDCONST (RIGHTMOUSE);
+	EXPP_ADDCONST (WHEELUPMOUSE);
+	EXPP_ADDCONST (WHEELDOWNMOUSE);
 	EXPP_ADDCONST (MOUSEX);
 	EXPP_ADDCONST (MOUSEY);
 	EXPP_ADDCONST (TIMER0);

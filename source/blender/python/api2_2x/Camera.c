@@ -113,6 +113,9 @@ static PyObject *Camera_setLens (BPy_Camera * self, PyObject * args);
 static PyObject *Camera_setClipStart (BPy_Camera * self, PyObject * args);
 static PyObject *Camera_setClipEnd (BPy_Camera * self, PyObject * args);
 static PyObject *Camera_setDrawSize (BPy_Camera * self, PyObject * args);
+static PyObject *Camera_getScriptLinks(BPy_Camera *self, PyObject *args);
+static PyObject *Camera_addScriptLink(BPy_Camera *self, PyObject *args);
+static PyObject *Camera_clearScriptLinks(BPy_Camera *self);
 
 /*****************************************************************************/
 /* Python BPy_Camera methods table:                                          */
@@ -154,6 +157,16 @@ static PyMethodDef BPy_Camera_methods[] = {
    "(f) - Set Camera clip end value"},
   {"setDrawSize", (PyCFunction) Camera_setDrawSize, METH_VARARGS,
    "(f) - Set Camera draw size value"},
+	{"getScriptLinks", (PyCFunction)Camera_getScriptLinks, METH_VARARGS,
+			"(eventname) - Get a list of this camera's scriptlinks (Text names) "
+			"of the given type\n"
+	"(eventname) - string: FrameChanged or Redraw."},
+	{"addScriptLink", (PyCFunction)Camera_addScriptLink, METH_VARARGS,
+			"(text, evt) - Add a new camera scriptlink.\n"
+	"(text) - string: an existing Blender Text name;\n"
+	"(evt) string: FrameChanged or Redraw."},
+	{"clearScriptLinks", (PyCFunction)Camera_clearScriptLinks, METH_NOARGS,
+			"() - Delete all scriptlinks from this camera."},
   {NULL, NULL, 0, NULL}
 };
 
@@ -738,6 +751,44 @@ Camera_setDrawSize (BPy_Camera * self, PyObject * args)
 
   Py_INCREF (Py_None);
   return Py_None;
+}
+/* cam.addScriptLink */
+static PyObject *Camera_addScriptLink (BPy_Camera *self, PyObject *args)
+{
+	Camera *cam = self->camera;
+	ScriptLink *slink = NULL;
+
+	slink = &(cam)->scriptlink;
+
+	if (!EXPP_addScriptLink(slink, args, 0))
+		return EXPP_incr_ret (Py_None);
+	else return NULL;
+}
+
+/* cam.clearScriptLinks */
+static PyObject *Camera_clearScriptLinks (BPy_Camera *self)
+{
+	Camera *cam = self->camera;
+	ScriptLink *slink = NULL;
+
+	slink = &(cam)->scriptlink;
+
+	return EXPP_incr_ret(Py_BuildValue("i", EXPP_clearScriptLinks (slink)));
+}
+
+/* cam.getScriptLinks */
+static PyObject *Camera_getScriptLinks (BPy_Camera *self, PyObject *args)
+{
+	Camera *cam = self->camera;
+	ScriptLink *slink = NULL;
+	PyObject *ret = NULL;
+
+	slink = &(cam)->scriptlink;
+
+	ret = EXPP_getScriptLinks(slink, args, 0);
+
+	if (ret) return ret;
+	else return NULL;
 }
 
 static void

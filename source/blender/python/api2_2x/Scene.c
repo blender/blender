@@ -34,9 +34,12 @@
 #include <BKE_scene.h>
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
+#include <BSE_drawview.h> /* for play_anim */
 #include <BSE_headerbuttons.h> /* for copy_scene */
 #include <BIF_drawscene.h>		 /* for set_scene */
 #include <BIF_space.h>				 /* for copy_view3d_lock() */
+#include <BIF_screen.h> /* curarea */
+#include <DNA_screen_types.h> /* SPACE_VIEW3D, SPACE_SEQ */
 #include <DNA_scriptlink_types.h>
 #include <MEM_guardedalloc.h>  /* for MEM_callocN */
 #include <mydevice.h>					 /* for #define REDRAW */
@@ -101,6 +104,7 @@ static PyObject *Scene_getRenderingContext(BPy_Scene *self);
 static PyObject *Scene_getScriptLinks(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_addScriptLink(BPy_Scene *self, PyObject *args);
 static PyObject *Scene_clearScriptLinks(BPy_Scene *self);
+static PyObject *Scene_play(BPy_Scene *self, PyObject *args);
 
 //deprecated methods
 static PyObject *Scene_currentFrame(BPy_Scene *self, PyObject *args);
@@ -180,6 +184,19 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"currentFrame", (PyCFunction)Scene_currentFrame, METH_VARARGS,
 			"(frame) - If frame is given, the current frame is set and"
 			"\nreturned in any case"},
+	{"play", (PyCFunction)Scene_play, METH_VARARGS,
+			"(mode = 0, win = VIEW3D) - Play realtime animation in Blender"
+			" (not rendered).\n"
+			"(mode) - int:\n"
+			"\t0 - keep playing in biggest given 'win';\n"
+			"\t1 - keep playing in all 'win', VIEW3D and SEQ windows;\n"
+			"\t2 - play once in biggest given 'win';\n"
+			"\t3 - play once in all 'win', VIEW3D and SEQ windows.\n"
+			"(win) - int: see Blender.Window.Types. Only these are meaningful here:"
+			"VIEW3D, SEQ,	IPO, ACTION, NLA, SOUND.  But others are also accepted, "
+			"since they can be used just as an interruptible timer.  If 'win' is not"
+			"available or invalid, VIEW3D is tried, then any bigger window."
+			"Returns 0 for normal exit or 1 when canceled by user input."},
 	{NULL, NULL, 0, NULL}
 };
 //-----------------------BPy_Scene method def-------------------------------------------------------------------------
@@ -789,6 +806,62 @@ static PyObject *Scene_getScriptLinks (BPy_Scene *self, PyObject *args)
 
 	if (ret) return ret;
 	else return NULL;
+}
+
+static PyObject *Scene_play (BPy_Scene *self, PyObject *args)
+{
+	Scene *scene = self->scene;
+	int mode = 0, win = SPACE_VIEW3D;
+	PyObject *ret = NULL;
+	ScrArea *sa = NULL, *oldsa = curarea;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"Blender Scene was deleted!");
+
+	if (!PyArg_ParseTuple(args, "|ii", &mode, &win))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"expected nothing, or or two ints as arguments.");
+
+	if (mode < 0 || mode > 3)
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+			"mode should be in range [0, 3].");
+
+	switch (win) {
+		case SPACE_VIEW3D:
+		case SPACE_SEQ:
+		case SPACE_IPO:
+		case SPACE_ACTION:
+		case SPACE_NLA:
+		case SPACE_SOUND:
+		case SPACE_BUTS: /* from here they don't 'play', but ...*/
+		case SPACE_TEXT: /* ... might be used as a timer. */
+		case SPACE_SCRIPT:
+		case SPACE_OOPS:
+		case SPACE_IMAGE:
+		case SPACE_IMASEL:
+		case SPACE_INFO:
+		case SPACE_FILE:
+			break;
+		default:
+			win = SPACE_VIEW3D;
+	}
+
+	/* we have to move to a proper win */
+	sa = find_biggest_area_of_type(win);
+	if (!sa && win != SPACE_VIEW3D)
+		sa = find_biggest_area_of_type(SPACE_VIEW3D);
+
+	if (!sa) sa = find_biggest_area();
+
+	if (sa) areawinset(sa->win);
+
+	/* play_anim returns 0 for normal exit or 1 if user canceled it */
+	ret =  Py_BuildValue("i", play_anim(mode));
+
+	if (sa) areawinset(oldsa->win);
+
+	return ret;
 }
 
 /*****************************************************************************/

@@ -417,6 +417,7 @@ int BPY_txt_do_python_Text(struct Text* text)
 {
 	PyObject *py_dict, *py_result;
 	BPy_constant *info;
+	char textname[24];
 	Script *script = G.main->script.first;
 
 	if (!text) return 0;
@@ -441,6 +442,11 @@ int BPY_txt_do_python_Text(struct Text* text)
 		printf("couldn't allocate memory for Script struct!");
 		return 0;
 	}
+
+	/* if in the script Blender.Load(blendfile) is not the last command,
+	 * an error after it will call BPY_Err_Handle below, but the text struct
+	 * will have been deallocated already, so we need to copy its name here. */
+	BLI_strncpy(textname, GetName(text), strlen(GetName(text))+1);
 
 	/* if in it, leave editmode, since changes a script makes to meshdata
 	 * can be lost otherwise. */
@@ -468,12 +474,10 @@ int BPY_txt_do_python_Text(struct Text* text)
 
 	if (!py_result) { /* Failed execution of the script */
 
-		BPY_Err_Handle(GetName(text));
+		BPY_Err_Handle(textname);
 		ReleaseGlobalDictionary(py_dict);
 		script->py_globaldict = NULL;
-		free_libblock(&G.main->script, script);
-		//BPY_end_python();
-		//BPY_start_python();
+		if (G.main->script.first) free_libblock(&G.main->script, script);
 
 		return 0;
 	}
@@ -507,28 +511,38 @@ int BPY_txt_do_python(struct SpaceText* st)
 /*****************************************************************************/
 void BPY_run_python_script(char *fn)
 {
-	Text	*text;
+	Text	*text = NULL;
+	int is_blenText = 0;
 
-	if ( !BLI_exists(fn) ) {
-		printf("\nError: no such file -- %s.\n", fn);
-		return;
+	if ( !BLI_exists(fn) ) { /* if there's no such filename ...*/
+		text = G.main->text.first; /* try an already existing Blender Text */
+		while (text) {
+			if (!strcmp(fn, text->id.name+2)) break;
+			text = text->id.next;
+		}
+
+		if (!text) {
+			printf("\nError: no such file or Blender text -- %s.\n", fn);
+			return;
+		}
+		else is_blenText = 1; /* fn is already a Blender Text */
 	}
 
-	text = add_text(fn);
+	if (!is_blenText) text = add_text(fn);
 	if (text == NULL) {
 		printf("Error in BPY_run_python_script: couldn't create Blender text "
 			"from %s\n", fn);
-		// On Windows if I continue I just get a segmentation
+		// Chris: On Windows if I continue I just get a segmentation
 		// violation.  To get a baseline file I exit here.
 		exit(2);
 	}
 
 	if (BPY_txt_do_python_Text(text) != 1) {
-		printf( "\nError executing Python script:\n"
-			"%s (at line %d)\n", fn, BPY_Err_getLinenumber());
+		printf( "\nError executing Python script from command-line:\n"
+			"%s (at line %d).\n", fn, BPY_Err_getLinenumber());
 	}
 
-	free_libblock(&G.main->text, text);
+	if (!is_blenText) free_libblock(&G.main->text, text);
 }
 
 /*****************************************************************************/
@@ -708,9 +722,7 @@ int BPY_menu_do_python(short menutype, int event)
 		BPY_Err_Handle(script->id.name+2);
 		PyErr_Print();
 		ReleaseGlobalDictionary(py_dict);
-		free_libblock(&G.main->script, script);
-	//	BPY_end_python();
-	//	BPY_start_python();
+		if (G.main->script.first) free_libblock(&G.main->script, script);
 		error ("Python script error: check console");
 
 		return 0;

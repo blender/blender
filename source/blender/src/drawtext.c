@@ -951,21 +951,27 @@ void run_python_script(SpaceText *st)
 {
 	char *py_filename;
 	Text *text=st->text;
+
 	if (!BPY_txt_do_python(st)) {
 		int lineno = BPY_Err_getLinenumber();
 		// jump to error if happened in current text:
 		py_filename = (char*) BPY_Err_getFilename();
+
+		/* st->text can become NULL: user called Blender.Load(blendfile)
+		 * before the end of the script. */
+		if (!st->text) return;
+
 		if (!strcmp(py_filename, st->text->id.name+2)) {
 			error("Python script error, check console");
-		if (lineno >= 0) {
-			txt_move_toline(text, lineno-1, 0);
-			txt_sel_line(text);
-			pop_space_text(st);
+			if (lineno >= 0) {
+				txt_move_toline(text, lineno-1, 0);
+				txt_sel_line(text);
+				pop_space_text(st);
+			}	
+		} else {
+			error("Error in other (possibly external) file, "\
+				"check console");
 		}	
-	} else {
-		error("Error in other (possibly external) file, "\
-		"check console");
-	}	
 	}
 }
 

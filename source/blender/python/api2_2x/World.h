@@ -105,6 +105,9 @@ static PyObject *World_getStar(BPy_World *self);
 static PyObject *World_setStar(BPy_World *self, PyObject *args );
 static PyObject *World_getMist(BPy_World *self);
 static PyObject *World_setMist(BPy_World *self, PyObject *args );
+static PyObject *World_getScriptLinks(BPy_World *self, PyObject *args);
+static PyObject *World_addScriptLink(BPy_World *self, PyObject *args);
+static PyObject *World_clearScriptLinks(BPy_World *self);
 
 /*****************************************************************************/
 /* Python BPy_World methods table:                                          */
@@ -152,6 +155,16 @@ static PyMethodDef BPy_World_methods[] = {
       "() - Return World Data mist"},
   {"setMist", (PyCFunction)World_setMist, METH_VARARGS,
       "() - Return World Data mist"},
+	{"getScriptLinks", (PyCFunction)World_getScriptLinks, METH_VARARGS,
+			"(eventname) - Get a list of this world's scriptlinks (Text names) "
+			"of the given type\n"
+	"(eventname) - string: FrameChanged or Redraw."},
+	{"addScriptLink", (PyCFunction)World_addScriptLink, METH_VARARGS,
+			"(text, evt) - Add a new world scriptlink.\n"
+	"(text) - string: an existing Blender Text name;\n"
+	"(evt) string: FrameChanged or Redraw."},
+	{"clearScriptLinks", (PyCFunction)World_clearScriptLinks, METH_NOARGS,
+			"() - Delete all scriptlinks from this world :)."},
   {NULL, NULL, 0, NULL}
 };
 
@@ -160,7 +173,7 @@ static PyMethodDef BPy_World_methods[] = {
 /* and Object modules.                                                       */
 /*****************************************************************************/
 PyObject *World_Init (void);
-PyObject *World_CreatePyObject (World *cam);
+PyObject *World_CreatePyObject (World *world);
 World   *World_FromPyObject (PyObject *pyobj);
 int       World_CheckPyObject (PyObject *pyobj);
 

@@ -6,7 +6,7 @@ The Blender.Draw submodule.
 Draw
 ====
 
-B{New}: L{PupIntInput}, L{PupFloatInput}, L{PupStrInput}.
+B{New}: L{PupIntInput}, L{PupFloatInput}, L{PupStrInput}, mouse wheel events.
 
 This module provides access to a B{windowing interface} in Blender.  Its widgets
 include many kinds of buttons: push, toggle, menu, number, string, slider,

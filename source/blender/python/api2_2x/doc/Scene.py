@@ -3,7 +3,7 @@
 """
 The Blender.Scene submodule.
 
-B{New}: scriptLink methods: L{Scene.getScriptLinks}, ...
+B{New}: L{Scene.play}, scriptLink methods: L{Scene.getScriptLinks}, ...
 
 Scene
 =====
@@ -218,4 +218,25 @@ class Scene:
     @param text: the name of an existing Blender L{Text}.
     @type event: string
     @param event: "FrameChanged", "OnLoad" or "Redraw".
+    """
+
+  def play (mode = 0, win = '<VIEW3D>'):
+    """
+    Play a realtime animation.  This is the "Play Back Animation" function in
+    Blender, different from playing a sequence of rendered images (for that
+    check L{Render.RenderData.play}).
+    @type mode: int
+    @param mode: controls playing:
+        - 0: keep playing in the biggest 'win' window;
+        - 1: keep playing in all 'win', VIEW3D and SEQ windows;
+        - 2: play once in the biggest VIEW3D;
+        - 3: play once in all 'win', VIEW3D and SEQ windows.
+    @type win: int
+    @param win: window type, see L{Window.Types}.  Only some of them are
+        meaningful here: VIEW3D, SEQ, IPO, ACTION, NLA, SOUND.  But the others
+        are also accepted, since this function can be used simply as an
+        interruptible timer.  If 'win' is not visible or invalid, VIEW3D is
+        tried, then any bigger visible window.
+    @rtype: bool
+    @return: 0 on normal exit or 1 when play back is canceled by user input.
     """

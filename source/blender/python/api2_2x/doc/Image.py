@@ -6,6 +6,8 @@ The Blender.Image submodule.
 Image
 =====
 
+B{New}: L{Image.reload}.
+
 This module provides access to B{Image} objects in Blender.
 
 Example::

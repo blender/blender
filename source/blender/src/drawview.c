@@ -2428,7 +2428,7 @@ void inner_play_anim_loop(int init, int mode)
 		if(sa==oldsa) {
 			scrarea_do_windraw(sa);
 		}
-		else if(curmode) {
+		else if(curmode & 1) { /* catch modes 1 and 3 */
 			if ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ) {
 				scrarea_do_windraw(sa);
 			}
@@ -2453,6 +2453,11 @@ void inner_play_anim_loop(int init, int mode)
 	}
 }
 
+/* play_anim: 'mode' defines where to play and if repeat is on:
+ * - 0: current area
+ * - 1: all view3d and seq areas
+ * - 2: current area, no replay
+ * - 3: all view3d and seq areas, no replay */
 int play_anim(int mode)
 {
 	ScrArea *sa, *oldsa;
@@ -2507,7 +2512,7 @@ int play_anim(int mode)
 		}
 		if(event==ESCKEY || event==SPACEKEY) break;
 				
-		if(mode==2 && CFRA==EFRA) break;	
+		if((mode > 1) && CFRA==EFRA) break; /* no replay */	
 	}
 
 	if(event==SPACEKEY);

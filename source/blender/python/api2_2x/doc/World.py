@@ -3,7 +3,10 @@
 """
 The Blender.World submodule
 
+B{New}: scriptLink methods: L{World.getScriptLinks}, ...
+
 INTRODUCTION
+============
 
 The module world allows you to access all the data of a Blender World.
 
@@ -80,7 +83,7 @@ class World:
 
   def getName():
     """
-    Retreives the name of an world object
+    Retrieves the name of an world object
     @rtype: string
     @return:  the name of the world object.
     """
@@ -116,7 +119,7 @@ class World:
 
   def getSkytype():
     """
-    Retreives the skytype of a world object.
+    Retrieves the skytype of a world object.
     The skytype is a combination of 3 bits : Bit 0 : Blend; Bit 1 : Real; Bit 2 : paper.
     @rtype: int
     @return:  the skytype of the world object.
@@ -135,7 +138,7 @@ class World:
 
   def getMode():
     """
-    Retreives the mode of a world object.
+    Retrieves the mode of a world object.
     The mode is a combination of 3 bits : Bit 0 : Blend; Bit 1 : Real; Bit 2 : paper.
     @rtype: int
     @return:  the mode of the world object.
@@ -154,7 +157,7 @@ class World:
 
   def getMistype():
     """
-    Retreives the mist type of a world object.
+    Retrieves the mist type of a world object.
     The mist type is an integer 0 : quadratic;  1 : linear;  2 : square.
     @rtype: int
     @return:  the mistype of the world object.
@@ -173,7 +176,7 @@ class World:
 
   def getHor():
     """
-    Retreives the horizon color  of a world object.
+    Retrieves the horizon color  of a world object.
     This color is a list of 3 floats.
     @rtype: list of three floats
     @return:  the horizon color of the world object.
@@ -191,7 +194,7 @@ class World:
 
   def getZen():
     """
-    Retreives the zenith color  of a world object.
+    Retrieves the zenith color  of a world object.
     This color is a list of 3 floats.
     @rtype: list of three floats
     @return:  the zenith color of the world object.
@@ -209,7 +212,7 @@ class World:
 
   def getAmb():
     """
-    Retreives the ambient color  of a world object.
+    Retrieves the ambient color  of a world object.
     This color is a list of 3 floats.
     @rtype: list of three floats
     @return:  the ambient color of the world object.
@@ -227,7 +230,7 @@ class World:
 
   def getStar():
     """
-    Retreives the star parameters  of a world object.
+    Retrieves the star parameters  of a world object.
     It is a list of nine floats :
     red component of the color
     green component of the color
@@ -253,7 +256,7 @@ class World:
 
   def getMist():
     """
-    Retreives the mist parameters  of a world object.
+    Retrieves the mist parameters  of a world object.
     It is a list of four floats :
     intensity of the mist
     start of the mist
@@ -272,4 +275,30 @@ class World:
     @param mist : the new mist parameters. 
     @rtype: PyNone
     @return:  PyNone
+    """
+
+  def getScriptLinks (event):
+    """
+    Get a list with this World's script links of type 'event'.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
+    @rtype: list
+    @return: a list with Blender L{Text} names (the script links of the given
+        'event' type) or None if there are no script links at all.
+    """
+
+  def clearScriptLinks ():
+    """
+    Delete all this World's script links!
+    @rtype: bool
+    @return: 0 if some internal problem occurred or 1 if successful.
+    """
+
+  def addScriptLink (text, event):
+    """
+    Add a new script link to this World.
+    @type text: string
+    @param text: the name of an existing Blender L{Text}.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
     """

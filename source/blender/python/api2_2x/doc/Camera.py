@@ -3,6 +3,8 @@
 """
 The Blender.Camera submodule.
 
+B{New}: scriptLink methods: L{Camera.getScriptLinks}, ...
+
 Camera Data
 ===========
 
@@ -177,4 +179,30 @@ class Camera:
     Set the draw size value.
     @type drawsize: float
     @param drawsize: The new draw size value.
+    """
+
+  def getScriptLinks (event):
+    """
+    Get a list with this Camera's script links of type 'event'.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
+    @rtype: list
+    @return: a list with Blender L{Text} names (the script links of the given
+        'event' type) or None if there are no script links at all.
+    """
+
+  def clearScriptLinks ():
+    """
+    Delete all this Camera's script links.
+    @rtype: bool
+    @return: 0 if some internal problem occurred or 1 if successful.
+    """
+
+  def addScriptLink (text, event):
+    """
+    Add a new script link to this Camera.
+    @type text: string
+    @param text: the name of an existing Blender L{Text}.
+    @type event: string
+    @param event: "FrameChanged" or "Redraw".
     """

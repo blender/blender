@@ -2611,14 +2611,16 @@ void write_stl(char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
 
-	if (BLI_exists(str))
-		if(saveover(str)==0)
-			return;
-	
+	if (!during_script()) {
+		if (BLI_exists(str))
+			if(saveover(str)==0)
+				return;
+	}
+
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
-		error("Can't write file");
+		if (!during_script()) error("Can't write file");
 		return;
 	}
 	strcpy(videosc_dir, str);
@@ -2791,7 +2793,7 @@ void write_videoscape(char *str)
 
 	file= open(str,O_BINARY|O_RDONLY);
 	close(file);
-	if(file>-1) if(saveover(str)==0) return;
+	if(file>-1) if(!during_script() && saveover(str)==0) return;
 
 	strcpy(videosc_dir, str);
 
@@ -3114,11 +3116,11 @@ void write_vrml(char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".wrl")==0) strcat(str, ".wrl");
 
-	if(saveover(str)==0) return;
+	if(!during_script() && saveover(str)==0) return;
 	
 	fp= fopen(str, "w");
 	
-	if(fp==NULL) {
+	if(fp==NULL && !during_script()) {
 		error("Can't write file");
 		return;
 	}
@@ -3420,13 +3422,15 @@ void write_dxf(char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".dxf")==0) strcat(str, ".dxf");
 
-	if (BLI_exists(str))
-		if(saveover(str)==0)
-			return;
-	
+	if (!during_script()) {
+		if (BLI_exists(str))
+			if(saveover(str)==0)
+				return;
+	}
+
 	fp= fopen(str, "w");
 	
-	if(fp==NULL) {
+	if(fp==NULL && !during_script()) {
 		error("Can't write file");
 		return;
 	}

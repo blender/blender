@@ -639,7 +639,44 @@ static PyObject *World_setMist(BPy_World *self, PyObject *args )
 	return Py_None;
 }
 
+/* world.addScriptLink */
+static PyObject *World_addScriptLink (BPy_World *self, PyObject *args)
+{
+	World *world = self->world;
+	ScriptLink *slink = NULL;
 
+	slink = &(world)->scriptlink;
+
+	if (!EXPP_addScriptLink(slink, args, 0))
+		return EXPP_incr_ret (Py_None);
+	else return NULL;
+}
+
+/* world.clearScriptLinks */
+static PyObject *World_clearScriptLinks (BPy_World *self)
+{
+	World *world = self->world;
+	ScriptLink *slink = NULL;
+
+	slink = &(world)->scriptlink;
+
+	return EXPP_incr_ret(Py_BuildValue("i", EXPP_clearScriptLinks (slink)));
+}
+
+/* world.getScriptLinks */
+static PyObject *World_getScriptLinks (BPy_World *self, PyObject *args)
+{
+	World *world = self->world;
+	ScriptLink *slink = NULL;
+	PyObject *ret = NULL;
+
+	slink = &(world)->scriptlink;
+
+	ret = EXPP_getScriptLinks(slink, args, 0);
+
+	if (ret) return ret;
+	else return NULL;
+}
 
 
 /*@{*/

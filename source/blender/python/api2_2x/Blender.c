@@ -32,11 +32,22 @@
 #include <Python.h>
 #include <stdio.h>
 
+/* for open, close in Blender_Load */
+#include <fcntl.h>
+#ifndef WIN32 
+#include <unistd.h>
+#else
+#include "BLI_winstuff.h"
+#include <io.h>
+#endif
+
 #include <BIF_usiblender.h>
 #include <BLI_blenlib.h>
 #include <BLO_writefile.h>
+#include <BKE_exotic.h>
 #include <BKE_global.h>
 #include <BKE_packedFile.h>
+#include <BKE_object.h>
 #include <BPI_script.h>
 #include <BSE_headerbuttons.h>
 #include <DNA_ID.h>
@@ -46,6 +57,7 @@
 #include <DNA_space_types.h> /* for SPACE_VIEW3D */
 #include <DNA_userdef_types.h>
 #include <BKE_ipo.h>
+#include <blendef.h>
 
 #include "gen_utils.h"
 #include "modules.h"
@@ -97,19 +109,28 @@ static char Blender_Quit_doc[] =
 "() - Quit Blender.  The current data is saved as 'quit.blend' before leaving.";
 
 static char Blender_Load_doc[] =
-"(filename) - Load the given .blend file.  If successful, the script is ended\n\
-immediately.\n\
+"(filename) - Load the given file.\n\
+Supported formats:\n\
+Blender, DXF, Inventor 1.0 ASCII, VRML 1.0 asc, STL, Videoscape, radiogour.\n\
+\n\
 Notes:\n\
 1 - () - an empty argument loads the default .B.blend file;\n\
 2 - if the substring '.B.blend' occurs inside 'filename', the default\n\
 .B.blend file is loaded;\n\
-3 - The current data is always preserved as an autosave file, for safety;\n\
-4 - This function only works if the script where it's executed is the\n\
-only one running.";
+3 - If a Blender file is loaded the script ends immediately.\n\
+4 - The current data is always preserved as an autosave file, for safety;\n\
+5 - This function only works if the script where it's executed is the\n\
+only one running at the moment.";
 
 static char Blender_Save_doc[] =
-"(filename) - Save a .blend file with the given filename.\n\
-(filename) - A file pathname that should not contain \".B.blend\" in it.";
+"(filename) - Save data to a file based on the filename's extension.\n\
+Supported are: Blender's .blend and the builtin exporters:\n\
+VRML 1.0 (.wrl), Videoscape (.obj), DXF (.dxf) and STL (.stl)\n\
+(filename) - A filename with one of the supported extensions.\n\
+Note 1: 'filename' should not contain the substring \".B.blend\" in it.\n\
+Note 2: only .blend raises an error if file wasn't saved.\n\
+\tYou can use Blender.sys.exists(filename) to make sure the file was saved\n\
+\twhen writing to one of the other formats.";
 
 /*****************************************************************************/
 /* Python method structure definition.																			 */
@@ -295,10 +316,17 @@ static PyObject *Blender_Quit(PyObject *self)
 	return Py_None;
 }
 
+/**
+ * Blender.Load
+ * loads Blender's .blend, DXF, radiogour(?), STL, Videoscape,
+ * Inventor 1.0 ASCII, VRML 1.0 asc.
+ */
 static PyObject *Blender_Load(PyObject *self, PyObject *args)
 {
 	char *fname = NULL;
 	Script *script = NULL;
+	char str[32];
+	int file, is_blend_file = 0;
 
 	if (!PyArg_ParseTuple(args, "|s", &fname))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
@@ -315,12 +343,30 @@ static PyObject *Blender_Load(PyObject *self, PyObject *args)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 			"there are other scripts running at the Scripts win, close them first!");
 
-	/* trick: mark the script so that its script struct won't be freed after
-	 * the script is executed (to avoid a double free warning on exit): */
-	script = G.main->script.first;
-	script->flags |= SCRIPT_GUI;
+	if (fname) {
+		file = open(fname, O_BINARY|O_RDONLY);
 
-	BIF_write_autosave(); /* for safety let's preserve the current data */
+		if (file <= 0) {
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"cannot open file!");
+		}
+		else {
+			read(file, str, 31);
+			close(file);
+
+			if (strncmp(str, "BLEN", 4) == 0) is_blend_file = 1;
+		}
+	}
+	else is_blend_file = 1; /* .B.blend */
+
+	if (is_blend_file) {
+		/* trick: mark the script so that its script struct won't be freed after
+		 * the script is executed (to avoid a double free warning on exit): */
+		script = G.main->script.first;
+		script->flags |= SCRIPT_GUI;
+
+		BIF_write_autosave(); /* for safety let's preserve the current data */
+	}
 
 	/* for safety, any filename with .B.blend is considered the default one.
 	 * It doesn't seem necessary to compare file attributes (like st_ino and
@@ -329,7 +375,7 @@ static PyObject *Blender_Load(PyObject *self, PyObject *args)
 	 * default one for sure.  Taking any .B.blend file as the default is good
 	 * enough here.  Note: the default file requires extra clean-up done by
 	 * BIF_read_homefile: freeing the user theme data. */
-	if (!fname || strstr(fname, ".B.blend"))
+	if (!fname || (strstr(fname, ".B.blend") && is_blend_file))
 		BIF_read_homefile();
 	else
 		BIF_read_file(fname);
@@ -341,7 +387,6 @@ static PyObject *Blender_Load(PyObject *self, PyObject *args)
 static PyObject *Blender_Save(PyObject *self, PyObject *args)
 {
 	char *fname = NULL;
-	char savefname[FILE_MAXFILE];
 	int overwrite = 0, len = 0;
 	char *error = NULL;
 	Library *li;
@@ -365,23 +410,37 @@ static PyObject *Blender_Save(PyObject *self, PyObject *args)
 
 	len = strlen(fname);
 
-	if (len > FILE_MAXFILE - 7) /* 6+1 for eventual .blend added below */
+	if (len > FILE_MAXFILE)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"filename is too long!");
-	else
-		BLI_strncpy(savefname, fname, len + 1);
-
-	if (!strstr(fname, ".blend"))
-		BLI_strncpy(savefname + len, ".blend", 7); /* 7: BLI_strncpy adds '\0'*/
-
-	if (BLI_exists(savefname) && !overwrite)
+	else if (BLI_exists(fname) && !overwrite)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"file already exists and overwrite flag was not given.");
 
-	if (G.fileflags & G_AUTOPACK) packAll();
+	disable_where_script(1); /* to avoid error popups in the write_* functions */
 
-	if (!BLO_write_file(savefname, G.fileflags, &error))
-		return EXPP_ReturnPyObjError(PyExc_SystemError, error);
+	if (BLI_testextensie(fname, ".blend")) {
+		if (G.fileflags & G_AUTOPACK) packAll();
+		if (!BLO_write_file(fname, G.fileflags, &error)) {
+			disable_where_script(0);
+			return EXPP_ReturnPyObjError(PyExc_SystemError, error);
+		}
+	}
+	else if (BLI_testextensie(fname, ".dxf"))
+		write_dxf(fname);
+	else if (BLI_testextensie(fname, ".stl"))
+		write_stl(fname);
+	else if (BLI_testextensie(fname, ".wrl"))
+		write_vrml(fname);
+	else if (BLI_testextensie(fname, ".obj"))
+		write_videoscape(fname);
+	else {
+		disable_where_script(0);
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"unknown file extension.");
+	}
+
+	disable_where_script(0);
 
 	Py_INCREF(Py_None);
 	return Py_None;
