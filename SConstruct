@@ -3,7 +3,12 @@ import os
 import sys
 from distutils import sysconfig
 
-# Setting up default environment variables for all platforms
+# Build directory.
+root_build_dir = '..' + os.sep + 'build' + os.sep
+
+# Blender version.
+config_file = 'config.opts'
+version='2.32'
 
 sdl_cenv = Environment ()
 sdl_lenv = Environment ()
@@ -11,7 +16,7 @@ link_env = Environment ()
 env = Environment ()
 
 if sys.platform == 'linux2':
-    use_international = 'true'
+    use_international = 'false'
     use_gameengine = 'false'
     use_openal = 'false'
     use_fmod = 'false'
@@ -47,7 +52,7 @@ if sys.platform == 'linux2':
     # International stuff
     if (use_international == 'true'):
         defines += ['INTERNATIONAL', 'FTGL_STATIC_LIBRARY', 'WITH_FREETYPE2']
-        platform_libpath += ['#../lib/linux-glibc2.2.5-i386/ftgl',
+        platform_libpath += ['#../lib/linux-glibc2.2.5-i386/ftgl/lib',
                              '#../lib/linux-glibc2.2.5-i386/freetype/lib']
         platform_libs += ['ftgl', 'freetype']
         extra_includes += ['#../lib/linux-glibc2.2.5-i386/ftgl/include',
@@ -307,16 +312,112 @@ else:
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
+# User configurable options to be saved in a config file.
+#-----------------------------------------------------------------------------
+# Checking for an existing config file - use that one if it exists,
+# otherwise create one.
+if os.path.exists (config_file):
+    print "Using config file: " + config_file
+else:
+    print "Creating new config file: " + config_file
+    config=open (config_file, 'w')
+    config.write ("# Configuration file containing user definable options.\n")
+    config.write ("VERSION = '2.32-cvs'\n")
+    config.write ("BUILD_BINARY = 'release'\n")
+    config.write ("BUILD_DIR = '%s'\n"%(root_build_dir))
+    config.write ("USE_INTERNATIONAL = '%s'\n"%(use_international))
+    config.write ("BUILD_GAMEENGINE = '%s'\n"%(use_gameengine))
+    if use_sumo == 'true':
+        config.write ("USE_PHYSICS = 'solid'\n")
+    else:
+        config.write ("USE_PHYSICS = 'ode'\n")
+    config.write ("USE_OPENAL = '%s'\n"%(use_openal))
+    config.write ("USE_FMOD = '%s'\n"%(use_fmod))
+    config.write ("USE_QUICKTIME = '%s'\n"%(use_quicktime))
+    config.close ()
+
+#-----------------------------------------------------------------------------
+# Read the options from the config file and update the various necessary flags
+#-----------------------------------------------------------------------------
+user_options_env = Environment ()
+user_options = Options (config_file)
+user_options.AddOptions (
+        ('VERSION', 'Blender version', version),
+        ('BUILD_DIR', 'Target directory for intermediate files.',
+                     root_build_dir),
+        (BoolOption ('USE_INTERNATIONAL',
+                     'Set to 1 to have international support.',
+                     'false')),
+        (EnumOption ('USE_PHYSICS', 'solid',
+                     'Select which physics engine to use.',
+                     allowed_values = ('ode', 'solid'))),
+        (BoolOption ('BUILD_GAMEENGINE',
+                     'Set to 1 to build blender with game engine support.',
+                     'false')),
+        (BoolOption ('USE_OPENAL',
+                     'Set to 1 to build the game engine with OpenAL support.',
+                     'false')),
+        (BoolOption ('USE_FMOD',
+                     'Set to 1 to build the game engine with FMod support.',
+                     'false')),
+        (BoolOption ('USE_QUICKTIME',
+                     'Set to 1 to add support for QuickTime.',
+                     'false')),
+        (EnumOption ('BUILD_BINARY', 'release',
+                     'Select a release or debug binary.',
+                     allowed_values = ('release', 'debug'))),
+    )
+user_options.Update (user_options_env)
+user_dict = user_options_env.Dictionary()
+
+root_build_dir = user_dict['BUILD_DIR']
+if user_dict['USE_INTERNATIONAL'] == 1:
+    use_international = 'true'
+else:
+    use_international = 'false'
+    
+if user_dict['USE_PHYSICS'] == 'ode':
+    use_ode = 'true'
+    use_sumo = 'false'
+else:
+    use_ode = 'false'
+    use_sumo = 'true'
+
+if user_dict['BUILD_GAMEENGINE']:
+    use_gameengine = 'true'
+    defines += ['GAMEBLENDER=1']
+else:
+    use_gameengine = 'false'
+    defines += ['GAMEBLENDER=0']
+
+if user_dict['USE_OPENAL'] == 1:
+    use_openal = 'true'
+else:
+    use_openal = 'false'
+
+if user_dict['USE_FMOD'] == 1:
+    use_fmod = 'true'
+else:
+    use_fmod = 'false'
+
+if user_dict['USE_QUICKTIME'] == 1:
+    use_quicktime = 'true'
+else:
+    use_quicktime = 'false'
+
+if user_dict['BUILD_BINARY'] == 'release':
+    cflags = extra_flags + release_flags + warn_flags
+else:
+    cflags = extra_flags + debug_flags + warn_flags
+
+#-----------------------------------------------------------------------------
 # Game Engine settings
 #-----------------------------------------------------------------------------
 if use_gameengine == 'true':
-    defines += ['GAMEBLENDER=1']
     if use_sumo == 'true':
         defines += ['USE_SUMO_SOLID']
     if use_ode == 'true':
         defines += ['USE_ODE']
-else:
-    defines += ['GAMEBLENDER=0']
 
 #-----------------------------------------------------------------------------
 # Settings to be exported to other SConscript files
@@ -343,9 +444,12 @@ Export ('extra_includes')
 Export ('platform_libs')
 Export ('platform_libpath')
 Export ('platform_linkflags')
+Export ('root_build_dir')
 
-SConscript(['intern/SConscript',
-            'source/SConscript'])
+BuildDir (root_build_dir+'/intern', 'intern', duplicate=0)
+SConscript (root_build_dir+'intern/SConscript')
+BuildDir (root_build_dir+'/source', 'source', duplicate=0)
+SConscript (root_build_dir+'source/SConscript')
 
 libpath = (['lib'])
 
@@ -421,8 +525,8 @@ if sys.platform == 'darwin':
 else:
     link_env.Append (LINKFLAGS=platform_linkflags)
 
-source_files = ['source/creator/buildinfo.c',
-                'source/creator/creator.c']
+source_files = [root_build_dir+'source/creator/buildinfo.c',
+                root_build_dir+'source/creator/creator.c']
 
 if sys.platform == 'win32':
 	source_files += ['source/icons/winblender.res']
@@ -440,6 +544,7 @@ include_paths = ['#/intern/guardedalloc',
                  '#/source/blender/include',
                  '#/source/blender/imbuf']
 
+link_env.BuildDir (root_build_dir, '.', duplicate=0)
 link_env.Append (CPPPATH=include_paths)
 link_env.Program (target='blender', source=source_files, CCFLAGS=cflags)
 

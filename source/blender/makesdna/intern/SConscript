@@ -6,6 +6,7 @@ Import ('defines')
 Import ('platform_libs')
 Import ('platform_libpath')
 Import ('platform_linkflags')
+Import ('root_build_dir')
 
 if sys.platform=='win32':
     platform_linkflags = ['/SUBSYSTEM:CONSOLE',
@@ -34,15 +35,12 @@ makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append (LINKFLAGS = platform_linkflags)
 makesdna_tool.Append (LIBPATH = '#/lib')
 makesdna_tool.Append (LIBS = 'blender_guardedalloc')
-makesdna_tool.Program (target = 'makesdna', source = source_files)
+makesdna_tool.Program (target = '#'+root_build_dir+'makesdna', source = source_files)
 
 dna = Environment ()
 dna_dict = dna.Dictionary()
-makesdna_name = 'makesdna' + dna_dict['PROGSUFFIX']
-dna.Depends ('dna.c', makesdna_name)
-if sys.platform=='win32':
-    dna.Command ('dna.c', '', "source\\blender\\makesdna\\intern\\makesdna $TARGET")
-else:
-    dna.Command ('dna.c', '', "source/blender/makesdna/intern/makesdna $TARGET")
+makesdna_name = root_build_dir+'makesdna' + dna_dict['PROGSUFFIX']
+dna.Depends ('dna.c', '#'+makesdna_name)
+dna.Command ('dna.c', '', root_build_dir+"makesdna $TARGET")
 obj = 'intern/dna.c'
 Return ('obj')
