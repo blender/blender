@@ -1697,11 +1697,9 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 /* wrappers for shaded+wire and solid+wire */
 static void drawMeshWireExtra(Object *ob) {
 	GLint origcolor[4];
+	float winmat[16], ofs;
 	
 	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
-	
-	//glEnable(GL_POLYGON_OFFSET_LINE);
-	//glPolygonOffset(1.0, 1.0); 
 	
 	if(ob->flag & SELECT) {
 		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
@@ -1710,27 +1708,29 @@ static void drawMeshWireExtra(Object *ob) {
 	else BIF_ThemeColor(TH_WIRE);
 	
 	glMatrixMode(GL_PROJECTION);
-	glTranslatef(0, 0, 0.01);
+	glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
+	
+	if(winmat[15]>0.5) ofs= 0.00005*G.vd->dist;  // ortho tweaking
+	else ofs= 0.001;
+	winmat[14]-= ofs;
+	glLoadMatrixf(winmat);
 	glMatrixMode(GL_MODELVIEW);
 
 	drawmeshwire(ob);
 
 	glMatrixMode(GL_PROJECTION);
-	glTranslatef(0, 0, -0.01);
+	winmat[14]+= ofs;
+	glLoadMatrixf(winmat);
 	glMatrixMode(GL_MODELVIEW);
-
-	//glDisable(GL_POLYGON_OFFSET_LINE);
 
 	glColor4iv(origcolor);
 }
 
 static void drawDispListWireExtra(Object *ob, ListBase *lb) {
 	GLint origcolor[4];
-
+	float winmat[16], ofs;
+	
 	glGetIntegerv(GL_CURRENT_COLOR, origcolor);
-
-	//glEnable(GL_POLYGON_OFFSET_LINE);
-	//glPolygonOffset(1.0, 1.0); 
 
 	if(ob->flag & SELECT) {
 		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
@@ -1739,13 +1739,19 @@ static void drawDispListWireExtra(Object *ob, ListBase *lb) {
 	else BIF_ThemeColor(TH_WIRE);
 
 	glMatrixMode(GL_PROJECTION);
-	glTranslatef(0, 0, 0.01);
+	glGetFloatv(GL_PROJECTION_MATRIX, (float *)winmat);
+	
+	if(winmat[15]>0.5) ofs= 0.00005*G.vd->dist;  // ortho tweaking
+	else ofs= 0.001;
+	winmat[14]-= ofs;
+	glLoadMatrixf(winmat);
 	glMatrixMode(GL_MODELVIEW);
 
 	drawDispListwire(lb);
 
 	glMatrixMode(GL_PROJECTION);
-	glTranslatef(0, 0, -0.01);
+	winmat[14]+= ofs;
+	glLoadMatrixf(winmat);
 	glMatrixMode(GL_MODELVIEW);
 
 	//glDisable(GL_POLYGON_OFFSET_LINE);
