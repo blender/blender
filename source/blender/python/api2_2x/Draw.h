@@ -265,10 +265,14 @@ new String button\n\n\
 
 static PyObject *Method_String (PyObject *self,  PyObject *args);
 
+static char Method_GetStringWidth_doc[] =
+"(text) - Return the width in pixels of the given string";
+
 static char Method_Text_doc[] =
 "(text) - Draw text onscreen\n\n\
 (text) The text to draw\n";
 
+static PyObject *Method_GetStringWidth (PyObject *self, PyObject *args);
 static PyObject *Method_Text (PyObject *self, PyObject *args);
 
 #define _MethodDef(func, prefix) \
@@ -289,6 +293,8 @@ static struct PyMethodDef Draw_methods[] = {
   MethodDef(Scrollbar),
   MethodDef(Number),
   MethodDef(String),
+
+  MethodDef(GetStringWidth),
 
   MethodDef(Text),
 

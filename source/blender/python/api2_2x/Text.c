@@ -32,16 +32,16 @@
 #include "Text.h"
 
 /*****************************************************************************/
-/* Function:              M_Text_New                                       */
-/* Python equivalent:     Blender.Text.New                                 */
+/* Function:              M_Text_New                                         */
+/* Python equivalent:     Blender.Text.New                                   */
 /*****************************************************************************/
 static PyObject *M_Text_New(PyObject *self, PyObject *args, PyObject *keywords)
 {
   char *name = NULL;
   char buf[21];
   int follow = 0;
-  Text   *bl_text; /* blender text object */
-  C_Text *py_text; /* python wrapper */
+  Text     *bl_text; /* blender text object */
+  PyObject *py_text; /* python wrapper */
 
   if (!PyArg_ParseTuple(args, "|si", &name, &follow))
         return EXPP_ReturnPyObjError (PyExc_AttributeError,
@@ -50,15 +50,13 @@ static PyObject *M_Text_New(PyObject *self, PyObject *args, PyObject *keywords)
   bl_text = add_empty_text();
 
   if (bl_text)
-    py_text = (C_Text *)PyObject_NEW(C_Text, &Text_Type);
+    py_text = Text_CreatePyObject (bl_text);
   else
     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
                     "couldn't create Text Object in Blender");
   if (!py_text)
     return EXPP_ReturnPyObjError (PyExc_MemoryError,
                     "couldn't create Text Object wrapper");
-
-  py_text->text = bl_text;
 
   if (follow) bl_text->flags |= EXPP_TEXT_MODE_FOLLOW;
 
@@ -67,7 +65,7 @@ static PyObject *M_Text_New(PyObject *self, PyObject *args, PyObject *keywords)
     rename_id(&bl_text->id, buf);
   }
 
-  return (PyObject *)py_text;
+  return py_text;
 }
 
 /*****************************************************************************/
@@ -83,21 +81,22 @@ static PyObject *M_Text_Get(PyObject *self, PyObject *args)
   char *name = NULL;
   Text *txt_iter;
 
-	if (!PyArg_ParseTuple(args, "|s", &name))
+  if (!PyArg_ParseTuple(args, "|s", &name))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument (or nothing)"));
 
   txt_iter = G.main->text.first;
 
-	if (name) { /* (name) - Search text by name */
+  if (name) { /* (name) - Search text by name */
 
-    C_Text *wanted_txt = NULL;
+    PyObject *wanted_txt = NULL;
 
     while ((txt_iter) && (wanted_txt == NULL)) {
+
       if (strcmp (name, txt_iter->id.name+2) == 0) {
-        wanted_txt = (C_Text *)PyObject_NEW(C_Text, &Text_Type);
-				if (wanted_txt) wanted_txt->text = txt_iter;
+        wanted_txt = Text_CreatePyObject (txt_iter);
       }
+
       txt_iter = txt_iter->id.next;
     }
 
@@ -108,38 +107,38 @@ static PyObject *M_Text_Get(PyObject *self, PyObject *args)
       return (EXPP_ReturnPyObjError (PyExc_NameError, error_msg));
     }
 
-    return (PyObject *)wanted_txt;
-	}
+    return wanted_txt;
+  }
 
-	else { /* () - return a list of all texts in the scene */
+  else { /* () - return a list of all texts in the scene */
     int index = 0;
-    PyObject *txtlist, *pystr;
+    PyObject *txtlist, *pyobj;
 
     txtlist = PyList_New (BLI_countlist (&(G.main->text)));
 
     if (txtlist == NULL)
-      return (PythonReturnErrorObject (PyExc_MemoryError,
+      return (EXPP_ReturnPyObjError (PyExc_MemoryError,
               "couldn't create PyList"));
 
-		while (txt_iter) {
-      pystr = PyString_FromString (txt_iter->id.name+2);
+    while (txt_iter) {
+      pyobj = Text_CreatePyObject(txt_iter);
 
-			if (!pystr)
-				return (PythonReturnErrorObject (PyExc_MemoryError,
-									"couldn't create PyString"));
+      if (!pyobj)
+        return (EXPP_ReturnPyObjError (PyExc_MemoryError,
+                   "couldn't create PyString"));
 
-			PyList_SET_ITEM (txtlist, index, pystr);
+      PyList_SET_ITEM (txtlist, index, pyobj);
 
       txt_iter = txt_iter->id.next;
       index++;
-		}
+    }
 
-		return (txtlist);
-	}
+    return (txtlist);
+  }
 }
 
 /*****************************************************************************/
-/* Function:              M_Text_Get                                         */
+/* Function:              M_Text_Load                                        */
 /* Python equivalent:     Blender.Text.Load                                  */
 /* Description:           Receives a filename and returns the text object    */
 /*                        created from the corresponding file.               */
@@ -148,13 +147,13 @@ static PyObject *M_Text_Load(PyObject *self, PyObject *args)
 {
   char   *fname;
   Text   *txt_ptr;
-  C_Text *txt;
+  BPy_Text *txt;
 
   if (!PyArg_ParseTuple(args, "s", &fname))
     return (EXPP_ReturnPyObjError (PyExc_TypeError,
             "expected string argument"));
   
-  txt = (C_Text *)PyObject_NEW(C_Text, &Text_Type);
+  txt = (BPy_Text *)PyObject_NEW(BPy_Text, &Text_Type);
 
   if (!txt)
     return EXPP_ReturnPyObjError (PyExc_MemoryError,
@@ -170,34 +169,36 @@ static PyObject *M_Text_Load(PyObject *self, PyObject *args)
   return (PyObject *)txt;
 }
 
-/*@This function removes the text entry from the text editor.
- * The text is not freed here, but inside the garbage collector. */
-
-/* This function actually makes Blender dump core if the script is repeatedly
- * executed, gotta investigate better */
-
+/*****************************************************************************/
+/* Function:              M_Text_unlink                                      */
+/* Python equivalent:     Blender.Text.unlink                                */
+/* Description:           Removes the given Text object from Blender         */
+/*****************************************************************************/
 static PyObject *M_Text_unlink(PyObject *self, PyObject *args)
 {
-	C_Text *textobj;
+  BPy_Text *textobj;
+  Text *text;
 
-	if (!PyArg_ParseTuple(args, "O!", &Text_Type, &textobj))
+  if (!PyArg_ParseTuple(args, "O!", &Text_Type, &textobj))
     return EXPP_ReturnPyObjError (PyExc_TypeError,
-          "expected a Text object as argument");
+        "expected a Text object as argument");
 
-	BPY_clear_bad_scriptlinks(textobj->text);
-	free_text_controllers(textobj->text);
-	unlink_text(textobj->text);
-	/*@We actually should not free the text object here, but let the
-	 * __del__ method of the wrapper do the job. This would require some
-	 * changes in the GUI code though.. 
-	 * So we mark the wrapper as invalid by setting wrapper->data = 0 */
-	free_libblock(&G.main->text, textobj->text);
+  text = ((BPy_Text *)textobj)->text;
 
-  textobj->text = NULL; /* XXX */
-  Py_XDECREF(textobj); /* XXX just a guess -- works ? */
+  if (!text)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+        "this text was already unlinked!");
 
-	Py_INCREF(Py_None);	
-	return Py_None;
+  BPY_clear_bad_scriptlinks(text);
+  free_text_controllers(text);
+  unlink_text(text);
+
+  free_libblock(&G.main->text, text);
+
+  ((BPy_Text *)textobj)->text = NULL;
+
+  Py_INCREF(Py_None);     
+  return Py_None;
 }
 
 /*****************************************************************************/
@@ -215,9 +216,27 @@ PyObject *Text_Init (void)
 }
 
 /*****************************************************************************/
-/* Python C_Text methods:                                                  */
+/* Function:              Text_CreatePyObject                                */
 /*****************************************************************************/
-static PyObject *Text_getName(C_Text *self)
+PyObject *Text_CreatePyObject (Text *txt)
+{
+  BPy_Text *pytxt;
+
+  pytxt = (BPy_Text *)PyObject_NEW (BPy_Text, &Text_Type);
+
+  if (!pytxt)
+    return EXPP_ReturnPyObjError (PyExc_MemoryError,
+             "couldn't create BPy_Text PyObject");
+
+  pytxt->text = txt;
+
+  return (PyObject *)pytxt;
+}
+
+/*****************************************************************************/
+/* Python BPy_Text methods:                                                  */
+/*****************************************************************************/
+static PyObject *Text_getName(BPy_Text *self)
 {
   PyObject *attr = PyString_FromString(self->text->id.name+2);
 
@@ -227,7 +246,7 @@ static PyObject *Text_getName(C_Text *self)
           "couldn't get Text.name attribute");
 }
 
-static PyObject *Text_getFilename(C_Text *self)
+static PyObject *Text_getFilename(BPy_Text *self)
 {
   PyObject *attr = PyString_FromString(self->text->name);
 
@@ -237,13 +256,13 @@ static PyObject *Text_getFilename(C_Text *self)
           "couldn't get Text.filename attribute");
 }
 
-static PyObject *Text_getNLines(C_Text *self)
+static PyObject *Text_getNLines(BPy_Text *self)
 { /* text->nlines isn't updated in Blender (?) */
   int nlines = 0;
   TextLine *line;
   PyObject *attr;
 
-	line = self->text->lines.first;
+  line = self->text->lines.first;
 
   while (line) { /* so we have to count them ourselves */
     line = line->next;
@@ -260,7 +279,7 @@ static PyObject *Text_getNLines(C_Text *self)
           "couldn't get Text.nlines attribute");
 }
 
-static PyObject *Text_setName(C_Text *self, PyObject *args)
+static PyObject *Text_setName(BPy_Text *self, PyObject *args)
 {
   char *name;
   char buf[21];
@@ -277,110 +296,115 @@ static PyObject *Text_setName(C_Text *self, PyObject *args)
   return Py_None;
 }
 
-static PyObject *Text_clear(C_Text *self, PyObject *args)
+static PyObject *Text_clear(BPy_Text *self, PyObject *args)
 {
-	int oldstate;
+  int oldstate;
 
-	if (!self->text)
-     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-            "This object isn't linked to a Blender Text Object");
+  if (!self->text)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+         "This object isn't linked to a Blender Text Object");
 
-	oldstate = txt_get_undostate();
-	txt_set_undostate(1);
-	txt_sel_all(self->text);
-	txt_cut_sel(self->text);
-	txt_set_undostate(oldstate);
-	
-	Py_INCREF(Py_None);	
-	return Py_None;
+  oldstate = txt_get_undostate();
+  txt_set_undostate(1);
+  txt_sel_all(self->text);
+  txt_cut_sel(self->text);
+  txt_set_undostate(oldstate);
+
+  Py_INCREF(Py_None);     
+  return Py_None;
 }
 
-static PyObject *Text_set(C_Text *self, PyObject *args)
+static PyObject *Text_set(BPy_Text *self, PyObject *args)
 {
-	int ival;
-	char *attr;
+  int ival;
+  char *attr;
 
-	if (!PyArg_ParseTuple(args, "si", &attr, &ival))
-       return EXPP_ReturnPyObjError (PyExc_TypeError,
-             "expected a string and an int as arguments");
+  if (!PyArg_ParseTuple(args, "si", &attr, &ival))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
+           "expected a string and an int as arguments");
 
-	if (strcmp("follow_cursor", attr) == 0) {
-		if (ival)
-			self->text->flags |= EXPP_TEXT_MODE_FOLLOW;
-		else
-			self->text->flags &= EXPP_TEXT_MODE_FOLLOW;
-	}
+  if (strcmp("follow_cursor", attr) == 0) {
+    if (ival)
+      self->text->flags |= EXPP_TEXT_MODE_FOLLOW;
+    else
+      self->text->flags &= EXPP_TEXT_MODE_FOLLOW;
+  }
 
-	Py_INCREF(Py_None);	
-	return Py_None;
+  Py_INCREF(Py_None);     
+  return Py_None;
 }
 
-static PyObject *Text_write(C_Text *self, PyObject *args)
+static PyObject *Text_write(BPy_Text *self, PyObject *args)
 {
-	char *str;
-	int oldstate;
+  char *str;
+  int oldstate;
 
-	if (!self->text)
-     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-            "This object isn't linked to a Blender Text Object");
+  if (!self->text)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+          "This object isn't linked to a Blender Text Object");
 
-	if (!PyArg_ParseTuple(args, "s", &str))
-     return EXPP_ReturnPyObjError (PyExc_TypeError,
+  if (!PyArg_ParseTuple(args, "s", &str))
+    return EXPP_ReturnPyObjError (PyExc_TypeError,
              "expected string argument");
 
-	oldstate = txt_get_undostate();
-	txt_insert_buf(self->text, str);
-	txt_move_eof(self->text, 0);
-	txt_set_undostate(oldstate);
+  oldstate = txt_get_undostate();
+  txt_insert_buf(self->text, str);
+  txt_move_eof(self->text, 0);
+  txt_set_undostate(oldstate);
 
-	Py_INCREF(Py_None);	
-	return Py_None;
+  Py_INCREF(Py_None);   
+  return Py_None;
 }
 
-static PyObject *Text_asLines(C_Text *self, PyObject *args)
+static PyObject *Text_asLines(BPy_Text *self, PyObject *args)
 {
-	TextLine *line;
-	PyObject *list, *ob;
+  TextLine *line;
+  PyObject *list, *ob;
 
-	if (!self->text)
-     return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+  if (!self->text)
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
             "This object isn't linked to a Blender Text Object");
 
-	line = self->text->lines.first;
-	list= PyList_New(0);
+  line = self->text->lines.first;
+  list= PyList_New(0);
 
-	if (!list)
-     return EXPP_ReturnPyObjError (PyExc_MemoryError,
+  if (!list)
+    return EXPP_ReturnPyObjError (PyExc_MemoryError,
             "couldn't create PyList");
 
-	while (line) {
-		ob = Py_BuildValue("s", line->line);
-		PyList_Append(list, ob);	
-		line = line->next;
-	}	
+  while (line) {
+    ob = Py_BuildValue("s", line->line);
+    PyList_Append(list, ob);        
+    line = line->next;
+  }       
 
   return list;
 }
 
 /*****************************************************************************/
-/* Function:    TextDeAlloc                                                */
-/* Description: This is a callback function for the C_Text type. It is     */
+/* Function:    Text_dealloc                                                 */
+/* Description: This is a callback function for the BPy_Text type. It is     */
 /*              the destructor function.                                     */
 /*****************************************************************************/
-static void TextDeAlloc (C_Text *self)
+static void Text_dealloc (BPy_Text *self)
 {
   PyObject_DEL (self);
 }
 
 /*****************************************************************************/
-/* Function:    TextGetAttr                                                */
-/* Description: This is a callback function for the C_Text type. It is     */
-/*              the function that accesses C_Text member variables and     */
+/* Function:    Text_getAttr                                                 */
+/* Description: This is a callback function for the BPy_Text type. It is     */
+/*              the function that accesses BPy_Text member variables and     */
 /*              methods.                                                     */
 /*****************************************************************************/
-static PyObject* TextGetAttr (C_Text *self, char *name)
+static PyObject *Text_getAttr (BPy_Text *self, char *name)
 {
   PyObject *attr = Py_None;
+  Text *text = self->text;
+
+  if (!text || !Text_IsLinked(text))
+    return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+       "Text was already deleted!");
 
   if (strcmp(name, "name") == 0)
     attr = PyString_FromString(self->text->id.name+2);
@@ -402,26 +426,31 @@ static PyObject* TextGetAttr (C_Text *self, char *name)
   if (attr != Py_None) return attr; /* attribute found, return its value */
 
   /* not an attribute, search the methods table */
-  return Py_FindMethod(C_Text_methods, (PyObject *)self, name);
+  return Py_FindMethod(BPy_Text_methods, (PyObject *)self, name);
 }
 
 /*****************************************************************************/
-/* Function:    TextSetAttr                                                */
-/* Description: This is a callback function for the C_Text type. It is the */
-/*              function that changes Text Data members values. If this    */
-/*              data is linked to a Blender Text, it also gets updated.    */
+/* Function:    Text_setAttr                                                 */
+/* Description: This is a callback function for the BPy_Text type. It is the */
+/*              function that changes Text Data members values. If this      */
+/*              data is linked to a Blender Text, it also gets updated.      */
 /*****************************************************************************/
-static int TextSetAttr (C_Text *self, char *name, PyObject *value)
+static int Text_setAttr (BPy_Text *self, char *name, PyObject *value)
 {
   PyObject *valtuple; 
   PyObject *error = NULL;
+  Text *text = self->text;
+
+  if (!text || !Text_IsLinked(text))
+    return EXPP_ReturnIntError (PyExc_RuntimeError,
+       "Text was already deleted!");
 
 /* We're playing a trick on the Python API users here.  Even if they use
  * Text.member = val instead of Text.setMember(value), we end up using the
  * function anyway, since it already has error checking, clamps to the right
  * interval and updates the Blender Text structure when necessary. */
 
-  valtuple = Py_BuildValue("(O)", value); /* the set* functions expect a tuple */
+  valtuple = Py_BuildValue("(O)", value);/* the set* functions expect a tuple */
 
   if (!valtuple)
     return EXPP_ReturnIntError(PyExc_MemoryError,
@@ -445,36 +474,58 @@ static int TextSetAttr (C_Text *self, char *name, PyObject *value)
 }
 
 /*****************************************************************************/
-/* Function:    TextCompare                                                  */
-/* Description: This is a callback function for the C_Text type. It          */
+/* Function:    Text_compare                                                 */
+/* Description: This is a callback function for the BPy_Text type. It        */
 /*              compares two Text_Type objects. Only the "==" and "!="       */
 /*              comparisons are meaninful. Returns 0 for equality and -1 if  */
 /*              they don't point to the same Blender Text struct.            */
 /*              In Python it becomes 1 if they are equal, 0 otherwise.       */
 /*****************************************************************************/
-static int TextCompare (C_Text *a, C_Text *b)
+static int Text_compare (BPy_Text *a, BPy_Text *b)
 {
-	Text *pa = a->text, *pb = b->text;
-	return (pa == pb) ? 0:-1;
+  Text *pa = a->text, *pb = b->text;
+  return (pa == pb) ? 0:-1;
 }
 
 /*****************************************************************************/
-/* Function:    TextPrint                                                  */
-/* Description: This is a callback function for the C_Text type. It        */
-/*              builds a meaninful string to 'print' text objects.         */
+/* Function:    Text_print                                                   */
+/* Description: This is a callback function for the BPy_Text type. It        */
+/*              builds a meaninful string to 'print' text objects.           */
 /*****************************************************************************/
-static int TextPrint(C_Text *self, FILE *fp, int flags)
+static int Text_print(BPy_Text *self, FILE *fp, int flags)
 { 
-  fprintf(fp, "[Text \"%s\"]", self->text->id.name+2);
+  if (self->text && Text_IsLinked(self->text))
+    fprintf(fp, "[Text \"%s\"]", self->text->id.name+2);
+  else
+    fprintf(fp, "[Text <deleted>]");
+
   return 0;
 }
 
 /*****************************************************************************/
-/* Function:    TextRepr                                                   */
-/* Description: This is a callback function for the C_Text type. It        */
-/*              builds a meaninful string to represent text objects.       */
+/* Function:    Text_repr                                                    */
+/* Description: This is a callback function for the BPy_Text type. It        */
+/*              builds a meaninful string to represent text objects.         */
 /*****************************************************************************/
-static PyObject *TextRepr (C_Text *self)
+static PyObject *Text_repr (BPy_Text *self)
 {
-  return PyString_FromString(self->text->id.name+2);
+  if (self->text && Text_IsLinked(self->text))
+    return PyString_FromString(self->text->id.name+2);
+  else
+    return PyString_FromString("<deleted>");
 }
+
+/* internal function to confirm if a Text wasn't unlinked */
+static int Text_IsLinked(Text *text)
+{
+  Text *txt_iter = G.main->text.first;
+
+  while (txt_iter) {
+    if (text == txt_iter) return 1;
+    txt_iter = txt_iter->id.next;
+  }
+
+  return 0;
+}
+
+

@@ -76,11 +76,11 @@ returns None if not found.\n If 'name' is not specified, \
 it returns a list of all Texts in the\ncurrent scene.";
 
 static char M_Text_Load_doc[] =
-"(filename) - return text from file filename as Text Object, \
+"(filename) - return text from file filename as a Text Object, \
 returns None if not found.\n";
 
 static char M_Text_unlink_doc[] =
-"(text) - remove text object 'text' from the text window";
+"(text) - remove Text object 'text' from Blender";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Text module:               */
@@ -96,30 +96,30 @@ struct PyMethodDef M_Text_methods[] = {
 };
 
 /*****************************************************************************/
-/* Python C_Text structure definition:                                       */
+/* Python BPy_Text structure definition:                                     */
 /*****************************************************************************/
 typedef struct {
   PyObject_HEAD
   Text *text;
 
-} C_Text;
+} BPy_Text;
 
 /*****************************************************************************/
-/* Python C_Text methods declarations:                                       */
+/* Python BPy_Text methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Text_getName(C_Text *self);
-static PyObject *Text_getFilename(C_Text *self);
-static PyObject *Text_getNLines(C_Text *self);
-static PyObject *Text_setName(C_Text *self, PyObject *args);
-static PyObject *Text_clear(C_Text *self, PyObject *args);
-static PyObject *Text_write(C_Text *self, PyObject *args);
-static PyObject *Text_set(C_Text *self, PyObject *args);
-static PyObject *Text_asLines(C_Text *self, PyObject *args);
+static PyObject *Text_getName(BPy_Text *self);
+static PyObject *Text_getFilename(BPy_Text *self);
+static PyObject *Text_getNLines(BPy_Text *self);
+static PyObject *Text_setName(BPy_Text *self, PyObject *args);
+static PyObject *Text_clear(BPy_Text *self, PyObject *args);
+static PyObject *Text_write(BPy_Text *self, PyObject *args);
+static PyObject *Text_set(BPy_Text *self, PyObject *args);
+static PyObject *Text_asLines(BPy_Text *self, PyObject *args);
 
 /*****************************************************************************/
-/* Python C_Text methods table:                                              */
+/* Python BPy_Text methods table:                                            */
 /*****************************************************************************/
-static PyMethodDef C_Text_methods[] = {
+static PyMethodDef BPy_Text_methods[] = {
  /* name, method, flags, doc */
   {"getName", (PyCFunction)Text_getName, METH_NOARGS,
           "() - Return Text Object name"},
@@ -143,12 +143,12 @@ static PyMethodDef C_Text_methods[] = {
 /*****************************************************************************/
 /* Python Text_Type callback function prototypes:                            */
 /*****************************************************************************/
-static void TextDeAlloc (C_Text *self);
-static int TextPrint (C_Text *self, FILE *fp, int flags);
-static int TextSetAttr (C_Text *self, char *name, PyObject *v);
-static PyObject *TextGetAttr (C_Text *self, char *name);
-static int TextCompare (C_Text *a, C_Text *b);
-static PyObject *TextRepr (C_Text *self);
+static void Text_dealloc (BPy_Text *self);
+static int Text_print (BPy_Text *self, FILE *fp, int flags);
+static int Text_setAttr (BPy_Text *self, char *name, PyObject *v);
+static PyObject *Text_getAttr (BPy_Text *self, char *name);
+static int Text_compare (BPy_Text *a, BPy_Text *b);
+static PyObject *Text_repr (BPy_Text *self);
 
 /*****************************************************************************/
 /* Python Text_Type structure definition:                                    */
@@ -157,16 +157,16 @@ PyTypeObject Text_Type =
 {
   PyObject_HEAD_INIT(NULL)
   0,                                    /* ob_size */
-  "Text",                               /* tp_name */
-  sizeof (C_Text),                      /* tp_basicsize */
+  "Blender Text",                       /* tp_name */
+  sizeof (BPy_Text),                    /* tp_basicsize */
   0,                                    /* tp_itemsize */
   /* methods */
-  (destructor)TextDeAlloc,              /* tp_dealloc */
-  (printfunc)TextPrint,                 /* tp_print */
-  (getattrfunc)TextGetAttr,             /* tp_getattr */
-  (setattrfunc)TextSetAttr,             /* tp_setattr */
-  (cmpfunc)TextCompare,                 /* tp_compare */
-  (reprfunc)TextRepr,                   /* tp_repr */
+  (destructor)Text_dealloc,             /* tp_dealloc */
+  (printfunc)Text_print,                /* tp_print */
+  (getattrfunc)Text_getAttr,            /* tp_getattr */
+  (setattrfunc)Text_setAttr,            /* tp_setattr */
+  (cmpfunc)Text_compare,                /* tp_compare */
+  (reprfunc)Text_repr,                  /* tp_repr */
   0,                                    /* tp_as_number */
   0,                                    /* tp_as_sequence */
   0,                                    /* tp_as_mapping */
@@ -174,8 +174,10 @@ PyTypeObject Text_Type =
   0,0,0,0,0,0,
   0,                                    /* tp_doc */ 
   0,0,0,0,0,0,
-  C_Text_methods,                       /* tp_methods */
+  BPy_Text_methods,                     /* tp_methods */
   0,                                    /* tp_members */
 };
+
+static int Text_IsLinked(Text *text);
 
 #endif /* EXPP_TEXT_H */

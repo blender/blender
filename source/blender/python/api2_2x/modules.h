@@ -44,6 +44,7 @@
 #include <DNA_effect_types.h>
 #include <DNA_meta_types.h>
 #include <DNA_image_types.h>
+#include <DNA_text_types.h>
 
 /*****************************************************************************/
 /* Global variables                                                          */
@@ -128,11 +129,14 @@ PyObject * Image_Init (void);
 PyObject * Image_CreatePyObject (Image *image);
 int        Image_CheckPyObject (PyObject *pyobj);
 
+/* Text */
+PyObject * Text_Init (void);
+PyObject * Text_CreatePyObject (Text *txt);
+
 /* Init functions for other modules */
 PyObject * Window_Init (void);
 PyObject * Draw_Init (void);
 PyObject * BGL_Init (void);
-PyObject * Text_Init (void);
 PyObject * M_World_Init (void);
 
 #endif /* EXPP_modules_h */

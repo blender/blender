@@ -422,4 +422,4 @@ static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
 
 /* #endif */
 
-PyObject *M_BGL_Init(void); 
+PyObject *BGL_Init(void); 

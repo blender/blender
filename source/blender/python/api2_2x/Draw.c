@@ -347,7 +347,7 @@ static PyObject *Method_Button (PyObject *self,  PyObject *args)
 	if (!PyArg_ParseTuple(args, "siiiii|s", &name, &event,
 													&x, &y, &w, &h, &tip))
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
-			"expected a string, five ints and optionally another string as arguments");
+		 "expected a string, five ints and optionally another string as arguments");
 	
 	block= Get_uiBlock();
 
@@ -619,6 +619,24 @@ static PyObject *Method_String (PyObject *self,  PyObject *args)
 									but->val.asstr, 0, len, 0, 0, tip);
 
 	return (PyObject *) but;
+}
+
+static PyObject *Method_GetStringWidth (PyObject *self, PyObject *args)
+{
+	char *text;
+	PyObject *width;
+
+	if (!PyArg_ParseTuple (args, "s", &text))
+		return EXPP_ReturnPyObjError (PyExc_TypeError,
+					"expected string argument");
+
+	width = PyInt_FromLong(BMF_GetStringWidth (G.font, text));
+
+	if (!width)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+					"couldn't create PyInt");
+
+	return width;
 }
 
 static PyObject *Method_Text (PyObject *self, PyObject *args)
