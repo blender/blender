@@ -1,5 +1,5 @@
 /**
- * $$
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -39,6 +39,8 @@
  *    determines whether to draw the edge (this predicate can
  *    also set color, etc). This will be slightly more general 
  *    and allow some of the functions to be collapsed.
+ *  o Once accessor functions are added then single element draw
+ *    functions can be implemented using primitive accessors.
  */
 
 struct Object;

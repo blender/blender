@@ -514,7 +514,7 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm, int doOptEdges) {
 	}
 	ccgFaceIterator_free(fi);
 
-	displistmesh_calc_vert_normals(dlm);
+	displistmesh_calc_normals(dlm);
 
 	return dlm;
 }

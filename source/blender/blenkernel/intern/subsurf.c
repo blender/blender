@@ -1067,7 +1067,7 @@ static DispListMesh *hypermesh_to_displistmesh(HyperMesh *hme, short flag) {
 		mf++;
 	}	
 	
-	displistmesh_calc_vert_normals(dlm);
+	displistmesh_calc_normals(dlm);
 
 	return dlm;
 }

@@ -100,11 +100,12 @@ struct DispListMesh {
 	struct TFace *tface;
 	struct EditEdge **editedge;	// added for subsurf, drawobject.c
 	struct EditFace **editface;	// added for subsurf, drawobject.c
+	float *nors; // facenormals
 	int flag;
 };
 
 void displistmesh_free(DispListMesh *dlm);
-void displistmesh_calc_vert_normals(DispListMesh *dlm);
+void displistmesh_calc_normals(DispListMesh *dlm);
 
 void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
 

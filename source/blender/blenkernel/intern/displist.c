@@ -169,7 +169,7 @@ DispListMesh *displistmesh_from_editmesh(EditMesh *em)
 	for (evePrev=NULL, eve= em->verts.first; eve; evePrev=eve, eve= eve->next)
 		eve->prev= evePrev;
 
-	displistmesh_calc_vert_normals(dlm);
+	displistmesh_calc_normals(dlm);
 
 	return dlm;
 }
@@ -217,6 +217,7 @@ void displistmesh_free(DispListMesh *dlm)
 	if (dlm->tface) MEM_freeN(dlm->tface);
 	if (dlm->editedge) MEM_freeN(dlm->editedge);
 	if (dlm->editface) MEM_freeN(dlm->editface);
+	if (dlm->nors) MEM_freeN(dlm->nors);
 	MEM_freeN(dlm);
 }
 
@@ -226,24 +227,29 @@ DispListMesh *displistmesh_copy(DispListMesh *odlm)
 	ndlm->mvert= MEM_dupallocN(odlm->mvert);
 	ndlm->medge= MEM_dupallocN(odlm->medge);
 	ndlm->mface= MEM_dupallocN(odlm->mface);
+	if (odlm->nors) ndlm->nors = MEM_dupallocN(odlm->nors);
 	if (odlm->mcol) ndlm->mcol= MEM_dupallocN(odlm->mcol);
 	if (odlm->tface) ndlm->tface= MEM_dupallocN(odlm->tface);
 	
 	return ndlm;
 }
 
-void displistmesh_calc_vert_normals(DispListMesh *dlm) 
+void displistmesh_calc_normals(DispListMesh *dlm) 
 {
 	MVert *mverts= dlm->mvert;
-	int nmverts= dlm->totvert;
 	MFace *mfaces= dlm->mface;
-	int nmfaces= dlm->totface;
-	float (*tnorms)[3]= MEM_callocN(nmverts*sizeof(*tnorms), "tnorms");
+	float (*tnorms)[3]= MEM_callocN(dlm->totvert*sizeof(*tnorms), "tnorms");
 	int i;
 	
-	for (i=0; i<nmfaces; i++) {
+	if (dlm->nors) {
+		MEM_freeN(dlm->nors);
+	}
+
+	dlm->nors= MEM_mallocN(sizeof(*dlm->nors)*3*dlm->totface, "meshnormals");
+
+	for (i=0; i<dlm->totface; i++) {
 		MFace *mf= &mfaces[i];
-		float f_no[3];
+		float *f_no= &dlm->nors[i*3];
 
 		if (!mf->v3)
 			continue;
@@ -259,7 +265,7 @@ void displistmesh_calc_vert_normals(DispListMesh *dlm)
 		if (mf->v4)
 			VecAddf(tnorms[mf->v4], tnorms[mf->v4], f_no);
 	}
-	for (i=0; i<nmverts; i++) {
+	for (i=0; i<dlm->totvert; i++) {
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
@@ -791,57 +797,34 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 		
 		me= get_mesh(ob);
 		
-		if (mesh_uses_displist(me)) {
-			DispList *dl= find_displist(&me->disp, DL_MESH);
-			
-			if (dl && !dl->nors) {
-				DispListMesh *dlm= dl->mesh;
-				int i;
-				
-				dl->nors= MEM_mallocN(sizeof(*dl->nors)*3*dlm->totface, "meshnormals");
-				
-				for (i=0; i<dlm->totface; i++) {
-					MFace *mf= &dlm->mface[i];
-					float *no= &dl->nors[i*3];
+		if(me->totface==0) return;
+		
+		if(me->disp.first==0) {
+			dl= MEM_callocN(sizeof(DispList), "meshdisp");
+			dl->type= DL_NORS;
+			dl->parts= 1;
+			dl->nr= me->totface;
+			BLI_addtail(&me->disp, dl);
+		}
+		else return;
+		
+		if(dl->nors==0) {
+			dl->nors= MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
+			n1= dl->nors;
+			mface= me->mface;
+			a= me->totface;
+			while(a--) {
+				if(mface->v3) {
+					ve1= me->mvert+mface->v1;
+					ve2= me->mvert+mface->v2;
+					ve3= me->mvert+mface->v3;
+					ve4= me->mvert+mface->v4;
 					
-					if (mf->v3) {
-						if (mf->v4)
-							CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, no);
-						else
-							CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, no);
-					}
+					if(mface->v4) CalcNormFloat4(ve1->co, ve2->co, ve3->co, ve4->co, n1);
+					else CalcNormFloat(ve1->co, ve2->co, ve3->co, n1);
 				}
-			}
-		} else {
-			if(me->totface==0) return;
-			
-			if(me->disp.first==0) {
-				dl= MEM_callocN(sizeof(DispList), "meshdisp");
-				dl->type= DL_NORS;
-				dl->parts= 1;
-				dl->nr= me->totface;
-				BLI_addtail(&me->disp, dl);
-			}
-			else return;
-			
-			if(dl->nors==0) {
-				dl->nors= MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
-				n1= dl->nors;
-				mface= me->mface;
-				a= me->totface;
-				while(a--) {
-					if(mface->v3) {
-						ve1= me->mvert+mface->v1;
-						ve2= me->mvert+mface->v2;
-						ve3= me->mvert+mface->v3;
-						ve4= me->mvert+mface->v4;
-						
-						if(mface->v4) CalcNormFloat4(ve1->co, ve2->co, ve3->co, ve4->co, n1);
-						else CalcNormFloat(ve1->co, ve2->co, ve3->co, n1);
-					}
-					n1+= 3;
-					mface++;
-				}
+				n1+= 3;
+				mface++;
 			}
 		}
 

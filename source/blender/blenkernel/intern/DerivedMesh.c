@@ -642,7 +642,6 @@ typedef struct {
 
 	DispListMesh *dlm;
 	EditMesh *em;
-	float *nors;
 } SSDerivedMesh;
 
 static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
@@ -843,7 +842,7 @@ static void ssDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
-	float *nors = ssdm->nors;
+	float *nors = dlm->nors;
 	int glmode=-1, shademodel=-1, matnr=-1;
 	int i;
 
@@ -1014,7 +1013,7 @@ static DispListMesh *ssDM_convertToDispListMesh(DerivedMesh *dm)
 	return displistmesh_copy(ssdm->dlm);
 }
 
-static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, float *nors)
+static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm)
 {
 	SSDerivedMesh *ssdm = MEM_mallocN(sizeof(*ssdm), "dm");
 
@@ -1044,7 +1043,6 @@ static DerivedMesh *getSSDerivedMesh(EditMesh *em, DispListMesh *dlm, float *nor
 	
 	ssdm->dlm = dlm;
 	ssdm->em = em;
-	ssdm->nors = nors;
 
 	return (DerivedMesh*) ssdm;
 }
@@ -1085,9 +1083,9 @@ DerivedMesh *mesh_get_derived(Object *ob)
 		dl= find_displist(&me->disp, DL_MESH);
 
 		if(G.obedit && me==G.obedit->data) {
-			return getSSDerivedMesh(G.editMesh, dl->mesh, dl->nors);
+			return getSSDerivedMesh(G.editMesh, dl->mesh);
 		} else {
-			return getSSDerivedMesh(NULL, dl->mesh, dl->nors);
+			return getSSDerivedMesh(NULL, dl->mesh);
 		}
 	} else {
 		return NULL;
