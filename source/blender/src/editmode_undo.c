@@ -100,6 +100,7 @@ typedef struct UndoElem {
 	struct UndoElem *next, *prev;
 	ID id;			// copy of editmode object ID
 	Object *ob;		// pointer to edited object
+	int type;		// type of edited object
 	void *undodata;
 	char name[MAXUNDONAME];
 	void (*freedata)(void *);
@@ -133,7 +134,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 
 	/* prevent two same undocalls */
 	if(curundo && strcmp("Original", name)==0) {
-		if( curundo->ob==G.obedit ) {
+		if( curundo->ob==G.obedit && curundo->type==G.obedit->type) {
 			return;
 		}
 	}
@@ -175,6 +176,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	curundo->undodata= curundo->from_editmode();
 	curundo->ob= G.obedit;
 	curundo->id= G.obedit->id;
+	curundo->type= G.obedit->type;
 }
 
 
@@ -191,8 +193,8 @@ static void undo_clean_stack(void)
 	while(uel) {
 		next= uel->next;
 		
-		/* for when global undo changes pointers... */
-		if(strcmp(uel->id.name, G.obedit->id.name)==0) {
+		/* for when objects are converted, renamed, or global undo changes pointers... */
+		if(uel->type==G.obedit->type && strcmp(uel->id.name, G.obedit->id.name)==0) {
 			uel->ob= G.obedit;
 		}
 		else {
