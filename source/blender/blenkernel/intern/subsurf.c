@@ -403,6 +403,7 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 	EditVlak *ef;
 
 		/* we only add vertices with edges, 'f1' is a free flag */
+		/* added: check for hide flag in vertices */
 	for (ev= everts; ev; ev= ev->next) ev->f1= 1;	
 
 		/* hack, tuck the new hypervert pointer into
@@ -410,30 +411,36 @@ static HyperMesh *hypermesh_from_editmesh(EditVert *everts, EditEdge *eedges, Ed
 		 * then restore real prev links later.
 		 */
 	for (ee= eedges; ee; ee= ee->next) {
-		if(ee->v1->f1) {
-			ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
-			ee->v1->f1= 0;
+		if(ee->v1->h==0 && ee->v2->h==0) {
+			if(ee->v1->f1) {
+				ee->v1->prev= (EditVert*) hypermesh_add_vert(hme, ee->v1->co, ee->v1->co);
+				ee->v1->f1= 0;
+			}
+			if(ee->v2->f1) {
+				ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
+				ee->v2->f1= 0;
+			}
+				
+			hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, 1);
 		}
-		if(ee->v2->f1) {
-			ee->v2->prev= (EditVert*) hypermesh_add_vert(hme, ee->v2->co, ee->v2->co);
-			ee->v2->f1= 0;
-		}
-			
-		hypermesh_add_edge(hme, (HyperVert*) ee->v1->prev, (HyperVert*) ee->v2->prev, 1);
 	}
 	for (ef= efaces; ef; ef= ef->next) {
-		int nverts= ef->v4?4:3;
-		HyperVert *verts[4];
-		HyperFace *f;
-		
-		verts[0]= (HyperVert*) ef->v1->prev;
-		verts[1]= (HyperVert*) ef->v2->prev;
-		verts[2]= (HyperVert*) ef->v3->prev;
-		if (nverts>3)
-			verts[3]= (HyperVert*) ef->v4->prev;
-
-		f= hypermesh_add_face(hme, verts, nverts, 1);
-		f->orig.ef= ef;
+		if(ef->v1->h || ef->v2->h || ef->v3->h);
+		else if(ef->v4 && ef->v4->h);
+		else {
+			int nverts= ef->v4?4:3;
+			HyperVert *verts[4];
+			HyperFace *f;
+			
+			verts[0]= (HyperVert*) ef->v1->prev;
+			verts[1]= (HyperVert*) ef->v2->prev;
+			verts[2]= (HyperVert*) ef->v3->prev;
+			if (nverts>3)
+				verts[3]= (HyperVert*) ef->v4->prev;
+	
+			f= hypermesh_add_face(hme, verts, nverts, 1);
+			f->orig.ef= ef;
+		}
 	}
 
 		/* see hack above, restore the prev links */
