@@ -45,7 +45,10 @@
 
 #include "FTF_TTFont.h"
 
+#ifdef __APPLE__
 #include "BKE_utildefines.h"
+#endif
+
 #include "BLI_blenlib.h"
 
 #define DOMAIN_NAME "blender"
