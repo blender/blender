@@ -6132,7 +6132,7 @@ void add_primitiveMesh(int type)
 			extrudeflag(2, 0);
 			rotateflag(2, v1->co, cmat);
 		}
-		removedoublesflag(4, 0.01);
+		removedoublesflag(4, 0.0001);
 	}
 	else if(type==12) {	/* Icosphere */
 		EditVert *eva[12];
