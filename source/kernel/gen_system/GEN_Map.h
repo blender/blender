@@ -106,7 +106,7 @@ public:
     
     void insert(const Key& key, const Value& value) {
         Entry *entry_ptr = m_buckets[key.hash() % m_num_buckets];
-        while ((entry_ptr != 0) && !(&key == &entry_ptr->m_key)) {
+        while ((entry_ptr != 0) && !(key == entry_ptr->m_key)) {
             entry_ptr = entry_ptr->m_next;
         }
         
@@ -134,7 +134,7 @@ public:
 
     Value *operator[](Key key) {
         Entry *bucket = m_buckets[key.hash() % m_num_buckets];
-        while ((bucket != 0) && !(&key == &bucket->m_key)) {
+        while ((bucket != 0) && !(key == bucket->m_key)) {
             bucket = bucket->m_next;
         }
         return bucket != 0 ? &bucket->m_value : 0;
@@ -146,4 +146,5 @@ private:
 };
 
 #endif
+
 
