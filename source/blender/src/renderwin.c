@@ -747,8 +747,9 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 
 		renderwin_init_display_cb();
 	} else {
+#ifndef __APPLE__		
 		BIF_close_render_display();
-
+#endif
 		RE_set_initrenderdisplay_callback(renderview_init_display_cb);
 		RE_set_clearrenderdisplay_callback(NULL);
 		RE_set_renderdisplay_callback(renderview_progress_display_cb);
@@ -785,9 +786,9 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 
 	G.afbreek= 0;
 	end_test_break_callback();
-	if (R.displaymode == R_DISPLAYWIN) // when in dispview it destroys the image
-		mainwindow_make_active();
 
+	/* Leave this window active, otherwise in dispiew it will destroy the image as well
+	   window_make_active() raises window at osx and sends redraws */
 }
 
 /* finds area with a 'dispview' set */
