@@ -1576,13 +1576,13 @@ static TBitem tb_object_select[]= {
 
 
 static TBitem tb_mesh_select[]= {
-{	0, "Border Select|B", 	1, NULL},
+{	0, "Border Select|B", 	0, NULL},
 {	0, "SEPR", 				0, NULL},
 {	0, "(De)select All|A", 	2, NULL},
-{	0, "Inverse", 	3, NULL},
+{	0, "Inverse", 			3, NULL},
 {	0, "SEPR", 				0, NULL},
-{	0, "Face Loop|Shift R", 	4, NULL},
-{	0, "Linked Vertices|Ctrl L", 5, NULL},
+{	0, "Face Loop|Shift R", 6, NULL},
+{	0, "Linked Vertices|Ctrl L", 4, NULL},
 {  -1, "", 			0, do_view3d_select_meshmenu}};
 
 
@@ -1653,7 +1653,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 
 static TBitem tb_mesh_edit_edge[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
-{	0, "Loop SubdivideCtrl R", 		4, 		NULL},
+{	0, "Loop Subdivide|Ctrl R", 		4, 		NULL},
 {	0, "Knife Subdivide...|Shift K", 	3, 		NULL},
 {	0, "SEPR", 								0, NULL},
 {	0, "Subdivide", 			2, 		NULL},
