@@ -2412,10 +2412,11 @@ static void lib_link_scene(FileData *fd, Main *main)
 				}
 				END_SEQ
 			}
+			
+			lib_link_scriptlink(fd, &sce->id, &sce->scriptlink);
+			
 			sce->id.flag -= LIB_NEEDLINK;
 		}
-
-		lib_link_scriptlink(fd, &sce->id, &sce->scriptlink);
 
 		sce= sce->id.next;
 	}
