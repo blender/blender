@@ -39,6 +39,8 @@ static void Matrix_dealloc (MatrixObject *self)
     Py_DECREF (self->rows[2]);
     Py_DECREF (self->rows[3]);
 
+    if (self->mem)
+        PyMem_Free (self->mem);
     PyMem_DEL (self);
 }
 
@@ -130,8 +132,16 @@ PyObject * newMatrixObject (float mat[][4])
     MatrixObject    * self;
 
     self = PyObject_NEW (MatrixObject, &Matrix_Type);
-    self->mat = mat;
-
+    if (mat)
+    {
+        self->mem = NULL;
+        self->mat = mat;
+    }
+    else
+    {
+        self->mem = PyMem_Malloc (4*4*sizeof (float));
+        self->mat = self->mem;
+    }
     self->rows[0] = newVectorObject ((float *)(self->mat[0]), 4);
     self->rows[1] = newVectorObject ((float *)(self->mat[1]), 4);
     self->rows[2] = newVectorObject ((float *)(self->mat[2]), 4);

@@ -66,7 +66,7 @@ typedef struct {
 	PyObject_VAR_HEAD
 	PyObject *rows[4];
 	Matrix4Ptr mat;
-
+	Matrix4Ptr mem;
 } MatrixObject;
 
 
