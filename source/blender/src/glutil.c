@@ -416,3 +416,65 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 
 	MEM_freeN(di);
 }
+
+/* **************** glPoint hack ************************ */
+
+static int curmode=0;
+static int pointhack=0;
+static GLubyte Squaredot[16] = { 0xff,0xff,0xff,0xff,
+								 0xff,0xff,0xff,0xff,
+								 0xff,0xff,0xff,0xff, 
+								 0xff,0xff,0xff,0xff};
+
+void bglBegin(int mode)
+{
+	curmode= mode;
+	
+	if(mode==GL_POINTS) {
+		float value[4];
+		glGetFloatv(GL_POINT_SIZE_RANGE, value);
+		if(value[1]<2.0) {
+			glGetFloatv(GL_POINT_SIZE, value);
+			pointhack= floor(value[0]+0.5);
+			if(pointhack>4) pointhack= 4;
+		}
+		else glBegin(mode);
+	}
+}
+
+
+void bglVertex3fv(float *vec)
+{
+	switch(curmode) {
+	case GL_POINTS:
+		if(pointhack) {
+			glRasterPos3fv(vec);
+			glBitmap(pointhack, pointhack, (float)pointhack/2, pointhack/2, 0.0, 0.0, Squaredot);
+		}
+		else glVertex3fv(vec);
+		break;
+	}
+}
+
+void bglVertex2fv(float *vec)
+{
+	switch(curmode) {
+	case GL_POINTS:
+		if(pointhack) {
+			glRasterPos2fv(vec);
+			glBitmap(pointhack, pointhack, (float)pointhack/2, pointhack/2, 0.0, 0.0, Squaredot);
+		}
+		else glVertex2fv(vec);
+		break;
+	}
+}
+
+
+void bglEnd(void)
+{
+	if(pointhack) pointhack= 0;
+	else glEnd();
+	
+}
+
+

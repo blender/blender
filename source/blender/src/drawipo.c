@@ -896,7 +896,7 @@ static void draw_ipovertices(int sel)
 			 * on TNT2 / Linux with NVidia's drivers
 			 * (at least up to ver. 4349) */		
 			
-			glBegin(GL_POINTS);
+			bglBegin(GL_POINTS);
 			
 			bezt= ei->icu->bezt;
 			a= ei->icu->totvert;
@@ -917,7 +917,7 @@ static void draw_ipovertices(int sel)
 						while(b<31) {
 							if(val & (1<<b)) {	
 								v1[1]= b+1;
-								glVertex3fv(v1);
+								bglVertex3fv(v1);
 							}
 							b++;
 						}
@@ -928,23 +928,23 @@ static void draw_ipovertices(int sel)
 					if(ei->flag & IPO_EDIT) {
 						if(ei->icu->ipo==IPO_BEZ) {
 							if( (bezt->f1 & 1) == sel )	
-								glVertex3fv(bezt->vec[0]);
+								bglVertex3fv(bezt->vec[0]);
 							if( (bezt->f3 & 1) == sel )	
-								glVertex3fv(bezt->vec[2]);
+								bglVertex3fv(bezt->vec[2]);
 						}
 						if( (bezt->f2 & 1) == sel )	
-							glVertex3fv(bezt->vec[1]);
+							bglVertex3fv(bezt->vec[1]);
 						
 					}
 					else {
-						glVertex3fv(bezt->vec[1]);
+						bglVertex3fv(bezt->vec[1]);
 					}
 				}
 				
 				bezt++;
 			}
 
-			glEnd();
+			bglEnd();
 		}
 	}
 	

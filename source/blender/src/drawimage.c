@@ -468,15 +468,15 @@ void draw_tfaces(void)
 			a= me->totface;
 			while(a--) {
 				if(mface->v3  && (tface->flag & TF_SELECT) ) {
-					glBegin(GL_POINTS);
+					bglBegin(GL_POINTS);
 					
-					if(tface->flag & TF_SEL1); else glVertex2fv(tface->uv[0]);
-					if(tface->flag & TF_SEL2); else glVertex2fv(tface->uv[1]);
-					if(tface->flag & TF_SEL3); else glVertex2fv(tface->uv[2]);
+					if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
+					if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
+					if(tface->flag & TF_SEL3); else bglVertex2fv(tface->uv[2]);
 					if(mface->v4) {
-						if(tface->flag & TF_SEL4); else glVertex2fv(tface->uv[3]);
+						if(tface->flag & TF_SEL4); else bglVertex2fv(tface->uv[3]);
 					}
-					glEnd();
+					bglEnd();
 				}
 				tface++;
 				mface++;
@@ -489,15 +489,15 @@ void draw_tfaces(void)
 			a= me->totface;
 			while(a--) {
 				if(mface->v3  && (tface->flag & TF_SELECT) ) {
-					glBegin(GL_POINTS);
+					bglBegin(GL_POINTS);
 					
-					if(tface->flag & TF_SEL1) glVertex2fv(tface->uv[0]);
-					if(tface->flag & TF_SEL2) glVertex2fv(tface->uv[1]);
-					if(tface->flag & TF_SEL3) glVertex2fv(tface->uv[2]);
+					if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
+					if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
+					if(tface->flag & TF_SEL3) bglVertex2fv(tface->uv[2]);
 					if(mface->v4) {
-						if(tface->flag & TF_SEL4) glVertex2fv(tface->uv[3]);
+						if(tface->flag & TF_SEL4) bglVertex2fv(tface->uv[3]);
 					}
-					glEnd();
+					bglEnd();
 				}
 				tface++;
 				mface++;

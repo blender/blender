@@ -1473,16 +1473,6 @@ void do_radiobuts(unsigned short event)
 }
 
 
-#if 0
-	char str[128];
-		
-		rad_status_str(str);
-		cpack(0);
-		glRasterPos2i(210, 189);
-		BMF_DrawString(uiBlockGetCurFont(block), str);
-
-#endif
-
 static void radio_panel_calculation(Radio *rad, int flag)
 {
 	uiBlock *block;

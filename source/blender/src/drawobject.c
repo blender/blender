@@ -91,6 +91,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editika.h"
 #include "BIF_editmesh.h"
+#include "BIF_glutil.h"
 #include "BIF_resources.h"
 
 #include "BDR_drawmesh.h"
@@ -440,11 +441,11 @@ static void tekenshadbuflimits(Lamp *la, float mat[][4])
 	glEnd();
 
 	glPointSize(3.0);
-	glBegin(GL_POINTS);
+	bglBegin(GL_POINTS);
 	BIF_ThemeColor(TH_WIRE);
-	glVertex3fv(sta);
-	glVertex3fv(end);
-	glEnd();
+	bglVertex3fv(sta);
+	bglVertex3fv(end);
+	bglEnd();
 	glPointSize(1.0);
 }
 
@@ -758,7 +759,7 @@ static void tekenvertslatt(short sel)
 	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
 	else BIF_ThemeColor(TH_VERTEX);
 
-	glBegin(GL_POINTS);
+	bglBegin(GL_POINTS);
 
 	bp= editLatt->def;
 	lt= editLatt;
@@ -774,7 +775,7 @@ static void tekenvertslatt(short sel)
 					if(u==0 || u==lt->pntsu-1) uxt= 1; else uxt= 0;
 					if(uxt || vxt || wxt) {
 						if(bp->hide==0) {
-							if((bp->f1 & 1)==sel) glVertex3fv(bp->vec);
+							if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
 						}
 					}
 				}
@@ -786,14 +787,14 @@ static void tekenvertslatt(short sel)
 		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 		while(a--) {
 			if(bp->hide==0) {
-				if((bp->f1 & 1)==sel) glVertex3fv(bp->vec);
+				if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
 			}
 			bp++;
 		}
 	}
 	
 	glPointSize(1.0);
-	glEnd();	
+	bglEnd();	
 }
 
 static void calc_lattverts(void)
@@ -1067,7 +1068,7 @@ void tekenvertices(short sel)
 	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	if(sel) BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, col);
 	else BIF_GetThemeColor3ubv(TH_VERTEX, col);
-	
+
 	if(G.zbuf) {
 		glPointSize(size>2.1?size/2.0: size);
 
@@ -1077,11 +1078,11 @@ void tekenvertices(short sel)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 
-		glBegin(GL_POINTS);
+		bglBegin(GL_POINTS);
 		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (eve->f & 1)==sel ) glVertex3fv(eve->co);
+			if(eve->h==0 && (eve->f & 1)==sel ) bglVertex3fv(eve->co);
 		}
-		glEnd();
+		bglEnd();
 		
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
@@ -1090,11 +1091,11 @@ void tekenvertices(short sel)
 	glPointSize(size);
 	glColor3ub(col[0], col[1], col[2]);
 
-	glBegin(GL_POINTS);
+	bglBegin(GL_POINTS);
 	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0 && (eve->f & 1)==sel ) glVertex3fv(eve->co);
+		if(eve->h==0 && (eve->f & 1)==sel ) bglVertex3fv(eve->co);
 	}
-	glEnd();
+	bglEnd();
 
 	glPointSize(1.0);
 }
@@ -2808,7 +2809,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(size);
 	
-	glBegin(GL_POINTS);
+	bglBegin(GL_POINTS);
 	
 	if((nu->type & 7)==1) {
 
@@ -2816,9 +2817,9 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if((bezt->f1 & 1)==sel) glVertex3fv(bezt->vec[0]);
-				if((bezt->f2 & 1)==sel) glVertex3fv(bezt->vec[1]);
-				if((bezt->f3 & 1)==sel) glVertex3fv(bezt->vec[2]);
+				if((bezt->f1 & 1)==sel) bglVertex3fv(bezt->vec[0]);
+				if((bezt->f2 & 1)==sel) bglVertex3fv(bezt->vec[1]);
+				if((bezt->f3 & 1)==sel) bglVertex3fv(bezt->vec[2]);
 			}
 			bezt++;
 		}
@@ -2828,13 +2829,13 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
 			if(bp->hide==0) {
-				if((bp->f1 & 1)==sel) glVertex3fv(bp->vec);
+				if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
 			}
 			bp++;
 		}
 	}
 	
-	glEnd();
+	bglEnd();
 	glPointSize(1.0);
 }
 

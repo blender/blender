@@ -187,5 +187,12 @@ void			gla2DDrawTranslatePtv	(gla2DDrawInfo *di, float world[2], int screen_r[2]
 	 */
 void			glaEnd2DDraw			(gla2DDrawInfo *di);
 
+/* use this for platform hacks. for now glPointSize is solved here */
+void bglBegin(int mode);
+void bglEnd(void);
+void bglVertex3fv(float *vec);
+void bglVertex2fv(float *vec);
+
+
 #endif /* BIF_GLUTIL_H */
 
