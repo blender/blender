@@ -1873,9 +1873,9 @@ void shade_lamp_loop(int mask)
 		}
 	}
 	
-	if(ir<0.0) ir= 0.0;
-	if(ig<0.0) ig= 0.0;
-	if(ib<0.0) ib= 0.0;
+	if(ir<0.0) ir= 0.0; else ir*= ma->r;
+	if(ig<0.0) ig= 0.0; else ig*= ma->g;
+	if(ib<0.0) ib= 0.0; else ib*= ma->b;
 	if(isr<0.0) isr= 0.0;
 	if(isg<0.0) isg= 0.0;
 	if(isb<0.0) isb= 0.0;
@@ -1892,38 +1892,43 @@ void shade_lamp_loop(int mask)
 	}
 
 	/* Result of ray_mirror() is written in R.refcol. 
-	   Ugly is that this function is called from within ray_mirror as well */
+	   Ugly is that shade_lamp_loop is called from within ray_mirror as well */
 	if(R.r.mode & R_RAYTRACE) {
 		if(ma->ray_mirror!=0.0) {
 			static int only_once= 1;
 			if(only_once) {
+				float mirr= ma->mirr, mirg= ma->mirg, mirb= ma->mirb;
 				extern void ray_mirror(int);
+				
 				only_once= 0;
 				ray_mirror(mask);
 				only_once= 1;
+				
+				/* this is because the material mir color can be textured */
+				ma->mirr= mirr; ma->mirb= mirb; ma->mirg= mirg;
 			}
 		}
 	}
 	
 	if(R.refcol[0]==0.0) {
-		a= 65535.0*( ma->r*ir +ma->ambr +isr +ma->amb*R.rad[0]);
+		a= 65535.0*( ir +ma->ambr +isr +ma->amb*R.rad[0]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[0]= a;
-		a= 65535.0*(ma->g*ig +ma->ambg +isg +ma->amb*R.rad[1]);
+		a= 65535.0*(ig +ma->ambg +isg +ma->amb*R.rad[1]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[1]= a;
-		a= 65535*(ma->b*ib +ma->ambb +isb + ma->amb*R.rad[2]);
+		a= 65535*(ib +ma->ambb +isb + ma->amb*R.rad[2]);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[2]= a;
 	}
 	else {
-		a= 65535.0*( ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*(ma->r*ir +ma->ambr +ma->amb*R.rad[0]) +isr);
+		a= 65535.0*( ma->mirr*R.refcol[1] + (1.0 - ma->mirr*R.refcol[0])*(ir +ma->ambr +ma->amb*R.rad[0]) +isr);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[0]= a;
-		a= 65535.0*( ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*(ma->g*ig +ma->ambg +ma->amb*R.rad[1]) +isg);
+		a= 65535.0*( ma->mirg*R.refcol[2] + (1.0 - ma->mirg*R.refcol[0])*(ig +ma->ambg +ma->amb*R.rad[1]) +isg);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[1]= a;
-		a= 65535.0*( ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*(ma->b*ib +ma->ambb +ma->amb*R.rad[2]) +isb);
+		a= 65535.0*( ma->mirb*R.refcol[3] + (1.0 - ma->mirb*R.refcol[0])*(ib +ma->ambb +ma->amb*R.rad[2]) +isb);
 		if(a>65535) a=65535; else if(a<0) a= 0;
 		shortcol[2]= a;
 	}
