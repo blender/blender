@@ -451,10 +451,8 @@ void viewmove(int mode)
 			if(mode==0) {	/* view rotate */
 
 				if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 1;
-			
-				/* if turntable method, we don't change mvalball[0] */
-			
-				if(U.flag & USER_TRACKBALL) mvalball[0]= mval[0];
+
+				if (U.flag & USER_TRACKBALL) mvalball[0]= mval[0];
 				mvalball[1]= mval[1];
 				
 				calctrackballvec(&curarea->winrct, mvalball, newvec);
@@ -463,25 +461,47 @@ void viewmove(int mode)
 				
 				si= sqrt(dvec[0]*dvec[0]+ dvec[1]*dvec[1]+ dvec[2]*dvec[2]);
 				si/= (2.0*TRACKBALLSIZE);
-				
-				/* is there an acceptable solution? (180 degrees limitor) */
-				if(si<1.0) {
+			
+				if (U.flag & USER_TRACKBALL) {
 					Crossf(q1+1, firstvec, newvec);
-
-					Normalise(q1+1);
-		
-					phi= asin(si);
 	
+					Normalise(q1+1);
+	
+					/* Allow for rotation beyond the interval
+					 * [-pi, pi] */
+					while (si > 1.0)
+						si -= 2.0;
+		
+					/* This relation is used instead of
+					 * phi = asin(si) so that the angle
+					 * of rotation is linearly proportional
+					 * to the distance that the mouse is
+					 * dragged. */
+					phi = si * M_PI / 2.0;
+		
 					si= sin(phi);
 					q1[0]= cos(phi);
 					q1[1]*= si;
 					q1[2]*= si;
-					q1[3]*= si;
-					
+					q1[3]*= si;						
 					QuatMul(G.vd->viewquat, q1, oldquat);
-
-					if( (U.flag & USER_TRACKBALL)==0 ) {
-					
+				} else {
+					/* is there an acceptable solution? (180 degrees limitor) */
+					if(si<1.0) {
+						Crossf(q1+1, firstvec, newvec);
+	
+						Normalise(q1+1);
+			
+						phi= asin(si);
+		
+						si= sin(phi);
+						q1[0]= cos(phi);
+						q1[1]*= si;
+						q1[2]*= si;
+						q1[3]*= si;
+						
+						QuatMul(G.vd->viewquat, q1, oldquat);
+	
 						/* rotate around z-axis (mouse x moves)  */
 						
 						phi= 2*(mval[0]-mvalball[0]);
@@ -490,7 +510,7 @@ void viewmove(int mode)
 						q1[0]= cos(phi);
 						q1[1]= q1[2]= 0.0;
 						q1[3]= si;
-						
+					
 						QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
 					}
 				}
