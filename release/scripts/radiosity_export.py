@@ -9,8 +9,8 @@ Tooltip: 'Export selected mesh (with vertex colors) to Radiosity File Format (*.
 
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
-# | http://ourworld.compuserve.com/homepages/scorpius       |
-# | scorpius@compuserve.com                                 |
+# | http://www.redrival.com/scorpius                        |
+# | scorpius@netzero.com                                    |
 # | April 11, 2002                                          |
 # | Released under the Blender Artistic Licence (BAL)       |
 # | Import Export Suite v0.5                                |
@@ -18,14 +18,15 @@ Tooltip: 'Export selected mesh (with vertex colors) to Radiosity File Format (*.
 # | Read and write Radiosity File Format (*.radio)          |
 # +---------------------------------------------------------+
 
-import Blender
+import Blender, mod_meshtools
 #import time
-import mod_flags, mod_meshtools
+
 try:
 	import struct
 except:
 	msg = "Error: you need a full Python install to run this script."
 	mod_meshtools.print_boxed(msg)
+	Blender.Draw.PupMenu("ERROR%t|"+msg)
 
 # ================================
 # ====== Write Radio Format ======
@@ -40,10 +41,11 @@ def write(filename):
 	mesh = Blender.NMesh.GetRaw(meshname)
 	obj = Blender.Object.Get(objname)
 
-	if not mesh.hasVertexColours():
-		message = "Please assign vertex colors before exporting.\n"
+	if not mod_meshtools.has_vertex_colors(mesh):
+		message = "Please assign vertex colors before exporting. \n"
 		message += objname + " object was not saved."
 		mod_meshtools.print_boxed(message)
+		Blender.Draw.PupMenu("ERROR%t|"+message)
 		return
 
 	# === Object Name ===
@@ -53,7 +55,7 @@ def write(filename):
 	# === Vertex List ===
 	file.write(struct.pack("<l", len(mesh.verts)))
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_flags.show_progress:
+		if not i%100 and mod_meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
 
 		x, y, z = mesh.verts[i].co
@@ -62,7 +64,7 @@ def write(filename):
 	# === Face List ===
 	file.write(struct.pack("<l", len(mesh.faces)))
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_flags.show_progress:
+		if not i%100 and mod_meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 
 		file.write(struct.pack("<b", len(mesh.faces[i].v)))

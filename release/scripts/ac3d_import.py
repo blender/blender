@@ -13,7 +13,7 @@ Tip: 'Import an AC3D (.ac) file.'
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2004: Willian P. Germano, wgermano@ig.com.br
+# Copyright (C) 2004: Willian P. Germano, wgermano _at_ ig.com.br
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

@@ -9,8 +9,8 @@ Tooltip: 'Export selected mesh to Object File Format (*.off)'
 
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
-# | http://ourworld.compuserve.com/homepages/scorpius       |
-# | scorpius@compuserve.com                                 |
+# | http://www.redrival.com/scorpius                        |
+# | scorpius@netzero.com                                    |
 # | February 3, 2001                                        |
 # | Released under the Blender Artistic Licence (BAL)       |
 # | Import Export Suite v0.5                                |
@@ -18,9 +18,8 @@ Tooltip: 'Export selected mesh to Object File Format (*.off)'
 # | Read and write Object File Format (*.off)               |
 # +---------------------------------------------------------+
 
-import Blender
+import Blender, mod_meshtools
 #import time
-import mod_flags, mod_meshtools
 
 # ==============================
 # ====== Write OFF Format ======
@@ -42,14 +41,14 @@ def write(filename):
 
 	# === Vertex List ===
 	for i in range(len(mesh.verts)):
-		if not i%100 and mod_flags.show_progress:
+		if not i%100 and mod_meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
 		x, y, z = mesh.verts[i].co
 		file.write("%f %f %f\n" % (x, y, z))
 
 	# === Face List ===
 	for i in range(len(mesh.faces)):
-		if not i%100 and mod_flags.show_progress:
+		if not i%100 and mod_meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 		file.write(`len(mesh.faces[i].v)`+' ')
 		mesh.faces[i].v.reverse()

@@ -9,8 +9,8 @@ Tooltip: 'Import Radiosity File Format (*.radio) with vertex colors'
 
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
-# | http://ourworld.compuserve.com/homepages/scorpius       |
-# | scorpius@compuserve.com                                 |
+# | http://www.redrival.com/scorpius                        |
+# | scorpius@netzero.com                                    |
 # | April 11, 2002                                          |
 # | Released under the Blender Artistic Licence (BAL)       |
 # | Import Export Suite v0.5                                |
@@ -18,14 +18,15 @@ Tooltip: 'Import Radiosity File Format (*.radio) with vertex colors'
 # | Read and write Radiosity File Format (*.radio)          |
 # +---------------------------------------------------------+
 
-import Blender
+import Blender, mod_meshtools
 #import time
-import mod_flags, mod_meshtools
+
 try:
 	import struct
 except:
 	msg = "Error: you need a full Python install to run this script."
 	mod_meshtools.print_boxed(msg)
+	Blender.Draw.PupMenu("ERROR%t|"+msg)
 
 # ===============================
 # ====== Read Radio Format ======
@@ -34,7 +35,7 @@ def read(filename):
 	#start = time.clock()
 	file = open(filename, "rb")
 	mesh = Blender.NMesh.GetRaw()
-	mesh.addMaterial(Blender.Material.New())
+	#mesh.addMaterial(Blender.Material.New())
 
 	# === Object Name ===
 	namelen, = struct.unpack("<h",  file.read(2))
@@ -43,7 +44,7 @@ def read(filename):
 	# === Vertex List ===
 	numverts, = struct.unpack("<l", file.read(4))
 	for i in range(numverts):
-		if not i%100 and mod_flags.show_progress:
+		if not i%100 and mod_meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
 		x, y, z = struct.unpack("<fff", file.read(12))
 		mesh.verts.append(Blender.NMesh.Vert(x, y, z))
@@ -51,7 +52,7 @@ def read(filename):
 	# === Face List ===
 	numfaces, = struct.unpack("<l", file.read(4))
 	for i in range(numfaces):
-		if not i%100 and mod_flags.show_progress:
+		if not i%100 and mod_meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
 
 		face = Blender.NMesh.Face()

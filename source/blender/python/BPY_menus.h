@@ -75,19 +75,19 @@ typedef struct BPyMenu {
  * BPY_menus.c; 
  * - add the necessary code to the header_***.c file in
  * source/blender/src/, like done in header_info.c for import/export;
- * - update the bpython registering function and its documentation to include
- * the new group.
 */ 
 typedef enum {
 	PYMENU_WIZARDS, /* complex 'app' scripts */
-	PYMENU_MODIFIERS, /* modifies existing objs */
+	PYMENU_UV, /* UV editing tools, to go in UV/Image editor space, 'UV' menu */
+	PYMENU_UTILS,
+	PYMENU_TOOLS,
+	PYMENU_MODIFIERS, /* modifies existing obj *data* */
 	PYMENU_MISC,
 	PYMENU_MATERIALS,
 	PYMENU_GENERATORS, /* creates new objects */
 	PYMENU_IMPORT,
 	PYMENU_EXPORT,
 	PYMENU_ANIMATION,
-	PYMENU_UV, /* UV editing tools, to go in UV/Image editor space, 'UV' menu */
 	PYMENU_TOTAL
 } PYMENUHOOKS;
 

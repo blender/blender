@@ -9,8 +9,8 @@ Tooltip: 'Export selected mesh to Raw Triangle Format (*.raw)'
 
 # +---------------------------------------------------------+
 # | Copyright (c) 2002 Anthony D'Agostino                   |
-# | http://ourworld.compuserve.com/homepages/scorpius       |
-# | scorpius@compuserve.com                                 |
+# | http://www.redrival.com/scorpius                        |
+# | scorpius@netzero.com                                    |
 # | April 28, 2002                                          |
 # | Released under the Blender Artistic Licence (BAL)       |
 # | Import Export Suite v0.5                                |
@@ -18,13 +18,13 @@ Tooltip: 'Export selected mesh to Raw Triangle Format (*.raw)'
 # | Read and write RAW Triangle File Format (*.raw)         |
 # +---------------------------------------------------------+
 
-import Blender, sys
+import Blender, mod_meshtools
+import sys
 #import time
-import mod_flags, mod_meshtools
 
-# ===================================
-# ==== Write RAW Triangle Format ====
-# ===================================
+# =================================
+# === Write RAW Triangle Format ===
+# =================================
 def write(filename):
 	#start = time.clock()
 	file = open(filename, "wb")

@@ -1,42 +1,51 @@
 #!BPY
 
 """
-Name: 'Raw Triangle...'
+Name: 'SLP (Pro Engineer)...'
 Blender: 232
 Group: 'Import'
-Tooltip: 'Import Raw Triangle File Format (*.raw)'
+Tooltip: 'Import SLP (Pro Engineer) File Format (*.raw)'
 """
 
 # +---------------------------------------------------------+
-# | Copyright (c) 2002 Anthony D'Agostino                   |
+# | Copyright (c) 2004 Anthony D'Agostino                   |
 # | http://www.redrival.com/scorpius                        |
 # | scorpius@netzero.com                                    |
-# | April 28, 2002                                          |
+# | May 3, 2004                                             |
 # | Released under the Blender Artistic Licence (BAL)       |
 # | Import Export Suite v0.5                                |
 # +---------------------------------------------------------+
-# | Read and write RAW Triangle File Format (*.raw)         |
+# | Read and write SLP Triangle File Format (*.slp)         |
 # +---------------------------------------------------------+
 
 import Blender, mod_meshtools
 #import time
 
 # ================================
-# === Read RAW Triangle Format ===
+# === Read SLP Triangle Format ===
 # ================================
 def read(filename):
 	#start = time.clock()
 	file = open(filename, "rb")
 
+	raw = []
+	for line in file.readlines():
+		data = line.split()
+		if data[0] == "vertex":
+			vert = map(float, data[1:])
+			raw.append(vert)
+
+	tri = []
+	for i in range(0, len(raw), 3):
+		tri.append(raw[i] + raw[i+1] + raw[i+2])
+
+	#$import pprint; pprint.pprint(tri)
+
 	# Collect data from RAW format
 	faces = []
-	for line in file.readlines():
-		try:
-			f1, f2, f3, f4, f5, f6, f7, f8, f9 = map(float, line.split())
-			faces.append([(f1, f2, f3), (f4, f5, f6), (f7, f8, f9)])
-		except: # Quad
-			f1, f2, f3, f4, f5, f6, f7, f8, f9, A, B, C = map(float, line.split())
-			faces.append([(f1, f2, f3), (f4, f5, f6), (f7, f8, f9), (A, B, C)])
+	for line in tri:
+		f1, f2, f3, f4, f5, f6, f7, f8, f9 = line
+		faces.append([(f1, f2, f3), (f4, f5, f6), (f7, f8, f9)])
 
 	# Generate verts and faces lists, without duplicates
 	verts = []
@@ -64,4 +73,4 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Raw Import")
+Blender.Window.FileSelector(fs_callback, "SLP Import")

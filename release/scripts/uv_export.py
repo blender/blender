@@ -28,7 +28,13 @@ Tooltip: 'Export the UV face layout of the selected object to a .TGA file'
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
-#    thanks to jms for the tga functions
+# thanks to jms for the tga functions:
+# Writetga and buffer functions
+# (c) 2002-2004 J-M Soler released under GPL licence
+# Official Page :
+# http://jmsoler.free.fr/didacticiel/blender/tutor/write_tga_pic.htm
+# Communicate problems and errors on:
+# http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender 
 # --------------------------
 #    Version 1.1      
 # Clear a bug that crashed the script when UV coords overlapped in the same faces
