@@ -54,6 +54,7 @@ class KX_NetworkMessageSensor : public SCA_ISensor
 	bool m_IsUp;
 
 	class CListValue* m_BodyList;
+	class CListValue* m_SubjectList;
 public:
 	KX_NetworkMessageSensor(
 		KX_NetworkEventManager* eventmgr,	// our eventmanager
@@ -79,6 +80,7 @@ public:
 	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetFrameMessageCount);
 	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetBodies);
 	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetSubject);
+	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetSubjects);
 
 
 };
