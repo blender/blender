@@ -90,5 +90,9 @@ void clear_tilt(void);
 void clever_numbuts_curve(void);         
 int bezt_compare (const void *e1, const void *e2);
 
+extern void undo_push_curve(char *name);
+extern void undo_clear_curve(void);
+
+
 #endif  /*  BDR_EDITCURVE_H */
 

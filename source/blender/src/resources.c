@@ -1,5 +1,3 @@
-
-
 /**
  * $Id$
  *
@@ -67,86 +65,97 @@ static int theme_spacetype= SPACE_VIEW3D;
 
 typedef struct {
 	unsigned char *data;
+	float uv[4][2];
+	GLuint texid;
 	int w, h;
 } Icon;
 
 
-static Icon *icon_from_data(unsigned char *rect, int w, int h, int rowstride)
+static Icon *icon_from_data(unsigned char *rect, GLuint texid, int xofs, int yofs, int w, int h, int rowstride)
 {
 	Icon *icon= MEM_mallocN(sizeof(*icon), "internicon");
 	int y;
-	icon->data= MEM_mallocN(w*h*4, "icon->data");
+
+	icon->texid= texid;
+	icon->uv[0][0]= ((float)xofs)/512.0;
+	icon->uv[0][1]= ((float)yofs)/256.0;
+	icon->uv[1][0]= icon->uv[0][0] + ((float)w)/512.0;
+	icon->uv[1][1]= icon->uv[0][1];
+	icon->uv[2][0]= icon->uv[0][0] + ((float)w)/512.0;
+	icon->uv[2][1]= icon->uv[0][1] + ((float)w)/256.0;
+	icon->uv[3][0]= icon->uv[0][0];
+	icon->uv[3][1]= icon->uv[0][1] + ((float)w)/256.0;
+	
 	icon->w= w;
 	icon->h= h;
+	
+	icon->data= MEM_mallocN(w*h*4, "icon->data");
 	for (y=0; y<h; y++)
 		memcpy(&icon->data[y*w*4], &rect[y*rowstride], w*4);
+
 	return icon;
 }
+
+static float icon_x=0.0, icon_y=0.0;
+void BIF_icon_pos(float xs, float ys)
+{
+	icon_x= xs; icon_y= ys;
+}
+
+static GLuint init_icon_texture(ImBuf *bbuf)
+{
+	GLuint texid;
+
+	glGenTextures(1, &texid);
+	glBindTexture(GL_TEXTURE_2D, texid);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bbuf->x, bbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bbuf->rect);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	return texid;
+}
+
+/* texture version for drawpixels */
+static void icon_draw_tex(Icon *icon)
+{
+	glBindTexture(GL_TEXTURE_2D, icon->texid);
+
+	/* drawing it */
+	glColor3ub(255, 255, 255);
+	glEnable(GL_TEXTURE_2D);
+	glBegin(GL_QUADS);
+	
+	glTexCoord2fv(icon->uv[0]);
+	glVertex2f(icon_x, icon_y);
+	glTexCoord2fv(icon->uv[1]);
+	glVertex2f(icon_x+icon->w, icon_y);
+	glTexCoord2fv(icon->uv[2]);
+	glVertex2f(icon_x+icon->w, icon_y+icon->h);
+	glTexCoord2fv(icon->uv[3]);
+	glVertex2f(icon_x, icon_y+icon->h);
+
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
+
+
 static void icon_draw(Icon *icon)
 {
 	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
 }
 
-#if 0
-
-static unsigned char colclamp(int val)
-{
-	return (val<0)?(0):((val>255)?255:val);
-}
-
-static void icon_draw_blended(Icon *icon, unsigned char blendcol[3])
-{
-	unsigned char temprect[20*21*4];	/* XXX, not so safe */
-	unsigned char *bgcol= icon->data;
-	int blendfac[3];
-	int x, y;
-
-	blendfac[0]= bgcol[0]? (blendcol[0]<<8)/bgcol[0] : 0;
-	blendfac[1]= bgcol[1]? (blendcol[1]<<8)/bgcol[1] : 0;
-	blendfac[2]= bgcol[2]? (blendcol[2]<<8)/bgcol[2] : 0;
-
-	for (y=0; y<icon->h; y++) {
-		unsigned char *row= &icon->data[y*(icon->w*4)];
-		unsigned char *orow= &temprect[y*(icon->w*4)];
-
-		for (x=0; x<icon->w; x++) {
-			unsigned char *pxl= &row[x*4];
-			unsigned char *opxl= &orow[x*4];
-
-			opxl[0]= colclamp((pxl[0]*blendfac[0])>>8);
-			opxl[1]= colclamp((pxl[1]*blendfac[1])>>8);
-			opxl[2]= colclamp((pxl[2]*blendfac[2])>>8);
-			opxl[3]= pxl[3];
-		}
-	}
-
-	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, temprect);
-}
-#endif
 
 static void icon_draw_blended(Icon *icon, char *blendcol, int shade)
 {
-	/* commented out, for now only alpha (ton) */
-//	float r, g, b;
-	
-//	r= (-shade + (float)blendcol[0])/180.0;
-//	g= (-shade + (float)blendcol[1])/180.0;
-//	b= (-shade + (float)blendcol[2])/180.0;
-	
-//	glPixelTransferf(GL_RED_SCALE, r>0.0?r:0.0);
-//	glPixelTransferf(GL_GREEN_SCALE, g>0.0?g:0.0);
-//	glPixelTransferf(GL_BLUE_SCALE, b>0.0?b:0.0);
 
 	if(shade < 0) {
 		float r= (128+shade)/128.0;
 		glPixelTransferf(GL_ALPHA_SCALE, r);
 	}
-
 	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
-
-//	glPixelTransferf(GL_RED_SCALE, 1.0);
-//	glPixelTransferf(GL_GREEN_SCALE, 1.0);
-//	glPixelTransferf(GL_BLUE_SCALE, 1.0);
 	glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 
 }
@@ -188,6 +197,8 @@ void BIF_draw_icon_blended(BIFIconID icon, int colorid, int shade)
 {
 	char *cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	icon_draw_blended(get_icon(icon), cp, shade);
+	// icon_draw_tex(get_icon(icon));
+
 }
 
 int BIF_get_icon_width(BIFIconID icon)
@@ -200,13 +211,17 @@ int BIF_get_icon_height(BIFIconID icon)
 	return get_icon(icon)->h;
 }
 
-static void def_icon(ImBuf *bbuf, BIFIconID icon, int xidx, int yidx, int w, int h, int offsx, int offsy)
+static void def_icon(ImBuf *bbuf, GLuint texid, BIFIconID icon, int xidx, int yidx, int w, int h, int offsx, int offsy)
 {
 	int iconidx= icon-BIFICONID_FIRST;
+	
 	if (iconidx>=0 && iconidx<BIFNICONIDS) {
 		int rowstride= bbuf->x*4;
 		unsigned char *start= ((char*) bbuf->rect) + (yidx*21 + 3 + offsy)*rowstride + (xidx*20 + 3 + offsx)*4;
-		common_icons_arr[iconidx]= icon_from_data(start, w, h, rowstride);
+
+		common_icons_arr[iconidx]= 
+			icon_from_data(start, texid, (xidx*20 + 3 + offsx), (yidx*21 + 3 + offsy), w, h, rowstride);
+		
 	} else {
 		printf("def_icon: Internal error, bad icon ID: %d\n", icon);
 	}
@@ -231,6 +246,7 @@ static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w,
 void BIF_resources_init(void)
 {
 	ImBuf *bbuf= IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
+	GLuint texid=0;
 	int x, y;
 
 	common_icons_arr= MEM_mallocN(sizeof(*common_icons_arr)*BIFNICONIDS, "common_icons");
@@ -240,23 +256,32 @@ void BIF_resources_init(void)
 			int rowstride= bbuf->x*4;
 			unsigned char *start= ((char*) bbuf->rect) + (y*21 + 3)*rowstride + (x*20 + 3)*4;
 			unsigned char transp[4];
+			/* this sets backdrop of icon to zero alpha */
 			transp[0]= start[0];
 			transp[1]= start[1];
 			transp[2]= start[2];
 			transp[3]= start[3];
 			clear_transp_rect(transp, start, 20, 21, rowstride);
+			
+			/* this sets outside of icon to zero alpha */
+			start= ((char*) bbuf->rect) + (y*21)*rowstride + (x*20)*4;
+			QUATCOPY(transp, start);
+			clear_transp_rect(transp, start, 20, 21, rowstride);
 		}
 	} 
+
+	// disabled for now (ton)
+	// texid= init_icon_texture(bbuf);
 
 		/* hack! */
 	for (y=0; y<10; y++) {
 		for (x=0; x<21; x++) {
 			if (x==11 && y==6) {
-				def_icon(bbuf, ICON_BEVELBUT_HLT,			x, y, 7, 13, 4, 2);
+				def_icon(bbuf, texid, ICON_BEVELBUT_HLT,			x, y, 7, 13, 4, 2);
 			} else if (x==12 && y==6) {
-				def_icon(bbuf, ICON_BEVELBUT_DEHLT,			x, y, 7, 13, 4, 2);
+				def_icon(bbuf, texid, ICON_BEVELBUT_DEHLT,			x, y, 7, 13, 4, 2);
 			} else {
-				def_icon(bbuf, BIFICONID_FIRST + y*21 + x,	x, y, 15, 16, 0, 0);
+				def_icon(bbuf, texid, BIFICONID_FIRST + y*21 + x,	x, y, 15, 16, 0, 0);
 			}
 		}
 	}

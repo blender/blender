@@ -59,6 +59,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_library.h"
@@ -1043,6 +1044,8 @@ void switchdirectionNurb2(void)
 	if(G.obedit->lay & G.vd->lay);
 	else return;
 	
+	undo_push_curve("Switch direction");
+	
 	nu= editNurb.first;
 	while(nu) {
 		if( isNurbsel(nu) ) switchdirectionNurb(nu);
@@ -1105,6 +1108,8 @@ void deselectall_nurb()
 
 	if(G.obedit->lay & G.vd->lay);
 	else return;
+
+	undo_push_curve("Deselect all");
 	
 	a= 0;
 	nu= editNurb.first;
@@ -1194,6 +1199,8 @@ void hideNurb(int swap)
 
 	if(G.obedit==0) return;
 
+	undo_push_curve("Hide");
+
 	nu= editNurb.first;
 	while(nu) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1249,6 +1256,8 @@ void revealNurb()
 
 	if(G.obedit==0) return;
 
+	undo_push_curve("Reveal");
+
 	nu= editNurb.first;
 	while(nu) {
 		nu->hide= 0;
@@ -1292,6 +1301,8 @@ void selectswapNurb()
 	int a;
 
 	if(G.obedit==0) return;
+
+	undo_push_curve("Select swap");
 
 	nu= editNurb.first;
 	while(nu) {
@@ -1345,6 +1356,8 @@ void subdivideNurb()
 	int a, b, sel, amount, *usel, *vsel;
 
    // printf("*** subdivideNurb: entering subdivide\n");
+
+	undo_push_curve("Subdivide");
 
 	nu= editNurb.first;
 	while(nu) {
@@ -1868,6 +1881,8 @@ void setsplinetype(short type)
 		return;
 	}
 
+	undo_push_curve("Set spline type");
+	
 	nu= editNurb.first;
 	while(nu) {
 		if(isNurbsel(nu)) {
@@ -2248,6 +2263,8 @@ void merge_nurb()
 		return;
 	}
 	
+	undo_push_curve("Merge");
+	
 	nus1= nsortbase.first;
 	nus2= nus1->next;
 
@@ -2296,6 +2313,8 @@ void addsegment_nurb()
 	float *fp, offset;
 	int a;
 
+	undo_push_curve("Add segment");
+	
 	/* first decide if this is a surface merge! */
 	if(G.obedit->type==OB_SURF) nu= editNurb.first;
 	else nu= NULL;
@@ -2450,6 +2469,8 @@ void mouse_nurb()
 	BPoint *bp=0;
 	short hand;
 
+	undo_push_curve("Select");
+	
 	hand= findnearestNurbvert(1, &nu, &bezt, &bp);
 
 	if(bezt || bp) {
@@ -2540,6 +2561,8 @@ void spinNurb(float *dvec, short mode)
 	if(G.obedit==0 || G.obedit->type!=OB_SURF) return;
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
+	undo_push_curve("Spin");
+	
 	Mat3CpyMat4(persmat, G.vd->viewmat);
 	Mat3Inv(persinv, persmat);
 
@@ -2642,6 +2665,8 @@ void addvert_Nurb(int mode)
 
 	if(mode=='e' && okee("Extrude")==0) return;
 
+	undo_push_curve("Add vertex");
+	
 	Mat3CpyMat4(mat, G.obedit->obmat);
 	Mat3Inv(imat,mat);
 
@@ -2759,6 +2784,21 @@ void addvert_Nurb(int mode)
 
 	if(mode=='e') transform('d');
 	else while(get_mbut()&R_MOUSE) BIF_wait_for_statechange();
+
+	if(mode!='e') {
+		/* dependencies with other objects, should become event */
+		Base *base= FIRSTBASE;
+		while(base) {
+			if(base->lay & G.vd->lay) {
+				if(base->object->type==OB_CURVE) {
+					Curve *cu= base->object->data;
+					if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
+						makeDispList(base->object);
+				}
+			}
+			base= base->next;
+		}
+	}
 }
 
 void extrude_nurb()
@@ -2780,6 +2820,8 @@ void extrude_nurb()
 		else {
 
 			if(okee("Extrude")==0) return;
+			undo_push_curve("Extrude");
+	
 			ok= extrudeflagNurb(1); /* '1'= flag */
 		
 			if(ok) {
@@ -2801,6 +2843,8 @@ void makecyclicNurb()
 	float *fp;
 	int a, b, cyclmode=0;
 
+	undo_push_curve("Cyclic");
+	
 	nu= editNurb.first;
 	while(nu) {
 		if( nu->pntsu>1 || nu->pntsv>1) {
@@ -2906,6 +2950,8 @@ void selectconnected_nurb()
 	BPoint *bp;
 	int a;
 
+	undo_push_curve("Select connected");
+	
 	findnearestNurbvert(1, &nu, &bezt, &bp);
 	if(bezt) {
 		a= nu->pntsu;
@@ -2958,6 +3004,8 @@ void selectrow_nurb()
 	if(G.obedit==NULL || G.obedit->type!=OB_SURF) return;
 	if(lastselbp==NULL) return;
 
+	undo_push_curve("Select Row");
+	
 	/* find the correct nurb and toggle with u of v */
 	nu= editNurb.first;
 	while(nu) {
@@ -3004,6 +3052,8 @@ void adduplicate_nurb()
 
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
+	undo_push_curve("Duplicate");
+	
 	adduplicateflagNurb(1);
 
 	countall();
@@ -3026,6 +3076,8 @@ void delNurb()
 
 	if(event== -1) return;
 
+	undo_push_curve("Delete");
+	
 	if(G.obedit->type==OB_SURF) {
 		if(event==0) deleteflagNurb(1);
 		else freeNurblist(&editNurb);
@@ -3301,6 +3353,8 @@ void join_curve(int type)
 		if(okee("Join selected NURBS")==0) return;
 	}
 	else if(okee("Join selected curves")==0) return;
+	
+	undo_push_curve("Join");
 	
 	/* trasnform all selected curves inverse in obact */
 	Mat4Invert(imat, ob->obmat);
@@ -3813,7 +3867,10 @@ void add_primitiveCurve(int stype)
 			default_curve_ipo(cu);
 		}
 	}
-	else cu= G.obedit->data;
+	else {
+		cu= G.obedit->data;
+		undo_push_curve("Add primitive");
+	}
 
 	if(cu->flag & CU_3D) type &= ~CU_2D;
 
@@ -3850,6 +3907,9 @@ void add_primitiveNurb(int type)
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 		newname= 1;
 	}
+	else {
+		undo_push_curve("Add primitive");
+	}
 
 	nu= addNurbprim(4, type, newname);
 	BLI_addtail(&editNurb,nu);
@@ -3870,6 +3930,8 @@ void clear_tilt()
 
 	if(okee("Clear tilt")==0) return;
 
+	undo_push_curve("Clear tilt");
+	
 	nu= editNurb.first;
 	while(nu) {
 		if( nu->bezt ) {
@@ -3895,70 +3957,6 @@ void clear_tilt()
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void clever_numbuts_curve()
-{
-	BPoint *bp;
-	BezTriple *bezt;
-	float old[3], delta[3];
-	int a;
-	
-	if(lastnu==NULL) return;
-	if(lastnu->bp) {
-		bp= lastnu->bp;
-		a= lastnu->pntsu*lastnu->pntsv;
-		while(a--) {
-			if(bp->f1 & 1) break;
-			bp++;
-		}
-		if(bp==0) return;
-		
-		add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, bp->vec, 0);
-		add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bp->vec+1, 0);
-		add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bp->vec+2, 0);
-		add_numbut(3, NUM|FLO, " W:", 0.0, 100.0, bp->vec+3, 0);
-		
-		do_clever_numbuts("Active BPoint", 4, REDRAW);
-		makeDispList(G.obedit);
-	}
-	else if(lastnu->bezt) {
-		bezt= lastnu->bezt;
-		a= lastnu->pntsu;
-		while(a--) {
-			if(BEZSELECTED(bezt)) break;
-			bezt++;
-		}
-		if(bezt==0) return;
-		
-		if(bezt->f2 & 1) {
-			add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, bezt->vec[1], 0);
-			add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bezt->vec[1]+1, 0);
-			add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bezt->vec[1]+2, 0);
-			VECCOPY(old, bezt->vec[1]);
-			do_clever_numbuts("Active Bezier Point", 3, REDRAW);
-			
-			VecSubf(delta, bezt->vec[1], old);
-			VecAddf(bezt->vec[0], bezt->vec[0], delta);
-			VecAddf(bezt->vec[2], bezt->vec[2], delta);
-			makeDispList(G.obedit);
-		}
-		else if(bezt->f1 & 1) {
-			add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, bezt->vec[0], 0);
-			add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bezt->vec[0]+1, 0);
-			add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bezt->vec[0]+2, 0);
-		
-			do_clever_numbuts("Active Handle Point", 3, REDRAW);
-		}
-		else if(bezt->f3 & 1) {
-			add_numbut(0, NUM|FLO, "LocX:", -G.vd->far, G.vd->far, bezt->vec[2], 0);
-			add_numbut(1, NUM|FLO, "LocY:", -G.vd->far, G.vd->far, bezt->vec[2]+1, 0);
-			add_numbut(2, NUM|FLO, "LocZ:", -G.vd->far, G.vd->far, bezt->vec[2]+2, 0);
-		
-			do_clever_numbuts("Active Handle Point", 3, REDRAW);
-		}
-	}
-
-}
-
 int bezt_compare (const void *e1, const void *e2)
 {
 	BezTriple *b1 = *((BezTriple**)e1);
@@ -3982,3 +3980,165 @@ int bezt_compare (const void *e1, const void *e2)
 
 	return 0;
 }
+
+
+/* **************** undo for curves ************** */
+
+#define MAXUNDONAME	64
+typedef struct UndoElem {
+	struct UndoElem *next, *prev;
+	Object *ob;
+	ListBase editnurb;
+	char name[MAXUNDONAME];
+} UndoElem;
+
+static ListBase undobase={NULL, NULL};
+static UndoElem *curundo= NULL;
+
+static void undo_restore(UndoElem *undo)
+{
+	Nurb *nu, *newnu;
+	
+	freeNurblist(&editNurb);
+
+	/* copy  */
+	nu= undo->editnurb.first;
+	while(nu) {
+		newnu= duplicateNurb(nu);
+		BLI_addtail(&editNurb, newnu);
+		nu= nu->next;
+	}
+
+}
+
+/* name can be a dynamic string */
+void undo_push_curve(char *name)
+{
+	Nurb *nu, *newnu;
+	UndoElem *uel;
+	int nr;
+	
+	/* remove all undos after (also when curundo==NULL) */
+	while(undobase.last != curundo) {
+		uel= undobase.last;
+		BLI_remlink(&undobase, uel);
+		freeNurblist(&uel->editnurb);
+		MEM_freeN(uel);
+	}
+	
+	/* make new */
+	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo curve");
+	strncpy(uel->name, name, MAXUNDONAME-1);
+	BLI_addtail(&undobase, uel);
+	
+	/* and limit amount to the maximum */
+	nr= 0;
+	uel= undobase.last;
+	while(uel) {
+		nr++;
+		if(nr==U.undosteps) break;
+		uel= uel->prev;
+	}
+	if(uel) {
+		while(undobase.first!=uel) {
+			UndoElem *first= undobase.first;
+			BLI_remlink(&undobase, first);
+			freeNurblist(&first->editnurb);
+			MEM_freeN(first);
+		}
+	}
+
+	/* copy editNurb */
+	nu= editNurb.first;
+	while(nu) {
+		newnu= duplicateNurb(nu);
+		BLI_addtail(&curundo->editnurb, newnu);
+		nu= nu->next;
+	}
+	curundo->ob= G.obedit;
+}
+
+/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at previous step */
+void undo_curve_step(int step)
+{
+	Base *base;
+	UndoElem *uel, *next;
+	
+	/* prevent undo to happen on wrong object */
+	uel= undobase.first; 
+	while(uel) {
+		next= uel->next;
+		if(uel->ob!=G.obedit) {
+			if(uel==curundo) curundo= next;
+			BLI_remlink(&undobase, uel);
+			freeNurblist(&uel->editnurb);
+			MEM_freeN(uel);
+		}
+		uel= next;
+	}
+	
+	if(step==1) {
+		if(curundo==NULL) error("No undo available");
+		else {
+			
+			/* if we undo, the current situation needs saved */
+			if(curundo->next==NULL) {
+				undo_push_curve("Original");
+				curundo= curundo->prev;
+			}
+			undo_restore(curundo);
+			curundo= curundo->prev;
+		}
+	}
+	else {
+		UndoElem *redo;
+		
+		/* curundo has to remain the undo step, so we load curundo->next->next! */
+		
+		if(curundo==NULL) redo= undobase.first;
+		else redo= curundo->next;
+		
+		if(redo==NULL || redo->next==NULL) error("No redo available");
+		else {
+			undo_restore(redo->next);
+			curundo= redo;
+		}
+	}
+	
+	lastnu= NULL;	/* for selected */
+
+	makeDispList(G.obedit);
+
+	/* dependencies with other objects */
+	base= FIRSTBASE;
+	while(base) {
+		if(base->lay & G.vd->lay) {
+			if(base->object->type==OB_CURVE) {
+				Curve *cu= base->object->data;
+				if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
+					makeDispList(base->object);
+			}
+		}
+		base= base->next;
+	}
+
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+void undo_clear_curve(void)
+{
+	UndoElem *uel;
+	
+	uel= undobase.first;
+	while(uel) {
+		freeNurblist(&uel->editnurb);
+		uel= uel->next;
+	}
+	BLI_freelistN(&undobase);
+	curundo= NULL;
+}
+
+
+/***/

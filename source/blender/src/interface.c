@@ -1796,6 +1796,7 @@ static int ui_do_but_NUMSLI(uiBut *but)
 	}
 	else {
 		uiActAsTextBut(but);
+		uibut_do_func(but);	// this is done in ui_do_but_SLI() not in uiActAsTextBut()
 	}
 
 	while(get_mbut() & L_MOUSE) BIF_wait_for_statechange();
@@ -3090,6 +3091,8 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					if(inside || uevent->event!=LEFTMOUSE) {
 						butevent= ui_do_button(block, but, uevent);
 						
+						// if(but->type!=BLOCK) BIF_write_undo(but->str);
+
 						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
 
 						/* i doubt about the next line! */
@@ -3198,15 +3201,13 @@ static uiSaveUnder *ui_draw_but_tip(uiBut *but)
 
 	glColor4ub(0, 0, 0, 20);
 	
-	glBegin(GL_POLYGON);
-	gl_round_box(x1+3, y1-1, x2+1, y2-2, 2.0);
-	gl_round_box(x1+3, y1-2, x2+2, y2-2, 3.0);
+	gl_round_box(GL_POLYGON, x1+3, y1-1, x2+1, y2-2, 2.0);
+	gl_round_box(GL_POLYGON, x1+3, y1-2, x2+2, y2-2, 3.0);
 	
 	glColor4ub(0, 0, 0, 8);
 	
-	gl_round_box(x1+3, y1-3, x2+3, y2-3, 4.0);
-	gl_round_box(x1+3, y1-4, x2+4, y2-3, 5.0);
-	glEnd();
+	gl_round_box(GL_POLYGON, x1+3, y1-3, x2+3, y2-3, 4.0);
+	gl_round_box(GL_POLYGON, x1+3, y1-4, x2+4, y2-3, 5.0);
 
 	glDisable(GL_BLEND);
 	

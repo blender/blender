@@ -120,8 +120,12 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 
 static void ui_draw_icon(uiBut *but, BIFIconID icon)
 {
+	void BIF_icon_pos(float xs, float ys);
 	int blend= 0;
 	float xs=0, ys=0;
+
+	// this icon doesn't need draw...
+	if(icon==ICON_BLANK1) return;
 
 	if(but->flag & UI_ICON_LEFT) {
 		if (but->type==BUTM) {
@@ -145,6 +149,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	}
 
 	glRasterPos2f(xs, ys);
+	// BIF_icon_pos(xs, ys);
 
 	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
 	else if(but->aspect<0.9) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
@@ -160,24 +165,6 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	}
 	BIF_draw_icon_blended(icon, but->themecol, blend);
 	
-/* old blending method... hrums */
-/*	if(but->flag & UI_SELECT) {
-		if(but->flag & UI_ACTIVE) {
-			BIF_draw_icon_blended(icon, but->themecol, -80);
-		} else {
-			BIF_draw_icon_blended(icon, but->themecol, -45);
-		}
-	}
-	else {
-		if ((but->flag & UI_ACTIVE) && but->type==BUTM) {
-			BIF_draw_icon_blended(icon, but->themecol, 0);
-		} else if (but->flag & UI_ACTIVE) {
-			BIF_draw_icon_blended(icon, but->themecol, 25);
-		} else {
-			BIF_draw_icon_blended(icon, but->themecol, 45);
-		}
-	}
-*/
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
@@ -338,9 +325,7 @@ static void shaded_button(float x1, float y1, float x2, float y2, float asp, int
 		fdrawline(x1, y1, x2, y1); 
 	} else {
 		MM_DARK;
-		glBegin(GL_LINE_LOOP);
-		gl_round_box(x1, y1, x2, y2, 1.5);
-		glEnd();
+		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 1.5);
 	}
 	/* END OUTER OUTLINE */
 }
@@ -381,9 +366,7 @@ static void flat_button(float x1, float y1, float x2, float y2, float asp, int c
 		fdrawline(x1, y1, x2, y1); 
 	} else {
 		MM_DARK;
-		glBegin(GL_LINE_LOOP);
-		gl_round_box(x1, y1, x2, y2, 1.5);
-		glEnd();
+		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 1.5);
 	}
 	/* END OUTER OUTLINE */
 }
@@ -1049,15 +1032,14 @@ static void round_button(float x1, float y1, float x2, float y2, float asp, int 
 	rad= (y2-y1)/2.0;
 	if(rad>7.0) rad= 7.0;
 	
-	glBegin(GL_POLYGON);
-	gl_round_box(x1, y1, x2, y2, rad);
-	glEnd();
+	/* the shaded round_box version (0.1 is shade factor) */
+	//gl_round_box_shade(GL_POLYGON, x1, y1, x2, y2, rad, 0.1);
 	
+	gl_round_box(GL_POLYGON, x1, y1, x2, y2, rad);
+
 	BIF_ThemeColorBlendShade(colorid, TH_BACK, 0.5, -70);
 	
-	glBegin(GL_LINE_LOOP);
-	gl_round_box(x1, y1, x2, y2, rad);
-	glEnd();
+	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad);
 }
 
 /* button in midst of alignment row */
@@ -1161,10 +1143,8 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, 0);
 		else BIF_ThemeColorShade(colorid, -10);
 		// assuming its not inside alignment...
-		uiSetRoundBox(6);
-		glBegin(GL_POLYGON);
-		gl_round_box(x2-9, y1+asp, x2-asp, y2-asp, 7.0);
-		glEnd();
+		uiSetRoundBox(round_align_fix);
+		gl_round_box(GL_POLYGON, x2-9, y1+asp, x2-asp, y2-asp, 7.0);
 
 		BIF_ThemeColorShade(colorid, -60);
 		ui_default_iconrow_arrows(x1, y1, x2, y2);
@@ -1176,9 +1156,7 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 		// assuming its not inside alignment...
 		if(x2-x1 > 24) {
 			uiSetRoundBox(round_align_fix);
-			glBegin(GL_POLYGON);
-			gl_round_box(x2-16, y1+asp, x2-asp, y2-asp, 7.0);
-			glEnd();
+			gl_round_box(GL_POLYGON, x2-16, y1+asp, x2-asp, y2-asp, 7.0);
 		}
 		BIF_ThemeColorShade(colorid, -60);
 		ui_default_menu_arrows(x1, y1, x2, y2);

@@ -209,7 +209,8 @@ extern void ui_window_to_graphics(int win, float *x, float *y);
 /* interface_panel.c */
 extern void ui_draw_panel(uiBlock *block);
 extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
-extern void gl_round_box(float minx, float miny, float maxx, float maxy, float rad);
+extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
+extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shade);
 
 /* interface_draw.c */
 extern void ui_set_embossfunc(uiBut *but, int drawtype);

@@ -633,7 +633,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
-		if(event==MOUSEY) return;
+		if(event==MOUSEY || event==MOUSEX) return;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
 		
@@ -1117,7 +1117,6 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case GKEY:
 				/* RMGRP if(G.qual & LR_CTRLKEY) add_selected_to_group();
 				else if(G.qual & LR_ALTKEY) rem_selected_from_group(); */
-
 				if((G.qual==LR_SHIFTKEY))
 					select_group_menu();
 				else if(G.qual==LR_ALTKEY)
@@ -1144,6 +1143,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							hideNurb(0);
 					}
 					else if(G.obedit->type==OB_CURVE) {
+						undo_push_curve("Handle change");
 						if(G.qual==LR_CTRLKEY)
 							autocalchandlesNurb_all(1);	/* flag=1, selected */
 						else if((G.qual==LR_SHIFTKEY))
@@ -1418,8 +1418,16 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else if(G.obedit->type==OB_ARMATURE)
 						remake_editArmature();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
-						remake_editNurb();
+					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+						extern void undo_curve_step(int step);
+						if (G.qual==LR_ALTKEY)
+							//undo_menu_curve();
+							;
+						else if (G.qual==LR_SHIFTKEY)
+							undo_curve_step(-1);
+						else if((G.qual==0))
+							undo_curve_step(1);
+					}
 					else if(G.obedit->type==OB_LATTICE)
 						remake_editLatt();
 				}
@@ -1432,8 +1440,11 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						vpaint_undo();
 					else
 						single_user();
+						//BIF_undo_step(1);
 				}
-				
+				else if(G.qual==LR_SHIFTKEY)
+					// BIF_undo_step(-1);
+					;
 				break;
 			case VKEY:
 				ob= OBACT;
@@ -1450,6 +1461,7 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if (G.qual==0){
 					if(G.obedit) {
 						if(G.obedit->type==OB_CURVE) {
+							undo_push_curve("Handle change");
 							sethandlesNurb(2);
 							makeDispList(G.obedit);
 							allqueue(REDRAWVIEW3D, 0);

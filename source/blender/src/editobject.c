@@ -4576,8 +4576,11 @@ void transform(int mode)
 	}
 	if(mode=='w' && G.obedit==0) return;
 
-	if (G.obedit && G.obedit->type == OB_MESH) {
-		undo_push_mesh(transform_mode_to_string(mode));
+	if (G.obedit) {
+		if(G.obedit->type == OB_MESH)
+			undo_push_mesh(transform_mode_to_string(mode));
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+			undo_push_curve(transform_mode_to_string(mode));
 	}
 
 	/* what data will be involved? */
@@ -7424,6 +7427,8 @@ void mirror_edit(short mode) {
 	TransVert *tv;
 
 	if(G.obedit->type==OB_MESH) undo_push_mesh("Mirror"); /* If it's a mesh, push it down the undo pipe */
+	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+		undo_push_curve("Mirror");
 
 	make_trans_verts(min, max, 0);
 	Mat3CpyMat4(mat, G.obedit->obmat);
