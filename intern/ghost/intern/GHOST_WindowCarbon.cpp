@@ -67,6 +67,8 @@ AGL_DEPTH_SIZE,		16,
 AGL_NONE,
 };
 
+WindowRef ugly_hack=NULL;
+
 GHOST_WindowCarbon::GHOST_WindowCarbon(
 	const STR_String& title,
 	GHOST_TInt32 left,
@@ -106,6 +108,7 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
             updateDrawingContext();
             activateDrawingContext();
         }
+		if(ugly_hack==NULL) ugly_hack= m_windowRef;
     }
     else {
     /*
@@ -133,8 +136,10 @@ GHOST_WindowCarbon::~GHOST_WindowCarbon()
 {
 	if (m_customCursor) delete m_customCursor;
 
-    //GHOST_PRINT("GHOST_WindowCarbon::~GHOST_WindowCarbon(): removing drawing context\n");
-	setDrawingContextType(GHOST_kDrawingContextTypeNone);
+	if(ugly_hack==m_windowRef) ugly_hack= NULL;
+	
+	// printf("GHOST_WindowCarbon::~GHOST_WindowCarbon(): removing drawing context\n");
+	if(ugly_hack==NULL) setDrawingContextType(GHOST_kDrawingContextTypeNone);
     if (m_windowRef) {
         ::DisposeWindow(m_windowRef);
 		m_windowRef = 0;
@@ -333,6 +338,7 @@ GHOST_TSuccess GHOST_WindowCarbon::setOrder(GHOST_TWindowOrder order)
 		::SelectWindow(m_windowRef);
     }
     else {
+		/* doesnt work if you do this with a mouseclick */
         ::SendBehind(m_windowRef, nil);
     }
     return GHOST_kSuccess;
