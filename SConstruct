@@ -19,7 +19,7 @@ if os.path.isdir (root_build_dir) == 0:
 config_file = ARGUMENTS.get('CONFIG', 'config.opts')
 
 # Blender version.
-version='2.32'
+version='2.33'
 
 sdl_env = Environment ()
 freetype_env = Environment ()
@@ -353,9 +353,9 @@ elif sys.platform == 'win32':
     ode_libpath = ['#../lib/windows/ode/lib']
     ode_include = ['#../lib/windows/ode/include']
     # Python lib name
-    python_include = ['#../lib/windows/python/include/python2.2']
+    python_include = ['#../lib/windows/python/include/python2.3']
     python_libpath = ['#../lib/windows/python/lib']
-    python_lib = ['python22']
+    python_lib = ['python23']
     python_linkflags = []
     # International stuff
     ftgl_lib = ['ftgl_static_ST']
