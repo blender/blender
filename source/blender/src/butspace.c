@@ -59,6 +59,8 @@
 
 #include "BLI_blenlib.h"
 
+#include "BSE_drawview.h"	// for do_viewbuttons.c .... hurms
+
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_keyval.h"
@@ -251,7 +253,7 @@ void do_butspace(unsigned short event)
 		do_headerbuttons(event);
 	}
 	else if(event<=B_VIEWBUTS) {
-		//do_viewbuts(event);
+		do_viewbuts(event);
 	}
 	else if(event<=B_LAMPBUTS) {
 		do_lampbuts(event);
@@ -310,7 +312,8 @@ void do_butspace(unsigned short event)
 	else if(event<=B_CONSTRAINTBUTS) {
 		do_constraintbuts(event);
 	}
-	else if(event>=REDRAWVIEW3D) allqueue(event, 0);
+	else if(event==REDRAWVIEW3D) allqueue(event, 1);	// 1=do header too
+	else if(event>REDRAWVIEW3D) allqueue(event, 0);
 }
 
 /* new active object */

@@ -249,6 +249,14 @@ void bwin_multmatrix(int winid, float mat[][4])
 	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->viewmat);
 }
 
+void bwin_scalematrix(int winid, float x, float y, float z)
+{
+	bWindow *win= bwin_from_winid(winid);
+
+	glScalef(x, y, z);
+	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->viewmat);
+}
+
 void bwin_clear_viewmat(int swin)
 {
 	bWindow *win;

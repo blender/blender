@@ -1058,7 +1058,7 @@ static void texture_panel_colors(Tex *tex)
 static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la)
 {
 	extern char texstr[15][8]; // butspace.c
-	MTex *mt;
+	MTex *mt=NULL;
 	uiBlock *block;
 	ID *id, *idfrom;
 	int a, yco, loos;

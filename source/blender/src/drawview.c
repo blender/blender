@@ -66,6 +66,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -73,6 +74,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ika.h"
+#include "BKE_library.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
@@ -98,7 +100,7 @@
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_seqaudio.h"
-
+#include "BSE_filesel.h"
 
 #include "RE_renderconverter.h"
 
@@ -107,6 +109,7 @@
 #include "interface.h"
 #include "blendef.h"
 #include "mydevice.h"
+#include "butspace.h"  // event codes
 
 /* Modules used */
 #include "render.h"
@@ -810,6 +813,208 @@ static void draw_view_icon(void)
 	glDisable(GL_BLEND);
 }
 
+/* ******************* view3d space & buttons ************** */
+
+static void view3d_change_bgpic_ima(View3D *v3d, Image *newima) {
+	if (v3d->bgpic && v3d->bgpic->ima!=newima) {
+		if (newima)
+			id_us_plus((ID*) newima);
+		if (v3d->bgpic->ima)
+			v3d->bgpic->ima->id.us--;
+		v3d->bgpic->ima= newima;
+
+		if(v3d->bgpic->rect) MEM_freeN(v3d->bgpic->rect);
+		v3d->bgpic->rect= NULL;
+		
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+static void view3d_change_bgpic_tex(View3D *v3d, Tex *newtex) {
+	if (v3d->bgpic && v3d->bgpic->tex!=newtex) {
+		if (newtex)
+			id_us_plus((ID*) newtex);
+		if (v3d->bgpic->tex)
+			v3d->bgpic->tex->id.us--;
+		v3d->bgpic->tex= newtex;
+		
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
+static void load_bgpic_image(char *name)
+{
+	Image *ima;
+	View3D *vd;
+	
+	vd= G.vd;
+	if(vd==0 || vd->bgpic==0) return;
+	
+	ima= add_image(name);
+	if(ima) {
+		if(vd->bgpic->ima) {
+			vd->bgpic->ima->id.us--;
+		}
+		vd->bgpic->ima= ima;
+		
+		free_image_buffers(ima);	/* force read again */
+		ima->ok= 1;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+	
+}
+
+void do_viewbuts(unsigned short event)
+{
+	View3D *vd;
+	char *name;
+	
+	vd= G.vd;
+	if(vd==0) return;
+
+	switch(event) {
+	case B_LOADBGPIC:
+		if(vd->bgpic && vd->bgpic->ima) name= vd->bgpic->ima->name;
+		else name= G.ima;
+		
+		activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_bgpic_image);
+		break;
+	case B_BLENDBGPIC:
+		if(vd->bgpic && vd->bgpic->rect) setalpha_bgpic(vd->bgpic);
+		break;
+	case B_BGPICBROWSE:
+		if(vd->bgpic) {
+			if (G.buts->menunr==-2) {
+				activate_databrowse((ID*) vd->bgpic->ima, ID_IM, 0, B_BGPICBROWSE, &G.buts->menunr, do_viewbuts);
+			} else if (G.buts->menunr>0) {
+				Image *newima= (Image*) BLI_findlink(&G.main->image, G.buts->menunr-1);
+
+				if (newima)
+					view3d_change_bgpic_ima(vd, newima);
+			}
+		}
+		break;
+	case B_BGPICCLEAR:
+		if (vd->bgpic)
+			view3d_change_bgpic_ima(vd, NULL);
+		break;
+	case B_BGPICTEX:
+		if (vd->bgpic) {
+			if (G.buts->texnr==-2) {
+				activate_databrowse((ID*) vd->bgpic->tex, ID_TE, 0, B_BGPICTEX, &G.buts->texnr, do_viewbuts);
+			} else if (G.buts->texnr>0) {
+				Tex *newtex= (Tex*) BLI_findlink(&G.main->tex, G.buts->texnr-1);
+				
+				if (newtex)
+					view3d_change_bgpic_tex(vd, newtex);
+			}
+		}
+		break;
+	case B_BGPICTEXCLEAR:
+		if (vd->bgpic)
+			view3d_change_bgpic_tex(vd, NULL);
+		break;
+	}
+}
+
+
+static void view3d_panel_settings(void)	// VIEW3D_HANDLER_SETTINGS
+{
+	uiBlock *block;
+	View3D *vd;
+	ID *id;
+	char *strp;
+	
+	vd= G.vd;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_settings", UI_EMBOSSX, UI_HELV, curarea->win);
+	uiSetPanelStyle(UI_PNL_SOLID);
+	if(uiNewPanel(curarea, block, "Backdrop and settings", "View3d", 10, 10, 318, 204)==0) return;
+	uiSetPanelStyle(UI_PNL_TRANSP);
+
+	if(vd->flag & V3D_DISPBGPIC) {
+		if(vd->bgpic==0) {
+			vd->bgpic= MEM_callocN(sizeof(BGpic), "bgpic");
+			vd->bgpic->size= 5.0;
+			vd->bgpic->blend= 0.5;
+		}
+	}
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "BackGroundPic",	10,160,150,20 , &vd->flag, 0, 0, 0, 0, "Display a picture in the 3D background");
+	uiBlockSetCol(block, BUTGREY);
+	
+	if(vd->bgpic) {
+		
+		uiDefButF(block, NUM, B_DIFF, "Size:", 				160,160,150,20, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size for the width of the BackGroundPic");
+		
+		id= (ID *)vd->bgpic->ima;
+		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
+		if(strp[0])
+			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	10,140,20,19, &(G.buts->menunr), 0, 0, 0, 0, "Browse");
+		MEM_freeN(strp);
+		
+		if(vd->bgpic->ima)  {
+			uiDefBut(block, TEX,	    0,"BGpic: ",		30,140,260,19,&vd->bgpic->ima->name,0.0,100.0, 0, 0, "The Selected BackGroundPic");
+			uiDefIconBut(block, BUT, B_BGPICCLEAR, ICON_X, 	290,140,20,19, 0, 0, 0, 0, 0, "Remove background image link");
+		}
+		uiBlockSetCol(block, BUTSALMON);
+		uiDefBut(block, BUT,	    B_LOADBGPIC, "LOAD",	10,120,100,19, 0, 0, 0, 0, 0, "Specify the BackGroundPic");
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,120,190,19,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
+		
+		uiDefBut(block, LABEL, 0, "Select texture for animated backgroundimage", 
+															10,100,300,19, 0, 0, 0, 0, 0, "");
+		/* There is a bug here ... (what bug? where? what is this? - zr) */
+		/* (ton) the use of G.buts->texnr is hackish */
+		/* texture block: */
+		id= (ID *)vd->bgpic->tex;
+		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(G.buts->texnr));
+		if (strp[0]) 
+			uiDefButS(block, MENU, B_BGPICTEX, strp,		10, 80, 20,19, &(G.buts->texnr), 0, 0, 0, 0, "Browse");
+		MEM_freeN(strp);
+		
+		if (id) {
+			uiDefBut(block, TEX, B_IDNAME, "TE:",			30,80,260,19, id->name+2, 0.0, 18.0, 0, 0, "");
+			uiDefIconBut(block, BUT, B_BGPICTEXCLEAR, ICON_X, 290,80,20,19, 0, 0, 0, 0, 0, "Remove background texture link");
+		}
+	}
+
+	uiDefButF(block, NUM, B_DIFF, "Grid:",				10, 50, 150, 19, &vd->grid, 0.001, 1000.0, 10, 0, "Set the distance between gridlines");
+	uiDefButS(block, NUM, B_DIFF, "GridLines:",			160, 50, 150, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of gridlines");
+	uiDefButF(block, NUM, B_DIFF, "Lens:",				10, 30, 150, 19, &vd->lens, 10.0, 120.0, 100, 0, "Set the lens for the perspective view");
+	
+	uiDefButF(block, NUM, B_DIFF, "ClipStart:",			10, 10, 150, 19, &vd->near, 0.1*vd->grid, 100.0, 100, 0, "Set startvalue in perspective view mode");
+	uiDefButF(block, NUM, B_DIFF, "ClipEnd:",			160, 10, 150, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set endvalue in perspective view mode");
+
+
+}
+
+
+
+static void view3d_blockhandlers(ScrArea *sa)
+{
+	View3D *v3d= sa->spacedata.first;
+	short a;
+	
+	for(a=0; a<SPACE_MAXHANDLER; a++) {
+	
+		switch(v3d->blockhandler[a]) {
+
+		case VIEW3D_HANDLER_SETTINGS:
+			view3d_panel_settings();	// 3d header
+			break;
+		case VIEW3D_HANDLER_OBJECT:
+		
+			break;
+		case VIEW3D_HANDLER_VERTEX:
+		
+			break;
+		
+		}
+	}
+	uiDrawBlocksPanels(sa, 0);
+
+}
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	Base *base;
@@ -1006,7 +1211,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	
 	draw_area_emboss(sa);
 	
-	persp(1);
+	/* it is important to end a view in a transform compatible with buttons */
+
+	bwin_scalematrix(sa->win, G.vd->blockscale, G.vd->blockscale, G.vd->blockscale);
+	view3d_blockhandlers(sa);
 
 	curarea->win_swap= WIN_BACK_OK;
 	
@@ -1014,6 +1222,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
 		addafterqueue(curarea->win, BACKBUFDRAW, 1);
 	}
+	
 }
 
 

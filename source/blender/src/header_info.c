@@ -34,7 +34,8 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
+ 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -65,6 +66,7 @@
 #include "BDR_editcurve.h"
 #include "BDR_editmball.h"
 #include "BDR_editobject.h"
+
 #include "BIF_editarmature.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
@@ -80,6 +82,8 @@
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
+#include "BIF_drawscene.h"
+
 #include "BKE_blender.h"
 #include "BKE_exotic.h"
 #include "BKE_global.h"
@@ -89,10 +93,13 @@
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLO_writefile.h"
+
 #include "BPY_extern.h"
+
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"

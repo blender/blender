@@ -85,6 +85,8 @@ void bwin_load_winmatrix(int winid, float mat[][4]);
 void bwin_get_viewmatrix(int winid, float mat[][4]);
 void bwin_get_winmatrix(int winid, float mat[][4]);
 
+void bwin_scalematrix(int winid, float x, float y, float z);
+
 void bwin_ortho(int winid, float x1, float x2, float y1, float y2, float n, float f);
 void bwin_ortho2(int win, float x1, float x2, float y1, float y2);
 void bwin_frustum(int winid, float x1, float x2, float y1, float y2, float n, float f);
@@ -100,6 +102,7 @@ void myswapbuffers(void);
 
 void mygetmatrix(float mat[][4]);
 void mymultmatrix(float [][4]);
+
 void myloadmatrix(float mat[][4]);
 void mywinset(int wid);
 void myortho(float x1, float x2, float y1, float y2, float n, float f);

@@ -45,8 +45,11 @@ void two_sided(int val);
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
 void backdrawview3d(int test);
+
+void do_viewbuts(unsigned short event);
 void drawview3dspace(struct ScrArea *sa, void *spacedata);
 void drawview3d_render(struct View3D *v3d);
+
 int update_time(void);
 void calc_viewborder(struct View3D *v3d, struct rcti *viewborder_r);
 void view3d_set_1_to_1_viewborder(struct View3D *v3d);

@@ -507,7 +507,6 @@ void test_view2d(View2D *v2d, int winx, int winy)
 			}
 		}
 	}
-	
 }
 
 

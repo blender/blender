@@ -52,6 +52,8 @@
 #include "FTF_Api.h"
 #endif
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -59,12 +61,31 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_image_types.h"
+#include "DNA_texture_types.h"
+
+#include "BKE_library.h"
+#include "BKE_curve.h"
+#include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_mesh.h"
+#include "BKE_image.h"
+
+#include "BLI_blenlib.h"
+
+#include "BSE_edit.h"
+#include "BSE_editipo.h"
+#include "BSE_headerbuttons.h"
+#include "BSE_view.h"
+
 
 #include "BDR_editcurve.h"
 #include "BDR_editface.h"
 #include "BDR_editmball.h"
 #include "BDR_editobject.h"
 #include "BDR_vpaint.h"
+
 #include "BIF_editlattice.h"
 #include "BIF_editarmature.h"
 #include "BIF_editfont.h"
@@ -79,19 +100,12 @@
 #include "BIF_space.h"
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
-#include "BKE_curve.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BSE_edit.h"
-#include "BSE_editipo.h"
-#include "BSE_headerbuttons.h"
-#include "BSE_view.h"
+#include "BIF_gl.h"
 
 #include "blendef.h"
 #include "interface.h"
 #include "mydevice.h"
+#include "butspace.h"
 
 #include "BIF_poseobject.h"
 
@@ -209,6 +223,7 @@ static uiBlock *view3d_view_cameracontrolsmenu(void *arg_unused)
 	return block;
 }
 
+
 static void do_view3d_viewmenu(void *arg, int event)
 {
 	extern int play_anim(int mode);
@@ -265,6 +280,9 @@ static void do_view3d_viewmenu(void *arg, int event)
 	case 13: /* Play Back Animation */
 		play_anim(0);
 		break;
+	case 14: /* Backdrop and settings Panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_SETTINGS);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -279,6 +297,9 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
 	uiBlockSetCol(block, MENUCOL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BUTS, "Backdrop and Settings Panel",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	if ((G.vd->viewbut == 0) && !(G.vd->persp == 2)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "User",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "User",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	if (G.vd->persp == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Camera|NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");

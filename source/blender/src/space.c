@@ -158,6 +158,43 @@ void space_mipmap_button_function(int event);
 unsigned short convert_for_nonumpad(unsigned short event);
 void free_soundspace(SpaceSound *ssound);
 
+/* *************************************** */
+
+/* don't know yet how the handlers will evolve, for simplicity
+   i choose for an array with eventcodes, this saves in a file!
+   */
+void add_blockhandler(ScrArea *sa, short eventcode)
+{
+	SpaceLink *sl= sa->spacedata.first;
+	short a;
+	
+	// find empty spot
+	for(a=0; a<SPACE_MAXHANDLER; a++) {
+		if( sl->blockhandler[a]==eventcode );
+		else if( sl->blockhandler[a]==0) {
+			sl->blockhandler[a]= eventcode;
+			break;
+		}
+	}
+	if(a==SPACE_MAXHANDLER) printf("error; max blockhandlers reached!\n");
+}
+
+void rem_blockhandler(ScrArea *sa, short eventcode)
+{
+	SpaceLink *sl= sa->spacedata.first;
+	short a;
+	
+	for(a=0; a<SPACE_MAXHANDLER; a++) {
+		if( sl->blockhandler[a]==eventcode) {
+			sl->blockhandler[a]= 0;
+			break;
+		}
+	}
+}
+
+
+
+
 /* ************* SPACE: VIEW3D  ************* */
 
 /*  extern void drawview3dspace(ScrArea *sa, void *spacedata); BSE_drawview.h */
@@ -510,12 +547,16 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	int doredraw= 0, pupval;
 	
 	if(curarea->win==0) return;	/* when it comes from sa->headqread() */
-	if(event==MOUSEY) return;
+	
 	
 	if(val) {
 
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if(event==MOUSEY) return;
+		
+		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
 
+		
 		/* TEXTEDITING?? */
 		if(G.obedit && G.obedit->type==OB_FONT) {
 			switch(event) {

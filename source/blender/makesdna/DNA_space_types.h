@@ -55,21 +55,29 @@ struct BlendHandle;
 typedef struct SpaceLink SpaceLink;
 struct SpaceLink {
 	SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
+	short blockhandler[8];
 };
 
 typedef struct SpaceInfo {
 	SpaceLink *next, *prev;
-	int spacetype, pad1;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
+
+	short blockhandler[8];
 } SpaceInfo;
 
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
-	int spacetype, pad1;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
 
+	short blockhandler[8];
+	
 	unsigned int rowbut, pad2; 
 	View2D v2d;
 	
@@ -90,8 +98,10 @@ typedef struct SpaceIpo {
 typedef struct SpaceButs {
 	SpaceLink *next, *prev;
 	int spacetype;
-	short re_align, pad1;
+	float blockscale;
 	struct ScrArea *area;
+
+	short blockhandler[8];
 
 	short cursens, curact;
 	short align, tabo;		/* align for panels, tab is old tab */
@@ -110,6 +120,8 @@ typedef struct SpaceButs {
 
 	short scriptblock;
 	short scaflag;
+	short re_align, pad1;
+	int pad2;
 	
 	char texact, tab[7];	/* storing tabs for each context */
 		
@@ -117,8 +129,11 @@ typedef struct SpaceButs {
 
 typedef struct SpaceSeq {
 	SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
+
+	short blockhandler[8];
 
 	View2D v2d;
 	
@@ -129,9 +144,12 @@ typedef struct SpaceSeq {
 
 typedef struct SpaceFile {
 	SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
 	
+	short blockhandler[8];
+
 	struct direntry *filelist;
 	int totfile;
 	char title[24];
@@ -163,8 +181,11 @@ typedef struct SpaceFile {
 
 typedef struct SpaceOops {
 	SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
+
+	short blockhandler[8];
 
 	View2D v2d;
 	
@@ -176,8 +197,11 @@ typedef struct SpaceOops {
 
 typedef struct SpaceImage {
 	SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
+
+	short blockhandler[8];
 
 	View2D v2d;
 	
@@ -194,16 +218,24 @@ typedef struct SpaceImage {
 typedef struct SpaceNla{
 	struct SpaceLink *next, *prev;
 	int spacetype;
-	short menunr, lock;
+	float blockscale;
 	struct ScrArea *area;
 
+	short blockhandler[8];
+
+	short menunr, lock;
+	int pad;
+	
 	View2D v2d;	
 } SpaceNla;
 
 typedef struct SpaceText {
 	SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
+
+	short blockhandler[8];
 
 	struct Text *text;	
 
@@ -259,7 +291,8 @@ typedef struct ImaDir {
 
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
-	int spacetype, pad1;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
 	
 	char   title[28];

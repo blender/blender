@@ -3811,6 +3811,23 @@ static void do_versions(Main *main)
 				}
 			}
 		}
+	}
+	
+	if(main->versionfile <= 229) {
+		bScreen *sc;
+
+		// new variable blockscale, for panels in any area
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+
+			for (sa= sc->areabase.first; sa; sa= sa->next) {
+				SpaceLink *sl;
+
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->blockscale==0.0) sl->blockscale= 0.7;
+				}
+			}
+		}
 	}	
 
 	/* don't forget to set version number in blender.c! */

@@ -137,5 +137,8 @@
 #define UI_BLOCK_COLLUMNS	1
 #define UI_BLOCK_ROWS		2
 
+#define UI_PNL_TRANSP	0
+#define UI_PNL_SOLID	1
+
 #endif
 

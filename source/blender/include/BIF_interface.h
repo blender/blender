@@ -154,7 +154,7 @@ void uiPanelPush(uiBlock *block);
 void uiPanelPop(uiBlock *block);
 extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
 extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
-
+extern void uiSetPanelStyle(int);
 
 
 #endif /*  BIF_INTERFACE_H */

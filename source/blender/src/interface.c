@@ -4598,7 +4598,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		else if(block->panel->paneltab==NULL) {
 		
 			if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) inside= 1;
-			
+
 			/* clicked at panel header? */
 			if(uevent->event==LEFTMOUSE) {
 				if( block->panel->flag & PNL_CLOSEDX) {
@@ -4613,6 +4613,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					ui_do_panel(block, uevent);
 					return UI_EXIT_LOOP;	// exit loops because of moving panels
 				}
+			}
+			else if(uevent->event==PADPLUSKEY || uevent->event==PADMINUS) {
+				SpaceLink *sl= curarea->spacedata.first;
+				
+				if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
+				else sl->blockscale-= 0.1;
+				CLAMP(sl->blockscale, 0.6, 1.0);
+				addqueue(block->winq, REDRAW, 1);
 			}
 		}
 	}
@@ -4778,6 +4786,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
 				if ELEM3(uevent->event, LEFTMOUSE, PADENTER, RETKEY) {
+				
 					butevent= ui_do_button(block, but, uevent);
 					if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
 
@@ -6148,6 +6157,15 @@ void uiNewPanelTabbed(char *panelname, char *groupname)
 	group_tabbed= groupname;
 }
 
+/* another global... */
+static int pnl_style= UI_PNL_TRANSP;
+
+void uiSetPanelStyle(int style)
+{
+	pnl_style= style;
+}
+
+
 /* ofsx/ofsy only used for new panel definitions */
 /* return 1 if visible (create buttons!) */
 int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey)
@@ -6177,6 +6195,7 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		pa->ofsy= ofsy & ~(PNL_GRID-1);
 		pa->sizex= sizex;
 		pa->sizey= sizey;
+		pa->style= pnl_style;
 		
 		/* pre align, for good sorting later on */
 		if(sa->spacetype==SPACE_BUTS && pa->prev) {
@@ -6561,23 +6580,30 @@ static void ui_draw_panel(uiBlock *block)
 	else {
 		
 		uiSetRoundBox(3);
-		//glColor3ub(160, 160, 167);
-		//uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
 
-		glColor3ub(218, 218, 218);
-		uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
-		
-		glColor3ub(198, 198, 198);
-		//glRectf(block->minx, block->miny, block->maxx, block->maxy);
-		
-		if(G.buts->align) {
-			glColor3ub(206, 206, 206);
-			if(G.buts->align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
-			else ui_set_panel_pattern('v');
+		if(block->panel->style== UI_PNL_SOLID) {
+			glColor3ub(160, 160, 167);
+			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 10);
+			// blend now for panels in 3d window, test...
+			glEnable(GL_BLEND);
+			glColor4ub(198, 198, 198, 100);
+			glRectf(block->minx, block->miny, block->maxx, block->maxy);
 
-			//glRectf(block->minx, block->miny, block->maxx, block->maxy);
-			glDisable(GL_POLYGON_STIPPLE);
+			if(G.buts->align) {
+				glColor4ub(206, 206, 206, 100);
+				if(G.buts->align==BUT_HORIZONTAL) ui_set_panel_pattern('h');
+				else ui_set_panel_pattern('v');
+	
+				glRectf(block->minx, block->miny, block->maxx, block->maxy);
+				glDisable(GL_POLYGON_STIPPLE);
+			}
+			glDisable(GL_BLEND);
 		}
+		else {
+			glColor3ub(218, 218, 218);
+			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 10);
+		}
+		
 		
 		ui_draw_panel_header(block);
 
@@ -6684,7 +6710,6 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 	int a, tot=0, done;
 	
 	if(sa->spacetype!=SPACE_BUTS) {
-		printf("align not supported yet here\n");
 		return 0;
 	}
 	
@@ -6955,13 +6980,12 @@ static void test_add_new_tabs(ScrArea *sa)
 
 static void ui_drag_panel(uiBlock *block)
 {
-	SpaceButs *sbuts= curarea->spacedata.first;
 	Panel *panel= block->panel;
-	short first=1, ofsx, ofsy, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];
+	short align=0, first=1, ofsx, ofsy, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];
 
-	if(curarea->spacetype!=SPACE_BUTS) {
-		printf("align not supported yet here\n");
-		return;
+	if(curarea->spacetype==SPACE_BUTS) {
+		SpaceButs *sbuts= curarea->spacedata.first;
+		align= sbuts->align;
 	}
 
 	uiGetMouse(block->win, mvalo);
@@ -6982,7 +7006,7 @@ static void ui_drag_panel(uiBlock *block)
 			dy= (mval[1]-mvalo[1]) & ~(PNL_GRID-1);
 		}
 		
-		if(dx!=dxo || dy!=dyo || first || sbuts->align) {
+		if(dx!=dxo || dy!=dyo || first || align) {
 			dxo= dx; dyo= dy;		
 			first= 0;
 			
@@ -6991,7 +7015,7 @@ static void ui_drag_panel(uiBlock *block)
 			
 			check_panel_overlap(curarea, panel);
 			
-			if(sbuts->align) uiAlignPanelStep(curarea, 0.2);
+			if(align) uiAlignPanelStep(curarea, 0.2);
 
 			/* warn: this re-allocs blocks! */
 			scrarea_do_windraw(curarea);
@@ -7024,7 +7048,7 @@ static void ui_drag_panel(uiBlock *block)
 	panel->flag &= ~PNL_SELECT;
 	check_panel_overlap(curarea, NULL);	// clears
 	
-	if(sbuts->align==0) addqueue(block->win, REDRAW, 1);
+	if(align==0) addqueue(block->win, REDRAW, 1);
 	else ui_animate_panels(curarea);
 }
 
@@ -7137,12 +7161,12 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 /* also it supposes a block has panel, and isnt a menu */
 static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 {
-	SpaceButs *sbuts= curarea->spacedata.first;
 	Panel *pa;
+	int align= 0;
 	
-	if(curarea->spacetype!=SPACE_BUTS) {
-		printf("align not supported yet here\n");
-		return;
+	if(curarea->spacetype==SPACE_BUTS) {
+		SpaceButs *sbuts= curarea->spacedata.first;
+		align= sbuts->align;
 	}
 
 	/* mouse coordinates in panel space! */
@@ -7158,7 +7182,7 @@ static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 		
 		if(button) {
 			if(block->panel->flag & PNL_CLOSED) block->panel->flag &= ~PNL_CLOSED;
-			else if(sbuts->align==BUT_HORIZONTAL) block->panel->flag |= PNL_CLOSEDX;
+			else if(align==BUT_HORIZONTAL) block->panel->flag |= PNL_CLOSEDX;
 			else block->panel->flag |= PNL_CLOSEDY;
 			
 			for(pa= curarea->panels.first; pa; pa= pa->next) {
@@ -7167,7 +7191,7 @@ static void ui_do_panel(uiBlock *block, uiEvent *uevent)
 					else pa->flag &= ~PNL_CLOSED;
 				}
 			}
-			if(sbuts->align==0) addqueue(block->win, REDRAW, 1);
+			if(align==0) addqueue(block->win, REDRAW, 1);
 			else ui_animate_panels(curarea);
 			
 		}

@@ -61,9 +61,12 @@ typedef struct BGpic {
 
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
-	int spacetype, pad;
+	int spacetype;
+	float blockscale;
 	struct ScrArea *area;
 	
+	short blockhandler[8];
+
 	float viewmat[4][4];
 	float viewinv[4][4];
 	float persmat[4][4];

@@ -46,6 +46,18 @@ struct BWinEvent;
 #define BUT_HORIZONTAL 	1
 #define BUT_VERTICAL 	2
 
+/* is hardcoded in DNA_space_types.h */
+#define SPACE_MAXHANDLER	8
+
+/* view3d handler codes */
+#define VIEW3D_HANDLER_SETTINGS	1
+#define VIEW3D_HANDLER_OBJECT	2
+#define VIEW3D_HANDLER_VERTEX	3
+
+/* ipo handler codes */
+#define IPO_HANDLER_SETTINGS	20
+
+
 
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);
@@ -54,6 +66,9 @@ void	scrarea_do_headdraw		(struct ScrArea *sa);
 void	scrarea_do_headchange	(struct ScrArea *sa);
 
 /* space.c */
+extern		void add_blockhandler(struct ScrArea *sa, short eventcode);
+extern		void rem_blockhandler(struct ScrArea *sa, short eventcode);
+
 extern		 void space_set_commmandline_options(void);
 extern       void allqueue(unsigned short event, short val);
 extern       void allspace(unsigned short event, short val);
