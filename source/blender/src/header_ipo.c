@@ -349,6 +349,9 @@ static void do_ipo_editmenu(void *arg, int event)
 	case 5:
 		//join_ipo();
 		break;
+	case 6:
+		/*IPO Editmode*/
+		set_editflag_editipo();
 	}
 }
 
@@ -357,6 +360,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiBlock *block;
 	EditIpo *ei;
 	short yco= 0, menuwidth=120;
+	int a,isedit = 0;
 
 	get_status_editipo();
 
@@ -367,7 +371,26 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBlockBut(block, ipo_editmenu_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");	
+
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+
+	/*Look to see if any ipos are being edited, so there can be a check next to the menu option*/
+	for(a=0; a<G.sipo->totipo; a++, ei++) {		
+		if(ei->icu) {
+			if(ei->flag & IPO_VISIBLE) {
+				if(totipo_edit && (ei->flag & IPO_EDIT)) {
+					isedit = 1;
+					break;
+				}
+			}
+		}
+	}
+	if(isedit)
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT,   "Edit Selected|TAB", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");		
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Edit Selected|TAB", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
+	ei = G.sipo->editipo;
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe...|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
