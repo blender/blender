@@ -3720,7 +3720,7 @@ void view3d_buttons(void)
 	else xco+= (10+2)*(XIC/2)+10;
 	
 	/* LOCALVIEW */
-	uiDefIconButS(block, ICONROW, B_LOCALVIEW, ICON_LOCALVIEW,	xco+=XIC,0,XIC,YIC, &(G.vd->localview), 0.0, 2.0, 0, 0, "Local View (NumPad /)");
+	uiDefIconButS(block, ICONROW, B_LOCALVIEW, ICON_LOCALVIEW,	xco+=XIC,0,XIC,YIC, &(G.vd->localview), 0.0, 1.0, 0, 0, "Local View (NumPad /)");
 	
 	/* PERSP */
 	xco+= XIC/2;
@@ -3734,7 +3734,7 @@ void view3d_buttons(void)
 	else if(G.vd->view==3) G.vd->viewbut= 3;
 	else G.vd->viewbut= 0;
 	
-	uiDefIconButS(block, ICONROW, B_VIEWBUT, ICON_VIEW_AXIS_NONE, xco+=XIC,0,XIC,YIC, &G.vd->viewbut, 0.0, 3.0, 0, 0, "Top/Front or Side views (Numpad 7, 1, 3)");
+	uiDefIconButS(block, ICONROW, B_VIEWBUT, ICON_VIEW_AXIS_NONE2, xco+=XIC,0,XIC,YIC, &G.vd->viewbut, 0.0, 3.0, 0, 0, "Top/Front or Side views (Numpad 7, 1, 3)");
 	
 	/* DRAWTYPE */
 	xco+= XIC/2;
