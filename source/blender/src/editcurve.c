@@ -1341,14 +1341,14 @@ void subdivideNurb()
 	Nurb *nu;
 	BezTriple *prevbezt, *bezt, *beztnew, *beztn;
 	BPoint *bp, *prevbp, *bpnew, *bpn;
-	float vec[12];
-	int a, b, sel, aantal, *usel, *vsel;
+	float vec[15];
+	int a, b, sel, amount, *usel, *vsel;
 
    // printf("*** subdivideNurb: entering subdivide\n");
 
 	nu= editNurb.first;
 	while(nu) {
-		aantal= 0;
+		amount= 0;
 		if((nu->type & 7)==CU_BEZIER) {
         /* 
            Insert a point into a 2D Bezier curve. 
@@ -1367,15 +1367,15 @@ void subdivideNurb()
 				bezt= prevbezt+1;
 			}
 			while(a--) {
-				if( BEZSELECTED(prevbezt) && BEZSELECTED(bezt) ) aantal++;
+				if( BEZSELECTED(prevbezt) && BEZSELECTED(bezt) ) amount++;
 				prevbezt= bezt;
 				bezt++;
 			}
 
-			if(aantal) {
+			if(amount) {
 				/* insert */
 				beztnew =
-					(BezTriple*)MEM_mallocN((aantal + nu->pntsu) * sizeof(BezTriple), "subdivNurb");
+					(BezTriple*)MEM_mallocN((amount + nu->pntsu) * sizeof(BezTriple), "subdivNurb");
 				beztn= beztnew;
 				if(nu->flagu & 1) {
 					a= nu->pntsu;
@@ -1390,18 +1390,28 @@ void subdivideNurb()
 				while(a--) {
 					memcpy(beztn, prevbezt, sizeof(BezTriple));
 					beztn++;
-               // printf("*** subdivideNurb: insert Bezier point\n");
 
 					if( BEZSELECTED(prevbezt) && BEZSELECTED(bezt) ) {
 						memcpy(beztn, bezt, sizeof(BezTriple));
-						maakbez(prevbezt->vec[1][0],prevbezt->vec[2][0],
-						    bezt->vec[0][0],bezt->vec[1][0],vec,2);
-						maakbez(prevbezt->vec[1][1],prevbezt->vec[2][1],
-						    bezt->vec[0][1],bezt->vec[1][1],vec+1,2);
-						maakbez(prevbezt->vec[1][2],prevbezt->vec[2][2],
-						    bezt->vec[0][2],bezt->vec[1][2],vec+2,2);
-						VECCOPY(beztn->vec[1], vec+3);
-						beztn->h1= beztn->h2= HD_AUTO;
+						
+						/* midpoint subdividing */
+						VecMidf(vec, prevbezt->vec[1], prevbezt->vec[2]);
+						VecMidf(vec+3, prevbezt->vec[2], bezt->vec[0]);
+						VecMidf(vec+6, bezt->vec[0], bezt->vec[1]);
+						
+						VecMidf(vec+9, vec, vec+3);
+						VecMidf(vec+12, vec+3, vec+6);
+						
+						/* change handle of prev beztn */
+						VECCOPY((beztn-1)->vec[2], vec);
+						/* new point */
+						VECCOPY(beztn->vec[0], vec+9);
+						VecMidf(beztn->vec[1], vec+9, vec+12);
+						VECCOPY(beztn->vec[2], vec+12);
+						/* handle of next bezt */
+						if(a==0 && (nu->flagu & 1)) {VECCOPY(beztnew->vec[0], vec+6);}
+						else {VECCOPY(bezt->vec[0], vec+6);}
+						
 						beztn++;
 					}
 
@@ -1413,7 +1423,7 @@ void subdivideNurb()
 
 				MEM_freeN(nu->bezt);
 				nu->bezt= beztnew;
-				nu->pntsu+= aantal;
+				nu->pntsu+= amount;
 
 				calchandlesNurb(nu);
 			}
@@ -1437,15 +1447,15 @@ void subdivideNurb()
 				bp= prevbp+1;
 			}
 			while(a--) {
-				if( (bp->f1 & 1) && (prevbp->f1 & 1) ) aantal++;
+				if( (bp->f1 & 1) && (prevbp->f1 & 1) ) amount++;
 				prevbp= bp;
 				bp++;
 			}
 
-			if(aantal) {
+			if(amount) {
 				/* insert */
 				bpnew =
-					(BPoint*)MEM_mallocN((aantal + nu->pntsu) * sizeof(BPoint), "subdivNurb2");
+					(BPoint*)MEM_mallocN((amount + nu->pntsu) * sizeof(BPoint), "subdivNurb2");
 				bpn= bpnew;
 
 				if(nu->flagu & 1) {
@@ -1479,7 +1489,7 @@ void subdivideNurb()
 
 				MEM_freeN(nu->bp);
 				nu->bp= bpnew;
-				nu->pntsu+= aantal;
+				nu->pntsu+= amount;
 
 				if(nu->type & 4) {
 					makeknots(nu, 1, nu->flagu>>1);
