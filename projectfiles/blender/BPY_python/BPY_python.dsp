@@ -263,6 +263,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Text.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Text3d.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Texture.c
 # End Source File
 # Begin Source File
@@ -464,6 +468,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Sys.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Text.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Text3d.h
 # End Source File
 # Begin Source File
 
