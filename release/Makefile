@@ -143,6 +143,11 @@ endif
 	@[ ! -d bpydata ] || cp -r bpydata $(CONFDIR)/bpydata
 	@[ ! -d $(CONFDIR)/bpydata ] || rm -fr $(CONFDIR)/bpydata/CVS
 
+    ifeq ($(OS),darwin)
+	@echo "----> Move .blender to .app/Contents/MacOS/"
+	@mv $(DISTDIR)/.blender $(DISTDIR)/blender$(EXT0)/Contents/MacOS/
+    endif
+
     ifneq ($(NOSTRIP),true)
 	@echo "----> Strip blender executable"
       ifeq ($(OS),darwin)
