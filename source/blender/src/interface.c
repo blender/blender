@@ -1666,18 +1666,25 @@ static int ui_do_but_SLI(uiBut *but)
 		
 		f= (float)(mval[0]-sx)/deler +fstart;
 		
-		if(qual & LR_CTRLKEY) {
-			if(qual & LR_SHIFTKEY) f= floor(f*100.0)/100.0;
-			else f= floor(f*10.0)/10.0;
-		} 
-		else if (qual & LR_SHIFTKEY) {
+		if (qual & LR_SHIFTKEY) {
 			f= (f-fstart)/10.0 + fstart;
 		}
-		
+
 		CLAMP(f, 0.0, 1.0);
-		tempf= but->min+f*(but->max-but->min);
-		
+		tempf= but->min+f*(but->max-but->min);		
 		temp= floor(tempf+.5);
+
+		if(qual & LR_CTRLKEY) {
+			if(tempf==but->min || tempf==but->max);
+			else if( but->pointype==FLO ) {
+				if(qual & LR_SHIFTKEY) tempf= floor(tempf*100.0)/100.0;
+				else tempf= floor(tempf*10.0)/10.0;
+			}
+			else {
+				temp= 10*(temp/10);
+				tempf= temp;
+			}
+		} 
 		
 		value= ui_get_but_val(but);
 		lvalue= (int) value;
