@@ -1465,7 +1465,6 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 		}
 		
 		/* Check this constraint only if it has some enforcement */
-	//	if (con->enforce > 0)
 		if (!(con->flag & CONSTRAINT_DISABLE))
 		{
 			if (con->enforce==0)
@@ -1473,7 +1472,6 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 				enf = con->enforce;
 
 			/* Get the targetmat */
-			//get_constraint_target(con, obtype, obdata, tmat, size, ctime - ob->sf);
 			get_constraint_target(con, obtype, obdata, tmat, size, ctime);
 			
 			Mat4CpyMat4(focusmat, tmat);
@@ -1537,14 +1535,16 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 						evaluate_constraint(con, ob, obtype, obdata, lastmat);
 						
 						Mat4CpyMat4 (solution, ob->obmat);
-						
+
 						/* Interpolate the enforcement */					
 						Mat4Invert (imat, oldmat);
-						Mat4MulMat4 (delta, imat, solution);
+						Mat4MulMat4 (delta, solution, imat);
 						
-						Mat4One(identity);
-						Mat4BlendMat4(delta, identity, delta, a);
-						Mat4MulMat4 (ob->obmat, oldmat, delta);
+						if (a<1.0) {
+							Mat4One(identity);
+							Mat4BlendMat4(delta, identity, delta, a);
+						}
+						Mat4MulMat4 (ob->obmat, delta, oldmat);
 
 					}
 					else{
