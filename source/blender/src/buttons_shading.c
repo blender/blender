@@ -2604,6 +2604,7 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,140,140,20, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 
 	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_DIFF, "Zoffs:",				10,110,100,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
 	uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp",	110,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
 	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp",210,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
 
@@ -2844,9 +2845,7 @@ static void material_panel_material(Object *ob, Material *ma)
 			uiDefButI(block, TOG|BIT|7, B_REDR, "VCol Paint",	82,146,73,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
 			uiDefButI(block, TOG|BIT|11, B_REDR, "TexFace",		156,146,73,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButI(block, TOG|BIT|2, B_MATPRV, "Shadeless",	230,146,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-			uiBlockSetCol(block, TH_AUTO);
-			uiDefButF(block, NUM, 0, "Zoffs:",					8,127,147,19, &(ma->zoffs), 0.0, 10.0, 0, 0, "Gives faces an artificial offset in the Z buffer");
-			uiBlockSetCol(block, TH_BUT_SETTING1);
+			uiDefButI(block, TOG|BIT|23, 0, "Full Osa",			8,127,147,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
 			uiDefButI(block, TOG|BIT|3, 0,	"Wire",				156,127,73,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
 			uiDefButI(block, TOG|BIT|8, 0,	"ZInvert",			230,127,73,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
 

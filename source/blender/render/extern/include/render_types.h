@@ -185,7 +185,7 @@ typedef struct RadFace {
 typedef struct VlakRen
 {
 	struct VertRen *v1, *v2, *v3, *v4;
-	float n[3], len;
+	float n[3];
 	struct Material *mat;
 	struct TFace *tface;
 	unsigned int *vcol;
@@ -197,6 +197,7 @@ typedef struct VlakRen
 	Object *ob;
 } VlakRen;
 
+/* vlakren->flag is in DNA_scene_types.h */
 
 typedef struct HaloRen
 {	

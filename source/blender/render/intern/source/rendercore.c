@@ -3095,6 +3095,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 {
 	extern float Zjitx,Zjity;
 	PixStr *ps;
+	VlakRen *vlr;
 	float xd, yd, xs, ys;
 	unsigned int *rz, *rp, *rt, mask, fullmask;
 	unsigned int  *rowbuf1, *rowbuf2, *rowbuf3, *rb1, *rb2, *rb3;
@@ -3189,7 +3190,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 					ps= (PixStr *) POINTER_FROM_CODE(*rd);
 				else ps= NULL;
 				
-				if(TRUE) {
+				if(0) {
 					for(samp=0; samp<R.osa; samp++) {
 						curmask= 1<<samp;
 					
@@ -3212,33 +3213,57 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 					}
 				}
 				else {	/* do collected faces together */
-					if(ps) face= ps->vlak0;
-					else face= (int)*rd;
+					int full_osa, face0;
+					
+					if(ps) face0= ps->vlak0;
+					else face0= (int)*rd;
 					mask= 0;
-
-					while(ps) {
-						b= centmask[ps->mask];
-						xs= (float)x+centLut[b & 15];
-						ys= (float)y+centLut[b>>4];
-
-						shadepixel_short(xs, ys, ps->vlak, ps->mask, shortcol);
-
-						if(shortcol[3]) add_filt_mask(ps->mask, shortcol, rb1, rb2, rb3);
-
-						mask |= ps->mask;
-						ps= ps->next;
-					}
-
-					mask= (~mask) & fullmask;
-					if(mask) {
-						b= centmask[mask];
-						xs= (float)x+centLut[b & 15];
-						ys= (float)y+centLut[b>>4];
-
-						shadepixel_short(xs, ys, face, mask, shortcol);
+					
+					/* complex loop, because first pixelstruct has a vlak0, without mask */
+					while(TRUE) {
+						
+						if(ps==NULL) {
+							face= face0;
+							curmask= (~mask) & fullmask;
+						}
+						else {
+							face= ps->vlak;
+							curmask= ps->mask;
+						}
+						
+						/* check osa level */
+						if(face==0) full_osa= 0;
+						else {
+							vlr= RE_findOrAddVlak( (face-1) & 0x7FFFFF);
+							full_osa= (vlr->flag & R_FULL_OSA);
+						}
+						
+						if(full_osa) {
+							for(samp=0; samp<R.osa; samp++) {
+								if(curmask & (1<<samp)) {
+									xs= (float)x + jit[samp][0];
+									ys= (float)y + jit[samp][1];
+									shadepixel_short(xs, ys, face, curmask, shortcol);
+				
+									if(shortcol[3]) add_filt_mask(1<<samp, shortcol, rb1, rb2, rb3);
+								}
+							}
+						}
+						else {
+							b= centmask[curmask];
+							xs= (float)x+centLut[b & 15];
+							ys= (float)y+centLut[b>>4];
+							shadepixel_short(xs, ys, face, curmask, shortcol);
 	
-						if(shortcol[3]) add_filt_mask(mask, shortcol, rb1, rb2, rb3);
+							if(shortcol[3]) add_filt_mask(curmask, shortcol, rb1, rb2, rb3);
+						}
+						
+						mask |= curmask;
+						
+						if(ps==NULL) break;
+						else ps= ps->next;
 					}
+
 				}
 
 				rb1+=4; 

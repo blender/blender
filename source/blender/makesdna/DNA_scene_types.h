@@ -345,11 +345,11 @@ typedef struct Scene {
 #define R_RENDERING		16
 #define R_ANIMRENDER	32
 
-/* vlakren->flag (vlak = face in dutch) */
+/* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
 #define R_VISIBLE		2
 #define R_NOPUNOFLIP	8
-#define R_CMAPCODE		16
+#define R_FULL_OSA		16
 #define R_FACE_SPLIT	32
 #define R_DIVIDE_24		64 /* Tells render to divide face other way. */
 

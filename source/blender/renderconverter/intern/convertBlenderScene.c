@@ -1191,9 +1191,9 @@ static void init_render_mball(Object *ob)
 		vlr->v4= 0;
 
 		if(ob->transflag & OB_NEG_SCALE) 
-			vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+			CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
 		else
-			vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+			CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 
 		vlr->mat= ma;
 		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
@@ -1207,9 +1207,9 @@ static void init_render_mball(Object *ob)
 			vlr1->v2= vlr1->v3;
 			vlr1->v3= RE_findOrAddVert(startvert+index[3]);
 			if(ob->transflag & OB_NEG_SCALE) 
-				vlr->len= CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
+				CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
 			else
-				vlr->len= CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
+				CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
 		}
 	}
 
@@ -1452,7 +1452,8 @@ static void init_render_mesh(Object *ob)
 						if(dlm && (dlm->flag & ME_OPT_EDGES)==0) edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
 						
 						if(v3) {
-
+							float len;
+							
 							vlr= RE_findOrAddVlak(R.totvlak++);
 							vlr->ob= ob;
 							vlr->v1= RE_findOrAddVert(vertofs+v1);
@@ -1462,9 +1463,9 @@ static void init_render_mesh(Object *ob)
 							else vlr->v4= 0;
 
 							/* render normals are inverted in render */
-							if(vlr->v4) vlr->len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
+							if(vlr->v4) len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
 							    vlr->v1->co, vlr->n);
-							else vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
+							else len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
 							    vlr->n);
 
 							vlr->mat= ma;
@@ -1475,7 +1476,7 @@ static void init_render_mesh(Object *ob)
 							vlr->ec= edcode;
 							vlr->lay= ob->lay;
 
-							if(vlr->len==0) R.totvlak--;
+							if(len==0) R.totvlak--;
 							else {
 
 								if(vertcol) {
@@ -1955,7 +1956,6 @@ static void init_render_surf(Object *ob)
 						vlr->ob= ob;
 						vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 						VECCOPY(vlr->n, n1);
-						vlr->len= flen;
 						vlr->lay= ob->lay;
 						vlr->mat= matar[ dl->col];
 						vlr->ec= ME_V1V2+ME_V2V3;
@@ -2094,7 +2094,6 @@ static void init_render_surf(Object *ob)
 						vlr->v3= v4;
 						vlr->v4= v2;
 						VECCOPY(vlr->n, n1);
-						vlr->len= flen;
 						vlr->lay= ob->lay;
 						vlr->mat= matar[ dl->col];
 						vlr->ec= ME_V1V2+ME_V2V3;
@@ -2342,9 +2341,9 @@ static void init_render_curve(Object *ob)
 						 */
 
 						if(frontside)
-							vlr->len= CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
+							CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
 						else 
-							vlr->len= CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+							CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
 
 						vlr->mat= matar[ nu->mat_nr ];
 
@@ -2673,6 +2672,26 @@ void RE_freeRotateBlenderScene(void)
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
 }
 
+/* per face check if all samples should be taken.
+   if raytrace, do always for raytraced material, or when material full_osa set */
+static void set_fullsample_flag(void)
+{
+	VlakRen *vlr;
+	int a, trace;
+
+	trace= R.r.mode & R_RAYTRACE;
+	
+	for(a=R.totvlak-1; a>=0; a--) {
+		vlr= RE_findOrAddVlak(a);
+		
+		if(vlr->mat->mode & MA_FULL_OSA) vlr->flag |= R_FULL_OSA;
+		else if(trace) {
+			if(vlr->mat->mode & MA_SHLESS);
+			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR|MA_SHADOW))
+				vlr->flag |= R_FULL_OSA;
+		}
+	}
+}
 
 static void check_non_flat_quads(void)
 {
@@ -2976,6 +2995,7 @@ void RE_rotateBlenderScene(void)
 
 	if(blender_test_break()) return;
 
+	set_fullsample_flag();
 	check_non_flat_quads();
 	set_normalflags();
 }
@@ -3091,10 +3111,10 @@ static void displace_render_face(VlakRen *vlr, float *scale)
 	
 	/* Recalculate the face normal  - if flipped before, flip now */
 	if(vlr->v4) {
-		vlr->len = CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 	}	
 	else {
-		vlr->len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+		CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 	}
 	
 }
