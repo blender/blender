@@ -1376,7 +1376,7 @@ void solve_tracking (Object *ob, float targetmat[][4])
 	else Mat4CpyMat4(tmat, ob->obmat);
 	
 	Mat4MulMat34(ob->obmat, totmat, tmat);
-	
+
 }
 
 void where_is_object(Object *ob)
@@ -1480,6 +1480,8 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 			/* Extract the components & accumulate */
 			Mat4ToQuat(focusmat, quat);
 			VECCOPY(loc, focusmat[3]);
+			Mat3CpyMat4(mat, focusmat);
+			Mat3ToSize(mat, size);
 			
 			a+=enf;
 			tot++;
@@ -1516,7 +1518,7 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 						Mat3MulMat3(mat, rmat, smat);
 						Mat4CpyMat3(focusmat, mat);
 						VECCOPY(focusmat[3], aloc);
-						
+
 						evaluate_constraint(con, ob, obtype, obdata, focusmat);
 					}
 					
@@ -1537,11 +1539,11 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 						
 						/* Interpolate the enforcement */					
 						Mat4Invert (imat, oldmat);
-						Mat4MulMat4 (delta, solution, imat);
+						Mat4MulMat4 (delta, imat, solution);
 						
 						Mat4One(identity);
 						Mat4BlendMat4(delta, identity, delta, a);
-						Mat4MulMat4 (ob->obmat, delta, oldmat);
+						Mat4MulMat4 (ob->obmat, oldmat, delta);
 
 					}
 					else{
@@ -1561,6 +1563,7 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 		}
 	}	
 }
+
 void what_does_parent1(Object *par, int partype, int par1, int par2, int par3)
 {
 
