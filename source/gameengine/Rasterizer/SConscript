@@ -1,3 +1,4 @@
+import sys
 Import ('user_options_dict')
 Import ('library_env')
 
@@ -18,5 +19,8 @@ ras_rasterizer_env.Append (CPPPATH=['.',
                                     '#intern/string',
                                     '#intern/moto/include'
                                    ])
+
+if sys.platform=='win32':
+	ras_rasterizer_env.Append ( CCFLAGS =['/Ox'])
 
 ras_rasterizer_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/RAS_rasterizer', source=source_files)

@@ -284,7 +284,7 @@ elif sys.platform == 'win32':
     build_blender_static = 'false'
     build_blender_player = 'false'
     build_blender_plugin = 'false'
-    release_flags = ['/G6', '/GF']
+    release_flags = ['/Og', '/Ot', '/Ob1', '/Op', '/G6']
     debug_flags = ['/Zi', '/Fr${TARGET.base}.sbr']
     extra_flags = ['/EHsc', '/J', '/W3', '/Gd', '/MT']
     cxxflags = []

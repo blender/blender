@@ -103,7 +103,8 @@ ketsji_env.Append (CPPPATH = ['.',
                              ])
 
 if sys.platform == 'win32':
-    ketsji_env.Append (CXXFLAGS = ['/GR'])
+	ketsji_env.Append (CXXFLAGS = ['/GR'])
+	ketsji_env.Append ( CCFLAGS =['/Ox'])
 ketsji_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 
 ketsji_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_ketsji', source=source_files)

@@ -11,8 +11,9 @@ cflags = []
 cxxflags = []
 
 if sys.platform=='win32':
-    defines += ['WIN32','NDEBUG', '_WINDOWS', '_LIB']
-    cflags += ['/MT', '/W3', '/GX', '/O2']
+	defines += ['WIN32','NDEBUG', '_WINDOWS', '_LIB']
+	#cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
+	cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
 elif sys.platform=='linux2' or sys.platform=='linux-i386':
     defines += ['NDEBUG']
     cflags += ['-O2']
