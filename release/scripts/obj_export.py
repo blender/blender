@@ -150,6 +150,8 @@ def save_obj(filename):
            
             # Dosent work properly,
             matrix = getWorldMat(ob)
+
+	    smooth = 0
            
             # Vert
             for v in m.verts:
@@ -210,6 +212,16 @@ def save_obj(filename):
                   elif currentImgName != NULL_IMG: # Not using an image so set to NULL_IMG
                     currentImgName = NULL_IMG
                     file.write( 'usemat ' + stripPath(currentImgName) +'\n') # Set a new image for all following faces
+
+		  if f.smooth == 1:
+		     if smooth == 0:
+		        smooth = 1
+			file.write('s 1\n')
+                  
+		  if f.smooth == 0:
+		     if smooth == 1:
+		        smooth = 0
+			file.write('s off\n')
                   
                   file.write('f ')
                   for v in f.v:

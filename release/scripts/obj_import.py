@@ -217,6 +217,8 @@ def load_obj(file):
    currentMat = nullMat # Use this mat.
    currentImg = NULL_IMG # Null image is a string, otherwise this should be set to an image object.
 
+   smooth = 0
+
    # Main loop
    lIdx = 0
    while lIdx < len(fileLines):
@@ -271,6 +273,8 @@ def load_obj(file):
             f.v.append(mesh.verts[vIdxLs[1]])
             f.v.append(mesh.verts[vIdxLs[2]])
             f.v.append(mesh.verts[vIdxLs[3]])
+	    # SMOTH FACE
+	    f.smooth = smooth
             # UV MAPPING
             if uvMapList:
                if vtIdxLs[0] < len(uvMapList):
@@ -294,6 +298,8 @@ def load_obj(file):
                f.v.append(mesh.verts[vIdxLs[0]])
                f.v.append(mesh.verts[vIdxLs[i+1]])
                f.v.append(mesh.verts[vIdxLs[i+2]])
+	       # SMOTH FACE
+	       f.smooth = smooth
                # UV MAPPING
                if uvMapList:
                   if vtIdxLs[0] < len(uvMapList):
@@ -327,7 +333,14 @@ def load_obj(file):
            
          # New texture list
          uvMapList = []
-      
+
+      # setting smooth surface on or off
+      elif l[0] == 's':
+         if l[1] == 'off':
+	    smooth = 0
+	 else:
+	    smooth = 1
+
       elif l[0] == 'usemtl':
          if l[1] == '(null)':
             currentMat = getMat(NULL_MAT)
@@ -355,4 +368,4 @@ def load_obj(file):
    if len(mesh.verts) > 0:
       NMesh.PutRaw(mesh, fileName + '_' + objectName)
 
-Window.FileSelector(load_obj, 'Import OBJ') 
+Window.FileSelector(load_obj, 'Import OBJ')
