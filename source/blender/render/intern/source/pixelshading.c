@@ -1172,6 +1172,12 @@ void shadeLampLusFloat()
 		if(lar->type==LA_HEMI) {
 			i= 0.5*i+0.5;
 		}
+		else {
+			/* diffuse shaders */
+			if(ma->diff_shader==MA_DIFF_ORENNAYAR) i= OrenNayar_Diff(vn, lv, view, ma->roughness);
+			else if(ma->diff_shader==MA_DIFF_TOON) i= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
+			else i= inp;	// Lambert
+		}
 		if(i>0.0) {
 			i*= lampdist*ma->ref;
 		}
@@ -1213,15 +1219,27 @@ void shadeLampLusFloat()
 					}
 					/* watch it: shadfac and lampdist used below */
 					
-					t= ma->spec*RE_Spec(t, ma->har);
+					/* sun and hemi use no shaders */
+					t= ma->spec*spec(t, ma->har);
 					isr+= t*(lar->r * ma->specr);
 					isg+= t*(lar->g * ma->specg);
 					isb+= t*(lar->b * ma->specb);
 				}
 				else {
-					/* Does specular reflection? This would be the place     */
-					/* to put BRDFs.                                         */
-					t= shadfac*ma->spec*lampdist*CookTorr(vn, lv, view, ma->har);
+					/* specular shaders */
+					float specfac;
+					
+					if(ma->spec_shader==MA_SPEC_PHONG) 
+						specfac= Phong_Spec(vn, lv, view, ma->har);
+					else if(ma->spec_shader==MA_SPEC_COOKTORR) 
+						specfac= CookTorr_Spec(vn, lv, view, ma->har);
+					else if(ma->spec_shader==MA_SPEC_BLINN) 
+						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)ma->har);
+					else 
+						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3]);
+					
+					t= shadfac*ma->spec*lampdist*specfac;
+					
 					isr+= t*(lar->r * ma->specr);
 					isg+= t*(lar->g * ma->specg);
 					isb+= t*(lar->b * ma->specb);
@@ -1240,12 +1258,6 @@ void shadeLampLusFloat()
 	 * gammaCorrect implementation doesn't handle negative values
 	 * correctly ( (-1)^2 = 1!!)  (ton)
 	 */
-/*  	if(ir<0.0) ir= 0.0; */
-/*  	if(ig<0.0) ig= 0.0; */
-/*  	if(ib<0.0) ib= 0.0; */
-/*  	if(isr<0.0) isr= 0.0; */
-/*  	if(isg<0.0) isg= 0.0; */
-/*  	if(isb<0.0) isb= 0.0; */
 	/* Well, it does now. -(1^2) = -1 :) (nzc) */
 
 	if(ma->mode & MA_ZTRA) {	/* ztra shade */

@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/* system includes */
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
 
 /* External modules: */
 #include "MEM_guardedalloc.h"
@@ -63,6 +59,12 @@
 #include "renderHelp.h"
 
 #include "jitter.h"
+
+/* system includes */
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+
 
 /* own include */
 #include "rendercore.h"
@@ -1277,7 +1279,10 @@ void halovert()
 	}
 }
 
-float RE_Spec(float inp, int hard)
+/* ---------------- shaders ----------------------- */
+
+
+float spec(float inp, int hard)	
 {
 	float b1;
 	
@@ -1313,8 +1318,27 @@ float RE_Spec(float inp, int hard)
 	return inp;
 }
 
+float Phong_Spec( float *n, float *l, float *v, int hard )
+{
+	float h[3];
+	float rslt;
 
-float CookTorr(float *n, float *l, float *v, int hard)
+	h[0] = l[0] + v[0];
+	h[1] = l[1] + v[1];
+	h[2] = l[2] + v[2];
+	Normalise(h);
+
+	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
+
+	if( rslt > 0.0 ) rslt= spec(rslt, hard);
+	else rslt = 0.0;
+
+	return rslt;
+}
+
+
+/* reduced cook torrance spec (for off-specular peak) */
+float CookTorr_Spec(float *n, float *l, float *v, int hard)
 {
 	float i, nh, nv, h[3];
 
@@ -1327,11 +1351,161 @@ float CookTorr(float *n, float *l, float *v, int hard)
 	if(nh<0.0) return 0.0;
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2];
 	if(nv<0.0) nv= 0.0;
-	i= RE_Spec(nh, hard);
+	i= spec(nh, hard);
 
 	i= i/(0.1+nv);
 	return i;
 }
+
+/* Blinn spec */
+float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
+{
+	float i, nh, nv, nl, vh, h[3];
+	float a, b, c, g, p, f, ang;
+
+	if(refrac < 1.0) return 0.0;
+	if(spec_power == 0.0) return 0.0;
+	
+	/* conversion from 'hardness' (1-255) to 'spec_power' (50 maps at 0.1) */
+	spec_power= sqrt(1.0/spec_power);
+	
+	h[0]= v[0]+l[0];
+	h[1]= v[1]+l[1];
+	h[2]= v[2]+l[2];
+	Normalise(h);
+
+	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector. */
+
+	if(nh<0.0) return 0.0;
+
+	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector. */
+
+	if(nv<=0.0) nv= 0.01;
+
+	nl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector. */
+
+	if(nl<=0.0) {
+		nl= 0.0;
+		return 0.0;
+	}
+
+	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and half-way vector. */
+	if(vh<=0.0) vh= 0.01;
+
+	a = 1.0;
+	b = (2.0*nh*nv)/vh;
+	c = (2.0*nh*nl)/vh;
+
+	if( a < b && a < c ) g = a;
+	else if( b < a && b < c ) g = b;
+	else if( c < a && c < b ) g = c;
+
+	p = sqrt( (double)((refrac * refrac)+(vh*vh)-1.0) );
+	f = (((p-vh)*(p-vh))/((p+vh)*(p+vh)))*(1+((((vh*(p+vh))-1.0)*((vh*(p+vh))-1.0))/(((vh*(p-vh))+1.0)*((vh*(p-vh))+1.0))));
+	ang = (float)acos((double)(nh));
+
+	i= f * g * exp((double)(-(ang*ang) / (2.0*spec_power*spec_power)));
+
+	return i;
+}
+
+/* cartoon render spec */
+float Toon_Spec( float *n, float *l, float *v, float size, float smooth )
+{
+	float h[3];
+	float ang;
+	float rslt;
+	
+	h[0] = l[0] + v[0];
+	h[1] = l[1] + v[1];
+	h[2] = l[2] + v[2];
+	Normalise(h);
+	
+	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
+	
+	ang = acos( rslt ); 
+	
+	if( ang < size ) rslt = 1.0;
+	else if( ang >= (size + smooth) || smooth == 0.0 ) rslt = 0.0;
+	else rslt = 1.0 - ((ang - size) / smooth);
+	
+	return rslt;
+}
+
+/* cartoon render diffuse */
+float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
+{
+	float rslt, ang;
+
+	rslt = n[0]*l[0] + n[1]*l[1] + n[2]*l[2];
+
+	ang = acos( (double)(rslt) );
+
+	if( ang < size ) rslt = 1.0;
+	else if( ang >= (size + smooth) || smooth == 0.0 ) rslt = 0.0;
+	else rslt = 1.0 - ((ang - size) / smooth);
+
+	return rslt;
+}
+
+/* Oren Nayar diffuse */
+float OrenNayar_Diff(float *n, float *l, float *v, float rough )
+{
+	float i, nh, nv, nl, vh, h[3];
+	float a, b, t, A, B;
+	float Lit_A, View_A, Lit_B[3], View_B[3];
+	
+	h[0]= v[0]+l[0];
+	h[1]= v[1]+l[1];
+	h[2]= v[2]+l[2];
+	Normalise(h);
+	
+	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector. */
+	if(nh<0.0) nh = 0.0;
+	
+	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector. */
+	if(nv<=0.0) nv= 0.0;
+	
+	nl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector. */
+	if(nl<0.0) nl= 0.0;
+	
+	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and halfway vector. */
+	if(vh<=0.0) vh= 0.0;
+	
+	Lit_A = acos( nl );
+	View_A = acos( nv );
+	
+	Lit_B[0] = l[0] - (nl * n[0]);
+	Lit_B[1] = l[1] - (nl * n[1]);
+	Lit_B[2] = l[2] - (nl * n[2]);
+	Normalise( Lit_B );
+	
+	View_B[0] = v[0] - (nv * n[0]);
+	View_B[1] = v[1] - (nv * n[1]);
+	View_B[2] = v[2] - (nv * n[2]);
+	Normalise( View_B );
+	
+	t = Lit_B[0]*View_B[0] + Lit_B[1]*View_B[1] + Lit_B[2]*View_B[2];
+	if( t < 0 ) t = 0;
+	
+	if( Lit_A > View_A ) {
+		a = Lit_A;
+		b = View_A;
+	}
+	else {
+		a = View_A;
+		b = Lit_A;
+	}
+	
+	A = 1 - (0.5 * ((rough * rough) / ((rough * rough) + 0.33)));
+	B = 0.45 * ((rough * rough) / ((rough * rough) + 0.09));
+	
+	i = nl * ( A + ( B * t * sin(a) * tan(b) ) );
+	
+	return i;
+}
+
+/* --------------------------------------------- */
 
 void RE_calc_R_ref()
 {
@@ -1620,16 +1794,24 @@ void shade_lamp_loop()
 		}
 
 		/* dot product and reflectivity*/
-		inp=i= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
+		inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
+		
 		if(lar->type==LA_HEMI) {
-			i= 0.5*i+0.5;
+			i= 0.5*inp + 0.5;
 		}
+		else {
+			/* diffuse shaders */
+			if(ma->diff_shader==MA_DIFF_ORENNAYAR) i= OrenNayar_Diff(vn, lv, view, ma->roughness);
+			else if(ma->diff_shader==MA_DIFF_TOON) i= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
+			else i= inp;	// Lambert
+		}
+		
 		if(i>0.0) {
 			i*= lampdist*ma->ref;
 		}
 
 		/* shadow and spec */
-		if(i> -0.41) {			/* heuristic value */
+		if(inp> -0.41) {			/* heuristic value */
 			shadfac= 1.0;
 			if(lar->shb) {
 				if(ma->mode & MA_SHADOW) {
@@ -1659,15 +1841,27 @@ void shade_lamp_loop()
 					if(lar->type==LA_HEMI) {
 						t= 0.5*t+0.5;
 					}
-					/* no more speclim */
-
-					t= ma->spec*RE_Spec(t, ma->har);
+					/* sun and hemi use no shaders */
+					t= ma->spec*spec(t, ma->har);
 					isr+= t*(lar->r * ma->specr);
 					isg+= t*(lar->g * ma->specg);
 					isb+= t*(lar->b * ma->specb);
 				}
 				else {
-					t= shadfac*ma->spec*lampdist*CookTorr(vn, lv, view, ma->har);
+					/* specular shaders */
+					float specfac;
+					
+					if(ma->spec_shader==MA_SPEC_PHONG) 
+						specfac= Phong_Spec(vn, lv, view, ma->har);
+					else if(ma->spec_shader==MA_SPEC_COOKTORR) 
+						specfac= CookTorr_Spec(vn, lv, view, ma->har);
+					else if(ma->spec_shader==MA_SPEC_BLINN) 
+						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)ma->har);
+					else 
+						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3]);
+					
+					t= shadfac*ma->spec*lampdist*specfac;
+					
 					isr+= t*(lar->r * ma->specr);
 					isg+= t*(lar->g * ma->specg);
 					isb+= t*(lar->b * ma->specb);

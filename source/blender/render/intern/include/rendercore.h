@@ -39,13 +39,13 @@
 struct HaloRen;
 
 float   mistfactor(float *co);	/* dist en hoogte, return alpha */
-/*  void sky(char *col); */
 void renderspothalo(unsigned short *col);
 void render_lighting_halo(struct HaloRen *har, float *colf);
 unsigned int    calchalo_z(struct HaloRen *har, unsigned int zz);
-float CookTorr(float *n, float *l, float *v, int hard);
+
+float spec(float inp, int hard);
+
 void shade_lamp_loop(void);
-/*  void renderflare(struct HaloRen *har); */
 void add_halo_flare(void);
 
 /**

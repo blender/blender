@@ -87,7 +87,7 @@ ListBase editNurb;
 #include "DNA_world_types.h"	/* for render_types */
 #include "render_types.h"
 struct RE_Render R;
-float   RE_Spec(float inp, int hard){return 0;}
+float   Phong_Spec(float *n, float *l, float *v, int hard){return 0;}
 void waitcursor(int val){}
 void allqueue(unsigned short event, short val){}
 #define REDRAWVIEW3D	0x4010

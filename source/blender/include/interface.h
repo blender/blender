@@ -110,7 +110,7 @@
 #define UI_BLOCK_BUSY		8
 #define UI_BLOCK_NUMSELECT	16
 #define UI_BLOCK_ENTER_OK	32
-#define UI_BLOCK_MENUMODE	128
+
 
 /* uiBlock->dt */
 #define UI_EMBOSSX		0	/* Rounded embossed button */

@@ -82,18 +82,25 @@ void free_material(Material *ma)
 void init_material(Material *ma)
 {
 	ma->lay= 1;
-	ma->r= ma->g= ma->b= ma->ref= 0.8f;
-	ma->specr= ma->specg= ma->specb= 1.0f;
-	ma->mirr= ma->mirg= ma->mirb= 1.0f;
-	ma->amb= 0.5f;
-	ma->alpha= 1.0f;
-	ma->spec= ma->hasize= 0.5f;
+	ma->r= ma->g= ma->b= ma->ref= 0.8;
+	ma->specr= ma->specg= ma->specb= 1.0;
+	ma->mirr= ma->mirg= ma->mirb= 1.0;
+	ma->amb= 0.5;
+	ma->alpha= 1.0;
+	ma->spec= ma->hasize= 0.5;
 	ma->har= 50;
 	ma->starc= ma->ringc= 4;
 	ma->linec= 12;
 	ma->flarec= 1;
-	ma->flaresize= ma->subsize= 1.0f;
-	ma->friction= 0.5f;
+	ma->flaresize= ma->subsize= 1.0;
+	ma->friction= 0.5;
+	ma->refrac= 4.0;
+	ma->roughness= 0.5;
+	ma->param[0]= 0.5;
+	ma->param[1]= 0.1;
+	ma->param[2]= 0.5;
+	ma->param[3]= 0.1;
+	
 	
 	ma->mode= MA_TRACEBLE+MA_SHADOW;	
 }

@@ -77,12 +77,10 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"		/* allqueue */
 #include "BIF_drawimage.h"	/* rectwrite_part */
-//#include "BIF_previewrender.h"
 #include "BIF_mywindow.h"
+#include "PIL_time.h"
 
 #include "RE_renderconverter.h"
-
-//#include "mydevice.h"
 
 #define PR_RECTX	101
 #define PR_RECTY	101
@@ -260,7 +258,8 @@ static void set_previewrect(int win, int xmin, int ymin, int xmax, int ymax)
 
 static void display_pr_scanline(unsigned int *rect, int recty)
 {
-	/* we display 3 new scanlines, one old */
+	static double lasttime= 0;
+	/* we display 3 new scanlines, one old, the overlap is for wacky 3d cards that cant handle zoom proper */
 
 	if(recty % 2) return;
 	if(recty<2) return;
@@ -274,6 +273,12 @@ static void display_pr_scanline(unsigned int *rect, int recty)
 	glDrawPixels(PR_RECTX, 3, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
 
 	glPixelZoom(1.0, 1.0);
+	
+	/* flush opengl for cards with frontbuffer slowness */
+	if(recty==PR_RECTY-1 || (PIL_check_seconds_timer() - lasttime > 0.05)) {
+		lasttime= PIL_check_seconds_timer();
+		glFinish();
+	}
 }
 
 static void draw_tex_crop(Tex *tex)
@@ -745,22 +750,32 @@ static void shade_preview_pixel(float *vec,
 			
 			if(mat->spec)  {
 				
-				lv[0]+= view[0];
-				lv[1]+= view[1];
-				lv[2]+= view[2];
-				Normalise(lv);
-				
 				if(inp>0.0) {
-					v1= lv[0]*R.vn[0]+lv[1]*R.vn[1]+lv[2]*R.vn[2];
-					if(v1>0.0) {
-						v1= RE_Spec(v1, mat->har);
-						inprspec= v1*mat->spec;
-						isr+= inprspec*mat->specr;
-						isg+= inprspec*mat->specg;
-						isb+= inprspec*mat->specb;
-					}
+					/* specular shaders */
+					float specfac;
+					
+					if(mat->spec_shader==MA_SPEC_PHONG) 
+						specfac= Phong_Spec(R.vn, lv, view, mat->har);
+					else if(mat->spec_shader==MA_SPEC_COOKTORR) 
+						specfac= CookTorr_Spec(R.vn, lv, view, mat->har);
+					else if(mat->spec_shader==MA_SPEC_BLINN) 
+						specfac= Blinn_Spec(R.vn, lv, view, mat->refrac, (float)mat->har);
+					else 
+						specfac= Toon_Spec(R.vn, lv, view, mat->param[2], mat->param[3]);
+				
+					inprspec= specfac*mat->spec;
+					
+					isr+= inprspec*mat->specr;
+					isg+= inprspec*mat->specg;
+					isb+= inprspec*mat->specb;
+
 				}
 			}
+			/* diffuse shaders */
+			if(mat->diff_shader==MA_DIFF_ORENNAYAR) inp= OrenNayar_Diff(R.vn, lv, view, mat->roughness);
+			else if(mat->diff_shader==MA_DIFF_TOON) inp= Toon_Diff(R.vn, lv, view, mat->param[0], mat->param[1]);
+			// else Lambert
+
 			inp= (mat->ref*inp + mat->emit);
 			
 			if(a==0) la= pr1_col;

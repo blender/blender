@@ -69,7 +69,10 @@ typedef struct Material {
 	char rgbsel, texact, pr_type, septex;
 	short pr_back, pr_lamp;
 
-	int pad1;
+	/* shaders */
+	short diff_shader, spec_shader;
+	float roughness, refrac;
+	float param[4];		/* size, smooth, size, smooth, for toonshader */
 	short texco, mapto;
 	
 	struct MTex *mtex[8];
@@ -119,6 +122,17 @@ typedef struct Material {
 #define MA_NOMIST		0x4000
 #define MA_HALO_SHADE	0x4000
 #define MA_HALO_FLARE	0x8000
+
+/* diff_shader */
+#define MA_DIFF_LAMBERT		0
+#define MA_DIFF_ORENNAYAR	1
+#define MA_DIFF_TOON		2
+
+/* spec_shader */
+#define MA_SPEC_COOKTORR	0
+#define MA_SPEC_PHONG		1
+#define MA_SPEC_BLINN		2
+#define MA_SPEC_TOON		3
 
 /* dynamode */
 #define MA_DRAW_DYNABUTS    1

@@ -70,7 +70,7 @@ extern struct ListBase editNurb;
 #include "DNA_world_types.h"	/* for render_types */
 #include "render_types.h"
 extern struct RE_Render R;
-float RE_Spec(float,  int);
+float Phong_Spec(float *, float *, float *, int);
 void waitcursor(int);
 void allqueue(unsigned short event, short val);
 #define REDRAWVIEW3D	0x4010

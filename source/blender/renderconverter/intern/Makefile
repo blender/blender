@@ -40,7 +40,7 @@ ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windo
     CFLAGS += -funsigned-char
 endif
 
-CFLAGS += $(LEVEL_2_C_WARNINGS)
+# CFLAGS += $(LEVEL_2_C_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
 # path to our own external headerfiles

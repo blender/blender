@@ -189,7 +189,12 @@ int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
 	/* --------------------------------------------------------------------- */
 	/* rendercore (2)                                                        */
 	/* --------------------------------------------------------------------- */
-	float   RE_Spec(float inp, int hard);
+	float Phong_Spec(float *n, float *l, float *v, int hard);
+	float CookTorr_Spec(float *n, float *l, float *v, int hard);
+	float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power);
+	float Toon_Spec( float *n, float *l, float *v, float size, float smooth);
+	float OrenNayar_Diff(float *n, float *l, float *v, float rough);
+	float Toon_Diff( float *n, float *l, float *v, float size, float smooth);
 
 	/* maybe not external */
 	void    RE_calc_R_ref(void);

@@ -3696,10 +3696,19 @@ static void do_versions(Main *main)
 	}	
 	if(main->versionfile <= 227) {
 		Scene *sce;
+		Material *ma;
 
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->audio.mixrate = 44100;
 			sce->audio.flag |= (AUDIO_SYNC + AUDIO_SCRUB);
+		}
+		for (ma= main->mat.first; ma; ma= ma->id.next) {
+			ma->refrac= 4.0;
+			ma->roughness= 0.5;
+			ma->param[0]= 0.5;
+			ma->param[1]= 0.1;
+			ma->param[2]= 0.1;
+			ma->param[3]= 0.05;
 		}
 	}	
 

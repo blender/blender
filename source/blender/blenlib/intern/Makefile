@@ -40,7 +40,7 @@ ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windo
     CFLAGS += -funsigned-char
 endif
 
-CPPFLAGS += $(LEVEL_2_C_WARNINGS)
+# CPPFLAGS += $(LEVEL_2_C_WARNINGS)
 
 # path to SDNA types
 CPPFLAGS += -I../../makesdna

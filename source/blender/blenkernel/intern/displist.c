@@ -47,6 +47,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "nla.h" /* For __NLA: Please do not remove yet */
+#include "render.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -301,7 +302,7 @@ void freefastshade()
 static void fastshade(float *co, float *nor, float *orco, Material *ma, char *col1, char *col2, char *vertcol)
 {
 	FastLamp *fl;
-	float i, t, inp, soft, inpr, inpg, inpb, isr=0, isg=0, isb=0, lv[3], lampdist, ld;
+	float i, t, inp, soft, inpr, inpg, inpb, isr=0, isg=0, isb=0, lv[3], view[3], lampdist, ld;
 	float inpr1, inpg1, inpb1, isr1=0, isg1=0, isb1=0;
 	int a, back;
 
@@ -447,6 +448,9 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 
 		inp= nor[0]*lv[0]+ nor[1]*lv[1]+ nor[2]*lv[2];
 
+		if(ma->diff_shader==MA_DIFF_ORENNAYAR) inp= OrenNayar_Diff(nor, lv, view, ma->roughness);
+		else if(ma->diff_shader==MA_DIFF_TOON) inp= Toon_Diff(nor, lv, view, ma->param[0], ma->param[1]);
+
 		back= 0;
 		if(inp<0.0) {
 			back= 1;
@@ -465,11 +469,20 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 		}
 		if(ma->spec) {
 			
-			lv[2]+= 1.0;
-			Normalise(lv);
-			t= nor[0]*lv[0]+nor[1]*lv[1]+nor[2]*lv[2];
+			VECCOPY(view, fl->co);
+			Normalise(view);
+			
+			if(ma->spec_shader==MA_SPEC_PHONG) 
+				t= Phong_Spec(nor, lv, view, ma->har);
+			else if(ma->spec_shader==MA_SPEC_COOKTORR) 
+				t= CookTorr_Spec(nor, lv, view, ma->har);
+			else if(ma->spec_shader==MA_SPEC_BLINN) 
+				t= Blinn_Spec(nor, lv, view, ma->refrac, (float)ma->har);
+			else 
+				t= Toon_Spec(nor, lv, view, ma->param[2], ma->param[3]);
+			
 			if(t>0) {
-				t= ma->spec*lampdist*RE_Spec(t, ma->har);
+				t*= ma->spec*lampdist;
 				if(back==0) {
 					isr+= t*(fl->r * ma->specr);
 					isg+= t*(fl->g * ma->specg);
