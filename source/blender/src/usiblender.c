@@ -546,7 +546,9 @@ void exit_usiblender(void)
 
 	sound_exit_audio();
 
+#ifdef WITH_QUICKTIME
 	quicktime_exit();
+#endif
 		
 	BPY_end_python();
 
