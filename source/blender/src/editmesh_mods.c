@@ -425,7 +425,7 @@ void mouse_mesh(void)
 		}
 		else if(eve) {
 			if((eve->f & SELECT)==0) eve->f |= SELECT;
-			else if(G.qual & LR_SHIFTKEY) eve->f |= ~SELECT;
+			else if(G.qual & LR_SHIFTKEY) eve->f &= ~SELECT;
 		}
 		
 		/* frontbuffer draw of last selected only */

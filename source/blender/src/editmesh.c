@@ -480,6 +480,8 @@ static void editMesh_set_hash(void)
 {
 	EditEdge *eed;
 
+	G.editMesh->hashedgetab= NULL;
+	
 	for(eed=G.editMesh->edges.first; eed; eed= eed->next)  {
 		if( findedgelist(eed->v1, eed->v2)==NULL )
 			insert_hashedge(eed);
@@ -1267,6 +1269,7 @@ void separatemenu(void)
 void separate_mesh(void)
 {
 	EditMesh *em = G.editMesh;
+	EditMesh emcopy;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
 	EditFace *efa, *vl1;
@@ -1374,7 +1377,13 @@ void separate_mesh(void)
 	BASACT->flag &= ~SELECT;
 	
 	makeDispList(G.obedit);
-	free_editMesh(G.editMesh);
+	
+	/* we cannot free the original buffer... */
+	emcopy= *G.editMesh;
+	emcopy.allverts= NULL;
+	emcopy.alledges= NULL;
+	emcopy.allfaces= NULL;
+	free_editMesh(&emcopy);
 	
 	em->verts= edve;
 	em->edges= eded;
@@ -1398,6 +1407,7 @@ void separate_mesh(void)
 void separate_mesh_loose(void)
 {
 	EditMesh *em = G.editMesh;
+	EditMesh emcopy;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
 	EditFace *efa, *vl1;
@@ -1553,7 +1563,13 @@ void separate_mesh_loose(void)
 			BASACT->flag &= ~SELECT;
 			
 			makeDispList(G.obedit);
-			free_editMesh(G.editMesh);
+			
+			/* we cannot free the original buffer... */
+			emcopy= *G.editMesh;
+			emcopy.allverts= NULL;
+			emcopy.alledges= NULL;
+			emcopy.allfaces= NULL;
+			free_editMesh(&emcopy);
 			
 			em->verts= edve;
 			em->edges= eded;
