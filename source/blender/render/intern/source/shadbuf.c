@@ -97,6 +97,8 @@ void initshadowbuf(LampRen *lar, float mat[][4])
 	if(shb->size<512) shb->size= 512;
 	else if(shb->size > lar->bufsize) shb->size= lar->bufsize;
 
+	shb->size &= ~15;	/* make sure its multiples of 16 */
+
 	shb->samp= lar->samp;
 	shb->soft= lar->soft;
 	shb->shadhalostep= lar->shadhalostep;
