@@ -191,8 +191,32 @@ void buttons_active_id(ID **id, ID **idfrom)
 	*idfrom= (ID *)ob;
 	
 	if(G.buts->mainb==CONTEXT_SCENE) {
-		*id= (ID *)G.scene;
+		int tab= G.buts->tab[CONTEXT_SCENE];
 		
+		if(tab==TAB_SCENE_RENDER) *id= (ID *)G.scene;
+		else if(tab==TAB_SCENE_SOUND) {
+			ID *search;
+			
+			// validate lockpoin, maybe its not a sound
+			if (G.buts->lockpoin) {
+				search = G.main->sound.first;
+				while (search) {
+					if (search == G.buts->lockpoin) {
+						break;
+					}
+					search = search->next;
+				}
+				if (search == NULL) {
+					*id = G.main->sound.first;
+				} else {
+					*id = search;
+				}
+			}
+			else {
+				*id = G.main->sound.first;
+			}
+		
+		}
 	}
 	else if(G.buts->mainb==CONTEXT_SHADING) {
 		int tab= G.buts->tab[CONTEXT_SHADING];
@@ -260,29 +284,6 @@ void buttons_active_id(ID **id, ID **idfrom)
 		if(ob && ob->data) {
 			*id= ob->data;
 		}
-	}
-	else if (G.buts->mainb == BUTS_SOUND) {
-#if 0
-		ID * search;
-
-		if (G.buts->lockpoin) {
-			search = G.main->sound.first;
-			while (search) {
-				if (search == G.buts->lockpoin) {
-					break;
-				}
-				search = search->next;
-			}
-			if (search == NULL) {
-				*id = G.main->sound.first;
-			} else {
-				*id = search;
-			}
-		} else {
-			*id = G.main->sound.first;
-		}
-		//	printf("id:		 %d\n\n", *id);
-#endif
 	}
 }
 
@@ -380,7 +381,6 @@ void buts_buttons(void)
 	uiBlock *block;
 	uiBut *but;
 	short xco, t_base= -2;
-	int alone, local, browse;
 	char naam[20];
 
 	sprintf(naam, "header %d", curarea->headwin);
@@ -403,15 +403,25 @@ void buts_buttons(void)
 	/* mainb menu */
 	/* (this could be done later with a dynamic tree and branches, also for python) */
 	uiBlockSetCol(block, MIDGREY);
-	uiBlockSetEmboss(block, UI_EMBOSSMB);	// menu but
+	// uiBlockSetEmboss(block, UI_EMBOSSMB);	// menu but
 
-	{
-		char mainbname[8][12]= {" Scene", " Object", " Types", " Shading", " Editing", " Script", " Logic"};
-		char mainbicon[8]= {ICON_SCENE_DEHLT, ICON_OBJECT, ICON_BBOX, ICON_MATERIAL_DEHLT, ICON_EDIT, ICON_SCRIPT, ICON_GAME};
-		uiBut *but= uiDefIconTextBlockBut(block, sbuts_context_menu, NULL, mainbicon[G.buts->mainb], mainbname[G.buts->mainb], xco, 0, 90, YIC, "Set main context for button panels");
-		uiButClearFlag(but, UI_ICON_RIGHT); // this type has both flags set, and draws icon right.. uhh
-		xco+= 90-XIC+10;
-	}
+	//{
+	//	char mainbname[8][12]= {" Scene", " Object", " Types", " Shading", " Editing", " Script", " Logic"};
+	//	char mainbicon[8]= {ICON_SCENE_DEHLT, ICON_OBJECT, ICON_BBOX, ICON_MATERIAL_DEHLT, ICON_EDIT, ICON_SCRIPT, ICON_GAME};
+	//	uiBut *but= uiDefIconTextBlockBut(block, sbuts_context_menu, NULL, mainbicon[G.buts->mainb], mainbname[G.buts->mainb], xco, 0, 90, YIC, "Set main context for button panels");
+	//	uiButClearFlag(but, UI_ICON_RIGHT); // this type has both flags set, and draws icon right.. uhh
+	//	xco+= 90-XIC+10;
+	//}
+	
+	uiDefIconButS(block, ROW, B_REDR,	ICON_GAME,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
+	uiDefIconButS(block, ROW, B_REDR,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
+	uiDefIconButS(block, ROW, B_REDR,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
+	uiDefIconButS(block, ROW, B_REDR,	ICON_OBJECT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
+	uiDefIconButS(block, ROW, B_REDR,	ICON_EDIT,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
+	uiDefIconButS(block, ROW, B_REDR,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
+	xco+=XIC;
+	
+	if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 3;
 	
 	/* select the context to be drawn, per contex/tab the actual context is tested */
 	uiBlockSetEmboss(block, UI_EMBOSSX);	// normal
@@ -452,79 +462,13 @@ void buts_buttons(void)
 	G.buts->lockpoin= id;
 	
 	if(G.buts->mainb==CONTEXT_SHADING) {
-#if 0
-		int tab= G.buts->tab[CONTEXT_SHADING];
-		
-		if(tab==TAB_SHADING_MAT) {
-		}
-		else if(tab==TAB_SHADING_TEX) {
-		}
-		else if(tab==TAB_SHADING_LAMP) {
-			if(id) {
-				xco= std_libbuttons(block, xco, 0, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
-			}
-		}
-		else if(tab==TAB_SHADING_WORLD) {
-			xco= std_libbuttons(block, xco, 0, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
-		}
-#endif
+	
 	}
 	else if(G.buts->mainb==CONTEXT_EDITING) {
 
-		if(id) {
-			
-			alone= 0;
-			local= 0;
-			browse= B_EDITBROWSE;
-			xco+= XIC;
-			
-			if(ob->type==OB_MESH) {
-				browse= B_MESHBROWSE;
-				alone= B_MESHALONE;
-				local= B_MESHLOCAL;
-				uiSetButLock(G.obedit!=0, "Unable to perform function in EditMode");
-			}
-			else if(ob->type==OB_MBALL) {
-				alone= B_MBALLALONE;
-				local= B_MBALLLOCAL;
-			}
-			else if ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF) {
-				alone= B_CURVEALONE;
-				local= B_CURVELOCAL;
-			}
-			else if(ob->type==OB_CAMERA) {
-				alone= B_CAMERAALONE;
-				local= B_CAMERALOCAL;
-			}
-			else if(ob->type==OB_LAMP) {
-				alone= B_LAMPALONE;
-				local= B_LAMPLOCAL;
-			}
-			else if (ob->type==OB_ARMATURE){
-				alone = B_ARMALONE;
-				local = B_ARMLOCAL;
-			}
-			else if(ob->type==OB_LATTICE) {
-				alone= B_LATTALONE;
-				local= B_LATTLOCAL;
-			}
-			
-			xco= std_libbuttons(block, xco, 0, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
-				
-			xco+= XIC;
-		}
-		if(ob) {
-			but= uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 0, 135, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
-			uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
-			xco+= 135;
-		}
 	}
 
 #if 0
-	else if (G.buts->mainb==BUTS_SOUND) {
-		xco= std_libbuttons(block, xco, 0, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
-	}
-
 	else if(G.buts->mainb==BUTS_CONSTRAINT){
 		if(id) {
 

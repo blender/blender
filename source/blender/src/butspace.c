@@ -305,10 +305,10 @@ void do_butspace(unsigned short event)
 		do_scriptbuts(event);
 	}
 	else if(event<=B_SOUNDBUTS) {
-		//do_soundbuts(event);
+		do_soundbuts(event);
 	}
 	else if(event<=B_CONSTRAINTBUTS) {
-		//do_constraintbuts(event);
+		do_constraintbuts(event);
 	}
 	else if(event>=REDRAWVIEW3D) allqueue(event, 0);
 }

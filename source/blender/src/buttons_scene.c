@@ -47,10 +47,16 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_packedFile_types.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_sound.h"
+#include "BKE_packedFile.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 
@@ -83,7 +89,9 @@
 #include "BIF_renderwin.h"
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
-
+#include "BIF_editsound.h"
+#include "BSE_seqaudio.h"
+#include "BSE_headerbuttons.h"
 #include "butspace.h" // own module
 
 #ifdef WITH_QUICKTIME
@@ -98,7 +106,340 @@
 */
 
 
+/* ************************ SOUND *************************** */
+static void load_new_sample(char *str)	/* called from fileselect */
+{
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+	bSound *sound;
+	bSample *sample, *newsample;
 
+	sound = G.buts->lockpoin;
+
+	if (sound) {
+		// save values
+		sample = sound->sample;
+		strcpy(name, sound->sample->name);
+
+		strcpy(sound->name, str);
+		sound_set_sample(sound, NULL);
+		sound_initialize_sample(sound);
+
+		if (sound->sample->type == SAMPLE_INVALID) {
+			error("Not a valid sample: %s", str);
+
+			newsample = sound->sample;
+
+			// restore values
+			strcpy(sound->name, name);
+			sound_set_sample(sound, sample);
+
+			// remove invalid sample
+
+			sound_free_sample(newsample);
+			BLI_remlink(samples, newsample);
+			MEM_freeN(newsample);
+		}
+	}
+
+	allqueue(REDRAWBUTSSCENE, 0);
+
+}
+
+
+void do_soundbuts(unsigned short event)
+{
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+	bSound *sound;
+	bSample *sample;
+	bSound* tempsound;
+	ID *id;
+	
+	sound = G.buts->lockpoin;
+	
+	switch(event) {
+	case B_SOUND_REDRAW:
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
+
+	case B_SOUND_LOAD_SAMPLE:
+		if (sound) strcpy(name, sound->name);
+		else strcpy(name, U.sounddir);
+			
+		activate_fileselect(FILE_SPECIAL, "SELECT WAV FILE", name, load_new_sample);
+		break;
+
+	case B_SOUND_PLAY_SAMPLE:
+		if (sound) {
+			if (sound->sample->type != SAMPLE_INVALID) {
+				sound_play_sound(sound);
+				allqueue(REDRAWBUTSSCENE, 0);
+			}
+		}
+		break;
+
+	case B_SOUND_MENU_SAMPLE: 
+		if (G.buts->menunr == -2) {
+			if (sound) {
+				activate_databrowse((ID *)sound->sample, ID_SAMPLE, 0, B_SOUND_MENU_SAMPLE, &G.buts->menunr, do_soundbuts);
+			}
+		} else if (G.buts->menunr > 0) {
+			sample = BLI_findlink(samples, G.buts->menunr - 1);
+			if (sample && sound) {
+				BLI_strncpy(sound->name, sample->name, sizeof(sound->name));
+				sound_set_sample(sound, sample);
+				do_soundbuts(B_SOUND_REDRAW);
+			}
+		}
+			
+		break;
+	case B_SOUND_NAME_SAMPLE:
+		load_new_sample(sound->name);
+		break;
+	
+	case B_SOUND_UNPACK_SAMPLE:
+		if(sound && sound->sample) {
+			sample = sound->sample;
+			
+			if (sample->packedfile) {
+				if (G.fileflags & G_AUTOPACK) {
+					if (okee("Disable AutoPack ?")) {
+						G.fileflags &= ~G_AUTOPACK;
+					}
+				}
+				
+				if ((G.fileflags & G_AUTOPACK) == 0) {
+					unpackSample(sample, PF_ASK);
+				}
+			} else {
+				sound_set_packedfile(sample, newPackedFile(sample->name));
+			}
+			allqueue(REDRAWHEADERS, 0);
+			do_soundbuts(B_SOUND_REDRAW);
+		}
+		break;
+
+	case B_SOUND_COPY_SOUND:
+		if (sound) {
+			tempsound = sound_make_copy(sound);
+			sound = tempsound;
+			id = &sound->id;
+			G.buts->lockpoin = (bSound*)id;
+			do_soundbuts(B_SOUND_REDRAW);
+		}
+		break;
+
+	case B_SOUND_RECALC:
+		waitcursor(1);
+		sound = G.main->sound.first;
+		while (sound) {
+			MEM_freeN(sound->stream);
+			sound->stream = 0;
+			audio_makestream(sound);
+			sound = (bSound *) sound->id.next;
+		}
+		waitcursor(0);
+		allqueue(REDRAWSEQ, 0);
+		break;
+
+	case B_SOUND_RATECHANGED:
+
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWSEQ, 0);
+		break;
+
+	case B_SOUND_MIXDOWN:
+		audio_mixdown();
+		break;
+
+	default: 
+		if (G.f & G_DEBUG) {
+			printf("do_soundbuts: unhandled event %d\n", event);
+		}
+	}
+}
+
+
+static void sound_panel_listener()
+{
+	uiBlock *block;
+	int xco= 100, yco=100, mixrate;
+	char mixrateinfo[256];
+	
+	block= uiNewBlock(&curarea->uiblocks, "sound_panel_listener", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Listener", "Sound", 320, 0, 318, 204)==0) return;
+
+	uiBlockSetCol(block, BUTGREY);
+	mixrate = sound_get_mixrate();
+	sprintf(mixrateinfo, "Game Mixrate: %d Hz", mixrate);
+	uiDefBut(block, LABEL, 0, mixrateinfo, xco,yco,295,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 30;
+	uiDefBut(block, LABEL, 0, "Game listener settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 30;
+	uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Volume: ",
+		xco,yco,195,24,&G.listener->gain, 0.0, 1.0, 1.0, 0, "Sets the maximum volume for the overall sound");
+	
+	yco -= 30;
+	uiDefBut(block, LABEL, 0, "Game Doppler effect settings:",xco,yco,195,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 30;
+	uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Doppler: ",
+	xco,yco,195,24,&G.listener->dopplervelocity, 0.0, 10.0, 1.0, 0, "Use this for scaling the doppler effect");
+
+	
+}
+
+static void sound_panel_sequencer()
+{
+	uiBlock *block;
+	short xco, yco;
+	char mixrateinfo[256];
+	
+	block= uiNewBlock(&curarea->uiblocks, "sound_panel_sequencer", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Sequencer", "Sound", 640, 0, 318, 204)==0) return;
+
+	/* audio sequence engine settings ------------------------------------------------------------------ */
+
+	xco = 1010;
+	yco = 195;
+
+	uiDefBut(block, LABEL, 0, "Audio sequencer settings", xco,yco,295,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 25;
+	sprintf(mixrateinfo, "Mixing/Sync (latency: %d ms)", (int)( (((float)U.mixbufsize)/(float)G.scene->audio.mixrate)*1000.0 ) );
+	uiDefBut(block, LABEL, 0, mixrateinfo, xco,yco,295,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 25;		
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButI(block, ROW, B_SOUND_RATECHANGED, "44.1 kHz",	xco,yco,75,20, &G.scene->audio.mixrate, 2.0, 44100.0, 0, 0, "Mix at 44.1 kHz");
+	uiDefButI(block, ROW, B_SOUND_RATECHANGED, "48.0 kHz",		xco+80,yco,75,20, &G.scene->audio.mixrate, 2.0, 48000.0, 0, 0, "Mix at 48 kHz");
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block, BUT, B_SOUND_RECALC, "Recalc",		xco+160,yco,75,20, 0, 0, 0, 0, 0, "Recalculate samples");
+
+	yco -= 25;
+	uiBlockSetCol(block, BUTGREEN);
+	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	xco,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
+	uiDefButS(block, TOG|BIT|2, B_SOUND_CHANGED, "Scrub",		xco+120,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Scrub when changing frames");
+
+	yco -= 25;
+	uiDefBut(block, LABEL, 0, "Main mix", xco,yco,295,20, 0, 0, 0, 0, 0, "");
+
+	yco -= 25;		
+	uiBlockSetCol(block, BUTGREY);
+	uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Main (dB): ",
+		xco,yco,235,24,&G.scene->audio.main, -24.0, 6.0, 0, 0, "Set the audio master gain/attenuation in dB");
+
+	yco -= 25;
+	uiDefButS(block, TOG|BIT|0, 0, "Mute",	xco,yco,235,24, &G.scene->audio.flag, 0, 0, 0, 0, "Mute audio from sequencer");		
+	
+	yco -= 35;
+	uiBlockSetCol(block, BUTSALMON);
+	uiDefBut(block, BUT, B_SOUND_MIXDOWN, "MIXDOWN",	xco,yco,235,24, 0, 0, 0, 0, 0, "Create WAV file from sequenced audio");
+	
+}
+
+static void sound_panel_sound(bSound *sound)
+{
+	static int packdummy=0;
+	ID *id, *idfrom;
+	uiBlock *block;
+	bSample *sample;
+	char *strp, str[32], ch[256];
+
+	block= uiNewBlock(&curarea->uiblocks, "sound_panel_sound", UI_EMBOSSX, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Sound", "Sound", 0, 0, 318, 204)==0) return;
+	
+	uiDefBut(block, LABEL, 0, "Blender Sound block",10,180,195,20, 0, 0, 0, 0, 0, "");
+	
+	// warning: abuse of texnr here! (ton didnt code!)
+	buttons_active_id(&id, &idfrom);
+	std_libbuttons(block, 10, 160, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
+
+	uiDefBut(block, BUT, B_SOUND_COPY_SOUND, "Copy sound", 220,160,90,20, 0, 0, 0, 0, 0, "Make another copy (duplicate) of the current sound");
+
+	if (sound) {
+	
+		uiSetButLock(sound->id.lib!=0, "Can't edit library data");
+		sound_initialize_sample(sound);
+		sample = sound->sample;
+
+		/* info string */
+		if (sound->sample && sound->sample->len) {
+			if (sound->sample->channels == 1) strcpy(ch, "Mono");
+			else if (sound->sample->channels == 2) strcpy(ch, "Stereo");
+			else strcpy(ch, "Unknown");
+			
+			sprintf(ch, "Sample: %s, %d bit, %d Hz, %d samples", ch, sound->sample->bits, sound->sample->rate, (sound->sample->len/(sound->sample->bits/8)/sound->sample->channels));
+			uiDefBut(block, LABEL, 0, ch, 			35,140,225,20, 0, 0, 0, 0, 0, "");
+		}
+		else {
+			uiDefBut(block, LABEL, 0, "Sample: No sample info available.",35,140,225,20, 0, 0, 0, 0, 0, "");
+		}
+
+		/* sample browse buttons */
+
+		id= (ID *)sound->sample;
+		IDnames_to_pupstring(&strp, NULL, NULL, samples, id, &(G.buts->menunr));
+		if (strp[0]) uiDefButS(block, MENU, B_SOUND_MENU_SAMPLE, strp, 10,120,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Select another loaded sample");
+		MEM_freeN(strp);
+		
+		uiDefBut(block, TEX, B_SOUND_NAME_SAMPLE, "",		35,120,225,20, sound->name, 0.0, 79.0, 0, 0, "The sample file used by this Sound");
+		
+		sprintf(str, "%d", sample->id.us);
+		uiDefBut(block, BUT, B_SOUND_UNLINK_SAMPLE, str,	260,120,25,20, 0, 0, 0, 0, 0, "The number of users");
+		
+		if (sound->sample->packedfile) packdummy = 1;
+		else packdummy = 0;
+		
+		uiDefIconButI(block, TOG|BIT|0, B_SOUND_UNPACK_SAMPLE, ICON_PACKAGE,
+			285, 120,25,24, &packdummy, 0, 0, 0, 0,"Pack/Unpack this sample");
+		
+		uiBlockSetCol(block, BUTSALMON);
+		uiDefBut(block, BUT, B_SOUND_LOAD_SAMPLE, "Load sample", 10, 95,150,24, 0, 0, 0, 0, 0, "Load a different sample file");
+
+		uiBlockSetCol(block, BUTPURPLE);
+		uiDefBut(block, BUT, B_SOUND_PLAY_SAMPLE, "Play", 	160, 95, 150, 24, 0, 0.0, 0, 0, 0, "Playback sample using settings below");
+		
+
+		uiBlockSetCol(block, BUTGREY);
+		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Volume: ",
+			10,70,150,20, &sound->volume, 0.0, 1.0, 0, 0, "Set the volume of this sound");
+
+		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Pitch: ",
+			160,70,150,20, &sound->pitch, -12.0, 12.0, 0, 0, "Set the pitch of this sound");
+
+		/* looping */
+		uiBlockSetCol(block, BUTGREEN);
+		uiDefButI(block, TOG|BIT|SOUND_FLAGS_LOOP_BIT, B_SOUND_REDRAW, "Loop",
+			10, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Toggle between looping on/off");
+
+		if (sound->flags & SOUND_FLAGS_LOOP) {
+			uiDefButI(block, TOG|BIT|SOUND_FLAGS_BIDIRECTIONAL_LOOP_BIT, B_SOUND_REDRAW, "Ping Pong",
+				105, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Toggle between A->B and A->B->A looping");
+			
+		}
+	
+
+		/* 3D settings ------------------------------------------------------------------ */
+
+		if (sound->sample->channels == 1) {
+			uiBlockSetCol(block, BUTGREEN);
+			uiDefButI(block, TOG|BIT|SOUND_FLAGS_3D_BIT, B_SOUND_REDRAW, "3D Sound",
+				10, 10, 90, 20, &sound->flags, 0, 0, 0, 0, "Turns 3D sound on");
+			
+			if (sound->flags & SOUND_FLAGS_3D) {
+				uiBlockSetCol(block, BUTGREY);
+				uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Scale: ",
+					100,10,210,20, &sound->attenuation, 0.0, 5.0, 1.0, 0, "Sets the surround scaling factor for this sound");
+				
+			}
+		}
+	}
+}
+
+
+/* ************************* SCENE *********************** */
 
 
 static void output_pic(char *name)
@@ -929,9 +1270,14 @@ void anim_panels()
 
 void sound_panels()
 {
+	bSound *sound;
+	
+	sound = G.buts->lockpoin;
+	if ((sound) && (sound->flags & SOUND_FLAGS_SEQUENCE)) sound = NULL;
 
-
-
+	sound_panel_sound(sound);
+	sound_panel_listener();
+	sound_panel_sequencer();
 }
 
 

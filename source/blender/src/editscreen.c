@@ -291,7 +291,7 @@ void areawinset(short win)
 }
 
 #define SCR_BACK 0.55
-#define SCR_ROUND 9
+#define SCR_ROUND 12
 
 void headerbox(ScrArea *area)
 {
@@ -306,11 +306,11 @@ void headerbox(ScrArea *area)
 	/* weird values here... is because of window matrix that centres buttons */
 	if(area->headertype==HEADERTOP) {
 		uiSetRoundBox(3);
-		uiRoundBoxEmboss(-0.5+area->headbutofs, -10.0, width-1.5+area->headbutofs, HEADERY-1, SCR_ROUND);
+		uiRoundBoxEmboss(-0.5+area->headbutofs, -10.0, width-1.5+area->headbutofs, HEADERY-2.0, SCR_ROUND);
 	}
 	else {
 		uiSetRoundBox(12);
-		uiRoundBoxEmboss(-0.5+area->headbutofs, -2.0, width-1.5+area->headbutofs, HEADERY+10, SCR_ROUND);
+		uiRoundBoxEmboss(-0.5+area->headbutofs, -3.5, width-1.5+area->headbutofs, HEADERY+10, SCR_ROUND);
 	}
 	
 	uiSetRoundBox(15);
@@ -356,9 +356,9 @@ void scrarea_do_headchange(ScrArea *area)
 	float ofs= area->headbutofs;
 
 	if (area->headertype==HEADERDOWN) {
-		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -2.5, area->headrct.ymax-area->headrct.ymin-2.5);
+		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -3.5, area->headrct.ymax-area->headrct.ymin-3.5);
 	} else if (area->headertype==HEADERTOP) {
-		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -1.5, area->headrct.ymax-area->headrct.ymin-1.5);
+		bwin_ortho2(area->headwin, -0.5+ofs, area->headrct.xmax-area->headrct.xmin-0.5+ofs, -2.5, area->headrct.ymax-area->headrct.ymin-2.5);
 	}
 }
 

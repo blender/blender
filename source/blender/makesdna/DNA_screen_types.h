@@ -123,7 +123,7 @@ typedef struct ScrArea {
 #define EDGEWIDTH2	0
 #define AREAGRID	4
 #define AREAMINX	32
-#define HEADERY		24
+#define HEADERY		26
 #define AREAMINY	(HEADERY+EDGEWIDTH)
 
 #define HEADERDOWN	1

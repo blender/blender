@@ -1755,13 +1755,63 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 static void editing_panel_materials(Object *ob)
 {
 	uiBlock *block;
-	int *poin;
+	ID *id, *idfrom;
+	int *poin, xco=143;
 	float min;
 	Material *ma;
 	char str[64];
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_materials", UI_EMBOSSX, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Materials", "Editing", 0, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Link and Materials", "Editing", 0, 0, 318, 204)==0) return;
+
+	buttons_active_id(&id, &idfrom);
+	
+	if(id) {
+		int alone= 0;
+		int local= 0;
+		int browse= B_EDITBROWSE;
+
+		if(ob->type==OB_MESH) {
+			browse= B_MESHBROWSE;
+			alone= B_MESHALONE;
+			local= B_MESHLOCAL;
+			uiSetButLock(G.obedit!=0, "Unable to perform function in EditMode");
+		}
+		else if(ob->type==OB_MBALL) {
+			alone= B_MBALLALONE;
+			local= B_MBALLLOCAL;
+		}
+		else if ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF) {
+			alone= B_CURVEALONE;
+			local= B_CURVELOCAL;
+		}
+		else if(ob->type==OB_CAMERA) {
+			alone= B_CAMERAALONE;
+			local= B_CAMERALOCAL;
+		}
+		else if(ob->type==OB_LAMP) {
+			alone= B_LAMPALONE;
+			local= B_LAMPLOCAL;
+		}
+		else if (ob->type==OB_ARMATURE){
+			alone = B_ARMALONE;
+			local = B_ARMLOCAL;
+		}
+		else if(ob->type==OB_LATTICE) {
+			alone= B_LATTALONE;
+			local= B_LATTLOCAL;
+		}
+		uiBlockSetCol(block, BUTPURPLE);
+		xco= std_libbuttons(block, 143, 180, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
+			
+	}
+	if(ob) {
+		uiBlockSetCol(block, BUTGREY);
+		uiBut *but= uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
+		uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
+	}
+
+
 
 	/* to be sure */
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
@@ -1771,7 +1821,7 @@ static void editing_panel_materials(Object *ob)
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
 	else poin= &( ((Curve *)ob->data)->texflag );
-	uiDefButI(block, TOG|BIT|0, B_AUTOTEX, "AutoTexSpace",	143,180,130,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
+	uiDefButI(block, TOG|BIT|0, B_AUTOTEX, "AutoTexSpace",	143,15,130,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
 
 	sprintf(str,"%d Mat:", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;

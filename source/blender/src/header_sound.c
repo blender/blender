@@ -153,8 +153,7 @@ void do_sound_buttons(unsigned short event)
 			if (idtest != id) {
 				G.buts->lockpoin = (bSound *)idtest;
 				if(idtest->us==0) idtest->us= 1;
-				//allqueue(REDRAWBUTSSOUND, 0);
-				BIF_preview_changed(G.buts);
+				allqueue(REDRAWBUTSSCENE, 0);
 			}
 		}
 		break;

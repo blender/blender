@@ -56,10 +56,12 @@ extern void render_panels(void);
 extern void do_render_panels(unsigned short event);
 extern void anim_panels(void);
 extern void sound_panels(void);
+extern void do_soundbuts(unsigned short event);
 
 /* object */
 extern void object_panels(void);
 extern void do_object_panels(unsigned short event);
+extern void do_constraintbuts(unsigned short event);
 
 
 /* editing */

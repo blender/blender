@@ -340,8 +340,10 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 				if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 				uiDefButS(block, MENU, browse, "ADD NEW %x 32767",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
 				uiClearButLock();
-//			} else if (G.buts->mainb == BUTS_SOUND) {
-//				uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+			} else if (G.buts->mainb == CONTEXT_SCENE) {
+				if(G.buts->tab[CONTEXT_SCENE]== TAB_SCENE_SOUND) {
+					uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
+				}
 			}
 		}
 		else if(curarea->spacetype==SPACE_TEXT) {
