@@ -3337,8 +3337,15 @@ static void ui_set_but_val(uiBut *but, double value)
 	}
 	else if( but->pointype==CHA )
 		*((char *)poin)= (char)value;
-	else if( but->pointype==SHO )
-		*((short *)poin)= (short)value;
+	else if( but->pointype==SHO ) {
+		/* gcc 3.2.1 seems to have problems 
+		 * casting a double like 32772.0 to
+		 * a short so we cast to an int, then 
+		 to a short */
+		int gcckludge;
+		gcckludge = (int) value;
+		*((short *)poin)= (short) gcckludge;
+	}
 	else if( but->pointype==INT )
 		*((int *)poin)= (int)value;
 	else if( but->pointype==FLO )
