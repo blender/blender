@@ -6578,7 +6578,7 @@ void renderbuts(void)
 #ifdef WITH_QUICKTIME
 #if defined (_WIN32) || defined (__APPLE__)
 			if(!have_qtcodec)
-				uiDefBut(block, LABEL, 0, "Codec: undefined",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Codec: not set",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
 			else
 				uiDefBut(block, LABEL, 0, qtcdname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
@@ -6600,7 +6600,7 @@ void renderbuts(void)
 #endif /* WITH_QUICKTIME */
 		} else {
 #ifdef _WIN32
-			if(G.scene->r.avicodecdata->avicodecname[0] == NULL)
+			if(G.scene->r.avicodecdata == NULL)
 				uiDefBut(block, LABEL, 0, "Codec: not set.",  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");
 			else
 				uiDefBut(block, LABEL, 0, G.scene->r.avicodecdata->avicodecname,  892,yofs+42,225,20, 0, 0, 0, 0, 0, "");

@@ -574,6 +574,10 @@ void window_raise(Window *win) {
 
 #ifdef _WIN32	//FULLSCREEN
 void window_toggle_fullscreen(Window *win, int fullscreen) {
+	/* these two lines make sure front and backbuffer are equal. for swapbuffers */
+	markdirty_all();
+	screen_swapbuffers();
+
 	if(fullscreen)
 		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateFullScreen);
 	else
