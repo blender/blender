@@ -135,14 +135,22 @@ static int is_stl(char *str);
 static int is_stl_ascii(char *str)
 {	
 	FILE *fpSTL;
-	char solid[6];
+	unsigned char buffer[1000];
+	int  numread, i;
 
-	fpSTL = fopen(str, "r");
-	if (!fgets(solid, 6, fpSTL)) { fclose(fpSTL); return 0; }
-	solid[5] = '\0';
+	fpSTL = fopen(str, "rb");
+	if ( (numread = fread( (void *) buffer, sizeof(char), 1000, fpSTL)) <= 0 )
+	  { fclose(fpSTL); return 0; }
 
-	if ( !(strstr(solid, "solid")) 
-		 && !(strstr(solid, "SOLID")) ) { fclose(fpSTL); return 0; }
+	for (i=0; i < numread; ++i) {
+	  /* if bit 8 is set we assume binary */
+	  if (buffer[i] & 0x80)
+		{ fclose(fpSTL); return 0; }
+	}
+
+	buffer[5] = '\0';
+	if ( !(strstr(buffer, "solid")) && !(strstr(buffer, "SOLID")) ) 
+	  { fclose(fpSTL); return 0; }
 
 	fclose(fpSTL);
 	
