@@ -283,6 +283,9 @@ static void do_ipo_editmenu(void *arg, int event)
 	case 3:
 		mainqenter(IKEY, 1);
 		break;
+	case 4 :
+		add_blockhandler(curarea, IPO_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
+		break;
 	}
 }
 
@@ -298,6 +301,9 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_ipo_editmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	if (!G.sipo->showkey){
 		uiDefIconTextBlockBut(block, ipo_editmenu_extendmenu, NULL, ICON_RIGHTARROW_THIN, "Extend Mode", 0, yco-=20, 120, 19, "");	

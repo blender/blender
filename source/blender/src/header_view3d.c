@@ -1056,7 +1056,7 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 		break;
 
 	case 15: /* Object Panel */
-		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, 0);
+		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
