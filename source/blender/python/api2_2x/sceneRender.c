@@ -29,9 +29,6 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
-#ifdef WIN32
-#include <BLI_winstuff.h>
-#endif
 
 #include <BIF_renderwin.h>
 #include <BKE_utildefines.h>

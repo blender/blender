@@ -50,6 +50,9 @@
 #endif   
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
 #include "BKE_utildefines.h"
 
 #include "MTC_matrixops.h"

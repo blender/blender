@@ -34,7 +34,14 @@
 #pragma warning(once: 4761 4305 4244 4018)
 
 #define WIN32_LEAN_AND_MEAN
+
+#ifndef WIN32_SKIP_HKEY_PROTECTION
+#define HKEY WIN32_HKEY				// prevent competing definitions
 #include <windows.h>
+#undef HKEY
+#else
+#include <windows.h>
+#endif
 
 #undef near
 #undef far
@@ -55,10 +62,20 @@
 #ifndef __WINSTUFF_H__
 #define __WINSTUFF_H__
 
+	// These definitions are also in arithb for simplicity
+
+#ifndef M_PI
 #define M_PI		3.14159265358979323846
+#endif
+#ifndef M_PI_2
 #define M_PI_2		1.57079632679489661923
+#endif
+#ifndef M_SQRT2
 #define M_SQRT2		1.41421356237309504880
+#endif
+#ifndef M_SQRT1_2
 #define M_SQRT1_2	0.70710678118654752440
+#endif
 
 #define MAXPATHLEN MAX_PATH
 

@@ -44,6 +44,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_util.h"
+#define WIN32_SKIP_HKEY_PROTECTION		// need to use HKEY
 #include "BLI_winstuff.h"
 
 #include "BKE_utildefines.h" /* FILE_MAXDIR + FILE_MAXFILE */

@@ -45,11 +45,6 @@
 extern "C" { 
 #endif
 
-/* For #undefs of stupid windows defines */
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Types                                                                     */
 /* Both external and internal types can be placed here. Make sure there are  */

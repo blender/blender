@@ -41,6 +41,9 @@
 
 #define  INC_OLE2
 #include <windows.h>
+#undef rad1
+#undef rad2
+
 #include <windowsx.h>
 #include <memory.h>
 #include <mmsystem.h>

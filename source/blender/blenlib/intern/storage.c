@@ -37,7 +37,6 @@
 #include <stdlib.h>	
 
 #ifdef WIN32
-#include <windows.h>
 #include "BLI_winstuff.h"
 #include <sys/types.h>
 #include <io.h>
