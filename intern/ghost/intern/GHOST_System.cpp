@@ -273,7 +273,7 @@ GHOST_TSuccess GHOST_System::init()
 	m_eventManager = new GHOST_EventManager ();
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
-		//m_eventManager->addConsumer(&m_eventPrinter);
+		m_eventManager->addConsumer(&m_eventPrinter);
 	}
 #endif // GHOST_DEBUG
 
