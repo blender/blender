@@ -5078,7 +5078,7 @@ void transform(int mode)
     								}
 
     							}
-    							}
+    						}
 							
 							if(G.vd->around!=V3D_LOCAL && (!G.obpose))  {
 								float vec[3];	// make local, the other vec stores rot axis
@@ -5319,7 +5319,11 @@ void transform(int mode)
     								tob->size[2]= (tob->oldsize[2]+tob->olddsize[2])*sizelo[2] -tob->olddsize[2];
     							}
 							}
-							
+							else{  //to make the scaling header update correctly if ob centers only is on
+    								sizelo[0]= size[0];
+    								sizelo[1]= size[1];
+    								sizelo[2]= size[2];
+							}
 							if(G.vd->around!=V3D_LOCAL && !G.obpose) {
 								/* translation */
 								VecSubf(vec, tob->obvec, centre);
