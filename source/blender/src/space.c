@@ -570,20 +570,21 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				mouse_cursor();
 				break;
 			case MIDDLEMOUSE:
+				/* use '&' here, because of alt+leftmouse which emulates middlemouse */
 				if(U.flag & VIEWMOVE) {
-					if((G.qual==LR_SHIFTKEY))
+					if((G.qual & LR_SHIFTKEY))
 						viewmove(0);
-					else if(G.qual==LR_CTRLKEY)
+					else if(G.qual & LR_CTRLKEY)
 						viewmove(2);
-					else if((G.qual==0))
+					else
 						viewmove(1);
 				}
 				else {
-					if((G.qual==LR_SHIFTKEY))
+					if((G.qual & LR_SHIFTKEY))
 						viewmove(1);
-					else if(G.qual==LR_CTRLKEY)
+					else if(G.qual & LR_CTRLKEY)
 						viewmove(2);
-					else if((G.qual==0))
+					else
 						viewmove(0);
 				}
 				break;
@@ -702,20 +703,21 @@ void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case MIDDLEMOUSE:
+				/* use '&' here, because of alt+leftmouse which emulates middlemouse */
 				if(U.flag & VIEWMOVE) {
-					if((G.qual==LR_SHIFTKEY))
+					if((G.qual & LR_SHIFTKEY))
 						viewmove(0);
-					else if(G.qual==LR_CTRLKEY)
+					else if(G.qual & LR_CTRLKEY)
 						viewmove(2);
-					else if((G.qual==0))
+					else
 						viewmove(1);
 				}
 				else {
-					if((G.qual==LR_SHIFTKEY))
+					if((G.qual & LR_SHIFTKEY))
 						viewmove(1);
-					else if(G.qual==LR_CTRLKEY)
+					else if(G.qual & LR_CTRLKEY)
 						viewmove(2);
-					else if((G.qual==0))
+					else
 						viewmove(0);
 				}
 				break;
