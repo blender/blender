@@ -736,9 +736,9 @@ void snap_sel_to_grid()
 			tottrans= 0;
 			
 #ifdef __NLA
-			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #else
-			if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #endif
 			if(tottrans==0) return;
 
@@ -824,9 +824,9 @@ void snap_sel_to_curs()
 		if(G.obedit) {
 			tottrans= 0;
 #ifdef __NLA
-			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #else
-			if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #endif
 			if(tottrans==0) return;
 
@@ -927,9 +927,9 @@ void snap_curs_to_sel()
 		if(G.obedit) {
 			tottrans=0;
 #ifdef __NLA
-			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #else
-			if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MABLL) make_trans_verts(bmat[0], bmat[1], 0);
 #endif
 			if(tottrans==0) return;
 
@@ -1000,9 +1000,9 @@ void snap_curs_to_firstsel()
 		if(G.obedit) {
 			tottrans=0;
 #ifdef __NLA
-			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #else
-			if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #endif
 			if(tottrans==0) return;
 
@@ -1073,9 +1073,9 @@ void snap_to_center()
 		if(G.obedit) {
 			tottrans= 0;
 #ifdef __NLA
-			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #else
-			if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #endif
 			if(tottrans==0) return;
 
@@ -1135,9 +1135,9 @@ void snap_to_center()
 		if(G.obedit) {
 			tottrans= 0;
 #ifdef __NLA
-			if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #else
-			if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
+			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
 #endif
 			if(tottrans==0) return;
 
@@ -1160,7 +1160,7 @@ void snap_to_center()
 			MEM_freeN(transvmain);
 			transvmain= 0;
 
-			if ELEM(G.obedit->type, OB_SURF, OB_CURVE) makeDispList(G.obedit);
+			if ELEM4(G.obedit->type, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) makeDispList(G.obedit);
 
 			special_trans_update(0);
 
