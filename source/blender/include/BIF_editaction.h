@@ -43,6 +43,8 @@ void delete_meshchannel_keys(struct Key *key);
 void delete_actionchannel_keys(void);
 void duplicate_meshchannel_keys(struct Key *key);
 void duplicate_actionchannel_keys(void);
+void transform_actionchannel_keys(char mode);
+void transform_meshchannel_keys(char mode, Key *key);
 
 /* Handles */
 void sethandles_meshchannel_keys(int code, struct Key *key);

@@ -1994,7 +1994,17 @@ void clever_numbuts_seq(void)
 	}
 }
 
-void seq_snapmenu(void)
+void seq_snap_menu(void)
+{
+	short event;
+	
+	event= pupmenu("Snap %t|To Current Frame%x1");
+	if(event < 1) return;
+
+	seq_snap(event);
+}
+
+void seq_snap(short event)
 {
 	Editing *ed;
 	Sequence *seq;
@@ -2002,10 +2012,6 @@ void seq_snapmenu(void)
 	
 	ed= G.scene->ed;
 	if(ed==0) return;
-	
-	event= pupmenu("Snap %t|Seq to frame%x1");
-	
-	if(event<1) return;
 
 	/* problem: contents of meta's are all shifted to the same position... */
 

@@ -113,8 +113,6 @@ static void mouse_action(int selectmode);
 static void mouse_mesh_action(int selectmode, Key *key);
 static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **conchan);
 static void delete_actionchannels(void);
-static void transform_actionchannel_keys(char mode);
-static void transform_meshchannel_keys(char mode, Key *key);
 static void select_poseelement_by_name (char *name, int select);
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time);
@@ -1108,7 +1106,7 @@ bAction *add_empty_action(void)
 	return act;
 }
 
-static void transform_actionchannel_keys(char mode)
+void transform_actionchannel_keys(char mode)
 {
 	bAction	*act;
 	TransVert *tv;
@@ -1282,7 +1280,7 @@ static void transform_actionchannel_keys(char mode)
 	MEM_freeN (tv);
 }
 
-static void transform_meshchannel_keys(char mode, Key *key)
+void transform_meshchannel_keys(char mode, Key *key)
 {
 	/* this is the function that determines what happens
 	 * to those little blocky rvk key things you have selected 

@@ -90,7 +90,6 @@
 /* Note: A lot of these pretty much duplicate the behaviour of the
 action windows.  The functions should be shared, not copy-pasted */
 
-static void transform_nlachannel_keys(char mode);
 static void mouse_nla(int selectmode);
 static Base *get_nearest_nlachannel_ob_key (float *index, short *sel);
 static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel);
@@ -720,7 +719,7 @@ void deselect_nlachannel_keys (int test)
 }
 
 
-static void transform_nlachannel_keys(char mode)
+void transform_nlachannel_keys(char mode)
 {
 	Base *base;
 	TransVert *tv;

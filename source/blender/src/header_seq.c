@@ -284,7 +284,6 @@ static uiBlock *seq_addmenu(void *arg_unused)
 	return block;
 }
 
-
 static void do_seq_editmenu(void *arg, int event)
 {
 	SpaceSeq *sseq;
@@ -311,9 +310,6 @@ static void do_seq_editmenu(void *arg, int event)
 	case 6: /* Delete */
 		del_seq();
 		break;
-	case 7: /* Snap menu */
-		seq_snapmenu();
-		break;
 	case 8:
 		set_filter_seq();
 		break;
@@ -323,6 +319,12 @@ static void do_seq_editmenu(void *arg, int event)
 	case 10:
 		exit_meta();
 		break;
+	case 11: /* grab/move */
+		transform_seq('g');
+		break;
+	case 12: /* Snap to Current Frame */
+		seq_snap(event);
+	    break;
 	}
 }
 
@@ -337,7 +339,8 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "seq_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_editmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap...|Shift S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap to Current Frame|Shift S, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

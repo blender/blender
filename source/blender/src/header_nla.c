@@ -237,6 +237,37 @@ static void do_nla_stripmenu(void *arg, int event)
 	}
 }
 
+static void do_nla_strip_transformmenu(void *arg, int event)
+{
+	switch(event) {
+	case 0: /* grab/move */
+		transform_nlachannel_keys ('g');
+			update_for_newframe_muted();
+		break;
+	case 1: /* scale */
+		transform_nlachannel_keys ('s');
+			update_for_newframe_muted();
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *nla_strip_transformmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "nla_strip_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_nla_strip_transformmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static uiBlock *nla_stripmenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -246,6 +277,7 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_nla_stripmenu, NULL);
 
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, nla_strip_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
 	
 	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

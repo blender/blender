@@ -99,6 +99,9 @@
 #define ACTMENU_KEY_DELETE        1
 #define ACTMENU_KEY_BAKE          2
 
+#define ACTMENU_KEY_TRANSFORM_MOVE	0
+#define ACTMENU_KEY_TRANSFORM_SCALE	1
+
 #define ACTMENU_KEY_HANDLE_AUTO   0
 #define ACTMENU_KEY_HANDLE_ALIGN  1
 #define ACTMENU_KEY_HANDLE_FREE   2
@@ -378,6 +381,56 @@ static uiBlock *action_selectmenu(void *arg_unused)
 	return block;
 }
 
+static void do_action_keymenu_transformmenu(void *arg, int event)
+{
+	Key *key;
+	key = get_action_mesh_key();
+
+	switch(event)
+	{
+		case ACTMENU_KEY_TRANSFORM_MOVE:
+			if (key) {
+					transform_meshchannel_keys('g', key);
+			} else {
+					transform_actionchannel_keys ('g');
+			}
+			break;
+		case ACTMENU_KEY_TRANSFORM_SCALE:
+			if (key) {
+					transform_meshchannel_keys('s', key);
+			} else {
+					transform_actionchannel_keys ('s');
+			}
+			break;
+	}
+
+	scrarea_queue_winredraw(curarea);
+}
+
+static uiBlock *action_keymenu_transformmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_keymenu_transformmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_keymenu_transformmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Grab/Move|G", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_TRANSFORM_MOVE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Scale|S", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_TRANSFORM_SCALE, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
 static void do_action_keymenu_handlemenu(void *arg, int event)
 {
 	Key *key;
@@ -561,15 +614,22 @@ static uiBlock *action_keymenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "action_keymenu", 
 					  UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_action_keymenu, NULL);
+	
+	uiDefIconTextBlockBut(block, action_keymenu_transformmenu, 
+					NULL, ICON_RIGHTARROW_THIN, 
+					"Transform", 0, yco-=20, 120, 20, "");
+						  
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Duplicate|Shift D", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_DUPLICATE, "");
+					"Duplicate|Shift D", 0, yco-=20, 
+					menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					ACTMENU_KEY_DUPLICATE, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Delete|X", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_DELETE, "");
+					"Delete|X", 0, yco-=20, 
+					menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					ACTMENU_KEY_DELETE, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

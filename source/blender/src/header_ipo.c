@@ -88,6 +88,36 @@ static int viewmovetemp = 0;
 extern int totipo_edit, totipo_sel;
 
 
+static void do_ipo_editmenu_transformmenu(void *arg, int event)
+{
+	switch(event)
+	{
+	case 0: /* grab/move */
+		transform_ipo('g');
+		break;
+	case 1: /* scale */
+		transform_ipo('s');
+		break;
+	}
+}
+
+static uiBlock *ipo_editmenu_transformmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_transformmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
 static void do_ipo_editmenu_snapmenu(void *arg, int event)
 {
 	switch(event) {
@@ -370,6 +400,9 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_ipo_editmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	
+	uiDefIconTextBlockBut(block, ipo_editmenu_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");	
+	
 	uiDefIconTextBlockBut(block, ipo_editmenu_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");	
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	

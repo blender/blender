@@ -206,6 +206,43 @@ static uiBlock *oops_selectmenu(void *arg_unused)
 	return block;
 }
 
+static void do_oops_blockmenu(void *arg, int event)
+{	
+	switch(event)
+	{
+	case 0: /* grab/move */
+		transform_oops('g');
+		break;
+	case 1: /* scale */
+		transform_oops('s');
+		break;
+	}
+}
+
+static uiBlock *oops_blockmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "oops_blockmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_oops_blockmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
 
 void oops_buttons(void)
 {	
@@ -254,6 +291,10 @@ void oops_buttons(void)
 		
 		xmax= GetButStringLength("Select");
 		uiDefBlockBut(block, oops_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Block");
+		uiDefBlockBut(block, oops_blockmenu, NULL, "Block", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
 	}

@@ -2993,7 +2993,7 @@ void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case SKEY:
 			if((G.qual==LR_SHIFTKEY))
-				seq_snapmenu();
+				seq_snap_menu();
 			break;
 		case TKEY:
 			if((G.qual==0))

@@ -39,6 +39,7 @@ void clever_numbuts_nla(void);
 void delete_nlachannel_keys(void);
 void delete_nlachannels(void);
 void duplicate_nlachannel_keys(void);
+void transform_nlachannel_keys(char mode);
 
 /* Select */
 void borderselect_nla(void);
