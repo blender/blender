@@ -716,6 +716,8 @@ void make_editMesh()
 				if(medge->flag & SELECT) eed->f |= SELECT;
 				if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
 				if(medge->flag & ME_HIDE) eed->h |= 1;
+				
+				EM_select_edge(efa, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
 			}
 
 		}

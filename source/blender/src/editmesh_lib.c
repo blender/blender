@@ -414,6 +414,9 @@ void EM_selectmode_set(void)
 
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		/* vertices -> edges -> faces */
+		for (eed= em->edges.first; eed; eed= eed->next) eed->f &= ~SELECT;
+		for (efa= em->faces.first; efa; efa= efa->next) efa->f &= ~SELECT;
+		
 		EM_select_flush();
 	}
 	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
