@@ -158,12 +158,14 @@ ifeq ($(INTERNATIONAL), true)
         ifeq ($(FREE_WINDOWS), true)
           COMLIB += $(NAN_GETTEXT)/lib/freegettext.a
           COMLIB += $(NAN_FTGL)/lib/libftgl.a
+		  COMLIB += $(NAN_SDL)/lib/libSDL.a
           #COMLIB += $(NAN_ICONV)/lib/freeiconv.a
         else
           COMLIB += $(NAN_GETTEXT)/lib/gnu_gettext.lib
           COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
           COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
           COMLIB += $(NAN_ICONV)/lib/iconv.lib
+		  COMLIB += $(NAN_SDL)/lib/SDL.lib
         endif
     else
         COMLIB += $(NAN_FTGL)/lib/libftgl.a

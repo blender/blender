@@ -77,8 +77,10 @@ all debug::
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
     ifeq ($(FREE_WINDOWS), true)
       export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
+	  export NAN_SDL ?= $(LCGDIR)/gcc/sdl
     else
       export NAN_FTGL ?= $(LCGDIR)/ftgl
+	  export NAN_SDL ?= $(LCGDIR)/sdl
     endif
 	export NAN_SDLLIBS ?= $(shell sdl-config --libs)
 	export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
