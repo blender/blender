@@ -492,7 +492,7 @@ static PyObject *Lattice_getPoint(BPy_Lattice *self, PyObject *args)
 //This function will not do anything if there are no children
 static PyObject *Lattice_applyDeform(BPy_Lattice *self)
 {
-	Object* ob;
+	//Object* ob; unused
 	Base *base;
 	Object *par;
 
@@ -511,7 +511,6 @@ static PyObject *Lattice_applyDeform(BPy_Lattice *self)
 		base= base->next;
 	}
 
-	
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -519,7 +518,7 @@ static PyObject *Lattice_applyDeform(BPy_Lattice *self)
 static PyObject *Lattice_insertKey(BPy_Lattice *self, PyObject *args)
 {
 	Lattice *lt;
-	int frame, oldfra;
+	int frame = -1, oldfra = -1;
 
 	if (!PyArg_ParseTuple(args, "i", &frame))
 		return (EXPP_ReturnPyObjError (PyExc_TypeError,
@@ -529,17 +528,18 @@ static PyObject *Lattice_insertKey(BPy_Lattice *self, PyObject *args)
 
 	//set the current frame
 	if (frame > 0) {
+		frame = EXPP_ClampInt (frame, 1, 18000);
 		oldfra = G.scene->r.cfra;
 		G.scene->r.cfra = frame;
 	}
-	else
-		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
-						"frame value has to be greater than 0"));
+//	else just use current frame, then
+//		return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
+//						"frame value has to be greater than 0"));
 
 	//insert a keybock for the lattice
 	insert_lattkey(lt);
 
-	G.scene->r.cfra = oldfra;
+	if (frame > 0) G.scene->r.cfra = oldfra;
 
 	Py_INCREF(Py_None);
 	return Py_None;

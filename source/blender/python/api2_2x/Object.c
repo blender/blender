@@ -1011,7 +1011,7 @@ static PyObject *Object_makeParent (BPy_Object *self, PyObject *args)
 {
 	PyObject	* list;
 	PyObject	* py_child;
-	BPy_Object	  * py_obj_child;
+	//BPy_Object	  * py_obj_child; unused
 	Object		* child;
 	Object		* parent;
 	int			  noninverse = 0;
