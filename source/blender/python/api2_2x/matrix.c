@@ -479,19 +479,23 @@ static PyObject * Matrix_repr (MatrixObject *self)
 }
 
 //no support for matrix[x][y] so have to return by sequence index
+//will return a row from the matrix to support previous API
+//compatability
 static PyObject * Matrix_item (MatrixObject *self, int i)
 {
-	int maxsize, x, y;
+	float *vec;
+	int x;
 
-	maxsize = self->colSize * self->rowSize;
-	if(i < 0 || i >= maxsize)
+	if(i < 0 || i >= self->rowSize)
 		return EXPP_ReturnPyObjError(PyExc_IndexError,
-			"array index out of range\n");
+			"matrix row index out of range\n");
 
-	x = (int)floor((double)(i / self->colSize));
-	y = i % self->colSize;
- 
-	return PyFloat_FromDouble(self->matrix[x][y]);
+	vec = PyMem_Malloc (self->colSize *sizeof (float));
+	for(x = 0; x < self->colSize; x++){
+		vec[x] = self->matrix[i][x];
+	}
+
+	return (PyObject*)newVectorObject(vec, self->colSize);
 }
 
 static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
