@@ -4,7 +4,6 @@ phy_ode_env = Environment()
 Import ('cflags')
 Import ('cxxflags')
 Import ('defines')
-Import ('ode_include')
 Import ('user_options_dict')
 phy_ode_env.Append (CCFLAGS = cflags)
 phy_ode_env.Append (CXXFLAGS = cxxflags)
@@ -15,7 +14,7 @@ source_files = ['OdePhysicsController.cpp',
 
 phy_ode_env.Append (CPPPATH=['.',
                              '../common',
-                             ode_include
                             ])
+phy_ode_env.Append (CPPPATH=['ODE_INCLUDE'])
 
 phy_ode_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Ode', source=source_files)

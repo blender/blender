@@ -18,5 +18,6 @@ readstrgl_env.Append (CPPPATH = ['.',
                                  '../blenloader',
                                  '../inflate'])
 
+readstrgl_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
 readstrgl_env.Append (CPPPATH = extra_includes)
 readstrgl_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_readstreamglue', source=source_files)

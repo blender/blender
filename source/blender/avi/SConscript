@@ -21,5 +21,6 @@ source_files = ['intern/avi.c',
 avi_env.Append (CPPPATH = ['.',
                            '#/intern/guardedalloc'])
 
+avi_env.Append (CPPPATH=user_options_dict['JPEG_INCLUDE'])
 avi_env.Append (CPPPATH=extra_includes)
 avi_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_avi', source=source_files)

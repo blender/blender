@@ -46,5 +46,8 @@ imbuf_env.Append (CPPPATH = ['.',
                              '../quicktime',
                              '../blenkernel'])
 
+imbuf_env.Append (CPPPATH = user_options_dict['JPEG_INCLUDE'])
+imbuf_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
+imbuf_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
 imbuf_env.Append (CPPPATH = extra_includes)
 imbuf_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_imbuf', source=source_files)

@@ -17,5 +17,6 @@ inflate_env.Append (CPPPATH = ['.',
                                '../../kernel/gen_messaging',
                                '../readstreamglue'])
 
+inflate_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
 inflate_env.Append (CPPPATH = extra_includes)
 inflate_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_inflate', source=source_files)
