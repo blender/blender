@@ -1705,7 +1705,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 static TBitem tb_mesh_edit_edge[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
 {	0, "SEPR",						0, NULL},
-{	0, "Bevel", 					6, 		NULL},
+{	0, "Bevel|W, Alt 1", 					6, 		NULL},
 {	0, "Loop Subdivide|Ctrl R", 		4, 		NULL},
 {	0, "Knife Subdivide...|Shift K", 	3, 		NULL},
 {	0, "SEPR", 								0, NULL},
