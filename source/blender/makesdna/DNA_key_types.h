@@ -43,9 +43,9 @@ typedef struct KeyBlock {
 	struct KeyBlock *next, *prev;
 	
 	float pos;
-	short flag, totelem;
+	short flag, pad;
 	short type, rt;
-	int pad;
+	int totelem;
 	
 	void *data;
 	char  name[32];
