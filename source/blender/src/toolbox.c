@@ -1674,9 +1674,9 @@ static TBitem tb_mesh_edit_face[]= {
 
 
 static TBitem tb_mesh_edit_normal[]= {
-{	0, "Flip", 				1, 		NULL},
+{	0, "Flip", 				0, 		NULL},
 {	0, "Recalc Inside", 	1, 		NULL},
-{	0, "Recalc Outside", 	1, 		NULL},
+{	0, "Recalc Outside", 	2, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_normalsmenu}};
 
 
