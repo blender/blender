@@ -2211,11 +2211,11 @@ float VecAngle3( float *v1, float *v2, float *v3)
 	float vec1[3], vec2[3];
 
 	VecSubf(vec1, v2, v1);
-	VecSubf(vec2, v3, v1);
+	VecSubf(vec2, v2, v3);
 	Normalise(vec1);
 	Normalise(vec2);
 	
-	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 360.0/M_PI;
+	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 180.0/M_PI;
 }
 
 
