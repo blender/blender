@@ -1437,7 +1437,7 @@ void do_global_buttons(unsigned short event)
 				show_splash();
 		break;
 	case B_MIPMAPCHANGED:
-		set_mipmap(!(U.gameflags & USER_DISABLE_SOUND));
+		set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_NEWSPACE:
