@@ -158,6 +158,8 @@ void addvert_mesh(void)
 		v1->f= 0;
 	}
 	countall();
+
+	BIF_undo_push("Add vertex");
 	allqueue(REDRAWVIEW3D, 0);
 	makeDispList(G.obedit);
 	
