@@ -1638,7 +1638,7 @@ static void world_panel_texture(World *wrld)
 	/* TEXCO */
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,60,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses global coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "AngMap",		160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses angular coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "AngMap",		160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses 360 degree angular coordinates, e.g. for spherical light probes");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		230,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
 	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,90,200,20, &(mtex->object), "");
 
@@ -2596,10 +2596,10 @@ static void material_panel_shading(Material *ma)
 		uiBlockEndAlign(block);
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material cast shadows in spotlights");
+		uiDefButI(block, TOG|BIT|0, 0,	"Traceable",		245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows or being detected by ray tracing");
 
 		uiBlockBeginAlign(block);
-		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,110,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows from spotlights");
+		uiDefButI(block, TOG|BIT|1, 0,	"Shadow",			245,110,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
 		uiDefButI(block, TOG|BIT|19, 0, "TraShadow",		245,90,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
 		uiBlockEndAlign(block);
 
