@@ -128,15 +128,22 @@ int	LastMode = TFM_TRANSLATION;
 
 /* ************************** Functions *************************** */
 
-static void qsort_trans_data(TransData *head, TransData *tail) {
+static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail) {
 	TransData pivot = *head;
 	TransData *ihead = head;
 	TransData *itail = tail;
+	short connected = t->flag & T_PROP_CONNECTED;
 
 	while (head < tail)
 	{
-		while ((tail->dist >= pivot.dist) && (head < tail))
-			tail--;
+		if (connected) {
+			while ((tail->dist >= pivot.dist) && (head < tail))
+				tail--;
+		}
+		else {
+			while ((tail->rdist >= pivot.rdist) && (head < tail))
+				tail--;
+		}
 
 		if (head != tail)
 		{
@@ -144,8 +151,14 @@ static void qsort_trans_data(TransData *head, TransData *tail) {
 			head++;
 		}
 
-		while ((head->dist <= pivot.dist) && (head < tail))
-			head++;
+		if (connected) {
+			while ((head->dist <= pivot.dist) && (head < tail))
+				head++;
+		}
+		else {
+			while ((head->rdist <= pivot.rdist) && (head < tail))
+				head++;
+		}
 
 		if (head != tail)
 		{
@@ -156,10 +169,10 @@ static void qsort_trans_data(TransData *head, TransData *tail) {
 
 	*head = pivot;
 	if (ihead < head) {
-		qsort_trans_data(ihead, head-1);
+		qsort_trans_data(t, ihead, head-1);
 	}
 	if (itail > head) {
-		qsort_trans_data(head+1, itail);
+		qsort_trans_data(t, head+1, itail);
 	}
 }
 
@@ -171,7 +184,7 @@ static void sort_trans_data_dist(TransInfo *t) {
 		start++;
 		i++;
 	}
-	qsort_trans_data(start, t->data + t->total - 1);
+	qsort_trans_data(t, start, t->data + t->total - 1);
 }
 
 static void sort_trans_data(TransInfo *t) 
@@ -635,7 +648,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 			}
 		}
 		else {
-			td->dist = 1000000.0f;
+			td->dist = MAXFLOAT;
 			td->flag |= TD_NOTCONNECTED;
 		}
 	}
@@ -1059,7 +1072,7 @@ static void createTransEditVerts(TransInfo *t)
 					}
 					else {
 						tob->flag |= TD_NOTCONNECTED;
-						tob->dist = 10000000.0f;
+						tob->dist = MAXFLOAT;
 					}
 				}
 				
@@ -1750,8 +1763,16 @@ void Transform(int mode, int context)
 					Trans.redraw = 1;
 					break;
 				case CKEY:
-					stopConstraint(&Trans);
-					Trans.redraw = 1;
+					if (G.qual & LR_ALTKEY) {
+						Trans.flag ^= T_PROP_CONNECTED;
+						sort_trans_data_dist(&Trans);
+						calculatePropRatio(&Trans);
+						Trans.redraw= 1;
+					}
+					else {
+						stopConstraint(&Trans);
+						Trans.redraw = 1;
+					}
 					break;
 				case XKEY:
 					if ((Trans.flag & T_NO_CONSTRAINT)==0) {

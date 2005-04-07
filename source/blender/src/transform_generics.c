@@ -722,6 +722,7 @@ void calculatePropRatio(TransInfo *t)
 	TransData *td = t->data;
 	int i;
 	float dist;
+	short connected = t->flag & T_PROP_CONNECTED;
 	extern int prop_mode;
 
 	if (t->flag & T_PROP_EDIT) {
@@ -729,7 +730,11 @@ void calculatePropRatio(TransInfo *t)
 			if (td->flag & TD_SELECTED) {
 				td->factor = 1.0f;
 			}
-			else if (td->flag & TD_NOTCONNECTED || td->dist > t->propsize) {
+			else if	((connected && 
+						(td->flag & TD_NOTCONNECTED || td->dist > t->propsize))
+				||
+					(connected == 0 &&
+						td->rdist > t->propsize)) {
 				/* 
 				   The elements are sorted according to their dist member in the array,
 				   that means we can stop when it finds one element outside of the propsize.
