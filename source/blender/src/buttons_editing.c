@@ -1402,17 +1402,17 @@ static void editing_panel_mball_type(Object *ob, MetaBall *mb)
 	mb= ob->data;
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_RECALCMBALL, "Wiresize:",	470,178,250,19, &mb->wiresize, 0.05, 1.0, 0, 0, "Polygonization resolution in 3d window");
-	uiDefButF(block, NUM, 0, "Rendersize:",			470,158,250,19, &mb->rendersize, 0.05, 1.0, 0, 0, "Polygonization resolution in rendering");
-	uiDefButF(block, NUM, B_RECALCMBALL, "Threshold:", 470,138,250,19, &mb->thresh, 0.0001, 5.0, 0, 0, "Defines influence of meta elements");
+	uiDefButF(block, NUM, B_RECALCMBALL, "Wiresize:", 470,178,250,19, &mb->wiresize, 0.05, 1.0, 1, 0, "Polygonization resolution in 3d window");
+	uiDefButF(block, NUM, 0, "Rendersize:", 470,158,250,19, &mb->rendersize, 0.05, 1.0, 1, 0, "Polygonization resolution in rendering");
+	uiDefButF(block, NUM, B_RECALCMBALL, "Threshold:", 470,138,250,19, &mb->thresh, 0.0001, 5.0, 1, 0, "Defines influence of meta elements");
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefBut(block, LABEL, 0, "Update:",		471,108,120,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Update:", 471,108,120,19, 0, 0, 0, 0, 0, "");
 	uiDefButS(block, ROW, B_DIFF, "Always",	471, 85, 120, 19, &mb->flag, 0.0, 0.0, 0, 0, "While editing, always updates");
-	uiDefButS(block, ROW, B_DIFF, "Half Res",	471, 65, 120, 19, &mb->flag, 0.0, 1.0, 0, 0, "While editing, updates in half resolution");
-	uiDefButS(block, ROW, B_DIFF, "Fast",		471, 45, 120, 19, &mb->flag, 0.0, 2.0, 0, 0, "While editing, updates without polygonization");
-	uiDefButS(block, ROW, B_DIFF, "Never",		471, 25, 120, 19, &mb->flag, 0.0, 3.0, 0, 0, "While editing, doesn't update");
+	uiDefButS(block, ROW, B_DIFF, "Half Res", 471, 65, 120, 19, &mb->flag, 0.0, 1.0, 0, 0, "While editing, updates in half resolution");
+	uiDefButS(block, ROW, B_DIFF, "Fast", 471, 45, 120, 19, &mb->flag, 0.0, 2.0, 0, 0, "While editing, updates without polygonization");
+	uiDefButS(block, ROW, B_DIFF, "Never", 471, 25, 120, 19, &mb->flag, 0.0, 3.0, 0, 0, "While editing, doesn't update");
 
 }
 
@@ -1426,22 +1426,22 @@ static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 
 	if(ob==G.obedit && lastelem) {
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_RECALCMBALL, "Stiffness:", 750,178,250,19, &lastelem->s, 0.0, 10.0, 0, 0, "Stiffness for active meta");
+		uiDefButF(block, NUM, B_RECALCMBALL, "Stiffness:", 750,178,250,19, &lastelem->s, 0.0, 10.0, 1, 0, "Stiffness for active meta");
 		if(lastelem->type!=MB_BALL)
-		uiDefButF(block, NUM, B_RECALCMBALL, "dx:",		750,158,250,19, &lastelem->expx, 0.0, 20.0, 0, 0, "X size for active meta");
+		uiDefButF(block, NUM, B_RECALCMBALL, "dx:", 750,158,250,19, &lastelem->expx, 0.0, 20.0, 1, 0, "X size for active meta");
 		if((lastelem->type!=MB_BALL)&&(lastelem->type!=MB_TUBE))
-		uiDefButF(block, NUM, B_RECALCMBALL, "dy:",		750,138,250,19, &lastelem->expy, 0.0, 20.0, 0, 0, "Y size for active meta");
+		uiDefButF(block, NUM, B_RECALCMBALL, "dy:", 750,138,250,19, &lastelem->expy, 0.0, 20.0, 1, 0, "Y size for active meta");
 
 		if((lastelem->type==MB_CUBE)||(lastelem->type==MB_ELIPSOID))
-		uiDefButF(block, NUM, B_RECALCMBALL, "dz:",		750,118,250,19, &lastelem->expz, 0.0, 20.0, 0, 0, "Z size for active meta");
+		uiDefButF(block, NUM, B_RECALCMBALL, "dz:", 750,118,250,19, &lastelem->expz, 0.0, 20.0, 1, 0, "Z size for active meta");
 		uiBlockEndAlign(block);
 
-		uiDefButS(block, ROW, B_RECALCMBALL, "Ball",			753,83,60,19, &lastelem->type, 1.0, 0.0, 0, 0, "Draw active meta as Ball");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Ball", 753,83,60,19, &lastelem->type, 1.0, 0.0, 0, 0, "Draw active meta as Ball");
 		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_RECALCMBALL, "Tube",			753,62,60,19, &lastelem->type, 1.0, 4.0, 0, 0, "Draw active meta as Ball");
-		uiDefButS(block, ROW, B_RECALCMBALL, "Plane",			814,62,60,19, &lastelem->type, 1.0, 5.0, 0, 0, "Draw active meta as Plane");
-		uiDefButS(block, ROW, B_RECALCMBALL, "Elipsoid",		876,62,60,19, &lastelem->type, 1.0, 6.0, 0, 0, "Draw active meta as Ellipsoid");
-		uiDefButS(block, ROW, B_RECALCMBALL, "Cube",			938,62,60,19, &lastelem->type, 1.0, 7.0, 0, 0, "Draw active meta as Cube");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Tube", 753,62,60,19, &lastelem->type, 1.0, 4.0, 0, 0, "Draw active meta as Ball");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Plane", 814,62,60,19, &lastelem->type, 1.0, 5.0, 0, 0, "Draw active meta as Plane");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Elipsoid", 876,62,60,19, &lastelem->type, 1.0, 6.0, 0, 0, "Draw active meta as Ellipsoid");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Cube", 938,62,60,19, &lastelem->type, 1.0, 7.0, 0, 0, "Draw active meta as Cube");
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
