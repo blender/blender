@@ -56,10 +56,17 @@ else
 	@# Create object directory
 	@[ -d $(DIR) ] || mkdir -p $(DIR)
     endif
+    ifdef SOURCEDIR
 	@for i in $(DIRS); do \
 	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
 	    $(MAKE) -C $$i $@ || exit 1; \
 	done
+    else
+	@for i in $(DIRS); do \
+	    echo "====> $(MAKE) $@ in $$i" ;\
+	    $(MAKE) -C $$i $@ || exit 1; \
+	done
+    endif
 endif
 
 test::

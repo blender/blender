@@ -31,6 +31,7 @@
 #
 #
 
+SOURCEDIR = source/gameengine/Physics/Sumo
 LIBNAME = sumo
 DIR = $(OCGDIR)/gameengine/blphys/$(LIBNAME)
 DIRS = Fuzzics

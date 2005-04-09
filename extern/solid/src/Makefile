@@ -31,6 +31,7 @@
 #
 #
 
+SOURCEDIR = extern/solid/src
 LIBNAME = solid
 DIR = $(OCGDIR)/extern/$(LIBNAME)
 DIRS = broad complex convex

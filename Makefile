@@ -45,7 +45,7 @@ sinclude user-def.mk
 export NANBLENDERHOME=$(shell pwd)
 MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
 
-SOURCEDIR = blender
+SOURCEDIR = 
 ifeq ($(FREE_WINDOWS),true)
     DIRS ?= dlltool extern intern source po
 endif

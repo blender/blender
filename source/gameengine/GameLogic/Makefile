@@ -32,6 +32,7 @@
 #
 
 LIBNAME = logic
+SOURCEDIR = source/gameengine/gameengine/GameLogic
 DIR = $(OCGDIR)/gameengine/$(LIBNAME)
 DIRS = Joystick
 

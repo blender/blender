@@ -33,6 +33,7 @@
 
 include nan_definitions.mk
 
+SOURCEDIR = extern/solid
 LIBNAMES = solid solid_broad solid_convex solid_complex
 DIR = $(OCGDIR)/extern/
 DIRS = src
