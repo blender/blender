@@ -1407,7 +1407,14 @@ static void createTransObject(TransInfo *t)
 	reset_slowparents();
 	
 	set_trans_object_base_flags(t);
-	
+
+	/* this has to be done, or else constraints on armature
+	 * bones that point to objects/bones that are outside
+	 * of the armature don't work outside of posemode 
+	 * (and yes, I know it's confusing ...).
+	 */
+	figure_pose_updating();
+
 	/* count */	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
