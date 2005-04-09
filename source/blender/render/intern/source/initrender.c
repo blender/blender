@@ -1019,8 +1019,14 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 						R.rectftot= NULL;
 						pa->rectz= R.rectz;
 						R.rectz= NULL;
+
+						if(!(R.r.mode & R_BORDER)) {
+							printf("Rendered (%02d/%02d)\r", nr+1, totparts);
+							fflush(stdout);
+						}
 					}
 				}
+
 
 				if(RE_local_test_break()) break;
 			}
