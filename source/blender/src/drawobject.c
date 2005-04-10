@@ -1783,7 +1783,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 			dl = ob->disp.first;
 			if (!dl || !dl->col1) {
 				shadeDispList(ob);
-				dl = ob->disp.first;
+				dl = find_displist(&ob->disp, DL_VERTCOL);
 			}
 			obCol1 = dl->col1;
 			obCol2 = dl->col2;

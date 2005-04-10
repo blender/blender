@@ -797,10 +797,12 @@ void shadeDispList(Object *ob)
 	
 	/* we extract dl_verts, deform info */
 	dldeform= find_displist(&ob->disp, DL_VERTS);
-	if(dldeform) BLI_remlink(&ob->disp, dldeform);
 	
-	/* Metaballs have the standard displist in the Object */
-	if(ob->type!=OB_MBALL) freedisplist(&ob->disp);
+	dl = find_displist(&ob->disp, DL_VERTCOL);
+	if (dl) {
+		BLI_remlink(&ob->disp, dl);
+		free_disp_elem(dl);
+	}
 
 	need_orco= 0;
 	for(a=0; a<ob->totcol; a++) {
@@ -1169,9 +1171,6 @@ void shadeDispList(Object *ob)
 		ma= give_current_material(ob, a+1);
 		if(ma) end_render_material(ma);
 	}
-
-	/* this one was temporally removed */
-	if(dldeform) BLI_addtail(&ob->disp, dldeform);
 }
 
 void reshadeall_displist(void)

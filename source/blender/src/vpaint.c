@@ -247,7 +247,7 @@ void make_vertexcol()	/* single ob */
 	
 	if(dl==0 || dl->col1==NULL) {
 		shadeDispList(ob);
-		dl= ob->disp.first;
+		dl= find_displist(&ob->disp, DL_VERTCOL);
 	}
 	if(dl && dl->col1) {
 		int i;
