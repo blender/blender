@@ -52,7 +52,6 @@
 
 #include "BLI_arithb.h"
 
-#include "transform_numinput.h"
 #include "transform.h"
 
 /* ************************** Functions *************************** */

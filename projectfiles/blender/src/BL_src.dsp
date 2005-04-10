@@ -643,18 +643,6 @@ SOURCE=..\..\..\source\blender\src\transform.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\transform_constraints.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\src\transform_generics.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\src\transform_numinput.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\src\winlay.h
 # End Source File
 # End Group

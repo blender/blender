@@ -102,8 +102,6 @@
 #include "mydevice.h"
 
 #include "transform.h"
-#include "transform_constraints.h"
-#include "transform_generics.h"
 
 extern ListBase editNurb;
 extern ListBase editelems;

@@ -95,7 +95,7 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-#include "transform.h"
+#include "BIF_transform.h"
 
 extern ListBase editNurb; /* originally from exports.h, memory from editcurve.c*/
 /* editmball.c */

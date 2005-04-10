@@ -81,7 +81,6 @@
 
 #include "blendef.h"
 #include "transform.h"
-#include "transform_generics.h"
 
 /* return codes for select, and drawing flags */
 
@@ -306,7 +305,7 @@ static int calc_manipulator(ScrArea *sa)
 		Trans.mode= TFM_ROTATION;	// mislead counting bones... bah
 		
 		/* count total */
-		count_bone_select(&arm->bonebase, &totsel);
+		count_bone_select(&Trans, &arm->bonebase, &totsel);
 		if(totsel) {
 			/* recursive get stats */
 			stats_pose(&arm->bonebase, normal, plane);

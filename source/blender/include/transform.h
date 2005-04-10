@@ -33,13 +33,30 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
-#include "transform_numinput.h"
 #include "BIF_transform.h"
 
 /* ************************** Types ***************************** */
 
 struct TransInfo;
 struct TransData;
+struct NumInput;
+
+typedef struct NumInput {
+    short  idx;
+    short  idx_max;
+    short  flag;        /* Different flags to indicate different behaviors                                */
+    float  val[3];       /* Direct value of the input                                                      */
+    short  ctrl[3];      /* Control to indicate what to do with the numbers that are typed                 */
+} NumInput ;
+
+/*
+	The ctrl value has different meaning:
+		0			: No value has been typed
+		
+		otherwise, |value| - 1 is where the cursor is located after the period
+		Positive	: number is positive
+		Negative	: number is negative
+*/
 
 typedef struct TransCon {
     char  text[50];      /* Description of the Constraint for header_print                            */
@@ -217,12 +234,86 @@ int Crease(TransInfo *t, short mval[2]);
 
 /* exported from transform.c */
 struct ListBase;
-void count_bone_select(struct ListBase *lb, int *counter);
+void count_bone_select(TransInfo *t, struct ListBase *lb, int *counter);
 
 /* exported from transform_manipulator.c */
 struct ScrArea;
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
 
+/*********************** TransData Creation and General Handling */
+void createTransData(TransInfo *t);
+void sort_trans_data_dist(TransInfo *t);
+void clear_trans_object_base_flags(void);
+void add_tdi_poin(float *poin, float *old, float delta);
 
+/*********************** Constraints *****************************/
+void getConstraintMatrix(TransInfo *t);
+void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
+void setLocalConstraint(TransInfo *t, int mode, const char text[]);
+
+void constraintNumInput(TransInfo *t, float vec[3]);
+
+//void drawConstraint(TransCon *t);
+void drawConstraint();
+
+//void drawPropCircle(TransInfo *t);
+void drawPropCircle();
+
+void initConstraint(TransInfo *t);
+void startConstraint(TransInfo *t);
+void stopConstraint(TransInfo *t);
+
+void getConstraintMatrix(TransInfo *t);
+
+void initSelectConstraint(TransInfo *t);
+void selectConstraint(TransInfo *t);
+void postSelectConstraint(TransInfo *t);
+
+int getConstraintSpaceDimension(TransInfo *t);
+
+void setNearestAxis(TransInfo *t);
+
+
+/*********************** Generics ********************************/
+void recalcData(TransInfo *t);
+
+void initTransModeFlags(TransInfo *t, int mode);
+
+void drawLine(float *center, float *dir, char axis, short options);
+
+/* DRAWLINE options flags */
+#define DRAWLIGHT	1
+#define DRAWDASHED	2
+#define DRAWBOLD	4
+
+void applyTransObjects(TransInfo *t);
+void restoreTransObjects(TransInfo *t);
+
+void initTrans(TransInfo *t);
+void postTrans (TransInfo *t);
+
+void calculateCenterBound(TransInfo *t);
+void calculateCenterMedian(TransInfo *t);
+void calculateCenterCursor(TransInfo *t);
+
+void calculateCenter(TransInfo *t);
+
+void calculatePropRatio(TransInfo *t);
+
+void snapGrid(TransInfo *t, float *val);
+
+void getViewVector(float coord[3], float vec[3]);
+
+TransInfo * BIF_GetTransInfo(void);
+
+
+/*********************** NumInput ********************************/
+void outputNumInput(NumInput *n, char *str);
+
+short hasNumInput(NumInput *n);
+
+void applyNumInput(NumInput *n, float *vec);
+
+char handleNumInput(NumInput *n, unsigned short event);
 #endif
 
