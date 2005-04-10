@@ -969,7 +969,7 @@ int Resize(TransInfo *t, short mval[2])
 	headerResize(t, size, str);
 
 	for(i = 0 ; i < t->total; i++, td++) {
-		float smat[3][3];
+		float smat[3][3], center[3];
 		if (td->flag & TD_NOACTION)
 			break;
 
@@ -987,7 +987,10 @@ int Resize(TransInfo *t, short mval[2])
 		}
 
 		if (G.vd->around == V3D_LOCAL) {
-			VECCOPY(t->center, td->center);
+			VECCOPY(center, td->center);
+		}
+		else {
+			VECCOPY(center, t->center);
 		}
 
 		if (td->ext) {
@@ -1025,12 +1028,19 @@ int Resize(TransInfo *t, short mval[2])
 				}
 			}
 		}
-		VecSubf(vec, td->center, t->center);
+		/* For individual element center, Editmode need to use iloc */
+		if (t->flag & T_EDIT)
+			VecSubf(vec, td->iloc, center);
+		else
+			VecSubf(vec, td->center, center);
 
 		Mat3MulVecfl(tmat, vec);
 
-		VecAddf(vec, vec, t->center);
-		VecSubf(vec, vec, td->center);
+		VecAddf(vec, vec, center);
+		if (t->flag & T_EDIT)
+			VecSubf(vec, vec, td->iloc);
+		else
+			VecSubf(vec, vec, td->center);
 
 		VecMulf(vec, td->factor);
 
@@ -1248,12 +1258,18 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 static void applyRotation(TransInfo *t, float angle, float axis[3]) 
 {
 	TransData *td = t->data;
-	float mat[3][3];
+	float mat[3][3], center[3];
 	int i;
+
+	/* saving original center */
+	if (G.vd->around == V3D_LOCAL) {
+		VECCOPY(center, t->center);
+	}
 
 	VecRotToMat3(axis, angle, mat);
 
 	for(i = 0 ; i < t->total; i++, td++) {
+
 		if (td->flag & TD_NOACTION)
 			break;
 		
@@ -1270,6 +1286,11 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		}
 
 		ElementRotation(t, td, mat);
+	}
+
+	/* restoring original center */
+	if (G.vd->around == V3D_LOCAL) {
+		VECCOPY(t->center, center);
 	}
 }
 

@@ -681,9 +681,8 @@ void calculateCenter(TransInfo *t)
 		calculateCenterCursor(t);
 		break;
 	case V3D_LOCAL:
-		// NEED TO REPLACE THIS
+		/* Individual element center uses median center for helpline and such */
 		calculateCenterMedian(t);
-		printf("local\n");
 		break;
 	}
 
