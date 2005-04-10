@@ -89,17 +89,11 @@ void	run_python_script	(struct SpaceText *st);
 int	jumptoline_interactive	(struct SpaceText *st);
 void	txt_export_to_object	(struct Text *text);
 void	txt_export_to_objects(struct Text *text);
-void	indent_paste		(struct Text *text);
 void	unindent		(struct Text *text);
 void 	comment			(struct Text *text);
-void 	uncommen		(struct Text *text);
-void 	indent			(struct Text *text, char *in_buffer);
-void 	unindent_lines		(struct Text *text, char *in_buffer);
-void 	comment_paste		(struct Text *text, char *in_buffer);
-void 	uncomment_paste		(struct Text *text, char *in_buffer);
-void	uncomment			(struct Text *text);
-
-void	set_tabs			(struct Text *text);
+void 	indent			(struct Text *text);
+void	uncomment		(struct Text *text);
+int	setcurr_tab		(struct Text *text);
 
 /* Undo opcodes */
 

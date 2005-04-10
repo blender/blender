@@ -989,23 +989,10 @@ void run_python_script(SpaceText *st)
 	}
 }
 
-void set_tabs(Text *text) {
-	
-	TextLine *line = text->curl;
+void set_tabs(Text *text)
+{
 	SpaceText *st = curarea->spacedata.first;
-	int pos = 0;
-	int max;
-	max = line->len;
-	st->currtab_set = 0;
-	while ( pos < max-1) {
-		if (line->line[pos] == '\t') {
-			st->currtab_set++;
-			pos++;
-		}
-		else {
-			pos++;
-		}
-	}
+	st->currtab_set = setcurr_tab(text);
 }
 
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
@@ -1357,29 +1344,34 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case TABKEY:
 			if (G.qual & LR_SHIFTKEY) {
 				if (txt_has_sel(text)) {
-					txt_cut_sel(text);
+					txt_order_cursors(text);
 					unindent(text);
 					
 				}
 			} else {
 				if ( txt_has_sel(text)) {
-					txt_cut_sel(text);
-					indent_paste(text);
+					txt_order_cursors(text);
+					indent(text);
 				} else {
 					txt_add_char(text, '\t');
-					st->currtab_set++;
 				}
 			}
 			pop_space_text(st);
 			do_draw= 1;
+			st->currtab_set = setcurr_tab(text);
 			break;
 		case RETKEY:
+			//double check tabs before splitting the line
+			st->currtab_set = setcurr_tab(text);
 			txt_split_curline(text);
 			{
 				int a = 0;
-				while ( a < st->currtab_set) {
-					txt_add_char(text, '\t');
-					a++;
+				if (a < st->currtab_set)
+				{
+					while ( a < st->currtab_set) {
+						txt_add_char(text, '\t');
+						a++;
+					}
 				}
 			}
 			do_draw= 1;
@@ -1392,12 +1384,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case DELKEY:
-			if ( text->curl->line[text->curc] == '\t') {
-					st->currtab_set--;
-			}
 			txt_delete_char(text);
 			do_draw= 1;
 			pop_space_text(st);
+			st->currtab_set = setcurr_tab(text);
 			break;
 		case DOWNARROWKEY:
 			txt_move_down(text, G.qual & LR_SHIFTKEY);

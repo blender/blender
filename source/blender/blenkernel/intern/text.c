@@ -1990,157 +1990,223 @@ int txt_add_char (Text *text, char add) {
 	return 1;
 }
 
-//Antihc3(rick) used the paste function below 
-//used txt_cut_sel, txt_insert_buf modified
-
-void indent_paste(Text *text)
+void indent(Text *text)
 {
-
-	indent(text, txt_cut_buffer);
-}
-
-void indent(Text *text, char *in_buffer)
-{
-	int i=0, len;
-
+	int len, num;
+	char *tmp;
+	char add = '\t';
+	
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
-	if (!in_buffer) return;
-
-	txt_delete_sel(text); //need to change this to remove the undo 	
-
-	/* Read the first line (or as close as possible */
-	len= strlen(in_buffer);
-	while ( i < len ) {
-		txt_add_char(text, '\t');
-		while (in_buffer[i] && in_buffer[i]!='\n') {
-			txt_add_char(text, in_buffer[i]);
-			i++;
-		}
-	
-		if (in_buffer[i]=='\n') {
-			txt_add_char(text, '\n');
+	num = 0;
+	while (TRUE)
+	{
+		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
+		text->curc = 0; 
+		if(text->curc) memcpy(tmp, text->curl->line, text->curc);
+		tmp[text->curc]= add;
+		
+		len= text->curl->len - text->curc;
+		if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
+		tmp[text->curl->len+1]=0;
+		
+		make_new_line(text->curl, tmp);
 			
+		text->curc++;
+		
+		txt_make_dirty(text);
+		txt_clean_text(text);
+		
+		if(text->curl == text->sell) 
+		{
+			text->selc = text->sell->len;
+			break;
+		} else {
+			text->curl = text->curl->next;
+			num++;
 		}
-	i++;
+	}
+	text->curc = 0;
+	while( num > 0 )
+	{
+		text->curl = text->curl->prev;
+		num--;
 	}
 }
 
 void unindent(Text *text)
 {
-	unindent_lines(text, txt_cut_buffer);
-}
-
-void unindent_lines(Text *text, char *in_buffer)
-{
-	int i=0, len;
-
+	int num = 0;
+	
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
-	if (!in_buffer) return;
-
-	txt_delete_sel(text);	
-
-	/* Read the first line (or as close as possible */
-	len = strlen(in_buffer);
-	while ( i < len ) {
-		if (in_buffer[i] != '\t') {
-			while (in_buffer[i] && in_buffer[i]!='\n') {
-				txt_add_char(text, in_buffer[i]);
+	
+	while(TRUE)
+	{
+		int i = 0;
+		
+		if (text->curl->line[i] == '\t')
+		{
+			while(i< text->curl->len) {
+				text->curl->line[i]= text->curl->line[i+1];
 				i++;
 			}
-			
-			if (in_buffer[i]=='\n') {
-				txt_add_char(text, '\n');
-			
-			}
-		i++;
+			text->curl->len--;
 		}
-		else {
-			i++;
-			while (in_buffer[i] && in_buffer[i]!='\n') {
-				txt_add_char(text, in_buffer[i]);
-				i++;
-			}
-			
-			if (in_buffer[i]=='\n') {
-				txt_add_char(text, '\n');
-			
-			}
-		i++;
+			 
+	
+		txt_make_dirty(text);
+		txt_clean_text(text);
+		
+		if(text->curl == text->sell) 
+		{
+			text->selc = text->sell->len;
+			break;
+		} else {
+			text->curl = text->curl->next;
+			num++;
 		}
+		
+	}
+	
+	while( num > 0 )
+	{
+		text->curl = text->curl->prev;
+		num--;
 	}
 }
 
 void comment(Text *text)
 {
-	comment_paste(text, txt_cut_buffer);
-}
-
-void comment_paste(Text *text, char *in_buffer)
-{
-	int i=0, len;
-
+	int len, num;
+	char *tmp;
+	char add = '#';
+	
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
-	if (!in_buffer) return;
-
-	txt_delete_sel(text); 	
-
-	/* Read the first line (or as close as possible */
-	
-	len= strlen(in_buffer);
-		while ( i < len ) {
-			txt_add_char(text, '#');
-			while (in_buffer[i] && in_buffer[i]!='\n') {
-				txt_add_char(text, in_buffer[i]);
-				i++;
-			}
+	num = 0;
+	while (TRUE)
+	{
+		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
+		text->curc = 0; 
+		if(text->curc) memcpy(tmp, text->curl->line, text->curc);
+		tmp[text->curc]= add;
 		
-			if (in_buffer[i]=='\n') {
-				txt_add_char(text, '\n');
-				
-			}
-		i++;
+		len= text->curl->len - text->curc;
+		if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
+		tmp[text->curl->len+1]=0;
+		
+		make_new_line(text->curl, tmp);
+			
+		text->curc++;
+		
+		txt_make_dirty(text);
+		txt_clean_text(text);
+		
+		if(text->curl == text->sell) 
+		{
+			text->selc = text->sell->len;
+			break;
+		} else {
+			text->curl = text->curl->next;
+			num++;
 		}
+	}
+	
+	while( num > 0 )
+	{
+		text->curl = text->curl->prev;
+		num--;
+	}
 }
-
 
 void uncomment(Text *text)
 {
-	uncomment_paste(text, txt_cut_buffer);
-}
-
-void uncomment_paste(Text *text, char *in_buffer)
-{
+	int num = 0;
 	
-	int i=0, len;
-
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
-
-	if (!in_buffer) return;
-
-	txt_delete_sel(text);
-
-	/* Read the first line (or as close as possible */
-	len = strlen(in_buffer);
-	while ( i < len ) {
-		if (in_buffer[i] != '#') {
-			while (in_buffer[i] && in_buffer[i]!='\n') {
-				txt_add_char(text, in_buffer[i]);
+	
+	while(TRUE)
+	{
+		int i = 0;
+		
+		if (text->curl->line[i] == '#')
+		{
+			while(i< text->curl->len) {
+				text->curl->line[i]= text->curl->line[i+1];
 				i++;
 			}
-			
-			if (in_buffer[i]=='\n') {
-				txt_add_char(text, '\n');
-			
-			}		
+			text->curl->len--;
 		}
-	i++;
+			 
+	
+		txt_make_dirty(text);
+		txt_clean_text(text);
+		
+		if(text->curl == text->sell) 
+		{
+			text->selc = text->sell->len;
+			break;
+		} else {
+			text->curl = text->curl->next;
+			num++;
+		}
+		
 	}
+	
+	while( num > 0 )
+	{
+		text->curl = text->curl->prev;
+		num--;
+	}
+}
+
+int setcurr_tab (Text *text)
+{
+	int i = 0;
+	int test = 0;
+	char *word = ":";
+	char *comm = "#";
+	char back_words[3][7] = {"return", "break", "pass"};
+	if (!text) return;
+	if (!text->curl) return;
+	
+	while (text->curl->line[i] == '\t')
+	{
+		//we only count thos tabs that are before any text or before the curs;
+		if (i == text->curc)
+		{
+			return i;
+		} else {
+			i++;
+		}
+	}
+	if(strstr(text->curl->line, word))
+	{
+		//if we find a : then add a tab but not if it is in a comment
+		if(strcspn(text->curl->line, word) < strcspn(text->curl->line, comm))
+		{
+			i++;
+		}
+
+	}
+
+	while(test < 3)
+	{
+		//if there are these 3 key words then remove a tab because we are done with the block
+		if(strstr(text->curl->line, back_words[test]) && i > 0)
+		{
+			if(strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))
+			{
+				i--;
+			}
+		}
+		test++;
+	}
+	return i;
 }

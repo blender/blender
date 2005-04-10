@@ -341,8 +341,8 @@ static void do_text_formatmenu(void *arg, int event)
 	switch(event) {
 	case 3:
 		if (txt_has_sel(text)) {
-			txt_cut_sel(text);
-			indent_paste(text);
+			txt_order_cursors(text);
+			indent(text);
 			break;
 		}
 		else {
@@ -351,21 +351,21 @@ static void do_text_formatmenu(void *arg, int event)
 		}
 	case 4:
 		if ( txt_has_sel(text)) {
-			txt_cut_sel(text);
+			txt_order_cursors(text);
 			unindent(text);
 			break;
 		}
 		break;
 	case 5:
 		if ( txt_has_sel(text)) {
-			txt_cut_sel(text);
+			txt_order_cursors(text);
 			comment(text);
 			break;
 		}
 		break;
 	case 6:
 		if ( txt_has_sel(text)) {
-			txt_cut_sel(text);
+			txt_order_cursors(text);
 			uncomment(text);
 			break;
 		}
