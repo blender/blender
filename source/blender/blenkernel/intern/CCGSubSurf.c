@@ -1209,7 +1209,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			VertDataMulN(nCo, 1.0f/numEdges);
 		}
 
-		if (sharpCount>1) {
+		if (sharpCount>1 && v->numFaces) {
 			VertDataZero(q);
 
 			for (i=0; i<v->numEdges; i++) {
@@ -1491,7 +1491,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				VertDataMulN(nCo, 1.0f/numEdges);
 			}
 
-			if (sharpCount>1) {
+			if (sharpCount>1 && v->numFaces) {
 				VertDataZero(q);
 
 				for (i=0; i<v->numEdges; i++) {
@@ -1549,7 +1549,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				avgSharpness = 0;
 			}
 
-			if (_edge_isBoundary(e) && sharpCount<2) {
+			if (_edge_isBoundary(e) && (!e->numFaces || sharpCount<2)) {
 				for (x=1; x<edgeSize-1; x++) {
 					int fx = x*2;
 					void *co = EDGE_getCo(e, curLvl, x);
