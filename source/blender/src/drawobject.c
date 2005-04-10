@@ -1732,12 +1732,12 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 	else if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
 	}
-	else if(hasHaloMat || me->totface==0 || (me->medge && me->totedge==0)) {
+	else if(hasHaloMat || (me->totface==0 && (!me->medge || me->totedge==0))) {
 		glPointSize(1.5);
 		dm->drawVerts(dm);
 		glPointSize(1.0);
 	}
-	else if(dt==OB_WIRE) {
+	else if(dt==OB_WIRE || me->totface==0) {
 		draw_wire = 1;
 	}
 	else if( (ob==OBACT && (G.f & G_FACESELECT)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
