@@ -185,6 +185,7 @@ static void envmap_split_ima(EnvMap *env)
 
 static void envmap_renderdata(EnvMap *env)
 {
+	extern void init_filt_mask(void);
 	static RE_Render envR;
 	static Object *camera;
 	int cuberes;
@@ -201,7 +202,7 @@ static void envmap_renderdata(EnvMap *env)
 		R.xstart= R.ystart= -R.afmx;
 		R.xend= R.yend= R.xstart+R.rectx-1;
 
-		R.r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
+		R.r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR | R_GAUSS);
 		R.r.xparts= R.r.yparts= 1;
 		R.r.bufflag= 0;
 		R.r.size= 100;
@@ -225,6 +226,8 @@ static void envmap_renderdata(EnvMap *env)
 		G.scene->camera= camera;
 	}
 	
+	/* gauss, gamma, etc */
+	init_filt_mask();
 }
 
 /* ------------------------------------------------------------------------- */

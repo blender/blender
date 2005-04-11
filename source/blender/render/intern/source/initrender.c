@@ -147,7 +147,8 @@ static float calc_weight(float *weight, int i, int j)
 	return totw;
 }
 
-static void init_filt_mask(void)
+// extern called in render_envmap, to disable gauss...
+void init_filt_mask(void)
 {
 	static int firsttime=1;
 	static int lastosa=0;
