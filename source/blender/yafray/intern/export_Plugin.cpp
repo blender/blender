@@ -1103,12 +1103,19 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 {
 	VertRen* ver;
 	float tvec[3];	// for back2world transform
+
+	// for deformed objects, object->imat is no longer valid,
+	// so have to create inverse render matrix ourselves here
+	float mat[4][4], imat[4][4];
+	MTC_Mat4MulMat4(mat, obj->obmat, R.viewmat);
+	MTC_Mat4Invert(imat, mat);
+
 	if (vert_idx.find(vlr->v1)==vert_idx.end()) 
 	{
 		vert_idx[vlr->v1] = vidx++;
 		ver = vlr->v1;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(obj->imat, tvec);
+		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco) 
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
@@ -1118,7 +1125,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		vert_idx[vlr->v2] = vidx++;
 		ver = vlr->v2;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(obj->imat, tvec);
+		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco)
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
@@ -1128,7 +1135,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		vert_idx[vlr->v3] = vidx++;
 		ver = vlr->v3;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(obj->imat, tvec);
+		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco)
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
@@ -1138,7 +1145,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		vert_idx[vlr->v4] = vidx++;
 		ver = vlr->v4;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(obj->imat, tvec);
+		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		if (has_orco)
 			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));

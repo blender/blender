@@ -1066,6 +1066,13 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 
 	// vertices, transformed back to world
 	xmlfile << "\t\t<points>\n";
+
+	// for deformed objects, object->imat is no longer valid,
+	// so have to create inverse render matrix ourselves here
+	float mat[4][4], imat[4][4];
+	MTC_Mat4MulMat4(mat, obj->obmat, R.viewmat);
+	MTC_Mat4Invert(imat, mat);
+
 	for (vector<VlakRen*>::const_iterator fci=VLR_list.begin();
 				fci!=VLR_list.end();++fci)
 	{
@@ -1078,7 +1085,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			vert_idx[vlr->v1] = vidx++;
 			ver = vlr->v1;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(obj->imat, tvec);
+			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 								 << "\" y=\"" << tvec[1]
 								 << "\" z=\"" << tvec[2] << "\" />\n";
@@ -1093,7 +1100,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			vert_idx[vlr->v2] = vidx++;
 			ver = vlr->v2;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(obj->imat, tvec);
+			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 								 << "\" y=\"" << tvec[1]
 								 << "\" z=\"" << tvec[2] << "\" />\n";
@@ -1108,7 +1115,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			vert_idx[vlr->v3] = vidx++;
 			ver = vlr->v3;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(obj->imat, tvec);
+			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 								 << "\" y=\"" << tvec[1]
 								 << "\" z=\"" << tvec[2] << "\" />\n";
@@ -1123,7 +1130,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			vert_idx[vlr->v4] = vidx++;
 			ver = vlr->v4;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(obj->imat, tvec);
+			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 								 << "\" y=\"" << tvec[1]
 								 << "\" z=\"" << tvec[2] << "\" />\n";
