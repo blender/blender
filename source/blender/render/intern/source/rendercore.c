@@ -643,10 +643,10 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	rad[2]= vec[2][0]*vec[3][0]+ vec[2][1]*vec[3][1]+ vec[2][2]*vec[3][2];
 	rad[3]= vec[3][0]*vec[0][0]+ vec[3][1]*vec[0][1]+ vec[3][2]*vec[0][2];
 
-	rad[0]= acos(rad[0]);
-	rad[1]= acos(rad[1]);
-	rad[2]= acos(rad[2]);
-	rad[3]= acos(rad[3]);
+	rad[0]= saacos(rad[0]);
+	rad[1]= saacos(rad[1]);
+	rad[2]= saacos(rad[2]);
+	rad[3]= saacos(rad[3]);
 
 	/* Stoke formula */
 	VECMUL(cross[0], rad[0]);
@@ -791,7 +791,7 @@ float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
 
 	p = sqrt( (double)((refrac * refrac)+(vh*vh)-1.0) );
 	f = (((p-vh)*(p-vh))/((p+vh)*(p+vh)))*(1+((((vh*(p+vh))-1.0)*((vh*(p+vh))-1.0))/(((vh*(p-vh))+1.0)*((vh*(p-vh))+1.0))));
-	ang = (float)acos((double)(nh));
+	ang = saacos(nh);
 
 	i= f * g * exp((double)(-(ang*ang) / (2.0*spec_power*spec_power)));
 
@@ -812,7 +812,7 @@ float Toon_Spec( float *n, float *l, float *v, float size, float smooth )
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
 	
-	ang = acos( rslt ); 
+	ang = saacos( rslt ); 
 	
 	if( ang < size ) rslt = 1.0;
 	else if( ang >= (size + smooth) || smooth == 0.0 ) rslt = 0.0;
@@ -828,7 +828,7 @@ float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 
 	rslt = n[0]*l[0] + n[1]*l[1] + n[2]*l[2];
 
-	ang = acos( (double)(rslt) );
+	ang = saacos( (double)(rslt) );
 
 	if( ang < size ) rslt = 1.0;
 	else if( ang >= (size + smooth) || smooth == 0.0 ) rslt = 0.0;
@@ -865,8 +865,8 @@ static float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float roug
 	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and halfway vector */
 	if(vh<=0.0) vh= 0.0;
 	
-	Lit_A = acos(realnl);
-	View_A = acos( nv );
+	Lit_A = saacos(realnl);
+	View_A = saacos( nv );
 	
 	Lit_B[0] = l[0] - (realnl * n[0]);
 	Lit_B[1] = l[1] - (realnl * n[1]);
