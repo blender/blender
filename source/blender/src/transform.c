@@ -1022,9 +1022,18 @@ int Resize(TransInfo *t, short mval[2])
 					
 				}
 				else if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
+					/* scale val and reset size */
  					*td->val = td->ival * fsize[0] * td->factor;
- 				}	
+
+					td->ext->size[0] = td->ext->isize[0];
+					td->ext->size[1] = td->ext->isize[1];
+					td->ext->size[2] = td->ext->isize[2];
+ 				}
 				else {
+					/* Reset val if SINGLESIZE but using a constraint */
+					if (td->flag & TD_SINGLESIZE)
+	 					*td->val = td->ival;
+
 					td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
 					td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;
 					td->ext->size[2] = td->ext->isize[2] * (fsize[2]) * td->factor;
@@ -1324,7 +1333,8 @@ int Rotation(TransInfo *t, short mval[2])
 	float axis[3];
 	float mat[3][3];
 
-	VECCOPY(axis, t->persinv[2]);
+	VECCOPY(axis, t->viewinv[2]);
+	VecMulf(axis, -1.0f);
 	Normalise(axis);
 
 	dphi = saacos(deler);
