@@ -357,17 +357,17 @@ void Transform(int mode, int context)
 						}
 						else if(cmode == 'y') {
 							if (G.qual == 0)
-								setLocalConstraint(&Trans, (CON_AXIS1), "along global Y");
+								setLocalConstraint(&Trans, (CON_AXIS1), "along local Y");
 							else if (G.qual == LR_SHIFTKEY)
-								setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking global Y");
+								setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking local Y");
 
 							cmode = 'Y';
 						}
 						else {
 							if (G.qual == 0)
-								setConstraint(&Trans, mati, (CON_AXIS1), "along local Y");
+								setConstraint(&Trans, mati, (CON_AXIS1), "along global Y");
 							else if (G.qual == LR_SHIFTKEY)
-								setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking local Y");
+								setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
 
 							cmode = 'y';
 						}
