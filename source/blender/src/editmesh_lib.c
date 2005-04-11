@@ -1160,14 +1160,19 @@ void adduplicateflag(int flag)
 void delfaceflag(int flag)
 {
 	EditMesh *em = G.editMesh;
-	/* delete all faces with 'flag', including edges and loose vertices */
+	/* delete all faces with 'flag', including loose edges and loose vertices */
+	/* this is maybe a bit weird, but this function is used for 'split' and 'separate' */
 	/* in remaining vertices/edges 'flag' is cleared */
 	EditVert *eve,*nextve;
 	EditEdge *eed, *nexted;
 	EditFace *efa,*nextvl;
 
-	for(eed= em->edges.first; eed; eed= eed->next) eed->f2= 0;
-
+	/* to detect loose edges, we put f2 flag on 1 */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f & flag) eed->f2= 1;
+		else eed->f2= 0;
+	}
+	
 	/* delete faces */
 	efa= em->faces.first;
 	while(efa) {
