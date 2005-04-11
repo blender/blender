@@ -177,9 +177,8 @@ void add_primitiveMball(int dummy_argument)
 	ml->quat[2]= 0.0;
 	ml->quat[3]= 0.0;
 	ml->rad= 2.0;
-	ml->lay= 1;
 	ml->s= 2.0;
-	ml->flag= SELECT;
+	ml->flag= SELECT | MB_SCALE_RAD;
 
         switch(dummy_argument) {
                 case 1:
@@ -258,13 +257,19 @@ void mouse_mball()
 	if(hits>0) {
 		ml= startelem;
 		while(ml) {
-			/* if(base->lay & G.vd->lay) { */
 			
-				for(a=0; a<hits; a++) {
-					/* index converted for gl stuff */
-					if(ml->selcol==buffer[ 4 * a + 3 ]) act= ml;
+			for(a=0; a<hits; a++) {
+				/* index converted for gl stuff */
+				if(ml->selcol1==buffer[ 4 * a + 3 ]){
+					ml->flag |= MB_SCALE_RAD;
+					act= ml;
 				}
-			/* } */
+				if(ml->selcol2==buffer[ 4 * a + 3 ]){
+					ml->flag &= ~MB_SCALE_RAD;
+					act= ml;
+				}
+
+			}
 			
 			if(act) break;
 			

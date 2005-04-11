@@ -591,7 +591,7 @@ static void createTransMBallVerts(TransInfo *t)
 			VECCOPY(td->iloc, td->loc);
 			VECCOPY(td->center, td->loc);
 
-			if(ml->flag & SELECT) td->flag= TD_SELECTED | TD_USEQUAT;
+			if(ml->flag & SELECT) td->flag= TD_SELECTED | TD_USEQUAT | TD_SINGLESIZE;
 			else td->flag= TD_USEQUAT;
 
 			Mat3CpyMat3(td->smtx, smtx);
@@ -599,13 +599,24 @@ static void createTransMBallVerts(TransInfo *t)
 
 			td->ext = tx;
 			td->tdi = NULL;
-			td->val = NULL;
 
+			/* Radius of MetaElem (mass of MetaElem influence) */
+			if(ml->flag & MB_SCALE_RAD){
+				td->val = &ml->rad;
+				td->ival = ml->rad;
+			}
+			else{
+				td->val = &ml->s;
+				td->ival = ml->s;
+			}
+
+			/* expx/expy/expz determine "shape" of some MetaElem types */
 			tx->size = &ml->expx;
 			tx->isize[0] = ml->expx;
 			tx->isize[1] = ml->expy;
 			tx->isize[2] = ml->expz;
 
+			/* quat is used for rotation of MetaElem */
 			tx->quat = ml->quat;
 			QUATCOPY(tx->iquat, ml->quat);
 

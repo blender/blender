@@ -197,7 +197,8 @@ typedef struct TransInfo {
 #define TD_SELECTED		1
 #define	TD_NOACTION		2
 #define	TD_USEQUAT		4
-#define TD_NOTCONNECTED 8
+#define TD_NOTCONNECTED		8
+#define TD_SINGLESIZE		16	/* used for scaling of MetaElem->rad */
 
 void initWarp(TransInfo *t);
 int Warp(TransInfo *t, short mval[2]);

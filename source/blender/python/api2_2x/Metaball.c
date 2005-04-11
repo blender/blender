@@ -410,7 +410,7 @@ static PyObject *Metaball_addMetaelem( BPy_Metaball * self, PyObject * args )
 {
 	MetaElem *ml;
 	PyObject *listargs = 0;
-	int type, lay;
+	int type;
 	float x, y, z, rad, s, expx, expy, expz;
 	if( !PyArg_ParseTuple( args, "O", &listargs ) )
 		return ( EXPP_ReturnPyObjError
@@ -425,7 +425,6 @@ static PyObject *Metaball_addMetaelem( BPy_Metaball * self, PyObject * args )
 	y = PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	z = PyFloat_AsDouble( PyList_GetItem( listargs, 3 ) );
 	rad = PyFloat_AsDouble( PyList_GetItem( listargs, 4 ) );
-	lay = PyInt_AsLong( PyList_GetItem( listargs, 5 ) );
 	s = PyFloat_AsDouble( PyList_GetItem( listargs, 6 ) );
 	expx = PyFloat_AsDouble( PyList_GetItem( listargs, 7 ) );
 	expy = PyFloat_AsDouble( PyList_GetItem( listargs, 8 ) );
@@ -438,7 +437,6 @@ static PyObject *Metaball_addMetaelem( BPy_Metaball * self, PyObject * args )
 	ml->y = y;
 	ml->z = z;
 	ml->rad = rad;
-	ml->lay = lay;
 	ml->s = s;
 	ml->flag = SELECT;
 	ml->type = type;

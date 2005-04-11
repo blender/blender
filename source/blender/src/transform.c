@@ -1021,6 +1021,9 @@ int Resize(TransInfo *t, short mval[2])
 					add_tdi_poin(tdi->sizez, tdi->oldsize+2, vec[2]);
 					
 				}
+				else if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
+ 					*td->val = td->ival * fsize[0] * td->factor;
+ 				}	
 				else {
 					td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
 					td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;

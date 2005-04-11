@@ -48,7 +48,7 @@ typedef struct MetaElem {
 	struct BoundBox *bb;		/* Bound Box of MetaElem */
 	int i1,j1,k1, i2,j2,k2;		/* corners of Bounding Box in lattice */
 
-	short type, lay, flag, selcol;
+	short type, flag, selcol1, selcol2;
 	float x, y, z;			/* Position of centre of MetaElem */
 	float quat[4];			/* Rotation of MetaElem */
 	float expx, expy, expz;		/* dx, dy, dz parameters */
@@ -104,6 +104,7 @@ typedef struct MetaBall {
 /* ml->flag */
 #define MB_NEGATIVE	2
 #define MB_HIDE		8
+#define MB_SCALE_RAD	16
 
 #endif
 

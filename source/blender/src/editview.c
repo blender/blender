@@ -1400,7 +1400,14 @@ void borderselect(void)
 				
 				while(ml) {
 					for(a=0; a<hits; a++) {
-						if(ml->selcol==buffer[ (4 * a) + 3 ]) {
+						if(ml->selcol1==buffer[ (4 * a) + 3 ]) {
+							ml->flag |= MB_SCALE_RAD;
+							if(val==LEFTMOUSE) ml->flag |= SELECT;
+							else ml->flag &= ~SELECT;
+							break;
+						}
+						if(ml->selcol2==buffer[ (4 * a) + 3 ]) {
+							ml->flag &= ~MB_SCALE_RAD;
 							if(val==LEFTMOUSE) ml->flag |= SELECT;
 							else ml->flag &= ~SELECT;
 							break;

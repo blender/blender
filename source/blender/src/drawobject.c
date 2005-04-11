@@ -2979,17 +2979,30 @@ static void drawmball(Object *ob, int dt)
 	Normalise(imat[1]);
 	
 	while(ml) {
-		
+	
+		/* draw radius */
 		if(ob==G.obedit) {
-			if(ml->flag & SELECT) cpack(0xA0A0F0);
+			if((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) cpack(0xA0A0F0);
 			else cpack(0x3030A0);
 			
 			if(G.f & G_PICKSEL) {
-				ml->selcol= code;
+				ml->selcol1= code;
 				glLoadName(code++);
 			}
 		}
 		drawcircball(&(ml->x), ml->rad, imat);
+
+		/* draw stiffness */
+		if(ob==G.obedit) {
+			if((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) cpack(0xA0F0A0);
+			else cpack(0x30A030);
+			
+			if(G.f & G_PICKSEL) {
+				ml->selcol2= code;
+				glLoadName(code++);
+			}
+		}
+		drawcircball(&(ml->x), ml->rad*atan(ml->s)/M_PI_2, imat);
 		
 		ml= ml->next;
 	}
