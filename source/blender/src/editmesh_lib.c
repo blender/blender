@@ -586,6 +586,7 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 	EditFace *efa;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) eve->vn= NULL;
+	for(eed= em->edges.first; eed; eed= eed->next) eed->vn= NULL;
 
 	set_edge_directions();
 
