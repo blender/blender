@@ -303,8 +303,6 @@ static void createTransEdge(TransInfo *t) {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
 	Mesh *me = G.obedit->data;
-	EditVert **nears = NULL;
-	float *vectors = NULL;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
@@ -392,7 +390,7 @@ void count_bone_select(TransInfo *t, ListBase *lb, int *counter)
 static void add_pose_transdata(TransInfo *t, ListBase *lb, Object *ob, TransData **tdp)
 {
 	Bone *bone;
-	TransData *td= *tdp;
+	TransData *td;
 	float	parmat[4][4], tempmat[4][4];
 	float tempobmat[4][4];
 	float vec[3];
@@ -403,6 +401,8 @@ static void add_pose_transdata(TransInfo *t, ListBase *lb, Object *ob, TransData
 			/* We don't let IK children get "grabbed" */
 			/* ALERT! abusive global Trans here */
 			if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+				
+				td= *tdp;
 				
 				get_bone_root_pos (bone, vec, 1);
 				
@@ -434,7 +434,6 @@ static void add_pose_transdata(TransInfo *t, ListBase *lb, Object *ob, TransData
 				Mat3Inv (td->smtx, td->mtx);
 				
 				(*tdp)++;
-				td= *tdp;
 				deeper= 0;
 			}
 			else deeper= 1;
@@ -482,10 +481,10 @@ static void createTransPose(TransInfo *t)
 		count_bone_select(t, &arm->bonebase, &t->total);
 	}		
 	if(t->total==0) return;
-	
+
 	/* init trans data */
-    td = t->data = MEM_mallocN(t->total*sizeof(TransData), "TransPoseBone");
-    tdx = t->ext = MEM_mallocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
+    td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
+    tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
 	for(i=0; i<t->total; i++, td++, tdx++) {
 		td->ext= tdx;
 		td->tdi = NULL;
@@ -1398,13 +1397,16 @@ static void createTransObject(TransInfo *t)
 	
 	set_trans_object_base_flags(t);
 
-	/* this has to be done, or else constraints on armature
-	 * bones that point to objects/bones that are outside
-	 * of the armature don't work outside of posemode 
-	 * (and yes, I know it's confusing ...).
-	 */
-	figure_pose_updating();
-
+	{
+		extern void figure_pose_updating(void);
+		/* this has to be done, or else constraints on armature
+		 * bones that point to objects/bones that are outside
+		 * of the armature don't work outside of posemode 
+		 * (and yes, I know it's confusing ...).
+		 */
+		figure_pose_updating();
+	}
+	
 	/* count */	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
