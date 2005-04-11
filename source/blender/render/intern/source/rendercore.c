@@ -794,7 +794,8 @@ float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
 	ang = saacos(nh);
 
 	i= f * g * exp((double)(-(ang*ang) / (2.0*spec_power*spec_power)));
-
+	if(i<0.0) i= 0.0;
+	
 	return i;
 }
 
