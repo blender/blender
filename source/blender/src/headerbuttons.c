@@ -509,10 +509,10 @@ static void do_update_for_newframe(int mute)
 	clear_all_constraints();
 	do_all_keys();
 
-	do_all_actions();
+	do_all_actions(NULL);
 	rebuild_all_armature_displists();
 	/* so nice, better do it twice */
-	do_all_actions();
+	do_all_actions(NULL);
 	rebuild_all_armature_displists();
 
 	do_all_ikas();

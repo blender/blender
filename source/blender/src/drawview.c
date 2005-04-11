@@ -2074,7 +2074,7 @@ void drawview3d_render(struct View3D *v3d)
 	do_all_ipos();
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
-	do_all_actions();
+	do_all_actions(NULL);
 	do_all_ikas();
 
 	test_all_displists();
@@ -2305,7 +2305,7 @@ void inner_play_anim_loop(int init, int mode)
 	//do_all_ipos();
 	//BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	//do_all_keys();
-	//do_all_actions();
+	//do_all_actions(NULL);
 	//do_all_ikas();
 	update_for_newframe_muted();
 
@@ -2410,7 +2410,7 @@ int play_anim(int mode)
 	clear_all_constraints();
 	do_all_ipos();
 	do_all_keys();
-	do_all_actions();
+	do_all_actions(NULL);
 
 	/* set all objects on current frame... test_all_displists() needs it */
 	base= G.scene->base.first;

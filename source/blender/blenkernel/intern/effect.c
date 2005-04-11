@@ -1300,6 +1300,10 @@ void build_particle_system(Object *ob)
 					/* do_ob_ipo(par); */
 					par->ctime= -1234567.0;
 					do_ob_key(par);
+					if(par->type==OB_ARMATURE) {
+						do_all_actions(NULL);	// only does this object actions
+						clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
+					}
 					par= par->parent;
 				}
 				if(ma) do_mat_ipo(ma);
@@ -1310,7 +1314,7 @@ void build_particle_system(Object *ob)
 			}
 		}
 		/* get coordinates */
-		if(paf->flag & PAF_FACE) give_mesh_mvert(me, dlm, a, co, no,paf->seed);
+		if(paf->flag & PAF_FACE) give_mesh_mvert(me, dlm, a, co, no, paf->seed);
 		else {
 			mvert= me->mvert + (a % me->totvert);
 			VECCOPY(co, mvert->co);
@@ -1375,6 +1379,11 @@ void build_particle_system(Object *ob)
 		popfirst(par);
 		/* do not do ob->ipo: keep insertkey */
 		do_ob_key(par);
+		
+		if(par->type==OB_ARMATURE) {
+			do_all_actions(NULL);	// only does this object actions
+			clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
+		}
 		par= par->parent;
 	}
 

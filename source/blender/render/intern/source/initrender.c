@@ -1477,7 +1477,7 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	if(R.r.mode & (R_FIELDS|R_MBLUR)) {
 		do_all_ipos();
 		do_all_keys();
-		do_all_actions();
+		do_all_actions(NULL);
 		do_all_ikas();
 	}
 

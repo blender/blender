@@ -430,7 +430,7 @@ void get_pose_from_action(bPose **pose, bAction *act, float ctime)
 	}
 }
 
-void do_all_actions()
+void do_all_actions(Object *only_this)
 {
 	Base *base;
 	bPose *apose=NULL;
@@ -449,7 +449,8 @@ void do_all_actions()
 
 	while(base) {
 		
-		ob = base->object;
+		if(only_this) ob= only_this;
+		else ob = base->object;
 
 		/* Retrieve data from the NLA */
 		if(ob->type==OB_ARMATURE){
@@ -471,11 +472,11 @@ void do_all_actions()
 			copy_pose(&tpose, ob->pose, 1);
 			rest_pose(apose, 1);
  
-			if (base->object->nlastrips.first){
-				rest_pose(base->object->pose, 0);
+			if (ob->nlastrips.first){
+				rest_pose(ob->pose, 0);
 			}
 
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+			for (strip=ob->nlastrips.first; strip; strip=strip->next){
 				doit = 0;
 				if (strip->act){
 			
@@ -585,7 +586,7 @@ void do_all_actions()
 
 			/* Do local action (always overrides the nla actions) */
 			/*	At the moment, only constraint ipos on the local action have any effect */
-			if(base->object->action) {
+			if(ob->action) {
 				get_pose_from_action (&ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
 				do_pose_constraint_channels(ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
 				doit = 1;
@@ -595,6 +596,9 @@ void do_all_actions()
 				apply_pose_armature(get_armature(ob), ob->pose, 1);
 
 		}
+		
+		if(only_this) break;
+		
 		base= base->next;
 		if(base==0 && set==0 && G.scene->set) {
 			set= 1;

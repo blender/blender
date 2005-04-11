@@ -337,7 +337,7 @@ void set_scene_bg(Scene *sce)
 	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
 #ifdef __NLA
-	do_all_actions();
+	do_all_actions(NULL);
 	rebuild_all_armature_displists();
 #endif
 	do_all_ikas();

@@ -409,7 +409,7 @@ void persptoetsen(unsigned short event)
 			countall();
 			do_all_ipos();
 			do_all_keys();
-			do_all_actions();
+			do_all_actions(NULL);
 			do_all_ikas();
 			test_all_displists();
 			

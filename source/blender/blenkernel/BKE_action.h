@@ -86,7 +86,8 @@ void free_action(struct bAction * id);
 
 void make_local_action(struct bAction *act);
 
-void do_all_actions(void);
+/* if NULL it does all, otherwise only from Object */
+void do_all_actions(struct Object *);
 
 /**
  * Return a pointer to the pose channel of the given name
