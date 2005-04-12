@@ -418,7 +418,7 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
 			break;
 		}
 		if (!(mode & CON_NOFLIP)) {
-			if (Inpf(vec, G.vd->viewinv[2]) > 0.0f) {
+			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
 				VecMulf(vec, -1.0f);
 			}
 		}
@@ -459,7 +459,7 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
 			break;
 		}
 		if (!(mode & CON_NOFLIP)) {
-			if (Inpf(vec, G.vd->viewinv[2]) > 0.0f) {
+			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
 				VecMulf(vec, -1.0f);
 			}
 		}

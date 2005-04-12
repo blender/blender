@@ -1907,9 +1907,9 @@ int Crease(TransInfo *t, short mval[2])
 		outputNumInput(&(t->num), c);
 
 		if (crease >= 0.0f)
-			sprintf(str, "Crease: +%s", c, t->proptext);
+			sprintf(str, "Crease: +%s %s", c, t->proptext);
 		else
-			sprintf(str, "Crease: %s", c, t->proptext);
+			sprintf(str, "Crease: %s %s", c, t->proptext);
 	}
 	else {
 		/* default header print */

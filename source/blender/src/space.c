@@ -2770,9 +2770,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(4*midsp)+(4*mpref)),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButBitI(block, TOG, USER_DISABLE_SOUND, B_SOUNDTOGGLE, "Disable Sound",
+		uiDefButBitI(block, TOG, USER_DISABLE_SOUND, B_SOUNDTOGGLE, "Disable Game Sound",
 			(xpos+edgsp+(4*mpref)+(4*midsp)),y2,mpref,buth,
-			&(U.gameflags), 0, 0, 0, 0, "Disables sounds from being played");
+			&(U.gameflags), 0, 0, 0, 0, "Disables sounds from being played in games");
 
 		uiDefButBitS(block, TOG, USER_FILTERFILEEXTS, 0, "Filter File Extensions",
 			(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
