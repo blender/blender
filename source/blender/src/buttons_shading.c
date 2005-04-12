@@ -2774,7 +2774,10 @@ static void material_panel_texture(Material *ma)
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,130,21,20, 0, 0, 0, 0, 0, "");		
 		}
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_TEXCLEAR, "Clear", 122, 130, 72, 20, 0, 0, 0, 0, 0, "Erases link to texture");
+		uiDefBut(block, BUT, B_TEXCLEAR, "Clear",			122, 130, 72, 20, 0, 0, 0, 0, 0, "Erases link to texture");
+		
+		uiDefButS(block, TOG|BIT|4, B_DIFF, "Correct Nor Map",	100,18,163,19, &(mtex->texflag), 0, 0, 0, 0, "This channel will correct normal mapping for View space and Object space");
+		
 	}
 	else 
 		uiDefButS(block, TOG, B_EXTEXBROWSE, "Add New" ,100, 150, 163, 20, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Adds a new texture datablock");

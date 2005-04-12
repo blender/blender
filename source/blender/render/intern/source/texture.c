@@ -1620,11 +1620,10 @@ void do_material_tex(ShadeInput *shi)
 					warpvec[2]= mtex->warpfac*texres.nor[2];
 					warpdone= 1;
 				}
-#if 0				
-				// rotate to global coords
-				if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
-					// hrms, for sphere/tube map this rotating doesn't work nice
-					if(mtex->mapping==MTEX_FLAT || mtex->mapping==MTEX_CUBE) {
+				
+				if(mtex->texflag & MTEX_VIEWSPACE) {
+					// rotate to global coords
+					if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
 						if(shi->vlr && shi->vlr->ob) {
 							float len= Normalise(texres.nor);
 							// can be optimized... (ton)
@@ -1635,7 +1634,6 @@ void do_material_tex(ShadeInput *shi)
 						}
 					}
 				}
-#endif
 			}
 
 			/* mapping */
@@ -1726,10 +1724,10 @@ void do_material_tex(ShadeInput *shi)
 				}
 
 				if(mtex->maptoneg & MAP_DISPLACE) {
-					factt= (0.5-texres.tin)*mtex->dispfac; facmm= 1.0-factt;
+					factt= (texres.tin-0.5)*mtex->dispfac; facmm= 1.0-factt;
 				}
 				else {
-					factt= (texres.tin-0.5)*mtex->dispfac; facmm= 1.0-factt;
+					factt= (0.5-texres.tin)*mtex->dispfac; facmm= 1.0-factt;
 				}
 
 				if(mtex->blendtype==MTEX_BLEND) {
