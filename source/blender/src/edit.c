@@ -715,7 +715,7 @@ static void update_select_dependency(void)
 		if(ob->hooks.first) {
 			ObHook *hook= ob->hooks.first;
 			while(hook) {
-				if(hook->parent->flag & SELECT) freedisplist(&ob->disp);
+				if(hook->parent && (hook->parent->flag & SELECT)) freedisplist(&ob->disp);
 				hook= hook->next;
 			}
 		}
