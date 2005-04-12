@@ -88,19 +88,51 @@ extern int  get_defgroup_num (Object *ob, bDeformGroup        *dg);
 #define HEUNWARNLIMIT 1 // 50 would be fine i think for detecting severe *stiff* stuff
 
 float SoftHeunTol = 1.0f; // humm .. this should be calculated from sb parameters and sizes
-float rescale_grav_to_framerate = 1.0f; // since unit of g is [m/sec^2] we need translation from frames to physics time
-float rescale_friction_to_framerate = 1.0f; // since unit of drag is [kg/sec] we need translation from frames to physics time
 
 /* local prototypes */
-static void softbody_scale_time(float steptime);
+//static void softbody_scale_time(float steptime);
 static int get_scalar_from_named_vertexgroup(Object *ob, char *name, int vertID, float *target);
 static void free_softbody_intern(SoftBody *sb);
 
-static void softbody_scale_time(float steptime)
+
+/*+++ frame based timing +++*/
+
+//physical unit of force is [kg * m / sec^2]
+
+static float sb_grav_force_scale(Object *ob)
+// since unit of g is [m/sec^2] and F = mass * g we rescale unit mass of node to 1 gramm
+// put it to a function here, so we can add user options later without touching simulation code
 {
-  rescale_grav_to_framerate = steptime*steptime; 
-  rescale_friction_to_framerate = steptime;
+	return (0.001f);
 }
+
+static float sb_fric_force_scale(Object *ob)
+// rescaling unit of drag [1 / sec] to somehow reasonable
+// put it to a function here, so we can add user options later without touching simulation code
+{
+	return (0.01f);
+}
+
+static float sb_time_scale(Object *ob)
+// defining the frames to *real* time relation
+{
+/*
+	SoftBody *sb= ob->soft;	// is supposed to be there
+	if (sb){
+		return(sb->physics_speed); //hrms .. this could be IPO as well :) 
+		// estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
+		// 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
+        // theory would give a 50 frames period .. so there must be something inaccurate .. looking for that (BM) 
+	}
+*/
+	return (1.0f);
+/* 
+this would be frames/sec independant timing assuming 25 fps is default
+but does not work very well with NLA
+	return (25.0f/G.scene->r.frs_sec)
+*/
+}
+/*--- frame based timing ---*/
 
 
 static int count_mesh_quads(Mesh *me)
@@ -268,6 +300,175 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 	v[2] += s*v1[2];
 }
 
+static int sb_deflect_particle(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *slip ,float *bounce)
+{
+	int deflected;
+	int last_ob = -1;
+	int last_fc = -1;
+	int same_fc = 0;
+	float dummy[3],s_actpos[3], s_futurepos[3];
+	SoftBody *sb= ob->soft;	// is supposed to be there
+	VECCOPY(s_actpos,actpos);
+	VECCOPY(s_futurepos,futurepos);
+	if (slip)   *slip   *= 0.98f;
+	if (bounce) *bounce *= 1.5f;
+				
+				
+	deflected= pdDoDeflection(actpos, futurepos, collisionpos,
+					facenormal, sb->ctime, dummy , -1,
+					G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
+	return(deflected);
+				
+}
+
+
+static int sb_deflect_test(float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *slip ,float *bounce)
+{
+
+	if (slip)   *slip   *= 0.98f;
+	if (bounce) *bounce *= 1.5f;
+
+	if (
+		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
+     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
+	 && (   (( futurepos[2] > 1.0) && ( actpos[2] <= 1.0)) //intersecting at z == 1;
+		||(( futurepos[2] < 1.0) && ( actpos[2] >= 1.0))) )
+	
+	{
+		if (facenormal){
+	        facenormal[0] =  0.0f;
+	        facenormal[1] =  0.0f;
+	        facenormal[2] = -1.0f;
+		}
+		if (collisionpos){
+			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
+			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
+			collisionpos[2] = 1.0f;
+		}
+		return 1;
+
+	}
+
+	if (
+		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
+     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
+	 && (   (( futurepos[2] > 0.0) && ( actpos[2] <= 0.0)) //intersecting at z == 1;
+		 ||(( futurepos[2] < 0.0) && ( actpos[2] >= 0.0)) )  )
+	
+	{
+		if (facenormal){
+	        facenormal[0] =  0.0f;
+	        facenormal[1] =  0.0f;
+			if (futurepos[2] < 0.0)
+	        facenormal[2] =  -1.0f;
+	        else facenormal[2] =  1.0f;
+		}
+		if (collisionpos){
+			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
+			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
+			collisionpos[2] = 0.0f;
+		}
+		return 1;
+
+	}
+
+	if (
+		( futurepos[2] > 0.0) && ( futurepos[2] < 1.0) // having unit square acting as defelecting region 
+     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
+	 && ( 
+	 /* (( futurepos[0] > 1.0) && ( actpos[0] <= 1.0)) //intersecting at x == 1;
+		||*/
+		
+		/* experiment distinguish inside and outside*/
+		
+		(( futurepos[0] < 1.0) && ( actpos[0] >= 1.0))) )
+	
+	{
+		if (facenormal){
+	        facenormal[0] =  -1.0f;
+	        facenormal[1] =  0.0f;
+	        facenormal[2] =  0.0f;
+		}
+		if (collisionpos){
+			collisionpos[0] = 1.0f;
+			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
+			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
+		}
+		return 1;
+
+	}
+
+	if (
+		( futurepos[2] > 0.0) && ( futurepos[2] < 1.0) // having unit square acting as defelecting region 
+     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
+	 && (   (( futurepos[0] > 0.0) && ( actpos[0] <= 0.0)) //intersecting at x == 0;
+		||(( futurepos[0] < 0.0) && ( actpos[0] >= 0.0))) )
+	
+	{
+		if (facenormal){
+	        facenormal[0] =  1.0f;
+	        facenormal[1] =  0.0f;
+	        facenormal[2] =  0.0f;
+		}
+		if (collisionpos){
+			collisionpos[0] = 0.0f;
+			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
+			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
+		}
+		return 1;
+
+	}
+
+
+	if (
+		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
+     && ( futurepos[2] > 0.0) && ( futurepos[2] < 1.0)
+	 && (   (( futurepos[1] > 0.0) && ( actpos[1] <= 0.0)) //intersecting at Y == 0;
+		||(( futurepos[1] < 0.0) && ( actpos[1] >= 0.0))) )
+	
+	{
+		if (facenormal){
+	        facenormal[0] =  0.0f;
+	        facenormal[1] =  1.0f;
+	        facenormal[2] =  0.0f;
+		}
+		if (collisionpos){
+			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
+			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
+			collisionpos[1] = 0.0f;
+		}
+		return 1;
+
+	}
+	if (
+		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
+     && ( futurepos[2] > 0.0) && ( futurepos[2] < 1.0)
+	 && (   (( futurepos[1] > 1.0) && ( actpos[1] <= 1.0)) //intersecting at Y == 0;
+		||(( futurepos[1] < 1.0) && ( actpos[1] >= 1.0))) )
+	
+	{
+		if (facenormal){
+	        facenormal[0] =  0.0f;
+	        facenormal[1] =  -1.0f;
+	        facenormal[2] =  0.0f;
+		}
+		if (collisionpos){
+			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
+			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
+			collisionpos[1] = 1.0f;
+		}
+		return 1;
+
+	}
+
+
+
+return 0;
+}
+
+
+
+
 #define USES_FIELD		1
 #define USES_DEFLECT	2
 static int is_there_deflection(unsigned int layer)
@@ -299,7 +500,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
 	}
 	
-	gravity = sb->grav * rescale_grav_to_framerate;	
+	gravity = sb->grav * sb_grav_force_scale(ob);	
 	/* check! */
 	do_effector= is_there_deflection(ob->lay);
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
@@ -321,7 +522,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				bp->force[2]= ks*(auxvect[2]);
 				/* calulate damping forces generated by goals*/
 				VecSubf(velgoal,bp->origS, bp->origE);
-				kd =  sb->goalfrict * rescale_friction_to_framerate ;
+				kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
 
 				if (forcetime > 0.0 ) { // make sure friction does not become rocket motor on time reversal
 					bp->force[0]-= kd * (velgoal[0] + bp->vec[0]);
@@ -344,13 +545,14 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			if(do_effector & USES_FIELD) {
 				float force[3]= {0.0f, 0.0f, 0.0f};
 				float speed[3]= {0.0f, 0.0f, 0.0f};
+				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); // just for calling functio once
 				
 				pdDoEffector(bp->pos, force, speed, (float)G.scene->r.cfra, ob->lay,PE_WIND_AS_SPEED);
 				// note: now we have wind as motion of media, so we can do anisotropic stuff here, 
 				// if we had vertex normals here(BM)
 				/* apply force */
 				//  VecMulf(force, rescale_grav_to_framerate);  <- didn't work, made value far too low!
-				VecMulf(force,25.0f* rescale_friction_to_framerate); 
+				VecMulf(force,25.0f* eval_sb_fric_force_scale); 
 				VECADD(bp->force, bp->force, force);
 				/* apply speed. note; deflector can give 'speed' only.... */
 				/* nooo! we never alter free variables :bp->vec bp->pos in here ! 
@@ -358,16 +560,17 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				 * VECADD(bp->vec, bp->vec, speed);   
 				 */
  			    /* friction in moving media */
-			    kd= sb->mediafrict* rescale_friction_to_framerate;  
-				bp->force[0] -= kd * (bp->vec[0] + speed[0]/rescale_friction_to_framerate);
-				bp->force[1] -= kd * (bp->vec[1] + speed[1]/rescale_friction_to_framerate);
-				bp->force[2] -= kd * (bp->vec[2] + speed[2]/rescale_friction_to_framerate);
+
+			    kd= sb->mediafrict* eval_sb_fric_force_scale;  
+				bp->force[0] -= kd * (bp->vec[0] + speed[0]/eval_sb_fric_force_scale);
+				bp->force[1] -= kd * (bp->vec[1] + speed[1]/eval_sb_fric_force_scale);
+				bp->force[2] -= kd * (bp->vec[2] + speed[2]/eval_sb_fric_force_scale);
 				/* now we'll have nice centrifugal effect for vortex */
 
 			}
 			else {
 				/* friction in media (not) moving*/
-				kd= sb->mediafrict* rescale_friction_to_framerate;  
+				kd= sb->mediafrict* sb_fric_force_scale(ob);  
 				/* assume it to be proportional to actual velocity */
 				bp->force[0]-= bp->vec[0]*kd;
 				bp->force[1]-= bp->vec[1]*kd;
@@ -431,7 +634,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 
 								// friction stuff V1
 								VecSubf(velgoal,bp->vec,(bproot+bs->v2)->vec);
-								kd = sb->infrict * rescale_friction_to_framerate ;
+								kd = sb->infrict * sb_fric_force_scale(ob);
 								absvel  = Normalise(velgoal);
 								projvel = ABS(Inpf(sd,velgoal));
 								kd *= absvel * projvel;
@@ -453,7 +656,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 
 								// friction stuff V2
 								VecSubf(velgoal,bp->vec,(bproot+bs->v1)->vec);
-								kd = sb->infrict * rescale_friction_to_framerate ;
+								kd = sb->infrict * sb_fric_force_scale(ob);
 								absvel  = Normalise(velgoal);
 								projvel = ABS(Inpf(sd,velgoal));
 								kd *= absvel * projvel;
@@ -514,7 +717,10 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	float timeovermass;
 	float maxerr = 0.0;
 	int a;
-	
+
+    forcetime *= sb_time_scale(ob);
+    
+	// claim a minimum mass for vertex 
 	if (sb->nodemass > 0.09999f) timeovermass = forcetime/sb->nodemass;
 	else timeovermass = forcetime/0.09999f;
 	
@@ -570,6 +776,74 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				maxerr = MAX2(maxerr,ABS(dx[2] - bp->prevdx[2]));
 			}
 			else { VECADD(bp->pos, bp->pos, dx);}
+			{
+
+			// experimental collision
+            // we need the above calcualtions done though we'll over ride bp->pos bp->vel  
+			if (mode ==2){
+			    float vv[3],collisionpos[3],facenormal[3];
+				float slip = 1.0f;
+				float bounce = 1.0f;
+				float projvel;
+				float deswampingconstant = 0.1;
+
+
+
+/*
+slip   = sb->slip;   // parameter for tangetial interaction
+bounce = sb->bounce; // parameter for normal interaction
+*/
+//				if (sb_deflect_test(bp->prevpos, bp->pos, collisionpos, facenormal,&slip,&bounce)){
+				if (sb_deflect_particle(ob,bp->prevpos, bp->pos, collisionpos, facenormal,&slip,&bounce)){
+
+
+					VecSubf(vv,bp->pos,bp->prevpos);
+					projvel = ABS(Inpf(vv,facenormal));
+
+
+					if (1) // mushy impact
+					{
+						float tangential_vel[3];
+						float helper_vect[3];
+						float hf;
+						hf = Inpf(bp->vec,facenormal);
+/* make helper_vect vel along normal */
+helper_vect[0] = hf * facenormal[0];
+helper_vect[1] = hf * facenormal[1];
+helper_vect[2] = hf * facenormal[2];
+/* now we have a nice slip along vector */
+VecSubf(tangential_vel,bp->vec,helper_vect);
+
+
+
+						
+						bp->vec[0]   =  tangential_vel[0]* slip - (bounce * 2.0f * projvel * facenormal[0]);
+						bp->vec[1]   =  tangential_vel[1]* slip - (bounce * 2.0f * projvel * facenormal[1]);
+						bp->vec[2]   =  tangential_vel[2]* slip - (bounce * 2.0f * projvel * facenormal[2]);
+					}
+					else{
+						// 100 % sticky surface
+						bp->vec[0]   = vv[0] - (bounce * 2.0f * projvel * facenormal[0]);
+						bp->vec[1]   = vv[1] - (bounce * 2.0f * projvel * facenormal[1]);
+						bp->vec[2]   = vv[2] - (bounce * 2.0f * projvel * facenormal[2]);
+					}
+// pull our vertex out of the swamp .. not very accurate but who will notice
+					bp->pos[0]   = collisionpos[0] + deswampingconstant * bp->vec[0]  ;
+					bp->pos[1]   = collisionpos[1] + deswampingconstant * bp->vec[1]  ;
+					bp->pos[2]   = collisionpos[2] + deswampingconstant * bp->vec[2];
+					maxerr = MAX2(maxerr,ABS(bounce*vv[0]));
+					maxerr = MAX2(maxerr,ABS(bounce*vv[1]));
+					maxerr = MAX2(maxerr,ABS(bounce*vv[2]));
+
+					/*  */
+					
+					
+				}
+			}
+			}
+
+
+
 			
 		}//snap
 	} //for
@@ -1086,7 +1360,6 @@ void sbObjectStep(Object *ob, float framenr)
 	
 	/* checking time: */
 	ctime= bsystem_time(ob, NULL, framenr, 0.0);
-    softbody_scale_time(1.0f/G.scene->r.frs_sec); // translate frames/sec and lenghts unit to SI system
 	dtime= ctime - sb->ctime;
 		// bail out for negative or for large steps
 	if(dtime<0.0 || dtime >= 9.9*G.scene->r.framelen) { // note: what is G.scene->r.framelen for ? (BM)

@@ -688,6 +688,35 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 		base = base->next;
 	}
 
+	if (def_depth = -1){ // evil hack to signal softbodies
+		if (deflected) {
+    	VECSUB(edge1, dv1, dv2);
+		VECSUB(edge2, dv3, dv2);
+		Crossf(d_nvect, edge2, edge1);
+		n_mag = Normalise(d_nvect);
+		dk_plane = INPR(d_nvect, nv1);
+		dk_point1 = INPR(d_nvect,opco);
+
+		VECSUB(d_intersect_vect, npco, opco);
+        // abuse opno to return point of intersection
+		opno[0] = opco[0] + (min_t * (npco[0] - opco[0]));
+		opno[1] = opco[1] + (min_t * (npco[1] - opco[1]));
+		opno[2] = opco[2] + (min_t * (npco[2] - opco[2]));
+
+        // abuse npno to return face normal
+		VECCOPY(npno,d_nvect);
+		{
+          npno[0] *= -1.0f;			
+          npno[1] *= -1.0f;			
+          npno[2] *= -1.0f;			
+		}
+
+
+		}
+		return(deflected);
+
+	}
+
 	/* Here's the point to do the permeability calculation */
 	/* Set deflected to 0 if a random number is below the value */
 	/* Get the permeability IPO here*/
