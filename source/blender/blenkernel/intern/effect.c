@@ -563,7 +563,7 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 	float damping, perm_thresh;
 	float perm_val, rdamp_val;
 	int a, deflected=0, deflected_now=0;
-	float t, min_t;
+	float t,t2, min_t;
 	float mat[3][3], obloc[3];
 	short cur_frame;
 	float time_before, time_after;
@@ -647,35 +647,41 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 					
 					deflected_now = 0;
 					
-					t= 0.5;	// this is labda of line, can use it optimize quad intersection
-					
+//					t= 0.5;	// this is labda of line, can use it optimize quad intersection
+// sorry but no .. see below (BM)					
 					if( linetriangle(opco, npco, nv1, nv2, nv3, &t) ) {
 						if (t < min_t) {
 							deflected = 1;
 							deflected_now = 1;
 						}
 					}
-					else if (mface->v4 && (t>=0.0 && t<=1.0)) {
-						if( linetriangle(opco, npco, nv1, nv3, nv4, &t) ) {
-							if (t < min_t) {
+//					else if (mface->v4 && (t>=0.0 && t<=1.0)) {
+// no, you can't skip testing the other triangle
+// it might give a smaller t on (close to) the edge .. this is numerics not esoteric maths :)
+// note: the 2 triangles don't need to share a plane ! (BM)
+					if (mface->v4) {
+						if( linetriangle(opco, npco, nv1, nv3, nv4, &t2) ) {
+							if (t2 < min_t) {
 								deflected = 1;
 								deflected_now = 2;
 							}
 	  					}
 					}
 					
-					if ((deflected_now > 0) && (t < min_t)) {
+					if ((deflected_now > 0) && ((t < min_t) ||(t2 < min_t))) {
                     	min_t = t;
                     	ds_object = d_object;
 						ds_face = d_face;
 						deflection_object = ob;
 						deflection_face = mface;
 						if (deflected_now==1) {
+                    	min_t = t;
 							VECCOPY(dv1, nv1);
 							VECCOPY(dv2, nv2);
 							VECCOPY(dv3, nv3);
 						}
 						else {
+                    	min_t = t2;
 							VECCOPY(dv1, nv1);
 							VECCOPY(dv2, nv3);
 							VECCOPY(dv3, nv4);
