@@ -1741,6 +1741,10 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 		draw_wire = 1;
 	}
 	else if( (ob==OBACT && (G.f & G_FACESELECT)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
+		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
+			draw_mesh_object_outline(dm);
+		}
+
 		draw_tface_mesh(ob, ob->data, dt);
 	}
 	else if(dt==OB_SOLID ) {
