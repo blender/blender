@@ -734,6 +734,16 @@ static short extrudeflag_edge(short flag, float *nor)
 		}
 	}
 	
+	/* step 3a if *one* selected face has edge with unselected face; remove old selected faces */
+	for(efa= em->faces.last; efa; efa= efa->prev) {
+		if(efa->f & SELECT) {
+			if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2)) {
+				del_old= 1;
+				break;
+			}
+		}
+	}
+				
 	/* step 3: make new faces from faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
@@ -742,15 +752,19 @@ static short extrudeflag_edge(short flag, float *nor)
 			if(efa->v3->vn==NULL) efa->v3->vn= addvertlist(efa->v3->co);
 			if(efa->v4 && efa->v4->vn==NULL) efa->v4->vn= addvertlist(efa->v4->co);
 			
-			if(efa->v4)
-				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, efa->v4->vn, efa, efa);
-			else
-				addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, NULL, efa, efa);
+			if(del_old==0) {	// keep old faces means flipping normal
+				if(efa->v4)
+					addfacelist(efa->v4->vn, efa->v3->vn, efa->v2->vn, efa->v1->vn, efa, efa);
+				else
+					addfacelist(efa->v3->vn, efa->v2->vn, efa->v1->vn, NULL, efa, efa);
+			}
+			else {
+				if(efa->v4)
+					addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, efa->v4->vn, efa, efa);
+				else
+					addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, NULL, efa, efa);
+			}
 	
-			/* if *one* selected face has edge with unselected face; remove old selected faces */
-			if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2))
-				del_old= 1;
-				
 			/* for transform */
 			VecAddf(nor, nor, efa->n);
 		}
@@ -1000,7 +1014,10 @@ short extrudeflag_vert(short flag, float *nor)
 			v3= efa->v3->vn;
 			if(efa->v4) v4= efa->v4->vn; else v4= 0;
 			
-			efa2= addfacelist(v1, v2, v3, v4, efa, efa); /* hmm .. not sure about edges here */
+			if(del_old==0)	// if we keep old, we flip normal
+				efa2= addfacelist(v3, v2, v1, v4, efa, efa); /* hmm .. not sure about edges here */
+			else
+				efa2= addfacelist(v1, v2, v3, v4, efa, efa); /* hmm .. not sure about edges here */
 			
 			/* for transform */
 			VecAddf(nor, nor, efa->n);
