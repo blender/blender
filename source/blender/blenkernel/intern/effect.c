@@ -688,7 +688,7 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 		base = base->next;
 	}
 
-	if (def_depth = -1){ // evil hack to signal softbodies
+	if (def_depth == -1){ // evil hack to signal softbodies
 		if (deflected) {
     	VECSUB(edge1, dv1, dv2);
 		VECSUB(edge2, dv3, dv2);
