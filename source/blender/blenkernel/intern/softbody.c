@@ -314,7 +314,7 @@ static int sb_deflect_particle(Object *ob,float *actpos, float *futurepos,float 
 	if (bounce) *bounce *= 1.5f;
 				
 				
-	deflected= pdDoDeflection(actpos, futurepos, collisionpos,
+	deflected= pdDoDeflection(s_actpos, s_futurepos, collisionpos,
 					facenormal, sb->ctime, dummy , -1,
 					G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
 	return(deflected);
@@ -776,7 +776,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				maxerr = MAX2(maxerr,ABS(dx[2] - bp->prevdx[2]));
 			}
 			else { VECADD(bp->pos, bp->pos, dx);}
-			{
+			if(1) {
 
 			// experimental collision
             // we need the above calcualtions done though we'll over ride bp->pos bp->vel  
@@ -785,15 +785,15 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				float slip = 1.0f;
 				float bounce = 1.0f;
 				float projvel;
-				float deswampingconstant = 0.1;
+					float deswampingconstant = 0.0001;
 
 
 
-/*
-slip   = sb->slip;   // parameter for tangetial interaction
-bounce = sb->bounce; // parameter for normal interaction
-*/
-//				if (sb_deflect_test(bp->prevpos, bp->pos, collisionpos, facenormal,&slip,&bounce)){
+					/*
+					slip   = sb->slip;   // parameter for tangetial interaction
+					bounce = sb->bounce; // parameter for normal interaction
+					*/
+					//	if (sb_deflect_test(bp->prevpos, bp->pos, collisionpos, facenormal,&slip,&bounce)){
 				if (sb_deflect_particle(ob,bp->prevpos, bp->pos, collisionpos, facenormal,&slip,&bounce)){
 
 
@@ -807,15 +807,12 @@ bounce = sb->bounce; // parameter for normal interaction
 						float helper_vect[3];
 						float hf;
 						hf = Inpf(bp->vec,facenormal);
-/* make helper_vect vel along normal */
-helper_vect[0] = hf * facenormal[0];
-helper_vect[1] = hf * facenormal[1];
-helper_vect[2] = hf * facenormal[2];
-/* now we have a nice slip along vector */
-VecSubf(tangential_vel,bp->vec,helper_vect);
-
-
-
+							/* make helper_vect vel along normal */
+							helper_vect[0] = hf * facenormal[0];
+							helper_vect[1] = hf * facenormal[1];
+							helper_vect[2] = hf * facenormal[2];
+							/* now we have a nice slip along vector */
+							VecSubf(tangential_vel,bp->vec,helper_vect);
 						
 						bp->vec[0]   =  tangential_vel[0]* slip - (bounce * 2.0f * projvel * facenormal[0]);
 						bp->vec[1]   =  tangential_vel[1]* slip - (bounce * 2.0f * projvel * facenormal[1]);
@@ -827,10 +824,15 @@ VecSubf(tangential_vel,bp->vec,helper_vect);
 						bp->vec[1]   = vv[1] - (bounce * 2.0f * projvel * facenormal[1]);
 						bp->vec[2]   = vv[2] - (bounce * 2.0f * projvel * facenormal[2]);
 					}
-// pull our vertex out of the swamp .. not very accurate but who will notice
+						// pull our vertex out of the swamp .. not very accurate but who will notice
+						/*	
 					bp->pos[0]   = collisionpos[0] + deswampingconstant * bp->vec[0]  ;
 					bp->pos[1]   = collisionpos[1] + deswampingconstant * bp->vec[1]  ;
 					bp->pos[2]   = collisionpos[2] + deswampingconstant * bp->vec[2];
+						*/
+						bp->pos[0]   = collisionpos[0] - deswampingconstant * facenormal[0]  ;
+						bp->pos[1]   = collisionpos[1] - deswampingconstant * facenormal[1]  ;
+						bp->pos[2]   = collisionpos[2] - deswampingconstant * facenormal[2];
 					maxerr = MAX2(maxerr,ABS(bounce*vv[0]));
 					maxerr = MAX2(maxerr,ABS(bounce*vv[1]));
 					maxerr = MAX2(maxerr,ABS(bounce*vv[2]));
