@@ -256,6 +256,8 @@ static PyObject *RenderData_OldMapValue( BPy_RenderData * self,
 static PyObject *RenderData_NewMapValue( BPy_RenderData * self,
 					 PyObject * args );
 
+static PyObject *RenderData_getTimeCode( BPy_RenderData * self);
+
 static void RenderData_dealloc( BPy_RenderData * self );
 static PyObject *RenderData_getAttr( BPy_RenderData * self, char *name );
 static PyObject *RenderData_repr( BPy_RenderData * self );
@@ -377,6 +379,8 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(int) - get/set the current frame for rendering\n"},
 	{"endFrame", ( PyCFunction ) RenderData_EndFrame, METH_VARARGS,
 	 "(int) - get/set the ending frame for rendering\n"},
+	{"getTimeCode", ( PyCFunction ) RenderData_getTimeCode, METH_NOARGS,
+	 "get the current frame in HH:MM:SS:FF format\n"},
 	{"imageSizeX", ( PyCFunction ) RenderData_ImageSizeX, METH_VARARGS,
 	 "(int) - get/set the image width in pixels\n"},
 	{"imageSizeY", ( PyCFunction ) RenderData_ImageSizeY, METH_VARARGS,
@@ -2024,3 +2028,48 @@ PyObject *RenderData_NewMapValue( BPy_RenderData * self, PyObject * args )
 					      &self->renderContext->images, 1,
 					      900 );
 }
+
+//------------------------------------RenderData.getTimeCode() -----------
+PyObject *RenderData_getTimeCode( BPy_RenderData * self){
+    PyObject *ret = NULL;
+    char tc[12];
+    char h[3],m[3],s[3],f[3];
+    int hi,mi,si,fi,hold,fps,cfa;
+    
+    fps = self->renderContext->frs_sec;
+    cfa = self->renderContext->cfra;
+    fi =  self->renderContext->cfra % fps;
+    if(fi == 0)
+        fi = fps;
+        	    
+    hi   = (cfa - 1) / (fps*60*60);
+    hold = (cfa - 1) % (fps*60*60);     
+    mi   = hold / (fps*60);
+    hold = hold % (fps*60);
+    si   = hold / fps;
+    
+    if(hi > 99){
+        ret = PyString_FromString("Time Greater than 99 Hours!");	
+    }
+     else{
+        if(hi > 9)
+            sprintf(h,"%d",hi);
+        else
+            sprintf(h,"0%d",hi);
+        if(mi > 9)
+            sprintf(m,"%d",mi);
+        else
+            sprintf(m,"0%d",mi);            
+        if(si > 9)
+            sprintf(s,"%d",si);
+        else
+            sprintf(s,"0%d",si);
+        if(fi > 9)
+            sprintf(f,"%d",fi);
+        else
+            sprintf(f,"0%d",fi);
+	    sprintf(tc,"%s:%s:%s:%s",h,m,s,f);
+    	ret = PyString_FromString(tc);
+    } 
+    return ret;    
+}            

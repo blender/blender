@@ -103,6 +103,13 @@ class RenderData:
     play animation of rendered images/avi (searches Pics: field).
     """
 
+  def getTimeCode():
+    """
+    Get the current frame as a string in HH:MM:SS:FF format
+    @rtype: string 
+    @return: current frame as a string in HH:MM:SS:FF format
+    """
+
   def setRenderPath(path):
     """
     Set the path to where the renderer will write to.
