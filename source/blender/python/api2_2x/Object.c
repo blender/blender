@@ -46,6 +46,7 @@
 #include <BKE_property.h>
 #include <BKE_mball.h>
 #include <BKE_font.h>
+#include <BKE_softbody.h>
 #include <BIF_editview.h>
 #include <BSE_editipo.h>
 
@@ -127,6 +128,8 @@ struct PyMethodDef M_Object_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Object methods declarations:				   */
 /*****************************************************************************/
+int setupSB(Object* ob); /*Make sure Softbody Pointer is initialized */
+
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
@@ -2963,7 +2966,6 @@ PyObject *Object_getPIType( BPy_Object * self )
 }
 PyObject *Object_setPIType( BPy_Object * self, PyObject * args )
 {
-	BPy_constant *constant;
 	int value;
 
     if(!self->object->pd){
@@ -3114,7 +3116,6 @@ PyObject *Object_getPIDeflection( BPy_Object * self )
 
 PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args )
 {
-	BPy_constant *constant;
 	int value;
 
     if(!self->object->pd){
@@ -3138,8 +3139,9 @@ PyObject *Object_getSBMass( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->nodemass );
@@ -3156,8 +3158,9 @@ PyObject *Object_setSBMass( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3177,8 +3180,9 @@ PyObject *Object_getSBGravity( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->grav );
@@ -3195,8 +3199,9 @@ PyObject *Object_setSBGravity( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3216,8 +3221,9 @@ PyObject *Object_getSBFriction( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->mediafrict );
@@ -3234,8 +3240,9 @@ PyObject *Object_setSBFriction( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3255,8 +3262,9 @@ PyObject *Object_getSBErrorLimit( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->rklimit );
@@ -3273,8 +3281,9 @@ PyObject *Object_setSBErrorLimit( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3294,8 +3303,9 @@ PyObject *Object_getSBGoalSpring( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->goalspring );
@@ -3312,8 +3322,9 @@ PyObject *Object_setSBGoalSpring( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer) " ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3333,8 +3344,9 @@ PyObject *Object_getSBGoalFriction( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->goalfrict );
@@ -3351,8 +3363,9 @@ PyObject *Object_setSBGoalFriction( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3372,8 +3385,9 @@ PyObject *Object_getSBMinGoal( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->mingoal );
@@ -3390,8 +3404,9 @@ PyObject *Object_setSBMinGoal( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3411,8 +3426,9 @@ PyObject *Object_getSBMaxGoal( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->maxgoal );
@@ -3429,8 +3445,9 @@ PyObject *Object_setSBMaxGoal( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3450,8 +3467,9 @@ PyObject *Object_getSBInnerSpring( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->inspring );
@@ -3468,8 +3486,9 @@ PyObject *Object_setSBInnerSpring( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3489,8 +3508,9 @@ PyObject *Object_getSBInnerSpringFriction( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->infrict );
@@ -3507,8 +3527,9 @@ PyObject *Object_setSBInnerSpringFriction( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3528,8 +3549,9 @@ PyObject *Object_getSBDefaultGoal( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
     
     attr = PyFloat_FromDouble( ( double ) self->object->soft->defgoal );
@@ -3546,8 +3568,9 @@ PyObject *Object_setSBDefaultGoal( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->soft){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"particle deflection could not be accessed (null pointer)" ) );    
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
     }    
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
@@ -3567,6 +3590,13 @@ PyObject *Object_getSBEnable( BPy_Object * self )
     short flag =  self->object->softflag;
     PyObject *attr = NULL;
     
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }    
+    
+    
     if(self->object->softflag & OB_SB_ENABLE){
            attr = PyInt_FromLong(1);
     }
@@ -3582,6 +3612,13 @@ PyObject *Object_getSBEnable( BPy_Object * self )
 PyObject *Object_setSBEnable( BPy_Object * self, PyObject * args )
 {
     short value;
+    
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }       
+    
 	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"expected integer argument" ) );
@@ -3600,6 +3637,12 @@ PyObject *Object_getSBPostDef( BPy_Object * self )
 {
     short flag =  self->object->softflag;
     PyObject *attr = NULL;
+
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }   
     
     if(self->object->softflag & OB_SB_POSTDEF){
            attr = PyInt_FromLong(1);
@@ -3616,6 +3659,14 @@ PyObject *Object_getSBPostDef( BPy_Object * self )
 PyObject *Object_setSBPostDef( BPy_Object * self, PyObject * args )
 {
     short value;
+    
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }       
+    
+    
 	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"expected integer argument" ) );
@@ -3629,6 +3680,12 @@ PyObject *Object_getSBUseGoal( BPy_Object * self )
 {
     short flag =  self->object->softflag;
     PyObject *attr = NULL;
+    
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }       
     
     if(self->object->softflag & OB_SB_GOAL){
            attr = PyInt_FromLong(1);
@@ -3645,6 +3702,13 @@ PyObject *Object_getSBUseGoal( BPy_Object * self )
 PyObject *Object_setSBUseGoal( BPy_Object * self, PyObject * args )
 {
     short value;
+
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }   
+
 	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"expected integer argument" ) );
@@ -3659,6 +3723,12 @@ PyObject *Object_getSBUseEdges( BPy_Object * self )
 {
     short flag =  self->object->softflag;
     PyObject *attr = NULL;
+    
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }   
     
     if(self->object->softflag & OB_SB_EDGES){
            attr = PyInt_FromLong(1);
@@ -3675,6 +3745,13 @@ PyObject *Object_getSBUseEdges( BPy_Object * self )
 PyObject *Object_setSBUseEdges( BPy_Object * self, PyObject * args )
 {
     short value;
+
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }   
+    
 	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"expected integer argument" ) );
@@ -3689,6 +3766,12 @@ PyObject *Object_getSBStiffQuads( BPy_Object * self )
 {
     short flag =  self->object->softflag;
     PyObject *attr = NULL;
+
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }   
     
     if(self->object->softflag & OB_SB_QUADS){
            attr = PyInt_FromLong(1);
@@ -3705,6 +3788,13 @@ PyObject *Object_getSBStiffQuads( BPy_Object * self )
 PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args )
 {
     short value;
+    
+    if(!self->object->soft){
+       if(!setupSB(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"softbody could not be accessed (null pointer)" ) );    
+    }   
+    
 	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"expected integer argument" ) );
@@ -3715,3 +3805,16 @@ PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
+int setupSB(Object* ob){
+	ob->soft= sbNew();
+	ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+	// default add edges for softbody
+	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		if(me->medge==NULL) make_edges(me);
+	}
+	if(ob->soft)
+	   return 1;
+	else 
+	   return 0;
+}
