@@ -4454,6 +4454,20 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 					VecMat4MulVecfl(ika->effg, ob->obmat, ika->eff);
 					itterate_ika(ob);
 				}
+				if(ob->type==OB_ARMATURE && canceled) {
+					/* Unfortunately, sometimes when you escape
+					 * a transform on an object that is the
+					 * target of an IK constraint on an armature
+					 * bone, the rotations are not restored
+					 * correctly on the bones in the IK chain. 
+					 * There is probably a nice, elegant way to fix 
+					 * this using transdata, but this system is so 
+					 * darn confusing that we'll do it this brute
+					 * force way instead:
+					 */
+					clear_pose_constraint_status(ob);
+					make_displists_by_armature(ob);
+				}
 			}
 			if(base->flag & BA_DISP_UPDATE) {
 				if(ob->type==OB_MBALL) {
