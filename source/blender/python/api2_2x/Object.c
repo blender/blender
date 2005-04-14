@@ -129,6 +129,7 @@ struct PyMethodDef M_Object_methods[] = {
 /* Python BPy_Object methods declarations:				   */
 /*****************************************************************************/
 int setupSB(Object* ob); /*Make sure Softbody Pointer is initialized */
+int setupPI(Object* ob);
 
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
@@ -2800,7 +2801,8 @@ PyObject *Object_getPIStrength( BPy_Object * self )
     PyObject *attr;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
     
@@ -2817,7 +2819,8 @@ PyObject *Object_setPIStrength( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -2838,7 +2841,8 @@ PyObject *Object_getPIFalloff( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }    
     
@@ -2855,7 +2859,8 @@ PyObject *Object_setPIFalloff( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -2876,7 +2881,8 @@ PyObject *Object_getPIMaxDist( BPy_Object * self )
 	PyObject *attr;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }    
     
@@ -2893,7 +2899,8 @@ PyObject *Object_setPIMaxDist( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -2914,7 +2921,8 @@ PyObject *Object_getPIUseMaxDist( BPy_Object * self )
  	PyObject *attr;
      
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }     
     
@@ -2932,7 +2940,8 @@ PyObject *Object_setPIUseMaxDist( BPy_Object * self, PyObject * args )
 	int value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -2951,7 +2960,8 @@ PyObject *Object_getPIType( BPy_Object * self )
 	PyObject *attr;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }    
     
@@ -2969,7 +2979,8 @@ PyObject *Object_setPIType( BPy_Object * self, PyObject * args )
 	int value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -2988,7 +2999,8 @@ PyObject *Object_getPIPerm( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }    
     
@@ -3005,7 +3017,8 @@ PyObject *Object_setPIPerm( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -3026,7 +3039,8 @@ PyObject *Object_getPIRandomDamp( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }    
     
@@ -3043,7 +3057,8 @@ PyObject *Object_setPIRandomDamp( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -3064,7 +3079,8 @@ PyObject *Object_getPISurfaceDamp( BPy_Object * self )
 	PyObject *attr;
     
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }    
     
@@ -3081,7 +3097,8 @@ PyObject *Object_setPISurfaceDamp( BPy_Object * self, PyObject * args )
     float value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -3101,7 +3118,8 @@ PyObject *Object_getPIDeflection( BPy_Object * self )
  	PyObject *attr;
      
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	   if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }     
      
@@ -3119,7 +3137,8 @@ PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args )
 	int value;
 
     if(!self->object->pd){
-	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+       if(!setupPI(self->object))
+    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"particle deflection could not be accessed (null pointer)" ) );    
     }
 
@@ -3814,6 +3833,17 @@ int setupSB(Object* ob){
 		if(me->medge==NULL) make_edges(me);
 	}
 	if(ob->soft)
+	   return 1;
+	else 
+	   return 0;
+}
+
+int setupPI(Object* ob){
+	if(ob->pd==NULL) {
+		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+		/* and if needed, init here */
+	}
+	if(ob->pd)
 	   return 1;
 	else 
 	   return 0;
