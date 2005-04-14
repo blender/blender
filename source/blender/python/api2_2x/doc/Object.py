@@ -389,6 +389,11 @@ class Object:
            -SIZE
            -LOCROT
            -LOCROTSIZE
+           -PI_STRENGTH
+           -PI_FALLOFF
+           -PI_PERM
+           -PI_SURFACEDAMP
+           -PI_RANDOMDAMP
     @return: py_none
     """
 
@@ -743,3 +748,388 @@ class Property:
     @rtype: string
     """
 
+
+  def getPIStregth():
+    """
+    Get the Object's Particle Interaction Strength.
+    @rtype: float
+    """
+
+  def setPIStrength(strength):
+    """
+    Set the the Object's Particle Interaction Strength.
+    Values between -1000.0 to 1000.0
+    @rtype: PyNone
+    @type strength: float
+    @param strength: the Object's Particle Interaction New Strength.
+    """
+
+  def getPIFalloff():
+    """
+    Get the Object's Particle Interaction falloff.
+    @rtype: float
+    """
+
+  def setPIFalloff(falloff):
+    """
+    Set the the Object's Particle Interaction falloff.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type falloff: float
+    @param falloff: the Object's Particle Interaction New falloff.
+    """    
+    
+  def getPIMaxDist():
+    """
+    Get the Object's Particle Interaction MaxDist.
+    @rtype: float
+    """
+
+  def setPIMaxDist(MaxDist):
+    """
+    Set the the Object's Particle Interaction MaxDist.
+    Values between 0 to 1000.0
+    @rtype: PyNone
+    @type MaxDist: float
+    @param MaxDist: the Object's Particle Interaction New MaxDist.
+    """    
+    
+  def getPIType():
+    """
+    Get the Object's Particle Interaction Type.
+    @rtype: int
+    """
+
+  def setPIType(type):
+    """
+    Set the the Object's Particle Interaction type.
+    Use Module Constants
+        NONE
+        WIND
+        FORCE
+        VORTEX
+        MAGNET
+    @rtype: PyNone
+    @type type: int
+    @param type: the Object's Particle Interaction Type.
+    """   
+ 
+  def getPIUseMaxDist():
+    """
+    Get the Object's Particle Interaction if using MaxDist.
+    @rtype: int
+    """
+
+  def setPIUseMaxDist(status):
+    """
+    Set the the Object's Particle Interaction MaxDist.
+    0 = Off, 1 = on
+    @rtype: PyNone
+    @type status: int
+    @param status: the new status
+    """ 
+
+  def getPIDeflection():
+    """
+    Get the Object's Particle Interaction Deflection Setting.
+    @rtype: int
+    """
+
+  def setPIDeflection(status):
+    """
+    Set the the Object's Particle Interaction Deflection Setting.
+    0 = Off, 1 = on
+    @rtype: PyNone
+    @type status: int
+    @param status: the new status
+    """ 
+
+  def getPIPermf():
+    """
+    Get the Object's Particle Interaction Permiability.
+    @rtype: float
+    """
+
+  def setPIPerm(perm):
+    """
+    Set the the Object's Particle Interaction Permiability.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type perm: float
+    @param perm: the Object's Particle Interaction New Permiability.
+    """    
+
+  def getPIRandomDamp():
+    """
+    Get the Object's Particle Interaction RandomDamp.
+    @rtype: float
+    """
+
+  def setPIRandomDamp(damp):
+    """
+    Set the the Object's Particle Interaction RandomDamp.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type damp: float
+    @param damp: the Object's Particle Interaction New RandomDamp.
+    """    
+
+  def getPISurfaceDamp():
+    """
+    Get the Object's Particle Interaction SurfaceDamp.
+    @rtype: float
+    """
+
+  def setPISurfaceDamp(damp):
+    """
+    Set the the Object's Particle Interaction SurfaceDamp.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type damp: float
+    @param damp: the Object's Particle Interaction New SurfaceDamp.
+    """    
+
+
+  def getSBMass():
+    """
+    Get the Object's SB Mass.
+    @rtype: float
+    """
+
+  def setSBMass(mass):
+    """
+    Set the the Object's SB Mass.
+    Values between 0 to 50.0
+    @rtype: PyNone
+    @type mass: float
+    @param damp: the Object's SB New mass.
+    """  
+  
+  def getSBGravity():
+    """
+    Get the Object's SB Gravity.
+    @rtype: float
+    """
+
+  def setSBGravity(grav):
+    """
+    Set the the Object's SB Gravity.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type grav: float
+    @param damp: the Object's SB New Gravity.
+    """ 
+    
+  def getSBFriction():
+    """
+    Get the Object's SB Friction.
+    @rtype: float
+    """
+
+  def setSBFriction(frict):
+    """
+    Set the the Object's SB Friction.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type frict: float
+    @param damp: the Object's SB New Friction.
+    """ 
+
+  def getSBErrorLimit():
+    """
+    Get the Object's SB ErrorLimit.
+    @rtype: float
+    """
+
+  def setSBErrorLimit(err):
+    """
+    Set the the Object's SB ErrorLimit.
+    Values between 0 to 1.0
+    @rtype: PyNone
+    @type err: float
+    @param damp: the Object's SB New ErrorLimit.
+    """ 
+    
+  def getSBGoalSpring():
+    """
+    Get the Object's SB GoalSpring.
+    @rtype: float
+    """
+
+  def setSBGoalSpring(gs):
+    """
+    Set the the Object's SB GoalSpring.
+    Values between 0 to 0.999
+    @rtype: PyNone
+    @type gs: float
+    @param damp: the Object's SB New GoalSpring.
+    """ 
+    
+  def getSBGoalFriction():
+    """
+    Get the Object's SB GoalFriction.
+    @rtype: float
+    """
+
+  def setSBGoalFriction(gf):
+    """
+    Set the the Object's SB GoalFriction.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type gf: float
+    @param damp: the Object's SB New GoalFriction.
+    """ 
+    
+  def getSBMinGoal():
+    """
+    Get the Object's SB MinGoal.
+    @rtype: float
+    """
+
+  def setSBMinGoal(mg):
+    """
+    Set the the Object's SB MinGoal.
+    Values between 0 to 1.0
+    @rtype: PyNone
+    @type mg: float
+    @param damp: the Object's SB New MinGoal.
+    """ 
+    
+  def getSBMaxGoal():
+    """
+    Get the Object's SB MaxGoal.
+    @rtype: float
+    """
+
+  def setSBMaxGoal(mg):
+    """
+    Set the the Object's SB MaxGoal.
+    Values between 0 to 1.0
+    @rtype: PyNone
+    @type mg: float
+    @param damp: the Object's SB New MaxGoal.
+    """ 
+    
+  def getSBInnerSpring():
+    """
+    Get the Object's SB InnerSpring.
+    @rtype: float
+    """
+
+  def setSBInnerSpring(sprr):
+    """
+    Set the the Object's SB InnerSpring.
+    Values between 0 to 0.999
+    @rtype: PyNone
+    @type spr: float
+    @param damp: the Object's SB New InnerSpring.
+    """ 
+    
+  def getSBInnerSpringFriction():
+    """
+    Get the Object's SB InnerSpringFriction.
+    @rtype: float
+    """
+
+  def setSBInnerSpringFriction(sprf):
+    """
+    Set the the Object's SB InnerSpringFriction.
+    Values between 0 to 10.0
+    @rtype: PyNone
+    @type sprf: float
+    @param damp: the Object's SB New InnerSpringFriction.
+    """ 
+    
+  def getSBDefaultGoal():
+    """
+    Get the Object's SB DefaultGoal.
+    @rtype: float
+    """
+
+  def setSBDefaultGoal(goal):
+    """
+    Set the the Object's SB DefaultGoal.
+    Values between 0 to 1.0
+    @rtype: PyNone
+    @type goal: float
+    @param damp: the Object's SB New DefaultGoal.
+    """   
+
+  def getSBEnable():
+    """
+    Get if the Object's SB is Enabled.
+    @rtype: int
+    """
+
+  def setSBEnable(switch):
+    """
+    Enable / Disable Softbodies.
+    1: on
+    0: off
+    @rtype: PyNone
+    @type switch: int
+    @param damp: the Object's SB New Enable Value.
+    """  
+
+  def getSBPostDef():
+    """
+    get Softbodies PostDef option
+    @rtype: int
+    """
+
+  def setSBPostDef(switch):
+    """
+    Enable / Disable Softbodies PostDef option
+    1: on
+    0: off
+    @rtype: PyNone
+    @type switch: int
+    @param damp: the Object's SB New PostDef Value.
+    """ 
+
+  def getSBUseGoal():
+    """
+    get Softbodies UseGoal option
+    @rtype: int
+    """
+
+  def setSBUseGoal(switch):
+    """
+    Enable / Disable Softbodies UseGoal option
+    1: on
+    0: off
+    @rtype: PyNone
+    @type switch: int
+    @param damp: the Object's SB New UseGoal Value.
+    """ 
+  def getSBUseEdges():
+    """
+    get Softbodies UseEdges option
+    @rtype: int
+    """
+
+  def setSBUseEdges(switch):
+    """
+    Enable / Disable Softbodies UseEdges option
+    1: on
+    0: off
+    @rtype: PyNone
+    @type switch: int
+    @param damp: the Object's SB New UseEdges Value.
+    """ 
+    
+  def getSBStiffQuads():
+    """
+    get Softbodies StiffQuads option
+    @rtype: int
+    """
+
+  def setSBStiffQuads(switch):
+    """
+    Enable / Disable Softbodies StiffQuads option
+    1: on
+    0: off
+    @rtype: PyNone
+    @type switch: int
+    @param damp: the Object's SB New StiffQuads Value.
+    """     

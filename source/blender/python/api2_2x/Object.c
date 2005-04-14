@@ -53,6 +53,7 @@
 #include "Lattice.h"
 #include "modules.h"
 
+#include "constant.h"
 /* only used for oops location get/set at the moment */
 #include "DNA_oops_types.h" 
 #include "DNA_space_types.h"
@@ -61,11 +62,22 @@
 
 /* Defines for insertIpoKey */
 
-#define IPOKEY_LOC          0
-#define IPOKEY_ROT          1
-#define IPOKEY_SIZE         2
-#define IPOKEY_LOCROT       3
-#define IPOKEY_LOCROTSIZE   4
+#define IPOKEY_LOC              0
+#define IPOKEY_ROT              1
+#define IPOKEY_SIZE             2
+#define IPOKEY_LOCROT           3
+#define IPOKEY_LOCROTSIZE       4
+#define IPOKEY_PI_STRENGTH      5
+#define IPOKEY_PI_FALLOFF       6
+#define IPOKEY_PI_MAXDIST       7 /*Not Ready Yet*/
+#define IPOKEY_PI_SURFACEDAMP   8
+#define IPOKEY_PI_RANDOMDAMP    9
+#define IPOKEY_PI_PERM          10
+
+#define PFIELD_FORCE	1
+#define PFIELD_VORTEX	2
+#define PFIELD_MAGNET	3
+#define PFIELD_WIND		4
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
@@ -170,6 +182,57 @@ static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearScriptLinks( BPy_Object * self );
 static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIStrength( BPy_Object * self );
+static PyObject *Object_setPIStrength( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIFalloff( BPy_Object * self );
+static PyObject *Object_setPIFalloff( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIMaxDist( BPy_Object * self );
+static PyObject *Object_setPIMaxDist( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIUseMaxDist( BPy_Object * self );
+static PyObject *Object_setPIUseMaxDist( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIType( BPy_Object * self );
+static PyObject *Object_setPIType( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIPerm( BPy_Object * self );
+static PyObject *Object_setPIPerm( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIRandomDamp( BPy_Object * self );
+static PyObject *Object_setPIRandomDamp( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPISurfaceDamp( BPy_Object * self );
+static PyObject *Object_setPISurfaceDamp( BPy_Object * self, PyObject * args );
+static PyObject *Object_getPIDeflection( BPy_Object * self );
+static PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args );
+
+static PyObject *Object_getSBMass( BPy_Object * self );
+static PyObject *Object_setSBMass( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBGravity( BPy_Object * self );
+static PyObject *Object_setSBGravity( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBFriction( BPy_Object * self );
+static PyObject *Object_setSBFriction( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBErrorLimit( BPy_Object * self );
+static PyObject *Object_setSBErrorLimit( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBGoalSpring( BPy_Object * self );
+static PyObject *Object_setSBGoalSpring( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBGoalFriction( BPy_Object * self );
+static PyObject *Object_setSBGoalFriction( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBMinGoal( BPy_Object * self );
+static PyObject *Object_setSBMinGoal( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBMaxGoal( BPy_Object * self );
+static PyObject *Object_setSBMaxGoal( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBInnerSpring( BPy_Object * self );
+static PyObject *Object_setSBInnerSpring( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBInnerSpringFriction( BPy_Object * self );
+static PyObject *Object_setSBInnerSpringFriction( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBDefaultGoal( BPy_Object * self );
+static PyObject *Object_setSBDefaultGoal( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBEnable( BPy_Object * self );
+static PyObject *Object_setSBEnable( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBPostDef( BPy_Object * self );
+static PyObject *Object_setSBPostDef( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBUseGoal( BPy_Object * self );
+static PyObject *Object_setSBUseGoal( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBUseEdges( BPy_Object * self );
+static PyObject *Object_setSBUseEdges( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSBStiffQuads( BPy_Object * self );
+static PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args );
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
 /*****************************************************************************/
@@ -234,6 +297,113 @@ automatic when the script finishes."},
 	 "Returns the object's tracked object"},
 	{"getType", ( PyCFunction ) Object_getType, METH_NOARGS,
 	 "Returns type of string of Object"},
+/* Particle Interaction */
+	 
+	{"getPIStrength", ( PyCFunction ) Object_getPIStrength, METH_NOARGS,
+	 "Returns Particle Interaction Strength"},
+	{"setPIStrength", ( PyCFunction ) Object_setPIStrength, METH_VARARGS,
+	 "Sets Particle Interaction Strength"},
+	{"getPIFalloff", ( PyCFunction ) Object_getPIFalloff, METH_NOARGS,
+	 "Returns Particle Interaction Falloff"},
+	{"setPIFalloff", ( PyCFunction ) Object_setPIFalloff, METH_VARARGS,
+	 "Sets Particle Interaction Falloff"},
+	{"getPIMaxDist", ( PyCFunction ) Object_getPIMaxDist, METH_NOARGS,
+	 "Returns Particle Interaction Max Distance"},
+	{"setPIMaxDist", ( PyCFunction ) Object_setPIMaxDist, METH_VARARGS,
+	 "Sets Particle Interaction Max Distance"},
+	{"getPIUseMaxDist", ( PyCFunction ) Object_getPIUseMaxDist, METH_NOARGS,
+	 "Returns bool for Use Max Distace in Particle Interaction "},
+	{"setPIUseMaxDist", ( PyCFunction ) Object_setPIUseMaxDist, METH_VARARGS,
+	 "Sets if Max Distance should be used in Particle Interaction"},
+	{"getPIType", ( PyCFunction ) Object_getPIType, METH_NOARGS,
+	 "Returns Particle Interaction Type"},
+	{"setPIType", ( PyCFunction ) Object_setPIType, METH_VARARGS,
+	 "sets Particle Interaction Type"},
+	{"getPIPerm", ( PyCFunction ) Object_getPIPerm, METH_NOARGS,
+	 "Returns Particle Interaction Permiability"},
+	{"setPIPerm", ( PyCFunction ) Object_setPIPerm, METH_VARARGS,
+	 "Sets Particle Interaction  Permiability"},
+	{"getPISurfaceDamp", ( PyCFunction ) Object_getPISurfaceDamp, METH_NOARGS,
+	 "Returns Particle Interaction Surface Damping"},
+	{"setPISurfaceDamp", ( PyCFunction ) Object_setPISurfaceDamp, METH_VARARGS,
+	 "Sets Particle Interaction Surface Damping"},
+	{"getPIRandomDamp", ( PyCFunction ) Object_getPIRandomDamp, METH_NOARGS,
+	 "Returns Particle Interaction Random Damping"},
+	{"setPIRandomDamp", ( PyCFunction ) Object_setPIRandomDamp, METH_VARARGS,
+	 "Sets Particle Interaction Random Damping"},
+	{"getPIDeflection", ( PyCFunction ) Object_getPIDeflection, METH_NOARGS,
+	 "Returns Particle Interaction Deflection"},
+	{"setPIDeflection", ( PyCFunction ) Object_setPIDeflection, METH_VARARGS,
+	 "Sets Particle Interaction Deflection"},  
+     
+/* Softbody */
+
+	{"getSBMass", ( PyCFunction ) Object_getSBMass, METH_NOARGS,
+	 "Returns SB Mass"},
+	{"setSBMass", ( PyCFunction ) Object_setSBMass, METH_VARARGS,
+	 "Sets SB Mass"}, 
+	{"getSBGravity", ( PyCFunction ) Object_getSBGravity, METH_NOARGS,
+	 "Returns SB Gravity"},
+	{"setSBGravity", ( PyCFunction ) Object_setSBGravity, METH_VARARGS,
+	 "Sets SB Gravity"}, 
+	{"getSBFriction", ( PyCFunction ) Object_getSBFriction, METH_NOARGS,
+	 "Returns SB Friction"},
+	{"setSBFriction", ( PyCFunction ) Object_setSBFriction, METH_VARARGS,
+	 "Sets SB Friction"}, 
+	{"getSBErrorLimit", ( PyCFunction ) Object_getSBErrorLimit, METH_NOARGS,
+	 "Returns SB ErrorLimit"},
+	{"setSBErrorLimit", ( PyCFunction ) Object_setSBErrorLimit, METH_VARARGS,
+	 "Sets SB ErrorLimit"}, 
+	{"getSBGoalSpring", ( PyCFunction ) Object_getSBGoalSpring, METH_NOARGS,
+	 "Returns SB GoalSpring"},
+	{"setSBGoalSpring", ( PyCFunction ) Object_setSBGoalSpring, METH_VARARGS,
+	 "Sets SB GoalSpring"}, 
+	{"getSBGoalFriction", ( PyCFunction ) Object_getSBGoalFriction, METH_NOARGS,
+	 "Returns SB GoalFriction"},
+	{"setSBGoalFriction", ( PyCFunction ) Object_setSBGoalFriction, METH_VARARGS,
+	 "Sets SB GoalFriction"}, 
+	{"getSBMinGoal", ( PyCFunction ) Object_getSBMinGoal, METH_NOARGS,
+	 "Returns SB MinGoal"},
+	{"setSBMinGoal", ( PyCFunction ) Object_setSBMinGoal, METH_VARARGS,
+	 "Sets SB MinGoal "}, 
+	{"getSBMaxGoal", ( PyCFunction ) Object_getSBMaxGoal, METH_NOARGS,
+	 "Returns SB MaxGoal"},
+	{"setSBMaxGoal", ( PyCFunction ) Object_setSBMaxGoal, METH_VARARGS,
+	 "Sets SB MaxGoal"},  
+	{"getSBInnerSpring", ( PyCFunction ) Object_getSBInnerSpring, METH_NOARGS,
+	 "Returns SB InnerSpring"},
+	{"setSBInnerSpring", ( PyCFunction ) Object_setSBInnerSpring, METH_VARARGS,
+	 "Sets SB InnerSpring"}, 	 
+	{"getSBInnerSpringFriction", ( PyCFunction ) Object_getSBInnerSpringFriction, METH_NOARGS,
+	 "Returns SB InnerSpringFriction"},
+	{"setSBInnerSpringFriction", ( PyCFunction ) Object_setSBInnerSpringFriction, METH_VARARGS,
+	 "Sets SB InnerSpringFriction"}, 	
+	{"getSBDefaultGoal", ( PyCFunction ) Object_getSBDefaultGoal, METH_NOARGS,
+	 "Returns SB DefaultGoal"},
+	{"setSBDefaultGoal", ( PyCFunction ) Object_setSBDefaultGoal, METH_VARARGS,
+	 "Sets SB DefaultGoal"}, 		 
+	{"getSBEnable", ( PyCFunction ) Object_getSBEnable, METH_NOARGS,
+	 "Returns SB Enable"},
+	{"setSBEnable", ( PyCFunction ) Object_setSBEnable, METH_VARARGS,
+	 "Sets SB Enable"}, 		 
+	{"getSBPostDef", ( PyCFunction ) Object_getSBPostDef, METH_NOARGS,
+	 "Returns SB PostDef"},
+	{"setSBPostDef", ( PyCFunction ) Object_setSBPostDef, METH_VARARGS,
+	 "Sets SB PostDef"}, 
+	{"getSBUseGoal", ( PyCFunction ) Object_getSBUseGoal, METH_NOARGS,
+	 "Returns SB UseGoal"},
+	{"setSBUseGoal", ( PyCFunction ) Object_setSBUseGoal, METH_VARARGS,
+	 "Sets SB UseGoal"}, 
+	{"getSBUseEdges", ( PyCFunction ) Object_getSBUseEdges, METH_NOARGS,
+	 "Returns SB UseEdges"},
+	{"setSBUseEdges", ( PyCFunction ) Object_setSBUseEdges, METH_VARARGS,
+	 "Sets SB UseEdges"}, 
+	{"getSBStiffQuads", ( PyCFunction ) Object_getSBStiffQuads, METH_NOARGS,
+	 "Returns SB StiffQuads"},
+	{"setSBStiffQuads", ( PyCFunction ) Object_setSBStiffQuads, METH_VARARGS,
+	 "Sets SB StiffQuads"}, 	 
+
+	                   	 
 	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_NOARGS,
 	 "Returns the object's bounding box"},
 	{"getDupliVerts", ( PyCFunction ) Object_getDupliVerts,
@@ -614,6 +784,18 @@ PyObject *Object_Init( void )
 	PyModule_AddIntConstant( module, "SIZE", IPOKEY_SIZE );
 	PyModule_AddIntConstant( module, "LOCROT", IPOKEY_LOCROT );
 	PyModule_AddIntConstant( module, "LOCROTSIZE", IPOKEY_LOCROTSIZE );
+
+	PyModule_AddIntConstant( module, "PI_STRENGTH", IPOKEY_PI_STRENGTH );
+	PyModule_AddIntConstant( module, "PI_FALLOFF", IPOKEY_PI_FALLOFF );
+	PyModule_AddIntConstant( module, "PI_SURFACEDAMP", IPOKEY_PI_SURFACEDAMP );
+	PyModule_AddIntConstant( module, "PI_RANDOMDAMP", IPOKEY_PI_RANDOMDAMP );
+	PyModule_AddIntConstant( module, "PI_PERM", IPOKEY_PI_PERM );
+
+	PyModule_AddIntConstant( module, "NONE",0 );
+	PyModule_AddIntConstant( module, "FORCE",PFIELD_FORCE );
+	PyModule_AddIntConstant( module, "VORTEX",PFIELD_VORTEX );
+	PyModule_AddIntConstant( module, "MAGNET",PFIELD_MAGNET );
+	PyModule_AddIntConstant( module, "WIND",PFIELD_WIND );
 
 	return ( module );
 }
@@ -1599,6 +1781,27 @@ static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 		insertkey((ID *)self->object,OB_SIZE_Y);
 		insertkey((ID *)self->object,OB_SIZE_Z);      
 	}
+
+    if (key == IPOKEY_PI_STRENGTH ){
+        insertkey((ID *)self->object, OB_PD_FSTR);   
+	}
+
+    if (key == IPOKEY_PI_FALLOFF ){
+        insertkey((ID *)self->object, OB_PD_FFALL);   
+	}
+	
+    if (key == IPOKEY_PI_SURFACEDAMP ){
+        insertkey((ID *)self->object, OB_PD_SDAMP);   
+	}
+
+    if (key == IPOKEY_PI_RANDOMDAMP ){
+        insertkey((ID *)self->object, OB_PD_RDAMP);   
+	}
+
+    if (key == IPOKEY_PI_PERM ){
+        insertkey((ID *)self->object, OB_PD_PERM);   
+	}
+
 
 	allspace(REMAKEIPO, 0);
 	EXPP_allqueue(REDRAWIPO, 0);
@@ -2586,5 +2789,929 @@ static PyObject *Object_repr( BPy_Object * self )
 {
 	return PyString_FromFormat( "[Object \"%s\"]",
 				    self->object->id.name + 2 );
+}
+
+
+PyObject *Object_getPIStrength( BPy_Object * self )
+{
+    PyObject *attr;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+    
+	 attr = PyFloat_FromDouble( ( double ) self->object->pd->f_strength );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->f_strength attribute" ) );    
+}
+PyObject *Object_setPIStrength( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1000.0f || value < -1000.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 1000.0 and -1000.0" ) );
+	self->object->pd->f_strength = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getPIFalloff( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->pd->f_power );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->f_power attribute" ) );
+}
+PyObject *Object_setPIFalloff( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 10.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 10.0 and 0.0" ) );
+	self->object->pd->f_power = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getPIMaxDist( BPy_Object * self )
+{
+	PyObject *attr;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->pd->maxdist );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->f_maxdist attribute" ) );
+}
+PyObject *Object_setPIMaxDist( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1000.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 1000.0 and 0.0" ) );
+	self->object->pd->maxdist = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getPIUseMaxDist( BPy_Object * self )
+{  
+ 	PyObject *attr;
+     
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }     
+    
+     attr = PyInt_FromLong( ( long ) self->object->pd->flag );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->flag attribute" ) );   
+}
+
+PyObject *Object_setPIUseMaxDist( BPy_Object * self, PyObject * args )
+{
+	int value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+
+	if( !PyArg_ParseTuple( args, "i", &( value ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument" ) );
+
+	self->object->pd->flag = (short)value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getPIType( BPy_Object * self )
+{
+	PyObject *attr;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr  = PyInt_FromLong( ( long ) self->object->pd->forcefield );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->forcefield attribute" ) );
+
+}
+PyObject *Object_setPIType( BPy_Object * self, PyObject * args )
+{
+	BPy_constant *constant;
+	int value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "i", &( value ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument" ) );
+
+	self->object->pd->forcefield = (short)value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+
+PyObject *Object_getPIPerm( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->pd->pdef_perm );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->pdef_perm attribute" ) );
+}
+PyObject *Object_setPIPerm( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 1.0 and 0.0" ) );
+	self->object->pd->pdef_perm = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getPIRandomDamp( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->pd->pdef_rdamp );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->pdef_rdamp attribute" ) );
+}
+PyObject *Object_setPIRandomDamp( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 1.0 and 0.0" ) );
+	self->object->pd->pdef_rdamp = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getPISurfaceDamp( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->pd->pdef_damp );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->pdef_rdamp attribute" ) );
+}
+PyObject *Object_setPISurfaceDamp( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 1.0 and 0.0" ) );
+	self->object->pd->pdef_damp = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+PyObject *Object_getPIDeflection( BPy_Object * self )
+{  
+ 	PyObject *attr;
+     
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }     
+     
+     attr = PyInt_FromLong( ( long ) self->object->pd->deflect );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->pd->deflect attribute" ) );   
+}
+
+PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args )
+{
+	BPy_constant *constant;
+	int value;
+
+    if(!self->object->pd){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }
+
+	if( !PyArg_ParseTuple( args, "i", &( value ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument" ) );
+
+	self->object->pd->deflect = (short)value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+/*  SOFTBODY FUNCTIONS */
+
+PyObject *Object_getSBMass( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->nodemass );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->nodemass attribute" ) );
+}
+
+PyObject *Object_setSBMass( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 50.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.0 and 50.0" ) );
+	self->object->soft->nodemass = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBGravity( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->grav );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->grav attribute" ) );
+}
+
+PyObject *Object_setSBGravity( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 10.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.0 and 10.0" ) );
+	self->object->soft->grav = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBFriction( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->mediafrict );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->mediafrict attribute" ) );
+}
+
+PyObject *Object_setSBFriction( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 10.0f || value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.0 and 10.0" ) );
+	self->object->soft->mediafrict = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBErrorLimit( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->rklimit );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->rklimit attribute" ) );
+}
+
+PyObject *Object_setSBErrorLimit( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1.0f || value < 0.01f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.01 and 1.0" ) );
+	self->object->soft->rklimit = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBGoalSpring( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->goalspring );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->goalspring attribute" ) );
+}
+
+PyObject *Object_setSBGoalSpring( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 0.999f || value < 0.00f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.00 and 0.999" ) );
+	self->object->soft->goalspring = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBGoalFriction( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->goalfrict );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->goalfrict attribute" ) );
+}
+
+PyObject *Object_setSBGoalFriction( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 10.0f || value < 0.00f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.00 and 10.0" ) );
+	self->object->soft->goalfrict = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBMinGoal( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->mingoal );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->mingoal attribute" ) );
+}
+
+PyObject *Object_setSBMinGoal( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1.0f || value < 0.00f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.00 and 1.0" ) );
+	self->object->soft->mingoal = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBMaxGoal( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->maxgoal );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->maxgoal attribute" ) );
+}
+
+PyObject *Object_setSBMaxGoal( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1.0f || value < 0.00f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.00 and 1.0" ) );
+	self->object->soft->maxgoal = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBInnerSpring( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->inspring );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->inspring attribute" ) );
+}
+
+PyObject *Object_setSBInnerSpring( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 0.999f || value < 0.00f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.00 and 0.999" ) );
+	self->object->soft->inspring = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBInnerSpringFriction( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->infrict );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->infrict attribute" ) );
+}
+
+PyObject *Object_setSBInnerSpringFriction( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 10.0f || value < 0.00f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.00 and 10.0" ) );
+	self->object->soft->infrict = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBDefaultGoal( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->soft->defgoal );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->soft->defgoal attribute" ) );
+}
+
+PyObject *Object_setSBDefaultGoal( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+    if(!self->object->soft){
+	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"particle deflection could not be accessed (null pointer)" ) );    
+    }    
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value > 1.0f || value < 0.00f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are between 0.00 and 1.0" ) );
+	self->object->soft->defgoal = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBEnable( BPy_Object * self )
+{
+    short flag =  self->object->softflag;
+    PyObject *attr = NULL;
+    
+    if(self->object->softflag & OB_SB_ENABLE){
+           attr = PyInt_FromLong(1);
+    }
+    else{  attr = PyInt_FromLong(0);  }
+        
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->softflag attribute" ) );
+}
+
+PyObject *Object_setSBEnable( BPy_Object * self, PyObject * args )
+{
+    short value;
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected integer argument" ) );
+    		
+    if(value > 0){ 
+        self->object->softflag |= OB_SB_ENABLE; 
+    }
+    else{     
+        self->object->softflag &= ~OB_SB_ENABLE; 
+    } 
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBPostDef( BPy_Object * self )
+{
+    short flag =  self->object->softflag;
+    PyObject *attr = NULL;
+    
+    if(self->object->softflag & OB_SB_POSTDEF){
+           attr = PyInt_FromLong(1);
+    }
+    else{  attr = PyInt_FromLong(0);  }
+        
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->softflag attribute" ) );
+}
+
+PyObject *Object_setSBPostDef( BPy_Object * self, PyObject * args )
+{
+    short value;
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected integer argument" ) );
+			
+    if(value){ self->object->softflag |= OB_SB_POSTDEF; }
+    else{ self->object->softflag &= ~OB_SB_POSTDEF; } 
+
+	return EXPP_incr_ret( Py_None );
+}
+PyObject *Object_getSBUseGoal( BPy_Object * self )
+{
+    short flag =  self->object->softflag;
+    PyObject *attr = NULL;
+    
+    if(self->object->softflag & OB_SB_GOAL){
+           attr = PyInt_FromLong(1);
+    }
+    else{  attr = PyInt_FromLong(0);  }
+        
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->softflag attribute" ) );
+}
+
+PyObject *Object_setSBUseGoal( BPy_Object * self, PyObject * args )
+{
+    short value;
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected integer argument" ) );
+			
+    if(value){ self->object->softflag |= OB_SB_GOAL; }
+    else{ self->object->softflag &= ~OB_SB_GOAL; } 
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBUseEdges( BPy_Object * self )
+{
+    short flag =  self->object->softflag;
+    PyObject *attr = NULL;
+    
+    if(self->object->softflag & OB_SB_EDGES){
+           attr = PyInt_FromLong(1);
+    }
+    else{  attr = PyInt_FromLong(0);  }
+        
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->softflag attribute" ) );
+}
+
+PyObject *Object_setSBUseEdges( BPy_Object * self, PyObject * args )
+{
+    short value;
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected integer argument" ) );
+			
+    if(value){ self->object->softflag |= OB_SB_EDGES; }
+    else{ self->object->softflag &= ~OB_SB_EDGES; } 
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getSBStiffQuads( BPy_Object * self )
+{
+    short flag =  self->object->softflag;
+    PyObject *attr = NULL;
+    
+    if(self->object->softflag & OB_SB_QUADS){
+           attr = PyInt_FromLong(1);
+    }
+    else{  attr = PyInt_FromLong(0);  }
+        
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->softflag attribute" ) );
+}
+
+PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args )
+{
+    short value;
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected integer argument" ) );
+			
+    if(value){ self->object->softflag |= OB_SB_QUADS; }
+    else{ self->object->softflag &= ~OB_SB_QUADS; } 
+
+	return EXPP_incr_ret( Py_None );
 }
 
