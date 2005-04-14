@@ -310,14 +310,15 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 	
 	for (a=start; a<end; a++) {
 		MFace *mf= &mface[a];
+		TFace *tf = tface?&tface[a]:NULL;
 		unsigned char *cp= NULL;
 		
 		if(mf->v3==0) continue;
-		if(tface && (tface->flag & (TF_HIDE|TF_INVISIBLE))) continue;
+		if(tf && ((tf->flag&TF_HIDE) || (tf->mode&TF_INVISIBLE))) continue;
 
-		if (setDrawParams(tface, mf->mat_nr)) {
-			if (tface) {
-				cp= (unsigned char *) tface->col;
+		if (setDrawParams(tf, mf->mat_nr)) {
+			if (tf) {
+				cp= (unsigned char *) tf->col;
 			} else if (me->mcol) {
 				cp= (unsigned char *) &me->mcol[a*4];
 			}
@@ -328,30 +329,28 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		}
 
 		glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
-		if (tface) glTexCoord2fv(tface->uv[0]);
+		if (tf) glTexCoord2fv(tf->uv[0]);
 		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
 		glVertex3fv(meshDM__getVertCo(mdm, mf->v1));
 			
-		if (tface) glTexCoord2fv(tface->uv[1]);
+		if (tf) glTexCoord2fv(tf->uv[1]);
 		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
 		glVertex3fv(meshDM__getVertCo(mdm, mf->v2));
 
-		if (tface) glTexCoord2fv(tface->uv[2]);
+		if (tf) glTexCoord2fv(tf->uv[2]);
 		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
 		glVertex3fv(meshDM__getVertCo(mdm, mf->v3));
 
 		if(mf->v4) {
-			if (tface) glTexCoord2fv(tface->uv[3]);
+			if (tf) glTexCoord2fv(tf->uv[3]);
 			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
 			glVertex3fv(meshDM__getVertCo(mdm, mf->v4));
 		}
 		glEnd();
-
-		if (tface) tface++;
 	}
 }
 static int meshDM_getNumVerts(DerivedMesh *dm)
@@ -733,14 +732,15 @@ static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, i
 	
 	for (a=0; a<dlm->totface; a++) {
 		MFace *mf= &mface[a];
+		TFace *tf = tface?&tface[a]:NULL;
 		unsigned char *cp= NULL;
 		
 		if(mf->v3==0) continue;
-		if(tface && (tface->flag & (TF_HIDE|TF_INVISIBLE))) continue;
+		if(tf && ((tf->flag&TF_HIDE) || (tf->mode&TF_INVISIBLE))) continue;
 
-		if (setDrawParams(tface, mf->mat_nr)) {
-			if (tface) {
-				cp= (unsigned char*) tface->col;
+		if (setDrawParams(tf, mf->mat_nr)) {
+			if (tf) {
+				cp= (unsigned char*) tf->col;
 			} else if (dlm->mcol) {
 				cp= (unsigned char*) &dlm->mcol[a*4];
 			}
@@ -751,30 +751,28 @@ static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, i
 		}
 
 		glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
-		if (tface) glTexCoord2fv(tface->uv[0]);
+		if (tf) glTexCoord2fv(tf->uv[0]);
 		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
 		glVertex3fv((mvert+mf->v1)->co);
 			
-		if (tface) glTexCoord2fv(tface->uv[1]);
+		if (tf) glTexCoord2fv(tf->uv[1]);
 		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
 		glVertex3fv((mvert+mf->v2)->co);
 
-		if (tface) glTexCoord2fv(tface->uv[2]);
+		if (tf) glTexCoord2fv(tf->uv[2]);
 		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
 		glVertex3fv((mvert+mf->v3)->co);
 
 		if(mf->v4) {
-			if (tface) glTexCoord2fv(tface->uv[3]);
+			if (tf) glTexCoord2fv(tf->uv[3]);
 			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
 			glVertex3fv((mvert+mf->v4)->co);
 		}
 		glEnd();
-
-		if (tface) tface++;
 	}
 }
 
