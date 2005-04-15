@@ -2037,13 +2037,11 @@ PyObject *RenderData_getTimeCode( BPy_RenderData * self){
     int hi,mi,si,fi,hold,fps,cfa;
     
     fps = self->renderContext->frs_sec;
-    cfa = self->renderContext->cfra;
-    fi =  self->renderContext->cfra % fps;
-    if(fi == 0)
-        fi = fps;
+    cfa = self->renderContext->cfra-1;
+    fi =  cfa % fps;
         	    
-    hi   = (cfa - 1) / (fps*60*60);
-    hold = (cfa - 1) % (fps*60*60);     
+    hi   = (cfa) / (fps*60*60);
+    hold = (cfa) % (fps*60*60);     
     mi   = hold / (fps*60);
     hold = hold % (fps*60);
     si   = hold / fps;
