@@ -1865,7 +1865,7 @@ void BIF_draw_manipulator(ScrArea *sa)
 			VECCOPY(v3d->twmat[3], G.scene->twcent);
 			break;
 		case V3D_CURSOR:
-			VECCOPY(v3d->twmat[3], G.scene->cursor);
+			VECCOPY(v3d->twmat[3], give_cursor());
 			break;
 		}
 		
