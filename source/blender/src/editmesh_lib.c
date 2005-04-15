@@ -457,27 +457,38 @@ void EM_hide_reset(void)
 
 /* ********  EXTRUDE ********* */
 
-static void set_edge_directions(void)
+static void add_normal_aligned(float *nor, float *add)
+{
+	if( INPR(nor, add) < 0.0 ) 
+		VecSubf(nor, nor, add);
+	else
+		VecAddf(nor, nor, add);
+}
+
+static void set_edge_directions_f2(int val)
 {
 	EditMesh *em= G.editMesh;
 	EditFace *efa= em->faces.first;
 	
+	/* edge directions are used for extrude, to detect direction of edges that make new faces */
+	/* we have set 'f2' flags in edges that need to get a direction set (e.g. get new face) */
+	/* the val argument differs... so we need it as arg */
+	
 	while(efa) {
-		// non selected face
-		if(efa->f== 0) {
-			if(efa->e1->f) {
+		if(efa->f & SELECT) {
+			if(efa->e1->f2<val) {
 				if(efa->e1->v1 == efa->v1) efa->e1->dir= 0;
 				else efa->e1->dir= 1;
 			}
-			if(efa->e2->f) {
+			if(efa->e2->f2<val) {
 				if(efa->e2->v1 == efa->v2) efa->e2->dir= 0;
 				else efa->e2->dir= 1;
 			}
-			if(efa->e3->f) {
+			if(efa->e3->f2<val) {
 				if(efa->e3->v1 == efa->v3) efa->e3->dir= 0;
 				else efa->e3->dir= 1;
 			}
-			if(efa->e4 && efa->e4->f) {
+			if(efa->e4 && efa->e4->f2<val) {
 				if(efa->e4->v1 == efa->v4) efa->e4->dir= 0;
 				else efa->e4->dir= 1;
 			}
@@ -586,9 +597,12 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 	EditFace *efa;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) eve->vn= NULL;
-	for(eed= em->edges.first; eed; eed= eed->next) eed->vn= NULL;
-
-	set_edge_directions();
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->vn= NULL;
+		eed->f2= ((eed->f & flag)!=0);
+	}
+	
+	set_edge_directions_f2(2);
 
 	/* sample for next loop */
 	for(efa= em->faces.first; efa; efa= efa->next) {
@@ -609,7 +623,7 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 			/* for transform */
 			if(eed->vn) {
 				efa= (EditFace *)eed->vn;
-				if(efa->f & SELECT) VecAddf(nor, nor, efa->n);
+				if(efa->f & SELECT) add_normal_aligned(nor, efa->n);
 			}
 		}
 	}
@@ -689,8 +703,8 @@ static short extrudeflag_edge(short flag, float *nor)
 	}
 
 	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0; // amount of selected faces
-		eed->f2= 0; // amount of unselected faces
+		eed->f1= 0; // amount of unselected faces
+		eed->f2= 0; // amount of selected faces
 		if(eed->f & SELECT) {
 			eed->v1->f1= 1; // we call this 'selected vertex' now
 			eed->v2->f1= 1;
@@ -699,16 +713,16 @@ static short extrudeflag_edge(short flag, float *nor)
 	}
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->f & SELECT) {
-			efa->e1->f1++;
-			efa->e2->f1++;
-			efa->e3->f1++;
-			if(efa->e4) efa->e4->f1++;
-		}
-		else {
 			efa->e1->f2++;
 			efa->e2->f2++;
 			efa->e3->f2++;
 			if(efa->e4) efa->e4->f2++;
+		}
+		else {
+			efa->e1->f1++;
+			efa->e2->f1++;
+			efa->e3->f1++;
+			if(efa->e4) efa->e4->f1++;
 		}
 		// sample for next loop
 		efa->e1->vn= (EditVert *)efa;
@@ -717,33 +731,34 @@ static short extrudeflag_edge(short flag, float *nor)
 		if(efa->e4) efa->e4->vn= (EditVert *)efa;
 	}
 	
-	set_edge_directions();
+	set_edge_directions_f2(2);
 	
-	/* step 2: make new faces from edges */
-	for(eed= em->edges.last; eed; eed= eed->prev) {
-		if(eed->f & SELECT) {
-			if(eed->f1<2) {
-				if(eed->v1->vn==NULL)
-					eed->v1->vn= addvertlist(eed->v1->co);
-				if(eed->v2->vn==NULL)
-					eed->v2->vn= addvertlist(eed->v2->co);
-					
-				if(eed->dir==1) addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, (EditFace *)eed->vn, NULL);
-				else addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, (EditFace *)eed->vn, NULL);
-			}
-		}
-	}
-	
-	/* step 3a if *one* selected face has edge with unselected face; remove old selected faces */
+	/* step 1.5: if *one* selected face has edge with unselected face; remove old selected faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
-			if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2)) {
+			if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1 || (efa->e4 && efa->e4->f1)) {
 				del_old= 1;
 				break;
 			}
 		}
 	}
 				
+	/* step 2: make new faces from edges */
+	for(eed= em->edges.last; eed; eed= eed->prev) {
+		if(eed->f & SELECT) {
+			if(eed->f2<2) {
+				if(eed->v1->vn==NULL)
+					eed->v1->vn= addvertlist(eed->v1->co);
+				if(eed->v2->vn==NULL)
+					eed->v2->vn= addvertlist(eed->v2->co);
+				
+				/* if del_old, the preferred normal direction is exact opposite as for keep old faces */
+				if(eed->dir!=del_old) addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, (EditFace *)eed->vn, NULL);
+				else addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, (EditFace *)eed->vn, NULL);
+			}
+		}
+	}
+	
 	/* step 3: make new faces from faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
@@ -766,7 +781,7 @@ static short extrudeflag_edge(short flag, float *nor)
 			}
 	
 			/* for transform */
-			VecAddf(nor, nor, efa->n);
+			add_normal_aligned(nor, efa->n);
 		}
 	}
 	
@@ -914,7 +929,7 @@ short extrudeflag_vert(short flag, float *nor)
 		efa= efa->next;
 	}
 
-	set_edge_directions();
+	set_edge_directions_f2(3);
 
 	/* the current state now is:
 		eve->f1==1: loose selected vertex 
@@ -960,6 +975,16 @@ short extrudeflag_vert(short flag, float *nor)
 	   if del_old==0 the extrude creates a volume.
 	*/
 	
+	/* find if we delete old faces */
+	for(eed= em->edges.last; eed; eed= eed->next) {
+		if( (eed->f2==1 || eed->f2==2) ) {
+			if(eed->f1==2) {
+				del_old= 1;
+				break;
+			}
+		}
+	}
+	
 	eed= em->edges.last;
 	while(eed) {
 		nexted= eed->prev;
@@ -970,7 +995,8 @@ short extrudeflag_vert(short flag, float *nor)
 		if( (eed->f2==1 || eed->f2==2) ) {
 			if(eed->f1==2) del_old= 1;
 			
-			if(eed->dir==1) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
+			/* if del_old, the preferred normal direction is exact opposite as for keep old faces */
+			if(eed->dir!=del_old) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
 			else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL, NULL);
 			
 			if(eed->vn) {
@@ -1020,7 +1046,7 @@ short extrudeflag_vert(short flag, float *nor)
 				efa2= addfacelist(v1, v2, v3, v4, efa, efa); /* hmm .. not sure about edges here */
 			
 			/* for transform */
-			VecAddf(nor, nor, efa->n);
+			add_normal_aligned(nor, efa->n);
 
 			if(del_old) {
 				BLI_remlink(&em->faces, efa);
