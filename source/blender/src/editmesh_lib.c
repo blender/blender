@@ -468,14 +468,16 @@ static void add_normal_aligned(float *nor, float *add)
 static void set_edge_directions_f2(int val)
 {
 	EditMesh *em= G.editMesh;
-	EditFace *efa= em->faces.first;
+	EditFace *efa;
+	int do_all= 1;
 	
 	/* edge directions are used for extrude, to detect direction of edges that make new faces */
 	/* we have set 'f2' flags in edges that need to get a direction set (e.g. get new face) */
 	/* the val argument differs... so we need it as arg */
 	
-	while(efa) {
+	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->f & SELECT) {
+			do_all= 0;
 			if(efa->e1->f2<val) {
 				if(efa->e1->v1 == efa->v1) efa->e1->dir= 0;
 				else efa->e1->dir= 1;
@@ -493,8 +495,22 @@ static void set_edge_directions_f2(int val)
 				else efa->e4->dir= 1;
 			}
 		}
-		efa= efa->next;
 	}	
+	/* ok, no faces done... then we at least set it for exterior edges */
+	if(do_all) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->e1->v1 == efa->v1) efa->e1->dir= 0;
+			else efa->e1->dir= 1;
+			if(efa->e2->v1 == efa->v2) efa->e2->dir= 0;
+			else efa->e2->dir= 1;
+			if(efa->e3->v1 == efa->v3) efa->e3->dir= 0;
+			else efa->e3->dir= 1;
+			if(efa->e4) {
+				if(efa->e4->v1 == efa->v4) efa->e4->dir= 0;
+				else efa->e4->dir= 1;
+			}
+		}	
+	}
 }
 
 /* individual face extrude */
@@ -975,10 +991,10 @@ short extrudeflag_vert(short flag, float *nor)
 	   if del_old==0 the extrude creates a volume.
 	*/
 	
-	/* find if we delete old faces */
-	for(eed= em->edges.last; eed; eed= eed->next) {
-		if( (eed->f2==1 || eed->f2==2) ) {
-			if(eed->f1==2) {
+	/* if *one* selected face has edge with unselected face; remove old selected faces */
+	for(efa= em->faces.last; efa; efa= efa->prev) {
+		if(efa->f & SELECT) {
+			if(efa->e1->f1==2 || efa->e2->f1==2 || efa->e3->f1==2 || (efa->e4 && efa->e4->f1==2)) {
 				del_old= 1;
 				break;
 			}
@@ -993,7 +1009,6 @@ short extrudeflag_vert(short flag, float *nor)
 			eed->v2->f |= 128;
 		}
 		if( (eed->f2==1 || eed->f2==2) ) {
-			if(eed->f1==2) del_old= 1;
 			
 			/* if del_old, the preferred normal direction is exact opposite as for keep old faces */
 			if(eed->dir!=del_old) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
