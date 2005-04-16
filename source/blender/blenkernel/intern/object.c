@@ -745,6 +745,18 @@ void base_init_from_view3d(Base *base, View3D *v3d)
 	v3d->viewquat[0]= -v3d->viewquat[0];
 }
 
+SoftBody *copy_softbody(SoftBody *sb)
+{
+	SoftBody *sbn;
+	
+	sbn= MEM_dupallocN(sb);
+	sbn->totspring= sbn->totpoint= 0;
+	sbn->bpoint= NULL;
+	sbn->bspring= NULL;
+	sbn->ctime= 0.0f;
+	
+	return sbn;
+}
 
 Object *copy_object(Object *ob)
 {
@@ -785,7 +797,6 @@ Object *copy_object(Object *ob)
 	if (actcon)
 		obn->activecon = actcon;
 
-	if(ob->pd) obn->pd= MEM_dupallocN(ob->pd);
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
@@ -794,7 +805,9 @@ Object *copy_object(Object *ob)
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
 	obn->disp.first= obn->disp.last= NULL;
-	obn->soft= NULL;
+	
+	if(ob->pd) obn->pd= MEM_dupallocN(ob->pd);
+	obn->soft= copy_softbody(ob->soft);
 	
 	return obn;
 }

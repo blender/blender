@@ -2430,6 +2430,8 @@ void copy_attr_menu()
 
 	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
 
+	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
+	
 	event= pupmenu(str);
 	if(event<= 0) return;
 	
@@ -2602,7 +2604,7 @@ void copy_attr(short event)
 						makeDispList(base->object);
 					}
 				}
-				else if(event==22){
+				else if(event==22) {
 					/* Clear the constraints on the target */
 					free_constraints(&base->object->constraints);
 					free_constraint_channels(&base->object->constraintChannels);
@@ -2615,6 +2617,12 @@ void copy_attr(short event)
 						clone_constraint_channels (&base->object->constraintChannels, &ob->constraintChannels, NULL);
 
 					base->object->activecon = NULL;
+				}
+				else if(event==23) {
+					base->object->softflag= ob->softflag;
+					if(base->object->soft) sbFree(base->object->soft);
+					
+					base->object->soft= copy_softbody(ob->soft);
 				}
 			}
 		}
@@ -4368,7 +4376,6 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 	Base *base;
 	MetaBall *mb;
 	Curve *cu;
-	Ika *ika;
 	int doit,redrawipo=0;
 
 	
@@ -4449,11 +4456,6 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 				
 				where_is_object(ob);
 
-				if(ob->type==OB_IKA) {
-					ika= ob->data;					
-					VecMat4MulVecfl(ika->effg, ob->obmat, ika->eff);
-					itterate_ika(ob);
-				}
 				if(ob->type==OB_ARMATURE && canceled) {
 					/* Unfortunately, sometimes when you escape
 					 * a transform on an object that is the
@@ -4503,6 +4505,8 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 				else if(cu->taperobj && (cu->taperobj->flag & SELECT) ) 
 					makeDispList(ob);
 			}
+			
+			if(ob->softflag & OB_SB_ENABLE) sbObjectReset(ob);
 			
 			where_is_object(ob);	/* always do, for track etc. */
 

@@ -1269,7 +1269,7 @@ void sbFree(SoftBody *sb)
 /* makes totally fresh start situation */
 void sbObjectToSoftbody(Object *ob)
 {
-	
+
 	switch(ob->type) {
 	case OB_MESH:
 		mesh_to_softbody(ob);
