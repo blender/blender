@@ -1,10 +1,6 @@
 This folder is for automatically saved scripts configuration data.
-This data is loaded when Blender starts and saved whenever a .blend file is
-saved.
 
-To use this feature scripts just need to set a Blender.Registry key with the
-extension ".cfg" (for example, "myscript.cfg").
+To use this feature scripts just need to set a proper Blender.Registry key.
 
-Please check the API Reference doc or the documentation for the
-"Scripts Config Editor" script with the Help menu-> "Scripts Help Browser"
-script in Blender.
+To know more, check the API Reference doc (specifically the API_related and
+Registry parts) and the documentation for the "Scripts Config Editor" script.

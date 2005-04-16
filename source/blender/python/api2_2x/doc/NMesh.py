@@ -157,7 +157,12 @@ def GetRawFromObject(name):
 
 def PutRaw(nmesh, name = None, recalc_normals = 1, store_edges = 0):
   """
-  Put an NMesh object back in Blender.
+  Put a BPython NMesh object as a mesh data object in Blender.
+  @note: if there is already a mesh with the given 'name', its contents are
+  freed and the new data is put in it.  Also, if this mesh is not linked to any
+  object, a new object for it is created.  Reminder: in Blender an object is
+  composed of the base object and linked object data (mesh, metaball, camera,
+  etc. etc).
   @type nmesh: NMesh
   @type name: string
   @type recalc_normals: int
@@ -546,8 +551,8 @@ class NMesh:
   def update(recalc_normals = 0, store_edges = 0, vertex_shade = 0):
     """
     Update the mesh in Blender.  The changes made are put back to the mesh in
-    Blender, if available, or put in a newly created mesh object if this NMesh
-    wasn't already linked to one.
+    Blender, if available, or put in a newly created mesh if this NMesh wasn't
+    already linked to one.
     @type recalc_normals: int (bool)
     @param recalc_normals: if nonzero the vertex normals are recalculated.
     @type store_edges: int (bool)
@@ -565,6 +570,13 @@ class NMesh:
         programmers should leave EditMode B{before} getting a mesh, or changes
         made to the editmesh in Blender may not be visible to your script
         (check the example at the top of NMesh module doc).
+    @warn: unlike the L{PutRaw} function, this method doesn't check validity of
+        vertex, face and material lists, because it is meant to be as fast as
+        possible (and already performs many tasks).  So programmers should make
+        sure they only feed proper data to the nmesh -- a good general
+        recommendation, of course.  It's also trivial to write code to check
+        all data before updating, for example by comparing each item's type
+        with the actual L{Types}, if you need to.
     @note: this method also redraws the 3d view and -- if 'vertex_shade' is
         nonzero -- the edit buttons window.
     @note: if your mesh disappears after it's updated, try

@@ -144,8 +144,6 @@ endif
 	@echo "----> Copy python infrastructure"
 	@[ ! -d scripts ] || cp -r scripts $(CONFDIR)/scripts
 	@[ ! -d $(CONFDIR)/scripts ] || rm -fr $(CONFDIR)/scripts/CVS
-	@[ ! -d bpydata ] || cp -r bpydata $(CONFDIR)/bpydata
-	@[ ! -d $(CONFDIR)/bpydata ] || rm -fr $(CONFDIR)/bpydata/CVS
 
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"

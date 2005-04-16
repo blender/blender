@@ -78,16 +78,10 @@ def preparedist():
 	os.chdir(startdir)
 	if os.path.isdir("dist/.blender/scripts"):
 		shutil.rmtree("dist/.blender/scripts")
-	if os.path.isdir("dist/.blender/bpydata"):
-		shutil.rmtree("dist/.blender/bpydata")
-		
-	os.makedirs("dist/.blender/bpydata")
-	shutil.copy("release/bpydata/readme.txt", "dist/.blender/bpydata/readme.txt")
-	shutil.copy("release/bpydata/KUlang.txt", "dist/.blender/bpydata/KUlang.txt")
-	
+
 	os.chdir("release")
 	shutil.copytree("scripts/", "../dist/.blender/scripts")
-	
+
 	# finally copy auxiliaries (readme, license, etc.)
 	if sys.platform == 'win32':
 		shutil.copy("windows/extra/Help.url", "../dist/Help.url")

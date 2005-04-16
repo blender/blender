@@ -52,7 +52,6 @@ ifeq ($(APPLICATION), blender)
 	@echo "---> copying .blender/ scripts"
 	@cp -R $(NANBLENDERHOME)/bin/.blender $(DIR)/bin/$(APPLICATION).app/Contents/MacOS
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/scripts
-	@cp -R $(NANBLENDERHOME)/release/bpydata $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/bpydata
 endif
 	@echo "---> removing CVS directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;

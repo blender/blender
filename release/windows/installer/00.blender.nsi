@@ -265,11 +265,13 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\bvh_export.py
   File DISTDIR\.blender\scripts\bvh_import.py
   File DISTDIR\.blender\scripts\clean_mesh.py
+  File DISTDIR\.blender\scripts\config.py
   File DISTDIR\.blender\scripts\DirectX8Exporter.py
   File DISTDIR\.blender\scripts\DirectXExporter.py
   File DISTDIR\.blender\scripts\disp_paint.py
   File DISTDIR\.blender\scripts\doc_browser.py
   File DISTDIR\.blender\scripts\fixfromarmature.py
+  File DISTDIR\.blender\scripts\help_browser.py
   File DISTDIR\.blender\scripts\help_getting_started.py
   File DISTDIR\.blender\scripts\help_manual.py
   File DISTDIR\.blender\scripts\help_py_reference.py
@@ -284,12 +286,6 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\knife.py
   File DISTDIR\.blender\scripts\lightwave_export.py
   File DISTDIR\.blender\scripts\lightwave_import.py
-  File DISTDIR\.blender\scripts\mod_ai2obj.py
-  File DISTDIR\.blender\scripts\mod_blender.py
-  File DISTDIR\.blender\scripts\mod_eps2obj.py
-  File DISTDIR\.blender\scripts\mod_gimp2obj.py
-  File DISTDIR\.blender\scripts\mod_meshtools.py
-  File DISTDIR\.blender\scripts\mod_svg2obj.py
   File DISTDIR\.blender\scripts\nendo_export.py
   File DISTDIR\.blender\scripts\nendo_import.py
   File DISTDIR\.blender\scripts\obdatacopier.py
@@ -304,6 +300,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\raw_import.py
   File DISTDIR\.blender\scripts\renameobjectbyblock.py
   File DISTDIR\.blender\scripts\rvk1_torvk2.py
+  File DISTDIR\.blender\scripts\save_theme.py
   File DISTDIR\.blender\scripts\sel_same.py
   File DISTDIR\.blender\scripts\skin.py
   File DISTDIR\.blender\scripts\slp_import.py
@@ -311,16 +308,27 @@ Section "Blender-VERSION (required)" SecCopyUI
   File DISTDIR\.blender\scripts\tex2uvbaker.py
   File DISTDIR\.blender\scripts\truespace_export.py
   File DISTDIR\.blender\scripts\truespace_import.py
-  File DISTDIR\.blender\scripts\unweld044.py
+  File DISTDIR\.blender\scripts\unweld.py
   File DISTDIR\.blender\scripts\uv_export.py
   File DISTDIR\.blender\scripts\UVpaint05.py
   File DISTDIR\.blender\scripts\videoscape_export.py
+  File DISTDIR\.blender\scripts\vrml97_export.py
   File DISTDIR\.blender\scripts\wings_export.py
   File DISTDIR\.blender\scripts\wings_import.py
   File DISTDIR\.blender\scripts\wrl2export.py
-  SetOutPath $BLENDERHOME\.blender\bpydata
-  File DISTDIR\.blender\bpydata\readme.txt
-  File DISTDIR\.blender\bpydata\KUlang.txt
+  SetOutPath $BLENDERHOME\.blender\scripts\bpymodules
+  File DISTDIR\.blender\scripts\bpymodules\ai2obj.py
+  File DISTDIR\.blender\scripts\bpymodules\BPyBlender.py
+  File DISTDIR\.blender\scripts\bpymodules\BPyRegistry.py
+  File DISTDIR\.blender\scripts\bpymodules\eps2obj.py
+  File DISTDIR\.blender\scripts\bpymodules\gimp2obj.py
+  File DISTDIR\.blender\scripts\bpymodules\meshtools.py
+  File DISTDIR\.blender\scripts\bpymodules\svg2obj.py
+  SetOutPath $BLENDERHOME\.blender\scripts\bpydata
+  File DISTDIR\.blender\scripts\bpydata\readme.txt
+  File DISTDIR\.blender\scripts\bpydata\KUlang.txt
+  SetOutPath $BLENDERHOME\.blender\scripts\bpydata\config
+  File DISTDIR\.blender\scripts\bpydata\config\readme.txt
   
   ; Additional Languages files
   SetOutPath $BLENDERHOME\.blender
@@ -424,7 +432,9 @@ Section "Uninstall"
   ; remove directories used.
   RMDir /r $INSTDIR\.blender\locale 
   RMDir /r $INSTDIR\.blender\scripts
-  RMDir /r $INSTDIR\.blender\bpydata
+  RMDir /r $INSTDIR\.blender\scripts\bpydata
+  RMDir /r $INSTDIR\.blender\scripts\bpydata\config
+  RMDir /r $INSTDIR\.blender\scripts\bpymodules
   RMDir $INSTDIR\.blender
   RMDir "$SMPROGRAMS\Blender Foundation\Blender"
   RMDir "$SMPROGRAMS\Blender Foundation"

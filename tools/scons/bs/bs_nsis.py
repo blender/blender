@@ -50,24 +50,52 @@ def donsis(env, target, source):
 	
 	# do scripts
 	scriptlist = []
-	scriptdir = os.listdir(startdir + "\\dist\\.blender\\scripts")
+	scriptpath = "%s%s" % (startdir, "\\dist\\.blender\\scripts")
+	scriptdir = os.listdir(scriptpath)
 	for scriptitem in scriptdir:
-		if os.path.isdir(startdir + "\\dist\\.blender\\scripts\\" + scriptitem) == 0:
-			scriptlist.append("File " + startdir + "\\dist\\.blender\\scripts\\" + scriptitem)
+		scriptfile = "%s\\%s" % (scriptpath, scriptitem)
+		if os.path.isdir(scriptfile) == 0:
+			scriptlist.append("File %s" % scriptfile)
 	scriptstring = string.join(scriptlist, "\n  ")
 	scriptstring += "\n\n"
 	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTCONTS]", scriptstring)
-	
-	# do bpycontents
+
+	# do scripts\bpymodules
+	bpymodlist = []
+	bpymodpath = "%s%s" % (startdir, "\\dist\\.blender\\scripts\\bpymodules")
+	bpymoddir = os.listdir(bpymodpath)
+	for bpymoditem in bpymoddir:
+		bpymodfile = "%s\\%s" % (bpymodpath, bpymoditem)
+		if os.path.isdir(bpymodfile) == 0:
+			bpymodlist.append("File %s" % bpymodfile)
+	bpymodstring = string.join(bpymodlist, "\n  ")
+	bpymodstring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTMODCONTS]", bpymodstring)
+
+	# do scripts\bpydata
 	bpydatalist = []
-	bpydatadir = os.listdir(startdir + "\\dist\\.blender\\bpydata")
+	bpydatapath = "%s%s" % (startdir, "\\dist\\.blender\\scripts\\bpydata")
+	bpydatadir = os.listdir(bpydatapath)
 	for bpydataitem in bpydatadir:
-		if os.path.isdir(startdir + "\\dist\\.blender\\bpydata\\" + bpydataitem) == 0:
-			bpydatalist.append("File " + startdir + "\\dist\\.blender\\bpydata\\" + bpydataitem)
+		bpydatafile = "%s\\%s" % (bpydatapath, bpydataitem)
+		if os.path.isdir(bpydatafile) == 0:
+			bpydatalist.append("File %s" % bpydatafile)
 	bpydatastring = string.join(bpydatalist, "\n  ")
 	bpydatastring += "\n\n"
-	nsis_cnt = string.replace(nsis_cnt, "[BPYCONTS]", bpydatastring)
-	
+	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTDATACONTS]", bpydatastring)
+
+	# do scripts\bpydata\config
+	cfglist = []
+	cfgpath = "%s%s" % (startdir, "\\dist\\.blender\\scripts\\bpydata\\config")
+	cfgdir = os.listdir(cfgpath)
+	for cfgitem in cfgdir:
+		cfgfile = "%s\\%s" % (cfgpath, cfgitem)
+		if os.path.isdir(cfgfile) == 0:
+			cfglist.append("File %s" % cfgfile)
+	cfgstring = string.join(cfglist, "\n  ")
+	cfgstring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTDATACFGCONTS]", cfgstring)
+
 	# do dotblender
 	dotblendlist = []
 	dotblenddir = os.listdir(startdir+"\\dist\\.blender")
