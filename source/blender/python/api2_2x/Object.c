@@ -3832,10 +3832,24 @@ int setupSB(Object* ob){
 		Mesh *me= ob->data;
 		if(me->medge==NULL) make_edges(me);
 	}
-	if(ob->soft)
-	   return 1;
-	else 
+
+	if(ob->soft){	
+    	ob->soft->nodemass   = 1.0;		
+    	ob->soft->grav       = 0.0;			
+    	ob->soft->mediafrict = 0.5;	
+    	ob->soft->rklimit    = 0.01;		
+    	ob->soft->goalspring = 0.5;	
+    	ob->soft->goalfrict  = 0.0;	
+    	ob->soft->mingoal    = 0.0;		
+    	ob->soft->maxgoal    = 1.0;		
+    	ob->soft->inspring   = 0.5;	
+    	ob->soft->infrict    = 0.5;	
+    	ob->soft->defgoal    = 0.7;		
+	    return 1;
+    }
+	else {
 	   return 0;
+    }
 }
 
 int setupPI(Object* ob){
@@ -3843,8 +3857,20 @@ int setupPI(Object* ob){
 		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
 		/* and if needed, init here */
 	}
-	if(ob->pd)
-	   return 1;
-	else 
+	
+	if(ob->pd){
+        ob->pd->deflect      =0;		
+        ob->pd->forcefield   =0;	
+        ob->pd->flag         =0;	
+        ob->pd->pdef_damp    =0;		
+        ob->pd->pdef_rdamp   =0;		
+        ob->pd->pdef_perm    =0;	
+        ob->pd->f_strength   =0;	
+        ob->pd->f_power      =0;	
+        ob->pd->maxdist      =0;	       
+        return 1;
+    }
+	else{ 
 	   return 0;
+    }
 }
