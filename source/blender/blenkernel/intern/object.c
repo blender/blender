@@ -749,6 +749,8 @@ SoftBody *copy_softbody(SoftBody *sb)
 {
 	SoftBody *sbn;
 	
+	if (sb==NULL) return(NULL);
+	
 	sbn= MEM_dupallocN(sb);
 	sbn->totspring= sbn->totpoint= 0;
 	sbn->bpoint= NULL;
