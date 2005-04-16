@@ -598,7 +598,8 @@ static void draw_manipulator_axes(int colcode, int flagx, int flagy, int flagz)
 static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 {
 	GLUquadricObj *qobj= gluNewQuadric(); 
-	float size, phi, vec[3], matt[4][4], cross[3];
+	float size, phi, startphi, vec[3], svec[3], matt[4][4], cross[3], tmat[3][3];
+	int arcs= (G.rt==2 || G.rt==6);
 	
 	glDisable(GL_DEPTH_TEST);
 	gluQuadricDrawStyle(qobj, GLU_FILL); 
@@ -613,7 +614,6 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
-		float startphi;
 		
 		/* prepare for screen aligned draw */
 		glPushMatrix();
@@ -635,12 +635,38 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 		
 		glPopMatrix();
 	}
-	
+	else if(arcs) {
+		float imat[3][3], ivmat[3][3];
+		/* try to get the start rotation */
+		
+		svec[0]= (float)(Trans.con.imval[0] - Trans.center2d[0]);
+		svec[1]= (float)(Trans.con.imval[1] - Trans.center2d[1]);
+		svec[2]= 0.0f;
+		
+		/* screen aligned vec transform back to manipulator space */
+		Mat3CpyMat4(ivmat, G.vd->viewinv);
+		Mat3CpyMat4(tmat, mat);
+		Mat3Inv(imat, tmat);
+		Mat3MulMat3(tmat, imat, ivmat);
+		
+		Mat3MulVecfl(tmat, svec);	// tmat is used further on
+		Normalise(svec);
+	}	
 	
 	mymultmatrix(mat);	// aligns with original widget
 	
 	/* Z disk */
 	if(drawflags & MAN_ROT_Z) {
+		if(arcs) {
+			/* correct for squeezed arc */
+			svec[0]+= tmat[2][0];
+			svec[1]+= tmat[2][1];
+			Normalise(svec);
+			
+			startphi= atan2(svec[0], svec[1]);
+		}
+		else startphi= 0.5*M_PI;
+		
 		VECCOPY(vec, mat[0]);	// use x axis to detect rotation
 		Normalise(vec);
 		Normalise(matt[0]);
@@ -648,11 +674,21 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 		if(phi!=0.0) {
 			Crossf(cross, vec, matt[0]);	// results in z vector
 			if(Inpf(cross, mat[2]) > 0.0) phi= -phi;
-			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 90.0, 180.0*phi/M_PI);
+			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0*startphi/M_PI, 180.0*(phi)/M_PI);
 		}
 	}
 	/* X disk */
 	if(drawflags & MAN_ROT_X) {
+		if(arcs) {
+			/* correct for squeezed arc */
+			svec[1]+= tmat[2][1];
+			svec[2]+= tmat[2][2];
+			Normalise(svec);
+			
+			startphi= M_PI + atan2(svec[2], -svec[1]);
+		}
+		else startphi= 0.0;
+		
 		VECCOPY(vec, mat[1]);	// use y axis to detect rotation
 		Normalise(vec);
 		Normalise(matt[1]);
@@ -661,12 +697,22 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			Crossf(cross, vec, matt[1]);	// results in x vector
 			if(Inpf(cross, mat[0]) > 0.0) phi= -phi;
 			glRotatef(90.0, 0.0, 1.0, 0.0);
-			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 0.0, 180.0*phi/M_PI);
+			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0*startphi/M_PI, 180.0*phi/M_PI);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 		}
 	}	
 	/* Y circle */
 	if(drawflags & MAN_ROT_Y) {
+		if(arcs) {
+			/* correct for squeezed arc */
+			svec[0]+= tmat[2][0];
+			svec[2]+= tmat[2][2];
+			Normalise(svec);
+			
+			startphi= M_PI + atan2(-svec[0], svec[2]);
+		}
+		else startphi= M_PI;
+		
 		VECCOPY(vec, mat[2]);	// use z axis to detect rotation
 		Normalise(vec);
 		Normalise(matt[2]);
@@ -675,7 +721,7 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			Crossf(cross, vec, matt[2]);	// results in y vector
 			if(Inpf(cross, mat[1]) > 0.0) phi= -phi;
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
-			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0, 180.0*phi/M_PI);
+			gluPartialDisk(qobj, 0.0, 1.0, 32, 1, 180.0*startphi/M_PI, 180.0*phi/M_PI);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 		}
 	}
