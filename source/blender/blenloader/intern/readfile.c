@@ -110,6 +110,7 @@
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_deform.h"
 #include "BKE_effect.h" // for give_parteff
 #include "BKE_global.h" // for G
 #include "BKE_property.h" // for get_property
@@ -4681,6 +4682,13 @@ static void do_versions(Main *main)
 				
 				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
  			}
+			if(ob->soft && ob->soft->vertgroup==0) {
+				bDeformGroup *locGroup = get_named_vertexgroup(ob, "SOFTGOAL");
+				if(locGroup){
+					/* retrieve index for that group */
+					ob->soft->vertgroup =  1 + get_defgroup_num(ob, locGroup); 
+				}
+			}
 		}
 	}
 	

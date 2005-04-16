@@ -2165,6 +2165,49 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 
 }
 
+char *get_vertexgroup_menustr(Object *ob)
+{
+	bDeformGroup *dg;
+	int defCount, min, index;
+	char (*qsort_ptr)[32] = NULL;
+	char *s, *menustr;
+	
+	defCount=BLI_countlist(&ob->defbase);
+	
+	if (!defCount) min=0;
+	else min=1;
+	
+	if (defCount > 0) {
+		/*
+		 * This will hold the group names temporarily
+		 * so we can sort them
+		 */
+		qsort_ptr = MEM_callocN (defCount * sizeof (qsort_ptr[0]),
+								 "qsort_ptr");
+		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
+			snprintf (qsort_ptr[index - 1], sizeof (qsort_ptr[0]),
+					  "%s%%x%d|", dg->name, index);
+		}
+		
+		qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]),
+			   ( int (*)(const void *, const void *) ) strcmp);
+	}
+	
+	s= menustr = MEM_callocN((32 * defCount)+30, "menustr");	// plus 30 for when defCount==0
+	if(defCount) {
+		for (index = 0; index < defCount; index++) {
+			int cnt= sprintf (s, "%s", qsort_ptr[index]);
+			if (cnt>0) s+= cnt;
+		}
+	}
+	else strcpy(menustr, "No Vertex Groups in Object");
+	
+	if (qsort_ptr)
+		MEM_freeN (qsort_ptr);
+	
+	return menustr;
+}
+
 static void editing_panel_links(Object *ob)
 {
 	uiBlock *block;
@@ -2264,52 +2307,20 @@ static void editing_panel_links(Object *ob)
 		uiBut *but;
 		int	defCount;
 		bDeformGroup	*defGroup;
-		char *s, *menustr;
-		bDeformGroup *dg;
-		int min, index;
-		char (*qsort_ptr)[32] = NULL;
-
+	
 		uiDefBut(block, LABEL,0,"Vertex Groups",
 				 143,153,130,20, 0, 0, 0, 0, 0, "");
 
 		defCount=BLI_countlist(&ob->defbase);
 
-		if (!defCount) min=0;
-		else min=1;
-
-		if (defCount > 0) {
-			/*
-			 * This will hold the group names temporarily
-			 * so we can sort them
-			 */
-			qsort_ptr = MEM_callocN (defCount * sizeof (qsort_ptr[0]),
-									 "qsort_ptr");
-			for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
-				snprintf (qsort_ptr[index - 1], sizeof (qsort_ptr[0]),
-						  "%s%%x%d|", dg->name, index);
-			}
-
-			qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]),
-				   ( int (*)(const void *, const void *) ) strcmp);
-		}
-
-		s= menustr = MEM_callocN((32 * defCount)+20, "menustr");
-		for (index = 0; index < defCount; index++) {
-			int cnt= sprintf (s, "%s", qsort_ptr[index]);
-			if (cnt>0) s+= cnt;
-		}
-
-		if (qsort_ptr)
-		  MEM_freeN (qsort_ptr);
-
 		uiBlockBeginAlign(block);
-		if (defCount)
-			uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr,
-					  143, 132,18,21, &ob->actdef, min, defCount, 0, 0,
-					  "Browses available vertex groups");
-
-		MEM_freeN (menustr);
-
+		if (defCount) {
+			char *menustr= get_vertexgroup_menustr(ob);
+			
+			uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr, 143, 132,18,21, &ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
+			MEM_freeN (menustr);
+		}
+		
 		if (ob->actdef){
 			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
 			but= uiDefBut(block, TEX,REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 32, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");

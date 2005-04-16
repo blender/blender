@@ -35,6 +35,7 @@
 /* all internal calls and event codes for buttons space */
 
 struct Base;
+struct Object;
 struct ID;
 
 
@@ -76,6 +77,7 @@ extern void do_fontbuts(unsigned short event);
 extern void do_mballbuts(unsigned short event);
 extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
+extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
 /* shading */
 extern void material_panels(void);
@@ -219,6 +221,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_CURVECHECK	1416
 
 #define B_SOFTBODY_CHANGE	1420
+#define B_SOFTBODY_DEL_VG	1421
 
 	/* this has MAX_EFFECT settings! Next free define is 1450... */
 #define B_SELEFFECT	1430	

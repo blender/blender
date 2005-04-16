@@ -90,8 +90,6 @@ extern int  get_defgroup_num (Object *ob, bDeformGroup        *dg);
 float SoftHeunTol = 1.0f; // humm .. this should be calculated from sb parameters and sizes
 
 /* local prototypes */
-//static void softbody_scale_time(float steptime);
-static int get_scalar_from_named_vertexgroup(Object *ob, char *name, int vertID, float *target);
 static void free_softbody_intern(SoftBody *sb);
 
 
@@ -321,7 +319,7 @@ static int sb_deflect_particle(Object *ob,float *actpos, float *futurepos,float 
 				
 }
 
-
+#if 0
 static int sb_deflect_test(float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *slip ,float *bounce)
 {
 
@@ -465,7 +463,7 @@ static int sb_deflect_test(float *actpos, float *futurepos,float *collisionpos, 
 
 return 0;
 }
-
+#endif
 
 
 
@@ -728,7 +726,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 		if(bp->goal < SOFTGOALSNAP){
 			
 			/* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
-			/* the ( ... )' operator denotes derivate respective time
+			/* the ( ... )' operator denotes derivate respective time */
 			/* the euler step for velocity then becomes */
 			/* v(t + dt) = v(t) + a(t) * dt */ 
 			bp->force[0]*= timeovermass; /* individual mass of node here */ 
@@ -1018,37 +1016,29 @@ static void mesh_update_softbody(Object *ob)
 }
 
 
-static int get_scalar_from_named_vertexgroup(Object *ob, char *name, int vertID, float *target)
+static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex, float *target)
 /* result 0 on success, else indicates error number
 -- kind of *inverse* result defintion,
 -- but this way we can signal error condition to caller  
 -- and yes this function must not be here but in a *vertex group module*
 */
 {
-	bDeformGroup *locGroup = NULL;
 	MDeformVert *dv;
-	int i, groupindex;
+	int i;
 	
-	locGroup = get_named_vertexgroup(ob,name);
-	if(locGroup){
-		/* retrieve index for that group */
-		groupindex =  get_defgroup_num(ob,locGroup); 
-		/* spot the vert in deform vert list at mesh */
-		/* todo (coder paranoya) what if ob->data is not a mesh .. */ 
-		/* hrms.. would like to have the same for lattices anyhoo */
+	/* spot the vert in deform vert list at mesh */
+	if(ob->type==OB_MESH) {
 		if (((Mesh *)ob->data)->dvert) {
 			dv = ((Mesh*)ob->data)->dvert + vertID;	
 			/* Lets see if this vert is in the weight group */
 			for (i=0; i<dv->totweight; i++){
 				if (dv->dw[i].def_nr == groupindex){
 					*target= dv->dw[i].weight; /* got it ! */
-					return 0;
+					break;
 				}
 			}
 		}
-		return 2;
-	}/*if(locGroup)*/
-	return 1;
+	}
 } 
 
 /* makes totally fresh start situation */
@@ -1078,38 +1068,26 @@ static void mesh_to_softbody(Object *ob)
 		
 		set_body_point(ob, bp, mvert->co);
 		
-		if (1) { /* switch to vg scalars*/
-			/* get scalar values needed  *per vertex* from vertex group functions,
-			   so we can *paint* them nicly .. 
-			   they are normalized [0.0..1.0] so may be we need amplitude for scale
-			   which can be done by caller
-			   but still .. i'd like it to go this way 
-			*/ 
-			int error;
-			char name[32] = "SOFTGOAL";
-			float temp;
+		/* get scalar values needed  *per vertex* from vertex group functions,
+		so we can *paint* them nicly .. 
+		they are normalized [0.0..1.0] so may be we need amplitude for scale
+		which can be done by caller but still .. i'd like it to go this way 
+		*/ 
+
+		if(sb->vertgroup) {
+			get_scalar_from_vertexgroup(ob, me->totvert - a, sb->vertgroup-1, &bp->goal);
+			// do this always, regardless successfull read from vertex group
+			bp->goal= sb->mingoal + bp->goal*goalfac;
+		}
+		/* a little ad hoc changing the goal control to be less *sharp* */
+		bp->goal = (float)pow(bp->goal, 4.0f);
 			
-			error = get_scalar_from_named_vertexgroup(ob, name, me->totvert - a, &temp);
-			if (!error) {
-				bp->goal = temp;
-				
-				/* works assuming goal is <0.0, 1.0> */
-				bp->goal= sb->mingoal + bp->goal*goalfac;
-				
-			}
-			/* a little ad hoc changing the goal control to be less *sharp* */
-			bp->goal = (float)pow(bp->goal, 4.0f);
-			
-			/* to proove the concept
-			this would enable per vertex *mass painting*
-			strcpy(name,"SOFTMASS");
-			error = get_scalar_from_named_vertexgroup(ob,name,me->totvert - a,&temp);
-			if (!error) bp->mass = temp * ob->rangeofmass;
-			*/
-
-
-
-		} /* switch to vg scalars */
+		/* to proove the concept
+		this would enable per vertex *mass painting*
+		strcpy(name,"SOFTMASS");
+		error = get_scalar_from_named_vertexgroup(ob,name,me->totvert - a,&temp);
+		if (!error) bp->mass = temp * ob->rangeofmass;
+		*/
 	}
 
 	/* but we only optionally add body edge springs */

@@ -1192,8 +1192,20 @@ void do_object_panels(unsigned short event)
 	
 	case B_SOFTBODY_CHANGE:
 		ob= OBACT;
-		if(ob) ob->softflag |= OB_SB_REDO;
-		allqueue(REDRAWVIEW3D, 0);
+		if(ob) {
+			ob->softflag |= OB_SB_REDO;
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_SOFTBODY_DEL_VG:
+		ob= OBACT;
+		if(ob && ob->soft) {
+			ob->soft->vertgroup= 0;
+			ob->softflag |= OB_SB_REDO;
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
 		break;
 		
 	default:
@@ -1469,6 +1481,8 @@ static void object_softbodies(Object *ob)
 	
 	if(ob->softflag & OB_SB_ENABLE) {
 		SoftBody *sb= ob->soft;
+		int defCount;
+		char *menustr;
 		
 		if(sb==NULL) {
 			sb= ob->soft= sbNew();
@@ -1491,8 +1505,26 @@ static void object_softbodies(Object *ob)
 		
 		/* GOAL STUFF */
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, OB_SB_GOAL, B_DIFF, "Use Goal",	10,100,150,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
-		uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",		160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+		uiDefButBitS(block, TOG, OB_SB_GOAL, B_DIFF, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		
+		menustr= get_vertexgroup_menustr(ob);
+		defCount=BLI_countlist(&ob->defbase);
+		if(defCount==0) sb->vertgroup= 0;
+		uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,		140,100,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
+		
+		if(sb->vertgroup) {
+			bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
+			if(defGroup)
+				uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+			else
+				uiDefBut(block, BUT, B_DIFF, "(no group)",	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+			uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,100,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+		}
+		else {
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+		}
+		MEM_freeN (menustr);
+
 		uiDefButF(block, NUM, B_DIFF, "GSpring:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) Spring Constant");
 		uiDefButF(block, NUM, B_DIFF, "GFrict:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) Friction Constant");
 		uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMin:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");

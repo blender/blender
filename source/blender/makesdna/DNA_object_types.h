@@ -121,6 +121,8 @@ typedef struct SoftBody {
 	float goalfrict;	/* softbody goal springs friction */
 	float mingoal;		/* quick limits for goal */
 	float maxgoal;
+	short vertgroup;		/* index starting at 1 */
+	short pad1, pad2, pad3;
 	
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
