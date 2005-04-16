@@ -804,11 +804,11 @@ class Property:
     """
     Set the the Object's Particle Interaction type.
     Use Module Constants
-        NONE
-        WIND
-        FORCE
-        VORTEX
-        MAGNET
+      - NONE
+      - WIND
+      - FORCE
+      - VORTEX
+      - MAGNET
     @rtype: PyNone
     @type type: int
     @param type: the Object's Particle Interaction Type.
@@ -902,7 +902,7 @@ class Property:
     Values between 0 to 50.0
     @rtype: PyNone
     @type mass: float
-    @param damp: the Object's SB New mass.
+    @param mass: the Object's SB New mass.
     """  
   
   def getSBGravity():
@@ -917,7 +917,7 @@ class Property:
     Values between 0 to 10.0
     @rtype: PyNone
     @type grav: float
-    @param damp: the Object's SB New Gravity.
+    @param grav: the Object's SB New Gravity.
     """ 
     
   def getSBFriction():
@@ -932,7 +932,7 @@ class Property:
     Values between 0 to 10.0
     @rtype: PyNone
     @type frict: float
-    @param damp: the Object's SB New Friction.
+    @param frict: the Object's SB New Friction.
     """ 
 
   def getSBErrorLimit():
@@ -947,7 +947,7 @@ class Property:
     Values between 0 to 1.0
     @rtype: PyNone
     @type err: float
-    @param damp: the Object's SB New ErrorLimit.
+    @param err: the Object's SB New ErrorLimit.
     """ 
     
   def getSBGoalSpring():
@@ -962,7 +962,7 @@ class Property:
     Values between 0 to 0.999
     @rtype: PyNone
     @type gs: float
-    @param damp: the Object's SB New GoalSpring.
+    @param gs: the Object's SB New GoalSpring.
     """ 
     
   def getSBGoalFriction():
@@ -977,7 +977,7 @@ class Property:
     Values between 0 to 10.0
     @rtype: PyNone
     @type gf: float
-    @param damp: the Object's SB New GoalFriction.
+    @param gf: the Object's SB New GoalFriction.
     """ 
     
   def getSBMinGoal():
@@ -992,7 +992,7 @@ class Property:
     Values between 0 to 1.0
     @rtype: PyNone
     @type mg: float
-    @param damp: the Object's SB New MinGoal.
+    @param mg: the Object's SB New MinGoal.
     """ 
     
   def getSBMaxGoal():
@@ -1007,7 +1007,7 @@ class Property:
     Values between 0 to 1.0
     @rtype: PyNone
     @type mg: float
-    @param damp: the Object's SB New MaxGoal.
+    @param mg: the Object's SB New MaxGoal.
     """ 
     
   def getSBInnerSpring():
@@ -1021,8 +1021,8 @@ class Property:
     Set the the Object's SB InnerSpring.
     Values between 0 to 0.999
     @rtype: PyNone
-    @type spr: float
-    @param damp: the Object's SB New InnerSpring.
+    @type sprr: float
+    @param sprr: the Object's SB New InnerSpring.
     """ 
     
   def getSBInnerSpringFriction():
@@ -1037,7 +1037,7 @@ class Property:
     Values between 0 to 10.0
     @rtype: PyNone
     @type sprf: float
-    @param damp: the Object's SB New InnerSpringFriction.
+    @param sprf: the Object's SB New InnerSpringFriction.
     """ 
     
   def getSBDefaultGoal():
@@ -1052,7 +1052,7 @@ class Property:
     Values between 0 to 1.0
     @rtype: PyNone
     @type goal: float
-    @param damp: the Object's SB New DefaultGoal.
+    @param goal: the Object's SB New DefaultGoal.
     """   
 
   def getSBEnable():
@@ -1068,7 +1068,7 @@ class Property:
     0: off
     @rtype: PyNone
     @type switch: int
-    @param damp: the Object's SB New Enable Value.
+    @param switch: the Object's SB New Enable Value.
     """  
 
   def getSBPostDef():
@@ -1084,7 +1084,7 @@ class Property:
     0: off
     @rtype: PyNone
     @type switch: int
-    @param damp: the Object's SB New PostDef Value.
+    @param switch: the Object's SB New PostDef Value.
     """ 
 
   def getSBUseGoal():
@@ -1100,7 +1100,7 @@ class Property:
     0: off
     @rtype: PyNone
     @type switch: int
-    @param damp: the Object's SB New UseGoal Value.
+    @param switch: the Object's SB New UseGoal Value.
     """ 
   def getSBUseEdges():
     """
@@ -1115,7 +1115,7 @@ class Property:
     0: off
     @rtype: PyNone
     @type switch: int
-    @param damp: the Object's SB New UseEdges Value.
+    @param switch: the Object's SB New UseEdges Value.
     """ 
     
   def getSBStiffQuads():
@@ -1131,5 +1131,5 @@ class Property:
     0: off
     @rtype: PyNone
     @type switch: int
-    @param damp: the Object's SB New StiffQuads Value.
+    @param switch: the Object's SB New StiffQuads Value.
     """     

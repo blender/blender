@@ -33,9 +33,9 @@
 #include "Registry.h"
 
 #include <stdio.h>
+#include <BKE_global.h> /* G.f & G_DEBUG */
 
 #include "gen_utils.h"
-
 
 
 /* the Registry dictionary */
@@ -64,17 +64,23 @@ char M_Registry_Keys_doc[] =
     Each key references another dict with saved data from a specific script.\n";
 
 char M_Registry_GetKey_doc[] =
-	"(name) - Get a specific entry (dict) from the Registry dictionary\n\
- (name) - a string that references a specific script.\n";
+	"(name, disk = False) - Get an entry (a dict) from the Registry dictionary\n\
+ (name) - a string that references a specific script;\n\
+ (disk = False) - search on the user (if available) or default scripts config\n\
+data dir.\n";
 
 char M_Registry_SetKey_doc[] =
-	"(key, dict) - Store an entry in the Registry dictionary.\n\
+	"(key, dict, disk = False) - Store an entry in the Registry dictionary.\n\
     If an entry with the same 'key' already exists, it is substituted.\n\
  (key) - the string to use as a key for the dict being saved.\n\
- (dict) - a dictionary with the data to be stored.\n";
+ (dict) - a dictionary with the data to be stored.\n\
+ (disk = False) - also write data as a config file inside the user (if\n\
+available) or default scripts config data dir.\n";
 
 char M_Registry_RemoveKey_doc[] =
-	"(key) - Remove the dict with key 'key' from the Registry.\n";
+	"(key, disk = False) - Remove the dict with key 'key' from the Registry.\n\
+ (key) - the name of the key to delete;\n\
+ (disk = False) - if True the respective config file is also deleted.\n";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Registry module:           */
@@ -118,25 +124,35 @@ static PyObject *M_Registry_GetKey( PyObject * self, PyObject * args )
 {
 	PyObject *pyentry = NULL;
 	PyObject *pydict = NULL;
+	int disk = 0;
 
 	if( !bpy_registryDict )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "No Registry dictionary found!" );
+			"No Registry dictionary found!" );
 
-	if( !PyArg_ParseTuple( args, "O!", &PyString_Type, &pyentry ) )
+	if( !PyArg_ParseTuple( args, "O!|i", &PyString_Type, &pyentry, &disk ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected a string" );
+			"expected a string and optionally a bool" );
 
 	pydict = PyDict_GetItem( bpy_registryDict, pyentry );	/* borrowed ... */
 
-	if( !pydict )
-/*    return EXPP_ReturnPyObjError (PyExc_KeyError,
-            "no such key in the Registry"); */
-		pydict = Py_None;	/* better to return None than an error */
+	if (!pydict) {
+		if (disk > 0) {
+			/* try to get data from disk */
+			char buf[256];
+			PyOS_snprintf(buf, sizeof(buf),
+				"import Blender, BPyRegistry; BPyRegistry.LoadConfigData('%s')",
+				PyString_AsString(pyentry));
+			if (!PyRun_SimpleString(buf))
+				pydict = PyDict_GetItem(bpy_registryDict, pyentry);
+			else PyErr_Clear();
+		}
 
-	Py_INCREF( pydict );	/* ... so we incref it */
-	/* should we copy the dict instead? */
-	return pydict;
+		if (!pydict) /* no need to return a KeyError, since without doubt */
+			pydict = Py_None; /* Py_None means no key (all valid keys are dicts) */
+	}
+
+	return EXPP_incr_ret (pydict); /* ... so we incref it */
 }
 
 /*****************************************************************************/
@@ -147,20 +163,34 @@ static PyObject *M_Registry_SetKey( PyObject * self, PyObject * args )
 {
 	PyObject *pystr = NULL;
 	PyObject *pydict = NULL;
+	int disk = 0;
 
 	if( !bpy_registryDict )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "No Registry dictionary found!" );
 
-	if( !PyArg_ParseTuple( args, "O!O!",
+	if( !PyArg_ParseTuple( args, "O!O!|i",
 			       &PyString_Type, &pystr, &PyDict_Type,
-			       &pydict ) )
+			       &pydict, &disk ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected a string and a dictionary" );
 
 	if( PyDict_SetItem( bpy_registryDict, pystr, pydict ) )	/* 0 on success */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "Registry_SetKey: couldn't update the Registry dict" );
+
+	if (disk) {
+		/* try to save data to disk */
+		char buf[256];
+		PyOS_snprintf(buf, sizeof(buf),
+			"import Blender, BPyRegistry; BPyRegistry.SaveConfigData('%s')",
+			PyString_AsString(pystr));
+		if (PyRun_SimpleString(buf) != 0) {
+			PyErr_Clear();
+			if (G.f & G_DEBUG)
+				fprintf(stderr, "\nCan't save script configuration data!\n");
+		}
+	}
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -173,18 +203,31 @@ static PyObject *M_Registry_SetKey( PyObject * self, PyObject * args )
 static PyObject *M_Registry_RemoveKey( PyObject * self, PyObject * args )
 {
 	PyObject *pystr = NULL;
+	int disk = 0;
 
 	if( !bpy_registryDict )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "No Registry dictionary found!" );
 
-	if( !PyArg_ParseTuple( args, "O!", &PyString_Type, &pystr ) )
+	if( !PyArg_ParseTuple( args, "O!|i", &PyString_Type, &pystr, &disk ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected a string" );
+					      "expected a string and optionally a bool" );
 
 	if( PyDict_DelItem( bpy_registryDict, pystr ) )	/* returns 0 on success */
 		return EXPP_ReturnPyObjError( PyExc_KeyError,
 					      "no such key in the Registry" );
+	else if (disk) {
+		/* try to delete from disk too */
+		char buf[256];
+		PyOS_snprintf(buf, sizeof(buf),
+			"import Blender, BPyRegistry; BPyRegistry.RemoveConfigData('%s')",
+			PyString_AsString(pystr));
+		if (PyRun_SimpleString(buf) != 0) {
+			PyErr_Clear();
+			if (G.f & G_DEBUG)
+				fprintf(stderr, "\nCan't remove script configuration data file!\n");
+		}
+	}
 
 	Py_INCREF( Py_None );
 	return Py_None;

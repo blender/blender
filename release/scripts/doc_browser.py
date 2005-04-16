@@ -3,7 +3,7 @@
 """
 Name: 'BPy Doc Browser'
 Blender: 232
-Group: 'Misc'
+Group: 'System'
 Tip: 'Browse BPython (scripting API) modules doc strings.'
 """
 
@@ -15,8 +15,11 @@ The "Doc Browser" lets users navigate the documentation strings of part of
 the Blender Python API.
 
 It doesn't give access yet to object method functions and variables, only to
-module functions, but still it is a handy reference.  Specially for quick
-access, for example to Blender.BGL: the module that wraps OpenGL calls.
+module functions, but still it is a handy reference.
+
+Hotkeys:<br>
+    Page Up / Page Down: scroll 5 lines at a time;<br>
+    Up / Down arrow keys or mouse wheel: scroll one line at a time.
 
 Notes:<br>
     Everyone interested in the bpython api is also invited to read "The Blender
@@ -199,7 +202,7 @@ BACK_MODULE= 7
 CLOSE_VIEW= 8
 FILTER_DISPLAY= 9
 
-SCROLLBAR= 10
+#SCROLLBAR= 10
 
 VIEW_DOC= 100
 BROWSE_MODULE= 20000
@@ -325,8 +328,8 @@ def draw():
 	if (items>len(browselist)): items= len(browselist)
 
 	end= len(browselist)-items
-	if (end>0):
-		scr= Scrollbar(SCROLLBAR, table[2]+5, table[1], 20, table[3]-table[1], scr.val, 0.0, end, 0, "Page Up/Down scrolls list.")
+	#if (end>0):
+	#	scr= Scrollbar(SCROLLBAR, table[2]+5, table[1], 20, table[3]-table[1], scr.val, 0.0, end, 0, "Page Up/Down scrolls list.")
 
 	row= table
 	row[1]= row[3]-row_height
@@ -404,17 +407,27 @@ def draw():
 		if (eindex<doc_lines): Button("Page down", DOC_PAGE_DOWN, table[2]-100, table[1]+5, 90, 18)
 
 lmouse= [0, 0]
+
+def fit_scroll():
+	global browse_scrollstart, browselist
+	if (browse_scrollstart<0): browse_scrollstart= 0
+	elif (browse_scrollstart>=len(browselist)): browse_scrollstart= len(browselist)-1
+
 def event(evt, val):
 	global browse_scrollstart
 
 	if (evt==QKEY or evt==ESCKEY): Exit()
-	elif (evt in [PAGEUPKEY, PAGEDOWNKEY] and val): 
-		if (evt==PAGEUPKEY): browse_scrollstart= browse_scrollstart-5
-		else: browse_scrollstart= browse_scrollstart+5
-		
-		if (browse_scrollstart<0): browse_scrollstart= 0
-		elif (browse_scrollstart>=len(browselist)): browse_scrollstart= len(browselist)-1
+	elif val:
+		if (evt in [PAGEUPKEY, PAGEDOWNKEY]):
+			if (evt==PAGEUPKEY): browse_scrollstart= browse_scrollstart-5
+			else: browse_scrollstart= browse_scrollstart+5
+		elif (evt in [UPARROWKEY, WHEELUPMOUSE]):
+			browse_scrollstart -= 1
+		elif (evt in [DOWNARROWKEY, WHEELDOWNMOUSE]):
+			browse_scrollstart += 1
+		else: return
 
+		fit_scroll()
 		Redraw()
 
 def bevent(evt):
@@ -431,9 +444,9 @@ def bevent(evt):
 	elif (evt==CLOSE_VIEW): view_doc(-1)
 	elif (evt==FILTER_DISPLAY): toggle_function_filter()
 
-	elif (evt==SCROLLBAR):
-		global browse_scrollstart
-		browse_scrollstart= int(scr.val)
+	#elif (evt==SCROLLBAR):
+	#	global browse_scrollstart
+	#	browse_scrollstart= int(scr.val)
 
 	elif (evt>=BROWSE_MODULE): browse_module(evt-BROWSE_MODULE)
 	elif (evt>=VIEW_DOC): view_doc(evt-VIEW_DOC)	

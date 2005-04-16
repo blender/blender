@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Matt Ebb
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -87,6 +87,7 @@ typedef enum {
 	PYMENU_MISC,
 	PYMENU_OBJECT,
 	PYMENU_RENDER,/* exporters to external renderers */
+	PYMENU_SYSTEM,
 	PYMENU_THEMES,
 	PYMENU_UV,/* UV editing tools, to go in UV/Image editor space, 'UV' menu */
 	PYMENU_WIZARDS,/* complex 'app' scripts */

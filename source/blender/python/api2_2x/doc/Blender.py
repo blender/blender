@@ -10,7 +10,7 @@
 """
 The main Blender module.
 
-B{New}: L{Run}, L{UpdateMenus}, new options to L{Get}.
+B{New}: L{Run}, L{UpdateMenus}, new options to L{Get}, L{ShowHelp}.
 
 Blender
 =======
@@ -61,13 +61,23 @@ def Get (request):
             available (is None if not found), but users that define uscriptsdir
             have a place for their own scripts and script data that won't be
             erased when a new version of Blender is installed.
-      - 'scriptsdir': the path to the main dir where scripts are stored
-            (can be None, if not found).
-      - 'uscriptsdir': the path to the user defined dir for scripts, see
-            the paths tab in the User Preferences window in Blender
-            (can be None, if not found).
+      - 'scriptsdir': the path to the main dir where scripts are stored.
+      - 'uscriptsdir': the path to the user defined dir for scripts. (*)
+      - 'yfexportdir': the path to the user defined dir for yafray export. (*)
+      - 'fontsdir': the path to the user defined dir for fonts. (*)
+      - 'texturesdir': the path to the user defined dir for textures. (*)
+      - 'texpluginsdir': the path to the user defined dir for texture plugins. (*)
+      - 'seqpluginsdir': the path to the user defined dir for sequence plugins. (*)
+      - 'renderdir': the path to the user defined dir for render output. (*)
+      - 'soundsdir': the path to the user defined dir for sound files. (*)
+      - 'tempdir': the path to the user defined dir for storage of Blender
+            temporary files. (*)
       - 'version' : the Blender version number.
-  @return: The requested data.
+  @note: (*) these can be set in Blender at the User Preferences window -> File
+      Paths tab.
+  @warn: this function returns None for requested dir paths that have not been
+      set or do not exist in the user's file system.
+  @return: The requested data or None if not found.
   """
 
 def Redraw ():
@@ -122,8 +132,8 @@ def Save (filename, overwrite = 0):
       of the supported extensions or an error will be returned.
   @type overwrite: int (bool)
   @param overwrite: if non-zero, file 'filename' will be overwritten if it
-      already exists.  By default existing files are not overwritten (an error
-      is returned).
+      already exists (can be checked with L{Blender.sys.exists<Sys.exists>}.
+      By default existing files are not overwritten (an error is returned).
 
   @note: The substring ".B.blend" is not accepted inside 'filename'.
   @note: DXF, STL and Videoscape export only B{selected} meshes.
@@ -136,8 +146,28 @@ def Run (script):
   @param script: the name of an available Blender Text (use L{Text.Get}() to
       get a complete list) or the full pathname to a Python script file in the
       system.
-  @note: the script is executed in its own context (with its own global
-      dictionary), as if you had called it with ALT+P or chosen from a menu.
+  @note: the script is executed in its own context -- with its own global
+      dictionary -- as if it had been executed from the Text Editor or chosen
+      from a menu.
+  """
+
+def ShowHelp (script):
+  """
+  Show help for the given script.  This is a time-saver ("code-saver") for
+  scripts that need to feature a 'help' button in their GUI's or a 'help'
+  submenu option.  With proper documentation strings, calling this function is
+  enough to present a screen with help information plus link and email buttons.
+  @type script: string
+  @param script: the filename of a registered Python script.
+  @note: this function uses L{Run} and the "Scripts Help Browser" script.  This
+     means that it expects proper doc strings in the script to be able to show
+     help for it (otherwise it offers to load the script source code as text).
+     The necessary information about doc strings is in the
+     L{Intro page<API_intro>} of this API Reference documentation you're
+     reading.
+  @note: 'script' doesn't need to be a full path name: "filename.py" is enough.
+     Note, though, that this function only works for properly registered
+     scripts (those that appear in menus).
   """
 
 def UpdateMenus ():

@@ -25,13 +25,14 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
 #include <BKE_utildefines.h>
 #include <BLI_blenlib.h>
+#include <DNA_scene_types.h> /* G.scene->r.cfra */
 #include <PIL_time.h>
 #include <Python.h>
 #include <sys/stat.h>
@@ -47,10 +48,11 @@ static PyObject *M_sys_dirname( PyObject * self, PyObject * args );
 static PyObject *M_sys_join( PyObject * self, PyObject * args );
 static PyObject *M_sys_splitext( PyObject * self, PyObject * args );
 static PyObject *M_sys_makename( PyObject * self, PyObject * args,
-				 PyObject * kw );
+	PyObject * kw );
 static PyObject *M_sys_exists( PyObject * self, PyObject * args );
 static PyObject *M_sys_time( PyObject * self );
 static PyObject *M_sys_sleep( PyObject * self, PyObject * args );
+static PyObject *M_sys_expandpath( PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -108,6 +110,15 @@ The return value is as follows:\n\
 \t 2: path is an existing dirname;\n\
 \t-1: path exists but is neither a regular file nor a dir.";
 
+static char M_sys_expandpath_doc[] =
+"(path) - Expand this Blender internal path to a proper file system path.\n\
+(path) - the string path to convert.\n\n\
+Note: internally Blender paths can contain two special character sequences:\n\
+- '//' (at start) for base path directory (the current .blend's dir path);\n\
+- '#' (at ending) for current frame number.\n\n\
+This function expands these to their actual content, returning a valid path.\n\
+If the special chars are not found in the given path, it is simply returned.";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.sys module:                */
 /*****************************************************************************/
@@ -122,6 +133,7 @@ struct PyMethodDef M_sys_methods[] = {
 	{"exists", M_sys_exists, METH_VARARGS, M_sys_exists_doc},
 	{"sleep", M_sys_sleep, METH_VARARGS, M_sys_sleep_doc},
 	{"time", ( PyCFunction ) M_sys_time, METH_NOARGS, M_sys_time_doc},
+	{"expandpath", M_sys_expandpath, METH_VARARGS, M_sys_expandpath_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -394,4 +406,19 @@ static PyObject *M_sys_exists( PyObject * self, PyObject * args )
 	/* i stays as -1 if path exists but is neither a regular file nor a dir */
 
 	return Py_BuildValue( "i", i );
+}
+
+static PyObject *M_sys_expandpath( PyObject * self, PyObject * args )
+{
+	char *path = NULL;
+	char expanded[FILE_MAXDIR + FILE_MAXFILE];
+
+	if (!PyArg_ParseTuple( args, "s", &path))
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected string argument" );
+
+	BLI_strncpy(expanded, path, FILE_MAXDIR + FILE_MAXFILE);
+	BLI_convertstringcode(expanded, G.sce, G.scene->r.cfra);
+
+	return PyString_FromString(expanded);
 }

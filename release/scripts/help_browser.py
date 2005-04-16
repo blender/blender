@@ -179,6 +179,16 @@ PATHS = {
 	'uscripts': Blender.Get('uscriptsdir')
 }
 
+if not PATHS['home']:
+	errmsg = """
+Can't find Blender's home dir and so can't find the
+Bpymenus file automatically stored inside it, which
+is needed by this script.  Please run the
+Help -> System -> System Information script to get
+information about how to fix this.
+"""
+	raise SystemError, errmsg
+
 BPYMENUS_FILE = bsys.join(PATHS['home'], 'Bpymenus')
 
 f = file(BPYMENUS_FILE, 'r')

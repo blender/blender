@@ -40,9 +40,16 @@ The Blender Python API Reference
   - L{Texture}
   - L{Types}
   - L{Window}
-     - L{Theme} (new)
+     - L{Theme}
   - L{World}
-  - L{sys<Sys>}
+  - L{sys<Sys>} (*)
+
+ Additional information:
+ -----------------------
+
+  - L{Misc facilities<API_related>}:
+    - scripts: registering in menus, documenting, configuring (new);
+    - command line examples (new).
 
  (*) - marks updated.
 
@@ -91,57 +98,6 @@ These are the basic ways to execute scripts in Blender:
  6. A script can call another script (that will run in its own context, with
  its own global dictionary) with the L{Blender.Run} module function.
 
-Registering scripts:
---------------------
- To be registered a script needs two things:
-   - be either in the default scripts dir or in the user defined scripts path
-     (see Info window, paths tab);
-   - have a proper header.
-
- Try 'blender -d' to know where your default dir for scripts is, it will
- inform either the dir or the file with that info already parsed, which is
- in the same dir of the scripts folder.
-
- The header should be like this one (all double and single apostrophes below
- are required)::
-  #!BPY
-
-  # \"\"\"
-  # Name: 'Script Name'
-  # Blender: 233
-  # Group: 'Export'
-  # Submenu: 'All' all
-  # Submenu: 'Selected' sel
-  # Submenu: 'Configure (gui)' gui
-  # Tooltip: 'Export to some format.'
-  # \"\"\"
-
- where:
-  - B{Name} is the string that will appear in the menu;
-  - B{Blender} is the minimum program version required to run the script;
-  - B{Group} defines where the script will be put, see all groups in the
-    Scripts Window's header, menu "Scripts";
-  - B{Submenu} adds optional submenus for further control;
-  - B{Tooltip} is the (short) tooltip string for the menu entry.
-
- note:
-  - all double and single apostrophes above are required;
-  - B{*NEW*}: you can "comment out" the header above, by starting lines with
-    '#', like we did.  This is not required (except for the first line, #!BPY,
-    of course), but this way the header won't conflict with Python tools that
-    you can use to generate documentation for your script code.  Just
-    remember to keep this header above any other line with triple
-    double-quotes (\"\"\") in your script.
-
- Submenu lines are not required, use them if you want to provide extra
- options.  To see which submenu the user chose, check the "__script__"
- dictionary in your code: __script__['arg'] has the defined keyword (the word
- after the submenu string name: all, sel or gui in the example above) of the
- chosen submenu.  For example, if the user clicked on submenu 'Selected' above,
- __script__['arg'] will be "sel".
-
- If your script requires extra data or configuration files, there is a special
- folder where they can be saved: see 'datadir' in L{Blender.Get}.
 
 Interaction with users:
 -----------------------
@@ -171,53 +127,22 @@ Command line mode:
  run scripts from the program itself: you can't import the Blender module
  into an external Python interpreter.
 
- But with "OnLoad" script links, the "-b" background mode and additions like
- the "-P" command line switch, L{Blender.Save}, L{Blender.Load},
- L{Blender.Quit} and the L{Library} module, for many tasks it's possible to
- control Blender via some automated process using scripts.  Note that command
- line scripts are run before Blender initializes its windows (and in '-b' mode
- no window will be initialized), so many functions that get or set window
- related attributes (like most in L{Window}) don't work here.  If you need
- those, use an ONLOAD script link (see L{Scene.Scene.addScriptLink}) instead --
- it's also possible to use a command line script to write or set an ONLOAD
- script link.  Check the L{Blender.mode} module var to know if Blender is being
- executed in "background" or "interactive" mode.
+ On the other hand, for many tasks it's possible to control Blender via
+ some automated process using scripts.  Interested readers should learn about
+ features like "OnLoad" script links, the "-b <blendfile>" (background mode)
+ and "-P <script>" (run script) command line options and API calls like
+ L{Blender.Save}, L{Blender.Load}, L{Blender.Quit} and the L{Library} and
+ L{Render} modules. 
 
- Background mode examples::
+ Note that command line scripts are run before Blender initializes its windows
+ (and in '-b' mode no window will be initialized), so many functions that get
+ or set window related attributes (like most in L{Window}) don't work here.  If
+ you need those, use an ONLOAD script link (see L{Scene.Scene.addScriptLink})
+ instead -- it's also possible to use a command line script to write or set an
+ ONLOAD script link.  Check the L{Blender.mode} module var to know if Blender
+ is being executed in "background" or "interactive" mode.
 
-  # Open Blender in background mode with file 'myfile.blend'
-  # and run the script 'script.py':
-
-  blender -b myfile.blend -P script.py
-
-  # Note: a .blend file is always required.  'script.py' can be a file
-  # in the file system or a Blender Text stored in 'myfile.blend'.
-
-  # Let's assume 'script.py' has code to render the current frame;
-  # this line will set the [s]tart and [e]nd (and so the current) frame to
-  # frame 44 and call the script:
-
-  blender -b myfile.blend -s 44 -e 44 -P script.py
-
-  # Using now a script written to render animations, we set different
-  # start and end frames and then execute this line:
-
-  blender -b myfile.blend -s 1 -e 10 -P script.py
-
-  # Note: we can also set frames and define if we want a single image or
-  # an animation in the script body itself, naturally.
-
- The rendered pictures will be written to the default render folder, that can
- also be set via bpython (take a look at L{Render.RenderData}).  Their
- names will be the equivalent frame number followed by the extension of the
- chosen image type: 0001.png, for example.  To rename them to something else,
- coders can use the C{rename} function in the standard 'os' Python module.
-
- Reminder: if you just need to render, it's not necessary to have a script.
- Blender can create stills and animations with its own command line arguments.
- Example:
-  - a single image at frame 44: blender -b myfile.blend -f 44
-  - an animation from frame 1 to 10: blender -b myfile.blend -s 1 -e 10 -a
+ L{Click here for command line and background mode examples<API_related>}.
 
 
 Demo mode:
@@ -246,7 +171,7 @@ Blender Data Structures:
  Programs manipulate data structures.  Blender python scripts are no exception.
  Blender uses an Object Oriented architecture.  The bpython interface tries to
  present Blender objects and their attributes in the same way you see them
- through the User Interface ( the GUI ).  One key to bpython programming is
+ through the User Interface (the GUI).  One key to bpython programming is
  understanding the information presented in Blender's OOPS window where Blender
  objects and their relationships are displayed.
 
@@ -268,74 +193,6 @@ Blender Data Structures:
  Blender works the way it does, see the U{Blender Architecture document
  <http://www.blender3d.org/cms/Blender_Architecture.336.0.html>}.
 
-Documenting scripts:
---------------------
-
- The "Scripts Help Browser" script in the Help menu can parse special variables
- from registered scripts and display help information for users.  For that,
- authors only need to add proper information to their scripts, after the
- registration header.
-
- The expected variables:
-
-  - __bpydoc__ (or __doc__) (type: string):
-    - The main help text.  Write a first short paragraph explaining what the
-      script does, then add the rest of the help text, leaving a blank line
-      between each new paragraph.  To force line breaks you can use <br> tags.
-
-  - __author__ (type: string or list of strings):
-    - Author name(s).
-
-  - __version__ (type: string):
-    - Script version.
-
-  - __url__ (type: string or list of strings):
-    - Internet links that are shown as buttons in the help screen.  Clicking
-      them opens the user's default browser at the specified location.  The
-      expected format for each url entry is e.g.
-      "Author's site, http://www.somewhere.com".  The first part, before the
-      comma (','), is used as the button's tooltip.  There are two preset
-      options: "blender" and "elysiun", which link to the Python forums at
-      blender.org and elysiun.com, respectively.
-
-  - __email__ (optional, type: string or list of strings):
-    - Equivalent to __url__, but opens the user's default email client.  You
-      can write the email as someone:somewhere*com and the help script will
-      substitute accordingly: someone@somewhere.com.  This is only a minor help
-      to hide emails from spammers, since your script may be available at some
-      site.  "scripts" is the available preset, with the email address of the
-      mailing list devoted to scripting in Blender, bf-scripts-dev@blender.org.
-      You should only use this one if you are subscribed to the list:
-      http://projects.blender.org/mailman/listinfo/bf-scripts-dev for more
-      information.
-
- Example::
-   __author__ = 'Mr. Author'
-   __version__ = '1.0 2005/06/06'
-   __url__ = ["Author's site, http://somewhere.com",
-       "Support forum, http://somewhere.com/forum/", "blender", "elysiun"]
-   __email__ = ["Mr. Author, mrauthor:somewhere*com", "scripts"]
-   __bpydoc__ = \"\"\"\\
-   This script does this and that.
-
-   Explaining better, this script helps you create ...
-
-   You can write as many paragraphs as needed.
-
-   Shortcuts:<br>
-     Esc or Q: quit.<br>
-     etc.
-
-   Supported:<br>
-     Meshes, metaballs.
-
-   Known issues:<br>
-     This is just an example, there's no actual script.
-
-   Notes:<br>
-     You can check scripts bundled with Blender to see more examples of how to
-    add documentation to your own works.
- \"\"\"
 
 A note to newbie script writers:
 --------------------------------
@@ -348,8 +205,8 @@ A note to newbie script writers:
  to get an idea of what can be done, you may be surprised.
 
 @author: The Blender Python Team
-@requires: Blender 2.35 or newer.
-@version: 2.35 - 2.36
+@requires: Blender 2.36 cvs or newer.
+@version: 2.36 cvs
 @see: U{www.blender3d.org<http://www.blender3d.org>}: main site
 @see: U{www.blender.org<http://www.blender.org>}: documentation and forum
 @see: U{www.elysiun.com<http://www.elysiun.com>}: user forum

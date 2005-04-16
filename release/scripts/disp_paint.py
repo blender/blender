@@ -1,7 +1,7 @@
 #!BPY
 
 """ Registration info for Blender menus: <- these words are ignored
-Name: 'dispaint'
+Name: 'Dispaint'
 Blender: 233
 Group: 'Mesh'
 Tip: 'use vertex paint color value to modify shape displacing vertices along normal'
@@ -126,6 +126,9 @@ E_NOISEBAS = 54
 E_NOISEVAL=[E_NOISEH,E_NOISELAC,E_NOISEOCT,E_NOISEOFF,E_NOISEBAS]
 E_NOISEDIM = 55
 
+ExitTIP="Exit from this script session "
+CreateTIP="Create a new copy of the selected shape"
+ActionTIP="Do the current selected actions"
 
 
 def copy_transform(ozero,Obis):
@@ -241,7 +244,8 @@ def paint():
                           traite_face(f) 
                      else:
                           traite_face(f)
-                   Me[0].link(me)
+                   #Me[0].link(me)
+                   me.update()
                    Me[0].makeDisplayList()
                except:
                   ERROR=2
@@ -354,7 +358,7 @@ def draw():
     global mat, ORIName, NEWName, ORIENTMenu 
     global NRepeat, ERROR, TextERROR , NOISE, NOISEMenu, NOISEDIMbout,NOISEDIM
     global HBout,lacunarityBout,octavesBout,offsetBout,basisBout
-    global noiseTYPE
+    global noiseTYPE, ExitTIP, CreateTIP, ActionTIP
     
     size=Buffer(GL_FLOAT, 4)
     glGetFloatv(GL_SCISSOR_BOX, size)
@@ -378,9 +382,9 @@ def draw():
     n0=70
     n1=55
 
-    Button("Create"                ,E_CREATE  ,5  ,size[3]-n0+16  ,60 ,20)
-    Button("Action"                ,E_ACTION  ,5  ,size[3]-n0-4  ,60 ,20)
-    Button("Exit"                  ,E_EXIT   ,5  ,size[3]-n0-24  ,60 ,20)
+    Button("Create"                ,E_CREATE  ,5  ,size[3]-n0+16  ,60 ,20,CreateTIP)
+    Button("Action"                ,E_ACTION  ,5  ,size[3]-n0-4  ,60 ,20,ActionTIP)
+    Button("Exit"                  ,E_EXIT   ,5  ,size[3]-n0-24  ,60 ,20,ExitTIP)
     
     NRepeat=Number("repeat"        ,E_REPEAT   ,5  ,size[3]-n0-50     ,75 ,20, NRepeat.val,1,10)    
     

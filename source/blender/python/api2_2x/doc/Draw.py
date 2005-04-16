@@ -192,7 +192,23 @@ All available events:
   - ZEROKEY
   - ZKEY
 
-@note: function Button has a new alias: L{PushButton}.
+@note: function Button has an alias: L{PushButton}.
+
+@warn: B{very important}: if using your script causes "Error totblock"
+messages when Blender exits (meaning that memory has been leaked), this may
+have been caused by an ignored return value from one of the button types.  To
+avoid this, assign created buttons return values to B{global} variables,
+instead of ignoring them.  Examples::
+
+  # avoid this, it can cause memory leaks:
+  Draw.Toggle(...)
+  Draw.Number(...)
+  Draw.String(...)
+  # this is correct -- assuming the variables are globals:
+  my_toggle_button = Draw.Toggle(...)
+  my_int_button = Draw.Number(...)
+  my_str_button = Draw.String(...)
+
 
 @warn: Inside the windowing loop (after Draw.Register() has been executed and
 before Draw.Exit() is called), don't use the redraw functions from other
@@ -484,36 +500,36 @@ def Slider(name, event, x, y, width, height, initial, min, max, realtime = 1,
   @return: The Button created.
   """
 
-def Scrollbar(event, x, y, width, height, initial, min, max, realtime = 1,
-           tooltip = None):
-  """
-  Create a new Scrollbar Button object.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type initial: int or float
-  @type min: int or float
-  @type max: int or float
-  @param initial:  The initial value.
-  @param min:  The minimum value.
-  @param max:  The maximum value.
-  @type realtime: int
-  @param realtime: If non-zero (the default), the slider will emit events as
-      it is edited.
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
-  """
+#def Scrollbar(event, x, y, width, height, initial, min, max, realtime = 1,
+#           tooltip = None):
+#  """
+#  Create a new Scrollbar Button object.
+#  @type event: int
+#  @param event: The event number to pass to the button event function when
+#      activated.
+#  @type x: int
+#  @type y: int
+#  @param x: The lower left x (horizontal) coordinate of the button.
+#  @param y: The lower left y (vertical) coordinate of the button.
+#  @type width: int
+#  @type height: int
+#  @param width: The button width.
+#  @param height: The button height.
+#  @type initial: int or float
+#  @type min: int or float
+#  @type max: int or float
+#  @param initial:  The initial value.
+#  @param min:  The minimum value.
+#  @param max:  The maximum value.
+#  @type realtime: int
+#  @param realtime: If non-zero (the default), the slider will emit events as
+#      it is edited.
+#  @type tooltip: string
+#  @param tooltip: The button's tooltip (the string that appears when the mouse
+#      is kept over the button).
+#  @rtype: Blender Button
+#  @return: The Button created.
+#  """
 
 def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
   """

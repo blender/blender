@@ -24,7 +24,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano, Joseph Gilbert
+ * Contributor(s): Michel Selten, Willian P. Germano, Joseph Gilbert,
+ * Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -66,6 +67,8 @@
 #include "../BPY_extern.h" /* BPY_txt_do_python_Text */
 #include "../BPY_menus.h"	/* to update menus */
 
+extern PyObject *bpy_registryDict; /* defined in ../BPY_interface.c */
+
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/
 /**********************************************************/
@@ -76,6 +79,7 @@ static PyObject *Blender_Quit( PyObject * self );
 static PyObject *Blender_Load( PyObject * self, PyObject * args );
 static PyObject *Blender_Save( PyObject * self, PyObject * args );
 static PyObject *Blender_Run( PyObject * self, PyObject * args );
+static PyObject *Blender_ShowHelp( PyObject * self, PyObject * args );
 static PyObject *Blender_UpdateMenus( PyObject * self);
 
 extern PyObject *Text3d_Init( void ); /* missing in some include */
@@ -137,6 +141,15 @@ static char Blender_Run_doc[] =
 	"(script) - Run the given Python script.\n\
 (script) - the path to a file or the name of an available Blender Text.";
 
+static char Blender_ShowHelp_doc[] =
+"(script) - Show help for the given Python script.\n\
+  This will try to open the 'Scripts Help Browser' script, so to have\n\
+any help displayed the passed 'script' must be properly documented\n\
+with the expected strings (check API ref docs or any bundled script\n\
+for examples).\n\n\
+(script) - the filename of a script in the default or user defined\n\
+           scripts dir (no need to supply the full path name)."; 
+
 static char Blender_UpdateMenus_doc[] =
 	"() - Update the menus where scripts are registered.  Only needed for\n\
 scripts that save other new scripts in the default or user defined folders.";
@@ -152,6 +165,7 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
 	{"Save", Blender_Save, METH_VARARGS, Blender_Save_doc},
 	{"Run", Blender_Run, METH_VARARGS, Blender_Run_doc},
+	{"ShowHelp", Blender_ShowHelp, METH_VARARGS, Blender_ShowHelp_doc},
 	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
 	 Blender_UpdateMenus_doc},
 	{NULL, NULL, 0, NULL}
@@ -272,6 +286,110 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 		}
 		if (!ret) ret = EXPP_incr_ret(Py_None);
 	}
+	/* USER PREFS: */
+	else if( StringEqual( str, "yfexportdir" ) ) {
+		if (U.yfexportdir[0] != '\0') {
+			char yfexportdir[FILE_MAXDIR];
+
+			BLI_strncpy(yfexportdir, U.yfexportdir, FILE_MAXDIR);
+			BLI_convertstringcode(yfexportdir, G.sce, 0);
+
+			if( BLI_exists( yfexportdir ) )
+				ret = PyString_FromString( yfexportdir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}
+	/* fontsdir */
+	else if( StringEqual( str, "fontsdir" ) ) {
+		if (U.fontdir[0] != '\0') {
+			char fontdir[FILE_MAXDIR];
+
+			BLI_strncpy(fontdir, U.fontdir, FILE_MAXDIR);
+			BLI_convertstringcode(fontdir, G.sce, 0);
+
+			if( BLI_exists( fontdir ) )
+				ret = PyString_FromString( fontdir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}	
+	/* texturesdir */
+	else if( StringEqual( str, "texturesdir" ) ) {
+		if (U.textudir[0] != '\0') {
+			char textudir[FILE_MAXDIR];
+
+			BLI_strncpy(textudir, U.textudir, FILE_MAXDIR);
+			BLI_convertstringcode(textudir, G.sce, 0);
+
+			if( BLI_exists( textudir ) )
+				ret = PyString_FromString( textudir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}		
+	/* texpluginsdir */
+	else if( StringEqual( str, "texpluginsdir" ) ) {
+		if (U.plugtexdir[0] != '\0') {
+			char plugtexdir[FILE_MAXDIR];
+
+			BLI_strncpy(plugtexdir, U.plugtexdir, FILE_MAXDIR);
+			BLI_convertstringcode(plugtexdir, G.sce, 0);
+
+			if( BLI_exists( plugtexdir ) )
+				ret = PyString_FromString( plugtexdir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}			
+	/* seqpluginsdir */
+	else if( StringEqual( str, "seqpluginsdir" ) ) {
+		if (U.plugseqdir[0] != '\0') {
+			char plugseqdir[FILE_MAXDIR];
+
+			BLI_strncpy(plugseqdir, U.plugseqdir, FILE_MAXDIR);
+			BLI_convertstringcode(plugseqdir, G.sce, 0);
+
+			if( BLI_exists( plugseqdir ) )
+				ret = PyString_FromString( plugseqdir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}			
+	/* renderdir */
+	else if( StringEqual( str, "renderdir" ) ) {
+		if (U.renderdir[0] != '\0') {
+			char renderdir[FILE_MAXDIR];
+
+			BLI_strncpy(renderdir, U.renderdir, FILE_MAXDIR);
+			BLI_convertstringcode(renderdir, G.sce, 0);
+
+			if( BLI_exists( renderdir ) )
+				ret = PyString_FromString( renderdir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}		
+	/* soundsdir */
+	else if( StringEqual( str, "soundsdir" ) ) {
+		if (U.sounddir[0] != '\0') {
+			char sounddir[FILE_MAXDIR];
+
+			BLI_strncpy(sounddir, U.sounddir, FILE_MAXDIR);
+			BLI_convertstringcode(sounddir, G.sce, 0);
+
+			if( BLI_exists( sounddir ) )
+				ret = PyString_FromString( sounddir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}		
+	/* tempdir */
+	else if( StringEqual( str, "tempdir" ) ) {
+		if (U.tempdir[0] != '\0') {
+			char tempdir[FILE_MAXDIR];
+
+			BLI_strncpy(tempdir, U.tempdir, FILE_MAXDIR);
+			BLI_convertstringcode(tempdir, G.sce, 0);
+
+			if( BLI_exists( tempdir ) )
+				ret = PyString_FromString( tempdir );
+		}
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}	
 	/* According to the old file (opy_blender.c), the following if
 	   statement is a quick hack and needs some clean up. */
 	else if( StringEqual( str, "vrmloptions" ) ) {
@@ -493,11 +611,56 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
+{
+	PyObject *script = NULL;
+	char hspath[FILE_MAXDIR + FILE_MAXFILE]; /* path to help_browser.py */
+	char *sdir = bpy_gethome(1);
+	PyObject *rkeyd = NULL, *arglist = NULL;
+
+	if (!PyArg_ParseTuple(args, "O!", &PyString_Type, &script))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+			"expected a script filename as argument");
+
+	/* first we try to find the help_browser script */
+
+	if (sdir) BLI_make_file_string("/", hspath, sdir, "help_browser.py");
+
+	if (!sdir || (!BLI_exists(hspath) && (U.pythondir[0] != '\0'))) {
+			char upydir[FILE_MAXDIR];
+
+			BLI_strncpy(upydir, U.pythondir, FILE_MAXDIR);
+			BLI_convertstringcode(upydir, G.sce, 0);
+			BLI_make_file_string("/", hspath, upydir, "help_browser.py");
+
+			if (!BLI_exists(hspath))
+				return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"can't find script help_browser.py");
+	}
+
+	/* now we store the passed script in the registry dict and call the
+	 * help_browser to show help info for it */
+	rkeyd = PyDict_New();
+	if (!rkeyd)
+		return EXPP_ReturnPyObjError(PyExc_MemoryError,
+			"can't create py dictionary!");
+
+	PyDict_SetItemString(rkeyd, "script", script);
+	PyDict_SetItemString(bpy_registryDict, "__help_browser", rkeyd);
+
+	arglist = Py_BuildValue("(s)", hspath);
+	Blender_Run(self, arglist);
+	Py_DECREF(arglist);
+
+	return EXPP_incr_ret(Py_None);
+}
+
 static PyObject *Blender_Run(PyObject *self, PyObject *args)
 {
 	char *fname = NULL;
 	Text *text = NULL;
 	int is_blender_text = 0;
+	Script *script = NULL;
 
 	if (!PyArg_ParseTuple(args, "s", &fname))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
@@ -527,7 +690,28 @@ static PyObject *Blender_Run(PyObject *self, PyObject *args)
 		}
 	}
 
-	BPY_txt_do_python_Text(text);
+	/* (this is messy, check Draw.c's Method_Register and Window.c's file
+	 * selector for more info)
+	 * - caller script is the one that called this Blender_Run function;
+	 * - called script is the argument to this function: fname;
+	 * To mark scripts whose global dicts can't be freed right after
+	 * the script execution (or better, 'first pass', since these scripts
+	 * leave callbacks for gui or file/image selectors) we flag them.  But to
+	 * get a pointer to them we need to check which one is currently
+	 * running (if none we're already at a spacescript).  To make sure only
+	 * the called script will have the SCRIPT_RUNNING flag on, we unset it
+	 * for the caller script here: */
+	script = G.main->script.first;
+	while (script) {
+		if (script->flags & SCRIPT_RUNNING) break;
+		script = script->id.next;
+	}
+
+	if (script) script->flags &= ~SCRIPT_RUNNING; /* unset */
+
+	BPY_txt_do_python_Text(text); /* call new script */
+
+	if (script) script->flags |= SCRIPT_RUNNING; /* set */
 
 	if (!is_blender_text) free_libblock(&G.main->text, text);
 

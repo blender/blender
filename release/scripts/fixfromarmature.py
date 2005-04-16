@@ -64,8 +64,19 @@ Select the mesh and run this script.  A fixed copy of it will be created.
 # --------------------------------------------------------------------------
 
 import Blender
-try:
- Ozero=Blender.Object.GetSelected()[0]
+
+Ozero=Blender.Object.GetSelected()[0]
+
+errormsg = ''
+if not Ozero:
+ errormsg = "no mesh object selected"
+elif Ozero.getType() != "Mesh":
+ errormsg = "selected (active) object must be a mesh"
+
+if errormsg:
+ Blender.Draw.PupMenu("ERROR: %s" % errormsg)
+
+else:
  nomdelobjet=Ozero.getName()
  Mesh=Blender.NMesh.GetRawFromObject(nomdelobjet)
  Obis = Blender.Object.New ('Mesh')
@@ -73,5 +84,17 @@ try:
  Obis.setMatrix(Ozero.getMatrix())
  scene = Blender.Scene.getCurrent()
  scene.link (Obis)
-except:
- Blender.Draw.PupMenu("Error%t|Not a mesh or no object selected")
+
+ Mesh2=Obis.getData()
+ Mesh1=Ozero.getData()
+
+ if len(Mesh2.verts)==len(Mesh1.verts): 
+    for VertGroupName in Mesh1.getVertGroupNames():
+       VertexList = Mesh1.getVertsFromGroup(VertGroupName, True)
+       Mesh2.addVertGroup(VertGroupName)
+       for Vertex in VertexList:
+           Mesh2.assignVertsToGroup(VertGroupName, [Vertex[0]], Vertex[1], 'add')
+ else:
+     for vgroupname in Ozero.getVertGroupNames():
+        Mesh2.addVertGroup(vgroupname)
+ Mesh2.update()

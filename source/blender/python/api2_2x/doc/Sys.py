@@ -6,7 +6,7 @@ The Blender.sys submodule.
 sys
 ===
 
-B{New}: L{exists}, L{makename}, L{join}, L{sleep}.
+B{New}: L{expandpath}.
 
 This module provides a minimal set of helper functions and data.  Its purpose
 is to avoid the need for the standard Python module 'os', in special 'os.path',
@@ -136,4 +136,23 @@ def sleep (millisecs = 10):
   @type millisecs: int
   @param millisecs: the amount of time in milliseconds to sleep.  The default
       is 10 which is 0.1 seconds.
+  """
+
+def expandpath (path):
+  """
+  Expand the given Blender 'path' into an absolute and valid path.
+  Internally, Blender recognizes two special character sequences in paths:
+    - '//' (used at the beginning): means base path -- the current .blend file's
+      dir;
+    - '#' (used at the end): means current frame number.
+  The expanded string can be passed to generic python functions that don't
+  understand Blender's internal relative paths.
+  @note: this function is also useful for obtaining the name of the image
+      that will be saved when rendered.
+  @note: if the passed string doesn't contain the special characters it is
+    returned unchanged.
+  @type path: string
+  @param path: a path name.
+  @rtype: string
+  @return: the expanded (if necessary) path.
   """

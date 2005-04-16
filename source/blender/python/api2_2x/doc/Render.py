@@ -3,8 +3,8 @@
 """
 The Blender.Scene.Render submodule.
 
-Scene
-=====
+Scene.Render
+============
 
 This module provides access to B{Scene Rendering Contexts} in Blender.
 

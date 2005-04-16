@@ -94,6 +94,8 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_HELPSYSTEM;
 	else if( !strcmp( str, "Render" ) )
 		return PYMENU_RENDER;
+	else if( !strcmp( str, "System" ) )
+		return PYMENU_SYSTEM;
 	else if( !strcmp( str, "Object" ) )
 		return PYMENU_OBJECT;
 	else if( !strcmp( str, "Mesh" ) )
@@ -140,6 +142,9 @@ char *BPyMenu_group_itoa( short menugroup )
 		break;
 	case PYMENU_RENDER:
 		return "Render";
+		break;
+	case PYMENU_SYSTEM:
+		return "System";
 		break;
 	case PYMENU_OBJECT:
 		return "Object";

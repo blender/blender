@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus
 Name: 'Bevel Center'
-Blender: 234
+Blender: 236
 Group: 'Mesh'
 Tip: 'Bevel selected vertices'
 """
@@ -375,6 +375,7 @@ def clear_old():
 # Interface
 #
 global dist
+NV = {}
 dist = Create(0.2)
 left = Create(0.0)
 right = Create(1.0)
@@ -392,15 +393,15 @@ def draw():
 	global EVENT_NOEVENT, EVENT_BEVEL, EVENT_UPDATE, EVENT_RECURS, EVENT_EXIT
 
 	glClear(GL_COLOR_BUFFER_BIT)
-	Button("Bevel",EVENT_BEVEL,10,100,280,25)
-	left=Number('',  EVENT_NOEVENT,10,70,45, 20,left.val,0,right.val,'Set the minimum of the slider')
-	right = Number("",EVENT_NOEVENT,245,70,45,20,right.val,left.val,200,"Set the maximum of the slider")
-	dist=Slider("Thickness	",EVENT_UPDATE,60,70,180,20,dist.val,left.val,right.val,0,"Thickness of the bevel, can be changed even after bevelling")
-	glRasterPos2d(8,40)
+	Button("Bevel",EVENT_BEVEL,10,100,300,25)
+	left=Number('',  EVENT_NOEVENT,10,70,50, 20,left.val,0,right.val,'Set the minimum of the slider')
+	right = Number("",EVENT_NOEVENT,260,70,50,20,right.val,left.val,200,"Set the maximum of the slider")
+	dist=Slider("Thickness ",EVENT_UPDATE,65,70,190,20,dist.val,left.val,right.val,0,"Thickness of the bevel, can be changed even after bevelling")
+	glRasterPos2d(10,40)
 	Text('To finish, you can use recursive bevel to smooth it')
-	num=Number('',	EVENT_NOEVENT,10,10,40, 16,num.val,1,100,'Recursion level')
-	Button("Recursive",EVENT_RECURS,55,10,100,16)
-	Button("Exit",EVENT_EXIT,210,10,80,20)
+	num=Number('',	EVENT_NOEVENT,10,10,50, 16,num.val,1,100,'Recursion level')
+	Button("Recursive",EVENT_RECURS,65,10,100,16)
+	Button("Exit",EVENT_EXIT,230,10,80,20)
 
 def event(evt, val):
 	if ((evt == QKEY or evt == ESCKEY) and not val):
@@ -432,7 +433,11 @@ def bevel():
 	is_editmode = Window.EditMode()
 	if is_editmode: Window.EditMode(0)
 	objects = Blender.Object.GetSelected() 
-	me = NMesh.GetRaw(objects[0].data.name)
+	bev_obj = objects[0]
+	if bev_obj.getType() != "Mesh":
+		PupMenu("ERROR: active object must be a mesh")
+		return
+	me = NMesh.GetRaw(bev_obj.getData(name_only = True))
 	#
 	NF = []
 	NV = {}
@@ -453,7 +458,8 @@ def bevel():
 
 def bevel_update():
 	""" Use NV to update the bevel """
-	global dist, old_dist
+	global dist, old_dist, NV
+	if not NV: return
 	is_editmode = Window.EditMode()
 	if is_editmode: Window.EditMode(0)
 	fac = dist.val - old_dist

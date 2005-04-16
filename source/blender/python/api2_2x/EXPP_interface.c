@@ -65,6 +65,7 @@ char *bpy_gethome(int append_scriptsdir)
 {
 	static char homedir[FILE_MAXDIR];
 	static char scriptsdir[FILE_MAXDIR];
+	char tmpdir[FILE_MAXDIR];
 	char bprogdir[FILE_MAXDIR];
 	char *s;
 	int i;
@@ -91,20 +92,37 @@ char *bpy_gethome(int append_scriptsdir)
 		}
 		else return homedir;
 	}
+	else homedir[0] = '\0';
 
-	/* otherwise, use argv[0] (bprogname) to get .blender/ in
+	/* if either:
+	 * no homedir was found or
+	 * append_scriptsdir = 1 but there's no scripts/ inside homedir,
+	 * use argv[0] (bprogname) to get .blender/ in
 	 * Blender's installation dir */
 	s = BLI_last_slash( bprogname );
 
 	i = s - bprogname + 1;
 
-	PyOS_snprintf( bprogdir, i, bprogname );
-	BLI_make_file_string( "/", homedir, bprogdir, ".blender" );
+	PyOS_snprintf( bprogdir, i, "%s", bprogname );
 
-	if (BLI_exists(homedir)) {
+	/* using tmpdir to preserve homedir (if) found above:
+	 * the ideal is to have a home dir with scripts dir inside
+	 * it, but if that isn't available, it's possible to
+	 * have a 'broken' home dir somewhere and a scripts dir in the
+	 * cvs sources */
+	BLI_make_file_string( "/", tmpdir, bprogdir, ".blender" );
+
+	if (BLI_exists(tmpdir)) {
 		if (append_scriptsdir) {
-			BLI_make_file_string("/", scriptsdir, homedir, "scripts");
-			if (BLI_exists(scriptsdir)) return scriptsdir;
+			BLI_make_file_string("/", scriptsdir, tmpdir, "scripts");
+			if (BLI_exists(scriptsdir)) {
+				PyOS_snprintf(homedir, FILE_MAXDIR, "%s", tmpdir);
+				return scriptsdir;
+			}
+			else {
+				homedir[0] = '\0';
+				scriptsdir[0] = '\0';
+			}
 		}
 		else return homedir;
 	}
@@ -113,6 +131,7 @@ char *bpy_gethome(int append_scriptsdir)
 	if (append_scriptsdir) {
 		BLI_make_file_string("/", scriptsdir, bprogdir, "release/scripts");
 		if (BLI_exists(scriptsdir)) return scriptsdir;
+		else scriptsdir[0] = '\0';
 	}
 
 	return NULL;

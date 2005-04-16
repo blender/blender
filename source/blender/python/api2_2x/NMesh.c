@@ -2796,7 +2796,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 		ob = add_object( OB_MESH );
 		if( !ob ) {
 			PyErr_SetString( PyExc_RuntimeError,
-					 "Fatal: could not create mesh object" );
+				"Fatal: could not create mesh object" );
 			return 0;
 		}
 
@@ -2823,6 +2823,11 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 
 	if( !during_script(  ) )
 		EXPP_allqueue( REDRAWVIEW3D, 0 );
+
+	if (ob && G.obedit) { /* prevents a crash when a new object is created */
+		exit_editmode(1);
+		enter_editmode();
+	}
 
 	// @OK...this requires some explanation:
 	// Materials can be assigned two ways:
