@@ -1247,12 +1247,14 @@ void makebevelcurve(Object *ob, ListBase *disp)
 		fp[5]= cu->ext1;
 	}
 	else {
-		nr= 4+2*cu->bevresol;
+		short dnr;
 		
 		/* bevel now in three parts, for proper vertex normals */
 		/* part 1 */
-		nr= 2+ cu->bevresol;
-		
+		dnr= nr= 2+ cu->bevresol;
+		if( (cu->flag & (CU_FRONT|CU_BACK))==0)	// we make a full round bevel in that case
+			nr= 3+ 2*cu->bevresol;
+		   
 		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p1");
 		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p1");
 		BLI_addtail(disp, dl);
@@ -1263,8 +1265,8 @@ void makebevelcurve(Object *ob, ListBase *disp)
 
 		/* half a circle */
 		fp= dl->verts;
-		hoek= -0.5*M_PI;
-		dhoek= (0.5*M_PI/(nr-1));
+		dhoek= (0.5*M_PI/(dnr-1));
+		hoek= -(nr-1)*dhoek;
 		
 		for(a=0; a<nr; a++) {
 			fp[0]= 0.0;
@@ -1290,10 +1292,24 @@ void makebevelcurve(Object *ob, ListBase *disp)
 			fp[2]= -cu->ext1;
 			fp[4]= cu->ext2;
 			fp[5]= cu->ext1;
+			
+			if( (cu->flag & (CU_FRONT|CU_BACK))==0) {
+				dl= MEM_dupallocN(dl);
+				dl->verts= MEM_dupallocN(dl->verts);
+				BLI_addtail(disp, dl);
+				
+				fp= dl->verts;
+				fp[1]= -fp[1];
+				fp[2]= -fp[2];
+				fp[4]= -fp[4];
+				fp[5]= -fp[5];
+			}
 		}
 		
 		/* part 3 */
-		nr= 2+ cu->bevresol;
+		dnr= nr= 2+ cu->bevresol;
+		if( (cu->flag & (CU_FRONT|CU_BACK))==0)
+			nr= 3+ 2*cu->bevresol;
 		
 		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p3");
 		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p3");
@@ -1306,7 +1322,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 		/* half a circle */
 		fp= dl->verts;
 		hoek= 0.0;
-		dhoek= (0.5*M_PI/(nr-1));
+		dhoek= (0.5*M_PI/(dnr-1));
 		
 		for(a=0; a<nr; a++) {
 			fp[0]= 0.0;
