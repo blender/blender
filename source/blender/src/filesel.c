@@ -681,9 +681,9 @@ void freefilelist(SpaceFile *sfile)
 	if (sfile->filelist==0) return;
 	
 	for(; num>=0; num--){
-		free(sfile->filelist[num].relname);
+		MEM_freeN(sfile->filelist[num].relname);
 		
-		if (sfile->filelist[num].string) free(sfile->filelist[num].string);
+		if (sfile->filelist[num].string) MEM_freeN(sfile->filelist[num].string);
 	}
 	free(sfile->filelist);
 	sfile->filelist= 0;

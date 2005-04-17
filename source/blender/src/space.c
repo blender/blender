@@ -4317,6 +4317,8 @@ void freespacelist(ListBase *lb)
 			SpaceFile *sfile= (SpaceFile*) sl;
 			if(sfile->libfiledata)	
 				BLO_blendhandle_close(sfile->libfiledata);
+			if(sfile->filelist)
+				freefilelist(sfile);
 		}
 		else if(sl->spacetype==SPACE_BUTS) {
 			SpaceButs *buts= (SpaceButs*) sl;

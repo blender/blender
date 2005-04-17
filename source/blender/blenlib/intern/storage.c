@@ -245,7 +245,7 @@ void BLI_builddir(char *dirname, char *relname)
 				if (dlink){
 					strcpy(buf+rellen,fname->d_name);
 	
-					dlink->name = strdup(buf);
+					dlink->name = BLI_strdup(buf);
 	
 					if (dlink->name[0] == '.') {
 						if (dlink->name[1] == 0) seen_ = 1;
@@ -264,14 +264,14 @@ void BLI_builddir(char *dirname, char *relname)
 			if (seen_ == 0) {	/* Cachefs PATCH */
 				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 				strcpy(buf+rellen,"./.");
-				dlink->name = strdup(buf);
+				dlink->name = BLI_strdup(buf);
 				BLI_addhead(dirbase,dlink);
 				newnum++;
 			}
 			if (seen__ == 0) {	/* MAC PATCH */
 				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 				strcpy(buf+rellen,"./..");
-				dlink->name = strdup(buf);
+				dlink->name = BLI_strdup(buf);
 				BLI_addhead(dirbase,dlink);
 				newnum++;
 			}
@@ -407,7 +407,7 @@ void BLI_adddirstrings()
 		sprintf(buf,"%s %s %s %7s %s %s %10s %s", file->mode1, file->mode2, file->mode3, files[num].owner, files[num].date, files[num].time, size,
 			files[num].relname);
 
-		files[num].string=malloc(strlen(buf)+1);
+		files[num].string=MEM_mallocN(strlen(buf)+1, "filestring");
 		if (files[num].string){
 			strcpy(files[num].string,buf);
 		}
