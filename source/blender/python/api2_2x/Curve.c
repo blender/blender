@@ -46,6 +46,7 @@
 
 #include "CurNurb.h"
 #include "Material.h"
+#include "Object.h"
 #include "gen_utils.h"
 
 
@@ -114,6 +115,9 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getMaterials( BPy_Curve * self );
+
+static PyObject *Curve_getBevOb( BPy_Curve * self );
+static PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getIter( BPy_Curve * self );
 static PyObject *Curve_iterNext( BPy_Curve * self );
@@ -218,6 +222,10 @@ Sets a control point "},
 	 "( ) - updates display lists after changes to Curve"},
 	{"getMaterials", ( PyCFunction ) Curve_getMaterials, METH_NOARGS,
 	 "() - returns list of materials assigned to this Curve"},
+	{"getBevOb", ( PyCFunction ) Curve_getBevOb, METH_NOARGS,
+	 "() - returns Bevel Object assigned to this Curve"},
+	{"setBevOb", ( PyCFunction ) Curve_setBevOb, METH_VARARGS,
+	 "() - assign a Bevel Object to this Curve"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1253,7 +1261,50 @@ static PyObject *Curve_getMaterials( BPy_Curve * self )
 
 }
 
+/*****************************************************************************/
+/* Function:    Curve_getBevOb                                               */
+/* Description: Get the bevel object assign to the curve.                    */
+/*****************************************************************************/
+static PyObject *Curve_getBevOb( BPy_Curve * self)
+{
+	if( self->curve->bevobj ) {
+		return Object_CreatePyObject( self->curve->bevobj );
+	}
 
+	return EXPP_incr_ret( Py_None );
+}
+
+/*****************************************************************************/
+/* Function:    Curve_setBevOb                                               */
+/* Description: Assign a bevel object to the curve.                          */
+/*****************************************************************************/
+PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args )
+{
+	BPy_Object *pybevobj;
+
+	/* Parse and check input args */
+	if( !PyArg_ParseTuple( args, "O", &pybevobj) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"expected object or None argument" ) );
+	}
+
+	/* Accept None */
+	if( (PyObject *)pybevobj == Py_None ) {
+		self->curve->bevobj = (Object *)NULL;
+	} else {
+	/* Accept Object with type 'Curve' */
+		if( Object_CheckPyObject( ( PyObject * ) pybevobj ) && 
+			pybevobj->object->type == OB_CURVE) {
+			self->curve->bevobj = 
+				Object_FromPyObject( ( PyObject * ) pybevobj );
+		} else {
+			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected Curve object type or None argument" ) );
+		}
+	}
+
+	return EXPP_incr_ret( Py_None );
+}
 
 /*
  * Curve_getIter
@@ -1404,6 +1455,8 @@ static PyObject *CurveGetAttr( BPy_Curve * self, char *name )
 		return Curve_getRot( self );
 	if( strcmp( name, "size" ) == 0 )
 		return Curve_getSize( self );
+	if( strcmp( name, "bevob" ) == 0 )
+		return Curve_getBevOb( self );
 #if 0
 	if( strcmp( name, "numpts" ) == 0 )
 		return Curve_getNumPoints( self );
@@ -1456,6 +1509,8 @@ static int CurveSetAttr( BPy_Curve * self, char *name, PyObject * value )
 		error = Curve_setRot( self, valtuple );
 	else if( strcmp( name, "size" ) == 0 )
 		error = Curve_setSize( self, valtuple );
+	else if( strcmp( name, "bevob" ) == 0 )
+		error = Curve_setBevOb( self, valtuple );
 
 	else {			/* Error */
 		Py_DECREF( valtuple );

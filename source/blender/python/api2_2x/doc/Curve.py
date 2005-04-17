@@ -73,6 +73,7 @@ class Curve:
   @cvar loc: The Curve Data location(from the center).
   @cvar rot: The Curve Data rotation(from the center).
   @cvar size: The Curve Data size(from the center).
+  @cvar bevob: The Curve Bevel Object
   """
 
   def getName():
@@ -317,6 +318,23 @@ class Curve:
     Returns a list of materials assigned to the Curve.
     @rtype: list of Material Objects
     @return: list of Material Objects assigned to the Curve.
+    """
+
+  def getBevOb():
+    """
+    Returns the Bevel Object (BevOb) assigned to the Curve.
+    @rtype: Blender Object or PyNone
+    @return: Bevel Object (BevOb) assigned to the Curve.
+    """
+
+  def setBevOb( object ):
+    """
+    Assign a Bevel Object (BevOb) to the Curve.  Passing None as the object parameter removes the bevel.
+    @rtype: PyNone
+    @return: PyNone
+    @type object: Curve type Blender Object
+    @param object: Blender Object to assign as Bevel Object (BevOb)
+    @raise TypeError: throws exception if the parameter is not a Curve type Blender Object or PyNone
     """
 
   def update():
