@@ -100,6 +100,8 @@ void init_material(Material *ma)
 	ma->param[1]= 0.1;
 	ma->param[2]= 0.5;
 	ma->param[3]= 0.1;
+	ma->rms=0.1;
+	ma->darkness=1.0;	
 	
 	ma->ang= 1.0;
 	ma->ray_depth= 2;

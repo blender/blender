@@ -1046,8 +1046,8 @@ static void createTransEditVerts(TransInfo *t)
 		t->total = count; 
 	
 		/* allocating scratch arrays */
-		vectors = (float *)malloc(t->total * 3 * sizeof(float));
-		nears = (EditVert**)malloc(t->total * sizeof(EditVert*));
+		vectors = (float *)MEM_mallocN(t->total * 3 * sizeof(float), "scratch vectors");
+		nears = (EditVert**)MEM_mallocN(t->total * sizeof(EditVert*), "scratch nears");
 	}
 	else t->total = countsel;
 	tob= t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
@@ -1084,8 +1084,8 @@ static void createTransEditVerts(TransInfo *t)
 		}	
 	}
 	if (propmode) {
-		free(vectors);
-		free(nears);
+		MEM_freeN(vectors);
+		MEM_freeN(nears);
 	}
 
 }

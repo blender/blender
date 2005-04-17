@@ -822,6 +822,35 @@ float Toon_Spec( float *n, float *l, float *v, float size, float smooth )
 	return rslt;
 }
 
+/* Ward isotropic gaussian spec */
+float WardIso_Spec( float *n, float *l, float *v, float rms)
+{
+	float i, nh, nv, nl, h[3], angle, alpha;
+
+
+	/* half-way vector */
+	h[0] = l[0] + v[0];
+	h[1] = l[1] + v[1];
+	h[2] = l[2] + v[2];
+	Normalise(h);
+
+	nh = n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
+	if(nh<=0.0) nh = 0.001;
+	
+	nv = n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
+	if(nv<=0.0) nv = 0.001;
+
+	nl = n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
+	if(nl<=0.0) nl = 0.001;
+
+	angle = tan(saacos(nh));
+	alpha = MAX2(rms,0.001);
+
+	i=(1.0/(4*PI*alpha*alpha)) * (exp( -(angle*angle)/(alpha*alpha))/(sqrt(nv*nl)));
+
+	return i;
+}
+
 /* cartoon render diffuse */
 float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 {
@@ -908,6 +937,28 @@ float OrenNayar_Diff(float *n, float *l, float *v, float rough )
 	return OrenNayar_Diff_i(nl, n, l, v, rough);
 }
 
+/* Minnaert diffuse */
+float Minnaert_Diff(float nl, float *n, float *v, float darkness)
+{
+
+float i, nv;
+
+        /* nl = dot product between surface normal and light vector */
+        if (nl <= 0.0)
+	        return 0;
+
+	/* nv = dot product between surface normal and view vector */
+	nv = n[0]*v[0]+n[1]*v[1]+n[2]*v[2];
+	if (nv < 0.0)
+		nv = 0;
+
+	if (darkness <= 1)
+		i = nl * pow(MAX2(nv*nl, 0.1), (darkness - 1) ); /*The Real model*/
+	else
+		i = nl * pow( (1.001 - nv), (darkness  - 1) ); /*Nvidia model*/
+
+	return i;
+}
 
 /* --------------------------------------------- */
 /* also called from texture.c */
@@ -1520,6 +1571,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			/* diffuse shaders (oren nayer gets inp from area light) */
 			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff_i(inp, vn, lv, view, ma->roughness);
 			else if(ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
+			else if(ma->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(inp, vn, view, ma->darkness);
 			else is= inp;	// Lambert
 		}
 		
@@ -1594,6 +1646,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 						specfac= CookTorr_Spec(vn, lv, view, shi->har);
 					else if(ma->spec_shader==MA_SPEC_BLINN) 
 						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)shi->har);
+					else if(ma->spec_shader==MA_SPEC_WARDISO)
+						specfac= WardIso_Spec( vn, lv, view, ma->rms);
 					else 
 						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3]);
 				

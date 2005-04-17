@@ -2874,8 +2874,8 @@ static void material_panel_shading(Material *ma)
 		uiBlockEndAlign(block);
 	}
 	else {
-		char *str1= "Diffuse Shader%t|Lambert %x0|Oren-Nayar %x1|Toon %x2";
-		char *str2= "Specular Shader%t|CookTorr %x0|Phong %x1|Blinn %x2|Toon %x3";
+		char *str1= "Diffuse Shader%t|Lambert %x0|Oren-Nayar %x1|Toon %x2|Minnaert %x3";
+		char *str2= "Specular Shader%t|CookTorr %x0|Phong %x1|Blinn %x2|Toon %x3|WardIso %x4";
 		
 		/* diff shader buttons */
 		uiDefButS(block, MENU, B_MATPRV_DRAW, str1,		9, 180,78,19, &(ma->diff_shader), 0.0, 0.0, 0, 0, "Creates a diffuse shader");
@@ -2888,6 +2888,8 @@ static void material_panel_shading(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "Size:",	90, 160,150,19, &(ma->param[0]), 0.0, 3.14, 0, 0, "Sets size of diffuse toon area");
 			uiDefButF(block, NUMSLI, B_MATPRV, "Smooth:",90,140,150,19, &(ma->param[1]), 0.0, 1.0, 0, 0, "Sets smoothness of diffuse toon area");
 		}
+		else if(ma->diff_shader==MA_DIFF_MINNAERT) 
+			uiDefButF(block, NUMSLI, B_MATPRV, "Dark:",90,160, 150,19, &(ma->darkness), 0.0, 2.0, 0, 0, "Sets Minnaert darkness");
 		uiBlockEndAlign(block);
 		
 		/* spec shader buttons */
@@ -2904,7 +2906,8 @@ static void material_panel_shading(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "Size:",	90, 100,150,19, &(ma->param[2]), 0.0, 1.53, 0, 0, "Sets the size of specular toon area");
 			uiDefButF(block, NUMSLI, B_MATPRV, "Smooth:",90, 80,150,19, &(ma->param[3]), 0.0, 1.0, 0, 0, "Sets the smoothness of specular toon area");
 		}
-		
+		if(ma->spec_shader==MA_SPEC_WARDISO) 
+			uiDefButF(block, NUMSLI, B_MATPRV, "rms:",     90, 100,150,19, &(ma->rms), 0.0, 0.4, 0, 0, "Sets the standard deviation of surface slope");		
 		/* default shading variables */
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, 0, "Translucency ",	9,30,301,19, &(ma->translucency), 0.0, 1.0, 100, 2, "Amount of diffuse shading of the back side");

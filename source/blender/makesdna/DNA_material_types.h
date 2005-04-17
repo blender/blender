@@ -83,6 +83,8 @@ typedef struct Material {
 	short diff_shader, spec_shader;
 	float roughness, refrac;
 	float param[4];		/* size, smooth, size, smooth, for toonshader */
+	float rms;
+	float darkness;
 	short texco, mapto;
 	
 	/* ramp colors */
@@ -152,12 +154,14 @@ typedef struct Material {
 #define MA_DIFF_LAMBERT		0
 #define MA_DIFF_ORENNAYAR	1
 #define MA_DIFF_TOON		2
+#define MA_DIFF_MINNAERT        3
 
 /* spec_shader */
 #define MA_SPEC_COOKTORR	0
 #define MA_SPEC_PHONG		1
 #define MA_SPEC_BLINN		2
 #define MA_SPEC_TOON		3
+#define MA_SPEC_WARDISO		4
 
 /* dynamode */
 #define MA_DRAW_DYNABUTS    1

@@ -4223,6 +4223,8 @@ static void do_versions(Main *main)
 			ma->param[1]= 0.1;
 			ma->param[2]= 0.1;
 			ma->param[3]= 0.05;
+			ma->rms=0.1;
+			ma->darkness=1.0;
 		}
 		// patch for old wrong max view2d settings, allows zooming out more
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -4636,6 +4638,7 @@ static void do_versions(Main *main)
 		Object *ob;
 		Scene *sce= main->scene.first;
 		Camera *cam= main->camera.first;
+		Material *ma;
 		bScreen *sc;
 		
 		while(sce) {
@@ -4662,6 +4665,12 @@ static void do_versions(Main *main)
 				}
 			}
 		}
+		// init new shader vars
+		for (ma= main->mat.first; ma; ma= ma->id.next) {
+			ma->rms=0.1;
+			ma->darkness=1.0;
+		}
+		
 		/* temporal copy */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(ob->softflag && ob->soft==NULL) {

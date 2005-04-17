@@ -567,6 +567,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	
 			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(nor, lv, shi.view, ma->roughness);
 			else if(ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(nor, lv, shi.view, ma->param[0], ma->param[1]);
+			else if(ma->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(is, nor, shi.view, ma->darkness);
 		}
 		
 		back= 0;
@@ -596,6 +597,8 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 				specfac= CookTorr_Spec(nor, lv, shi.view, shi.har);
 			else if(ma->spec_shader==MA_SPEC_BLINN) 
 				specfac= Blinn_Spec(nor, lv, shi.view, ma->refrac, (float)shi.har);
+			else if(ma->spec_shader==MA_SPEC_WARDISO)
+				specfac= WardIso_Spec(nor, lv, shi.view, ma->rms);
 			else 
 				specfac= Toon_Spec(nor, lv, shi.view, ma->param[2], ma->param[3]);
 			

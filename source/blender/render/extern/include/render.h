@@ -171,14 +171,16 @@ struct EnvMap *RE_add_envmap(void);
 struct EnvMap *RE_copy_envmap(struct EnvMap *env);
 
 /* --------------------------------------------------------------------- */
-/* rendercore (10)                                                        */
+/* rendercore (12)                                                        */
 /* --------------------------------------------------------------------- */
 float Phong_Spec(float *n, float *l, float *v, int hard);
 float CookTorr_Spec(float *n, float *l, float *v, int hard);
 float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power);
 float Toon_Spec( float *n, float *l, float *v, float size, float smooth);
+float WardIso_Spec(float *n, float *l, float *v, float rms);
 float OrenNayar_Diff(float *n, float *l, float *v, float rough);
 float Toon_Diff( float *n, float *l, float *v, float size, float smooth);
+float Minnaert_Diff( float nl, float *n, float *v, float darkness);
 void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b);
 void ramp_diffuse_result(float *diff, ShadeInput *shi);
 void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec);
