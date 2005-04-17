@@ -55,6 +55,10 @@ extern PyMethodDef BPy_CurNurb_methods[];
 PyObject *CurNurb_CreatePyObject( Nurb * blen_nurb );
 static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self );
+static PyObject *CurNurb_getFlagU( BPy_CurNurb * self );
+static PyObject *CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args );
+static PyObject *CurNurb_getFlagV( BPy_CurNurb * self );
+static PyObject *CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args );
 /* static PyObject* CurNurb_setXXX( BPy_CurNurb* self, PyObject* args ); */
 PyObject *CurNurb_getPoint( BPy_CurNurb * self, int index );
 static int CurNurb_length( PyInstanceObject * inst );
@@ -98,6 +102,12 @@ static PyObject *CurNurb_getAttr( BPy_CurNurb * self, char *name )
 	else if( strcmp( name, "points" ) == 0 )
 		attr = PyInt_FromLong( self->nurb->pntsu );
 
+	else if( strcmp( name, "flagU" ) == 0 )
+		attr = CurNurb_getFlagU( self );
+
+	else if( strcmp( name, "flagV" ) == 0 )
+		attr = CurNurb_getFlagV( self );
+
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create PyObject" );
@@ -129,6 +139,10 @@ static int CurNurb_setAttr( BPy_CurNurb * self, char *name, PyObject * value )
 
 	if( strcmp( name, "mat_index" ) == 0 )
 		error = CurNurb_setMatIndex( self, valtuple );
+	else if( strcmp( name, "flagU" ) == 0 )
+		error = CurNurb_setFlagU( self, valtuple );
+	else if( strcmp( name, "flagV" ) == 0 )
+		error = CurNurb_setFlagV( self, valtuple );
 
 	else {			/* error - no match for name */
 		Py_DECREF( valtuple );
@@ -352,6 +366,91 @@ static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self )
 					"could not get material index" ) );
 }
 
+/*
+ * CurNurb_getFlagU
+ *
+ * returns curve's flagu
+ */
+
+static PyObject *CurNurb_getFlagU( BPy_CurNurb * self )
+{
+	PyObject *flagu = PyInt_FromLong( ( long ) self->nurb->flagu );
+
+	if( flagu )
+		return flagu;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"could not get CurNurb.flagu index" ) );
+}
+
+/*
+ *  CurNurb_setFlagU
+ *
+ *  set curve's flagu and recalculate the knots
+ *
+ *  Possible values: 0 - uniform, 1 - endpoints, 2 - bezier
+ */
+
+static PyObject *CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args )
+{
+	int flagu;
+
+	if( !PyArg_ParseTuple( args, "i", &( flagu ) ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_AttributeError,
+			   "expected integer argument" ) );
+
+	if( self->nurb->flagu != flagu ) {
+		self->nurb->flagu = flagu;
+		makeknots( self->nurb, 1, self->nurb->flagu >> 1 );
+	}
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
+/*
+ * CurNurb_getFlagV
+ *
+ * returns curve's flagu
+ */
+
+static PyObject *CurNurb_getFlagV( BPy_CurNurb * self )
+{
+	PyObject *flagv = PyInt_FromLong( ( long ) self->nurb->flagv );
+
+	if( flagv )
+		return flagv;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"could not get CurNurb.flagv" ) );
+}
+
+/*
+ *  CurNurb_setFlagV
+ *
+ *  set curve's flagu and recalculate the knots
+ *
+ *  Possible values: 0 - uniform, 1 - endpoints, 2 - bezier
+ */
+
+static PyObject *CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args )
+{
+	int flagv;
+
+	if( !PyArg_ParseTuple( args, "i", &( flagv ) ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_AttributeError,
+			   "expected integer argument" ) );
+
+	if( self->nurb->flagv != flagv ) {
+		self->nurb->flagv = flagv;
+		makeknots( self->nurb, 2, self->nurb->flagv >> 1 );
+	}
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
 
 /*
  * CurNurb_getIter
@@ -473,6 +572,14 @@ static PyMethodDef BPy_CurNurb_methods[] = {
 	 "( index ) - set index into materials list"},
 	{"getMatIndex", ( PyCFunction ) CurNurb_getMatIndex, METH_NOARGS,
 	 "( ) - get current material index"},
+	{"setFlagU", ( PyCFunction ) CurNurb_setFlagU, METH_VARARGS,
+	 "( index ) - set flagU and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
+	{"getFlagU", ( PyCFunction ) CurNurb_getFlagU, METH_NOARGS,
+	 "( ) - get flagU of the knots"},
+	{"setFlagV", ( PyCFunction ) CurNurb_setFlagV, METH_VARARGS,
+	 "( index ) - set flagV and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
+	{"getFlagV", ( PyCFunction ) CurNurb_getFlagV, METH_NOARGS,
+	 "( ) - get flagV of the knots"},
 	{"append", ( PyCFunction ) CurNurb_append, METH_VARARGS,
 	 "( point ) - add a new point.  arg is BezTriple or list of x,y,z,w floats"},
 	{"isNurb", ( PyCFunction ) CurNurb_isNurb, METH_NOARGS,

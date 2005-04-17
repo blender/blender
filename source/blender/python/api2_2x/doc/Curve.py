@@ -377,6 +377,9 @@ class CurNurb:
     The CurNurb supports the python iterator protocol which means you can use a python for statement to access the points in a curve.
 
     The CurNurb also supports the sequence protocol which means you can access the control points of a CurNurb using the [] operator.
+
+    @cvar flagU: The CurNurb knot flag U (0: uniform, 1: endpoints, 2: bezier)
+    @cvar flagV: The CurNurb knot flag V (0: uniform, 1: endpoints, 2: bezier)
     """
 
 
@@ -419,5 +422,36 @@ class CurNurb:
       @return: True or False
 	  """
 
-  
+    def getFlagU():
+      """
+      Get the CurNurb knot flag U 
+      @rtype: integer
+      @return: 0 - uniform, 1 - endpoints, 2 - bezier
+      """
+
+    def setFlagU( value ):
+      """
+      Set the CurNurb knot flag U (knots are recalculated automatically)
+      @type value: integer
+      @param value: CurNurb knot flag (0 - uniform, 1 - endpoints, 2 - bezier)
+      @rtype: PyNone
+      @return: PyNone
+      """
+
+    def getFlagV():
+      """
+      Get the CurNurb knot flag V 
+      @rtype: integer
+      @return: 0 - uniform, 1 - endpoints, 2 - bezier
+      """
+
+    def setFlagV( value ):
+      """
+      Set the CurNurb knot flag V (knots are recalculated automatically)
+      @type value: integer
+      @param value: CurNurb knot flag (0 - uniform, 1 - endpoints, 2 - bezier)
+      @rtype: PyNone
+      @return: PyNone
+      """
+
     
