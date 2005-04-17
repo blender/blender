@@ -2296,11 +2296,11 @@ void swapdata(void *adr1, void *adr2, int len)
 	else {
 		char *adr;
 
-		adr= (char *)malloc(len);
+		adr= (char *)MEM_mallocN(len, "curve swap");
 		memcpy(adr, adr1, len);
 		memcpy(adr1, adr2, len);
 		memcpy(adr2, adr, len);
-		free(adr);
+		MEM_freeN(adr);
 	}
 }
 

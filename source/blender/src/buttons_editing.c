@@ -1820,14 +1820,14 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 			uiDefBut(block, LABEL, 0, "child of", bx+107,by,73,18, NULL, 0.0, 0.0, 0.0, 0.0, "");
 
-			boneString = malloc((BLI_countlist(&G.edbo) * 64)+64);
+			boneString = MEM_mallocN((BLI_countlist(&G.edbo) * 64)+64, "Bone str");
 			build_bonestring (boneString, curBone);
 
 			curBone->parNr = editbone_to_parnr(curBone->parent);
 			but = uiDefButI(block, MENU,REDRAWVIEW3D, boneString, bx+180,by,120,18, &curBone->parNr, 0.0, 0.0, 0.0, 0.0, "Parent");
 			uiButSetFunc(but, parnr_to_editbone_cb, curBone, NULL);
 
-			free(boneString);
+			MEM_freeN(boneString);
 
 			/* IK to parent flag */
 			if (curBone->parent){

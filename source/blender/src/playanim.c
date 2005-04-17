@@ -249,7 +249,7 @@ static void build_pict_list(char * first)
 		while(IMB_ispic(name)){
 			file = open(name, O_BINARY|O_RDONLY, 0);
 			if (file < 0) return;
-			picture = (struct pict*)calloc(1, sizeof(struct pict));
+			picture = (struct pict*)MEM_callocN(sizeof(struct pict), "picture");
 			if (picture == 0){
 				printf("Not enough memory for pict struct \n");
 				close(file);
@@ -260,19 +260,19 @@ static void build_pict_list(char * first)
 			picture->IB_flags = IB_rect;
 						
 			if (fromdisk == FALSE) {
-				mem=(char *)malloc(size);
+				mem=(char *)MEM_mallocN(size, "build pic list");
 				if (mem==0){
 					printf("Couldn't get memory\n");
 					close(file);
-					free(picture);
+					MEM_freeN(picture);
 					return;
 				}
 		
 				if (read(file,mem,size) != size){
 					printf("Error while reading %s\n",name);
 					close(file);
-					free(picture);
-					free(mem);
+					MEM_freeN(picture);
+					MEM_freeN(mem);
 					return;
 				}
 			} else mem = 0;

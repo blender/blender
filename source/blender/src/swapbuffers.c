@@ -69,7 +69,7 @@ static void copy_back_to_front(void)
 	winlay_get_winsize(&winx, &winy);
 	
 	if (actually_swap) {
-		data= malloc(4*winx*winy);
+		data= MEM_mallocN(4*winx*winy, "swap");
 		glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
 	
@@ -85,7 +85,7 @@ static void copy_back_to_front(void)
 		glRasterPos2f(-0.5,-0.5);
 		glDrawPixels(winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glFlush();
-		free(data);
+		MEM_freeN(data);
 	}
 }
 #endif

@@ -564,12 +564,12 @@ static void acd_to_opts(AviCodecData *acd)
 		opts.cbParms = acd->cbParms;
 		
 		if (acd->lpFormat && acd->cbFormat) {
-			opts.lpFormat = malloc(opts.cbFormat);
+			opts.lpFormat = MEM_mallocN(opts.cbFormat, "opts lpFormat");
 			memcpy(opts.lpFormat, acd->lpFormat, opts.cbFormat);
 		}
 
 		if (acd->lpParms && acd->cbParms) {
-			opts.lpParms = malloc(opts.cbParms);
+			opts.lpParms = MEM_mallocN(opts.cbParms, "opts.cbParms");
 			memcpy(opts.lpParms, acd->lpParms, opts.cbParms);
 		}
 	}
@@ -578,11 +578,11 @@ static void acd_to_opts(AviCodecData *acd)
 static void free_opts_data()
 {
 	if (opts.lpFormat) {
-		free(opts.lpFormat);
+		MEM_freeN(opts.lpFormat);
 		opts.lpFormat = NULL;
 	}
 	if (opts.lpParms) {
-		free(opts.lpParms);
+		MEM_freeN(opts.lpParms);
 		opts.lpParms = NULL;
 	}
 }

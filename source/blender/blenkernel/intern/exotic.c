@@ -373,7 +373,7 @@ static void read_stl_mesh_ascii(char *str)
 	 * i.e. 30000 verts, i.e., 90000 floats.
 	 */
 	numtenthousand = 1;
-	vertdata = malloc(numtenthousand*3*30000*sizeof(float));
+	vertdata = malloc(numtenthousand*3*30000*sizeof(float));	// uses realloc!
 	if (!vertdata) STLALLOCERROR;
 
 	linenum = 1;
