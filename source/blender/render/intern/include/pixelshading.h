@@ -53,8 +53,6 @@
  */
 void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *t, int mask);
 
-void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) ;
-
 
 void setSkyBlendingMode(enum RE_SkyAlphaBlendingType mode);
 

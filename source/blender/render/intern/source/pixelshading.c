@@ -75,6 +75,53 @@
   - unified render now uses face render routines from rendercore.c
   - todo still: shalo render and sky routines */
 
+
+/* ------------------------------------------------------------------------- */
+static int calcHaloZ(HaloRen *har, int zz)
+{
+	
+	if(har->type & HA_ONLYSKY) {
+		if(zz!=0x7FFFFFFF) zz= - 0x7FFFFF;
+	}
+	else {
+		zz= (zz>>8);
+	}
+	return zz;
+}
+
+void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) 
+{
+    HaloRen *har = NULL;
+    float dist = 0.0;
+    int zz = 0;
+	
+    /* Find har to go with haloNr */
+    har = RE_findOrAddHalo(haloNr);
+	
+    /* zz is a strange number... This call should effect that halo's are  */
+    /* never cut? Seems a bit strange to me now...   (nzc)                */
+	/* it checks for sky... which is info not available in unified (ton) */
+    zz = calcHaloZ(har, 0x7FFFFFFF);
+	if(zz> har->zs) {
+	
+		/* distance of this point wrt. the halo center. Maybe xcor is also needed? */
+		dist = ((x - har->xs) * (x - har->xs)) 
+			+  ((y - har->ys) * (y - har->ys) * R.ycor * R.ycor) ;
+		
+		collector[0] = 0.0f; collector[1] = 0.0f; 
+		collector[2] = 0.0f; collector[3] = 0.0f;
+		
+		if (dist < har->radsq) {
+			shadeHaloFloat(har, collector, zz, dist, 
+						   (x - har->xs), (y - har->ys) * R.ycor, har->flarec);
+		}; /* else: this pixel is not rendered for this halo: no colour */
+	}
+    return (void*) har;
+
+} /* end of void* renderHaloPixel(float x, float y, int haloNr) */
+
+
+
 /* ------------------------------------------------------------------------- */
 
 void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int mask)
@@ -103,49 +150,6 @@ void renderSpotHaloPixel(float x, float y, float* target)
 	shadepixel(x, y, 0, 0, 0, target);
 }
 
-
-/* ------------------------------------------------------------------------- */
-static int calcHaloZ(HaloRen *har, int zz)
-{
-
-	if(har->type & HA_ONLYSKY) {
-		if(zz!=0x7FFFFFFF) zz= 0;
-	}
-	else {
-		zz= (zz>>8);
-	}
-	return zz;
-}
-
-void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) 
-{
-    HaloRen *har = NULL;
-    float dist = 0.0;
-    int zz = 0;
-
-    /* Find har to go with haloNr */
-    har = RE_findOrAddHalo(haloNr);
-                    
-    /* zz is a strange number... This call should effect that halo's are  */
-    /* never cut? Seems a bit strange to me now...                        */
-    /* This might be the zbuffer depth                                    */
-    zz = calcHaloZ(har, 0x7FFFFFFF);
-
-    /* distance of this point wrt. the halo center. Maybe xcor is also needed? */
-    dist = ((x - har->xs) * (x - har->xs)) 
-        +  ((y - har->ys) * (y - har->ys) * R.ycor * R.ycor) ;
-
-    collector[0] = 0.0f; collector[1] = 0.0f; 
-    collector[2] = 0.0f; collector[3] = 0.0f;
-
-    if (dist < har->radsq) {
-        shadeHaloFloat(har, collector, zz, dist, 
-					  (x - har->xs), (y - har->ys) * R.ycor, har->flarec);
-    }; /* else: this pixel is not rendered for this halo: no colour */
-
-    return (void*) har;
-
-} /* end of void* renderHaloPixel(float x, float y, int haloNr) */
 
 /* ------------------------------------------------------------------------- */
 
@@ -486,31 +490,33 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 		else col[3]= dist;
 	}
 
-	if(har->mat && har->mat->mode & MA_HALO_SHADE) {
-		/* we test for lights because of preview... */
-		if(R.totlamp) render_lighting_halo(har, col);
-	}
+	if(har->mat) {
+		if(har->mat->mode & MA_HALO_SHADE) {
+			/* we test for lights because of preview... */
+			if(R.totlamp) render_lighting_halo(har, col);
+		}
 
-	/* Next, we do the line and ring factor modifications. */
-	if(linef!=0.0) {
-		Material *ma= har->mat;
-		
-		col[0]+= linef * ma->specr;
-		col[1]+= linef * ma->specg;
-		col[2]+= linef * ma->specb;
-		
-		if(har->type & HA_XALPHA) col[3]+= linef*linef;
-		else col[3]+= linef;
-	}
-	if(ringf!=0.0) {
-		Material *ma= har->mat;
+		/* Next, we do the line and ring factor modifications. */
+		if(linef!=0.0) {
+			Material *ma= har->mat;
+			
+			col[0]+= linef * ma->specr;
+			col[1]+= linef * ma->specg;
+			col[2]+= linef * ma->specb;
+			
+			if(har->type & HA_XALPHA) col[3]+= linef*linef;
+			else col[3]+= linef;
+		}
+		if(ringf!=0.0) {
+			Material *ma= har->mat;
 
-		col[0]+= ringf * ma->mirr;
-		col[1]+= ringf * ma->mirg;
-		col[2]+= ringf * ma->mirb;
-		
-		if(har->type & HA_XALPHA) col[3]+= ringf*ringf;
-		else col[3]+= ringf;
+			col[0]+= ringf * ma->mirr;
+			col[1]+= ringf * ma->mirg;
+			col[2]+= ringf * ma->mirb;
+			
+			if(har->type & HA_XALPHA) col[3]+= ringf*ringf;
+			else col[3]+= ringf;
+		}
 	}
 }
 
