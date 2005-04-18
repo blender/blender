@@ -189,7 +189,7 @@ ifeq ($(OS),windows)
     CPPFLAGS += -DFREE_WINDOWS
     REL_CFLAGS += -O2
     REL_CCFLAGS += -O2
-    #NAN_DEPEND = true
+    NAN_DEPEND = true
     #OPENGL_HEADERS = /usr/include/w32api
     OPENGL_HEADERS = ./
     AR = ar
