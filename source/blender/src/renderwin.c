@@ -365,12 +365,20 @@ static void renderwin_mouse_moved(RenderWin *rw)
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2];
 		char buf[64];
+		unsigned int *pxl2;
+		unsigned char *pxl;
 
 		if (R.rectot && renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
-			unsigned char *pxl= (char*) &R.rectot[R.rectx*imgco[1] + imgco[0]];
-			unsigned int *pxl2= &R.rectz[R.rectx*imgco[1] + imgco[0]];			
+			pxl= (char*) &R.rectot[R.rectx*imgco[1] + imgco[0]];
 			
-			sprintf(buf, "R: %d, G: %d, B: %d, A: %d, Z: %f", pxl[0], pxl[1], pxl[2], pxl[3], (float)(((float)*pxl2-(float)INT_MIN)/(float)UINT_MAX));
+			if (R.rectz) {
+				pxl2= &R.rectz[R.rectx*imgco[1] + imgco[0]];			
+				sprintf(buf, "R: %d, G: %d, B: %d, A: %d, Z: %f", pxl[0], pxl[1], pxl[2], pxl[3], (float)(((float)*pxl2-(float)INT_MIN)/(float)UINT_MAX));
+			}
+			else {
+				sprintf(buf, "R: %d, G: %d, B: %d, A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);			
+			}
+
 			renderwin_set_infotext(rw, buf);
 			renderwin_queue_redraw(rw);
 		} else {
