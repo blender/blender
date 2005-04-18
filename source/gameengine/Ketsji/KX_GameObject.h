@@ -87,6 +87,8 @@ protected:
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
 	
 public:
+	bool								m_isDeformable;
+
 	virtual void	/* This function should be virtual - derived classed override it */
 	Relink(
 		GEN_Map<GEN_HashedPtr, void*> *map

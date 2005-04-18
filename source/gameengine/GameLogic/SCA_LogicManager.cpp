@@ -116,6 +116,21 @@ void SCA_LogicManager::RegisterGameObjectName(const STR_String& gameobjname,
 
 
 
+void SCA_LogicManager::RegisterGameMeshName(const STR_String& gamemeshname, void* blendobj)
+{
+	STR_HashedString mn = gamemeshname;
+	m_map_gamemeshname_to_blendobj.insert(mn, blendobj);
+}
+
+
+
+void SCA_LogicManager::RegisterGameObj(CValue* gameobj, void* blendobj) 
+{
+	m_map_gameobj_to_blendobj.insert(CHashedPtr(gameobj), blendobj);
+}
+
+
+
 CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 {
 	STR_HashedString mn = "OB"+gameobjname;
@@ -125,6 +140,22 @@ CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 		return *gameptr;
 
 	return NULL;
+}
+
+
+void* SCA_LogicManager::FindBlendObjByGameObj(CValue* gameobject) 
+{
+	void **obp= m_map_gameobj_to_blendobj[CHashedPtr(gameobject)];
+	return obp?*obp:NULL;
+}
+
+
+
+void* SCA_LogicManager::FindBlendObjByGameMeshName(const STR_String& gamemeshname) 
+{
+	STR_HashedString mn = gamemeshname;
+	void **obp= m_map_gamemeshname_to_blendobj[mn];
+	return obp?*obp:NULL;
 }
 
 

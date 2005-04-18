@@ -73,6 +73,9 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
 
+#include "BL_SkinDeformer.h"
+#include "BL_DeformableGameObject.h"
+
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
@@ -719,8 +722,33 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 void KX_Scene::ReplaceMesh(class CValue* gameobj,void* meshobj)
 {
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+	RAS_MeshObject* mesh = (RAS_MeshObject*) meshobj;
+
 	newobj->RemoveMeshes();
-	newobj->AddMesh((RAS_MeshObject*)meshobj);
+	newobj->AddMesh(mesh);
+
+	if (newobj->m_isDeformable && mesh->m_class == 1) {
+		Object* blendobj = (struct Object*)m_logicmgr->FindBlendObjByGameObj(newobj);
+		Object* oldblendobj = (struct Object*)m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName());
+		if (blendobj->parent && blendobj->parent->type == OB_ARMATURE && blendobj->partype==PARSKEL && ((Mesh*)blendobj->data)->dvert) {
+			BL_SkinDeformer* skindeformer = new BL_SkinDeformer(oldblendobj, blendobj, (BL_SkinMeshObject*)mesh);
+			skindeformer->SetArmature((BL_ArmatureObject*) newobj->GetParent());
+			
+			// FIXME: should the old m_pDeformer be deleted?
+			// delete ((BL_DeformableGameObject*)newobj)->m_pDeformer
+			
+			((BL_DeformableGameObject*)newobj)->m_pDeformer = skindeformer;
+		}
+		else if (((Mesh*)blendobj->data)->dvert) {
+			BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(oldblendobj, (BL_SkinMeshObject*)mesh);
+			
+			// FIXME: should the old m_pDeformer be deleted?
+			// delete ((BL_DeformableGameObject*)newobj)->m_pDeformer
+			
+			((BL_DeformableGameObject*)newobj)->m_pDeformer = meshdeformer;
+		}
+	}
+
 	newobj->Bucketize();
 }
 

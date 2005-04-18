@@ -47,6 +47,8 @@
 #include "STR_HashedString.h"
 #include "Value.h"
 
+#include "KX_HashedPtr.h"
+
 using namespace std;
 typedef list<class SCA_IController*> controllerlist;
 
@@ -111,6 +113,9 @@ class SCA_LogicManager
 	GEN_Map<STR_HashedString,void*>		m_mapStringToMeshes;
 	GEN_Map<STR_HashedString,void*>		m_mapStringToActions;
 
+	GEN_Map<STR_HashedString,void*>		m_map_gamemeshname_to_blendobj;
+	GEN_Map<CHashedPtr,void*>			m_map_gameobj_to_blendobj;
+
 	vector<SmartActuatorPtr>			m_removedActuators;
 
 public:
@@ -149,6 +154,12 @@ public:
 
 	void	RegisterGameObjectName(const STR_String& gameobjname,CValue* gameobj);
 	class CValue*	GetGameObjectByName(const STR_String& gameobjname);
+
+	void	RegisterGameMeshName(const STR_String& gamemeshname, void* blendobj);
+	void*	FindBlendObjByGameMeshName(const STR_String& gamemeshname);
+
+	void	RegisterGameObj(CValue* gameobj, void* blendobj);
+	void*	FindBlendObjByGameObj(CValue* gameobj);
 };
 
 #endif //__KX_LOGICMANAGER

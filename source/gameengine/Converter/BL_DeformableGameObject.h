@@ -56,8 +56,9 @@ public:
 	BL_DeformableGameObject(void* sgReplicationInfo, SG_Callbacks callbacks) :
 		KX_GameObject(sgReplicationInfo,callbacks),
 		m_pDeformer(NULL)
-{
-	  };
+	{
+		m_isDeformable = true;
+	};
 	virtual ~BL_DeformableGameObject();
 
 };

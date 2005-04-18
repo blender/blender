@@ -1170,6 +1170,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			
 			// needed for python scripting
 			logicmgr->RegisterGameObjectName(gameobj->GetName(),gameobj);
+
+			// needed for dynamic object morphing
+			logicmgr->RegisterGameObj(gameobj, blenderobject);
+			for (int i = 0; i < gameobj->GetMeshCount(); i++)
+				logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
 	
 			converter->RegisterGameObject(gameobj, blenderobject);	
 			

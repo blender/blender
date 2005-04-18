@@ -79,7 +79,21 @@ public:
 		for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next)
 			dg->data = (void*)get_named_bone(barm, dg->name);
 */
-	};	
+	};
+
+	/* this second constructor is needed for making a mesh deformable on the fly. */
+
+	BL_SkinDeformer(	struct Object *bmeshobj_old,
+						struct Object *bmeshobj_new,
+						class BL_SkinMeshObject *mesh)
+						:BL_MeshDeformer(bmeshobj_old, mesh),
+						m_armobj(NULL),
+						m_lastUpdate(-1),
+						m_defbase(&bmeshobj_old->defbase)
+	{
+		GB_build_mats(bmeshobj_new->parent->obmat, bmeshobj_new->obmat, m_premat, m_postmat);
+		GB_validate_defgroups((Mesh*)bmeshobj_old->data, m_defbase);
+	};
 
 	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
