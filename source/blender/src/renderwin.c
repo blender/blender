@@ -53,6 +53,8 @@
 
 #endif
 
+#include <limits.h>
+
 #include "BLI_blenlib.h"
 
 #include "MEM_guardedalloc.h"
@@ -366,8 +368,9 @@ static void renderwin_mouse_moved(RenderWin *rw)
 
 		if (R.rectot && renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
 			unsigned char *pxl= (char*) &R.rectot[R.rectx*imgco[1] + imgco[0]];
-
-			sprintf(buf, "R: %d, G: %d, B: %d, A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);
+			unsigned int *pxl2= &R.rectz[R.rectx*imgco[1] + imgco[0]];			
+			
+			sprintf(buf, "R: %d, G: %d, B: %d, A: %d, Z: %f", pxl[0], pxl[1], pxl[2], pxl[3], (float)(((float)*pxl2-(float)INT_MIN)/(float)UINT_MAX));
 			renderwin_set_infotext(rw, buf);
 			renderwin_queue_redraw(rw);
 		} else {
