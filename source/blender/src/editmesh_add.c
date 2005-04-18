@@ -842,7 +842,7 @@ void add_primitiveMesh(int type)
 	// simple selection flush OK, based on fact it's a single model
 	EM_select_flush(); // flushes vertex -> edge -> face selection
 	
-	if(type!=0 && type!=10 && type!=13) righthandfaces(1);
+	if(type!=0 && type!=10) righthandfaces(1);
 	countall();
 
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
