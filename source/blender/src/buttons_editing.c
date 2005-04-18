@@ -1095,21 +1095,23 @@ void do_curvebuts(unsigned short event)
 		}
 		/* fallthrough */
 	case B_MAKEDISP:
-		if(ob->type==OB_FONT) text_to_curve(ob, 0);
-		makeDispList(ob);
-		if(ob!=G.obedit) { // subsurf with linked dupli will crash
-			/* we need signal to send to other users of same data to recalc... */
-			base= FIRSTBASE;
-			while(base) {
-				if(base->lay & G.vd->lay) {
-					if(base->object->data==ob->data && base->object!=ob)
-						makeDispList(base->object);
+		if(G.vd) {
+			if(ob->type==OB_FONT) text_to_curve(ob, 0);
+			makeDispList(ob);
+			if(ob!=G.obedit) { // subsurf with linked dupli will crash
+				/* we need signal to send to other users of same data to recalc... */
+				base= FIRSTBASE;
+				while(base) {
+					if(base->lay & G.vd->lay) {
+						if(base->object->data==ob->data && base->object!=ob)
+							makeDispList(base->object);
+					}
+					base= base->next;
 				}
-				base= base->next;
 			}
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 		}
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 		break;
 
 	case B_SUBDIVCURVE:
@@ -1118,8 +1120,7 @@ void do_curvebuts(unsigned short event)
 	case B_SPINNURB:
 		/* bad bad bad!!! use brackets!!! In case you wondered:
 		  {==,!=} goes before & goes before || */
-		if( (G.obedit==0) ||
-		    (G.obedit->type!=OB_SURF) ||
+		if( (G.obedit==NULL) || (G.obedit->type!=OB_SURF) || (G.vd==NULL) ||
 			((G.obedit->lay & G.vd->lay) == 0) ) return;
 		spinNurb(0, 0);
 		countall();
