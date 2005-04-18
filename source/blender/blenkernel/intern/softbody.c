@@ -87,6 +87,7 @@ extern int  get_defgroup_num (Object *ob, bDeformGroup        *dg);
 // removes *unnecessary* stiffnes from ODE system
 #define HEUNWARNLIMIT 1 // 50 would be fine i think for detecting severe *stiff* stuff
 
+
 float SoftHeunTol = 1.0f; // humm .. this should be calculated from sb parameters and sizes
 
 /* local prototypes */
@@ -298,7 +299,29 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 	v[2] += s*v1[2];
 }
 
-static int sb_deflect_particle(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *slip ,float *bounce)
+static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *force,float *cf ,float *bounce)
+{
+	int deflected;
+	int last_ob = -1;
+	int last_fc = -1;
+	int same_fc = 0;
+	float s_actpos[3], s_futurepos[3];
+	SoftBody *sb= ob->soft;	// is supposed to be there
+	VECCOPY(s_actpos,actpos);
+	if(futurepos)
+	VECCOPY(s_futurepos,futurepos);
+	if (bounce) *bounce *= 1.5f;
+				
+				
+	deflected= SoftBodyDetectCollision(s_actpos, s_futurepos, collisionpos,
+					facenormal, cf, force , 1,
+					G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
+	return(deflected);
+				
+}
+
+/* for future use (BM)
+static int sb_deflect_edge_face(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *slip ,float *bounce)
 {
 	int deflected;
 	int last_ob = -1;
@@ -312,160 +335,14 @@ static int sb_deflect_particle(Object *ob,float *actpos, float *futurepos,float 
 	if (bounce) *bounce *= 1.5f;
 				
 				
-	deflected= pdDoDeflection(s_actpos, s_futurepos, collisionpos,
-					facenormal, sb->ctime, dummy , -1,
+	deflected= SoftBodyDetectCollision(s_actpos, s_futurepos, collisionpos,
+					facenormal, dummy, dummy , 2,
 					G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
 	return(deflected);
 				
 }
-
-#if 0
-static int sb_deflect_test(float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *slip ,float *bounce)
-{
-
-	if (slip)   *slip   *= 0.98f;
-	if (bounce) *bounce *= 1.5f;
-
-	if (
-		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
-     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
-	 && (   (( futurepos[2] > 1.0) && ( actpos[2] <= 1.0)) //intersecting at z == 1;
-		||(( futurepos[2] < 1.0) && ( actpos[2] >= 1.0))) )
-	
-	{
-		if (facenormal){
-	        facenormal[0] =  0.0f;
-	        facenormal[1] =  0.0f;
-	        facenormal[2] = -1.0f;
-		}
-		if (collisionpos){
-			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
-			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
-			collisionpos[2] = 1.0f;
-		}
-		return 1;
-
-	}
-
-	if (
-		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
-     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
-	 && (   (( futurepos[2] > 0.0) && ( actpos[2] <= 0.0)) //intersecting at z == 1;
-		 ||(( futurepos[2] < 0.0) && ( actpos[2] >= 0.0)) )  )
-	
-	{
-		if (facenormal){
-	        facenormal[0] =  0.0f;
-	        facenormal[1] =  0.0f;
-			if (futurepos[2] < 0.0)
-	        facenormal[2] =  -1.0f;
-	        else facenormal[2] =  1.0f;
-		}
-		if (collisionpos){
-			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
-			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
-			collisionpos[2] = 0.0f;
-		}
-		return 1;
-
-	}
-
-	if (
-		( futurepos[2] > 0.0) && ( futurepos[2] < 1.0) // having unit square acting as defelecting region 
-     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
-	 && ( 
-	 /* (( futurepos[0] > 1.0) && ( actpos[0] <= 1.0)) //intersecting at x == 1;
-		||*/
-		
-		/* experiment distinguish inside and outside*/
-		
-		(( futurepos[0] < 1.0) && ( actpos[0] >= 1.0))) )
-	
-	{
-		if (facenormal){
-	        facenormal[0] =  -1.0f;
-	        facenormal[1] =  0.0f;
-	        facenormal[2] =  0.0f;
-		}
-		if (collisionpos){
-			collisionpos[0] = 1.0f;
-			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
-			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
-		}
-		return 1;
-
-	}
-
-	if (
-		( futurepos[2] > 0.0) && ( futurepos[2] < 1.0) // having unit square acting as defelecting region 
-     && ( futurepos[1] > 0.0) && ( futurepos[1] < 1.0)
-	 && (   (( futurepos[0] > 0.0) && ( actpos[0] <= 0.0)) //intersecting at x == 0;
-		||(( futurepos[0] < 0.0) && ( actpos[0] >= 0.0))) )
-	
-	{
-		if (facenormal){
-	        facenormal[0] =  1.0f;
-	        facenormal[1] =  0.0f;
-	        facenormal[2] =  0.0f;
-		}
-		if (collisionpos){
-			collisionpos[0] = 0.0f;
-			collisionpos[1] = (actpos[1] + futurepos[1])/2.0f;
-			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
-		}
-		return 1;
-
-	}
-
-
-	if (
-		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
-     && ( futurepos[2] > 0.0) && ( futurepos[2] < 1.0)
-	 && (   (( futurepos[1] > 0.0) && ( actpos[1] <= 0.0)) //intersecting at Y == 0;
-		||(( futurepos[1] < 0.0) && ( actpos[1] >= 0.0))) )
-	
-	{
-		if (facenormal){
-	        facenormal[0] =  0.0f;
-	        facenormal[1] =  1.0f;
-	        facenormal[2] =  0.0f;
-		}
-		if (collisionpos){
-			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
-			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
-			collisionpos[1] = 0.0f;
-		}
-		return 1;
-
-	}
-	if (
-		( futurepos[0] > 0.0) && ( futurepos[0] < 1.0) // having unit square acting as defelecting region 
-     && ( futurepos[2] > 0.0) && ( futurepos[2] < 1.0)
-	 && (   (( futurepos[1] > 1.0) && ( actpos[1] <= 1.0)) //intersecting at Y == 0;
-		||(( futurepos[1] < 1.0) && ( actpos[1] >= 1.0))) )
-	
-	{
-		if (facenormal){
-	        facenormal[0] =  0.0f;
-	        facenormal[1] =  -1.0f;
-	        facenormal[2] =  0.0f;
-		}
-		if (collisionpos){
-			collisionpos[0] = (actpos[0] + futurepos[0])/2.0f;
-			collisionpos[2] = (actpos[2] + futurepos[2])/2.0f;
-			collisionpos[1] = 1.0f;
-		}
-		return 1;
-
-	}
-
-
-
-return 0;
-}
-#endif
-
-
+*/
+// some functions removed here .. to help HOS on next merge (BM)
 
 #define USES_FIELD		1
 #define USES_DEFLECT	2
@@ -521,7 +398,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				/* calulate damping forces generated by goals*/
 				VecSubf(velgoal,bp->origS, bp->origE);
 				kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
-
+				
 				if (forcetime > 0.0 ) { // make sure friction does not become rocket motor on time reversal
 					bp->force[0]-= kd * (velgoal[0] + bp->vec[0]);
 					bp->force[1]-= kd * (velgoal[1] + bp->vec[1]);
@@ -538,7 +415,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			
 			/* gravitation */
 			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
-						
+			
 			/* particle field & vortex */
 			if(do_effector & USES_FIELD) {
 				float force[3]= {0.0f, 0.0f, 0.0f};
@@ -554,17 +431,17 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				VECADD(bp->force, bp->force, force);
 				/* apply speed. note; deflector can give 'speed' only.... */
 				/* nooo! we never alter free variables :bp->vec bp->pos in here ! 
-				 * this will ruin adative stepsize AHA heun! (BM)
-				 * VECADD(bp->vec, bp->vec, speed);   
-				 */
- 			    /* friction in moving media */
-
-			    kd= sb->mediafrict* eval_sb_fric_force_scale;  
+				* this will ruin adative stepsize AHA heun! (BM)
+				* VECADD(bp->vec, bp->vec, speed);   
+				*/
+				/* friction in moving media */
+				
+				kd= sb->mediafrict* eval_sb_fric_force_scale;  
 				bp->force[0] -= kd * (bp->vec[0] + speed[0]/eval_sb_fric_force_scale);
 				bp->force[1] -= kd * (bp->vec[1] + speed[1]/eval_sb_fric_force_scale);
 				bp->force[2] -= kd * (bp->vec[2] + speed[2]/eval_sb_fric_force_scale);
 				/* now we'll have nice centrifugal effect for vortex */
-
+				
 			}
 			else {
 				/* friction in media (not) moving*/
@@ -575,42 +452,38 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				bp->force[2]-= bp->vec[2]*kd;
 				/* friction in media done */
 			}
-
+			
 			/*other forces*/
 			/* this is the place where other forces can be added
 			yes, constraints and collision stuff should go here too (read baraff papers on that!)
 			*/
-#if 0			
-			/* copied from particles... doesn't work really! */
+			/* try to match moving collision targets */
+			/* master switch to turn collision off (BM)*/
+			//if(0) {
 			if(do_effector & USES_DEFLECT) {
-				int deflected;
-				int last_ob = -1;
-				int last_fc = -1;
-				int same_fc = 0;
-				float last[3], lastv[3];
-				int finish_defs = 1;
-				int def_count = 0;
+				/*sorry for decl. here i'll move 'em up when WIP is done (BM) */
+				float defforce[3];
+				float collisionpos[3],facenormal[3];
+				float cf = 1.0f;
+				float bounce = 0.5f;
+				kd = 1.0f;
+				defforce[0] = 0.0f;
+				defforce[1] = 0.0f;
+				defforce[2] = 0.0f;
 				
-				VecSubf(last, bp->pos, bp->vec);
-				VECCOPY(lastv, bp->vec);
-
-				while (finish_defs) {
-					deflected= pdDoDeflection(last, bp->pos, lastv,
-											  bp->vec, dtime, bp->force, 0,
-											  G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
-					if (deflected) {
-						def_count = def_count + 1;
-						//deflection = 1;
-						if (def_count==10) finish_defs = 0;
-					}
-					else {
-						finish_defs = 0;
-					}
+				if (sb_deflect_face(ob,bp->pos, bp->pos, collisionpos, facenormal,defforce,&cf,&bounce)){
+					bp->force[0] += defforce[0]*kd;
+					bp->force[1] += defforce[1]*kd;
+					bp->force[2] += defforce[2]*kd;
+					bp->contactfrict = cf;
 				}
+				else{ 
+					bp->contactfrict = 0.0f;
+				}
+				
 			}
-#endif			
+			
 			/*other forces done*/
-
 			/* nice things could be done with anisotropic friction
 			like wind/air resistance in normal direction
 			--> having a piece of cloth sailing down 
@@ -618,72 +491,31 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			*valid* means to be calulated on time axis
 			hrms .. may be a rough one could be used as well .. let's see 
 			*/
-
+			
 			if(ob->softflag & OB_SB_EDGES) {
-				if (1){ /* big mesh optimization */
-					/* run over attached inner spring list */	
-					if (sb->bspring){ // spring list exists at all ? 
-						for(b=bp->nofsprings;b>0;b--){
-							bs = sb->bspring + bp->springs[b-1];
-							if (( (sb->totpoint-a) == bs->v1) ){ 
-								actspringlen= VecLenf( (bproot+bs->v2)->pos, bp->pos);
-								VecSubf(sd,(bproot+bs->v2)->pos, bp->pos);
-								Normalise(sd);
-
-								// friction stuff V1
-								VecSubf(velgoal,bp->vec,(bproot+bs->v2)->vec);
-								kd = sb->infrict * sb_fric_force_scale(ob);
-								absvel  = Normalise(velgoal);
-								projvel = ABS(Inpf(sd,velgoal));
-								kd *= absvel * projvel;
-								Vec3PlusStVec(bp->force,-kd,velgoal);
-								
-								if(bs->len > 0.0) /* check for degenerated springs */
-									forcefactor = (bs->len - actspringlen)/bs->len * iks;
-								else
-									forcefactor = actspringlen * iks;
-								
-								Vec3PlusStVec(bp->force,-forcefactor,sd);
-
-							}
-							
-							if (( (sb->totpoint-a) == bs->v2) ){ 
-								actspringlen= VecLenf( (bproot+bs->v1)->pos, bp->pos);
-								VecSubf(sd,bp->pos,(bproot+bs->v1)->pos);
-								Normalise(sd);
-
-								// friction stuff V2
-								VecSubf(velgoal,bp->vec,(bproot+bs->v1)->vec);
-								kd = sb->infrict * sb_fric_force_scale(ob);
-								absvel  = Normalise(velgoal);
-								projvel = ABS(Inpf(sd,velgoal));
-								kd *= absvel * projvel;
-								Vec3PlusStVec(bp->force,-kd,velgoal);
-								
-								if(bs->len > 0.0)
-									forcefactor = (bs->len - actspringlen)/bs->len * iks;
-								else
-									forcefactor = actspringlen * iks;
-								Vec3PlusStVec(bp->force,+forcefactor,sd);							
-							}
-						}
-					} //if spring list exists at all ?
-				}
-				else{ // this branch is not completly uptaded for friction stuff 
-					/* scan for attached inner springs makes it a O(N^2) thing = bad !*/	
-					/* obsolete .. but if someone wants to try the effect :) */
-					for(b=sb->totspring, bs= sb->bspring; b>0; b--, bs++) {
+				if (sb->bspring){ // spring list exists at all ? 
+					for(b=bp->nofsprings;b>0;b--){
+						bs = sb->bspring + bp->springs[b-1];
 						if (( (sb->totpoint-a) == bs->v1) ){ 
 							actspringlen= VecLenf( (bproot+bs->v2)->pos, bp->pos);
 							VecSubf(sd,(bproot+bs->v2)->pos, bp->pos);
 							Normalise(sd);
-
-
+							
+							// friction stuff V1
+							VecSubf(velgoal,bp->vec,(bproot+bs->v2)->vec);
+							kd = sb->infrict * sb_fric_force_scale(ob);
+							absvel  = Normalise(velgoal);
+							projvel = ABS(Inpf(sd,velgoal));
+							kd *= absvel * projvel;
+							Vec3PlusStVec(bp->force,-kd,velgoal);
+							
 							if(bs->len > 0.0) /* check for degenerated springs */
 								forcefactor = (bs->len - actspringlen)/bs->len * iks;
 							else
 								forcefactor = actspringlen * iks;
+							
 							Vec3PlusStVec(bp->force,-forcefactor,sd);
+							
 						}
 						
 						if (( (sb->totpoint-a) == bs->v2) ){ 
@@ -691,17 +523,25 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 							VecSubf(sd,bp->pos,(bproot+bs->v1)->pos);
 							Normalise(sd);
 							
+							// friction stuff V2
+							VecSubf(velgoal,bp->vec,(bproot+bs->v1)->vec);
+							kd = sb->infrict * sb_fric_force_scale(ob);
+							absvel  = Normalise(velgoal);
+							projvel = ABS(Inpf(sd,velgoal));
+							kd *= absvel * projvel;
+							Vec3PlusStVec(bp->force,-kd,velgoal);
+							
 							if(bs->len > 0.0)
 								forcefactor = (bs->len - actspringlen)/bs->len * iks;
 							else
 								forcefactor = actspringlen * iks;
-							Vec3PlusStVec(bp->force,+forcefactor,sd);						
+							Vec3PlusStVec(bp->force,+forcefactor,sd);							
 						}
-					}// no snap
-				}//for
-			}// if use edges
-		}	
-	}
+					}/* loop springs */
+				}/* existing spring list */ 
+			}/*any edges*/
+		}/*omit on snap	*/
+	}/*loop all bp's*/
 }
 
 static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *err)
@@ -714,9 +554,11 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	float dx[3],dv[3];
 	float timeovermass;
 	float maxerr = 0.0;
-	int a;
+	int a, do_effector;
 
     forcetime *= sb_time_scale(ob);
+	/* check! */
+	do_effector= is_there_deflection(ob->lay);
     
 	// claim a minimum mass for vertex 
 	if (sb->nodemass > 0.09999f) timeovermass = forcetime/sb->nodemass;
@@ -772,79 +614,15 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				maxerr = MAX2(maxerr,ABS(dx[0] - bp->prevdx[0]));
 				maxerr = MAX2(maxerr,ABS(dx[1] - bp->prevdx[1]));
 				maxerr = MAX2(maxerr,ABS(dx[2] - bp->prevdx[2]));
-			}
-			else { VECADD(bp->pos, bp->pos, dx);}
-			if(1) {
-
-			// experimental collision
-            // we need the above calcualtions done though we'll over ride bp->pos bp->vel  
-			if (mode ==2){
-			    float vv[3],collisionpos[3],facenormal[3];
-				float slip = 1.0f;
-				float bounce = 1.0f;
-				float projvel;
-					float deswampingconstant = 0.0001;
-
-
-
-					/*
-					slip   = sb->slip;   // parameter for tangetial interaction
-					bounce = sb->bounce; // parameter for normal interaction
-					*/
-					//	if (sb_deflect_test(bp->prevpos, bp->pos, collisionpos, facenormal,&slip,&bounce)){
-				if (sb_deflect_particle(ob,bp->prevpos, bp->pos, collisionpos, facenormal,&slip,&bounce)){
-
-
-					VecSubf(vv,bp->pos,bp->prevpos);
-					projvel = ABS(Inpf(vv,facenormal));
-
-
-					if (1) // mushy impact
-					{
-						float tangential_vel[3];
-						float helper_vect[3];
-						float hf;
-						hf = Inpf(bp->vec,facenormal);
-							/* make helper_vect vel along normal */
-							helper_vect[0] = hf * facenormal[0];
-							helper_vect[1] = hf * facenormal[1];
-							helper_vect[2] = hf * facenormal[2];
-							/* now we have a nice slip along vector */
-							VecSubf(tangential_vel,bp->vec,helper_vect);
-						
-						bp->vec[0]   =  tangential_vel[0]* slip - (bounce * 2.0f * projvel * facenormal[0]);
-						bp->vec[1]   =  tangential_vel[1]* slip - (bounce * 2.0f * projvel * facenormal[1]);
-						bp->vec[2]   =  tangential_vel[2]* slip - (bounce * 2.0f * projvel * facenormal[2]);
-					}
-					else{
-						// 100 % sticky surface
-						bp->vec[0]   = vv[0] - (bounce * 2.0f * projvel * facenormal[0]);
-						bp->vec[1]   = vv[1] - (bounce * 2.0f * projvel * facenormal[1]);
-						bp->vec[2]   = vv[2] - (bounce * 2.0f * projvel * facenormal[2]);
-					}
-						// pull our vertex out of the swamp .. not very accurate but who will notice
-						/*	
-					bp->pos[0]   = collisionpos[0] + deswampingconstant * bp->vec[0]  ;
-					bp->pos[1]   = collisionpos[1] + deswampingconstant * bp->vec[1]  ;
-					bp->pos[2]   = collisionpos[2] + deswampingconstant * bp->vec[2];
-						*/
-						bp->pos[0]   = collisionpos[0] - deswampingconstant * facenormal[0]  ;
-						bp->pos[1]   = collisionpos[1] - deswampingconstant * facenormal[1]  ;
-						bp->pos[2]   = collisionpos[2] - deswampingconstant * facenormal[2];
-					maxerr = MAX2(maxerr,ABS(bounce*vv[0]));
-					maxerr = MAX2(maxerr,ABS(bounce*vv[1]));
-					maxerr = MAX2(maxerr,ABS(bounce*vv[2]));
-
-					/*  */
-					
-					
+/* kind of hack .. while inside collision target .. make movement more *viscous* */
+				if (bp->contactfrict > 0.0f){
+					bp->vec[0] *= (1.0 - bp->contactfrict);
+					bp->vec[1] *= (1.0 - bp->contactfrict);
+					bp->vec[2] *= (1.0 - bp->contactfrict);
 				}
 			}
-			}
-
-
-
-			
+			else { VECADD(bp->pos, bp->pos, dx);}
+// experimental particle collision suff was here .. just to help HOS on next merge (BM)
 		}//snap
 	} //for
 	if (err){ /* so step size will be controlled by biggest difference in slope */
@@ -970,6 +748,7 @@ static void set_body_point(Object *ob, BodyPoint *bp, float *vec)
 	
 	bp->nofsprings= 0;
 	bp->springs= NULL;
+	bp->contactfrict = 0.0f;
 }
 
 

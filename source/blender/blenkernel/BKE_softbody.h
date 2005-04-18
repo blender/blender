@@ -39,6 +39,7 @@ typedef struct BodyPoint {
 	float weight, goal;
 	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
     int nofsprings; int *springs;
+	float contactfrict;
 } BodyPoint;
 
 typedef struct BodySpring {

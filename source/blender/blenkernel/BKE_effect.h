@@ -70,6 +70,11 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 				   float cur_time, unsigned int par_layer, int *last_object,
 				   int *last_face, int *same_face);
 
+int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
+        float facenormal[3], float *damp, float force[3], int mode,
+        float cur_time, unsigned int par_layer, int *last_object,
+		int *last_face, int *same_face);
+
 
 #endif
 
