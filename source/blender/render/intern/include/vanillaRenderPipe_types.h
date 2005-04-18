@@ -37,7 +37,7 @@
 
 /* Render defines */
 #define  RE_MAX_OSA_COUNT 16 /* The max. number of possible oversamples     */
-#define  RE_MAX_FACES_PER_PIXEL 500 /* max. nr of faces rendered behind one */
+#define  RE_MAX_FACES_PER_PIXEL 1000 /* max. nr of faces rendered behind one */
                              /* pixel                                       */
 
 enum RE_SkyAlphaBlendingType {

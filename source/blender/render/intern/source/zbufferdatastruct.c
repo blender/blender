@@ -61,6 +61,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "zbufferdatastruct.h"
+#include "vanillaRenderPipe_types.h"
 #include "render.h"
 
 #ifdef HAVE_CONFIG_H
@@ -174,7 +175,6 @@ RE_APixstrExt *addpseA(void)
 /* ------------------------------------------------------------------------- */
 
 void insertObject(int apteller,
-/*  				  int opaque, */
 				  int obindex,
 				  int obtype, 
 				  int dist, 
@@ -182,21 +182,17 @@ void insertObject(int apteller,
 {
 	/* Guard the insertion if needed? */
   	RE_APixstrExt* apn = &APixbufExt[apteller]; 
-	int all_subpixels= 0;
-	
-	//if(obtype==RE_POLY) {
-	//	VlakRen *vlr= RE_findOrAddVlak( (obindex-1) & 0x7FFFFF);
-	//	if(vlr->flag & R_FULL_OSA) all_subpixels= 1;
-	//}
+	int all_subpixels= 0;	// not used now... (ton)
 	
 	while(apn) {
+		
 		if(apn->t[0] == RE_NONE) {
 			apn->p[0] = obindex; apn->t[0] = obtype;
 			apn->zmin[0] = dist; apn->zmax[0] = dist;
 			apn->mask[0] = mask;   
 			break; 
 		}
-		if(all_subpixels==0) {
+		else if(all_subpixels==0) {
 			if((apn->p[0] == obindex) && (apn->t[0] & obtype)) {
 				if(dist < apn->zmin[0]) apn->zmin[0] = dist;
 				else if(dist > apn->zmax[0]) apn->zmax[0] = dist;
@@ -204,13 +200,14 @@ void insertObject(int apteller,
 				break; 
 			} 
 		}
+		
 		if(apn->t[1] == RE_NONE) {
 			apn->p[1] = obindex; apn->t[1] = obtype;
 			apn->zmin[1] = dist; apn->zmax[1] = dist;
 			apn->mask[1] = mask;   
 			break; 
 		}
-		if(all_subpixels==0) {
+		else if(all_subpixels==0) {
 			if((apn->p[1] == obindex) && (apn->t[1] & obtype)) {
 				if(dist < apn->zmin[1]) apn->zmin[1] = dist;
 				else if(dist > apn->zmax[1]) apn->zmax[1] = dist;
@@ -218,13 +215,14 @@ void insertObject(int apteller,
 				break; 
 			} 
 		}
+		
 		if(apn->t[2] == RE_NONE) {
 			apn->p[2] = obindex; apn->t[2] = obtype;
 			apn->zmin[2] = dist; apn->zmax[2] = dist;
 			apn->mask[2] = mask;   
 			break; 
 		}
-		if(all_subpixels==0) {
+		else if(all_subpixels==0) {
 			if((apn->p[2] == obindex) && (apn->t[2] & obtype)) {
 				if(dist < apn->zmin[2]) apn->zmin[2] = dist;
 				else if(dist > apn->zmax[2]) apn->zmax[2] = dist;
@@ -232,13 +230,14 @@ void insertObject(int apteller,
 				break; 
 			} 
 		}
+		
 		if(apn->t[3] == RE_NONE) {
 			apn->p[3] = obindex; apn->t[3] = obtype;
 			apn->zmin[3] = dist; apn->zmax[3] = dist;
 			apn->mask[3] = mask;   
 			break; 
 		}
-		if(all_subpixels==0) {
+		else if(all_subpixels==0) {
 			if((apn->p[3] == obindex) && (apn->t[3] & obtype)) {
 				if(dist < apn->zmin[3]) apn->zmin[3] = dist;
 				else if(dist > apn->zmax[3]) apn->zmax[3] = dist;
@@ -246,66 +245,16 @@ void insertObject(int apteller,
 				break; 
 			} 
 		}
+		
 		if(apn->next==0) apn->next= addpseA();
 		apn= apn->next;
 	}				
-} /* end of insertObject(RE_APixstrExt*, int, int, int, int) */
+}
 
 /* ------------------------------------------------------------------------- */
 
-void insertFlatObject(RE_APixstrExt *apn, int obindex, int obtype, int dist, int mask)
-{
-	while(apn) {
-		if(apn->t[0] == RE_NONE) {
-			apn->p[0] = obindex; apn->zmin[0] = dist; 
-			apn->zmax[0] = dist; apn->mask[0] = mask; 
-			apn->t[0] = obtype;  
-			break; 
-		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if( (apn->t[0] & obtype) && (apn->p[0] == obindex)) {
-			apn->mask[0]|= mask; break; 
-		}
-#endif
-		if(apn->t[1] == RE_NONE) {
-			apn->p[1] = obindex; apn->zmin[1] = dist; 
-			apn->zmax[1] = dist; apn->mask[1] = mask; 
-			apn->t[1] = obtype;  
-			break;
-		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if( (apn->t[1] & obtype) && (apn->p[1] == obindex)) {
-			apn->mask[1]|= mask; break; 
-		}
-#endif
-		if(apn->t[2] == RE_NONE) {
-			apn->p[2] = obindex; apn->zmin[2] = dist; 
-			apn->zmax[2] = dist; apn->mask[2] = mask; 
-			apn->t[2] = obtype;  
-			break;
-		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if( (apn->t[2] & obtype) && (apn->p[2] == obindex)) {
-			apn->mask[2]|= mask; break; 
-		}
-#endif
-		if(apn->t[3] == RE_NONE) {
-			apn->p[3] = obindex; apn->zmin[3] = dist; 
-			apn->zmax[3] = dist; apn->mask[3] = mask; 
-			apn->t[3] = obtype;  
-			break;
-		}
-#ifndef RE_INDIVIDUAL_SUBPIXELS
-		if( (apn->t[3] & obtype) && (apn->p[3] == obindex)) {
-			apn->mask[3]|= mask; break; 
-		}
-#endif
-		if(apn->next==0) apn->next= addpseA();
-		apn= apn->next;
-	};                    
-} /* end of void insertFlatObject(RE_APixstrExt, int, int, int, int)*/
-
 /* ------------------------------------------------------------------------- */
+
 /* This function might be helped by an end-of-list marker                    */
 void insertFlatObjectNoOsa(RE_APixstrExt *ap, 
 						   int obindex, 
@@ -313,6 +262,8 @@ void insertFlatObjectNoOsa(RE_APixstrExt *ap,
 						   int dist, 
 						   int mask)
 {
+	int counter;
+	
 	while(ap) {
 		if(ap->t[0] == RE_NONE) {
 			ap->p[0] = obindex; ap->zmin[0] = dist; 
@@ -320,6 +271,7 @@ void insertFlatObjectNoOsa(RE_APixstrExt *ap,
 			ap->t[0] = obtype;  
 			break; 
 		}
+		else if(ap->t[0] & RE_SOLID) if( dist > ap->zmin[0] ) break;
 
 		if(ap->t[1] == RE_NONE) {
 			ap->p[1] = obindex; ap->zmin[1] = dist; 
@@ -327,6 +279,7 @@ void insertFlatObjectNoOsa(RE_APixstrExt *ap,
 			ap->t[1] = obtype;  
 			break;
 		}
+		else if(ap->t[1] & RE_SOLID) if( dist > ap->zmin[1] ) break;
 
 		if(ap->t[2] == RE_NONE) {
 			ap->p[2] = obindex; ap->zmin[2] = dist; 
@@ -334,6 +287,7 @@ void insertFlatObjectNoOsa(RE_APixstrExt *ap,
 			ap->t[2] = obtype;  
 			break;
 		}
+		else if(ap->t[2] & RE_SOLID) if( dist > ap->zmin[2] ) break;
 
 		if(ap->t[3] == RE_NONE) {
 			ap->p[3] = obindex; ap->zmin[3] = dist; 
@@ -341,11 +295,15 @@ void insertFlatObjectNoOsa(RE_APixstrExt *ap,
 			ap->t[3] = obtype;  
 			break;
 		}
-
+		else if(ap->t[3] & RE_SOLID) if( dist > ap->zmin[3] ) break;
+		
+		counter+= 4;
+		if(counter > RE_MAX_FACES_PER_PIXEL) break;
+		
 		if(ap->next==0) ap->next= addpseA();
 		ap= ap->next;
 	};                    
-} /* end of void insertFlatObjectNoOsa(RE_APixstrExt, int, int, int, int)*/
+}
 
 /* ------------------------------------------------------------------------- */
 

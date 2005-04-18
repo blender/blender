@@ -197,6 +197,7 @@ static void freeRenderBuffers(void) {
 static void zBufferFillFace(unsigned int zvlnr, float *v1, float *v2, float *v3)  
 {
 	/* Coordinates of the vertices are specified in ZCS */
+	VlakRen *vlr;
 	int apteller, apoffsetteller;
 	double z0; /* used as temp var*/
 	double xx1;
@@ -205,13 +206,17 @@ static void zBufferFillFace(unsigned int zvlnr, float *v1, float *v2, float *v3)
 	register int zverg,zvlak,x;
 	int my0,my2,sn1,sn2,rectx,zd;
 	int y,omsl,xs0,xs1,xs2,xs3, dx0,dx1,dx2, mask;
-
+	int obtype;
 	/* These used to be doubles.  We may want to change them back if the     */
 	/* loss of accuracy proves to be a problem? There does not seem to be    */
 	/* any performance issues here, so I'll just keep the doubles.           */
 	/*  	float vec0[3], vec1[3], vec2[3]; */
 	double vec0[3], vec1[3], vec2[3];
-
+	
+	vlr= RE_findOrAddVlak( (zvlnr-1) & 0x7FFFFF);
+	if(vlr->mat->mode & MA_ZTRA) obtype= RE_POLY;
+	else obtype= RE_POLY|RE_SOLID;
+	
 	/* MIN MAX */
 	/* sort vertices for min mid max y value */
 	if(v1[1]<v2[1]) {
@@ -351,7 +356,7 @@ static void zBufferFillFace(unsigned int zvlnr, float *v1, float *v2, float *v3)
 		zverg-= Azvoordeel;
 		
 		while(x>=0) {
-			insertObject(apteller, /*  RE_treat_face_as_opaque, */ zvlnr, RE_POLY, zverg, mask);
+			insertObject(apteller, zvlnr, obtype, zverg, mask);
 			zverg+= zd;
 			apteller++;
 			x--;
@@ -392,7 +397,7 @@ static void zBufferFillFace(unsigned int zvlnr, float *v1, float *v2, float *v3)
 		zverg-= Azvoordeel;
       
 		while(x>=0) {
-			insertObject(apteller, /*  RE_treat_face_as_opaque, */ zvlnr, RE_POLY, zverg, mask);
+			insertObject(apteller, zvlnr, obtype, zverg, mask);
 			zverg+= zd;
 			apteller++;
 			x--;
@@ -455,7 +460,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
 			}
 			
 			if(x>=0 && y>=Aminy && y<=Amaxy) {
-				insertObject(apteller, /*  RE_treat_face_as_opaque, */ zvlnr, RE_POLY, vergz, mask);
+				insertObject(apteller, zvlnr, RE_POLY, vergz, mask);
 			}
 			
 			v1[1]+= dy;
@@ -507,7 +512,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
 			}
 			
 			if(x>=0 && y>=Aminy && (x < zBufferWidth)) {
-				insertObject(apteller, /*  RE_treat_face_as_opaque, */ zvlnr, RE_POLY, vergz, mask);
+				insertObject(apteller, zvlnr, RE_POLY, vergz, mask);
 			}
 			
 			v1[0]+= dx;
@@ -522,7 +527,7 @@ static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
  * Count and sort the list behind ap into buf. Sorts on min. distance.
  * Low index <=> high z
  */
-static int countAndSortPixelFaces(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE], 
+static int countAndSortPixelFaces(int zrow[][RE_PIXELFIELDSIZE], 
                            RE_APixstrExt *ap)
 {
     int totvlak;          /* face counter                          */
@@ -582,7 +587,7 @@ static int            VR_cbuf[RE_MAX_FACES_PER_PIXEL][2];
 /** 
  * Analyze the z-buffer, and pre-sample the colours.
  */
-static int composeStack(int zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE], RE_COLBUFTYPE *collector, 
+static int composeStack(int zrow[][RE_PIXELFIELDSIZE], RE_COLBUFTYPE *collector, 
 				 struct RE_faceField* stack, int ptr,
 				 int totvlak, float x, float y, int osaNr) 
 {
@@ -974,10 +979,18 @@ static void integratePerSubStack(float *sampcol, struct RE_faceField* stack,
 /* an RE_APixstrExt* array                                                   */
 /* - redo the numbering to something more logical                            */
 
+
+/* threadsafe global arrays, too large for stack */
+typedef struct zbufline {
+	int  zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE];
+	struct RE_faceField osastack[RE_MAX_FACES_PER_PIXEL + 1]; 
+} zbufline;
+
+static zbufline zb1, zb2;
+
 static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2, RE_COLBUFTYPE *colbuf3) 
 {
-    int  zrow[RE_MAX_FACES_PER_PIXEL][RE_PIXELFIELDSIZE];
-    RE_APixstrExt *ap;       /* iterator for the face-lists                  */
+     RE_APixstrExt *ap;       /* iterator for the face-lists                  */
 	RE_COLBUFTYPE  collector[4];
 	RE_COLBUFTYPE  sampcol[RE_MAX_OSA_COUNT * 4];
     RE_COLBUFTYPE *j = NULL; /* generic pixel pointer                        */
@@ -985,9 +998,12 @@ static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2
     int x;                   /* pixel counter                                */
     int i;                   /* yet another counter                          */
     int stackDepth;          /* faces-behind-this-pixel counter              */
-	struct RE_faceField RE_OSAstack[RE_MAX_FACES_PER_PIXEL + 1]; 
-	int RE_OSAstack_ptr;    /* Points to the lowest empty field. The indexed */
-                            /* field is NOT readable.                        */
+	int osastack_ptr;	/* Points to the lowest empty field. The indexed */
+	zbufline *zbl;
+
+	/* thread safe row buffers */
+	if(y & 1) zbl= &zb1;
+	else zbl= &zb2;
 	
     /* Prepare iterators */
     ap        = APixbufExt + (zBufferWidth * (y - Aminy));
@@ -1004,15 +1020,13 @@ static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2
             };
 
             /* a. count and sort number of faces */
-            stackDepth = countAndSortPixelFaces(zrow, ap);
+            stackDepth = countAndSortPixelFaces( zbl->zrow, ap);
 			
             /* b,c. oversample all subpixels, then integrate                 */
-			RE_OSAstack_ptr = 0;
-			RE_OSAstack_ptr = composeStack(zrow, collector,
-										   RE_OSAstack, RE_OSAstack_ptr,
-										   stackDepth, x, y, osaNr);
-  			integratePerSubStack(sampcol, RE_OSAstack, RE_OSAstack_ptr, 
-  								 x, y, osaNr); 
+			osastack_ptr = 0;
+			osastack_ptr = composeStack(zbl->zrow, collector, zbl->osastack, osastack_ptr, 
+										stackDepth, x, y, osaNr);
+  			integratePerSubStack(sampcol, zbl->osastack, osastack_ptr,  x, y, osaNr); 
 			
 			/* d. Gamma corrected blending and Gaussian                      */
 			sampleFloatColV2FloatColVFilter(sampcol, colbuf1, colbuf2, colbuf3, osaNr);
@@ -1436,6 +1450,7 @@ static void calcZBufLine(int y)
 	
     /* (FORALL y: Aminy =< y =< Amaxy: y is buffered)                        */
     if( (y < Aminy) || (y > Amaxy)) {
+
         /* prepare buffer */
         part  = (y/RE_ZBUFLEN);     /* These two lines are mystifying me...  */
         Aminy = part * RE_ZBUFLEN;  /* Possibly for rounding things?         */
@@ -1458,7 +1473,7 @@ static void calcZBufLine(int y)
             if(RE_local_test_break()) keepLooping = 0;
             Zsample++;
         }
-    };
+    }
     
 } 
 

@@ -71,7 +71,6 @@ RE_APixstrExt  *addpseA(void);
  * Add an object to a zbuffer entry.
  */
 void insertObject(int teller,
-/*  				  int opaque, */
 				  int obindex,
 				  int obtype, 
 				  int dist, 

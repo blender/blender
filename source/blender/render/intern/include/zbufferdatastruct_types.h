@@ -55,10 +55,12 @@ typedef struct RE_APixstrExt {
 /* but this should definitely be done in a better way. An enum may   */
 /* be some help, but masking is still a nice feature...              */
 /* object types to buffer in the z buffer */
-#define RE_NONE 0
-#define RE_POLY 1
-#define RE_HALO 2
-#define RE_SKY  4
+/* RE_SOLID is flag for RE_POLY, as speedup */
+#define RE_NONE		0
+#define RE_POLY		1
+#define RE_HALO		2
+#define RE_SKY		4
+#define RE_SOLID	8
 
 /* unique indices for each field */
 #define RE_ZMIN           0
