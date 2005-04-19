@@ -1535,17 +1535,13 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 	short cur_frame;
 	int d_object=0, d_face=0, ds_object=0, ds_face=0;
 
-// i'm going to rearrange it to declatation rules when WIP is finoshed (BM)
+// i'm going to rearrange it to declaration rules when WIP is finished (BM)
 	float u,v,len_u,len_v;
 	float innerfacethickness = -0.5f;
 	float outerfacethickness = 0.2f;
 	float ee = 5.0f;
 	float ff = 0.1f;
 	float fa;
-
-						fa = (ff*outerfacethickness-outerfacethickness);
-						fa *= fa;
-						fa = 1.0f/fa;
 
 	min_t = 200000;
 
@@ -1564,7 +1560,13 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 				d_face = d_face + 1;
 				mface= def_mesh->mface;
 				a = def_mesh->totface;
+/* need to have user control for that since it depends on model scale */
 				
+				innerfacethickness =-ob->pd->pdef_sbift;
+				outerfacethickness =ob->pd->pdef_sboft;
+						fa = (ff*outerfacethickness-outerfacethickness);
+						fa *= fa;
+						fa = 1.0f/fa;
 				
 				if(ob->parent==NULL && ob->ipo==NULL) {	// static
 					if(ob->sumohandle==NULL) cache_object_vertices(ob);
@@ -1651,7 +1653,7 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 								force[0] += force_mag_norm*d_nvect[0] ;
 								force[1] += force_mag_norm*d_nvect[1] ;
 								force[2] += force_mag_norm*d_nvect[2] ;
-								*damp=ob->pd->pdef_damp;
+								*damp=ob->pd->pdef_sbdamp;
 								deflected = 2;
 
 								colco[0] = nv2[0] + len_u*u*edge1[0] + len_v*v*edge2[0];
@@ -1685,7 +1687,7 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 									force[0] += force_mag_norm*d_nvect[0] ;
 									force[1] += force_mag_norm*d_nvect[1] ;
 									force[2] += force_mag_norm*d_nvect[2] ;
-									*damp=ob->pd->pdef_damp;
+									*damp=ob->pd->pdef_sbdamp;
 									deflected = 2;
 								colco[0] = nv4[0] + len_u*u*edge1[0] + len_v*v*edge2[0];
 								colco[1] = nv4[1] + len_u*u*edge1[1] + len_v*v*edge2[1];

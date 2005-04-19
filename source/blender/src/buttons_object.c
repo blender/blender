@@ -1463,6 +1463,17 @@ static void object_panel_deflectors(Object *ob)
 			uiDefButF(block, NUM, B_DIFF, "Permeability: ",		10,-10,200,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
 		}
 		uiBlockEndAlign(block);
+
+		if(ob->type==OB_MESH) {
+			uiBlockBeginAlign(block);
+			uiDefBut(block, LABEL, 0, "Softbody",	210, 50,110,20, NULL, 0.0, 0.0, 0, 0, "");	
+			uiDefButF(block, NUM, B_DIFF, "D",	210,30,110,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during softbody collision");
+			uiDefButF(block, NUM, B_DIFF, "I",	210,10,110,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+			uiDefButF(block, NUM, B_DIFF, "O",		210,-10,110,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+		}
+		uiBlockEndAlign(block);
+	
+	
 	}
 }
 

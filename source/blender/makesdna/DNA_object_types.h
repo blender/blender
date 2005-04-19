@@ -92,6 +92,10 @@ typedef struct PartDeflect {
 	float f_strength;	/* The strength of the force (+ or - )       */
 	float f_power;		/* The power law - real gravitation is 2 (square)  */
 	float maxdist;		/* if indicated, use this maximum */
+	
+	float pdef_sbdamp;	/* Damping factor for softbody deflection       */
+	float pdef_sbift;	/* inner face thickness for softbody deflection */
+	float pdef_sboft;	/* outer face thickness for softbody deflection */
 } PartDeflect;
 
 /* pd->forcefield:  Effector Fields types */
