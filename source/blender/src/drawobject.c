@@ -616,7 +616,7 @@ static void drawlamp(Object *ob)
 			mygetmatrix(tmat);
 			Mat4Invert(imat, tmat);
 			
-			drawcircball(vec, la->dist, imat);
+			drawcircball(GL_LINE_LOOP, vec, la->dist, imat);
 
 		}
 	}
@@ -2864,7 +2864,7 @@ static void drawspiral(float *cent, float rad, float tmat[][4], int start)
 	}
 }
 
-void drawcircball(float *cent, float rad, float tmat[][4])
+void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
@@ -2941,7 +2941,7 @@ void drawcircball(float *cent, float rad, float tmat[][4])
 	VecMulf(vx, rad);
 	VecMulf(vy, rad);
 	
-	glBegin(GL_LINE_LOOP);
+	glBegin(mode);
 	for(a=0; a<tot; a++) {
 		vec[0]= cent[0] + *(si+a) * vx[0] + *(co+a) * vy[0];
 		vec[1]= cent[1] + *(si+a) * vx[1] + *(co+a) * vy[1];
@@ -2994,7 +2994,7 @@ static void drawmball(Object *ob, int dt)
 				glLoadName(code++);
 			}
 		}
-		drawcircball(&(ml->x), ml->rad, imat);
+		drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad, imat);
 
 		/* draw stiffness */
 		if(ob==G.obedit) {
@@ -3006,7 +3006,7 @@ static void drawmball(Object *ob, int dt)
 				glLoadName(code++);
 			}
 		}
-		drawcircball(&(ml->x), ml->rad*atan(ml->s)/M_PI_2, imat);
+		drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad*atan(ml->s)/M_PI_2, imat);
 		
 		ml= ml->next;
 	}
@@ -3027,7 +3027,7 @@ static void draw_forcefield(Object *ob)
 	if(pd->flag & PFIELD_USEMAX) {
 		setlinestyle(3);
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
-		drawcircball(vec, pd->maxdist, imat);
+		drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);
 		setlinestyle(0);
 	}
 	if (pd->forcefield == PFIELD_WIND) {
@@ -3041,13 +3041,13 @@ static void draw_forcefield(Object *ob)
 		else 
 			force_val = pd->f_strength;
 		force_val*= 0.1;
-		drawcircball(vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
 		vec[2]= 0.5*force_val;
-		drawcircball(vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
 		vec[2]= 1.0*force_val;
-		drawcircball(vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
 		vec[2]= 1.5*force_val;
-		drawcircball(vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
 		
 	}
 	else if (pd->forcefield == PFIELD_FORCE) {
@@ -3059,11 +3059,11 @@ static void draw_forcefield(Object *ob)
 			ffall_val = pd->f_power;
 
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
-		drawcircball(vec, 1.0, imat);
+		drawcircball(GL_LINE_LOOP, vec, 1.0, imat);
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.9 - 0.4 / pow(1.5, (double)ffall_val));
-		drawcircball(vec, 1.5, imat);
+		drawcircball(GL_LINE_LOOP, vec, 1.5, imat);
 		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.9 - 0.4 / pow(2.0, (double)ffall_val));
-		drawcircball(vec, 2.0, imat);
+		drawcircball(GL_LINE_LOOP, vec, 2.0, imat);
 	}
 	else if (pd->forcefield == PFIELD_VORTEX) {
 		float ffall_val, force_val;
@@ -3631,7 +3631,7 @@ void draw_object(Base *base)
 			Mat4Invert(imat, tmat);
 			
 			setlinestyle(2);
-			drawcircball(vec, ob->inertia, imat);
+			drawcircball(GL_LINE_LOOP, vec, ob->inertia, imat);
 			setlinestyle(0);
 		}
 	}

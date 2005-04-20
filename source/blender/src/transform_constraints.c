@@ -696,7 +696,7 @@ void BIF_drawPropCircle()
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
 		
- 		drawcircball(t->center, t->propsize, imat);
+ 		drawcircball(GL_LINE_LOOP, t->center, t->propsize, imat);
 		
 		/* if editmode we restore */
 		if(G.obedit) myloadmatrix(G.vd->viewmat);

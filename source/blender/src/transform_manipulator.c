@@ -776,14 +776,14 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	if(arcs) {
 		if((G.f & G_PICKSEL)==0) {
 			BIF_ThemeColorShade(TH_BACK, -30);
-			drawcircball(unitmat[3], size, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
 		}
 	}
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		BIF_ThemeColor(TH_TRANSFORM);
-		drawcircball(unitmat[3], 1.2f*size, unitmat);
+		drawcircball(GL_LINE_LOOP, unitmat[3], 1.2f*size, unitmat);
 		
 		if(moving) {	
 			float vec[3];
@@ -882,14 +882,14 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 		if(drawflags & MAN_ROT_Z) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor('z', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 		}
 		/* X circle */
 		if(drawflags & MAN_ROT_X) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
 			glRotatef(90.0, 0.0, 1.0, 0.0);
 			manipulator_setcolor('x', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 		}	
 		/* Y circle */
@@ -897,7 +897,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			manipulator_setcolor('y', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 		}
 		
@@ -1231,7 +1231,7 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 		
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		BIF_ThemeColor(TH_TRANSFORM);
-		drawcircball(unitmat[3], 1.2f*size, unitmat);
+		drawcircball(GL_LINE_LOOP, unitmat[3], 1.2f*size, unitmat);
 		
 		if(moving) {
 			float vec[3];
@@ -1562,14 +1562,14 @@ static void draw_manipulator_rotate_2d(float mat[][4], int moving, int drawflags
 	if(arcs) {
 		if((G.f & G_PICKSEL)==0) {
 			BIF_ThemeColorShade(TH_BACK, -30);
-			drawcircball(unitmat[3], size, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
 		}
 	}
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
 		if(G.f & G_PICKSEL) glLoadName(MAN_ROT_V);
 		BIF_ThemeColor(TH_TRANSFORM);
-		drawcircball(unitmat[3], 1.2f*size, unitmat);
+		drawcircball(GL_LINE_LOOP, unitmat[3], 1.2f*size, unitmat);
 		
 		if(moving) {	
 			float vec[3];
@@ -1640,20 +1640,20 @@ static void draw_manipulator_rotate_2d(float mat[][4], int moving, int drawflags
 		/* Z circle */
 		if(drawflags & MAN_ROT_Z) {
 			manipulator_setcolor('z', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 		}
 		/* X circle */
 		if(drawflags & MAN_ROT_X) {
 			glRotatef(90.0, 0.0, 1.0, 0.0);
 			manipulator_setcolor('x', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 		}	
 		/* Y circle */
 		if(drawflags & MAN_ROT_Y) {
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			manipulator_setcolor('y', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 		}
 		
@@ -1666,14 +1666,14 @@ static void draw_manipulator_rotate_2d(float mat[][4], int moving, int drawflags
 		if(drawflags & MAN_ROT_Z) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor('z', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 		}
 		/* X circle */
 		if(drawflags & MAN_ROT_X) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_X);
 			glRotatef(90.0, 0.0, 1.0, 0.0);
 			manipulator_setcolor('x', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 		}	
 		/* Y circle */
@@ -1681,7 +1681,7 @@ static void draw_manipulator_rotate_2d(float mat[][4], int moving, int drawflags
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Y);
 			glRotatef(-90.0, 1.0, 0.0, 0.0);
 			manipulator_setcolor('y', colcode);
-			drawcircball(unitmat[3], 1.0, unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], 1.0, unitmat);
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 		}
 		

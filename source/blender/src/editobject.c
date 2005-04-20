@@ -4180,7 +4180,7 @@ void draw_prop_circle()
 			mygetmatrix(tmat);
 			Mat4Invert(imat, tmat);
 
-	 		drawcircball(prop_cent, prop_size, imat);
+	 		drawcircball(GL_LINE_LOOP, prop_cent, prop_size, imat);
 		}
 	}
 }

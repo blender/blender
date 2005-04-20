@@ -55,7 +55,7 @@ void calc_lattverts_ext(void);
 void calc_meshverts_ext(void);
 void calc_meshverts_ext_f2(void);
 void calc_nurbverts_ext(void);
-void drawcircball(float *cent, float rad, float tmat[][4]);
+void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
 void get_local_bounds(struct Object *ob, float *centre, float *size);
 void draw_object(struct Base *base);
 void draw_object_ext(struct Base *base);
