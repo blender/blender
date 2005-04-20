@@ -120,13 +120,14 @@ typedef struct SoftBody {
 	float grav;			/* softbody amount of gravitaion to apply */
 	float mediafrict;	/* friction to env */
 	float rklimit;		/* error limit for ODE solver */
+	float physics_speed;/* user control over simulation speed */
 	
 	float goalspring;	/* softbody goal springs */
 	float goalfrict;	/* softbody goal springs friction */
 	float mingoal;		/* quick limits for goal */
 	float maxgoal;
-	short vertgroup;		/* index starting at 1 */
-	short pad1, pad2, pad3;
+	short vertgroup;	/* index starting at 1 */
+	short pad1;
 	
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */

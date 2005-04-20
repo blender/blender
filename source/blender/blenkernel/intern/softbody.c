@@ -115,7 +115,6 @@ static float sb_fric_force_scale(Object *ob)
 static float sb_time_scale(Object *ob)
 // defining the frames to *real* time relation
 {
-/*
 	SoftBody *sb= ob->soft;	// is supposed to be there
 	if (sb){
 		return(sb->physics_speed); //hrms .. this could be IPO as well :) 
@@ -123,13 +122,12 @@ static float sb_time_scale(Object *ob)
 		// 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
         // theory would give a 50 frames period .. so there must be something inaccurate .. looking for that (BM) 
 	}
-*/
 	return (1.0f);
-/* 
-this would be frames/sec independant timing assuming 25 fps is default
-but does not work very well with NLA
-	return (25.0f/G.scene->r.frs_sec)
-*/
+	/* 
+	this would be frames/sec independant timing assuming 25 fps is default
+	but does not work very well with NLA
+		return (25.0f/G.scene->r.frs_sec)
+	*/
 }
 /*--- frame based timing ---*/
 
@@ -1024,6 +1022,7 @@ SoftBody *sbNew(void)
 	sb->mediafrict= 0.5; 
 	sb->nodemass= 1.0;
 	sb->grav= 0.0; 
+	sb->physics_speed= 1.0;
 	
 	sb->goalspring= 0.5; 
 	sb->goalfrict= 0.0; 

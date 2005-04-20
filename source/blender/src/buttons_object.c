@@ -1509,8 +1509,9 @@ static void object_softbodies(Object *ob)
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 10.0, 10, 0, "General Friction for point movements");
 		uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
-		uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_DIFF, "RKL:",			160,150,150,20, &sb->rklimit , 0.01, 1.0, 10, 0, "Runge-Kutta ODE solver error limit");
+		uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,100,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_DIFF, "RKL:",			110,150,100,20, &sb->rklimit , 0.01, 1.0, 10, 0, "Runge-Kutta ODE solver error limit");
+		uiDefButF(block, NUM, B_DIFF, "Time:",			210,150,100,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
 		uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "PostDef",	10,130,300,20, &ob->softflag, 0, 0, 0, 0, "Apply Soft AFTER Deform");
 		uiBlockEndAlign(block);
 		

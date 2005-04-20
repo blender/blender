@@ -4223,8 +4223,6 @@ static void do_versions(Main *main)
 			ma->param[1]= 0.1;
 			ma->param[2]= 0.1;
 			ma->param[3]= 0.05;
-			ma->rms=0.1;
-			ma->darkness=1.0;
 		}
 		// patch for old wrong max view2d settings, allows zooming out more
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -4687,10 +4685,12 @@ static void do_versions(Main *main)
 				sb->maxgoal= ob->sb_maxgoal;
 				sb->mediafrict= ob->sb_mediafrict; 
 				sb->rklimit= ob->softtime;
-				sb->defgoal= 0.7;
-				
 				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
  			}
+			if(ob->soft) {
+				if(ob->soft->defgoal==0.0) ob->soft->defgoal= 0.7;
+				if(ob->soft->physics_speed==0.0) ob->soft->physics_speed= 1.0;
+			}
 			if(ob->soft && ob->soft->vertgroup==0) {
 				bDeformGroup *locGroup = get_named_vertexgroup(ob, "SOFTGOAL");
 				if(locGroup){

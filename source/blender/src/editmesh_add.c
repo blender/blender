@@ -829,20 +829,19 @@ void add_primitiveMesh(int type)
 		MEM_freeN(tv);
 
 		/* and now do imat */
-		eve= em->verts.first;
-		while(eve) {
+		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->f & SELECT) {
 				VecAddf(eve->co,eve->co,cent);
 				Mat3MulVecfl(imat,eve->co);
 			}
-			eve= eve->next;
 		}
+		recalc_editnormals();
 	}
 	
 	// simple selection flush OK, based on fact it's a single model
 	EM_select_flush(); // flushes vertex -> edge -> face selection
 	
-	if(type!=0 && type!=10) righthandfaces(1);
+	if(type!=0 && type!=10 && type!=13) righthandfaces(1);	// otherwise monkey has eyes in wrong direction...
 	countall();
 
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
