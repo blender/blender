@@ -1437,6 +1437,9 @@ static void object_panel_deflectors(Object *ob)
 	if(ob->pd==NULL) {
 		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
 		/* and if needed, init here */
+		ob->pd->pdef_sbdamp = 0.1;
+		ob->pd->pdef_sbift  = 0.2;
+		ob->pd->pdef_sboft  = 0.02;
 	}
 	
 	if(ob->pd) {
