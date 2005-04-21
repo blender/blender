@@ -427,6 +427,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				//  VecMulf(force, rescale_grav_to_framerate);  <- didn't work, made value far too low!
 				VecMulf(force,25.0f* eval_sb_fric_force_scale); 
 				VECADD(bp->force, bp->force, force);
+				
 				/* apply speed. note; deflector can give 'speed' only.... */
 				/* nooo! we never alter free variables :bp->vec bp->pos in here ! 
 				* this will ruin adative stepsize AHA heun! (BM)
