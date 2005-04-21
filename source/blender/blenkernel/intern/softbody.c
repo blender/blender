@@ -358,14 +358,18 @@ static int is_there_deflection(unsigned int layer)
 	return retval;
 }
 
-
 static void softbody_calc_forces(Object *ob, float forcetime)
 {
+/* rule we never alter free variables :bp->vec bp->pos in here ! 
+ * this will ruin adaptive stepsize AKA heun! (BM) 
+ */
 	SoftBody *sb= ob->soft;	// is supposed to be there
 	BodyPoint  *bp;
 	BodyPoint *bproot;
 	BodySpring *bs;	
-	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
+	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3],
+	fieldfactor = 1000.0f, 
+	windfactor  = 250.0f;   
 	int a, b, do_effector;
 	
 	/* clear forces */
@@ -423,22 +427,15 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				pdDoEffector(bp->pos, force, speed, (float)G.scene->r.cfra, ob->lay,PE_WIND_AS_SPEED);
 				// note: now we have wind as motion of media, so we can do anisotropic stuff here, 
 				// if we had vertex normals here(BM)
-				/* apply force */
-				//  VecMulf(force, rescale_grav_to_framerate);  <- didn't work, made value far too low!
-				VecMulf(force,25.0f* eval_sb_fric_force_scale); 
+				/* apply forcefield*/
+				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
 				VECADD(bp->force, bp->force, force);
 				
-				/* apply speed. note; deflector can give 'speed' only.... */
-				/* nooo! we never alter free variables :bp->vec bp->pos in here ! 
-				* this will ruin adative stepsize AHA heun! (BM)
-				* VECADD(bp->vec, bp->vec, speed);   
-				*/
-				/* friction in moving media */
-				
+				/* friction in moving media */	
 				kd= sb->mediafrict* eval_sb_fric_force_scale;  
-				bp->force[0] -= kd * (bp->vec[0] + speed[0]/eval_sb_fric_force_scale);
-				bp->force[1] -= kd * (bp->vec[1] + speed[1]/eval_sb_fric_force_scale);
-				bp->force[2] -= kd * (bp->vec[2] + speed[2]/eval_sb_fric_force_scale);
+				bp->force[0] -= kd * (bp->vec[0] + windfactor*speed[0]/eval_sb_fric_force_scale);
+				bp->force[1] -= kd * (bp->vec[1] + windfactor*speed[1]/eval_sb_fric_force_scale);
+				bp->force[2] -= kd * (bp->vec[2] + windfactor*speed[2]/eval_sb_fric_force_scale);
 				/* now we'll have nice centrifugal effect for vortex */
 				
 			}
