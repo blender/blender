@@ -3,7 +3,7 @@
 """
 The Blender.Lamp submodule.
 
-B{New}: scriptLink methods: L{Lamp.getScriptLinks}, ...
+B{New}: L{Lamp.clearScriptLinks} accepts a parameter now.
 
 Lamp Data
 =========
@@ -335,11 +335,12 @@ class Lamp:
         'event' type) or None if there are no script links at all.
     """
 
-  def clearScriptLinks ():
+  def clearScriptLinks (links = None):
     """
-    Delete all this Lamp's script links.
-    @rtype: bool
-    @return: 0 if some internal problem occurred or 1 if successful.
+    Delete script links from this Lamp.  If no list is specified, all
+    script links are deleted.
+    @type links: list of strings
+    @param links: None (default) or a list of Blender L{Text} names.
     """
 
   def addScriptLink (text, event):

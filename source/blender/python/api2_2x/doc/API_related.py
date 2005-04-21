@@ -238,29 +238,32 @@ Introduction:
  Configuring scripts:
  --------------------
 
- Configuration data is simple data used by your script (bools, ints, floats,
- strings) to define default behaviors.
+ The L{Blender.Registry<Registry>} module provides a simplified way to keep
+ scripts configuration options in memory and also saved in config files.
+ And with the "Scripts Config Editor" script in the System menu users can later 
+ view and edit the options easily.
 
- For example, an exporter might have:
-   - EXPORT_LIGHTS = False: a bool variable (True / False) to determine if it
-     should also export lights setup information;
-   - VERSION = 2.0: an int to define an specific version of the export format;
+ Let's first clarify what we mean by config options: they are simple data
+ (bools, ints, floats, strings) used by programs to conform to user
+ preferences.  The buttons in Blender's User Preferences window are a good
+ example.
+
+ For example, a particular exporter might include:
+   - SEPARATE_MATS = False: a bool variable (True / False) to determine if it
+     should write materials to a separate file;
+   - VERSION = 2: an int to define an specific version of the export format;
    - TEX_DIR = "/path/to/textures": a default texture dir to prepend to all
      exported texture filenames instead of their actual paths.
 
- To properly handle this, script writers had to keep this information in a
- separate config file (at L{Blender.Get}('udatadir') or, if not available,
- L{Blender.Get}('datadir')), provide a GUI to edit it and update the file
- whenever needed.
+ The script needs to provide users a GUI to configure these options -- or else
+ directly editing the source code would be the only way to change them.  And to
+ store changes made to the GUI so they can be reloaded any time the script is
+ executed, programmers have to write and load their own config files (ideally at
+ L{Blender.Get}('udatadir') or, if not available, L{Blender.Get}('datadir')).
 
- There are facilities in BPython now to take care of this in a simplified (and
- much recommended) way.
-
- The L{Registry} module functions L{GetKey<Registry.GetKey>} and
- L{SetKey<Registry.SetKey>} take care of both keeping the data in Blender
- and (new) storing it in config files at the proper dir.  And the 'Scripts
- Configuration Editor' script provides a GUI for users to view and edit
- configuration data.
+ This section describes BPython facilities (based on the L{Registry} module and
+ the config editor) that can take care of this in a simplified (and much
+ recommended) way.
 
  Here's how it works::
 
@@ -269,16 +272,18 @@ Introduction:
   from Blender import Registry
 
   # First define all config variables with their default values:
-  EXPORT_LIGHTS = True
-  VERBOSE = True
+  SEPARATE_MATERIALS = True
+  VERSION = True
+  TEX_DIR = ''
   EXPORT_DIR = ''
 
   # Then define a function to update the Registry:
   def registry_update():
     # populate a dict with current config values:
     d = {
-      'EXPORT_LIGHTS': EXPORT_LIGHTS,
-      'VERBOSE': VERBOSE,
+      'SEPARATE_MATERIALS': SEPARATE_MATERIALS,
+      'VERSION': VERSION,
+      'TEX_DIR': TEX_DIR,
       'EXPORT_DIR': EXPORT_DIR
     }
     # store the key (optional 3rd arg tells if
@@ -292,9 +297,17 @@ Introduction:
 
   # If this key already exists, update config variables with its values:
   if regdict:
-    EXPORT_LIGHTS = regdict['EXPORT_LIGHTS']
-    VERBOSE = regdict['VERBOSE']
-    EXPORT_DIR = regdict['EXPORT_DIR']
+    try:
+      SEPARATE_MATERIALS = regdict['SEPARATE_MATERIALS']
+      VERSION = regdict['VERSION']
+      TEX_DIR = regdict['TEX_DIR']
+      EXPORT_DIR = regdict['EXPORT_DIR']
+
+    # if data was corrupted (or a new version of the script changed
+    # (expanded, removed, renamed) the config vars and users may have
+    # the old config file around):
+    except: update_registry() # rewrite it
+
   else: # if the key doesn't exist yet, use our function to create it:
     update_registry()
 
@@ -303,27 +316,25 @@ Introduction:
  Hint: nicer code than the simplistic example above can be written by keeping
  config var names in a list of strings and using the exec function. 
 
- B{Note}: if you have a gui and the user uses it to change config vars,
- call the registry_update() function to save the changes.
+ B{Note}: if your script's GUI lets users change config vars, call the
+ registry_update() function in the button events callback to save the changes.
  On the other hand, you don't need to handle configuration
  in your own gui, it can be left for the 'Scripts Config Editor',
  which should have access to your script's config key as soon as the
- above code is executed once.
+ above code is executed once (as soon as SetKey is executed).
 
- As written above, config vars can be bools, ints, floats or strings.  This is
- what the Config Editor supports, with sensible but generous limits for the
- number of vars and the size of each string.  Restrictions were suggested or
- imposed to these facilities related to the Registry module because it's meant
- for configuration info, not for large volumes of data.  For that you can
- trivially store it in a file or Blender Text yourself -- and tell the user
- about it, specially if your script keeps megabytes of data in the Registry
- memory.
+ B{Note} (limits for config vars): strings longer than 300 characters are
+ clamped and the number of items in dictionaries, sequences and the config key
+ itself is limited to 60.
+
 
  B{Scripts Configuration Editor}:
 
- This script should be available from the Help menu and provides a GUI to
- view and edit saved configuration data, both from the Registry dictionary in
- memory and the scripts config data dir.
+ This script should be available from the System menu in the Scripts window.
+ It provides a GUI to view and edit saved configuration data, both from the
+ Registry dictionary in memory and the scripts config data dir.  This is
+ useful for all scripts with config vars, but specially for those without GUI's,
+ like most importers and exporters, since this editor will provide one for them.
 
  The example above already gives a good idea of how the information can be
  prepared to be accessible from this editor, but there is more worth knowing:
@@ -339,8 +350,8 @@ Introduction:
   3. The following information refers to extra config variables that may be
   added specifically to aid the configuration editor script.  To clarify, in the
   example code above these variables (the string 'script' and the dictionaries
-  'tooltips' and 'limits') would appear along with EXPORT_LIGHTS, VERBOSE and
-  EXPORT_DIR, wherever they are written.
+  'tooltips' and 'limits') would appear along with SEPARATE_MATERIALS, VERSION,
+  TEX_DIR and EXPORT_DIR, wherever they are written.
 
   Minor note: these names are case insensitive: tooltips, TOOLTIPS, etc. are all
   recognized.
@@ -364,7 +375,7 @@ Introduction:
    tooltips = {
      'EXPORT_DIR': 'default folder where exported files should be saved',
      'VERBOSE': 'print info and warning messages to the console',
-     'EXPORT_LIGHTS': 'export scene lighting setup'
+     'SEPARATE_MATERIALS': 'write materials to their own file'
    }
 
   3.3 Int and float button sliders need min and max limits.  This can be passed
@@ -372,6 +383,19 @@ Introduction:
   extra config vars that might have been in the example code above)::
 
    limits = {'ivar1': [-10, 10], 'ivar2': [0, 100], 'fvar1': [-12.3, 15.4]}
+
+  4. The Config Editor itself maintains a Registry key called "General", with
+  general options relevant to many scripts, like "verbose" to tell if the user
+  wants messages printed to the console and "confirm overwrite", to know if
+  a script should ask for confirmation before overwriting files (all exporters
+  are recommended to access the General key and check this var -- L{sys.exists
+  <Sys.exists>} tells if files or folders already exist).
+
+ Hint: for actual examples, try the ac3d importer and exporter (it's enough to
+ call them from the menus then cancel with ESC), as those have been updated to
+ use this config system.  After calling them their config data will be available
+ in the Config Editor.  We also recommend adding a section about config vars
+ in your script's help info, as done in the ac3d ones.
 
  L{Back to Main Page<API_intro>}
 """

@@ -3,6 +3,9 @@
 """
 The Blender.Window submodule.
 
+B{New}: renamed ViewLayer to L{ViewLayers} (actually added an alias, so both
+forms will work).
+
 Window
 ======
 
@@ -263,7 +266,7 @@ def EditMode(enable = -1, undo_msg = 'From script'):
       because the normal mesh will be rebuilt based on its unchanged edit mesh.
   """
 
-def ViewLayer (layers = []):
+def ViewLayers (layers = []):
   """
   Get and optionally set the currently visible layers in all 3d Views.
   @type layers: list of ints

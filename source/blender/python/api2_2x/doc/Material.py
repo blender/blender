@@ -3,7 +3,7 @@
 """
 The Blender.Material submodule.
 
-B{New}: scriptLink methods: L{Material.getScriptLinks}, ...
+B{New}: L{Material.clearScriptLinks} accepts a parameter now.
 
 Material 
 ========
@@ -643,11 +643,12 @@ class Material:
         'event' type) or None if there are no script links at all.
     """
 
-  def clearScriptLinks ():
+  def clearScriptLinks (links = None):
     """
-    Delete all this Material's script links.
-    @rtype: bool
-    @return: 0 if some internal problem occurred or 1 if successful.
+    Delete script links from this Material.  If no list is specified, all
+    script links are deleted.
+    @type links: list of strings
+    @param links: None (default) or a list of Blender L{Text} names.
     """
 
   def addScriptLink (text, event):

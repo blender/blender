@@ -3,7 +3,7 @@
 """
 The Blender.Camera submodule.
 
-B{New}: L{Camera.getScale}, L{Camera.setScale} for ortho cameras.
+B{New}: L{Camera.clearScriptLinks} accepts a parameter now.
 
 Camera Data
 ===========
@@ -211,11 +211,12 @@ class Camera:
         'event' type) or None if there are no script links at all.
     """
 
-  def clearScriptLinks ():
+  def clearScriptLinks (links = None):
     """
-    Delete all this Camera's script links.
-    @rtype: bool
-    @return: 0 if some internal problem occurred or 1 if successful.
+    Delete script links from this Camera.  If no list is specified, all
+    script links are deleted.
+    @type links: list of strings
+    @param links: None (default) or a list of Blender L{Text} names.
     """
 
   def addScriptLink (text, event):

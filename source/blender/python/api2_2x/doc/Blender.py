@@ -60,7 +60,8 @@ def Get (request):
       - 'udatadir': the path to the user defined data dir.  This may not be
             available (is None if not found), but users that define uscriptsdir
             have a place for their own scripts and script data that won't be
-            erased when a new version of Blender is installed.
+            erased when a new version of Blender is installed.  For this reason
+            we recommend scripts check this dir first and use it, if available.
       - 'scriptsdir': the path to the main dir where scripts are stored.
       - 'uscriptsdir': the path to the user defined dir for scripts. (*)
       - 'yfexportdir': the path to the user defined dir for yafray export. (*)

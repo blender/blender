@@ -89,10 +89,9 @@ int EXPP_map_getStrVal( const EXPP_map_pair * map,
 			int ival, const char **sval );
 
 /* scriplinks-related: */
-PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
-			       int is_scene );
-int EXPP_clearScriptLinks( ScriptLink * slink );
-int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene );
+PyObject *EXPP_getScriptLinks(ScriptLink *slink, PyObject *args, int is_scene);
+PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene);
+PyObject *EXPP_clearScriptLinks(ScriptLink *slink, PyObject *args);
 
 /* this queues redraws if we're not in background mode: */
 void EXPP_allqueue(unsigned short event, short val);

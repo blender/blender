@@ -29,7 +29,8 @@
  *
  *
  * Contributor(s): Michel Selten, Willian Germano, Jacques Guignot,
- * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton, Johnny Matthews
+ * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton, Johnny Matthews,
+ * Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -184,7 +185,7 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 					     PyObject * args );
 static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
-static PyObject *Object_clearScriptLinks( BPy_Object * self );
+static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject *args );
 static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args );
 static PyObject *Object_getPIStrength( BPy_Object * self );
 static PyObject *Object_setPIStrength( BPy_Object * self, PyObject * args );
@@ -501,8 +502,9 @@ works only if self and the object specified are of the same type."},
 	 "(text) - string: an existing Blender Text name;\n"
 	 "(evt) string: FrameChanged or Redraw."},
 	{"clearScriptLinks", ( PyCFunction ) Object_clearScriptLinks,
-	 METH_NOARGS,
-	 "() - Delete all scriptlinks from this object."},
+	 METH_VARARGS,
+	 "() - Delete all scriptlinks from this object.\n"
+	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
 	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
 	{NULL, NULL, 0, NULL}
@@ -2256,22 +2258,18 @@ static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args )
 
 	slink = &( obj )->scriptlink;
 
-	if( !EXPP_addScriptLink( slink, args, 0 ) )
-		return EXPP_incr_ret( Py_None );
-	else
-		return NULL;
+	return EXPP_addScriptLink( slink, args, 0 );
 }
 
 /* obj.clearScriptLinks */
-static PyObject *Object_clearScriptLinks( BPy_Object * self )
+static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject * args )
 {
 	Object *obj = self->object;
 	ScriptLink *slink = NULL;
 
 	slink = &( obj )->scriptlink;
 
-	return EXPP_incr_ret( Py_BuildValue
-			      ( "i", EXPP_clearScriptLinks( slink ) ) );
+	return EXPP_clearScriptLinks( slink, args );
 }
 
 /* obj.getScriptLinks */
@@ -2479,8 +2477,31 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		}
 		return ( NULL );
 	}
-	if( StringEqual( name, "Layer" ) )
+	/* accept both Layer (old, for compatibility) and Layers */
+	if( strncmp( name, "Layer", 5 ) == 0)
 		return ( PyInt_FromLong( object->lay ) );
+	/* Layers returns a bitmask, layers returns a list of integers */
+	if( StringEqual( name, "layers" ) ) {
+		int layers, bit = 0, val = 0;
+		PyObject *item = NULL, *laylist = PyList_New( 0 );
+
+		if( !laylist )
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+				"couldn't create pylist!" ) );
+
+		layers = object->lay;
+
+		while( bit < 20 ) {
+			val = 1 << bit;
+			if( layers & val ) {
+				item = Py_BuildValue( "i", bit + 1 );
+				PyList_Append( laylist, item );
+				Py_DECREF( item );
+			}
+			bit++;
+		}
+		return laylist;
+	}
 	if( StringEqual( name, "parent" ) ) {
 		if( object->parent )
 			return ( Object_CreatePyObject( object->parent ) );
@@ -2658,7 +2679,8 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		}
 		return ( 0 );
 	}
-	if( StringEqual( name, "Layer" ) ) {
+	/* accept both Layer (for compatibility) and Layers */
+	if( strncmp( name, "Layer", 5 ) == 0 ) {
 		/*  usage note: caller of this func needs to do a 
 		   Blender.Redraw(-1) to update and redraw the interface */
 
@@ -2673,9 +2695,10 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 
 		/* uppper 2 nibbles are for local view */
 		newLayer &= 0x00FFFFFF;
-		if( newLayer == 0 )	/* bail if nothing to do */
-			return ( 0 );
-		
+		if( newLayer == 0 )
+			return EXPP_ReturnIntError( PyExc_AttributeError,
+				"bitmask must have from 1 up to 20 bits set");
+
 		/* update any bases pointing to our object */
 		base = FIRSTBASE;  /* first base in current scene */
 		while( base ){
@@ -2690,11 +2713,59 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		
 		return ( 0 );
 	}
+	if( StringEqual( name, "layers" ) ) {
+		/*  usage note: caller of this func needs to do a 
+		   Blender.Redraw(-1) to update and redraw the interface */
+
+		Base *base;
+		int layers = 0, len_list = 0;
+		int local, i, val;
+		PyObject *list = NULL, *item = NULL;
+
+		if( !PyArg_Parse( value, "O!", &PyList_Type, &list ) )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+			  "expected a list of integers" );
+
+		len_list = PyList_Size(list);
+
+		if (len_list == 0)
+			return EXPP_ReturnIntError( PyExc_AttributeError,
+			  "list can't be empty, at least one layer must be set" );
+
+		for( i = 0; i < len_list; i++ ) {
+			item = PyList_GetItem( list, i );
+			if( !PyInt_Check( item ) )
+				return EXPP_ReturnIntError
+					( PyExc_AttributeError,
+					  "list must contain only integer numbers" );
+
+			val = ( int ) PyInt_AsLong( item );
+			if( val < 1 || val > 20 )
+				return EXPP_ReturnIntError
+					( PyExc_AttributeError,
+					  "layer values must be in the range [1, 20]" );
+
+			layers |= 1 << ( val - 1 );
+		}
+
+		/* update any bases pointing to our object */
+		base = FIRSTBASE;  /* first base in current scene */
+		while( base ){
+			if( base->object == obj->object ) {
+				local = base->lay &= 0xFF000000;
+				base->lay = local | layers;
+				object->lay = base->lay;
+			}
+			base = base->next;
+		}
+		countall();
+
+		return ( 0 );
+	}
 	if( StringEqual( name, "parent" ) ) {
 		/* This is not allowed. */
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
+		return EXPP_ReturnIntError( PyExc_AttributeError,
 				       "Setting the parent is not allowed." );
-		return ( 0 );
 	}
 	if( StringEqual( name, "track" ) ) {
 		if( Object_makeTrack( obj, valtuple ) != Py_None )
@@ -2704,27 +2775,23 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 	}
 	if( StringEqual( name, "data" ) ) {
 		/* This is not allowed. */
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
+		return EXPP_ReturnIntError( PyExc_AttributeError,
 				       "Setting the data is not allowed." );
-		return ( 0 );
 	}
 	if( StringEqual( name, "ipo" ) ) {
 		/* This is not allowed. */
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
+		return EXPP_ReturnIntError( PyExc_AttributeError,
 				       "Setting the ipo is not allowed." );
-		return ( 0 );
 	}
 	if( StringEqual( name, "mat" ) ) {
 		/* This is not allowed. */
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
+		return EXPP_ReturnIntError( PyExc_AttributeError,
 				       "Setting the matrix is not allowed." );
-		return ( 0 );
 	}
 	if( StringEqual( name, "matrix" ) ) {
 		/* This is not allowed. */
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
+		return EXPP_ReturnIntError( PyExc_AttributeError,
 				       "Please use .setMatrix(matrix)" );
-		return ( 0 );
 	}
 	if( StringEqual( name, "colbits" ) )
 		return ( !PyArg_Parse( value, "h", &( object->colbits ) ) );

@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole
+ * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -332,25 +332,106 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 	return list;
 }
 
-int EXPP_clearScriptLinks( ScriptLink * slink )
+PyObject *EXPP_clearScriptLinks( ScriptLink * slink, PyObject * args )
 {
-	/* actually !scriptlink shouldn't happen ... */
-	if( !slink || !slink->totscript )
-		return -1;
+	int i, j, totLinks, deleted = 0;
+	PyObject *seq = NULL;
+	ID **stmp = NULL;
+	short *ftmp = NULL;
 
-	if( slink->scripts )
-		MEM_freeN( slink->scripts );
-	if( slink->flag )
-		MEM_freeN( slink->flag );
+	/* check for an optional list of strings */
+	if( !PyArg_ParseTuple( args, "|O", &seq ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError,
+			   "expected no arguments or a list of strings" ) );
 
-	slink->scripts = NULL;
-	slink->flag = NULL;
-	slink->totscript = slink->actscript = 0;
 
-	return 0;		/* normal return */
+	/* if there was a parameter, handle it */
+	if ( seq != NULL ) {
+		/* check that parameter IS list of strings */
+		if ( !PyList_Check ( seq ) )
+			return ( EXPP_ReturnPyObjError
+				 ( PyExc_TypeError,
+				   "expected a list of strings" ) );
+
+		totLinks = PyList_Size ( seq );
+		for ( i = 0 ; i < totLinks ; ++i ) {
+			if ( !PyString_Check ( PySequence_GetItem( seq, i ) ) )
+				return ( EXPP_ReturnPyObjError
+					 ( PyExc_TypeError,
+					   "expected list to contain strings" ) );
+		}
+
+		/*
+		  parameters OK: now look for each script, and delete
+		  its link as we find it (this handles multiple links)
+		*/
+		for ( i = 0 ; i < totLinks ; ++i )
+		{
+			char *str;
+			str = PyString_AsString ( PySequence_GetItem( seq, i ) );
+			for ( j = 0 ; j < slink->totscript ; ++j ) {
+				if ( slink->scripts[j] && !strcmp ( slink->scripts[j]->name+2, str ) ) {
+					slink->scripts[j] = NULL;
+					++deleted; 
+				}
+			}
+		}
+	}
+	/* if no parameter, then delete all scripts */
+	else {
+		deleted = slink->totscript;
+	}
+
+	/*
+	   if not all scripts deleted, create new lists and copy remaining
+	   links to them
+	*/
+
+	if ( slink->totscript > deleted ) {
+		slink->totscript -= deleted;
+
+		stmp = slink->scripts;
+		slink->scripts =
+			MEM_mallocN( sizeof( ID * ) * ( slink->totscript ),
+				     "bpySlinkL" );
+
+		ftmp = slink->flag;
+		slink->flag =
+			MEM_mallocN( sizeof( short * ) * ( slink->totscript ),
+				     "bpySlinkF" );
+
+		for ( i = 0, j = 0 ; i < slink->totscript ; ++j ) {
+			if ( stmp[j] != NULL ) {
+				memcpy( slink->scripts+i, stmp+j, sizeof( ID * ) );
+				memcpy( slink->flag+i, ftmp+j, sizeof( short ) );
+				++i;
+			}
+		}
+		MEM_freeN( stmp );
+		MEM_freeN( ftmp );
+
+		/*EXPP_allqueue (REDRAWBUTSSCRIPT, 0 );*/
+		slink->actscript = 1;
+	} else {
+
+	/* all scripts deleted, so delete entire list and free memory */
+
+		if( slink->scripts )
+			MEM_freeN( slink->scripts );
+		if( slink->flag )
+			MEM_freeN( slink->flag );
+
+		slink->scripts = NULL;
+		slink->flag = NULL;
+		slink->totscript = slink->actscript = 0;
+	}
+
+	return EXPP_incr_ret( Py_None );
 }
 
-int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene )
+
+PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 {
 	int event = 0, found_txt = 0;
 	void *stmp = NULL, *ftmp = NULL;
@@ -360,13 +441,13 @@ int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene )
 
 	/* !scriptlink shouldn't happen ... */
 	if( !slink ) {
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-					    "internal error: no scriptlink!" );
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"internal error: no scriptlink!" );
 	}
 
 	if( !PyArg_ParseTuple( args, "ss", &textname, &eventname ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					    "expected two strings as arguments" );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+	    "expected two strings as arguments" );
 
 	while( bltxt ) {
 		if( !strcmp( bltxt->id.name + 2, textname ) ) {
@@ -377,8 +458,8 @@ int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene )
 	}
 
 	if( !found_txt )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-					    "no such Blender Text." );
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+	    "no such Blender Text" );
 
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
@@ -390,7 +471,7 @@ int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene )
 		event = SCRIPT_ONSAVE;
 	else
 		return EXPP_ReturnIntError( PyExc_AttributeError,
-					    "invalid event name." );
+			"invalid event name" );
 
 	stmp = slink->scripts;
 	slink->scripts =
@@ -420,5 +501,5 @@ int EXPP_addScriptLink( ScriptLink * slink, PyObject * args, int is_scene )
 	if( slink->actscript < 1 )
 		slink->actscript = 1;
 
-	return 0;		/* normal exit */
+	return EXPP_incr_ret (Py_None);		/* normal exit */
 }

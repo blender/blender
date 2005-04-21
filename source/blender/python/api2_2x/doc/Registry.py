@@ -3,55 +3,35 @@
 """
 The Blender.Registry submodule.
 
-B{New}: L{GetKey} and L{SetKey} can respectively load and save data to disk now.
+B{New}: L{GetKey} and L{SetKey} have been updated to save and load scripts
+*configuration data* to files.
 
 Registry
 ========
 
 This module provides a way to create, retrieve and edit B{persistent data} in
-Blender. When a script runs in Blender, it has its own private global
-dictionary, which is deleted when the script finishes. This is done to avoid
-problems with name clashes and garbage collecting.  But the result is that
-data created by a script isn't kept after it leaves, for itself or others to
-access later: the data isn't persistent. The Registry module was created to
-give script authors a way around this limitation.
+Blender.
 
-In Python terms, the Registry holds a dictionary of dictionaries.
-You should use it to save Python objects only, not BPython (Blender Python)
-objects -- but you can save BPython object names, since those are strings.
-Also, if you need to save a considerable amount of data, we recommend saving
-it to a file instead. There's no need to keep huge blocks of memory around when
-they can simply be read from a file.
+When a script is executed it has its own private global dictionary,
+which is deleted when the script exits. This is done to avoid problems with
+name clashes and garbage collecting.  But because of this, the data created by
+a script isn't kept after it leaves: the data is not persistent.  The Registry
+module was created to give programmers a way around this limitation.
 
-Examples of what this module can be used for:
-
-a) Saving data from a script that another script will need to access later.
-
-b) Saving configuration data for a script.  Users can view and edit this data
-using the "Scripts Configuration Editor" script, then.
-
-c) Saving configuration data from your script's gui (button values) so that the
-next time the user runs your script, the changes will still be there.  
+Possible uses:
+ - saving arbitrary data from a script that itself or another one will need
+   to access later.
+ - saving configuration data for a script: users can view and edit this data
+   using the "Scripts Configuration Editor" script.
+ - saving the current state of a script's GUI (its button values) to restore it
+   when the script is executed again.
 
 Example::
 
   import Blender
   from Blender import Registry
 
-  # first declare your global variables:
-  myvar1 = 0
-  myvar2 = 3.2
-  mystr = "hello"
-
-  # then check if they are already at the Registry (saved on a
-  # previous execution of this script) or on disk:
-  rdict = Registry.GetKey('MyScript', True)
-  if rdict: # if found, get the values saved there
-    myvar1 = rdict['myvar1']
-    myvar2 = rdict['myvar2']
-    mystr = rdict['mystr']
-
-  # let's create a function to update the Registry when we need to:
+  # this function updates the Registry when we need to:
   def update_Registry():
     d = {}
     d['myvar1'] = myvar1
@@ -60,14 +40,49 @@ Example::
     # cache = True: data is also saved to a file
     Blender.Registry.SetKey('MyScript', d, True)
 
+  # first declare global variables that should go to the Registry:
+  myvar1 = 0
+  myvar2 = 3.2
+  mystr = "hello"
+
+  # then check if they are already there (saved on a
+  # previous execution of this script):
+  rdict = Registry.GetKey('MyScript', True) # True to check on disk also
+  if rdict: # if found, get the values saved there
+    try:
+      myvar1 = rdict['myvar1']
+      myvar2 = rdict['myvar2']
+      mystr = rdict['mystr']
+    except: update_Registry() # if data isn't valid rewrite it
+
   # ...
   # here goes the main part of the script ...
   # ...
 
-  # at the end, before exiting, we use our helper function:
+  # if at some point the data is changed, we update the Registry:
   update_Registry()
-  # note1: better not update the Registry when the user cancels the script
-  # note2: most scripts shouldn't need to register more than one key.
+
+@note: In Python terms, the Registry holds a dictionary of dictionaries.
+  Technically any Python or BPython object can be stored: there are no
+  restrictions, but ...
+
+@note: We have a few recommendations:
+ 
+  Data saved to the Registry is kept in memory, so if you decide to store large
+  amounts your script users should be clearly informed about it --
+  always keep in mind that you have no idea about their resources and the
+  applications they are running at a given time (unless you are the only
+  user), so let them decide.
+
+  There are restrictions to the data that gets automatically saved to disk by
+  L{SetKey}(keyname, dict, True):  this feature is only meant for simple data
+  (bools, ints, floats, strings and dictionaries or sequences of these types).
+  Strings are clamped if longer than 300 characters and at most 60 elements are
+  allowed.  Since this is only meant for scripts configuration variables,
+  these are sensible restrictions, generous enough for the task.
+
+  For more demanding needs, it's of course trivial to save data to another 
+  file or to a L{Blender Text<Text>}.
 """
 
 def Keys ():
@@ -97,7 +112,9 @@ def SetKey (key, dict, cache = False):
   @type cache: bool
   @param cache: if True the given key data will also be saved as a file
       in the config subdir of the scripts user or default data dir (see
-      L{Blender.Get}.
+      L{Blender.Get}).
+  @warn: as stated in the notes above, there are restrictions to what can
+      be automatically stored in config files.
   """
 
 def RemoveKey (key):

@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Johnny Matthews
+ * Contributor(s): Willian P. Germano, Johnny Matthews, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -125,7 +125,7 @@ static PyObject *Camera_setDrawSize( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setScale( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_getScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_addScriptLink( BPy_Camera * self, PyObject * args );
-static PyObject *Camera_clearScriptLinks( BPy_Camera * self );
+static PyObject *Camera_clearScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args );
 
 Camera *GetCameraByName( char *name );
@@ -187,7 +187,8 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "(evt) string: FrameChanged or Redraw."},
 	{"clearScriptLinks", ( PyCFunction ) Camera_clearScriptLinks,
 	 METH_NOARGS,
-	 "() - Delete all scriptlinks from this camera."},
+	 "() - Delete all scriptlinks from this camera.\n"
+	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this camera."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -784,22 +785,18 @@ static PyObject *Camera_addScriptLink( BPy_Camera * self, PyObject * args )
 
 	slink = &( cam )->scriptlink;
 
-	if( !EXPP_addScriptLink( slink, args, 0 ) )
-		return EXPP_incr_ret( Py_None );
-	else
-		return NULL;
+	return EXPP_addScriptLink( slink, args, 0 );
 }
 
 /* cam.clearScriptLinks */
-static PyObject *Camera_clearScriptLinks( BPy_Camera * self )
+static PyObject *Camera_clearScriptLinks( BPy_Camera * self, PyObject * args )
 {
 	Camera *cam = self->camera;
 	ScriptLink *slink = NULL;
 
 	slink = &( cam )->scriptlink;
 
-	return EXPP_incr_ret( Py_BuildValue
-			      ( "i", EXPP_clearScriptLinks( slink ) ) );
+	return EXPP_clearScriptLinks( slink, args );
 }
 
 /* cam.getScriptLinks */

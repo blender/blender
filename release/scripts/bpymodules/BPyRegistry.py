@@ -43,7 +43,7 @@ from Blender import Registry, sys as bsys
 _EXT = '.cfg' # file extension for saved config data
 
 # limits:
-MAX_ITEMS_NUM = 50 # max number of keys per dict and itens per list and tuple
+MAX_ITEMS_NUM = 60 # max number of keys per dict and itens per list and tuple
 MAX_STR_LEN = 300 # max string length (remember this is just for config data)
 
 _CFG_DIR = ''
@@ -61,10 +61,12 @@ if bsys.dirsep == '\\':
 
 _KEYS = [k for k in Registry.Keys() if k[0] != '_']
 
+_ITEMS_NUM = 0
+
 def _sanitize(o):
 	"Check recursively that all objects are valid, set invalid ones to None"
 
-	global MAX_ITEMS_NUM, MAX_STR_LEN
+	global MAX_ITEMS_NUM, MAX_STR_LEN, _ITEMS_NUM
 
 	valid_types = [int, float, bool, long, type]
 	valid_checked_types = [str, unicode]
@@ -75,12 +77,16 @@ def _sanitize(o):
 
 	if t == dict:
 		keys = o.keys()
-		if len(keys) > MAX_ITEMS_NUM:
+		len_keys = len(keys)
+		_ITEMS_NUM += len_keys
+		if _ITEMS_NUM > MAX_ITEMS_NUM:
 			return None
 		for k in keys:
 			o[k] = _sanitize(o[k])
 	elif t in [list, tuple]:
-		if len(o) > MAX_ITEMS_NUM:
+		len_seq = len(o)
+		_ITEMS_NUM += len_seq
+		if _ITEMS_NUM > MAX_ITEMS_NUM:
 			return None
 		result = []
 		for i in o: result.append(_sanitize(i))

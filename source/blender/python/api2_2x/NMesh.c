@@ -23,7 +23,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
+ * This is a new part of Blender, but it borrows all the old NMesh code.
  *
  * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert,
  * Bala Gi, Alexander Szakaly, Stephane Soppera, Campbell Barton

@@ -119,6 +119,7 @@ PyTypeObject ThemeSpace_Type = {
 	0, 0, 0, 0, 0, 0,
 	0,			//BPy_ThemeSpace_methods,            /* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static void ThemeSpace_dealloc( BPy_ThemeSpace * self )
@@ -295,6 +296,7 @@ PyTypeObject ThemeUI_Type = {
 	0, 0, 0, 0, 0, 0,
 	0,			//BPy_ThemeUI_methods,         /* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static void ThemeUI_dealloc( BPy_ThemeUI * self )
@@ -468,8 +470,9 @@ PyTypeObject Theme_Type = {
 	0, 0, 0, 0, 0, 0,
 	0,			/* tp_doc */
 	0, 0, 0, 0, 0, 0,
-	0,			//BPy_Theme_methods,         /* tp_methods */
+	0,			/*BPy_Theme_methods,*/ /* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static PyObject *M_Theme_New( PyObject * self, PyObject * args )

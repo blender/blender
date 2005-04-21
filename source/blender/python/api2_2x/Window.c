@@ -90,7 +90,7 @@ static PyObject *M_Window_GetPerspMatrix( PyObject * self );
 static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args );
 static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args );
 static PyObject *M_Window_EditMode( PyObject * self, PyObject * args );
-static PyObject *M_Window_ViewLayer( PyObject * self, PyObject * args );
+static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args );
 static PyObject *M_Window_CameraView( PyObject * self, PyObject * args );
 static PyObject *M_Window_QTest( PyObject * self );
 static PyObject *M_Window_QRead( PyObject * self );
@@ -178,7 +178,7 @@ Returns the current status.  This function is mostly useful to leave\n\
 edit mode before applying changes to a mesh (otherwise the changes will\n\
 be lost) and then returning to it upon leaving.";
 
-static char M_Window_ViewLayer_doc[] =
+static char M_Window_ViewLayers_doc[] =
 	"(layers = []) - Get/set active layers in all 3d View windows.\n\
 () - Make no changes, only return currently visible layers.\n\
 (layers = []) - a list of integers, each in the range [1, 20].\n\
@@ -317,8 +317,11 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_GetPerspMatrix_doc},
 	{"EditMode", ( PyCFunction ) M_Window_EditMode, METH_VARARGS,
 	 M_Window_EditMode_doc},
-	{"ViewLayer", ( PyCFunction ) M_Window_ViewLayer, METH_VARARGS,
-	 M_Window_ViewLayer_doc},
+	{"ViewLayers", ( PyCFunction ) M_Window_ViewLayers, METH_VARARGS,
+	 M_Window_ViewLayers_doc},
+	 /* typo, deprecate someday: */
+	{"ViewLayer", ( PyCFunction ) M_Window_ViewLayers, METH_VARARGS,
+	 M_Window_ViewLayers_doc},
 	{"CameraView", ( PyCFunction ) M_Window_CameraView, METH_VARARGS,
 	 M_Window_CameraView_doc},
 	{"QTest", ( PyCFunction ) M_Window_QTest, METH_NOARGS,
@@ -882,15 +885,15 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 	return Py_BuildValue( "h", G.obedit ? 1 : 0 );
 }
 
-static PyObject *M_Window_ViewLayer( PyObject * self, PyObject * args )
+static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args )
 {
 	PyObject *item = NULL;
 	PyObject *list = NULL, *resl = NULL;
 	int val, i, bit = 0, layer = 0;
 
-	if( !G.vd ) {
+	if( !G.scene ) {
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"this function can only be used after a 3d View has been initialized" );
+			"can't get pointer to global scene" );
 	}
 
 	if( !PyArg_ParseTuple( args, "|O!", &PyList_Type, &list ) )
@@ -898,7 +901,13 @@ static PyObject *M_Window_ViewLayer( PyObject * self, PyObject * args )
 		  "expected nothing or a list of ints as argument" );
 
 	if( list ) {
-		for( i = 0; i < PyList_Size( list ); i++ ) {
+		int len_list = PyList_Size(list);
+
+		if (len_list == 0)
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+		  	"list can't be empty, at list one layer must be set" );
+
+		for( i = 0; i < len_list; i++ ) {
 			item = PyList_GetItem( list, i );
 			if( !PyInt_Check( item ) )
 				return EXPP_ReturnPyObjError
@@ -913,15 +922,18 @@ static PyObject *M_Window_ViewLayer( PyObject * self, PyObject * args )
 
 			layer |= 1 << ( val - 1 );
 		}
-		G.vd->lay = layer;
+		G.scene->lay = layer;
+		if (G.vd) {
+			G.vd->lay = layer;
 
-		while( bit < 20 ) {
-			val = 1 << bit;
-			if( layer & val ) {
-				G.vd->layact = val;
-				break;
+			while( bit < 20 ) {
+				val = 1 << bit;
+				if( layer & val ) {
+					G.vd->layact = val;
+					break;
+				}
+				bit++;
 			}
-			bit++;
 		}
 	}
 
@@ -930,7 +942,7 @@ static PyObject *M_Window_ViewLayer( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create pylist!" ) );
 
-	layer = G.vd->lay;
+	layer = G.scene->lay;
 
 	bit = 0;
 	while( bit < 20 ) {

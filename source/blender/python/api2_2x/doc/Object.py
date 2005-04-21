@@ -3,8 +3,13 @@
 """
 The Blender.Object submodule
 
-B{New}: L{Object.getData} now accepts an optional bool keyword argument to
-define if the user wants the data object or just its name.
+B{New}:
+  - L{Object.getData} now accepts an optional bool keyword argument to
+      define if the user wants the data object or just its name.
+  - L{Object.clearScriptLinks} accepts a parameter now.
+  - Object attributes: renamed Layer to L{Layers<Object.Object.Layers>} and
+    added the easier L{layers<Object.Object.layers>}.  The old form "Layer"
+    will continue to work.
 
 Object
 ======
@@ -135,13 +140,31 @@ class Object:
     @cvar EffX: The X effector coordinate of the object. Only applies to IKA.
     @cvar EffY: The Y effector coordinate of the object. Only applies to IKA.
     @cvar EffZ: The Z effector coordinate of the object. Only applies to IKA.
-    @cvar Layer: The object layer.  This value is a bitmask with one position
-        set for each of the 20 possible layers starting from the low order bit.
-        The easiest way to deal with these values in in hexadecimal notation.
+    @type Layers: integer (bitmask)
+    @cvar Layers: The object layers (also check the newer attribute
+        L{layers<Object.Object.layers>}).  This value is a bitmask with at 
+        least one position set for the 20 possible layers starting from the low
+        order bit.  The easiest way to deal with these values in in hexadecimal
+        notation.
         Example::
           ob.Layer = 0x04 # sets layer 3 ( bit pattern 0100 )
         After setting the Layer value, call Blender.Redraw( -1 ) to update
         the interface.
+    @type layers: list of integers
+    @cvar layers: The layers this object is visible in (also check the older
+        attribute L{Layers<Object.Object.Layers>}).  This returns a list of
+        integers in the range [1, 20], each number representing the respective
+        layer.  Setting is done by passing a list of ints or an empty list for
+        no layers.
+        Example::
+          ob.layers = []  # object won't be visible
+          ob.layers = [1, 4] # object visible only in layers 1 and 4
+          ls = o.layers
+          ls.append([10])
+          o.layers = ls
+          print ob.layers # will print: [1, 4, 10]
+        B{Note}: changes will only be visible after the screen (at least
+        the 3d View and Buttons windows) is redrawn.
     @cvar parent: The parent object of the object. (Read-only)
     @cvar track: The object tracking this object. (Read-only)
     @cvar data: The data of the object. (Read-only)
@@ -578,11 +601,12 @@ class Object:
         'event' type) or None if there are no script links at all.
     """
 
-  def clearScriptLinks ():
+  def clearScriptLinks (links = None):
     """
-    Delete all this Object's script links.
-    @rtype: bool
-    @return: 0 if some internal problem occurred or 1 if successful.
+    Delete script links from this Object.  If no list is specified, all
+    script links are deleted.
+    @type links: list of strings
+    @param links: None (default) or a list of Blender L{Text} names.
     """
 
   def addScriptLink (text, event):

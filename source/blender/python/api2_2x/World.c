@@ -97,7 +97,7 @@ static PyObject *World_getMist( BPy_World * self );
 static PyObject *World_setMist( BPy_World * self, PyObject * args );
 static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_addScriptLink( BPy_World * self, PyObject * args );
-static PyObject *World_clearScriptLinks( BPy_World * self );
+static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_setCurrent( BPy_World * self );
 
 
@@ -217,8 +217,9 @@ static PyMethodDef BPy_World_methods[] = {
 	 "(text) - string: an existing Blender Text name;\n"
 	 "(evt) string: FrameChanged or Redraw."},
 	{"clearScriptLinks", ( PyCFunction ) World_clearScriptLinks,
-	 METH_NOARGS,
-	 "() - Delete all scriptlinks from this world :)."},
+	 METH_VARARGS,
+	 "() - Delete all scriptlinks from this world.\n"
+	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this world."},
 	{"setCurrent", ( PyCFunction ) World_setCurrent, METH_NOARGS,
 	 "() - Makes this world the active world for the current scene."},
 	{"makeActive", ( PyCFunction ) World_setCurrent, METH_NOARGS,
@@ -856,22 +857,18 @@ static PyObject *World_addScriptLink( BPy_World * self, PyObject * args )
 
 	slink = &( world )->scriptlink;
 
-	if( !EXPP_addScriptLink( slink, args, 0 ) )
-		return EXPP_incr_ret( Py_None );
-	else
-		return NULL;
+	return EXPP_addScriptLink( slink, args, 0 );
 }
 
 /* world.clearScriptLinks */
-static PyObject *World_clearScriptLinks( BPy_World * self )
+static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args )
 {
 	World *world = self->world;
 	ScriptLink *slink = NULL;
 
 	slink = &( world )->scriptlink;
 
-	return EXPP_incr_ret( Py_BuildValue
-			      ( "i", EXPP_clearScriptLinks( slink ) ) );
+	return EXPP_clearScriptLinks( slink, args );
 }
 
 /* world.getScriptLinks */

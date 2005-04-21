@@ -601,7 +601,7 @@ class NMesh:
      from Blender import NMesh, Object
      
      ob = Object.GetSelected()[0] # Get the first selected object
-     me = NMesh.GetRawFromObject(ob) # Get the objects deformed mesh data
+     me = NMesh.GetRawFromObject(ob.name) # Get the objects deformed mesh data
      me.transform(ob.matrix)
    
      for v in me.verts:

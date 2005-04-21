@@ -30,8 +30,8 @@ The Blender Python API Reference
   - L{NMesh} (*)
   - L{Noise}
   - L{Object} (*)
-  - L{Registry}
-  - L{Scene}
+  - L{Registry} (*)
+  - L{Scene} (*)
      - L{Radio}
      - L{Render}
   - L{Sound}

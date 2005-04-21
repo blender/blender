@@ -3,7 +3,10 @@
 """
 The Blender.Scene submodule.
 
-B{New}: OnSave script link event: L{Scene.getScriptLinks}.
+B{New}:
+  - L{Scene.clearScriptLinks} accepts a parameter now.
+  - L{Scene.getLayers}, L{Scene.setLayers} and the L{layers<Scene.layers>} and
+    L{Layers<Scene.Layers>} Scene attributes. 
 
 Scene
 =====
@@ -75,7 +78,28 @@ class Scene:
   The Scene object
   ================
     This object gives access to Scene data in Blender.
+  @type name: string
   @cvar name: The Scene name.
+  @type Layers: integer (bitmask)
+  @cvar Layers: The Scene layers (check also the easier to use
+        L{layers<Scene.Scene.layers>}).  This value is a bitmask with at least
+        one position set for the 20 possible layers starting from the low order
+        bit.  The easiest way to deal with these values in in hexadecimal 
+        notation.
+        Example::
+          scene.Layers = 0x04 # sets layer 3 ( bit pattern 0100 )
+          scene.Layers |= 0x01
+          print scene.Layers # will print: 5 ( meaning bit pattern 0101)
+        After setting the Layers value, the interface (at least the 3d View and
+        the Buttons window) needs to be redrawn to show the changes.
+  @type layers: list of integers
+  @cvar layers: The Scene layers (check also L{Layers<Scene.Scene.Layers>}).
+        This attribute accepts and returns a list of integer values in the
+        range [1, 20].
+        Example::
+          scene.layers = [3] # set layer 3
+          scene.layers = scene.layers.append(1)
+          print scene.layers # will print: [1, 3]
   """
 
   def getName():
@@ -89,6 +113,25 @@ class Scene:
     Set the name of this Scene.
     @type name: string
     @param name: The new name.
+    """
+
+  def getLayers():
+    """
+    Get the layers set for this Scene.
+    @rtype: list of integers
+    @return: a list where each number means the layer with that number is
+       set.
+    """
+
+  def setLayers(layers):
+    """
+    Set the visible layers for this scene.
+    @type layers: list of integers
+    @param layers: a list of integers in the range [1, 20], where each available
+       index makes the layer with that number visible.
+    @note: if this Scene is the current one, the 3D View layers are also
+       updated, but the screen needs to be redrawn (at least 3D Views and
+       Buttons windows) for the changes to be seen.
     """
 
   def copy(duplicate_objects = 1):
@@ -139,6 +182,11 @@ class Scene:
     Get all objects linked to this Scene.
     @rtype: list of Blender Objects
     @return: A list with all Blender Objects linked to this Scene.
+    @note: L{Object.Get} will return all objects currently in Blender, which
+       means all objects from all available scenes.  In most cases (exporter
+       scripts, for example), it's probably better to use this
+       scene.GetChildren instead, since it will only access objects from this
+       particular scene.
     """
 
   def getCurrentCamera():
@@ -179,11 +227,12 @@ class Scene:
         'event' type) or None if there are no script links at all.
     """
 
-  def clearScriptLinks ():
+  def clearScriptLinks (links = None):
     """
-    Delete all this Scene's script links.
-    @rtype: bool
-    @return: 0 if some internal problem occurred or 1 if successful.
+    Delete script links from this Scene.  If no list is specified, all
+    script links are deleted.
+    @type links: list of strings
+    @param links: None (default) or a list of Blender L{Text} names.
     """
 
   def addScriptLink (text, event):

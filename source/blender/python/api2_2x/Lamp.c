@@ -24,7 +24,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Nathan Letwory
+ * Contributor(s): Willian P. Germano, Nathan Letwory, Stephen Swaney,
+ * Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -215,7 +216,7 @@ static PyObject *Lamp_setColorComponent( BPy_Lamp * self, char *key,
 					 PyObject * args );
 static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_addScriptLink( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self );
+static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python BPy_Lamp methods table:                                            */
@@ -303,8 +304,9 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "(text) - string: an existing Blender Text name;\n"
 	 "(evt) string: FrameChanged or Redraw."},
 	{"clearScriptLinks", ( PyCFunction ) Lamp_clearScriptLinks,
-	 METH_NOARGS,
-	 "() - Delete all scriptlinks from this lamp."},
+	 METH_VARARGS,
+	 "() - Delete all scriptlinks from this lamp.\n"
+	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this lamp."},
 	{"getIpo", ( PyCFunction ) Lamp_getIpo, METH_NOARGS,
 	 "() - get IPO for this lamp"},
 	{"clearIpo", ( PyCFunction ) Lamp_clearIpo, METH_NOARGS,
@@ -1231,22 +1233,18 @@ static PyObject *Lamp_addScriptLink( BPy_Lamp * self, PyObject * args )
 
 	slink = &( lamp )->scriptlink;
 
-	if( !EXPP_addScriptLink( slink, args, 0 ) )
-		return EXPP_incr_ret( Py_None );
-	else
-		return NULL;
+	return EXPP_addScriptLink( slink, args, 0 );
 }
 
 /* lamp.clearScriptLinks */
-static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self )
+static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args )
 {
 	Lamp *lamp = self->lamp;
 	ScriptLink *slink = NULL;
 
 	slink = &( lamp )->scriptlink;
 
-	return EXPP_incr_ret( Py_BuildValue
-			      ( "i", EXPP_clearScriptLinks( slink ) ) );
+	return EXPP_clearScriptLinks( slink, args );
 }
 
 /* mat.getScriptLinks */

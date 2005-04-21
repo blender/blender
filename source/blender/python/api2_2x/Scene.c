@@ -93,6 +93,9 @@ struct PyMethodDef M_Scene_methods[] = {
 //-----------------------BPy_Scene  method declarations--------------------
 static PyObject *Scene_getName( BPy_Scene * self );
 static PyObject *Scene_setName( BPy_Scene * self, PyObject * arg );
+static PyObject *Scene_getLayers( BPy_Scene * self );
+static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * arg );
+static PyObject *Scene_setLayersMask( BPy_Scene * self, PyObject * arg );
 static PyObject *Scene_copy( BPy_Scene * self, PyObject * arg );
 static PyObject *Scene_makeCurrent( BPy_Scene * self );
 static PyObject *Scene_update( BPy_Scene * self, PyObject * args );
@@ -105,18 +108,8 @@ static PyObject *Scene_getRenderingContext( BPy_Scene * self );
 static PyObject *Scene_getRadiosityContext( BPy_Scene * self );
 static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args );
-static PyObject *Scene_clearScriptLinks( BPy_Scene * self );
+static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_play( BPy_Scene * self, PyObject * args );
-
-//deprecated methods
-static PyObject *Scene_currentFrame( BPy_Scene * self, PyObject * args );
-static PyObject *Scene_getWinSize( BPy_Scene * self );
-static PyObject *Scene_setWinSize( BPy_Scene * self, PyObject * arg );
-static PyObject *Scene_startFrame( BPy_Scene * self, PyObject * args );
-static PyObject *Scene_endFrame( BPy_Scene * self, PyObject * args );
-static PyObject *Scene_frameSettings( BPy_Scene * self, PyObject * args );
-static PyObject *Scene_getRenderdir( BPy_Scene * self );
-static PyObject *Scene_getBackbufdir( BPy_Scene * self );
 
 //internal
 static void Scene_dealloc( BPy_Scene * self );
@@ -131,6 +124,11 @@ static PyMethodDef BPy_Scene_methods[] = {
 	 "() - Return Scene name"},
 	{"setName", ( PyCFunction ) Scene_setName, METH_VARARGS,
 	 "(str) - Change Scene name"},
+	{"getLayers", ( PyCFunction ) Scene_getLayers, METH_NOARGS,
+	 "() - Return a list of layers int indices which are set in this Scene "},
+	{"setLayers", ( PyCFunction ) Scene_setLayers, METH_VARARGS,
+	 "(layers) - Change layers which are set in this Scene\n"
+	 "(layers) - list of integers in the range [1, 20]."},
 	{"copy", ( PyCFunction ) Scene_copy, METH_VARARGS,
 	 "(duplicate_objects = 1) - Return a copy of this scene\n"
 	 "The optional argument duplicate_objects defines how the scene\n"
@@ -160,39 +158,18 @@ static PyMethodDef BPy_Scene_methods[] = {
 	 "(text) - string: an existing Blender Text name;\n"
 	 "(evt) string: FrameChanged, OnLoad or Redraw."},
 	{"clearScriptLinks", ( PyCFunction ) Scene_clearScriptLinks,
-	 METH_NOARGS,
-	 "() - Delete all scriptlinks from this scene."},
+	 METH_VARARGS,
+	 "() - Delete all scriptlinks from this scene.\n"
+	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this scene."},
 	{"setCurrentCamera", ( PyCFunction ) Scene_setCurrentCamera,
 	 METH_VARARGS,
 	 "() - Set the currently active Camera"},
-	//DEPRECATED
-	{"getWinSize", ( PyCFunction ) Scene_getWinSize, METH_NOARGS,
-	 "() - Return Render window [x,y] dimensions"},
-	{"setWinSize", ( PyCFunction ) Scene_setWinSize, METH_VARARGS,
-	 "(str) - Change Render window [x,y] dimensions"},
-	{"startFrame", ( PyCFunction ) Scene_startFrame, METH_VARARGS,
-	 "(frame) - If frame is given, the start frame is set and"
-	 "\nreturned in any case"},
-	{"endFrame", ( PyCFunction ) Scene_endFrame, METH_VARARGS,
-	 "(frame) - If frame is given, the end frame is set and"
-	 "\nreturned in any case"},
-	{"frameSettings", ( PyCFunction ) Scene_frameSettings, METH_VARARGS,
-	 "(start, end, current) - Sets or retrieves the Scene's frame"
-	 " settings.\nIf the frame arguments are specified, they are set. "
-	 "A tuple (start, end, current) is returned in any case."},
-	{"getRenderdir", ( PyCFunction ) Scene_getRenderdir, METH_NOARGS,
-	 "() - Return directory where rendered images are saved to"},
-	{"getBackbufdir", ( PyCFunction ) Scene_getBackbufdir, METH_NOARGS,
-	 "() - Return location of the backbuffer image"},
 	{"getRenderingContext", ( PyCFunction ) Scene_getRenderingContext,
 	 METH_NOARGS,
 	 "() - Get the rendering context for the scene and return it as a BPy_RenderData"},
 	{"getRadiosityContext", ( PyCFunction ) Scene_getRadiosityContext,
 	 METH_NOARGS,
 	 "() - Get the radiosity context for this scene."},
-	{"currentFrame", ( PyCFunction ) Scene_currentFrame, METH_VARARGS,
-	 "(frame) - If frame is given, the current frame is set and"
-	 "\nreturned in any case"},
 	{"play", ( PyCFunction ) Scene_play, METH_VARARGS,
 	 "(mode = 0, win = VIEW3D) - Play realtime animation in Blender"
 	 " (not rendered).\n"
@@ -231,6 +208,7 @@ PyTypeObject Scene_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Scene_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 //-----------------------Scene module Init())-----------------------------
 PyObject *Scene_Init( void )
@@ -264,10 +242,16 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->scene->id.name + 2 );
+	/* accept both Layer (for compatibility with ob.Layer) and Layers */
+	else if( strncmp( name, "Layer", 5 ) == 0 )
+		attr = PyInt_FromLong( self->scene->lay );
+	/* Layers returns a bitmask, layers returns a list of integers */
+	else if( strcmp( name, "layers") == 0) {
+		return Scene_getLayers(self);
+	}
 
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s]", "name" );
-
+		attr = Py_BuildValue( "[ss]", "name", "Layers", "layers" );
 
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -302,8 +286,12 @@ static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
 /* Now we just compare "name" with all possible BPy_Scene member variables */
 	if( strcmp( name, "name" ) == 0 )
 		error = Scene_setName( self, valtuple );
+	else if (strncmp(name, "Layer", 5) == 0)
+		error = Scene_setLayersMask(self, valtuple);	
+	else if (strcmp(name, "layers") == 0)
+		error = Scene_setLayers(self, valtuple);
 
-	else {			/* Error: no member with the given name was found */
+	else { /* Error: no member with the given name was found */
 		Py_DECREF( valtuple );
 		return ( EXPP_ReturnIntError( PyExc_AttributeError, name ) );
 	}
@@ -557,6 +545,114 @@ static PyObject *Scene_setName( BPy_Scene * self, PyObject * args )
 
 	Py_INCREF( Py_None );
 	return Py_None;
+}
+
+//-----------------------Scene.getLayers()---------------------------------
+static PyObject *Scene_getLayers( BPy_Scene * self )
+{
+	PyObject *laylist = PyList_New( 0 ), *item;
+	int layers, bit = 0, val = 0;
+
+	if( !laylist )
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+			"couldn't create pylist!" ) );
+
+	layers = self->scene->lay;
+
+	while( bit < 20 ) {
+		val = 1 << bit;
+		if( layers & val ) {
+			item = Py_BuildValue( "i", bit + 1 );
+			PyList_Append( laylist, item );
+			Py_DECREF( item );
+		}
+		bit++;
+	}
+	return laylist;
+}
+
+//-----------------------Scene.setLayers()---------------------------------
+static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * args )
+{
+	PyObject *list = NULL, *item = NULL;
+	int layers = 0, val, i, len_list;
+
+	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &list ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected a list of integers in the range [1, 20]" ) );
+
+	len_list = PyList_Size(list);
+
+	if (len_list == 0)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"list can't be empty, at least one layer must be set" ) );
+
+	for( i = 0; i < len_list; i++ ) {
+		item = PyList_GetItem( list, i );
+		if( !PyInt_Check( item ) )
+			return EXPP_ReturnPyObjError
+				( PyExc_AttributeError,
+				  "list must contain only integer numbers" );
+
+		val = ( int ) PyInt_AsLong( item );
+		if( val < 1 || val > 20 )
+			return EXPP_ReturnPyObjError
+				( PyExc_AttributeError,
+				  "layer values must be in the range [1, 20]" );
+
+		layers |= 1 << ( val - 1 );
+	}
+	self->scene->lay = layers;
+
+	if (G.vd && (self->scene == G.scene)) {
+		int bit = 0;
+		G.vd->lay = layers;
+
+		while( bit < 20 ) {
+			val = 1 << bit;
+			if( layers & val ) {
+				G.vd->layact = val;
+				break;
+			}
+			bit++;
+		}
+	}
+
+	return EXPP_incr_ret(Py_None);
+}
+
+/* only used by setAttr */
+static PyObject *Scene_setLayersMask(BPy_Scene *self, PyObject *args)
+{
+	int laymask = 0;
+
+	if (!PyArg_ParseTuple(args , "i", &laymask)) {
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected an integer (bitmask) as argument" );
+	}
+
+	if (laymask <= 0 || laymask > 1048575) /* binary: 1111 1111 1111 1111 1111 */
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"bitmask must have from 1 up to 20 bits set");
+
+	self->scene->lay = laymask;
+	/* if this is the current scene then apply the scene layers value
+	 * to the view layers value: */
+	if (G.vd && (self->scene == G.scene)) {
+		int val, bit = 0;
+		G.vd->lay = laymask;
+
+		while( bit < 20 ) {
+			val = 1 << bit;
+			if( laymask & val ) {
+				G.vd->layact = val;
+				break;
+			}
+			bit++;
+		}
+	}
+
+	return EXPP_incr_ret(Py_None);
 }
 
 //-----------------------Scene.copy()------------------------------------
@@ -825,14 +921,11 @@ static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args )
 
 	slink = &( scene )->scriptlink;
 
-	if( !EXPP_addScriptLink( slink, args, 1 ) )
-		return EXPP_incr_ret( Py_None );
-	else
-		return NULL;
+	return EXPP_addScriptLink( slink, args, 1 );
 }
 
 /* scene.clearScriptLinks */
-static PyObject *Scene_clearScriptLinks( BPy_Scene * self )
+static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args )
 {
 	Scene *scene = self->scene;
 	ScriptLink *slink = NULL;
@@ -843,8 +936,7 @@ static PyObject *Scene_clearScriptLinks( BPy_Scene * self )
 
 	slink = &( scene )->scriptlink;
 
-	return EXPP_incr_ret( Py_BuildValue
-			      ( "i", EXPP_clearScriptLinks( slink ) ) );
+	return EXPP_clearScriptLinks( slink, args );
 }
 
 /* scene.getScriptLinks */
@@ -925,63 +1017,4 @@ static PyObject *Scene_play( BPy_Scene * self, PyObject * args )
 		areawinset( oldsa->win );
 
 	return ret;
-}
-
-/*****************************************************************************/
-// DEPRECATED   
-/*****************************************************************************/
-//-----------------------Scene.getRenderdir ()---------------------------
-static PyObject *Scene_getRenderdir( BPy_Scene * self )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.getRenderPath()" );
-}
-
-//-----------------------Scene.getBackbufdir ()--------------------------
-static PyObject *Scene_getBackbufdir( BPy_Scene * self )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.getBackbufPath()" );
-}
-
-//-----------------------Scene.startFrame ()-----------------------------
-static PyObject *Scene_startFrame( BPy_Scene * self, PyObject * args )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.startFrame()" );
-}
-
-//-----------------------Scene.endFrame ()-------------------------------
-static PyObject *Scene_endFrame( BPy_Scene * self, PyObject * args )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.endFrame()" );
-}
-
-//-----------------------Scene.getWinSize ()-----------------------------
-static PyObject *Scene_getWinSize( BPy_Scene * self )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.imageSizeX() and RenderData.imageSizeY" );
-}
-
-//-----------------------Scene.setWinSize()------------------------------
-static PyObject *Scene_setWinSize( BPy_Scene * self, PyObject * args )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.imageSizeX() and RenderData.imageSizeY" );
-}
-
-//-----------------------Scene.frameSettings()---------------------------
-static PyObject *Scene_frameSettings( BPy_Scene * self, PyObject * args )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.startFrame(),  RenderData.endFrame, RenderData.currentFrame" );
-}
-
-//-----------------------Scene.currentFrame()----------------------------
-static PyObject *Scene_currentFrame( BPy_Scene * self, PyObject * args )
-{
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "Deprecated:use RenderData.currentFrame" );
 }

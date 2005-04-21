@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Willian P. Germano, Michel Selten, Alex Mole,
- * Alexander Szakaly, Campbell Barton
+ * Alexander Szakaly, Campbell Barton, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -487,11 +487,9 @@ static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args );
 static PyObject *Material_setColorComponent( BPy_Material * self, char *key,
 					     PyObject * args );
 
-static PyObject *Material_getScriptLinks( BPy_Material * self,
-					  PyObject * args );
-static PyObject *Material_addScriptLink( BPy_Material * self,
-					 PyObject * args );
-static PyObject *Material_clearScriptLinks( BPy_Material * self );
+static PyObject *Material_getScriptLinks(BPy_Material *self, PyObject * args );
+static PyObject *Material_addScriptLink(BPy_Material * self, PyObject * args );
+static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
 static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
 
@@ -668,8 +666,9 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(text) - string: an existing Blender Text name;\n"
 	 "(evt) string: FrameChanged or Redraw."},
 	{"clearScriptLinks", ( PyCFunction ) Material_clearScriptLinks,
-	 METH_NOARGS,
-	 "() - Delete all scriptlinks from this material."},
+	 METH_VARARGS,
+	 "() - Delete all scriptlinks from this material.\n"
+	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this material."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1977,22 +1976,18 @@ static PyObject *Material_addScriptLink( BPy_Material * self, PyObject * args )
 
 	slink = &( mat )->scriptlink;
 
-	if( !EXPP_addScriptLink( slink, args, 0 ) )
-		return EXPP_incr_ret( Py_None );
-	else
-		return NULL;
+	return EXPP_addScriptLink( slink, args, 0 );
 }
 
 /* mat.clearScriptLinks */
-static PyObject *Material_clearScriptLinks( BPy_Material * self )
+static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args )
 {
 	Material *mat = self->material;
 	ScriptLink *slink = NULL;
 
 	slink = &( mat )->scriptlink;
 
-	return EXPP_incr_ret( Py_BuildValue
-			      ( "i", EXPP_clearScriptLinks( slink ) ) );
+	return EXPP_clearScriptLinks( slink, args );
 }
 
 /* mat.getScriptLinks */
