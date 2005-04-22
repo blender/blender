@@ -1000,7 +1000,9 @@ int Resize(TransInfo *t, short mval[2])
 				float obsizemat[3][3];
 				// Reorient the size mat to fit the oriented object.
 				Mat3MulMat3(obsizemat, tmat, td->axismtx);
+				//printmatrix3("obsizemat", obsizemat);
 				Mat3ToSize(obsizemat, fsize);
+				//printvecf("fsize", fsize);
 			}
 			else {
 				Mat3ToSize(tmat, fsize);
@@ -1374,7 +1376,7 @@ int Rotation(TransInfo *t, short mval[2])
 		final *= (float)(M_PI / 180.0);
 	}
 	else {
-		sprintf(str, "Rot: %.2f %s", 180.0*final/M_PI, t->proptext);
+		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 
 	VecRotToMat3(axis, final * td->factor, mat);

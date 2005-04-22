@@ -432,6 +432,9 @@ static void add_pose_transdata(TransInfo *t, ListBase *lb, Object *ob, TransData
 				
 				Mat3CpyMat4 (td->mtx, parmat);
 				Mat3Inv (td->smtx, td->mtx);
+
+				Mat3CpyMat3(td->axismtx, td->mtx);
+				Mat3Ortho(td->axismtx);
 				
 				(*tdp)++;
 				deeper= 0;

@@ -114,36 +114,38 @@ void getConstraintMatrix(TransInfo *t);
 void constraintNumInput(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
-	float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
+	if (mode & CON_APPLY) {
+		float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
 
-	if (getConstraintSpaceDimension(t) == 2) {
-		if (mode & (CON_AXIS0|CON_AXIS1)) {
-			vec[2] = nval;
+		if (getConstraintSpaceDimension(t) == 2) {
+			if (mode & (CON_AXIS0|CON_AXIS1)) {
+				vec[2] = nval;
+			}
+			else if (mode & (CON_AXIS1|CON_AXIS2)) {
+				vec[2] = vec[1];
+				vec[1] = vec[0];
+				vec[0] = nval;
+			}
+			else if (mode & (CON_AXIS0|CON_AXIS2)) {
+				vec[2] = vec[1];
+				vec[1] = nval;
+			}
 		}
-		else if (mode & (CON_AXIS1|CON_AXIS2)) {
-			vec[2] = vec[1];
-			vec[1] = vec[0];
-			vec[0] = nval;
-		}
-		else if (mode & (CON_AXIS0|CON_AXIS2)) {
-			vec[2] = vec[1];
-			vec[1] = nval;
-		}
-	}
-	else if (getConstraintSpaceDimension(t) == 1) {
-		if (mode & CON_AXIS0) {
-			vec[1] = nval;
-			vec[2] = nval;
-		}
-		else if (mode & CON_AXIS1) {
-			vec[1] = vec[0];
-			vec[0] = nval;
-			vec[2] = nval;
-		}
-		else if (mode & CON_AXIS2) {
-			vec[2] = vec[0];
-			vec[0] = nval;
-			vec[1] = nval;
+		else if (getConstraintSpaceDimension(t) == 1) {
+			if (mode & CON_AXIS0) {
+				vec[1] = nval;
+				vec[2] = nval;
+			}
+			else if (mode & CON_AXIS1) {
+				vec[1] = vec[0];
+				vec[0] = nval;
+				vec[2] = nval;
+			}
+			else if (mode & CON_AXIS2) {
+				vec[2] = vec[0];
+				vec[0] = nval;
+				vec[1] = nval;
+			}
 		}
 	}
 }
