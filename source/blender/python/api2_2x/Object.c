@@ -3904,7 +3904,7 @@ int setupSB(Object* ob){
     	ob->soft->nodemass   = 1.0;		
     	ob->soft->grav       = 0.0;			
     	ob->soft->mediafrict = 0.5;	
-    	ob->soft->rklimit    = 0.01;		
+    	ob->soft->rklimit    = 0.1;		
     	ob->soft->goalspring = 0.5;	
     	ob->soft->goalfrict  = 0.0;	
     	ob->soft->mingoal    = 0.0;		
