@@ -11,7 +11,7 @@ class SumoPHYCallbackBridge
 
 public:
 	
-	SumoPHYCallbackBridge::SumoPHYCallbackBridge(void* clientData,PHY_ResponseCallback phyCallback);
+	SumoPHYCallbackBridge(void* clientData,PHY_ResponseCallback phyCallback);
 
 	static DT_Bool StaticSolidToPHYCallback(void *client_data,
 										   void *client_object1,
