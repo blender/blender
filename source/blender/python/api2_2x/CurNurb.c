@@ -51,7 +51,7 @@ stuff in this section should be placed in bpy_types.h
  */
 
 
-extern PyMethodDef BPy_CurNurb_methods[];
+static PyMethodDef BPy_CurNurb_methods[];
 PyObject *CurNurb_CreatePyObject( Nurb * blen_nurb );
 static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self );
