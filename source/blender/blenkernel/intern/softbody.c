@@ -1021,7 +1021,8 @@ SoftBody *sbNew(void)
 	sb->nodemass= 1.0;
 	sb->grav= 0.0; 
 	sb->physics_speed= 1.0;
-	
+	sb->rklimit= 0.1;
+
 	sb->goalspring= 0.5; 
 	sb->goalfrict= 0.0; 
 	sb->mingoal= 0.0;  
