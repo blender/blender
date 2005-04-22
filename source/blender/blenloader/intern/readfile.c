@@ -4665,8 +4665,10 @@ static void do_versions(Main *main)
 		}
 		// init new shader vars
 		for (ma= main->mat.first; ma; ma= ma->id.next) {
-			ma->rms=0.1;
-			ma->darkness=1.0;
+			if(ma->darkness==0.0) {
+				ma->rms=0.1;
+				ma->darkness=1.0;
+			}
 		}
 		
 		/* temporal copy */
@@ -4699,6 +4701,15 @@ static void do_versions(Main *main)
 				}
 			}
 		}
+		Camera *ca;
+		
+		for (ca= main->camera.first; ca; ca= ca->id.next) {
+			ca->focus= 0.9;
+			ca->zgamma= 1.0;
+			ca->zblur= 10.0;
+			ca->zmin= 0.8;
+			ca->flag |= CAM_AUTOFOCUS;
+		}		
 	}
 	
 	/* don't forget to set version number in blender.c! */
