@@ -39,19 +39,12 @@
 #include "BezTriple.h"
 
 
-/*-------------------------------------------------------------
-
-stuff in this section should be placed in bpy_types.h
-
------------------------------------------------------------*/
-
-
 /*
  * forward declarations go here
  */
 
 
-static PyMethodDef BPy_CurNurb_methods[];
+static PyObject *M_CurNurb_New( PyObject * self, PyObject * args );
 PyObject *CurNurb_CreatePyObject( Nurb * blen_nurb );
 static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self );
@@ -81,6 +74,166 @@ static int CurNurb_compare( BPy_CurNurb * a, BPy_CurNurb * b );
 static PyObject *CurNurb_getAttr( BPy_CurNurb * self, char *name );
 static int CurNurb_setAttr( BPy_CurNurb * self, char *name, PyObject * v );
 static PyObject *CurNurb_repr( BPy_CurNurb * self );
+
+
+
+/*
+   table of module methods
+   these are the equivalent of class or static methods.
+   you do not need an object instance to call one.
+  
+*/
+
+static PyMethodDef M_CurNurb_methods[] = {
+/*   name, method, flags, doc_string                */
+	{"New", ( PyCFunction ) M_CurNurb_New, METH_VARARGS | METH_KEYWORDS,
+	 " () - doc string"},
+/*  {"Get", (PyCFunction) M_CurNurb_method, METH_NOARGS, " () - doc string"}, */
+/*   {"method", (PyCFunction) M_CurNurb_method, METH_NOARGS, " () - doc string"}, */
+
+	{NULL, NULL, 0, NULL}
+};
+
+
+
+/*
+ * method table
+ * table of instance methods
+ * these methods are invoked on an instance of the type.
+*/
+
+static PyMethodDef BPy_CurNurb_methods[] = {
+/*   name,     method,                    flags,         doc               */
+/*  {"method", (PyCFunction) CurNurb_method, METH_NOARGS, " () - doc string"} */
+	{"setMatIndex", ( PyCFunction ) CurNurb_setMatIndex, METH_VARARGS,
+	 "( index ) - set index into materials list"},
+	{"getMatIndex", ( PyCFunction ) CurNurb_getMatIndex, METH_NOARGS,
+	 "( ) - get current material index"},
+	{"setFlagU", ( PyCFunction ) CurNurb_setFlagU, METH_VARARGS,
+	 "( index ) - set flagU and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
+	{"getFlagU", ( PyCFunction ) CurNurb_getFlagU, METH_NOARGS,
+	 "( ) - get flagU of the knots"},
+	{"setFlagV", ( PyCFunction ) CurNurb_setFlagV, METH_VARARGS,
+	 "( index ) - set flagV and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
+	{"getFlagV", ( PyCFunction ) CurNurb_getFlagV, METH_NOARGS,
+	 "( ) - get flagV of the knots"},
+	{"append", ( PyCFunction ) CurNurb_append, METH_VARARGS,
+	 "( point ) - add a new point.  arg is BezTriple or list of x,y,z,w floats"},
+	{"isNurb", ( PyCFunction ) CurNurb_isNurb, METH_NOARGS,
+	 "( ) - boolean function tests if this spline is type nurb or bezier"},
+	{"isCyclic", ( PyCFunction ) CurNurb_isCyclic, METH_NOARGS,
+	 "( ) - boolean function tests if this spline is cyclic (closed) or not (open)"},
+	{NULL, NULL, 0, NULL}
+};
+
+
+/* 
+ *   methods for CurNurb as sequece
+ */
+
+static PySequenceMethods CurNurb_as_sequence = {
+	( inquiry ) CurNurb_length,	/* sq_length   */
+	( binaryfunc ) 0,	/* sq_concat */
+	( intargfunc ) 0,	/* sq_repeat */
+	( intargfunc ) CurNurb_getPoint,	/* sq_item */
+	( intintargfunc ) 0,	/* sq_slice */
+	0,			/* sq_ass_item */
+	0,			/* sq_ass_slice */
+	( objobjproc ) 0,	/* sq_contains */
+	0,
+	0
+};
+
+
+
+/*
+  Object Type definition
+  full blown 2.3 struct
+  if you are having trouble building with an earlier version of python,
+   this is why.
+*/
+
+PyTypeObject CurNurb_Type = {
+	PyObject_HEAD_INIT( NULL ) /* required py macro */
+	0,	/* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"CurNurb",		/* char *tp_name; */
+	sizeof( CurNurb_Type ),	/* int tp_basicsize, */
+	0,			/* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) CurNurb_dealloc,	/*    destructor tp_dealloc; */
+	0,			/*    printfunc tp_print; */
+	( getattrfunc ) CurNurb_getAttr,	/*    getattrfunc tp_getattr; */
+	( setattrfunc ) CurNurb_setAttr,	/*    setattrfunc tp_setattr; */
+	( cmpfunc ) CurNurb_compare,	/*    cmpfunc tp_compare; */
+	( reprfunc ) CurNurb_repr,	/*    reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	0,			/*    PyNumberMethods *tp_as_number; */
+	&CurNurb_as_sequence,	/*    PySequenceMethods *tp_as_sequence; */
+	0,			/*    PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	0,			/*    hashfunc tp_hash; */
+	0,			/*    ternaryfunc tp_call; */
+	0,			/*    reprfunc tp_str; */
+	0,			/*    getattrofunc tp_getattro; */
+	0,			/*    setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	0,			/*    PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,	/*    long tp_flags; */
+
+	0,			/*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	0,			/*    traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	0,			/*    inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	0,			/*  richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,			/* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	( getiterfunc ) CurNurb_getIter,	/*    getiterfunc tp_iter; */
+	( iternextfunc ) CurNurb_iterNext,	/*    iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_CurNurb_methods,	/*    struct PyMethodDef *tp_methods; */
+	0,			/*    struct PyMemberDef *tp_members; */
+	0,			/*    struct PyGetSetDef *tp_getset; */
+	0,			/*    struct _typeobject *tp_base; */
+	0,			/*    PyObject *tp_dict; */
+	0,			/*    descrgetfunc tp_descr_get; */
+	0,			/*    descrsetfunc tp_descr_set; */
+	0,			/*    long tp_dictoffset; */
+	0,			/*    initproc tp_init; */
+	0,			/*    allocfunc tp_alloc; */
+	0,			/*    newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	0,			/*    freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	0,			/*    inquiry tp_is_gc;  */
+	0,			/*    PyObject *tp_bases; */
+	/* method resolution order */
+	0,			/*    PyObject *tp_mro;  */
+	0,			/*    PyObject *tp_cache; */
+	0,			/*    PyObject *tp_subclasses; */
+	0,			/*    PyObject *tp_weaklist; */
+	0
+};
 
 
 
@@ -539,163 +692,6 @@ static PyObject *CurNurb_isCyclic( BPy_CurNurb * self )
 		return EXPP_incr_ret_False();
 	}
 }
-
-/*
-   table of module methods
-   these are the equivalent of class or static methods.
-   you do not need an object instance to call one.
-  
-*/
-
-static PyMethodDef M_CurNurb_methods[] = {
-/*   name, method, flags, doc_string                */
-	{"New", ( PyCFunction ) M_CurNurb_New, METH_VARARGS | METH_KEYWORDS,
-	 " () - doc string"},
-/*  {"Get", (PyCFunction) M_CurNurb_method, METH_NOARGS, " () - doc string"}, */
-/*   {"method", (PyCFunction) M_CurNurb_method, METH_NOARGS, " () - doc string"}, */
-
-	{NULL, NULL, 0, NULL}
-};
-
-
-
-/*
- * method table
- * table of instance methods
- * these methods are invoked on an instance of the type.
-*/
-
-static PyMethodDef BPy_CurNurb_methods[] = {
-/*   name,     method,                    flags,         doc               */
-/*  {"method", (PyCFunction) CurNurb_method, METH_NOARGS, " () - doc string"} */
-	{"setMatIndex", ( PyCFunction ) CurNurb_setMatIndex, METH_VARARGS,
-	 "( index ) - set index into materials list"},
-	{"getMatIndex", ( PyCFunction ) CurNurb_getMatIndex, METH_NOARGS,
-	 "( ) - get current material index"},
-	{"setFlagU", ( PyCFunction ) CurNurb_setFlagU, METH_VARARGS,
-	 "( index ) - set flagU and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
-	{"getFlagU", ( PyCFunction ) CurNurb_getFlagU, METH_NOARGS,
-	 "( ) - get flagU of the knots"},
-	{"setFlagV", ( PyCFunction ) CurNurb_setFlagV, METH_VARARGS,
-	 "( index ) - set flagV and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
-	{"getFlagV", ( PyCFunction ) CurNurb_getFlagV, METH_NOARGS,
-	 "( ) - get flagV of the knots"},
-	{"append", ( PyCFunction ) CurNurb_append, METH_VARARGS,
-	 "( point ) - add a new point.  arg is BezTriple or list of x,y,z,w floats"},
-	{"isNurb", ( PyCFunction ) CurNurb_isNurb, METH_NOARGS,
-	 "( ) - boolean function tests if this spline is type nurb or bezier"},
-	{"isCyclic", ( PyCFunction ) CurNurb_isCyclic, METH_NOARGS,
-	 "( ) - boolean function tests if this spline is cyclic (closed) or not (open)"},
-	{NULL, NULL, 0, NULL}
-};
-
-
-/* 
- *   methods for CurNurb as sequece
- */
-
-static PySequenceMethods CurNurb_as_sequence = {
-	( inquiry ) CurNurb_length,	/* sq_length   */
-	( binaryfunc ) 0,	/* sq_concat */
-	( intargfunc ) 0,	/* sq_repeat */
-	( intargfunc ) CurNurb_getPoint,	/* sq_item */
-	( intintargfunc ) 0,	/* sq_slice */
-	0,			/* sq_ass_item */
-	0,			/* sq_ass_slice */
-	( objobjproc ) 0,	/* sq_contains */
-	0,
-	0
-};
-
-
-
-/*
-  Object Type definition
-  full blown 2.3 struct
-*/
-
-PyTypeObject CurNurb_Type = {
-	PyObject_HEAD_INIT( NULL ) /* required py macro */
-	0,	/* ob_size */
-	/*  For printing, in format "<module>.<name>" */
-	"CurNurb",		/* char *tp_name; */
-	sizeof( CurNurb_Type ),	/* int tp_basicsize, */
-	0,			/* tp_itemsize;  For allocation */
-
-	/* Methods to implement standard operations */
-
-	( destructor ) CurNurb_dealloc,	/*    destructor tp_dealloc; */
-	0,			/*    printfunc tp_print; */
-	( getattrfunc ) CurNurb_getAttr,	/*    getattrfunc tp_getattr; */
-	( setattrfunc ) CurNurb_setAttr,	/*    setattrfunc tp_setattr; */
-	( cmpfunc ) CurNurb_compare,	/*    cmpfunc tp_compare; */
-	( reprfunc ) CurNurb_repr,	/*    reprfunc tp_repr; */
-
-	/* Method suites for standard classes */
-
-	0,			/*    PyNumberMethods *tp_as_number; */
-	&CurNurb_as_sequence,	/*    PySequenceMethods *tp_as_sequence; */
-	0,			/*    PyMappingMethods *tp_as_mapping; */
-
-	/* More standard operations (here for binary compatibility) */
-
-	0,			/*    hashfunc tp_hash; */
-	0,			/*    ternaryfunc tp_call; */
-	0,			/*    reprfunc tp_str; */
-	0,			/*    getattrofunc tp_getattro; */
-	0,			/*    setattrofunc tp_setattro; */
-
-	/* Functions to access object as input/output buffer */
-	0,			/*    PyBufferProcs *tp_as_buffer; */
-
-  /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT,	/*    long tp_flags; */
-
-	0,			/*  char *tp_doc;  Documentation string */
-  /*** Assigned meaning in release 2.0 ***/
-	/* call function for all accessible objects */
-	0,			/*    traverseproc tp_traverse; */
-
-	/* delete references to contained objects */
-	0,			/*    inquiry tp_clear; */
-
-  /***  Assigned meaning in release 2.1 ***/
-  /*** rich comparisons ***/
-	0,			/*  richcmpfunc tp_richcompare; */
-
-  /***  weak reference enabler ***/
-	0,			/* long tp_weaklistoffset; */
-
-  /*** Added in release 2.2 ***/
-	/*   Iterators */
-	( getiterfunc ) CurNurb_getIter,	/*    getiterfunc tp_iter; */
-	( iternextfunc ) CurNurb_iterNext,	/*    iternextfunc tp_iternext; */
-
-  /*** Attribute descriptor and subclassing stuff ***/
-	BPy_CurNurb_methods,	/*    struct PyMethodDef *tp_methods; */
-	0,			/*    struct PyMemberDef *tp_members; */
-	0,			/*    struct PyGetSetDef *tp_getset; */
-	0,			/*    struct _typeobject *tp_base; */
-	0,			/*    PyObject *tp_dict; */
-	0,			/*    descrgetfunc tp_descr_get; */
-	0,			/*    descrsetfunc tp_descr_set; */
-	0,			/*    long tp_dictoffset; */
-	0,			/*    initproc tp_init; */
-	0,			/*    allocfunc tp_alloc; */
-	0,			/*    newfunc tp_new; */
-	/*  Low-level free-memory routine */
-	0,			/*    freefunc tp_free;  */
-	/* For PyObject_IS_GC */
-	0,			/*    inquiry tp_is_gc;  */
-	0,			/*    PyObject *tp_bases; */
-	/* method resolution order */
-	0,			/*    PyObject *tp_mro;  */
-	0,			/*    PyObject *tp_cache; */
-	0,			/*    PyObject *tp_subclasses; */
-	0,			/*    PyObject *tp_weaklist; */
-	0
-};
-
 
 /*
  * CurNurb_length
