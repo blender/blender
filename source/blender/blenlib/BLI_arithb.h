@@ -811,6 +811,26 @@ Vec2Addf(
 	float *v1, 
 	float *v2
 );
+	void 
+Vec2Subf(
+	float *v,
+	float *v1, 
+	float *v2
+);
+	void
+Vec2Copyf(
+	float *v1,
+	float *v2
+);
+	float 
+Inp2f(
+	float *v1, 
+	float *v2
+);
+	float 
+Normalise2(
+	float *n
+);
 
 void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);

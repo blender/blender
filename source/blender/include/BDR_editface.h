@@ -47,6 +47,7 @@ void select_linked_tfaces(void);
 void deselectall_tface(void);
 void selectswap_tface(void);
 void rotate_uv_tface(void);
+void minmax_tface(float *min, float *max);
 int face_pick(struct Mesh *me, short x, short y);
 void face_select(void);
 void face_borderselect(void);

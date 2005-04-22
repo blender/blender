@@ -844,6 +844,54 @@ void rotate_uv_tface()
 	allqueue(REDRAWIMAGE, 0);
 }
 
+void minmax_tface(float *min, float *max)
+{
+	Object *ob;
+	Mesh *me;
+	MFace *mf;
+	TFace *tf;
+	MVert *mv;
+	int a;
+	float vec[3], bmat[3][3];
+	
+	ob = OBACT;
+	if (ob==0) return;
+	me= get_mesh(ob);
+	if(me==0 || me->tface==0) return;
+	
+	Mat3CpyMat4(bmat, ob->obmat);
+
+	mv= me->mvert;
+	mf= me->mface;
+	tf= me->tface;
+	for (a=me->totface; a>0; a--, mf++, tf++) {
+		if (!mf->v3 || tf->flag & TF_HIDE || !(tf->flag & TF_SELECT))
+			continue;
+
+		VECCOPY(vec, (mv+mf->v1)->co);
+		Mat3MulVecfl(bmat, vec);
+		VecAddf(vec, vec, ob->obmat[3]);
+		DO_MINMAX(vec, min, max);		
+
+		VECCOPY(vec, (mv+mf->v2)->co);
+		Mat3MulVecfl(bmat, vec);
+		VecAddf(vec, vec, ob->obmat[3]);
+		DO_MINMAX(vec, min, max);		
+
+		VECCOPY(vec, (mv+mf->v3)->co);
+		Mat3MulVecfl(bmat, vec);
+		VecAddf(vec, vec, ob->obmat[3]);
+		DO_MINMAX(vec, min, max);		
+
+		if (mf->v4) {
+			VECCOPY(vec, (mv+mf->v4)->co);
+			Mat3MulVecfl(bmat, vec);
+			VecAddf(vec, vec, ob->obmat[3]);
+			DO_MINMAX(vec, min, max);
+		}
+	}
+}
+
 /**
  * Returns the face under the give position in screen coordinates.
  * Code extracted from face_select routine.

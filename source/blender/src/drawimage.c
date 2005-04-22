@@ -1020,3 +1020,32 @@ void image_home(void)
 	scrarea_queue_winredraw(curarea);
 }
 
+void image_viewcentre(void)
+{
+	float size, min[2], max[2], d[2], xim=256.0f, yim=256.0f;
+
+	if( is_uv_tface_editing_allowed()==0 ) return;
+
+	if (!minmax_tface_uv(min, max)) return;
+
+	if(G.sima->image && G.sima->image->ibuf) {
+		xim= G.sima->image->ibuf->x;
+		yim= G.sima->image->ibuf->y;
+	}
+
+	G.sima->xof= ((min[0] + max[0])*0.5f - 0.5f)*xim;
+	G.sima->yof= ((min[1] + max[1])*0.5f - 0.5f)*yim;
+
+	d[0] = max[0] - min[0];
+	d[1] = max[1] - min[1];
+	size= 0.5*MAX2(d[0], d[1])*MAX2(xim, yim)/256.0f;
+	
+	if(size<=0.01) size= 0.01;
+
+	G.sima->zoom= 1.0/size;
+
+	calc_image_view(G.sima, 'p');
+
+	scrarea_queue_winredraw(curarea);
+}
+

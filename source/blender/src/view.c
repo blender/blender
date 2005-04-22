@@ -75,6 +75,7 @@
 #include "BSE_drawview.h"	/* For inner_play_anim_loop */
 
 #include "BDR_drawobject.h"	/* For draw_object */
+#include "BDR_editface.h"	/* For minmax_tface */
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1004,6 +1005,10 @@ void centreview()	/* like a localview without local! */
 		minmax_verts(min, max);
 		//minmax_object(G.obedit, min, max);
 		
+		ok= 1;
+	}
+	else if (G.f & G_FACESELECT) {
+		minmax_tface(min, max);
 		ok= 1;
 	}
 	else {

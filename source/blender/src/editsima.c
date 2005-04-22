@@ -1739,3 +1739,42 @@ void pin_tface_uv(int mode)
 	scrarea_queue_winredraw(curarea);
 }
 
+int minmax_tface_uv(float *min, float *max)
+{
+	Mesh *me;
+	TFace *tf;
+	MFace *mf;
+	int a, sel;
+
+	if( is_uv_tface_editing_allowed()==0 ) return 0;
+	me= get_mesh(OBACT);
+
+	INIT_MINMAX2(min, max);
+
+	sel= 0;
+	mf= (MFace*)me->mface;
+	tf= (TFace*)me->tface;
+	for(a=me->totface; a>0; a--, tf++, mf++) {
+		if(tf->flag & TF_HIDE);
+		else if(mf->v3 && (tf->flag & TF_SELECT)) {
+
+			if (tf->flag & TF_SEL1) {
+				DO_MINMAX2(tf->uv[0], min, max);
+			}
+			if (tf->flag & TF_SEL2) {
+				DO_MINMAX2(tf->uv[1], min, max);
+			}
+			if (tf->flag & TF_SEL3) {
+				DO_MINMAX2(tf->uv[2], min, max);
+			}
+			if (mf->v4 && tf->flag & TF_SEL4) {
+				DO_MINMAX2(tf->uv[3], min, max);
+			}
+
+			sel = 1;
+		}
+	}
+
+	return sel;
+}
+

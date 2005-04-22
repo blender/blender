@@ -3835,6 +3835,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case WKEY:
 				transform_tface_uv('w');
 				break;
+			case PADPERIOD:
+				if(G.qual==0)
+					image_viewcentre();
+				break;
 		}
 	}	
 

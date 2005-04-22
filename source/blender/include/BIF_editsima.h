@@ -46,4 +46,5 @@ void unlink_selection(void);
 void select_linked_tface_uv(void);
 void toggle_uv_select(int mode);
 void pin_tface_uv(int mode);
+int minmax_tface_uv(float *min, float *max);
 

@@ -2365,6 +2365,41 @@ void Vec2Addf(float *v, float *v1, float *v2)
 	v[1]= v1[1]+ v2[1];
 }
 
+void Vec2Subf(float *v, float *v1, float *v2)
+{
+	v[0]= v1[0]- v2[0];
+	v[1]= v1[1]- v2[1];
+}
+
+void Vec2Copyf(float *v1, float *v2)
+{
+	v1[0]= v2[0];
+	v1[1]= v2[1];
+}
+
+float Inp2f(float *v1, float *v2)
+{
+	return v1[0]*v2[0]+v1[1]*v2[1];
+}
+
+float Normalise2(float *n)
+{
+	float d;
+	
+	d= n[0]*n[0]+n[1]*n[1];
+
+	if(d>1.0e-35F) {
+		d= (float)sqrt(d);
+
+		n[0]/=d; 
+		n[1]/=d; 
+	} else {
+		n[0]=n[1]= 0.0;
+		d= 0.0;
+	}
+	return d;
+}
+
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 {
 	int i;

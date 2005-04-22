@@ -44,6 +44,7 @@ void image_changed(struct SpaceImage *sima, int dotile);
 void image_home(void);
 void image_viewmove(void);
 void image_viewzoom(unsigned short event);
+void image_viewcentre(void);
 void uvco_to_areaco(float *vec, short *mval);
 void uvco_to_areaco_noclip(float *vec, short *mval);
 void what_image(struct SpaceImage *sima);
