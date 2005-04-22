@@ -588,11 +588,11 @@ class NMesh:
     """
     Transforms the mesh by the specified 4x4 matrix, as returned by
     L{Object.Object.getMatrix}, though this will work with any invertible 4x4
-    matrix type.  Ideal Usage for this is exporting to an external file, where
+    matrix type.  Ideal usage for this is exporting to an external file where
     global vertex locations are required for each object.
-    Sometimes external renderers / file formats do not use vertex normals.
-    In this case you can skip transforming the vertex normals by letting
-    the optional parameter recalc_normals as False or 0.
+    Sometimes external renderers or file formats do not use vertex normals.
+    In this case, you can skip transforming the vertex normals by leaving
+    the optional parameter recalc_normals as False or 0 ( the default value ).
     
     Example::
      # This script outputs deformed meshes worldspace vertex locations
@@ -610,7 +610,7 @@ class NMesh:
     @type matrix: Py_Matrix
     @param matrix: 4x4 Matrix which can contain location, scale and rotation. 
     @type recalc_normals: int (bool)
-    @param recalc_normals: if True or 1, will only transform vertex locations.
+    @param recalc_normals: if True or 1, transform normals as well as vertex coordinates.
     @warn: if you call this method and later L{update} the mesh, the new
         vertex positions will be passed back to Blender, but the object
         matrix of each object linked to this mesh won't be automatically

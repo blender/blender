@@ -292,10 +292,9 @@ If the name of a mesh to replace is not given a new\n\
 object is created and returned.";
 
 static char NMesh_transform_doc[] =
-	"(matrix, recalc_normals = 0) - Transform the mesh by the supplied 4x4\n\
-matrix.\n\
-(recalc_normals) - if given and 1 or True, transforming the vertex normals\n\
-is skipped.";
+"(matrix, recalc_normals = 0) - Transform the mesh by the supplied 4x4 matrix\n\
+if recalc_normals is True, vertex normals are transformed along with \n\
+vertex coordinatess.\n";
 
 
 void mesh_update( Mesh * mesh )
