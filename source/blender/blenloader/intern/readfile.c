@@ -4701,7 +4701,7 @@ static void do_versions(Main *main)
 				}
 			}
 		}
-		Camera *ca;
+		/*Camera *ca;
 		
 		for (ca= main->camera.first; ca; ca= ca->id.next) {
 			ca->focus= 0.9;
@@ -4709,7 +4709,7 @@ static void do_versions(Main *main)
 			ca->zblur= 10.0;
 			ca->zmin= 0.8;
 			ca->flag |= CAM_AUTOFOCUS;
-		}		
+		}*/		
 	}
 	
 	/* don't forget to set version number in blender.c! */
