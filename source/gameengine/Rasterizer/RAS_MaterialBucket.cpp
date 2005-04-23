@@ -181,13 +181,11 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 
 	if ((rasty->GetDrawingMode() <= RAS_IRasterizer::KX_SOLID) || !dolights)
 	{
-		// bool bUseLights = rendertools->ProcessLighting(-1); /*unused*/
-		;
+		rendertools->ProcessLighting(-1);
 	}
 	else
 	{
-		// bool bUseLights = rendertools->ProcessLighting(m_material->GetLightLayer()); /*unused*/
-		;
+		rendertools->ProcessLighting(m_material->GetLightLayer());
 	}
 
 	drawmode = (rasty->GetDrawingMode()  < RAS_IRasterizer::KX_SOLID ? 	
