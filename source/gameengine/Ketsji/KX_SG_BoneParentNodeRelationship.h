@@ -46,158 +46,63 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  * 
  */
- 
-#ifndef __KX_SG_NODERELATIONS_H__
-#define __KX_SG_NODERELATIONS_H__
 
+#ifndef __KX_SG_BONEPARENTRELATION_H__
+#define __KX_SG_BONEPARENTRELATION_H__
+ 
 #include "SG_Spatial.h"
 #include "SG_ParentRelation.h"
 
-class KX_NormalParentRelation : public SG_ParentRelation
+struct Bone;
+
+/**
+ *  Bone parent relationship parents a child SG_Spatial frame to a 
+ *  bone in an armature object.
+ */
+class KX_BoneParentRelation : public SG_ParentRelation
 {
 
 public :
 
 	/**
-	 * Allocate and construct a new KX_NormalParentRelation
+	 * Allocate and construct a new KX_SG_BoneParentRelation
 	 * on the heap.
+	 *
+	 * bone is the bone id to use.  Currently it is a pointer
+	 * to a Blender struct Bone - this should be fixed if
 	 */
 
 	static 
-		KX_NormalParentRelation *
-	New(
+		KX_BoneParentRelation *
+	New(Bone* bone
 	);		
 
-	/** 
-	 * Method inherited from KX_ParentRelation
+	/**
+	 *  Updates the childs world coordinates relative to the parent's
+	 *  world coordinates.
+	 *
+	 *  Parent should be a BL_ArmatureObject.
 	 */
-
 		bool
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent
 	);
 
-	/** 
-	 * Method inherited from KX_ParentRelation
+	/**
+	 *  Create a copy of this relationship
 	 */
-	
 		SG_ParentRelation *
 	NewCopy(
 	);
 
-	~KX_NormalParentRelation(
+	~KX_BoneParentRelation(
 	);
 
 private :
-
-	KX_NormalParentRelation(
+	Bone* m_bone;
+	KX_BoneParentRelation(Bone* bone
 	);
-
-};
-
-
-class KX_VertexParentRelation : public SG_ParentRelation
-{
-
-public :
-
-	/**
-	 * Allocate and construct a new KX_VertexParentRelation
-	 * on the heap.
-	 */
-
-	static 
-		KX_VertexParentRelation *
-	New(
-	);		
-
-	/** 
-	 * Method inherited from KX_ParentRelation
-	 */
-
-		bool
-	UpdateChildCoordinates(
-		SG_Spatial * child,
-		const SG_Spatial * parent
-	);
-
-	/** 
-	 * Method inherited from KX_ParentRelation
-	 */
-	
-		SG_ParentRelation *
-	NewCopy(
-	);
-
-	~KX_VertexParentRelation(
-	);
-
-private :
-
-	KX_VertexParentRelation(
-	);
-
-};
-
-
-class KX_SlowParentRelation : public SG_ParentRelation
-{
-
-public :
-
-	/**
-	 * Allocate and construct a new KX_VertexParentRelation
-	 * on the heap.
-	 */
-
-	static 
-		KX_SlowParentRelation *
-	New(
-		MT_Scalar relaxation
-	);		
-
-	/** 
-	 * Method inherited from KX_ParentRelation
-	 */
-
-		bool
-	UpdateChildCoordinates(
-		SG_Spatial * child,
-		const SG_Spatial * parent
-	);
-
-	/** 
-	 * Method inherited from KX_ParentRelation
-	 */
-	
-		SG_ParentRelation *
-	NewCopy(
-	);
-
-	~KX_SlowParentRelation(
-	);
-
-private :
-
-	KX_SlowParentRelation(
-		MT_Scalar relaxation
-	);
-
-	// the relaxation coefficient.
-
-	MT_Scalar m_relax;
-
-	/**
-	 * Looks like a hack flag to me.
-	 * We need to compute valid world coordinates the first
-	 * time we update spatial data of the child. This is done
-	 * by just doing a normal parent relation the first time
-	 * UpdateChildCoordinates is called and then doing the
-	 * slow parent relation 
-	 */
-
-	bool m_initialized;
 
 };
 

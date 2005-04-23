@@ -39,6 +39,10 @@
 #include "GEN_HashedPtr.h"
 #include "MEM_guardedalloc.h"
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_object_types.h"
+
+#include "MT_Matrix4x4.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -72,7 +76,7 @@ BL_ArmatureObject::~BL_ArmatureObject()
 void BL_ArmatureObject::ApplyPose()
 {
 	if (m_pose){
-		apply_pose_armature(m_armature, m_pose, 1);
+		apply_pose_armature(GetArmature(), m_pose, 1);
 		if (!m_mrdPose)
 			copy_pose (&m_mrdPose, m_pose, 0);
 		else
@@ -151,3 +155,21 @@ double BL_ArmatureObject::GetLastFrame()
 {
 	return m_lastframe;
 }
+
+bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const
+{
+	MT_assert(verify_boneptr((bArmature*) GetArmature(), bone) && "Bone is not part of this armature.");
+	
+	matrix.setValue(&bone->posemat[0][0]);
+	
+	return true;
+}
+
+float BL_ArmatureObject::GetBoneLength(Bone* bone) const
+{
+	MT_assert(verify_boneptr((bArmature*) GetArmature(), bone) && "Bone is not part of this armature.");
+	
+	return (MT_Point3(bone->head) - MT_Point3(bone->tail)).length();
+}
+
+

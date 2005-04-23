@@ -37,7 +37,11 @@
 
 #include "SG_IObject.h"
 
+struct bArmature;
+struct Bone;
+
 class BL_ActionActuator;
+class MT_Matrix4x4;
 
 class BL_ArmatureObject : public KX_GameObject  
 {
@@ -47,10 +51,10 @@ public:
 	virtual void ProcessReplica(BL_ArmatureObject *replica);
 	class BL_ActionActuator * GetActiveAction();
 	BL_ArmatureObject(void* sgReplicationInfo, SG_Callbacks callbacks,
-		struct bArmature *arm,
+		bArmature *armature,
 		struct bPose *pose) :
 	KX_GameObject(sgReplicationInfo,callbacks),
-		m_armature(arm),
+		m_armature(armature),
 		m_pose(pose),
 		m_mrdPose(NULL),
 		m_lastframe(0.),
@@ -65,7 +69,17 @@ public:
 	void SetPose (struct bPose *pose);
 	void ApplyPose();
 	bool SetActiveAction(class BL_ActionActuator *act, short priority, double curtime);
-	struct bArmature * GetArmature(){return m_armature;};
+	
+	struct bArmature * GetArmature() { return m_armature; }
+	
+	const struct bArmature * GetArmature() const { return m_armature; }
+	
+	/// Retrieve the pose matrix for the specified bone.
+	/// Returns true on success.
+	bool GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const;
+	
+	/// Returns the bone length.  The end of the bone is in the local y direction.
+	float GetBoneLength(Bone* bone) const;
 
 protected:
 	struct bArmature	*m_armature;

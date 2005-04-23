@@ -124,7 +124,7 @@
 #include "DNA_world_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_key_types.h"
-
+#include "DNA_armature_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
@@ -158,6 +158,7 @@
 // in the game engine.
 
 #include "KX_SG_NodeRelationships.h"
+#include "KX_SG_BoneParentNodeRelationship.h"
 
 #include "BL_ArmatureObject.h"
 #include "BL_DeformableGameObject.h"
@@ -974,7 +975,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	case OB_ARMATURE:
 	{
 		gameobj = new BL_ArmatureObject (kxscene, KX_Scene::m_callbacks,
-			(bArmature*)ob->data,
+			get_armature(ob),
 			ob->pose);
 	
 		/* Get the current pose from the armature object and apply it as the rest pose */
@@ -1160,11 +1161,12 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				pclink.m_blenderchild = blenderobject;
 				pclink.m_gamechildnode = parentinversenode;
 				vec_parent_child.push_back(pclink);
-	
+
 				float* fl = (float*) blenderobject->parentinv;
 				MT_Transform parinvtrans(fl);
 				parentinversenode->SetLocalPosition(parinvtrans.getOrigin());
 				parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
+				
 				parentinversenode->AddChild(gameobj->GetSGNode());
 			}
 			
@@ -1229,18 +1231,42 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 	
 		struct Object* blenderchild = pcit->m_blenderchild;
-		if (blenderchild->partype == PARVERT1)
+		switch (blenderchild->partype)
 		{
-			// creat a new vertex parent relationship for this node.
-			KX_VertexParentRelation * vertex_parent_relation = KX_VertexParentRelation::New();
-			pcit->m_gamechildnode->SetParentRelation(vertex_parent_relation);
-		} else 
-		if (blenderchild->partype == PARSLOW) 
-		{
-			// creat a new slow parent relationship for this node.
-			KX_SlowParentRelation * slow_parent_relation = KX_SlowParentRelation::New(blenderchild->sf);
-			pcit->m_gamechildnode->SetParentRelation(slow_parent_relation);
-		}	
+			case PARVERT1:
+			{
+				// creat a new vertex parent relationship for this node.
+				KX_VertexParentRelation * vertex_parent_relation = KX_VertexParentRelation::New();
+				pcit->m_gamechildnode->SetParentRelation(vertex_parent_relation);
+				break;
+			}
+			case PARSLOW:
+			{
+				// creat a new slow parent relationship for this node.
+				KX_SlowParentRelation * slow_parent_relation = KX_SlowParentRelation::New(blenderchild->sf);
+				pcit->m_gamechildnode->SetParentRelation(slow_parent_relation);
+				break;
+			}	
+			case PARBONE:
+			{
+				// parent this to a bone
+				Bone *parent_bone = get_named_bone(get_armature(blenderchild->parent), blenderchild->parsubstr);
+				KX_BoneParentRelation *bone_parent_relation = KX_BoneParentRelation::New(parent_bone);
+				pcit->m_gamechildnode->SetParentRelation(bone_parent_relation);
+			
+				break;
+			}
+			case PARSKEL: // skinned - ignore
+				break;
+			case PAROBJECT:
+			case PARCURVE:
+			case PARKEY:
+			case PARLIMB:
+			case PARVERT3:
+			default:
+				// unhandled
+				break;
+		}
 	
 		struct Object* blenderparent = blenderchild->parent;
 		KX_GameObject* parentobj = converter->FindGameObject(blenderparent);
