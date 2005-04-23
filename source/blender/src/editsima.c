@@ -85,10 +85,9 @@
 #include "mydevice.h"
 
 struct uvvertsort {
-	unsigned int v;
+	unsigned int v, f;
 	unsigned char tf_sel;
 	char flag;
-	TFace *tface;
 };
 
 /* local prototypes */
@@ -125,17 +124,16 @@ int is_uv_tface_editing_allowed(void)
 	return is_uv_tface_editing_allowed_silent();
 }
 
-static void setLinkedLimit(float *limit)
+void get_connected_limit_tface_uv(float *limit)
 {
 	if(G.sima->image && G.sima->image->ibuf && G.sima->image->ibuf->x > 0 &&
 	   G.sima->image->ibuf->y > 0) {
-		limit[0]= 0.5/(float)G.sima->image->ibuf->x;
-		limit[1]= 0.5/(float)G.sima->image->ibuf->y;
+		limit[0]= 0.05/(float)G.sima->image->ibuf->x;
+		limit[1]= 0.05/(float)G.sima->image->ibuf->y;
 	}
 	else
-		limit[0]= limit[1]= 0.5/256.0;
+		limit[0]= limit[1]= 0.05/256.0;
 }
-
 
 void clever_numbuts_sima(void)
 {
@@ -268,7 +266,9 @@ static void be_square_tface_uv(Mesh *me)
 	int a;
 	
 	/* if 1 vertex selected: doit (with the selected vertex) */
-	for(a=me->totface, mface= me->mface, tface= me->tface; a>0; a--, tface++, mface++) {
+	mface= (MFace*)me->mface;
+	tface= (TFace*)me->tface;
+	for(a=me->totface; a>0; a--, tface++, mface++) {
 		if(mface->v4) {
 			if(tface->flag & TF_SELECT) {
 				if(tface->flag & TF_SEL1) {
@@ -353,7 +353,7 @@ void transform_tface_uv(int mode)
 	float size[2], sizefac;
 	float dx, dy, dvec2[2], dvec[2], div, cent[2];
 	float x, y, min[2], max[2], vec[2], xtra[2], ivec[2];
-	int xim, yim, tot=0, a, b, firsttime=1, afbreek=0, align= 0;
+	int xim, yim, tot=0, a, b, firsttime=1, afbreek=0;
 	int propmode= 0, proptot= 0, midtog= 0, proj= 0, prop_recalc= 1;
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn, xc, yc;
@@ -467,7 +467,7 @@ void transform_tface_uv(int mode)
 
 	while(afbreek==0) {
 		getmouseco_areawin(mval);
-		if(((mval[0]!=xo || mval[1]!=yo) && !(mode=='w')) || firsttime) {
+		if((mval[0]!=xo || mval[1]!=yo) || firsttime) {
 			if(propmode && prop_recalc && transmain) {
 				a= tot;
 				tv= transmain;
@@ -660,42 +660,11 @@ void transform_tface_uv(int mode)
 				sprintf(str, "sizeX: %.3f   sizeY: %.3f", size[0], size[1]);
 				headerprint(str);
 			}
-			else if(mode=='w') { /* weld / align */
-				tv= transmain;
-				for(a=0; a<tot; a++, tv++) {
-					x= tv->oldloc[0];
-					y= tv->oldloc[1];
-					if(align==0) {
-						x= cent[0];
-						y= cent[1];
-					}
-					else if(align==1) y= cent[1];
-					else if(align==2) x= cent[0];
-					
-					tv->loc[0]= x;
-					tv->loc[1]= y;
-					
-					if(G.sima->flag & SI_CLIP_UV) {
-						if(tv->loc[0]<0.0) tv->loc[0]= 0.0;
-						else if(tv->loc[0]>1.0) tv->loc[0]= 1.0;
-						if(tv->loc[1]<0.0) tv->loc[1]= 0.0;
-						else if(tv->loc[1]>1.0) tv->loc[1]= 1.0;
-					}
-				}		
-				
-				if(align==0)
-					sprintf(str, "Weld (X: Align along X, Y: Align along Y)");
-				else if(align==1)
-					sprintf(str, "X Axis Align (W: Weld, Y: Align along Y)");
-				else if(align==2)
-					sprintf(str, "Y Axis Align (W: Weld, X: Align along X)");
-				headerprint(str);
-			}
-			
+
 			xo= mval[0];
 			yo= mval[1];
 			
-			if(G.sima->lock || mode=='w') force_draw_plus(SPACE_VIEW3D, 0);
+			if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
 			else force_draw(0);
 			
 			firsttime= 0;
@@ -741,31 +710,24 @@ void transform_tface_uv(int mode)
 				case WKEY:
 				case XKEY:
 				case YKEY:
-					if(mode=='w') {
-						if(event==WKEY) align= 0;
-						else if(event==XKEY) align= 1;
-						else align= 2;
+					if(midtog) {
+						if(event==XKEY) {
+							if(proj==1) midtog= ~midtog;
+							else if(proj==0) proj= 1;
+						}
+						else if(event==YKEY) {
+							if(proj==0) midtog= ~midtog;
+							else if(proj==1) proj= 0;
+						}
 					}
 					else {
-						if(midtog) {
-							if(event==XKEY) {
-								if(proj==1) midtog= ~midtog;
-								else if(proj==0) proj= 1;
-							}
-							else if(event==YKEY) {
-								if(proj==0) midtog= ~midtog;
-								else if(proj==1) proj= 0;
-							}
+						if(event==XKEY) {
+							midtog= ~midtog;
+							proj= 1;
 						}
-						else {
-							if(event==XKEY) {
-								midtog= ~midtog;
-								proj= 1;
-							}
-							else if(event==YKEY) {
-								midtog= ~midtog;
-								proj= 0;
-							}
+						else if(event==YKEY) {
+							midtog= ~midtog;
+							proj= 0;
 						}
 					}
 					firsttime= 1;
@@ -804,7 +766,7 @@ void transform_tface_uv(int mode)
 	scrarea_queue_winredraw(curarea);
 }
 
-static void mirror_tface_uv(char mirroraxis)
+void mirror_tface_uv(char mirroraxis)
 {
 	MFace *mface;
 	TFace *tface;
@@ -815,24 +777,11 @@ static void mirror_tface_uv(char mirroraxis)
 	if( is_uv_tface_editing_allowed()==0 ) return;
 	me= get_mesh(OBACT);
 	
-	min[0]= min[1]= 10000.0;
-	max[0]= max[1]= -10000.0;
-	
-	tface= me->tface;
-	mface= me->mface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
-			if(tface->flag & TF_SEL1) { DO_MINMAX2(tface->uv[0], min, max); }
-			if(tface->flag & TF_SEL2) { DO_MINMAX2(tface->uv[1], min, max); }
-			if(tface->flag & TF_SEL3) { DO_MINMAX2(tface->uv[2], min, max); }
-			if(mface->v4 && (tface->flag & TF_SEL4)) {
-				DO_MINMAX2(tface->uv[3], min, max);
-			}
-		}
-	}
+	if (!minmax_tface_uv(min, max))
+		return;
 
-	cent[0]= (min[0]+max[0])/2.0;
-	cent[1]= (min[1]+max[1])/2.0;
+	cent[0]= min[0]+max[0];
+	cent[1]= min[1]+max[1];
 
 	if(mirroraxis=='x') axis= 0;
 	else axis= 1;
@@ -842,13 +791,13 @@ static void mirror_tface_uv(char mirroraxis)
 	for(a=me->totface; a>0; a--, tface++, mface++) {
 		if(tface->flag & TF_SELECT) {
 			if(tface->flag & TF_SEL1)
-				tface->uv[0][axis]= 2*cent[axis] - tface->uv[0][axis];
+				tface->uv[0][axis]= cent[axis] - tface->uv[0][axis];
 			if(tface->flag & TF_SEL2)
-				tface->uv[1][axis]= 2*cent[axis] - tface->uv[1][axis];
+				tface->uv[1][axis]= cent[axis] - tface->uv[1][axis];
 			if(tface->flag & TF_SEL3)
-				tface->uv[2][axis]= 2*cent[axis] - tface->uv[2][axis];
+				tface->uv[2][axis]= cent[axis] - tface->uv[2][axis];
 			if(mface->v4 && (tface->flag & TF_SEL4))
-				tface->uv[3][axis]= 2*cent[axis] - tface->uv[3][axis];
+				tface->uv[3][axis]= cent[axis] - tface->uv[3][axis];
 		}
 	}
 
@@ -872,7 +821,78 @@ void mirrormenu_tface_uv(void)
 	BIF_undo_push("Mirror UV");
 }
 
+void weld_align_tface_uv(char tool)
+{
+	MFace *mface;
+	TFace *tface;
+	Mesh *me;
+	float min[2], max[2], cent[2];
+	int a;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	me= get_mesh(OBACT);
 
+	if (!minmax_tface_uv(min, max))
+		return;
+
+	cent[0]= (min[0]+max[0])/2.0;
+	cent[1]= (min[1]+max[1])/2.0;
+
+	if(tool == 'x' || tool == 'w') {
+		tface= me->tface;
+		mface= me->mface;
+		for(a=me->totface; a>0; a--, tface++, mface++) {
+			if(tface->flag & TF_SELECT) {
+				if(tface->flag & TF_SEL1)
+					tface->uv[0][0]= cent[0];
+				if(tface->flag & TF_SEL2)
+					tface->uv[1][0]= cent[0];
+				if(tface->flag & TF_SEL3)
+					tface->uv[2][0]= cent[0];
+				if(mface->v4 && (tface->flag & TF_SEL4))
+					tface->uv[3][0]= cent[0];
+			}
+		}
+	}
+
+	if(tool == 'y' || tool == 'w') {
+		tface= me->tface;
+		mface= me->mface;
+		for(a=me->totface; a>0; a--, tface++, mface++) {
+			if(tface->flag & TF_SELECT) {
+				if(tface->flag & TF_SEL1)
+					tface->uv[0][1]= cent[1];
+				if(tface->flag & TF_SEL2)
+					tface->uv[1][1]= cent[1];
+				if(tface->flag & TF_SEL3)
+					tface->uv[2][1]= cent[1];
+				if(mface->v4 && (tface->flag & TF_SEL4))
+					tface->uv[3][1]= cent[1];
+			}
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
+void weld_align_menu_tface_uv(void)
+{
+	short mode= 0;
+
+	if( is_uv_tface_editing_allowed()==0 ) return;
+
+	mode= pupmenu("Weld/Align%t|Weld%x1|Align X%x2|Align Y%x3|");
+
+	if(mode==-1) return;
+
+	if(mode==1) weld_align_tface_uv('w');
+	else if(mode==2) weld_align_tface_uv('x');
+	else if(mode==3) weld_align_tface_uv('y');
+
+	if(mode==1) BIF_undo_push("Weld UV");
+	else if(mode==2 || mode==3) BIF_undo_push("Align UV");
+}
 void select_swap_tface_uv(void)
 {
 	Mesh *me;
@@ -926,191 +946,232 @@ static int msel_hit(float *limit, unsigned int *hitarray, unsigned int vertexid,
 	return 0;
 }
 
-void mouse_select_sima(void)
+void find_nearest_tface(TFace **nearesttf, MFace **nearestmf)
 {
 	Mesh *me;
-	TFace *tface, *closesttface= NULL;
-	MFace *mface, *closestmface= NULL;
-	int a, redraw= 0, uvcent[2], selectsticky= 0, sticky, actface;
-	int temp, dist= 0x7FFFFFF, fdist= 0x7FFFFFF, fdistmin= 0x7FFFFFF;
-	short mval[2], uval[2], val= 0;
-	char *flagpoin= 0;
-	unsigned int hitvert[4]= {0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF};
-	float *hituv[4], limit[2];
-	
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
+	TFace *tf;
+	MFace *mf;
+	int a, i, nverts, mindist, dist, fcenter[2];
+	short mval[2], uval[2];
+
 	getmouseco_areawin(mval);	
 
-	setLinkedLimit(limit);
-	actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
-	sticky= (G.qual & LR_CTRLKEY || G.sima->flag & SI_STICKYUVS ||
-	         G.sima->flag & SI_LOCALSTICKY);
+	mindist= 0x7FFFFFF;
+	*nearesttf= NULL;
+	*nearestmf= NULL;
 
-	/* go for one run through all faces. collect all information needed */
-	mface= me->mface;
-	tface= me->tface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT && mface->v3) {
-		
-			uvco_to_areaco_noclip(tface->uv[0], uval);
-			uvcent[0]= uval[0];
-			uvcent[1]= uval[1];
-			temp= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
-			if(tface->flag & TF_SEL1) temp += 5;
-			if(temp<dist) { 
-				flagpoin= &tface->flag;
-				dist= temp; 
-				val= TF_SEL1;
-				hitvert[1]= hitvert[2]= hitvert[3]= 0xFFFFFFFF;    
-				hitvert[0]= mface->v1;
-				hituv[0]= tface->uv[0];
+	me= get_mesh(OBACT);
+	mf= (MFace*)me->mface;
+	tf= (TFace*)me->tface;
+
+	for(a=me->totface; a>0; a--, tf++, mf++) {
+		if(tf->flag & TF_SELECT && mf->v3) {
+
+			fcenter[0]= fcenter[1]= 0;
+			nverts= mf->v4? 4: 3;
+			for(i=0; i<nverts; i++) {
+				uvco_to_areaco_noclip(tf->uv[i], uval);
+				fcenter[0] += uval[0];
+				fcenter[1] += uval[1];
 			}
-	
-			uvco_to_areaco_noclip(tface->uv[1], uval);
-			temp= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
-			uvcent[0] += uval[0];
-			uvcent[1] += uval[1];
-			if(tface->flag & TF_SEL2) temp += 5;
-			if(temp<dist) { 
-				flagpoin= &tface->flag;
-				dist= temp; 
-				val= TF_SEL2;
-				hitvert[0]= hitvert[2]= hitvert[3]= 0xFFFFFFFF;    
-				hitvert[1]= mface->v2;
-				hituv[1]= tface->uv[1];
+
+			fcenter[0] /= nverts;
+			fcenter[1] /= nverts;
+
+			dist= abs(mval[0]- fcenter[0])+ abs(mval[1]- fcenter[1]);
+			if (dist < mindist) {
+				*nearesttf= tf;
+				*nearestmf= mf;
+				mindist= dist;
 			}
-	
-			uvco_to_areaco_noclip(tface->uv[2], uval);
-			temp= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
-			uvcent[0] += uval[0];
-			uvcent[1] += uval[1];
-			if(tface->flag & TF_SEL3) temp += 5;
-			if(temp<dist) { 
-				flagpoin= &tface->flag;
-				dist= temp; 
-				val= TF_SEL3;
-				hitvert[0]= hitvert[1]= hitvert[3]= 0xFFFFFFFF;    
-				hitvert[2]= mface->v3;
-				hituv[2]= tface->uv[2];
-			}
-	
-			if(mface->v4) {
-				uvco_to_areaco_noclip(tface->uv[3], uval);
-				uvcent[0] += uval[0];
-				uvcent[1] += uval[1];
-				temp= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
-				if(tface->flag & TF_SEL4) temp += 5;
-				if(temp<dist) { 
-					flagpoin= &tface->flag;
-					dist= temp; 
-					val= TF_SEL4;
-					hitvert[0]= hitvert[1]= hitvert[2]= 0xFFFFFFFF;    
-					hitvert[3] = mface->v4;
-					hituv[3]= tface->uv[3];
-				}
-				uvcent[0] /= 4;
-				uvcent[1] /= 4;
-			}
-			else {
-				uvcent[0] /= 3;
-				uvcent[1] /= 3;
-			}
-			
-			/* find face closest to mouse */			
-			if(actface) {
-				fdist= abs(mval[0]- uvcent[0])+ abs(mval[1]- uvcent[1]);
-				if (fdist < fdistmin){
-					closesttface= tface;
-					closestmface= mface;
-					fdistmin= fdist;
+		}
+	}
+}
+
+int nearest_uv_between(TFace *tf, int nverts, int id, short *mval, short *uval)
+{
+	float m[3], v1[3], v2[3], c1, c2;
+	int id1, id2;
+
+	id1= (id+nverts-1)%nverts;
+	id2= (id+nverts+1)%nverts;
+
+	m[0] = (float)(mval[0]-uval[0]);
+	m[1] = (float)(mval[1]-uval[1]);
+	Vec2Subf(v1, tf->uv[id1], tf->uv[id]);
+	Vec2Subf(v2, tf->uv[id2], tf->uv[id]);
+
+	/* m and v2 on same side of v-v1? */
+	c1= v1[0]*m[1] - v1[1]*m[0];
+	c2= v1[0]*v2[1] - v1[1]*v2[0];
+
+	if (c1*c2 < 0.0f)
+		return 0;
+
+	/* m and v1 on same side of v-v2? */
+	c1= v2[0]*m[1] - v2[1]*m[0];
+	c2= v2[0]*v1[1] - v2[1]*v1[0];
+
+	return (c1*c2 >= 0.0f);
+}
+
+void find_nearest_uv(TFace **nearesttf, unsigned int *nearestv, int *nearestuv)
+{
+	Mesh *me;
+	TFace *tf;
+	MFace *mf;
+	int a, i, nverts, mindist, dist;
+	short mval[2], uval[2];
+
+	getmouseco_areawin(mval);	
+
+	mindist= 0x7FFFFFF;
+	*nearesttf= NULL;
+
+	me= get_mesh(OBACT);
+	mf= (MFace*)me->mface;
+	tf= (TFace*)me->tface;
+
+	for(a=me->totface; a>0; a--, tf++, mf++) {
+		if(tf->flag & TF_SELECT && mf->v3) {
+
+			nverts= mf->v4? 4: 3;
+			for(i=0; i<nverts; i++) {
+				uvco_to_areaco_noclip(tf->uv[i], uval);
+				dist= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
+
+				if(tf->flag & TF_SEL_MASK(i))
+					dist += 5;
+
+				if(dist<=mindist) {
+					if(dist==mindist)
+						if (!nearest_uv_between(tf, nverts, i, mval, uval))
+							continue;
+
+					mindist= dist; 
+
+					*nearesttf= tf;
+					*nearestuv= i;
+
+					if (i==0) *nearestv=  mf->v1;
+					else if (i==1) *nearestv=  mf->v2;
+					else if (i==2) *nearestv=  mf->v3;
+					else *nearestv=  mf->v4;
 				}
 			}
 		}
 	}
-	
-	if(!flagpoin)
-		return;
+}
 
-	if(actface && closesttface) {
-		closesttface->flag |= TF_ACTIVE;
-		hitvert[0]= closestmface->v1;
-		hituv[0]= closesttface->uv[0];
-		hitvert[1]= closestmface->v2;
-		hituv[1]= closesttface->uv[1];
-		hitvert[2]= closestmface->v3;
-		hituv[2]= closesttface->uv[2];
-		if(closestmface->v4) {
-			hitvert[3]= closestmface->v4;
-			hituv[3]= closesttface->uv[3];
+void mouse_select_sima(void)
+{
+	Mesh *me;
+	TFace *tf, *nearesttf;
+	MFace *mf, *nearestmf;
+	int a, selectsticky, sticky, actface, nearestuv, i;
+	unsigned int hitv[4], nearestv;
+	float *hituv[4], limit[2];
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	me= get_mesh(OBACT);
+
+	get_connected_limit_tface_uv(limit);
+	actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
+	sticky= (G.qual & LR_CTRLKEY || G.sima->flag & SI_STICKYUVS ||
+	         G.sima->flag & SI_LOCALSTICKY);
+
+	if(actface) {
+		find_nearest_tface(&nearesttf, &nearestmf);
+		if(nearesttf==NULL)
+			return;
+
+		nearesttf->flag |= TF_ACTIVE;
+
+		for (i=0; i<4; i++)
+			hituv[i]= nearesttf->uv[i];
+
+		hitv[0]= nearestmf->v1;
+		hitv[1]= nearestmf->v2;
+		hitv[2]= nearestmf->v3;
+		hitv[3]= nearestmf->v4? nearestmf->v4: 0xFFFFFFFF;
+	}
+	else {
+		find_nearest_uv(&nearesttf, &nearestv, &nearestuv);
+		if(nearesttf==NULL)
+			return;
+
+		if(sticky) {
+			for(i=0; i<4; i++)
+				hitv[i]= 0xFFFFFFFF;
+			hitv[nearestuv]= nearestv;
+			hituv[nearestuv]= nearesttf->uv[nearestuv];
 		}
 	}
 
 	if(G.qual & LR_SHIFTKEY) {
 		/* (de)select face */
 		if(actface) {
-			if(!(~closesttface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-			   && (!closestmface->v4 || closesttface->flag & TF_SEL4)) {
-				closesttface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+			if(!(~nearesttf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+			   && (!nearestmf->v4 || nearesttf->flag & TF_SEL4)) {
+				nearesttf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				selectsticky= 0;
 			}
 			else {
-				closesttface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+				nearesttf->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
 				selectsticky= 1;
 			}
 		}
 		/* (de)select uv node */
 		else {
-			if(*flagpoin & val) {
-				*flagpoin &= ~val;
+			if(nearesttf->flag & TF_SEL_MASK(nearestuv)) {
+				nearesttf->flag &= ~TF_SEL_MASK(nearestuv);
 				selectsticky= 0;
 			}
 			else {
-				*flagpoin |= val;
+				nearesttf->flag |= TF_SEL_MASK(nearestuv);
 				selectsticky= 1;
 			}
 		}
 
 		/* (de)select sticky uv nodes */
 		if(sticky || actface) {
-			mface= me->mface;
-			tface= me->tface;
+			mf= (MFace*)me->mface;
+			tf= (TFace*)me->tface;
 			/* deselect */
 			if(selectsticky==0) {
-				for(a=me->totface; a>0; a--, tface++, mface++) {
-					if(!(tface->flag & TF_SELECT && mface->v3)) continue;
-					if(closesttface && tface!=closesttface)
-						tface->flag &=~ TF_ACTIVE;
+				for(a=me->totface; a>0; a--, tf++, mf++) {
+					if(!(tf->flag & TF_SELECT && mf->v3)) continue;
+					if(nearesttf && tf!=nearesttf) tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
 
-					if(msel_hit(limit,hitvert,mface->v1,hituv,tface->uv[0]))
-						tface->flag &= ~TF_SEL1;
-					if(msel_hit(limit,hitvert,mface->v2,hituv,tface->uv[1]))
-						tface->flag &= ~TF_SEL2;
-					if(msel_hit(limit,hitvert,mface->v3,hituv,tface->uv[2]))
-						tface->flag &= ~TF_SEL3;
-					if (mface->v4)
-						if(msel_hit(limit,hitvert,mface->v4,hituv,tface->uv[3]))
-							tface->flag &= ~TF_SEL4;
+					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0]))
+						tf->flag &= ~TF_SEL1;
+					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1]))
+						tf->flag &= ~TF_SEL2;
+					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2]))
+						tf->flag &= ~TF_SEL3;
+					if (mf->v4)
+						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3]))
+							tf->flag &= ~TF_SEL4;
 				}
 			}
 			/* select */
 			else {
-				for(a=me->totface; a>0; a--, tface++, mface++) {
-					if(!(tface->flag & TF_SELECT && mface->v3)) continue;
-					if(closesttface && tface!=closesttface)
-						tface->flag &=~ TF_ACTIVE;
+				for(a=me->totface; a>0; a--, tf++, mf++) {
+					if(!(tf->flag & TF_SELECT && mf->v3)) continue;
+					if(nearesttf && tf!=nearesttf)
+						tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
 
-					if(msel_hit(limit,hitvert,mface->v1,hituv,tface->uv[0]))
-						tface->flag |= TF_SEL1;
-					if(msel_hit(limit,hitvert,mface->v2,hituv,tface->uv[1]))
-						tface->flag |= TF_SEL2;
-					if(msel_hit(limit,hitvert,mface->v3,hituv,tface->uv[2]))
-						tface->flag |= TF_SEL3;
-					if (mface->v4)
-						if(msel_hit(limit,hitvert,mface->v4,hituv,tface->uv[3]))
-							tface->flag |= TF_SEL4;
+					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0]))
+						tf->flag |= TF_SEL1;
+					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1]))
+						tf->flag |= TF_SEL2;
+					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2]))
+						tf->flag |= TF_SEL3;
+					if (mf->v4)
+						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3]))
+							tf->flag |= TF_SEL4;
 				}
 			}
 		}
@@ -1118,40 +1179,39 @@ void mouse_select_sima(void)
 	else {
 		/* select face and deselect other faces */ 
 		if(actface) {
-			mface= me->mface;
-			tface= me->tface;
-			for(a=me->totface; a>0; a--, tface++, mface++) {
-				tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				if(closesttface && tface!=closesttface)
-					tface->flag &=~ TF_ACTIVE;
+			mf= (MFace*)me->mface;
+			tf= (TFace*)me->tface;
+			for(a=me->totface; a>0; a--, tf++, mf++) {
+				tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				if(nearesttf && tf!=nearesttf)
+					tf->flag &= ~TF_ACTIVE;
 			}
-			if(closesttface)
-				closesttface->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-			redraw= 1;
+			if(nearesttf)
+				nearesttf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 		}
 
 		/* deselect uvs, and select sticky uvs */
-		mface= me->mface;
-		tface= me->tface;
-		for(a=me->totface; a>0; a--, tface++, mface++) {
-			if(tface->flag & TF_SELECT && mface->v3) {
-				if(!actface) tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+		mf= (MFace*)me->mface;
+		tf= (TFace*)me->tface;
+		for(a=me->totface; a>0; a--, tf++, mf++) {
+			if(tf->flag & TF_SELECT && mf->v3) {
+				if(!actface) tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				if(!sticky) continue;
 
-				if(msel_hit(limit,hitvert,mface->v1,hituv,tface->uv[0]))
-					tface->flag |=TF_SEL1;
-				if(msel_hit(limit,hitvert,mface->v2,hituv,tface->uv[1]))
-					tface->flag |=TF_SEL2;
-				if(msel_hit(limit,hitvert,mface->v3,hituv,tface->uv[2]))
-					tface->flag |=TF_SEL3;
-				if(mface->v4)
-					if(msel_hit(limit,hitvert,mface->v4,hituv,tface->uv[3]))
-						tface->flag |=TF_SEL4;
+				if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0]))
+					tf->flag |= TF_SEL1;
+				if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1]))
+					tf->flag |= TF_SEL2;
+				if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2]))
+					tf->flag |= TF_SEL3;
+				if(mf->v4)
+					if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3]))
+						tf->flag |= TF_SEL4;
 			}
 		}
 		
 		if(!actface) 
-			*flagpoin |= val;
+			nearesttf->flag |= TF_SEL_MASK(nearestuv);
 	}
 	
 	force_draw(1);
@@ -1411,8 +1471,8 @@ void reveal_tface_uv(void)
 
 void stitch_uv_tface(int mode)
 {
-	MFace *mface;
-	TFace *tface;
+	MFace *mf;
+	TFace *tf, *tface;
 	Mesh *me;
 	unsigned int a, b, c, vtot, vtot2, tot;
 	float newuv[2], limit[2], *uv, *uv1;
@@ -1436,45 +1496,48 @@ void stitch_uv_tface(int mode)
 		limit[0]= limit[1]= limit[0]/256.0;
 	
 	me= get_mesh(OBACT);
+	tface= (TFace*)me->tface;
 	
 	tot= 0;
-	mface= me->mface;
-	for(a=me->totface, tface=me->tface; a>0; a--, tface++, mface++) {
-		if((tface->flag & TF_SELECT) && mface->v3) {
-			if(tface->flag & TF_SEL1) tot++;
-			if(tface->flag & TF_SEL2) tot++;
-			if(tface->flag & TF_SEL3) tot++;
-			if(mface->v4 && tface->flag & TF_SEL4) tot++; 
+	mf= (MFace*)me->mface;
+	tf= (TFace*)me->tface;
+	for(a=me->totface; a>0; a--, tf++, mf++) {
+		if((tf->flag & TF_SELECT) && mf->v3) {
+			if(tf->flag & TF_SEL1) tot++;
+			if(tf->flag & TF_SEL2) tot++;
+			if(tf->flag & TF_SEL3) tot++;
+			if(mf->v4 && tf->flag & TF_SEL4) tot++; 
 		}
 	}
 	if(tot==0) return;
 
 	sb= sortblock= MEM_callocN(sizeof(struct uvvertsort)*tot,"sortstitchuv");
 
-	mface= me->mface;
-	for(a=me->totface, tface=me->tface; a>0; a--, tface++, mface++) {
-		if((tface->flag & TF_SELECT) && mface->v3) {
-			if(tface->flag & TF_SEL1) {
-				sb->v= mface->v1;
-				sb->tface= tface;
+	mf= (MFace*)me->mface;
+	tf= (TFace*)me->tface;
+	for(a=0; a<me->totface; a++, tf++, mf++) {
+		if((tf->flag & TF_SELECT) && mf->v3) {
+			if(tf->flag & TF_SEL1) {
+				sb->v= mf->v1;
+				sb->f= a;
 				sb->tf_sel= 0;
 				sb++;
 			}
-			if(tface->flag & TF_SEL2) {
-				sb->v= mface->v2;
-				sb->tface= tface;
+			if(tf->flag & TF_SEL2) {
+				sb->v= mf->v2;
+				sb->f= a;
 				sb->tf_sel= 1;
 				sb++;
 			}
-			if(tface->flag & TF_SEL3) {
-				sb->v= mface->v3;
-				sb->tface= tface;
+			if(tf->flag & TF_SEL3) {
+				sb->v= mf->v3;
+				sb->f= a;
 				sb->tf_sel= 2;
 				sb++;
 			}
-			if(mface->v4 && tface->flag & TF_SEL4) {
-				sb->v= mface->v4;
-				sb->tface = tface;
+			if(mf->v4 && tf->flag & TF_SEL4) {
+				sb->v= mf->v4;
+				sb->f= a;
 				sb->tf_sel= 3;
 				sb++;
 			}
@@ -1490,16 +1553,16 @@ void stitch_uv_tface(int mode)
 			vtot= 0;
 
 			for (b=a, sb1=sb; b<tot && sb1->v==sb->v; b++, sb1++) {
-				newuv[0] += sb1->tface->uv[sb1->tf_sel][0];
-				newuv[1] += sb1->tface->uv[sb1->tf_sel][1];
+				newuv[0] += tface[sb1->f].uv[sb1->tf_sel][0];
+				newuv[1] += tface[sb1->f].uv[sb1->tf_sel][1];
 				vtot++;
 			}
 
 			newuv[0] /= vtot; newuv[1] /= vtot;
 
 			for (b=a, sb1=sb; b<a+vtot; b++, sb1++) {
-				sb1->tface->uv[sb1->tf_sel][0]= newuv[0];
-				sb1->tface->uv[sb1->tf_sel][1]= newuv[1];
+				tface[sb1->f].uv[sb1->tf_sel][0]= newuv[0];
+				tface[sb1->f].uv[sb1->tf_sel][1]= newuv[1];
 			}
 		}
 	} else if(mode==1) {
@@ -1515,8 +1578,8 @@ void stitch_uv_tface(int mode)
 				vtot2 = 0;
 
 				for (c=b, sb2=sb1; c<a+vtot; c++, sb2++) {
-					uv = sb2->tface->uv[sb2->tf_sel];
-					uv1 = sb1->tface->uv[sb1->tf_sel];
+					uv = tface[sb2->f].uv[sb2->tf_sel];
+					uv1 = tface[sb1->f].uv[sb1->tf_sel];
 					if (fabs(uv[0]-uv1[0]) < limit[0] &&
 					    fabs(uv[1]-uv1[1]) < limit[1]) {
 						newuv[0] += uv[0];
@@ -1531,8 +1594,8 @@ void stitch_uv_tface(int mode)
 
 				for (c=b, sb2=sb1; c<a+vtot; c++, sb2++) {
 					if(sb2->flag & 4) {
-						sb2->tface->uv[sb2->tf_sel][0]= newuv[0];
-						sb2->tface->uv[sb2->tf_sel][1]= newuv[1];
+						tface[sb2->f].uv[sb2->tf_sel][0]= newuv[0];
+						tface[sb2->f].uv[sb2->tf_sel][1]= newuv[1];
 						sb2->flag &= ~4;
 					}
 				}
@@ -1549,65 +1612,74 @@ void stitch_uv_tface(int mode)
 	scrarea_queue_winredraw(curarea);
 }
 
-void select_linked_tface_uv(void)
+void select_linked_tface_uv(int mode)
 {
-	MFace *mface;
-	TFace *tface;
+	MFace *mf;
+	TFace *tface, *tf, *nearesttf=NULL;
 	Mesh *me;
-	char sel;
-	unsigned int a, b, c, vtot, tot;
+	char sel, *linkflag;
+	int nearestuv, i, nverts;
+	unsigned int a, b, c, vtot, tot, nearestv;
 	float limit[2], *uv, *uv1;
 	struct uvvertsort *sortblock, *sb, *sb1, *sb2;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
 	me= get_mesh(OBACT);
-	
-	setLinkedLimit(limit);
+	get_connected_limit_tface_uv(limit);
 
 	tot= 0;
-	mface= me->mface;
-	for(a=me->totface, tface=me->tface; a>0; a--, tface++, mface++) {
-		if((tface->flag & TF_SELECT) && mface->v3) {
-			tot += 3;
-			if(mface->v4) tot++; 
-		}
-	}
+	mf= (MFace*)me->mface;
+	tf= (TFace*)me->tface;
+	for(a=me->totface; a>0; a--, tf++, mf++)
+		if((tf->flag & TF_SELECT) && mf->v3)
+			tot += mf->v4? 4: 3;
+
 	if(tot==0) return;
 
-	sb= sortblock= MEM_callocN(sizeof(struct uvvertsort)*tot,"sortsellinkuv");
+	if (mode!=2) {
+		find_nearest_uv(&nearesttf, &nearestv, &nearestuv);
 
-	mface= me->mface;
-	for(a=me->totface, tface=me->tface; a>0; a--, tface++, mface++) {
-		if((tface->flag & TF_SELECT) && mface->v3) {
-			if(tface->flag & TF_SEL1) sb->flag |= 1;
-			sb->v= mface->v1;
-			sb->tface= tface;
-			sb->tf_sel= 0;
-			sb++;
-			if(tface->flag & TF_SEL2) sb->flag |= 1;
-			sb->v= mface->v2;
-			sb->tface= tface;
-			sb->tf_sel= 1;
-			sb++;
-			if(tface->flag & TF_SEL3) sb->flag |= 1;
-			sb->v= mface->v3;
-			sb->tface= tface;
-			sb->tf_sel= 2;
-			sb++;
-			if(mface->v4) {
-				if(tface->flag & TF_SEL4) sb->flag |= 1;
-				sb->v= mface->v4;
-				sb->tface= tface;
-				sb->tf_sel= 3;
+		if(nearesttf==NULL)
+			return;
+	}
+	else {
+		nearesttf= NULL;
+		nearestuv= 0;
+	}
+
+	sb= sortblock= MEM_callocN(sizeof(struct uvvertsort)*tot, "sortsellinkuv");
+	linkflag= MEM_callocN(sizeof(char)*me->totface, "linkflaguv");
+
+	mf= (MFace*)me->mface;
+	tf= (TFace*)me->tface;
+	for(a=0; a<me->totface; a++, tf++, mf++) {
+		if(!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT) && mf->v3) {
+			sel= 0;
+			sb1= sb;
+			nverts= mf->v4? 4: 3;
+			for(i=0; i<nverts; i++) {
+				if(tf->flag & TF_SEL_MASK(i))
+					sel= 1;
+				sb->f= a;
+				sb->tf_sel= i;
 				sb++;
 			}
+
+			if(nearesttf==tf || ((sel && mode==2)))
+				linkflag[a] = 1;
+
+			(sb1)->v= mf->v1;
+			(sb1+1)->v= mf->v2;
+			(sb1+2)->v= mf->v3;
+			if(mf->v4) (sb1+3)->v= mf->v4;
 		}
 	}
 	
 	/* sort by vertex */
 	qsort(sortblock, tot, sizeof(struct uvvertsort), compuvvert);
 
+	tface= (TFace*)me->tface;
 	sel= 1;
 	while(sel) {
 		sel= 0;
@@ -1618,38 +1690,57 @@ void select_linked_tface_uv(void)
 			for (b=a, sb1=sb; b<tot && sb1->v==sb->v; b++, sb1++)
 				vtot++;
 			for (b=a, sb1=sb; b<a+vtot; b++, sb1++) {
-				if(sb1->flag & 1) continue;
+				if(linkflag[sb1->f]) continue;
 
 				for (c=a, sb2=sb; c<a+vtot; c++, sb2++) {
-					if(!(sb2->flag & 1)) continue;
-					uv = sb2->tface->uv[sb2->tf_sel];
-					uv1 = sb1->tface->uv[sb1->tf_sel];
+					if(!(linkflag[sb2->f])) continue;
+					
+					uv = tface[sb2->f].uv[sb2->tf_sel];
+					uv1 = tface[sb1->f].uv[sb1->tf_sel];
 					if (fabs(uv[0]-uv1[0]) < limit[0] &&
 					    fabs(uv[1]-uv1[1]) < limit[1]) {
-						sb1->flag |= 1;
+						linkflag[sb1->f] = 1;
 						sel= 1;
 						break;
 					}
 				}
 			}
 		}
+	}
 
-		/* if one tex vert is selected, select the whole tface */
-		for (a=0, sb=sortblock; a<tot; a++, sb++) {
-			if(sb->flag & 1) {
-				sb->tface->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+	if(mode==0 || mode==2) {
+		for(a=0, tf=tface; a<me->totface; a++, tf++)
+			if(linkflag[a])
+				tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+			else
+				tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+	}
+	else if(mode==1) {
+		for(a=0, tf=tface; a<me->totface; a++, tf++) {
+			if(linkflag[a]) {
+				if (mf->v4) {
+					if((tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+						break;
+				}
+				else if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+					break;
 			}
 		}
 
-		/* sync the flags, one bitflag check is enough */
-		for (a=0, sb=sortblock; a<tot; a++, sb++) {
-			if(sb->tface->flag & TF_SEL1 && !(sb->flag & 1)) {
-				sb->flag |= 1;
-				sel= 1;
-			}
+		if (a<me->totface) {
+			for(a=0, tf=tface; a<me->totface; a++, tf++)
+				if(linkflag[a])
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+		}
+		else {
+			for(a=0, tf=tface; a<me->totface; a++, tf++)
+				if(linkflag[a])
+					tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 		}
 	}
+	
 	MEM_freeN(sortblock);
+	MEM_freeN(linkflag);
 
 	BIF_undo_push("Select linked UV");
 	scrarea_queue_winredraw(curarea);

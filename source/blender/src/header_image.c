@@ -479,7 +479,7 @@ static void do_image_selectmenu(void *arg, int event)
 		unlink_selection();
 		break;
 	case 3: /* Select Linked UVs */
-		select_linked_tface_uv();
+		select_linked_tface_uv(2);
 		break;
 	case 4: /* Toggle Local UVs Stick to Vertex in Mesh */
 		if(G.sima->flag & SI_LOCALSTICKY)
@@ -536,7 +536,7 @@ static uiBlock *image_selectmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unlink Selection|Alt L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked UVs|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked UVs|Ctrl L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -814,12 +814,6 @@ static void do_image_uvs_transformmenu(void *arg, int event)
 	case 2: /* Scale */
 		transform_tface_uv('s');
 		break;
-	case 3: /* Weld / Align */
-		transform_tface_uv('w');
-		break;
-	case 4: /* Mirror */
-		mirrormenu_tface_uv();
-		break;
 	}
 }
 
@@ -835,16 +829,75 @@ static uiBlock *image_uvs_transformmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld/Align|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror...|M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+static void do_image_uvs_mirrormenu(void *arg, int event)
+{
+	switch(event) {
+	case 0: /* X axis */
+		mirror_tface_uv('x');
+		break;
+	case 1: /* Y axis */
+		mirror_tface_uv('y');
+		break;
+	}
+	
+	BIF_undo_push("Mirror UV");
+}
+
+static uiBlock *image_uvs_mirrormenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_uvs_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_uvs_mirrormenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Axis|M, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Axis|M, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
 
+static void do_image_uvs_weldalignmenu(void *arg, int event)
+{
+	switch(event) {
+	case 0: /* Weld */
+		weld_align_tface_uv('w');
+		break;
+	case 1: /* Align X */
+		weld_align_tface_uv('x');
+		break;
+	case 2: /* Align Y */
+		weld_align_tface_uv('y');
+		break;
+	}
+	
+	if(event==0) BIF_undo_push("Weld UV");
+	else if(event==1 || event==2) BIF_undo_push("Align UV");
+}
+
+static uiBlock *image_uvs_weldalignmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_uvs_weldalignmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_uvs_weldalignmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld|W, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align X|W, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Y|W, 3", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
 
 static void do_image_uvsmenu(void *arg, int event)
 {
@@ -884,8 +937,7 @@ static void do_image_uvsmenu(void *arg, int event)
 		pin_tface_uv(0);
 		break;
     case 10:
-		if (okee("LSCM unwrap"))
-			unwrap_lscm();
+		unwrap_lscm();
 		break;
 	}
 }
@@ -923,6 +975,11 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Stitch|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBlockBut(block, image_uvs_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBlockBut(block, image_uvs_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, image_uvs_weldalignmenu, NULL, ICON_RIGHTARROW_THIN, "Weld/Align", 0, yco-=20, 120, 19, "");
+	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	if(G.f & G_PROPORTIONAL)

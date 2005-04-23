@@ -1025,11 +1025,11 @@ static void do_view3d_select_faceselmenu(void *arg, int event)
 {
 //	extern void borderselect(void);
 
-	/* events >= 5 are registered bpython scripts */
-	if (event >= 5) BPY_menu_do_python(PYMENU_FACESELECT, event - 5);
+	/* events >= 6 are registered bpython scripts */
+	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
 
 	switch(event) {
-			case 0: /* border select */
+		case 0: /* border select */
 			borderselect();
 			break;
 		case 2: /* Select/Deselect all */
@@ -1040,6 +1040,9 @@ static void do_view3d_select_faceselmenu(void *arg, int event)
 			break;
 		case 4: /* Select Same UV */
 			get_same_uv();
+			break;
+		case 5: /* Select Linked */
+			select_linked_tfaces(2);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1064,11 +1067,14 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Same UV",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Faces|Ctrl L",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 
-	/* note that we account for the 5 previous entries with i+5: */
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	/* note that we account for the 6 previous entries with i+6: */
 	for (pym = BPyMenuTable[PYMENU_FACESELECT]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
-			menuwidth, 19, NULL, 0.0, 0.0, 1, i+5,
+			menuwidth, 19, NULL, 0.0, 0.0, 1, i+6,
 			pym->tooltip?pym->tooltip:pym->filename);
 	}
 

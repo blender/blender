@@ -649,69 +649,115 @@ void hide_tface()
 	
 }
 
-void select_linked_tfaces()
+void select_linked_tfaces(int mode)
 {
+	Object *ob;
 	Mesh *me;
-	TFace *tface;
-	MFace *mface;
+	TFace *tf;
+	MFace *mf;
 	int a, doit=1, mark=0;
-	char *cpmain;
-	
-	me= get_mesh(OBACT);
+	char *cpmain, *linkflag;
+	short mval[2];
+	unsigned int index=0;
+
+	ob = OBACT;
+	me = get_mesh(ob);
 	if(me==0 || me->tface==0 || me->totface==0) return;
 
+	if (mode==0 || mode==1) {
+		if (!(ob->lay & G.vd->lay))
+			error("The active object is not in this layer");
+			
+		getmouseco_areawin(mval);
+		if (!face_pick(me, mval[0], mval[1], &index)) return;
+	}
+
 	if(me->medge) {
-		select_linked_tfaces_with_seams();
+		select_linked_tfaces_with_seams(mode, me, index);
 		return;
 	}
-	
+
 	cpmain= MEM_callocN(me->totvert, "cpmain");
+	linkflag= MEM_callocN(sizeof(char)*me->totface, "linkflaguv");
+
+	if (mode==0 || mode==1) {
+		/* only put face under cursor in array */
+		mf= ((MFace*)me->mface) + index;
+		cpmain[mf->v1]= cpmain[mf->v2]= cpmain[mf->v3]= 1;
+		if (mf->v4) cpmain[mf->v4]= 1;
+		linkflag[index]= 1;
+	}
+	else {
+		/* fill array by selection */
+		tf= me->tface;
+		mf= me->mface;
+		for(a=0; a<me->totface; a++, tf++, mf++) {
+			if(tf->flag & TF_HIDE);
+			else if(tf->flag & TF_SELECT) {
+				if(mf->v3) {
+					cpmain[mf->v1]= 1;
+					cpmain[mf->v2]= 1;
+					cpmain[mf->v3]= 1;
+					if(mf->v4) cpmain[mf->v4]= 1;
+					linkflag[a]= 1;
+				}
+			}
+		}
+	}
 	
 	while(doit) {
 		doit= 0;
 		
-		/* select connected: fill array */
-		tface= me->tface;
-		mface= me->mface;
-		a= me->totface;
-		while(a--) {
-			if(tface->flag & TF_HIDE);
-			else if(tface->flag & TF_SELECT) {
-				if(mface->v3) {
-					cpmain[mface->v1]= 1;
-					cpmain[mface->v2]= 1;
-					cpmain[mface->v3]= 1;
-					if(mface->v4) cpmain[mface->v4]= 1;
-				}
-			}
-			tface++; mface++;
-		}
-		
-		/* reverse: using array select the faces */
-
-		tface= me->tface;
-		mface= me->mface;
-		a= me->totface;
-		while(a--) {
-			if(tface->flag & TF_HIDE);
-			else if(mface->v3 && ((tface->flag & TF_SELECT)==0)) {
+		/* expand selection */
+		tf= me->tface;
+		mf= me->mface;
+		for(a=0; a<me->totface; a++, tf++, mf++) {
+			if(tf->flag & TF_HIDE);
+			else if(mf->v3 && !linkflag[a]) {
 				mark= 0;
 
-				if(cpmain[mface->v1] || cpmain[mface->v2] || cpmain[mface->v3])
+				if(cpmain[mf->v1] || cpmain[mf->v2] || cpmain[mf->v3])
 					mark= 1;
-				else if(mface->v4 && cpmain[mface->v4])
+				else if(mf->v4 && cpmain[mf->v4])
 					mark= 1;
 
 				if(mark) {
-					tface->flag |= TF_SELECT;
+					linkflag[a]= 1;
+					cpmain[mf->v1]= cpmain[mf->v2]= cpmain[mf->v3]= 1;
+					if(mf->v4) cpmain[mf->v4]= 1;
 					doit= 1;
 				}
 			}
-			tface++; mface++;
 		}
 		
 	}
+
+	if(mode==0 || mode==2) {
+		for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+			if(linkflag[a])
+				tf->flag |= TF_SELECT;
+			else
+				tf->flag &= ~TF_SELECT;
+	}
+	else if(mode==1) {
+		for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+			if(linkflag[a] && (tf->flag & TF_SELECT))
+				break;
+
+		if (a<me->totface) {
+			for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+				if(linkflag[a])
+					tf->flag &= ~TF_SELECT;
+		}
+		else {
+			for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+				if(linkflag[a])
+					tf->flag |= TF_SELECT;
+		}
+	}
+	
 	MEM_freeN(cpmain);
+	MEM_freeN(linkflag);
 	
 	BIF_undo_push("Select linked UV face");
 	allqueue(REDRAWVIEW3D, 0);
@@ -898,19 +944,18 @@ void minmax_tface(float *min, float *max)
  * Question: why is all of the backbuffer drawn?
  * We're only interested in one pixel!
  * @author	Maarten Gribnau
- * @param	me	the mesh with the faces to be picked
- * @param	x	the x-coordinate to pick at
- * @param	y	the y-coordinate to pick at
- * @return the face under the cursor (-1 if there was no face found)
+ * @param	me		the mesh with the faces to be picked
+ * @param	x		the x-coordinate to pick at
+ * @param	y		the y-coordinate to pick at
+ * @param	index	the index of the face
+ * @return 1 if found, 0 if none found
  */
-int face_pick(Mesh *me, short x, short y)
+int face_pick(Mesh *me, short x, short y, unsigned int *index)
 {
 	unsigned int col;
-	int index;
 
-	if (me==0 || me->tface==0) {
-		return -1;
-	}
+	if (me==0 || me->tface==0)
+		return 0;
 
 	/* Have OpenGL draw in the back buffer with color coded face indices */
 	if (curarea->win_swap==WIN_EQUAL) {
@@ -933,11 +978,13 @@ int face_pick(Mesh *me, short x, short y)
 		SWITCH_INT(col);
 	}
 	/* Convert the color back to a face index */
-	index = framebuffer_to_index(col);
-	if (col==0 || index<=0 || index>me->totface) {
-		return -1;
-	}
-	return (index-1);
+	*index = framebuffer_to_index(col);
+	if (col==0 || (*index)<=0 || (*index)>me->totface)
+		return 0;
+
+	(*index)--;
+	
+	return 1;
 }
 
 void face_select()
@@ -947,7 +994,7 @@ void face_select()
 	TFace *tface, *tsel;
 	MFace *msel;
 	short mval[2];
-	int a, index;
+	unsigned int a, index;
 
 	/* Get the face under the cursor */
 	ob = OBACT;
@@ -956,8 +1003,7 @@ void face_select()
 	}
 	me = get_mesh(ob);
 	getmouseco_areawin(mval);
-	index = face_pick(me, mval[0], mval[1]);
-	if (index==-1) return;
+	if (!face_pick(me, mval[0], mval[1], &index)) return;
 	
 	tsel= (((TFace*)me->tface)+index);
 	msel= (((MFace*)me->mface)+index);
@@ -1492,8 +1538,7 @@ void face_draw()
 		if ((xy[0] != xy_old[0]) || (xy[1] != xy_old[1])) {
 
 			/* Get face to draw on */
-			face_index = face_pick(me, xy[0], xy[1]);
-			if (face_index == -1) face = NULL;
+			if (!face_pick(me, xy[0], xy[1], &face_index)) face = NULL;
 			else face = (((TFace*)me->tface)+face_index);
 
 			/* Check if this is another face. */

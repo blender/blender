@@ -30,6 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#define TF_PIN_MASK(id) (TF_PIN1 << id)
+#define TF_SEL_MASK(id) (TF_SEL1 << id)
+
 int is_uv_tface_editing_allowed(void);
 int is_uv_tface_editing_allowed_silent(void);
 void borderselect_sima(void);
@@ -39,12 +42,16 @@ void select_swap_tface_uv(void);
 void tface_do_clip(void);
 void transform_tface_uv(int mode);
 void mirrormenu_tface_uv(void);
+void mirror_tface_uv(char mirroraxis);
 void hide_tface_uv(int swap);
 void reveal_tface_uv(void);
 void stitch_uv_tface(int mode);
 void unlink_selection(void);
-void select_linked_tface_uv(void);
+void select_linked_tface_uv(int mode);
 void toggle_uv_select(int mode);
 void pin_tface_uv(int mode);
 int minmax_tface_uv(float *min, float *max);
+void weld_align_menu_tface_uv(void);
+void weld_align_tface_uv(char tool);
+void get_connected_limit_tface_uv(float *limit);
 

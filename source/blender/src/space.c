@@ -1356,14 +1356,22 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						selectconnected_posearmature();
 				}
 				else {
-					if((G.qual==LR_SHIFTKEY))
-						selectlinks_menu();
-					else if(G.qual==LR_CTRLKEY)
-						make_links_menu();
-					else if(G.f & G_FACESELECT)
-						select_linked_tfaces();
-					else if((G.qual==0))
-						make_local();
+					if(G.f & G_FACESELECT) {
+						if((G.qual==0))
+							select_linked_tfaces(0);
+						else if((G.qual==LR_SHIFTKEY))
+							select_linked_tfaces(1);
+						else if(G.qual==LR_CTRLKEY)
+							select_linked_tfaces(2);
+					}
+					else {
+						if((G.qual==0))
+							make_local();
+						else if((G.qual==LR_SHIFTKEY))
+							selectlinks_menu();
+						else if(G.qual==LR_CTRLKEY)
+							make_links_menu();
+					}
 				}
 				break;
  			case MKEY:
@@ -3771,8 +3779,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					toggle_uv_select('f');
 				break;
 			case EKEY :
-				if (okee("LSCM unwrap"))
-					unwrap_lscm();
+				unwrap_lscm();
 				break;
 			case GKEY:
 				if((G.qual==0))
@@ -3787,8 +3794,12 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					hide_tface_uv(0);
 				break;
 			case LKEY:
-				if((G.qual==0))
-					select_linked_tface_uv();
+				if(G.qual==0)
+					select_linked_tface_uv(0);
+				else if(G.qual==LR_SHIFTKEY)
+					select_linked_tface_uv(1);
+				else if(G.qual==LR_CTRLKEY)
+					select_linked_tface_uv(2);
 				else if(G.qual==LR_ALTKEY)
 					unlink_selection();
 				break;
@@ -3833,7 +3844,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					stitch_uv_tface(1);
 				break;
 			case WKEY:
-				transform_tface_uv('w');
+				weld_align_menu_tface_uv();
 				break;
 			case PADPERIOD:
 				if(G.qual==0)
