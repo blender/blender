@@ -339,6 +339,10 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_Scene.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\gameengine\Ketsji\KX_SG_BoneParentNodeRelationship.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_SG_NodeRelationships.cpp
 # End Source File
 # Begin Source File
@@ -588,6 +592,10 @@ SOURCE=..\..\..\source\gameengine\Ketsji\KX_RayEventManager.h
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\Ketsji\KX_Scene.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\Ketsji\KX_SG_BoneParentNodeRelationship.h
 # End Source File
 # Begin Source File
 

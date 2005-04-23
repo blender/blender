@@ -159,6 +159,10 @@ SOURCE=..\..\..\source\blender\render\intern\source\vanillaRenderPipe.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\render\intern\source\zblur.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\render\intern\source\zbuf.c
 # End Source File
 # Begin Source File

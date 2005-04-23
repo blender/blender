@@ -267,7 +267,7 @@ static void imgf_gamma(Image *src, float gamma)
 	i = 4 * src->x * src->y;
 	to= (float *) src->data;
 	while(i--) {
-		*to = powf(*to, gamma); 
+		*to = (float)pow(*to, gamma); 
 		to++;
 	}
 }
