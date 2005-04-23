@@ -213,5 +213,5 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
 "Reinstance the physics mesh.")
 {
-	return PyInt_FromLong(KX_ReInstanceShapeFromMesh(m_meshobj));
+	return Py_Success(KX_ReInstanceShapeFromMesh(m_meshobj));
 }

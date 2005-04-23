@@ -95,4 +95,16 @@ class KX_MeshProxy:
 		@rtype: L{KX_VertexProxy}
 		@return: a vertex object.
 		"""
+	def reinstancePhysicsMesh():
+		"""
+		Updates the physics system with the changed mesh.
+		
+		A mesh must have only one material with collision flags, 
+		and have all collision primitives in one vertex array (ie. < 65535 verts) and
+		be either a polytope or polyheder mesh.  If you don't get a warning in the
+		console when the collision type is polytope, the mesh is suitable for reinstance.
+		
+		@rtype: boolean
+		@return: True if reinstance succeeded, False if it failed.
+		"""
 
