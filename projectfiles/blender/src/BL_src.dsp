@@ -523,6 +523,10 @@ SOURCE=..\..\..\source\blender\src\transform_constraints.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\transform_conversions.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\transform_generics.c
 # End Source File
 # Begin Source File
@@ -639,7 +643,7 @@ SOURCE=..\..\..\source\blender\include\editmesh.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\transform.h
+SOURCE=..\..\..\source\blender\include\transform.h
 # End Source File
 # Begin Source File
 
