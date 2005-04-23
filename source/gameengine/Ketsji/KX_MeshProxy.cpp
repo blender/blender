@@ -42,6 +42,7 @@
 #include "KX_PolygonMaterial.h"
 
 #include "KX_PyMath.h"
+#include "KX_ConvertPhysicsObject.h"
 
 PyTypeObject KX_MeshProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -75,6 +76,7 @@ PyMethodDef KX_MeshProxy::Methods[] = {
 {"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
 {"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
 {"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
+KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
 //{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
 
   {NULL,NULL} //Sentinel
@@ -206,4 +208,10 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 
 	return vertexob;
 		
+}
+
+KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
+"Reinstance the physics mesh.")
+{
+	return PyInt_FromLong(KX_ReInstanceShapeFromMesh(m_meshobj));
 }

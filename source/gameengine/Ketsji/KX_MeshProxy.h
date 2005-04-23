@@ -62,6 +62,7 @@ public:
 	// both take materialid (int)
 	KX_PYMETHOD(KX_MeshProxy,GetVertexArrayLength);
 	KX_PYMETHOD(KX_MeshProxy,GetVertex);
+	KX_PYMETHOD_DOC(KX_MeshProxy, reinstancePhysicsMesh);
 };
 
 #endif //__KX_MESHPROXY
