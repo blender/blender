@@ -763,6 +763,14 @@ void do_render_panels(unsigned short event)
 			BIF_redraw_render_rect();
 		}
 		break;
+	case B_SET_EDGE:
+		G.scene->r.mode &= ~R_ZBLUR;
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
+	case B_SET_ZBLUR:
+		G.scene->r.mode &= ~R_EDGE;
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
 	}
 }
 
@@ -1031,23 +1039,6 @@ static void render_panel_output(void)
 
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
-	/* Dither control */
-	uiDefButF(block, NUM,B_DIFF, "Dither:",		205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
-
-	/* Toon shading buttons */
-	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|5, 0,"Edge",	100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display edge settings");
-
-	/* postprocess render buttons */
-	uiBlockBeginAlign(block);
-	if(R.rectftot)
-		uiDefIconTextButI(block, TOG|BIT|18, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
-	else
-		uiDefButI(block, TOG|BIT|18, 0,"Fbuf",	100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
-	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 170, 68, 140, 20, "Applies on RGBA floats while render or with Fbuf available");
-	uiBlockEndAlign(block);
-	
 	/* removed, for time being unified and normal render will use same gamma for blending (2.0) */
 	//if (G.scene->r.mode & R_GAMMA) {
 	//	uiDefButF(block, NUMSLI, 0,"Gamma:",		10, 68, 142, 20,
@@ -1093,7 +1084,7 @@ static void render_panel_render(void)
 	uiDefButS(block, ROW,800,"Premul",	405,13,50,20,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
 	uiDefButS(block, ROW,800,"Key",		456,13,35,20,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
 	uiBlockEndAlign(block);
-	
+
 	if(G.scene->r.mode & R_RAYTRACE)
 		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
 
@@ -1317,12 +1308,12 @@ static void render_panel_yafrayGlobal()
 
 	uiDefButF(block, NUMSLI, B_DIFF,"Bi ", 5,35,150,20,	&(G.scene->r.YF_raybias), 
 				0.0, 10.0 ,0,0, "Shadow ray bias to avoid self shadowing");
-  uiDefButI(block, NUM, B_DIFF, "Raydepth ", 5,60,150,20,
+	uiDefButI(block, NUM, B_DIFF, "Raydepth ", 5,60,150,20,
 				&G.scene->r.YF_raydepth, 1.0, 80.0, 10, 10, "Maximum render ray depth from the camera");
 	uiDefButF(block, NUMSLI, B_DIFF, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
 	uiDefButF(block, NUMSLI, B_DIFF, "Exp ", 160,10,150,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
         
-  uiDefButI(block, NUM, B_DIFF, "Processors:", 160,35,150,20,
+	uiDefButI(block, NUM, B_DIFF, "Processors:", 160,35,150,20,
 				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
 	/*AA Settings*/
@@ -1339,11 +1330,48 @@ static void render_panel_yafrayGlobal()
 	}
 }
 
+static void render_panel_sfx(void)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_dof", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Output", "Render");
+	if(uiNewPanel(curarea, block, "Post Effects", "Render", 320, 0, 318, 204)==0) return;
+	
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|20,B_SET_ZBLUR,"Zblur",	10,180,140,20,&G.scene->r.mode,0,0, 0, 0, "Apply blur based on depth values in z-buffer");
+	uiDefButF(block, NUM,B_DIFF, "ZMin:",		10,160,140,20, &G.scene->r.zmin, 0.0, 1.0, 0, 0, "Specify the start distance with maximum blur");				
+	uiDefButF(block, NUM,B_DIFF, "Focus:",		10,140,140,20, &G.scene->r.focus, 0.0, 1.0, 0, 0, "Specify the focus distance (not blurred)");
+	uiDefButF(block, NUM,B_DIFF, "Blur:",		10,120,140,20, &G.scene->r.zblur, 1.0, 100.0, 0, 0, "Specify the maximum blur radius");	
+	uiDefButF(block, NUM,B_DIFF, "Gamma:",		10,100,140,20, &G.scene->r.zgamma, 0.05, 2.0, 0, 0, "Use Gamma corrected addition of colors");
+	uiDefButF(block, NUM,B_DIFF, "Sigma:",		10,80,140,20, &G.scene->r.zsigma, 1.0, 20.0, 0, 0, "Filter type control, higher value is stronger gaussian");
+	
+	/* Toon shading buttons */
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|5, B_SET_EDGE, "Edge",	160, 180, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 160, 160, 150, 20, "Display edge settings");
+	
+	/* postprocess render buttons */
+	uiBlockBeginAlign(block);
+	if(R.rectftot)
+		uiDefIconTextButI(block, TOG|BIT|18, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
+	else
+		uiDefButI(block, TOG|BIT|18, 0,"Fbuf",		160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
+	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 160, 110, 150, 20, "Applies on RGBA floats while render or with Fbuf available");
+	uiBlockEndAlign(block);
+	
+	/* Dither control */
+	uiDefButF(block, NUM,B_DIFF, "Dither:",			160,80,150,20, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
+	
+}
+
+
 
 void render_panels()
 {
 
 	render_panel_output();
+	render_panel_sfx();
 	render_panel_render();
 	render_panel_anim();
 	render_panel_format();

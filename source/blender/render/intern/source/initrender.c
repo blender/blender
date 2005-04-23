@@ -99,6 +99,7 @@
 #include "renderHelp.h"
 #include "jitter.h"
 #include "gammaCorrectionTables.h"
+#include "zblur.h"
 
 /* Own includes */
 #include "initrender.h"
@@ -1063,6 +1064,10 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 			
 			if( (R.flag & R_HALO)) {
 				if(RE_local_test_break()==0) add_halo_flare();
+			}
+
+			if( (R.r.mode & R_ZBLUR)) {
+				if(RE_local_test_break()==0) add_zblur();
 			}
 
 			if(R.r.mode & R_MBLUR) {

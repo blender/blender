@@ -522,6 +522,7 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, f
 	for(a=num;a>0;a--) {
 		/* instead of jit i tried random: ugly! */
 		/* note: the plus 0.5 gives best sampling results, jit used to go from 0-1 */
+		/* xs1 and ys1 are already corrected to be corner of sample area */
 		xs= xs1 + xres*(j[0] + 0.5);
 		ys= ys1 + yres*(j[1] + 0.5);
 		j+=2;

@@ -35,6 +35,7 @@
 
 struct Base;
 struct Object;
+struct Camera;
 
 void	arrows_move_cursor(unsigned short event);
 void	borderselect(void);

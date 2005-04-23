@@ -172,6 +172,12 @@ Scene *add_scene(char *name)
 	sce->r.posthue= 1.0;
 	sce->r.postmul= 1.0;
 	
+	sce->r.focus= 0.9;
+	sce->r.zgamma= 1.0;
+	sce->r.zsigma= 4.0;
+	sce->r.zblur= 10.0;
+	sce->r.zmin= 0.8;
+	
 	sce->r.xplay= 640;
 	sce->r.yplay= 480;
 	sce->r.freqplay= 60;

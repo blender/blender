@@ -1344,10 +1344,10 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 
 	uiDefButF(block, NUM,REDRAWVIEW3D, "DrawSize:", 470,90,160,20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
 
-	uiDefButS(block, TOG, REDRAWVIEW3D, "Ortho", 470,49,61,40, &cam->type, 0, 0, 0, 0, "Render orthogonally");
+	uiDefButS(block, TOG, REDRAWVIEW3D, "Ortho",		470,29,61,60, &cam->type, 0, 0, 0, 0, "Render orthogonally");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0,REDRAWVIEW3D, "ShowLimits", 533,69,97,20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
-	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D, "Show Mist", 533,49,97,20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
+	uiDefButS(block, TOG|BIT|0,REDRAWVIEW3D, "ShowLimits", 533,59,97,30, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
+	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D, "Show Mist",  533,29,97,30, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
 	uiBlockEndAlign(block);
 }
 
@@ -1379,6 +1379,23 @@ static void editing_panel_camera_yafraydof(Object *ob, Camera *cam)
 
 }
 
+/* **************************** CAMERA *************************** */
+
+void do_cambuts(unsigned short event)
+{
+	Object *ob;
+	Camera *cam;
+	
+	ob= OBACT;
+	if (ob==0) return;
+	cam= ob->data;
+
+	switch(event) {
+	case 0:
+		;
+		break;
+	}
+}
 
 /* *************************** MBALL ******************************** */
 

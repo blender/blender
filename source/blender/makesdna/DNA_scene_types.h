@@ -215,7 +215,9 @@ typedef struct RenderData {
 	
 	/* Dither noise intensity */
 	float dither_intensity;
-	float pad_dither;
+	
+	/* Zblur settings */
+	float zmin, focus, zgamma, zsigma, zblur;
 
 	/* yafray: global panel params. TODO: move elsewhere */
 	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
@@ -303,6 +305,8 @@ typedef struct Scene {
 #define R_GAUSS      	0x20000
 #define R_FBUF			0x40000
 #define R_THREADS		0x80000
+#define R_ZBLUR			0x100000
+
 
 /* yafray: renderer flag (not only exclusive to yafray) */
 #define R_INTERN	0

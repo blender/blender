@@ -22,6 +22,7 @@ source_files = ['intern/source/RE_callbacks.c',
                 'intern/source/shadbuf.c',
                 'intern/source/texture.c',
                 'intern/source/vanillaRenderPipe.c',
+		'intern/source/zblur.c',
                 'intern/source/zbuf.c',
                 'intern/source/zbufferdatastruct.c']
 

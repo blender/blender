@@ -77,6 +77,7 @@ extern void do_fontbuts(unsigned short event);
 extern void do_mballbuts(unsigned short event);
 extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
+extern void do_cambuts(unsigned short event);
 extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
 /* shading */
@@ -280,6 +281,9 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_RTCHANGED		1640
 #define B_SWITCHRENDER	1641
 #define B_FBUF_REDO		1642
+
+#define B_SET_EDGE		1643
+#define B_SET_ZBLUR		1644
 
 #ifdef __NLA
 /* *********************** */

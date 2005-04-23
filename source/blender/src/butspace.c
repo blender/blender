@@ -288,7 +288,7 @@ void do_butspace(unsigned short event)
 		do_fontbuts(event);
 	}
 	else if(event<=B_CAMBUTS) {
-		;
+		do_cambuts(event);
 	}
 	else if(event<=B_MBALLBUTS) {
 		do_mballbuts(event);

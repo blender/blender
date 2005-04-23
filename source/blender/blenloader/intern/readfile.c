@@ -4641,6 +4641,13 @@ static void do_versions(Main *main)
 		
 		while(sce) {
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
+			if(sce->r.zgamma==0.0) {
+				sce->r.focus= 0.9;
+				sce->r.zgamma= 1.0;
+				sce->r.zsigma= 4.0;
+				sce->r.zblur= 10.0;
+				sce->r.zmin= 0.8;
+			}
 			sce= sce->id.next;
 		}
 		while(cam) {
@@ -4701,15 +4708,6 @@ static void do_versions(Main *main)
 				}
 			}
 		}
-		/*Camera *ca;
-		
-		for (ca= main->camera.first; ca; ca= ca->id.next) {
-			ca->focus= 0.9;
-			ca->zgamma= 1.0;
-			ca->zblur= 10.0;
-			ca->zmin= 0.8;
-			ca->flag |= CAM_AUTOFOCUS;
-		}*/		
 	}
 	
 	/* don't forget to set version number in blender.c! */

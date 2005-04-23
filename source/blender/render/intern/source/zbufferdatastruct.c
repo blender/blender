@@ -262,7 +262,7 @@ void insertFlatObjectNoOsa(RE_APixstrExt *ap,
 						   int dist, 
 						   int mask)
 {
-	int counter;
+	int counter=0;
 	
 	while(ap) {
 		if(ap->t[0] == RE_NONE) {
