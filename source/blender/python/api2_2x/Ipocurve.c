@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot, Nathan Letwory
+ * Contributor(s): Jacques Guignot, Nathan Letwory, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -39,7 +39,7 @@
 #include <BKE_ipo.h>
 #include <BLI_blenlib.h>
 #include <BSE_editipo.h>
-
+#include <MEM_guardedalloc.h>
 #include <DNA_ipo_types.h>
 
 #include "constant.h"
