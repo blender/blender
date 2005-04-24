@@ -3507,10 +3507,10 @@ static int dxf_get_layer_col(char *layer)
 
 static int dxf_get_layer_num(char *layer)
 {
-	int ret = 1;
-	
+	int ret = 0;
+
 	if (all_digits(layer) && atoi(layer)<(1<<20)) ret= atoi(layer);
-	if (ret == 0) ret = 1;
+	if (ret == 0) ret = G.scene->lay;
 
 	return ret;
 }
@@ -3687,22 +3687,24 @@ static void dxf_get_mesh(Mesh** m, Object** o, int noob)
 	Mesh *me = NULL;
 	Object *ob;
 	
-        if (!noob) {
-                *o = add_object(OB_MESH);
-                ob = *o;
+	if (!noob) {
+		*o = add_object(OB_MESH);
+		ob = *o;
 
-                if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-                else if (strlen(layname)) new_id(&G.main->object, (ID *)ob, 
-			layname);
+		if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
+		else if (strlen(layname)) new_id(&G.main->object, (ID *)ob,  layname);
 
-                if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-                else ob->lay= G.scene->lay;
+		if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
+		else ob->lay= G.scene->lay;
+		// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
+		G.scene->basact->lay= ob->lay;
 
-                *m = ob->data;
-                me= *m;
+		*m = ob->data;
+		me= *m;
 
-                vcenter= ob->loc;
-	} else {
+		vcenter= ob->loc;
+	} 
+	else {
 		*o = NULL;
 		*m = add_mesh(); G.totmesh++;
 
@@ -4302,7 +4304,9 @@ static void dxf_read_polyline(int noob) {
 			
 				if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
 				else ob->lay= G.scene->lay;
-		
+				// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
+				G.scene->basact->lay= ob->lay;
+				
 				me= ob->data;
 				
 				vcenter= ob->loc;
@@ -4407,6 +4411,8 @@ static void dxf_read_polyline(int noob) {
 		
 			if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
 			else ob->lay= G.scene->lay;
+			// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
+			G.scene->basact->lay= ob->lay;
 	
 			me= ob->data;
 			
@@ -4768,6 +4774,8 @@ static void dxf_read_3dface(int noob)
 	
 			if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
 			else ob->lay= G.scene->lay;
+			// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
+			G.scene->basact->lay= ob->lay;
 
 			me= ob->data;
 		
@@ -5026,7 +5034,7 @@ static void dxf_read(char *filename)
 						if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
 						else ob->lay= G.scene->lay;
 	
-						/* aan de scene hangen */
+						/* link to scene */
 						base= MEM_callocN( sizeof(Base), "add_base");
 						BLI_addhead(&G.scene->base, base);
 		
