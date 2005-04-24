@@ -357,15 +357,24 @@ static int calc_manipulator(ScrArea *sa)
 		case V3D_MANIP_NORMAL:
 			if(G.obedit || G.obpose) {
 				if(normal[0]!=0.0 || normal[1]!=0.0 || normal[2]!=0.0) {
-					float mat[3][3];
+					float imat[3][3], mat[3][3];
+					
+					/* we need the transpose of the inverse for a normal... */
+					Mat3CpyMat4(imat, ob->obmat);
+					
+					Mat3Inv(mat, imat);
+					Mat3Transp(mat);
+					Mat3MulVecfl(mat, normal);
+					Mat3MulVecfl(mat, plane);
 					
 					Normalise(normal);
 					Normalise(plane);
+					
 					VECCOPY(mat[2], normal);
 					Crossf(mat[0], normal, plane);
 					Crossf(mat[1], mat[2], mat[0]);
 					
-					Mat4MulMat43(v3d->twmat, ob->obmat, mat);
+					Mat4CpyMat3(v3d->twmat, mat);
 					Mat4Ortho(v3d->twmat);
 					
 					break;
