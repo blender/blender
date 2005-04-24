@@ -470,7 +470,7 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 	else if( is_scene && !strcmp( eventname, "OnSave" ) )
 		event = SCRIPT_ONSAVE;
 	else
-		return EXPP_ReturnIntError( PyExc_AttributeError,
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"invalid event name" );
 
 	stmp = slink->scripts;
