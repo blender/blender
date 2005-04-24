@@ -215,10 +215,9 @@ typedef struct SpaceImage {
 	
 	struct Image *image;
 	float zoom;
-	float pad2; /* padding is with 8 bytes aligned  */
 	short mode, pin;
 	short imanr, curtile;
-	short xof, yof;
+	float xof, yof;
 	short flag, lock;
 	
 } SpaceImage;

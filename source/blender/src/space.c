@@ -3751,9 +3751,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual & LR_SHIFTKEY) mouseco_to_curtile();
 				else gesture();
 				break;
-			case MIDDLEMOUSE:
-				image_viewmove();
-				break;
 			case RIGHTMOUSE:
 				if(G.f & G_FACESELECT)
 					mouse_select_sima();
@@ -3779,7 +3776,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					toggle_uv_select('f');
 				break;
 			case EKEY :
-				unwrap_lscm();
+				if(okee("LSCM Unwrap"))
+					unwrap_lscm();
 				break;
 			case GKEY:
 				if((G.qual==0))
@@ -3865,13 +3863,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		do_imagebuts(val);	// drawimage.c
 		break;
 	case MIDDLEMOUSE:
-		image_viewmove();
+		if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
+			image_viewmove(1);
+		else
+			image_viewmove(0);
 		break;
-	case WHEELUPMOUSE:
-	case WHEELDOWNMOUSE:
-	case PADPLUSKEY:
-	case PADMINUS:
-		image_viewzoom(event);
+	case WHEELUPMOUSE: case WHEELDOWNMOUSE: case PADPLUSKEY: case PADMINUS:
+		image_viewzoom(event, 0);
 		scrarea_queue_winredraw(curarea);
 		break;
 	case HOMEKEY:

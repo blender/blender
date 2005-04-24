@@ -782,7 +782,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	ImBuf *ibuf= NULL;
 	float col[3];
 	unsigned int *rect;
-	int x1, y1, xmin, xmax, ymin, ymax;
+	int x1, y1;
 	short sx, sy, dx, dy;
 	
 	BIF_GetThemeColor3fv(TH_BACK, col);
@@ -791,9 +791,6 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 	bwin_clear_viewmat(sa->win);	/* clear buttons view */
 	glLoadIdentity();
-	
-	xmin= curarea->winrct.xmin; xmax= curarea->winrct.xmax;
-	ymin= curarea->winrct.ymin; ymax= curarea->winrct.ymax;
 	
 	what_image(G.sima);
 	
@@ -900,80 +897,104 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-void image_viewmove(void)
+static void image_zoom_power_of_two(void)
 {
-	short mval[2], mvalo[2], xof, yof;
+	/* Make zoom a power of 2 */
+
+	G.sima->zoom = 1 / G.sima->zoom;
+	G.sima->zoom = log(G.sima->zoom) / log(2);
+	G.sima->zoom = ceil(G.sima->zoom);
+	G.sima->zoom = pow(2, G.sima->zoom);
+	G.sima->zoom = 1 / G.sima->zoom;
+}
+
+static void image_zoom_set_factor(float zoomfac)
+{
+	SpaceImage *sima= curarea->spacedata.first;
+	int width, height;
+
+	if (zoomfac <= 0.0f)
+		return;
+
+	sima->zoom *= zoomfac;
+
+	if (sima->zoom > 0.1f && sima->zoom < 4.0f)
+		return;
+
+	/* check zoom limits */
+
+	calc_image_view(G.sima, 'p');
+	width= 256;
+	height= 256;
+	if (sima->image) {
+		if (sima->image->ibuf) {
+			width= sima->image->ibuf->x;
+			height= sima->image->ibuf->y;
+		}
+	}
+	width *= sima->zoom;
+	height *= sima->zoom;
+
+	if ((width < 4) && (height < 4))
+		sima->zoom /= zoomfac;
+	else if((curarea->winrct.xmax - curarea->winrct.xmin) <= sima->zoom)
+		sima->zoom /= zoomfac;
+	else if((curarea->winrct.ymax - curarea->winrct.ymin) <= sima->zoom)
+		sima->zoom /= zoomfac;
+}
+
+void image_viewmove(int mode)
+{
+	short mval[2], mvalo[2], zoom0;
 	
 	getmouseco_sc(mvalo);
+	zoom0= G.sima->zoom;
 	
 	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
 
 		getmouseco_sc(mval);
+
+		if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
 		
-		xof= (mvalo[0]-mval[0])/G.sima->zoom;
-		yof= (mvalo[1]-mval[1])/G.sima->zoom;
-		
-		if(xof || yof) {
-			
-			G.sima->xof+= xof;
-			G.sima->yof+= yof;
-			
+			if(mode==0) {
+				G.sima->xof += (mvalo[0]-mval[0])/G.sima->zoom;
+				G.sima->yof += (mvalo[1]-mval[1])/G.sima->zoom;
+			}
+			else if (mode==1) {
+				float factor;
+
+				factor= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/300.0;
+				image_zoom_set_factor(factor);
+			}
+
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
 			
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
-		}		
+		}
 		else BIF_wait_for_statechange();
 	}
 }
 
-void image_viewzoom(unsigned short event)
+void image_viewzoom(unsigned short event, int invert)
 {
 	SpaceImage *sima= curarea->spacedata.first;
-	int width, height;
 
-	if(U.uiflag & USER_WHEELZOOMDIR) {
-		if (event==WHEELDOWNMOUSE || event == PADPLUSKEY) {
-			sima->zoom *= 2;
-		} else {
-			sima->zoom /= 2;
-			/* Check if the image will still be visible after zooming out */
-			if (sima->zoom < 1) {
-				calc_image_view(G.sima, 'p');
-				if (sima->image) {
-					if (sima->image->ibuf) {
-						width = sima->image->ibuf->x * sima->zoom;
-						height = sima->image->ibuf->y * sima->zoom;
-						if ((width < 4) && (height < 4)) {
-							/* Image will become too small, reset value */
-							sima->zoom *= 2;
-						}
-					}
-				}
-			}
-		}
-	} else {
-		if (event==WHEELUPMOUSE || event == PADPLUSKEY) {
-			sima->zoom *= 2;
-		} else {
-			sima->zoom /= 2;
-			/* Check if the image will still be visible after zooming out */
-			if (sima->zoom < 1) {
-				calc_image_view(G.sima, 'p');
-				if (sima->image) {
-					if (sima->image->ibuf) {
-						width = sima->image->ibuf->x * sima->zoom;
-						height = sima->image->ibuf->y * sima->zoom;
-						if ((width < 4) && (height < 4)) {
-							/* Image will become too small, reset value */
-							sima->zoom *= 2;
-						}
-					}
-				}
-			}
-		}
-	}
+	if(event==WHEELDOWNMOUSE || event==PADMINUS)
+		image_zoom_set_factor((U.uiflag & USER_WHEELZOOMDIR)? 1.25: 0.8);
+	else if(event==WHEELUPMOUSE || event==PADPLUSKEY)
+		image_zoom_set_factor((U.uiflag & USER_WHEELZOOMDIR)? 0.8: 1.25);
+	else if(event==PAD1)
+		sima->zoom= 1.0;
+	else if(event==PAD2)
+		sima->zoom= (invert)? 2.0: 0.5;
+	else if(event==PAD4)
+		sima->zoom= (invert)? 4.0: 0.25;
+	else if(event==PAD8)
+		sima->zoom= (invert)? 8.0: 0.125;
+	else
+		return;
 }
 
 /**
@@ -1002,12 +1023,7 @@ void image_home(void)
 		zoomY = ((float)height) / ((float)G.sima->image->ibuf->y);
 		G.sima->zoom= MIN2(zoomX, zoomY);
 
-		/* Now make it a power of 2 */
-		G.sima->zoom = 1 / G.sima->zoom;
-		G.sima->zoom = log(G.sima->zoom) / log(2);
-		G.sima->zoom = ceil(G.sima->zoom);
-		G.sima->zoom = pow(2, G.sima->zoom);
-		G.sima->zoom = 1 / G.sima->zoom;
+		image_zoom_power_of_two();
 	}
 	else {
 		G.sima->zoom= (float)1;

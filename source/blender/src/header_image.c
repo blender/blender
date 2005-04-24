@@ -351,10 +351,31 @@ static void do_image_view_viewnavmenu(void *arg, int event)
 {
 	switch(event) {
 	case 1: /* Zoom In */
-		image_viewzoom(PADPLUSKEY);
+		image_viewzoom(PADPLUSKEY, 0);
 		break;
 	case 2: /* Zoom Out */
-		image_viewzoom(PADMINUS);
+		image_viewzoom(PADMINUS, 0);
+		break;
+	case 3: /* Zoom 8:1 */
+		image_viewzoom(PAD8, 0);
+		break;
+	case 4: /* Zoom 4:1 */
+		image_viewzoom(PAD4, 0);
+		break;
+	case 5: /* Zoom 2:1 */
+		image_viewzoom(PAD2, 0);
+		break;
+	case 6: /* Zoom 1:1 */
+		image_viewzoom(PAD1, 0);
+		break;
+	case 7: /* Zoom 1:2 */
+		image_viewzoom(PAD2, 1);
+		break;
+	case 8: /* Zoom 1:4 */
+		image_viewzoom(PAD4, 1);
+		break;
+	case 9: /* Zoom 1:8 */
+		image_viewzoom(PAD8, 1);
 		break;
 	}
 	allqueue(REDRAWIMAGE, 0);
@@ -371,6 +392,16 @@ static uiBlock *image_view_viewnavmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom 1:8", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom 1:4", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom 1:2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom 1:1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom 2:1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom 4:1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom 8:1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
