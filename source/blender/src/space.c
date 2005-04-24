@@ -713,7 +713,6 @@ void BIF_undo_menu(void)
 
 static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
-	static short prev_event= 0;		// used to detect an alt/ctrl/shift event
 	unsigned short event= evt->event;
 	short val= evt->val;
 	char ascii= evt->ascii;
@@ -728,8 +727,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		if(event==MOUSEY || event==MOUSEX) return;
-		
-		prev_event= event;	// for ctrl/alt/shift event
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
 		
@@ -1059,8 +1056,31 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_layer_buttons(-1); break;
 			
 			case SPACEKEY:
-				G.vd->twflag ^= V3D_USE_MANIPULATOR;
-				doredraw= 1;
+				if(G.qual == LR_CTRLKEY) {
+					val= pupmenu("Manipulator%t|Enable/Disable|Translate|Rotate|Scale|Combo");
+					if(val>0) {
+						if(val==1) v3d->twflag ^= V3D_USE_MANIPULATOR;
+						else {
+							if(val==2) v3d->twtype= V3D_MANIP_TRANSLATE;
+							else if(val==3) v3d->twtype= V3D_MANIP_ROTATE;
+							else if(val==4) v3d->twtype= V3D_MANIP_SCALE;
+							else if(val==5) v3d->twtype= V3D_MANIP_TRANSLATE|V3D_MANIP_ROTATE|V3D_MANIP_SCALE;
+							v3d->twflag |= V3D_USE_MANIPULATOR;
+						}
+						doredraw= 1;
+					}
+				}
+				else if(G.qual == LR_ALTKEY) {
+					val= pupmenu("Manipulator Orientation%t|Global|Local|Normal");
+					if(val>0) {
+						if(val==1) v3d->twmode= V3D_MANIP_GLOBAL;
+						else if(val==2) v3d->twmode= V3D_MANIP_LOCAL;
+						else if(val==3) v3d->twmode= V3D_MANIP_NORMAL;
+						v3d->twflag |= V3D_USE_MANIPULATOR;
+						doredraw= 1;
+					}
+				}
+
 				break;
 				
 			case AKEY:
@@ -1224,7 +1244,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(okee("Clear location")) {
 						clear_object('g');
 					}
-				} else if((G.qual==0)) {
+				}
+				else if(G.qual== (LR_CTRLKEY|LR_ALTKEY)) {
+					v3d->twtype= V3D_MANIP_TRANSLATE;
+					doredraw= 1;
+				}
+				else if((G.qual==0)) {
 					Transform(TFM_TRANSLATION, CTX_NONE);
 				}
 				break;
@@ -1484,7 +1509,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(okee("Clear rotation")) {
 						clear_object('r');
 					}
-				} else if (G.obedit) {
+				} 
+				else if(G.qual== (LR_CTRLKEY|LR_ALTKEY)) {
+					v3d->twtype= V3D_MANIP_ROTATE;
+					doredraw= 1;
+				}
+				else if (G.obedit) {
 					if((G.qual==LR_SHIFTKEY)) {
 						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF)					
 							selectrow_nurb();
@@ -1504,7 +1534,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case SKEY:
-				if(G.obedit) {
+				if(G.qual== (LR_CTRLKEY|LR_ALTKEY)) {
+					v3d->twtype= V3D_MANIP_SCALE;
+					doredraw= 1;
+				}
+				else if(G.obedit) {
 					if(G.qual==LR_ALTKEY)
 						Transform(TFM_SHRINKFATTEN, CTX_NONE);
 					else if(G.qual==LR_CTRLKEY)
@@ -1762,26 +1796,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->flag &= ~V3D_DISPIMAGE;
 						doredraw= 1;
 					}
-				}
-				break;
-			}
-		}
-	}
-	else {	// val==0, hotkeys for ctrl/alt/shift
-		if(prev_event==event) {
-			switch(event) {
-				
-			case RIGHTCTRLKEY: 
-			case LEFTCTRLKEY:
-				if(v3d->twflag & V3D_USE_MANIPULATOR) {
-					if(v3d->twtype & V3D_MANIP_SCALE) 
-						v3d->twtype= V3D_MANIP_TRANSLATE;
-					else if(v3d->twtype & V3D_MANIP_TRANSLATE)
-						v3d->twtype= V3D_MANIP_ROTATE;
-					else if(v3d->twtype & V3D_MANIP_ROTATE)
-						v3d->twtype= V3D_MANIP_SCALE;
-					
-					doredraw= 1;
 				}
 				break;
 			}
@@ -2502,11 +2516,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 					 (xpos+edgsp+(5*mpref)+(6*midsp)+(mpref/2)),y5,(mpref/2),buth,
 					 &(U.tw_handlesize), 2, 40, 0, 0, "Size of widget handles as percentage of widget radius");
 		uiDefButS(block, NUM, B_REDRCURW3D, "Hotspot:",
-				  (xpos+edgsp+(5*mpref)+(6*midsp)),y4,(mpref/2),buth,
+				  (xpos+edgsp+(5*mpref)+(6*midsp)),y4,(mpref),buth,
 				  &(U.tw_hotspot), 4, 40, 0, 0, "Hotspot in pixels for clicking widget handles");
-		uiDefButBitS(block, TOG, U_TW_ABSOLUTE, B_REDRCURW3D, "Fixed Size",
-				  (xpos+edgsp+(5*mpref)+(6*midsp)+(mpref/2)),y4,(mpref/2),buth,
-				  &(U.tw_flag), 2, 40, 0, 0, "Size of widget based on fixed window size (1000 pixels)");
+		
 		uiBlockEndAlign(block);
 		
 	} else if (U.userpref == 1) { /* edit methods */

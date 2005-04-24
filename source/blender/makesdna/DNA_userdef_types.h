@@ -235,7 +235,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_VRML_TWOSIDED		4
 
 /* tw_flag (transform widget) */
-#define U_TW_ABSOLUTE			1
+
 
 #endif
 
