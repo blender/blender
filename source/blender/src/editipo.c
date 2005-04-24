@@ -3123,8 +3123,25 @@ void borderselect_ipo()
 	}
 }
 
+/*
+ * When deleting an IPO curve from Python, check if the IPO is being
+ * edited and if so clear the pointer to the old curve.
+ */
 
+void del_ipoCurve ( IpoCurve * icu )
+{
+	int i;
+	EditIpo *ei= G.sipo->editipo;
+	if (!ei) return;
 
+	for(i=0; i<G.sipo->totipo; i++, ei++) {
+                if ( ei->icu == icu ) {
+			ei->flag &= ~(IPO_SELECT | IPO_EDIT);
+			ei->icu= 0;
+			return;
+		}
+	}
+}
 
 void del_ipo()
 {

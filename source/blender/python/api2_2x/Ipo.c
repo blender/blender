@@ -42,15 +42,11 @@
 #include <BSE_editipo.h>
 #include <mydevice.h>
 #include <DNA_curve_types.h>
+#include <MEM_guardedalloc.h>
 
 #include "Ipocurve.h"
 #include "constant.h"
 #include "gen_utils.h"
-
-
-
-/* forward declarations */
-char *GetIpoCurveName( IpoCurve * icu );
 
 /*****************************************************************************/
 /* Python API function prototypes for the Ipo module.                        */
@@ -95,6 +91,7 @@ static PyObject *Ipo_setRctf( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurves( BPy_Ipo * self );
 static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args );
+static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getNcurves( BPy_Ipo * self );
 static PyObject *Ipo_getNBezPoints( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_DeleteBezPoints( BPy_Ipo * self, PyObject * args );
@@ -125,6 +122,8 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	 "(str) - Change Ipo rctf"},
 	{"addCurve", ( PyCFunction ) Ipo_addCurve, METH_VARARGS,
 	 "() - Return Ipo ncurves"},
+	{"delCurve", ( PyCFunction ) Ipo_delCurve, METH_VARARGS,
+	 "() - Delete Ipo curves"},
 	{"getNcurves", ( PyCFunction ) Ipo_getNcurves, METH_NOARGS,
 	 "() - Return Ipo ncurves"},
 	{"getNBezPoints", ( PyCFunction ) Ipo_getNBezPoints, METH_VARARGS,
@@ -1125,6 +1124,42 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 	return IpoCurve_CreatePyObject( icu );
 }
 
+/* 
+   Function:  Ipo_delCurve
+   Bpy:       Blender.Ipo.delCurve(curtype)
+
+   delete an existing curve from IPO.
+   example:
+       ipo = Blender.Ipo.New('Object','ObIpo')
+       cu = ipo.delCurve('LocX')
+*/
+
+static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args )
+{
+	IpoCurve *icu;
+	char *strname;
+
+	if( !PyArg_ParseTuple( args, "s", &strname ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError,
+			   "string argument" ) );
+
+	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+		char *str1 = getIpoCurveName( icu );
+		if( !strcmp( str1, strname ) ) {
+			BLI_remlink( &(self->ipo->curve), icu);
+			if(icu->bezt) MEM_freeN(icu->bezt);
+			MEM_freeN(icu);
+			del_ipoCurve ( icu );
+			Py_INCREF( Py_None );
+			return Py_None;
+		}
+	}
+
+	return ( EXPP_ReturnPyObjError
+		 ( PyExc_RuntimeError, "IpoCurve not found" ) );
+}
+
 
 
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args )
@@ -1137,64 +1172,13 @@ static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args )
 			 ( PyExc_TypeError, "expected string argument" ) );
 
 	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
-		str1 = GetIpoCurveName( icu );
+		str1 = getIpoCurveName( icu );
 		if( !strcmp( str1, str ) )
 			return IpoCurve_CreatePyObject( icu );
 	}
 
 	Py_INCREF( Py_None );
 	return Py_None;
-}
-
-char *GetIpoCurveName( IpoCurve * icu )
-{
-	switch ( icu->blocktype ) {
-	case ID_MA:
-		{
-			return getname_mat_ei( icu->adrcode );
-		}
-	case ID_WO:
-		{
-			return getname_world_ei( icu->adrcode );
-		}
-	case ID_CA:
-		{
-			return getname_cam_ei( icu->adrcode );
-		}
-	case ID_OB:
-		{
-			return getname_ob_ei( icu->adrcode, 1 );	/* solve: what if EffX/Y/Z are wanted? */
-		}
-	case ID_TE:
-		{
-			return getname_tex_ei( icu->adrcode );
-		}
-	case ID_LA:
-		{
-			return getname_la_ei( icu->adrcode );
-		}
-	case ID_AC:
-		{
-			return getname_ac_ei( icu->adrcode );
-		}
-	case ID_CU:
-		{
-			return getname_cu_ei( icu->adrcode );
-		}
-	case ID_KE:
-		{
-			return getname_key_ei( icu->adrcode );
-		}
-	case ID_SEQ:
-		{
-			return getname_seq_ei( icu->adrcode );
-		}
-	case IPO_CO:
-		{
-			return getname_co_ei( icu->adrcode );
-		}
-	}
-	return NULL;
 }
 
 static PyObject *Ipo_getCurves( BPy_Ipo * self )
@@ -1444,9 +1428,7 @@ static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args )
 				 ( PyExc_TypeError,
 				   "expected int or string argument" ) );
 		while( icu ) {
-			/*char str1[10];
-			   GetIpoCurveName (icu, str1); */
-			str1 = GetIpoCurveName( icu );
+			str1 = getIpoCurveName( icu );
 			if( !strcmp( str1, stringname ) )
 				break;
 			icu = icu->next;

@@ -109,6 +109,7 @@ void select_ipo_bezier_keys(struct Ipo *ipo, int selectmode);
 void set_ipotype(void);
 void borderselect_ipo(void);
 void del_ipo(void);
+void del_ipoCurve ( struct IpoCurve * icu );
 void free_ipocopybuf(void);
 void copy_editipo(void);
 void paste_editipo(void);

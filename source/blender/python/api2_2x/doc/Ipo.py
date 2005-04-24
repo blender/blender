@@ -90,7 +90,7 @@ class Ipo:
       MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
       MgOff, MgGan, NBase1, NBase2.
       7. Curve Ipo: Speed.
-      8. Key Ipo: Speed, 'Key 1' - 'Key 31'.
+      8. Key Ipo: Speed, 'Key 1' - 'Key 63'.
       9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ,
       QuatX, QuatY, QuatZ, QuatW.
       10. Sequence Ipo: Fac.
@@ -124,6 +124,14 @@ class Ipo:
     @type curvename : string
     @rtype: IpoCurve object
     @return: the corresponding IpoCurve, or None.
+    """
+
+  def removeCurve(curvename):
+    """
+    Remove a existing curve from the IPO object. See addCurve() for possible values for curvename.
+    @type curvename : string
+    @rtype: None
+    @return: None.
     """
 
   def setName(newname):
@@ -283,6 +291,15 @@ class IpoCurve:
     @rtype: None
     @return: None
     """
+ 
+  def delBezier(index):
+    """
+    Deletes a Bezier point from a curve.
+    @type index: integer
+    @param index: the index of the Bezier point.  Negative values index from the end of the list.
+    @rtype: None
+    @return: None
+    """
 
   def Recalc():
     """
@@ -311,7 +328,7 @@ class IpoCurve:
       MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
       MgOff, MgGan, NBase1, NBase2;
       7. Curve Ipo: Speed;
-      8. Key Ipo: Speed, 'Key 1' - 'Key 31';
+      8. Key Ipo: Speed, 'Key 1' - 'Key 63';
       9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ,
       QuatX, QuatY, QuatZ, QuatW;
       10.Sequence Ipo: Fac;

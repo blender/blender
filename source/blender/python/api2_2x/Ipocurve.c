@@ -80,6 +80,7 @@ static PyObject *IpoCurve_getName( C_IpoCurve * self );
 static PyObject *IpoCurve_Recalc( C_IpoCurve * self );
 static PyObject *IpoCurve_setName( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args );
+static PyObject *IpoCurve_delBezier( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_setInterpolation( C_IpoCurve * self,
 					    PyObject * args );
 static PyObject *IpoCurve_getInterpolation( C_IpoCurve * self );
@@ -105,6 +106,8 @@ static PyMethodDef C_IpoCurve_methods[] = {
 	 "(str) - Change IpoCurve Data name"},
 	{"addBezier", ( PyCFunction ) IpoCurve_addBezier, METH_VARARGS,
 	 "(str) - Change IpoCurve Data name"},
+	{"delBezier", ( PyCFunction ) IpoCurve_delBezier, METH_VARARGS,
+	 "(int) - delete Bezier point at index"},
 	{"setInterpolation", ( PyCFunction ) IpoCurve_setInterpolation,
 	 METH_VARARGS,
 	 "(str) - Change IpoCurve Data name"},
@@ -137,7 +140,7 @@ static PyObject *IpoCurveRepr( C_IpoCurve * self );
 /* Python IpoCurve_Type structure definition:                                */
 /*****************************************************************************/
 PyTypeObject IpoCurve_Type = {
-	PyObject_HEAD_INIT( NULL ) /* required macro */ 
+	PyObject_HEAD_INIT( NULL )                  /* required macro */ 
 	0,	/* ob_size */
 	"IpoCurve",		/* tp_name */
 	sizeof( C_IpoCurve ),	/* tp_basicsize */
@@ -195,7 +198,7 @@ PyObject *IpoCurve_Init( void )
 /*****************************************************************************/
 static PyObject *M_IpoCurve_Get( PyObject * self, PyObject * args )
 {
-	Py_INCREF(Py_None);
+	Py_INCREF( Py_None );
 	return Py_None;
 }
 
@@ -326,6 +329,72 @@ static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args )
 	return Py_None;
 }
 
+/*
+   Function:  IpoCurve_delBezier
+   Bpy:       Blender.Ipocurve.delBezier(0)
+
+   Delete an BezTriple from an IPO curve.
+   example:
+       ipo = Blender.Ipo.Get('ObIpo')
+       cu = ipo.getCurve('LocX')
+       cu.delBezier(0)
+*/
+
+static PyObject *IpoCurve_delBezier( C_IpoCurve * self, PyObject * args )
+{
+	//short MEM_freeN( void *vmemh );
+	//void *MEM_mallocN( unsigned int len, char *str );
+	int npoints;
+	int index;
+	IpoCurve *icu;
+	BezTriple *tmp;
+
+	if( !PyArg_ParseTuple( args, "i", &index ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected int argument" ) );
+
+	icu = self->ipocurve;
+	npoints = icu->totvert - 1;
+
+	/* if index is negative, count from end of list */
+	if( index < 0 )
+		index += icu->totvert;
+	/* check range of index */
+	if( index < 0 || index > npoints )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_ValueError, "index outside of list" ) );
+
+	tmp = icu->bezt;
+
+	/*
+	   if delete empties list, then delete it, otherwise copy the remaining
+	   points to a new list
+	 */
+
+	if( npoints == 0 ) {
+		icu->bezt = NULL;
+	} else {
+		icu->bezt =
+			MEM_mallocN( sizeof( BezTriple ) * npoints, "bezt" );
+		if( index > 0 )
+			memmove( icu->bezt, tmp, index * sizeof( BezTriple ) );
+		if( index < npoints )
+			memmove( icu->bezt + index, tmp + index + 1,
+				 ( npoints - index ) * sizeof( BezTriple ) );
+	}
+
+	/* free old list, adjust vertex count */
+	MEM_freeN( tmp );
+	icu->totvert--;
+
+	/* call calchandles_* instead of testhandles_*  */
+	/* I'm not sure this is a complete solution but since we do not */
+	/* deal with curve handles right now, it seems ok */
+	calchandles_ipocurve( icu );
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
 
 static PyObject *IpoCurve_setName( C_IpoCurve * self, PyObject * args )
 {
@@ -468,10 +537,8 @@ static int IpoCurveSetAttr( C_IpoCurve * self, char *name, PyObject * value )
 /*****************************************************************************/
 static PyObject *IpoCurveRepr( C_IpoCurve * self )
 {
-	void GetIpoCurveName( IpoCurve * icu, char *s );
-	char s[100], s1[100];
-	GetIpoCurveName( self->ipocurve, s1 );
-	sprintf( s, "IpoCurve %s \n", s1 );
+	char s[100];
+	sprintf( s, "[IpoCurve \"%s\"]\n", getIpoCurveName( self->ipocurve ) );
 	return PyString_FromString( s );
 }
 
@@ -537,4 +604,40 @@ static PyObject *IpoCurve_evaluate( C_IpoCurve * self, PyObject * args )
 
 	return PyFloat_FromDouble( eval );
 
+}
+
+/*
+  internal bpy func to get Ipo Curve Name.
+  We are returning a pointer to string constants so there are
+  no issues with who owns pointers.
+*/
+
+char *getIpoCurveName( IpoCurve * icu )
+{
+	switch ( icu->blocktype ) {
+	case ID_MA:
+		return getname_mat_ei( icu->adrcode );
+	case ID_WO:
+		return getname_world_ei( icu->adrcode );
+	case ID_CA:
+		return getname_cam_ei( icu->adrcode );
+	case ID_OB:
+		return getname_ob_ei( icu->adrcode, 1 );
+		/* solve: what if EffX/Y/Z are wanted? */
+	case ID_TE:
+		return getname_tex_ei( icu->adrcode );
+	case ID_LA:
+		return getname_la_ei( icu->adrcode );
+	case ID_AC:
+		return getname_ac_ei( icu->adrcode );
+	case ID_CU:
+		return getname_cu_ei( icu->adrcode );
+	case ID_KE:
+		return getname_key_ei( icu->adrcode );
+	case ID_SEQ:
+		return getname_seq_ei( icu->adrcode );
+	case IPO_CO:
+		return getname_co_ei( icu->adrcode );
+	}
+	return NULL;
 }
