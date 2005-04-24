@@ -300,9 +300,6 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *force,float *cf ,float *bounce)
 {
 	int deflected;
-	int last_ob = -1;
-	int last_fc = -1;
-	int same_fc = 0;
 	float s_actpos[3], s_futurepos[3];
 	SoftBody *sb= ob->soft;	// is supposed to be there
 	VECCOPY(s_actpos,actpos);
@@ -313,7 +310,7 @@ static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *col
 				
 	deflected= SoftBodyDetectCollision(s_actpos, s_futurepos, collisionpos,
 					facenormal, cf, force , 1,
-					G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
+					G.scene->r.cfra, ob->lay, ob);
 	return(deflected);
 				
 }
@@ -322,9 +319,6 @@ static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *col
 static int sb_deflect_edge_face(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *slip ,float *bounce)
 {
 	int deflected;
-	int last_ob = -1;
-	int last_fc = -1;
-	int same_fc = 0;
 	float dummy[3],s_actpos[3], s_futurepos[3];
 	SoftBody *sb= ob->soft;	// is supposed to be there
 	VECCOPY(s_actpos,actpos);
@@ -335,7 +329,7 @@ static int sb_deflect_edge_face(Object *ob,float *actpos, float *futurepos,float
 				
 	deflected= SoftBodyDetectCollision(s_actpos, s_futurepos, collisionpos,
 					facenormal, dummy, dummy , 2,
-					G.scene->r.cfra, ob->lay, &last_ob, &last_fc, &same_fc);
+					G.scene->r.cfra, ob->lay, ob);
 	return(deflected);
 				
 }

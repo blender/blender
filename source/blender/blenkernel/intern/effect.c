@@ -1519,8 +1519,7 @@ int object_wave(Object *ob)
 
 int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
         float facenormal[3], float *damp, float force[3], int mode,
-        float cur_time, unsigned int par_layer, int *last_object,
-		int *last_face, int *same_face)
+        float cur_time, unsigned int par_layer,struct Object *vertexowner)
 {
 	Base *base;
 	Object *ob, *deflection_object = NULL;
@@ -1551,6 +1550,12 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 		/*Only proceed for mesh object in same layer */
 		if(base->object->type==OB_MESH && (base->lay & par_layer)) {
 			ob= base->object;
+			if((vertexowner) && (ob == vertexowner)){ 
+				/* if vertexowner is given 
+				 * we don't want to check collision with owner object */ 
+				base = base->next;
+				continue;
+			}
 			/* only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
 				def_mesh= ob->data;
@@ -1646,9 +1651,9 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 							facedist = Inpf(dv1,d_nvect);
 							if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
 								//force_mag_norm =ee*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								force_mag_norm =exp(-ee*facedist);
+								force_mag_norm =(float)exp(-ee*facedist);
 								if (facedist > outerfacethickness*ff)
-								force_mag_norm =force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
+								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
 
 								force[0] += force_mag_norm*d_nvect[0] ;
 								force[1] += force_mag_norm*d_nvect[1] ;
@@ -1680,9 +1685,9 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 								facedist = Inpf(dv1,d_nvect);
 								if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
 									//force_mag_norm =ee*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								force_mag_norm =exp(-ee*facedist);
+								force_mag_norm =(float)exp(-ee*facedist);
 								if (facedist > outerfacethickness*ff)
-								force_mag_norm =force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
+								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
 
 									force[0] += force_mag_norm*d_nvect[0] ;
 									force[1] += force_mag_norm*d_nvect[1] ;
@@ -1750,7 +1755,6 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 	} // while (base)
 
 	if (mode == 1){ // face 
-		last_object = deflection_object;
 		return deflected;
 						}
 
