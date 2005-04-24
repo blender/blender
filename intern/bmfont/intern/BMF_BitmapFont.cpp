@@ -77,7 +77,6 @@ static int is_a_really_crappy_nvidia_card(void) {
 	/* Do you understand the implication? Do you? */
 	if (well_is_it==-1) {
 		well_is_it= (strncmp(glGetString(GL_RENDERER), "NVIDIA GeForce 6800", 18) == 0);
-		printf("Is patched: %d\n", well_is_it);
 	}
 	return well_is_it;
 }
