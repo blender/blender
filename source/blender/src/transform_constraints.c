@@ -718,7 +718,7 @@ void startConstraint(TransInfo *t) {
 }
 
 void stopConstraint(TransInfo *t) {
-	t->con.mode &= ~CON_APPLY;
+	t->con.mode &= ~(CON_APPLY|CON_SELECT);
 	*t->con.text = '\0';
 	t->num.idx_max = t->idx_max;
 }
@@ -751,10 +751,9 @@ void getConstraintMatrix(TransInfo *t)
 	Mat3MulMat3(t->con.pmtx, t->con.mtx, mat);
 }
 
-void initSelectConstraint(TransInfo *t)
+void initSelectConstraint(TransInfo *t, float mtx[3][3])
 {
-	Mat3One(t->con.mtx);
-	Mat3One(t->con.pmtx);
+	Mat3CpyMat3(t->con.mtx, mtx);
 	t->con.mode |= CON_APPLY;
 	t->con.mode |= CON_SELECT;
 

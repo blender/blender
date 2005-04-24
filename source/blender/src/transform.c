@@ -134,7 +134,10 @@ void Transform(int mode, int context)
 	short pmval[2] = {0, 0}, mval[2], val;
 	float mati[3][3];
 	unsigned short event;
+	/* constraint mode THIS IS A HACK will have to use con.mode eventually */
 	char cmode = '\0';
+	/* If MMB is pressed or not */
+	char mmb_press = 0;
 
 	/*joeedh -> hopefully may be what makes the old transform() constant*/
 	/* ton: I doubt, but it doesnt harm for now. shouldnt be needed though */
@@ -226,6 +229,9 @@ void Transform(int mode, int context)
 		getmouseco_areawin(mval);
 		
 		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
+			if (mmb_press) {
+				initSelectConstraint(&Trans, mati);
+			}
 			Trans.redraw = 1;
 		}
 		if (Trans.redraw) {
@@ -272,10 +278,18 @@ void Transform(int mode, int context)
 								initTrackball(&Trans);
 							}
 						}
-						else 
-							initSelectConstraint(&Trans);
+						else {
+							mmb_press = 1;
+							if (Trans.con.mode & CON_APPLY) {
+								stopConstraint(&Trans);
+							}
+							else {
+								initSelectConstraint(&Trans, mati);
+								postSelectConstraint(&Trans);
+							}
+						}
+						Trans.redraw = 1;
 					}
-					Trans.redraw = 1;
 					break;
 				case ESCKEY:
 				case RIGHTMOUSE:
@@ -433,6 +447,7 @@ void Transform(int mode, int context)
 				   after releasing modifer key */
 				case MIDDLEMOUSE:
 					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+						mmb_press = 0;
 						postSelectConstraint(&Trans);
 						Trans.redraw = 1;
 					}

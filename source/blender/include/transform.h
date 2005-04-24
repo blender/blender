@@ -266,7 +266,7 @@ void stopConstraint(TransInfo *t);
 
 void getConstraintMatrix(TransInfo *t);
 
-void initSelectConstraint(TransInfo *t);
+void initSelectConstraint(TransInfo *t, float mtx[3][3]);
 void selectConstraint(TransInfo *t);
 void postSelectConstraint(TransInfo *t);
 
