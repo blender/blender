@@ -1171,8 +1171,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		retval= texnoise(tex, texres); 
 		break;
 	case TEX_IMAGE:
-		if(osatex) retval= imagewraposa(tex, texvec, dxt, dyt, texres); 
-		else retval= imagewrap(tex, texvec, texres); 
+		if(osatex) retval= imagewraposa(tex, tex->ima, texvec, dxt, dyt, texres); 
+		else retval= imagewrap(tex, tex->ima, texvec, texres); 
 		break;
 	case TEX_PLUGIN:
 		retval= plugintex(tex, texvec, dxt, dyt, osatex, texres);
@@ -2317,6 +2317,7 @@ void externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *
 void render_realtime_texture(ShadeInput *shi)
 {
 	TexResult texr;
+	Image *ima;
 	static Tex tex1, tex2;	// threadsafe
 	static int firsttime= 1;
 	Tex *tex;
@@ -2332,8 +2333,8 @@ void render_realtime_texture(ShadeInput *shi)
 	
 	if(((int)(shi->ys+0.5)) & 1) tex= &tex1; else tex= &tex2;	// threadsafe
 	
-	tex->ima = shi->vlr->tface->tpage;
-	if(tex->ima) {
+	ima = shi->vlr->tface->tpage;
+	if(ima) {
 		
 		texvec[0]= 0.5+0.5*shi->uv[0];
 		texvec[1]= 0.5+0.5*shi->uv[1];
@@ -2346,8 +2347,8 @@ void render_realtime_texture(ShadeInput *shi)
 		
 		texr.nor= NULL;
 		
-		if(shi->osatex) imagewraposa(tex, texvec, dx, dy, &texr); 
-		else imagewrap(tex, texvec, &texr); 
+		if(shi->osatex) imagewraposa(tex, ima, texvec, dx, dy, &texr); 
+		else imagewrap(tex, ima, texvec, &texr); 
 		
 		shi->vcol[0]*= texr.tr;
 		shi->vcol[1]*= texr.tg;

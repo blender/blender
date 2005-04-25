@@ -73,16 +73,15 @@ int imaprepeat, imapextend;
 /* *********** IMAGEWRAPPING ****************** */
 
 
-int imagewrap(Tex *tex, float *texvec, TexResult *texres)
+int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 {
-	Image *ima;
 	struct ImBuf *ibuf;
 	float fx, fy, val1, val2, val3;
 	int ofs, x, y;
 	char *rect;
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
-	ima= tex->ima;
+
 	if(ima==NULL || ima->ok== 0) {
 		return 0;
 	}
@@ -575,18 +574,14 @@ static void makemipmap(Image *ima)
 }
 
 
-int imagewraposa(Tex *tex, float *texvec, float *dxt, float *dyt, TexResult *texres)
+int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, TexResult *texres)
 {
 	extern SDL_mutex *load_ibuf_lock; // initrender.c
 	TexResult texr;
-	Image *ima;
 	ImBuf *ibuf, *previbuf;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy;
 	float maxd, pixsize, val1, val2, val3;
 	int curmap;
-
-	
-	ima= tex->ima;
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
 

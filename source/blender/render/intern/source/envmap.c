@@ -636,6 +636,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 {
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
+	Image *ima;
 	float fac, vec[3], sco[3], dxts[3], dyts[3];
 	int face, face1;
 	
@@ -664,7 +665,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	else MTC_Mat4Mul3Vecfl(R.viewinv, vec);
 	
 	face= envcube_isect(vec, sco);
-	tex->ima= env->cube[face];
+	ima= env->cube[face];
 	
 	if(osatex) {
 		if(env->object) {
@@ -676,7 +677,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			MTC_Mat4Mul3Vecfl(R.viewinv, dyt);
 		}
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
-		imagewraposa(tex, sco, dxts, dyts, texres);
+		imagewraposa(tex, ima, sco, dxts, dyts, texres);
 		
 		/* edges? */
 		
@@ -690,9 +691,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			VecSubf(vec, vec, dxt);
 			
 			if(face!=face1) {
-				tex->ima= env->cube[face1];
+				ima= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, sco, dxts, dyts, &texr1);
+				imagewraposa(tex, ima, sco, dxts, dyts, &texr1);
 			}
 			else texr1.tr= texr1.tg= texr1.tb= texr1.ta= 0.0;
 			
@@ -703,9 +704,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			VecSubf(vec, vec, dyt);
 			
 			if(face!=face1) {
-				tex->ima= env->cube[face1];
+				ima= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, sco, dxts, dyts, &texr2);
+				imagewraposa(tex, ima, sco, dxts, dyts, &texr2);
 			}
 			else texr2.tr= texr2.tg= texr2.tb= texr2.ta= 0.0;
 			
@@ -721,10 +722,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		}
 	}
 	else {
-		imagewrap(tex, sco, texres);
+		imagewrap(tex, ima, sco, texres);
 	}
-	
-	tex->ima= env->ima;
 	
 	return 1;
 }
