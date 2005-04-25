@@ -1093,6 +1093,12 @@ void sbObjectStep(Object *ob, float framenr)
 	float ctime, forcetime;
 	float err;
 
+	/* this variable is set while transform(). with lattices also having a softbody, 
+	   it calls lattice_modifier() all the time... has no displist yet. Is temporal
+	   hack which should be resolved with proper depgraph usage + storage of deformed
+	   vertices in lattice (ton) */
+	if(G.moving) return;
+	
 	/* remake softbody if: */
 	if( (ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
 		(ob->soft==NULL) ||					// just to be nice we allow full init
