@@ -50,6 +50,7 @@ struct HaloRen;
 struct ShadeInput;
 struct TexResult;
 struct Tex;
+struct Image;
 
 /* texture.h */
 
@@ -59,8 +60,8 @@ void render_realtime_texture(struct ShadeInput *shi);
 
 /* imagetexture.h */
 
-int imagewraposa(struct Tex *tex, float *texvec, float *dxt, float *dyt, struct TexResult *texres);
-int imagewrap(struct Tex *tex, float *texvec, struct TexResult *texres);
+int imagewraposa(struct Tex *tex, struct Image *ima, float *texvec, float *dxt, float *dyt, struct TexResult *texres);
+int imagewrap(struct Tex *tex, struct Image *ima, float *texvec, struct TexResult *texres);
 
 #endif /* TEXTURE_EXT_H */
 

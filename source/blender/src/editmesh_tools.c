@@ -2457,8 +2457,9 @@ static void edge_rotate(EditEdge *eed,int dir)
 	EditFace *face[2], *efa, *newFace[2];
 	EditVert *faces[2][4],*v1,*v2,*v3,*v4,*vtemp;
 	EditEdge *srchedge = NULL;
-	short facecount=0, p1=0,p2=0,p3=0,p4=0,fac1=4,fac2=4,i,j;
-
+	short facecount=0, p1=0,p2=0,p3=0,p4=0,fac1=4,fac2=4,i,j,numhidden;
+    EditEdge **hiddenedges;
+    
 	/* check to make sure that the edge is only part of 2 faces */
 	for(efa = em->faces.first;efa;efa = efa->next){
 		if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || efa->e4 == eed)){
@@ -2578,8 +2579,23 @@ static void edge_rotate(EditEdge *eed,int dir)
 		p4 = i;	
 	}	
 
-					
-							
+
+    /* Create an Array of the Edges who have h set prior to rotate */
+    numhidden = 0;
+    for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
+        if(srchedge->h){
+            numhidden++;
+        }
+    }
+	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1,"Hidden Vert Scratch Array for Rotate Edges");
+    numhidden = 0;
+    for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
+        if(srchedge->h){
+            hiddenedges[numhidden] = srchedge;
+            numhidden++;
+        }
+    }	
+    						
 	/* create the 2 new faces */   								
 	if(fac1 == 3 && fac2 == 3){
 		/*No need of reverse setup*/
@@ -2693,8 +2709,8 @@ static void edge_rotate(EditEdge *eed,int dir)
 	
 	else if(fac1 == 4 && fac2 == 4){
 		if(dir == 1){
-			newFace[0] = addfacelist(faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%4],NULL,NULL);
-			newFace[1] = addfacelist(faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%4],NULL,NULL);
+            newFace[0] = addfacelist(faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%4],NULL,NULL);
+            newFace[1] = addfacelist(faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%4],NULL,NULL);
 	
 			newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1 )%4];
 			newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2 )%4];
@@ -2712,7 +2728,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 			UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1 )%4]);
 			UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2 )%4]);
 			UVCOPY(newFace[1]->tf.uv[2],face[1]->tf.uv[(p3+3 )%4]);
-			UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+1 )%4]);	
+			UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+1 )%4]);		
 		} else if (dir == 2){
 			newFace[0] = addfacelist(faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],NULL,NULL);
 			newFace[1] = addfacelist(faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],NULL,NULL);
@@ -2781,7 +2797,45 @@ static void edge_rotate(EditEdge *eed,int dir)
 	newFace[1]->tf.unwrap  = face[1]->tf.unwrap;
 	newFace[1]->tf.tpage   = face[1]->tf.tpage;
 	newFace[1]->flag       = face[1]->flag;
-
+	
+	/* Resetting Hidden Flag */
+	for(numhidden--;numhidden>=0;numhidden--){
+        hiddenedges[numhidden]->h = 1;
+           
+    }
+    
+    /* check for orhphan edges */
+    for(srchedge=em->edges.first;srchedge;srchedge = srchedge->next){
+        srchedge->f1 = -1;   
+    }
+    
+	/*for(efa = em->faces.first;efa;efa = efa->next){
+		if(efa->h == 0){
+            efa->e1->f1 = 1;   
+            efa->e2->f1 = 1;   
+            efa->e3->f1 = 1;   
+            if(efa->e4){
+                efa->e4->f1 = 1;   
+            }
+        }
+		if(efa->h == 1){
+            if(efa->e1->f1 == -1){
+                efa->e1->f1 = 0; 
+            }  
+            if(efa->e2->f1 == -1){
+                efa->e2->f1 = 0; 
+            } 
+                        if(efa->e1->f1 == -1){
+                efa->e1->f1 = 0; 
+            }    
+            if(efa->e4){
+                efa->e4->f1 = 1;   
+            }
+        }        
+	}
+	 A Little Cleanup */
+	MEM_freeN(hiddenedges);
+	
 	/* get rid of the old edge and faces*/
 	remedge(eed);
 	free_editedge(eed);	
