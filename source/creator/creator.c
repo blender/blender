@@ -32,10 +32,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* This little block needed for linking to Blender... */
 
 #include "MEM_guardedalloc.h"
@@ -127,7 +123,7 @@ char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 /* Initialise callbacks for the modules that need them */
 void setCallbacks(void); 
 
-#ifndef __APPLE__
+#if defined(__sgi) || defined(__alpha__)
 static void fpe_handler(int sig)
 {
 	// printf("SIGFPE trapped\n");

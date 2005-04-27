@@ -32,10 +32,6 @@
 #include "SND_AudioDevice.h"
 #include "SND_SoundObject.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
@@ -141,7 +137,7 @@ bool SND_AudioDevice::GetNewId(SND_SoundObject* pObject)
 
 		if (!OutOfIds)
 		{
-			SND_SoundObject* oldobject = oldobject = pIdObject->GetSoundObject();
+			SND_SoundObject* oldobject = pIdObject->GetSoundObject();
 			
 			// revoke the old object if present
 			if (oldobject)

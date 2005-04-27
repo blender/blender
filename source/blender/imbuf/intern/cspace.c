@@ -60,9 +60,9 @@ static void fillmattab(double val, unsigned short *mattab)
 }
 
 
-static void cspfill(short *buf, short *fill, int x)
+static void cspfill(short *buf, unsigned short *fill, int x)
 {
-	short r,g,b;
+	unsigned short r,g,b;
 
 	b = fill[0];
 	g = fill[1];
@@ -76,7 +76,7 @@ static void cspfill(short *buf, short *fill, int x)
 }
 
 
-static void cspadd(short *buf, short *cont, unsigned char *rect, int x)
+static void cspadd(short *buf, unsigned short *cont, unsigned char *rect, int x)
 {
 	short i;
 	for (;x>0;x--){
@@ -120,7 +120,7 @@ static void cspret(short *buf, unsigned char *rect, int x)
 }
 
 
-static void rotcspace(struct ImBuf *ibuf, short *cont_1, short *cont_2, short *cont_3, short *add)
+static void rotcspace(struct ImBuf *ibuf, unsigned short *cont_1, unsigned short *cont_2, unsigned short *cont_3, unsigned short *add)
 {
 	short x,y,*buf;
 	uchar *rect;
@@ -145,11 +145,11 @@ static void rotcspace(struct ImBuf *ibuf, short *cont_1, short *cont_2, short *c
 
 void IMB_cspace(struct ImBuf *ibuf, float mat[][4])
 {
-	short *cont_1,*cont_2,*cont_3,add[3];
+	unsigned short *cont_1,*cont_2,*cont_3,add[3];
 
-	cont_1=(short *)malloc(256*3*sizeof(short));
-	cont_2=(short *)malloc(256*3*sizeof(short));
-	cont_3=(short *)malloc(256*3*sizeof(short));
+	cont_1=(unsigned short *)malloc(256*3*sizeof(short));
+	cont_2=(unsigned short *)malloc(256*3*sizeof(short));
+	cont_3=(unsigned short *)malloc(256*3*sizeof(short));
 
 	if (cont_1 && cont_2 && cont_3){
 

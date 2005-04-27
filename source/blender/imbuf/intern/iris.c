@@ -238,7 +238,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	unsigned int *base, *lptr = NULL;
 	unsigned int *zbase, *zptr;
 	unsigned char *rledat;
-	int *starttab, *lengthtab;
+	unsigned int *starttab, *lengthtab;
 	FILE *inf = NULL;
 	IMAGE image;
 	int x, y, z, tablen;
@@ -277,8 +277,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	
 	if (rle) {
 		tablen = ysize*zsize*sizeof(int);
-		starttab = (int *)malloc(tablen);
-		lengthtab = (int *)malloc(tablen);
+		starttab = (unsigned int *)malloc(tablen);
+		lengthtab = (unsigned int *)malloc(tablen);
 		file_offset = 512;
 		
 		readtab(inf,starttab,tablen);
@@ -482,7 +482,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char
 	FILE *outf;
 	IMAGE *image;
 	int tablen, y, z, pos, len = 0;
-	int *starttab, *lengthtab;
+	unsigned int *starttab, *lengthtab;
 	unsigned char *rlebuf;
 	unsigned int *lumbuf;
 	int rlebuflen, goodwrite;
@@ -494,8 +494,8 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, char
 	tablen = ysize*zsize*sizeof(int);
 
 	image = (IMAGE *)malloc(sizeof(IMAGE));
-	starttab = (int *)malloc(tablen);
-	lengthtab = (int *)malloc(tablen);
+	starttab = (unsigned int *)malloc(tablen);
+	lengthtab = (unsigned int *)malloc(tablen);
 	rlebuflen = 1.05*xsize+10;
 	rlebuf = (unsigned char *)malloc(rlebuflen);
 	lumbuf = (unsigned int *)malloc(xsize*sizeof(int));

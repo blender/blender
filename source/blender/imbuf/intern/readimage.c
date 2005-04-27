@@ -119,17 +119,8 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 			}
 		}
 
-		/* let quicktime handle png's, skips error messages ;)
-		 * but only on windows
-		 */
-#ifdef _WIN32
-		if(G.have_quicktime == FALSE) {
-#else
-		if(1) {
-#endif
-			ibuf = imb_loadpng((uchar *)mem, size, flags);
-			if (ibuf) return(ibuf);
-		}
+		ibuf = imb_loadpng((uchar *)mem, size, flags);
+		if (ibuf) return(ibuf);
 
 		ibuf = imb_bmp_decode((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);

@@ -1323,9 +1323,9 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
 	 * visible alone ... but still can influence others MetaElements :-) */
 	if(f > 0.0) {
-		IN.x = in.x= 0.0;
-		IN.y = in.y= 0.0;
-		IN.z = in.z= 0.0;
+		OUT.x = IN.x = in.x= 0.0;
+		OUT.y = IN.y = in.y= 0.0;
+		OUT.z = IN.z = in.z= 0.0;
 
 		calc_mballco(ml, (float *)&in);
 		in_v = mbproc->function(in.x, in.y, in.z);

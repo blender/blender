@@ -118,7 +118,7 @@ static int free_img(Image *img)
 }
 
 /* 32 bits (int) rect to float buf */
-static void recti2imgf(int *src, Image *dest, int x, int y)
+static void recti2imgf(unsigned int *src, Image *dest, int x, int y)
 {
 	char *from;
 	float *to;
@@ -192,7 +192,7 @@ static void rectf2imgf(float *src, Image *dest, int x, int y)
 }
 
 /* floatbuf back to 32 bits rect */
-static void imgf2recti(Image *src, int *dest)
+static void imgf2recti(Image *src, unsigned int *dest)
 {
 	float *from;
 	char *to;

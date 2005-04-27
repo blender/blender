@@ -31,10 +31,6 @@
  * SND_OpenALDevice derived from SND_IAudioDevice
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
@@ -402,7 +398,7 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 #ifdef OUDE_OPENAL
 				unsigned int samplerate, numberofsamples;		// openal_2.12
 #else
-				int samplerate, numberofsamples, frequency;  // openal_2.14+
+				int samplerate, numberofsamples;  // openal_2.14+
 #endif
 				
 				/* Give them some safe defaults just incase */
