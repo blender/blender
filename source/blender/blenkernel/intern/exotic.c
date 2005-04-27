@@ -3639,7 +3639,6 @@ static void dxf_add_mat (Object *ob, Mesh *me, float color[3], char *layer)
 	if (!me) return;
 	
 	if(ob) ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
-	if(ob) ob->totcol= 1;
 	if(ob) ob->actcol= 1;
 
 	me->totcol= 1;
@@ -4954,7 +4953,6 @@ static void dxf_read(char *filename)
 				float cent[3]={0.0, 0.0, 0.0};
 				float obsize[3]={1.0, 1.0, 1.0};
 				float obrot[3]={0.0, 0.0, 0.0};
-				int i;
 				
 				if(!hasbumped) read_group(id, val);
 				hasbumped=0;
@@ -5028,8 +5026,11 @@ static void dxf_read(char *filename)
 						ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
 						ob->totcol= (unsigned char) ((Mesh*)ob->data)->totcol;
 						ob->actcol= 1;
-	
-						for (i=0; i<ob->totcol; i++) ob->mat[i]= ((Mesh*)ob->data)->mat[i];
+						
+						/* note: materials are either linked to mesh or object, if both then 
+							you have to increase user counts. below line is not needed.
+							I leave it commented out here as warning (ton) */
+						//for (i=0; i<ob->totcol; i++) ob->mat[i]= ((Mesh*)ob->data)->mat[i];
 						
 						if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
 						else ob->lay= G.scene->lay;
