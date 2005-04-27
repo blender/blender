@@ -602,15 +602,15 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 		glPushMatrix();
 		size= screen_aligned(mat);
 	
-		vec[0]= (float)(Trans.imval[0] - Trans.center2d[0]);
-		vec[1]= (float)(Trans.imval[1] - Trans.center2d[1]);
+		vec[0]= (float)(Trans.con.imval[0] - Trans.center2d[0]);
+		vec[1]= (float)(Trans.con.imval[1] - Trans.center2d[1]);
 		vec[2]= 0.0f;
 		Normalise(vec);
 		
 		startphi= saacos( vec[1] );
 		if(vec[0]<0.0) startphi= -startphi;
 		
-		phi= (float)fmod(-180.0*Trans.val/M_PI, 360.0);
+		phi= (float)fmod(180.0*Trans.val/M_PI, 360.0);
 		if(phi > 180.0) phi-= 360.0;
 		else if(phi<-180.0) phi+= 360.0;
 		
