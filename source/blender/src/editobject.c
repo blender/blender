@@ -1604,29 +1604,39 @@ void docentre(int centremode)
 	Nurb *nu, *nu1;
 	EditVert *eve;
 	float cent[3], centn[3], min[3], max[3], omat[3][3];
-	int a;
+	int a, total= 0;
 	MVert *mvert;
 
 	if(G.scene->id.lib) return;
-
+	
+	cent[0]= cent[1]= cent[2]= 0.0;
+	
 	if(G.obedit) {
 
 		INIT_MINMAX(min, max);
 	
 		if(G.obedit->type==OB_MESH) {
-			eve= em->verts.first;
-			while(eve) {
-				DO_MINMAX(eve->co, min, max);
-				eve= eve->next;
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(G.vd->around==V3D_CENTROID) {
+					total++;
+					VECADD(cent, cent, eve->co);
+				}
+				else {
+					DO_MINMAX(eve->co, min, max);
+				}
 			}
-			cent[0]= (min[0]+max[0])/2.0f;
-			cent[1]= (min[1]+max[1])/2.0f;
-			cent[2]= (min[2]+max[2])/2.0f;
 			
-			eve= em->verts.first;
-			while(eve) {
+			if(G.vd->around==V3D_CENTROID) {
+				VecMulf(cent, 1.0f/(float)total);
+			}
+			else {
+				cent[0]= (min[0]+max[0])/2.0f;
+				cent[1]= (min[1]+max[1])/2.0f;
+				cent[2]= (min[2]+max[2])/2.0f;
+			}
+			
+			for(eve= em->verts.first; eve; eve= eve->next) {
 				VecSubf(eve->co, eve->co, cent);			
-				eve= eve->next;
 			}
 		}
 	}
