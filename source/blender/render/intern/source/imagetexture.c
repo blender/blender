@@ -89,7 +89,7 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 	if(ima->ibuf==NULL) {
 		extern SDL_mutex *load_ibuf_lock; // initrender.c
 		if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
-		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex);
+		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
 		if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
 	}
 
@@ -591,7 +591,7 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 	
 	if(ima->ibuf==NULL) {
 		if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
-		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex);
+		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
 		if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
 	}
 	

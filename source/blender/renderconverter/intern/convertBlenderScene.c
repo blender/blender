@@ -2978,7 +2978,7 @@ void RE_rotateBlenderScene(void)
 				if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
 				else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
 				else if(ob->hooks.first) makeDispList(ob);
-				else if(ob->softflag & 0x01) makeDispList(ob);
+				else if(ob->softflag & OB_SB_ENABLE) makeDispList(ob);
 				else if(me->disp.first==NULL && (me->flag&ME_SUBSURF)) makeDispList(ob);
 				else if(ob->effect.first) {	// as last check
 					Effect *eff= ob->effect.first;

@@ -354,14 +354,12 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 }
 
 
-void ima_ibuf_is_nul(Tex *tex)
+void ima_ibuf_is_nul(Tex *tex, Image *ima)
 {
 	void (*de_interlacefunc)(struct ImBuf *ibuf);
-	Image *ima;
 	int a, fra, dur;
 	char str[FILE_MAXDIR+FILE_MAXFILE], *cp;
 	
-	ima= tex->ima;
 	if(ima==0) return;
 	
 	strcpy(str, ima->name);

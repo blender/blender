@@ -50,7 +50,7 @@ void free_unused_animimages(void);
 
 void makepicstring(char *string, int frame);
 struct anim *openanim(char * name, int flags);
-void ima_ibuf_is_nul(struct Tex *tex);
+void ima_ibuf_is_nul(struct Tex *tex, struct Image *ima);
 void load_image(struct Image * ima, int flags, char *relabase, int framenum);
 void converttopremul(struct ImBuf *ibuf);
 

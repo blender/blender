@@ -648,7 +648,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
-			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex);
+			// not threadsafe yet!
+			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
 			if(env->ima->ok && env->ok==0) envmap_split_ima(env);
 		}
 	}
