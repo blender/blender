@@ -488,6 +488,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= &ts->facedot_size; break;
 			case TH_NORMAL:
 				cp= ts->normal; break;
+			case TH_BRACKET:
+				cp= ts->bracket; break;
 
 			}
 
@@ -648,7 +650,10 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->text.shade1, 	143, 143, 143, 255);
 	SETCOL(btheme->text.shade2, 	0xc6, 0x77, 0x77, 255);
 	SETCOL(btheme->text.hilite, 	255, 0, 0, 255);
-
+	
+	/* Bracket matching */
+	SETCOL(btheme->text.bracket,	0xff, 0xff, 0x0, 100);
+	
 	/* space oops */
 	btheme->toops= btheme->tv3d;
 	SETCOL(btheme->toops.back, 	153, 153, 153, 255);
@@ -770,6 +775,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Selected Text %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Cursor %%x%d|", TH_HILITE); strcat(cp, str);
+			strcat(cp,"%l|");
+			sprintf(str, "Bracket Matching %%x%d|", TH_BRACKET); strcat(cp, str);
 		}
 	}
 	return cp;

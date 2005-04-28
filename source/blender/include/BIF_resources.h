@@ -430,6 +430,7 @@ enum {
 	TH_NORMAL,
 	TH_FACE_DOT,
 	TH_FACEDOT_SIZE,
+	TH_BRACKET
 	
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */

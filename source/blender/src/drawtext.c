@@ -85,15 +85,14 @@
 
 #define TEXTXLOC	38
 
-/* locals */
+/* forward declarations */
+
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
-
-/* missing locals */
 void txt_copy_selectbuffer (Text *text);
 void txt_paste_clipboard(Text *text); /* blank on non Win32 */
 void txt_copy_clipboard(Text *text); /* blank on non Win32 */
-
+int check_bracket(char *string);
 
 static void *last_txt_find_string= NULL;
 
@@ -330,7 +329,8 @@ static void draw_cursor(SpaceText *st) {
 		if(i) glRecti(x, curarea->winy-st->lheight*(h)-2, i, curarea->winy-st->lheight*(h+1)-2);
 
 	}
-	
+
+	do_brackets();
 	BIF_ThemeColor(TH_TEXT);
 }
 
@@ -1453,4 +1453,127 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 	}
+}
+
+void do_brackets(void) 
+{
+	SpaceText *st = curarea->spacedata.first;
+	Text *text = st->text;
+	TextLine *tmp, *start;
+	char test[2];
+	int d, pos, open, x, y, x2, y2, h=0;
+	
+	if(!text) return;
+	
+	tmp = text->curl;
+	start = text->curl;
+
+	test[0] = (unsigned char) tmp->line[text->curc];
+	test[1] = '\0';
+	
+	d = check_bracket(test);
+	if (!d) /*  If not pri char */
+	{
+		test[0] = (unsigned char) tmp->line[text->curc-1];
+		test[1] = '\0';
+		d = check_bracket(test);
+		if(!d) {
+			return; /*If the current char or prev is not a bracket then return*/
+		} else { /* current char */
+			h= txt_get_span(text->lines.first, start) - st->top;
+			x = text_draw(st, start->line, st->left, text->curc-1, 0, 0, 0);
+			y = text_draw(st, start->line, st->left, text->curc, 0, 0, 0);
+			if (d < 4) {
+				pos = text->curc;
+			} else {
+				pos = text->curc-2;
+			}
+		}
+	} else { /* is pri char */
+		h= txt_get_span(text->lines.first, start) - st->top;
+		x = text_draw(st, start->line, st->left, text->curc, 0, 0, 0);
+		y = text_draw(st, start->line, st->left, text->curc+1, 0, 0, 0);
+		if (d < 4) {
+			pos = text->curc+1;
+		} else {
+			pos = text->curc-1;
+		}
+	}
+	
+	if (d < 4) /*reading forward*/
+	{
+		open = 1; 
+		while ( tmp ) {
+			while (pos <= tmp->len) {
+				test[0] = (unsigned char) tmp->line[pos];
+				test[1] = '\0';
+				if(check_bracket(test) == d) {
+					open++;
+				} else if (check_bracket(test) == d+3) {
+					open--;
+					if (open == 0) {
+						BIF_ThemeColor(TH_BRACKET);
+						glRecti(x, curarea->winy-st->lheight*(h)-2, y, curarea->winy-st->lheight*(h+1)-2);
+
+						h= txt_get_span(text->lines.first, tmp) - st->top;
+						x2= text_draw(st, tmp->line, st->left, pos, 0, 0, 0);
+						y2= text_draw(st, tmp->line, st->left, pos+1, 0, 0, 0);
+						glRecti(x2, curarea->winy-st->lheight*(h)-2, y2, curarea->winy-st->lheight*(h+1)-2);
+						BIF_ThemeColor(TH_TEXT);
+						return;
+					}
+				}
+				pos++;
+			}
+			tmp = tmp->next;
+			pos = 0;
+		}
+	} else { /*  reading back */
+		open = 1; 
+		while ( tmp ) {
+			while (pos >= 0) {
+				test[0] = (unsigned char) tmp->line[pos];
+				test[1] = '\0';
+				if(check_bracket(test) == d) {
+					open++;
+				} else if (check_bracket(test) == d-3) {
+					open--;
+					if (open == 0) {
+						BIF_ThemeColor(TH_BRACKET);
+						glRecti(x, curarea->winy-st->lheight*(h)-2, y, curarea->winy-st->lheight*(h+1)-2);
+
+						h= txt_get_span(text->lines.first, tmp) - st->top;
+						x2= text_draw(st, tmp->line, st->left, pos, 0, 0, 0);
+						y2= text_draw(st, tmp->line, st->left, pos+1, 0, 0, 0);
+						glRecti(x2, curarea->winy-st->lheight*(h)-2, y2, curarea->winy-st->lheight*(h+1)-2);
+						BIF_ThemeColor(TH_TEXT);
+						return;
+					}
+				}
+				pos--;
+			}
+			tmp = tmp->prev;
+			if (tmp) {
+				pos = tmp->len;
+			}
+		}
+	}
+	
+}
+
+int check_bracket(char *string)
+{
+	int number, a = 0;
+	char other[][3] = {"(", "[", "{", ")", "]", "}"};
+	
+	number = 6;
+	
+	while(a < number) {
+		if(strcmp(other[a], string) == 0)
+		{
+			return a+1;
+		}
+		a++;
+	}
+	return 0;
 }
