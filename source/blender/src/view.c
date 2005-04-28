@@ -452,7 +452,6 @@ void viewmove(int mode)
 
 
 			if(mode==0) {	/* view rotate */
-
 				if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 1;
 
 				if (U.flag & USER_TRACKBALL) mvalball[0]= mval[0];
@@ -489,33 +488,40 @@ void viewmove(int mode)
 					q1[3]*= si;						
 					QuatMul(G.vd->viewquat, q1, oldquat);
 				} else {
-					/* is there an acceptable solution? (180 degrees limitor) */
-					if(si<1.0) {
-						Crossf(q1+1, firstvec, newvec);
-	
-						Normalise(q1+1);
-			
-						phi= asin(si);
-		
-						si= sin(phi);
-						q1[0]= cos(phi);
-						q1[1]*= si;
-						q1[2]*= si;
-						q1[3]*= si;
-						
-						QuatMul(G.vd->viewquat, q1, oldquat);
-	
-						/* rotate around z-axis (mouse x moves)  */
-						
-						phi= 2*(mval[0]-mvalball[0]);
-						phi/= (float)curarea->winx;
-						si= sin(phi);
-						q1[0]= cos(phi);
-						q1[1]= q1[2]= 0.0;
-						q1[3]= si;
-					
-						QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
-					}
+					/* New turntable view code by John Aughey */
+
+					float m[3][3];
+					float m_inv[3][3];
+					float xvec[3] = {1,0,0};
+					/* Sensitivity will control how fast the viewport rotates.  0.0035 was
+					   obtained experimentally by looking at viewport rotation sensitivities
+					   on other modeling programs. */
+					/* Perhaps this should be a configurable user parameter. */
+					const float sensitivity = 0.0035;
+
+					/* Get the 3x3 matrix and its inverse from the quaternion */
+					QuatToMat3(G.vd->viewquat, m);
+					Mat3Inv(m_inv,m);
+
+					/* Determine the direction of the x vector (for rotating up and down) */
+					/* This can likely be compuated directly from the quaternion. */
+					Mat3MulVecfl(m_inv,xvec);
+
+					/* Perform the up/down rotation */
+					phi = sensitivity * -(mval[1] - mvalo[1]);
+					si = sin(phi);
+					q1[0] = cos(phi);
+					q1[1] = si * xvec[0];
+					q1[2] = si * xvec[1];
+					q1[3] = si * xvec[2];
+					QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+
+					/* Perform the orbital rotation */
+					phi = sensitivity * (mval[0] - mvalo[0]);
+					q1[0] = cos(phi);
+					q1[1] = q1[2] = 0.0;
+					q1[3] = sin(phi);
+					QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
 				}
 			}
 			else if(mode==1) {	/* translate */
