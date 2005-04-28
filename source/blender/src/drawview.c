@@ -353,7 +353,7 @@ static void draw_bgpic(void)
 		bgpic->rect= 0;
 		
 		if(bgpic->tex) {
-			ima_ibuf_is_nul(bgpic->tex);
+			ima_ibuf_is_nul(bgpic->tex, bgpic->tex->ima);
 		}
 		else {
 			waitcursor(1);
