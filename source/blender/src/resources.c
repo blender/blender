@@ -217,7 +217,7 @@ static void def_icon(ImBuf *bbuf, GLuint texid, BIFIconID icon, int xidx, int yi
 	
 	if (iconidx>=0 && iconidx<BIFNICONIDS) {
 		int rowstride= bbuf->x*4;
-		unsigned char *start= ((char*) bbuf->rect) + (yidx*21 + 3 + offsy)*rowstride + (xidx*20 + 3 + offsx)*4;
+		unsigned char *start= ((unsigned char*) bbuf->rect) + (yidx*21 + 3 + offsy)*rowstride + (xidx*20 + 3 + offsx)*4;
 
 		common_icons_arr[iconidx]= 
 			icon_from_data(start, texid, (xidx*20 + 3 + offsx), (yidx*21 + 3 + offsy), w, h, rowstride);
@@ -275,7 +275,7 @@ void BIF_resources_init(void)
 	for (y=0; y<12; y++) {
 		for (x=0; x<21; x++) {
 			int rowstride= bbuf->x*4;
-			unsigned char *start= ((char*) bbuf->rect) + (y*21 + 3)*rowstride + (x*20 + 3)*4;
+			unsigned char *start= ((unsigned char*) bbuf->rect) + (y*21 + 3)*rowstride + (x*20 + 3)*4;
 			unsigned char transp[4];
 			/* this sets backdrop of icon to zero alpha */
 			transp[0]= start[0];
@@ -285,7 +285,7 @@ void BIF_resources_init(void)
 			clear_transp_rect_soft(transp, start, 20, 21, rowstride);
 			
 			/* this sets outside of icon to zero alpha */
-			start= ((char*) bbuf->rect) + (y*21)*rowstride + (x*20)*4;
+			start= ((unsigned char*) bbuf->rect) + (y*21)*rowstride + (x*20)*4;
 			QUATCOPY(transp, start);
 			clear_transp_rect(transp, start, 20, 21, rowstride);
 		}

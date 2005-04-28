@@ -301,7 +301,6 @@ static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *col
 {
 	int deflected;
 	float s_actpos[3], s_futurepos[3];
-	SoftBody *sb= ob->soft;	// is supposed to be there
 	VECCOPY(s_actpos,actpos);
 	if(futurepos)
 	VECCOPY(s_futurepos,futurepos);

@@ -2173,8 +2173,8 @@ int setcurr_tab (Text *text)
 	char *word = ":";
 	char *comm = "#";
 	char back_words[3][7] = {"return", "break", "pass"};
-	if (!text) return;
-	if (!text->curl) return;
+	if (!text) return 0;
+	if (!text->curl) return 0;
 	
 	while (text->curl->line[i] == '\t')
 	{
@@ -2210,3 +2210,4 @@ int setcurr_tab (Text *text)
 	}
 	return i;
 }
+

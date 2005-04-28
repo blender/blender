@@ -1503,7 +1503,7 @@ void face_draw()
 	Image *img=NULL, *img_old = NULL;
 	IMG_BrushPtr brush;
 	IMG_CanvasPtr canvas = 0;
-	int rowBytes, face_index;
+	unsigned int rowBytes, face_index;
 	char *warn_packed_file = 0;
 	float uv[2], uv_old[2];
 	extern VPaint Gvp;
