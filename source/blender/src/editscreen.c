@@ -2867,6 +2867,8 @@ static void moveareas(ScrEdge *edge)
 			else if (ELEM(event, SPACEKEY, RETKEY))
 				doit= 1;
 		}
+		else BIF_wait_for_statechange();
+		
 	}
 	draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
 	glFlush();
