@@ -4011,6 +4011,8 @@ void view3d_buttons(void)
 		xco+= XIC;
 		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale widget mode (CTRL click cycles)");
 		xco+= XIC;
+		uiDefButS(block, MENU, REDRAWVIEW3D, "Orientation%t|Global%x0|Local%x1|Normal%x2",                    xco,0,60,YIC, &G.vd->twmode, 0, 0, 0, 0, "Current color");
+		xco+= 60;
 	}
 	uiBlockEndAlign(block);
 	xco+= 8;

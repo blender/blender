@@ -4182,7 +4182,7 @@ void ui_check_but(uiBut *but)
 	if(but->drawstr[0]) {
 		but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, transopts);
 		// here should be check for less space for icon offsets...
-		if(but->type==MENU) okwidth -= 20;
+		if(but->type==MENU) okwidth -= 15;
 	}
 	else
 		but->strwidth= 0;
