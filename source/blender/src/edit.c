@@ -396,6 +396,7 @@ void circle_selectCB(select_CBfunc callback)
 	static float rad= 40.0;
 	float rado;
 	int firsttime=1;
+	int escape= 0;
 	unsigned short event;
 	short mvalo[2], mval[2], val;
 	short selecting=0;
@@ -430,45 +431,48 @@ void circle_selectCB(select_CBfunc callback)
 
 		}
 		
-		event= extern_qread(&val);
-		if (event) {
-			int afbreek= 0;
+		while(qtest()) {
+			event= extern_qread(&val);
+			if (event) {
 
-			/* for when another window is open and a mouse cursor activates it */
-			if(event!=MOUSEY && event!=MOUSEX) mywinset(curarea->win);
-			
-			getmouseco_areawin(mval);	// important to do here, trust events!
-			
-			switch(event) {
-		
-			case LEFTMOUSE:
-			case MIDDLEMOUSE:
-				if(val) selecting= event;
-				else selecting= 0;
-				firsttime= 1;
+				/* for when another window is open and a mouse cursor activates it */
+				if(event!=MOUSEY && event!=MOUSEX) mywinset(curarea->win);
 				
-				break;
-			case WHEELDOWNMOUSE:
-			case PADPLUSKEY:
-			case EQUALKEY:
-				if(val) if(rad<200.0) rad*= 1.2;
-				break;
-			case WHEELUPMOUSE:
-			case PADMINUS:
-			case MINUSKEY:
-				if(val) if(rad>5.0) rad/= 1.2;
-				break;
+				getmouseco_areawin(mval);	// important to do here, trust events!
+				
+				switch(event) {
 			
-			case ESCKEY: case SPACEKEY: case RIGHTMOUSE: case INPUTCHANGE: 
-			case GKEY: case SKEY: case RKEY: case XKEY: case EKEY: case TABKEY:
-				afbreek= 1;
-				break;
+				case LEFTMOUSE:
+				case MIDDLEMOUSE:
+					if(val) selecting= event;
+					else selecting= 0;
+					firsttime= 1;
+					
+					break;
+				case WHEELDOWNMOUSE:
+				case PADPLUSKEY:
+				case EQUALKEY:
+					if(val) if(rad<200.0) rad*= 1.2;
+					break;
+				case WHEELUPMOUSE:
+				case PADMINUS:
+				case MINUSKEY:
+					if(val) if(rad>5.0) rad/= 1.2;
+					break;
+				
+				case ESCKEY: case SPACEKEY: case RIGHTMOUSE: case INPUTCHANGE: 
+				case GKEY: case SKEY: case RKEY: case XKEY: case EKEY: case TABKEY:
+					escape= 1;
+					break;
 
+				}
+				
+				if(escape) break;
 			}
-			
-			if(afbreek) break;
 		}
-		else PIL_sleep_ms(10);
+		PIL_sleep_ms(10);
+		
+		if(escape) break;
 	}
 	
 	/* clear circle */
