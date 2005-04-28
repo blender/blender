@@ -2308,20 +2308,20 @@ static void library_to_filelist(SpaceFile *sfile)
 	sfile->filelist= malloc(sfile->totfile * sizeof(*sfile->filelist));
 	memset(sfile->filelist, 0, sfile->totfile * sizeof(*sfile->filelist));
 
-	sfile->filelist[0].relname= strdup(".");
+	sfile->filelist[0].relname= BLI_strdup(".");
 	sfile->filelist[0].type |= S_IFDIR;
-	sfile->filelist[1].relname= strdup("..");
+	sfile->filelist[1].relname= BLI_strdup("..");
 	sfile->filelist[1].type |= S_IFDIR;
 		
 	for (i=0, l= names; i<nnames; i++, l= l->next) {
-		char *blockname= l->link;
+		char *blockname= BLI_strdup(l->link); 
 
 		sfile->filelist[i + 2].relname= blockname;
 		if (!idcode)
 			sfile->filelist[i + 2].type |= S_IFDIR;
 	}
 		
-	BLI_linklist_free(names, NULL);
+	BLI_linklist_free(names, free);
 	
 	qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_name);
 	
@@ -2430,28 +2430,28 @@ void main_to_filelist(SpaceFile *sfile)
 			sfile->filelist[a].type |= S_IFDIR;
 		}
 		
-		sfile->filelist[0].relname= strdup("..");
-		sfile->filelist[1].relname= strdup(".");
-		sfile->filelist[2].relname= strdup("Scene");
-		sfile->filelist[3].relname= strdup("Object");
-		sfile->filelist[4].relname= strdup("Mesh");
-		sfile->filelist[5].relname= strdup("Curve");
-		sfile->filelist[6].relname= strdup("Metaball");
-		sfile->filelist[7].relname= strdup("Material");
-		sfile->filelist[8].relname= strdup("Texture");
-		sfile->filelist[9].relname= strdup("Image");
-		sfile->filelist[10].relname= strdup("Ika");
-		sfile->filelist[11].relname= strdup("Wave");
-		sfile->filelist[12].relname= strdup("Lattice");
-		sfile->filelist[13].relname= strdup("Lamp");
-		sfile->filelist[14].relname= strdup("Camera");
-		sfile->filelist[15].relname= strdup("Ipo");
-		sfile->filelist[16].relname= strdup("World");
-		sfile->filelist[17].relname= strdup("Screen");
-		sfile->filelist[18].relname= strdup("VFont");
-		sfile->filelist[19].relname= strdup("Text");
-		sfile->filelist[20].relname= strdup("Armature");
-		sfile->filelist[21].relname= strdup("Action");
+		sfile->filelist[0].relname= BLI_strdup("..");
+		sfile->filelist[1].relname= BLI_strdup(".");
+		sfile->filelist[2].relname= BLI_strdup("Scene");
+		sfile->filelist[3].relname= BLI_strdup("Object");
+		sfile->filelist[4].relname= BLI_strdup("Mesh");
+		sfile->filelist[5].relname= BLI_strdup("Curve");
+		sfile->filelist[6].relname= BLI_strdup("Metaball");
+		sfile->filelist[7].relname= BLI_strdup("Material");
+		sfile->filelist[8].relname= BLI_strdup("Texture");
+		sfile->filelist[9].relname= BLI_strdup("Image");
+		sfile->filelist[10].relname= BLI_strdup("Ika");
+		sfile->filelist[11].relname= BLI_strdup("Wave");
+		sfile->filelist[12].relname= BLI_strdup("Lattice");
+		sfile->filelist[13].relname= BLI_strdup("Lamp");
+		sfile->filelist[14].relname= BLI_strdup("Camera");
+		sfile->filelist[15].relname= BLI_strdup("Ipo");
+		sfile->filelist[16].relname= BLI_strdup("World");
+		sfile->filelist[17].relname= BLI_strdup("Screen");
+		sfile->filelist[18].relname= BLI_strdup("VFont");
+		sfile->filelist[19].relname= BLI_strdup("Text");
+		sfile->filelist[20].relname= BLI_strdup("Armature");
+		sfile->filelist[21].relname= BLI_strdup("Action");
 		qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_name);
 	}
 	else {
@@ -2481,10 +2481,10 @@ void main_to_filelist(SpaceFile *sfile)
 		
 		if(sfile->returnfunc==0) {
 			memset( &(sfile->filelist[0]), 0 , sizeof(struct direntry));
-			sfile->filelist[0].relname= strdup(".");
+			sfile->filelist[0].relname= BLI_strdup(".");
 			sfile->filelist[0].type |= S_IFDIR;
 			memset( &(sfile->filelist[1]), 0 , sizeof(struct direntry));
-			sfile->filelist[1].relname= strdup("..");
+			sfile->filelist[1].relname= BLI_strdup("..");
 			sfile->filelist[1].type |= S_IFDIR;
 		
 			files+= 2;
@@ -2504,7 +2504,7 @@ void main_to_filelist(SpaceFile *sfile)
 			if(ok) {
 		
 				memset( files, 0 , sizeof(struct direntry));
-				files->relname= strdup(id->name+2);
+				files->relname= BLI_strdup(id->name+2);
 				
 				if(sfile->returnfunc==0) { /* F4 DATA BROWSE */
 					if(idcode==ID_OB) {
