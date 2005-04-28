@@ -1481,7 +1481,7 @@ static void draw_em_measure_stats(EditMesh *em)
 		glColor3fv(col);
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f & SELECT) {
+			if((eed->f & SELECT) || (G.moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) )) {
 				v1= eed->v1->co;
 				v2= eed->v2->co;
 				
@@ -1493,6 +1493,8 @@ static void draw_em_measure_stats(EditMesh *em)
 	}
 
 	if(G.f & G_DRAW_FACEAREA) {
+		extern int faceselectedOR(EditFace *efa, int flag);		// editmesh.h shouldn't be in this file... ok for now?
+		
 		BIF_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more green */
 		if(col[1]> 0.5) {col[0]*=0.7; col[2]*= 0.7;}
@@ -1500,7 +1502,7 @@ static void draw_em_measure_stats(EditMesh *em)
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f & SELECT) {
+			if((efa->f & SELECT) || (G.moving && faceselectedOR(efa, SELECT)) ) {
 				if (efa->v4)
 					area=  AreaQ3Dfl( efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 				else
@@ -1534,7 +1536,7 @@ static void draw_em_measure_stats(EditMesh *em)
 			
 			/* Calculate the angles */
 				
-			if(e4->f & e1->f & SELECT ) {
+			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
 				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
 				fvec[0]= 0.2*efa->cent[0] + 0.8*v1[0];
@@ -1543,7 +1545,7 @@ static void draw_em_measure_stats(EditMesh *em)
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
-			if(e1->f & e2->f & SELECT ) {
+			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
 				fvec[0]= 0.2*efa->cent[0] + 0.8*v2[0];
@@ -1552,7 +1554,7 @@ static void draw_em_measure_stats(EditMesh *em)
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
-			if(e2->f & e3->f & SELECT ) {
+			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
 				/* Vec 3 */
 				if(efa->v4) 
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v4));
@@ -1566,7 +1568,7 @@ static void draw_em_measure_stats(EditMesh *em)
 			}
 				/* Vec 4 */
 			if(efa->v4) {
-				if(e3->f & e4->f & SELECT ) {
+				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
 
 					fvec[0]= 0.2*efa->cent[0] + 0.8*v4[0];
