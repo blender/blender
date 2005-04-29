@@ -741,13 +741,13 @@ static int calcDepth(float x, float y, void *data, int type)
     if (type & RE_POLY) {
         VlakRen* vlr = (VlakRen*) data;
         VertRen* v1;
-        float dvlak, deler, fac, hoco_z, hoco_w;
+        float dface, div, zco, hoco_z, hoco_w;
         int zbuf_co;
         
         v1 = vlr->v1;
         
         /* vertex dot face normal: WCS */
-        dvlak= v1->co[0]*vlr->n[0]+v1->co[1]*vlr->n[1]+v1->co[2]*vlr->n[2]; 
+        dface= v1->co[0]*vlr->n[0]+v1->co[1]*vlr->n[1]+v1->co[2]*vlr->n[2]; 
         
         /* jitter has been added to x, y ! */
         /* view vector view: screen coords */
@@ -765,14 +765,29 @@ static int calcDepth(float x, float y, void *data, int type)
         /* this is ok, in WCS */
         view[2]= -R.viewfac;  /* distance to viewplane */
         
-        /* face normal dot view vector: but how can this work? */
-		deler = MTC_dot3Float(vlr->n, view);
-        if (deler!=0.0) fac = dvlak/deler;
-        else fac = 0.0;
+		/* calculate zcoord */
+		if(R.r.mode & R_ORTHO) {
+			/* x and y 3d coordinate can be derived from pixel coord and winmat */
+			float fx= 2.0/(R.rectx*R.winmat[0][0]);
+			float fy= 2.0/(R.recty*R.winmat[1][1]);
+			
+			fx= (x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
+			fy= (y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+			
+			/* using a*x + b*y + c*z = d equation, (a b c) is normal */
+			zco= (dface - vlr->n[0]*fx - vlr->n[1]*fy)/vlr->n[2];
+			
+		}
+		else {
+			/* face normal dot view vector: but how can this work? (nzc) */
+			div = MTC_dot3Float(vlr->n, view);
+			if (div!=0.0) zco = (view[2]*dface)/div;
+			else zco = 0.0;
+		}
         
-        /* indices are wrong.... but gives almost the right value? */
-        hoco_z =  (fac*view[2]) * R.winmat[2][2] + R.winmat[3][2]; 
-        hoco_w =  (fac*view[2]) * R.winmat[2][3] + R.winmat[3][3]; 
+        /* same as in zbuf.c */
+        hoco_z =  zco*R.winmat[2][2] + R.winmat[3][2]; 
+        hoco_w =  zco*R.winmat[2][3] + R.winmat[3][3]; 
         
 		if(hoco_w!=0.0) zbuf_co = 0x7FFFFFFF*(hoco_z/hoco_w);
 		else zbuf_co= 0x7FFFFFFF;

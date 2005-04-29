@@ -292,13 +292,14 @@ void renderEdges(char *colourRect)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int val, y, x, col, *rz, *rz1, *rz2, *rz3;
-	char *cp;
 	int targetoffset, heightoffset;
+	int zval1, zval2, zval3;
 	int i;
 	int matdif; /* For now: just a bogus int, 0 when all materials
 		     * under the mask are the same, non-0 otherwise*/
 	int *matptr_low = 0, *matptr_cent = 0, *matptr_high = 0;
 	int matdiffac = 0;
+	char *cp;
 
 #ifdef RE_EDGERENDER_NO_CORRECTION
 	return; /* no edge correction */
@@ -361,12 +362,12 @@ void renderEdges(char *colourRect)
 		}
 	}
 		
-	/* shift values in zbuffer 3 to the right */
+	/* shift values in zbuffer 4 to the right, for filter we need multiplying with 12 max */
   	rz = edgeBuffer;
 	if(rz==0) return;
 	
 	for(y=0; y < bufHeight * bufWidth; y++, rz++) {
-		(*rz)>>= 3;
+		(*rz)>>= 4;
 	}
 	
 	/* Distance pointers */
@@ -401,10 +402,13 @@ void renderEdges(char *colourRect)
 			    matptr_cent++,
 			    matptr_high++) {
 			
-			col= abs( -   rz1[0] -  2*rz1[1] -   rz1[2]
-				  - 2*rz2[0] + 12*rz2[1] - 2*rz2[2]
-				  -   rz3[0] -  2*rz3[1] -   rz3[2]) / 3;
-
+			/* prevent overflow with sky z values */
+			zval1=   rz1[0] + 2*rz1[1] +   rz1[2];
+			zval2=  2*rz2[0]           + 2*rz2[2];
+			zval3=   rz3[0] + 2*rz3[1] +   rz3[2];
+			
+			col= abs ( 4*rz2[1] - (zval1 + zval2 + zval3)/3 );
+			
 			/* Several options for matdif:
 			 *
 			 * - suppress all boundaries with 0 dif
@@ -429,8 +433,9 @@ void renderEdges(char *colourRect)
 				
 				matdiffac = (matdif ? 0 : same_mat_redux); 
 			}
-			
-			col= ((intensity - matdiffac) * col)>>14;
+			col >>= 5;
+			if(col > (1<<16)) col= (1<<16);
+			col= ((intensity - matdiffac) * col)>>8;
 			if(col>255) col= 255;
 			
 			/* Colour edge if

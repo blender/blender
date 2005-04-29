@@ -87,7 +87,7 @@ RE_Render R;
 float bluroffsx=0.0, bluroffsy=0.0;	// set in initrender.c (bad, ton)
 
 /* x and y are current pixels to be rendered */
-static void calc_view_vector(float *view, float x, float y)
+void calc_view_vector(float *view, float x, float y)
 {
 	
 	if(R.r.mode & R_ORTHO) {
@@ -1772,10 +1772,10 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	if(u==1.0) {
 		/* exception case for wire render of edge */
 		if(vlr->v2==vlr->v3);
-		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV) || (R.r.mode & R_ORTHO)) {
+		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV) ) {
 			float detsh, t00, t10, t01, t11;
 			
-			if(vlr->snproj==0 || (R.r.mode & R_ORTHO)) {
+			if(vlr->snproj==0) {
 				t00= v3->co[0]-v1->co[0]; t01= v3->co[1]-v1->co[1];
 				t10= v3->co[0]-v2->co[0]; t11= v3->co[1]-v2->co[1];
 			}
@@ -1792,7 +1792,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			t00*= detsh; t01*=detsh; 
 			t10*=detsh; t11*=detsh;
 		
-			if(vlr->snproj==0 || (R.r.mode & R_ORTHO)) {
+			if(vlr->snproj==0) {
 				u= (shi->co[0]-v3->co[0])*t11-(shi->co[1]-v3->co[1])*t10;
 				v= (shi->co[1]-v3->co[1])*t00-(shi->co[0]-v3->co[0])*t01;
 				if(shi->osatex) {
@@ -1800,10 +1800,6 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 					shi->dxuv[1]=  shi->dxco[1]*t00- shi->dxco[0]*t01;
 					shi->dyuv[0]=  shi->dyco[0]*t11- shi->dyco[1]*t10;
 					shi->dyuv[1]=  shi->dyco[1]*t00- shi->dyco[0]*t01;
-				}
-				// exception!!!
-				if(R.r.mode & R_ORTHO) {
-					shi->co[2]= (1.0+u+v)*v3->co[2] - u*v1->co[2] - v*v2->co[2];
 				}
 			}
 			else if(vlr->snproj==1) {
@@ -2119,6 +2115,10 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 			shi.co[1]= fac*shi.view[1];
 		}
 		else {
+			float dface;
+			
+			dface= v1->co[0]*shi.facenor[0]+v1->co[1]*shi.facenor[1]+v1->co[2]*shi.facenor[2];
+			
 			/* ortho viewplane cannot intersect using view vector originating in (0,0,0) */
 			if(R.r.mode & R_ORTHO) {
 				/* x and y 3d coordinate can be derived from pixel coord and winmat */
@@ -2128,8 +2128,9 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 				shi.co[0]= (x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
 				shi.co[1]= (y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
 				
-				/* for shi.co[2] we cannot use zbuffer value, full-osa doesnt store z's */
-				/* so is calculated in shade_input_set_coords */
+				/* using a*x + b*y + c*z = d equation, (a b c) is normal */
+				shi.co[2]= (dface - shi.facenor[0]*shi.co[0] - shi.facenor[1]*shi.co[1])/shi.facenor[2];
+				
 				zcor= 1.0; // only to prevent not-initialize
 				
 				if(shi.osatex || (R.r.mode & R_SHADOW) ) {
@@ -2143,9 +2144,8 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 				}
 			}
 			else {
-				float div, dface;
+				float div;
 				
-				dface= v1->co[0]*shi.facenor[0]+v1->co[1]*shi.facenor[1]+v1->co[2]*shi.facenor[2];
 				div= shi.facenor[0]*shi.view[0] + shi.facenor[1]*shi.view[1] + shi.facenor[2]*shi.view[2];
 				if (div!=0.0) fac= zcor= dface/div;
 				else fac= zcor= 0.0;
@@ -2434,18 +2434,17 @@ static void edge_enhance(void)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int val, y, x, col, *rz, *rz1, *rz2, *rz3;
+	int zval1, zval2, zval3;
 	char *cp;
 	
-	/* shift values in zbuffer 3 to the right */
+	/* shift values in zbuffer 4 to the right, for filter we need multiplying with 12 max */
 	rz= (int *)R.rectz;
-	if(rz==0) return;
+	if(rz==NULL) return;
 	
 	for(y=0; y<R.recty; y++) {
-		for(x=0; x<R.rectx; x++, rz++) {
-			(*rz)>>= 3;
-		}
+		for(x=0; x<R.rectx; x++, rz++) (*rz)>>= 4;
 	}
-
+	
 	rz1= (int *)R.rectz;
 	rz2= rz1+R.rectx;
 	rz3= rz2+R.rectx;
@@ -2461,20 +2460,21 @@ static void edge_enhance(void)
 	for(y=0; y<R.recty-2; y++) {
 
 		for(x=0; x<R.rectx-2; x++, rz++, rz1++, rz2++, rz3++, cp+=4) {
-
-			col= abs(12*rz2[1]-rz1[0]-2*rz1[1]-rz1[2]-2*rz2[0]-2*rz2[2]-rz3[0]-2*rz3[1]-rz3[2])/3;
-			/* removed the abs... now, only front/back? pixels are           */
-			/* accentuated? No, the lines seem shifted strangely. the does   */
-			/* not seem to be any overlap? strange...                        */
-/*  			col= -( 12*rz2[1] */
-/*  					-   rz1[0] - 2*rz1[1] -   rz1[2] */
-/*  					- 2*rz2[0]            - 2*rz2[2] */
-/*  					-   rz3[0] - 2*rz3[1] -   rz3[2]) /3; */
 			
-			col= (R.r.edgeint*col)>>14;
-			if(col>255) col= 255;
+			/* prevent overflow with sky z values */
+			zval1=   rz1[0] + 2*rz1[1] +   rz1[2];
+			zval2=  2*rz2[0]           + 2*rz2[2];
+			zval3=   rz3[0] + 2*rz3[1] +   rz3[2];
+			
+			col= abs ( 4*rz2[1] - (zval1 + zval2 + zval3)/3 );
+			
+			col >>= 5;
+			if(col > (1<<16)) col= (1<<16);
+			else col= (R.r.edgeint*col)>>8;
 			
 			if(col>0) {
+				if(col>255) col= 255;
+				
 				if(R.r.mode & R_OSA) {
 					col/= R.osa;
 					
