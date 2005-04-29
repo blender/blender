@@ -45,7 +45,15 @@ SND_DummyDevice::SND_DummyDevice()
 {
 }
 
+class SND_OpenALDevice : public SND_AudioDevice
+{
+public:
+	SND_OpenALDevice();
+};
 
+SND_OpenALDevice::SND_OpenALDevice()
+{
+}	
 
 SND_DummyDevice::~SND_DummyDevice()
 {
