@@ -1460,11 +1460,12 @@ static void draw_em_creases(EditMesh *em)
 	glLineWidth(1.0);
 }
 
-static void draw_em_measure_stats(EditMesh *em)
+static void draw_em_measure_stats(Object *ob, EditMesh *em)
 {
 	EditEdge *eed;
 	EditFace *efa;
-	float *v1, *v2, *v3, *v4, fvec[3];
+	float v1[3], v2[3], v3[3], v4[3];
+	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	float area, col[3]; /* area of the face,  colour of the text to draw */
 	
@@ -1482,10 +1483,16 @@ static void draw_em_measure_stats(EditMesh *em)
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if((eed->f & SELECT) || (G.moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) )) {
-				v1= eed->v1->co;
-				v2= eed->v2->co;
+				VECCOPY(v1, eed->v1->co);
+				VECCOPY(v2, eed->v2->co);
 				
 				glRasterPos3f( 0.5*(v1[0]+v2[0]),  0.5*(v1[1]+v2[1]),  0.5*(v1[2]+v2[2]));
+				
+				if(G.vd->flag & V3D_GLOBAL_STATS) {
+					Mat4MulVecfl(ob->obmat, v1);
+					Mat4MulVecfl(ob->obmat, v2);
+				}
+				
 				sprintf(val,"%.3f", VecLenf(v1, v2));
 				BMF_DrawString( G.fonts, val);
 			}
@@ -1503,10 +1510,23 @@ static void draw_em_measure_stats(EditMesh *em)
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if((efa->f & SELECT) || (G.moving && faceselectedOR(efa, SELECT)) ) {
+				VECCOPY(v1, efa->v1->co);
+				VECCOPY(v2, efa->v2->co);
+				VECCOPY(v3, efa->v2->co);
+				if (efa->v4) {
+					VECCOPY(v4, efa->v4->co);
+				}
+				if(G.vd->flag & V3D_GLOBAL_STATS) {
+					Mat4MulVecfl(ob->obmat, v1);
+					Mat4MulVecfl(ob->obmat, v2);
+					Mat4MulVecfl(ob->obmat, v3);
+					if (efa->v4) Mat4MulVecfl(ob->obmat, v4);
+				}
+				
 				if (efa->v4)
-					area=  AreaQ3Dfl( efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+					area=  AreaQ3Dfl(v1, v2, v3, v4);
 				else
-					area = AreaT3Dfl( efa->v1->co, efa->v2->co, efa->v3->co);
+					area = AreaT3Dfl(v1, v2, v3);
 
 				sprintf(val,"%.3f", area);
 				glRasterPos3fv(efa->cent);
@@ -1525,10 +1545,22 @@ static void draw_em_measure_stats(EditMesh *em)
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			v1= efa->v1->co;
-			v2= efa->v2->co;
-			v3= efa->v3->co;
-			if(efa->v4) v4= efa->v4->co; else v4= v3;
+			VECCOPY(v1, efa->v1->co);
+			VECCOPY(v2, efa->v2->co);
+			VECCOPY(v3, efa->v3->co);
+			if(efa->v4) {
+				VECCOPY(v4, efa->v4->co); 
+			}
+			else {
+				VECCOPY(v4, v3);
+			}
+			if(G.vd->flag & V3D_GLOBAL_STATS) {
+				Mat4MulVecfl(ob->obmat, v1);
+				Mat4MulVecfl(ob->obmat, v2);
+				Mat4MulVecfl(ob->obmat, v3);
+				if (efa->v4) Mat4MulVecfl(ob->obmat, v4);
+			}
+			
 			e1= efa->e1;
 			e2= efa->e2;
 			e3= efa->e3;
@@ -1539,18 +1571,18 @@ static void draw_em_measure_stats(EditMesh *em)
 			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
 				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
-				fvec[0]= 0.2*efa->cent[0] + 0.8*v1[0];
-				fvec[1]= 0.2*efa->cent[1] + 0.8*v1[1];
-				fvec[2]= 0.2*efa->cent[2] + 0.8*v1[2];
+				fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v1->co[0];
+				fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v1->co[1];
+				fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v1->co[2];
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
-				fvec[0]= 0.2*efa->cent[0] + 0.8*v2[0];
-				fvec[1]= 0.2*efa->cent[1] + 0.8*v2[1];
-				fvec[2]= 0.2*efa->cent[2] + 0.8*v2[2];
+				fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v2->co[0];
+				fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v2->co[1];
+				fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v3->co[2];
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
@@ -1560,9 +1592,9 @@ static void draw_em_measure_stats(EditMesh *em)
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v4));
 				else
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
-				fvec[0]= 0.2*efa->cent[0] + 0.8*v3[0];
-				fvec[1]= 0.2*efa->cent[1] + 0.8*v3[1];
-				fvec[2]= 0.2*efa->cent[2] + 0.8*v3[2];
+				fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v3->co[0];
+				fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v3->co[1];
+				fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v3->co[2];
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
@@ -1571,9 +1603,9 @@ static void draw_em_measure_stats(EditMesh *em)
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
 
-					fvec[0]= 0.2*efa->cent[0] + 0.8*v4[0];
-					fvec[1]= 0.2*efa->cent[1] + 0.8*v4[1];
-					fvec[2]= 0.2*efa->cent[2] + 0.8*v4[2];
+					fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v4->co[0];
+					fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v4->co[1];
+					fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v4->co[2];
 					glRasterPos3fv(fvec);
 					BMF_DrawString( G.fonts, val);
 				}
@@ -1672,7 +1704,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		}
 
 		if(G.f & (G_DRAW_EDGELEN|G_DRAW_FACEAREA|G_DRAW_EDGEANG))
-			draw_em_measure_stats(em);
+			draw_em_measure_stats(ob, em);
 	}
 
 	if(dt>OB_WIRE) {

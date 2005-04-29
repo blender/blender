@@ -1176,35 +1176,48 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	if(totedge) median[3] /= (float)totedge;
 	else median[3] /= (float)tot;
 	
+	if(G.vd->flag & V3D_GLOBAL_STATS)
+		Mat4MulVecfl(ob->obmat, median);
+	
 	if(block) {	// buttons
 	
+		
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG|BIT|13, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
+		uiDefButS(block, TOGN|BIT|13, REDRAWVIEW3D, "Local",			230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		
 		QUATCOPY(ve_median, median);
 		
 		uiBlockBeginAlign(block);
 		if(tot==1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 110, 290, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 90, 290, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 70, 290, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
 			if(totw==1)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 80, 300, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
 		}
 		else {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 140, 300, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 120, 300, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 100, 300, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 110, 290, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 90, 290, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 70, 290, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
 			if(totw==tot)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 80, 300, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
 		}
 		uiBlockEndAlign(block);
 		
 		if(totedge==1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	10, 60, 300, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	10, 30, 290, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
 		else if(totedge>1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease W:",	10, 60, 300, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease W:",	10, 30, 290, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
 		
 	}
 	else {	// apply
 		
+		if(G.vd->flag & V3D_GLOBAL_STATS) {
+			Mat4Invert(ob->imat, ob->obmat);
+			Mat4MulVecfl(ob->imat, median);
+			Mat4MulVecfl(ob->imat, ve_median);
+		}
 		VecSubf(median, ve_median, median);
 		median[3]= ve_median[3]-median[3];
 		
@@ -1581,7 +1594,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 140, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
 		uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 140, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
 		uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 140, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
-	
+		
 		ob_eul[0]= 180.0*ob->rot[0]/M_PI;
 		ob_eul[1]= 180.0*ob->rot[1]/M_PI;
 		ob_eul[2]= 180.0*ob->rot[2]/M_PI;
