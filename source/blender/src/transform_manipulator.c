@@ -761,7 +761,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	if(arcs) {
 		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
 		VECCOPY(plane, G.vd->viewinv[2]);
-		plane[3]= -0.1; // clip more
+		plane[3]= -0.02*size; // clip just a bit more
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
 	/* sets view screen aligned */
