@@ -71,7 +71,7 @@
 #include "depsgraph_private.h"
 
 #ifdef WIN32
-#elif
+#else
 #include <sys/time.h>
 #endif
 
