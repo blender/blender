@@ -51,7 +51,7 @@ ifneq ($(NAN_NO_OPENAL),true)
     DIRS += openal sdl
   endif
 else
-  CPPFLAGS += -DNO_SOUND
+  export CPPFLAGS += -DNO_SOUND
 endif
 
 include nan_subdirs.mk
