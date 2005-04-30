@@ -25,19 +25,20 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Campbell Barton, Joilnen B. Leite 
+ * Contributor(s): Willian P. Germano, Campbell Barton, Joilnen B. Leite,
+ * Austin Benesh
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <BDR_drawmesh.h> /* free_realtime_image */
+#include <BDR_drawmesh.h>	/* free_realtime_image */
 #include <BKE_main.h>
 #include <BKE_global.h>
 #include <BKE_library.h>
 #include <BKE_image.h>
 #include <BIF_drawimage.h>
 #include <BLI_blenlib.h>
-#include <DNA_space_types.h> /* FILE_MAXDIR = 160 */
+#include <DNA_space_types.h>	/* FILE_MAXDIR = 160 */
 #include <IMB_imbuf_types.h>	/* for the IB_rect define */
 #include <BIF_gl.h>
 #include "gen_utils.h"
@@ -88,7 +89,7 @@ returns None if not found.\n";
 /*****************************************************************************/
 struct PyMethodDef M_Image_methods[] = {
 	/*{"New", ( PyCFunction ) M_Image_New, METH_VARARGS | METH_KEYWORDS,
-	 M_Image_New_doc},*/
+	   M_Image_New_doc}, */
 	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
@@ -131,8 +132,7 @@ static PyObject *M_Image_Get( PyObject * self, PyObject * args )
 
 		while( ( img_iter ) && ( wanted_image == NULL ) ) {
 			if( strcmp( name, img_iter->id.name + 2 ) == 0 ) {
-				wanted_image =
-					( BPy_Image * )
+				wanted_image = ( BPy_Image * )
 					PyObject_NEW( BPy_Image, &Image_Type );
 				if( wanted_image )
 					wanted_image->image = img_iter;
@@ -211,6 +211,87 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 	return ( PyObject * ) img;
 }
 
+
+/**
+ * getPixel( x, y )
+ *  returns float list of pixel colors in rgba order
+ *  blender images are all 4x8 bit at the moment apr-2005
+ */
+
+static PyObject *Image_getPixel( BPy_Image * self, PyObject * args )
+{
+
+	PyObject *attr;
+	Image *image = self->image;
+	char *pixel;	/* image data */
+	int index;		/* offset into image data */
+	int x = 0;
+	int y = 0;
+	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+
+	if( !PyArg_ParseTuple( args, "ii", &x, &y ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected 2 integers" );
+
+	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
+		load_image( image, IB_rect, "", 0 );	/* loading it */
+
+	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	if( image->ibuf->type == 1 )	/* bitplane image */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "unsupported bitplane image format" );
+
+	if( x > ( image->ibuf->x - 1 )
+	    || y > ( image->ibuf->y - 1 )
+	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "x or y is out of range" );
+
+	/* 
+	   assumption: from looking at source, skipx is often not set,
+	   so we calc ourselves
+	 */
+
+	index = ( x + y * image->ibuf->x ) * pixel_size;
+
+	pixel = ( char * ) image->ibuf->rect;
+	attr = Py_BuildValue( "[f,f,f,f]",
+			      ( ( float ) pixel[index] ) / 255.0,
+			      ( ( float ) pixel[index + 1] ) / 255.0,
+			      ( ( float ) pixel[index + 2] ) / 255.0,
+			      ( ( float ) pixel[index + 3] / 255.0 ) );
+
+	if( attr )  /* normal return */
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get pixel colors" );
+}
+
+
+static PyObject *Image_getMaxXY( BPy_Image * self )
+{
+	Image *image = self->image;
+	PyObject *attr;
+
+	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
+		load_image( image, IB_rect, "", 0 );	/* loading it */
+
+	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	attr = Py_BuildValue( "[i,i]", image->ibuf->x, image->ibuf->y );
+	if( attr )
+		return attr;
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "could not determine max x or y" );
+
+}
+
 /*****************************************************************************/
 /* Function:		Image_Init	 */
 /*****************************************************************************/
@@ -245,15 +326,21 @@ static PyObject *Image_setName( BPy_Image * self, PyObject * args );
 static PyObject *Image_setFilename( BPy_Image * self, PyObject * args );
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
-static PyObject *Image_reload( BPy_Image * self );	/* by Campbell */
+static PyObject *Image_reload( BPy_Image * self );
 static PyObject *Image_glLoad( BPy_Image * self );
 static PyObject *Image_glFree( BPy_Image * self );
+static PyObject *Image_getPixel( BPy_Image * self, PyObject * args );
+static PyObject *Image_getMaxXY( BPy_Image * self );
 
 /*****************************************************************************/
 /* Python BPy_Image methods table:	 */
 /*****************************************************************************/
 static PyMethodDef BPy_Image_methods[] = {
 	/* name, method, flags, doc */
+	{"getPixel", ( PyCFunction ) Image_getPixel, METH_VARARGS,
+	 "(float, float) - Get colors of specified pixel as [r,g,b,a]"},
+	{"getMaxXY", ( PyCFunction ) Image_getMaxXY, METH_VARARGS,
+	 "() - Get maximum x & y coordinates of current image as [x, y]"},
 	{"getName", ( PyCFunction ) Image_getName, METH_NOARGS,
 	 "() - Return Image object name"},
 	{"getFilename", ( PyCFunction ) Image_getFilename, METH_NOARGS,
@@ -279,7 +366,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	{"setName", ( PyCFunction ) Image_setName, METH_VARARGS,
 	 "(str) - Change Image object name"},
 	{"setFilename", ( PyCFunction ) Image_setFilename, METH_VARARGS,
-	 "(str) - Change Image file name"},	 
+	 "(str) - Change Image file name"},
 	{"setXRep", ( PyCFunction ) Image_setXRep, METH_VARARGS,
 	 "(int) - Change Image object x repetition value"},
 	{"setYRep", ( PyCFunction ) Image_setYRep, METH_VARARGS,
@@ -300,7 +387,7 @@ static PyObject *Image_repr( BPy_Image * self );
 /* Python Image_Type structure definition:   */
 /*****************************************************************************/
 PyTypeObject Image_Type = {
-	PyObject_HEAD_INIT( NULL ) 
+	PyObject_HEAD_INIT( NULL )  /*     required macro. ( no comma needed )  */
 	0,	/* ob_size */
 	"Blender Image",	/* tp_name */
 	sizeof( BPy_Image ),	/* tp_basicsize */
@@ -321,7 +408,7 @@ PyTypeObject Image_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Image_methods,	/* tp_methods */
 	0,			/* tp_members */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* up to tp_del, to avoid a warning */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* up to tp_del, to avoid a warning */
 };
 
 /*****************************************************************************/
@@ -480,7 +567,8 @@ static PyObject *Image_reload( BPy_Image * self )
 
 	free_image_buffers( img );	/* force read again */
 	img->ok = 1;
-	if (G.sima) image_changed( G.sima, 0 );
+	if( G.sima )
+		image_changed( G.sima, 0 );
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -554,13 +642,14 @@ static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "s#", &name, &namelen ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected a string argument" ) );
+						"expected a string argument" ) );
 
-	if( namelen >= 160)
+	if( namelen >= FILE_MAXDIR )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-			"string argument is limited to 160 chars at most" ) );
+						"string argument is limited to 160 chars at most" ) );
 
-	PyOS_snprintf( self->image->name, FILE_MAXDIR * sizeof( char ), "%s", name );
+	PyOS_snprintf( self->image->name, FILE_MAXDIR * sizeof( char ), "%s",
+		       name );
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -669,7 +758,7 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 	if( strcmp( name, "name" ) == 0 )
 		error = Image_setName( self, valtuple );
 	if( strcmp( name, "filename" ) == 0 )
-		error = Image_setFilename( self, valtuple );	
+		error = Image_setFilename( self, valtuple );
 	else if( strcmp( name, "xrep" ) == 0 )
 		error = Image_setXRep( self, valtuple );
 	else if( strcmp( name, "yrep" ) == 0 )

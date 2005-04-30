@@ -94,6 +94,25 @@ class Image:
     @rtype: int
     """
 
+  def getPixel(x, y):
+    """
+	Get the the colors of the current pixel in the form [r,g,b,a].
+	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+	@returns: [ r, g, b, a]
+	@rtype: list of 4 floats
+	@type x: int
+	@type y: int
+	@param x:  the x coordinate of pixel.
+	@param y:  the y coordinate of pixel.  
+    """
+
+  def getMaxXY():
+    """
+    Get the  x & y size for the image.  Image coordinates range from 0 to size-1.
+    @returns: [x, y]
+    @rtype: list of 2 ints
+    """
+
   def getXRep():
     """
     Get the number of repetitions in the x (horizontal) axis for this Image.
