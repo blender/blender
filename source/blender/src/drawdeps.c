@@ -70,7 +70,10 @@
 
 #include "depsgraph_private.h"
 
+#ifdef WIN32
+#elif
 #include <sys/time.h>
+#endif
 
 
 

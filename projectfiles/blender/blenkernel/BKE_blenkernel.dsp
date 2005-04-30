@@ -178,6 +178,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\deform.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\depsgraph.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\DerivedMesh.c
 # End Source File
 # Begin Source File
@@ -347,6 +351,10 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_curve.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\BKE_deform.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\BKE_depsgraph.h
 # End Source File
 # Begin Source File
 

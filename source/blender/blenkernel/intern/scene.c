@@ -87,8 +87,10 @@
 
 #include "BKE_depsgraph.h"
 
+#ifdef WIN32
+#elif
 #include <sys/time.h>
-
+#endif
 
 void free_avicodecdata(AviCodecData *acd)
 {

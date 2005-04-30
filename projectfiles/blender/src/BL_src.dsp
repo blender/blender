@@ -159,6 +159,10 @@ SOURCE=..\..\..\source\blender\src\drawaction.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\drawdeps.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\drawimage.c
 # End Source File
 # Begin Source File
