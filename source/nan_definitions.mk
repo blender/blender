@@ -32,6 +32,8 @@
 # set some defaults when these are not overruled (?=) by environment variables
 #
 
+sinclude ../user-def.mk
+
 ifndef CONFIG_GUESS
   ifeq (debug, $(findstring debug, $(MAKECMDGOALS)))
     ifeq (all, $(findstring all, $(MAKECMDGOALS)))
