@@ -85,6 +85,11 @@
 
 #include "BPY_extern.h"
 
+#include "BKE_depsgraph.h"
+
+#include <sys/time.h>
+
+
 void free_avicodecdata(AviCodecData *acd)
 {
 	if (acd) {
@@ -139,6 +144,10 @@ void free_scene(Scene *sce)
 		free_qtcodecdata(sce->r.qtcodecdata);
 		MEM_freeN(sce->r.qtcodecdata);
 		sce->r.qtcodecdata = NULL;
+	}
+	if (sce->theDag) {
+		free_forest(sce->theDag);
+		MEM_freeN(sce->theDag);
 	}
 }
 
@@ -209,12 +218,17 @@ int object_in_scene(Object *ob, Scene *sce)
 
 void sort_baselist(Scene *sce)
 {
+	 	topo_sort_baselist(sce);
+}
+
+#if 0
+void old_sort_baselist(Scene *sce)
+{
 	/* in order of parent and track */
 	ListBase tempbase, noparentbase, notyetbase;
 	Base *base, *test=NULL;
 	Object *par;
 	int doit, domore= 0, lastdomore=1;
-	
 	
 	/* keep same order when nothing has changed! */
 	
@@ -287,8 +301,9 @@ void sort_baselist(Scene *sce)
 		addlisttolist(&sce->base, &notyetbase);
 
 	}
-}
 
+}
+#endif
 
 void set_scene_bg(Scene *sce)
 {

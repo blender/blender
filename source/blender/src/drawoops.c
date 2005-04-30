@@ -68,6 +68,12 @@
 #include "BSE_drawipo.h"
 #include "BSE_drawoops.h"
 
+#include "BKE_depsgraph.h"
+
+extern void build_deps(short mask);
+//extern void draw_deps(DagNode *node);
+
+
 float oopscalex;
 
 void boundbox_oops()
@@ -399,7 +405,17 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	if(soops==0) return;	
 	
 	if(soops->type==SO_OUTLINER) draw_outliner(sa, soops);
-	else {
+	else if (soops->type==SO_DEPSGRAPH) {
+		build_deps(soops->deps_flags);
+		boundbox_deps();
+		calc_scrollrcts(sa,G.v2d, curarea->winx, curarea->winy);
+
+		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+
+		oopscalex= .14*((float)curarea->winx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+		calc_ipogrid();	/* for scrollvariables */
+		draw_all_deps();
+	} else {
 		boundbox_oops();
 		calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 

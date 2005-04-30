@@ -199,7 +199,7 @@ typedef struct SpaceOops {
 	ListBase tree;
 	struct TreeStore *treestore;
 	short type, outlinevis, storeflag;
-	short pad1;
+	short deps_flags;
 	
 } SpaceOops;
 
@@ -451,6 +451,7 @@ typedef struct SpaceImaSel {
 /* SpaceOops->type */
 #define SO_OOPS			0
 #define SO_OUTLINER		1
+#define SO_DEPSGRAPH    2
 
 /* SpaceOops->flag */
 #define SO_TESTBLOCKS	1

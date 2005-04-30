@@ -69,6 +69,8 @@
 
 #include "blendef.h"
 
+#include "BKE_depsgraph.h"
+
 static int viewmovetemp = 0;
 
 void do_oops_buttons(short event)
@@ -119,7 +121,7 @@ static void do_oops_viewmenu(void *arg, int event)
 	case 4: /* show outliner */
 		{
 			SpaceOops *soops= curarea->spacedata.first;
-			if(soops->type==SO_OOPS) soops->type= SO_OUTLINER;
+			if(soops->type==SO_OOPS || soops->type==SO_DEPSGRAPH) soops->type= SO_OUTLINER;
 			else soops->type= SO_OOPS;
 			init_v2d_oops(curarea, soops);
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
@@ -141,6 +143,22 @@ static void do_oops_viewmenu(void *arg, int event)
 	case 9:
 		outliner_one_level(curarea, -1);
 		break;
+#ifdef SHOWDEPGRAPH
+	case 10:
+		// show deps
+		{
+			SpaceOops *soops= curarea->spacedata.first;
+			if(soops->type==SO_OOPS) {
+				soops->type= SO_DEPSGRAPH;
+				soops->deps_flags = DAG_RL_ALL_BUT_DATA_MASK;
+			} else 
+				soops->type= SO_OOPS;
+			init_v2d_oops(curarea, soops);
+			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			scrarea_queue_winredraw(curarea);
+		}
+		break;
+#endif
 	}
 }			
 
@@ -155,7 +173,9 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 	
 	if(soops->type==SO_OOPS) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-
+#ifdef SHOWDEPGRAPH
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Dependancies", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+#endif
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shuffle Selected Blocks|Shift S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -165,6 +185,12 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	}
+#ifdef SHOWDEPGRAPH
+	else if(soops->type==SO_DEPSGRAPH) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	}
+#endif
 	else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		
@@ -386,6 +412,33 @@ void oops_buttons(void)
 
 		}
 	}
+#ifdef SHOWDEPGRAPH
+	else if(soops->type==SO_DEPSGRAPH) {
+		// cpack colors : 0x00FF00 0xFF0000 0xFFFF00 0x000000 0x0000FF 0x00FFFF
+		static unsigned char colr[21] ={0x00, 0xFF, 0x00, 
+										0x00, 0x00, 0xFF,
+										0x00, 0xFF, 0xFF,
+										0x00, 0x00, 0x00,
+										0xFF, 0x00, 0x00,
+										0xFF, 0xFF, 0x00,
+										0xFF, 0x00, 0x00};
+		
+		uiDefButC(	block, COL, 0, "", (short)(xco+=10),0, 5,YIC, colr, 0, 1, 0, 0,  "");
+		uiDefButS(	block, TOG|BIT|2, B_REDR, "parent", (short)(xco+=7),0, 50,YIC, &soops->deps_flags, 0, 1, 0, 0,  "parent");
+		uiDefButC(	block, COL, 0, "", (short)(xco+=60),0, 5,YIC, colr+3, 0, 1, 0, 0,  "");
+		uiDefButS(	block, TOG|BIT|1, B_REDR, "data", (short)(xco+=7),0, 50,YIC, &soops->deps_flags, 0, 1, 0, 0,  "data");
+		uiDefButC(	block, COL, 0, "", (short)(xco+=60),0, 5,YIC, colr+6, 0, 1, 0, 0,  "");
+		uiDefButS(	block, TOG|BIT|3, B_REDR, "track", (short)(xco+=7),0, 50,YIC, &soops->deps_flags, 0, 1, 0, 0,  "track");
+		uiDefButC(	block, COL, 0, "", (short)(xco+=60),0, 5,YIC, colr+9, 0, 1, 0, 0,  "");
+		uiDefButS(	block, TOG|BIT|4, B_REDR, "path", (short)(xco+=7),0, 50,YIC, &soops->deps_flags, 0, 1, 0, 0,  "path");
+		uiDefButC(	block, COL, 0, "", (short)(xco+=60),0, 5,YIC, colr+12, 0, 1, 0, 0,  "");
+		uiDefButS(	block, TOG|BIT|5, B_REDR, "cons.", (short)(xco+=7),0, 50,YIC, &soops->deps_flags, 0, 1, 0, 0,  "constraint");
+		uiDefButC(	block, COL, 0, "", (short)(xco+=60),0, 5,YIC, colr+15, 0, 1, 0, 0,  "");
+		uiDefButS(	block, TOG|BIT|6, B_REDR, "hook.", (short)(xco+=7),0, 50,YIC, &soops->deps_flags, 0, 1, 0, 0,  "hook");
+		uiDefButC(	block, COL, 0, "", (short)(xco+=60),0, 5,YIC, colr+18, 0, 1, 0, 0,  "");
+		uiDefButS(	block, TOG|BIT|7, B_REDR, "d cons.", (short)(xco+=7),0, 50,YIC, &soops->deps_flags, 0, 1, 0, 0,  "d cons");
+	} 
+#endif
 	else {
 		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Same Types %x5|Selected %x3|Active %x4",	 xco, 0, 100, 20,  &soops->outlinevis, 0, 0, 0, 0, "");
 	}

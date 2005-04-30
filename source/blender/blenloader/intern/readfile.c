@@ -2694,7 +2694,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 								tselem->id= newlibadr(fd, NULL, tselem->id);
 							}
 						}
-						
 					}
 					else if(sl->spacetype==SPACE_SOUND) {
 						SpaceSound *ssound= (SpaceSound *)sl;
@@ -4640,7 +4639,11 @@ static void do_versions(Main *main)
 		bScreen *sc;
 		
 		while(sce) {
+			sce->theDag = NULL;
+			sce->dagisvalid = 0;
+
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
+
 			if(sce->r.zgamma==0.0) {
 				sce->r.focus= 0.9;
 				sce->r.zgamma= 1.0;
@@ -4648,6 +4651,7 @@ static void do_versions(Main *main)
 				sce->r.zblur= 10.0;
 				sce->r.zmin= 0.8;
 			}
+
 			sce= sce->id.next;
 		}
 		while(cam) {
@@ -4658,6 +4662,7 @@ static void do_versions(Main *main)
 			cam= cam->id.next;
 		}
 		/* set manipulator type */
+		/* force oops draw if depgraph was set*/
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
@@ -4667,6 +4672,12 @@ static void do_versions(Main *main)
 						View3D *v3d= (View3D *)sl;
 						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
+#ifndef SHOWDEPGRAPH
+					if(sl->spacetype==SPACE_OOPS) {
+						if ( ((SpaceOops *)sl)->type==SO_DEPSGRAPH)
+							 ((SpaceOops *)sl)->type=SO_OOPS;
+					}
+#endif						
 				}
 			}
 		}

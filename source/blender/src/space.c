@@ -143,6 +143,8 @@
 
 #include "BIF_transform.h"
 
+#include "BKE_depsgraph.h"
+
 #include "TPT_DependKludge.h"
 #ifdef NAN_TPT
 #include "BSE_trans_types.h"
@@ -4481,6 +4483,16 @@ void allqueue(unsigned short event, short val)
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
+//#ifdef NAN_DEP_GRAPH
+		/* dependency check.maybe not final pos */
+		if (sa->spacetype==SPACE_VIEW3D) {
+			if (G.scene->dagisvalid == 0) {
+				fprintf(stderr,"building dag \n");
+				G.scene->theDag = build_dag(G.scene, DAG_RL_ALL_BUT_DATA_MASK);
+				G.scene->dagisvalid = 1;
+			}
+		}
+//#endif
 		if(event==REDRAWALL) {
 			scrarea_queue_winredraw(sa);
 			scrarea_queue_headredraw(sa);

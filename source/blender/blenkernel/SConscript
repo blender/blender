@@ -5,6 +5,7 @@ Import ('library_env')
 blenkernel_env = library_env.Copy ()
 
 source_files = ['intern/constraint.c',
+		'intern/depsgraph.c',
                 'intern/DerivedMesh.c',
                 'intern/group.c',
                 'intern/material.c',

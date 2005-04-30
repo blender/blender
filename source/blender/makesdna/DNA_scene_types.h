@@ -273,6 +273,11 @@ typedef struct Scene {
 	struct AudioData audio;	
 	
 	ScriptLink scriptlink;
+	
+	/* none of the dependancy graph  vars is mean to be saved */
+	struct  DagForest *theDag;
+	short dagisvalid, dagflags;
+	int pad1;
 } Scene;
 
 
