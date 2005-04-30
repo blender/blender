@@ -153,7 +153,7 @@ void file_buttons(void)
 
 		filesel_statistics(sfile, &totfile, &selfile, &totlen, &sellen);
 		
-		sprintf(naam, "Free: %.3f Mb   Files: (%d) %d    (%.3f) %.3f Mb", df, selfile,totfile, sellen, totlen);
+		sprintf(naam, "Free: %.3f MB   Files: (%d) %d    (%.3f) %.3f MB", df, selfile,totfile, sellen, totlen);
 
 		cpack(0x0);
 		glRasterPos2i(xco,	5);

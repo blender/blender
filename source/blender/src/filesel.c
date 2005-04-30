@@ -394,7 +394,8 @@ void clear_global_filesel_vars()
 
 void filesel_statistics(SpaceFile *sfile, int *totfile, int *selfile, float *totlen, float *sellen)
 {
-	int a, len;
+	double len;
+	int a;
 	
 	*totfile= *selfile= 0;
 	*totlen= *sellen= 0;

@@ -188,7 +188,7 @@ double BLI_diskfree(char *dir)
 		if (slash) slash[1] = 0;
 	} else strcpy(name,"/");
 
-#if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) 
+#if defined (__FreeBSD__) || defined (linux) || defined (__OpenBSD__) || defined (__APPLE__) 
 	if (statfs(name, &disk)) return(-1);
 #endif
 #ifdef __BeOS
@@ -316,8 +316,13 @@ void BLI_adddirstrings()
 	char size[250];
 	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
-	int num1, num2, num3, num4, st_size;
-
+	int num1, num2, num3, num4;
+#ifdef WIN32
+	__int64 st_size;
+#else
+	long long st_size;
+#endif
+	
 	struct direntry * file;
 	struct tm *tm;
 	time_t zero= 0;
@@ -372,7 +377,7 @@ void BLI_adddirstrings()
 		strftime(files[num].time, 8, "%H:%M", tm);
 		strftime(files[num].date, 16, "%d-%b-%y", tm);
 
-		st_size= (int)files[num].s.st_size;
+		st_size= files[num].s.st_size;
 		
 		num1= st_size % 1000;
 		num2= st_size/1000;
