@@ -631,11 +631,13 @@ int gesture(void)
 	else mousebut = L_MOUSE;
 	
 	if(G.qual & LR_CTRLKEY) {
-		if(G.obedit==NULL) {
-			if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) return 0;
-			if(G.obpose) return 0;
+		if(curarea->spacetype==SPACE_VIEW3D) {
+			if(G.obedit==NULL) {
+				if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) return 0;
+				if(G.obpose) return 0;
+			}
+			lasso= 1;
 		}
-		lasso= 1;
 	}
 	
 	glDrawBuffer(GL_FRONT);
