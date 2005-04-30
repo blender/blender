@@ -36,6 +36,7 @@ ifndef NANENV
     export NANENV := $(shell env | grep NAN_)
 endif
 
+sinclude ../user-def.mk
 include nan_definitions.mk
 
 DIRS = creator blender kernel
