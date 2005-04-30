@@ -80,6 +80,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toets.h"
 #include "BIF_toolbox.h"
 
 #include "BKE_action.h"
@@ -127,6 +128,66 @@ int	LastMode = TFM_TRANSLATION;
 #define TRANS_CONFIRM	1
 
 /* ************************** TRANSFORMATIONS **************************** */
+
+static void view_editmove(unsigned short event)
+{
+	/* Regular:   Zoom in */
+	/* Shift:     Scroll up */
+	/* Ctrl:      Scroll right */
+	/* Alt-Shift: Rotate up */
+	/* Alt-Ctrl:  Rotate right */
+	
+	switch(event) {
+		case WHEELUPMOUSE:
+			
+			if( G.qual & LR_SHIFTKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_SHIFTKEY;
+					persptoetsen(PAD2);
+					G.qual |= LR_SHIFTKEY;
+				} else {
+					persptoetsen(PAD2);
+				}
+			} else if( G.qual & LR_CTRLKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_CTRLKEY;
+					persptoetsen(PAD4);
+					G.qual |= LR_CTRLKEY;
+				} else {
+					persptoetsen(PAD4);
+				}
+			} else if(U.uiflag & USER_WHEELZOOMDIR) 
+				persptoetsen(PADMINUS);
+			else
+				persptoetsen(PADPLUSKEY);
+			
+			break;
+		case WHEELDOWNMOUSE:
+			if( G.qual & LR_SHIFTKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_SHIFTKEY;
+					persptoetsen(PAD8);
+					G.qual |= LR_SHIFTKEY;
+				} else {
+					persptoetsen(PAD8);
+				}
+			} else if( G.qual & LR_CTRLKEY ) {
+				if( G.qual & LR_ALTKEY ) { 
+					G.qual &= ~LR_CTRLKEY;
+					persptoetsen(PAD6);
+					G.qual |= LR_CTRLKEY;
+				} else {
+					persptoetsen(PAD6);
+				}
+			} else if(U.uiflag & USER_WHEELZOOMDIR) 
+				persptoetsen(PADPLUSKEY);
+			else
+				persptoetsen(PADMINUS);
+			
+			break;
+	}
+}
+
 
 void Transform(int mode, int context) 
 {
@@ -426,16 +487,18 @@ void Transform(int mode, int context)
 					if(Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 1.1f;
 						calculatePropRatio(&Trans);
-						Trans.redraw= 1;
 					}
+					else view_editmove(event);
+					Trans.redraw= 1;
 					break;
 				case WHEELUPMOUSE:
 				case PADMINUS:
 					if(Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 0.90909090f;
 						calculatePropRatio(&Trans);
-						Trans.redraw= 1;
 					}
+					else view_editmove(event);
+					Trans.redraw= 1;
 					break;
 				}
 				Trans.redraw |= handleNumInput(&(Trans.num), event);

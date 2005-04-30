@@ -3384,7 +3384,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case GKEY:
 			if(sseq->mainb) break;
 			if((G.qual==0))
-				transform_seq('g');
+				transform_seq('g', 0);
 			break;
 		case MKEY:
 			if(G.qual==LR_ALTKEY)
@@ -3793,7 +3793,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case GKEY:
 				if((G.qual==0))
-					transform_tface_uv('g');
+					transform_tface_uv('g', 0);
 				break;
 			case HKEY:
 				if(G.qual==LR_ALTKEY)
@@ -3841,11 +3841,11 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case RKEY:
 				if((G.qual==0))
-					transform_tface_uv('r');
+					transform_tface_uv('r', 0);
 				break;
 			case SKEY:
 				if((G.qual==0))
-					transform_tface_uv('s');
+					transform_tface_uv('s', 0);
 				break;
 			case VKEY:
 				if((G.qual==0))
@@ -4048,7 +4048,7 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case GKEY:
 			if((G.qual==0))
-				transform_oops('g');
+				transform_oops('g', 0);
 			break;
 		case LKEY:
 			if((G.qual==LR_SHIFTKEY))
@@ -4066,7 +4066,7 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					shuffle_oops();
 				}
 			} else if((G.qual==0)) {
-				transform_oops('s');
+				transform_oops('s', 0);
 			}
 			break;
 		case PKEY:

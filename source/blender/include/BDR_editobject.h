@@ -92,8 +92,8 @@ void restore_tob(struct TransOb *tob);
 int cylinder_intersect_test(void);
 int sphere_intersect_test(void);
 int my_clock(void);
-void transform(int mode);
-void std_rmouse_transform(void (*xf_func)(int));
+
+void std_rmouse_transform(void (*xf_func)(int, int));
 void rightmouse_transform(void);
 void single_object_users(int flag);
 void new_id_matar(struct Material **matar, int totcol);

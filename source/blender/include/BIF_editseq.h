@@ -55,7 +55,7 @@ void				seq_snap_menu(void);
 void				set_filter_seq(void);
 void				swap_select_seq(void);
 void				touch_seq_files(void);
-void				transform_seq(int mode);
+void				transform_seq(int mode, int context);
 void				un_meta(void);
 
 /* drawseq.c */

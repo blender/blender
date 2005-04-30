@@ -40,7 +40,7 @@ void select_backlinked_oops(void);
 void select_linked_oops(void);
 void set_select_flag_oops(void);
 void swap_select_all_oops(void);
-void transform_oops(int mode);
+void transform_oops(int mode, int context);
 
 void clever_numbuts_oops(void);
 #endif

@@ -1790,7 +1790,6 @@ static void view3d_blockhandlers(ScrArea *sa)
 
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
-	extern void constline_callback(void);	// editobject.c helpline
 	Base *base;
 	Object *ob;
 	
@@ -1955,7 +1954,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 
 	if(G.moving) {
-		constline_callback();
 		BIF_drawConstraint();
 		if(G.obedit) BIF_drawPropCircle();	// only editmode has proportional edit
 	}

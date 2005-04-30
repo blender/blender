@@ -210,7 +210,7 @@ void deselect_all_area_oops(void)	/* all areas */
 	if(G.soops) G.soops->lockpoin= NULL;
 }
 
-void transform_oops(int mode)
+void transform_oops(int mode, int context)
 {
 	TransOops *transmain, *tv;
 	Oops *oops;

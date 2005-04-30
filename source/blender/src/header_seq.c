@@ -321,7 +321,7 @@ static void do_seq_editmenu(void *arg, int event)
 		exit_meta();
 		break;
 	case 11: /* grab/move */
-		transform_seq('g');
+		transform_seq('g', 0);
 		break;
 	case 12: /* Snap to Current Frame */
 		seq_snap(event);

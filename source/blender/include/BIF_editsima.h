@@ -40,7 +40,7 @@ void mouseco_to_curtile(void);
 void mouse_select_sima(void);
 void select_swap_tface_uv(void);
 void tface_do_clip(void);
-void transform_tface_uv(int mode);
+void transform_tface_uv(int mode, int context);
 void mirrormenu_tface_uv(void);
 void mirror_tface_uv(char mirroraxis);
 void hide_tface_uv(int swap);

@@ -341,7 +341,7 @@ void tface_do_clip(void)
 	
 }
 
-void transform_tface_uv(int mode)
+void transform_tface_uv(int mode, int context)	// 2 args, for callback
 {
 	MFace *mface;
 	TFace *tface;

@@ -98,8 +98,6 @@ Sequence *last_seq=0;
 char last_imagename[FILE_MAXDIR+FILE_MAXFILE]= "/";
 char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 
-/*  void transform_seq(int mode); already in BIF_editseq.h */
-
 #define SEQ_DESEL	~(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
 
 static int test_overlap_seq(Sequence *);
@@ -678,7 +676,7 @@ static void add_image_strips(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add image strip Sequencer");
-	transform_seq('g');
+	transform_seq('g', 0);
 
 }
 
@@ -713,7 +711,7 @@ static void add_movie_strip(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add movie strip Sequencer");
-	transform_seq('g');
+	transform_seq('g', 0);
 
 }
 
@@ -742,7 +740,7 @@ static void add_sound_strip(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add sound strip Sequencer");
-	transform_seq('g');
+	transform_seq('g', 0);
 }
 
 #if 0
@@ -960,7 +958,7 @@ static void load_plugin_seq(char *str)		/* called from fileselect */
 		if( test_overlap_seq(last_seq) ) shuffle_seq(last_seq);
 
 		BIF_undo_push("Add plugin strip Sequencer");
-		transform_seq('g');
+		transform_seq('g', 0);
 	}
 }
 
@@ -1085,7 +1083,7 @@ void add_sequence(int type)
 				if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
 				BIF_undo_push("Add scene strip Sequencer");
-				transform_seq('g');
+				transform_seq('g', 0);
 			}
 		}
 		MEM_freeN(str);
@@ -1108,7 +1106,7 @@ void add_sequence(int type)
 			activate_fileselect(FILE_SPECIAL, "Select Plugin", U.plugseqdir, load_plugin_seq);
 		}
 		else {
-			if( add_seq_effect(event) ) transform_seq('g');
+			if( add_seq_effect(event) ) transform_seq('g', 0);
 		}
 
 		break;
@@ -1419,7 +1417,7 @@ void add_duplicate_seq(void)
 	addlisttolist(ed->seqbasep, &new);
 
 	BIF_undo_push("Add duplicate Sequencer");
-	transform_seq('g');
+	transform_seq('g', 0);
 }
 
 int insert_gap(int gap, int cfra)
@@ -1731,7 +1729,7 @@ typedef struct TransSeq {
 	int startofs, endofs;
 } TransSeq;
 
-void transform_seq(int mode)
+void transform_seq(int mode, int context)
 {
 	Sequence *seq;
 	Editing *ed;

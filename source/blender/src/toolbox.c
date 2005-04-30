@@ -2006,13 +2006,13 @@ static void tb_do_transform(void *arg, int event)
 			snapmenu();
 			break;
 		case 5: /* Shrink/Fatten Along Normals */
-			transform('N');
+			Transform(TFM_SHRINKFATTEN, CTX_NONE);
 			break;
 		case 6: /* Shear */
 			Transform(TFM_SHEAR, CTX_NONE);
 			break;
 		case 7: /* Warp */
-			transform('w');
+			Transform(TFM_WARP, CTX_NONE);
 			break;
 		case 8: /* proportional edit (toggle) */
 			if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;

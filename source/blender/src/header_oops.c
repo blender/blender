@@ -255,10 +255,10 @@ static void do_oops_blockmenu(void *arg, int event)
 	switch(event)
 	{
 	case 0: /* grab/move */
-		transform_oops('g');
+		transform_oops('g', 0);
 		break;
 	case 1: /* scale */
-		transform_oops('s');
+		transform_oops('s', 0);
 		break;
 	}
 }

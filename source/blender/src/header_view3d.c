@@ -66,6 +66,7 @@
 #include "BKE_mesh.h"
 #include "BKE_image.h"
 
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "BSE_edit.h"
@@ -1134,25 +1135,32 @@ static uiBlock *view3d_edit_snapmenu(void *arg_unused)
 
 void do_view3d_transform_moveaxismenu(void *arg, int event)
 {
+	float mat[3][3];
+	
+	Mat3One(mat);
+	
 	switch(event)
 	{
 	    case 0: /* X Global */
-		    transform('g'*'X');
+			BIF_setSingleAxisConstraint(mat[0], " X");
+			Transform(TFM_TRANSLATION, CTX_NONE);
 			break;
 		case 1: /* Y Global */
-			transform('g'*'Y');
+			BIF_setSingleAxisConstraint(mat[0], " Y");
+			Transform(TFM_TRANSLATION, CTX_NONE);
 			break;
 		case 2: /* Z Global */
-			transform('g'*'Z');
+			BIF_setSingleAxisConstraint(mat[0], " Z");
+			Transform(TFM_TRANSLATION, CTX_NONE);
 			break;
 		case 3: /* X Local */
-			transform('g'*'x');
+//			transform('g'*'x');
 			break;
 		case 4: /* Y Local */
-			transform('g'*'y');
+//			transform('g'*'y');
 			break;
 		case 5: /* Z Local */
-			transform('g'*'z');
+//			transform('g'*'z');
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1184,25 +1192,32 @@ static uiBlock *view3d_transform_moveaxismenu(void *arg_unused)
 
 void do_view3d_transform_rotateaxismenu(void *arg, int event)
 {
+	float mat[3][3];
+	
+	Mat3One(mat);
+	
 	switch(event)
 	{
 	    case 0: /* X Global */
-		    transform('r'*'X');
+			BIF_setSingleAxisConstraint(mat[0], " X");
+			Transform(TFM_ROTATION, CTX_NONE);
 			break;
 		case 1: /* Y Global */
-			transform('r'*'Y');
+			BIF_setSingleAxisConstraint(mat[1], " Y");
+			Transform(TFM_ROTATION, CTX_NONE);
 			break;
 		case 2: /* Z Global */
-			transform('r'*'Z');
+			BIF_setSingleAxisConstraint(mat[2], " Z");
+			Transform(TFM_ROTATION, CTX_NONE);
 			break;
 		case 3: /* X Local */
-			transform('r'*'x');
+//			transform('r'*'x');
 			break;
 		case 4: /* Y Local */
-			transform('r'*'y');
+//			transform('r'*'y');
 			break;
 		case 5: /* Z Local */
-			transform('r'*'z');
+//			transform('r'*'z');
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1234,25 +1249,32 @@ static uiBlock *view3d_transform_rotateaxismenu(void *arg_unused)
 
 void do_view3d_transform_scaleaxismenu(void *arg, int event)
 {
+	float mat[3][3];
+	
+	Mat3One(mat);
+	
 	switch(event)
 	{
 	    case 0: /* X Global */
-		    transform('s'*'X');
+			BIF_setSingleAxisConstraint(mat[0], " X");
+			Transform(TFM_RESIZE, CTX_NONE);
 			break;
 		case 1: /* Y Global */
-			transform('s'*'Y');
+			BIF_setSingleAxisConstraint(mat[1], " Y");
+			Transform(TFM_RESIZE, CTX_NONE);
 			break;
 		case 2: /* Z Global */
-			transform('s'*'Z');
+			BIF_setSingleAxisConstraint(mat[2], " Z");
+			Transform(TFM_RESIZE, CTX_NONE);
 			break;
 		case 3: /* X Local */
-			transform('s'*'x');
+
 			break;
 		case 4: /* Y Local */
-			transform('s'*'y');
+
 			break;
 		case 5: /* Z Local */
-			transform('s'*'z');
+
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1933,7 +1955,7 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		editmesh_mark_seam(1);
 		break;
 	case 9: /* Cease SubSurf */
-		transform('e');
+		Transform(TFM_CREASE, CTX_EDGE);
 		break;
 	case 10: /* Rotate Edge */
 		edge_rotate_selected(2);
@@ -2213,13 +2235,13 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		delete_context_selected();
 		break;
 	case 9: /* Shrink/Fatten Along Normals */
-		transform('N');
+		Transform(TFM_SHRINKFATTEN, CTX_NONE);
 		break;
 	case 10: /* Shear */
-		transform('S');
+		Transform(TFM_SHEAR, CTX_NONE);
 		break;
 	case 11: /* Warp */
-		transform('w');
+		Transform(TFM_WARP, CTX_NONE);
 		break;
 	case 12: /* proportional edit (toggle) */
 		if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;
@@ -2310,7 +2332,7 @@ static void do_view3d_edit_curve_controlpointsmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* tilt */
-		transform('t');
+		Transform(TFM_TILT, CTX_NONE);
 		break;
 	case 1: /* clear tilt */
 		clear_tilt();
@@ -2469,10 +2491,10 @@ static void do_view3d_edit_curvemenu(void *arg, int event)
 		else G.f |= G_PROPORTIONAL;
 		break;
 	case 13: /* Shear */
-		transform('S');
+		Transform(TFM_SHEAR, CTX_NONE);
 		break;
 	case 14: /* Warp */
-		transform('w');
+		Transform(TFM_WARP, CTX_NONE);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2590,10 +2612,10 @@ static void do_view3d_edit_metaballmenu(void *arg, int event)
 		delete_context_selected();
 		break;
 	case 5: /* Shear */
-		transform('S');
+		Transform(TFM_SHEAR, CTX_NONE);
 		break;
 	case 6: /* Warp */
-		transform('w');
+		Transform(TFM_WARP, CTX_NONE);
 		break;
 	case 7: /* Transform Properties */
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, 0);
@@ -2797,10 +2819,10 @@ static void do_view3d_edit_latticemenu(void *arg, int event)
 		common_insertkey();
 		break;
 	case 3: /* Shear */
-		transform('S');
+		Transform(TFM_SHEAR, CTX_NONE);
 		break;
 	case 4: /* Warp */
-		transform('w');
+		Transform(TFM_WARP, CTX_NONE);
 		break;
 	case 5: /* proportional edit (toggle) */
 		if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;
@@ -2875,10 +2897,10 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 		delete_context_selected();
 		break;
 	case 6: /* Shear */
-		transform('S');
+		Transform(TFM_SHEAR, CTX_NONE);
 		break;
 	case 7: /* Warp */
-		transform('w');
+		Transform(TFM_WARP, CTX_NONE);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

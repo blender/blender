@@ -837,13 +837,13 @@ static void do_image_uvs_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* Grab */
-		transform_tface_uv('g');
+		transform_tface_uv('g', 0);
 		break;
 	case 1: /* Rotate */
-		transform_tface_uv('r');
+		transform_tface_uv('r', 0);
 		break;
 	case 2: /* Scale */
-		transform_tface_uv('s');
+		transform_tface_uv('s', 0);
 		break;
 	}
 }
