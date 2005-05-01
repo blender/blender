@@ -145,9 +145,9 @@ void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int m
 
 /* ------------------------------------------------------------------------- */
 
-void renderSpotHaloPixel(float x, float y, float* target)
+void renderSpotHaloPixel(float x, float y, float* fcol)
 {
-	shadepixel(x, y, 0, 0, 0, target);
+	shadepixel(x, y, 0, 0, 0, fcol);	
 }
 
 

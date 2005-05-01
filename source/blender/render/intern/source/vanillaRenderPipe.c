@@ -1067,6 +1067,11 @@ static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2
 			/* onto the existing colour in the collector.                    */
 			if(R.flag & R_LAMPHALO) {
 				renderSpotHaloPixel(x, y, collector);
+				if(do_gamma) {
+					collector[0]= gammaCorrect(collector[0]);
+					collector[1]= gammaCorrect(collector[1]);
+					collector[2]= gammaCorrect(collector[2]);
+				}
 				addAlphaOverFloat(colbuf2+4, collector);
 			}
 		}
