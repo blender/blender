@@ -500,6 +500,10 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_writeavi.h
 
 SOURCE=..\..\..\source\blender\blenkernel\intern\CCGSubSurf.h
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\depsgraph_private.h
+# End Source File
 # End Group
 # End Target
 # End Project
