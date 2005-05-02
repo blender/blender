@@ -583,6 +583,11 @@ void viewmove(int mode)
 			screen_swapbuffers();
 		}
 		else {
+			short val;
+			unsigned short event;
+			/* we need to empty the queue... when you do this very long it overflows */
+			while(qtest()) event= extern_qread(&val);
+			
 			BIF_wait_for_statechange();
 		}
 		
