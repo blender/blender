@@ -541,6 +541,42 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 	t->redraw = 1;
 }
 
+void BIF_setLocalAxisConstraint(char axis, char *text) {
+	TransInfo *t = BIF_GetTransInfo();
+
+	strncpy(t->con.text, text, 48);
+
+	switch (axis) {
+	case 'X':
+		t->con.mode = (CON_AXIS0|CON_APPLY);
+		break;
+	case 'Y':
+		t->con.mode = (CON_AXIS1|CON_APPLY);
+		break;
+	case 'Z':
+		t->con.mode = (CON_AXIS2|CON_APPLY);
+		break;
+	}
+}
+
+void BIF_setLocalLockConstraint(char axis, char *text) {
+	TransInfo *t = BIF_GetTransInfo();
+
+	strncpy(t->con.text, text, 48);
+
+	switch (axis) {
+	case 'x':
+		t->con.mode = (CON_AXIS1|CON_AXIS2|CON_APPLY);
+		break;
+	case 'y':
+		t->con.mode = (CON_AXIS0|CON_AXIS2|CON_APPLY);
+		break;
+	case 'z':
+		t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
+		break;
+	}
+}
+
 void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
@@ -650,11 +686,10 @@ void BIF_drawConstraint(void)
 			window_to_3d(vec, (short)(mval[0] - t->con.imval[0]), (short)(mval[1] - t->con.imval[1]));
 			VecAddf(vec, vec, tc->center);
 
-//			drawLine(tc->center, tc->mtx[0], 'x', 0);
-//			drawLine(tc->center, tc->mtx[1], 'y', 0);
-//			drawLine(tc->center, tc->mtx[2], 'z', 0);
+			drawLine(tc->center, tc->mtx[0], 'x', 0);
+			drawLine(tc->center, tc->mtx[1], 'y', 0);
+			drawLine(tc->center, tc->mtx[2], 'z', 0);
 
-			draw_manipulator_ext(curarea, t->mode, 'c', 2, tc->center, tc->mtx);
 			glColor3ubv(col2);
 			
 			glDisable(GL_DEPTH_TEST);
@@ -668,16 +703,13 @@ void BIF_drawConstraint(void)
 		}
 
 		if (tc->mode & CON_AXIS0) {
-			draw_manipulator_ext(curarea, t->mode, 'x', 0, tc->center, tc->mtx);
-//			drawLine(tc->center, tc->mtx[0], 'x', DRAWLIGHT);
+			drawLine(tc->center, tc->mtx[0], 'x', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS1) {
-			draw_manipulator_ext(curarea, t->mode, 'y', 0, tc->center, tc->mtx);
-//			drawLine(tc->center, tc->mtx[1], 'y', DRAWLIGHT);
+			drawLine(tc->center, tc->mtx[1], 'y', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS2) {
-			draw_manipulator_ext(curarea, t->mode, 'z', 0, tc->center, tc->mtx);
-//			drawLine(tc->center, tc->mtx[2], 'z', DRAWLIGHT);
+			drawLine(tc->center, tc->mtx[2], 'z', DRAWLIGHT);
 		}
 	}
 }

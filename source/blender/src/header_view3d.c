@@ -1154,13 +1154,16 @@ void do_view3d_transform_moveaxismenu(void *arg, int event)
 			Transform(TFM_TRANSLATION, CTX_NONE);
 			break;
 		case 3: /* X Local */
-//			transform('g'*'x');
+			BIF_setLocalAxisConstraint('X', " X");
+			Transform(TFM_TRANSLATION, CTX_SETLOCALCONST);
 			break;
 		case 4: /* Y Local */
-//			transform('g'*'y');
+			BIF_setLocalAxisConstraint('Y', " Y");
+			Transform(TFM_TRANSLATION, CTX_SETLOCALCONST);
 			break;
 		case 5: /* Z Local */
-//			transform('g'*'z');
+			BIF_setLocalAxisConstraint('Z', " Z");
+			Transform(TFM_TRANSLATION, CTX_SETLOCALCONST);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1211,13 +1214,16 @@ void do_view3d_transform_rotateaxismenu(void *arg, int event)
 			Transform(TFM_ROTATION, CTX_NONE);
 			break;
 		case 3: /* X Local */
-//			transform('r'*'x');
+			BIF_setLocalAxisConstraint('X', " X");
+			Transform(TFM_ROTATION, CTX_SETLOCALCONST);
 			break;
 		case 4: /* Y Local */
-//			transform('r'*'y');
+			BIF_setLocalAxisConstraint('Y', " Y");
+			Transform(TFM_ROTATION, CTX_SETLOCALCONST);
 			break;
 		case 5: /* Z Local */
-//			transform('r'*'z');
+			BIF_setLocalAxisConstraint('Z', " Z");
+			Transform(TFM_ROTATION, CTX_SETLOCALCONST);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1268,13 +1274,16 @@ void do_view3d_transform_scaleaxismenu(void *arg, int event)
 			Transform(TFM_RESIZE, CTX_NONE);
 			break;
 		case 3: /* X Local */
-
+			BIF_setLocalAxisConstraint('X', " X");
+			Transform(TFM_RESIZE, CTX_SETLOCALCONST);
 			break;
 		case 4: /* Y Local */
-
+			BIF_setLocalAxisConstraint('X', " X");
+			Transform(TFM_RESIZE, CTX_SETLOCALCONST);
 			break;
 		case 5: /* Z Local */
-
+			BIF_setLocalAxisConstraint('X', " X");
+			Transform(TFM_RESIZE, CTX_SETLOCALCONST);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

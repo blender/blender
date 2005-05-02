@@ -56,6 +56,7 @@
 #define CTX_EDGE			2
 #define CTX_NO_PET			4
 #define CTX_NO_NOR_RECALC	8
+#define CTX_SETLOCALCONST	16
 
 /* TRANSFORM PROPORTIONAL FALLOFF MODES */
 #define PROP_SHARP		0
@@ -74,6 +75,8 @@ struct ScrArea;
 struct TransInfo * BIF_GetTransInfo(void);
 void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
+void BIF_setLocalAxisConstraint(char axis, char *text);
+void BIF_setLocalLockConstraint(char axis, char *text);
 void BIF_drawConstraint(void);
 void BIF_drawPropCircle(void);
 

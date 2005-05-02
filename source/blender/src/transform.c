@@ -233,6 +233,16 @@ void Transform(int mode, int context)
 		return;
 	}
 
+	/* CHECKING FOR CTX_SETLOCALCONST CONTEXT FLAG */
+	/* EVIL, best would be to split off init, this way all the external constraint call could work like that:
+		initTransform(mode)
+		initconstraint(setup)
+		Transform()
+	*/
+	if (Trans.context & CTX_SETLOCALCONST) {
+		setLocalConstraint(&Trans, Trans.con.mode, Trans.con.text);
+	}
+
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
 	mode= Trans.mode;
@@ -395,6 +405,7 @@ void Transform(int mode, int context)
 						Trans.redraw= 1;
 					}
 					else {
+						cmode = '\0';
 						stopConstraint(&Trans);
 						Trans.redraw = 1;
 					}
@@ -1899,7 +1910,7 @@ int PushPull(TransInfo *t, short mval[2])
 		sprintf(str, "Push/Pull: %.4f%s %s", distance, t->con.text, t->proptext);
 	}
 	
-	if (t->con.applyRot) {
+	if (t->con.applyRot && t->con.mode & CON_APPLY) {
 		t->con.applyRot(t, NULL, axis);
 	}
 	
@@ -1908,7 +1919,7 @@ int PushPull(TransInfo *t, short mval[2])
 			break;
 
 		VecSubf(vec, t->center, td->center);
-		if (t->con.applyRot) {
+		if (t->con.applyRot && t->con.mode & CON_APPLY) {
 			t->con.applyRot(t, td, axis);
 			Projf(vec, vec, axis);
 		}
