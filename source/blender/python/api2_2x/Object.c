@@ -39,15 +39,20 @@
 #include "NLA.h"
 #include "logic.h"
 #include <blendef.h>
+
 #include <DNA_scene_types.h>
 #include <DNA_mesh_types.h>
 #include <DNA_curve_types.h>
+#include "DNA_object_force.h"
 #include <DNA_property_types.h>
+
 #include <BSE_edit.h>
+
 #include <BKE_property.h>
 #include <BKE_mball.h>
 #include <BKE_font.h>
 #include <BKE_softbody.h>
+
 #include <BIF_editview.h>
 #include <BSE_editipo.h>
 

@@ -100,44 +100,45 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 
 #include "nla.h" //  __NLA is defined
 
-#include "DNA_packedFile_types.h"
-#include "DNA_sdna_types.h"
-#include "DNA_property_types.h"
-#include "DNA_sensor_types.h"
-#include "DNA_controller_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_object_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_controller_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_effect_types.h"
+#include "DNA_group_types.h"
+#include "DNA_image_types.h"
+#include "DNA_ika_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_fileglobal_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_listBase.h" /* for Listbase, the type of samples, ...*/
+#include "DNA_lamp_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_ika_types.h"
-#include "DNA_group_types.h"
+#include "DNA_nla_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_oops_types.h"
+#include "DNA_packedFile_types.h"
+#include "DNA_property_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sdna_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_sensor_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_fileglobal_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_text_types.h"
-#include "DNA_image_types.h"
-#include "DNA_key_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_listBase.h" /* for Listbase, the type of samples, ...*/
-#include "DNA_action_types.h"
-#include "DNA_nla_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_vfont_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
@@ -661,6 +662,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
 	ObHook *hook;
+	int a;
 	
 	ob= idbase->first;
 	while(ob) {
@@ -684,6 +686,15 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
+			if(ob->soft) {
+				SoftBody *sb= ob->soft;
+				if(sb->keys) {
+					writedata(wd, DATA, sizeof(void *)*sb->totkey, sb->keys);
+					for(a=0; a<sb->totkey; a++) {
+						writestruct(wd, DATA, "SBVertex", sb->totpoint, sb->keys[a]);
+					}
+				}
+			}
 			
 			for(hook= ob->hooks.first; hook; hook= hook->next) {
 				writestruct(wd, DATA, "ObHook", 1, hook);

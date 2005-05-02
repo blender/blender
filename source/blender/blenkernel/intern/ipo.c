@@ -52,10 +52,12 @@
 #include "DNA_texture_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_action_types.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 

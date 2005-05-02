@@ -542,6 +542,7 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 void uiBoundsBlock(uiBlock *block, int addval)
 {
 	uiBut *bt;
+	int xof;
 	
 	if(block->buttons.first==NULL) {
 		if(block->panel) {
@@ -571,10 +572,15 @@ void uiBoundsBlock(uiBlock *block, int addval)
 		block->maxy += addval;
 	}
 
-	block->safety.xmin= block->minx-40;
-	block->safety.ymin= block->miny-40;
-	block->safety.xmax= block->maxx+40;
-	block->safety.ymax= block->maxy+40;
+	/* hardcoded exception... but that one is annoying with larger safety */ 
+	bt= block->buttons.first;
+	if(bt && strncmp(bt->str, "ERROR", 5)==0) xof= 10;
+	else xof= 40;
+	
+	block->safety.xmin= block->minx-xof;
+	block->safety.ymin= block->miny-xof;
+	block->safety.xmax= block->maxx+xof;
+	block->safety.ymax= block->maxy+xof;
 }
 
 static void ui_positionblock(uiBlock *block, uiBut *but)

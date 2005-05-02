@@ -4487,7 +4487,7 @@ void allqueue(unsigned short event, short val)
 		/* dependency check.maybe not final pos */
 		if (sa->spacetype==SPACE_VIEW3D) {
 			if (G.scene->dagisvalid == 0) {
-				fprintf(stderr,"building dag \n");
+//				fprintf(stderr,"building dag \n");
 				G.scene->theDag = build_dag(G.scene, DAG_RL_ALL_BUT_DATA_MASK);
 				G.scene->dagisvalid = 1;
 			}

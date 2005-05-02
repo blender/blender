@@ -59,45 +59,47 @@
 
 #include "nla.h"
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_ID.h"
+#include "DNA_actuator_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_controller_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_effect_types.h"
+#include "DNA_fileglobal_types.h"
+#include "DNA_group_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_ika_types.h"
+#include "DNA_image_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_nla_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_force.h"
+#include "DNA_oops_types.h"
+#include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_property_types.h"
-#include "DNA_actuator_types.h"
-#include "DNA_controller_types.h"
+#include "DNA_text_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_sensor_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_ika_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_key_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_object_types.h"
-#include "DNA_world_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_text_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
-#include "DNA_oops_types.h"
-#include "DNA_group_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_fileglobal_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_nla_types.h"
+#include "DNA_vfont_types.h"
+#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
@@ -2289,8 +2291,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bController *cont;
 	bActuator *act;
 	ObHook *hook;
+	int a;
 	
-	ob->disp.first=ob->disp.last= 0;
+	ob->disp.first=ob->disp.last= NULL;
 
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
@@ -2320,10 +2323,18 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->pd= newdataadr(fd, ob->pd);
 	ob->soft= newdataadr(fd, ob->soft);
 	if(ob->soft) {
-		SoftBody *sb= ob->soft;		// init all stuff so it gets rebuilt nicely
-		sb->totpoint= sb->totspring= 0;
-		sb->bpoint= NULL; 
+		SoftBody *sb= ob->soft;		
+		
+		sb->bpoint= NULL;	// init pointers so it gets rebuilt nicely
 		sb->bspring= NULL;
+		
+		sb->keys= newdataadr(fd, sb->keys);
+		test_pointer_array(fd, (void **)&sb->keys);
+		if(sb->keys) {
+			for(a=0; a<sb->totkey; a++) {
+				sb->keys[a]= newdataadr(fd, sb->keys[a]);
+			}
+		}
 	}
 	
 	link_list(fd, &ob->prop);
@@ -4689,27 +4700,17 @@ static void do_versions(Main *main)
 			}
 		}
 		
-		/* temporal copy */
+		/* softbody init new vars */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
-			if(ob->softflag && ob->soft==NULL) {
-				SoftBody *sb;
-				ob->soft=sb= sbNew();
-				
-				sb->goalspring= ob->sb_goalspring; 
-				sb->goalfrict= ob->sb_goalfrict;  
-				sb->inspring= ob->sb_inspring;	 
-				sb->infrict= ob->sb_infrict;  
-				sb->nodemass= ob->sb_nodemass;
-				sb->grav= ob->sb_grav;   
-				sb->mingoal= ob->sb_mingoal;  
-				sb->maxgoal= ob->sb_maxgoal;
-				sb->mediafrict= ob->sb_mediafrict; 
-				sb->rklimit= ob->softtime;
-				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
- 			}
 			if(ob->soft) {
 				if(ob->soft->defgoal==0.0) ob->soft->defgoal= 0.7;
 				if(ob->soft->physics_speed==0.0) ob->soft->physics_speed= 1.0;
+				
+				if(ob->soft->interval==0) {
+					ob->soft->interval= 2;
+					ob->soft->sfra= 1;
+					ob->soft->efra= 100;
+				}
 			}
 			if(ob->soft && ob->soft->vertgroup==0) {
 				bDeformGroup *locGroup = get_named_vertexgroup(ob, "SOFTGOAL");

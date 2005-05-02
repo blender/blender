@@ -221,8 +221,10 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_RELKEY		1415
 #define B_CURVECHECK	1416
 
-#define B_SOFTBODY_CHANGE	1420
-#define B_SOFTBODY_DEL_VG	1421
+#define B_SOFTBODY_CHANGE		1420
+#define B_SOFTBODY_DEL_VG		1421
+#define B_SOFTBODY_BAKE			1422
+#define B_SOFTBODY_BAKE_FREE	1423
 
 	/* this has MAX_EFFECT settings! Next free define is 1450... */
 #define B_SELEFFECT	1430	

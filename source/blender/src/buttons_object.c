@@ -40,6 +40,7 @@
 #endif
 
 #include "MEM_guardedalloc.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -53,6 +54,7 @@
 #include "BLI_arithb.h"
 
 #include "BSE_filesel.h"
+#include "BSE_headerbuttons.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -94,6 +96,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
@@ -1101,6 +1104,51 @@ void object_panel_hooks(Object *ob)
 	uiDefBut(block, BUT, B_CLR_HOOK, "Clear offset", 		160,80,150,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
 }
 
+static void softbody_bake(Object *ob)
+{
+	SoftBody *sb= ob->soft;
+	ScrArea *sa;
+	int cfrao= CFRA;
+	unsigned short event=0;
+	short val;
+	
+	CFRA= sb->sfra;
+	sbObjectToSoftbody(ob);
+	ob->softflag |= OB_SB_BAKEDO;
+	
+	curarea->win_swap= WIN_BACK_OK;		// clean swapbuffers
+	
+	for(; CFRA <= sb->efra; CFRA++) {
+		set_timecursor(CFRA);
+		
+		update_for_newframe_muted();
+		
+		for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+			if(sa->spacetype == SPACE_VIEW3D) {
+				scrarea_do_windraw(sa);
+			}
+		}
+		screen_swapbuffers();
+		
+		while(qtest()) {
+			
+			event= extern_qread(&val);
+			if(event==ESCKEY) break;
+		}
+		if(event==ESCKEY) break;
+	}
+	
+	if(event==ESCKEY) sbObjectToSoftbody(ob);	// clears all
+	
+	/* restore */
+	waitcursor(0);
+	ob->softflag &= ~OB_SB_BAKEDO;
+	CFRA= cfrao;
+	update_for_newframe_muted();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
 
 void do_object_panels(unsigned short event)
 {
@@ -1206,6 +1254,16 @@ void do_object_panels(unsigned short event)
 			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 		}
+		break;
+	case B_SOFTBODY_BAKE:
+		ob= OBACT;
+		if(ob && ob->soft) softbody_bake(ob);
+		break;
+	case B_SOFTBODY_BAKE_FREE:
+		ob= OBACT;
+		if(ob && ob->soft) sbObjectToSoftbody(ob);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 		
 	default:
@@ -1480,6 +1538,7 @@ static void object_panel_deflectors(Object *ob)
 	}
 }
 
+
 /* Panel for softbodies */
 
 static void object_softbodies(Object *ob)
@@ -1508,52 +1567,75 @@ static void object_softbodies(Object *ob)
 			}
 		}
 		
-		/* GENERAL STUFF */
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 10.0, 10, 0, "General Friction for point movements");
-		uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
-		uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,100,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_DIFF, "RKL:",			110,150,100,20, &sb->rklimit , 0.01, 1.0, 10, 0, "Runge-Kutta ODE solver error limit");
-		uiDefButF(block, NUM, B_DIFF, "Time:",			210,150,100,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
-		uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "PostDef",	10,130,300,20, &ob->softflag, 0, 0, 0, 0, "Apply Soft AFTER Deform");
-		uiBlockEndAlign(block);
+		uiDefButBitS(block, TOG, OB_SB_BAKESET, REDRAWBUTSOBJECT, "Bake settings",	180,200,130,20, &ob->softflag, 0, 0, 0, 0, "To convert simulation into baked (cached) result");
 		
-		/* GOAL STUFF */
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, OB_SB_GOAL, B_DIFF, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		if(sb->keys) uiSetButLock(1, "SoftBody is baked, free it first");
 		
-		menustr= get_vertexgroup_menustr(ob);
-		defCount=BLI_countlist(&ob->defbase);
-		if(defCount==0) sb->vertgroup= 0;
-		uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,		140,100,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
-		
-		if(sb->vertgroup) {
-			bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
-			if(defGroup)
-				uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
-			else
-				uiDefBut(block, BUT, B_DIFF, "(no group)",	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
-			uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,100,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+		if(ob->softflag & OB_SB_BAKESET) {
+			uiBlockBeginAlign(block);
+			uiDefButS(block, NUM, B_DIFF, "Start:",			10, 170,100,20, &sb->sfra, 1.0, 10000.0, 10, 0, "Start frame for baking");
+			uiDefButS(block, NUM, B_DIFF, "End:",			110, 170,100,20, &sb->efra, 1.0, 10000.0, 10, 0, "End frame for baking");
+			uiDefButS(block, NUM, B_DIFF, "Interval:",		210, 170,100,20, &sb->interval, 1.0, 10.0, 10, 0, "Interval in frames between baked keys");
+			
+			uiClearButLock();
+			
+			uiBlockBeginAlign(block);
+			if(sb->keys) {
+				char str[128];
+				uiDefIconTextBut(block, BUT, B_SOFTBODY_BAKE_FREE, ICON_X, "FREE BAKE", 10, 120,300,20, NULL, 0.0, 0.0, 0, 0, "Free baked result");
+				sprintf(str, "Stored %d vertices %d keys %.3f MB", sb->totpoint, sb->totkey, ((float)16*sb->totpoint*sb->totkey)/(1024.0*1024.0));
+				uiDefBut(block, LABEL, 0, str, 10, 100,300,20, NULL, 0.0, 0.0, 00, 0, "");
+			}
+			else				
+				uiDefBut(block, BUT, B_SOFTBODY_BAKE, "BAKE",	10, 120,300,20, NULL, 0.0, 0.0, 10, 0, "Start baking. Press ESC to exit without baking");
 		}
 		else {
-			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+			/* GENERAL STUFF */
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 10.0, 10, 0, "General Friction for point movements");
+			uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
+			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,100,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "RKL:",			110,150,100,20, &sb->rklimit , 0.01, 1.0, 10, 0, "Runge-Kutta ODE solver error limit");
+			uiDefButF(block, NUM, B_DIFF, "Time:",			210,150,100,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
+			uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "PostDef",	10,130,300,20, &ob->softflag, 0, 0, 0, 0, "Apply Soft AFTER Deform");
+			uiBlockEndAlign(block);
+			
+			/* GOAL STUFF */
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, OB_SB_GOAL, B_DIFF, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+			
+			menustr= get_vertexgroup_menustr(ob);
+			defCount=BLI_countlist(&ob->defbase);
+			if(defCount==0) sb->vertgroup= 0;
+			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,		140,100,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
+			
+			if(sb->vertgroup) {
+				bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
+				if(defGroup)
+					uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+				else
+					uiDefBut(block, BUT, B_DIFF, "(no group)",	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+				uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,100,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+			}
+			else {
+				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+			}
+			MEM_freeN (menustr);
+
+			uiDefButF(block, NUM, B_DIFF, "GSpring:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) Spring Constant");
+			uiDefButF(block, NUM, B_DIFF, "GFrict:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) Friction Constant");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMin:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMax:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
+			uiBlockEndAlign(block);
+			
+			/* EDGE SPRING STUFF */
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
+			uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
+			uiDefButF(block, NUM, B_DIFF, "ESpring:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge Spring Constant");
+			uiDefButF(block, NUM, B_DIFF, "EFrict:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge Friction Constant");
+			uiBlockEndAlign(block);
 		}
-		MEM_freeN (menustr);
-
-		uiDefButF(block, NUM, B_DIFF, "GSpring:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) Spring Constant");
-		uiDefButF(block, NUM, B_DIFF, "GFrict:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) Friction Constant");
-		uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMin:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
-		uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMax:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
-		uiBlockEndAlign(block);
-		
-		/* EDGE SPRING STUFF */
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
-		uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
-		uiDefButF(block, NUM, B_DIFF, "ESpring:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge Spring Constant");
-		uiDefButF(block, NUM, B_DIFF, "EFrict:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge Friction Constant");
-		uiBlockEndAlign(block);
-
 	}
 	uiBlockEndAlign(block);
 

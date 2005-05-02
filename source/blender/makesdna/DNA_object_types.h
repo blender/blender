@@ -51,8 +51,8 @@ struct BoundBox;
 struct Path;
 struct Material;
 struct bConstraintChannel;
-struct BodyPoint;
-struct BodySpring;
+struct PartDeflect;
+struct SoftBody;
 
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
@@ -79,62 +79,6 @@ typedef struct LBuf {
 	struct Object **ob;
 } LBuf;
 
-typedef struct PartDeflect {
-	short deflect;		/* Deflection flag - does mesh deflect particles*/
-	short forcefield;	/* Force field type, do the vertices attract / repel particles ? */
-	short flag;			/* general settings flag */
-	short pad;
-	
-	float pdef_damp;	/* Damping factor for particle deflection       */
-	float pdef_rdamp;	/* Random element of damping for deflection     */
-	float pdef_perm;	/* Chance of particle passing through mesh      */
-
-	float f_strength;	/* The strength of the force (+ or - )       */
-	float f_power;		/* The power law - real gravitation is 2 (square)  */
-	float maxdist;		/* if indicated, use this maximum */
-	
-	float pdef_sbdamp;	/* Damping factor for softbody deflection       */
-	float pdef_sbift;	/* inner face thickness for softbody deflection */
-	float pdef_sboft;	/* outer face thickness for softbody deflection */
-} PartDeflect;
-
-/* pd->forcefield:  Effector Fields types */
-#define PFIELD_FORCE	1
-#define PFIELD_VORTEX	2
-#define PFIELD_MAGNET	3
-#define PFIELD_WIND		4
-
-/* pd->flag: various settings */
-#define PFIELD_USEMAX	1
-
-
-typedef struct SoftBody {
-	/* dynamic data */
-	int totpoint, totspring;
-	struct BodyPoint *bpoint;		/* not saved in file */
-	struct BodySpring *bspring;		/* not saved in file */
-	float ctime;					/* last time calculated */
-	
-	/* part of UI: */
-	float nodemass;		/* softbody mass of *vertex* */
-	float grav;			/* softbody amount of gravitaion to apply */
-	float mediafrict;	/* friction to env */
-	float rklimit;		/* error limit for ODE solver */
-	float physics_speed;/* user control over simulation speed */
-	
-	float goalspring;	/* softbody goal springs */
-	float goalfrict;	/* softbody goal springs friction */
-	float mingoal;		/* quick limits for goal */
-	float maxgoal;
-	short vertgroup;	/* index starting at 1 */
-	short pad1;
-	
-	float inspring;		/* softbody inner springs */
-	float infrict;		/* softbody inner springs friction */
- 	
-	float defgoal;		/* default goal for vertices without vgroup */
-	
-} SoftBody;
 
 typedef struct Object {
 	ID id;
@@ -239,28 +183,15 @@ typedef struct Object {
 	ListBase nlastrips;
 	ListBase hooks;
 	
-	PartDeflect *pd;		/* particle deflector/attractor/collision data */
-	struct SoftBody *soft;	/* if exists, saved in file */
+	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
+	struct SoftBody *soft;		/* if exists, saved in file */
 	struct Life *life;
 
 	LBuf lbuf;
 	LBuf port;
-
+	
 	float toonedge, smoothresh;	/* smoothresh is phong interpolation ray_shadow correction in render */
-/* this stuff MUST NOT be here
-   is here for softbody devel purpose 
-*/
-	float sb_goalspring; /* softbody goal springs */
-	float sb_goalfrict;   /* softbody goal springs friction */
-	float sb_inspring;	 /* softbody inner springs */
-	float sb_infrict;   /* softbody inner springs friction */
-	float sb_nodemass;	 /* softbody mass of *vertex* */
-	float sb_grav;      /* softbody amount of gravitaion to apply */
-	float sb_mingoal;   /* quick limits for goal */
-	float sb_maxgoal;
-	float sb_mediafrict;   /* friction to env */
-	float sb_pad1;        /* free */
-    
+  
 } Object;
 
 typedef struct ObHook {
@@ -433,13 +364,7 @@ extern Object workob;
 #define OB_ADDACT		1024
 #define OB_SHOWCONT		2048
 
-/* ob->softflag */
-#define OB_SB_ENABLE	1
-#define OB_SB_GOAL		2
-#define OB_SB_EDGES		4
-#define OB_SB_QUADS		8
-#define OB_SB_POSTDEF	16
-#define OB_SB_REDO		32
+/* ob->softflag in DNA_object_force.h */
 
 #ifdef __cplusplus
 }

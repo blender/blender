@@ -60,6 +60,8 @@ variables on the UI for now
 /* types */
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"	/* here is the softbody struct */
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_lattice_types.h"
@@ -71,6 +73,7 @@ variables on the UI for now
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
@@ -261,6 +264,22 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 	}
 }
 
+static void free_softbody_baked(SoftBody *sb)
+{
+	SBVertex *key;
+	int k;
+	
+	for(k=0; k<sb->totkey; k++) {
+		key= *(sb->keys + k);
+		if(key) MEM_freeN(key);
+	}
+	if(sb->keys) MEM_freeN(sb->keys);
+	
+	sb->keys= NULL;
+	sb->totkey= 0;
+	
+}
+
 /* only frees internal data */
 static void free_softbody_intern(SoftBody *sb)
 {
@@ -283,6 +302,8 @@ static void free_softbody_intern(SoftBody *sb)
 		sb->totpoint= sb->totspring= 0;
 		sb->bpoint= NULL;
 		sb->bspring= NULL;
+		
+		free_softbody_baked(sb);
 	}
 }
 
@@ -752,7 +773,7 @@ static void mesh_update_softbody(Object *ob)
 	int a;
 	
 	/* possible after a file read... */
-	if(ob->soft->totpoint!=me->totvert) sbObjectToSoftbody(ob);
+	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob);
 	
 	if(me->totvert) {
 	
@@ -951,7 +972,7 @@ static void lattice_update_softbody(Object *ob)
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
 	
 	/* possible after a file read... */
-	if(ob->soft->totpoint!=totvert) sbObjectToSoftbody(ob);
+	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob);
 	
 	for(a= totvert, bp= lt->def, bop= ob->soft->bpoint; a>0; a--, bp++, bop++) {
 		VECCOPY(bop->origS, bop->origE);
@@ -999,7 +1020,110 @@ static void object_update_softbody(Object *ob)
 	
 }
 
+/* return 1 if succesfully baked and applied step */
+static int softbody_baked_step(Object *ob, float framenr)
+{
+	SoftBody *sb= ob->soft;
+	SBVertex *key0, *key1, *key2, *key3;
+	BodyPoint *bp;
+	float data[4], sfra, efra, cfra, dfra, fac;	// start, end, current, delta 
+	int ofs1, a;
 
+	/* precondition check */
+	if(sb==NULL || sb->keys==NULL || sb->totkey==0) return 0;
+	/* so we got keys, but no bodypoints... even without simul we need it for the bake */
+	if(sb->bpoint==NULL) sb->bpoint= MEM_callocN( sb->totpoint*sizeof(BodyPoint), "bodypoint");
+	
+	/* convert cfra time to system time */
+	sfra= (float)sb->sfra;
+	cfra= bsystem_time(ob, NULL, framenr, 0.0);
+	efra= (float)sb->efra;
+	dfra= (float)sb->interval;
+
+	/* offset in keys array */
+	ofs1= floor( (cfra-sfra)/dfra );
+
+	if(ofs1 < 0) {
+		key0=key1=key2=key3= *sb->keys;
+	}
+	else if(ofs1 >= sb->totkey-1) {
+		key0=key1=key2=key3= *(sb->keys+sb->totkey-1);
+	}
+	else {
+		key1= *(sb->keys+ofs1);
+		key2= *(sb->keys+ofs1+1);
+
+		if(ofs1>0) key0= *(sb->keys+ofs1-1);
+		else key0= key1;
+		if(ofs1<sb->totkey-1) key3= *(sb->keys+ofs1+1);
+		else key3= key2;
+	}
+	
+	sb->ctime= cfra;	// needed?
+	
+	/* timing */
+	fac= ((cfra-sfra)/dfra) - (float)ofs1;
+	CLAMP(fac, 0.0, 1.0);
+	set_four_ipo(fac, data, KEY_BSPLINE);
+	
+	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++, key0++, key1++, key2++, key3++) {
+		bp->pos[0]= data[0]*key0->vec[0] +  data[1]*key1->vec[0] + data[2]*key2->vec[0] + data[3]*key3->vec[0];
+		bp->pos[1]= data[0]*key0->vec[1] +  data[1]*key1->vec[1] + data[2]*key2->vec[1] + data[3]*key3->vec[1];
+		bp->pos[2]= data[0]*key0->vec[2] +  data[1]*key1->vec[2] + data[2]*key2->vec[2] + data[3]*key3->vec[2];
+	}
+	
+	softbody_to_object(ob);
+	
+	return 1;
+}
+
+/* only gets called after succesfully doing softbody_step */
+/* already checked for OB_SB_BAKE flag */
+static void softbody_baked_add(Object *ob, float framenr)
+{
+	SoftBody *sb= ob->soft;
+	SBVertex *key;
+	BodyPoint *bp;
+	float sfra, efra, cfra, dfra, fac1;	// start, end, current, delta 
+	int ofs1, a;
+	
+	/* convert cfra time to system time */
+	sfra= (float)sb->sfra;
+	cfra= bsystem_time(ob, NULL, framenr, 0.0);
+	efra= (float)sb->efra;
+	dfra= (float)sb->interval;
+	
+	if(sb->totkey==0) {
+		if(sb->sfra >= sb->efra) return;		// safety, UI or py setting allows
+		if(sb->interval<1) sb->interval= 1;		// just be sure
+		
+		sb->totkey= 1 + (int)(ceil( (efra-sfra)/dfra ) );
+		sb->keys= MEM_callocN( sizeof(void *)*sb->totkey, "sb keys");
+	}
+	
+	/* now find out if we have to store a key */
+	
+	/* offset in keys array */
+	if(cfra==efra) {
+		ofs1= sb->totkey-1;
+		fac1= 0.0;
+	}
+	else {
+		ofs1= floor( (cfra-sfra)/dfra );
+		fac1= ((cfra-sfra)/dfra) - (float)ofs1;
+	}	
+	if( fac1 < 1.0/dfra ) {
+		
+		key= *(sb->keys+ofs1);
+		if(key == NULL) {
+			*(sb->keys+ofs1)= key= MEM_mallocN(sb->totpoint*sizeof(SBVertex), "softbody key");
+			
+			for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++, key++) {
+				VECCOPY(key->vec, bp->pos);
+			}
+		}
+	}
+}
 
 /* ************ Object level, exported functions *************** */
 
@@ -1024,6 +1148,10 @@ SoftBody *sbNew(void)
 	
 	sb->inspring= 0.5;
 	sb->infrict= 0.5; 
+	
+	sb->interval= 10;
+	sb->sfra= G.scene->r.sfra;
+	sb->efra= G.scene->r.efra;
 	
 	return sb;
 }
@@ -1098,10 +1226,14 @@ void sbObjectStep(Object *ob, float framenr)
 	   vertices in lattice (ton) */
 	if(G.moving) return;
 	
+	/* baking works with global time */
+	if(!(ob->softflag & OB_SB_BAKEDO) )
+		if(softbody_baked_step(ob, framenr) ) return;
+	
 	/* remake softbody if: */
 	if( (ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
 		(ob->soft==NULL) ||					// just to be nice we allow full init
-		(ob->soft->totpoint==0) ) 			// after reading new file, or acceptable as signal to refresh
+		(ob->soft->bpoint==NULL) ) 			// after reading new file, or acceptable as signal to refresh
 			sbObjectToSoftbody(ob);
 	
 	sb= ob->soft;
@@ -1113,12 +1245,12 @@ void sbObjectStep(Object *ob, float framenr)
 	for(base= G.scene->base.first; base; base= base->next) {
 		base->object->sumohandle= NULL;
 	}
-	
+
 	/* checking time: */
 	ctime= bsystem_time(ob, NULL, framenr, 0.0);
 	dtime= ctime - sb->ctime;
 		// bail out for negative or for large steps
-	if(dtime<0.0 || dtime >= 9.9*G.scene->r.framelen) { // note: what is G.scene->r.framelen for ? (BM)
+	if(dtime<0.0 || dtime >= 9.9*G.scene->r.framelen) { // G.scene->r.framelen corrects for frame-mapping, so this is actually 10 frames for UI
 		sbObjectReset(ob);
 		return;
 	}
@@ -1246,5 +1378,6 @@ void sbObjectStep(Object *ob, float framenr)
 		}
 	}
 	
+	if(ob->softflag & OB_SB_BAKEDO) softbody_baked_add(ob, framenr);
 }
 
