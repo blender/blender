@@ -387,8 +387,9 @@ void initTrans (TransInfo *t)
 	t->flag = 0;
 
 	/* setting PET flag */
-	if ((t->context & CTX_NO_PET) == 0 && (G.f & G_PROPORTIONAL)) {
+	if ((t->context & CTX_NO_PET) == 0 && (G.scene->proportional)) {
 		t->flag |= T_PROP_EDIT;
+		if(G.scene->proportional==2) t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
 	}
 
 	getmouseco_areawin(t->imval);
@@ -719,7 +720,6 @@ void calculatePropRatio(TransInfo *t)
 	int i;
 	float dist;
 	short connected = t->flag & T_PROP_CONNECTED;
-	extern int prop_mode;
 
 	if (t->flag & T_PROP_EDIT) {
 		for(i = 0 ; i < t->total; i++, td++) {
@@ -743,7 +743,7 @@ void calculatePropRatio(TransInfo *t)
 				/* Use rdist for falloff calculations, it is the real distance */
 				td->flag &= ~TD_NOACTION;
 				dist= (t->propsize-td->rdist)/t->propsize;
-				switch(prop_mode) {
+				switch(G.scene->prop_mode) {
 				case PROP_SHARP:
 					td->factor= dist*dist;
 					break;
@@ -767,7 +767,7 @@ void calculatePropRatio(TransInfo *t)
 				}
 			}
 		}
-		switch(prop_mode) {
+		switch(G.scene->prop_mode) {
 		case PROP_SHARP:
 			strcpy(t->proptext, "(Sharp)");
 			break;

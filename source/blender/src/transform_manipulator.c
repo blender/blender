@@ -181,7 +181,8 @@ static int calc_manipulator(ScrArea *sa)
 	
 	if(G.obedit) {
 		ob= G.obedit;
-		
+		if((ob->lay & G.vd->lay)==0) return 0;
+
 		if(G.obedit->type==OB_MESH) {
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
@@ -320,6 +321,8 @@ static int calc_manipulator(ScrArea *sa)
 		bArmature *arm= G.obpose->data;
 		
 		ob= G.obpose;
+		if((ob->lay & G.vd->lay)==0) return 0;
+		
 		Trans.mode= TFM_ROTATION;	// mislead counting bones... bah
 		
 		/* count total */

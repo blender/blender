@@ -359,12 +359,11 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 	short mval[2], val, xo, yo, xn, yn, xc, yc;
 	char str[80];
  	extern float prop_size, prop_cent[3]; 
- 	extern int prop_mode;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
 	me= get_mesh(OBACT);
 	
- 	if(G.f & G_PROPORTIONAL) propmode= 1;
+ 	if(G.scene->proportional) propmode= 1;
   	
 	min[0]= min[1]= 10000.0;
 	max[0]= max[1]= -10000.0;
@@ -488,7 +487,7 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 					else if(dist > prop_size) tv->fac= 0.0;
 					else {
 						dist= (prop_size-dist)/prop_size;
-						if(prop_mode==1)
+						if(G.scene->prop_mode==1)
 							tv->fac= 3.0*dist*dist - 2.0*dist*dist*dist;
 						else tv->fac= dist*dist;
 					}

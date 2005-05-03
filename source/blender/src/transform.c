@@ -487,8 +487,7 @@ void Transform(int mode, int context)
 					break;
 				case OKEY:
 					if (Trans.flag & T_PROP_EDIT && G.qual==LR_SHIFTKEY) {
-						extern int prop_mode;
-						prop_mode = (prop_mode+1)%6;
+						G.scene->prop_mode = (G.scene->prop_mode+1)%6;
 						calculatePropRatio(&Trans);
 						Trans.redraw= 1;
 					}

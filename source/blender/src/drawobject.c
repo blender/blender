@@ -1622,7 +1622,6 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, DerivedMesh *realDM, int dt)
 {
-	extern float editbutsize;	/* buttons.c */
 	Mesh *me = ob->data;
 	DerivedMesh *cageDM;
 
@@ -1701,7 +1700,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 
 		if(G.f & G_DRAWNORMALS) {
 			BIF_ThemeColor(TH_NORMAL);
-			draw_em_face_normals(em, editbutsize);
+			draw_em_face_normals(em, G.scene->editbutsize);
 		}
 
 		if(G.f & (G_DRAW_EDGELEN|G_DRAW_FACEAREA|G_DRAW_EDGEANG))
@@ -2684,7 +2683,6 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 
 static void drawnurb(Object *ob, Nurb *nurb, int dt)
 {
-	extern float editbutsize;	/* buttons.c */
 	Curve *cu;
 	Nurb *nu;
 	BevPoint *bevp;
@@ -2726,13 +2724,13 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 			while(nr-- > 0) {
 				
 				glBegin(GL_LINE_STRIP);
-				vec[0]= bevp->x-editbutsize*bevp->mat[0][0];
-				vec[1]= bevp->y-editbutsize*bevp->mat[0][1];
-				vec[2]= bevp->z-editbutsize*bevp->mat[0][2];
+				vec[0]= bevp->x-G.scene->editbutsize*bevp->mat[0][0];
+				vec[1]= bevp->y-G.scene->editbutsize*bevp->mat[0][1];
+				vec[2]= bevp->z-G.scene->editbutsize*bevp->mat[0][2];
 				glVertex3fv(vec);
-				vec[0]= bevp->x+editbutsize*bevp->mat[0][0];
-				vec[1]= bevp->y+editbutsize*bevp->mat[0][1];
-				vec[2]= bevp->z+editbutsize*bevp->mat[0][2];
+				vec[0]= bevp->x+G.scene->editbutsize*bevp->mat[0][0];
+				vec[1]= bevp->y+G.scene->editbutsize*bevp->mat[0][1];
+				vec[2]= bevp->z+G.scene->editbutsize*bevp->mat[0][2];
 				glVertex3fv(vec);
 
 				glEnd();

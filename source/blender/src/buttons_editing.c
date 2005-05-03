@@ -160,7 +160,7 @@ static short degr= 90, step= 9, turn= 1;
 static float extr_offs= 1.0;
 static float editbutweight=1.0;
 short editbutflag= 1;
-float doublimit= 0.001, editbutvweight=1, editbutsize=0.1;
+float doublimit= 0.001, editbutvweight=1;
 float uv_calc_radius= 1.0, uv_calc_cubesize= 1.0;
 short uv_calc_mapdir= 1, uv_calc_mapalign= 1, facesel_draw_edges= 0;
 
@@ -1247,7 +1247,7 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	400,80,150,18, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
 	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 40, 150, 19, &editbutsize, 0.001, 1.0, 10, 0, "Normal size for drawing");
+	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 40, 150, 19, &G.scene->editbutsize, 0.001, 1.0, 10, 0, "Normal size for drawing");
 }
 
 /* for curve, surf and font! */
@@ -2166,7 +2166,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",	955, 131, 150, 19, &editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
+	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",	955, 131, 150, 19, &G.scene->editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
 	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	955,110,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
 	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");

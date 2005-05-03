@@ -160,6 +160,7 @@ Scene *add_scene(char *name)
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
 	sce->selectmode= SCE_SELECT_VERTEX;
+	sce->editbutsize= 0.1;
 	
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;

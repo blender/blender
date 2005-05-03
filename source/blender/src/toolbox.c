@@ -2015,8 +2015,8 @@ static void tb_do_transform(void *arg, int event)
 			Transform(TFM_WARP, CTX_NONE);
 			break;
 		case 8: /* proportional edit (toggle) */
-			if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;
-			else G.f |= G_PROPORTIONAL;
+			if(G.scene->proportional) G.scene->proportional= 0;
+			else G.scene->proportional= 1;
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

@@ -1831,9 +1831,8 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 
 static void do_view3d_edit_propfalloffmenu(void *arg, int event)
 {
-	extern int prop_mode;
 	
-	prop_mode= event;
+	G.scene->prop_mode= event;
 	
 	allqueue(REDRAWVIEW3D, 1);
 }
@@ -1842,21 +1841,22 @@ static uiBlock *view3d_edit_propfalloffmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
-	extern int prop_mode;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_propfalloffmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_propfalloffmenu, NULL);
 	
-	if (prop_mode==0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sharp|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sharp|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	if (prop_mode==1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Smooth|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	if (prop_mode==2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Root|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 2, 1, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Root|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 2, 1, "");
-	if (prop_mode==3) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Linear|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 3, 1, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Linear|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 3, 1, "");
-	if (prop_mode==4) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Constant|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 4, 1, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Constant|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 4, 1, "");
+	if (G.scene->prop_mode==PROP_SMOOTH) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SMOOTH, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Smooth|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SMOOTH, "");
+	if (G.scene->prop_mode==PROP_SPHERE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SPHERE, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Smooth|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SPHERE, "");
+	if (G.scene->prop_mode==PROP_ROOT) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Root|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_ROOT, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Root|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_ROOT, "");
+	if (G.scene->prop_mode==PROP_SHARP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sharp|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SHARP, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sharp|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SHARP, "");
+	if (G.scene->prop_mode==PROP_LIN) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Linear|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_LIN, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Linear|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_LIN, "");
+	if (G.scene->prop_mode==PROP_CONST) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Constant|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_CONST, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Constant|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_CONST, "");
 		
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -2253,8 +2253,8 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		Transform(TFM_WARP, CTX_NONE);
 		break;
 	case 12: /* proportional edit (toggle) */
-		if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;
-		else G.f |= G_PROPORTIONAL;
+		if(G.scene->proportional) G.scene->proportional= 1;
+		else G.scene->proportional= 0;
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2311,7 +2311,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(G.f & G_PROPORTIONAL) {
+	if(G.scene->proportional) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
@@ -2496,8 +2496,8 @@ static void do_view3d_edit_curvemenu(void *arg, int event)
 		delete_context_selected();
 		break;
 	case 9: /* proportional edit (toggle) */
-		if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;
-		else G.f |= G_PROPORTIONAL;
+		if(G.scene->proportional) G.scene->proportional= 0;
+		else G.scene->proportional= 1;
 		break;
 	case 13: /* Shear */
 		Transform(TFM_SHEAR, CTX_NONE);
@@ -2550,7 +2550,7 @@ static uiBlock *view3d_edit_curvemenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(G.f & G_PROPORTIONAL) {
+	if(G.scene->proportional) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
@@ -2834,8 +2834,8 @@ static void do_view3d_edit_latticemenu(void *arg, int event)
 		Transform(TFM_WARP, CTX_NONE);
 		break;
 	case 5: /* proportional edit (toggle) */
-		if(G.f & G_PROPORTIONAL) G.f &= ~G_PROPORTIONAL;
-		else G.f |= G_PROPORTIONAL;
+		if(G.scene->proportional) G.scene->proportional= 0;
+		else G.scene->proportional= 1;
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2867,7 +2867,7 @@ static uiBlock *view3d_edit_latticemenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(G.f & G_PROPORTIONAL) {
+	if(G.scene->proportional) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -3451,7 +3451,7 @@ static char *drawtype_pup(void)
 {
 	static char string[512];
 
-	strcpy(string, "Draw type:%t"); 
+	strcpy(string, "Draw type: %t"); 
 	strcat(string, "|Bounding Box %x1"); 
 	strcat(string, "|Wireframe %x2");
 	strcat(string, "|Solid %x3");
@@ -3463,7 +3463,7 @@ static char *around_pup(void)
 {
 	static char string[512];
 
-	strcpy(string, "Pivot:%t"); 
+	strcpy(string, "Pivot: %t"); 
 	strcat(string, "|Bounding Box Center %x0"); 
 	strcat(string, "|Median Point %x3");
 	strcat(string, "|3D Cursor %x1");
@@ -3475,13 +3475,13 @@ static char *propfalloff_pup(void)
 {
 	static char string[512];
 
-	strcpy(string, "Falloff:%t"); 
-	strcat(string, "|Sharp Falloff%x0"); 
-	strcat(string, "|Linear Falloff%x1");
+	strcpy(string, "Falloff: %t"); 
+	strcat(string, "|Smooth Falloff%x0");
+	strcat(string, "|Sphere Falloff%x1");
 	strcat(string, "|Root Falloff%x2"); 
-	strcat(string, "|Round Falloff%x3");
-	strcat(string, "|Constant, No Falloff%x4");
-	strcat(string, "|Smooth Falloff%x5");
+	strcat(string, "|Sharp Falloff%x3"); 
+	strcat(string, "|Linear Falloff%x4");
+	strcat(string, "|Constant, No Falloff%x5");
 	return (string);
 }
 
@@ -4049,7 +4049,7 @@ void view3d_buttons(void)
 	xco+= 8;
 	
 	/* LAYERS */
-	if(G.vd->localview==0) {
+	if(G.obedit==NULL && G.vd->localview==0) {
 		
 		uiBlockBeginAlign(block);
 		for(a=0; a<5; a++)
@@ -4073,15 +4073,19 @@ void view3d_buttons(void)
 		xco+= XIC+10;
 
 	}
-	else xco+= (10+1)*(XIC/2)+10;
 	
 	/* proportional falloff */
 	if(G.obedit && (G.obedit->type == OB_MESH || G.obedit->type == OB_CURVE || G.obedit->type == OB_SURF || G.obedit->type == OB_LATTICE)) {
-		extern int prop_mode;
-		if(G.f & G_PROPORTIONAL) {
-			uiDefIconTextButI(block, ICONTEXTROW,B_REDR, ICON_SHARPCURVE, propfalloff_pup(), xco,0,XIC+10,YIC, &(prop_mode), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
-			xco+= XIC+20;
+		
+		uiBlockBeginAlign(block);
+		uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,0,XIC+10,YIC, &(G.scene->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkey: O) ");
+		xco+= XIC+10;
+		
+		if(G.scene->proportional) {
+			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SMOOTHCURVE, propfalloff_pup(), xco,0,XIC+10,YIC, &(G.scene->prop_mode), 0.0, 0.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
+			xco+= XIC+10;
 		}
+		xco+= 10;
 	}
 
 	/* selection modus */

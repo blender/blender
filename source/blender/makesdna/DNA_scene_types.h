@@ -259,7 +259,11 @@ typedef struct Scene {
 	float twcent[3];			/* center for transform widget */
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
 	unsigned int lay;
+	
+	/* editmode stuff */
 	short selectmode, pad;
+	short proportional, prop_mode;
+	float editbutsize;			/* size of normals */
 
 	void *ed;
 	struct Radio *radio;
@@ -386,6 +390,14 @@ typedef struct Scene {
 #define SCE_SELECT_VERTEX	1
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
+
+/* sce->prop_mode (proportional falloff) */
+#define PROP_SMOOTH		0
+#define PROP_SPHERE		1
+#define PROP_ROOT		2
+#define PROP_SHARP		3
+#define PROP_LIN		4
+#define PROP_CONST		5
 
 /* return flag next_object function */
 #define F_START			0

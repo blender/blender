@@ -4652,7 +4652,7 @@ static void do_versions(Main *main)
 		while(sce) {
 			sce->theDag = NULL;
 			sce->dagisvalid = 0;
-
+			
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
 
 			if(sce->r.zgamma==0.0) {
@@ -4662,7 +4662,8 @@ static void do_versions(Main *main)
 				sce->r.zblur= 10.0;
 				sce->r.zmin= 0.8;
 			}
-
+			if(sce->editbutsize==0.0) sce->editbutsize= 0.1;
+			
 			sce= sce->id.next;
 		}
 		while(cam) {

@@ -175,7 +175,6 @@ TransVert *transvmain= 0;
 int tottrans=0, transmode=0;	/* 1: texspace */
 
 float prop_size= 1.0;
-int prop_mode= 0;
 float prop_cent[3];
 
 /* used in editipo, editcurve and here */
@@ -4182,7 +4181,7 @@ void make_trans_verts(float *min, float *max, int mode)
 /* now only in use by drawimage.c */
 void draw_prop_circle()
 {
-	if (G.f & G_PROPORTIONAL) {
+	if (G.scene->proportional) {
 		float tmat[4][4], imat[4][4];
 
 		if(G.moving) {
@@ -4217,7 +4216,7 @@ void set_proportional_weight(TransVert *tv, float *min, float *max)
 	else if(dist > prop_size) tv->fac= 0.0;
 	else {
 		dist= (prop_size-dist)/prop_size;
-		if(prop_mode==1) tv->fac= 3.0*dist*dist - 2.0*dist*dist*dist;
+		if(G.scene->prop_mode==1) tv->fac= 3.0*dist*dist - 2.0*dist*dist*dist;
 		else tv->fac= dist*dist;
 	}
 }
@@ -4702,7 +4701,6 @@ void restore_tob(TransOb *tob)
 int cylinder_intersect_test(void)
 {
 	EditMesh *em = G.editMesh;
-	extern float editbutsize;
 	float *oldloc, speed[3], s, t, labda, labdacor, dist, len, len2, axis[3], *base, rc[3], n[3], o[3];
 	EditVert *v1;
 	
@@ -4728,13 +4726,13 @@ int cylinder_intersect_test(void)
 	
 	dist= fabs( rc[0]*n[0] + rc[1]*n[1] + rc[2]*n[2] );
 	
-	if( dist>=editbutsize ) return 0;
+	if( dist>=G.scene->editbutsize ) return 0;
 	
 	Crossf(o, rc, axis);
 	t= -(o[0]*n[0] + o[1]*n[1] + o[2]*n[2])/len;
 	
 	Crossf(o, n, axis);
-	s=  fabs(sqrt(editbutsize*editbutsize-dist*dist) / (o[0]*speed[0] + o[1]*speed[1] + o[2]*speed[2]));
+	s=  fabs(sqrt(G.scene->editbutsize*G.scene->editbutsize-dist*dist) / (o[0]*speed[0] + o[1]*speed[1] + o[2]*speed[2]));
 	
 	labdacor= t-s;
 	labda= t+s;
@@ -4768,7 +4766,6 @@ int cylinder_intersect_test(void)
 int sphere_intersect_test(void)
 {
 	EditMesh *em = G.editMesh;
-	extern float editbutsize;
 	float *oldloc, speed[3], labda, labdacor, len, bsq, u, disc, *base, rc[3];
 	EditVert *v1;
 	
@@ -4785,7 +4782,7 @@ int sphere_intersect_test(void)
 	
 	VecSubf(rc, oldloc, base);
 	bsq= rc[0]*speed[0] + rc[1]*speed[1] + rc[2]*speed[2]; 
-	u= rc[0]*rc[0] + rc[1]*rc[1] + rc[2]*rc[2] - editbutsize*editbutsize;
+	u= rc[0]*rc[0] + rc[1]*rc[1] + rc[2]*rc[2] - G.scene->editbutsize*G.scene->editbutsize;
 
 	disc= bsq*bsq - u;
 	
@@ -4794,7 +4791,7 @@ int sphere_intersect_test(void)
 		labdacor= (-bsq - disc)/len;	/* entry point */
 		labda= (-bsq + disc)/len;
 		
-		printf("var1: %f, var2: %f, var3: %f\n", labdacor, labda, editbutsize);
+		printf("var1: %f, var2: %f, var3: %f\n", labdacor, labda, G.scene->editbutsize);
 	}
 	else return 0;
 

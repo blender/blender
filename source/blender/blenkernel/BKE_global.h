@@ -165,10 +165,10 @@ typedef struct Global {
 #define G_ALLEDGES		2048
 #define G_DEBUG			4096
 #define G_SCENESCRIPT	8192
-#define G_PROPORTIONAL	16384
-#define G_WEIGHTPAINT	32768	/* __NLA */
+/* #define G_PROPORTIONAL	16384	removed! so can be used later for other stuff */
+#define G_WEIGHTPAINT	32768	
 #define G_TEXTUREPAINT	65536
-#define G_NOFROZEN	(1 << 17) // frozen modules inactive
+/* #define G_NOFROZEN	(1 << 17) also removed */
 #define G_DRAWEDGES	(1 << 18)
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)

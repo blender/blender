@@ -802,14 +802,13 @@ static uiBlock *image_uvs_showhidemenu(void *arg_unused)
 
 static void do_image_uvs_propfalloffmenu(void *arg, int event)
 {
-	extern int prop_mode;
 	
 	switch(event) {
 	case 0: /* proportional edit - sharp*/
-		prop_mode = 0;
+		G.scene->prop_mode = 0;
 		break;
 	case 1: /* proportional edit - smooth*/
-		prop_mode = 1;
+		G.scene->prop_mode = 1;
 		break;
 	}
 }
@@ -818,14 +817,13 @@ static uiBlock *image_uvs_propfalloffmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
-	extern int prop_mode;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_uvs_propfalloffmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_image_uvs_propfalloffmenu, NULL);
 	
-	if (prop_mode==0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sharp|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	if (G.scene->prop_mode==0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Sharp|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sharp|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	if (prop_mode==1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	if (G.scene->prop_mode==1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Smooth|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Smooth|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 		
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -952,10 +950,10 @@ static void do_image_uvsmenu(void *arg, int event)
 		stitch_uv_tface(0);
 		break;
 	case 5: /* Proportional Edit (toggle) */
-		if(G.f & G_PROPORTIONAL)
-			G.f &= ~G_PROPORTIONAL;
+		if(G.scene->proportional)
+			G.scene->proportional= 0;
 		else
-			G.f |= G_PROPORTIONAL;
+			G.scene->proportional= 1;
 		break;
 	case 7: /* UVs Snap to Pixel */
 		if(G.sima->flag & SI_NOPIXELSNAP) G.sima->flag &= ~SI_NOPIXELSNAP;
@@ -1013,7 +1011,7 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	if(G.f & G_PROPORTIONAL)
+	if(G.scene->proportional)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");

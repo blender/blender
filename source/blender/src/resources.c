@@ -227,22 +227,37 @@ static void def_icon(ImBuf *bbuf, GLuint texid, BIFIconID icon, int xidx, int yi
 	}
 }
 
-/***/
+/* this only works for the hardcoded buttons image, turning the grey AA pixels to alpha, and slight off-grey to half alpha */
 
 static void clear_transp_rect_soft(unsigned char *transp, unsigned char *rect, int w, int h, int rowstride)
 {
-	int x,y;
+	int x, y, val;
 	
-	for (y=0; y<h; y++) {
+	for (y=1; y<h-1; y++) {
+		unsigned char *row0= &rect[(y-1)*rowstride];
 		unsigned char *row= &rect[y*rowstride];
-		for (x=0; x<w; x++) {
+		unsigned char *row1= &rect[(y+1)*rowstride];
+		for (x=1; x<w-1; x++) {
+			unsigned char *pxl0= &row0[x*4];
 			unsigned char *pxl= &row[x*4];
+			unsigned char *pxl1= &row1[x*4];
 			
-			if (*((unsigned int*) pxl)==*((unsigned int*) transp)) {
-				pxl[3]= 0;
-			}
-			else if( abs(pxl[0]-transp[0])<10 && abs(pxl[1]-transp[1])<10 && abs(pxl[2]-transp[2])<10) {
-				pxl[3]= 40;
+			if(pxl[3]!=0) {
+				val= (abs(pxl[0]-transp[0]) + abs(pxl[1]-transp[1]) + abs(pxl[2]-transp[2]))/3;
+				if(val<20) {
+					pxl[3]= 128;
+				}
+				else if(val<60) {
+					// one of pixels surrounding has alpha null?
+					if(pxl[3-4]==0 || pxl[3+4]==0 || pxl0[3]==0 || pxl1[3]==0) {
+				
+						if(pxl[0]>val) pxl[0]-= val; else pxl[0]= 0;
+						if(pxl[1]>val) pxl[1]-= val; else pxl[1]= 0;
+						if(pxl[2]>val) pxl[2]-= val; else pxl[2]= 0;
+						
+						pxl[3]= 128;
+					}
+				}
 			}
 		}
 	}
@@ -282,12 +297,15 @@ void BIF_resources_init(void)
 			transp[1]= start[1];
 			transp[2]= start[2];
 			transp[3]= start[3];
+			clear_transp_rect(transp, start, 20, 21, rowstride);
 			clear_transp_rect_soft(transp, start, 20, 21, rowstride);
-			
+				
 			/* this sets outside of icon to zero alpha */
 			start= ((unsigned char*) bbuf->rect) + (y*21)*rowstride + (x*20)*4;
 			QUATCOPY(transp, start);
 			clear_transp_rect(transp, start, 20, 21, rowstride);
+			
+			
 		}
 	} 
 

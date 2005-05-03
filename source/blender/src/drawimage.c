@@ -499,7 +499,7 @@ static void draw_image_prop_circle(ImBuf *ibuf)
 	float aspx, aspy;
 	extern float prop_cent[3];
 
-	if(G.moving && G.f & G_PROPORTIONAL) {
+	if(G.moving && G.scene->proportional) {
 
 		if(ibuf==0 || ibuf->rect==0 || ibuf->x==0 || ibuf->y==0) {
 			aspx= aspy= 1.0;

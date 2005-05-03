@@ -1863,7 +1863,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	width+= 30;
 	if (width<50) width=50;
 
-	ypos = 0;
+	ypos = 1;
 
 	/* loop through the menu options and draw them out with icons & text labels */
 	for(a=0; a<md->nitems; a++) {
@@ -1877,7 +1877,15 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 			ypos += 20;
 		}
 	}
-
+	
+	if(md->title) {
+		uiBut *bt;
+		uiSetCurFont(block, block->font+1);
+		bt= uiDefBut(block, LABEL, 0, md->title, 0, ypos, (short)width, 19, NULL, 0.0, 0.0, 0, 0, "");
+		uiSetCurFont(block, block->font);
+		bt->flag= UI_TEXT_LEFT;
+	}
+	
 	block->direction= UI_TOP;
 	ui_positionblock(block, but);
 
