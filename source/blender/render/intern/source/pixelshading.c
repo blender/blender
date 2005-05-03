@@ -618,6 +618,9 @@ void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy)
 			view[0]= (fx+(R.xstart))/(float)R.afmx;
 			view[1]= (fy+(R.ystart))/(float)R.afmy;
 			view[2]= 0.0;
+			
+			dxyview[0]= 1.0/(float)R.afmx;
+			dxyview[1]= 1.0/(float)R.afmy;
 		}
 		else {
 			/* Wasn't this some pano stuff? */
