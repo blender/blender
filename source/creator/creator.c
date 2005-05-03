@@ -305,13 +305,6 @@ int main(int argc, char **argv)
 				a= argc;
 				break;
 
-         case 'm':
-             /* unified render pipeline */
-/*               G.magic = 1; has become obsolete */
-			 printf("-m: enable unified renderer has become obsolete. Set \n");
-			 printf("\tthis option per individual file now.\n");
-             break;
-
 			case 'y':
 				G.f &= ~G_SCENESCRIPT;
 				break;
@@ -427,11 +420,6 @@ int main(int argc, char **argv)
 						SYS_WriteCommandLineInt(syshandle,"noaudio",1);
 						audio = 0;
 						if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
-					}
-					else if (BLI_strcasecmp(argv[a], "-nofrozen") == 0) {
-						/* disable initialization of frozen python modules */
-						if (G.f & G_DEBUG) printf("disable frozen modules\n");
-						G.f |= G_NOFROZEN;
 					}
 					break;
 				}
