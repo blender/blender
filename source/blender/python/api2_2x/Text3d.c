@@ -45,16 +45,30 @@
 #include "Curve.h"
 #include "constant.h"
 #include "Types.h"
+#include "Font.h"
+
+#include "mydevice.h"
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 //no prototypes declared in header files - external linkage outside of python
 extern VFont *get_builtin_font(void);  
 extern void freedisplist(struct ListBase *lb);
+extern VFont *get_builtin_font(void);
+extern VFont *give_vfontpointer(int);
+extern VFont *exist_vfont(char *str);
+extern VFont *load_vfont(char *name);
+extern int BLI_exist(char *name);
 
 /*****************************************************************************/
 /* Python API function prototypes for the Text3D module.                     */
 /*****************************************************************************/
 static PyObject *M_Text3d_New( PyObject * self, PyObject * args );
 static PyObject *M_Text3d_Get( PyObject * self, PyObject * args );
+PyObject *M_Text3d_LoadFont (PyObject * self, PyObject * args );
 
 /*****************************************************************************
  * Python callback function prototypes for the Text3D module.  
@@ -68,6 +82,7 @@ static PyObject *generate_ModuleIntConstant(char *name, int value);
 struct PyMethodDef M_Text3d_methods[] = {
 	{"New", ( PyCFunction ) M_Text3d_New, METH_VARARGS, NULL},
 	{"Get", ( PyCFunction ) M_Text3d_Get, METH_VARARGS, NULL},
+	{"LoadFont", ( PyCFunction ) M_Text3d_LoadFont, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -116,6 +131,8 @@ static PyObject *Text3d_getYoffset( BPy_Text3d * self );
 static PyObject *Text3d_setYoffset( BPy_Text3d * self, PyObject * args );
 static PyObject *Text3d_getAlignment( BPy_Text3d * self );
 static PyObject *Text3d_setAlignment( BPy_Text3d * self, PyObject * args );
+static PyObject *Text3d_getFont( BPy_Text3d * self );
+static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python BPy_Text3d methods table:                                            */
@@ -133,61 +150,65 @@ static PyMethodDef BPy_Text3d_methods[] = {
 	{"getText", ( PyCFunction ) Text3d_getText,
 	 METH_NOARGS, "() - Gets Text3d Data"},		 
 	{"getDrawMode", ( PyCFunction ) Text3d_getDrawMode,
-     METH_NOARGS, "() - Return the font drawing mode"},
+	METH_NOARGS, "() - Return the font drawing mode"},
 	{"setDrawMode", ( PyCFunction ) Text3d_setDrawMode,
-     METH_VARARGS, "(int) - Set the font drawing mode"},
+	METH_VARARGS, "(int) - Set the font drawing mode"},
  	{"getUVorco", ( PyCFunction ) Text3d_getUVorco,
-     METH_NOARGS, "() - Return wether UV coords are used for Texture mapping"},
+	METH_NOARGS, "() - Return wether UV coords are used for Texture mapping"},
 	{"setUVorco", ( PyCFunction ) Text3d_setUVorco,
-     METH_VARARGS, "() - Set the font to use UV coords for Texture mapping"},
+	METH_VARARGS, "() - Set the font to use UV coords for Texture mapping"},
 	{"getBevelAmount", ( PyCFunction ) Text3d_getBevelAmount,
-     METH_NOARGS, "() - Return bevel resolution"},
+	METH_NOARGS, "() - Return bevel resolution"},
 	{"setBevelAmount", ( PyCFunction ) Text3d_setBevelAmount,
-     METH_VARARGS, "() - Sets bevel resolution"},
+	METH_VARARGS, "() - Sets bevel resolution"},
 	{"getDefaultResolution", ( PyCFunction ) Text3d_getDefaultResolution,
-     METH_NOARGS, "() - Return Default text resolution"},
+	METH_NOARGS, "() - Return Default text resolution"},
 	{"setDefaultResolution", ( PyCFunction ) Text3d_setDefaultResolution,
-     METH_VARARGS, "() - Sets Default text Resolution"},
+	METH_VARARGS, "() - Sets Default text Resolution"},
 	{"getWidth", ( PyCFunction ) Text3d_getWidth,
-     METH_NOARGS, "() - Return curve width"},
+	METH_NOARGS, "() - Return curve width"},
 	{"setWidth", ( PyCFunction ) Text3d_setWidth,
-     METH_VARARGS, "(int) - Sets curve width"},
+	METH_VARARGS, "(int) - Sets curve width"},
 	{"getExtrudeDepth", ( PyCFunction ) Text3d_getExtrudeDepth,
-     METH_NOARGS, "() - Gets Text3d ExtrudeDepth"},
+	METH_NOARGS, "() - Gets Text3d ExtrudeDepth"},
 	{"setExtrudeDepth", ( PyCFunction ) Text3d_setExtrudeDepth,
-     METH_VARARGS, "() - Sets Text3d ExtrudeDepth"},
+	METH_VARARGS, "() - Sets Text3d ExtrudeDepth"},
 	{"getExtrudeBevelDepth", ( PyCFunction ) Text3d_getExtrudeBevelDepth,
-     METH_NOARGS, "() - Gets Text3d ExtrudeBevelDepth"},
+	METH_NOARGS, "() - Gets Text3d ExtrudeBevelDepth"},
 	{"setExtrudeBevelDepth", ( PyCFunction ) Text3d_setExtrudeBevelDepth,
-     METH_VARARGS, "() - Sets Text3d ExtrudeBevelDepth"},
+	METH_VARARGS, "() - Sets Text3d ExtrudeBevelDepth"},
 	{"getShear", ( PyCFunction ) Text3d_getShear,
-     METH_NOARGS, "() - Gets Text3d Shear Data"},
+	METH_NOARGS, "() - Gets Text3d Shear Data"},
 	{"setShear", ( PyCFunction ) Text3d_setShear,
-     METH_VARARGS, "() - Sets Text3d Shear Data"},
+	METH_VARARGS, "() - Sets Text3d Shear Data"},
  	{"getSize", ( PyCFunction ) Text3d_getSize,
-     METH_NOARGS, "() - Gets Text3d Size Data"},
+	METH_NOARGS, "() - Gets Text3d Size Data"},
 	{"setSize", ( PyCFunction ) Text3d_setSize,
-     METH_VARARGS, "() - Sets Text3d Size Data"},
+	METH_VARARGS, "() - Sets Text3d Size Data"},
  	{"getLineSeparation", ( PyCFunction ) Text3d_getLineSeparation,
-     METH_NOARGS, "() - Gets Text3d LineSeparation Data"},
+	METH_NOARGS, "() - Gets Text3d LineSeparation Data"},
 	{"setLineSeparation", ( PyCFunction ) Text3d_setLineSeparation,
-     METH_VARARGS, "() - Sets Text3d LineSeparation Data"},
+	METH_VARARGS, "() - Sets Text3d LineSeparation Data"},
  	{"getSpacing", ( PyCFunction ) Text3d_getSpacing,
-     METH_NOARGS, "() - Gets Text3d letter spacing"},
+	METH_NOARGS, "() - Gets Text3d letter spacing"},
 	{"setSpacing", ( PyCFunction ) Text3d_setSpacing,
-     METH_VARARGS, "() - Sets Text3d letter spacing"},
+	METH_VARARGS, "() - Sets Text3d letter spacing"},
  	{"getXoffset", ( PyCFunction ) Text3d_getXoffset,
-     METH_NOARGS, "() - Gets Text3d Xoffset Data"},
+	METH_NOARGS, "() - Gets Text3d Xoffset Data"},
 	{"setXoffset", ( PyCFunction ) Text3d_setXoffset,
-     METH_VARARGS, "() - Sets Text3d Xoffset Data"},
+	METH_VARARGS, "() - Sets Text3d Xoffset Data"},
  	{"getYoffset", ( PyCFunction ) Text3d_getYoffset,
-     METH_NOARGS, "() - Gets Text3d Yoffset Data"},
+	METH_NOARGS, "() - Gets Text3d Yoffset Data"},
 	{"setYoffset", ( PyCFunction ) Text3d_setYoffset,
-     METH_VARARGS, "() - Sets Text3d Yoffset Data"},
+	METH_VARARGS, "() - Sets Text3d Yoffset Data"},
  	{"getAlignment", ( PyCFunction ) Text3d_getAlignment,
-     METH_NOARGS, "() - Gets Text3d Alignment Data"},
+	METH_NOARGS, "() - Gets Text3d Alignment Data"},
 	{"setAlignment", ( PyCFunction ) Text3d_setAlignment,
-     METH_VARARGS, "() - Sets Text3d Alignment Data"},
+	METH_VARARGS, "() - Sets Text3d Alignment Data"},
+ 	{"getFont", ( PyCFunction ) Text3d_getFont,
+	METH_NOARGS, "() - Gets font list for Text3d"},
+ 	{"setFont", ( PyCFunction ) Text3d_setFont,
+ 	METH_VARARGS, "() - Sets font for Text3d"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -354,7 +375,7 @@ static PyObject *generate_ModuleIntConstant(char *name, int value)
 PyObject *Text3d_Init( void )
 {
 	//module
-	PyObject *submodule;
+	PyObject *submodule, *dict;
 
 	//add module...
 	Text3d_Type.ob_type = &PyType_Type;
@@ -378,7 +399,8 @@ PyObject *Text3d_Init( void )
 		generate_ModuleIntConstant("Text3d.DRAWBACK", CU_BACK));
 	PyModule_AddObject( submodule, "UVORCO",
 		generate_ModuleIntConstant("Text3d.UVORCO", CU_UV_ORCO));
-
+	dict = PyModule_GetDict( submodule );
+	PyDict_SetItemString( dict, "Font", Font_Init(  ) );
 	return ( submodule );
 }
 
@@ -873,3 +895,70 @@ PyObject *Text3d_CreatePyObject( Text3d * text3d )
 
 	return ( PyObject * ) pytext3d;
 }
+
+static PyObject *Text3d_getFont( BPy_Text3d * self )
+{
+	if (self->curve) 
+		return Font_CreatePyObject (self->curve->vfont);
+	else
+		return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
+{
+	BPy_Font  *pyobj= NULL;
+	VFont *vf, *vfont;
+	if( !PyArg_ParseTuple( args, "|O!",&Font_Type, &pyobj) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a string" );
+	if( !pyobj ) {
+	//	pyobj= M_Text3d_LoadFont (self, Py_BuildValue("(s)", "<builtin>"));
+		self->curve->vfont= get_builtin_font ();
+		return EXPP_incr_ret( Py_None );
+	}
+	vf= exist_vfont(pyobj->font->name);
+	if (vf) {
+		id_us_plus((ID *)vf);
+		self->curve->vfont->id.us--;
+		self->curve->vfont= vf;
+	}
+	else {
+		load_vfont (pyobj->font->name);
+		vf= exist_vfont(pyobj->font->name);
+		if (vf) {
+			id_us_plus((ID *)vf);
+			self->curve->vfont->id.us--;
+			self->curve->vfont= vf;
+		}	
+	}
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
+{
+	char *fontfile= NULL;
+	FILE *file= NULL;
+	VFont *vf= NULL;
+
+	if( !PyArg_ParseTuple( args, "s", &fontfile ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a string" );
+	if( vf= exist_vfont(fontfile) )
+		return Font_CreatePyObject( vf );
+	/*	return EXPP_incr_ret( Py_None ); */
+	else
+		vf= NULL;
+	file= fopen( fontfile, "r");
+
+	if( file || !strcmp (fontfile, "<builtin>") ) {
+		load_vfont( fontfile );
+		if(fclose) fclose( file );
+		if( (vf=exist_vfont( fontfile )) )
+			return Font_CreatePyObject( vf );
+		return EXPP_incr_ret( Py_None );
+	}
+
+	return EXPP_ReturnPyObjError( PyExc_TypeError,
+				      "string isn't filename or fontpath" );
+}
+

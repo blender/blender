@@ -40,7 +40,7 @@ extern PyTypeObject BezTriple_Type, Bone_Type, Build_Type, Button_Type;
 extern PyTypeObject Camera_Type;
 extern PyTypeObject CurNurb_Type;
 extern PyTypeObject Curve_Type;
-extern PyTypeObject Effect_Type;
+extern PyTypeObject Effect_Type, Font_Type;
 extern PyTypeObject Image_Type, Ipo_Type, IpoCurve_Type;
 extern PyTypeObject Lamp_Type, Lattice_Type;
 extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
