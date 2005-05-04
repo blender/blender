@@ -1357,7 +1357,7 @@ void do_view3d_object_mirrormenu(void *arg, int event)
 		case 1:
 		case 2:
 		case 3:
-			mirror_object(event);
+			Mirror(event + 3); // + 3 because the first three modes are global
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2118,7 +2118,7 @@ void do_view3d_edit_mirrormenu(void *arg, int event)
 		case 7:
 		case 8:
 		case 9:
-			mirror_edit(event);
+			Mirror(event);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

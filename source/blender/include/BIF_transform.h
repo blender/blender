@@ -49,6 +49,7 @@
 #define TFM_TRACKBALL		11
 #define TFM_PUSHPULL		12
 #define TFM_CREASE			13
+#define TFM_MIRROR			14
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0

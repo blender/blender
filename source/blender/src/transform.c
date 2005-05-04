@@ -999,11 +999,105 @@ static void headerResize(TransInfo *t, float vec[3], char *str) {
 	}
 }
 
+void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
+	float tmat[3][3], smat[3][3], center[3];
+	float vec[3];
+
+	if (t->flag & T_EDIT) {
+		Mat3MulMat3(smat, mat, td->mtx);
+		Mat3MulMat3(tmat, td->smtx, smat);
+	}
+	else {
+		Mat3CpyMat3(tmat, mat);
+	}
+
+	if (t->con.applySize) {
+		t->con.applySize(t, td, tmat);
+	}
+
+	if (G.vd->around == V3D_LOCAL) {
+		VECCOPY(center, td->center);
+	}
+	else {
+		VECCOPY(center, t->center);
+	}
+
+	if (td->ext) {
+		float fsize[3];
+
+		if (t->flag & T_OBJECT) {
+			float obsizemat[3][3];
+			// Reorient the size mat to fit the oriented object.
+			Mat3MulMat3(obsizemat, tmat, td->axismtx);
+			//printmatrix3("obsizemat", obsizemat);
+			Mat3ToSize(obsizemat, fsize);
+			//printvecf("fsize", fsize);
+		}
+		else {
+			Mat3ToSize(tmat, fsize);
+		}
+		
+		if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
+			/* handle ipokeys? */
+			if(td->tdi) {
+				TransDataIpokey *tdi= td->tdi;
+				/* calculate delta size (equal for size and dsize) */
+				
+				vec[0]= (tdi->oldsize[0])*(fsize[0] -1.0f) * td->factor;
+				vec[1]= (tdi->oldsize[1])*(fsize[1] -1.0f) * td->factor;
+				vec[2]= (tdi->oldsize[2])*(fsize[2] -1.0f) * td->factor;
+				
+				add_tdi_poin(tdi->sizex, tdi->oldsize,   vec[0]);
+				add_tdi_poin(tdi->sizey, tdi->oldsize+1, vec[1]);
+				add_tdi_poin(tdi->sizez, tdi->oldsize+2, vec[2]);
+				
+			}
+			else if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
+				/* scale val and reset size */
+ 				*td->val = td->ival * fsize[0] * td->factor;
+
+				td->ext->size[0] = td->ext->isize[0];
+				td->ext->size[1] = td->ext->isize[1];
+				td->ext->size[2] = td->ext->isize[2];
+ 			}
+			else {
+				/* Reset val if SINGLESIZE but using a constraint */
+				if (td->flag & TD_SINGLESIZE)
+	 				*td->val = td->ival;
+
+				td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
+				td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;
+				td->ext->size[2] = td->ext->isize[2] * (fsize[2]) * td->factor;
+			}
+		}
+	}
+	/* For individual element center, Editmode need to use iloc */
+	if (t->flag & T_EDIT)
+		VecSubf(vec, td->iloc, center);
+	else
+		VecSubf(vec, td->center, center);
+
+	Mat3MulVecfl(tmat, vec);
+
+	VecAddf(vec, vec, center);
+	if (t->flag & T_EDIT)
+		VecSubf(vec, vec, td->iloc);
+	else
+		VecSubf(vec, vec, td->center);
+
+	VecMulf(vec, td->factor);
+
+	if (t->flag & T_OBJECT) {
+		Mat3MulVecfl(td->smtx, vec);
+	}
+
+	VecAddf(td->loc, td->iloc, vec);
+}
+
 int Resize(TransInfo *t, short mval[2]) 
 {
 	TransData *td = t->data;
-	float vec[3];
-	float size[3], mat[3][3], tmat[3][3];
+	float size[3], mat[3][3];
 	float ratio;
 	int i;
 	char str[50];
@@ -1057,100 +1151,10 @@ int Resize(TransInfo *t, short mval[2])
 	headerResize(t, size, str);
 
 	for(i = 0 ; i < t->total; i++, td++) {
-		float smat[3][3], center[3];
 		if (td->flag & TD_NOACTION)
 			break;
-
-
-		if (t->flag & T_EDIT) {
-			Mat3MulMat3(smat, mat, td->mtx);
-			Mat3MulMat3(tmat, td->smtx, smat);
-		}
-		else {
-			Mat3CpyMat3(tmat, mat);
-		}
-
-		if (t->con.applySize) {
-			t->con.applySize(t, td, tmat);
-		}
-
-		if (G.vd->around == V3D_LOCAL) {
-			VECCOPY(center, td->center);
-		}
-		else {
-			VECCOPY(center, t->center);
-		}
-
-		if (td->ext) {
-			float fsize[3];
-
-			if (t->flag & T_OBJECT) {
-				float obsizemat[3][3];
-				// Reorient the size mat to fit the oriented object.
-				Mat3MulMat3(obsizemat, tmat, td->axismtx);
-				//printmatrix3("obsizemat", obsizemat);
-				Mat3ToSize(obsizemat, fsize);
-				//printvecf("fsize", fsize);
-			}
-			else {
-				Mat3ToSize(tmat, fsize);
-			}
-			
-			if ((G.vd->flag & V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
-				/* handle ipokeys? */
-				if(td->tdi) {
-					TransDataIpokey *tdi= td->tdi;
-					/* calculate delta size (equal for size and dsize) */
-					
-					vec[0]= (tdi->oldsize[0])*(fsize[0] -1.0f) * td->factor;
-					vec[1]= (tdi->oldsize[1])*(fsize[1] -1.0f) * td->factor;
-					vec[2]= (tdi->oldsize[2])*(fsize[2] -1.0f) * td->factor;
-					
-					add_tdi_poin(tdi->sizex, tdi->oldsize,   vec[0]);
-					add_tdi_poin(tdi->sizey, tdi->oldsize+1, vec[1]);
-					add_tdi_poin(tdi->sizez, tdi->oldsize+2, vec[2]);
-					
-				}
-				else if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
-					/* scale val and reset size */
- 					*td->val = td->ival * fsize[0] * td->factor;
-
-					td->ext->size[0] = td->ext->isize[0];
-					td->ext->size[1] = td->ext->isize[1];
-					td->ext->size[2] = td->ext->isize[2];
- 				}
-				else {
-					/* Reset val if SINGLESIZE but using a constraint */
-					if (td->flag & TD_SINGLESIZE)
-	 					*td->val = td->ival;
-
-					td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
-					td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;
-					td->ext->size[2] = td->ext->isize[2] * (fsize[2]) * td->factor;
-				}
-			}
-		}
-		/* For individual element center, Editmode need to use iloc */
-		if (t->flag & T_EDIT)
-			VecSubf(vec, td->iloc, center);
-		else
-			VecSubf(vec, td->center, center);
-
-		Mat3MulVecfl(tmat, vec);
-
-		VecAddf(vec, vec, center);
-		if (t->flag & T_EDIT)
-			VecSubf(vec, vec, td->iloc);
-		else
-			VecSubf(vec, vec, td->center);
-
-		VecMulf(vec, td->factor);
-
-		if (t->flag & T_OBJECT) {
-			Mat3MulVecfl(td->smtx, vec);
-		}
-
-		VecAddf(td->loc, td->iloc, vec);
+		
+		ElementResize(t, td, mat);
 	}
 
 	recalcData(t);
@@ -2029,4 +2033,102 @@ int Crease(TransInfo *t, short mval[2])
 	helpline (t->center);
 
 	return 1;
+}
+
+/* ************************** MIRROR *************************** */
+
+void Mirror(short mode) 
+{
+	TransData *td;
+	float mati[3][3], matview[3][3], mat[3][3];
+	float size[3];
+	int i;
+
+	Mat3One(mati);
+	Mat3CpyMat4(matview, G.vd->viewinv);
+	Mat3Ortho(matview);
+
+	Trans.context = CTX_NO_PET;
+
+	initTrans(&Trans);					// internal data, mouse, vectors
+
+	initTransModeFlags(&Trans, TFM_MIRROR);	// modal settings in struct Trans
+
+	createTransData(&Trans);			// make TransData structs from selection
+
+	calculatePropRatio(&Trans);
+	calculateCenter(&Trans);
+
+	initResize(&Trans);
+
+	initConstraint(&Trans);
+
+	size[0] = size[1] = size[2] = 1.0f;
+	td = Trans.data;
+
+	switch (mode) {
+	case 1:
+		size[0] = -1.0f;
+		setConstraint(&Trans, mati, (CON_AXIS0), "");
+		break;
+	case 2:
+		size[1] = -1.0f;
+		setConstraint(&Trans, mati, (CON_AXIS1), "");
+		break;
+	case 3:
+		size[2] = -1.0f;
+		setConstraint(&Trans, mati, (CON_AXIS2), "");
+		break;
+	case 4:
+		size[0] = -1.0f;
+		setLocalConstraint(&Trans, (CON_AXIS0), "");
+		break;
+	case 5:
+		size[1] = -1.0f;
+		setLocalConstraint(&Trans, (CON_AXIS1), "");
+		break;
+	case 6:
+		size[2] = -1.0f;
+		setLocalConstraint(&Trans, (CON_AXIS2), "");
+		break;
+	case 7:
+		size[0] = -1.0f;
+		setConstraint(&Trans, matview, (CON_AXIS0), "");
+		break;
+	case 8:
+		size[1] = -1.0f;
+		setConstraint(&Trans, matview, (CON_AXIS1), "");
+		break;
+	case 9:
+		size[2] = -1.0f;
+		setConstraint(&Trans, matview, (CON_AXIS2), "");
+		break;
+	default:
+		return;
+	}
+
+	SizeToMat3(size, mat);
+
+	if (Trans.con.applySize) {
+		Trans.con.applySize(&Trans, NULL, mat);
+	}
+
+	for(i = 0 ; i < Trans.total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		ElementResize(&Trans, td, mat);
+	}
+
+	recalcData(&Trans);
+	
+	BIF_undo_push("Mirror");
+
+	/* free data, reset vars */
+	postTrans(&Trans);
+
+	/* send events out for redraws */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	scrarea_queue_headredraw(curarea);
 }

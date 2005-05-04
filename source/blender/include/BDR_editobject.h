@@ -117,8 +117,7 @@ void first_base(void);
 void make_displists_by_obdata(void *obdata);
 void flip_subdivison(struct Object *ob, int);
 void mirrormenu(void);
-void mirror_edit(short mode);
-void mirror_object(short mode);
+void Mirror(short mode);
 void flag_edge_crease(void);
 void add_hook(void);
 

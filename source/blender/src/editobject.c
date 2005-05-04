@@ -6091,199 +6091,7 @@ void make_displists_by_obdata(void *obdata) {
 /* ******************************************************************** */
 /* Mirror function in Edit Mode */
 
-void mirror_edit(short mode) 
-{
-	int a;
-	short axis;
-	float mat[3][3], imat[3][3], min[3], max[3];
-	TransVert *tv;
 
-	make_trans_verts(min, max, 0);
-	Mat3CpyMat4(mat, G.obedit->obmat);
-	// Inverting the matrix explicitly, since the inverse is not always correct (then why the heck are we keeping it!)
-	Mat3Inv(imat, mat);
-
-	tv = transvmain;
-
-	// Taking care of all the centre modes
-	if(G.vd->around==V3D_CENTROID) {
-		VecCopyf(centre, centroid);
-	}
-	else if(G.vd->around==V3D_CURSOR) {
-		float *curs;
-		curs= give_cursor();
-		VECCOPY(centre, curs);
-		VecSubf(centre, centre, G.obedit->obmat[3]);
-		Mat3MulVecfl(imat, centre);
-	}
-	else if(G.vd->around==V3D_LOCAL) {
-		centre[0] = centre[1] = centre[2] = 0.0;
-	}
-	// Boundbox centre is implicit
-
-	if ((mode==1) || (mode==2) || (mode==3)) {
-		// Global axis
-
-		// axis is mode with an offset
-		axis = mode - 1;
-
-		for(a=0; a<tottrans; a++, tv++) {
-			float vec[3];
-			VecCopyf(vec, tv->loc);
-
-			// Center offset and object matrix apply
-			VecSubf(vec, vec, centre);
-			Mat3MulVecfl(mat, vec);
-
-			// Flip
-			vec[axis] *= -1;
-
-			// Center offset and object matrix unapply
-			Mat3MulVecfl(imat, vec);
-			VecAddf(vec, vec, centre);
-
-			VecCopyf(tv->loc, vec);
-		}
-
-	}
-	else if ((mode==4) || (mode==5) || (mode==6)){
-		// Local axis
-
-		// axis is mode with an offset
-		axis = mode - 4;
-
-		for(a=0; a<tottrans; a++, tv++) {
-			// Center offset apply
-			tv->loc[axis] -= centre[axis];
-
-			// Flip
-			tv->loc[axis] *= -1;
-
-			// Center offset unapply
-			tv->loc[axis] += centre[axis];
-		}
-
-	}
-	else if ((mode==7) || (mode==8) || (mode==9)){
-		// View axis
-		float viewmat[3][3], iviewmat[3][3];
-
-		Mat3CpyMat4(viewmat, G.vd->viewmat);
-	// Inverting the matrix explicitly
-		Mat3Inv(iviewmat, viewmat);
-
-		// axis is mode with an offset
-		axis = mode - 7;
-
-		// Calculate the Centre in the View space
-		Mat3MulVecfl(mat, centre);
-		VecAddf(centre, centre, G.obedit->obmat[3]);
-		Mat3MulVecfl(viewmat, centre);
-
-		for(a=0; a<tottrans; a++, tv++) {
-			float vec[3];
-			VecCopyf(vec, tv->loc);
-
-			// Object Matrix and Offset apply
-			Mat3MulVecfl(mat, vec);
-			VecAddf(vec, vec, G.obedit->obmat[3]);
-
-			// View Matrix and Center apply
-			Mat3MulVecfl(viewmat, vec);
-			VecSubf(vec, vec, centre);
-
-			// Flip
-			vec[axis] *= -1;
-
-			// View Matrix and Center unapply
-			VecAddf(vec, vec, centre);
-			Mat3MulVecfl(iviewmat, vec);
-
-			// Object Matrix and Offset unapply
-			VecSubf(vec, vec, G.obedit->obmat[3]);
-			Mat3MulVecfl(imat, vec);
-
-			VecCopyf(tv->loc, vec);
-		}
-
-	}
-	calc_trans_verts();
-	special_trans_update(0);
-	special_aftertrans_update('m', 1, 0, 0);
-
-	allqueue(REDRAWVIEW3D, 0);
-	scrarea_queue_headredraw(curarea);
-	
-	clearbaseflags_for_editing();
-	if(transvmain) MEM_freeN(transvmain);
-	transvmain= 0;
-	tottrans= 0;
-	
-	BIF_undo_push("Mirror");
-}
-
-void mirror_object(short mode) 
-{
-	TransOb *tob;
-	int a;
-	short axis;
-	float off[3], imat[3][3];
-
-	setbaseflags_for_editing('s');
-	figure_pose_updating();
-	make_trans_objects();
-
-	tob = transmain;
-
-	// Taking care of all the centre modes
-	if(G.vd->around==V3D_CENTROID) {
-		VecCopyf(centre, centroid);
-	}
-	else if(G.vd->around==V3D_CURSOR) {
-		float *curs;
-		curs= give_cursor();
-		VECCOPY(centre, curs);
-	}
-	else if(G.vd->around==V3D_LOCAL) {
-		centre[0] = centre[1] = centre[2] = 0.0;
-	}
-	// Boundbox centre is implicit
-
-	if ( (mode == 1) || (mode == 2) || (mode == 3) ) {
-		axis = mode - 1;
-		for(a=0; a<tottrans; a++, tob++) {
-			Mat3Inv(imat, tob->obmat);
-
-			VecSubf(off, tob->loc, centre);
-
-			Mat3MulVecfl(imat, off);
-
-			off[axis] *= -1;
-
-			Mat3MulVecfl(tob->obmat, off);
-
-			VecAddf(off, off, centre);
-
-			tob->loc[0] = off[0];
-			tob->loc[1] = off[1];
-			tob->loc[2] = off[2];
-
-			tob->size[axis] *= -1;
-		}
-	}
-	
-	special_aftertrans_update('m', 1, 0, 0);
-
-	BIF_undo_push("Mirror");
-	allqueue(REDRAWVIEW3D, 0);
-	scrarea_queue_headredraw(curarea);
-
-	clearbaseflags_for_editing();
-	if(transmain) MEM_freeN(transmain);
-	transmain= 0;
-
-	tottrans= 0;
-}
 
 void mirrormenu(void)
 {
@@ -6291,15 +6099,15 @@ void mirrormenu(void)
 
 
 	if (G.obedit==0) {
-		mode=pupmenu("Mirror Axis %t|X Local%x1|Y Local%x2|Z Local%x3|");
+		mode=pupmenu("Mirror Axis %t|X Local%x4|Y Local%x5|Z Local%x6|");
 
 		if (mode==-1) return; /* return */
-		mirror_object(mode); /* separating functionality from interface | call*/
+		Mirror(mode); /* separating functionality from interface | call*/
 	}
 	else {
 		mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y Local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
 
 		if (mode==-1) return; /* return */
-		mirror_edit(mode); /* separating functionality from interface | call*/
+		Mirror(mode); /* separating functionality from interface | call*/
 	}
 }
