@@ -86,7 +86,6 @@ struct _Window {
 	int		lmouse[2];
 	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY, LR_COMMANDKEY) */
 	int		lmbut;		/* (L_MOUSE, M_MOUSE, R_MOUSE) */
-	int		commandqual;
 
 		/* Tracks the faked mouse button, if non-zero it is
 		 * the event number of the last faked button.
@@ -522,7 +521,7 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		
 			if (bbut==LEFTMOUSE) {
 				if (val) {
-					if (win->commandqual) {
+					if (win->lqual & LR_COMMANDKEY) {
 						bbut= win->faked_mbut= RIGHTMOUSE;
 					} else if ((win->lqual & LR_ALTKEY) && (U.flag & USER_TWOBUTTONMOUSE)) {
 						/* finally, it actually USES the userpref! :) -intrr */
@@ -553,10 +552,6 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			GHOST_TEventKeyData *kd= data;
 			int val= (type==GHOST_kEventKeyDown);
 			int bkey= convert_key(kd->key);
-
-			if (kd->key == GHOST_kKeyCommand) {
-				win->commandqual= val;
-			}
 
 			if (bkey) {
 				if (bkey==LEFTSHIFTKEY || bkey==RIGHTSHIFTKEY) {
@@ -607,8 +602,6 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					win->lqual= change_bit(win->lqual, LR_COMMANDKEY, 0);
 					window_handle(win, LR_COMMANDKEY, 0);
 				}
-				/* probably redundant now (ton) */
-				win->commandqual= query_qual('C');
 
 				/* 
 				 * XXX quick hack so OSX version works better
