@@ -140,6 +140,26 @@ void getViewVector(float coord[3], float vec[3]) {
 
 /* ************************** GENERICS **************************** */
 
+static int pose_flags_reset_done(Object *ob) {
+	/* Clear the constraint done status for every pose channe;
+	* that has been flagged as needing constant updating
+	*/
+	bPoseChannel *chan;
+	int numreset = 0;
+	
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			if (chan->flag & PCHAN_TRANS_UPDATE) {
+				chan->flag &= ~PCHAN_DONE;
+				numreset++;
+			}
+			
+		}
+	}
+	return numreset;
+}
+
+
 /* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
@@ -289,7 +309,6 @@ void recalcData(TransInfo *t)
 	/* ugly stuff for posemode, copied from old system */
 	base= FIRSTBASE;
 	while(base) {
-		extern int pose_flags_reset_done(Object *ob);	// linker solves
 		
 		if (pose_flags_reset_done(base->object)) {
 			if (!is_delay_deform())

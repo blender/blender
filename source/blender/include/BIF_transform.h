@@ -61,7 +61,7 @@
 
 
 void Transform(int mode, int context);
-
+void Mirror(short mode);
 
 struct TransInfo;
 struct ScrArea;

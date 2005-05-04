@@ -44,6 +44,7 @@
 #endif   
 #include "MEM_guardedalloc.h"
 
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "IMB_imbuf_types.h"
@@ -63,19 +64,18 @@
 #include "BKE_image.h"
 
 #include "BDR_editface.h"
-#include "BDR_editobject.h"
+#include "BDR_drawobject.h"
 #include "BDR_drawmesh.h"
 
-	
 #include "BIF_gl.h"
-#include "BIF_space.h"
-#include "BIF_screen.h"
 #include "BIF_mywindow.h"
 #include "BIF_drawimage.h"
 #include "BIF_resources.h"
 #include "BIF_interface.h"
 #include "BIF_editsima.h"
 #include "BIF_glutil.h"
+#include "BIF_space.h"
+#include "BIF_screen.h"
 
 #include "BSE_trans_types.h"
 
@@ -84,6 +84,7 @@
 #include "blendef.h"
 #include "butspace.h"  // event codes
 
+float prop_cent[3]= {0.0, 0.0, 0.0}, prop_size= 0.1;
 
 /**
  * Sets up the fields of the View2D member of the SpaceImage struct
@@ -494,10 +495,26 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 	return rectmain;
 }
 
+/* now only in use by drawimage.c */
+static void draw_prop_circle()
+{
+	if (G.scene->proportional) {
+		float tmat[4][4], imat[4][4];
+		
+		if(G.moving) {
+			BIF_ThemeColor(TH_GRID);
+			
+			mygetmatrix(tmat);
+			Mat4Invert(imat, tmat);
+			
+	 		drawcircball(GL_LINE_LOOP, prop_cent, prop_size, imat);
+		}
+	}
+}
+
 static void draw_image_prop_circle(ImBuf *ibuf)
 {
 	float aspx, aspy;
-	extern float prop_cent[3];
 
 	if(G.moving && G.scene->proportional) {
 

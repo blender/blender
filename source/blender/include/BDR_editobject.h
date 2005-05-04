@@ -33,9 +33,7 @@
 #ifndef BDR_EDITOBJECT_H
 #define BDR_EDITOBJECT_H
 
-struct TransVert;
 struct Object;
-struct TransOb;
 struct Tex;
 struct Material;
 struct Base;
@@ -56,8 +54,11 @@ int test_parent_loop(struct Object *par, struct Object *ob);
 void make_parent(void);
 
 void make_displists_by_parent(struct Object *ob);
+
 void exit_editmode(int freedata);
 void check_editmode(int type);
+void enter_editmode(void);
+
 void docentre(int centremode);
 void docentre_new(void);
 void docentre_cursor(void);
@@ -72,26 +73,18 @@ void make_links_menu(void);
 void make_links(short event);
 void make_duplilist_real(void);
 void apply_object(void);
-void ob_to_transob(struct Object *ob, struct TransOb *tob);
-void ob_to_tex_transob(struct Object *ob, struct TransOb *tob);
-void make_trans_objects(void);
-void enter_editmode(void);
+
 void copymenu_logicbricks(struct Object *ob);
-void clearbaseflags_for_editing(void);
-void make_trans_verts(float *min, float *max, int mode);
-void draw_prop_circle(void);
-void set_proportional_weight(struct TransVert *tv, float *min, float *max);
-void special_trans_update(int keyflags);
-void special_aftertrans_update(char mode, int flip, short canceled, int keyflags);
-void calc_trans_verts(void);
+
+
+/* old transform */
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
 void compatible_eul(float *eul, float *oldrot);
 void headerprint(char *str);
-void add_ipo_tob_poin(float *poin, float *old, float delta);
-void restore_tob(struct TransOb *tob);
+/* used for old game engine collision optimize */
 int cylinder_intersect_test(void);
 int sphere_intersect_test(void);
-int my_clock(void);
+
 
 void std_rmouse_transform(void (*xf_func)(int, int));
 void rightmouse_transform(void);
@@ -117,8 +110,8 @@ void first_base(void);
 void make_displists_by_obdata(void *obdata);
 void flip_subdivison(struct Object *ob, int);
 void mirrormenu(void);
-void Mirror(short mode);
-void flag_edge_crease(void);
+
+
 void add_hook(void);
 
 #endif /*  BDR_EDITOBJECT_H */

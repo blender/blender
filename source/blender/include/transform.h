@@ -246,6 +246,7 @@ void createTransData(TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void clear_trans_object_base_flags(void);
 void add_tdi_poin(float *poin, float *old, float delta);
+void special_aftertrans_update(char mode, int flip, short canceled, int keyflags);
 
 /*********************** Constraints *****************************/
 void getConstraintMatrix(TransInfo *t);

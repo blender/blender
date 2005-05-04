@@ -188,7 +188,6 @@ static void view_editmove(unsigned short event)
 	}
 }
 
-
 void Transform(int mode, int context) 
 {
 	int ret_val = 0;

@@ -31,6 +31,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -41,14 +42,17 @@
 #else
 #include <io.h>
 #endif   
+
 #include "MEM_guardedalloc.h"
 
 #include "BMF_Api.h"
 
 #include "PIL_time.h"
 
+#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_ipo_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
@@ -62,13 +66,17 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
-#include "BKE_utildefines.h"
+#include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_anim.h"
-#include "BKE_object.h"
+#include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_editmesh.h"
 #include "BIF_editview.h"
@@ -104,9 +112,6 @@
 #include "BIF_editarmature.h"
 #endif
 
-
-/* from editobject */
-extern void make_trans_verts(float *min, float *max, int mode);     
 
 /* circle selection callback */
 typedef void (*select_CBfunc)(short selecting, Object *editobj, short *mval, float rad);
@@ -548,9 +553,7 @@ void count_object(Object *ob, int sel)
 /* is called on most actions, like select/add/delete/layermove */
 void countall()
 {
-/*  	extern Lattice *editLatt; in BKE_lattice.h*/
 	extern ListBase editNurb;
-	/* extern ListBase bpbase; */
 	Base *base;
 	Object *ob;
 	Mesh *me;
@@ -558,7 +561,6 @@ void countall()
 	BezTriple *bezt;
 	BPoint *bp;
 	MetaElem *ml;
-	/* struct BodyPoint *bop; */
 	struct EditVert *eve;
 	struct EditFace *efa;
 	struct EditBone *ebo;
@@ -708,6 +710,13 @@ void countall()
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 }
 
+/* ************************************************** */
+/* ********************* old transform stuff ******** */
+/* ************************************************** */
+
+static TransVert *transvmain=NULL;
+static int tottrans= 0;
+
 /* selected things moved, and might need update in displists */
 static void update_select_dependency(void)
 {
@@ -726,10 +735,407 @@ static void update_select_dependency(void)
 	
 }
 
+static void calc_trans_verts(void)
+{
+	extern ListBase editNurb;
+	
+	if (ELEM(G.obedit->type, OB_MESH, OB_MBALL))
+		makeDispList(G.obedit);
+	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+		Nurb *nu= editNurb.first;
+		while(nu) {
+			test2DNurb(nu);
+			testhandlesNurb(nu); /* test for bezier too */
+			nu= nu->next;
+		}
+		makeDispList(G.obedit);
+	}
+}
+
+static int pose_flags_reset_done(Object *ob) {
+	/* Clear the constraint done status for every pose channe;
+	* that has been flagged as needing constant updating
+	*/
+	bPoseChannel *chan;
+	int numreset = 0;
+	
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			if (chan->flag & PCHAN_TRANS_UPDATE) {
+				chan->flag &= ~PCHAN_DONE;
+				numreset++;
+			}
+			
+		}
+	}
+	return numreset;
+}
+
+
+/* copied from editobject.c, should be replaced with proper depgraph */
+static void special_trans_update(void)
+{
+	Base *base;
+	Curve *cu;
+	IpoCurve *icu;
+	
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH) {
+			recalc_editnormals();	// does face centers too
+		}
+		if(G.obedit->type==OB_CURVE) {
+			cu= G.obedit->data;
+			
+			makeBevelList(G.obedit); // might be needed for deform
+			calc_curvepath(G.obedit);
+			
+			base= FIRSTBASE;
+			while(base) {
+				if(base->lay & G.vd->lay) {
+					if(base->object->parent==G.obedit && base->object->partype==PARSKEL)
+						makeDispList(base->object);
+					else if(base->object->type==OB_CURVE) {
+						Curve *cu= base->object->data;
+						if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
+							makeDispList(base->object);
+					}
+				}
+				base= base->next;
+			}
+		}
+		else if(G.obedit->type==OB_ARMATURE){
+			EditBone *ebo;
+			
+			/* Ensure all bones are correctly adjusted */
+			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
+				
+				if ((ebo->flag & BONE_IK_TOPARENT) && ebo->parent){
+					/* If this bone has a parent tip that has been moved */
+					if (ebo->parent->flag & BONE_TIPSEL){
+						VECCOPY (ebo->head, ebo->parent->tail);
+					}
+					/* If this bone has a parent tip that has NOT been moved */
+					else{
+						VECCOPY (ebo->parent->tail, ebo->head);
+					}
+				}
+			}
+		}
+		else if(G.obedit->type==OB_LATTICE) {
+			
+			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
+			
+			base= FIRSTBASE;
+			while(base) {
+				if(base->lay & G.vd->lay) {
+					if(base->object->parent==G.obedit) {
+						makeDispList(base->object);
+					}
+				}
+				base= base->next;
+			}
+		}
+	}
+	else {
+		base= FIRSTBASE;
+		while(base) {
+			if(base->flag & BA_DO_IPO) {
+				
+				base->object->ctime= -1234567.0;
+				
+				icu= base->object->ipo->curve.first;
+				while(icu) {
+					calchandles_ipocurve(icu);
+					icu= icu->next;
+				}
+				
+			}
+			if(base->object->partype & PARSLOW) {
+				base->object->partype -= PARSLOW;
+				where_is_object(base->object);
+				base->object->partype |= PARSLOW;
+			}
+			else if(base->flag & BA_WHERE_UPDATE) {
+				where_is_object(base->object);
+			}
+			
+			base= base->next;
+		} 
+		
+		base= FIRSTBASE;
+		while(base) {
+			
+			if(base->flag & BA_DISP_UPDATE) makeDispList(base->object);
+			
+			base= base->next;
+		}
+		
+	}
+	
+	base= FIRSTBASE;
+	while(base) {
+		if (pose_flags_reset_done(base->object)) {
+			if (!is_delay_deform())
+				make_displists_by_armature(base->object);
+		}
+		
+		base= base->next;
+	}
+	
+#if 1
+	if (G.obpose && G.obpose->type == OB_ARMATURE)
+		clear_pose_constraint_status(G.obpose);
+	
+	if (!is_delay_deform()) make_displists_by_armature(G.obpose);
+#endif
+	
+	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
+	
+}
+
+/* copied from editobject.c, needs to be replaced with new transform code still */
+/* mode: 1 = proportional */
+static void make_trans_verts(float *min, float *max, int mode)	
+{
+	extern ListBase editNurb;
+	EditMesh *em = G.editMesh;
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	TransVert *tv=NULL;
+	MetaElem *ml;
+	EditVert *eve;
+	EditBone	*ebo;
+	float total, centre[3], centroid[3];
+	int a;
+
+	tottrans= 0; // global!
+	
+	INIT_MINMAX(min, max);
+	centroid[0]=centroid[1]=centroid[2]= 0.0;
+	
+	/* note for transform refactor: dont rely on countall anymore... its ancient */
+	/* I skip it for editmesh now (ton) */
+	if(G.obedit->type!=OB_MESH) {
+		countall();
+		if(mode) tottrans= G.totvert;
+		else tottrans= G.totvertsel;
+
+		if(G.totvertsel==0) {
+			tottrans= 0;
+			return;
+		}
+		tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
+	}
+	
+	/* we count again because of hide (old, not for mesh!) */
+	tottrans= 0;
+	
+	if(G.obedit->type==OB_MESH) {
+		int proptrans= 0;
+		
+		// transform now requires awareness for select mode, so we tag the f1 flags in verts
+		tottrans= 0;
+		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->h==0 && (eve->f & SELECT)) {
+					eve->f1= SELECT;
+					tottrans++;
+				}
+				else eve->f1= 0;
+			}
+		}
+		else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+			EditEdge *eed;
+			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+			for(eed= em->edges.first; eed; eed= eed->next) {
+				if(eed->h==0 && (eed->f & SELECT)) eed->v1->f1= eed->v2->f1= SELECT;
+			}
+			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+		}
+		else {
+			EditFace *efa;
+			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				if(efa->h==0 && (efa->f & SELECT)) {
+					efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
+					if(efa->v4) efa->v4->f1= SELECT;
+				}
+			}
+			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+		}
+		
+		/* proportional edit exception... */
+		if(mode==1 && tottrans) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->h==0) {
+					eve->f1 |= 2;
+					proptrans++;
+				}
+			}
+			if(proptrans>tottrans) tottrans= proptrans;
+		}
+		
+		/* and now make transverts */
+		if(tottrans) {
+			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
+
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->f1) {
+					VECCOPY(tv->oldloc, eve->co);
+					tv->loc= eve->co;
+					if(eve->no[0]!=0.0 || eve->no[1]!=0.0 ||eve->no[2]!=0.0)
+						tv->nor= eve->no; // note this is a hackish signal (ton)
+					tv->flag= eve->f1 & SELECT;
+					tv++;
+				}
+			}
+		}
+	}
+	else if (G.obedit->type==OB_ARMATURE){
+		for (ebo=G.edbo.first;ebo;ebo=ebo->next){
+			if (ebo->flag & BONE_TIPSEL){
+				VECCOPY (tv->oldloc, ebo->tail);
+				tv->loc= ebo->tail;
+				tv->nor= NULL;
+				tv->flag= 1;
+				tv++;
+				tottrans++;
+			}
+
+			/*  Only add the root if there is no selected IK parent */
+			if (ebo->flag & BONE_ROOTSEL){
+				if (!(ebo->parent && (ebo->flag & BONE_IK_TOPARENT) && ebo->parent->flag & BONE_TIPSEL)){
+					VECCOPY (tv->oldloc, ebo->head);
+					tv->loc= ebo->head;
+					tv->nor= NULL;
+					tv->flag= 1;
+					tv++;
+					tottrans++;
+				}		
+			}
+			
+		}
+	}
+	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+		nu= editNurb.first;
+		while(nu) {
+			if((nu->type & 7)==CU_BEZIER) {
+				a= nu->pntsu;
+				bezt= nu->bezt;
+				while(a--) {
+					if(bezt->hide==0) {
+						if(mode==1 || (bezt->f1 & 1)) {
+							VECCOPY(tv->oldloc, bezt->vec[0]);
+							tv->loc= bezt->vec[0];
+							tv->flag= bezt->f1 & 1;
+							tv++;
+							tottrans++;
+						}
+						if(mode==1 || (bezt->f2 & 1)) {
+							VECCOPY(tv->oldloc, bezt->vec[1]);
+							tv->loc= bezt->vec[1];
+							tv->val= &(bezt->alfa);
+							tv->oldval= bezt->alfa;
+							tv->flag= bezt->f2 & 1;
+							tv++;
+							tottrans++;
+						}
+						if(mode==1 || (bezt->f3 & 1)) {
+							VECCOPY(tv->oldloc, bezt->vec[2]);
+							tv->loc= bezt->vec[2];
+							tv->flag= bezt->f3 & 1;
+							tv++;
+							tottrans++;
+						}
+					}
+					bezt++;
+				}
+			}
+			else {
+				a= nu->pntsu*nu->pntsv;
+				bp= nu->bp;
+				while(a--) {
+					if(bp->hide==0) {
+						if(mode==1 || (bp->f1 & 1)) {
+							VECCOPY(tv->oldloc, bp->vec);
+							tv->loc= bp->vec;
+							tv->val= &(bp->alfa);
+							tv->oldval= bp->alfa;
+							tv->flag= bp->f1 & 1;
+							tv++;
+							tottrans++;
+						}
+					}
+					bp++;
+				}
+			}
+			nu= nu->next;
+		}
+	}
+	else if(G.obedit->type==OB_MBALL) {
+		extern ListBase editelems;  /* go away ! */
+		ml= editelems.first;
+		while(ml) {
+			if(ml->flag & SELECT) {
+				tv->loc= &ml->x;
+				VECCOPY(tv->oldloc, tv->loc);
+				tv->val= &(ml->rad);
+				tv->oldval= ml->rad;
+				tv->flag= 1;
+				tv++;
+				tottrans++;
+			}
+			ml= ml->next;
+		}
+	}
+	else if(G.obedit->type==OB_LATTICE) {
+		bp= editLatt->def;
+		
+		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+		
+		while(a--) {
+			if(mode==1 || (bp->f1 & 1)) {
+				if(bp->hide==0) {
+					VECCOPY(tv->oldloc, bp->vec);
+					tv->loc= bp->vec;
+					tv->flag= bp->f1 & 1;
+					tv++;
+					tottrans++;
+				}
+			}
+			bp++;
+		}
+	}
+	
+	/* cent etc */
+	tv= transvmain;
+	total= 0.0;
+	for(a=0; a<tottrans; a++, tv++) {
+		if(tv->flag & SELECT) {
+			centroid[0]+= tv->oldloc[0];
+			centroid[1]+= tv->oldloc[1];
+			centroid[2]+= tv->oldloc[2];
+			total+= 1.0;
+			DO_MINMAX(tv->oldloc, min, max);
+		}
+	}
+	if(total!=0.0) {
+		centroid[0]/= total;
+		centroid[1]/= total;
+		centroid[2]/= total;
+	}
+
+	centre[0]= (min[0]+max[0])/2.0;
+	centre[1]= (min[1]+max[1])/2.0;
+	centre[2]= (min[2]+max[2])/2.0;
+	
+}
+
+
+
 void snap_sel_to_grid()
 {
-	extern TransVert *transvmain;
-	extern int tottrans;
 	extern float originmat[3][3];	/* object.c */
 	TransVert *tv;
 	Base *base;
@@ -774,7 +1180,7 @@ void snap_sel_to_grid()
 			
 			calc_trans_verts(); // does test2d, makedisplist too */
 
-			special_trans_update(0);
+			special_trans_update();
 
 			allqueue(REDRAWVIEW3D, 0);
 			return;
@@ -818,8 +1224,6 @@ void snap_sel_to_grid()
 
 void snap_sel_to_curs()
 {
-	extern TransVert *transvmain;
-	extern int tottrans;
 	extern float originmat[3][3];	/* object.c */
 	TransVert *tv;
 	Base *base;
@@ -859,7 +1263,7 @@ void snap_sel_to_curs()
 
 			calc_trans_verts(); // does test2d, makedisplist too */
 
-			special_trans_update(0);
+			special_trans_update();
 
 			allqueue(REDRAWVIEW3D, 0);
 			return;
@@ -919,8 +1323,6 @@ void snap_curs_to_grid()
 
 void snap_curs_to_sel()
 {
-	extern TransVert *transvmain;
-	extern int tottrans;
 	TransVert *tv;
 	Base *base;
 	float *curs, bmat[3][3], vec[3], min[3], max[3], centroid[3];
@@ -992,8 +1394,6 @@ void snap_curs_to_sel()
 
 void snap_curs_to_firstsel()
 {
-	extern TransVert *transvmain;
-	extern int tottrans;
 	TransVert *tv;
 	Base *base;
 	float *curs, bmat[3][3], vec[3], min[3], max[3], centroid[3];
@@ -1063,8 +1463,6 @@ void snap_curs_to_firstsel()
 
 void snap_to_center()
 {
-	extern TransVert *transvmain;
-	extern int tottrans;
 	extern float originmat[3][3];
 	TransVert *tv;
 	Base *base;
@@ -1170,7 +1568,7 @@ void snap_to_center()
 
 			if ELEM4(G.obedit->type, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) makeDispList(G.obedit);
 
-			special_trans_update(0);
+			special_trans_update();
 
 			allqueue(REDRAWVIEW3D, 0);
 			return;
@@ -1310,8 +1708,6 @@ void toggle_shading(void)
 
 void minmax_verts(float *min, float *max)
 {
-	extern TransVert *transvmain;
-	extern int tottrans;
 	TransVert *tv;
 	float centroid[3], vec[3], bmat[3][3];
 	int a;

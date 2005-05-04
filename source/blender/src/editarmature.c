@@ -103,8 +103,6 @@
 #define B_CYAN		0xFFFF00
 #define	B_AQUA		0xFFBB55 /* 0xFF8833*/
 
-extern	int tottrans;					/* Originally defined in editobject.c */
-extern	struct TransOb *transmain;				/* Originally defined in editobject.c */
 extern	float centre[3], centroid[3];	/* Originally defined in editobject.c */
 
 /*	Macros	*/
@@ -126,9 +124,8 @@ static void delete_bone(struct EditBone* exBone);
 static void clear_armature_children (struct Bone *bone, struct bPose *pose, char mode);
 
 static int	count_bones (struct bArmature *arm, int flagmask, int allbones);
-
 static int	count_bonechildren (struct Bone *bone, int incount, int flagmask, int allbones);
-static int	add_trans_bonechildren (struct Object* ob, struct Bone* bone, struct TransOb* buffer, int index, char mode);
+
 static void deselect_bonechildren (Object *ob, struct Bone *bone, int mode);
 static void selectconnected_posebonechildren (struct Bone *bone);
 
@@ -2268,62 +2265,6 @@ void mousepose_armature(void)
 	
 }
 
-void make_trans_bones (char mode)
-/*	Used in pose mode	*/
-{
-	bArmature		*arm;
-	Bone			*curBone;
-	int				count=0;
-
-	transmain=NULL;
-
-	arm=get_armature (G.obpose);
-	if (!arm)
-		return;
-
-	if (arm->flag & ARM_RESTPOS){
-		notice ("Transformation not possible while Rest Position is enabled");
-		return;
-	}
-
-
-	if (!(G.obpose->lay & G.vd->lay))
-		return;
-
-
-	centroid[0]=centroid[1]=centroid[2]=0;
-
-	apply_pose_armature(arm, G.obpose->pose, 0);
-	where_is_armature (G.obpose);
-
-	/*	Allocate memory for the transformation record */
-	tottrans= count_bones (arm, BONE_SELECTED, 1);
-
-	if (!tottrans)
-		return;
-
-	transmain= MEM_callocN(tottrans*sizeof(TransOb), "bonetransmain");
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		count = add_trans_bonechildren (G.obpose, curBone, transmain, count, mode);
-	}
-	
-	tottrans=count;
-	
-	if (tottrans){
-		centroid[0]/=tottrans;
-		centroid[1]/=tottrans;
-		centroid[2]/=tottrans;
-		Mat4MulVecfl (G.obpose->obmat, centroid);
-	}
-	else{
-		MEM_freeN (transmain);
-		transmain = NULL;
-	}
-	return;
-
-}
-
 static int	count_bones (bArmature *arm, int flagmask, int allbones)
 {
 	int	count=0;
@@ -2360,93 +2301,6 @@ static int count_bonechildren (Bone *bone, int incount, int flagmask, int allbon
 	return incount;
 }
 
-
-static int add_trans_bonechildren (Object* ob, Bone* bone, TransOb* buffer, int index, char mode)
-{
-	Bone	*curBone;
-	TransOb	*curOb;
-	float	parmat[4][4], tempmat[4][4];
-	float tempobmat[4][4];
-	float vec[3];
-	if (!bone)
-		return index;
-
-	
-	
-	/* We don't let IK children get "grabbed" */
-	if (bone->flag & BONE_SELECTED){
-		if (!((mode=='g' || mode=='G') && (bone->flag & BONE_IK_TOPARENT))){
-			
-			get_bone_root_pos (bone, vec, 1);
-		
-			VecAddf (centroid, centroid, vec);
-			
-			curOb=&buffer[index];
-			
-			curOb->ob = ob;
-			curOb->rot=NULL;
-
-			curOb->quat= bone->quat;
-			curOb->size= bone->size;
-			curOb->loc = bone->loc;
-
-			curOb->data = bone; //	FIXME: Dangerous
-			
-			memcpy (curOb->oldquat, bone->quat, sizeof (bone->quat));
-			memcpy (curOb->oldsize, bone->size, sizeof (bone->size));
-			memcpy (curOb->oldloc, bone->loc, sizeof (bone->loc));
-
-#if 0
-			if (bone->parent)
-				get_objectspace_bone_matrix(bone->parent, tempmat, 1, 1);
-			else
-				Mat4One (tempmat);
-#else
-			/* Get the matrix of this bone minus the usertransform */
-			Mat4CpyMat4 (tempobmat, bone->obmat);
-			Mat4One (bone->obmat);
-			get_objectspace_bone_matrix(bone, tempmat, 1, 1);
-			Mat4CpyMat4 (bone->obmat, tempobmat);
-
-			
-#endif
-
-#if 1
-			Mat4MulMat4 (parmat, tempmat, ob->obmat);	/* Original */
-
-			/* Get world transform */
-			get_objectspace_bone_matrix(bone, tempmat, 1, 1);
-			if (ob->parent){
-				where_is_object(ob->parent);
-				Mat4MulSerie (tempobmat, ob->parent->obmat, ob->obmat, tempmat, NULL, NULL, NULL, NULL, NULL);
-			}
-			else
-				Mat4MulSerie (tempobmat, ob->obmat, tempmat, NULL, NULL, NULL, NULL, NULL, NULL);
-			Mat3CpyMat4 (curOb->axismat, tempobmat);
-			Mat3Ortho(curOb->axismat);
-
-#else
-			Mat4MulMat4 (parmat, ob->obmat, tempmat);
-#endif
-			Mat3CpyMat4 (curOb->parmat, parmat);
-			Mat3Inv (curOb->parinv, curOb->parmat);
-
-			Mat3CpyMat4 (curOb->obmat, bone->obmat);
-			Mat3Inv (curOb->obinv, curOb->obmat);
-			
-			index++;
-			return index;
-		}
-
-	}
-	
-	/*	Recursively search  */
-	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-		index=add_trans_bonechildren (ob, curBone, buffer, index, mode);
-	}
-
-	return index;
-}
 
 static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 {

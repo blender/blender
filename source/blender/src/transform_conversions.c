@@ -61,6 +61,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
@@ -76,8 +77,10 @@
 #include "BIF_mywindow.h"
 #include "BIF_gl.h"
 #include "BIF_editlattice.h"
+#include "BIF_editconstraint.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_poseobject.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
@@ -86,19 +89,25 @@
 #include "BKE_armature.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
+#include "BKE_constraint.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
+#include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
+#include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
+#include "BSE_editaction.h"
 #include "BSE_editipo.h"
 #include "BSE_editipo_types.h"
+#include "BSE_editaction.h"
+
 #include "BDR_editobject.h"		// reset_slowparents()
 
 #include "BLI_arithb.h"
@@ -115,6 +124,11 @@ extern ListBase editNurb;
 extern ListBase editelems;
 
 #include "transform.h"
+
+/* local protos */
+static void figure_bone_nocalc(Object *ob);
+static void figure_pose_updating(void);
+
 
 /* ************************** Functions *************************** */
 
@@ -464,9 +478,6 @@ static void createTransPose(TransInfo *t)
 
 	/* copied from old code, no idea. we let linker solve it for now */
 	{
-		extern void figure_bone_nocalc(Object *ob);
-		extern void figure_pose_updating(void);
-
 		/* figure out which bones need calculating */
 		figure_bone_nocalc(G.obpose);
 		figure_pose_updating();
@@ -1396,6 +1407,595 @@ void clear_trans_object_base_flags(void)
 	copy_baseflags();
 }
 
+/* ******************************************************************************** */
+/* ************** TOTALLY #@#! CODE FROM PAST TRANSFORM FOR POSEMODE ************** */
+/* ******************************************************************************** */
+
+
+static int is_ob_constraint_target(Object *ob, ListBase *conlist) {
+	/* Is this object the target of a constraint in this list? 
+	 */
+
+	bConstraint *con;
+
+	for (con=conlist->first; con; con=con->next)
+	{
+		if (get_constraint_target(con) == ob)
+			return 1;
+	}
+	return 0;
+
+}
+
+static int clear_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
+	/* When we aren't transform()-ing, we'll want to turn off
+	 * the no calc flag for bone bone in case the frame changes,
+	 * or something
+	 */
+	bone->flag &= ~BONE_NOCALC;
+	
+	return 0;
+}
+
+
+static int set_bone_nocalc(Object *ob, Bone *bone, void *ptr) {
+	/* Calculating bone transformation makes thins slow ...
+	 * lets set the no calc flag for a bone by default
+	 */
+	bone->flag |= BONE_NOCALC;
+	
+	return 0;
+}
+
+static int selected_bone_docalc(Object *ob, Bone *bone, void *ptr) {
+	/* Let's clear the no calc flag for selected bones.
+	 * This function always returns 1 for non-no calc bones
+	 * (a.k.a., the 'do calc' bones) so that the bone_looper 
+	 * will count these
+	 */
+	if (bone->flag & BONE_NOCALC) {
+		if ( (bone->flag & BONE_SELECTED) ) {
+			bone->flag &= ~BONE_NOCALC;
+			return 1;
+		}
+		
+	}
+	else {
+		return 1;
+	}
+	return 0;
+}
+
+static Bone *get_parent_bone_docalc(Bone *bone) {
+	Bone		*parBone;
+
+	for (parBone = bone->parent; parBone; parBone=parBone->parent)
+		if (~parBone->flag & BONE_NOCALC)
+			return parBone;
+
+	return NULL;
+}
+
+static int is_bone_parent(Bone *childBone, Bone *parBone) {
+	Bone		*currBone;
+
+	for (currBone = childBone->parent; currBone; currBone=currBone->parent)
+		if (currBone == parBone)
+			return 1;
+
+	return 0;
+}
+
+static void figure_bone_nocalc_constraint(Bone *conbone, bConstraint *con,
+										  Object *ob, bArmature *arm) {
+	/* If this bone has a constraint with a subtarget that has
+	 * the nocalc flag cleared, then we better clear the no calc flag
+	 * on this bone too (and the whole IK chain if this is an IK
+	 * constraint).
+	 *
+	 * Conversly, if this bone has an IK constraint and the root of
+	 * the chain has the no calc flag cleared, we had best clear that
+	 * flag for the whole chain.
+	 */
+	Bone *subtarbone;
+	Bone *parBone;
+	char *subtar;
+
+	subtar = get_con_subtarget_name(con, ob);
+
+	if (subtar) {
+		if ( (subtarbone = get_named_bone(arm, subtar)) ) {
+			if ( (~subtarbone->flag & BONE_NOCALC) ||
+				 (get_parent_bone_docalc(subtarbone)) ) {
+				if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+					/* IK target is flaged for updating, so we
+					 * must update the whole chain.
+					 */
+					ik_chain_looper(ob, conbone, NULL, 
+									clear_bone_nocalc);
+				else
+					/* Constraint target is flagged for
+					 * updating, so we update this bone only
+					 */
+					conbone->flag &= ~BONE_NOCALC;
+			}
+			else {
+				if ( (parBone = get_parent_bone_docalc(conbone)) ) {
+					/* a parent is flagged for updating */
+					if (!is_bone_parent(subtarbone, parBone)) {
+						/* if the subtarget is also a child of
+						 * this bone, we needn't worry, other
+						 * wise, we have to update
+						 */
+						if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+							ik_chain_looper(ob, conbone, NULL, 
+											clear_bone_nocalc);
+						else
+							conbone->flag &= ~BONE_NOCALC;
+					}
+				}
+
+			}
+		}
+	}
+	else {
+		/* no subtarget ... target is regular object */
+		if ( (parBone = get_parent_bone_docalc(conbone)) ) {
+			/* parent is flagged for updating ... since
+			 * the target will never move (not a bone)
+			 * we had better update this bone/chain
+			 */
+			if (con->type == CONSTRAINT_TYPE_KINEMATIC)
+				ik_chain_looper(ob, conbone, NULL, 
+								clear_bone_nocalc);
+			else
+				conbone->flag &= ~BONE_NOCALC;
+		}
+	}
+
+}
+
+static void figure_bone_nocalc_core(Object *ob, bArmature *arm) {
+	/* Let's figure out which bones need to be recalculated,
+	 * and which don't. Calculations are based on which bones
+	 * are selected, and the constraints that love them.
+	 */
+	bPoseChannel *chan;
+	bConstraint *con;
+	Bone *conbone;
+
+	int numbones, oldnumbones, iterations;
+
+	oldnumbones = -1;
+	numbones    =  0;
+	iterations  =  0;
+
+	/* O.K., lets loop until we don't clear any more no calc bones
+	 */
+	while (oldnumbones != numbones) {
+		/* I wonder if this will ever get executed? */
+		if ( (++iterations) == 1000) {
+			printf("figurin' nocalc is talking too long\n");
+			break;
+		}
+
+		oldnumbones = numbones;
+
+		/* clear no calc for selected bones and count */
+		numbones = bone_looper(ob, arm->bonebase.first, NULL, 
+							   selected_bone_docalc);
+
+		if (ob->pose) {
+			for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+				conbone = get_named_bone(arm, chan->name);
+				if (conbone) {
+					for (con = chan->constraints.first; con; con=con->next) {
+						figure_bone_nocalc_constraint(conbone, con, ob, arm);
+					}
+				}
+			}
+		}
+	}
+}
+
+static void figure_bone_nocalc(Object *ob) 
+{
+	/* Let's figure out which bones need to be recalculated,
+	 * and which don't. Calculations are based on which bones
+	 * are selected, and the constraints that love them.
+	 */
+	bArmature *arm;
+
+	arm = get_armature(ob);
+	if (!arm) return;
+
+	if (arm->flag & ARM_RESTPOS) return;
+
+	/* Set no calc for all bones
+	 */
+	bone_looper(ob, arm->bonebase.first, NULL, 
+				set_bone_nocalc);
+
+	figure_bone_nocalc_core(ob, arm);
+}
+
+static int bone_nocalc2chan_trans_update(Object *ob, Bone *bone, void *ptr) {
+	/* Set PCHAN_TRANS_UPDATE for channels with bones that don't have
+	 * the no calc flag set ... I hate this.
+	 */
+	bPoseChannel *chan;
+
+	if (~bone->flag & BONE_NOCALC) {
+		chan = get_pose_channel(ob->pose, bone->name);
+		if (chan) chan->flag |= PCHAN_TRANS_UPDATE;
+	}
+	else {
+		/* reset this thing too */
+		bone->flag &= ~BONE_NOCALC;
+	}
+	
+	return 0;
+}
+
+static void clear_gonna_move(void) {
+	Base *base;
+
+	/* clear the gonna move flag */
+	for (base= FIRSTBASE; base; base= base->next) {
+		base->object->flag &= ~OB_GONNA_MOVE;
+	}
+}
+
+static int is_parent_gonna_move(Object *ob) {
+	if ( (ob->parent) &&
+		 (ob->parent->flag & OB_GONNA_MOVE) ) {
+		return 1;
+	}
+	return 0;
+}
+
+static int is_constraint_target_gonna_move(Object *ob) {
+	Object *tarOb;
+	bConstraint *con;
+	bPoseChannel *chan;
+
+	for (con = ob->constraints.first; con; con=con->next) {
+		if ( (tarOb = get_constraint_target(con)) ) {
+			if (tarOb->flag & OB_GONNA_MOVE )
+				return 1;
+		}
+	}
+
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			for (con = chan->constraints.first; con; con=con->next) {
+				if ( (tarOb = get_constraint_target(con)) ) {
+					if (tarOb->flag & OB_GONNA_MOVE )
+						return 1;
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+static void flag_moving_objects(void) {
+	Base *base;
+	int numgonnamove = 0, oldnumgonnamove = -1;
+
+	clear_gonna_move();
+
+	/* the 'well ordering principle' guarantees convergence (honest)
+	 */
+	while (numgonnamove != oldnumgonnamove) {
+		oldnumgonnamove = numgonnamove;
+		numgonnamove = 0;
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->flag & OB_GONNA_MOVE) {
+				++numgonnamove;
+			}
+			else if (base->flag & SELECT) {
+				base->object->flag |= OB_GONNA_MOVE;
+				++numgonnamove;
+			}
+			else if (is_parent_gonna_move(base->object)) {
+				base->object->flag |= OB_GONNA_MOVE;
+				++numgonnamove;
+			}
+			else if (is_constraint_target_gonna_move(base->object)) {
+				base->object->flag |= OB_GONNA_MOVE;
+				++numgonnamove;
+			}
+		}
+	}
+
+}
+
+static int pose_do_update_flag(Object *ob) {
+	/* Figure out which pose channels need constant updating.
+	 * Well use the bone BONE_NOCALC bit to do some temporary
+	 * flagging (so we can reuse code), which will later be
+	 * converted to a value for a channel... I hate this.
+	 */
+	Base *base;
+	bPoseChannel *chan;
+	int do_update = 0;
+	bArmature *arm;
+
+	arm = get_armature(ob);
+	if (!arm) return 0;
+
+	/* initialize */
+	bone_looper(ob, arm->bonebase.first, NULL, 
+				set_bone_nocalc);
+
+	if (ob->pose) {
+		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+			if (chan->constraints.first) {
+				for (base= FIRSTBASE; base; base= base->next) {
+					if (is_ob_constraint_target(base->object, 
+												&chan->constraints)) {
+						if( (base->object->flag & OB_GONNA_MOVE) || 
+							(ob->flag & OB_GONNA_MOVE)) {
+							Bone *bone;
+							/* If this armature is selected, or if the
+							 * object that is the target of a constraint
+							 * is selected, then lets constantly update
+							 * this pose channel.
+							 */
+							bone = get_named_bone(ob->data, chan->name);
+							if (bone) {
+								bone->flag &= ~BONE_NOCALC;
+								++do_update;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (do_update) {
+		figure_bone_nocalc_core(ob, arm);
+	}
+
+	bone_looper(ob, arm->bonebase.first, NULL, 
+				bone_nocalc2chan_trans_update);
+
+	return do_update;
+}
+
+/* this is a confusing call, it also does the constraint update flags, but was not used...
+   hopefully transform refactor will take care better of it (ton) */
+static void figure_pose_updating(void)
+{
+	Base *base;
+
+	flag_moving_objects();
+
+	for (base= FIRSTBASE; base; base= base->next) {
+		/* Recalculate the pose if necessary, regardless of
+		 * whether the layer is visible or not.
+		 */
+		if (pose_do_update_flag(base->object)) {
+			base->flag |= BA_WHERE_UPDATE;
+		}
+		else if(base->object->flag & OB_GONNA_MOVE) {
+			/* if position updates, deform info could change too */
+			if(base->object->hooks.first) base->flag |= BA_DISP_UPDATE;
+			else if(base->object->parent) {
+				if(base->object->parent->type==OB_LATTICE || base->object->partype==PARSKEL)
+					base->flag |= BA_DISP_UPDATE;
+			}
+		}
+	}
+
+}
+
+
+/* copied from old transform, will be replaced with proper depgraph code (ton) */
+static void clear_bone_nocalc_ob(Object *ob) {
+	/* Let's clear no calc for all of the bones in the whole darn armature
+	*/
+	bArmature *arm;
+	arm = get_armature(ob);
+	if (arm) {
+		bone_looper(ob, arm->bonebase.first, NULL, 
+					clear_bone_nocalc);
+	}
+	
+}
+
+
+/* ******************************************************************************** */
+/* ************ END, TOTALLY #@#! CODE FROM PAST TRANSFORM FOR POSEMODE *********** */
+/* ******************************************************************************** */
+
+/* copied from old transform, will be replaced with proper depgraph code (ton) */
+void special_aftertrans_update(char mode, int flip, short canceled, int keyflags)
+{
+	Object *ob;
+	Base *base;
+	MetaBall *mb;
+	Curve *cu;
+	int doit,redrawipo=0;
+	
+	
+	/* displaylists etc. */
+	
+	if(G.obedit) {
+		if(G.obedit->type==OB_MBALL) {
+			mb= G.obedit->data;
+			if(mb->flag != MB_UPDATE_ALWAYS) makeDispList(G.obedit);
+		}
+		else if(G.obedit->type==OB_MESH) {
+			if(flip) flip_editnormals();
+			
+			recalc_editnormals();
+		}
+	}
+	else if (G.obpose){
+		bAction	*act;
+		bPose	*pose;
+		bPoseChannel *pchan;
+		
+		/* we had better clear the no calc flags on the bones
+			* ... else things won't look too good when changing
+			* frames, etc.
+			*/
+		clear_bone_nocalc_ob(G.obpose);
+		
+		if (U.uiflag & USER_KEYINSERTACT && !canceled){
+			act=G.obpose->action;
+			pose=G.obpose->pose;
+			
+			if (!act)
+				act=G.obpose->action=add_empty_action();
+			
+			collect_pose_garbage(G.obpose);
+			filter_pose_keys ();
+			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
+				if (pchan->flag & POSE_KEY){
+					if (keyflags){
+						set_action_key(act, pchan, AC_QUAT_X, 1);
+						set_action_key(act, pchan, AC_QUAT_Y, 1);
+						set_action_key(act, pchan, AC_QUAT_Z, 1);
+						set_action_key(act, pchan, AC_QUAT_W, 1);
+					}
+					if (keyflags){
+						set_action_key(act, pchan, AC_SIZE_X, 1);
+						set_action_key(act, pchan, AC_SIZE_Y, 1);
+						set_action_key(act, pchan, AC_SIZE_Z, 1);
+					}
+					if (keyflags){
+						set_action_key(act, pchan, AC_LOC_X, 1);
+						set_action_key(act, pchan, AC_LOC_Y, 1);
+						set_action_key(act, pchan, AC_LOC_Z, 1);
+					}
+				}
+			}
+			
+			
+			remake_action_ipos (act);
+			allspace(REMAKEIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWNLA, 0);
+		}
+		if (!canceled && is_delay_deform()){
+			clear_pose_constraint_status(G.obpose);
+			make_displists_by_armature(G.obpose);
+		}
+		
+	}
+	else {
+		base= FIRSTBASE;
+		while(base) {	
+			
+			ob= base->object;
+			
+			if(base->flag & BA_WHERE_UPDATE) {
+				
+				where_is_object(ob);
+				
+				if(ob->type==OB_ARMATURE && canceled) {
+					/* Unfortunately, sometimes when you escape
+					* a transform on an object that is the
+					* target of an IK constraint on an armature
+					* bone, the rotations are not restored
+					* correctly on the bones in the IK chain. 
+					* There is probably a nice, elegant way to fix 
+					* this using transdata, but this system is so 
+					* darn confusing that we'll do it this brute
+					* force way instead:
+					*/
+					clear_pose_constraint_status(ob);
+					make_displists_by_armature(ob);
+				}
+			}
+			if(base->flag & BA_DISP_UPDATE) {
+				if(ob->type==OB_MBALL) {
+					mb= ob->data;
+					if(mb->flag != MB_UPDATE_ALWAYS || G.obedit == NULL) makeDispList(ob);
+				}
+				if( give_parteff(ob) ) build_particle_system(ob);
+			}
+			if(base->flag & BA_DO_IPO) redrawipo= 1;
+			
+			if(mode=='s' && ob->type==OB_FONT) {
+				doit= 0;
+				cu= ob->data;
+				
+				if(cu->bevobj && (cu->bevobj->flag & SELECT) ) doit= 1;
+				else if(cu->taperobj && (cu->taperobj->flag & SELECT) ) doit= 1;
+				else if(cu->textoncurve) {
+					if(cu->textoncurve->flag & SELECT) doit= 1;
+					else if(ob->flag & SELECT) doit= 1;
+				}
+				
+				if(doit) {
+					text_to_curve(ob, 0);
+					makeDispList(ob);
+				}
+			}
+			if(mode=='s' && ob->type==OB_CURVE) {
+				doit= 0;
+				cu= ob->data;
+				
+				if(cu->bevobj && (cu->bevobj->flag & SELECT) ) 
+					makeDispList(ob);
+				else if(cu->taperobj && (cu->taperobj->flag & SELECT) ) 
+					makeDispList(ob);
+			}
+			
+			if(ob->softflag & OB_SB_ENABLE) sbObjectReset(ob);
+			
+			where_is_object(ob);	/* always do, for track etc. */
+			
+			/* Set autokey if necessary */
+			if ((U.uiflag & USER_KEYINSERTOBJ) && (!canceled) && (base->flag & SELECT)){
+				if (keyflags){
+					insertkey(&base->object->id, OB_ROT_X);
+					insertkey(&base->object->id, OB_ROT_Y);
+					insertkey(&base->object->id, OB_ROT_Z);
+				}
+				if (keyflags){
+					insertkey(&base->object->id, OB_LOC_X);
+					insertkey(&base->object->id, OB_LOC_Y);
+					insertkey(&base->object->id, OB_LOC_Z);
+				}
+				if (keyflags){
+					insertkey(&base->object->id, OB_SIZE_X);
+					insertkey(&base->object->id, OB_SIZE_Y);
+					insertkey(&base->object->id, OB_SIZE_Z);
+				}
+				
+				remake_object_ipos (ob);
+				allqueue(REDRAWIPO, 0);
+				allspace(REMAKEIPO, 0);
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWNLA, 0);
+			}
+			
+			base= base->next;
+		}
+		
+	}
+	
+	if(redrawipo) {
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWIPO, 0);
+	}
+	
+	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
+	
+}
+
+
+
+
 
 static void createTransObject(TransInfo *t)
 {
@@ -1412,7 +2012,6 @@ static void createTransObject(TransInfo *t)
 	set_trans_object_base_flags(t);
 
 	{
-		extern void figure_pose_updating(void);
 		/* this has to be done, or else constraints on armature
 		 * bones that point to objects/bones that are outside
 		 * of the armature don't work outside of posemode 
