@@ -162,7 +162,7 @@ static void stats_pose(ListBase *lb, float *normal, float *plane)
 
 /* centroid, boundbox, of selection */
 /* returns total items selected */
-static int calc_manipulator(ScrArea *sa)
+int calc_manipulator_stats(ScrArea *sa)
 {
 	extern ListBase editNurb;
 	View3D *v3d= sa->spacedata.first;
@@ -1318,7 +1318,7 @@ void BIF_draw_manipulator(ScrArea *sa)
 	if(G.moving==0) {
 		v3d->twflag &= ~V3D_DRAW_MANIPULATOR;
 		
-		totsel= calc_manipulator(sa);
+		totsel= calc_manipulator_stats(sa);
 		if(totsel==0) return;
 		
 		v3d->twflag |= V3D_DRAW_MANIPULATOR;

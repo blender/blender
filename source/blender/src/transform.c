@@ -572,7 +572,7 @@ void Transform(int mode, int context)
 
 void ManipulatorTransform(int mode) 
 {
-	int ret_val = 0;
+	int ret_val = 0, mouse_moved = 0;
 	short pmval[2] = {0, 0}, mval[2], val;
 	unsigned short event;
 
@@ -648,6 +648,10 @@ void ManipulatorTransform(int mode)
 			event= extern_qread(&val);
 
 			switch (event){
+			case MOUSEX:
+			case MOUSEY:
+				mouse_moved = 1;
+				break;
 			/* enforce redraw of transform when modifiers are used */
 			case LEFTCTRLKEY:
 			case RIGHTCTRLKEY:
@@ -669,6 +673,8 @@ void ManipulatorTransform(int mode)
 				ret_val = TRANS_CANCEL;
 				break;
 			case LEFTMOUSE:
+				if(mouse_moved==0 && val==0) break;
+				// else we pass on event to next, which cancels
 			case SPACEKEY:
 			case PADENTER:
 			case RETKEY:
