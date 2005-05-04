@@ -782,7 +782,7 @@ static VFont *give_vfontpointer(int nr)	/* nr= button */
 	return G.main->vfont.first;
 }
 
-static VFont *exist_vfont(char *str)
+VFont *exist_vfont(char *str)
 {
 	VFont *vf;
 
