@@ -2556,15 +2556,19 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.uiflag), 2, 64, 0, 0, "");
 
 
-		uiDefBut(block, LABEL,0,"Auto keyframe on:",
+		uiDefBut(block, LABEL,0,"Auto keyframe",
 			(xpos+(2*edgsp)+(2*mpref)+midsp),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Action Ipo curve");
-		uiDefButBitS(block, TOG, USER_KEYINSERTOBJ, 0, "Object",
-			(xpos+edgsp+(2*mpref)+(3*midsp)+spref-edgsp),y2,(spref+edgsp),buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Object Ipo curve");
+		uiDefButBitI(block, TOG, G_RECORDKEYS, REDRAWTIME, "Action and Object", 
+					(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
+					 &(G.flags), 0, 0, 0, 0, "Automatic keyframe insertion in Object and Action Ipo curves");
+
+//		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
+//			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,
+//			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Action Ipo curve");
+//		uiDefButBitS(block, TOG, USER_KEYINSERTOBJ, 0, "Object",
+//			(xpos+edgsp+(2*mpref)+(3*midsp)+spref-edgsp),y2,(spref+edgsp),buth,
+//			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Object Ipo curve");
 
 
 		uiDefBut(block, LABEL,0,"Duplicate with object:",
@@ -2940,7 +2944,8 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			if(val==B_ADD_THEME) {
+			if(val==REDRAWTIME) allqueue(REDRAWTIME, 0);
+			else if(val==B_ADD_THEME) {
 				bTheme *btheme, *new;
 				
 				btheme= U.themes.first;

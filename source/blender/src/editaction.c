@@ -955,9 +955,6 @@ void paste_posebuf (int flip){
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
 	if (ob->pose){
-		if (U.uiflag & USER_KEYINSERTACT){
-			/* Display "Avail, all" dialog */
-		}
 		for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
 			if (chan->flag & POSE_KEY){
 				temp = copy_pose_channel (chan);
@@ -973,7 +970,7 @@ void paste_posebuf (int flip){
 
 				temp = set_pose_channel (ob->pose, temp);
 
-				if (U.uiflag & USER_KEYINSERTACT){
+				if (G.flags & G_RECORDKEYS){
 					/* Set keys on pose */
 					if (chan->flag & POSE_ROT){
 						set_action_key(ob->action, temp, AC_QUAT_X, newchan);
@@ -995,7 +992,7 @@ void paste_posebuf (int flip){
 			}
 		}
 
-		if (U.uiflag & USER_KEYINSERTACT){
+		if (G.flags & G_RECORDKEYS){
 			remake_action_ipos(ob->action);
 			allqueue (REDRAWIPO, 0);
 			allqueue (REDRAWVIEW3D, 0);

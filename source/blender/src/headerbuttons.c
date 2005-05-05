@@ -500,6 +500,7 @@ static void do_update_for_newframe(int mute)
 	allqueue(REDRAWINFO, 1);
 	allqueue(REDRAWSEQ, 1);
 	allqueue(REDRAWSOUND, 1);
+	allqueue(REDRAWTIME, 1);
 	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
@@ -2104,5 +2105,6 @@ void do_headerbuttons(short event)
 	else if(event<750) do_action_buttons(event);
 	else if(event<800) do_time_buttons(curarea, event);
 	else if(event<900) do_nla_buttons(event);
+	else if(event>=REDRAWVIEW3D) allqueue(event, 0);
 }
 
