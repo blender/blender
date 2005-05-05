@@ -177,7 +177,7 @@ void select_timeline_markers(void)
 	}
 }
 
-void nextprev_timeline_marker(int dir)
+void nextprev_timeline_marker(short dir)
 {
 	TimeMarker *marker, *cur=NULL, *first, *last;
 	int mindist= MAXFRAME, dist;
@@ -318,6 +318,16 @@ void nextprev_timeline_key(short dir)
 	}
 }
 
+void timeline_frame_to_center(void)
+{
+	float dtime;
+	
+	dtime= CFRA*(G.scene->r.framelen) - (G.v2d->cur.xmin + G.v2d->cur.xmax)/2.0; 
+	G.v2d->cur.xmin += dtime;
+	G.v2d->cur.xmax += dtime;
+	scrarea_queue_winredraw(curarea);
+}
+
 /* ***************************** */
 
 /* Right. Now for some implementation: */
@@ -412,8 +422,10 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case HOMEKEY:
-			G.v2d->cur.xmin=G.v2d->tot.xmin= 0.0;
-			G.v2d->cur.xmax=G.v2d->tot.xmax= G.scene->r.efra;
+			first= G.scene->r.sfra;
+			if(first >= G.scene->r.efra) first= G.scene->r.efra;
+			G.v2d->cur.xmin=G.v2d->tot.xmin= (float)first-2;
+			G.v2d->cur.xmax=G.v2d->tot.xmax= (float)G.scene->r.efra+2;
 			doredraw= 1;
 			break;
 			
@@ -434,6 +446,9 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* deselect all TimeMarkers */
 			select_timeline_markers();
 			doredraw= 1;
+			break;
+		case CKEY:
+			timeline_frame_to_center();
 			break;
 		case GKEY: /* move marker ... not yet implemented */
 			break;

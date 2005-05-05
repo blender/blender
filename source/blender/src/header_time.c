@@ -97,7 +97,8 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 
 static void do_time_viewmenu(void *arg, int event)
 {
-	extern int play_anim(int mode);
+	SpaceTime *stime= curarea->spacedata.first;
+	int first;
 	
 	switch(event) {
 		case 1: /* Play Back Animation */
@@ -107,9 +108,10 @@ static void do_time_viewmenu(void *arg, int event)
 			play_anim(1);
 			break;
 		case 3: /* View All */
-			G.v2d->tot.xmin= G.scene->r.sfra;
-			G.v2d->tot.xmax= G.scene->r.efra;
-			G.v2d->cur= G.v2d->tot;
+			first= G.scene->r.sfra;
+			if(first >= G.scene->r.efra) first= G.scene->r.efra;
+			G.v2d->cur.xmin=G.v2d->tot.xmin= (float)first-2;
+			G.v2d->cur.xmax=G.v2d->tot.xmax= (float)G.scene->r.efra+2;
 			
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
 			scrarea_queue_winredraw(curarea);
@@ -117,12 +119,31 @@ static void do_time_viewmenu(void *arg, int event)
 		case 4: /* Maximize Window */
 				/* using event B_FULL */
 			break;
+		case 5:	/* show time or frames */
+			stime->flag ^= TIME_DRAWFRAMES;
+			break;
+		case 6:
+			nextprev_timeline_marker(1);
+			break;
+		case 7:
+			nextprev_timeline_marker(-1);
+			break;
+		case 8:
+			nextprev_timeline_key(1);
+			break;
+		case 9:
+			nextprev_timeline_key(-1);
+			break;
+		case 10:
+			timeline_frame_to_center();
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *time_viewmenu(void *arg_unused)
 {
+	SpaceTime *stime= curarea->spacedata.first;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -130,13 +151,26 @@ static uiBlock *time_viewmenu(void *arg_unused)
 					  UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_time_viewmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	if(stime->flag & TIME_DRAWFRAMES)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	else 
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Next Marker|PageUp", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Prev Marker|PageDown", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Next Key|Ctrl PageUp", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Prev Key|Ctrl PageDown", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 		
 	if (!curarea->full) 
