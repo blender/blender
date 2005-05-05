@@ -4384,9 +4384,7 @@ void nextkey(ListBase *elems, int dir)
 
 static int float_to_frame (float frame) 
 {
-	int to= (int) frame;
-	
-	if (frame-to>0.5) to++;
+	int to= (int) round( frame/G.scene->r.framelen );
 	
 	return to;	
 }

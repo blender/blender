@@ -214,6 +214,18 @@ static void init_userdef_file(void)
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 	}
+	if (G.main->versionfile <= 236) {
+		bTheme *btheme;
+		/* new space type */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->ttime.back[3]==0) {
+				btheme->ttime = btheme->tsnd;	// copy from sound
+			}
+		}
+	}
+	
+	
 	
 	if (U.undosteps==0) U.undosteps=32;
 	

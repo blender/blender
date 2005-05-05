@@ -34,6 +34,7 @@
 #define BSE_HEADERBUTTONS_H
 
 struct uiBlock;
+struct ScrArea;
 struct ID;
 
 /* these used to be in blender/src/headerbuttons.c: */
@@ -85,6 +86,7 @@ void seq_buttons(void);
 void sound_buttons(void);
 void text_buttons(void);
 void script_buttons(void);
+void time_buttons(struct ScrArea *sa);
 void view3d_buttons(void);
 
 void do_global_buttons(unsigned short event);
@@ -103,6 +105,7 @@ void do_oops_buttons(short event);
 void do_seq_buttons(short event);
 void do_sound_buttons(unsigned short event);
 void do_text_buttons(unsigned short event);
+void do_time_buttons(struct ScrArea *sa, unsigned short event);
 void do_script_buttons(unsigned short event);
 void do_view3d_buttons(short event); 
 

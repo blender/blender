@@ -58,6 +58,7 @@ void test_view2d			(struct View2D *v2d, int winx, int winy);
 void calc_scrollrcts		(struct ScrArea *sa, struct View2D *v2d, int winx, int winy);
 
 int in_ipo_buttons(void);
+void draw_view2d_numbers_horiz(int drawframes);
 void drawscroll(int disptype);
 void drawipospace(struct ScrArea *sa, void *spacedata);
 

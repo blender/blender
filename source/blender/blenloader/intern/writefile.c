@@ -1082,6 +1082,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	Sequence *seq;
 	MetaStack *ms;
 	Strip *strip;
+	TimeMarker *marker;
 
 	sce= scebase->first;
 	while(sce) {
@@ -1156,6 +1157,13 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			if (sce->r.qtcodecdata->cdParms) writedata(wd, DATA, sce->r.qtcodecdata->cdSize, sce->r.qtcodecdata->cdParms);
 		}
 
+		/* writing dynamic list of TimeMarkers to the blend file */
+		marker= sce->markers.first;
+		while(marker){
+			writestruct(wd, DATA, "TimeMarker", 1, marker);
+			marker= marker->next;
+		}
+		
 		sce= sce->id.next;
 	}
 	/* flush helps the compression for undo-save */
@@ -1270,6 +1278,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_NLA){
 					writestruct(wd, DATA, "SpaceNla", 1, sl);
+				}
+				else if(sl->spacetype==SPACE_TIME){
+					writestruct(wd, DATA, "SpaceTime", 1, sl);
 				}
 				sl= sl->next;
 			}

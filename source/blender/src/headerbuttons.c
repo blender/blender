@@ -202,7 +202,8 @@ char *windowtype_pup(void)
 	strcat(string, "|UV/Image Editor %x6"); //117
 
 	strcat(string, "|Video Sequence Editor %x8"); //143
-	strcat(string, "|Audio Timeline %x11"); //163
+	strcat(string, "|Timeline %x15"); //163
+	strcat(string, "|Audio Window %x11"); //163
 	strcat(string, "|Text Editor %x9"); //179
 
 	strcat(string, "|%l"); //192
@@ -2100,7 +2101,8 @@ void do_headerbuttons(short event)
 	else if(event<600) do_file_buttons(event);
 	else if(event<650) do_seq_buttons(event);
 	else if(event<700) do_sound_buttons(event);
-	else if(event<800) do_action_buttons(event);
+	else if(event<750) do_action_buttons(event);
+	else if(event<800) do_time_buttons(curarea, event);
 	else if(event<900) do_nla_buttons(event);
 }
 

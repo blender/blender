@@ -320,6 +320,12 @@ void areawinset(short win)
 			G.snla= curarea->spacedata.first;
 			G.v2d= &G.snla->v2d;
 			break;
+		case SPACE_TIME:
+			{
+			SpaceTime *stime= curarea->spacedata.first;
+			G.v2d= &stime->v2d;
+			}
+			break;
 		default:
 			break;
 		}
@@ -387,6 +393,7 @@ void scrarea_do_headdraw(ScrArea *area)
 		case SPACE_SOUND:	sound_buttons();	break;
 		case SPACE_ACTION:	action_buttons();	break;
 		case SPACE_NLA:		nla_buttons();		break;
+		case SPACE_TIME:	time_buttons(area);	break;
 		}
 
 		//glScissor(area->winrct.xmin, area->winrct.xmax, area->winx, area->winy);

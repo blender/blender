@@ -1354,6 +1354,7 @@ void do_effects_panels(unsigned short event)
 	case B_FRAMEMAP:
 		G.scene->r.framelen= G.scene->r.framapto;
 		G.scene->r.framelen/= G.scene->r.images;
+		allqueue(REDRAWALL, 0);
 		break;
 	case B_NEWEFFECT:
 		if(ob) {

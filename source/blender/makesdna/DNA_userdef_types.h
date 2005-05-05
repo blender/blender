@@ -113,6 +113,7 @@ typedef struct bTheme {
 	ThemeSpace timasel;
 	ThemeSpace text;
 	ThemeSpace toops;
+	ThemeSpace ttime;
 	
 } bTheme;
 

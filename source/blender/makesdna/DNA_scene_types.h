@@ -114,7 +114,11 @@ typedef struct RenderData {
 	short depth, attrib, rt1, rt2;				/* standalone player */
 
 	short stereomode;					/* standalone player stereo settings */
-	short pad[3];
+	
+	short dimensionspreset;		/* for the dimensions presets menu */
+ 	
+ 	short pad[2];
+
 
 	short size, maximsize;	/* size in %, max in Kb */
 	/* from buttons: */
@@ -243,6 +247,13 @@ typedef struct GameFraming {
 #define SCE_GAMEFRAMING_EXTEND 1
 #define SCE_GAMEFRAMING_SCALE  2
 
+typedef struct TimeMarker {
+	struct TimeMarker *next, *prev;
+	int frame;
+	char name[64];
+	unsigned int flag;
+} TimeMarker;
+
 typedef struct Scene {
 	ID id;
 	struct Object *camera;
@@ -263,8 +274,8 @@ typedef struct Scene {
 	/* editmode stuff */
 	short selectmode, pad;
 	short proportional, prop_mode;
-	float editbutsize;			/* size of normals */
-
+	float editbutsize;                      /* size of normals */
+	
 	void *ed;
 	struct Radio *radio;
 	void *sumohandle;
@@ -277,6 +288,8 @@ typedef struct Scene {
 	struct AudioData audio;	
 	
 	ScriptLink scriptlink;
+	
+	ListBase markers;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -392,14 +405,14 @@ typedef struct Scene {
 #define SCE_SELECT_FACE		4
 
 /* sce->prop_mode (proportional falloff) */
-#define PROP_SMOOTH		0
-#define PROP_SPHERE		1
-#define PROP_ROOT		2
-#define PROP_SHARP		3
-#define PROP_LIN		4
-#define PROP_CONST		5
+#define PROP_SMOOTH            0
+#define PROP_SPHERE            1
+#define PROP_ROOT              2
+#define PROP_SHARP             3
+#define PROP_LIN               4
+#define PROP_CONST             5
 
-/* return flag next_object function */
+	/* return flag next_object function */
 #define F_START			0
 #define F_SCENE			1
 #define F_SET			2
@@ -409,6 +422,7 @@ typedef struct Scene {
 #define AUDIO_MUTE		1
 #define AUDIO_SYNC		2
 #define AUDIO_SCRUB		4
+
 
 #ifdef __cplusplus
 }

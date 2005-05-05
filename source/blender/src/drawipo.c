@@ -174,7 +174,7 @@ void calc_ipogrid()
 	ipogrid_dx= IPOSTEP*space/pixels;
 	step_to_grid(&ipogrid_dx, &ipomachtx);
 	
-	if ELEM(curarea->spacetype, SPACE_SEQ, SPACE_SOUND) {
+	if ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME) {
 		if(ipogrid_dx < 0.1) ipogrid_dx= 0.1;
 		ipomachtx-= 2;
 		if(ipomachtx<-2) ipomachtx= -2;
@@ -185,7 +185,7 @@ void calc_ipogrid()
 	ipogrid_dy= IPOSTEP*space/pixels;
 	step_to_grid(&ipogrid_dy, &ipomachty);
 	
-	if ELEM(curarea->spacetype, SPACE_SEQ, SPACE_SOUND) {
+	if ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME) {
 		if(ipogrid_dy < 1.0) ipogrid_dy= 1.0;
 		if(ipomachty<1) ipomachty= 1;
 	}
@@ -208,7 +208,7 @@ void draw_ipogrid(void)
 	
 	step= (G.v2d->mask.xmax-G.v2d->mask.xmin+1)/IPOSTEP;
 	
-	if(curarea->spacetype==SPACE_SOUND) glColor3ub(0x70, 0x70, 0x60);
+	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) glColor3ub(0x70, 0x70, 0x60);
 	else BIF_ThemeColor(TH_GRID);
 	
 	for(a=0; a<step; a++) {
@@ -220,7 +220,7 @@ void draw_ipogrid(void)
 	
 	vec2[0]= vec1[0]-= 0.5*ipogrid_dx;
 	
-	if(curarea->spacetype==SPACE_SOUND) glColor3ub(0x80, 0x80, 0x70);
+	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) glColor3ub(0x80, 0x80, 0x70);
 	else  BIF_ThemeColorShade(TH_GRID, 16);
 	
 	step++;
@@ -231,7 +231,8 @@ void draw_ipogrid(void)
 		vec2[0]= vec1[0]-= ipogrid_dx;
 	}
 	
-	if(curarea->spacetype!=SPACE_SOUND && curarea->spacetype!=SPACE_ACTION && curarea->spacetype!=SPACE_NLA) {
+	if ELEM4(curarea->spacetype, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME);
+	else {
 		vec1[0]= ipogrid_startx;
 		vec1[1]= vec2[1]= ipogrid_starty;
 		vec2[0]= G.v2d->cur.xmax;
@@ -654,6 +655,38 @@ static void draw_solution(SpaceIpo *sipo)
 	}
 }
 
+/* used for drawing timeline */
+void draw_view2d_numbers_horiz(int drawframes)
+{
+	float fac, fac2, dfac, val;
+	
+	/* the numbers: convert ipogrid_startx and -dx to scroll coordinates */
+	fac= (ipogrid_startx- G.v2d->cur.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+	fac= G.v2d->mask.xmin+fac*(G.v2d->mask.xmax-G.v2d->mask.xmin);
+	
+	dfac= (ipogrid_dx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+	dfac= dfac*(G.v2d->mask.xmax-G.v2d->mask.xmin);
+	
+	BIF_ThemeColor(TH_TEXT);
+	val= ipogrid_startx;
+	while(fac < G.v2d->mask.xmax) {
+		
+		if(drawframes) {
+			ipomachtx= 1;
+			scroll_prstr(fac, 2.0+(float)(G.v2d->mask.ymin), val, 'h', 0);
+		}
+		else {
+			fac2= val/(float)G.scene->r.frs_sec;
+			scroll_prstr(fac, 2.0+(float)(G.v2d->mask.ymin), fac2, 'h', 0);
+		}
+		
+		fac+= dfac;
+		val+= ipogrid_dx;
+	}
+
+}
+
+
 void drawscroll(int disptype)
 {
 	rcti vert, hor;
@@ -709,10 +742,22 @@ void drawscroll(int disptype)
 				fac2= fac2-tim;
 				scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+G.scene->r.frs_sec*fac2/100.0, 'h', disptype);
 			}
-			else if(curarea->spacetype==SPACE_SOUND) {
+			else if (curarea->spacetype==SPACE_SOUND) {
 				SpaceSound *ssound= curarea->spacedata.first;
 				
 				if(ssound->flag & SND_DRAWFRAMES) {
+					ipomachtx= 1;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+				}
+				else {
+					fac2= val/(float)G.scene->r.frs_sec;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
+				}
+			}
+			else if (curarea->spacetype==SPACE_TIME) {
+				SpaceTime *stime= curarea->spacedata.first;
+				
+				if(stime->flag & TIME_DRAWFRAMES) {
 					ipomachtx= 1;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 				}
@@ -1868,7 +1913,9 @@ int view2dzoom(unsigned short event)
 			
 			G.v2d->cur.xmin+= dx;
 			G.v2d->cur.xmax-= dx;
-			if(curarea->spacetype!=SPACE_SEQ && curarea->spacetype!=SPACE_SOUND && curarea->spacetype!=SPACE_NLA && curarea->spacetype!=SPACE_ACTION) {
+			
+			if ELEM5(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME);
+			else {
 				G.v2d->cur.ymin+= dy;
 				G.v2d->cur.ymax-= dy;
 			}
@@ -1946,7 +1993,7 @@ int view2dmove(unsigned short event)
 	/* test where mouse is */
 	getmouseco_areawin(mvalo);
 	
-	if ELEM6(curarea->spacetype, SPACE_IPO, SPACE_SEQ, SPACE_OOPS, SPACE_SOUND, SPACE_ACTION, SPACE_NLA) 
+	if ELEM7(curarea->spacetype, SPACE_IPO, SPACE_SEQ, SPACE_OOPS, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME) 
 		{
 			if( BLI_in_rcti(&G.v2d->mask, (int)mvalo[0], (int)mvalo[1]) ) {
 				facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
@@ -1979,8 +2026,8 @@ int view2dmove(unsigned short event)
 		/* no x move in outliner */
 		if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) facx= 0.0;
 		
-		/* no y move in audio */
-		if(curarea->spacetype==SPACE_SOUND) facy= 0.0;
+		/* no y move in audio & time */
+		if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) facy= 0.0;
 		
 		if(get_mbut() & mousebut && leftret) return 0;
 		if(facx==0.0 && facy==0.0) return 1;

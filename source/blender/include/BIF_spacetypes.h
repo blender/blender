@@ -61,4 +61,5 @@ SpaceType *spacesound_get_type		(void);
 SpaceType *spacetext_get_type		(void);
 SpaceType *spacescript_get_type		(void);
 SpaceType *spaceview3d_get_type		(void);
+SpaceType *spacetime_get_type		(void);
 

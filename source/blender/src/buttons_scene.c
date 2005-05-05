@@ -1402,8 +1402,8 @@ void anim_panels()
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	320,17,93,27,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
 	uiDefButS(block, NUM,REDRAWSEQ,"End:",	416,17,95,27,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
 
-	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	320,69,93,22,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old map value in frames");
-	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify new map value in frames");
+	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	320,69,93,22,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old mapping value in frames");
+	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
 
 	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 

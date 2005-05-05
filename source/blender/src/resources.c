@@ -247,7 +247,7 @@ static void clear_transp_rect_soft(unsigned char *transp, unsigned char *rect, i
 				if(val<20) {
 					pxl[3]= 128;
 				}
-				else if(val<60) {
+				else if(val<50) {
 					// one of pixels surrounding has alpha null?
 					if(pxl[3-4]==0 || pxl[3+4]==0 || pxl0[3]==0 || pxl1[3]==0) {
 				
@@ -440,6 +440,9 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				break;
 			case SPACE_INFO:
 				ts= &btheme->tinfo;
+				break;
+			case SPACE_TIME:
+				ts= &btheme->ttime;
 				break;
 			default:
 				ts= &btheme->tv3d;
@@ -686,7 +689,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tsnd.shade1,  173, 173, 173, 255);		// sliders
 	SETCOL(btheme->tsnd.grid, 140, 140, 140, 255);
 	
-
+	/* space time */
+	btheme->ttime= btheme->tsnd;	// same as sound space
 }
 
 char *BIF_ThemeColorsPup(int spacetype)

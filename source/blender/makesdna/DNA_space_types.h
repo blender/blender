@@ -276,6 +276,20 @@ typedef struct SpaceScript {
 
 } SpaceScript;
 
+typedef struct SpaceTime {
+	SpaceLink *next, *prev;
+	int spacetype;
+	float blockscale;
+	struct ScrArea *area;
+	
+	View2D v2d;
+	
+	int flag, pad;
+	
+} SpaceTime;
+
+
+
 #
 #
 typedef struct OneSelectableIma {
@@ -518,5 +532,11 @@ typedef struct SpaceImaSel {
 #define IMS_INDIRSLI		2
 #define IMS_INFILE			3
 #define IMS_INFILESLI		4
+
+/* time->flag */
+
+#define TIME_DRAWFRAMES		1
+#define TIME_CFRA_NUM		2
+
 
 #endif

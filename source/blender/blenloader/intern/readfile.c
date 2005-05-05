@@ -2476,17 +2476,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->radio= newdataadr(fd, sce->radio);
 
-	sce->r.avicodecdata = newdataadr(fd, sce->r.avicodecdata);
-	if (sce->r.avicodecdata) {
-		sce->r.avicodecdata->lpFormat = newdataadr(fd, sce->r.avicodecdata->lpFormat);
-		sce->r.avicodecdata->lpParms = newdataadr(fd, sce->r.avicodecdata->lpParms);
-	}
-
-	sce->r.qtcodecdata = newdataadr(fd, sce->r.qtcodecdata);
-	if (sce->r.qtcodecdata) {
-		sce->r.qtcodecdata->cdParms = newdataadr(fd, sce->r.qtcodecdata->cdParms);
-	}
-
 	if(sce->ed) {
 		ed= sce->ed= newdataadr(fd, sce->ed);
 
@@ -2598,6 +2587,19 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 
 	direct_link_scriptlink(fd, &sce->scriptlink);
+	
+	sce->r.avicodecdata = newdataadr(fd, sce->r.avicodecdata);
+	if (sce->r.avicodecdata) {
+		sce->r.avicodecdata->lpFormat = newdataadr(fd, sce->r.avicodecdata->lpFormat);
+		sce->r.avicodecdata->lpParms = newdataadr(fd, sce->r.avicodecdata->lpParms);
+	}
+	
+	sce->r.qtcodecdata = newdataadr(fd, sce->r.qtcodecdata);
+	if (sce->r.qtcodecdata) {
+		sce->r.qtcodecdata->cdParms = newdataadr(fd, sce->r.qtcodecdata->cdParms);
+	}
+	
+	link_list(fd, &(sce->markers));
 }
 
 /* ************ READ SCREEN ***************** */

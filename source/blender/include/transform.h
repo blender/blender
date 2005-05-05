@@ -237,11 +237,12 @@ int Crease(TransInfo *t, short mval[2]);
 struct ListBase;
 void count_bone_select(TransInfo *t, struct ListBase *lb, int *counter);
 
-/* exported from transform_manipulator.c */
+/*********************** exported from transform_manipulator.c ********** */
 struct ScrArea;
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
+int calc_manipulator_stats(struct ScrArea *sa);
 
-/*********************** TransData Creation and General Handling */
+/*********************** TransData Creation and General Handling *********** */
 void createTransData(TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void clear_trans_object_base_flags(void);

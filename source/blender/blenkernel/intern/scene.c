@@ -147,6 +147,9 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->r.qtcodecdata);
 		sce->r.qtcodecdata = NULL;
 	}
+	
+	BLI_freelistN(&sce->markers);
+	
 	if (sce->theDag) {
 		free_forest(sce->theDag);
 		MEM_freeN(sce->theDag);

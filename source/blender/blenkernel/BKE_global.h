@@ -179,6 +179,8 @@ typedef struct Global {
 #define G_DRAW_FACEAREA (1 << 23)
 #define G_DRAW_EDGEANG  (1 << 24)
 
+#define G_RECORDKEYS (1 << 25)
+
 /* G.fileflags */
 
 #define G_AUTOPACK_BIT                  0

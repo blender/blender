@@ -2160,7 +2160,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 
 	/* main choices pup */
 	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|%l|3D View %x2|%l|Ipo Curve Editor %x3|Action Editor %x4|"
-		"NLA Editor %x5|%l|UV/Image Editor %x6|Video Sequence Editor %x7|Audio Timeline %x8|Text Editor %x9|%l|User Preferences %x10|"
+		"NLA Editor %x5|%l|UV/Image Editor %x6|Video Sequence Editor %x7|Timeline %x15|Audio Window %x8|Text Editor %x9|%l|User Preferences %x10|"
 		"Outliner %x11|Buttons Window %x12|%l|File Browser %x13|Image Browser %x14",
 													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
 	if(curmain==1) spacetype= 0;
@@ -2177,6 +2177,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	else if(curmain==12) spacetype= SPACE_BUTS;
 	else if(curmain==13) spacetype= SPACE_FILE;
 	else if(curmain==14) spacetype= SPACE_IMASEL;
+	else if(curmain==15) spacetype= SPACE_IMASEL;
 	else return; // only needed while coding... when adding themes for more windows
 	
 	/* color choices pup */
@@ -3549,40 +3550,6 @@ static void init_filespace(ScrArea *sa)
 	sfile->spacetype= SPACE_FILE;
 }
 
-static void init_textspace(ScrArea *sa)
-{
-	SpaceText *st;
-	
-	st= MEM_callocN(sizeof(SpaceText), "inittextspace");
-	BLI_addhead(&sa->spacedata, st);
-
-	st->spacetype= SPACE_TEXT;	
-	st->blockscale= 0.7;
-	st->text= NULL;
-	st->flags= 0;
-	
-	st->font_id= 5;
-	st->lheight= 12;
-	st->showlinenrs= 0;
-	st->tabnumber = 4;
-	st->currtab_set = 0;
-	
-	st->top= 0;
-}
-
-static void init_scriptspace(ScrArea *sa)
-{
-	SpaceScript *sc;
-
-	sc = MEM_callocN(sizeof(SpaceScript), "initscriptspace");
-	BLI_addhead(&sa->spacedata, sc);
-
-	sc->spacetype = SPACE_SCRIPT;
-	sc->blockscale= 0.7;
-	sc->script = NULL;
-	sc->flags = 0;
-}
-
 static void init_imaselspace(ScrArea *sa)
 {
 	SpaceImaSel *simasel;
@@ -4227,12 +4194,90 @@ static void init_nlaspace(ScrArea *sa)
 extern void drawtextspace(ScrArea *sa, void *spacedata);
 extern void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
+static void init_textspace(ScrArea *sa)
+{
+	SpaceText *st;
+	
+	st= MEM_callocN(sizeof(SpaceText), "inittextspace");
+	BLI_addhead(&sa->spacedata, st);
+	
+	st->spacetype= SPACE_TEXT;	
+	st->blockscale= 0.7;
+	st->text= NULL;
+	st->flags= 0;
+	
+	st->font_id= 5;
+	st->lheight= 12;
+	st->showlinenrs= 0;
+	st->tabnumber = 4;
+	st->currtab_set = 0;
+	
+	st->top= 0;
+}
+
+
 /* ******************** SPACE: Script ********************** */
 
 extern void drawscriptspace(ScrArea *sa, void *spacedata);
 extern void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
-/* ******************** SPACE: ALGEMEEN ********************** */
+static void init_scriptspace(ScrArea *sa)
+{
+	SpaceScript *sc;
+	
+	sc = MEM_callocN(sizeof(SpaceScript), "initscriptspace");
+	BLI_addhead(&sa->spacedata, sc);
+	
+	sc->spacetype = SPACE_SCRIPT;
+	sc->blockscale= 0.7;
+	sc->script = NULL;
+	sc->flags = 0;
+}
+
+
+/* ******************** SPACE: Time ********************** */
+
+extern void drawtimespace(ScrArea *sa, void *spacedata);
+extern void winqreadtimespace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
+
+static void init_timespace(ScrArea *sa)
+{
+	SpaceTime *stime;
+	
+	stime= MEM_callocN(sizeof(SpaceTime), "init timespace");
+	BLI_addhead(&sa->spacedata, stime);
+	
+	stime->spacetype= SPACE_TIME;
+	stime->blockscale= 0.7;
+	
+	stime->v2d.tot.xmin= -4.0;
+	stime->v2d.tot.ymin=  0.0;
+	stime->v2d.tot.xmax= 250.0;
+	stime->v2d.tot.ymax= (float)sa->winy;
+	
+	stime->v2d.cur.xmin= -4.0;
+	stime->v2d.cur.ymin= 0.0;
+	stime->v2d.cur.xmax= 50.0;
+	stime->v2d.cur.ymax= (float)sa->winy;
+	
+	stime->v2d.min[0]= 1.0;
+	stime->v2d.min[1]= (float)sa->winy;
+	
+	stime->v2d.max[0]= 32000.0;
+	stime->v2d.max[1]= (float)sa->winy;
+	
+	stime->v2d.minzoom= 0.1f;
+	stime->v2d.maxzoom= 10.0;
+	
+	stime->v2d.scroll= 0;
+	stime->v2d.keepaspect= 0;
+	stime->v2d.keepzoom= 0;
+	stime->v2d.keeptot= 0;
+	
+}
+
+
+/* ******************** SPACE: GENERAL ********************** */
 
 void newspace(ScrArea *sa, int type)
 {
@@ -4296,6 +4341,8 @@ void newspace(ScrArea *sa, int type)
 					init_soundspace(sa);
 				else if(type==SPACE_NLA)
 					init_nlaspace(sa);
+				else if(type==SPACE_TIME)
+					init_timespace(sa);
 
 				sl= sa->spacedata.first;
 				sl->area= sa;
@@ -4677,6 +4724,12 @@ void allqueue(unsigned short event, short val)
 					scrarea_queue_winredraw(sa);
 				}
 				break;
+			case REDRAWTIME:
+				if(sa->spacetype==SPACE_TIME) {
+					scrarea_queue_headredraw(sa);
+					scrarea_queue_winredraw(sa);
+				}
+				break;
 			}
 		}
 		sa= sa->next;
@@ -4953,7 +5006,7 @@ SpaceType *spacesound_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Sound");
-		spacetype_set_winfuncs(st, drawsoundspace, NULL, winqreadsoundspace);
+		spacetype_set_winfuncs(st, drawsoundspace, changeview2dspace, winqreadsoundspace);
 	}
 
 	return st;
@@ -4989,5 +5042,16 @@ SpaceType *spaceview3d_get_type(void)
 		spacetype_set_winfuncs(st, drawview3dspace, changeview3dspace, winqreadview3dspace);
 	}
 
+	return st;
+}
+SpaceType *spacetime_get_type(void)
+{
+	static SpaceType *st= NULL;
+	
+	if (!st) {
+		st= spacetype_new("Time");
+		spacetype_set_winfuncs(st, drawtimespace, NULL, winqreadtimespace);
+	}
+	
 	return st;
 }

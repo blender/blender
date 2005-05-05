@@ -2042,6 +2042,36 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 			icu= icu->next;
 		}
 	}
+	else if(ipo->blocktype==ID_AC) {
+		icu= ipo->curve.first;
+		while(icu) {
+			if(icu->flag & IPO_VISIBLE) {
+				switch(icu->adrcode) {
+				case AC_LOC_X:
+				case AC_LOC_Y:
+				case AC_LOC_Z:
+				case AC_SIZE_X:
+				case AC_SIZE_Y:
+				case AC_SIZE_Z:
+				case AC_QUAT_W:
+				case AC_QUAT_X:
+				case AC_QUAT_Y:
+				case AC_QUAT_Z:
+					bezt= icu->bezt;
+					if(bezt) {
+						a= icu->totvert;
+						while(a--) {
+							add_to_cfra_elem(elems, bezt);
+							bezt++;
+						}
+					}
+					break;
+				}
+			}
+			icu= icu->next;
+		}
+	}
+	
 	if(ipo->showkey==0) {
 		/* deselect all keys */
 		ce= elems->first;

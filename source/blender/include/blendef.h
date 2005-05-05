@@ -37,6 +37,9 @@
 #define MAXFRAME	30000
 #define MAXFRAMEF	30000.0f
 
+#define MINFRAME	1
+#define MINFRAMEF	1.0
+
 #define MAXLAMP		32765
 /* max length material array, 16 because of bits in matfrom */
 #define MAXPICKBUF      10000
@@ -151,6 +154,8 @@
 #define B_TEXALONE		47
 #define B_MESHALONE		48
 #define B_CURVEALONE		49
+#define B_HEMESHALONE	50
+
 /* EVENT < 50: alones en locals */
 
 #define B_KEEPDATA		60
@@ -159,6 +164,7 @@
 #define B_REDRCURW3D		63
 #define B_FLIPINFOMENU		64
 #define B_FLIPFULLSCREEN	65
+#define B_EASYTOOLBOX		66
 
 
 #define B_SHOWSPLASH		70
@@ -223,6 +229,8 @@
 #define B_MAN_TRANS		161
 #define B_MAN_ROT		162
 #define B_MAN_SCALE		163
+#define B_HEMESHBROWSE	164
+#define B_HEMESHLOCAL 165
 
 /* IPO: 200 */
 #define B_IPOHOME		201
@@ -320,7 +328,8 @@
 #define B_TEXTFONT		505
 #define B_TEXTSTORE		506
 #define B_TEXTLINENUM		507
-#define B_TAB_NUMBERS       508
+#define B_TAB_NUMBERS		508
+#define B_SYNTAX		509
 
 /* SCRIPT: 525 */
 #define B_SCRIPTBROWSE 526
@@ -340,7 +349,7 @@
 #define B_SOUNDHOME		653
 #define B_PACKSOUND		654
 
-/* ACTION: 701 - 800 */
+/* ACTION: 701 - 750 */
 #define B_ACTHOME		701
 #define	B_ACTCOPY		702
 #define B_ACTPASTE		703
@@ -351,11 +360,22 @@
 #define	B_ACTPIN		708
 #define B_ACTBAKE		709
 
-#define B_NOTHING		-1
-#define B_NOP			-1
+/* TIME: 751 - 800 */
+#define B_TL_REW		751
+#define B_TL_PLAY		752
+#define B_TL_FF			753
+#define B_TL_PREVKEY	754
+#define B_TL_NEXTKEY	755
 
 /* NLA: 801-900 */
 #define B_NLAHOME		801
+
+/* FREE 900 - 999 */
+
+
+#define B_NOTHING		-1
+#define B_NOP			-1
+
 
 /* editbutflag */
 #define B_CLOCKWISE		1
@@ -363,7 +383,7 @@
 #define B_BEAUTY		4
 #define B_SMOOTH		8
 #define B_KNIFE			0x80
-#define B_PERCENTSUBD		0x40
+#define B_PERCENTSUBD	0x40
 
 
 /* DISPLAYMODE */
