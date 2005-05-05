@@ -83,6 +83,7 @@ void sort_faces(void);
 #include "BIF_editconstraint.h"
 
 #include "BDR_editobject.h" 
+#include "BDR_editface.h" 
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -350,8 +351,15 @@ void join_mesh(void)
 					}
 					
 					if(tfacemain) {
-						if(me->tface) memcpy(tface, me->tface, me->totface*sizeof(TFace));
-						tface+= me->totface;
+						if(me->tface) {
+							memcpy(tface, me->tface, me->totface*sizeof(TFace));
+							tface+= me->totface;
+						}
+						else {
+							for(a=0; a<me->totface; a++, tface++) {
+								default_tface(tface);
+							}
+						}
 					}
 					
 				}
