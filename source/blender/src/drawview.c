@@ -1336,11 +1336,11 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 	if (!bone)
 		return;
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatX:",	10, 120, 140, 19, bone->quat, -100.0, 100.0, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatZ:",	10, 100, 140, 19, bone->quat+2, -100.0, 100.0, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatX:",	10, 120, 140, 19, bone->quat+1, -100.0, 100.0, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatZ:",	10, 100, 140, 19, bone->quat+3, -100.0, 100.0, 10, 3, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatY:",	160, 120, 140, 19, bone->quat+1, -100.0, 100.0, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatW:",	160, 100, 140, 19, bone->quat+3, -100.0, 100.0, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatY:",	160, 120, 140, 19, bone->quat+2, -100.0, 100.0, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatW:",	160, 100, 140, 19, bone->quat, -100.0, 100.0, 10, 3, "");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	10, 70, 140, 19, bone->loc, -lim, lim, 100, 3, "");
 	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 50, 140, 19, bone->loc+1, -lim, lim, 100, 3, "");
