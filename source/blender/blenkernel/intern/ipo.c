@@ -1415,7 +1415,7 @@ void set_icu_vars(IpoCurve *icu)
 				icu->ymax= 1.0;
 				break;
 			case MAP_NORF:
-				icu->ymax= 5.0;
+				icu->ymax= 25.0;
 				break;
 			}
 		}
