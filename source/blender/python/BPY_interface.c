@@ -147,6 +147,9 @@ void BPY_start_python( int argc, char **argv )
 	 * rest of our init msgs.
 	 */
 
+	/* Py_GetVersion() returns a ptr to astatic string */
+	printf( "Using Python version %.3s\n", Py_GetVersion() );
+
 	Py_Initialize(  );
 	PySys_SetArgv( argc_copy, argv_copy );
 
