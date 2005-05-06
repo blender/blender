@@ -1,3 +1,13 @@
 #!/usr/bin/python
+
+Import('user_options_dict')
+
+
+print "externs..."
 SConscript(['qhull/SConscript',
             'solid/SConscript'])
+            
+            
+if user_options_dict['USE_INTERNATIONAL'] == 1:
+    print "bftgl"
+    SConscript(['bFTGL/SConscript'])

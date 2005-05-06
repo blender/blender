@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import os
 
 Import ('cflags')
 Import ('defines')
@@ -8,7 +9,7 @@ Import ('user_options_dict')
 # TODO: make sure the makesdna program does not get installed on the system.
 source_files = ['makesdna.c']
 
-makesdna_tool = Environment (CCFLAGS='-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
+makesdna_tool = Environment (ENV = os.environ, CCFLAGS='-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
 
 makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
                                  '..'])

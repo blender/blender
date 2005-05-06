@@ -1,0 +1,53 @@
+#!/usr/bin/python
+import sys
+import os
+
+ftgl_env = Environment(ENV=os.environ)
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+Import ('defines')
+Import ('user_options_dict')
+
+if sys.platform=='linux2' or sys.platform=='linux-i386':
+	ftgl_env.Append (CCFLAGS = ['-O2', '-ansi'])
+elif sys.platform=='win32':
+	ftgl_env.Append (CCFLAGS = ['/O2'])
+elif sys.platform=='sunos':
+	ftgl_env.Append (CCFLAGS = ['Xc', '-v', '-fast'])
+elif sys.platform=='darwin':
+	ftgl_env.Append (CCFLAGS = ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-mtune=G4'])
+else:
+	ftgl_env.Append (CCFLAGS = cflags)
+
+ftgl_env.Append (CPPDEFINES = defines)
+ftgl_env.Append (CPPPATH = ['include',
+                             'src'])
+
+ftgl_env.Append (CPPPATH = user_options_dict['FREETYPE_INCLUDE'])
+
+source_files = [
+		'src/FTBitmapGlyph.cpp',
+		'src/FTCharmap.cpp',
+		'src/FTContour.cpp',
+		'src/FTExtrdGlyph.cpp',
+		'src/FTFace.cpp',
+		'src/FTFont.cpp',
+		'src/FTGLBitmapFont.cpp',
+		'src/FTGLExtrdFont.cpp',
+		'src/FTGLOutlineFont.cpp',
+		'src/FTGLPixmapFont.cpp',
+		'src/FTGLPolygonFont.cpp',
+		'src/FTGLTextureFont.cpp',
+		'src/FTGlyph.cpp',
+		'src/FTGlyphContainer.cpp',
+		'src/FTLibrary.cpp',
+		'src/FTOutlineGlyph.cpp',
+		'src/FTPixmapGlyph.cpp',
+		'src/FTPoint.cpp',
+		'src/FTPolyGlyph.cpp',
+		'src/FTSize.cpp',
+		'src/FTTextureGlyph.cpp',
+		'src/FTVectoriser.cpp']
+
+ftgl_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/extern_ftgl', source=source_files)

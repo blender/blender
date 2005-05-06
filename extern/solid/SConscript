@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import sys
-solid_env = Environment()
+import os
+
+solid_env = Environment(ENV = os.environ)
 
 # Import the C flags set in the SConstruct file
 Import ('cflags')

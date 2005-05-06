@@ -41,8 +41,11 @@ def international_libs(env):
 		env.Append (LIBS=bs_globals.user_options_dict['FREETYPE_LIBRARY'])
 		env.Append (LIBPATH=bs_globals.user_options_dict['FREETYPE_LIBPATH'])
 		env.Append (LIBS=['blender_FTF'])
-		env.Append (LIBS=bs_globals.user_options_dict['FTGL_LIBRARY'])
-		env.Append (LIBPATH=bs_globals.user_options_dict['FTGL_LIBPATH'])
+		if sys.platform=='darwin':
+			env.Append (LIBS=bs_globals.user_options_dict['FTGL_LIBRARY'])
+			env.Append (LIBPATH=bs_globals.user_options_dict['FTGL_LIBPATH'])
+		else:
+			env.Append (LIBS=['extern_ftgl'])
 		env.Append (LIBS=bs_globals.user_options_dict['FREETYPE_LIBRARY'])
 
 def blender_libs(env):

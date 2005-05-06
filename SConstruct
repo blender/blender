@@ -49,12 +49,12 @@ if os.path.isdir (bs_globals.root_build_dir) == 0:
 version='2.36'
 shortversion = '236' # for wininst target -> nsis installer creation
 
-sdl_env = Environment ()
-freetype_env = Environment ()
-env = Environment ()
+sdl_env = Environment (ENV = os.environ)
+freetype_env = Environment (ENV = os.environ)
+env = Environment (ENV = os.environ)
 
 if sys.platform == 'linux2' or sys.platform == 'linux-i386':
-	use_international = 'false'
+	use_international = 'true'
 	use_gameengine = 'true'
 	use_openal = 'false'
 	use_fmod = 'false'
@@ -101,11 +101,11 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	sdl_libpath = sdl_env.Dictionary()['LIBPATH']
 	sdl_lib = sdl_env.Dictionary()['LIBS']
 	# SOLID library information
-	solid_lib = []                                              # TODO
-	solid_libpath = []                                          # TODO
+	solid_lib = []
+	solid_libpath = []
 	solid_include = ['#extern/solid']
-	qhull_lib = []                                              # TODO
-	qhull_libpath = []                                          # TODO
+	qhull_lib = []
+	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
 	# ODE library information
 	ode_lib = ['ode']
@@ -117,9 +117,9 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	python_include = [sysconfig.get_python_inc ()]
 	python_linkflags = Split (sysconfig.get_config_var('LINKFORSHARED'))
 	# International support information
-	ftgl_lib = ['ftgl']
-	ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
-	ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
+	ftgl_lib = []
+	ftgl_libpath = []
+	ftgl_include = ['#extern/bFTGL/include']
 	freetype_env.ParseConfig ('pkg-config --cflags --libs freetype2 2>/dev/null || freetype-config --cflags --libs 2>/dev/null')
 	freetype_lib = freetype_env.Dictionary()['LIBS']
 	freetype_libpath = freetype_env.Dictionary()['LIBPATH']
@@ -231,9 +231,9 @@ elif sys.platform == 'darwin':
 						'-framework', 'IOKit' , 
 						'-framework', 'AppKit']
 	# International stuff
-	ftgl_lib = ['ftgl']
-	ftgl_libpath = [darwin_precomp + 'ftgl/lib']
-	ftgl_include = [darwin_precomp + 'ftgl/include']
+	ftgl_lib = []
+	ftgl_libpath = []
+	ftgl_include = ['#extern/bFTGL/include']
 	freetype_lib = ['libfreetype']
 	freetype_libpath = [darwin_precomp + 'freetype/lib']
 	freetype_include = [darwin_precomp + 'freetype/include']
@@ -295,11 +295,11 @@ elif sys.platform == 'cygwin':
 	sdl_cflags = []
 	#sdl_cflags = '-DWIN32'
 	# SOLID library information
-	solid_lib = []											  # TODO
-	solid_libpath = []										  # TODO
+	solid_lib = []
+	solid_libpath = []
 	solid_include = ['#extern/solid']
-	qhull_lib = []											  # TODO
-	qhull_libpath = []										  # TODO
+	qhull_lib = []
+	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
 	# ODE library information
 	ode_lib = ['ode']
@@ -311,9 +311,9 @@ elif sys.platform == 'cygwin':
 	python_lib = ['python22']
 	python_linkflags = []
 	# International stuff
-	ftgl_lib = ['ftgl']
-	ftgl_libpath = ['#../lib/windows/gcc/ftgl/lib']
-	ftgl_include = ['#../lib/windows/gcc/ftgl/include']
+	ftgl_lib = []
+	ftgl_libpath = []
+	ftgl_include = ['#extern/bFTGL/include']
 	freetype_lib = ['freetype']
 	freetype_libpath = ['#../lib/windows/gcc/freetype/lib']
 	freetype_include = ['#../lib/windows/gcc/freetype/include']
@@ -412,9 +412,9 @@ elif sys.platform == 'win32':
 	python_lib = ['python23']
 	python_linkflags = []
 	# International stuff
-	ftgl_lib = ['ftgl_static_ST']
-	ftgl_libpath = ['#../lib/windows/ftgl/lib']
-	ftgl_include = ['#../lib/windows/ftgl/include']
+	ftgl_lib = []
+	ftgl_libpath = []
+	ftgl_include = ['#extern/bFTGL/include']
 	freetype_lib = ['freetype2ST']
 	freetype_libpath = ['#../lib/windows/freetype/lib']
 	freetype_include = ['#../lib/windows/freetype/include']
@@ -474,15 +474,15 @@ elif string.find (sys.platform, 'sunos') != -1:
 	sdl_libpath = sdl_env.Dictionary()['LIBPATH']
 	sdl_lib = sdl_env.Dictionary()['LIBS']
 	# SOLID library information
-	solid_lib = []											  # TODO
-	solid_libpath = []										  # TODO
+	solid_lib = []
+	solid_libpath = []
 	solid_include = ['#extern/solid']
-	qhull_lib = []											  # TODO
-	qhull_libpath = []										  # TODO
+	qhull_lib = []
+	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
 	# ODE library information
-	ode_lib = []												# TODO
-	ode_libpath = []											# TODO
+	ode_lib = []
+	ode_libpath = []
 	ode_include = ['#extern/ode/dist/include/ode']
 	# Python variables.
 	python_lib = ['python%d.%d' % sys.version_info[0:2]]
@@ -490,9 +490,9 @@ elif string.find (sys.platform, 'sunos') != -1:
 	python_include = [sysconfig.get_python_inc ()]
 	python_linkflags = []
 	# International support information
-	ftgl_lib = ['ftgl']
-	ftgl_libpath = ['#../lib/solaris-2.8-sparc/ftgl/lib']
-	ftgl_include = ['#../lib/solaris-2.8-sparc/ftgl/include']
+	ftgl_lib = []
+	ftgl_libpath = []
+	ftgl_include = ['#extern/bFTGL/include']
 	freetype_lib = ['freetype']
 	freetype_libpath = ['#../lib/solaris-2.8-sparc/freetype/lib']
 	freetype_include = ['#../lib/solaris-2.8-sparc/freetype/include']
@@ -559,15 +559,15 @@ elif string.find (sys.platform, 'irix') != -1:
 	sdl_libpath = [irix_precomp + '/sdl/lib']
 	sdl_lib = ['SDL', 'libSDL.a']
 	# SOLID library information
-	solid_lib = []											  # TODO
-	solid_libpath = []										  # TODO
+	solid_lib = []
+	solid_libpath = []
 	solid_include = [irix_precomp + '/solid/include']
-	qhull_lib = []											  # TODO
-	qhull_libpath = []										  # TODO
+	qhull_lib = []
+	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
 	# ODE library information
-	ode_lib = []												# TODO
-	ode_libpath = []											# TODO
+	ode_lib = []
+	ode_libpath = []
 	ode_include = [irix_precomp + '/ode/include']
 	# Python library information
 	python_libpath = [irix_precomp + '/python/lib/python2.2/config']
@@ -575,9 +575,9 @@ elif string.find (sys.platform, 'irix') != -1:
 	python_lib = ['python2.2']
 	python_linkflags = []
 	# International support information
-	ftgl_lib = ['ftgl']
-	ftgl_libpath = [irix_precomp + '/ftgl/lib']
-	ftgl_include = [irix_precomp + '/ftgl/include']
+        ftgl_lib = []
+        ftgl_libpath = []
+        ftgl_include = ['#extern/bFTGL/include']
 	freetype_lib = ['freetype']
 	freetype_libpath = [irix_precomp + '/freetype/lib']
 	freetype_include = [irix_precomp + '/freetype/include']
@@ -641,11 +641,11 @@ elif sys.platform=='openbsd3':
 	sdl_libpath = sdl_env.Dictionary()['LIBPATH']
 	sdl_lib = sdl_env.Dictionary()['LIBS']
 	# SOLID library information
-	solid_lib = []					 # TODO
-	solid_libpath = []		# TODO
+	solid_lib = []
+	solid_libpath = []
 	solid_include = ['#extern/solid']
-	qhull_lib = []	   # TODO
-	qhull_libpath = []  # TODO
+	qhull_lib = []
+	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
 	# ODE library information
 	ode_lib = ['ode']
@@ -657,9 +657,9 @@ elif sys.platform=='openbsd3':
 	python_include = [sysconfig.get_python_inc ()]
 	python_linkflags = []
 	# International support information
-	ftgl_lib = ['ftgl']
-	ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
-	ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
+        ftgl_lib = []
+        ftgl_libpath = []
+        ftgl_include = ['#extern/bFTGL/include']
 	freetype_env.ParseConfig('pkg-config --cflags --libs freetype2')
 	freetype_lib = freetype_env.Dictionary()['LIBS']
 	freetype_libpath = freetype_env.Dictionary()['LIBPATH']
@@ -720,11 +720,11 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	sdl_libpath = ['/usr/local/include/SDL11']
 	sdl_lib = sdl_env.Dictionary()['LIBS']
 	# SOLID library information
-	solid_lib = []					 # TODO
-	solid_libpath = []		# TODO
+	solid_lib = []
+	solid_libpath = []
 	solid_include = ['#extern/solid']
-	qhull_lib = []	   # TODO
-	qhull_libpath = []  # TODO
+	qhull_lib = []
+	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
 	# ODE library information
 	ode_lib = ['ode']
@@ -736,9 +736,9 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	python_include = [sysconfig.get_python_inc ()]
 	python_linkflags = []
 	# International support information
-	ftgl_lib = ['ftgl']
-	ftgl_libpath = ['#../lib/linux-glibc2.2.5-i386/ftgl/lib']
-	ftgl_include = ['#../lib/linux-glibc2.2.5-i386/ftgl/include']
+	ftgl_lib = []
+	ftgl_libpath = []
+	ftgl_include = ['#extern/bFTGL/include']
 	freetype_env.ParseConfig('pkg-config --cflags --libs freetype2')
 	freetype_lib = freetype_env.Dictionary()['LIBS']
 	freetype_libpath = freetype_env.Dictionary()['LIBPATH']
@@ -863,7 +863,7 @@ else:
 #-----------------------------------------------------------------------------
 list_opts = []
 user_options = Options (bs_globals.config_file)
-user_options_env = Environment (options = user_options)
+user_options_env = Environment (ENV = os.environ, options = user_options)
 user_options.AddOptions (
 		('VERSION', 'Blender version', version),
 		(EnumOption ('BUILD_BINARY', 'release',
@@ -965,7 +965,7 @@ user_options_dict = user_options_env.Dictionary()
 Help(user_options.GenerateHelpText(user_options_env))
 bs_globals.root_build_dir = user_options_dict['BUILD_DIR']
 # SET MODULE VARS #
-init_env = Environment()
+init_env = Environment(ENV = os.environ)
 
 bs_globals.user_options_dict = user_options_dict
 bs_globals.init_env = init_env
@@ -1108,7 +1108,7 @@ if bs_globals.enable_clean == 0:
 	
 	if sys.platform=='win32':
 		if user_options_dict['BUILD_BINARY']=='debug':
-			browser = Environment()
+			browser = Environment(ENV = os.environ)
 			browser_tmp = bs_globals.root_build_dir+'bscmake.tmp'
 			browser.Command ('blender.bsc', 'blender$PROGSUFFIX',
 				['dir /b/s '+bs_globals.root_build_dir+'*.sbr >'+browser_tmp,
@@ -1136,7 +1136,7 @@ if bs_globals.enable_clean == 0:
 			player_blender.Program (target='blenderplayer', source=d_obj)
 		if sys.platform=='win32':
 			if user_options_dict['BUILD_BINARY']=='debug':
-				browser = Environment()
+				browser = Environment(ENV = os.environ)
 				browser_tmp = bs_globals.root_build_dir+'bscmake.tmp'
 				browser.Command ('blenderplayer.bsc', 'blenderplayer$PROGSUFFIX',
 				['dir /b/s '+bs_globals.root_build_dir+'*.sbr >'+browser_tmp,
