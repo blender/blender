@@ -2307,24 +2307,26 @@ void join_triangles(void)
 		1-----2        1-----2
 */
 				/* make new faces */
-				if( convex(v1->co, v2->co, v3->co, v4->co) ) {
-					if(exist_face(v1, v2, v3, v4)==0) {
-						w = addfacelist(v1, v2, v3, v4, efaa[0], NULL); /* seam edge may get broken */
-						w->f= efaa[0]->f;	/* copy selection flag */
-						untag_edges(w);
+				if(v1 && v2 && v3 && v4) {
+					if( convex(v1->co, v2->co, v3->co, v4->co) ) {
+						if(exist_face(v1, v2, v3, v4)==0) {
+							w = addfacelist(v1, v2, v3, v4, efaa[0], NULL); /* seam edge may get broken */
+							w->f= efaa[0]->f;	/* copy selection flag */
+							untag_edges(w);
 
-						UVCOPY(w->tf.uv[0], uv[0]);
-						UVCOPY(w->tf.uv[1], uv[1]);
-						UVCOPY(w->tf.uv[2], uv[2]);
-						UVCOPY(w->tf.uv[3], uv[3]);
+							UVCOPY(w->tf.uv[0], uv[0]);
+							UVCOPY(w->tf.uv[1], uv[1]);
+							UVCOPY(w->tf.uv[2], uv[2]);
+							UVCOPY(w->tf.uv[3], uv[3]);
 
-						memcpy(w->tf.col, col, sizeof(w->tf.col));
-					}
-					/* tag as to-be-removed */
-					FACE_MARKCLEAR(efaa[0]);
-					FACE_MARKCLEAR(efaa[1]);
-					eed->f1 = 1; 
-				} /* endif test convex */
+							memcpy(w->tf.col, col, sizeof(w->tf.col));
+						}
+						/* tag as to-be-removed */
+						FACE_MARKCLEAR(efaa[0]);
+						FACE_MARKCLEAR(efaa[1]);
+						eed->f1 = 1; 
+					} /* endif test convex */
+				}
 			}
 		}
 		eed= nexted;
