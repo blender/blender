@@ -1515,27 +1515,35 @@ static void object_panel_deflectors(Object *ob)
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Fall-off: ",	160,130,150,20, &pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
 		uiDefButBitS(block, TOG, PFIELD_USEMAX, REDRAWVIEW3D, "Use MaxDist",	10,110,150,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
 		uiDefButF(block, NUM, REDRAWVIEW3D, "MaxDist: ",	160,110,150,20, &pd->maxdist, 0, 1000.0, 100, 0, "Maximum distance for the field to work");
-
-		/* only meshes collide now */
-		if(ob->type==OB_MESH) {
-			uiBlockBeginAlign(block);
-			uiDefButS(block, TOG|BIT|0, B_DIFF, "Deflection",10,50,200,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
-			uiDefButF(block, NUM, B_DIFF, "Damping: ",	10,30,200,20, &pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
-			uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	10,10,200,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
-			uiDefButF(block, NUM, B_DIFF, "Permeability: ",		10,-10,200,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
-		}
 		uiBlockEndAlign(block);
 
-		if(ob->type==OB_MESH) {
-			uiBlockBeginAlign(block);
-			uiDefBut(block, LABEL, 0, "Softbody",	210, 50,110,20, NULL, 0.0, 0.0, 0, 0, "");	
-			uiDefButF(block, NUM, B_DIFF, "D",	210,30,110,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during softbody collision");
-			uiDefButF(block, NUM, B_DIFF, "I",	210,10,110,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-			uiDefButF(block, NUM, B_DIFF, "O",		210,-10,110,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+		if(ob->softflag & OB_SB_ENABLE) {
+			uiDefBut(block, LABEL, 0, "Object is Softbody,",		10,70,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "no Deflection possible",		10,50,300,20, NULL, 0.0, 0, 0, 0, "");
+			pd->deflect= 0;
 		}
-		uiBlockEndAlign(block);
-	
-	
+		else {
+			
+			/* only meshes collide now */
+			if(ob->type==OB_MESH) {
+				uiBlockBeginAlign(block);
+				uiDefButS(block, TOG|BIT|0, B_DIFF, "Deflection",10,50,200,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+				uiDefButF(block, NUM, B_DIFF, "Damping: ",	10,30,200,20, &pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
+				uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	10,10,200,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
+				uiDefButF(block, NUM, B_DIFF, "Permeability: ",		10,-10,200,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
+			}
+			uiBlockEndAlign(block);
+
+			if(ob->type==OB_MESH) {
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, 0, "Softbody",	210, 50,110,20, NULL, 0.0, 0.0, 0, 0, "");	
+				uiDefButF(block, NUM, B_DIFF, "D",	210,30,110,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during softbody collision");
+				uiDefButF(block, NUM, B_DIFF, "I",	210,10,110,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+				uiDefButF(block, NUM, B_DIFF, "O",		210,-10,110,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+			}
+			uiBlockEndAlign(block);
+		
+		}	
 	}
 }
 
@@ -1550,6 +1558,19 @@ static void object_softbodies(Object *ob)
 	uiNewPanelTabbed("Constraints", "Object");
 	if(uiNewPanel(curarea, block, "Softbody", "Object", 640, 0, 318, 204)==0) return;
 
+	/* do not allow to combine with force fields */
+	if(ob->pd) {
+		PartDeflect *pd= ob->pd;
+		
+		if(pd->deflect) {
+			uiDefBut(block, LABEL, 0, "Object has Deflection,",		10,160,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "no Softbody possible",		10,140,300,20, NULL, 0.0, 0, 0, 0, "");
+			ob->softflag &= ~OB_SB_ENABLE;
+			
+			return;
+		}
+	}
+	
 	uiDefButBitS(block, TOG, OB_SB_ENABLE, REDRAWBUTSOBJECT, "Enable Soft Body",	10,200,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
 	uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");	// alignment reason
 	

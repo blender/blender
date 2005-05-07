@@ -77,11 +77,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_property_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1517,8 +1517,15 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 	if(freedata) G.obedit= NULL;
 
 	/* total remake of softbody data */
-	if(ob->softflag & OB_SB_ENABLE) sbObjectToSoftbody(ob);
-	
+	if(ob->softflag & OB_SB_ENABLE) {
+		SoftBody *sb= ob->soft;
+		
+		if(sb->keys) {
+			if( okee("Erase Baked SoftBody") )
+				sbObjectToSoftbody(ob);
+		}
+		else sbObjectToSoftbody(ob);
+	}
 	makeDispList(ob);
 
 	/* has this influence at other objects? */
