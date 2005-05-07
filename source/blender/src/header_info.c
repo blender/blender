@@ -1774,9 +1774,21 @@ static void info_text(int x, int y)
 	int hsize;
 
 	if(G.obedit) {
-		sprintf(infostr,"Ve:%d-%d | Fa:%d-%d | Mem:%.2fM ",
-		G.totvertsel, G.totvert, G.totfacesel, G.totface,
-		(mem_in_use>>10)/1024.0);
+		if(G.obedit->type==OB_MESH) {
+			if(G.scene->selectmode & SCE_SELECT_VERTEX)
+				sprintf(infostr,"Ve:%d-%d | Ed:%d-%d | Fa:%d-%d | Mem:%.2fM ",
+						G.totvertsel, G.totvert, G.totedgesel, G.totedge, G.totfacesel, G.totface, (mem_in_use>>10)/1024.0);
+			else if(G.scene->selectmode & SCE_SELECT_EDGE)
+				sprintf(infostr,"Ed:%d-%d | Fa:%d-%d | Mem:%.2fM ",
+						G.totedgesel, G.totedge, G.totfacesel, G.totface, (mem_in_use>>10)/1024.0);
+			else 
+				sprintf(infostr,"Fa:%d-%d | Mem:%.2fM ",
+						G.totfacesel, G.totface, (mem_in_use>>10)/1024.0);
+		}
+		else {
+			sprintf(infostr,"Ve:%d-%d | Mem:%.2fM ",
+					G.totvertsel, G.totvert, (mem_in_use>>10)/1024.0);
+		}
 	}
 	else {
 		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d | Mem:%.2fM | Time:%s | ",

@@ -187,38 +187,40 @@ int calc_manipulator_stats(ScrArea *sa)
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
 			float vec[3];
-			int do_norm= 0;
+			int no_faces= 1;
 			
 			if(v3d->twmode == V3D_MANIP_NORMAL) {
 				EditFace *efa;
 				
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if(efa->f & SELECT) {
+						no_faces= 1;
 						VECADD(normal, normal, efa->n);
 						VecSubf(vec, efa->v2->co, efa->v1->co);
 						VECADD(plane, plane, vec);
 					}
 				}
-				if(normal[0]==0.0 && normal[1]==0.0 && normal[2]==0.0) do_norm= 1;
 			}
 			
 			/* do vertices for center, and if still no normal found, use vertex normals */
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->f & SELECT) {
-					if(do_norm) VECADD(normal, normal, eve->no);
+					if(no_faces) VECADD(normal, normal, eve->no);
 					
 					totsel++;
 					calc_tw_center(eve->co);
 				}
 			}
 			/* the edge case... */
-			if(do_norm && v3d->twmode == V3D_MANIP_NORMAL) {
+			if(no_faces && v3d->twmode == V3D_MANIP_NORMAL) {
 				EditEdge *eed;
 				
 				for(eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f & SELECT) {
-						VecSubf(vec, eed->v2->co, eed->v1->co);
-						VECADD(plane, plane, vec);
+						/* ok we got an edge, only use one, and as normal */
+						VECCOPY(plane, normal);
+						VecSubf(normal, eed->v2->co, eed->v1->co);
+						break;
 					}
 				}
 			}

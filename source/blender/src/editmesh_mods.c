@@ -952,8 +952,8 @@ static void mouse_mesh_loop(void)
 		/* frontbuffer draw of last selected only */
 		unified_select_draw(NULL, eed, NULL);
 		
-		countall();
 		EM_selectmode_flush();
+		countall();
 		
 		allqueue(REDRAWVIEW3D, 0);
 	}
@@ -997,8 +997,8 @@ void mouse_mesh(void)
 		/* frontbuffer draw of last selected only */
 		unified_select_draw(eve, eed, efa);
 	
-		countall();
 		EM_selectmode_flush();
+		countall();
 
 		allqueue(REDRAWVIEW3D, 0);
 	}

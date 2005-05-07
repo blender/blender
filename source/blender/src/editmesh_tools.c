@@ -538,12 +538,32 @@ void extrude_mesh(void)
 
 	TEST_EDITMESH
 	
-	if(G.scene->selectmode & SCE_SELECT_VERTEX)
-		nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
-	else if(G.scene->selectmode & SCE_SELECT_EDGE)
-		nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
-	else
-		nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		if(G.totvertsel==0) nr= 0;
+		else if(G.totvertsel==1) nr= 4;
+		else if(G.totedgesel==0) nr= 4;
+		else if(G.totfacesel==0) 
+			nr= pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
+		else if(G.totfacesel==1)
+			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
+		else 
+			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
+	}
+	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+		if (G.totedgesel==0) nr = 0;
+		else if (G.totedgesel==1) nr = 3;
+		else if(G.totfacesel==0) nr = 3;
+		else if(G.totfacesel==1)
+			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
+		else
+			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
+	}
+	else {
+		if (G.totfacesel == 0) nr = 0;
+		else if (G.totfacesel == 1) nr = 1;
+		else
+			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+	}
 		
 	if(nr<1) return;
 

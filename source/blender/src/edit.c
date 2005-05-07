@@ -561,30 +561,31 @@ void countall()
 	BezTriple *bezt;
 	BPoint *bp;
 	MetaElem *ml;
-	struct EditVert *eve;
-	struct EditFace *efa;
 	struct EditBone *ebo;
 	int a;
 
-	G.totvert= G.totvertsel= G.totfacesel= G.totface= G.totobj= 
+	G.totvert= G.totvertsel= G.totedge= G.totedgesel= G.totfacesel= G.totface= G.totobj= 
 	    G.totmesh= G.totlamp= G.totcurve= G.totobjsel=  0;
 
 	if(G.obedit) {
 		
 		if(G.obedit->type==OB_MESH) {
 			EditMesh *em = G.editMesh;
-			eve= em->verts.first;
-			while(eve) {
+			EditVert *eve;
+			EditEdge *eed;
+			EditFace *efa;
+			
+			for(eve= em->verts.first; eve; eve= eve->next) {
 				G.totvert++;
 				if(eve->f & SELECT) G.totvertsel++;
-				eve= eve->next;
 			}
-			
-			efa= em->faces.first;
-			while(efa) {
+			for(eed= em->edges.first; eed; eed= eed->next) {
+				G.totedge++;
+				if(eed->f & SELECT) G.totedgesel++;
+			}
+			for(efa= em->faces.first; efa; efa= efa->next) {
 				G.totface++;
 				if(efa->f & SELECT) G.totfacesel++;
-				efa= efa->next;
 			}
 		}
 		else if (G.obedit->type==OB_ARMATURE){
