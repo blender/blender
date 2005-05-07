@@ -991,10 +991,10 @@ short extrudeflag_vert(short flag, float *nor)
 	   if del_old==0 the extrude creates a volume.
 	*/
 	
-	/* if *one* selected face has edge with unselected face; remove old selected faces */
-	for(efa= em->faces.last; efa; efa= efa->prev) {
-		if(faceselectedAND(efa, flag)) {
-			if(efa->e1->f1==2 || efa->e2->f1==2 || efa->e3->f1==2 || (efa->e4 && efa->e4->f1==2)) {
+	 /* find if we delete old faces */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if( (eed->f2==1 || eed->f2==2) ) {
+			if(eed->f1==2) {
 				del_old= 1;
 				break;
 			}
