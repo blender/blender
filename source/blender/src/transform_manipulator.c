@@ -194,7 +194,7 @@ int calc_manipulator_stats(ScrArea *sa)
 				
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if(efa->f & SELECT) {
-						no_faces= 1;
+						no_faces= 0;
 						VECADD(normal, normal, efa->n);
 						VecSubf(vec, efa->v2->co, efa->v1->co);
 						VECADD(plane, plane, vec);
