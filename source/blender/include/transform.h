@@ -192,6 +192,7 @@ typedef struct TransInfo {
 #define CON_AXIS2		8
 #define CON_SELECT		16
 #define CON_NOFLIP		32	/* does not reorient vector to face viewport when on */
+#define CON_LOCAL		64
 
 /* transdata->flag */
 #define TD_SELECTED		1

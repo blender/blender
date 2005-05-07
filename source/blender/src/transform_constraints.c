@@ -472,6 +472,7 @@ static void drawObjectConstraint(TransInfo *t) {
 	int i;
 	TransData * td = t->data;
 
+	/* cannot find any reason for drawing first constraint this way... (ton)
 	if (t->con.mode & CON_AXIS0) {
 		drawLine(td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
 	}
@@ -481,9 +482,10 @@ static void drawObjectConstraint(TransInfo *t) {
 	if (t->con.mode & CON_AXIS2) {
 		drawLine(td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
 	}
-
+	
 	td++;
-	for(i=1;i<t->total;i++,td++) {
+	*/
+	for(i=0;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
 			drawLine(td->ob->obmat[3], td->axismtx[0], 'x', 0);
 		}
@@ -535,6 +537,7 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 
 	startConstraint(t);
 
+	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
 	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
@@ -590,7 +593,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 		else {
 			strncpy(t->con.text + 1, text, 48);
 			Mat3CpyMat3(t->con.mtx, t->data->axismtx);
-			t->con.mode = mode;
+			t->con.mode = mode|CON_LOCAL;
 			getConstraintMatrix(t);
 
 			startConstraint(t);

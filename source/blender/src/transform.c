@@ -1004,6 +1004,28 @@ static void headerResize(TransInfo *t, float vec[3], char *str) {
 	}
 }
 
+#define SIGN(a)		(a<-FLT_EPSILON?1:a>FLT_EPSILON?2:3)
+#define VECSIGNFLIP(a, b) ((SIGN(a[0]) & SIGN(b[0]))==0 || (SIGN(a[1]) & SIGN(b[1]))==0 || (SIGN(a[2]) & SIGN(b[2]))==0)
+
+/* smat is reference matrix, only scaled */
+static void TransMat3ToSize( float mat[][3], float smat[][3], float *size)
+{
+	float vec[3];
+	
+	VecCopyf(vec, mat[0]);
+	size[0]= Normalise(vec);
+	VecCopyf(vec, mat[1]);
+	size[1]= Normalise(vec);
+	VecCopyf(vec, mat[2]);
+	size[2]= Normalise(vec);
+	
+	/* first tried with dotproduct... but the sign flip is crucial */
+	if( VECSIGNFLIP(mat[0], smat[0]) ) size[0]= -size[0]; 
+	if( VECSIGNFLIP(mat[1], smat[1]) ) size[1]= -size[1]; 
+	if( VECSIGNFLIP(mat[2], smat[2]) ) size[2]= -size[2]; 
+}
+
+
 void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	float tmat[3][3], smat[3][3], center[3];
 	float vec[3];
@@ -1020,7 +1042,8 @@ void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		t->con.applySize(t, td, tmat);
 	}
 
-	if (G.vd->around == V3D_LOCAL) {
+	/* local constraint shouldn't alter center */
+	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
 		VECCOPY(center, td->center);
 	}
 	else {
@@ -1035,7 +1058,7 @@ void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 			// Reorient the size mat to fit the oriented object.
 			Mat3MulMat3(obsizemat, tmat, td->axismtx);
 			//printmatrix3("obsizemat", obsizemat);
-			Mat3ToSize(obsizemat, fsize);
+			TransMat3ToSize(obsizemat, td->axismtx, fsize);
 			//printvecf("fsize", fsize);
 		}
 		else {
@@ -1373,7 +1396,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	int i;
 
 	/* saving original center */
-	if (G.vd->around == V3D_LOCAL) {
+	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
 		VECCOPY(center, t->center);
 	}
 
@@ -1384,7 +1407,8 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		if (td->flag & TD_NOACTION)
 			break;
 		
-		if (G.vd->around == V3D_LOCAL) {
+		/* local constraint shouldn't alter center */
+		if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
 			VECCOPY(t->center, td->center);
 		}
 		
@@ -1400,7 +1424,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	}
 
 	/* restoring original center */
-	if (G.vd->around == V3D_LOCAL) {
+	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
 		VECCOPY(t->center, center);
 	}
 }
