@@ -69,6 +69,8 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_time.h"
 
+#include "BDR_editobject.h"
+
 #include "blendef.h"
 
 #include "mydevice.h"
@@ -328,6 +330,101 @@ void timeline_frame_to_center(void)
 	scrarea_queue_winredraw(curarea);
 }
 
+void timeline_grab(int mode, int smode)	// mode and smode unused here, for callback
+{
+	SpaceTime *stime= curarea->spacedata.first;
+	TimeMarker *marker, *selmarker=NULL;
+	float dx, fac;
+	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
+	unsigned short event;
+	short val, pmval[2], mval[2];
+	char str[32];
+	
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) totmark++;
+	}
+	if(totmark==0) return;
+	
+	oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
+	for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) {
+			oldframe[a]= marker->frame;
+			selmarker= marker;	// used for hederprint
+			a++;
+		}
+	}
+	
+	dx= G.v2d->mask.xmax-G.v2d->mask.xmin;
+	dx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/dx;
+	
+	getmouseco_areawin(pmval);
+	
+	while(ret_val == 0) {
+		
+		getmouseco_areawin(mval);
+		
+		if (mval[0] != pmval[0] || firsttime) {
+			firsttime= 0;
+			
+			fac= (((float)(mval[0] - pmval[0]))*dx);
+			
+			apply_keyb_grid(&fac, 0.0, (float)G.scene->r.frs_sec, 0.1*(float)G.scene->r.frs_sec, 0);
+			offs= (int)fac;
+			
+			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+				if(marker->flag & SELECT) {
+					marker->frame= oldframe[a] + offs;
+					a++;
+				}
+			}
+			
+			if(totmark==1) {	// we print current marker value
+				if(stime->flag & TIME_DRAWFRAMES) 
+					sprintf(str, "Marker %d offset %d", selmarker->frame, offs);
+				else 
+					sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
+			}
+			else {
+				if(stime->flag & TIME_DRAWFRAMES) 
+					sprintf(str, "Marker offset %d ", offs);
+				else 
+					sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
+			}
+			headerprint(str);
+			
+			force_draw(0);	// areas identical to this, 0 = no header
+		}
+		
+		/* essential for idling subloop */
+		if( qtest()==0) PIL_sleep_ms(2);
+		
+		/* emptying queue and reading events */
+		while( qtest() ) {
+			event= extern_qread(&val);
+			
+			if(val) {
+				if(event==ESCKEY || event==RIGHTMOUSE) ret_val= 2;
+				else if(event==LEFTMOUSE || event==RETKEY || event==SPACEKEY) ret_val= 1;
+			}
+		}
+	}
+	
+	/* restore? */
+	if(ret_val==2) {
+		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+			if(marker->flag & SELECT) {
+				marker->frame= oldframe[a];
+				a++;
+			}
+		}
+	}
+	else {
+		BIF_undo_push("Move Markers");
+	}
+	MEM_freeN(oldframe);
+	allqueue(REDRAWTIME, 0);
+}
+
 /* ***************************** */
 
 /* Right. Now for some implementation: */
@@ -396,8 +493,9 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				select_timeline_marker_frame(cfra, 1);
 			else
 				select_timeline_marker_frame(cfra, 0);
-
-			doredraw= 1;
+			
+			force_draw(0);
+			std_rmouse_transform(timeline_grab);
 
 			break;
 		case MIDDLEMOUSE:
@@ -450,7 +548,8 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case CKEY:
 			timeline_frame_to_center();
 			break;
-		case GKEY: /* move marker ... not yet implemented */
+		case GKEY: /* move marker */
+			timeline_grab('g', 0);
 			break;
 		case EKEY: /* set end frame */
 			G.scene->r.efra = CFRA;

@@ -211,6 +211,9 @@ static void do_time_framemenu(void *arg, int event)
 		case 5: /* Rename Marker */
 			rename_timeline_marker();
 			break;
+		case 6: /* Grab Marker */
+			timeline_grab('g', 0);
+			break;
 	}
 	allqueue(REDRAWTIME, 0);
 }
@@ -230,6 +233,8 @@ static uiBlock *time_framemenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Name Marker|Ctrl M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/move Marker|G", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

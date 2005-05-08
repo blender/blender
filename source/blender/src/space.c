@@ -2177,7 +2177,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	else if(curmain==12) spacetype= SPACE_BUTS;
 	else if(curmain==13) spacetype= SPACE_FILE;
 	else if(curmain==14) spacetype= SPACE_IMASEL;
-	else if(curmain==15) spacetype= SPACE_IMASEL;
+	else if(curmain==15) spacetype= SPACE_TIME;
 	else return; // only needed while coding... when adding themes for more windows
 	
 	/* color choices pup */
@@ -4796,7 +4796,7 @@ void allspace(unsigned short event, short val)
 /* if header==1, then draw header for curarea too. Excepption for headerprint()... */
 void force_draw(int header)
 {
-	/* draws alle areas that something identical to curarea */
+	/* draws all areas that show something identical to curarea */
 	extern int afterqtest(short win, unsigned short evt);	//editscreen.c
 	ScrArea *tempsa, *sa;
 

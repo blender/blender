@@ -42,7 +42,7 @@ void select_timeline_markers(void);
 void timeline_frame_to_center(void);
 void nextprev_timeline_key(short dir);
 void nextprev_timeline_marker(short dir);
-
+void timeline_grab(int mode, int smode);
 
 #endif
 

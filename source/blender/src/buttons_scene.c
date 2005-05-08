@@ -1214,7 +1214,7 @@ static void render_panel_format(void)
 	} else {
 		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
-	uiDefButS(block, NUM,REDRAWALL,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,B_RTCHANGED,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 
 
 	uiBlockBeginAlign(block);
@@ -1405,7 +1405,7 @@ void anim_panels()
 	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	320,69,93,22,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old mapping value in frames");
 	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
 
-	uiDefButS(block, NUM,REDRAWSEQ,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,B_RTCHANGED,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 
 	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	416,47,95,19, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 

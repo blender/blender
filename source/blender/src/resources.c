@@ -750,6 +750,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 		else if(spacetype==SPACE_IPO) {
 			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
+			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Ipo Channels %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
@@ -761,6 +762,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 		else if(spacetype==SPACE_NLA) {
 			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
+			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Bars %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Bars selected %%x%d|", TH_HILITE); strcat(cp, str);
@@ -768,6 +770,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 		else if(spacetype==SPACE_ACTION) {
 			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
 			strcat(cp,"%l|");
+			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "RVK Sliders %%x%d|", TH_FACE); strcat(cp, str);
 			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Channels %%x%d|", TH_SHADE2); strcat(cp, str);
@@ -782,9 +785,11 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_SEQ) {
+			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_SOUND) {
+			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "Window Slider %%x%d|", TH_SHADE1); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_BUTS) {
@@ -799,6 +804,9 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Cursor %%x%d|", TH_HILITE); strcat(cp, str);
 			strcat(cp,"%l|");
 			sprintf(str, "Bracket Matching %%x%d|", TH_BRACKET); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_TIME) {
+			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 		}
 	}
 	return cp;

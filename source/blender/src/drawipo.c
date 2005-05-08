@@ -114,7 +114,7 @@ static void scroll_prstr(float x, float y, float val, char dir, int disptype)
 	else macht= ipomachtx;
 	
 	if (macht<=0) sprintf(str, "%.*f", 1-macht, val);
-	else sprintf(str, "%d", (int)val);
+	else sprintf(str, "%d", (int)floor(val + 0.375));
 	
 	len= strlen(str);
 	if(dir=='h') x-= 4*len;
@@ -136,7 +136,7 @@ static void step_to_grid(float *step, int *macht)
 	
 	loga= log10(*step);
 	*macht= (int)(loga);
-	
+
 	rem= loga- *macht;
 	rem= pow(10.0, rem);
 	
@@ -146,6 +146,8 @@ static void step_to_grid(float *step, int *macht)
 		else rem= 1.0;
 		
 		*step= rem*pow(10.0, (float)*macht);
+		
+		if(rem==1.0) (*macht)++;	// prevents printing 1.0 2.0 3.0 etc
 	}
 	else {
 		if(rem < 2.0) rem= 2.0;
@@ -155,24 +157,34 @@ static void step_to_grid(float *step, int *macht)
 		*step= rem*pow(10.0, (float)*macht);
 		
 		(*macht)++;
+		if(rem==10.0) (*macht)++;	// prevents printing 1.0 2.0 3.0 etc
 	}
-	
 }
 
 void calc_ipogrid()
 {
-	float space, pixels;
-	
+	float space, pixels, secondiv=1.0;
+	int secondgrid= 0;
 	/* rule: gridstep is minimal IPOSTEP pixels */
 	/* how large is IPOSTEP pixels? */
 	
 	if(G.v2d==0) return;
 	
+	/* detect of we have seconds or frames, should become argument */
+	if(curarea->spacetype==SPACE_TIME) {
+		SpaceTime *stime= curarea->spacedata.first;
+		if(!(stime->flag & TIME_DRAWFRAMES)) {
+			secondgrid= 1;
+			secondiv= 0.01 * (float)G.scene->r.frs_sec;
+		}
+	}
+	
 	space= G.v2d->cur.xmax - G.v2d->cur.xmin;
 	pixels= G.v2d->mask.xmax-G.v2d->mask.xmin;
 	
-	ipogrid_dx= IPOSTEP*space/pixels;
+	ipogrid_dx= IPOSTEP*space/(secondiv*pixels);
 	step_to_grid(&ipogrid_dx, &ipomachtx);
+	ipogrid_dx*= secondiv;
 	
 	if ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME) {
 		if(ipogrid_dx < 0.1) ipogrid_dx= 0.1;
@@ -190,8 +202,9 @@ void calc_ipogrid()
 		if(ipomachty<1) ipomachty= 1;
 	}
 	
-	ipogrid_startx= G.v2d->cur.xmin-fmod(G.v2d->cur.xmin, ipogrid_dx);
+	ipogrid_startx= secondiv*(G.v2d->cur.xmin/secondiv - fmod(G.v2d->cur.xmin/secondiv, ipogrid_dx/secondiv));
 	if(G.v2d->cur.xmin<0.0) ipogrid_startx-= ipogrid_dx;
+	
 	ipogrid_starty= (G.v2d->cur.ymin-fmod(G.v2d->cur.ymin, ipogrid_dy));
 	if(G.v2d->cur.ymin<0.0) ipogrid_starty-= ipogrid_dy;
 	
@@ -208,8 +221,7 @@ void draw_ipogrid(void)
 	
 	step= (G.v2d->mask.xmax-G.v2d->mask.xmin+1)/IPOSTEP;
 	
-	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) glColor3ub(0x70, 0x70, 0x60);
-	else BIF_ThemeColor(TH_GRID);
+	BIF_ThemeColor(TH_GRID);
 	
 	for(a=0; a<step; a++) {
 		glBegin(GL_LINE_STRIP);
@@ -220,8 +232,7 @@ void draw_ipogrid(void)
 	
 	vec2[0]= vec1[0]-= 0.5*ipogrid_dx;
 	
-	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) glColor3ub(0x80, 0x80, 0x70);
-	else  BIF_ThemeColorShade(TH_GRID, 16);
+	BIF_ThemeColorShade(TH_GRID, 16);
 	
 	step++;
 	for(a=0; a<=step; a++) {
@@ -661,6 +672,7 @@ void draw_view2d_numbers_horiz(int drawframes)
 	float fac, fac2, dfac, val;
 	
 	/* the numbers: convert ipogrid_startx and -dx to scroll coordinates */
+	
 	fac= (ipogrid_startx- G.v2d->cur.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 	fac= G.v2d->mask.xmin+fac*(G.v2d->mask.xmax-G.v2d->mask.xmin);
 	
@@ -683,7 +695,6 @@ void draw_view2d_numbers_horiz(int drawframes)
 		fac+= dfac;
 		val+= ipogrid_dx;
 	}
-
 }
 
 
