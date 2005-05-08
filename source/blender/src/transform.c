@@ -121,7 +121,7 @@ extern void helpline(float *vec);
 #include "transform.h"
 
 /* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
-TransInfo Trans;
+TransInfo Trans = {TFM_INIT, 0};	// enforce init on first usage
 int	LastMode = TFM_TRANSLATION;
 
 #define TRANS_CANCEL	2
@@ -188,6 +188,37 @@ static void view_editmove(unsigned short event)
 	}
 }
 
+static char *transform_to_undostr(TransInfo *t)
+{
+	switch (t->mode) {
+		case TFM_TRANSLATION:
+			return "Translate";
+		case TFM_ROTATION:
+			return "Rotate";
+		case TFM_RESIZE:
+			return "Scale";
+		case TFM_TOSPHERE:
+			return "To Sphere";
+		case TFM_SHEAR:
+			return "Shear";
+		case TFM_WARP:
+			return "Warp";
+		case TFM_SHRINKFATTEN:
+			return "Shrink/Fatten";
+		case TFM_TILT:
+			return "Tilt";
+		case TFM_TRACKBALL:
+			return "Trackball";
+		case TFM_PUSHPULL:
+			return "Push/Pull";
+		case TFM_CREASE:
+			return "Crease";
+	}
+	return "Transform";
+}
+
+/* ************************************************* */
+
 void Transform(int mode, int context) 
 {
 	int ret_val = 0;
@@ -199,10 +230,8 @@ void Transform(int mode, int context)
 	/* If MMB is pressed or not */
 	char mmb_press = 0;
 
-	/*joeedh -> hopefully may be what makes the old transform() constant*/
-	/* ton: I doubt, but it doesnt harm for now. shouldnt be needed though */
-	areawinset(curarea->win);
-
+	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
+	if(Trans.mode==TFM_INIT) memset(&Trans, 0, sizeof(TransInfo));
 	Mat3One(mati);
 
 	/* stupid PET initialisation code */
@@ -540,12 +569,16 @@ void Transform(int mode, int context)
 	}
 	
 	
+	/* handle restoring objects and Undo */
 	if(ret_val == TRANS_CANCEL) {
 		restoreTransObjects(&Trans);
+		if(Trans.undostr) BIF_undo_push(Trans.undostr);
 	}
 	else {
-		BIF_undo_push("Transform");
+		if(Trans.undostr) BIF_undo_push(Trans.undostr);
+		else BIF_undo_push(transform_to_undostr(&Trans));
 	}
+	Trans.undostr= NULL;
 	
 	/* free data, reset vars */
 	postTrans(&Trans);
@@ -576,7 +609,9 @@ void ManipulatorTransform(int mode)
 	short pmval[2] = {0, 0}, mval[2], val;
 	unsigned short event;
 
-
+	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
+	if(Trans.mode==TFM_INIT) memset(&Trans, 0, sizeof(TransInfo));
+	
 	/* stupid PET initialisation code */
 	/* START */
 	if (Trans.propsize == 0.0f) {
@@ -708,7 +743,7 @@ void ManipulatorTransform(int mode)
 		restoreTransObjects(&Trans);
 	}
 	else {
-		BIF_undo_push("Transform");
+		BIF_undo_push(transform_to_undostr(&Trans));
 	}
 	
 	/* free data, reset vars */
@@ -2161,3 +2196,11 @@ void Mirror(short mode)
 	allqueue(REDRAWBUTSOBJECT, 0);
 	scrarea_queue_headredraw(curarea);
 }
+
+
+void BIF_TransformSetUndo(char *str)
+{
+	Trans.undostr= str;
+}
+
+

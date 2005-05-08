@@ -4132,8 +4132,10 @@ void adduplicate(float *dtrans)
 	clear_id_newpoins();
 	
 	countall();
-	if(dtrans==0) Transform(TFM_TRANSLATION, CTX_NONE);
-	
+	if(dtrans==0) {
+		BIF_TransformSetUndo("Add Duplicate");
+		Transform(TFM_TRANSLATION, CTX_NONE);
+	}
 	set_active_base(BASACT);
 	
 	allqueue(REDRAWNLA, 0);

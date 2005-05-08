@@ -312,6 +312,7 @@ void adduplicate_mball()
 		ml= ml->prev;
 	}
 	
+	BIF_TransformSetUndo("Add Duplicate");
 	Transform(TFM_TRANSLATION, CTX_NO_PET);
 	allqueue(REDRAWBUTSEDIT, 0);
 }

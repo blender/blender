@@ -580,6 +580,7 @@ void extrude_mesh(void)
 		countall(); 
 		
 		/* individual faces? */
+		BIF_TransformSetUndo("Extrude");
 		if(nr==2) {
 			Transform(TFM_SHRINKFATTEN, CTX_NO_PET|CTX_NO_NOR_RECALC);
 		}

@@ -1996,6 +1996,7 @@ void extrude_armature(void)
 	
 	/* Transform the endpoints */
 	countall();
+	BIF_TransformSetUndo("Extrude");
 	Transform(TFM_TRANSLATION, CTX_NO_PET);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
@@ -2159,7 +2160,7 @@ void adduplicate_armature(void)
 		curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 	}
 
-
+	BIF_TransformSetUndo("Add Duplicate");
 	Transform(TFM_TRANSLATION, CTX_NO_PET);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);

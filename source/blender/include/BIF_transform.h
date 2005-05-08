@@ -36,6 +36,7 @@
 /* ******************** Macros & Prototypes *********************** */
 
 /* MODE AND NUMINPUT FLAGS */
+#define TFM_INIT			-1
 #define TFM_REPEAT			0
 #define TFM_TRANSLATION		1
 #define TFM_ROTATION		2
@@ -73,6 +74,8 @@ void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
 void BIF_drawConstraint(void);
 void BIF_drawPropCircle(void);
+
+void BIF_TransformSetUndo(char *str);
 
 /* view3d manipulators */
 void ManipulatorTransform(int mode);

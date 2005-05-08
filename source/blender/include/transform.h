@@ -152,6 +152,8 @@ typedef struct TransInfo {
 	
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
+	
+	char		*undostr;		/* if set, uses this string for undo */
 } TransInfo;
 
 
