@@ -1132,6 +1132,9 @@ static void ipokey_to_transdata(IpoKey *ik, TransData *td)
 	BezTriple *bezt;
 	int a, delta= 0;
 	
+	td->val= NULL;	// is read on ESC
+	td->ext= NULL;	// is read on ESC
+	
 	for(a=0; a<OB_TOTIPO; a++) {
 		if(ik->data[a]) {
 			bezt= ik->data[a];
