@@ -110,12 +110,13 @@
 #include "BDR_editobject.h"
 #include "BDR_vpaint.h"
 
-#include "BSE_view.h"
 #include "BSE_drawview.h"
+#include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_seqaudio.h"
-#include "BSE_filesel.h"
 #include "BSE_trans_types.h"
+#include "BSE_time.h"
+#include "BSE_view.h"
 
 #include "RE_renderconverter.h"
 
@@ -2389,12 +2390,10 @@ int play_anim(int mode)
 	
 	while(TRUE) {
 
-		inner_play_anim_loop(0, 0);
-	
-		screen_swapbuffers();
-		
 		while(qtest()) {
-		
+			
+			/* we test events first because of MKEY event */
+			
 			event= extern_qread(&val);
 			if(event==ESCKEY) break;
 			else if(event==MIDDLEMOUSE) {
@@ -2409,8 +2408,14 @@ int play_anim(int mode)
 					else viewmove(0);
 				}
 			}
+			else if(event==MKEY) {
+				if(val) add_timeline_marker(CFRA-1);
+			}
 		}
-		if(event==ESCKEY || event==SPACEKEY) break;
+		if(ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
+		
+		inner_play_anim_loop(0, 0);
+		screen_swapbuffers();
 				
 		if((mode > 1) && CFRA==EFRA) break; /* no replay */	
 	}

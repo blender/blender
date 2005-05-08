@@ -1644,18 +1644,18 @@ static void object_softbodies(Object *ob)
 			}
 			MEM_freeN (menustr);
 
-			uiDefButF(block, NUM, B_DIFF, "GSpring:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) Spring Constant");
-			uiDefButF(block, NUM, B_DIFF, "GFrict:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) Friction Constant");
-			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMin:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
-			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "GMax:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
+			uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
+			uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) friction");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Min:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Max:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
 			uiBlockEndAlign(block);
 			
 			/* EDGE SPRING STUFF */
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
 			uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
-			uiDefButF(block, NUM, B_DIFF, "ESpring:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge Spring Constant");
-			uiDefButF(block, NUM, B_DIFF, "EFrict:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge Friction Constant");
+			uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
+			uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge friction");
 			uiBlockEndAlign(block);
 		}
 	}

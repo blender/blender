@@ -43,12 +43,14 @@
 #include "DNA_action_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
+#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_ipo.h"
 #include "BKE_object.h"
+#include "BKE_material.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 
@@ -200,7 +202,8 @@ static void draw_ob_keys()
 	Object *ob;
 	bActionChannel *achan;
 	bAction *act;
-	int ipoflag;
+	ListBase elems;
+	int a;
 	char col[3];
 
 	if (OBACT) {
@@ -210,26 +213,13 @@ static void draw_ob_keys()
 			if(ob!=G.obedit) {
 				if(ob->ipo) {
 					/* convert the ipo to a list of 'current frame elements' */
-					ListBase elems;
 						
 					elems.first= elems.last= NULL;
 					make_cfra_list(ob->ipo, &elems);
 					
-					/* disable time offset for the purposes of drawing the frame ticks */
-					ipoflag= ob->ipoflag;
-					ob->ipoflag &= ~OB_OFFS_OB;
-											
-					set_no_parent_ipo(1);
-					disable_speed_curve(1);
-	
 					/* draw the list of current frame elements */
 					col[0] = 0xDD; col[1] = 0xD7; col[2] = 0x00;
 					draw_key_list(elems, col);
-					
-					set_no_parent_ipo(0);
-					disable_speed_curve(0);
-					
-					ob->ipoflag= ipoflag;
 					
 					BLI_freelistN(&elems);
 				}
@@ -240,7 +230,6 @@ static void draw_ob_keys()
 					/* go through each channel in the action */
 					for (achan=act->chanbase.first; achan; achan=achan->next){
 						/* convert the ipo to a list of 'current frame elements' */
-						ListBase elems;
 						
 						elems.first= elems.last= NULL;
 						make_cfra_list(achan->ipo, &elems);
@@ -251,6 +240,21 @@ static void draw_ob_keys()
 						BLI_freelistN(&elems);
 					}
 				}
+				
+				for(a=0; a<ob->totcol; a++) {
+					Material *ma= give_current_material(ob, a+1);
+					
+					if(ma && ma->ipo) {
+						elems.first= elems.last= NULL;
+						make_cfra_list(ma->ipo, &elems);
+						
+						col[0] = 0xDD; col[1] = 0xA7; col[2] = 0x00;
+						draw_key_list(elems, col);
+						
+						BLI_freelistN(&elems);
+					}
+				}
+				
 			}
 		}
 	}

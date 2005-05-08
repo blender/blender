@@ -1170,6 +1170,7 @@ void mouse_select(void)
 			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWTIME, 0);
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
 			
 		}

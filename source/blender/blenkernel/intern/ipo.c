@@ -2071,6 +2071,20 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 			icu= icu->next;
 		}
 	}
+	else {
+		for(icu= ipo->curve.first; icu; icu= icu->next) {
+			if(icu->flag & IPO_VISIBLE) {
+				bezt= icu->bezt;
+				if(bezt) {
+					a= icu->totvert;
+					while(a--) {
+						add_to_cfra_elem(elems, bezt);
+						bezt++;
+					}
+				}
+			}
+		}
+	}
 	
 	if(ipo->showkey==0) {
 		/* deselect all keys */

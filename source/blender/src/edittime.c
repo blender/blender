@@ -48,6 +48,7 @@
 #include "DNA_action_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
+#include "DNA_material_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -57,6 +58,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_library.h"
 
 #include "BIF_space.h"
@@ -221,15 +223,38 @@ static int float_to_frame(float frame)
 	return to;	
 }
 
+static float find_closest_cfra_elem(ListBase elems, int dir, float closest)
+{
+	CfraElem *ce;
+	
+	for(ce= elems.first; ce; ce= ce->next) {
+		if (dir==-1) {
+			if( float_to_frame(ce->cfra)<CFRA) {
+				if ((ce->cfra > closest) || (closest == CFRA)) {
+					closest= ce->cfra;
+				}
+			}
+		} 
+		else {
+			if(float_to_frame(ce->cfra)>CFRA) {
+				if ((ce->cfra < closest) || (closest == CFRA)) {
+					closest= ce->cfra;
+				}
+			}
+		}
+	}
+	return closest;
+}
+
 void nextprev_timeline_key(short dir)
 {
 	/*mostly copied from drawobject.c, draw_object() AND editipo.c, movekey_obipo() */
 	Object *ob;
 	bActionChannel *achan;
 	bAction *act;
-	CfraElem *ce;
+	ListBase elems;
+	float closest= CFRA;
 	int a;
-	float toframe= CFRA;
 	
 	if (OBACT) {
 		ob = OBACT;
@@ -238,37 +263,12 @@ void nextprev_timeline_key(short dir)
 			if(ob!=G.obedit) {
 				if(ob->ipo) {
 					/* convert the ipo to a list of 'current frame elements' */
-					ListBase elems;
 					
-					elems.first= elems.last= 0;
+					elems.first= elems.last= NULL;
 					make_cfra_list(ob->ipo, &elems);
 					
-					/* disable time offset for the purposes of drawing the frame ticks */
-					/* ipoflag= ob->ipoflag;
-					ob->ipoflag &= ~OB_OFFS_OB;
+					closest= find_closest_cfra_elem(elems, dir, closest);
 					
-					set_no_parent_ipo(1);
-					disable_speed_curve(1); */
-					
-					/* go through the list and decide if we can find a new keyframe to visit */
-					if(elems.first) {
-						ce= elems.first;
-						if (dir==-1) {
-							while (ce && float_to_frame(ce->cfra)<CFRA) {
-								toframe= ce->cfra;
-								ce= ce->next;
-							}
-						} else {
-							while (ce && float_to_frame(ce->cfra)<=CFRA) {
-								ce= ce->next;
-							}
-							if (ce) toframe= ce->cfra;
-						}
-					}
-					/*set_no_parent_ipo(0);
-					disable_speed_curve(0);
-					
-					ob->ipoflag= ipoflag; */
 					BLI_freelistN(&elems);
 				}
 				
@@ -277,38 +277,31 @@ void nextprev_timeline_key(short dir)
 					/* go through each channel in the action */
 					for (achan=act->chanbase.first; achan; achan=achan->next){
 						/* convert the ipo to a list of 'current frame elements' */
-						ListBase elems;
 						
-						elems.first= elems.last= 0;
+						elems.first= elems.last= NULL;
 						make_cfra_list(achan->ipo, &elems);
 						
-						/* go through the list and decide if we can find a new keyframe to visit */
-						if(elems.first) {
-							ce= elems.first;
-							if (dir==-1) {
-								while (ce && float_to_frame(ce->cfra)<CFRA) {
-									if ((ce->cfra > toframe) || (toframe == CFRA)) {
-										toframe= ce->cfra;
-									}
-									ce= ce->next;
-								}
-							} else {
-								while (ce && float_to_frame(ce->cfra)<=CFRA) {
-									ce= ce->next;
-								}
-								if (ce) {
-									if ((ce->cfra < toframe) || (toframe == CFRA))
-										toframe= ce->cfra;
-								}
-							}
-						}
+						closest= find_closest_cfra_elem(elems, dir, closest);
+						
+						BLI_freelistN(&elems);
+					}
+				}
+				
+				for(a=0; a<ob->totcol; a++) {
+					Material *ma= give_current_material(ob, a+1);
+					if(ma && ma->ipo) {
+						elems.first= elems.last= NULL;
+						make_cfra_list(ma->ipo, &elems);
+						
+						closest= find_closest_cfra_elem(elems, dir, closest);
+						
 						BLI_freelistN(&elems);
 					}
 				}
 			}
 		}
 		
-		a= float_to_frame(toframe);
+		a= float_to_frame(closest);
 		
 		if (a!=CFRA) {
 			CFRA= a;
