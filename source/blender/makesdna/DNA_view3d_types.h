@@ -135,6 +135,7 @@ typedef struct View3D {
 #define V3D_CENTROID	 3
 #define V3D_CURSOR		 1
 #define V3D_LOCAL		 2
+#define V3D_ACTIVE		 4
 
 
 /* View3d->persp */

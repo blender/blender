@@ -1328,11 +1328,16 @@ void BIF_draw_manipulator(ScrArea *sa)
 		/* now we can define centre */
 		switch(v3d->around) {
 		case V3D_CENTRE:
-		case V3D_LOCAL:
+		case V3D_ACTIVE:
 			v3d->twmat[3][0]= (G.scene->twmin[0] + G.scene->twmax[0])/2.0f;
 			v3d->twmat[3][1]= (G.scene->twmin[1] + G.scene->twmax[1])/2.0f;
 			v3d->twmat[3][2]= (G.scene->twmin[2] + G.scene->twmax[2])/2.0f;
+			if(v3d->around==V3D_ACTIVE && G.obedit==NULL && G.obpose==NULL) {
+				Object *ob= OBACT;
+				if(ob) VECCOPY(v3d->twmat[3], ob->obmat[3]);
+			}
 			break;
+		case V3D_LOCAL:
 		case V3D_CENTROID:
 			VECCOPY(v3d->twmat[3], G.scene->twcent);
 			break;

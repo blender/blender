@@ -702,6 +702,17 @@ void calculateCenter(TransInfo *t)
 		/* Individual element center uses median center for helpline and such */
 		calculateCenterMedian(t);
 		break;
+	case V3D_ACTIVE:
+		/* set median, and if if if... do object center */
+		calculateCenterMedian(t);
+		if((t->flag & (T_EDIT|T_POSE))==0) {
+			Object *ob= OBACT;
+			if(ob) {
+				VECCOPY(t->center, ob->obmat[3]);
+				project_short_noclip(t->center, t->center2d);
+			}
+		}
+		
 	}
 
 	/* setting constraint center */
